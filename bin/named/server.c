@@ -637,7 +637,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				     &server->clientmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_clientmgr_create() failed: %s\n",
+				 "ns_clientmgr_create() failed: %s",
 				 isc_result_totext(result));
 		/* XXX cleanup */
 		return;
@@ -776,7 +776,12 @@ ns_server_destroy(ns_server_t **serverp) {
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
 }
-	
+
+/*
+ * Set up global server state.  Don't bother with
+ * cleanup; our caller will cause the program to exit
+ * if we fail.
+ */
 isc_result_t
 ns_server_setup(void) {
 	isc_result_t result;
@@ -800,13 +805,6 @@ ns_server_setup(void) {
 		return (result);
 
 	return (ISC_R_SUCCESS);
-
-	/* XXXRTH  Add zonemgr, and version view cleanups. */
-
- cleanup_rootns:
-	ns_rootns_destroy();
-
-	return (result);
 }
 
 void
