@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2000/07/09 16:27:30 tale Exp $
+# $Id: tests.sh,v 1.4.2.1 2000/11/20 20:57:11 gson Exp $
 
 #
 # Perform tests
@@ -59,6 +59,45 @@ grep ";" dig.out.ns2		# XXXDCL Why is this here?
 echo "I:comparing post-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
+
+echo "I:begin RT #482 regression test"
+
+echo "I:update master"
+$NSUPDATE <<END > /dev/null || status=1
+server 10.53.0.1 5300
+update add updated2.example.nil. 600 A 10.10.10.2
+update add updated2.example.nil. 600 TXT Bar
+update delete c.example.nil.
+send
+END
+
+sleep 5
+
+echo "I:SIGHUP slave"
+kill -HUP `cat ns2/named.pid`
+
+sleep 5
+
+echo "I:update master again"
+$NSUPDATE <<END > /dev/null || status=1
+server 10.53.0.1 5300
+update add updated3.example.nil. 600 A 10.10.10.3
+update add updated3.example.nil. 600 TXT Zap
+update delete d.example.nil.
+send
+END
+
+sleep 5
+
+echo "I:SIGHUP slave again"
+kill -HUP `cat ns2/named.pid`
+
+sleep 5
+
+if grep "out of sync" ns2/named.run
+then
+	status=1
+fi
 
 echo "I:exit status: $status"
 exit $status
