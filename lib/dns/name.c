@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.120 2001/02/12 18:07:49 bwelling Exp $ */
+/* $Id: name.c,v 1.121 2001/02/13 00:07:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2232,6 +2232,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		switch (state) {
 		case fw_start:
 			if (c < 64) {
+				offsets[labels] = nused;
 				labels++;
 				if (nused + c + 1 > nmax)
 					goto full;
@@ -2259,6 +2260,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				n = 1;
 				state = fw_newcurrent;
 			} else if (c == DNS_LABELTYPE_BITSTRING) {
+				offsets[labels] = nused;
 				labels++;
 				if (nused == nmax)
 					goto full;
@@ -2323,12 +2325,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	name->labels = labels;
 	name->length = nused;
 	name->attributes |= DNS_NAMEATTR_ABSOLUTE;
-
-	/*
-	 * We should build the offsets table directly.
-	 */
-	if (name->offsets != NULL || saw_bitstring)
-		set_offsets(name, offsets, NULL);
 
 	if (saw_bitstring)
 		compact(name, offsets);
