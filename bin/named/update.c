@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.114 2004/06/20 23:57:13 marka Exp $ */
+/* $Id: update.c,v 1.115 2004/07/20 07:39:31 marka Exp $ */
 
 #include <config.h>
 
@@ -2633,26 +2633,29 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 			dns_journal_destroy(&journal);
 		}
+
+		/*
+		 * XXXRTH  Just a note that this committing code will have
+		 *	   to change to handle databases that need two-phase
+		 *	   commit, but this isn't a priority.
+		 */
+		update_log(client, zone, LOGLEVEL_DEBUG,
+			   "committing update transaction");
+		dns_db_closeversion(db, &ver, ISC_TRUE);
+
+		/*
+		 * Mark the zone as dirty so that it will be written to disk.
+		 */
+		dns_zone_markdirty(zone);
+
+		/*
+		 * Notify slaves of the change we just made.
+		 */
+		dns_zone_notify(zone);
+	} else {
+		update_log(client, zone, LOGLEVEL_DEBUG, "redundant request");
+		dns_db_closeversion(db, &ver, ISC_TRUE);
 	}
-
-	/*
-	 * XXXRTH  Just a note that this committing code will have to change
-	 *         to handle databases that need two-phase commit, but this
-	 *	   isn't a priority.
-	 */
-	update_log(client, zone, LOGLEVEL_DEBUG,
-		   "committing update transaction");
-	dns_db_closeversion(db, &ver, ISC_TRUE);
-
-	/*
-	 * Mark the zone as dirty so that it will be written to disk.
-	 */
-	dns_zone_markdirty(zone);
-
-	/*
-	 * Notify slaves of the change we just made.
-	 */
-	dns_zone_notify(zone);
 	result = ISC_R_SUCCESS;
 	goto common;
 
