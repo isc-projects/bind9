@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.8.2.1 2000/06/27 22:56:18 gson Exp $ */
+/* $Id: lwresd.c,v 1.8.2.2 2000/06/28 00:19:05 gson Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -92,6 +92,8 @@ shutdown_lwresd(isc_task_t *task, isc_event_t *event) {
 	unsigned int i;
 
 	UNUSED(task);
+
+	dns_dispatchmgr_destroy(&lwresd->dispmgr);
 
 	for (i = 0; i < lwresd->ntasks; i++)
 		isc_task_shutdown(lwresd->cmgr[i].task);
@@ -174,8 +176,8 @@ parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t *forwarders) {
 	lwres_context_destroy(&lwctx);
 }
 
-isc_result_t
-ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
+static isc_result_t
+ns_lwresd_createview(ns_lwresd_t *lwresd, dns_view_t **viewp) {
 	dns_cache_t *cache;
 	isc_result_t result;
 	dns_db_t *rootdb;
@@ -189,8 +191,8 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 	REQUIRE(viewp != NULL && *viewp == NULL);
 	cache = NULL;
 
-	result = dns_dispatchmgr_create(ns_g_mctx, ns_g_entropy,
-					&ns_g_dispatchmgr);
+	result = dns_dispatchmgr_create(lwresd->mctx, ns_g_entropy,
+					&lwresd->dispmgr);
 
 	if (result != ISC_R_SUCCESS)
 		fatal("creating dispatch manager", result);
@@ -199,14 +201,15 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 	 * View.
 	 */
 	view = NULL;
-	result = dns_view_create(mctx, dns_rdataclass_in, "_default", &view);
+	result = dns_view_create(lwresd->mctx, dns_rdataclass_in, "_default",
+				 &view);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/*
 	 * Cache.
 	 */
-	result = dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr,
+	result = dns_cache_create(lwresd->mctx, ns_g_taskmgr, ns_g_timermgr,
 				  dns_rdataclass_in, "rbt", 0, NULL, &cache);
 	if (result != ISC_R_SUCCESS)
 		goto out;
@@ -223,7 +226,7 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 		isc_sockaddr_any6(&any6);
 
 		attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
-		result = dns_dispatch_getudp(ns_g_dispatchmgr, ns_g_socketmgr,
+		result = dns_dispatch_getudp(lwresd->dispmgr, ns_g_socketmgr,
 					     ns_g_taskmgr, &any6, 512, 6, 1024,
 					     17, 19, attrs, attrs, &disp6);
 		if (result != ISC_R_SUCCESS)
@@ -233,7 +236,7 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 		isc_sockaddr_any(&any4);
 
 		attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
-		result = dns_dispatch_getudp(ns_g_dispatchmgr, ns_g_socketmgr,
+		result = dns_dispatch_getudp(lwresd->dispmgr, ns_g_socketmgr,
 					     ns_g_taskmgr, &any4, 512, 6, 1024,
 					     17, 19, attrs, attrs, &disp4);
 		if (result != ISC_R_SUCCESS)
@@ -244,7 +247,7 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 	
 	result = dns_view_createresolver(view, ns_g_taskmgr, 16,
 					 ns_g_socketmgr, ns_g_timermgr, 0,
-					 ns_g_dispatchmgr, disp4, disp6);
+					 lwresd->dispmgr, disp4, disp6);
 	if (disp4 != NULL)
 		dns_dispatch_detach(&disp4);
 	if (disp6 != NULL)
@@ -254,7 +257,8 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 		goto out;
 
 	rootdb = NULL;
-	result = dns_rootns_create(mctx, dns_rdataclass_in, NULL, &rootdb);
+	result = dns_rootns_create(lwresd->mctx, dns_rdataclass_in, NULL,
+				   &rootdb);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 	dns_view_sethints(view, rootdb);
@@ -264,7 +268,7 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 	 * If we have forwarders, set them here.
 	 */
 	ISC_LIST_INIT(forwarders);
-	parse_resolv_conf(mctx, &forwarders);
+	parse_resolv_conf(lwresd->mctx, &forwarders);
 	if (ISC_LIST_HEAD(forwarders) != NULL) {
 		isc_sockaddr_t *sa;
 
@@ -273,7 +277,7 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 		sa = ISC_LIST_HEAD(forwarders);
 		while (sa != NULL) {
 			ISC_LIST_UNLINK(forwarders, sa, link);
-			isc_mem_put(mctx, sa, sizeof (*sa));
+			isc_mem_put(lwresd->mctx, sa, sizeof (*sa));
 			sa = ISC_LIST_HEAD(forwarders);
 		}
 	}
@@ -327,10 +331,11 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 	lwresd->sock = sock;
 
 	lwresd->view = NULL;
+	lwresd->dispmgr = NULL;
 	if (view != NULL)
 		dns_view_attach(view, &lwresd->view);
 	else {
-		result = ns_lwresd_createview(ns_g_mctx, &lwresd->view);
+		result = ns_lwresd_createview(lwresd, &lwresd->view);
 		if (result != ISC_R_SUCCESS)
 			fatal("failed to create default view", result);
 	}
