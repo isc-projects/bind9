@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.26.2.1 2002/01/23 00:11:14 marka Exp $ */
+/* $Id: lex.h,v 1.26.2.2 2002/02/08 03:57:40 marka Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1

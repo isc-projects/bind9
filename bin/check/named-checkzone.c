@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.1 2002/01/22 23:34:56 gson Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.2 2002/02/08 03:56:58 marka Exp $ */
 
 #include <config.h>
 

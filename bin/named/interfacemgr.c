@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.4 2002/01/24 22:59:07 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5 2002/02/08 03:57:10 marka Exp $ */
 
 #include <config.h>
 

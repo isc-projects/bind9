@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2001  Internet Software Consortium.
+ * Copyright (C) 1997-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.3 2002/01/23 03:09:31 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.4 2002/02/08 03:57:39 marka Exp $ */
 
 #include <config.h>
 
