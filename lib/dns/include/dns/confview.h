@@ -114,6 +114,7 @@ struct dns_c_view
 	dns_c_forw_t		forward;
 	
 	dns_c_ipmatchlist_t    *allowquery;
+	dns_c_ipmatchlist_t    *allowupdateforwarding;
 	dns_c_ipmatchlist_t    *transferacl;
 	dns_c_ipmatchlist_t    *recursionacl;
 	dns_c_ipmatchlist_t    *blackhole;
@@ -348,6 +349,9 @@ isc_result_t dns_c_view_setallowtransfer(dns_c_view_t *view,
 isc_result_t dns_c_view_setallowrecursion(dns_c_view_t *view,
 					  dns_c_ipmatchlist_t *ipml,
 					  isc_boolean_t deepcopy);
+isc_result_t dns_c_view_setallowupdateforwarding(dns_c_view_t *view,
+						 dns_c_ipmatchlist_t *ipml,
+						 isc_boolean_t deepcopy);
 isc_result_t dns_c_view_setblackhole(dns_c_view_t *view,
 				     dns_c_ipmatchlist_t *ipml,
 				     isc_boolean_t deepcopy);
@@ -379,6 +383,8 @@ isc_result_t dns_c_view_getallowtransfer(dns_c_view_t *view,
 					 dns_c_ipmatchlist_t **ipml);
 isc_result_t dns_c_view_getallowrecursion(dns_c_view_t *view,
 					  dns_c_ipmatchlist_t **ipml);
+isc_result_t dns_c_view_getallowupdateforwarding(dns_c_view_t *view,
+						 dns_c_ipmatchlist_t **ipml);
 isc_result_t dns_c_view_getblackhole(dns_c_view_t *view,
 				     dns_c_ipmatchlist_t **ipml);
 isc_result_t dns_c_view_getforwarders(dns_c_view_t *view,

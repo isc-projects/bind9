@@ -346,6 +346,14 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view)
 		fprintf(fp, ";\n");
 	}
 
+	if (view->allowupdateforwarding != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "allow-update-forwarding ");
+		dns_c_ipmatchlist_print(fp, indent + 2,
+					view->allowupdateforwarding);
+		fprintf(fp, ";\n");
+	}
+
 	if (view->blackhole != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "blackhole ");
@@ -519,6 +527,33 @@ dns_c_view_setallowrecursion(dns_c_view_t *view,
 	
 
 isc_result_t
+dns_c_view_setallowupdateforwarding(dns_c_view_t *view,
+				    dns_c_ipmatchlist_t *ipml,
+				    isc_boolean_t deepcopy)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
+
+	if (view->allowupdateforwarding != NULL) {
+		dns_c_ipmatchlist_detach(&view->allowupdateforwarding);
+	}
+
+	if (deepcopy) {
+		res = dns_c_ipmatchlist_copy(view->mem,
+					     &view->allowupdateforwarding,
+					     ipml);
+	} else {
+		view->allowupdateforwarding = ipml;
+		res = ISC_R_SUCCESS;
+	}
+
+	return (res);
+}
+	
+
+isc_result_t
 dns_c_view_setblackhole(dns_c_view_t *view,
 			dns_c_ipmatchlist_t *ipml,
 			isc_boolean_t deepcopy)
@@ -661,6 +696,17 @@ isc_result_t dns_c_view_getallowrecursion(dns_c_view_t *view,
 	return (*ipml == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
 	
+isc_result_t dns_c_view_getallowupdateforwarding(dns_c_view_t *view,
+						 dns_c_ipmatchlist_t **ipml)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(ipml != NULL);
+	
+	*ipml = view->allowupdateforwarding;
+
+	return (*ipml == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+}
+	
 isc_result_t dns_c_view_getblackhole(dns_c_view_t *view,
 				     dns_c_ipmatchlist_t **ipml)
 {
@@ -759,6 +805,9 @@ dns_c_view_delete(dns_c_view_t **viewptr)
 
 	if (view->recursionacl != NULL)
 		dns_c_ipmatchlist_detach(&view->recursionacl);
+
+	if (view->allowupdateforwarding != NULL)
+		dns_c_ipmatchlist_detach(&view->allowupdateforwarding);
 
 	if (view->blackhole != NULL)
 		dns_c_ipmatchlist_detach(&view->blackhole);
