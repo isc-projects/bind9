@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.25 2001/01/09 21:51:21 bwelling Exp $ */
+/* $Id: rdatalist.c,v 1.26 2003/02/26 23:52:29 marka Exp $ */
 
 #include <config.h>
 
@@ -74,7 +74,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	rdataset->private1 = rdatalist;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
-	rdataset->private4 = NULL;
+	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 
 	return (ISC_R_SUCCESS);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.32 2002/11/12 23:24:45 explorer Exp $ */
+/* $Id: rdataslab.c,v 1.33 2003/02/26 23:52:29 marka Exp $ */
 
 #include <config.h>
 
@@ -169,12 +169,12 @@ rdataset_first(dns_rdataset_t *rdataset) {
 	}
 	raw += 2;
 	/*
-	 * The private4 field is the number of rdata beyond the cursor
+	 * The privateuint4 field is the number of rdata beyond the cursor
 	 * position, so we decrement the total count by one before storing
 	 * it.
 	 */
 	count--;
-	rdataset->private4 = (void *)count;
+	rdataset->privateuint4 = count;
 	rdataset->private5 = raw;
 
 	return (ISC_R_SUCCESS);
@@ -186,11 +186,11 @@ rdataset_next(dns_rdataset_t *rdataset) {
 	unsigned int length;
 	unsigned char *raw;
 
-	count = (unsigned int)rdataset->private4;
+	count = rdataset->privateuint4;
 	if (count == 0)
 		return (ISC_R_NOMORE);
 	count--;
-	rdataset->private4 = (void *)count;
+	rdataset->privateuint4 = count;
 	raw = rdataset->private5;
 	length = raw[0] * 256 + raw[1];
 	raw += length + 2;
@@ -219,7 +219,7 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	/*
 	 * Reset iterator state.
 	 */
-	target->private4 = NULL;
+	target->privateuint4 = 0;
 	target->private5 = NULL;
 }
 
@@ -264,7 +264,7 @@ dns_rdataslab_tordataset(unsigned char *slab, unsigned int reservelen,
 	/*
 	 * Reset iterator state.
 	 */
-	rdataset->private4 = NULL;
+	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 }
 

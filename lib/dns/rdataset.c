@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.66 2002/12/05 04:36:26 marka Exp $ */
+/* $Id: rdataset.c,v 1.67 2003/02/26 23:52:29 marka Exp $ */
 
 #include <config.h>
 
@@ -52,7 +52,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
-	rdataset->private4 = NULL;
+	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 }
 
@@ -77,7 +77,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
-	rdataset->private4 = NULL;
+	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 }
 
@@ -103,7 +103,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
-	rdataset->private4 = NULL;
+	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
 }
 

@@ -1,3 +1,7 @@
+1447.	[bug]		We were casting (unsigned int) to and from (void *).
+			rdataset->private4 is now rdataset->privateuint4
+			to reflect a type change.
+
 1446.	[func]		Implemented undocumented alternate transfer sources
 			from BIND 8.  See use-alt-transfer-source,
 			alt-transfer-source-v4 and alt-transfer-source-v6.
