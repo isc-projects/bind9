@@ -9,7 +9,11 @@ Write table of what the caller needs to fill in for lwres_packet(3).
 
 Write sample code for asynchronous resolution.
 
+Document {min,max}-{refresh,retry}-time
+
 Limit the number of retries on socket errors (send and receive)
+
+	-- is this one done?
 
 Make lwresd shut down its fetches properly
 
@@ -17,10 +21,9 @@ Move lwres search list handling to lwresd
 
 Implement ip6.arpa priming
 
-Rewrite zone code to use a list per zone state
+	-- why not use a stub zone instead?
 
-Replace <mumble> in dns_dispatch_create() header comments with
-something more useful
+Rewrite zone code to use a list per zone state
 
 Develop automated test for queries over IPv6
 
