@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.23 2000/04/06 22:01:50 explorer Exp $ */
+/* $Id: compress.c,v 1.24 2000/04/12 21:25:10 tale Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -26,6 +26,7 @@
 
 #include <dns/compress.h>
 #include <dns/fixedname.h>
+#include <dns/rbt.h>
 
 #define CCTX_MAGIC	0x43435458U	/* CCTX */
 #define VALID_CCTX(x)	((x) != NULL && (x)->magic == CCTX_MAGIC)
