@@ -21,8 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
-		${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	-I${srcdir}/include ${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =	
 CWARNINGS =
