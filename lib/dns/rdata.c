@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.37 1999/02/25 00:27:02 marka Exp $ */
+ /* $Id: rdata.c,v 1.38 1999/03/11 00:29:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1020,11 +1020,12 @@ base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 				buf[1] = (val[1]<<4)|(val[2]>>2);
 				buf[2] = (val[2]<<6)|(val[3]);
 				RETERR(mem_tobuffer(target, buf, n));
-				if (length >= 0)
+				if (length >= 0) {
 					if (n > length)
 						return (DNS_R_BADBASE64);
 					else
 						length -= n;
+				}
 				digits = 0;
 			}
 		}
