@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.275 
+# From configure.in Revision: 1.276 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -2206,7 +2206,7 @@ case "$use_openssl" in
 		if test "$use_openssl" = "yes"
 		then
 		    	# User did not specify a path - guess it
-			openssldirs="/usr /usr/local /usr/pkg"
+			openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg"
 			for d in $openssldirs
 			do
 				if test -f $d/include/openssl/opensslv.h
