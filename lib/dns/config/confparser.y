@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.20 1999/10/29 07:13:04 marka Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.21 1999/10/29 11:10:04 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -308,6 +308,7 @@ static void             yyerror(const char *);
 
 %type <severity>        check_names_opt;
 
+%type <text>		optional_string
 %type <text>            algorithm_id
 %type <text>            any_string
 %type <text>            channel_name
@@ -335,21 +336,21 @@ statement_list: statement
         | statement_list statement
         ;
 
-statement: include_stmt
-        | options_stmt
-        | controls_stmt
-        | logging_stmt
-        | server_stmt
-        | zone_stmt
-        | trusted_keys_stmt
-        | acl_stmt
-        | key_stmt
-        | view_stmt
+statement: include_stmt L_EOS
+        | options_stmt L_EOS
+        | controls_stmt L_EOS
+        | logging_stmt L_EOS
+        | server_stmt L_EOS
+        | zone_stmt L_EOS
+        | trusted_keys_stmt L_EOS
+        | acl_stmt L_EOS
+        | key_stmt L_EOS
+        | view_stmt L_EOS
         | L_END_INCLUDE
         ;
 
 
-include_stmt: L_INCLUDE L_QSTRING L_EOS
+include_stmt: L_INCLUDE L_QSTRING
         {
                 if (isc_lex_openfile(mylexer, $2) != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE ,"Can't open file %s",
@@ -385,7 +386,7 @@ options_stmt: L_OPTIONS
                         YYABORT;
                 }
                 
-        } L_LBRACE options L_RBRACE L_EOS {
+        } L_LBRACE options L_RBRACE {
                 if (callbacks != NULL && callbacks->optscbk != NULL) {
                         tmpres = callbacks->optscbk(currcfg,
                                                     callbacks->optscbkuap);
@@ -914,7 +915,7 @@ option: /* Empty */
 /*
  * Controls.
  */
-controls_stmt: L_CONTROLS L_LBRACE controls L_RBRACE L_EOS
+controls_stmt: L_CONTROLS L_LBRACE controls L_RBRACE
         ;
 
 controls: control L_EOS
@@ -931,7 +932,7 @@ control: /* Empty */
                                             $2, $4, $7, ISC_FALSE);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
-                                     "Failed to build inet control structure");
+                                    "Failed to build inet control structure");
                         YYABORT;
                 }
 
@@ -1383,7 +1384,7 @@ logging_stmt: L_LOGGING
                 /* initialized in logging_init() */
                 INSIST(currcfg->logging != NULL);
         }
-        L_LBRACE logging_opts_list L_RBRACE L_EOS
+        L_LBRACE logging_opts_list L_RBRACE
         ;
 
 logging_opts_list: logging_opt L_EOS
@@ -1878,7 +1879,7 @@ server_stmt: L_SERVER ip_address
 
                 ISC_LIST_APPEND(currcfg->servers->elements, server, next);
         }
-        L_LBRACE server_info_list L_RBRACE L_EOS
+        L_LBRACE server_info_list L_RBRACE
         ;
 
 server_info_list: server_info L_EOS
@@ -2299,7 +2300,7 @@ key_stmt: L_SEC_KEY any_string
 
                 isc_mem_free(memctx, $2);
         }
-        L_LBRACE key_definition L_RBRACE L_EOS
+        L_LBRACE key_definition L_RBRACE
         ;
 
 key_definition: algorithm_id secret
@@ -2311,8 +2312,8 @@ key_definition: algorithm_id secret
                 keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
                 INSIST(keydef != NULL);
 
-                dns_c_kdefset_algorithm(logcontext, keydef, $1);
-                dns_c_kdefset_secret(logcontext, keydef, $2);
+                dns_c_kdef_setalgorithm(logcontext, keydef, $1);
+                dns_c_kdef_setsecret(logcontext, keydef, $2);
 
                 isc_mem_free(memctx, $1);
                 isc_mem_free(memctx, $2);
@@ -2326,8 +2327,8 @@ key_definition: algorithm_id secret
                 keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
                 INSIST(keydef != NULL);
 
-                dns_c_kdefset_secret(logcontext, keydef, $1);
-                dns_c_kdefset_algorithm(logcontext, keydef, $2);
+                dns_c_kdef_setsecret(logcontext, keydef, $1);
+                dns_c_kdef_setalgorithm(logcontext, keydef, $2);
 
                 isc_mem_free(memctx, $1);
                 isc_mem_free(memctx, $2);
@@ -2377,7 +2378,7 @@ view_stmt: L_VIEW any_string L_LBRACE
 		dns_c_ctx_setcurrview(logcontext, currcfg, view);
 
 		isc_mem_free(memctx, $2);
-        } optional_view_options_list L_RBRACE L_EOS {
+        } optional_view_options_list L_RBRACE {
 		dns_c_ctx_setcurrview(logcontext, currcfg, NULL);
         };
 
@@ -2413,6 +2414,7 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
                                      "Failed to set view allow-query.");
                 }
         }
+        | zone_stmt;
 	;
 
 /* XXX other view statements need to go in here???. */
@@ -2425,7 +2427,7 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
  * ACLs
  */
 
-acl_stmt: L_ACL any_string L_LBRACE address_match_list L_RBRACE L_EOS
+acl_stmt: L_ACL any_string L_LBRACE address_match_list L_RBRACE
         {
                 dns_c_acl_t *acl;
 
@@ -2506,7 +2508,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 		dns_c_ctx_setcurrzone(logcontext, currcfg, zone);
 		
                 isc_mem_free(memctx, $2);
-        } optional_zone_options_list L_RBRACE L_EOS {
+        } optional_zone_options_list L_RBRACE {
                 dns_c_zone_t *zone;
 		dns_c_view_t *view;
 		
@@ -2541,6 +2543,11 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                              "be ``type''");
                 YYABORT;
         }
+	| L_ZONE domain_name
+	{
+		parser_warning(ISC_FALSE,
+			       "References to zones not implemented yet.");
+	}
         ;
 
 optional_zone_options_list: /* Empty */
@@ -3187,7 +3194,7 @@ trusted_keys_stmt: L_TRUSTED_KEYS
                                 YYABORT;
                         }
                 }
-        } L_LBRACE trusted_keys_list L_RBRACE L_EOS
+        } L_LBRACE trusted_keys_list L_RBRACE
         ;
 
 trusted_keys_list: trusted_key L_EOS
