@@ -28,6 +28,7 @@ isc_quota_init(isc_quota_t *quota, int max) {
 
 void
 isc_quota_destroy(isc_quota_t *quota) {
+	INSIST(quota->used == 0);
 	quota->max = -1;
 	quota->used = -1;
 	RUNTIME_CHECK(isc_mutex_destroy(&quota->lock) == ISC_R_SUCCESS);
