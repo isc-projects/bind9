@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.46 2004/03/18 02:57:54 marka Exp $
+# $Id: ifconfig.sh,v 1.46.18.1 2004/09/09 01:27:56 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -72,7 +72,7 @@ case "$1" in
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$int 10.53.0.$ns netmask 0xffffffff up
 			;;
-		    *-*-solaris2.[8-9])
+		    *-*-solaris2.[8-9]|*-*-solaris2.10)
     			/sbin/ifconfig lo0:$int plumb
 			/sbin/ifconfig lo0:$int 10.53.0.$ns up
 			;;
@@ -132,7 +132,7 @@ case "$1" in
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$int 10.53.0.$ns down
 			;;
-		    *-*-solaris2.8)
+		    *-*-solaris2.[8-9]|*-*-solaris2.10)
 			ifconfig lo0:$int 10.53.0.$ns down
 			ifconfig lo0:$int 10.53.0.$ns unplumb
 			;;
