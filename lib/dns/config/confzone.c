@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.47.2.2 2000/10/18 18:59:24 bwelling Exp $ */
+/* $Id: confzone.c,v 1.47.2.3 2000/10/18 19:10:27 gson Exp $ */
 
 #include <config.h>
 
@@ -582,10 +582,10 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	const char *nomasterserr = "zone '%s': missing 'masters' entry";
 	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
 	const char *disabledzone = "zone '%s': is disabled";
-	const char *forwarderr = "zone '%s': the 'forward' statement is "
-		"unimplemented ";
-	const char *forwarderserr = "zone '%s': the 'forwarders' statement is "
-		"unimplemented ";
+	const char *forwarderr = "zone '%s': the per-zone 'forward' statement "
+		"is not yet implemented";
+	const char *forwarderserr = "zone '%s': the per-zone 'forwarders' "
+		"statment is not yet implemented";
 	
 	/*
 	 * Check if zone is diabled. This isn't really a validation, just a
