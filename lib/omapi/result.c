@@ -15,9 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.3 2000/01/06 03:36:30 tale Exp $ */
-
-#include <config.h>
+/* $Id: result.c,v 1.4 2000/01/31 14:56:34 tale Exp $ */
 
 #include <stddef.h>
 
