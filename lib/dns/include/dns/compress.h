@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.32 2004/03/05 05:09:41 marka Exp $ */
+/* $Id: compress.h,v 1.33 2005/03/04 02:56:21 marka Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -30,6 +30,7 @@ ISC_LANG_BEGINDECLS
 #define DNS_COMPRESS_NONE		0x00	/* no compression */
 #define DNS_COMPRESS_GLOBAL14		0x01	/* "normal" compression. */
 #define DNS_COMPRESS_ALL		0x01	/* all compression. */
+#define DNS_COMPRESS_CASESENSITIVE	0x02	/* case sensitive compression. */
 
 /*
  *	Direct manipulation of the structures is strongly discouraged.
@@ -120,6 +121,26 @@ dns_compress_getmethods(dns_compress_t *cctx);
  *
  *	Returns:
  *		allowed compression bitmap.
+ */
+
+void
+dns_compress_setsensitive(dns_compress_t *cctx, isc_boolean_t sensitive);
+
+/*
+ *	Preserve the case of compressed domain names.
+ *
+ *	Requires:
+ *		'cctx' to be initialized.
+ */
+
+isc_boolean_t
+dns_compress_getsensitive(dns_compress_t *cctx);
+/*
+ *	Return whether case is to be preservered when compressing
+ *	domain names.
+ *
+ *	Requires:
+ *		'cctx' to be initialized.
  */
 
 int

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.116 2004/04/02 05:13:25 marka Exp $ */
+/* $Id: xfrout.c,v 1.117 2005/03/04 02:56:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1511,6 +1511,7 @@ sendstream(xfrout_ctx_t *xfr) {
 
 	if ((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0) {
 		CHECK(dns_compress_init(&cctx, -1, xfr->mctx));
+		dns_compress_setsensitive(&cctx, ISC_TRUE);
 		cleanup_cctx = ISC_TRUE;
 		CHECK(dns_message_renderbegin(msg, &cctx, &xfr->txbuf));
 		CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
