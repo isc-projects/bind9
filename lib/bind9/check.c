@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.4 2001/10/11 04:52:21 marka Exp $ */
+/* $Id: check.c,v 1.5 2001/10/25 17:07:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -338,9 +338,9 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 			    "key '%s' must have both 'secret' and "
 			    "'algorithm' defined",
 			    keyname);
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 		
 static isc_result_t
