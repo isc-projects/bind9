@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.22.2.1.10.12 2004/04/20 06:46:53 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.22.2.1.10.13 2004/06/19 01:03:38 marka Exp $ */
 
 #include <config.h>
 
@@ -64,6 +64,11 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 	 char *ifname)
 {
 	struct sockaddr_in6 *sa6;
+
+#if !defined(ISC_PLATFORM_HAVEIFNAMETOINDEX) || \
+    !defined(ISC_PLATFORM_HAVESCOPEID)
+	UNUSED(ifname);
+#endif
 
 	/* clear any remaining value for safety */
 	memset(dst, 0, sizeof(*dst));
