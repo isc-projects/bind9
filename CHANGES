@@ -82,7 +82,8 @@
 
 1711.	[func]		'rndc unfreeze' has been deprecated by 'rndc thaw'.
 
-1710.	[placeholder]	rt9479
+1710.	[func]		'rndc notify zone [class [view]]' resend the NOTIFY
+			messages for the specified zone. [RT #9479]
 
 1709.	[port]		solaris: add SMF support from Sun.
 
