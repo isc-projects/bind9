@@ -1,5 +1,5 @@
 
- 897.	[bug]		A config.guess update change the system identification
+ 897.	[bug]		A config.guess update changed the system identification
 			string of UnixWare systems; configure now recognizes
 			the new string.
 
