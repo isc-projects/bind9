@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.10 2002/02/08 03:57:07 marka Exp $ */
+/* $Id: client.c,v 1.176.2.11 2002/04/23 01:53:53 marka Exp $ */
 
 #include <config.h>
 
@@ -1727,6 +1727,8 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
 				      "blackholed connection attempt");
+			client->newstate = NS_CLIENTSTATE_READY;
+			(void)exit_check(client);
 			goto freeevent;
 		}
 
