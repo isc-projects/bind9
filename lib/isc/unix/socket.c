@@ -2887,38 +2887,55 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 isc_result_t
 isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp)
 {
+	isc_result_t ret;
+
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addressp != NULL);
 
 	LOCK(&sock->lock);
 
-	*addressp = sock->address;
+	if (sock->connected) {
+		*addressp = sock->address;
+		ret = ISC_R_SUCCESS;
+	} else {
+		ret = ISC_R_NOTCONNECTED;
+	}
 
 	UNLOCK(&sock->lock);
 
-	return (ISC_R_SUCCESS);
+	return (ret);
 }
 
 isc_result_t
 isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
 {
 	ISC_SOCKADDR_LEN_T len;
+	isc_result_t ret;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addressp != NULL);
 
 	LOCK(&sock->lock);
 
+	if (!sock->bound) {
+		ret = ISC_R_NOTBOUND;
+		goto out;
+	}
+
+	ret = ISC_R_SUCCESS;
+
 	len = sizeof addressp->type;
 	if (getsockname(sock->fd, &addressp->type.sa, (void *)&len) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "getsockname: %s", strerror(errno));
-		UNLOCK(&sock->lock);
-		return (ISC_R_UNEXPECTED);
+		ret = ISC_R_UNEXPECTED;
+		goto out;
 	}
 	addressp->length = (unsigned int)len;
 
+ out:
 	UNLOCK(&sock->lock);
+
 	return (ISC_R_SUCCESS);
 }
 

@@ -42,7 +42,7 @@
 #define ISC_R_EXISTS			18
 #define ISC_R_NOSPACE			19	/* ran out of space */
 #define ISC_R_CANCELED			20
-/* AVAILABLE CODE			21 */
+#define ISC_R_NOTBOUND			21	/* socket is not bound */
 #define ISC_R_SHUTTINGDOWN		22	/* shutting down */
 #define ISC_R_NOTFOUND			23
 #define ISC_R_UNEXPECTEDEND		24	/* unexpected end of input */
@@ -61,8 +61,9 @@
 #define ISC_R_MASKNONCONTIG             37
 #define ISC_R_FILENOTFOUND		38
 #define ISC_R_FILEEXISTS		39
+#define ISC_R_NOTCONNECTED		40	/* socket is not connected */
 
-#define ISC_R_NRESULTS 			40	/* Number of results */
+#define ISC_R_NRESULTS 			41	/* Number of results */
 
 ISC_LANG_BEGINDECLS
 
