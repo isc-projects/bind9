@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.56 2001/01/27 02:08:01 bwelling Exp $ */
+/* $Id: interfacemgr.c,v 1.57 2001/02/27 04:20:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -674,12 +674,15 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 
 	mgr->generation++;	/* Increment the generation count. */
 
-	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
+	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		do_ipv6(mgr);
-	} else
+#ifdef WANT_IPV6
+	else
 		isc_log_write(IFMGR_COMMON_LOGARGS,
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv6 interfaces found");
+#endif
+
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
 		do_ipv4(mgr);
 	else
