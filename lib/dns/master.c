@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.6 1999/01/28 22:32:44 marka Exp $ */
+ /* $Id: master.c,v 1.7 1999/01/30 13:11:24 marka Exp $ */
 
 #include <config.h>
 
@@ -290,8 +290,8 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 				target = target_save;
 			}
 
-			if (!current_known ||
-			    dns_name_compare(&current_name, &new_name) != 0) {
+			if (!in_glue && (!current_known ||
+			    dns_name_compare(&current_name, &new_name) != 0)) {
 				if (current_has_delegation &&
 					is_glue(&current_list, &new_name)) {
 					in_glue = ISC_TRUE;
