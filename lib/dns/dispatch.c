@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.2 2002/03/26 00:54:52 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.3 2002/05/08 06:38:14 marka Exp $ */
 
 #include <config.h>
 
@@ -1104,7 +1104,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	DESTROYLOCK(&mgr->lock);
  deallocate:
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
-	isc_mem_detach(&mgr->mctx);
+	isc_mem_detach(&mctx);
 
 	return (result);
 }
