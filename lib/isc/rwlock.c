@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.34 2003/04/17 01:56:34 marka Exp $ */
+/* $Id: rwlock.c,v 1.35 2003/07/21 01:14:18 marka Exp $ */
 
 #include <config.h>
 
@@ -82,6 +82,7 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	rwl->magic = 0;
 
 	rwl->type = isc_rwlocktype_read;
+	rwl->original = isc_rwlocktype_none;
 	rwl->active = 0;
 	rwl->granted = 0;
 	rwl->readers_waiting = 0;
@@ -215,9 +216,11 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 	REQUIRE(rwl->active != 0);
 
 	/* If we are the only reader then succeed. */
-	if (rwl->active == 1)
+	if (rwl->active == 1) {
+		rwl->original = (rwl->original == isc_rwlocktype_none) ?
+				isc_rwlocktype_read : isc_rwlocktype_none;
 		rwl->type = isc_rwlocktype_write;
-	else
+	} else
 		result = ISC_R_LOCKBUSY;
 
 	UNLOCK(&rwl->lock);
@@ -233,10 +236,14 @@ isc_rwlock_downgrade(isc_rwlock_t *rwl) {
 	REQUIRE(rwl->active == 1);
 
 	rwl->type = isc_rwlocktype_read;
+	rwl->original = (rwl->original == isc_rwlocktype_none) ?
+			isc_rwlocktype_write : isc_rwlocktype_none;
 	/*
-	 * Wake up waiting readers if there are no waiting writers.
+	 * Resume processing any read request that were blocked when
+	 * we upgraded.
 	 */
-	if ((rwl->writers_waiting == 0 || rwl->granted < rwl->read_quota) &&
+	if (rwl->original == isc_rwlocktype_none &&
+	    (rwl->writers_waiting == 0 || rwl->granted < rwl->read_quota) &&
 	    rwl->readers_waiting > 0)
 		BROADCAST(&rwl->readable);
 
@@ -260,6 +267,10 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	INSIST(rwl->active > 0);
 	rwl->active--;
 	if (rwl->active == 0) {
+		if (rwl->original != isc_rwlocktype_none) {
+			rwl->type = rwl->original;
+			rwl->original = isc_rwlocktype_none;
+		}
 		if (rwl->type == isc_rwlocktype_read) {
 			rwl->granted = 0;
 			if (rwl->writers_waiting > 0) {
@@ -287,6 +298,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			}
 		}
 	}
+	INSIST(rwl->original == isc_rwlock_none);
 
 #ifdef ISC_RWLOCK_TRACE
 	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
