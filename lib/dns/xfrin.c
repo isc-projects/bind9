@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.29 1999/12/02 05:11:28 gson Exp $ */
+ /* $Id: xfrin.c,v 1.30 1999/12/02 22:33:15 gson Exp $ */
 
 #include <config.h>
 
@@ -96,10 +96,12 @@ struct xfrin_ctx {
 	isc_timer_t		*timer;
 	isc_socketmgr_t 	*socketmgr;
 
-	int			recvs;	/* Number of receives in progress */
-	int			tasks;	/* Number of active tasks (0 or 1) */
+	int			connects; 	/* Connect in progress */
+	int			sends;		/* Send in progress */
+	int			recvs;	  	/* Receive in progress */
+	isc_boolean_t		shuttingdown;
 	
-	dns_name_t 		name; 	/* Name of zone to transfer */
+	dns_name_t 		name; 		/* Name of zone to transfer */
 	dns_rdataclass_t 	rdclass;
 
 	/*
@@ -200,7 +202,6 @@ static void xfrin_send_done(isc_task_t *task, isc_event_t *event);
 static void xfrin_sendlen_done(isc_task_t *task, isc_event_t *event);
 static void xfrin_recv_done(isc_task_t *task, isc_event_t *event);
 static void xfrin_timeout(isc_task_t *task, isc_event_t *event);
-static void xfrin_shutdown(isc_task_t *task, isc_event_t *event);
 
 static isc_boolean_t maybe_free(xfrin_ctx_t *xfr);
 
@@ -524,26 +525,23 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 	return;
 }
 
-static void xfrin_cleanup(xfrin_ctx_t *xfr) {
-	xfrin_log(xfr, ISC_LOG_INFO, "end of transfer");
-	isc_socket_cancel(xfr->socket, xfr->task, ISC_SOCKSHUT_ALL); /* XXX? */
-	isc_socket_detach(&xfr->socket);
-	isc_timer_detach(&xfr->timer);
-	isc_task_destroy(&xfr->task);
-	if (xfr->lasttsig != NULL) {
-		dns_rdata_freestruct(xfr->lasttsig);
-		isc_mem_put(xfr->mctx, xfr->lasttsig, sizeof(*xfr->lasttsig));
-	}
-	/* The rest will be done when the task runs its shutdown event. */
-}
-
 static void
 xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg) {
 	if (result != DNS_R_UPTODATE) {
 		xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s",
 			  msg, isc_result_totext(result));
 	}
-	xfrin_cleanup(xfr);
+	xfr->shuttingdown = ISC_TRUE;
+	if (xfr->connects > 0) {
+		isc_socket_cancel(xfr->socket, xfr->task,
+				  ISC_SOCKCANCEL_CONNECT);
+	} else if (xfr->recvs > 0) {
+		dns_tcpmsg_cancelread(&xfr->tcpmsg);
+	} else if (xfr->sends > 0) {
+		isc_socket_cancel(xfr->socket, xfr->task,
+				  ISC_SOCKCANCEL_SEND);
+	}
+	maybe_free(xfr);
 }
 
 static dns_result_t
@@ -574,8 +572,10 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->timer = NULL;
 	xfr->socketmgr = socketmgr;
 
+	xfr->connects = 0;
+	xfr->sends = 0;
 	xfr->recvs = 0;
-	xfr->tasks = 1;
+	xfr->shuttingdown = ISC_FALSE;
 	
 	dns_name_init(&xfr->name, NULL);
 	xfr->rdclass = rdclass;
@@ -614,8 +614,6 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->axfr.add_func = NULL;
 	xfr->axfr.add_private = NULL;
 
-	isc_task_onshutdown(xfr->task, xfrin_shutdown, xfr);
-	
 	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
 
 	isc_interval_set(&interval, dns_zone_getxfrtime(xfr->zone), 0);
@@ -633,7 +631,7 @@ xfrin_create(isc_mem_t *mctx,
 	return (DNS_R_SUCCESS);
 	
  failure:
-	xfrin_cleanup(xfr);
+	xfrin_fail(xfr, result, "creating transfer context");
 	return (result);
 }
 
@@ -646,6 +644,7 @@ xfrin_start(xfrin_ctx_t *xfr) {
 				&xfr->socket));
 	CHECK(isc_socket_connect(xfr->socket, &xfr->master, xfr->task,
 				 xfrin_connect_done, xfr));
+	xfr->connects++;
 	return;
  failure:
 	xfrin_fail(xfr, result, "setting up socket");
@@ -675,11 +674,17 @@ static void
 xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_socket_connev_t *cev = (isc_socket_connev_t *) event;
 	xfrin_ctx_t *xfr = (xfrin_ctx_t *) event->arg;
+	dns_result_t evresult = cev->result;
 	dns_result_t result;
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_CONNECT);
+	isc_event_free(&event);
 
-	CHECK(cev->result);
+	xfr->connects--;
+	if (maybe_free(xfr))
+		return;
+	
+	CHECK(evresult);
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "connected");
 	
 	dns_tcpmsg_init(xfr->mctx, xfr->socket, &xfr->tcpmsg);
@@ -687,7 +692,6 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 
 	CHECK(xfrin_send_request(xfr));
  failure:
-	isc_event_free(&event);
 	if (result != DNS_R_SUCCESS)
 		xfrin_fail(xfr, result, "connect"); 
 }
@@ -797,6 +801,7 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	lregion.length = 2;
 	CHECK(isc_socket_send(xfr->socket, &lregion, xfr->task,
 			      xfrin_sendlen_done, xfr));
+	xfr->sends++;
 
  failure:
 	if (msg != NULL)
@@ -815,20 +820,26 @@ xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
 {
 	isc_socketevent_t *sev = (isc_socketevent_t *) event;
 	xfrin_ctx_t *xfr = (xfrin_ctx_t *) event->arg;
+	dns_result_t evresult = sev->result;
 	dns_result_t result;
 	isc_region_t region;
 
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
+	isc_event_free(&event);
+	
+	xfr->sends--;
+	if (maybe_free(xfr))
+		return;
 	
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sent request length prefix");
-	CHECK(sev->result);
+	CHECK(evresult);
 
 	isc_buffer_used(&xfr->qbuffer, &region);
 	CHECK(isc_socket_send(xfr->socket, &region, xfr->task,
 			      xfrin_send_done, xfr));
+	xfr->sends++;
  failure:
-	isc_event_free(&event);
 	if (result != DNS_R_SUCCESS)
 		xfrin_fail(xfr, result, "sending request length prefix");
 }
@@ -843,7 +854,8 @@ xfrin_send_done(isc_task_t *task, isc_event_t *event)
 
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
-	
+
+	xfr->sends--;	
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sent request data");
 	CHECK(sev->result);
 
@@ -969,7 +981,12 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	dns_message_destroy(&msg);
 
 	if (xfr->state == XFRST_END) {
-		xfrin_cleanup(xfr);
+		xfr->shuttingdown = ISC_TRUE;
+		/*
+		 * We should have no outstanding events at this
+		 * point, thus maybe_free() should succeed.
+		 */
+		RUNTIME_CHECK(maybe_free(xfr) == ISC_TRUE);
 	} else {
 		/* Read the next message. */
 		CHECK(dns_tcpmsg_readmessage(&xfr->tcpmsg, xfr->task,
@@ -996,26 +1013,28 @@ xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 	xfrin_fail(xfr, ISC_R_TIMEDOUT, "giving up");
 }
 
-static void
-xfrin_shutdown(isc_task_t *task, isc_event_t *event) {
-	xfrin_ctx_t *xfr = (xfrin_ctx_t *) event->arg;
-	task = task; /* Unused */
-	INSIST(event->type == ISC_TASKEVENT_SHUTDOWN);
-	isc_event_free(&event);
-	xfrin_log(xfr, ISC_LOG_DEBUG(3), "shutting down");
-	xfr->tasks--;
-	maybe_free(xfr);
-}
-
 static isc_boolean_t
 maybe_free(xfrin_ctx_t *xfr) {
-	INSIST(xfr->tasks >= 0);
-	INSIST(xfr->recvs >= 0);
-	if (xfr->tasks != 0 || xfr->recvs != 0)
+	if (! xfr->shuttingdown || xfr->connects != 0 ||
+	    xfr->sends != 0 || xfr->recvs != 0)
 		return (ISC_FALSE);
 
-	xfrin_log(xfr, ISC_LOG_DEBUG(3), "freeing context");
-	
+	xfrin_log(xfr, ISC_LOG_INFO, "end of transfer");
+
+	if (xfr->socket != NULL)
+		isc_socket_detach(&xfr->socket);
+
+	if (xfr->timer != NULL)
+		isc_timer_detach(&xfr->timer);
+
+	if (xfr->task != NULL)
+		isc_task_destroy(&xfr->task);
+
+	if (xfr->lasttsig != NULL) {
+		dns_rdata_freestruct(xfr->lasttsig);
+		isc_mem_put(xfr->mctx, xfr->lasttsig, sizeof(*xfr->lasttsig));
+	}
+
 	dns_diff_clear(&xfr->diff);
 
 	if (xfr->ixfr.journal != NULL)
@@ -1103,4 +1122,3 @@ xfrin_log(xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 	xfrin_logv(level, &xfr->name, &xfr->master, fmt, ap);
 	va_end(ap);
 }
-
