@@ -28,7 +28,7 @@
 isc_ratelimiter_t *rlim = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
-isc_task_t *task = NULL;
+isc_task_t *g_task = NULL;
 isc_mem_t *mctx = NULL;
 
 static void utick(isc_task_t *task, isc_event_t *event);
@@ -70,7 +70,8 @@ utick(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	UNUSED(task);
 	event->ev_action = ltick;
-	result = isc_ratelimiter_enqueue(rlim, &event);
+	event->ev_sender = NULL;
+	result = isc_ratelimiter_enqueue(rlim, g_task, &event);
 	printf("enqueue: %s\n",
 	       result == ISC_R_SUCCESS ? "ok" : "failed");
 }
@@ -112,10 +113,10 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task) ==
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &g_task) ==
 		      ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_ratelimiter_create(mctx, timermgr, task, 
+	RUNTIME_CHECK(isc_ratelimiter_create(mctx, timermgr, g_task, 
 					     &rlim) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_ratelimiter_setinterval(rlim, &linterval) ==
@@ -130,13 +131,13 @@ main(int argc, char *argv[]) {
 		RUNTIME_CHECK(isc_timer_create(timermgr,
 					       isc_timertype_once, NULL,
 					       &uinterval,
-					       task, schedule[i].fun, NULL,
+					       g_task, schedule[i].fun, NULL,
 					       &timers[i]) == ISC_R_SUCCESS);
 	}
 
 	isc_app_run();
 
-	isc_task_destroy(&task);
+	isc_task_destroy(&g_task);
 
 	isc_ratelimiter_destroy(&rlim);
 	
