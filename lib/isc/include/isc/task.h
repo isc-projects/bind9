@@ -30,8 +30,7 @@ typedef struct task_manager *		task_manager_t;
  */
 typedef int				task_eventtype_t;
 
-typedef boolean_t			(*task_action_t)(task_t, void *,
-							 task_event_t);
+typedef boolean_t			(*task_action_t)(task_t, task_event_t);
 
 /*
  * This structure is public because "subclassing" it may be useful when
@@ -45,6 +44,9 @@ struct task_event {
 	void *				arg;
 	LINK(struct task_event)	link;
 };
+
+#define TASK_EVENT_NOP			0
+#define TASK_EVENT_SHUTDOWN		(-1)
 
 typedef LIST(struct task_event)		task_eventlist_t;
 
@@ -61,8 +63,8 @@ void					task_event_free(task_event_t *);
  ***/
 
 boolean_t				task_create(task_manager_t,
-						    void *,
 						    task_action_t,
+						    void *,
 						    unsigned int,
 						    task_t *);
 void					task_attach(task_t, task_t *);

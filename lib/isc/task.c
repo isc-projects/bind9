@@ -53,9 +53,8 @@ struct task {
 	unsigned int			references;
 	task_eventlist_t			events;
 	unsigned int			quantum;
-	boolean_t			shutdown_pending;
-	task_action_t			shutdown_action;
-	void *				arg;
+	boolean_t			enqueue_allowed;
+	task_event_t			shutdown_event;
 	/* Locked by task manager lock. */
 	LINK(struct task)		link;
 	LINK(struct task)		ready_link;
@@ -83,6 +82,56 @@ struct task_manager {
 #define DEFAULT_DEFAULT_QUANTUM	5
 #define FINISHED(m)		((m)->exiting && EMPTY((m)->tasks))
 
+
+/***
+ *** Events.
+ ***/
+
+static inline task_event_t
+event_allocate(mem_context_t mctx, task_eventtype_t type,
+	       task_action_t action, void *arg, size_t size)
+{
+	task_event_t event;
+
+	event = mem_get(mctx, size);
+	if (event == NULL)
+		return (NULL);
+	event->mctx = mctx;
+	event->size = size;
+	event->type = type;
+	event->action = action;
+	event->arg = arg;
+
+	return (event);
+}
+
+task_event_t
+task_event_allocate(mem_context_t mctx, task_eventtype_t type,
+		    task_action_t action, void *arg, size_t size)
+{
+	if (size < sizeof (struct task_event))
+		return (NULL);
+	if (type < 0)
+		return (NULL);
+	if (action == NULL)
+		return (NULL);
+
+	return (event_allocate(mctx, type, action, arg, size));
+}
+
+void
+task_event_free(task_event_t *eventp) {
+	task_event_t event;
+	
+	REQUIRE(eventp != NULL);
+	event = *eventp;
+	REQUIRE(event != NULL);
+
+	mem_put(event->mctx, event, event->size);
+
+	*eventp = NULL;
+}
+
 /***
  *** Tasks.
  ***/
@@ -107,14 +156,15 @@ task_free(task_t task) {
 	}
 	UNLOCK(&manager->lock);
 	(void)os_mutex_destroy(&task->lock);
+	if (task->shutdown_event != NULL)
+		task_event_free(&task->shutdown_event);
 	task->magic = 0;
 	mem_put(manager->mctx, task, sizeof *task);
 }
 
 boolean_t
-task_create(task_manager_t manager, void *arg,
-	    task_action_t shutdown_action, unsigned int quantum,
-	    task_t *taskp)
+task_create(task_manager_t manager, task_action_t shutdown_action,
+	    void *shutdown_arg, unsigned int quantum, task_t *taskp)
 {
 	task_t task;
 
@@ -135,9 +185,17 @@ task_create(task_manager_t manager, void *arg,
 	task->references = 1;
 	INIT_LIST(task->events);
 	task->quantum = quantum;
-	task->shutdown_pending = FALSE;
-	task->arg = arg;
-	task->shutdown_action = shutdown_action;
+	task->enqueue_allowed = TRUE;
+	task->shutdown_event = event_allocate(manager->mctx,
+					      TASK_EVENT_SHUTDOWN,
+					      shutdown_action,
+					      shutdown_arg,
+					      sizeof *task->shutdown_event);
+	if (task->shutdown_event == NULL) {
+		(void)os_mutex_destroy(&task->lock);
+		mem_put(manager->mctx, task, sizeof *task);
+		return (FALSE);
+	}
 	INIT_LINK(task, link);
 	INIT_LINK(task, ready_link);
 
@@ -204,6 +262,7 @@ task_send_event(task_t task, task_event_t *eventp) {
 	REQUIRE(eventp != NULL);
 	event = *eventp;
 	REQUIRE(event != NULL);
+	REQUIRE(event->type >= 0);
 
 	XTRACE("sending");
 	/*
@@ -212,7 +271,7 @@ task_send_event(task_t task, task_event_t *eventp) {
 	 * some processing is deferred until after a lock is released.
 	 */
 	LOCK(&task->lock);
-	if (task->state != task_state_shutdown && !task->shutdown_pending) {
+	if (task->enqueue_allowed) {
 		if (task->state == task_state_idle) {
 			was_idle = TRUE;
 			INSIST(EMPTY(task->events));
@@ -289,7 +348,7 @@ task_shutdown(task_t task) {
 	 */
 
 	LOCK(&task->lock);
-	if (task->state != task_state_shutdown && !task->shutdown_pending) {
+	if (task->enqueue_allowed) {
 		if (task->state == task_state_idle) {
 			was_idle = TRUE;
 			INSIST(EMPTY(task->events));
@@ -297,7 +356,10 @@ task_shutdown(task_t task) {
 		}
 		INSIST(task->state == task_state_ready ||
 		       task->state == task_state_running);
-		task->shutdown_pending = TRUE;
+		INSIST(task->shutdown_event != NULL);
+		ENQUEUE(task->events, task->shutdown_event, link);
+		task->shutdown_event = NULL;
+		task->enqueue_allowed = FALSE;
 	} else
 		discard = TRUE;
 	UNLOCK(&task->lock);
@@ -419,10 +481,9 @@ void *task_manager_run(void *uap) {
 			boolean_t done = FALSE;
 			boolean_t requeue = FALSE;
 			boolean_t wants_shutdown;
+			boolean_t is_shutdown;
 			boolean_t free_task = FALSE;
-			void *arg;
-			task_action_t action;
-			task_event_t	event;
+			task_event_t event;
 			task_eventlist_t remaining_events;
 			boolean_t discard_remaining = FALSE;
 
@@ -439,52 +500,36 @@ void *task_manager_run(void *uap) {
 			LOCK(&task->lock);
 			task->state = task_state_running;
 			while (!done) {
-				INSIST(task->shutdown_pending ||
-				       !EMPTY(task->events));
-				if (task->shutdown_pending &&
-				    EMPTY(task->events)) {
-					event = NULL;
-					action = task->shutdown_action;
-				} else {
-					event = HEAD(task->events);
-					action = event->action;
-					DEQUEUE(task->events, event, link);
-				}
-				arg = task->arg;
+				INSIST(!EMPTY(task->events));
+				event = HEAD(task->events);
+				DEQUEUE(task->events, event, link);
 				UNLOCK(&task->lock);
+
+				if (event->type == TASK_EVENT_SHUTDOWN)
+					is_shutdown = TRUE;
+				else
+					is_shutdown = FALSE;
 
 				/*
 				 * Execute the event action.
 				 */
 				XTRACE("execute action");
-				if (action != NULL)
-					wants_shutdown = (*action)(task,
-								   arg,
-								   event);
+				if (event->action != NULL)
+					wants_shutdown =
+						(event->action)(task, event);
 				else
 					wants_shutdown = FALSE;
 				dispatch_count++;
-
-				/*
-				 * If this wasn't a shutdown event, we
-				 * need to free it.
-				 *
-				 * Also, if we've delivered the shutdown
-				 * event to the task, then we are going
-				 * to shut it down no matter what the task
-				 * callback returned.
-				 */
-				if (event != NULL)
-					task_event_free(&event);
-				else
-					wants_shutdown = TRUE;
+				
+				task_event_free(&event);
 
 				LOCK(&task->lock);
-				if (wants_shutdown) {
+				if (wants_shutdown || is_shutdown) {
 					/*
-					 * The task has either had the
-					 * shutdown event sent to it, or
-					 * an event action requested shutdown.
+					 * The event action has either
+					 * requested shutdown, or the event
+					 * we just executed was the shutdown
+					 * event.
 					 *
 					 * Since no more events can be
 					 * delivered to the task, we purge
@@ -502,10 +547,9 @@ void *task_manager_run(void *uap) {
 					if (task->references == 0)
 						free_task = TRUE;
 					task->state = task_state_shutdown;
-					task->shutdown_pending = FALSE;
+					task->enqueue_allowed = FALSE;
 					done = TRUE;
-				} else if (EMPTY(task->events) &&
-					   !task->shutdown_pending) {
+				} else if (EMPTY(task->events)) {
 					/*
 					 * Nothing else to do for this task.
 					 * Put it to sleep.
@@ -690,16 +734,25 @@ task_manager_destroy(task_manager_t *managerp) {
 	manager->exiting = TRUE;
 
 	/*
-	 * Post a shutdown event to every task.
+	 * Post the shutdown event to every task (if it hasn't already been
+	 * posted).
 	 */
 	for (task = HEAD(manager->tasks);
 	     task != NULL;
 	     task = NEXT(task, link)) {
 		LOCK(&task->lock);
-		task->shutdown_pending = TRUE;
-		if (task->state == task_state_idle) {
-			task->state = task_state_ready;
-			ENQUEUE(manager->ready_tasks, task, ready_link);
+		if (task->enqueue_allowed) {
+			INSIST(task->shutdown_event != NULL);
+			ENQUEUE(task->events, task->shutdown_event, link);
+			task->shutdown_event = NULL;
+			if (task->state == task_state_idle) {
+				task->state = task_state_ready;
+				ENQUEUE(manager->ready_tasks, task,
+					ready_link);
+			}
+			INSIST(task->state == task_state_ready ||
+			       task->state == task_state_running);
+			task->enqueue_allowed = FALSE;
 		}
 		UNLOCK(&task->lock);
 	}
@@ -722,46 +775,4 @@ task_manager_destroy(task_manager_t *managerp) {
 	manager_free(manager);
 
 	*managerp = NULL;
-}
-
-
-/***
- *** Events.
- ***/
-
-task_event_t
-task_event_allocate(mem_context_t mctx, task_eventtype_t type,
-		    task_action_t action, void *arg, size_t size)
-{
-	task_event_t event;
-
-	if (size < sizeof *event)
-		return (NULL);
-	if (type < 0)
-		return (NULL);
-	if (action == NULL)
-		return (NULL);
-	event = mem_get(mctx, size);
-	if (event == NULL)
-		return (NULL);
-	event->mctx = mctx;
-	event->size = size;
-	event->type = type;
-	event->action = action;
-	event->arg = arg;
-
-	return (event);
-}
-
-void
-task_event_free(task_event_t *eventp) {
-	task_event_t event;
-	
-	REQUIRE(eventp != NULL);
-	event = *eventp;
-	REQUIRE(event != NULL);
-
-	mem_put(event->mctx, event, event->size);
-
-	*eventp = NULL;
 }
