@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.16 2003/10/08 06:36:13 marka Exp $
+# $Id: Makefile.in,v 1.17 2003/11/04 07:01:35 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,7 +47,7 @@ libt_api.@SA@: ${OBJS}
 libt_api.la: ${OBJS}
 	${LIBTOOL} --mode=link \
 		${CC} ${ALL_CFLAGS} -o libt_api.la -rpath ${libdir} \
-		${OBJS} ${LIBS} ${ISCLIBS}
+		${OBJS} ${ISCLIBS} ${LIBS}
 
 timestamp: libt_api.@A@
 	touch timestamp
