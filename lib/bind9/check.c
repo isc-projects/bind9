@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.8 2001/11/13 06:34:59 marka Exp $ */
+/* $Id: check.c,v 1.9 2001/11/16 04:43:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -526,7 +526,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 			r.length = strlen(r.base);
 			tresult = dns_rdataclass_fromtext(&vclass, &r);
 			if (tresult != ISC_R_SUCCESS)
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(vclassobj, logctx, ISC_LOG_ERROR,
 					    "view '%s': invalid class %s",
 					    cfg_obj_asstring(vname), r.base);
 		}
