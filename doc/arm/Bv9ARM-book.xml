@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.65 2000/12/02 00:34:39 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.66 2000/12/12 21:43:11 bwelling Exp $ -->
 
 <book>
 
@@ -2571,8 +2571,7 @@ most cases, the keyname should be the server's host name.</para></entry>
 the database to when instructed to do so with
 <command>rndc dumpdb</command>.
 If not specified, the default is <filename>named_dump.db</filename>.</para>
-<note><simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
-</row>
+</entry></row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>memstatistics-file</command></para></entry>
 <entry colname = "2"><para>The pathname of the file the server writes memory
