@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.29 2003/09/19 06:17:52 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.30 2003/09/19 13:38:21 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2705,6 +2705,9 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> random-device <replaceable>path_name</replaceable> ; </optional>
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> root-delegation-only <optional> exclude { <replaceable>namelist
+</replaceable> } </optional> ; </optional>
+
 };
 </programlisting>
 </sect2>
@@ -2820,6 +2823,20 @@ the initial configuration load at server startup time and
 is ignored on subsequent reloads.</para>
 </listitem></varlistentry>
 
+<varlistentry><term><command>root-delegation-only</command></term>
+<listitem><para>
+Turn on enforcment of delegation-only in TLDs and root zones with an optional
+exclude list.
+</para>
+<para>
+Note some TLDs are NOT delegation only (e.g. "DE" and "MUSEUM").
+</para>
+<programlisting>
+options {
+	root-delegation-only exclude { "de"; "museum"; };
+};
+</programlisting>
+</listitem></varlistentry>
 </variablelist>
 
 
