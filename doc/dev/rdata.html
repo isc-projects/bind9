@@ -112,7 +112,7 @@ Permissible alphabet: a to z, 0 to 9 and dash (-).
 Dash is mapped to underscore (_) for the C function names below.
 
 <H2>Internal Format</H2>
-The internal format choosen is DNS wire format without any compression being
+The internal format chosen is DNS wire format without any compression being
 applied to domain names in the rdata.
 
 <H2>Convert from text format to internal format</H2>
@@ -174,7 +174,6 @@ the EOL / EOF token is read.
 Unused tokens will cause <CODE>dns_rdata_fromtext()</CODE> to return
 <CODE>DNS_R_EXTRATOKEN</CODE> if <CODE>fromtext_<I>typename</I>()</CODE> was successful.
 <P>
-<CODE>fromtext_<I>typename</I>()</CODE> reads external input and as such is a high security area and must be paranoid about its input.
 <CODE>fromtext_<I>typename</I>()</CODE> reads external input and as such is a high security area and must be paranoid about its input.
 <H2>Convert from internal format to text format</H2>
 <PRE>
@@ -344,7 +343,7 @@ tostruct_<I>classname_typename</I>(dns_rdata_t *rdata, void *target);</CODE>
 <DL>
 <DT><CODE>rdata</CODE></DT>
 <DD>
-This is the rdata record to be converted from internal format to text.
+This is the rdata record to be converted from internal format to a structure.
 <CODE>rdata->type</CODE> and <CODE>rdata->class</CODE> for class specific
 RR types should be checked at the start of the function with
 <CODE>REQUIRE(rdata->type == #)</CODE> statements.
@@ -438,12 +437,12 @@ totext_<I>typename</I>(dns_rdata_t *rdata, dns_name_t *origin,
 	dns_name_t name, prefix;
 	isc_boolean_t sub;
 
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
-	dns_rdata_toregion(rdata, &region);
-	dns_name_fromregion(&name, &region);
-	sub = <B>name_prefix</B>(&name, origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	dns_name_init(&amp;name, NULL);
+	dns_name_init(&amp;prefix, NULL);
+	dns_rdata_toregion(rdata, &amp;region);
+	dns_name_fromregion(&amp;name, &amp;region);
+	sub = <B>name_prefix</B>(&amp;name, origin, &amp;prefix);
+	return (dns_name_totext(&amp;prefix, sub, target));
 }
 </CODE></PRE>
 <DT><CODE>static dns_result_t<BR>
@@ -474,7 +473,7 @@ make it active.
 uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target);</CODE></DT>
 <DD>
 <P>
-Write them 32 bit <CODE>value</CODE> in network order to <CODE>target</CODE>.
+Write the 32 bit <CODE>value</CODE> in network order to <CODE>target</CODE>.
 <P>
 Returns <CODE>DNS_R_NOSPACE</CODE> and <CODE>DNS_R_SUCCESS</CODE>.
 <P>
@@ -527,7 +526,7 @@ Returns <CODE>DNS_R_NOSPACE</CODE> and <CODE>DNS_R_SUCCESS</CODE>.
 compare_region(isc_region_t *r1, isc_region_t *r2)</CODE></DT>
 <DD>
 <P>
-Compares to regions returning -1, 0, 1 based on their DNSSEC ordering.
+Compares two regions returning -1, 0, 1 based on their DNSSEC ordering.
 <P>
 <DT><CODE>static int<BR>
 hexvalue(char value);</CODE></DT>
@@ -547,7 +546,7 @@ a decimal character.
 base64_totext(isc_region_t *source, isc_buffer_t *target);</CODE></DT>
 <DD>
 <P>
-Convert the region referred to by <CODE>source</CODE> to base64 encode text
+Convert the region referred to by <CODE>source</CODE> to base64 encoded text
 and put it into <CODE>target</CODE>.
 <P>
 Returns <CODE>DNS_R_NOSPACE</CODE> or <CODE>DNS_R_SUCCESS</CODE>.
@@ -575,7 +574,7 @@ time_totext(unsigned long value, isc_buffer_t *target);</CODE></DT>
 Convert the date represented by <CODE>value</CODE> into YYYYMMDDHHMMSS format
 taking into account the active epochs. This code is Y2K and Y2038 compliant.
 <P>
-Returns <CODE>DNS_R_NOSPACE</CODE> and <DNS_R_SUCCESS>.
+Returns <CODE>DNS_R_NOSPACE</CODE> and <CODE>DNS_R_SUCCESS</CODE>.
 <DT><CODE>static dns_result_t<BR>
 time_tobuffer(char *source, isc_buffer_t *target);</CODE></DT>
 <DD>
