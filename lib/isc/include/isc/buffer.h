@@ -539,6 +539,23 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
  *	The used pointer in 'b' is advanced by 4.
  */
 
+void
+isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length);
+/*
+ * Copy 'length' bytes of memory at 'base' into 'b'.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	'base' points to 'length' bytes of valid memory.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE			The available region of 'b' is not
+ *					big enough.
+ */
+
 isc_result_t
 isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 /*
@@ -555,6 +572,7 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
  *	ISC_R_NOSPACE			The available region of 'b' is not
  *					big enough.
  */
+
 
 ISC_LANG_ENDDECLS
 

@@ -384,6 +384,19 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 	cp[3] = (unsigned char)(val & 0x000000ff);
 }
 
+void
+isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length)
+{
+	unsigned char *cp;
+
+	REQUIRE(ISC_BUFFER_VALID(b));
+	REQUIRE(b->used + length <= b->length);
+
+	cp = b->base + b->used;
+	memcpy(cp, base, length);
+	b->used += length;
+}	
+
 isc_result_t
 isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r) {
 	unsigned char *base;
