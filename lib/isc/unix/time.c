@@ -353,8 +353,16 @@ isc_time_secondsastimet(isc_time_t *t, time_t *secondsp) {
 	if (sizeof(time_t) == sizeof(isc_uint32_t) &&	       /* Same size. */
 	    (time_t)0.5 != 0.5 &&	       /* Not a floating point type. */
 	    (i = (time_t)-1) != 4294967295u &&		       /* Is signed. */
-	    (seconds & (1 << (sizeof(time_t) * 8 - 1))) != 0)	/* Negative. */
+	    (seconds & (1 << (sizeof(time_t) * 8 - 1))) != 0) {	/* Negative. */
+		/*
+		 * This is here to shut up the IRIX compiler:
+		 *	variable "i" was set but never used
+		 * when the value of i *was* used in the third test.
+		 * (Let's hope the compiler got the actual test right.)
+		 */
+		UNUSED(i);
 		return (ISC_R_RANGE);
+	}
 
 	*secondsp = seconds;
 
