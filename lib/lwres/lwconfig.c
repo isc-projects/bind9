@@ -481,7 +481,7 @@ lwres_conf_print(FILE *fp, lwres_conf_t *confdata)
 	const char *p;
 
 	REQUIRE(confdata->nsnext <= LWRES_CONFMAXNAMESERVERS);
-	
+
 	for (i = 0 ; i < confdata->nsnext ; i++) {
 		p = lwres_net_ntop(confdata->nameservers[i].family,
 				     confdata->nameservers[i].address,
@@ -541,4 +541,3 @@ lwres_conf_print(FILE *fp, lwres_conf_t *confdata)
 
 	return (LWRES_R_SUCCESS);
 }
-
