@@ -2486,11 +2486,14 @@ dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone,
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Master zones do not have a "
-			      "max_trans_time_out field");
-		return (ISC_R_FAILURE);
+		if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.max_trans_time_out;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
 			
 	case dns_c_zone_slave:
 		if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
