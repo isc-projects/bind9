@@ -1,5 +1,5 @@
 
-AC_REVISION($Revision: 1.5 $)
+AC_REVISION($Revision: 1.6 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -16,7 +16,9 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
-AC_CHECK_LIB(pthread, pthread_create)
+AC_CHECK_LIB(pthread, pthread_create,,
+             AC_CHECK_LIB(pthread, __pthread_create)
+)
 AC_CHECK_LIB(xnet, socket,,
 	     AC_CHECK_LIB(socket, socket)
 	     AC_CHECK_LIB(nsl, inet_ntoa)
@@ -42,7 +44,7 @@ else
 	STD_CDEFINES=
 	STD_CWARNINGS=
 	case "$host" in
-		*-dec-osf1*)
+		*-dec-osf*)
 			CFLAGS="$CFLAGS -pthread"
 			;;
 		*-sun-solaris*)
