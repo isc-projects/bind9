@@ -1,4 +1,6 @@
-1586.  [func]          "check-names" is now implemented.
+1588.	[bug]		win32: TCP sockets could become blocked. [RT #10115]
+
+1586.	[func]          "check-names" is now implemented.
 
 1583.	[bug]		Records add via UPDATE failed to get the correct trust
 			level. [RT #10452]
