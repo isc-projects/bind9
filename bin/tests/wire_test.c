@@ -211,6 +211,7 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 	unsigned char *data, *sdata;
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *rdatalist;
+	dns_result_t result;
 
 	ISC_LIST_INIT(*section);
 	while (count > 0) {
@@ -244,26 +245,18 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 			printf("unexpected end of rdata\n");
 			exit(7);
 		}
-		data = (unsigned char *)target->base + target->used;
-		/* This is also naughty. */
-		if (type == 2 && class == 1) {
-			if (getname(&rname, source, target) != rdlength) {
-				printf("rdata length mismatch\n");
-				exit(11);
-			}
-		} else {
-			isc_region_t r;
-
-			isc_buffer_available(target, &r);
-			if (r.length < rdlength) {
-				printf("no space in target\n");
-				exit(12);
-			}
-			sdata = (unsigned char *)source->base +
-				source->current;
-			memcpy(data, sdata, (size_t)rdlength);
-			isc_buffer_add(target, rdlength);
-			isc_buffer_forward(source, rdlength);
+		isc_buffer_setactive(source, rdlength);
+		if (rdcount == MAX_PREALLOCATED) {
+			printf("out of rdata\n");
+			exit(1);
+		}
+		rdata = &rdatas[rdcount++];
+		result = dns_rdata_fromwire(rdata, class, type,
+					    source, &dctx, ISC_FALSE,
+					    target);
+		if (result != DNS_R_SUCCESS) {
+			printf("%s\n", dns_result_totext(result));
+			exit(1);
 		}
 		for (rdatalist = ISC_LIST_HEAD(name->list);
 		     rdatalist != NULL;
@@ -287,18 +280,6 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 			if (ttl < rdatalist->ttl)
 				rdatalist->ttl = ttl;
 		}
-
-		if (rdcount == MAX_PREALLOCATED) {
-			printf("out of rdata\n");
-			exit(1);
-		}
-		rdata = &rdatas[rdcount++];
-
-		/* This is naughty. */
-		rdata->class = class;
-		rdata->type = type;
-		rdata->data = data;
-		rdata->length = rdlength;
 
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	}
