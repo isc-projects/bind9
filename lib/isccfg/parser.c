@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.104 2002/10/28 02:35:32 marka Exp $ */
+/* $Id: parser.c,v 1.105 2002/11/26 04:36:46 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/sockaddr.h>
+#include <isc/netscope.h>
 #include <isc/util.h>
 #include <isc/symtab.h>
 

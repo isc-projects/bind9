@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: netscope.c,v 1.4 2002/11/26 03:50:07 marka Exp $";
+	"$Id: netscope.c,v 1.5 2002/11/26 04:36:45 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <isc/string.h>
@@ -26,7 +26,7 @@ static char rcsid[] =
 #include <isc/result.h>
 
 isc_result_t
-isc_netscope_pton(int af, char *scopename, char *addr, isc_uint32_t *zoneid) {
+isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
 	char *ep;
 	unsigned int ifid;
 	struct in6_addr *in6;
