@@ -129,7 +129,7 @@ struct fetchctx {
 	/* Only changable by event actions running in the context's task */
 	dns_name_t			domain;
 	dns_rdataset_t			nameservers;
-	isc_boolean_t			have_answer;
+	unsigned int			attributes;
 	isc_timer_t *			timer;
 	isc_time_t			expires;
 	isc_interval_t			interval;
@@ -143,6 +143,14 @@ struct fetchctx {
 #define FCTX_MAGIC			0x46212121U	/* F!!! */
 #define VALID_FCTX(fctx)		((fctx) != NULL && \
 					 (fctx)->magic == FCTX_MAGIC)
+
+#define FCTX_ATTR_HAVEANSWER		0x01
+#define FCTX_ATTR_GLUING		0x02
+
+#define HAVE_ANSWER(f)		(((f)->attributes & FCTX_ATTR_HAVEANSWER) != \
+				 0)
+#define GLUING(f)		(((f)->attributes & FCTX_ATTR_GLUING) != \
+				 0)
 
 struct dns_fetch {
 	unsigned int			magic;
@@ -297,7 +305,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 		next_event = ISC_LIST_NEXT(event, link);
 		task = event->sender;
 		event->sender = fctx;
-		if (!fctx->have_answer)
+		if (!HAVE_ANSWER(fctx))
 			event->result = result;
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
@@ -876,7 +884,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->addresses);
 	fctx->address = NULL;
-	fctx->have_answer = ISC_FALSE;
+	fctx->attributes = 0;
 
 	fctx->qmessage = NULL;
 	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTRENDER,
@@ -1176,7 +1184,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	}
 
 	if (result == ISC_R_SUCCESS && have_answer) {
-		fctx->have_answer = ISC_TRUE;
+		fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 		if (event != NULL) {
 			event->result = eresult;
 			dns_db_attach(res->view->cachedb, adbp);
@@ -1329,7 +1337,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers) {
 	} else
 		goto unlock;
 
-	fctx->have_answer = ISC_TRUE;
+	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
 	if (event != NULL) {
 		event->result = eresult;
 		dns_db_attach(res->view->cachedb, adbp);
@@ -1349,10 +1357,13 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers) {
 
 static inline void
 mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
-	     isc_boolean_t external)
+	     isc_boolean_t external, isc_boolean_t gluing)
 {
 	name->attributes |= DNS_NAMEATTR_CACHE;
-	rdataset->trust = dns_trust_additional;
+	if (gluing)
+		rdataset->trust = dns_trust_glue;
+	else
+		rdataset->trust = dns_trust_additional;
 	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 	if (external)
 		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
@@ -1366,9 +1377,14 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 	dns_rdataset_t *rdataset;
 	isc_boolean_t external;
 	dns_rdatatype_t rtype;
+	isc_boolean_t gluing;
 
 	REQUIRE(VALID_FCTX(fctx));
 
+	if (GLUING(fctx))
+		gluing = ISC_TRUE;
+	else
+		gluing = ISC_FALSE;
 	name = NULL;
 	rdataset = NULL;
 	result = dns_message_findname(fctx->rmessage, DNS_SECTION_ADDITIONAL,
@@ -1387,7 +1403,8 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 				if (rtype == dns_rdatatype_a ||
 				    rtype == dns_rdatatype_aaaa ||
 				    rtype == dns_rdatatype_a6)
-					mark_related(name, rdataset, external);
+					mark_related(name, rdataset, external,
+						     gluing);
 				/*
 				 * XXXRTH  Need to do a controlled recursion
 				 *	   on the A6 prefix names to mark
@@ -1400,7 +1417,7 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 			result = dns_message_findtype(name, type, 0,
 						      &rdataset);
 			if (result == ISC_R_SUCCESS) {
-				mark_related(name, rdataset, external);
+				mark_related(name, rdataset, external, gluing);
 				/*
 				 * Do we have its SIG too?
 				 */
@@ -1408,7 +1425,8 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 						      dns_rdatatype_sig,
 						      type, &rdataset);
 				if (result == ISC_R_SUCCESS)
-					mark_related(name, rdataset, external);
+					mark_related(name, rdataset, external,
+						     gluing);
 			}
 		}
 		/*
@@ -1545,21 +1563,19 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 						DNS_NAMEATTR_CACHE;
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
-					/*
-					 * XXXRTH  Should really use a lower
-					 * level and then look for it in
-					 * query.c.  We don't want to return
-					 * glue we've cached as an answer.
-					 */
-					rdataset->trust = dns_trust_additional;
+					rdataset->trust = dns_trust_glue;
 					/*
 					 * Mark any additional data related
 					 * to this rdataset.
 					 */
+					fctx->attributes |=
+						FCTX_ATTR_GLUING;
 					(void)dns_rdataset_additionaldata(
 							rdataset,
 							check_related,
 							fctx);
+					fctx->attributes &=
+						~FCTX_ATTR_GLUING;
 				} else if (rdataset->type ==
 					   dns_rdatatype_soa ||
 					   rdataset->type ==
@@ -2180,7 +2196,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		if (result == DNS_R_FORMERR)
 			broken_server = ISC_TRUE;
 		/*
-		 * XXXRTH  If we have a broken server at this poing, we will
+		 * XXXRTH  If we have a broken server at this point, we will
 		 *	   decrease its 'goodness', possibly add a 'lame'
 		 *         entry, and maybe log a message.
 		 */
@@ -2189,18 +2205,21 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 */
 		if (get_nameservers) {
 			result = dns_view_find(fctx->res->view, &fctx->domain,
-					       dns_rdatatype_ns, 0, 0,
+					       dns_rdatatype_ns, 0,
+					       DNS_DBFIND_GLUEOK,
 					       ISC_FALSE, &fctx->nameservers,
 					       NULL);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
+				return;
+			}
 			fctx_freeaddresses(fctx);
 		}					  
 		/*
 		 * Try again.
 		 */
 		fctx_try(fctx);
-	} else if (result == ISC_R_SUCCESS && !fctx->have_answer) {
+	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
 		/*
 		 * All has gone well so far, but we are waiting for the
 		 * DNSSEC validator to validate the answer.
