@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.8 1999/01/20 06:51:29 marka Exp $ */
+ /* $Id: gen.c,v 1.9 1999/01/20 07:14:35 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -365,7 +365,7 @@ main(int argc, char **argv) {
 	for (tt = types; tt != NULL ; tt = tt->next)
 		if (tt->type != lasttype)
 			fprintf(stdout, "\t{ %d, \"%s\" },%s\n",
-				lasttype = tt->type, tt->typename,
+				lasttype = tt->type, upper(tt->typename),
 				tt->next != NULL ? " \\" : "");
 
 	fputs("\n", stdout);
@@ -374,7 +374,7 @@ main(int argc, char **argv) {
 
 	for (cc = classes; cc != NULL; cc = cc->next)
 		fprintf(stdout, "\t{ %d, \"%s\" },%s\n", cc->class,
-			cc->classname, cc->next != NULL ? " \\" : "");
+			upper(cc->classname), cc->next != NULL ? " \\" : "");
 
 
 	fputs("\n", stdout);
