@@ -1,7 +1,7 @@
 #! /bin/sh
 
 
-# From configure.in Revision: 1.81 
+# From configure.in Revision: 1.82 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -10260,7 +10260,7 @@ rm -f conftest*
 
 else
   echo "$ac_t""no" 1>&6
-HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT/"
+HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"
 
 fi
