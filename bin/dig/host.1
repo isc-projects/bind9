@@ -13,14 +13,14 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: host.1,v 1.17 2004/04/13 04:44:05 marka Exp $
+.\" $Id: host.1,v 1.18 2004/11/11 02:06:28 marka Exp $
 .\"
 .TH "HOST" "1" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 host \- DNS lookup utility
 .SH SYNOPSIS
 .sp
-\fBhost\fR [ \fB-aCdlnrTwv\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-N \fIndots\fB\fR ]  [ \fB-R \fInumber\fB\fR ]  [ \fB-t \fItype\fB\fR ]  [ \fB-W \fIwait\fB\fR ]  [ \fB-4\fR ]  [ \fB-6\fR ]  \fBname\fR [ \fBserver\fR ] 
+\fBhost\fR [ \fB-aCdlnrTwv\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-N \fIndots\fB\fR ]  [ \fB-R \fInumber\fB\fR ]  [ \fB-t \fItype\fB\fR ]  [ \fB-W \fIwait\fB\fR ]  [ \fB-m \fIflag\fB\fR ]  [ \fB-4\fR ]  [ \fB-6\fR ]  \fBname\fR [ \fBserver\fR ] 
 .SH "DESCRIPTION"
 .PP
 \fBhost\fR
@@ -127,6 +127,10 @@ is less than one, the wait interval is set to one second. When the
 effectively wait forever for a reply. The time to wait for a response
 will be set to the number of seconds given by the hardware's maximum
 value for an integer quantity.
+.PP
+The \fB-m\fR can be used to set the memory usage debugging flags
+\fIrecord\fR, \fIusage\fR and
+\fItrace\fR. 
 .SH "FILES"
 .PP
 \fI/etc/resolv.conf\fR

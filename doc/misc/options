@@ -89,6 +89,7 @@ options {
         ixfr-from-differences <ixfrdiff>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
+        allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-notify { <address_match_element>; ... };
         notify <notifytype>;
@@ -160,7 +161,6 @@ view <string> <optional_class> {
         zone <string> <optional_class> {
                 type ( master | slave | stub | hint | forward |
                     delegation-only );
-                allow-update { <address_match_element>; ... };
                 file <quoted_string>;
                 journal <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
@@ -177,6 +177,7 @@ view <string> <optional_class> {
                 ixfr-from-differences <boolean>;
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
+                allow-update { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
                 allow-notify { <address_match_element>; ... };
                 notify <notifytype>;
@@ -271,6 +272,7 @@ view <string> <optional_class> {
         ixfr-from-differences <ixfrdiff>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
+        allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-notify { <address_match_element>; ... };
         notify <notifytype>;
@@ -321,7 +323,6 @@ key <string> {
 
 zone <string> <optional_class> {
         type ( master | slave | stub | hint | forward | delegation-only );
-        allow-update { <address_match_element>; ... };
         file <quoted_string>;
         journal <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
@@ -337,6 +338,7 @@ zone <string> <optional_class> {
         ixfr-from-differences <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
+        allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-notify { <address_match_element>; ... };
         notify <notifytype>;
