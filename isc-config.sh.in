@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: isc-config.sh.in,v 1.6 2000/08/01 01:11:05 tale Exp $
+# $Id: isc-config.sh.in,v 1.7 2000/09/26 19:12:44 explorer Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -99,7 +99,7 @@ fi
 if test x"$echo_cflags" = x"true"; then
 	includes="-I${exec_prefix}/include"
 	if test x"$libdns" = x"true" -o x"$libisc" = x"true"; then
-		includes="$includes -D_REENTRANT @STD_CDEFINES@ @CCOPT@"
+		includes="$includes -D_REENTRANT @STD_CINCLUDES@ @STD_CDEFINES@ @CCOPT@"
 	fi
 	echo $includes
 fi
