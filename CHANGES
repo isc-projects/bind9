@@ -6,6 +6,8 @@
 1615.	[port]		Define ISC_SOCKADDR_LEN_T based on _BSD_SOCKLEN_T_ if
 			it is defined.
 
+1614.	[port]		win32: silence resource limit messages. [RT# 11101]
+
 1611.	[bug]		solaris: IPv6 interface scanning failed to cope with
 			no active IPv6 interfaces.
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47 2004/03/16 05:52:14 marka Exp $ */
+/* $Id: config.c,v 1.47.18.1 2004/04/19 23:15:59 marka Exp $ */
 
 #include <config.h>
 
@@ -44,14 +44,17 @@
 
 static char defaultconf[] = "\
 options {\n\
-#	blackhole {none;};\n\
-	coresize default;\n\
+#	blackhole {none;};\n"
+#ifndef WIN32
+"	coresize default;\n\
 	datasize default;\n\
-	deallocate-on-exit true;\n\
+	files default;\n\
+	stacksize default;\n"
+#endif
+"	deallocate-on-exit true;\n\
 #	directory <none>\n\
 	dump-file \"named_dump.db\";\n\
 	fake-iquery no;\n\
-	files default;\n\
 	has-old-clients false;\n\
 	heartbeat-interval 60;\n\
 	host-statistics no;\n\
@@ -77,7 +80,6 @@ options {\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
-	stacksize default;\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
 	tcp-clients 100;\n\
