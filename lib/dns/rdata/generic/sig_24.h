@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.h,v 1.8 1999/02/22 07:24:03 marka Exp $ */
+ /* $Id: sig_24.h,v 1.9 1999/02/24 06:31:34 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -180,6 +180,11 @@ fromwire_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 	dns_name_t name;
 
 	REQUIRE(type == 24);
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 	
 	class = class;	/*unused*/
 

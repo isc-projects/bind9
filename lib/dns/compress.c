@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.2 1999/02/23 02:25:39 marka Exp $ */
+ /* $Id: compress.c,v 1.3 1999/02/24 06:31:31 marka Exp $ */
 
 #include <config.h>
 
@@ -25,8 +25,11 @@
 
 #include <dns/compress.h>
 
-#define CCTX_MAGIC	0x43435458U
+#define CCTX_MAGIC	0x43435458U	/* CCTX */
 #define VALID_CCTX(x)	((x) != NULL && (x)->magic == CCTX_MAGIC)
+
+#define DCTX_MAGIC	0x44435458U	/* DCTX */
+#define VALID_DCTX(x)	((x) != NULL && (x)->magic == DCTX_MAGIC)
 
 static void		free_offset(void *offset, void *mctx);
 isc_boolean_t		compress_find(dns_rbt_t *root, dns_name_t *name,
@@ -37,6 +40,9 @@ void			compress_add(dns_rbt_t *root, dns_name_t *prefix,
 				     dns_name_t *suffix, isc_uint16_t offset,
 				     isc_boolean_t global16, isc_mem_t *mctx);
 
+/***
+ ***	Compression
+ ***/
 
 dns_result_t
 dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
@@ -82,7 +88,7 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(cctx->local == NULL);
 	REQUIRE(dns_name_isabsolute(owner) == ISC_TRUE);
-	REQUIRE(target != NULL);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
 	result = dns_rbt_create(cctx->mctx, free_offset, cctx->mctx,
 				&cctx->local);
@@ -107,7 +113,7 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 	while (labels > 0) {
 		dns_name_getlabelsequence(owner, wl, labels, &name);
 		data = isc_mem_get(cctx->mctx, sizeof *data);
-		if (data != NULL)
+		if (data == NULL)
 			return (DNS_R_SUCCESS);
 		*data = ll;
 		result = dns_rbt_addname(cctx->local, &name, data);
@@ -143,7 +149,7 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 			if (result != DNS_R_SUCCESS)
 				return (DNS_R_SUCCESS);
 			data = isc_mem_get(cctx->mctx, sizeof *data);
-			if (data != NULL)
+			if (data == NULL)
 				return (DNS_R_SUCCESS);
 			*data = ll;
 			result = dns_rbt_addname(cctx->local, &name, data);
@@ -257,6 +263,85 @@ dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset) {
 	/* XXX need tree walking code */
 	/* Remove all nodes in cctx->global that have *data >= offset. */
 
+}
+
+/***
+ ***	Decompression
+ ***/
+
+void
+dns_decompress_init(dns_decompress_t *dctx, int edns, isc_boolean_t strict) {
+
+	REQUIRE(dctx != NULL);
+	REQUIRE(edns >= -1 && edns <= 255);
+
+	dctx->allowed = DNS_COMPRESS_NONE;
+	dctx->edns = edns;
+	dctx->strict = strict;
+	dctx->rdata = 0;
+	dns_name_init(&dctx->owner_name, NULL);
+	dns_name_invalidate(&dctx->owner_name);
+	dctx->magic = DCTX_MAGIC;
+}
+
+void
+dns_decompress_localinit(dns_decompress_t *dctx, dns_name_t *name,
+			 isc_buffer_t *source)
+{
+	REQUIRE(VALID_DCTX(dctx));
+	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
+	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
+
+	dctx->rdata = source->current;
+	dctx->owner_name = *name;
+}
+
+void
+dns_decompress_invalidate(dns_decompress_t *dctx) {
+
+	REQUIRE(VALID_DCTX(dctx));
+
+	dctx->magic = 0;
+}
+
+void
+dns_decompress_localinvalidate(dns_decompress_t *dctx) {
+
+	REQUIRE(VALID_DCTX(dctx));
+
+	dns_name_invalidate(&dctx->owner_name);
+}
+
+void
+dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed) {
+
+	REQUIRE(VALID_DCTX(dctx));
+
+	dctx->allowed = allowed;
+}
+
+unsigned int
+dns_decompress_getmethods(dns_decompress_t *dctx) {
+
+	REQUIRE(VALID_DCTX(dctx));
+	
+	return (dctx->allowed);
+}
+
+int
+dns_decompress_edns(dns_decompress_t *dctx) {
+
+	REQUIRE(VALID_DCTX(dctx));
+	
+	return (dctx->edns);
+}
+
+isc_boolean_t
+dns_decompress_strict(dns_decompress_t *dctx) {
+
+	REQUIRE(VALID_DCTX(dctx));
+
+	return (dctx->strict);
 }
 
 /***

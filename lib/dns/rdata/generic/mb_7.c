@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mb_7.c,v 1.10 1999/02/22 07:24:00 marka Exp $ */
+ /* $Id: mb_7.c,v 1.11 1999/02/24 06:31:32 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MB_7_H
 #define RDATA_GENERIC_MB_7_H
@@ -72,6 +72,11 @@ fromwire_mb(dns_rdataclass_t class, dns_rdatatype_t type,
 	REQUIRE(type == 7);
 
 	class = class;	/*unused*/
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
         
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));

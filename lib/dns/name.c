@@ -1670,13 +1670,18 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		  isc_buffer_t *target)
 {
 	unsigned char *cdata, *ndata;
-	unsigned int cused, hops, nrem, nused, labels, n;
-	unsigned int current, new_current, biggest_pointer;
-	isc_boolean_t saw_bitstring, done;
+	unsigned int cused, hops, nrem, nused, labels, n, i, ll;
+	unsigned int current, new_current, biggest_pointer, lcount;
+	isc_boolean_t saw_bitstring, done, local;
 	fw_state state = fw_start;
 	unsigned int c;
 	unsigned char *offsets;
 	dns_offsets_t odata;
+	dns_name_t suffix;
+	dns_label_t label;
+	dns_labeltype_t labeltype;
+	unsigned int bits;
+	dns_bitlabel_t bit;
 
 	/*
 	 * Copy the possibly-compressed name at source into target,
@@ -1711,6 +1716,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	 */
 	labels = 0;
 	hops = 0;
+	local = ISC_FALSE;
 	saw_bitstring = ISC_FALSE;
 	done = ISC_FALSE;
 	ndata = (unsigned char *)target->base + target->used;
@@ -1747,6 +1753,17 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 					done = ISC_TRUE;
 				n = c;
 				state = fw_ordinary;
+			} else if (c >= 128 && c < 192) {
+				/*
+				 * 14 bit local compression pointer.
+				 */
+				if ((dctx->allowed & DNS_COMPRESS_LOCAL) ==
+				    0)
+					return (DNS_R_DISALLOWED);
+				local = ISC_TRUE;
+				new_current = c & 0x3F;
+				n = 1;
+				state = fw_newcurrent;
 			} else if (c >= 192) {
 				/*
 				 * Ordinary 14-bit pointer.
@@ -1754,6 +1771,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				if ((dctx->allowed & DNS_COMPRESS_GLOBAL14) ==
 				    0)
 					return (DNS_R_DISALLOWED);
+				local = ISC_FALSE;
 				new_current = c & 0x3F;
 				n = 1;
 				state = fw_newcurrent;
@@ -1773,19 +1791,21 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				if ((dctx->allowed & DNS_COMPRESS_GLOBAL16) ==
 				    0)
 					return (DNS_R_DISALLOWED);
+				local = ISC_FALSE;
 				new_current = 0;
 				n = 2;
 				state = fw_newcurrent;
 			} else if (c == DNS_LABELTYPE_LOCALCOMP) {
 				/*
-				 * Local compression.
+				 * 16 bit local compression.
 				 */
 				if ((dctx->allowed & DNS_COMPRESS_LOCAL) ==
 				    0)
 					return (DNS_R_DISALLOWED);
-
-				/* XXX */
-				return (DNS_R_NOTIMPLEMENTED);
+				local = ISC_TRUE;
+				new_current = 0;
+				n = 2;
+				state = fw_newcurrent;
 			} else
 				return (DNS_R_BADLABELTYPE);
 			break;
@@ -1817,18 +1837,77 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 			new_current *= 256;
 			new_current += c;
 			n--;
-			if (n == 0) {
-				if (new_current >= biggest_pointer)
+			if (n != 0)
+				break;
+			if (local && new_current < 256) {
+				/* logical label count */
+				lcount = dctx->owner_name.labels;
+				i = 0;
+				ll = 0;
+				while (i < lcount && ll < new_current) {
+					dns_name_getlabel(&dctx->owner_name,
+							  i, &label);
+					labeltype = dns_label_type(&label);
+					if (labeltype ==
+						dns_labeltype_ordinary) {
+						i++;
+						ll++;
+						continue;
+					}
+					INSIST(labeltype ==
+					       dns_labeltype_bitstring);
+					bits = dns_label_countbits(&label);
+					if (bits + ll <= new_current) {
+						i++;
+						ll += bits;
+						continue;
+					}
+					break;
+				}
+				if (i == lcount)
 					return (DNS_R_BADPOINTER);
-				biggest_pointer = new_current;
-				current = new_current;
-				cdata = (unsigned char *)source->base +
-					current;
-				hops++;
-				if (hops > DNS_POINTER_MAXHOPS)
-					return (DNS_R_TOOMANYHOPS);
-				state = fw_start;
+				bits = new_current - ll;
+				if (bits != 0) {
+					if (nrem < 2 + (bits + 7) / 8)
+						return (DNS_R_NOSPACE);
+					*ndata++ = DNS_LABELTYPE_BITSTRING;
+					*ndata++ = bits;
+					ndata[bits/8] = 0;
+					while (bits) {
+						bit = dns_label_getbit(&label,
+								       bits);
+						set_bit(ndata, bits, bit);
+						bits--;
+					}
+					ndata += (new_current - ll + 7) / 8;
+					labels++;
+					i++;
+				}
+				dns_name_init(&suffix, NULL);
+				dns_name_getlabelsequence(&dctx->owner_name, i,
+							  lcount - i, &suffix);
+				if (suffix.length > nrem)
+					return (DNS_R_NOSPACE);
+				memcpy(ndata, suffix.ndata, suffix.length);
+				ndata += suffix.length;
+				nused += suffix.length;
+				nrem -= suffix.length;
+				labels += suffix.labels;
+				done = ISC_TRUE;
+				break;
 			}
+			if (local)
+				new_current += dctx->rdata - 256;
+			if (new_current >= biggest_pointer)
+				return (DNS_R_BADPOINTER);
+			biggest_pointer = new_current;
+			current = new_current;
+			cdata = (unsigned char *)source->base +
+				current;
+			hops++;
+			if (hops > DNS_POINTER_MAXHOPS)
+				return (DNS_R_TOOMANYHOPS);
+			state = fw_start;
 			break;
 		default:
 			FATAL_ERROR(__FILE__, __LINE__,

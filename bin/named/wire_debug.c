@@ -69,7 +69,6 @@ dns_result_t printmessage(dns_message_t *message);
 void
 dump_packet(unsigned char *buf, u_int len)
 {
-	extern dns_decompress_t dctx;
 	extern unsigned int rdcount, rlcount, ncount;
 	char t[5000]; /* XXX */
 	dns_message_t message;
@@ -80,9 +79,6 @@ dump_packet(unsigned char *buf, u_int len)
 	rdcount = 0;
 	rlcount = 0;
 	ncount = 0;
-
-	dctx.allowed = DNS_COMPRESS_GLOBAL14;
-	dns_name_init(&dctx.owner_name, NULL);
 
 	for (i = 0 ; i < len ; /* */ ) {
 		fprintf(stdout, "%02x", buf[i]);
@@ -153,9 +149,7 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	INSIST(message.aucount == 0);
 	INSIST(message.adcount == 0);
 
-	dctx.allowed = DNS_COMPRESS_GLOBAL14;
-	dns_name_init(&dctx.owner_name, NULL);
-
+	dns_decompress_init(&dctx, -1, ISC_FALSE);
 	result = dns_compress_init(&cctx, -1, db->mctx);
 	if (result != DNS_R_SUCCESS)
 		return (result);
@@ -167,6 +161,10 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	dns_name_init(&name, NULL);
 	isc_buffer_remaining(source, &r);
 	isc_buffer_setactive(source, r.length);
+	if (!dns_decompress_strict(&dctx))
+		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL);
+	else
+		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 	result = dns_name_fromwire(&name, source, &dctx, ISC_FALSE, &tbuf);
 	qtype = getshort(source);
 	qclass = getshort(source);

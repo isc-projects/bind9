@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.c,v 1.3 1999/02/22 07:24:05 marka Exp $ */
+ /* $Id: nsap-ptr_23.c,v 1.4 1999/02/24 06:31:35 marka Exp $ */
 
  /* RFC 1348 */
 
@@ -75,6 +75,11 @@ fromwire_in_nsap_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 23);
 	REQUIRE(class == 1);
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
         
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));

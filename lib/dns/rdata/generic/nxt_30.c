@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.6 1999/02/22 07:24:02 marka Exp $ */
+ /* $Id: nxt_30.c,v 1.7 1999/02/24 06:31:33 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -127,6 +127,11 @@ fromwire_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 	REQUIRE(type == 30);
 
 	class = class;	/*unused*/
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));

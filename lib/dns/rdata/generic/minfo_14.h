@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: minfo_14.h,v 1.10 1999/02/22 07:24:01 marka Exp $ */
+ /* $Id: minfo_14.h,v 1.11 1999/02/24 06:31:33 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MINFO_14_H
 #define RDATA_GENERIC_MINFO_14_H
@@ -88,6 +88,11 @@ fromwire_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
         dns_name_t email;
         
 	REQUIRE(type == 14);
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
 	class = class;	/*unused*/
 

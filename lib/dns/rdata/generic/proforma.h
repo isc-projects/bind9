@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.h,v 1.7 1999/02/22 07:24:02 marka Exp $ */
+ /* $Id: proforma.h,v 1.8 1999/02/24 06:31:33 marka Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_H
 #define RDATA_GENERIC_#_#_H
@@ -50,6 +50,11 @@ fromwire_#(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == #);
 	REQUIRE(class == #);
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_LOCAL);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }

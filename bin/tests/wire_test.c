@@ -125,6 +125,10 @@ getname(dns_name_t *name, isc_buffer_t *source, isc_buffer_t *target) {
 	dns_name_init(name, NULL);
 
 	current = source->current;
+	if (dns_decompress_edns(&dctx) > 1 || !dns_decompress_strict(&dctx))
+		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL);
+	else
+		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 	result = dns_name_fromwire(name, source, &dctx, ISC_FALSE, target);
 				   
 #ifdef NOISY
@@ -259,9 +263,11 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 			exit(1);
 		}
 		rdata = &rdatas[rdcount++];
+		dns_decompress_localinit(&dctx, name, source);
 		result = dns_rdata_fromwire(rdata, class, type,
 					    source, &dctx, ISC_FALSE,
 					    target);
+		dns_decompress_localinvalidate(&dctx);
 		if (result != DNS_R_SUCCESS) {
 			printf("%s\n", dns_result_totext(result));
 			exit(1);
@@ -306,10 +312,12 @@ getmessage(dns_message_t *message, isc_buffer_t *source,
 	message->aucount = getshort(source);
 	message->adcount = getshort(source);
 
+	dns_decompress_init(&dctx, -1, ISC_FALSE);
 	getquestions(source, &message->question, message->qcount, target);
 	getsection(source, &message->answer, message->ancount, target);
 	getsection(source, &message->authority, message->aucount, target);
 	getsection(source, &message->additional, message->adcount, target);
+	dns_decompress_invalidate(&dctx);
 
 	isc_buffer_remaining(source, &r);
 	if (r.length != 0)
@@ -558,13 +566,10 @@ main(int argc, char *argv[]) {
 	rlcount = 0;
 	ncount = 0;
 
-	dctx.allowed = DNS_COMPRESS_GLOBAL14;
-	dns_name_init(&dctx.owner_name, NULL);
 
 	isc_buffer_init(&source, b, sizeof b, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, bp - b);
 	isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_BINARY);
-
 	getmessage(&message, &source, &target);
 	result = printmessage(&message);
 	if (result != DNS_R_SUCCESS)

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.h,v 1.4 1999/02/22 07:24:03 marka Exp $ */
+ /* $Id: rt_21.h,v 1.5 1999/02/24 06:31:34 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -84,6 +84,11 @@ fromwire_rt(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 21);
 	class = class;		/* unused */
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
         
         dns_name_init(&name, NULL);
 

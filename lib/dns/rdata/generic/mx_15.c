@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.12 1999/02/22 07:24:01 marka Exp $ */
+ /* $Id: mx_15.c,v 1.13 1999/02/24 06:31:33 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H
@@ -81,7 +81,13 @@ fromwire_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t tregion;
 
 	REQUIRE(type == 15);
+
 	class = class;		/* unused */
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
         
         dns_name_init(&name, NULL);
 

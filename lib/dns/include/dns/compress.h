@@ -48,8 +48,12 @@ struct dns_compress {
 };
 
 struct dns_decompress {
-	unsigned int allowed;			/* Allowed methods. */
-	dns_name_t owner_name;			/* For local compression. */
+	unsigned int	magic;			/* Magic number. */
+	unsigned int	allowed;		/* Allowed methods. */
+	unsigned int	rdata;			/* Start of local rdata. */
+	int		edns;			/* Edns version or -1. */
+	isc_boolean_t	strict;			/* Strict checking */
+	dns_name_t	owner_name;		/* For local compression. */
 };
 
 dns_result_t dns_compress_init(dns_compress_t *cctx, int edns,
@@ -219,5 +223,30 @@ dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset);
  *	Requires:
  *		'cctx' is initalised.
  */
+
+void
+dns_decompress_init(dns_decompress_t *dctx, int edns, isc_boolean_t strict);
+
+void
+dns_decompress_localinit(dns_decompress_t *dctx, dns_name_t *name,
+		         isc_buffer_t *source);
+
+void
+dns_decompress_invalidate(dns_decompress_t *dctx);
+
+void
+dns_decompress_localinvalidate(dns_decompress_t *dctx);
+		    
+void
+dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed);
+
+unsigned int
+dns_decompress_getmethods(dns_decompress_t *dctx);
+
+int
+dns_decompress_edns(dns_decompress_t *dctx);
+
+isc_boolean_t
+dns_decompress_strict(dns_decompress_t *dctx);
 
 #endif /* DNS_COMPRESS_H */

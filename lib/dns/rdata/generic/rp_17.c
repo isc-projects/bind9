@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.4 1999/02/22 07:24:03 marka Exp $ */
+ /* $Id: rp_17.c,v 1.5 1999/02/24 06:31:34 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -92,6 +92,11 @@ fromwire_rp(dns_rdataclass_t class, dns_rdatatype_t type,
 	REQUIRE(type == 17);
 
 	class = class;	/*unused*/
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
         dns_name_init(&rmail, NULL);
         dns_name_init(&email, NULL);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.h,v 1.6 1999/02/22 07:24:04 marka Exp $ */
+ /* $Id: tkey_249.h,v 1.7 1999/02/24 06:31:34 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -179,6 +179,11 @@ fromwire_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 	REQUIRE(type == 249);
 	
 	class = class;		/*unused*/
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 	
 	/* Algorithm */
 	dns_name_init(&name, NULL);

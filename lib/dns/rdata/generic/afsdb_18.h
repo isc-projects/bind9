@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.h,v 1.4 1999/02/22 07:23:59 marka Exp $ */
+ /* $Id: afsdb_18.h,v 1.5 1999/02/24 06:31:32 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -85,6 +85,11 @@ fromwire_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
 	REQUIRE(type == 18);
 	
 	class = class;	/*unused*/
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
 

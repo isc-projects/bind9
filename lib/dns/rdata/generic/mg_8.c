@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mg_8.c,v 1.9 1999/02/22 07:24:01 marka Exp $ */
+ /* $Id: mg_8.c,v 1.10 1999/02/24 06:31:33 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MG_8_H
 #define RDATA_GENERIC_MG_8_H
@@ -72,6 +72,11 @@ fromwire_mg(dns_rdataclass_t class, dns_rdatatype_t type,
 	REQUIRE(type == 8);
 
 	class = class;	/*unused*/
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
         
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));

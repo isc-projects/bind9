@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.13 1999/02/22 07:24:04 marka Exp $ */
+ /* $Id: soa_6.c,v 1.14 1999/02/24 06:31:34 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_H
 #define RDATA_GENERIC_SOA_6_H
@@ -112,6 +112,11 @@ fromwire_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 	REQUIRE(type == 6);
 
 	class = class;	/*unused*/
+
+	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+	else
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
         dns_name_init(&mname, NULL);
         dns_name_init(&rname, NULL);

@@ -1,7 +1,7 @@
 		
 			Name Decompression
 
-	$Id: decompression,v 1.2 1999/02/24 00:57:57 marka Exp $
+	$Id: decompression,v 1.3 1999/02/24 06:31:31 marka Exp $
 
 Overview.
 	
@@ -49,13 +49,13 @@ Types:
 
 Functions:
 
-	dns_result_t
+	void
 	dns_decompress_init(dns_decompress_t *dctx, int edns,
-			    isc_boolean_t strict, isc_mctx_t *mctx);
+			    isc_boolean_t strict);
 	initalise dctx
 	dctx->ownername is invalidated
 
-	dns_result_t
+	void
 	dns_decompress_localinit(dns_decompress_t *dctx, dns_name_t *name,
 				 isc_buffer_t *source);
 	initalise dctx->ownername

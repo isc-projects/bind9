@@ -218,6 +218,16 @@ fromwire_<I>classname_typename</I>(dns_rdataclass_t class, dns_rdatatype_t type,
 			    isc_buffer_t *source, dns_decompress_t *dctx,
 			    isc_boolean_t downcase, isc_buffer_t *target);</CODE>
 </PRE>
+<P>
+<CODE>fromwire_<I>classname_typename</I>()</CODE> is required to set the valid
+decompression methods if there is a domain name in the rdata.
+<PRE>
+<CODE>if (dns_decompress_edns(dctx) >= # || !dns_decompress_strict(dctx))
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
+else
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_LOCAL);</CODE>
+</PRE>
+	
 <DL>
 <DT><CODE>class</CODE></DT>
 <DD>
