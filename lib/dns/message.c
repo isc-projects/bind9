@@ -443,7 +443,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 	dynbuf = ISC_LIST_HEAD(msg->cleanup);
 	while (dynbuf != NULL) {
 		next_dynbuf = ISC_LIST_NEXT(dynbuf, link);
-		ISC_LIST_UNLINK(msg->scratchpad, dynbuf, link);
+		ISC_LIST_UNLINK(msg->cleanup, dynbuf, link);
 		isc_buffer_free(&dynbuf);
 		dynbuf = next_dynbuf;
 	}
