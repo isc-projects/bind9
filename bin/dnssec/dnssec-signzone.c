@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.136 2001/03/31 02:12:23 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.137 2001/05/08 03:20:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1337,7 +1337,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, file);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		fatal("failed loading zone from '%s': %s",
 		      file, isc_result_totext(result));
 }
