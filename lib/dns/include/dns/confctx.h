@@ -178,10 +178,13 @@ struct dns_c_options
 	isc_boolean_t		dialup;
 	isc_boolean_t		rfc2308_type1;
 	
+	isc_sockaddr_t		transfer_source;
 	isc_sockaddr_t		query_source_addr;
 	in_port_t		query_source_port;
 
-	dns_severity_t	check_names[DNS_C_TRANSCOUNT];
+	dns_c_iplist_t	       *also_notify;
+
+	dns_severity_t 		check_names[DNS_C_TRANSCOUNT];
 
 	dns_transfer_format_t	transfer_format;
 
@@ -195,7 +198,7 @@ struct dns_c_options
 	dns_c_lstnlist_t      *listens;
 
 	dns_c_forw_t		forward;
-	dns_c_ipmatchlist_t   *forwarders;
+	dns_c_iplist_t   *forwarders;
 
 	dns_c_rrsolist_t      *ordering;
 
@@ -226,7 +229,10 @@ void		dns_c_ctx_optionsprint(FILE *fp, int indent,
 void		dns_c_ctx_forwarderprint(FILE *fp, int indent,
 					 dns_c_options_t *options);
 
-
+isc_result_t    dns_c_ctx_getcontrols(dns_c_ctx_t *cfg,
+                                      dns_c_ctrllist_t **ctrls);
+isc_result_t	dns_c_ctx_setcontrols(dns_c_ctx_t *cfg,
+				      dns_c_ctrllist_t *ctrls);
 isc_result_t	dns_c_ctx_getoptions(dns_c_ctx_t *cfg,
 				     dns_c_options_t **options);
 
@@ -361,6 +367,12 @@ isc_result_t	dns_c_ctx_setuseidpool(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_setrfc2308type1(dns_c_ctx_t *cfg,
 					  isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval);
+isc_result_t	dns_c_ctx_setalsonotify(dns_c_ctx_t *ctx,
+					dns_c_iplist_t *newval,
+					isc_boolean_t deepcopy);
+isc_result_t	dns_c_ctx_settransfersource(dns_c_ctx_t *ctx,
+					    isc_sockaddr_t newval);
+
 isc_result_t	dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg,
 					     isc_sockaddr_t addr);
 isc_result_t	dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, in_port_t port);
@@ -383,7 +395,7 @@ isc_result_t	dns_c_ctx_setsortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 				      dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw);
 isc_result_t	dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
-					dns_c_ipmatchlist_t *iml);
+					dns_c_iplist_t *iml);
 isc_result_t	dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg,
 					    isc_boolean_t copy,
 					    dns_c_rrsolist_t *olist);
@@ -494,6 +506,11 @@ isc_result_t	dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_getrfc2308type1(dns_c_ctx_t *cfg,
 					  isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval);
+isc_result_t	dns_c_ctx_getalsonotify(dns_c_ctx_t *ctx,
+					dns_c_iplist_t **ret);
+isc_result_t	dns_c_ctx_gettransfersource(dns_c_ctx_t *ctx,
+					    isc_sockaddr_t *retval);
+
 isc_result_t	dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg,
 					     isc_sockaddr_t *addr);
 isc_result_t	dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg,
@@ -519,7 +536,7 @@ isc_result_t	dns_c_ctx_getlistenlist(dns_c_ctx_t *cfg,
 					dns_c_lstnlist_t **ll);
 isc_result_t	dns_c_ctx_getforward(dns_c_ctx_t *cfg, dns_c_forw_t *forw);
 isc_result_t	dns_c_ctx_getforwarders(dns_c_ctx_t *cfg,
-					dns_c_ipmatchlist_t **list);
+					dns_c_iplist_t **list);
 isc_result_t	dns_c_ctx_getrrsetorderlist(dns_c_ctx_t *cfg,
 					    dns_c_rrsolist_t **olist);
 isc_result_t	dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg,
