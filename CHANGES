@@ -1,3 +1,6 @@
+1398.	[doc]		ARM: notify-also should have been also-notify.
+			[RT #4345]
+
 1397.	[bug]		J.ROOT-SERVERS.NET is now 192.58.128.30.
 
 1396.	[func]		dnssec-signzone: adjust the default signing time by

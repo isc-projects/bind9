@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.207 2002/10/29 04:40:23 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.208 2002/11/11 00:18:22 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3088,7 +3088,7 @@ request to all the slaves (default). This should trigger the zone serial
 number check in the slave (providing it supports NOTIFY) allowing the slave
 to verify the zone while the connection is active.
 The set of servers to which NOTIFY is sent can be controlled by
-<command>notify</command> and <command>notify-also</command>.</para>
+<command>notify</command> and <command>also-notify</command>.</para>
 <para>If the
 zone is a slave or stub zone, then the server will suppress the regular
 "zone up to date" (refresh) queries and only perform them when the
