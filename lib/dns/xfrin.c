@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.91 2000/08/09 00:09:36 gson Exp $ */
+/* $Id: xfrin.c,v 1.92 2000/08/10 20:26:08 gson Exp $ */
 
 #include <config.h>
 
@@ -296,9 +296,6 @@ axfr_commit(dns_xfrin_ctx_t *xfr) {
 
 	CHECK(axfr_apply(xfr));
 	CHECK(dns_db_endload(xfr->db, &xfr->axfr.add_private));
-	xfrin_log(xfr, ISC_LOG_DEBUG(2),
-		  "number of nodes in database: %u",
-		  dns_db_nodecount(xfr->db));
 	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, ISC_TRUE));
 
 	result = ISC_R_SUCCESS;
@@ -376,9 +373,6 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
 	if (xfr->ver != NULL) {
 		/* XXX enter ready-to-commit state here */
 		CHECK(dns_journal_commit(xfr->ixfr.journal));
-		xfrin_log(xfr, ISC_LOG_DEBUG(2),
-			  "number of nodes in database: %u",
-			  dns_db_nodecount(xfr->db));
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_TRUE);
 	}
 	result = ISC_R_SUCCESS;
@@ -1087,11 +1081,21 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	}
 
 #ifndef NOMINUM_PUBLIC
-	if (dns_zone_getmaxnames(xfr->zone) != 0 &&
-	    dns_db_nodecount(xfr->db) >
-	    dns_zone_getmaxnames(xfr->zone)) {
-		result = DNS_R_ZONETOOLARGE;
-		goto failure;
+	/*
+	 * Check the database size.  Note that xfr->db can still
+	 * be NULL at this point, e.g. when doing an initial AXFR
+	 * and the first response message contains only the SOA.
+	 */
+	if (xfr->db != NULL) {
+		unsigned int count = dns_db_nodecount(xfr->db);
+		unsigned int maxnames = dns_zone_getmaxnames(xfr->zone);
+		
+		xfrin_log(xfr, ISC_LOG_DEBUG(2),
+			  "number of nodes in database: %u", count);
+		if (maxnames != 0 && count > maxnames) {
+			result = DNS_R_ZONETOOLARGE;
+			goto failure;
+		}
 	}
 #endif
 	
