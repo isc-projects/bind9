@@ -406,6 +406,10 @@ isc_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target,
 				isc_mem_t *mctx);
 /*
  * Convert an rdata into its C structure representation.
+ *	
+ * If 'mctx' is NULL then 'rdata' must persist while 'target' is being used.
+ *
+ * If 'mctx' is non NULL then memory will be allocated if required.
  *
  * Requires:
  *
