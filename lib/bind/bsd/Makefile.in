@@ -1,8 +1,10 @@
 DAEMON_OBJS=daemon.@O@
+STRSEP_OBJS=strsep.@O@
 
-OBJS=	@DAEMON_OBJS@ ftruncate.@O@ gettimeofday.@O@ mktemp.@O@ putenv.@O@ \
+OBJS=	@DAEMON_OBJS@ @STRSEP_OBJS@ ftruncate.@O@ gettimeofday.@O@ \
+	mktemp.@O@ putenv.@O@ \
 	readv.@O@ setenv.@O@ setitimer.@O@ strcasecmp.@O@ strdup.@O@ \
-	strerror.@O@ strpbrk.@O@ strsep.@O@ strtoul.@O@ utimes.@O@ \
+	strerror.@O@ strpbrk.@O@ strtoul.@O@ utimes.@O@ \
 	writev.@O@
 
 SRCS=	daemon.c ftruncate.c gettimeofday.c mktemp.c putenv.c \

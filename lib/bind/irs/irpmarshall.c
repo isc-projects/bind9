@@ -49,7 +49,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: irpmarshall.c,v 1.1 2001/03/29 06:31:50 marka Exp $";
+static const char rcsid[] = "$Id: irpmarshall.c,v 1.2 2001/04/03 05:53:00 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #if 0
@@ -1260,7 +1260,7 @@ irp_unmarshall_ng(const char **hostp, const char **userp, const char **domainp,
 	host = user = domain = NULL;
 
 	p = buffer;
-	while (isspace(*p)) {
+	while (isspace(*p&0xff)) {
 		p++;
 	}
 	if (*p != '(') {

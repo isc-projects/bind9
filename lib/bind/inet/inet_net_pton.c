@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_net_pton.c,v 1.1 2001/03/29 06:31:38 marka Exp $";
+static const char rcsid[] = "$Id: inet_net_pton.c,v 1.2 2001/04/03 05:52:50 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -103,7 +103,7 @@ inet_net_pton_ipv4(src, dst, size)
 
 	ch = *src++;
 	if (ch == '0' && (src[0] == 'x' || src[0] == 'X')
-	    && isascii(src[1]) && isxdigit(src[1])) {
+	    && isascii(src[1]&0xff) && isxdigit(src[1]&0xff)) {
 		/* Hexadecimal: Eat nybble string. */
 		if (size <= 0)
 			goto emsgsize;

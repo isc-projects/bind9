@@ -12,6 +12,7 @@
 @HAVE_SA_LEN@
 @HAVE_MINIMUM_IFREQ@
 @NEED_DAEMON@
+@NEED_STRSEP@
 @HAS_INET6_STRUCTS@
 @NEED_IN6ADDR_ANY@
 @HAS_IN_ADDR6@
@@ -94,6 +95,14 @@ extern const struct in6_addr in6addr_any;
 
 #ifndef MAX
 #define MAX(x,y) (((x) >= (y)) ? (x) : (y))
+#endif
+
+#ifdef NEED_DAEMON
+int daemon(int nochdir, int noclose);
+#endif
+  
+#ifdef NEED_STRSEP
+char * strsep(char **stringp, const char *delim)
 #endif
 
 #endif

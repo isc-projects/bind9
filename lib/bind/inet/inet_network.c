@@ -65,7 +65,7 @@ again:
 	if (*cp == 'x' || *cp == 'X')
 		base = 16, cp++;
 	while ((c = *cp) != 0) {
-		if (isdigit(c)) {
+		if (isdigit(c&0xff)) {
 			if (base == 8 && (c == '8' || c == '9'))
 				return (INADDR_NONE);
 			val = (val * base) + (c - '0');
@@ -73,8 +73,9 @@ again:
 			digit = 1;
 			continue;
 		}
-		if (base == 16 && isxdigit(c)) {
-			val = (val << 4) + (c + 10 - (islower(c) ? 'a' : 'A'));
+		if (base == 16 && isxdigit(c&0xff)) {
+			val = (val << 4) +
+			      (c + 10 - (islower(c&0xff) ? 'a' : 'A'));
 			cp++;
 			digit = 1;
 			continue;
@@ -89,7 +90,7 @@ again:
 		*pp++ = val, cp++;
 		goto again;
 	}
-	if (*cp && !isspace(*cp))
+	if (*cp && !isspace(*cp&0xff))
 		return (INADDR_NONE);
 	*pp++ = val;
 	n = pp - parts;

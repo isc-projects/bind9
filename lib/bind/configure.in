@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.8 $)
+AC_REVISION($Revision: 1.9 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -547,6 +547,14 @@ AC_CHECK_FUNC(daemon,
 )
 AC_SUBST(DAEMON_OBJS)
 AC_SUBST(NEED_DAEMON)
+
+AC_CHECK_FUNC(strsep,
+[STRSEP_OBJS="" NEED_STRSEP="#undef NEED_STRSEP"]
+,
+[STRSEP_OBJS="\${STRSEP_OBJS}" NEED_STRSEP="#define NEED_STRSEP 1"]
+)
+AC_SUBST(STRSEP_OBJS)
+AC_SUBST(NEED_STRSEP)
 
 #
 # flockfile is usually provided by pthreads, but we may want to use it
