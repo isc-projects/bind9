@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.10 2001/07/16 17:53:22 gson Exp $ */
+/* $Id: named-checkconf.c,v 1.11 2001/07/27 04:59:01 mayer Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,7 @@
 
 #include "check-tool.h"
 
-isc_log_t *log = NULL;
+isc_log_t *logc = NULL;
 
 static void
 usage(void) {
@@ -60,7 +60,7 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	directory = cfg_obj_asstring(obj);
 	result = isc_dir_chdir(directory);
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(obj, log, ISC_LOG_ERROR,
+		cfg_obj_log(obj, logc, ISC_LOG_ERROR,
 			    "change directory to '%s' failed: %s",
 			    directory, isc_result_totext(result));
 		return (result);
@@ -112,9 +112,9 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(setup_logging(mctx, &log) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(setup_logging(mctx, &logc) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(cfg_parser_create(mctx, log, &parser) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
 
 	cfg_parser_setcallback(parser, directory_callback, NULL);
 
@@ -122,7 +122,7 @@ main(int argc, char **argv) {
 	    ISC_R_SUCCESS)
 		exit(1);
 
-	result = cfg_check_namedconf(config, log, mctx);
+	result = cfg_check_namedconf(config, logc, mctx);
 	if (result != ISC_R_SUCCESS)
 		exit_status = 1;
 
@@ -130,7 +130,7 @@ main(int argc, char **argv) {
 
 	cfg_parser_destroy(&parser);
 
-	isc_log_destroy(&log);
+	isc_log_destroy(&logc);
 
 	isc_mem_destroy(&mctx);
 
