@@ -348,6 +348,7 @@ start_find(client_t *client)
 	 */
 	options = 0;
 	options |= DNS_ADBFIND_WANTEVENT;
+	options |= DNS_ADBFIND_RETURNLAME;
 
 	/*
 	 * Set the bits up here to mark that we want this address family
