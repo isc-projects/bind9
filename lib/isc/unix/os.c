@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.10 2001/02/17 01:23:43 gson Exp $ */
+/* $Id: os.c,v 1.11 2001/08/16 06:19:58 marka Exp $ */
 
 #include <config.h>
 
@@ -54,6 +54,22 @@ hpux_ncpus(void) {
 
 #endif /* __hpux */
 
+#if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
+static int
+sysctl_ncpus(void) {
+	int ncpu, result;
+	size_t len;
+
+	len = sizeof ncpu;
+	result = sysctlbyname("hw.ncpu", &ncpu, &len , 0, 0);
+	if (result != -1)
+		return (ncpu);
+	return (0);
+}
+#endif
 
 unsigned int
 isc_os_ncpus(void) {
@@ -64,7 +80,10 @@ isc_os_ncpus(void) {
 #elif defined(HAVE_SYSCONF)
 	ncpus = sysconf_ncpus();
 #endif
-
+#if defined(HAVE_SYS_SYSCTL_H) && defined(HAVE_SYSCTLBYNAME)
+	if (ncpus <= 0)
+		ncpus = sysctl_ncpus();
+#endif
 	if (ncpus <= 0)
 		ncpus = 1;
 

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.289 $)
+AC_REVISION($Revision: 1.290 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -194,10 +194,11 @@ AC_PROG_CC
 
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h)
+AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/sysctl.h)
 
 AC_C_CONST
 AC_C_INLINE
+AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME),)
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler

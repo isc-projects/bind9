@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.46 2001/08/15 06:03:39 marka Exp $ */
+/* $Id: config.h.in,v 1.47 2001/08/16 06:19:56 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -65,6 +65,9 @@
 
 /* define if sysconf() is available */
 #undef HAVE_SYSCONF
+
+/* define if sysctlbyname() is available */
+#undef HAVE_SYSCTLBYNAME
 
 /* define if catgets() is available */
 #undef HAVE_CATGETS
@@ -149,6 +152,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if you have the <sys/select.h> header file.  */
 #undef HAVE_SYS_SELECT_H
+
+/* Define if you have the <sys/sysctl.h> header file.  */
+#undef HAVE_SYS_SYSCTL_H
 
 /* Define if you have the <sys/sockio.h> header file.  */
 #undef HAVE_SYS_SOCKIO_H
