@@ -1,3 +1,7 @@
+1636.	[bug]		The dump done callback could get ISC_R_SUCCESS even if
+			a error had occured.  The database version no longer
+			matched the version of the database that was dumped.
+
 1635.	[bug]		Memory leak on error in query_addds().
 
 1634.	[placeholder]	rt11208
