@@ -34,7 +34,8 @@
 			"make install DESTDIR=/xx" works with
 			"configure --with-libtool".  [RT #9941]
 
-1572.	[placeholder]	rt10148
+1572.	[bug]		nsupdate: sign the soa query to find the enclosing
+			zone if the server is specified. [RT #10148]
 
 1571.	[bug]		rbt:hash_node() could fail leaving the hash table
 			in an inconsistant state.  [RT #10208]
