@@ -23,17 +23,18 @@ root name server and is listed in the hints file of the others.
 To enable all servers to run on the same machine, they bind to
 separate virtual IP address on the loopback interface.  ns1 runs on
 10.53.0.1, ns2 on 10.53.0.2, etc.  Before running any tests, you must
-set up these addresses by running the script "ifconfig.sh start".
+set up these addresses by running "ifconfig.sh start".
 
-The servers do not bind to port 53, so can be run as a normal user once the
-interfaces are set up.
+The servers use port 5300 instead of the usual port 53, so they can be
+run without root privileges once the interfaces have been set up.
 
-To run the tests:
+The tests can be run individually like this:
 
   sh run.sh xfer
-
   sh run.sh notify
-
   etc.
 
-$Id: README,v 1.5 2000/06/09 19:51:10 mws Exp $
+To run all the tests, just type "make test".
+
+
+$Id: README,v 1.6 2000/06/16 19:51:34 gson Exp $
