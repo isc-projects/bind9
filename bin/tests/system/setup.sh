@@ -22,7 +22,7 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-test $# -gt 0 || { echo "usage: runtest.sh test-directory" >&2; exit 1; }
+test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
 
 test=$1
 shift
