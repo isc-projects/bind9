@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: Bv9ARM.txt,v 1.12 2000/08/10 22:10:51 bwelling Exp $
+$Id: Bv9ARM.txt,v 1.13 2000/08/16 00:01:51 stahl Exp $
 
 BIND 9 Administrator Reference Manual
 July 2000
@@ -658,7 +658,7 @@ Usage
 nslookup [-option ...] [host-to-find | -[server]]
 
 Interactive mode is entered when no arguments are given (the default
-nameserver will be used) or when the first argument is a hyphen (`-') and
+nameserver will be used) or when the first argument is a hyphen ('-') and
 the second argument is the host name or Internet address of a nameserver.
 
 Non-interactive mode is used when the name or Internet address of the host
@@ -678,8 +678,7 @@ For more information and a list of available commands and options, see the
 nslookup man page.
 
 Due to its arcane user interface and frequently inconsistent behavior, we do
-not recommend the use of nslookup, and it is not installed by default when
-installing BIND 9. Use dig instead.
+not recommend the use of nslookup. Use dig instead.
 
      3.4.1.2 Administrative Tools
 
