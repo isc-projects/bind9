@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.41 2000/04/26 17:27:01 explorer Exp $ */
+/* $Id: gen.c,v 1.42 2000/04/26 18:30:04 explorer Exp $ */
 
 #include <config.h>
 
@@ -634,6 +634,16 @@ main(int argc, char **argv) {
 		 * Here, walk the list from top to bottom, calculating
 		 * the hash (mod 256) for each name.
 		 */
+		printf("#define RDATATYPE_COMPARE(_s, _d, _tn, _tp) \\\n");
+		printf("\tdo { \\\n");
+		printf("\t\tif (strcasecmp(_s,(_tn)) == 0) { \\\n");
+		printf("\t\t\tif ((typeattr[_d].flags & DNS_RDATATYPEATTR_RESERVED) != 0) \\\n");
+		printf("\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n");
+		printf("\t\t\t*(_tp) = _d; \\\n");
+		printf("\t\t\treturn (ISC_R_SUCCESS); \\\n");
+		printf("\t\t} \\\n");
+		printf("\t} while (0)\n\n");
+
 		printf("#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) \\\n");
 		printf("\tswitch (_hash) { \\\n");
 		for (i = 0 ; i <= 255 ; i++) {
@@ -652,18 +662,13 @@ main(int argc, char **argv) {
 			 * Find all other entries that happen to match
 			 * this hash.
 			 */
-			for (j = i ; j <= 255 ; j++) {
+			for (j = 0 ; j <= 255 ; j++) {
 				ttn2 = &typenames[j];
-				if (ttn->sorted != 0)
+				if (ttn2->sorted != 0)
 					continue;
 				if (hash == HASH(ttn2->typename)) {
-					printf("\t\t\tif (strcasecmp(\"%s\", (_typename)) == 0) { \\\n"
-					       "\t\t\t\tif ((typeattr[%u].flags & DNS_RDATATYPEATTR_RESERVED) != 0) \\\n"
-					       "\t\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n"
-					       "\t\t\t\t*(_typep) = %u; \\\n"
-					       "\t\t\t\treturn (ISC_R_SUCCESS); \\\n"
-					       "\t\t\t} \\\n",
-					       ttn2->typename, j, j);
+					printf("\t\t\tRDATATYPE_COMPARE(\"%s\", %u, _typename, _typep); \\\n",
+					       ttn2->typename, j);
 					ttn2->sorted = 1;
 				}
 			}
