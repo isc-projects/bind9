@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.7 2000/06/21 17:43:27 mws Exp $ */
+/* $Id: nsupdate.c,v 1.8 2000/06/23 20:46:25 mws Exp $ */
 
 #include <config.h>
 #include <netdb.h>
@@ -32,18 +32,25 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/request.h>
+#include <dns/result.h>
+#include <dns/tsig.h>
+#include <dst/dst.h>
 #include <isc/app.h>
+#include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/entropy.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
+#include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
 #define MXNAME 256
@@ -62,7 +69,7 @@ extern isc_boolean_t isc_mem_debugging;
 
 isc_boolean_t busy= ISC_FALSE, debugging = ISC_FALSE, ddebugging = ISC_FALSE,
 	have_ipv6 = ISC_FALSE, valid_zonename = ISC_FALSE,
-	forced_master = ISC_FALSE;
+	forced_master = ISC_FALSE, is_dst_up = ISC_FALSE;
 isc_mutex_t lock;
 isc_condition_t cond;
 
@@ -82,6 +89,8 @@ dns_name_t *current_zone; /* Points to one of above, or dns_rootname */
 isc_buffer_t resolvbuf;
 char resolvstore[MXNAME];
 dns_name_t master; /* Master nameserver, from SOA query */
+dns_tsigkey_t *key = NULL;
+dns_tsig_keyring_t *keyring = NULL;
 
 int exitcode = 0;
 char server[MXNAME];
@@ -91,6 +100,11 @@ int nameservers;
 int ns_inuse = 0;
 int ndots = 1;
 char domain[MXNAME];
+char keynametext[MXNAME]="";
+char keysecret[MXNAME]="";
+dns_name_t keyname;
+isc_buffer_t *keynamebuf = NULL;
+isc_entropy_t *entp = NULL;
 
 #define STATUS_MORE 0
 #define STATUS_SEND 1
@@ -239,6 +253,12 @@ setup_system(){
 	isc_result_t result;
 	isc_sockaddr_t bind_any;
 	isc_buffer_t buf;
+	int secretsize;
+	unsigned char *secretstore;
+	isc_buffer_t secretsrc;
+	isc_buffer_t secretbuf;
+	isc_lex_t *lex = NULL;
+	isc_stdtime_t now;
 
 	ddebug("setup_system()");
 
@@ -273,7 +293,7 @@ setup_system(){
 	result = isc_task_create (taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
 
-	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
 	result = isc_socketmgr_create(mctx, &socketmgr);
@@ -281,6 +301,13 @@ setup_system(){
 
 	result = isc_timermgr_create(mctx, &timermgr);
 	check_result(result, "dns_timermgr_create");
+
+	result = isc_entropy_create (mctx, &entp);
+	check_result(result, "isc_entropy_create");
+
+	result = dst_lib_init (mctx, entp, 0);
+	check_result(result, "dst_lib_init");
+	is_dst_up = ISC_TRUE;
 
 	isc_sockaddr_any(&bind_any);
 
@@ -312,13 +339,95 @@ setup_system(){
 		current_zone = dns_rootname;
 	}
 
+	if (keysecret[0] != 0) {
+		debug("Creating key...");
+		result = dns_tsigkeyring_create(mctx, &keyring);
+		check_result(result, "dns_tsigkeyringcreate");
+		result = isc_buffer_allocate(mctx, &keynamebuf, MXNAME);
+		check_result(result, "isc_buffer_allocate");
+		dns_name_init(&keyname, NULL);
+		check_result(result, "dns_name_init");
+		isc_buffer_putstr(keynamebuf, keynametext);
+		secretsize = strlen(keysecret) * 3 / 4;
+		secretstore = isc_mem_get(mctx, secretsize);
+		ENSURE (secretstore != NULL);
+		isc_buffer_init(&secretsrc, keysecret, strlen(keysecret));
+		isc_buffer_add(&secretsrc, strlen(keysecret));
+		isc_buffer_init(&secretbuf, secretstore, secretsize);
+		result = isc_lex_create(mctx, strlen(keysecret), &lex);
+		check_result(result, "isc_lex_create");
+		result = isc_lex_openbuffer(lex, &secretsrc);
+		check_result(result, "isc_lex_openbuffer");
+		result = isc_base64_tobuffer(lex, &secretbuf, -1);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't create key %s: %s\n",
+				keynametext, isc_result_totext(result));
+			isc_lex_close(lex);
+			isc_lex_destroy(&lex);
+			goto SYSSETUP_FAIL;
+		}
+		secretsize = isc_buffer_usedlength(&secretbuf);
+		debug("close");
+		isc_lex_close(lex);
+		isc_lex_destroy(&lex);
+		isc_stdtime_get(&now);
+		
+		debug("namefromtext");
+		result = dns_name_fromtext(&keyname, keynamebuf,
+					   dns_rootname, ISC_FALSE,
+					   keynamebuf);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't create key %s: %s\n",
+				keynametext, dns_result_totext(result));
+			goto SYSSETUP_FAIL;
+		}
+		debug("tsigkey");
+		result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
+					    secretstore, secretsize,
+					    ISC_TRUE, NULL, now, now, mctx,
+					    keyring, &key);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't create key %s: %s\n",
+				keynametext, dns_result_totext(result));
+		}
+		isc_mem_put(mctx, secretstore, secretsize);
+		dns_name_invalidate(&keyname);
+		isc_buffer_free(&keynamebuf);
+		return;
+	SYSSETUP_FAIL:
+		isc_mem_put(mctx, secretstore, secretsize);
+		dns_name_invalidate(&keyname);
+		isc_buffer_free(&keynamebuf);
+		dns_tsigkeyring_destroy(&keyring);
+	}
 }
-	
+
+static void
+set_key(char *key) {
+	char *nameptr;
+	char *secptr;
+
+	debug("set_key");
+	nameptr = strtok(key, ": \t\r\n");
+	if (nameptr == NULL) {
+		fputs ("Need a key entry\n", stderr);
+		return;
+	}
+	secptr = strtok(NULL, " \t\r\n");
+	if (secptr == NULL) {
+		fputs ("Need a key entry\n", stderr);
+		return;
+	}
+	strncpy (keynametext, nameptr, MXNAME);
+	strncpy (keysecret, secptr, MXNAME);
+}
+
 static void
 parse_args(int argc, char **argv) {
 	int rc;
 	char **rv;
 
+	debug("parse_args");
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
@@ -326,9 +435,23 @@ parse_args(int argc, char **argv) {
 			debugging = ISC_TRUE;
 		else if (strcasecmp(rv[0], "-dd") == 0) {
 			ddebugging = ISC_TRUE;
+			debug ("Just turned on debugging");
 		} else if (strcasecmp(rv[0], "-dm") == 0) {
 			ddebugging = ISC_TRUE;
 			isc_mem_debugging = ISC_TRUE;
+		} else if (strncasecmp(rv[0],"-y", 2) == 0) {
+			debug ("In -y test");
+			if (rv[0][2] != 0)
+				set_key(&rv[0][2]);
+			else {
+				rc--;
+				rv++;
+				if (rc == 0) {
+					fputs ("Need a key entry\n", stderr);
+					return;
+				}
+				set_key(rv[0]);
+			}
 		} else if (strcasecmp(rv[0], "-v") == 0)
 			fputs ("Virtual Circuit mode not currently "
 			       "implemented.\n", stderr);
@@ -962,10 +1085,11 @@ send_update() {
 	isc_buffer_init(&buf, servername, MXNAME);
 	result = dns_name_totext(&master, ISC_TRUE, &buf);
 	check_result(result, "dns_name_totext");
+
 	servername[isc_buffer_usedlength(&buf)] = 0;	
 	get_address(servername, 53, &sockaddr);
 	result = dns_request_create(requestmgr, updatemsg, &sockaddr,
-				    0, NULL,
+				    0, key,
 				    FIND_TIMEOUT, global_task,
 				    update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
@@ -1133,6 +1257,21 @@ static void
 free_lists() {
 	ddebug ("free_lists()");
 
+	if (key != NULL) {
+		ddebug("Freeing key");
+		dns_tsigkey_setdeleted(key);
+		dns_tsigkey_detach(&key);
+	}
+
+	if (keynamebuf != NULL) {
+		ddebug("Freeing keynamebuf");
+		isc_buffer_free(&keynamebuf);
+	}
+	if (keyring != NULL) {
+		debug ("Freeing keyring %lx", keyring);
+		dns_tsigkeyring_destroy(&keyring);
+	}
+
 	if (updatemsg != NULL)
 		dns_message_destroy(&updatemsg);
 	if (findmsg != NULL)
@@ -1147,6 +1286,16 @@ free_lists() {
 		dns_name_free(&zonename, mctx);
 	}
 
+	if (is_dst_up) {
+		debug ("Destroy DST lib");
+		dst_lib_destroy();
+		is_dst_up = ISC_FALSE;
+	}
+	if (entp != NULL) {
+		debug ("Detach from entropy");
+		isc_entropy_detach(&entp);
+	}
+		
 	ddebug("Invalidating resolvdomain");
 	dns_name_invalidate(&resolvdomain);
 
@@ -1187,6 +1336,8 @@ main(int argc, char **argv) {
         isc_result_t result;
 	
 
+        parse_args(argc, argv);
+
         setup_system();
         result = isc_mutex_init(&lock);
         check_result(result, "isc_mutex_init");
@@ -1194,8 +1345,6 @@ main(int argc, char **argv) {
         check_result(result, "isc_condition_init");
         result = isc_mutex_trylock(&lock);
         check_result(result, "isc_mutex_trylock");
-
-        parse_args(argc, argv);
 
         while (ISC_TRUE) {
 		reset_system();
