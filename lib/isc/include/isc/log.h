@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.25 2000/06/19 21:45:03 explorer Exp $ */
+/* $Id: log.h,v 1.26 2000/07/13 00:18:53 gson Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -625,6 +625,17 @@ isc_log_getdebuglevel(isc_log_t *lctx);
  *	
  * Ensures:
  *	The current logging debugging level is returned.
+ */
+
+isc_boolean_t
+isc_log_wouldlog(isc_log_t *lctx, int level);
+/*
+ * Determine whether logging something to 'lctx' at 'level' would
+ * actually cause something to be logged somewhere.
+ *
+ * If ISC_FALSE is returned, it is guaranteed that nothing would
+ * be logged, allowing the caller to omit unnecessary
+ * isc_log_write() calls and possible message preformatting.
  */
 
 void

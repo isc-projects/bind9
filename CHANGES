@@ -1,3 +1,5 @@
+ 330.	[func]		New function isc_log_wouldlog().
+
  329.	[func]		omapi_auth_register() now takes a size_t argument for
 			the length of a key's secret data.  Previously
 			OMAPI only stored secrets up to the first NUL byte.
