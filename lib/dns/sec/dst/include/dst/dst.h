@@ -76,7 +76,7 @@ dst_supported_algorithm(const int alg);
  *	will contain a signature if all operations completed successfully.
  */
 dst_result_t
-dst_sign(const int mode, dst_key_t *key, dst_context_t *context,
+dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	 isc_region_t *data, isc_buffer_t *sig);
 
 /* Verify a signature on a block of data.
@@ -93,7 +93,7 @@ dst_sign(const int mode, dst_key_t *key, dst_context_t *context,
  *	All allocated memory will be freed after the FINAL call.
  */
 dst_result_t
-dst_verify(const int mode, dst_key_t *key, dst_context_t *context,
+dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	   isc_region_t *data, isc_region_t *sig);
 
 /* Reads a key from permanent storage.

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.3 1999/08/26 20:41:54 bwelling Exp $
+ * $Id: hmac_link.c,v 1.4 1999/08/31 14:59:08 bwelling Exp $
  */
 
 #include <config.h>
@@ -53,10 +53,12 @@ typedef struct hmackey {
 
 static struct dst_func hmacmd5_functions;
 
-static dst_result_t	dst_hmacmd5_sign(const int mode, dst_key_t *key,
+static dst_result_t	dst_hmacmd5_sign(const unsigned int mode,
+					 dst_key_t *key,
 					 void **context, isc_region_t *data,
 					 isc_buffer_t *sig, isc_mem_t *mctx);
-static dst_result_t	dst_hmacmd5_verify(const int mode, dst_key_t *key,
+static dst_result_t	dst_hmacmd5_verify(const unsigned int mode,
+					   dst_key_t *key,
 					   void **context, isc_region_t *data,
 					   isc_region_t *sig, isc_mem_t *mctx);
 static isc_boolean_t	dst_hmacmd5_compare(const dst_key_t *key1,
@@ -111,7 +113,7 @@ dst_s_hmacmd5_init()
  *	!DST_R_SUCCESS	Failure
  */
 static dst_result_t
-dst_hmacmd5_sign(const int mode, dst_key_t *key, void **context,
+dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
 		 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
 {
 	isc_region_t r;
@@ -179,7 +181,7 @@ dst_hmacmd5_sign(const int mode, dst_key_t *key, void **context,
  *	!DST_R_SUCCESS	Failure
  */
 static dst_result_t
-dst_hmacmd5_verify(const int mode, dst_key_t *key, void **context,
+dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
 {
 	MD5_CTX *ctx = NULL;

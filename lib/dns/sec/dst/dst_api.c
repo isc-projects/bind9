@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.6 1999/08/27 15:56:33 bwelling Exp $
+ * $Id: dst_api.c,v 1.7 1999/08/31 14:59:08 bwelling Exp $
  */
 
 #include <config.h>
@@ -105,7 +105,7 @@ dst_supported_algorithm(const int alg) {
  *	!DST_R_SUCCESS	Failure
  */
 dst_result_t
-dst_sign(const int mode, dst_key_t *key, dst_context_t *context, 
+dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
 	 isc_region_t *data, isc_buffer_t *sig)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -152,7 +152,7 @@ dst_sign(const int mode, dst_key_t *key, dst_context_t *context,
  */
 
 dst_result_t
-dst_verify(const int mode, dst_key_t *key, dst_context_t *context, 
+dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
 	   isc_region_t *data, isc_region_t *sig)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);

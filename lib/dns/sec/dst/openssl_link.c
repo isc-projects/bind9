@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.3 1999/08/27 21:12:28 bwelling Exp $
+ * $Id: openssl_link.c,v 1.4 1999/08/31 14:59:08 bwelling Exp $
  */
 
 #include <config.h>
@@ -45,10 +45,12 @@
 
 static struct dst_func openssl_functions;
 
-static dst_result_t	dst_openssl_sign(const int mode, dst_key_t *key,
+static dst_result_t	dst_openssl_sign(const unsigned int mode,
+					 dst_key_t *key,
 					 void **context, isc_region_t *data,
 					 isc_buffer_t *sig, isc_mem_t *mctx);
-static dst_result_t	dst_openssl_verify(const int mode, dst_key_t *key,
+static dst_result_t	dst_openssl_verify(const unsigned int mode,
+					   dst_key_t *key,
 					   void **context, isc_region_t *data,
 					   isc_region_t *sig, isc_mem_t *mctx);
 static isc_boolean_t	dst_openssl_compare(const dst_key_t *key1,
@@ -108,7 +110,7 @@ dst_s_openssl_init()
  *	!DST_R_SUCCESS	Failure
  */
 static dst_result_t
-dst_openssl_sign(const int mode, dst_key_t *key, void **context,
+dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
 		 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
 {
 	isc_region_t r;
@@ -180,7 +182,7 @@ dst_openssl_sign(const int mode, dst_key_t *key, void **context,
  *	!DST_R_SUCCESS	Failure
  */
 static dst_result_t
-dst_openssl_verify(const int mode, dst_key_t *key, void **context,
+dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
 		   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
 {
 	int status = 0;

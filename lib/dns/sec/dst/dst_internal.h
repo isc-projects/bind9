@@ -57,12 +57,12 @@ struct dst_key {
 };
 
 struct dst_func {
-	dst_result_t (*sign)(const int mode, dst_key_t *key, void **context,
-			     isc_region_t *data, isc_buffer_t *sig,
-			     isc_mem_t *mctx);
-	dst_result_t (*verify)(const int mode, dst_key_t *key, void **context,
-			       isc_region_t *data, isc_region_t *sig,
-			       isc_mem_t *mctx);
+	dst_result_t (*sign)(const unsigned int mode, dst_key_t *key,
+			     void **context, isc_region_t *data,
+			     isc_buffer_t *sig, isc_mem_t *mctx);
+	dst_result_t (*verify)(const unsigned int mode, dst_key_t *key,
+			       void **context, isc_region_t *data,
+			       isc_region_t *sig, isc_mem_t *mctx);
 	isc_boolean_t (*compare)(const dst_key_t *key1, const dst_key_t *key2);
 	dst_result_t (*generate)(dst_key_t *key, int parms, isc_mem_t *mctx);
 	void (*destroy)(void *key, isc_mem_t *mctx);

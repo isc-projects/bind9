@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.2 1999/08/26 20:41:54 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.3 1999/08/31 14:59:04 bwelling Exp $
  */
 
 #include <config.h>
@@ -81,7 +81,7 @@ static unsigned char pkcs1[] =
 	0x04, 0x10
 };
 
-static dst_result_t	dst_bsafe_md5digest(const int mode,
+static dst_result_t	dst_bsafe_md5digest(const unsigned int mode,
 					    B_ALGORITHM_OBJ *digest_obj,
 					    isc_region_t *data,
 					    isc_buffer_t *digest);
@@ -89,10 +89,11 @@ static dst_result_t	dst_bsafe_md5digest(const int mode,
 static int		dst_bsafe_key_size(RSA_Key *r_key);
 static isc_boolean_t	dst_s_bsafe_itemcmp(ITEM i1, ITEM i2);
 
-static dst_result_t	dst_bsafe_sign(const int mode, dst_key_t *key,
+static dst_result_t	dst_bsafe_sign(const unsigned int mode, dst_key_t *key,
 				       void **context, isc_region_t *data,
 				       isc_buffer_t *sig, isc_mem_t *mctx);
-static dst_result_t	dst_bsafe_verify(const int mode, dst_key_t *key,
+static dst_result_t	dst_bsafe_verify(const unsigned int mode,
+					 dst_key_t *key,
 					 void **context, isc_region_t *data,
 					 isc_region_t *sig, isc_mem_t *mctx);
 static isc_boolean_t	dst_bsafe_compare(const dst_key_t *key1,
@@ -147,7 +148,7 @@ dst_s_bsafe_init()
  *	!DST_R_SUCCESS	Failure
  */
 static dst_result_t
-dst_bsafe_sign(const int mode, dst_key_t *key, void **context,
+dst_bsafe_sign(const unsigned int mode, dst_key_t *key, void **context,
 	       isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
 {
 	int status = 0;
@@ -272,7 +273,7 @@ dst_bsafe_sign(const int mode, dst_key_t *key, void **context,
  *	!DST_R_SUCCESS	Failure
  */
 static dst_result_t
-dst_bsafe_verify(const int mode, dst_key_t *key, void **context,
+dst_bsafe_verify(const unsigned int mode, dst_key_t *key, void **context,
 		 isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
 {
 	B_ALGORITHM_OBJ *md5_ctx = NULL;
@@ -994,7 +995,7 @@ dst_bsafe_key_size(RSA_Key *key)
  * if needed 
  */
 static dst_result_t
-dst_bsafe_md5digest(const int mode, B_ALGORITHM_OBJ *digest_obj,
+dst_bsafe_md5digest(const unsigned int mode, B_ALGORITHM_OBJ *digest_obj,
 		    isc_region_t *data, isc_buffer_t *digest)
 {
 	int status = 0;
