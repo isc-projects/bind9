@@ -298,16 +298,25 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ANSWER, 0, 0);
+	if (result == ISC_R_NOSPACE) {
+		client->message->flags |= DNS_MESSAGEFLAG_TC;
+		goto renderend;
+	}
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_AUTHORITY, 0, 0);
+	if (result == ISC_R_NOSPACE) {
+		client->message->flags |= DNS_MESSAGEFLAG_TC;
+		goto renderend;
+	}
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ADDITIONAL, 0, 0);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 		goto done;
+ renderend:
 	result = dns_message_renderend(client->message);
 	if (result != ISC_R_SUCCESS)
 		goto done;
