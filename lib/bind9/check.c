@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.5 2004/10/07 02:15:29 marka Exp $ */
+/* $Id: check.c,v 1.44.18.6 2004/11/09 21:24:15 marka Exp $ */
 
 #include <config.h>
 
@@ -1191,6 +1191,120 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	return (result);
 }
 
+static const char *
+default_channels[] = {
+	"default_syslog",
+	"default_stderr",
+	"default_debug",
+	"null",
+	NULL
+};
+
+static isc_result_t
+bind9_check_logging(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
+	cfg_obj_t *categories = NULL;
+	cfg_obj_t *category;
+	cfg_obj_t *channels = NULL;
+	cfg_obj_t *channel;
+	cfg_listelt_t *element;
+	cfg_listelt_t *delement;
+	const char *channelname;
+	const char *catname;
+	cfg_obj_t *fileobj = NULL;
+        cfg_obj_t *syslogobj = NULL;
+        cfg_obj_t *nullobj = NULL;
+        cfg_obj_t *stderrobj = NULL;
+        cfg_obj_t *logobj = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	isc_symtab_t *symtab = NULL;
+	isc_symvalue_t symvalue;
+	int i;
+
+	(void)cfg_map_get(config, "logging", &logobj);
+	if (logobj == NULL)
+		return (ISC_R_SUCCESS);
+
+	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE, &symtab);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	symvalue.as_pointer = NULL;
+	for (i = 0; default_channels[i] != NULL; i++) {
+		tresult = isc_symtab_define(symtab, default_channels[i], 1,
+					    symvalue, isc_symexists_replace);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
+	}
+
+	cfg_map_get(logobj, "channel", &channels);
+
+	for (element = cfg_list_first(channels);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		channel = cfg_listelt_value(element);
+		channelname = cfg_obj_asstring(cfg_map_getname(channel));
+		fileobj = syslogobj = nullobj = stderrobj = NULL;
+		(void)cfg_map_get(channel, "file", &fileobj);
+		(void)cfg_map_get(channel, "syslog", &syslogobj);
+		(void)cfg_map_get(channel, "null", &nullobj);
+		(void)cfg_map_get(channel, "stderr", &stderrobj);
+		i = 0;
+		if (fileobj != NULL)
+			i++;
+		if (syslogobj != NULL)
+			i++;
+		if (nullobj != NULL)
+			i++;
+		if (stderrobj != NULL)
+			i++;
+		if (i != 1) {
+			cfg_obj_log(channel, logctx, ISC_LOG_ERROR,
+				    "channel '%s': exactly one of file, syslog, "
+				    "null, and stderr must be present",
+				     channelname);
+			result = ISC_R_FAILURE;
+		}
+		tresult = isc_symtab_define(symtab, channelname, 1,
+					    symvalue, isc_symexists_replace);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
+	}
+
+	cfg_map_get(logobj, "category", &categories);
+
+	for (element = cfg_list_first(categories);
+             element != NULL;
+             element = cfg_list_next(element))
+        {
+		category = cfg_listelt_value(element);
+		catname = cfg_obj_asstring(cfg_tuple_get(category, "name"));
+		if (isc_log_categorybyname(logctx, catname) == NULL) {
+			cfg_obj_log(category, logctx, ISC_LOG_ERROR,
+				    "undefined category: '%s'", catname);
+			result = ISC_R_FAILURE;
+		}
+		channels = cfg_tuple_get(category, "destinations");
+		for (delement = cfg_list_first(channels);
+		     delement != NULL;
+		     delement = cfg_list_next(delement))
+		{
+			channel = cfg_listelt_value(delement);
+			channelname = cfg_obj_asstring(channel);
+			tresult = isc_symtab_lookup(symtab, channelname, 1,
+                                          	    &symvalue);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(channel, logctx, ISC_LOG_ERROR,
+					    "undefined channel: '%s'",
+					    channelname);
+				result = tresult;
+			}
+		}
+	}
+	isc_symtab_destroy(&symtab);
+	return (result);
+}
 
 isc_result_t
 bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
@@ -1217,6 +1331,9 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(config, "server", &servers);
 	if (servers != NULL &&
 	    check_servers(servers, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
+
+	if (bind9_check_logging(config, logctx, mctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	if (options != NULL && 

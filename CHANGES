@@ -1,3 +1,6 @@
+1756.	[func]		named-checkconf now checks the logging configuration.
+			[RT #12352]
+
 1753.	[bug]		Don't serve a slave zone which has no NS records.
 			[RT #12894]
 
