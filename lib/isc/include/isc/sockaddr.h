@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.36 2001/10/02 06:06:13 marka Exp $ */
+/* $Id: sockaddr.h,v 1.37 2002/02/11 18:19:26 gson Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -160,7 +160,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
  */
 
 void
-isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size);
+isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size);
 /*
  * Format a human-readable representation of the socket address '*sa'
  * into the character array 'array', which is of size 'size'.

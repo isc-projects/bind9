@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.19 2001/11/27 01:56:04 gson Exp $ */
+/* $Id: netaddr.c,v 1.20 2002/02/11 18:19:22 gson Exp $ */
 
 #include <config.h>
 
@@ -133,7 +133,7 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 }
 
 void
-isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size) {
+isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 

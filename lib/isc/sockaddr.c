@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.51 2001/11/27 01:56:06 gson Exp $ */
+/* $Id: sockaddr.c,v 1.52 2002/02/11 18:19:24 gson Exp $ */
 
 #include <config.h>
 
@@ -154,7 +154,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 }
 
 void
-isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
+isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
