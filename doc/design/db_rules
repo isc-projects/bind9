@@ -1,7 +1,9 @@
 
+$Id: db_rules,v 1.3 1999/02/23 21:52:10 halley Exp $
+
 Here is a more formal statement of the important database design
-rules.  Each rule is given a 5 character mnemonic for referral
-convenience.
+rules.  Each rule has a 5 character mnemonic, for use in source code
+comments.
 
 
 Reference Safety						[DBREF]
@@ -32,8 +34,8 @@ Database Future Version						[DBFUV]
 
 	2)	When committed, the future version becomes the current version.
 
-	3)	Until it is committed, the future version changes may be
-		rolled back.
+	3)	Until committed, the future version changes may be rolled
+		back.
 
 
 Node Lookups							[DBNLU]
