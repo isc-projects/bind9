@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.72 2001/01/16 18:39:38 gson Exp $ */
+/* $Id: nslookup.c,v 1.73 2001/01/16 18:52:14 gson Exp $ */
 
 #include <config.h>
 
@@ -220,15 +220,9 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 				case dns_rdatatype_a:
 					if (section != DNS_SECTION_ANSWER)
 						goto def_short_section;
-					isc_buffer_clear(b);
-					result = dns_name_totext(name,
-							ISC_TRUE,
-							b);
-					check_result(result,
-						     "dns_name_totext");
-					printf("Name:\t%.*s\n",
-					       (int)isc_buffer_usedlength(b),
-					       (char*)isc_buffer_base(b));
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
+
 					isc_buffer_clear(b);
 					result = dns_rdata_totext(&rdata,
 								  NULL,
@@ -240,15 +234,9 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					       (char*)isc_buffer_base(b));
 					break;
 				case dns_rdatatype_soa:
-					isc_buffer_clear(b);
-					result = dns_name_totext(name,
-							ISC_TRUE,
-							b);
-					check_result(result,
-						     "dns_name_totext");
-					printf("%.*s\n",
-					       (int)isc_buffer_usedlength(b),
-					       (char*)isc_buffer_base(b));
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
+					printf("%s\n", namebuf);
 
 					result = dns_rdata_tostruct(&rdata,
 								    &soa, NULL);
@@ -271,22 +259,15 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					break;
 				default:
 				def_short_section:
-					isc_buffer_clear(b);
-					result = dns_name_totext(name,
-							ISC_TRUE,
-							b);
-					check_result(result,
-						     "dns_name_totext");
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
 					if (rdata.type <= 41)
-						printf("%.*s\t%s",
-						(int)isc_buffer_usedlength(b),
-						(char*)isc_buffer_base(b),
+						printf("%s\t%s", namebuf,
 						rtypetext[rdata.type]);
 					else
-						printf("%.*s\trdata_%d = ",
-						(int)isc_buffer_usedlength(b),
-						(char*)isc_buffer_base(b),
-						 rdata.type);
+						printf("%s\trdata_%d = ",
+						       namebuf,
+						       rdata.type);
 					isc_buffer_clear(b);
 					result = dns_rdata_totext(&rdata,
 								  NULL, b);
@@ -320,7 +301,6 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	char namestore[DNS_NAME_MAXTEXT + 1]; /* Leave room for the NULL */
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_rdata_soa_t soa;
 
@@ -360,30 +340,26 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			if (section == DNS_SECTION_QUESTION) {
-				dns_name_format(name, namestore,
-						sizeof(namestore));
-				printf("\t%s, ", namestore);
+				dns_name_format(name, namebuf,
+						sizeof(namebuf));
+				printf("\t%s, ", namebuf);
 				dns_rdatatype_format(rdataset->type,
-						     namestore,
-						     sizeof(namestore));
-				printf("type = %s, ", namestore);
+						     namebuf,
+						     sizeof(namebuf));
+				printf("type = %s, ", namebuf);
 				dns_rdataclass_format(rdataset->rdclass,
-						      namestore,
-						      sizeof(namestore));
-				printf("class = %s\n", namestore);
+						      namebuf,
+						      sizeof(namebuf));
+				printf("class = %s\n", namebuf);
 			}
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
-				isc_buffer_clear(b);
-				result = dns_name_totext(name,
-							 ISC_TRUE,
-							 b);
-				check_result(result,
-					     "dns_name_totext");
-				printf("    ->  %.*s\n",
-				       (int)isc_buffer_usedlength(b),
-				       (char*)isc_buffer_base(b));
+
+				dns_name_format(name, namebuf,
+						sizeof(namebuf));
+				printf("    ->  %s\n", namebuf);
+
 				switch (rdata.type) {
 				case dns_rdatatype_soa:
 					result = dns_rdata_tostruct(&rdata,
@@ -406,7 +382,6 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					printf("\tminimum = %u\n", soa.minimum);
 					break;
 				default:
-					isc_buffer_clear(b);
 					if (rdata.type <= 41)
 						printf("\t%s",
 						rtypetext[rdata.type]);
