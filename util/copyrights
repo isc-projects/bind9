@@ -18,7 +18,7 @@
 ./lib/isc/include/isc/assertions.h		1997,1998
 ./lib/isc/include/isc/boolean.h			1998
 ./lib/isc/include/isc/buffer.h			1998,1999
-./lib/isc/include/isc/error.h			1998
+./lib/isc/include/isc/error.h			1998,1999
 ./lib/isc/include/isc/event.h			1998
 ./lib/isc/include/isc/heap.h			1997,1998
 ./lib/isc/include/isc/lex.h			1998
@@ -48,7 +48,7 @@
 ./lib/isc/win32/time.c				1998
 ./lib/isc/assertions.c				1997,1998
 ./lib/isc/buffer.c				1998,1999
-./lib/isc/error.c				1998
+./lib/isc/error.c				1998,1999
 ./lib/isc/heap.c				1997,1998
 ./lib/isc/lex.c					1998,1999
 ./lib/isc/mem.c					1997,1998
@@ -56,7 +56,7 @@
 ./lib/isc/rwlock.c				1998
 ./lib/isc/symtab.c				1996,1997,1998,1999
 ./lib/isc/task.c				1998
-./lib/isc/timer.c				1998
+./lib/isc/timer.c				1998,1999
 ./lib/isc/result.c				1998
-./lib/isc/socket.c				1998
-./lib/isc/util.h				1998
+./lib/isc/socket.c				1998,1999
+./lib/isc/util.h				1998,1999
