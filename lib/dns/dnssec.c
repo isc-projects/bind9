@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.68 2001/06/08 19:37:27 bwelling Exp $
+ * $Id: dnssec.c,v 1.69 2001/06/08 22:48:28 bwelling Exp $
  */
 
 
@@ -694,7 +694,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	msg->verify_attempted = 1;
 
 	if (is_response(msg)) {
-		if (msg->query == NULL)
+		if (msg->query.base == NULL)
 			return (DNS_R_UNEXPECTEDTSIG);
 	}
 
