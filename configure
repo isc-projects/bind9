@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.297 
+# From configure.in Revision: 1.298 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -9710,22 +9710,25 @@ BIND9_TOP_BUILDDIR=`pwd`
 
 
 
+
 if test "X$srcdir" != "X"; then
 	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
 	BIND9_ISCCC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccc/include"
 	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
 	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
 	BIND9_LWRES_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/lwres/include"
+	BIND9_BIND9_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/bind9/include"
 else
 	BIND9_ISC_BUILDINCLUDE=""
 	BIND9_ISCCC_BUILDINCLUDE=""
 	BIND9_ISCCFG_BUILDINCLUDE=""
 	BIND9_DNS_BUILDINCLUDE=""
 	BIND9_LWRES_BUILDINCLUDE=""
+	BIND9_BIND9_BUILDINCLUDE=""
 fi
 
 
-BIND9_INCLUDES=$BIND9_TOP_BUILDDIR/make/includes
+BIND9_MAKE_INCLUDES=$BIND9_TOP_BUILDDIR/make/includes
 
 
 BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
@@ -9745,6 +9748,9 @@ LIBISCCFG_API=$srcdir/lib/isccfg/api
 
 
 LIBDNS_API=$srcdir/lib/dns/api
+
+
+LIBBIND9_API=$srcdir/lib/bind9/api
 
 
 LIBLWRES_API=$srcdir/lib/lwres/api
@@ -9880,6 +9886,9 @@ trap 'rm -fr `echo "make/rules
 	lib/dns/sec/dst/Makefile
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
+	lib/bind9/Makefile
+	lib/bind9/include/Makefile
+	lib/bind9/include/bind9/Makefile
 	lib/lwres/Makefile
 	lib/lwres/include/Makefile
 	lib/lwres/include/lwres/Makefile
@@ -10075,8 +10084,9 @@ s%@BIND9_ISCCC_BUILDINCLUDE@%$BIND9_ISCCC_BUILDINCLUDE%g
 s%@BIND9_ISCCFG_BUILDINCLUDE@%$BIND9_ISCCFG_BUILDINCLUDE%g
 s%@BIND9_DNS_BUILDINCLUDE@%$BIND9_DNS_BUILDINCLUDE%g
 s%@BIND9_LWRES_BUILDINCLUDE@%$BIND9_LWRES_BUILDINCLUDE%g
-/@BIND9_INCLUDES@/r $BIND9_INCLUDES
-s%@BIND9_INCLUDES@%%g
+s%@BIND9_BIND9_BUILDINCLUDE@%$BIND9_BIND9_BUILDINCLUDE%g
+/@BIND9_MAKE_INCLUDES@/r $BIND9_MAKE_INCLUDES
+s%@BIND9_MAKE_INCLUDES@%%g
 /@BIND9_MAKE_RULES@/r $BIND9_MAKE_RULES
 s%@BIND9_MAKE_RULES@%%g
 s%@BIND9_VERSION@%$BIND9_VERSION%g
@@ -10088,6 +10098,8 @@ s%@LIBISCCC_API@%%g
 s%@LIBISCCFG_API@%%g
 /@LIBDNS_API@/r $LIBDNS_API
 s%@LIBDNS_API@%%g
+/@LIBBIND9_API@/r $LIBBIND9_API
+s%@LIBBIND9_API@%%g
 /@LIBLWRES_API@/r $LIBLWRES_API
 s%@LIBLWRES_API@%%g
 
@@ -10161,6 +10173,9 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/dns/sec/dst/Makefile
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
+	lib/bind9/Makefile
+	lib/bind9/include/Makefile
+	lib/bind9/include/bind9/Makefile
 	lib/lwres/Makefile
 	lib/lwres/include/Makefile
 	lib/lwres/include/lwres/Makefile
