@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.27 2000/08/18 21:22:26 gson Exp $ */
+/* $Id: cache.c,v 1.28 2000/08/18 22:32:45 gson Exp $ */
 
 #include <config.h>
 
@@ -303,7 +303,7 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	 * It may be the case that the cache has already shut down.
 	 * If so, it has no timer.
 	 */
-	if (cache->timer == NULL)
+	if (cache->cleaner.cleaning_timer == NULL)
 		goto unlock;
 	    
 	cache->cleaner.cleaning_interval = t;
