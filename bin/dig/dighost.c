@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.134 2000/09/25 23:09:57 mws Exp $ */
+/* $Id: dighost.c,v 1.135 2000/09/26 17:21:25 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1400,7 +1400,7 @@ send_done(isc_task_t *_task, isc_event_t *event) {
  * IO sockets.  The cancel handlers should take care of cleaning up the
  * query and lookup structures
  */
-void
+static void
 cancel_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query, *next;
 
