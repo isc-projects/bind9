@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.8 2000/10/17 18:34:52 bwelling Exp $ */
+/* $Id: lwdgnba.c,v 1.9 2001/01/07 21:58:22 gson Exp $ */
 
 #include <config.h>
 
@@ -69,7 +69,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 
 		/*
 		 * Were we trying bitstring or nibble mode?  If bitstring,
-		 * and we got FORMERROR or SERVFAIL, set the flag to
+		 * and we got FORMERR or SERVFAIL, set the flag to
 		 * avoid bitstring labels for 10 minutes.  If we got any
 		 * other error (NXDOMAIN, etc) just try again without
 		 * bitstrings, and let our cache handle the negative answer
