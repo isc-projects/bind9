@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.26 2001/12/03 04:41:42 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.27 2002/05/30 01:28:53 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -314,6 +314,10 @@ internal_current4(isc_interfaceiter_t *iter) {
 	struct ifreq ifreq;
 	int family;
 	char strbuf[ISC_STRERRORSIZE];
+#if !defined(SIOCGLIFCONF) || defined(SIOCGLIFADDR)
+	struct if_laddrreq if_laddrreq;
+	int i, bits;
+#endif
 
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
@@ -324,7 +328,8 @@ internal_current4(isc_interfaceiter_t *iter) {
 	memcpy(&ifreq, ifrp, sizeof(ifreq));
 
 	family = ifreq.ifr_addr.sa_family;
-#ifdef ISC_PLATFORM_HAVEIPV6
+#if !defined (SIOCGLIFCONF) && defined(SIOCGLIFADDR) && \
+    defined(ISC_PLATFORM_HAVEIPV6)
 	if (family != AF_INET && family != AF_INET6)
 #else
 	if (family != AF_INET)
@@ -339,7 +344,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 	memcpy(iter->current.name, ifreq.ifr_name, sizeof(ifreq.ifr_name));
 
 	get_addr(family, &iter->current.address,
-		 (struct sockaddr *)&ifreq.ifr_addr);
+		 (struct sockaddr *)&ifrp->ifr_addr);
 
 	/*
 	 * If the interface does not have a address ignore it.
@@ -375,6 +380,9 @@ internal_current4(isc_interfaceiter_t *iter) {
 		return (ISC_R_IGNORE);
 	}
 
+	if ((ifreq.ifr_flags & IFF_RUNNING) == 0)
+		return (ISC_R_IGNORE);
+
 	if ((ifreq.ifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
@@ -384,6 +392,44 @@ internal_current4(isc_interfaceiter_t *iter) {
 	if ((ifreq.ifr_flags & IFF_LOOPBACK) != 0)
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
 
+#if !defined(SIOCGLIFCONF) || defined(SIOCGLIFADDR)
+	if (family == AF_INET) 
+		goto inet;
+
+	memset(&if_laddrreq, 0, sizeof(if_laddrreq));
+	memcpy(if_laddrreq.iflr_name, iter->current.name,
+	       sizeof(if_laddrreq.iflr_name));
+	memcpy(&if_laddrreq.addr, &iter->current.address.type.in6,
+	       sizeof(iter->current.address.type.in6));
+
+	if (ioctl(iter->socket, SIOCGLIFADDR, &if_laddrreq) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: getting interface address: %s",
+				 ifreq.ifr_name, strbuf);
+		return (ISC_R_IGNORE);
+	}
+
+	/*
+	 * Netmask already zeroed.
+	 */
+	iter->current.netmask.family = family;
+	for (i = 0; i < 16; i++) {
+		if (if_laddrreq.prefixlen > 8) {
+			bits = 0;
+			if_laddrreq.prefixlen -= 8;
+		} else {
+			bits = 8 - if_laddrreq.prefixlen;
+			if_laddrreq.prefixlen = 0;
+		}
+		iter->current.netmask.type.in6.s6_addr[i] = (~0 << bits) & 0xff;
+	}
+	return (ISC_R_SUCCESS);
+
+ inet:
+#endif
+	if (family != AF_INET)
+		return (ISC_R_IGNORE);
 	/*
 	 * If the interface is point-to-point, get the destination address.
 	 */
@@ -414,31 +460,24 @@ internal_current4(isc_interfaceiter_t *iter) {
 	 */
 	memset(&ifreq, 0, sizeof(ifreq));
 	memcpy(&ifreq, ifrp, sizeof(ifreq));
-	switch (family) {
-	case AF_INET:
-		/*
-		 * Ignore the HP/UX warning about "interger overflow during
-		 * conversion.  It comes from its own macro definition,
-		 * and is really hard to shut up.
-		 */
-		if (ioctl(iter->socket, SIOCGIFNETMASK, (char *)&ifreq)
-		    < 0) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				isc_msgcat_get(isc_msgcat,
-					       ISC_MSGSET_IFITERIOCTL,
-					       ISC_MSG_GETNETMASK,
-					       "%s: getting netmask: %s"),
-					       ifreq.ifr_name, strbuf);
-			return (ISC_R_IGNORE);
-		}
-		get_addr(family, &iter->current.netmask,
-			 (struct sockaddr *)&ifreq.ifr_addr);
-		break;
-	case AF_INET6:
-		break;
+	/*
+	 * Ignore the HP/UX warning about "interger overflow during
+	 * conversion.  It comes from its own macro definition,
+	 * and is really hard to shut up.
+	 */
+	if (ioctl(iter->socket, SIOCGIFNETMASK, (char *)&ifreq)
+	    < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+			isc_msgcat_get(isc_msgcat,
+				       ISC_MSGSET_IFITERIOCTL,
+				       ISC_MSG_GETNETMASK,
+				       "%s: getting netmask: %s"),
+				       ifreq.ifr_name, strbuf);
+		return (ISC_R_IGNORE);
 	}
-
+	get_addr(family, &iter->current.netmask,
+		 (struct sockaddr *)&ifreq.ifr_addr);
 	return (ISC_R_SUCCESS);
 }
 
@@ -512,6 +551,9 @@ internal_current6(isc_interfaceiter_t *iter) {
 				 lifreq.lifr_name, strbuf);
 		return (ISC_R_IGNORE);
 	}
+
+	if ((lifreq.lifr_flags & IFF_RUNNING) == 0)
+		return (ISC_R_IGNORE);
 
 	if ((lifreq.lifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;

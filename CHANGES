@@ -1,3 +1,7 @@
+1212.	[func]		Enable IPv6 support when using ioctl style interface
+			scanning and OS supports SIOCGLIFADDR using struct
+			if_laddrreq.
+
 1211.	[func]		Enable IPv6 support when using sysctl style interface
 			scanning.
 
