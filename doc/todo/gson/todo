@@ -36,3 +36,5 @@ Review these changes:
   Cope with the possibility that the prefix of a name split within a
   bitstring label might have been compacted to have fewer labels than
   what was expected
+
+review getrrsetbyname() code and docs
