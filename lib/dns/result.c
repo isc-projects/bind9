@@ -83,6 +83,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"wait",					/* 53 */
 	"not verified yet",			/* 54 */
 	"no identity",				/* 55 */
+	"no journal",				/* 56 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
