@@ -1,3 +1,5 @@
+1109.	[bug]		nsupdate accepted illegal ttl values.
+
 1108.	[bug]		On Win32 rndc was hanging when named was not running.
 			Fix to look for exceptions in the socket.c select
 			code to catch and report the errors. Miscellaneous
