@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.30.2.2 2002/08/06 06:09:07 marka Exp $ */
+/* $Id: getipnode.c,v 1.30.2.3 2002/08/08 21:29:07 marka Exp $ */
 
 #include <config.h>
 
@@ -146,9 +146,10 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		u.const_name = name;
 		if (v4 == 1 && af == AF_INET6) {
 			strcpy(mappedname, "::ffff:");
-			inet_ntop(AF_INET, (char *)&in4,
-				  mappedname + sizeof("::ffff:") - 1,
-				  sizeof(mappedname) - sizeof("::ffff:") + 1);
+			lwres_net_ntop(AF_INET, (char *)&in4,
+				       mappedname + sizeof("::ffff:") - 1,
+				       sizeof(mappedname) - sizeof("::ffff:")
+				       + 1);
 			he.h_name = mappedname;
 		} else
 			he.h_name = u.deconst_name;
