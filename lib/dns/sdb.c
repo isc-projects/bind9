@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.7 2000/08/23 18:45:13 bwelling Exp $ */
+/* $Id: sdb.c,v 1.8 2000/08/26 01:36:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -455,7 +455,7 @@ destroy(dns_sdb_t *sdb) {
 				      &sdb->dbdata);
 
 	isc_mem_free(mctx, sdb->zone);
-	isc_mutex_destroy(&sdb->lock);
+	DESTROYLOCK(&sdb->lock);
 
 	sdb->common.magic = 0;
 	sdb->common.impmagic = 0;
@@ -612,7 +612,7 @@ destroynode(dns_sdbnode_t *node) {
 		dns_name_free(node->name, mctx);
 		isc_mem_put(mctx, node->name, sizeof(dns_name_t));
 	}
-	isc_mutex_destroy(&node->lock);
+	DESTROYLOCK(&node->lock);
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdbnode_t));
 	detach((dns_db_t **)&sdb);

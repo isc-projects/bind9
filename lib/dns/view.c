@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.77 2000/08/24 22:15:34 bwelling Exp $ */
+/* $Id: view.c,v 1.78 2000/08/26 01:36:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -198,7 +198,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	isc_rwlock_destroy(&view->conflock);
 
  cleanup_mutex:
-	isc_mutex_destroy(&view->lock);
+	DESTROYLOCK(&view->lock);
 
  cleanup_name:
 	isc_mem_free(mctx, view->name);
@@ -247,7 +247,7 @@ destroy(dns_view_t *view) {
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
-	isc_mutex_destroy(&view->lock);
+	DESTROYLOCK(&view->lock);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_put(view->mctx, view, sizeof *view);
 }

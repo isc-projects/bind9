@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.196 2000/08/25 04:42:49 marka Exp $ */
+/* $Id: zone.c,v 1.197 2000/08/26 01:37:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -419,7 +419,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	return (ISC_R_SUCCESS);
 
  free_mutex:
-	isc_mutex_destroy(&zone->lock);
+	DESTROYLOCK(&zone->lock);
 	return (ISC_R_NOMEMORY);
 }
 
@@ -484,7 +484,7 @@ zone_free(dns_zone_t *zone) {
 		dns_ssutable_detach(&zone->ssutable);
 
 	/* last stuff */
-	isc_mutex_destroy(&zone->lock);
+	DESTROYLOCK(&zone->lock);
 	zone->magic = 0;
 	mctx = zone->mctx;
 	isc_mem_put(mctx, zone, sizeof *zone);

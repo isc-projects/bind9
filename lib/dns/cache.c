@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.28 2000/08/18 22:32:45 gson Exp $ */
+/* $Id: cache.c,v 1.29 2000/08/26 01:36:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -172,7 +172,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  cleanup_db:
 	dns_db_detach(&cache->db);
  cleanup_mutex:
-	isc_mutex_destroy(&cache->lock);
+	DESTROYLOCK(&cache->lock);
  cleanup_mem:
 	isc_mem_put(mctx, cache, sizeof *cache);
 	isc_mem_detach(&mctx);
@@ -203,7 +203,7 @@ cache_free(dns_cache_t *cache) {
 	if (cache->db)
 		dns_db_detach(&cache->db);
 
-	isc_mutex_destroy(&cache->lock);
+	DESTROYLOCK(&cache->lock);
 	cache->magic = 0;
 	mctx = cache->mctx;
 	isc_mem_put(cache->mctx, cache, sizeof *cache);

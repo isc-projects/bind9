@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.120 2000/08/18 18:25:26 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.121 2000/08/26 01:36:52 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -335,11 +335,11 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	if (rbtdb->tree != NULL)
 		dns_rbt_destroy(&rbtdb->tree);
 	for (i = 0; i < rbtdb->node_lock_count; i++)
-		isc_mutex_destroy(&rbtdb->node_locks[i].lock);
+		DESTROYLOCK(&rbtdb->node_locks[i].lock);
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof (rbtdb_nodelock_t));
 	isc_rwlock_destroy(&rbtdb->tree_lock);
-	isc_mutex_destroy(&rbtdb->lock);
+	DESTROYLOCK(&rbtdb->lock);
 	rbtdb->common.magic = 0;
 	rbtdb->common.impmagic = 0;
 	ondest = rbtdb->common.ondest;
@@ -3904,7 +3904,7 @@ dns_rbtdb_create
 
 	result = isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
-		isc_mutex_destroy(&rbtdb->lock);
+		DESTROYLOCK(&rbtdb->lock);
 		isc_mem_put(mctx, rbtdb, sizeof *rbtdb);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
@@ -3923,14 +3923,14 @@ dns_rbtdb_create
 		if (result != ISC_R_SUCCESS) {
 			i--;
 			while (i >= 0) {
-				isc_mutex_destroy(&rbtdb->node_locks[i].lock);
+				DESTROYLOCK(&rbtdb->node_locks[i].lock);
 				i--;
 			}
 			isc_mem_put(mctx, rbtdb->node_locks,
 				    rbtdb->node_lock_count *
 				    sizeof (rbtdb_nodelock_t));
 			isc_rwlock_destroy(&rbtdb->tree_lock);
-			isc_mutex_destroy(&rbtdb->lock);
+			DESTROYLOCK(&rbtdb->lock);
 			isc_mem_put(mctx, rbtdb, sizeof *rbtdb);
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_mutex_init() failed: %s",

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.21 2000/08/11 16:47:29 gson Exp $
+ * $Id: dbtable.c,v 1.22 2000/08/26 01:36:48 bwelling Exp $
  */
 
 /*
@@ -110,7 +110,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	return (ISC_R_SUCCESS);
 
  clean3:
-	(void)isc_mutex_destroy(&dbtable->lock);
+	DESTROYLOCK(&dbtable->lock);
 
  clean2:
 	dns_rbt_destroy(&dbtable->rbt);

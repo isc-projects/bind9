@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.20 2000/08/16 22:21:17 gson Exp $ */
+/* $Id: byaddr.c,v 1.21 2000/08/26 01:36:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -431,7 +431,7 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	return (ISC_R_SUCCESS);
 
  cleanup_lock:
-	isc_mutex_destroy(&byaddr->lock);
+	DESTROYLOCK(&byaddr->lock);
 
  cleanup_event:
 	ievent = (isc_event_t *)byaddr->event;
@@ -474,7 +474,7 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp) {
 	REQUIRE(byaddr->task == NULL);
 	REQUIRE(byaddr->view == NULL);
 
-	isc_mutex_destroy(&byaddr->lock);
+	DESTROYLOCK(&byaddr->lock);
 	byaddr->magic = 0;
 	isc_mem_put(byaddr->mctx, byaddr, sizeof *byaddr);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.21 2000/08/01 01:22:26 tale Exp $ */
+/* $Id: keytable.c,v 1.22 2000/08/26 01:36:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	return (ISC_R_SUCCESS);
 
    cleanup_lock:
-	isc_mutex_destroy(&keytable->lock);
+	DESTROYLOCK(&keytable->lock);
 
    cleanup_rbt:
 	dns_rbt_destroy(&keytable->table);
@@ -173,7 +173,7 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 	if (destroy) {
 		dns_rbt_destroy(&keytable->table);
 		isc_rwlock_destroy(&keytable->rwlock);
-		isc_mutex_destroy(&keytable->lock);
+		DESTROYLOCK(&keytable->lock);
 		keytable->magic = 0;
 		isc_mem_put(keytable->mctx, keytable, sizeof *keytable);
 	}

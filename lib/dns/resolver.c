@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.166 2000/08/24 22:15:33 bwelling Exp $ */
+/* $Id: resolver.c,v 1.167 2000/08/26 01:36:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -4185,12 +4185,12 @@ destroy(dns_resolver_t *res) {
 
 	RTRACE("destroy");
 
-	isc_mutex_destroy(&res->lock);
+	DESTROYLOCK(&res->lock);
 	for (i = 0; i < res->nbuckets; i++) {
 		INSIST(ISC_LIST_EMPTY(res->buckets[i].fctxs));
 		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
-		isc_mutex_destroy(&res->buckets[i].lock);
+		DESTROYLOCK(&res->buckets[i].lock);
 	}
 	isc_mem_put(res->mctx, res->buckets,
 		    res->nbuckets * sizeof (fctxbucket_t));
@@ -4290,7 +4290,7 @@ dns_resolver_create(dns_view_t *view,
 		res->buckets[i].task = NULL;
 		result = isc_task_create(taskmgr, 0, &res->buckets[i].task);
 		if (result != ISC_R_SUCCESS) {
-			isc_mutex_destroy(&res->buckets[i].lock);
+			DESTROYLOCK(&res->buckets[i].lock);
 			goto cleanup_buckets;
 		}
 		sprintf(name, "res%u", i);
@@ -4332,7 +4332,7 @@ dns_resolver_create(dns_view_t *view,
 
  cleanup_buckets:
 	for (i = 0; i < buckets_created; i++) {
-		(void)isc_mutex_destroy(&res->buckets[i].lock);
+		DESTROYLOCK(&res->buckets[i].lock);
 		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
 	}

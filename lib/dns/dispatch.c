@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.63 2000/08/24 16:56:48 gson Exp $ */
+/* $Id: dispatch.c,v 1.64 2000/08/26 01:36:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -938,14 +938,14 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 	mgr->magic = 0;
 	mgr->mctx = 0;
-	isc_mutex_destroy(&mgr->lock);
+	DESTROYLOCK(&mgr->lock);
 	mgr->state = 0;
 
 	isc_mempool_destroy(&mgr->epool);
 	isc_mempool_destroy(&mgr->rpool);
 	isc_mempool_destroy(&mgr->dpool);
 
-	isc_mutex_destroy(&mgr->pool_lock);
+	DESTROYLOCK(&mgr->pool_lock);
 
 	if (mgr->entropy != NULL)
 		isc_entropy_detach(&mgr->entropy);
@@ -1059,9 +1059,9 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
  kill_epool:
 	isc_mempool_destroy(&mgr->epool);
  kill_pool_lock:
-	isc_mutex_destroy(&mgr->pool_lock);
+	DESTROYLOCK(&mgr->pool_lock);
  kill_lock:
-	isc_mutex_destroy(&mgr->lock);
+	DESTROYLOCK(&mgr->lock);
  deallocate:
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mgr->mctx);
@@ -1280,7 +1280,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int buffersize,
  kill_bpool:
 	isc_mempool_destroy(&disp->bpool);
  kill_lock:
-	isc_mutex_destroy(&disp->lock);
+	DESTROYLOCK(&disp->lock);
  deallocate_qidtable:
 	isc_mem_put(mgr->mctx, disp->qid_table,
 		    disp->qid_nbuckets * sizeof(dns_displist_t));
@@ -1332,7 +1332,7 @@ dispatch_free(dns_dispatch_t **dispp)
 	disp->failsafe_ev = NULL;
 
 	isc_mempool_destroy(&disp->bpool);
-	isc_mutex_destroy(&disp->lock);
+	DESTROYLOCK(&disp->lock);
 	isc_mem_put(mgr->mctx, disp->qid_table,
 		    disp->qid_nbuckets * sizeof(dns_displist_t));
 	disp->mgr = NULL;

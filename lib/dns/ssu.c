@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.13 2000/08/01 01:22:55 tale Exp $
+ * $Id: ssu.c,v 1.14 2000/08/26 01:36:57 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -103,7 +103,7 @@ destroy(dns_ssutable_t *table) {
 		rule->magic = 0;
 		isc_mem_put(mctx, rule, sizeof(dns_ssurule_t));
 	}
-	isc_mutex_destroy(&table->lock);
+	DESTROYLOCK(&table->lock);
 	table->magic = 0;
 	isc_mem_put(mctx, table, sizeof(dns_ssutable_t));
 }

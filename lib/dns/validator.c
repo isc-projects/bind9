@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.75 2000/08/15 01:22:33 bwelling Exp $ */
+/* $Id: validator.c,v 1.76 2000/08/26 01:36:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1502,7 +1502,7 @@ destroy(dns_validator_t *val) {
 	mctx = val->view->mctx;
 	if (val->siginfo != NULL)
 		isc_mem_put(mctx, val->siginfo, sizeof *val->siginfo);
-	isc_mutex_destroy(&val->lock);
+	DESTROYLOCK(&val->lock);
 	dns_view_weakdetach(&val->view);
 	val->magic = 0;
 	isc_mem_put(mctx, val, sizeof *val);

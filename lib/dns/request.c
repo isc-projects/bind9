@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.35 2000/08/23 19:46:58 bwelling Exp $ */
+/* $Id: request.c,v 1.36 2000/08/26 01:36:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -161,8 +161,8 @@ dns_requestmgr_create(isc_mem_t *mctx,
 		result = isc_mutex_init(&requestmgr->locks[i]);
 		if (result != ISC_R_SUCCESS) {
 			while (--i >= 0)
-				isc_mutex_destroy(&requestmgr->locks[i]);
-			isc_mutex_destroy(&requestmgr->lock);
+				DESTROYLOCK(&requestmgr->locks[i]);
+			DESTROYLOCK(&requestmgr->lock);
 			isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
 			return (result);
 		}
@@ -384,9 +384,9 @@ mgr_destroy(dns_requestmgr_t *requestmgr) {
 	REQUIRE(requestmgr->eref == 0);
 	REQUIRE(requestmgr->iref == 0);
 
-	isc_mutex_destroy(&requestmgr->lock);
+	DESTROYLOCK(&requestmgr->lock);
 	for (i = 0; i < DNS_REQUEST_NLOCKS; i++)
-		isc_mutex_destroy(&requestmgr->locks[i]);
+		DESTROYLOCK(&requestmgr->locks[i]);
 	if (requestmgr->dispatchv4 != NULL)
 		dns_dispatch_detach(&requestmgr->dispatchv4);
 	if (requestmgr->dispatchv6 != NULL)

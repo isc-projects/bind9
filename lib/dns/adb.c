@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.147 2000/08/11 16:47:27 gson Exp $ */
+/* $Id: adb.c,v 1.148 2000/08/26 01:36:45 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -1647,7 +1647,7 @@ free_adbfind(dns_adb_t *adb, dns_adbfind_t **findp) {
 
 	find->magic = 0;
 
-	isc_mutex_destroy(&find->lock);
+	DESTROYLOCK(&find->lock);
 	isc_mempool_put(adb->ahmp, find);
 }
 
@@ -2105,9 +2105,9 @@ destroy(dns_adb_t *adb) {
 	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
 	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
 
-	isc_mutex_destroy(&adb->ilock);
-	isc_mutex_destroy(&adb->lock);
-	isc_mutex_destroy(&adb->mplock);
+	DESTROYLOCK(&adb->ilock);
+	DESTROYLOCK(&adb->lock);
+	DESTROYLOCK(&adb->mplock);
 
 	isc_random_invalidate(&adb->rand);
 
@@ -2288,11 +2288,11 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (adb->af6mp != NULL)
 		isc_mempool_destroy(&adb->af6mp);
 
-	isc_mutex_destroy(&adb->ilock);
+	DESTROYLOCK(&adb->ilock);
  fail0d:
-	isc_mutex_destroy(&adb->mplock);
+	DESTROYLOCK(&adb->mplock);
  fail0c:
-	isc_mutex_destroy(&adb->lock);
+	DESTROYLOCK(&adb->lock);
  fail0b:
 	isc_random_invalidate(&adb->rand);
  fail0a:
