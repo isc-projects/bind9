@@ -793,7 +793,7 @@ main(int argc, char *argv[]) {
 
 	unload_all();
 
-	dns_dbtable_destroy(&dbtable);
+	dns_dbtable_detach(&dbtable);
 
 	if (!quiet)
 		isc_mem_stats(mctx, stdout);
