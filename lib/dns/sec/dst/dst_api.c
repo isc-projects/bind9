@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.90 2001/11/06 03:02:48 bwelling Exp $
+ * $Id: dst_api.c,v 1.91 2001/11/06 18:08:07 bwelling Exp $
  */
 
 #include <config.h>
@@ -1061,13 +1061,13 @@ static isc_result_t
 algorithm_status(unsigned int alg) {
 	REQUIRE(dst_initialized == ISC_TRUE);
 
-#ifndef OPENSSL
-	if (alg == DST_ALG_RSA || alg == DST_ALG_DSA || alg == DST_ALG_DH)
+	if (dst_algorithm_supported(alg))
+		return (ISC_R_SUCCESS);
+	if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
+	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
+	    alg == DST_ALG_HMACMD5)
 		return (DST_R_NOCRYPTO);
-#endif
-	if (!dst_algorithm_supported(alg))
-		return (DST_R_UNSUPPORTEDALG);
-	return (ISC_R_SUCCESS);
+	return (DST_R_UNSUPPORTEDALG);
 }
 
 isc_result_t
