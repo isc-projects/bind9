@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.32 2001/05/07 23:04:10 gson Exp $
+$Id: release,v 1.33 2001/05/09 03:22:52 gson Exp $
 
 Preparing a bind9 release
 
@@ -40,8 +40,9 @@ release.
  - Check that running "make all_tests" in bin/tests does not
    produce compile errors.
 
- - Regenerate the .html files in doc/arm by running genhtml.sh
-   and check them in.  Note that not all machines have the
+ - Regenerate the documentation by running "make man" (mainline)
+   or by running genhtml.sh in doc/arm (9.1 release branch)
+   and commit it.  Note that not all machines have the
    necessary XML tools, but at least trebuchet and Scanner's
    machine do.
 
