@@ -71,10 +71,11 @@ typedef struct rdatasetheader {
 	/*
 	 * Locked by the owning node's lock.
 	 */
-	dns_ttl_t			ttl;
 	rbtdb_serial_t			serial;
+	dns_ttl_t			ttl;
 	dns_rdatatype_t			type;
 	isc_uint16_t			attributes;
+	dns_trust_t			trust;
 	/*
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
@@ -2053,9 +2054,11 @@ printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 					fprintf(out, "\t");
 				first = ISC_FALSE;
 				fprintf(out,
-				"\tserial = %lu, ttl = %u, attributes = %u\n",
+					"\tserial = %lu, ttl = %u, "
+					"trust = %u, attributes = %u\n",
 					(unsigned long)current->serial,
 					current->ttl,
+					current->trust,
 					current->attributes);
 				current = current->down;
 			} while (current != NULL);
@@ -2317,6 +2320,15 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			free_rdataset(rbtdb->common.mctx, newheader);
 			return (DNS_R_UNCHANGED);
 		}
+
+		/*
+		 * Trying to add an rdataset with lower trust to a cache DB
+		 * has no effect.
+		 */
+		if (rbtversion == NULL && newheader->trust < header->trust) {
+			free_rdataset(rbtdb->common.mctx, newheader);
+			return (DNS_R_UNCHANGED);
+		}
 			
 		/*
 		 * Don't merge if a nonexistent rdataset is involved.
@@ -2460,10 +2472,12 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->attributes = 0;
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
+		newheader->trust = 0;
 		merge = ISC_TRUE;
 		now = 0;
 	} else {
 		newheader->serial = 1;
+		newheader->trust = rdataset->trust;
 		merge = ISC_FALSE;
 	}
 
@@ -2527,6 +2541,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->ttl = 0;
 	newheader->type = type;
 	newheader->attributes = RDATASET_ATTR_NONEXISTENT;
+	newheader->trust = 0;
 	if (rbtversion != NULL)
 		newheader->serial = rbtversion->serial;
 	else
@@ -2579,6 +2594,7 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 	newheader->ttl = rdataset->ttl + loadctx->now; /* XXX overflow check */
 	newheader->type = rdataset->type;
 	newheader->attributes = 0;
+	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
 
 	result = add(rbtdb, node, rbtdb->current_version, newheader, ISC_TRUE,

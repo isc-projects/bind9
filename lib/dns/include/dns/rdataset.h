@@ -90,6 +90,7 @@ struct dns_rdataset {
 	dns_rdataclass_t		rdclass;
 	dns_rdatatype_t			type;
 	dns_ttl_t			ttl;
+	dns_trust_t			trust;
 	/*
 	 * attributes
 	 */

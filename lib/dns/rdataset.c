@@ -43,6 +43,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->rdclass = 0;
 	rdataset->type = 0;
 	rdataset->ttl = 0;
+	rdataset->trust = 0;
 	rdataset->attributes = 0;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
@@ -66,6 +67,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	rdataset->rdclass = 0;
 	rdataset->type = 0;
 	rdataset->ttl = 0;
+	rdataset->trust = 0;
 	rdataset->attributes = 0;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
@@ -90,6 +92,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->rdclass = 0;
 	rdataset->type = 0;
 	rdataset->ttl = 0;
+	rdataset->trust = 0;
 	rdataset->attributes = 0;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;

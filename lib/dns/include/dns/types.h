@@ -62,6 +62,7 @@ typedef struct dns_fetch			dns_fetch_t;
 typedef struct dns_delegation			dns_delegation_t;
 typedef struct dns_forwarders			dns_forwarders_t;
 typedef isc_uint16_t				dns_messageid_t;
+typedef isc_uint16_t				dns_trust_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
