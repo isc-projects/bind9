@@ -3077,7 +3077,8 @@ dbiterator_first(dns_dbiterator_t *iterator) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)iterator->db;
 	dns_name_t *name, *origin;
 	
-	if (rbtdbiter->result != DNS_R_SUCCESS)
+	if (rbtdbiter->result != DNS_R_SUCCESS &&
+	    rbtdbiter->result != DNS_R_NOMORE)
 		return (rbtdbiter->result);
 
 	unpause(rbtdbiter);
@@ -3094,18 +3095,22 @@ dbiterator_first(dns_dbiterator_t *iterator) {
 					origin);
 	if (result != DNS_R_NEWORIGIN) {
 		INSIST(result != DNS_R_SUCCESS);
-		rbtdbiter->result = result;
+		if (result == DNS_R_NOTFOUND) {
+			/*
+			 * The tree is empty.
+			 */
+			result = DNS_R_NOMORE;
+		}
 		rbtdbiter->node = NULL;
 	} else {
 		result = dns_rbtnodechain_current(&rbtdbiter->chain, NULL,
 						  NULL, &rbtdbiter->node);
 		if (result == DNS_R_SUCCESS)
 			rbtdbiter->new_origin = ISC_TRUE;
-		else {
-			rbtdbiter->result = result;
+		else
 			rbtdbiter->node = NULL;
-		}
 	}
+	rbtdbiter->result = result;
 
 	return (result);
 }
