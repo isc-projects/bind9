@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.8 2002/08/06 02:26:11 marka Exp $
+# $Id: check-pullups.pl,v 1.9 2003/05/15 00:19:07 marka Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
@@ -74,11 +74,25 @@ if (@ARGV == 3) {
 	my $c3 = { };
 }
 
+my $msg = "";
 foreach my $c (sort {$a <=> $b} keys %$c1) {
 	my $category = $c1->{$c}->{category};
-	if (($category eq "bug" || $category eq "port" ||
-	     $category eq "tuning") &&
+	my $text = $c1->{$c}->{text};
+	if ($category ne "func" && $category ne "placeholder" &&
 	    !exists($c2->{$c}) && !exists($c3->{$c})) {
+		if ($msg ne "MISSING\n") {
+			$msg = "MISSING\n";
+			print $msg;
+		}
+		print $c1->{$c}->{text};
+	}
+	if (exists($c2->{$c}) && $category ne "placeholder" &&
+	    $c2->{$c}->{text} ne $text) {
+		if ($msg ne "TEXT\n") {
+			$msg = "TEXT\n";
+			print $msg;
+		}
+		print $c2->{$c}->{text};
 		print $c1->{$c}->{text};
 	}
 }
