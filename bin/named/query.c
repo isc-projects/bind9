@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.15 2004/01/22 15:34:01 marka Exp $ */
+/* $Id: query.c,v 1.198.2.16 2004/03/04 03:10:32 marka Exp $ */
 
 #include <config.h>
 
@@ -3798,7 +3798,8 @@ synth_rev_start(ns_client_t *client) {
 	result = dns_byaddr_create(client->mctx,
 				   &client->query.synth.na,
 				   client->view,
-				   0, client->task,
+				   DNS_BYADDROPT_IPV6NIBBLE,
+				   client->task,
 				   synth_rev_byaddrdone_arpa,
 				   client, &byaddr_dummy);
 	if (result == ISC_R_SUCCESS)
@@ -3824,7 +3825,8 @@ synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event) {
 		result = dns_byaddr_create(client->mctx,
 					   &client->query.synth.na,
 					   client->view,
-					   DNS_BYADDROPT_IPV6NIBBLE,
+					   DNS_BYADDROPT_IPV6NIBBLE|
+					   DNS_BYADDROPT_IPV6INT,
 					   client->task,
 					   synth_rev_byaddrdone_int,
 					   client, &byaddr_dummy);
