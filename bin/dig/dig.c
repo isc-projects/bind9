@@ -61,7 +61,7 @@ extern int exitcode;
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
 isc_uint16_t bufsize = 0;
-isc_boolean_t have_host = ISC_FALSE, identify = ISC_FALSE,
+isc_boolean_t identify = ISC_FALSE,
 	trace = ISC_FALSE, ns_search_only = ISC_FALSE,
 	forcecomment = ISC_FALSE, stats = ISC_TRUE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
@@ -532,6 +532,7 @@ reorder_args(int argc, char *argv[]) {
  */
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
+	isc_boolean_t have_host = ISC_FALSE;
 	dig_server_t *srv = NULL;
 	dig_lookup_t *lookup = NULL;
 	char *batchname = NULL;
