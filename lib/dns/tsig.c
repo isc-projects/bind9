@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.17 1999/10/08 20:14:47 bwelling Exp $
+ * $Id: tsig.c,v 1.18 1999/10/09 00:00:54 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -266,8 +266,11 @@ dns_tsig_sign(dns_message_t *msg) {
 		}
 		isc_buffer_init(&otherbuf, tsig->other, tsig->otherlen = 6,
 				ISC_BUFFERTYPE_BINARY);
-		isc_buffer_putuint16(&otherbuf, tsig->timesigned >> 32);
-		isc_buffer_putuint32(&otherbuf, tsig->timesigned & 0xFFFFFFFF);
+		isc_buffer_putuint16(&otherbuf,
+				     (isc_uint16_t)(tsig->timesigned >> 32));
+		isc_buffer_putuint32(&otherbuf,
+				     (isc_uint32_t)(tsig->timesigned &
+						    0xFFFFFFFF));
 		
 	}
 	if (!dns_tsigkey_empty(key)) {
@@ -318,16 +321,20 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_clear(&databuf);
 		if (tsig->error != dns_tsigerror_badtime) {
 			isc_buffer_putuint16(&databuf,
-					     tsig->timesigned >> 32);
+					     (isc_uint16_t)(tsig->timesigned >>
+							    32));
 			isc_buffer_putuint32(&databuf,
-					     tsig->timesigned & 0xFFFFFFFF);
+					     (isc_uint32_t)(tsig->timesigned &
+							    0xFFFFFFFF));
 		}
 		else {
    			isc_uint64_t querysigned = msg->querytsig->timesigned;
 			isc_buffer_putuint16(&databuf,
-					     querysigned >> 32);
+					     (isc_uint16_t)(querysigned >>
+							    32));
 			isc_buffer_putuint32(&databuf,
-					     querysigned & 0xFFFFFFFF);
+					     (isc_uint16_t)(querysigned &
+							    0xFFFFFFFF));
 		}
 		isc_buffer_putuint16(&databuf, tsig->fudge);
 		isc_buffer_used(&databuf, &r);
@@ -630,8 +637,10 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 			goto cleanup_key;
 
 		isc_buffer_clear(&databuf);
-		isc_buffer_putuint16(&databuf, tsig->timesigned >> 32);
-		isc_buffer_putuint32(&databuf, tsig->timesigned & 0xFFFFFFFF);
+		isc_buffer_putuint16(&databuf, (isc_uint16_t)(tsig->timesigned
+							      >> 32));
+		isc_buffer_putuint32(&databuf, (isc_uint32_t)(tsig->timesigned
+							      & 0xFFFFFFFF));
 		isc_buffer_putuint16(&databuf, tsig->fudge);
 		isc_buffer_putuint16(&databuf, tsig->error);
 		isc_buffer_putuint16(&databuf, tsig->otherlen);
@@ -817,8 +826,10 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	if (has_tsig) {
 		isc_buffer_init(&databuf, data, sizeof(data),
 				ISC_BUFFERTYPE_BINARY);
-		isc_buffer_putuint16(&databuf, tsig->timesigned >> 32);
-		isc_buffer_putuint32(&databuf, tsig->timesigned & 0xFFFFFFFF);
+		isc_buffer_putuint16(&databuf, (isc_uint16_t)(tsig->timesigned
+							      >> 32));
+		isc_buffer_putuint32(&databuf, (isc_uint32_t)(tsig->timesigned
+							      & 0xFFFFFFFF));
 		isc_buffer_putuint16(&databuf, tsig->fudge);
 		isc_buffer_used(&databuf, &r);
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &msg->tsigctx, &r,
