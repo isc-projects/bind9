@@ -55,15 +55,9 @@
  *	RFC 2553
  */
 
-
 /***
- *** Imports.
+ *** Defines.
  ***/
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
 
 /*
  * If sockaddrs on this system have an sa_len field, ISC_NET_HAVESALEN will
@@ -75,18 +69,59 @@
  * If this system needs AF_INET6, ISC_NET_NEEDAFINET6 will be defined.
  */
 @ISC_NET_NEEDAFINET6@
-#ifdef ISC_NET_NEEDAFINET6
-#define AF_INET6 99
-#define PF_INET6 AF_INET6
-#endif
 
 /*
  * If this system needs the IPv6 structure definitions, ISC_NET_HAVEIPV6
  * will not be defined, and the structure definintions will be included.
  */
 @ISC_NET_HAVEIPV6@
+
+/***
+ *** Imports.
+ ***/
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+
+#include <isc/result.h>
+
+#ifdef ISC_NET_NEEDAFINET6
+#define AF_INET6 99
+#define PF_INET6 AF_INET6
+#endif
+
 #ifndef ISC_NET_HAVEIPV6
 #include <isc/ipv6.h>
 #endif
+
+/***
+ *** Functions.
+ ***/
+
+isc_result_t
+isc_net_haveipv4(void);
+/*
+ * Check if the system's kernel supports IPv4.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		IPv4 is supported.
+ *	ISC_R_NOTFOUND		IPv4 is not supported.
+ *	ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_net_haveipv6(void);
+/*
+ * Check if the system's kernel supports IPv6.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		IPv4 is supported.
+ *	ISC_R_NOTFOUND		IPv4 is not supported.
+ *	ISC_R_UNEXPECTED
+ */
 
 #endif /* ISC_NET_H */
