@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.10 2001/05/31 18:34:47 tale Exp $ */
+/* $Id: controlconf.c,v 1.11 2001/05/31 21:49:11 tale Exp $ */
 
 #include <config.h>
 
@@ -1264,8 +1264,8 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 					 * Remove the listener from the old
 					 * list, so it won't be shut down.
 					 */
-					ISC_LIST_UNLINK(cp->listeners, listener,
-							link);
+					ISC_LIST_UNLINK(cp->listeners,
+							listener, link);
 				else
 					/*
 					 * This is a new listener.
@@ -1281,6 +1281,22 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 		}
 
 		finalize_automagic_key();
+
+		/*
+		 * ns_control_shutdown() will stop whatever is on the global
+		 * listeners list, which currently only has whatever sockaddrs
+		 * were in the previous configuration (if any) that do not
+		 * remain in the current configuration.
+		 */
+		ns_controls_shutdown(cp);
+
+		/*
+		 * Put all of the valid listeners on the listeners list.
+		 * Anything already on listeners in the process of shutting
+		 * down will be taken care of by listen_done().
+		 */
+		ISC_LIST_APPENDLIST(cp->listeners, new_listeners, link);
+
 	} else {
 		isc_result_t result;
 
@@ -1290,22 +1306,6 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 			ns_controls_configure(cp, automagic_key.config,
 					     aclconfctx);
 	}
-
-
-	/*
-	 * ns_control_shutdown() will stop whatever is on the global listeners
-	 * list, which currently only has whatever sockaddrs were in the
-	 * previous configuration (if any) that do not remain in the current
-	 * configuration.
-	 */
-	ns_controls_shutdown(cp);
-
-	/*
-	 * Put all of the valid listeners on the listeners list.
-	 * Anything already on listeners in the process of shutting down
-	 * will be taken care of by listen_done().
-	 */
-	ISC_LIST_APPENDLIST(cp->listeners, new_listeners, link);
 
 	return (ISC_R_SUCCESS);
 }
