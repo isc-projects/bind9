@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.5 2001/05/08 03:42:31 gson Exp $ */
+/* $Id: control.h,v 1.6 2001/05/08 04:09:40 bwelling Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -42,6 +42,7 @@
 #define NS_COMMAND_TRACE	"trace"
 #define NS_COMMAND_NOTRACE	"notrace"
 #define NS_COMMAND_FLUSH	"flush"
+#define NS_COMMAND_STATUS	"status"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);
@@ -75,6 +76,6 @@ ns_controls_shutdown(ns_controls_t *controls);
  */
 
 isc_result_t
-ns_control_docommand(isccc_sexpr_t *message);
+ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text);
 
 #endif /* NAMED_CONTROL_H */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.5 2001/05/08 00:28:28 gson Exp $ */
+/* $Id: control.c,v 1.6 2001/05/08 04:09:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -50,7 +50,7 @@ command_compare(const char *text, const char *command) {
  * when a control channel message is received.  
  */
 isc_result_t
-ns_control_docommand(isccc_sexpr_t *message) {
+ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	isccc_sexpr_t *data;
 	char *command;
 	isc_result_t result;
@@ -108,6 +108,8 @@ ns_control_docommand(isccc_sexpr_t *message) {
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_FLUSH)) {
 		result = ns_server_flushcache(ns_g_server);
+	} else if (command_compare(command, NS_COMMAND_STATUS)) {
+		result = ns_server_status(ns_g_server, text);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,

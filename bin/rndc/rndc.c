@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.58 2001/05/08 01:19:01 gson Exp $ */
+/* $Id: rndc.c,v 1.59 2001/05/08 04:09:35 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -113,7 +113,7 @@ command is one of the following:\n\
   trace level	Change the debugging level.\n\
   notrace	Set debugging level to 0.\n\
   flush		Flushes the server's cache.\n\
-  *status	Display ps(1) status of named.\n\
+  status	Display status of named.\n\
   *restart	Restart the server.\n\
 \n\
 * == not yet implemented\n\
@@ -222,6 +222,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_t *data;
 	isccc_region_t source;
 	char *errormsg = NULL;
+	char *textmsg = NULL;
 	isc_result_t result;
 
 	recvs--;
@@ -252,6 +253,13 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 		fprintf(stderr, "%s: '%s' failed: %s\n",
 			progname, command, errormsg);
 	}
+	else if (result != ISC_R_NOTFOUND)
+		fprintf(stderr, "%s: parsing response failed: %s\n",
+			progname, isc_result_totext(result));
+
+	result = isccc_cc_lookupstring(data, "text", &textmsg);
+	if (result == ISC_R_SUCCESS)
+		printf("%s\n", textmsg);
 	else if (result != ISC_R_NOTFOUND)
 		fprintf(stderr, "%s: parsing response failed: %s\n",
 			progname, isc_result_totext(result));
@@ -585,7 +593,7 @@ main(int argc, char **argv) {
 
 	notify(command);
 
-	if (strcmp(command, "restart") == 0 || strcmp(command, "status") == 0)
+	if (strcmp(command, "restart") == 0)
 		fatal("%s: '%s' is not implemented", progname, command);
 
 	DO("post event", isc_app_onrun(mctx, task, rndc_start, NULL));

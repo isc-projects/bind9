@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.6 2001/05/08 03:42:27 gson Exp $ */
+/* $Id: controlconf.c,v 1.7 2001/05/08 04:09:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -302,6 +302,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t b;
 	isc_region_t r;
 	isc_uint32_t len;
+	isc_buffer_t text;
+	char textarray[1024];
 	isc_result_t result;
 	isc_result_t eresult;
 
@@ -335,7 +337,9 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
-	eresult = ns_control_docommand(request);
+	isc_buffer_init(&text, textarray, sizeof(textarray));
+
+	eresult = ns_control_docommand(request, &text);
 
 	isc_stdtime_get(&now);
 	result = isccc_cc_createresponse(request, now, now + 60, &response);
@@ -348,6 +352,17 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		if (data != NULL) {
 			const char *estr = isc_result_totext(eresult);
 			if (isccc_cc_definestring(data, "err", estr) == NULL)
+				goto cleanup;
+		}
+	}
+
+	if (isc_buffer_usedlength(&text) > 0) {
+		isccc_sexpr_t *data;
+
+		data = isccc_alist_lookup(response, "_data");
+		if (data != NULL) {
+			char *str = (char *)isc_buffer_base(&text);
+			if (isccc_cc_definestring(data, "text", str) == NULL)
 				goto cleanup;
 		}
 	}

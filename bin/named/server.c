@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.321 2001/05/08 03:42:30 gson Exp $ */
+/* $Id: server.c,v 1.322 2001/05/08 04:09:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2776,4 +2776,27 @@ ns_server_flushcache(ns_server_t *server) {
  out:
 	isc_task_endexclusive(server->task);	
 	return (result);
+}
+
+isc_result_t
+ns_server_status(ns_server_t *server, isc_buffer_t *text) {
+	int n;
+
+	n = snprintf((char *)isc_buffer_used(text),
+		     isc_buffer_availablelength(text),
+		     "number of zones: %d\n"
+		     "debug level: %d\n"
+		     "xfers running: %d\n"
+		     "xfers deferred: %d\n"
+		     "soa queries in progress: %d\n"
+		     "query logging is %s\n"
+		     "server is up and running",
+		     -1, /* XXX */
+		     ns_g_debuglevel,
+		     -1, -1, -1, /* XXX */
+		     server->log_queries ? "ON" : "OFF");
+	if (n < 0)
+		return (ISC_R_NOSPACE);
+	isc_buffer_add(text, n);
+	return (ISC_R_SUCCESS);
 }
