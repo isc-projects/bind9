@@ -18,9 +18,9 @@
 #ifndef GENERIC_NSEC_47_H
 #define GENERIC_NSEC_47_H 1
 
-/* $Id: nsec_47.h,v 1.2 2003/09/30 06:00:40 marka Exp $ */
+/* $Id: nsec_47.h,v 1.3 2003/12/13 04:20:44 marka Exp $ */
 
-/* RFC 2535 */
+/* draft-ietf-dnsext-nsec-rdata-01.txt */
 
 typedef struct dns_rdata_nsec {
 	dns_rdatacommon_t	common;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.h,v 1.2 2003/09/30 06:00:39 marka Exp $ */
+/* $Id: nsec.h,v 1.3 2003/12/13 04:20:43 marka Exp $ */
 
 #ifndef DNS_NSEC_H
 #define DNS_NSEC_H 1
@@ -23,8 +23,9 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
+#include <dns/name.h>
 
-#define DNS_NSEC_BUFFERSIZE (256 + 16)
+#define DNS_NSEC_BUFFERSIZE (DNS_NAME_MAXWIRE + 8192 + 512)
 
 ISC_LANG_BEGINDECLS
 
@@ -59,8 +60,6 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
  *
  * Requires:
  *	'nsec' points to a valid rdataset of type NSEC
- *	'type' < 128
- *
  */
 
 ISC_LANG_ENDDECLS

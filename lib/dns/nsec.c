@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.c,v 1.3 2003/10/01 04:07:27 marka Exp $ */
+/* $Id: nsec.c,v 1.4 2003/12/13 04:20:43 marka Exp $ */
 
 #include <config.h>
 
@@ -69,9 +69,10 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	isc_region_t r;
-	int i;
+	unsigned int i, window;
+	int octet;
 
-	unsigned char *nsec_bits;
+	unsigned char *nsec_bits, *bm;
 	unsigned int max_type;
 	dns_rdatasetiter_t *rdsiter;
 
@@ -79,8 +80,13 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	dns_name_toregion(target, &r);
 	memcpy(buffer, r.base, r.length);
 	r.base = buffer;
+	/*
+	 * Use the end of the space for a raw bitmap leaving enough
+	 * space for the window identifiers and length octets.
+	 */
+	bm = r.base + r.length + 512;
 	nsec_bits = r.base + r.length;
-	set_bit(nsec_bits, dns_rdatatype_nsec, 1);
+	set_bit(bm, dns_rdatatype_nsec, 1);
 	max_type = dns_rdatatype_nsec;
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
@@ -92,13 +98,10 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	     result = dns_rdatasetiter_next(rdsiter))
 	{
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type > 127)
-			/* XXX "rdataset type too large" */
-			return (ISC_R_RANGE);
 		if (rdataset.type != dns_rdatatype_nsec) {
 			if (rdataset.type > max_type)
 				max_type = rdataset.type;
-			set_bit(nsec_bits, rdataset.type, 1);
+			set_bit(bm, rdataset.type, 1);
 		}
 		dns_rdataset_disassociate(&rdataset);
 	}
@@ -106,12 +109,12 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	/*
 	 * At zone cuts, deny the existence of glue in the parent zone.
 	 */
-	if (bit_isset(nsec_bits, dns_rdatatype_ns) &&
-	    ! bit_isset(nsec_bits, dns_rdatatype_soa)) {
-		for (i = 0; i < 128; i++) {
-			if (bit_isset(nsec_bits, i) &&
+	if (bit_isset(bm, dns_rdatatype_ns) &&
+	    ! bit_isset(bm, dns_rdatatype_soa)) {
+		for (i = 0; i <= max_type; i++) {
+			if (bit_isset(bm, i) &&
 			    ! dns_rdatatype_iszonecutauth((dns_rdatatype_t)i))
-				set_bit(nsec_bits, i, 0);
+				set_bit(bm, i, 0);
 		}
 	}
 
@@ -119,7 +122,23 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	if (result != ISC_R_NOMORE)
 		return (result);
 
-	r.length += max_type / 8 + 1;
+	for (window = 0; window < 256; window++) {
+		if (window * 256 > max_type)
+			break;
+		for (octet = 31; octet >= 0; octet--)
+			if (bm[window * 32 + octet] != 0)
+				break;
+		if (octet < 0)
+			continue;
+		nsec_bits[0] = window;
+		nsec_bits[1] = octet + 1;
+		/*
+		 * Note: potential overlapping move.
+		 */
+		memmove(&nsec_bits[2], &bm[window * 32], octet + 1);
+		nsec_bits += 3 + octet;
+	}
+	r.length = nsec_bits - r.base;
 	INSIST(r.length <= DNS_NSEC_BUFFERSIZE);
 	dns_rdata_fromregion(rdata,
 			     dns_db_class(db),
@@ -168,19 +187,32 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 	dns_rdata_nsec_t nsecstruct;
 	isc_result_t result;
 	isc_boolean_t present;
+	unsigned int i, len, window;
 
 	REQUIRE(nsec != NULL);
 	REQUIRE(nsec->type == dns_rdatatype_nsec);
-	REQUIRE(type < 128);
 
 	/* This should never fail */
 	result = dns_rdata_tostruct(nsec, &nsecstruct, NULL);
 	INSIST(result == ISC_R_SUCCESS);
 	
-	if (type >= nsecstruct.len * 8)
-		present = ISC_FALSE;
-	else
-		present = ISC_TF(bit_isset(nsecstruct.typebits, type));
+	present = ISC_FALSE;
+	for (i = 0; i < nsecstruct.len; i += len) {
+		INSIST(i + 2 <= nsecstruct.len);
+		window = nsecstruct.typebits[i];
+		len = nsecstruct.typebits[i + 1];
+		INSIST(len > 0 && len <= 32);
+		i += 2;
+		INSIST(i + len <= nsecstruct.len);
+		if (window * 256 > type)
+			break;
+		if ((window + 1) * 256 <= type)
+			continue;
+		if (type < (window * 256) + len * 8)
+			present = ISC_TF(bit_isset(&nsecstruct.typebits[i],
+						   type % 256));
+		break;
+	}
 	dns_rdata_freestruct(&nsec);
 	return (present);
 }

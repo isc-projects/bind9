@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.170 2003/10/01 04:10:26 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.171 2003/12/13 04:20:42 marka Exp $ */
 
 #include <config.h>
 
@@ -652,11 +652,11 @@ nsec_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nsec_t nsec;
 	unsigned int newlen;
-	unsigned char bitmap[16];
-	unsigned char nsecdata[16 + DNS_NAME_MAXWIRE];
+	unsigned char bitmap[8192 + 512];
+	unsigned char nsecdata[8192 + 512 + DNS_NAME_MAXWIRE];
 	isc_boolean_t answer = ISC_FALSE;
-
-	INSIST(type < 128);
+	unsigned int i, len, window;
+	int octet;
 
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first()");
@@ -666,14 +666,34 @@ nsec_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 
 	INSIST(nsec.len <= sizeof(bitmap));
 
-	newlen = sizeof(bitmap);
+	newlen = 0;
 
 	memset(bitmap, 0, sizeof(bitmap));
-	memcpy(bitmap, nsec.typebits, nsec.len);
-	set_bit(bitmap, type, val);
-
-	while (newlen > 0 && bitmap[newlen - 1] == 0)
-		newlen--;
+	for (i = 0; i < nsec.len; i += len) {
+		INSIST(i + 2 <= nsec.len);
+		window = nsec.typebits[i];
+		len = nsec.typebits[i+1];
+		i += 2;
+		INSIST(len > 0 && len <= 32);
+		INSIST(i + len <= nsec.len);
+		memmove(&bitmap[window * 32 + 512], &nsec.typebits[i], len);
+	}
+	set_bit(bitmap + 512, type, val);
+	for (window = 0; window < 256; window++) {
+		for (octet = 31; octet >= 0; octet--)
+			if (bitmap[window * 32 + 512 + octet] != 0)
+				break;
+		if (octet < 0)
+			continue;
+		bitmap[newlen] = window;
+		bitmap[newlen + 1] = octet + 1;
+		newlen += 2;
+		/*
+		 * Overlapping move.
+		 */
+		memmove(&bitmap[newlen], &bitmap[window * 32 + 512], octet + 1);
+		newlen += octet + 1;
+	}
 	if (newlen != nsec.len ||
 	    memcmp(nsec.typebits, bitmap, newlen) != 0) {
 		dns_rdata_t newrdata = DNS_RDATA_INIT;
