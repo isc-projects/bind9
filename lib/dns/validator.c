@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.63.2.4 2000/08/22 01:45:16 bwelling Exp $ */
+/* $Id: validator.c,v 1.63.2.5 2000/09/11 17:04:58 gson Exp $ */
 
 #include <config.h>
 
@@ -1075,6 +1075,22 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			if (sigrdataset == NULL)
 				continue;
 			val->seensig = ISC_TRUE;
+			if (val->event->type == dns_rdatatype_key &&
+			    dns_name_equal(name, val->event->name))
+			{
+				dns_rdata_t nxt;
+
+				if (rdataset->type != dns_rdatatype_nxt)
+					continue;
+
+				result = dns_rdataset_first(rdataset);
+				INSIST(result == ISC_R_SUCCESS);
+				dns_rdata_init(&nxt);
+				dns_rdataset_current(rdataset, &nxt);
+				if (dns_nxt_typepresent(&nxt,
+							dns_rdatatype_soa))
+					continue;
+			}
 			val->authvalidator = NULL;
 			val->currentset = rdataset;
 			result = dns_validator_create(val->view, name,
