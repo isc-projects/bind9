@@ -470,6 +470,9 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 /*
  * Find the best known zonecut containing 'name'.
  *
+ * This uses local authority, cache, and optionally hints data.
+ * No external queries are performed.
+ *
  * Notes:
  *
  *	If 'now' is zero, then the current time will be used.
