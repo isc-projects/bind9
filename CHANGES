@@ -1,3 +1,5 @@
+1054.	[bug]		winnt: cfg_categories and cfg_modules need to be
+			visible outside of the libisccfg DLL.
 
 	--- 9.2.0rc7 released ---
 
