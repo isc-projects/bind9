@@ -267,9 +267,9 @@ t1() {
 			mctx, DST_R_SUCCESS, &nfails, &nprobs);
 
 	io("test.", 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
-			mctx, DST_R_NULL_KEY, &nfails, &nprobs);
+			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 	io("test.", 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
-			mctx, DST_R_NULL_KEY, &nfails, &nprobs);
+			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 
 	t_info("testing use of generated keys\n");
 	generate(DST_ALG_RSA, mctx, &nfails);
