@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.52 2001/09/19 19:22:28 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.53 2001/09/19 21:24:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,12 +31,12 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/diff.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
-#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
@@ -49,8 +49,6 @@
 
 const char *program = "dnssec-signkey";
 int verbose;
-
-#define BUFSIZE 2048
 
 typedef struct keynode keynode_t;
 struct keynode {
@@ -160,17 +158,18 @@ main(int argc, char *argv[]) {
 	dns_name_t *domain;
 	char *output = NULL;
 	char *endp;
-	unsigned char *data;
+	unsigned char data[65536];
 	dns_db_t *db;
 	dns_dbnode_t *node;
 	dns_dbversion_t *version;
+	dns_diff_t diff;
+	dns_difftuple_t *tuple;
 	dns_dbiterator_t *dbiter;
 	dns_rdatasetiter_t *rdsiter;
 	dst_key_t *key = NULL;
-	dns_rdata_t *rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
-	dns_rdatalist_t sigrdatalist;
-	dns_rdataset_t rdataset, sigrdataset, newsigrdataset;
+	dns_rdataset_t rdataset, sigrdataset;
 	dns_rdata_sig_t sig;
 	isc_result_t result;
 	isc_buffer_t b;
@@ -180,7 +179,8 @@ main(int argc, char *argv[]) {
 	isc_boolean_t pseudorandom = ISC_FALSE;
 	unsigned int eflags;
 	dns_rdataclass_t rdclass;
-	static isc_boolean_t tryverify = ISC_FALSE;
+	isc_boolean_t tryverify = ISC_FALSE;
+	isc_boolean_t settime = ISC_FALSE;
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
@@ -257,6 +257,12 @@ main(int argc, char *argv[]) {
 	    !(startstr == NULL && endstr == NULL))
 		fatal("if -s or -e is specified, both must be");
 
+	if (startstr != NULL) {
+		starttime = strtotime(startstr, now, now);
+		endtime = strtotime(endstr, now, starttime);
+		settime = ISC_TRUE;
+	}
+
 	setup_logging(verbose, mctx, &log);
 
 	if (strlen(argv[0]) < 8 || strncmp(argv[0], "keyset-", 7) != 0)
@@ -307,8 +313,7 @@ main(int argc, char *argv[]) {
 				  strlen("signedkey-") + strlen(tdomain) + 1);
 	if (output == NULL)
 		fatal("out of memory");
-	strcpy(output, "signedkey-");
-	strcat(output, tdomain);
+	sprintf(output, "signedkey-%s", tdomain);
 
 	version = NULL;
 	dns_db_newversion(db, &version);
@@ -325,6 +330,8 @@ main(int argc, char *argv[]) {
 	}
 
 	loadkeys(domain, &rdataset);
+
+	dns_diff_init(mctx, &diff);
 
 	if (!dns_rdataset_isassociated(&sigrdataset))
 		fatal("no SIG KEY set present");
@@ -344,19 +351,15 @@ main(int argc, char *argv[]) {
 			fatal("signature by key '%s' did not verify: %s",
 			      keystr, isc_result_totext(result));
 		}
-		dns_rdata_reset(&sigrdata);
+		if (!settime) {
+			starttime = sig.timesigned;
+			endtime = sig.timeexpire;
+			settime = ISC_TRUE;
+		}
 		dns_rdata_freestruct(&sig);
+		dns_rdata_reset(&sigrdata);
 		result = dns_rdataset_next(&sigrdataset);
 	} while (result == ISC_R_SUCCESS);
-
-	if (startstr != NULL) {
-		starttime = strtotime(startstr, now, now);
-		endtime = strtotime(endstr, now, starttime);
-	} else {
-		starttime = sig.timesigned;
-		endtime = sig.timeexpire;
-	}
-
 
 	for (keynode = ISC_LIST_HEAD(keylist);
 	     keynode != NULL;
@@ -364,22 +367,8 @@ main(int argc, char *argv[]) {
 		if (!keynode->verified)
 			fatal("Not all zone keys self signed the key set");
 
-	result = dns_rdataset_first(&sigrdataset);
-	check_result(result, "dns_rdataset_first()");
-	dns_rdataset_current(&sigrdataset, &sigrdata);
-	result = dns_rdata_tostruct(&sigrdata, &sig, mctx);
-	check_result(result, "dns_rdata_tostruct()");
-
-	dns_rdataset_disassociate(&sigrdataset);
-
 	argc -= 1;
 	argv += 1;
-
-	dns_rdatalist_init(&sigrdatalist);
-	sigrdatalist.rdclass = rdataset.rdclass;
-	sigrdatalist.type = dns_rdatatype_sig;
-	sigrdatalist.covers = dns_rdatatype_key;
-	sigrdatalist.ttl = rdataset.ttl;
 
 	for (i = 0; i < argc; i++) {
 		key = NULL;
@@ -391,17 +380,11 @@ main(int argc, char *argv[]) {
 			fatal("failed to read key %s from disk: %s",
 			      argv[i], isc_result_totext(result));
 
-		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
-		if (rdata == NULL)
-			fatal("out of memory");
-		dns_rdata_init(rdata);
-		data = isc_mem_get(mctx, BUFSIZE);
-		if (data == NULL)
-			fatal("out of memory");
-		isc_buffer_init(&b, data, BUFSIZE);
+		dns_rdata_reset(&rdata);
+		isc_buffer_init(&b, data, sizeof(data));
 		result = dns_dnssec_sign(domain, &rdataset, key,
 					 &starttime, &endtime,
-					 mctx, &b, rdata);
+					 mctx, &b, &rdata);
 		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS) {
 			char keystr[KEY_FORMATSIZE];
@@ -411,7 +394,7 @@ main(int argc, char *argv[]) {
 		}
 		if (tryverify) {
 			result = dns_dnssec_verify(domain, &rdataset, key,
-						   ISC_TRUE, mctx, rdata);
+						   ISC_TRUE, mctx, &rdata);
 			if (result != ISC_R_SUCCESS) {
 				char keystr[KEY_FORMATSIZE];
 				key_format(key, keystr, sizeof keystr);
@@ -420,16 +403,22 @@ main(int argc, char *argv[]) {
 				      keystr, isc_result_totext(result));
 			}
 		}
-		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
+		tuple = NULL;
+		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
+					      domain, rdataset.ttl,
+					      &rdata, &tuple);
+		check_result(result, "dns_difftuple_create");
+		dns_diff_append(&diff, &tuple);
 		dst_key_free(&key);
 	}
 
-	dns_rdataset_init(&newsigrdataset);
-	result = dns_rdatalist_tordataset(&sigrdatalist, &newsigrdataset);
-	check_result (result, "dns_rdatalist_tordataset()");
+	result = dns_db_deleterdataset(db, node, version, dns_rdatatype_sig,
+				       dns_rdatatype_key);
+	check_result(result, "dns_db_deleterdataset");
 
-	dns_db_addrdataset(db, node, version, 0, &newsigrdataset, 0, NULL);
-	check_result (result, "dns_db_addrdataset()");
+	result = dns_diff_apply(&diff, db, version);
+	check_result(result, "dns_diff_apply");
+	dns_diff_clear(&diff);
 
 	dns_db_detachnode(db, &node);
 	dns_db_closeversion(db, &version, ISC_TRUE);
@@ -441,16 +430,7 @@ main(int argc, char *argv[]) {
 	printf("%s\n", output);
 
 	dns_rdataset_disassociate(&rdataset);
-	dns_rdataset_disassociate(&newsigrdataset);
-
-	dns_rdata_freestruct(&sig);
-
-	while (!ISC_LIST_EMPTY(sigrdatalist.rdata)) {
-		rdata = ISC_LIST_HEAD(sigrdatalist.rdata);
-		ISC_LIST_UNLINK(sigrdatalist.rdata, rdata, link);
-		isc_mem_put(mctx, rdata->data, BUFSIZE);
-		isc_mem_put(mctx, rdata, sizeof *rdata);
-	}
+	dns_rdataset_disassociate(&sigrdataset);
 
 	dns_db_detach(&db);
 
