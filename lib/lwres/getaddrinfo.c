@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.33 2000/10/05 22:27:50 bwelling Exp $ */
+/* $Id: getaddrinfo.c,v 1.34 2000/12/06 00:35:44 tale Exp $ */
 
 #include <config.h>
 
@@ -352,7 +352,8 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 	for (i = 0; i < FOUND_MAX; i++) {
 		if (net_order[i] == NULL)
 			break;
-		err = (net_order[i])(hostname, flags, &ai_list, socktype, port);
+		err = (net_order[i])(hostname, flags, &ai_list,
+				     socktype, port);
 		if (err != 0)
 			return (err);
 	}
