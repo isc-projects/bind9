@@ -1,0 +1,57 @@
+ 952:	DOD INTERNET HOST TABLE SPECIFICATION
+1032:	DOMAIN ADMINISTRATORS GUIDE
+1033:	DOMAIN ADMINISTRATORS OPERATIONS GUIDE
+1034:	DOMAIN NAMES - CONCEPTS AND FACILITIES
+1035:	DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION
+1101:	DNS Encoding of Network Names and Other Types
+1122:	Requirements for Internet Hosts -- Communication Layers
+1123:	Requirements for Internet Hosts -- Application and Support
+1183:	New DNS RR Definitions (AFSDB, RP, X25, ISDN and RT)
+1348:	DNS NSAP RRs
+1535:	A Security Problem and Proposed Correction
+	   With Widely Deployed DNS Software
+1536:	Common DNS Implementation Errors and Suggested Fixes
+1537:	Common DNS Data File Configuration Errors
+1591:	Domain Name System Structure and Delegation
+1611:	DNS Server MIB Extensions
+1612:	DNS Resolver MIB Extensions
+1706:	DNS NSAP Resource Records
+1712:	DNS Encoding of Geographical Location
+1750:	Randomness Recommendations for Security
+1876:	A Means for Expressing Location Information in the Domain Name System
+1982:	Serial Number Arithmetic
+1035:	Incremental Zone Transfer in DNS
+1035:	A Mechanism for Prompt Notification of Zone Changes (DNS NOTIFY)
+2052:	A DNS RR for specifying the location of services (DNS SRV)
+2104:	HMAC: Keyed-Hashing for Message Authentication
+2119:	Key words for use in RFCs to Indicate Requirement Levels
+2133:	Basic Socket Interface Extensions for IPv6
+2136:	Dynamic Updates in the Domain Name System (DNS UPDATE)
+2137:	Secure Domain Name System Dynamic Update
+1664:	Using the Internet DNS to Distribute MIXER
+	 Conformant Global Address Mapping (MCGAM)
+2168:	Resolution of Uniform Resource Identifiers using the Domain Name System
+2181:	Clarifications to the DNS Specification
+2230:	Key Exchange Delegation Record for the DNS
+2308:	Negative Caching of DNS Queries (DNS NCACHE)
+2373:	IP Version 6 Addressing Architecture
+2374:	An IPv6 Aggregatable Global Unicast Address Format
+2375:	IPv6 Multicast Address Assignments
+1603:	IETF Working Group Guidelines and Procedures
+2535:	Domain Name System Security Extensions
+2536:	DSA KEYs and SIGs in the Domain Name System (DNS)
+2537:	RSA/MD5 KEYs and SIGs in the Domain Name System (DNS)
+2538:	Storing Certificates in the Domain Name System (DNS)
+2539:	Storage of Diffie-Hellman Keys in the Domain Name System (DNS)
+2540:	Detached Domain Name System (DNS) Information
+2541:	DNS Security Operational Considerations
+2553:	Basic Socket Interface Extensions for IPv6
+2671:	Extension Mechanisms for DNS (EDNS0)
+2672:	Non-Terminal DNS Name Redirection
+2673:	Binary Labels in the Domain Name System
+2782:	A DNS RR for specifying the location of services (DNS SRV)
+2845:	Secret Key Transaction Authentication for DNS (TSIG)
+2874:	DNS Extensions to Support IPv6 Address Aggregation and Renumbering
+2929:	Domain Name System (DNS) IANA Considerations
+2930:	Secret Key Establishment for DNS (TKEY RR)
+2931:	DNS Request and Transaction Signatures ( SIG(0)s )
