@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.18 1999/10/29 04:18:07 marka Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.19 1999/10/29 06:05:10 marka Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -4000,7 +4000,7 @@ unit_to_uint32(char *in, isc_uint32_t *out) {
 
         for (; (c = *in) != '\0'; in++) {
                 if (units_done)
-                        return (0);
+                        return (ISC_FALSE);
                 if (isdigit(c)) {
                         result *= 10;
                         result += (c - '0');
@@ -4022,13 +4022,13 @@ unit_to_uint32(char *in, isc_uint32_t *out) {
                                 units_done = 1;
                                 break;
                         default:
-                                return (0);
+                                return (ISC_FALSE);
                         }
                 }
         }
 
         *out = result;
-        return (1);
+        return (ISC_TRUE);
 }
 
 
