@@ -59,6 +59,8 @@ free_keynode(void *node, void *arg) {
 
 	REQUIRE(VALID_KEYNODE(keynode));
 	dst_key_free(&keynode->key);
+	if (keynode->next != NULL)
+		free_keynode(keynode->next, mctx);
 	isc_mem_put(mctx, keynode, sizeof(dns_keynode_t));
 }
 
