@@ -1,4 +1,4 @@
-1668.	[bug]		Restore "update forwarding denied" log messages
+1669.	[bug]		Restore "update forwarding denied" log messages
 			accidentally suppressed by change #1633. [RT# 11657]
 
 1660.	[bug]		win32: connection_reset_fix() was being called
