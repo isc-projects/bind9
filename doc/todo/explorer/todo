@@ -1,13 +1,35 @@
-$Id: todo,v 1.8 2000/09/06 21:57:03 explorer Exp $
+$Id: todo,v 1.9 2000/09/06 22:04:16 explorer Exp $
 
 Document {min,max}-{refresh,retry}-time
+
+min-refresh-time
+max-refresh-time
+min-retry-time
+max-retry-time
+
+	These options control the server's behavior on refreshing a zone
+	(querying for SOA changes) or retrying failed transfers.
+	Usually the SOA values for the zone are used, but these values
+	are set by the master, giving slave server administrators little
+	control over their contents.
+
+	These options allow the administrator to set a minimum and maximum
+	refresh and retry time either per-zone, per-view, or per-server.
+	These options are valid for all types of zones, and clamp the SOA
+	refresh and retry times to the specified values.
+
+----------------------------------------------------------------------
 
 Limit the number of retries on socket errors (send and receive)
 
 	-- Log when we get more than 10 of the same error in a row.
 	-- Also catch "no route to host" and "write error on pipe"
 
+----------------------------------------------------------------------
+
 Make lwresd shut down its fetches properly
+
+----------------------------------------------------------------------
 
 Implement ip6.arpa priming
 
