@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.48 2000/06/01 21:42:38 tale Exp $ */
+/* $Id: gen.c,v 1.49 2000/06/02 01:07:03 tale Exp $ */
 
 #include <config.h>
 
@@ -135,7 +135,7 @@ struct ttnam {
 char *
 upper(char *);
 char *
-funname(char *, char *);
+funname(const char *, char *);
 void
 doswitch(const char *, const char *, const char *, const char *,
 	 const char *, const char *);
@@ -172,7 +172,7 @@ upper(char *s) {
 }
 
 char *
-funname(char *s, char *buf) {
+funname(const char *s, char *buf) {
 	char *b = buf;
 	char c;
 
@@ -759,22 +759,42 @@ main(int argc, char **argv) {
 		fprintf(stdout, "\n#endif /* DNS_ENUMTYPE_H */\n");
 
 	} else if (class_enum) {
-		fprintf(stdout, "#ifndef DNS_ENUMCLASS_H\n");
-		fprintf(stdout, "#define DNS_ENUMCLASS_H 1\n");
-		
-		fprintf(stdout, "#define DNS_CLASSENUM%s\n",
-			classes != NULL ? " \\" : "");
+		char *s;
+		int classnum;
 
-		printf("\t dns_rdataclass_reserved0 = 0, \\\n");
+		printf("#ifndef DNS_ENUMCLASS_H\n");
+		printf("#define DNS_ENUMCLASS_H 1\n\n");
+
+		printf("enum {\n");
+
+		printf("\tdns_rdataclass_reserved0 = 0,\n");
+		printf("#define dns_rdataclass_reserved0 \\\n\t\t\t\t"
+			"((dns_rdataclass_t)dns_rdataclass_reserved0)\n");
+
+#define PRINTCLASS(name, num) \
+	do { \
+		s = funname(name, buf1); \
+		classnum = num; \
+		printf("\tdns_rdataclass_%s = %d,\n", s, classnum); \
+		printf("#define dns_rdataclass_%s\t" \
+		       "((dns_rdataclass_t)dns_rdataclass_%s)\n", s, s); \
+	} while (0)
+
 		for (cc = classes; cc != NULL; cc = cc->next) {
-			if (cc->rdclass == 4)
-				printf("\t dns_rdataclass_chaos = 3, \\\n");
-			fprintf(stdout, "\t dns_rdataclass_%s = %d,%s\n",
-				funname(cc->classname, buf1),
-				cc->rdclass,
-				cc->next != NULL ? " \\" : "");
+			if (cc->rdclass == 4) {
+				PRINTCLASS("ch", 3);
+				PRINTCLASS("chaos", 3);
+
+			} else if (cc->rdclass == 255) {
+				PRINTCLASS("none", 254);
+			}
+			PRINTCLASS(cc->classname, cc->rdclass);
 		}
-		fprintf(stdout, "#endif /* DNS_ENUMCLASS_H */\n");
+
+#undef PRINTCLASS
+
+		printf("};\n\n");
+		printf("#endif /* DNS_ENUMCLASS_H */\n");
 	} else if (structs) {
 		if (prefix != NULL) {
 			if ((fd = fopen(prefix,"r")) != NULL) {
