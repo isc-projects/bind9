@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.101 2001/09/05 06:26:07 marka Exp $ */
+/* $Id: mem.c,v 1.102 2001/09/06 23:03:01 gson Exp $ */
 
 #include <config.h>
 
@@ -186,10 +186,13 @@ struct isc_mempool {
 #define DELETE_TRACE(a, b, c, d, e)
 #else
 #define ADD_TRACE(a, b, c, d, e) \
-	do { if (b != NULL) add_trace_entry(a, b, c, d, e); } while (0)
+	do { \
+		if ((isc_mem_debugging & (ISC_MEM_DEBUGTRACE | \
+					  ISC_MEM_DEBUGRECORD)) != 0 && \
+		     b != NULL) \
+		         add_trace_entry(a, b, c, d, e); \
+	} while (0)
 #define DELETE_TRACE(a, b, c, d, e)	delete_trace_entry(a, b, c, d, e)
-
-#define MEM_TRACE	((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 
 static void
 print_active(isc_mem_t *ctx, FILE *out);
@@ -204,7 +207,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	debuglink_t *dl;
 	unsigned int i;
 
-	if (MEM_TRACE)
+	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 					       ISC_MSG_ADDTRACE,
 					       "add %p size %u "
@@ -259,7 +262,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 	debuglink_t *dl;
 	unsigned int i;
 
-	if (MEM_TRACE)
+	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 					       ISC_MSG_DELTRACE,
 					       "del %p size %u "
@@ -1231,8 +1234,7 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 #if ISC_MEM_TRACKLINES
-	if (si != NULL)
-		ADD_TRACE(ctx, si, si[-1].u.size, file, line);
+	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
 
 	UNLOCK(&ctx->lock);
