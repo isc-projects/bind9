@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.66 2000/11/06 08:11:08 marka Exp $ */
+/* $Id: zoneconf.c,v 1.67 2000/11/07 23:49:29 mws Exp $ */
 
 #include <config.h>
 
@@ -175,6 +175,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	static char default_dbtype[] = "rbt";
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
 	dns_dialuptype_t dialup;
+	isc_boolean_t statistics;
 
 	isc_sockaddr_any(&sockaddr_any4);
 	isc_sockaddr_any6(&sockaddr_any6);
@@ -249,6 +250,20 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			dialup = dns_dialuptype_no;
 		dns_zone_setdialup(zone, dialup);
+	} 
+
+	if (czone->ztype != dns_c_zone_hint) {
+		result = dns_c_zone_getstatistics(czone, &statistics);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getstatistics(cview, &statistics);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getstatistics(cctx, &statistics);
+		if (result != ISC_R_SUCCESS)
+			statistics = ISC_FALSE;
+		if (statistics)
+			dns_zone_startcounting(zone);
+		else
+			dns_zone_stopcounting(zone);
 	} 
 
 #ifndef NOMINUM_PUBLIC

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.85 2000/11/06 08:11:11 marka Exp $ */
+/* $Id: zone.h,v 1.86 2000/11/07 23:49:42 mws Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1045,6 +1045,38 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
  */
 
 isc_result_t
+dns_zone_next(dns_zone_t *zone, dns_zone_t **next);
+/*
+ * Find the next zone in the list of managed zones.
+ *
+ * Requires:
+ *	'zone' to be valid
+ *	The zone manager for the indicated zone MUST be locked
+ *	by the caller.  This is not checked.
+ *	'next' be non-NULL, and '*next' be NULL
+ *
+ * Ensures:
+ *	'next' points to a valid zone (result ISC_R_SUCCESS) or to NULL
+ *	(result ISC_R_NOMORE).
+ */
+
+isc_result_t
+dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first);
+/*
+ * Find the first zone in the list of managed zones.
+ *
+ * Requires:
+ *	'zone,gr' to be valid
+ *	The zone manager for the indicated zone MUST be locked
+ *	by the caller.  This is not checked.
+ *	'first' be non-NULL, and '*first' be NULL
+ *
+ * Ensures:
+ *	'first' points to a valid zone (result ISC_R_SUCCESS) or to NULL
+ *	(result ISC_R_NOMORE).
+ */
+
+isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		   dns_zonemgr_t **zmgrp);
@@ -1225,6 +1257,7 @@ dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter);
  *
  * Requires:
  *      zone be a valid zone.
+ *	MAY be safely called even if zone doesn't have counters
  *      counter be a valid counter ID
  */
 
@@ -1235,7 +1268,12 @@ dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter);
  *
  * Requires:
  *      zone be a valid zone.
+ *	MAY be safely called even if zone doesn't have counters
  *      counter be a valid counter ID
+ *
+ * Returns:
+ *	count if the zone has counters
+ *	0 if the zone does not have counters
  */
 
 
@@ -1246,6 +1284,50 @@ dns_zone_resetcounts(dns_zone_t *zone);
  *
  * Requires:
  *      zone be a valid zone.
+ *	MAY be safely called even if zone doesn't have counters
+ */
+
+int
+dns_zone_numbercounters(void);
+/*
+ *	Return the number of counters per zone.
+ *
+ *	Use this instead of DNS_ZONE_COUNTSIZE if possible, to ensure
+ *	binary compatibility if the number of counters is changed in
+ *	future library releases.
+ */
+
+isc_boolean_t
+dns_zone_hascounts(dns_zone_t *zone);
+/*
+ *	Return whether or not the zone has counters.
+ *
+ * Requires:
+ *	zone be a valid zone.
+ */
+
+isc_result_t
+dns_zone_startcounting(dns_zone_t *zone);
+/*
+ *	Start counting on the specified zone.
+ *
+ * Requires:
+ * 	zone be a valid zone.
+ *	MAY be safely called even if zone already has counters
+ *
+ * Returns:
+ *	ISC_R_NOMEMORY -- memory allocation failed.
+ *	ISC_R_SUCCESS -- Success
+ */
+
+void
+dns_zone_stopcounting(dns_zone_t *zone);
+/*
+ *	Stop counting on the specified zone.
+ *
+ * Requires:
+ * 	zone be a valid zone.
+ *	MAY be safely called even if zone doesn't have counters
  */
 
 void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.238 2000/11/03 17:54:52 gson Exp $ */
+/* $Id: server.c,v 1.239 2000/11/07 23:49:19 mws Exp $ */
 
 #include <config.h>
 
@@ -1295,6 +1295,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_dispatch_t *dispatchv4 = NULL;
 	dns_dispatch_t *dispatchv6 = NULL;
 	char *pidfilename;
+	char *statsfilename;
 	isc_uint32_t interface_interval;
 	isc_uint32_t heartbeat_interval;
 	in_port_t listen_port;
@@ -1636,6 +1637,9 @@ load_configuration(const char *filename, ns_server_t *server,
 		ns_os_writepidfile(lwresd_g_defaultpidfile);
 	else
 		ns_os_writepidfile(ns_g_defaultpidfile);
+
+	if (dns_c_ctx_getstatsfilename(cctx, &statsfilename) != ISC_R_NOTFOUND)
+		ns_os_setstatsfilename(statsfilename);
 
 	dns_aclconfctx_destroy(&aclconfctx);
 
@@ -2108,3 +2112,95 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 	*target = delt;
 	return (ISC_R_SUCCESS);
 }
+
+/*
+ * Dump the current statistics to a file
+ *
+ * XXXMWS this should really be done asynchronously
+ */
+isc_result_t
+ns_server_dumpstats(ns_server_t *server) {
+	isc_result_t result;
+	dns_zone_t *zone = NULL, *next = NULL;
+	dns_name_t *zoneorg = NULL;
+	char zonestore[DNS_NAME_MAXTEXT+1];
+	isc_buffer_t zonebuf;
+	dns_view_t *zoneview = NULL;
+	char *viewname;
+	isc_stdtime_t now;
+
+	isc_stdtime_get(&now);
+	result = ns_os_openstatsfile();
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "Failed to open statistics dump file");
+		return (result);
+	}
+	ns_os_statsprintf("+++ Statistics Dump +++ (%ld)\n",
+			  (long)now);
+	ns_os_statsprintf("SUCCESS %ld\n",
+			  ns_globalcount[dns_zonecount_success]);
+	ns_os_statsprintf("DELEGATED %ld\n",
+			  ns_globalcount[dns_zonecount_delegate]);
+	ns_os_statsprintf("NXRRSET %ld\n",
+			  ns_globalcount[dns_zonecount_nxrrset]);
+	ns_os_statsprintf("NXDOMAIN %ld\n",
+			  ns_globalcount[dns_zonecount_nxdomain]);
+	ns_os_statsprintf("RECURSIVE %ld\n",
+			  ns_globalcount[dns_zonecount_recurse]);
+	ns_os_statsprintf("FAILED %ld\n",
+			  ns_globalcount[dns_zonecount_failure]);
+	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
+	dns_zone_first(server->zonemgr, &zone);
+	while (zone != NULL) {
+		isc_buffer_init(&zonebuf, zonestore, sizeof(zonestore));
+		zoneorg = dns_zone_getorigin(zone);
+		dns_name_totext(zoneorg, ISC_FALSE, &zonebuf);
+		/* Make sure there is room for the NULL terminator */
+		if (isc_buffer_availablelength(&zonebuf) < 1)
+			isc_buffer_subtract(&zonebuf,1);
+		isc_buffer_putuint8(&zonebuf, 0); /* NULL terminate */
+		zoneview = dns_zone_getview(zone);
+		viewname = zoneview->name;
+		if (dns_zone_hascounts(zone)) {
+			ns_os_statsprintf("SUCCESS %ld %s:%s\n",
+					  (long)dns_zone_getcounts(zone, 
+						   dns_zonecount_success),
+					  viewname, zonestore);
+			ns_os_statsprintf("DELEGATED %ld %s:%s\n",
+					  (long)dns_zone_getcounts(zone, 
+						   dns_zonecount_delegate),
+					  viewname, zonestore);
+			ns_os_statsprintf("NXRRSET %ld %s:%s\n",
+					  (long)dns_zone_getcounts(zone, 
+						   dns_zonecount_nxrrset),
+					  viewname, zonestore);
+			ns_os_statsprintf("NXDOMAIN %ld %s:%s\n",
+					  (long)dns_zone_getcounts(zone, 
+						   dns_zonecount_nxdomain),
+					  viewname, zonestore);
+			ns_os_statsprintf("RECURSIVE %ld %s:%s\n",
+					  (long)dns_zone_getcounts(zone, 
+						   dns_zonecount_recurse),
+					  viewname, zonestore);
+			ns_os_statsprintf("FAILED %ld %s:%s\n",
+					  (long)dns_zone_getcounts(zone, 
+						   dns_zonecount_failure),
+					  viewname, zonestore);
+		} else {
+			ns_os_statsprintf("NOSTATISTICS 0 %s:%s\n",
+					  viewname, zonestore);
+		}
+		isc_buffer_invalidate(&zonebuf);
+		dns_zone_next(zone, &next);
+		zone = next;
+		next = NULL;
+	}
+	ns_os_statsprintf("--- Statistics Dump --- (%ld)\n",
+			  (long)now);
+	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
+	ns_os_closestatsfile();
+	return (ISC_R_SUCCESS);
+}
+

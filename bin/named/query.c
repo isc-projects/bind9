@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.141 2000/10/31 03:21:43 marka Exp $ */
+/* $Id: query.c,v 1.142 2000/11/07 23:49:17 mws Exp $ */
 
 #include <config.h>
 
@@ -76,12 +76,6 @@
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
 
-/*
- * Server-wide counter of queries
- */
-isc_uint64_t            globalcount[DNS_ZONE_COUNTSIZE];
-
-
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		 isc_stdtime_t now,
@@ -107,25 +101,18 @@ query_maybeputqname(ns_client_t *client) {
 	}
 }
 
-static isc_uint64_t
-query_getglobals(unsigned int counter) {
-	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
-
-	return(globalcount[counter]);
-}
-
 static void
 query_count(dns_zone_t *zone, isc_boolean_t is_zone,
 	    dns_zonecount_t counter)
 {
 	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
 
-	globalcount[counter]++;
-	if (!is_zone || zone == NULL) {
+	ns_globalcount[counter]++;
+	if (!is_zone || zone == NULL || !dns_zone_hascounts(zone)) {
 	isc_log_write(dns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
 		      1, "global counter %s set to %ld", 
 		      dns_zonecount_names[counter],
-		      (long)globalcount[counter]);
+		      (long)ns_globalcount[counter]);
 		return;
 	}
 	dns_zone_count(zone, counter);
@@ -133,7 +120,7 @@ query_count(dns_zone_t *zone, isc_boolean_t is_zone,
 		      1, "zone counter %s set to %ld, global %ld", 
 		      dns_zonecount_names[counter],
 		      (long)dns_zone_getcounts(zone, counter),
-		      (long)globalcount[counter]);
+		      (long)ns_globalcount[counter]);
 }
 
 static inline void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.62 2000/11/03 07:16:01 marka Exp $ */
+/* $Id: confzone.c,v 1.63 2000/11/07 23:49:37 mws Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@
 #define MZ_MAX_REFRESH_TIME_BIT		13
 #define	MZ_TRANSFER_SOURCE_BIT		14
 #define	MZ_TRANSFER_SOURCE_V6_BIT	15
-
+#define MZ_STATISTICS_BIT		16
 
 /*
  * Bit positions in the dns_c_slavezone_t structure setflags field.
@@ -79,6 +79,7 @@
 #ifndef NOMINUM_PUBLIC
 #define SZ_NOTIFY_RELAY_BIT			19
 #endif /* NOMINUM_PUBLIC */
+#define SZ_STATISTICS_BIT			20
 
 
 /* Bit positions of the stub zones */
@@ -96,6 +97,7 @@
 #define TZ_MAX_RETRY_TIME_BIT			11
 #define TZ_MIN_REFRESH_TIME_BIT			12
 #define TZ_MAX_REFRESH_TIME_BIT			13
+#define TZ_STATISTICS_BIT			14
 
 
 /*
@@ -107,6 +109,7 @@
 #define FZ_MAX_RETRY_TIME_BIT			3
 #define FZ_MIN_REFRESH_TIME_BIT			4
 #define FZ_MAX_REFRESH_TIME_BIT			5
+#define FZ_STATISTICS_BIT			6
 
 
 /*
@@ -1546,6 +1549,104 @@ dns_c_zone_getallowtransfer(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
 /*
  *
  */
+
+isc_result_t
+dns_c_zone_setstatistics(dns_c_zone_t *zone, isc_boolean_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.statistics = newval;
+		existed = DNS_C_CHECKBIT(MZ_STATISTICS_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_STATISTICS_BIT, &zone->u.mzone.setflags);
+		break;
+	case dns_c_zone_slave:
+		zone->u.szone.statistics = newval;
+		existed = DNS_C_CHECKBIT(SZ_STATISTICS_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_STATISTICS_BIT, &zone->u.szone.setflags);
+		break;
+	case dns_c_zone_stub:
+		zone->u.tzone.statistics = newval;
+		existed = DNS_C_CHECKBIT(TZ_STATISTICS_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_STATISTICS_BIT, &zone->u.tzone.setflags);
+		break;
+	case dns_c_zone_forward:
+		zone->u.fzone.statistics = newval;
+		existed = DNS_C_CHECKBIT(FZ_STATISTICS_BIT,
+					 &zone->u.fzone.setflags);
+		DNS_C_SETBIT(FZ_STATISTICS_BIT, &zone->u.fzone.setflags);
+		break;
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "hint zones do not have a statistics field");
+		return (ISC_R_FAILURE);
+	}
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_c_zone_getstatistics(dns_c_zone_t *zone, isc_boolean_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_STATISTICS_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.statistics;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_STATISTICS_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.statistics;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_STATISTICS_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.statistics;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_forward:
+		if (DNS_C_CHECKBIT(FZ_STATISTICS_BIT,
+				   &zone->u.fzone.setflags)) {
+			*retval = zone->u.fzone.statistics;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "hint zones do not have a statistics field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (res);
+}
 
 isc_result_t
 dns_c_zone_setdialup(dns_c_zone_t *zone, dns_dialuptype_t newval) {
@@ -4637,6 +4738,12 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 		fprintf(fp, "dialup %s;\n", dialup_totext(mzone->dialup));
 	}
 
+	if (DNS_C_CHECKBIT(MZ_STATISTICS_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "statistics %s;\n",
+			mzone->statistics?"yes":"no");
+	}
+
 	if (DNS_C_CHECKBIT(MZ_MAINT_IXFR_BASE_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "maintain-ixfr-base %s;\n",
@@ -4933,6 +5040,12 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 		fprintf(fp, "dialup %s;\n", dialup_totext(szone->dialup));
 	}
 
+	if (DNS_C_CHECKBIT(SZ_STATISTICS_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "statistics %s;\n",
+			szone->statistics?"yes":"no");
+	}
+
 	if (DNS_C_CHECKBIT(SZ_NOTIFY_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		if (szone->notify == dns_notifytype_no)
@@ -5087,6 +5200,12 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone) {
 	if (DNS_C_CHECKBIT(TZ_DIALUP_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "dialup %s;\n", dialup_totext(tzone->dialup));
+	}
+
+	if (DNS_C_CHECKBIT(TZ_STATISTICS_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "statistics %s;\n",
+			tzone->statistics?"yes":"no");
 	}
 
 	if (DNS_C_CHECKBIT(TZ_MIN_RETRY_TIME_BIT, &tzone->setflags)) {

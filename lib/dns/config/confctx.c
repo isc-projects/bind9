@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.97 2000/11/06 08:11:10 marka Exp $ */
+/* $Id: confctx.c,v 1.98 2000/11/07 23:49:31 mws Exp $ */
 
 #include <config.h>
 
@@ -355,12 +355,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "option 'dump-file' is not yet implemented");
 	}
 
+#if 0
 	if (dns_c_ctx_getstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'statistics-file' is not yet "
 			      "implemented");
 	}
+#endif
 
 	if (dns_c_ctx_getmemstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
@@ -1053,6 +1055,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(auth_nx_domain, "auth-nxdomain");
 	PRINT_AS_BOOLEAN(multiple_cnames, "multiple-cnames");
 	PRINT_AS_BOOLEAN(use_id_pool, "use-id-pool");
+	PRINT_AS_BOOLEAN(statistics, "statistics");
 	PRINT_IF_EQUAL(dns_dialuptype_no, "no", dialup, "dialup");
 	PRINT_IF_EQUAL(dns_dialuptype_yes, "yes", dialup, "dialup");
 	PRINT_IF_EQUAL(dns_dialuptype_notify, "notify", dialup, "dialup");
@@ -1593,6 +1596,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->multiple_cnames = NULL;
 	opts->use_id_pool = NULL;
 	opts->dialup = NULL;
+	opts->statistics = NULL;
 	opts->rfc2308_type1 = NULL;
 	opts->request_ixfr = NULL;
 	opts->provide_ixfr = NULL;
@@ -1708,6 +1712,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(multiple_cnames);
 	FREEFIELD(use_id_pool);
 	FREEFIELD(dialup);
+	FREEFIELD(statistics);
 	FREEFIELD(rfc2308_type1);
 	FREEFIELD(request_ixfr);
 	FREEFIELD(provide_ixfr);
@@ -1894,6 +1899,7 @@ BOOL_FUNCS(authnxdomain, auth_nx_domain)
 BOOL_FUNCS(multiplecnames, multiple_cnames)
 BOOL_FUNCS(useidpool, use_id_pool)
 BOOL_FUNCS(dialup, dialup)
+BOOL_FUNCS(statistics, statistics)
 BOOL_FUNCS(rfc2308type1, rfc2308_type1)
 BOOL_FUNCS(requestixfr, request_ixfr)
 BOOL_FUNCS(provideixfr, provide_ixfr)

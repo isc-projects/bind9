@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.12 2000/10/12 21:51:49 mws Exp $ */
+/* $Id: omapi.h,v 1.13 2000/11/07 23:49:21 mws Exp $ */
 
 #ifndef NAMED_OMAPI_H
 #define NAMED_OMAPI_H 1
@@ -39,6 +39,7 @@
 #define NS_OMAPI_COMMAND_RELOADCONFIG	"reload-config"
 #define NS_OMAPI_COMMAND_RELOADZONES	"reload-zones"
 #define NS_OMAPI_COMMAND_REFRESH	"refresh"
+#define NS_OMAPI_COMMAND_DUMPSTATS      "dump-statistics"
 
 isc_result_t
 ns_omapi_init(void);

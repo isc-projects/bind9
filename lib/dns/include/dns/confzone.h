@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.46 2000/11/03 07:16:06 marka Exp $ */
+/* $Id: confzone.h,v 1.47 2000/11/07 23:49:41 mws Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -104,6 +104,7 @@ struct dns_c_master_zone {
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
 	dns_dialuptype_t	dialup;
+	isc_boolean_t		statistics;
 	dns_notifytype_t	notify;
 	dns_c_iplist_t	       *also_notify;
 	char		       *ixfr_base;
@@ -149,6 +150,7 @@ struct dns_c_slave_zone {
 	isc_boolean_t		notify_forward;
 #endif /* NOMINUM_PUBLIC */
 	dns_dialuptype_t	dialup;
+	isc_boolean_t		statistics;
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
 	isc_boolean_t		maint_ixfr_base;
@@ -186,6 +188,7 @@ struct dns_c_stub_zone {
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer; /* should be here??? */
 	dns_dialuptype_t	dialup;
+	isc_boolean_t		statistics;
 	dns_c_pklist_t	       *pubkeylist;
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
@@ -213,6 +216,7 @@ struct dns_c_forward_zone {
 	isc_uint32_t		max_retry_time;
 	isc_uint32_t		min_refresh_time;
 	isc_uint32_t		max_refresh_time;
+	isc_boolean_t		statistics;
 
 	dns_c_setbits_t		setflags;
 };
@@ -351,6 +355,11 @@ isc_result_t dns_c_zone_getallowtransfer(dns_c_zone_t *zone,
 isc_result_t dns_c_zone_setdialup(dns_c_zone_t *zone,
 				  dns_dialuptype_t newval);
 isc_result_t dns_c_zone_getdialup(dns_c_zone_t *zone, dns_dialuptype_t *retval);
+
+isc_result_t dns_c_zone_setstatistics(dns_c_zone_t *zone,
+				      isc_boolean_t newval);
+isc_result_t dns_c_zone_getstatistics(dns_c_zone_t *zone,
+				      isc_boolean_t *retval);
 
 #ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_zone_setnotifyforward(dns_c_zone_t *zone,

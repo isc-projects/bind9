@@ -15,9 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.32 2000/08/29 17:54:23 bwelling Exp $ */
+/* $Id: os.c,v 1.33 2000/11/07 23:49:24 mws Exp $ */
 
 #include <config.h>
+#include <stdarg.h>
 
 #include <sys/stat.h>
 
@@ -32,11 +33,15 @@
 #include <unistd.h>
 
 #include <isc/string.h>
+#include <isc/result.h>
 
 #include <named/main.h>
 #include <named/os.h>
 
 static char *pidfile = NULL;
+static char *statsfile = NULL;
+int statsfd = -1;
+FILE *statsptr = NULL;
 
 /*
  * If there's no <linux/capability.h>, we don't care about <linux/prctl.h>
@@ -385,7 +390,8 @@ ns_os_minprivs(void) {
 }
 
 static int
-safe_open(const char *filename) {
+safe_open(const char *filename, isc_boolean_t append) {
+	int fd;
         struct stat sb;
 
         if (stat(filename, &sb) == -1) {
@@ -394,16 +400,23 @@ safe_open(const char *filename) {
         } else if ((sb.st_mode & S_IFREG) == 0)
 		return (-1);
 
-        (void)unlink(filename);
-        return (open(filename, O_WRONLY|O_CREAT|O_EXCL,
-		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH));
+	if (append)
+		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND,
+		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+	else {
+		(void)unlink(filename);
+		fd = open(filename, O_WRONLY|O_CREAT|O_EXCL,
+		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+	}
+	return (fd);
 }
 
 static void
 cleanup_pidfile(void) {
-	if (pidfile != NULL)
+	if (pidfile != NULL) {
 		(void)unlink(pidfile);
-	free(pidfile);
+		free(pidfile);
+	}
 	pidfile = NULL;
 }
 
@@ -428,7 +441,7 @@ ns_os_writepidfile(const char *filename) {
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
-        fd = safe_open(filename);
+        fd = safe_open(filename, ISC_FALSE);
         if (fd < 0)
                 ns_main_earlyfatal("couldn't open pid file '%s': %s",
 				   filename, strerror(errno));
@@ -448,6 +461,70 @@ ns_os_writepidfile(const char *filename) {
                 ns_main_earlyfatal("fflush() to pid file '%s' failed",
 				   filename);
 	(void)fclose(lockfile);
+}
+
+void
+ns_os_freestatsfile(void) {
+	if (statsfile != NULL)
+		free(statsfile);
+	statsfile = NULL;
+}
+
+void
+ns_os_setstatsfilename(const char *name) {
+	int len;
+
+	ns_os_freestatsfile();
+	len = strlen(name);
+	statsfile = malloc(len + 1);
+	if (statsfile == NULL)
+                ns_main_earlyfatal("couldn't malloc '%s': %s",
+				   name, strerror(errno));
+	strcpy(statsfile, name);
+}
+
+isc_result_t
+ns_os_openstatsfile(void) {
+	/*
+	 * XXXMWS Is this "2 phase" open really necessary?
+	 */
+
+	if (statsfd >= 0)
+		close(statsfd);
+        statsfd = safe_open(statsfile, ISC_TRUE);
+        if (statsfd < 0)
+		return (ISC_R_FAILURE);
+        statsptr = fdopen(statsfd, "w");
+        if (statsptr == NULL) {
+		close(statsfd);
+		statsfd = -1;
+		return (ISC_R_FAILURE);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+void
+ns_os_closestatsfile(void) {
+	if (statsptr != NULL)
+		fclose(statsptr);
+	statsptr = NULL;
+	if (statsfd >= 0)
+		close(statsfd);
+	statsfd = -1;
+}
+
+isc_result_t
+ns_os_statsprintf(const char *format, ...) {
+	va_list args;
+
+	if (statsptr == NULL)
+		return (ISC_R_FAILURE);
+	/* XXXMWS Better failure case needed */
+
+	va_start(args, format);
+	vfprintf(statsptr, format, args);
+	va_end(args);
+	return (ISC_R_SUCCESS);
 }
 
 void

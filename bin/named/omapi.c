@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.22 2000/10/17 19:24:29 bwelling Exp $ */
+/* $Id: omapi.c,v 1.23 2000/11/07 23:49:16 mws Exp $ */
 
 /*
  * Principal Author: DCL
@@ -124,6 +124,9 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 			      "control_setvalue: '%.*s' not yet implemented",
 			      REGION_FMT(&region));
 		result = ISC_R_NOTIMPLEMENTED;
+	} else if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_DUMPSTATS)
+		   == 0) {
+		result = ns_server_dumpstats(ns_g_server);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
@@ -131,6 +134,7 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 			      REGION_FMT(&region));
 		result = omapi_object_passsetvalue(handle, name, value);
 	}
+		
 
 	return (result);
 }

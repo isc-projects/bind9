@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.42 2000/11/03 07:16:04 marka Exp $ */
+/* $Id: confview.h,v 1.43 2000/11/07 23:49:40 mws Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -120,6 +120,7 @@ struct dns_c_view {
 	dns_notifytype_t       *notify;
 	dns_dialuptype_t       *dialup;
 
+	isc_boolean_t	       *statistics;
 	isc_boolean_t	       *auth_nx_domain;
 	isc_boolean_t	       *recursion;
 	isc_boolean_t	       *provide_ixfr;
@@ -372,6 +373,12 @@ isc_result_t dns_c_view_getdialup(dns_c_view_t *view,
 isc_result_t dns_c_view_setdialup(dns_c_view_t *view,
 				  dns_dialuptype_t newval);
 isc_result_t dns_c_view_unsetdialup(dns_c_view_t *view);
+
+isc_result_t dns_c_view_getstatistics(dns_c_view_t *view,
+				      isc_boolean_t *retval);
+isc_result_t dns_c_view_setstatistics(dns_c_view_t *view,
+				      isc_boolean_t newval);
+isc_result_t dns_c_view_unsetstatistics(dns_c_view_t *view);
 
 #ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_view_getnotifyforward(dns_c_view_t *view,

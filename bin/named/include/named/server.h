@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.42 2000/11/03 07:15:44 marka Exp $ */
+/* $Id: server.h,v 1.43 2000/11/07 23:49:23 mws Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -107,5 +107,8 @@ ns_server_reloadzone(ns_server_t *server, char *args);
 
 isc_result_t
 ns_server_refreshzone(ns_server_t *server, char *args);
+
+isc_result_t
+ns_server_dumpstats(ns_server_t *server);
 
 #endif /* NAMED_SERVER_H */

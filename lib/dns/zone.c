@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.246 2000/11/06 08:11:07 marka Exp $ */
+/* $Id: zone.c,v 1.247 2000/11/07 23:49:28 mws Exp $ */
 
 #include <config.h>
 
@@ -192,8 +192,7 @@ struct dns_zone {
 	 * Variables stored in the zone object which are used to hold
 	 * statistical information regarding the zone.
 	 */
-	isc_uint64_t            counters[DNS_ZONE_COUNTSIZE];
-	isc_uint64_t            totals[DNS_ZONE_COUNTSIZE];
+	isc_uint64_t            *counters;
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -427,7 +426,6 @@ isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_zone_t *zone;
-	int i;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(mctx != NULL);
@@ -515,10 +513,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->view = NULL;
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
-	for (i = 0; i < DNS_ZONE_COUNTSIZE; i++) {
-		zone->counters[i]=0;
-		zone->totals[i]=0;
-	}
+	zone->counters = NULL;
 
 	zone->magic = ZONE_MAGIC;
 
@@ -573,6 +568,10 @@ zone_free(dns_zone_t *zone) {
 	if (zone->journal != NULL)
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
+	if (zone->counters != NULL)
+		isc_mem_put(zone->mctx, zone->counters,
+			    DNS_ZONE_COUNTSIZE * sizeof(isc_uint64_t));
+	zone->counters = NULL;
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	zone_freedbargs(zone);
@@ -4950,6 +4949,30 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 	return (result);
 }
 
+isc_result_t
+dns_zone_next(dns_zone_t *zone, dns_zone_t **next) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(next != NULL && *next == NULL);
+
+	*next = ISC_LIST_NEXT(zone, link);
+	if (*next == NULL)
+		return (ISC_R_NOMORE);
+	else
+		return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(first != NULL && *first == NULL);
+
+	*first = ISC_LIST_HEAD(zmgr->zones);
+	if (*first == NULL)
+		return (ISC_R_NOMORE);
+	else
+		return (ISC_R_SUCCESS);
+}
+
 /***
  ***	Zone manager.
  ***/
@@ -5587,17 +5610,27 @@ dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter) {
 	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
 
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-	zone->totals[counter]++;
-	zone->counters[counter]++;
+	if (zone->counters != NULL)
+		zone->counters[counter]++;
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 }
 
 isc_uint64_t
 dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter) {
+	isc_uint64_t count = 0;
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
+	
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	if (zone->counters != NULL)
+		count = zone->counters[counter];
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	return (count);
+}
 
-	return(zone->counters[counter]);
+int
+dns_zone_numbercounters(void) {
+	return (DNS_ZONE_COUNTSIZE);
 }
 
 void
@@ -5607,9 +5640,61 @@ dns_zone_resetcounts(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-	for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
-		zone->counters[i]=0;
+	if (zone->counters != NULL)
+		for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
+			zone->counters[i]=0;
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+}
+
+isc_boolean_t
+dns_zone_hascounts(dns_zone_t *zone) {
+	isc_boolean_t hascount = ISC_FALSE;
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	if (zone->counters != NULL)
+		hascount = ISC_TRUE;
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	return (hascount);
+}
+
+isc_result_t
+dns_zone_startcounting(dns_zone_t *zone) {
+	isc_result_t result = ISC_R_SUCCESS;
+	int i;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	if (zone->counters != NULL)
+		goto done;
+
+	zone->counters = isc_mem_get(zone->mctx, sizeof(isc_uint64_t) *
+				     DNS_ZONE_COUNTSIZE);
+	if (zone->counters == NULL)
+		result = ISC_R_NOMEMORY;
+	else
+		for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
+			zone->counters[i]=0;
+ done:
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zone_stopcounting(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	if (zone->counters == NULL)
+		goto done;
+
+	isc_mem_put(zone->mctx, zone->counters,
+		    sizeof(isc_uint64_t) * DNS_ZONE_COUNTSIZE);
+	zone->counters = NULL;
+ done:
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+	return;
 }
 
 void
@@ -5663,3 +5748,4 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 	}
 	UNLOCK(&zone->lock);
 }
+

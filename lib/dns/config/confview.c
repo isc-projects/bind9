@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.53 2000/11/03 10:43:12 marka Exp $ */
+/* $Id: confview.c,v 1.54 2000/11/07 23:49:36 mws Exp $ */
 
 #include <config.h>
 
@@ -508,6 +508,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->fetch_glue = NULL;
 	view->notify = NULL;
 	view->dialup = NULL;
+	view->statistics = NULL;
 	view->rfc2308_type1 = NULL;
 	view->additional_from_cache = NULL;
 	view->additional_from_auth = NULL;
@@ -750,6 +751,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_AS_BOOLEAN(rfc2308_type1, "rfc2308-type1");
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
+	PRINT_AS_BOOLEAN(statistics, "statistics");
 #ifndef NOMINUM_PUBLIC
 	PRINT_AS_BOOLEAN(notify_forward, "notify-forward");
 #endif /* NOMINUM_PUBLIC */
@@ -901,6 +903,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(fetch_glue);
 	FREEFIELD(notify);
 	FREEFIELD(dialup);
+	FREEFIELD(statistics);
 	FREEFIELD(rfc2308_type1);
 	FREEFIELD(additional_from_auth);
 	FREEFIELD(additional_from_cache);
@@ -1540,6 +1543,7 @@ BOOL_FUNCS(recursion, recursion)
 BOOL_FUNCS(provideixfr, provide_ixfr)
 BOOL_FUNCS(requestixfr, request_ixfr)
 BOOL_FUNCS(fetchglue, fetch_glue)
+BOOL_FUNCS(statistics, statistics);
 
 NOTIFYTYPE_FUNCS(notify, notify)
 DIALUPTYPE_FUNCS(dialup, dialup)
