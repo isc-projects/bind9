@@ -1152,7 +1152,6 @@ hostent2addrinfo(hp, pai)
 
 	for (i = 0; (ap = aplist[i]) != NULL; i++) {
 #if 0				/* the trick seems too much */
-#ifdef INET6
 		af = hp->h_addr_list;
 		if (af == AF_INET6 &&
 		    IN6_IS_ADDR_V4MAPPED((struct in6_addr *)ap)) {
@@ -1163,7 +1162,6 @@ hostent2addrinfo(hp, pai)
 		afd = find_afd(af);
 		if (afd == NULL)
 			continue;
-#endif
 #endif /* 0 */
 
 		GET_AI(cur->ai_next, afd, ap);
