@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.60.2.2.10.3 2003/08/21 06:17:56 marka Exp $ */
+/* $Id: client.h,v 1.60.2.2.10.4 2003/08/26 05:14:25 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -68,10 +68,13 @@
 #include <isc/stdtime.h>
 #include <isc/quota.h>
 
-#include <dns/name.h>
-#include <dns/types.h>
-#include <dns/tcpmsg.h>
 #include <dns/fixedname.h>
+#include <dns/name.h>
+#include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
+#include <dns/tcpmsg.h>
+#include <dns/types.h>
+
 #include <named/types.h>
 #include <named/query.h>
 
@@ -316,8 +319,12 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level, const char *fmt, va_list ap) ISC_FORMAT_PRINTF(5, 0);
 
 void
-ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdataclass_t rdclass,
-                 char *buf, size_t len);
+ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdatatype_t type,
+		 dns_rdataclass_t rdclass, char *buf, size_t len);
+
+#define NS_CLIENT_ACLMSGSIZE(x) \
+	(DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + \
+	 DNS_RDATACLASS_FORMATSIZE + sizeof(x) + sizeof("'/'"))
 
 void
 ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest);
