@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.43 2000/11/20 21:49:14 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.44 2000/11/21 18:12:34 mws Exp $ -->
 
 <book>
 
@@ -639,7 +639,9 @@ of a server.</para>
                 <arg>-c <replaceable>config</replaceable></arg>
                 <arg>-s <replaceable>server</replaceable></arg>
                 <arg>-p <replaceable>port</replaceable></arg>
+                <arg>-v <replaceable>view</replaceable></arg>
                 <arg>-y <replaceable>key</replaceable></arg>
+                <arg>-z <replaceable>zone</replaceable></arg>
                 <arg choice="plain"><replaceable>command</replaceable></arg>
                 <arg rep="repeat"><replaceable>command</replaceable></arg>
               </cmdsynopsis>
@@ -665,11 +667,15 @@ of a server.</para>
 <entry colname = "2"><para>Dump database and cache to /var/tmp/named_dump.db.</para></entry>
 </row>
 <row rowsep = "0">
+<entry colname = "1"><para><userinput>refresh</userinput></para></entry>
+<entry colname = "2"><para>Forced refresh of specified zone.</para></entry>
+</row>
+<row rowsep = "0">
 <entry colname = "1"><para><userinput>reload</userinput></para></entry>
 <entry colname = "2"><para>Reload configuration file and zones.</para></entry>
 </row>
 <row rowsep = "0">
-<entry colname = "1"><para><userinput>stats</userinput><footnoteref linkend="nyi1"/></para></entry>
+<entry colname = "1"><para><userinput>stats</userinput></para></entry>
 <entry colname = "2"><para>Dump statistics to /var/tmp/named.stats.</para></entry>
 </row>
 <row rowsep = "0">
@@ -700,8 +706,8 @@ of a server.</para>
                   </tbody>
                 </tgroup>
               </informaltable>
-              <para>As noted above, <command>reload</command> is the
-              only command available for <acronym>BIND</acronym> 9.0.0. The other
+              <para>As noted above, only a limited number of commands are
+              available for <acronym>BIND</acronym> 9.0.0. The other
               commands, and more, are planned to be implemented for
               future releases.</para>
 
@@ -2432,6 +2438,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
     <optional> statistics-file <replaceable>path_name</replaceable>; </optional>
+    <optional> statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> auth-nxdomain <replaceable>yes_or_no</replaceable>; </optional>
     <optional> deallocate-on-exit <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable>; </optional>
@@ -2581,11 +2588,8 @@ nameserver.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>statistics-file</command></para></entry>
 <entry colname = "2"><para>The pathname of the file the server appends statistics
-to. If not specified, the default is <filename>named.stats</filename>.</para><note>
-                      <simpara>Not
-yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+to. If not specified, the default is <filename>named.stats</filename>.</para></entry>
 </row>
-
 <row rowsep = "0">
 <entry colname = "1"><para><command>port</command></para></entry>
 <entry colname = "2"><para>
@@ -2747,6 +2751,13 @@ answers. The default is <userinput>no</userinput>.</para>
 <entry colname = "1"><para><command>use-id-pool</command></para></entry>
 <entry colname = "2"><para><emphasis>This option is obsolete</emphasis>.
  <acronym>BIND</acronym> 9 always allocates query IDs from a pool.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>statistics</command></para></entry>
+<entry colname = "2"><para>If yes, the server will, by default, collect
+statistical data on all zones in the server.  These statistics may be accessed
+using the <command>rndc</command> which will dump them to the file listed
+in the <command>statistics-file</command> option listed above.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>treat-cr-as-space</command></para></entry>
@@ -3500,6 +3511,7 @@ key data.</para></sect2>
 <programlisting>view <replaceable>view_name</replaceable> <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
       <optional> <replaceable>view_option</replaceable>; ...</optional>
+      <optional> statistics <replaceable>yes_or_no</replaceable> ; </optional>
       <optional> <replaceable>zone_statement</replaceable>; ...</optional>
 };
 </programlisting></sect2>
@@ -3590,6 +3602,7 @@ Statement Grammar</title>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> statistics <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
 }</optional>;
@@ -3816,6 +3829,12 @@ zone file.</para></entry>
 a public zone key for verification of signatures in DNSSEC signed
 zones when they are loaded from disk. <acronym>BIND</acronym> 9 does not verify signatures
 on loading and ignores the option.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>statistics</command></para></entry>
+<entry colname = "2"><para>If set to yes, the server will keep statistical
+information for all zones in the view, which can be dumped to the
+statistics-file defined in the server options.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>sig-validity-interval</command></para></entry>
@@ -5478,6 +5497,63 @@ after which they are deleted unless updated by their authors.
       </bibliography>
     </sect2>
   </sect1>
+  <sect1 id="statsfile">
+    <title>Format of statistics file</title>
+<para>The statistics file generated by Bind9 is similar in form to that
+generated by Bind8, but is not identical, due to differences in the counters
+currently implemented in Bind9.</para>
+<para>The statistics dump begins with the line <command>+++ Statistics Dump
++++ (973798949)</command>, where the number in parentheses is a standard
+Unix-style timestamp, measured as seconds since January 1, 1970.  Following
+that line are a series of lines containing a counter type, value of the
+counter, and possibly a view/zone pair.  The lines without view and zone
+listed are global counters for the entire server and the lines with view and
+zones specified are for the given view and zone.  The statistics dump ends
+with the line <command>--- Statistics Dump --- (973798949)</command>, where the
+number is identical to the number in the beginning line.</para>
+<para>The following counters are defined:</para>
+<informaltable
+    colsep = "0" rowsep = "0"><tgroup cols = "2"
+    colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
+<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "1.150in"/>
+<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "3.350in"/>
+<tbody>
+<row rowsep = "0">
+<entry colname = "1"><para><command>success</command></para></entry>
+<entry colname = "2"><para>This counter is used to track the number of
+successful queries made to the server or zone.  A successful query
+is defined as query which returns a NOERROR result other than
+delegation replies.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>delegation</command></para></entry>
+<entry colname = "2"><para>This counter is used to track the number
+of queries which return delegations instead a final answer.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>nxrrset</command></para></entry>
+<entry colname = "2"><para>This counter is used to track the number
+of queries made which return a result code of NXRRSET.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>nxdoimain</command></para></entry>
+<entry colname = "2"><para>This counter is used to track the number
+of queries made which return a result code of NXDOMAIN.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>recursion</command></para></entry>
+<entry colname = "2"><para>This counter is used to track the number
+of queries made which resulted in recursion in order to find the final
+answer.</para></entry>
+</row
+><row rowsep = "0">
+<entry colname = "1"><para><command>failure</command></para></entry>
+<entry colname = "2"><para>This counter is used to track the number
+of queries resulted in a SERVFAIL reply.</para></entry>
+</row>
+</tbody>
+</tgroup></informaltable>
+</sect1>
 </appendix>
 
 </book>

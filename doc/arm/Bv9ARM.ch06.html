@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3242"
+HREF="Bv9ARM.ch06.html#AEN3249"
 >Zone File</A
 ></DT
 ></DL
@@ -731,7 +731,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1193"
+NAME="AEN1199"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -762,7 +762,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1201"
+NAME="AEN1207"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -868,7 +868,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1229"
+NAME="AEN1235"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -887,7 +887,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1234"
+NAME="AEN1240"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -919,7 +919,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1243"
+NAME="AEN1249"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1251,7 +1251,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1336"
+NAME="AEN1342"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1390,7 +1390,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1378"
+NAME="AEN1384"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1429,7 +1429,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1387"
+NAME="AEN1393"
 >6.2.4. <B
 CLASS="command"
 >controls</B
@@ -1542,7 +1542,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1415"
+NAME="AEN1421"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1562,7 +1562,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1420"
+NAME="AEN1426"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1592,7 +1592,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1427"
+NAME="AEN1433"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1626,7 +1626,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1434"
+NAME="AEN1440"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1680,7 +1680,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1446"
+NAME="AEN1452"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1836,7 +1836,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1485"
+NAME="AEN1491"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1902,7 +1902,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1502"
+NAME="AEN1508"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2571,7 +2571,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1679"
+NAME="AEN1685"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2644,7 +2644,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1697"
+NAME="AEN1703"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2717,7 +2717,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1716"
+NAME="AEN1722"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -2821,6 +2821,15 @@ CLASS="optional"
 CLASS="replaceable"
 ><I
 >path_name</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> statistics <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
 ></TT
 >; </SPAN
 >]
@@ -3521,7 +3530,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1899"
+NAME="AEN1907"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -3852,20 +3861,6 @@ to. If not specified, the default is <TT
 CLASS="filename"
 >named.stats</TT
 >.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not
-yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
 ></TD
 ></TR
 ><TR
@@ -4495,6 +4490,34 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
+>statistics</B
+></P
+></TD
+><TD
+WIDTH="287"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>If yes, the server will, by default, collect
+statistical data on all zones in the server.  These statistics may be accessed
+using the <B
+CLASS="command"
+>rndc</B
+> which will dump them to the file listed
+in the <B
+CLASS="command"
+>statistics-file</B
+> option listed above.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="145"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
 >treat-cr-as-space</B
 ></P
 ></TD
@@ -4507,17 +4530,11 @@ VALIGN="MIDDLE"
 CLASS="acronym"
 >BIND</SPAN
 > 8 to make
-the server treat "<B
+the server treat carriage return ("<B
 CLASS="command"
 >\r</B
->" characters the same way
-as <B
-CLASS="command"
->&#60;space&#62; </B
->" " or "<B
-CLASS="command"
->\t</B
->",
+>") characters the same way
+as a space or tab character,
 to facilitate loading of zone files on a UNIX system that were generated
 on an NT or DOS machine. In <SPAN
 CLASS="acronym"
@@ -4581,20 +4598,6 @@ These options are valid for slave and stub zones, and clamp the SOA
 refresh and retry times to the specified values.
 </P
 >
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->These options are not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.0.</P
-></BLOCKQUOTE
-></DIV
->
 </TD
 ></TR
 ></TABLE
@@ -4607,7 +4610,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2185"
+NAME="AEN2193"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4978,7 +4981,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2292"
+NAME="AEN2300"
 >6.2.14.5. Interfaces</A
 ></H3
 ><P
@@ -5073,7 +5076,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2318"
+NAME="AEN2326"
 >6.2.14.6. Query Address</A
 ></H3
 ><P
@@ -5539,7 +5542,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2444"
+NAME="AEN2452"
 >6.2.14.8. Resource Limits</A
 ></H3
 ><P
@@ -5604,20 +5607,6 @@ is <TT
 CLASS="literal"
 >default</TT
 >.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
->
-9.</P
-></BLOCKQUOTE
-></DIV
 ></TD
 ></TR
 ><TR
@@ -5641,20 +5630,6 @@ may use. The default is <TT
 CLASS="literal"
 >default</TT
 >.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not
-yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
 ></TD
 ></TR
 ><TR
@@ -5679,52 +5654,6 @@ CLASS="literal"
 >unlimited</TT
 >.
 </P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->on some operating systems the server cannot set an unlimited
-value and cannot determine the maximum number of open files the
-kernel can support. On such systems, choosing 
-<TT
-CLASS="literal"
->unlimited</TT
-> will
-cause the server to use the larger of the <B
-CLASS="command"
->rlim_max</B
-> for <B
-CLASS="command"
->RLIMIT_NOFILE</B
-> and
-the value returned by <B
-CLASS="command"
->sysconf(_SC_OPEN_MAX)</B
->.
-If the actual kernel limit is larger than this value, use <B
-CLASS="command"
->limit
-files</B
-> to specify the limit explicitly.</P
-></BLOCKQUOTE
-></DIV
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet
-implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
 ></TD
 ></TR
 ><TR
@@ -5792,20 +5721,6 @@ may use. The default is <TT
 CLASS="literal"
 >default</TT
 >.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not
-yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
 ></TD
 ></TR
 ><TR
@@ -5854,7 +5769,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2529"
+NAME="AEN2518"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -6598,7 +6513,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2718"
+NAME="AEN2707"
 >6.2.14.14. Deprecated Features</A
 ></H3
 ><P
@@ -6875,7 +6790,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2788"
+NAME="AEN2777"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6950,7 +6865,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2804"
+NAME="AEN2793"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6985,7 +6900,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2812"
+NAME="AEN2801"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7024,6 +6939,15 @@ CLASS="replaceable"
 >]
       [<SPAN
 CLASS="optional"
+> statistics <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> ; </SPAN
+>]
+      [<SPAN
+CLASS="optional"
 > <TT
 CLASS="replaceable"
 ><I
@@ -7039,7 +6963,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2824"
+NAME="AEN2815"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7539,10 +7463,28 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> statistics <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > sig-validity-interval <TT
 CLASS="replaceable"
 ><I
 >number</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> database <TT
+CLASS="replaceable"
+><I
+>string</I
 ></TT
 > ; </SPAN
 >]
@@ -7555,7 +7497,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2945"
+NAME="AEN2940"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7566,7 +7508,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2948"
+NAME="AEN2943"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -7790,7 +7732,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3005"
+NAME="AEN3000"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7828,7 +7770,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3015"
+NAME="AEN3010"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
@@ -8037,6 +7979,32 @@ CLASS="acronym"
 > 9.</P
 ></BLOCKQUOTE
 ></DIV
+></TD
+></TR
+><TR
+><TD
+WIDTH="159"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>database</B
+></P
+></TD
+><TD
+WIDTH="273"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>The first string represents the
+type of database used to store the zone data in the server.  The default value
+is rbt, a red-black tree.  The other defined value is rbt64, a variant of rbt
+that allows 2^64 updates.  Additional databases may be implemented later or
+included.  Strings after the first string are optional arguments to
+the database driver initialization routine.  There are none defined for
+rbt or rbt64.
+</P
 ></TD
 ></TR
 ><TR
@@ -8307,6 +8275,27 @@ CLASS="acronym"
 >BIND</SPAN
 > 9 does not verify signatures
 on loading and ignores the option.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="159"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>statistics</B
+></P
+></TD
+><TD
+WIDTH="273"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>If set to yes, the server will keep statistical
+information for all zones in the view, which can be dumped to the
+statistics-file defined in the server options.</P
 ></TD
 ></TR
 ><TR
@@ -8618,7 +8607,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3242"
+NAME="AEN3249"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8639,7 +8628,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3247"
+NAME="AEN3254"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9355,7 +9344,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3461"
+NAME="AEN3468"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9673,7 +9662,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3562"
+NAME="AEN3569"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10072,7 +10061,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3683"
+NAME="AEN3690"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10170,7 +10159,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3710"
+NAME="AEN3717"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10195,7 +10184,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3717"
+NAME="AEN3724"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10265,7 +10254,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3737"
+NAME="AEN3744"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10341,7 +10330,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3756"
+NAME="AEN3763"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10381,7 +10370,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3767"
+NAME="AEN3774"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN

@@ -83,7 +83,7 @@ HREF="Bv9ARM.ch07.html#Access_Control_Lists"
 ></DT
 ><DT
 >7.2. <A
-HREF="Bv9ARM.ch07.html#AEN3858"
+HREF="Bv9ARM.ch07.html#AEN3865"
 ><B
 CLASS="command"
 >chroot</B
@@ -95,7 +95,7 @@ UNIX servers)</A
 ></DT
 ><DT
 >7.3. <A
-HREF="Bv9ARM.ch07.html#AEN3904"
+HREF="Bv9ARM.ch07.html#AEN3911"
 >Dynamic Updates</A
 ></DT
 ></DL
@@ -180,7 +180,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3858"
+NAME="AEN3865"
 >7.2. <B
 CLASS="command"
 >chroot</B
@@ -259,7 +259,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3881"
+NAME="AEN3888"
 >7.2.1. The <B
 CLASS="command"
 >chroot</B
@@ -315,7 +315,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3896"
+NAME="AEN3903"
 >7.2.2. Using the <B
 CLASS="command"
 >setuid</B
@@ -346,7 +346,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3904"
+NAME="AEN3911"
 >7.3. Dynamic Updates</A
 ></H1
 ><P
@@ -373,16 +373,17 @@ forward it to the master with its own source IP address causing the
 master to approve it without question.</P
 ><P
 >For these reasons, we strongly recommend that updates be
-cryptographically authenticated by means transaction signatures (TSIG).
-That is, the <B
+cryptographically authenticated by means of transaction signatures
+(TSIG).  That is, the <B
 CLASS="command"
 >allow-update</B
-> option should list only
-TSIG key names, not IP addresses. Alternatively, the new 
-<B
+> option should
+list only TSIG key names, not IP addresses or network
+prefixes. Alternatively, the new <B
 CLASS="command"
 >update-policy</B
-> option can be used.</P
+>
+option can be used.</P
 ><P
 >Some sites choose to keep all dynamically updated DNS data
 in a subdomain and delegate that subdomain to a separate zone. This

@@ -428,12 +428,14 @@ CLASS="command"
     <B
 CLASS="command"
 >options</B
-> statement, see <A
+> statement, see
+    <A
 HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><I
 >RRset Ordering</I
 ></A
->. This substatement is not supported in
+>.
+    This substatement is not supported in
     <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -753,10 +755,20 @@ CLASS="replaceable"
 ><I
 >port</I
 ></TT
+>] [-v <TT
+CLASS="replaceable"
+><I
+>view</I
+></TT
 >] [-y <TT
 CLASS="replaceable"
 ><I
 >key</I
+></TT
+>] [-z <TT
+CLASS="replaceable"
+><I
+>zone</I
 ></TT
 >]  <TT
 CLASS="replaceable"
@@ -841,6 +853,27 @@ VALIGN="MIDDLE"
 ><TT
 CLASS="userinput"
 ><B
+>refresh</B
+></TT
+></P
+></TD
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Forced refresh of specified zone.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="144"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="userinput"
+><B
 >reload</B
 ></TT
 ></P
@@ -864,9 +897,6 @@ CLASS="userinput"
 ><B
 >stats</B
 ></TT
-><A
-HREF="#FTN.nyi1"
->[a]</A
 ></P
 ></TD
 ><TD
@@ -1011,11 +1041,8 @@ NAME="FTN.nyi1"
 ></P
 ></DIV
 ><P
->As noted above, <B
-CLASS="command"
->reload</B
-> is the
-              only command available for <SPAN
+>As noted above, only a limited number of commands are
+              available for <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > 9.0.0. The other
@@ -1216,7 +1243,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN599"
+NAME="AEN607"
 >3.4.2. Signals</A
 ></H2
 ><P
