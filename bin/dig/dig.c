@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.16 2004/06/07 03:59:08 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.17 2004/09/16 02:19:36 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -53,6 +53,7 @@ extern ISC_LIST(dig_searchlist_t) search_list;
 		isc_buffer_putstr(b, s); 		\
 }
 
+#define DIG_MAX_ADDRESSES 20
 
 extern isc_boolean_t have_ipv4, have_ipv6, specified_source,
 	usesearch, qr;
@@ -80,6 +81,7 @@ extern isc_boolean_t debugging, memdebugging;
 static char *batchname = NULL;
 static FILE *batchfp = NULL;
 static char *argv0;
+static int addresscount = 0;
 
 static char domainopt[DNS_NAME_MAXTEXT];
 
@@ -540,6 +542,15 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 		remaining = sizeof(lookup->cmdline) -
 			    strlen(lookup->cmdline) - 1;
 		strncat(lookup->cmdline, "\n", remaining);
+		if (first && addresscount != 0) {
+			snprintf(append, sizeof(append),
+				 "; (%d server%s found)\n",
+				 addresscount,
+				 addresscount > 1 ? "s" : "");
+			remaining = sizeof(lookup->cmdline) -
+				    strlen(lookup->cmdline) - 1;
+			strncat(lookup->cmdline, append, remaining);
+		}
 		if (first) {
 			snprintf(append, sizeof (append), 
 				 ";; global options: %s %s\n",
@@ -874,9 +885,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
  */
 static isc_boolean_t
 dash_option(char *option, char *next, dig_lookup_t **lookup,
-	    isc_boolean_t *open_type_class,
-		isc_boolean_t *firstarg,
-		int argc, char **argv)
+	    isc_boolean_t *open_type_class)
 {
 	char cmd, *value, *ptr;
 	isc_result_t result;
@@ -1025,11 +1034,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			if (!(*lookup)->rdclassset)
 				(*lookup)->rdclass = dns_rdataclass_in;
 			(*lookup)->new_search = ISC_TRUE;
-			if (*lookup && *firstarg)
-			{
-				printgreeting(argc, argv, *lookup);
-				*firstarg = ISC_FALSE;
-			}
 			ISC_LIST_APPEND(lookup_list, *lookup, link);
 		} else {
 			fprintf(stderr, "Invalid IP address %s\n", value);
@@ -1071,12 +1075,34 @@ preparse_args(int argc, char **argv) {
 
 
 static void
+getaddresses(dig_lookup_t *lookup, const char *host) {
+	isc_result_t result;
+	isc_sockaddr_t sockaddrs[DIG_MAX_ADDRESSES];
+	isc_netaddr_t netaddr;
+	int count, i;
+	dig_server_t *srv;
+	char tmp[ISC_NETADDR_FORMATSIZE];
+
+	result = get_addresses(host, 0, sockaddrs, DIG_MAX_ADDRESSES, &count);   
+	if (result != ISC_R_SUCCESS)
+		fatal("couldn't get address for '%s': %s",
+		      host, isc_result_totext(result));
+
+	for (i = 0; i < count; i++) {
+		isc_netaddr_fromsockaddr(&netaddr, &sockaddrs[i]);
+		isc_netaddr_format(&netaddr, tmp, sizeof(tmp));
+		srv = make_server(tmp, host);
+		ISC_LIST_APPEND(lookup->my_server_list, srv, link);
+	}
+	addresscount = count;
+}
+
+static void
 parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	   int argc, char **argv) {
 	isc_result_t result;
 	isc_textregion_t tr;
 	isc_boolean_t firstarg = ISC_TRUE;
-	dig_server_t *srv = NULL;
 	dig_lookup_t *lookup = NULL;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
@@ -1152,24 +1178,20 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		if (strncmp(rv[0], "%", 1) == 0)
 			break;
 		if (strncmp(rv[0], "@", 1) == 0) {
-			srv = make_server(&rv[0][1]);
-			ISC_LIST_APPEND(lookup->my_server_list,
-					srv, link);
+			getaddresses(lookup, &rv[0][1]);
 		} else if (rv[0][0] == '+') {
 			plus_option(&rv[0][1], is_batchfile,
 				    lookup);
 		} else if (rv[0][0] == '-') {
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL,
-						&lookup, &open_type_class,
-						&firstarg, argc, argv)) {
+						&lookup, &open_type_class)) {
 					rc--;
 					rv++;
 				}
 			} else {
 				if (dash_option(&rv[0][1], rv[1],
-						&lookup, &open_type_class,
-						&firstarg, argc, argv)) {
+						&lookup, &open_type_class)) {
 					rc--;
 					rv++;
 				}
@@ -1239,10 +1261,6 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (!config_only) {
 				lookup = clone_lookup(default_lookup,
 						      ISC_TRUE);
-				if (firstarg) {
-					printgreeting(argc, argv, lookup);
-					firstarg = ISC_FALSE;
-				}
 				strncpy(lookup->textname, rv[0], 
 					sizeof(lookup->textname));
 				lookup->textname[sizeof(lookup->textname)-1]=0;
@@ -1309,6 +1327,9 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			firstarg = ISC_FALSE;
 		}
 		ISC_LIST_APPEND(lookup_list, lookup, link);
+	} else if (!config_only && firstarg) {
+			printgreeting(argc, argv, lookup);
+			firstarg = ISC_FALSE;
 	}
 }
 

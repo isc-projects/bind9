@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76.2.6 2004/03/09 06:09:13 marka Exp $ */
+/* $Id: host.c,v 1.76.2.7 2004/09/16 02:19:38 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -438,7 +438,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
 		printf("Using domain server:\n");
-		printf("Name: %s\n", query->servname);
+		printf("Name: %s\n", query->userarg);
 		isc_sockaddr_format(&query->sockaddr, sockstr,
 				    sizeof(sockstr));
 		printf("Address: %s\n", sockstr);
@@ -550,7 +550,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char hostname[MXNAME];
-	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int c;
 	char store[MXNAME];
@@ -677,9 +676,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	strncpy(hostname, argv[isc_commandline_index], sizeof(hostname));
 	hostname[sizeof(hostname)-1]=0;
 	if (argc > isc_commandline_index + 1) {
-		srv = make_server(argv[isc_commandline_index+1]);
-		debug("server is %s", srv->servername);
-		ISC_LIST_APPEND(server_list, srv, link);
+		set_nameserver(argv[isc_commandline_index+1]);
+		debug("server is %s", argv[isc_commandline_index+1]);
 		listed_server = ISC_TRUE;
 	}
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.90.2.8 2004/08/18 23:22:53 marka Exp $ */
+/* $Id: nslookup.c,v 1.90.2.9 2004/09/16 02:19:38 marka Exp $ */
 
 #include <config.h>
 
@@ -394,7 +394,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	debug("printmessage()");
 
 	isc_sockaddr_format(&query->sockaddr, servtext, sizeof(servtext));
-	printf("Server:\t\t%s\n", query->servname);
+	printf("Server:\t\t%s\n", query->userarg);
 	printf("Address:\t%s\n", servtext);
 	
 	puts("");
@@ -453,7 +453,7 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 		get_address(srv->servername, port, &sockaddr);
 		isc_sockaddr_format(&sockaddr, sockstr, sizeof(sockstr));
 		printf("Default server: %s\nAddress: %s\n",
-			srv->servername, sockstr);
+			srv->userarg, sockstr);
 		if (!full)
 			return;
 		srv = ISC_LIST_NEXT(srv, link);
@@ -665,39 +665,6 @@ addlookup(char *opt) {
 }
 
 static void
-flush_server_list(void) {
-	dig_server_t *s, *ps;
-
-	debug("flush_server_list()");
-	s = ISC_LIST_HEAD(server_list);
-	while (s != NULL) {
-		ps = s;
-		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(server_list, ps, link);
-		isc_mem_free(mctx, ps);
-	}
-}
-
-/*
- * This works on the global server list, instead of on a per-lookup
- * server list, since the change is persistent.
- */
-static void
-setsrv(char *opt) {
-	dig_server_t *srv;
-
-	if (opt == NULL)
-		return;
-
-	flush_server_list();
-	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
-	if (srv == NULL)
-		fatal("memory allocation failure");
-	safecpy(srv->servername, opt, sizeof(srv->servername));
-	ISC_LIST_INITANDAPPEND(server_list, srv, link);
-}
-
-static void
 get_next_command(void) {
 	char *buf;
 	char *ptr, *arg;
@@ -725,7 +692,9 @@ get_next_command(void) {
 		setoption(arg);
 	else if ((strcasecmp(ptr, "server") == 0) ||
 		 (strcasecmp(ptr, "lserver") == 0)) {
-		setsrv(arg);
+		isc_app_block();
+		set_nameserver(arg);
+		isc_app_unblock();
 		show_settings(ISC_TRUE, ISC_TRUE);
 	} else if (strcasecmp(ptr, "exit") == 0) {
 		in_use = ISC_FALSE;
@@ -767,7 +736,7 @@ parse_args(int argc, char **argv) {
 				addlookup(argv[0]);
 			}
 			else
-				setsrv(argv[0]);
+				set_nameserver(argv[0]);
 		}
 	}
 }

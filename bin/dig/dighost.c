@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.22 2004/04/15 06:53:18 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.23 2004/09/16 02:19:37 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -318,13 +318,15 @@ check_result(isc_result_t result, const char *msg) {
 	}
 }
 
+#define DIG_MAX_ADDRESSES 20
+
 /*
  * Create a server structure, which is part of the lookup structure.
  * This is little more than a linked list of servers to query in hopes
  * of finding the answer the user is looking for
  */
 dig_server_t *
-make_server(const char *servname) {
+make_server(const char *servname, const char *userarg) {
 	dig_server_t *srv;
 
 	REQUIRE(servname != NULL);
@@ -335,10 +337,55 @@ make_server(const char *servname) {
 		fatal("Memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	strncpy(srv->servername, servname, MXNAME);
+	strncpy(srv->userarg, userarg, MXNAME);
 	srv->servername[MXNAME-1] = 0;
+	srv->userarg[MXNAME-1] = 0;
 	ISC_LINK_INIT(srv, link);
 	return (srv);
 }
+
+void
+flush_server_list(void) {
+	dig_server_t *s, *ps;
+
+	debug("flush_server_list()");
+	s = ISC_LIST_HEAD(server_list);
+	while (s != NULL) {
+		ps = s;
+		s = ISC_LIST_NEXT(s, link);
+		ISC_LIST_DEQUEUE(server_list, ps, link);
+		isc_mem_free(mctx, ps);
+	}
+}
+
+void
+set_nameserver(char *opt) {
+	isc_result_t result;
+	isc_sockaddr_t sockaddrs[DIG_MAX_ADDRESSES];
+	isc_netaddr_t netaddr;
+	int count, i;
+	dig_server_t *srv;
+	char tmp[ISC_NETADDR_FORMATSIZE];
+
+	if (opt == NULL)
+		return;
+
+	result = get_addresses(opt, 0, sockaddrs, DIG_MAX_ADDRESSES, &count);
+	if (result != ISC_R_SUCCESS)
+		fatal("couldn't get address for '%s': %s",
+		      opt, isc_result_totext(result));
+
+      flush_server_list();
+
+      for (i = 0; i < count; i++) {
+            isc_netaddr_fromsockaddr(&netaddr, &sockaddrs[i]);
+            isc_netaddr_format(&netaddr, tmp, sizeof(tmp));
+            srv = make_server(tmp, opt);
+            if (srv == NULL)
+                  fatal("memory allocation failure");
+            ISC_LIST_APPEND(server_list, srv, link);
+      }
+}          
 
 /*
  * Produce a cloned server list.  The dest list must have already had
@@ -351,7 +398,7 @@ clone_server_list(dig_serverlist_t src, dig_serverlist_t *dest) {
 	debug("clone_server_list()");
 	srv = ISC_LIST_HEAD(src);
 	while (srv != NULL) {
-		newsrv = make_server(srv->servername);
+		newsrv = make_server(srv->servername, srv->userarg);
 		ISC_LINK_INIT(newsrv, link);
 		ISC_LIST_ENQUEUE(*dest, newsrv, link);
 		srv = ISC_LIST_NEXT(srv, link);
@@ -634,7 +681,7 @@ setup_system(void) {
 				debug("got a nameserver line");
 				ptr = next_token(&input, " \t\r\n");
 				if (ptr != NULL) {
-					srv = make_server(ptr);
+					srv = make_server(ptr, ptr);
 					ISC_LIST_APPEND(server_list, srv, link);
 				}
 			} else if (strcasecmp(ptr, "options") == 0) {
@@ -679,7 +726,7 @@ setup_system(void) {
 		ndots = 1;
 
 	if (server_list.head == NULL) {
-		srv = make_server("127.0.0.1");
+		srv = make_server("127.0.0.1", "127.0.0.1");
 		ISC_LIST_APPEND(server_list, srv, link);
 	}
 
@@ -1066,7 +1113,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 					query->lookup->ns_search_only;
 				lookup->trace_root = ISC_FALSE;
 			}
-			srv = make_server(namestr);
+			srv = make_server(namestr, namestr);
 			debug("adding server %s", srv->servername);
 			ISC_LIST_APPEND(lookup->my_server_list, srv, link);
 			dns_rdata_reset(&rdata);
@@ -1430,6 +1477,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->first_rr_serial = 0;
 		query->second_rr_serial = 0;
 		query->servname = serv->servername;
+		query->userarg = serv->userarg;
 		query->rr_count = 0;
 		ISC_LINK_INIT(query, link);
 		ISC_LIST_INIT(query->recvlist);
@@ -2498,77 +2546,160 @@ recv_done(isc_task_t *task, isc_event_t *event) {
  */
 void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
+	int count;
+	isc_result_t result;
+
+	result = get_addresses(host, port, sockaddr, 1, &count);
+	if (result != ISC_R_SUCCESS)
+		fatal("couldn't get address for '%s': %s",
+		      host, isc_result_totext(result));
+	INSIST(count == 1);
+}
+
+isc_result_t
+get_addresses(const char *hostname, in_port_t port,
+	     isc_sockaddr_t *addrs, int addrsize, int *addrcount)
+{
 	struct in_addr in4;
 	struct in6_addr in6;
+	isc_boolean_t have_ipv4, have_ipv6;
+	int i;
+
 #ifdef USE_GETADDRINFO
-	struct addrinfo *res = NULL, hints;
+	struct addrinfo *ai = NULL, *tmpai, hints;
 	int result;
 #else
 	struct hostent *he;
 #endif
 
-	debug("get_address()");
+	REQUIRE(hostname != NULL);
+	REQUIRE(addrs != NULL);
+	REQUIRE(addrcount != NULL);
+	REQUIRE(addrsize > 0);
 
-	if (inet_pton(AF_INET6, host, &in6) == 1) {
-		if (!have_ipv6)
-			fatal("Protocol family INET6 not supported '%s'", host);
-		isc_sockaddr_fromin6(sockaddr, &in6, port);
-	} else if (inet_pton(AF_INET, host, &in4) == 1) {
+	have_ipv4 = (isc_net_probeipv4() == ISC_R_SUCCESS);
+	have_ipv6 = (isc_net_probeipv6() == ISC_R_SUCCESS);
+
+	/*
+	 * Try IPv4, then IPv6.  In order to handle the extended format
+	 * for IPv6 scoped addresses (address%scope_ID), we'll use a local
+	 * working buffer of 128 bytes.  The length is an ad-hoc value, but
+	 * should be enough for this purpose; the buffer can contain a string
+	 * of at least 80 bytes for scope_ID in addition to any IPv6 numeric
+	 * addresses (up to 46 bytes), the delimiter character and the
+	 * terminating NULL character.
+	 */
+	if (inet_pton(AF_INET, hostname, &in4) == 1) {
 		if (have_ipv4)
-			isc_sockaddr_fromin(sockaddr, &in4, port);
+			isc_sockaddr_fromin(&addrs[0], &in4, port);
 		else
-			isc_sockaddr_v6fromin(sockaddr, &in4, port);
-	} else {
+			isc_sockaddr_v6fromin(&addrs[0], &in4, port);
+		*addrcount = 1;
+		return (ISC_R_SUCCESS);
+	} else if (inet_pton(AF_INET6, hostname, &in6) == 1) {
+
+		if (!have_ipv6)
+			return (ISC_R_FAMILYNOSUPPORT);
+		isc_sockaddr_fromin6(&addrs[0], &in6, port);
+		*addrcount = 1;
+		return (ISC_R_SUCCESS);
+	}
 #ifdef USE_GETADDRINFO
-		memset(&hints, 0, sizeof(hints));
-		if (specified_source)
-			hints.ai_family = isc_sockaddr_pf(&bind_address);
-		else if (!have_ipv6)
-			hints.ai_family = PF_INET;
-		else if (!have_ipv4)
-			hints.ai_family = PF_INET6;
-		else {
-			hints.ai_family = PF_UNSPEC;
+	memset(&hints, 0, sizeof(hints));
+	if (!have_ipv6)
+		hints.ai_family = PF_INET;
+	else if (!have_ipv4)
+		hints.ai_family = PF_INET6;
+	else {
+		hints.ai_family = PF_UNSPEC;
 #ifdef AI_ADDRCONFIG
-			hints.ai_flags = AI_ADDRCONFIG;
+		hints.ai_flags = AI_ADDRCONFIG;
 #endif
-		}
-		debug ("before getaddrinfo()");
-		isc_app_block();
+	}
+	hints.ai_socktype = SOCK_STREAM;
 #ifdef AI_ADDRCONFIG
- again:
+	again:
 #endif
-		result = getaddrinfo(host, NULL, &hints, &res);
+	result = getaddrinfo(hostname, NULL, &hints, &ai);
+	switch (result) {
+	case 0:
+		break;
+	case EAI_NONAME:
+#if defined(EAI_NODATA) && (EAI_NODATA != EAI_NONAME)
+	case EAI_NODATA:
+#endif
+		return (ISC_R_NOTFOUND);
 #ifdef AI_ADDRCONFIG
-		if (result == EAI_BADFLAGS &&
-		    (hints.ai_flags & AI_ADDRCONFIG) != 0) {
+	case EAI_BADFLAGS:
+		if ((hints.ai_flags & AI_ADDRCONFIG) != 0) {
 			hints.ai_flags &= ~AI_ADDRCONFIG;
 			goto again;
 		}
 #endif
-		isc_app_unblock();
-		if (result != 0) {
-			fatal("Couldn't find server '%s': %s",
-			      host, gai_strerror(result));
-		}
-		memcpy(&sockaddr->type.sa, res->ai_addr, res->ai_addrlen);
-		sockaddr->length = res->ai_addrlen;
-		isc_sockaddr_setport(sockaddr, port);
-		freeaddrinfo(res);
-#else
-		debug ("before gethostbyname()");
-		isc_app_block();
-		he = gethostbyname(host);
-		isc_app_unblock();
-		if (he == NULL)
-			fatal("Couldn't find server '%s' (h_errno=%d)",
-			      host, h_errno);
-		INSIST(he->h_addrtype == AF_INET);
-		isc_sockaddr_fromin(sockaddr,
-				    (struct in_addr *)(he->h_addr_list[0]),
-				    port);
-#endif
+	default:
+		return (ISC_R_FAILURE);
 	}
+	for (tmpai = ai, i = 0;
+		tmpai != NULL && i < addrsize;
+		tmpai = tmpai->ai_next)
+	{
+		if (tmpai->ai_family != AF_INET &&
+		    tmpai->ai_family != AF_INET6)
+			continue;
+		if (tmpai->ai_family == AF_INET) {
+			struct sockaddr_in *sin;
+			sin = (struct sockaddr_in *)tmpai->ai_addr;
+			isc_sockaddr_fromin(&addrs[i], &sin->sin_addr, port);
+		} else {
+			struct sockaddr_in6 *sin6;
+			sin6 = (struct sockaddr_in6 *)tmpai->ai_addr;
+			isc_sockaddr_fromin6(&addrs[i], &sin6->sin6_addr,
+					     port);
+		}
+		i++;
+
+	}
+	freeaddrinfo(ai);
+	*addrcount = i;
+#else
+	he = gethostbyname(hostname);
+	if (he == NULL) {
+		switch (h_errno) {
+		case HOST_NOT_FOUND:
+#ifdef NO_DATA
+		case NO_DATA:
+#endif
+#if defined(NO_ADDRESS) && (!defined(NO_DATA) || (NO_DATA != NO_ADDRESS))
+		case NO_ADDRESS:
+#endif
+			return (ISC_R_NOTFOUND);
+		default:
+			return (ISC_R_FAILURE);
+		}
+	}
+	if (he->h_addrtype != AF_INET && he->h_addrtype != AF_INET6)
+		return (ISC_R_NOTFOUND);
+	for (i = 0; i < addrsize; i++) {
+		if (he->h_addrtype == AF_INET) {
+			struct in_addr *inp;
+			inp = (struct in_addr *)(he->h_addr_list[i]);
+			if (inp == NULL)
+				break;
+			isc_sockaddr_fromin(&addrs[i], inp, port);
+		} else {
+			struct in6_addr *in6p;
+			in6p = (struct in6_addr *)(he->h_addr_list[i]);
+			if (in6p == NULL)
+				break;
+			isc_sockaddr_fromin6(&addrs[i], in6p, port);
+		}
+	}
+	*addrcount = i;
+#endif
+	if (*addrcount == 0)
+		return (ISC_R_NOTFOUND);
+	else
+		return (ISC_R_SUCCESS);
 }
 
 /*

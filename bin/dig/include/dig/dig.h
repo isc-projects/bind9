@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.7 2004/03/09 06:09:14 marka Exp $ */
+/* $Id: dig.h,v 1.71.2.8 2004/09/16 02:19:39 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -158,6 +158,7 @@ struct dig_query {
 	isc_uint32_t second_rr_serial;
 	isc_uint32_t rr_count;
 	char *servname;
+	char *userarg;
 	isc_bufferlist_t sendlist,
 		recvlist,
 		lengthlist;
@@ -175,6 +176,7 @@ struct dig_query {
 
 struct dig_server {
 	char servername[MXNAME];
+	char userarg[MXNAME];
 	ISC_LINK(dig_server_t) link;
 };
 
@@ -188,6 +190,10 @@ struct dig_searchlist {
  */
 void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
+
+isc_result_t
+get_addresses(const char *hostname, in_port_t port,
+             isc_sockaddr_t *addrs, int addrsize, int *addrcount);
 
 isc_result_t
 get_reverse(char *reverse, char *value, isc_boolean_t ip6int,
@@ -229,11 +235,17 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 dig_lookup_t *
 make_empty_lookup(void);
 
+void
+flush_server_list(void);
+
+void
+set_nameserver(char *opt);
+
 dig_lookup_t *
 clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
 dig_server_t *
-make_server(const char *servname);
+make_server(const char *servname, const char *userarg);
 
 void
 clone_server_list(dig_serverlist_t src,
