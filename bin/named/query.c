@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.203 2001/10/01 18:53:57 gson Exp $ */
+/* $Id: query.c,v 1.204 2001/10/23 06:01:14 marka Exp $ */
 
 #include <config.h>
 
@@ -520,7 +520,19 @@ ns_query_init(ns_client_t *client) {
 		return (result);
 	dns_a6_init(&client->query.a6ctx, query_simplefind, query_adda6rrset,
 		    NULL, NULL, client);
-	return (query_newnamebuf(client));
+	result = query_newnamebuf(client);
+	if (result != ISC_R_SUCCESS) {
+		ns_dbversion_t *dbversion;
+		for (dbversion = ISC_LIST_HEAD(client->query.freeversions);
+		     dbversion != NULL;
+		     dbversion = ISC_LIST_HEAD(client->query.freeversions)) {
+			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
+					link);
+			isc_mem_put(client->mctx, dbversion,
+				    sizeof(*dbversion));
+		}
+	}
+	return (result);
 }
 
 static inline ns_dbversion_t *
