@@ -1,3 +1,6 @@
+ 491.	[bug]		nsupdate would segfault when sending certain
+			prerequisites with empty RDATA. [RT #356]
+
  488.	[bug]		Locks weren't properly destroyed in some cases.
 
  476.	[bug]		A zone could expire while a zone transfer was in

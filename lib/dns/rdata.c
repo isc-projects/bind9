@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.101.2.3 2000/09/19 02:02:23 bwelling Exp $ */
+/* $Id: rdata.c,v 1.101.2.4 2000/09/26 21:40:55 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -442,6 +442,12 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	isc_buffer_t st;
 
 	REQUIRE(rdata != NULL);
+
+	/*
+	 * Some DynDNS meta-RRs have empty rdata.
+	 */
+	if (rdata->length == 0)
+		return (ISC_R_SUCCESS);
 
 	st = *target;
 
