@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.86 $)
+AC_REVISION($Revision: 1.87 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -517,6 +517,8 @@ else
 	WANT_IRS_THREADS_OBJS=""
 	thread_dir=nothreads
 fi
+
+AC_CHECK_FUNC(strlcat, AC_DEFINE(HAVE_STRLCAT))
 
 AC_SUBST(ALWAYS_DEFINES)
 AC_SUBST(DO_PTHREADS)
@@ -2213,6 +2215,72 @@ SERV_R_SET_RETURN="#define SERV_R_SET_RETURN void"
 )
 AC_SUBST(SERV_R_SET_RESULT)
 AC_SUBST(SERV_R_SET_RETURN)
+
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
+#include <unistd.h>
+#include <netdb.h>
+int innetgr(const char *netgroup, const char *host, const char *user, const char *domain);
+]
+,,
+[
+INNETGR_ARGS="#undef INNETGR_ARGS"
+]
+,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
+#include <unistd.h>
+#include <netdb.h>
+int innetgr(char *netgroup, char *host, char *user, char *domain);
+]
+,,
+[
+INNETGR_ARGS="#define INNETGR_ARGS char *netgroup, char *host, char *user, char *domain"
+]
+,
+))
+
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
+#include <unistd.h>
+#include <netdb.h>
+void setnetgrent(const char *);
+]
+,,
+[
+SETNETGRENT_ARGS="#undef SETNETGRENT_ARGS"
+]
+,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
+#include <unistd.h>
+#include <netdb.h>
+void setnetgrent(char *);
+]
+,,
+[
+SETNETGRENT_ARGS="#define SETNETGRENT_ARGS char *netgroup"
+]
+,
+))
+AC_SUBST(SETNETGRENT_ARGS)
+AC_SUBST(INNETGR_ARGS)
 
 #
 # Random remaining OS-specific issues involving compiler warnings.

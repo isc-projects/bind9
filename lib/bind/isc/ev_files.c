@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_files.c,v 1.3 2001/07/02 02:02:27 marka Exp $";
+static const char rcsid[] = "$Id: ev_files.c,v 1.4 2003/06/03 04:39:32 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -54,7 +54,7 @@ evSelectFD(evContext opaqueCtx,
 	int mode;
 
 	evPrintf(ctx, 1,
-		 "evSelectFD(ctx %#x, fd %d, mask 0x%x, func %#x, uap %#x)\n",
+		 "evSelectFD(ctx %p, fd %d, mask 0x%x, func %p, uap %p)\n",
 		 ctx, fd, eventmask, func, uap);
 	if (eventmask == 0 || (eventmask & ~EV_MASK_ALL) != 0)
 		EV_ERR(EINVAL);

@@ -1,3 +1,5 @@
+1471.	[bug]		libbind: updated to BIND 8.4.0.
+
 1470.	[bug]		Incorrect length passed to snprintf. [RT #5966]
 
 1469.	[func]		Log end of outgoing zone transfer at same level
