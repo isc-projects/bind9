@@ -1,3 +1,4 @@
+ 767.	[placeholder]
 
  766.	[bug]		A few cases in query_find() could leak fname.
 			This would trigger the mpctx->allocated == 0
