@@ -614,7 +614,7 @@ findname(dns_name_t **foundname, dns_name_t *target, dns_namelist_t *section)
 	for (curr = ISC_LIST_TAIL(*section) ;
 	     curr != NULL ;
 	     curr = ISC_LIST_PREV(curr, link)) {
-		if (dns_name_compare(curr, target) == 0) {
+		if (dns_name_equal(curr, target)) {
 			if (foundname != NULL)
 				*foundname = curr;
 			return (DNS_R_SUCCESS);
