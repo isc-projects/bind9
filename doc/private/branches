@@ -25,6 +25,7 @@ rt10134		review		jakob
 a6_remove	closed
 adb_race	closed		explorer
 blabel-cleanup	closed
+chroot		closed
 ds_12		closed
 edns_size	closed
 ifiter_getifaddrs closed
