@@ -43,6 +43,27 @@ dns_dnssec_add_trusted_key(dst_key_t *key, isc_mem_t *mctx);
  */
 
 isc_result_t
+dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
+			dst_key_t **key);
+/*
+ *	Creates a DST key from a DNS record.  Basically a wrapper around
+ *	dst_key_fromdns().
+ *
+ *	Requires:
+ *		'name' is not NULL
+ *		'rdata' is not NULL
+ *		'mctx' is not NULL
+ *		'key' is not NULL
+ *		'*key' is NULL
+ *
+ *	Returns:
+ *		ISC_R_SUCCESS
+ *		ISC_R_NOMEMORY
+ *		DST_R_INVALIDPUBLICKEY
+ *		various errors from dns_name_totext
+ */
+
+isc_result_t
 dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_stdtime_t *inception, isc_stdtime_t *expire,
 		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata);

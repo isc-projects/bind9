@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.2 1999/09/02 00:00:22 explorer Exp $
+ * $Id: dnssec.c,v 1.3 1999/09/03 19:05:49 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -192,6 +192,34 @@ dns_dnssec_add_trusted_key(dst_key_t *key, isc_mem_t *mctx) {
 cleanup:
 	isc_mem_put(mctx, tkey, sizeof(dns_trusted_key_t));
 	return (ret);
+}
+
+isc_result_t
+dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
+			dst_key_t **key)
+{
+	isc_buffer_t b, namebuf;
+	isc_region_t r;
+	isc_result_t ret;
+	char namestr[1024];
+
+	INSIST(name != NULL);
+	INSIST(rdata != NULL);
+	INSIST(mctx != NULL);
+	INSIST(key != NULL);
+	INSIST(*key == NULL);
+
+	isc_buffer_init(&namebuf, namestr, sizeof(namestr) - 1,
+			ISC_BUFFERTYPE_TEXT);
+	ret = dns_name_totext(name, ISC_FALSE, &namebuf);
+	if (ret != ISC_R_SUCCESS)
+		return ret;
+	isc_buffer_used(&namebuf, &r);
+	namestr[r.length] = 0;
+	dns_rdata_toregion(rdata, &r);
+	isc_buffer_init(&b, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_add(&b, r.length);
+	return (dst_key_fromdns(namestr, &b, mctx, key));
 }
 
 isc_result_t
