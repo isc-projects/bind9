@@ -1075,6 +1075,15 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				maxlength = 256;
 				kind = ft_octal;
 				state = ft_octal;
+				/*
+				 * XXXRTH
+				 *
+				 * The code dealing with octal bitstrings can
+				 * current generate invalid names.  Rather than
+				 * do this, we simply say they're not
+				 * implemented yet.
+				 */
+				return (DNS_R_NOTIMPLEMENTED);
 			} else if (c == 'x') {
 				vlen = 8;
 				maxlength = 256;
