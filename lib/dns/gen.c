@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65 2001/08/08 22:54:39 gson Exp $ */
+/* $Id: gen.c,v 1.66 2001/11/12 19:05:15 gson Exp $ */
 
 #include <config.h>
 
@@ -326,7 +326,7 @@ void
 add(int rdclass, const char *classname, int type, const char *typename,
     const char *dirname)
 {
-	struct tt *newtt = (struct tt *)malloc(sizeof *newtt);
+	struct tt *newtt = (struct tt *)malloc(sizeof(*newtt));
 	struct tt *tt, *oldtt;
 	struct cc *newcc;
 	struct cc *cc, *oldcc;
@@ -375,7 +375,7 @@ add(int rdclass, const char *classname, int type, const char *typename,
 	if (rdclass == 0)
 		return;
 
-	newcc = (struct cc *)malloc(sizeof *newcc);
+	newcc = (struct cc *)malloc(sizeof(*newcc));
 	newcc->rdclass = rdclass;
 	strcpy(newcc->classname, classname);
 	cc = classes;
@@ -400,8 +400,8 @@ add(int rdclass, const char *classname, int type, const char *typename,
 
 void
 sd(int rdclass, const char *classname, const char *dirname, char filetype) {
-	char buf[sizeof "0123456789_65535.h"];
-	char fmt[sizeof "%10[-0-9a-z]_%d.h"];
+	char buf[sizeof("0123456789_65535.h")];
+	char fmt[sizeof("%10[-0-9a-z]_%d.h")];
 	int type;
 	char typename[11];
 	isc_dir_t dir;
@@ -806,7 +806,7 @@ main(int argc, char **argv) {
 	} else if (structs) {
 		if (prefix != NULL) {
 			if ((fd = fopen(prefix,"r")) != NULL) {
-				while (fgets(buf, sizeof buf, fd) != NULL)
+				while (fgets(buf, sizeof(buf), fd) != NULL)
 					fputs(buf, stdout);
 				fclose(fd);
 			}
@@ -815,14 +815,14 @@ main(int argc, char **argv) {
 			sprintf(buf, "%s/%s_%d.h",
 				tt->dirname, tt->typename, tt->type);
 			if ((fd = fopen(buf,"r")) != NULL) {
-				while (fgets(buf, sizeof buf, fd) != NULL)
+				while (fgets(buf, sizeof(buf), fd) != NULL)
 					fputs(buf, stdout);
 				fclose(fd);
 			}
 		}
 		if (suffix != NULL) {
 			if ((fd = fopen(suffix,"r")) != NULL) {
-				while (fgets(buf, sizeof buf, fd) != NULL)
+				while (fgets(buf, sizeof(buf), fd) != NULL)
 					fputs(buf, stdout);
 				fclose(fd);
 			}

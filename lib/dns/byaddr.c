@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.29 2001/06/04 19:32:57 tale Exp $ */
+/* $Id: byaddr.c,v 1.30 2001/11/12 19:05:12 gson Exp $ */
 
 #include <config.h>
 
@@ -140,7 +140,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 		result = dns_rdata_tostruct(&rdata, &ptr, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		name = isc_mem_get(byaddr->mctx, sizeof *name);
+		name = isc_mem_get(byaddr->mctx, sizeof(*name));
 		if (name == NULL) {
 			dns_rdata_freestruct(&ptr);
 			return (ISC_R_NOMEMORY);
@@ -149,7 +149,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 		result = dns_name_dup(&ptr.ptr, byaddr->mctx, name);
 		dns_rdata_freestruct(&ptr);
 		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(byaddr->mctx, name, sizeof *name);
+			isc_mem_put(byaddr->mctx, name, sizeof(*name));
 			return (ISC_R_NOMEMORY);
 		}
 		ISC_LIST_APPEND(byaddr->event->names, name, link);
@@ -201,7 +201,7 @@ bevent_destroy(isc_event_t *event) {
 		next_name = ISC_LIST_NEXT(name, link);
 		ISC_LIST_UNLINK(bevent->names, name, link);
 		dns_name_free(name, mctx);
-		isc_mem_put(mctx, name, sizeof *name);
+		isc_mem_put(mctx, name, sizeof(*name));
 	}
 	isc_mem_put(mctx, event, event->ev_size);
 }
@@ -215,18 +215,18 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	dns_byaddr_t *byaddr;
 	isc_event_t *ievent;
 
-	byaddr = isc_mem_get(mctx, sizeof *byaddr);
+	byaddr = isc_mem_get(mctx, sizeof(*byaddr));
 	if (byaddr == NULL)
 		return (ISC_R_NOMEMORY);
 	byaddr->mctx = mctx;
 	byaddr->options = options;
 
-	byaddr->event = isc_mem_get(mctx, sizeof *byaddr->event);
+	byaddr->event = isc_mem_get(mctx, sizeof(*byaddr->event));
 	if (byaddr->event == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_byaddr;
 	}
-	ISC_EVENT_INIT(byaddr->event, sizeof *byaddr->event, 0, NULL,
+	ISC_EVENT_INIT(byaddr->event, sizeof(*byaddr->event), 0, NULL,
 		       DNS_EVENT_BYADDRDONE, action, arg, byaddr,
 		       bevent_destroy, mctx);
 	byaddr->event->result = ISC_R_FAILURE;
@@ -272,7 +272,7 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	isc_task_detach(&byaddr->task);
 
  cleanup_byaddr:
-	isc_mem_put(mctx, byaddr, sizeof *byaddr);
+	isc_mem_put(mctx, byaddr, sizeof(*byaddr));
 
 	return (result);
 }
@@ -305,7 +305,7 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp) {
 
 	DESTROYLOCK(&byaddr->lock);
 	byaddr->magic = 0;
-	isc_mem_put(byaddr->mctx, byaddr, sizeof *byaddr);
+	isc_mem_put(byaddr->mctx, byaddr, sizeof(*byaddr));
 
 	*byaddrp = NULL;
 }

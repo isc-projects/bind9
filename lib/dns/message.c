@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.195 2001/10/01 18:54:01 gson Exp $ */
+/* $Id: message.c,v 1.196 2001/11/12 19:05:22 gson Exp $ */
 
 /***
  *** Imports
@@ -2941,7 +2941,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 isc_result_t
 dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 		   dns_messagetextflag_t flags, isc_buffer_t *target) {
-	char buf[sizeof "1234567890"];
+	char buf[sizeof("1234567890")];
 	isc_result_t result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));

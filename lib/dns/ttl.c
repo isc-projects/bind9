@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.c,v 1.21 2001/01/09 21:51:41 bwelling Exp $ */
+/* $Id: ttl.c,v 1.22 2001/11/12 19:05:34 gson Exp $ */
 
 #include <config.h>
 
@@ -60,7 +60,7 @@ ttlfmt(unsigned int t, const char *s, isc_boolean_t verbose,
 	else
 		len = snprintf(tmp, sizeof(tmp), "%u%c", t, s[0]);
 
-	INSIST(len + 1 <= sizeof tmp);
+	INSIST(len + 1 <= sizeof(tmp));
 	isc_buffer_availableregion(target, &region);
 	if (len > region.length)
 		return (ISC_R_NOSPACE);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.102 2001/09/20 16:48:20 gson Exp $ */
+/* $Id: dispatch.c,v 1.103 2001/11/12 19:05:14 gson Exp $ */
 
 #include <config.h>
 
@@ -243,7 +243,7 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	va_end(ap);
 
 	if (VALID_RESPONSE(resp)) {
-		isc_sockaddr_format(&resp->host, peerbuf, sizeof peerbuf);
+		isc_sockaddr_format(&resp->host, peerbuf, sizeof(peerbuf));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
 			      DNS_LOGMODULE_DISPATCH, level,
 			      "dispatch %p response %p %s: %s", disp, resp,
@@ -266,7 +266,7 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 
 	if (mgr->entropy != NULL) {
-		result = isc_entropy_getdata(mgr->entropy, &val, sizeof val,
+		result = isc_entropy_getdata(mgr->entropy, &val, sizeof(val),
 					     NULL, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		lfsr->count = (val & 0x1f) + 32;
@@ -1375,7 +1375,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	ISC_LINK_INIT(disp, link);
 	disp->refcount = 1;
 	disp->recv_pending = 0;
-	memset(&disp->local, 0, sizeof disp->local);
+	memset(&disp->local, 0, sizeof(disp->local));
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
 	disp->connected = 0;
@@ -1986,7 +1986,7 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	 * Send the shutdown failsafe event to this resp.
 	 */
 	ev = disp->failsafe_ev;
-	ISC_EVENT_INIT(ev, sizeof (*ev), 0, NULL, DNS_EVENT_DISPATCH,
+	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	ev->result = disp->shutdown_why;
 	ev->buffer.base = NULL;
@@ -2108,7 +2108,7 @@ dns_dispatchmgr_dump(dns_dispatchmgr_t *mgr) {
 
 	disp = ISC_LIST_HEAD(mgr->list);
 	while (disp != NULL) {
-		isc_sockaddr_format(&disp->local, foo, sizeof foo);
+		isc_sockaddr_format(&disp->local, foo, sizeof(foo));
 		printf("\tdispatch %p, addr %s\n", disp, foo);
 		disp = ISC_LIST_NEXT(disp, link);
 	}

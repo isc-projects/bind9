@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.61 2001/10/25 23:18:05 gson Exp $ */
+/* $Id: masterdump.c,v 1.62 2001/11/12 19:05:21 gson Exp $ */
 
 #include <config.h>
 
@@ -424,7 +424,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 			INDENT_TO(ttl_column);
 			length = sprintf(ttlbuf, "%u", rdataset->ttl);
-			INSIST(length <= sizeof ttlbuf);
+			INSIST(length <= sizeof(ttlbuf));
 			isc_buffer_availableregion(target, &r);
 			if (r.length < length)
 				return (ISC_R_NOSPACE);

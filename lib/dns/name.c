@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127 2001/06/28 21:34:11 gson Exp $ */
+/* $Id: name.c,v 1.128 2001/11/12 19:05:24 gson Exp $ */
 
 #include <config.h>
 
@@ -2174,7 +2174,7 @@ compact(dns_name_t *name, unsigned char *offsets) {
 	 */
 
  again:
-	memset(tail, 0, sizeof tail);
+	memset(tail, 0, sizeof(tail));
 	INSIST(name->labels != 0);
 	n = name->labels - 1;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.33 2001/06/04 19:33:19 tale Exp $ */
+/* $Id: zt.c,v 1.34 2001/11/12 19:05:39 gson Exp $ */
 
 #include <config.h>
 
@@ -58,7 +58,7 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 
 	REQUIRE(ztp != NULL && *ztp == NULL);
 
-	zt = isc_mem_get(mctx, sizeof *zt);
+	zt = isc_mem_get(mctx, sizeof(*zt));
 	if (zt == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -88,7 +88,7 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	dns_rbt_destroy(&zt->table);
 
    cleanup_zt:
-	isc_mem_put(mctx, zt, sizeof *zt);
+	isc_mem_put(mctx, zt, sizeof(*zt));
 
 	return (result);
 }
@@ -204,7 +204,7 @@ zt_flushanddetach(dns_zt_t **ztp, isc_boolean_t need_flush) {
 		dns_rbt_destroy(&zt->table);
 		isc_rwlock_destroy(&zt->rwlock);
 		zt->magic = 0;
-		isc_mem_put(zt->mctx, zt, sizeof *zt);
+		isc_mem_put(zt->mctx, zt, sizeof(*zt));
 	}
 
 	*ztp = NULL;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.19 2001/09/21 00:11:29 bwelling Exp $ */
+/* $Id: time.c,v 1.20 2001/11/12 19:05:33 gson Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,7 @@ static int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 isc_result_t
 dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 	struct tm tm;
-	char buf[sizeof "YYYYMMDDHHMMSS"];
+	char buf[sizeof("YYYYMMDDHHMMSS")];
 	int secs;
 	unsigned int l;
 	isc_region_t region;

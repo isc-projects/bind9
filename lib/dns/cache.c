@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.49 2001/10/23 01:21:44 marka Exp $ */
+/* $Id: cache.c,v 1.50 2001/11/12 19:05:13 gson Exp $ */
 
 #include <config.h>
 
@@ -167,7 +167,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	REQUIRE(*cachep == NULL);
 	REQUIRE(mctx != NULL);
 
-	cache = isc_mem_get(mctx, sizeof *cache);
+	cache = isc_mem_get(mctx, sizeof(*cache));
 	if (cache == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -253,7 +253,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  cleanup_lock:
 	DESTROYLOCK(&cache->lock);
  cleanup_mem:
-	isc_mem_put(mctx, cache, sizeof *cache);
+	isc_mem_put(mctx, cache, sizeof(*cache));
 	isc_mem_detach(&mctx);
 	return (result);
 }
@@ -305,7 +305,7 @@ cache_free(dns_cache_t *cache) {
 	DESTROYLOCK(&cache->filelock);
 	cache->magic = 0;
 	mctx = cache->mctx;
-	isc_mem_put(cache->mctx, cache, sizeof *cache);
+	isc_mem_put(cache->mctx, cache, sizeof(*cache));
 	isc_mem_detach(&mctx);
 }
 

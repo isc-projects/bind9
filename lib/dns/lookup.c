@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.9 2001/02/05 19:47:03 bwelling Exp $ */
+/* $Id: lookup.c,v 1.10 2001/11/12 19:05:17 gson Exp $ */
 
 #include <config.h>
 
@@ -385,14 +385,14 @@ dns_lookup_create(isc_mem_t *mctx, dns_name_t *name, dns_rdatatype_t type,
 	dns_lookup_t *lookup;
 	isc_event_t *ievent;
 
-	lookup = isc_mem_get(mctx, sizeof *lookup);
+	lookup = isc_mem_get(mctx, sizeof(*lookup));
 	if (lookup == NULL)
 		return (ISC_R_NOMEMORY);
 	lookup->mctx = mctx;
 	lookup->options = options;
 
 	ievent = isc_event_allocate(mctx, lookup, DNS_EVENT_LOOKUPDONE,
-				    action, arg, sizeof *lookup->event);
+				    action, arg, sizeof(*lookup->event));
 	if (ievent == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_lookup;
@@ -447,7 +447,7 @@ dns_lookup_create(isc_mem_t *mctx, dns_name_t *name, dns_rdatatype_t type,
 	isc_task_detach(&lookup->task);
 
  cleanup_lookup:
-	isc_mem_put(mctx, lookup, sizeof *lookup);
+	isc_mem_put(mctx, lookup, sizeof(*lookup));
 
 	return (result);
 }
@@ -486,7 +486,7 @@ dns_lookup_destroy(dns_lookup_t **lookupp) {
 
 	DESTROYLOCK(&lookup->lock);
 	lookup->magic = 0;
-	isc_mem_put(lookup->mctx, lookup, sizeof *lookup);
+	isc_mem_put(lookup->mctx, lookup, sizeof(*lookup));
 
 	*lookupp = NULL;
 }

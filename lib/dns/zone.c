@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.351 2001/11/09 04:21:54 marka Exp $ */
+/* $Id: zone.c,v 1.352 2001/11/12 19:05:38 gson Exp $ */
 
 #include <config.h>
 
@@ -447,13 +447,13 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(mctx != NULL);
 
-	zone = isc_mem_get(mctx, sizeof *zone);
+	zone = isc_mem_get(mctx, sizeof(*zone));
 	if (zone == NULL)
 		return (ISC_R_NOMEMORY);
 
 	result = isc_mutex_init(&zone->lock);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, zone, sizeof *zone);
+		isc_mem_put(mctx, zone, sizeof(*zone));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
 				 isc_result_totext(result));
@@ -613,7 +613,7 @@ zone_free(dns_zone_t *zone) {
 	isc_refcount_destroy(&zone->erefs);
 	zone->magic = 0;
 	mctx = zone->mctx;
-	isc_mem_put(mctx, zone, sizeof *zone);
+	isc_mem_put(mctx, zone, sizeof(*zone));
 	isc_mem_detach(&mctx);
 }
 
@@ -679,7 +679,7 @@ zone_freedbargs(dns_zone_t *zone) {
 		for (i = 0; i < zone->db_argc; i++)
 			isc_mem_free(zone->mctx, zone->db_argv[i]);
 		isc_mem_put(zone->mctx, zone->db_argv,
-			    zone->db_argc * sizeof *zone->db_argv);
+			    zone->db_argc * sizeof(*zone->db_argv));
 	}
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
@@ -699,7 +699,7 @@ dns_zone_setdbtype(dns_zone_t *zone,
 	LOCK_ZONE(zone);
 
 	/* Set up a new database argument list. */
-	new = isc_mem_get(zone->mctx, dbargc * sizeof *new);
+	new = isc_mem_get(zone->mctx, dbargc * sizeof(*new));
 	if (new == NULL)
 		goto nomem;
 	for (i = 0; i < dbargc; i++)
@@ -724,7 +724,7 @@ dns_zone_setdbtype(dns_zone_t *zone,
 			if (zone->db_argv[i] != NULL)
 				isc_mem_free(zone->mctx, new[i]);
 			isc_mem_put(zone->mctx, new, 
-				    dbargc * sizeof *new);
+				    dbargc * sizeof(*new));
 		}
 	}
 	result = ISC_R_NOMEMORY;
@@ -823,7 +823,7 @@ default_journal(dns_zone_t *zone) {
 
 	if (zone->masterfile != NULL) {
 		/* Calculate string length including '\0'. */
-		int len = strlen(zone->masterfile) + sizeof ".jnl";
+		int len = strlen(zone->masterfile) + sizeof(".jnl");
 		journal = isc_mem_allocate(zone->mctx, len);
 		if (journal == NULL)
 			return (ISC_R_NOMEMORY);
@@ -1755,19 +1755,19 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 	LOCK_ZONE(zone);
 	if (zone->notify != NULL) {
 		isc_mem_put(zone->mctx, zone->notify,
-			    zone->notifycnt * sizeof *new);
+			    zone->notifycnt * sizeof(*new));
 		zone->notify = NULL;
 		zone->notifycnt = 0;
 	}
 	if (notify == NULL)
 		goto unlock;
 
-	new = isc_mem_get(zone->mctx, count * sizeof *new);
+	new = isc_mem_get(zone->mctx, count * sizeof(*new));
 	if (new == NULL) {
 		UNLOCK_ZONE(zone);
 		return (ISC_R_NOMEMORY);
 	}
-	memcpy(new, notify, count * sizeof *new);
+	memcpy(new, notify, count * sizeof(*new));
 	zone->notify = new;
 	zone->notifycnt = count;
 
@@ -1804,7 +1804,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	LOCK_ZONE(zone);
 	if (zone->masters != NULL) {
 		isc_mem_put(zone->mctx, zone->masters,
-			    zone->masterscnt * sizeof *new);
+			    zone->masterscnt * sizeof(*new));
 		zone->masters = NULL;
 	}
 	if (zone->masterkeynames != NULL) {
@@ -1839,7 +1839,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 		result = ISC_R_NOMEMORY;
 		goto unlock;
 	}
-	memcpy(new, masters, count * sizeof *new);
+	memcpy(new, masters, count * sizeof(*new));
 	zone->masters = new;
 	zone->masterscnt = count;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOMASTERS);
@@ -1853,7 +1853,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 		if (newname == NULL) {
 			result = ISC_R_NOMEMORY;
 			isc_mem_put(zone->mctx, zone->masters,
-				    count * sizeof *new);
+				    count * sizeof(*new));
 			goto unlock;
 		}
 		for (i = 0; i < count; i++)
@@ -1875,9 +1875,9 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 							       newname[i],
 							       zone->mctx);
 					isc_mem_put(zone->mctx, zone->masters,
-						    count * sizeof *new);
+						    count * sizeof(*new));
 					isc_mem_put(zone->mctx, newname,
-						    count * sizeof *newname);
+						    count * sizeof(*newname));
 					goto unlock;
 				}
 			}
@@ -2482,7 +2482,7 @@ notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 	if (dns_name_dynamic(&notify->ns))
 		dns_name_free(&notify->ns, notify->mctx);
 	mctx = notify->mctx;
-	isc_mem_put(notify->mctx, notify, sizeof *notify);
+	isc_mem_put(notify->mctx, notify, sizeof(*notify));
 	isc_mem_detach(&mctx);
 }
 
@@ -2492,7 +2492,7 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 
 	REQUIRE(notifyp != NULL && *notifyp == NULL);
 
-	notify = isc_mem_get(mctx, sizeof *notify);
+	notify = isc_mem_get(mctx, sizeof(*notify));
 	if (notify == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -3668,7 +3668,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
 	LOCK_ZONE(zone);
 	if (stub == NULL) {
-		stub = isc_mem_get(zone->mctx, sizeof *stub);
+		stub = isc_mem_get(zone->mctx, sizeof(*stub));
 		if (stub == NULL)
 			goto cleanup;
 		stub->magic = STUB_MAGIC;
@@ -4499,7 +4499,7 @@ notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
-	vsnprintf(message, sizeof message, fmt, ap);
+	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_NOTIFY, DNS_LOGMODULE_ZONE,
 		      level, "zone %s: %s", namebuf, message);
@@ -4517,7 +4517,7 @@ dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
-	vsnprintf(message, sizeof message, fmt, ap);
+	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
 		      level, "zone %s: %s", namebuf, message);
@@ -4538,7 +4538,7 @@ zone_debuglog(dns_zone_t *zone, const char *me, int debuglevel,
 	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
-	vsnprintf(message, sizeof message, fmt, ap);
+	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
 		      level, "%s: zone %s: %s", me, namebuf, message);
@@ -4990,7 +4990,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 	if (load->zone->lctx != NULL)
 		dns_loadctx_detach(&load->zone->lctx);
 	dns_zone_idetach(&load->zone);
-	isc_mem_putanddetach(&load->mctx, load, sizeof (*load));
+	isc_mem_putanddetach(&load->mctx, load, sizeof(*load));
 }
 
 void
@@ -5192,7 +5192,7 @@ forward_destroy(dns_forward_t *forward) {
 		isc_buffer_free(&forward->msgbuf);
 	if (forward->zone != NULL)
 		dns_zone_idetach(&forward->zone);
-	isc_mem_putanddetach(&forward->mctx, forward, sizeof (*forward));
+	isc_mem_putanddetach(&forward->mctx, forward, sizeof(*forward));
 }
 
 static isc_result_t
@@ -5420,7 +5420,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_result_t result;
 	isc_interval_t interval;
 
-	zmgr = isc_mem_get(mctx, sizeof *zmgr);
+	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 	if (zmgr == NULL)
 		return (ISC_R_NOMEMORY);
 	zmgr->mctx = NULL;
@@ -5497,7 +5497,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  free_rwlock:
 	isc_rwlock_destroy(&zmgr->rwlock);
  free_mem:
-	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
+	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
 	isc_mem_detach(&mctx);
 	return (result);
 }
@@ -5663,7 +5663,7 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	isc_rwlock_destroy(&zmgr->rwlock);
 	mctx = zmgr->mctx;
-	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
+	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
 	isc_mem_detach(&mctx);
 }
 

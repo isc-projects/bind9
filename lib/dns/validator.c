@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.94 2001/09/19 21:25:45 gson Exp $ */
+/* $Id: validator.c,v 1.95 2001/11/12 19:05:35 gson Exp $ */
 
 #include <config.h>
 
@@ -985,9 +985,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		dns_rdataset_current(event->sigrdataset, &rdata);
 		if (val->siginfo != NULL)
 			isc_mem_put(val->view->mctx, val->siginfo,
-				    sizeof *val->siginfo);
+				    sizeof(*val->siginfo));
 		val->siginfo = isc_mem_get(val->view->mctx,
-					   sizeof *val->siginfo);
+					   sizeof(*val->siginfo));
 		if (val->siginfo == NULL)
 			return (ISC_R_NOMEMORY);
 		dns_rdata_tostruct(&rdata, val->siginfo, NULL);
@@ -1312,14 +1312,14 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 				goto out;
 			}
 
-			fname = isc_mem_get(val->view->mctx, sizeof *fname);
+			fname = isc_mem_get(val->view->mctx, sizeof(*fname));
 			if (fname == NULL)
 				return (ISC_R_NOMEMORY);
 			dns_name_init(fname, NULL);
 			result = dns_name_dup(tname, val->view->mctx, fname);
 			if (result != ISC_R_SUCCESS) {
 				isc_mem_put(val->view->mctx, fname,
-					    sizeof *fname);
+					    sizeof(*fname));
 				result = ISC_R_NOMEMORY;
 				goto out;
 			}
@@ -1468,7 +1468,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	tclone = NULL;
 	result = ISC_R_FAILURE;
 
-	val = isc_mem_get(view->mctx, sizeof *val);
+	val = isc_mem_get(view->mctx, sizeof(*val));
 	if (val == NULL)
 		return (ISC_R_NOMEMORY);
 	val->view = NULL;
@@ -1477,7 +1477,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		isc_event_allocate(view->mctx, task,
 				   DNS_EVENT_VALIDATORSTART,
 				   validator_start, NULL,
-				   sizeof (dns_validatorevent_t));
+				   sizeof(dns_validatorevent_t));
 	if (event == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_val;
@@ -1526,7 +1526,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
  cleanup_val:
 	dns_view_weakdetach(&val->view);
-	isc_mem_put(view->mctx, val, sizeof *val);
+	isc_mem_put(view->mctx, val, sizeof(*val));
 
 	return (result);
 }
@@ -1572,11 +1572,11 @@ destroy(dns_validator_t *val) {
 		dns_validator_destroy(&val->authvalidator);
 	mctx = val->view->mctx;
 	if (val->siginfo != NULL)
-		isc_mem_put(mctx, val->siginfo, sizeof *val->siginfo);
+		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
 	DESTROYLOCK(&val->lock);
 	dns_view_weakdetach(&val->view);
 	val->magic = 0;
-	isc_mem_put(mctx, val, sizeof *val);
+	isc_mem_put(mctx, val, sizeof(*val));
 }
 
 void

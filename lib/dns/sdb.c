@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.36 2001/10/13 01:37:58 gson Exp $ */
+/* $Id: sdb.c,v 1.37 2001/11/12 19:05:32 gson Exp $ */
 
 #include <config.h>
 
@@ -459,7 +459,7 @@ dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
 	REQUIRE(mname != NULL);
 	REQUIRE(rname != NULL);
 
-	n = snprintf(str, sizeof str, "%s %s %u %u %u %u %u",
+	n = snprintf(str, sizeof(str), "%s %s %u %u %u %u %u",
 		     mname, rname, serial,
 		     SDB_DEFAULT_REFRESH, SDB_DEFAULT_RETRY,
 		     SDB_DEFAULT_EXPIRE, SDB_DEFAULT_MINIMUM);

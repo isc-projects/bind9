@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.190 2001/11/07 22:40:33 gson Exp $ */
+/* $Id: adb.c,v 1.191 2001/11/12 19:05:10 gson Exp $ */
 
 /*
  * Implementation notes
@@ -1515,7 +1515,7 @@ new_adbfind(dns_adb_t *adb) {
 		return (NULL);
 	}
 
-	ISC_EVENT_INIT(&h->event, sizeof (isc_event_t), 0, 0, 0, NULL, NULL,
+	ISC_EVENT_INIT(&h->event, sizeof(isc_event_t), 0, 0, 0, NULL, NULL,
 		       NULL, NULL, h);
 
 	h->magic = DNS_ADBFIND_MAGIC;
@@ -2168,7 +2168,7 @@ destroy(dns_adb_t *adb) {
 	DESTROYLOCK(&adb->lock);
 	DESTROYLOCK(&adb->mplock);
 
-	isc_mem_putanddetach(&adb->mctx, adb, sizeof (dns_adb_t));
+	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
 
 
@@ -2190,7 +2190,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	REQUIRE(taskmgr != NULL);
 	REQUIRE(newadb != NULL && *newadb == NULL);
 
-	adb = isc_mem_get(mem, sizeof (dns_adb_t));
+	adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	if (adb == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -2216,7 +2216,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->timermgr = timermgr;
 	adb->taskmgr = taskmgr;
 	adb->next_cleanbucket = 0;
-	ISC_EVENT_INIT(&adb->cevent, sizeof adb->cevent, 0, NULL,
+	ISC_EVENT_INIT(&adb->cevent, sizeof(adb->cevent), 0, NULL,
 		       DNS_EVENT_ADBCONTROL, shutdown_task, adb,
 		       adb, NULL, NULL);
 	adb->cevent_sent = ISC_FALSE;
@@ -2265,7 +2265,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	 * Memory pools
 	 */
 #define MPINIT(t, p, n) do { \
-	result = isc_mempool_create(mem, sizeof (t), &(p)); \
+	result = isc_mempool_create(mem, sizeof(t), &(p)); \
 	if (result != ISC_R_SUCCESS) \
 		goto fail3; \
 	isc_mempool_setfreemax((p), FREE_ITEMS); \
@@ -2349,7 +2349,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
  fail0c:
 	DESTROYLOCK(&adb->lock);
  fail0b:
-	isc_mem_putanddetach(&adb->mctx, adb, sizeof (dns_adb_t));
+	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 
 	return (result);
 }
@@ -3009,7 +3009,7 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug)
 	isc_netaddr_t netaddr;
 
 	isc_netaddr_fromsockaddr(&netaddr, &entry->sockaddr);
-	isc_netaddr_format(&netaddr, addrbuf, sizeof addrbuf);
+	isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
 
 	if (debug)
 		fprintf(f, ";\t%p: refcnt %u flags %08x \n",
@@ -3048,11 +3048,11 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
 		switch (sa->type.sa.sa_family) {
 		case AF_INET:
 			tmpp = inet_ntop(AF_INET, &sa->type.sin.sin_addr,
-					 tmp, sizeof tmp);
+					 tmp, sizeof(tmp));
 			break;
 		case AF_INET6:
 			tmpp = inet_ntop(AF_INET6, &sa->type.sin6.sin6_addr,
-					 tmp, sizeof tmp);
+					 tmp, sizeof(tmp));
 			break;
 		default:
 			tmpp = "UnkFamily";

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.127 2001/09/30 04:31:26 marka Exp $ */
+/* $Id: master.c,v 1.128 2001/11/12 19:05:20 gson Exp $ */
 
 #include <config.h>
 
@@ -351,7 +351,7 @@ incctx_destroy(isc_mem_t *mctx, dns_incctx_t *ictx) {
 	parent = ictx->parent;
 	ictx->parent = NULL;
 
-	isc_mem_put(mctx, ictx, sizeof *ictx);
+	isc_mem_put(mctx, ictx, sizeof(*ictx));
 
 	if (parent != NULL) {
 		ictx = parent;
@@ -389,7 +389,7 @@ incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	isc_region_t r;
 	int i;
 
-	ictx = isc_mem_get(mctx, sizeof *ictx);
+	ictx = isc_mem_get(mctx, sizeof(*ictx));
 	if (ictx == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -445,7 +445,7 @@ loadctx_create(isc_mem_t *mctx, unsigned int options, dns_name_t *top,
 		return (ISC_R_NOMEMORY);
 	result = isc_mutex_init(&lctx->lock);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, lctx, sizeof *lctx);
+		isc_mem_put(mctx, lctx, sizeof(*lctx));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
 				 isc_result_totext(result));
@@ -461,7 +461,7 @@ loadctx_create(isc_mem_t *mctx, unsigned int options, dns_name_t *top,
 	result = isc_lex_create(mctx, TOKENSIZ, &lctx->lex);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_inc;
-	memset(specials, 0, sizeof specials);
+	memset(specials, 0, sizeof(specials));
 	specials['('] = 1;
 	specials[')'] = 1;
 	specials['"'] = 1;
@@ -1609,9 +1609,9 @@ load(dns_loadctx_t *lctx) {
 		ISC_LIST_UNLINK(glue_list, this, link);
 	if (rdatalist != NULL)
 		isc_mem_put(mctx, rdatalist,
-			    rdatalist_size * sizeof *rdatalist);
+			    rdatalist_size * sizeof(*rdatalist));
 	if (rdata != NULL)
-		isc_mem_put(mctx, rdata, rdata_size * sizeof *rdata);
+		isc_mem_put(mctx, rdata, rdata_size * sizeof(*rdata));
 	if (target_mem != NULL)
 		isc_mem_put(mctx, target_mem, target_size);
 	if (include_file != NULL)
@@ -1877,7 +1877,7 @@ grow_rdatalist(int new_len, dns_rdatalist_t *old, int old_len,
 	ISC_LIST(dns_rdatalist_t) save;
 	dns_rdatalist_t *this;
 
-	new = isc_mem_get(mctx, new_len * sizeof *new);
+	new = isc_mem_get(mctx, new_len * sizeof(*new));
 	if (new == NULL)
 		return (NULL);
 
@@ -1909,7 +1909,7 @@ grow_rdatalist(int new_len, dns_rdatalist_t *old, int old_len,
 
 	INSIST(rdlcount == old_len);
 	if (old != NULL)
-		isc_mem_put(mctx, old, old_len * sizeof *old);
+		isc_mem_put(mctx, old, old_len * sizeof(*old));
 	return (new);
 }
 
@@ -1928,10 +1928,10 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 	dns_rdatalist_t *this;
 	dns_rdata_t *rdata;
 
-	new = isc_mem_get(mctx, new_len * sizeof *new);
+	new = isc_mem_get(mctx, new_len * sizeof(*new));
 	if (new == NULL)
 		return (NULL);
-	memset(new, 0, new_len * sizeof *new);
+	memset(new, 0, new_len * sizeof(*new));
 
 	/*
 	 * Copy current relinking.
@@ -1972,7 +1972,7 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 	}
 	INSIST(rdcount == old_len);
 	if (old != NULL)
-		isc_mem_put(mctx, old, old_len * sizeof *old);
+		isc_mem_put(mctx, old, old_len * sizeof(*old));
 	return (new);
 }
 

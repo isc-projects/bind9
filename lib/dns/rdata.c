@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.152 2001/10/03 00:51:38 gson Exp $ */
+/* $Id: rdata.c,v 1.153 2001/11/12 19:05:28 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -759,7 +759,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
-	char buf[sizeof "65536"];
+	char buf[sizeof("65536")];
 	isc_region_t sr;
 
 	REQUIRE(rdata != NULL);
@@ -1008,7 +1008,7 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 		    struct tbl *table)
 {
 	int i = 0;
-	char buf[sizeof "4294967296"];
+	char buf[sizeof("4294967296")];
 	while (table[i].name != NULL) {
 		if (table[i].value == value) {
 			return (str_totext(table[i].name, target));
@@ -1160,7 +1160,7 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
-	char buf[sizeof "TYPE65536"];
+	char buf[sizeof("TYPE65536")];
 
 	if (type > 255) {
 		sprintf(buf, "TYPE%u", type);
@@ -1917,7 +1917,7 @@ static isc_result_t
 btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
 	int inc;
 	struct state statebuf, *state = &statebuf;
-	char buf[sizeof "x 2000000000 ffffffff ffffffff ffffffff"];
+	char buf[sizeof("x 2000000000 ffffffff ffffffff ffffffff")];
 
 	Ceor = Csum = Crot = word = bcount = 0;
 	for (inc = 0; inc < inbuflen; inbuf++, inc++)

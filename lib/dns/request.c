@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.68 2001/10/23 23:10:14 gson Exp $ */
+/* $Id: request.c,v 1.69 2001/11/12 19:05:29 gson Exp $ */
 
 #include <config.h>
 
@@ -403,7 +403,7 @@ mgr_destroy(dns_requestmgr_t *requestmgr) {
 		dns_dispatch_detach(&requestmgr->dispatchv6);
 	requestmgr->magic = 0;
 	mctx = requestmgr->mctx;
-	isc_mem_put(mctx, requestmgr, sizeof *requestmgr);
+	isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
 	isc_mem_detach(&mctx);
 }
 
@@ -685,7 +685,7 @@ dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 	request->event = (dns_requestevent_t *)
 		isc_event_allocate(mctx, task, DNS_EVENT_REQUESTDONE,
-				   action, arg, sizeof (dns_requestevent_t));
+				   action, arg, sizeof(dns_requestevent_t));
 	if (request->event == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
@@ -857,7 +857,7 @@ dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 	request->event = (dns_requestevent_t *)
 		isc_event_allocate(mctx, task, DNS_EVENT_REQUESTDONE,
-				   action, arg, sizeof (dns_requestevent_t));
+				   action, arg, sizeof(dns_requestevent_t));
 	if (request->event == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
