@@ -38,42 +38,19 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
 {
 	isc_result_t result;
 	unsigned int i;
-	isc_logcategory_t *cat;
 
 	for (i = 0; i < ccat->nextcname; i++) {
 		char *channelname = ccat->channel_names[i];
-
-		/*
-		 * XXX This needs to be completely rewritten.
-		 * The list of category names in lib/dns/confcommon.h is
-		 * derived from BIND 8 and not directly applicable to 
-		 * BIND 9,  and maintaining such a list in multiple places 
-		 * is a maintenance nightmare in any case.  Instead,
-		 * ccat->category should be character string,
-		 * and we should look up the category name at runtime.
-		 * Using an unknown category in named.conf
-		 * should cause a warning, not a syntax error.  Also, 
-		 * this whole  function and the named.conf "category" syntax
-		 * needs rethinking to integrate the "module" concept.
-		 */
-
-		switch (-1) {
-		case 0: /* XXX was dns_c_cat_default: */
-		        /*
-			 * For now, the default category is the only
-			 * one that works.
-			 */
-			 cat = ISC_LOGCATEGORY_DEFAULT;
-			 break;
-		default:
-			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
-				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "ignoring unsupported logging category");
-			continue;
-		}
-		
-		result = isc_log_usechannel(lctx, channelname, cat,
-					    NULL); /* XXX module */
+		isc_logcategory_t *category;
+		isc_logmodule_t *module;
+		category = isc_log_categorybyname(ns_g_lctx, ccat->catname);
+#ifdef notyet
+		module = isc_log_modulebyname(ns_g_lctx, ccat->modname);
+#else
+		module = NULL;
+#endif
+		result = isc_log_usechannel(lctx, channelname, category,
+					    module);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
