@@ -1,9 +1,9 @@
 1052.	[bug]		Journals were not being created in binary mode
 			resulting in "journal format not recognized" error
-			under Windows NT/2000.  [RT #1889]
+			under Windows NT/2000. [RT #1889]
 
 1051.	[bug]		Do not ignore a network interface completely just
-			because it has a noncontiguous netmask.  Instead,
+			because it has a noncontiguous netmask.	 Instead,
 			omit it from the localnets ACL and issue a warning.
 			[RT #1891]
 
@@ -94,7 +94,7 @@
 			correctly. [RT #1813]
 
 1017.	[bug]		When specifying TSIG keys to dig and nsupdate using
-			the -k option, they must be HMAC-MD5 keys.  [RT #1810]
+			the -k option, they must be HMAC-MD5 keys. [RT #1810]
 
 1016.	[bug]		Slave zones with no backup file were re-transferred
 			on every server reload.
@@ -168,7 +168,7 @@
 			(NOTAUTH)".
 
  972.	[bug]		The file modification time code in zone.c was using the
-			wrong epoch.  [RT #1667]
+			wrong epoch. [RT #1667]
 
  968.	[bug]		On win32, the isc_time_now() function was unnecessarily
 			calling strtime(). [RT #1671]
