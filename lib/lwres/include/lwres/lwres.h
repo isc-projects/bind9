@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.47 2001/01/09 21:59:47 bwelling Exp $ */
+/* $Id: lwres.h,v 1.48 2001/03/08 16:09:40 tale Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -81,13 +81,6 @@
 #define LWRES_RECVLENGTH	4096	/* XXXMLG */
 #define LWRES_ADDR_MAXLEN	16	/* changing this breaks ABI */
 #define LWRES_RESOLV_CONF	"/etc/resolv.conf"
-
-/*
- * XXXMLG
- */
-#ifndef INADDR_LOOPBACK
-#define INADDR_LOOPBACK 0x7f000001UL
-#endif
 
 /*
  * Flags.

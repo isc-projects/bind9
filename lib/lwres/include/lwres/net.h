@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.10 2001/01/09 21:59:48 bwelling Exp $ */
+/* $Id: net.h,v 1.11 2001/03/08 16:09:41 tale Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -42,7 +42,8 @@
  *
  * It declares lwres_net_aton(), lwres_net_ntop(), and lwres_net_pton().
  *
- * It ensures that INADDR_ANY and IN6ADDR_ANY_INIT are defined.
+ * It ensures that INADDR_LOOPBACK, INADDR_ANY and IN6ADDR_ANY_INIT
+ * are defined.
  */
 
 /***
@@ -79,6 +80,13 @@
 
 #ifndef LWRES_PLATFORM_HAVEIPV6
 #include <lwres/ipv6.h>		/* Contractual promise. */
+#endif
+
+/*
+ * XXXMLG
+ */
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK 0x7f000001UL
 #endif
 
 LWRES_LANG_BEGINDECLS
