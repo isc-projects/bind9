@@ -12,15 +12,12 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: rndc.8,v 1.19 2001/04/10 21:50:50 bwelling Exp $
-
 .TH "RNDC" "8" "June 30, 2000" "BIND9" ""
 .SH NAME
 rndc \- name server control utility
 .SH SYNOPSIS
 .sp
-\fBrndc\fR [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-s \fIserver\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-v\fR ]  [ \fB-y \fIkey_id\fB\fR ]  \fBcommand\fR
+\fBrndc\fR [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-s \fIserver\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-V\fR ]  [ \fB-y \fIkey_id\fB\fR ]  \fBcommand\fR
 .SH "DESCRIPTION"
 .PP
 \fBrndc\fR controls the operation of a name
@@ -66,6 +63,9 @@ Send commands to TCP port
 \fIport\fR instead
 of BIND 9's default control channel port, 953.
 .TP
+\fB-V\fR
+Enable verbose logging.
+.TP
 \fB-y \fIkeyid\fB\fR
 Use the key \fIkeyid\fR
 from the configuration file.
@@ -81,9 +81,6 @@ Note that the configuration file contains shared secrets
 which are used to send authenticated control commands
 to name servers. It should therefore not have general read
 or write access.
-.TP
-\fB-v\fR
-Enable verbose logging.
 .PP
 For the complete set of commands supported by \fBrndc\fR,
 see the BIND 9 Administrator Reference Manual or run
