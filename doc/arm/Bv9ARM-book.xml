@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.26 2003/08/27 02:23:38 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.27 2003/08/27 02:33:41 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2662,7 +2662,7 @@ exact match lookup before search path elements are appended.</para>
 <sect2>
       <title><command>masters</command> Statement Definition and Usage </title>
 <para><command>masters</command> lists allow for a common set of masters
-to be easily used by multiple stub and slave zones.
+to be easily used by multiple stub and slave zones.</para>
 </sect2>
 <sect2>
 <title><command>options</command> Statement Grammar</title>
