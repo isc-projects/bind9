@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.250 2002/09/09 02:54:18 marka Exp $ */
+/* $Id: resolver.c,v 1.251 2002/09/10 00:53:30 marka Exp $ */
 
 #include <config.h>
 
@@ -4646,6 +4646,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		}
 
 		if (get_nameservers) {
+			dns_name_t *name;
 			dns_fixedname_init(&foundname);
 			fname = dns_fixedname_name(&foundname);
 			if (result != ISC_R_SUCCESS) {
@@ -4653,9 +4654,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				return;
 			}
 			findoptions = 0;
+			if ((options & DNS_FETCHOPT_UNSHARED) == 0)
+				name = &fctx->name;
+			else
+				name = &fctx->domain;
 			result = dns_view_findzonecut(fctx->res->view,
-						      &fctx->name,
-						      fname,
+						      name, fname,
 						      now, 0, ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
