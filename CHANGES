@@ -1,3 +1,6 @@
+ 248.	[bug]		global lame-ttl option was not being printed when
+			config structures were written out.
+
  247.	[cleanup]	Rename cache-size config option to max-cache-size.
 
  246.	[func]		Rename global option cachesize to cache-size and

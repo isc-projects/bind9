@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.66 2000/06/09 15:03:22 brister Exp $ */
+/* $Id: confctx.c,v 1.67 2000/06/09 15:54:26 brister Exp $ */
 
 #include <config.h>
 
@@ -940,8 +940,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_MINUTES(max_transfer_idle_in, "max-transfer-idle-in");
 	PRINT_AS_MINUTES(max_transfer_idle_out, "max-transfer-idle-out");
 
-	/* XXX LAMETTL ??? */
-	
+	PRINT_INTEGER(lamettl, "lame-ttl");
 	PRINT_INTEGER(tcp_clients, "tcp-clients");
 	PRINT_INTEGER(recursive_clients, "recursive-clients");
 	PRINT_INTEGER(min_roots, "min-roots");
