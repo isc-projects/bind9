@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.106 2000/08/01 01:11:15 tale Exp $ */
+/* $Id: dighost.c,v 1.107 2000/08/02 14:38:51 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -725,11 +725,11 @@ add_question(dns_message_t *message, dns_name_t *name,
 static void
 check_if_done(void) {
 	debug("check_if_done()");
-	debug("sockcount=%d, recvcount=%d, sendcount=%d, list %s",
-	      sockcount, recvcount, sendcount,
-	      ISC_LIST_EMPTY(lookup_list)?"empty":"full");
-	if ((sockcount == 0) && (recvcount == 0) && (sendcount == 0)
-	    && ISC_LIST_EMPTY(lookup_list)) {
+	debug("list %s", ISC_LIST_EMPTY(lookup_list)?"empty":"full");
+	if (ISC_LIST_EMPTY(lookup_list) && current_lookup == NULL) {
+		INSIST(sockcount == 0);
+		INSIST(recvcount == 0);
+		INSIST(sendcount == 0);
 		debug("shutting down");
 		dighost_shutdown();
 	}
@@ -1493,6 +1493,8 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 	else {
+		printf(";; connection timed out; no servers could be "
+		       "reached\n");
 		cancel_lookup(lookup);
 	}
 	UNLOCK_LOOKUP;
@@ -1535,13 +1537,13 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	if (sevent->result != ISC_R_SUCCESS) {
-		debug("buffer allocate connect_timeout");
 		result = isc_buffer_allocate(mctx, &b, 256);
 		check_result(result, "isc_buffer_allocate");
 		result = isc_sockaddr_totext(&query->sockaddr, b);
 		check_result(result, "isc_sockaddr_totext");
 		isc_buffer_usedregion(b, &r);
-		printf("%.*s: %s\n", (int)r.length, r.base,
+		printf(";; communications error to %.*s: %s\n",
+		       (int)r.length, r.base,
 		       isc_result_totext(sevent->result));
 		isc_buffer_free(&b);
 		l = query->lookup;
@@ -2166,8 +2168,17 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}
-	fatal("recv_done got result %s",
-	      isc_result_totext(sevent->result));
+	printf(";; communications error: %s\n",
+	       isc_result_totext(sevent->result));
+	isc_socket_detach(&query->sock);
+	sockcount--;
+	debug("sockcount=%d",sockcount);
+	INSIST(sockcount >= 0);
+	isc_event_free(&event);
+	clear_query(query);
+	check_next_lookup(l);
+	UNLOCK_LOOKUP;
+	return;
 }
 
 /*
