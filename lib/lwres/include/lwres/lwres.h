@@ -350,6 +350,11 @@ int
 lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		     isc_uint32_t addrtypes, lwres_gabnresponse_t **structp);
 
+int
+lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
+		    isc_uint16_t addrlen, unsigned char *addr,
+		    lwres_gnbaresponse_t **structp);
+
 ISC_LANG_ENDDECLS
 
 #endif /* LWRES_LWRES_H */

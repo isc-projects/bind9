@@ -189,3 +189,104 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 
 	return (ret);
 }
+
+
+int
+lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
+		    isc_uint16_t addrlen, unsigned char *addr,
+		    lwres_gnbaresponse_t **structp)
+{
+	lwres_gnbarequest_t request;
+	lwres_gnbaresponse_t *response;
+	int ret;
+	int free_b;
+	lwres_buffer_t b;
+	lwres_lwpacket_t pkt;
+	isc_uint32_t serial;
+	char *buffer;
+
+	REQUIRE(ctx != NULL);
+	REQUIRE(addrtype != 0);
+	REQUIRE(addrlen != 0);
+	REQUIRE(addr != NULL);
+	REQUIRE(structp != NULL && *structp == NULL);
+
+	response = NULL;
+	free_b = 0;
+	buffer = NULL;
+	serial = (isc_uint32_t)addr;
+
+	buffer = CTXMALLOC(LWRES_RECVLENGTH);
+	if (buffer == NULL) {
+		ret = -1;
+		goto out;
+	}
+
+	/*
+	 * Set up our request and render it to a buffer.
+	 */
+	request.addr.family = addrtype;
+	request.addr.length = addrlen;
+	request.addr.address = addr;
+	pkt.flags = 0;
+	pkt.serial = serial;
+	pkt.result = 0;
+	pkt.recvlength = LWRES_RECVLENGTH;
+
+	ret = lwres_gnbarequest_render(ctx, &request, &pkt, &b);
+	if (ret != 0)
+		goto out;
+	free_b = 1;
+
+	ret = lwres_context_sendrecv(ctx, b.base, b.length, buffer,
+				     LWRES_RECVLENGTH);
+	if (ret < 0)
+		goto out;
+
+	CTXFREE(b.base, b.length);
+	free_b = 0;
+
+	lwres_buffer_init(&b, buffer, ret);
+
+	/*
+	 * Parse the packet header.
+	 */
+	ret = lwres_lwpacket_parseheader(&b, &pkt);
+	if (ret != 0)
+		goto out;
+
+	/*
+	 * Sanity check.
+	 */
+	if (pkt.serial != serial) {
+		ret = -1;
+		goto out;
+	}
+	if (pkt.opcode != LWRES_OPCODE_GETNAMEBYADDR) {
+		ret = -1;
+		goto out;
+	}
+
+	/*
+	 * Parse the response.
+	 */
+	ret = lwres_gnbaresponse_parse(ctx, &pkt, &b, &response);
+	if (ret != 0)
+		goto out;
+	response->base = buffer;
+	response->baselen = LWRES_RECVLENGTH;
+	buffer = NULL; /* don't free this below */
+
+	*structp = response;
+	return (0);
+
+ out:
+	if (free_b != 0)
+		CTXFREE(b.base, b.length);
+	if (buffer != NULL)
+		CTXFREE(buffer, LWRES_RECVLENGTH);
+	if (response != NULL)
+		lwres_gnbaresponse_free(ctx, &response);
+
+	return (ret);
+}
