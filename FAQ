@@ -143,6 +143,18 @@ the slave despite the error message.
 
 Q: I keep getting log messages like the following.  Why?
 
+   Dec  4 23:47:59 client 10.0.0.1#1355: updating zone 'example.com/IN':
+   update failed: 'RRset exists (value dependent)' prerequisite not
+   satisfied (NXRRSET)
+
+A: DNS updates allow the update request to test to see if certain
+conditions are met prior to proceeding with the update.  The message
+above is saying that conditions were not met and the update is not
+proceeding.  See doc/rfc/rfc2136.txt for more details on prerequisites.
+
+
+Q: I keep getting log messages like the following.  Why?
+
    Jun 21 12:00:00.000 client 10.0.0.1#1234: update denied
 
 A: Someone is trying to update your DNS data using the RFC2136 Dynamic
@@ -295,3 +307,26 @@ running named-checkzone on it.
 	e.g.
 		dig axfr example.com @master-server > tmp
 		named-checkzone example.com tmp
+
+
+Q: I get error messages like "named.conf:99: unexpected end of input" where
+99 is the last line of named.conf.
+
+A: Some text editors (notepad and wordpad) fail to put a line termination
+indication (e.g. CR/LF) on the last line of a text file.  This can be fixed
+by "adding" a blank line to the end of the file.  Named expects to see EOF
+immediately after EOL and treats text files where this is not met as truncated.
+
+
+Q: I get warning messages like "zone example.com/IN: refresh: failure trying master
+1.2.3.4#53: timed out".
+
+A: Check that you can make UDP queries from the slave to the master
+
+	dig +norec example.com soa @1.2.3.4
+
+A: You could be generating queries faster than the slave can cope with.  Lower
+the serial query rate.
+
+	serial-query-rate 5; // default 20
+
