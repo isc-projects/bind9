@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.360 2001/11/07 04:25:13 marka Exp $ */
+/* $Id: server.c,v 1.361 2001/11/07 23:01:41 gson Exp $ */
 
 #include <config.h>
 
@@ -650,7 +650,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 */
 	max_adb_size = 0;
 	if (max_cache_size != 0) {
-		max_adb_size = max_cache_size/8;
+		max_adb_size = max_cache_size / 8;
 		if (max_adb_size == 0)
 			max_adb_size = 1;	/* Force minimum. */
 	}
