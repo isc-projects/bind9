@@ -4,6 +4,9 @@
 
  404.	[bug]		The request library didn't completely work with IPv6.
 
+ 381.	[bug]		Check for IPV6_RECVPKTINFO and use it instead of
+			IPV6_PKTINFO if found. [RT #229]
+
 	--- 9.0.0rc4 released ---
 
  403.	[bug]		"host" did not use the search list.

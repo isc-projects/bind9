@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.142.2.4 2000/08/22 01:45:28 bwelling Exp $ */
+/* $Id: socket.c,v 1.142.2.5 2000/08/25 01:16:55 gson Exp $ */
 
 #include <config.h>
 
@@ -1202,14 +1202,27 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #endif /* SO_TIMESTAMP */
 
 #if defined(ISC_PLATFORM_HAVEIPV6)
+#ifdef IPV6_RECVPKTINFO
+		/* 2292bis */
+		if ((pf == AF_INET6)
+		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
+				   (void *)&on, sizeof (on)) < 0)) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "setsockopt(%d, IPV6_RECVPKTINFO) "
+					 "failed: %s",
+					 sock->fd, strerror(errno));
+		}
+#else
+		/* 2292 */
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
 				   (void *)&on, sizeof (on)) < 0)) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "setsockopt(%d, IPV6_PKTINFO) failed: %s",
+					 "setsockopt(%d, IPV6_PKTINFO) "
+					 "failed: %s",
 					 sock->fd, strerror(errno));
 		}
-
+#endif /* IPV6_RECVPKTINFO */
 #ifdef IPV6_USE_MIN_MTU        /*2292bis, not too common yet*/
 		/* use minimum MTU */
 		if (pf == AF_INET6) {
