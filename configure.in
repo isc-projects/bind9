@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.233 $)
+AC_REVISION($Revision: 1.234 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1195,15 +1195,22 @@ AC_SUBST(ISC_PLATFORM_NEEDVSNPRINTF)
 AC_SUBST(ISC_EXTRA_OBJS)
 AC_SUBST(ISC_EXTRA_SRCS)
 
-AC_MSG_CHECKING(for sizeof(long long int) == sizeof(long int))
+#
+# Determine the printf format characters to use when printing
+# values of type isc_int64_t.  We make the assumption that platforms
+# where a "long long" is the same size as a "long" (e.g., Alpha/OSF1)
+# want "%ld" and everyone else can use "%lld".  Win32 uses "%I64d",
+# but that's defined elsewhere since we don't use configure on Win32.
+#
+AC_MSG_CHECKING(printf format modifier for 64-bit integers)
 AC_TRY_RUN([main() { exit(!(sizeof(long long int) == sizeof(long int))); }],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_LONGLONGEQUALLONG="#define ISC_PLATFORM_LONGLONGEQUALLONG 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_LONGLONGEQUALLONG="#undef ISC_PLATFORM_LONGLONGEQUALLONG"],
-	[AC_MSG_RESULT(default yes)
-	ISC_PLATFORM_LONGLONGEQUALLONG="#define ISC_PLATFORM_LONGLONGEQUALLONG 1"])
-AC_SUBST(ISC_PLATFORM_LONGLONGEQUALLONG)
+	[AC_MSG_RESULT(l)
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'],
+	[AC_MSG_RESULT(ll)
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'],
+	[AC_MSG_RESULT(default ll)
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'])
+AC_SUBST(ISC_PLATFORM_QUADFORMAT)
 
 #
 # Security Stuff
