@@ -29,6 +29,7 @@
 
 #include	<dns/master.h>
 #include	<dns/name.h>
+#include	<dns/rdataclass.h>
 #include	<dns/rdataset.h>
 #include	<dns/result.h>
 #include	<dns/types.h>
@@ -64,7 +65,7 @@ t1_commit_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *owner,
 }
 
 static int
-test_master(char *testfile, char *origin, dns_result_t exp_result) {
+test_master(char *testfile, char *origin, char *class, dns_result_t exp_result) {
 	int			result;
 	int			len;
 	isc_result_t		isc_result;
@@ -76,52 +77,64 @@ test_master(char *testfile, char *origin, dns_result_t exp_result) {
 	int			soacount;
 	int			nscount;
 	dns_rdatacallbacks_t	callbacks;
+	dns_rdataclass_t	rdataclass;
+	isc_textregion_t	textregion;
 
 	result = T_UNRESOLVED;
 	if (T1_mctx == NULL)
 		isc_result = isc_mem_create(0, 0, &T1_mctx);
 	else
 		isc_result = ISC_R_SUCCESS;
-	if (isc_result == ISC_R_SUCCESS) {
-		len = strlen(origin);
-		isc_buffer_init(&source, origin, len,
-				ISC_BUFFERTYPE_TEXT);
-		isc_buffer_add(&source, len);
-		isc_buffer_setactive(&source, len);
-		isc_buffer_init(&target, name_buf, BUFLEN, ISC_BUFFERTYPE_BINARY);
-		dns_name_init(&dns_origin, NULL);
-		dns_result = dns_name_fromtext(&dns_origin, &source, dns_rootname,
-					   ISC_FALSE, &target);
-		if (dns_result == DNS_R_SUCCESS) {
-			dns_rdatacallbacks_init(&callbacks);
-			callbacks.commit = t1_commit_callback;
-			
-			dns_result = dns_master_load(	testfile,
-							&dns_origin,
-							&dns_origin,
-							1,
-							ISC_FALSE,
-						 	&soacount,
-							&nscount,
-						 	&callbacks,
-							T1_mctx);
-
-			if (dns_result == exp_result)
-				result = T_PASS;
-			else {
-				t_info("dns_master_load: got %s, expected %s\n",
-					dns_result_totext(dns_result),
-					dns_result_totext(exp_result));
-				result = T_FAIL;
-			}
-		}
-		else {
-			t_info("dns_name_fromtext failed %s\n",
-					dns_result_totext(dns_result));
-		}
-	}
-	else {
+	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mem_create failed %d\n", isc_result);
+		return(T_UNRESOLVED);
+	}
+
+	len = strlen(origin);
+	isc_buffer_init(&source, origin, len,
+			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+	isc_buffer_setactive(&source, len);
+	isc_buffer_init(&target, name_buf, BUFLEN, ISC_BUFFERTYPE_BINARY);
+	dns_name_init(&dns_origin, NULL);
+	dns_result = dns_name_fromtext(&dns_origin, &source, dns_rootname,
+				   ISC_FALSE, &target);
+	if (dns_result != DNS_R_SUCCESS) {
+		t_info("dns_name_fromtext failed %s\n",
+				dns_result_totext(dns_result));
+		return(T_UNRESOLVED);
+	}
+
+	dns_rdatacallbacks_init(&callbacks);
+	callbacks.commit = t1_commit_callback;
+	
+	textregion.base = class;
+	textregion.length = strlen(class);
+
+	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
+	if (dns_result != DNS_R_SUCCESS) {
+		t_info("dns_rdataclass_fromtext failed %s\n",
+				dns_result_totext(dns_result));
+		return(T_UNRESOLVED);
+	}
+
+	dns_result = dns_master_load(	testfile,
+					&dns_origin,
+					&dns_origin,
+					rdataclass,
+					1,
+				 	&soacount,
+					&nscount,
+				 	&callbacks,
+					T1_mctx);
+
+	if (dns_result == exp_result)
+		result = T_PASS;
+	else {
+		t_info("dns_master_load: got %s, expected %s\n",
+			dns_result_totext(dns_result),
+			dns_result_totext(exp_result));
+		result = T_FAIL;
 	}
 	return(result);
 }
@@ -148,13 +161,14 @@ test_master_x(char *filename) {
 			if ((isspace(*p)) || (*p == '#'))
 				continue;
 
-			/* name of data file, origin, expected result */
+			/* name of data file, origin, zclass, expected result */
 			cnt = t_bustline(p, Tokens);
-			if (cnt == 3) {
+			if (cnt == 4) {
 				result = test_master(
 						Tokens[0],
 						Tokens[1],
-						t_dns_result_fromtext(Tokens[2]));
+						Tokens[2],
+						t_dns_result_fromtext(Tokens[3]));
 			}
 			else {
 				t_info("bad format in %s at line %d\n",
