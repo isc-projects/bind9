@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.110 2001/03/06 23:54:30 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.111 2001/03/07 00:25:22 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3705,7 +3705,7 @@ is buggy and crashes or corrupts data when IXFR is used.</para>
 
 <para>The <command>edns</command> clause determines whether the local server
 will attempt to use EDNS when communicating with the remote server.  The
-default is yes.</para>
+default is <command>yes</command>.</para>
 
 <para>The server supports two zone transfer methods. The first, <command>one-answer</command>,
 uses one DNS message per resource record transferred. <command>many-answers</command> packs
