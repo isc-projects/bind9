@@ -144,9 +144,11 @@ struct dns_c_options
 	isc_int32_t	       *max_transfer_time_out;
 	isc_int32_t	       *max_transfer_idle_in;
 	isc_int32_t	       *max_transfer_idle_out;
-	isc_int32_t	       *lamettl;
+	isc_int32_t	       *lamettl; /* XXX not parsed yet */
 	isc_int32_t	       *tcp_clients;
 	isc_int32_t	       *recursive_clients;
+	isc_int32_t	       *min_roots;
+	isc_int32_t	       *serial_queries;
 	
 	isc_uint32_t	       *data_size;
 	isc_uint32_t	       *stack_size;
@@ -171,6 +173,7 @@ struct dns_c_options
 	isc_boolean_t	       *rfc2308_type1;
 	isc_boolean_t	       *request_ixfr;
 	isc_boolean_t	       *provide_ixfr;
+	isc_boolean_t	       *treat_cr_as_space;
 	
 	isc_sockaddr_t	       *transfer_source;
 	isc_sockaddr_t	       *transfer_source_v6;
@@ -449,6 +452,20 @@ isc_result_t dns_c_ctx_getrecursiveclients(dns_c_ctx_t *cfg,
 isc_result_t dns_c_ctx_unsetrecursiveclients(dns_c_ctx_t *cfg);
 
 
+isc_result_t dns_c_ctx_setminroots(dns_c_ctx_t *cfg,
+				   isc_int32_t newval);
+isc_result_t dns_c_ctx_getminroots(dns_c_ctx_t *cfg,
+				   isc_int32_t *retval);
+isc_result_t dns_c_ctx_unsetminroots(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setserialqueries(dns_c_ctx_t *cfg,
+					isc_int32_t newval);
+isc_result_t dns_c_ctx_getserialqueries(dns_c_ctx_t *cfg,
+					isc_int32_t *retval);
+isc_result_t dns_c_ctx_unsetserialqueries(dns_c_ctx_t *cfg);
+
+
 isc_result_t dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t dns_c_ctx_getdatasize(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetdatasize(dns_c_ctx_t *cfg);
@@ -590,6 +607,14 @@ isc_result_t dns_c_ctx_setprovideixfr(dns_c_ctx_t *cfg,
 isc_result_t dns_c_ctx_getprovideixfr(dns_c_ctx_t *cfg,
 				      isc_boolean_t *retval);
 isc_result_t dns_c_ctx_unsetprovideixfr(dns_c_ctx_t *cfg);
+
+
+
+isc_result_t dns_c_ctx_settreatcrasspace(dns_c_ctx_t *cfg,
+					 isc_boolean_t newval);
+isc_result_t dns_c_ctx_gettreatcrasspace(dns_c_ctx_t *cfg,
+					 isc_boolean_t *retval);
+isc_result_t dns_c_ctx_unsettreatcrasspace(dns_c_ctx_t *cfg);
 
 
 
