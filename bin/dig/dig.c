@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.44 2000/06/16 17:59:59 mws Exp $ */
+/* $Id: dig.c,v 1.45 2000/06/19 19:00:49 mws Exp $ */
 
 #include <config.h>
 
@@ -165,8 +165,8 @@ show_usage(void) {
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
 "                 +qr                 (Print question before sending)\n"
-"                 +[no]cd             (Set or clear CD flag in query)\n"
-"                 +[no]ad             (Set or clear AD flag in query)\n"
+"                 +[no]cdflag         (Set or clear CD flag in query)\n"
+"                 +[no]adflag         (Set or clear AD flag in query)\n"
 "                 +[no]nssearch       (Search all authorative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
@@ -668,12 +668,12 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				lookup->aaonly = ISC_FALSE;
 			else
 				aaonly = ISC_FALSE;
-		} else if (strncmp(rv[0], "+ad", 3) == 0) {
+		} else if (strncmp(rv[0], "+adf", 4) == 0) {
 			if (have_host) 
 				lookup->adflag = ISC_TRUE;
 			else
 				adflag = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noad", 5) == 0) {
+		} else if (strncmp(rv[0], "+noadf", 6) == 0) {
 			if (have_host) 
 				lookup->adflag = ISC_FALSE;
 			else
