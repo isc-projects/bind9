@@ -19,7 +19,6 @@
 # Start name servers for running system tests.
 #
 
-
 . ./conf.sh
 cd $1
 
@@ -46,3 +45,19 @@ do
     )
 done
 
+
+# Make sure all of the servers are up.
+
+status=0
+
+for d in ns*
+do
+	n=`echo $d | sed 's/ns//'`
+	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+		version.bind. chaos txt @10.53.0.$n soa > dig.out
+	status=`expr $status + $?`
+	grep ";" dig.out
+done
+rm -f dig.out
+
+exit $status
