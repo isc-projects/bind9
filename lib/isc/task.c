@@ -722,6 +722,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	isc_thread_t *threads;
 
 	REQUIRE(workers > 0);
+	REQUIRE(managerp != NULL && *managerp == NULL);
 
 	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
