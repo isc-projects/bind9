@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch_test.c,v 1.43 2000/06/22 21:50:15 tale Exp $ */
+/* $Id: dispatch_test.c,v 1.44 2000/06/28 16:19:56 explorer Exp $ */
 
 #include <config.h>
 
@@ -423,7 +423,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	dispatchmgr = NULL;
-	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, NULL, &dispatchmgr)
 		      == ISC_R_SUCCESS);
 
 	isc_sockaddr_any(&sa);

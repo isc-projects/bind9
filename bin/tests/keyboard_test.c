@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: keyboard_test.c,v 1.3 2000/06/23 16:18:57 tale Exp $ */
+/* $Id: keyboard_test.c,v 1.4 2000/06/28 16:19:57 explorer Exp $ */
 
 #include <config.h>
 
@@ -59,13 +59,13 @@ main(int argc, char **argv) {
 	}
 	printf("\r\n");
 	if (res != ISC_R_SUCCESS) {
-		printf("FAILURE:  keyboard close failed:  %s\r\n",
+		printf("FAILURE:  keyboard getchar failed:  %s\r\n",
 		       isc_result_totext(res));
 		goto errout;
 	}
 
  errout:
-	res = isc_keyboard_close(&kbd);
+	res = isc_keyboard_close(&kbd, 3);
 	CHECK("isc_keyboard_close()", res);
 
 	return (0);

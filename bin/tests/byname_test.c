@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.18 2000/06/22 21:50:11 tale Exp $ */
+/* $Id: byname_test.c,v 1.19 2000/06/28 16:19:54 explorer Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -240,7 +240,7 @@ main(int argc, char *argv[]) {
 	isc_task_setname(task, "byname", NULL);
 
 	dispatchmgr = NULL;
-	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, NULL, &dispatchmgr)
 		      == ISC_R_SUCCESS);
 
 	timermgr = NULL;
