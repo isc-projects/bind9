@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.50 2000/06/22 22:37:29 mws Exp $ */
+/* $Id: dig.c,v 1.51 2000/06/23 16:53:53 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -306,6 +306,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_result_t result;
 	dns_messagetextflag_t flags;
 	isc_buffer_t *buf = NULL;
+	unsigned int len = OUTPUTBUF;
 
 	UNUSED (query);
 
@@ -329,7 +330,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	result = ISC_R_SUCCESS;
 
-	result = isc_buffer_allocate(mctx, &buf, OUTPUTBUF);
+	result = isc_buffer_allocate(mctx, &buf, len);
 	check_result (result, "isc_buffer_allocate");
 
 	if (query->lookup->comments && !short_form) {
@@ -391,17 +392,33 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if (query->lookup->section_question && headers) {
 		if (!short_form) {
+ question_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_QUESTION,
 						       flags, buf);
+			if (result == ISC_R_NOSPACE) {
+				len += OUTPUTBUF;
+				isc_buffer_free(&buf);
+				result = isc_buffer_allocate(mctx, &buf, len);
+				if (result == ISC_R_SUCCESS)
+					goto question_again;
+			}
 			check_result(result, "dns_message_sectiontotext");
 		}
 	}			
 	if (query->lookup->section_answer) {
 		if (!short_form) {
+ answer_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_ANSWER,
 						       flags, buf);
+			if (result == ISC_R_NOSPACE) {
+				len += OUTPUTBUF;
+				isc_buffer_free(&buf);
+				result = isc_buffer_allocate(mctx, &buf, len);
+				if (result == ISC_R_SUCCESS)
+					goto answer_again;
+			}
 			check_result(result, "dns_message_sectiontotext");
 		}
 		else {
@@ -411,17 +428,33 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}			
 	if (query->lookup->section_authority) {
 		if (!short_form) {
+ authority_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_AUTHORITY,
 						       flags, buf);
+			if (result == ISC_R_NOSPACE) {
+				len += OUTPUTBUF;
+				isc_buffer_free(&buf);
+				result = isc_buffer_allocate(mctx, &buf, len);
+				if (result == ISC_R_SUCCESS)
+					goto authority_again;
+			}
 			check_result(result, "dns_message_sectiontotext");
 		}
 	}			
 	if (query->lookup->section_additional) {
 		if (!short_form) {
+ additional_again:
 			result = dns_message_sectiontotext(msg,
 						      DNS_SECTION_ADDITIONAL,
 						      flags, buf);
+			if (result == ISC_R_NOSPACE) {
+				len += OUTPUTBUF;
+				isc_buffer_free(&buf);
+				result = isc_buffer_allocate(mctx, &buf, len);
+				if (result == ISC_R_SUCCESS)
+					goto additional_again;
+			}
 			check_result(result, "dns_message_sectiontotext");
 			/* Only print the signature on the first record */
 			if (headers) {

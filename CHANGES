@@ -1,3 +1,5 @@
+ 276.	[bug]		dig now supports maximum sized TCP messages.
+
  275.	[bug]		The definition of lwres_gai_strerror() was missing 
 			the lwres_ prefix.
 
