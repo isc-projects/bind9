@@ -8,6 +8,10 @@ Examine dig8's behavior when one of the servers it talks to servfail's
 back, and, if necessary, reproduce behavior in dig9.  (RT351)
 
 Remove or fix port number display in places where it is not correctly
-reported (nslookup, in particular). (RT352)
+reported (nslookup, in particular). (RT352)	[COMPLETED]
+
+Check text strings for host and nslookup output ov various types.
+
+Check functionality of +search option
 
 

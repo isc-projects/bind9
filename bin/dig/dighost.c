@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.133 2000/09/22 23:21:32 mws Exp $ */
+/* $Id: dighost.c,v 1.134 2000/09/25 23:09:57 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -296,6 +296,7 @@ make_empty_lookup(void) {
 	looknew->trace_root = ISC_FALSE;
 	looknew->identify = ISC_FALSE;
 	looknew->ignore = ISC_FALSE;
+	looknew->next_on_fail = ISC_FALSE;
 	looknew->udpsize = 0;
 	looknew->recurse = ISC_TRUE;
 	looknew->aaonly = ISC_FALSE;
@@ -347,6 +348,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->trace_root = lookold->trace_root;
 	looknew->identify = lookold->identify;
 	looknew->ignore = lookold->ignore;
+	looknew->next_on_fail = lookold->next_on_fail;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
         looknew->aaonly = lookold->aaonly;
@@ -2175,6 +2177,36 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			UNLOCK_LOOKUP;
 			return;
 		}			
+		if ((msg->rcode == dns_rcode_servfail) &&
+		    l->next_on_fail) {
+			dig_query_t *next = ISC_LIST_NEXT(query, link);
+			if (l->current_query == query)
+				l->current_query = NULL;
+			if (next != NULL) {
+				debug("sending query %lx\n", next);
+				if (l->tcp_mode)
+					send_tcp_connect(next);
+				else
+					send_udp(next);
+			}
+			/*
+			 * If our query is at the head of the list and there
+			 * is no next, we're the only one left, so fall
+			 * through to print the message.
+			 */
+			if ((ISC_LIST_HEAD(l->q) != query) ||
+			    (ISC_LIST_NEXT(query, link) != NULL)) {
+				printf(";; Got SERVFAIL reply from %s, "
+				       "trying next server\n",
+				       query->servname);
+				clear_query(query);
+				check_next_lookup(l);
+				dns_message_destroy(&msg);
+				isc_event_free(&event);
+				UNLOCK_LOOKUP;
+				return;
+			}
+		}
 
 		if (key != NULL) {
 			result = dns_tsig_verify(&query->recvbuf, msg,

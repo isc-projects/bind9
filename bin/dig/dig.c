@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.101 2000/09/25 16:14:20 mws Exp $ */
+/* $Id: dig.c,v 1.102 2000/09/25 23:09:56 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -160,6 +160,7 @@ show_usage(void) {
 "                 +[no]recursive      (Recursive mode)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)"
 "\n"
+"                 +[no]fail           (Try next server on SERVFAIL reply)\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
@@ -596,7 +597,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				lookup->section_additional = state;
 				break;
 			case 'f': /* adflag */
-				lookup->adflag = ISC_FALSE;
+				lookup->adflag = state;
 				break;
 			default:
 				goto invalid_option;
@@ -669,6 +670,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		default:
 			goto invalid_option;
 		}
+		break;
+	case 'f': /* fail */
+		lookup->next_on_fail = state;
 		break;
 	case 'i':
 		switch (tolower(cmd[1])) {
@@ -799,9 +803,6 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					show_details = ISC_TRUE;
 				}
 				break;
-			case 'e': /* recurse */
-				lookup->recurse = ISC_TRUE;
-				break;
 			case 'i': /* tries */
 				if (value == NULL)
 					goto need_value;
@@ -814,9 +815,11 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			default:
 				goto invalid_option;
 			}
+			break;
 		default:
 			goto invalid_option;
 		}
+		break;
 	case 'v': /* vc */
 		if (!is_batchfile)
 			lookup->tcp_mode = state;
@@ -867,7 +870,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		exit(0);
 		break;
 	case 'm':
-		isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+		isc_mem_debugging = ISC_MEM_DEBUGTRACE | ISC_MEM_DEBUGRECORD;
 		return (ISC_FALSE);
 		break;
 	case 'n':
@@ -1270,6 +1273,8 @@ main(int argc, char **argv) {
 				 (dig_server_t *)s2, link);
 		isc_mem_free(mctx, s2);
 	}
+	if (isc_mem_debugging != 0)
+		isc_mem_stats(mctx, stderr);
 	isc_mem_free(mctx, default_lookup);
 	if (batchname != NULL) {
 		if (batchfp != stdin)
