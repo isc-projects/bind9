@@ -180,7 +180,7 @@ get_address(char *hostname, unsigned int port, isc_sockaddr_t *sockaddr) {
 static void
 recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent;
-	isc_buffer_t b;
+	isc_buffer_t *b;
 	isc_result_t result;
 
 	REQUIRE(event->type == ISC_SOCKEVENT_RECVDONE);
@@ -188,14 +188,16 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	(void)task;
 
+	/*
+	 * There will be one buffer (since that is what we put on the list)
+	 */
 	if (sevent->result == ISC_R_SUCCESS) {
-		isc_buffer_init(&b, sevent->region.base, sevent->n,
-				ISC_BUFFERTYPE_BINARY);
-		isc_buffer_add(&b, sevent->n);
+		b = ISC_LIST_HEAD(sevent->bufferlist);
+		ISC_LIST_DEQUEUE(sevent->bufferlist, b, link);
 		dns_message_reset(message, DNS_MESSAGE_INTENTPARSE);
-		result = dns_message_parse(message, &b, ISC_FALSE);
+		result = dns_message_parse(message, b, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
-			hex_dump(&b);
+			hex_dump(b);
 		check_result(result, "dns_message_parse()");
 		result = printmessage(message);
 		check_result(result, "printmessage()");
@@ -223,16 +225,16 @@ main(int argc, char *argv[]) {
 	dns_rdataclass_t rdclass, nclass;
 	size_t len;
 	isc_buffer_t b, b2;
+	isc_bufferlist_t bufferlist;
 	isc_result_t result;
-	isc_region_t r;
 	isc_textregion_t tr;
 	isc_mem_t *mctx;
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
 	isc_socketmgr_t *socketmgr;
 	isc_socket_t *sock;
-	unsigned char *data[SDIG_BUFFER_SIZE];
-	unsigned char *data2[SDIG_BUFFER_SIZE];
+	static unsigned char *data[SDIG_BUFFER_SIZE];
+	static unsigned char *data2[SDIG_BUFFER_SIZE];
 	isc_sockaddr_t sockaddr;
 	int i;
 
@@ -356,12 +358,13 @@ main(int argc, char *argv[]) {
 	check_result(result, "isc_socket_create()");
 
 	isc_buffer_init(&b2, data2, sizeof data2, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_available(&b2, &r);
-	result = isc_socket_recv(sock, &r, 1, task, recv_done, NULL);
-	check_result(result, "isc_socket_recv()");
-	isc_buffer_used(&b, &r);
-	result = isc_socket_sendto(sock, &r, task, send_done, NULL, &sockaddr);
-	check_result(result, "isc_socket_sendto()");
+	ISC_LIST_ENQUEUE(bufferlist, &b2, link);
+	result = isc_socket_recvv(sock, &bufferlist, 1, task, recv_done, NULL);
+	check_result(result, "isc_socket_recvv()");
+	ISC_LIST_ENQUEUE(bufferlist, &b, link);
+	result = isc_socket_sendtov(sock, &bufferlist, task, send_done, NULL,
+				    &sockaddr);
+	check_result(result, "isc_socket_sendtov()");
 
 	isc_app_run();
 
