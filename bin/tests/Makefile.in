@@ -56,7 +56,8 @@ TARGETS =	sdig \
 		compress_test \
 		mempool_test \
 		dispatch_test \
-		dispatch_tcp_test
+		dispatch_tcp_test \
+		serial_test
 
 SRCS =		sdig.c \
 		nxtify.c \
@@ -78,7 +79,8 @@ SRCS =		sdig.c \
 		mempool_test.c \
 		dispatch_test.c \
 		dispatch_tcp_test.c \
-		printmsg.c
+		printmsg.c \
+		serial_test.c
 
 @BIND9_MAKE_RULES@
 
@@ -152,6 +154,10 @@ compress_test: compress_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 mempool_test: mempool_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ mempool_test.o \
+		${ISCLIBS} ${LIBS}
+
+serial_test: serial_test.o ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone_test.o \
 		${ISCLIBS} ${LIBS}
 
 dispatch_test: dispatch_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
