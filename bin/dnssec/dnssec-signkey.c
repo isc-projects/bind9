@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.50.2.2 2003/07/23 06:57:58 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.50.2.2.2.1 2003/08/01 23:50:46 marka Exp $ */
 
 #include <config.h>
 
@@ -159,7 +159,6 @@ main(int argc, char *argv[]) {
 	char *output = NULL;
 	char *endp;
 	unsigned char *data;
-	char *randomfile = NULL;
 	dns_db_t *db;
 	dns_dbnode_t *node;
 	dns_dbversion_t *version;
@@ -209,7 +208,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'r':
-			randomfile = isc_commandline_argument;
+			setup_entropy(mctx, isc_commandline_argument, &ectx);
 			break;
 
 		case 'v':
@@ -241,7 +240,8 @@ main(int argc, char *argv[]) {
 	} else
 		rdclass = dns_rdataclass_in;
 
-	setup_entropy(mctx, randomfile, &ectx);
+	if (ectx == NULL)
+		setup_entropy(mctx, NULL, &ectx);
 	eflags = ISC_ENTROPY_BLOCKING;
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;

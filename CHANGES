@@ -1,3 +1,6 @@
+ 981.	[func]		The dnssec tools can now take multiple '-r randomfile'
+ 			arguments.
+
  979.	[func]		Incremental master file dumping.  dns_master_dumpinc(),
 			dns_master_dumptostreaminc(), dns_dumpctx_attach(),
 			dns_dumpctx_detach(), dns_dumpctx_cancel(),

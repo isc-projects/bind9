@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2 2003/03/06 04:38:13 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.1 2003/08/01 23:50:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1511,7 +1511,6 @@ main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
-	char *randomfile = NULL;
 	char *endp;
 	isc_time_t timer_start, timer_finish;
 	signer_key_t *key;
@@ -1563,7 +1562,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'r':
-			randomfile = isc_commandline_argument;
+			setup_entropy(mctx, isc_commandline_argument, &ectx);
 			break;
 
 		case 'v':
@@ -1618,7 +1617,8 @@ main(int argc, char *argv[]) {
 "WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
 #endif
 
-	setup_entropy(mctx, randomfile, &ectx);
+	if (ectx == NULL)
+		setup_entropy(mctx, NULL, &ectx);
 	eflags = ISC_ENTROPY_BLOCKING;
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;
