@@ -1,4 +1,0 @@
-
-ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATASTRUCT_H */
