@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.54 2000/12/07 20:15:54 marka Exp $ */
+/* $Id: lex.c,v 1.55 2000/12/09 00:41:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,7 @@ typedef struct inputsource {
 	void *				input;
 	char *				name;
 	unsigned long			line;
+	unsigned long			saved_line;
 	LINK(struct inputsource)	link;
 } inputsource;
 
@@ -345,13 +346,14 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
 		isc_buffer_usedregion(source->pushback, &used);
 		result = isc_buffer_copyregion(tbuf, &used);
 		INSIST(result == ISC_R_SUCCESS);
+		tbuf->current = source->pushback->current;
 		isc_buffer_free(&source->pushback);
 		source->pushback = tbuf;
 	}
 	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
 	return (ISC_R_SUCCESS);
 }
-	
+
 isc_result_t
 isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	inputsource *source;
@@ -379,6 +381,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	REQUIRE(tokenp != NULL);
 
 	lex->saved_paren_count = lex->paren_count;
+	source->saved_line = source->line;
 
 	if (source == NULL) {
 		if ((options & ISC_LEXOPT_NOMORE) != 0) {
@@ -448,6 +451,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					return (source->result);
 			}
 		}
+
 		if (!source->at_eof)
 			c = isc_buffer_getuint8(source->pushback);
 		else
@@ -787,6 +791,7 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 
 	isc_buffer_first(source->pushback);
 	lex->paren_count = lex->saved_paren_count;
+	source->line = source->saved_line;
 	source->at_eof = ISC_FALSE;
 }
 
