@@ -1,3 +1,7 @@
+ 528.	[func]		The ISC_LIST_XXXX macros now perform sanity checks
+			on their arguements.  ISC_LIST_XXXXUNSAFE can be use
+			to skip the checks however use with caution.
+
  527.	[func]		New function dns_rdata_clone().
 
  526.	[bug]		nsupdate incorrectly refused to add RRs with a TTL
