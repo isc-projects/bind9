@@ -154,7 +154,7 @@ new_task(isc_mem_t *mctx) {
 	return (ti);
 }
 
-void
+int
 main(int argc, char *argv[]) {
 	unsigned int workers;
 	t_info *t1, *t2;
@@ -197,4 +197,6 @@ main(int argc, char *argv[]) {
 	isc_mem_destroy(&mctx2);
 
 	isc_app_finish();
+
+	return (0);
 }
