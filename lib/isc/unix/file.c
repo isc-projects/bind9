@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.31 2001/05/03 18:59:30 bwelling Exp $ */
+/* $Id: file.c,v 1.32 2001/05/05 02:47:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -235,7 +235,7 @@ isc_file_iscurrentdir(const char *filename) {
 	return (ISC_TF(filename[0] == '.' && filename[1] == '\0'));
 }
 
-char *
+const char *
 isc_file_basename(const char *filename) {
 	char *s;
 

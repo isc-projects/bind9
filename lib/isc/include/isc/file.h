@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.16 2001/05/03 18:59:28 bwelling Exp $ */
+/* $Id: file.h,v 1.17 2001/05/05 02:47:19 bwelling Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -177,7 +177,7 @@ isc_file_iscurrentdir(const char *filename);
  * Return ISC_TRUE iff the given file name is the current directory (".").
  */
 
-char *
+const char *
 isc_file_basename(const char *filename);
 /*
  * Return the final component of the path in the file name.
