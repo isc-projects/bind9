@@ -928,6 +928,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * section, bail.
 		 */
 		if (msg->opcode != dns_opcode_update
+		    && rdtype != dns_rdatatype_tsig
 		    && msg->rdclass != rdclass)
 			return (DNS_R_FORMERR);
 
@@ -937,6 +938,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (rdtype == dns_rdatatype_tsig) {
 			if (sectionid != DNS_SECTION_ADDITIONAL)
+				return (DNS_R_FORMERR);
+			if (rdclass != dns_rdataclass_any)
 				return (DNS_R_FORMERR);
 			section = &msg->sections[DNS_SECTION_TSIG];
 		}
