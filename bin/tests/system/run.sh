@@ -37,6 +37,7 @@ test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
 
 echo "S:$test:`date`" >&2
 echo "T:$test:1:A" >&2
+echo "A:System test $test: >&2
 
 # Irix does not have /var/run
 test -f /var/run/system_test_ifsetup ||

@@ -15,8 +15,6 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-echo "A:A test to determine online functionality of views"
-
 #
 # Perform tests
 #

@@ -18,8 +18,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "A:A test to determine online functionality of zone transfers"
-
 #
 # Perform tests
 #
