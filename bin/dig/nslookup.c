@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.76 2001/01/17 00:48:19 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.77 2001/01/17 02:21:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -184,16 +184,76 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 
 }
 
+static void
+printsoa(dns_rdata_t *rdata) {
+	dns_rdata_soa_t soa;
+	isc_result_t result;
+	char namebuf[DNS_NAME_FORMATSIZE];
+
+	result = dns_rdata_tostruct(rdata, &soa, NULL);
+	check_result(result, "dns_rdata_tostruct");
+
+	dns_name_format(&soa.origin, namebuf, sizeof(namebuf));
+	printf("\torigin = %s\n", namebuf);
+	dns_name_format(&soa.mname, namebuf, sizeof(namebuf));
+	printf("\tmail addr = %s\n", namebuf);
+	printf("\tserial = %u\n", soa.serial);
+	printf("\trefresh = %u\n", soa.refresh);
+	printf("\tretry = %u\n", soa.retry);
+	printf("\texpire = %u\n", soa.expire);
+	printf("\tminimum = %u\n", soa.minimum);
+	dns_rdata_freestruct(&soa);
+}
+
+static void
+printa(dns_rdata_t *rdata) {
+	isc_result_t result;
+	char text[sizeof("255.255.255.255")];
+	isc_buffer_t b;
+
+	isc_buffer_init(&b, text, sizeof(text));
+	result = dns_rdata_totext(rdata, NULL, &b);
+	check_result(result, "dns_rdata_totext");
+	printf("Address: %.*s\n", (int)isc_buffer_usedlength(&b),
+	       (char *)isc_buffer_base(&b));
+}
+
+static void
+printrdata(dns_rdata_t *rdata) {
+	isc_result_t result;
+	isc_buffer_t *b = NULL;
+	unsigned int size = 1024;
+	isc_boolean_t done = ISC_FALSE;
+
+	if (rdata->type < N_KNOWN_RRTYPES)
+		printf("%s", rtypetext[rdata->type]);
+	else
+		printf("rdata_%d = ", rdata->type);
+
+	while (!done) {
+		result = isc_buffer_allocate(mctx, &b, size);
+		if (result != ISC_R_SUCCESS)
+			check_result(result, "isc_buffer_allocate");
+		result = dns_rdata_totext(rdata, NULL, b);
+		if (result == ISC_R_SUCCESS) {
+			printf("%.*s\n", (int)isc_buffer_usedlength(b),
+			       (char *)isc_buffer_base(b));
+			done = ISC_TRUE;
+		} else if (result != ISC_R_NOSPACE)
+			check_result(result, "dns_rdata_totext");
+		isc_buffer_free(&b);
+		size *= 2;
+	}
+}
+
 static isc_result_t
 printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	     dns_section_t section) {
 	isc_result_t result, loopresult;
-	isc_buffer_t *b = NULL;
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_rdata_soa_t soa;
 
 	UNUSED(query);
 	UNUSED(headers);
@@ -205,8 +265,6 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		return (ISC_R_SUCCESS);
 	else if (result != ISC_R_SUCCESS)
 		return (result);
-	result = isc_buffer_allocate(mctx, &b, MXNAME);
-	check_result(result, "isc_buffer_allocate");
 	for (;;) {
 		name = NULL;
 		dns_message_currentname(msg, section,
@@ -223,60 +281,22 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 						goto def_short_section;
 					dns_name_format(name, namebuf,
 							sizeof(namebuf));
-
-					isc_buffer_clear(b);
-					result = dns_rdata_totext(&rdata,
-								  NULL,
-								  b);
-					check_result(result,
-						     "dns_rdata_totext");
-					printf("Address: %.*s\n",
-					       (int)isc_buffer_usedlength(b),
-					       (char*)isc_buffer_base(b));
+					printf("Name:\t%s\n", namebuf);
+					printa(&rdata);
 					break;
 				case dns_rdatatype_soa:
 					dns_name_format(name, namebuf,
 							sizeof(namebuf));
 					printf("%s\n", namebuf);
-
-					result = dns_rdata_tostruct(&rdata,
-								    &soa, NULL);
-					check_result(result,
-						     "dns_rdata_tostruct");
-
-					dns_name_format(&soa.origin, namebuf,
-							sizeof(namebuf));
-					printf("\torigin = %s\n", namebuf);
-
-					dns_name_format(&soa.mname, namebuf,
-							sizeof(namebuf));
-					printf("\tmail addr = %s\n", namebuf);
-
-					printf("\tserial = %u\n", soa.serial);
-					printf("\trefresh = %u\n", soa.refresh);
-					printf("\tretry = %u\n", soa.retry);
-					printf("\texpire = %u\n", soa.expire);
-					printf("\tminimum = %u\n", soa.minimum);
+					printsoa(&rdata);
 					break;
 				default:
 				def_short_section:
 					dns_name_format(name, namebuf,
 							sizeof(namebuf));
-					if (rdata.type < N_KNOWN_RRTYPES)
-						printf("%s\t%s", namebuf,
-						rtypetext[rdata.type]);
-					else
-						printf("%s\trdata_%d = ",
-						       namebuf,
-						       rdata.type);
-					isc_buffer_clear(b);
-					result = dns_rdata_totext(&rdata,
-								  NULL, b);
-					check_result(result,
-						     "dns_rdata_totext");
-					printf("%.*s\n",
-					       (int)isc_buffer_usedlength(b),
-					       (char*)isc_buffer_base(b));
+					printf("%s\t", namebuf);
+					printrdata(&rdata);
+					break;
 				}
 				dns_rdata_reset(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
@@ -286,11 +306,9 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		if (result == ISC_R_NOMORE)
 			break;
 		else if (result != ISC_R_SUCCESS) {
-			isc_buffer_free (&b);
 			return (result);
 		}
 	}
-	isc_buffer_free(&b);
 	return (ISC_R_SUCCESS);
 }
 
@@ -298,12 +316,10 @@ static isc_result_t
 detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	     dns_section_t section) {
 	isc_result_t result, loopresult;
-	isc_buffer_t *b = NULL;
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_rdata_soa_t soa;
 
 	UNUSED(query);
 
@@ -331,8 +347,6 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		return (ISC_R_SUCCESS);
 	else if (result != ISC_R_SUCCESS)
 		return (result);
-	result = isc_buffer_allocate(mctx, &b, MXNAME);
-	check_result(result, "isc_buffer_allocate");
 	for (;;) {
 		name = NULL;
 		dns_message_currentname(msg, section,
@@ -363,40 +377,11 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 
 				switch (rdata.type) {
 				case dns_rdatatype_soa:
-					result = dns_rdata_tostruct(&rdata,
-								    &soa, NULL);
-					check_result(result,
-						     "dns_rdata_tostruct");
-
-					dns_name_format(&soa.origin, namebuf,
-							sizeof(namebuf));
-					printf("\torigin = %s\n", namebuf);
-
-					dns_name_format(&soa.mname, namebuf,
-							sizeof(namebuf));
-					printf("\tmail addr = %s\n", namebuf);
-
-					printf("\tserial = %u\n", soa.serial);
-					printf("\trefresh = %u\n", soa.refresh);
-					printf("\tretry = %u\n", soa.retry);
-					printf("\texpire = %u\n", soa.expire);
-					printf("\tminimum = %u\n", soa.minimum);
+					printsoa(&rdata);
 					break;
 				default:
-					if (rdata.type < N_KNOWN_RRTYPES)
-						printf("\t%s",
-						rtypetext[rdata.type]);
-					else
-						printf("\trdata_%d = ",
-						 rdata.type);
-					isc_buffer_clear(b);
-					result = dns_rdata_totext(&rdata,
-								  NULL, b);
-					check_result(result,
-						     "dns_rdata_totext");
-					printf("%.*s\n",
-					       (int)isc_buffer_usedlength(b),
-					       (char*)isc_buffer_base(b));
+					printf("\t");
+					printrdata(&rdata);
 				}
 				dns_rdata_reset(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
@@ -406,11 +391,9 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		if (result == ISC_R_NOMORE)
 			break;
 		else if (result != ISC_R_SUCCESS) {
-			isc_buffer_free (&b);
 			return (result);
 		}
 	}
-	isc_buffer_free(&b);
 	return (ISC_R_SUCCESS);
 }
 
