@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.29 2004/06/29 01:00:56 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.30 2004/06/30 14:13:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1842,12 +1842,13 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	dns_fixedname_t wfixed;
 	dns_name_t *wname;
 	dns_dbnode_t *node;
-	unsigned int options, order;
+	unsigned int options;
 	unsigned int olabels, nlabels;
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nsec_t nsec;
 	isc_boolean_t have_wname;
+	int order;
 
 	CTRACE("query_addwildcardproof");
 	fname = NULL;
