@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.76 2004/03/05 05:09:41 marka Exp $ */
+/* $Id: db.h,v 1.76.18.1 2004/05/14 05:07:12 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -188,6 +188,7 @@ struct dns_db {
 #define DNS_DBFIND_PENDINGOK		0x08
 #define DNS_DBFIND_NOEXACT		0x10
 #define DNS_DBFIND_FORCENSEC		0x20
+#define DNS_DBFIND_COVERINGNSEC		0x40
 
 /*
  * Options that can be specified for dns_db_addrdataset().
@@ -647,6 +648,12 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	is only necessary when querying a database that was not secure
  *	when created.
  *
+ *	If the DNS_DBFIND_COVERINGNSEC option is set, then look for a
+ *	NSEC record that potentially covers 'name' if a answer cannot
+ *	be found.  Note the returned NSEC needs to be checked to ensure
+ *	that it is correct.  This only affects answers returned from the
+ *	cache.
+ *
  *	To respond to a query for SIG records, the caller should create a
  *	rdataset iterator and extract the signatures from each rdataset.
  *
@@ -769,6 +776,9 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *		DNS_R_EMPTYNAME			The name exists but there is
  *						no data at the name. 
+ *
+ *		DNS_R_COVERINGNSEC		The returned data is a NSEC
+ *						that potentially covers 'name'.
  *
  *	Error results:
  *
