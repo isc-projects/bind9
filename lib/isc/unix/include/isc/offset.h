@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.5 2000/05/25 16:44:25 tale Exp $ */
+/* $Id: offset.h,v 1.6 2000/06/06 22:10:10 tale Exp $ */
 
 #ifndef ISC_OFFSET_H
 #define ISC_OFFSET_H 1
@@ -31,9 +31,14 @@ typedef off_t isc_offset_t;
 /*
  * POSIX says "Additionally, blkcnt_t and off_t are extended signed integral
  * types", so the maximum value is all 1s except for the high bit.
- * 1 is sized as an unsigned long long to keep the Solaris 5.6 compiler
- * from complaining about integer overflow from the left shift.
+ * This definition is more complex than it really needs to be because it was
+ * crafted to keep both the SunOS 5.6 and the HP/UX 11 compilers quiet about
+ * integer overflow.  For example, though this is equivalent to just left
+ * shifting 1 to the high bit and then inverting the bits, the SunOS compiler
+ * is unhappy about shifting a positive "1" to negative in a signed integer.
  */
-#define ISC_OFFSET_MAXIMUM ((off_t)~(1ULL << (sizeof(off_t) * CHAR_BIT - 1)))
+#define ISC_OFFSET_MAXIMUM \
+	(~(((off_t)-1 >> (sizeof(off_t) * CHAR_BIT - 1)) \
+		      << (sizeof(off_t) * CHAR_BIT - 1)))
 
 #endif /* ISC_OFFSET_H */
