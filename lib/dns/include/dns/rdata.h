@@ -542,6 +542,9 @@ dns_rdata_covers(dns_rdata_t *rdata);
  *	The type covered.
  */
 
+dns_result_t
+dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATA_H */
