@@ -10,7 +10,8 @@
 
 1793.	[placeholder]	rt13378
 
-1792.	[placeholder]	rt13124
+1792.	[func]		New zone option "notify-delay".  Specify a minimum
+			delay between sets of NOTIFY messages.
 
 1791.	[placeholder]	rt13230
 

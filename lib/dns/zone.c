@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.428 2005/01/10 23:43:22 marka Exp $ */
+/* $Id: zone.c,v 1.429 2005/01/11 23:10:05 marka Exp $ */
 
 #include <config.h>
 
@@ -154,6 +154,7 @@ struct dns_zone {
 	isc_time_t		refreshtime;
 	isc_time_t		dumptime;
 	isc_time_t		loadtime;
+	isc_time_t		notifytime;
 	isc_uint32_t		serial;
 	isc_uint32_t		refresh;
 	isc_uint32_t		retry;
@@ -220,7 +221,8 @@ struct dns_zone {
 	/*
 	 * Optional per-zone statistics counters (NULL if not present).
 	 */
-	isc_uint64_t	    *counters;
+	isc_uint64_t	    	*counters;
+	isc_uint32_t		notifydelay;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -443,7 +445,7 @@ static void forward_callback(isc_task_t *task, isc_event_t *event);
 static void zone_saveunique(dns_zone_t *zone, const char *path,
 			    const char *templat);
 static void zone_maintenance(dns_zone_t *zone);
-static void zone_notify(dns_zone_t *zone);
+static void zone_notify(dns_zone_t *zone, isc_time_t *now);
 static void dump_done(void *arg, isc_result_t result);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
@@ -487,10 +489,12 @@ isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_zone_t *zone;
+	isc_time_t now;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(mctx != NULL);
 
+	TIME_NOW(&now);
 	zone = isc_mem_get(mctx, sizeof(*zone));
 	if (zone == NULL)
 		return (ISC_R_NOMEMORY);
@@ -530,6 +534,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_time_settoepoch(&zone->refreshtime);
 	isc_time_settoepoch(&zone->dumptime);
 	isc_time_settoepoch(&zone->loadtime);
+	zone->notifytime = now;
 	zone->serial = 0;
 	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
 	zone->retry = DNS_ZONE_DEFAULTRETRY;
@@ -580,6 +585,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
 	zone->counters = NULL;
+	zone->notifydelay = 5;
 
 	zone->magic = ZONE_MAGIC;
 
@@ -2287,8 +2293,9 @@ zone_maintenance(dns_zone_t *zone) {
 	switch (zone->type) {
 	case dns_zone_master:
 	case dns_zone_slave:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
-			zone_notify(zone);
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) &&
+		    isc_time_compare(&now, &zone->notifytime) >= 0)
+			zone_notify(zone, &now);
 		break;
 	default:
 		break;
@@ -3016,7 +3023,7 @@ dns_zone_notify(dns_zone_t *zone) {
 }
 
 static void
-zone_notify(dns_zone_t *zone) {
+zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_name_t *origin = NULL;
@@ -3041,6 +3048,7 @@ zone_notify(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 	notifytype = zone->notifytype;
+	DNS_ZONE_TIME_ADD(now, zone->notifydelay, &zone->notifytime);
 	UNLOCK_ZONE(zone);
 
 	if (! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
@@ -4460,7 +4468,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	switch (zone->type) {
 	case dns_zone_master:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
-			next = *now;
+			next = zone->notifytime;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
 			INSIST(!isc_time_isepoch(&zone->dumptime));
@@ -4472,7 +4480,7 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 
 	case dns_zone_slave:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
-			next = *now;
+			next = zone->notifytime;
 		/*FALLTHROUGH*/
 
 	case dns_zone_stub:
@@ -6996,4 +7004,20 @@ dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zone_setnotifydelay(dns_zone_t *zone, isc_uint32_t delay) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->notifydelay = delay;
+	UNLOCK_ZONE(zone);
+}
+
+isc_uint32_t
+dns_zone_getnotifydelay(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->notifydelay);
 }

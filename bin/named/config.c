@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.54 2005/01/10 23:43:16 marka Exp $ */
+/* $Id: config.c,v 1.55 2005/01/11 23:10:04 marka Exp $ */
 
 #include <config.h>
 
@@ -136,6 +136,7 @@ options {\n\
 	allow-transfer {any;};\n\
 	notify yes;\n\
 #	also-notify <none>\n\
+	notify-delay 5;\n\
 	dialup no;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.117 2005/01/11 03:46:08 marka Exp $ */
+/* $Id: zoneconf.c,v 1.118 2005/01/11 23:10:04 marka Exp $ */
 
 #include <config.h>
 
@@ -561,6 +561,12 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 			INSIST(0);
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMES, check);
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMESFAIL, fail);
+
+		obj = NULL;
+		result = ns_config_get(maps, "notify-delay", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setnotifydelay(zone, cfg_obj_asuint32(obj));
+
 	}
 
 	/*
