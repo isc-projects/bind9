@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.4 2000/01/22 00:17:49 tale Exp $ */
+/* $Id: data.c,v 1.5 2000/01/31 14:38:01 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -171,4 +171,22 @@ omapi_data_strcmp(omapi_data_t *s1, const char *s2) {
 			order = -1;
 
 	return (order);
+}
+
+int
+omapi_data_getint(omapi_data_t *t) {
+	isc_uint32_t stored_value; /* Stored in network byte order. */
+
+	REQUIRE(t != NULL);
+	REQUIRE(t->type == omapi_datatype_int ||
+		((t->type == omapi_datatype_data ||
+		 (t->type == omapi_datatype_string)) &&
+		 t->u.buffer.len == sizeof(stored_value)));
+
+	if (t->type == omapi_datatype_int)
+		return (t->u.integer);
+
+	memcpy(&stored_value, t->u.buffer.value, sizeof(stored_value));
+
+	return (ntohl(stored_value));
 }
