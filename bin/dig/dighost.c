@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.165 2000/11/21 20:52:24 gson Exp $ */
+/* $Id: dighost.c,v 1.166 2000/11/21 21:35:32 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -73,6 +73,7 @@ dig_serverlist_t server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
 isc_boolean_t
+	have_ipv4 = ISC_FALSE,
 	have_ipv6 = ISC_FALSE,
 	specified_source = ISC_FALSE,
 	free_now = ISC_FALSE,
@@ -711,11 +712,14 @@ setup_libs(void) {
 	srandom(getpid() + (int)&setup_libs);
 
 	result = isc_net_probeipv4();
-	check_result(result, "isc_net_probeipv4");
+	if (result == ISC_R_SUCCESS)
+		have_ipv4 = ISC_TRUE;
 
 	result = isc_net_probeipv6();
 	if (result == ISC_R_SUCCESS)
 		have_ipv6 = ISC_TRUE;
+	if (!have_ipv6 && !have_ipv4)
+		fatal("can't find either v4 or v6 networking");
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
@@ -1675,7 +1679,8 @@ send_tcp_connect(dig_query_t *query) {
 	if (specified_source)
 		result = isc_socket_bind(query->sock, &bind_address);
 	else {
-		if (isc_sockaddr_pf(&query->sockaddr) == AF_INET)
+		if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) &&
+		    have_ipv4)
 			isc_sockaddr_any(&bind_any);
 		else
 			isc_sockaddr_any6(&bind_any);
@@ -2591,6 +2596,10 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 
 	debug("get_address()");
 
+	/*
+	 * Assume we have v4 if we don't have v6, since setup_libs
+	 * fatal()'s out if we don't have either.
+	 */
 	if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
 		isc_sockaddr_fromin6(sockaddr, &in6, port);
 	else if (inet_pton(AF_INET, host, &in4) == 1)
