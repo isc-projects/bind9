@@ -5,6 +5,9 @@
 
 1586.	[func]		"check-names" is now implemented.
 
+1584.	[bug]		"make test" failed with a readonly source tree.
+			[RT #10461]
+
 1583.	[bug]		Records add via UPDATE failed to get the correct trust
 			level. [RT #10452]
 

@@ -15,11 +15,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.7.206.1 2004/03/06 10:22:14 marka Exp $
+# $Id: clean.sh,v 1.7.206.2 2004/03/10 01:05:52 marka Exp $
 
 #
 # Clean up after zone transfer tests.
 #
 
 rm -f ns3/example.bk dig.out.ns2 dig.out.ns3
+rm -f ns2/example.db
 
