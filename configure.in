@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.272 $)
+AC_REVISION($Revision: 1.273 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -332,7 +332,7 @@ case "$use_openssl" in
 			if test "$use_openssl" = "include/openssl/opensslv.h"
 			then
 				AC_MSG_ERROR(
-[openssl was not fine in any of $openssldirs; use --with-openssl=/path])
+[OpenSSL was not found in any of $openssldirs; use --with-openssl=/path])
 			fi
 		fi
 		USE_OPENSSL='-DOPENSSL'
