@@ -145,7 +145,6 @@ struct dns_c_slave_zone
 	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update;
 	dns_c_ipmatchlist_t    *allow_update_forwarding;
-	dns_ssutable_t	       *ssuauth;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
 	dns_c_iplist_t	       *also_notify;
@@ -178,7 +177,6 @@ struct dns_c_stub_zone
 	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update; /* should be here??? */
 	dns_c_ipmatchlist_t    *allow_update_forwarding;
-	dns_ssutable_t	       *ssuauth;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer; /* should be here??? */
 	isc_boolean_t		dialup;

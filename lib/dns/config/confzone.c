@@ -743,11 +743,15 @@ dns_c_zone_setssuauth(dns_c_zone_t *zone, dns_ssutable_t *ssu)
 		break;
 			
 	case dns_c_zone_slave:
-		p = &zone->u.szone.ssuauth;
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Slave zones do not have an ssuauth field");
 		break;
 		
 	case dns_c_zone_stub:
-		p = &zone->u.tzone.ssuauth;
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Stub zones do not have an ssuauth field");
 		break;
 		
 	case dns_c_zone_hint:
@@ -1970,11 +1974,15 @@ dns_c_zone_getssuauth(dns_c_zone_t *zone, dns_ssutable_t **retval)
 		break;
 			
 	case dns_c_zone_slave:
-		p = zone->u.szone.ssuauth;
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Slave zones do not have an ssuauth field");
 		break;
 		
 	case dns_c_zone_stub:
-		p = zone->u.tzone.ssuauth;
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Stub zones do not have an ssuauth field");
 		break;
 		
 	case dns_c_zone_hint:
@@ -3339,10 +3347,6 @@ slave_zone_print(FILE *fp, int indent,
 		fprintf(fp, ";\n");
 	}
 
-	if (szone->ssuauth != NULL) {
-		dns_c_ssutable_print(fp, indent, szone->ssuauth);
-	}
-
 	if (szone->allow_update_forwarding != NULL &&
 	    !ISC_LIST_EMPTY(szone->allow_update_forwarding->elements)) {
 		dns_c_printtabs(fp, indent);
@@ -3491,10 +3495,6 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 		dns_c_ipmatchlist_print(fp, indent + 1,
 					tzone->allow_update);
 		fprintf(fp, ";\n");
-	}
-
-	if (tzone->ssuauth != NULL) {
-		dns_c_ssutable_print(fp, indent, tzone->ssuauth);
 	}
 
 	if (tzone->allow_update_forwarding != NULL &&
@@ -3649,7 +3649,6 @@ slave_zone_init(dns_c_slavezone_t *szone)
 	szone->ixfr_tmp = NULL;
 	szone->master_ips = NULL;
 	szone->allow_update = NULL;
-	szone->ssuauth = NULL;
 	szone->allow_update_forwarding = NULL;
 	szone->allow_query = NULL;
 	szone->allow_transfer = NULL;
@@ -3671,7 +3670,6 @@ stub_zone_init(dns_c_stubzone_t *tzone)
 	tzone->file = NULL;
 	tzone->master_ips = NULL;
 	tzone->allow_update = NULL;
-	tzone->ssuauth = NULL;
 	tzone->allow_update_forwarding = NULL;
 	tzone->allow_query = NULL;
 	tzone->allow_transfer = NULL;
@@ -3829,9 +3827,6 @@ slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone)
 	if (szone->allow_update != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_update);
 	
-	if (szone->ssuauth != NULL)
-		dns_ssutable_detach(&szone->ssuauth);
-	
 	if (szone->allow_update_forwarding != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_update_forwarding);
 	
@@ -3873,9 +3868,6 @@ stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
 	
 	if (tzone->allow_update != NULL)
 		dns_c_ipmatchlist_detach(&tzone->allow_update);
-	
-	if (tzone->ssuauth != NULL)
-		dns_ssutable_detach(&tzone->ssuauth);
 	
 	if (tzone->allow_update_forwarding != NULL)
 		dns_c_ipmatchlist_detach(&tzone->allow_update_forwarding);
