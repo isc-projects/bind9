@@ -1,4 +1,7 @@
 
+ 810.	[bug]		The signer name in SIG records was not properly
+ 			downcased when signing/verifying records. [RT #1186]
+
  809.	[bug]		Configuring a non-local address as a transfer-source
  			could cause an assertion failure during load.
 
