@@ -472,12 +472,10 @@ load_configuration(const char *filename, ns_server_t *server) {
 	
 	configure_server_quota(configctx, dns_c_ctx_gettransfersout,
 			       &server->xfroutquota, 10);
-#ifdef notyet
 	configure_server_quota(configctx, dns_c_ctx_gettcpclients,
 			       &server->tcpquota, 100);
 	configure_server_quota(configctx, dns_c_ctx_getrecursiveclients,
 			       &server->recursionquota, 100);
-#endif
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
