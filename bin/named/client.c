@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.103 2000/07/26 17:39:09 gson Exp $ */
+/* $Id: client.c,v 1.104 2000/07/26 23:45:52 gson Exp $ */
 
 #include <config.h>
 
@@ -1237,7 +1237,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->interface = NULL;
 	client->peeraddr_valid = ISC_FALSE;
 	ISC_EVENT_INIT(&client->ctlevent, sizeof(client->ctlevent), 0, NULL,
-		       DNS_EVENT_CLIENTCONTROL, client_start, client, client,
+		       NS_EVENT_CLIENTCONTROL, client_start, client, client,
 		       NULL, NULL);
 	ISC_LINK_INIT(client, link);
 	client->list = NULL;
