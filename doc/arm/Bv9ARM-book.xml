@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.235 2004/02/27 02:33:13 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.236 2004/02/27 05:10:41 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2648,7 +2648,7 @@ those servers during resolution.
 <entry colname = "1"><para><command>delegation-only</command></para></entry>
 <entry colname = "2"><para>Delegation only.  Logs queries that have have
 been forced to NXDOMAIN as the result of a delegation-only zone or
-a <command>delegation-only</command> in a hint or stub zone declartation.
+a <command>delegation-only</command> in a hint or stub zone declaration.
 </para></entry>
 </row>
 </tbody>
@@ -2950,7 +2950,7 @@ The default is not to preference any type (NONE).
 
 <varlistentry><term><command>root-delegation-only</command></term>
 <listitem><para>
-Turn on enforcment of delegation-only in TLDs and root zones with an optional
+Turn on enforcement of delegation-only in TLDs and root zones with an optional
 exclude list.
 </para>
 <para>
@@ -3799,7 +3799,7 @@ function in BIND 8.
 
 <varlistentry><term><command>max-journal-size</command></term>
 <listitem><para>Sets a maximum size for each journal file
-(<xref linkend="journal"/>).  When the journal file approches
+(<xref linkend="journal"/>).  When the journal file approaches
 the specified size, some of the oldest transactions in the journal
 will be automatically removed.  The default is
 <literal>unlimited</literal>.</para>
@@ -4619,7 +4619,7 @@ any forwarders in the <command>options</command> statement. Thus
 if you want to use this type of zone to change the behavior of the
 global <command>forward</command> option (that is, "forward first
 to", then "forward only", or vice versa, but want to use the same
-servers as set globally) you need to respecify the global forwarders.</para>
+servers as set globally) you need to re-specify the global forwarders.</para>
 </entry>
 </row>
 <row rowsep = "0">
@@ -4635,7 +4635,7 @@ Classes other than IN have no built-in defaults hints.</para></entry>
 <entry colname = "1"><para><varname>delegation-only</varname></para></entry>
 <entry colname = "2"><para>This is used to enforce the delegation only
 status of infrastructure zones (e.g. COM, NET, ORG).  Any answer that
-is received without a explicit or implict delegation in the authority
+is received without a explicit or implicit delegation in the authority
 section will be treated as NXDOMAIN.  This does not apply to the zone
 apex.  This SHOULD NOT be applied to leaf zones.</para>
 <para><varname>delegation-only</varname> has no effect on answers received
@@ -5558,7 +5558,7 @@ value.
 To get a $ in the output you need to escape the <command>$</command>
 using a backslash <command>\</command>,
 e.g. <command>\$</command>. The <command>$</command> may optionally be followed
-by modifiers which change the offset from the interator, field width and base. 
+by modifiers which change the offset from the iterator, field width and base. 
 Modifiers are introduced by a <command>{</command> immediately following the
 <command>$</command> as <command>${offset[,width[,base]]}</command>.
 e.g. <command>${-20,3,d}</command> which subtracts 20 from the current value,
@@ -5570,13 +5570,13 @@ If the <command>lhs</command> is not
 absolute, the current <command>$ORIGIN</command> is appended to
 the name.</para>
 <para>For compatibility with earlier versions <command>$$</command> is still
-recognised a indicating a literal $ in the output.</para></entry>
+recognized a indicating a literal $ in the output.</para></entry>
         </row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>ttl</command></para></entry>
           <entry colname = "2"><para><command>ttl</command> specifies the
 	  ttl of the generated records. If not specified this will be
-	  inherited using the normal ttl inhertance rules.</para>
+	  inherited using the normal ttl inheritance rules.</para>
 	  <para><command>class</command> and <command>ttl</command> can be
 	  entered in either order.</para></entry>
 	</row>
@@ -5791,7 +5791,7 @@ all.</para>
 <appendix id="ch09">
   <title>Appendices</title>
   <sect1>
-    <title>Acknowledgements</title>
+    <title>Acknowledgments</title>
     <sect2>
       <title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title>
 
