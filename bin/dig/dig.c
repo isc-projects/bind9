@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.172 2001/11/27 01:55:12 gson Exp $ */
+/* $Id: dig.c,v 1.173 2001/11/28 02:46:21 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -160,9 +160,11 @@ help(void) {
 "                 -x dot-notation     (shortcut for in-addr lookups)\n"
 "                 -n                  (nibble form for reverse IPv6 lookups)\n"
 "                 -f filename         (batch mode)\n"
+"                 -b address          (bind to source address)\n"
 "                 -p port             (specify port number)\n"
 "                 -t type             (specify query type)\n"
 "                 -c class            (specify query class)\n"
+"                 -k keyfile          (specify tsig key file)\n"
 "                 -y name:key         (specify named base64 tsig key)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
@@ -172,6 +174,7 @@ help(void) {
 "                 +retry=###          (Set number of UDP retries) [2]\n"
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
+"                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]defname        (Ditto)\n"
 "                 +[no]recursive      (Recursive mode)\n"
@@ -182,7 +185,6 @@ help(void) {
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
-"                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]cmd            (Control display of command line)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]question       (Control display of question)\n"
@@ -193,7 +195,7 @@ help(void) {
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
-"                 +qr                 (Print question before sending)\n"
+"                 +[no]qr             (Print question before sending)\n"
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
