@@ -1,0 +1,54 @@
+
+We've had successful builds and tests on the following systems
+
+	BSDI 3.1
+	Digital UNIX 4.0D
+	HP-UX 11
+	Red Hat Linux 5.2
+	SGI IRIX 6.5
+	Solaris 2.6
+
+To build, just
+
+	./configure
+	make
+
+Do not run 'make install'.
+
+Building with gcc is not supported, unless gcc is the vendor's usual
+compiler (e.g. the various BSD systems, Linux).  If you have gcc installed
+on a system where it is not the vendor's usual compiler, then you should
+
+	setenv CC cc			# Solaris, HP-UX
+
+or
+
+	setenv CC c89			# Digital UNIX
+
+before doing "./configure".
+
+We know about the compiler warnings for socket.c on some systems.  The issue
+will be addressed in a future release, but in the meantime everything should
+still work.
+
+Code in bin/named is for testing purposes only, and is not representative of
+the final architecture.  Currently, it can load one zone and answer questions
+about names in that zone.
+
+All APIs are subject to change in future code drops.
+
+Out-of-zone glue is not supported yet.
+
+Trying to query for ANY RR type doesn't work yet.
+
+IRIX note: you must edit lib/isc/Makefile.in changing
+
+		pthreads/condition.o \
+		@ISC_EXTRA_OBJS@
+
+to
+
+		pthreads/condition.o @ISC_EXTRA_OBJS@
+
+before you run ./configure.  Many compiler warnings, etc. are currently
+generated on IRIX.  They will be cleaned up in a future release.
