@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.5 2001/03/27 02:06:07 bwelling Exp $
+# $Id: Makefile.in,v 1.6 2001/07/09 22:25:27 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -41,22 +41,22 @@ LIBS =		@LIBS@
 SUBDIRS =	include
 
 # Alphabetically
-OBJS =		check.@O@ log.@O@ parser.@O@
+OBJS =		check.@O@ log.@O@ parser.@O@ version.@O@
 
 # Alphabetically
-SRCS =		check.c log.c parser.c
+SRCS =		check.c log.c parser.c version.c
 
 TARGETS = 	timestamp
 
 @BIND9_MAKE_RULES@
 
-# version.@O@: version.c
-# 	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
-# 		-DVERSION=\"${VERSION}\" \
-# 		-DLIBINTERFACE=${LIBINTERFACE} \
-# 		-DLIBREVISION=${LIBREVISION} \
-# 		-DLIBAGE=${LIBAGE} \
-# 		-c ${srcdir}/version.c
+version.@O@: version.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+		-DVERSION=\"${VERSION}\" \
+		-DLIBINTERFACE=${LIBINTERFACE} \
+		-DLIBREVISION=${LIBREVISION} \
+		-DLIBAGE=${LIBAGE} \
+		-c ${srcdir}/version.c
 
 libisccfg.@SA@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}

@@ -1667,6 +1667,7 @@
 ./lib/isccc/result.c				C.NOM	2001
 ./lib/isccc/sexpr.c				C.NOM	2001
 ./lib/isccc/symtab.c				C.NOM	2001
+./lib/isccc/version.c				C	1998,1999,2000,2001
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001
 ./lib/isccfg/api				X	2001
@@ -1680,6 +1681,7 @@
 ./lib/isccfg/include/isccfg/log.h		C	2001
 ./lib/isccfg/log.c				C	2001
 ./lib/isccfg/parser.c				C	2000,2001
+./lib/isccfg/version.c				C	1998,1999,2000,2001
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001
 ./lib/lwres/api					X	2000,2001

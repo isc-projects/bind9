@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.1 2001/03/27 00:44:47 bwelling Exp $
+# $Id: Makefile.in,v 1.2 2001/07/09 22:25:26 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -43,25 +43,25 @@ SUBDIRS =	include
 # Alphabetically
 OBJS =		alist.@O@ base64.@O@ cc.@O@ ccmsg.@O@ \
 		lib.@O@ \
-		result.@O@ sexpr.@O@ symtab.@O@
+		result.@O@ sexpr.@O@ symtab.@O@ version.@O@
 
 # Alphabetically
 SRCS =		alist.c base64.c cc.c ccmsg.c \
 		lib.c \
-		result.c sexpr.c symtab.c
+		result.c sexpr.c symtab.c version.c
 
 
 TARGETS = 	timestamp
 
 @BIND9_MAKE_RULES@
 
-# version.@O@: version.c
-# 	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
-# 		-DVERSION=\"${VERSION}\" \
-# 		-DLIBINTERFACE=${LIBINTERFACE} \
-# 		-DLIBREVISION=${LIBREVISION} \
-# 		-DLIBAGE=${LIBAGE} \
-# 		-c ${srcdir}/version.c
+version.@O@: version.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+		-DVERSION=\"${VERSION}\" \
+		-DLIBINTERFACE=${LIBINTERFACE} \
+		-DLIBREVISION=${LIBREVISION} \
+		-DLIBAGE=${LIBAGE} \
+		-c ${srcdir}/version.c
 
 libisccc.@SA@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
