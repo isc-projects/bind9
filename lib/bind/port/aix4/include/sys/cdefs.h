@@ -55,7 +55,7 @@
 
 /*
  *	@(#)cdefs.h	8.1 (Berkeley) 6/2/93
- *	$Id: cdefs.h,v 1.1 2001/05/10 04:23:15 marka Exp $
+ *	$Id: cdefs.h,v 1.1.206.1 2004/07/19 05:53:37 marka Exp $
  */
 
 #ifndef	_CDEFS_H_
@@ -130,7 +130,7 @@
  * these work for GNU C++ (modulo a slight glitch in the C++ grammar
  * in the distribution version of 2.5.5).
  */
-#if !defined(__GNUC__) || __GNUC__ < 2 || __GNUC_MINOR__ < 5
+#if !defined(__GNUC__) || __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5)
 #define	__attribute__(x)	/* delete __attribute__ if non-gcc or gcc1 */
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
 #define	__dead		__volatile
