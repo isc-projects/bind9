@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.40 2001/02/24 23:06:34 bwelling Exp $ */
+/* $Id: os.c,v 1.41 2001/03/19 22:41:22 bwelling Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -377,7 +377,7 @@ ns_os_changeuser(void) {
 #endif
 		ns_main_earlyfatal(
 		   "-u not supported on Linux kernels older than "
-		   "2.3.99-pre3 when using threads");
+		   "2.3.99-pre3 or 2.2.18 when using threads");
 #endif
 
 	if (setgid(runas_pw->pw_gid) < 0)
