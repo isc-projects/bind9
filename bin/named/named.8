@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.8,v 1.9 2000/08/30 20:43:27 bwelling Exp $
+.\" $Id: named.8,v 1.10 2000/11/09 18:09:12 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NAMED 8
@@ -53,6 +53,13 @@ use
 .Ar config-file
 as the configuration file instead of the default,
 .Pa /etc/named.conf .
+To ensure that reloading the configuration file continues to 
+work after the server has changed its working directory 
+due to to a possible 
+.Dv directory
+option in the configuration file, 
+.Ar config-file
+should be an absolute pathname.
 .It Fl d
 set the daemon's debug level to
 .Ar debuglevel .
