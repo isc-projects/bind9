@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.36 2000/05/05 05:50:07 marka Exp $ */
+/* $Id: soa_6.c,v 1.37 2000/05/18 05:46:52 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -326,6 +326,9 @@ freestruct_soa(void *source)
 
 	REQUIRE(source != NULL);
 	REQUIRE(soa->common.rdtype == 6);
+
+	if (soa->mctx == NULL)
+		return;
 
 	dns_name_free(&soa->origin, soa->mctx);
 	dns_name_free(&soa->mname, soa->mctx);
