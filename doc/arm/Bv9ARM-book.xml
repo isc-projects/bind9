@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.9 2001/11/06 01:57:19 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.10 2001/11/07 19:07:29 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3587,7 +3587,7 @@ and ignored for BIND 8 compatibility.</para>
 <varlistentry><term><command>recursive-clients</command></term>
 <listitem><para>The maximum number of simultaneous recursive lookups
 the server will perform on behalf of clients.  The default is
-<literal>1000</literal>.  Because each recursing clients uses a fair
+<literal>1000</literal>.  Because each recursing client uses a fair
 bit of memory, on the order of 20 kilobytes, the value of the
 <command>recursive-clients</command> option may have to be decreased
 on hosts with limited memory.
@@ -3841,7 +3841,7 @@ PTR records.</para>
 basis by adding a
 <command>allow-v6-synthesis { <replaceable>address_match_list</replaceable> };</command>
 clause to the <command>options</command> or <command>view</command> statement.
- When it is enabled, recursive
+When it is enabled, recursive
 AAAA queries cause the server to first try an A6 lookup and if that
 fails, an AAAA lookups.  No matter which one succeeds, the results are
 returned as a set of synthetic AAAA records.  Similarly, recursive PTR
