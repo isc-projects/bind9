@@ -32,6 +32,7 @@
 
 #include <sys/types.h>
 
+#include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
@@ -47,13 +48,11 @@
 #define DNS_PEERLIST_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_PEERLIST_MAGIC)
 #define DNS_PEER_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_PEER_MAGIC)
 
-
 /***
  *** Types
  ***/
 
-struct dns_peerlist
-{
+struct dns_peerlist {
 	isc_uint32_t		magic;
 	isc_uint32_t		refs;
 	
@@ -62,9 +61,7 @@ struct dns_peerlist
 	ISC_LIST(dns_peer_t) elements;
 };
 
-
-struct dns_peer 
-{
+struct dns_peer {
 	isc_uint32_t		magic;
 	isc_uint32_t		refs;
 
@@ -84,66 +81,93 @@ struct dns_peer
 	ISC_LINK(dns_peer_t)	next;
 };
 
-
 /***
  *** Functions
  ***/
 
-isc_result_t	dns_peerlist_new(isc_mem_t *mem,
-				 dns_peerlist_t **list);
-void		dns_peerlist_attach(dns_peerlist_t *source,
-				    dns_peerlist_t **target);
-void		dns_peerlist_detach(dns_peerlist_t **list);
+ISC_LANG_BEGINDECLS
 
-/* After return caller still holds a reference to peer. */
-void		dns_peerlist_addpeer(dns_peerlist_t *peers,
-				     dns_peer_t *peer);
+isc_result_t
+dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list);
 
-/* ditto */
-isc_result_t	dns_peerlist_peerbyaddr(dns_peerlist_t *peers,
-					isc_netaddr_t *addr,
-					dns_peer_t **retval);
+void
+dns_peerlist_attach(dns_peerlist_t *source, dns_peerlist_t **target);
 
-/* what he said. */
-isc_result_t	dns_peerlist_currpeer(dns_peerlist_t *peers,
-				      dns_peer_t **retval);
+void
+dns_peerlist_detach(dns_peerlist_t **list);
 
+/*
+ * After return caller still holds a reference to peer.
+ */
+void
+dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer);
 
+/*
+ * Ditto. */
+isc_result_t
+dns_peerlist_peerbyaddr(dns_peerlist_t *peers, isc_netaddr_t *addr,
+			dns_peer_t **retval);
 
-isc_result_t	dns_peer_new(isc_mem_t *mem,
-			     isc_netaddr_t *ipaddr,
-			     dns_peer_t **peer);
-isc_result_t	dns_peer_attach(dns_peer_t *source, dns_peer_t **target);
-isc_result_t	dns_peer_detach(dns_peer_t **list);
+/*
+ * What he said.
+ */
+isc_result_t
+dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval);
 
-isc_result_t	dns_peer_setbogus(dns_peer_t *peer,
-				  isc_boolean_t newval);
-isc_result_t	dns_peer_getbogus(dns_peer_t *peer,
-				  isc_boolean_t *retval);
-isc_result_t	dns_peer_setsupportixfr(dns_peer_t *peer,
-					isc_boolean_t newval);
-isc_result_t	dns_peer_getsupportixfr(dns_peer_t *peer,
-					isc_boolean_t *retval);
-isc_result_t	dns_peer_setrequestixfr(dns_peer_t *peer,
-					isc_boolean_t newval);
-isc_result_t	dns_peer_getrequestixfr(dns_peer_t *peer,
-					isc_boolean_t *retval);
-isc_result_t	dns_peer_setprovideixfr(dns_peer_t *peer,
-					isc_boolean_t newval);
-isc_result_t	dns_peer_getprovideixfr(dns_peer_t *peer,
-					isc_boolean_t *retval);
-isc_result_t	dns_peer_settransfers(dns_peer_t *peer,
-				      isc_int32_t newval);
-isc_result_t	dns_peer_gettransfers(dns_peer_t *peer,
-				      isc_int32_t *retval);
-isc_result_t	dns_peer_settransferformat(dns_peer_t *peer,
-					   dns_transfer_format_t newval);
-isc_result_t	dns_peer_gettransferformat(dns_peer_t *peer,
-					   dns_transfer_format_t *retval);
-isc_result_t	dns_peer_setkeybycharp(dns_peer_t *peer,
-				       const char *keyval);
-isc_result_t	dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval);
-isc_result_t	dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
+isc_result_t
+dns_peer_new(isc_mem_t *mem, isc_netaddr_t *ipaddr, dns_peer_t **peer);
 
+isc_result_t
+dns_peer_attach(dns_peer_t *source, dns_peer_t **target);
+
+isc_result_t
+dns_peer_detach(dns_peer_t **list);
+
+isc_result_t
+dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
+dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_setsupportixfr(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
+dns_peer_getsupportixfr(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
+dns_peer_getrequestixfr(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
+dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_settransfers(dns_peer_t *peer, isc_int32_t newval);
+
+isc_result_t
+dns_peer_gettransfers(dns_peer_t *peer, isc_int32_t *retval);
+
+isc_result_t
+dns_peer_settransferformat(dns_peer_t *peer, dns_transfer_format_t newval);
+
+isc_result_t
+dns_peer_gettransferformat(dns_peer_t *peer, dns_transfer_format_t *retval);
+
+isc_result_t
+dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval);
+
+isc_result_t
+dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval);
+
+isc_result_t
+dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_PEER_H */

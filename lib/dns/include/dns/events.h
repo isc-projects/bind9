@@ -19,13 +19,10 @@
 #define DNS_EVENTS_H 1
 
 #include <isc/eventclass.h>
-#include <isc/lang.h>
 
 /*
  * Registry of DNS event numbers.
  */
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_EVENT_FETCHCONTROL			(ISC_EVENTCLASS_DNS + 0)
 #define DNS_EVENT_FETCHDONE			(ISC_EVENTCLASS_DNS + 1)
@@ -53,7 +50,5 @@ ISC_LANG_BEGINDECLS
 
 #define DNS_EVENT_FIRSTEVENT			(ISC_EVENTCLASS_DNS + 0)
 #define DNS_EVENT_LASTEVENT			(ISC_EVENTCLASS_DNS + 65535)
-
-ISC_LANG_ENDDECLS
 
 #endif /* DNS_EVENTS_H */

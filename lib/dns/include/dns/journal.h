@@ -30,6 +30,7 @@
  *** Imports
  ***/
 
+#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <dns/result.h>
@@ -40,8 +41,6 @@
 /***
  *** Types
  ***/
-
-ISC_LANG_BEGINDECLS
 
 /*
  * A dns_difftuple_t represents a single RR being added or deleted.
@@ -118,6 +117,8 @@ typedef struct dns_journal dns_journal_t;
  *** Functions
  ***/
 
+ISC_LANG_BEGINDECLS
+
 /**************************************************************************/
 /*
  * Maniuplation of diffs and tuples.
@@ -162,7 +163,8 @@ dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp);
  *	copyp != NULL && *copyp == NULL
  */
 
-void dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff);
+void
+dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff);
 /*
  * Initialize a diff.
  *
@@ -174,7 +176,8 @@ void dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff);
  *    '*diff' is a valid, empty diff.
  */ 
 
-void dns_diff_clear(dns_diff_t *diff);
+void
+dns_diff_clear(dns_diff_t *diff);
 /*
  * Clear a diff, destroying all its tuples.
  *
@@ -284,7 +287,8 @@ dns_diff_print(dns_diff_t *diff, FILE *file);
  * XXX these belong in a general-purpose DNS library
  */
 
-isc_uint32_t dns_soa_getserial(dns_rdata_t *rdata);
+isc_uint32_t
+dns_soa_getserial(dns_rdata_t *rdata);
 /*
  * Extract the serial number from the rdata of a SOA record.
  *  
@@ -292,7 +296,8 @@ isc_uint32_t dns_soa_getserial(dns_rdata_t *rdata);
  *	rdata refers to the rdata of a well-formed SOA record.
  */
 
-void dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata);
+void
+dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata);
 /*
  * Change the serial number of a SOA record by modifying the
  * rdata in-place.
@@ -413,8 +418,10 @@ dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff);
  * Reading transactions from journals.
  */
 
-isc_uint32_t dns_journal_first_serial(dns_journal_t *j);
-isc_uint32_t dns_journal_last_serial(dns_journal_t *j);
+isc_uint32_t
+dns_journal_first_serial(dns_journal_t *j);
+isc_uint32_t
+dns_journal_last_serial(dns_journal_t *j);
 /*
  * Get the first and last addressable serial number in the journal.
  */
@@ -434,8 +441,10 @@ dns_journal_iter_init(dns_journal_t *j,
  *	DNS_R_RANGE	begin_serial is outside the addressable range.
  */
 
-isc_result_t dns_journal_first_rr(dns_journal_t *j);
-isc_result_t dns_journal_next_rr(dns_journal_t *j);
+isc_result_t
+dns_journal_first_rr(dns_journal_t *j);
+isc_result_t
+dns_journal_next_rr(dns_journal_t *j);
 /*
  * Position the iterator at the first/next RR in a journal
  * transaction sequence established using dns_journal_iter_init().
@@ -445,8 +454,9 @@ isc_result_t dns_journal_next_rr(dns_journal_t *j);
  *
  */
 
-void dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, 
-			    isc_uint32_t *ttl, dns_rdata_t **rdata);
+void
+dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, isc_uint32_t *ttl,
+		       dns_rdata_t **rdata);
 /*
  * Get the name, ttl, and rdata of the current journal RR.
  *
@@ -480,7 +490,8 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
  *	others
  */
 
-isc_result_t dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
+isc_result_t
+dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
 /* For debugging not general use */
 
 isc_result_t

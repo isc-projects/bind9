@@ -15,18 +15,17 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.15 2000/04/29 00:45:26 explorer Exp $ */
+/* $Id: log.h,v 1.16 2000/05/01 17:59:09 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #ifndef DNS_LOG_H
 #define DNS_LOG_H 1
 
+#include <isc/lang.h>
 #include <isc/log.h>
 
 #include <dns/result.h>
-
-ISC_LANG_BEGINDECLS
 
 extern isc_log_t *dns_lctx;
 extern isc_logcategory_t dns_categories[];
@@ -63,6 +62,8 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_ACL		(&dns_modules[15])
 #define DNS_LOGMODULE_VALIDATOR		(&dns_modules[16])
 #define DNS_LOGMODULE_DISPATCH		(&dns_modules[17])
+
+ISC_LANG_BEGINDECLS
 
 void
 dns_log_init(isc_log_t *lctx);

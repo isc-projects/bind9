@@ -22,10 +22,11 @@
  ***	Imports
  ***/
 
-#include <isc/magic.h>
-#include <isc/mem.h>
+#include <isc/lang.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
+#include <isc/magic.h>
+#include <isc/mem.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -92,8 +93,6 @@
  * keys, set and retrieve EDNS information, add rdata to a section,
  * move rdata from one section to another, remove rdata, etc.
  */
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_MESSAGEFLAG_QR		0x8000U
 #define DNS_MESSAGEFLAG_AA		0x0400U
@@ -206,9 +205,14 @@ struct dns_message {
 	isc_region_t		       *saved;
 };
 
+/***
+ *** Functions
+ ***/
+
+ISC_LANG_BEGINDECLS
+
 isc_result_t
-dns_message_create(isc_mem_t *mctx, unsigned int intent,
-		   dns_message_t **msgp);
+dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
 		   
 /*
  * Create msg structure.

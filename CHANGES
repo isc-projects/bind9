@@ -1,3 +1,7 @@
+ 145.   [cleanup]       Added <isc/lang.h> and ISC_LANG_BEGINDECLS/
+                        ISC_LANG_ENDDECLS to header files that had function
+                        prototypes, and removed it from those that did not.
+
  144.   [cleanup]       libdns header files too numerous to name were made
                         to conform to the same style for multiple inclusion
                         protection.

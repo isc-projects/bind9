@@ -51,13 +51,10 @@
  *****/
 
 #include <isc/buffer.h>
-#include <isc/lang.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
 #include <dns/result.h>
-
-ISC_LANG_BEGINDECLS
 
 /*****
  ***** Types
@@ -81,7 +78,5 @@ struct dns_fixedname {
 	dns_name_invalidate(&((fn)->name))
 
 #define dns_fixedname_name(fn)		(&((fn)->name))
-
-ISC_LANG_ENDDECLS
 
 #endif /* DNS_FIXEDNAME_H */

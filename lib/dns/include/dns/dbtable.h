@@ -44,12 +44,15 @@
  *	None.
  */
 
+#include <isc/lang.h>
 #include <isc/mem.h>
 
 #include <dns/result.h>
 #include <dns/types.h>
 
 #define DNS_DBTABLEFIND_NOEXACT		0x01
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
@@ -155,5 +158,7 @@ dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name,
  * Returns:  ISC_R_SUCCESS		on success
  *	     <something else>		no default and match
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_DBTABLE_H */

@@ -55,8 +55,8 @@
 
 #include <stdio.h>
 
+#include <isc/lang.h>
 #include <isc/types.h>
-#include <isc/list.h>
 
 
 #define DNS_C_TKEY_MAGIC		0x544b4559 /* TKEY */
@@ -77,12 +77,9 @@
 #define DNS_C_KEYID_VALID(ptr)	   ISC_MAGIC_VALID(ptr, DNS_C_KEYID_MAGIC)
 #define DNS_C_KEYIDLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_KEYIDLIST_MAGIC)
 
-
-
 /***
  *** Types
  ***/
-
 
 typedef struct dns_c_pubkey		dns_c_pubkey_t;
 typedef struct dns_c_pklist		dns_c_pklist_t;
@@ -93,10 +90,10 @@ typedef struct dns_c_kdef_list		dns_c_kdeflist_t;
 typedef struct dns_c_kid		dns_c_kid_t;
 typedef struct dns_c_kid_list		dns_c_kidlist_t;
 
-
-/* The type for holding a trusted key value. */
-struct dns_c_tkey
-{
+/*
+ * The type for holding a trusted key value.
+ */
+struct dns_c_tkey {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 	
@@ -106,9 +103,10 @@ struct dns_c_tkey
 	ISC_LINK(dns_c_tkey_t)	next;
 };
 
-/* A list of trusted keys. */
-struct dns_c_tkey_list
-{
+/*
+ * A list of trusted keys.
+ */
+struct dns_c_tkey_list {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 
@@ -116,9 +114,10 @@ struct dns_c_tkey_list
 };
 	
 	
-/* A public key value */
-struct dns_c_pubkey
-{
+/*
+ * A public key value.
+ */
+struct dns_c_pubkey {
 	isc_uint32_t	magic;
 	isc_mem_t      *mem;
 	isc_int32_t	flags;
@@ -129,9 +128,10 @@ struct dns_c_pubkey
 	ISC_LINK(dns_c_pubkey_t)	next;
 };
 
-/* A list of pubkeys */
-struct dns_c_pklist
-{
+/*
+ * A list of pubkeys.
+ */
+struct dns_c_pklist {
 	isc_uint32_t			magic;
 	isc_mem_t		       *mem;
 
@@ -139,9 +139,10 @@ struct dns_c_pklist
 };
 
 
-/* A private key definition from a 'key' statement */
-struct dns_c_kdef 
-{
+/*
+ * A private key definition from a 'key' statement.
+ */
+struct dns_c_kdef {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 
@@ -152,10 +153,10 @@ struct dns_c_kdef
 	ISC_LINK(dns_c_kdef_t)	next;
 };
 
-
-/* A list of private keys */
-struct dns_c_kdef_list
-{
+/*
+ * A list of private keys.
+ */
+struct dns_c_kdef_list {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 
@@ -163,9 +164,10 @@ struct dns_c_kdef_list
 };
 
 
-/* A key id for in a server statement 'keys' list */
-struct dns_c_kid
-{
+/*
+ * A key id for in a server statement 'keys' list.
+ */
+struct dns_c_kid {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 	char		       *keyid;
@@ -174,134 +176,169 @@ struct dns_c_kid
 };
 
 
-/* List of key ids for a 'server' statement */
-struct dns_c_kid_list
-{
+/*
+ * List of key ids for a 'server' statement.
+ */
+struct dns_c_kid_list {
 	isc_mem_t	       *mem;
 	isc_uint32_t		magic;
 
 	ISC_LIST(dns_c_kid_t)	keyids;
 };
 
-
 /***
  *** Functions
  ***/
 
-isc_result_t	dns_c_pklist_new(isc_mem_t *mem,
-                                 dns_c_pklist_t **pklist);
-isc_result_t	dns_c_pklist_delete(dns_c_pklist_t **list);
-isc_result_t	dns_c_pklist_addpubkey(dns_c_pklist_t *list,
-                                       dns_c_pubkey_t *pkey,
-                                       isc_boolean_t deepcopy);
-isc_result_t	dns_c_pklist_findpubkey(dns_c_pklist_t *list,
-					dns_c_pubkey_t **pubkey,
-					isc_int32_t flags,
-					isc_int32_t protocol,
-					isc_int32_t algorithm,
-					const char *key);
-isc_result_t	dns_c_pklist_rmpubkey(dns_c_pklist_t *list,
-				      isc_int32_t flags,
-				      isc_int32_t protocol,
-				      isc_int32_t algorithm,
-				      const char *key);
-void		dns_c_pklist_print(FILE *fp, int indent,
-				   dns_c_pklist_t *pubkey);
+ISC_LANG_BEGINDECLS
 
+isc_result_t
+dns_c_pklist_new(isc_mem_t *mem, dns_c_pklist_t **pklist);
 
+isc_result_t
+dns_c_pklist_delete(dns_c_pklist_t **list);
 
-isc_result_t	dns_c_pubkey_new(isc_mem_t *mem, isc_int32_t flags,
-				 isc_int32_t protocol,
-				 isc_int32_t algorithm,
-				 const char *key, dns_c_pubkey_t **pubkey);
-isc_result_t	dns_c_pubkey_delete(dns_c_pubkey_t **pubkey);
-isc_result_t	dns_c_pubkey_copy(isc_mem_t *mem, dns_c_pubkey_t **dest,
-				  dns_c_pubkey_t *src);
-isc_boolean_t	dns_c_pubkey_equal(dns_c_pubkey_t *k1, dns_c_pubkey_t *k2);
-void		dns_c_pubkey_print(FILE *fp, int indent,
-				   dns_c_pubkey_t *pubkey);
+isc_result_t
+dns_c_pklist_addpubkey(dns_c_pklist_t *list, dns_c_pubkey_t *pkey,
+		       isc_boolean_t deepcopy);
 
+isc_result_t
+dns_c_pklist_findpubkey(dns_c_pklist_t *list, dns_c_pubkey_t **pubkey,
+			isc_int32_t flags, isc_int32_t protocol,
+			isc_int32_t algorithm, const char *key);
 
-isc_result_t	dns_c_kidlist_new(isc_mem_t *mem,
-				  dns_c_kidlist_t **list);
-isc_result_t	dns_c_kidlist_delete(dns_c_kidlist_t **list);
-isc_result_t	dns_c_kidlist_undef(dns_c_kidlist_t *list,
-				    const char *keyid);
-isc_result_t	dns_c_kidlist_find(dns_c_kidlist_t *list,
-				   const char *keyid,
-				   dns_c_kid_t **retval);
-void		dns_c_kidlist_append(dns_c_kidlist_t *list,
-				     dns_c_kid_t *keyid);
-void		dns_c_kidlist_print(FILE *fp, int indent,
-				    dns_c_kidlist_t *list);
-isc_result_t	dns_c_kid_new(isc_mem_t *mem, const char *name,
-			      dns_c_kid_t **keyid);
+isc_result_t
+dns_c_pklist_rmpubkey(dns_c_pklist_t *list, isc_int32_t flags,
+		      isc_int32_t protocol, isc_int32_t algorithm,
+		      const char *key);
 
+void
+dns_c_pklist_print(FILE *fp, int indent, dns_c_pklist_t *pubkey);
 
+isc_result_t
+dns_c_pubkey_new(isc_mem_t *mem, isc_int32_t flags, isc_int32_t protocol,
+		 isc_int32_t algorithm, const char *key,
+		 dns_c_pubkey_t **pubkey);
 
+isc_result_t
+dns_c_pubkey_delete(dns_c_pubkey_t **pubkey);
 
-isc_result_t	dns_c_kdeflist_new(isc_mem_t *mem,
-				   dns_c_kdeflist_t **list);
-isc_result_t	dns_c_kdeflist_delete(dns_c_kdeflist_t **list);
-isc_result_t	dns_c_kdeflist_copy(isc_mem_t *mem,
-				    dns_c_kdeflist_t **dest,
-				    dns_c_kdeflist_t *src);
-isc_result_t	dns_c_kdeflist_append(dns_c_kdeflist_t *list,
-				      dns_c_kdef_t *key, isc_boolean_t copy);
+isc_result_t
+dns_c_pubkey_copy(isc_mem_t *mem, dns_c_pubkey_t **dest, dns_c_pubkey_t *src);
 
-isc_result_t	dns_c_kdeflist_undef(dns_c_kdeflist_t *list,
-				     const char *keyid);
-isc_result_t	dns_c_kdeflist_find(dns_c_kdeflist_t *list,
-				    const char *keyid,
-				    dns_c_kdef_t **retval);
-void		dns_c_kdeflist_print(FILE *fp, int indent,
-				     dns_c_kdeflist_t *list);
+isc_boolean_t
+dns_c_pubkey_equal(dns_c_pubkey_t *k1, dns_c_pubkey_t *k2);
 
-isc_result_t	dns_c_kdef_new(isc_mem_t *mem, const char *name,
-			       dns_c_kdef_t **keyid);
-isc_result_t	dns_c_kdef_delete(dns_c_kdef_t **keydef);
-isc_result_t	dns_c_kdef_copy(isc_mem_t *mem,
-				dns_c_kdef_t **dest, dns_c_kdef_t *src);
+void
+dns_c_pubkey_print(FILE *fp, int indent, dns_c_pubkey_t *pubkey);
 
-void		dns_c_kdef_print(FILE *fp, int indent, dns_c_kdef_t *keydef);
+isc_result_t
+dns_c_kidlist_new(isc_mem_t *mem, dns_c_kidlist_t **list);
 
+isc_result_t
+dns_c_kidlist_delete(dns_c_kidlist_t **list);
 
-isc_result_t	dns_c_kdef_setalgorithm(dns_c_kdef_t *elem,
-					const char *algorithm);
-isc_result_t	dns_c_kdef_setsecret(dns_c_kdef_t *elem,
-				     const char *secret);
+isc_result_t
+dns_c_kidlist_undef(dns_c_kidlist_t *list, const char *keyid);
 
-isc_result_t	dns_c_tkeylist_new(isc_mem_t *mem,
-				   dns_c_tkeylist_t **newlist);
-isc_result_t	dns_c_tkeylist_delete(dns_c_tkeylist_t **list);
-isc_result_t	dns_c_tkeylist_copy(isc_mem_t *mem,
-				    dns_c_tkeylist_t **dest,
-				    dns_c_tkeylist_t *src);
-void		dns_c_tkeylist_print(FILE *fp, int indent,
-				     dns_c_tkeylist_t *list);
-isc_result_t	dns_c_tkeylist_append(dns_c_tkeylist_t *list,
-				      dns_c_tkey_t *element,
-				      isc_boolean_t copy);
+isc_result_t
+dns_c_kidlist_find(dns_c_kidlist_t *list, const char *keyid,
+		   dns_c_kid_t **retval);
 
-isc_result_t	dns_c_tkey_new(isc_mem_t *mem, const char *domain,
-			       isc_int32_t flags,
-			       isc_int32_t protocol,
-			       isc_int32_t algorithm,
-			       const char *key, dns_c_tkey_t **newkey);
-isc_result_t	dns_c_tkey_delete(dns_c_tkey_t **tkey);
-isc_result_t	dns_c_tkey_copy(isc_mem_t *mem,
-				dns_c_tkey_t **dest, dns_c_tkey_t *src);
+void
+dns_c_kidlist_append(dns_c_kidlist_t *list, dns_c_kid_t *keyid);
 
-isc_result_t	dns_c_tkey_getflags(dns_c_tkey_t *tkey,
-				    isc_int32_t *flags);
-isc_result_t	dns_c_tkey_getprotocol(dns_c_tkey_t *tkey,
-				       isc_int32_t *protocol);
-isc_result_t	dns_c_tkey_getalgorithm(dns_c_tkey_t *tkey,
-					isc_int32_t *algorithm);
-isc_result_t	dns_c_tkey_getkey(dns_c_tkey_t *tkey,
-				  const char **key);
-void		dns_c_tkey_print(FILE *fp, int indent, dns_c_tkey_t *tkey);
+void
+dns_c_kidlist_print(FILE *fp, int indent, dns_c_kidlist_t *list);
 
+isc_result_t
+dns_c_kid_new(isc_mem_t *mem, const char *name, dns_c_kid_t **keyid);
 
+isc_result_t
+dns_c_kdeflist_new(isc_mem_t *mem, dns_c_kdeflist_t **list);
+
+isc_result_t
+dns_c_kdeflist_delete(dns_c_kdeflist_t **list);
+
+isc_result_t
+dns_c_kdeflist_copy(isc_mem_t *mem, dns_c_kdeflist_t **dest,
+		    dns_c_kdeflist_t *src);
+
+isc_result_t
+dns_c_kdeflist_append(dns_c_kdeflist_t *list, dns_c_kdef_t *key,
+		      isc_boolean_t copy);
+
+isc_result_t
+dns_c_kdeflist_undef(dns_c_kdeflist_t *list, const char *keyid);
+
+isc_result_t
+dns_c_kdeflist_find(dns_c_kdeflist_t *list, const char *keyid,
+		    dns_c_kdef_t **retval);
+
+void
+dns_c_kdeflist_print(FILE *fp, int indent, dns_c_kdeflist_t *list);
+
+isc_result_t
+dns_c_kdef_new(isc_mem_t *mem, const char *name, dns_c_kdef_t **keyid);
+
+isc_result_t
+dns_c_kdef_delete(dns_c_kdef_t **keydef);
+
+isc_result_t
+dns_c_kdef_copy(isc_mem_t *mem, dns_c_kdef_t **dest, dns_c_kdef_t *src);
+
+void
+dns_c_kdef_print(FILE *fp, int indent, dns_c_kdef_t *keydef);
+
+isc_result_t
+dns_c_kdef_setalgorithm(dns_c_kdef_t *elem, const char *algorithm);
+
+isc_result_t
+dns_c_kdef_setsecret(dns_c_kdef_t *elem, const char *secret);
+
+isc_result_t
+dns_c_tkeylist_new(isc_mem_t *mem, dns_c_tkeylist_t **newlist);
+
+isc_result_t
+dns_c_tkeylist_delete(dns_c_tkeylist_t **list);
+
+isc_result_t
+dns_c_tkeylist_copy(isc_mem_t *mem, dns_c_tkeylist_t **dest,
+		    dns_c_tkeylist_t *src);
+
+void
+dns_c_tkeylist_print(FILE *fp, int indent, dns_c_tkeylist_t *list);
+
+isc_result_t
+dns_c_tkeylist_append(dns_c_tkeylist_t *list, dns_c_tkey_t *element,
+		      isc_boolean_t copy);
+
+isc_result_t
+dns_c_tkey_new(isc_mem_t *mem, const char *domain, isc_int32_t flags,
+	       isc_int32_t protocol, isc_int32_t algorithm,
+	       const char *key, dns_c_tkey_t **newkey);
+
+isc_result_t
+dns_c_tkey_delete(dns_c_tkey_t **tkey);
+
+isc_result_t
+dns_c_tkey_copy(isc_mem_t *mem, dns_c_tkey_t **dest, dns_c_tkey_t *src);
+
+isc_result_t
+dns_c_tkey_getflags(dns_c_tkey_t *tkey, isc_int32_t *flags);
+
+isc_result_t
+dns_c_tkey_getprotocol(dns_c_tkey_t *tkey, isc_int32_t *protocol);
+
+isc_result_t
+dns_c_tkey_getalgorithm(dns_c_tkey_t *tkey, isc_int32_t *algorithm);
+
+isc_result_t
+dns_c_tkey_getkey(dns_c_tkey_t *tkey, const char **key);
+
+void
+dns_c_tkey_print(FILE *fp, int indent, dns_c_tkey_t *tkey);
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_CONFKEYS_H */

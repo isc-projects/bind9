@@ -18,6 +18,8 @@
 #ifndef DNS_ACLCONF_H
 #define DNS_ACLCONF_H 1
 
+#include <isc/lang.h>
+
 #include <dns/acl.h>
 #include <dns/confacl.h>
 #include <dns/confctx.h>
@@ -33,9 +35,11 @@ typedef struct {
 
 ISC_LANG_BEGINDECLS
 
-void dns_aclconfctx_init(dns_aclconfctx_t *ctx);
+void
+dns_aclconfctx_init(dns_aclconfctx_t *ctx);
 
-void dns_aclconfctx_destroy(dns_aclconfctx_t *ctx);
+void
+dns_aclconfctx_destroy(dns_aclconfctx_t *ctx);
 
 isc_result_t
 dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,

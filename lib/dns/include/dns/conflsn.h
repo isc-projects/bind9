@@ -55,18 +55,17 @@
  *** Imports
  ***/
 
-#include <isc/mem.h>
+#include <isc/lang.h>
 #include <isc/int.h>
+#include <isc/mem.h>
 
 #include <dns/confip.h>
 
-#define DNS_C_LISTEN_MAGIC	0x4c49534eU /* LISN */
+#define DNS_C_LISTEN_MAGIC		0x4c49534eU /* LISN */
 #define DNS_C_LLIST_MAGIC		0x4c6c6973U /* Llis */
 
 #define DNS_C_LISTEN_VALID(l)	ISC_MAGIC_VALID(l, DNS_C_LISTEN_MAGIC)
 #define DNS_C_LISTENLIST_VALID(l) ISC_MAGIC_VALID(l, DNS_C_LLIST_MAGIC)
-
-
 
 /***
  *** Types
@@ -75,10 +74,10 @@
 typedef struct dns_c_lstn_on		dns_c_lstnon_t;
 typedef struct dns_c_lstn_list		dns_c_lstnlist_t;
 
-
-/* Structure for holing value of a single listen-on statement. */
-struct dns_c_lstn_on
-{
+/*
+ * Structure for holing value of a single listen-on statement.
+ */
+struct dns_c_lstn_on {
 	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
 	
@@ -89,22 +88,24 @@ struct dns_c_lstn_on
 };
 
 
-/* A list of listen-on statements */
-struct dns_c_lstn_list
-{
+/*
+ * A list of listen-on statements.
+ */
+struct dns_c_lstn_list {
 	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
 
 	ISC_LIST(dns_c_lstnon_t)	elements;
 };
 
-
 /***
  *** Functions
  ***/
 
-isc_result_t	dns_c_lstnlist_new(isc_mem_t *mem,
-				   dns_c_lstnlist_t **llist);
+ISC_LANG_BEGINDECLS
+
+isc_result_t
+dns_c_lstnlist_new(isc_mem_t *mem, dns_c_lstnlist_t **llist);
 /*
  * Creates a new dns_c_lstnlist_t structure from the allocator pointed to
  * by MEM, and stores the pointer to the new structure in *LLIST.
@@ -118,7 +119,8 @@ isc_result_t	dns_c_lstnlist_new(isc_mem_t *mem,
  *	ISC_R_NOMEMORY		on allocation failure.
  */
 
-isc_result_t	dns_c_lstnlist_delete(dns_c_lstnlist_t **llist);
+isc_result_t
+dns_c_lstnlist_delete(dns_c_lstnlist_t **llist);
 /*
  * Deletes the list pointed to by **LLIST, and all the elements in it.
  * Sets *LLIST to NULL when done.
@@ -131,8 +133,8 @@ isc_result_t	dns_c_lstnlist_delete(dns_c_lstnlist_t **llist);
  */
 
 
-isc_result_t	dns_c_lstnlist_print(FILE *fp, int indent,
-				     dns_c_lstnlist_t *ll);
+isc_result_t
+dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll);
 /*
  * Prints the given the list LL to the stream FP. INDENT number of tabs
  * preceed each line of output.
@@ -144,8 +146,8 @@ isc_result_t	dns_c_lstnlist_print(FILE *fp, int indent,
  */
 
 
-isc_result_t	dns_c_lstnon_new(isc_mem_t *mem,
-				 dns_c_lstnon_t **listen);
+isc_result_t
+dns_c_lstnon_new(isc_mem_t *mem, dns_c_lstnon_t **listen);
 /*
  * Creates a new dns_c_lstnon_t structure and stores the pointer
  * in *LISTEN.
@@ -159,7 +161,8 @@ isc_result_t	dns_c_lstnon_new(isc_mem_t *mem,
  *	ISC_R_NOMEMORY on allocation failure.
  */
 
-isc_result_t	dns_c_lstnon_delete(dns_c_lstnon_t **listen);
+isc_result_t
+dns_c_lstnon_delete(dns_c_lstnon_t **listen);
 /*
  * Deletes the dns_c_lstnon_t structure pointed to by *LISTEN.
  *
@@ -170,9 +173,9 @@ isc_result_t	dns_c_lstnon_delete(dns_c_lstnon_t **listen);
  * Returns:
  */
 
-isc_result_t	dns_c_lstnon_setiml(dns_c_lstnon_t *listen,
-				    dns_c_ipmatchlist_t *iml,
-				    isc_boolean_t deepcopy);
+isc_result_t
+dns_c_lstnon_setiml(dns_c_lstnon_t *listen, dns_c_ipmatchlist_t *iml,
+		    isc_boolean_t deepcopy);
 /*
  * Sets the iml field of the structure to the value of the IML
  * parameter. If deepcopy paramater is true the structure field is
@@ -186,10 +189,9 @@ isc_result_t	dns_c_lstnon_setiml(dns_c_lstnon_t *listen,
  *	ISC_R_NOMEMORY on allocation failure.
  */
 
-isc_result_t	dns_c_lstnon_print(FILE *fp, int indent,
-				   dns_c_lstnon_t *lo);
+isc_result_t
+dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo);
 
-
-
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_CONFLSN_H */
