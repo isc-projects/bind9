@@ -679,7 +679,7 @@ shutdown_names(dns_adb_t *adb)
 		UNLOCK(&adb->namelocks[bucket]);
 	}
 
-	dump_adb(adb, stderr);
+	/* dump_adb(adb, stderr); */
 }
 
 /*
@@ -2124,7 +2124,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		}
 	}
 
-	dns_adb_dumpfind(find, stderr);
+	/* dns_adb_dumpfind(find, stderr); */
 
 	if (bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->namelocks[bucket]);
