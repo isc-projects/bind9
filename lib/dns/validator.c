@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.12 2004/06/11 01:17:36 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.13 2004/11/17 23:53:10 marka Exp $ */
 
 #include <config.h>
 
@@ -497,6 +497,8 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 
 	REQUIRE(exists != NULL);
 	REQUIRE(data != NULL);
+	REQUIRE(nsecset != NULL &&
+		nsecset->type == dns_rdatatype_nsec);
 
 	result = dns_rdataset_first(nsecset);
 	if (result != ISC_R_SUCCESS) {
@@ -661,7 +663,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		if (rdataset->trust == dns_trust_secure)
 			val->seensig = ISC_TRUE;
 
-		if (val->nsecset != NULL &&
+		if (rdataset->type == dns_rdatatype_nsec &&
 		    rdataset->trust == dns_trust_secure &&
 		    ((val->attributes & VALATTR_NEEDNODATA) != 0 ||
 		     (val->attributes & VALATTR_NEEDNOQNAME) != 0) &&
