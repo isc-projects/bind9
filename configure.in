@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.90 $)
+AC_REVISION($Revision: 1.91 $)
 
 AC_PREREQ(2.13)
 
@@ -543,7 +543,7 @@ case "$use_kame" in
 	*)
 		if test -f $kame_path/lib/libinet6.a; then
 			AC_MSG_RESULT($kame_path/lib/libinet6.a)
-			LIBS="$kame_path/lib -linet6 $LIBS"
+			LIBS="-L$kame_path/lib -linet6 $LIBS"
 		else
 			AC_MSG_ERROR([$kame_path/lib/libinet6.a not found.
 
