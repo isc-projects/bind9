@@ -23,6 +23,7 @@
 
 #include <dns/aclconf.h>
 #include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/types.h>
 
 void dns_aclconfctx_init(dns_aclconfctx_t *ctx)
