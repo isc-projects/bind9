@@ -35,10 +35,6 @@ isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
 
 /* XXX We could do fancier error handling... */
 
-#ifndef ISC_THREAD_MINSTACKSIZE
-#define ISC_THREAD_MINSTACKSIZE		(64 * 1024)
-#endif
-
 #define isc_thread_join(t, rp) \
 	((pthread_join((t), (rp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)

@@ -23,6 +23,10 @@
 #include <isc/thread.h>
 #include <isc/error.h>
 
+#ifndef THREAD_MINSTACKSIZE
+#define THREAD_MINSTACKSIZE		(64 * 1024)
+#endif
+
 isc_result_t
 isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 		  isc_thread_t *thread)
@@ -37,9 +41,8 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 	if (ret != 0)
 		return (ISC_R_UNEXPECTED);
 
-	if (stacksize < ISC_THREAD_MINSTACKSIZE) {
-		ret = pthread_attr_setstacksize(&attr,
-						ISC_THREAD_MINSTACKSIZE);
+	if (stacksize < THREAD_MINSTACKSIZE) {
+		ret = pthread_attr_setstacksize(&attr, THREAD_MINSTACKSIZE);
 		if (ret != 0)
 			return (ISC_R_UNEXPECTED);
 	}
