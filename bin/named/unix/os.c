@@ -173,7 +173,7 @@ all_digits(const char *s) {
 	if (*s == '\0')
 		return (ISC_FALSE);
 	while (*s != '\0') {
-		if (!isdigit(*s))
+		if (!isdigit((*s)&0xff))
 			return (ISC_FALSE);
 		s++;
 	}

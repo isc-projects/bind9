@@ -130,8 +130,9 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		break;
 
 	default:
-		INSIST(port = 0);
-		INSIST(addr = NULL);
+		port = 0;
+		addr = NULL;
+		INSIST(0);
 	}
 	proto = (flags & NI_DGRAM) ? "udp" : "tcp";
 
