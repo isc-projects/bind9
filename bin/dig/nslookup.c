@@ -33,6 +33,7 @@ extern int h_errno;
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
+#include <dns/name.h>
 
 #include <dig/dig.h>
 
@@ -728,7 +729,6 @@ get_next_command() {
 static void
 parse_args(int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
-	isc_boolean_t have_host = ISC_FALSE;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
 		debug ("Main parsing %s", argv[0]);
