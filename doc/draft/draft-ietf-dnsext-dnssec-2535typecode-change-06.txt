@@ -1,11 +1,11 @@
 
 
 INTERNET-DRAFT                                             Samuel Weiler
-Expires: April 2004                                     October 10, 2003
+Expires: June 2004                                     December 15, 2003
 Updates: RFC 2535, [DS]
 
 	 Legacy Resolver Compatibility for Delegation Signer
-	 draft-ietf-dnsext-dnssec-2535typecode-change-05.txt
+	 draft-ietf-dnsext-dnssec-2535typecode-change-06.txt
 
 Status of this Memo
 
@@ -45,6 +45,16 @@ Abstract
    type codes and mnemonics of the DNSSEC RRs (SIG, KEY, and NXT) to
    avoid those interactions.
 
+Changes between 05 and 06:
+
+   Signifigantly reworked the IANA section -- went back to one
+   algorithm registry.
+
+   Removed Diffie-Hellman from the list of zone-signing algorithms
+   (leaving only DSA, RSA/SHA-1, and private algorithms).
+
+   Added a DNSKEY flags field registry.
+
 Changes between 04 and 05:
 
    IESG approved publication.
@@ -75,7 +85,7 @@ Changes between 02 and 03:
    KEY (as well as SIG) retained for SIG(0) use only.
 
 Changes between 01 and 02:
-   
+
    SIG(0) still uses SIG, not RRSIG.  Added 2931 reference.
 
    Domain names embedded in NSECs and RRSIGs are not compressible and
@@ -133,8 +143,7 @@ Changes between 01 and 02:
    RRset and a proof that no DS record exists for that name.
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in
-this
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in [RFC2119].
 
 1.2 The Problem
@@ -164,7 +173,7 @@ this
    To avoid the problem described above, legacy (RFC2535-aware)
    resolvers need to be kept from seeing unsecure referrals that
    include NXT records in the authority section.  The simplest way to
-   do that is to change the type codes for SIG, KEY, and NXT.  
+   do that is to change the type codes for SIG, KEY, and NXT.
 
    The obvious drawback to this is that new resolvers will not be able
    to validate zones signed with the old RRs.  This problem already
@@ -282,46 +291,71 @@ this
    As a clarification to previous documents, some positive responses,
    particularly wildcard proofs and unsecure referrals, will contain
    NSEC RRs.  Resolvers MUST NOT treat answers with NSEC RRs as
-   negative answers merely because they contain an NSEC.  
+   negative answers merely because they contain an NSEC.
 
 4. IANA Considerations
+
+4.1 DNS Resource Record Types
 
    This document updates the IANA registry for DNS Resource Record
    Types by assigning types 46, 47, and 48 to the RRSIG, NSEC, and
    DNSKEY RRs, respectively.
 
    Types 24 and 25 (SIG and KEY) are retained for SIG(0) [RFC2931] and
-   TKEY [RFC2930] use only.  Type 30 (NXT) should be marked as
-   Obsolete.
+   TKEY [RFC2930] use only.
 
-   In order to allow zone signing (DNSSEC) and transaction security
-   mechanisms (SIG(0) and TKEY) to use different sets of algorithms,
-   the existing "DNS Security Algorithm Numbers" is deprecated.  All
-   of its existing assignments are copied into the new "DNS
-   Transaction Security Algorithm Numbers" registry.  A new "DNS Zone
-   Signing Algorithm Numbers" registry is established with initial
-   assignments of:
+   Type 30 (NXT) should be marked as Obsolete.
 
-   Value      Algorithm                        Mnemonic   Reference
-     0        reserved
-     1	      reserved
-     2        Diffie-Hellman                   DH         [RFC2539]
-     3        DSA/SHA-1                        DSA        [RFC2536]
-     5        RSA/SHA-1                        HEDGEHOG   [RFC3110]  
-   253        Private algorithms - domain name PRIVATEDNS [RFC2535]
-   254        Private algorithms - OID         PRIVATEOID [RFC2535]
-   255        reserved
+4.2 DNS Security Algorithm Numbers
 
-   Values 4 and 6 through 252 are available for assignment by IETF
+   To allow zone signing (DNSSEC) and transaction security mechanisms
+   (SIG(0) and TKEY) to use different sets of algorithms, the existing
+   "DNS Security Algorithm Numbers" registry is modified to include
+   the applicability of each algorithm.  Specifically, two new columns
+   are added to the registry, showing whether each algorithm may be
+   used for zone signing, transaction security mechanisms, or both.
+   Only algorithms usable for zone signing may be used in DNSKEY,
+   RRSIG, and DS RRs.  Only algorithms usable for SIG(0) and/or TSIG
+   may be used in SIG and KEY RRs.
+
+   All currently defined algorithms remain usable for transaction
+   security mechanisms.  Only RSA/SHA-1, DSA/SHA-1, and private
+   algorithms (types 253 and 254) may be used for zone signing.  Note
+   that the registry does not contain the requirement level of each
+   algorithm, only whether or not an algorithm may be used for the
+   given purposes.  For example, RSA/MD5, while allowed for
+   transaction security mechanisms, is NOT RECOMMENDED, per RFC3110.
+
+   Additionally, the presentation format algorithm mnemonics from
+   RFC2535 Section 7 are added to the registry.  This document assigns
+   RSA/SHA-1 the mnemonic RSASHA1.
+
+   As before, assignment of new algorithms in this registry requires
+   IETF Standards Action.  Additionally, modification of algorithm
+   mnemonics or applicability requires IETF Standards Action.
+   Documents defining a new algorithm must address the applicability
+   of the algorithm and should assign a presentation mnemonic to the
+   algorithm.
+
+4.3 DNSKEY Flags
+
+   Like the KEY resource record, DNSKEY contains a 16-bit flags field.
+   This document creates a new registry for the DNSKEY flags field.
+
+   Initially, this registry only contains an assignment for bit 7 (the
+   ZONE bit).  Bits 0-6 and 8-15 are available for assignment by IETF
    Standards Action.
 
-   If a new algorithm is usable for both zone signing (DNSSEC) and
-   SIG(0)/TKEY, it is suggested, but not required, that it be assigned
-   the same number in both registries.
+4.4 DNSKEY Protocol Octet
+
+   Like the KEY resource record, DNSKEY contains an eight bit protocol
+   field.  The only defined value for this field is 3 (DNSSEC).  No
+   other values are allowed, hence no IANA registry is needed for this
+   field.
 
 5. Security Considerations
 
-   The change introduced here does not materially affect security.
+   The changes introduced here do not materially affect security.
    The implications of trying to use both new and legacy types
    together are not well understood, and attempts to do so would
    probably lead to unintended and dangerous results.
@@ -341,7 +375,7 @@ this
              RFC 2535, March 1999.
 
    [DS]      Gudmundsson, O., "Delegation Signer Resource Record",
-             draft-ietf-dnsext-delegation-signer-15.txt, work in 
+             draft-ietf-dnsext-delegation-signer-15.txt, work in
              progress, June 2003.
 
    [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
@@ -359,7 +393,7 @@ this
    [RFC2539] Eastlake, D., "Storage of Diffie-Hellman Keys in the
              Domain Name System (DNS)", RFC 2539, March 1999.
 
-   [RFC3110] Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the 
+   [RFC3110] Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the
              Domain Name System (DNS)", RFC 3110, May 2001.
 
 7. Informative References
@@ -369,7 +403,7 @@ this
 
    [RFC2671] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
 	     2671, August 1999.
-	    
+
    [RFC3225] Conrad, D., "Indicating Resolver Support of DNSSEC", RFC
              3225, December 2001.
 
@@ -405,5 +439,4 @@ this
    Columbia, MD 21046
    USA
    weiler@tislabs.com
-
 
