@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.262 2000/11/30 00:25:11 gson Exp $ */
+/* $Id: server.c,v 1.263 2000/11/30 19:38:01 gson Exp $ */
 
 #include <config.h>
 
@@ -2108,30 +2108,40 @@ next_token(char **stringp, const char *delim) {
 	return (res);
 }                       
 
+/*
+ * Find the zone specified in the control channel command 'args',
+ * if any.  If a zone is specified, point '*zonep' at it, otherwise
+ * set '*zonep' to NULL.
+ */
 static isc_result_t
-zone_from_args(char *args, dns_zone_t **zone) {
+zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 	char *input, *ptr;
-	const char *zonetxt = NULL, *viewtxt = NULL;
+	const char *zonetxt;
+	const char *viewtxt;
 	dns_fixedname_t name;
 	isc_result_t result;
 	isc_buffer_t buf;
 	dns_view_t *view = NULL;
 
+	REQUIRE(zonep != NULL && *zonep == NULL);
+
 	input = args;
+
+	/* Skip the command name. */
 	ptr = next_token(&input, " \t");
-	while (ptr != NULL) {
-		switch (ptr[0]) {
-		case 'Z':
-			zonetxt = ptr+1;
-			break;
-		case 'V':
-			viewtxt = ptr+1;
-			break;
-		}
-		ptr = next_token(&input, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Look for the zone name. */
+	zonetxt = next_token(&input, " \t");
+	if (zonetxt == NULL) {
+		*zonep = NULL;
+		return (ISC_R_SUCCESS);
 	}
-	if ((zonetxt == NULL) || (zonetxt[0] == 0))
-		return DNS_R_BADZONE; /* Nothing to do! */
+
+	/* Look for the optional view name. */	
+	viewtxt = next_token(&input, " \t");
+
 	isc_buffer_init(&buf, zonetxt, strlen(zonetxt));
 	isc_buffer_add(&buf, strlen(zonetxt));
 	dns_fixedname_init(&name);
@@ -2139,14 +2149,14 @@ zone_from_args(char *args, dns_zone_t **zone) {
 				   ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto fail1;
-	if ((viewtxt == NULL) || (viewtxt[0] == 0))
+	if (viewtxt == NULL)
 		viewtxt = "_default";
-	result = dns_viewlist_find(&ns_g_server->viewlist, viewtxt,
-				   dns_rdataclass_in, &view);
+	result = dns_viewlist_find(&server->viewlist, viewtxt,
+				   dns_rdataclass_in, &view); /* XXX class */
 	if (result != ISC_R_SUCCESS)
 		goto fail1;
-	result = dns_zt_find(view->zonetable, &(name.name), 0, NULL,
-			     zone);
+	result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
+			     0, NULL, zonep);
 	if (result != ISC_R_SUCCESS)
 		goto fail2;
  fail2:
@@ -2156,35 +2166,44 @@ zone_from_args(char *args, dns_zone_t **zone) {
 	return (result);
 }
 
+/*
+ * Act on a "reload" command from the command channel.
+ */
 isc_result_t
-ns_server_reloadzone(ns_server_t *server, char *args) {
+ns_server_reloadcommand(ns_server_t *server, char *args) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	
 	UNUSED(server);
-	result = zone_from_args(args, &zone);
+	result = zone_from_args(server, args, &zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (zone != NULL) {
+	if (zone == NULL) {
+		ns_server_reloadwanted(server);
+	} else {
 		dns_zone_forcereload(zone);
 		dns_zone_detach(&zone);
 	}
 	return (ISC_R_SUCCESS);
 }	
 
+/*
+ * Act on a "refresh" command from the command channel.
+ */
 isc_result_t
-ns_server_refreshzone(ns_server_t *server, char *args) {
+ns_server_refreshcommand(ns_server_t *server, char *args) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 
-	UNUSED(server);
-	result = zone_from_args(args, &zone);
+	result = zone_from_args(server, args, &zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (zone != NULL) {
-		dns_zone_refresh(zone);
-		dns_zone_detach(&zone);
-	}
+	if (zone == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+	
+	dns_zone_refresh(zone);
+	dns_zone_detach(&zone);
+
 	return (ISC_R_SUCCESS);
 }	
 

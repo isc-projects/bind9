@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.25 2000/11/30 00:25:06 gson Exp $ */
+/* $Id: omapi.c,v 1.26 2000/11/30 19:38:00 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -75,38 +75,19 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 		      "control_setvalue: '%.*s' control command received",
 		      REGION_FMT(&region));
 
+	if (value == NULL)
+		return (ISC_R_FAILURE); /* XXX can this happen? */
+	args = omapi_data_strdup(ns_g_mctx, value);
+	if (args == NULL)
+		return (ISC_R_NOMEMORY);
+
 	/*
 	 * Compare the 'name' parameter against all known control commands.
 	 */
 	if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_RELOAD) == 0) {
-		result = ISC_R_SUCCESS;
-		if (value != NULL) {
-			args = omapi_data_strdup(ns_g_mctx, value);
-			if (args == NULL)
-				result = ISC_R_NOMEMORY;
-			else if (strcmp(args, NS_OMAPI_COMMAND_RELOAD) == 0)
-				ns_server_reloadwanted(ns_g_server);
-			/* XXX Can the previous case ever happen??? */
-			else
-				result = ns_server_reloadzone(ns_g_server,
-							      args);
-			if (args != NULL)
-				isc_mem_free(ns_g_mctx, args);
-		} else {
-			ns_server_reloadwanted(ns_g_server);
-		}
+		result = ns_server_reloadcommand(ns_g_server, args);
 	} else if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_REFRESH) == 0) {
-		result = ISC_R_SUCCESS;
-		if (value != NULL) {
-			args = omapi_data_strdup(ns_g_mctx, value);
-			if (args == NULL)
-				result = ISC_R_NOMEMORY;
-			else if (strcmp(args, NS_OMAPI_COMMAND_RELOAD) != 0)
-				result = ns_server_refreshzone(ns_g_server,
-							      args);
-			if (args != NULL)
-				isc_mem_free(ns_g_mctx, args);
-		}
+		result = ns_server_refreshcommand(ns_g_server, args);
 	} else if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_HALT) == 0) {
 		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
 		isc_app_shutdown();
@@ -137,6 +118,8 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 		result = omapi_object_passsetvalue(handle, name, value);
 	}
 
+	isc_mem_free(ns_g_mctx, args);	
+	
 	return (result);
 }
 

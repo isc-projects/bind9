@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.45 2000/11/30 00:25:14 gson Exp $ */
+/* $Id: server.h,v 1.46 2000/11/30 19:38:03 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -108,10 +108,16 @@ ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush);
  */
 
 isc_result_t
-ns_server_reloadzone(ns_server_t *server, char *args);
+ns_server_reloadcommand(ns_server_t *server, char *args);
+/*
+ * Act on a "reload" command from the command channel.
+ */
 
 isc_result_t
-ns_server_refreshzone(ns_server_t *server, char *args);
+ns_server_refreshcommand(ns_server_t *server, char *args);
+/*
+ * Act on a "refresh" command from the command channel.
+ */
 
 isc_result_t
 ns_server_togglequerylog(ns_server_t *server);

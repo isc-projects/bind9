@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.30 2000/11/30 00:25:16 gson Exp $ */
+/* $Id: rndc.c,v 1.31 2000/11/30 19:38:04 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -70,7 +70,9 @@ notify(const char *fmt, ...) {
 }
 
 /*
- * Send a control command to the server.
+ * Send a control command to the server.  'command' is the command
+ * name, and 'args' is a space-delimited sequence of words, the
+ * first being the command name itself.
  */
 static isc_result_t
 send_command(omapi_object_t *manager, char *command, char *args) {
@@ -299,15 +301,14 @@ main(int argc, char **argv) {
 	const char *keyname = NULL;
 	char secret[1024];
 	isc_buffer_t secretbuf;
-	char *command, *args;
+	char *command, *args, *p;
+	size_t argslen;
 	const char *servername = NULL;
 	const char *host = NULL;
 	unsigned int port = NS_OMAPI_PORT;
 	unsigned int algorithm;
 	int ch;
-	int len;
-	char *zonename = NULL;
-	char *viewname = NULL;
+	int i;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -474,141 +475,60 @@ main(int argc, char **argv) {
 	 */
 	ndc_g_ndc.waitresult = ISC_R_SUCCESS;
 
-	if (*argv != NULL &&
-	    result == ISC_R_SUCCESS &&
-	    ndc_g_ndc.waitresult == ISC_R_SUCCESS) {
+	command = *argv;
 
-		args = *argv;
+	/*
+	 * Convert argc/argv into a space-delimited command string
+	 * similar to what the user might enter in interactive mode
+	 * (if that were implemented).
+	 */
+	argslen = 0;
+	for (i = 0; i < argc; i++)
+		argslen += strlen(argv[i]) + 1;
 
-		/* Skip leading white space. */
-		args += strspn(args, " \t\r\n");
+	args = isc_mem_get(mctx, argslen);
+	if (args == NULL)
+		DO("isc_mem_get", ISC_R_NOMEMORY);
 
-		/* Extract command */
-		len = strcspn(args, " \t\r\n");
-		if (len == 0) {
-			fprintf(stderr, "%s: unexpected error parsing "
-				"command: got %s\n", progname, args);
-			exit(1);	
-		}
-		command = isc_mem_get(mctx, len + 1);
-		if (command == NULL)
-			DO("isc_mem_get", ISC_R_NOMEMORY);
-		strncpy(command, args, len);
-		command[len] = '\0';
-
-		notify(command);
-
-		if (strcmp(command, "dumpdb") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
-
-		} else if (strcmp(command, "notrace") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
-
-		} else if (strcmp(command, "reload") == 0) {
-			char omapiargs[DNS_NAME_MAXTEXT];
-			if (argc > 0) {
-				argc--;
-				argv++;
-				if (argv != NULL)
-					zonename = *argv;
-			}
-			if (argc > 0) {
-				argc--;
-				argv++;
-				if (argv != NULL)
-					viewname = *argv;
-			}
-			omapiargs[0]=0;
-			if (zonename != NULL) {	
-				strncat(omapiargs, "Z", 1);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-				strncat(omapiargs, zonename,
-					DNS_NAME_MAXTEXT);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-			}
-			if (zonename != NULL && viewname != NULL) {
-				strncat(omapiargs, " ",
-					DNS_NAME_MAXTEXT);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-			}
-			if (viewname != NULL) {	
-				strncat(omapiargs, "V", 1);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-				strncat(omapiargs, viewname,
-					DNS_NAME_MAXTEXT);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-			}
-			result = send_command(omapimgr, command, omapiargs);
-		} else if (strcmp(command, "refresh") == 0) {
-			char omapiargs[DNS_NAME_MAXTEXT];
-			if (argc > 0) {
-				argc--;
-				argv++;
-				if (argv != NULL)
-					zonename = *argv;
-			}
-			if (argc > 0) {
-				argc--;
-				argv++;
-				if (argv != NULL)
-					viewname = *argv;
-			}
-			omapiargs[0]=0;
-			if (zonename != NULL) {	
-				strncat(omapiargs, "Z", 1);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-				strncat(omapiargs, zonename,
-					DNS_NAME_MAXTEXT);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-			}
-			if (zonename != NULL && viewname != NULL) {
-				strncat(omapiargs, " ",
-					DNS_NAME_MAXTEXT);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-			}
-			if (viewname != NULL) {	
-				strncat(omapiargs, "V", 1);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-				strncat(omapiargs, viewname,
-					DNS_NAME_MAXTEXT);
-				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
-			}
-			result = send_command(omapimgr, command, omapiargs);
-		} else if (strcmp(command, "restart") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
-
-		} else if (strcmp(command, "status") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
-
-		} else if (strcmp(command, "stop") == 0) {
-			result = send_command(omapimgr, command, args);
-
-		} else if (strcmp(command, "trace") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
-		} else {
-			result = send_command(omapimgr, command, args);
-		}
-
-		if (result == ISC_R_NOTIMPLEMENTED)
-			fprintf(stderr, "%s: '%s' is not yet implemented\n",
-				progname, command);
-
-		else if (result != ISC_R_SUCCESS)
-			fprintf(stderr, "%s: protocol failure: %s\n",
-				progname, isc_result_totext(result));
-
-		else if (ndc_g_ndc.waitresult != ISC_R_SUCCESS)
-			fprintf(stderr, "%s: %s command failure: %s\n",
-				progname, command,
-				isc_result_totext(ndc_g_ndc.waitresult));
-
-		else
-			printf("%s: %s command successful\n",
-			       progname, command);
-		isc_mem_put(mctx, command, len + 1);
+	p = args;
+	for (i = 0; i < argc; i++) {
+		size_t len = strlen(argv[i]);
+		memcpy(p, argv[i], len);
+		p += len;
+		*p++ = ' ';
 	}
 
-	notify("command loop done");
+	p--;
+	*p++ = '\0';
+	INSIST(p == args + argslen);
+
+	notify(command);
+
+	if (strcmp(command, "dumpdb") == 0 ||
+	    strcmp(command, "notrace") == 0 ||
+	    strcmp(command, "restart") == 0 ||
+	    strcmp(command, "status") == 0 ||
+	    strcmp(command, "trace") == 0) {
+		result = ISC_R_NOTIMPLEMENTED;
+	} else {
+		result = send_command(omapimgr, command, args);
+	}
+
+	if (result == ISC_R_NOTIMPLEMENTED)
+		fprintf(stderr, "%s: '%s' is not yet implemented\n",
+			progname, command);
+	else if (result != ISC_R_SUCCESS)
+		fprintf(stderr, "%s: protocol failure: %s\n",
+			progname, isc_result_totext(result));
+	else if (ndc_g_ndc.waitresult != ISC_R_SUCCESS)
+		fprintf(stderr, "%s: %s command failure: %s\n",
+			progname, command,
+			isc_result_totext(ndc_g_ndc.waitresult));
+	else
+		printf("%s: %s command successful\n",
+		       progname, command);
+
+	isc_mem_put(mctx, args, argslen);
 
 	/*
 	 * Close the connection and wait to be disconnected.  The connection
