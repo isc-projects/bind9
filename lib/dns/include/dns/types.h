@@ -73,6 +73,7 @@ typedef struct dns_dispatchevent		dns_dispatchevent_t;
 typedef struct dns_tsig_key			dns_tsig_key_t;
 typedef struct dns_view				dns_view_t;
 typedef ISC_LIST(dns_view_t)			dns_viewlist_t;
+typedef struct dns_a6context			dns_a6context_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
