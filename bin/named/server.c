@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.276.2.3.6.1 2003/09/17 07:19:47 tale Exp $ */
+/* $Id: server.c,v 1.276.2.3.6.2 2003/09/19 07:06:43 marka Exp $ */
 
 #include <config.h>
 
@@ -1151,6 +1151,15 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			goto cleanup;
 		}
 		result = configure_hints(view, czone->u.hzone.file);
+		/*
+		 * Hint zones may also refer to delegation only points.
+		 */
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		only = ISC_FALSE;
+		if (dns_c_zone_getdelegationonly(czone, &only) ==
+		    ISC_R_SUCCESS && only)
+			result = dns_view_adddelegationonly(view, origin);
 		goto cleanup;
 	}
 
@@ -1241,11 +1250,10 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	}
 
 	/*
-	 * Stub and forward zones may also refer to delegation only points.
+	 * Stub zones may also refer to delegation only points.
 	 */
 	only = ISC_FALSE;
-	if ((czone->ztype == dns_c_zone_stub ||
-	     czone->ztype == dns_c_zone_forward) &&
+	if (czone->ztype == dns_c_zone_stub &&
 	    dns_c_zone_getdelegationonly(czone, &only) == ISC_R_SUCCESS) {
 		if (only)
 			CHECK(dns_view_adddelegationonly(view, origin));

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.22.6.1 2003/09/17 08:17:30 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.22.6.2 2003/09/19 07:06:44 marka Exp $ -->
 
 <book>
 
@@ -2450,8 +2450,7 @@ those servers during resolution.
 <entry colname = "1"><para><command>delegation-only</command></para></entry>
 <entry colname = "2"><para>Delegation only.  Logs queries that have have
 been forced to NXDOMAIN as the result of a delegation-only zone or
-a <command>delegation-only</command> in a stub or forward
-zone declartation.
+a <command>delegation-only</command> in a hint or stub zone declartation.
 </para></entry>
 </row>
 </tbody>
@@ -3922,7 +3921,9 @@ Classes other than IN have no built-in defaults hints.</para></entry>
 status of infrastructure zones (e.g. COM, NET, ORG).  Any answer that
 is received without a explicit or implict delegation in the authority
 section will be treated as NXDOMAIN.  This does not apply to the zone
-apex.  This SHOULD NOT be applied to leaf zones.</para></entry>
+apex.  This SHOULD NOT be applied to leaf zones.</para>
+<para><varname>delegation-only</varname> has no effect on answers received
+from forwarders.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable></sect3>
@@ -4039,7 +4040,7 @@ with the distribution but none are linked in by default.</para>
 <row rowsep = "0">
 <entry colname = "1">
 <para><command>delegation-only</command></para></entry>
-<entry colname = "2"><para>The flag only applies to forward and stub zones.  If set
+<entry colname = "2"><para>The flag only applies to hint and stub zones.  If set
 to <userinput>yes</userinput> then the zone will also be treated as if it
 is also a delegation-only type zone.
 </para>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.72.2.5.10.1 2003/09/17 07:19:50 tale Exp $ */
+/* $Id: confzone.c,v 1.72.2.5.10.2 2003/09/19 07:06:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1089,14 +1089,14 @@ dns_c_zone_setdelegationonly(dns_c_zone_t *zone, isc_boolean_t only) {
 		bit = TZ_DELEGATION_ONLY_BIT;
 		break;
 
-	case dns_c_zone_forward:
+	case dns_c_zone_hint:
 		bits = &zone->u.fzone.setflags;
 		bit = FZ_DELEGATION_ONLY_BIT;
 		break;
 
 	case dns_c_zone_master:
 	case dns_c_zone_slave:
-	case dns_c_zone_hint:
+	case dns_c_zone_forward:
 	case dns_c_zone_delegationonly:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -1137,14 +1137,14 @@ dns_c_zone_getdelegationonly(dns_c_zone_t *zone, isc_boolean_t *retval) {
 		bit = TZ_DELEGATION_ONLY_BIT;
 		break;
 
-	case dns_c_zone_forward:
+	case dns_c_zone_hint:
 		bits = &zone->u.fzone.setflags;
 		bit = FZ_DELEGATION_ONLY_BIT;
 		break;
 
 	case dns_c_zone_master:
 	case dns_c_zone_slave:
-	case dns_c_zone_hint:
+	case dns_c_zone_forward:
 	case dns_c_zone_delegationonly:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,

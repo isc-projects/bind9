@@ -1,3 +1,12 @@
+1509.	[bug]		Hint zones should accept delegation-only.  Forward
+			zone should not accept delegation-only.
+
+1508.	[bug]		Don't apply delegation-only checks to answers from
+			forwarders.
+
+1507.	[bug]		Handle BIND 8 style returns to NS queries to parents
+			when making delegation-only checks.
+
 1506.	[bug]		Wrong return type for dns_view_isdelegationonly().
 
 	--- 9.1.3-P1 released ---
