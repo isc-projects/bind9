@@ -15,11 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.4 2000/08/01 01:31:14 tale Exp $ */
+/* $Id: errno2result.c,v 1.5 2000/11/14 23:37:26 tale Exp $ */
 
 #include <config.h>
-
-#include <errno.h>
 
 #include <isc/result.h>
 
@@ -36,13 +34,14 @@ isc__errno2result(int posixerrno) {
 	switch (posixerrno) {
 	case ENOTDIR:
 	case ELOOP:
-	case EINVAL:
+	case EINVAL:		/* XXX sometimes this is not for files */
 	case ENAMETOOLONG:
 	case EBADF:
 		return (ISC_R_INVALIDFILE);
 	case ENOENT:
 		return (ISC_R_FILENOTFOUND);
 	case EACCES:
+	case EPERM:
 		return (ISC_R_NOPERM);
 	case EEXIST:
 		return (ISC_R_FILEEXISTS);
