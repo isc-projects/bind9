@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.33 2001/06/04 19:33:10 tale Exp $ */
+/* $Id: sdb.c,v 1.34 2001/06/06 22:03:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,13 @@ typedef struct sdb_rdatasetiter {
 } sdb_rdatasetiter_t;
 
 #define SDB_MAGIC		ISC_MAGIC('S', 'D', 'B', '-')
-#define VALID_SDB(sdb)		ISC_MAGIC_VALID(sdb, SDB_MAGIC)
+
+/*
+ * Note that "impmagic" is not the first four bytes of the struct, so
+ * ISC_MAGIC_VALID cannot be used.
+ */
+#define VALID_SDB(sdb)		((sdb) != NULL && \
+				 (sdb)->common.impmagic == SDB_MAGIC)
 
 #define SDBLOOKUP_MAGIC		ISC_MAGIC('S','D','B','L')
 #define VALID_SDBLOOKUP(sdbl)	ISC_MAGIC_VALID(sdbl, SDBLOOKUP_MAGIC)
