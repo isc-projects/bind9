@@ -17,12 +17,12 @@
 
 #include <config.h>
 
+#include <string.h>
+
 #include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 
 #include <isc/assertions.h>
+#include <isc/net.h>
 
 #include <dns/confzone.h>
 #include <dns/confcommon.h>
@@ -944,7 +944,7 @@ dns_c_zone_setpubkey(dns_c_zone_t *zone, dns_c_pubkey_t *pubkey,
 
 
 isc_result_t
-dns_c_zone_setmasterport(dns_c_zone_t *zone, isc_int32_t port)
+dns_c_zone_setmasterport(dns_c_zone_t *zone, in_port_t port)
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
@@ -1796,7 +1796,7 @@ dns_c_zone_getpubkey(dns_c_zone_t *zone, dns_c_pubkey_t **retval)
 
 
 isc_result_t
-dns_c_zone_getmasterport(dns_c_zone_t *zone, isc_int32_t *retval)
+dns_c_zone_getmasterport(dns_c_zone_t *zone, in_port_t *retval)
 {
 	isc_result_t res = ISC_R_SUCCESS;
 	
