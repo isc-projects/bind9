@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.45 2000/08/31 22:33:43 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.46 2000/09/01 21:34:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -26,14 +26,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
-#include <isc/condition.h>
 #include <isc/commandline.h>
 #include <isc/entropy.h>
+#include <isc/event.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -77,15 +77,13 @@
 
 #define RESOLV_CONF "/etc/resolv.conf"
 
-static isc_boolean_t busy = ISC_FALSE;
 static isc_boolean_t debugging = ISC_FALSE, ddebugging = ISC_FALSE;
 static isc_boolean_t have_ipv6 = ISC_FALSE;
 static isc_boolean_t is_dst_up = ISC_FALSE;
 static isc_boolean_t usevc = ISC_FALSE;
-static isc_mutex_t lock;
-static isc_condition_t cond;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *global_task = NULL;
+static isc_event_t *global_event = NULL;
 static isc_mem_t *mctx = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
@@ -1006,8 +1004,9 @@ get_next_command(void) {
 
 	ddebug("get_next_command()");
 	fprintf(stdout, "> ");
-	fgets (cmdlinebuf, MAXCMD, stdin);
-	cmdline = cmdlinebuf;
+	cmdline = fgets(cmdlinebuf, MAXCMD, stdin);
+	if (cmdline == NULL)
+		return (STATUS_QUIT);
 	word = nsu_strsep(&cmdline, " \t\r\n");
 
 	if (feof(stdin))
@@ -1048,13 +1047,9 @@ user_interaction(void) {
 }
 
 static void
-done_update(isc_boolean_t acquirelock) {
-	if (acquirelock)
-		LOCK(&lock);
-	busy = ISC_FALSE;
-	SIGNAL(&cond);
-	if (acquirelock)
-		UNLOCK(&lock);
+done_update(void) {
+	isc_event_t *event = global_event;
+	isc_task_send(global_task, &event);
 }
 
 static void
@@ -1092,7 +1087,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
  done:
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
-	done_update(ISC_TRUE);
+	done_update();
 }
 
 static void
@@ -1316,7 +1311,7 @@ start_update(void) {
 
 	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
 	if (result != ISC_R_SUCCESS) {
-		done_update(ISC_FALSE);
+		done_update();
 		return;
 	}
 
@@ -1398,6 +1393,10 @@ cleanup(void) {
 	ddebug("Ending task");
 	isc_task_detach(&global_task);
 
+	ddebug("Destroying event task");
+	if (global_event != NULL)
+		isc_event_free(&global_event);
+
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);
 
@@ -1413,34 +1412,46 @@ cleanup(void) {
 	isc_mem_destroy(&mctx);
 }
 
+static void
+getinput(isc_task_t *task, isc_event_t *event) {
+	isc_boolean_t more;
+
+	UNUSED(task);
+
+	if (global_event == NULL)
+		global_event = event;
+
+	reset_system();
+	isc_app_block();
+	more = user_interaction();
+	isc_app_unblock();
+	if (!more) {
+		isc_app_shutdown();
+		return;
+	}
+	start_update();
+	return;
+}
+
 int
 main(int argc, char **argv) {
         isc_result_t result;
 
+	isc_app_start();
+
         parse_args(argc, argv);
 
         setup_system();
-        result = isc_mutex_init(&lock);
-        check_result(result, "isc_mutex_init");
-        result = isc_condition_init(&cond);
-        check_result(result, "isc_condition_init");
-	LOCK(&lock);
 
-        do {
-		reset_system();
-                if (!user_interaction())
-			break;
-		busy = ISC_TRUE;
-		start_update();
-		while (busy)
-			WAIT(&cond, &lock);
-        } while (1);
+	result = isc_app_onrun(mctx, global_task, getinput, NULL);
+	check_result(result, "isc_app_onrun");
+
+	(void)isc_app_run();
 
         fprintf(stdout, "\n");
-	UNLOCK(&lock);
-        DESTROYLOCK(&lock);
-        isc_condition_destroy(&cond);
         cleanup();
+
+	isc_app_finish();
 
         return (0);
 }
