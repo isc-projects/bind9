@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.127 2000/11/13 21:33:50 bwelling Exp $ */
+/* $Id: dig.c,v 1.128 2000/11/20 13:02:14 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -24,6 +24,7 @@
 
 #include <isc/app.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/task.h>

@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.4 2000/11/17 23:57:33 bwelling Exp $ */
+/* $Id: zonetodb.c,v 1.5 2000/11/20 13:02:17 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/result.h>
 
 #include <dns/db.h>

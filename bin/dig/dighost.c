@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.162 2000/11/13 21:33:51 bwelling Exp $ */
+/* $Id: dighost.c,v 1.163 2000/11/20 13:02:15 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -58,6 +58,7 @@ extern int h_errno;
 #include <isc/lang.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
