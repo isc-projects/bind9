@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.144 2000/11/10 03:16:14 gson Exp $ */
+/* $Id: query.c,v 1.145 2000/11/11 00:26:48 gson Exp $ */
 
 #include <config.h>
 
@@ -2146,8 +2146,10 @@ sortlist_order_2element(dns_rdata_t *rdata, void *arg) {
 			    &match, NULL);
 	if (match > 0)
 		return (match);
-	else
+	else if (match < 0)
 		return (INT_MAX - (-match));
+	else
+		return (INT_MAX / 2);
 }
 
 /*

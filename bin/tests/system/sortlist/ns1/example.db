@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.db,v 1.1 2000/11/10 03:16:16 gson Exp $
+; $Id: example.db,v 1.2 2000/11/11 00:26:51 gson Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	ns2.example. hostmaster.example. (
@@ -28,6 +28,7 @@ ns2.example.		A	10.53.0.1
 
 ; Let's see what the sortlist picks out of this...
 a			A	1.1.1.1
+a			A	1.1.1.5
 a			A	1.1.1.2
 a			A	192.168.3.1
 a			A	1.1.1.3

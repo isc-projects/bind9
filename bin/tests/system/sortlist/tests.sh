@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1 2000/11/10 03:16:16 gson Exp $
+# $Id: tests.sh,v 1.2 2000/11/11 00:26:49 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,9 +26,14 @@ echo "I:test 2-element sortlist statement"
 cat <<EOF >test1.good
 a.example.		300	IN	A	192.168.3.1
 a.example.		300	IN	A	192.168.1.1
+a.example.		300	IN	A	1.1.1.5
+a.example.		300	IN	A	1.1.1.1
+a.example.		300	IN	A	1.1.1.3
+a.example.		300	IN	A	1.1.1.2
+a.example.		300	IN	A	1.1.1.4
 EOF
 $DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd a.example. \
-	@10.53.0.1 -b 10.53.0.1 -p 5300 | head -2 >test1.dig
+	@10.53.0.1 -b 10.53.0.1 -p 5300 >test1.dig
 # Note that this can't use digcomp.pl because here, the ordering of the
 # result RRs is significant.
 diff test1.dig test1.good || status=1
