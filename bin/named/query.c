@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.171 2001/01/09 21:40:01 bwelling Exp $ */
+/* $Id: query.c,v 1.172 2001/01/09 22:10:32 gson Exp $ */
 
 #include <config.h>
 
@@ -3773,7 +3773,6 @@ synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event) {
 
 static void
 synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
 	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
 	ns_client_t *client = event->ev_arg;
 	dns_byaddr_t *byaddr = event->ev_sender;
@@ -3783,7 +3782,7 @@ synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event) {
 	if (bevent->result == ISC_R_SUCCESS) {
 		synth_rev_respond(client, bevent);
 	} else {
-		synth_finish(client, result);
+		synth_finish(client, bevent->result);
 	}
 	isc_event_free(&event);
 	dns_byaddr_destroy(&byaddr);	
