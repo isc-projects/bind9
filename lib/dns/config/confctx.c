@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.42 2000/04/04 20:19:13 bwelling Exp $ */
+/* $Id: confctx.c,v 1.43 2000/04/04 20:58:51 tale Exp $ */
 
 #include <config.h>
 
@@ -237,7 +237,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	isc_int32_t		intval;
 	dns_c_ipmatchlist_t    *ipml;
 	isc_result_t 		result = ISC_R_SUCCESS;
-	isc_result_t 		rval;
 
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
@@ -364,11 +363,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 	if (cfg->zlist != NULL)
-		rval = dns_c_zonelist_checkzones(cfg->zlist);
-	if (rval != ISC_R_SUCCESS) {
-		result = ISC_R_FAILURE;
-	}
-	
+		result = dns_c_zonelist_checkzones(cfg->zlist);
 	
 	return (result);
 }
