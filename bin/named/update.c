@@ -2188,20 +2188,29 @@ update_action(isc_task_t *task, isc_event_t *event)
 						&diff));
 			}
 		} else if (update_class == dns_rdataclass_none) {
-			if (rdata.type == dns_rdatatype_soa) {
-				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-					      "attempt to delete SOA ignored");
-				continue;
-			}
-			if (rdata.type == dns_rdatatype_ns) {
-				int count;
-				CHECK(rr_count(db, ver, name,
-					       dns_rdatatype_ns, 0, &count));
-				if (count == 1) {
+			/*
+			 * The (name == zonename) condition appears in
+			 * RFC2136 3.4.2.4 but is missing from the pseudocode.
+			 */
+			if (dns_name_equal(name, zonename)) {
+				if (rdata.type == dns_rdatatype_soa) {
 					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+						      "attempt to delete SOA "
+						      "ignored");
+					continue;
+				}
+				if (rdata.type == dns_rdatatype_ns) {
+					int count;
+					CHECK(rr_count(db, ver, name,
+						       dns_rdatatype_ns,
+						       0, &count));
+					if (count == 1) {
+						isc_log_write(
+						UPDATE_PROTOCOL_LOGARGS,
 						      "attempt to delete last "
 						      "NS ignored");
-					continue;
+						continue;
+					}
 				}
 			}
 			isc_log_write(UPDATE_PROTOCOL_LOGARGS,
