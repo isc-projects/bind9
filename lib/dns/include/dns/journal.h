@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.17 2000/06/22 21:55:40 tale Exp $ */
+/* $Id: journal.h,v 1.17.2.1 2000/08/06 22:11:47 gson Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -475,6 +475,7 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
  * Returns:
  *	DNS_R_NOJOURNAL when journal does not exist.
  *	ISC_R_NOTFOUND when current serial in not in journal.
+ *	ISC_R_RANGE when current serial in not in journals range.
  *	ISC_R_SUCCESS journal has been applied successfully to database.
  *	others
  */
