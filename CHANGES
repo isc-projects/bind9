@@ -4,7 +4,7 @@
 
 1664.	[bug]		nsupdate needed KEY for SIG(0), not DNSKEY.
 
-1663.   [placeholder]	rt11600
+1663.	[func]		Look for OpenSSL by default.
 
 1662.	[bug]		Change #1658 failed to change one use of 'type'
 			to 'keytype'.
