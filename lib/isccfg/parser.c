@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.36 2001/03/02 01:10:51 gson Exp $ */
+/* $Id: parser.c,v 1.37 2001/03/02 07:03:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -58,13 +58,13 @@
 /* Clause is not implemented yet */
 #define CFG_CLAUSEFLAG_NYI 		0x00000008
 /* Default value has changed since earlier release */
-#define CFG_CLAUSEFLAG_NEWDEFAULT	0x00000008
+#define CFG_CLAUSEFLAG_NEWDEFAULT	0x00000010
 /*
  * Clause needs to be interpreted during parsing
  * by calling a callback function, like the
  * "directory" option.
  */
-#define CFG_CLAUSEFLAG_CALLBACK		0x00000010
+#define CFG_CLAUSEFLAG_CALLBACK		0x00000020
 
 /*
  * Flags defining whether to accept certain types of network addresses.
