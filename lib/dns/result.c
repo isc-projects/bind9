@@ -77,6 +77,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"glue does not exist",			/* 47 */
 	"hint",					/* 48 */
 	"drop",					/* 49 */
+	"zone not loaded",			/* 50 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
