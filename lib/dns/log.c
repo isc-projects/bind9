@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.14 2000/02/26 19:57:00 tale Exp $ */
+/* $Id: log.c,v 1.15 2000/03/23 00:53:44 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -31,15 +31,15 @@
  * #define to <dns/log.h>.
  */
 isc_logcategory_t dns_categories[] = {
-	{ "dns_general", 	0 },
-	{ "dns_database", 	0 },
-	{ "dns_security", 	0 },
-	{ "dns_config",		0 },
-	{ "dns_parser",		0 },
-	{ "dns_resolver",	0 },
-	{ "dns_xfer_in",	0 },
-	{ "dns_xfer_out",	0 },
-	{ NULL, 		0 }
+	{ "notify", 	0 },
+	{ "database", 	0 },
+	{ "security", 	0 },
+	{ "config",	0 },
+	{ "",		0 },
+	{ "resolver",	0 },
+	{ "xfer-in",	0 },
+	{ "xfer-out",	0 },
+	{ NULL, 	0 }
 };
 
 /*

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.13 2000/03/04 16:41:14 tale Exp $ */
+/* $Id: log.h,v 1.14 2000/03/23 00:53:05 gson Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -142,6 +142,7 @@ typedef union isc_logdestination {
 extern isc_logcategory_t isc_categories[];
 
 #define ISC_LOGCATEGORY_DEFAULT	(&isc_categories[0])
+#define ISC_LOGCATEGORY_GENERAL	(&isc_categories[1])
 
 isc_result_t
 isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);

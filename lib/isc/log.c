@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.23 2000/03/23 00:49:15 gson Exp $ */
+/* $Id: log.c,v 1.24 2000/03/23 00:53:04 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -170,6 +170,7 @@ static const int syslog_map[] = {
  */
 isc_logcategory_t isc_categories[] = {
 	{ "default", 0 },	/* "default" must come first. */
+	{ "general", 0 },
 	{ NULL, 0 }
 };
 

@@ -65,7 +65,7 @@
  * to use in reportings server errors.
  */
 #define NOTIFY_ERROR_LOGARGS \
-	ns_g_lctx, NS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
+	ns_g_lctx, DNS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
 	ISC_LOG_ERROR
 
 /*
@@ -73,7 +73,7 @@
  * to use in tracing notify protocol requests.
  */
 #define NOTIFY_PROTOCOL_LOGARGS \
-	ns_g_lctx, NS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
+	ns_g_lctx, DNS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
 	ISC_LOG_INFO
 
 /*
@@ -81,7 +81,7 @@
  * to use in low-level debug tracing.
  */
 #define NOTIFY_DEBUG_LOGARGS \
-	ns_g_lctx, NS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
+	ns_g_lctx, DNS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
 	ISC_LOG_DEBUG(8)
 
 /*

@@ -25,13 +25,13 @@
 
 #include <named/globals.h>
 
-#define NS_LOGCATEGORY_GENERAL		(&ns_g_categories[0])
+/* Unused slot */
 #define NS_LOGCATEGORY_CLIENT		(&ns_g_categories[1])
 #define NS_LOGCATEGORY_NETWORK		(&ns_g_categories[2])
 #define NS_LOGCATEGORY_UPDATE		(&ns_g_categories[3])
-#define NS_LOGCATEGORY_XFER_IN		(&ns_g_categories[4])
-#define NS_LOGCATEGORY_XFER_OUT		(&ns_g_categories[5])
-#define NS_LOGCATEGORY_NOTIFY		(&ns_g_categories[6])
+
+/* Backwards compatibility. */
+#define NS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL
 
 #define NS_LOGMODULE_MAIN		(&ns_g_modules[0])
 #define NS_LOGMODULE_CLIENT		(&ns_g_modules[1])

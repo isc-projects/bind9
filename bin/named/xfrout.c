@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.48 2000/03/20 21:06:27 gson Exp $ */
+/* $Id: xfrout.c,v 1.49 2000/03/23 00:54:44 gson Exp $ */
 
 #include <config.h>
 
@@ -67,7 +67,7 @@
  */
 
 #define XFROUT_COMMON_LOGARGS \
-	ns_g_lctx, NS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT
+	ns_g_lctx, DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT
 
 #define XFROUT_PROTOCOL_LOGARGS \
 	XFROUT_COMMON_LOGARGS, ISC_LOG_INFO

@@ -31,13 +31,10 @@
  * #define to <named/log.h>.
  */
 static isc_logcategory_t categories[] = {
-	{ "general",	 		0 },
+	{ "",		 		0 },
 	{ "client",	 		0 },
 	{ "network",	 		0 },
 	{ "update",	 		0 },
-	{ "xfer-in",	 		0 },
-	{ "xfer-out",	 		0 },
-	{ "notify",	 		0 },
 	{ NULL, 			0 }
 };
 
