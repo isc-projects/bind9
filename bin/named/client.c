@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.121 2000/10/18 20:56:33 gson Exp $ */
+/* $Id: client.c,v 1.122 2000/10/18 22:10:20 gson Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/opt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
