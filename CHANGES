@@ -1,3 +1,8 @@
+ 969.	[func]		dig now supports the undocumented dig 8 feature
+			of allowing arbitrary labels, not just dotted
+			decimal quads, with the -x option.  This can be
+			used to conveniently look up RFC2317 names as in
+			"dig -x 10.0.0.0-127". [RT #827, #1576, #1598]
 
 	--- 9.2.3rc1 released ---
 
