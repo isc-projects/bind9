@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.57 2001/09/06 23:03:17 gson Exp $ */
+/* $Id: mem.h,v 1.58 2001/09/07 00:51:51 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -187,8 +187,12 @@ isc_mem_createx(size_t max_size, size_t target_size,
  * 'target_size' from the system allocator and breaking them up into
  * pieces; larger allocations will use the system allocator directly.
  * If 'max_size' and/or 'target_size' are zero, default values will be
- * used.  When ISC_MEM_USE_INTERNAL_MALLOC is false, 'max_size' and
- * 'target_size' are ignored.
+ * used.  When ISC_MEM_USE_INTERNAL_MALLOC is false, 'target_size' is
+ * ignored.
+ *
+ * 'max_size' is also used to size the statistics arrays and the array
+ * used to record active memory when ISC_MEM_DEBUGRECORD is set.  Settin
+ * 'max_size' too low can have detrimental effects on performance.
  *
  * A memory context created using isc_mem_createx() will obtain
  * memory from the system by calling 'memalloc' and 'memfree',
