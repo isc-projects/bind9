@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115 2001/06/04 19:33:05 tale Exp $ */
+/* $Id: rbt.c,v 1.116 2001/11/09 01:53:20 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -170,7 +170,7 @@ find_up(dns_rbtnode_t *node) {
 	for (root = node; ! IS_ROOT(root); root = PARENT(root))
 		; /* Nothing. */
 
-	return(PARENT(root));
+	return (PARENT(root));
 }
 
 static inline unsigned int
@@ -1391,7 +1391,8 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
  *
  * The one positive aspect of all of this is that joining used to have a
  * case where it might fail.  Without trying to join, now this function always
- * succeeds. It still returns isc_result_t, though, so the API wouldn't change.  */
+ * succeeds. It still returns isc_result_t, though, so the API wouldn't change.
+ */
 isc_result_t
 dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 {
@@ -1932,7 +1933,8 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		if (RIGHT(successor) != NULL)
 			child = RIGHT(successor);
 
-		/* Swap the two nodes; it would be simpler to just replace
+		/*
+		 * Swap the two nodes; it would be simpler to just replace
 		 * the value being deleted with that of the successor,
 		 * but this rigamarole is done so the caller has complete
 		 * control over the pointers (and memory allocation) of
