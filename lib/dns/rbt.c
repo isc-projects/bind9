@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.62 1999/10/14 20:19:54 tale Exp $ */
+/* $Id: rbt.c,v 1.63 1999/10/15 01:35:23 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -724,6 +724,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		dns_rbtnodechain_init(chain, rbt->mctx);
 	} else
 		dns_rbtnodechain_reset(chain);
+
+	if (rbt->root == NULL)
+		return (DNS_R_NOTFOUND);
 
 	dns_fixedname_init(&fixedcallbackname);
 	callback_name = dns_fixedname_name(&fixedcallbackname);
