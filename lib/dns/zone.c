@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.10 1999/09/23 06:42:09 gson Exp $ */
+ /* $Id: zone.c,v 1.11 1999/09/23 23:17:21 halley Exp $ */
 
 #include <config.h>
 
@@ -582,6 +582,7 @@ dns_zone_load(dns_zone_t *zone) {
 	return (DNS_R_SUCCESS);
 }
 
+#ifdef notyet
 void
 dns_zone_checkservers(dns_zone_t *zone) {
 	dns_name_t *zonename;
@@ -693,7 +694,9 @@ dns_zone_checkservers(dns_zone_t *zone) {
 	}
 	UNLOCK(&zone->lock);
 }
+#endif
 
+#ifdef notyet
 static void
 checkservers_callback(isc_task_t *task, isc_event_t *event) {
 	dns_fetchdoneevent_t *devent = (dns_fetchdoneevent_t *)event;
@@ -829,9 +832,9 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 	dns_zone_detach(&checkservers->zone);
 	isc_mem_put(mctx, checkservers, sizeof *checkservers);
 }
+#endif
 
-
-
+#if 0
 void
 cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 	dns_rdata_soa_t msgsoa, zonesoa;
@@ -933,6 +936,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
  cleanup_msgsoa:
 	dns_rdata_freestruct(&msgsoa);
 }
+#endif
 
 static void
 add_address_tocheck(dns_message_t *msg, dns_zone_checkservers_t *checkservers,
@@ -1832,6 +1836,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	return;
 }
 
+#ifdef notyet
 static void
 soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 	dns_name_t *zonename;
@@ -1841,13 +1846,15 @@ soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 	LOCK(&zone->lock);
 	result = dns_resolver_createfetch(zone->res, zonename,
 					  dns_rdatatype_soa,
-					  NULL, NULL, NULL, DNS_FETCHOPT_UNSHARED,
+					  NULL, NULL, NULL,
+					  DNS_FETCHOPT_UNSHARED,
 					  zone->task, callback, zone,
 					  &zone->fetch);
 	UNLOCK(&zone->lock);
 	if (result != DNS_R_SUCCESS)
 		cancel_refresh(zone);
 }
+#endif
 
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
