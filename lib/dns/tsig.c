@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.42 2000/01/24 22:22:50 bwelling Exp $
+ * $Id: tsig.c,v 1.43 2000/01/31 21:59:50 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -1000,7 +1000,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 static void
 dns_tsig_inithmac() {
 	isc_region_t r;
-	char *str = "\010HMAC-MD5\007SIG-ALG\003REG\003INT";
+	unsigned char *str = "\010HMAC-MD5\007SIG-ALG\003REG\003INT";
 	dns_name_init(&hmacmd5_name, NULL);
 	r.base = str;
 	r.length = strlen(str) + 1;
