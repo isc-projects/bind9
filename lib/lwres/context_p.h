@@ -36,6 +36,11 @@ struct lwres_context {
 	isc_uint32_t		serial;		/* serial number state */
 
 	/*
+	 * For network I/O.
+	 */
+	int			sock;		/* socket to send on */
+
+	/*
 	 * Function pointers for allocating memory.
 	 */
 	lwres_malloc_t		malloc;

@@ -77,6 +77,11 @@ lwres_context_freemem(lwres_context_t *ctx, void *mem, size_t len);
 void *
 lwres_context_allocmem(lwres_context_t *ctx, size_t len);
 
+int
+lwres_context_sendrecv(lwres_context_t *ctx,
+		       void *sendbase, int sendlen,
+		       void *recvbase, int recvlen);
+
 ISC_LANG_ENDDECLS
 
 #endif /* LWRES_CONTEXT_H */

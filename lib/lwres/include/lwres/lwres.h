@@ -86,6 +86,9 @@
 
 #define LWRES_STRING_LENGTH(x) (sizeof(isc_uint16_t) + strlen(x) + 1)
 
+#define LWRES_UDP_PORT		921	/* XXXMLG */
+#define LWRES_RECVLENGTH	2048	/* XXXMLG */
+
 /*
  * NO-OP
  */
@@ -116,6 +119,7 @@ typedef struct {
 
 typedef struct {
 	/* public */
+	isc_uint32_t		addrtypes;
 	char		       *name;
 } lwres_gabnrequest_t;
 
@@ -126,6 +130,9 @@ typedef struct {
 	char		       *real_name;
 	char		      **aliases;
 	lwres_addr_t	       *addrs;
+	/* if base != NULL, it will be freed when this structure is freed. */
+	void		       *base;
+	size_t			baselen;
 } lwres_gabnresponse_t;
 
 /*
@@ -142,6 +149,9 @@ typedef struct {
 	isc_uint16_t		naliases;
 	char		       *real_name;
 	char		      **aliases;
+	/* if base != NULL, it will be freed when this structure is freed. */
+	void		       *base;
+	size_t			baselen;
 } lwres_gnbaresponse_t;
 
 #define LWRES_ADDRTYPE_V4		0x00000001U	/* ipv4 */
@@ -335,6 +345,10 @@ lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len);
 
 int
 lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr);
+
+int
+lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
+		     isc_uint32_t addrtypes, lwres_gabnresponse_t **structp);
 
 ISC_LANG_ENDDECLS
 

@@ -47,7 +47,7 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 
 	datalen = strlen(req->name);
 
-	payload_length = LWRES_STRING_LENGTH(req->name);
+	payload_length = LWRES_STRING_LENGTH(req->name) + 4;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
@@ -73,6 +73,11 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 	}
 
 	INSIST(SPACE_OK(b, payload_length));
+
+	/*
+	 * Address types we'll accept.
+	 */
+	lwres_buffer_putuint32(b, req->addrtypes);
 
 	/*
 	 * Put the length and the data.  We know this will fit because we
@@ -180,6 +185,7 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 	int ret;
 	char *name;
 	lwres_gabnrequest_t *gabn;
+	isc_uint32_t addrtypes;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(pkt != NULL);
@@ -188,6 +194,11 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 
 	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
 		return (-1);
+
+	if (!SPACE_REMAINING(b, 4))
+		return (-1);
+
+	addrtypes = lwres_buffer_getuint32(b);
 
 	/*
 	 * Pull off the name itself
@@ -203,6 +214,7 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 	if (gabn == NULL)
 		return (-1);
 
+	gabn->addrtypes = addrtypes;
 	gabn->name = name;
 
 	*structp = gabn;
@@ -249,6 +261,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 		goto out;
 	}
 	gabn->naliases = naliases;
+	gabn->base = NULL;
 
 	gabn->addrs = CTXMALLOC(sizeof(lwres_addr_t) * naddrs);
 	if (gabn->addrs == NULL) {
@@ -326,5 +339,7 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp)
 		CTXFREE(gabn->aliases, sizeof(char *) * gabn->naliases);
 	if (gabn->naddrs > 0)
 		CTXFREE(gabn->addrs, sizeof(lwres_addr_t *) * gabn->naddrs);
+	if (gabn->base != NULL)
+		CTXFREE(gabn->base, gabn->baselen);
 	CTXFREE(gabn, sizeof(lwres_gabnresponse_t));
 }

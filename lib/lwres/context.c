@@ -22,14 +22,22 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
 
 #include <lwres/context.h>
+#include <lwres/lwres.h>
 
 #include "context_p.h"
 #include "assert_p.h"
 
 static void *lwres_malloc(void *, size_t);
 static void lwres_free(void *, void *, size_t);
+static int context_connect(lwres_context_t *);
 
 int
 lwres_context_create(lwres_context_t **contextp, void *arg,
@@ -63,9 +71,12 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	ctx->malloc = malloc_function;
 	ctx->free = free_function;
 	ctx->arg = arg;
+	ctx->sock = -1;
 
 	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
 	ctx->serial = (isc_uint32_t)ctx; /* XXXMLG */
+
+	(void)context_connect(ctx); /* XXXMLG */
 
 	*contextp = ctx;
 	return (0);
@@ -140,4 +151,59 @@ lwres_free(void *arg, void *mem, size_t len)
 
 	memset(mem, 0xa9, len);
 	free(mem);
+}
+
+static int
+context_connect(lwres_context_t *ctx)
+{
+	int s;
+	int ret;
+	struct sockaddr_in localhost;
+
+	memset(&localhost, 0, sizeof(localhost));
+	localhost.sin_family = AF_INET;
+	localhost.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	localhost.sin_port = htons(LWRES_UDP_PORT);
+
+	s = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (s < 0)
+		return (-1);
+
+	ret = connect(s, (struct sockaddr *)&localhost, sizeof(localhost));
+	if (ret != 0) {
+		close(s);
+		return (-1);
+	}
+
+	ctx->sock = s;
+
+	return (0);
+}
+
+int
+lwres_context_sendrecv(lwres_context_t *ctx,
+		       void *sendbase, int sendlen,
+		       void *recvbase, int recvlen)
+{
+	int ret;
+	struct sockaddr_in sin;
+	int fromlen;
+
+	ret = send(ctx->sock, sendbase, sendlen, 0);
+	if (ret < 0)
+		return (ret);
+	if (ret != sendlen)
+		return (-1);
+
+	fromlen = sizeof(sin);
+	ret = recvfrom(ctx->sock, recvbase, recvlen, 0,
+		       (struct sockaddr *)&sin, &fromlen);
+	if (ret < 0)
+		return (-1);
+
+	if (sin.sin_addr.s_addr != htonl(INADDR_LOOPBACK)
+	    || sin.sin_port != htons(LWRES_UDP_PORT))
+		return (-1);
+
+	return (ret);
 }

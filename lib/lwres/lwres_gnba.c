@@ -224,6 +224,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 	if (gnba == NULL)
 		return (-1);
 	gnba->naliases = 0;
+	gnba->base = NULL;
 
 	gnba->aliases = CTXMALLOC(sizeof(char *) * naliases);
 	if (gnba->aliases == NULL) {
@@ -290,5 +291,7 @@ lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp)
 
 	if (gnba->naliases > 0)
 		CTXFREE(gnba->aliases, sizeof(char *) * gnba->naliases);
+	if (gnba->base != NULL)
+		CTXFREE(gnba->base, gnba->baselen);
 	CTXFREE(gnba, sizeof(lwres_gnbaresponse_t));
 }

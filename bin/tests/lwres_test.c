@@ -65,23 +65,16 @@ hexdump(char *msg, void *base, size_t len)
 }
 
 static char *TESTSTRING = "This is a test.  This is only a test.  !!!";
+static lwres_context_t *ctx;
 
-int
-main(int argc, char *argv[])
+static void
+test_noop(void)
 {
 	int ret;
-	lwres_context_t *ctx;
 	lwres_lwpacket_t pkt, pkt2;
 	lwres_nooprequest_t nooprequest, *nooprequest2;
 	lwres_noopresponse_t noopresponse, *noopresponse2;
 	lwres_buffer_t b;
-
-	(void)argc;
-	(void)argv;
-
-	ctx = NULL;
-	ret = lwres_context_create(&ctx, NULL, NULL, NULL);
-	CHECK(ret, "lwres_context_create");
 
 	pkt.flags = 0;
 	pkt.serial = 0x11223344;
@@ -152,6 +145,36 @@ main(int argc, char *argv[])
 	lwres_context_freemem(ctx, b.base, b.length);
 	b.base = NULL;
 	b.length = 0;
+}
+
+static void
+test_gabn(void)
+{
+	lwres_gabnresponse_t *res;
+	int ret;
+
+	res = NULL;
+	ret = lwres_getaddrsbyname(ctx, "www.flame.org", LWRES_ADDRTYPE_V4,
+				   &res);
+	assert(ret == 0);
+
+	lwres_gabnresponse_free(ctx, &res);
+}
+
+int
+main(int argc, char *argv[])
+{
+	int ret;
+
+	(void)argc;
+	(void)argv;
+
+	ctx = NULL;
+	ret = lwres_context_create(&ctx, NULL, NULL, NULL);
+	CHECK(ret, "lwres_context_create");
+
+	test_noop();
+	test_gabn();
 
 	lwres_context_destroy(&ctx);
 

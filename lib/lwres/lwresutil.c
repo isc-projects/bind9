@@ -21,11 +21,18 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
 
 #include "assert_p.h"
+#include "context_p.h"
 
 /*
  * Requires:
@@ -86,3 +93,99 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 	return (0);
 }
 
+int
+lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
+		     isc_uint32_t addrtypes, lwres_gabnresponse_t **structp)
+{
+	lwres_gabnrequest_t request;
+	lwres_gabnresponse_t *response;
+	int ret;
+	int free_b;
+	lwres_buffer_t b;
+	lwres_lwpacket_t pkt;
+	isc_uint32_t serial;
+	char *buffer;
+
+	REQUIRE(ctx != NULL);
+	REQUIRE(name != NULL);
+	REQUIRE(addrtypes != 0);
+	REQUIRE(structp != NULL && *structp == NULL);
+
+	response = NULL;
+	free_b = 0;
+	buffer = NULL;
+	serial = (isc_uint32_t)name;
+
+	buffer = CTXMALLOC(LWRES_RECVLENGTH);
+	if (buffer == NULL) {
+		ret = -1;
+		goto out;
+	}
+
+	/*
+	 * Set up our request and render it to a buffer.
+	 */
+	request.addrtypes = addrtypes;
+	request.name = (char *)name;
+	pkt.flags = 0;
+	pkt.serial = serial;
+	pkt.result = 0;
+	pkt.recvlength = LWRES_RECVLENGTH;
+
+	ret = lwres_gabnrequest_render(ctx, &request, &pkt, &b);
+	if (ret != 0)
+		goto out;
+	free_b = 1;
+
+	ret = lwres_context_sendrecv(ctx, b.base, b.length, buffer,
+				     LWRES_RECVLENGTH);
+	if (ret < 0)
+		goto out;
+
+	CTXFREE(b.base, b.length);
+	free_b = 0;
+
+	lwres_buffer_init(&b, buffer, ret);
+
+	/*
+	 * Parse the packet header.
+	 */
+	ret = lwres_lwpacket_parseheader(&b, &pkt);
+	if (ret != 0)
+		goto out;
+
+	/*
+	 * Sanity check.
+	 */
+	if (pkt.serial != serial) {
+		ret = -1;
+		goto out;
+	}
+	if (pkt.opcode != LWRES_OPCODE_GETADDRSBYNAME) {
+		ret = -1;
+		goto out;
+	}
+
+	/*
+	 * Parse the response.
+	 */
+	ret = lwres_gabnresponse_parse(ctx, &pkt, &b, &response);
+	if (ret != 0)
+		goto out;
+	response->base = buffer;
+	response->baselen = LWRES_RECVLENGTH;
+	buffer = NULL; /* don't free this below */
+
+	*structp = response;
+	return (0);
+
+ out:
+	if (free_b != 0)
+		CTXFREE(b.base, b.length);
+	if (buffer != NULL)
+		CTXFREE(buffer, LWRES_RECVLENGTH);
+	if (response != NULL)
+		lwres_gabnresponse_free(ctx, &response);
+
+	return (ret);
+}
