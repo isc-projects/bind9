@@ -4,7 +4,7 @@
 			[RT #991]
 
  771.	[cleanup]	TSIG errors related to unsynchronized clocks
-			are logged better.
+			are logged better. [RT #919]
 
  770.	[func]		Add the "edns yes_or_no" statement to the server
 			clause. [RT #524]
