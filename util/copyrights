@@ -1099,6 +1099,7 @@
 ./lib/dns/sec/dst/key.c				C	2001
 ./lib/dns/sec/dst/openssl_link.c		C.NAI	1999,2000,2001
 ./lib/dns/sec/dst/openssldh_link.c		C.NAI	1999,2000,2001
+./lib/dns/sec/dst/openssldsa_link.c		C.NAI	1999,2000,2001
 ./lib/dns/sec/dst/opensslrsa_link.c		C	2000,2001
 ./lib/dns/sec/openssl/.cvsignore		X	1999,2000,2001
 ./lib/dns/sec/openssl/Makefile.in		MAKE	1998,1999,2000,2001
