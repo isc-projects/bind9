@@ -35,6 +35,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/tsig.h>
+#include <dns/view.h>
 
 #include <dst/dst.h>
 
@@ -123,6 +124,7 @@ struct dns_resolver {
 	isc_mutex_t			lock;
 	dns_rdataclass_t		rdclass;
 	isc_timermgr_t *		timermgr;
+	dns_view_t *			view;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -879,7 +881,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * Does the it answer the question we asked?
+	 * Is the question the same as the one we asked?
 	 */
 	result = same_question(fctx);
 	if (result != DNS_R_SUCCESS) {
@@ -950,11 +952,9 @@ destroy(dns_resolver_t *res) {
 }
 
 dns_result_t
-dns_resolver_create(isc_mem_t *mctx,
+dns_resolver_create(isc_mem_t *mctx, dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
-		    isc_timermgr_t *timermgr,
-		    dns_rdataclass_t rdclass,
-		    dns_dispatch_t *dispatch,
+		    isc_timermgr_t *timermgr, dns_dispatch_t *dispatch,
 		    dns_resolver_t **resp)
 {
 	dns_resolver_t *res;
@@ -970,8 +970,9 @@ dns_resolver_create(isc_mem_t *mctx,
 		return (DNS_R_NOMEMORY);
 	RTRACE("create");
 	res->mctx = mctx;
-	res->rdclass = rdclass;
+	res->rdclass = view->rdclass;
 	res->timermgr = timermgr;
+	res->view = view;
 	res->ntasks = ntasks;
 	res->next_task = 0;
 	res->dispatch = NULL;

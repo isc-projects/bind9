@@ -74,11 +74,9 @@ typedef struct dns_fetchdoneevent {
 #define DNS_FETCHOPT_RECURSIVE		0x04
 
 dns_result_t
-dns_resolver_create(isc_mem_t *mctx,
+dns_resolver_create(isc_mem_t *mctx, dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
-		    isc_timermgr_t *timermgr,
-		    dns_rdataclass_t rdclass,
-		    dns_dispatch_t *dispatcher,
+		    isc_timermgr_t *timermgr, dns_dispatch_t *dispatch,
 		    dns_resolver_t **resp);
 
 void
