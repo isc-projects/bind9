@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.394 2003/07/18 02:54:23 marka Exp $ */
+/* $Id: zone.c,v 1.395 2003/07/21 01:11:29 marka Exp $ */
 
 #include <config.h>
 
@@ -3402,8 +3402,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "refresh: retry limit for "
 				     "master %s exceeded (source %s)",
 				     master, source);
-			/* Try with TCP. */
-			goto tcp_transfer;
+			/* Try with slave with TCP. */
+			if (zone->type == dns_zone_slave)
+				goto tcp_transfer;
 		} else
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: failure trying master "
