@@ -557,7 +557,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 				result = schedule(timer, now, ISC_FALSE);
 				if (result != ISC_R_SUCCESS)
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
-						"couldn't schedule timer: %s",
+						"couldn't schedule timer: %u",
 							 result);
 			}
 		} else {
