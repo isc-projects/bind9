@@ -100,6 +100,7 @@ options {
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
+        notify-delay <integer>;
         dialup <dialuptype>;
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
@@ -191,6 +192,7 @@ view <string> <optional_class> {
                     | * ) ];
                 also-notify [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ]; ... };
+                notify-delay <integer>;
                 dialup <dialuptype>;
                 forward ( first | only );
                 forwarders [ port <integer> ] { ( <ipv4_address> |
@@ -288,6 +290,7 @@ view <string> <optional_class> {
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
+        notify-delay <integer>;
         dialup <dialuptype>;
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
@@ -355,6 +358,7 @@ zone <string> <optional_class> {
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
+        notify-delay <integer>;
         dialup <dialuptype>;
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
