@@ -1,3 +1,5 @@
+ 154.   [func]		The signer now logs libdns warnings to stderr even when
+			not verbose, and in a nicer format.
 
  153.	[func]		dns_rdata_tostruct() 'mctx' is now optional.  If 'mctx'
 			is NULL then you need to preserve the 'rdata' until
