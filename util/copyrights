@@ -397,12 +397,13 @@
 ./bin/tests/system/glue/fi.good			X	2000,2001
 ./bin/tests/system/glue/noglue.good		X	2000,2001
 ./bin/tests/system/glue/ns1/.cvsignore		X	2000,2001
-./bin/tests/system/glue/ns1/cache		ZONE	2000,2001
+./bin/tests/system/glue/ns1/cache.in		ZONE	2000,2001
 ./bin/tests/system/glue/ns1/mil.db		ZONE	2000,2001
 ./bin/tests/system/glue/ns1/named.conf		CONF-C	2000,2001
 ./bin/tests/system/glue/ns1/net.db		ZONE	2000,2001
 ./bin/tests/system/glue/ns1/root-servers.nil.db	ZONE	2000,2001
 ./bin/tests/system/glue/ns1/root.db		ZONE	2000,2001
+./bin/tests/system/glue/setup.sh		SH	2001
 ./bin/tests/system/glue/tests.sh		SH	2000,2001
 ./bin/tests/system/glue/xx.good			X	2000,2001
 ./bin/tests/system/glue/yy.good			X	2000,2001
