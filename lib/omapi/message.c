@@ -462,24 +462,24 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 	      case OMAPI_OP_REFRESH:
 	      refresh:
 		result = handle_lookup(&object, message->handle);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS)
 			return (send_status(po, result, message->id,
 					    "no matching handle"));
-		}
+
 	      send:		
 		result = send_update(po, message->id, object);
 		OBJECT_DEREF(&object);
 		return (result);
 
 	      case OMAPI_OP_UPDATE:
-		if (m->object != NULL) {
+		if (m->object != NULL)
 			OBJECT_REF(&object, m->object);
-		} else {
+
+		else {
 			result = handle_lookup(&object, message->handle);
-			if (result != ISC_R_SUCCESS) {
+			if (result != ISC_R_SUCCESS)
 				return (send_status(po, result, message->id,
 						    "no matching handle"));
-			}
 		}
 
 		result = object_update(object, message->object,
