@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.72 2000/08/29 22:30:14 bwelling Exp $ */
+/* $Id: task.c,v 1.73 2000/08/29 22:55:57 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -31,6 +31,7 @@
 #include <isc/condition.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
