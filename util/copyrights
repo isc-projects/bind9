@@ -1629,7 +1629,7 @@
 ./lib/dns/include/dns/peer.h			C	2000,2001
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001
-./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001
+./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001
 ./lib/dns/include/dns/rdatalist.h		C	1999,2000,2001
 ./lib/dns/include/dns/rdataset.h		C	1999,2000,2001
@@ -1676,7 +1676,7 @@
 ./lib/dns/rbtdb.h				C	1999,2000,2001
 ./lib/dns/rbtdb64.c				C	1999,2000,2001
 ./lib/dns/rbtdb64.h				C	1999,2000,2001
-./lib/dns/rdata.c				C	1998,1999,2000,2001
+./lib/dns/rdata.c				C	1998,1999,2000,2001,2002
 ./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001
@@ -1964,7 +1964,7 @@
 ./lib/isc/unix/app.c				C	1999,2000,2001
 ./lib/isc/unix/dir.c				C	1999,2000,2001
 ./lib/isc/unix/entropy.c			C	2000,2001
-./lib/isc/unix/errno2result.c			C	2000,2001
+./lib/isc/unix/errno2result.c			C	2000,2001,2002
 ./lib/isc/unix/errno2result.h			C	2000,2001
 ./lib/isc/unix/file.c				C	2000,2001
 ./lib/isc/unix/fsaccess.c			C	2000,2001
@@ -2005,7 +2005,7 @@
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001
 ./lib/isc/win32/dir.c				C	1999,2000,2001
 ./lib/isc/win32/entropy.c			C	2000,2001
-./lib/isc/win32/errno2result.c			C	2000,2001
+./lib/isc/win32/errno2result.c			C	2000,2001,2002
 ./lib/isc/win32/errno2result.h			C	2000,2001
 ./lib/isc/win32/file.c				C	2000,2001
 ./lib/isc/win32/fsaccess.c			C	2000,2001
