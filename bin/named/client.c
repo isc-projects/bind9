@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.165 2001/05/09 23:13:03 gson Exp $ */
+/* $Id: client.c,v 1.166 2001/05/14 21:12:32 gson Exp $ */
 
 #include <config.h>
 
@@ -1228,8 +1228,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_add(&tbuffer, sevent->n);
 		buffer = &tbuffer;
 		result = sevent->result;
-		client->peeraddr = sevent->address;
-		client->peeraddr_valid = ISC_TRUE;
+		if (result == ISC_R_SUCCESS) {
+			client->peeraddr = sevent->address;
+			client->peeraddr_valid = ISC_TRUE;
+		}
 		if ((sevent->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
 			client->pktinfo = sevent->pktinfo;
@@ -1250,11 +1252,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		client->nreads--;
 	}
 
-	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-		      "%s request",
-		      TCP_CLIENT(client) ? "TCP" : "UDP");
-
 	if (exit_check(client))
 		goto cleanup;
 	client->state = client->newstate = NS_CLIENTSTATE_WORKING;
@@ -1263,14 +1260,25 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	client->now = client->requesttime;
 
 	if (result != ISC_R_SUCCESS) {
-		if (TCP_CLIENT(client))
+		if (TCP_CLIENT(client)) {
 			ns_client_next(client, result);
-		else
+		} else {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+				      "UDP client handler shutting down "
+				      "due to fatal receive error: %s",
+				      isc_result_totext(result));
 			isc_task_shutdown(client->task);
+		}
 		goto cleanup;
 	}
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+		      "%s request",
+		      TCP_CLIENT(client) ? "TCP" : "UDP");
 
 	/*
 	 * Check the blackhole ACL for UDP only, since TCP is done in
