@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.76 2000/08/01 01:11:51 tale Exp $ */
+/* $Id: main.c,v 1.77 2000/08/09 03:44:42 tale Exp $ */
 
 #include <config.h>
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -52,6 +53,7 @@
 static isc_boolean_t	want_stats = ISC_FALSE;
 static isc_boolean_t	lwresd_only = ISC_FALSE;
 static const char *	program_name = "named";
+static char    		saved_command_line[512];
 
 void
 ns_main_earlyfatal(const char *format, ...) {
@@ -96,8 +98,8 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 			      "%s:%d: %s(%s) failed", file, line,
 			      isc_assertion_typetotext(type), cond);
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			       "exiting (due assertion failure)");
+			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			      "exiting (due assertion failure)");
 	} else {
 		fprintf(stderr, "%s:%d: %s(%s) failed\n",
 			file, line, isc_assertion_typetotext(type), cond);
@@ -186,6 +188,49 @@ usage(void) {
 }
 
 static void
+save_command_line(int argc, char *argv[]) {
+	int i;
+	char *src;
+	char *dst;
+	char *eob;
+	const char truncated[] = "...";
+	isc_boolean_t quoted = ISC_FALSE;
+
+	dst = saved_command_line;
+	eob = saved_command_line + sizeof(saved_command_line);
+
+	for (i = 1; i < argc && dst < eob; i++) {
+		*dst++ = ' ';
+
+		src = argv[i];
+		while (*src != '\0' && dst < eob) {
+			/*
+			 * This won't perfectly produce a shell-independent
+			 * pastable command line in all circumstances, but
+			 * comes close, and for practical purposes will
+			 * nearly always be fine.
+			 */
+			if (quoted || isalnum(*src & 0xff) ||
+			    *src == '-' || *src == '_' ||
+			    *src == '.' || *src == '/') {
+				*dst++ = *src++;
+				quoted = ISC_FALSE;
+			} else {
+				*dst++ = '\\';
+				quoted = ISC_TRUE;
+			}
+		}
+	}
+
+	INSIST(sizeof(saved_command_line) >= sizeof(truncated));
+
+	if (dst == eob)
+		strcpy(eob - sizeof(truncated), truncated);
+	else
+		*dst = '\0';
+}
+
+static void
 parse_lwresd_command_line(int argc, char *argv[]) {
 	int ch;
 	unsigned int port;
@@ -264,6 +309,12 @@ parse_command_line(int argc, char *argv[]) {
 	int ch;
 	unsigned int port;
 	char *s;
+
+	/*
+	 * XXXDCL perhaps the saved command line should be put in the
+	 * named.pid file, as sendmail does with sendmail.pid.
+	 */
+	save_command_line(argc, argv);
 
 	s = strrchr(argv[0], '/');
 	if (s == NULL)
@@ -440,7 +491,8 @@ setup(void) {
 		ns_os_daemonize();
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "starting BIND %s", ns_g_version);
+		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
+		      saved_command_line);
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)

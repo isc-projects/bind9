@@ -1,3 +1,5 @@
+ 378.	[func]		named and lwresd will log the command line arguments
+			they were started with in the "starting ..." message.
 
  377.	[bug]		When additional data lookups were refused due to 
 			"allow-query", the databases were still being
@@ -512,7 +514,7 @@
  240.	[func]		databases now come in three flavours: zone, cache
 			and stub.
 
- 239.	[feature]	If ISC_MEM_DEBUG is enabled, the variable
+ 239.	[func]		If ISC_MEM_DEBUG is enabled, the variable
 			isc_mem_debugging controls whether messages
 			are printed or not.
 
