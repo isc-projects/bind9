@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11 2000/08/01 01:16:13 tale Exp $
+# $Id: tests.sh,v 1.12 2000/09/20 00:42:24 gson Exp $
 
 #
 # Perform tests
@@ -40,7 +40,7 @@ $PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || status=1
 
 echo "I:updating zone"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE < update.scp > /dev/null
+$NSUPDATE < update.scp > /dev/null || status=1
 echo "I:sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
