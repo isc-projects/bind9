@@ -77,8 +77,8 @@ typedef struct dns_c_lstn_list		dns_c_lstnlist_t;
  * Structure for holing value of a single listen-on statement.
  */
 struct dns_c_lstn_on {
-	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
+	isc_mem_t		       *mem;
 	
 	in_port_t			port;
 	dns_c_ipmatchlist_t	       *iml;
@@ -91,8 +91,8 @@ struct dns_c_lstn_on {
  * A list of listen-on statements.
  */
 struct dns_c_lstn_list {
-	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
+	isc_mem_t		       *mem;
 
 	ISC_LIST(dns_c_lstnon_t)	elements;
 };

@@ -43,8 +43,8 @@ typedef struct dns_c_ndcserverlist	dns_c_ndcserverlist_t;
 typedef struct dns_c_ndckey		dnc_c_ndckey_t;
 
 struct  dns_c_ndcctx {
-	isc_mem_t	       *mem;
 	isc_uint32_t		magic;
+	isc_mem_t	       *mem;
 	
 	dns_c_ndcopts_t	       *opts;
 	dns_c_ndcserverlist_t  *servers;
@@ -52,23 +52,23 @@ struct  dns_c_ndcctx {
 };
 
 struct dns_c_ndcopts {
-	isc_mem_t      *mem;
 	isc_uint32_t	magic;
+	isc_mem_t      *mem;
 
 	char	       *defserver;
 	char	       *defkey;
 };
 
 struct dns_c_ndcserverlist {
-	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
+	isc_mem_t		       *mem;
 
 	ISC_LIST(dns_c_ndcserver_t)	list;
 };
 	
 struct dns_c_ndcserver {
-	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
+	isc_mem_t		       *mem;
 
 	char			       *name;
 	char			       *key;

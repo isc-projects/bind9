@@ -181,8 +181,8 @@ struct dns_c_kid {
  * List of key ids for a 'server' statement.
  */
 struct dns_c_kid_list {
-	isc_mem_t	       *mem;
 	isc_uint32_t		magic;
+	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_kid_t)	keyids;
 };
