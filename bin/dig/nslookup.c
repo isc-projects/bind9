@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.43 2000/09/14 20:11:48 mws Exp $ */
+/* $Id: nslookup.c,v 1.44 2000/09/14 20:32:18 gson Exp $ */
 
 #include <config.h>
 
@@ -673,14 +673,14 @@ addlookup(char *opt) {
 	tr.length = strlen(deftype);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
 	if (result != ISC_R_SUCCESS) {
-		printf ("unknown query type: %s\n",deftype);
+		printf("unknown query type: %s\n",deftype);
 		rdclass = dns_rdatatype_a;
 	}
 	tr.base = defclass;
 	tr.length = strlen(defclass);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
 	if (result != ISC_R_SUCCESS) {
-		printf ("unknown query class: %s\n",defclass);
+		printf("unknown query class: %s\n",defclass);
 		rdclass = dns_rdataclass_in;
 	}
 	lookup = make_empty_lookup();
