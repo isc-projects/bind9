@@ -1,4 +1,7 @@
 
+ 696.	[bug]		lwresd would die with an assertion failure when passed
+			a zero-length name.  [RT #692]
+
  695.	[bug]		If the resolver attempted to query a blackholed or
 			bogus server, the resolution would fail immediately.
 
