@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2000/07/07 18:25:14 bwelling Exp $
+# $Id: tests.sh,v 1.3 2000/07/08 16:37:18 tale Exp $
 
 #
 # Perform tests
@@ -26,28 +26,39 @@ SYSTEMTESTTOP=..
 
 status=0
 
+echo "I:fetching first copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
-grep ";" dig.out.ns1
+grep ";" dig.out.ns1		# XXXDCL Why is this here?
 
+echo "I:fetching second copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
-grep ";" dig.out.ns2
+grep ";" dig.out.ns2		# XXXDCL Why is this here?
 
+echo "I:comparing pre-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.before dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || status=1
 
-$NSUPDATE < update.scp
+echo "I:updating zone"
+# nsupdate will print ">" characters to stderr as it works, but not send
+# a final newline.
+$NSUPDATE < update.scp > /dev/null
+# Send the final nsupdate newline.
+echo
 sleep 15
 
+echo "I:fetching first copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
-grep ";" dig.out.ns1
+grep ";" dig.out.ns1		# XXXDCL Why is this here?
 
+echo "I:fetching second copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
-grep ";" dig.out.ns2
+grep ";" dig.out.ns2		# XXXDCL Why is this here?
 
+echo "I:comparing post-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
 
