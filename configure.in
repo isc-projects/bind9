@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.8 $)
+AC_REVISION($Revision: 1.355.18.9 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1609,7 +1609,7 @@ case $host in
 	# project handles the AF_INET6 case correctly.  We need to avoid
 	# using the former but prefer the latter unless overridden by
 	# --enable-getifaddrs=glibc.
-	if test $use_getifaddrs = glibc
+	if test $want_getifaddrs = glibc
 	then
 		AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
 	else

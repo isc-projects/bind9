@@ -1,3 +1,5 @@
+1751.	[bug]		--enable-getifaddrs failed under linux. [RT #12867]
+
 1750.	[port]		lib/bind/make/rules.in:subdirs was not bash friendly.
 			[RT #12864]
 
