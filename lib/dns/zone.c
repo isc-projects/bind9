@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.137 2000/06/01 23:17:46 gson Exp $ */
+/* $Id: zone.c,v 1.138 2000/06/02 00:19:37 gson Exp $ */
 
 #include <config.h>
 
@@ -2849,14 +2849,9 @@ zone_log(dns_zone_t *zone, const char *me, int level, const char *fmt, ...) {
 
 	isc_buffer_init(&buffer, namebuf, sizeof(namebuf));
 
-	if (dns_name_dynamic(&zone->origin)) {
-		if (dns_name_equal(&zone->origin, dns_rootname))
-			result = dns_name_totext(&zone->origin, ISC_FALSE,
-						 &buffer);
-		else
-			result = dns_name_totext(&zone->origin, ISC_TRUE,
-						 &buffer);
-	}
+	if (dns_name_dynamic(&zone->origin))
+		result = dns_name_totext(&zone->origin, ISC_TRUE,
+					 &buffer);
 	if (result != ISC_R_SUCCESS)
 		isc_buffer_putstr(&buffer, "<UNKNOWN>");
 
