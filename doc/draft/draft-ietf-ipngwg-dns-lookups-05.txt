@@ -3,10 +3,10 @@ Internet Draft                                                  Fermilab
                                                        Christian Huitema
                                                            Susan Thomson
                                                                 Bellcore
-                                                            May 20, 1999
+                                                        October 14, 1999
 
      DNS Extensions to Support IPv6 Address Aggregation and Renumbering
-                   <draft-ietf-ipngwg-dns-lookups-04.txt>
+                   <draft-ietf-ipngwg-dns-lookups-05.txt>
 
 Status of this Memo
 
@@ -21,11 +21,7 @@ Status of this Memo
     at any time.  It is inappropriate to use Internet- Drafts as
     reference material or to cite them other than as "work in progress."
 
-
-    The list of current Internet-Drafts can be accessed at
-    http://www.ietf.org/ietf/1id-abstracts.txt
-
-    The list of Internet-Draft Shadow Directories can be accessed at
+    To view the list Internet-Draft Shadow Directories, see
     http://www.ietf.org/shadow.html.
 
 1.  Abstract
@@ -33,9 +29,9 @@ Status of this Memo
     This document defines changes to the Domain Name System to support
     renumberable and aggregatable IPv6 addressing.  The changes include
     a new resource record type to store an IPv6 address in a manner
-    which expedites network renumbering, and updated definitions of
-    existing query types that return Internet addresses as part of
-    additional section processing.
+    which expedites network renumbering, one new query type and updated
+    definitions of existing query types that return Internet addresses
+    as part of additional section processing.
 
     For lookups keyed on IPv6 addresses (often called reverse lookups),
     this document defines a new zone structure which allows a zone to be
@@ -43,9 +39,9 @@ Status of this Memo
     (as for a multihomed provider or site) and across network
     renumbering events.
 
-Expires November 25, 1999   Crawford et al.                     [Page 1]
+Expires April 19, 2000      Crawford et al.                     [Page 1]
 
-Internet Draft                  IPv6 DNS                    May 20, 1999
+Internet Draft                  IPv6 DNS                October 14, 1999
 
 2.  Introduction
 
@@ -79,10 +75,10 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     This memo proposes a replacement for the specification in RFC 1886
     and a departure from current implementation practices.  The changes
     are designed to facilitate network renumbering and multihoming.
-    Domains employing the A6 record for IPv6 addresses can have
-    automatically-genrerated AAAA records to ease transition.  It is
-    expected that after a reasonable period, RFC 1886 will become
-    Historic.
+    Domains employing the A6 record for IPv6 addresses can insert
+    automatically-generated AAAA records in zone files to ease
+    transition.  It is expected that after a reasonable period, RFC 1886
+    will become Historic.
 
     The next three major sections of this document are an overview of
     the facilities defined or employed by this specification, the
@@ -95,9 +91,9 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     believed that compliance with the suggestion has tangible benefits
     in most instances.
 
-Expires November 25, 1999   Crawford et al.                     [Page 2]
+Expires April 19, 2000      Crawford et al.                     [Page 2]
 
-Internet Draft                  IPv6 DNS                    May 20, 1999
+Internet Draft                  IPv6 DNS                October 14, 1999
 
 3.  Overview
 
@@ -122,9 +118,10 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     An application looking up an IPv6 address will generally cause the
     DNS resolver to access several A6 records, and multiple IPv6
     addresses may be returned even if the queried name was the owner of
-    only one A6 record.  The authenticity [DNSSEC] of the returned
-    address(es) cannot be directly verified.  The A6 records which
-    contributed to the address(es) may of course be verified if signed.
+    only one A6 record.  The authenticity of the returned address(es)
+    cannot be directly verified by DNS Security [DNSSEC].  The A6
+    records which contributed to the address(es) may of course be
+    verified if signed.
 
 3.2.  Underlying Mechanisms for Reverse Lookups
 
@@ -143,12 +140,12 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
 
     Examples in section 6 will employ the following textual
     representation for bit-string labels, which is a subset of the
+
+Expires April 19, 2000      Crawford et al.                     [Page 3]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
     syntax defined in [BITLBL].  A base indicator "x" for hexadecimal
-
-Expires November 25, 1999   Crawford et al.                     [Page 3]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
-
     and a sequence of hexadecimal digits is enclosed between "\[" and
     "]".  The bits denoted by the digits represent a sequence of one-bit
     domain labels ordered from most to least significant.  (This is the
@@ -188,16 +185,16 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
 
     which will cause it to look for a.b.c.w.xy.
 
+Expires April 19, 2000      Crawford et al.                     [Page 4]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
 4.  Specifications
 
 4.1.  The A6 Record Type
 
     The A6 record type is specific to the IN (Internet) class and has
     type number 38 (decimal).
-
-Expires November 25, 1999   Crawford et al.                     [Page 4]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
 
 4.1.1.  Format
 
@@ -232,24 +229,23 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
 
 4.1.2.  Processing
 
-    A query with QTYPE=A6 causes type A and type AAAA additional section
-    processing for the QNAME, and type A6 and type NS additional section
-    processing for the DNS names, if any, in the RDATA field of the A6
-    records in the answer section.  When and if the type AAAA record
-    becomes deprecated, the type AAAA additional section processing for
-    type A6 queries SHOULD be omitted from new implementations of this
-    specification.
+    A query with QTYPE=A6 causes type A6 and type NS additional section
+    processing for the prefix names, if any, in the RDATA field of the
+    A6 records in the answer section.  This processing SHOULD be
+    recursively applied to the prefix names of A6 records included as
+
+Expires April 19, 2000      Crawford et al.                     [Page 5]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
+    additional data.  When space in the reply packet is a limit,
+    inclusion of additional A6 records takes priority over NS records.
 
     It is an error for a A6 record with prefix length L1 > 0 to refer to
     a domain name which owns a A6 record with a prefix length L2 > L1.
     If such a situation is encountered by a resolver, the A6 record with
     the offending (larger) prefix length MUST be ignored.  Robustness
-    precludes signalling an error if addresses can still be formed from
-
-Expires November 25, 1999   Crawford et al.                     [Page 5]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
-
+    precludes signaling an error if addresses can still be formed from
     valid A6 records, but it is SUGGESTED that zone maintainers from
     time to time check all the A6 records their zones reference.
 
@@ -284,10 +280,19 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     prefix length of zero.  One IPv6 address is formed from one such
     chain by taking the value of each bit position from the earliest A6
     record which validly covers that position, as indicated by the
-    prefix length.  The set of all IPv6 records for the given hostname
+    prefix length.  The set of all IPv6 addresses for the given hostname
     comprises the addresses formed from all complete chains of A6
     records beginning at that hostname, discarding records which have
     invalid prefix lengths as defined in section 4.1.2.
+
+Expires April 19, 2000      Crawford et al.                     [Page 6]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
+    If some A6 queries fail and others succeed, a client might obtain a
+    non-empty but incomplete set of IPv6 addresses for a host.  In many
+    situations this may be acceptable.  The completeness of a set of A6
+    records may always be determined by inspection.
 
 4.2.  Zone Structure for Reverse Lookups
 
@@ -295,11 +300,6 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     only the first level of delegation needs to be under that domain.
     More levels of delegation could be placed under IP6.INT if some
     top-level delegations were done via NS records instead of DNAME
-
-Expires November 25, 1999   Crawford et al.                     [Page 6]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
-
     records, but this would incur some cost in renumbering ease at the
     level of TLAs [AGGR].  Therefore, it is declared here that all
     address space delegations SHOULD be done by the DNAME mechanism
@@ -330,11 +330,19 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     All existing query types that perform type A additional section
     processing, i.e. the name server (NS), mail exchange (MX), and
     mailbox (MB) query types, and the experimental AFS data base (AFSDB)
-    and route through (RT) types, must be redefined to perform both type
-    A and type A6 additional section processing.  These new definitions
-    mean that a name server may add any relevant IPv4 addresses and any
-    relevant A6 records available locally to the additional section of a
-    response when processing any one of the above queries.
+    and route through (RT) types, must be redefined to perform type A,
+    A6 and AAAA additional section processing, with type A having the
+    highest priority for inclusion and type AAAA the lowest.  This
+    redefinition means that a name server may add any relevant IPv4 and
+    IPv6 address information available locally to the additional section
+
+Expires April 19, 2000      Crawford et al.                     [Page 7]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
+    of a response when processing any one of the above queries.  The
+    recursive inclusion of A6 records referenced by A6 records already
+    included in the additional section is OPTIONAL.
 
 6.  Usage Illustrations
 
@@ -346,10 +354,6 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
 
     Use of the IPv6 aggregatable address format [AGGR] is assumed in the
     examples.
-
-Expires November 25, 1999   Crawford et al.                     [Page 7]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
 
 6.1.  A6 Record Chains
 
@@ -380,6 +384,10 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     identifier '1234:5678:9ABC:DEF0'.  In our configuration, this node
     will have three addresses:
 
+Expires April 19, 2000      Crawford et al.                     [Page 8]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
     o   2345:00C1:CA11:0001:1234:5678:9ABC:DEF0
     o   2345:00D2:DA11:0001:1234:5678:9ABC:DEF0
     o   2345:000E:EB22:0001:1234:5678:9ABC:DEF0
@@ -398,10 +406,6 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
            SUBNET-1.IP6 A6 48 0:0:0:1::  IP6
            IP6          A6 48 0::0       SUBSCRIBER-X.IP6.A.NET.
            IP6          A6 48 0::0       SUBSCRIBER-X.IP6.B.NET.
-
-Expires November 25, 1999   Crawford et al.                     [Page 8]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
 
     And elsewhere there would appear
 
@@ -429,6 +433,10 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     record affords the DNS administrator some choices.  The glue could
     be any of
 
+Expires April 19, 2000      Crawford et al.                     [Page 9]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
     o   a minimal set of A6 records duplicated from the X.EXAMPLE zone,
 
     o   a (possibly smaller) set of records which collapse the structure
@@ -445,10 +453,6 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     ::1:11:111:1111 and ::2:22:222:2222 on subnets 1 and 2 respectively.
     Then the top-level zone EXAMPLE would include one (or more) of the
     following sets of A6 records as glue.
-
-Expires November 25, 1999   Crawford et al.                     [Page 9]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
 
     $ORIGIN EXAMPLE.            ; first option
     X               NS NS1.X
@@ -479,6 +483,11 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
                     A6 0  2345:000E:EB22:2:2:22:222:2222
 
     The first and second glue options are robust against renumbering of
+
+Expires April 19, 2000      Crawford et al.                    [Page 10]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
     X.EXAMPLE's prefixes by providers A.NET and B.NET, but will fail if
     those providers' own DNS is unreachable.  The glue records of the
     third option are robust against DNS failures elsewhere than the
@@ -495,10 +504,6 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
 
     The zero-prefix-length glue records can of course be automatically
     generated and/or checked in practice.
-
-Expires November 25, 1999   Crawford et al.                    [Page 10]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
 
 6.1.3.  Variations
 
@@ -531,6 +536,11 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
 
     Finally, the above structure reflects an assumption that address
     fields assigned by a given entity are recorded only in A6 records
+
+Expires April 19, 2000      Crawford et al.                    [Page 11]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
     held by that entity.  Those bits could be entered into A6 records in
     the lower-level entity's zone instead, thus:
 
@@ -547,14 +557,9 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     assigned values is with the entity that assigned them.
 
     It is possible, but not necessarily recommended, for a zone
-
-Expires November 25, 1999   Crawford et al.                    [Page 11]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
-
-    maintainer to forego the renumbering support afforded by the chaning
-    of A6 records and to record entire IPv6 addresses within one zone
-    file.
+    maintainer to forego the renumbering support afforded by the
+    chaining of A6 records and to record entire IPv6 addresses within
+    one zone file.
 
 6.2.  Reverse Mapping Zones
 
@@ -581,6 +586,10 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
                \[xD/4].IP6.ALPHA-TLA.ORG.   DNAME  IP6.D.NET.
                \[x0E/8].IP6.ALPHA-TLA.ORG.  DNAME  IP6.E.NET.
 
+Expires April 19, 2000      Crawford et al.                    [Page 12]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
 6.2.2.  The ISP level
 
     The providers A through E carry the following delegation information
@@ -595,10 +604,6 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     Note that some domain names appear in the RDATA of more than one
     DNAME record.  In those cases, one zone is being used to map
     multiple prefixes.
-
-Expires November 25, 1999   Crawford et al.                    [Page 12]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
 
 6.2.3.  The Site Level
 
@@ -627,9 +632,9 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     information cached, the sequence of queried names and responses
     would be (all with QCLASS=IN, QTYPE=PTR):
 
-Expires November 25, 1999   Crawford et al.                    [Page 13]
+Expires April 19, 2000      Crawford et al.                    [Page 13]
 
-Internet Draft                  IPv6 DNS                    May 20, 1999
+Internet Draft                  IPv6 DNS                October 14, 1999
 
     To a server for IP6.INT:
     QNAME=\[x234500C1CA110001123456789ABCDEF0/128].IP6.INT.
@@ -678,9 +683,9 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     entity by the higher.  For example, "SUBSCRIBER-X" could be replaced
     by "\[x11/8]".  This would place the A6 record(s) defining the
 
-Expires November 25, 1999   Crawford et al.                    [Page 14]
+Expires April 19, 2000      Crawford et al.                    [Page 14]
 
-Internet Draft                  IPv6 DNS                    May 20, 1999
+Internet Draft                  IPv6 DNS                October 14, 1999
 
     delegated prefix at exactly the same point in the DNS tree as the
     DNAME record associated with that delegation.  The cost of this
@@ -688,7 +693,7 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     pointing A6 records when it is renumbered.  This cost may be found
     quite acceptable in practice.
 
-7.  Transition from AAAA Records
+7.  Transition from AAAA Records on coexistence with A Records
 
     Administrators of zones which contain A6 records can easily
     accommodate deployed resolvers which understand AAAA records but not
@@ -698,7 +703,10 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     section 4.1.4).  Attention must be paid to the TTL assigned to a
     generated AAAA record, which MUST be no more than the minimum of the
     TTLs of the A6 records that were used to form the IPv6 address in
-    that records If the zone is secure [DNSSEC], the generated AAAA
+    that record.  For full robustness, those A6 records which were in
+    different zones should be monitored for changes (in TTL or RDATA)
+    even when there are no changes to zone for which AAAA records are
+    being generated.  If the zone is secure [DNSSEC], the generated AAAA
     records SHOULD be signed along with the rest of the zone data.
 
     A zone-specific heuristic MAY be used to avoid generation of AAAA
@@ -709,78 +717,87 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     records with an address suffix field with a certain number of
     trailing zero bits.
 
-    A server providing recursive service MAY be configurable to
-    synthesize AAAA records from A6 records in response to clients' AAAA
-    queries.
+    On the client side, when looking up and IPv6 address, the order of
+    A6 and AAAA queries MAY be configurable to be one of: A6, then AAAA;
+    AAAA, then A6; A6 only; or both in parallel.  The default order (or
+    only order, if not configurable) MUST be to try A6 first, then AAAA.
+    If and when the AAAA becomes deprecated a new document will change
+    the default.
+
+    The guidelines and options for precedence between IPv4 and IPv6
+    addresses are specified in [TRANS].  All mentions of AAAA records in
+    that document are henceforth to be interpreted as meaning A6 and/or
+    AAAA records in the order specified in the previous paragraph.
 
 8.  Security Considerations
 
     The signing authority [DNSSEC] for the A6 records which determine an
     IPv6 address is distributed among several entities, reflecting the
+
+Expires April 19, 2000      Crawford et al.                    [Page 15]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
+
     delegation path of the address space which that address occupies.
     DNS Security is fully applicable to bit-string labels and DNAME
     records.  However, just as with IPv4's IN-ADDR.ARPA, authentication
     of data in the reverse zones is not equivalent to authentication of
     any forward data.
 
-9.  Acknowledgments
+9.  IANA Considerations
+
+    The A6 resource record has been assigned a Type value of 38.
+
+10.  Acknowledgments
 
     The authors would like to thank the following persons for valuable
     discussions and reviews:  Mark Andrews, Rob Austein, Jim Bound,
+    Randy Bush, Brian Carpenter, David Conrad, Steve Deering, Francis
+    Dupont, Robert Elz, Bob Fink, Olafur Gudmundsson, Bob Halley, Bob
+    Hinden, Bill Manning, Keith Moore, Thomas Narten, Erik Nordmark,
+    Mike O'Dell, Michael Patton and Ken Powell.
 
-Expires November 25, 1999   Crawford et al.                    [Page 15]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
-
-    Randy Bush, Brian Carpenter, David Conrad, Steve Deering, Robert
-    Elz, Bob Fink, Olafur Gudmundsson, Bob Halley, Bob Hinden, Bill
-    Manning, Keith Moore, Thomas Narten, Erik Nordmark, Mike O'Dell and
-    Ken Powell.
-
-10.  References
+11.  References
 
     [AARCH] Hinden, R. and S. Deering, "IP Version 6 Addressing
-        Architecture", RFC 2373.
+        Architecture", RFC 2373, July 1998.
 
     [AGGR] Hinden, R., O'Dell, M. and S. Deering, "An IPv6 Aggregatable
-        Global Unicast Address Format".  RFC 2374.
+        Global Unicast Address Format".  RFC 2374, July 1998.
 
     [BITLBL] Crawford, M., "Binary Labels in the Domain Name System",
-        currently draft-ietf-dnsind-binary-labels-03.txt.
+        RFC 2673, August 1999.
 
-    [DNAME] Crawford, M., "Non-Terminal DNS Name Redirection", currently
-        draft-ietf-dnsind-dname-00.txt.
-
-    [DNSCF] Mockapetris, P. V., "Domain names - concepts and
-        facilities", RFC 1034.
+    [DNAME] Crawford, M., "Non-Terminal DNS Name Redirection", RFC 2672,
+        August 1999.
 
     [DNSIS] Mockapetris, P. V., "Domain names - implementation and
-        specification", RFC 1035.
+        specification", RFC 1035, November 1987.
 
     [DNSSEC] Eastlake, D. 3rd and C. Kaufman, "Domain Name System
-        Security Extensions", RFC 2065.
+        Security Extensions", RFC 2535, March 1999.
 
     [KWORD] Bradner, S., "Key words for use in RFCs to Indicate
         Requirement Levels," RFC 2119.
 
     [RENUM] Carpenter, B. and Y. Rekhter, "Renumbering Needs Work", RFC
-        1900.
+        1900, February 1996.
+
+Expires April 19, 2000      Crawford et al.                    [Page 16]
+
+Internet Draft                  IPv6 DNS                October 14, 1999
 
         Ferguson, P. and H. Berkowitz, "Network Renumbering Overview:
-        Why would I want it and what is it anyway?", RFC 2071.
+        Why would I want it and what is it anyway?", RFC 2071, January
+        1997.
 
         Carpenter, B., Crowcroft, J. and Y. Rekhter, "IPv4 Address
-        Behaviour Today", RFC 2101.
+        Behaviour Today", RFC 2101, February 1997.
 
     [TRANS] Gilligan, R. and E. Nordmark, "Transition Mechanisms for
+        IPv6 Hosts and Routers", RFC 1933, April 1996.
 
-Expires November 25, 1999   Crawford et al.                    [Page 16]
-
-Internet Draft                  IPv6 DNS                    May 20, 1999
-
-        IPv6 Hosts and Routers", RFC 1933.
-
-11.  Authors' Addresses
+12.  Authors' Addresses
 
     Matt Crawford          Christian Huitema      Susan Thomson
     Fermilab               Bellcore               Bellcore
@@ -790,6 +807,7 @@ Internet Draft                  IPv6 DNS                    May 20, 1999
     USA                    USA                    USA
 
     +1 630 840-3461        +1 201 829-4266        +1 201 829-4514
-    crawdad@fnal.gov       huitema@bellcore.com   set@bellcore.com
+    crawdad@fnal.gov
+huitema@research.telcordia.comset@research.telcordia.com
 
-Expires November 25, 1999   Crawford et al.                    [Page 17]
+Expires April 19, 2000      Crawford et al.                    [Page 17]
