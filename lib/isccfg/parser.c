@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.86 2001/11/05 18:19:46 gson Exp $ */
+/* $Id: parser.c,v 1.87 2001/11/05 18:21:22 gson Exp $ */
 
 #include <config.h>
 
@@ -1887,7 +1887,7 @@ check_enum(cfg_parser_t *pctx, cfg_obj_t *obj, const char *const *enums) {
 	const char *s = obj->value.string.base;
 	if (is_enum(s, enums))
 		return (ISC_R_SUCCESS);
-	parser_error(pctx, LOG_NEAR, "'%s' unexpected", s);
+	parser_error(pctx, 0, "'%s' unexpected", s);
 	return (ISC_R_UNEXPECTEDTOKEN);
 }
 
