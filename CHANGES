@@ -1,3 +1,7 @@
+
+ 733.	[bug]		Reference counts of dns_acl_t objects need to be
+			locked but were not. [RT #801]
+
  732.	[bug]		Glue with 0 TTL could also cause SERVFAIL.  [RT #828]
 
  731.	[bug]		Certain zone errors could cause named-checkzone to
