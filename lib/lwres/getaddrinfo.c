@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.6 2000/01/20 23:58:25 explorer Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.7 2000/01/21 02:03:16 marka Exp $
  */
 
 
@@ -12,7 +12,7 @@
 #include <lwres/lwres.h>
 #include <lwres/netdb.h>	/* XXX #include <netdb.h> */
 #include <errno.h>
-#include <string.h>
+#include <isc/string.h>		/* need strsep */
 #include <stdlib.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
