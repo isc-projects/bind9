@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.251 2000/11/13 18:19:27 gson Exp $ */
+/* $Id: zone.c,v 1.252 2000/11/17 02:49:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -882,8 +882,11 @@ dns_zone_load(dns_zone_t *zone) {
 			       zone->db_argc - 1, zone->db_argv + 1,
 			       &db);
 
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		zone_log(zone, me, ISC_LOG_INFO,
+			 "creating database: %s", isc_result_totext(result));
 		goto cleanup;
+	}
 
 	if (!dns_db_ispersistent(db))
 		result = zone_startload(db, zone, loadtime);
