@@ -32,6 +32,7 @@
 #include	"include/tests/t_api.h"
 
 static char *Usage =	"\t-a               : run all tests\n"
+			"\t-b <dir>         : chdir to dir before running tests"
 			"\t-c <config_file> : use specified config file\n"
 			"\t-d <debug_level> : set debug level to debug_level\n"
 			"\t-h               : print test info\n"
@@ -42,6 +43,7 @@ static char *Usage =	"\t-a               : run all tests\n"
 			"\t-q <timeout>     : use 'timeout' as the timeout value\n";
 /*
  *		-a		-->	run all tests
+ *		-b dir		-->	chdir to dir before running tests
  *		-tn		-->	run test n
  *		-c config	-->	use config file 'config'
  *		-d		-->	turn on api debugging
@@ -65,6 +67,7 @@ static char	*T_config;
 static char	T_tvec[T_MAXTESTS / 8];
 static char	*T_env[T_MAXENV + 1];
 static char	T_buf[T_BIGBUF];
+static char	*T_dir;
 
 static int	t_initconf(char *path);
 static int	t_dumpconf(char *path);
@@ -96,12 +99,15 @@ main(int argc, char **argv)
 	T_timeout = T_TIMEOUT;
 
 	/* parse args */
-	while ((c = isc_commandline_parse(argc, argv, ":at:c:d:n:huxq:"))
+	while ((c = isc_commandline_parse(argc, argv, ":at:c:d:n:huxq:b:"))
 	       != -1) {
 		if (c == 'a') {
 			/* flag all tests to be run */
 			memset(T_tvec, 0xffff, sizeof(T_tvec));
 			/* memset(T_tvec, UINT_MAX, sizeof(T_tvec)); */
+		}
+		else if (c == 'b') {
+			T_dir = isc_commandline_argument;
 		}
 		else if (c == 't') {
 			tnum = atoi(isc_commandline_argument);
@@ -160,6 +166,9 @@ main(int argc, char **argv)
 			exit(1);
 		}
 	}
+
+	if (T_dir != NULL)
+		(void) chdir(T_dir);
 
 	/* output time to journal */
 
