@@ -104,24 +104,47 @@ tx_te(isc_task_t *task, isc_event_t *event) {
 
 	isc_result = isc_time_now(&now);
 	if (isc_result == ISC_R_SUCCESS) {
-
 		interval.seconds = Tx_seconds;
 		interval.nanoseconds = Tx_nanoseconds;
-		isc_time_add(&Tx_lasttime, &interval, &base);
+		isc_result = isc_time_add(&Tx_lasttime, &interval, &base);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_add failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	} else {
+		t_info("isc_time_now failed %s\n",
+			isc_result_totext(isc_result));
+		++Tx_nprobs;
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
 		interval.seconds = Tx_FUDGE_SECONDS;
 		interval.nanoseconds = Tx_FUDGE_NANOSECONDS;
-		isc_time_add(&base, &interval, &ulim);
-		isc_time_subtract(&base, &interval, &llim);
+		isc_result = isc_time_add(&base, &interval, &ulim);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_add failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
+		isc_result = isc_time_subtract(&base, &interval, &llim);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_subtract failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
 		if ((isc_time_compare(&llim, &now) > 0) ||
 		    (isc_time_compare(&ulim, &now) < 0)) {
 			t_info("timer range error\n");
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;
-	} else {
-		t_info("isc_time_now failed %s\n",
-			isc_result_totext(isc_result));
-		++Tx_nprobs;
 	}
 
 	if (Tx_eventcnt == Tx_nevents) {
@@ -406,25 +429,50 @@ t3_te(isc_task_t *task, isc_event_t *event) {
 	t_info("tick %d\n", Tx_eventcnt);
 
 	isc_result = isc_time_now(&now);
-	if (isc_result == ISC_R_SUCCESS) {
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_time_now failed %s\n",
+		       isc_result_totext(isc_result));
+		++Tx_nprobs;
+	}
 
+	if (isc_result == ISC_R_SUCCESS) {
 		interval.seconds = Tx_seconds;
 		interval.nanoseconds = Tx_nanoseconds;
-		isc_time_add(&Tx_lasttime, &interval, &base);
+		isc_result = isc_time_add(&Tx_lasttime, &interval, &base);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_add failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
 		interval.seconds = Tx_FUDGE_SECONDS;
 		interval.nanoseconds = Tx_FUDGE_NANOSECONDS;
-		isc_time_add(&base, &interval, &ulim);
-		isc_time_subtract(&base, &interval, &llim);
+		isc_result = isc_time_add(&base, &interval, &ulim);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_add failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
+		isc_result = isc_time_subtract(&base, &interval, &llim);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_subtract failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
 		if ((isc_time_compare(&llim, &now) > 0) ||
 		    (isc_time_compare(&ulim, &now) < 0)) {
 			t_info("timer range error\n");
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;
-	} else {
-		t_info("isc_time_now failed %s\n",
-		       isc_result_totext(isc_result));
-		++Tx_nprobs;
 	}
 
 	if (event->ev_type != ISC_TIMEREVENT_IDLE) {
@@ -507,26 +555,50 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	isc_result = isc_time_now(&now);
-	if (isc_result == ISC_R_SUCCESS) {
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_time_now failed %s\n",
+		       isc_result_totext(isc_result));
+		++Tx_nprobs;
+	}
 
+	if (isc_result == ISC_R_SUCCESS) {
 		interval.seconds = Tx_seconds;
 		interval.nanoseconds = Tx_nanoseconds;
-		isc_time_add(&Tx_lasttime, &interval, &base);
+		isc_result = isc_time_add(&Tx_lasttime, &interval, &base);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_add failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
 		interval.seconds = Tx_FUDGE_SECONDS;
 		interval.nanoseconds = Tx_FUDGE_NANOSECONDS;
-		isc_time_add(&base, &interval, &ulim);
-		isc_time_subtract(&base, &interval, &llim);
+		isc_result = isc_time_add(&base, &interval, &ulim);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_add failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
+		isc_result = isc_time_subtract(&base, &interval, &llim);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_time_subtract failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
+	}
+
+	if (isc_result == ISC_R_SUCCESS) {
 		if ((isc_time_compare(&llim, &now) > 0) ||
 		    (isc_time_compare(&ulim, &now) < 0)) {
 			t_info("timer range error\n");
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;
-	}
-	else {
-		t_info("isc_time_now failed %s\n",
-		       isc_result_totext(isc_result));
-		++Tx_nprobs;
 	}
 
 	if (Tx_eventcnt < 3) {
