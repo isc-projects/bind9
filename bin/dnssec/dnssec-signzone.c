@@ -1304,7 +1304,7 @@ setup_logging(int level, isc_log_t **logp) {
 	/*
 	 * Set up a channel similar to default_stderr except:
 	 *  - the logging level is passed in
-	 *  - the logging level is printed
+	 *  - the program name and logging level are printed
 	 *  - no time stamp is printed
 	 */
 	destination.file.stream = stderr;
