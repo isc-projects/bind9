@@ -29,12 +29,22 @@ getnetent() {
 	return (NULL);
 }
 
+#ifdef ISC_LWRES_SETNETENTINT
+int
+setnetent(int stayopen) {
+	
+	UNUSED(stayopen);
+	/* empty */
+	return (1);	/* success */
+}
+#else
 void
 setnetent(int stayopen) {
 	
 	UNUSED(stayopen);
 	/* empty */
 }
+#endif
 
 void
 endnetent() {
