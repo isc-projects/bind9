@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: mr_9.c,v 1.18 2000/02/03 23:43:03 halley Exp $ */
+/* $Id: mr_9.c,v 1.19 2000/03/16 02:31:14 tale Exp $ */
+
+/* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
 #ifndef RDATA_GENERIC_MR_9_C
 #define RDATA_GENERIC_MR_9_C
@@ -31,7 +33,7 @@ fromtext_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 9);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 	
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
@@ -43,8 +45,7 @@ fromtext_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_mr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
-	  isc_buffer_t *target) 
+totext_mr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, isc_buffer_t *target)
 {
 	isc_region_t region;
 	dns_name_t name;
@@ -73,13 +74,13 @@ fromwire_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 9);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 	else
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-        
+
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
@@ -130,24 +131,21 @@ static inline isc_result_t
 fromstruct_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
-
 	REQUIRE(type == 9);
 
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
 tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-
 	REQUIRE(rdata->type == 9);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -164,8 +162,8 @@ additionaldata_mr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 9);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }
