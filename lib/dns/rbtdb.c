@@ -981,6 +981,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	rdatasetheader_t *header, *header_next;
 	rdatasetheader_t *found;
 	dns_result_t result;
+	dns_rbtnode_t *onode;
 
 	/*
 	 * We only want to remember the topmost zone cut, since it's the one
@@ -992,21 +993,9 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 
 	found = NULL;
 	result = DNS_R_CONTINUE;
+	onode = search->rbtdb->origin_node;
 
 	LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
-
-	/*
-	 * Special-case handling for wildcards of the form *.<zone_origin>.
-	 *
-	 * If we don't do special handling here, we will erroneously treat
-	 * the NS records at the zone top as a zonecut, and will return a
-	 * delegation instead of matching the wildcard.
-	 */
-	if (node == search->rbtdb->origin_node) {
-		if (node->wild && (search->options & DNS_DBFIND_NOWILD) == 0)
-			search->wild = ISC_TRUE;
-		goto unlock;
-	}
 
 	/*
 	 * Look for an NS or DNAME rdataset active in our version.
@@ -1030,14 +1019,25 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 					header = header->down;
 			} while (header != NULL);
 			if (header != NULL) {
-				found = header;
-				/*
-				 * If we found a DNAME, then we don't need
-				 * to keep looking for NS records, because the
-				 * DNAME has precedence.
-				 */
-				if (found->type == dns_rdatatype_dname)
+				if (header->type == dns_rdatatype_dname) {
+					/*
+					 * We don't need to keep looking for
+					 * NS records, because the DNAME has
+					 * precedence.
+					 */
+					found = header;
 					break;
+				} else if (node != onode) {
+					/*
+					 * We've found an NS rdataset that
+					 * isn't at the origin node.  We check
+					 * that they're not at the origin node,
+					 * because otherwise we'd erroneously
+					 * treat the zone top as if it were
+					 * a delegation.
+					 */
+					found = header;
+				}
 			}
 		}
 	}
@@ -1105,7 +1105,6 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			search->wild = ISC_TRUE;
 	}
 
- unlock:
 	UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 
 	return (result);
