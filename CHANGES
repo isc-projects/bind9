@@ -1,3 +1,6 @@
+1186.	[bug]		isc_hex_tobuffer(,,length = 0) failed to unget the
+			EOL token when reading to end of line.
+
 1185.	[bug]		libbind: don't assume statp->_u._ext.ext is valid
 			unless RES_INIT is set when calling res_*init().
 
