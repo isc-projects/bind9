@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.cpp,v 1.3 2001/10/05 05:45:48 mayer Exp $ */
+/* $Id: AccountInfo.cpp,v 1.4 2001/10/05 17:08:09 gson Exp $ */
 
 #ifndef UNICODE
 #define UNICODE
@@ -116,7 +116,7 @@ GetAccountPrivileges(char *name, wchar_t **PrivList, unsigned int *PrivCount,
 	unsigned int i;
 	NTSTATUS Status;
 	isc_result_t istatus;
-	int iRetVal=RTN_ERROR;		/* assume error from main */
+	int iRetVal = RTN_ERROR;	/* assume error from main */
 
 	/*
 	 * Open the policy on the target machine.
@@ -137,12 +137,10 @@ GetAccountPrivileges(char *name, wchar_t **PrivList, unsigned int *PrivCount,
 	 */
 	istatus = isc_ntsecurity_getaccountgroups(name, Accounts, maxAccounts,
 						  totalAccounts);
-	if (istatus == ISC_R_NOMEMORY) {
+	if (istatus == ISC_R_NOMEMORY)
 		return (RTN_NOMEMORY);
-	}
-	else if (istatus != ISC_R_SUCCESS) {
+	else if (istatus != ISC_R_SUCCESS)
 		return (RTN_ERROR);
-	}
 
 	Accounts[*totalAccounts] = name; /* Add the account to the list */
 	(*totalAccounts)++;
