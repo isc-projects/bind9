@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.130 2000/11/15 23:09:09 tale Exp $ */
+/* $Id: client.c,v 1.131 2000/11/16 00:18:13 gson Exp $ */
 
 #include <config.h>
 
@@ -80,8 +80,8 @@
 #define TCP_CLIENT(c)	(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
 
 #define TCP_BUFFER_SIZE			(65535 + 2)
-#define SEND_BUFFER_SIZE		2048
-#define RECV_BUFFER_SIZE		2048
+#define SEND_BUFFER_SIZE		4096
+#define RECV_BUFFER_SIZE		4096
 
 struct ns_clientmgr {
 	/* Unlocked. */
