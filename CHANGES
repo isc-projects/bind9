@@ -13,7 +13,7 @@
 
 1466.	[bug]		lwresd configuration errors resulted in memory
 			and lock leaks.  [RT #5228]
-			
+
 1465.	[bug]		isc_base64_decodestring() and isc_base64_tobuffer()
 			failed to check that trailing bits were zero allowing
 			some invalid base64 strings to be accepted.  [RT #5397]
@@ -23,6 +23,9 @@
 
 1463.	[bug]		dns_rdata_from{wire,struct}() failed to catch bad
 			NXT bit maps. [RT #5577]
+
+1462.	[bug]		parse_sizeval() failed to check the token type.
+			[RT #5586]
 
 1461.	[bug]		Remove deadlock from rbtdb code. [RT #5599]
 

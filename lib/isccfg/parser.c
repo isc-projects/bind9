@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.15 2003/03/06 04:38:25 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.16 2003/07/02 04:34:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1665,6 +1665,10 @@ parse_sizeval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
 
 	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
 	CHECK(parse_unitstring(pctx->token.value.as_pointer, &val));
 
 	CHECK(create_cfgobj(pctx, &cfg_type_uint64, &obj));
