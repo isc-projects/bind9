@@ -1620,6 +1620,7 @@
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004
 ./lib/dns/dst_openssl.h				C	2002,2004
 ./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004
+./lib/dns/dst_parse.h				C	2004
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004
 ./lib/dns/forward.c				C	2000,2001,2004
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004
