@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.49 2001/03/30 20:00:18 bwelling Exp $ */
+/* $Id: rndc.c,v 1.50 2001/03/30 21:00:08 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -523,12 +523,11 @@ main(int argc, char **argv) {
 	 */
 	if (portset)
 		;		/* Was set on command line, do nothing. */
-	else if (server != NULL) {
-		DO("get port for server", cfg_map_get(server, "port",
-						      &defport));
-	} else if (options != NULL) {
-		DO("get default port", cfg_map_get(options, "default-port",
-						   &defport));
+	else {
+		if (server != NULL)
+			(void)cfg_map_get(server, "port", &defport);
+		if (defport == NULL && options != NULL)
+			cfg_map_get(options, "default-port", &defport);
 	}
 	if (defport != NULL) {
 		remoteport = cfg_obj_asuint32(defport);
@@ -536,7 +535,8 @@ main(int argc, char **argv) {
 			fprintf(stderr, "%s: port out of range\n", progname);
 			exit(1);
 		}
-	}
+	} else if (!portset)
+		remoteport = NS_CONTROL_PORT;
 
 	isccc_result_register();
 
