@@ -11,12 +11,11 @@ Key generation and signing
 
 The tools for generating DNSSEC keys and signatures are now in the
 bin/dnssec directory.  Documentation for these programs can be found
-in doc/arm/Bv9ARM.4.html.
+in doc/arm/Bv9ARM.4.html and the man pages.
 
 The random data used in generating DNSSEC keys and signatures comes from
-/dev/random if the OS supports that.  Otherwise, the DNSSEC tools must
-be fed a file containing entropy/random data.  Future releases will allow
-entropy to be entered manually from the keyboard.
+either /dev/random (if the OS supports it) or keyboard input.  Alternatively,
+the a device or file containing entropy/random data can be specified.
 
 
 Serving secure zones
@@ -66,4 +65,4 @@ an update occurs.  Advanced access control is possible using the
 "update-policy" statement in the zone definition.
 
 
-$Id: dnssec,v 1.4 2000/06/22 00:14:36 tale Exp $
+$Id: dnssec,v 1.5 2000/06/27 21:45:52 bwelling Exp $
