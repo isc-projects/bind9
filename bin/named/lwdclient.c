@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.13 2001/01/22 22:29:02 gson Exp $ */
+/* $Id: lwdclient.c,v 1.13.12.1 2003/08/11 05:28:09 marka Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <dns/log.h>
 
 #include <named/types.h>
+#include <named/log.h>
 #include <named/lwresd.h>
 #include <named/lwdclient.h>
 
@@ -211,6 +212,7 @@ process_request(ns_lwdclient_t *client) {
 
 void
 ns_lwdclient_recv(isc_task_t *task, isc_event_t *ev) {
+	isc_result_t result;
 	ns_lwdclient_t *client = ev->ev_arg;
 	ns_lwdclientmgr_t *cm = client->clientmgr;
 	isc_socketevent_t *dev = (isc_socketevent_t *)ev;
@@ -250,7 +252,13 @@ ns_lwdclient_recv(isc_task_t *task, isc_event_t *ev) {
 	isc_event_free(&ev);
 	dev = NULL;
 
-	ns_lwdclient_startrecv(cm);
+	result = ns_lwdclient_startrecv(cm);
+	if (result != ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_LWRESD, ISC_LOG_ERROR,
+			      "could not start lwres "
+			      "client handler: %s",
+			      isc_result_totext(result));
 
 	process_request(client);
 }
@@ -366,6 +374,7 @@ lwdclientmgr_shutdown_callback(isc_task_t *task, isc_event_t *ev) {
 void
 ns_lwdclient_stateidle(ns_lwdclient_t *client) {
 	ns_lwdclientmgr_t *cm;
+	isc_result_t result;
 
 	cm = client->clientmgr;
 
@@ -380,7 +389,13 @@ ns_lwdclient_stateidle(ns_lwdclient_t *client) {
 
 	NS_LWDCLIENT_SETIDLE(client);
 
-	ns_lwdclient_startrecv(cm);
+	result = ns_lwdclient_startrecv(cm);
+	if (result != ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_LWRESD, ISC_LOG_ERROR,
+			      "could not start lwres "
+			      "client handler: %s",
+			      isc_result_totext(result));
 }
 
 void

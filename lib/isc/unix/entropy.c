@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.60.2.3 2002/08/05 06:57:16 marka Exp $ */
+/* $Id: entropy.c,v 1.60.2.3.8.1 2003/08/11 05:28:22 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -69,12 +69,12 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 		if (n < 0) {
 			if (errno == EAGAIN || errno == EINTR)
 				goto out;
-			close(fd);
+			(void)close(fd);
 			source->bad = ISC_TRUE;
 			goto out;
 		}
 		if (n == 0) {
-			close(fd);
+			(void)close(fd);
 			source->bad = ISC_TRUE;
 			goto out;
 		}
@@ -259,7 +259,7 @@ wait_for_sources(isc_entropy_t *ent) {
 
 static void
 destroyfilesource(isc_entropyfilesource_t *source) {
-	close(source->handle);
+	(void)close(source->handle);
 }
 
 /*
@@ -337,7 +337,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	return (ISC_R_SUCCESS);
 
  closefd:
-	close(fd);
+	(void)close(fd);
 
  errout:
 	if (source != NULL)

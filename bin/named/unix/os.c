@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4.8.5 2003/08/08 04:24:41 marka Exp $ */
+/* $Id: os.c,v 1.46.2.4.8.6 2003/08/11 05:28:11 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -274,7 +274,6 @@ setup_syslog(const char *progname) {
 #ifdef LOG_NDELAY
 	options |= LOG_NDELAY;
 #endif
-
 	openlog(isc_file_basename(progname), options, ISC_FACILITY);
 }
 
@@ -328,11 +327,11 @@ ns_os_daemonize(void) {
 	 */
 	fd = open("/dev/null", O_RDWR, 0);
 	if (fd != -1) {
-		close(STDIN_FILENO);
+		(void)close(STDIN_FILENO);
 		(void)dup2(fd, STDIN_FILENO);
-		close(STDOUT_FILENO);
+		(void)close(STDOUT_FILENO);
 		(void)dup2(fd, STDOUT_FILENO);
-		close(STDERR_FILENO);
+		(void)close(STDERR_FILENO);
 		(void)dup2(fd, STDERR_FILENO);
 		if (fd != STDIN_FILENO &&
 		    fd != STDOUT_FILENO &&

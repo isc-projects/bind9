@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyboard.c,v 1.9 2001/01/09 21:58:24 bwelling Exp $ */
+/* $Id: keyboard.c,v 1.9.12.1 2003/08/11 05:28:23 marka Exp $ */
 
 #include <config.h>
 
@@ -87,7 +87,7 @@ isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime) {
 		(void)sleep(sleeptime);
 
 	(void)tcsetattr(keyboard->fd, TCSAFLUSH, &keyboard->saved_mode);
-	close(keyboard->fd);
+	(void)close(keyboard->fd);
 
 	keyboard->fd = -1;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.3 2003/08/07 04:47:33 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.4 2003/08/11 05:28:09 marka Exp $ */
 
 #include <config.h>
 
@@ -422,7 +422,7 @@ ns_config_getport(cfg_obj_t *config, in_port_t *portp) {
 	isc_result_t result;
 	int i;
 
-	cfg_map_get(config, "options", &options);
+	(void)cfg_map_get(config, "options", &options);
 	i = 0;
 	if (options != NULL)
 		maps[i++] = options;

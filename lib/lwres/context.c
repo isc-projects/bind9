@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.41.2.1 2003/07/23 06:57:56 marka Exp $ */
+/* $Id: context.c,v 1.41.2.1.2.1 2003/08/11 05:28:23 marka Exp $ */
 
 #include <config.h>
 
@@ -128,7 +128,7 @@ lwres_context_destroy(lwres_context_t **contextp) {
 	*contextp = NULL;
 
 	if (ctx->sock != -1) {
-		close(ctx->sock);
+		(void)close(ctx->sock);
 		ctx->sock = -1;
 	}
 
@@ -237,7 +237,7 @@ context_connect(lwres_context_t *ctx) {
 
 	ret = connect(s, sa, salen);
 	if (ret != 0) {
-		close(s);
+		(void)close(s);
 		return (LWRES_R_IOERROR);
 	}
 

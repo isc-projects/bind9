@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101.2.5 2003/07/22 04:03:35 marka Exp $ */
+/* $Id: xfrout.c,v 1.101.2.5.2.1 2003/08/11 05:28:09 marka Exp $ */
 
 #include <config.h>
 
@@ -253,7 +253,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 
 static void
 db_rr_iterator_pause(db_rr_iterator_t *it) {
-	dns_dbiterator_pause(it->dbit);
+	RUNTIME_CHECK(dns_dbiterator_pause(it->dbit) == ISC_R_SUCCESS);
 }
 
 static void
@@ -1337,7 +1337,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		msg->flags = DNS_MESSAGEFLAG_QR | DNS_MESSAGEFLAG_AA;
 		if ((xfr->client->attributes & NS_CLIENTATTR_RA) != 0)
 			msg->flags |= DNS_MESSAGEFLAG_RA;
-		dns_message_settsigkey(msg, xfr->tsigkey);
+		CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 		CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
 		if (xfr->lasttsig != NULL)
 			isc_buffer_free(&xfr->lasttsig);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64.12.1 2003/08/06 06:18:06 marka Exp $ */
+/* $Id: timer.c,v 1.64.12.2 2003/08/11 05:28:21 marka Exp $ */
 
 #include <config.h>
 
@@ -233,11 +233,11 @@ destroy(isc_timer_t *timer) {
 
 	LOCK(&manager->lock);
 
-	isc_task_purgerange(timer->task,
-			    timer,
-			    ISC_TIMEREVENT_FIRSTEVENT,
-			    ISC_TIMEREVENT_LASTEVENT,
-			    NULL);
+	(void)isc_task_purgerange(timer->task,
+				  timer,
+				  ISC_TIMEREVENT_FIRSTEVENT,
+				  ISC_TIMEREVENT_LASTEVENT,
+				  NULL);
 	deschedule(timer);
 	UNLINK(manager->timers, timer, link);
 
@@ -284,17 +284,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	 * Get current time.
 	 */
 	if (type != isc_timertype_inactive) {
-		result = isc_time_now(&now);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_time_now() %s: %s",
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED,
-							"failed"),
-					 isc_result_totext(result));
-			return (ISC_R_UNEXPECTED);
-		}
+		TIME_NOW(&now);
 	} else {
 		/*
 		 * We don't have to do this, but it keeps the compiler from
@@ -409,17 +399,7 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	 * Get current time.
 	 */
 	if (type != isc_timertype_inactive) {
-		result = isc_time_now(&now);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_time_now() %s: %s",
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED,
-							"failed"),
-					 isc_result_totext(result));
-			return (ISC_R_UNEXPECTED);
-		}
+		TIME_NOW(&now);
 	} else {
 		/*
 		 * We don't have to do this, but it keeps the compiler from
@@ -435,11 +415,11 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	LOCK(&timer->lock);
 
 	if (purge)
-		isc_task_purgerange(timer->task,
-				    timer,
-				    ISC_TIMEREVENT_FIRSTEVENT,
-				    ISC_TIMEREVENT_LASTEVENT,
-				    NULL);
+		(void)isc_task_purgerange(timer->task,
+					  timer,
+					  ISC_TIMEREVENT_FIRSTEVENT,
+					  ISC_TIMEREVENT_LASTEVENT,
+					  NULL);
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;
@@ -486,16 +466,8 @@ isc_timer_touch(isc_timer_t *timer) {
 	 * don't want to do.
 	 */
 
-	result = isc_time_now(&now);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_now() %s: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"),
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-	} else
-		result = isc_time_add(&now, &timer->interval, &timer->idle);
+	TIME_NOW(&now);
+	result = isc_time_add(&now, &timer->interval, &timer->idle);
 
 	UNLOCK(&timer->lock);
 
@@ -661,7 +633,7 @@ run(void *uap) {
 
 	LOCK(&manager->lock);
 	while (!manager->done) {
-		RUNTIME_CHECK(isc_time_now(&now) == ISC_R_SUCCESS);
+		TIME_NOW(&now);
 
 		XTRACETIME(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 					  ISC_MSG_RUNNING,
@@ -871,13 +843,12 @@ isc__timermgr_nextevent(isc_time_t *when) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc__timermgr_dispatch(void) {
 	isc_time_t now;
 	if (timermgr == NULL)
-		return (ISC_R_NOTFOUND);
-	isc_time_now(&now);
+		return;
+	TIME_NOW(&now);
 	dispatch(timermgr, &now);
-	return (ISC_R_SUCCESS);
 }
 #endif /* ISC_PLATFORM_USETHREADS */

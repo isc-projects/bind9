@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.66.2.6.2.1 2003/08/11 04:48:06 marka Exp $ */
+/* $Id: lex.c,v 1.66.2.6.2.2 2003/08/11 05:28:20 marka Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,7 @@ isc_lex_destroy(isc_lex_t **lexp) {
 	REQUIRE(VALID_LEX(lex));
 
 	while (!EMPTY(lex->sources))
-		isc_lex_close(lex);
+		RUNTIME_CHECK(isc_lex_close(lex) == ISC_R_SUCCESS);
 	if (lex->data != NULL)
 		isc_mem_put(lex->mctx, lex->data, lex->max_token + 1);
 	lex->magic = 0;
@@ -238,7 +238,7 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 
 	result = new_source(lex, ISC_TRUE, ISC_TRUE, stream, filename);
 	if (result != ISC_R_SUCCESS)
-		fclose(stream);
+		(void)fclose(stream);
 	return (result);
 }
 
@@ -291,7 +291,7 @@ isc_lex_close(isc_lex_t *lex) {
 	ISC_LIST_UNLINK(lex->sources, source, link);
 	if (source->is_file) {
 		if (source->need_close)
-			fclose((FILE *)(source->input));
+			(void)fclose((FILE *)(source->input));
 	}
 	isc_mem_free(lex->mctx, source->name);
 	isc_buffer_free(&source->pushback);

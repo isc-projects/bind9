@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.24.2.4 2003/07/22 04:03:42 marka Exp $ */
+/* $Id: ncache.c,v 1.24.2.4.2.1 2003/08/11 05:28:16 marka Exp $ */
 
 #include <config.h>
 
@@ -244,7 +244,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ISC_LIST_APPEND(ncrdatalist.rdata, &rdata, link);
 
 	dns_rdataset_init(&ncrdataset);
-	dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset)
+		      == ISC_R_SUCCESS);
 	ncrdataset.trust = trust;
 	if (message->rcode == dns_rcode_nxdomain)
 		ncrdataset.attributes |= DNS_RDATASETATTR_NXDOMAIN;

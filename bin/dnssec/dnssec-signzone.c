@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.2 2003/08/08 03:40:07 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.3 2003/08/11 05:28:08 marka Exp $ */
 
 #include <config.h>
 
@@ -1681,7 +1681,7 @@ main(int argc, char *argv[]) {
 		origin = file;
 
 	gdb = NULL;
-	isc_time_now(&timer_start);
+	TIME_NOW(&timer_start);
 	loadzone(file, origin, rdclass, &gdb);
 	gorigin = dns_db_origin(gdb);
 
@@ -1850,7 +1850,7 @@ main(int argc, char *argv[]) {
 		isc_uint64_t runtime_ms;   /* Runtime in milliseconds */
 		isc_uint64_t sig_ms;	   /* Signatures per millisecond */
 
-		isc_time_now(&timer_finish);
+		TIME_NOW(&timer_finish);
 
 		runtime_us = isc_time_microdiff(&timer_finish, &timer_start);
 

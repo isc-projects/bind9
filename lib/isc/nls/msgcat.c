@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.c,v 1.10 2001/06/04 19:33:31 tale Exp $ */
+/* $Id: msgcat.c,v 1.10.12.1 2003/08/11 05:28:22 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -96,7 +96,7 @@ isc_msgcat_close(isc_msgcat_t **msgcatp) {
 	if (msgcat != NULL) {
 #ifdef HAVE_CATGETS
 		if (msgcat->catalog != (nl_catd)(-1))
-			catclose(msgcat->catalog);
+			(void)catclose(msgcat->catalog);
 #endif
 		msgcat->magic = 0;
 		free(msgcat);

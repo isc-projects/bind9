@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.56 2001/01/09 21:40:57 bwelling Exp $ */
+/* $Id: db_test.c,v 1.56.12.1 2003/08/11 05:28:12 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -466,7 +466,7 @@ main(int argc, char *argv[]) {
 	version = NULL;
 
 	if (time_lookups) {
-		(void)isc_time_now(&start);
+		TIME_NOW(&start);
 	}
 
 	while (!done) {
@@ -923,7 +923,7 @@ main(int argc, char *argv[]) {
 	if (time_lookups) {
 		isc_uint64_t usec;
 
-		(void)isc_time_now(&finish);
+		TIME_NOW(&finish);
 
 		usec = isc_time_microdiff(&finish, &start);
 

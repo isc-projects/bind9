@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.22.2.2 2001/11/02 00:20:12 marka Exp $ */
+/* $Id: net.c,v 1.22.2.2.10.1 2003/08/11 05:28:23 marka Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,7 @@ try_proto(int domain) {
 #endif
 #endif
 
-	close(s);
+	(void)close(s);
 
 	return (result);
 }

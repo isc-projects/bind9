@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.17.12.1 2003/08/06 06:26:24 marka Exp $ */
+/* $Id: request.h,v 1.17.12.2 2003/08/11 05:28:19 marka Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
@@ -281,7 +281,7 @@ dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  *	requestp != NULL && *requestp == NULL
  */
 
-isc_result_t
+void
 dns_request_cancel(dns_request_t *request);
 /*
  * Cancel 'request'.

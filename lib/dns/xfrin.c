@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4 2003/07/22 04:03:45 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.1 2003/08/11 05:28:18 marka Exp $ */
 
 #include <config.h>
 
@@ -375,8 +375,11 @@ ixfr_apply(dns_xfrin_ctx_t *xfr) {
 			CHECK(dns_journal_begin_transaction(xfr->ixfr.journal));
 	}
 	CHECK(dns_diff_apply(&xfr->diff, xfr->db, xfr->ver));
-	if (xfr->ixfr.journal != NULL)
-		dns_journal_writediff(xfr->ixfr.journal, &xfr->diff);
+	if (xfr->ixfr.journal != NULL) {
+		result = dns_journal_writediff(xfr->ixfr.journal, &xfr->diff);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
+	}
 	dns_diff_clear(&xfr->diff);
 	xfr->difflen = 0;
 	result = ISC_R_SUCCESS;
@@ -1107,8 +1110,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
 
-	dns_message_settsigkey(msg, xfr->tsigkey);
-	dns_message_setquerytsig(msg, xfr->lasttsig);
+	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
+	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
 	msg->tsigctx = xfr->tsigctx;
 	if (xfr->nmsg > 0)
 		msg->tcp_continuation = 1;
@@ -1132,7 +1135,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
 		xfr->state = XFRST_SOAQUERY;
-		xfrin_start(xfr);
+		(void)xfrin_start(xfr);
 		return;
 	}
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10 2003/07/22 04:03:41 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.1 2003/08/11 05:28:15 marka Exp $ */
 
 /***
  *** Imports
@@ -1394,7 +1394,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			ISC_LIST_INIT(rdatalist->rdata);
 
 			dns_rdataset_init(rdataset);
-			dns_rdatalist_tordataset(rdatalist, rdataset);
+			RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist,
+							       rdataset)
+				      == ISC_R_SUCCESS);
 
 			if (rdtype != dns_rdatatype_opt && 
 			    rdtype != dns_rdatatype_tsig &&

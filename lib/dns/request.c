@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.64.2.1.10.1 2003/08/06 06:26:24 marka Exp $ */
+/* $Id: request.c,v 1.64.2.1.10.2 2003/08/11 05:28:16 marka Exp $ */
 
 #include <config.h>
 
@@ -885,8 +885,11 @@ dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto cleanup;
 
 	message->id = id;
-	if (setkey)
-		dns_message_settsigkey(message, request->tsigkey);
+	if (setkey) {
+		result = dns_message_settsigkey(message, request->tsigkey);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
 	result = req_render(message, &request->query, options, mctx);
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
@@ -1078,7 +1081,7 @@ do_cancel(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&request->requestmgr->locks[request->hash]);	
 }
 
-isc_result_t
+void
 dns_request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 
@@ -1093,7 +1096,6 @@ dns_request_cancel(dns_request_t *request) {
 		request->canceling = ISC_TRUE;
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -1108,8 +1110,12 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 	req_log(ISC_LOG_DEBUG(3), "dns_request_getresponse: request %p",
 		request);
 
-	dns_message_setquerytsig(message, request->tsig);
-	dns_message_settsigkey(message, request->tsigkey);
+	result = dns_message_setquerytsig(message, request->tsig);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = dns_message_settsigkey(message, request->tsigkey);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	result = dns_message_parse(message, request->answer, options);
 	if (result != ISC_R_SUCCESS)
 		return (result);

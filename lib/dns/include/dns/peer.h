@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.16.2.1 2001/11/13 18:57:12 gson Exp $ */
+/* $Id: peer.h,v 1.16.2.1.10.1 2003/08/11 05:28:19 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -114,10 +114,10 @@ dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval);
 isc_result_t
 dns_peer_new(isc_mem_t *mem, isc_netaddr_t *ipaddr, dns_peer_t **peer);
 
-isc_result_t
+void
 dns_peer_attach(dns_peer_t *source, dns_peer_t **target);
 
-isc_result_t
+void
 dns_peer_detach(dns_peer_t **list);
 
 isc_result_t

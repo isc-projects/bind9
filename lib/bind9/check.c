@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.3 2003/08/07 06:33:30 marka Exp $ */
+/* $Id: check.c,v 1.37.6.4 2003/08/11 05:28:14 marka Exp $ */
 
 #include <config.h>
 
@@ -335,7 +335,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	 */
 	if (ztype == MASTERZONE || ztype == SLAVEZONE || ztype == STUBZONE) {
 		cfg_obj_t *dialup = NULL;
-		cfg_map_get(zoptions, "dialup", &dialup);
+		(void)cfg_map_get(zoptions, "dialup", &dialup);
 		if (dialup != NULL && cfg_obj_isstring(dialup)) {
 			char *str = cfg_obj_asstring(dialup);
 			for (i = 0;
@@ -386,8 +386,8 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 	cfg_obj_t *secretobj = NULL;
 	const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
 	
-	cfg_map_get(key, "algorithm", &algobj);
-	cfg_map_get(key, "secret", &secretobj);
+	(void)cfg_map_get(key, "algorithm", &algobj);
+	(void)cfg_map_get(key, "secret", &secretobj);
 	if (secretobj == NULL || algobj == NULL) {
 		cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 			    "key '%s' must have both 'secret' and "
@@ -518,7 +518,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
-	cfg_map_get(config, "key", &keys);
+	(void)cfg_map_get(config, "key", &keys);
 	tresult = check_keylist(keys, symtab, logctx);
 	if (tresult == ISC_R_EXISTS)
 		result = ISC_R_FAILURE;
@@ -546,7 +546,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 	 */
 	if (vconfig == NULL) {
 		cfg_obj_t *options = NULL;
-		cfg_map_get(config, "options", &options);
+		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			if (check_forward(options, logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;

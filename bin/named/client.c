@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.1 2003/08/06 04:30:53 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.2 2003/08/11 05:28:08 marka Exp $ */
 
 #include <config.h>
 
@@ -1033,7 +1033,8 @@ client_addopt(ns_client_t *client) {
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
+		      == ISC_R_SUCCESS);
 
 	client->opt = rdataset;
 

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.25 2001/06/04 19:33:00 tale Exp $
+ * $Id: dbtable.c,v 1.25.12.1 2003/08/11 05:28:14 marka Exp $
  */
 
 /*
@@ -216,7 +216,7 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 	if (result == ISC_R_SUCCESS) {
 		INSIST(stored_data == db);
 
-		dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
+		(void)dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
 	}
 
 	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);

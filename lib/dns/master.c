@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.1 2003/08/04 06:53:22 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.2 2003/08/11 05:28:15 marka Exp $ */
 
 #include <config.h>
 
@@ -719,7 +719,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		result = dns_rdata_fromtext(&rdata, lctx->zclass, type,
 					    lctx->lex, ictx->origin, ISC_FALSE,
 					    lctx->mctx, &target, callbacks);
-		isc_lex_close(lctx->lex);
+		RUNTIME_CHECK(isc_lex_close(lctx->lex) == ISC_R_SUCCESS);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
 
@@ -861,7 +861,7 @@ load(dns_loadctx_t *lctx) {
 				lctx->inc = ictx->parent;
 				ictx->parent = NULL;
 				incctx_destroy(lctx->mctx, ictx);
-				isc_lex_close(lctx->lex);
+				RUNTIME_CHECK(isc_lex_close(lctx->lex) == ISC_R_SUCCESS);
 				line = isc_lex_getsourceline(lctx->lex);
 				source = isc_lex_getsourcename(lctx->lex);
 				ictx = lctx->inc;
@@ -2007,7 +2007,8 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 		return (ISC_R_SUCCESS);
 	do {
 		dns_rdataset_init(&dataset);
-		dns_rdatalist_tordataset(this, &dataset);
+		RUNTIME_CHECK(dns_rdatalist_tordataset(this, &dataset)
+			      == ISC_R_SUCCESS);
 		dataset.trust = dns_trust_ultimate;
 		result = ((*callbacks->add)(callbacks->add_private, owner,
 					    &dataset));

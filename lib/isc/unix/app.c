@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.43.2.3 2002/08/05 06:57:16 marka Exp $ */
+/* $Id: app.c,v 1.43.2.3.8.1 2003/08/11 05:28:22 marka Exp $ */
 
 #include <config.h>
 
@@ -317,7 +317,7 @@ evloop() {
 			else {
 				isc_uint64_t us;
 
-				(void)isc_time_now(&now);
+				TIME_NOW(&now);
 				us = isc_time_microdiff(&when, &now);
 				tv.tv_sec = us / 1000000;
 				tv.tv_usec = us % 1000000;
@@ -328,7 +328,7 @@ evloop() {
 		isc__socketmgr_getfdsets(&readfds, &writefds, &maxfd);
 		n = select(maxfd, &readfds, &writefds, NULL, tvp);
 
-		(void)isc__timermgr_dispatch();
+		isc__timermgr_dispatch();
 		if (n > 0)
 			(void)isc__socketmgr_dispatch(&readfds, &writefds,
 						      maxfd);

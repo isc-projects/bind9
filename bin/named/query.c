@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.1 2003/08/07 05:13:59 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.2 2003/08/11 05:28:09 marka Exp $ */
 
 #include <config.h>
 
@@ -1405,7 +1405,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 	if (a6rdataset != NULL) {
 		dns_a6_reset(&client->query.a6ctx);
-		dns_a6_foreach(&client->query.a6ctx, a6rdataset, client->now);
+		(void)dns_a6_foreach(&client->query.a6ctx, a6rdataset, client->now);
 	}
 
  cleanup:
@@ -1690,7 +1690,9 @@ query_addsoa(ns_client_t *client, dns_db_t *db, isc_boolean_t zero_ttl) {
 		result = dns_rdataset_first(rdataset);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &soa, NULL);
+		result = dns_rdata_tostruct(&rdata, &soa, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 
 		if (zero_ttl) {
 			rdataset->ttl = 0;
@@ -1858,7 +1860,8 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
+		      == ISC_R_SUCCESS);
 
 	query_addrrset(client, anamep, &rdataset, NULL, NULL,
 		       DNS_SECTION_ANSWER);
@@ -3061,8 +3064,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 * since the synthesized CNAME is NOT in the zone.
 		 */
 		dns_name_init(tname, NULL);
-		query_addcnamelike(client, client->query.qname, fname,
-				   0, &tname, dns_rdatatype_cname);
+		(void)query_addcnamelike(client, client->query.qname, fname,
+					 0, &tname, dns_rdatatype_cname);
 		if (tname != NULL)
 			dns_message_puttempname(client->message, &tname);
 		/*
@@ -3204,7 +3207,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			       qtype == dns_rdatatype_any) &&
 			      dns_name_equal(client->query.qname,
 					     dns_db_origin(db))))
-				query_addns(client, db);
+				(void)query_addns(client, db);
 		} else if (qtype != dns_rdatatype_ns) {
 			if (fname != NULL)
 				query_releasename(client, &fname);
@@ -3544,7 +3547,7 @@ synth_fwd_startfind(ns_client_t *client) {
 		ptarget = query_newname(client, dbuf, &b);
 		if (ptarget == NULL)
 			goto fail;
-		dns_name_copy(target, ptarget, NULL);
+		RUNTIME_CHECK(dns_name_copy(target, ptarget, NULL) == ISC_R_SUCCESS);
 		
 		dns_adb_destroyfind(&find);
 
@@ -3685,7 +3688,8 @@ synth_fwd_respond(ns_client_t *client, dns_adbfind_t *find) {
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	}
 
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
+		      == ISC_R_SUCCESS);
 
 	query_addrrset(client, &tname, &rdataset, NULL, NULL,
 		       DNS_SECTION_ANSWER);

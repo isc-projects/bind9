@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer_test.c,v 1.36 2001/01/09 21:41:45 bwelling Exp $ */
+/* $Id: timer_test.c,v 1.36.12.1 2003/08/11 05:28:12 marka Exp $ */
 
 #include <config.h>
 
@@ -130,7 +130,7 @@ main(int argc, char *argv[]) {
 	printf("task 2: %p\n", t2);
 	printf("task 3: %p\n", t3);
 
-	(void)isc_time_now(&now);
+	TIME_NOW(&now);
 
 	isc_interval_set(&interval, 2, 0);
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, NULL,

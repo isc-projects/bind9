@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.5 2003/08/06 07:03:08 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.6 2003/08/11 05:28:18 marka Exp $ */
 
 #include <config.h>
 
@@ -590,8 +590,10 @@ zone_free(dns_zone_t *zone) {
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	zone_freedbargs(zone);
-	dns_zone_setmasterswithkeys(zone, NULL, NULL, 0);
-	dns_zone_setalsonotify(zone, NULL, 0);
+	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL, NULL, 0)
+		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, 0)
+		      == ISC_R_SUCCESS);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
@@ -893,7 +895,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	isc_time_now(&now);
+	TIME_NOW(&now);
 
 	INSIST(zone->type != dns_zone_none);
 
@@ -979,9 +981,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	 * zone->loadtime is set, then the file will still be reloaded
 	 * the next time dns_zone_load is called.
 	 */
-	result = isc_time_now(&loadtime);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	TIME_NOW(&loadtime);
 
 	result = dns_db_create(zone->mctx, zone->db_argv[0],
 			       &zone->origin, (zone->type == dns_zone_stub) ?
@@ -1186,7 +1186,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	isc_time_t now;
 	isc_boolean_t needdump = ISC_FALSE;
 
-	isc_time_now(&now);
+	TIME_NOW(&now);
 
 	/*
 	 * Initiate zone transfer?  We may need a error code that
@@ -1947,7 +1947,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	ENTER;
 
 	LOCK_ZONE(zone);
-	isc_time_now(&now);
+	TIME_NOW(&now);
 	zone_settimer(zone, &now);
 	UNLOCK_ZONE(zone);
 }
@@ -1987,7 +1987,7 @@ zone_maintenance(dns_zone_t *zone) {
 	if (zone->view == NULL || zone->view->adb == NULL)
 		return;
 
-	isc_time_now(&now);
+	TIME_NOW(&now);
 
 	/*
 	 * Expire check.
@@ -2210,7 +2210,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 		return;
 
 	isc_interval_set(&i, delay, 0);
-	isc_time_now(&now);
+	TIME_NOW(&now);
 	isc_time_add(&now, &i, &dumptime);
 
 	/* add some noise */
@@ -2749,7 +2749,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 
-	isc_time_now(&now);
+	TIME_NOW(&now);
 	zone_settimer(zone, &now);
 	UNLOCK_ZONE(zone);
 }
@@ -3054,7 +3054,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 	ENTER;
 
-	isc_time_now(&now);
+	TIME_NOW(&now);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		zone_debuglog(zone, me, 1, "exiting");
@@ -3166,7 +3166,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 	if (zone->masterfile != NULL) {
 		dns_zone_dump(zone);
-		(void)isc_time_now(&zone->loadtime);
+		TIME_NOW(&zone->loadtime);
 	}
 
 	dns_message_destroy(&msg);
@@ -3259,7 +3259,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
 	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
 
-	isc_time_now(&now);
+	TIME_NOW(&now);
 
 	if (revent->result != ISC_R_SUCCESS) {
 		if (revent->result == ISC_R_TIMEDOUT &&
@@ -4044,7 +4044,7 @@ cancel_refresh(dns_zone_t *zone) {
 	ENTER;
 
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
-	isc_time_now(&now);
+	TIME_NOW(&now);
 	zone_settimer(zone, &now);
 }
 
@@ -4834,7 +4834,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			 * fails for some reason, all that happens is
 			 * the timestamp is not updated.
 			 */
-			(void)isc_time_now(&zone->loadtime);
+			TIME_NOW(&zone->loadtime);
 		}
 
 		if (dump && zone->journal != NULL) {
@@ -4893,7 +4893,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	INSIST((zone->flags & DNS_ZONEFLG_REFRESH) != 0);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 
-	isc_time_now(&now);
+	TIME_NOW(&now);
 	switch (result) {
 	case ISC_R_SUCCESS:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);

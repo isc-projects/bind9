@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.2 2003/07/22 04:03:42 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.2.2.1 2003/08/11 05:28:16 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2148,10 +2148,9 @@ dns_rbt_indent(int depth) {
 
 static void
 dns_rbt_printnodename(dns_rbtnode_t *node) {
-	isc_buffer_t target;
 	isc_region_t r;
 	dns_name_t name;
-	char buffer[1024];
+	char buffer[DNS_NAME_FORMATSIZE];
 	dns_offsets_t offsets;
 
 	r.length = NAMELEN(node);
@@ -2160,14 +2159,9 @@ dns_rbt_printnodename(dns_rbtnode_t *node) {
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &r);
 
-	isc_buffer_init(&target, buffer, 255);
+	dns_name_format(&name, buffer, sizeof(buffer));
 
-	/*
-	 * ISC_FALSE means absolute names have the final dot added.
-	 */
-	dns_name_totext(&name, ISC_FALSE, &target);
-
-	printf("%.*s", (int)target.used, (char *)target.base);
+	printf("%s", buffer);
 }
 
 static void
