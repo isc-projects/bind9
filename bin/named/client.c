@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.186 2001/10/12 04:01:40 marka Exp $ */
+/* $Id: client.c,v 1.187 2001/10/12 23:54:03 gson Exp $ */
 
 #include <config.h>
 
@@ -150,7 +150,7 @@ struct ns_clientmgr {
 #define NS_CLIENTSTATE_WORKING  4
 /*
  * The client object has received a request and is working
- * on it.  It has a view, and it may  have any of a non-reset OPT,
+ * on it.  It has a view, and it may have any of a non-reset OPT,
  * recursion quota, and an outstanding write request.
  */
 
