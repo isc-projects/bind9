@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_support.c,v 1.1 1999/07/12 20:08:29 bwelling Exp $
+ * $Id: dst_support.c,v 1.2 1999/10/08 22:27:00 tale Exp $
  */
 
 #include <config.h>
@@ -81,7 +81,7 @@ dst_s_id_calc(const unsigned char *key, const int keysize)
 		ac += ((*kp) << 8);
 	ac += (ac >> 16) & 0xffff;
 
-	return (ac & 0xffff);
+	return ((isc_uint16_t)(ac & 0xffff));
 }
 
 /*
