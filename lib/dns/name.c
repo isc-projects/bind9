@@ -91,15 +91,44 @@ static unsigned char maptolower[] = {
 	0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff
 };
 
+#define CONVERTTOASCII(c)
+#define CONVERTFROMASCII(c)
+
 static struct dns_name root = { "", 1, 1 };
 
 dns_name_t dns_rootname = &root;
 
-static unsigned int get_bit(unsigned char *, unsigned int);
-static void set_bit(unsigned char *, unsigned int, unsigned int);
 static void set_offsets(dns_name_t, isc_boolean_t);
 static void compact(dns_name_t);
 
+/*
+ * Yes, get_bit and set_bit are lame.  We define them here so they can
+ * be inlined by smart compilers.
+ */
+
+static unsigned int
+get_bit(unsigned char *array, unsigned int index) {
+	unsigned int byte, shift;
+	
+	byte = array[index / 8];
+	shift = 7 - (index % 8);
+
+	return ((byte >> shift) & 0x01);
+}
+
+static void
+set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
+	unsigned int byte, shift, mask;
+	
+	byte = array[index / 8];
+	shift = 7 - (index % 8);
+	mask = 1 << shift;
+
+	if (bit)
+		array[index / 8] |= mask;
+	else
+		array[index / 8] &= (~mask & 0xFF);
+}
 
 dns_labeltype_t
 dns_label_type(dns_label_t label) {
@@ -571,6 +600,7 @@ dns_name_fromtext(dns_name_t name, isc_region_t source,
 				if (count >= 63)
 					return (DNS_R_LABELTOOLONG);
 				count++;
+				CONVERTTOASCII(c);
 				if (downcase)
 					c = maptolower[(int)c];
 				*ndata++ = c;
@@ -596,6 +626,7 @@ dns_name_fromtext(dns_name_t name, isc_region_t source,
 				if (count >= 63)
 					return (DNS_R_LABELTOOLONG);
 				count++;
+				CONVERTTOASCII(c);
 				if (downcase)
 					c = maptolower[(int)c];
 				*ndata++ = c;
@@ -882,6 +913,7 @@ dns_name_fromtext(dns_name_t name, isc_region_t source,
 			labels += origin->labels;
 			while (n1 > 0) {
 				c = *label++;
+				/* 'origin' is already ASCII. */
 				if (downcase)
 					c = maptolower[(int)c];
 				*ndata++ = c;
@@ -1059,32 +1091,6 @@ dns_name_totext(dns_name_t name, isc_boolean_t omit_final_dot,
 	*bytesp = tlen - trem;
 
 	return (DNS_R_SUCCESS);
-}
-
-/* Yes, get_bit and set_bit are lame. */
-
-static unsigned int
-get_bit(unsigned char *array, unsigned int index) {
-	unsigned int byte, shift;
-	
-	byte = array[index / 8];
-	shift = 7 - (index % 8);
-
-	return ((byte >> shift) & 0x01);
-}
-
-static void
-set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
-	unsigned int byte, shift, mask;
-	
-	byte = array[index / 8];
-	shift = 7 - (index % 8);
-	mask = 1 << shift;
-
-	if (bit)
-		array[index / 8] |= mask;
-	else
-		array[index / 8] &= (~mask & 0xFF);
 }
 
 static void
