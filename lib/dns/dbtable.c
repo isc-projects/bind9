@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.10 1999/10/09 02:49:16 halley Exp $
+ * $Id: dbtable.c,v 1.11 1999/12/16 22:24:17 explorer Exp $
  */
 
 /*
@@ -27,7 +27,7 @@
 
 #include <isc/assertions.h>
 #include <isc/rwlock.h>
-#include "../isc/util.h"
+#include <isc/util.h>
 
 #include <dns/dbtable.h>
 #include <dns/db.h>

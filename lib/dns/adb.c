@@ -44,6 +44,7 @@
 #include <isc/mutexblock.h>
 #include <isc/random.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dns/a6.h>
 #include <dns/adb.h>
@@ -57,8 +58,6 @@
 #include <dns/resolver.h>
 #include <dns/types.h>
 #include <dns/view.h>
-
-#include "../isc/util.h"
 
 #define DNS_ADB_MAGIC		  0x44616462	/* Dadb. */
 #define DNS_ADB_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)

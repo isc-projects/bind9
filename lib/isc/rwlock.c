@@ -23,8 +23,7 @@
 #include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/rwlock.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 #define RWLOCK_MAGIC			0x52574C6BU	/* RWLk. */
 #define VALID_RWLOCK(rwl)		((rwl) != NULL && \

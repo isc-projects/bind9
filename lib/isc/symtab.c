@@ -24,8 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/list.h>
 #include <isc/symtab.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 typedef struct elt {
 	char *				key;

@@ -29,6 +29,7 @@
 #include <isc/error.h>
 #include <isc/mutex.h>
 #include <isc/rwlock.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
@@ -48,9 +49,6 @@
 #else
 #include "rbtdb.h"
 #endif
-
-/* Lame.  Move util.h to <isc/util.h> */
-#include "../isc/util.h"
 
 #ifdef DNS_RBTDB_VERSION64
 #define RBTDB_MAGIC			0x52424438U	/* RBD8. */

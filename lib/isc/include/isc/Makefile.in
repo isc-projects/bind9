@@ -19,6 +19,10 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
+#
+# Only list headers that are to be installed!  Things like util.h, which
+# consists purely of private helper macros, should not be here.
+#
 HEADERS =	assertions.h base64.h boolean.h buffer.h bufferlist.h \
 		commandline.h error.h event.h eventclass.h \
 		heap.h int.h interfaceiter.h lang.h lex.h lfsr.h lib.h \

@@ -23,6 +23,7 @@
 #include <isc/result.h>
 #include <isc/task.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dns/aml.h>
 #include <dns/dispatch.h>
@@ -40,8 +41,6 @@
 #include <named/query.h>
 #include <named/update.h>
 #include <named/notify.h>
-
-#include "../../isc/util.h"		/* XXX */
 
 #define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE

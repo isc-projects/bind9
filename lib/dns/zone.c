@@ -15,13 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.46 1999/12/16 01:23:15 marka Exp $ */
+ /* $Id: zone.c,v 1.47 1999/12/16 22:24:19 explorer Exp $ */
 
 #include <config.h>
 
 #include <string.h>
 
-#include <../isc/util.h> /* XXX MPA */
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/magic.h>
@@ -30,6 +29,7 @@
 #include <isc/serial.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dns/confparser.h>
 #include <dns/db.h>

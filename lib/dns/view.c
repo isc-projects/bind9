@@ -24,6 +24,7 @@
 #include <isc/mem.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/adb.h>
@@ -36,8 +37,6 @@
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
-
-#include "../isc/util.h"		/* XXXRTH */
 
 #define RESSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_RESSHUTDOWN) != 0)
 #define ADBSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_ADBSHUTDOWN) != 0)

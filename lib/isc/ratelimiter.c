@@ -21,8 +21,7 @@
 #include <isc/boolean.h>
 #include <isc/error.h>
 #include <isc/ratelimiter.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 struct isc_ratelimiter {
 	isc_mem_t *		mctx;

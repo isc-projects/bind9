@@ -24,8 +24,7 @@
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/random.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mutex_t rand_lock;

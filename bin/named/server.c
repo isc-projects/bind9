@@ -34,6 +34,7 @@
 #include <isc/timer.h>
 #include <isc/app.h>
 #include <isc/dir.h>
+#include <isc/util.h>
 
 #include <dns/cache.h>
 #include <dns/confparser.h>
@@ -61,8 +62,6 @@
 #include <named/log.h>
 #include <named/rootns.h>
 #include <named/server.h>
-
-#include "../../isc/util.h"		/* XXXRTH */
 
 typedef struct {
 	isc_mem_t *		mctx;

@@ -33,8 +33,7 @@
 #include <isc/boolean.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
-
-#include "../util.h"	/* XXX */
+#include <isc/util.h>
 
 static isc_eventlist_t		on_run;
 static isc_mutex_t		lock;

@@ -28,8 +28,7 @@
 #include <isc/once.h>
 #include <isc/msgcat.h>
 #include <isc/lib.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 typedef struct resulttable {
 	unsigned int				base;

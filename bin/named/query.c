@@ -26,6 +26,7 @@
 #include <isc/timer.h>
 #include <isc/event.h>
 #include <isc/log.h>
+#include <isc/util.h>
 
 #include <dns/a6.h>
 #include <dns/aml.h>
@@ -51,8 +52,6 @@
 #include <named/query.h>
 #include <named/xfrout.h>
 #include <named/log.h>
-
-#include "../../isc/util.h"		/* XXX */
 
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)

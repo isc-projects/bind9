@@ -26,6 +26,7 @@
 #include <isc/event.h>
 #include <isc/task.h>
 #include <isc/stdtime.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/adb.h>
@@ -43,10 +44,7 @@
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/log.h>
-
 #include <dst/dst.h>
-
-#include "../isc/util.h"		/* XXX */
 
 #define DNS_RESOLVER_TRACE
 #ifdef DNS_RESOLVER_TRACE

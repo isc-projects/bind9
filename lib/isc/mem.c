@@ -30,7 +30,7 @@
 
 #ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>
-#include "util.h"
+#include <isc/util.h>
 #else
 #define LOCK(l)
 #define UNLOCK(l)

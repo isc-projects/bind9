@@ -39,8 +39,7 @@
 #include <isc/region.h>
 #include <isc/socket.h>
 #include <isc/thread.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 /*
  * Some systems define the socket length argument as an int, some as size_t,

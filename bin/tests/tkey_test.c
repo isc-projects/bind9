@@ -36,8 +36,7 @@
 #include <isc/net.h>
 #include <isc/socket.h>
 #include <isc/log.h>
-
-#include "../../isc/util.h"		/* XXX Naughty. */
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/result.h>

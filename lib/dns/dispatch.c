@@ -28,6 +28,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/socket.h>
+#include <isc/util.h>
 
 #include <dns/events.h>
 #include <dns/types.h>
@@ -35,8 +36,6 @@
 #include <dns/dispatch.h>
 #include <dns/message.h>
 #include <dns/tcpmsg.h>
-
-#include "../isc/util.h"
 
 #ifdef DISPATCH_DEBUG
 #define XDEBUG(x) printf x

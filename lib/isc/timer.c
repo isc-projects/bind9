@@ -27,8 +27,7 @@
 #include <isc/condition.h>
 #include <isc/heap.h>
 #include <isc/timer.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s)			printf("%s\n", (s))

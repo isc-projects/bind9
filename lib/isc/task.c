@@ -34,8 +34,7 @@
 #include <isc/error.h>
 #include <isc/event.h>
 #include <isc/task.h>
-
-#include "util.h"
+#include <isc/util.h>
 
 #ifdef ISC_TASK_TRACE
 #define XTRACE(m)		printf("task %p thread %lu: %s\n", \

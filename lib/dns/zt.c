@@ -21,10 +21,9 @@
 #include <isc/magic.h>
 #include <isc/rwlock.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/zt.h>
-
-#include "../isc/util.h"	/* XXXRTH */
 
 struct dns_zt {
 	/* Unlocked. */

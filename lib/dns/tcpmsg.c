@@ -27,13 +27,12 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
+#include <isc/util.h>
 
 #include <dns/events.h>
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/tcpmsg.h>
-
-#include "../isc/util.h"
 
 #ifdef TCPMSG_DEBUG
 #define XDEBUG(x) printf x
