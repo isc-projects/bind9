@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.19 1999/10/14 18:35:25 bwelling Exp $
+ * $Id: tsig.c,v 1.20 1999/10/19 15:34:39 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -141,6 +141,14 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	tkey->creator = creator;
 	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
+        ret = isc_mutex_init(&tkey->lock);
+        if (ret != ISC_R_SUCCESS) {
+                UNEXPECTED_ERROR(__FILE__, __LINE__,
+                                 "isc_mutex_init() failed: %s",
+                                 isc_result_totext(ret));
+                return (DNS_R_UNEXPECTED);
+        }
+	
 	tkey->magic = TSIG_MAGIC;
 	return (ISC_R_SUCCESS);
 
@@ -163,9 +171,13 @@ dns_tsigkey_free(dns_tsigkey_t **key) {
 	tkey = *key;
 	*key = NULL;
 
+	isc_mutex_lock(&tkey->lock);
 	tkey->refs--;
-	if (tkey->refs > 0 || !tkey->deleted)
+	if (tkey->refs > 0 || !tkey->deleted) {
+		isc_mutex_unlock(&tkey->lock);
 		return;
+	}
+	isc_mutex_unlock(&tkey->lock);
 	tkey->magic = 0;
 	if (tkey->key != NULL) {
 		isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
@@ -184,7 +196,9 @@ dns_tsigkey_free(dns_tsigkey_t **key) {
 void
 dns_tsigkey_setdeleted(dns_tsigkey_t *key) {
 	INSIST(VALID_TSIG_KEY(key));
+	isc_mutex_lock(&key->lock);
 	key->deleted = ISC_TRUE;
+	isc_mutex_unlock(&key->lock);
 }
 
 isc_result_t
@@ -893,7 +907,9 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		     dns_name_equal(&key->algorithm, algorithm)) &&
 		    !key->deleted)
 		{
+			isc_mutex_lock(&key->lock);
 			key->refs++;
+			isc_mutex_unlock(&key->lock);
 			*tsigkey = key;
 			isc_rwlock_unlock(&tsiglock, isc_rwlocktype_read);
 			return (ISC_R_SUCCESS);

@@ -37,14 +37,18 @@ extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_FUDGE			300
 
 struct dns_tsigkey {
+	/* Unlocked */
 	unsigned int		magic;		/* Magic number. */
 	isc_mem_t		*mctx;
 	dst_key_t		*key;		/* Key */
 	dns_name_t		name;		/* Key name */
 	dns_name_t		algorithm;	/* Algorithm name */
-	isc_uint32_t		refs;		/* reference counter */
 	dst_key_t		*creator;	/* key that created secret */
+	isc_mutex_t		lock;
+	/* Locked */
 	isc_boolean_t		deleted;	/* has this been deleted? */
+	isc_uint32_t		refs;		/* reference counter */
+	/* Unlocked */
 	ISC_LINK(dns_tsigkey_t)	link;
 };
 
