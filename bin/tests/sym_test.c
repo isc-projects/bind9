@@ -108,10 +108,13 @@ main(int argc, char *argv[]) {
 				value.as_pointer = mem_strdup(mctx, cp);
 				result = isc_symtab_define(st, key, 1, value,
 							   exists_policy);
-				if (trace || result != ISC_R_SUCCESS)
+				if (trace || result != ISC_R_SUCCESS) {
 					printf("define('%s', '%s'): %s\n",
 					       key, cp,
 					       isc_result_totext(result));
+					if (result != ISC_R_SUCCESS)
+						undefine_action(key, 1, value);
+				}
 			}
 		}
 	}
