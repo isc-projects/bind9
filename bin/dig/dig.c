@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.97 2000/09/21 23:47:36 marka Exp $ */
+/* $Id: dig.c,v 1.98 2000/09/22 17:36:02 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -135,7 +135,7 @@ show_usage(void) {
 "        {global-d-opt} host [@local-server] {local-d-opt}\n"
 "        [ host [@local-server] {local-d-opt} [...]]\n"
 "Where:  domain	  are in the Domain Name System\n"
-"        q-class  is one of (in,chaos,...) [default: in]\n"
+"        q-class  is one of (in,hs,ch,...) [default: in]\n"
 "        q-type   is one of (a,any,mx,ns,soa,hinfo,axfr,txt,...) [default:a]\n"
 "                 (Use ixfr=version for type ixfr)\n"
 "        q-opt    is one of:\n"
