@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.5 2001/06/21 08:26:00 marka Exp $
+ *	$Id: netdb.h,v 1.6 2001/07/16 05:16:33 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -437,11 +437,20 @@ void		endservent_r __P((struct servent_data *));
 #endif
 #else
  /* defined(sun) || defined(bsdi) */
+#ifdef __GLIBC__
+struct hostent	*gethostbyaddr_r __P((const char *, int, int, struct hostent *,
+				      char *, int, struct hostent **, int *));
+struct hostent	*gethostbyname_r __P((const char *, struct hostent *,
+				      char *, int, struct hostent **, int *));
+struct hostent	*gethostent_r __P((struct hostent *, char *, int,
+				    struct hostent **, int *));
+#else
 struct hostent	*gethostbyaddr_r __P((const char *, int, int, struct hostent *,
 					char *, int, int *));
 struct hostent	*gethostbyname_r __P((const char *, struct hostent *,
 					char *, int, int *));
 struct hostent	*gethostent_r __P((struct hostent *, char *, int, int *));
+#endif
 void		sethostent_r __P((int));
 void		endhostent_r __P((void));
 
