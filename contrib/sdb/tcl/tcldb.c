@@ -15,7 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.5 2000/11/20 18:24:41 gson Exp $ */
+/* $Id: tcldb.c,v 1.6 2000/12/10 07:47:43 gson Exp $ */
+
+/*
+ * A simple database driver that calls a Tcl procedure to define
+ * the contents of the DNS namespace.  The procedure is loaded
+ * from the file lookup.tcl; look at the comments there for
+ * more information.
+ */
 
 #include <config.h>
 
@@ -37,11 +44,6 @@
 #include <tcl.h>
 
 #include <tcldb.h>
-
-/*
- * A simple database driver that calls Tcl procedures to define
- * the contents of the DNS namespace.
- */
 
 #define CHECK(op)						\
 	do { result = (op);					\
