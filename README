@@ -149,6 +149,7 @@ Building
 
 		AIX 4.3
 		COMPAQ Tru64 UNIX 4.0D
+		FreeBSD 3.4-STABLE
 		HP-UX 11
 		IRIX64 6.5
 		NetBSD current (with "unproven" pthreads)
