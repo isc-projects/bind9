@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.396 2003/02/26 03:45:58 marka Exp $ */
+/* $Id: server.c,v 1.397 2003/02/26 05:05:14 marka Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,7 @@
 #include <dns/master.h>
 #include <dns/order.h>
 #include <dns/peer.h>
+#include <dns/portlist.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
@@ -1749,6 +1750,26 @@ set_limits(cfg_obj_t **maps) {
 }
 
 static isc_result_t
+portlist_fromconf(dns_portlist_t *portlist, unsigned int family,
+		  cfg_obj_t *ports)
+{
+	cfg_listelt_t *element;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	for (element = cfg_list_first(ports);
+	     element != NULL;
+	     element = cfg_list_next(element)) {
+		cfg_obj_t *obj = cfg_listelt_value(element);
+		in_port_t port = cfg_obj_asuint32(obj);
+		
+		result = dns_portlist_add(portlist, family, port);
+		if (result != ISC_R_SUCCESS)
+			break;
+	}
+	return (result);
+}
+
+static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
 {
@@ -1758,6 +1779,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	cfg_obj_t *options;
 	cfg_obj_t *views;
 	cfg_obj_t *obj;
+	cfg_obj_t *v4ports, *v6ports;
 	cfg_obj_t *maps[3];
 	cfg_obj_t *builtin_views;
 	cfg_listelt_t *element;
@@ -1870,6 +1892,25 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ns_config_get(maps, "match-mapped-addresses", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	server->aclenv.match_mapped = cfg_obj_asboolean(obj);
+
+	v4ports = NULL;
+	v6ports = NULL;
+	(void)ns_config_get(maps, "avoid-v4-udp-ports", &v4ports);
+	(void)ns_config_get(maps, "avoid-v6-udp-ports", &v6ports);
+	if (v4ports != NULL || v6ports != NULL) {
+		dns_portlist_t *portlist = NULL;
+		result = dns_portlist_create(ns_g_mctx, &portlist);
+		if (result == ISC_R_SUCCESS && v4ports != NULL)
+			result = portlist_fromconf(portlist, AF_INET, v4ports);
+		if (result == ISC_R_SUCCESS && v6ports != NULL)
+			portlist_fromconf(portlist, AF_INET6, v6ports);
+		if (result == ISC_R_SUCCESS)
+			dns_dispatchmgr_setblackportlist(ns_g_dispatchmgr, portlist);
+		if (portlist != NULL)
+			dns_portlist_detach(&portlist);
+		CHECK(result);
+	} else
+		dns_dispatchmgr_setblackportlist(ns_g_dispatchmgr, NULL);
 
 	/*
 	 * Set the EDNS UDP size when we don't match a view.

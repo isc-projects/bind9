@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.46 2002/09/04 02:26:13 jinmei Exp $ */
+/* $Id: dispatch.h,v 1.47 2003/02/26 05:05:15 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -178,6 +178,28 @@ dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
  * Returns:
  *	A pointer to the current blackhole list, or NULL.
  */
+
+void
+dns_dispatchmgr_setblackportlist(dns_dispatchmgr_t *mgr,
+                                 dns_portlist_t *portlist);
+/*
+ * Sets a list of UDP ports that won't be used when creating a udp
+ * dispatch with a wildcard port.
+ *
+ * Requires:
+ *	mgr is a valid dispatchmgr
+ *	portlist to be NULL or a valid port list.
+ */
+
+dns_portlist_t *
+dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr);
+/*
+ * Return the current port list.
+ *
+ * Requires:
+ *	mgr is a valid dispatchmgr
+ */
+
 
 
 isc_result_t

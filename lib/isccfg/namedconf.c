@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.16 2003/02/26 02:04:00 marka Exp $ */
+/* $Id: namedconf.c,v 1.17 2003/02/26 05:05:16 marka Exp $ */
 
 #include <config.h>
 
@@ -489,6 +489,35 @@ static cfg_type_t cfg_type_serverid = {
 	"serverid", parse_serverid, NULL, doc_serverid, NULL, NULL };
 
 /*
+ * Port list.
+ */
+static isc_result_t
+parse_port(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	
+	UNUSED(type);
+
+	CHECK(cfg_parse_uint32(pctx, NULL, ret));
+	if ((*ret)->value.uint32 > 0xffff) {
+		cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid port");
+		cfg_obj_destroy(pctx, ret);
+		result = ISC_R_RANGE;
+	}
+ cleanup:
+	return (result);
+}
+
+static cfg_type_t cfg_type_port = {
+	"port", parse_port, NULL, cfg_doc_terminal,
+	NULL, NULL
+};
+
+static cfg_type_t cfg_type_bracketed_portlist = {
+	"bracketed_sockaddrlist", cfg_parse_bracketed_list, cfg_print_bracketed_list, cfg_doc_bracketed_list,
+	&cfg_rep_list, &cfg_type_port
+};
+
+/*
  * Clauses that can be found within the top level of the named.conf
  * file only.
  */
@@ -521,6 +550,8 @@ namedconf_or_view_clauses[] = {
  */
 static cfg_clausedef_t
 options_clauses[] = {
+	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
+	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "coresize", &cfg_type_size, 0 },
 	{ "datasize", &cfg_type_size, 0 },

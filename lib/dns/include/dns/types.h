@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.107 2002/11/27 09:52:56 marka Exp $ */
+/* $Id: types.h,v 1.108 2003/02/26 05:05:15 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -78,6 +78,7 @@ typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_order			dns_order_t;
 typedef struct dns_peer				dns_peer_t;
 typedef struct dns_peerlist			dns_peerlist_t;
+typedef struct dns_portlist			dns_portlist_t;
 typedef struct dns_rbt				dns_rbt_t;
 typedef isc_uint16_t				dns_rcode_t;
 typedef struct dns_rdata			dns_rdata_t;

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.215 2003/02/26 02:03:58 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.216 2003/02/26 05:05:14 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2727,6 +2727,8 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> avoid-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
+    <optional> avoid-v6-udp-ports { <replaceable>port_list</replaceable> }; </optional>
     <optional> listen-on <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> listen-on-v6 <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> query-source <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
@@ -3447,6 +3449,7 @@ and on port 1234 of IPv6 addresses that is not in the prefix
 </programlisting>
 <para>If no <command>listen-on-v6</command> statement is specified,
 the server will not listen on any IPv6 address.</para></sect3>
+
 <sect3><title>Query Address</title>
 <para>If the server doesn't know the answer to a question, it will
 query other name servers. <command>query-source</command> specifies
@@ -3455,7 +3458,9 @@ IPv6, there is a separate <command>query-source-v6</command> option.
  If <command>address</command> is <command>*</command> or is omitted,
 a wildcard IP address (<command>INADDR_ANY</command>) will be used.
 If <command>port</command> is <command>*</command> or is omitted,
-a random unprivileged port will be used. The defaults are</para>
+a random unprivileged port will be used, <command>avoid-v4-udp-ports</command>
+and <command>avoid-v6-udp-ports</command> can be used to prevent named
+from selecting certian ports. The defaults are</para>
 <programlisting>query-source address * port *;
 query-source-v6 address * port *;
 </programlisting>
@@ -3463,7 +3468,8 @@ query-source-v6 address * port *;
 <para>The address specified in the <command>query-source</command> option
 is used for both UDP and TCP queries, but the port applies only to 
 UDP queries.  TCP queries always use a random
-unprivileged port.</para></note></sect3>
+unprivileged port.</para></note>
+</sect3>
 
 <sect3 id="zone_transfers"><title>Zone Transfers</title>
 <para><acronym>BIND</acronym> has mechanisms in place to facilitate zone transfers
@@ -3617,6 +3623,18 @@ but applies to notify messages sent to IPv6 addresses.</para>
 
 </variablelist>
 
+</sect3>
+
+<sect3>
+<title>Bad UDP Port Lists</title>
+<para>
+<command>avoid-v4-udp-ports</command> and <command>avoid-v6-udp-ports</command>
+specify a list of IPv4 and IPv6 UDP ports that will not be used as system
+assigned source ports for UDP sockets.  These lists are expected to be
+used to prevent named using "well known" ports in the system assigned range
+that have become unusable due to wide spread use of acls containing these
+ports.
+</para>
 </sect3>
 
 <sect3>
