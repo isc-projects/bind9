@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.58 2001/05/09 18:51:44 bwelling Exp $ */
+/* $Id: wire_test.c,v 1.59 2001/05/09 18:56:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -61,6 +61,7 @@ usage(void) {
 	fprintf(stderr, "\t-b\tBest-effort parsing (ignore some errors)\n");
 	fprintf(stderr, "\t-s\tPrint memory statistics\n");
 	fprintf(stderr, "\t-r\tAfter parsing, re-render the message\n");
+	fprintf(stderr, "\t-t\tTCP mode - ignore the first 2 bytes\n");
 }
 
 int
@@ -81,12 +82,13 @@ main(int argc, char *argv[]) {
 	int parseflags = 0;
 	isc_boolean_t printmemstats = ISC_FALSE;
 	isc_boolean_t dorender = ISC_FALSE;
+	isc_boolean_t tcp = ISC_FALSE;
 	int ch;
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	while ((ch = isc_commandline_parse(argc, argv, "pbsr")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "pbsrt")) != -1) {
 		switch (ch) {
 			case 'p':
 				parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
@@ -99,6 +101,9 @@ main(int argc, char *argv[]) {
 				break;
 			case 'r':
 				dorender = ISC_TRUE;
+				break;
+			case 't':
+				tcp = ISC_TRUE;
 				break;
 			default:
 				usage();
@@ -158,6 +163,9 @@ main(int argc, char *argv[]) {
 
 	isc_buffer_init(&source, b, sizeof(b));
 	isc_buffer_add(&source, bp - b);
+
+	if (tcp)
+		isc_buffer_getuint16(&source);
 
 	message = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
