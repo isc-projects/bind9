@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.70 2000/09/19 06:59:28 marka Exp $ */
+/* $Id: dispatch.c,v 1.71 2000/09/26 22:09:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1451,6 +1451,7 @@ dispatch_free(dns_dispatch_t **dispp)
 	if (disp->qid != NULL)
 		qid_destroy(mgr->mctx, &disp->qid);
 	disp->mgr = NULL;
+	DESTROYLOCK(&disp->lock);
 	disp->magic = 0;
 	isc_mempool_put(mgr->dpool, disp);
 }

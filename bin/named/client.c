@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.115 2000/09/22 00:13:03 gson Exp $ */
+/* $Id: client.c,v 1.116 2000/09/26 22:09:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1595,6 +1595,7 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 
 	MTRACE("clientmgr_destroy");
 
+	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
 	isc_mem_put(manager->mctx, manager, sizeof *manager);
 }
