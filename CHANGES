@@ -1,3 +1,5 @@
+  38.	[bug]		TSIG signed incoming zone transfers work now.
+
   37.	[bug]		If the first RR in an incoming zone transfer was 
 			not an SOA, the server died with an assertion failure
 			instead of just reporting an error.
