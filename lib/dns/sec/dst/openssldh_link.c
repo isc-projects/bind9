@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.14 2000/05/11 22:47:02 gson Exp $
+ * $Id: openssldh_link.c,v 1.15 2000/05/15 21:02:37 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -412,8 +412,7 @@ dst_openssldh_to_file(const dst_key_t *key) {
 	cnt++;
 
 	priv.nelements = cnt;
-	return (dst_s_write_private_key_file(key->key_name, key->key_alg,
-					     key->key_id, &priv));
+	return (dst_s_write_private_key_file(key, &priv));
 }
 
 
@@ -442,8 +441,7 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id,
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst_s_parse_private_key_file(key->key_name, key->key_alg, 
-					   id, &priv, mctx);
+	ret = dst_s_parse_private_key_file(key, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

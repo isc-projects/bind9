@@ -85,12 +85,6 @@ struct dst_func {
 
 extern dst_func *dst_t_func[DST_MAX_ALGS];
 
-/*
- * Suffixes for key file names.
- */
-#define PRIVATE_KEY		"private"
-#define PUBLIC_KEY		"key"
-
 #ifndef DST_HASH_SIZE
 #define DST_HASH_SIZE 20	/* RIPEMD160 & SHA-1 are 20 bytes, MD5 is 16 */
 #endif
@@ -111,9 +105,6 @@ int
 dst_s_calculate_bits(const unsigned char *str, const int max_bits); 
 isc_uint16_t
 dst_s_id_calc(const unsigned char *key, const int keysize);
-int
-dst_s_build_filename(char *filename, const char *name, isc_uint16_t id,
-		     int alg, const char *suffix, size_t filename_length);
 
 /*
  * Digest functions.

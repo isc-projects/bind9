@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_support.c,v 1.4 2000/05/08 14:37:06 tale Exp $
+ * $Id: dst_support.c,v 1.5 2000/05/15 21:02:34 bwelling Exp $
  */
 
 #include <config.h>
@@ -80,49 +80,4 @@ dst_s_id_calc(const unsigned char *key, const int keysize) {
 	ac += (ac >> 16) & 0xffff;
 
 	return ((isc_uint16_t)(ac & 0xffff));
-}
-
-/*
- *  dst_s_build_filename
- *	Builds a key filename from the key name, its id, and a
- *	suffix.  '\', '/' and ':' are not allowed. fA filename is of the
- *	form:  K<keyname><id>.<suffix>
- *	form: K<keyname>+<alg>+<id>.<suffix>
- *
- *	Returns -1 if the conversion fails:
- *	  if the filename would be too long for space allotted
- *	  if the filename would contain a '\', '/' or ':'
- *	Returns 0 on success
- */
-
-int
-dst_s_build_filename(char *filename, const char *name, isc_uint16_t id,
-		     int alg, const char *suffix, size_t filename_length)
-{
-	isc_uint32_t my_id;
-	char *dot;
-	if (filename == NULL)
-		return (-1);
-	memset(filename, 0, filename_length);
-	if (name == NULL)
-		return (-1);
-	if (suffix == NULL)
-		return (-1);
-	if (filename_length <
-	    1 + strlen(name) + 1 + 4 + 6 + 1 + strlen(suffix))
-		return (-1);
-	my_id = id;
-	if (name[strlen(name) - 1] == '.')
-		dot = "";
-	else
-		dot = ".";
-	sprintf(filename, "K%s%s+%03d+%05d.%s", name, dot, alg, my_id,
-		(char *) suffix);
-	if (strrchr(filename, '/'))
-		return (-1);
-	if (strrchr(filename, '\\'))
-		return (-1);
-	if (strrchr(filename, ':'))
-		return (-1);
-	return (0);
 }

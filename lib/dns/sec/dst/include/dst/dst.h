@@ -135,7 +135,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 		 const int type, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Reads a key from permanent storage.
- *
+ G*
  * Requires:
  *	"name" is not NULL.
  *	"id" is a valid key tag identifier.
@@ -301,6 +301,21 @@ dst_key_iszonekey(const dst_key_t *key);
 
 isc_boolean_t
 dst_key_isnullkey(const dst_key_t *key);
+
+isc_result_t
+dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out);
+/*
+ * Generates the filename used by dst to store the specified key.
+ *
+ * Requires:
+ *	"key" is a valid key
+ *	"type" is either DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or 0
+ *	"out" is a valid buffer
+ *
+ * Ensures:
+ *	the file name will be written to "out", and the used pointer will
+ *		be advanced.
+ */
 
 isc_result_t
 dst_sig_size(const dst_key_t *key, unsigned int *n);

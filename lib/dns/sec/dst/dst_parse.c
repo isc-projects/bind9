@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.13 2000/05/13 19:30:19 tale Exp $
+ * $Id: dst_parse.c,v 1.14 2000/05/15 21:02:32 bwelling Exp $
  */
 
 #include <config.h>
@@ -187,8 +187,7 @@ dst_s_free_private_structure_fields(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst_s_parse_private_key_file(const char *name, const int alg,
-			     const isc_uint16_t id, dst_private_t *priv,
+dst_s_parse_private_key_file(const dst_key_t *key, dst_private_t *priv,
 			     isc_mem_t *mctx)
 {
 	char filename[ISC_DIR_NAMEMAX];
@@ -203,10 +202,10 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 
 	priv->nelements = 0;
 
-	ret = dst_s_build_filename(filename, name, id, alg, PRIVATE_KEY,
-				   sizeof(filename));
-	if (ret < 0)
-		return (DST_R_NAMETOOLONG);
+	isc_buffer_init(&b, filename, sizeof(filename));
+	ret = dst_key_buildfilename(key, DST_TYPE_PRIVATE, &b);
+	if (ret != ISC_R_SUCCESS)
+		return (ret);
 
 	iret = isc_lex_create(mctx, 1024, &lex);
 	if (iret != ISC_R_SUCCESS)
@@ -259,7 +258,7 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 
 	NEXTTOKEN(lex, opt | ISC_LEXOPT_NUMBER, &token);
 	if (token.type != isc_tokentype_number ||
-	    token.value.as_ulong != (unsigned long) alg)
+	    token.value.as_ulong != (unsigned long) dst_key_alg(key))
 		goto fail;
 
 	READLINE(lex, opt, &token);
@@ -281,8 +280,8 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 			goto fail;
 
 		memset(&priv->elements[n], 0, sizeof(dst_private_element_t));
-		tag = find_value(token.value.as_pointer, alg);
-		if (tag < 0 || TAG_ALG(tag) != alg)
+		tag = find_value(token.value.as_pointer, dst_key_alg(key));
+		if (tag < 0 || TAG_ALG(tag) != dst_key_alg(key))
 			goto fail;
 		priv->elements[n].tag = tag;
 
@@ -303,7 +302,7 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 
 	priv->nelements = n;
 
-	if (check_data(priv, alg) < 0)
+	if (check_data(priv, dst_key_alg(key)) < 0)
 		goto fail;
 
 	isc_lex_close(lex);
@@ -323,24 +322,23 @@ fail:
 }
 
 int
-dst_s_write_private_key_file(const char *name, const int alg,
-			     const isc_uint16_t id, const dst_private_t *priv)
-{
+dst_s_write_private_key_file(const dst_key_t *key, const dst_private_t *priv) {
 	FILE *fp;
 	int ret, i;
 	isc_result_t iret;
 	char filename[ISC_DIR_NAMEMAX];
 	char buffer[MAXFIELDSIZE * 2];
+	isc_buffer_t b;
 
 	REQUIRE(priv != NULL);
 
-	if (check_data(priv, alg) < 0)
+	if (check_data(priv, dst_key_alg(key)) < 0)
 		return (DST_R_INVALIDPRIVATEKEY);
 
-	ret = dst_s_build_filename(filename, name, id, alg, PRIVATE_KEY,
-				   sizeof(filename));
-	if (ret < 0)
-		return (DST_R_NAMETOOLONG);
+	isc_buffer_init(&b, filename, sizeof(filename));
+	ret = dst_key_buildfilename(key, DST_TYPE_PRIVATE, &b);
+	if (ret != ISC_R_SUCCESS)
+		return (ret);
 
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);
@@ -351,8 +349,8 @@ dst_s_write_private_key_file(const char *name, const int alg,
 	fprintf(fp, "%s v%d.%d\n", PRIVATE_KEY_STR, MAJOR_VERSION,
 		MINOR_VERSION);
 
-	fprintf(fp, "%s %d ", ALGORITHM_STR, alg);
-	switch (alg) {
+	fprintf(fp, "%s %d ", ALGORITHM_STR, dst_key_alg(key));
+	switch (dst_key_alg(key)) {
 		case DST_ALG_RSA: fprintf(fp, "(RSA)\n"); break;
 		case DST_ALG_DH: fprintf(fp, "(DH)\n"); break;
 		case DST_ALG_DSA: fprintf(fp, "(DSA)\n"); break;
