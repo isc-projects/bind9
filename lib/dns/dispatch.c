@@ -1348,6 +1348,8 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	if (result != ISC_R_SUCCESS)
 		goto kill_socket;
 
+	isc_task_setname(disp->task, "tcpdispatch", disp);
+
 	dns_tcpmsg_init(mgr->mctx, disp->socket, &disp->tcpmsg);
 	disp->tcpmsg_valid = 1;
 
@@ -1484,6 +1486,8 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	result = isc_task_create(taskmgr, 0, &disp->task);
 	if (result != ISC_R_SUCCESS)
 		goto kill_socket;
+
+	isc_task_setname(disp->task, "udpdispatch", disp);
 
 	attributes &= ~DNS_DISPATCHATTR_TCP;
 	attributes |= DNS_DISPATCHATTR_UDP;
