@@ -22,6 +22,8 @@ shutdown_task(isc_task_t task, isc_event_t event) {
 	char *name = event->arg;
 
 	printf("task %p shutdown %s\n", task, name);
+	isc_event_free(&event);
+
 	return (ISC_TRUE);
 }
 
@@ -35,10 +37,10 @@ tick(isc_task_t task, isc_event_t event)
 	printf("task %s (%p) tick\n", name, task);
 
 	tick_count++;
-	if (tick_count % 3 == 0)
+	if (ti3 != NULL && tick_count % 3 == 0)
 		isc_timer_touch(ti3);
 
-	if (tick_count == 7) {
+	if (ti3 != NULL && tick_count == 7) {
 		struct isc_time expires, now;
 		struct isc_interval interval;
 
@@ -51,6 +53,8 @@ tick(isc_task_t task, isc_event_t event)
 				       &interval, ISC_TRUE)
 		       == ISC_R_SUCCESS);
 	}
+
+	isc_event_free(&event);
 
 	return (ISC_FALSE);
 }
@@ -72,8 +76,12 @@ timeout(isc_task_t task, isc_event_t event)
 
 	if (strcmp(name, "3") == 0) {
 		printf("*** saving task 3 ***\n");
+		isc_event_free(&event);
 		return (ISC_FALSE);
 	}
+
+	isc_event_free(&event);
+
 	return (ISC_TRUE);
 }
 

@@ -384,7 +384,7 @@ isc_task_shutdown(isc_task_t task) {
 	REQUIRE(VALID_TASK(task));
 
 	/*
-	 * This routine is very similar to isc_task_send_event() above.
+	 * This routine is very similar to isc_task_send() above.
 	 */
 
 	LOCK(&task->lock);
@@ -500,7 +500,7 @@ run(void *uap) {
 	while (!FINISHED(manager)) {
 		/*
 		 * For reasons similar to those given in the comment in
-		 * isc_task_send_event() above, it is safe for us to dequeue
+		 * isc_task_send() above, it is safe for us to dequeue
 		 * the task while only holding the manager lock, and then
 		 * change the task to running state while only holding the
 		 * task lock.
@@ -569,8 +569,6 @@ run(void *uap) {
 					wants_shutdown = ISC_FALSE;
 				dispatch_count++;
 				
-				isc_event_free(&event);
-
 				LOCK(&task->lock);
 				if (wants_shutdown || is_shutdown) {
 					/*
