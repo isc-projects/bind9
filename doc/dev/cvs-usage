@@ -1,3 +1,4 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
@@ -97,4 +98,4 @@ As an example, here's how queryperf was imported:
 
 
 
-$Id: cvs-usage,v 1.7 2001/07/12 02:08:12 gson Exp $
+$Id: cvs-usage,v 1.7.206.1 2004/03/06 13:16:17 marka Exp $

@@ -1,7 +1,8 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: addressdb,v 1.5 2001/01/09 21:46:38 bwelling Exp $
+$Id: addressdb,v 1.5.206.1 2004/03/06 13:16:15 marka Exp $
 
 You are lost in a maze of twisty little pointers, all alike...
 

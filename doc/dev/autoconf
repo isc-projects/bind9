@@ -1,7 +1,8 @@
-Copyright (C) 2001  Internet Software Consortium.
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: autoconf,v 1.3.226.1 2003/10/21 06:16:57 marka Exp $
+$Id: autoconf,v 1.3.226.2 2004/03/06 13:16:17 marka Exp $
 
 Here are some hints on how to use autoconf correctly when doing
 BIND 9 development.

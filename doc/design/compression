@@ -1,9 +1,10 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 1999-2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 			Name Compression
 
-	$Id: compression,v 1.8 2001/01/09 21:46:40 bwelling Exp $
+	$Id: compression,v 1.8.206.1 2004/03/06 13:16:15 marka Exp $
 
 Overview.
 
