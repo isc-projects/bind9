@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.7 2002/01/24 18:32:25 gson Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.8 2002/01/24 21:59:51 marka Exp $ */
 
 #include <config.h>
 
@@ -1147,7 +1147,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto doneparsing;
 		}
 	}
-	ttl = strtoul(word, &endp, 0);
+	ttl = strtoul(word, &endp, 10);
 	if (!isdigit((unsigned char)*word) || *endp != '\0') {
 		if (isdelete) {
 			ttl = 0;
