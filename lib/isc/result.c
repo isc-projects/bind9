@@ -56,7 +56,7 @@ static char *text[ISC_R_NRESULTS] = {
 	"not enough free resources",		/* 13 */
 	"end of file",				/* 14 */
 	"socket already bound",			/* 15 */
-	"<available code 16>",			/* 16 */
+	"reload",				/* 16 */
 	"lock busy",				/* 17 */
 	"already exists",			/* 18 */
 	"ran out of space",			/* 19 */

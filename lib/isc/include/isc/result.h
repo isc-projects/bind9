@@ -41,7 +41,7 @@ ISC_LANG_BEGINDECLS
 #define ISC_R_NORESOURCES		13	/* not enough resources */
 #define ISC_R_EOF			14	/* end of file */
 #define ISC_R_BOUND			15	/* already bound */
-/* AVAILABLE CODE			16 */
+#define ISC_R_RELOAD			16
 #define ISC_R_LOCKBUSY			17
 #define ISC_R_EXISTS			18
 #define ISC_R_NOSPACE			19	/* ran out of space */
