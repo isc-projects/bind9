@@ -94,7 +94,7 @@ struct client_s {
 	 * we'd need to use "arg" above and allocate/destroy things.
 	 */
 	char		       *aliases[LWRES_MAX_ALIASES];
-	u_int16_t		aliaslen[LWRES_MAX_ALIASES];
+	isc_uint16_t		aliaslen[LWRES_MAX_ALIASES];
 	lwres_addr_t		addrs[LWRES_MAX_ADDRS];
 };
 
