@@ -30,6 +30,7 @@
 #include <dns/fixedname.h>
 
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "client.h"
 
@@ -39,10 +40,11 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 }
 
 static isc_result_t
-start_v4find(client_t *client, dns_name_t *name)
+start_v4find(client_t *client)
 {
 	unsigned int options;
 	isc_result_t result;
+	dns_fixedname_t cname;
 
 	/*
 	 * Issue a find for the name contained in the request.  We won't
@@ -53,11 +55,44 @@ start_v4find(client_t *client, dns_name_t *name)
 	options |= DNS_ADBFIND_WANTEVENT;
 	options |= DNS_ADBFIND_INET;
 
+	/*
+	 * Set the bits up here to mark that we want this address family
+	 * and that we do not currently have a find pending.  We will
+	 * set that bit again below if it turns out we will get an event.
+	 */
+	INSIST((client->find_wanted & LWRES_ADDRTYPE_V4) != 0);
+	client->find_pending &= LWRES_ADDRTYPE_V4;
+
+	dns_fixedname_init(&cname);
+
+	if (client->v4find != NULL)
+		dns_adb_destroyfind(&client->v4find);
+
 	result = dns_adb_createfind(client->clientmgr->view->adb,
 				    client->clientmgr->task,
 				    process_gabn_finddone, client,
-				    name, dns_rootname, options,
-				    0, NULL /*XXX*/, &client->v4find);
+				    dns_fixedname_name(&client->target_name),
+				    dns_rootname, options, 0,
+				    dns_fixedname_name(&cname),
+				    &client->v4find);
+
+	/*
+	 * If we're going to get an event, set our internal pending flag.
+	 */
+	if ((client->v4find->options & DNS_ADBFIND_WANTEVENT) != 0)
+		client->find_pending |= LWRES_ADDRTYPE_V4;
+
+	/*
+	 * If we get here, we either have a find pending, or we have
+	 * data.  If we have all the data there is to be had, mark us as done.
+	 * Otherwise, leave us running and let our event callback call
+	 * us again.
+	 *
+	 * Eventually we'll get a valid result, either a list of addresses
+	 * or failure.
+	 */
+	switch (result) {
+	}
 
 	/*
 	 * If there is an event pending, wait for it.  The event callback
@@ -67,7 +102,7 @@ start_v4find(client_t *client, dns_name_t *name)
 }
 
 static isc_result_t
-start_v6find(client_t *client, dns_name_t *name)
+start_v6find(client_t *client)
 {
 	unsigned int options;
 	isc_result_t result;
@@ -81,12 +116,6 @@ start_v6find(client_t *client, dns_name_t *name)
 	options |= DNS_ADBFIND_WANTEVENT;
 	options |= DNS_ADBFIND_INET6;
 
-	result = dns_adb_createfind(client->clientmgr->view->adb,
-				    client->clientmgr->task,
-				    process_gabn_finddone, client,
-				    name, dns_rootname, options,
-				    0, NULL /*XXX*/, &client->v6find);
-
 	/*
 	 * If there is an event pending, wait for it.  The event callback
 	 * will kill this fetch and reissue it.
@@ -94,20 +123,39 @@ start_v6find(client_t *client, dns_name_t *name)
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-isc_result_t
-process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
+
+/*
+ * When we are called, we can be assured that:
+ *
+ *	client->sockaddr contains the address we need to reply to,
+ *
+ *	client->pkt contains the packet header data,
+ *
+ *	the packet "checks out" overall -- any MD5 hashes or crypto
+ *	bits have been verified,
+ *
+ *	"b" points to the remaining data after the packet header
+ *	was parsed off.
+ *
+ *	We are in a the RECVDONE state.
+ *
+ * From this state we will enter the SEND state if we happen to have
+ * everything we need or we need to return an error packet, or to the
+ * FINDWAIT state if we need to look things up.
+ */
+void
+process_gabn(client_t *client, lwres_buffer_t *b)
 {
 	isc_result_t result;
-	lwres_lwpacket_t rpkt;
 	lwres_gabnrequest_t *req;
-	lwres_gabnresponse_t resp;
-	dns_fixedname_t name;
 	isc_buffer_t namebuf;
+
+	REQUIRE(CLIENT_ISRECVDONE(client));
 
 	req = NULL;
 
 	result = lwres_gabnrequest_parse(client->clientmgr->lwctx,
-					 b, pkt, &req);
+					 b, &client->pkt, &req);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
@@ -115,25 +163,43 @@ process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 			ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&namebuf, req->namelen);
 
-	dns_fixedname_init(&name);
-	result = dns_name_fromtext(dns_fixedname_name(&name), &namebuf,
-				   dns_rootname, ISC_FALSE, NULL);
+	dns_fixedname_init(&client->target_name);
+	result = dns_name_fromtext(dns_fixedname_name(&client->target_name),
+				   &namebuf, dns_rootname, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto out;
+
+	client->find_pending = 0;
+	client->find_wanted = req->addrtypes;
 
 	if ((req->addrtypes & LWRES_ADDRTYPE_V4) != 0) {
-		result = start_v4find(client, dns_fixedname_name(&name));
-		INSIST(result == ISC_R_SUCCESS);
+		result = start_v4find(client);
+		if (result != ISC_R_SUCCESS)
+			goto out;
 	}
 
 	if ((req->addrtypes & LWRES_ADDRTYPE_V6) != 0) {
-		result = start_v6find(client, dns_fixedname_name(&name));
-		INSIST(result == ISC_R_SUCCESS);
+		result = start_v6find(client);
+		if (result != ISC_R_SUCCESS)
+			goto out;
 	}
 
-	return (ISC_R_SUCCESS);
+	/*
+	 * We no longer need to keep this around.  Return success, and
+	 * let the find*() functions drive us from now on.
+	 */
+	lwres_gabnrequest_free(client->clientmgr->lwctx, &req);
 
+	return;
+
+	/*
+	 * We're screwed.  Return an error packet to our caller.
+	 */
  out:
 	if (req != NULL)
 		lwres_gabnrequest_free(client->clientmgr->lwctx, &req);
 
-	return (result);
+	error_pkt_send(client, LWRES_R_FAILURE);
+
+	return;
 }

@@ -38,7 +38,7 @@
 /*
  * The goal number of clients we can handle will be NTASKS * NRECVS.
  */
-#define NTASKS		10	/* tasks to create to handle lwres queries */
+#define NTASKS		20	/* tasks to create to handle lwres queries */
 #define NRECVS		 5	/* max clients per task */
 #define NTHREADS	 1	/* # threads to create in thread manager */
 
@@ -236,16 +236,8 @@ main(int argc, char **argv)
 		client = isc_mem_get(mem, sizeof(client_t) * ntasks);
 		if (client == NULL)
 			break;
-		for (j = 0 ; j < ntasks ; j++) {
-			client[j].clientmgr = &cmgr[j];
-			client[j].recvlength = 0;
-			client[j].sendbuf = NULL;
-			client[j].sendlength = 0;
-			ISC_LINK_INIT(&client[j], link);
-			CLIENT_SETIDLE(&client[j]);
-
-			ISC_LIST_APPEND(cmgr[j].idle, &client[j], link);
-		}
+		for (j = 0 ; j < ntasks ; j++)
+			client_initialize(&client[j], &cmgr[j]);
 	}
 	INSIST(i > 0);
 

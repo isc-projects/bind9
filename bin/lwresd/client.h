@@ -30,6 +30,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/master.h>
+#include <dns/fixedname.h>
 #include <dns/name.h>
 
 #define LWRD_EVENTCLASS		ISC_EVENTCLASS(4242)
@@ -40,24 +41,51 @@ typedef struct client_s client_t;
 typedef struct clientmgr_s clientmgr_t;
 
 struct client_s {
-	isc_sockaddr_t		sockaddr;	/* where to reply */
+	isc_sockaddr_t		address;	/* where to reply */
 	clientmgr_t	       *clientmgr;	/* our parent */
+	ISC_LINK(client_t)	link;
+	unsigned int		state;
+	void		       *arg;		/* packet processing state */
+
+	/*
+	 * Received data info.
+	 */
 	unsigned char		buffer[LWRES_RECVLENGTH]; /* receive buffer */
 	isc_uint32_t		recvlength;	/* length recv'd */
+	lwres_lwpacket_t	pkt;
 
+	/*
+	 * Send data state.  If sendbuf != buffer (that is, the send buffer
+	 * isn't our receive buffer) it will be freed to the lwres_context_t.
+	 */
 	unsigned char	       *sendbuf;
 	isc_uint32_t		sendlength;
 
-	unsigned int		state;
-
+	/*
+	 * gabn (get address by name) state info.
+	 */
 	dns_adbfind_t		*v4find;
 	dns_adbfind_t		*v6find;
+	unsigned int		find_pending;	/* Addresses remaining */
+	unsigned int		find_wanted;	/* Addresses we want */
+	dns_fixedname_t		target_name;
+	lwres_gabnresponse_t	gabn;
 
-	unsigned int		find_done;	/* addrs we have */
-	unsigned int		find_wanted;
-	
+	/*
+	 * gnba (get name by address) state info.
+	 */
+	lwres_gnbaresponse_t	gnba;
 
-	ISC_LINK(client_t)	link;
+	/*
+	 * Alias info.  This is copied up to the gabn/gnba structures
+	 * eventually.
+	 *
+	 * XXXMLG We can keep all of this in a client since we only service
+	 * three packet types right now.  If we started handling more,
+	 * we'd need to use "arg" above and allocate/destroy things.
+	 */
+	char		       *aliases[LWRES_MAX_ALIASES];
+	unsigned int		naliases;
 };
 
 /*
@@ -75,8 +103,6 @@ struct client_s {
  * _SEND	All data for a response has completed, and a reply was
  *		sent via a socket send() call.
  *
- * _SENDDONE	The send done event was received.
- *
  * Badly formatted state table:
  *
  *	IDLE -> RECV when client has a recv() queued.
@@ -89,7 +115,7 @@ struct client_s {
  *
  *	FINDWAIT -> SEND when enough data was received to reply.
  *
- *	SENDDONE -> IDLE when a senddone event was received.
+ *	SEND -> IDLE when a senddone event was received.
  *
  *	At any time -> IDLE on error.  Sometimes this will be -> SEND
  *	instead, if enough data is on hand to reply with a meaningful
@@ -109,7 +135,11 @@ struct client_s {
 #define CLIENT_ISRECVDONE(c)	((c)->state == CLIENT_STATE_RECVDONE)
 #define CLIENT_ISFINDWAIT(c)	((c)->state == CLIENT_STATE_FINDWAIT)
 #define CLIENT_ISSEND(c)	((c)->state == CLIENT_STATE_SEND)
-#define CLIENT_ISSENDDONE(c)	((c)->state == CLIENT_STATE_SENDDONE)
+
+/*
+ * Overall magic test that means we're not idle.
+ */
+#define CLIENT_ISRUNNING(c)	(!CLIENT_ISIDLE(c))
 
 #define CLIENT_SETIDLE(c)	((c)->state = CLIENT_STATE_IDLE)
 #define CLIENT_SETRECV(c)	((c)->state = CLIENT_STATE_RECV)
@@ -132,15 +162,21 @@ struct clientmgr_s {
 #define CLIENTMGR_FLAG_RECVPENDING		0x00000001
 #define CLIENTMGR_FLAG_SHUTTINGDOWN		0x00000002
 
+void client_initialize(client_t *, clientmgr_t *);
+isc_result_t client_start_recv(clientmgr_t *);
+void client_state_idle(client_t *);
+
 void client_recv(isc_task_t *, isc_event_t *);
 void client_shutdown(isc_task_t *, isc_event_t *);
-isc_result_t client_start_recv(clientmgr_t *);
+void client_send(isc_task_t *, isc_event_t *);
 
 /*
  * Processing functions of various types.
  */
-isc_result_t process_gabn(client_t *, lwres_buffer_t *, lwres_lwpacket_t *);
-isc_result_t process_gnba(client_t *, lwres_buffer_t *, lwres_lwpacket_t *);
-isc_result_t process_noop(client_t *, lwres_buffer_t *, lwres_lwpacket_t *);
+void process_gabn(client_t *, lwres_buffer_t *);
+void process_gnba(client_t *, lwres_buffer_t *);
+void process_noop(client_t *, lwres_buffer_t *);
+
+void error_pkt_send(client_t *, isc_uint32_t);
 
 #endif /* LWD_CLIENT_H */

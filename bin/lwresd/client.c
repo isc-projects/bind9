@@ -75,8 +75,6 @@ clientmgr_can_die(clientmgr_t *cm)
 static void
 process_request(client_t *client)
 {
-	clientmgr_t *cm = client->clientmgr;
-	lwres_lwpacket_t pkt;
 	lwres_buffer_t b;
 	isc_result_t result;
 
@@ -85,41 +83,35 @@ process_request(client_t *client)
 	lwres_buffer_init(&b, client->buffer, client->recvlength);
 	lwres_buffer_add(&b, client->recvlength);
 
-	result = lwres_lwpacket_parseheader(&b, &pkt);
+	result = lwres_lwpacket_parseheader(&b, &client->pkt);
 	if (result != ISC_R_SUCCESS) {
 		printf("Invalid packet header received\n");
 		goto restart;
 	}
 
-	printf("OPCODE %08x\n", pkt.opcode);
+	printf("OPCODE %08x\n", client->pkt.opcode);
 
-	switch (pkt.opcode) {
+	switch (client->pkt.opcode) {
 	case LWRES_OPCODE_GETADDRSBYNAME:
-		result = process_gabn(client, &b, &pkt);
-		break;
+		process_gabn(client, &b);
+		return;
 	case LWRES_OPCODE_GETNAMEBYADDR:
-		result = process_gnba(client, &b, &pkt);
-		break;
+		process_gnba(client, &b);
+		return;
 	case LWRES_OPCODE_NOOP:
-		result = process_noop(client, &b, &pkt);
-		break;
+		process_noop(client, &b);
+		return;
 	default:
-		printf("Unknown opcode %08x\n", pkt.opcode);
+		printf("Unknown opcode %08x\n", client->pkt.opcode);
 		goto restart;
 	}
 
 	/*
-	 * We're working on something, so stay in the run queue.
+	 * Drop the packet.
 	 */
-	if (result == ISC_R_SUCCESS)
-		return;
-
  restart:
 	printf("restarting client %p...\n", client);
-	client->state = CLIENT_STATE_IDLE;
-	ISC_LIST_UNLINK(cm->running, client, link);
-	ISC_LIST_PREPEND(cm->idle, client, link);
-	client_start_recv(cm);
+	client_state_idle(client);
 }
 
 void
@@ -129,7 +121,9 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 	clientmgr_t *cm = client->clientmgr;
 	isc_socketevent_t *dev = (isc_socketevent_t *)ev;
 
+	INSIST(dev->region.base == client->buffer);
 	INSIST(CLIENT_ISRECV(client));
+
 	CLIENT_SETRECVDONE(client);
 
 	INSIST((cm->flags & CLIENTMGR_FLAG_RECVPENDING) != 0);
@@ -145,17 +139,17 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 		/*
 		 * Go idle.
 		 */
-		CLIENT_SETIDLE(client);
-		ISC_LIST_UNLINK(cm->running, client, link);
-		ISC_LIST_APPEND(cm->idle, client, link);
-
-		clientmgr_can_die(cm);
+		client_state_idle(client);
 
 		return;
 	}
 
+	/*
+	 * XXXMLG If we wanted to run on ipv6 as well, we'd need the pktinfo
+	 * bits.  Right now we don't, so don't remember them.
+	 */
 	client->recvlength = dev->n;
-
+	client->address = dev->address;
 	client_start_recv(cm);
 
 	process_request(client);
@@ -173,7 +167,8 @@ client_start_recv(clientmgr_t *cm)
 	isc_result_t result;
 	isc_region_t r;
 
-	REQUIRE((cm->flags & CLIENTMGR_FLAG_SHUTTINGDOWN) == 0);
+	if ((cm->flags & CLIENTMGR_FLAG_SHUTTINGDOWN) != 0)
+		return (ISC_R_SUCCESS);
 
 	/*
 	 * If a recv is already running, don't bother.
@@ -241,3 +236,78 @@ client_shutdown(isc_task_t *task, isc_event_t *ev)
 	cm->flags |= CLIENTMGR_FLAG_SHUTTINGDOWN;
 }
 
+/*
+ * Do all the crap needed to move a client from the run queue to the idle
+ * queue.
+ */
+void
+client_state_idle(client_t *client)
+{
+	clientmgr_t *cm;
+
+	cm = client->clientmgr;
+
+	INSIST(client->sendbuf == NULL);
+	INSIST(client->sendlength == 0);
+	INSIST(client->arg == NULL);
+	INSIST(client->v4find == NULL);
+	INSIST(client->v6find == NULL);
+
+	ISC_LIST_UNLINK(cm->running, client, link);
+	ISC_LIST_PREPEND(cm->idle, client, link);
+
+	CLIENT_SETIDLE(client);
+
+	clientmgr_can_die(cm);
+
+	client_start_recv(cm);
+}
+
+void
+client_send(isc_task_t *task, isc_event_t *ev)
+{
+	client_t *client = ev->arg;
+	clientmgr_t *cm = client->clientmgr;
+	isc_socketevent_t *dev = (isc_socketevent_t *)ev;
+
+	UNUSED(task);
+
+	INSIST(CLIENT_ISSEND(client));
+	INSIST(client->sendbuf == dev->region.base);
+
+	if (client->sendbuf != client->buffer) {
+		lwres_context_freemem(cm->lwctx, client->sendbuf,
+				      client->sendlength);
+		client->sendbuf = NULL;
+	}
+
+	client_state_idle(client);
+}
+
+void
+client_initialize(client_t *client, clientmgr_t *cmgr)
+{
+	int i;
+
+	client->clientmgr = cmgr;
+	ISC_LINK_INIT(client, link);
+	CLIENT_SETIDLE(client);
+	client->arg = NULL;
+
+	client->recvlength = 0;
+
+	client->sendbuf = NULL;
+	client->sendlength = 0;
+
+	client->v4find = NULL;
+	client->v6find = NULL;
+
+	client->find_pending = 0;
+	client->find_wanted = 0;
+
+	for (i = 0 ; i < LWRES_MAX_ALIASES ; i++)
+		client->aliases[i] = NULL;
+	client->naliases = 0;
+
+	ISC_LIST_APPEND(cmgr->idle, client, link);
+}

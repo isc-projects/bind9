@@ -30,11 +30,12 @@
 #include <dns/fixedname.h>
 
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "client.h"
 
-isc_result_t
-process_gnba(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
+void
+process_gnba(client_t *client, lwres_buffer_t *b)
 {
 	lwres_lwpacket_t rpkt;
 	lwres_gnbarequest_t *req;
