@@ -91,15 +91,19 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 
 /*
  * A chain is used to keep track of the sequence of nodes to reach any given
- * node from the root of the tree.  Since no parent pointer is stored with
- * each node, it is the only way to know what is "up" from any particular
- * node, which is necessary information for iterating through the tree or
- * for basic internal tree maintenance issues (ie, the rotations that are
- * done to rebalance the tree when a node is added).  The obvious implication
- * of this is that for a chain to remain valid, the tree has to be locked
- * down against writes for the duration of the useful life of the chain,
- * because additions or removals can change the path from the root to the node
- * the chain has targetted.
+ * node from the root of the tree.  Originally nodes did not have parent
+ * pointers in them (for memory usage reasons) so there was no way to find
+ * the path back to the root from any given node.  Now that nodes have parent
+ * pointers, chains might be going away in a future release, though the
+ * movement functionality would remain.
+ *
+ * In any event, parent information, whether via parent pointers or chains, is
+ * necessary information for iterating through the tree or for basic internal
+ * tree maintenance issues (ie, the rotations that are done to rebalance the
+ * tree when a node is added).  The obvious implication of this is that for a
+ * chain to remain valid, the tree has to be locked down against writes for the
+ * duration of the useful life of the chain, because additions or removals can
+ * change the path from the root to the node the chain has targetted.
  *
  * The dns_rbtnodechain_ functions _first, _last, _prev and _next all take
  * dns_name_t parameters for the name and the origin, which can be NULL.  If
@@ -110,6 +114,18 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
  * needs to have its own buffer space and offsets, which is most easily
  * accomplished with a dns_fixedname_t.  It is _not_ necessary to reinitialize
  * either 'name' or 'origin' between calls to the chain functions.
+ *
+ * NOTE WELL: the above rule means that when a chain points to the root of the
+ * tree of trees and that root stores only the root label, ".", it means that
+ * BOTH 'name' *and* 'origin' will be ".".  As a common operation on
+ * 'name' and 'origin' is to dns_name_concatenate them after they have been
+ * set, special care must be taken to not concatenate 'name' if it is
+ * dns_name_isabsolute(), which is only true in this special circumstance.
+ * The logic behind having both 'name' and 'origin' be "." had to do with
+ * zone file dumping.  It is likely that dumping of "." will be handled
+ * differently in the future and that the chain API will be changed such that
+ * in the case of ".", only 'origin' will be "." and name will be set to
+ * have zero labels.
  *
  * dns_rbtnodechain_current is similar to the _first, _last, _prev and _next
  * functions but additionally can provide the node to which the chain points.
