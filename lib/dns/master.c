@@ -38,16 +38,20 @@ dns_load_master(char *master_file, dns_name_t *origin,
 	dns_rdataclass_t class;
 	dns_rdatatype_t type;
 	unsigned long ttl = 0;
+	unsigned long default_ttl = 0;
 	dns_name_t current_name;
 	dns_name_t glue_name;
 	dns_name_t new_name;
 	dns_name_t origin_name;
 	isc_boolean_t ttl_known = ISC_FALSE;
+	isc_boolean_t default_ttl_known = ISC_FALSE;
 	isc_boolean_t current_known = ISC_FALSE;
 	isc_boolean_t in_glue = ISC_FALSE;
 	isc_boolean_t current_has_delegation = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t finish_origin = ISC_FALSE;
+	isc_boolean_t finish_include = ISC_FALSE;
+	char *include_file = NULL;
 	isc_token_t token;
 	isc_lex_t *lex = NULL;
 	dns_result_t result = DNS_R_UNEXPECTED; 
@@ -144,6 +148,54 @@ dns_load_master(char *master_file, dns_name_t *origin,
 					goto cleanup;
 				}
 				finish_origin = ISC_TRUE;
+			} else if (strcasecmp(token.value.as_pointer,
+				              "$TTL") == 0) {
+				options = ISC_LEXOPT_NUMBER;
+				lexres = isc_lex_gettoken(lex, options, &token);
+				if (lexres != ISC_R_SUCCESS) {
+					result = DNS_R_UNEXPECTED;
+					goto cleanup;
+				}
+				ttl = token.value.as_ulong;
+				if (ttl > 0x7fffffff) {
+					result = DNS_R_RANGE;
+					goto cleanup;
+				}
+				default_ttl = ttl;
+				ttl_known = ISC_TRUE;
+				default_ttl_known = ISC_TRUE;
+				continue;
+			} else if (strcasecmp(token.value.as_pointer,
+					      "$INCLUDE") == 0) {
+				options = 0;
+				lexres = isc_lex_gettoken(lex, options, &token);
+				if (lexres != ISC_R_SUCCESS) {
+					result = DNS_R_UNEXPECTED;
+					goto cleanup;
+				}
+				if (include_file != NULL)
+					isc_mem_free(mctx, include_file);
+				include_file = isc_mem_strdup(mctx,
+						token.value.as_pointer);
+				options = ISC_LEXOPT_EOF | ISC_LEXOPT_EOL;
+				lexres = isc_lex_gettoken(lex, options, &token);
+				if (lexres != ISC_R_SUCCESS) {
+					result = DNS_R_UNEXPECTED;
+					goto cleanup;
+				}
+				if (token.type == isc_tokentype_eol ||
+				    token.type == isc_tokentype_eof) {
+					result = dns_load_master(include_file,
+								 origin,
+								 zclass,
+								 callback,
+								 mctx);
+					if (result != DNS_R_SUCCESS)
+						goto cleanup;
+					isc_lex_ungettoken(lex, &token);
+					continue;
+				}
+				finish_include = ISC_TRUE;
 			}
 
 			for (new_in_use = 0; new_in_use < 5 ; new_in_use++)
@@ -174,6 +226,16 @@ dns_load_master(char *master_file, dns_name_t *origin,
 				finish_origin =ISC_FALSE;
 				continue;
 			}
+			if (finish_include) {
+				result = dns_load_master(include_file,
+							 &new_name,
+							 zclass, callback,
+							 mctx);
+				if (result != DNS_R_SUCCESS)
+					goto cleanup;
+				finish_include = ISC_FALSE;
+				continue;
+			}
 			/*
 			 * commit glue and pop stacks
 			 */
@@ -185,6 +247,7 @@ dns_load_master(char *master_file, dns_name_t *origin,
 					goto cleanup;
 				if (glue_in_use != -1)
 					name_in_use[glue_in_use] = ISC_FALSE;
+				glue_in_use = -1;
 				dns_name_invalidate(&glue_name);
 				in_glue = ISC_FALSE;
 				rdcount = rdcount_save;
@@ -241,16 +304,21 @@ dns_load_master(char *master_file, dns_name_t *origin,
 
 		if (token.type == isc_tokentype_number) {
 			ttl = token.value.as_ulong;
+			if (ttl > 0x7fffffff) {
+				result = DNS_R_RANGE;
+				goto cleanup;
+			}
 			ttl_known = ISC_TRUE;
 			if (isc_lex_gettoken(lex, options, &token) !=
 					     ISC_R_SUCCESS) {
 				result = DNS_R_UNEXPECTED;
 				goto cleanup;
 			}
-		} else if (!ttl_known) {
+		} else if (!ttl_known && !default_ttl_known) {
 			result = DNS_R_UNEXPECTED;
 			goto cleanup;
-		}
+		} else if (default_ttl_known)
+			ttl = default_ttl;
 
 		if (token.type !=  isc_tokentype_string) {
 			result = DNS_R_UNEXPECTED;
@@ -339,7 +407,7 @@ dns_load_master(char *master_file, dns_name_t *origin,
 			goto cleanup;
 		ISC_LIST_PREPEND(this->rdata, &rdata[rdcount], link);
 		rdcount++;
-		/* We must have at least 64k as rdlen is 61 bits. */
+		/* We must have at least 64k as rdlen is 16 bits. */
 		if (target.used > (64*1024)) {
 			result = commit(&current_list, &current_name, callback);
 			if (result != DNS_R_SUCCESS)
@@ -349,6 +417,9 @@ dns_load_master(char *master_file, dns_name_t *origin,
 				goto cleanup;
 			rdcount = 0;
 			rdlcount = 0;
+			if (glue_in_use != -1)
+				name_in_use[glue_in_use] = ISC_FALSE;
+			glue_in_use = -1;
 			in_glue = ISC_FALSE;
 			current_has_delegation = ISC_FALSE;
 			isc_buffer_init(&target, target_mem, target_size,
@@ -377,8 +448,10 @@ dns_load_master(char *master_file, dns_name_t *origin,
 			    rdatalist_size * sizeof *rdatalist);
 	if (rdata != NULL)
 		isc_mem_put(mctx, rdata, rdata_size * sizeof *rdata);
-	if (target_mem)
+	if (target_mem != NULL)
 		isc_mem_put(mctx, target_mem, target_size);
+	if (include_file != NULL)
+		isc_mem_free(mctx, include_file);
 	return (result);
 }
 
