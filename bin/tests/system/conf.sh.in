@@ -27,6 +27,7 @@ TOP=${SYSTEMTESTTOP:=.}/../../..
 TOP=`cd $TOP && pwd`
 
 NAMED=$TOP/bin/named/named
+LWRESD=$TOP/bin/named/lwresd
 DIG=$TOP/bin/dig/dig
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
@@ -38,4 +39,4 @@ PERL=@PERL@
 
 SUBDIRS="xfer dnssec xferquota"
 
-export NAMED DIG KEYGEN SIGNER KEYSIGNER KEYSETTOOL PERL SUBDIRS
+export NAMED LWRESD DIG KEYGEN SIGNER KEYSIGNER KEYSETTOOL PERL SUBDIRS
