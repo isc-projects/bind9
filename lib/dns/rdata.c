@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.88 2000/05/09 22:22:12 tale Exp $ */
+/* $Id: rdata.c,v 1.89 2000/05/14 02:02:24 tale Exp $ */
 
 #include <config.h>
 
@@ -161,7 +161,6 @@ mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
-static const char octdigits[] = "01234567";
 
 #include "code.h"
 
@@ -1454,7 +1453,7 @@ putbyte(int c, isc_buffer_t *target, struct state *state) {
 
 static isc_result_t
 atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
-	isc_int32_t oeor, osum, orot;
+	long oeor, osum, orot;
 	struct state statebuf, *state= &statebuf;
 	isc_token_t token;
 	char c;
@@ -1482,7 +1481,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 * Checksum.
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	oeor = strtoul(token.value.as_pointer, &e, 16);
+	oeor = strtol(token.value.as_pointer, &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 
@@ -1490,7 +1489,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 * Checksum.
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	osum = strtoul(token.value.as_pointer, &e, 16);
+	osum = strtol(token.value.as_pointer, &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 
@@ -1498,7 +1497,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 * Checksum.
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	orot = strtoul(token.value.as_pointer, &e, 16);
+	orot = strtol(token.value.as_pointer, &e, 16);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 
