@@ -216,7 +216,7 @@ isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 void
-isc_md5_final(isc_md5_t *ctx, unsigned char digest[16]) {
+isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	int count = ctx->bytes[0] & 0x3f;    /* Number of bytes in ctx->in */
 	unsigned char *p = (unsigned char *)ctx->in + count;
 

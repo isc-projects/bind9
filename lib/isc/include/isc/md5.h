@@ -42,6 +42,8 @@
 
 #include <isc/types.h>
 
+#define ISC_MD5_DIGESTLENGTH 16
+
 typedef struct {
 	isc_uint32_t buf[4];
 	isc_uint32_t bytes[2];
@@ -52,6 +54,6 @@ void isc_md5_init(isc_md5_t *ctx);
 void isc_md5_invalidate(isc_md5_t *ctx);
 void isc_md5_update(isc_md5_t *ctx, const unsigned char *buf,
 		    unsigned int len);
-void isc_md5_final(isc_md5_t *ctx, unsigned char digest[16]);
+void isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
 
 #endif /* !MD5_H */

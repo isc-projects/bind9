@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.4 2000/06/07 01:14:26 explorer Exp $ */
+/* $Id: sha1.c,v 1.5 2000/06/07 02:28:40 bwelling Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -224,7 +224,7 @@ static const unsigned char final_200 = '\200';
 static const unsigned char final_0 = '\0';
 
 void
-isc_sha1_final(isc_sha1_t *context, unsigned char digest[20]) {
+isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
 	unsigned int i;
 	unsigned char finalcount[8];
 
