@@ -1,0 +1,8 @@
+
+SUBDIRS=
+TARGETS=
+
+@BIND9_MAKE_RULES@
+
+clean::
+	rm -f rules

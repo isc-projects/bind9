@@ -1,17 +1,5 @@
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
-prefix =	@prefix@
-exec_prefix =	@exec_prefix@
-includedir =	@includedir@
-
-@SET_MAKE@
-
 @BIND9_VERSION@
-
-INSTALL =	@INSTALL@
-INSTALL_DATA =	@INSTALL_DATA@
 
 HEADERS =	condition.h mutex.h thread.h
 
