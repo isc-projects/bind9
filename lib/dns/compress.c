@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.16 1999/05/10 00:38:52 marka Exp $ */
+ /* $Id: compress.c,v 1.17 1999/05/26 00:34:54 marka Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -547,7 +547,10 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 			prefix->labels = 0;
 		} else
 			dns_name_getlabelsequence(name, 0, prefixlen, prefix);
-		dns_name_getlabelsequence(foundname, 0, foundlabels, suffix);
+		result = dns_name_concatenate(NULL, foundname, suffix,
+					     workspace);
+		if (result != DNS_R_SUCCESS)
+			return (ISC_FALSE);
 		*offset = *data;
 		return (ISC_TRUE);
 	}
@@ -557,7 +560,9 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	 * a suffix after it (if only the root).
 	 */
 	INSIST(result == DNS_R_PARTIALMATCH);
-	dns_name_getlabelsequence(foundname, 0, foundlabels, suffix);
+	result = dns_name_concatenate(NULL, foundname, suffix, workspace);
+	if (result != DNS_R_SUCCESS)
+		return (ISC_FALSE);
 	prefixlen = namelabels - foundlabels;
 	dns_name_init(&tmpprefix, NULL);
 	dns_name_init(&tmpsuffix, NULL);
