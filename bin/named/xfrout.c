@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.45 2000/02/22 21:24:23 gson Exp $ */
+ /* $Id: xfrout.c,v 1.46 2000/02/24 22:55:37 gson Exp $ */
 
 #include <config.h>
 
@@ -39,6 +39,7 @@
 #include <dns/journal.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/peer.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -757,6 +758,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  dns_rdata_any_tsig_t *lasttsig,
 		  unsigned int maxtime,
 		  unsigned int idletime,
+		  isc_boolean_t many_answers,
 		  xfrout_ctx_t **xfrp);
 
 static void sendstream(xfrout_ctx_t *xfr);
@@ -792,6 +794,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
 	isc_quota_t *quota = NULL;
+	dns_transfer_format_t format = ns_g_server->transfer_format;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -913,7 +916,17 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
 		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
 	}
-	    
+
+	/* Decide on the transfer format (one-answer or many-answers). */
+	{
+		isc_netaddr_t na;
+		dns_peer_t *peer = NULL;
+		isc_netaddr_fromsockaddr(&na, &client->peeraddr);
+		if (dns_peerlist_peerbyaddr(client->view->peers,
+					    &na, &peer) == ISC_R_SUCCESS)
+			(void) dns_peer_gettransferformat(peer, &format);
+	}
+	
 	/* Get a dynamically allocated copy of the current SOA. */
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
 				    &current_soa_tuple));
@@ -981,6 +994,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 				request->tsigkey, request->tsig,
 				dns_zone_getmaxxfrout(zone),
 				dns_zone_getidleout(zone),
+				(format == dns_many_answers) ?
+					ISC_TRUE : ISC_FALSE,
 				&xfr));
 	stream = NULL;
 	db = NULL;
@@ -1035,7 +1050,8 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_db_t *db, dns_dbversion_t *ver, isc_quota_t *quota,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
 		  dns_rdata_any_tsig_t *lasttsig, unsigned int maxtime,
-		  unsigned int idletime, xfrout_ctx_t **xfrp)
+		  unsigned int idletime, isc_boolean_t many_answers,
+		  xfrout_ctx_t **xfrp)
 {
 	xfrout_ctx_t *xfr;
 	isc_result_t result;
@@ -1064,9 +1080,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->txmem = NULL;
 	xfr->txmemlen = 0;
 	xfr->nmsg = 0;
-	xfr->many_answers =
-		(ns_g_server->transfer_format == dns_many_answers) ?
-		ISC_TRUE : ISC_FALSE;
+	xfr->many_answers = many_answers,
 	xfr->sends = 0;
 	xfr->shuttingdown = ISC_FALSE;
 	
