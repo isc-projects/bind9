@@ -31,8 +31,10 @@ ISC_LANG_BEGINDECLS
  * Option values for dns_rbt_findnode() and dns_rbt_findname().
  * These are used to form a bitmask.
  */
+#define DNS_RBTFIND_NOOPTIONS			0x00
 #define DNS_RBTFIND_EMPTYDATA			0x01
 #define DNS_RBTFIND_NOEXACT			0x02
+#define DNS_RBTFIND_NOPREDECESSOR		0x04
 
 /*
  * These should add up to 30.
@@ -301,13 +303,12 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
  * Get the data pointer associated with 'name'.
  *
  * Notes:
- *	A node that has no data is considered not to exist for this function.
+ *	When DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
+ *      returned (also subject to DNS_RBTFIND_EMPTYDATA), even when there is
+ *	an exact match in the tree.
  *
  *      A node that has no data is considered not to exist for this function,
- *      unless the DNS_RBTFIND_EMPTYDATA option is set.  When
- *      DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
- *      returned (also subject to DNS_RBTFIND_EMPTYDATA), even when
- *      there is an exact match in the tree.
+ *      unless the DNS_RBTFIND_EMPTYDATA option is set.
  *
  * Requires:
  *	rbt is a valid rbt manager.
@@ -348,7 +349,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	have associated data, unless the DNS_RBTFIND_EMPTYDATA option is set.
  *
  *	If the chain parameter is non-NULL, then the path through the tree
- *	to the DNSSEC predecessor of the searched for name is maintained.
+ *	to the DNSSEC predecessor of the searched for name is maintained,
+ *	unless the DNS_RBT_NOPREDECESSOR or DNS_RBT_NOEXACT option is used.
+ *	(For more details on those options, see below.)
+ *
  *	If there is no predecessor, then the chain will point to nowhere, as
  *	indicated by chain->end being NULL or dns_rbtnodechain_current
  *	returning ISC_R_NOTFOUND.  Note that in a normal Internet DNS RBT
@@ -387,16 +391,29 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	could have been stored; the amount to be freed from the rbt->mctx
  *	is ancestor_maxitems * sizeof(dns_rbtnode_t *).
  *
- *      A node that has no data is considered not to exist for this function,
- *      unless the DNS_RBTFIND_EMPTYDATA option is set.  When
- *      DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
+ *	When DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
  *      returned (also subject to DNS_RBTFIND_EMPTYDATA), even when
- *      there is an exact match in the tree.
+ *      there is an exact match in the tree.  In this case, the chain
+ *	will not point to the DNSSEC predecessor, but will instead point
+ *	to the exact match, if there was any.  Thus the preceding paragraphs
+ *	should have "exact match" substituted for "predecessor" to describe
+ *	how the various elements of the chain are set.  This was done to 
+ * 	ensure that the chain's state was sane, and to prevent problems that
+ *	occurred when running the predecessor location code under conditions
+ *	it was not designed for.  It is clear *where* the chain should point
+ *	when DNS_RBTFIND_NOEXACT is set, so if you end up using a chain
+ *	with this option because you want a particular node, let us know
+ *	where you want the chain pointed, so this can be made more firm.
+ *
+ *      A node that has no data is considered not to exist for this function,
+ *      unless the DNS_RBTFIND_EMPTYDATA option is set.  
  *
  * Requires:
  *	rbt is a valid rbt manager.
- *	dns_name_isabsolute(name) == TRUE
- *	node != NULL && *node == NULL
+ *	dns_name_isabsolute(name) == TRUE.
+ *	node != NULL && *node == NULL.
+ *	DNS_RBTFIND_NOEXACT and DNS_RBTFIND_NOPREDECESSOR are mutally
+ *		exclusive.
  *
  * Ensures:
  *	'name' and the tree are not altered in any way.
