@@ -1,0 +1,177 @@
+INTERNET-DRAFT                                             Stuart Kwan
+                                                          James Gilroy
+                                                       Microsoft Corp.
+                                                             June 1999
+<draft-skwan-utf8-dns-02.txt>                     Expires January 2000
+
+     Using the UTF-8 Character Set in the Domain Name System
+
+Status of this Memo
+
+This document is an Internet-Draft and is in full conformance
+with all provisions of Section 10 of RFC2026.
+
+Internet-Drafts are working documents of the Internet Engineering
+Task Force (IETF), its areas, and its working groups.  Note that
+other groups may also distribute working documents as
+Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six
+months and may be updated, replaced, or obsoleted by other
+documents at any time.  It is inappropriate to use Internet-
+Drafts as reference material or to cite them other than as
+"work in progress."
+
+The list of current Internet-Drafts can be accessed at
+http://www.ietf.org/ietf/1id-abstracts.txt
+
+The list of Internet-Draft Shadow Directories can be accessed at
+http://www.ietf.org/shadow.html.
+
+Abstract
+
+The Domain Name System standard specifies that names are represented
+using the ASCII character encoding.  This document expands that
+specification to allow the use of the UTF-8 character encoding, a
+superset of ASCII and a translation of the UCS-2 character encoding.
+
+Expires January 2000                                          [Page 1]
+
+INTERNET-DRAFT                  UTF-8 DNS                    June 1999
+
+1. Introduction
+
+The Domain Name System standard [RFC1035] specifies that names are
+represented using the ASCII character encoding.  This document expands
+that specification to allow the use of the UTF-8 character encoding
+[RFC2044], a superset of ASCII and a translation of the UCS-2
+character encoding.
+
+Interpreting names as ASCII-only limits the utility of DNS in an
+international setting.  The UTF-8 character set includes characters
+from most of the world's written languages, allowing a far greater
+range of possible names and allowing names to use characters that are
+relevant to a particular locality.  UTF-8 is the recommended character
+set for protocols that are evolving beyond ASCII [RFC2130].
+
+This document defines the technology for a richer character set in
+DNS.  This document specifically does not define policy for the
+characters allowed in a name when used in a particular application.
+For example, some protocols place restrictions on the characters
+allowed in a name.  In addition, names that are intended to be
+globally visible [RFC1958] should contain ASCII-only characters
+per [RFC1123].
+
+2. Protocol Description
+
+A UTF-8-aware DNS server is a DNS server that can load and store DNS
+names that contain UTF-8 characters.  Names are encoded in logical
+order as opposed to visual order (see [UNICODE 2.0]).
+
+Uniform downcasing permits UTF-8-aware DNS implementations to
+interoperate with non-UTF-8-aware DNS implementations.  Any binary
+string can be used in a DNS name [RFC2181], but names must be
+compared with case-insensitivity [RFC1035].  A non-UTF-8-aware DNS
+implementation is unable to perform a case-insensitive comparison
+on a name containing UTF-8 characters.  However, if UTF-8 names are
+downcased before transmission, then binary comparisons will provide
+the desired result on non-UTF-8-aware servers without violating the
+case-insensitivity requirement.
+
+The DNS protocol standard states that original case should be
+preserved when possible as data is entered into the system.  This
+requirement is modified as follows:  a UTF-8-aware DNS server must
+downcase all names containing UTF-8 characters in both record names
+and record data before transmitting those names in any message.
+A UTF-8-aware DNS client/resolver must downcase all names containing
+UTF-8 characters before transmitting those names in any message.
+
+Expires January 2000                                          [Page 2]
+
+INTERNET-DRAFT                  UTF-8 DNS                    June 1999
+
+For consistency, UTF-8-aware DNS servers must compare names that
+contain UTF-8 characters byte-for-byte, as opposed to using Unicode
+equivalency rules.
+
+Applications should take care when allowing uppercase UTF-8 characters
+to be passed to the resolver, and DNS servers should take care when
+allowing uppercase UTF-8 characters to be entered in zone data.
+Downcasing in UTF-8 is locale-sensitive and the result may vary
+according to the locale of the code execution.  The desired result will
+always be obtained if the application and server only accept lowercase
+characters.
+
+Names encoded in UTF-8 must not exceed the size limits clarified in
+[RFC2181]. Character count is insufficient to determine size, since
+some UTF-8 characters exceed one octet in length.
+
+3. Interoperability Considerations
+
+The UTF-8 character encoding is ideal for use with existing protocol
+implementations that expect US-ASCII characters.  The representation
+of a US-ASCII characters in UTF-8 is byte for byte identical to the
+US-ASCII representation.  Non-UTF-8-aware DNS clients always encode
+names in ASCII format and those names will always be correctly
+interpreted by a UTF-8-aware DNS server.
+
+DNS server authors may wish to provide a configuration switch on the
+DNS server to allow/disallow the use of UTF-8 characters on a
+per-server or per-zone basis.
+
+A non-UTF-8-aware DNS server may accept a zone transfer of a zone
+containing UTF-8 names, but it may not be able to write back those
+names to a zone file or reload those names from a zone file.
+Administrators should exercise caution when transferring a zone
+containing UTF-8 names to a non-UTF-8-aware DNS server.
+
+4. Security Considerations
+
+The choice of character encoding for names does not impact the
+security of the DNS protocol.
+
+5. Acknowledgements
+
+The authors of this document would like to thank the following people
+for their contribution to this specification:  John McConnell,
+Cliff Van Dyke and Bjorn Rettig.
+
+Expires January 2000                                          [Page 3]
+
+INTERNET-DRAFT                  UTF-8 DNS                    June 1999
+
+6. References
+
+[RFC1035]     P.V. Mockapetris, "Domain Names - Implementation and
+              Specification," RFC 1035, ISI, Nov 1987.
+
+[RFC2044]     F. Yergeau, "UTF-8, a transformation format of Unicode
+              and ISO 10646," RFC 2044, Alis Technologies, Oct 1996.
+
+[RFC1958]     B. Carpenter, "Architectural Principles of the
+              Internet," RFC 1958, IAB, June 1996.
+
+[RFC1123]     R. Braden, "Requirements for Internet Hosts -
+              Application and Support," STD 3, RFC 1123, January 1989.
+
+[RFC2130]     C. Weider et. al., "The Report of the IAB Character
+              Set Workshop held 29 February - 1 March 1996",
+              RFC 2130, Apr 1997.
+
+[RFC2181]     R. Elz and R. Bush, "Clarifications to the DNS
+              Specification," RFC 2181, University of Melbourne and
+              RGnet Inc, July 1997.
+
+[UNICODE 2.0] The Unicode Consortium, "The Unicode Standard, Version
+              2.0," Addison-Wesley, 1996. ISBN 0-201-48345-9.
+
+7. Author's Addresses
+
+Stuart Kwan                         James Gilroy
+Microsoft Corporation               Microsoft Corporation
+One Microsoft Way                   One Microsoft Way
+Redmond, WA  98052                  Redmond, WA  98052
+USA                                 USA
+<skwan@microsoft.com>               <jamesg@microsoft.com>
+
+Expires January 2000                                          [Page 4]
