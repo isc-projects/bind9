@@ -6,3 +6,4 @@ config.status
 libtool
 isc-config.sh
 configure.lineno
+autom4te.cache

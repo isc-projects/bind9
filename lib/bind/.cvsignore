@@ -11,3 +11,4 @@ config.cache
 config.status
 timestamp
 libtool
+autom4te.cache
