@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.196 2001/04/10 21:48:27 gson Exp $ */
+/* $Id: socket.c,v 1.197 2001/04/24 18:40:07 gson Exp $ */
 
 #include <config.h>
 
@@ -26,11 +26,11 @@
 #include <sys/uio.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
