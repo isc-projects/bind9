@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.14 1999/03/22 06:21:29 marka Exp $ */
+ /* $Id: master.c,v 1.15 1999/03/23 00:04:01 marka Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@
 #define RDLSZ 32
 #define RDSZ 512
 
-#define NBUFS 3
+#define NBUFS 4
 #define MAXWIRESZ 255
 
 /*
@@ -83,39 +83,52 @@ static isc_boolean_t	on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 
 #define GETTOKEN(lexer, options, token, eol) \
 	do { \
-		unsigned int isc_o; \
-		isc_result_t isc_r; \
-		isc_token_t *isc_t = (token); \
-		isc_o = (options) | ISC_LEXOPT_EOL | ISC_LEXOPT_EOF | \
-			ISC_LEXOPT_DNSMULTILINE; \
-		isc_r = isc_lex_gettoken(lexer, isc_o, isc_t); \
-		if (isc_r != ISC_R_SUCCESS) { \
-			switch (isc_r) { \
-			case ISC_R_NOMEMORY: \
-				result = DNS_R_NOMEMORY; \
-				break; \
-			default: \
-				UNEXPECTED_ERROR(__FILE__, __LINE__, \
-					"isc_lex_gettoken() failed: %s\n", \
-					isc_result_totext(isc_r)); \
-				result = DNS_R_UNEXPECTED; \
-				goto cleanup; \
-			} \
+		dns_result_t isc_r; \
+		isc_r = gettoken(lexer, options, token, eol, \
+				 master_file, callbacks); \
+		switch (isc_r) { \
+		case DNS_R_SUCCESS: \
+			break; \
+		case DNS_R_UNEXPECTED: \
+			goto cleanup; \
+		default: \
 			goto error_cleanup; \
 		} \
-		if (eol != ISC_TRUE) \
-			if (isc_t->type == isc_tokentype_eol || \
-			    isc_t->type == isc_tokentype_eof) { \
-				(*callbacks->error)(callbacks, \
-			     "dns_load_master: %s:%d unexpected end of %s\n", \
-					   master_file, \
-					   isc_lex_getsourceline(lex), \
-					 (isc_t->type == isc_tokentype_eol) ? \
-						"line" : "file"); \
-				result = DNS_R_UNEXPECTEDEND; \
-				goto cleanup; \
-			} \
-	} while (0)
+	} while (0) \
+
+static inline dns_result_t
+gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
+	 isc_boolean_t eol, char *master_file, dns_rdatacallbacks_t *callbacks)
+{
+	isc_result_t result;
+
+	options |= ISC_LEXOPT_EOL | ISC_LEXOPT_EOF | ISC_LEXOPT_DNSMULTILINE;
+	result = isc_lex_gettoken(lex, options, token);
+	if (result != ISC_R_SUCCESS) {
+		switch (result) {
+		case ISC_R_NOMEMORY:
+			return (DNS_R_NOMEMORY);
+		default:
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+				"isc_lex_gettoken() failed: %s\n",
+				isc_result_totext(result));
+			return (DNS_R_UNEXPECTED);
+		}
+		/*NOTREACHED*/
+	}
+	if (eol != ISC_TRUE)
+		if (token->type == isc_tokentype_eol ||
+		    token->type == isc_tokentype_eof) {
+			(*callbacks->error)(callbacks,
+		     "dns_load_master: %s:%d unexpected end of %s\n",
+				   master_file,
+				   isc_lex_getsourceline(lex),
+				 (token->type == isc_tokentype_eol) ?
+					"line" : "file");
+			return (DNS_R_UNEXPECTEDEND);
+		}
+	return (DNS_R_SUCCESS);
+}
 
 dns_result_t
 dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
@@ -173,8 +186,8 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 	isc_lexspecials_t specials;
 
 	REQUIRE(master_file != NULL);
-	REQUIRE(top != NULL);
-	REQUIRE(origin != NULL);
+	REQUIRE(dns_name_isabsolute(top));
+	REQUIRE(dns_name_isabsolute(origin));
 	REQUIRE(callbacks != NULL);
 	REQUIRE(callbacks->commit != NULL);
 	REQUIRE(callbacks->error != NULL);
@@ -391,7 +404,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			 * If we are processing glue and the new name does
 			 * not match the current glue name, commit the glue
 			 * and pop stacks leaving us in 'normal' processing
-			 * state.
+			 * state.  Linked lists are undone by commit().
 			 */
 			if (in_glue && dns_name_compare(&glue_name,
 							&new_name) != 0) {
