@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.35 2004/05/17 00:51:16 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.36 2004/08/16 00:55:14 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1607,7 +1607,7 @@ statement, as described later in this document. </para>
 
 <programlisting>
 $ORIGIN example.com.
-host            3600    IN      AAAA    3ffe:8050:201:1860:42::1
+host            3600    IN      AAAA    2001:db8::1
 </programlisting>
 
     </sect2>
@@ -1619,11 +1619,11 @@ host            3600    IN      AAAA    3ffe:8050:201:1860:42::1
       <literal>IP6.ARPA.</literal> is appended to the resulting name.
       For example, the following would provide reverse name lookup for
       a host with address
-      <literal>3ffe:8050:201:1860:42::1</literal>.</para>
+      <literal>2001:db8::1</literal>.</para>
 
 <programlisting>
-$ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.IP6.ARPA.
-1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0   14400 IN      PTR     host.example.com.
+$ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0   14400 IN      PTR     host.example.com.
 </programlisting>
     </sect2>
   </sect1>
@@ -1718,7 +1718,7 @@ in <varname>dotted_decimal</varname> notation.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>ip6_addr</varname></para></entry>
-<entry colname = "2"><para>An IPv6 address, such as <command>fe80::200:f8ff:fe01:9742</command>.</para></entry>
+<entry colname = "2"><para>An IPv6 address, such as <command>2001:db8::1234</command>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>ip_addr</varname></para></entry>
@@ -5572,7 +5572,7 @@ last three bytes of the hardware address. The lowest significant
 bit of the first byte should then be complemented. Addresses are
 written as 32-bit blocks separated with a colon, and leading zeros
 of a block may be omitted, for example:</para>
-<para><command>3ffe:8050:201:9:a00:20ff:fe81:2b32</command></para>
+<para><command>2001:db8:201:9:a00:20ff:fe81:2b32</command></para>
 <para>IPv6 address specifications are likely to contain long strings
 of zeros, so the architects have included a shorthand for specifying
 them. The double colon (`::') indicates the longest possible string
