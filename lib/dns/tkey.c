@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.23 2000/02/03 23:44:01 halley Exp $
+ * $Id: tkey.c,v 1.24 2000/03/08 20:15:16 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -212,13 +212,13 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 }
 
 static isc_result_t
-process_dhtkey(dns_message_t *msg, dns_name_t *name,
+process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	       dns_rdata_generic_tkey_t *tkeyin, dns_tkey_ctx_t *tctx,
 	       dns_rdata_generic_tkey_t *tkeyout,
 	       dns_tsig_keyring_t *ring, dns_namelist_t *namelist)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_name_t *keyname, ourname, signer, *creator;
+	dns_name_t *keyname, ourname;
 	dns_rdataset_t *keyset;
 	dns_rdata_t keyrdata, ourkeyrdata;
 	isc_boolean_t found_key = ISC_FALSE, found_incompatible = ISC_FALSE;
@@ -345,19 +345,11 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	r2.length = tkeyin->keylen;
 	RETERR(compute_secret(shared, &r2, &r, &secret));
 
-	dns_name_init(&signer, NULL);
-	result = dns_message_signer(msg, &signer);
-	/* handle DNS_R_NOTVERIFIEDYET */
-	if (result == ISC_R_SUCCESS)
-		creator = &signer;
-	else
-		creator = NULL;
-
 	dst_key_free(pubkey);
 	isc_buffer_used(&secret, &r);
 	tsigkey = NULL;
 	result = dns_tsigkey_create(name, &tkeyin->algorithm, r.base, r.length,
-				    ISC_TRUE, creator, tkeyin->inception,
+				    ISC_TRUE, signer, tkeyin->inception,
 				    tkeyin->expire, msg->mctx, ring, NULL);
 	isc_buffer_free(&shared);
 	shared = NULL;
@@ -399,7 +391,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 }
 
 static isc_result_t
-process_deletetkey(dns_message_t *msg, dns_name_t *name,
+process_deletetkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 		   dns_rdata_generic_tkey_t *tkeyin,
 		   dns_rdata_generic_tkey_t *tkeyout,
 		   dns_tsig_keyring_t *ring,
@@ -407,7 +399,7 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 {
 	isc_result_t result;
 	dns_tsigkey_t *tsigkey = NULL;
-	dns_name_t signer;
+	dns_name_t *identity;
 
 	/* Unused variables */
 	msg = msg;
@@ -422,26 +414,9 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 	 * Only allow a delete if the identity that created the key is the
 	 * same as the identity that signed the message.
 	 */
-	dns_name_init(&signer, NULL);
-	result = dns_message_signer(msg, &signer);
-	/* handle DNS_R_NOTVERIFIEDYET */
-	if (result == DNS_R_NOIDENTITY) {
-		/*
-		 * Special case - there is no identity associated with the
-		 * TSIG key that signed the message, but it's that key
-		 * being deleted.  This is OK.
-		 */
-		if (!dns_name_equal(&signer, name))
-			return (DNS_R_REFUSED);
-	}
-	else if (result != ISC_R_SUCCESS) {
+	identity = dns_tsigkey_identity(tsigkey);
+	if (identity == NULL || !dns_name_equal(identity, signer))
 		return (DNS_R_REFUSED);
-	}
-	else {
-		dns_name_t *identity = dns_tsigkey_identity(tsigkey);
-		if (identity == NULL || !dns_name_equal(identity, &signer))
-			return (DNS_R_REFUSED);
-	}
 
 	/*
 	 * Set the key to be deleted when no references are left.  If the key
@@ -461,7 +436,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_generic_tkey_t tkeyin, tkeyout;
-	dns_name_t *qname, *name, *keyname, tempkeyname;
+	dns_name_t *qname, *name, *keyname, tempkeyname, signer;
 	dns_rdataset_t *tkeyset;
 	dns_rdata_t tkeyrdata, *rdata = NULL;
 	isc_buffer_t *dynbuf = NULL;
@@ -500,6 +475,19 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 	RETERR(dns_rdata_tostruct(&tkeyrdata, &tkeyin, msg->mctx));
 
 	if (tkeyin.error != dns_rcode_noerror) {
+		result = DNS_R_FORMERR;
+		goto failure;
+	}
+
+	/*
+	 * Before we go any farther, verify that the message was signed.
+	 * GSSAPI TKEY doesn't require a signature, the rest do.
+	 */
+	dns_name_init(&signer, NULL);
+	result = dns_message_signer(msg, &signer);
+	if (result != ISC_R_SUCCESS &&
+	    (tkeyin.mode != DNS_TKEYMODE_GSSAPI || result != ISC_R_NOTFOUND))
+	{
 		result = DNS_R_FORMERR;
 		goto failure;
 	}
@@ -602,13 +590,14 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 
 	switch (tkeyin.mode) {
 		case DNS_TKEYMODE_DIFFIEHELLMAN:
-			RETERR(process_dhtkey(msg, keyname, &tkeyin, tctx,
-					      &tkeyout, ring, &namelist));
+			RETERR(process_dhtkey(msg, &signer, keyname, &tkeyin,
+					      tctx, &tkeyout, ring, &namelist));
 			tkeyout.error = dns_rcode_noerror;
 			break;
 		case DNS_TKEYMODE_DELETE:
-			RETERR(process_deletetkey(msg, keyname, &tkeyin,
-						  &tkeyout, ring, &namelist));
+			RETERR(process_deletetkey(msg, &signer, keyname,
+						  &tkeyin, &tkeyout,
+						  ring, &namelist));
 			tkeyout.error = dns_rcode_noerror;
 			break;
 		case DNS_TKEYMODE_SERVERASSIGNED:
