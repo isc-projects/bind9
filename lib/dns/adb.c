@@ -2989,17 +2989,11 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
 static void
 print_dns_name(FILE *f, dns_name_t *name) {
 	char buf[1024];
-	isc_buffer_t b;
-	isc_region_t r;
 
 	INSIST(f != NULL);
 
-	isc_buffer_init(&b, buf, sizeof(buf));
-
-	if (dns_name_totext(name, ISC_FALSE, &b) == ISC_R_SUCCESS) {
-		isc_buffer_usedregion(&b, &r);
-		fprintf(f, "%.*s", (int)r.length, r.base);
-	}
+	dns_name_format(name, buf, sizeof(buf));
+	fprintf(f, "%s", buf);
 }
 
 static void
