@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.52 2000/04/28 01:10:29 halley Exp $ */
+/* $Id: confctx.c,v 1.53 2000/04/28 01:23:54 gson Exp $ */
 
 #include <config.h>
 
@@ -2617,6 +2617,8 @@ cfg_get_iplist(dns_c_options_t *options,
 {
 	isc_result_t res;
 
+	UNUSED(options);
+	
 	REQUIRE(DNS_C_CONFOPT_VALID(options));
 	REQUIRE(resval != NULL);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.18 2000/04/27 00:02:25 tale Exp $ */
+/* $Id: dname_39.c,v 1.19 2000/04/28 01:24:00 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -149,6 +149,7 @@ fromstruct_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_dname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -163,12 +164,15 @@ freestruct_dname(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/* XXX */
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_dname(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		     void *arg)
 {
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

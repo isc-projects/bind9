@@ -460,6 +460,8 @@ static void
 client_shutdown(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 
+	UNUSED(task);
+
 	REQUIRE(event != NULL);
 	REQUIRE(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
 	client = event->ev_arg;
@@ -578,6 +580,8 @@ static void
 client_senddone(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 	isc_socketevent_t *sevent = (isc_socketevent_t *) event;
+
+	UNUSED(task);
 
 	REQUIRE(sevent != NULL);
 	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_SENDDONE);
@@ -815,6 +819,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
+	UNUSED(task);
+	
 	INSIST(client->recursionquota == NULL);
 
 	INSIST(client->state ==
@@ -1075,6 +1081,8 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 	REQUIRE(client->timer != NULL);
 
+	UNUSED(task);
+	
 	CTRACE("timeout");
 
 	isc_event_free(&event);
@@ -1239,6 +1247,8 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_NEWCONN);
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->task == task);
+
+	UNUSED(task);
 
 	INSIST(client->state == NS_CLIENTSTATE_READY);
 	

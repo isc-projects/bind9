@@ -77,6 +77,8 @@ isc_random_seed(isc_random_t *r, isc_uint32_t seed)
 {
 	REQUIRE(ISC_RANDOM_VALID(r));
 
+	UNUSED(r);
+
 	initialize();
 
 #if 0
@@ -96,6 +98,8 @@ isc_random_get(isc_random_t *r, isc_uint32_t *val)
 	REQUIRE(ISC_RANDOM_VALID(r));
 	REQUIRE(val != NULL);
 
+	UNUSED(r);
+	
 	initialize();
 
 #if 0

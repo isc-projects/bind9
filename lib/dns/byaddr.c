@@ -176,6 +176,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_byaddr_t *byaddr = event->ev_arg;
 	dns_fetchevent_t *fevent;
 
+	UNUSED(task);
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	REQUIRE(VALID_BYADDR(byaddr));
 	REQUIRE(byaddr->task == task);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.29 2000/04/27 00:02:22 tale Exp $ */
+/* $Id: tsig_250.c,v 1.30 2000/04/28 01:23:58 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -467,6 +467,7 @@ additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 
@@ -479,6 +480,7 @@ digest_any_tsig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
 
+	UNUSED(rdata);
 	UNUSED(digest);
 	UNUSED(arg);
 

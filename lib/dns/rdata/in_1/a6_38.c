@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.25 2000/04/27 00:02:46 tale Exp $ */
+ /* $Id: a6_38.c,v 1.26 2000/04/28 01:24:13 gson Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -295,6 +295,7 @@ tostruct_in_a6(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -306,6 +307,8 @@ freestruct_in_a6(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -315,8 +318,9 @@ additionaldata_in_a6(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
 
-	(void)add;
-	(void)arg;
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

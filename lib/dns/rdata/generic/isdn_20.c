@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.16 2000/04/07 03:54:14 explorer Exp $ */
+/* $Id: isdn_20.c,v 1.17 2000/04/28 01:24:01 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -126,10 +126,11 @@ fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	REQUIRE(rdata->type == 20);
+
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
-
-	REQUIRE(rdata->type == 20);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -138,16 +139,19 @@ static inline void
 freestruct_isdn(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_isdn(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
+	REQUIRE(rdata->type == 20);
+
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == 20);
 
 	return (ISC_R_SUCCESS);
 }

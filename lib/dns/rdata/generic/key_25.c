@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.21 2000/04/27 00:02:26 tale Exp $ */
+/* $Id: key_25.c,v 1.22 2000/04/28 01:24:02 gson Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -264,6 +264,7 @@ additionaldata_key(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 25);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

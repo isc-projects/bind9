@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.17 2000/04/27 00:02:49 tale Exp $ */
+/* $Id: nsap_22.c,v 1.18 2000/04/28 01:24:15 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -161,10 +161,10 @@ fromstruct_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 tostruct_in_nsap(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -175,6 +175,8 @@ static inline void
 freestruct_in_nsap(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -184,6 +186,7 @@ additionaldata_in_nsap(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

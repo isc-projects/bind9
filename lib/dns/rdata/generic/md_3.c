@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.27 2000/04/27 23:57:55 gson Exp $ */
+/* $Id: md_3.c,v 1.28 2000/04/28 01:24:03 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
@@ -157,6 +157,8 @@ static inline void
 freestruct_md(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t

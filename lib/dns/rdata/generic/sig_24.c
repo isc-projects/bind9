@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.33 2000/04/27 00:02:38 tale Exp $ */
+/* $Id: sig_24.c,v 1.34 2000/04/28 01:24:09 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -448,6 +448,7 @@ additionaldata_sig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 24);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 
@@ -459,6 +460,7 @@ digest_sig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	REQUIRE(rdata->type == 24);
 
+	UNUSED(rdata);
 	UNUSED(digest);
 	UNUSED(arg);
 

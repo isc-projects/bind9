@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.22 2000/04/07 03:54:13 explorer Exp $ */
+/* $Id: hinfo_13.c,v 1.23 2000/04/28 01:24:01 gson Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -122,6 +122,7 @@ tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 13);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -132,16 +133,19 @@ static inline void
 freestruct_hinfo(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE); /* XXX */
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_hinfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		     void *arg)
 {
+	REQUIRE(rdata->type == 13);
+
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == 13);
+	UNUSED(rdata);
 
 	return (ISC_R_SUCCESS);
 }

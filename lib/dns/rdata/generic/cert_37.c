@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.23 2000/04/27 00:02:24 tale Exp $ */
+/* $Id: cert_37.c,v 1.24 2000/04/28 01:23:59 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -165,7 +165,8 @@ tostruct_cert(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 37);
 	REQUIRE(target != NULL && target == NULL);
-	
+
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -176,6 +177,8 @@ static inline void
 freestruct_cert(void *target) {
 	REQUIRE(target != NULL && target != NULL);
 	REQUIRE(ISC_FALSE);	/* XXX */
+
+	UNUSED(target);
 }
 
 static inline isc_result_t
@@ -184,6 +187,7 @@ additionaldata_cert(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 37);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

@@ -1719,6 +1719,8 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	 * Resume a query after recursion.
 	 */
 
+	UNUSED(task);
+
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	client = devent->ev_arg;
 	REQUIRE(NS_CLIENT_VALID(client));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.25 2000/04/27 00:02:27 tale Exp $ */
+/* $Id: mb_7.c,v 1.26 2000/04/28 01:24:03 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -144,6 +144,7 @@ fromstruct_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_mb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -154,6 +155,7 @@ tostruct_mb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 static inline void
 freestruct_mb(void *source) {
+	UNUSED(source);
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.17 2000/04/27 00:02:49 tale Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.18 2000/04/28 01:24:15 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -154,6 +154,7 @@ tostruct_in_nsap_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -164,6 +165,8 @@ static inline void
 freestruct_in_nsap_ptr(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -173,6 +176,7 @@ additionaldata_in_nsap_ptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

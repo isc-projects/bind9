@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.15 2000/04/27 00:02:44 tale Exp $ */
+/* $Id: unspec_103.c,v 1.16 2000/04/28 01:24:11 gson Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -98,10 +98,9 @@ fromstruct_unspec(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 103);
 
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -111,8 +110,9 @@ tostruct_unspec(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 103);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(rdata);
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -121,6 +121,8 @@ static inline void
 freestruct_unspec(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -129,8 +131,9 @@ additionaldata_unspec(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 103);
 
-	(void)add;
-	(void)arg;
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

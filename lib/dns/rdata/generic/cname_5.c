@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.26 2000/04/27 23:57:55 gson Exp $ */
+/* $Id: cname_5.c,v 1.27 2000/04/28 01:24:00 gson Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -152,6 +152,7 @@ tostruct_cname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	REQUIRE(rdata->type == 5);
 	REQUIRE(target != NULL);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 

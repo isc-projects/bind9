@@ -314,6 +314,8 @@ resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 
+	UNUSED(task);
+	
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_RESSHUTDOWN;
@@ -336,6 +338,8 @@ adb_shutdown(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 
+	UNUSED(task);
+	
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_ADBSHUTDOWN;
@@ -358,6 +362,8 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 
+	UNUSED(task);
+	
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_REQSHUTDOWN;

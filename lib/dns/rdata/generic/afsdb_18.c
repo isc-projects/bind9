@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.22 2000/04/27 00:02:23 tale Exp $ */
+/* $Id: afsdb_18.c,v 1.23 2000/04/28 01:23:59 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -185,11 +185,12 @@ fromstruct_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
-	UNUSED(target);
-	UNUSED(mctx);
-
 	REQUIRE(rdata->type == 18);
 	REQUIRE(target != NULL);
+
+	UNUSED(rdata);
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -202,6 +203,9 @@ freestruct_afsdb(void *source)
 	REQUIRE(source != NULL);
 	REQUIRE(afsdb->common.rdtype == 18);
 	REQUIRE(ISC_FALSE);
+
+	UNUSED(source);
+	UNUSED(afsdb);
 }
 
 static inline isc_result_t

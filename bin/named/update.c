@@ -2307,6 +2307,8 @@ updatedone_action(isc_task_t *task, isc_event_t *event)
 	update_event_t *uev = (update_event_t *) event;
 	ns_client_t *client = (ns_client_t *) event->ev_arg;	
 
+	UNUSED(task);
+	
 	INSIST(event->ev_type == DNS_EVENT_UPDATEDONE);
 	INSIST(task == client->task);
 

@@ -160,6 +160,8 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	LOCK(&rwl->lock);
 	REQUIRE(rwl->type == type);
 
+	UNUSED(type);
+
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("preunlock", rwl, type);
 #endif

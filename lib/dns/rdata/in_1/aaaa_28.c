@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.20 2000/04/27 00:02:48 tale Exp $ */
+/* $Id: aaaa_28.c,v 1.21 2000/04/28 01:24:14 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -152,11 +152,12 @@ fromstruct_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 tostruct_in_aaaa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	UNUSED(target);
-	UNUSED(mctx);
-
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -165,17 +166,20 @@ static inline void
 freestruct_in_aaaa(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_in_aaaa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		       void *arg)
 {
-	UNUSED(add);
-	UNUSED(arg);
-
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.22 2000/04/27 00:02:31 tale Exp $ */
+/* $Id: mr_9.c,v 1.23 2000/04/28 01:24:05 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -145,6 +145,7 @@ static inline isc_result_t
 tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 9);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -155,6 +156,8 @@ static inline void
 freestruct_mr(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -163,6 +166,7 @@ additionaldata_mr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 9);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

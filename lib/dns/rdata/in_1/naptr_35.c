@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.21 2000/04/27 00:02:48 tale Exp $ */
+/* $Id: naptr_35.c,v 1.22 2000/04/28 01:24:14 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -263,11 +263,12 @@ fromstruct_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	UNUSED(target);
-	UNUSED(mctx);
-
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -276,6 +277,8 @@ static inline void
 freestruct_in_naptr(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
+
+	UNUSED(source);
 }
 
 static inline isc_result_t

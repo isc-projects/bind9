@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.16 2000/04/07 03:54:12 explorer Exp $ */
+/* $Id: gpos_27.c,v 1.17 2000/04/28 01:24:01 gson Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -135,6 +135,7 @@ tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 27);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -146,6 +147,8 @@ freestruct_gpos(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/* XXX */
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -154,6 +157,7 @@ additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 27);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

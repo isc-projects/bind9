@@ -2256,6 +2256,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *foundsig, *nssig, *cnamesig;
 	rbtdb_rdatatype_t sigtype, nxtype;
 
+	UNUSED(version);
+
 	search.rbtdb = (dns_rbtdb_t *)db;
 
 	REQUIRE(VALID_RBTDB(search.rbtdb));

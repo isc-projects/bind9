@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.19 2000/04/27 00:02:50 tale Exp $ */
+/* $Id: srv_33.c,v 1.20 2000/04/28 01:24:16 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -204,11 +204,12 @@ fromstruct_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_in_srv(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	UNUSED(target);
-	UNUSED(mctx);
-
 	REQUIRE(rdata->type == 33);
 	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -217,6 +218,8 @@ static inline void
 freestruct_in_srv(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.29 2000/04/27 23:57:56 gson Exp $ */
+/* $Id: a_1.c,v 1.30 2000/04/28 01:24:13 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -172,20 +172,22 @@ tostruct_in_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 static inline void
 freestruct_in_a(void *source) {
-	UNUSED(source);
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+	
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_in_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
-	UNUSED(add);
-	UNUSED(arg);
-
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

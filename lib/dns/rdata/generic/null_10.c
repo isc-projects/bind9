@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.21 2000/04/27 00:02:33 tale Exp $ */
+/* $Id: null_10.c,v 1.22 2000/04/28 01:24:06 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -45,6 +45,7 @@ static inline isc_result_t
 totext_null(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	    isc_buffer_t *target) 
 {
+	UNUSED(rdata);
 	UNUSED(tctx);
 	UNUSED(target);
 
@@ -112,6 +113,7 @@ fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -123,6 +125,8 @@ tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 static inline void
 freestruct_null(void *source)
 {
+	UNUSED(source);
+	
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
 }
@@ -131,6 +135,7 @@ static inline isc_result_t
 additionaldata_null(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

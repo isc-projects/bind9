@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.26 2000/04/27 00:02:41 tale Exp $ */
+/* $Id: tkey_249.c,v 1.27 2000/04/28 01:24:09 gson Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -454,6 +454,7 @@ static inline isc_result_t
 additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 
@@ -465,6 +466,7 @@ additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 static inline isc_result_t
 digest_tkey(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 {
+	UNUSED(rdata);
 	UNUSED(digest);
 	UNUSED(arg);
 

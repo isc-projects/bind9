@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.25 2000/04/27 00:02:51 tale Exp $ */
+/* $Id: wks_11.c,v 1.26 2000/04/28 01:24:17 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -234,6 +234,7 @@ fromstruct_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -248,12 +249,15 @@ freestruct_in_wks(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_in_wks(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		      void *arg)
 {
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.9 2000/04/27 23:57:56 gson Exp $ */
+/* $Id: a_1.c,v 1.10 2000/04/28 01:24:12 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -184,6 +184,7 @@ freestruct_hs_a(void *source)
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 
+
 }
 
 static inline isc_result_t
@@ -193,8 +194,9 @@ additionaldata_hs_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 4);
 
-	(void)add;
-	(void)arg;
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

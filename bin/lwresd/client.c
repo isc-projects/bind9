@@ -300,7 +300,8 @@ client_send(isc_task_t *task, isc_event_t *ev)
 	isc_socketevent_t *dev = (isc_socketevent_t *)ev;
 
 	UNUSED(task);
-
+	UNUSED(dev);
+	
 	INSIST(CLIENT_ISSEND(client));
 	INSIST(client->sendbuf == dev->region.base);
 

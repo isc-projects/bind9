@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.23 2000/04/27 00:02:36 tale Exp $ */
+/* $Id: ptr_12.c,v 1.24 2000/04/28 01:24:07 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -135,11 +135,11 @@ static inline isc_result_t
 fromstruct_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	REQUIRE(type == 12);
+
 	UNUSED(rdclass);
 	UNUSED(source);
 	UNUSED(target);
-
-	REQUIRE(type == 12);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -147,10 +147,11 @@ fromstruct_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	REQUIRE(rdata->type == 12);
+
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
-
-	REQUIRE(rdata->type == 12);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -160,16 +161,19 @@ freestruct_ptr(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
+	
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_ptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
+	REQUIRE(rdata->type == 12);
+
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == 12);
 
 	return (ISC_R_SUCCESS);
 }

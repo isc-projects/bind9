@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.25 2000/04/27 23:57:55 gson Exp $ */
+/* $Id: mf_4.c,v 1.26 2000/04/28 01:24:04 gson Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -164,6 +164,8 @@ freestruct_mf(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t

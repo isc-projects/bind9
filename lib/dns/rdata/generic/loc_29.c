@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.15 2000/04/27 00:02:27 tale Exp $ */
+/* $Id: loc_29.c,v 1.16 2000/04/28 01:24:02 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -583,10 +583,11 @@ fromstruct_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	REQUIRE(rdata->type == 29);
+
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
-
-	REQUIRE(rdata->type == 29);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -596,16 +597,19 @@ freestruct_loc(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_loc(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
+	REQUIRE(rdata->type == 29);
+
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == 29);
 
 	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.20 2000/04/27 00:02:37 tale Exp $ */
+/* $Id: rt_21.c,v 1.21 2000/04/28 01:24:08 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -187,10 +187,11 @@ static inline isc_result_t
 tostruct_rt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
 
-	REQUIRE(rdata->type == 21);
-
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
+
+	REQUIRE(rdata->type == 21);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -200,6 +201,8 @@ freestruct_rt(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t

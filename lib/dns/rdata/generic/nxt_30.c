@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.26 2000/04/27 00:02:34 tale Exp $ */
+/* $Id: nxt_30.c,v 1.27 2000/04/28 01:24:07 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -223,6 +223,7 @@ tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 30);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -236,6 +237,8 @@ freestruct_nxt(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(nxt->common.rdtype == 30);
 	REQUIRE(ISC_FALSE);
+
+	UNUSED(nxt);
 }
 
 static inline isc_result_t
@@ -244,8 +247,9 @@ additionaldata_nxt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 30);
 
-	(void)add;
-	(void)arg;
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

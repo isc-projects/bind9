@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.20 2000/04/27 00:02:37 tale Exp $ */
+/* $Id: rp_17.c,v 1.21 2000/04/28 01:24:08 gson Exp $ */
 
 /* RFC 1183 */
 
@@ -192,10 +192,11 @@ fromstruct_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	REQUIRE(rdata->type == 17);
+
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
-
-	REQUIRE(rdata->type == 17);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -205,16 +206,19 @@ freestruct_rp(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_rp(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		  void *arg)
 {
+	REQUIRE(rdata->type == 17);
+
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == 17);
 
 	return (ISC_R_SUCCESS);
 }

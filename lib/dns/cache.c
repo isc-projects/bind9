@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.18 2000/04/25 19:35:39 tale Exp $ */
+/* $Id: cache.c,v 1.19 2000/04/28 01:23:49 gson Exp $ */
 
 #include <config.h>
 
@@ -452,6 +452,7 @@ end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
 static void
 cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->ev_arg;
+	UNUSED(task);
 	INSIST(task == cleaner->task);
 	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
 

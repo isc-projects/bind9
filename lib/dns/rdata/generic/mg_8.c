@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mg_8.c,v 1.23 2000/04/27 00:02:29 tale Exp $ */
+/* $Id: mg_8.c,v 1.24 2000/04/28 01:24:04 gson Exp $ */
 
 /* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
@@ -152,6 +152,7 @@ tostruct_mg(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 8);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -163,6 +164,7 @@ freestruct_mg(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -171,8 +173,9 @@ additionaldata_mg(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 8);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
+	UNUSED(rdata);
 
 	return (ISC_R_SUCCESS);
 }

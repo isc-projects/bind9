@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.9 2000/04/27 00:02:35 tale Exp $ */
+/* $Id: opt_41.c,v 1.10 2000/04/28 01:24:07 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -56,6 +56,7 @@ totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	REQUIRE(rdata->type == 41);
 
+	UNUSED(rdata);
 	UNUSED(tctx);
 	UNUSED(target);
 
@@ -147,6 +148,7 @@ tostruct_opt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 41);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -164,6 +166,7 @@ additionaldata_opt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 41);
 
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
 
@@ -179,6 +182,7 @@ digest_opt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	REQUIRE(rdata->type == 41);
 
+	UNUSED(rdata);
 	UNUSED(digest);
 	UNUSED(arg);
 

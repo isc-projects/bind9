@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.23 2000/04/27 00:02:42 tale Exp $ */
+/* $Id: txt_16.c,v 1.24 2000/04/28 01:24:11 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -138,10 +138,11 @@ fromstruct_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_txt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	REQUIRE(rdata->type == 16);
+
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
-
-	REQUIRE(rdata->type == 16);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -150,17 +151,20 @@ static inline void
 freestruct_txt(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_txt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
-	UNUSED(add);
-	UNUSED(arg);
-
 	REQUIRE(rdata->type == 16);
 
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
+	
 	return (ISC_R_SUCCESS);
 }
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.24 2000/04/27 00:02:30 tale Exp $ */
+/* $Id: minfo_14.c,v 1.25 2000/04/28 01:24:05 gson Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -198,6 +198,7 @@ tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	
 	REQUIRE(rdata->type == 14);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -209,6 +210,8 @@ freestruct_minfo(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -217,8 +220,9 @@ additionaldata_minfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 14);
 
-	(void)add;
-	(void)arg;
+	UNUSED(rdata);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

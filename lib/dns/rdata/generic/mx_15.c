@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.29 2000/04/27 00:02:31 tale Exp $ */
+/* $Id: mx_15.c,v 1.30 2000/04/28 01:24:05 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -177,6 +177,7 @@ tostruct_mx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
 	REQUIRE(rdata->type == 15);
 
+	UNUSED(rdata);
 	UNUSED(target);
 	UNUSED(mctx);
 
@@ -188,6 +189,8 @@ freestruct_mx(void *source)
 {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.15 2000/04/27 00:02:45 tale Exp $ */
+/* $Id: x25_19.c,v 1.16 2000/04/28 01:24:12 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -127,6 +127,7 @@ tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	UNUSED(target);
 	UNUSED(mctx);
+	UNUSED(rdata);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -135,16 +136,19 @@ static inline void
 freestruct_x25(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	UNUSED(source);
 }
 
 static inline isc_result_t
 additionaldata_x25(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
+	REQUIRE(rdata->type == 19);
+
+	UNUSED(rdata);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == 19);
 
 	return (ISC_R_SUCCESS);
 }
