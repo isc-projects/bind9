@@ -1,3 +1,6 @@
+1560.	[port]		FreeBSD: work around FreeBSD 5.2 mapping EAI_NODATA
+			and EAI_NONAME to the same value.
+
 1559.	[placeholder]	rt10194
 
 1558.	[func]		New DNSSEC 'disable-algorithms'.  Support entry into
