@@ -1,3 +1,6 @@
+1171.	[func]		Added function isc_region_compare(), updated files in
+			lib/dns to use this function instead of local one.
+
 1169.	[func]		Identify recursive queries in the query log.
 
 1163.	[func]		isc_time_formattimestamp() now includes the year.

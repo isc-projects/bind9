@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.28.2.1 2001/09/11 01:09:07 gson Exp $ */
+/* $Id: unspec_103.c,v 1.28.2.1.10.1 2003/08/12 14:16:14 marka Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -83,7 +83,7 @@ compare_unspec(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.48.2.1 2003/07/23 06:57:51 marka Exp $ */
+/* $Id: tkey_249.c,v 1.48.2.1.2.1 2003/08/12 14:16:14 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -340,7 +340,7 @@ compare_tkey(ARGS_COMPARE) {
 		return (order);
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

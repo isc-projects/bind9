@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.54.2.1 2003/07/23 06:57:51 marka Exp $ */
+/* $Id: sig_24.c,v 1.54.2.1.2.1 2003/08/12 14:16:13 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -335,7 +335,7 @@ compare_sig(ARGS_COMPARE) {
 	INSIST(r2.length > 18);
 	r1.length = 18;
 	r2.length = 18;
-	order = compare_region(&r1, &r2);
+	order = isc_region_compare(&r1, &r2);
 	if (order != 0)
 		return (order);
 
@@ -354,7 +354,7 @@ compare_sig(ARGS_COMPARE) {
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));
 
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

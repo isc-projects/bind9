@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.36 2001/07/16 03:06:41 marka Exp $ */
+/* $Id: aaaa_28.c,v 1.36.12.1 2003/08/12 14:16:16 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -128,7 +128,7 @@ compare_in_aaaa(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

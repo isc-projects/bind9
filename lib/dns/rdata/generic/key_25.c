@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.41 2001/07/16 03:06:09 marka Exp $ */
+/* $Id: key_25.c,v 1.41.12.1 2003/08/12 14:16:12 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -176,7 +176,7 @@ compare_key(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

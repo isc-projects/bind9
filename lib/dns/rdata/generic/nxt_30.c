@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.49.2.2 2003/07/22 04:03:46 marka Exp $ */
+/* $Id: nxt_30.c,v 1.49.2.2.2.1 2003/08/12 14:16:13 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -193,7 +193,7 @@ compare_nxt(ARGS_COMPARE) {
 	if (order != 0)
 		return (order);
 
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.44 2001/07/16 03:06:51 marka Exp $ */
+/* $Id: wks_11.c,v 1.44.12.1 2003/08/12 14:16:16 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -229,7 +229,7 @@ compare_in_wks(ARGS_COMPARE) {
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return (compare_region(&r1, &r2));
+	return (isc_region_compare(&r1, &r2));
 }
 
 static inline isc_result_t

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.71.2.2.2.1 2003/08/11 04:48:06 marka Exp $
+# $Id: Makefile.in,v 1.71.2.2.2.2 2003/08/12 14:16:16 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -56,7 +56,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		md5.@O@ mem.@O@ mutexblock.@O@ netaddr.@O@ ondestroy.@O@ \
 		parseint.@O@ quota.@O@ random.@O@ \
-		ratelimiter.@O@ result.@O@ rwlock.@O@ \
+		ratelimiter.@O@ region.@O@ result.@O@ rwlock.@O@ \
 		serial.@O@ sha1.@O@ sockaddr.@O@ string.@O@ symtab.@O@ \
 		task.@O@ taskpool.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
