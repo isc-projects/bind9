@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: testsock.pl,v 1.4 2000/06/25 01:40:05 gson Exp $
+# $Id: testsock.pl,v 1.5 2000/06/25 02:30:18 gson Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -28,9 +28,11 @@ my $port = 0;
 GetOptions("p=i" => \$port);
 
 for ($id = 1 ; $id < 6 ; $id++) {
-	$sa = pack_sockaddr_in($port, pack("C4", 10, 53, 0, $id));
+        my $addr = pack("C4", 10, 53, 0, $id);
+	my $sa = pack_sockaddr_in($port, $addr);
 	socket(SOCK, PF_INET, SOCK_STREAM, getprotobyname("tcp"))
       		or die "$0: socket: $!\n";
 	bind(SOCK, $sa)
-	    	or die "$0: bind: $!\n";
+	    	or die sprintf("$0: bind(%s, %d): $!\n",
+			       inet_ntoa($addr), $port);
 }
