@@ -2060,6 +2060,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		/*
 		 * A6 records cause type A and AAAA additional
 		 * section processign for the QNAME.
+		 *
+		 * XXXRTH  This will probably not be required in the next
+		 *         dns-lookups draft, and we'll remove it when the
+		 *	   draft comes out.
 		 */
 		if (qtype == dns_rdatatype_a6) {
 			if (!clear_fname) {
