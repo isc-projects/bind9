@@ -1,4 +1,10 @@
 
+ 923.	[bug]		Multiline TSIG secrets (and other multiline strings)
+			were not accepted in named.conf. [RT #1469]
+
+ 922.	[func]		Added two new lwres_getrrsetbyname() result codes,
+			ERR_NONAME and ERR_NODATA.
+
  921.	[bug]		lwres returned an incorrect error code if it received
  			a truncated message.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.64 2001/07/04 00:34:44 bwelling Exp $ */
+/* $Id: lex.c,v 1.65 2001/07/06 20:34:09 gson Exp $ */
 
 #include <config.h>
 
@@ -721,7 +721,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					done = ISC_TRUE;
 				}
 			} else {
-				if (c == '\n' && !escaped) {
+				if (c == '\n' && !escaped &&
+			    (options & ISC_LEXOPT_QSTRINGMULTILINE) == 0) {
 					pushback(source, c);
 					return (ISC_R_UNBALANCEDQUOTES);
 				}

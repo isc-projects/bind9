@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.61 2001/07/03 17:12:19 gson Exp $ */
+/* $Id: parser.c,v 1.62 2001/07/06 20:34:12 gson Exp $ */
 
 #include <config.h>
 
@@ -39,6 +39,8 @@
 /* Shorthand */
 #define CAT CFG_LOGCATEGORY_CONFIG
 #define MOD CFG_LOGMODULE_PARSER
+
+#define QSTRING (ISC_LEXOPT_QSTRING | ISC_LEXOPT_QSTRINGMULTILINE)
 
 /*
  * Pass one of these flags to parser_error() to include the
@@ -1767,7 +1769,7 @@ parse_qstring(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
         isc_result_t result;
 	UNUSED(type);
 
-	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_QSTRING));
+	CHECK(cfg_gettoken(pctx, QSTRING));
 	if (pctx->token.type != isc_tokentype_qstring) {
 		parser_error(pctx, LOG_NEAR, "expected quoted string");
 		return (ISC_R_UNEXPECTEDTOKEN);
@@ -2570,7 +2572,7 @@ parse_token(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
 
 	CHECK(create_cfgobj(pctx, &cfg_type_token, &obj));
-	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_QSTRING));
+	CHECK(cfg_gettoken(pctx, QSTRING));
 	if (pctx->token.type == isc_tokentype_eof) {
 		cfg_ungettoken(pctx);
 		result = ISC_R_EOF;
@@ -3014,7 +3016,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
         isc_result_t result;
 	UNUSED(type);
 
-	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_QSTRING));
+	CHECK(cfg_peektoken(pctx, QSTRING));
 
 	if (pctx->token.type == isc_tokentype_string ||
 	    pctx->token.type == isc_tokentype_qstring) {
@@ -3230,7 +3232,7 @@ parse_optional_facility(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 	isc_result_t result;
 	UNUSED(type);
 
-	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_QSTRING));
+	CHECK(cfg_peektoken(pctx, QSTRING));
 	if (pctx->token.type == isc_tokentype_string ||
 	    pctx->token.type == isc_tokentype_qstring) {
 		CHECK(parse(pctx, &cfg_type_astring, ret));
@@ -3549,7 +3551,7 @@ static isc_result_t
 cfg_getstringtoken(cfg_parser_t *pctx) {
 	isc_result_t result;
 
-	result = cfg_gettoken(pctx, ISC_LEXOPT_QSTRING);
+	result = cfg_gettoken(pctx, QSTRING);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
