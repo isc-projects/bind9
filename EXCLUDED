@@ -2,6 +2,16 @@
                         was built without crypto support, it would leak memory.
 			[ Not applicable to 9.2 ]
 
+1150.   [bug]           named incorrectly accepted TTL values
+                        containing plus or minus signs, such as
+                        1d+1h-1s.
+			[ Uses new function isc_parse_uint32() ]
+
+1151.   [bug]           nslookup failed to check that the arguments to   
+                        the port, timeout, and retry options were
+                        valid integers and in range. [RT #2099]
+			[ Uses new function isc_parse_uint32() ]
+
 1159.	[bug]		MD and MF are not permitted to be loaded by RFC1123
 			[ Could cause zones that loaded in 9.2.0 to fail
 			to load.  Leave such breakages to 9.3.0. ]
