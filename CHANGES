@@ -1,3 +1,9 @@
+
+ 584.	[func]		You can now say 'notify explicit'; to suppress
+			notification of the servers listed in NS records
+			and notify only those servers listed in the
+			'also-notify' option.
+
  583.	[func]		"rndc querylog" will now toggle logging of
 			queries, like "ndc querylog" in BIND 8.
 
