@@ -1,3 +1,6 @@
+ 271.	[func]		Attempt to probe the number of cpus in named
+			if unspecified rather than defaulting to 1.
+
  270.	[func]		Allow maximum sized TCP answers.
 
  269.	[bug]		Failed DNSSEC validations could cause an assertion
