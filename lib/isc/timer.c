@@ -503,7 +503,6 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 static void *
 run(void *uap) {
 	timer_manager_t manager = uap;
-	struct timespec ts;
 	boolean_t timeout;
 	os_time_t now;
 
@@ -516,11 +515,9 @@ run(void *uap) {
 		dispatch(manager, &now);
 
 		if (manager->nscheduled > 0) {
-			ts.tv_sec = manager->due.seconds;
-			ts.tv_nsec = manager->due.nanoseconds;
 			XTRACETIME("waituntil", manager->due);
-			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
-				  &timeout);
+			WAITUNTIL(&manager->wakeup, &manager->lock,
+				  &manager->due, &timeout);
 		} else {
 			XTRACE("wait");
 			WAIT(&manager->wakeup, &manager->lock);

@@ -6,6 +6,7 @@
 
 #include <isc/boolean.h>
 #include <isc/mutex.h>
+#include <isc/time.h>
 
 typedef pthread_cond_t			os_condition_t;
 #define OS_CONDITION_INITIALIZER	PTHREAD_COND_INITIALIZER
@@ -18,7 +19,7 @@ typedef pthread_cond_t			os_condition_t;
 
 boolean_t			os_condition_waituntil(os_condition_t *,
 						       os_mutex_t *,
-						       struct timespec *,
+						       os_time_t *,
 						       boolean_t *);
 
 #endif /* CONDITION_H */
