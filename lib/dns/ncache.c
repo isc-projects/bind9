@@ -95,14 +95,14 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	isc_buffer_t buffer;
 	isc_region_t r;
 	dns_rdataset_t *rdataset;
-	dns_rdata_t rdata;
-	dns_rdataset_t ncrdataset;
-	dns_rdatalist_t ncrdatalist;
 	dns_rdatatype_t type;
 	dns_name_t *name;
 	dns_ttl_t ttl;
-	char *data[4096];
 	dns_trust_t trust;
+	dns_rdata_t rdata;
+	dns_rdataset_t ncrdataset;
+	dns_rdatalist_t ncrdatalist;
+	unsigned char data[4096];
 
 	/*
 	 * Convert the authority data from 'message' into a negative cache
@@ -173,11 +173,58 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	if (result != ISC_R_NOMORE)
 		return (result);
 
-	/*
-	 * Now, turn 'buffer' into an ncache rdataset and add it to
-	 * the cache.
-	 */
+	if (trust == 0xffff) {
+		/*
+		 * We didn't find any authority data from which to create a
+		 * negative cache rdataset.  In particular, we have no SOA.
+		 *
+		 * We trust that the caller wants negative caching, so this
+		 * means we have a "type 3 nxdomain" or "type 3 nodata"
+		 * response (see RFC 2308 for details).
+		 *
+		 * We will now build a suitable negative cache rdataset that
+		 * will cause zero bytes to be emitted when converted to
+		 * wire format.
+		 */
 
+		/*
+		 * The ownername must exist, but it doesn't matter what value
+		 * it has.  We use the root name.
+		 */
+		dns_name_toregion(dns_rootname, &r);
+		result = isc_buffer_copyregion(&buffer, &r);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		/*
+		 * Copy the type and a zero rdata count to the buffer.
+		 */
+		isc_buffer_available(&buffer, &r);
+		if (r.length < 4)
+			return (ISC_R_NOSPACE);
+		isc_buffer_putuint16(&buffer, 0);
+		isc_buffer_putuint16(&buffer, 0);
+		/*
+		 * RFC 2308, section 5, says that negative answers without
+		 * SOAs should not be cached.
+		 */
+		ttl = 0;
+		/*
+		 * Set trust.
+		 */
+		if ((message->flags & DNS_MESSAGEFLAG_AA) != 0 &&
+		    message->counts[DNS_SECTION_ANSWER] == 0) {
+			/*
+			 * The response has aa set and we haven't followed
+			 * any CNAME or DNAME chains.
+			 */
+			trust = dns_trust_authauthority;
+		} else
+			trust = dns_trust_additional;
+	}
+
+	/*
+	 * Now add it to the cache.
+	 */
 	INSIST(trust != 0xffff);
 	dns_rdata_init(&rdata);
 	isc_buffer_used(&buffer, &r);
@@ -199,10 +246,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset);
 	ncrdataset.trust = trust;
 
-	result = dns_db_addrdataset(cache, node, NULL, now, &ncrdataset,
-				    ISC_FALSE, addedrdataset);
-
-	return (result);
+	return (dns_db_addrdataset(cache, node, NULL, now, &ncrdataset,
+				   ISC_FALSE, addedrdataset));
 }
 
 isc_result_t
