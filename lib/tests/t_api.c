@@ -81,7 +81,6 @@ static int	t_putinfo(const char *key, const char *info);
 static char	*t_getdate(char *buf, size_t buflen);
 static void	printhelp(void);
 static void	printusage(void);
-static void	t_sighandler(void);
 
 static int	T_int;
 
