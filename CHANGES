@@ -1,3 +1,6 @@
+1492.	[cleanup]	Preserve rwlock quota context when upgrading /
+			downgrading. [RT #5599]
+
 1491.	[bug]		dns_master_dump*() would produce extraneous $ORIGIN
 			lines. [RT #6206]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.18.2.1 2003/05/15 06:08:41 marka Exp $ */
+/* $Id: rwlock.h,v 1.18.2.2 2003/07/21 01:28:23 marka Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
@@ -57,6 +57,7 @@ struct isc_rwlock {
 	unsigned int		writers_waiting;
 	unsigned int		read_quota;
 	unsigned int		write_quota;
+	isc_rwlocktype_t	original;
 };
 #else /* ISC_PLATFORM_USETHREADS */
 struct isc_rwlock {
