@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.7.4.5 2003/08/18 05:56:58 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.7.4.6 2003/08/19 03:11:19 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -48,6 +48,7 @@ typedef enum {
 #define DNS_ZONEOPT_NOMERGE	  0x00000040U	/* don't merge journal */
 #define DNS_ZONEOPT_CHECKNS	  0x00000080U	/* check if NS's are addresses */
 #define DNS_ZONEOPT_FATALNS	  0x00000100U	/* DNS_ZONEOPT_CHECKNS is fatal */
+#define DNS_ZONEOPT_MULTIMASTER	  0x00000200U	/* this zone has multiple masters */
 
 #ifndef NOMINUM_PUBLIC
 /*

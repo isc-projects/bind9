@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.4.10.4 2003/08/13 01:41:32 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4.10.5 2003/08/19 03:11:16 marka Exp $ */
 
 #include <config.h>
 
@@ -316,6 +316,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	dns_zonetype_t ztype;
 	int i;
 	isc_int32_t journal_size;
+	isc_boolean_t multi;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -577,6 +578,15 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		} else
 			result = dns_zone_setmasters(zone, NULL, 0);
 		RETERR(result);
+
+		multi = ISC_FALSE;
+		if (count > 1) {
+			obj = NULL;
+			result = ns_config_get(maps, "multi-master", &obj);
+			INSIST(result == ISC_R_SUCCESS);
+			multi = cfg_obj_asboolean(obj);
+		}
+		dns_zone_setoption(zone, DNS_ZONEOPT_MULTIMASTER, multi);
 
 		obj = NULL;
 		result = ns_config_get(maps, "max-transfer-time-in", &obj);
