@@ -685,14 +685,14 @@ message_getvalue(omapi_object_t *h, omapi_string_t *name,
 	/*
 	 * Look for values that are in the message data structure.
 	 */
-	if (omapi_string_strcmp(name, "authenticator") == 0)
+	if (omapi_string_strcmp(name, "authenticator") == 0) {
 		if (m->authenticator != NULL)
 			return (omapi_value_storedata(value, name,
 						      m->authenticator));
 		else
 			return (ISC_R_NOTFOUND);
 
-	else if (omapi_string_strcmp(name, "authlen") == 0)
+	} else if (omapi_string_strcmp(name, "authlen") == 0)
 		return (omapi_value_storeint(value, name, (int)m->authlen));
 
 	else if (omapi_string_strcmp(name, "authid") == 0)
