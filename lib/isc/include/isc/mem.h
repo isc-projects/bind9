@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.48 2001/02/09 19:05:23 gson Exp $ */
+/* $Id: mem.h,v 1.49 2001/02/09 19:19:17 gson Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -163,12 +163,14 @@ isc_result_t isc_mem_createx(size_t max_size, size_t target_size,
 /*
  * Create a memory context.
  *
- * 'max_size' and 'target_size' are tuning parameters.  Allocations
- * smaller than 'max_size' will be satisfied by getting blocks of
- * size 'target_size' from the system allocator and breaking them
- * up into pieces; larger allocations will use the system allocator
- * directly.  If 'max_size' and/or 'target_size' are zero, default 
- * values will be used.
+ * 'max_size' and 'target_size' are tuning parameters.  When
+ * ISC_MEM_USE_INTERNAL_MALLOC is true, allocations smaller than
+ * 'max_size' will be satisfied by getting blocks of size
+ * 'target_size' from the system allocator and breaking them up into
+ * pieces; larger allocations will use the system allocator directly.
+ * If 'max_size' and/or 'target_size' are zero, default values will be
+ * used.  When ISC_MEM_USE_INTERNAL_MALLOC is false, 'max_size' and
+ * 'target_size' are ignored.
  *
  * A memory context created using isc_mem_createx() will obtain
  * memory from the system by calling 'memalloc' and 'memfree',
@@ -177,8 +179,7 @@ isc_result_t isc_mem_createx(size_t max_size, size_t target_size,
  * and free().
  *
  * Requires:
- *	mctxp != NULL && *mctxp == NULL
- */
+ * mctxp != NULL && *mctxp == NULL */
 
 void isc_mem_attach(isc_mem_t *, isc_mem_t **);
 void isc_mem_detach(isc_mem_t **);
