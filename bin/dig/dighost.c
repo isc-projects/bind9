@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.185 2001/01/18 05:12:41 gson Exp $ */
+/* $Id: dighost.c,v 1.186 2001/01/18 22:21:30 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -32,9 +32,6 @@
 #include <netdb.h>
 #include <string.h>
 #include <limits.h>
-#if (!(defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)))
-extern int h_errno;
-#endif
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
@@ -69,6 +66,18 @@ extern int h_errno;
 #include <isc/util.h>
 
 #include <dig/dig.h>
+
+#ifdef HAVE_ADDRINFO
+#ifdef HAVE_GETADDRINFO
+#ifdef HAVE_GAISTRERROR
+#define USE_GETADDRINFO
+#endif
+#endif
+#endif
+
+#ifdef USE_GETADDRINFO
+extern int h_errno;
+#endif
 
 ISC_LIST(dig_lookup_t) lookup_list;
 dig_serverlist_t server_list;
@@ -2586,7 +2595,7 @@ void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
-#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+#ifdef USE_GETADDRINFO
 	struct addrinfo *res = NULL;
 	int result;
 #else
@@ -2604,7 +2613,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	else if (inet_pton(AF_INET, host, &in4) == 1)
 		isc_sockaddr_fromin(sockaddr, &in4, port);
 	else {
-#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+#ifdef USE_GETADDRINFO
 		debug ("before getaddrinfo()");
 		isc_app_block();
 		result = getaddrinfo(host, NULL, NULL, &res);

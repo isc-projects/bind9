@@ -1,4 +1,7 @@
 
+ 692.	[bug]		Deal with systems that have getaddrinfo() but not
+			gai_strerror(). [RT #679]
+
  691.	[bug]		Configuring per-view forwarders caused an assertion
 			failure. [RT #675]
 
