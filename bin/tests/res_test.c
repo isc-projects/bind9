@@ -46,6 +46,7 @@
 #include <dns/events.h>
 #include <dns/dispatch.h>
 #include <dns/tsig.h>
+#include <dns/view.h>
 
 isc_mutex_t lock;
 
@@ -140,6 +141,7 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task1, *task2;
 	isc_timermgr_t *timermgr;
+	dns_view_t *view;
 	dns_resolver_t *res;
 	int ch;
 	dns_fetch_t *fetch;
@@ -197,14 +199,22 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_socket_create(socketmgr, PF_INET,
 					isc_sockettype_udp, &s) ==
 		      ISC_R_SUCCESS);
+
+	view = NULL;
+	RUNTIME_CHECK(dns_view_create(mctx, dns_rdataclass_in, "default",
+				      &view) == ISC_R_SUCCESS);
+
 	dispatch = NULL;
 	RUNTIME_CHECK(dns_dispatch_create(mctx, s, task1, 4096, 1000, 1000, 4,
 					  &dispatch) == DNS_R_SUCCESS);
 
 	res = NULL;
-	RUNTIME_CHECK(dns_resolver_create(mctx, taskmgr, 10, timermgr,
-					  dns_rdataclass_in, dispatch, &res) ==
+	RUNTIME_CHECK(dns_resolver_create(mctx, view, taskmgr, 10, timermgr,
+					  dispatch, &res) ==
 		      DNS_R_SUCCESS);
+
+	dns_view_setresolver(view, res);
+	dns_view_freeze(view);
 
 	ISC_LIST_INIT(fetches);
 	fetch = launch(res, dns_rootname, dns_rdatatype_a,
@@ -229,6 +239,7 @@ main(int argc, char *argv[]) {
 	 * they've been created.
 	 */
 
+	dns_view_detach(&view);
 	dns_resolver_detach(&res);
 	dns_dispatch_detach(&dispatch);
 
