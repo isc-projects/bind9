@@ -1466,6 +1466,9 @@ test_dns_name_getlabel(char *test_name1, int label1_pos,
 
 	nfails = 0;
 	result = T_UNRESOLVED;
+
+	t_info("testing with %s and %s\n", test_name1, test_name2);
+
 	dns_result = dname_from_tname(test_name1, &dns_name1);
 	if (dns_result == DNS_R_SUCCESS) {
 		dns_result = dname_from_tname(test_name2, &dns_name2);
