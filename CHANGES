@@ -1,3 +1,5 @@
+1637.	[bug]		Node reference leak on error in addnoqname().
+
 1636.	[bug]		The dump done callback could get ISC_R_SUCCESS even if
 			a error had occured.  The database version no longer
 			matched the version of the database that was dumped.
