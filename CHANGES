@@ -1,4 +1,7 @@
 
+ 864.	[cleanup]	Multithreading is now enabled by default on
+			OSF1, Solaris 2.7 and newer, AIX, IRIX, and HP-UX.
+
  863.	[bug]		If an error occurred while an outgoing zone transfer
 			was starting up, the server could access a domain
 			name that had already been freed when logging a
@@ -43,6 +46,8 @@
 
  851.	[cleanup]	The obsolete support-ixfr option was not properly
  			ignored.
+
+	--- 9.2.0a1 released ---
 
  850.	[bug]		dns_rbt_findnode() would not find nodes that were
 			split on a bitstring label somewhere other than in
@@ -96,7 +101,7 @@
 			bin/tests/system/ifconfig.sh.
 
  837.	[cleanup]	Multithreading is now enabled by default only on
-			OSF1, Solaris 2.7 and newer, AIX, IRIX, and HP-UX.
+			OSF1, Solaris 2.7 and newer, and AIX.
 
  836.	[func]		Upgraded libtool to 1.4.
 
