@@ -18,7 +18,7 @@
 /* eventlib_p.h - private interfaces for eventlib
  * vix 09sep95 [initial]
  *
- * $Id: eventlib_p.h,v 1.3.2.2 2004/03/09 09:17:35 marka Exp $
+ * $Id: eventlib_p.h,v 1.3.2.3 2004/12/05 22:37:22 marka Exp $
  */
 
 #ifndef _EVENTLIB_P_H
@@ -214,6 +214,6 @@ void evDestroyTimers(const evContext_p *);
 evWait *evFreeWait(evContext_p *ctx, evWait *old);
 
 /* Global options */
-int		__evOptMonoTime;
+extern int	__evOptMonoTime;
 
 #endif /*_EVENTLIB_P_H*/
