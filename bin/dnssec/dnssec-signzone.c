@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.94 2000/08/14 04:43:15 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.95 2000/09/07 15:53:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -489,8 +489,10 @@ importparentsig(dns_db_t *db, dns_diff_t *diff, dns_name_t *name,
 	    !dns_rdataset_isassociated(&sigset))
 		goto failure;
 
-	if (dns_rdataset_count(set) != dns_rdataset_count(&newset))
+	if (dns_rdataset_count(set) != dns_rdataset_count(&newset)) {
+		result = DNS_R_BADDB;
 		goto failure;
+	}
 
 	dns_rdata_init(&rdata);
 	dns_rdata_init(&newrdata);
@@ -528,6 +530,8 @@ importparentsig(dns_db_t *db, dns_diff_t *diff, dns_name_t *name,
 		dns_diff_append(diff, &tuple);
 		result = dns_rdataset_next(&sigset);
 	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
 
  failure:
 	if (dns_rdataset_isassociated(&newset))
@@ -538,6 +542,8 @@ importparentsig(dns_db_t *db, dns_diff_t *diff, dns_name_t *name,
 		dns_db_detachnode(newdb, &newnode);
 	if (newdb != NULL)
 		dns_db_detach(&newdb);
+	if (result != ISC_R_SUCCESS)
+		fatal("zone signedkey file is invalid or does not match zone");
 }
 
 /*
@@ -1407,6 +1413,9 @@ main(int argc, char *argv[]) {
 				dst_key_free(&newkey);
 		}
 	}
+	if (ISC_LIST_EMPTY(keylist))
+		fprintf(stderr, "%s: warning: No keys specified or found\n",
+			program);
 
 	version = NULL;
 	result = dns_db_newversion(db, &version);
