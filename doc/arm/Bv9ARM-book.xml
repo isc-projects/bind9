@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.93 2001/01/25 19:54:55 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.94 2001/01/26 18:52:59 gson Exp $ -->
 
 <book>
 
@@ -406,22 +406,25 @@ systems:</para>
         <simpara>Compaq Digital/Tru64 UNIX 4.0D</simpara>
       </listitem>
       <listitem>
+        <simpara>Compaq Digital/Tru64 UNIX 5 (with IPv6 EAK)</simpara>
+      </listitem>
+      <listitem>
         <simpara>HP HP-UX 11</simpara>
       </listitem>
       <listitem>
         <simpara>IRIX64 6.5</simpara>
       </listitem>
       <listitem>
-        <simpara>Red Hat Linux 6.0, 6.1</simpara>
+        <simpara>Sun Solaris 2.6, 7, 8</simpara>
       </listitem>
       <listitem>
-        <simpara>Sun Solaris 2.6, 7, 8 (beta)</simpara>
+        <simpara>NetBSD 1.5 (with unproven-pthreads 0.17)</simpara>
       </listitem>
       <listitem>
-        <simpara>FreeBSD 3.4-STABLE</simpara>
+        <simpara>FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1</simpara>
       </listitem>
       <listitem>
-        <simpara>NetBSD-current with "unproven" pthreads</simpara>
+        <simpara>Red Hat Linux 6.0, 6.1, 6.2, 7.0</simpara>
       </listitem>
     </itemizedlist>
   </sect1>
