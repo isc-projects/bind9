@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.190 2001/01/02 18:51:07 gson Exp $ */
+/* $Id: resolver.c,v 1.191 2001/01/02 20:46:07 gson Exp $ */
 
 #include <config.h>
 
@@ -173,19 +173,26 @@ struct fetchctx {
 	dns_fwdpolicy_t			fwdpolicy;
 	isc_sockaddrlist_t		bad;
 	ISC_LIST(dns_validator_t)	validators;
+
 	/*
-	 * # of events we're waiting for.
+	 * The number of events we're waiting for.
 	 */
 	unsigned int			pending;
+
 	/*
-	 * # of times we have started from the beginning
-	 * of the name server set.
+	 * The number of times we've "restarted" the current
+	 * nameserver set.  This acts as a failsafe to prevent
+	 * us from pounding constantly on a particular set of
+	 * servers that, for whatever reason, are not giving
+	 * us useful responses, but are responding in such a
+	 * way that they are not marked "bad".
 	 */
 	unsigned int			restarts;
+
 	/*
-	 * # of timeouts that have occurred since we last
-	 * successfully received a response packet.  This
-	 * is used for EDNS0 black hole detectino.
+	 * The number of timeouts that have occurred since we 
+	 * last successfully received a response packet.  This
+	 * is used for EDNS0 black hole detection.
 	 */
 	unsigned int			timeouts;
 };
@@ -4195,6 +4202,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			get_nameservers = ISC_TRUE;
 			keep_trying = ISC_TRUE;
+			/*
+			 * We have a new set of name servers, and it
+			 * has not experienced any restarts yet.
+			 */
+			fctx->restarts = 0;
 			result = ISC_R_SUCCESS;
 		} else if (result != ISC_R_SUCCESS) {
 			/*
