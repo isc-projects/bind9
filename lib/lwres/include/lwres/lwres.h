@@ -18,6 +18,7 @@
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
 
+#include <stdio.h>
 #include <stddef.h>
 
 #include <lwres/lang.h>
@@ -164,6 +165,38 @@ typedef struct {
 	size_t			baselen;
 } lwres_gnbaresponse_t;
 
+
+/*
+ * resolv.conf DATA
+ */
+	
+#define LWRES_CONFMAXNAMESERVERS 3	/* max 3 "nameserver" entries */
+#define LWRES_CONFMAXSEARCH 6		/* max 6 domains in "search" entry */
+#define LWRES_CONFMAXLINELEN 256	/* max size of a line */
+#define LWRES_CONFMAXSORTLIST 10
+typedef struct {
+	lwres_addr_t    nameservers[LWRES_CONFMAXNAMESERVERS];
+	lwres_uint8_t	nsnext;		/* index for next free slot */
+
+	char	       *domainname;
+
+	char 	       *search[LWRES_CONFMAXSEARCH];
+	lwres_uint8_t	searchnxt;	/* index for next free slot */
+
+	struct {
+		lwres_addr_t addr;
+		/* mask has a non-zero 'family' and 'length' if set */
+		lwres_addr_t mask;	
+	} sortlist[LWRES_CONFMAXSORTLIST];
+	lwres_uint8_t	sortlistnxt;
+
+	lwres_uint8_t	resdebug;	/* non-zero if 'options debug' set */
+	lwres_uint8_t	ndots;		/* set to n in 'options ndots:n' */
+	lwres_uint8_t	no_tld_query;	/* non-zero if 'options no_tld_query' */
+} lwres_conf_t;
+
+	
+	
 #define LWRES_ADDRTYPE_V4		0x00000001U	/* ipv4 */
 #define LWRES_ADDRTYPE_V6		0x00000002U	/* ipv6 */
 
@@ -351,6 +384,50 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
  *	system via the context's free function.
  */
 
+
+
+int lwres_conf_parse(lwres_context_t *ctx, const char *filename,
+		     lwres_conf_t *confdata);
+/*
+ * parses a resolv.conf-format file and puts the results into *confdata;
+ *
+ * Requires:
+ *	confdata != NULL
+ *	filename != NULL && strlen(filename) > 0
+ *
+ * Returns:
+ *	0 on a succesfull parse.
+ *	-1 on failure (errno will be != 0 on failure like file not found.
+ */
+
+void lwres_conf_free(lwres_conf_t *confdata);
+/*
+ * Returns the data in confdata to the system.
+ *
+ * Requires:
+ *	confdata != NULL
+ *	that confdata had been previously passed to lwres_conf_parse()
+ */
+
+int lwres_conf_print(FILE *fp, lwres_conf_t *confdata);
+/*
+ * Prints a resolv.conf-format of confdata output to fp.
+ */
+
+void lwres_conf_init(lwres_conf_t *confdata);
+/*
+ * sets all internal fields to a default state. Used to initialize a new
+ * lwres_conf_t structure (not reset a used on).
+ */
+
+
+void lwres_conf_clear(lwres_context_t *ctx, lwres_conf_t *confdata);
+/*
+ * frees all internally allocated memory in confdata. Uses the memory 
+ * routines supplies by ctx (so that should probably be the same value as
+ * given to lwres_conf_parse()).
+ */
+
 /*
  * Helper functions
  */
@@ -369,6 +446,9 @@ int
 lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 		    lwres_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp);
+
+
+
 
 LWRES_LANG_ENDDECLS
 
