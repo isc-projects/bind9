@@ -1,3 +1,6 @@
+
+	--- 9.2.4rc7 released ---
+
 1694.	[bug]		Report if the builtin views of "_default" / "_bind"
 			are defined in named.conf. [RT #12023]
 
