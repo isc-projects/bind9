@@ -1151,6 +1151,7 @@
 ./lib/isc/include/isc/random.h			C	1999,2000
 ./lib/isc/include/isc/ratelimiter.h		C	1999,2000
 ./lib/isc/include/isc/region.h			C	1998,1999,2000
+./lib/isc/include/isc/resource.h		C	2000
 ./lib/isc/include/isc/result.h			C	1998,1999,2000
 ./lib/isc/include/isc/resultclass.h		C	1999,2000
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000
@@ -1250,6 +1251,7 @@
 ./lib/isc/unix/keyboard.c			C	2000
 ./lib/isc/unix/net.c				C	1999,2000
 ./lib/isc/unix/os.c				C	2000
+./lib/isc/unix/resource.c			C	2000
 ./lib/isc/unix/socket.c				C	1998,1999,2000
 ./lib/isc/unix/socket_p.h			C	2000
 ./lib/isc/unix/stdio.c				C	2000
