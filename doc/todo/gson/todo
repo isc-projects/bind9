@@ -1,0 +1,13 @@
+handle incoming AXFR without using twice the memory by using
+RBT mark bit (with Michael)
+
+Inspect dig and nsupdate (with Mike)
+
+Revise the AXFR draft (waiting from input from Microsoft)
+
+Support 64-bit offsets and serials in the journal
+
+Redo configuration locking using a task system call to
+ensure exclusive access
+
+

@@ -1,0 +1,11 @@
+Eliminate parent chain
+
+Clean dead nodes from rbtdb
+
+Make omapi limit pre-authentication message size to avoid denial of
+service attack where a huge packet is sent
+
+Generate secret for rndc automatically
+
+Write documentation for the "stderr" channel type and send to 
+Mary for inclusion in the ARM.

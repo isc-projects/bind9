@@ -1,0 +1,125 @@
+Review man pages
+
+Complete OMAPI security review
+
+Complete server input code path security review
+     message.c, tcpmsg.c + places where tcpmsg.c functionality is duplicated,
+     request.c
+
+Review lwres input code path for buffer overflows
+
+Document function REQUIREs in omapi and parser
+
+Write libdns overview document (even if it only says "don't use
+libdns")
+
+Improve these error messages:
+  rndc: operation failed: verify failure (failed to verify signature)
+  rndc: reload command failure: verify failure
+
+In the lexer, when you unget a token and then re-get it with different
+options, the new options do not apply.  This makes the lexer useless
+for parsing the nsupdate command line, because here we need to peek for
+an end-of-line, unget it, and then read an rdata which may require
+specific flags.
+
+Do something about the commented-out interface scanning code in
+getaddrinfo()
+
+Add a built-in localhost zone feature
+
+Mark says we should check that a partial rrset dynamic
+update will cause the resulting full rrset to have the
+new ttl, and check that RFC2136 actually says this
+
+Implement rrsert-order and sortlist.  Mark says rrset-order is applied
+first, sortlist last.
+
+Support long command line options
+
+Convert the documentation to XML
+
+Add support for cross-zone glue
+
+mark: explain "database file older than last load"
+
+Add quotes around logging category names in named.conf examples
+where they are missing
+
+Add configuration option for generating IXFRs by calculating the
+difference between two zone versions (most of the code is already
+there)
+
+Add support for persistent databases (disable initial load,
+journalling, etc)
+
+Examine why aa:/usr/var/adm/syslog.dated/22-May-17:37/daemon.log has:
+  May 23 08:19:58 aa named[24603]: starting BIND 9.0.0b3
+  May 23 08:19:58 aa syslog: loading configuration from '/build/gson/local/namedb
+(why named then syslog?)
+
+Improve the ARM chapter on server tpyes, making it recommend the use
+of separate authoritative and caching servers
+
+Define easy-to-parse subset of master file format and make dig support it;
+make that the recommended way of exporting zone data.
+
+Support general time specifiers like "4d10m" in named.conf
+
+Get rid of the TODO file in the top level source directory
+
+Implemente update forwarding
+
+Eliminate meta types on input
+
+Implement "additional data max/min/internal" 
+(whatever that means)
+
+Stomp error memory leaks
+
+Implement per-domain forwarding
+
+Implement sortlists (in the server)
+
+Check for things still being logged with printf
+ 
+Avoid ADB negative caching if an ADB-originated fetch fails due to a local
+resource problem (e.g. ISC_R_NOMEMORY or ISC_R_QUOTA).
+
+Write a paper on the flaws of DNSSEC
+
+Improve logging infrastructure to simplify providing context information
+
+Decide on one set of CHECK()/RETERR() macros and put it in a common
+header file
+
+Set up interoperability test server
+
+Replace the calls to qsort() with a merge sort to avoid potential
+stack overflow
+
+Choose ixfr/axfr depending on zone/diff size
+
+dns_db_createsoatuple -> journal_ ?
+
+Support $DATE fully
+
+Look at all the XXXes in the code
+
+Persistent cache option
+
+From the old TODO file at the top of the source tree:
+
+  1.	  Rdataset/Rdatalist Union
+  3.      Finish mempool conversion of message.c
+  5.      isc/util.h publish or perish
+  8.      Check base 64 code; does it have the problems that
+	  the BIND 8 code does?
+  9.      Authority is optional if we have answers?
+  11.     KEY duplication (answer + additional) in any query
+  12.     Fix rdata META flag to be set for TSIG, TKEY, OPT
+  13.     Intergrate (replace?) old per zone SOA timers with zomemgr
+  14.     RWlock for zonemgr zone list
+  15.     CHAOS A's
+  16.     implement "doc" checks out of zonemgr.
+

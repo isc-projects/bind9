@@ -1,0 +1,19 @@
+Limit the number of retries on socket errors (send and receive)
+
+Make lwresd shut down its fetches properly
+
+Develop automated test for queries over IPv6
+
+Use util/kit.sh for building snapshots, taking care to set the version
+number to something that can be distinguished from release version
+numbers
+
+Implement ip6.arpa priming
+
+Rewrite zone code to use a list per zone state
+
+Handle incoming AXFR without using twice the memory by using
+RBT mark bit (with Andreas)
+
+Replace <mumble> in dns_dispatch_create() header comments with
+something more useful
