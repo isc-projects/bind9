@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.34 2001/07/04 00:34:40 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.35 2001/07/14 01:55:04 gson Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -83,9 +83,6 @@
 
 /* define if getc_unlocked() is available */
 #undef HAVE_GETCUNLOCKED
-
-/* define if rlim_t is defined via sys/types.h or sys/resource.h */
-#undef HAVE_RLIM_T
 
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
 #undef SHUTUP_SPUTAUX

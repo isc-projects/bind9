@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.10 2001/01/23 06:00:11 marka Exp $ */
+/* $Id: resource.c,v 1.11 2001/07/14 01:55:08 gson Exp $ */
 
 #include <config.h>
 
@@ -29,10 +29,6 @@
 #include <isc/util.h>
 
 #include "errno2result.h"
-
-#ifndef HAVE_RLIM_T
-typedef ISC_PLATFORM_RLIMITTYPE rlim_t;
-#endif
 
 static isc_result_t
 resource2rlim(isc_resource_t resource, int *rlim_resource) {
@@ -100,7 +96,7 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 isc_result_t
 isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	struct rlimit rl;
-	rlim_t rlim_value;
+	ISC_PLATFORM_RLIMITTYPE rlim_value;
 	int unixresult;
 	int unixresource;
 	isc_result_t result;
@@ -117,17 +113,18 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		 * isc_resourcevalue_t was chosen as an unsigned 64 bit
 		 * integer so that it could contain the maximum range of
 		 * reasonable values.  Unfortunately, this exceeds the typical
-		 * range on Unix systems.  Ensure the value of rlim_t is not
-		 * overflowed.
+		 * range on Unix systems.  Ensure the range of
+		 * ISC_PLATFORM_RLIMITTYPE is not overflowed.
 		 */
 		isc_resourcevalue_t rlim_max;
 		isc_boolean_t rlim_t_is_signed =
-			ISC_TF(((double)(rlim_t)-1) < 0);
+			ISC_TF(((double)(ISC_PLATFORM_RLIMITTYPE)-1) < 0);
 
 		if (rlim_t_is_signed)
-			rlim_max = ~((rlim_t)1 << (sizeof(rlim_t) * 8 - 1));
+			rlim_max = ~((ISC_PLATFORM_RLIMITTYPE)1 <<
+				     (sizeof(ISC_PLATFORM_RLIMITTYPE) * 8 - 1));
 		else
-			rlim_max = (rlim_t)-1;
+			rlim_max = (ISC_PLATFORM_RLIMITTYPE)-1;
 
 		if (value > rlim_max)
 			value = rlim_max;
