@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.76 2000/12/07 20:15:47 marka Exp $ */
+/* $Id: dispatch.c,v 1.77 2000/12/20 19:46:37 gson Exp $ */
 
 #include <config.h>
 
@@ -642,7 +642,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		UNLOCK(&qid->lock);
 		dispatch_log(disp, LVL(90),
 			     "search for response in bucket %d: %s",
-			     bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
+			     bucket, (resp == NULL ? "not found" : "found"));
 
 		if (resp == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
@@ -854,7 +854,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		UNLOCK(&qid->lock);
 		dispatch_log(disp, LVL(90),
 			     "search for response in bucket %d: %s",
-			     bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
+			     bucket, (resp == NULL ? "not found" : "found"));
 
 		if (resp == NULL)
 			goto restart;
