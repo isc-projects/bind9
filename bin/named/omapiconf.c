@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.2 2000/07/10 16:47:48 gson Exp $ */
+/* $Id: omapiconf.c,v 1.3 2000/07/10 21:49:00 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -421,6 +421,20 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 		for (control = dns_c_ctrllist_head(controls);
 		     control != NULL;
 		     control = dns_c_ctrl_next(control)) {
+
+			if (control->control_type != dns_c_inet_control) {
+				/*
+				 * The only other type coming out of the
+				 * configuration system is dns_c_unix_control.
+				 */
+				isc_log_write(ns_g_lctx,
+					      ISC_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_OMAPI,
+					      ISC_LOG_WARNING,
+					      "unix command channel type is "
+					      "not supported");
+				continue;
+			}
 
 			isc_sockaddr_format(&control->u.inet_v.addr,
 					    socktext, sizeof(socktext));
