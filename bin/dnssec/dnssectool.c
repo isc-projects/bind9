@@ -177,7 +177,7 @@ kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 
 	UNUSED(source);
 
-	if (blocking)
+	if (!blocking)
 		return (ISC_R_NOENTROPY);
 	printf("start typing\n");
 	return (isc_keyboard_open(kbd));
