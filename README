@@ -119,14 +119,15 @@ BIND 9.0.0rc1
 		There are known problems with thread signal handling 
 		under Solaris 2.6.
 
+		The "isc_timer_reset" test sometimes fails on HP-UX 11
+		for unknown reasons, but the server itself seems to
+		run fine.
+
+	If you are upgrading from BIND 8, please read the migration
+	notes in doc/misc/migration.
 
 	For a detailed list of user-visible changes since beta 5, see
 	the CHANGES file.	
-
-	BIND 9.0.0 will support most but not all BIND 8 features.  Among
-	the missing features are selective (per-domain) forwarding,
-	sortlists, statistics, and process limits.  We plan to implement
-	most of the missing ones in BIND 9.1.
 
 
 Building
