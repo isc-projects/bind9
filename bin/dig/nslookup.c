@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.53 2000/09/21 23:47:40 marka Exp $ */
+/* $Id: nslookup.c,v 1.54 2000/09/22 17:14:24 mws Exp $ */
 
 #include <config.h>
 
@@ -551,7 +551,7 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	while (srv != NULL) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
 		check_result(result, "isc_buffer_allocate");
-		get_address(srv->servername, 53, &sockaddr);
+		get_address(srv->servername, port, &sockaddr);
 		result = isc_sockaddr_totext(&sockaddr, b);
 		check_result(result, "isc_sockaddr_totext");
 		printf("Default server: %s\nAddress: %.*s\n",
