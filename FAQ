@@ -265,3 +265,11 @@ address 127.0.0.1 and the IPv6 loopback address ::1, and you do not
 have IPv6 fully operational.  Change the "default-server localhost" to
 "default-server 127.0.0.1" to make sure rdnc does not try to contact
 the name server using IPv6.
+
+
+Q: Why is named listening on UDP port other than 53?
+
+A: Named uses a system selected port to make queries of other nameservers.
+This behaviour can be overridden by using query-source to lock down the  
+port and/or address.
+
