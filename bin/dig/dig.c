@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.98 2000/09/22 17:36:02 gson Exp $ */
+/* $Id: dig.c,v 1.99 2000/09/22 23:21:29 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ctype.h>
 
 #include <isc/app.h>
 #include <isc/netaddr.h>
@@ -82,7 +83,8 @@ char *batchname = NULL;
 FILE *batchfp = NULL;
 char *argv0;
 
-isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
+isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
+	nibble = ISC_FALSE;
 
 isc_uint16_t bufsize = 0;
 isc_boolean_t forcecomment = ISC_FALSE;
@@ -561,6 +563,435 @@ reorder_args(int argc, char *argv[]) {
  * that routine.
  * XXX doc options
  */
+
+static void
+plus_option(char *option, isc_boolean_t is_batchfile,
+	    dig_lookup_t *lookup)
+{
+	char option_store[256];
+	char *cmd, *value;
+	isc_boolean_t state = ISC_TRUE;
+
+	strncpy(option_store, option, sizeof(option_store));
+	cmd=next_token(&option,"=");
+	if (cmd == NULL) {
+		printf (";; Invalid option %s\n",option_store);
+		return;
+	}
+	value=option;
+	if (strncasecmp(cmd,"no",2)==0) {
+		cmd += 2;
+		state = ISC_FALSE;
+	}
+	switch (tolower(cmd[0])) {
+	case 'a':
+		switch (tolower(cmd[1])) {
+		case 'a': /* aaflag */
+			lookup->aaonly = state;
+			break;
+		case 'd': 
+			switch (tolower(cmd[2])) {
+			case 'd': /* additional */
+				lookup->section_additional = state;
+				break;
+			case 'f': /* adflag */
+				lookup->adflag = ISC_FALSE;
+				break;
+			default:
+				goto invalid_option;
+			}
+			break;
+		case 'l': /* all */
+			lookup->section_question = state;
+			lookup->section_authority = state;
+			lookup->section_answer = state;
+			lookup->section_additional = state;
+			lookup->comments = state;
+			break;
+		case 'n': /* answer */
+			lookup->section_answer = state;
+			break;
+		case 'u': /* authority */
+			lookup->section_authority = state;
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
+	case 'b': /* bufsize */
+		if (value == NULL)
+			goto need_value;
+		if (!state)
+			goto invalid_option;
+		lookup->udpsize = atoi(value);
+		if (lookup->udpsize <= 0)
+			lookup->udpsize = 0;
+		if (lookup->udpsize > COMMSIZE)
+			lookup->udpsize = COMMSIZE;
+		break;
+	case 'c':
+		switch (tolower(cmd[1])) {
+		case 'd':/* cdflag */
+			lookup->cdflag = state;
+			break;
+		case 'm': /* cmd */
+			printcmd = state;
+			break;
+		case 'o': /* comments */
+			lookup->comments = state;
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
+	case 'd':
+		switch (tolower(cmd[1])) {
+		case 'e':
+			switch (tolower(cmd[2])) {
+			case 'f': /* defname */
+				lookup->defname = state;
+				break;
+			case 't': /* details */
+				show_details = state;
+				break;
+			default:
+				goto invalid_option;
+			}
+			break;
+		case 'o': /* domain */	
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			strncpy(fixeddomain, value, MXNAME);
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
+	case 'i':
+		switch (tolower(cmd[1])) {
+		case 'd': /* identify */
+			lookup->identify = state;
+			break;
+		case 'g': /* ignore */
+		default: /* Inherets default for compatibility */
+			lookup->ignore = ISC_TRUE;
+		}
+		break;
+	case 'n':
+		switch (tolower(cmd[1])) {
+		case 'a': /* namelimit */
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			name_limit = atoi(value);
+			break;
+		case 'd': /* ndots */
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			ndots = atoi(value);
+			if (ndots < 0)
+				ndots = 0;
+			break;
+		case 's': /* nssearch */
+			lookup->ns_search_only = state;
+			if (state) {
+				lookup->trace_root = ISC_TRUE;
+				lookup->recurse = ISC_FALSE;
+				lookup->identify = ISC_TRUE;
+				lookup->stats = ISC_FALSE;
+				lookup->comments = ISC_FALSE;
+				lookup->section_additional = ISC_FALSE;
+				lookup->section_authority = ISC_FALSE;
+				lookup->section_question = ISC_FALSE;
+				lookup->rdtype = dns_rdatatype_soa;
+				short_form = ISC_TRUE;
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
+	case 'q': 
+		switch (tolower(cmd[1])) {
+		case 'r': /* qr */
+			qr = state;
+			break;
+		case 'u': /* question */
+			lookup->section_question = state;
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
+	case 'r': /* rrlimit */
+		if (value == NULL)
+			goto need_value;
+		if (!state)
+			goto invalid_option;
+		rr_limit = atoi(value);
+		break;
+	case 's':
+		switch (tolower(cmd[1])) {
+		case 'e': /* search */
+			usesearch = state;
+			break;
+		case 'h': /* short */
+			short_form = state;
+			if (!state) {
+				printcmd = ISC_FALSE;
+				lookup->section_additional = ISC_FALSE;
+				lookup->section_authority = ISC_FALSE;
+				lookup->section_question = ISC_FALSE;
+				lookup->comments = ISC_FALSE;
+				lookup->stats = ISC_FALSE;
+			}
+			break;
+		case 't': /* stats */
+			lookup->stats = state;
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
+	case 't':
+		switch (tolower(cmd[1])) {
+		case 'c': /* tcp */
+			if (!is_batchfile)
+				lookup->tcp_mode = state;
+			break;
+		case 'i': /* timeout */
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			timeout = atoi(value);
+			if (timeout <= 0)
+				timeout = 1;
+			break;
+		case 'r':
+			switch (tolower(cmd[2])) {
+			case 'a': /* trace */
+				lookup->trace = state;
+				lookup->trace_root = state;
+				if (state) {
+					lookup->recurse = ISC_FALSE;
+					lookup->identify = ISC_TRUE;
+					lookup->comments = ISC_FALSE;
+					lookup->stats = ISC_FALSE;
+					lookup->section_additional = ISC_FALSE;
+					lookup->section_authority = ISC_TRUE;
+					lookup->section_question = ISC_FALSE;
+					show_details = ISC_TRUE;
+				}
+				break;
+			case 'e': /* recurse */
+				lookup->recurse = ISC_TRUE;
+				break;
+			case 'i': /* tries */
+				if (value == NULL)
+					goto need_value;
+				if (!state)
+					goto invalid_option;
+				lookup->retries = atoi(value);
+				if (lookup->retries <= 0)
+					lookup->retries = 1;
+				break;
+			default:
+				goto invalid_option;
+			}
+		default:
+			goto invalid_option;
+		}
+	case 'v': /* vc */
+		if (!is_batchfile)
+			lookup->tcp_mode = state;
+		break;
+	default:
+	invalid_option:
+	need_value:
+		fprintf (stderr, "Invalid option: +%s\n",
+			 option_store);
+		show_usage();
+		exit(1);
+	}
+	return;
+}
+
+/*
+ * ISC_TRUE returned if value was used
+ */
+static isc_boolean_t
+dash_option(char *option, char *next, dig_lookup_t **lookup)
+{
+	char option_store[256];
+	char cmd, *value, *ptr;
+	isc_result_t result;
+	isc_boolean_t value_from_next;
+	isc_textregion_t tr;
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
+	int adrs[4];
+	int n, i;
+	char batchline[MXNAME];
+
+	strncpy(option_store, option, sizeof(option_store));
+	cmd = option[0];
+	if (strlen(option) > 1) {
+		value_from_next = ISC_FALSE;
+		value = &option[1];
+	}
+	else {
+		value_from_next = ISC_TRUE;
+		value = next;
+	}
+	switch (tolower(cmd)) {
+	case 'b':
+		get_address(value, 0, &bind_address);
+		specified_source = ISC_TRUE;
+		return (value_from_next);
+		break;
+	case 'c':
+		tr.base = value;
+		tr.length = strlen(value);
+		result = dns_rdataclass_fromtext(&rdclass,
+						 (isc_textregion_t *)&tr);
+		if (result == ISC_R_SUCCESS)
+			(*lookup)->rdclass = rdclass;
+		else
+			fprintf (stderr, ";; Warning, ignoring "
+				 "invalid class %s\n",
+				 value);
+		return (value_from_next);
+		break;
+	case 'd':
+		debugging = ISC_TRUE;
+		return (ISC_FALSE);
+		break;
+	case 'f':
+		batchname = value;
+		return (value_from_next);
+		break;
+	case 'h':
+		show_usage();
+		exit(0);
+		break;
+	case 'k':
+		strncpy(keyfile, value, MXNAME);
+		return (value_from_next);
+		break;
+	case 'm':
+		isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+		return (ISC_FALSE);
+		break;
+	case 'n':
+		nibble = ISC_TRUE;
+		return (ISC_FALSE);
+		break;
+	case 'p':
+		port = atoi(value);
+		return (value_from_next);
+		break;
+	case 't':
+		if (strncasecmp(value, "ixfr=", 5) == 0) {
+			(*lookup)->rdtype = dns_rdatatype_ixfr;
+			(*lookup)->ixfr_serial =
+				atoi(&value[5]);
+			return (value_from_next);
+		}
+		tr.base = value;
+		tr.length = strlen(value);
+		result = dns_rdatatype_fromtext(&rdtype,
+						(isc_textregion_t *)&tr);
+		if (result == ISC_R_SUCCESS)
+			(*lookup)->rdtype = rdtype;
+		else
+			fprintf (stderr, ";; Warning, ignoring "
+				 "invalid type %s\n",
+				 value);
+		return (value_from_next);
+		break;
+	case 'y':
+		ptr = next_token(&value,":");
+		if (ptr == NULL) {
+			show_usage();
+			exit(1);
+		}
+		strncpy(keynametext, ptr, MXNAME);
+		ptr = next_token(&value, "");
+		if (ptr == NULL) {
+			show_usage();
+			exit(1);
+		}
+		strncpy(keysecret, ptr, MXNAME);
+		return (value_from_next);
+		break;
+	case 'x':
+		*lookup = clone_lookup(default_lookup, ISC_TRUE);
+		if (strchr(value, ':') == NULL) {
+			n = sscanf(value, "%d.%d.%d.%d",
+				   &adrs[0], &adrs[1],
+				   &adrs[2], &adrs[3]);
+			if (n == 0) {
+				show_usage();
+				exit (1);
+			}
+			for (i = n - 1; i >= 0; i--) {
+				snprintf(batchline, MXNAME/8, "%d.",
+					 adrs[i]);
+				strncat((*lookup)->textname, batchline,
+					MXNAME);
+			}
+			strncat((*lookup)->textname, "in-addr.arpa.",
+				MXNAME);
+		} else {
+			isc_netaddr_t addr;
+			dns_fixedname_t fname;
+			dns_name_t *name;
+			isc_buffer_t b;
+			
+			addr.family = AF_INET6;
+			n = inet_pton(AF_INET6, value, &addr.type.in6);
+			if (n <= 0)
+				show_usage();
+			dns_fixedname_init(&fname);
+			name = dns_fixedname_name(&fname);
+			(*lookup)->nibble = nibble;
+			result = dns_byaddr_createptrname(&addr, nibble,
+							  name);
+			if (result != ISC_R_SUCCESS)
+				show_usage();
+			isc_buffer_init(&b, (*lookup)->textname,
+					sizeof (*lookup)->textname);
+			result = dns_name_totext(name, ISC_FALSE, &b);
+			isc_buffer_putuint8(&b, 0);
+			if (result != ISC_R_SUCCESS)
+				show_usage();
+		}
+		debug("looking up %s", (*lookup)->textname);
+		(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
+					    (*lookup)->ns_search_only);
+		(*lookup)->rdtype = dns_rdatatype_ptr;
+		(*lookup)->rdclass = dns_rdataclass_in;
+		(*lookup)->new_search = ISC_TRUE;
+		
+		ISC_LIST_APPEND(lookup_list, *lookup, link);
+		return (value_from_next);
+		break;
+
+	default:
+		fprintf (stderr, "Invalid option: -%s\n",
+			 option_store);
+		show_usage();
+		exit(1);
+	}
+	return (ISC_FALSE);
+}
+
 static void
 parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	   int argc, char **argv) {
@@ -571,19 +1002,14 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	char batchline[MXNAME];
-	char address[MXNAME];
 	int bargc;
 	char *bargv[16];
-	int i, n;
-	int adrs[4];
 	int rc;
 	char **rv;
-	char *ptr;
 #ifndef NOPOSIX
 	char *homedir;
 	char rcfile[132];
 #endif
-	isc_boolean_t nibble = ISC_FALSE;
 	char *input;
 
 	/*
@@ -649,393 +1075,23 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			srv = make_server(&rv[0][1]);
 			ISC_LIST_APPEND(lookup->my_server_list,
 					srv, link);
-		} else if ((strcmp(rv[0], "+vc") == 0)
-			   && (!is_batchfile)) {
-			lookup->tcp_mode = ISC_TRUE;
-		} else if ((strcmp(rv[0], "+novc") == 0)
-			   && (!is_batchfile)) {
-			lookup->tcp_mode = ISC_FALSE;
-		} else if ((strcmp(rv[0], "+tcp") == 0)
-			   && (!is_batchfile)) {
-			lookup->tcp_mode = ISC_TRUE;
-		} else if ((strcmp(rv[0], "+notcp") == 0)
-			   && (!is_batchfile)) {
-			lookup->tcp_mode = ISC_FALSE;
-		} else if (strncmp(rv[0], "+domain=", 8) == 0) {
-			/* Global option always */
-			strncpy(fixeddomain, &rv[0][8], MXNAME);
-		} else if (strncmp(rv[0], "+sea", 4) == 0) {
-			/* Global option always */
-			usesearch = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nosea", 6) == 0) {
-			usesearch = ISC_FALSE;
-		} else if (strncmp(rv[0], "+defn", 5) == 0) {
-			lookup->defname = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nodefn", 7) == 0) {
-			lookup->defname = ISC_FALSE;
-		} else if (strncmp(rv[0], "+time=", 6) == 0) {
-			/* Global option always */
-			timeout = atoi(&rv[0][6]);
-			if (timeout <= 0)
-				timeout = 1;
-			debug("timeout set to %d", timeout);
-		} else if (strncmp(rv[0], "+timeout=", 9) == 0) {
-			/* Global option always */
-			timeout = atoi(&rv[0][9]);
-			if (timeout <= 0)
-				timeout = 1;
-			debug("timeout set to %d", timeout);
-		} else if (strncmp(rv[0], "+tries=", 7) == 0) {
-			lookup->retries = atoi(&rv[0][7]);
-			if (lookup->retries <= 0)
-				lookup->retries = 1;
-		} else if (strncmp(rv[0], "+namelimit=", 11) == 0) {
-			name_limit = atoi(&rv[0][11]);
-		} else if (strncmp(rv[0], "+rrlimit=", 9) == 0) {
-			rr_limit = atoi(&rv[0][9]);
-		} else if (strncmp(rv[0], "+buf=", 5) == 0) {
-			lookup->udpsize = atoi(&rv[0][5]);
-			if (lookup->udpsize <= 0)
-				lookup->udpsize = 0;
-			if (lookup->udpsize > COMMSIZE)
-				lookup->udpsize = COMMSIZE;
-		} else if (strncmp(rv[0], "+buf=", 5) == 0) {
-			lookup->udpsize = atoi(&rv[0][5]);
-			if (lookup->udpsize <= 0)
-				lookup->udpsize = 0;
-			if (lookup->udpsize > COMMSIZE)
-				lookup->udpsize = COMMSIZE;
-		} else if (strncmp(rv[0], "+bufsize=", 9) == 0) {
-			lookup->udpsize = atoi(&rv[0][9]);
-			if (lookup->udpsize <= 0)
-				lookup->udpsize = 0;
-			if (lookup->udpsize > COMMSIZE)
-				lookup->udpsize = COMMSIZE;
-		} else if (strncmp(rv[0], "+ndots=", 7) == 0) {
-			/* Global option always */
-			ndots = atoi(&rv[0][7]);
-			if (ndots < 0)
-				ndots = 0;
-		} else if (strncmp(rv[0], "+rec", 4) == 0) {
-			lookup->recurse = ISC_TRUE;
-		} else if (strncmp(rv[0], "+norec", 6) == 0) {
-			lookup->recurse = ISC_FALSE;
-		} else if (strncmp(rv[0], "+aa", 3) == 0) {
-			lookup->aaonly = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noaa", 5) == 0) {
-			lookup->aaonly = ISC_FALSE;
-		} else if (strncmp(rv[0], "+adf", 4) == 0) {
-			lookup->adflag = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noadf", 6) == 0) {
-			lookup->adflag = ISC_FALSE;
-		} else if (strncmp(rv[0], "+cd", 3) == 0) {
-			lookup->cdflag = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nocd", 5) == 0) {
-			lookup->cdflag = ISC_FALSE;
-		} else if (strncmp(rv[0], "+ns", 3) == 0) {
-			lookup->ns_search_only = ISC_TRUE;
-			lookup->trace_root = ISC_TRUE;
-			lookup->recurse = ISC_FALSE;
-			lookup->identify = ISC_TRUE;
-			lookup->stats = ISC_FALSE;
-			if (!forcecomment)
-				lookup->comments = ISC_FALSE;
-			lookup->section_additional = ISC_FALSE;
-			lookup->section_authority = ISC_FALSE;
-			lookup->section_question = ISC_FALSE;
-			lookup->rdtype = dns_rdatatype_soa;
-			short_form = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nons", 6) == 0) {
-			lookup->ns_search_only = ISC_FALSE;
-		} else if (strncmp(rv[0], "+tr", 3) == 0) {
-			lookup->trace = ISC_TRUE;
-			lookup->trace_root = ISC_TRUE;
-			lookup->recurse = ISC_FALSE;
-			lookup->identify = ISC_TRUE;
-			if (!forcecomment) {
-				lookup->comments = ISC_FALSE;
-				lookup->stats = ISC_FALSE;
-			}
-			lookup->section_additional = ISC_FALSE;
-			lookup->section_authority = ISC_TRUE;
-			lookup->section_question = ISC_FALSE;
-			show_details = ISC_TRUE;
-		} else if (strncmp(rv[0], "+notr", 6) == 0) {
-			lookup->trace = ISC_FALSE;
-			lookup->trace_root = ISC_FALSE;
-		} else if (strncmp(rv[0], "+det", 4) == 0) {
-			show_details = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nodet", 6) == 0) {
-			show_details = ISC_FALSE;
-		} else if (strncmp(rv[0], "+cmd", 4) == 0) {
-			printcmd = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nocmd", 6) == 0) {
-			printcmd = ISC_FALSE;
-		} else if (strncmp(rv[0], "+sho", 4) == 0) {
-			short_form = ISC_TRUE;
-			printcmd = ISC_FALSE;
-			lookup->section_additional = ISC_FALSE;
-			lookup->section_authority = ISC_FALSE;
-			lookup->section_question = ISC_FALSE;
-			if (!forcecomment) {
-				lookup->comments = ISC_FALSE;
-				lookup->stats = ISC_FALSE;
-			}
-		} else if (strncmp(rv[0], "+nosho", 6) == 0) {
-			short_form = ISC_FALSE;
-		} else if (strncmp(rv[0], "+id", 3) == 0) {
-			lookup->identify = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noid", 5) == 0) {
-			lookup->identify = ISC_FALSE;
-		} else if (strncmp(rv[0], "+i", 2) == 0) {
-			lookup->ignore = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noi", 4) == 0) {
-			lookup->ignore = ISC_FALSE;
-		} else if (strncmp(rv[0], "+com", 4) == 0) {
-			lookup->comments = ISC_TRUE;
-			forcecomment = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nocom", 6) == 0) {
-			lookup->comments = ISC_FALSE;
-			lookup->stats = ISC_FALSE;
-			forcecomment = ISC_FALSE;
-		} else if (strncmp(rv[0], "+sta", 4) == 0) {
-			lookup->stats = ISC_TRUE;
-		} else if (strncmp(rv[0], "+nosta", 6) == 0) {
-			lookup->stats = ISC_FALSE;
-		} else if (strncmp(rv[0], "+qr", 3) == 0) {
-			qr = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noqr", 5) == 0) {
-			qr = ISC_FALSE;
-		} else if (strncmp(rv[0], "+que", 4) == 0) {
-			lookup->section_question = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noque", 6) == 0) {
-			lookup->section_question = ISC_FALSE;
-		} else if (strncmp(rv[0], "+ans", 4) == 0) {
-			lookup->section_answer = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noans", 6) == 0) {
-			lookup->section_answer = ISC_FALSE;
-		} else if (strncmp(rv[0], "+add", 4) == 0) {
-			lookup->section_additional = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noadd", 6) == 0) {
-			lookup->section_additional = ISC_FALSE;
-		} else if (strncmp(rv[0], "+aut", 4) == 0) {
-			lookup->section_authority = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noaut", 6) == 0) {
-				lookup->section_authority = ISC_FALSE;
-		} else if (strncmp(rv[0], "+all", 4) == 0) {
-			lookup->section_question = ISC_TRUE;
-			lookup->section_authority = ISC_TRUE;
-			lookup->section_answer = ISC_TRUE;
-			lookup->section_additional = ISC_TRUE;
-			lookup->comments = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noall", 6) == 0) {
-			lookup->section_question = ISC_FALSE;
-			lookup->section_authority = ISC_FALSE;
-			lookup->section_answer = ISC_FALSE;
-			lookup->section_additional = ISC_FALSE;
-			lookup->comments = ISC_FALSE;
-		} else if (strncmp(rv[0], "-c", 2) == 0) {
-			if (rv[0][2] != 0) {
-				ptr = &rv[0][2];
+		} else if (rv[0][0] == '+') {
+			plus_option(&rv[0][1], is_batchfile,
+				    lookup);
+		} else if (rv[0][0] == '-') {
+			if (rc <= 1) {
+				if (dash_option(&rv[0][1], NULL,
+						&lookup)) {
+					rc--;
+					rv++;
+				}
 			} else {
-				if (rc <= 1) {
-					show_usage();
-					exit(1);
+				if (dash_option(&rv[0][1], rv[1],
+						&lookup)) {
+					rc--;
+					rv++;
 				}
-				ptr = rv[1];
-				rv++;
-				rc--;
 			}
-			tr.base = ptr;
-			tr.length = strlen(ptr);
-			result = dns_rdataclass_fromtext(&rdclass,
-						    (isc_textregion_t *)&tr);
-			if (result == ISC_R_SUCCESS)
-				lookup->rdclass = rdclass;
-			else
-				fprintf (stderr, ";; Warning, ignoring "
-					 "invalid class %s\n",
-					 ptr);
-		} else if (strncmp(rv[0], "-t", 2) == 0) {
-			if (rv[0][2] != 0) {
-				ptr = &rv[0][2];
-			} else {
-				if (rc <= 1) {
-					show_usage();
-					exit(1);
-				}
-				ptr = rv[1];
-				rv++;
-				rc--;
-			}
-			tr.base = ptr;
-			tr.length = strlen(ptr);
-			if (strncmp(rv[0], "ixfr=", 5) == 0) {
-				lookup->rdtype = dns_rdatatype_ixfr;
-				lookup->ixfr_serial =
-					atoi(&rv[0][5]);
-			} else {
-				result = dns_rdatatype_fromtext(&rdtype,
-						    (isc_textregion_t *)&tr);
-				if ((result == ISC_R_SUCCESS) &&
-				    (rdtype != dns_rdatatype_ixfr))
-					lookup->rdtype = rdtype;
-				else
-					fprintf (stderr, ";; Warning, "
-						 "ignoring invalid type %s\n",
-						 ptr);
-			}
-		} else if (strncmp(rv[0], "-f", 2) == 0) {
-			if (rv[0][2] != 0) {
-				batchname = &rv[0][2];
-			} else {
-				if (rc <= 1) {
-					show_usage();
-					exit(1);
-				}
-				batchname = rv[1];
-				rv++;
-				rc--;
-			}
-		} else if (strncmp(rv[0], "-y", 2) == 0) {
-			if (rv[0][2] != 0)
-				ptr = &rv[0][2];
-			else {
-				if (rc <= 1) {
-					show_usage();
-					exit(1);
-				}
-				ptr = rv[1];
-				rv++;
-				rc--;
-			}
-			input = ptr;
-			ptr = next_token(&input,":");
-			if (ptr == NULL) {
-				show_usage();
-				exit(1);
-			}
-			strncpy(keynametext, ptr, MXNAME);
-			ptr = next_token(&input, "");
-			if (ptr == NULL) {
-				show_usage();
-				exit(1);
-			}
-			strncpy(keysecret, ptr, MXNAME);
-		} else if (strncmp(rv[0], "-k", 2) == 0) {
-			if (rv[0][2] != 0)
-				ptr = &rv[0][2];
-			else {
-				if (rc <= 1) {
-					show_usage();
-					exit(1);
-				}
-				ptr = rv[1];
-				rv++;
-				rc--;
-			}
-			strncpy(keyfile, ptr, MXNAME);
-		} else if (strncmp(rv[0], "-p", 2) == 0) {
-			if (rv[0][2] != 0) {
-				port = atoi(&rv[0][2]);
-			} else {
-				if (rc <= 1) {
-					show_usage();
-					exit(1);
-				}
-				port = atoi(rv[1]);
-				rv++;
-				rc--;
-			}
-		} else if (strncmp(rv[0], "-b", 2) == 0) {
-			if (rv[0][2] != 0) {
-				strncpy(address, &rv[0][2],
-					sizeof(address));
-			} else {
-				if (rc <= 1) {
-					show_usage();
-					exit(1);
-				}
-				strncpy(address, rv[1],
-					sizeof(address));
-				rv++;
-				rc--;
-			}
-			get_address(address, 0, &bind_address);
-			specified_source = ISC_TRUE;
-		} else if (strncmp(rv[0], "-h", 2) == 0) {
-			show_usage();
-			exit(1);
-		} else if (strcmp(rv[0], "-memdebug") == 0) {
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
-		} else if (strcmp(rv[0], "-debug") == 0) {
-			debugging = ISC_TRUE;
-		} else if ((strncmp(rv[0], "-x", 2) == 0) &&
-			   !config_only) {
-			/*
-			 * XXXMWS Only works for ipv4 now.
-			 * Can't use inet_pton here, since we allow
-			 * partial addresses.
-			 */
-			if (rc == 1) {
-				show_usage();
-				exit(1);
-			}
-
-			lookup = clone_lookup(default_lookup, ISC_TRUE);
-
-			if (strchr(rv[1], ':') == NULL) {
-				n = sscanf(rv[1], "%d.%d.%d.%d",
-					   &adrs[0], &adrs[1],
-					   &adrs[2], &adrs[3]);
-				if (n == 0)
-					show_usage();
-
-				for (i = n - 1; i >= 0; i--) {
-					snprintf(batchline, MXNAME/8, "%d.",
-						  adrs[i]);
-					strncat(lookup->textname, batchline,
-						MXNAME);
-				}
-				strncat(lookup->textname, "in-addr.arpa.",
-					MXNAME);
-			} else {
-				isc_netaddr_t addr;
-				dns_fixedname_t fname;
-				dns_name_t *name;
-				isc_buffer_t b;
-
-				addr.family = AF_INET6;
-				n = inet_pton(AF_INET6, rv[1], &addr.type.in6);
-				if (n <= 0)
-					show_usage();
-				dns_fixedname_init(&fname);
-				name = dns_fixedname_name(&fname);
-				lookup->nibble = nibble;
-				result = dns_byaddr_createptrname(&addr,
-							lookup->nibble,
-							name);
-				if (result != ISC_R_SUCCESS)
-					show_usage();
-				isc_buffer_init(&b, lookup->textname,
-						sizeof lookup->textname);
-				result = dns_name_totext(name, ISC_FALSE, &b);
-				isc_buffer_putuint8(&b, 0);
-				if (result != ISC_R_SUCCESS)
-					show_usage();
-			}
-			debug("looking up %s", lookup->textname);
-			lookup->trace_root = ISC_TF(lookup->trace  ||
-						    lookup->ns_search_only);
-			lookup->rdtype = dns_rdatatype_ptr;
-			lookup->rdclass = dns_rdataclass_in;
-			lookup->new_search = ISC_TRUE;
-
-			ISC_LIST_APPEND(lookup_list, lookup, link);
-			rv++;
-			rc--;
-		} else if ((strncmp(rv[0], "-n", 2) == 0)) {
-			nibble = ISC_TRUE;
 		} else {
 			/*
 			 * Anything which isn't an option

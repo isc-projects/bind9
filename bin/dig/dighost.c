@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.132 2000/09/21 23:47:38 marka Exp $ */
+/* $Id: dighost.c,v 1.133 2000/09/22 23:21:32 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2460,7 +2460,7 @@ onrun_callback(isc_task_t *task, isc_event_t *event) {
 void
 cancel_all(void) {
 	dig_lookup_t *l, *n;
-	dig_query_t *q;
+	dig_query_t *q, *nq;
 
 	debug("cancel_all()");
 
@@ -2488,11 +2488,14 @@ cancel_all(void) {
 		while (q != NULL) {
 			debug("cancelling query %p, belonging to %p",
 			       q, current_lookup);
+			nq = ISC_LIST_NEXT(q, link);
 			if (q->sock != NULL) {
 				isc_socket_cancel(q->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
+			} else {
+				clear_query (q);
 			}
-			q = ISC_LIST_NEXT(q, link);
+			q = nq;
 		}
 	}
 	l = ISC_LIST_HEAD(lookup_list);
