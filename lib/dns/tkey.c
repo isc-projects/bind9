@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.54 2000/10/12 00:40:50 bwelling Exp $
+ * $Id: tkey.c,v 1.55 2000/12/07 19:13:05 bwelling Exp $
  */
 
 #include <config.h>
@@ -51,12 +51,6 @@
 	if (result != ISC_R_SUCCESS) \
 		goto failure; \
 	} while (0)
-
-#define TKEYTRACE(m)	isc_log_write(dns_lctx, \
-				      DNS_LOGCATEGORY_RESOLVER, \
-				      DNS_LOGMODULE_RESOLVER, \
-				      ISC_LOG_DEBUG(3), \
-				      "tkey: %s", (m))
 
 static void
 tkey_log(const char *fmt, ...) {
