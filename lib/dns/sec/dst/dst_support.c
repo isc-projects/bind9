@@ -1,11 +1,11 @@
 /*
- * Portions Copyright (c) 1995-1999 by Network Associates, Inc.
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
- *
+ * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
+ * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_support.c,v 1.6 2000/06/02 23:36:09 bwelling Exp $
+ * $Id: dst_support.c,v 1.7 2000/06/09 20:58:35 gson Exp $
  */
 
 #include <config.h>

@@ -1,11 +1,11 @@
 /*
- * Portions Copyright (c) 1995-1998 by Network Associates, Inc.
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
- *
+ * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
+ * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.27 2000/06/07 17:22:27 bwelling Exp $
+ * $Id: openssl_link.c,v 1.28 2000/06/09 20:58:38 gson Exp $
  */
 #if defined(OPENSSL)
 
