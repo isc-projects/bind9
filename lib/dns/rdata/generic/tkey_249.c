@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.14 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: tkey_249.c,v 1.15 1999/08/31 22:05:55 halley Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -320,6 +320,17 @@ additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_tkey(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+
+	REQUIRE(rdata->type == 249);
+
+	(void)digest;
+	(void)arg;
+
+	return (DNS_R_NOTIMPLEMENTED);
 }
 
 #endif	/* RDATA_GENERIC_TKEY_249_C */

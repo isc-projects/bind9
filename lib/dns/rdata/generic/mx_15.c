@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.19 1999/08/12 01:32:31 halley Exp $ */
+ /* $Id: mx_15.c,v 1.20 1999/08/31 22:05:54 halley Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_C
 #define RDATA_GENERIC_MX_15_C
@@ -210,6 +210,26 @@ additionaldata_mx(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	dns_name_fromregion(&name, &region);
 
 	return ((add)(arg, &name, dns_rdatatype_a));
+}
+
+static inline dns_result_t
+digest_mx(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r1, r2;
+	isc_result_t result;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 15);
+
+	dns_rdata_toregion(rdata, &r1);
+	r2 = r1;
+	isc_region_consume(&r2, 2);
+	r1.length = 2;
+	result = (digest)(arg, &r1);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r2);
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_GENERIC_MX_15_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.c,v 1.16 1999/08/12 01:32:31 halley Exp $ */
+ /* $Id: ptr_12.c,v 1.17 1999/08/31 22:05:54 halley Exp $ */
 
 #ifndef RDATA_GENERIC_PTR_12_C
 #define RDATA_GENERIC_PTR_12_C
@@ -168,6 +168,20 @@ additionaldata_ptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_ptr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 12);
+
+	dns_rdata_toregion(rdata, &r);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_GENERIC_PTR_12_C */

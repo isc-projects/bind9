@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: loc_29.c,v 1.7 1999/08/12 01:32:30 halley Exp $ */
+ /* $Id: loc_29.c,v 1.8 1999/08/31 22:05:53 halley Exp $ */
 
  /* RFC 1876 */
 
@@ -604,6 +604,17 @@ additionaldata_loc(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_loc(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+
+	REQUIRE(rdata->type == 29);
+
+	dns_rdata_toregion(rdata, &r);
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_LOC_29_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.14 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: txt_16.c,v 1.15 1999/08/31 22:05:55 halley Exp $ */
 
 #ifndef RDATA_GENERIC_TXT_16_C
 #define RDATA_GENERIC_TXT_16_C
@@ -161,6 +161,17 @@ additionaldata_txt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_txt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+
+	REQUIRE(rdata->type == 16);
+
+	dns_rdata_toregion(rdata, &r);
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_TXT_16_C */

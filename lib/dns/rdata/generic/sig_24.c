@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.18 1999/08/31 14:55:47 bwelling Exp $ */
+ /* $Id: sig_24.c,v 1.19 1999/08/31 22:05:54 halley Exp $ */
 
  /* RFC 2065 */
 
@@ -465,6 +465,30 @@ additionaldata_sig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_sig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+
+	REQUIRE(rdata->type == 24);
+
+	(void)digest;
+	(void)arg;
+
+	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static inline dns_rdatatype_t
+covers_sig(dns_rdata_t *rdata) {
+	dns_rdatatype_t type;
+	isc_region_t r;
+
+	REQUIRE(rdata->type == 24);
+
+	dns_rdata_toregion(rdata, &r);
+	type = uint16_fromregion(&r);
+
+	return (type);
 }
 
 #endif	/* RDATA_GENERIC_SIG_24_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.c,v 1.7 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: x25_19.c,v 1.8 1999/08/31 22:05:55 halley Exp $ */
 
  /* RFC 1183 */
 
@@ -147,6 +147,17 @@ additionaldata_x25(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_x25(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+
+	REQUIRE(rdata->type == 19);
+
+	dns_rdata_toregion(rdata, &r);
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_X25_19_C */

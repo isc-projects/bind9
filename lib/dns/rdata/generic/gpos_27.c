@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.c,v 1.7 1999/08/12 01:32:30 halley Exp $ */
+ /* $Id: gpos_27.c,v 1.8 1999/08/31 22:05:53 halley Exp $ */
 
  /* RFC 1712 */
 
@@ -150,6 +150,17 @@ additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_gpos(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+
+	REQUIRE(rdata->type == 27);
+
+	dns_rdata_toregion(rdata, &r);
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_GPOS_27_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.c,v 1.9 1999/08/12 01:32:30 halley Exp $ */
+ /* $Id: dname_39.c,v 1.10 1999/08/31 22:05:53 halley Exp $ */
 
  /* draft-ietf-dnsind-dname-02.txt */
 
@@ -169,6 +169,20 @@ additionaldata_dname(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_dname(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 39);
+
+	dns_rdata_toregion(rdata, &r);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_GENERIC_DNAME_39_C */

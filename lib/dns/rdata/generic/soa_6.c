@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.21 1999/08/12 01:32:31 halley Exp $ */
+ /* $Id: soa_6.c,v 1.22 1999/08/31 22:05:55 halley Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
@@ -315,6 +315,31 @@ additionaldata_soa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_soa(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+	dns_name_t name;
+	dns_result_t result;
+
+	REQUIRE(rdata->type == 6);
+
+	dns_rdata_toregion(rdata, &r);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+	result = dns_name_digest(&name, digest, arg);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	isc_region_consume(&r, name_length(&name));
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+	result = dns_name_digest(&name, digest, arg);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	isc_region_consume(&r, name_length(&name));
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_SOA_6_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.13 1999/08/12 01:32:31 halley Exp $ */
+ /* $Id: proforma.c,v 1.14 1999/08/31 22:05:54 halley Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -130,6 +130,18 @@ additionaldata_#(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_#(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+
+	REQUIRE(rdata->type == #);
+	REQUIRE(rdata->rdclass == #);
+
+	dns_rdata_toregion(rdata, &r);
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_#_#_C */

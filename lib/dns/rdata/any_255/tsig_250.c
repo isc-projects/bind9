@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.16 1999/08/25 14:22:38 bwelling Exp $ */
+ /* $Id: tsig_250.c,v 1.17 1999/08/31 22:05:52 halley Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -485,5 +485,18 @@ additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	return (DNS_R_SUCCESS);
 }
+
+static inline dns_result_t
+digest_any_tsig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+
+	REQUIRE(rdata->type == 250);
+	REQUIRE(rdata->rdclass == 255);
+
+	(void)digest;
+	(void)arg;
+
+	return (DNS_R_NOTIMPLEMENTED);
+}
+
 
 #endif	/* RDATA_ANY_255_TSIG_250_C */

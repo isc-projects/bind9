@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.10 1999/08/12 01:32:31 halley Exp $ */
+ /* $Id: rp_17.c,v 1.11 1999/08/31 22:05:54 halley Exp $ */
 
  /* RFC 1183 */
 
@@ -216,6 +216,27 @@ additionaldata_rp(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_rp(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+	dns_name_t name;
+	dns_result_t result;
+
+	REQUIRE(rdata->type == 17);
+
+	dns_rdata_toregion(rdata, &r);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+	result = dns_name_digest(&name, digest, arg);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	isc_region_consume(&r, name_length(&name));
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_GENERIC_RP_17_C */

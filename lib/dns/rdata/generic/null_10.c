@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.12 1999/08/12 01:32:31 halley Exp $ */
+ /* $Id: null_10.c,v 1.13 1999/08/31 22:05:54 halley Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_C
 #define RDATA_GENERIC_NULL_10_C
@@ -135,6 +135,17 @@ additionaldata_null(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 10);
 
 	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_null(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+
+	REQUIRE(rdata->type == 10);
+
+	(void)digest;
 	(void)arg;
 
 	return (DNS_R_SUCCESS);

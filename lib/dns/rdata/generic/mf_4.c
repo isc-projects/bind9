@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mf_4.c,v 1.16 1999/08/12 01:32:30 halley Exp $ */
+ /* $Id: mf_4.c,v 1.17 1999/08/31 22:05:53 halley Exp $ */
 
 #ifndef RDATA_GENERIC_MF_4_C
 #define RDATA_GENERIC_MF_4_C
@@ -172,6 +172,20 @@ additionaldata_mf(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	dns_name_fromregion(&name, &region);
 
 	return ((add)(arg, &name, dns_rdatatype_a));
+}
+
+static inline dns_result_t
+digest_mf(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 4);
+
+	dns_rdata_toregion(rdata, &r);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_GENERIC_MF_4_C */
