@@ -222,6 +222,8 @@ internal_current(isc_interfaceiter_t *iter) {
 		family = addr_sa->sa_family;
 		if (family != AF_INET) /* XXX IP6 */
 			return (ISC_R_FAILURE);
+
+		iter->current.af = family;
 		
 		get_addr(family, &iter->current.address, addr_sa);
 
