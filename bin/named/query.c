@@ -1581,6 +1581,10 @@ query_addbestns(ns_client_t *client) {
 		zsigrdataset = NULL;
 	}
 
+	if ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0 &&
+	    rdataset->trust == dns_trust_pending)
+		goto cleanup;
+
 	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
 		       DNS_SECTION_AUTHORITY);
 
