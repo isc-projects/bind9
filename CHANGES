@@ -29,6 +29,13 @@
 1741.	[bug]		Deleting all records at a node in a secure zone
 			using a update-policy grant failed. [RT #12787]
 
+1740.	[bug]		Replace rbt's hash algorithm as it performed badly
+			with certain zones. [RT #12729]
+			
+			NOTE: a hash context now needs to be established
+			via isc_hash_create() if the application was not
+			already doing this.
+
 1739.	[bug]		dns_rbt_deletetree() could incorrectly return
 			ISC_R_QUOTA.  [RT #12695]
 
