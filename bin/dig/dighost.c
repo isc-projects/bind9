@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.156 2000/10/23 17:49:03 mws Exp $ */
+/* $Id: dighost.c,v 1.157 2000/10/23 23:13:17 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -36,6 +36,7 @@
 extern int h_errno;
 #endif
 
+#include <dns/byaddr.h>
 #include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
@@ -55,6 +56,7 @@ extern int h_errno;
 #include <isc/base64.h>
 #include <isc/entropy.h>
 #include <isc/lang.h>
+#include <isc/netaddr.h>
 #include <isc/netdb.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -97,7 +99,7 @@ int ndots = -1;
 int tries = 2;
 int lookup_counter = 0;
 char fixeddomain[MXNAME] = "";
-dig_server_t *fixedsearch = NULL;
+dig_searchlist_t *fixedsearch = NULL;
 /*
  * Exit Codes:
  *   0   Everything went well, including things like NXDOMAIN
@@ -190,6 +192,55 @@ hex_dump(isc_buffer_t *b) {
 	}
 	if (len % 16 != 0)
 		printf("\n");
+}
+
+
+isc_result_t
+get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble) {
+	int adrs[4];
+	char working[MXNAME];
+	int i, n;
+	isc_result_t result;
+
+	result = DNS_R_BADDOTTEDQUAD;
+
+	debug("get_reverse(%s)", value);
+	if (strspn(value, "0123456789.") == strlen(value)) {
+		n = sscanf(value, "%d.%d.%d.%d",
+			   &adrs[0], &adrs[1],
+			   &adrs[2], &adrs[3]);
+		if (n == 0) {
+			return (DNS_R_BADDOTTEDQUAD);
+		}
+		for (i = n - 1; i >= 0; i--) {
+			snprintf(working, MXNAME/8, "%d.",
+				 adrs[i]);
+			strncat(reverse, working, MXNAME);
+		}
+		strncat(reverse, "in-addr.arpa.", MXNAME);
+		result = ISC_R_SUCCESS;
+	} else if (strspn(value, "0123456789abcdefABCDEF:") 
+		   == strlen(value)) {
+		isc_netaddr_t addr;
+		dns_fixedname_t fname;
+		dns_name_t *name;
+		isc_buffer_t b;
+		
+		addr.family = AF_INET6;
+		n = inet_pton(AF_INET6, value, &addr.type.in6);
+		if (n <= 0)
+			return (DNS_R_BADDOTTEDQUAD);
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		result = dns_byaddr_createptrname(&addr, nibble,
+						  name);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		isc_buffer_init(&b, reverse, MXNAME);
+		result = dns_name_totext(name, ISC_FALSE, &b);
+		isc_buffer_putuint8(&b, 0);
+	}
+	return (result);
 }
 
 void
@@ -1227,10 +1278,9 @@ setup_lookup(dig_lookup_t *lookup) {
 			if (fixedsearch == NULL)
 				fatal("Memory allocation failure in %s:%d",
 				      __FILE__, __LINE__);
-			strncpy(fixedsearch->servername, fixeddomain,
-				sizeof(fixedsearch->servername));
-			fixedsearch->servername[sizeof
-					       (fixedsearch->servername)-1]=0;
+			strncpy(fixedsearch->origin, fixeddomain,
+				sizeof(fixedsearch->origin));
+			fixedsearch->origin[sizeof(fixedsearch->origin)-1]=0;
 			lookup->origin = fixedsearch;
 		} else
 			lookup->origin = ISC_LIST_HEAD(search_list);

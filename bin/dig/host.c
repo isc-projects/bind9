@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.56 2000/10/19 23:31:56 mws Exp $ */
+/* $Id: host.c,v 1.57 2000/10/23 23:13:19 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -542,7 +542,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char hostname[MXNAME];
 	dig_server_t *srv;
 	dig_lookup_t *lookup;
-	int i, c, n, adrs[4];
+	int c;
 	char store[MXNAME];
 	isc_textregion_t tr;
 	isc_result_t result;
@@ -648,44 +648,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 
 	lookup->pending = ISC_FALSE;
-	if (strspn(hostname, "0123456789.") == strlen(hostname)) {
-		lookup->textname[0] = 0;
-		n = sscanf(hostname, "%d.%d.%d.%d", &adrs[0], &adrs[1],
-				   &adrs[2], &adrs[3]);
-		if (n == 0) {
-			show_usage();
-		}
-		for (i = n - 1; i >= 0; i--) {
-			snprintf(store, MXNAME/8, "%d.",
-				 adrs[i]);
-			strncat(lookup->textname, store, MXNAME);
-		}
-		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-		lookup->rdtype = dns_rdatatype_ptr;
-	} else if (strspn(hostname, "0123456789abcdef.:") == strlen(hostname))
-	{
-		isc_netaddr_t addr;
-		dns_fixedname_t fname;
-		isc_buffer_t b;
-
-		addr.family = AF_INET6;
-		n = inet_pton(AF_INET6, hostname, &addr.type.in6);
-		if (n <= 0)
-			goto notv6;
-		dns_fixedname_init(&fname);
-		result = dns_byaddr_createptrname(&addr, lookup->nibble,
-						  dns_fixedname_name(&fname));
-		if (result != ISC_R_SUCCESS)
-			show_usage();
-		isc_buffer_init(&b, lookup->textname, sizeof lookup->textname);
-		result = dns_name_totext(dns_fixedname_name(&fname),
-					 ISC_FALSE, &b);
-		isc_buffer_putuint8(&b, 0);
-		if (result != ISC_R_SUCCESS)
-			show_usage();
+	if (get_reverse(store, hostname, lookup->nibble) == ISC_R_SUCCESS) {
+		strncpy(lookup->textname, store, sizeof(lookup->textname));
+		lookup->textname[sizeof(lookup->textname)-1] = 0;
 		lookup->rdtype = dns_rdatatype_ptr;
 	} else {
- notv6:
 		strncpy(lookup->textname, hostname, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1]=0;
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.121 2000/10/20 19:53:59 gson Exp $ */
+/* $Id: dig.c,v 1.122 2000/10/23 23:13:16 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -895,9 +895,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	isc_textregion_t tr;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	int adrs[4];
-	int n, i;
-	char batchline[MXNAME];
+	char textname[MXNAME];
 
 	cmd = option[0];
 	if (strlen(option) > 1) {
@@ -996,54 +994,21 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (value_from_next);
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
-		if (strchr(value, ':') == NULL) {
-			n = sscanf(value, "%d.%d.%d.%d",
-				   &adrs[0], &adrs[1],
-				   &adrs[2], &adrs[3]);
-			if (n == 0) {
-				show_usage();
-				exit (1);
-			}
-			for (i = n - 1; i >= 0; i--) {
-				snprintf(batchline, MXNAME/8, "%d.",
-					 adrs[i]);
-				strncat((*lookup)->textname, batchline,
-					MXNAME);
-			}
-			strncat((*lookup)->textname, "in-addr.arpa.",
-				MXNAME);
-		} else {
-			isc_netaddr_t addr;
-			dns_fixedname_t fname;
-			dns_name_t *name;
-			isc_buffer_t b;
-			
-			addr.family = AF_INET6;
-			n = inet_pton(AF_INET6, value, &addr.type.in6);
-			if (n <= 0)
-				show_usage();
-			dns_fixedname_init(&fname);
-			name = dns_fixedname_name(&fname);
+		if (get_reverse(textname, value, nibble) == ISC_R_SUCCESS) {
+			strncpy((*lookup)->textname, textname,
+				sizeof((*lookup)->textname));
+			debug("looking up %s", (*lookup)->textname);
+			(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
+					        (*lookup)->ns_search_only);
 			(*lookup)->nibble = nibble;
-			result = dns_byaddr_createptrname(&addr, nibble,
-							  name);
-			if (result != ISC_R_SUCCESS)
-				show_usage();
-			isc_buffer_init(&b, (*lookup)->textname,
-					sizeof (*lookup)->textname);
-			result = dns_name_totext(name, ISC_FALSE, &b);
-			isc_buffer_putuint8(&b, 0);
-			if (result != ISC_R_SUCCESS)
-				show_usage();
+			(*lookup)->rdtype = dns_rdatatype_ptr;
+			(*lookup)->rdclass = dns_rdataclass_in;
+			(*lookup)->new_search = ISC_TRUE;
+			ISC_LIST_APPEND(lookup_list, *lookup, link);
+		} else {
+			fprintf(stderr, "Invalid IP address %s\n", value);
+			exit(1);
 		}
-		debug("looking up %s", (*lookup)->textname);
-		(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
-					    (*lookup)->ns_search_only);
-		(*lookup)->rdtype = dns_rdatatype_ptr;
-		(*lookup)->rdclass = dns_rdataclass_in;
-		(*lookup)->new_search = ISC_TRUE;
-		
-		ISC_LIST_APPEND(lookup_list, *lookup, link);
 		return (value_from_next);
 	invalid_option:
 	default:

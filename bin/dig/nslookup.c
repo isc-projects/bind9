@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.59 2000/10/23 17:49:05 mws Exp $ */
+/* $Id: nslookup.c,v 1.60 2000/10/23 23:13:20 mws Exp $ */
 
 #include <config.h>
 
@@ -700,6 +700,7 @@ addlookup(char *opt) {
 	isc_textregion_t tr;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
+	char store[MXNAME];
 
 	debug("addlookup()");
 	tr.base = deftype;
@@ -717,49 +718,11 @@ addlookup(char *opt) {
 		rdclass = dns_rdataclass_in;
 	}
 	lookup = make_empty_lookup();
-	if (strspn(opt, "0123456789.") == strlen(opt)) {
-		int n, i, adrs[4];
-		char store[MXNAME];
-
-		lookup->textname[0] = 0;
-		n = sscanf(opt, "%d.%d.%d.%d", &adrs[0], &adrs[1],
-				   &adrs[2], &adrs[3]);
-		if (n == 0) {
-			show_usage();
-		}
-		for (i = n - 1; i >= 0; i--) {
-			snprintf(store, MXNAME/8, "%d.",
-				 adrs[i]);
-			strncat(lookup->textname, store, MXNAME);
-		}
-		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-		lookup->rdtype = dns_rdatatype_ptr;
-	} else if (strspn(opt, "0123456789abcdef.:") == strlen(opt))
-	{
-		isc_netaddr_t addr;
-		dns_fixedname_t fname;
-		isc_buffer_t b;
-		int n;
-
-		addr.family = AF_INET6;
-		n = inet_pton(AF_INET6, opt, &addr.type.in6);
-		if (n <= 0)
-			goto notv6;
-		dns_fixedname_init(&fname);
-		result = dns_byaddr_createptrname(&addr, lookup->nibble,
-						  dns_fixedname_name(&fname));
-		if (result != ISC_R_SUCCESS)
-			show_usage();
-		isc_buffer_init(&b, lookup->textname, sizeof lookup->textname);
-		result = dns_name_totext(dns_fixedname_name(&fname),
-					 ISC_FALSE, &b);
-		isc_buffer_putuint8(&b, 0);
-		if (result != ISC_R_SUCCESS)
-			show_usage();
+	if (get_reverse(store, opt, lookup->nibble) == ISC_R_SUCCESS) {
+		safecpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->rdtype = dns_rdatatype_ptr;
 	} else {
-	notv6:
-		safecpy(lookup->textname, opt, MXNAME-1);
+		safecpy(lookup->textname, opt, sizeof(lookup->textname));
 		lookup->rdtype = rdtype;
 	}
 	lookup->rdclass = rdclass;
