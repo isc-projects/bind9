@@ -5,10 +5,10 @@
 1632.	[bug]		nsupdate failed to send prerequisite only UPDATE
 			messages. [RT #11288]
 
-1630.	[contrib]	queryperf: add support for IPv6 transport.
-
 1631.	[bug]		dns_journal_compact() could sometimes corrupt the
 			journal. [RT #11124]
+
+1630.	[contrib]	queryperf: add support for IPv6 transport.
 
 1628.	[bug]		Typo in Compaq Trucluster support. [RT# 11264]
 
