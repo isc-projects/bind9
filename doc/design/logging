@@ -315,7 +315,7 @@ to null, and all other messages to syslog.
 Providing a NULL argument for the category means "associate the
 channel with the indicated module in all known categories" ---
 including ISC_CATEGORY_DEFAULT.  Providing a NULL argument for the
-modulemeans "associate the channel with all modules that use this
+module means "associate the channel with all modules that use this
 category."  
 
 6) If you are sending any messages to syslog, call
