@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.187.2.5 2001/02/02 01:32:25 gson Exp $ */
+/* $Id: resolver.c,v 1.187.2.6 2001/02/17 02:27:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -224,7 +224,7 @@ struct fetchctx {
 
 struct dns_fetch {
 	unsigned int			magic;
-	void *				private;
+	fetchctx_t *			private;
 };
 
 #define DNS_FETCH_MAGIC			0x46746368U	/* Ftch */
@@ -821,8 +821,8 @@ static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
 	isc_result_t result;
-	dns_rdataset_t *qrdataset;
-	dns_name_t *qname;
+	dns_name_t *qname = NULL;
+	dns_rdataset_t *qrdataset = NULL;
 	isc_region_t r;
 	dns_resolver_t *res;
 	isc_task_t *task;
@@ -857,11 +857,9 @@ resquery_send(resquery_t *query) {
 		buffer = &query->buffer;
 	}
 
-	qname = NULL;
 	result = dns_message_gettempname(fctx->qmessage, &qname);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_temps;
-	qrdataset = NULL;
 	result = dns_message_gettemprdataset(fctx->qmessage, &qrdataset);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_temps;
