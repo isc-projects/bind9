@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.8 2001/08/08 19:42:53 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.9 2001/08/27 23:55:16 gson Exp $ */
 
 #include <config.h>
 
@@ -62,13 +62,12 @@ usage(int status) {
 
 	fprintf(stderr, "\
 Usage:\n\
- %s [-a] [-b bits] [-c keyfile] [-k keyname] [-P] [-p port] [-r randomfile] \
+ %s [-a] [-b bits] [-c keyfile] [-k keyname] [-p port] [-r randomfile] \
 [-s addr] [-t chrootdir] [-u user]\n\
   -a:		generate just the key clause and write it to keyfile (%s)\n\
   -b bits:	from 1 through 512, default %d; total length of the secret\n\
   -c keyfile:	specify a alterate keyfile (requires -a)\n\
   -k keyname:	the name as it will be used  in named.conf and rndc.conf\n\
-  -P:		using pseudorandom data for key generation is ok\n\
   -p port:	the port named will listen on and rndc will connect to\n\
   -r randomfile: a file containing random data\n\
   -s addr:	the address to which rndc should connect\n\
@@ -121,7 +120,6 @@ write_key_file(const char *keyfile, const char *user,
 int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
-	isc_boolean_t pseudorandom = ISC_FALSE;
 	isc_buffer_t key_rawbuffer;
 	isc_buffer_t key_txtbuffer;
 	isc_region_t key_rawregion;
@@ -160,7 +158,7 @@ main(int argc, char **argv) {
 	port = DEFAULT_PORT;
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ab:c:hk:MmPp:r:s:t:u:Vy")) != -1) {
+					   "ab:c:hk:Mmp:r:s:t:u:Vy")) != -1) {
 		switch (ch) {
 		case 'a':
 			keyonly = ISC_TRUE;
@@ -187,10 +185,6 @@ main(int argc, char **argv) {
 
 		case 'm':
 			show_final_mem = ISC_TRUE;
-			break;
-		case 'P':
-			pseudorandom = ISC_TRUE;
-			open_keyboard = ISC_ENTROPY_KEYBOARDNO;
 			break;
 		case 'p':
 			port = strtol(isc_commandline_argument, &p, 10);
@@ -241,8 +235,7 @@ main(int argc, char **argv) {
 							     randomfile,
 							     open_keyboard));
 
-	if (! pseudorandom)
-		entropy_flags = ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY;
+	entropy_flags = ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY;
 
 	DO("initialize dst library", dst_lib_init(mctx, ectx, entropy_flags));
 
