@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.31 2000/05/05 23:19:59 marka Exp $ */
+/* $Id: a_1.c,v 1.32 2000/05/13 20:50:35 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -175,8 +175,8 @@ freestruct_in_a(void *source) {
 	dns_rdata_in_a_t *a = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(a->common.rdtype = 1);
-	REQUIRE(a->common.rdclass = 1);
+	REQUIRE(a->common.rdtype == 1);
+	REQUIRE(a->common.rdclass == 1);
 }
 
 static inline isc_result_t
