@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.11 2001/08/09 02:36:01 gson Exp $
+# $Id: altbuild.sh,v 1.12 2002/02/20 02:28:33 marka Exp $
 
 #
 # "Alternative build" test.
@@ -25,9 +25,11 @@
 # command line argument.
 #
 
+tmpdir=/tmp
 case $# in 
+    2) arg=$1 tmpdir="$2" ;;
     1) arg=$1 ;;
-    *) echo "usage: $0 cvs-tag | absolute-path-to-gzipped-tar-file" >&2; exit 1 ;;
+    *) echo "usage: $0 cvs-tag | absolute-path-to-gzipped-tar-file [tmpdir]" >&2; exit 1 ;;
 esac
 
 here=`pwd`
@@ -37,11 +39,12 @@ test -f util/check-instincludes.sh || {
     exit 1;
 }
 
-kitdir=/tmp/kit
-srcdir=/tmp/src
-builddir=/tmp/build
-instdir=/tmp/inst
+kitdir=${tmpdir}/kit
+srcdir=${tmpdir}/src
+builddir=${tmpdir}/build
+instdir=${tmpdir}/inst
 
+test ! -d $tmpdir || mkdir $tmpdir
 test ! -d $kitdir || rm -rf $kitdir
 mkdir $kitdir
 
@@ -66,7 +69,7 @@ case $arg in
 esac
 
 cd $srcdir || exit 1
-zcat $kit | tar xf -
+gzcat $kit | tar xf -
 
 cd $builddir || exit 1
 
