@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.328 2001/05/31 01:21:07 bwelling Exp $ */
+/* $Id: server.c,v 1.329 2001/06/04 14:08:34 marka Exp $ */
 
 #include <config.h>
 
@@ -138,6 +138,8 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 	cfg_obj_t *aclobj = NULL;
 	int i = 0;
 
+	if (*aclp != NULL)
+		dns_acl_detach(aclp);
 	if (vconfig != NULL)
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	if (config != NULL) {
