@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.3 2001/02/15 18:53:02 gson Exp $ */
+/* $Id: parser.c,v 1.4 2001/02/15 23:22:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -241,7 +241,7 @@ static void
 free_list(cfg_parser_t *pctx, cfg_obj_t *obj);
 
 static isc_result_t
-create_string(cfg_parser_t *pctx, char *contents, cfg_type_t *type,
+create_string(cfg_parser_t *pctx, const char *contents, cfg_type_t *type,
 	      cfg_obj_t **ret);
 
 static void
@@ -1228,7 +1228,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret)
 }
 
 static isc_result_t
-cfg_parser_openfile(cfg_parser_t *pctx, char *filename) {
+cfg_parser_openfile(cfg_parser_t *pctx, const char *filename) {
 	isc_result_t result;
 	cfg_listelt_t *elt = NULL;
 	cfg_obj_t *stringobj = NULL;
@@ -1252,7 +1252,7 @@ cfg_parser_openfile(cfg_parser_t *pctx, char *filename) {
 }
 
 isc_result_t
-cfg_parse_file(cfg_parser_t *pctx, char *filename,
+cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 	       cfg_type_t *type, cfg_obj_t **ret)
 {
 	isc_result_t result;
@@ -1426,7 +1426,7 @@ print_optional_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj) {
 
 /* Create a string object from a null-terminated C string. */
 static isc_result_t
-create_string(cfg_parser_t *pctx, char *contents, cfg_type_t *type,
+create_string(cfg_parser_t *pctx, const char *contents, cfg_type_t *type,
 	      cfg_obj_t **ret)
 {
 	isc_result_t result;

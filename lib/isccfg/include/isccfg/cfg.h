@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.3 2001/02/15 18:53:03 gson Exp $ */
+/* $Id: cfg.h,v 1.4 2001/02/15 23:22:27 bwelling Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -82,7 +82,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret);
  */
 
 isc_result_t
-cfg_parse_file(cfg_parser_t *pctx, char *filename,
+cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 	       cfg_type_t *type, cfg_obj_t **ret);
 /*
  * Read in a configuration file containing data of type 'type'
