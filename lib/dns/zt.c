@@ -244,6 +244,12 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 
 	dns_rbtnodechain_init(&chain, zt->mctx);
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
+	if (result == DNS_R_NOTFOUND) {
+		/*
+		 * The tree is empty.
+		 */
+		result = DNS_R_NOMORE; 
+	}
 	while (result == DNS_R_NEWORIGIN || result == DNS_R_SUCCESS) {
 		result = dns_rbtnodechain_current(&chain, NULL, NULL,
 						  &node);
