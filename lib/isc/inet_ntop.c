@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_ntop.c,v 1.3 1999/02/06 08:48:07 explorer Exp $";
+static char rcsid[] = "$Id: inet_ntop.c,v 1.4 1999/07/16 00:24:04 halley Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -25,16 +25,7 @@ static char rcsid[] = "$Id: inet_ntop.c,v 1.3 1999/02/06 08:48:07 explorer Exp $
 #include <stdio.h>
 #include <string.h>
 
-#include <sys/param.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
-#include <arpa/nameser.h>
-
-#include <isc/inet.h>
+#include <isc/net.h>
 
 #define NS_INT16SZ	 2
 #define NS_IN6ADDRSZ	16
@@ -44,9 +35,12 @@ static char rcsid[] = "$Id: inet_ntop.c,v 1.3 1999/02/06 08:48:07 explorer Exp $
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static const char *isc_inet_ntop4(const unsigned char *src, char *dst, size_t size);
+static const char *inet_ntop4(const unsigned char *src, char *dst,
+			      size_t size);
+				  
 #ifdef AF_INET6
-static const char *isc_inet_ntop6(const unsigned char *src, char *dst, size_t size);
+static const char *inet_ntop6(const unsigned char *src, char *dst,
+			      size_t size);
 #endif
 
 /* char *
@@ -62,10 +56,10 @@ isc_inet_ntop(int af, const void *src, char *dst, size_t size)
 {
 	switch (af) {
 	case AF_INET:
-		return (isc_inet_ntop4(src, dst, size));
+		return (inet_ntop4(src, dst, size));
 #ifdef AF_INET6
 	case AF_INET6:
-		return (isc_inet_ntop6(src, dst, size));
+		return (inet_ntop6(src, dst, size));
 #endif
 	default:
 		errno = EAFNOSUPPORT;
@@ -75,7 +69,7 @@ isc_inet_ntop(int af, const void *src, char *dst, size_t size)
 }
 
 /* const char *
- * isc_inet_ntop4(src, dst, size)
+ * inet_ntop4(src, dst, size)
  *	format an IPv4 address
  * return:
  *	`dst' (as a const)
@@ -86,7 +80,7 @@ isc_inet_ntop(int af, const void *src, char *dst, size_t size)
  *	Paul Vixie, 1996.
  */
 static const char *
-isc_inet_ntop4(const unsigned char *src, char *dst, size_t size)
+inet_ntop4(const unsigned char *src, char *dst, size_t size)
 {
 	static const char *fmt = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
@@ -108,7 +102,7 @@ isc_inet_ntop4(const unsigned char *src, char *dst, size_t size)
  */
 #ifdef AF_INET6
 static const char *
-isc_inet_ntop6(const unsigned char *src, char *dst, size_t size)
+inet_ntop6(const unsigned char *src, char *dst, size_t size)
 {
 	/*
 	 * Note that int32_t and int16_t need only be "at least" large enough
@@ -171,8 +165,8 @@ isc_inet_ntop6(const unsigned char *src, char *dst, size_t size)
 		/* Is this address an encapsulated IPv4? */
 		if (i == 6 && best.base == 0 &&
 		    (best.len == 6 || (best.len == 5 && words[5] == 0xffff))) {
-			if (!isc_inet_ntop4(src+12, tp,
-					    sizeof tmp - (tp - tmp)))
+			if (!inet_ntop4(src+12, tp,
+					sizeof tmp - (tp - tmp)))
 				return (NULL);
 			tp += strlen(tp);
 			break;

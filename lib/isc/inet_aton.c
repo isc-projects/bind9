@@ -70,21 +70,15 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: inet_aton.c,v 1.4 1999/03/06 04:03:53 halley Exp $";
+static char rcsid[] = "$Id: inet_aton.c,v 1.5 1999/07/16 00:24:04 halley Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
 
-#include <sys/types.h>
-#include <sys/param.h>
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include <ctype.h>
 
 #include <isc/types.h>
-#include <isc/inet.h>
+#include <isc/net.h>
 
 /* 
  * Check whether "cp" is a valid ascii representation

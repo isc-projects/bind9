@@ -16,23 +16,15 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_pton.c,v 1.2 1999/02/06 08:48:07 explorer Exp $";
+static char rcsid[] = "$Id: inet_pton.c,v 1.3 1999/07/16 00:24:04 halley Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
-#include <arpa/nameser.h>
-
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 
-#include <isc/inet.h>
+#include <isc/net.h>
 
 #define NS_INT16SZ	 2
 #define NS_INADDRSZ	 4
@@ -43,8 +35,8 @@ static char rcsid[] = "$Id: inet_pton.c,v 1.2 1999/02/06 08:48:07 explorer Exp $
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static int	inet_pton4(const char *src, unsigned char *dst);
-static int	inet_pton6(const char *src, unsigned char *dst);
+static int inet_pton4(const char *src, unsigned char *dst);
+static int inet_pton6(const char *src, unsigned char *dst);
 
 /* int
  * isc_inet_pton(af, src, dst)
