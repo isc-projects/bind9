@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.64 2000/08/26 01:36:49 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.65 2000/09/01 07:16:04 explorer Exp $ */
 
 #include <config.h>
 
@@ -2148,6 +2148,12 @@ void
 dns_dispatch_changeattributes(dns_dispatch_t *disp,
 			      unsigned int attributes, unsigned int mask)
 {
+	REQUIRE(VALID_DISPATCH(disp));
+
+	/* XXXMLG
+	 * Should check for valid attributes here!
+	 */
+
 	LOCK(&disp->lock);
 	disp->attributes &= ~mask;
 	disp->attributes |= (attributes & mask);
