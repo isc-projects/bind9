@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.h,v 1.2 2000/11/15 02:47:29 gson Exp $ */
+/* $Id: sortlist.h,v 1.3 2000/11/15 18:12:38 gson Exp $ */
 
 #ifndef NAMED_SORTLIST_H
 #define NAMED_SORTLIST_H 1
@@ -40,7 +40,7 @@ typedef enum {
 } ns_sortlisttype_t;
 
 ns_sortlisttype_t
-setup_sortlist(dns_acl_t *acl, isc_netaddr_t *clientaddr, void **argp);
+ns_sortlist_setup(dns_acl_t *acl, isc_netaddr_t *clientaddr, void **argp);
 /*
  * Find the sortlist statement in 'acl' that applies to 'clientaddr', if any.
  *

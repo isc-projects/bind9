@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.149 2000/11/14 03:30:53 gson Exp $ */
+/* $Id: query.c,v 1.150 2000/11/15 18:12:36 gson Exp $ */
 
 #include <config.h>
 
@@ -2247,11 +2247,11 @@ query_sortlist_order_1element(dns_rdata_t *rdata, void *arg) {
 static void
 setup_query_sortlist(ns_client_t *client) {
 	isc_netaddr_t netaddr;
-	dns_rdatasetorderfunc_t order;
+	dns_rdatasetorderfunc_t order = NULL;
 	void *order_arg = NULL;
 	
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-	switch (setup_sortlist(client->view->sortlist,
+	switch (ns_sortlist_setup(client->view->sortlist,
 			       &netaddr, &order_arg)) {
 	case NS_SORTLISTTYPE_1ELEMENT:
 		order = query_sortlist_order_1element;
@@ -2261,6 +2261,9 @@ setup_query_sortlist(ns_client_t *client) {
 		break;
 	case NS_SORTLISTTYPE_NONE:
 		order = NULL;
+		break;
+	default:
+		INSIST(0);
 		break;
 	}
 	dns_message_setsortorder(client->message, order, order_arg);

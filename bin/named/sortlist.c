@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.c,v 1.1 2000/11/14 03:22:53 gson Exp $ */
+/* $Id: sortlist.c,v 1.2 2000/11/15 18:12:37 gson Exp $ */
 
 #include <config.h>
 
@@ -30,7 +30,7 @@
 #include <named/sortlist.h>
 
 ns_sortlisttype_t
-setup_sortlist(dns_acl_t *acl, isc_netaddr_t *clientaddr, void **argp) {
+ns_sortlist_setup(dns_acl_t *acl, isc_netaddr_t *clientaddr, void **argp) {
 	unsigned int i;
 
 	if (acl == NULL)
@@ -114,7 +114,7 @@ ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, isc_netaddr_t *client_addr,
 		       void **argp)
 {
 	dns_addressorderfunc_t order;
-	switch (setup_sortlist(sortlist_acl, client_addr, argp)) {
+	switch (ns_sortlist_setup(sortlist_acl, client_addr, argp)) {
 	case NS_SORTLISTTYPE_1ELEMENT:
 		order = ns_sortlist_addrorder1;
 		break;
