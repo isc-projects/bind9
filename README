@@ -1,5 +1,5 @@
 
-BIND 9.0.0 alpha 1
+BIND 9.0.0 alpha 3
 
 
 Status
@@ -27,7 +27,7 @@ of the highlights are:
 
 With the exception of the DNSSEC validator, all the major new
 functionality is done.  We expect to finish the DNSSEC validator by
-Dec. 1.
+the end of December.
 
 This release is alpha quality.  There are still a number of unfinished
 areas, for example: most config file options, sanity checking,
