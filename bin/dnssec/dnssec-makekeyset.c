@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.46 2001/01/09 21:39:23 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.47 2001/03/22 19:28:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -97,6 +97,32 @@ usage(void) {
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "\tkeyset (keyset-<name>)\n");
 	exit(0);
+}
+
+static isc_boolean_t
+zonekey_on_list(dst_key_t *key) {
+	keynode_t *keynode;
+	for (keynode = ISC_LIST_HEAD(keylist);
+	     keynode != NULL;
+	     keynode = ISC_LIST_NEXT(keynode, link))
+	{
+		if (dst_key_compare(keynode->key, key))
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
+static isc_boolean_t
+rdata_on_list(dns_rdata_t *rdata, dns_rdatalist_t *list) {
+	dns_rdata_t *trdata;
+	for (trdata = ISC_LIST_HEAD(list->rdata);
+	     trdata != NULL;
+	     trdata = ISC_LIST_NEXT(trdata, link))
+	{
+		if (dns_rdata_compare(trdata, rdata) == 0)
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
 }
 
 int
@@ -282,11 +308,15 @@ main(int argc, char *argv[]) {
 			if (result != ISC_R_SUCCESS)
 				fatal("failed to read private key %s: %s",
 				      argv[i], isc_result_totext(result));
-			keynode = isc_mem_get(mctx, sizeof (keynode_t));
-			if (keynode == NULL)
-				fatal("out of memory");
-			keynode->key = zonekey;
-			ISC_LIST_INITANDAPPEND(keylist, keynode, link);
+			if (!zonekey_on_list(zonekey)) {
+				keynode = isc_mem_get(mctx,
+						      sizeof (keynode_t));
+				if (keynode == NULL)
+					fatal("out of memory");
+				keynode->key = zonekey;
+				ISC_LIST_INITANDAPPEND(keylist, keynode, link);
+			} else
+				dst_key_free(&zonekey);
 		}
 		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 		if (rdata == NULL)
@@ -303,7 +333,12 @@ main(int argc, char *argv[]) {
 		isc_buffer_usedregion(&b, &r);
 		dns_rdata_fromregion(rdata, rdatalist.rdclass,
 				     dns_rdatatype_key, &r);
-		ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
+		if (!rdata_on_list(rdata, &rdatalist))
+			ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
+		else {
+			isc_mem_put(mctx, data, BUFSIZE);
+			isc_mem_put(mctx, rdata, sizeof *rdata);
+		}
 		dst_key_free(&key);
 	}
 
