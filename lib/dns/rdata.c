@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.42 1999/05/07 03:24:05 marka Exp $ */
+ /* $Id: rdata.c,v 1.43 1999/05/17 04:49:38 gson Exp $ */
 
 #include <config.h>
 
@@ -969,7 +969,7 @@ base64_totext(isc_region_t *source, isc_buffer_t *target) {
 		buf[0] = base64[(source->base[0]>>2)&0x3f];
 		buf[1] = base64[((source->base[0]<<4)&0x30)|
 				((source->base[1]>>4)&0x0f)];
-		buf[2] = base64[((source->base[1]<<4)&0x3c)];
+		buf[2] = base64[((source->base[1]<<2)&0x3c)];
 		buf[3] = '=';
 		RETERR(str_totext(buf, target));
 	} else if (source->length == 1) {
