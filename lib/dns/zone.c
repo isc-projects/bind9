@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.261 2000/11/28 02:33:58 gson Exp $ */
+/* $Id: zone.c,v 1.262 2000/11/28 20:54:37 gson Exp $ */
 
 #include <config.h>
 
@@ -4449,7 +4449,6 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "dumping new zone version");
-			/* XXX should use temporary file and rename */
 			result = dns_db_dump(db, ver, zone->masterfile);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
