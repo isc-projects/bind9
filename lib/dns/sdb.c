@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.23.2.2 2001/02/13 20:41:05 gson Exp $ */
+/* $Id: sdb.c,v 1.23.2.3 2001/02/20 23:50:28 gson Exp $ */
 
 #include <config.h>
 
@@ -1253,12 +1253,24 @@ disassociate(dns_rdataset_t *rdataset) {
 	isc__rdatalist_disassociate(rdataset);
 }
 
+static void
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+	dns_dbnode_t *node = source->private5;
+	dns_sdbnode_t *sdbnode = (dns_sdbnode_t *) node;
+	dns_db_t *db = (dns_db_t *) sdbnode->sdb;
+	dns_dbnode_t *tempdb = NULL;
+
+	isc__rdatalist_clone(source, target);
+	attachnode(db, node, &tempdb);
+	source->private5 = tempdb;
+}
+
 static dns_rdatasetmethods_t methods = {
 	disassociate,
 	isc__rdatalist_first,
 	isc__rdatalist_next,
 	isc__rdatalist_current,
-	isc__rdatalist_clone,
+	rdataset_clone,
 	isc__rdatalist_count
 };
 
@@ -1267,6 +1279,13 @@ list_tordataset(dns_rdatalist_t *rdatalist,
 		dns_db_t *db, dns_dbnode_t *node,
 		dns_rdataset_t *rdataset)
 {
+	/*
+	 * The sdb rdataset is an rdatalist with some additions.
+	 *	- private1 & private2 are used by the rdatalist.
+	 *	- private3 & private 4 are unused.
+	 *	- private5 is the node.
+	 */
+
 	/* This should never fail. */
 	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset) ==
 		      ISC_R_SUCCESS);

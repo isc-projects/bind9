@@ -1,4 +1,7 @@
 
+ 746.	[bug]		The sdb didn't clone rdatasets properly, causing
+			a crash when the server followed delegations. [RT #905]
+
  744.	[bug]		When returning DNS_R_CNAME or DNS_R_DNAME as the
 			result of an ANY or SIG query, the resolver failed
 			to setup the return event's rdatasets, causing an
