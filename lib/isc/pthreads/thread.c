@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.12 2004/03/05 05:11:17 marka Exp $ */
+/* $Id: thread.c,v 1.12.18.1 2004/12/04 07:00:23 marka Exp $ */
 
 #include <config.h>
 
@@ -47,6 +47,12 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 		if (ret != 0)
 			return (ISC_R_UNEXPECTED);
 	}
+#endif
+
+#if defined(PTHREAD_SCOPE_SYSTEM) && defined(NEED_PTHREAD_SCOPE_SYSTEM)
+	ret = pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+	if (ret != 0)
+		return (ISC_R_UNEXPECTED);
 #endif
 
 	ret = pthread_create(thread, &attr, func, arg);

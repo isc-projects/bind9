@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.44.18.2 2004/10/05 03:18:19 marka Exp $ */
+/* $Id: acconfig.h,v 1.44.18.3 2004/12/04 07:00:22 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -142,3 +142,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T
+
+/* Define if threads need PTHREAD_SCOPE_SYSTEM */
+#undef NEED_PTHREAD_SCOPE_SYSTEM
