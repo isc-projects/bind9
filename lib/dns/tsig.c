@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.25 1999/10/28 22:05:23 bwelling Exp $
+ * $Id: tsig.c,v 1.26 1999/10/28 23:13:42 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -1064,7 +1064,7 @@ dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 	if (ret != ISC_R_SUCCESS)
 		goto failure;
 
-	if (confctx != NULL) {
+	if (confctx != NULL && confctx->keydefs != NULL) {
 		ret = add_initial_keys(confctx, mctx);
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
