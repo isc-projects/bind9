@@ -133,65 +133,6 @@ Index: README.idnkit
 +
 +
 +; $Id: bind-9.2.2-patch,v 1.1.1.1 2003/06/04 00:27:32 marka Exp $
-Index: config.h.in
-===================================================================
-RCS file: /proj/cvs/prod/bind9/config.h.in,v
-retrieving revision 1.47.2.7
-diff -U2 -r1.47.2.7 config.h.in
---- config.h.in	29 Jan 2004 05:00:52 -0000	1.47.2.7
-+++ config.h.in	11 Mar 2004 22:43:34 -0000
-@@ -1,4 +1,5 @@
- /* config.h.in.  Generated from configure.in by autoheader.  */
- /*
-+ * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
-  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
-  *
-@@ -7,15 +8,14 @@
-  * copyright notice and this permission notice appear in all copies.
-  *
-- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
-- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
-- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
-- * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
-- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
-- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
-- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
-- * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
-+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-+ * PERFORMANCE OF THIS SOFTWARE.
-  */
- 
--/* $Id: config.h.in,v 1.47.2.7 2004/01/29 05:00:52 marka Exp $ */
-+/* $Id: acconfig.h,v 1.35.2.8 2004/03/09 06:09:07 marka Exp $ */
- 
- /***
-@@ -159,7 +159,13 @@
- #undef HAVE_LINUX_CAPABILITY_H
- 
-+/* Define to 1 if you have the <locale.h> header file. */
-+#undef HAVE_LOCALE_H
-+
- /* Define to 1 if you have the <memory.h> header file. */
- #undef HAVE_MEMORY_H
- 
-+/* Define to 1 if you have the `setlocale' function. */
-+#undef HAVE_SETLOCALE
-+
- /* Define to 1 if you have the <stdint.h> header file. */
- #undef HAVE_STDINT_H
-@@ -222,4 +228,7 @@
- #undef TIME_WITH_SYS_TIME
- 
-+/* define if idnkit support is to be included. */
-+#undef WITH_IDN
-+
- /* Define to 1 if your processor stores words with the most significant byte
-    first (like Motorola and SPARC, unlike Intel and VAX). */
 Index: configure
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure,v
@@ -11672,3 +11613,39 @@ diff -U2 -r1.95.2.5 name.h
 +
  #define DNS_NAME_FORMATSIZE (DNS_NAME_MAXTEXT + 1)
  /*
+Index: config.h.in
+===================================================================
+RCS file: /proj/cvs/prod/bind9/config.h.in,v
+retrieving revision 1.47.2.8
+diff -U2 -r1.47.2.8 config.h.in
+--- config.h.in	15 Mar 2004 05:00:23 -0000	1.47.2.8
++++ config.h.in	15 Mar 2004 05:04:12 -0000
+@@ -17,5 +17,5 @@
+  */
+ 
+-/* $Id: config.h.in,v 1.47.2.8 2004/03/15 05:00:23 marka Exp $ */
++/* $Id: acconfig.h,v 1.35.2.8 2004/03/09 06:09:07 marka Exp $ */
+ 
+ /***
+@@ -159,7 +159,13 @@
+ #undef HAVE_LINUX_CAPABILITY_H
+ 
++/* Define to 1 if you have the <locale.h> header file. */
++#undef HAVE_LOCALE_H
++
+ /* Define to 1 if you have the <memory.h> header file. */
+ #undef HAVE_MEMORY_H
+ 
++/* Define to 1 if you have the `setlocale' function. */
++#undef HAVE_SETLOCALE
++
+ /* Define to 1 if you have the <stdint.h> header file. */
+ #undef HAVE_STDINT_H
+@@ -222,4 +228,7 @@
+ #undef TIME_WITH_SYS_TIME
+ 
++/* define if idnkit support is to be included. */
++#undef WITH_IDN
++
+ /* Define to 1 if your processor stores words with the most significant byte
+    first (like Motorola and SPARC, unlike Intel and VAX). */
