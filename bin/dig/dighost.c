@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.115 2000/08/14 19:11:02 bwelling Exp $ */
+/* $Id: dighost.c,v 1.116 2000/08/17 01:23:42 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -982,7 +982,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 						lookup->trace_root = ISC_FALSE;
 					}
 					r.base[len]=0;
-					srv = make_server(r.base);
+					srv = make_server((char *)r.base);
 					debug("adding server %s",
 					       srv->servername);
 					ISC_LIST_APPEND
