@@ -21,6 +21,8 @@
 #include <isc/assertions.h>
 
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
 #include <dns/rdataset.h>
 
 void
@@ -148,12 +150,12 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    isc_buffer_t *target)
 {
 	dns_result_t result;
-	unsigned int common_start, common_length, length, ntabs, offset;
+	unsigned int common_start, common_length, length, ntabs, ttabs;
 	char *common;
 	dns_rdata_t rdata;
 	isc_boolean_t first = ISC_TRUE;
 	isc_region_t r;
-	char classtypettl[100];
+	char ttl[64];
 
 	/*
 	 * Convert 'rdataset' to text format, storing the result in 'target'.
@@ -164,76 +166,73 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	REQUIRE(result == DNS_R_SUCCESS);
 
 	/*
-	 * Make compiler happy.
-	 */
-	common_start = 0;
-	common_length = 0;
-	common = NULL;
-	length = 0;
-	ntabs = 0;
-	offset = 0;
-
-	/*
 	 * XXX Explicit buffer structure references here.  Improve buffer
 	 * API.
 	 */
+	common_start = target->used;
+	/*
+	 * The caller might want to give us an empty owner
+	 * name (e.g. if they are outputting into a master
+	 * file and this rdataset has the same name as the
+	 * previous one.)
+	 */
+	if (dns_name_countlabels(owner_name) != 0) {
+		result = dns_name_totext(owner_name,
+					 omit_final_dot,
+					 target);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
+	common = (char *)target->base + common_start;
+	common_length = target->used - common_start;
+	ntabs = tabs_needed(common_length, 24);
+	ttabs = ntabs;
+	isc_buffer_available(target, &r);
+	if (r.length < ntabs)
+		return (DNS_R_NOSPACE);
+	memcpy(r.base, tabs, ntabs);
+	isc_buffer_add(target, ntabs);
+	/*
+	 * XXX The following sprintf() is safe, but it
+	 * would still be good to use snprintf if we had it.
+	 */
+	length = sprintf(ttl, "%u ", rdataset->ttl);
+	INSIST(length <= sizeof ttl);
+	isc_buffer_available(target, &r);
+	if (r.length < length)
+		return (DNS_R_NOSPACE);
+	memcpy(r.base, ttl, length);
+	isc_buffer_add(target, length);
+	result = dns_rdataclass_totext(rdataset->class, target);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	isc_buffer_available(target, &r);
+	if (r.length == 0)
+		return (DNS_R_NOSPACE);
+	*r.base = ' ';
+	isc_buffer_add(target, 1);
+	result = dns_rdatatype_totext(rdataset->type, target);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	common_length = target->used - common_start;
+	ntabs = tabs_needed(common_length + ttabs * 7, 40);
+	ttabs += ntabs;
+	isc_buffer_available(target, &r);
+	if (r.length < ntabs)
+		return (DNS_R_NOSPACE);
+	memcpy(r.base, tabs, ntabs);
+	isc_buffer_add(target, ntabs);
+	common_length = target->used - common_start;
+
 	do {
-		if (first) {
-			common_start = target->used;
-			/*
-			 * The caller might want to give us an empty owner
-			 * name (e.g. if they are outputting into a master
-			 * file and this rdataset has the same name as the
-			 * previous one.)
-			 */
-			if (dns_name_countlabels(owner_name) != 0) {
-				result = dns_name_totext(owner_name,
-							 omit_final_dot,
-							 target);
-				if (result != DNS_R_SUCCESS)
-					return (result);
-			}
-			common_length = target->used - common_start;
-			common = (char *)target->base + common_start;
-			ntabs = tabs_needed(common_length, 24);
-			offset = common_length + ntabs * 8;
-			isc_buffer_available(target, &r);
-			if (r.length < ntabs)
-				return (DNS_R_NOSPACE);
-			memcpy(r.base, tabs, ntabs);
-			isc_buffer_add(target, ntabs);
-			common_length += ntabs;
-			/*
-			 * XXX We print the class and type as numbers
-			 * for now, but we'll convert to the mnemonics when
-			 * the rdata implementation is available.
-			 *
-			 * XXX The following sprintf() is safe, but it
-			 * would still be good to use snprintf if we had it.
-			 */
-			length = sprintf(classtypettl, "%u %u %u",
-					 rdataset->class, rdataset->type,
-					 rdataset->ttl);
-			INSIST(length <= sizeof classtypettl);
-			offset += length;
-			ntabs = tabs_needed(offset, 40);
-			isc_buffer_available(target, &r);
-			if (r.length < length + ntabs)
-				return (DNS_R_NOSPACE);
-			memcpy(r.base, classtypettl, length);
-			r.base += length;
-			memcpy(r.base, tabs, ntabs);
-			length += ntabs;
-			isc_buffer_add(target, length);
-			common_length += length;
-			first = ISC_FALSE;
-		} else {
+		if (!first) {
 			isc_buffer_available(target, &r);
 			if (r.length < common_length)
 				return (DNS_R_NOSPACE);
 			memcpy(r.base, common, common_length);
 			isc_buffer_add(target, common_length);
-		}
+		} else
+			first = ISC_FALSE;
 
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_totext(&rdata, target);
