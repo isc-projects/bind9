@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.93 2001/02/10 02:00:09 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.94 2001/02/13 20:21:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1583,10 +1583,12 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 		if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) == 0 &&
 		    (attributes & DNS_DISPATCHATTR_NOLISTEN) != 0)
+		{
 			disp->attributes |= DNS_DISPATCHATTR_NOLISTEN;
-			if (disp->recv_pending > 0)
+			if (disp->recv_pending != 0)
 				isc_socket_cancel(disp->socket, NULL,
 						  ISC_SOCKCANCEL_RECV);
+		}
 
 		UNLOCK(&disp->lock);
 		UNLOCK(&mgr->lock);
