@@ -45,7 +45,7 @@ BIND 9
 
 BIND 9.2.4
 
-	BIND 9.2.3 is a maintenance release, containing fixes for
+	BIND 9.2.4 is a maintenance release, containing fixes for
 	a number of bugs in 9.2.3.
 	
 	libbind: corresponds to that from BIND 8.4.5.
