@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.94 $)
+AC_REVISION($Revision: 1.95 $)
 
 AC_PREREQ(2.13)
 
@@ -175,18 +175,6 @@ AC_CHECK_LIB(pthread, pthread_create,,
              AC_CHECK_LIB(pthread, __pthread_create)
              AC_CHECK_LIB(pthread, __pthread_create_system)
 )
-
-dnl
-dnl Additional OS-specific searching for pthreads
-dnl
-case "$host" in
-	*-freebsd*)
-		if test "$ac_cv_lib_pthread" != "yes"; then
-			AC_CHECK_LIB(c_r, pthread_create)
-		fi
-		;;
-esac
-
 
 dnl
 dnl We'd like to use sigwait() too
