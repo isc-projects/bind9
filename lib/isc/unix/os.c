@@ -23,13 +23,13 @@
 
 unsigned int
 isc_os_ncpus(void) {
-#if defined(HAVE_SYSCONF) && defined(_SC_NPROCESSORS_ONLN)
-	long ncpus;
+	long ncpus = 1;
 
+#if defined(HAVE_SYSCONF) && defined(_SC_NPROCESSORS_ONLN)
 	ncpus = sysconf(_SC_NPROCESSORS_ONLN);
 	if (ncpus <= 0)
-		return (1);
-#else
-	return (1);
+		ncpus = 1;
 #endif
+
+	return ((unsigned int)ncpus);
 }
