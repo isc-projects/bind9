@@ -1,3 +1,6 @@
+ 995.	[bug]		dig, host, nslookup: using a raw IPv6 address as a
+			target address should be fatal on a IPv4 only system.
+
  994.	[bug]		If the unsecure proof fails for unsigned NS records
 			attempt a secure proof using the NS records found as
 			glue to find the NS records from the zone's servers
