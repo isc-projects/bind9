@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.70 2000/07/06 01:02:41 mws Exp $ */
+/* $Id: dighost.c,v 1.71 2000/07/07 21:53:47 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1814,12 +1814,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 							     &ab);
 				check_result(result, "isc_sockaddr_totext");
 				isc_buffer_usedregion(&ab, &r);
-				if (((dns_message_firstname(msg,
-							    DNS_SECTION_ANSWER)
-				      == ISC_R_SUCCESS) &&
-				    query->lookup->ns_search_only &&
-				    !query->lookup->trace_root) ||
-				     query->lookup->trace) {
+				if ((dns_message_firstname(msg,
+							   DNS_SECTION_ANSWER)
+				      == ISC_R_SUCCESS) ||
+				    query->lookup->trace ) {
 					received(b->used, r.length,
 						 (char *)r.base,
 						 query);
