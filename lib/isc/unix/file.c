@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.30 2001/04/12 19:46:39 tale Exp $ */
+/* $Id: file.c,v 1.31 2001/05/03 18:59:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -233,4 +233,14 @@ isc_file_isabsolute(const char *filename) {
 isc_boolean_t
 isc_file_iscurrentdir(const char *filename) {
 	return (ISC_TF(filename[0] == '.' && filename[1] == '\0'));
+}
+
+char *
+isc_file_basename(const char *filename) {
+	char *s;
+
+	s = strrchr(filename, '/');
+	if (s == NULL)
+		return (filename);
+	return (s + 1);
 }
