@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.125 2000/09/13 00:55:13 mws Exp $ */
+/* $Id: dighost.c,v 1.126 2000/09/13 08:02:11 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1988,7 +1988,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			return;
 		}
 		if (((msg->flags & DNS_MESSAGEFLAG_TC) != 0) 
-		    && ! l->ignore) {
+		    && ! l->ignore && !l->tcp_mode) {
 			printf(";; Truncated, retrying in TCP mode.\n");
 			n = requeue_lookup(l, ISC_TRUE);
 			n->tcp_mode = ISC_TRUE;
