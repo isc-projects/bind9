@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.162.2.1 2001/01/09 22:43:22 bwelling Exp $ */
+/* $Id: adb.c,v 1.162.2.2 2001/01/30 22:26:09 gson Exp $ */
 
 /*
  * Implementation notes
@@ -3303,6 +3303,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 		dns_a6_init(&a6ctx, a6find, NULL, import_a6,
 			    a6missing, adbname);
 		(void)dns_a6_foreach(&a6ctx, &rdataset, now);
+		adbname->flags &= ~NAME_NEEDS_POKE;
 		result = ISC_R_SUCCESS;
 		break;
 	case DNS_R_NXDOMAIN:

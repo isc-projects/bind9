@@ -3,6 +3,9 @@
 			reference an uninitialized variable, causing the
 			server to crash. [RT #750]
 
+ 715.	[bug]		Resolving some A6 chains could cause an assertion
+			failure in adb.c. [RT #738]
+
  711.	[bug]		The libisc and liblwres implementations of
 			inet_ntop contained an off by one error.
 
