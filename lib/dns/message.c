@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.165 2001/01/03 20:42:08 bwelling Exp $ */
+/* $Id: message.c,v 1.166 2001/01/04 00:24:26 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1771,10 +1771,10 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				}
 
 				/*
-				 * If we have rendered pending data, ensure
-				 * that the AD bit is not set.
+				 * If we have rendered non-validated data,
+				 * ensure that the AD bit is not set.
 				 */
-				if (rdataset->trust == dns_trust_pending &&
+				if (rdataset->trust != dns_trust_secure &&
 				    (sectionid == DNS_SECTION_ANSWER ||
 				     sectionid == DNS_SECTION_AUTHORITY))
 					msg->flags &= ~DNS_MESSAGEFLAG_AD;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.164 2001/01/03 00:05:08 bwelling Exp $ */
+/* $Id: query.c,v 1.165 2001/01/04 00:24:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3415,11 +3415,8 @@ ns_query_start(ns_client_t *client) {
 	message->flags |= DNS_MESSAGEFLAG_AA;
 
 	/*
-	 * Set AD.  We need only clear it if we add "pending" data to
-	 * a response.
-	 *
-	 * XXX  Note: the way AD is set will be changing in the near
-	 *      future.
+	 * Set AD.  We must clear it if we add non-validated data to a
+	 * response.
 	 */
 	if (WANTDNSSEC(client))
 		message->flags |= DNS_MESSAGEFLAG_AD;
