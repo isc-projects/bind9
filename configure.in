@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.229 $)
+AC_REVISION($Revision: 1.230 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -351,7 +351,8 @@ case "$use_randomdev" in
 				;;
 		esac
 		AC_CHECK_FILE($devrandom,
-			      AC_DEFINE(PATH_RANDOMDEV, "$devrandom"),)
+			      AC_DEFINE_UNQUOTED(PATH_RANDOMDEV,
+						 "$devrandom"),)
 		;;
 	yes)
 		AC_MSG_ERROR([--with-randomdev must specify a path])
