@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.58 2000/12/13 21:28:38 bwelling Exp $ */
+/* $Id: view.h,v 1.59 2000/12/15 21:11:36 gson Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -631,20 +631,37 @@ dns_view_dialup(dns_view_t *view);
 
 isc_result_t
 dns_view_dumpcache(dns_view_t *view);
-
-isc_result_t
-dns_view_dumpcachetostream(dns_view_t *view, FILE *fp);
 /*
- * Dump the cache to the specified cache file (if there is one) or stream.
+ * Dump the view's cache to the the view's cache file.
  *
  * Requires:
  * 	
  *	'view' is valid.
  *
- *	'fp' is an open file.
+ * Returns:
+ * 	ISC_R_SUCCESS	The cache was successfully dumped.
+ * 	ISC_R_IGNORE	No cachefile was specified.
+ * 	others		An error occurred (see dns_master_dump)
+ */
+
+isc_result_t
+dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
+/*
+ * Dump the current state of the view 'view' to the stream 'fp'
+ * for purposes of analysis or debugging.
+ *
+ * Currently the dumped state includes the view's cache; in the future
+ * it may also include other state such as the address database.
+ * It will not not include authoritative data since it is voluminous and
+ * easily obtainable by other means.
+ *
+ * Requires:
+ * 	
+ *	'view' is valid.
+ *
+ *	'fp' refers to a file open for writing.
  *
  * Returns:
- * 
  * 	ISC_R_SUCCESS	The cache was successfully dumped.
  * 	ISC_R_IGNORE	No cachefile was specified.
  * 	others		An error occurred (see dns_master_dump)

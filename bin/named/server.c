@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.275 2000/12/15 19:38:07 gson Exp $ */
+/* $Id: server.c,v 1.276 2000/12/15 21:11:38 gson Exp $ */
 
 #include <config.h>
 
@@ -2414,8 +2414,8 @@ ns_server_dumpdb(ns_server_t *server) {
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		if (view->cachedb != NULL)
-			CHECKM(dns_view_dumpcachetostream(view, fp),
-			       "could not dump cache");
+			CHECKM(dns_view_dumpdbtostream(view, fp),
+			       "could not dump view databases");
 	}
  cleanup:
 	if (fp != NULL)
