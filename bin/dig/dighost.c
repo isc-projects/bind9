@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.163 2000/11/20 13:02:15 marka Exp $ */
+/* $Id: dighost.c,v 1.164 2000/11/21 19:05:30 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1824,6 +1824,7 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 	else {
+		fputs(l->cmdline,stdout);
 		printf(";; connection timed out; no servers could be "
 		       "reached\n");
 		cancel_lookup(l);
