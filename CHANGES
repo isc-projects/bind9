@@ -1,3 +1,5 @@
+ 581.	[bug]		log severity was not being correctly processed.
+			[RT #485]
 
  580.	[func]		Ignore trailing garbage on incoming DNS packets,
 			for interoperability with broken server
