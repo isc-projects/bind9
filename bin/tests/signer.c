@@ -839,7 +839,7 @@ dumpzone(dns_zone_t *zone, char *filename) {
 		fprintf(stderr, "failure opening %s\n", filename);
 		exit(-1);
 	}
-	result = dns_zone_dump(zone, fp);
+	result = dns_zone_dumptostream(zone, fp);
 	check_result(result, "dns_zone_dump");
 	fclose(fp);
 }

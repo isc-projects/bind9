@@ -179,7 +179,7 @@ query(void) {
 		if (s != NULL)
 			*s = '\0';
 		if (strcmp(buf, "dump") == 0) {
-			dns_zone_dump(zone, stdout);
+			dns_zone_dumptostream(zone, stdout);
 			continue;
 		}
 		if (strlen(buf) == 0)
