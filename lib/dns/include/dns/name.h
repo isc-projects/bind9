@@ -477,9 +477,9 @@ dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2);
  *	dns_name_countlabels(name2) > 0
  *
  * Returns:
- *	-1		'name1' is less than 'name2'
+ *	< 0		'name1' is less than 'name2'
  *	0		'name1' is equal to 'name2'
- *	1		'name1' is greater than 'name2'
+ *	> 0		'name1' is greater than 'name2'
  */
 
 isc_boolean_t
