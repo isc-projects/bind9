@@ -1,5 +1,8 @@
 1196.	[contrib]	update mdnkit to 2.2.3.
 
+1195.	[bug]		Attempts to redefine builtin acls should be caught.
+			[RT #2403]
+
 1191.   [bug]           A dynamic update removing the last non-apex name in
 			a secure zone would fail. [RT #2399]
 
