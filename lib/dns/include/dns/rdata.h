@@ -179,9 +179,10 @@ dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
 				isc_region_t *source,
 				dns_decompression_t *dctx,
 				isc_boolean_t downcase,
-				isc_region_t *target);
+				isc_region_t *target,
+				unsigned int *bytesp);
 /*
- * Copy the possibly-compressed rdata at source into the target buffer.
+ * Copy the possibly-compressed rdata at source into the target region.
  *
  * Notes:
  *	Name decompression policy is controlled by 'dctx'.
@@ -193,9 +194,9 @@ dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
  *
  *	'class' and 'type' are valid.
  *
- *	'source' is a valid buffer.
+ *	'source' is a valid region.
  *
- *	'target' is a valid buffer.
+ *	'target' is a valid region.
  *
  *	'dctx' is a valid decompression context.
  *
@@ -232,10 +233,10 @@ dns_result_t dns_rdata_towire(dns_rdata_t *rdata,
  * Requires:
  *	'rdata' is a valid, non-empty rdata
  *
- *	target is a valid buffer
+ *	target is a valid region
  *
  *	Any offsets specified in a global compression table are valid
- *	for buffer.
+ *	for target.
  *
  * Ensures:
  *	If the result is success:
@@ -250,13 +251,13 @@ dns_result_t dns_rdata_towire(dns_rdata_t *rdata,
 
 dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
 				dns_rdataclass_t class, dns_rdatatype_t type,
-				dns_lex_t *lexer,
+				isc_lex_t *lexer,
 				dns_name_t *origin,
 				isc_boolean_t downcase,
 				isc_region_t *target, unsigned int *bytesp);
 /*
  * Convert the textual representation of a DNS rdata into uncompressed wire
- * form stored in target buffer.  Tokens constituting the text of the rdata
+ * form stored in the target region.  Tokens constituting the text of the rdata
  * are taken from 'lexer'.
  *
  * Notes:
@@ -270,7 +271,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *
  *	'class' and 'type' are valid.
  *
- *	'lexer' is a valid dns_lex_context.
+ *	'lexer' is a valid isc_lex_t.
  *
  *	'target' is a valid region.
  *
@@ -286,16 +287,15 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *
  * Result:
  *	Success
- *	<Any non-success status from dns_lex_gettoken()>
- *	<Any non-success status from dns_name_fromtext()>
+ *	<Translated result codes from isc_lex_gettoken>
  *	<Various 'Bad Form' class failures depending on class and type>
  *	Bad Form: Input too short
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_totext(dns_rdata_t rdata,
-			      dns_name_t origin,
-			      buffer_t target);
+dns_result_t dns_rdata_totext(dns_rdata_t *rdata,
+			      dns_name_t *origin,
+			      isc_textregion_t *target, unsigned int *bytesp);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.
  *	
@@ -309,12 +309,13 @@ dns_result_t dns_rdata_totext(dns_rdata_t rdata,
  *
  *	'origin' is NULL, or is a valid name
  *
- *	'target' is a valid buffer
+ *	'target' is a valid text region
  *
  * Ensures:
  *	If the result is success:
  *
- *		The used space in target is updated.
+ *		*bytesp is the number of bytes of the target region that
+ *		were used.
  *
  * Returns:
  *	Success
