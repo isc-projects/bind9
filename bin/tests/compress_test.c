@@ -150,6 +150,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 	RUNTIME_CHECK(dns_name_towire(name3, &cctx, &source) == DNS_R_SUCCESS);
 
 	dns_compress_localinvalidate(&cctx);
+	dns_compress_rollback(&cctx, 0);	/* testing only */
 	dns_compress_invalidate(&cctx);
 
 	if (raw) {

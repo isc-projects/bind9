@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.14 1999/04/28 03:16:50 marka Exp $ */
+ /* $Id: compress.c,v 1.15 1999/05/03 03:07:16 marka Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -340,12 +340,65 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
 }
 
 void
-dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset) {
+dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
+	dns_rbtnode_t *node;
+	dns_fixedname_t foundfixed;
+	dns_fixedname_t fullfixed;
+	dns_fixedname_t originfixed;
+	dns_name_t *foundname;
+	dns_name_t *fullname;
+	dns_name_t *origin;
+	dns_rbtnodechain_t chain;
+	dns_result_t result;
+
 	REQUIRE(VALID_CCTX(cctx));
 
-	/* XXX MPA need tree walking code */
-	/* Remove all nodes in cctx->global that have *data >= offset. */
+	/*
+	 * Initalise things.
+	 */
+	dns_fixedname_init(&foundfixed);
+	foundname = dns_fixedname_name(&foundfixed);
+	dns_fixedname_init(&fullfixed);
+	fullname = dns_fixedname_name(&fullfixed);
+	dns_fixedname_init(&originfixed);
+	origin = dns_fixedname_name(&originfixed);
+	dns_rbtnodechain_init(&chain, cctx->mctx);
 
+ again:
+	result = dns_rbtnodechain_first(&chain, cctx->global, foundname,
+					origin);
+
+	while (result == DNS_R_NEWORIGIN || result == DNS_R_SUCCESS) {
+		result = dns_rbtnodechain_current(&chain, foundname,
+						  origin, &node);
+
+		if (result != DNS_R_SUCCESS)
+			break;
+
+		if (node->data != NULL &&
+		    (*(isc_uint16_t*)node->data >= offset)) {
+			result = dns_name_concatenate(foundname,
+					dns_name_isabsolute(foundname) ?
+						      NULL : origin,
+						      fullname, NULL);
+
+			if (result != DNS_R_SUCCESS)
+				break;
+
+			result = dns_rbt_deletename(cctx->global, fullname,
+						    ISC_FALSE);
+			if (result != DNS_R_SUCCESS)
+				break;
+			/*
+			 * If the delete is successful the chain is broken.
+			 */
+			dns_rbtnodechain_reset(&chain);
+			goto again;
+		}
+
+		result = dns_rbtnodechain_next(&chain, foundname, origin);
+	}
+	dns_rbtnodechain_invalidate(&chain);
 }
 
 /***
@@ -375,7 +428,7 @@ dns_decompress_localinit(dns_decompress_t *dctx, dns_name_t *name,
 	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
 	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
 
-	dctx->rdata = source->current;
+	dctx->rdata = source->current;	/* XXX layer violation */
 	dctx->owner_name = *name;
 }
 

@@ -224,7 +224,7 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
  */
 
 void
-dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset);
+dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset);
 
 /*
  *	Remove any compression pointers from global RBT >= offset.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.38 1999/03/11 00:29:10 marka Exp $ */
+ /* $Id: rdata.c,v 1.39 1999/05/03 03:07:15 marka Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,8 @@
 #include <dns/rcode.h>
 #include <dns/cert.h>
 #include <dns/secalg.h>
+#include <dns/fixedname.h>
+#include <dns/rdatastruct.h>
 
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \
@@ -317,7 +319,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	}
 	if (result != DNS_R_SUCCESS) {
 		*target = st;
-		dns_compress_backout(cctx, target->used);
+		dns_compress_rollback(cctx, target->used);
 	}
 	return (result);
 }
@@ -472,7 +474,6 @@ dns_rdata_tostruct(dns_rdata_t *rdata, void *target) {
 	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(rdata != NULL);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
 	TOSTRUCTSWITCH
 

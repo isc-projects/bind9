@@ -319,7 +319,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		st = *target;
 		result = dns_name_towire(owner_name, cctx, target);
 		if (result != DNS_R_SUCCESS) {
-			dns_compress_backout(cctx, st.used);
+			dns_compress_rollback(cctx, st.used);
+			*countp += count;
 			*target = st;
 			return (result);
 		}
@@ -329,7 +330,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 				+ 2;  /* XXX 2 for rdata len */
 		isc_buffer_available(target, &r);
 		if (r.length < headlen) {
-			dns_compress_backout(cctx, st.used);
+			dns_compress_rollback(cctx, st.used);
+			*countp += count;
 			*target = st;
 			return (DNS_R_NOSPACE);
 		}
@@ -351,14 +353,16 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			result = dns_compress_localinit(cctx, owner_name,
 							target);
 			if (result != DNS_R_SUCCESS) {
-				dns_compress_backout(cctx, st.used);
+				dns_compress_rollback(cctx, st.used);
+				*countp += count;
 				*target = st;
 				return (result);
 			}
 			result = dns_rdata_towire(&rdata, cctx, target);
 			dns_compress_localinvalidate(cctx);
 			if (result != DNS_R_SUCCESS) {
-				dns_compress_backout(cctx, st.used);
+				dns_compress_rollback(cctx, st.used);
+				*countp += count;
 				*target = st;
 				return (result);
 			}
