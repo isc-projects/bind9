@@ -1,15 +1,8 @@
 
-RT #199  ""views" test failed on aa"
-
 Redo configuration locking using a task system call to
 ensure exclusive access
 
-Check and revise algorithm for retransmitting w/o EDNS0
-(RT #124 "Cannot resolve heavy.etv.go.com")
-
-Rewrite select ARM chapters, in particular:
-  Improve the ARM chapter on server types, making it recommend the use
-  of separate authoritative and caching servers
+Rewrite more ARM chapters
 
 rewrite configuration code
 
@@ -44,11 +37,3 @@ Review these changes:
   Cope with the possibility that the prefix of a name split within a
   bitstring label might have been compacted to have fewer labels than
   what was expected
-
-
-
-
-
-
-
-
