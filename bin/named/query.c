@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.132 2000/09/19 22:30:39 gson Exp $ */
+/* $Id: query.c,v 1.133 2000/09/28 05:48:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1452,7 +1452,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 }
 
 static inline isc_result_t
-query_addsoa(ns_client_t *client, dns_db_t *db) {
+query_addsoa(ns_client_t *client, dns_db_t *db, isc_boolean_t zero_ttl) {
 	dns_name_t *name, *fname;
 	dns_dbnode_t *node;
 	isc_result_t result, eresult;
@@ -1507,6 +1507,11 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
 		dns_rdata_tostruct(&rdata, &soa, NULL);
+
+		if (zero_ttl) {
+			rdataset->ttl = 0;
+			sigrdataset->ttl = 0;
+		}
 
 		/*
 		 * Add the SOA and its SIG to the response, with the
@@ -2486,7 +2491,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		/*
 		 * Add SOA.
 		 */
-		result = query_addsoa(client, db);
+		result = query_addsoa(client, db, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -2532,9 +2537,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			query_releasename(client, &fname);
 		}
 		/*
-		 * Add SOA.
+		 * Add SOA.  If the query was for a SOA record force the
+		 * ttl to zero so that it is possible for clients to find
+		 * the containing zone of a arbitary name with a stub
+		 * resolver and not have it cached.
 		 */
-		result = query_addsoa(client, db);
+		if (qtype == dns_rdatatype_soa)
+			result = query_addsoa(client, db, ISC_TRUE);
+		else
+			result = query_addsoa(client, db, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
@@ -2790,7 +2801,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				/*
 				 * Add SOA.
 				 */
-				result = query_addsoa(client, db);
+				result = query_addsoa(client, db, ISC_FALSE);
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_NOMORE;
 			} else {

@@ -1,3 +1,8 @@
+ 493.	[func]		Return non-cachable (ttl = 0) NXDOMAIN responses
+			for SOA queries.  This makes it easier to locate
+			the containing zone without polluting intermediate
+			caches.
+
  492.	[bug]		The error messages printed when an IP match list
 			contained a network address with a nonzero host
 			part where not sufficiently detailed. [RT #365]
