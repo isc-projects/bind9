@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.47.2.3.2.5 2003/09/10 05:14:53 marka Exp $ */
+/* $Id: config.h.in,v 1.47.2.3.2.6 2004/01/07 05:54:17 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -69,6 +69,9 @@
 
 /* define if chroot() is available */
 #undef HAVE_CHROOT
+
+/* define if tzset() is available */
+#undef HAVE_TZSET
 
 /* define if struct addrinfo exists */
 #undef HAVE_ADDRINFO
@@ -186,6 +189,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
 
 /* Define to 1 if you have the <sys/prctl.h> header file. */
 #undef HAVE_SYS_PRCTL_H
