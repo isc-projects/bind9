@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.8.2.8 2004/03/06 08:14:31 marka Exp $ */
+/* $Id: log.c,v 1.70.2.8.2.9 2004/03/11 05:58:41 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -27,7 +27,6 @@
 #include <time.h>
 
 #include <sys/types.h>	/* dev_t FreeBSD 2.1 */
-#include <sys/stat.h>
 
 #include <isc/dir.h>
 #include <isc/file.h>
@@ -36,6 +35,7 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
+#include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/time.h>

@@ -15,15 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.c,v 1.4.2.2.2.3 2004/03/11 01:02:37 marka Exp $ */
-
-#define off_t _off_t
+/* $Id: ipv6.c,v 1.4.2.2.2.4 2004/03/11 05:58:41 marka Exp $ */
 
 #include <isc/net.h>
 #include <isc/platform.h>
 
-LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_any =
+LIBISC_EXTERNAL_DATA const struct in6_addr isc_in6addr_any =
 	IN6ADDR_ANY_INIT;
 
-LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_loopback =
+LIBISC_EXTERNAL_DATA const struct in6_addr isc_in6addr_loopback =
 	IN6ADDR_LOOPBACK_INIT;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.24 2004/03/10 02:55:51 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.25 2004/03/11 05:58:40 marka Exp $ */
 
 #include <config.h>
 
@@ -124,8 +124,9 @@ options {\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
 	dnssec-enable no; /* Make yes for 9.4. */ \n\
-\n\
-	/* zone */\n\
+"
+
+"	/* zone */\n\
 	allow-query {any;};\n\
 	allow-transfer {any;};\n\
 	notify yes;\n\
@@ -153,8 +154,9 @@ options {\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
 };\n\
-\n\
-#\n\
+"
+
+"#\n\
 #  Zones in the \"_bind\" view are NOT counted is the count of zones.\n\
 #\n\
 view \"_bind\" chaos {\n\

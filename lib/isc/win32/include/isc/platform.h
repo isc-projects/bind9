@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.5.12.4 2004/03/11 04:13:48 marka Exp $ */
+/* $Id: platform.h,v 1.5.12.5 2004/03/11 05:58:43 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -41,6 +41,7 @@
 #define ISC_PLATFORM_QUADFORMAT "I64"
 
 #define ISC_PLATFORM_NEEDSTRSEP
+#define ISC_PLATFORM_NEEDSTRLCPY
 
 /*
  * Used to control how extern data is linked; needed for Win32 platforms.

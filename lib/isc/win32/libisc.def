@@ -218,6 +218,8 @@ isc_netaddr_any
 isc_netaddr_any6
 isc_netaddr_ismulticast
 isc_netaddr_fromv4mapped
+isc_netaddr_setzone
+isc_netscope_pton
 isc_ntpaths_init
 isc_ntpaths_get
 isc_ondestroy_init
