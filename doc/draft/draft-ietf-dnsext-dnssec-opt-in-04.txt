@@ -2,14 +2,14 @@
 
 Network Working Group                                          R. Arends
 Internet-Draft
-Expires: April 14, 2003                                       M. Kosters
+Expires: May 2, 2003                                          M. Kosters
                                                                D. Blacka
                                                           Verisign, Inc.
-                                                        October 14, 2002
+                                                        November 1, 2002
 
 
                              DNSSEC Opt-In
-                   draft-ietf-dnsext-dnssec-opt-in-03
+                   draft-ietf-dnsext-dnssec-opt-in-04
 
 Status of this Memo
 
@@ -32,7 +32,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on April 14, 2003.
+   This Internet-Draft will expire on May 2, 2003.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 1]
+Arends, et al.             Expires May 2, 2003                  [Page 1]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 Table of Contents
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 2]
+Arends, et al.             Expires May 2, 2003                  [Page 2]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 1. Definitions and Terminology
@@ -134,8 +134,7 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
    delegation: refers to a NS RRset with a name different from the
       current zone apex (non-zone-apex), signifying a delegation to a
-      subzone.  A delegation returned in a DNS response is also called a
-      "referral".
+      subzone.
 
    secure delegation: refers to the NS, DS, NXT and SIG RRsets for a
       non-zone-apex owner name, signifying a delegation to a DNSSEC
@@ -164,9 +163,10 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 3]
+
+Arends, et al.             Expires May 2, 2003                  [Page 3]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 2. Overview
@@ -174,8 +174,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
    The cost to cryptographically secure delegations to unsigned zones is
    high for large delegation-centric zones and zones where insecure
    delegations will be updated rapidly.  For these zones, the costs of
-   maintaining the NXT record chain may not be relative to the gain of
-   cryptographically securing delegations to unsigned zones.
+   maintaining the NXT record chain may be extremely high relative to
+   the gain of cryptographically authenticating existence of unsecured
+   zones.
 
    This document describes a method of eliminating the superfluous
    cryptography present in secure delegations to insecure zones.  Using
@@ -219,10 +220,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-
-Arends, et al.           Expires April 14, 2003                 [Page 4]
+Arends, et al.             Expires May 2, 2003                  [Page 4]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 3. Protocol Additions
@@ -245,11 +245,11 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
    Since the NXT bit in the type map merely indicates the existence of
    the record itself, this bit is redundant and safe for use as a tag.
 
-   Using Opt-In, the existence or non-existence of insecure delegations
-   is not asserted by the tagged NXT records.  This allows for the
-   addition or removal of delegations to unsigned zones without
-   recalculating and resigning the NXT chain.  However, Opt-In NXT
-   records still assert the (non)existence of signed RRsets.
+   An Opt-In tagged NXT record does not assert the (non)existence of the
+   delegations that it covers.  This allows for the addition or removal
+   of these delegations without recalculating the resigning the NXT
+   chain.  However, Opt-In tagged NXT records do assert the
+   (non)existence of other signed RRsets.
 
    Zones using Opt-In MAY contain a mixture of Opt-In tagged NXT records
    and RFC 2535 NXT records.  If a NXT record is not Opt-In, there MUST
@@ -276,9 +276,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 5]
+Arends, et al.             Expires May 2, 2003                  [Page 5]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
       the same owner name.
@@ -313,10 +313,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
    records to prove the non-existence of an applicable wildcard in non-
    existent name responses.  This NXT record can be described as a
    "negative wildcard proof".  The use of Opt-In NXT records changes the
-   necessity for this practice.  For both non-existent name (NXDOMAIN)
-   responses and Opt-In insecure delegation responses, servers MUST NOT
-   return negative wildcard proof records when the query name (qname) is
-   covered by an Opt-In tagged NXT record.
+   necessity for this practice.  For non-existent name (NXDOMAIN)
+   responses when the query name (qname) is covered by an Opt-In tagged
+   NXT record, servers MUST NOT return negative wildcard proof records.
 
    The intent of the RFC 2535 negative wildcard proof requirement is to
    prevent malicious users from undetectably removing valid wildcard
@@ -332,9 +331,10 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 6]
+
+Arends, et al.             Expires May 2, 2003                  [Page 6]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
    However, if the NXT record covering the exact qname is an Opt-In NXT
@@ -388,9 +388,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 7]
+Arends, et al.             Expires May 2, 2003                  [Page 7]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
    o  Using Opt-In, the security status is proven by the existence of a
@@ -422,8 +422,7 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
    The AD bit, as defined by [8], MUST NOT be set when:
 
    o  sending a non-existent name (NXDOMAIN) response where the covering
-      NXT is tagged as Opt-In, unless the NXT record's owner name equals
-      the qname.
+      NXT is tagged as Opt-In.
 
    o  sending an Opt-In insecure delegation response, unless the
       covering (Opt-In) NXT record's owner name equals the delegation
@@ -444,9 +443,10 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 8]
+
+Arends, et al.             Expires May 2, 2003                  [Page 8]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 4. Benefits
@@ -500,9 +500,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                 [Page 9]
+Arends, et al.             Expires May 2, 2003                  [Page 9]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 5. Example
@@ -556,9 +556,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 10]
+Arends, et al.             Expires May 2, 2003                 [Page 10]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
    Example A.1: Response to query for WWW.UNSIGNED.EXAMPLE.  A
@@ -612,9 +612,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 11]
+Arends, et al.             Expires May 2, 2003                 [Page 11]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 6. Transition Issues
@@ -668,9 +668,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 12]
+Arends, et al.             Expires May 2, 2003                 [Page 12]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 7. Security Considerations
@@ -724,9 +724,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 13]
+Arends, et al.             Expires May 2, 2003                 [Page 13]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 8. IANA Considerations
@@ -780,9 +780,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 14]
+Arends, et al.             Expires May 2, 2003                 [Page 14]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 9. Acknowledgments
@@ -791,8 +791,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
    (in alphabetic order) to this draft are acknowledged:
 
       Mats Dufberg, Miek Gieben, Olafur Gudmundsson, Bob Halley, Olaf
-      Kolkman, Ted Lindgreen, Bill Manning, Dan Massey, Scott Rose, Mike
-      Schiraldi, Jakob Schlyter, Brian Wellington.
+      Kolkman, Edward Lewis, Ted Lindgreen, Rip Loomis, Bill Manning,
+      Dan Massey, Scott Rose, Mike Schiraldi, Jakob Schlyter, Brian
+      Wellington.
 
 
 
@@ -835,10 +836,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-
-Arends, et al.           Expires April 14, 2003                [Page 15]
+Arends, et al.             Expires May 2, 2003                 [Page 15]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 References
@@ -892,9 +892,9 @@ Authors' Addresses
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 16]
+Arends, et al.             Expires May 2, 2003                 [Page 16]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
    David Blacka
@@ -948,9 +948,9 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 17]
+Arends, et al.             Expires May 2, 2003                 [Page 17]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 Appendix A. Implementing Opt-In using "Views"
@@ -1004,9 +1004,9 @@ Appendix A. Implementing Opt-In using "Views"
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 18]
+Arends, et al.             Expires May 2, 2003                 [Page 18]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
           For each section (ANSWER, AUTHORITY, ADDITIONAL), copy the
@@ -1060,12 +1060,16 @@ Internet-Draft                DNSSEC Opt-In                 October 2002
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 19]
+Arends, et al.             Expires May 2, 2003                 [Page 19]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 Appendix B. Changes from Prior Versions
+
+   Changes from version 03:
+
+      Editorial changes for clarification only.
 
    Changes from version 02:
 
@@ -1112,13 +1116,9 @@ Appendix B. Changes from Prior Versions
 
 
 
-
-
-
-
-Arends, et al.           Expires April 14, 2003                [Page 20]
+Arends, et al.             Expires May 2, 2003                 [Page 20]
 
-Internet-Draft                DNSSEC Opt-In                 October 2002
+Internet-Draft                DNSSEC Opt-In                November 2002
 
 
 Full Copyright Statement
@@ -1172,5 +1172,5 @@ Acknowledgement
 
 
 
-Arends, et al.           Expires April 14, 2003                [Page 21]
+Arends, et al.             Expires May 2, 2003                 [Page 21]
 
