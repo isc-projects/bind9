@@ -1,85 +1,150 @@
 
-BIND 9.0.0 alpha 3
+BIND 9
+
+	XXX  Introduction XXX
 
 
-Status
+BIND 9.0.0b1
 
-Most of the core technology planned for BIND 9 is in this release.  Some
-of the highlights are:
+	BIND 9.0.0b1 is the first public release of BIND 9 code.  It will
+	be most useful to advanced users working with IPv6 or DNSSEC.
 
-	IPv6
+	BIND 9.0.0b1 is not functionally complete, and is not a release
+	candidate for BIND 9.0.0.  The ISC anticipates a number of additional
+	beta releases between now and May, when BIND 9.0.0 is scheduled to
+	be released.
 
-		Support for bitstring labels, DNAME, and A6 records.
+	The ISC does not recommend using BIND 9.0.0b1 for "production"
+	services.
 
-		IPv6-aware resolver (follows A6 chains, can use IPv6 to
-		talk to other nameservers).
+	Much of the core technology planned for BIND 9.0.0 is in this beta
+	release.
 
-		The nameserver listens on an IPv6 socket.
+	Some of the highlights are:
 
-	DNSSEC
+		IPv6
+			Support for bitstring labels, DNAME, and A6 records.
 
-		All new RR types supported.
+			IPv6-aware resolver (follows A6 chains, can use IPv6 to
+			talk to other nameservers).
 
-		The server generates DNSSEC responses for secure zones.
+			The nameserver listens on an IPv6 socket.
 
-	EDNS0 (server only), IXFR, AXFR, dynamic update
+		DNSSEC
+			All new RR types supported.
 
+			The server generates DNSSEC responses for secure zones.
 
-With the exception of the DNSSEC validator, all the major new
-functionality is done.  We expect to finish the DNSSEC validator by
-the end of December.
+		EDNS0
+			DNS messages using UDP have been limited to 512
+			bytes.  This is too small for DNSSEC replies, whose
+			signature and key records can be large.  EDNS0 allows
+			larger UDP messages to be sent.
+		
+			EDNS0 is understood by the server, and used by the
+			resolver.
 
-This release is alpha quality.  There are still a number of unfinished
-areas, for example: most config file options, sanity checking,
-performance tuning, high-volume client support, garbage collection,
-however, none of these areas are especially difficult.
+	Some of the more significant items that will be implemented or
+	enhanced in a future beta are
 
-We've used BIND 9 as the nameserver while web surfing and doing other
-ordinary tasks, and it has worked.  We've successfully answered
-queries sent over IPv6 sockets, and have used IPv6 to query other
-nameservers (also running BIND 9 of course!).
+		DNSSEC validation
+
+			The server does not currently validate DNSSEC
+			signatures.
+
+		Notify
+
+		Configuration File
+
+			Some config file items are not yet implemented.
+			See doc/misc/options for a summary of the current
+			status.
+
+		Selective Forwarding
+
+		Documentation
 
 
 Building
 
-We've had successful builds and tests on the following systems
+	We've had successful builds and tests on the following systems
 
-	AIX 4.3
-	BSDI 3.1, 4.0.1
-	COMPAQ Tru64 UNIX 4.0D, 5.0
-	FreeBSD 3.3
-	HP-UX 11
-	IRIX64 6.5
-	NetBSD 1.4.1
-	Red Hat Linux 6.0, 6.1
-	Solaris 2.6, 7
+		AIX 4.3
+		COMPAQ Tru64 UNIX 4.0D
+		HP-UX 11
+		IRIX64 6.5
+		NetBSD 1.4.1
+		Red Hat Linux 6.0, 6.1
+		Solaris 2.6, 7, 8 (beta)
 
-To build, just
+	To build, just
 
-	./configure
-	make
+		./configure
+		make
 
-Do not run 'make install'.  Shared libraries will be built if "--with-libtool"
-is added to the "configure" command.
+	Shared libraries will be built if "--with-libtool" is added to the
+	"configure" command.
 
-Building with gcc is not supported, unless gcc is the vendor's usual
-compiler (e.g. the various BSD systems, Linux).
+	"make install" will install "named" and the various BIND 9 libraries.
+	By default, installation is into /usr/local, but this can be changed
+	with the "--prefix" option when running "configure".
 
-
-bin/named notes
-
-The server now uses the BIND 8 config file format.  All options are parsed,
-but most do not have any effect as yet.
-
-The server now runs on port 53 by default.  Use "-p" if you want to run
-on a different port.
-
-The server does not yet "daemonize".
+	Building with gcc is not supported, unless gcc is the vendor's usual
+	compiler (e.g. the various BSD systems, Linux).
 
 
-API Note
+Bug Reports and Mailing Lists
 
-All APIs are subject to change in future code drops.  We expect the
-existing library interfaces in the code drop to be quite stable,
-however, and unless we've specifically indicated that an interface is
-temporary, we don't expect significant changes in future releases.
+	Bugs reports should be sent to
+
+		bind9-bugs@isc.org
+
+	To join the BIND 9 Users mailing list, send mail to
+
+		bind9-users-request@isc.org
+
+	If you're planning on making changes to the BIND 9 source
+	code, you might want to join the BIND 9 Workers mailing list.
+	Send mail to
+
+		bind9-workers-request@isc.org
+
+
+"named" command line options
+
+	-c <config_file>
+
+	-d <debug_level>
+
+	-f				Run in the foreground.
+
+	-N <number_of_cpus>		
+
+	-t <directory>			Chroot to <directory> before running.
+
+	-u <username>			Run as user <username> after binding
+					to privileged ports.
+
+	Use of the "-t" option while still running as "root" doesn't
+	enhance security on most systems.  The way chroot() is defined
+	allows a process with root privileges to escape the chroot jail.
+
+	The "-u" option is not currently useful on Linux.  Linux threads
+	are actually processes sharing a common address space.  An unfortunate
+	side effect of this is that some system calls, e.g. setuid() that
+	in a typical pthreads environment would affect all threads only affect
+	the calling thread/process on Linux.  The good news is that BIND 9
+	uses the Linux kernel's capability mechanism to drop all root
+	powers except the ability to bind() to a privileged port.
+
+	On systems with more than one CPU, the "-N" option should be used
+	to indicate how many CPUs there are.
+
+
+Note to Programmers
+
+	The APIs for the libraries in BIND 9 are not yet frozen.
+	We expect the existing library interfaces in the release to be
+	quite stable, however, and unless we've specifically indicated that
+	an interface is temporary, we don't anticipate major changes in
+	future releases.
