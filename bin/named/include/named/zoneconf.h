@@ -31,12 +31,14 @@
  * table in 'cctx'.
  */
 
-isc_result_t dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx,
-				dns_aclconfctx_t *ac,
+isc_result_t dns_zone_configure(dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 				dns_c_zone_t *czone, dns_zone_t *zone);
 /*
- *	Configure or reconfigure a zone according to the named.conf
- *      data in 'ctx' and 'czone'.
+ * Configure or reconfigure a zone according to the named.conf
+ * data in 'ctx' and 'czone'.
+ *
+ * The zone origin is not configured, it is assumed to have been set
+ * at zone creation time.
  *
  * Require:
  *	'lctx' to be initalised or NULL.
@@ -46,6 +48,14 @@ isc_result_t dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx,
  *	'zone' to be initalised.
  */
 
+isc_boolean_t
+dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone);
+/*
+ * If 'zone' can be safely reconfigured according to the configuration
+ * data in 'czone', return ISC_TRUE.  If the configuration data is so
+ * different from the current zone state that the zone needs to be destroyed
+ * and recreated, return ISC_FALSE.
+ */
 
 ISC_LANG_ENDDECLS
 

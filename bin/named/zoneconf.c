@@ -61,8 +61,27 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx,
 	}
 }
 
+
+static dns_zonetype_t
+dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
+	switch (cztype) {
+	case dns_c_zone_master:
+		return dns_zone_master;
+	case dns_c_zone_forward:
+		return dns_zone_forward;
+	case dns_c_zone_slave:
+		return dns_zone_slave;
+	case dns_c_zone_stub:
+		return dns_zone_stub;
+	case dns_c_zone_hint:
+		return dns_zone_hint;
+	}
+	INSIST(0);
+	return (dns_zone_none); /*NOTREACHED*/
+}
+
 isc_result_t
-dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
+dns_zone_configure(dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 		   dns_c_zone_t *czone, dns_zone_t *zone)
 {
 	isc_result_t result;
@@ -77,23 +96,10 @@ dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 	isc_int32_t maxxfr;
 	isc_int32_t idle;
 	in_port_t port;
-	const char *origin;
 	isc_sockaddr_t sockaddr_any;
-
-	ctx = ctx;	/* unused */
-	lctx = lctx;	/* XXX unused */
 
 	isc_sockaddr_fromin6(&sockaddr_any, &in6addr_any, 0);
 	dns_zone_setclass(zone, czone->zclass);
-
-	origin = NULL;
-	result = dns_c_zone_getname(czone, &origin);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	/* XXX casting away const */
-	result = dns_zone_setorigin(zone, (char *) origin);
-	if (result != DNS_R_SUCCESS)
-		return (result);
 
 	/* XXX needs to be an zone option */
 	result = dns_zone_setdbtype(zone, "rbt");
@@ -414,3 +420,24 @@ dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 	return (DNS_R_SUCCESS);
 }
 
+isc_boolean_t
+dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone)
+{
+	const char *cfilename;
+	const char *zfilename;
+
+	if (dns_zonetype_fromconf(czone->ztype) != dns_zone_gettype(zone))
+		return (ISC_FALSE);
+
+	cfilename = NULL;
+	(void) dns_c_zone_getfile(czone, &cfilename);
+	zfilename = dns_zone_getdatabase(zone);
+	if (cfilename == NULL || zfilename == NULL ||
+	    strcmp(cfilename, zfilename) != 0)
+		return (ISC_FALSE);
+
+	/* XXX Compare masters, too. */
+
+	return (ISC_TRUE);
+}
+	
