@@ -1,3 +1,6 @@
+1768.	[bug]		nsecnoexistnodata() could be called with a non-NSEC
+			rdataset. [RT #12907]
+
 1767.	[placeholder]	rt13077
 
 1766.	[placeholder]	rt13062
