@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.8 2000/11/18 03:01:04 bwelling Exp $ */
+/* $Id: opt.c,v 1.9 2000/12/02 04:12:25 gson Exp $ */
 
 #include <config.h>
 
@@ -87,7 +87,7 @@ optget(dns_optlist_t *optlist, dns_rdataset_t *optset,
 		    (location >= optlist->next)) {
 			if (optlist->used >= optlist->size) {
 				optlist->next = location;
-				return(DNS_R_MOREDATA);
+				return (DNS_R_MOREDATA);
 			}
 			optlist->attrs[optlist->used].code = thiscode;
 			optlist->attrs[optlist->used].value.base = 
@@ -99,7 +99,7 @@ optget(dns_optlist_t *optlist, dns_rdataset_t *optset,
 		isc_buffer_forward(&rdatabuf, thislength);
 		location++;
 	}
-	/* This location can never be reached. */
+	/*NOTREACHED*/
 }
 
 isc_result_t
