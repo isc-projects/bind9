@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.3 2003/08/04 02:19:11 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.4 2003/08/07 05:55:08 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -637,18 +637,36 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		cmd += 2;
 		state = ISC_FALSE;
 	}
+
+#define FULLCHECK(A) \
+	do { \
+		size_t _l = strlen(cmd); \
+		if (_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) \
+			goto invalid_option; \
+	} while (0)
+#define FULLCHECK2(A, B) \
+	do { \
+		size_t _l = strlen(cmd); \
+		if ((_l >= sizeof(A) || strncasecmp(cmd, A, _l) != 0) && \
+		    (_l >= sizeof(B) || strncasecmp(cmd, B, _l) != 0)) \
+			goto invalid_option; \
+	} while (0)
+
 	switch (cmd[0]) {
 	case 'a':
 		switch (cmd[1]) {
 		case 'a': /* aaflag */
+			FULLCHECK("aaflag");
 			lookup->aaonly = state;
 			break;
 		case 'd': 
 			switch (cmd[2]) {
 			case 'd': /* additional */
+				FULLCHECK("additional");
 				lookup->section_additional = state;
 				break;
 			case 'f': /* adflag */
+				FULLCHECK("adflag");
 				lookup->adflag = state;
 				break;
 			default:
@@ -656,6 +674,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			}
 			break;
 		case 'l': /* all */
+			FULLCHECK("all");
 			lookup->section_question = state;
 			lookup->section_authority = state;
 			lookup->section_answer = state;
@@ -665,9 +684,11 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			printcmd = state;
 			break;
 		case 'n': /* answer */
+			FULLCHECK("answer");
 			lookup->section_answer = state;
 			break;
 		case 'u': /* authority */
+			FULLCHECK("authority");
 			lookup->section_authority = state;
 			break;
 		default:
@@ -677,9 +698,11 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'b':
 		switch (cmd[1]) {
 		case 'e':/* besteffort */
+			FULLCHECK("besteffort");
 			lookup->besteffort = state;
 			break;
 		case 'u':/* bufsize */
+			FULLCHECK("bufsize");
 			if (value == NULL)
 				goto need_value;
 			if (!state)
@@ -694,12 +717,15 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'c':
 		switch (cmd[1]) {
 		case 'd':/* cdflag */
+			FULLCHECK("cdflag");
 			lookup->cdflag = state;
 			break;
 		case 'm': /* cmd */
+			FULLCHECK("cmd");
 			printcmd = state;
 			break;
 		case 'o': /* comments */
+			FULLCHECK("comments");
 			lookup->comments = state;
 			if (lookup == default_lookup)
 				pluscomm = state;
@@ -711,12 +737,15 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'd':
 		switch (cmd[1]) {
 		case 'e': /* defname */
+			FULLCHECK("defname");
 			usesearch = state;
 			break;
 		case 'n': /* dnssec */	
+			FULLCHECK("dnssec");
 			lookup->dnssec = state;
 			break;
 		case 'o': /* domain */	
+			FULLCHECK("domain");
 			if (value == NULL)
 				goto need_value;
 			if (!state)
@@ -729,24 +758,29 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'f': /* fail */
+		FULLCHECK("fail");
 		lookup->servfail_stops = state;
 		break;
 	case 'i':
 		switch (cmd[1]) {
 		case 'd': /* identify */
+			FULLCHECK("identify");
 			lookup->identify = state;
 			break;
 		case 'g': /* ignore */
 		default: /* Inherets default for compatibility */
+			FULLCHECK("ignore");
 			lookup->ignore = ISC_TRUE;
 		}
 		break;
 	case 'm': /* multiline */
+		FULLCHECK("multiline");
 		multiline = state;
 		break;
 	case 'n':
 		switch (cmd[1]) {
 		case 'd': /* ndots */
+			FULLCHECK("ndots");
 			if (value == NULL)
 				goto need_value;
 			if (!state)
@@ -754,6 +788,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			ndots = parse_uint(value, "ndots", MAXNDOTS);
 			break;
 		case 's': /* nssearch */
+			FULLCHECK("nssearch");
 			lookup->ns_search_only = state;
 			if (state) {
 				lookup->trace_root = ISC_TRUE;
@@ -776,9 +811,11 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'q': 
 		switch (cmd[1]) {
 		case 'r': /* qr */
+			FULLCHECK("qr");
 			qr = state;
 			break;
 		case 'u': /* question */
+			FULLCHECK("question");
 			lookup->section_question = state;
 			if (lookup == default_lookup)
 				plusquest = state;
@@ -792,9 +829,11 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		case 'e':
 			switch (cmd[2]) {
 			case 'c': /* recurse */
+				FULLCHECK("recurse");
 				lookup->recurse = state;
 				break;
 			case 't': /* retries */
+				FULLCHECK2("retry", "retries");
 				if (value == NULL)
 					goto need_value;
 				if (!state)
@@ -814,9 +853,11 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 's':
 		switch (cmd[1]) {
 		case 'e': /* search */
+			FULLCHECK("search");
 			usesearch = state;
 			break;
 		case 'h': /* short */
+			FULLCHECK("short");
 			short_form = state;
 			if (state) {
 				printcmd = ISC_FALSE;
@@ -829,6 +870,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			}
 			break;
 		case 't': /* stats */
+			FULLCHECK("stats");
 			lookup->stats = state;
 			break;
 		default:
@@ -838,10 +880,12 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 't':
 		switch (cmd[1]) {
 		case 'c': /* tcp */
+			FULLCHECK("tcp");
 			if (!is_batchfile)
 				lookup->tcp_mode = state;
 			break;
 		case 'i': /* timeout */
+			FULLCHECK("timeout");
 			if (value == NULL)
 				goto need_value;
 			if (!state)
@@ -853,6 +897,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		case 'r':
 			switch (cmd[2]) {
 			case 'a': /* trace */
+				FULLCHECK("trace");
 				lookup->trace = state;
 				lookup->trace_root = state;
 				if (state) {
@@ -866,6 +911,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				}
 				break;
 			case 'i': /* tries */
+				FULLCHECK("tries");
 				if (value == NULL)
 					goto need_value;
 				if (!state)
@@ -884,6 +930,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'v':
+		FULLCHECK("vc");
 		if (!is_batchfile)
 			lookup->tcp_mode = state;
 		break;
