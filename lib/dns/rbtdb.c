@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.141 2001/01/09 21:51:14 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.142 2001/01/12 18:56:40 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -260,6 +260,10 @@ static dns_dbiteratormethods_t dbiterator_methods = {
 	dbiterator_origin
 };
 
+/*
+ * If 'paused' is ISC_TRUE, we are holding a reference to 'node',
+ * and we are not holding any locks.
+ */
 typedef struct rbtdb_dbiterator {
 	dns_dbiterator_t		common;
 	isc_boolean_t			paused;
@@ -4659,8 +4663,8 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
-	REQUIRE(!rbtdbiter->paused);
-	REQUIRE(rbtdbiter->tree_locked);
+	if (rbtdbiter->paused)
+		return (ISC_R_SUCCESS);
 
 	if (node != NULL) {
 		LOCK(&rbtdb->node_locks[node->locknum].lock);
@@ -4670,8 +4674,10 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 		rbtdbiter->paused = ISC_TRUE;
 	}
 
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-	rbtdbiter->tree_locked = ISC_FALSE;
+	if (rbtdbiter->tree_locked) {
+		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+		rbtdbiter->tree_locked = ISC_FALSE;
+	}
 
 	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator.h,v 1.15 2001/01/09 21:52:44 bwelling Exp $ */
+/* $Id: dbiterator.h,v 1.16 2001/01/12 18:56:42 gson Exp $ */
 
 #ifndef DNS_DBITERATOR_H
 #define DNS_DBITERATOR_H 1
@@ -250,8 +250,6 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator);
  *
  * Requires:
  *	'iterator' is a valid iterator.
- *
- *	'iterator' has not been paused already.
  *
  * Ensures:
  *	Any database locks being held for efficiency of iterator access are
