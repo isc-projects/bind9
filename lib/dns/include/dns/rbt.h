@@ -57,9 +57,10 @@ typedef struct dns_rbtnode {
 	 * In each case below the "range" indicated is what's _necessary_ for
 	 * the bitfield to hold, not what it actually _can_ hold.
 	 */
+	isc_boolean_t is_root:1;      /* range is 0..1 */
 	unsigned int color:1;	      /* range is 0..1 */
 	unsigned int find_callback:1; /* range is 0..1 */
-	unsigned int attributes:5;    /* range is 0..2 */
+	unsigned int attributes:4;    /* range is 0..2 */
 	unsigned int namelen:8;	      /* range is 1..255 */
 	unsigned int offsetlen:8;     /* range is 1..128 */
 	unsigned int padbytes:9;      /* range is 0..380 */
@@ -450,13 +451,53 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse);
  *		'name' does not appear in the tree with data, because
  *		it did not appear in the tree before the function was called.
  *
- *	If result is ISC_R_NOMEMORY:
- *		'name' remains in the tree, if it was there to begin with.
+ *	If result is something else:
+ *		See result codes for dns_rbt_findnode (if it fails, the
+ *		node is not deleted) or dns_rbt_deletenode (if it fails,
+ *		the node is deleted, but the tree is not optimized when
+ *		it could have been).
  *
  * Returns:
  *	ISC_R_SUCCESS	Success
  *	ISC_R_NOTFOUND	No match
- *	ISC_R_NOMEMORY	Resource Limit: Out of Memory
+ *	something_else	Any return code from dns_rbt_findnode except
+ *			DNS_R_PARTIALMATCH (which causes ISC_R_NOTFOUND
+ *			to be returned instead), and any code from
+ *			dns_rbt_deletenode.
+ */
+
+isc_result_t
+dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse);
+/*
+ * Delete 'node' from the tree of trees.
+ *
+ * Notes:
+ *	When 'node' is removed, if recurse is ISC_TRUE then all nodes
+ *	in levels down from it are removed too.
+ *
+ * Requires:
+ *	rbt is a valid rbt manager.
+ *	node != NULL.
+ *
+ * Ensures:
+ *	Does NOT ensure that any external references to nodes in the tree
+ *	are unaffected by node joins.
+ *
+ *	If result is ISC_R_SUCCESS:
+ *		'node' does not appear in the tree with data; however,
+ *		the node might still exist if it serves as a pointer to
+ *		a lower tree level as long as 'recurse' was false, hence
+ *		the node could can be found with dns_rbt_findnode whem
+ *		that function's empty_data_ok parameter is true.
+ *
+ *	If result is ISC_R_NOMEMORY or ISC_R_NOSPACE:
+ *		The node was deleted, but the tree structure was not
+ *		optimized.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	Success
+ *	ISC_R_NOMEMORY	Resource Limit: Out of Memory when joining nodes.
+ *	ISC_R_NOSPACE	dns_name_concatenate failed when joining nodes.
  */
 
 void
