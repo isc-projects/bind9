@@ -100,6 +100,19 @@ create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	dns_db_detach(&db);
 
 	/*
+	 * XXXRTH  Temporary support for loading cache contents.
+	 */
+	if (ns_g_cachefile != NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER,
+			      ISC_LOG_DEBUG(1), "loading cache '%s'",
+			      ns_g_cachefile);
+		result = dns_db_load(view->cachedb, ns_g_cachefile);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
+
+	/*
 	 * Resolver.
 	 *
 	 * XXXRTH hardwired number of tasks.  Also, we'll need to
@@ -308,9 +321,8 @@ load_configuration(const char *filename) {
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
 
 	/*
-	 * Load zones.		(???)
+	 * Load zones.
 	 */
-
 	for (view = ISC_LIST_HEAD(lctx.viewlist);
 	     view != NULL;
 	     view = view_next) {

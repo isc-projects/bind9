@@ -82,6 +82,11 @@ EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
  */
 EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
 
+/*
+ * XXX  Temporary.
+ */
+EXTERN const char *		ns_g_cachefile		INIT(NULL);
+
 #undef EXTERN
 #undef INIT
 
