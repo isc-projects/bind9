@@ -184,7 +184,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	 * Send a GET string, and set up to receive (and just display)
 	 * the result.
 	 */
-	strcpy(buf, "GET /foo HTTP/1.1\r\nHost: www.flame.org\r\nConnection: Close\r\n\r\n");
+	strcpy(buf, "GET / HTTP/1.1\r\nHost: www.flame.org\r\nConnection: Close\r\n\r\n");
 	region.base = isc_mem_get(mctx, strlen(buf) + 1);
 	region.length = strlen(buf) + 1;
 	strcpy((char *)region.base, buf);  /* strcpy is safe */
