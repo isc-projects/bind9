@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.1 2001/07/18 03:43:18 mayer Exp $ */
+/* $Id: os.c,v 1.2 2001/07/18 18:42:13 gson Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -47,11 +47,10 @@ static char *pidfile = NULL;
 static BOOL Initialized = FALSE;
 
 void
-ns_paths_init()
-{
-	if (!Initialized) {
+ns_paths_init() {
+	if (!Initialized)
 		isc_ntpaths_init();
-	}
+
 	ns_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
 	lwresd_g_conffile = isc_ntpaths_get(LWRES_CONF_PATH);
 	lwresd_g_resolvconffile = isc_ntpaths_get(RESOLV_CONF_PATH);
@@ -111,25 +110,12 @@ ns_os_daemonize(void) {
 	}
 }
 
-static isc_boolean_t
-all_digits(const char *s) {
-	if (*s == '\0')
-		return (ISC_FALSE);
-	while (*s != '\0') {
-		if (!isdigit((*s)&0xff))
-			return (ISC_FALSE);
-		s++;
-	}
-	return (ISC_TRUE);
-}
-
 void
 ns_os_chroot(const char *root) {
 }
 
 void
 ns_os_inituserinfo(const char *username) {
-
 }
 
 void
