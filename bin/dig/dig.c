@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.165 2001/09/20 17:15:02 bwelling Exp $ */
+/* $Id: dig.c,v 1.166 2001/09/20 19:11:59 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -805,8 +805,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				break;
 			default:
 				goto invalid_option;
-			break;
 			}
+			break;
 		default:
 			goto invalid_option;
 		}
