@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.44 2000/11/13 21:29:27 bwelling Exp $ */
+/* $Id: lex.c,v 1.45 2000/11/15 00:42:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,7 @@ typedef struct inputsource {
 	isc_boolean_t			need_close;
 	isc_boolean_t			at_eof;
 	isc_buffer_t *			pushback;
+	unsigned int			pushback_parens;
 	void *				input;
 	char *				name;
 	unsigned long			line;
@@ -202,6 +203,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 		return (ISC_R_NOMEMORY);
 	}
 	source->pushback = NULL;
+	source->pushback_parens = 0;
 	result = isc_buffer_allocate(lex->mctx, &source->pushback,
 				     lex->max_token);
 	if (result != ISC_R_SUCCESS) {
@@ -329,7 +331,7 @@ unpushback(inputsource *source) {
 }
 
 static isc_result_t
-pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
+pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options) {
 	if (isc_buffer_availablelength(source->pushback) == 0) {
 		isc_buffer_t *tbuf = NULL;
 		unsigned int oldlen;
@@ -347,6 +349,8 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
 		source->pushback = tbuf;
 	}
 	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
+	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && c == '(')
+		source->pushback_parens++;
 	return (ISC_R_SUCCESS);
 }
 	
@@ -401,6 +405,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	}
 
 	isc_buffer_compact(source->pushback);
+	source->pushback_parens = 0;
 
 	saved_options = options;
 	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && lex->paren_count > 0)
@@ -439,7 +444,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				}
 			}
 			if (c != EOF) {
-				source->result = pushandgrow(lex, source, c);
+				source->result = pushandgrow(lex, source, c,
+							     options);
 				if (source->result != ISC_R_SUCCESS)
 					return (source->result);
 			}
@@ -779,6 +785,10 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	UNUSED(tokenp);
 
 	isc_buffer_first(source->pushback);
+	if (source->pushback_parens > 0) {
+		INSIST(lex->paren_count >= source->pushback_parens);
+		lex->paren_count -= source->pushback_parens;
+	}
 }
 
 char *
