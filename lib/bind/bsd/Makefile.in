@@ -15,6 +15,5 @@ SRCS=	daemon.c ftruncate.c gettimeofday.c mktemp.c putenv.c \
 TARGETS= ${OBJS}
 
 CINCLUDES= -I.. -I../include
-CWARNINGS= -Werror
 
 @BIND9_MAKE_RULES@

@@ -11,6 +11,5 @@ SRCS=	assertions.c base64.c bitncmp.c ctl_clnt.c ctl_p.c \
 TARGETS= ${OBJS}
 
 CINCLUDES= -I.. -I../include
-CWARNINGS= -Werror
 
 @BIND9_MAKE_RULES@

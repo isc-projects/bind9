@@ -46,6 +46,5 @@ WANT_IRS_THREADSGR_OBJS=getgrent_r.@O@
 TARGETS= ${OBJS}
 
 CINCLUDES= -I.. -I../include
-CWARNINGS= -Werror
 
 @BIND9_MAKE_RULES@

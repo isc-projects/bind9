@@ -11,6 +11,5 @@ SRCS=	inet_addr.c inet_cidr_ntop.c inet_cidr_pton.c inet_data.c \
 TARGETS= ${OBJS}
 
 CINCLUDES= -I.. -I../include
-CWARNINGS= -Werror
 
 @BIND9_MAKE_RULES@

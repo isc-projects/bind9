@@ -4,11 +4,9 @@ SRCS=	dst_api.c hmac_link.c md5_dgst.c support.c
 
 TARGETS= ${OBJS}
 
-CRYPTINCL=      -I../cylink -I../dnssafe
 CRYPTFLAGS=     -DCYLINK_DSS -DHMAC_MD5 -DUSE_MD5 -DDNSSAFE
 
 CINCLUDES= -I.. -I../include ${CRYPTINCL}
-CWARNINGS= -Werror
 CDEFINES= ${CRYPTFLAGS}
 
 @BIND9_MAKE_RULES@
