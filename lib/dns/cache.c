@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.8 2000/01/06 01:12:20 gson Exp $ */
+ /* $Id: cache.c,v 1.9 2000/01/08 02:12:57 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -372,11 +372,6 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 	isc_result_t result;
 
 	REQUIRE(CLEANER_IDLE(cleaner));
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-		      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-		      "begin cache cleaning");
-
 	/*
 	 * Create an iterator and position it at the beginning of the cache.
 	 */
@@ -403,6 +398,9 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 		goto destroyiter;
 	}
 
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
+		      "begin cache cleaning");
 	cleaner->state = cleaner_s_busy;
 	isc_task_send(cleaner->task, &cleaner->resched_event);
 	ENSURE(CLEANER_BUSY(cleaner));
