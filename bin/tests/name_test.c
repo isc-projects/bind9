@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name_test.c,v 1.31 2000/08/01 01:13:02 tale Exp $ */
+/* $Id: name_test.c,v 1.32 2000/11/22 00:14:55 halley Exp $ */
 
 #include <config.h>
 
@@ -143,11 +143,11 @@ main(int argc, char *argv[]) {
 		origin = dns_rootname;
 
 	if (argc >= 1) {
-		if (strcasecmp("none", argv[0]) == 0)
+		if (strcasecmp("none", argv[1]) == 0)
 			comp = NULL;
 		else {
-			len = strlen(argv[0]);
-			isc_buffer_init(&source, argv[0], len);
+			len = strlen(argv[1]);
+			isc_buffer_init(&source, argv[1], len);
 			isc_buffer_add(&source, len);
 			dns_fixedname_init(&compname);
 			comp = &compname.name;
