@@ -1,5 +1,0 @@
-Makefile
-keycreate
-keydelete
-*.lo
-.libs

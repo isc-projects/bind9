@@ -1,2 +1,0 @@
-all:
-@BIND9_MAKE_RULES@

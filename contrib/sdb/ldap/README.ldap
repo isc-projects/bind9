@@ -1,9 +1,0 @@
-This is an attempt at an LDAP back-end for BIND 9 using the new
-simplified database interface "sdb". This is the third release
-(0.3) and is not ready for production use yet. Bug reports,
-fixes, comments, questions or whatever, please contact me. See
-also http://www.venaas.no/ldap/bind-sdb/ for information.
-
-See INSTALL for how to build, install and use.
-
-Stig Venaas <venaas@uninett.no> 2001-03-03
