@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.1 2003/08/08 07:12:27 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.2 2003/08/19 02:53:57 marka Exp $ */
 
 #include <config.h>
 
@@ -713,6 +713,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_boolean_t queue_response;
 	dns_qid_t *qid;
 	int level;
+	char buf[ISC_SOCKADDR_FORMATSIZE];
 
 	UNUSED(task);
 
@@ -753,8 +754,9 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		default:
 			level = ISC_LOG_ERROR;
 		logit:
+			isc_sockaddr_format(&tcpmsg->address, buf, sizeof(buf));
 			dispatch_log(disp, level, "shutting down due to TCP "
-				     "receive error: %s",
+				     "receive error: %s: %s", buf,
 				     isc_result_totext(tcpmsg->result));
 			do_cancel(disp, NULL);
 			break;
