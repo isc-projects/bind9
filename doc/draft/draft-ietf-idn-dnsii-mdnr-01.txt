@@ -1,7 +1,7 @@
 
 IDN Working Group                             Edmon Chung & David Leung
 Internet Draft                                              Neteka Inc.
-<draft-ietf-idn-dnsii-mdnr-00.txt>                          August 2000
+<draft-ietf-idn-dnsii-mdnr-01.txt>                        February 2001
  
  
                                      
@@ -30,8 +30,16 @@ STATUS OF THIS MEMO
    The list of Internet-Draft Shadow Directories can be accessed at 
    http://www.ietf.org/shadow.html.  
     
+   A copy of this particular draft is also archived at 
+   http://www.dnsii.org. 
+    
     
 Abstract 
+    
+   This document outlines a resolution process that forms a framework 
+   for the resolution of multilingual domain names.  Additionally, a 
+   tunneling mechanism utilizing additional RRs is introduced for the 
+   transition to a fully multilingual capable name space. 
     
    The Internet-Draft for DNSII-MDNP was focused purely on discussing 
    the ultimate packet protocol that is being sent around the Internet 
@@ -39,24 +47,20 @@ Abstract
    paper by outlining the contemplated resolution process with the DNSII 
    protocol throughout the DNS name resolution process. 
     
-   The DNSII-MDNR outlines a resolution process that forms a framework 
-   for the resolution of multilingual domain names.  Whether the DNSII 
-   protocol is implemented exactly as specified in DNSII-MDNP is less 
-   relevant, rather it is the idea of having a multilingual packet 
-   identifier and the fall back process that matters.  The DNSII-MDNR 
-   successfully addresses the transitional issues at each node of the 
-   DNS resolution process providing a clear migration path and strategy 
-   for the deployment of a multilingual enabled DNS system.  It also 
-   outlines the conformance levels required for basic or complete 
-   implementations for applications, resolvers and name servers. 
-    
-   This document also introduces a tunneling mechanism for the short-run 
-   to transition the system through to a truly multilingual capable name 
-   space. 
+   Whether the DNSII protocol is implemented exactly as specified in 
+   DNSII-MDNP is less relevant, rather it is the idea of having a 
+   multilingual packet identifier and the fall back process that 
+   matters.  The DNSII-MDNR successfully addresses the transitional 
+   issues at each node of the DNS resolution process providing a clear 
+   migration path and strategy for the deployment of a multilingual 
   
-Chung & Leung		                                        [Page 1]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
+   enabled DNS system.  It also outlines the conformance levels required 
+   for basic or complete implementations for applications, resolvers and 
+   name servers. 
+    
+    
 Table of Contents 
     
    1. Introduction....................................................2 
@@ -103,6 +107,11 @@ Table of Contents
    and "MAY" in this document are to be interpreted as described in RFC 
    2119 [RFC2119]. 
     
+
+
+  
+DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
+ 
    A number of multilingual characters are used in this document for 
    examples.  Please select your view encoding type to Big-5 
    (Traditional Chinese) for them to be displayed properly. 
@@ -110,10 +119,6 @@ Table of Contents
     
     
     
-  
-Chung & Leung		                                        [Page 2]
-DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
- 
 1.2 Multilingual Domain Name Resolution 
     
    The original specifications for the DNS were designed to be open 
@@ -160,15 +165,7 @@ Chung & Leung		                                        [Page 2]
 
 
 
-
-
-
-
-
-
-
   
-Chung & Leung		                                        [Page 3]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    +---------------+ 
@@ -225,7 +222,6 @@ Chung & Leung		                                        [Page 3]
 
 
   
-Chung & Leung		                                        [Page 4]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    Case folding for multilingual domain names should follow the existing 
@@ -282,7 +278,6 @@ Chung & Leung		                                        [Page 4]
    Eventually, an ISO 10646 UCS without transformation is desired as the 
    common format.  The benefits of having a uniform byte length encoding 
   
-Chung & Leung		                                        [Page 5]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    far exceeds the seemingly easier transformation solution.  Especially 
@@ -320,7 +315,7 @@ Chung & Leung		                                        [Page 5]
     |         | (3) Upon the detection |          |  
     |         |  of the DNSII Flag     |          | 
     |         |  resolver will reply   |          | 
-    |         |  with "Format Error"   |          | 
+    |         |  with _Format Error_   |          | 
     |         |                        |          |  
     |         |----------------------->|          | (5) Current resolu-  
     |         | (4) Send QNAME using   |          |  tion process begins 
@@ -339,7 +334,6 @@ Chung & Leung		                                        [Page 5]
     
 
   
-Chung & Leung		                                        [Page 6]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    It is not feasible to have a new RR type just for DNSII because the 
@@ -358,7 +352,7 @@ Chung & Leung		                                        [Page 6]
     
    It is possible to use ACE/RACE type translations at this level, 
    however it is more advisable to use a truly arbitrary label such as 
-   "-for-tunneling-only-".  So doing requires only reserving one 
+   _-for-tunneling-only-_.  So doing requires only reserving one 
    arbitrary name while ACE/RACE creates one more arbitrary name for 
    each new multilingual name registered, which will eventually 
    contribute to the fracturing of the DNS. 
@@ -396,7 +390,6 @@ Chung & Leung		                                        [Page 6]
 
 
   
-Chung & Leung		                                        [Page 7]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    (The Additional DNSII RR Tunneled in TXT RR form) 
@@ -414,7 +407,7 @@ Chung & Leung		                                        [Page 7]
       +---------------------------------------------------------------+ 
     96|       t       |1 0|0 0|       UCS-2=1000      |       4       | 
       +---------------------------------------------------------------+ 
-   100|1 1|            13             |1 0|z|  ILET=2 |       4       | 
+   100|1 1|             13            |1 0|z|  ILET=2 |       4       | 
       +---------------------------------------------------------------+ 
    104|          —Œ   (U+57DF)        |          ªW    (U+540D)         | 
       +---------------------------------------------------------------+ 
@@ -453,7 +446,6 @@ Chung & Leung		                                        [Page 7]
 
 
   
-Chung & Leung		                                        [Page 8]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    Following the example given in 3.2.1, the QNAME would be in UTF-8 
@@ -491,7 +483,7 @@ Chung & Leung		                                        [Page 8]
    resolution strategy for resolvers would simply be to pass along the 
    labels in their 8-bit format and determine the existence of the 
    requested name as usual.  If a tunneled DNSII RR is detected, by way 
-   of a label constituting entirely of "-for-tunneling-only-" and the 
+   of a label constituting entirely of _-for-tunneling-only-_ and the 
    existence of a valid DNSII RR, the resolver should attempt to resolve 
    the name according to the DNSII specification and tunnel the answer 
    back to the inquirer. 
@@ -508,9 +500,8 @@ Chung & Leung		                                        [Page 8]
     
    Continuing on the example given in Section 3.2, suppose an A record 
    is requested and the IP address returned for the domain host.—ŒªW¿t™ð
-  
 
-Chung & Leung		                                        [Page 9]
+  
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    .tld. is 123.4.5.6, then an additional DNSII ANS RR (TXT) in the 
@@ -567,9 +558,10 @@ Chung & Leung		                                        [Page 9]
    necessary for all servers and applications to be switched to 
    multilingual capable before starting the deployment. 
   
-Chung & Leung		                                       [Page 10]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
-
+ 
+    
+    
 4.1 Application Conformance Levels 
     
    The BASIC compliancy for applications would be to remove validity 
@@ -622,8 +614,6 @@ Chung & Leung		                                       [Page 10]
    should however prepare for the transition towards a multilingual name 
    space even if they do not intend to deploy it right away. 
   
-
-Chung & Leung		                                       [Page 11]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
     
@@ -680,7 +670,6 @@ Chung & Leung		                                       [Page 11]
    resolution. 
     
   
-Chung & Leung		                                       [Page 12]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
 6.1 Client/Application Resolution Strategy 
@@ -689,7 +678,7 @@ Chung & Leung		                                       [Page 12]
    IF RCODE = Format Error 
         THEN send query in UTF-8/Local Encoding AND append DNSII RR 
         IF RCODE = Format Error 
-             THEN send Query in ASCII with "-for-tunneling-only-" label 
+             THEN send Query in ASCII with _-for-tunneling-only-_ label 
              AND append DNSII RR 
              AND check for DNSII ANS RR in response 
         ELSE proceed and check for DNSII ANS RR in response 
@@ -703,7 +692,7 @@ Chung & Leung		                                       [Page 12]
         IF encounter RCODE = Format Error 
              THEN send query in UTF-8 AND append DNSII RR 
              IF RCODE = Format Error 
-                  THEN send query in ASCII with "-for-tunneling-only-"  
+                  THEN send query in ASCII with _-for-tunneling-only-_  
                        label 
                   AND append DNSII RR 
                   AND check for DNSII ANS RR in response 
@@ -737,7 +726,6 @@ Chung & Leung		                                       [Page 12]
    ELSE use InZone DNSII mechanisms AND use 8-bit clean approach 
     
   
-Chung & Leung		                                       [Page 13]
 DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
 7. Security Considerations 
@@ -794,8 +782,7 @@ Chung & Leung		                                       [Page 13]
     
     
   
-Chung & Leung		                                      [Page 14]
-DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
+DNSII-MDNR       Multilingual Domain Name Resolution        August 2000  
  
    Authors: 
     
@@ -848,8 +835,7 @@ DNSII-MDNR       Multilingual Domain Name Resolution        August 2000
 
 
 
-Chung & Leung		                                       [Page 15]
+
 
   
-
-
+

@@ -1,10 +1,10 @@
 
 IDN Working Group                             Edmon Chung & David Leung
 Internet Draft                                              Neteka Inc.
-<draft-ietf-idn-dnsii-mdnp-01.txt>                          August 2000
+<draft-ietf-idn-dnsii-mdnp-02.txt>                        February 2001
  
  
-                  DNSII Multilingual Domain Name Protocol 
+              The DNSII Multilingual Domain Name Protocol 
  
  
 STATUS OF THIS MEMO 
@@ -29,8 +29,20 @@ STATUS OF THIS MEMO
    The list of Internet-Draft Shadow Directories can be accessed at 
    http://www.ietf.org/shadow.html.  
     
+   A copy of this particular draft is also archived at 
+   http://www.dnsii.org. 
+    
     
 Abstract 
+    
+   The core thinking for DNSII is that multilingual DNS requests SHOULD 
+   be signaled within a DNS label whether by way of a binary tag or an 
+   alphanumeric prefix, and that compatibility to legacy client 
+   applications SHOULD be taken into concern alongside legacy server 
+   implementations. 
+    
+   Besides the original specifications, four alternatives including the 
+   use of EDNS are included for discussion purposes in this document. 
     
    Historically, the DNS is capable of handling only names within the 
    basic English alphanumeric character set (plus the hyphen), yet the 
@@ -41,30 +53,25 @@ Abstract
    These adjustments will be made on both the client side and the server 
    side. However, DNSII works on the principal that it is preferable to 
    make the transition to multilingual domain names seamless and 
-   transparent to the end-user. Which means initially the server, or 
-   more specifically, the resolver, SHOULD take the primary 
-   responsibility for the technical implementation of the changes 
-   required for a multilingual Internet. 
+  
+DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
+ 
+   transparent to the end-user. Which means initially the server SHOULD 
+   take the primary responsibility for the technical implementation of 
+   the changes required for a multilingual Internet. 
     
    The DNSII protocol is designed to allow the preservation of 
    interoperability, consistency and simplicity of the original DNS, 
    while being expandable and flexible for the handling of any character 
    or symbol used for the naming of an Internet domain.  DNSII intends 
    to provide a platform for the implementation of multilingual domain 
-   names.  Besides the original specifications therefore, four 
-   alternatives are included for discussion purposes in this document. 
-  
-Chung & Leung		                                        [Page 1]
-DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
- 
-   This draft forms the introduction of a series of draft including 
-   intended resolution processes and other DNSII documents. 
+   names.   
     
 Table Of Contents 
     
    1. Introduction....................................................2 
    1.1 Terminology....................................................2 
-   1.2 DNSII..........................................................2 
+   1.2 DNSII..........................................................3 
    2. DNSII Protocol..................................................3 
    2.1 InPacket DNSII Identifier......................................3 
    2.2 InPacket Label Encoding Type (ILET)............................4 
@@ -102,18 +109,11 @@ Table Of Contents
    A number of multilingual characters are used in this document for 
    examples.  Please select your view encoding type to UTF-8 for it to 
    be displayed properly. 
-    
-1.2 DNSII 
-    
-   Many of the current proposals for a multilingual domain name system 
-   involve working around the current ANSI based DNS.  So doing either 
-   affects the integrity of the original spirit of the DNS or does not 
-   well address the encoding conflict issues apparent in different 
-   character encoding schemes.  
   
-Chung & Leung		                                        [Page 2]
 DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
  
+    
+1.2 DNSII 
     
    The DNSII specifications takes a radically different approach: it 
    successfully identifies the difference between original DNS and DNSII 
@@ -165,10 +165,7 @@ Chung & Leung		                                        [Page 2]
    scheme. 
     
     
-
-
   
-Chung & Leung		                                        [Page 3]
 DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
  
 2.2 InPacket Label Encoding Type (ILET) 
@@ -398,7 +395,7 @@ Chung & Leung		                                        [Page 6]
   
 Chung & Leung		                                        [Page 7]
 DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
- 
+
    Although this takes away some of the benefits of keeping the local 
    encoding scheme which includes the issues of case folding, 
    canonicalization and other related concerns, it creates a system that 
@@ -512,7 +509,7 @@ Chung & Leung		                                        [Page 8]
   
 Chung & Leung		                                        [Page 9]
 DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
- 
+
    The OPT RR could be used not only for version control but also as a 
    notification for the destination server on the level of conformance 
    of the inquirer.  This is especially beneficial when considering the 
@@ -682,7 +679,7 @@ Chung & Leung		                                       [Page 11]
   
 Chung & Leung		                                       [Page 12]
 DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
- 
+
      :                                                               : 
      /                                                               / 
      +---------------------------------------------------------------+ 
@@ -712,7 +709,7 @@ Chung & Leung		                                       [Page 12]
    http://www.dnsii.org. 
     
 8. References 
-    
+
    [DNSII-MDNR] E. Chung, D. Leung, _DNSII Multilingual Domain Name 
               Resolution_, August 2000 
     
@@ -739,10 +736,10 @@ Chung & Leung		                                       [Page 12]
   
 Chung & Leung		                                       [Page 13]
 DNSII-MDNP        Multilingual Domain Name Protocol         August 2000  
- 
+
    [RFC2277]  H. Alvestrand, _IETF Policy on Character Sets and 
               Languages_ RFC 2277, January 1998 
-    
+
    [RFC2671]  Paul Vixie, "Extension Mechanisms for DNS (EDNS0)", 
               August 1999, RFC 2671. 
  
@@ -795,5 +792,3 @@ Chung & Leung		                                       [Page 13]
 
 
 Chung & Leung		                                       [Page 14]  
-
-

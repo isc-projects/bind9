@@ -4,10 +4,9 @@
 
 
 
-
 DNSEXT Working Group                       Brian Wellington    (Nominum)
 INTERNET-DRAFT                             Olafur Gudmundsson (NAI Labs)
-<draft-ietf-dnsext-ad-is-secure-00.txt>                    November 2000
+<draft-ietf-dnsext-ad-is-secure-01.txt>                     January 2001
 
 Updates: RFC 2535
 
@@ -38,33 +37,33 @@ Status of this Memo
    Comments should be sent to the authors or the DNSEXT WG mailing list
    namedroppers@ops.ietf.org
 
-   This draft expires on May 17, 2001.
+   This draft expires on July 19, 2001.
 
    Copyright Notice
 
-   Copyright (C) The Internet Society (2000).  All rights reserved.
+   Copyright (C) The Internet Society (2001).  All rights reserved.
 
 
 
 Abstract
 
    Based on implementation experience, the current definition of the AD
-   bit in the DNS header is not useful. This draft changes the
+   bit in the DNS header is not useful.  This draft changes the
    specification so that the AD bit is only set on answers where
    signatures have been cryptographically verified.
 
 
 
 
-Expires May 2001                                                [Page 1]
+Expires July 2001                                               [Page 1]
 
-INTERNET-DRAFT        AD bit set on secure answers         November 2000
+INTERNET-DRAFT        AD bit set on secure answers          January 2001
 
 
 1 - Introduction
 
-   Familiarity with the DNS system [RFC1034, RFC1035] and DNS security
-   extensions [RFC2535] is helpful but not necessary.
+   Familiarity with the DNS system [RFC1035] and DNS security extensions
+   [RFC2535] is helpful but not necessary.
 
    As specified in RFC 2535 (section 6.1), the AD bit indicates in a
    response that all the data included in the answer and authority
@@ -112,9 +111,9 @@ INTERNET-DRAFT        AD bit set on secure answers         November 2000
 
 
 
-Expires May 2001                                                [Page 2]
+Expires July 2001                                               [Page 2]
 
-INTERNET-DRAFT        AD bit set on secure answers         November 2000
+INTERNET-DRAFT        AD bit set on secure answers          January 2001
 
 
    If the answer section contains any data, the server MUST NOT include
@@ -129,11 +128,11 @@ INTERNET-DRAFT        AD bit set on secure answers         November 2000
    resolver policy is that it can trust the server.
 
    A DNS server following this modified specification will only set the
-   AD bit when it has verified the data in the answer.  In the case of a
-   primary server for a secure zone, the data MAY be considered
-   Authenticated, depending on local policy.  Secondary servers SHOULD
-   NOT consider data Authenticated unless the zone was transfered
-   securely or the data was verified.
+   AD bit when it has cryptographically verified the data in the answer.
+   In the case of a primary server for a secure zone, the data MAY be
+   considered Authenticated, depending on local policy.  Secondary
+   servers SHOULD NOT consider data Authenticated unless the zone was
+   transfered securely or the data was verified.
 
 3 - Interpretation of the AD bit
 
@@ -155,7 +154,7 @@ INTERNET-DRAFT        AD bit set on secure answers         November 2000
 6 - Acknowledgments:
 
    The following people have provided input on this document: Andreas
-   Gustafsson, Bob Halley, Steven Jacob,
+   Gustafsson, Bob Halley, Steven Jacob.
 
 References:
 
@@ -168,9 +167,9 @@ References:
 
 
 
-Expires May 2001                                                [Page 3]
+Expires July 2001                                               [Page 3]
 
-INTERNET-DRAFT        AD bit set on secure answers         November 2000
+INTERNET-DRAFT        AD bit set on secure answers          January 2001
 
 
 [RFC2845]  P. Vixie, O. Gudmundsson, D. Eastlake, B. Wellington,
@@ -194,7 +193,7 @@ Authors Addresses
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -224,4 +223,4 @@ Full Copyright Statement
 
 
 
-Expires May 2001                                                [Page 4]
+Expires July 2001                                               [Page 4]
