@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.9 2001/06/29 01:04:55 gson Exp $ */
+/* $Id: named-checkconf.c,v 1.10 2001/07/16 17:53:22 gson Exp $ */
 
 #include <config.h>
 
@@ -77,6 +77,7 @@ main(int argc, char **argv) {
 	const char *conffile = NULL;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
+	int exit_status = 0;
 
 	while ((c = isc_commandline_parse(argc, argv, "t:v")) != EOF) {
 		switch (c) {
@@ -121,7 +122,9 @@ main(int argc, char **argv) {
 	    ISC_R_SUCCESS)
 		exit(1);
 
-	RUNTIME_CHECK(cfg_check_namedconf(config, log, mctx) == ISC_R_SUCCESS);
+	result = cfg_check_namedconf(config, log, mctx);
+	if (result != ISC_R_SUCCESS)
+		exit_status = 1;
 
 	cfg_obj_destroy(parser, &config);
 
@@ -131,5 +134,5 @@ main(int argc, char **argv) {
 
 	isc_mem_destroy(&mctx);
 
-	return (0);
+	return (exit_status);
 }
