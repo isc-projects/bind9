@@ -1,4 +1,7 @@
 
+ 800.	[bug]		dnssec-signzone produced incorrect statistics for
+ 			large zones.  [RT #1133]
+
 	--- 9.1.1 released ---
 
 	--- 9.1.1rc7 released ---

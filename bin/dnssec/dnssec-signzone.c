@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.126.2.3 2001/03/26 19:11:56 gson Exp $ */
+/* $Id: dnssec-signzone.c,v 1.126.2.4 2001/04/09 20:50:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1798,8 +1798,8 @@ main(int argc, char *argv[]) {
 
 	if (printstats) {
 		isc_uint64_t runtime_us;   /* Runtime in microseconds */
-		isc_uint64_t runtime_100s; /* Same in hundredths of seconds */
-		isc_uint64_t sigs_100s;    /* Signatures per 100 seconds */
+		isc_uint64_t runtime_ms;   /* Runtime in milliseconds */
+		isc_uint64_t sig_ms;	   /* Signatures per millisecond */
 
 		isc_time_now(&timer_finish);
 
@@ -1815,16 +1815,16 @@ main(int argc, char *argv[]) {
 		       nverified);
 		printf("Signatures unsuccessfully verified: %10d\n",
 		       nverifyfailed);
-#define MICROSECONDS 1000000
-		runtime_100s = 100 * runtime_us / MICROSECONDS;
-		printf("Runtime in seconds:                 %7u.%02u\n", 
-		       (unsigned int) (runtime_100s / 100), 
-		       (unsigned int) (runtime_100s % 100));
+		runtime_ms = runtime_us / 1000;
+		printf("Runtime in seconds:                %7u.%03u\n", 
+		       (unsigned int) (runtime_ms / 1000), 
+		       (unsigned int) (runtime_ms % 1000));
 		if (runtime_us > 0) {
-			sigs_100s = nsigned * 100 * MICROSECONDS / runtime_us;
-			printf("Signatures per second:              %7u.%02u\n", 
-			       (unsigned int) sigs_100s / 100, 
-			       (unsigned int) sigs_100s % 100);
+			sig_ms = ((isc_uint64_t)nsigned * 1000000000) /
+				 runtime_us;
+			printf("Signatures per second:             %7u.%03u\n",
+			       (unsigned int) sig_ms / 1000, 
+			       (unsigned int) sig_ms % 1000);
 		}
 	}
 
