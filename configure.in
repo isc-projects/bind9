@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.276 $)
+AC_REVISION($Revision: 1.277 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -328,7 +328,8 @@ int main() {
 ],
 	        [AC_MSG_RESULT(ok)],
 		[AC_MSG_RESULT(not compatible)
-		AC_MSG_ERROR(you need OpenSSL 0.9.5a or newer)])
+		 AC_MSG_ERROR(you need OpenSSL 0.9.5a or newer)],
+		[AC_MSG_RESULT(assuming target platform has compatible version)])
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
 		;;
@@ -1115,7 +1116,9 @@ main() { char a[4]; return (inet_pton(AF_INET, "1.2.3", a) == 0 ? 0 : 1); }],
         [AC_MSG_RESULT(no)
         ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"])
+        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
+	[AC_MSG_RESULT(assuming target platform has working inet_pton)
+	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
 
 AC_MSG_CHECKING([for inet_aton])
 AC_TRY_LINK([
@@ -1334,7 +1337,7 @@ AC_TRY_RUN([main() { exit(!(sizeof(long long int) == sizeof(long int))); }],
 	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'],
 	[AC_MSG_RESULT(ll)
 	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'],
-	[AC_MSG_RESULT(default ll)
+	[AC_MSG_RESULT(assuming target platform uses ll)
 	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'])
 AC_SUBST(ISC_PLATFORM_QUADFORMAT)
 
@@ -1354,10 +1357,12 @@ AC_TRY_COMPILE([
 #include <sys/time.h>
 #include <sys/resource.h>],
 [rlim_t rl = 19671212; return (0);],
-	[AC_MSG_RESULT(yes)
-         AC_DEFINE(HAVE_RLIM_T)],
-        [AC_MSG_RESULT(no)])
-AC_MSG_CHECKING(sizeof rlim_cur)
+[AC_MSG_RESULT(yes)
+ AC_DEFINE(HAVE_RLIM_T)
+ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE rlim_t"],
+[AC_MSG_RESULT(no)
+
+AC_MSG_CHECKING(type of rlim_cur)
 AC_TRY_RUN([
 #include <sys/types.h>
 #include <sys/time.h>
@@ -1382,9 +1387,10 @@ main() { struct rlimit r; exit((!sizeof(r.rlim_cur) == sizeof(long long int)));}
 [AC_MSG_RESULT(long long int)
 ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 [AC_MSG_ERROR([unable to determine sizeof rlim_cur])
-],[])
-],[])
-],[])
+],[AC_MSG_ERROR(this cannot happen)])
+],[AC_MSG_ERROR(this cannot happen)])
+],[AC_MSG_ERROR(cannot determine type of rlim_cur when cross compiling - define rlim_t)])
+])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 
 #
