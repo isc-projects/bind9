@@ -93,6 +93,7 @@ main(int argc, char *argv[]) {
 	dns_rdatatype_t type = 2;
 	isc_boolean_t printnode = ISC_FALSE;
 	isc_boolean_t addmode = ISC_FALSE;
+	isc_boolean_t delmode = ISC_FALSE;
 	isc_boolean_t verbose = ISC_FALSE;
 	dns_dbversion_t *version = NULL;
 	dns_dbversion_t *wversion = NULL;
@@ -192,6 +193,7 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strcmp(s, "!C") == 0) {
 			addmode = ISC_FALSE;
+			delmode = ISC_FALSE;
 			if (version == NULL)
 				continue;
 			if (version == wversion) {
@@ -211,6 +213,7 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strcmp(s, "!X") == 0) {
 			addmode = ISC_FALSE;
+			delmode = ISC_FALSE;
 			if (version == NULL)
 				continue;
 			if (version == wversion) {
@@ -229,11 +232,20 @@ main(int argc, char *argv[]) {
 			dns_db_closeversion(db, &version, ISC_FALSE);
 			continue;
 		} else if (strcmp(s, "!A") == 0) {
+			delmode = ISC_FALSE;
 			if (addmode)
 				addmode = ISC_FALSE;
 			else
 				addmode = ISC_TRUE;
 			printf("addmode = %s\n", addmode ? "TRUE" : "FALSE");
+			continue;
+		} else if (strcmp(s, "!D") == 0) {
+			addmode = ISC_FALSE;
+			if (delmode)
+				delmode = ISC_FALSE;
+			else
+				delmode = ISC_TRUE;
+			printf("delmode = %s\n", delmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strstr(s, "!V") == s) {
 			v = atoi(&s[2]);
@@ -294,6 +306,14 @@ main(int argc, char *argv[]) {
 								    node,
 								    version,
 								    &rdataset);
+					if (result != DNS_R_SUCCESS)
+						printf("%s\n",
+						  dns_result_totext(result));
+				} else if (delmode) {
+					result = dns_db_deleterdataset(db,
+								       node,
+								       version,
+								       type);
 					if (result != DNS_R_SUCCESS)
 						printf("%s\n",
 						  dns_result_totext(result));
