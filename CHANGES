@@ -1,3 +1,6 @@
+1182.	[bug]		The server could throw an assertion failure when
+			constructing a negative response packet.
+
 1181.	[func]		Add the "key-directory" configuration statement,
 			which allows the server to look for online signing
 			keys in alternate directories.

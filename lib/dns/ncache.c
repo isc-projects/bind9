@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.25 2001/11/30 01:59:13 gson Exp $ */
+/* $Id: ncache.c,v 1.26 2002/01/21 16:26:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -258,7 +258,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
-	isc_region_t remaining, tremaining;
+	isc_region_t remaining, tavailable;
 	isc_buffer_t source, savedbuffer, rdlen;
 	dns_name_t name;
 	dns_rdatatype_t type;
@@ -324,8 +324,8 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			 * See if we have space for type, class, ttl, and
 			 * rdata length.  Write the type, class, and ttl.
 			 */
-			isc_buffer_remainingregion(target, &tremaining);
-			if (tremaining.length < 10) {
+			isc_buffer_availableregion(target, &tavailable);
+			if (tavailable.length < 10) {
 				result = ISC_R_NOSPACE;
 				goto rollback;
 			}
