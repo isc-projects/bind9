@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.44 2000/06/02 23:36:04 bwelling Exp $
+ * $Id: dst_api.c,v 1.45 2000/06/02 23:44:52 bwelling Exp $
  */
 
 #include <config.h>
@@ -211,9 +211,6 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
 
-	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
-		type &= ~TYPE_PRIVATE;
-
 	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
@@ -229,7 +226,8 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 			return (ret);
 	}
 
-	if (type & DST_TYPE_PRIVATE)
+	if ((type & DST_TYPE_PRIVATE) &&
+	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
 		return (key->func->tofile(key));
 	else
 		return (ISC_R_SUCCESS);
