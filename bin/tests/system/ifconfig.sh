@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.37 2001/11/05 04:19:56 marka Exp $
+# $Id: ifconfig.sh,v 1.38 2002/03/01 11:28:28 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -55,6 +55,9 @@ case "$1" in
 	for ns in 1 2 3 4 5
 	do
 		case "$sys" in
+		    *-pc-solaris2.5.1)
+			ifconfig lo0:$ns 10.53.0.$ns netmask 0xffffffff up
+			;;
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$ns 10.53.0.$ns netmask 0xffffffff up
 			;;
@@ -100,6 +103,9 @@ case "$1" in
 	for ns in 5 4 3 2 1
 	do
 		case "$sys" in
+		    *-pc-solaris2.5.1)
+			ifconfig lo0:$ns 0.0.0.0 down
+			;;
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$ns 10.53.0.$ns down
 			;;
