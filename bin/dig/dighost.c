@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58.2.6 2000/07/17 19:40:51 gson Exp $ */
+/* $Id: dighost.c,v 1.58.2.7 2000/07/17 19:45:09 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -214,7 +214,7 @@ istype(char *text) {
 				  "wks", "ptr", "hinfo", "minfo",
 				  "mx", "txt", "rp", "afsdb",
 				  "x25", "isdn", "rt", "nsap",
-				  "nsap_ptr", "sig", "key", "px",
+				  "nsap-ptr", "sig", "key", "px",
 				  "gpos", "aaaa", "loc", "nxt",
 				  "srv", "naptr", "kx", "cert",
 				  "a6", "dname", "opt", "unspec",
