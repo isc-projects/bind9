@@ -30,13 +30,13 @@
  * Various structures keep track of whether fields have been assigned
  * to. They do this with a bit field.
  */
-#define DNS_C_SETBITS_SIZE	(sizeof(dns_setbits_t) * 8)
+#define DNS_C_SETBITS_SIZE	(sizeof(dns_c_setbits_t) * 8)
 #define DNS_C_SETBIT(bit, flags) \
-     (*(flags) |= ((dns_setbits_t)1 << (bit)))
+     (*(flags) |= ((dns_c_setbits_t)1 << (bit)))
 #define DNS_C_CLEARBIT(bit, flags) \
-     (*(flags) &= ~((dns_setbits_t)1 << (bit)))
+     (*(flags) &= ~((dns_c_setbits_t)1 << (bit)))
 #define DNS_C_CHECKBIT(bit,flags) \
-     ((*(flags) & ((dns_setbits_t)1 << (bit))) == ((dns_setbits_t)1 << (bit)))
+     ((*(flags) & ((dns_c_setbits_t)1 << (bit))) == ((dns_c_setbits_t)1 << (bit)))
 
 #define DNS_C_VALID_STRUCT(p,m)		((p) != NULL && (p)->magic == m)
 
