@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.1 1999/08/20 05:35:16 gson Exp $ */
+ /* $Id: xfrin.c,v 1.2 1999/08/24 06:43:19 gson Exp $ */
 
 #include <config.h>
 
@@ -242,7 +242,8 @@ axfr_putdata(xfrin_ctx_t *xfr, dns_diffop_t op,
 {
 	dns_result_t result;
 	dns_difftuple_t *tuple = NULL;
-	CHECK(dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata, &tuple));
+	CHECK(dns_difftuple_create(xfr->diff.mctx, op,
+				   name, ttl, rdata, &tuple));
 	dns_diff_append(&xfr->diff, &tuple);
 	if (++xfr->difflen > 100)
 		CHECK(axfr_apply(xfr));
@@ -324,7 +325,8 @@ ixfr_putdata(xfrin_ctx_t *xfr, dns_diffop_t op,
 {
 	dns_result_t result;
 	dns_difftuple_t *tuple = NULL;	
-	CHECK(dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata, &tuple));
+	CHECK(dns_difftuple_create(xfr->diff.mctx, op,
+				   name, ttl, rdata, &tuple));
 	dns_diff_append(&xfr->diff, &tuple);	
 	if (++xfr->difflen > 100)
 		CHECK(ixfr_apply(xfr));
@@ -388,9 +390,9 @@ xfr_rr(xfrin_ctx_t *xfr,
 		    ! DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial))
 		{
 			/*
-			 * This must be the single SOA record that gets sent when
-			 * the current version on the master is not newer than the
-			 * version in the request.
+			 * This must be the single SOA record that is
+			 * sent when the current version on the master
+			 * is not newer than the version in the request.
 			 */
 			printf("requested %u, master has %u, not updating\n",
 			       xfr->ixfr.request_serial, xfr->end_serial);
@@ -595,7 +597,7 @@ xfrin_create(isc_mem_t *mctx,
 	
 	CHECK(dns_name_dup(name, mctx, &xfr->name));
 
-	isc_interval_set(&interval, 10, 0); /* XXX */
+	isc_interval_set(&interval, 3600, 0); /* XXX */
 	CHECK(isc_timer_create(ns_g_timermgr, isc_timertype_once,
 			       NULL, &interval, task,
 			       xfrin_timeout, xfr, &xfr->timer));
@@ -604,7 +606,8 @@ xfrin_create(isc_mem_t *mctx,
 	ina.s_addr = inet_addr(addrstr);
 	isc_sockaddr_fromin(&xfr->sockaddr, &ina, port);
 
-	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data, sizeof(xfr->qbuffer_data),
+	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
+			sizeof(xfr->qbuffer_data),
 			ISC_BUFFERTYPE_BINARY);
 
 	*xfrp = xfr;
@@ -618,7 +621,8 @@ xfrin_create(isc_mem_t *mctx,
 void
 xfrin_start(xfrin_ctx_t *xfr) {
 	dns_result_t result;
-	CHECK(isc_socket_create(xfr->socketmgr, isc_sockaddr_pf(&xfr->sockaddr),
+	CHECK(isc_socket_create(xfr->socketmgr,
+				isc_sockaddr_pf(&xfr->sockaddr),
 				isc_sockettype_tcp,
 				&xfr->socket));
 	CHECK(isc_socket_connect(xfr->socket, &xfr->sockaddr, xfr->task,
@@ -821,9 +825,6 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
 	CHECK(dns_message_parse(msg, &tcpmsg->buffer, ISC_TRUE));
 	
-       /* XXX should tell message library not to combine names,
-	  like for dynamic update */
-
 	for (result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	     result == DNS_R_SUCCESS;
 	     result = dns_message_nextname(msg, DNS_SECTION_ANSWER))
