@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.129 2000/11/20 13:02:18 marka Exp $ */
+/* $Id: rdata.c,v 1.130 2000/11/20 21:29:41 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -535,36 +535,65 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 }
 
 static isc_result_t
-rdata_valid(isc_buffer_t *buf, unsigned int len, dns_rdataclass_t rdclass,
-	    dns_rdatatype_t type, isc_mem_t *mctx)
+rdata_valid(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
+	    dns_rdatatype_t type)
 {
-	isc_buffer_t *tbuf = NULL;
-	isc_buffer_t rdatabuf;
 	dns_decompress_t dctx;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_region_t r;
 	isc_result_t result;
 
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
-	result = isc_buffer_allocate(mctx, &tbuf, isc_buffer_usedlength(buf));
-	if (result == ISC_R_SUCCESS) {
-		isc_buffer_remainingregion(buf, &r);
-		isc_buffer_init(&rdatabuf, r.base, r.length);
-		isc_buffer_add(&rdatabuf, r.length);
-		INSIST(r.length >= len);
-		isc_buffer_forward(&rdatabuf, r.length - len);
-		isc_buffer_setactive(&rdatabuf, len);
-		result = dns_rdata_fromwire(&rdata, rdclass, type, &rdatabuf,
-					    &dctx, ISC_FALSE, tbuf);
-		isc_buffer_subtract(buf, len);
-		if (result == ISC_R_SUCCESS) {
-			isc_buffer_usedregion(tbuf, &r);
-			(void)isc_buffer_copyregion(buf, &r);
-		}
-		isc_buffer_free(&tbuf);
-	}
+	isc_buffer_setactive(src, isc_buffer_usedlength(src));
+	result = dns_rdata_fromwire(&rdata, rdclass, type, src,
+				    &dctx, ISC_FALSE, dest);
 	dns_decompress_invalidate(&dctx);
 
+	return (result);
+}
+
+static isc_result_t
+unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
+		 isc_lex_t *lexer, isc_mem_t *mctx, isc_buffer_t *target)
+{
+	isc_result_t result;
+	isc_buffer_t *buf = NULL;
+	isc_token_t token;
+
+	if (dns_rdatatype_ismeta(type))
+		return (DNS_R_METATYPE);
+
+	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+					ISC_FALSE);
+	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
+		return (ISC_R_RANGE);
+	result = isc_buffer_allocate(mctx, &buf,
+				     isc_buffer_availablelength(target));
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	
+	result = isc_hex_tobuffer(lexer, buf, token.value.as_ulong);
+	if (result != ISC_R_SUCCESS)
+	       goto failure;
+	if (isc_buffer_usedlength(buf) != token.value.as_ulong) {
+		result = ISC_R_UNEXPECTEDEND;
+		goto failure;
+	}
+
+	if (dns_rdatatype_isknown(type)) {
+		result = rdata_valid(buf, target, rdclass, type);
+	} else {
+		isc_region_t r;
+		isc_buffer_usedregion(buf, &r);
+		result = isc_buffer_copyregion(target, &r);
+	}
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	isc_buffer_free(&buf);
+	return (ISC_R_SUCCESS);
+
+ failure:
+	isc_buffer_free(&buf);
 	return (result);
 }
 
@@ -597,23 +626,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 					ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (strcmp((char *)token.value.as_pointer, "\\#") == 0) {
-		result = isc_lex_getmastertoken(lexer, &token,
-						isc_tokentype_number,
-						ISC_FALSE);
-		if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
-			result = ISC_R_RANGE;
-		if (result == ISC_R_SUCCESS)
-			result = isc_hex_tobuffer(lexer, target, 
-						  token.value.as_ulong);
-		if (result == ISC_R_SUCCESS && dns_rdatatype_ismeta(type))
-			result = DNS_R_METATYPE;
-		if (result == ISC_R_SUCCESS && dns_rdatatype_isknown(type)) {
-			unsigned int len = isc_buffer_usedlength(target) -
-					   isc_buffer_usedlength(&st);
-			result = rdata_valid(target, len, rdclass, type, mctx);
-		}
-	} else {
+	if (strcmp((char *)token.value.as_pointer, "\\#") == 0)
+		result = unknown_fromtext(rdclass, type, lexer, mctx, target);
+	else {
 		isc_lex_ungettoken(lexer, &token);
 
 		FROMTEXTSWITCH
