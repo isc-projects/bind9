@@ -12,6 +12,10 @@
 			down while a client start event was pending
 			delivery. [RT #2061]
 
+1121.	[bug]		The server could attempt to access a NULL zone
+			table if shut down while resolving.
+			[RT #1587, #2054]
+
 	--- 9.2.0rc10 released ---
 
 1120.	[bug]		Errors in options were not fatal. [RT #2002]
