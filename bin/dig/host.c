@@ -54,9 +54,9 @@ extern int tries;
 extern int lookup_counter;
 extern int exitcode;
 
-isc_boolean_t short_form=ISC_TRUE,
-	filter=ISC_FALSE,
-	showallsoa=ISC_FALSE,
+isc_boolean_t short_form = ISC_TRUE,
+	filter = ISC_FALSE,
+	showallsoa = ISC_FALSE,
 	tcpmode = ISC_FALSE;
 
 static char *opcodetext[] = {
@@ -144,7 +144,7 @@ static char *rtypetext[] = {
 
 
 static void
-show_usage() {
+show_usage(void) {
 	fputs (
 "Usage: host [-aCdlrTwv] [-c class] [-N ndots] [-t type] [-W time]\n"
 "            [-R number] hostname [server]\n"
@@ -196,7 +196,7 @@ static void
 say_message(dns_name_t *name, char *msg, dns_rdata_t *rdata,
 	    dig_query_t *query)
 {
-	isc_buffer_t *b=NULL, *b2=NULL;
+	isc_buffer_t *b = NULL, *b2 = NULL;
 	isc_region_t r, r2;
 	isc_result_t result;
 
@@ -277,21 +277,23 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 					print_name = &empty_name;
 					first = ISC_FALSE;
 				}
+#else
+				UNUSED(first); /* Shut up compiler. */
 #endif
 			} else { 
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
 					if (rdata.type <= 41)
-						rtt=rtypetext[rdata.type];
+						rtt = rtypetext[rdata.type];
 					else if (rdata.type == 103)
-						rtt="unspecified data";
+						rtt = "unspecified data";
 					else if (rdata.type == 249)
-						rtt="key";
+						rtt = "key";
 					else if (rdata.type == 250)
-						rtt="signature";
+						rtt = "signature";
 					else
-						rtt="unknown";
+						rtt = "unknown";
 					say_message(print_name,
 						    rtypetext[rdata.type],
 						    &rdata, query);
@@ -437,7 +439,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		if (!short_form)
 			printf("\n");
 		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER",
-				      !short_form, query);
+				      ISC_TF(!short_form), query);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -472,13 +474,10 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
-	isc_boolean_t have_host=ISC_FALSE,
-		recursion=ISC_TRUE,
-		xfr_mode=ISC_FALSE,
-		nsfind=ISC_FALSE;
+	isc_boolean_t recursion = ISC_TRUE;
 	char hostname[MXNAME];
-	char querytype[32]="";
-	char queryclass[32]="";
+	char querytype[32] = "";
+	char queryclass[32] = "";
 	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int i, c, n, adrs[4];
@@ -491,9 +490,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		switch (c) {
 		case 'l':
 			tcpmode = ISC_TRUE;
-			xfr_mode = ISC_TRUE;
 			filter = ISC_TRUE;
-			strcpy (querytype, "axfr");
+			strcpy(querytype, "axfr");
 			break;
 		case 'v':
 		case 'd':
@@ -536,7 +534,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				strcpy (querytype, "soa");
 			if (queryclass[0] == 0)
 				strcpy (queryclass, "in");
-			nsfind = ISC_TRUE;
 			showallsoa = ISC_TRUE;
 			show_details = ISC_TRUE;
 			break;
@@ -552,7 +549,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 	strncpy (hostname, argv[isc_commandline_index], MXNAME);
 	if (argc > isc_commandline_index+1) {
-			srv=isc_mem_allocate(mctx, sizeof(struct dig_server));
+			srv = isc_mem_allocate(mctx,
+					       sizeof(struct dig_server));
 			if (srv == NULL)
 				fatal ("Memory allocation failure.");
 			strncpy(srv->servername,
@@ -574,10 +572,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	 * to extract the formatted text.
 	 */
 	if (strspn(hostname, "0123456789.") == strlen(hostname)) {
-		lookup->textname[0]=0;
+		lookup->textname[0] = 0;
 		n = sscanf(hostname, "%d.%d.%d.%d", &adrs[0], &adrs[1],
 				   &adrs[2], &adrs[3]);
-		if (n==0) {
+		if (n == 0) {
 			show_usage();
 			exit (exitcode);
 		}
@@ -597,11 +595,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		strcpy (queryclass, "in");
 	strncpy (lookup->rttext, querytype, 32);
 	strncpy (lookup->rctext, queryclass, 32);
-	lookup->namespace[0]=0;
-	lookup->sendspace[0]=0;
-	lookup->sendmsg=NULL;
-	lookup->name=NULL;
-	lookup->oname=NULL;
+	lookup->namespace[0] = 0;
+	lookup->sendspace[0] = 0;
+	lookup->sendmsg = NULL;
+	lookup->name = NULL;
+	lookup->oname = NULL;
 	lookup->timer = NULL;
 	lookup->xfr_q = NULL;
 	lookup->origin = NULL;
@@ -621,7 +619,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;
 	ISC_LIST_INIT(lookup->my_server_list);
-	have_host = ISC_TRUE;
 }
 
 int
@@ -638,15 +635,15 @@ main(int argc, char **argv) {
 	debug ("dhmain()");
 #ifdef TWIDDLE
 	fp = fopen("/dev/urandom", "r");
-	if (fp!=NULL) {
+	if (fp != NULL) {
 		fread (&i, sizeof(int), 1, fp);
 		srandom(i);
 	}
 	else {
 		srandom ((int)&main);
 	}
-	p = getpid()%16+8;
-	for (i=0 ; i<p; i++);
+	p = getpid() % 16 + 8;
+	for (i = 0 ; i < p; i++);
 #endif
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
