@@ -151,8 +151,8 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msgp,
  *
  *	'msgp' be non-null and '*msg' be NULL.
  *
- *	'intent' must be one of DNS_MESSAGE_INTENT_PARSE or
- *	DNS_MESSAGE_INTENT_RENDER.
+ *	'intent' must be one of DNS_MESSAGE_INTENTPARSE or
+ *	DNS_MESSAGE_INTENTRENDER.
  *
  * Ensures:
  *	The data in "*msg" is set to indicate an unused and empty msg
