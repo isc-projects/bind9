@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.10 2000/06/23 21:28:16 mws Exp $
+# $Id: Makefile.in,v 1.11 2000/06/26 18:00:15 explorer Exp $
 
 @BIND9_INCLUDES@
 SUBDIRS =	lwresd
@@ -24,10 +24,10 @@ TARGETS =
 test: dnssec_test limits_test notify_test stub_test views_test xfer_test \
 	xferquota_test
 
-distclean:: clean
+distclean::
 	sh ./cleanall.sh
 
-clean:: dnssec_test_clean limits_test_clean notify_test_clean \
+clean distclean:: dnssec_test_clean limits_test_clean notify_test_clean \
 		  stub_test_clean views_test_clean xfer_test_clean \
 		  xferquota_test_clean
 
