@@ -1,4 +1,4 @@
-1358.	[func]		log the reason for rejecting a server when resolving
+1361.	[func]		log the reason for rejecting a server when resolving
 			queries.
 
 1355.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
@@ -36,7 +36,7 @@
 1312.	[func]		Log TSIG key used w/ outgoing zone transfers.
 
 1309.	[func]		Log that a zone transfer was covered by a TSIG.
- 
+
 1304.	[func]		New function: dns_zone_name().
 
 1303.	[func]		Option 'flush-zones-on-shutdown <boolean>;'.
