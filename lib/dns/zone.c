@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.17 2001/07/24 02:57:34 marka Exp $ */
+/* $Id: zone.c,v 1.283.2.18 2001/10/23 02:44:54 marka Exp $ */
 
 #include <config.h>
 
@@ -430,8 +430,8 @@ static void zone_notify(dns_zone_t *zone);
 #define DNS_ENTER zone_log(zone, me, ISC_LOG_DEBUG(1), "enter")
 #define DNS_LEAVE zone_log(zone, me, ISC_LOG_DEBUG(1), "leave")
 
-const unsigned int dbargc_default = 1;
-const char *dbargv_default[] = { "rbt" };
+static const unsigned int dbargc_default = 1;
+static const char *dbargv_default[] = { "rbt" };
 
 /***
  ***	Public functions.
