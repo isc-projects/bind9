@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.50 2000/11/18 01:02:39 bwelling Exp $ */
+/* $Id: lex.c,v 1.51 2000/11/18 21:15:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -329,11 +329,6 @@ pushback(inputsource *source, int c) {
 		source->line--;
 }
 
-static void
-unpushback(inputsource *source) {
-	isc_buffer_subtract(source->pushback, 1);
-}
-
 static isc_result_t
 pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options,
 	    lexstate state)
@@ -547,7 +542,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						if (lex->paren_count == 0)
 							options =
 								saved_options;
-						unpushback(source);
 					}
 					continue;
 				}
@@ -799,8 +793,8 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 
 	isc_buffer_first(source->pushback);
 	if (source->pushback_parens > 0) {
-		INSIST(lex->paren_count >= source->pushback_parens);
 		lex->paren_count -= source->pushback_parens;
+		INSIST(lex->paren_count >= 0);
 	}
 	source->at_eof = ISC_FALSE;
 }
