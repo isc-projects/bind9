@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.4 2001/10/12 17:49:41 gson Exp $ */
+/* $Id: resolver.c,v 1.218.2.5 2001/11/04 19:21:50 gson Exp $ */
 
 #include <config.h>
 
@@ -1651,7 +1651,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 
 	if (aborted) {
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		msg = "ignoring backholed / bogus server: ";
+		msg = "ignoring blackholed / bogus server: ";
 	} else if (sa->type.sa.sa_family != AF_INET6) {
 		return;
 	} else if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
