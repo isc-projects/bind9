@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.5.2.6 2004/06/03 04:38:11 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.5.2.7 2004/08/10 02:27:36 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -172,7 +172,8 @@ res_ourserver_p(const res_state statp, const struct sockaddr *sa) {
 			if (srv6->sin6_family == in6p->sin6_family &&
 			    srv6->sin6_port == in6p->sin6_port &&
 #ifdef HAVE_SIN6_SCOPE_ID
-			    srv6->sin6_scope_id == in6p->sin6_scope_id &&
+			    (srv6->sin6_scope_id == 0 ||
+			     srv6->sin6_scope_id == in6p->sin6_scope_id) &&
 #endif
 			    (IN6_IS_ADDR_UNSPECIFIED(&srv6->sin6_addr) ||
 			     IN6_ARE_ADDR_EQUAL(&srv6->sin6_addr, &in6p->sin6_addr)))
