@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2.4.6 2004/03/10 02:55:51 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2.4.7 2004/06/03 02:24:56 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -343,10 +343,6 @@
         <refentrytitle>dnssec-keygen</refentrytitle>
 	<manvolnum>8</manvolnum>
       </citerefentry>,
-      <citerefentry>
-        <refentrytitle>dnssec-signkey</refentrytitle>
-	<manvolnum>8</manvolnum>
-      </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
       <citetitle>RFC 2535</citetitle>.
     </para>
@@ -355,7 +351,7 @@
   <refsect1>
     <title>AUTHOR</title>
     <para>
-        <corpauthor>Internet Software Consortium</corpauthor>
+        <corpauthor>Internet Systems Consortium</corpauthor>
     </para>
   </refsect1>
 
