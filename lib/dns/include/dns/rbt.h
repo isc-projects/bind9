@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.50 2000/10/25 07:21:31 tale Exp $ */
+/* $Id: rbt.h,v 1.51 2000/11/18 00:55:25 bwelling Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -25,6 +25,8 @@
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
+
+#define DNS_RBT_USEHASH 1
 
 /*
  * Option values for dns_rbt_findnode() and dns_rbt_findname().
@@ -53,7 +55,9 @@ typedef struct dns_rbtnode {
 	struct dns_rbtnode *left;
 	struct dns_rbtnode *right;
 	struct dns_rbtnode *down;
+#ifdef DNS_RBT_USEHASH
 	struct dns_rbtnode *hashnext;
+#endif
 	/*
 	 * The following bitfields add up to a total bitwidth of 32.
 	 * The range of values necessary for each item is indicated,
@@ -74,7 +78,9 @@ typedef struct dns_rbtnode {
 	unsigned int offsetlen : 8;	/* range is 1..128 */
 	unsigned int padbytes : 9;	/* range is 0..380 */
 
+#ifdef DNS_RBT_USEHASH
 	unsigned int hashval;
+#endif
 
 	/*
 	 * These values are used in the RBT DB implementation.  The appropriate

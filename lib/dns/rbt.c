@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.94 2000/11/14 23:51:24 tale Exp $ */
+/* $Id: rbt.c,v 1.95 2000/11/18 00:55:24 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -193,6 +193,7 @@ name_hash(dns_name_t *name) {
 	return (hash);
 }
 
+#ifdef DNS_RBT_USEHASH
 static inline void
 compute_node_hash(dns_rbtnode_t *node) {
 	unsigned int hash;
@@ -209,6 +210,7 @@ compute_node_hash(dns_rbtnode_t *node) {
 
 	HASHVAL(node) = hash;
 }
+#endif
 
 /*
  * Forward declarations.
@@ -217,10 +219,15 @@ static isc_result_t
 create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep);
 static isc_result_t
 join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node);
+#ifdef DNS_RBT_USEHASH
 static inline isc_result_t
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
 static inline void
 unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
+#else
+#define hash_node(rbt, node) (ISC_R_SUCCESS)
+#define unhash_node(rbt, node)
+#endif
 
 static inline void
 rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
@@ -783,7 +790,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	isc_result_t result, saved_result;
 	unsigned int common_labels, common_bits;
 	int order;
-	unsigned int hash;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(dns_name_isabsolute(name));
@@ -844,11 +850,13 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			break;
 
                 if (compared == dns_namereln_none) {
+#ifdef DNS_RBT_USEHASH
 			dns_name_t hash_name;
 			dns_rbtnode_t *hnode;
 			dns_rbtnode_t *up_current;
 			unsigned int nlabels;
 			unsigned int tlabels = 1;
+			unsigned int hash;
 
 			if (rbt->hashtable == NULL)
 				goto nohash;
@@ -916,6 +924,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			    
 			/* FALLTHROUGH */
 		nohash:
+#endif /* DNS_RBT_USEHASH */
 			/*
 			 * Standard binary search tree movement.
 			 */
@@ -1426,8 +1435,10 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	LEFT(node) = NULL;
 	DOWN(node) = NULL;
 	DATA(node) = NULL;
+#ifdef DNS_RBT_USEHASH
 	HASHNEXT(node) = NULL;
 	HASHVAL(node) = 0;
+#endif
 
 	LOCKNUM(node) = 0;
 	REFS(node) = 0;
@@ -1562,6 +1573,7 @@ join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	return (result);
 }
 
+#ifdef DNS_RBT_USEHASH
 static inline void
 hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	unsigned int hash;
@@ -1693,6 +1705,7 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 		}
 	}
 }
+#endif /* DNS_RBT_USEHASH */
 
 static inline void
 rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
