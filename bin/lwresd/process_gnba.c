@@ -27,9 +27,11 @@
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
+#include <isc/stdtime.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/adb.h>
 #include <dns/byaddr.h>
 
 #include <lwres/lwres.h>

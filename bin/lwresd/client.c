@@ -27,6 +27,9 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/view.h>
+#include <dns/log.h>
+
 #include <lwres/lwres.h>
 
 #include "client.h"

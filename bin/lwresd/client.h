@@ -20,23 +20,14 @@
 
 #include <isc/event.h>
 #include <isc/eventclass.h>
-#include <isc/list.h>
-#include <isc/log.h>
-#include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/sockaddr.h>
-#include <isc/socket.h>
-#include <isc/task.h>
+#include <isc/types.h>
 
-#include <dns/adb.h>
-#include <dns/byaddr.h>
-#include <dns/cache.h>
-#include <dns/db.h>
 #include <dns/fixedname.h>
-#include <dns/log.h>
-#include <dns/master.h>
-#include <dns/name.h>
-#include <dns/view.h>
+#include <dns/types.h>
+
+#include <lwres/lwres.h>
 
 #define LWRD_EVENTCLASS		ISC_EVENTCLASS(4242)
 

@@ -30,9 +30,12 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/cache.h>
+#include <dns/db.h>
+#include <dns/log.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
-#include <dns/log.h>
+#include <dns/view.h>
 
 #include <lwres/lwres.h>
 #include <lwres/result.h>
