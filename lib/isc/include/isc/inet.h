@@ -37,7 +37,7 @@ char *isc_inet_ntop(int af, const void *src, char *dst, size_t size);
 int
 isc_inet_pton(int af, const char *src, void *dst);
 #else
-#define isc_inet_ntop inet_ntop
+#define isc_inet_pton inet_pton
 #endif
 
 #ifdef NEED_INET_ATON
