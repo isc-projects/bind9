@@ -370,8 +370,13 @@ get_view_querysource_dispatch(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				     ns_g_taskmgr, &sa, 4096,
 				     1000, 32768, 16411, 16433,
 				     attrs, attrmask, &disp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
+			      "could not get query source dispatcher");
 		return (result);
+	}
 
 	*dispatchp = disp;
 
