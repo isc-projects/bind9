@@ -1,3 +1,12 @@
+   7.   [cleanup]	removed 'listen-on' from view statement.
+
+   6.   [bug]		quote RR names when generating config file to 
+			prevent possible clash with config file keywords 
+			(such as 'key').
+
+   5.   [func]		syntax change to named.conf file: new ssu grant/deny 
+			statements must now be enclosed by an 'update-policy'
+			block.
 
    4.	[port]		bin/named/unix/os.c didn't compile on systems with
 			linux 2.3 kernel includes due to conflicts between
