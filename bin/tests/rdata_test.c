@@ -43,7 +43,6 @@ main(int argc, char *argv[]) {
 	int c;
 	int stats = 0;
 	unsigned int options = 0;
-	unsigned int parens = 0;
 	dns_rdatatype_t type;
 	dns_rdatatype_t lasttype = 0;
 	char outbuf[16*1024];
@@ -93,7 +92,7 @@ main(int argc, char *argv[]) {
 			zero = 1;
 			break;
 		case 'r':
-			raw = 1;
+			raw++;
 			break;
 		}
 	}
@@ -110,7 +109,7 @@ main(int argc, char *argv[]) {
 	specials[')'] = 1;
 	specials['"'] = 1;
 	isc_lex_setspecials(lex, specials);
-	options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
+	options = ISC_LEXOPT_EOL;
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
 	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
@@ -119,31 +118,13 @@ main(int argc, char *argv[]) {
 	while ((result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
 					  &token)) == ISC_R_SUCCESS) {
 		if (debug) fprintf(stdout, "token.type = %d\n", token.type);
-		if (token.type == isc_tokentype_special) {
-			if (token.value.as_char == '(') {
-				parens++;
-				options &= ~ISC_LEXOPT_EOL;
-				options &= ~ISC_LEXOPT_INITIALWS;
-			} else if (token.value.as_char == ')') {
-				if (parens == 0) {
-					printf("mismatched parens\n");
-					exit(1);
-				}
-				parens--;
-				if (parens == 0) {
-					options |= ISC_LEXOPT_EOL;
-					options |= ISC_LEXOPT_INITIALWS;
-				}
-			}
-			continue;
-		}
-
 		if (need_eol) {
-			if (token.type == isc_tokentype_eol ||
-			    token.type == isc_tokentype_eof)
+			if (token.type == isc_tokentype_eol)
 				need_eol = 0;
 			continue;
 		}
+		if (token.type == isc_tokentype_eof)
+			break;
 	
 		if (token.type == isc_tokentype_number) {
 			type = token.value.as_ulong;
@@ -207,7 +188,22 @@ main(int argc, char *argv[]) {
 					dns_result_totext(result), result);
 				continue;
 			}
-			len = wbuf.used - dbuf.current;
+			len = wbuf.used - wbuf.current;
+			if (raw > 2) {
+				unsigned int i;
+				fputs("\n", stdout);
+				for (i = 0 ; i < (unsigned int)len ; /* */ ) {
+					fprintf(stdout, "%02x",
+				((unsigned char*)wbuf.base)[i + wbuf.current]);
+					if ((++i % 20) == 0)
+						fputs("\n", stdout);
+					else
+						if (i == wbuf.used)
+							fputs("\n", stdout);
+						else
+							fputs(" ", stdout);
+				}
+			}
 			if (zero)
 				len = 0;
 			if (trunc)
@@ -216,6 +212,7 @@ main(int argc, char *argv[]) {
 				isc_buffer_add(&wbuf, len / 4 + 1);
 				len += len / 4 + 1;
 			}
+
 			isc_buffer_setactive(&wbuf, len);
 			dns_rdata_init(&rdata);
 			isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
@@ -228,6 +225,20 @@ main(int argc, char *argv[]) {
 					dns_result_totext(result), result);
 				fflush(stdout);
 				continue;
+			}
+		}
+		if (raw > 1) {
+			unsigned int i;
+			fputs("\n", stdout);
+			for (i = 0 ; i < rdata.length ; /* */ ) {
+				fprintf(stdout, "%02x", rdata.data[i]);
+				if ((++i % 20) == 0)
+					fputs("\n", stdout);
+				else
+					if (i == rdata.length)
+						fputs("\n", stdout);
+					else
+						fputs(" ", stdout);
 			}
 		}
 

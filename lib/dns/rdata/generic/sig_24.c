@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.1 1999/01/27 13:38:20 marka Exp $ */
+ /* $Id: sig_24.c,v 1.2 1999/01/29 08:04:13 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -72,11 +72,11 @@ fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* signature expiration */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	return (DNS_R_NOTIMPLEMENTED);
+	RETERR(time_tobuffer(token.value.as_pointer, target));
 
 	/* time signed */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	return (DNS_R_NOTIMPLEMENTED);
+	RETERR(time_tobuffer(token.value.as_pointer, target));
 
 	/* key footprint */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -161,6 +161,7 @@ totext_sig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
+	isc_region_consume(&sr, name_length(&name));
 	sub = name_prefix(&name, origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
 	RETERR(str_totext(" ", target));
@@ -194,7 +195,7 @@ fromwire_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 		return (DNS_R_UNEXPECTEDEND);
 
 	isc_buffer_forward(source, 18);
-	RETERR(mem_tobuffer(target, sr.base, sr.length));
+	RETERR(mem_tobuffer(target, sr.base, 18));
 
 	/* signer */
 	dns_name_init(&name, NULL);
@@ -202,6 +203,7 @@ fromwire_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* sig */
 	isc_buffer_active(source, &sr);
+	isc_buffer_forward(source, sr.length);
 	return(mem_tobuffer(target, sr.base, sr.length));
 }
 
