@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.101 2000/06/21 22:44:10 tale Exp $ */
+/* $Id: rdata.c,v 1.101.2.1 2000/07/10 19:17:33 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -161,6 +161,9 @@ static void
 fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 	       dns_rdatacallbacks_t *callbacks, const char *name,
 	       unsigned long line, isc_token_t *token, isc_result_t result);
+
+static void
+fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
 
 static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
@@ -536,8 +539,11 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			fromtext_error(callback, callbacks, name, line,
 				       &token, result);
 			break;
-		} else
+		} else {
+			if (token.type == isc_tokentype_eof)
+				fromtext_warneof(lexer, callbacks);
 			break;
+		}
 	} while (1);
 
 	if (rdata != NULL && result == ISC_R_SUCCESS) {
@@ -1663,6 +1669,15 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
+}
+
+static void
+fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
+	if (isc_lex_isfile(lexer) && callbacks != NULL)
+		(*callbacks->warn)(callbacks,
+				   "%s:%lu: file does not end with newline",
+				    isc_lex_getsourcename(lexer),
+				    isc_lex_getsourceline(lexer));
 }
 
 static void
