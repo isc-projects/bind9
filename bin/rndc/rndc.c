@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.87 2001/11/30 01:58:55 gson Exp $ */
+/* $Id: rndc.c,v 1.88 2001/11/30 02:09:48 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -194,7 +194,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_free(&response);
 	isc_socket_detach(&sock);
 	isc_task_shutdown(task);
-	isc_app_shutdown();
+	RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
 }
 
 static void
