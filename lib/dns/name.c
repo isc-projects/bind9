@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.3 2002/07/10 06:48:29 marka Exp $ */
+/* $Id: name.c,v 1.127.2.4 2002/07/11 01:29:00 marka Exp $ */
 
 #include <config.h>
 
@@ -1112,7 +1112,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(ISC_BUFFER_VALID(source));
 	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
-		(target == NULL && name->buffer != NULL));
+		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
 
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
@@ -2035,7 +2035,8 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name, isc_buffer_t *target) {
 		ndata = source->ndata;
 	} else {
 		REQUIRE(BINDABLE(name));
-		REQUIRE(target != NULL || name->buffer != NULL);
+		REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
+			(target == NULL && ISC_BUFFER_VALID(name->buffer)));
 		if (target == NULL) {
 			target = name->buffer;
 			isc_buffer_clear(name->buffer);
@@ -2325,6 +2326,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	 */
 
 	REQUIRE(VALID_NAME(name));
+	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
+		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
 
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
@@ -2523,6 +2526,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(cctx != NULL);
+	REQUIRE(ISC_BUFFER_VALID(target));
 
 	/*
 	 * If 'name' doesn't have an offsets table, make a clone which
@@ -2600,6 +2604,8 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	REQUIRE(prefix == NULL || VALID_NAME(prefix));
 	REQUIRE(suffix == NULL || VALID_NAME(suffix));
 	REQUIRE(name == NULL || VALID_NAME(name));
+	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
+		(target == NULL && name != NULL && ISC_BUFFER_VALID(name->buffer)));
 	if (prefix == NULL || prefix->labels == 0)
 		copy_prefix = ISC_FALSE;
 	if (suffix == NULL || suffix->labels == 0)
@@ -2613,7 +2619,8 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		DNS_NAME_INIT(&tmp_name, odata);
 		name = &tmp_name;
 	}
-	if (target == NULL && name->buffer != NULL) {
+	if (target == NULL) {
+		INSIST(name->buffer != NULL);
 		target = name->buffer;
 		isc_buffer_clear(name->buffer);
 	}
