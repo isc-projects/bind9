@@ -43,6 +43,7 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 #define ISC_EVENT_COMMON(ltype)		\
 	size_t				size; \
 	unsigned int			attributes; \
+	unsigned int			tag; \
 	isc_eventtype_t			type; \
 	isc_taskaction_t		action; \
 	void *				arg; \
@@ -53,10 +54,11 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
 #define ISC_EVENTATTR_NOPURGE		0x00000001
 
-#define ISC_EVENT_INIT(event, sz, at, ty, ac, ar, sn, df, da) \
+#define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
 do { \
 	(event)->size = (sz); \
 	(event)->attributes = (at); \
+	(event)->tag = (ta); \
 	(event)->type = (ty); \
 	(event)->action = (ac); \
 	(event)->arg = (ar); \
