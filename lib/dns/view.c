@@ -449,3 +449,11 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 
 	return (ISC_R_SUCCESS);
 }
+
+void
+dns_view_load(dns_view_t *view) {
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	dns_zt_load(view->zonetable);
+}
