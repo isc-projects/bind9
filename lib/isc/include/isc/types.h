@@ -28,6 +28,7 @@
 
 typedef struct isc_bitstring		isc_bitstring_t;
 typedef struct isc_buffer		isc_buffer_t;
+typedef ISC_LIST(isc_buffer_t)		isc_bufferlist_t;
 typedef struct isc_event		isc_event_t;
 typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
 typedef unsigned int			isc_eventtype_t;
