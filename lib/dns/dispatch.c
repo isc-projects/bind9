@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6 2003/07/22 04:03:40 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.1 2003/08/08 07:12:27 marka Exp $ */
 
 #include <config.h>
 
@@ -243,7 +243,7 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	va_end(ap);
 
 	if (VALID_RESPONSE(resp)) {
-		isc_sockaddr_format(&resp->host, peerbuf, sizeof peerbuf);
+		isc_sockaddr_format(&resp->host, peerbuf, sizeof(peerbuf));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
 			      DNS_LOGMODULE_DISPATCH, level,
 			      "dispatch %p response %p %s: %s", disp, resp,
@@ -266,7 +266,7 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 
 	if (mgr->entropy != NULL) {
-		result = isc_entropy_getdata(mgr->entropy, &val, sizeof val,
+		result = isc_entropy_getdata(mgr->entropy, &val, sizeof(val),
 					     NULL, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		lfsr->count = (val & 0x1f) + 32;
@@ -712,6 +712,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_boolean_t killit;
 	isc_boolean_t queue_response;
 	dns_qid_t *qid;
+	int level;
 
 	UNUSED(task);
 
@@ -745,9 +746,14 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			do_cancel(disp, NULL);
 			break;
 
+		case ISC_R_CONNECTIONRESET:
+			level = ISC_LOG_INFO;
+			goto logit;
+
 		default:
-			dispatch_log(disp, ISC_LOG_ERROR,
-				     "shutting down due to TCP "
+			level = ISC_LOG_ERROR;
+		logit:
+			dispatch_log(disp, level, "shutting down due to TCP "
 				     "receive error: %s",
 				     isc_result_totext(tcpmsg->result));
 			do_cancel(disp, NULL);
@@ -898,6 +904,7 @@ startrecv(dns_dispatch_t *disp) {
 			do_cancel(disp, NULL);
 			return;
 		}
+		INSIST(disp->recv_pending == 0);
 		disp->recv_pending = 1;
 		break;
 
@@ -910,6 +917,7 @@ startrecv(dns_dispatch_t *disp) {
 			do_cancel(disp, NULL);
 			return;
 		}
+		INSIST(disp->recv_pending == 0);
 		disp->recv_pending = 1;
 		break;
 	}
@@ -993,6 +1001,9 @@ create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+#ifndef ISC_ALLOW_MAPPED
+	isc_socket_ipv6only(sock, ISC_TRUE);
+#endif
 	result = isc_socket_bind(sock, local);
 	if (result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
@@ -1292,7 +1303,7 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	for (i = 0 ; i < buckets ; i++)
+	for (i = 0; i < buckets; i++)
 		ISC_LIST_INIT(qid->qid_table[i]);
 
 	qid->qid_nbuckets = buckets;
@@ -1363,7 +1374,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	ISC_LINK_INIT(disp, link);
 	disp->refcount = 1;
 	disp->recv_pending = 0;
-	memset(&disp->local, 0, sizeof disp->local);
+	memset(&disp->local, 0, sizeof(disp->local));
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
 	disp->connected = 0;
@@ -1761,7 +1772,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	id = dns_randomid(qid);
 	bucket = dns_hash(qid, dest, id);
 	ok = ISC_FALSE;
-	for (i = 0 ; i < 64 ; i++) {
+	for (i = 0; i < 64; i++) {
 		if (bucket_search(qid, dest, id, bucket) == NULL) {
 			ok = ISC_TRUE;
 			break;
@@ -1974,7 +1985,7 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	 * Send the shutdown failsafe event to this resp.
 	 */
 	ev = disp->failsafe_ev;
-	ISC_EVENT_INIT(ev, sizeof (*ev), 0, NULL, DNS_EVENT_DISPATCH,
+	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	ev->result = disp->shutdown_why;
 	ev->buffer.base = NULL;
@@ -2104,7 +2115,7 @@ dns_dispatchmgr_dump(dns_dispatchmgr_t *mgr) {
 
 	disp = ISC_LIST_HEAD(mgr->list);
 	while (disp != NULL) {
-		isc_sockaddr_format(&disp->local, foo, sizeof foo);
+		isc_sockaddr_format(&disp->local, foo, sizeof(foo));
 		printf("\tdispatch %p, addr %s\n", disp, foo);
 		disp = ISC_LIST_NEXT(disp, link);
 	}

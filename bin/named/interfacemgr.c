@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.1 2003/08/02 01:19:58 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.2 2003/08/08 07:12:25 marka Exp $ */
 
 #include <config.h>
 
@@ -119,7 +119,7 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	ns_listenlist_detach(&mgr->listenon6);
 	DESTROYLOCK(&mgr->lock);
 	mgr->magic = 0;
-	isc_mem_put(mgr->mctx, mgr, sizeof *mgr);
+	isc_mem_put(mgr->mctx, mgr, sizeof(*mgr));
 }
 
 dns_aclenv_t *
@@ -294,6 +294,9 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 				 isc_result_totext(result));
 		goto tcp_socket_failure;
 	}
+#ifndef ISC_ALLOW_MAPPED
+	isc_socket_ipv6only(ifp->tcpsocket, ISC_TRUE);
+#endif
 	result = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
