@@ -38,6 +38,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/compress.h>
+#include <dns/db.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -52,6 +53,38 @@
 
 isc_mem_t *mctx = NULL;
 
+dns_db_t *db;
+
+/*
+ * For debugging only... XXX
+ */
+void dump_packet(char *buf, u_int len);
+
+static void
+makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
+	char b[255];
+	isc_buffer_t source, target;
+	size_t len;
+	isc_region_t r1, r2;
+	dns_result_t result;
+
+	if (origin == NULL)
+		origin = dns_rootname;
+	dns_name_init(name, NULL);
+	len = strlen(text);
+	isc_buffer_init(&source, text, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+	isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
+	result = dns_name_fromtext(name, &source, origin, ISC_FALSE, &target);
+	RUNTIME_CHECK(result == DNS_R_SUCCESS);
+	dns_name_toregion(name, &r1);
+	r2.base = isc_mem_get(mctx, r1.length);
+	RUNTIME_CHECK(r2.base != NULL);
+	r2.length = r1.length;
+	memcpy(r2.base, r1.base, r1.length);
+	dns_name_fromregion(name, &r2);
+}
+
 /*
  * Process the wire format message given in r, and return a new packet to
  * transmit.
@@ -64,27 +97,49 @@ isc_mem_t *mctx = NULL;
 static dns_result_t
 dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 {
+	char t[5000];
+	isc_buffer_t source;
+	isc_buffer_t target;
+	dns_result_t result;
 	isc_region_t txr;
-	unsigned char *cp;
+
+	dump_packet(rxr->base, rxr->length);
 
 	/*
-	 * XXX for now, just SERVFAIL everything.
+	 * Set up the temporary output buffer.
 	 */
-	txr.length = rxr->length + reslen;
+	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
+	isc_buffer_add(&target, reslen);
+
+	/*
+	 * Set up the input buffer from the contents of the region passed
+	 * to us.
+	 */
+	isc_buffer_init(&source, rxr->base, rxr->length,
+			ISC_BUFFERTYPE_BINARY);
+	isc_buffer_add(&source, rxr->length);
+
+	result = resolve_packet(db, &source, &target);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	/*
+	 * Copy the reply out
+	 */
+	isc_buffer_used(&target, &txr);
+	txr.length += reslen;
 	txr.base = isc_mem_get(mctx, txr.length);
 	if (txr.base == NULL)
 		return (DNS_R_NOMEMORY);
 
-	memcpy(txr.base + reslen, rxr->base, rxr->length);
-
-	cp = txr.base + reslen;
-	cp += 2;
-	*cp |= 0x80;  /* set QR to response */
-	*cp++ &= 0xf9; /* clear AA, TC */
-	*cp++ = 2;  /* SERVFAIL */
-
+	memcpy(txr.base + reslen, t + reslen, txr.length - reslen);
 	rxr->base = txr.base;
 	rxr->length = txr.length;
+
+	printf("Base == %p, length == %u\n", txr.base, txr.length);
+	fflush(stdout);
+
+	dump_packet(txr.base + reslen, txr.length - reslen);
 
 	isc_mem_stats(mctx, stdout);
 
@@ -105,15 +160,40 @@ main(int argc, char *argv[])
 	tcp_listener_t *ltcp;
 	isc_cfgctx_t *configctx = NULL;
 	const char *conffile = "/etc/named.conf"; /* XXX hardwired */
+	dns_name_t base, *origin;
+	int ch;
+	char basetext[1000];
+	dns_rdatatype_t type = 2;
+	dns_result_t result;
+
+	/*+ XXX */
+	strcpy(basetext, "");
+	while ((ch = getopt(argc, argv, "z:t:")) != -1) {
+		switch (ch) {
+		case 'z':
+			strcpy(basetext, optarg);
+			break;
+		case 't':
+			type = atoi(optarg);
+			break;
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
+
+	if (argc < 1) {
+		fprintf(stderr, "usage: named filename\n");
+		exit(1);
+	}
+
+	/*- XXX */
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(5544);
 	addrlen = sizeof(struct sockaddr_in);
 
-	if (argc > 1)
-		workers = atoi(argv[1]);
-	else
-		workers = 2;
+	workers = 2;
 	printf("%d workers\n", workers);
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
@@ -122,9 +202,34 @@ main(int argc, char *argv[])
 	isc_parser_init();
 	isc_parse_configuration(conffile, mctx, &configctx);
 #endif
+
+	/*+ XXX */
+	if (strcmp(basetext, "") == 0)
+		strcpy(basetext, "vix.com.");
+	makename(mctx, basetext, &base, NULL);
+
+	db = NULL;
+	result = dns_db_create(mctx, "rbt", &base, ISC_FALSE, 1, 0, NULL,
+			       &db);
+	RUNTIME_CHECK(result == DNS_R_SUCCESS);
 	
+	origin = &base;
+	printf("loading %s\n", argv[0]);
+	result = dns_db_load(db, argv[0]);
+	if (result != DNS_R_SUCCESS) {
+		printf("couldn't load master file: %s\n",
+		       dns_result_totext(result));
+		exit(1);
+	}
+	/*- XXX */
+
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
+
+	/*
+	 * Open up a database.
+	 */
+	
 
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);

@@ -36,11 +36,6 @@
 
 #include "tcpclient.h"
 
-/*
- * For debugging only... XXX
- */
-void dump_packet(char *buf, u_int len);
-
 static tcp_cctx_t *tcp_cctx_allocate(isc_mem_t *mctx);
 static void tcp_cctx_free(tcp_cctx_t *ctx);
 
@@ -81,7 +76,9 @@ tcp_cctx_free(tcp_cctx_t *ctx)
 static void
 tcp_restart(isc_task_t *task, tcp_cctx_t *ctx)
 {
+#ifdef NOISY
 	printf("Restarting listen on %u\n", ctx->slot);
+#endif
 
 	if (ctx->buf != NULL)
 		isc_mem_put(ctx->mctx, ctx->buf, ctx->buflen);
@@ -107,8 +104,6 @@ tcp_shutdown(isc_task_t *task, isc_event_t *event)
 	ctx = (tcp_cctx_t *)(event->arg);
 	l = ctx->parent;
 
-	printf("Parent: %p\n", l);
-
 	LOCK(&l->lock);
 
 	if (ctx->csock != NULL)
@@ -129,7 +124,9 @@ tcp_shutdown(isc_task_t *task, isc_event_t *event)
 
 	UNLOCK(&l->lock);
 
+#ifdef NOISY
 	printf("Final shutdown slot %u\n", ctx->slot);
+#endif
 	tcp_cctx_free(ctx);
 
 	isc_event_free(&event);
@@ -147,6 +144,7 @@ tcp_recv_len(isc_task_t *task, isc_event_t *event)
 	dev = (isc_socketevent_t *)event;
 	ctx = (tcp_cctx_t *)(event->arg);
 
+#ifdef NOISY
 	printf("len Task %u (sock %p, base %p, length %d, n %d, result %d)\n",
 	       ctx->slot, sock,
 	       dev->region.base, dev->region.length,
@@ -154,6 +152,7 @@ tcp_recv_len(isc_task_t *task, isc_event_t *event)
 	printf("\tFrom: %s port %d\n",
 	       inet_ntoa(dev->address.type.sin.sin_addr),
 	       ntohs(dev->address.type.sin.sin_port));
+#endif
 
 	if (dev->result == ISC_R_CANCELED) {
 		isc_task_shutdown(task);
@@ -184,8 +183,6 @@ tcp_recv_len(isc_task_t *task, isc_event_t *event)
 		return;
 	}
 
-	printf("Length of buffer: %u\n", ctx->buflen);
-
 	region.base = ctx->buf;
 	region.length = ctx->buflen;
 
@@ -210,6 +207,7 @@ tcp_recv_req(isc_task_t *task, isc_event_t *event)
 	dev = (isc_socketevent_t *)event;
 	ctx = (tcp_cctx_t *)(event->arg);
 
+#ifdef NOISY
 	printf("req Task %u (sock %p, base %p, length %d, n %d, result %d)\n",
 	       ctx->slot, sock,
 	       dev->region.base, dev->region.length,
@@ -217,6 +215,7 @@ tcp_recv_req(isc_task_t *task, isc_event_t *event)
 	printf("\tFrom: %s port %d\n",
 	       inet_ntoa(dev->address.type.sin.sin_addr),
 	       ntohs(dev->address.type.sin.sin_port));
+#endif
 
 	if (dev->result == ISC_R_CANCELED) {
 		isc_task_shutdown(task);
@@ -234,11 +233,6 @@ tcp_recv_req(isc_task_t *task, isc_event_t *event)
 	}
 
 	/*
-	 * Call the dump routine to print this baby out
-	 */
-	dump_packet(ctx->buf, dev->n);
-
-	/*
 	 * Call the dispatch() function to actually process this packet.
 	 * If it returns ISC_R_SUCCESS, we have a packet to transmit.
 	 * do so.  If it returns anything else, drop this connection.
@@ -246,8 +240,11 @@ tcp_recv_req(isc_task_t *task, isc_event_t *event)
 	region.base = ctx->buf;
 	region.length = dev->n;
 	result = ctx->parent->dispatch(ctx->mctx, &region, 2);
-	isc_mem_put(ctx->mctx, ctx->buf, ctx->buflen); /* clean up request */
-	ctx->buf = NULL;
+
+	if (ctx->buf != region.base) { /* clean up request */
+		isc_mem_put(ctx->mctx, ctx->buf, ctx->buflen);
+		ctx->buf = NULL;
+	}
 
 	/*
 	 * Failure.  Close TCP client.
@@ -285,8 +282,6 @@ tcp_accept(isc_task_t *task, isc_event_t *event)
 	sock = event->sender;
 	dev = (isc_socket_newconnev_t *)event;
 	ctx = (tcp_cctx_t *)(event->arg);
-
-	printf("tcp_accept: task %u\n", ctx->slot);
 
 	/*
 	 * If we get an error, close the socket.  This routine will actually
@@ -337,9 +332,11 @@ tcp_send(isc_task_t *task, isc_event_t *event)
 	dev = (isc_socketevent_t *)event;
 	ctx = (tcp_cctx_t *)(event->arg);
 
+#ifdef NOISY
 	printf("tcp_send: task %u\n\t(base %p, length %d, n %d, result %d)\n",
 	       ctx->slot, dev->region.base, dev->region.length,
 	       dev->n, dev->result);
+#endif
 
 	/*
 	 * release memory regardless of outcome.
@@ -439,8 +436,6 @@ tcp_listener_start(tcp_listener_t *l,
 	}
 
 	UNLOCK(&l->lock);
-
-	printf("Parent: %p\n", l);
 
 	return (ISC_R_SUCCESS);
 }

@@ -30,11 +30,6 @@
 
 #include "udpclient.h"
 
-/*
- * For debugging only... XXX
- */
-void dump_packet(char *buf, u_int len);
-
 static udp_cctx_t *udp_cctx_allocate(isc_mem_t *mctx);
 static void udp_cctx_free(udp_cctx_t *ctx);
 
@@ -101,7 +96,9 @@ udp_shutdown(isc_task_t *task, isc_event_t *event)
 
 	UNLOCK(&l->lock);
 
+#ifdef NOISY
 	printf("Final shutdown slot %u\n", ctx->slot);
+#endif
 	udp_cctx_free(ctx);
 
 	isc_event_free(&event);
@@ -120,6 +117,7 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 	dev = (isc_socketevent_t *)event;
 	ctx = (udp_cctx_t *)(event->arg);
 
+#ifdef NOISY
 	printf("Task %u (sock %p, base %p, length %d, n %d, result %d)\n",
 	       ctx->slot, sock,
 	       dev->region.base, dev->region.length,
@@ -127,6 +125,7 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 	printf("\tFrom: %s port %d\n",
 	       inet_ntoa(dev->address.type.sin.sin_addr),
 	       ntohs(dev->address.type.sin.sin_port));
+#endif
 
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_task_shutdown(task);
@@ -135,11 +134,6 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 
 		return;
 	}
-
-	/*
-	 * Call the dump routine to print this baby out
-	 */
-	dump_packet(ctx->buf, dev->n);
 
 	region.base = ctx->buf;
 	region.length = dev->n;
@@ -165,11 +159,14 @@ udp_send(isc_task_t *task, isc_event_t *event)
 	dev = (isc_socketevent_t *)event;
 	ctx = (udp_cctx_t *)(event->arg);
 
+#ifdef NOISY
 	printf("udp_send: task %u\n\t(base %p, length %d, n %d, result %d)\n",
 	       ctx->slot, dev->region.base, dev->region.length,
 	       dev->n, dev->result);
+#endif
 
-	isc_mem_put(ctx->mctx, dev->region.base, dev->region.length);
+	if (ctx->buf != dev->region.base)
+		isc_mem_put(ctx->mctx, dev->region.base, dev->region.length);
 
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_task_shutdown(task);
