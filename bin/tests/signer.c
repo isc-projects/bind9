@@ -856,8 +856,14 @@ main(int argc, char *argv[]) {
 		sprintf(output, "%s.signed", file);
 	}
 
-	if (origin == NULL)
-		origin = file;
+	if (origin == NULL) {
+		origin = isc_mem_allocate(mctx, strlen(file) + 2);
+		if (origin == NULL)
+			check_result(ISC_R_FAILURE, "isc_mem_allocate()");
+		strcpy(origin, file);
+		if (file[strlen(file) - 1] != '.')
+			strcat(origin, ".");
+	}
 
 	db = NULL;
 	version = NULL;
@@ -933,6 +939,10 @@ main(int argc, char *argv[]) {
 							  DST_TYPE_PRIVATE,
 							  mctx, &dkey);
 				check_result (result, "dst_key_fromfile");
+				key = isc_mem_get(mctx, sizeof(signer_key_t));
+				if (key == NULL)
+					check_result(ISC_R_FAILURE,
+						     "isc_mem_get");
 				key->key = dkey;
 				key->isdefault = ISC_TRUE;
 				ISC_LIST_APPEND(keylist, key, link);
@@ -958,8 +968,7 @@ main(int argc, char *argv[]) {
 		key = next;
 	}
 
-	if (origin != file)
-		isc_mem_free(mctx, origin);
+	isc_mem_free(mctx, origin);
 	isc_mem_free(mctx, file);
 	isc_mem_free(mctx, output);
 
