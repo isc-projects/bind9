@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.342 2001/09/05 14:13:29 marka Exp $ */
+/* $Id: zone.c,v 1.343 2001/09/05 15:01:52 marka Exp $ */
 
 #include <config.h>
 
@@ -2000,11 +2000,8 @@ zone_maintenance(dns_zone_t *zone) {
 	 */
 	switch (zone->type) {
 	case dns_zone_master:
-	case dns_zone_slave: {
-		char tb[80];
+	case dns_zone_slave:
 		LOCK_ZONE(zone);
-		isc_time_formattimestamp(&zone->dumptime, tb, sizeof(tb));
-		fprintf(stderr,"dumptime = %s\n", tb);
 		if (zone->masterfile != NULL &&
 		    isc_time_compare(&now, &zone->dumptime) >= 0 &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
@@ -2021,7 +2018,6 @@ zone_maintenance(dns_zone_t *zone) {
 					     dns_result_totext(result));
 		}
 		break;
-		}
 	default:
 		break;
 	}
