@@ -57,12 +57,17 @@
 #include <dns/result.h>
 
 typedef struct dns_rdatasetmethods {
-	dns_result_t		(*disassociate)(dns_rdataset_t *rdatasetp);
+	dns_result_t		(*disassociate)(dns_rdataset_t *rdataset);
 	dns_result_t		(*first)(dns_rdataset_t *rdataset);
 	dns_result_t		(*next)(dns_rdataset_t *rdataset);
 	void			(*current)(dns_rdataset_t *rdataset,
 					   dns_rdata_t *rdata);
 } dns_rdatasetmethods_t;
+
+#define DNS_RDATASET_MAGIC		0x444E5352U	/* DNSR. */
+#define DNS_RDATASET_VALID(rdataset)	((rdataset) != NULL && \
+					 (rdataset)->magic == \
+					  DNS_RDATASET_MAGIC)
 
 /*
  * Direct use of this structure by clients is strongly discouraged, except
