@@ -1,3 +1,6 @@
+1337.	[func]		IPv6 synthesis is now performed for both IP6.ARPA
+			and IP6.INT nibble queries.
+
 1336.	[func]		Nibble lookups under IP6.ARPA are now supported by
 			dns_byaddr_create().  dns_byaddr_createptrname() is
 			deprecated, use dns_byaddr_createptrname2() instead.
