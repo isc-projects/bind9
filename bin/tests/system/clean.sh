@@ -18,7 +18,8 @@
 # Clean up after system tests.
 #
 
-. ./conf.sh
+SYSTEMTESTTOP=.
+. $SYSTEMTESTTOP/conf.sh
 
 find . -type f \( \
     -name 'K*' -o -name '*~' -o -name '*.core' -o -name '*.log' \

@@ -18,7 +18,9 @@
 #
 # Run a system test.
 #
-. ./conf.sh
+
+SYSTEMTESTTOP=.
+. $SYSTEMTESTTOP/conf.sh
 
 whoami=`whoami`
 if [ $whoami != "root" ]; then

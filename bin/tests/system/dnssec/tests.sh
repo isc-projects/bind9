@@ -23,17 +23,20 @@ echo "A:A test to determine online functionality of dnssec tools"
 # Perform tests
 #
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
 status=0
 
 rm -f dig.out.*
 
 # Check the example. domain
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.example. @10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.example. @10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
@@ -43,12 +46,12 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
 	a.example. @10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
 	a.example. @10.53.0.4 a > dig.out.ns4
 status=`expr $status + $?`
 grep ";" dig.out.ns2
@@ -60,12 +63,12 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.insecure.example. @10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.insecure.example. @10.53.0.4 a > dig.out.ns4
 status=`expr $status + $?`
 grep ";" dig.out.ns4
@@ -77,12 +80,12 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.secure.example. @10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.secure.example. @10.53.0.4 a > dig.out.ns4
 status=`expr $status + $?`
 grep ";" dig.out.ns4
@@ -94,7 +97,7 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd \
 	a.bogus.example. @10.53.0.4 a > dig.out.ns4
 grep "SERVFAIL" dig.out.ns4 > /dev/null
 status=`expr $status + $?`

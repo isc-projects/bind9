@@ -19,7 +19,9 @@
 # Start name servers for running system tests.
 #
 
-. ./conf.sh
+SYSTEMTESTTOP=.
+. $SYSTEMTESTTOP/conf.sh
+
 cd $1
 
 for d in ns*

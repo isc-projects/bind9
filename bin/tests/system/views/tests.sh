@@ -23,10 +23,8 @@ echo "A:A test to determine online functionality of views"
 # Perform tests
 #
 
-TOP="`cd ../../../..; pwd`"
-
-NAMED=$TOP/bin/named/named
-export NAMED
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 status=0;
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
@@ -34,7 +32,7 @@ status=0;
 status=`expr $status + $?`
 grep ";" dig.out.ns2.1
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
 	a.example. @10.53.0.3 any > dig.out.ns3.1
 status=`expr $status + $?`
 grep ";" dig.out.ns3.1
@@ -47,17 +45,17 @@ kill -HUP `cat ns2/named.pid`
 kill -HUP `cat ns3/named.pid`
 sleep 10
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
 	-b 10.53.0.4 a.example. @10.53.0.4 any > dig.out.ns4.2
 status=`expr $status + $?`
 grep ";" dig.out.ns4.2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
 	-b 10.53.0.2 a.example. @10.53.0.2 any > dig.out.ns2.2
 status=`expr $status + $?`
 grep ";" dig.out.ns2.2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
 	@10.53.0.3 a.example. any > dig.out.ns3.2
 status=`expr $status + $?`
 grep ";" dig.out.ns3.2

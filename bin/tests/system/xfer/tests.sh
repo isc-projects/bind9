@@ -15,6 +15,9 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
 echo "S:`date`"
 echo "T:system_xfer:1"
 echo "A:A test to determine online functionality of zone transfers"
@@ -24,12 +27,12 @@ echo "A:A test to determine online functionality of zone transfers"
 #
 
 status=0;
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
 	@10.53.0.2 axfr > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
 	@10.53.0.3 axfr > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3

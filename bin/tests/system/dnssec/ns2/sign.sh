@@ -15,6 +15,9 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
+
 zone=example.
 infile=example.db.in
 zonefile=example.db

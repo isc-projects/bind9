@@ -23,18 +23,16 @@ echo "A:A test to determine online functionality of notify"
 # Perform tests
 #
 
-TOP="`cd ../../../..; pwd`"
-
-NAMED=$TOP/bin/named/named
-export NAMED
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 status=0
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
@@ -48,12 +46,12 @@ sleep 6
 kill -HUP `cat ns2/named.pid`
 sleep 6
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
@@ -69,12 +67,12 @@ kill -HUP `cat ns2/named.pid`
 (cd ns3 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
 sleep 6
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
@@ -89,12 +87,12 @@ sleep 6
 (cd ns2 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
 sleep 6
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3

@@ -15,6 +15,9 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
 echo "S:`date`"
 echo "T:system_xferquota:1"
 echo "A:A test to determine online speed of zone transfers"
@@ -43,12 +46,12 @@ while [ $count != 300 ]; do
 done
 
 status=0;
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	zone000099.example. @10.53.0.1 axfr > dig.out.ns1
 status=`expr $status + $?`
 grep ";" dig.out.ns1
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	zone000099.example. @10.53.0.2 axfr > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
@@ -58,12 +61,12 @@ status=`expr $status + $?`
 
 sleep 5
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.changing. @10.53.0.1 a > dig.out.ns1
 status=`expr $status + $?`
 grep ";" dig.out.ns1
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	a.changing. @10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2

@@ -20,7 +20,11 @@
 # other shell scripts.
 #
 
-TOP="`cd ../../..; pwd`"
+# Find the top of the BIND9 tree.
+TOP=${SYSTEMTESTTOP:=.}/../../..
+
+# Make it absolute so that it continues to work after we cd.
+TOP=`cd $TOP && pwd`
 
 NAMED=$TOP/bin/named/named
 DIG=$TOP/bin/dig/dig
