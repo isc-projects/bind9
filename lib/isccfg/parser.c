@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.22 2001/02/24 00:59:00 bwelling Exp $ */
+/* $Id: parser.c,v 1.23 2001/02/26 18:58:36 gson Exp $ */
 
 #include <config.h>
 
@@ -228,7 +228,6 @@ struct cfg_obj {
 		cfg_obj_t **	tuple;
 		isc_sockaddr_t	sockaddr;
 		cfg_netprefix_t netprefix;
-		cfg_obj_t *	negated;
 	}               value;
 	char *		file;
 	unsigned int    line;
@@ -328,9 +327,6 @@ static void
 print_optional_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj);
 
 static isc_result_t
-parse_negated(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
-
-static isc_result_t
 parse_symtab_elt(cfg_parser_t *pctx, const char *name,
 		 cfg_type_t *elttype, isc_symtab_t *symtab,
 		 isc_boolean_t callback);
@@ -363,9 +359,6 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 static void
 print_uint32(cfg_printer_t *pctx, cfg_obj_t *obj);
 
-static void
-free_negated(cfg_parser_t *pctx, cfg_obj_t *obj);
-
 /*
  * Data representations.  These correspond to members of the
  * "value" union in struct cfg_obj (except "void", which does
@@ -379,7 +372,6 @@ cfg_rep_t cfg_rep_list = { "list", free_list };
 cfg_rep_t cfg_rep_tuple = { "tuple", free_tuple };
 cfg_rep_t cfg_rep_sockaddr = { "sockaddr", free_noop };
 cfg_rep_t cfg_rep_netprefix = { "netprefix", free_noop };
-cfg_rep_t cfg_rep_negated = { "negated", free_negated };
 cfg_rep_t cfg_rep_void = { "void", free_noop };
 
 /*
@@ -2717,8 +2709,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 			CHECK(parse(pctx, &cfg_type_bracketed_aml, ret));
 		} else if (pctx->token.value.as_char == '!') {
 			CHECK(cfg_gettoken(pctx, 0)); /* read "!" */
-			CHECK(parse_negated(pctx, &cfg_type_addrmatchelt,
-					    ret));
+			CHECK(parse(pctx, &cfg_type_negated, ret));
 		}
 	} else {
 		parser_error(pctx, LOG_NEAR,
@@ -2729,34 +2720,29 @@ parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (result);
 }
 
-static isc_result_t
-parse_negated(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	CHECK(create_cfgobj(pctx, &cfg_type_negated, &obj));
-	obj->value.negated = NULL;
-	CHECK(parse(pctx, type, &obj->value.negated));
-	*ret = obj;
-	return (ISC_R_SUCCESS);
- cleanup:
-	CLEANUP_OBJ(obj);
-	return(result);
-}
+/*
+ * A negated address match list element (like "! 10.0.0.1").
+ * Somewhat sneakily, the caller is expected to parse the
+ * "!", but not to print it.
+ */
+
+static cfg_tuplefielddef_t negated_fields[] = {
+	{ "acl", &cfg_type_addrmatchelt, 0 },
+	{ NULL, NULL, 0 }
+};
 
 static void
 print_negated(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	print(pctx, "!", 1);
-	print_obj(pctx, obj->value.negated);
+	print_tuple(pctx, obj);
 }
-
-static void
-free_negated(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	cfg_obj_destroy(pctx, &obj->value.negated);
-}
-
 
 static cfg_type_t cfg_type_negated = {
-	"negated", parse_negated, print_negated, &cfg_rep_negated, NULL };
+	"negated", parse_tuple, print_negated, &cfg_rep_tuple,
+	&negated_fields
+};
+
+/* an address match list element */
 
 static cfg_type_t cfg_type_addrmatchelt = {
 	"addrmatchelt", parse_addrmatchelt, NULL, NULL, NULL };
