@@ -205,6 +205,8 @@ clean distclean::
 	rm -f ${TARGETS}
 	rm -f t_journal
 
+.SILENT
+
 test:
 	@for dir in $(SUBDIRS) ;\
 	do \
