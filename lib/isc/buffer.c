@@ -41,6 +41,7 @@ isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
 	b->length = length;
 	b->used = 0;
 	b->current = 0;
+	b->active = 0;
 }
 
 void
@@ -57,6 +58,7 @@ isc_buffer_invalidate(isc_buffer_t *b) {
 	b->length = 0;
 	b->used = 0;
 	b->current = 0;
+	b->active = 0;
 }
 
 unsigned int
@@ -132,6 +134,10 @@ isc_buffer_subtract(isc_buffer_t *b, unsigned int n) {
 	REQUIRE(b->used >= n);
 
 	b->used -= n;
+	if (b->current > b->used)
+		b->current = b->used;
+	if (b->active > b->used)
+		b->active = b->used;
 }
 
 void
@@ -143,6 +149,8 @@ isc_buffer_clear(isc_buffer_t *b) {
 	REQUIRE(VALID_BUFFER(b));
 
 	b->used = 0;
+	b->current = 0;
+	b->active = 0;
 }
 
 void
@@ -169,6 +177,39 @@ isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r) {
 
 	r->base = (unsigned char *)b->base + b->current;
 	r->length = b->used - b->current;
+}
+
+void
+isc_buffer_active(isc_buffer_t *b, isc_region_t *r) {
+	/*
+	 * Make 'r' refer to the active region of 'b'.
+	 */
+
+	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(r != NULL);
+
+	if (b->current < b->active) {
+		r->base = (unsigned char *)b->base + b->current;
+		r->length = b->active - b->current;
+	} else {
+		r->base = NULL;
+		r->length = 0;
+	}
+}
+
+void
+isc_buffer_setactive(isc_buffer_t *b, unsigned int n) {
+	unsigned int active;
+
+	/*
+	 * Sets the end of the active region 'n' bytes after current.
+	 */
+
+	REQUIRE(VALID_BUFFER(b));
+	active = b->current + n;
+	REQUIRE(active <= b->used);
+
+	b->active = active;
 }
 
 void
@@ -223,6 +264,10 @@ isc_buffer_compact(isc_buffer_t *b) {
 	length = b->used - b->current;
 	(void)memmove(b->base, src, (size_t)length);
 
+	if (b->active > b->current)
+		b->active -= b->current;
+	else
+		b->active = 0;
 	b->current = 0;
 	b->used = length;
 }
