@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.23 2004/03/09 06:09:19 marka Exp $ */
+/* $Id: server.c,v 1.339.2.24 2004/03/14 22:52:16 marka Exp $ */
 
 #include <config.h>
 
@@ -678,10 +678,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				      ns_g_socketmgr, ns_g_timermgr,
 				      0, ns_g_dispatchmgr,
 				      dispatch4, dispatch6));
-	if (dispatch4 != NULL)
-		dns_dispatch_detach(&dispatch4);
-	if (dispatch6 != NULL)
-		dns_dispatch_detach(&dispatch6);
 
 	/*
 	 * Set resolver's lame-ttl.
@@ -937,6 +933,10 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (dispatch4 != NULL)
+		dns_dispatch_detach(&dispatch4);
+	if (dispatch6 != NULL)
+		dns_dispatch_detach(&dispatch6);
 	if (cmctx != NULL)
 		isc_mem_detach(&cmctx);
 
