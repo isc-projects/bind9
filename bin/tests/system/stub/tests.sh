@@ -28,7 +28,7 @@ status=0;
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd data.child.example. \
 	@10.53.0.3 axfr -p 5300 > dig.out.ns3
 status=`expr $status + $?`
-grep "; Transfer failed." dig.out.ns3
+grep "; Transfer failed." dig.out.ns3 > /dev/null
 status=`expr $status + $?`
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
