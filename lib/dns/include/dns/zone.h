@@ -446,32 +446,168 @@ void dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
 
 dns_result_t
 dns_zone_setxfrsource(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
+/*
+ * 	Set the source address to be used in zone transfers.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
+ *	'xfrsource' to contain the address.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ */
 
 isc_sockaddr_t *
 dns_zone_getxfrsource(dns_zone_t *zone);
-
-
+/*
+ *	Returns the source address set by a previous dns_zone_setxfrsource
+ *	call.  If dns_zone_setxfrsource the in6addr_any port 0 is returned.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
+ */
 
 void dns_zone_setqueryacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+/*
+ *	Sets the query acl list for the zone.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ *	'acl' to be initalised.
+ */
+
 void dns_zone_setupdateacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+/*
+ *	Sets the update acl list for the zone.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ *	'acl' to be initalised.
+ */
+
 void dns_zone_setxfracl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl);
+/*
+ *	Sets the transfer acl list for the zone.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ *	'acl' to be initalised.
+ */
+
 dns_c_ipmatchlist_t * dns_zone_getqueryacl(dns_zone_t *zone);
+/*
+ * 	Returns the current query acl or NULL.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ *
+ * Returns:
+ *	acl a pointer to the acl.
+ *	NULL
+ */
+
 dns_c_ipmatchlist_t * dns_zone_getupdateacl(dns_zone_t *zone);
+/*
+ * 	Returns the current update acl or NULL.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ *
+ * Returns:
+ *	acl a pointer to the acl.
+ *	NULL
+ */
+
 dns_c_ipmatchlist_t * dns_zone_getxfracl(dns_zone_t *zone);
+/*
+ * 	Returns the current transfer acl or NULL.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ *
+ * Returns:
+ *	acl a pointer to the acl.
+ *	NULL
+ */
+
 void dns_zone_clearupdateacl(dns_zone_t *zone);
+/*
+ *	Clear the current update acl.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ */
+
 void dns_zone_clearqueryacl(dns_zone_t *zone);
+/*
+ *	Clear the current query acl.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ */
+
 void dns_zone_clearxfracl(dns_zone_t *zone);
+/*
+ *	Clear the current transfer acl.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ */
+
 void dns_zone_setchecknames(dns_zone_t *zone, dns_c_severity_t severity);
+/*
+ * 	Set the severity of name checking when loading a zone.
+ *
+ * Require:
+ *      'zone' to be initalised.
+ */
+
 dns_c_severity_t dns_zone_getchecknames(dns_zone_t *zone);
+/*
+ *	Return the current severity of name checking.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ */
+
 void dns_zone_setpubkey(dns_zone_t *zone, dns_c_pubkey_t *pubkey);
+/*
+ *	Set the current public key to validate this and child zones
+ *	via DNSSEC.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ *	'pubkey' to be valid or NULL
+ */
+
 dns_c_pubkey_t * dns_zone_getpubkey(dns_zone_t *zone);
+/*
+ *	Return the current public key.
+ *
+ * Require:
+ *	'zone' to be initalised.
+ */
+
 void dns_zone_setixfrlogsize(dns_zone_t *zone, isc_int32_t size);
 isc_int32_t dns_zone_getixfrlogsize(dns_zone_t *zone);
+
 void dns_zone_setmasterport(dns_zone_t *zone,  isc_uint16_t port);
 isc_uint16_t dns_zone_getmasterport(dns_zone_t *zone);
+
 void dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
+
 dns_result_t dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx,
 			   dns_c_zone_t *czone, dns_zone_t *zone);
+/*
+ *	Copy the zone configuration information into the zone structure.
+ *
+ * Require:
+ *	'lctx' to be initalised or NULL.
+ *	'ctx' to be initalised or NULL.
+ *	'czone' to be initalised.
+ *	'zone' to be initalised.
+ */
+
 dns_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 				dns_message_t *msg);
 
@@ -517,6 +653,9 @@ char * dns_zone_getjournal(dns_zone_t *zone);
 /*
  * Returns the journal name associated with this zone.
  * If not journal has been set this will be NULL.
+ *
+ * Requires:
+ *	'zone' to be valid initialised zone.
  */
 
 dns_zonetype_t dns_zone_gettype(dns_zone_t *zone);
