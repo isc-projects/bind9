@@ -150,7 +150,7 @@ Building
 		FreeBSD 3.4-STABLE
 		HP-UX 11
 		IRIX64 6.5
-		NetBSD-current (with "unproven" pthreads, foreground only)
+		NetBSD-current (with "unproven" pthreads)
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8 (beta)
 
