@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.c,v 1.8 2000/08/01 01:29:40 tale Exp $ */
+/* $Id: quota.c,v 1.9 2000/08/24 23:26:12 bwelling Exp $ */
 
 #include <config.h>
+
+#include <stddef.h>
 
 #include <isc/quota.h>
 #include <isc/util.h>

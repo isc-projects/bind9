@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.22 2000/08/24 19:06:38 bwelling Exp $ */
+/* $Id: rwlock.c,v 1.23 2000/08/24 23:26:13 bwelling Exp $ */
 
 #include <config.h>
+
+#include <stddef.h>
 
 #include <isc/magic.h>
 #include <isc/rwlock.h>
