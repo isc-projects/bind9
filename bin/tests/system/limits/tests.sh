@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.9 2000/08/01 01:15:26 tale Exp $
+# $Id: tests.sh,v 1.10 2000/09/22 23:17:57 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -52,7 +52,7 @@ $DIG +tcp +norec a-maximum-rrset.example. @10.53.0.1 a -p 5300 > dig.out.ns1 \
 #dig a-maximum-rrset.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.a-maximum-rrset
 $PERL ../digcomp.pl knowngood.dig.out.a-maximum-rrset dig.out.ns1 || status=1
 
-echo "I:exceed maxmimum rrset (5000 A records)"
+echo "I:exceed maximum rrset (5000 A records)"
 $DIG +tcp +norec 5000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 # Look for truncation bit (tc).
 grep 'flags: qr aa tc ad;' dig.out.ns1 > /dev/null || status=1
