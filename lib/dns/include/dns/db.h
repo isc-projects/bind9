@@ -591,7 +591,9 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	If type == dns_rdataset_any, then rdataset will not be bound.
  *
  *	If 'options' does not have DNS_DBFIND_GLUEOK set, then no glue will
- *	be returned.  This option is only meaningful for zone databases.
+ *	be returned.  For zone databases, glue is as defined in RFC 2181.
+ *	For cache databases, glue is any rdataset with a trust of
+ *	dns_trust_glue.
  *
  *	If the DNS_DBFIND_NOWILD option is set, then wildcard matching will
  *	be disabled.  This option is only meaningful for zone databases.
@@ -686,15 +688,6 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *		DNS_R_NXRRSET			The desired name exists, but
  *						the desired type does not.
- *
- *		DNS_R_NXGLUE			The desired name exists, but
- *						is at or beneath a zonecut.
- *						The desired type does not
- *						exist.  This result can only
- *						occur if 'db' is a zone
- *						database and the
- *						DNS_DBFIND_GLUEOK option is
- *						set.
  *
  *		DNS_R_NOTFOUND			The desired name does not
  *						exist, and no delegation could

@@ -1849,20 +1849,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		    /*
 		     * We were trying to find glue at a node beneath a
 		     * zone cut, but didn't.
-		     */
-		    if ((search.options & DNS_DBFIND_GLUEOK) != 0) {
-			    /*
-			     * Finding glue is OK.  Tell the caller the
-			     * glue doesn't exist.
-			     */
-			    result = DNS_R_NXGLUE;
-			    if (nodep != NULL) {
-				    new_reference(search.rbtdb, node);
-				    *nodep = node;
-			    }
-			    goto node_exit;
-		    }
-		    /*
+		     *
 		     * Return the delegation.
 		     */
 		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
@@ -2418,7 +2405,9 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	/*
 	 * If we didn't find what we were looking for...
 	 */
-	if (found == NULL) {
+	if (found == NULL ||
+	    (found->trust == dns_trust_glue &&
+	     ((options & DNS_DBFIND_GLUEOK) == 0))) {
 		/*
 		 * If there is an NS rdataset at this node, then this is the
 		 * deepest zone cut.
