@@ -1,3 +1,6 @@
+
+	--- 9.3.1snap1 released ---
+
 1722.	[bug]		Don't commit the journal on malformed ixfr streams.
 			[RT #12519]
 
