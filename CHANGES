@@ -1,6 +1,8 @@
 1229.	[bug]		named would crash if it received a TSIG signed
 			query as part of an AXFR response. [RT #2570]
 
+1215.	[port]		solaris: add support to ifconfig.sh for x86 2.5.1
+
 1214.	[bug]		Win32: isc_file_renameunique() could leave zero length
 			files behind.
 
