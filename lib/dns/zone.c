@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.77 2000/02/03 23:44:03 halley Exp $ */
+ /* $Id: zone.c,v 1.78 2000/02/09 19:04:04 gson Exp $ */
 
 #include <config.h>
 
@@ -2981,18 +2981,20 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 static void
 xfrin_start_temporary_kludge(dns_zone_t *zone) {
 	isc_result_t result;
-	isc_sockaddr_t sa;
+	isc_sockaddr_t master;
 	in_port_t port;
 
 	if (zone->masterscnt < 1)
 		return;
+
+	master = zone->masters[zone->curmaster];
+	
 	port = zone->masterport; 
 	if (port == 0)
 		port = 53; /* XXX is this the right place? */
-	isc_sockaddr_fromin(&sa,
-			    &zone->masters[zone->curmaster].type.sin.sin_addr,
-			    port);
-	result = dns_xfrin_create(zone, &sa, zone->mctx,
+	isc_sockaddr_setport(&master, port);
+
+	result = dns_xfrin_create(zone, &master, zone->mctx,
 				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
 				  zone->task,
 				  xfrdone, &zone->xfr);
