@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.1 2001/07/06 05:37:10 mayer Exp $ */
+/* $Id: resource.c,v 1.2 2001/07/06 19:40:33 gson Exp $ */
 
 #include <config.h>
 
@@ -28,17 +28,11 @@
 
 isc_result_t
 isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
-
-	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-
-	return (result);
+	return (ISC_R_NOTIMPLEMENTED);
 
 }
 
 isc_result_t
 isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
-
-	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-
-	return (result);
+	return (ISC_R_NOTIMPLEMENTED);
 }
