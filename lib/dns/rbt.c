@@ -1,4 +1,4 @@
-R/*
+/*
  * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@ R/*
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.56 1999/09/23 17:53:03 tale Exp $ */
+/* $Id: rbt.c,v 1.57 1999/09/23 21:58:03 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
