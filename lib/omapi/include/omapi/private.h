@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: private.h,v 1.17 2000/06/22 22:00:14 tale Exp $ */
+/* $Id: private.h,v 1.18 2000/06/23 20:19:02 tale Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -292,115 +292,144 @@ ISC_LANG_BEGINDECLS
 /*
  * Private library functions defined in auth.c.
  */
+#define auth_destroy omapi__auth_destroy
 void
 auth_destroy(void);
 
+#define auth_makekey omapi__auth_makekey
 isc_result_t
 auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key);
 
 /*
  * Private library functions defined in connection.c.
  */
+#define connection_init omapi__connection_init
 isc_result_t
 connection_init(void);
 
+#define connect_toserver omapi__connect_toserver
 isc_result_t
 connect_toserver(omapi_object_t *connection, const char *server, int port);
 
+#define connection_send omapi__connection_send
 isc_result_t
 connection_send(omapi_connection_t *connection);
 
+#define connection_require omapi__connection_require
 isc_result_t
 connection_require(omapi_connection_t *connection, unsigned int bytes);
 
+#define connection_copyout omapi__connection_copyout
 void
 connection_copyout(unsigned char *data, omapi_connection_t *connection,
 		   unsigned int length);
 
+#define connection_getuint32 omapi__connection_getuint32
 void
 connection_getuint32(omapi_connection_t *c, isc_uint32_t *value);
 
+#define connection_getuint16 omapi__connection_getuint16
 void
 connection_getuint16(omapi_connection_t *c, isc_uint16_t *value);
 
 /*
  * Private library functions defined in generic.c.
  */
+#define generic_init omapi__generic_init
 isc_result_t
 generic_init(void);
 
 /*
  * Private functions defined in handle.c.
  */
+#define object_gethandle omapi__object_gethandle
 isc_result_t
 object_gethandle(omapi_handle_t *handle, omapi_object_t *object);
 
+#define handle_lookup omapi__handle_lookup
 isc_result_t
 handle_lookup(omapi_object_t **object, omapi_handle_t handle);
 
+#define handle_destroy omapi__handle_destroy
 void
 handle_destroy(void);
 
 /*
  * Private library functions defined in listener.c.
  */
+#define listener_init omapi__listener_init
 isc_result_t
 listener_init(void);
 
 /*
  * Private library functions defined in message.c.
  */
+#define message_init omapi__message_init
 isc_result_t
 message_init(void);
 
+#define message_process omapi__message_process
 isc_result_t
 message_process(omapi_object_t *message, omapi_object_t *protocol);
 
 /*
  * Private library functions defined in object.c.
  */
+#define object_signal omapi__object_signal
 isc_result_t
 object_signal(omapi_object_t *handle, const char *name, ...);
 
+#define object_vsignal omapi__object_vsignal
 isc_result_t
 object_vsignal(omapi_object_t *handle, const char *name, va_list ap);
 
+#define object_stuffvalues omapi__object_stuffvalues
 isc_result_t
 object_stuffvalues(omapi_object_t *handle, omapi_object_t *object);
 
+#define object_update omapi__object_update
 isc_result_t
 object_update(omapi_object_t *object, omapi_object_t *source,
 	      omapi_handle_t handle);
 
+#define object_findtype omapi__object_findtype
 omapi_objecttype_t *
 object_findtype(omapi_value_t *tv);
 
+#define object_methodlookup omapi__object_methodlookup
 isc_result_t
 object_methodlookup(omapi_objecttype_t *type, omapi_object_t **object,
 		    omapi_object_t *key);
 
+#define object_methodcreate omapi__object_methodcreate
 isc_result_t
 object_methodcreate(omapi_objecttype_t *type, omapi_object_t **object);
 
+#define object_methodremove omapi__object_methodremove
 isc_result_t
 object_methodremove(omapi_objecttype_t *type, omapi_object_t *object);
 
+#define object_destroytypes omapi__object_destroytypes
 void
 object_destroytypes(void);
 
 /*
  * Private library functions defined in protocol.c.
  */
+#define protocol_init omapi__protocol_init
 isc_result_t
 protocol_init(void);
 
+#define send_intro omapi__send_intro
 isc_result_t
 send_intro(omapi_object_t *object, unsigned int version);
 
+#define send_status omapi__send_status
 isc_result_t
 send_status(omapi_object_t *protcol, isc_result_t waitstatus,
 	    unsigned int response_id, const char *message);
 
+#define send_update omapi__send_update
 isc_result_t
 send_update(omapi_object_t *protocol, unsigned int response_id,
 	    omapi_object_t *object);

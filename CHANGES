@@ -1,3 +1,8 @@
+ 279.   [bug]           Private omapi function symbols shared between
+                        two or more files in libomapi.a were not namespace
+                        protected using the ISC convention of starting with
+                        the library name and two underscores ("omapi__"...)
+
  278.   [bug]           bin/named/logconf.c:category_fromconf() didn't take
                         note of when isc_log_categorybyname() wasn't able
                         to find the category name and would then apply the
