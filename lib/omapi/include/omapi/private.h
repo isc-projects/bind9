@@ -22,8 +22,6 @@
 #ifndef OMAPI_PRIVATE_H
 #define OMAPI_PRIVATE_H
 
-#define ISC_MEM_DEBUG 1
-
 #include <config.h>
 
 #include <isc/condition.h>
