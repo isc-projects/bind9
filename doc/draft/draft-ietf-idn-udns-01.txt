@@ -1,0 +1,557 @@
+Internet Draft                                            Dan Oscarsson
+draft-ietf-idn-udns-01.txt                                Telia ProSoft
+Updates: RFC 2181, 1035, 1034, 2535                       27 August 2000
+Expires: 27 February 2001
+
+   Using the Universal Character Set in the Domain Name System (UDNS)
+
+Status of this memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups. Note that other
+   groups may also distribute working documents as Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time. It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+     The list of current Internet-Drafts can be accessed at
+     http://www.ietf.org/ietf/1id-abstracts.txt
+
+     The list of Internet-Draft Shadow Directories can be accessed at
+     http://www.ietf.org/shadow.html.
+
+
+Abstract
+
+   Since the Domain Name System (DNS) [RFC1035] was created there have
+   been a desire to use other characters than ASCII in domain names.
+   Lately this desire have grown very strong and several groups have
+   started to experiment with non-ASCII names.
+
+   This document defines how the Universal Character Set (UCS)
+   [ISO10646] can be used in DNS without extending the current [RFC1035]
+   protocol and how DNS is extended to overcome length limits in the
+   future.
+
+
+1. Introduction
+
+   While the need for non-ASCII domain names have existed since the
+   creation of the DNS, the need have increased very much during the
+   last few years. Currently there are at least two implementations
+   using UTF-8 in use, and others using other methods.
+
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 1]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+   To avoid several different implementations of non-ASCII names in DNS
+   that do not work together, and to avoid breaking the current ASCII
+   only DNS, there is an immediate need to standardise how DNS shall
+   handle non-ASCII names.
+
+   While the DNS protocol allow any octet in character data, so far the
+   octets are only defined for the ASCII code points. Octets outside the
+   ASCII range have no defined interpretation. This document defines how
+   all octets are to be used in character data allowing a standardised
+   way to use non-ASCII in DNS.
+
+   To support the software where only ASCII host and domain names are
+   allowed, this document defines how resource records are to be
+   returned in a response to avoid breaking that software.
+
+   The specification here conforms to the IDN requirements [IDNREQ].
+
+1.1 Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+    IDN: Internationalised Domain Name, here used to mean a domain name
+      containing non-ASCII characters.
+
+    ACE: ASCII Compatible Encoding. Used to encode IDNs in a way
+      compatible with the ASCII host name syntax.
+
+1.2 Previous versions of this document
+
+   The second version of this document was available as draft-ietf-idn-
+   udns-00.txt. It included a lot of possibilities as well as a flag bit
+   that is now removed.
+
+   The first version of this document was available as draft-oscarsson-
+   i18ndns-00.txt.
+
+
+2. The DNS Protocol
+
+   The DNS protocol is used when communicating between DNS servers and
+   other DNS servers or DNS clients. User interface issues like the
+   format of zone files or how to enter or display domain names are not
+   part of the protocol.
+
+   The update of the protocol defined here can be used immediately as it
+   is fully compatible with the DNS of today.
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 2]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+2.1 Character data
+
+   Character data need to be able to represent as much as possible of
+   the characters in the world as well as being compatible with ASCII.
+   It must also be well defined so that it can easily be handled and
+   should be compact as only 63 octets is available without an extension
+   of the protocol. Character data is used in labels and in text fields
+   in the RDATA part of a RR.
+
+   Character data used in the DNS protocol MUST:
+    - Use ISO 10646 (UCS) [ISO10646] as coded character set.
+    - Be normalised using form C as defined in Unicode technical report
+      #15 [UTR15]. See also [CHNORM].
+    - Encoded using the UTF-8 [RFC2279] character encoding scheme.
+
+2.2 Name matching
+
+   RFC 1035 states that the labels of a name are matched case-
+   insensitively.  When using UCS this is no longer enough as there are
+   other forms than case that need to match as equivalent.
+
+   The original definition is now extended to be: labels must be
+   compared using form-insensitivity.
+
+   For the UCS character code range 0-255 (ASCII and ISO 8859-1) the
+   case folding MUST be done by case-insensitive matching following the
+   one to one mapping as defined in the Unicode 3.0 Character Database
+   [UDATA].
+
+   How to do form-insensitive matching for the rest of UCS will be
+   defined in a separate document.
+
+2.2.1 Rules for matching of domain names in DNS servers
+
+   To be able to handle correct domain name matching in lookups, the
+   following MUST be followed by DNS servers:
+    - Do matching on authorative data using form-insensitive matching
+      for the characters used in the data (for example a zone using only
+      ASCII need only handle matching of ASCII characters).
+    - On non-authorative data, either do binary matching or case-
+      insensitive matching on ASCII letters and binary matching on all
+      others.
+
+   The effect of the above is:
+    - only servers handling authorative data must implement form-
+      insensitive matching of names. And they need only implement the
+      subset needed for the subset of characters of UCS they support in
+      their authorative zones.
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 3]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+    - it normally gives fast lookup because data is usually sent like:
+      resolver <-> server <-> authorative server.
+      While form-insensitive matching can be complex and CPU consuming,
+      the server in the middle will do caching with only simple and fast
+      binary matching. So the impact of complex matching rules should
+      not slow down DNS very much.
+
+2.3 Supporting older software and allowing for ASCII aliases.
+
+   As there is a lot of software expecting host and domain names to only
+   use a subset of ASCII, they may work incorrectly if receiving a
+   response with non-ASCII characters. And when communicating between
+   nations it is sometimes good to also have a version of a name that
+   can be used by most people.
+
+   To support this the following MUST be followed:
+    - Queries for PTR records must return two records if the name
+      pointed to includes non-ASCII. They may also return two records if
+      an alternative name exist for the object pointed to.
+      The two records MUST be ordered with the ASCII version of the name
+      first and the non-ASCII or true name second. The second record
+      defines the true name of the object, the first record an ASCII
+      version of the name.
+
+      Note: older software will normally stop analysing a response when
+      finding the first PTR record so they will get the ASCII name.
+      Newer software can select the name best suited for its needs.
+    - Queries for other records with non-ASCII in the RDATA section MUST
+      return an ASCII version also, unless the client is known to handle
+      non-ASCII.
+
+   At a future date IETF can decide that it is no longer necessary to
+   support the software only handling ASCII names, and the servers can
+   stop including ASCII versions in the responses.
+
+   NOTE: a cache server shall return data in the same way as an
+   authorative server. If some do not and change the order of the PTR
+   records, some old software will not get the ASCII version of the
+   name.
+
+2.3.1 ASCII versions of a name
+
+   When returning an ASCII version of a name, there are two
+   possibilities:  returning a user defined ASCII alias or an ASCII
+   compatible encoding (ACE) of the name.
+
+   The ASCII Compatible Encoding (ACE) is used to support older software
+   expecting only ASCII and to support downgrading from 8-bit to 7-bit
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 4]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+   ASCII in other protocols (like SMTP). It is a transition mechanism
+   and will no longer be supported at some future time when it is so
+   decided.
+
+   All software following this specification MUST recognise ACE and
+   decode them into their true name when doing matching and handling. A
+   DNS server must recognise ACE in a query.
+
+   The definition of the ACE to be used, is defined in a separate
+   document.  Typical definitions that are suitable are [SACE] and
+   [RACE].
+
+   NOTE: To support the transition to UTF-8 in resolver code, it is
+   recommended that a server recognise local encodings for the zones it
+   is authorative for. This will allow clients using the local character
+   set in many cases even before the resolver code is upgraded.
+
+
+2.4 Handling long names
+
+   The current DNS protocol limits a label to 63 octets. As UTF-8 take
+   more than one octet for some characters, an UTF-8 name cannot have 63
+   characters in a label like an ASCII name can. For example a name
+   using Hangul would have a maximum of 21 characters.
+
+   The limits imposed by RFC 1035 is 63 octets per label and 255 octets
+   for the full name. The 255 limit is not a protocol limit but one to
+   simplify implementations.
+
+   To support longer names a long label type is defined using [RFC2671]
+   as extended label 0b000011 (the label type will be assigned by IANA
+   and may not be the number used here).
+
+                                 1 1 1 1 1 1 1 1 1 1
+             0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9
+            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+            |0 1 0 0 0 0 1 1|  length       |  label data ...
+            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+   length: length of label in octets
+   label data: the label
+
+   The long label MUST be handled by all software following this
+   specification.  Also, they MUST support a UDP packet size of up to
+   1280 bytes.
+
+   The limits for labels are updated since RFC 1025 as follows:
+   A label is limited to a maximum of 63 character code points in UCS
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 5]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+   normalised using Unicode form C.  The full name is limited to a
+   maximum of 255 character code points normalised as for a label.
+
+   As long labels are not understood by older software, a response MUST
+   not include a long label unless the query did. At a later date, IETF
+   may change this.
+
+2.5 Handling to large responses and identifying non-ASCII clients
+
+   If a client sends the QNAME in the query using the long label type,
+   the client shows that it implements this specification and do not
+   need ASCII compatibility.
+
+   If the client is not identified to follow this specification, the UDP
+   packet size is limited to 512 bytes. If then a response will not fit,
+   the response MUST set the TC bit (truncated) to indicate that. A
+   client may then resend the query using a long label in the query to
+   show that it can handle larger responses.
+
+2.6 DNSSEC
+
+   As labels now can have non-ASCII in them, DNSSEC [RFC2535] need to be
+   revised so that it also can handle that.
+
+3. User interface issues
+
+   Locally on a system or in a user interface a different character set
+   than the one defined to be used in the DNS protocol may be used.
+   Therefore software must map between the local character set and the
+   character set of the protocol, so that human beings can understand
+   it.
+
+   This means that a zone file that is edited in a text editor by a
+   person before being loaded into a DNS server must be allowed to be in
+   the local character set. Software may not assume that the user can
+   edit text encoded in UTF-8. A zone file transmitted between DNS
+   software that is not handled by a human, can be transmitted using any
+   format.
+
+   When character data is presented to a human or entered by a human,
+   software must, as good as possible, present it using local character
+   set and allow it to be entered using the local character set.  It is
+   the responsibility of the software to convert between the local
+   character set and the one used in the protocol, not the human.
+
+   The down coding defined above allows all names to be entered and
+   displayed for all users, as long as at least the ASCII characters are
+   supported.
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 6]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+4.1 Applications using DNS software
+
+   If an application does a call to DNS, it must present the data to the
+   users in the local character set used by the user, down coding if
+   necessary. Software used to access DNS should give the application
+   programmer both the possibility of doing queries and getting
+   responses using local character set, and using UTF-8.
+
+   APIs like getipnodebyname should be updated with a IDN flag that
+   results in the name being returned using the current locale, instead
+   of native UTF-8 or ASCII format.
+
+5. Effect on other protocols
+
+   As now a domain name may include non-ASCII many other protocols that
+   include domain names need to be updated. For example SMTP, HTTP and
+   URIs. The ACE format can be used when interfacing with ASCII only
+   software or protocols.  Protocols like SMTP could be extended using
+   ESMTP and a UTF8 option that defines that all headers are in UTF-8.
+
+   It is recommended that protocols updated to handle i18n do this by
+   encoding character data in the same standard format as defined for
+   DNS in this document (UCS normalised form C). The use of encoding it
+   in ASCII or by tagged character sets should be avoided.
+
+   DNS do not only have domain names in them, for example e-mail
+   addresses are also included. So an e-mail address would be expected
+   to be changed to include non-ASCII both before and after the @-sign.
+
+   Software need to be updated to follow the user interface
+   recommendations given above, so that a human will see the characters
+   in their local character set, if possible.
+
+5.1 An example: SMTP
+
+   When using SMTP it may be extended to allow UTF-8 in headers and
+   addresses.  It will then have to, when transferring an e-mail to a
+   SMTP system that have not been extended, encoded e-mail addresses and
+   IDNs into an ACE.
+
+   In this case an e-mail address could look like:
+   ra--XXXXX.surname@ra--YYYYY.com
+   where ra--XXXXX is the ACE of the given name and ra--YYYYY is the ACE
+   of one part of the domain name.
+
+6. Security Considerations
+
+   As always with data, if software does not check for data that can be
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 7]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+   a problem, security may be affected. As more characters than ASCII is
+   allowed, software only expecting ASCII and with no checks may now get
+   security problems.
+
+7. References
+
+   [RFC1034]  P. Mockapetris, "Domain Names - Concepts and Facilities",
+              STD 13, RFC 1034, November 1987.
+
+   [RFC1035]  P. Mockapetris, "Domain Names - Implementation and
+              Specification", STD 13, RFC 1035, November 1987.
+
+   [RFC2119]  Scott Bradner, "Key words for use in RFCs to Indicate
+              Requirement Levels", March 1997, RFC 2119.
+
+   [RFC2181]  R. Elz and R. Bush, "Clarifications to the DNS
+              Specification", RFC 2181, July 1997.
+
+   [RFC2279]  F. Yergeau, "UTF-8, a transformation format of ISO 10646",
+              RFC 2279, January 1998.
+
+   [RFC2535]  D. Eastlake, "Domain Name System Security Extensions".
+              RFC 2535, March 1999.
+
+   [RFC2671]  P. Vixie, "Extension Mechanisms for DNS (EDNS0)", RFC
+              2671, August 1999.
+
+   [ISO10646] ISO/IEC 10646-1:2000. International Standard --
+              Information technology -- Universal Multiple-Octet Coded
+              Character Set (UCS)
+
+   [Unicode]  The Unicode Consortium, "The Unicode Standard -- Version
+              3.0", ISBN 0-201-61633-5. Described at
+              http://www.unicode.org/unicode/standard/versions/
+              Unicode3.0.html
+
+   [UTR15]    M. Davis and M. Duerst, "Unicode Normalization Forms",
+              Unicode Technical Report #15, Nov 1999,
+              http://www.unicode.org/unicode/reports/tr15/.
+
+   [UTR21]    M. Davis, "Case Mappings", Unicode Technical Report #21,
+              Dec 1999, http://www.unicode.org/unicode/reports/tr21/.
+
+   [UDATA]    The Unicode Character Database,
+              ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt.
+              The database is described in
+              ftp://ftp.unicode.org/Public/UNIDATA/
+              UnicodeCharacterDatabase.html.
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 8]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+   [IDNREQ]   James Seng, "Requirements of Internationalized Domain
+   Names", draft-ietf-idn-requirement.
+
+   [IANADNS]  Donald Eastlake, Eric Brunner, Bill Manning, "Domain Name
+   System (DNS) IANA Considerations",draft-ietf-dnsext-iana-dns.
+
+   [IDNE]     Marc Blanchet,Paul  Hoffman, "Internationalized domain
+   names using EDNS (IDNE)", draft-ietf-idn-idne.
+
+   [CHNORM]   M. Duerst, M. Davis, "Character Normalization in IETF
+   Protocols", draft-duerst-i18n-norm.
+
+   [IDNCOMP]  Paul Hoffman, "Comparison of Internationalized Domain Name
+   Proposals", draft-ietf-idn-compare.
+
+   [NAMEPREP] Paul Hoffman, "Comparison of Internationalized Domain Name
+   Proposals", draft-ietf-idn-compare.
+
+   [SACE]     Dan Oscarsson, "Simple ASCII Compatible Encoding", draft-
+   ietf-idn-sace.
+
+   [RACE]     Paul Hoffman, "RACE: Row-based ASCII Compatible Encoding
+   for IDN", draft-ietf-idn-race.
+
+8. Acknowledgements
+
+   Paul Hoffman giving many comments in our e-mail discussions.
+
+   Ideas from drafts by Paul Hoffman, Stuart Kwan, James Gilroy and Kent
+   Karlsson.
+
+   Magnus Gustavsson, Mark Davis, Kent Karlsson and Andrew Draper for
+   comments on my draft.
+
+   Discussions and comments by the members of the IDN working group.
+
+
+
+Author's Address
+
+   Dan Oscarsson
+   Telia ProSoft AB
+   Box 85
+   201 20 Malmo
+   Sweden
+
+   E-mail: Dan.Oscarsson@trab.se
+
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001                [Page 9]
+
+Internet Draft               Universal DNS                27 August 2000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dan Oscarsson          Expires: 27 Februray 2001               [Page 10]
+

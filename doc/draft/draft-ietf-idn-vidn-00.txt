@@ -1,0 +1,537 @@
+
+IETF IDN Working Group                                    Sung Jae Shim
+Internet Draft                                           DualName, Inc.
+Document: draft-ietf-idn-vidn-00.txt                   14 November 2000
+Expires: 14 May 2001 
+ 
+ 
+              Virtually Internationalized Domain Names (VIDN) 
+    
+    
+   Status of this Memo 
+    
+   This document is an Internet-Draft and is in full conformance with 
+   all provisions of Section 10 of RFC2026. 
+    
+   Internet-Drafts are working documents of the Internet Engineering 
+   Task Force (IETF), its areas, and its working groups. Note that other 
+   groups may also distribute working documents as Internet-Drafts. 
+    
+   Internet-Drafts are draft documents valid for a maximum of six months 
+   and may be updated, replaced, or obsoleted by other documents at any 
+   time. It is inappropriate to use Internet-Drafts as reference 
+   material or to cite them other than as "work in progress."  
+    
+   The list of current Internet-Drafts can be accessed at 
+   http://www.ietf.org/ietf/1id-abstracts.txt  
+    
+   The list of Internet-Draft Shadow Directories can be accessed at 
+   http://www.ietf.org/shadow.html. 
+    
+    
+   1. Abstract 
+    
+   This document describes a method that internationalizes existing as 
+   well as future domain names in English, not making any change to the 
+   current DNS, not requiring separate name server or resolver, and not 
+   creating domain names in non-English languages. Based upon the 
+   knowledge of transliteration between a local language and English, 
+   the method allows a user to use virtual domain names in the user's 
+   preferred local language by converting them into the corresponding 
+   actual domain names in English that comply with the current DNS. The 
+   conversion takes place automatically and transparently in the user's 
+   applications before DNS queries are sent. The method uses the current 
+   DNS as it is and meets all the requirements of internationalized 
+   domain names as described in Wenzel and Seng [2]. 
+    
+    
+   2. Conventions and definitions used in this document 
+    
+   The key words "REQUIRED" and "MAY" in this document are to be 
+   interpreted as described in RFC-2119 [1]. 
+    
+   A "host" is a computer or device attached to the Internet. A "user 
+   host" is a computer or device with which a user is connected to the 
+
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   Internet, and a "user" is a person who uses a user host. A "server 
+   host" is a computer or device that provides services to user hosts. 
+    
+   An "entity" is an organization or individual that has a domain name 
+   registered with the DNS. 
+    
+   A "local language" is a language other than English that a user 
+   prefers to use in a local context. 
+    
+   A "virtual domain name" is a domain name in a local language, and it 
+   is not registered with the DNS but used for the convenience of a 
+   user. An "actual domain name" is a domain name in English, and it is 
+   actually used in the DNS. A "domain name" refers to an actual domain 
+   name in English that complies with the DNS, unless specified 
+   otherwise. 
+    
+   A "coded portion" is a pre-coded portion of a domain name (e.g., 
+   generic organization codes including `com', `edu', `gov', `int', 
+   `mil', `net', `org', and country codes such as `kr', `jp', and so 
+   on). An "entity-defined portion" is a portion of a domain name, which 
+   is defined by the entity that holds the domain name (e.g., 
+   organization name, server name, and so on). 
+    
+   The method proposed in this document is called "virtually 
+   internationalized domain names (VIDN)" because it uses virtual domain 
+   names in local languages to internationalize actual domain names in 
+   English that comply with the DNS. 
+    
+   A number of Korean-language characters are used in the original of 
+   this document for examples, which is available from the author upon 
+   request. The software used for Internet-Drafts does not allow using 
+   multilingual characters other than ASCII characters. Thus, this 
+   document may not display Korean-language characters properly, 
+   although it may be comprehensible without the examples using Korean-
+   language characters. Also, when you open the original of this 
+   document, please select your view encoding type to Korean for Korean-
+   language characters to be displayed properly. 
+    
+    
+   3. Introduction 
+    
+   Domain names are valuable to Internet users as a main identifier of 
+   hosts on the Internet. The current DNS allows using only English 
+   characters in naming hosts or clusters of hosts on the Internet. More 
+   specifically, the DNS uses only the basic Latin alphabets (case-
+   insensitive), the decimal digits (0-9) and the hyphen (-) in domain 
+   names. But there is a growing need for internationalized or non-
+   English domain names. Recognizing this need, various methods have 
+   been proposed to use non-English characters in domain names. But to 
+   date, it seems that no method has met all the requirements of 
+   internationalized domain names as described in Wenzel and Seng [2]. 
+    
+   A group of earlier methods has tried to put internationalized domain 
+   names inside some parts of the overall DNS system, using UCS encoding 
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   schemes. But these methods put too much of a burden on the DNS, 
+   requiring a great deal of work for transition and update of the DNS 
+   components. Another group of earlier methods has tried to build 
+   separate directory services for internationalized domain names or 
+   internationalized keywords. But these methods also require complex 
+   implementation efforts, duplicating much of the work already done for 
+   the DNS. Both the groups of earlier methods have tried to build some 
+   mechanisms inside or outside the DNS and put internationalized domain 
+   names or internationalized keywords there in addition to existing 
+   domain names in English. 
+    
+   Unlike earlier methods that involve a lengthy and costly process of 
+   implementation, VIDN provides a more immediate and less costly 
+   solution to internationalized domain names by focusing on 
+   internationalizing existing as well as future domain names in English 
+   that comply with the current DNS, without actually creating domain 
+   names in local languages. VIDN takes notice of the fact that most 
+   domain names used in regions where English is not widely spoken, have 
+   their entity-defined portions consisting of characters or words in 
+   English as transliterated from characters and words in the respective 
+   local languages. Based upon the knowledge of transliteration between 
+   a local language and English, VIDN allows using virtual domain names 
+   in a local language by converting them into the corresponding actual 
+   domain names in English that comply with the current DNS. VIDN allows 
+   the same domain names to be used not only in English as usual but 
+   also in local languages, without creating additional domain names in 
+   local languages. 
+    
+    
+   4. VIDN method 
+    
+   4.1. Objectives 
+    
+   To date, the methods for internationalized domain names have tried to 
+   create domain names or keywords in local languages one way or another 
+   in addition to existing domain names in English, and put them inside 
+   or outside the DNS, using special encoding schemes or lookup 
+   services. These methods require a lengthy and costly process of 
+   implementation. Even when they are successfully implemented, these 
+   methods may localize the Internet by separating it into groups of 
+   local languages that are less universal than English. Further, these 
+   methods may cause disputes on copyrights, trademarks, and so on in 
+   local contexts, in addition to all those disputes we observe with 
+   current domain names in English. VIDN intends to provide a solution 
+   to the problems of earlier methods, by (1) allowing the same domain 
+   names to be used both in English and local languages, without 
+   creating domain names in local languages, (2) working in applications 
+   at user hosts automatically and transparently before DNS requests are 
+   sent, (3) using the current DNS as it is, without requiring any 
+   additional name server or resolver, and (4) being implemented 
+   immediately with little cost. 
+    
+    
+   4.2. Description 
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+    
+   It is important to note that most domain names used in regions where 
+   English is not widely spoken have their entity-defined portions 
+   consisting of characters or words in English as transliterated from 
+   characters or words in local languages. These transliterated 
+   characters or words in English do not have any meanings in English, 
+   but their originals in local languages before the transliteration 
+   into English have some meanings in local contexts, usually indicating 
+   organization names, brand names, trademarks, and so on. VIDN allows 
+   using these original characters or words in local languages as the 
+   entity-defined portions of virtual domain names in local languages, 
+   by transliterating them into the corresponding entity-defined 
+   portions of actual domain names in English. In this way, VIDN allows 
+   the same domain names in English to be also used virtually in local 
+   languages without actually creating domain names in local languages. 
+    
+   As domain names overlay IP addresses, so virtual domain names in 
+   local languages do actual domain names in English. The relationship 
+   between virtual domain names in a local language and actual domain 
+   names in English can be depicted as: 
+    
+                  +---------------------------------+ 
+                  |              User               | 
+                  +---------------------------------+ 
+                       |                       | 
+      +----------------|-----------------------|------------------+ 
+      |                v   (Transliteration)   v                  | 
+      |   +---------------------+  |  +-----------------------+   | 
+      |   | Virtual domain name |  |  |   Actual domain name  |   |  
+      |   | in a local language |--+->|   in English          |   | 
+      |   +---------------------+     +-----------------------+   | 
+      |                    User application    |                  | 
+      +----------------------------------------|------------------+ 
+                                               v 
+                                           DNS request 
+    
+   VIDN uses the phonemes of a local language and English as a medium in 
+   transliterating the entity-defined portions of virtual domain names 
+   in the local language into those of actual domain names in English. 
+   This process of transliteration can be depicted as: 
+    
+           Local language                           English 
+   +----------------------------+       +-----------------------------+ 
+   | Characters ----> Phonemes -----------> Phonemes ----> Characters | 
+   |              |             |   |   |              |              | 
+   |              |             |   |   |              |              | 
+   | (Inverse of transcription) | Match |        (Transcription)      | 
+   +----------------------------+       +-----------------------------+ 
+                  |                                    ^ 
+                  |         (Transliteration)          | 
+                  +------------------------------------+ 
+    
+   First, each entity-defined portion of a virtual domain name in the 
+   local language is decomposed into individual characters or sets of 
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   characters so that each individual character or set of characters can 
+   represent an individual phoneme of the local language, which is the 
+   inverse of transcription of phonemes into characters. Second, each 
+   individual phoneme of the local language is matched with an 
+   equivalent phoneme of English that has the same or most proximate 
+   sound. Third, each phoneme of English is transcribed into the 
+   corresponding character or set of characters in English. Finally, all 
+   the characters or sets of characters converted into English are 
+   united to compose the corresponding entity-defined portion of an 
+   actual domain name in English. 
+    
+   For example, a word in Korean, `??' that means `century' in  English, 
+   is transliterated into `segi' in English, and so, the entity whose 
+   name contains `??' in Korean may have an entity-defined portion of 
+   its domain name as `segi' in English. VIDN allows using `??' in 
+   Korean as an entity-defined portion of a virtual domain name in 
+   Korean, which is converted into `segi' in English, the corresponding 
+   entity-defined portion of an actual domain name in English. More 
+   specifically, the phonemes represented by the characters consisting 
+   of `??' in Korean have the same sounds as the phonemes represented 
+   by the characters consisting of `segi' in English. In the local 
+   context, `??' in Korean is clearly easier to remember and type and 
+   more intuitive and meaningful than `segi' in English. 
+    
+   An entity-defined portion of a virtual domain name in Korean, `??', 
+   is transliterated into `yahoo' in English, since the phonemes 
+   represented by the characters consisting of `??' in Korean have the 
+   same sounds as the phonemes represented by the characters consisting 
+   of `yahoo' in English. That is, `??' in Korean is pronounced as the 
+   same as `yahoo' in English, and so, it is easy for Korean-speaking 
+   people to deduce `??' in Korean as the virtual equivalent of 
+   `yahoo' in English. VIDN allows using virtual domain names in a local 
+   language for domain names whose originals are in the local language, 
+   e.g., `??' in Korean, as well as domain names whose originals are 
+   in English, e.g., `??' in Korean. In this way, VIDN can make domain 
+   names truly international, allowing the same domain names to be used 
+   both in English and local languages. 
+    
+   The coded portions of domain names such as organization codes, 
+   geographic codes and country codes, can also be transliterated from a 
+   local language into English, using the phonemes of the two languages 
+   as a medium. For example, seven generic organization codes in English, 
+   `com', `edu', `gov', `int', `mil', `net', and `org', can be 
+   transliterated from `?', `??', `??', `??', `?', `??', `??' in 
+   Korean, respectively, which can be used as the corresponding 
+   organization codes of virtual domain names in Korean. Based upon its 
+   meaning in English, each coded portion of actual domain names also 
+   can be pre-assigned a virtual equivalent word or code in a local 
+   language. For example, seven generic organization codes in English, 
+   `com', `edu', `gov', `int', `mil', `net', and `org', can be pre-
+   assigned `??' (meaning `commercial' in Korean), `??' (meaning 
+   `education' in Korean), `??' (meaning `government' in Korean), 
+   `??' (meaning `international' in Korean), `??' (meaning `military' 
+   in Korean), `??' (meaning `network' in Korean), and `??' (meaning 
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   `organization' in Korean), respectively, which can be used as the 
+   corresponding organization codes of virtual domain names in Korean. 
+    
+   Since VIDN uses the phonemes of a local language and English as a 
+   medium of the transliteration, it does not create such complexities 
+   as other conversion methods based upon semantics do. Further, most 
+   languages have a small number of phonemes. For example, Korean 
+   language has nineteen consonant phonemes and twenty-one vowel 
+   phonemes, and English language has twenty-four consonant phonemes and 
+   twenty vowel phonemes. Each phoneme of Korean language can be matched 
+   with a phoneme of English language that has the same or proximate 
+   sound, and vice versa. 
+    
+   Some characters or sets of characters of a language may represent 
+   more than one phoneme. Also, some phonemes of a language may be 
+   represented by more than one character or set of characters. But 
+   these variations usually occur in particular situations, and so, VIDN 
+   incorporates the special provisions to deal with such variations. In 
+   addition, not every character or set of characters in a local 
+   language may be neatly transliterated into only one character or set 
+   of characters in English. In practice, people often transliterate the 
+   same word in a local language differently into English or vice versa. 
+   VIDN also incorporates the provisions to deal with such variations 
+   caused by common usages or idiomatic expressions. Because of these 
+   variations, however, it is probable for one virtual domain name 
+   entered in a local language to result in more than one actual domain 
+   name in English. 
+    
+   VIDN includes a coding scheme in order to make each virtual domain 
+   name entered in a local language correspond to exactly one actual 
+   domain name in English. In this coding scheme, a unique code is pre-
+   assigned to one of the corresponding actual domain names in English 
+   for each virtual domain name to be entered in a local language. The 
+   code is kept somewhere at the server host that has the actual domain 
+   name in English, for example, in the main HTML document at the server 
+   host, so that VIDN can check the code. VIDN also generates the same 
+   unique code whenever the corresponding virtual domain name is entered 
+   in user applications. Then, VIDN checks whether the code at each 
+   server host matches with the code generated in user applications. If 
+   one of the server hosts has the code that matches with the code 
+   generated in user applications, VIDN recognizes that the virtual 
+   domain name entered by the user corresponds only to the actual domain 
+   name of that server host, and connects the user host to the server 
+   host. The domain names of the remaining server hosts that do not have 
+   the matching code may be listed to the user as alternative sites. For 
+   security purpose, this coding scheme may use an encryption technique. 
+    
+   For example, `??.?', a virtual domain name entered in Korean, may 
+   result in four corresponding domain names in English including 
+   `jungang.com', `joongang.com,' `chungang.com', and `choongang.com', 
+   since the phonemes represented by characters consisting of `??.?' 
+   in Korean can have the same or almost the same sounds as the phonemes 
+   represented by characters consisting of `jungang.com', 
+   `joongang.com,' `chungang.com', or `choongang.com' in English. In 
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   this case, we assume that the server host with its domain name 
+   `jungang.com' has the pre-assigned code that matches with the code 
+   generated when `??.?' in Korean is entered in user applications. 
+   Then, the user host is connected to this server host, and the other 
+   server hosts may be listed to the user as alternative sites so that 
+   the user can try them. 
+    
+   The process of this coding scheme that makes each virtual domain name 
+   in a local language correspond to only one actual domain name in 
+   English, can be depicted as: 
+    
+                  +---------------------------------+ 
+                  |              User               | 
+                  +---------------------------------+ 
+                       |                       | 
+      +----------------|-----------------------|------------------+ 
+      |                v                       v                  | 
+      |   +---------------------+     +-----------------------+   | 
+      |   | Virtual domain name |     | Potential domain names|   |  
+      |   | in a local language |---->| in English            |   | 
+      |   | e.g., `??.?'      |     | e.g., `jungang.com'   |   | 
+      |   |       (code: 297437)|     |       `joongang.com'  |   | 
+      |   |                     |     |       `chungang.com'  |   | 
+      |   |                     |     |       `choongang.com' |   | 
+      |   +---------------------+     +-----------------------+   | 
+      |                    User application    |                  | 
+      +----------------------------------------|------------------+ 
+                       ^                       | 
+                       |                       | Code check by VIDN 
+       Connection to   |                       |    +-- `jungang.com'   
+       the server host |                       |    |   (code: 297437) 
+       `jungang.com'   |                       |    |-- `joongang.com' 
+                       |                       |----+   (not active) 
+                       |                       |    |-- `chungang.com' 
+                       |                       |    |   (code: 381274) 
+                       |    DNS request and    |    +-- `choongang.com' 
+                       |    response           |        (not active) 
+                       +-----------------------+ 
+    
+   Since VIDN converts separately the entity-defined portions and the 
+   coded portions of a virtual domain name, it preserves the current 
+   syntax of domain names, that is, the hierarchical dotted notation, 
+   which Internet users are familiar with. Also, VIDN allows using a 
+   virtual domain name mixed with characters in a local language and 
+   English as the user wishes to, since the conversion takes place on 
+   each individual portion of the domain name and each individual 
+   character or set of characters of the portion. 
+    
+   While VIDN preserves the hierarchical dotted notation of current 
+   domain names, the principles of VIDN are also applicable to domain 
+   names in other possible notations such as those in a natural language 
+   (e.g., `microsoft windows' rather than `windows.microsoft.com'). Also, 
+   the principles of VIDN can be applied into other identifiers used on 
+   the Internet, such as user IDs of e-mail addresses, names of 
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   directories and folders, names of web pages and files, keywords used 
+   in search engines and directory services, and so on, allowing them to 
+   be used interchangeably in a local language and English, without 
+   creating additional identifiers in the local language. The conversion 
+   of VIDN can be done between any two languages interchangeably. Thus, 
+   even when the DNS accepts and registers domain names in other 
+   languages in addition to English, VIDN can allow using the same 
+   domain names in any two languages by converting virtual domain names 
+   in one language into actual domain names in another language. 
+    
+    
+   4.3. Implementation 
+    
+   In a preferred arrangement, VIDN is implemented in applications at 
+   the user host. That is, the conversion of virtual domain names in a 
+   local language into the corresponding actual domain names in English 
+   takes place at the user host before DNS requests are sent. Thus, 
+   neither a special encoding nor a separate lookup service is needed to 
+   implement VIDN. VIDN is also modularized with each module being used 
+   for conversion of virtual domain names in one local language into the 
+   corresponding actual domain names in English. A user needs only the 
+   module for conversion of his or her preferred local language into 
+   English. Also, VIDN can be implemented at a central server host or a 
+   cluster of local server hosts. A central server with all the language 
+   modules of VIDN can provide the conversion service for all local 
+   languages, or a cluster of local server hosts can share the 
+   conversion service. In the latter case, each local server host with a 
+   language module or a set of language modules can provide the 
+   conversion service for the respective local language or set of local 
+   languages used in a certain region. 
+    
+   Because of its small size, VIDN can be easily embedded into 
+   applications software such as web browser, e-mail software, ftp 
+   system, and so on at the user host, or it can work as an add-on 
+   program to such software. In either case, the only requirement on the 
+   part of the user is to install VIDN or software embedding VIDN at the 
+   user host. Using virtual domain names in a local language in 
+   accordance with the principles of VIDN is very intuitive to those who 
+   speak the local language. The only requirement on the part of the 
+   entity whose server host provides Internet services to user hosts is 
+   to have an actual domain name in English into which a virtual domain 
+   name in a local language is neatly transliterated in accordance with 
+   the principles of VIDN, and to have a pre-assigned code kept at its 
+   server host for one-to-one matching of its actual domain name and a 
+   virtual domain name to be used by users. Most entities in regions 
+   where English is not widely spoken already have such domain names in 
+   English. Finally, there is nothing to change on the part of the DNS, 
+   since VIDN uses the current DNS as it is. 
+    
+   Taken together, the features of VIDN can meet all the requirement of 
+   internationalized domain names as described in Wenzel and Seng [2], 
+   with respect to compatibility and interoperability, 
+   internationalization, canonicalization, and operating issues. Given 
+   the fact that different methods toward internationalized domain names 
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   confuse users, as already observed in some regions where some of 
+   these methods have already been commercialized, e.g., Korea, it is 
+   important to find and implement the most effective solution to 
+   internationalized domain names as soon as possible. 
+    
+    
+   4.4. Testing results 
+    
+   A testing version of VIDN has been developed for Korean-English 
+   conversion as a web browser add-on program. The program contains all 
+   the features described in this document except the coding scheme. 
+   While the final version of the program is planned to include the 
+   coding scheme, the testing version lists all the domain names in 
+   English that correspond to a virtual domain name entered in Korean so 
+   that a user can choose one. The testing results of a sample of 
+   randomly selected domain names used in Korea show that the program 
+   can cover more than ninety percent of the sample. The results 
+   indicate that more than ninety percent of web sites in Korea can be 
+   accessed using virtual domain names in Korean without creating 
+   additional domain names in Korean. The remaining ten percent of 
+   domain names are mostly those that contain acronyms, abbreviations or 
+   initials. With improvement of its knowledge of transliteration, the 
+   final version of the program is expected to cover most domain names 
+   used in Korea. 
+    
+    
+   5. Security considerations 
+    
+   Because VIDN uses the DNS as it is, it inherits the same security 
+   considerations as the DNS. 
+    
+    
+   6. Intellectual property considerations 
+    
+   It is the intention of DualName, Inc. to submit the VIDN method and 
+   other elements of VIDN software to IETF for review, comment or 
+   standardization. 
+    
+   DualName has applied for one or more patents on the technology 
+   related to virtual domain name software and virtual email software. 
+   If a standard is adopted by IETF and any patents are issued to 
+   DualName with claims that are necessary for practicing the standard,  
+   DualName is prepared to make available, upon written request, a non-
+   exclusive license under fair, reasonable and non-discriminatory terms 
+   and condition, based on the principle of reciprocity, consistent with 
+   established practice. 
+    
+    
+   7. References 
+    
+   1  Bradner, S., "Key words for use in RFCs to Indicate Requirement 
+      Levels", BCP 14, RFC 2119, March 1997 
+    
+
+  
+
+               Virtually Internationalized Domain Names  November 2000 
+ 
+   2  Wenzel, Z. and Seng, J. (Editors), "Requirements of 
+     Internationalized Domain Names," draft-ietf-idn-requirements-
+     03.txt, August 2000 
+    
+    
+   8. Author's address 
+    
+   Sung Jae Shim 
+   DualName, Inc. 
+   3600 Wilshire Boulevard, Suite 1814 
+   Los Angeles, California 90010 
+   USA 
+   Email: shimsungjae@dualname.com 
+

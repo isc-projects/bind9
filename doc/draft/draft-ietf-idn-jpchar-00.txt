@@ -1,0 +1,159 @@
+Internet Draft                                        Yoshiro Yoneya
+draft-ietf-idn-jpchar-00.txt                      Yasuhiro Morishita
+November 17, 2000                                              JPNIC
+Expires May 17, 2001
+
+        Japanese characters in multilingual domain name label
+
+Status of this memo
+
+This document is an Internet-Draft and is in full conformance with all
+provisions of Section 10 of RFC2026.
+
+Internet-Drafts are working documents of the Internet Engineering Task
+Force (IETF), its areas, and its working groups. Note that other
+groups may also distribute working documents as Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six months
+and may be updated, replaced, or obsoleted by other documents at any
+time. It is inappropriate to use Internet-Drafts as reference
+material or to cite them other than as "work in progress."
+
+     The list of current Internet-Drafts can be accessed at
+     http://www.ietf.org/ietf/1id-abstracts.txt
+
+     The list of Internet-Draft Shadow Directories can be accessed at
+     http://www.ietf.org/shadow.html.
+
+Abstract
+
+This document explains about Japanese characters and its canonicalization
+rules in multilingual domain name labels.  This document is based on
+discussions and examinations in JPNIC.
+
+Despite of IDN WG rough consensus that character set in multilingual
+domain name is UCS [UCS], most popular Japanese character set used in
+Japan is Japanese Industrial Standards X 0208 -- hereafter abbreviated
+as "JIS" -- [JISX0208].  This means that many of PCs and most of PDAs
+including handy phones in Japan can display only JIS and ASCII.
+Therefore, Japanese characters used in multilingual domain name are
+strongly recommended as common part of JIS, ASCII and UCS.
+
+Furthermore, for historical reasons, JIS have many compatible code
+points in Kana and Alpha-numericals.  Such compatible code points are
+still used widely, so that these characters SHOULD be acceptable
+especially in user interface, and MUST be canonicalized before
+transmission to the wire.  The former half should be implemented for
+localization, and the latter half must be implemented for
+internationalization.
+
+
+1. Japanese characters in multilingual domain name labels
+
+In principle domain name is a symbolic name of resources on the
+Internet for understanding and memorizing easily to the Internet
+users.  Internationalization or multilingualization of domain name
+MUST obey this principle.  That is, characters in multilingualized
+domain name labels SHOULD be unambiguous.
+
+JIS has a lot of characters including graphical and compatible
+characters.  But as for domain name, significant characters to
+represent names are Kanji, Hiragana and Katakana [CJK].  Therefore,
+according to the principle, Japanese characters in multilingual domain
+name MUST be Kanji, Hiragana and Katakana in JIS.
+
+The file "idntabjp10.txt" defines Japanese characters in the format of
+[VERSION], with additional corresponding JIS code points as 3rd field,
+that can be used in multilingual domain name labels.  Some of them,
+such as PROLONGED SOUND MARK (U+30FC), are categorized into graphical
+character in JIS, but usage of them are part of Kanji, Hiragana or
+Katakana.  These characters are in canonicalized form.
+
+
+2. Canonicalization rules of Japanese characters in multilingual
+   domain name labels
+
+In this section, this document describes two parts of canonicalization
+rules.  One explains "localization", and the other comments on
+"internationalization".  In other words, one is for Input/Display
+level, and another is for API level [IDNA].
+
+2.1 Localization: Characters to be canonicalized before NAMEPREP
+
+As mentioned above, JIS has a lot of compatible characters that are
+regarded alpha-numeric or Katakana.  The former is so called
+FULL-WIDTH Alpha-numeric, and the latter is so called HALF-WIDTH kana.
+These characters are prohibited in [NAMEPREP], but still widely used
+in many PCs and most PDAs in Japan.  Hence, application softwares that
+treat Japanese characters in multilingual domain name label SHOULD
+accept these compatible characters as input and canonicalize them
+before [NAMEPREP].
+
+The file "idntabjpcanon10.txt" defines compatible characters, with
+additional canonicalized character code as 3rd field; that is, mapping
+table of FULL-WIDTH Alpha-numeric to ASCII, and HALF-WIDTH kana to
+Katakana.
+
+The file "idntabjpcomp10.txt" defines compatible character sequences
+as composed, with additional canonicalized characters code as 3rd
+field; that is, composition table of Kana and voiced sound mark.
+
+Recommended order of applying canonicalization rules is as follows:
+
+        (1) "idntabjpcanon10"
+        (2) "idntabjpcom10"
+
+This part is a local part of canonicalization.
+
+2.2 Internationalization: Characters to be canonicalized in NAMEPREP
+
+Japanese characters in multilingual domain name labels MUST be
+characters defined in "idntabjp10".  Another characters except for
+"idntabjp10" SHOULD be canonicalized at [NAMEPREP].
+
+[NAMEPREP] is common and recommended rule for IDN.
+
+This part is an international part of canonicalization.
+
+
+3. Security considerations
+
+None in particular.
+
+
+4. References
+
+[UCS]       "Universal Multiple-Octet Coded Character Set",
+            ISO/IEC 10646-1:1993, ISBN 0-201-61633-5
+[JISX0208]  "Japanese Industrial Standards",
+            Information Technology (Terms/Code/Date elements)-99,
+            ISBN4-542-12976-4
+[IDNREQ]    "Requirements of Internationalized Domain Names",
+            draft-ietf-idn-requirements-03.txt, Jun 2000, Z Wenzel, J Seng
+[NAMEPREP]  "Preparation of Internationalized Host Names",
+            draft-ietf-idn-nameprep-00.txt, Jul 2000, P Hoffman, M Blanchet
+[CJK]       "Han Ideograph (CJK) for Internationalized Domain Names",
+            draft-ietf-idn-cjk-00.txt, Sep 2000, J Seng, Y Yoneya,
+            K Huang, K Kyongsok
+[VERSION]   "Handling versions of internationalized domain names protocols",
+            draft-ietf-idn-version-00.txt, Nov 2000, M Blanchet
+
+
+5. Acknowledgements
+
+JPNIC IDN-TF members.
+
+
+6. Author's Address
+
+Yoshiro Yoneya
+Japan Network Information Center
+Fuundo Bldg 1F, 1-2 Kanda-ogawamachi
+Chiyoda-ku Tokyo 101-0052, Japan
+yone@nic.ad.jp
+
+Yasuhiro Morishita
+Japan Network Information Center
+Fuundo Bldg 1F, 1-2 Kanda-ogawamachi
+Chiyoda-ku Tokyo 101-0052, Japan
+yasuhiro@nic.ad.jp
