@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.h,v 1.2 2001/10/05 05:51:50 mayer Exp $ */
+/* $Id: ntgroups.h,v 1.2.200.1 2003/08/07 07:02:31 marka Exp $ */
 
 #ifndef ISC_NTGROUPS_H
 #define ISC_NTGROUPS_H 1

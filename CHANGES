@@ -1,3 +1,6 @@
+1119.	[func]		Added support in Win32 for NTFS file/directory ACL's
+			for access control.
+
 1115.	[func]		Set maximum values for cleaning-interval,
 			heartbeat-interval, interface-interval,
 			max-transfer-idle-in, max-transfer-idle-out,

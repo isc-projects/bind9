@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.5 2001/10/06 01:10:06 mayer Exp $ */
+/* $Id: ntgroups.c,v 1.5.200.1 2003/08/07 07:02:31 marka Exp $ */
 
 /*
  * The NT Groups have two groups that are not well documented and are
