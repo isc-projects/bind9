@@ -1,3 +1,6 @@
+1281.	[func]		libbind: ns_sign2() and ns_sign_tcp() now provide
+			support for compressed TSIG owner names.
+
 1280.	[func]		libbind: res_update can now update IPv6 servers,
 			new function res_findzonecut2().
 
