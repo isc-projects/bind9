@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.168 2000/09/28 21:31:08 bwelling Exp $ */
+/* $Id: socket.c,v 1.169 2000/10/07 00:16:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1251,8 +1251,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
 		       (void *)&on, sizeof on) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "setsockopt(%d, SO_BSDCOMPAT) failed",
-				 sock->fd);
+				 "setsockopt(%d, SO_BSDCOMPAT) failed: %s",
+				 sock->fd, strerror(errno));
 		/* Press on... */
 	}
 #endif
@@ -1264,8 +1264,9 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
 			       (void *)&on, sizeof on) < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "setsockopt(%d, SO_TIMESTAMP) failed",
-					 sock->fd);
+					 "setsockopt(%d, SO_TIMESTAMP) "
+					 "failed: %s",
+					 sock->fd, strerror(errno));
 			/* Press on... */
 		}
 #endif /* SO_TIMESTAMP */
