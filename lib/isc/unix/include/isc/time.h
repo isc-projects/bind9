@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: time.h,v 1.21 2000/06/30 22:40:30 tale Exp $ */
+/* $Id: time.h,v 1.22 2000/07/14 16:59:32 bwelling Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -218,7 +218,7 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
 isc_uint64_t
 isc_time_microdiff(isc_time_t *t1, isc_time_t *t2);
 /*
- * Find the difference in milliseconds between time t1 and time t2.
+ * Find the difference in microseconds between time t1 and time t2.
  * t2 is the subtrahend of t1; ie, difference = t1 - t2.
  *
  * Requires:
