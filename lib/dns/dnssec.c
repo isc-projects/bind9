@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.37 2000/05/19 00:20:48 bwelling Exp $
+ * $Id: dnssec.c,v 1.38 2000/05/20 01:27:28 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -659,7 +659,8 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, dynbuf));
 
-	dns_rdata_freestruct(&sig);
+	isc_mem_put(mctx, sig.signature, sig.siglen);
+	dns_name_free(&sig.signer, mctx);
 	signeedsfree = ISC_FALSE;
 
 	dns_message_takebuffer(msg, &dynbuf);
@@ -683,8 +684,10 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 failure:
 	if (dynbuf != NULL)
 		isc_buffer_free(&dynbuf);
-	if (signeedsfree)
-		dns_rdata_freestruct(&sig);
+	if (signeedsfree) {
+		isc_mem_put(mctx, sig.signature, sig.siglen);
+		dns_name_free(&sig.signer, mctx);
+	}
 
 	return (result);
 }
