@@ -6,6 +6,10 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1421.	[func]		Differentiate updates that don't succeed due to
+			prerequisites (unsuccessful) vs other reasons
+			(failed).
+
 1417.	[func]		ID.SERVER/CHAOS is now a built in zone.
 			See "server-id" for how to configure.
 
