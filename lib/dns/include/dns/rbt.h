@@ -177,7 +177,8 @@ dns_result_t dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name,
  *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
-dns_result_t dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, void **data);
+dns_result_t dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
+			      dns_name_t *foundname, void **data);
 /*
  * Get the data pointer associated with 'name'.
  *
@@ -206,11 +207,13 @@ dns_result_t dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, void **data);
  *	DNS_R_SUCCESS		Success
  *	DNS_R_PARTIALMATCH	Superdomain found with data
  *	DNS_R_NOTFOUND		No match
+ *	DNS_R_NOSPACE		Concatenating nodes to form foundname failed
  */
 
 dns_result_t dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name,
-			       dns_rbtnode_t **node,
-			       dns_rbtnodechain_t *chain);
+			      dns_name_t *foundname,
+			      dns_rbtnode_t **node,
+			      dns_rbtnodechain_t *chain);
 /*
  * Find the node for 'name'.
  *
@@ -274,6 +277,7 @@ dns_result_t dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name,
  *	DNS_R_PARTIALMATCH	Superdomain found with data
  *	DNS_R_NOTFOUND		No match, or superdomain with no data
  *	DNS_R_NOMEMORY		Resource Limit: Out of Memory building chain
+ *	DNS_R_NOSPACE		Concatenating nodes to form foundname failed
  */
 
 dns_result_t dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name,

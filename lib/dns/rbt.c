@@ -29,6 +29,7 @@
 
 #include <dns/rbt.h>
 #include <dns/result.h>
+#include <dns/fixedname.h>
 
 #define RBT_MAGIC		0x5242542BU /* RBT+. */
 #define VALID_RBT(rbt)		((rbt) != NULL && (rbt)->magic == RBT_MAGIC)
@@ -41,8 +42,27 @@ struct dns_rbt {
 	void *			deleter_arg;
 };
 
+/*
+ * For use in allocating space for the chain of ancestor nodes.
+ *
+ * The maximum number of ancestors is theoretically not limited by the
+ * data tree.  This initial value of 24 ancestors would be able to scan
+ * the full height of a single level of 16,777,216 nodes, more than double
+ * the current size of .com.
+ */
+#ifndef ISC_MEM_DEBUG
+#define ANCESTOR_BLOCK 24
+#else
+#define ANCESTOR_BLOCK 1	/* To give the reallocation code a workout. */
+#endif
+
 struct dns_rbtnodechain {
 	dns_rbtnode_t **	ancestors;
+	/*
+	 * ancestor_buffer avoids doing any memory allocation (a MP
+	 * bottleneck) in 99%+ of the real-world cases.
+	 */
+	dns_rbtnode_t *		ancestor_buffer[ANCESTOR_BLOCK];
 	int			ancestor_count;
 	int			ancestor_maxitems;
 	/*
@@ -120,20 +140,6 @@ do { \
 
 #define FAST_COUNTLABELS(name) \
 	((name)->labels)
-
-/*
- * For use in allocating space for the chain of ancestor nodes.
- *
- * The maximum number of ancestors is theoretically not limited by the
- * data tree.  This initial value of 24 ancestors would be able to scan
- * the full height of a single level of 16,777,216 nodes, more than double
- * the current size of .com.
- */
-#ifndef ISC_MEM_DEBUG
-#define ANCESTOR_BLOCK 24
-#else
-#define ANCESTOR_BLOCK 1	/* To give the reallocation code a workout. */
-#endif
 
 #ifdef DEBUG
 #define inline
@@ -576,17 +582,19 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
  * the down pointer for the found node.
  */
 dns_result_t
-dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
-		 dns_rbtnodechain_t *chain)
+dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
+		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain)
 {
 	dns_rbtnode_t *current;
-	dns_name_t *search_name, *new_search_name, *current_name;
-	dns_name_t holder1, holder2;
+	dns_name_t *search_name, *current_name, *tmp_name;
+	dns_name_t name1, name2, *current_foundname, *new_foundname;
+	dns_fixedname_t foundname1, foundname2;
+	dns_offsets_t name1_offsets, name2_offsets;
 	dns_namereln_t compared;
 	dns_result_t result;
-	dns_offsets_t holder1_offsets, holder2_offsets;
 	isc_region_t r;
-	unsigned int current_labels, keep_labels, common_labels, common_bits;
+	unsigned int current_labels, common_labels, common_bits;
+	unsigned int first_common_label, foundname_labels;
 	int order;
 
 	/* @@@ optimize skipping the root node? */
@@ -595,22 +603,37 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
 	REQUIRE(FAST_ISABSOLUTE(name));
 	REQUIRE(node != NULL && *node == NULL);
 
-	dns_name_init(&holder1, holder1_offsets);
-	dns_name_init(&holder2, holder2_offsets);
+	dns_name_init(&name1, name1_offsets);
+	dns_name_init(&name2, name2_offsets);
 
 	/*
 	 * search_name is the name segment being sought in each tree level.
 	 * Ensure that it has offsets by making a copy into a structure 
 	 * that has offsets.
 	 */
-	search_name = &holder1;
-	dns_name_toregion(name, &r);
-	dns_name_fromregion(search_name, &r);
+	if (name->offsets == NULL) {
+		search_name = &name1;
+		dns_name_toregion(name, &r);
+		dns_name_fromregion(search_name, &r);
+	} else
+		search_name = name;
 
-	current = rbt->root;
+	current_name = &name2;
 
-	current_name = &holder2;
+	/*
+	 * Initialize the building of the name of the returned node.
+	 * This is not wrapped in "if (foundname != NULL)" because gcc
+	 * gives spurious warnings otherwise.
+	 */
+	dns_fixedname_init(&foundname1);
+	dns_fixedname_init(&foundname2);
+	current_foundname = dns_fixedname_name(&foundname1);
+	new_foundname     = dns_fixedname_name(&foundname2);
+	foundname_labels = 0;
 
+	/*
+	 * Initialize the chain.
+	 */
 	if (chain != NULL) {
 		chain->ancestor_maxitems = 0;
 		chain->ancestor_count = 0;
@@ -621,7 +644,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
 
 		ADD_ANCESTOR(chain, NULL);
 	}
-		
+
+	current = rbt->root;
 	while (current != NULL) {
 		NODENAME(current, current_name);
 		compared = dns_name_fullcompare(search_name, current_name,
@@ -666,31 +690,69 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
 			current_labels = FAST_COUNTLABELS(current_name);
 
 			if (common_labels == current_labels) {
-				/* 
+				/*
 				 * Set up new name to search for as
-				 * the not-in-common part.
+				 * the not-in-common part, and build foundname.
 				 */
-				if (search_name == &holder2) {
-					current_name = &holder2;
-					new_search_name = &holder1;
-					dns_name_init(new_search_name,
-						      holder1_offsets);
+				if (search_name == &name2) {
+					current_name = &name2;
+					tmp_name = &name1;
+					dns_name_init(tmp_name, name1_offsets);
+
+					if (foundname != NULL) {
+						current_foundname =
+						 dns_fixedname_name(&foundname1);
+						new_foundname =
+						 dns_fixedname_name(&foundname2);
+						dns_fixedname_init(&foundname2);
+					}
+
 				} else {
-					current_name = &holder1;
-					new_search_name = &holder2;
-					dns_name_init(new_search_name,
-						      holder2_offsets);
+					current_name = &name1;
+					tmp_name = &name2;
+					dns_name_init(tmp_name, name2_offsets);
+
+					if (foundname != NULL) {
+						current_foundname =
+						 dns_fixedname_name(&foundname2);
+						new_foundname =
+						 dns_fixedname_name(&foundname1);
+						dns_fixedname_init(&foundname1);
+					}
 				}
 
-				keep_labels = FAST_COUNTLABELS(search_name)
+				first_common_label =
+					FAST_COUNTLABELS(search_name)
 					- common_labels;
 
-				dns_name_getlabelsequence(search_name,
-							  0,
-							  keep_labels,
-							  new_search_name);
+				if (foundname != NULL) {
+					/*
+					 * Build foundname by getting the common
+					 * labels and prefixing them to the
+					 * current foundname.
+					 */
+					dns_name_getlabelsequence(search_name,
+							      first_common_label,
+							      current_labels,
+							      tmp_name);
+
+					result = dns_name_concatenate(tmp_name,
+							      current_foundname,
+							      new_foundname,
+							      NULL);
+					if (result != DNS_R_SUCCESS)
+						return (result);
+				}
+
+				/*
+				 * Whack off the common labels of the current
+				 * node for the name to search in the next level.
+				 */
+				dns_name_getlabelsequence(search_name, 0,
+							  first_common_label,
+							  tmp_name);
 			
-				search_name = new_search_name;
+				search_name = tmp_name;
 
 				if (chain != NULL) {
 					ADD_ANCESTOR(chain, NULL);
@@ -703,8 +765,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
 				 * match node that has no data, another
 				 * parameter would be needed for this function.
 				 */
-				if (DATA(current) != NULL)
+				if (DATA(current) != NULL) {
 					*node = current;
+					foundname_labels =
+						FAST_COUNTLABELS(new_foundname);
+				}
 
 				/*
 				 * Search in the next tree level.
@@ -723,11 +788,40 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
 	}
 
 	if (current != NULL) {
-		*node = current;
-		result = DNS_R_SUCCESS;
-	} else if (*node != NULL)
-		result = DNS_R_PARTIALMATCH;
-	else
+		if (foundname != NULL)
+			result = dns_name_concatenate(current_name,
+						      new_foundname, foundname,
+						      NULL);
+		else
+			result = DNS_R_SUCCESS;
+
+		*node = result == DNS_R_SUCCESS ? current : NULL;
+
+	} else if (*node != NULL) {
+		if (foundname != NULL) {
+			current_labels = FAST_COUNTLABELS(new_foundname);
+
+			if (current_labels != foundname_labels) {
+				dns_name_init(&name1, name1_offsets);
+				dns_name_getlabelsequence(new_foundname,
+							  current_labels -
+							  foundname_labels,
+							  foundname_labels,
+							  &name1);
+				result = dns_name_concatenate(&name1, NULL,
+							      foundname, NULL);
+				printf("HEY!\n");
+			} else
+				result = dns_name_concatenate(new_foundname,
+							      NULL,
+							      foundname, NULL);
+		} else
+			result = DNS_R_SUCCESS;
+
+		if (result == DNS_R_SUCCESS)
+			result = DNS_R_PARTIALMATCH;
+
+	} else
 		result = DNS_R_NOTFOUND;
 
 	return (result);
@@ -737,14 +831,15 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **node,
  * Get the data pointer associated with 'name'.
  */
 dns_result_t
-dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, void **data) {
+dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
+		 dns_name_t *foundname, void **data) {
 	dns_rbtnode_t *node = NULL;
 	dns_result_t result;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(data != NULL && *data == NULL);
 
-	result = dns_rbt_findnode(rbt, name, &node, NULL);
+	result = dns_rbt_findnode(rbt, name, foundname, &node, NULL);
 
 	if (node != NULL && DATA(node) != NULL)
 		*data = DATA(node);
@@ -779,7 +874,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 *
 	 * @@@ how to ->dirty, ->locknum and ->references figure in?
 	 */
-	result = dns_rbt_findnode(rbt, name, &node, &chain);
+	result = dns_rbt_findnode(rbt, name, NULL, &node, &chain);
 
 	/*
 	 * The guts of this routine are in a separate function (which
@@ -1063,17 +1158,23 @@ get_ancestor_mem(isc_mem_t *mctx, dns_rbtnodechain_t *chain) {
 	oldsize = chain->ancestor_maxitems * sizeof(dns_rbtnode_t *);
 	newsize = oldsize + ANCESTOR_BLOCK * sizeof(dns_rbtnode_t *);
 
-	ancestor_mem = isc_mem_get(mctx, newsize);
+	if (oldsize == 0) {
+		chain->ancestors = chain->ancestor_buffer;
 
-	if (ancestor_mem == NULL)
-		return (DNS_R_NOMEMORY);
+	} else {
+		ancestor_mem = isc_mem_get(mctx, newsize);
 
-	if (oldsize > 0) {
+		if (ancestor_mem == NULL)
+			return (DNS_R_NOMEMORY);
+
 		memcpy(ancestor_mem, chain->ancestors, oldsize);
-		isc_mem_put(mctx, chain->ancestors, oldsize);
+
+		if (chain->ancestor_maxitems > ANCESTOR_BLOCK)
+			isc_mem_put(mctx, chain->ancestors, oldsize);
+
+		chain->ancestors = ancestor_mem;
 	}
 
-	chain->ancestors = ancestor_mem;
 	chain->ancestor_maxitems += ANCESTOR_BLOCK;
 
 	return (DNS_R_SUCCESS);
@@ -1081,7 +1182,7 @@ get_ancestor_mem(isc_mem_t *mctx, dns_rbtnodechain_t *chain) {
 
 static void
 put_ancestor_mem(isc_mem_t *mctx, dns_rbtnodechain_t *chain) {
-	if (chain->ancestor_maxitems > 0)
+	if (chain->ancestor_maxitems > ANCESTOR_BLOCK)
 		isc_mem_put(mctx, chain->ancestors,
 			    chain->ancestor_maxitems
 			    * sizeof(dns_rbtnode_t *));
