@@ -25,8 +25,25 @@ indicated with "_":
 	_______"a", "printf");
 </CODE></PRE>
 
-<H4>Line Length</H4> Lines should not be longer than 80 characters,
-even if it requires violating the indentation rules to do so.
+<H4>Vertical Whitespace</H4>
+Vertical whitespace is also encouraged for improved code legibility by
+grouping closely related statements and then separating them with a
+single empty line.  There should not, however, be more than one empty
+adjacent line anywhere.
+
+<H4>Line Length</H4>
+Lines should not be longer than 79 characters, even if it requires
+violating the indentation rules to do so.  Since ANSI is assumed, the
+best way to deal with strings that extend past column 79 is to break
+them into two or more sections separated from each other by a newline
+and indentation:
+
+<PRE><CODE>
+        			  puts("This string got very far to the "
+                                       "left and wrapped.  ANSI catenation "
+                                       "rules will turn this into one
+                                       "long string.");
+</CODE></PRE>
 
 <H3>Comments</H3>
 Comments should be used anytime they improve the readability of the code.<P>
@@ -63,7 +80,13 @@ The following lint and lint-like comments should be used where appropriate:
 .h files should not rely on other files having been included.  .h
 files should prevent multiple inclusion.  The OS is assumed to prevent
 multiple inclusion of its .h files.<P>
-.h files that define modules should have a structure like the following:<P>
+.h files that define modules should have a structure like the
+following.  Note that <isc/lang.h> should be included by any public
+header file to get the ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS
+macros used so the correct name-mangling happens for function
+declarations when C++ programs include the file. <isc/lang.h> should
+be included for private header files or for public files that do not
+declare any functions.<P>
 <PRE><CODE>
 /*
  * Copyright (C) 1998  Internet Software Consortium.
@@ -90,44 +113,48 @@ multiple inclusion of its .h files.<P>
  *****/
 
 /*
- * <Module name here>
+ * (Module name here.)
  *
- * <One line description here>
+ * (One line description here.)
  *
- * <Extended description and notes here>
+ * (Extended description and notes here.)
  *
  * MP:
- *	<Information about multiprocessing considerations here, e.g. locking
- *	 requirements>
+ *	(Information about multiprocessing considerations here, e.g. locking
+ *	 requirements.)
  *
  * Reliability:
- *	<Any reliability concerns should be mentioned here>
+ *	(Any reliability concerns should be mentioned here.)
  *
  * Resources:
- *	<A rough guide to how resources are used by this module>
+ *	(A rough guide to how resources are used by this module.)
  *
  * Security:
- *	<Any security issues are discussed here>
+ *	(Any security issues are discussed here.)
  *
  * Standards:
- *	<Any standards relevant to the module are listed here>
+ *	(Any standards relevant to the module are listed here.)
  */
 
 /***
  *** Imports
  ***/
 
-/* <#includes here> */
+/* #includes here. */
+#include &lt;isc/lang.h&gt;
 
 /***
  *** Types
  ***/
 
-/* <Type definitions here> */
+/* (Type definitions here.) */
 
 /***
  *** Functions
  ***/
+ISC_LANG_BEGINDECLS
+/* (Function declarations here, with full prototypes.) */
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_WHATEVER_H */
 
@@ -135,18 +162,21 @@ multiple inclusion of its .h files.<P>
 
 <H3>C Source</H3>
 <H4>Including Interfaces (.h files)</H4>
-The first file to be included must be config.h.
-Try to include only necessary files, not everything under the
-sun.<P>
+The first file to be included in a C source file must be config.h.
+The config.h file must never be included by any public header file
+(that is, any header file that will be installed by "make install").
+Try to include only necessary files, not everything under the sun.<P>
 Operating-system-specific files should not be included by most modules.<P>
 Include UNIX "sys" .h files before ordinary C includes.<P>
 
 <H4>Statements</H4>
-There should be at most one statement per line.<P>
+There should be at most one statement per line.  The comma operator
+should not be used to form compound statements.<P>
 Bad:<P>
 <PRE><CODE>
 	if (i > 0) {
 		printf("yes\n"); i = 0; j = 0;
+                x = 4, y *= 2;
 	}
 </CODE></PRE>
 <H4>Functions</H4>
@@ -170,11 +200,20 @@ g(int i, /* other args here */
 }
 </CODE></PRE>
 
-<H4>Curly Braces</H4> Curly Braces do not get their own indentation.
+<H4>Curly Braces</H4>
+Curly Braces do not get their own indentation.
 An opening brace does not start a new line.  The statements enclosed
 by the braces should not be on the same line as the opening or closing
 brace.  A closing brace should be the only thing on the line, unless
 it's part of an else clause.<P>
+
+Generally speaking, when a control statement (<CODE>if, for</CODE> or
+<CODE>while</CODE>) has only a single action associated with it, then no
+bracing is used around the statement.  Exceptions include when the
+compiler would complain about an ambiguous else clause, or when extra
+bracing improves the readability (a judgement call biased toward not
+having the braces).<P>
+
 Good:<P>
 <PRE><CODE>
 static void
@@ -200,13 +239,15 @@ void f(int i)
 
 <H4>Spaces</H4>
 <UL>
-<LI>Do put a space between operators like '+', '==', etc.
+<LI>Do put a space between operators like '=', '+', '==', etc.
 <LI>Do put a space after ','.
 <LI>Do put a space after ';' in a 'for' statement.
 <LI>Do put a space after 'return', and also parenthesize the return value.
 </UL>
 <UL>
 <LI>Do not put a space between a variable or function name and '(' or '['.
+<LI>Do not put a space after the "sizeof" operator name, and also
+parenthesize its argument, as in <CODE>malloc(4 * sizeof(long))</CODE>.
 <LI>Do not put a space immediately after a '(' or immediately before a ')',
 unless it improves readability.  The same goes for '[' and ']'.
 <LI>Do not put a space before '++' or '--' when used in
@@ -219,11 +260,12 @@ either side of '->'.
 <LI>Do not put a space after '~'.
 <LI>The '|' operator may either have a space on both sides or it may have no
 spaces.
+<LI>Do not put a space after a cast.
 </UL>
 
 <H4>Return Values</H4>
 If a function returns a value, it should be cast to (void) if you don't
-care what the value is.  (Exception for <CODE>printf()</CODE>?)<P>
+care what the value is, except for <CODE>printf</CODE><P>
 
 All error conditions must be handled.<P>
 
@@ -266,7 +308,13 @@ comparisons between signed and unsigned integers should be avoided;
 suppressing the warnings with casts is not desireable.<P>
 
 <H4>Casting</H4>
-Casting should be avoided when possible.<P>
+Casting should be avoided when possible.  When it is necessary, there
+should be no space between the cast and what is being cast.<P>
+
+Bad (obviously for more than one reason ...):
+<PRE><CODE>
+	(void) malloc(SMBUF);
+</CODE></PRE>
 
 <H4>Clear Success or Failure</H4>
 A function should report success or failure, and do so accurately.  It
@@ -353,6 +401,88 @@ Bad:
 		/* Do something. */
 	}
 </CODE></PRE>
+
+<H4>The Ternary Operator</H4>
+The ?: operator should mostly be avoided.  It is tolerated when
+deciding what value to pass as a parameter to a function, such as 
+frequently happens with printf, and also when a simple (non-compound)
+value is being used in assignment or as part of a calculation.
+In particular, using the ternary operator to specify a return value is
+verboten.<P>
+
+Good:
+<PRE><CODE>
+	printf("%c is%s a number.\n", c, isdigit(c) ? "" " NOT");
+        l = (l1 < l2) ? l1 : l2;
+        if (gp.length + (go < 16384 ? 2 : 3) >= name->length) {
+           ...
+        }
+</CODE></PRE>
+
+Bad:
+<PRE><CODE>
+	return (success ? ISC_R_SUCESS : ISC_R_FAILURE);
+</CODE></PRE>
+
+<H4>Assignment in Parameters</H4>
+Variables should not have their values assigned or changed when being
+passed as parameters, except perhaps for the increment and decrement
+operators.<P>
+
+Bad:
+<PRE><CODE>
+	malloc(size = 20);
+</CODE></PRE>
+
+Ok:
+<PRE><CODE>
+	fputc(c++, stdout);
+</CODE></PRE>
+
+<H3>Namespace</H3>
+<H4>Public Interfaces</H4>
+All public interfaces to functions, macros, typedefs, and
+variables provided by the library, should use names of the form
+{library}_{module}_{what}, such as:
+<PRE><CODE>
+	isc_buffer_t				/* typedef */
+        dns_name_setbuffer(name, buffer)	/* function */
+        ISC_LIST_HEAD(list)			/* macro */
+        isc_commandline_argument		/* variable */
+</CODE></PRE>
+however, structures which are typedef'd generally have the name of the
+typedef sans the final _t:
+<PRE><CODE>
+	struct dns_rbtnode {
+        	/* ... members ... */
+	}
+</CODE></PRE>
+Generally speaking macros are defined with all capital letters, but
+this is not universally consistent (eg, numerous isc_buffer_{foo}
+macros).<P>
+The {module} and {what} segments of the name do not have underscores
+separating natural word elements, as demonstrated in
+isc_commandline_argument and dns_name_setbuffer above.  The {module}
+part is usually the same as the basename of the source file, but
+sometimes other {module} interfaces appear within one file, such as
+dns_label_* interfaces in lib/dns/name.c.  However, in the public
+libraries the file name must be the same as some module interface
+provided by the file; e.g., dns_rbt_* interfaces would not be declared
+in a file named redblack.c (in lieu of any other dns_redblack_*
+interfaces in the file).<P>
+
+The one notable exception to this naming rule is the interfaces
+provided by <isc/util.h>.  There's a large caveat associated with the
+public description of this file that it is hazardous to use because it
+pollutes the general namespace.<P>
+
+<H4>Shared Private Interfaces</H4>
+When a module provides an interface for internal use by other modules
+in the library, it should use the same naming convention
+described for the public interfaces, except {library} and {module}
+are separated by a double-underscore.  This indicates that the name is
+internal, its API is not as formal as the public API, and thus it
+might change without any sort of notice.
 
 <H3>Initialization</H3>
 When an object is allocated from the heap, all fields in the object must be

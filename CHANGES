@@ -1,3 +1,6 @@
+ 105.   [doc]           doc/dev/coding.html expanded with other
+                        implicit conventions the developers have used.
+
  104.   [bug]           Made compress_add and compress_find static to
                         lib/dns/compress.c.
 
