@@ -372,8 +372,10 @@ dns_view_freeze(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
-	if (view->resolver != NULL)
+	if (view->resolver != NULL) {
+		INSIST(view->cachedb != NULL);
 		dns_resolver_freeze(view->resolver);
+	}
 	view->frozen = ISC_TRUE;
 }
 
