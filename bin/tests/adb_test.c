@@ -345,9 +345,10 @@ lookup(char *target)
 	result = dns_name_dup(&name, mctx, &client->name);
 	check_result(result, "dns_name_dup %s", target);
 
-	options = DNS_ADBFIND_INET
-		| DNS_ADBFIND_INET6
-		| DNS_ADBFIND_WANTEVENT;
+	options = 0;
+	options |= DNS_ADBFIND_INET;
+	options |= DNS_ADBFIND_INET6;
+	options |= DNS_ADBFIND_WANTEVENT;
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
 				    &client->name, dns_rootname, options,
 				    now, &client->find);
@@ -440,12 +441,15 @@ main(int argc, char **argv)
 	 * for found names to block as well.
 	 */
 	CLOCK();
+	lookup("f.root-servers.net.");		/* Should be in hints */
+	lookup("www.iengines.com");		/* should fetch */
+	lookup("www.isc.org");			/* should fetch */
+	lookup("www.flame.org");		/* should fetch */
 	lookup("kechara.flame.org.");		/* should fetch */
 	lookup("moghedien.flame.org.");		/* should fetch */
 	lookup("mailrelay.flame.org.");		/* should fetch */
 	lookup("ipv4v6.flame.org.");		/* should fetch */
 	lookup("nonexistant.flame.org.");	/* should fetch */
-	lookup("f.root-servers.net.");		/* Should be in hints */
 	lookup("i.root-servers.net.");		/* Should be in hints */
 	CUNLOCK();
 
