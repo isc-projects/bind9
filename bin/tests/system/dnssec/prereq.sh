@@ -15,10 +15,10 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.1 2001/07/10 21:41:14 bwelling Exp $
+# $Id: prereq.sh,v 1.2 2001/07/11 19:02:14 bwelling Exp $
 
 status=0
-$KEYGEN -a RSA -b 512 -n zone -r $KEYGEN foo || status=1 > /dev/null 2>&1
+$KEYGEN -a RSA -b 512 -n zone -r $KEYGEN foo > /dev/null 2>&1 || status=1
 if [ $status == 0 ]
 then
     rm -f foo*
