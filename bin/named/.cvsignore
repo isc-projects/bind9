@@ -2,4 +2,6 @@ Makefile
 named
 parser.c
 parser_p.h
+confparser.c
+confparser_p.h
 lexer.c
