@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.11 2000/07/27 09:39:31 tale Exp $
+# $Id: sign.sh,v 1.12 2000/07/31 15:28:18 bwelling Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -33,21 +33,21 @@ keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
 
 ( cd ../ns3 && sh sign.sh )
 
-cp ../ns3/secure.example.keyset .
+cp ../ns3/keyset-secure.example. .
 
-$KEYSIGNER -r $RANDFILE secure.example.keyset $keyname
-
-# This will leave two copies of the child's zone key in the signed db file;
-# that shouldn't cause any problems.
-cat secure.example.signedkey >>../ns3/secure.example.db.signed
-
-cp ../ns3/bogus.example.keyset .
-
-$KEYSIGNER -r $RANDFILE bogus.example.keyset $keyname
+$KEYSIGNER -r $RANDFILE keyset-secure.example. $keyname
 
 # This will leave two copies of the child's zone key in the signed db file;
 # that shouldn't cause any problems.
-cat bogus.example.signedkey >>../ns3/bogus.example.db.signed
+cat signedkey-secure.example. >>../ns3/secure.example.db.signed
+
+cp ../ns3/keyset-bogus.example. .
+
+$KEYSIGNER -r $RANDFILE keyset-bogus.example. $keyname
+
+# This will leave two copies of the child's zone key in the signed db file;
+# that shouldn't cause any problems.
+cat signedkey-bogus.example. >>../ns3/bogus.example.db.signed
 
 $KEYSETTOOL -r $RANDFILE -t 3600 $keyname
 

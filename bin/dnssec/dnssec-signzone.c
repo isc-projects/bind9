@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.81 2000/06/22 21:49:04 tale Exp $ */
+/* $Id: dnssec-signzone.c,v 1.82 2000/07/31 15:28:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -512,18 +512,19 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 {
 	unsigned char filename[256];
 	isc_buffer_t b;
-	isc_region_t r;
 	dns_db_t *newdb = NULL;
 	dns_dbnode_t *newnode = NULL;
 	dns_rdataset_t newset, sigset;
 	dns_rdata_t rdata, newrdata;
 	isc_result_t result;
 
-	isc_buffer_init(&b, filename, sizeof(filename) - 10);
+	isc_buffer_init(&b, filename, sizeof(filename));
+	isc_buffer_putstr(&b, "signedkey-");
 	result = dns_name_totext(name, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
-	isc_buffer_usedregion(&b, &r);
-	strcpy((char *)r.base + r.length, "signedkey");
+	if (isc_buffer_availablelength(&b) == 0)
+		fatal("name '%s' is too long", nametostr(name));
+	isc_buffer_putmem(&b, "", 1);
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
 			       dns_db_class(db), 0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
@@ -588,7 +589,6 @@ static isc_boolean_t
 haschildkey(dns_db_t *db, dns_name_t *name) {
 	unsigned char filename[256];
 	isc_buffer_t b;
-	isc_region_t r;
 	dns_db_t *newdb = NULL;
 	dns_dbnode_t *newnode = NULL;
 	dns_rdataset_t set, sigset;
@@ -601,11 +601,13 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 	dns_rdataset_init(&set);
 	dns_rdataset_init(&sigset);
 
-	isc_buffer_init(&b, filename, sizeof(filename) - 10);
+	isc_buffer_init(&b, filename, sizeof(filename));
+	isc_buffer_putstr(&b, "signedkey-");
 	result = dns_name_totext(name, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
-	isc_buffer_usedregion(&b, &r);
-	strcpy((char *)r.base + r.length, "signedkey");
+	if (isc_buffer_availablelength(&b) == 0)
+		fatal("name '%s' is too long", nametostr(name));
+	isc_buffer_putmem(&b, "", 1);
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
 			      dns_db_class(db), 0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
@@ -839,6 +841,10 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				signset(db, version, node, name, &keyset);
  alreadyhavenullkey:
 				dns_rdataset_disassociate(&keyset);
+			} else if (isdelegation) {
+				vbprintf(2, "child key for %s found\n",
+					 nametostr(name));
+
 			}
 #endif
 		}

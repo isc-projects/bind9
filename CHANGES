@@ -1,3 +1,6 @@
+ 358.	[cleanup]	Rename the intermediate files used by the dnssec
+			programs.
+
  357.	[bug]		The zone file parser crashed when seeing a quoted
 			$INCLUDE.
 

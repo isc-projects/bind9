@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.28 2000/06/22 21:49:03 tale Exp $ */
+/* $Id: dnssec-signkey.c,v 1.29 2000/07/31 15:28:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -212,14 +212,14 @@ main(int argc, char *argv[]) {
 
 	setup_logging(verbose, mctx, &log);
 
-	if (strlen(argv[0]) < 8 ||
-	    strcmp(argv[0] + strlen(argv[0]) - 7, ".keyset") != 0)
-		fatal("keyset file must end in .keyset");
+	if (strlen(argv[0]) < 8 || strncmp(argv[0], "keyset-", 7) != 0)
+		fatal("keyset file '%s' must start with keyset-", argv[0]);
 
 	dns_fixedname_init(&fdomain);
 	domain = dns_fixedname_name(&fdomain);
-	isc_buffer_init(&b, argv[0], strlen(argv[0]) - 7);
-	isc_buffer_add(&b, strlen(argv[0]) - 7);
+	isc_buffer_init(&b, argv[0] + strlen("keyset-"),
+			strlen(argv[0]) - strlen("keyset-"));
+	isc_buffer_add(&b, strlen(argv[0]) - strlen("keyset-"));
 	result = dns_name_fromtext(domain, &b, dns_rootname, ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("'%s' does not contain a valid domain name", argv[0]);
@@ -230,11 +230,11 @@ main(int argc, char *argv[]) {
 	tdomain[r.length] = 0;
 
 	output = isc_mem_allocate(mctx,
-				  strlen(tdomain) + strlen("signedkey") + 1);
+				  strlen("signedkey-") + strlen(tdomain) + 1);
 	if (output == NULL)
 		fatal("out of memory");
-	strcpy(output, tdomain);
-	strcat(output, "signedkey");
+	strcpy(output, "signedkey-");
+	strcat(output, tdomain);
 
 	db = NULL;
 	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.29 2000/07/30 20:53:49 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.30 2000/07/31 15:28:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -103,6 +103,8 @@ usage(void) {
 	fprintf(stderr, "\t\tSIG end time  - "
 			     "absolute|from start|from now (now + 30 days)\n");
 	fprintf(stderr, "\t-t ttl\n");
+	fprintf(stderr, "\t-p\n");
+	fprintf(stderr, "\t\tuse pseudorandom data (faster but less secure)\n");
 	fprintf(stderr, "\t-r randomdev:\n");
 	fprintf(stderr, "\t\ta file containing random data\n");
 	fprintf(stderr, "\t-v level:\n");
@@ -138,6 +140,8 @@ main(int argc, char *argv[]) {
 	isc_log_t *log = NULL;
 	keynode_t *keynode;
 	dns_name_t *savedname = NULL;
+	unsigned int eflags;
+	isc_boolean_t pseudorandom = ISC_FALSE;
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS)
@@ -146,7 +150,7 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:t:r:v:h")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:t:r:v:ph")) != -1)
 	{
 		switch (ch) {
 		case 's':
@@ -184,6 +188,10 @@ main(int argc, char *argv[]) {
 				fatal("verbose level must be numeric");
 			break;
 
+		case 'p':
+			pseudorandom = ISC_TRUE;
+			break;
+
 		case 'h':
 		default:
 			usage();
@@ -200,8 +208,10 @@ main(int argc, char *argv[]) {
 	setup_entropy(mctx, randomfile, &ectx);
 	if (randomfile != NULL)
 		isc_mem_free(mctx, randomfile);
-	result = dst_lib_init(mctx, ectx,
-			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	eflags = ISC_ENTROPY_BLOCKING;
+	if (!pseudorandom)
+		eflags |= ISC_ENTROPY_GOODONLY;
+	result = dst_lib_init(mctx, ectx, eflags);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst");
 
@@ -266,12 +276,12 @@ main(int argc, char *argv[]) {
 		}
 		if (output == NULL) {
 			output = isc_mem_allocate(mctx,
-						  strlen(namestr) +
-						  strlen("keyset") + 1);
+						  strlen("keyset-") +
+						  strlen(namestr) + 1);
 			if (output == NULL)
 				fatal("out of memory");
-			strcpy(output, namestr);
-			strcat(output, "keyset");
+			strcpy(output, "keyset-");
+			strcat(output, namestr);
 		}
 		if (domain == NULL) {
 			dns_fixedname_init(&fdomain);

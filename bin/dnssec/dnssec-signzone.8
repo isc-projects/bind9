@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\" 
-.\" $Id: dnssec-signzone.8,v 1.8 2000/07/27 09:42:35 tale Exp $
+.\" $Id: dnssec-signzone.8,v 1.9 2000/07/31 15:28:21 bwelling Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -40,7 +40,7 @@
 .Nm dnssec-signzone
 is used to sign a zone.
 Any
-.Ar .signedkey
+.Ar signedkey
 files for the zone to be signed should be present in the current
 directory, along with the keys that will be used to sign the zone.
 If no
@@ -57,7 +57,7 @@ Each
 argument would be an identification string for a key created with
 .Xr dnssec-keygen 8 .
 If the zone to be signed has any secure subzones, the
-.Ar .signedkey
+.Ar signedkey
 files for those subzones need to be available in the
 current working directory used by
 .Nm dnssec-signzone .
@@ -222,18 +222,14 @@ The zone file for this zone is
 which is the same as the origin, so there is no need to use the
 .Fl o
 option to set the origin.
-This zone file contains the keyset for
-.Dv example.com
-that was created by
-.Xr dnssec-makekeyset 8 .
 The zone's keys were either appended to the zone file or
 incorporated using a 
 .Dv $INCLUDE 
 statement.
 If there was a
-.Ar .signedkey
+.Ar signedkey
 file from the parent zone - i.e. 
-.Dv example.com.signedkey 
+.Dv signedkey-example.com.
 - it should be present in the current directory.
 This allows the parent zone's signature to be included in the signed
 version of the
@@ -258,5 +254,4 @@ so that it can be loaded by the name server.
 .Sh SEE ALSO
 .Xr RFC2535,
 .Xr dnssec-keygen 8 ,
-.Xr dnssec-makekeyset 8 ,
 .Xr dnssec-signkey 8 .

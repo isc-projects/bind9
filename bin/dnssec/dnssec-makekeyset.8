@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\" 
-.\" $Id: dnssec-makekeyset.8,v 1.5 2000/07/27 09:42:33 tale Exp $
+.\" $Id: dnssec-makekeyset.8,v 1.6 2000/07/31 15:28:19 bwelling Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt DNSSEC-MAKEKEYSET 8
@@ -147,14 +147,14 @@ to print a short summary of its options and arguments.
 If
 .Nm dnssec-makekeyset
 is successful, it creates a file name of the form
-.Ar nnnn.keyset .
+.Ar keyset-nnnn. .
 This file contains the KEY and SIG records for domain
 .Dv nnnn ,
 the domain name part from the key file identifier produced when
 .Nm dnssec-keygen
 created the domain's public and private keys.
 The
-.Ar .keyset
+.Ar keyset
 file can then be transferred to the DNS administrator of the parent
 zone for them to sign the contents with
 .Xr dnssec-signkey 8 .
@@ -174,7 +174,7 @@ the command line when running
 .Pp
 .Nm dnssec-makekeyset
 will create a file called
-.Pa example.com.keyset
+.Pa keyset-example.com.
 containing a SIG and KEY record for
 .Dv example.com.
 These records will have a TTL of 86400 seconds (1 day).
@@ -184,7 +184,7 @@ The SIG record becomes valid at noon UTC on July 1st 2000 and expires
 The DNS administrator for
 .Dv example.com
 could then send
-.Pa example.com.keyset
+.Pa keyset-example.com.
 to the DNS administrator for
 .Dv .com
 so that they could sign the resource records in the file.
