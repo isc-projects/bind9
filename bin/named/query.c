@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.161 2000/12/11 19:19:12 bwelling Exp $ */
+/* $Id: query.c,v 1.162 2000/12/16 02:30:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1221,8 +1221,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					goto addname;
 				if (WANTDNSSEC(client) && sigrdataset == NULL)
 					goto addname;
-			} else
+			} else {
 				dns_rdataset_disassociate(rdataset);
+				if (sigrdataset != NULL &&
+				    dns_rdataset_isassociated(sigrdataset))
+					dns_rdataset_disassociate(sigrdataset);
+			}
 		}
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_aaaa, 0,

@@ -1,4 +1,7 @@
 
+ 618.	[bug]		Queries to a signed zone could sometimes cause
+			an assertion failure.
+
  617.	[bug]		When using dynamic update to add a new RR to an
 			existing RRset with a different TTL, the journal
 			entries generated from the update did not include
