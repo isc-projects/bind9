@@ -2,7 +2,7 @@ Inspect dig and nsupdate (with Andreas)
 
 Serialize dig's transmissions to servers	[COMPLETED, in testing]
 
-Clean up option parsing in dig
+Clean up option parsing in dig			[COMPLETED]
 
 Examine dig8's behavior when one of the servers it talks to servfail's
 back, and, if necessary, reproduce behavior in dig9.  (RT351)
@@ -10,15 +10,19 @@ back, and, if necessary, reproduce behavior in dig9.  (RT351)
 Remove or fix port number display in places where it is not correctly
 reported (nslookup, in particular). (RT352)	[COMPLETED]
 
+Modify sanitize script to allow more than one key
+
 Check text strings for host and nslookup output ov various types.
 
 Check functionality of +search option
 
-Check necessity of +details option
+Check necessity of +details option / remove it
 
-Check AXFR under Linux v6
+Check AXFR under Linux v6 / 2.4.x
 
 Make -t and -c change command line parsing so that unprefixed class and types
 are treated as hosts.
 
 +view and +zone stuff
+
+nsupdate code check and cleanup.  Make sure prereq, etc... work.
