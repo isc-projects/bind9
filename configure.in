@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.222 $)
+AC_REVISION($Revision: 1.223 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -661,6 +661,50 @@ case "$host" in
 		AC_CHECK_LIB(nsl, inet_ntoa)
 		;;
 esac
+
+#
+#
+# Purify support
+#
+AC_MSG_CHECKING(whether to use purify)
+AC_ARG_WITH(purify,
+	[  --with-purify[=PATH]	use Rational purify [default searches user's
+path]],
+	use_purify="$withval", use_purify="no")
+
+case "$use_purify" in
+	no)
+		;;
+	yes)
+		AC_PATH_PROG(purify_path, purify, purify)
+		;;
+	*)
+		purify_path="$use_purify"
+		;;
+esac
+
+case "$use_purify" in
+	no)
+		AC_MSG_RESULT(no)
+		PURIFY=""
+		;;
+	*)
+		if test -f $purify_path || test $purify_path = purify; then
+			AC_MSG_RESULT($purify_path)
+			PURIFYFLAGS="`echo $PURIFYOPTIONS`"
+			PURIFY="$purify_path $PURIFYFLAGS"
+		else
+			AC_MSG_ERROR([$purify_path not found.
+
+Please choose the proper path with the following command:
+
+    configure --with-purify=PATH
+])
+		fi
+		;;
+esac
+
+AC_SUBST(PURIFY)
 
 #
 #
