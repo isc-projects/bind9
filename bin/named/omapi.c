@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.28 2000/12/15 19:29:57 gson Exp $ */
+/* $Id: omapi.c,v 1.29 2000/12/15 19:32:55 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -72,7 +72,7 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_OMAPI, ISC_LOG_DEBUG(1),
-		      "control_setvalue: '%.*s' control command received",
+		      "received control channel command '%.*s'",
 		      REGION_FMT(&region));
 
 	if (value == NULL)
@@ -102,7 +102,7 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 				       NS_OMAPI_COMMAND_RELOADZONES) == 0) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-			      "control_setvalue: '%.*s' not yet implemented",
+			      "unimplemented  channel command '%.*s'",
 			      REGION_FMT(&region));
 		result = ISC_R_NOTIMPLEMENTED;
 	} else if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_DUMPSTATS)
@@ -116,7 +116,7 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-			      "control_setvalue: unknown name: '%.*s'",
+			      "unknown control channel command '%.*s'",
 			      REGION_FMT(&region));
 		result = omapi_object_passsetvalue(handle, name, value);
 	}
