@@ -23,13 +23,6 @@ echo "A:A test to determine online speed of zone transfers"
 # Perform tests
 #
 
-if [ -f dig.out.ns1 ]; then
-	rm -f dig.out.ns1
-fi
-if [ -f dig.out.ns2 ]; then
-	rm -f dig.out.ns2
-fi
-
 count=0
 ticks=0
 while [ $count != 300 ]; do

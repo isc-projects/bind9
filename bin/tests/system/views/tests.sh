@@ -28,8 +28,6 @@ TOP="`cd ../../../..; pwd`"
 NAMED=$TOP/bin/named/named
 export NAMED
 
-rm -f dig.out.ns2* dig.out.ns3* 2>&1 > /dev/null
-
 status=0;
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
 	a.example. @10.53.0.2 any > dig.out.ns2.1

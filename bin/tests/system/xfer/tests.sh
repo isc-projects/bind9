@@ -23,14 +23,6 @@ echo "A:A test to determine online functionality of zone transfers"
 # Perform tests
 #
 
-if [ -f dig.out.ns2 ]; then
-	rm -f dig.out.ns2
-fi
-if [ -f dig.out.ns3 ]; then
-	rm -f dig.out.ns3
-fi
-
-
 status=0;
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
 	@10.53.0.2 axfr > dig.out.ns2
