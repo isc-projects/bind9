@@ -26,6 +26,10 @@
 1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
 			<sys/param.h> is included or not.  Be consistant.
 
+1286.	[bug]		ISC_LINK_INIT, ISC_LINK_UNLINK, ISC_LIST_DEQUEUE,
+			__ISC_LINK_UNLINKUNSAFE and __ISC_LIST_DEQUEUEUNSAFE
+			are not C++ compatible, use *_TYPE versions instead.
+
 1285.	[bug]		libbind: LINK_INIT and UNLINK were not compatible with
 			C++, use LINK_INIT_TYPE and UNLINK_TYPE instead.
 
