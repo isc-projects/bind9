@@ -84,7 +84,7 @@ u_int16_t dst_s_id_calc(const u_char *key_data, const int key_len);
 
 /* DST_API control flags */
 /* These are used used in functions dst_sign_data and dst_verify_data */
-#define SIG_MODE_INIT		1  /* initalize digest */
+#define SIG_MODE_INIT		1  /* initialize digest */
 #define SIG_MODE_UPDATE		2  /* add data to digest */
 #define SIG_MODE_FINAL		4  /* generate/verify signature */
 #define SIG_MODE_ALL		(SIG_MODE_INIT|SIG_MODE_UPDATE|SIG_MODE_FINAL)

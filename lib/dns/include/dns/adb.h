@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.68 2001/11/27 03:00:50 marka Exp $ */
+/* $Id: adb.h,v 1.69 2002/02/20 01:44:02 gson Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -254,7 +254,7 @@ dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
  *
  * Requires:
  *	'adb' to be a valid dns_adb_t, created via dns_adb_create().
- *	'adbp' to be a valid pointer to a *dns_adb_t which is initalized
+ *	'adbp' to be a valid pointer to a *dns_adb_t which is initialized
  *		to NULL.
  */
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.16 2001/03/04 21:21:39 bwelling Exp $ */
+/* $Id: zoneconf.h,v 1.17 2002/02/20 01:43:55 gson Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
@@ -40,11 +40,11 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
  * at zone creation time.
  *
  * Require:
- *	'lctx' to be initalised or NULL.
- *	'cctx' to be initalised or NULL.
+ *	'lctx' to be initialized or NULL.
+ *	'cctx' to be initialized or NULL.
  *	'ac' to point to an initialized ns_aclconfctx_t.
- *	'czone' to be initalised.
- *	'zone' to be initalised.
+ *	'czone' to be initialized.
+ *	'zone' to be initialized.
  */
 
 isc_boolean_t

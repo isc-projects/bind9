@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.h,v 1.15 2001/01/09 21:52:21 bwelling Exp $ */
+/* $Id: callbacks.h,v 1.16 2002/02/20 01:44:04 gson Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
@@ -62,11 +62,11 @@ struct dns_rdatacallbacks {
 void
 dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
 /*
- * Initalise 'callbacks'.
+ * Initialize 'callbacks'.
  * 	'error' and 'warn' are set to default callbacks that print the
  *	error message through the DNS library log context.
  *
- *	All other elements are initalised to NULL.
+ *	All other elements are initialized to NULL.
  *
  * Requires:
  *      'callbacks' is a valid dns_rdatacallbacks_t,
