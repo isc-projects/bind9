@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.1 $)
+AC_REVISION($Revision: 1.355.18.2 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -467,6 +467,14 @@ int main() {
 		[AC_MSG_RESULT(not compatible)
 		 AC_MSG_ERROR(you need OpenSSL 0.9.6e/0.9.7-beta2 (or newer): CERT CA-2002-23)],
 		[AC_MSG_RESULT(assuming target platform has compatible version)]))
+		AC_MSG_CHECKING(for OpenSSL DSA support)
+		if test -f $use_openssl/include/openssl/dsa.h
+		then
+			AC_DEFINE(HAVE_OPENSSL_DSA)
+			AC_MSG_RESULT(yes)
+		else
+			AC_MSG_RESULT(no)
+		fi
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
 		;;

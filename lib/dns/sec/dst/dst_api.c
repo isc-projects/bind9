@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.114 2004/03/18 02:58:05 marka Exp $
+ * $Id: dst_api.c,v 1.114.18.1 2004/05/21 08:20:01 marka Exp $
  */
 
 #include <config.h>
@@ -145,9 +145,11 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	RETERR(dst__openssl_init());
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
+#ifdef HAVE_OPENSSL_DSA
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
-	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #endif
+	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
+#endif /* OPENSSL */
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
@@ -1136,10 +1138,12 @@ algorithm_status(unsigned int alg) {
 
 	if (dst_algorithm_supported(alg))
 		return (ISC_R_SUCCESS);
+#ifndef OPENSSL
 	if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
 	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
 	    alg == DST_ALG_HMACMD5)
 		return (DST_R_NOCRYPTO);
+#endif
 	return (DST_R_UNSUPPORTEDALG);
 }
 
