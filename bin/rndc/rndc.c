@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.2 2004/07/23 04:12:46 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.3 2004/09/03 03:50:01 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -102,7 +102,7 @@ command is one of the following:\n\
 		Retransfer a single zone without checking serial number.\n\
   freeze zone [class [view]]\n\
   		Suspend updates to a dynamic zone.\n\
-  unfreeze zone [class [view]]\n\
+  thaw zone [class [view]]\n\
   		Enable updates to a frozen dynamic zone and reload it.\n\
   reconfig	Reload configuration file and new zones only.\n\
   stats		Write server statistics to the statistics file.\n\

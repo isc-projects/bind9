@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.14 2004/03/05 04:57:55 marka Exp $ */
+/* $Id: control.h,v 1.14.18.1 2004/09/03 03:50:00 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -47,6 +47,7 @@
 #define NS_COMMAND_STATUS	"status"
 #define NS_COMMAND_FREEZE	"freeze"
 #define NS_COMMAND_UNFREEZE	"unfreeze"
+#define NS_COMMAND_THAW		"thaw"
 #define NS_COMMAND_TIMERPOKE	"timerpoke"
 #define NS_COMMAND_RECURSING	"recursing"
 #define NS_COMMAND_NULL		"null"
