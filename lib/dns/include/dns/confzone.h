@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.44 2000/08/22 05:14:58 marka Exp $ */
+/* $Id: confzone.h,v 1.45 2000/10/31 04:20:54 marka Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -119,6 +119,8 @@ struct dns_c_master_zone {
 	isc_uint32_t		max_names;
 #endif /* NOMINUM_PUBLIC */
 	
+	isc_sockaddr_t		transfer_source;
+	isc_sockaddr_t		transfer_source_v6;
 	isc_uint32_t		min_retry_time;
 	isc_uint32_t		max_retry_time;
 	isc_uint32_t		min_refresh_time;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.50 2000/10/12 04:03:28 marka Exp $ */
+/* $Id: confview.c,v 1.51 2000/10/31 04:20:52 marka Exp $ */
 
 #include <config.h>
 
@@ -726,8 +726,8 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_AS_BOOLEAN(notify_forward, "notify-forward");
 #endif /* NOMINUM_PUBLIC */
 
-	PRINT_IP(transfer_source, "transfer-source");
-	PRINT_IP(transfer_source_v6, "transfer-source-v6");
+	PRINT_IPANDPORT(transfer_source, "transfer-source");
+	PRINT_IPANDPORT(transfer_source_v6, "transfer-source-v6");
 
 	PRINT_IPANDPORT(query_source, "query-source");
 	PRINT_IPANDPORT(query_source_v6, "query-source-v6");

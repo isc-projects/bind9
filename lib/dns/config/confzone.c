@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.60 2000/10/18 21:18:47 bwelling Exp $ */
+/* $Id: confzone.c,v 1.61 2000/10/31 04:20:53 marka Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,8 @@
 #define MZ_MAX_RETRY_TIME_BIT		11
 #define MZ_MIN_REFRESH_TIME_BIT		12
 #define MZ_MAX_REFRESH_TIME_BIT		13
+#define	MZ_TRANSFER_SOURCE_BIT		14
+#define	MZ_TRANSFER_SOURCE_V6_BIT	15
 
 
 /*
@@ -2558,11 +2560,11 @@ dns_c_zone_settransfersource(dns_c_zone_t *zone, isc_sockaddr_t newval) {
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "master zones do not have a "
-			      "transfer_source field");
-		return (ISC_R_FAILURE);
+		zone->u.mzone.transfer_source = newval ;
+		existed = DNS_C_CHECKBIT(MZ_TRANSFER_SOURCE_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_TRANSFER_SOURCE_BIT, &zone->u.mzone.setflags);
+		break;
 
 	case dns_c_zone_slave:
 		zone->u.szone.transfer_source = newval ;
@@ -2610,11 +2612,15 @@ dns_c_zone_gettransfersource(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "master zones do not have a "
-			      "transfer_source field");
-		return (ISC_R_FAILURE);
+		if (DNS_C_CHECKBIT(MZ_TRANSFER_SOURCE_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.transfer_source ;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+
+		break;
 
 	case dns_c_zone_slave:
 		if (DNS_C_CHECKBIT(SZ_TRANSFER_SOURCE_BIT,
@@ -2669,11 +2675,12 @@ dns_c_zone_settransfersourcev6(dns_c_zone_t *zone, isc_sockaddr_t newval) {
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "master zones do not have a "
-			      "transfer_source_v6 field");
-		return (ISC_R_FAILURE);
+		zone->u.mzone.transfer_source_v6 = newval ;
+		existed = DNS_C_CHECKBIT(MZ_TRANSFER_SOURCE_V6_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_TRANSFER_SOURCE_V6_BIT,
+			     &zone->u.mzone.setflags);
+		break;
 
 	case dns_c_zone_slave:
 		zone->u.szone.transfer_source_v6 = newval ;
@@ -2723,11 +2730,15 @@ dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "master zones do not have a "
-			      "transfer_source_v6 field");
-		return (ISC_R_FAILURE);
+		if (DNS_C_CHECKBIT(MZ_TRANSFER_SOURCE_V6_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.transfer_source_v6 ;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+
+		break;
 
 	case dns_c_zone_slave:
 		if (DNS_C_CHECKBIT(SZ_TRANSFER_SOURCE_V6_BIT,
@@ -4538,6 +4549,8 @@ dns_c_zone_unsetenabled(dns_c_zone_t *zone)
 
 static void
 master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
+	in_port_t port;
+
 	REQUIRE(mzone != NULL);
 
 	if (mzone->file != NULL) {
@@ -4632,6 +4645,30 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 		fprintf(fp, "ixfr-tmp-file \"%s\";\n", mzone->ixfr_tmp);
 	}
 
+	if (DNS_C_CHECKBIT(MZ_TRANSFER_SOURCE_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "transfer-source ");
+		dns_c_print_ipaddr(fp, &mzone->transfer_source);
+		port = isc_sockaddr_getport(&mzone->transfer_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(MZ_TRANSFER_SOURCE_V6_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "transfer-source-v6 ");
+		dns_c_print_ipaddr(fp, &mzone->transfer_source_v6);
+		port = isc_sockaddr_getport(&mzone->transfer_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
+	}
+
 	if (DNS_C_CHECKBIT(MZ_MAX_TRANS_IDLE_OUT_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-idle-out %d;\n",
@@ -4704,6 +4741,8 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 
 static void
 slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
+	in_port_t port;
+
 	REQUIRE(szone != NULL);
 
 	if (szone->file != NULL) {
@@ -4819,14 +4858,24 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "transfer-source ");
 		dns_c_print_ipaddr(fp, &szone->transfer_source);
-		fprintf(fp, " ;\n");
+		port = isc_sockaddr_getport(&szone->transfer_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
 	}
 
 	if (DNS_C_CHECKBIT(SZ_TRANSFER_SOURCE_V6_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "transfer-source-v6 ");
 		dns_c_print_ipaddr(fp, &szone->transfer_source_v6);
-		fprintf(fp, " ;\n");
+		port = isc_sockaddr_getport(&szone->transfer_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
 	}
 
 	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_IN_BIT, &szone->setflags)) {
@@ -4924,6 +4973,8 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 
 static void
 stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone) {
+	in_port_t port;
+
 	REQUIRE(tzone != NULL);
 
 	if (tzone->file != NULL) {
@@ -5038,6 +5089,11 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "transfer-source ");
 		dns_c_print_ipaddr(fp, &tzone->transfer_source);
+		port = isc_sockaddr_getport(&tzone->transfer_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
 		fprintf(fp, ";\n");
 	}
 
@@ -5045,6 +5101,11 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "transfer-source-v6 ");
 		dns_c_print_ipaddr(fp, &tzone->transfer_source_v6);
+		port = isc_sockaddr_getport(&tzone->transfer_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
 		fprintf(fp, ";\n");
 	}
 

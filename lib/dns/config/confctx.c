@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.93 2000/10/19 01:26:34 gson Exp $ */
+/* $Id: confctx.c,v 1.94 2000/10/31 04:20:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1099,8 +1099,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 						 ISC_TRUE));
 	}
 
-	PRINT_IP(transfer_source, "transfer-source");
-	PRINT_IP(transfer_source_v6, "transfer-source-v6");
+	PRINT_IPANDPORT(transfer_source, "transfer-source");
+	PRINT_IPANDPORT(transfer_source_v6, "transfer-source-v6");
 
 	PRINT_IPANDPORT(query_source, "query-source");
 	PRINT_IPANDPORT(query_source_v6, "query-source-v6");
