@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.75.2.3 2001/02/07 19:26:22 gson Exp $ */
+/* $Id: nsupdate.c,v 1.75.2.4 2001/04/11 19:05:39 gson Exp $ */
 
 #include <config.h>
 
@@ -466,7 +466,10 @@ setup_system(void) {
 		}
 	}
 
-	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
+	result = isc_entropy_create(mctx, &entp);
+	check_result(result, "isc_entropy_create");
+
+	result = dns_dispatchmgr_create(mctx, entp, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
 	result = isc_socketmgr_create(mctx, &socketmgr);
@@ -483,9 +486,6 @@ setup_system(void) {
 
 	result = isc_task_onshutdown(global_task, shutdown_program, NULL);
 	check_result(result, "isc_task_onshutdown");
-
-	result = isc_entropy_create(mctx, &entp);
-	check_result(result, "isc_entropy_create");
 
 	result = dst_lib_init(mctx, entp, 0);
 	check_result(result, "dst_lib_init");
