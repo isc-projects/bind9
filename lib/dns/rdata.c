@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.151 2001/10/02 23:33:04 gson Exp $ */
+/* $Id: rdata.c,v 1.152 2001/10/03 00:51:38 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -503,6 +503,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
+
+	if (type == 0)
+		return (DNS_R_FORMERR);
 
 	ss = *source;
 	st = *target;
