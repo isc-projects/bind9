@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2002/02/20 03:34:08 marka Exp $
+# $Id: Makefile.in,v 1.16 2002/07/12 01:42:22 marka Exp $
 
 srcdir =        @srcdir@
 VPATH =         @srcdir@
@@ -116,7 +116,7 @@ clean distclean::
 	rm -f libbind.@SA@ libbind.la
 
 distclean::
-	rm -f rules includes mkdep
+	rm -f make/rules make/includes make/mkdep
 
 distclean::
 	rm -f config.cache config.h config.log config.status libtool
