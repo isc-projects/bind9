@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.24 2000/10/28 00:37:52 bwelling Exp $ */
+/* $Id: lwresutil.c,v 1.25 2000/11/02 01:52:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,53 @@
 
 #include "assert_p.h"
 #include "context_p.h"
+
+/*
+ * Requires:
+ *
+ *	The "current" pointer in "b" points to encoded raw data.
+ *
+ * Ensures:
+ *
+ *	The address of the first byte of the data is returned via "p",
+ *	and the length is returned via "len".  If NULL, they are not
+ *	set.
+ *
+ *	On return, the current pointer of "b" will point to the character
+ *	following the data length and the data.
+ *
+ */
+lwres_result_t
+lwres_data_parse(lwres_buffer_t *b, unsigned char **p, lwres_uint16_t *len)
+{
+	lwres_uint16_t datalen;
+	unsigned char *data;
+
+	REQUIRE(b != NULL);
+
+	/*
+	 * Pull off the length (2 bytes)
+	 */
+	if (!SPACE_REMAINING(b, 2))
+		return (LWRES_R_UNEXPECTEDEND);
+	datalen = lwres_buffer_getuint16(b);
+
+	/*
+	 * Set the pointer to this string to the right place, then
+	 * advance the buffer pointer.
+	 */
+	if (!SPACE_REMAINING(b, datalen))
+		return (LWRES_R_UNEXPECTEDEND);
+	data = b->base + b->current;
+	lwres_buffer_forward(b, datalen);
+
+	if (len != NULL)
+		*len = datalen;
+	if (p != NULL)
+		*p = data;
+
+	return (LWRES_R_SUCCESS);
+}
 
 /*
  * Requires:
@@ -328,6 +375,120 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 		CTXFREE(buffer, LWRES_RECVLENGTH);
 	if (response != NULL)
 		lwres_gnbaresponse_free(ctx, &response);
+
+	return (ret);
+}
+
+lwres_result_t
+lwres_getrdatabyname(lwres_context_t *ctx, const char *name,
+		     lwres_uint16_t rdclass, lwres_uint16_t rdtype,
+		     lwres_uint32_t flags, lwres_grbnresponse_t **structp)
+{
+	int ret;
+	int recvlen;
+	lwres_buffer_t b_in, b_out;
+	lwres_lwpacket_t pkt;
+	lwres_uint32_t serial;
+	char *buffer;
+	lwres_grbnrequest_t request;
+	lwres_grbnresponse_t *response;
+	char target_name[1024];
+	unsigned int target_length;
+
+	REQUIRE(ctx != NULL);
+	REQUIRE(name != NULL);
+	REQUIRE(structp != NULL && *structp == NULL);
+
+	b_in.base = NULL;
+	b_out.base = NULL;
+	response = NULL;
+	buffer = NULL;
+	serial = lwres_context_nextserial(ctx);
+
+	buffer = CTXMALLOC(LWRES_RECVLENGTH);
+	if (buffer == NULL) {
+		ret = LWRES_R_NOMEMORY;
+		goto out;
+	}
+
+	target_length = strlen(name);
+	if (target_length >= sizeof(target_name))
+		return (LWRES_R_FAILURE);
+	strcpy(target_name, name); /* strcpy is safe */
+
+	/*
+	 * Set up our request and render it to a buffer.
+	 */
+	request.rdclass = rdclass;
+	request.rdtype = rdtype;
+	request.flags = flags;
+	request.name = target_name;
+	request.namelen = target_length;
+	pkt.pktflags = 0;
+	pkt.serial = serial;
+	pkt.result = 0;
+	pkt.recvlength = LWRES_RECVLENGTH;
+
+ again:
+	ret = lwres_grbnrequest_render(ctx, &request, &pkt, &b_out);
+	if (ret != LWRES_R_SUCCESS)
+		goto out;
+
+	ret = lwres_context_sendrecv(ctx, b_out.base, b_out.length, buffer,
+				     LWRES_RECVLENGTH, &recvlen);
+	if (ret != LWRES_R_SUCCESS)
+		goto out;
+
+	lwres_buffer_init(&b_in, buffer, recvlen);
+	b_in.used = recvlen;
+
+	/*
+	 * Parse the packet header.
+	 */
+	ret = lwres_lwpacket_parseheader(&b_in, &pkt);
+	if (ret != LWRES_R_SUCCESS)
+		goto out;
+
+	/*
+	 * Sanity check.
+	 */
+	if (pkt.serial != serial)
+		goto again;
+	if (pkt.opcode != LWRES_OPCODE_GETRDATABYNAME)
+		goto again;
+
+	/*
+	 * Free what we've transmitted
+	 */
+	CTXFREE(b_out.base, b_out.length);
+	b_out.base = NULL;
+	b_out.length = 0;
+
+	if (pkt.result != LWRES_R_SUCCESS) {
+		ret = pkt.result;
+		goto out;
+	}
+
+	/*
+	 * Parse the response.
+	 */
+	ret = lwres_grbnresponse_parse(ctx, &b_in, &pkt, &response);
+	if (ret != LWRES_R_SUCCESS)
+		goto out;
+	response->base = buffer;
+	response->baselen = LWRES_RECVLENGTH;
+	buffer = NULL; /* don't free this below */
+
+	*structp = response;
+	return (LWRES_R_SUCCESS);
+
+ out:
+	if (b_out.base != NULL)
+		CTXFREE(b_out.base, b_out.length);
+	if (buffer != NULL)
+		CTXFREE(buffer, LWRES_RECVLENGTH);
+	if (response != NULL)
+		lwres_grbnresponse_free(ctx, &response);
 
 	return (ret);
 }

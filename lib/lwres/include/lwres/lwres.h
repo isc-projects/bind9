@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.44 2000/10/05 22:27:54 bwelling Exp $ */
+/* $Id: lwres.h,v 1.45 2000/11/02 01:52:30 bwelling Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -92,25 +92,14 @@
 /*
  * Flags.
  *
- * TRUST* define a two-bit value:
+ * 	These flags are only relevant to rrset queries.
  *
- *	TRUSTDEFAULT:  Let the server decide what to do.
- *
- *	TRUSTNOTREQUIRED:  DNSSEC (or NIS equavalent) is not required.
- *
- *	TRUSTREQUIRED:  DNSSEC (if present) must validate, and the
- *		daemon the client is talking to must be DNSSEC aware.
- *
- *	TRUSTRESERVED:  No not used, reserved for future.
- *
- * XXXMLG -- currently not implemented!
+ *	TRUSTNOTREQUIRED:  DNSSEC is not required (input)
+ *	SECUREDATA: The data was crypto-verified with DNSSEC (output)
  *
  */
-#define LWRES_FLAG_TRUSTDEFAULT		0x00000000U
 #define LWRES_FLAG_TRUSTNOTREQUIRED	0x00000001U
-#define LWRES_FLAG_TRUSTREQUIRED	0x00000010U
-#define LWRES_FLAG_TRUSTRESERVED	0x00000011U
-#define LWRES_FLAG_TRUSTMASK		0x00000011U  /* mask for the above */
+#define LWRES_FLAG_SECUREDATA		0x00000002U
 
 /*
  * no-op
@@ -189,6 +178,42 @@ typedef struct {
 	void			       *base;
 	size_t				baselen;
 } lwres_gnbaresponse_t;
+
+/*
+ * get rdata by name
+ */
+#define LWRES_OPCODE_GETRDATABYNAME	0x00010003U
+
+typedef struct {
+	/* public */
+	lwres_uint32_t			flags;
+	lwres_uint16_t			rdclass;
+	lwres_uint16_t			rdtype;
+	lwres_uint16_t			namelen;
+	char			       *name;
+} lwres_grbnrequest_t;
+
+typedef struct {
+	/* public */
+	lwres_uint32_t			flags;
+	lwres_uint16_t			rdclass;
+	lwres_uint16_t			rdtype;
+	lwres_uint32_t			ttl;
+	lwres_uint16_t			nrdatas;
+	lwres_uint16_t			nsigs;
+	char			       *realname;
+	lwres_uint16_t			realnamelen;
+	unsigned char		      **rdatas;
+	lwres_uint16_t		       *rdatalen;
+	unsigned char		      **sigs;
+	lwres_uint16_t		       *siglen;
+	/* if base != NULL, it will be freed when this structure is freed. */
+	void			       *base;
+	size_t				baselen;
+} lwres_grbnresponse_t;
+
+#define LWRDATA_VALIDATED	0x00000001
+#define LWRDATA_AUTHORITATIVE	0x00000002
 
 /*
  * resolv.conf data
@@ -351,6 +376,61 @@ lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp);
  */
 
 lwres_result_t
+lwres_grbnrequest_render(lwres_context_t *ctx, lwres_grbnrequest_t *req,
+			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
+
+lwres_result_t
+lwres_grbnresponse_render(lwres_context_t *ctx, lwres_grbnresponse_t *req,
+			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
+
+lwres_result_t
+lwres_grbnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			lwres_lwpacket_t *pkt, lwres_grbnrequest_t **structp);
+
+lwres_result_t
+lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			 lwres_lwpacket_t *pkt,
+			 lwres_grbnresponse_t **structp);
+
+void
+lwres_grbnrequest_free(lwres_context_t *ctx, lwres_grbnrequest_t **structp);
+/*
+ * Frees any dynamically allocated memory for this structure.
+ *
+ * Requires:
+ *
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
+ *
+ *	structp != NULL && *structp != NULL.
+ *
+ * Ensures:
+ *
+ *	*structp == NULL.
+ *
+ *	All memory allocated by this structure will be returned to the
+ *	system via the context's free function.
+ */
+
+void
+lwres_grbnresponse_free(lwres_context_t *ctx, lwres_grbnresponse_t **structp);
+/*
+ * Frees any dynamically allocated memory for this structure.
+ *
+ * Requires:
+ *
+ *	ctx != NULL, and be a context returned via lwres_contextcreate().
+ *
+ *	structp != NULL && *structp != NULL.
+ *
+ * Ensures:
+ *
+ *	*structp == NULL.
+ *
+ *	All memory allocated by this structure will be returned to the
+ *	system via the context's free function.
+ */
+
+lwres_result_t
 lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 /*
@@ -479,6 +559,9 @@ lwres_conf_get(lwres_context_t *ctx);
  */
 
 lwres_result_t
+lwres_data_parse(lwres_buffer_t *b, unsigned char **p, lwres_uint16_t *len);
+
+lwres_result_t
 lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len);
 
 lwres_result_t
@@ -492,6 +575,11 @@ lwres_result_t
 lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 		    lwres_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp);
+
+lwres_result_t
+lwres_getrdatabyname(lwres_context_t *ctx, const char *name,
+		     lwres_uint16_t rdclass, lwres_uint16_t rdtype,
+		     lwres_uint32_t flags, lwres_grbnresponse_t **structp);
 
 LWRES_LANG_ENDDECLS
 

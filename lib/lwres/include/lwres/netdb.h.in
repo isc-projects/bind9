@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.27 2000/08/01 01:32:43 tale Exp $ */
+/* $Id: netdb.h.in,v 1.28 2000/11/02 01:52:31 bwelling Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
@@ -31,7 +31,7 @@
 @ISC_LWRES_NEEDADDRINFO@
 
 #ifdef ISC_LWRES_NEEDADDRINFO
-struct	addrinfo {
+struct addrinfo {
 	int		ai_flags;      /* AI_PASSIVE, AI_CANONNAME */
 	int		ai_family;     /* PF_xxx */
 	int		ai_socktype;   /* SOCK_xxx */
@@ -154,6 +154,42 @@ struct	addrinfo {
 #define	NI_NUMERICSCOPE	0x00000020	/*2553bis-00*/
 
 /*
+ * Structures for getrrsetbyname()
+ */
+struct rdatainfo {
+	unsigned int		rdi_length;
+	unsigned char		*rdi_data;
+};
+
+struct rrsetinfo {
+	unsigned int		rri_flags;
+	int			rri_rdclass;
+	int			rri_rdtype;
+	unsigned int		rri_ttl;
+	unsigned int		rri_nrdatas;
+	unsigned int		rri_nsigs;
+	char			*rri_name;
+	struct rdatainfo	*rri_rdatas;
+	struct rdatainfo	*rri_sigs;
+};
+
+/*
+ * Flags for getrrsetbyname()
+ */
+#define RRSET_VALIDATED		0x00000001
+	/* Set was dnssec validated */
+#define RRSET_AUTHORITATIVE	0x00000002
+	/* Set was returned by an authoritative server */
+
+/*
+ * Return codes for getrrsetbyname()
+ */
+#define ERRSET_SUCCESS		0
+#define ERRSET_NOMEMORY		1
+#define ERRSET_FAIL		2
+#define ERRSET_INVAL		3
+
+/*
  * Define to map into lwres_ namespace.
  */
 
@@ -267,6 +303,16 @@ struct	addrinfo {
 #endif
 #define endhostent_r lwres_endhostent_r
 
+#ifdef getrrsetbyname
+#undef getrrsetbyname
+#endif getrrsetbyname
+#define getrrsetbyname lwres_getrrsetbyname
+
+#ifdef freerrset
+#undef freerrset
+#endif freerrset
+#define freerrset lwres_freerrset
+
 #ifdef notyet
 #define getservbyname lwres_getservbyname
 #define getservbyport lwres_getservbyport
@@ -372,6 +418,10 @@ void		lwres_endhostent(void);
 void		lwres_sethostent(int);
 /* void		lwres_sethostfile(const char *); */
 void		lwres_freehostent(struct hostent *);
+
+int		lwres_getrrsetbyname(const char *, unsigned int, unsigned int,
+				     unsigned int, struct rrsetinfo **);
+void		lwres_freerrset(struct rrsetinfo *);
 
 #ifdef notyet
 struct netent	*lwres_getnetbyaddr(unsigned long, int);
