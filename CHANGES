@@ -92,7 +92,7 @@
 1706.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #12328]
 
-1705.	[placeholder]	rt12327
+1705.	[func]		Allow the journal's name to be changed via named.conf.
 
 1704.	[port]		lwres needed a snprintf() implementation for
 			platforms without snprintf().  Add missing

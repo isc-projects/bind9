@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.48 2004/07/29 00:08:10 marka Exp $ */
+/* $Id: check.c,v 1.49 2004/10/07 02:15:13 marka Exp $ */
 
 #include <config.h>
 
@@ -733,6 +733,7 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	{ "allow-update", MASTERZONE },
 	{ "allow-update-forwarding", SLAVEZONE },
 	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE},
+	{ "journal", MASTERZONE | SLAVEZONE },
 	{ "ixfr-base", MASTERZONE | SLAVEZONE },
 	{ "ixfr-tmp-file", MASTERZONE | SLAVEZONE },
 	{ "masters", SLAVEZONE | STUBZONE },

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.254 2004/10/06 05:56:29 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.255 2004/10/07 02:15:12 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1002,12 +1002,12 @@ protocol is specified in RFC 1996.
     <sect2 id="journal">
     <title>The journal file</title>
 
-    <para>All changes made to a zone using dynamic update are stored in the
-    zone's journal file.  This file is automatically created by the
-    server when when the first dynamic update takes place.  The name of
-    the journal file is formed by appending the
-    extension <filename>.jnl</filename> to the
-    name of the corresponding zone file.  The journal file is in a
+    <para>All changes made to a zone using dynamic update are stored
+    in the zone's journal file.  This file is automatically created
+    by the server when when the first dynamic update takes place.
+    The name of the journal file is formed by appending the extension
+    <filename>.jnl</filename> to the name of the corresponding zone
+    file unless specifically overridden.  The journal file is in a
     binary format and should not be edited manually.</para>
 
     <para>The server will also occasionally write ("dump")
@@ -4547,6 +4547,7 @@ Statement Grammar</title>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
+    <optional> journal <replaceable>string</replaceable> ; </optional>
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
@@ -4705,6 +4706,13 @@ in the mid-1970s. Zone data for it can be specified with the <literal>CHAOS</lit
 <title>Zone Options</title>
 
 <variablelist>
+
+<varlistentry><term><command>journal</command></term>
+<listitem><para>Allow the default journal's file name to be overridden.
+The default is the zone's file with "<filename>.jnl</filename>" appended.
+This is applicable to <command>master</command> and <command>slave</command> zones.
+</para>
+</listitem></varlistentry>
 
 <varlistentry><term><command>allow-notify</command></term>
 <listitem><para>See the description of
