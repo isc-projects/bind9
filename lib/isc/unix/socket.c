@@ -19,6 +19,17 @@
 
 #include <sys/types.h>
 #include <sys/uio.h>
+#if defined(NEED_XPG4_2_BEFORE_SOCKET_H) && !defined(_XPG4_2)
+#define _XPG4_2
+#include <sys/socket.h>
+#undef _XPG4_2
+#elif defined(NEED_XSE_BEFORE_SOCKET_H) && !defined(_XOPEN_SOURCE_EXTENDED)
+#define _XOPEN_SOURCE_EXTENDED
+#include <sys/socket.h>
+#define _XOPEN_SOURCE_EXTENDED
+#else
+#include <sys/socket.h>
+#endif
 
 #include <errno.h>
 #include <stddef.h>
@@ -39,19 +50,10 @@
 
 /*
  * Some systems define the socket length argument as an int, some as size_t,
- * some as socklen_t.  This is here, so it can be easily changed if needed.
+ * some as socklen_t.  This is here so it can be easily changed if needed.
  */
 #ifndef ISC_SOCKADDR_LEN_T
-#define ISC_SOCKADDR_LEN_T int
-#endif
-
-/*
- * As above, one system (solaris) wants the pointers passed into recv() and
- * the other network functions to be char *.  All the others seem to use
- * void *.  Cast everything to char * for now.
- */
-#ifndef ISC_SOCKDATA_CAST
-#define ISC_SOCKDATA_CAST(x) ((char *)(x))
+#define ISC_SOCKADDR_LEN_T unsigned int
 #endif
 
 /*
@@ -496,7 +498,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #ifdef SO_TIMESTAMP
 	if (type == isc_sockettype_udp
 	    && setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
-			  ISC_SOCKDATA_CAST(&on), sizeof on) < 0) {
+			  (void *)&on, sizeof on) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
 				 sock->fd);
 		/* Press on... */
@@ -782,7 +784,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	 * again.
 	 */
 	addrlen = sizeof dev->newsocket->address.type;
-	fd = accept(sock->fd, &dev->newsocket->address.type.sa, &addrlen);
+	fd = accept(sock->fd, &dev->newsocket->address.type.sa, (void *)&addrlen);
 	dev->newsocket->address.length = addrlen;
 	if (fd < 0) {
 		if (SOFT_ERROR(errno)) {
@@ -1303,7 +1305,7 @@ watcher(void *uap)
 		 * Process reads on internal, control fd.
 		 */
 		if (FD_ISSET(ctlfd, &readfds)) {
-			while (1) {
+			for (;;) {
 				msg = select_readmsg(manager);
 
 				XTRACE(TRACE_WATCHER,
@@ -1980,7 +1982,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
 	LOCK(&sock->lock);
 
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR,
-		       ISC_SOCKDATA_CAST(&on), sizeof on) < 0) {
+		       (void *)&on, sizeof on) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
 				 sock->fd);
 		/* Press on... */

@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.50 $)
+AC_REVISION($Revision: 1.51 $)
 
 AC_PREREQ(2.13)
 
@@ -239,9 +239,15 @@ dnl
 case "$host" in
 	*-dec-osf*)
 		dnl Turn on 4.4BSD style sa_len support.
-		dnl (Disabled for now because it is incompatible
-		dnl with the use of send() and recv()).
 		AC_DEFINE(_SOCKADDR_LEN)
+		;;
+	*-sun-solaris*)
+		dnl Solaris has yet another trick to get 4.4BSD behavior
+		AC_DEFINE(NEED_XPG4_2_BEFORE_SOCKET_H)
+		;;
+	*-hp-hpux*)
+		dnl And HP has to be different, too.
+		AC_DEFINE(NEED_XSE_BEFORE_SOCKET_H)
 		;;
 esac
 

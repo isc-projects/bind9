@@ -33,5 +33,13 @@
 /* define if catgets() is available */
 #undef HAVE_CATGETS
 
-/* Define if you have the NET_RT_IFLIST sysctl variable. */
+/* define if you have the NET_RT_IFLIST sysctl variable. */
 #undef HAVE_IFLIST_SYSCTL
+
+/* define if you need to #define _XPG4_2 before including sys/socket.h */
+#undef NEED_XPG4_2_BEFORE_SOCKET_H
+
+/* define if you need to #define _XOPEN_SOURCE_ENTENDED before including
+ * sys/socket.h
+ */
+#undef NEED_XSE_BEFORE_SOCKET_H
