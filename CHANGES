@@ -1,5 +1,9 @@
 1787.	[port]		HPUX: both "cc" and "gcc" need -Wl,+vnocompatwarnings.
 
+1786.	[port]		AIX: libt_api needs to be taught to look for
+			T_testlist in the main executable (--with-libtool).
+			[RT #13239]
+
 1784.	[cleanup]	"libtool -allow-undefined" is the default.
 			Leave hooks in configure to allow it to be set
 			if needed in the future.
