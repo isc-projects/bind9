@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.44 2001/01/16 21:18:10 gson Exp $ */
+/* $Id: masterdump.c,v 1.45 2001/03/07 22:30:21 gson Exp $ */
 
 #include <config.h>
 
@@ -737,10 +737,10 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 					       buffer, f);
 			if (result != ISC_R_SUCCESS)
 				dumpresult = result;
+			if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
+				name = NULL;
 		}
 		dns_rdataset_disassociate(sorted[i]);
-		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
-			name = NULL;
 	}
 
 	if (dumpresult != ISC_R_SUCCESS)

@@ -1,3 +1,8 @@
+
+ 772.	[bug]		Owner names could be incorrectly omitted from cache
+			dumps in the presence of negative caching entries.
+			[RT #991]
+
  771.	[cleanup]	TSIG errors related to unsynchronized clocks
 			are logged better.
 
