@@ -1,3 +1,8 @@
+ 278.   [bug]           bin/named/logconf.c:category_fromconf() didn't take
+                        note of when isc_log_categorybyname() wasn't able
+                        to find the category name and would then apply the
+                        channel list of the unknown category to all categories.
+
  277.   [bug]           isc_log_categorybyname() and isc_log_modulebyname()
                         would fail to find the first member of any category
                         or module array apart from the internal defaults.

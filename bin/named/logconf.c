@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.21 2000/06/22 22:30:12 tale Exp $ */
+/* $Id: logconf.c,v 1.22 2000/06/23 17:59:08 tale Exp $ */
 
 #include <config.h>
 
@@ -41,8 +41,29 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx) {
 	isc_logmodule_t *module;
 
 	category = isc_log_categorybyname(ns_g_lctx, ccat->catname);
+	if (category == NULL) {
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "unknown logging category '%s' ignored",
+			      ccat->catname);
+		/*
+		 * Allow further processing by returning success.
+		 */
+		return (ISC_R_SUCCESS);
+	}
+
 #ifdef notyet
 	module = isc_log_modulebyname(ns_g_lctx, ccat->modname);
+	if (module == NULL) {
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "unknown logging module '%s' ignored",
+			      ccat->modname);
+		/*
+		 * Allow further processing by returning success.
+		 */
+		return (ISC_R_SUCCESS);
+	}
 #else
 	module = NULL;
 #endif
