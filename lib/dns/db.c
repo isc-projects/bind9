@@ -394,8 +394,8 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
-	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)
-		|| version == NULL);
+	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)||
+		((db->attributes & DNS_DBATTR_CACHE) != 0 && version == NULL));
 
 	return ((db->methods->deleterdataset)(db, node, version, type));
 }
