@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.57 2001/09/04 14:18:27 marka Exp $ */
+/* $Id: masterdump.c,v 1.58 2001/09/05 06:04:58 marka Exp $ */
 
 #include <config.h>
 
@@ -1286,7 +1286,7 @@ dns_master_dumpinc(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dns_dumpctx_t *dctx = NULL;
 
 	file = isc_mem_strdup(mctx, filename);
-	if (tempname == NULL)
+	if (file == NULL)
 		return (ISC_R_NOMEMORY);
 
 	result = opentmp(mctx, filename, &tempname, &f);
