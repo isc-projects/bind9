@@ -2,6 +2,9 @@
 			if there was no SOA record in the replacment db.
 			[RT #13016]
 
+1762.	[bug]		isc_interfaceiter_create() could return ISC_R_SUCCESS
+			even when it failed. [RT #12995]
+
 1760.	[bug]		Host / net unreachable was not penalising rtt
 			estimates. [RT #12970]
 
