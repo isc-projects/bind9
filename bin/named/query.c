@@ -341,7 +341,7 @@ query_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp) {
 
 	CTRACE("query_putrdataset");
 	if (rdataset != NULL) {
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
 		dns_message_puttemprdataset(client->message, rdatasetp);
 	}
@@ -610,9 +610,9 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			     rdataset, sigrdataset);
 	if (result == DNS_R_DELEGATION ||
 	    result == ISC_R_NOTFOUND) {
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset->methods != NULL)
+		if (dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 		if (is_zone) {
 			if (USECACHE(client)) {
@@ -631,9 +631,9 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			 * We don't have the data in the cache.  If we've got
 			 * glue from the zone, use it.
 			 */
-			if (zrdataset.methods != NULL) {
+			if (dns_rdataset_isassociated(&zrdataset)) {
 				dns_rdataset_clone(&zrdataset, rdataset);
-				if (zsigrdataset.methods != NULL)
+				if (dns_rdataset_isassociated(&zsigrdataset))
 					dns_rdataset_clone(&zsigrdataset,
 							   sigrdataset);
 				result = ISC_R_SUCCESS;
@@ -654,7 +654,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			version = NULL;
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
-			if (sigrdataset->methods != NULL) {
+			if (dns_rdataset_isassociated(sigrdataset)) {
 				dns_rdataset_clone(sigrdataset, &zsigrdataset);
 				dns_rdataset_disassociate(sigrdataset);
 			}
@@ -667,17 +667,17 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		 */
 		result = ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset->methods != NULL)
+		if (dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 		result = ISC_R_NOTFOUND;
 	}
 
  cleanup:
-	if (zrdataset.methods != NULL) {
+	if (dns_rdataset_isassociated(&zrdataset)) {
 		dns_rdataset_disassociate(&zrdataset);
-		if (zsigrdataset.methods != NULL)
+		if (dns_rdataset_isassociated(&zsigrdataset))
 			dns_rdataset_disassociate(&zsigrdataset);
 	}
 	if (db != NULL)
@@ -896,7 +896,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		query_keepname(client, fname, dbuf);
 
 	mname = NULL;
-	if (rdataset->methods != NULL &&
+	if (dns_rdataset_isassociated(rdataset) &&
 	    !query_isduplicate(client, fname, type, &mname)) {
 		if (mname != NULL) {
 			query_releasename(client, &fname);
@@ -912,7 +912,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 * so we do not need to check if the SIG rdataset is already
 		 * in the response.
 		 */
-		if (sigrdataset->methods != NULL) {
+		if (dns_rdataset_isassociated(sigrdataset)) {
 			ISC_LIST_APPEND(fname->list, sigrdataset, link);
 			sigrdataset = NULL;
 		}
@@ -929,7 +929,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 * XXXRTH  This code could be more efficient.
 		 */
 		if (rdataset != NULL) {
-			if (rdataset->methods != NULL)
+			if (dns_rdataset_isassociated(rdataset))
 				dns_rdataset_disassociate(rdataset);
 		} else {
 			rdataset = query_newrdataset(client);
@@ -937,7 +937,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				goto addname;
 		}	
 		if (sigrdataset != NULL) {
-			if (sigrdataset->methods != NULL)
+			if (dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
 		} else {
 			sigrdataset = query_newrdataset(client);
@@ -955,7 +955,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			/*
 			 * Negative cache entries don't have sigrdatasets.
 			 */
-			INSIST(sigrdataset->methods == NULL);
+			INSIST(! dns_rdataset_isassociated(sigrdataset));
 		}
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
@@ -979,7 +979,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					need_addname = ISC_TRUE;
 				ISC_LIST_APPEND(fname->list, rdataset, link);
 				added_something = ISC_TRUE;
-				if (sigrdataset->methods != NULL) {
+				if (dns_rdataset_isassociated(sigrdataset)) {
 					ISC_LIST_APPEND(fname->list,
 							sigrdataset, link);
 					sigrdataset =
@@ -990,7 +990,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					goto addname;
 			} else {
 				dns_rdataset_disassociate(rdataset);
-				if (sigrdataset->methods != NULL)
+				if (dns_rdataset_isassociated(sigrdataset))
 					dns_rdataset_disassociate(sigrdataset);
 			}
 		}
@@ -1002,7 +1002,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			goto addname;
 		if (result == DNS_R_NCACHENXRRSET) {
 			dns_rdataset_disassociate(rdataset);
-			INSIST(sigrdataset->methods == NULL);
+			INSIST(! dns_rdataset_isassociated(sigrdataset));
 		}
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
@@ -1027,7 +1027,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				a6rdataset = rdataset;
 				ISC_LIST_APPEND(fname->list, rdataset, link);
 				added_something = ISC_TRUE;
-				if (sigrdataset->methods != NULL) {
+				if (dns_rdataset_isassociated(sigrdataset)) {
 					ISC_LIST_APPEND(fname->list,
 							sigrdataset, link);
 					sigrdataset =
@@ -1047,7 +1047,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			goto addname;
 		if (result == DNS_R_NCACHENXRRSET) {
 			dns_rdataset_disassociate(rdataset);
-			INSIST(sigrdataset->methods == NULL);
+			INSIST(! dns_rdataset_isassociated(sigrdataset));
 		}
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
@@ -1071,7 +1071,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					need_addname = ISC_TRUE;
 				ISC_LIST_APPEND(fname->list, rdataset, link);
 				added_something = ISC_TRUE;
-				if (sigrdataset->methods != NULL) {
+				if (dns_rdataset_isassociated(sigrdataset)) {
 					ISC_LIST_APPEND(fname->list,
 							sigrdataset, link);
 					sigrdataset = NULL;
@@ -1204,7 +1204,7 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 	if (dns_name_concatenate(name, NULL, fname, NULL) != ISC_R_SUCCESS)
 		goto cleanup;
 	dns_rdataset_clone(rdataset, crdataset);
-	if (sigrdataset->methods != NULL)
+	if (dns_rdataset_isassociated(sigrdataset))
 		dns_rdataset_clone(sigrdataset, csigrdataset);
 
 	mname = NULL;
@@ -1226,7 +1226,7 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 	 * we do not need to check if the SIG rdataset is already in the
 	 * response.
 	 */
-	if (csigrdataset->methods != NULL) {
+	if (dns_rdataset_isassociated(csigrdataset)) {
 		ISC_LIST_APPEND(fname->list, csigrdataset, link);
 		csigrdataset = NULL;
 	}
@@ -1346,7 +1346,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 	 */
 	query_addrdataset(client, mname, rdataset);
 	*rdatasetp = NULL;
-	if (sigrdataset != NULL && sigrdataset->methods != NULL) {
+	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset)) {
 		/*
 		 * We have a signature.  Add it to the response.
 		 */

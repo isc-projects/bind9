@@ -618,9 +618,10 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	if (result == DNS_R_DELEGATION ||
 	    result == ISC_R_NOTFOUND) {
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 		if (is_zone) {
 			if (view->cachedb != NULL) {
@@ -639,10 +640,10 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			 * We don't have the data in the cache.  If we've got
 			 * glue from the zone, use it.
 			 */
-			if (zrdataset.methods != NULL) {
+			if (dns_rdataset_isassociated(&zrdataset)) {
 				dns_rdataset_clone(&zrdataset, rdataset);
 				if (sigrdataset != NULL &&
-				    zsigrdataset.methods != NULL)
+				    dns_rdataset_isassociated(&zsigrdataset))
 					dns_rdataset_clone(&zsigrdataset,
 							   sigrdataset);
 				result = DNS_R_GLUE;
@@ -664,7 +665,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
-			    sigrdataset->methods != NULL) {
+			    dns_rdataset_isassociated(sigrdataset)) {
 				dns_rdataset_clone(sigrdataset, &zsigrdataset);
 				dns_rdataset_disassociate(sigrdataset);
 			}
@@ -679,9 +680,10 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	}
 
 	if (result == ISC_R_NOTFOUND && use_hints && view->hints != NULL) {
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 		result = dns_db_find(view->hints, name, NULL, type, options,
 				     now, NULL, foundname,
@@ -703,15 +705,16 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		/*
 		 * We don't care about any DNSSEC proof data in these cases.
 		 */
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 	}
 
-	if (zrdataset.methods != NULL) {
+	if (dns_rdataset_isassociated(&zrdataset)) {
 		dns_rdataset_disassociate(&zrdataset);
-		if (zsigrdataset.methods != NULL)
+		if (dns_rdataset_isassociated(&zsigrdataset))
 			dns_rdataset_disassociate(&zsigrdataset);
 	}
 	if (db != NULL)
@@ -742,9 +745,10 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		 * foundname is not returned by this simplified API.  We
 		 * disassociate them here to prevent any misuse by the caller.
 		 */
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 	} else if (result != ISC_R_SUCCESS &&
 		   result != DNS_R_GLUE &&
@@ -753,9 +757,10 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		   result != DNS_R_NCACHENXRRSET &&
 		   result != DNS_R_NXRRSET &&
 		   result != ISC_R_NOTFOUND) {
-		if (rdataset->methods != NULL)
+		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 		result = ISC_R_NOTFOUND;
 	}
@@ -852,7 +857,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
-			    sigrdataset->methods != NULL) {
+			    dns_rdataset_isassociated(sigrdataset)) {
 				dns_rdataset_clone(sigrdataset, &zsigrdataset);
 				dns_rdataset_disassociate(sigrdataset);
 			}
@@ -896,17 +901,18 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 
  finish:
 	if (use_zone) {
-		if (rdataset->methods != NULL) {
+		if (dns_rdataset_isassociated(rdataset)) {
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
-			    sigrdataset->methods != NULL)
+			    dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
 		}
 		result = dns_name_concatenate(zfname, NULL, fname, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_rdataset_clone(&zrdataset, rdataset);
-		if (sigrdataset != NULL && zrdataset.methods != NULL)
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(&zrdataset))
 			dns_rdataset_clone(&zsigrdataset, sigrdataset);
 	} else if (try_hints && use_hints && view->hints != NULL) {
 		/*
@@ -925,9 +931,9 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	}
 
  cleanup:
-	if (zrdataset.methods != NULL) {
+	if (dns_rdataset_isassociated(&zrdataset)) {
 		dns_rdataset_disassociate(&zrdataset);
-		if (zsigrdataset.methods != NULL)
+		if (dns_rdataset_isassociated(&zsigrdataset))
 			dns_rdataset_disassociate(&zsigrdataset);
 	}
 	if (db != NULL)

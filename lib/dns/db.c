@@ -372,10 +372,11 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
 	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(rdataset == NULL ||
-		(DNS_RDATASET_VALID(rdataset) && rdataset->methods == NULL));
+		(DNS_RDATASET_VALID(rdataset) &&
+		 ! dns_rdataset_isassociated(rdataset)));
 	REQUIRE(sigrdataset == NULL ||
 		(DNS_RDATASET_VALID(sigrdataset) &&
-		 sigrdataset->methods == NULL));
+		 ! dns_rdataset_isassociated(sigrdataset)));
 
 	return ((db->methods->find)(db, name, version, type, options, now,
 				    nodep, foundname, rdataset, sigrdataset));
@@ -397,7 +398,7 @@ dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
 	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(sigrdataset == NULL ||
 		(DNS_RDATASET_VALID(sigrdataset) &&
-		 sigrdataset->methods == NULL));
+		 ! dns_rdataset_isassociated(sigrdataset)));
 
 	return ((db->methods->findzonecut)(db, name, options, now, nodep,
 					   foundname, rdataset, sigrdataset));
@@ -495,12 +496,12 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods == NULL);
+	REQUIRE(! dns_rdataset_isassociated(rdataset));
 	REQUIRE(covers == 0 || type == dns_rdatatype_sig);
 	REQUIRE(type != dns_rdatatype_any);
 	REQUIRE(sigrdataset == NULL ||
 		(DNS_RDATASET_VALID(sigrdataset) &&
-		 sigrdataset->methods == NULL));
+		 ! dns_rdataset_isassociated(sigrdataset)));
 
 	return ((db->methods->findrdataset)(db, node, version, type, covers,
 					    now, rdataset, sigrdataset));
@@ -537,11 +538,11 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		((db->attributes & DNS_DBATTR_CACHE) != 0 &&
 		 version == NULL && (options & DNS_DBADD_MERGE) == 0));
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods != NULL);
+	REQUIRE(dns_rdataset_isassociated(rdataset));
 	REQUIRE(rdataset->rdclass == db->rdclass);
 	REQUIRE(addedrdataset == NULL ||
 		(DNS_RDATASET_VALID(addedrdataset) &&
-		 addedrdataset->methods == NULL));
+		 ! dns_rdataset_isassociated(addedrdataset)));
 
 	return ((db->methods->addrdataset)(db, node, version, now, rdataset,
 					   options, addedrdataset));
@@ -561,11 +562,11 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 	REQUIRE(node != NULL);
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods != NULL);
+	REQUIRE(dns_rdataset_isassociated(rdataset));
 	REQUIRE(rdataset->rdclass == db->rdclass);
 	REQUIRE(newrdataset == NULL ||
 		(DNS_RDATASET_VALID(newrdataset) &&
-		 newrdataset->methods == NULL));
+		 ! dns_rdataset_isassociated(newrdataset)));
 
 	return ((db->methods->subtractrdataset)(db, node, version, rdataset,
 						newrdataset));

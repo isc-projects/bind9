@@ -67,7 +67,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 
 	REQUIRE(rdatalist != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods == NULL);
+	REQUIRE(! dns_rdataset_isassociated(rdataset));
 
 	rdataset->methods = &methods;
 	rdataset->rdclass = rdatalist->rdclass;
