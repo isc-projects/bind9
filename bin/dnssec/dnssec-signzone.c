@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.150 2001/10/26 21:08:03 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.151 2001/11/14 22:08:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1505,7 +1505,7 @@ main(int argc, char *argv[]) {
 	int tempfilelen;
 	dns_rdataclass_t rdclass;
 	isc_task_t **tasks = NULL;
-	masterstyle = &dns_master_style_explicitttl;
+	masterstyle = &dns_master_style_simple;
 
 	check_result(isc_app_start(), "isc_app_start");
 
