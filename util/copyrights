@@ -303,7 +303,6 @@
 ./bin/tests/system/README			X	2000
 ./bin/tests/system/clean.sh			SH	2000
 ./bin/tests/system/cleanall.sh			SH	2000
-./bin/tests/system/conf.sh			SH	2000
 ./bin/tests/system/conf.sh.in			SH	2000
 ./bin/tests/system/digcomp.pl			PERL	2000
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000
@@ -346,7 +345,6 @@
 ./bin/tests/system/limits/ns1/example.db	ZONE	2000
 ./bin/tests/system/limits/ns1/named.conf	CONF-C	2000
 ./bin/tests/system/limits/ns1/root.db		ZONE	2000
-./bin/tests/system/limits/test.sh		SH	2000
 ./bin/tests/system/limits/tests.sh		SH	2000
 ./bin/tests/system/lwresd/.cvsignore		X	2000
 ./bin/tests/system/lwresd/Makefile.in		MAKE	2000
@@ -528,18 +526,13 @@
 ./doc/html/config/server.html			HTML	1999,2000
 ./doc/html/config/trusted-keys.html		HTML	1999,2000
 ./doc/html/config/zone.html			HTML	1999,2000
-./doc/man/app.man				MAN	2000
 ./doc/man/bin/lwresd.8				MAN	2000
 ./doc/man/bin/named.8				MAN	2000
 ./doc/man/ctoman				SH	2000
-./doc/man/dir.man				MAN	2000
 ./doc/man/dnssec/dnssec-keygen.8		MAN	2000
 ./doc/man/dnssec/dnssec-makekeyset.8		MAN	2000
 ./doc/man/dnssec/dnssec-signkey.8		MAN	2000
 ./doc/man/dnssec/dnssec-signzone.8		MAN	2000
-./doc/man/error.man				MAN	2000
-./doc/man/file.man				MAN	2000
-./doc/man/ipproto.man				MAN	2000
 ./doc/man/isc/isc__errno2result.3		MAN	2000
 ./doc/man/isc/isc_app.3				MAN	2000
 ./doc/man/isc/isc_app_finish.3			MAN	2000
@@ -706,11 +699,6 @@
 ./doc/man/lwres/lwres_sethostent.3		MAN	2000
 ./doc/man/lwres/lwres_sethostent_r.3		MAN	2000
 ./doc/man/lwres/lwres_string_parse.3		MAN	2000
-./doc/man/netif.man				MAN	2000
-./doc/man/socket.man				MAN	2000
-./doc/man/stdio.man				MAN	2000
-./doc/man/stdtime.man				MAN	2000
-./doc/man/time.man				MAN	2000
 ./doc/misc/dnssec				TXT.BRIEF	2000
 ./doc/misc/ipv6					TXT.BRIEF	2000
 ./doc/misc/options				TXT.BRIEF	2000
