@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: object.c,v 1.20 2000/07/27 09:54:22 tale Exp $ */
+/* $Id: object.c,v 1.21 2000/07/27 22:25:58 bwelling Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -206,7 +206,7 @@ omapi_object_dereference(omapi_object_t **h) {
 			if (action != NULL) {
 				isc_event_t *event;
 
-				event = isc_event_allocate(omapi_mctx, *h,
+				event = isc_event_allocate(omapi_mctx, NULL,
 						       OMAPI_EVENT_OBJECTFREED,
 						       action, arg,
 						       sizeof(isc_event_t));
