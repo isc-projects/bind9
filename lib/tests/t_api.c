@@ -17,10 +17,15 @@
  */
 
 
+#include	<ctype.h>
+#include	<errno.h>
+#include	<limits.h>
 #include	<stdarg.h>
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
+#include	<sys/wait.h>
+#include	<signal.h>
 #include	<time.h>
 #include	<unistd.h>
 
@@ -32,25 +37,30 @@ static char *Usage =	"\t-a               : run all tests\n"
 			"\t-h               : print test info\n"
 			"\t-u               : print usage info\n"
 			"\t-n <test_name>   : run specified test name\n"
-			"\t-t <test_number> : run specified test number\n";
+			"\t-t <test_number> : run specified test number\n"
+			"\t-x               : don't execute tests in a subproc\n"
+			"\t-q <timeout>     : use 'timeout' as the timeout value\n";
 /*
- *
- *
  *		-a		-->	run all tests
  *		-tn		-->	run test n
  *		-c config	-->	use config file 'config'
  *		-d		-->	turn on api debugging
  *		-n name		-->	run test named name
  *		-h		-->	print out available test names
+ *		-x		-->	don't execute testcases in a subproc
+ *		-q timeout	-->	use 'timeout' as the timeout value
  */
 
 #define	T_MAXTESTS		256	/* must be 0 mod 8 */
 #define	T_MAXENV		256
 #define	T_DEFAULT_CONFIG	"t_config"
-#define	T_BUFSIZ		80
+#define	T_BUFSIZ		256
 #define	T_BIGBUF		4096
+#define	T_TIMEOUT		60
 
 int		T_debug;
+int		T_timeout;
+pid_t		T_pid;
 static char	*T_config;
 static char	T_tvec[T_MAXTESTS / 8];
 static char	*T_env[T_MAXENV + 1];
@@ -65,6 +75,13 @@ static int	t_putinfo(const char *key, const char *info);
 static char	*t_getdate(void);
 static void	printhelp(void);
 static void	printusage(void);
+static void	t_sigalrm();
+
+static void
+t_sigalrm() {
+	int	a;
+	a = 1;
+}
 
 int
 main(int argc, char **argv)
@@ -72,14 +89,21 @@ main(int argc, char **argv)
 
 	int		c;
 	int		tnum;
+	int		subprocs;
 	char		*date;
+	pid_t		deadpid;
+	int		status;
 	testspec_t	*pts;
 
+	subprocs = 1;
+	T_timeout = T_TIMEOUT;
+
 	/* parse args */
-	while ((c = getopt(argc, argv, ":at:c:d:n:hu")) != -1) {
+	while ((c = getopt(argc, argv, ":at:c:d:n:huxq:")) != -1) {
 		if (c == 'a') {
 			/* flag all tests to be run */
-			memset(T_tvec, ~((unsigned)0), sizeof(T_tvec));
+			/* memset(T_tvec, ~0, sizeof(T_tvec)); */
+			/* memset(T_tvec, UINT_MAX, sizeof(T_tvec)); */
 		}
 		else if (c == 't') {
 			tnum = atoi(optarg);
@@ -119,6 +143,12 @@ main(int argc, char **argv)
 			printusage();
 			exit(0);
 		}
+		else if (c == 'x') {
+			subprocs = 0;
+		}
+		else if (c == 'q') {
+			T_timeout = atoi(optarg);
+		}
 		else if (c == ':') {
 			fprintf(stderr, "Option -%c requires an argument\n",
 						optopt);
@@ -152,7 +182,53 @@ main(int argc, char **argv)
 	pts = &T_testlist[0];
 	while (*pts->pfv != NULL) {
 		if (T_tvec[tnum / 8] & (0x01 << (tnum % 8))) {
-			(*pts->pfv)();
+			if (subprocs) {
+				T_pid = fork();
+				if (T_pid == 0) {
+					(*pts->pfv)();
+					exit(0);
+				}
+				else if (T_pid > 0) {
+
+					struct sigaction sa;
+					struct sigaction osa;
+
+					sa.sa_flags = 0;
+					sigfillset(&sa.sa_mask);
+					sa.sa_handler = t_sigalrm;
+					(void) sigaction(SIGALRM, &sa, &osa);
+
+					alarm(T_timeout);
+
+					deadpid = (pid_t) -1;
+					while (deadpid != T_pid) {
+						deadpid = waitpid(T_pid, &status, 0);
+						if (deadpid == T_pid) {
+							if (WIFSIGNALED(status) && (WTERMSIG(status) == SIGABRT)) {
+								t_info("the test case caused an exception\n");
+								t_result(T_UNRESOLVED);
+							}
+						}
+						else if ((deadpid == -1) && (errno == EINTR)) {
+							t_info("the test case was interrupted\n");
+							kill(T_pid, SIGTERM);
+							t_result(T_UNRESOLVED);
+							alarm(0);
+							break;
+						}
+					}
+
+					alarm(0);
+					(void) sigaction(SIGALRM, &osa, NULL);
+				}
+				else {
+					t_info("fork failed errno = %d\n", errno);
+					t_result(T_UNRESOLVED);
+				}
+			}
+			else {
+				(*pts->pfv)();
+			}
 		}
 		++pts;
 		++tnum;
@@ -359,11 +435,12 @@ t_fgetbs(FILE *fp)
 			}
 		}
 		*p = '\0';
+		return(((c == EOF) && (n == 0)) ? NULL : buf);
 	}
 	else {
-		fprintf(stderr, "No config file %s\n", T_config);
+		fprintf(stderr, "malloc failed %d", errno);
+		return(NULL);
 	}
-	return(n == 0 ? NULL : buf);
 }
 
 /*
@@ -448,6 +525,7 @@ struct dns_errormap {
 	{	DNS_R_NXDOMAIN,		"DNS_R_NXDOMAIN"	},
 	{	DNS_R_NXRDATASET,	"DNS_R_NXRDATASET"	},
 	{	DNS_R_BADDB,		"DNS_R_BADDB"		},
+	{	DNS_R_ZONECUT,		"DNS_R_ZONECUT"		},
 	{	(dns_result_t) 0,	NULL			}
 };
 
@@ -470,6 +548,41 @@ t_dns_result_fromtext(char *name) {
 		result = pmap->result;
 
 	return(result);
+}
+
+struct dc_method_map {
+	int	dc_method;
+	char	*text;
+} dc_method_map[] = {
+	
+	{	DNS_COMPRESS_NONE,	"DNS_COMPRESS_NONE"	},
+	{	DNS_COMPRESS_GLOBAL14,	"DNS_COMPRESS_GLOBAL14"	},
+	{	DNS_COMPRESS_GLOBAL16,	"DNS_COMPRESS_GLOBAL16"	},
+	{	DNS_COMPRESS_GLOBAL,	"DNS_COMPRESS_GLOBAL"	},
+	{	DNS_COMPRESS_LOCAL,	"DNS_COMPRESS_LOCAL"	},
+	{	DNS_COMPRESS_ALL,	"DNS_COMPRESS_ALL"	},
+	{	0,			NULL			}
+};
+
+int
+t_dc_method_fromtext(char *name) {
+
+	int			dc_method;
+	struct dc_method_map	*pmap;
+
+	dc_method = DNS_COMPRESS_NONE;
+
+	pmap = dc_method_map;
+	while (pmap->text != NULL) {
+		if (strcmp(name, pmap->text) == 0)
+			break;
+		++pmap;
+	}
+
+	if (pmap->text != NULL)
+		dc_method = pmap->dc_method;
+
+	return(dc_method);
 }
 
 int
@@ -508,5 +621,67 @@ printhelp() {
 static void
 printusage() {
 	printf("Usage:\n%s\n", Usage);
+}
+
+int
+t_eval(char *filename, int (*func)(char **), int nargs) {
+
+
+	FILE		*fp;
+	char		*p;
+	int		line;
+	int		cnt;
+	int		result;
+	int		nfails;
+	int		nprobs;
+	char		*tokens[T_MAXTOKS + 1];
+
+	nfails = 0;
+	nprobs = 0;
+
+	fp = fopen(filename, "r");
+	if (fp != NULL) {
+		line = 0;
+		while ((p = t_fgetbs(fp)) != NULL) {
+
+			++line;
+
+			/* skip comment lines */
+			if ((isspace((int)*p)) || (*p == '#'))
+				continue;
+
+			cnt = t_bustline(p, tokens);
+			if (cnt == nargs) {
+				result = func(tokens);
+				if (result != T_PASS) {
+					if (result == T_FAIL)
+						++nfails;
+					else
+						++nprobs;
+				}
+			}
+			else {
+				t_info("bad format in %s at line %d\n",
+						filename, line);
+				++nprobs;
+			}
+
+			(void) free(p);
+		}
+		(void) fclose(fp);
+	}
+	else {
+		t_info("Missing datafile %s\n", filename);
+		++nprobs;
+	}
+
+	result = T_UNRESOLVED;
+
+	if ((nfails == 0) && (nprobs == 0))
+		result = T_PASS;
+	else if (nfails)
+		result = T_FAIL;
+
+	return(result);
 }
 
