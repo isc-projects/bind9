@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.34 2003/09/30 05:56:12 marka Exp $ */
+/* $Id: ncache.c,v 1.35 2004/01/20 14:21:14 marka Exp $ */
 
 #include <config.h>
 
@@ -471,7 +471,9 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_next,
 	rdataset_current,
 	rdataset_clone,
-	rdataset_count
+	rdataset_count,
+	NULL,
+	NULL
 };
 
 isc_result_t
