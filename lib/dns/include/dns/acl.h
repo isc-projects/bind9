@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.13 2000/08/01 01:23:37 tale Exp $ */
+/* $Id: acl.h,v 1.14 2000/11/07 23:43:23 bwelling Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -154,7 +154,7 @@ dns_acl_match(isc_netaddr_t *reqaddr,
  * indicating the distance from the beginning of the list.
  *
  * If there is a negative match, '*match' will be set to a negative value
- * whose absoluate value indicates the distance from the beginning of
+ * whose absolute value indicates the distance from the beginning of
  * the list.
  *
  * If there is a match (either positive or negative) and 'matchelt' is
