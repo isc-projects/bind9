@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.20 2005/03/14 23:55:50 marka Exp $ */
+/* $Id: server.c,v 1.419.18.21 2005/04/05 01:04:48 marka Exp $ */
 
 #include <config.h>
 
@@ -82,6 +82,10 @@
 #include <named/tkeyconf.h>
 #include <named/tsigconf.h>
 #include <named/zoneconf.h>
+#ifdef HAVE_LIBSCF
+#include <named/ns_smf_globals.h>
+#include <stdlib.h>
+#endif
 
 /*
  * Check an operation for failure.  Assumes that the function
@@ -4215,3 +4219,36 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 	dns_zone_detach(&zone);
 	return (result);
 }
+
+#ifdef HAVE_LIBSCF
+/*
+ * This function adds a message for rndc to echo if named
+ * is managed by smf and is also running chroot.
+ */
+isc_result_t
+ns_smf_add_message(isc_buffer_t *text) {
+	unsigned int n;
+
+	n = snprintf((char *)isc_buffer_used(text),
+		isc_buffer_availablelength(text),
+		"use svcadm(1M) to manage named");
+	if (n >= isc_buffer_availablelength(text))
+		return (ISC_R_NOSPACE);
+	isc_buffer_add(text, n);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_smf_disable(const char *ins_name) {
+
+	if (ins_name == NULL)
+		return (ISC_R_UNEXPECTED);
+	if (smf_disable_instance(ins_name, 0) != 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+			"smf_disable_instance() failed: %s",
+			scf_strerror(scf_error()));
+		return (ISC_R_FAILURE);
+	}
+	return (ISC_R_SUCCESS);
+}
+#endif /* HAVE_LIBSCF */
