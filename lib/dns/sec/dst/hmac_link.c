@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.27 2000/06/01 02:04:38 bwelling Exp $
+ * $Id: hmac_link.c,v 1.28 2000/06/01 02:33:26 bwelling Exp $
  */
 
 #include <config.h>
@@ -338,6 +338,7 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 		hkey->ipad[i] ^= HMAC_IPAD;
 		hkey->opad[i] ^= HMAC_OPAD;
 	}
+	key->key_id = dst_s_id_calc(r.base, r.length);
 	key->key_size = keylen * 8;
 	key->opaque = hkey;
 
@@ -395,28 +396,15 @@ dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t b;
-	HMAC_Key *hkey = NULL;
-#define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
 	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	hkey = (HMAC_Key *) isc_mem_get(mctx, sizeof(HMAC_Key));
-	if (hkey == NULL)
-		DST_RET(ISC_R_NOMEMORY);
-
-	key->opaque = hkey;
 	isc_buffer_init(&b, priv.elements[0].data, priv.elements[0].length);
+	isc_buffer_add(&b, priv.elements[0].length);
 	ret = dst_hmacmd5_from_dns(key, &b, mctx);
-	if (ret != ISC_R_SUCCESS)
-		DST_RET(ret);
-
-	return (ISC_R_SUCCESS);
-
- err:
-	dst_hmacmd5_destroy(hkey, mctx);
 	dst_s_free_private_structure_fields(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
 	return (ret);
