@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.7 1999/05/07 03:24:11 marka Exp $ */
+ /* $Id: rp_17.c,v 1.8 1999/06/08 10:35:19 gson Exp $ */
 
  /* RFC 1183 */
 
@@ -50,7 +50,9 @@ fromtext_rp(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_rp(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_rp(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	  isc_buffer_t *target) 
+{
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -71,13 +73,13 @@ totext_rp(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_fromregion(&email, &region);
 	isc_region_consume(&region, email.length);
 
-	sub = name_prefix(&rmail, origin, &prefix);
+	sub = name_prefix(&rmail, tctx->origin, &prefix);
 
 	RETERR(dns_name_totext(&prefix, sub, target));
 
 	RETERR(str_totext(" ", target));
 
-	sub = name_prefix(&email, origin, &prefix);
+	sub = name_prefix(&email, tctx->origin, &prefix);
 	return (dns_name_totext(&prefix, sub, target));
 }
 

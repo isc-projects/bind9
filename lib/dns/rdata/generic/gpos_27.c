@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.c,v 1.4 1999/05/07 03:24:06 marka Exp $ */
+ /* $Id: gpos_27.c,v 1.5 1999/06/08 10:35:10 gson Exp $ */
 
  /* RFC 1712 */
 
@@ -45,13 +45,15 @@ fromtext_gpos(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_gpos(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_gpos(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	    isc_buffer_t *target) 
+{
 	isc_region_t region;
 	int i;
 
 	REQUIRE(rdata->type == 27);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
 

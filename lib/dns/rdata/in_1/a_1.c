@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.14 1999/05/07 03:24:13 marka Exp $ */
+ /* $Id: a_1.c,v 1.15 1999/06/08 10:35:21 gson Exp $ */
 
 #ifndef RDATA_IN_1_A_1_C
 #define RDATA_IN_1_A_1_C
@@ -58,14 +58,16 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_in_a(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	    isc_buffer_t *target) 
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->class == 1);
 	REQUIRE(rdata->length == 4);
 
-	origin = origin;	/* unused */
+	tctx = tctx;	/* unused */
 
 	isc_buffer_available(target, &region);
 	if (isc_inet_ntop(AF_INET, rdata->data,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: base64.c,v 1.2 1999/05/19 01:17:14 marka Exp $ */
+ /* $Id: base64.c,v 1.3 1999/06/08 10:35:23 gson Exp $ */
 
 #include <config.h>
 
@@ -51,12 +51,16 @@ static const char base64[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 isc_result_t
-isc_base64_totext(isc_region_t *source, isc_buffer_t *target) {
+isc_base64_totext(isc_region_t *source, int wordlength,
+		  char *wordbreak, isc_buffer_t *target)
+{
 	char buf[5];
-	int loops = 0;
+	unsigned int loops = 0;
+
+	if (wordlength < 4)
+		wordlength = 4;
 
 	memset(buf, 0, sizeof buf);
-	RETERR(str_totext("( " /*)*/, target));
 	while (source->length > 2) {
 		buf[0] = base64[(source->base[0]>>2)&0x3f];
 		buf[1] = base64[((source->base[0]<<4)&0x30)|
@@ -66,9 +70,13 @@ isc_base64_totext(isc_region_t *source, isc_buffer_t *target) {
 		buf[3] = base64[source->base[2]&0x3f];
 		RETERR(str_totext(buf, target));
 		isc_region_consume(source, 3);
-		if (source->length != 0 && ++loops == 15) {
+
+		loops++;
+		if (source->length != 0 &&
+		    (int)((loops + 1) * 4) >= wordlength)
+		{
 			loops = 0;
-			RETERR(str_totext(" ", target));
+			RETERR(str_totext(wordbreak, target));
 		}
 	}
 	if (source->length == 2) {
@@ -84,7 +92,6 @@ isc_base64_totext(isc_region_t *source, isc_buffer_t *target) {
 		buf[2] = buf[3] = '=';
 		RETERR(str_totext(buf, target));
 	}
-	RETERR(str_totext(" )", target));
 	return (ISC_R_SUCCESS);
 }
 

@@ -40,6 +40,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/masterdump.h>
 
 #ifdef DNS_RBTDB_VERSION64
 #include "rbtdb64.h"
@@ -2550,23 +2551,21 @@ load(dns_db_t *db, char *filename) {
 	dns_rdatacallbacks_t callbacks;
 	dns_result_t result;
 	dns_name_t name;
-
+	isc_boolean_t age_ttl;
+	
 	rbtdb = (dns_rbtdb_t *)db;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	loadctx.rbtdb = rbtdb;
 	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0) {
-		/*
-		 * XXXRTH  This is not quite right.  We should probably
-		 * use the last file modification time or perhaps the value
-		 * of an new master file option (e.g. $TIME) as the 'now'
-		 * time.
-		 */
 		if (isc_stdtime_get(&loadctx.now) != DNS_R_SUCCESS)
 			return (DNS_R_UNEXPECTED);
-	} else
+		age_ttl = ISC_TRUE;
+	} else {
 		loadctx.now = 0;
+		age_ttl = ISC_FALSE;
+	}
 
 	LOCK(&rbtdb->lock);
 
@@ -2613,8 +2612,21 @@ load(dns_db_t *db, char *filename) {
 
 	return (dns_master_load(filename, &rbtdb->common.origin, 
 				&rbtdb->common.origin, rbtdb->common.rdclass,
-				&soacount, &nscount, &callbacks,
+				age_ttl, &soacount, &nscount, &callbacks,
 				rbtdb->common.mctx));
+}
+
+static dns_result_t
+dump(dns_db_t *db, dns_dbversion_t *version, char *filename) {
+	dns_rbtdb_t *rbtdb;
+
+	rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	return (dns_master_dump(rbtdb->common.mctx, db, version, 
+				&dns_master_style_default,
+				filename));
 }
 
 static void
@@ -2632,6 +2644,7 @@ static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
 	load,
+	dump,
 	currentversion,
 	newversion,
 	attachversion,
@@ -2653,6 +2666,7 @@ static dns_dbmethods_t cache_methods = {
 	attach,
 	detach,
 	load,
+	dump,
 	currentversion,
 	newversion,
 	attachversion,

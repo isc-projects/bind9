@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.9 1999/05/07 03:24:10 marka Exp $ */
+ /* $Id: nxt_30.c,v 1.10 1999/06/08 10:35:18 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -74,7 +74,9 @@ fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_nxt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	   isc_buffer_t *target) 
+{
 	isc_region_t sr;
 	char buf[sizeof "65535"];
 	unsigned int i, j;
@@ -90,7 +92,7 @@ totext_nxt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
 
 	RETERR(str_totext(" ( ", target));

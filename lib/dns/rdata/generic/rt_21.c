@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.c,v 1.7 1999/05/07 03:24:11 marka Exp $ */
+ /* $Id: rt_21.c,v 1.8 1999/06/08 10:35:19 gson Exp $ */
 
  /* RFC 1183 */
 
@@ -49,7 +49,9 @@ fromtext_rt(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_rt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_rt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	      isc_buffer_t *target) 
+{
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -69,7 +71,7 @@ totext_rt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 	dns_name_fromregion(&name, &region);
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 	return(dns_name_totext(&prefix, sub, target));
 }
 

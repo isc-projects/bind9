@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.12 1999/05/18 17:46:59 bwelling Exp $ */
+ /* $Id: sig_24.c,v 1.13 1999/06/08 10:35:19 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -35,6 +35,7 @@ fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 	dns_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
+	isc_uint32_t time_signed, time_expire;
 
 	REQUIRE(type == 24);
 
@@ -73,11 +74,13 @@ fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* signature expiration */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	RETERR(time_tobuffer(token.value.as_pointer, target));
+	RETERR(dns_time32_fromtext(token.value.as_pointer, &time_expire));
+	RETERR(uint32_tobuffer(time_expire, target));
 
 	/* time signed */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	RETERR(time_tobuffer(token.value.as_pointer, target));
+	RETERR(dns_time32_fromtext(token.value.as_pointer, &time_signed));
+	RETERR(uint32_tobuffer(time_signed, target));
 
 	/* key footprint */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -96,7 +99,9 @@ fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_sig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	      isc_buffer_t *target) 
+{
 	isc_region_t sr;
 	char buf[sizeof "4294967295"];
 	dns_rdatatype_t covered;
@@ -110,7 +115,7 @@ totext_sig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 24);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -142,13 +147,16 @@ totext_sig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	/* sig exp */
 	exp = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
-	RETERR(time_totext(exp, target));
+	RETERR(dns_time32_totext(exp, target));
 	RETERR(str_totext(" ", target));
+
+	RETERR(str_totext("(", target));	
+	RETERR(str_totext(tctx->linebreak, target));
 
 	/* time signed */
 	when = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
-	RETERR(time_totext(when, target));
+	RETERR(dns_time32_totext(when, target));
 	RETERR(str_totext(" ", target));
 
 	/* footprint */
@@ -163,12 +171,16 @@ totext_sig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
-	RETERR(str_totext(" ", target));
 
 	/* sig */
-	return (isc_base64_totext(&sr, target));
+	RETERR(str_totext(tctx->linebreak, target));
+	RETERR(isc_base64_totext(&sr, tctx->width - 2,
+				    tctx->linebreak, target));
+	RETERR(str_totext(" )", target));
+	
+	return DNS_R_SUCCESS;
 }
 
 static dns_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: minfo_14.c,v 1.13 1999/05/07 03:24:09 marka Exp $ */
+ /* $Id: minfo_14.c,v 1.14 1999/06/08 10:35:12 gson Exp $ */
 
 #ifndef RDATA_GENERIC_MINFO_14_C
 #define RDATA_GENERIC_MINFO_14_C
@@ -48,7 +48,9 @@ fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_minfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_minfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	     isc_buffer_t *target) 
+{
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -69,13 +71,13 @@ totext_minfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_fromregion(&email, &region);
 	isc_region_consume(&region, email.length);
 
-	sub = name_prefix(&rmail, origin, &prefix);
+	sub = name_prefix(&rmail, tctx->origin, &prefix);
 
 	RETERR(dns_name_totext(&prefix, sub, target));
 
 	RETERR(str_totext(" ", target));
 
-	sub = name_prefix(&email, origin, &prefix);
+	sub = name_prefix(&email, tctx->origin, &prefix);
 	return (dns_name_totext(&prefix, sub, target));
 }
 

@@ -126,6 +126,30 @@ struct dns_rdata {
 	ISC_LINK(dns_rdata_t)		link;
 };
 
+/*
+ * Context structure for dns_rdata_totext().  Defines
+ * the way the rdata part of a master file lines is
+ * formatted.
+ */
+typedef struct dns_rdata_textctx {
+	dns_name_t *origin;	/* Current origin, or NULL. */
+	unsigned int flags;	/* DNS_STYLEFLAG_* */
+	unsigned int width;	/* Width of rdata column. */
+  	char *linebreak;	/* Line break string. */
+} dns_rdata_textctx_t;
+
+/*
+ * Flags affecting rdata formatting.  Flags 0xFFFF0000
+ * are used by masterfile-level formatting and defined elsewhere.
+ */
+
+/* Split the rdata into multiple lines to try to keep it
+ within the "width". */
+#define DNS_STYLEFLAG_MULTILINE		0x00000001U
+
+/* Output explanatory comments. */
+#define DNS_STYLEFLAG_COMMENT		0x00000002U
+
 /***
  *** Initialization
  ***/
@@ -299,7 +323,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
+dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.

@@ -36,12 +36,12 @@ LIBS =		@LIBS@
 OBJS =		callbacks.o compress.o db.o dbiterator.o dbtable.o \
 		master.o message.o name.o rbt.o rbtdb.o rbtdb64.o \
 		rdata.o rdatalist.o rdataset.o rdatasetiter.o rdataslab.o \
-		result.o version.o
+		result.o version.o masterdump.o time.o ttl.o
 
 OSRC =		callbacks.c compress.c db.c dbiterator.c dbtable.c \
 		master.c name.c rbt.c rbtdb.c rbtdb64.c \
 		rdata.c rdatalist.c rdataset.c rdatasetiter.c rdataslab.c \
-		result.c version.c
+		result.c version.c masterdump.c time.c ttl.c
 
 SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \

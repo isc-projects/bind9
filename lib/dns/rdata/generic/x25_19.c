@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.c,v 1.4 1999/05/07 03:24:12 marka Exp $ */
+ /* $Id: x25_19.c,v 1.5 1999/06/08 10:35:21 gson Exp $ */
 
  /* RFC 1183 */
 
@@ -38,7 +38,7 @@ fromtext_x25(dns_rdataclass_t class, dns_rdatatype_t type,
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
 	for (i = 0; i < token.value.as_textregion.length; i++)
 		if (!isascii(token.value.as_textregion.base[i]&0xff) ||
 		    !isdigit(token.value.as_textregion.base[i]&0xff))
@@ -47,12 +47,14 @@ fromtext_x25(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_x25(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_x25(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	   isc_buffer_t *target) 
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 19);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
 	return (txt_totext(&region, target));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.19 1999/05/07 03:24:04 marka Exp $ */
+ /* $Id: gen.c,v 1.20 1999/06/08 10:35:04 gson Exp $ */
 
 #include <sys/types.h>
 
@@ -35,8 +35,8 @@
 #define FROMTEXTTYPE "type"
 #define FROMTEXTDEF "use_default = ISC_TRUE"
 
-#define TOTEXTDECL "dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target"
-#define TOTEXTARGS "rdata, origin, target"
+#define TOTEXTDECL "dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, isc_buffer_t *target"
+#define TOTEXTARGS "rdata, tctx, target"
 #define TOTEXTCLASS "rdata->class"
 #define TOTEXTTYPE "rdata->type"
 #define TOTEXTDEF "use_default = ISC_TRUE"

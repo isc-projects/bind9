@@ -15,13 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.47 1999/05/27 18:03:40 gson Exp $ */
+ /* $Id: rdata.c,v 1.48 1999/06/08 10:35:06 gson Exp $ */
 
 #include <config.h>
 
 #include <stdarg.h>
 #include <stdio.h>
-#include <time.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -40,6 +39,8 @@
 #include <dns/secalg.h>
 #include <dns/fixedname.h>
 #include <dns/rdatastruct.h>
+#include <dns/time.h>
+#include <dns/ttl.h>
 
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \
@@ -73,9 +74,6 @@ static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
 static int		compare_region(isc_region_t *r1, isc_region_t *r2);
 static int		hexvalue(char value);
 static int		decvalue(char value);
-static dns_result_t	time_totext(unsigned long value,
-				    isc_buffer_t *target);
-static dns_result_t	time_tobuffer(char *source, isc_buffer_t *target);
 static dns_result_t	btoa_totext(unsigned char *inbuf, int inbuflen,
 				    isc_buffer_t *target);
 static dns_result_t	atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target);
@@ -415,7 +413,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t class,
 }
 
 dns_result_t
-dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
+dns_rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		 isc_buffer_t *target)
 {
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
@@ -423,8 +421,8 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 	
 	REQUIRE(rdata != NULL);
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_TEXT);
-	if (origin != NULL)
-		REQUIRE(dns_name_isabsolute(origin) == ISC_TRUE);
+	if (tctx->origin != NULL)
+		REQUIRE(dns_name_isabsolute(tctx->origin) == ISC_TRUE);
 
 	TOTEXTSWITCH
 
@@ -983,105 +981,6 @@ decvalue(char value) {
 	return (s - decdigits);
 }
 
-static int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-static dns_result_t
-time_totext(unsigned long value, isc_buffer_t *target) {
-	isc_int64_t start;
-	isc_int64_t base;
-	isc_int64_t t;
-	struct tm tm;
-	char buf[sizeof "YYYYMMDDHHMMSS"];
-	int secs;
-
-	/* find the right epoch */
-	start = time(NULL);
-	start -= 0x7fffffff;
-	base = 0;
-	while ((t = (base + value)) < start) {
-		base += 0x80000000;
-		base += 0x80000000;
-	}
-
-#define is_leap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
-#define year_secs(y) ((is_leap(y) ? 366 : 365 ) * 86400)
-#define month_secs(m, y) ((days[m] + ((m == 1 && is_leap(y)) ? 1 : 0 )) * 86400)
-
-
-	tm.tm_year = 70;
-	while ((secs = year_secs(tm.tm_year + 1900)) <= t) {
-		t -= secs;
-		tm.tm_year++;
-	}
-	tm.tm_mon = 0;
-	while ((secs = month_secs(tm.tm_mon, tm.tm_year + 1900)) <= t) {
-		t -= secs;
-		tm.tm_mon++;
-	}
-	tm.tm_mday = 1;
-	while (86400 <= t) {
-		t -= 86400;
-		tm.tm_mday++;
-	}
-	tm.tm_hour = 0;
-	while (3600 <= t) {
-		t -= 3600;
-		tm.tm_hour++;
-	}
-	tm.tm_min = 0;
-	while (60 <= t) {
-		t -= 60;
-		tm.tm_min++;
-	}
-	tm.tm_sec = t;
-		    /* yy  mm  dd  HH  MM  SS */
-	sprintf(buf, "%04d%02d%02d%02d%02d%02d",
-		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-		tm.tm_hour, tm.tm_min, tm.tm_sec);
-	return (str_totext(buf, target));
-}
-
-static dns_result_t
-time_tobuffer(char *source, isc_buffer_t *target) {
-	int year, month, day, hour, minute, second;
-	unsigned long value;
-	int secs;
-	int i;
-
-#define RANGE(min, max, value) \
-	do { \
-		if (value < (min) || value > (max)) \
-			return (DNS_R_RANGE); \
-	} while (0)
-
-	if (strlen(source) != 14)
-		return (DNS_R_SYNTAX);
-	if (sscanf(source, "%4d%2d%2d%2d%2d%2d",
-		   &year, &month, &day, &hour, &minute, &second) != 6)
-		return (DNS_R_SYNTAX);
-
-	RANGE(1970, 9999, year);
-	RANGE(1, 12, month);
-	RANGE(1, days[month - 1] +
-		 ((month == 2 && is_leap(year)) ? 1 : 0), day);
-	RANGE(0, 23, hour);
-	RANGE(0, 59, minute);
-	RANGE(0, 60, second);	/* leap second */
-
-	/* calulate seconds since epoch */
-	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
-	for (i = 0; i < (month - 1) ; i++)
-		value += days[i] * 86400;
-	if (is_leap(year) && month > 2)
-		value += 86400;
-	for (i = 1970; i < year; i++) {
-		secs = (is_leap(i) ? 366 : 365) * 86400;
-		value += secs;
-	}
-	
-	return (uint32_tobuffer(value, target));
-}
-
 static const char atob_digits[86] =
 "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
 /*
@@ -1382,3 +1281,4 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 			    name, line, dns_result_totext(result));
 	}
 }
+

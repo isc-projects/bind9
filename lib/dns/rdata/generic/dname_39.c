@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.c,v 1.6 1999/05/07 03:24:06 marka Exp $ */
+ /* $Id: dname_39.c,v 1.7 1999/06/08 10:35:09 gson Exp $ */
 
  /* draft-ietf-dnsind-dname-02.txt */
 
@@ -44,7 +44,9 @@ fromtext_dname(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_dname(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_dname(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	     isc_buffer_t *target) 
+{
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -58,7 +60,7 @@ totext_dname(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 
 	return (dns_name_totext(&prefix, sub, target));
 }

@@ -180,6 +180,17 @@ dns_db_load(dns_db_t *db, char *filename) {
 	return (db->methods->load(db, filename));
 }
 
+dns_result_t
+dns_db_dump(dns_db_t *db, dns_dbversion_t *version, char *filename) {
+	/*
+	 * Dump 'db' into master file 'filename'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+
+	return (db->methods->dump(db, version, filename));
+}
+
 /***
  *** Version Methods
  ***/

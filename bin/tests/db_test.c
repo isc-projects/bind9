@@ -144,7 +144,7 @@ select_db(char *origintext) {
 }
 
 static void
-dump(dbinfo *dbi) {
+list(dbinfo *dbi) {
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	dns_dbnode_t *node;
@@ -586,7 +586,13 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strcmp(s, "!LS") == 0) {
 			DBI_CHECK(dbi);
-			dump(dbi);
+			list(dbi);
+			continue;
+		} else if (strstr(s, "!DU ") == s) {
+			DBI_CHECK(dbi);
+			result = dns_db_dump(dbi->db, dbi->version, s+4);
+			if (result != DNS_R_SUCCESS)
+				printf("\n%s\n", dns_result_totext(result));
 			continue;
 		} else if (strstr(s, "!P") == s) {
 			DBI_CHECK(dbi);

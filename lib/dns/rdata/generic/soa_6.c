@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.17 1999/05/07 03:24:11 marka Exp $ */
+ /* $Id: soa_6.c,v 1.18 1999/06/08 10:35:19 gson Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
@@ -51,11 +51,18 @@ fromtext_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 				  ISC_FALSE));
 		RETERR(uint32_tobuffer(token.value.as_ulong, target));
 	}
+
 	return (DNS_R_SUCCESS);
 }
 
+static char *soa_fieldnames[5] = {
+	"serial", "refresh", "retry", "expire", "minimum"
+} ;
+
 static dns_result_t
-totext_soa(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_soa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	   isc_buffer_t *target) 
+{
 	isc_region_t dregion;
 	dns_name_t mname;
 	dns_name_t rname;
@@ -77,25 +84,47 @@ totext_soa(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_fromregion(&rname, &dregion);
 	isc_region_consume(&dregion, name_length(&rname));
 
-	sub = name_prefix(&mname, origin, &prefix);
+	sub = name_prefix(&mname, tctx->origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
 	
 	RETERR(str_totext(" ", target));
 
-	sub = name_prefix(&rname, origin, &prefix);
+	sub = name_prefix(&rname, tctx->origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
+
+	RETERR(str_totext(" (" , target));
+	RETERR(str_totext(tctx->linebreak, target));
 
 	for (i = 0; i < 5 ; i++) {
 		char buf[sizeof "2147483647"];
 		unsigned long num;
-
-		RETERR(str_totext(" ", target));
-
+		unsigned int numlen;
 		num = uint32_fromregion(&dregion);
 		isc_region_consume(&dregion, 4); 
-		sprintf(buf, "%lu", num);
+		numlen = sprintf(buf, "%lu", num);
+		INSIST(numlen > 0 && numlen < sizeof "2147483647");
 		RETERR(str_totext(buf, target));
+		if ((tctx->flags & (DNS_STYLEFLAG_MULTILINE |
+				    DNS_STYLEFLAG_COMMENT)) ==
+				   (DNS_STYLEFLAG_MULTILINE |
+				    DNS_STYLEFLAG_COMMENT))
+		{
+			RETERR(str_totext("           ; " + numlen, target));
+			RETERR(str_totext(soa_fieldnames[i], target));
+			/* Print times in week/day/hour/minute/second form */
+			if (i >= 1) {
+				RETERR(str_totext(" (", target));
+				RETERR(dns_ttl_totext(num, ISC_TRUE, target));
+				RETERR(str_totext(")", target));				
+			}
+			RETERR(str_totext(tctx->linebreak, target));
+		} else {
+			RETERR(str_totext(" ", target));
+		}
 	}
+
+	RETERR(str_totext(")", target));
+
 	return (DNS_R_SUCCESS);
 }
 

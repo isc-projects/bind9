@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.9 1999/05/07 03:24:10 marka Exp $ */
+ /* $Id: null_10.c,v 1.10 1999/06/08 10:35:18 gson Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_C
 #define RDATA_GENERIC_NULL_10_C
@@ -39,13 +39,15 @@ fromtext_null(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_null(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_null(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	    isc_buffer_t *target) 
+{
 	
 
 	REQUIRE(rdata->type == 10);
 	REQUIRE(rdata->length == 0);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 	target = target;	/*unused*/
 
 	return (DNS_R_SUCCESS);

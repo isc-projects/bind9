@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.11 1999/05/07 03:24:12 marka Exp $ */
+ /* $Id: txt_16.c,v 1.12 1999/06/08 10:35:20 gson Exp $ */
 
 #ifndef RDATA_GENERIC_TXT_16_C
 #define RDATA_GENERIC_TXT_16_C
@@ -47,12 +47,14 @@ fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_txt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_txt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	   isc_buffer_t *target) 
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 16);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
 

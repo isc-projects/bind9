@@ -74,6 +74,8 @@ typedef struct dns_dbmethods {
 	void		(*attach)(dns_db_t *source, dns_db_t **targetp);
 	void		(*detach)(dns_db_t **dbp);
 	dns_result_t	(*load)(dns_db_t *db, char *filename);
+	dns_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version, 
+				char *filename);
 	void		(*currentversion)(dns_db_t *db,
 					  dns_dbversion_t **versionp);
 	dns_result_t	(*newversion)(dns_db_t *db,
@@ -318,6 +320,26 @@ dns_db_load(dns_db_t *db, char *filename);
  *
  *	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
+ */
+
+dns_result_t
+dns_db_dump(dns_db_t *db, dns_dbversion_t *version, char *filename);
+/*
+ * Dump version 'version' of 'db' to master file 'filename'.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ *	'version' is a valid version.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMEMORY
+ *
+ *	Other results are possible, depending upon the database
+ *	implementation used, OS file errors, etc.
  */
 
 /***

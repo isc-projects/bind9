@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: unspec_103.c,v 1.4 1999/05/07 03:24:12 marka Exp $ */
+ /* $Id: unspec_103.c,v 1.5 1999/06/08 10:35:20 gson Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -36,12 +36,14 @@ fromtext_unspec(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_unspec(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_unspec(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	      isc_buffer_t *target) 
+{
 	
 
 	REQUIRE(rdata->type == 103);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	return (btoa_totext(rdata->data, rdata->length, target));
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: isdn_20.c,v 1.5 1999/05/19 09:14:58 gson Exp $ */
+ /* $Id: isdn_20.c,v 1.6 1999/06/08 10:35:10 gson Exp $ */
 
  /* RFC 1183 */
 
@@ -50,12 +50,14 @@ fromtext_isdn(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_isdn(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_isdn(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	    isc_buffer_t *target) 
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 20);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.c,v 1.6 1999/05/07 03:24:14 marka Exp $ */
+ /* $Id: nsap-ptr_23.c,v 1.7 1999/06/08 10:35:22 gson Exp $ */
 
  /* RFC 1348 */
 
@@ -44,7 +44,7 @@ fromtext_in_nsap_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_in_nsap_ptr(dns_rdata_t *rdata, dns_name_t *origin,
+totext_in_nsap_ptr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		   isc_buffer_t *target)
 {
 	isc_region_t region;
@@ -61,7 +61,7 @@ totext_in_nsap_ptr(dns_rdata_t *rdata, dns_name_t *origin,
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 
 	return (dns_name_totext(&prefix, sub, target));
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.8 1999/05/07 03:24:13 marka Exp $ */
+ /* $Id: aaaa_28.c,v 1.9 1999/06/08 10:35:21 gson Exp $ */
 
  /* RFC 1886 */
 
@@ -60,14 +60,16 @@ fromtext_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_in_aaaa(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_in_aaaa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	       isc_buffer_t *target) 
+{
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->class == 1);
 	REQUIRE(rdata->length == 16);
 
-	origin = origin;	/* unused */
+	tctx = tctx;	/* unused */
 
 	isc_buffer_available(target, &region);
 	if (isc_inet_ntop(AF_INET6, rdata->data,

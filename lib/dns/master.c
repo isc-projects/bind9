@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.17 1999/04/25 22:18:11 marka Exp $ */
+ /* $Id: master.c,v 1.18 1999/06/08 10:35:04 gson Exp $ */
 
 #include <config.h>
 
@@ -23,12 +23,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <time.h>
 
 #include <isc/lex.h>
 #include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/stdtime.h>
 
 #include <dns/master.h>
 #include <dns/types.h>
@@ -38,6 +40,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/rdata.h>
+#include <dns/time.h>
 
 /*
  * Grow the number of dns_rdatalist_t (RDLSZ) and dns_rdata_t (RDSZ) structures
@@ -132,13 +135,15 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 
 dns_result_t
 dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
-		dns_rdataclass_t zclass, int *soacount, int *nscount,
-		dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
+		dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+		int *soacount, int *nscount, dns_rdatacallbacks_t *callbacks,
+		isc_mem_t *mctx)
 {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type;
 	isc_uint32_t ttl = 0;
 	isc_uint32_t default_ttl = 0;
+	isc_uint32_t ttl_offset = 0;
 	dns_name_t current_name;
 	dns_name_t glue_name;
 	dns_name_t new_name;
@@ -316,6 +321,14 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 				continue;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$INCLUDE") == 0) {
+				if (ttl_offset != 0) {
+					(callbacks->error)(callbacks,
+					   "dns_load_master: %s:%d: $INCLUDE "
+					   "may not be used with $DATE", 
+					   master_file, 
+					   isc_lex_getsourceline(lex));
+					goto cleanup;
+				}
 				GETTOKEN(lex, 0, &token, ISC_FALSE);
 				if (include_file != NULL)
 					isc_mem_free(mctx, include_file);
@@ -332,6 +345,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 								 top,
 								 &origin_name,
 								 zclass,
+								 age_ttl,
 								 soacount,
 								 nscount,
 								 callbacks,
@@ -343,6 +357,34 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 				}
 				read_till_eol = ISC_TRUE;
 				finish_include = ISC_TRUE;
+			} else if (strcasecmp(token.value.as_pointer,
+					      "$DATE") == 0) {
+				isc_uint64_t dump_time64;
+				isc_stdtime_t dump_time, current_time;
+				GETTOKEN(lex, 0, &token, ISC_FALSE);
+				iresult = isc_stdtime_get(&current_time);
+				result = dns_time64_fromtext(token.value.
+					     as_pointer, &dump_time64);
+				dump_time = dump_time64;
+				if (dump_time != dump_time64) {
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "dns_master_load: %s:%d: "
+					 "$DATE outside epoch",
+					 master_file,
+					 isc_lex_getsourceline(lex));
+					goto cleanup;
+				}
+				if (dump_time > current_time) {
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
+					"dns_master_load: %s:%d: "
+					"$DATE in future, using current date",
+					master_file,
+					isc_lex_getsourceline(lex));
+					dump_time = current_time;
+				}
+				ttl_offset = current_time - dump_time;
+				read_till_eol = ISC_TRUE;
+				continue;
 			}
 
 			/*
@@ -386,6 +428,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 							 top,
 							 &new_name,
 							 zclass,
+							 age_ttl,
 							 soacount,
 							 nscount,
 							 callbacks,
@@ -596,6 +639,20 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 
 		if (type == dns_rdatatype_ns && !in_glue)
 			current_has_delegation = ISC_TRUE;
+
+		if (age_ttl) {
+			/*
+			 * Adjust the TTL for $DATE.  If the RR has already
+			 * expired, ignore it without even parsing the rdata
+			 * part (good for performance, bad for catching 
+			 * syntax errors).
+			 */
+			if (ttl < ttl_offset) {
+				read_till_eol = ISC_TRUE;			
+				continue;
+			}
+			ttl -= ttl_offset;
+		}
 
 		/*
 		 * Find type in rdatalist.

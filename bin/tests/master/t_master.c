@@ -100,6 +100,7 @@ test_master(char *testfile, char *origin, dns_result_t exp_result) {
 							&dns_origin,
 							&dns_origin,
 							1,
+							ISC_FALSE,
 						 	&soacount,
 							&nscount,
 						 	&callbacks,

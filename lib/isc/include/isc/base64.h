@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: base64.h,v 1.1 1999/05/18 17:46:59 bwelling Exp $ */
+ /* $Id: base64.h,v 1.2 1999/06/08 10:35:23 gson Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
@@ -35,9 +35,17 @@ ISC_LANG_BEGINDECLS
 
 /* Convert data into base64 encoded text.
  *
+ * Notes:
+ *	The base64 encoded text in "target" will be divided into 
+ *	words of at most "wordlength" characters, separated by
+ * 	the "wordbreak" string.  No parentheses will surround
+ *	the text.
+ *
  * Requires:
  *	"source" is a region containing binary data
  *	"target" is a text buffer containing available space
+ *	"wordbreak" points to a null-terminated string of
+ *		zero or more whitespace characters
  *
  * Ensures:
  *	target will contain the base64 encoded version of the data
@@ -45,7 +53,8 @@ ISC_LANG_BEGINDECLS
  *	necessary.
  */
 isc_result_t
-isc_base64_totext(isc_region_t *source, isc_buffer_t *target);
+isc_base64_totext(isc_region_t *source, int wordlength,
+		  char *wordbreak, isc_buffer_t *target);
 
 /* Convert base64 encoded text into data.
  *

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.15 1999/05/07 03:24:09 marka Exp $ */
+ /* $Id: mx_15.c,v 1.16 1999/06/08 10:35:12 gson Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_C
 #define RDATA_GENERIC_MX_15_C
@@ -47,7 +47,9 @@ fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_mx(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_mx(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	  isc_buffer_t *target) 
+{
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -67,7 +69,7 @@ totext_mx(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 	dns_name_fromregion(&name, &region);
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 	return(dns_name_totext(&prefix, sub, target));
 }
 

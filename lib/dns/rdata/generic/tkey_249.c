@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.10 1999/05/18 17:46:59 bwelling Exp $ */
+ /* $Id: tkey_249.c,v 1.11 1999/06/08 10:35:20 gson Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -93,7 +93,9 @@ fromtext_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	    isc_buffer_t *target) 
+{
 	isc_region_t sr;
 	isc_region_t sigr;
 	char buf[sizeof "4294967295 "];	
@@ -110,7 +112,7 @@ totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
 	RETERR(str_totext(" ", target));
 	isc_region_consume(&sr, name_length(&name));
@@ -153,8 +155,11 @@ totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	REQUIRE(n <= sr.length);
 	sigr = sr;
 	sigr.length = n;
-	RETERR(isc_base64_totext(&sigr, target));
-	RETERR(str_totext(" ", target));
+	RETERR(str_totext("(", target));
+	RETERR(str_totext(tctx->linebreak, target));
+	RETERR(isc_base64_totext(&sigr, tctx->width - 2,
+				 tctx->linebreak, target));
+ 	RETERR(str_totext(" ) ", target));
 	isc_region_consume(&sr, n);
 
 	/* Other Size */
@@ -164,7 +169,7 @@ totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	RETERR(str_totext(buf, target));
 
 	/* Other */
-	return (isc_base64_totext(&sr, target));
+	return (isc_base64_totext(&sr, 60, " ", target));
 }
 
 static dns_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.10 1999/05/07 03:24:10 marka Exp $ */
+ /* $Id: proforma.c,v 1.11 1999/06/08 10:35:19 gson Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -35,7 +35,9 @@ fromtext_#(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_#(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_#(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	 isc_buffer_t *target) 
+{
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->class == #);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: loc_29.c,v 1.4 1999/05/07 03:24:07 marka Exp $ */
+ /* $Id: loc_29.c,v 1.5 1999/06/08 10:35:11 gson Exp $ */
 
  /* RFC 1876 */
 
@@ -376,7 +376,9 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_loc(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_loc(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	   isc_buffer_t *target) 
+{
 	int d1, m1, s1, fs1;
 	int d2, m2, s2, fs2;
 	unsigned long latitude;
@@ -397,7 +399,7 @@ totext_loc(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 29);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	dns_rdata_toregion(rdata, &sr);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.9 1999/05/07 03:24:13 marka Exp $ */
+ /* $Id: a6_38.c,v 1.10 1999/06/08 10:35:21 gson Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -86,7 +86,9 @@ fromtext_in_a6(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_in_a6(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_in_a6(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	     isc_buffer_t *target) 
+{
 	isc_region_t tr;
 	isc_region_t sr;
 	unsigned char addr[16];
@@ -131,7 +133,7 @@ totext_in_a6(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
-	sub = name_prefix(&name, origin, &prefix);
+	sub = name_prefix(&name, tctx->origin, &prefix);
 	return(dns_name_totext(&prefix, sub, target));
 }
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.10 1999/05/07 03:24:15 marka Exp $ */
+ /* $Id: wks_11.c,v 1.11 1999/06/08 10:35:23 gson Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_C
 #define RDATA_IN_1_WKS_11_C
@@ -113,7 +113,9 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_in_wks(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	      isc_buffer_t *target) 
+{
 	isc_region_t sr;
 	isc_region_t tr;
 	unsigned short proto;
@@ -123,7 +125,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->class == 1);
 
-	origin = origin;
+	tctx = tctx;
 	dns_rdata_toregion(rdata, &sr);
 	isc_buffer_available(target, &tr);
 	if (isc_inet_ntop(AF_INET, sr.base, (char *)tr.base, tr.length)

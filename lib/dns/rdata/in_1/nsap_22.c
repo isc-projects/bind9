@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.5 1999/05/19 09:15:52 gson Exp $ */
+ /* $Id: nsap_22.c,v 1.6 1999/06/08 10:35:22 gson Exp $ */
 
  /* RFC 1706 */
 
@@ -72,14 +72,16 @@ fromtext_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_in_nsap(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_in_nsap(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	       isc_buffer_t *target) 
+{
 	isc_region_t region;
 	char buf[sizeof "xx"];
 
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->class == 1);
 
-	origin = origin;	/* unused */
+	tctx = tctx;	/* unused */
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(str_totext("0x", target));

@@ -90,8 +90,8 @@ main(int argc, char *argv[]) {
 		dns_rdatacallbacks_init(&callbacks);
 		callbacks.commit = print_dataset;
 		
-		result = dns_master_load(argv[1], &origin, &origin, 1,
-					 &soacount, &nscount,
+		result = dns_master_load(argv[1], &origin, &origin, 1, ISC_FALSE,
+					 &soacount, &nscount, 
 					 &callbacks, mctx);
 		fprintf(stdout, "dns_master_load: %s\n",
 			dns_result_totext(result));

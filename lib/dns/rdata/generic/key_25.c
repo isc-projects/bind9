@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.6 1999/05/18 17:46:59 bwelling Exp $ */
+ /* $Id: key_25.c,v 1.7 1999/06/08 10:35:11 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -63,14 +63,16 @@ fromtext_key(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-totext_key(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
+totext_key(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+	   isc_buffer_t *target) 
+{
 	isc_region_t sr;
 	char buf[sizeof "64000"];
 	unsigned int flags;
 
 	REQUIRE(rdata->type == 25);
 
-	origin = origin;	/*unused*/
+	tctx = tctx;	/*unused*/
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -97,8 +99,13 @@ totext_key(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 		return (DNS_R_SUCCESS);
 
 	/* key */
-	RETERR(str_totext(" ", target));
-	return (isc_base64_totext(&sr, target));
+	RETERR(str_totext(" (", target));
+	RETERR(str_totext(tctx->linebreak, target));
+	RETERR(isc_base64_totext(&sr, tctx->width - 2,
+				 tctx->linebreak, target));
+ 	RETERR(str_totext(" )", target));
+
+	return DNS_R_SUCCESS;
 }
 
 static dns_result_t

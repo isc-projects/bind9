@@ -41,7 +41,8 @@ ISC_LANG_BEGINDECLS
 dns_result_t dns_master_load(char *master_file,
 			     dns_name_t *top,
 			     dns_name_t *origin,
-			     dns_rdataclass_t class,
+			     dns_rdataclass_t zclass,
+			     isc_boolean_t age_ttl,
 			     int *soacount,
 			     int *nscount,
 			     dns_rdatacallbacks_t *callbacks,
@@ -54,6 +55,9 @@ dns_result_t dns_master_load(char *master_file,
  * completes.  dns_load_master will abort if callbacks->commit returns
  * any value other than DNS_R_SUCCESS.
  *
+ * If 'age_ttl' is ISC_TRUE and the master file contains one or more
+ * $DATE directives, the TTLs of the data will be aged accordingly.
+ * 
  * 'callbacks->commit' is assumed to call 'callbacks->error' or
  * 'callbacks->warn' to generate any error messages required.
  *
