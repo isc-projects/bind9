@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.317 2001/04/12 21:07:39 tale Exp $ */
+/* $Id: server.c,v 1.318 2001/04/19 23:38:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1578,9 +1578,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Parse the configuration file using the new config code.
 	 */
-	CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx, &parser));
-	cfg_parser_setcallback(parser, directory_callback, NULL);
-
 	result = ISC_R_FAILURE;
 	config = NULL;
 
@@ -1592,6 +1589,8 @@ load_configuration(const char *filename, ns_server_t *server,
 			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 			      ISC_LOG_INFO, "loading configuration from '%s'",
 			      filename);
+		CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx, &parser));
+		cfg_parser_setcallback(parser, directory_callback, NULL);
 		result = cfg_parse_file(parser, filename, &cfg_type_namedconf,
 					&config);
 	}
@@ -1602,12 +1601,15 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	if (ns_g_lwresdonly &&
             (lwresd_g_useresolvconf ||
-	     (!ns_g_conffileset && result != ISC_R_FILENOTFOUND)))
+	     (!ns_g_conffileset && result == ISC_R_FILENOTFOUND)))
 	{
 		isc_log_write(ns_g_lctx,
 			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 			      ISC_LOG_INFO, "loading configuration from '%s'",
 			      lwresd_g_resolvconffile);
+		if (parser != NULL)
+			cfg_parser_destroy(&parser);
+		CHECK(cfg_parser_create(ns_g_mctx, ns_g_lctx, &parser));
 		result = ns_lwresd_parseeresolvconf(ns_g_mctx, parser,
 						    &config);
 	}
