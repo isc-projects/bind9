@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.4 2003/08/08 05:32:35 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.5 2003/08/11 05:42:52 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -102,7 +102,11 @@ command is one of the following:\n\
   querylog	Toggle query logging.\n\
   dumpdb	Dump cache(s) to the dump file (named_dump.db).\n\
   stop		Save pending updates to master files and stop the server.\n\
+  stop -p	Save pending updates to master files and stop the server\n\
+		reporting process id.\n\
   halt		Stop the server without saving pending updates.\n\
+  halt -p	Stop the server without saving pending updates reporting\n\
+		process id.\n\
   trace		Increment debugging level by one.\n\
   trace level	Change the debugging level.\n\
   notrace	Set debugging level to 0.\n\
