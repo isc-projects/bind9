@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.66 2000/06/30 22:57:47 bwelling Exp $ */
+/* $Id: dighost.c,v 1.67 2000/07/03 21:52:13 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -67,7 +67,7 @@ ISC_LIST(dig_server_t) server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
 isc_boolean_t have_ipv6 = ISC_FALSE, specified_source = ISC_FALSE,
-	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE,
+	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_FALSE,
 	qr = ISC_FALSE, is_dst_up = ISC_FALSE;
 in_port_t port = 53;
 unsigned int timeout = 5;
@@ -1818,7 +1818,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				dns_message_destroy(&msg);
 				cancel_lookup(query->lookup);
 			}
-			check_next_lookup(query->lookup);
+			if (!free_now)
+				check_next_lookup(query->lookup);
 		}
 		if (msg != NULL)
 			dns_message_destroy(&msg);
