@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.18 2001/02/15 20:10:03 bwelling Exp $ */
+/* $Id: auth.c,v 1.19 2001/02/16 00:21:08 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -41,8 +41,6 @@
 #include <isc/once.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <dst/result.h>
 
 #include <omapi/private.h>
 

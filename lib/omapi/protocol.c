@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.34 2001/02/15 19:44:45 bwelling Exp $ */
+/* $Id: protocol.c,v 1.35 2001/02/16 00:21:09 bwelling Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -30,8 +30,6 @@
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <dst/result.h>
 
 #include <omapi/private.h>
 #include <omapi/result.h>
