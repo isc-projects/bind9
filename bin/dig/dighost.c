@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.82 2000/07/13 18:52:57 mws Exp $ */
+/* $Id: dighost.c,v 1.83 2000/07/13 21:00:59 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -260,7 +260,6 @@ make_empty_lookup(void) {
 	looknew->identify = ISC_FALSE;
 	looknew->udpsize = 0;
 	looknew->recurse = ISC_TRUE;
-	looknew->aaonly = ISC_FALSE;
 	looknew->adflag = ISC_FALSE;
 	looknew->cdflag = ISC_FALSE;
 	looknew->ns_search_only = ISC_FALSE;
@@ -304,7 +303,6 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->identify = lookold->identify;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
-	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
 	looknew->ns_search_only = lookold->ns_search_only;
@@ -707,6 +705,9 @@ clear_query(dig_query_t *query) {
 		ISC_LIST_DEQUEUE(query->lengthlist, &query->lengthbuf,
 				 link);
 	INSIST(query->recvspace != NULL);
+	isc_socket_detach(&query->sock);
+	sockcount--;
+	debug("sockcount=%d", sockcount);
 	isc_mempool_put(commctx, query->recvspace);
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_invalidate(&query->lengthbuf);
@@ -1139,11 +1140,6 @@ setup_lookup(dig_lookup_t *lookup) {
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
 	}
 
-	if (lookup->aaonly) {
-		debug("AA query");
-		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_AA;
-	}
-
 	if (lookup->adflag) {
 		debug("AD query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_AD;
@@ -1287,9 +1283,6 @@ cancel_lookup(dig_lookup_t *lookup) {
 		if (query->sock != NULL) {
 			isc_socket_cancel(query->sock, global_task,
 					  ISC_SOCKCANCEL_ALL);
-			isc_socket_detach(&query->sock);
-			sockcount--;
-			debug("sockcount=%d", sockcount);
 			INSIST(sockcount >= 0);
 			check_if_done();
 		}
@@ -1406,7 +1399,7 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 					  ISC_SOCKCANCEL_ALL);
 		}
 	}
-	ENSURE(lookup->timer != NULL);
+	INSIST(lookup->timer != NULL);
 	isc_timer_detach(&lookup->timer);
 	isc_buffer_free(&b);
 	debug("done with connect_timeout()");
@@ -1545,6 +1538,7 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_socketevent_t *sevent = NULL;
 	dig_query_t *query = NULL;
+	dig_lookup_t *l;
 	isc_buffer_t *b = NULL;
 	isc_region_t r;
 
@@ -1572,13 +1566,18 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		printf(";; Connection to server %.*s for %s failed: %s.\n",
 		       (int)r.length, r.base, query->lookup->textname,
 		       isc_result_totext(sevent->result));
+		isc_socket_detach(&query->sock);
+		sockcount--;
+		INSIST(sockcount >= 0);
 		if (exitcode < 9)
 			exitcode = 9;
 		isc_buffer_free(&b);
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
-		check_next_lookup(query->lookup);
+		l = query->lookup;
+		clear_query(query);
+		check_next_lookup(l);
 		return;
 	}
 	launch_next_query(query, ISC_TRUE);

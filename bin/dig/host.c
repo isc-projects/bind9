@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.38 2000/07/13 01:22:35 mws Exp $ */
+/* $Id: host.c,v 1.39 2000/07/13 21:01:00 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -627,9 +627,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		ISC_LIST_APPEND(server_list, srv, link);
 	}
 	
-	lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
-	if (lookup == NULL)	
-		fatal("Memory allocation failure.");
+	lookup = make_empty_lookup();
 	lookup->pending = ISC_FALSE;
 	/* 
 	 * XXXMWS Add IPv6 translation here, probably using inet_pton
@@ -660,36 +658,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		strcpy(queryclass, "in");
 	strncpy(lookup->rttext, querytype, 32);
 	strncpy(lookup->rctext, queryclass, 32);
-	lookup->namespace[0] = 0;
-	lookup->sendspace = NULL;
-	lookup->sendmsg = NULL;
-	lookup->name = NULL;
-	lookup->oname = NULL;
-	lookup->timer = NULL;
-	lookup->xfr_q = NULL;
-	lookup->origin = NULL;
-	lookup->querysig = NULL;
-	lookup->doing_xfr = ISC_FALSE;
-	lookup->ixfr_serial = 0;
-	lookup->defname = ISC_FALSE;
-	lookup->identify = ISC_FALSE;
-	lookup->recurse = recursion;
 	lookup->ns_search_only = showallsoa;
-	lookup->use_my_server_list = ISC_FALSE;
-	lookup->retries = tries;
-	lookup->udpsize = 0;
-	lookup->nsfound = 0;
-	lookup->trace = ISC_FALSE;
 	lookup->trace_root = showallsoa;
 	lookup->tcp_mode = tcpmode;
 	lookup->new_search = ISC_TRUE;
-	lookup->aaonly = ISC_FALSE;
-	lookup->adflag = ISC_FALSE;
-	lookup->cdflag = ISC_FALSE;
-	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
-	lookup->origin = NULL;
-	ISC_LIST_INIT(lookup->my_server_list);
 }
 
 int

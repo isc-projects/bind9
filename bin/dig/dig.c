@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.63 2000/07/13 18:52:55 mws Exp $ */
+/* $Id: dig.c,v 1.64 2000/07/13 21:00:58 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -86,7 +86,6 @@ isc_boolean_t
 	section_additional = ISC_TRUE,
 	recurse = ISC_TRUE,
 	defname = ISC_TRUE,
-	aaonly = ISC_FALSE,
 	tcpmode = ISC_FALSE,
 	adflag = ISC_FALSE,
 	cdflag = ISC_FALSE;
@@ -159,7 +158,6 @@ show_usage(void) {
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]defname        (Set whether to use default domain)\n"
 "                 +[no]recursive      (Recursive mode)\n"
-"                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
 "                 +[no]details        (Show details of all requests)\n"
@@ -666,10 +664,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->recurse = ISC_TRUE;
 		} else if (strncmp(rv[0], "+norec", 6) == 0) {
 			lookup->recurse = ISC_FALSE;
-		} else if (strncmp(rv[0], "+aa", 3) == 0) {
-			lookup->aaonly = ISC_TRUE;
-		} else if (strncmp(rv[0], "+noaa", 5) == 0) {
-			lookup->aaonly = ISC_FALSE;
 		} else if (strncmp(rv[0], "+adf", 4) == 0) {
 			lookup->adflag = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noadf", 6) == 0) {
