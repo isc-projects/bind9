@@ -15,18 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.8 2001/03/05 22:39:57 bwelling Exp $ */
+/* $Id: getrrset.c,v 1.9 2001/03/06 23:02:01 bwelling Exp $ */
 
 #include <config.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-
-#include <netinet/in.h>
-
-#include <arpa/nameser.h>
-#include <arpa/inet.h>
 
 #include <string.h>
 #include <errno.h>

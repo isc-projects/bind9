@@ -15,12 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.26 2001/01/09 21:59:17 bwelling Exp $ */
+/* $Id: gethost.c,v 1.27 2001/03/06 23:02:00 bwelling Exp $ */
 
 #include <config.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
 
 #include <errno.h>
 #include <string.h>

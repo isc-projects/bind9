@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.27 2001/02/05 20:48:42 bwelling Exp $ */
+/* $Id: lwresutil.c,v 1.28 2001/03/06 23:02:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -25,9 +25,6 @@
 #include <unistd.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>

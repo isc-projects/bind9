@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.27 2001/01/23 00:41:55 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.28 2001/03/06 23:02:03 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -47,9 +47,6 @@
 #include <unistd.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
