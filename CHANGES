@@ -1,3 +1,7 @@
+1079.	[bug]		BIND 8 compatibility: accept bare elements at top
+			level of sort list treating them as if they were
+			a single element list.  [RT #1963]
+
 1078.	[bug]		We failed to correct bad tv_usec values in one case.
 			[RT #1966]
 
