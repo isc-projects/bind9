@@ -1,3 +1,6 @@
+1144.	[bug]		rndc-confgen would crash if both the -a and -t
+			options were specified. [RT #2159]
+
 1143.	[bug]		When a trusted-keys statement was present and named
 			was built without crypto support, it would leak memory.
 
