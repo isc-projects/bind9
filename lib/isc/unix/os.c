@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.8 2001/01/09 21:58:26 bwelling Exp $ */
+/* $Id: os.c,v 1.9 2001/02/11 00:52:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -32,8 +32,9 @@ sysconf_ncpus(void) {
 	return sysconf((_SC_NPROCESSORS_ONLN));
 #elif defined(_SC_NPROC_ONLN)
 	return sysconf((_SC_NPROC_ONLN));
-#endif
+#else
 	return (0);
+#endif
 
 }
 #endif /* HAVE_SYSCONF */
