@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.40.2.2 2002/03/26 00:55:15 marka Exp $
+# $Id: rules.in,v 1.40.2.3 2002/07/10 00:35:46 marka Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -66,7 +66,7 @@ subdirs:
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making all in `pwd`/$$i"; \
-			(cd $$i; ${MAKE} ${MAKEDEFS} all) || exit 1; \
+			(cd $$i; ${MAKE} ${MAKEDEFS} DESTDIR="${DESTDIR}" all) || exit 1; \
 		fi; \
 	done
 
@@ -76,7 +76,7 @@ install clean distclean maintainer-clean doc docclean man manclean::
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making $@ in `pwd`/$$i"; \
-			(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
+			(cd $$i; ${MAKE} ${MAKEDEFS} DESTDIR="${DESTDIR}" $@) || exit 1; \
 		fi; \
 	done
 
@@ -137,7 +137,7 @@ depend:
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making depend in `pwd`/$$i"; \
-			(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
+			(cd $$i; ${MAKE} ${MAKEDEFS} DESTDIR="${DESTDIR}" $@) || exit 1; \
 		fi; \
 	done
 	@if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
