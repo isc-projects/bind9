@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.110 2002/09/04 02:26:12 jinmei Exp $ */
+/* $Id: dispatch.c,v 1.111 2002/12/05 03:55:09 marka Exp $ */
 
 #include <config.h>
 
@@ -1324,7 +1324,7 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 	 */
 	isc_lfsr_init(&qid->qid_lfsr1, 0, 32, 0x80000057U,
 		      0, reseed_lfsr, mgr);
-	isc_lfsr_init(&qid->qid_lfsr2, 0, 32, 0x800000c2U,
+	isc_lfsr_init(&qid->qid_lfsr2, 0, 32, 0x80000062U,
 		      0, reseed_lfsr, mgr);
 	*qidp = qid;
 	return (ISC_R_SUCCESS);

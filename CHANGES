@@ -1,3 +1,6 @@
+1406.	[bug]		dispatch initialises one of the LSFR's with a incorrect
+			polynomial.  [RT #4617]
+
 1405.	[func]		Use arc4random() if available.
 
 1404.	[bug]		libbind: ns_name_ntol() could overwite a zero length
