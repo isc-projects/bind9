@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.109 2000/08/02 19:52:28 tale Exp $ */
+/* $Id: dighost.c,v 1.110 2000/08/02 22:39:01 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -725,7 +725,7 @@ add_question(dns_message_t *message, dns_name_t *name,
 static void
 check_if_done(void) {
 	debug("check_if_done()");
-	debug("list %s", ISC_LIST_EMPTY(lookup_list)?"empty":"full");
+	debug("list %s", ISC_LIST_EMPTY(lookup_list) ? "empty" : "full");
 	if (ISC_LIST_EMPTY(lookup_list) && current_lookup == NULL) {
 		INSIST(sockcount == 0);
 		INSIST(recvcount == 0);
