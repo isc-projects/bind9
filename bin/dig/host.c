@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.75 2001/08/01 16:18:56 bwelling Exp $ */
+/* $Id: host.c,v 1.76 2001/08/27 21:31:29 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -260,11 +260,18 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	char namestr[DNS_NAME_FORMATSIZE];
 	isc_region_t r;
 	isc_result_t result;
+	unsigned int bufsize = BUFSIZ;
 
-	result = isc_buffer_allocate(mctx, &b, OUTPUTBUF);
-	check_result(result, "isc_buffer_allocate");
 	dns_name_format(name, namestr, sizeof(namestr));
+ retry:
+	result = isc_buffer_allocate(mctx, &b, bufsize);
+	check_result(result, "isc_buffer_allocate");
 	result = dns_rdata_totext(rdata, NULL, b);
+	if (result == ISC_R_NOSPACE) {
+		isc_buffer_free(&b);
+		bufsize *= 2;
+		goto retry;
+	}
 	check_result(result, "dns_rdata_totext");
 	isc_buffer_usedregion(b, &r);
 	if (query->lookup->identify_previous_line) {
