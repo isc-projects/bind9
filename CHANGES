@@ -18,7 +18,8 @@
 
 1540.	[placeholder]	rt8934
 
-1539.	[placeholder]	rt9475
+1539.	[bug]		Open UDP sockets for notify-source and transfer-source
+			that use reserved ports at startup. [RT #9475]
 
 1538.	[placeholder]	rt9997
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.406 2003/10/26 21:33:44 marka Exp $ */
+/* $Id: server.c,v 1.407 2004/01/05 06:56:44 marka Exp $ */
 
 #include <config.h>
 
@@ -120,6 +120,13 @@
 			fatal(msg, result);			  \
 	} while (0)						  \
 
+struct ns_dispatch {
+	isc_sockaddr_t			addr;
+	unsigned int			dispatchgen;
+	dns_dispatch_t			*dispatch;
+	ISC_LINK(struct ns_dispatch)	link;
+};
+
 static void
 fatal(const char *msg, isc_result_t result);
 
@@ -147,6 +154,9 @@ static isc_result_t
 configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	       isc_mem_t *mctx, dns_view_t *view,
 	       ns_aclconfctx_t *aclconf);
+
+static void
+end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 
 /*
  * Configure a single view ACL at '*aclp'.  Get its configuration by
@@ -2619,6 +2629,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		      flush ? ": flushing changes" : "");
 
 	ns_controls_shutdown(server->controls);
+	end_reserved_dispatches(server, ISC_TRUE);
 
 	cfg_obj_destroy(ns_g_parser, &ns_g_config);
 	cfg_parser_destroy(&ns_g_parser);
@@ -2760,6 +2771,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->controls = NULL;
 	CHECKFATAL(ns_controls_create(server, &server->controls),
 		   "ns_controls_create");
+	server->dispatchgen = 0;
+	ISC_LIST_INIT(server->dispatches);
 
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
@@ -2819,14 +2832,117 @@ fatal(const char *msg, isc_result_t result) {
 	exit(1);
 }
 
+static void
+start_reserved_dispatches(ns_server_t *server) {
+
+	REQUIRE(NS_SERVER_VALID(server));
+
+	server->dispatchgen++;
+}
+
+static void
+end_reserved_dispatches(ns_server_t *server, isc_boolean_t all) {
+	ns_dispatch_t *dispatch;
+
+	REQUIRE(NS_SERVER_VALID(server));
+
+	for (dispatch = ISC_LIST_HEAD(server->dispatches);
+	     dispatch != NULL;
+	     dispatch = ISC_LIST_NEXT(dispatch, link)) {
+		if (!all && server->dispatchgen == dispatch-> dispatchgen)
+			continue;
+		dns_dispatch_detach(&dispatch->dispatch);
+		isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
+	}
+}
+
+void
+ns_add_reserved_dispatch(ns_server_t *server, isc_sockaddr_t *addr) {
+	ns_dispatch_t *dispatch;
+	in_port_t port;
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_result_t result;
+	unsigned int attrs, attrmask;
+
+	REQUIRE(NS_SERVER_VALID(server));
+
+	port = isc_sockaddr_getport(addr);
+	if (port == 0 || port >= 1024)
+		return;
+
+	for (dispatch = ISC_LIST_HEAD(server->dispatches);
+	     dispatch != NULL;
+	     dispatch = ISC_LIST_NEXT(dispatch, link)) {
+		if (isc_sockaddr_equal(&dispatch->addr, addr))
+			break;
+	}
+	if (dispatch != NULL) {
+		dispatch->dispatchgen = server->dispatchgen;
+		return;
+	}
+
+	dispatch = isc_mem_get(server->mctx, sizeof(*dispatch));
+	if (dispatch == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	dispatch->addr = *addr;
+	dispatch->dispatchgen = server->dispatchgen;
+	dispatch->dispatch = NULL;
+
+        attrs = 0;
+        attrs |= DNS_DISPATCHATTR_UDP;
+        switch (isc_sockaddr_pf(addr)) {
+        case AF_INET:
+                attrs |= DNS_DISPATCHATTR_IPV4;
+                break;
+        case AF_INET6:
+                attrs |= DNS_DISPATCHATTR_IPV6;
+                break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+        }
+        attrmask = 0;
+        attrmask |= DNS_DISPATCHATTR_UDP;
+        attrmask |= DNS_DISPATCHATTR_TCP;
+        attrmask |= DNS_DISPATCHATTR_IPV4;
+        attrmask |= DNS_DISPATCHATTR_IPV6;
+
+	result = dns_dispatch_getudp(ns_g_dispatchmgr, ns_g_socketmgr,
+                                     ns_g_taskmgr, &dispatch->addr, 4096,
+                                     1000, 32768, 16411, 16433,
+                                     attrs, attrmask, &dispatch->dispatch); 
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	ISC_LIST_INITANDPREPEND(server->dispatches, dispatch, link);
+
+	return;
+
+ cleanup:
+	if (dispatch != NULL)
+		isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
+	isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		      "unable to create dispatch for reserved port %s: %s",
+		      addrbuf, isc_result_totext(result));
+}
+
+
 static isc_result_t
 loadconfig(ns_server_t *server) {
 	isc_result_t result;
+	start_reserved_dispatches(server);
 	result = load_configuration(ns_g_lwresdonly ?
 				    lwresd_g_conffile : ns_g_conffile,
 				    server,
 				    ISC_FALSE);
-	if (result != ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS)
+		end_reserved_dispatches(server, ISC_FALSE);
+	else
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading configuration failed: %s",
