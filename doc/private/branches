@@ -4,13 +4,13 @@ a6_remove
 blabel-cleanup
 ipv6-improvements
 ipv6-scope
-ipv6_6to4	feedback	mark
+ipv6_6to4	feedback	marka
 libbind_clean
-rt3536		feedback	mark	[ixfr=support]
+rt3536		review		jinmei	[ixfr=support]
 rt3598		review		sho
 rt3625		review		sho
-rt3666		feedback	mark
-rt3746		review		jinmei
+rt3666		feedback	marka
+rt3746		open		marka
 v6source
 
 rt3588		closed
