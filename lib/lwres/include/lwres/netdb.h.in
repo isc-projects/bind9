@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.22 2000/06/22 21:59:54 tale Exp $ */
+/* $Id: netdb.h.in,v 1.23 2000/06/23 03:14:04 tale Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
 
-#include <stddef.h>			/* Ensure we have size_t. */
-#include <netdb.h>
+#include <stddef.h>
+#include <netdb.h>		/* Contractual provision. */
+
 #include <lwres/lang.h>
 
 /*
@@ -31,14 +32,14 @@
 
 #ifdef ISC_LWRES_NEEDADDRINFO
 struct	addrinfo {
-	int		ai_flags;	/* AI_PASSIVE, AI_CANONNAME */
-	int		ai_family;	/* PF_xxx */
-	int		ai_socktype;	/* SOCK_xxx */
-	int		ai_protocol;	/* 0 or IPPROTO_xxx for IPv4 and IPv6 */
-	size_t		ai_addrlen;	/* length of ai_addr */
-	char		*ai_canonname;	/* canonical name for hostname */
-	struct sockaddr	*ai_addr; 	/* binary address */
-	struct addrinfo	*ai_next; 	/* next structure in linked list */
+	int		ai_flags;      /* AI_PASSIVE, AI_CANONNAME */
+	int		ai_family;     /* PF_xxx */
+	int		ai_socktype;   /* SOCK_xxx */
+	int		ai_protocol;   /* 0 or IPPROTO_xxx for IPv4 and IPv6 */
+	size_t		ai_addrlen;    /* Length of ai_addr */
+	char		*ai_canonname; /* Canonical name for hostname */
+	struct sockaddr	*ai_addr;      /* Binary address */
+	struct addrinfo	*ai_next;      /* Next structure in linked list */
 };
 #endif
 
@@ -49,7 +50,7 @@ struct	addrinfo {
 
 /*
  * Error return codes from gethostbyname() and gethostbyaddr()
- *(left in extern int h_errno).
+ * (left in extern int h_errno).
  */
 
 #undef	NETDB_INTERNAL
@@ -438,7 +439,7 @@ LWRES_LANG_ENDDECLS
 /* This is nec'y to make this include file properly replace the sun version. */
 #ifdef sun
 #ifdef __GNU_LIBRARY__
-#include <rpc/netdb.h>
+#include <rpc/netdb.h>		/* Required. */
 #else /* !__GNU_LIBRARY__ */
 struct rpcent {
 	char	*r_name;	/* name of server for this rpc program */
@@ -451,4 +452,5 @@ struct rpcent	*lwres_getrpcent();
 #endif /* __GNU_LIBRARY__ */
 #endif /* sun */
 #endif /* notyet */
-#endif
+
+#endif /* LWRES_NETDB_H */
