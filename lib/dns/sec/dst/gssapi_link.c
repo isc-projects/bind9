@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.6 2001/01/09 21:55:34 bwelling Exp $
+ * $Id: gssapi_link.c,v 1.7 2001/03/21 20:45:55 bwelling Exp $
  */
 
 #ifdef GSSAPI
@@ -205,7 +205,7 @@ static dst_func_t gssapi_functions = {
 	NULL, /* paramcompare */
 	gssapi_generate,
 	gssapi_isprivate,
-	gssapi_issymetric,
+	gssapi_issymmetric,
 	gssapi_destroy,
 	NULL, /* todns */
 	NULL, /* fromdns */
