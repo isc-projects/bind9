@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.58 1999/10/08 23:39:14 tale Exp $ */
+/* $Id: rbt.c,v 1.59 1999/10/11 19:16:56 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -806,7 +806,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 */
 				ADD_ANCESTOR(chain, NULL);
 				ADD_LEVEL(chain, current);
-				chain->level_matches++;
 
 				/*
 				 * The caller may want to interrupt the
@@ -892,6 +891,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					chain->level_count--;
 				}
 
+				chain->level_matches = chain->level_count - 1;
+
 				result = chain_name(chain, foundname,
 						    ISC_FALSE);
 
@@ -928,12 +929,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * order against, the terminal name is the
 				 * predecessor.
 				 */
-				INSIST(chain->level_count > 0 &&
-				       chain->level_matches > 0);
+				INSIST(chain->level_count > 0);
+				INSIST(chain->level_matches <
+				       chain->level_count);
 				chain->end =
 					chain->levels[--chain->level_count];
-				chain->level_matches--;
-
 			} else {
 				dns_result_t result2;
 
