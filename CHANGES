@@ -1,3 +1,5 @@
+ 713.	[func]		named-checkconf takes '-t directory' similar to named.
+			[RT #726]
 
  712.	[bug]		Sending a large signed update message caused an
 			assertion failure. [RT #718]

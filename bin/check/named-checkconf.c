@@ -15,14 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.3 2001/01/09 21:39:10 bwelling Exp $ */
+/* $Id: named-checkconf.c,v 1.4 2001/01/29 03:23:11 marka Exp $ */
 
 #include <config.h>
 
 #include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
 
+#include <isc/commandline.h>
+#include <isc/dir.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -30,6 +34,12 @@
 #include <dns/namedconf.h>
 
 #include "check-tool.h"
+
+static void
+usage(void) {
+        fprintf(stderr, "usage: named-checkconf [-t directory] [named.conf]\n");
+        exit(1);
+}
 
 static isc_result_t
 zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap) {
@@ -52,19 +62,43 @@ optscbk(dns_c_ctx_t *ctx, void *uap) {
 
 int
 main(int argc, char **argv) {
+	int c;
 	dns_c_ctx_t *configctx = NULL;
 	const char *conffile = NULL;
 	isc_mem_t *mctx = NULL;
 	dns_c_cbks_t callbacks;
 	isc_log_t *log = NULL;
+	isc_result_t result;
 
 	callbacks.zonecbk = zonecbk;
 	callbacks.optscbk = optscbk;
 	callbacks.zonecbkuap = NULL;
 	callbacks.optscbkuap = NULL;
 
-	if (argc > 1)
-		conffile = argv[1];
+	while ((c = isc_commandline_parse(argc, argv, "t:")) != EOF) {
+		switch (c) {
+		case 't':
+			result = isc_dir_chroot(isc_commandline_argument);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "isc_dir_chroot: %s\n",
+					isc_result_totext(result));
+				exit(1);
+			}
+			result = isc_dir_chdir("/");
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "isc_dir_chdir: %s\n",
+					isc_result_totext(result));
+				exit(1);
+			}
+			break;
+
+		default:
+			usage();
+		}
+	}
+
+	if (argv[isc_commandline_index] != NULL)
+		conffile = argv[isc_commandline_index];
 	if (conffile == NULL || conffile[0] == '\0')
 		conffile = "/etc/named.conf";
 
