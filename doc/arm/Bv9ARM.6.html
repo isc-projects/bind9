@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: Bv9ARM.6.html,v 1.12 2000/08/01 01:17:56 tale Exp $ -->
+<!-- $Id: Bv9ARM.6.html,v 1.13 2000/08/22 19:26:45 gson Exp $ -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
 <HTML>
@@ -805,8 +805,8 @@ options</CODE>
 6.2.1	<CODE CLASS="Program-Process">
 acl</CODE> Statement Grammar</H4>
 <PRE CLASS="3Level-fixed"><A NAME="pgfId=997492"></A>
-<CODE CLASS="Program-Process">acl </CODE><EM CLASS="variable">acl-name</EM><CODE CLASS="Program-Process"> {</CODE>
-    <EM CLASS="variable">address_match_list</EM>
+<CODE CLASS="Program-Process">acl </CODE><EM CLASS="variable">acl-name</EM><CODE CLASS="Program-Process"> {</CODE> 
+    <EM CLASS="variable">address_match_list</EM> 
 <CODE CLASS="Program-Process">};</CODE>
 </PRE>
 </DIV>
@@ -1361,7 +1361,7 @@ the category Phrase</A>
         file &quot;&lt;stderr&gt;&quot;;			// this is illustrative only;
 						// there's currently no way of
 						// specifying an internal file
-						// descriptor in the
+						// descriptor in the 
 						// configuration language.
         severity info;				// only send priority info
 						// and higher
@@ -1672,7 +1672,7 @@ named.conf</EM>
     [ </EM><KBD CLASS="Literal-user-input">directory</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">path_name</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
     [ </EM><KBD CLASS="Literal-user-input">named-xfer</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">path_name</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
     [ </EM><KBD CLASS="Literal-user-input">tkey-domain</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">domainname</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
-    [ </EM><KBD CLASS="Literal-user-input">tkey-dhkey</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">keyname</EM><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">keyid</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
+    [ </EM><KBD CLASS="Literal-user-input">tkey-dhkey</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">key_name</EM><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">key_tag</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
     [ </EM><KBD CLASS="Literal-user-input">dump-file</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">path_name</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
     [ </EM><KBD CLASS="Literal-user-input">memstatistics-file</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">path_name</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
     [ </EM><KBD CLASS="Literal-user-input">pid-file</KBD><EM CLASS="Optional-meta-syntax"> </EM><EM CLASS="variable">path_name</EM><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ]
@@ -3432,7 +3432,7 @@ rrset-order</CODE>
 An <CODE CLASS="Program-Process">
 order_spec</CODE>
  is defined as follows:</P>
-
+ 
 <PRE>
 <EM>[ </EM><CODE CLASS="Program-Process">class</CODE> <VAR>class_name</VAR> <EM> ][ </EM><CODE CLASS="Program-Process">type</CODE> <VAR>type_name</VAR> <EM>][</EM> <CODE>name</CODE> <VAR>&quot;domain_name&quot;</VAR><EM>]</EM>
      <CODE CLASS="Program-Process">order</CODE> <VAR>ordering</VAR>
@@ -3971,7 +3971,7 @@ view</CODE>
 Here is an example of a typical split DNS setup implemented using <CODE CLASS="Program-Process">
 view</CODE>
  statements.</P>
-
+ 
 <PRE>
 
 <CODE><STRONG>view &quot;internal&quot; {
@@ -4013,7 +4013,7 @@ zone</CODE>
 
 
 <PRE CLASS="2Level-fixed"><A NAME="pgfId=998171"></A>
-<KBD CLASS="literal-user-input">zone</KBD> <EM CLASS="variable">zone name</EM> <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">class</EM><EM CLASS="Optional-meta-syntax">] [</EM><KBD CLASS="literal-user-input">{</KBD>
+<KBD CLASS="literal-user-input">zone</KBD> <EM CLASS="variable">zone name</EM> <EM CLASS="Optional-meta-syntax">[</EM><EM CLASS="variable">class</EM><EM CLASS="Optional-meta-syntax">] [</EM><KBD CLASS="literal-user-input">{</KBD> 
     <KBD CLASS="Literal-user-input">type</KBD> <EM CLASS="Optional-meta-syntax">( </EM><KBD CLASS="literal-user-input">master</KBD><EM CLASS="Optional-meta-syntax">|</EM><KBD CLASS="literal-user-input">slave</KBD><EM CLASS="Optional-meta-syntax">|</EM><KBD CLASS="literal-user-input">hint</KBD><EM CLASS="Optional-meta-syntax">|</EM><KBD CLASS="literal-user-input">stub</KBD><EM CLASS="Optional-meta-syntax">|</EM><KBD CLASS="literal-user-input">forward </KBD><EM CLASS="Optional-meta-syntax">)</EM><KBD CLASS="literal-user-input"> ;</KBD>
     <EM CLASS="Optional-meta-syntax">[</EM> <KBD CLASS="literal-user-input">allow-query</KBD> <KBD CLASS="literal-user-input">{</KBD> <EM CLASS="variable">address_match_list</EM> } <KBD CLASS="literal-user-input">;</KBD> <EM CLASS="Optional-meta-syntax">]</EM>
     <EM CLASS="Optional-meta-syntax">[</EM> <KBD CLASS="literal-user-input">allow-transfer</KBD> <KBD CLASS="literal-user-input">{</KBD> <EM CLASS="variable">address_match_list</EM> } <KBD CLASS="literal-user-input">;</KBD> <EM CLASS="Optional-meta-syntax">]</EM>
