@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.221 2002/02/20 03:35:41 marka Exp $ */
+/* $Id: socket.c,v 1.222 2002/03/15 04:59:03 marka Exp $ */
 
 #include <config.h>
 
@@ -929,6 +929,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
 		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
 		SOFT_OR_HARD(EHOSTDOWN, ISC_R_HOSTDOWN);
+		/* HPUX 11.11 can return EADDRNOTAVAIL. */
+		SOFT_OR_HARD(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 
 #undef SOFT_OR_HARD
