@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.62 2000/08/15 03:33:49 marka Exp $ */
+/* $Id: master.c,v 1.63 2000/08/24 19:13:13 gson Exp $ */
 
 #include <config.h>
 
@@ -1484,7 +1484,7 @@ static isc_result_t
 task_send(loadctx_t *ctx) {
 	isc_event_t *event;
 
-	event = isc_event_allocate(ctx->mctx, task_send,
+	event = isc_event_allocate(ctx->mctx, NULL,
 				   DNS_EVENT_MASTERQUANTUM,
 				   load_quantum, ctx, sizeof(*event));
 	if (event == NULL)
