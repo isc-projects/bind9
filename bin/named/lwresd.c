@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.33 2001/03/07 22:04:11 gson Exp $ */
+/* $Id: lwresd.c,v 1.34 2001/03/07 22:07:06 gson Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -102,7 +102,7 @@ buffer_putstr(isc_buffer_t *b, const char *s) {
 	unsigned int len = strlen(s);
 	if (isc_buffer_availablelength(b) <= len)
 		return (ISC_R_NOSPACE);
-	isc_buffer_putmem(b, s, len);
+	isc_buffer_putmem(b, (const unsigned char *)s, len);
 	return (ISC_R_SUCCESS);
 }
 
