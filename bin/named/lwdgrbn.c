@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.3 2000/12/11 23:09:38 marka Exp $ */
+/* $Id: lwdgrbn.c,v 1.4 2000/12/12 07:25:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -167,7 +167,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(sigrdataset))
 		{
-			INSIST(i < grbn->nrdatas);
+			INSIST(i < grbn->nsigs);
 			dns_rdataset_current(sigrdataset, &rdata);
 			dns_rdata_toregion(&rdata, &r);
 			grbn->sigs[i] = r.base;

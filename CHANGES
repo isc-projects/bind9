@@ -1,4 +1,7 @@
 
+ 609.	[bug]		getrrsetbyname() would crash lwresd if the server
+			found more SIGs than answers. [RT #554]
+
  608.	[func]		dnssec-signzone now adds a comment to the zone
 			with the time the file was signed.
 
