@@ -4635,17 +4635,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define pthread_attr_getstacksize to an innocuous variant, in case <limits.h> declares pthread_attr_getstacksize.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define pthread_attr_getstacksize innocuous_pthread_attr_getstacksize
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char pthread_attr_getstacksize (); below.  */
-#include <assert.h>
+    which can conflict with char pthread_attr_getstacksize (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef pthread_attr_getstacksize
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char pthread_attr_getstacksize ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_pthread_attr_getstacksize) || defined (__stub___pthread_attr_getstacksize)
+choke me
+#else
+char (*f) () = pthread_attr_getstacksize;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -4656,15 +4682,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_pthread_attr_getstacksize) || defined (__stub___pthread_attr_getstacksize)
-choke me
-#else
-f = pthread_attr_getstacksize;
-#endif
-
+return f != pthread_attr_getstacksize;
   ;
   return 0;
 }
@@ -4808,17 +4826,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define pthread_setconcurrency to an innocuous variant, in case <limits.h> declares pthread_setconcurrency.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define pthread_setconcurrency innocuous_pthread_setconcurrency
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char pthread_setconcurrency (); below.  */
-#include <assert.h>
+    which can conflict with char pthread_setconcurrency (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef pthread_setconcurrency
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char pthread_setconcurrency ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_pthread_setconcurrency) || defined (__stub___pthread_setconcurrency)
+choke me
+#else
+char (*f) () = pthread_setconcurrency;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -4829,15 +4873,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_pthread_setconcurrency) || defined (__stub___pthread_setconcurrency)
-choke me
-#else
-f = pthread_setconcurrency;
-#endif
-
+return f != pthread_setconcurrency;
   ;
   return 0;
 }
@@ -4916,17 +4952,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define sysconf to an innocuous variant, in case <limits.h> declares sysconf.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define sysconf innocuous_sysconf
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char sysconf (); below.  */
-#include <assert.h>
+    which can conflict with char sysconf (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef sysconf
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char sysconf ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_sysconf) || defined (__stub___sysconf)
+choke me
+#else
+char (*f) () = sysconf;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -4937,15 +4999,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_sysconf) || defined (__stub___sysconf)
-choke me
-#else
-f = sysconf;
-#endif
-
+return f != sysconf;
   ;
   return 0;
 }
@@ -5049,17 +5103,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define daemon to an innocuous variant, in case <limits.h> declares daemon.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define daemon innocuous_daemon
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char daemon (); below.  */
-#include <assert.h>
+    which can conflict with char daemon (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef daemon
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char daemon ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_daemon) || defined (__stub___daemon)
+choke me
+#else
+char (*f) () = daemon;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -5070,15 +5150,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_daemon) || defined (__stub___daemon)
-choke me
-#else
-f = daemon;
-#endif
-
+return f != daemon;
   ;
   return 0;
 }
@@ -5124,17 +5196,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define strsep to an innocuous variant, in case <limits.h> declares strsep.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define strsep innocuous_strsep
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char strsep (); below.  */
-#include <assert.h>
+    which can conflict with char strsep (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef strsep
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char strsep ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strsep) || defined (__stub___strsep)
+choke me
+#else
+char (*f) () = strsep;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -5145,15 +5243,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_strsep) || defined (__stub___strsep)
-choke me
-#else
-f = strsep;
-#endif
-
+return f != strsep;
   ;
   return 0;
 }
@@ -5199,17 +5289,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define strerror to an innocuous variant, in case <limits.h> declares strerror.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define strerror innocuous_strerror
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char strerror (); below.  */
-#include <assert.h>
+    which can conflict with char strerror (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef strerror
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char strerror ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strerror) || defined (__stub___strerror)
+choke me
+#else
+char (*f) () = strerror;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -5220,15 +5336,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_strerror) || defined (__stub___strerror)
-choke me
-#else
-f = strerror;
-#endif
-
+return f != strerror;
   ;
   return 0;
 }
@@ -5275,17 +5383,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define flockfile to an innocuous variant, in case <limits.h> declares flockfile.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define flockfile innocuous_flockfile
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char flockfile (); below.  */
-#include <assert.h>
+    which can conflict with char flockfile (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef flockfile
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char flockfile ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_flockfile) || defined (__stub___flockfile)
+choke me
+#else
+char (*f) () = flockfile;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -5296,15 +5430,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_flockfile) || defined (__stub___flockfile)
-choke me
-#else
-f = flockfile;
-#endif
-
+return f != flockfile;
   ;
   return 0;
 }
@@ -5438,17 +5564,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define catgets to an innocuous variant, in case <limits.h> declares catgets.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define catgets innocuous_catgets
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char catgets (); below.  */
-#include <assert.h>
+    which can conflict with char catgets (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef catgets
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char catgets ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_catgets) || defined (__stub___catgets)
+choke me
+#else
+char (*f) () = catgets;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -5459,15 +5611,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_catgets) || defined (__stub___catgets)
-choke me
-#else
-f = catgets;
-#endif
-
+return f != catgets;
   ;
   return 0;
 }
@@ -6852,7 +6996,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 6855 "configure"' > conftest.$ac_ext
+  echo '#line 6999 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -7395,7 +7539,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:7398: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:7542: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -8758,17 +8902,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define dlopen to an innocuous variant, in case <limits.h> declares dlopen.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define dlopen innocuous_dlopen
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char dlopen (); below.  */
-#include <assert.h>
+    which can conflict with char dlopen (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef dlopen
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char dlopen ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_dlopen) || defined (__stub___dlopen)
+choke me
+#else
+char (*f) () = dlopen;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -8779,15 +8949,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_dlopen) || defined (__stub___dlopen)
-choke me
-#else
-f = dlopen;
-#endif
-
+return f != dlopen;
   ;
   return 0;
 }
@@ -8825,17 +8987,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define shl_load to an innocuous variant, in case <limits.h> declares shl_load.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define shl_load innocuous_shl_load
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char shl_load (); below.  */
-#include <assert.h>
+    which can conflict with char shl_load (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef shl_load
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char shl_load ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_shl_load) || defined (__stub___shl_load)
+choke me
+#else
+char (*f) () = shl_load;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -8846,15 +9034,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_shl_load) || defined (__stub___shl_load)
-choke me
-#else
-f = shl_load;
-#endif
-
+return f != shl_load;
   ;
   return 0;
 }
@@ -9044,7 +9224,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9047 "configure"
+#line 9227 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -9142,7 +9322,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9145 "configure"
+#line 9325 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11072,17 +11252,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getipnodebyname to an innocuous variant, in case <limits.h> declares getipnodebyname.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getipnodebyname innocuous_getipnodebyname
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getipnodebyname (); below.  */
-#include <assert.h>
+    which can conflict with char getipnodebyname (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getipnodebyname
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getipnodebyname ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getipnodebyname) || defined (__stub___getipnodebyname)
+choke me
+#else
+char (*f) () = getipnodebyname;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11093,15 +11299,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getipnodebyname) || defined (__stub___getipnodebyname)
-choke me
-#else
-f = getipnodebyname;
-#endif
-
+return f != getipnodebyname;
   ;
   return 0;
 }
@@ -11142,17 +11340,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getnameinfo to an innocuous variant, in case <limits.h> declares getnameinfo.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getnameinfo innocuous_getnameinfo
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getnameinfo (); below.  */
-#include <assert.h>
+    which can conflict with char getnameinfo (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getnameinfo
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getnameinfo ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getnameinfo) || defined (__stub___getnameinfo)
+choke me
+#else
+char (*f) () = getnameinfo;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11163,15 +11387,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getnameinfo) || defined (__stub___getnameinfo)
-choke me
-#else
-f = getnameinfo;
-#endif
-
+return f != getnameinfo;
   ;
   return 0;
 }
@@ -11212,17 +11428,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getaddrinfo to an innocuous variant, in case <limits.h> declares getaddrinfo.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getaddrinfo innocuous_getaddrinfo
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getaddrinfo (); below.  */
-#include <assert.h>
+    which can conflict with char getaddrinfo (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getaddrinfo
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getaddrinfo ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getaddrinfo) || defined (__stub___getaddrinfo)
+choke me
+#else
+char (*f) () = getaddrinfo;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11233,15 +11475,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getaddrinfo) || defined (__stub___getaddrinfo)
-choke me
-#else
-f = getaddrinfo;
-#endif
-
+return f != getaddrinfo;
   ;
   return 0;
 }
@@ -11286,17 +11520,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define gai_strerror to an innocuous variant, in case <limits.h> declares gai_strerror.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define gai_strerror innocuous_gai_strerror
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char gai_strerror (); below.  */
-#include <assert.h>
+    which can conflict with char gai_strerror (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef gai_strerror
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char gai_strerror ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_gai_strerror) || defined (__stub___gai_strerror)
+choke me
+#else
+char (*f) () = gai_strerror;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11307,15 +11567,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_gai_strerror) || defined (__stub___gai_strerror)
-choke me
-#else
-f = gai_strerror;
-#endif
-
+return f != gai_strerror;
   ;
   return 0;
 }
@@ -11360,17 +11612,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define pselect to an innocuous variant, in case <limits.h> declares pselect.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define pselect innocuous_pselect
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char pselect (); below.  */
-#include <assert.h>
+    which can conflict with char pselect (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef pselect
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char pselect ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_pselect) || defined (__stub___pselect)
+choke me
+#else
+char (*f) () = pselect;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11381,15 +11659,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_pselect) || defined (__stub___pselect)
-choke me
-#else
-f = pselect;
-#endif
-
+return f != pselect;
   ;
   return 0;
 }
@@ -11431,17 +11701,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define gettimeofday to an innocuous variant, in case <limits.h> declares gettimeofday.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define gettimeofday innocuous_gettimeofday
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char gettimeofday (); below.  */
-#include <assert.h>
+    which can conflict with char gettimeofday (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef gettimeofday
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char gettimeofday ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_gettimeofday) || defined (__stub___gettimeofday)
+choke me
+#else
+char (*f) () = gettimeofday;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11452,15 +11748,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_gettimeofday) || defined (__stub___gettimeofday)
-choke me
-#else
-f = gettimeofday;
-#endif
-
+return f != gettimeofday;
   ;
   return 0;
 }
@@ -11502,17 +11790,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define strndup to an innocuous variant, in case <limits.h> declares strndup.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define strndup innocuous_strndup
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char strndup (); below.  */
-#include <assert.h>
+    which can conflict with char strndup (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef strndup
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char strndup ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strndup) || defined (__stub___strndup)
+choke me
+#else
+char (*f) () = strndup;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11523,15 +11837,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_strndup) || defined (__stub___strndup)
-choke me
-#else
-f = strndup;
-#endif
-
+return f != strndup;
   ;
   return 0;
 }
@@ -11609,17 +11915,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define strsep to an innocuous variant, in case <limits.h> declares strsep.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define strsep innocuous_strsep
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char strsep (); below.  */
-#include <assert.h>
+    which can conflict with char strsep (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef strsep
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char strsep ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strsep) || defined (__stub___strsep)
+choke me
+#else
+char (*f) () = strsep;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11630,15 +11962,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_strsep) || defined (__stub___strsep)
-choke me
-#else
-f = strsep;
-#endif
-
+return f != strsep;
   ;
   return 0;
 }
@@ -11679,17 +12003,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define vsnprintf to an innocuous variant, in case <limits.h> declares vsnprintf.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define vsnprintf innocuous_vsnprintf
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char vsnprintf (); below.  */
-#include <assert.h>
+    which can conflict with char vsnprintf (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef vsnprintf
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char vsnprintf ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_vsnprintf) || defined (__stub___vsnprintf)
+choke me
+#else
+char (*f) () = vsnprintf;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11700,15 +12050,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_vsnprintf) || defined (__stub___vsnprintf)
-choke me
-#else
-f = vsnprintf;
-#endif
-
+return f != vsnprintf;
   ;
   return 0;
 }
@@ -11756,17 +12098,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define strerror to an innocuous variant, in case <limits.h> declares strerror.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define strerror innocuous_strerror
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char strerror (); below.  */
-#include <assert.h>
+    which can conflict with char strerror (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef strerror
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char strerror ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_strerror) || defined (__stub___strerror)
+choke me
+#else
+char (*f) () = strerror;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11777,15 +12145,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_strerror) || defined (__stub___strerror)
-choke me
-#else
-f = strerror;
-#endif
-
+return f != strerror;
   ;
   return 0;
 }
@@ -11877,17 +12237,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define chroot to an innocuous variant, in case <limits.h> declares chroot.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define chroot innocuous_chroot
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char chroot (); below.  */
-#include <assert.h>
+    which can conflict with char chroot (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef chroot
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char chroot ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_chroot) || defined (__stub___chroot)
+choke me
+#else
+char (*f) () = chroot;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -11898,15 +12284,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_chroot) || defined (__stub___chroot)
-choke me
-#else
-f = chroot;
-#endif
-
+return f != chroot;
   ;
   return 0;
 }
@@ -12132,17 +12510,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getgrouplist to an innocuous variant, in case <limits.h> declares getgrouplist.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getgrouplist innocuous_getgrouplist
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getgrouplist (); below.  */
-#include <assert.h>
+    which can conflict with char getgrouplist (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getgrouplist
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getgrouplist ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getgrouplist) || defined (__stub___getgrouplist)
+choke me
+#else
+char (*f) () = getgrouplist;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -12153,15 +12557,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getgrouplist) || defined (__stub___getgrouplist)
-choke me
-#else
-f = getgrouplist;
-#endif
-
+return f != getgrouplist;
   ;
   return 0;
 }
@@ -12251,17 +12647,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setgroupent to an innocuous variant, in case <limits.h> declares setgroupent.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setgroupent innocuous_setgroupent
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setgroupent (); below.  */
-#include <assert.h>
+    which can conflict with char setgroupent (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setgroupent
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setgroupent ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setgroupent) || defined (__stub___setgroupent)
+choke me
+#else
+char (*f) () = setgroupent;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -12272,15 +12694,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setgroupent) || defined (__stub___setgroupent)
-choke me
-#else
-f = setgroupent;
-#endif
-
+return f != setgroupent;
   ;
   return 0;
 }
@@ -12325,17 +12739,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getnetbyaddr_r to an innocuous variant, in case <limits.h> declares getnetbyaddr_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getnetbyaddr_r innocuous_getnetbyaddr_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getnetbyaddr_r (); below.  */
-#include <assert.h>
+    which can conflict with char getnetbyaddr_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getnetbyaddr_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getnetbyaddr_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getnetbyaddr_r) || defined (__stub___getnetbyaddr_r)
+choke me
+#else
+char (*f) () = getnetbyaddr_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -12346,15 +12786,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getnetbyaddr_r) || defined (__stub___getnetbyaddr_r)
-choke me
-#else
-f = getnetbyaddr_r;
-#endif
-
+return f != getnetbyaddr_r;
   ;
   return 0;
 }
@@ -12627,17 +13059,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setnetent_r to an innocuous variant, in case <limits.h> declares setnetent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setnetent_r innocuous_setnetent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setnetent_r (); below.  */
-#include <assert.h>
+    which can conflict with char setnetent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setnetent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setnetent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setnetent_r) || defined (__stub___setnetent_r)
+choke me
+#else
+char (*f) () = setnetent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -12648,15 +13106,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setnetent_r) || defined (__stub___setnetent_r)
-choke me
-#else
-f = setnetent_r;
-#endif
-
+return f != setnetent_r;
   ;
   return 0;
 }
@@ -12792,17 +13242,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define endnetent_r to an innocuous variant, in case <limits.h> declares endnetent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define endnetent_r innocuous_endnetent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char endnetent_r (); below.  */
-#include <assert.h>
+    which can conflict with char endnetent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef endnetent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char endnetent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_endnetent_r) || defined (__stub___endnetent_r)
+choke me
+#else
+char (*f) () = endnetent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -12813,15 +13289,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_endnetent_r) || defined (__stub___endnetent_r)
-choke me
-#else
-f = endnetent_r;
-#endif
-
+return f != endnetent_r;
   ;
   return 0;
 }
@@ -13001,17 +13469,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getgrnam_r to an innocuous variant, in case <limits.h> declares getgrnam_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getgrnam_r innocuous_getgrnam_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getgrnam_r (); below.  */
-#include <assert.h>
+    which can conflict with char getgrnam_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getgrnam_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getgrnam_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getgrnam_r) || defined (__stub___getgrnam_r)
+choke me
+#else
+char (*f) () = getgrnam_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13022,15 +13516,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getgrnam_r) || defined (__stub___getgrnam_r)
-choke me
-#else
-f = getgrnam_r;
-#endif
-
+return f != getgrnam_r;
   ;
   return 0;
 }
@@ -13074,17 +13560,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getgrgid_r to an innocuous variant, in case <limits.h> declares getgrgid_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getgrgid_r innocuous_getgrgid_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getgrgid_r (); below.  */
-#include <assert.h>
+    which can conflict with char getgrgid_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getgrgid_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getgrgid_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getgrgid_r) || defined (__stub___getgrgid_r)
+choke me
+#else
+char (*f) () = getgrgid_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13095,15 +13607,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getgrgid_r) || defined (__stub___getgrgid_r)
-choke me
-#else
-f = getgrgid_r;
-#endif
-
+return f != getgrgid_r;
   ;
   return 0;
 }
@@ -13148,17 +13652,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getgrent_r to an innocuous variant, in case <limits.h> declares getgrent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getgrent_r innocuous_getgrent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getgrent_r (); below.  */
-#include <assert.h>
+    which can conflict with char getgrent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getgrent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getgrent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getgrent_r) || defined (__stub___getgrent_r)
+choke me
+#else
+char (*f) () = getgrent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13169,15 +13699,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getgrent_r) || defined (__stub___getgrent_r)
-choke me
-#else
-f = getgrent_r;
-#endif
-
+return f != getgrent_r;
   ;
   return 0;
 }
@@ -13276,17 +13798,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define endgrent_r to an innocuous variant, in case <limits.h> declares endgrent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define endgrent_r innocuous_endgrent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char endgrent_r (); below.  */
-#include <assert.h>
+    which can conflict with char endgrent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef endgrent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char endgrent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_endgrent_r) || defined (__stub___endgrent_r)
+choke me
+#else
+char (*f) () = endgrent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13297,15 +13845,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_endgrent_r) || defined (__stub___endgrent_r)
-choke me
-#else
-f = endgrent_r;
-#endif
-
+return f != endgrent_r;
   ;
   return 0;
 }
@@ -13357,17 +13897,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setgrent_r to an innocuous variant, in case <limits.h> declares setgrent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setgrent_r innocuous_setgrent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setgrent_r (); below.  */
-#include <assert.h>
+    which can conflict with char setgrent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setgrent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setgrent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setgrent_r) || defined (__stub___setgrent_r)
+choke me
+#else
+char (*f) () = setgrent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13378,15 +13944,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setgrent_r) || defined (__stub___setgrent_r)
-choke me
-#else
-f = setgrent_r;
-#endif
-
+return f != setgrent_r;
   ;
   return 0;
 }
@@ -13437,17 +13995,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define gethostbyname_r to an innocuous variant, in case <limits.h> declares gethostbyname_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define gethostbyname_r innocuous_gethostbyname_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char gethostbyname_r (); below.  */
-#include <assert.h>
+    which can conflict with char gethostbyname_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef gethostbyname_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char gethostbyname_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_gethostbyname_r) || defined (__stub___gethostbyname_r)
+choke me
+#else
+char (*f) () = gethostbyname_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13458,15 +14042,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_gethostbyname_r) || defined (__stub___gethostbyname_r)
-choke me
-#else
-f = gethostbyname_r;
-#endif
-
+return f != gethostbyname_r;
   ;
   return 0;
 }
@@ -13682,17 +14258,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define endhostent_r to an innocuous variant, in case <limits.h> declares endhostent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define endhostent_r innocuous_endhostent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char endhostent_r (); below.  */
-#include <assert.h>
+    which can conflict with char endhostent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef endhostent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char endhostent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_endhostent_r) || defined (__stub___endhostent_r)
+choke me
+#else
+char (*f) () = endhostent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13703,15 +14305,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_endhostent_r) || defined (__stub___endhostent_r)
-choke me
-#else
-f = endhostent_r;
-#endif
-
+return f != endhostent_r;
   ;
   return 0;
 }
@@ -13895,17 +14489,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define sethostent_r to an innocuous variant, in case <limits.h> declares sethostent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define sethostent_r innocuous_sethostent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char sethostent_r (); below.  */
-#include <assert.h>
+    which can conflict with char sethostent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef sethostent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char sethostent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_sethostent_r) || defined (__stub___sethostent_r)
+choke me
+#else
+char (*f) () = sethostent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -13916,15 +14536,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_sethostent_r) || defined (__stub___sethostent_r)
-choke me
-#else
-f = sethostent_r;
-#endif
-
+return f != sethostent_r;
   ;
   return 0;
 }
@@ -14239,17 +14851,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getnetgrent_r to an innocuous variant, in case <limits.h> declares getnetgrent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getnetgrent_r innocuous_getnetgrent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getnetgrent_r (); below.  */
-#include <assert.h>
+    which can conflict with char getnetgrent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getnetgrent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getnetgrent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getnetgrent_r) || defined (__stub___getnetgrent_r)
+choke me
+#else
+char (*f) () = getnetgrent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -14260,15 +14898,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getnetgrent_r) || defined (__stub___getnetgrent_r)
-choke me
-#else
-f = getnetgrent_r;
-#endif
-
+return f != getnetgrent_r;
   ;
   return 0;
 }
@@ -14470,17 +15100,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define endnetgrent_r to an innocuous variant, in case <limits.h> declares endnetgrent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define endnetgrent_r innocuous_endnetgrent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char endnetgrent_r (); below.  */
-#include <assert.h>
+    which can conflict with char endnetgrent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef endnetgrent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char endnetgrent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_endnetgrent_r) || defined (__stub___endnetgrent_r)
+choke me
+#else
+char (*f) () = endnetgrent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -14491,15 +15147,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_endnetgrent_r) || defined (__stub___endnetgrent_r)
-choke me
-#else
-f = endnetgrent_r;
-#endif
-
+return f != endnetgrent_r;
   ;
   return 0;
 }
@@ -14554,17 +15202,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setnetgrent_r to an innocuous variant, in case <limits.h> declares setnetgrent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setnetgrent_r innocuous_setnetgrent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setnetgrent_r (); below.  */
-#include <assert.h>
+    which can conflict with char setnetgrent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setnetgrent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setnetgrent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setnetgrent_r) || defined (__stub___setnetgrent_r)
+choke me
+#else
+char (*f) () = setnetgrent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -14575,15 +15249,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setnetgrent_r) || defined (__stub___setnetgrent_r)
-choke me
-#else
-f = setnetgrent_r;
-#endif
-
+return f != setnetgrent_r;
   ;
   return 0;
 }
@@ -14641,17 +15307,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define innetgr_r to an innocuous variant, in case <limits.h> declares innetgr_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define innetgr_r innocuous_innetgr_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char innetgr_r (); below.  */
-#include <assert.h>
+    which can conflict with char innetgr_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef innetgr_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char innetgr_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_innetgr_r) || defined (__stub___innetgr_r)
+choke me
+#else
+char (*f) () = innetgr_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -14662,15 +15354,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_innetgr_r) || defined (__stub___innetgr_r)
-choke me
-#else
-f = innetgr_r;
-#endif
-
+return f != innetgr_r;
   ;
   return 0;
 }
@@ -14715,17 +15399,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getprotoent_r to an innocuous variant, in case <limits.h> declares getprotoent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getprotoent_r innocuous_getprotoent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getprotoent_r (); below.  */
-#include <assert.h>
+    which can conflict with char getprotoent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getprotoent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getprotoent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getprotoent_r) || defined (__stub___getprotoent_r)
+choke me
+#else
+char (*f) () = getprotoent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -14736,15 +15446,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getprotoent_r) || defined (__stub___getprotoent_r)
-choke me
-#else
-f = getprotoent_r;
-#endif
-
+return f != getprotoent_r;
   ;
   return 0;
 }
@@ -14903,17 +15605,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define endprotoent_r to an innocuous variant, in case <limits.h> declares endprotoent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define endprotoent_r innocuous_endprotoent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char endprotoent_r (); below.  */
-#include <assert.h>
+    which can conflict with char endprotoent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef endprotoent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char endprotoent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_endprotoent_r) || defined (__stub___endprotoent_r)
+choke me
+#else
+char (*f) () = endprotoent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -14924,15 +15652,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_endprotoent_r) || defined (__stub___endprotoent_r)
-choke me
-#else
-f = endprotoent_r;
-#endif
-
+return f != endprotoent_r;
   ;
   return 0;
 }
@@ -15027,17 +15747,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setprotoent_r to an innocuous variant, in case <limits.h> declares setprotoent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setprotoent_r innocuous_setprotoent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setprotoent_r (); below.  */
-#include <assert.h>
+    which can conflict with char setprotoent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setprotoent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setprotoent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setprotoent_r) || defined (__stub___setprotoent_r)
+choke me
+#else
+char (*f) () = setprotoent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15048,15 +15794,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setprotoent_r) || defined (__stub___setprotoent_r)
-choke me
-#else
-f = setprotoent_r;
-#endif
-
+return f != setprotoent_r;
   ;
   return 0;
 }
@@ -15145,17 +15883,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getpwent_r to an innocuous variant, in case <limits.h> declares getpwent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getpwent_r innocuous_getpwent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getpwent_r (); below.  */
-#include <assert.h>
+    which can conflict with char getpwent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getpwent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getpwent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getpwent_r) || defined (__stub___getpwent_r)
+choke me
+#else
+char (*f) () = getpwent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15166,15 +15930,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getpwent_r) || defined (__stub___getpwent_r)
-choke me
-#else
-f = getpwent_r;
-#endif
-
+return f != getpwent_r;
   ;
   return 0;
 }
@@ -15281,17 +16037,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define endpwent_r to an innocuous variant, in case <limits.h> declares endpwent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define endpwent_r innocuous_endpwent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char endpwent_r (); below.  */
-#include <assert.h>
+    which can conflict with char endpwent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef endpwent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char endpwent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_endpwent_r) || defined (__stub___endpwent_r)
+choke me
+#else
+char (*f) () = endpwent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15302,15 +16084,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_endpwent_r) || defined (__stub___endpwent_r)
-choke me
-#else
-f = endpwent_r;
-#endif
-
+return f != endpwent_r;
   ;
   return 0;
 }
@@ -15403,17 +16177,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setpassent_r to an innocuous variant, in case <limits.h> declares setpassent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setpassent_r innocuous_setpassent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setpassent_r (); below.  */
-#include <assert.h>
+    which can conflict with char setpassent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setpassent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setpassent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setpassent_r) || defined (__stub___setpassent_r)
+choke me
+#else
+char (*f) () = setpassent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15424,15 +16224,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setpassent_r) || defined (__stub___setpassent_r)
-choke me
-#else
-f = setpassent_r;
-#endif
-
+return f != setpassent_r;
   ;
   return 0;
 }
@@ -15476,17 +16268,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setpassent to an innocuous variant, in case <limits.h> declares setpassent.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setpassent innocuous_setpassent
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setpassent (); below.  */
-#include <assert.h>
+    which can conflict with char setpassent (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setpassent
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setpassent ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setpassent) || defined (__stub___setpassent)
+choke me
+#else
+char (*f) () = setpassent;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15497,15 +16315,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setpassent) || defined (__stub___setpassent)
-choke me
-#else
-f = setpassent;
-#endif
-
+return f != setpassent;
   ;
   return 0;
 }
@@ -15550,17 +16360,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setpwent_r to an innocuous variant, in case <limits.h> declares setpwent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setpwent_r innocuous_setpwent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setpwent_r (); below.  */
-#include <assert.h>
+    which can conflict with char setpwent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setpwent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setpwent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setpwent_r) || defined (__stub___setpwent_r)
+choke me
+#else
+char (*f) () = setpwent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15571,15 +16407,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setpwent_r) || defined (__stub___setpwent_r)
-choke me
-#else
-f = setpwent_r;
-#endif
-
+return f != setpwent_r;
   ;
   return 0;
 }
@@ -15712,17 +16540,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getpwnam_r to an innocuous variant, in case <limits.h> declares getpwnam_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getpwnam_r innocuous_getpwnam_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getpwnam_r (); below.  */
-#include <assert.h>
+    which can conflict with char getpwnam_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getpwnam_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getpwnam_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getpwnam_r) || defined (__stub___getpwnam_r)
+choke me
+#else
+char (*f) () = getpwnam_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15733,15 +16587,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getpwnam_r) || defined (__stub___getpwnam_r)
-choke me
-#else
-f = getpwnam_r;
-#endif
-
+return f != getpwnam_r;
   ;
   return 0;
 }
@@ -15785,17 +16631,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getpwuid_r to an innocuous variant, in case <limits.h> declares getpwuid_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getpwuid_r innocuous_getpwuid_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getpwuid_r (); below.  */
-#include <assert.h>
+    which can conflict with char getpwuid_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getpwuid_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getpwuid_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getpwuid_r) || defined (__stub___getpwuid_r)
+choke me
+#else
+char (*f) () = getpwuid_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15806,15 +16678,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getpwuid_r) || defined (__stub___getpwuid_r)
-choke me
-#else
-f = getpwuid_r;
-#endif
-
+return f != getpwuid_r;
   ;
   return 0;
 }
@@ -15859,17 +16723,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define getservent_r to an innocuous variant, in case <limits.h> declares getservent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define getservent_r innocuous_getservent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getservent_r (); below.  */
-#include <assert.h>
+    which can conflict with char getservent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef getservent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char getservent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getservent_r) || defined (__stub___getservent_r)
+choke me
+#else
+char (*f) () = getservent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -15880,15 +16770,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getservent_r) || defined (__stub___getservent_r)
-choke me
-#else
-f = getservent_r;
-#endif
-
+return f != getservent_r;
   ;
   return 0;
 }
@@ -16043,17 +16925,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define endservent_r to an innocuous variant, in case <limits.h> declares endservent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define endservent_r innocuous_endservent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char endservent_r (); below.  */
-#include <assert.h>
+    which can conflict with char endservent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef endservent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char endservent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_endservent_r) || defined (__stub___endservent_r)
+choke me
+#else
+char (*f) () = endservent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -16064,15 +16972,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_endservent_r) || defined (__stub___endservent_r)
-choke me
-#else
-f = endservent_r;
-#endif
-
+return f != endservent_r;
   ;
   return 0;
 }
@@ -16167,17 +17067,43 @@ else
   cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 #include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define setservent_r to an innocuous variant, in case <limits.h> declares setservent_r.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define setservent_r innocuous_setservent_r
+
 /* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char setservent_r (); below.  */
-#include <assert.h>
+    which can conflict with char setservent_r (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef setservent_r
+
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
 extern "C"
+{
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
 char setservent_r ();
-char (*f) ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_setservent_r) || defined (__stub___setservent_r)
+choke me
+#else
+char (*f) () = setservent_r;
+#endif
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef F77_DUMMY_MAIN
 #  ifdef __cplusplus
@@ -16188,15 +17114,7 @@ char (*f) ();
 int
 main ()
 {
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_setservent_r) || defined (__stub___setservent_r)
-choke me
-#else
-f = setservent_r;
-#endif
-
+return f != setservent_r;
   ;
   return 0;
 }
