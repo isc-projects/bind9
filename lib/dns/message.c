@@ -2468,7 +2468,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_rdataset_t *ps = NULL;
 	dns_name_t *name = NULL;
 	isc_result_t result;
-	char buf[strlen("1234567890")];
+	char buf[sizeof("1234567890")];
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
