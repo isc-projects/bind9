@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.88 2000/08/03 13:42:46 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.89 2000/08/03 20:10:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/mem.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -35,6 +36,8 @@
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
+#include <dns/master.h>
+#include <dns/masterdump.h>
 #include <dns/nxt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
@@ -79,6 +82,8 @@ static isc_boolean_t tryverify = ISC_FALSE;
 static isc_mem_t *mctx = NULL;
 static isc_entropy_t *ectx = NULL;
 static dns_ttl_t zonettl;
+static FILE *fp;
+static const dns_master_style_t *masterstyle = &dns_master_style_explicitttl;
 
 static inline void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
@@ -933,7 +938,7 @@ next_nonglue(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 	    dns_name_t *name, dns_dbnode_t **nodep, dns_name_t *origin,
 	    dns_name_t *lastcut)
 {
-	isc_result_t result;
+	isc_result_t result, dresult;
 
 	do {
 		result = next_active(db, version, dbiter, name, nodep);
@@ -942,6 +947,11 @@ next_nonglue(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 			    (lastcut == NULL ||
 			     !dns_name_issubdomain(name, lastcut)))
 				return (ISC_R_SUCCESS);
+			dresult = dns_master_dumpnodetostream(mctx, db,
+							      version,
+							      *nodep, name,
+							      masterstyle, fp);
+			check_result(dresult, "dns_master_dumpnodetostream");
 			dns_db_detachnode(db, nodep);
 			result = dns_dbiterator_next(dbiter);
 		}
@@ -985,12 +995,45 @@ minimumttl(dns_db_t *db, dns_dbversion_t *version) {
 	return (ttl);
 }
 
+static void
+cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
+	dns_rdatasetiter_t *rdsiter = NULL;
+	dns_rdataset_t set;
+	isc_result_t result, dresult;
+
+	dns_rdataset_init(&set);
+	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
+	check_result(result, "dns_db_allrdatasets");
+	result = dns_rdatasetiter_first(rdsiter);
+	while (result == ISC_R_SUCCESS) {
+		isc_boolean_t destroy = ISC_FALSE;
+		dns_rdatatype_t covers = 0;
+		dns_rdatasetiter_current(rdsiter, &set);
+		if (set.type == dns_rdatatype_sig) {
+			covers = set.covers;
+			destroy = ISC_TRUE;
+		}
+		dns_rdataset_disassociate(&set);
+		result = dns_rdatasetiter_next(rdsiter);
+		if (destroy) {
+			dresult = dns_db_deleterdataset(db, node, version,
+							dns_rdatatype_sig,
+							covers);
+			check_result(dresult, "dns_db_allrdatasets");
+		}
+	}
+	if (result != ISC_R_NOMORE)
+		fatal("rdataset iteration failed: %s",
+		      isc_result_totext(result));
+	dns_rdatasetiter_destroy(&rdsiter);
+}
+
 /*
  * Generates NXTs and SIGs for each non-glue name in the zone.
  */
 static void
 signzone(dns_db_t *db, dns_dbversion_t *version) {
-	isc_result_t result, nxtresult;
+	isc_result_t result, nxtresult, dresult;
 	dns_dbnode_t *node, *nextnode;
 	dns_fixedname_t fname, fnextname;
 	dns_name_t *name, *nextname, *target, *lastcut;
@@ -1069,6 +1112,11 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		nxtresult = dns_buildnxt(db, version, node, target, zonettl);
 		check_result(nxtresult, "dns_buildnxt()");
 		signname(db, version, node, name);
+		dresult = dns_master_dumpnodetostream(mctx, db, version,
+						      node, name,
+						      masterstyle, fp);
+		check_result(dresult, "dns_master_dumpnodetostream");
+		cleannode(db, version, node);
 		dns_db_detachnode(db, &node);
 		node = nextnode;
 		dns_name_concatenate(nextname, NULL, name, NULL);
@@ -1407,17 +1455,18 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(db, &version);
 	check_result(result, "dns_db_newversion()");
 
+	fp = NULL;
+	result = isc_stdio_open(output, "w", &fp);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to open output file %s: %s", output,
+		      isc_result_totext(result));
+
 	signzone(db, version);
 
-	/*
-	 * Should we update the SOA serial?
-	 */
+	result = isc_stdio_close(fp);
+	check_result(result, "isc_stdio_close");
 
-	result = dns_db_dump(db, version, output);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to write new database to '%s': %s",
-		      output, isc_result_totext(result));
-	dns_db_closeversion(db, &version, ISC_TRUE);
+	dns_db_closeversion(db, &version, ISC_FALSE);
 
 	dns_db_detach(&db);
 
