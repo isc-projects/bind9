@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101.2.6 2004/03/09 06:09:20 marka Exp $ */
+/* $Id: xfrout.c,v 1.101.2.7 2004/04/06 00:27:29 marka Exp $ */
 
 #include <config.h>
 
@@ -1139,8 +1139,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 					ISC_TRUE : ISC_FALSE,
 				&xfr));
 	stream = NULL;
-	db = NULL;
-	ver = NULL;
 	quota = NULL;
 
 	CHECK(xfr->stream->methods->first(xfr->stream));
@@ -1216,10 +1214,10 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->qname = qname;
 	xfr->qtype = qtype;
 	xfr->qclass = qclass;
-	xfr->db = db;
-	xfr->ver = ver;
-	xfr->quota = quota;
-	xfr->stream = stream;
+	xfr->db = NULL;
+	xfr->ver = NULL;
+	dns_db_attach(db, &xfr->db);
+	dns_db_attachversion(db, ver, &xfr->ver);
 	xfr->end_of_stream = ISC_FALSE;
 	xfr->tsigkey = tsigkey;
 	xfr->lasttsig = lasttsig;
@@ -1229,6 +1227,12 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->many_answers = many_answers,
 	xfr->sends = 0;
 	xfr->shuttingdown = ISC_FALSE;
+	xfr->buf.base = NULL;
+	xfr->buf.length = 0;
+	xfr->txmem = NULL;
+	xfr->txmemlen = 0;
+	xfr->stream = NULL;
+	xfr->quota = NULL;
 
 	/*
 	 * Allocate a temporary buffer for the uncompressed response
@@ -1273,6 +1277,12 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	 */
 	xfr->client->shutdown = xfrout_client_shutdown;
 	xfr->client->shutdown_arg = xfr;
+	/*
+	 * These MUST be after the last "goto failure;" / CHECK to
+	 * prevent a double free by the caller.
+	 */
+	xfr->quota = quota;
+	xfr->stream = stream;
 
 	*xfrp = xfr;
 	return (ISC_R_SUCCESS);
