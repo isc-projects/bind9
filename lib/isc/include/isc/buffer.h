@@ -539,6 +539,23 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
  *	The used pointer in 'b' is advanced by 4.
  */
 
+isc_result_t
+isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
+/*
+ * Copy the contents of 'r' into 'b'.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	'r' is a valid region.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE			The available region of 'b' is not
+ *					big enough.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_BUFFER_H */

@@ -385,6 +385,24 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 }
 
 isc_result_t
+isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r) {
+	unsigned char *base;
+	unsigned int available;
+
+	REQUIRE(ISC_BUFFER_VALID(b));
+	REQUIRE(r != NULL);
+
+	base = (unsigned char *)b->base + b->used;
+	available = b->length - b->used;
+        if (r->length > available)
+		return (ISC_R_NOSPACE);
+	memcpy(base, r->base, r->length);
+	b->used += r->length;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 		    unsigned int length, unsigned int type)
 {
