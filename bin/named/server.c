@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.376 2002/05/08 04:45:40 marka Exp $ */
+/* $Id: server.c,v 1.377 2002/06/13 05:12:53 marka Exp $ */
 
 #include <config.h>
 
@@ -2761,23 +2761,80 @@ ns_server_dumpstats(ns_server_t *server) {
 	return (result);
 }
 
+static isc_result_t
+printzone(dns_zone_t *zone, void *uap) {
+	FILE *fp = uap;
+	char buf[1024+32];
+	isc_result_t result;
+
+	dns_zone_name(zone, buf, sizeof(buf));
+	fprintf(fp, ";\n; Zone dump of '%s'\n;\n", buf);
+	result = dns_zone_dumptostream(zone, fp);
+	if (result == ISC_R_NOTIMPLEMENTED) {
+		fprintf(fp, "; %s\n", dns_result_totext(result));
+		result = ISC_R_SUCCESS;
+	}
+	return (result);
+}
+
 isc_result_t
-ns_server_dumpdb(ns_server_t *server) {
+ns_server_dumpdb(ns_server_t *server, char *args) {
 	FILE *fp = NULL;
 	dns_view_t *view;
 	isc_result_t result;
+	isc_boolean_t zones = ISC_FALSE;
+	isc_boolean_t cache = ISC_TRUE;
+	char *ptr;
+	const char *sep;
 
 	CHECKM(isc_stdio_open(server->dumpfile, "w", &fp),
 	       "could not open dump file");
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	sep = (*args == '\0') ? "" : ": ";
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "dumpdb started%s%s", sep, args);
+
+	ptr = next_token(&args, " \t");
+	if (ptr != NULL && strcmp(ptr, "-all") == 0) {
+		zones = ISC_TRUE;
+		cache = ISC_TRUE;
+		ptr = next_token(&args, " \t");
+	} else if (ptr != NULL && strcmp(ptr, "-cache") == 0) {
+		zones = ISC_FALSE;
+		cache = ISC_TRUE;
+		ptr = next_token(&args, " \t");
+	} else if (ptr != NULL && strcmp(ptr, "-zones") == 0) {
+		zones = ISC_TRUE;
+		cache = ISC_FALSE;
+		ptr = next_token(&args, " \t");
+	} 
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (view->cachedb != NULL)
+		if (ptr != NULL && strcmp(view->name, ptr) != 0)
+			continue;
+		fprintf(fp, ";\n; Start view %s\n;\n", view->name);
+		if (cache && view->cachedb != NULL)
 			CHECKM(dns_view_dumpdbtostream(view, fp),
-			       "could not dump view databases");
+			       "could not dump cache");
+		if (zones && view->zonetable != NULL)
+			CHECKM(dns_zt_apply(view->zonetable, ISC_TRUE,
+					    printzone, fp),
+			       "could not dump zones");
 	}
+	fprintf(fp, "; Dump complete\n");
+	result = isc_stdio_flush(fp);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "dumpdb complete");
  cleanup:
 	if (fp != NULL)
 		(void)isc_stdio_close(fp);

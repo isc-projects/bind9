@@ -1,3 +1,6 @@
+1220.	[func]		Extended rndc dumpdb to support dumping of zones and
+			view selection: 'dumpdb [-all|-zones|-cache] [view]'.
+
 1219.	[func]		New category 'update-security'.
 
 1218.	[port]		Compaq Trucluster support.
