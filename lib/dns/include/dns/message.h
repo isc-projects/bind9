@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.92 2001/02/14 02:51:09 gson Exp $ */
+/* $Id: message.h,v 1.93 2001/02/21 18:32:27 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -659,6 +659,9 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *
  *	'type' be a valid type.
  *
+ *	If 'type' is dns_rdatatype_sig, 'covers' must be a valid type.
+ *	Otherwise it should be 0.
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well.
  *	DNS_R_NXDOMAIN		-- name does not exist in that section.
@@ -677,6 +680,9 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
  *	if '**rdataset' is non-NULL, *rdataset needs to be NULL.
  *
  *	'type' be a valid type, and NOT dns_rdatatype_any.
+ *
+ *	If 'type' is dns_rdatatype_sig, 'covers' must be a valid type.
+ *	Otherwise it should be 0.
  *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well.
