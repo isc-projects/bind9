@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.12 2000/09/26 18:45:08 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.13 2000/09/27 17:53:30 bwelling Exp $ -->
 
 <book>
 
@@ -2830,7 +2830,7 @@ listen-on-v6 port 1234 { any; };
 <programlisting>listen-on-v6 { none; };
 </programlisting>
 <para>If no <command>listen-on-v6 </command>statement is specified,
-the server will listen on port 53 on the IPv6 wildcard address.</para></sect3>
+the server will not listen on any IPv6 address.</para></sect3>
 <sect3><title>Query Address</title>
 <para>If the server doesn't know the answer to a question, it will
 query other nameservers. <command>query-source</command> specifies
