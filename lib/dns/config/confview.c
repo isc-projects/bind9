@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.47 2000/08/22 05:14:53 marka Exp $ */
+/* $Id: confview.c,v 1.48 2000/09/27 02:04:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -374,6 +374,7 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 	isc_uint32_t buival;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_c_rrsolist_t *boval;
+	dns_severity_t sevval;
 
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 
@@ -434,6 +435,13 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'rrset-order' is not yet "
+				      "implemented");
+
+		if (dns_c_view_getchecknames(elem, dns_trans_primary, &sevval)
+		    != ISC_R_NOTFOUND)
+			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      "view 'check-names' is not yet "
 				      "implemented");
 
 
