@@ -9,6 +9,12 @@ $Home		= $ENV{"HOME"};
 $DebugFile	= "$Home/b9t/b9tsummary.dbg";
 
 #
+# level of severity at which a fatal error is considered to have occurred
+#
+
+$HaltLevel	= 2;
+
+#
 # name of file containing stdout/stderr of host specific autoconf config
 #
 
@@ -24,7 +30,7 @@ $BuildFile	= ".build";
 # name of file containing build problems abstracted from $BuildFile
 #
 
-$BuildProblemsFile	= ".buildproblems";
+$BuildProblemsFile	= "buildproblems.html";
 
 #
 # name of file containing stdout/stderr of host specific make test
@@ -57,21 +63,21 @@ $WktpFile	= ".wktp";
 #
 # name of file containing perl style regular
 # expressions used to identify build problems
-# in make output
+# in make output. $1 should, if possible,
+# identify the source filename and $2 should,
+# if possible, identify the linenumber of the problem
 #
 
-$BadRxFile	= ".badrx";
+$RxFile		= ".b9trx";
 
-#
-# name of file containing perl style regular
-# expression identifying cc warning messages
-# and allowing extraction of filename into
-# $1 and line number into $2
-#
 
-$CcrxFile	= ".ccrx";
+# number of fatal build problems
+$Nfbp		= 0;
 
-$Nbprobs	= 0;
+# number of other build problems
+$Nobp		= 0;
+
+# number of test problems
 $Ntprobs	= 0;
 
 #
@@ -96,7 +102,7 @@ $B9HostPath	= "$B9HomePath/hosts";
 # URL of the bind9 report directory
 #
 
-$B9HomeURL	= "http://$B9Host/support/build-reports/bind9";
+$B9HomeURL	= "http://$B9Host/bind9";
 
 #
 # URL of the bind9 hosts specific directory
@@ -137,15 +143,16 @@ printf("<P>\n");
 printf("<P>\n");
 printf("<CENTER>\n");
 printf("<TABLE BORDER=0>\n");
-printf("\t<TR HEIGHT=36><TD COLSPAN=3>&nbsp</TD></TR>\n");
-printf("\t<TR><TD COLSPAN=3 ALIGN=CENTER><FONT SIZE=+1><EM>bind9 status %s</EM></FONT></TD></TR>\n", $when);
-printf("\t<TR HEIGHT=36><TD COLSPAN=3>&nbsp</TD></TR>\n");
+printf("\t<TR HEIGHT=36><TD COLSPAN=4>&nbsp</TD></TR>\n");
+printf("\t<TR><TD COLSPAN=4 ALIGN=CENTER><FONT SIZE=+1><EM>bind9 status %s</EM></FONT></TD></TR>\n", $when);
+printf("\t<TR HEIGHT=36><TD COLSPAN=4>&nbsp</TD></TR>\n");
 printf("\t<TR>\n");
 printf("\t\t<TD WIDTH=150 ALIGN=LEFT><B>host</EM></B>\n");
-printf("\t\t<TD WIDTH=150 ALIGN=LEFT><B>build status</B></TD>\n");
-printf("\t\t<TD WIDTH=150 ALIGN=LEFT><B>test status</B></TD>\n");
+printf("\t\t<TD WIDTH=100 ALIGN=LEFT><B>build status</B></TD>\n");
+printf("\t\t<TD WIDTH=100 ALIGN=LEFT><B>fatal/other</B></TD>\n");
+printf("\t\t<TD WIDTH=100 ALIGN=LEFT><B>test status</B></TD>\n");
 printf("\t</TR>\n");
-printf("<TR><TD COLSPAN=3><HR></TD></TR>\n");
+printf("<TR><TD COLSPAN=4><HR></TD></TR>\n");
 
 #
 # produce status info for each host
@@ -173,9 +180,9 @@ close(DEBUG) if ($Debug);
 sub doHost {
 	local($hostpath) = @_;
 	local($entry, $prob, $line, $bstatus, $tstatus);
-	local(@junk, $junk, $hostid);
+	local(@junk, $junk, $hostid, $bcolor, $tcolor);
 	local(%buildprobs, %testprobs);
-	local($filename, $linenumber, $message, $lastfilename);
+	local($severity, $filename, $linenumber, $message, $lastfilename);
 
 	@junk = split(/\//, $hostpath);
 	$hostid = $junk[$#junk];
@@ -185,7 +192,8 @@ sub doHost {
 	#
 	# scan the build and test results files for problems
 	#
-	$Nbprobs = 0;
+	$Nfbp = 0;
+	$Nobp = 0;
 	$Ntprobs = 0;
 
 	%buildprobs = &buildCheck("$hostpath") if (-r "$hostpath/$BuildFile");
@@ -196,16 +204,19 @@ sub doHost {
 	#
 
 	if (! -r "$hostpath/$BuildFile") {
+		$bcolor = "red";
 		$bstatus = "not available";
 	}
-	elsif ($Nbprobs) {
+	elsif ($Nfbp) {
+		$bcolor = "red";
 		$bstatus = "broken";
 	}
 	else {
+		$bcolor = "green";
 		$bstatus = "ok";
 	}
 
-	if ($Nbprobs) {
+	if ($Nfbp) {
 		$tstatus = "not available";
 	}
 	elsif ($Ntprobs) {
@@ -219,13 +230,14 @@ sub doHost {
 	printf("\t\t<TD>%s</TD>\n", $hostid);
 	if ($bstatus =~ /not available/) {
 		printf("\t\t<TD>%s</TD>\n", $bstatus);
+		printf("\t\t<TD>&nbsp</TD>\n");
 	}
 	else {
 		printf("\t\t<TD>");
-		printf("<A HREF=\"$B9HostURL/$hostid/$BuildFile\">%s</A>", $bstatus);
-		if ($bstatus =~ /broken/) {
-			printf("&nbsp&nbsp&nbsp<A HREF=\"$B9HostURL/$hostid/$BuildProblemsFile\">(%d)</A>", $Nbprobs);
-		}
+		printf("<A HREF=\"$B9HostURL/$hostid/$BuildFile\"><FONT COLOR=\"%s\">%s</FONT></A>", $bcolor, $bstatus);
+		printf("</TD>\n");
+		printf("\t\t<TD>");
+		printf("<A HREF=\"$B9HostURL/$hostid/$BuildProblemsFile\">%d/%d</A>", $Nfbp, $Nobp);
 		printf("</TD>\n");
 	}
 	if ($tstatus =~ /not available/) {
@@ -249,51 +261,28 @@ sub doHost {
 	# write the build problems file
 	#
 
-	if ($Nbprobs) {
-		open(XXX, "> $B9HostPath/$hostid/$BuildProblemsFile");
-		printf(XXX "bind9 %s build problems by filename\n\n", $hostid);
-		foreach $prob (sort keys %buildprobs) {
-			($filename, $linenumber) = split(/\:/, $prob);
-			next if ($filename eq "SYSTEM");
-			$message = $buildprobs{$prob};
-			if ($filename ne $lastfilename) {
-				printf(XXX "%s\n", $filename);
-			}
-			chop $message ;
-			$message =~ s/\n/\n\t/g;
-			printf(XXX "\t%s\n", $message);
-			$lastfilename = $filename;
-		}
-		if (defined($buildprobs{"SYSTEM:GENERAL"})) {
-			printf(XXX "MISC\n");
-			$message = $buildprobs{"SYSTEM:GENERAL"};
-			chop $message;
-			$message =~ s/\n/\n\t/g;
-			printf(XXX "\t%s\n", $message);
-		}
-		close(XXX);
-	}
-
-	&printBuildProblems($hostid, %buildprobs) if ($Debug);
+	&wbpf($hostid, %buildprobs) if ($Nfbp + $Nobp);
 }
 
 #
 # scan the build results file for host at $hostpath for build problems
 # return %probs
-#	format key == filename:linenumber, content == text of problem line
-# set $Nbprobs as a side effect
+#	format key == filename:linenumber:severity, content == text of problem line
+# set $Nfbp and $Nobp as a side effect
 #
 
 sub buildCheck {
 	local($hostpath) = @_;
-	local(%probs, $filename, $linenumber, $class);
-	local(%wkbp, @badrx, $matched, $exp, $ccrx);
+	local($filename, $linenumber, $severity);
+	local(%probs, %wkbp, @rxset);
+	local($matched, $exp, $entry, $ccrx);
 
 	# initialize the well known build problems array, if available
 	if (-r "$hostpath/$WkbpFile") {
 		open(XXX, "< $hostpath/$WkbpFile");
 		while(<XXX>) {
-			next if /^\#/; # skip comments
+			next if /^\#/;		# skip comments
+			next if /^\s*$/;	# and blank lines
 			chop;
 			($filename, $linenumber) = split;
 			$wkbp{"$filename:$linenumber"} = 1;
@@ -301,27 +290,17 @@ sub buildCheck {
 		close(XXX);
 	}
 
-	# initialize the host specific bad regex array, if available
-	if (-r "$hostpath/$BadRxFile") {
-		open(XXX, "< $hostpath/$BadRxFile");
+	# initialize the host specific regex array, if available
+	if (-r "$hostpath/$RxFile") {
+		open(XXX, "< $hostpath/$RxFile");
 		while(<XXX>) {
-			next if /^\#/; # skip comments
+			next if /^\#/;		# skip comments
+			next if /^\s*$/;	# and blank lines
 			chop;
-			push(@badrx, $_);
+			printf(DEBUG "RX: <%s>\n", $_) if ($Debug);
+			push(@rxset, $_);
 		}
 		close(XXX);
-	}
-
-	# intitialize the host specific cc messages regex, if available
-	if (-r "$hostpath/$CcrxFile") {
-		open(XXX, "< $hostpath/$CcrxFile");
-		while(<XXX>) {
-			next if /^\#/; # skip comments
-			$ccrx = $_;
-		}
-		close(XXX);
-		chop($ccrx);
-		print DEBUG "ccrx:<$ccrx>\n" if ($Debug);
 	}
 
 	# scan stdout/stderr of make all for problems
@@ -330,68 +309,59 @@ sub buildCheck {
 
 		undef $filename;
 		undef $linenumber;
+		undef $severity;
+		undef $1;
+		undef $2;
+
 		$matched = 0;
 
 		chop;
 
-		#
-		# first check for common generic warning messages
-		#
-		$matched = 1 if (/(([eE]rror)|([wW]arning)|([fF]ail)|([sS]top)|([eE]xit))\s/);
+		foreach $entry (@rxset) {
+			($severity, $exp) = split(/\s/, $entry, 2);
+			if (/$exp/) {
+				$filename   = $1 if defined($1);
+				$linenumber = $2 if defined($2);
+				$matched    = 1;
 
-		print DEBUG "matched default: $_\n" if ($Debug && $matched);
-
-		#
-		# now check all regexes in @badrx
-		#
-		if (! $matched) {
-			foreach $exp (@badrx) {
-				if (/$exp/) {
-					print DEBUG "badrx $exp matched: $_\n" if ($Debug);
-					$matched = 1;
-					last;
-				}
+				last;
 			}
 		}
 
-		#
-		# now check for host specific or generic compiler warnings
-		#
-		if (defined($ccrx)) {
-			if (/$ccrx/) {
-				$filename = $1;
-				$linenumber = $2;
-				$matched = 1;
-				print DEBUG "matched ccrx: $_\n" if ($Debug);
-			}
-		}
-		elsif (/\s*"?([^\s]*)"?,?\s*line\s*([0-9]*):/) {
-			$filename = $1;
-			$filename =~ s/\"//;
-			$filename =~ s/,//;
-			$linenumber = $2;
-			$matched = 1;
-		}
 
 		next unless $matched;
 
-		print DEBUG "problem: $_\n" if ($Debug);
+		if ($Debug) {
+			printf(DEBUG "LINE %d: %s\n", $., $_);
+			printf(DEBUG "MATCHES: exp<%s>\tfn<%s>\tln<%s>\tsev<%s>\n", $exp, $filename, $linenumber, $severity);
+		}
 
-		if (defined($filename) && defined($linenumber)) {
+		if (length($filename) && length($linenumber)) {
 
 			$filename = $1 if ($filename =~ /.*(bind9.*)/);
+
 			# ignore it if its in the well known build problems list
 			if (defined($wkbp{"$filename:$linenumber"})) {
-				print DEBUG "ignoring build problem\n" if ($Debug);
+				print DEBUG "IGNORED\n" if ($Debug);
 				next;
 			}
 		}
 		else {
-			$filename = "SYSTEM";
-			$linenumber = "GENERAL";
+			$filename = "MISC";
+			$linenumber = "0";
 		}
-		$probs{"$filename:$linenumber"} .= "$_\n";
-		++$Nbprobs;
+
+		# avoid duplicates
+		next if (index($probs{"$filename:$linenumber:$severity"}, $_) >= 0);
+
+		$probs{"$filename:$linenumber:$severity"} .= "$_\n";
+		if ($severity >= $HaltLevel) {
+			++$Nfbp;
+		}
+		else {
+			++$Nobp;
+		}
+		printf(DEBUG "PROBLEM: fn<%s>\tln<%s>\tsev<%s>\n\n", $filename, $linenumber, $severity) if ($Debug);
 	}
 	close(XXX);
 	return(%probs);
@@ -450,16 +420,36 @@ sub testCheck {
 	return(%probs);
 }
 
-sub printBuildProblems {
-	local($host, %probs) = @_;
-	local($key, $prob, $filename, $linenumber);
+sub wbpf {
+	local($hostid, %buildprobs) = @_;
+	local($prob, $filename, $lastfilename, $linenumber, $severity);
+	local(@messageset, $message);
 
-	printf(DEBUG "Host:$host\n");
-	foreach $key (sort keys %probs) {
-		($filename, $linenumber) = split(/:/, $key);
-		$prob = $probs{$key};
-		printf(DEBUG "%s:%s:%s", $filename, $linenumber, $prob);
+	open(XXX, "> $B9HostPath/$hostid/$BuildProblemsFile");
+	printf(XXX "<HTML>\n<HEAD>\n");
+	printf(XXX "<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
+	printf(XXX "<TITLE>bind9 %s build problems by filename</TITLE>\n", $hostid);
+	printf(XXX "</HEAD>\n<BODY BGCOLOR=\"white\">\n");
+
+	foreach $prob (sort keys %buildprobs) {
+
+		($filename, $linenumber, $severity) = split(/\:/, $prob);
+
+		printf(XXX "<P><B>%s</B>\n<BR>\n", $filename) if ($filename ne $lastfilename);
+
+		@messageset = split(/\n/, $buildprobs{$prob});
+		foreach $message (@messageset) {
+			if ($severity >= $HaltLevel) {
+				printf(XXX "<FONT COLOR=\"red\">%s</FONT>\n<BR>\n", $message);
+			}
+			else {
+				printf(XXX "%s\n<BR>\n", $message);
+			}
+		}
+		$lastfilename = $filename;
 	}
-	printf(DEBUG "\n");
+
+	printf(XXX "</BODY>\n</HTML>\n");
+	close(XXX);
 }
 
