@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.1 2001/09/21 18:50:46 gson Exp $ */
+/* $Id: resolver.c,v 1.218.2.2 2001/09/21 20:37:09 gson Exp $ */
 
 #include <config.h>
 
@@ -527,9 +527,6 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		       dns_rdataset_isassociated(event->rdataset) ||
 		       fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_sig);
-		INSIST((event->result != ISC_R_NCACHENXRRSET &&
-			event->result != ISC_R_NCACHENXDOMAIN) ||
-		       dns_rdataset_isassociated(event->rdataset));
 
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
@@ -594,6 +591,24 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 		}
 	} else if (sevent->result != ISC_R_SUCCESS)
 		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+
+	isc_event_free(&event);
+}
+
+static void
+resquery_aborted(isc_task_t *task, isc_event_t *event) {
+	resquery_t *query = event->ev_arg;
+
+	REQUIRE(event->ev_type == DNS_EVENT_QUERYABORTED);
+
+	QTRACE("blackholed");
+
+	UNUSED(task);
+
+	/*
+	 * Treat this as a "no response" to cause the RTT estimate to go up.
+	 */
+	fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
 
 	isc_event_free(&event);
 }
@@ -850,8 +865,11 @@ resquery_send(resquery_t *query) {
 	isc_buffer_t *buffer;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
+	dns_acl_t *blackhole;
 	dns_peer_t *peer = NULL;
 	isc_boolean_t useedns;
+	isc_boolean_t bogus;
+	isc_boolean_t aborted = ISC_FALSE;
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 
@@ -1064,6 +1082,36 @@ resquery_send(resquery_t *query) {
 	if ((query->options & DNS_FETCHOPT_TCP) == 0)
 		address = &query->addrinfo->sockaddr;
 	isc_buffer_usedregion(buffer, &r);
+
+
+	blackhole = dns_dispatchmgr_getblackhole(query->dispatchmgr);
+	if (blackhole != NULL) {
+		int match;
+
+		if (dns_acl_match(&ipaddr, NULL, blackhole,
+				  &fctx->res->view->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+			aborted = ISC_TRUE;
+	}
+
+	if (peer != NULL &&
+	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
+	    bogus)
+		aborted = ISC_TRUE;
+
+	if (aborted) {
+		isc_event_t *event;
+		event = isc_event_allocate(fctx->res->mctx, NULL,
+					   DNS_EVENT_QUERYABORTED,
+					   resquery_aborted, query,
+					   sizeof(isc_event_t));
+		if (event == NULL)
+			return (ISC_R_NOMEMORY);
+		isc_task_send(task, &event);
+		result = ISC_R_SUCCESS;
+		goto cleanup_message;
+	}
 
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
@@ -1622,56 +1670,23 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 	isc_netaddr_t na;
 	char buf[ISC_NETADDR_FORMATSIZE];
 	isc_sockaddr_t *sa;
-	isc_boolean_t aborted = ISC_FALSE;
-	isc_boolean_t bogus;
-	dns_acl_t *blackhole;
-	isc_netaddr_t ipaddr;
-	dns_peer_t *peer = NULL;
-	dns_resolver_t *res;
-	const char *msg = NULL;
 
 	sa = &addr->sockaddr;
 
-	res = fctx->res;
-	isc_netaddr_fromsockaddr(&ipaddr, sa);
-	blackhole = dns_dispatchmgr_getblackhole(res->dispatchmgr);
-	(void) dns_peerlist_peerbyaddr(res->view->peers, &ipaddr, &peer);
-	
-	if (blackhole != NULL) {
-		int match;
-
-		if (dns_acl_match(&ipaddr, NULL, blackhole,
-				  &res->view->aclenv,
-				  &match, NULL) == ISC_R_SUCCESS &&
-		    match > 0)
-			aborted = ISC_TRUE;
-	}
-
-	if (peer != NULL &&
-	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
-	    bogus)
-		aborted = ISC_TRUE;
-
-	if (aborted) {
-		addr->flags |= FCTX_ADDRINFO_MARK;
-		msg = "ignoring backholed / bogus server: ";
-	} else if (sa->type.sa.sa_family != AF_INET6) {
+	if (sa->type.sa.sa_family != AF_INET6)
 		return;
-	} else if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
+
+	if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
+		isc_netaddr_fromsockaddr(&na, sa);
+		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		msg = "ignoring IPv6 mapped IPV4 address: ";
+		FCTXTRACE2("ignoring IPv6 mapped IPV4 address: ", buf);
 	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
+		isc_netaddr_fromsockaddr(&na, sa);
+		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		msg = "ignoring IPv6 compatibility IPV4 address: ";
-	} else
-		return;
-
-	if (!isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3)))
-		return;
-
-	isc_netaddr_fromsockaddr(&na, sa);
-	isc_netaddr_format(&na, buf, sizeof buf);
-	FCTXTRACE2(msg, buf);
+		FCTXTRACE2("ignoring IPv6 compatibility IPV4 address: ", buf);
+	}
 }
 
 static inline dns_adbaddrinfo_t *
@@ -3385,25 +3400,14 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	return (result);
 }
 
-/*
- * Handle a no-answer response (NXDOMAIN, NXRRSET, or referral).
- * If bind8_ns_resp is ISC_TRUE, this is a suspected BIND 8
- * response to an NS query that should be treated as a referral
- * even though the NS records occur in the answer section
- * rather than the authority section.
- */
 static isc_result_t
-noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
-		  isc_boolean_t bind8_ns_resp)
-{
+noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	isc_result_t result;
 	dns_message_t *message;
 	dns_name_t *name, *qname, *ns_name, *soa_name;
 	dns_rdataset_t *rdataset, *ns_rdataset;
 	isc_boolean_t done, aa, negative_response;
 	dns_rdatatype_t type;
-	dns_section_t section =
-		bind8_ns_resp ? DNS_SECTION_ANSWER : DNS_SECTION_AUTHORITY;
 
 	FCTXTRACE("noanswer_response");
 
@@ -3463,10 +3467,10 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	ns_name = NULL;
 	ns_rdataset = NULL;
 	soa_name = NULL;
-	result = dns_message_firstname(message, section);
+	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
-		dns_message_currentname(message, section, &name);
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
 		if (dns_name_issubdomain(name, &fctx->domain)) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -3521,7 +3525,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 				}
 			}
 		}
-		result = dns_message_nextname(message, section);
+		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
 		if (result == ISC_R_NOMORE)
 			break;
 		else if (result != ISC_R_SUCCESS)
@@ -3940,7 +3944,7 @@ answer_response(fetchctx_t *fctx) {
 		 * If it isn't a noanswer response, no harm will be
 		 * done.
 		 */
-		return (noanswer_response(fctx, qname, ISC_FALSE));
+		return (noanswer_response(fctx, qname));
 	}
 
 	/*
@@ -4310,35 +4314,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	    (message->rcode == dns_rcode_noerror ||
 	     message->rcode == dns_rcode_nxdomain)) {
 		/*
-		 * We've got answers.  However, if we sent
-		 * a BIND 8 server an NS query, it may have
-		 * incorrectly responded with a non-authoritative
-		 * answer instead of a referral.  Since this
-		 * answer lacks the SIGs necessary to do DNSSEC
-		 * validation, we must invoke the following special
-		 * kludge to treat it as a referral.
+		 * We've got answers.
 		 */
-		if (fctx->type == dns_rdatatype_ns &&
-		    (message->flags & DNS_MESSAGEFLAG_AA) == 0 &&
-		    !ISFORWARDER(query->addrinfo))
-		{
-			result = noanswer_response(fctx, NULL, ISC_TRUE);
-			if (result != DNS_R_DELEGATION) {
-				/*
-				 * The answer section must have contained
-				 * something other than the NS records
-				 * we asked for.  Since AA is not set
-				 * and the server is not a forwarder,
-				 * it is technically lame and it's easier
-				 * to treat it as such than to figure out
-				 * some more elaborate course of action.
-				 */
-				broken_server = ISC_TRUE;
-				keep_trying = ISC_TRUE;
-				goto done;
-			}
-			goto force_referral;
-		}
 		result = answer_response(fctx);
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_FORMERR)
@@ -4351,9 +4328,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * NXDOMAIN, NXRDATASET, or referral.
 		 */
-		result = noanswer_response(fctx, NULL, ISC_FALSE);
+		result = noanswer_response(fctx, NULL);
 		if (result == DNS_R_DELEGATION) {
-		force_referral:
 			/*
 			 * We don't have the answer, but we know a better
 			 * place to look.
