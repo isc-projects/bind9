@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: entropy.h,v 1.18 2000/06/22 21:57:27 tale Exp $ */
+/* $Id: entropy.h,v 1.19 2000/06/23 03:01:12 tale Exp $ */
 
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
@@ -61,7 +61,6 @@
 #include <stdio.h>
 
 #include <isc/lang.h>
-#include <isc/magic.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -236,4 +235,4 @@ isc_entropy_stats(isc_entropy_t *ent, FILE *out);
 
 ISC_LANG_ENDDECLS
 
-#endif /* ISC_BUFFER_H */
+#endif /* ISC_ENTROPY_H */
