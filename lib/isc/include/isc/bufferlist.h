@@ -44,7 +44,6 @@
 
 #include <isc/lang.h>
 #include <isc/buffer.h>
-#include <isc/bufferlist.h>
 #include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/region.h>
