@@ -201,6 +201,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		check_result(result, "dns_message_parse()");
 		result = printmessage(message);
 		check_result(result, "printmessage()");
+		printf("; Received %u bytes.\n", b->used);
 	} else if (sevent->result != ISC_R_CANCELED)
 		fatal("recv_done(): %s", isc_result_totext(sevent->result));
 	
@@ -238,6 +239,7 @@ main(int argc, char *argv[]) {
 	static unsigned char *data2[SDIG_BUFFER_SIZE];
 	isc_sockaddr_t sockaddr;
 	int i;
+	unsigned int bufsize = SDIG_BUFFER_SIZE;
 
 	/*
 	 * Initialize.
@@ -303,6 +305,10 @@ main(int argc, char *argv[]) {
 			fatal("TCP transport not yet implemented");
 		} else if (strcmp(argv[0], "+edns0") == 0) {
 			edns0 = ISC_TRUE;
+		} else if (strncmp(argv[0], "+bufsize=", 9) == 0) {
+			bufsize = atoi(&argv[0][9]);
+			if (bufsize > SDIG_BUFFER_SIZE)
+				bufsize = SDIG_BUFFER_SIZE;
 		} else {
 			len = strlen(argv[0]);
 			tr.base = argv[0];
@@ -348,7 +354,7 @@ main(int argc, char *argv[]) {
 	result = dns_message_renderbegin(message, &b);
 	check_result(result, "dns_message_renderbegin()");
 	if (edns0)
-		add_opt(message, (isc_uint16_t)SDIG_BUFFER_SIZE);
+		add_opt(message, (isc_uint16_t)bufsize);
 	result = dns_message_rendersection(message, DNS_SECTION_QUESTION,
 					   0, 0);
 	check_result(result, "dns_message_rendersection()");
