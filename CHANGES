@@ -1,3 +1,6 @@
+1161.	[bug]		named-checkzone looped on unbalanced brackets.
+			[RT #2248]
+
 1160.	[bug]		Generating Diffie-Hellman keys longer than 1024
 			bits could fail. [RT #2241]
 

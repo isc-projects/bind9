@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.66.2.2 2001/11/22 01:23:19 marka Exp $ */
+/* $Id: lex.c,v 1.66.2.3 2001/12/13 06:17:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -392,8 +392,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	    source->at_eof)
 	{
 		if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
-		    lex->paren_count != 0)
+		    lex->paren_count != 0) {
+			lex->paren_count = 0;
 			return (ISC_R_UNBALANCED);
+		}
 		if ((options & ISC_LEXOPT_EOF) != 0) {
 			tokenp->type = isc_tokentype_eof;
 			return (ISC_R_SUCCESS);
@@ -504,6 +506,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				lex->last_was_eol = ISC_FALSE;
 				if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
 				    lex->paren_count != 0) {
+					lex->paren_count = 0;
 					result = ISC_R_UNBALANCED;
 					goto done;
 				}
