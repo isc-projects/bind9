@@ -1992,6 +1992,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		query_keepname(client, fname, dbuf);
 		/*
 		 * Synthesize a CNAME for this DNAME.
+		 *
+		 * We want to synthesize a CNAME since if we don't
+		 * then older software that doesn't understand DNAME
+		 * will not chain like it should.
+		 *
+		 * We do not try to synthesize a signature because we hope
+		 * that security aware servers will understand DNAME.  Also,
+		 * even if we had an online key, making a signature
+		 * on-the-fly is costly, and not really legitimate anyway
+		 * since the synthesized CNAME is NOT in the zone.
 		 */
 		dns_name_init(tname, NULL);
 		query_addcname(client, client->query.qname, fname,
