@@ -648,12 +648,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->recursionacl = NULL;
 	server->transferacl = NULL;
 
-	/* XXX these values are for debugging only */
-	result = isc_quota_init(&server->xfroutquota, 1);
+	result = isc_quota_init(&server->xfroutquota, 10);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
-	result = isc_quota_init(&server->tcpquota, 3);
+	result = isc_quota_init(&server->tcpquota, 10);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
-	result = isc_quota_init(&server->recursionquota, 1);
+	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
 	
 	/* Initialize server data structures. */
