@@ -145,7 +145,7 @@ Building
 		HP-UX 11
 		IRIX64 6.5
 		NetBSD-current (with unproven-pthreads-0.17)
-		Red Hat Linux 6.0, 6.1, 6.2
+		Red Hat Linux 6.0, 6.1, 6.2 [Linux kernel patch]
 		Solaris 2.6, 7, 8
 
 	Additionally, we have unverified reports of success building
@@ -209,6 +209,10 @@ Building
 	on your system, and some require Perl; see bin/tests/system/README
 	for details.
 
+	Linux kernel patch:
+	To get useful core dumps under Linux it is necessary to get the
+	kernel to write the offending thread written to disk.  There is
+	a patch, contrib/linux/coredump-patch, which achieves this.
 
 Documentation
 
