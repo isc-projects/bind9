@@ -7,7 +7,18 @@ Design new update client
 
 Check that lwres security stuff does something
 
-Move lwres search list into lwresd
-
 Document the new lwresd configuration mechanisms
 
+document blackhole
+
+implement sortlist
+
+implement bogus
+
+document forwarding
+
+DB/2 sdb
+
+setrrsetbyname proposal
+
+fix lwresd reload (with setuid)
