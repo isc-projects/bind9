@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.4 1999/08/26 21:07:56 halley Exp $
+ * $Id: tsig.c,v 1.5 1999/08/31 21:41:20 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -32,7 +32,7 @@
 #include <isc/net.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
-#include <isc/time.h>
+#include <isc/stdtime.h>
 #include <isc/types.h>
 
 #include <dns/keyvalues.h>
@@ -172,7 +172,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_rdatalist_t *datalist;
 	dns_rdataset_t *dataset;
 	isc_region_t r;
-	isc_time_t now;
+	isc_stdtime_t now;
 	dst_context_t ctx;
 	isc_mem_t *mctx;
 	int tries;
@@ -206,10 +206,10 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
 
-	ret = isc_time_now(&now);
+	ret = isc_stdtime_get(&now);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_algorithm;
-	tsig->timesigned = now.seconds;
+	tsig->timesigned = now;
 	tsig->fudge = DNS_TSIG_FUDGE;
 
 	tsig->originalid = msg->id;
@@ -429,7 +429,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	dns_name_t *keyname;
 	dns_rdataset_t *dataset;
 	dns_rdata_t rdata;
-	isc_time_t now;
+	isc_stdtime_t now;
 	isc_result_t ret;
 	dns_tsig_key_t *tsigkey = NULL;
 	dst_key_t *key = NULL;
@@ -506,10 +506,10 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	key = tsigkey->key;
 
 	/* Is the time ok? */
-	ret = isc_time_now(&now);
+	ret = isc_stdtime_get(&now);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_key;
-	if (abs(now.seconds - tsig->timesigned) > tsig->fudge) {
+	if (abs(now - tsig->timesigned) > tsig->fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
 		return (DNS_R_TSIGVERIFYFAILURE);
 	}
