@@ -67,7 +67,7 @@ check_result(isc_result_t result, char *message) {
 static void
 usage() {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\tkeysettool [options] keyset keys\n");
+	fprintf(stderr, "\tkeysigner [options] keyset keys\n");
 
 	fprintf(stderr, "\n");
 
