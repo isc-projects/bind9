@@ -1,10 +1,10 @@
-Make omapi limit pre-authentication message size to avoid denial of
-service attack where a huge packet is sent
+RT #462
 
 Eliminate use of condition variables from libomapi so that it can be
-built without threads.
+built without threads [RT #505]
 
-Eliminate parent chain
+Make omapi limit pre-authentication message size to avoid denial of
+service attack where a huge packet is sent
 
 Clean dead nodes from rbtdb
 
