@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.44 2001/08/31 05:57:47 marka Exp $ */
+/* $Id: app.c,v 1.45 2001/11/14 22:11:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -526,9 +526,6 @@ isc_app_run(void) {
 	result = evloop();
 	if (result != ISC_R_SUCCESS)
 		return (result);
-
-	while (isc__taskmgr_ready())
-		(void)isc__taskmgr_dispatch();
 
 #endif /* ISC_PLATFORM_USETHREADS */
 
