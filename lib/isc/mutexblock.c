@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutexblock.c,v 1.11 2000/08/26 01:23:16 bwelling Exp $ */
+/* $Id: mutexblock.c,v 1.12 2000/08/26 01:31:48 bwelling Exp $ */
 
 #include <config.h>
 
 #include <isc/mutexblock.h>
+#include <isc/util.h>
 
 isc_result_t
 isc_mutexblock_init(isc_mutex_t *block, unsigned int count) {

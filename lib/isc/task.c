@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.70 2000/08/24 01:40:46 gson Exp $ */
+/* $Id: task.c,v 1.71 2000/08/26 01:31:51 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -140,7 +140,7 @@ task_finished(isc_task_t *task) {
 	}
 	UNLOCK(&manager->lock);
 
-	(void)isc_mutex_destroy(&task->lock);
+	DESTROYLOCK(&task->lock);
 	task->magic = 0;
 	isc_mem_put(manager->mctx, task, sizeof *task);
 }
@@ -190,7 +190,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	UNLOCK(&manager->lock);
 
 	if (exiting) {
-		isc_mutex_destroy(&task->lock);
+		DESTROYLOCK(&task->lock);
 		isc_mem_put(manager->mctx, task, sizeof *task);
 		return (ISC_R_SHUTTINGDOWN);
 	}
@@ -920,7 +920,7 @@ manager_free(isc_taskmgr_t *manager) {
 	isc_mem_t *mctx;
 
 	(void)isc_condition_destroy(&manager->work_available);
-	(void)isc_mutex_destroy(&manager->lock);
+	DESTROYLOCK(&manager->lock);
 	isc_mem_put(manager->mctx, manager->threads,
 		    manager->workers * sizeof (isc_thread_t));
 	manager->magic = 0;
@@ -969,7 +969,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	INIT_LIST(manager->tasks);
 	INIT_LIST(manager->ready_tasks);
 	if (isc_condition_init(&manager->work_available) != ISC_R_SUCCESS) {
-		(void)isc_mutex_destroy(&manager->lock);
+		DESTROYLOCK(&manager->lock);
 		isc_mem_put(mctx, threads, workers * sizeof (isc_thread_t));
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.24 2000/08/25 18:58:35 bwelling Exp $ */
+/* $Id: app.c,v 1.25 2000/08/26 01:31:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -452,5 +452,5 @@ isc_app_finish(void) {
 	 * Finish an ISC library application.
 	 */
 
-	(void)isc_mutex_destroy(&lock);
+	DESTROYLOCK(&lock);
 }

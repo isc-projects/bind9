@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.c,v 1.16 2000/08/01 01:29:42 tale Exp $ */
+/* $Id: ratelimiter.c,v 1.17 2000/08/26 01:31:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -97,7 +97,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	return (ISC_R_SUCCESS);
 
 free_mutex:
-	isc_mutex_destroy(&rl->lock);
+	DESTROYLOCK(&rl->lock);
 free_mem:
 	isc_mem_put(mctx, rl, sizeof(*rl));
 	return (result);
@@ -239,7 +239,7 @@ ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event) {
 
 static void
 ratelimiter_free(isc_ratelimiter_t *rl) {
-	isc_mutex_destroy(&rl->lock);
+	DESTROYLOCK(&rl->lock);
 	isc_mem_put(rl->mctx, rl, sizeof(*rl));
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.23 2000/08/24 23:26:13 bwelling Exp $ */
+/* $Id: rwlock.c,v 1.24 2000/08/26 01:31:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -231,5 +231,5 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 	rwl->magic = 0;
 	(void)isc_condition_destroy(&rwl->readable);
 	(void)isc_condition_destroy(&rwl->writeable);
-	(void)isc_mutex_destroy(&rwl->lock);
+	DESTROYLOCK(&rwl->lock);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.159 2000/08/25 22:07:52 bwelling Exp $ */
+/* $Id: socket.c,v 1.160 2000/08/26 01:31:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1116,7 +1116,7 @@ free_socket(isc_socket_t **socketp) {
 
 	sock->magic = 0;
 
-	(void)isc_mutex_destroy(&sock->lock);
+	DESTROYLOCK(&sock->lock);
 
 #ifdef USE_CMSG
 	isc_mem_put(sock->manager->mctx, sock->cmsg, sock->cmsglen);
@@ -2015,7 +2015,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	}
 
 	if (isc_condition_init(&manager->shutdown_ok) != ISC_R_SUCCESS) {
-		(void)isc_mutex_destroy(&manager->lock);
+		DESTROYLOCK(&manager->lock);
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_condition_init() failed");
@@ -2027,7 +2027,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	 * select/poll loop when something internal needs to be done.
 	 */
 	if (pipe(manager->pipe_fds) != 0) {
-		(void)isc_mutex_destroy(&manager->lock);
+		DESTROYLOCK(&manager->lock);
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "pipe() failed: %s",
@@ -2055,7 +2055,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	 */
 	if (isc_thread_create(watcher, manager, &manager->watcher) !=
 	    ISC_R_SUCCESS) {
-		(void)isc_mutex_destroy(&manager->lock);
+		DESTROYLOCK(&manager->lock);
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_thread_create() failed");
@@ -2121,7 +2121,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 			close(i);
 
 	(void)isc_condition_destroy(&manager->shutdown_ok);
-	(void)isc_mutex_destroy(&manager->lock);
+	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
 	mctx= manager->mctx;
 	isc_mem_put(mctx, manager, sizeof *manager);
