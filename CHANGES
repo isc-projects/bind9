@@ -1,3 +1,5 @@
+1461.	[bug]		Remove deadlock from rbtdb code. [RT #5999]
+
 1460.	[bug]		inet_pton() failed to reject certian malformed
 			IPv6 literals.
 

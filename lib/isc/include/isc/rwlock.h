@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.18 2001/03/08 00:55:15 tale Exp $ */
+/* $Id: rwlock.h,v 1.19 2003/04/17 01:56:35 marka Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
@@ -79,6 +79,12 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
+
+isc_result_t
+isc_rwlock_tryupgrade(isc_rwlock_t *rwl);
+
+void
+isc_rwlock_downgrade(isc_rwlock_t *rwl);
 
 void
 isc_rwlock_destroy(isc_rwlock_t *rwl);

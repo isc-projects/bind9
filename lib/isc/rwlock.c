@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.33 2001/04/17 14:36:45 tale Exp $ */
+/* $Id: rwlock.c,v 1.34 2003/04/17 01:56:34 marka Exp $ */
 
 #include <config.h>
 
@@ -206,6 +206,44 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 }
 
 isc_result_t
+isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(VALID_RWLOCK(rwl));
+	LOCK(&rwl->lock);
+	REQUIRE(rwl->type == isc_rwlocktype_read);
+	REQUIRE(rwl->active != 0);
+
+	/* If we are the only reader then succeed. */
+	if (rwl->active == 1)
+		rwl->type = isc_rwlocktype_write;
+	else
+		result = ISC_R_LOCKBUSY;
+
+	UNLOCK(&rwl->lock);
+	return (result);
+}
+
+void
+isc_rwlock_downgrade(isc_rwlock_t *rwl) {
+
+	REQUIRE(VALID_RWLOCK(rwl));
+	LOCK(&rwl->lock);
+	REQUIRE(rwl->type == isc_rwlocktype_write);
+	REQUIRE(rwl->active == 1);
+
+	rwl->type = isc_rwlocktype_read;
+	/*
+	 * Wake up waiting readers if there are no waiting writers.
+	 */
+	if ((rwl->writers_waiting == 0 || rwl->granted < rwl->read_quota) &&
+	    rwl->readers_waiting > 0)
+		BROADCAST(&rwl->readable);
+
+	UNLOCK(&rwl->lock);
+}
+
+isc_result_t
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 	REQUIRE(VALID_RWLOCK(rwl));
@@ -316,6 +354,32 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 isc_result_t
 isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	return (isc_rwlock_lock(rwl, type));
+}
+
+isc_result_t
+isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(VALID_RWLOCK(rwl));
+	REQUIRE(rwl->type == isc_rwlocktype_read);
+	REQUIRE(rwl->active != 0);
+	
+	/* If we are the only reader then succeed. */
+	if (rwl->active == 1)
+		rwl->type = isc_rwlocktype_write;
+	else
+		result = ISC_R_LOCKBUSY;
+	return (result);
+}
+
+void
+isc_rwlock_downgrade(isc_rwlock_t *rwl) {
+
+	REQUIRE(VALID_RWLOCK(rwl));
+	REQUIRE(rwl->type == isc_rwlocktype_write);
+	REQUIRE(rwl->active == 1);
+
+	rwl->type = isc_rwlocktype_read;
 }
 
 isc_result_t
