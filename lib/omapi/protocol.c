@@ -187,8 +187,12 @@ send_intro(omapi_object_t *h, unsigned int ver) {
  * Set up a listener for the omapi protocol.
  */
 isc_result_t
-omapi_protocol_listen(omapi_object_t *manager, isc_sockaddr_t *addr, int max) {
-	return (omapi_listener_listen((omapi_object_t *)manager, addr, max));
+omapi_protocol_listen(omapi_object_t *manager, isc_sockaddr_t *addr,
+		      dns_acl_t *acl, int max, void (*callback)(void *),
+		      void *callback_arg)
+{
+	return (omapi_listener_listen((omapi_object_t *)manager, addr,
+				      acl, max, callback, callback_arg));
 }
 
 isc_result_t
@@ -345,9 +349,17 @@ dispatch_messages(omapi_protocol_t *protocol,
 		if (result != ISC_R_SUCCESS)
 			break;
 
+		if (protocol->key != NULL) {
+			protocol->verify_result =
+				dst_verify(DST_SIGMODE_INIT, protocol->key,
+					   &protocol->dstctx, NULL, NULL);
+			protocol->dst_update = ISC_TRUE;
+		}
+
 		/*
 		 * Fetch the header values.
 		 */
+		/* XXXDCL authid is unused */
 		connection_getuint32(connection, &protocol->message->authid);
 		/* XXXTL bind the authenticator here! */
 		connection_getuint32(connection, &protocol->message->authlen);
@@ -550,10 +562,20 @@ dispatch_messages(omapi_protocol_t *protocol,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
+		/*
+		 * Turn off the dst_verify updating while the signature
+		 * bytes are copied; they are not part of what was signed.
+		 */
+		protocol->dst_update = ISC_FALSE;
+
 		connection_copyout(protocol->message->authenticator->
 				   u.buffer.value,
 				   connection,
 				   protocol->message->authlen);
+
+		protocol->signature_in.base =
+			protocol->message->authenticator->u.buffer.value;
+		protocol->signature_in.length = protocol->message->authlen;
 
 		/* XXXTL now do something to verify the signature. */
 
@@ -565,7 +587,6 @@ dispatch_messages(omapi_protocol_t *protocol,
 		 * is returned, a bit of cleanup has to be done, but
 		 * it can't muck with the result assigned here.
 		 */
-
 		result = message_process((omapi_object_t *)protocol->message,
 					 (omapi_object_t *)protocol);
 
@@ -613,8 +634,7 @@ dispatch_messages(omapi_protocol_t *protocol,
 }
 
 static isc_result_t
-protocol_signalhandler(omapi_object_t *h, const char *name, va_list ap)
-{
+protocol_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
 	isc_result_t result;
 	omapi_protocol_t *p;
 	omapi_object_t *connection;
@@ -652,9 +672,62 @@ protocol_signalhandler(omapi_object_t *h, const char *name, va_list ap)
 static isc_result_t
 protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 {
+	omapi_protocol_t *p;
+	isc_result_t result = ISC_R_SUCCESS;
+
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 
-	return (omapi_object_passsetvalue(h, name, value));
+	p = (omapi_protocol_t *)h;
+
+	if (omapi_string_strcmp(name, "auth-name") == 0) {
+		p->authname = omapi_data_strdup(omapi_mctx, value);
+		if (p->authname == NULL)
+			return (ISC_R_NOMEMORY);
+
+	} else if (omapi_string_strcmp(name, "auth-algorithm") == 0) {
+		p->algorithm = omapi_data_getint(value);
+		if (p->algorithm == 0)
+			/*
+			 * XXXDCL better error?
+			 */
+			return (DST_R_UNSUPPORTEDALG);
+
+	} else
+		return (omapi_object_passsetvalue(h, name, value));
+
+	/*
+	 * XXXDCL if either auth-name or auth-algorithm is not in the incoming
+	 * message, then the client will not get a meaningful error message
+	 * in reply.  this is bad.
+	 *
+	 * ... it is a general problem in the current omapi design ...
+	 */
+	if (p->authname != NULL && p->algorithm != 0) {
+		unsigned int sigsize;
+
+		result = auth_makekey(p->authname, p->algorithm, &p->key);
+
+		if (result == ISC_R_SUCCESS)
+			result = dst_sig_size(p->key, &sigsize);
+
+		if (result == ISC_R_SUCCESS)
+			result = isc_buffer_allocate(omapi_mctx,
+						     &p->signature_out,
+						     sigsize,
+						     ISC_BUFFERTYPE_GENERIC);
+
+		if (result != ISC_R_SUCCESS) {
+			if (p->key != NULL)
+				dst_key_free(p->key);
+			isc_mem_put(omapi_mctx, p->authname,
+				    strlen(p->authname) + 1);
+			p->authname = NULL;
+			p->algorithm = 0;
+			p->key = NULL;
+		}
+	}
+
+	return (result);
 }
 
 static isc_result_t
@@ -679,11 +752,25 @@ protocol_destroy(omapi_object_t *h) {
 
 	if (p->authinfo != NULL)
 		OBJECT_DEREF(&p->authinfo);
+
+	if (p->authname != NULL) {
+		isc_mem_put(omapi_mctx, p->authname, strlen(p->authname) + 1);
+		p->authname = NULL;
+	}
+
+	if (p->signature_out != NULL) {
+		isc_buffer_free(&p->signature_out);
+		p->signature_out = NULL;
+	}
+
+	if (p->key != NULL) {
+		dst_key_free(p->key);
+		p->key = NULL;
+	}
 }
 
 static isc_result_t
-protocol_stuffvalues(omapi_object_t *connection, omapi_object_t *h)
-{
+protocol_stuffvalues(omapi_object_t *connection, omapi_object_t *h) {
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 
 	return (omapi_object_passstuffvalues(connection, h));
