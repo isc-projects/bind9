@@ -139,6 +139,8 @@ name is deprecated.  Use \$ instead.
 
 3. Interoperability Impact of New Protocol Features
 
+3.1 EDNS0
+
 BIND 9 uses EDNS0 (RFC2671) to advertise its receive buffer size.  It
 also sets an EDNS flag bit in queries to indicate that it wishes to
 receive DNSSEC responses; this flag bit usage is not yet standardized,
@@ -155,6 +157,19 @@ an error response.  Resolving names in zones where all or most
 authoritative servers use this server will be very slow or fail
 completely.  We have contacted the manufacturer of the name server in
 case, and they are working on a solution.
+
+3.2. Zone transfers
+
+Outgoing zone transfers now use the "many-answers" format by default.
+This format is not understood by certain old versions of BIND 4.  
+You can work around this problem using the option "transfer-format
+one-answer;", but since these old versions all have known security
+problems, the correct fix is to upgrade the slave servers.
+
+Some BIND 9 users have reported interoperability problems with zone
+transfers to Microsoft DNS servers that were solved by specifying
+"transfer-format one-answer;", but we are still lacking detailed
+information about this issue.
 
 
 4. Unrestricted Character Set
@@ -215,4 +230,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.17.2.6 2001/03/19 18:07:45 gson Exp $
+$Id: migration,v 1.17.2.7 2001/04/25 17:35:20 gson Exp $
