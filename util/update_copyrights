@@ -1,5 +1,7 @@
 #!/usr/local/bin/perl -w
 
+die "This program is being updated; talk to Bob.";
+
 if (@ARGV == 0) {
     die "usage: update_copyrights <copyright_text>";
 }
@@ -9,21 +11,22 @@ open(COPYRIGHT, "<$ARGV[0]") || die "can't open $ARGV[0]: $!";
 close(COPYRIGHT);
 
 while (<>) {
-    ($file, $years_list) = split(/\s+/);
+    ($file, $type, $years_list) = split(/\s+/);
     @years = split(/,/, $years_list);
 
     if ( ! -f $file ) {
 	print "$file: missing\n";
     }
-    if ($years_list eq "SKIP") {
-	print "$file: SKIP\n";
+    if ($type eq "X") {
+	print "$file: X type; skipping\n";
 	next;
     }
 
-    if ($file =~ /\.[chy]$/) {
+    if ($type eq "C") {
 	$c_comment = 1;
     } else {
-	die "only C comments are supported right now";
+	print "$file: type '$type' not supported yet; skipping\n";
+	next;
     }
     open(SOURCE, "<$file") || die "can't open $file: $!";
     $_ = <SOURCE>;
