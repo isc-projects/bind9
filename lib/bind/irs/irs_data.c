@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irs_data.c,v 1.3 2001/07/04 08:10:23 marka Exp $";
+static const char rcsid[] = "$Id: irs_data.c,v 1.3.2.1 2001/11/02 20:55:24 gson Exp $";
 #endif
 
 #include "port_before.h"
@@ -153,7 +153,8 @@ net_data_create(const char *conf_file) {
 	if (net_data->res == NULL)
 		return (NULL);
 
-	if (res_ninit(net_data->res) == -1)
+	if ((net_data->res->options & RES_INIT) == 0 &&
+	    res_ninit(net_data->res) == -1)
 		return (NULL);
 
 	return (net_data);
