@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getaddrinfo.docbook,v 1.5 2001/06/18 22:06:53 gson Exp $ -->
+<!-- $Id: lwres_getaddrinfo.docbook,v 1.6 2003/11/02 22:49:10 marka Exp $ -->
 
 <refentry>
 
@@ -157,7 +157,7 @@ If the
 <type>AI_CANONNAME</type>
 bit is set, a successful call to
 <function>lwres_getaddrinfo()</function>
-will return a a null-terminated string containing the canonical name
+will return a null-terminated string containing the canonical name
 of the specified hostname in
 <constant>ai_canonname</constant>
 of the first
