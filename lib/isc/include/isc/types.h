@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.30 2000/08/17 23:33:02 bwelling Exp $ */
+/* $Id: types.h,v 1.31 2000/11/14 23:39:34 tale Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -69,6 +69,7 @@ typedef struct isc_quota		isc_quota_t;
 typedef struct isc_random		isc_random_t;
 typedef struct isc_ratelimiter		isc_ratelimiter_t;
 typedef struct isc_region		isc_region_t;
+typedef isc_uint64_t			isc_resourcevalue_t;
 typedef unsigned int			isc_result_t;
 typedef struct isc_rwlock		isc_rwlock_t;
 typedef struct isc_sockaddr		isc_sockaddr_t;
@@ -84,5 +85,17 @@ typedef struct isc_timer		isc_timer_t;
 typedef struct isc_timermgr		isc_timermgr_t;
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
+
+typedef enum {
+	isc_resource_coresize = 1,
+	isc_resource_cputime,
+	isc_resource_datasize,
+	isc_resource_filesize,
+	isc_resource_lockedmemory,
+	isc_resource_openfiles,
+	isc_resource_processes,
+	isc_resource_residentsize,
+	isc_resource_stacksize
+} isc_resource_t;
 
 #endif /* ISC_TYPES_H */
