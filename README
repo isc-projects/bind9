@@ -10,8 +10,7 @@ BIND 9
 
 		- IP version 6
 			Answers DNS queries on IPv6 sockets
-			IPv6 resource records (A6, DNAME, etc.)
-			Bitstring Labels
+			IPv6 resource records (AAAA)
 			Experimental IPv6 Resolver Library
 
 		- DNS Protocol Enhancements
