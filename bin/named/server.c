@@ -1059,8 +1059,8 @@ load_configuration(const char *filename, ns_server_t *server,
 					   AF_INET6, &dispatchv6));
 
 	/*
-	 * Configure and freeze the views.
-	 * Views that have zones were already created at parsing
+	 * Configure and freeze all explicit views.  Explicit
+	 * views that have zones were already created at parsing
 	 * time, but views with no zones must be created here.
 	 */
 	if (cctx->views != NULL) {
@@ -1080,23 +1080,43 @@ load_configuration(const char *filename, ns_server_t *server,
 			dns_view_detach(&view);
 		}
 	}
+	INSIST(view == NULL);
 		
 	/*
-	 * If we haven't created any views, create and configure
-	 * a default view for class IN.  (We're a caching-only server.)
+	 * Make sure we have a default view if and only if there 
+	 * were no explicit views.  
 	 */
-	if (ISC_LIST_EMPTY(lctx.viewlist)) {
-		CHECKM(dns_view_create(ns_g_mctx, dns_rdataclass_in, 
-				       "_default", &view),
-		       "creating default view");
+	if (cctx->views == NULL || ISC_LIST_EMPTY(cctx->views->views)) {
+		/*
+		 * No explicit views; there ought to be a default view.
+		 * There may already be one created as a size effect
+		 * of zone statements, or we may have to create one.
+		 * In either case, we need to configure and freeze it.
+		 */
+		CHECK(find_or_create_view(NULL, &lctx.viewlist, &view));
 		CHECK(configure_view(view, cctx, NULL,
 				     ns_g_mctx, &aclconfctx,
 				     dispatchv4, dispatchv6));
-		ISC_LIST_APPEND(lctx.viewlist, view, link);
-		dns_view_freeze(view);		
-		view = NULL; /* Ownership transferred to list. */
+		dns_view_freeze(view);
+		dns_view_detach(&view);
+	} else {
+		/*
+		 * There are explicit views.  There should not be
+		 * a default view.  If there is one, complain.
+		 */
+		result = dns_viewlist_find(&lctx.viewlist, "_default", 
+					   dns_rdataclass_in, &view);
+		if (result == ISC_R_SUCCESS) {
+			dns_view_detach(&view);
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "when using 'view' statements, "
+				      "all zones must be in views");
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
 	}
-
+	
 	/*
 	 * Create (or recreate) the version view.
 	 */
