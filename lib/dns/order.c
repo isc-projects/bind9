@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: order.c,v 1.1 2002/03/07 06:29:37 marka Exp $ */
+/* $Id: order.c,v 1.2 2002/03/07 07:48:46 bwelling Exp $ */
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -49,7 +49,7 @@ struct dns_order {
 #define DNS_ORDER_VALID(order)	ISC_MAGIC_VALID(order, DNS_ORDER_MAGIC)
 
 isc_result_t
-dns_order_create(dns_order_t **orderp, isc_mem_t *mctx) {
+dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 	dns_order_t *order;
 	REQUIRE(orderp != NULL && *orderp == NULL);
 
@@ -60,7 +60,7 @@ dns_order_create(dns_order_t **orderp, isc_mem_t *mctx) {
 	ISC_LIST_INIT(order->ents);
 	isc_refcount_init(&order->references, 1);     /* Implicit attach. */
 
-	order->mctx = 0;
+	order->mctx = NULL;
 	isc_mem_attach(mctx, &order->mctx);
 	order->magic = DNS_ORDER_MAGIC;
 	return (ISC_R_SUCCESS);
@@ -76,7 +76,7 @@ dns_order_add(dns_order_t *order, dns_name_t *name,
 	REQUIRE(DNS_ORDER_VALID(order));
 	REQUIRE(mode == DNS_RDATASETATTR_RANDOMIZE ||
 	        mode == DNS_RDATASETATTR_FIXEDORDER ||
-		mode == 0 /* DNS_RDATASETATTY_CYCLIC */ );
+		mode == 0 /* DNS_RDATASETATTR_CYCLIC */ );
 
 	ent = isc_mem_get(order->mctx, sizeof(*ent));
 	if (ent == NULL)

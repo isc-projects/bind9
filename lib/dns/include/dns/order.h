@@ -15,7 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: order.h,v 1.1 2002/03/07 06:29:37 marka Exp $ */
+/* $Id: order.h,v 1.2 2002/03/07 07:48:47 bwelling Exp $ */
+
+#ifndef DNS_ORDER_H
+#define DNS_ORDER_H 1
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -25,7 +28,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_order_create(dns_order_t **orderp, isc_mem_t *mctx);
+dns_order_create(isc_mem_t *mctx, dns_order_t **orderp);
 /*
  * Create a order object.
  *
@@ -90,3 +93,5 @@ dns_order_detach(dns_order_t **orderp);
  */
 
 ISC_LANG_ENDDECLS
+
+#endif /* DNS_ORDER_H */
