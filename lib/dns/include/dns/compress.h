@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.21 2000/12/29 00:59:41 bwelling Exp $ */
+/* $Id: compress.h,v 1.22 2001/01/04 06:21:01 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -50,7 +50,6 @@ struct dns_compressnode {
 struct dns_compress {
 	unsigned int		magic;		/* Magic number. */
 	unsigned int		allowed;	/* Allowed methods. */
-	unsigned int		rdata;		/* Start of local rdata. */
 	int			edns;		/* Edns version or -1. */
 	/* Global compression table. */
 	dns_compressnode_t	*table[DNS_COMPRESS_TABLESIZE];
@@ -69,7 +68,6 @@ typedef enum {
 struct dns_decompress {
 	unsigned int		magic;		/* Magic number. */
 	unsigned int		allowed;	/* Allowed methods. */
-	unsigned int		rdata;		/* Start of local rdata. */
 	int			edns;		/* Edns version or -1. */
 	dns_decompresstype_t	type;		/* Strict checking */
 };
@@ -166,7 +164,8 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset);
  *
  *	Requires:
  *		'cctx' initialized
- *		'name' must be initialized and absolute
+ *		'name' must be initialized and absolute, and must remain
+ *		valid until the message compression is complete.
  */
 
 void

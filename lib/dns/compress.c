@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.39 2000/12/29 19:38:50 bwelling Exp $ */
+/* $Id: compress.c,v 1.40 2001/01/04 06:21:00 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -48,7 +48,6 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	REQUIRE(mctx != NULL);
 
 	cctx->allowed = 0;
-	cctx->rdata = 0;
 	cctx->edns = edns;
 	for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++)
 		cctx->table[i] = NULL;
@@ -79,7 +78,6 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 		}
 	}
 	cctx->allowed = 0;
-	cctx->rdata = 0;
 	cctx->edns = -1;
 }
 
@@ -242,7 +240,6 @@ dns_decompress_init(dns_decompress_t *dctx, int edns,
 	dctx->allowed = DNS_COMPRESS_NONE;
 	dctx->edns = edns;
 	dctx->type = type;
-	dctx->rdata = 0;
 	dctx->magic = DCTX_MAGIC;
 }
 
