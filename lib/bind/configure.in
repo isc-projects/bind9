@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.69 $)
+AC_REVISION($Revision: 1.70 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1544,7 +1544,7 @@ extern int gethostbyname_r (const char *,
                                  struct hostent **,
                                  int *);
 ],,[
-HOST_R_ARGS="#define HOST_R_ARGS char *buf, int buflen, struct hostent **answerp, int *h_errnop"
+HOST_R_ARGS="#define HOST_R_ARGS char *buf, size_t buflen, struct hostent **answerp, int *h_errnop"
 HOST_R_BAD="#define HOST_R_BAD ERANGE"
 HOST_R_COPY="#define HOST_R_COPY buf, buflen"
 HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS char *buf, int buflen"
