@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.4 2000/07/28 22:24:47 gson Exp $ */
+/* $Id: zone.c,v 1.152.2.5 2000/08/06 22:07:25 gson Exp $ */
 
 #include <config.h>
 
@@ -698,9 +698,14 @@ dns_zone_load(dns_zone_t *zone) {
 		result = dns_journal_rollforward(zone->mctx, db,
 						 zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
-		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL)
+		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
+		    result != ISC_R_RANGE) {
+			zone_log(zone, me, ISC_LOG_ERROR,
+				 "dns_journal_rollforward returned: %s",
+				 dns_result_totext(result));
 			goto cleanup;
-		if (result == ISC_R_NOTFOUND) {
+		}
+		if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
 			zone_log(zone, me, ISC_LOG_ERROR,
 				 "journal out of sync with zone");
 			goto cleanup;

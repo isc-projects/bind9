@@ -1,6 +1,9 @@
 
 	--- 9.0.0rc2 released ---
 
+ 370.	[bug]		The error messages for rollforward failures were
+			overly terse.
+
  365.	[bug]		nsupdate -k leaked memory.
 
  362.	[bug]		rndc no longer aborts if the configuration file is
