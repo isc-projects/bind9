@@ -1,3 +1,5 @@
+  59.	[bug]		Cause net/host unreachable to be a hard error
+			when sending and receiving.
 
   58.	[bug]		bin/named/query.c could sometimes trigger the
 			(client->query.attributes & NS_QUERYATTR_NAMEBUFUSED)
