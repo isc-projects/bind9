@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.8 1999/10/08 22:14:24 tale Exp $
+ * $Id: bsafe_link.c,v 1.9 1999/10/20 19:08:56 bwelling Exp $
  */
 
 #include <config.h>
@@ -864,7 +864,7 @@ dst_bsafe_generate(dst_key_t *key, int exp, isc_mem_t *mctx) {
 
 	isc_buffer_init(&rand, randomSeed, sizeof(randomSeed),
 			ISC_BUFFERTYPE_BINARY);
-	ret = dst_random(sizeof(randomSeed), &rand);
+	ret = dst_random_get(sizeof(randomSeed), &rand);
 	if (ret != DST_R_SUCCESS)
 		goto fail;
 

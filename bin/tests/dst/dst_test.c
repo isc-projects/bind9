@@ -102,7 +102,7 @@ get_random() {
 	unsigned int i;
 
 	isc_buffer_init(&databuf, data, sizeof data, ISC_BUFFERTYPE_BINARY);
-	ret = dst_random(sizeof(data), &databuf);
+	ret = dst_random_get(sizeof(data), &databuf);
 	printf("random() returned: %s\n", dst_result_totext(ret));
 	for (i = 0; i < sizeof data; i++)
 		printf("%02x ", data[i]);

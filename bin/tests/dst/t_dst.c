@@ -209,7 +209,7 @@ get_random(int *nfails) {
 	unsigned int i;
 
 	isc_buffer_init(&databuf1, data1, sizeof(data1), ISC_BUFFERTYPE_BINARY);
-	ret = dst_random(sizeof(data1), &databuf1);
+	ret = dst_random_get(sizeof(data1), &databuf1);
 	if (ret != DST_R_SUCCESS) {
 		t_info("random() returned: %s\n", dst_result_totext(ret));
 		++*nfails;
@@ -217,7 +217,7 @@ get_random(int *nfails) {
 	}
 
 	isc_buffer_init(&databuf2, data2, sizeof(data2), ISC_BUFFERTYPE_BINARY);
-	ret = dst_random(sizeof(data2), &databuf2);
+	ret = dst_random_get(sizeof(data2), &databuf2);
 	if (ret != DST_R_SUCCESS) {
 		t_info("random() returned: %s\n", dst_result_totext(ret));
 		++*nfails;

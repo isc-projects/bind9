@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.9 1999/10/08 13:08:56 bwelling Exp $
+ * $Id: openssl_link.c,v 1.10 1999/10/20 19:08:57 bwelling Exp $
  */
 
 #include <config.h>
@@ -553,7 +553,7 @@ dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 
 	isc_buffer_init(&rand, rand_array, sizeof(rand_array),
 			ISC_BUFFERTYPE_BINARY);
-	ret = dst_random(SHA_DIGEST_LENGTH, &rand);
+	ret = dst_random_get(SHA_DIGEST_LENGTH, &rand);
 	if (ret != DST_R_SUCCESS)
 		return (ret);
 

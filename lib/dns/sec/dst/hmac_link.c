@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.10 1999/10/18 21:35:46 bwelling Exp $
+ * $Id: hmac_link.c,v 1.11 1999/10/20 19:08:57 bwelling Exp $
  */
 
 #include <config.h>
@@ -455,7 +455,7 @@ dst_hmacmd5_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 
 	memset(data, 0, HMAC_LEN);
 	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
-	ret = dst_random(bytes, &b);
+	ret = dst_random_get(bytes, &b);
 	if (ret != DST_R_SUCCESS)
 		return (ret);
 

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.15 1999/10/18 21:35:46 bwelling Exp $
+ * $Id: dst_api.c,v 1.16 1999/10/20 19:08:57 bwelling Exp $
  */
 
 #include <config.h>
@@ -773,7 +773,7 @@ dst_secret_size(const dst_key_t *key) {
 }
 
 /* 
- * dst_random 
+ * dst_random_get
  *	a random number generator that can generate different levels of
  *	randomness
  * Parameters  
@@ -785,7 +785,7 @@ dst_secret_size(const dst_key_t *key) {
  *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t 
-dst_random(const unsigned int wanted, isc_buffer_t *target) {
+dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
 	isc_region_t r;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);

@@ -323,7 +323,7 @@ dst_secret_size(const dst_key_t *key);
  *		be advanced.
  */
 dst_result_t
-dst_random(const unsigned int wanted, isc_buffer_t *data);
+dst_random_get(const unsigned int wanted, isc_buffer_t *data);
 
 ISC_LANG_ENDDECLS
 
