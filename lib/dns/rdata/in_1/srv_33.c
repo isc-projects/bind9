@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.c,v 1.8 1999/08/02 22:18:02 halley Exp $ */
+ /* $Id: srv_33.c,v 1.9 1999/08/03 20:55:19 halley Exp $ */
 
  /* RFC 2052 bis */
 
@@ -222,13 +222,18 @@ static dns_result_t
 additionaldata_in_srv(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		      void *arg)
 {
+	dns_name_t name;
+	isc_region_t region;
+
 	REQUIRE(rdata->type == 33);
 	REQUIRE(rdata->rdclass == 1);
 
-	(void)add;
-	(void)arg;
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	isc_region_consume(&region, 6);
+	dns_name_fromregion(&name, &region);
 
-	return (DNS_R_SUCCESS);
+	return ((add)(arg, &name, dns_rdatatype_a));
 }
 
 #endif	/* RDATA_IN_1_SRV_33_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.c,v 1.9 1999/08/02 22:17:58 halley Exp $ */
+ /* $Id: afsdb_18.c,v 1.10 1999/08/03 20:55:19 halley Exp $ */
 
  /* RFC 1183 */
 
@@ -205,12 +205,17 @@ static dns_result_t
 additionaldata_afsdb(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		     void *arg)
 {
+	dns_name_t name;
+	isc_region_t region;
+
 	REQUIRE(rdata->type == 18);
 
-	(void)add;
-	(void)arg;
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	isc_region_consume(&region, 2);
+	dns_name_fromregion(&name, &region);
 
-	return (DNS_R_SUCCESS);
+	return ((add)(arg, &name, dns_rdatatype_a));
 }
 
 #endif	/* RDATA_GENERIC_AFSDB_18_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.9 1999/08/02 22:18:01 halley Exp $ */
+ /* $Id: naptr_35.c,v 1.10 1999/08/03 20:55:19 halley Exp $ */
 
  /* RFC 2168 */
 
@@ -279,6 +279,11 @@ additionaldata_in_naptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
+
+	/*
+	 * We do not currently do type SRV additional data section
+	 * processing for terminal NAPTRs.
+	 */
 
 	(void)add;
 	(void)arg;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mb_7.c,v 1.15 1999/08/02 22:17:59 halley Exp $ */
+ /* $Id: mb_7.c,v 1.16 1999/08/03 20:55:19 halley Exp $ */
 
 #ifndef RDATA_GENERIC_MB_7_C
 #define RDATA_GENERIC_MB_7_C
@@ -162,12 +162,16 @@ static dns_result_t
 additionaldata_mb(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		  void *arg)
 {
+	dns_name_t name;
+	isc_region_t region;
+
 	REQUIRE(rdata->type == 7);
 
-	(void)add;
-	(void)arg;
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
 
-	return (DNS_R_SUCCESS);
+	return ((add)(arg, &name, dns_rdatatype_a));
 }
 
 #endif	/* RDATA_GENERIC_MB_7_C */
