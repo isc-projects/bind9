@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.15 2001/09/17 02:59:01 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.16 2001/09/20 15:16:18 marka Exp $ */
 
 #include <config.h>
 
@@ -32,7 +32,8 @@
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
-#include <isccfg/check.h>
+
+#include <bind9/check.h>
 
 #include <dns/log.h>
 #include <dns/result.h>
@@ -247,7 +248,7 @@ main(int argc, char **argv) {
 	    ISC_R_SUCCESS)
 		exit(1);
 
-	result = cfg_check_namedconf(config, logc, mctx);
+	result = bind9_check_namedconf(config, logc, mctx);
 	if (result != ISC_R_SUCCESS)
 		exit_status = 1;
 

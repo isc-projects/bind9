@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.16 2001/09/04 01:12:04 marka Exp $
+# $Id: Makefile.in,v 1.17 2001/09/20 15:16:16 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,9 +21,10 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-@BIND9_INCLUDES@
+@BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISCCFG_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${BIND9_INCLUDES} ${DNS_INCLUDES} ${ISCCFG_INCLUDES} \
+		${ISC_INCLUDES}
 
 CDEFINES = 	-DNAMED_CONFFILE=\"${sysconfdir}/named.conf\"
 CWARNINGS =
@@ -31,10 +32,12 @@ CWARNINGS =
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
+BIND9LIBS =	../../lib/bind9/libbind9.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
+BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 
 LIBS =		@LIBS@
 
@@ -62,9 +65,9 @@ named-checkzone.@O@: named-checkzone.c
 	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
 		-c ${srcdir}/named-checkzone.c
 
-named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
+named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${ISCCFGDEPLIBS} ${BIND9DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkconf.@O@ \
-	check-tool.@O@ ${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} ${LIBS}
+	check-tool.@O@ ${BIND9LIBS} ${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} ${LIBS}
 
 named-checkzone: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkzone.@O@ \

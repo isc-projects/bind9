@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.25 2001/07/10 18:25:37 gson Exp $
+# $Id: Makefile.in,v 1.26 2001/09/20 15:17:00 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,7 +23,7 @@ top_srcdir =	@top_srcdir@
 
 @LIBLWRES_API@
 
-@BIND9_INCLUDES@
+@BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I. -I./include -I${srcdir}/include ${ISC_INCLUDES}

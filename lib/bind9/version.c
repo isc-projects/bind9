@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,40 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.4 2001/08/03 17:24:11 gson Exp $ */
+/* $Id: version.c,v 1.1 2001/09/20 15:17:06 marka Exp $ */
 
-#ifndef ISCCFG_CHECK_H
-#define ISCCFG_CHECK_H 1
+char bind9_version[] = VERSION;
 
-#include <isc/lang.h>
-#include <isc/types.h>
-
-#include <isccfg/cfg.h>
-
-ISC_LANG_BEGINDECLS
-
-isc_result_t
-cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx);
-/*
- * Check the syntactic validity of a configuration parse tree generated from
- * a named.conf file.
- *
- * Requires:
- *	config is a valid parse tree
- *
- *	logctx is a valid logging context.
- *
- * Returns:
- * 	ISC_R_SUCCESS
- * 	ISC_R_FAILURE
- */
-
-isc_result_t
-cfg_check_key(cfg_obj_t *config, isc_log_t *logctx);
-/*
- * As above, but for a single 'key' statement.
- */
-
-ISC_LANG_ENDDECLS
-
-#endif /* ISCCFG_CHECK_H */
+unsigned int bind9_libinterface = LIBINTERFACE;
+unsigned int bind9_librevision = LIBREVISION;
+unsigned int bind9_libage = LIBAGE;
