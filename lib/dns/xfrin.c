@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124 2001/08/08 22:54:46 gson Exp $ */
+/* $Id: xfrin.c,v 1.125 2001/08/30 05:12:39 marka Exp $ */
 
 #include <config.h>
 
@@ -1146,6 +1146,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3),
 			  "empty answer section, retrying with AXFR");
 		goto try_axfr;
+	}
+
+	if (xfr->reqtype == dns_rdatatype_soa &&
+	    (msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
+		FAIL(DNS_R_NOTAUTHORITATIVE);
 	}
 
 
