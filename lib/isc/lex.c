@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,6 +22,7 @@
 
 #include <isc/assertions.h>
 #include <isc/boolean.h>
+#include <isc/error.h>
 #include <isc/lex.h>
 #include <isc/list.h>
 
@@ -327,11 +328,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		} else {
 			buffer = source->input;
 
-			if (buffer->current == buffer->base + buffer->used) {
+			if (buffer->current == buffer->used) {
 				c = EOF;
 				source->result = ISC_R_EOF;
-			} else
-				c = *buffer->current++;
+			} else {
+				c = *((char *)buffer->base + buffer->current);
+				buffer->current++;
+			}
 		}
 
 		if (lex->comment_ok && !no_comments) {
@@ -544,7 +547,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 			break;
 		default:
-			INSIST(0);
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "Unexpected state %d", state);
+			/* Does not return. */
 		}
 
 	} while (!done);
