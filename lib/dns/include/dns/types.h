@@ -77,6 +77,7 @@ typedef struct dns_view				dns_view_t;
 typedef ISC_LIST(dns_view_t)			dns_viewlist_t;
 typedef struct dns_zone				dns_zone_t;
 typedef struct dns_a6context			dns_a6context_t;
+typedef struct dns_rbt				dns_rbt_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
@@ -101,10 +102,6 @@ typedef enum {
 } dns_namereln_t;
 
 #include <dns/enumtype.h>
-
-/*
- * XXXRTH why don't these enums have typedefs?
- */
 
 enum {
 	dns_rdatatype_none = 0,
@@ -162,6 +159,20 @@ enum {
 	dns_opcode_status = 2,
 	dns_opcode_notify = 4,
 	dns_opcode_update = 5		/* dynamic update */
+};
+
+/*
+ * Trust levels.
+ */
+enum {
+	dns_trust_none = 0,
+	dns_trust_pending = 1,
+	dns_trust_additional = 2,
+	dns_trust_answer = 3,
+	dns_trust_authauthority = 4,
+	dns_trust_authanswer = 5,
+	dns_trust_secure = 6,
+	dns_trust_authsecure = 7
 };
 
 /*
