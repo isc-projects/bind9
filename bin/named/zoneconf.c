@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.83 2001/03/04 21:21:30 bwelling Exp $ */
+/* $Id: zoneconf.c,v 1.84 2001/03/05 12:04:46 tale Exp $ */
 
 #include <config.h>
 
@@ -120,8 +120,8 @@ configure_zone_ssutable(cfg_obj_t *zconfig, dns_zone_t *zone) {
 		cfg_obj_t *dname = cfg_tuple_get(stmt, "name");
 		cfg_obj_t *typelist = cfg_tuple_get(stmt, "types");
 		char *str;
-		isc_boolean_t grant;
-		unsigned int mtype;
+		isc_boolean_t grant = ISC_FALSE;
+		unsigned int mtype = DNS_SSUMATCHTYPE_NAME;
 		dns_fixedname_t fname, fident;
 		isc_buffer_t b;
 		dns_rdatatype_t *types;
@@ -300,7 +300,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	cfg_obj_t *options = NULL;
 	cfg_obj_t *obj;
 	const char *filename = NULL;
-	dns_notifytype_t notifytype;
+	dns_notifytype_t notifytype = dns_notifytype_yes;
 	isc_sockaddr_t *addrs;
 	dns_name_t **keynames;
 	isc_uint32_t count;
@@ -309,7 +309,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	char **dbargv;
 	static char default_dbtype[] = "rbt";
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
-	dns_dialuptype_t dialup;
+	dns_dialuptype_t dialup = dns_notifytype_no;
 	dns_zonetype_t ztype;
 	int i;
 
