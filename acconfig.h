@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.44 2004/03/05 04:56:57 marka Exp $ */
+/* $Id: acconfig.h,v 1.45 2004/05/21 08:09:27 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -136,3 +136,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if you are running under Compaq TruCluster..  */
 #undef HAVE_TRUCLUSTER
+
+/* Define if OpenSSL includes DSA support */
+#undef HAVE_OPENSSL_DSA
