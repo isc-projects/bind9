@@ -25,10 +25,6 @@
  *	ISBN 0-201-06673-4, chapter 11.
  */
 
-#if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] = "$Id: heap.c,v 1.1 1998/10/15 23:42:56 halley Exp $";
-#endif /* not lint */
-
 #include <stdlib.h>
 
 #include <isc/assertions.h>
@@ -40,10 +36,10 @@ static char rcsid[] = "$Id: heap.c,v 1.1 1998/10/15 23:42:56 halley Exp $";
  * element of the heap array is not used; i.e. heap subscripts are 1-based,
  * not 0-based.
  */
-#define heap_parent(i) ((i) >> 1)
-#define heap_left(i) ((i) << 1)
+#define heap_parent(i)			((i) >> 1)
+#define heap_left(i)			((i) << 1)
 
-#define ARRAY_SIZE_INCREMENT 512
+#define SIZE_INCREMENT			1024
 
 #define HEAP_MAGIC			0x48454150U	/* HEAP. */
 #define VALID_CONTEXT(ctx)		((ctx) != NULL && \
@@ -52,17 +48,17 @@ static char rcsid[] = "$Id: heap.c,v 1.1 1998/10/15 23:42:56 halley Exp $";
 struct heap_context {
 	unsigned int			magic;
 	mem_context_t			mctx;
-	unsigned int			array_size;
-	unsigned int			array_size_increment;
-	unsigned int			heap_size;
-	void				**heap;
+	unsigned int			size;
+	unsigned int			size_increment;
+	unsigned int			last;
+	void				**array;
 	heap_higher_priority_func	higher_priority;
 	heap_index_func			index;
 };
 
 isc_result
 heap_create(mem_context_t mctx, heap_higher_priority_func higher_priority,
-	    heap_index_func index, unsigned int array_size_increment,
+	    heap_index_func index, unsigned int size_increment,
 	    heap_context_t *ctxp)
 {
 	heap_context_t ctx;
@@ -74,13 +70,13 @@ heap_create(mem_context_t mctx, heap_higher_priority_func higher_priority,
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ctx->magic = HEAP_MAGIC;
-	ctx->array_size = 0;
-	if (array_size_increment == 0)
-		ctx->array_size_increment = ARRAY_SIZE_INCREMENT;
+	ctx->size = 0;
+	if (size_increment == 0)
+		ctx->size_increment = SIZE_INCREMENT;
 	else
-		ctx->array_size_increment = array_size_increment;
-	ctx->heap_size = 0;
-	ctx->heap = NULL;
+		ctx->size_increment = size_increment;
+	ctx->last = 0;
+	ctx->array = NULL;
 	ctx->higher_priority = higher_priority;
 	ctx->index = index;
 
@@ -97,9 +93,9 @@ heap_destroy(heap_context_t *ctxp) {
 	ctx = *ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	if (ctx->heap != NULL)
-		mem_put(ctx->mctx, ctx->heap,
-			ctx->array_size * sizeof (void *));
+	if (ctx->array != NULL)
+		mem_put(ctx->mctx, ctx->array,
+			ctx->size * sizeof (void *));
 	ctx->magic = 0;
 	mem_put(ctx->mctx, ctx, sizeof *ctx);
 
@@ -107,21 +103,21 @@ heap_destroy(heap_context_t *ctxp) {
 }
 
 static boolean_t
-heap_resize(heap_context_t ctx) {
-	void **new_heap;
+resize(heap_context_t ctx) {
+	void **new_array;
 	size_t new_size;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	new_size = ctx->array_size + ctx->array_size_increment;
-	new_heap = mem_get(ctx->mctx, new_size * sizeof (void *));
-	if (new_heap == NULL)
+	new_size = ctx->size + ctx->size_increment;
+	new_array = mem_get(ctx->mctx, new_size * sizeof (void *));
+	if (new_array == NULL)
 		return (FALSE);
-	memcpy(new_heap, ctx->heap, ctx->array_size);
-	mem_put(ctx->mctx, ctx->heap, 
-		ctx->array_size * sizeof (void *));
-	ctx->array_size = new_size;
-	ctx->heap = new_heap;
+	memcpy(new_array, ctx->array, ctx->size);
+	mem_put(ctx->mctx, ctx->array, 
+		ctx->size * sizeof (void *));
+	ctx->size = new_size;
+	ctx->array = new_array;
 
 	return (TRUE);
 }
@@ -131,39 +127,39 @@ float_up(heap_context_t ctx, unsigned int i, void *elt) {
 	unsigned int p;
 
 	for ( p = heap_parent(i); 
-	      i > 1 && ctx->higher_priority(elt, ctx->heap[p]);
+	      i > 1 && ctx->higher_priority(elt, ctx->array[p]);
 	      i = p, p = heap_parent(i) ) {
-		ctx->heap[i] = ctx->heap[p];
+		ctx->array[i] = ctx->array[p];
 		if (ctx->index != NULL)
-			(ctx->index)(ctx->heap[i], i);
+			(ctx->index)(ctx->array[i], i);
 	}
-	ctx->heap[i] = elt;
+	ctx->array[i] = elt;
 	if (ctx->index != NULL)
-		(ctx->index)(ctx->heap[i], i);
+		(ctx->index)(ctx->array[i], i);
 }
 
 static void
 sink_down(heap_context_t ctx, unsigned int i, void *elt) {
 	unsigned int j, size, half_size;
 
-	size = ctx->heap_size;
+	size = ctx->last;
 	half_size = size / 2;
 	while (i <= half_size) {
 		/* find smallest of the (at most) two children */
 		j = heap_left(i);
-		if (j < size && ctx->higher_priority(ctx->heap[j+1],
-						     ctx->heap[j]))
+		if (j < size && ctx->higher_priority(ctx->array[j+1],
+						     ctx->array[j]))
 			j++;
-		if (ctx->higher_priority(elt, ctx->heap[j]))
+		if (ctx->higher_priority(elt, ctx->array[j]))
 			break;
-		ctx->heap[i] = ctx->heap[j];
+		ctx->array[i] = ctx->array[j];
 		if (ctx->index != NULL)
-			(ctx->index)(ctx->heap[i], i);
+			(ctx->index)(ctx->array[i], i);
 		i = j;
 	}
-	ctx->heap[i] = elt;
+	ctx->array[i] = elt;
 	if (ctx->index != NULL)
-		(ctx->index)(ctx->heap[i], i);
+		(ctx->index)(ctx->array[i], i);
 }
 
 isc_result
@@ -172,8 +168,8 @@ heap_insert(heap_context_t ctx, void *elt) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	i = ++ctx->heap_size;
-	if (ctx->heap_size >= ctx->array_size && !heap_resize(ctx))
+	i = ++ctx->last;
+	if (ctx->last >= ctx->size && !resize(ctx))
 		return (ISC_R_NOMEMORY);
 	
 	float_up(ctx, i, elt);
@@ -186,35 +182,35 @@ heap_delete(heap_context_t ctx, unsigned int i) {
 	void *elt;
 
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(i >= 1 && i <= ctx->heap_size);
+	REQUIRE(i >= 1 && i <= ctx->last);
 
-	elt = ctx->heap[ctx->heap_size];
-	if (--ctx->heap_size > 0)
+	elt = ctx->array[ctx->last];
+	if (--ctx->last > 0)
 		sink_down(ctx, i, elt);
 }
 
 void
 heap_increased(heap_context_t ctx, unsigned int i) {
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(i >= 1 && i <= ctx->heap_size);
+	REQUIRE(i >= 1 && i <= ctx->last);
 	
-	float_up(ctx, i, ctx->heap[i]);
+	float_up(ctx, i, ctx->array[i]);
 }
 
 void
 heap_decreased(heap_context_t ctx, unsigned int i) {
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(i >= 1 && i <= ctx->heap_size);
+	REQUIRE(i >= 1 && i <= ctx->last);
 	
-	sink_down(ctx, i, ctx->heap[i]);
+	sink_down(ctx, i, ctx->array[i]);
 }
 
 void *
 heap_element(heap_context_t ctx, unsigned int i) {
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(i >= 1 && i <= ctx->heap_size);
+	REQUIRE(i >= 1 && i <= ctx->last);
 
-	return (ctx->heap[i]);
+	return (ctx->array[i]);
 }
 
 void
@@ -224,6 +220,6 @@ heap_for_each(heap_context_t ctx, heap_for_each_func action, void *uap) {
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(action != NULL);
 
-	for (i = 1; i <= ctx->heap_size; i++)
-		(action)(ctx->heap[i], uap);
+	for (i = 1; i <= ctx->last; i++)
+		(action)(ctx->array[i], uap);
 }
