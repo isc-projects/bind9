@@ -53,3 +53,6 @@
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
+
+/* Define if you have the NET_RT_IFLIST sysctl variable. */
+#undef HAVE_IFLIST_SYSCTL
