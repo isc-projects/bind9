@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.12 2001/01/09 21:39:47 bwelling Exp $ */
+/* $Id: lwdclient.c,v 1.13 2001/01/22 22:29:02 gson Exp $ */
 
 #include <config.h>
 
@@ -441,7 +441,6 @@ ns_lwdclient_initialize(ns_lwdclient_t *client, ns_lwdclientmgr_t *cmgr) {
 
 	client->options = 0;
 	client->byaddr = NULL;
-	client->addrinfo = NULL;
 
 	client->lookup = NULL;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.11 2001/01/09 21:39:51 bwelling Exp $ */
+/* $Id: lwdgnba.c,v 1.12 2001/01/22 22:29:01 gson Exp $ */
 
 #include <config.h>
 
@@ -46,7 +46,6 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t b;
 	lwres_gnbaresponse_t *gnba;
 	isc_uint16_t naliases;
-	isc_stdtime_t now;
 
 	UNUSED(task);
 
@@ -67,16 +66,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		isc_event_free(&event);
 		bevent = NULL;
 
-		/*
-		 * Were we trying bitstring or nibble mode?  If bitstring,
-		 * and we got FORMERR or SERVFAIL, set the flag to
-		 * avoid bitstring labels for 10 minutes.  If we got any
-		 * other error (NXDOMAIN, etc) just try again without
-		 * bitstrings, and let our cache handle the negative answer
-		 * for bitstrings.
-		 */
 		if ((client->options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
-			dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 			if (result == DNS_R_NCACHENXDOMAIN ||
 			    result == DNS_R_NCACHENXRRSET ||
 			    result == DNS_R_NXDOMAIN ||
@@ -87,13 +77,6 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 			ns_lwdclient_errorpktsend(client, lwresult);
 			return;
 		}
-
-		isc_stdtime_get(&now);
-		if (result == DNS_R_FORMERR ||
-		    result == DNS_R_SERVFAIL ||
-		    result == ISC_R_FAILURE)
-			dns_adb_setavoidbitstring(cm->view->adb,
-						  client->addrinfo, now + 600);
 
 		/*
 		 * Fall back to nibble reverse if the default of bitstrings
@@ -132,7 +115,6 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_byaddr_destroy(&client->byaddr);
-	dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 	isc_event_free(&event);
 
 	/*
@@ -163,8 +145,6 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
  out:
 	if (client->byaddr != NULL)
 		dns_byaddr_destroy(&client->byaddr);
-	if (client->addrinfo != NULL)
-		dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 	if (lwb.base != NULL)
 		lwres_context_freemem(cm->lwctx,
 				      lwb.base, lwb.length);
@@ -186,7 +166,6 @@ start_byaddr(ns_lwdclient_t *client) {
 				   client->options, cm->task, byaddr_done,
 				   client, &client->byaddr);
 	if (result != ISC_R_SUCCESS) {
-		dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 		ns_lwdclient_errorpktsend(client, LWRES_R_FAILURE);
 		return;
 	}
@@ -271,18 +250,6 @@ ns_lwdclient_processgnba(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	 */
 	init_gnba(client);
 	client->options = 0;
-
-	/*
-	 * See if we should skip the byaddr bit.
-	 */
-	INSIST(client->addrinfo == NULL);
-	result = dns_adb_findaddrinfo(cm->view->adb, &sa,
-				      &client->addrinfo, 0);
-	if (result != ISC_R_SUCCESS)
-		goto out;
-
-	if (client->addrinfo->avoid_bitstring > 0)
-		client->options |= DNS_BYADDROPT_IPV6NIBBLE;
 
 	/*
 	 * Start the find.
