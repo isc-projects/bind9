@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.82 2000/05/18 23:20:18 brister Exp $ */
+/* $Id: confparser.y,v 1.83 2000/05/24 15:07:59 tale Exp $ */
 
 #include <config.h>
 
@@ -5223,33 +5223,33 @@ yylex(void)
 
 	case ISC_R_UNBALANCED:
 		parser_error(ISC_TRUE,
-			     "%s: %d: unbalanced parentheses",
+			     "%s: %lu: unbalanced parentheses",
 			     isc_lex_getsourcename(mylexer),
-			     (int)isc_lex_getsourceline(mylexer));
+			     isc_lex_getsourceline(mylexer));
 		res = -1;
 		break;
 
 	case ISC_R_NOSPACE:
 		parser_error(ISC_TRUE,
-			     "%s: %d: token too big.",
+			     "%s: %lu: token too big.",
 			     isc_lex_getsourcename(mylexer),
-			     (int)isc_lex_getsourceline(mylexer));
+			     isc_lex_getsourceline(mylexer));
 		res = -1;
 		break;
 
 	case ISC_R_UNEXPECTEDEND:
 		parser_error(ISC_TRUE,
-			     "%s: %d: unexpected EOF",
+			     "%s: %lu: unexpected EOF",
 			     isc_lex_getsourcename(mylexer),
-			     (int)isc_lex_getsourceline(mylexer));
+			     isc_lex_getsourceline(mylexer));
 		res = -1;
 		break;
 
 	default:
 		parser_error(ISC_TRUE,
-			     "%s: %d unknown lexer error (%d)",
+			     "%s: %lu unknown lexer error (%d)",
 			     isc_lex_getsourcename(mylexer),
-			     (int)isc_lex_getsourceline(mylexer),
+			     isc_lex_getsourceline(mylexer),
 			     (int)res);
 		res = -1;
 		break;
@@ -5350,7 +5350,7 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 	static char message[2048];
 	int level = ISC_LOG_ERROR;
 	const char *filename = isc_lex_getsourcename(mylexer);
-	int lineno = isc_lex_getsourceline(mylexer);
+	unsigned long lineno = isc_lex_getsourceline(mylexer);
 
 	/*
 	 * We can't get a trace of the include files we may be nested in
@@ -5365,7 +5365,7 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 		level = ISC_LOG_WARNING;
 	}
 
-	sprintf(where, "%s:%d: ", filename, lineno);
+	sprintf(where, "%s:%lu: ", filename, lineno);
 	if ((unsigned int)vsprintf(message, format, args) >= sizeof message)
 		FATAL_ERROR(__FILE__, __LINE__,
 			    "error message would overflow");

@@ -1,3 +1,7 @@
+ 202.   [func]          isc_lex_getsourceline() changed from returning int
+                        to returning unsigned long, the type of its underlying
+                        counter.
+
  201.	[cleanup]	Removed the test/sdig program, it has been
 			replaced by bin/dig/dig.
 

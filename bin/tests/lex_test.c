@@ -135,7 +135,7 @@ main(int argc, char *argv[]) {
 		if (!quiet) {
 			char *name = isc_lex_getsourcename(lex);
 			print_token(&token, stdout);
-			printf(" line = %d file = %s\n",
+			printf(" line = %lu file = %s\n",
 				isc_lex_getsourceline(lex),
 				(name == NULL) ? "<none>" : name);
 		}

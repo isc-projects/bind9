@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.14 2000/05/13 19:45:13 tale Exp $ */
+/* $Id: confndc.c,v 1.15 2000/05/24 15:07:58 tale Exp $ */
 
 /*
 **	options {
@@ -1451,7 +1451,7 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
         static char message[2048];
 	int level = ISC_LOG_CRITICAL;
 	const char *filename = isc_lex_getsourcename(pctx->thelexer);
-	int lineno = isc_lex_getsourceline(pctx->thelexer);
+	unsigned long lineno = isc_lex_getsourceline(pctx->thelexer);
 
         /*
          * We can't get a trace of the include files we may be nested in
@@ -1464,7 +1464,7 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 	if (is_warning)
 		level = ISC_LOG_WARNING;
 
-        sprintf(where, "%s:%d: ", filename, lineno);
+        sprintf(where, "%s:%lu: ", filename, lineno);
 	vsnprintf(message, sizeof(message), format, args);
 
         if (print_last_token) {

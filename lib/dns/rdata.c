@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.95 2000/05/24 05:09:12 tale Exp $ */
+/* $Id: rdata.c,v 1.96 2000/05/24 15:07:56 tale Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -131,7 +131,7 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, char *, ...);
 
 static void
 fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
-	       dns_rdatacallbacks_t *callbacks, char *name, int line,
+	       dns_rdatacallbacks_t *callbacks, char *name, unsigned long line,
 	       isc_token_t *token, isc_result_t result);
 
 static isc_result_t
@@ -431,7 +431,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	char *name;
-	int line;
+	unsigned long line;
 	void (*callback)(dns_rdatacallbacks_t *, char *, ...);
 	isc_result_t iresult;
 
@@ -1620,7 +1620,7 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
 
 static void
 fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
-	       dns_rdatacallbacks_t *callbacks, char *name, int line,
+	       dns_rdatacallbacks_t *callbacks, char *name, unsigned long line,
 	       isc_token_t *token, isc_result_t result)
 {
 	if (name == NULL)
@@ -1629,36 +1629,36 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 	if (token != NULL) {
 		switch (token->type) {
 		case isc_tokentype_eol:
-			(*callback)(callbacks, "%s: %s:%d: near eol: %s",
+			(*callback)(callbacks, "%s: %s:%lu: near eol: %s",
 				    "dns_rdata_fromtext", name, line,
 				    dns_result_totext(result));
 			break;
 		case isc_tokentype_eof:
-			(*callback)(callbacks, "%s: %s:%d: near eof: %s",
+			(*callback)(callbacks, "%s: %s:%lu: near eof: %s",
 				    "dns_rdata_fromtext", name, line,
 				    dns_result_totext(result));
 			break;
 		case isc_tokentype_number:
-			(*callback)(callbacks, "%s: %s:%d: near %lu: %s",
+			(*callback)(callbacks, "%s: %s:%lu: near %lu: %s",
 				    "dns_rdata_fromtext", name, line,
 				    token->value.as_ulong,
 				    dns_result_totext(result));
 			break;
 		case isc_tokentype_string:
 		case isc_tokentype_qstring:
-			(*callback)(callbacks, "%s: %s:%d: near '%s': %s",
+			(*callback)(callbacks, "%s: %s:%lu: near '%s': %s",
 				    "dns_rdata_fromtext", name, line,
 				    (char *)token->value.as_pointer,
 				    dns_result_totext(result));
 			break;
 		default:
-			(*callback)(callbacks, "%s: %s:%d: %s",
+			(*callback)(callbacks, "%s: %s:%lu: %s",
 				    "dns_rdata_fromtext", name, line,
 				    dns_result_totext(result));
 			break;
 		}
 	} else {
-		(*callback)(callbacks, "dns_rdata_fromtext: %s:%d: %s",
+		(*callback)(callbacks, "dns_rdata_fromtext: %s:%lu: %s",
 			    name, line, dns_result_totext(result));
 	}
 }
