@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.5 2000/01/06 23:52:59 tale Exp $ */
+/* $Id: dispatch.c,v 1.6 2000/01/11 01:49:23 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -59,11 +59,10 @@ omapi_dispatch(struct timeval *t) {
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
 omapi_wait_for_completion(omapi_object_t *object, struct timeval *t) {
 	isc_result_t result;
-	omapi_waiter_object_t *waiter;
+	omapi_waiter_object_t *waiter = NULL;
 	omapi_object_t *inner;
 
 	if (object != NULL) {

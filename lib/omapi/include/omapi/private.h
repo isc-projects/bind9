@@ -24,6 +24,8 @@
 
 #define ISC_MEM_DEBUG 1
 
+#include <config.h>
+
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -36,13 +38,6 @@
 #include <omapi/result.h>
 
 ISC_LANG_BEGINDECLS
-
-#define OMAPI_OP_OPEN		1
-#define OMAPI_OP_REFRESH	2
-#define	OMAPI_OP_UPDATE		3
-#define OMAPI_OP_NOTIFY		4
-#define OMAPI_OP_STATUS		5
-#define OMAPI_OP_DELETE		6
 
 #define OMAPI_BUFFER_SIZE 4096
 

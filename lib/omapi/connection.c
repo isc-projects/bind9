@@ -15,13 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.5 2000/01/06 23:52:58 tale Exp $ */
+/* $Id: connection.c,v 1.6 2000/01/11 01:49:22 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
 /*
  * Subroutines for dealing with connections.
  */
+#include <config.h>
+
 #include <errno.h>
 #include <stddef.h>		/* NULL */
 #include <string.h>		/* memset */
@@ -441,7 +443,8 @@ omapi_connection_copyin(omapi_object_t *generic, unsigned char *src,
 	connection->out_bytes += len;
 
 	/*
-	 * Copy the data into the buffers, splitting across buffers as necessary.
+	 * Copy the data into the buffers, splitting across buffers
+	 * as necessary.
 	 */
 	for (buffer = ISC_LIST_HEAD(bufferlist); len > 0;
 	     buffer = ISC_LIST_NEXT(buffer, link)) {

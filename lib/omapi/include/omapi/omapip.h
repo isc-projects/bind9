@@ -33,6 +33,13 @@ ISC_LANG_BEGINDECLS
 
 #define OMAPI_PROTOCOL_VERSION	100
 
+#define OMAPI_OP_OPEN		1
+#define OMAPI_OP_REFRESH	2
+#define	OMAPI_OP_UPDATE		3
+#define OMAPI_OP_NOTIFY		4
+#define OMAPI_OP_STATUS		5
+#define OMAPI_OP_DELETE		6
+
 /*****
  ***** Type definitions.
  *****/
