@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.2 2000/06/28 03:20:46 jim Exp $
+.\" $Id: dnssec-keygen.8,v 1.3 2000/06/28 23:40:58 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-KEYGEN 8
@@ -45,19 +45,19 @@ is defined in RFC2845.
 A short summary of the options and arguments to
 .Nm dnssec-keygen
 is printed by the
-.Ar h
+.Fl h
 (help) option.
 The
-.Ar a ,
-.Ar b ,
+.Fl a ,
+.Fl b ,
 and
-.Ar n
+.Fl n
 options and their arguments must be supplied when generating keys.
 The domain name that the key has to be generated for is given by
 .Ar name .
 .Pp
 The choice of encryption algorithm is selected by the
-.Ar a
+.Fl a
 option to
 .Nm dnssec-keygen .
 .Ar algorithm
@@ -81,7 +81,7 @@ Implementations of TSIG must support HMAC-MD5.
 The number of bits in the key are determined by the
 .Ar keysize
 argument following the
-.Ar b
+.Fl b
 option.
 The choice of key size depends on the algorithm that is used.
 RSA keys must be between 512 and 2048 bits.
@@ -91,7 +91,7 @@ of 64.
 The length of an HMAC-MD5 key can be between 1 and 512 bits.
 .Pp
 The
-.Ar -n
+.Fl n
 option specifies how the generated key will be used.
 .Ar nametype
 can be either
@@ -111,13 +111,13 @@ are identical.
 is case-insensitive.
 .Pp
 The
-.Ar e
+.Fl e
 option can only be used when generating RSA keys.
 It tells
 .Nm dnssec-keygen
 to use a large exponent.
 When creating Diffie-Hellman keys, the
-.Ar g
+.Fl g
 option selects the Diffie-Hellman generator
 .Ar generator
 that is to be used.
@@ -128,8 +128,10 @@ If no Diffie-Hellman generator is supplied a known prime
 from RFC2539 will be used if possible; otherwise 2 will be used as the
 generator.
 .Pp
-.Ar protocol-value
-sets the protocol value for the generated key.
+The
+.Fl p
+option sets the protocol value for the generated key to
+.Ar protocol-value .
 The default is 2 (email) for keys of type
 .Dv USER 
 and 3 (DNSSEC) for all other key types.
@@ -146,22 +148,25 @@ for generating random numbers,
 will prompt for some keyboard input and use the time intervals between
 keystrokes to provide some randomness.
 The
-.Ar r
+.Fl r
 option overrides this behaviour, making 
 .Nm dnssec-keygen
 use
 .Ar randomdev
 as a source of random data.
 .Pp
-The strength value that the key will sign DNS resource records with is
-given by
+The key's strength value can be set with the
+.Fl s
+option.
+The generated key will sign DNS resource records
+with a strength value of
 .Ar strength-value .
 It should be a number between 0 and 15.
 The default strength is zero.
 The key strength field currently has no defined purpose in DNSSEC.
 .Pp
 The
-.Ar t
+.Fl t
 option indicates if the key is to be used for authentication or
 confidentiality.
 .Ar type
@@ -191,7 +196,7 @@ defines that the key cannot be used for confidentiality though it can
 be used for authentication.
 .Pp
 The 
-.Ar v
+.Fl v
 option can be used to make
 .Nm dnssec-keygen
 more verbose.

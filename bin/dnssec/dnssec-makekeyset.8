@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-makekeyset.8,v 1.2 2000/06/28 03:20:47 jim Exp $
+.\" $Id: dnssec-makekeyset.8,v 1.3 2000/06/28 23:40:59 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-MAKEKEYSET 8
@@ -60,7 +60,7 @@ into a key set.
 .Pp
 For any SIG records that are in the key set, the start time when the
 SIG records become valid is specified with the
-.Ar s
+.Fl s
 option.
 .Ar start-time
 can either be an absolute or relative date.
@@ -70,12 +70,12 @@ A relative start time is supplied when
 .Ar start-time
 is given as +N: N seconds from the current time.
 If no
-.Ar s 
+.Fl s 
 option is supplied, the current date and time is used for the start
 time of the SIG records.
 .Pp
 The expiry date for the SIG records can be set by the
-.Ar e
+.Fl e
 option.
 Note that in this context, the expiry date specifies when the SIG
 records are no longer valid, not when they are deleted from caches on name
@@ -99,7 +99,7 @@ defaults to an expire time of 30 days from the start time of the SIG
 records.
 .Pp
 An alternate source of random data can be specified with the
-.Ar r
+.Fl r
 option.
 .Ar randomdev
 is the name of the file to use to obtain random data.
@@ -107,14 +107,14 @@ By default
 .Pa /dev/random
 is used if this device is available.
 If it is not provided by the operating system and no
-.Ar r
+.Fl r
 option is used,
 .Nm dnssec-makekeyset
 will prompt the user for input from the keyboard and use the time
 between keystrokes to derive some random data.
 .Pp
 The
-.Ar t
+.Fl t
 option is followed by a time-to-live argument
 .Ar TTL
 which indicates the TTL value that will be assigned to the assembled KEY
@@ -122,14 +122,14 @@ and SIG records in the output file.
 .Ar TTL
 is expressed in seconds.
 If no
-.Ar t
+.Fl t
 option is provided,
 .Nm dnssec-makekeyset
 prints a warning and assumes that a default TTL of
 3600 seconds was required.
 .Pp
 The
-.Ar v
+.Fl v
 option can be used to make
 .Nm dnssec-makekeyset
 more verbose.
@@ -140,7 +140,7 @@ increases,
 generates increasingly detailed reports about what it is doing.
 The default level is zero. 
 An option of
-.Ar h
+.Fl h
 gets
 .Nm dnssec-makekeyset
 to print a short summary of its options and arguments.

@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.2 2000/06/28 03:20:49 jim Exp $
+.\" $Id: dnssec-signzone.8,v 1.3 2000/06/28 23:41:01 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -66,7 +66,7 @@ current working directory used by
 .Ar zonefile
 is the name of the unsigned zone file.
 Unless the file name is the same as the name of the zone, the
-.Ar o
+.Fl o
 option should be given.
 .Ar origin
 will be the fully qualified domain origin for the zone.
@@ -87,7 +87,7 @@ generates a file called
 .Ar zonefile.signed
 containing the signed zone file.
 This can be overridden by the
-.Ar f
+.Fl f
 option.
 Instead of this default file name, the signed zone file will be
 written to
@@ -98,12 +98,12 @@ written to
 .Nm dnssec-signzone
 does not verify the signatures by default.
 The
-.Ar a
+.Fl a
 option makes it verify the signatures it generated.
 .Pp
 The date and time when the generated
 SIG records become valid can be specified with the
-.Ar s
+.Fl s
 option.
 .Ar start-time
 can either be an absolute or relative date.
@@ -113,12 +113,12 @@ A relative start time is supplied when
 .Ar start-time
 is given as +N: N seconds from the current time.
 If no
-.Ar s 
+.Fl s 
 option is supplied, the current date and time is used for the start
 time of the SIG records.
 .Pp
 The expiry date for the SIG records can be set by the
-.Ar e
+.Fl e
 option.
 Note that in this context, the expiry date specifies when the SIG
 records are no longer valid, not when they are deleted from caches on name
@@ -159,9 +159,9 @@ The default cycle time is quarter of the difference between the
 signature end and start dates for the current invocation of
 .Nm dnssec-signzone .
 So if the 
-.Ar e
+.Fl e
 and 
-.Ar s
+.Fl s
 options are not specified,
 .Nm dnssec-signzone
 generates signatures that are valid for 30 days from the current
@@ -171,7 +171,7 @@ Therefore any SIG records that
 were due to expire in that time would be replaced with new ones.
 .Pp
 The
-.Ar c
+.Fl c
 option can be used to change the cycle time.
 .Ar cycle-time
 indicates the number of seconds from the current time that should be
@@ -180,7 +180,7 @@ set the cycle time and
 determine when fresh SIG records should be generated.
 .Pp
 The
-.Ar p
+.Fl p
 option instructs
 .Nm dnssec-signzone
 to use pseudo-random data when signing the zone's resource records.
@@ -192,7 +192,7 @@ require strengthening against cryptanalysis: for instance when the signatures
 will be discarded long before the signed data could be compromised.
 .Pp
 An alternate source of random data can be specified with the
-.Ar r
+.Fl r
 option.
 .Ar randomdev
 is the name of the file to use to obtain random data.
@@ -200,21 +200,21 @@ By default
 .Pa /dev/random
 is used if this device is available.
 If it is not provided by the operating system and no
-.Ar r
+.Fl r
 option is used,
 .Nm dnssec-signzone
 will prompt the user for input from the keyboard and use the time
 between keystrokes to derive some random data.
 .Pp
 An option of
-.Ar h
+.Fl h
 makes
 .Nm dnssec-signzone
 print a short summary of its command line options
 and arguments.
 .Pp
 The
-.Ar v
+.Fl v
 option can be used to make
 .Nm dnssec-signzone
 more verbose.
@@ -236,7 +236,7 @@ The zone file for this zone is
 .Dv example.com
 and it can be assumed to contain fully qualified domain names which
 means there is no need to use the
-.Ar o
+.Fl o
 option to set the domain origin.
 This zone file contains the keyset for
 .Dv example.com
