@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.60 2001/01/17 01:22:16 bwelling Exp $
+ * $Id: dnssec.c,v 1.61 2001/03/12 22:39:36 bwelling Exp $
  */
 
 
@@ -722,7 +722,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	 * Decrement the additional field counter.
 	 */
 	memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
-	addcount = htons(ntohs(addcount) - 1);
+	addcount = htons((isc_uint16_t)(ntohs(addcount) - 1));
 	memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
 	/*
