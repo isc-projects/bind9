@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.8 1999/10/22 19:29:24 halley Exp $ */
+/* $Id: log.c,v 1.9 1999/10/25 13:11:13 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -200,7 +200,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp) {
 
 	/*
 	 * Create the default channels:
-	 *   	default_syslog, defaul_stderr, default_debug and null.
+	 *   	default_syslog, default_stderr, default_debug and null.
 	 */
 	if (result == ISC_R_SUCCESS) {
 		destination.facility = LOG_INFO;
