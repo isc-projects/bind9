@@ -52,6 +52,7 @@ EXTERN const char *		ns_g_version		INIT(VERSION);
 EXTERN in_port_t		ns_g_port		INIT(0);
 
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
+EXTERN ns_lwresd_t *		ns_g_lwresd		INIT(NULL);
 
 /*
  * Logging.

@@ -22,7 +22,8 @@ top_srcdir =	@top_srcdir@
 @BIND9_INCLUDES@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
-		${DNS_INCLUDES} ${ISC_INCLUDES} ${OMAPI_INCLUDES}
+		${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
+		${OMAPI_INCLUDES}
 
 CDEFINES =	
 CWARNINGS =
@@ -30,14 +31,16 @@ CWARNINGS =
 OMAPILIBS =	../../lib/omapi/libomapi.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
+LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
+LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
-DEPLIBS =	${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${LWRESDEPLIBS} ${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =	unix
 
@@ -45,13 +48,17 @@ TARGETS =	named
 
 OBJS =		client.@O@ interfacemgr.@O@ listenlist.@O@ \
 		log.@O@ logconf.@O@ main.@O@ notify.@O@ omapi.@O@ \
-		query.@O@ server.@O@ update.@O@ xfrout.@O@
+		query.@O@ server.@O@ update.@O@ xfrout.@O@ \
+		lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
+		lwdgnba.@O@ lwdnoop.@O@
 
 UOBJS =		unix/os.@O@
 
 SRCS =		client.c interfacemgr.c listenlist.c \
 		log.c logconf.c main.c notify.c omapi.c \
-		query.c server.c update.c xfrout.c
+		query.c server.c update.c xfrout.c \
+		lwresd.c lwdclient.c lwderror.c lwdgabn.c \
+		lwdgnba.c lwdnoop.c
 
 @BIND9_MAKE_RULES@
 

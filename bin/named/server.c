@@ -1443,9 +1443,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	CHECKFATAL(dns_dispatchmgr_create(ns_g_mctx, &ns_g_dispatchmgr),
-		   "creating dispatch manager");
-
 	CHECKFATAL(ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				       &server->clientmgr),
 		   "creating client manager");
@@ -1498,8 +1495,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
 
-	dns_dispatchmgr_destroy(&ns_g_dispatchmgr);
-	
 	dns_zonemgr_shutdown(server->zonemgr);
 
 	isc_task_detach(&server->task);
@@ -1561,6 +1556,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->entropy = NULL;
 	CHECKFATAL(isc_entropy_create(ns_g_mctx, &server->entropy),
 		   "initializing entropy pool");
+	(void) isc_entropy_createfilesource(server->entropy, "/dev/random", 0);
 
 	CHECKFATAL(dst_lib_init(ns_g_mctx, server->entropy, 0),
 		   "initializing DST");

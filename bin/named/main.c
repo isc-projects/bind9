@@ -41,9 +41,11 @@
 #include <named/omapi.h>
 #include <named/os.h>
 #include <named/server.h>
+#include <named/lwresd.h>
 #include <named/main.h>
 
 static isc_boolean_t	want_stats = ISC_FALSE;
+static isc_boolean_t	lwresd_only = ISC_FALSE;
 static const char *	program_name = "named";
 
 void
@@ -176,7 +178,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:d:fgn:N:p:st:u:x:")) !=
+					   "c:d:fgn:N:p:rst:u:x:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -204,6 +206,9 @@ parse_command_line(int argc, char *argv[]) {
 				ns_main_earlyfatal("port '%s' out of range",
 						   isc_commandline_argument);
 			ns_g_port = port;
+			break;
+		case 'r':
+			lwresd_only = ISC_TRUE;
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
@@ -266,6 +271,14 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
+	result = dns_dispatchmgr_create(ns_g_mctx, &ns_g_dispatchmgr);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "dns_dispatchmgr_create() failed: %s",
+				 isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -276,6 +289,7 @@ destroy_managers(void) {
 	else
 		omapi_lib_destroy();
 
+	dns_dispatchmgr_destroy(&ns_g_dispatchmgr);
 	/*
 	 * isc_taskmgr_destroy() will  block until all tasks have exited,
 	 */
@@ -323,7 +337,16 @@ setup(void) {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
-	ns_server_create(ns_g_mctx, &ns_g_server);
+	if (lwresd_only) {
+		dns_view_t *view = NULL;
+		result = ns_lwresd_createview(ns_g_mctx, &view);
+		if (result != ISC_R_SUCCESS)
+			ns_main_earlyfatal("ns_lwresd_createview() failed: %s",
+					   isc_result_totext(result));
+		ns_lwresd_create(ns_g_mctx, view, &ns_g_lwresd);
+		dns_view_detach(&view);
+	} else
+		ns_server_create(ns_g_mctx, &ns_g_server);
 
 	result = ns_omapi_init();
 	if (result != ISC_R_SUCCESS)
@@ -345,7 +368,10 @@ setup(void) {
 static void
 cleanup(void) {
 	destroy_managers();
-	ns_server_destroy(&ns_g_server);
+	if (lwresd_only)
+		ns_lwresd_destroy(&ns_g_lwresd);
+	else
+		ns_server_destroy(&ns_g_server);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();

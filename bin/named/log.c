@@ -45,6 +45,8 @@ static isc_logmodule_t modules[] = {
 	{ "xfer-in",	 		0 },
 	{ "xfer-out",	 		0 },
 	{ "notify",	 		0 },
+	{ "omapi",	 		0 },
+	{ "lwresd",	 		0 },
 	{ NULL, 			0 }
 };
 

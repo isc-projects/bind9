@@ -45,6 +45,7 @@
 #define NS_LOGMODULE_XFER_OUT		(&ns_g_modules[7])
 #define NS_LOGMODULE_NOTIFY		(&ns_g_modules[8])
 #define NS_LOGMODULE_OMAPI		(&ns_g_modules[9])
+#define NS_LOGMODULE_LWRESD		(&ns_g_modules[10])
 
 isc_result_t
 ns_log_init(isc_boolean_t safe);
