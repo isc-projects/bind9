@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.124 2001/10/25 01:07:45 marka Exp $ */
+/* $Id: main.c,v 1.125 2001/10/26 22:54:22 gson Exp $ */
 
 #include <config.h>
 
@@ -433,16 +433,21 @@ parse_command_line(int argc, char *argv[]) {
 static isc_result_t
 create_managers(void) {
 	isc_result_t result;
+#ifdef ISC_PLATFORM_USETHREADS
+	unsigned int cpus_detected;
+#endif
 
 #ifdef ISC_PLATFORM_USETHREADS
+	cpus_detected = isc_os_ncpus();
 	if (ns_g_cpus == 0)
-		ns_g_cpus = isc_os_ncpus();
+		ns_g_cpus = cpus_detected;
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
+		      cpus_detected, cpus_detected == 1 ? "" : "s",
+		      ns_g_cpus, ns_g_cpus == 1 ? "" : "s");
 #else
 	ns_g_cpus = 1;
 #endif
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "using %u CPU%s",
-		      ns_g_cpus, ns_g_cpus == 1 ? "" : "s");
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
