@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3404"
+HREF="Bv9ARM.ch06.html#AEN3413"
 >Zone File</A
 ></DT
 ></DL
@@ -2679,7 +2679,7 @@ CLASS="optional"
 > <TT
 CLASS="replaceable"
 ><I
->ip_addr</I
+>domain_name</I
 ></TT
 > ; ... </SPAN
 >] }; </SPAN
@@ -2728,8 +2728,9 @@ CLASS="command"
 >listen-on</B
 > statement specifies a list of
       addresses (and ports) that this instance of a lightweight resolver daemon
-      should accept requests on.  If this statement is omitted, requests
-      will be accepted on 127.0.0.1, port 53.</P
+      should accept requests on.  If no port is specified, port 921 is used.
+      If this statement is omitted, requests will be accepted on 127.0.0.1,
+      port 921.</P
 ><P
 >The <B
 CLASS="command"
@@ -3661,6 +3662,15 @@ CLASS="replaceable"
 ></TT
 > ; </SPAN
 >]
+    [<SPAN
+CLASS="optional"
+> random-device <TT
+CLASS="replaceable"
+><I
+>path_name</I
+></TT
+> ; </SPAN
+>]
 };
 </PRE
 ></DIV
@@ -3669,7 +3679,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1937"
+NAME="AEN1939"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4025,6 +4035,39 @@ the beginning of the options block, before
 any other options that take port numbers or IP addresses,
 to ensure that the port value takes effect for all addresses
 used by the server.</P
+>
+</TD
+><TD
+WIDTH="153"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>random-device</B
+></P
+></TD
+><TD
+WIDTH="303"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>&#13;The source of entropy to be used by the server.  Entropy is primarily needed
+for DNSSEC operations, such as TKEY transactions and dynamic update of signed
+zones.  This options specifies the device (or file) from which to read
+entropy.  If this is a file, operations requiring entropy will fail when the
+file has been exhausted.  If not specified, the default value is
+<TT
+CLASS="filename"
+>/dev/random</TT
+>
+(or equivalent) when present, and none otherwise.  The
+<B
+CLASS="command"
+>random-device</B
+> option takes effect during
+the initial configuration load at server startup time and
+is ignored on subsequent reloads.</P
 >
 </TD
 ></TR
@@ -4847,7 +4890,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2246"
+NAME="AEN2255"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5143,7 +5186,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2329"
+NAME="AEN2338"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5238,7 +5281,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2355"
+NAME="AEN2364"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5780,7 +5823,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2502"
+NAME="AEN2511"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -6008,7 +6051,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2568"
+NAME="AEN2577"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -7246,7 +7289,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2885"
+NAME="AEN2894"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7321,7 +7364,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2901"
+NAME="AEN2910"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7356,7 +7399,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2909"
+NAME="AEN2918"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7419,7 +7462,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2923"
+NAME="AEN2932"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -8002,7 +8045,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3060"
+NAME="AEN3069"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8013,7 +8056,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3063"
+NAME="AEN3072"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -8113,42 +8156,55 @@ VALIGN="MIDDLE"
 >A stub zone is similar to a slave zone,
 except that it replicates only the NS records of a master zone instead
 of the entire zone. Stub zones are not a standard part of the DNS;
-they are a peculiarity of <SPAN
+they are a feature specific to the <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 4 and <SPAN
+> implementation.
+</P
+>
+
+<P
+>Stub zones can be used to eliminate the need for glue NS record
+in a parent zone at the expense of maintaining a stub zone entry and
+a set of name server addresses in <TT
+CLASS="filename"
+>named.conf</TT
+>.
+This usage is not recommended for new configurations, and BIND 9
+supports it only in a limited way.
+In <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 8 that relies heavily
-on the particular way the zone data is structured in those servers.
-<SPAN
+> 4/8, zone transfers of a parent zone
+included the NS records from stub children of that zone. This meant
+that, in some cases, users could get away with configuring child stubs
+only in the master server for the parent zone. <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9 attempts to emulate the <SPAN
+>
+9 never mixes together zone data from different zones in this
+way. Therefore, if a <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 4/8 stub zone feature for backwards compatibility,
-but we do not recommend its use in new configurations.</P
-><P
->In
-<SPAN
-CLASS="acronym"
->BIND</SPAN
-> 4/8, zone transfers of a parent zone included the NS records
-from stub children of that zone. This meant that, in some cases,
-users could get away with configuring child stubs only in the master
-server for the parent zone. <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9 never mixes together zone data
-from different zones in this way. Therefore, if a <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9 master
-serving a parent zone has child stub zones configured, all the slave
-servers for the parent zone also need to have the same child stub
-zones configured..</P
-></TD
+> 9 master serving a parent
+zone has child stub zones configured, all the slave servers for the
+parent zone also need to have the same child stub zones
+configured.</P
+>
+
+<P
+>Stub zones can also be used as a way of forcing the resolution
+of a given domain to use a particular set of authoritative servers.
+For example, the caching name servers on a private network using
+RFC2157 addressing may be configured with stub zones for
+<TT
+CLASS="literal"
+>10.in-addr.arpa</TT
+>
+to use a set of internal name servers as the authoritative
+servers for that domain.</P
+>
+</TD
 ></TR
 ><TR
 ><TD
@@ -8239,7 +8295,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3120"
+NAME="AEN3129"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8277,7 +8333,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3130"
+NAME="AEN3139"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
@@ -9243,7 +9299,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3404"
+NAME="AEN3413"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9264,7 +9320,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3409"
+NAME="AEN3418"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9984,7 +10040,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3623"
+NAME="AEN3632"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10304,7 +10360,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3724"
+NAME="AEN3733"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10706,7 +10762,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3845"
+NAME="AEN3854"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10805,7 +10861,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3872"
+NAME="AEN3881"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10830,7 +10886,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3879"
+NAME="AEN3888"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10900,7 +10956,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3899"
+NAME="AEN3908"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10976,7 +11032,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3918"
+NAME="AEN3927"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11016,7 +11072,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3929"
+NAME="AEN3938"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
