@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.11 1999/10/08 18:37:23 bwelling Exp $ */
+ /* $Id: xfrin.c,v 1.12 1999/10/14 00:05:02 gson Exp $ */
 
 #include <config.h>
 
@@ -44,7 +44,7 @@
 #include <dns/rdatasetiter.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/dbtable.h>
+#include <dns/zone.h>
 #include <dns/message.h>
 #include <dns/tcpmsg.h>
 #include <dns/events.h>
@@ -59,19 +59,13 @@
  * Incoming AXFR and IXFR.
  */
 
-/*
- * TODO:
- *
- * maintenance based on SOA timers (with support for the "dialup" option)
- * transmitting SOA queries
- * more error checking
- */
-
 #define FAIL(code) do { result = (code); goto failure; } while (0)
 #define CHECK(op) do { result = (op); \
 		       if (result != DNS_R_SUCCESS) goto failure; \
 		     } while (0)
 
+
+#define DNS_R_NOTLOADED DNS_R_NOTFOUND /* XXX temporary */
 
 typedef struct xfrin_ctx xfrin_ctx_t;
 
@@ -98,7 +92,7 @@ typedef enum {
 
 struct xfrin_ctx {
 	isc_mem_t		*mctx;
-	ns_dbinfo_t		*dbi; /* XXX */
+	dns_zone_t		*zone;
 
 	isc_task_t 		*task;
 	isc_timer_t		*timer;
@@ -171,15 +165,14 @@ struct xfrin_ctx {
 
 static dns_result_t
 xfrin_create(isc_mem_t *mctx,
-	     ns_dbinfo_t *dbi,
+	     dns_zone_t *zone,
 	     dns_db_t *db,
 	     isc_task_t *task,
 	     isc_socketmgr_t *socketmgr,
-	     dns_name_t *name,
+	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
-	     char *addrstr, /* XXX */
-	     in_port_t port,
+	     isc_sockaddr_t *master,
 	     dns_tsigkey_t *tsigkey,
 	     xfrin_ctx_t **xfrp);
 
@@ -279,71 +272,13 @@ axfr_apply(xfrin_ctx_t *xfr) {
 	return (result);
 }
 
-/*
- * Install the newly AXFR'ed database, and generate diffs if
- * configured to do so.
- *
- * XXX Temporary code for testing only.  This should all be
- * part of the zone object functionality, and shared between
- * AXFR and reloading of manually maintained master files.
- */
-
-static dns_result_t
-install_new_db(xfrin_ctx_t *xfr)
-{
-	dns_dbversion_t *ver;
-	isc_result_t result;
-
-	ver = NULL;
-	dns_db_currentversion(xfr->db, &ver);
-
-	/*
-	 * XXX should be configurable per-zone with
-	 * somehting like "journal-from-axfr yes"?
-	 *
-	 * The initial version of a slave zone is always dumped; 
-	 * subsequent versions may be journalled instead.
-	 */
-	if (xfr->olddb != NULL && 1) {
-		printf("generating diffs\n");
-		CHECK(dns_db_diff(xfr->mctx,
-				  xfr->db, ver,
-				  xfr->olddb, NULL /* XXX */,
-				  "journal"));
-	} else {
-		printf("dumping new version\n");
-		/* XXX should use temporary file and rename */
-		CHECK(dns_db_dump(xfr->db, ver, xfr->dbi->path));
-		printf("unlinking journal\n");
-		(void) unlink("journal"); /* XXX filename */
-	}
-	dns_db_closeversion(xfr->db, &ver, ISC_FALSE);
-
-	/* Replace the database (XXX atomically). */
-	printf("replacing database...");
-	if (xfr->olddb != NULL)
-		dns_dbtable_remove(xfr->dbi->view->dbtable, xfr->olddb);
-	CHECK(dns_dbtable_add(xfr->dbi->view->dbtable, xfr->db));
-
-	if (xfr->dbi->db)
-		dns_db_detach(&xfr->dbi->db);
-	dns_db_attach(xfr->db, &xfr->dbi->db);
-	
-	printf("done\n");
-	result = ISC_R_SUCCESS;
-	
- failure:
-	return (result);
-}
-
-
 static dns_result_t
 axfr_commit(xfrin_ctx_t *xfr) {
 	dns_result_t result;
 
 	CHECK(axfr_apply(xfr));
 	CHECK(dns_db_endload(xfr->db, &xfr->axfr.add_private));
-	CHECK(install_new_db(xfr));
+	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, ISC_TRUE));
 
 	result = ISC_R_SUCCESS;
  failure:
@@ -362,8 +297,8 @@ ixfr_init(xfrin_ctx_t *xfr) {
 	xfr->is_ixfr = ISC_TRUE;
 	INSIST(xfr->db != NULL);
 	xfr->difflen = 0;
-        CHECK(dns_journal_open(xfr->mctx, "journal", /* XXX filename */
-			   ISC_TRUE, &xfr->ixfr.journal));
+        CHECK(dns_journal_open(xfr->mctx, dns_zone_getixfrlog(xfr->zone),
+			       ISC_TRUE, &xfr->ixfr.journal));
 	result = DNS_R_SUCCESS;
  failure:
 	return (result);
@@ -525,35 +460,31 @@ xfr_rr(xfrin_ctx_t *xfr,
 	return (result);
 }
 
-static void
-xfrin_test_dbi(ns_dbinfo_t *dbi) {
-	dns_name_t *name;
+void
+ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
+	dns_name_t zonename;
 	isc_task_t *task;
 	xfrin_ctx_t *xfr;
 	dns_result_t result;
-	dns_fixedname_t forigin;
-	isc_buffer_t forigin_buf;
-	dns_db_t *db;
+	dns_db_t *db = NULL;
 	dns_rdatatype_t xfrtype;
-	unsigned int len;
 	dns_tsigkey_t *key = NULL;
 	
-	printf("attempting zone transfer of zone \"%s\"...\n", dbi->origin);
+	printf("attempting zone transfer\n");
 
-	len = strlen(dbi->origin);
-	isc_buffer_init(&forigin_buf, dbi->origin, len, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&forigin_buf, len);
-	dns_fixedname_init(&forigin);
-	name = dns_fixedname_name(&forigin);
-	RUNTIME_CHECK(dns_name_fromtext(name, &forigin_buf, dns_rootname,
-					ISC_FALSE, NULL) == DNS_R_SUCCESS);
+	dns_name_init(&zonename, NULL);
+	CHECK(dns_zone_getorigin(zone, xfr->mctx, &zonename));
+	result = dns_zone_getdb(zone, &db);
+	if (result == DNS_R_NOTLOADED)
+		INSIST(db == NULL);
+	else
+		CHECK(result);
 
 	task = NULL;
 	RUNTIME_CHECK(isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &task)
 		      == DNS_R_SUCCESS);
-	db = NULL;
-	result = dns_dbtable_find(dbi->view->dbtable, name, &db);
-	if (result == DNS_R_NOTFOUND) {
+	
+	if (db == NULL) {
 		printf("no database exists, trying to create with axfr\n");
 		xfrtype = dns_rdatatype_axfr;
 	} else {
@@ -561,33 +492,29 @@ xfrin_test_dbi(ns_dbinfo_t *dbi) {
 		xfrtype = dns_rdatatype_ixfr;
 	}
 
-	xfrin_create(ns_g_mctx,
-		     dbi,
-		     db,
-		     task,
-		     ns_g_socketmgr,
-		     name,
-		     dns_rdataclass_in, xfrtype,
-		     dbi->master, 53, key, &xfr);
+	CHECK(xfrin_create(ns_g_mctx,
+			   zone,
+			   db,
+			   task,
+			   ns_g_socketmgr,
+			   &zonename,
+			   dns_rdataclass_in, xfrtype,
+			   master, key, &xfr));
 
+	dns_name_free(&zonename, ns_g_mctx);
+		
 	xfrin_start(xfr);
+	return;
+	
+ failure:
+	if (zonename.ndata != NULL)
+		dns_name_free(&zonename, ns_g_mctx);
+	printf("zone transfer setup failed\n");
+	return;
 }
-
-void
-xfrin_test(void) {
-	ns_dbinfo_t *dbi;
-	for (dbi = ISC_LIST_HEAD(ns_g_dbs);
-	     dbi != NULL;
-	     dbi = ISC_LIST_NEXT(dbi, link)) {
-		if (dbi->isslave)
-			xfrin_test_dbi(dbi);
-	}
-}
-
-
 
 static void xfrin_cleanup(xfrin_ctx_t *xfr) {
-	printf("end of transfer - destroying task %p\n", xfr->task);
+	printf("end of zone transfer - destroying task %p\n", xfr->task);
 	isc_socket_cancel(xfr->socket, xfr->task, ISC_SOCKSHUT_ALL); /* XXX? */
 	isc_socket_detach(&xfr->socket);
 	isc_timer_detach(&xfr->timer);
@@ -610,20 +537,18 @@ xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg) {
 
 static dns_result_t
 xfrin_create(isc_mem_t *mctx,
-	     ns_dbinfo_t *dbi,
+	     dns_zone_t *zone,
 	     dns_db_t *db,
 	     isc_task_t *task,
 	     isc_socketmgr_t *socketmgr,
-	     dns_name_t *name,
+	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
-	     char *addrstr, /* XXX */
-	     in_port_t port,
+	     isc_sockaddr_t *master,
 	     dns_tsigkey_t *tsigkey,
 	     xfrin_ctx_t **xfrp)
 {
 	xfrin_ctx_t *xfr = NULL;
-	struct in_addr ina;
 	isc_result_t result;
 	isc_interval_t interval;
 	
@@ -631,7 +556,8 @@ xfrin_create(isc_mem_t *mctx,
 	if (xfr == NULL)
 		return (DNS_R_NOMEMORY);
 	xfr->mctx = mctx;
-	xfr->dbi = dbi;
+	xfr->zone = NULL;
+	dns_zone_attach(zone, &xfr->zone);
 	xfr->task = task;
 	xfr->timer = NULL;
 	xfr->socketmgr = socketmgr;
@@ -677,15 +603,14 @@ xfrin_create(isc_mem_t *mctx,
 
 	isc_task_onshutdown(xfr->task, xfrin_shutdown, xfr);
 	
-	CHECK(dns_name_dup(name, mctx, &xfr->name));
+	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
 
 	isc_interval_set(&interval, 3600, 0); /* XXX */
 	CHECK(isc_timer_create(ns_g_timermgr, isc_timertype_once,
 			       NULL, &interval, task,
 			       xfrin_timeout, xfr, &xfr->timer));
 
-	ina.s_addr = inet_addr(addrstr);
-	isc_sockaddr_fromin(&xfr->sockaddr, &ina, port);
+	xfr->sockaddr = *master;
 
 	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
 			sizeof(xfr->qbuffer_data),
@@ -1064,12 +989,15 @@ maybe_free(xfrin_ctx_t *xfr) {
 	if (xfr->ver != NULL)
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_FALSE);
 
-	if (xfr->db != NULL)
-		dns_db_detach(&xfr->db);
-	
+	if (xfr->db != NULL) 
+		dns_db_detach(&xfr->db); /* XXX ??? */
+
 	if (xfr->olddb != NULL)
 		dns_db_detach(&xfr->olddb);
 
+	if (xfr->zone != NULL)
+		dns_zone_detach(&xfr->zone);
+		
 	isc_mem_put(xfr->mctx, xfr, sizeof(*xfr));
 
 	printf("xfrin_shutdown done\n");
