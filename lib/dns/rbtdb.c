@@ -313,6 +313,7 @@ static void
 free_rbtdb(dns_rbtdb_t *rbtdb) {
 	unsigned int i;
 	isc_ondestroy_t ondest;
+	isc_mem_t *mctx;
 
 	REQUIRE(EMPTY(rbtdb->open_versions));
 	REQUIRE(rbtdb->future_version == NULL);
@@ -333,7 +334,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	rbtdb->common.magic = 0;
 	rbtdb->common.impmagic = 0;
 	ondest = rbtdb->common.ondest;
-	isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
+	mctx = rbtdb->common.mctx;
+	isc_mem_put(mctx, rbtdb, sizeof *rbtdb);
+	isc_mem_detach(&mctx);
 	isc_ondestroy_notify(&ondest, rbtdb);
 }
 
@@ -3816,11 +3819,11 @@ dns_rbtdb_create
 	} else
 		rbtdb->common.methods = &zone_methods;
 	rbtdb->common.rdclass = rdclass;
-	rbtdb->common.mctx = mctx;
+	rbtdb->common.mctx = NULL;
 
 	result = isc_mutex_init(&rbtdb->lock);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
+		isc_mem_put(mctx, rbtdb, sizeof *rbtdb);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
 				 isc_result_totext(result));
@@ -3830,7 +3833,7 @@ dns_rbtdb_create
 	result = isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
 		isc_mutex_destroy(&rbtdb->lock);
-		isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
+		isc_mem_put(mctx, rbtdb, sizeof *rbtdb);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));
@@ -3856,7 +3859,7 @@ dns_rbtdb_create
 				    sizeof (rbtdb_nodelock_t));
 			isc_rwlock_destroy(&rbtdb->tree_lock);
 			isc_mutex_destroy(&rbtdb->lock);
-			isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
+			isc_mem_put(mctx, rbtdb, sizeof *rbtdb);
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_mutex_init() failed: %s",
 					 isc_result_totext(result));
@@ -3865,6 +3868,13 @@ dns_rbtdb_create
 		rbtdb->node_locks[i].references = 0;
 		rbtdb->node_locks[i].exiting = ISC_FALSE;
 	}
+
+	/*
+	 * Attach to the mctx.  The database will persist so long as there
+	 * are references to it, and attaching to the mctx ensures that our
+	 * mctx won't disappear out from under us.
+	 */
+	isc_mem_attach(mctx, &rbtdb->common.mctx);
 
 	/*
 	 * Make a copy of the origin name.
