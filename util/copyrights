@@ -391,6 +391,7 @@
 ./lib/dns/include/dns/fixedname.h		C	1999,2000
 ./lib/dns/include/dns/journal.h			C	1999,2000
 ./lib/dns/include/dns/keyflags.h		C	1999,2000
+./lib/dns/include/dns/keytable.h		C	2000
 ./lib/dns/include/dns/keyvalues.h		C	1999,2000
 ./lib/dns/include/dns/lib.h			C	1999,2000
 ./lib/dns/include/dns/log.h			C	1999,2000
@@ -410,6 +411,7 @@
 ./lib/dns/include/dns/rdatasetiter.h		C	1999,2000
 ./lib/dns/include/dns/rdataslab.h		C	1999,2000
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000
+./lib/dns/include/dns/request.h			C	2000
 ./lib/dns/include/dns/resolver.h		C	1999,2000
 ./lib/dns/include/dns/result.h			C	1998,1999,2000
 ./lib/dns/include/dns/rootns.h			C	1999,2000
@@ -423,12 +425,14 @@
 ./lib/dns/include/dns/tsigconf.h		C	1999,2000
 ./lib/dns/include/dns/ttl.h			C	1999,2000
 ./lib/dns/include/dns/types.h			C	1998,1999,2000
+./lib/dns/include/dns/validator.h		C	2000
 ./lib/dns/include/dns/view.h			C	1999,2000
 ./lib/dns/include/dns/xfrin.h			C	1999,2000
 ./lib/dns/include/dns/zone.h			C	1999,2000
 ./lib/dns/include/dns/zoneconf.h		C	1999,2000
 ./lib/dns/include/dns/zt.h			C	1999,2000
 ./lib/dns/journal.c				C	1999,2000
+./lib/dns/keytable.c				C	2000
 ./lib/dns/lib.c					C	1999,2000
 ./lib/dns/log.c					C	1999,2000
 ./lib/dns/master.c				C	1999,2000
@@ -559,6 +563,7 @@
 ./lib/dns/tsig.c				C	1999,2000
 ./lib/dns/tsigconf.c				C	1999,2000
 ./lib/dns/ttl.c					C	1999,2000
+./lib/dns/validator.c				C	2000
 ./lib/dns/version.c				C	1998,1999,2000
 ./lib/dns/view.c				C	1999,2000
 ./lib/dns/xfrin.c				C	1999,2000
