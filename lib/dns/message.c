@@ -1654,6 +1654,7 @@ dns_message_renderend(dns_message_t *msg)
 	}
 
 	if (msg->tsigkey != NULL) {
+		REQUIRE(msg->tsig == NULL);
 		result = dns_tsig_sign(msg);
 		if (result != DNS_R_SUCCESS)
 			return (result);
