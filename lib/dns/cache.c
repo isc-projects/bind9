@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.37 2001/04/11 22:15:00 tale Exp $ */
+/* $Id: cache.c,v 1.38 2001/05/31 10:53:42 tale Exp $ */
 
 #include <config.h>
 
@@ -793,12 +793,11 @@ dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size) {
 	REQUIRE(VALID_CACHE(cache));
 
 	/*
-	 * Impose a minumum cache size -- this should perhaps be larger,
-	 * but for now is just meant ensure that hiwater and lowater are
-	 * less than the size.
+	 * Impose a minumum cache size; pathological things happen if there
+	 * is too little room.
 	 */
-	if (size != 0 && size < 8)
-		size = 8;
+	if (size != 0 && size < 2097152)
+		size = 2097152;	/* 2mb */
 
 	hiwater = size - (size >> 3);	/* ~(7/8) */
 	lowater = size - (size >> 2);	/* ~(3/4) */
