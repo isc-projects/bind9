@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.139.4.5 2001/03/04 23:03:22 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.139.4.6 2001/03/27 00:12:30 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -958,6 +958,40 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	*versionp = NULL;
 }
 
+/*
+ * Add the necessary magic for the wildcard name 'name'
+ * to be found in 'rbtdb'.
+ *
+ * In order for wildcard matching to work correctly in
+ * zone_find(), we must ensure that a node for the wildcarding
+ * level exists in the database, and has its 'find_callback'
+ * and 'wild' bits set.
+ *
+ * E.g. if the wildcard name is "*.sub.example." then we
+ * must ensure that "sub.example." exists and is marked as
+ * a wildcard level.
+ */
+static isc_result_t
+add_wildcard_magic(dns_rbtdb_t *rbtdb, dns_name_t *name) {
+	isc_result_t result;
+	dns_name_t foundname;
+	dns_offsets_t offsets;
+	unsigned int n;
+	dns_rbtnode_t *node = NULL;
+
+	dns_name_init(&foundname, offsets);
+	n = dns_name_countlabels(name);
+	INSIST(n >= 2);
+	n--;
+	dns_name_getlabelsequence(name, 1, n, &foundname);
+	result = dns_rbt_addnode(rbtdb->tree, &foundname, &node);
+	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS)
+		return (result);
+	node->find_callback = 1;
+	node->wild = 1;
+	return (ISC_R_SUCCESS);
+}
+
 static isc_result_t
 findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	 dns_dbnode_t **nodep)
@@ -994,6 +1028,13 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 			dns_rbt_namefromnode(node, &nodename);
 			node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
 				rbtdb->node_lock_count;
+			if (dns_name_iswildcard(name)) {
+				result = add_wildcard_magic(rbtdb, name);
+				if (result != ISC_R_SUCCESS) {
+					RWUNLOCK(&rbtdb->tree_lock, locktype);
+					return (result);
+				}
+			}
 		} else if (result != ISC_R_EXISTS) {
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
 			return (result);
@@ -3695,9 +3736,6 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	isc_region_t region;
 	rdatasetheader_t *newheader;
-	dns_name_t foundname;
-	dns_offsets_t offsets;
-	unsigned int n;
 
 	/*
 	 * This routine does no node locking.  See comments in
@@ -3720,28 +3758,9 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 		 */
 		if (rdataset->type == dns_rdatatype_ns)
 			return (DNS_R_INVALIDNS);
-
-		/*
-		 * In order for wildcard matching to work correctly in
-		 * zone_find(), we must ensure that a node for the wildcarding
-		 * level exists in the database, and has its 'find_callback'
-		 * and 'wild' bits set.
-		 *
-		 * E.g. if the wildcard name is "*.sub.example." then we
-		 * must ensure that "sub.example." exists and is marked as
-		 * a wildcard level.
-		 */
-		dns_name_init(&foundname, offsets);
-		n = dns_name_countlabels(name);
-		INSIST(n >= 2);
-		n--;
-		dns_name_getlabelsequence(name, 1, n, &foundname);
-		node = NULL;
-		result = dns_rbt_addnode(rbtdb->tree, &foundname, &node);
-		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS)
+		result = add_wildcard_magic(rbtdb, name);
+		if (result != ISC_R_SUCCESS)
 			return (result);
-		node->find_callback = 1;
-		node->wild = 1;
 	}
 
 	node = NULL;
@@ -3749,6 +3768,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS)
 		return (result);
 	if (result != ISC_R_EXISTS) {
+		dns_name_t foundname;
 		dns_name_init(&foundname, NULL);
 		dns_rbt_namefromnode(node, &foundname);
 		node->locknum = dns_name_hash(&foundname, ISC_TRUE) %

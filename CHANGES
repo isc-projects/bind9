@@ -1,6 +1,9 @@
 
 	--- 9.1.1 released ---
 
+ 790.	[bug]		Wildcards created using dynamic update or IXFR
+			could fail to match. [RT #1111]
+
  787.	[bug]		The DNSSEC tools failed to downcase domain
 			names when mapping them into file names.
 
