@@ -1,4 +1,6 @@
- 991.	[func]		Lower UDP refresh timeout messages to DEBUG(1).
+
+ 991.	[func]		Lower UDP refresh timeout messages to level
+			debug 1.
 
  990.	[bug]		The rndc-confgen man page was not installed.
 
