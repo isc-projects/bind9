@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.112 2001/05/31 11:03:33 tale Exp $ */
+/* $Id: rbt.c,v 1.113 2001/05/31 21:52:22 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -917,26 +917,24 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				}
 			}
 
-			if (tlabels++ < nlabels) {
-				/*
-				 * XXXDCL Bitstring labels complicate things,
-				 * as usual.  Checking for the situation could
-				 * be done up by the dns_name_getlabelsequence
-				 * so that they could still use the hashing
-				 * code, but it would be messy to repeatedly
-				 * try various bitstring lengths.  Instead
-				 * just notice when a bitstring label is
-				 * involved and then punt to the traditional
-				 * binary search if no hash node is found
-				 * after all of the labels are tried.
-				 */
-				if (has_bitstring == ISC_FALSE &&
-				    hash_name.ndata[0] ==
-				    DNS_LABELTYPE_BITSTRING)
-					has_bitstring = ISC_TRUE;
+			/*
+			 * XXXDCL Bitstring labels complicate things, as usual.
+			 * Checking for the situation could be done up by the
+			 * dns_name_getlabelsequence so that they could still
+			 * use the hashing code, but it would be messy to
+			 * repeatedly try various bitstring lengths.  Instead
+			 * just notice when a bitstring label is involved and
+			 * then punt to the traditional binary search if no
+			 * hash node is found after all of the labels are
+			 * tried.
+			 */
+			if (has_bitstring == ISC_FALSE &&
+			    hash_name.ndata[0] ==
+			    DNS_LABELTYPE_BITSTRING)
+				has_bitstring = ISC_TRUE;
 
+			if (tlabels++ < nlabels)
 				goto hashagain;
-			}
 
 			/*
 			 * All of the labels have been tried against the hash
