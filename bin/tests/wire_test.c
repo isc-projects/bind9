@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.56 2001/03/13 02:48:54 bwelling Exp $ */
+/* $Id: wire_test.c,v 1.57 2001/05/09 00:16:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -62,7 +62,7 @@ main(int argc, char *argv[]) {
 	int n;
 	FILE *f;
 	isc_boolean_t need_close = ISC_FALSE;
-	unsigned char b[4000];
+	unsigned char b[64 * 1024];
 	char s[4000];
 	dns_message_t *message;
 	isc_result_t result;
