@@ -7,7 +7,6 @@ $TTL 1000
 				3600 )		;minimum
 
 a.b.c.d		in	A	1.2.3.4
-a.b.c.		in	A	1.2.3.4
 a.b		in	A	1.2.3.4
 a		in	NS	ns1.vix.com.
 

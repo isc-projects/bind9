@@ -10,5 +10,4 @@ a.b.c.d		in	NS	ns1.vix.com.
 a.b.c		in	A	1.2.3.4
 a.b		in	NS	ns1.vix.com.
 a		in	NS	ns1.vix.com.
-a.b.c.		in	NS	ns1.vix.com.
 
