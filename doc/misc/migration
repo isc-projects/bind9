@@ -60,6 +60,10 @@ The source address and port for these is now controlled by
 "notify-source" and "transfer-source", respectively, rather that
 query-source as in BIND 8.
 
+1.6. Multiple Classes.
+
+Multiple classes have to be put into explicit views for each class.
+
 2. Zone File Compatibility
 
 2.1. Strict RFC1035 Interpretation of TTLs in Zone Files
@@ -158,4 +162,4 @@ see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
 details.  Some of the ndc commands are still unimplemented in rndc.
 
 
-$Id: migration,v 1.16 2000/11/30 23:24:01 gson Exp $
+$Id: migration,v 1.17 2000/12/19 00:36:05 marka Exp $
