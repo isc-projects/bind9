@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.18 2003/08/25 04:16:21 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.19 2003/08/25 05:49:55 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -6054,15 +6054,6 @@ Conformant Global Address Mapping</title>
             </author>
             <title>Common <acronym>DNS</acronym> Data File Configuration Errors</title>
             <pubdate>October 1993</pubdate>
-          </biblioentry>
-          <biblioentry>
-            <abbrev>RFC1912</abbrev>
-            <author>
-              <surname>Barr</surname>
-              <firstname>D.</firstname>
-            </author>
-            <title>Common <acronym>DNS</acronym> Operational and Configuration Errors</title>
-            <pubdate>February 1996</pubdate>
           </biblioentry>
           <biblioentry>
             <abbrev>RFC1912</abbrev>

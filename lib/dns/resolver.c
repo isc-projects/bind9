@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.14 2003/08/25 04:16:23 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.15 2003/08/25 05:49:56 marka Exp $ */
 
 #include <config.h>
 
@@ -3572,6 +3572,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		name = NULL;
 		dns_message_currentname(message, section, &name);
 		if (dns_name_issubdomain(name, &fctx->domain)) {
+			/*
+			 * Look for NS RRset first.
+			 */
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {

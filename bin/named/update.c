@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.8 2003/08/15 02:21:02 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.9 2003/08/25 05:49:54 marka Exp $ */
 
 #include <config.h>
 
@@ -1923,6 +1923,12 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 /*
  * The actual update code in all its glory.  We try to follow
  * the RFC2136 pseudocode as closely as possible.
+ */
+
+/*
+ * DS records are not allowed to exist without corresponding NS records,
+ * draft-ietf-dnsext-delegation-signer-11.txt, 2.2 Protocol Change,
+ * "DS RRsets MUST NOT appear at non-delegation points or at a zone's apex".
  */
 
 static isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.55 2001/06/01 03:07:54 halley Exp $ */
+/* $Id: rbt.h,v 1.55.12.1 2003/08/25 05:49:57 marka Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -137,7 +137,8 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
  * definition of "@" as the current origin.
  *
  * dns_rbtnodechain_current is similar to the _first, _last, _prev and _next
- * functions but additionally can provide the node to which the chain points.  */
+ * functions but additionally can provide the node to which the chain points.
+ */
 
 /*
  * The number of level blocks to allocate at a time.  Currently the maximum
