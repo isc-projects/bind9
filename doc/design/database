@@ -1,4 +1,6 @@
 
+$Id: database,v 1.5 1999/02/23 21:52:49 halley Exp $
+
 Databases
 
 BIND 9 DNS database allows named rdatasets to be stored and retrieved.
