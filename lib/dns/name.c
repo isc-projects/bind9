@@ -2925,3 +2925,11 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	
 	return ((digest)(arg, &r));
 }
+
+isc_boolean_t
+dns_name_dynamic(dns_name_t *name) {
+	REQUIRE(VALID_NAME(name));
+
+	return ((name->attributes & DNS_NAMEATTR_DYNAMIC) != 0 ?
+		ISC_TRUE : ISC_FALSE);
+}
