@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.12 2002/09/10 04:45:54 marka Exp $ */
+/* $Id: control.h,v 1.13 2003/07/17 06:24:43 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -49,6 +49,7 @@
 #define NS_COMMAND_UNFREEZE	"unfreeze"
 #define NS_COMMAND_TIMERPOKE	"timerpoke"
 #define NS_COMMAND_RECURSING	"recursing"
+#define NS_COMMAND_NULL		"null"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.38 2002/02/20 03:33:14 marka Exp $ */
+/* $Id: controlconf.c,v 1.39 2003/07/17 06:24:43 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
+#include <isc/random.h>
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
@@ -41,6 +42,7 @@
 #include <isccc/events.h>
 #include <isccc/result.h>
 #include <isccc/sexpr.h>
+#include <isccc/symtab.h>
 #include <isccc/util.h>
 
 #include <dns/result.h>
@@ -79,6 +81,7 @@ struct controlconnection {
 	isc_timer_t *			timer;
 	unsigned char			buffer[2048];
 	controllistener_t *		listener;
+	isc_uint32_t			nonce;
 	ISC_LINK(controlconnection_t)	link;
 };
 
@@ -100,10 +103,13 @@ struct ns_controls {
 	ns_server_t			*server;
 	controllistenerlist_t 		listeners;
 	isc_boolean_t			shuttingdown;
+	isccc_symtab_t			*symtab;
 };
 
 static void control_newconn(isc_task_t *task, isc_event_t *event);
 static void control_recvmessage(isc_task_t *task, isc_event_t *event);
+
+#define CLOCKSKEW 300
 
 static void
 free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
@@ -320,6 +326,10 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	char textarray[1024];
 	isc_result_t result;
 	isc_result_t eresult;
+	isccc_sexpr_t *_ctrl;
+	isccc_time_t sent;
+	isccc_time_t exp;
+	isc_uint32_t nonce;
 
 	REQUIRE(event->ev_type == ISCCC_EVENT_CCMSG);
 
@@ -380,10 +390,64 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
+	isc_stdtime_get(&now);
+
+	/*
+	 * Limit exposure to replay attacks.
+	 */
+	_ctrl = isccc_alist_lookup(request, "_ctrl");
+	if (_ctrl == NULL) {
+		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		goto cleanup;
+	}
+
+	if (isccc_cc_lookupuint32(_ctrl, "_tim", &sent) == ISC_R_SUCCESS) {
+		if ((sent + CLOCKSKEW) < now || (sent - CLOCKSKEW) > now) {
+			log_invalid(&conn->ccmsg, ISCCC_R_CLOCKSKEW);
+			goto cleanup;
+		}
+	} else {
+		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		goto cleanup;
+	}
+
+	/*
+	 * Expire messages that are too old.
+	 */
+	if (isccc_cc_lookupuint32(_ctrl, "_exp", &exp) == ISC_R_SUCCESS &&
+	    now > exp) {
+		log_invalid(&conn->ccmsg, ISCCC_R_EXPIRED);
+		goto cleanup;
+	}
+
+	/*
+	 * Duplicate suppression (required for UDP).
+	 */
+	isccc_cc_cleansymtab(listener->controls->symtab, now);
+	result = isccc_cc_checkdup(listener->controls->symtab, request, now);
+	if (result != ISC_R_SUCCESS) {
+		if (result == ISC_R_EXISTS)
+                        result = ISCCC_R_DUPLICATE; 
+		log_invalid(&conn->ccmsg, result);
+		goto cleanup;
+	}
+
+	if (conn->nonce != 0 &&
+	    (isccc_cc_lookupuint32(_ctrl, "_nonce", &nonce) != ISC_R_SUCCESS ||
+	     conn->nonce != nonce)) {
+		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
+		goto cleanup;
+	}
+
+	/*
+	 * Establish nonce.
+	 */
+	while (conn->nonce == 0)
+		isc_random_get(&conn->nonce);
+
 	isc_buffer_init(&text, textarray, sizeof(textarray));
 	eresult = ns_control_docommand(request, &text);
 
-	isc_stdtime_get(&now);
 	result = isccc_cc_createresponse(request, now, now + 60, &response);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -408,6 +472,11 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 				goto cleanup;
 		}
 	}
+
+	_ctrl = isccc_alist_lookup(response, "_ctrl");
+	if (_ctrl == NULL ||
+	    isccc_cc_defineuint32(_ctrl, "_nonce", conn->nonce) == NULL)
+		goto cleanup;
 
 	ccregion.rstart = conn->buffer + 4;
 	ccregion.rend = conn->buffer + sizeof(conn->buffer);
@@ -484,6 +553,7 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 		goto cleanup;
 
 	conn->listener = listener;
+	conn->nonce = 0;
 	ISC_LINK_INIT(conn, link);
 
 	result = isccc_ccmsg_readmessage(&conn->ccmsg, listener->task,
@@ -1223,12 +1293,20 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp) {
 	isc_mem_t *mctx = server->mctx;
+	isc_result_t result;
 	ns_controls_t *controls = isc_mem_get(mctx, sizeof(*controls));
+
 	if (controls == NULL)
 		return (ISC_R_NOMEMORY);
 	controls->server = server;
 	ISC_LIST_INIT(controls->listeners);
 	controls->shuttingdown = ISC_FALSE;
+	controls->symtab = NULL;
+	result = isccc_cc_createsymtab(&controls->symtab);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(server->mctx, controls, sizeof(*controls));
+		return (result);
+	}
 	*ctrlsp = controls;
 	return (ISC_R_SUCCESS);
 }
@@ -1239,6 +1317,7 @@ ns_controls_destroy(ns_controls_t **ctrlsp) {
 
 	REQUIRE(ISC_LIST_EMPTY(controls->listeners));
 
+	isccc_symtab_destroy(&controls->symtab);
 	isc_mem_put(controls->server->mctx, controls, sizeof(*controls));
 	*ctrlsp = NULL;
 }

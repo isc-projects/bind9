@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.3 2001/03/28 23:11:40 bwelling Exp $ */
+/* $Id: result.c,v 1.4 2003/07/17 06:24:44 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,9 @@ static const char *text[ISCCC_R_NRESULTS] = {
 	"unknown version",			/* 1 */
 	"syntax error",				/* 2 */
 	"bad auth",				/* 3 */
+	"expired",				/* 4 */
+	"clock skew",				/* 5 */
+	"duplicate"				/* 6 */
 };
 
 #define ISCCC_RESULT_RESULTSET			2
