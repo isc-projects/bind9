@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.21 2000/07/03 20:08:13 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.22 2000/07/03 23:42:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -51,6 +51,7 @@
 #include <dns/request.h>
 #include <dns/result.h>
 #include <dns/tsig.h>
+
 #include <dst/dst.h>
 
 #include <lwres/lwres.h>
@@ -98,7 +99,7 @@ static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
 
 static int ns_inuse = 0;
-static char *keystr = NULL;
+static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
 
 static void sendrequest(int whichns, dns_message_t *msg,
@@ -240,6 +241,116 @@ reset_system(void) {
 }
 
 static void
+setup_key() {
+	unsigned char *secret = NULL;
+	int secretlen;
+	isc_buffer_t secretbuf;
+	isc_result_t result;
+	dns_fixedname_t fkeyname;
+	dns_name_t *keyname;
+
+	result = dns_tsigkeyring_create(mctx, &keyring);
+	check_result(result, "dns_tsigkeyringcreate");
+
+	if (keystr != NULL) {
+		isc_buffer_t keynamesrc;
+		char *secretstr;
+		isc_buffer_t secretsrc;
+		isc_lex_t *lex = NULL;
+		char *s;
+
+		debug("Creating key...");
+
+		s = strchr(keystr, ':');
+		if (s == NULL || s == keystr || *s == 0)
+			fatal("key option must specify keyname:secret\n");
+		secretstr = s + 1;
+
+		dns_fixedname_init(&fkeyname);
+		keyname = dns_fixedname_name(&fkeyname);
+
+		isc_buffer_init(&keynamesrc, keystr, s - keystr);
+		isc_buffer_add(&keynamesrc, s - keystr);
+
+		debug("namefromtext");
+		result = dns_name_fromtext(keyname, &keynamesrc, dns_rootname,
+					   ISC_FALSE, NULL);
+		check_result(result, "dns_name_fromtext");
+
+		secretlen = strlen(secretstr) * 3 / 4;
+		secret = isc_mem_allocate(mctx, secretlen);
+		if (secret == NULL)
+			fatal("out of memory");
+
+		isc_buffer_init(&secretsrc, secretstr, strlen(secretstr));
+		isc_buffer_add(&secretsrc, strlen(secretstr));
+
+		isc_buffer_init(&secretbuf, secret, secretlen);
+
+		result = isc_lex_create(mctx, strlen(secretstr), &lex);
+		check_result(result, "isc_lex_create");
+		result = isc_lex_openbuffer(lex, &secretsrc);
+		check_result(result, "isc_lex_openbuffer");
+		result = isc_base64_tobuffer(lex, &secretbuf, -1);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't create key from %s: %s\n",
+				keystr, isc_result_totext(result));
+			isc_lex_close(lex);
+			isc_lex_destroy(&lex);
+			goto failure;
+		}
+		secretlen = isc_buffer_usedlength(&secretbuf);
+		debug("close");
+		isc_lex_close(lex);
+		isc_lex_destroy(&lex);
+	} else {
+		dst_key_t *dstkey = NULL;
+
+		result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE,
+					       mctx, &dstkey);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't read key from %s: %s\n",
+				keyfile, isc_result_totext(result));
+			goto failure;
+		}
+		secretlen = (dst_key_size(dstkey) + 7) >> 3;
+		secret = isc_mem_allocate(mctx, secretlen);
+		if (secret == NULL)
+			fatal("out of memory");
+		isc_buffer_init(&secretbuf, secret, secretlen);
+		result = dst_key_tobuffer(dstkey, &secretbuf);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't read key from %s: %s\n",
+				keyfile, isc_result_totext(result));
+			goto failure;
+		}
+		keyname = dst_key_name(dstkey);
+	}
+		
+	debug("keycreate");
+	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
+				    secret, secretlen, ISC_TRUE, NULL, 0, 0,
+				    mctx, keyring, &key);
+	if (result != ISC_R_SUCCESS) {
+		char *str;
+		if (keystr != NULL)
+			str = keystr;
+		else
+			str = keyfile;
+		printf (";; Couldn't create key from %s: %s\n",
+			str, dns_result_totext(result));
+	}
+	isc_mem_free(mctx, secret);
+	return;
+
+ failure:
+
+	if (secret != NULL)
+		isc_mem_free(mctx, secret);
+	dns_tsigkeyring_destroy(&keyring);
+}
+
+static void
 setup_system(void) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any;
@@ -331,79 +442,8 @@ setup_system(void) {
 	else
 		current_zone = dns_rootname;
 
-	if (keystr != NULL) {
-		dns_fixedname_t fkeyname;
-		dns_name_t *keyname;
-		isc_buffer_t keynamesrc;
-		char *secretstr;
-		unsigned char *secret;
-		int secretlen;
-		isc_buffer_t secretsrc, secretbuf;
-		isc_lex_t *lex = NULL;
-		char *s;
-
-		debug("Creating key...");
-
-		s = strchr(keystr, ':');
-		if (s == NULL || s == keystr || *s++ == 0)
-			fatal("key option must specify keyname:secret\n");
-		secretstr = s + 1;
-
-		result = dns_tsigkeyring_create(mctx, &keyring);
-		check_result(result, "dns_tsigkeyringcreate");
-
-		dns_fixedname_init(&fkeyname);
-		keyname = dns_fixedname_name(&fkeyname);
-
-		isc_buffer_init(&keynamesrc, keystr, s - keystr);
-
-		debug("namefromtext");
-		result = dns_name_fromtext(keyname, &keynamesrc, dns_rootname,
-					   ISC_FALSE, NULL);
-		check_result(result, "dns_name_fromtext");
-
-		secretlen = strlen(secretstr) * 3 / 4;
-		secret = isc_mem_allocate(mctx, secretlen);
-		if (secret == NULL)
-			fatal("out of memory");
-
-		isc_buffer_init(&secretsrc, secretstr, strlen(secretstr));
-		isc_buffer_add(&secretsrc, strlen(secretstr));
-
-		isc_buffer_init(&secretbuf, secret, secretlen);
-
-		result = isc_lex_create(mctx, strlen(secretstr), &lex);
-		check_result(result, "isc_lex_create");
-		result = isc_lex_openbuffer(lex, &secretsrc);
-		check_result(result, "isc_lex_openbuffer");
-		result = isc_base64_tobuffer(lex, &secretbuf, -1);
-		if (result != ISC_R_SUCCESS) {
-			printf (";; Couldn't create key from %s: %s\n",
-				keystr, isc_result_totext(result));
-			isc_lex_close(lex);
-			isc_lex_destroy(&lex);
-			goto SYSSETUP_FAIL;
-		}
-		secretlen = isc_buffer_usedlength(&secretbuf);
-		debug("close");
-		isc_lex_close(lex);
-		isc_lex_destroy(&lex);
-		
-		debug("keycreate");
-		result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
-					    secret, secretlen,
-					    ISC_TRUE, NULL, 0, 0, mctx,
-					    keyring, &key);
-		if (result != ISC_R_SUCCESS) {
-			printf (";; Couldn't create key from %s: %s\n",
-				keystr, dns_result_totext(result));
-		}
-		isc_mem_free(mctx, secret);
-		return;
-	SYSSETUP_FAIL:
-		isc_mem_free(mctx, secret);
-		dns_tsigkeyring_destroy(&keyring);
-	}
+	if (keystr != NULL || keyfile != NULL)
+		setup_key();
 }
 
 static void
@@ -432,13 +472,17 @@ parse_args(int argc, char **argv) {
 			usevc = ISC_TRUE;
 			break;
 		case 'k':
-			fprintf(stderr, "TSIG not currently implemented.");
+			keyfile = isc_commandline_argument;
 			break;
 		default:
 			fprintf(stderr, "%s: invalid argument -%c\n",
 				argv[0], ch);
 			exit(1);
 		}
+	}
+	if (keyfile != NULL && keystr != NULL) {
+		fprintf(stderr, "%s: cannot specify both -k and -y\n", argv[0]);
+		exit(1);
 	}
 }
 
