@@ -1,3 +1,5 @@
+1408.	[bug]		distclean was not complete. [RT #4700]
+
 1407.	[bug]		lfsr incorrectly implements the shift register.
 			[RT #4617]
 

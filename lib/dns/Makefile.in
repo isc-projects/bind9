@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.132 2002/11/27 09:52:51 marka Exp $
+# $Id: Makefile.in,v 1.133 2002/12/13 02:00:16 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -34,13 +34,13 @@ LIBS =		@LIBS@
 
 # Alphabetically
 
-DSTOBJS =	sec/dst/dst_api.@O@ \
-		sec/dst/dst_lib.@O@ sec/dst/dst_parse.@O@ \
-		sec/dst/dst_result.@O@ sec/dst/gssapi_link.@O@ \
-		sec/dst/gssapictx.@O@ sec/dst/hmac_link.@O@ \
-		sec/dst/key.@O@ sec/dst/openssl_link.@O@ \
-		sec/dst/openssldh_link.@O@ sec/dst/openssldsa_link.@O@ \
-		sec/dst/opensslrsa_link.@O@
+DSTOBJS =	sec/dst/dst_api.@O@ sec/dst/dst_lib.@O@ sec/dst/dst_parse.@O@ \
+		sec/dst/dst_result.@O@ sec/dst/hmac_link.@O@ sec/dst/key.@O@
+
+OPENSSLOBJS =	sec/dst/openssl_link.@O@ sec/dst/openssldh_link.@O@ \
+		sec/dst/openssldsa_link.@O@ sec/dst/opensslrsa_link.@O@
+
+GSSAPIOBJS =	sec/dst/gssapi_link.@O@ sec/dst/gssapictx.@O@
 
 # Alphabetically
 OBJS =		acl.@O@ adb.@O@ byaddr.@O@ \
@@ -56,7 +56,7 @@ OBJS =		acl.@O@ adb.@O@ byaddr.@O@ \
 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
 		tsig.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@ \
-		${OTHEROBJS} ${DSTOBJS}
+		${OTHEROBJS} ${DSTOBJS} ${OPENSSLOBJS} ${GSSAPIOBJS}
 
 # Alphabetically
 SRCS =		acl.c adb.c byaddr.c \
@@ -99,6 +99,26 @@ libdns.la: ${OBJS}
 		${CC} ${ALL_CFLAGS} -o libdns.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${LIBS}
+
+libdstcypto.@SA@: ${OPENSSLOBJS}
+	${AR} ${ARFLAGS} $@ ${OPENSSLOBJS}
+	${RANLIB} $@
+
+libdstcypto.la: ${OPENSSLOBJS}
+	${LIBTOOL} --mode=link \
+		${CC} ${ALL_CFLAGS} -o $@ -rpath ${libdir} \
+		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
+		${OPENSSLOBJS} ${LIBS}
+
+libdstgssapi.@SA@: ${GSSAPIOBJS}
+	${AR} ${ARFLAGS} $@ ${GSSAPIOBJS}
+	${RANLIB} $@
+
+libdstgssapi.la: ${GSSAPIOBJS}
+	${LIBTOOL} --mode=link \
+		${CC} ${ALL_CFLAGS} -o $@ -rpath ${libdir} \
+		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
+		${GSSAPIOBJS} ${LIBS}
 
 timestamp: libdns.@A@
 	touch timestamp

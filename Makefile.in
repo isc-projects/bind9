@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.41 2001/07/13 01:38:49 gson Exp $
+# $Id: Makefile.in,v 1.42 2002/12/13 02:00:14 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -27,9 +27,16 @@ TARGETS =
 @BIND9_MAKE_RULES@
 
 distclean::
+	@if [ "X@LIBBIND@" = "X" ] ; then \
+		i=lib/bind; \
+		echo "making $@ in `pwd`/$$i"; \
+		(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
+	fi
+
+distclean::
 	rm -f config.cache config.h config.log config.status TAGS
-	rm -f libtool isc-config.sh
-	rm -f util/conf.sh
+	rm -f libtool isc-config.sh configure.lineno
+	rm -f util/conf.sh docutil/docbook2man-wrapper.sh
 
 # XXX we should clean libtool stuff too.  Only do this after we add rules
 # to make it.
