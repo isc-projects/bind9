@@ -27,6 +27,7 @@
 
 #include <dns/types.h>
 #include <dns/adb.h>
+#include <dns/cache.h>
 #include <dns/dbtable.h>
 #include <dns/db.h>
 #include <dns/events.h>
@@ -93,6 +94,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_zt;
 	}
 
+	view->cache = NULL;
 	view->cachedb = NULL;
 	view->hints = NULL;
 	view->resolver = NULL;
@@ -169,6 +171,8 @@ destroy(dns_view_t *view) {
 		dns_db_detach(&view->hints);
 	if (view->cachedb != NULL)
 		dns_db_detach(&view->cachedb);
+	if (view->cache != NULL)
+		dns_cache_detach(&view->cache);
 	dns_zt_detach(&view->zonetable);
 	dns_rbt_destroy(&view->secroots);
 	isc_mutex_destroy(&view->lock);
@@ -310,24 +314,22 @@ dns_view_createresolver(dns_view_t *view,
 }
 
 void
-dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb) {
+dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
 
 	/*
-	 * Set the view's cache database.
-	 */
-
-	/*
-	 * WARNING!  THIS ROUTINE WILL BE REPLACED WITH dns_view_setcache()
-	 * WHEN WE HAVE INTEGRATED CACHE OBJECT SUPPORT INTO THE LIBRARY.
+	 * Set the view's cache.
 	 */
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
-	REQUIRE(dns_db_iscache(cachedb));
 
-	if (view->cachedb != NULL)
+	if (view->cache != NULL) {
 		dns_db_detach(&view->cachedb);
-	dns_db_attach(cachedb, &view->cachedb);
+		dns_cache_detach(&view->cache);
+	}
+	dns_cache_attach(cache, &view->cache);
+	dns_cache_attachdb(cache, &view->cachedb);
+	INSIST(DNS_DB_VALID(view->cachedb));
 }
 
 void

@@ -36,6 +36,7 @@
 #include <isc/net.h>
 
 #include <dns/adb.h>
+#include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/master.h>
 #include <dns/name.h>
@@ -253,7 +254,7 @@ create_managers(void)
 void
 create_view(void)
 {
-	dns_db_t *db;
+	dns_cache_t *cache;
 	isc_result_t result;
 
 	/*
@@ -266,12 +267,12 @@ create_view(void)
 	/*
 	 * Cache.
 	 */
-	db = NULL;
-	result = dns_db_create(mctx, "rbt", dns_rootname, ISC_TRUE,
-			       dns_rdataclass_in, 0, NULL, &db);
-	check_result(result, "dns_view_create");
-	dns_view_setcachedb(view, db);
-	dns_db_detach(&db);
+	cache = NULL;
+	result = dns_cache_create(mctx, taskmgr, timermgr, dns_rdataclass_in,
+				  "rbt", 0, NULL, &cache);
+	check_result(result, "dns_cache_create");
+	dns_view_setcache(view, cache);
+	dns_cache_detach(&cache);
 
 	/*
 	 * Resolver.

@@ -80,6 +80,7 @@ struct dns_view {
 	dns_zt_t *			zonetable;
 	dns_resolver_t *		resolver;
 	dns_adb_t *			adb;
+	dns_cache_t *			cache;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
 	dns_rbt_t *			secroots;
@@ -191,27 +192,22 @@ dns_view_createresolver(dns_view_t *view,
  */
 
 void
-dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb);
+dns_view_setcache(dns_view_t *view, dns_cache_t *cache);
 /*
  * Set the view's cache database.
- *
- * Note:
- *
- *	WARNING!  THIS ROUTINE WILL BE REPLACED WITH dns_view_setcache()
- *	WHEN WE HAVE INTEGRATED CACHE OBJECT SUPPORT INTO THE LIBRARY.
  *
  * Requires:
  *
  *	'view' is a valid, unfrozen view.
  *
- *	'cachedb' is a valid cache database.
+ *	'cache' is a valid cache.
  *
  * Ensures:
  *
- *     	The cache database of 'view' is 'cachedb'.
+ *     	The cache of 'view' is 'cached.
  *
- *	If this is not the first call to dns_view_setcachedb() for this
- *	view, then previously set db is detached.
+ *	If this is not the first call to dns_view_setcache() for this
+ *	view, then previously set cache is detached.
  */
 
 void

@@ -35,6 +35,7 @@
 #include <isc/app.h>
 #include <isc/dir.h>
 
+#include <dns/cache.h>
 #include <dns/confparser.h>
 #include <dns/types.h>
 #include <dns/result.h>
@@ -77,7 +78,8 @@ create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		    dns_view_t **viewp)
 {
 	dns_view_t *view;
-	dns_db_t *db;
+	dns_cache_t *cache;
+	
 	isc_result_t result;
 
 	REQUIRE(viewp != NULL && *viewp == NULL);
@@ -93,13 +95,13 @@ create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	/*
 	 * Cache.
 	 */
-	db = NULL;
-	result = dns_db_create(mctx, "rbt", dns_rootname, ISC_TRUE,
-			       rdclass, 0, NULL, &db);
+	cache = NULL;
+	result = dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr, rdclass,
+				  "rbt", 0, NULL, &cache);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	dns_view_setcachedb(view, db);
-	dns_db_detach(&db);
+	dns_view_setcache(view, cache);
+	dns_cache_detach(&cache);
 
 	/*
 	 * XXXRTH  Temporary support for loading cache contents.
