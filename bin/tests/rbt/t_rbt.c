@@ -590,7 +590,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 	cnt = 0;
 	nprobs = 0;
 
-	while (1) {
+	do {
 
 		if (cnt == 0) {
 			dns_fixedname_init(&name);
@@ -606,7 +606,8 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 				break;
 			}
 			t_info("first name:\t<%s>\n", fixedname_totext(&name));
-			t_info("first origin:\t<%s>\n", fixedname_totext(&origin));
+			t_info("first origin:\t<%s>\n",
+			       fixedname_totext(&origin));
 		} else {
 			dns_fixedname_init(&fullname1);
 			dns_result = dns_name_concatenate(
@@ -676,8 +677,9 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 		}
 
 		++cnt;
-	}
-	return(nprobs);
+	} while (1);
+
+	return (nprobs);
 }
 
 /*
