@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.99 2000/10/06 18:58:21 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.100 2000/10/12 03:32:14 marka Exp $ */
 
 #include <config.h>
 
@@ -580,11 +580,7 @@ dns_xfrin_detach(dns_xfrin_ctx_t **xfrp) {
 }
 
 static void
-xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
-	if (result != DNS_R_UPTODATE) {
-		xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s",
-			  msg, isc_result_totext(result));
-	}
+xfrin_cancelio(dns_xfrin_ctx_t *xfr) {
 	if (xfr->connects > 0) {
 		isc_socket_cancel(xfr->socket, xfr->task,
 				  ISC_SOCKCANCEL_CONNECT);
@@ -594,6 +590,48 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 		isc_socket_cancel(xfr->socket, xfr->task,
 				  ISC_SOCKCANCEL_SEND);
 	}
+}
+
+static void
+xfrin_reset(dns_xfrin_ctx_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	xfrin_log(xfr, ISC_LOG_INFO, "resetting");
+
+	xfrin_cancelio(xfr);
+
+	if (xfr->socket != NULL)
+		isc_socket_detach(&xfr->socket);
+
+	if (xfr->lasttsig != NULL)
+		isc_buffer_free(&xfr->lasttsig);
+
+	dns_diff_clear(&xfr->diff);
+	xfr->difflen = 0;
+
+	if (xfr->ixfr.journal != NULL)
+		dns_journal_destroy(&xfr->ixfr.journal);
+
+	if (xfr->axfr.add_private != NULL)
+		(void)dns_db_endload(xfr->db, &xfr->axfr.add_private);
+
+	if (xfr->tcpmsg_valid) {
+		dns_tcpmsg_invalidate(&xfr->tcpmsg);
+		xfr->tcpmsg_valid = ISC_FALSE;
+	}
+
+	if (xfr->ver != NULL)
+		dns_db_closeversion(xfr->db, &xfr->ver, ISC_FALSE);
+}
+
+
+static void
+xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
+	if (result != DNS_R_UPTODATE) {
+		xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s",
+			  msg, isc_result_totext(result));
+	}
+	xfrin_cancelio(xfr);
 	if (xfr->done != NULL) {
 		(xfr->done)(xfr->zone, result);
 		xfr->done = NULL;
@@ -1019,9 +1057,10 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR",
 		       isc_result_totext(result));
 		dns_message_destroy(&msg);
+		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
 		xfr->state = XFRST_SOAQUERY;
-		CHECK(xfrin_send_request(xfr));
+		xfrin_start(xfr);
 		return;
 	}
 

@@ -1,3 +1,6 @@
+ 512.	[bug]		The zone tranfer code could throw an execption with
+			an invalid IXFR stream.
+
  511.	[bug]		The message code could throw an assertion on an
 			out of memory failure. [RT #392]
 
