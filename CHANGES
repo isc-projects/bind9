@@ -1,3 +1,8 @@
+1061.	[bug]		If periodic cache cleaning happened to start
+			while cleaning due to reaching the configured
+			maximum cache size was in progress, the server
+			could catch an assertion failure. [RT #1912]
+
 1060.	[func]		Move refresh, stub and notify UDP retry processing
 			into dns_request.
 
