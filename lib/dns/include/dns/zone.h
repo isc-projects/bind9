@@ -594,20 +594,41 @@ dns_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 				dns_message_t *msg);
 
 void
-dns_zone_setxfrtime(dns_zone_t *zone, isc_uint32_t xfrtime);
+dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin);
 /*
- * Set the maximum time (in seconds) that a zone transfer (AXFR/IXFR)
- * in of this zone will use before being aborted.
+ * Set the maximum time (in seconds) that a zone transfer in (AXFR/IXFR)
+ * of this zone will use before being aborted.
  *
  * Requires:
  * 	'zone' to be valid initialised zone.
  *	'xfrtime' to be non zero.
  */
 
-isc_uint32_t dns_zone_getxfrtime(dns_zone_t *zone);
+isc_uint32_t dns_zone_getmaxxfrin(dns_zone_t *zone);
 /*
  * Returns the maximum transfer time for this zone.  This will be
- * either the value set by the last call to dns_zone_setxfrtime() or
+ * either the value set by the last call to dns_zone_setmaxxfrin() or
+ * the default value of 1 hour.
+ *
+ * Requires:
+ *	'zone' to be valid initialised zone.
+ */
+
+void
+dns_zone_setmaxxfrout(dns_zone_t *zone, isc_uint32_t maxxfrout);
+/*
+ * Set the maximum time (in seconds) that a zone transfer out (AXFR/IXFR)
+ * of this zone will use before being aborted.
+ *
+ * Requires:
+ * 	'zone' to be valid initialised zone.
+ *	'xfrtime' to be non zero.
+ */
+
+isc_uint32_t dns_zone_getmaxxfrout(dns_zone_t *zone);
+/*
+ * Returns the maximum transfer time for this zone.  This will be
+ * either the value set by the last call to dns_zone_setmaxxfrout() or
  * the default value of 1 hour.
  *
  * Requires:

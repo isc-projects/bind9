@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.42 1999/12/13 03:04:55 marka Exp $ */
+ /* $Id: zone.c,v 1.43 1999/12/13 06:39:38 marka Exp $ */
 
 #include <config.h>
 
@@ -151,7 +151,8 @@ struct dns_zone {
 	dns_fetch_t		*fetch;
 	dns_resolver_t		*res;
 	isc_socketmgr_t		*socketmgr;
-	isc_uint32_t		xfrtime;
+	isc_uint32_t		maxxfrin;
+	isc_uint32_t		maxxfrout;
 	isc_uint32_t		idlein;
 	isc_uint32_t		idleout;
 	isc_boolean_t		diff_on_reload;
@@ -314,7 +315,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
 	ISC_LIST_INIT(zone->checkservers);
 	zone->xfrsource = sockaddr_any;
-	zone->xfrtime = MAX_XFER_TIME;
+	zone->maxxfrin = MAX_XFER_TIME;
+	zone->maxxfrout = MAX_XFER_TIME;
 	zone->diff_on_reload = ISC_FALSE;
 	zone->magic = ZONE_MAGIC;
 #if 0
@@ -2414,7 +2416,8 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 	dns_c_pklist_t *pubkeylist = NULL;
 	isc_uint32_t i;
 	isc_sockaddr_t sockaddr;
-	isc_int32_t xfrtime;
+	isc_int32_t maxxfr;
+	isc_int32_t idle;
 	in_port_t port;
 	const char *origin;
 	char *o;
@@ -2523,6 +2526,18 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 			dns_zone_setpubkey(zone, NULL);
 
 #endif	
+		iresult = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
+		if (result == ISC_R_SUCCESS)
+			zone->maxxfrout = maxxfr;
+		else
+			zone->maxxfrout = MAX_XFER_TIME;
+
+		iresult = dns_c_zone_getmaxtransidleout(czone, &idle);
+		if (iresult == ISC_R_SUCCESS)
+			dns_zone_setidleout(zone, idle);
+		else
+			dns_zone_setidleout(zone, 0);
+
 		break;
 		
 		
@@ -2593,17 +2608,35 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else 
 			dns_zone_clearmasters(zone);
 
-		iresult = dns_c_zone_getmaxtranstimein(czone, &xfrtime);
+		iresult = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
 		if (result == ISC_R_SUCCESS)
-			zone->xfrtime = xfrtime;
+			zone->xfrin = maxxfr;
 		else
-			zone->xfrtime = MAX_XFER_TIME;
+			zone->maxxfrin = MAX_XFER_TIME;
 
 		iresult = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (iresult == ISC_R_SUCCESS)
 			zone->xfrsource = sockaddr;
 		else
 			zone->xfrsource = sockaddr_any;
+
+		iresult = dns_c_zone_getmaxtransidlein(czone, &idle);
+		if (iresult == ISC_R_SUCCESS)
+			dns_zone_setidlein(zone, idle);
+		else
+			dns_zone_setidlein(zone, 0);
+
+		iresult = dns_c_zone_getmaxtranstimeout(czone, &maxffr);
+		if (result == ISC_R_SUCCESS)
+			zone->maxxfrout = maxffr;
+		else
+			zone->maxxfrout = MAX_XFER_TIME;
+
+		iresult = dns_c_zone_getmaxtransidleout(czone, &idle);
+		if (iresult == ISC_R_SUCCESS)
+			dns_zone_setidleout(zone, idle);
+		else
+			dns_zone_setidleout(zone, 0);
 
 		break;
 
@@ -2663,17 +2696,24 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else 
 			dns_zone_clearmasters(zone);
 
-		iresult = dns_c_zone_getmaxtranstimein(czone, &xfrtime);
+		iresult = dns_c_zone_getmaxtranstimein(czone, &maxffr);
 		if (result == ISC_R_SUCCESS)
-			zone->xfrtime = xfrtime;
+			zone->maxxfrin = maxffr;
 		else
-			zone->xfrtime = MAX_XFER_TIME;
+			zone->maxxfrin = MAX_XFER_TIME;
 
 		iresult = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (iresult == ISC_R_SUCCESS)
 			zone->xfrsource = sockaddr;
 		else
 			zone->xfrsource = sockaddr_any;
+
+		iresult = dns_c_zone_getmaxtransidlein(czone, &idle);
+		if (iresult == ISC_R_SUCCESS)
+			dns_zone_setidlein(zone, idle);
+		else
+			dns_zone_setidlein(zone, 0);
+
 		break;
 
 	case dns_c_zone_hint:
@@ -2932,17 +2972,31 @@ dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver) {
 }
 
 void
-dns_zone_setxfrtime(dns_zone_t *zone, isc_uint32_t xfrtime) {
+dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(xfrtime != 0);
-	zone->xfrtime = xfrtime;
+	REQUIRE(maxxfrin != 0);
+	zone->maxxfrin = maxxfrin;
 }
 
 isc_uint32_t
-dns_zone_getxfrtime(dns_zone_t *zone) {
+dns_zone_getmamaxxfrin(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (zone->xfrtime);
+	return (zone->maxxfrin);
+}
+
+void
+dns_zone_setmaxxfrout(dns_zone_t *zone, isc_uint32_t maxxfrout) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(maxxfrout != 0);
+	zone->maxxfrout = maxxfrout;
+}
+
+isc_uint32_t
+dns_zone_getmamaxxfrout(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->maxxfrout);
 }
 
 void
@@ -3035,7 +3089,10 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
 	LOCK(&oldzone->lock);
 	LOCK(&newzone->lock);
 	if (oldzone->type != newzone->type ||
-	    oldzone->xfrtime != newzone->xfrtime ||
+	    oldzone->maxxfrin != newzone->maxxfrin ||
+	    oldzone->maxxfrout != newzone->maxxfrout ||
+	    oldzone->idlein != newzone->idlein ||
+	    oldzone->idleout != newzone->idleout ||
 	    oldzone->rdclass != newzone->rdclass ||
 	    oldzone->db_argc != newzone->db_argc ||
 	    oldzone->notifycnt != newzone->notifycnt ||
