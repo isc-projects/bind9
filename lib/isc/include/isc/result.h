@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.59 2001/11/30 01:02:17 gson Exp $ */
+/* $Id: result.h,v 1.60 2003/01/16 03:59:26 marka Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -80,11 +80,12 @@
 #define ISC_R_CONNECTIONRESET		54	/* connection reset */
 #define ISC_R_SOFTQUOTA			55	/* soft quota reached */
 #define ISC_R_BADNUMBER			56	/* not a valid number */
+#define ISC_R_DISABLED			57	/* disabled */
 
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			57
+#define ISC_R_NRESULTS 			58
 
 ISC_LANG_BEGINDECLS
 

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.211 2003/01/13 04:24:27 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.212 2003/01/16 03:59:24 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2717,6 +2717,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>domain_name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ) ; ... }; </optional>
     <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable> response</replaceable> )( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
@@ -3301,6 +3302,23 @@ for the global forwarding options to be overridden in a variety
 of ways. You can set particular domains to use different forwarders,
 or have a different <command>forward only/first</command> behavior,
 or not forward at all, see <xref linkend="zone_statement_grammar"/>.</para>
+</sect3>
+
+<sect3><title>6 to 4 Servers</title>
+<para>6 to 4 servers are used as servers of last resort to work around
+problems in reachability due the lack of support for either IPv4 or IPv6
+on the host machine.</para>
+
+<variablelist>
+<varlistentry><term><command>dual-stack-servers</command></term>
+<listitem><para>Specifies host names / addresses of machines with access to
+both IPv4 and IPv6 transports. If a hostname is used the server must be able
+to resolve the name using only the transport it has.  If the machine is dual
+stacked then the <command>dual-stack-servers</command> have no effect unless
+access to a transport has been disabled on the command line
+(e.g. <command>named -4</command>).</para></listitem>
+</varlistentry>
+</variablelist>
 </sect3>
 
 <sect3 id="access_control"><title>Access Control</title>

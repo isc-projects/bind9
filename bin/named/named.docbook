@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.5 2001/06/10 13:57:51 tale Exp $ -->
+<!-- $Id: named.docbook,v 1.6 2003/01/16 03:59:23 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -37,6 +37,8 @@
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>named</command>
+      <arg><option>-4</option></arg>
+      <arg><option>-6</option></arg>
       <arg><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
       <arg><option>-d <replaceable class="parameter">debug-level</replaceable></option></arg>
       <arg><option>-f</option></arg>
@@ -70,6 +72,27 @@
     <title>OPTIONS</title>
 
     <variablelist>
+      <varlistentry>
+	<term>-4</term>
+	<listitem>
+	  <para>
+		Use IPv4 only even if the host machine is capable of IPv6.
+		<option>-4</option> and <option>-6</option> are mutually
+		exclusive.
+          </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-6</term>
+	<listitem>
+	  <para>
+		Use IPv6 only even if the host machine is capable of IPv4.
+		<option>-4</option> and <option>-6</option> are mutually
+		exclusive.
+          </para>
+	</listitem>
+      </varlistentry>
       <varlistentry>
 	<term>-c <replaceable class="parameter">config-file</replaceable></term>
 	<listitem>

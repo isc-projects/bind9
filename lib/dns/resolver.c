@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.258 2003/01/15 05:05:13 marka Exp $ */
+/* $Id: resolver.c,v 1.259 2003/01/16 03:59:25 marka Exp $ */
 
 #include <config.h>
 
@@ -170,7 +170,10 @@ struct fetchctx {
 	ISC_LIST(resquery_t)		queries;
 	dns_adbfindlist_t		finds;
 	dns_adbfind_t *			find;
+	dns_adbfindlist_t		altfinds;
+	dns_adbfind_t *			altfind;
 	dns_adbaddrinfolist_t		forwaddrs;
+	dns_adbaddrinfolist_t		altaddrs;
 	isc_sockaddrlist_t		forwarders;
 	dns_fwdpolicy_t			fwdpolicy;
 	isc_sockaddrlist_t		bad;
@@ -210,14 +213,15 @@ struct fetchctx {
 #define FCTX_MAGIC			ISC_MAGIC('F', '!', '!', '!')
 #define VALID_FCTX(fctx)		ISC_MAGIC_VALID(fctx, FCTX_MAGIC)
 
-#define FCTX_ATTR_HAVEANSWER		0x01
-#define FCTX_ATTR_GLUING		0x02
-#define FCTX_ATTR_ADDRWAIT		0x04
-#define FCTX_ATTR_SHUTTINGDOWN		0x08
-#define FCTX_ATTR_WANTCACHE		0x10
-#define FCTX_ATTR_WANTNCACHE		0x20
-#define FCTX_ATTR_NEEDEDNS0		0x40
-#define FCTX_ATTR_TRIEDFIND		0x80
+#define FCTX_ATTR_HAVEANSWER		0x0001
+#define FCTX_ATTR_GLUING		0x0002
+#define FCTX_ATTR_ADDRWAIT		0x0004
+#define FCTX_ATTR_SHUTTINGDOWN		0x0008
+#define FCTX_ATTR_WANTCACHE		0x0010
+#define FCTX_ATTR_WANTNCACHE		0x0020
+#define FCTX_ATTR_NEEDEDNS0		0x0040
+#define FCTX_ATTR_TRIEDFIND		0x0080
+#define FCTX_ATTR_TRIEDALT		0x0100
 
 #define HAVE_ANSWER(f)		(((f)->attributes & FCTX_ATTR_HAVEANSWER) != \
 				 0)
@@ -231,6 +235,7 @@ struct fetchctx {
 #define WANTNCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTNCACHE) != 0)
 #define NEEDEDNS0(f)		(((f)->attributes & FCTX_ATTR_NEEDEDNS0) != 0)
 #define TRIEDFIND(f)		(((f)->attributes & FCTX_ATTR_TRIEDFIND) != 0)
+#define TRIEDALT(f)		(((f)->attributes & FCTX_ATTR_TRIEDALT) != 0)
 
 struct dns_fetch {
 	unsigned int			magic;
@@ -246,6 +251,18 @@ typedef struct fctxbucket {
 	ISC_LIST(fetchctx_t)		fctxs;
 	isc_boolean_t			exiting;
 } fctxbucket_t;
+
+typedef struct alternate {
+	isc_boolean_t			isaddress;
+	union	{
+		isc_sockaddr_t		addr;
+		struct {
+			dns_name_t	name;
+			in_port_t	port;
+		} _n;
+	} _u;
+	ISC_LINK(struct alternate)	link;
+} alternate_t;
 
 struct dns_resolver {
 	/* Unlocked. */
@@ -266,6 +283,7 @@ struct dns_resolver {
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
 	isc_uint32_t			lame_ttl;
+	ISC_LIST(alternate_t)		alternates;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -434,6 +452,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			if (UNMARKED(addrinfo))
 				dns_adb_adjustsrtt(fctx->adb, addrinfo,
 						   0, factor);
+
 	if (finish != NULL && TRIEDFIND(fctx))
                 for (find = ISC_LIST_HEAD(fctx->finds);
 		     find != NULL;
@@ -444,6 +463,24 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 				if (UNMARKED(addrinfo))
 					dns_adb_adjustsrtt(fctx->adb, addrinfo,
 							   0, factor);
+
+	if (finish != NULL && TRIEDALT(fctx)) {
+		for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs);
+		     addrinfo != NULL;
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
+			if (UNMARKED(addrinfo))
+				dns_adb_adjustsrtt(fctx->adb, addrinfo,
+						   0, factor);
+                for (find = ISC_LIST_HEAD(fctx->altfinds);
+		     find != NULL;
+		     find = ISC_LIST_NEXT(find, publink))
+			for (addrinfo = ISC_LIST_HEAD(find->list);
+			     addrinfo != NULL;
+			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
+				if (UNMARKED(addrinfo))
+					dns_adb_adjustsrtt(fctx->adb, addrinfo,
+							   0, factor);
+	}
 
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
@@ -516,6 +553,22 @@ fctx_cleanupfinds(fetchctx_t *fctx) {
 }
 
 static void
+fctx_cleanupaltfinds(fetchctx_t *fctx) {
+	dns_adbfind_t *find, *next_find;
+
+	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
+
+	for (find = ISC_LIST_HEAD(fctx->altfinds);
+	     find != NULL;
+	     find = next_find) {
+		next_find = ISC_LIST_NEXT(find, publink);
+		ISC_LIST_UNLINK(fctx->altfinds, find, publink);
+		dns_adb_destroyfind(&find);
+	}
+	fctx->altfind = NULL;
+}
+
+static void
 fctx_cleanupforwaddrs(fetchctx_t *fctx) {
 	dns_adbaddrinfo_t *addr, *next_addr;
 
@@ -530,12 +583,29 @@ fctx_cleanupforwaddrs(fetchctx_t *fctx) {
 	}
 }
 
+static void
+fctx_cleanupaltaddrs(fetchctx_t *fctx) {
+	dns_adbaddrinfo_t *addr, *next_addr;
+
+	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
+
+	for (addr = ISC_LIST_HEAD(fctx->altaddrs);
+	     addr != NULL;
+	     addr = next_addr) {
+		next_addr = ISC_LIST_NEXT(addr, publink);
+		ISC_LIST_UNLINK(fctx->altaddrs, addr, publink);
+		dns_adb_freeaddrinfo(fctx->adb, &addr);
+	}
+}
+
 static inline void
 fctx_stopeverything(fetchctx_t *fctx, isc_boolean_t no_response) {
 	FCTXTRACE("stopeverything");
 	fctx_cancelqueries(fctx, no_response);
 	fctx_cleanupfinds(fctx);
+	fctx_cleanupaltfinds(fctx);
 	fctx_cleanupforwaddrs(fctx);
+	fctx_cleanupaltaddrs(fctx);
 	fctx_stoptimer(fctx);
 }
 
@@ -1331,6 +1401,31 @@ mark_bad(fetchctx_t *fctx) {
 			all_bad = ISC_FALSE;
 	}
 
+	/*
+	 * Mark any bad alternates.
+	 */
+	for (curr = ISC_LIST_HEAD(fctx->altfinds);
+	     curr != NULL;
+	     curr = ISC_LIST_NEXT(curr, publink)) {
+		for (addrinfo = ISC_LIST_HEAD(curr->list);
+		     addrinfo != NULL;
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			if (bad_server(fctx, &addrinfo->sockaddr))
+				addrinfo->flags |= FCTX_ADDRINFO_MARK;
+			else
+				all_bad = ISC_FALSE;
+		}
+	}
+
+	for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs);
+	     addrinfo != NULL;
+	     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+		if (bad_server(fctx, &addrinfo->sockaddr))
+			addrinfo->flags |= FCTX_ADDRINFO_MARK;
+		else
+			all_bad = ISC_FALSE;
+	}
+
 	return (all_bad);
 }
 
@@ -1444,6 +1539,146 @@ sort_finds(fetchctx_t *fctx) {
 		ISC_LIST_APPEND(sorted, best, publink);
 	}
 	fctx->finds = sorted;
+
+	ISC_LIST_INIT(sorted);
+	while (!ISC_LIST_EMPTY(fctx->altfinds)) {
+		best = ISC_LIST_HEAD(fctx->altfinds);
+		bestaddrinfo = ISC_LIST_HEAD(best->list);
+		INSIST(bestaddrinfo != NULL);
+		curr = ISC_LIST_NEXT(best, publink);
+		while (curr != NULL) {
+			addrinfo = ISC_LIST_HEAD(curr->list);
+			INSIST(addrinfo != NULL);
+			if (addrinfo->srtt < bestaddrinfo->srtt) {
+				best = curr;
+				bestaddrinfo = addrinfo;
+			}
+			curr = ISC_LIST_NEXT(curr, publink);
+		}
+		ISC_LIST_UNLINK(fctx->altfinds, best, publink);
+		ISC_LIST_APPEND(sorted, best, publink);
+	}
+	fctx->altfinds = sorted;
+}
+
+static void
+findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
+	 unsigned int options, unsigned int flags, isc_stdtime_t now,
+	 isc_boolean_t *pruned, isc_boolean_t *need_alternate)
+{
+	dns_adbaddrinfo_t *ai;
+	dns_adbfind_t *find;
+	dns_resolver_t *res;
+	isc_boolean_t unshared;
+	isc_result_t result;
+
+	res = fctx->res;
+	unshared = ISC_TF((fctx->options | DNS_FETCHOPT_UNSHARED) != 0);
+	/*
+	 * If this name is a subdomain of the query domain, tell
+	 * the ADB to start looking at "." if it doesn't know the
+	 * address.  This keeps us from getting stuck if the
+	 * nameserver is beneath the zone cut and we don't know its
+	 * address (e.g. because the A record has expired).
+	 * By restarting from ".", we ensure that any missing glue
+	 * will be reestablished.
+	 *
+	 * A further optimization would be to get the ADB to start
+	 * looking at the most enclosing zone cut above fctx->domain.
+	 * We don't expect this situation to happen very frequently,
+	 * so we've chosen the simple solution.
+	 */
+	if (dns_name_issubdomain(name, &fctx->domain))
+		options |= DNS_ADBFIND_STARTATROOT;
+	options |= DNS_ADBFIND_GLUEOK;
+	options |= DNS_ADBFIND_HINTOK;
+
+	/*
+	 * See what we know about this address.
+	 */
+	find = NULL;
+	result = dns_adb_createfind(fctx->adb,
+				    res->buckets[fctx->bucketnum].task,
+				    fctx_finddone, fctx, name,
+				    &fctx->domain, options, now, NULL,
+				    res->view->dstport, &find);
+	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_ALIAS) {
+			/*
+			 * XXXRTH  Follow the CNAME/DNAME chain?
+			 */
+			dns_adb_destroyfind(&find);
+		}
+	} else if (!ISC_LIST_EMPTY(find->list)) {
+		/*
+		 * We have at least some of the addresses for the
+		 * name.
+		 */
+		INSIST((find->options & DNS_ADBFIND_WANTEVENT) == 0);
+		sort_adbfind(find);
+		if (flags != 0 || port != 0) {
+			for (ai = ISC_LIST_HEAD(find->list);
+			     ai != NULL;
+			     ai = ISC_LIST_NEXT(ai, publink)) {
+				ai->flags |= flags;
+				if (port != 0)
+					isc_sockaddr_setport(&ai->sockaddr,
+							     port);
+			}
+		}
+		if ((flags & FCTX_ADDRINFO_FORWARDER) != 0)
+			ISC_LIST_APPEND(fctx->altfinds, find, publink);
+		else
+			ISC_LIST_APPEND(fctx->finds, find, publink);
+	} else {
+		/*
+		 * We don't know any of the addresses for this
+		 * name.
+		 */
+		if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
+			/*
+			 * We're looking for them and will get an
+			 * event about it later.
+			 */
+			fctx->pending++;
+			/*
+			 * Bootstrap.
+			 */
+			if (need_alternate != NULL &&
+			    !*need_alternate && unshared &&
+			    ((res->dispatchv4 == NULL &&
+			      find->result_v6 != DNS_R_NXDOMAIN) ||
+			     (res->dispatchv6 == NULL &&
+			      find->result_v4 != DNS_R_NXDOMAIN)))
+				*need_alternate = ISC_TRUE;
+		} else {
+			/*
+			 * If we know there are no addresses for
+			 * the family we are using then try to add
+			 * an alternative server.
+			 */
+			if (need_alternate != NULL && !*need_alternate &&
+			    ((res->dispatchv4 == NULL &&
+			      find->result_v6 == DNS_R_NXRRSET) ||
+			     (res->dispatchv6 == NULL &&
+			      find->result_v4 == DNS_R_NXRRSET)))
+				*need_alternate = ISC_TRUE;
+			/*
+			 * And ADB isn't going to send us any events
+			 * either.  This find loses.
+			 */
+			if ((find->options & DNS_ADBFIND_LAMEPRUNED)
+			    != 0) {
+				/*
+				 * The ADB pruned lame servers for
+				 * this name.  Remember that in case
+				 * we get desperate later on.
+				 */
+				*pruned = ISC_TRUE;
+			}
+			dns_adb_destroyfind(&find);
+		}
+	}
 }
 
 static isc_result_t
@@ -1452,12 +1687,13 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_resolver_t *res;
 	isc_stdtime_t now;
-	dns_adbfind_t *find;
-	unsigned int stdoptions, options;
+	unsigned int stdoptions;
 	isc_sockaddr_t *sa;
 	dns_adbaddrinfo_t *ai;
 	isc_boolean_t pruned, all_bad;
 	dns_rdata_ns_t ns;
+	isc_boolean_t need_alternate = ISC_FALSE;
+	isc_boolean_t unshared;
 
 	FCTXTRACE("getaddresses");
 
@@ -1473,12 +1709,14 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	res = fctx->res;
 	pruned = ISC_FALSE;
 	stdoptions = 0;		/* Keep compiler happy. */
+	unshared = ISC_TF((fctx->options | DNS_FETCHOPT_UNSHARED) != 0);
 
 	/*
 	 * Forwarders.
 	 */
 
 	INSIST(ISC_LIST_EMPTY(fctx->forwaddrs));
+	INSIST(ISC_LIST_EMPTY(fctx->altaddrs));
 
 	/*
 	 * If this fctx has forwarders, use them; otherwise use any
@@ -1495,7 +1733,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 		}
 	}
-
+	
 	while (sa != NULL) {
 		ai = NULL;
 		result = dns_adb_findaddrinfo(fctx->adb,
@@ -1549,6 +1787,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 
  restart:
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
+	INSIST(ISC_LIST_EMPTY(fctx->altfinds));
 
 	for (result = dns_rdataset_first(&fctx->nameservers);
 	     result == ISC_R_SUCCESS;
@@ -1562,83 +1801,50 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		if (result != ISC_R_SUCCESS)
 			continue;
 
-		options = stdoptions;
-		/*
-		 * If this name is a subdomain of the query domain, tell
-		 * the ADB to start looking at "." if it doesn't know the
-		 * address.  This keeps us from getting stuck if the
-		 * nameserver is beneath the zone cut and we don't know its
-		 * address (e.g. because the A record has expired).
-		 * By restarting from ".", we ensure that any missing glue
-		 * will be reestablished.
-		 *
-		 * A further optimization would be to get the ADB to start
-		 * looking at the most enclosing zone cut above fctx->domain.
-		 * We don't expect this situation to happen very frequently,
-		 * so we've chosen the simple solution.
-		 */
-		if (dns_name_issubdomain(&ns.name, &fctx->domain))
-			options |= DNS_ADBFIND_STARTATROOT;
-		options |= DNS_ADBFIND_GLUEOK;
-		options |= DNS_ADBFIND_HINTOK;
-
-		/*
-		 * See what we know about this address.
-		 */
-		find = NULL;
-		result = dns_adb_createfind(fctx->adb,
-					    res->buckets[fctx->bucketnum].task,
-					    fctx_finddone, fctx, &ns.name,
-					    &fctx->domain, options, now, NULL,
-					    res->view->dstport, &find);
-		if (result != ISC_R_SUCCESS) {
-			if (result == DNS_R_ALIAS) {
-				/*
-				 * XXXRTH  Follow the CNAME/DNAME chain?
-				 */
-				dns_adb_destroyfind(&find);
-			}
-		} else if (!ISC_LIST_EMPTY(find->list)) {
-			/*
-			 * We have at least some of the addresses for the
-			 * name.
-			 */
-			INSIST((find->options & DNS_ADBFIND_WANTEVENT) == 0);
-			sort_adbfind(find);
-			ISC_LIST_APPEND(fctx->finds, find, publink);
-		} else {
-			/*
-			 * We don't know any of the addresses for this
-			 * name.
-			 */
-			if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
-				/*
-				 * We're looking for them and will get an
-				 * event about it later.
-				 */
-				fctx->pending++;
-			} else {
-				/*
-				 * And ADB isn't going to send us any events
-				 * either.  This find loses.
-				 */
-				if ((find->options & DNS_ADBFIND_LAMEPRUNED)
-				    != 0) {
-					/*
-					 * The ADB pruned lame servers for
-					 * this name.  Remember that in case
-					 * we get desperate later on.
-					 */
-					pruned = ISC_TRUE;
-				}
-				dns_adb_destroyfind(&find);
-			}
-		}
+		findname(fctx, &ns.name, 0, stdoptions, 0, now,
+			 &pruned, &need_alternate);
 		dns_rdata_reset(&rdata);
 		dns_rdata_freestruct(&ns);
 	}
 	if (result != ISC_R_NOMORE)
 		return (result);
+
+	/*
+	 * Do we need to use 6 to 4?
+	 */
+	if (need_alternate) {
+		int family;
+		alternate_t *a;
+		family = (res->dispatchv6 != NULL) ? AF_INET6 : AF_INET;
+		for (a = ISC_LIST_HEAD(fctx->res->alternates);
+		     a != NULL;
+		     a = ISC_LIST_NEXT(a, link)) {
+			if (!a->isaddress) {
+				findname(fctx, &a->_u._n.name, a->_u._n.port,
+					 stdoptions, FCTX_ADDRINFO_FORWARDER,
+					 now, &pruned, NULL);
+				continue;
+			}
+			if (isc_sockaddr_pf(&a->_u.addr) != family)
+				continue;
+			ai = NULL;
+			result = dns_adb_findaddrinfo(fctx->adb, &a->_u.addr,
+						      &ai, 0);
+			if (result == ISC_R_SUCCESS) {
+				dns_adbaddrinfo_t *cur;
+				ai->flags |= FCTX_ADDRINFO_FORWARDER;
+				cur = ISC_LIST_HEAD(fctx->altaddrs);
+				while (cur != NULL && cur->srtt < ai->srtt)
+					cur = ISC_LIST_NEXT(cur, publink);
+				if (cur != NULL)
+					ISC_LIST_INSERTBEFORE(fctx->altaddrs,
+							      cur, ai, publink);
+				else
+					ISC_LIST_APPEND(fctx->altaddrs, ai,
+							publink);
+			}
+		}
+	}
 
  out:
 	/*
@@ -1668,6 +1874,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			INSIST((stdoptions & DNS_ADBFIND_RETURNLAME) == 0);
 			stdoptions |= DNS_ADBFIND_RETURNLAME;
 			pruned = ISC_FALSE;
+			fctx_cleanupaltfinds(fctx);
 			fctx_cleanupfinds(fctx);
 			goto restart;
 		} else {
@@ -1756,6 +1963,7 @@ static inline dns_adbaddrinfo_t *
 fctx_nextaddress(fetchctx_t *fctx) {
 	dns_adbfind_t *find;
 	dns_adbaddrinfo_t *addrinfo;
+	dns_adbaddrinfo_t *faddrinfo;
 
 	/*
 	 * Return the next untried address, if any.
@@ -1767,6 +1975,8 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
 	     addrinfo != NULL;
 	     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+		if (!UNMARKED(addrinfo))
+			continue;
 		possibly_mark(fctx, addrinfo);
 		if (UNMARKED(addrinfo)) {
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
@@ -1775,11 +1985,12 @@ fctx_nextaddress(fetchctx_t *fctx) {
 		}
 	}
 
-	fctx->attributes |= FCTX_ATTR_TRIEDFIND;
-
 	/*
 	 * No forwarders.  Move to the next find.
 	 */
+
+	fctx->attributes |= FCTX_ATTR_TRIEDFIND;
+
 	find = fctx->find;
 	if (find == NULL)
 		find = ISC_LIST_HEAD(fctx->finds);
@@ -1797,6 +2008,8 @@ fctx_nextaddress(fetchctx_t *fctx) {
 		for (addrinfo = ISC_LIST_HEAD(find->list);
 		     addrinfo != NULL;
 		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			if (!UNMARKED(addrinfo))
+				continue;
 			possibly_mark(fctx, addrinfo);
 			if (UNMARKED(addrinfo)) {
 				addrinfo->flags |= FCTX_ADDRINFO_MARK;
@@ -1811,6 +2024,73 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	}
 
 	fctx->find = find;
+	if (addrinfo != NULL)
+		return (addrinfo);
+
+	/*
+	 * No nameservers left.  Try alternates.
+	 */
+
+	fctx->attributes |= FCTX_ATTR_TRIEDALT;
+
+	find = fctx->altfind;
+	if (find == NULL)
+		find = ISC_LIST_HEAD(fctx->altfinds);
+	else {
+		find = ISC_LIST_NEXT(find, publink);
+		if (find == NULL)
+			find = ISC_LIST_HEAD(fctx->altfinds);
+	}
+
+	/*
+	 * Find the first unmarked addrinfo.
+	 */
+	addrinfo = NULL;
+	while (find != fctx->altfind) {
+		for (addrinfo = ISC_LIST_HEAD(find->list);
+		     addrinfo != NULL;
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			if (!UNMARKED(addrinfo))
+				continue;
+			possibly_mark(fctx, addrinfo);
+			if (UNMARKED(addrinfo)) {
+				addrinfo->flags |= FCTX_ADDRINFO_MARK;
+				break;
+			}
+		}
+		if (addrinfo != NULL)
+			break;
+		find = ISC_LIST_NEXT(find, publink);
+		if (find != fctx->altfind && find == NULL)
+			find = ISC_LIST_HEAD(fctx->altfinds);
+	}
+
+	faddrinfo = addrinfo;
+
+	/*
+	 * See if we have a better alternate server by address.
+	 */
+
+	for (addrinfo = ISC_LIST_HEAD(fctx->altaddrs);
+	     addrinfo != NULL;
+	     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+		if (!UNMARKED(addrinfo))
+			continue;
+		possibly_mark(fctx, addrinfo);
+		if (UNMARKED(addrinfo) && 
+		    (faddrinfo == NULL ||
+		     addrinfo->srtt < faddrinfo->srtt)) {
+			if (faddrinfo != NULL)
+				faddrinfo->flags &= ~FCTX_ADDRINFO_MARK;
+			addrinfo->flags |= FCTX_ADDRINFO_MARK;
+			break;
+		}
+	}
+
+	if (addrinfo == NULL) {
+		addrinfo = faddrinfo;
+		fctx->altfind = find;
+	}
 
 	return (addrinfo);
 }
@@ -1831,7 +2111,9 @@ fctx_try(fetchctx_t *fctx) {
 		 */
 		fctx_cancelqueries(fctx, ISC_TRUE);
 		fctx_cleanupfinds(fctx);
+		fctx_cleanupaltfinds(fctx);
 		fctx_cleanupforwaddrs(fctx);
+		fctx_cleanupaltaddrs(fctx);
 		result = fctx_getaddresses(fctx);
 		if (result == DNS_R_WAIT) {
 			/*
@@ -1880,6 +2162,7 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(ISC_LIST_EMPTY(fctx->events));
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
+	REQUIRE(ISC_LIST_EMPTY(fctx->altfinds));
 	REQUIRE(fctx->pending == 0);
 	REQUIRE(ISC_LIST_EMPTY(fctx->validators));
 	REQUIRE(fctx->references == 0);
@@ -2232,12 +2515,15 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->cloned = ISC_FALSE;
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
+	ISC_LIST_INIT(fctx->altfinds);
 	ISC_LIST_INIT(fctx->forwaddrs);
+	ISC_LIST_INIT(fctx->altaddrs);
 	ISC_LIST_INIT(fctx->forwarders);
 	fctx->fwdpolicy = dns_fwdpolicy_none;
 	ISC_LIST_INIT(fctx->bad);
 	ISC_LIST_INIT(fctx->validators);
 	fctx->find = NULL;
+	fctx->altfind = NULL;
 	fctx->pending = 0;
 	fctx->restarts = 0;
 	fctx->timeouts = 0;
@@ -4814,7 +5100,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 			fctx_cancelqueries(fctx, ISC_TRUE);
 			fctx_cleanupfinds(fctx);
+			fctx_cleanupaltfinds(fctx);
 			fctx_cleanupforwaddrs(fctx);
+			fctx_cleanupaltaddrs(fctx);
 		}
 		/*
 		 * Try again.
@@ -4884,6 +5172,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 static void
 destroy(dns_resolver_t *res) {
 	unsigned int i;
+	alternate_t *a;
 
 	REQUIRE(res->references == 0);
 	REQUIRE(!res->priming);
@@ -4907,6 +5196,12 @@ destroy(dns_resolver_t *res) {
 		dns_dispatch_detach(&res->dispatchv4);
 	if (res->dispatchv6 != NULL)
 		dns_dispatch_detach(&res->dispatchv6);
+	while ((a = ISC_LIST_HEAD(res->alternates)) != NULL) {
+		ISC_LIST_UNLINK(res->alternates, a, link);
+		if (!a->isaddress)
+			dns_name_free(&a->_u._n.name, res->mctx);
+		isc_mem_put(res->mctx, a, sizeof(*a));
+	}
 	res->magic = 0;
 	isc_mem_put(res->mctx, res, sizeof(*res));
 }
@@ -4984,6 +5279,7 @@ dns_resolver_create(dns_view_t *view,
 	res->view = view;
 	res->options = options;
 	res->lame_ttl = 0;
+	ISC_LIST_INIT(res->alternates);
 
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
@@ -5595,4 +5891,36 @@ dns_resolver_nrunning(dns_resolver_t *resolver) {
 	n = resolver->nfctx;
 	UNLOCK(&resolver->nlock);
 	return (n);
+}
+
+isc_result_t
+dns_resolver_addalternate(dns_resolver_t *resolver, isc_sockaddr_t *alt,
+			  dns_name_t *name, in_port_t port) {
+	alternate_t *a;
+	isc_result_t result;
+
+	REQUIRE(VALID_RESOLVER(resolver));
+	REQUIRE(!resolver->frozen);
+	REQUIRE((alt == NULL) ^ (name == NULL));
+
+	a = isc_mem_get(resolver->mctx, sizeof(*a));
+	if (a == NULL)
+		return (ISC_R_NOMEMORY);
+	if (alt != NULL) {
+		a->isaddress = ISC_TRUE;
+		a->_u.addr = *alt;
+	} else {
+		a->isaddress = ISC_FALSE;
+		a->_u._n.port = port;
+		dns_name_init(&a->_u._n.name, NULL);
+		result = dns_name_dup(name, resolver->mctx, &a->_u._n.name);
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(resolver->mctx, a, sizeof(*a));
+			return (result);
+		}
+	}
+	ISC_LINK_INIT(a, link);
+	ISC_LIST_APPEND(resolver->alternates, a, link);
+
+	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.35 2001/10/29 19:02:46 gson Exp $ */
+/* $Id: resolver.h,v 1.36 2003/01/16 03:59:25 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -357,6 +357,18 @@ dns_resolver_nrunning(dns_resolver_t *resolver);
  * fetches due to multiple identical fetches, or more than the
  * number of of outstanding fetches due to the fact that resolution
  * can continue even though a fetch has been canceled.
+ */
+
+isc_result_t
+dns_resolver_addalternate(dns_resolver_t *resolver, isc_sockaddr_t *alt,
+			  dns_name_t *name, in_port_t port);
+/*
+ * Add alternate addresses to be tried in the event that the nameservers
+ * for a zone are not available in the address families supported by the
+ * operating system.
+ *
+ * Require:
+ * 	only one of 'name' or 'alt' to be valid.
  */
 
 ISC_LANG_ENDDECLS

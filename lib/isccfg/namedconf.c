@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.11 2002/11/27 09:52:58 marka Exp $ */
+/* $Id: namedconf.c,v 1.12 2003/01/16 03:59:28 marka Exp $ */
 
 #include <config.h>
 
@@ -66,42 +66,45 @@ doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 static void
 doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
 
-static cfg_type_t cfg_type_optional_port;
-static cfg_type_t cfg_type_bracketed_aml;
 static cfg_type_t cfg_type_acl;
-static cfg_type_t cfg_type_portiplist;
-static cfg_type_t cfg_type_bracketed_sockaddrlist;
-static cfg_type_t cfg_type_optional_keyref;
-static cfg_type_t cfg_type_options;
-static cfg_type_t cfg_type_view;
-static cfg_type_t cfg_type_viewopts;
-static cfg_type_t cfg_type_key;
-static cfg_type_t cfg_type_server;
-static cfg_type_t cfg_type_controls;
+static cfg_type_t cfg_type_addrmatchelt;
+static cfg_type_t cfg_type_bracketed_aml;
+static cfg_type_t cfg_type_bracketed_namesockaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrkeylist;
+static cfg_type_t cfg_type_bracketed_sockaddrlist;
+static cfg_type_t cfg_type_controls;
+static cfg_type_t cfg_type_controls_sockaddr;
+static cfg_type_t cfg_type_destinationlist;
+static cfg_type_t cfg_type_dialuptype;
+static cfg_type_t cfg_type_key;
+static cfg_type_t cfg_type_logfile;
+static cfg_type_t cfg_type_logging;
+static cfg_type_t cfg_type_logseverity;
+static cfg_type_t cfg_type_lwres;
+static cfg_type_t cfg_type_nameportiplist;
+static cfg_type_t cfg_type_namesockaddr;
+static cfg_type_t cfg_type_negated;
+static cfg_type_t cfg_type_notifytype;
+static cfg_type_t cfg_type_optional_class;
+static cfg_type_t cfg_type_optional_facility;
+static cfg_type_t cfg_type_optional_facility;
+static cfg_type_t cfg_type_optional_keyref;
+static cfg_type_t cfg_type_optional_port;
+static cfg_type_t cfg_type_options;
+static cfg_type_t cfg_type_portiplist;
 static cfg_type_t cfg_type_querysource4;
 static cfg_type_t cfg_type_querysource6;
 static cfg_type_t cfg_type_querysource;
-static cfg_type_t cfg_type_sockaddr4wild;
-static cfg_type_t cfg_type_sockaddr6wild;
-static cfg_type_t cfg_type_zone;
-static cfg_type_t cfg_type_zoneopts;
-static cfg_type_t cfg_type_logging;
-static cfg_type_t cfg_type_optional_facility;
-static cfg_type_t cfg_type_optional_class;
-static cfg_type_t cfg_type_destinationlist;
+static cfg_type_t cfg_type_server;
+static cfg_type_t cfg_type_server_key_kludge;
 static cfg_type_t cfg_type_size;
 static cfg_type_t cfg_type_sizenodefault;
-static cfg_type_t cfg_type_negated;
-static cfg_type_t cfg_type_addrmatchelt;
-static cfg_type_t cfg_type_server_key_kludge;
-static cfg_type_t cfg_type_optional_facility;
-static cfg_type_t cfg_type_logseverity;
-static cfg_type_t cfg_type_logfile;
-static cfg_type_t cfg_type_lwres;
-static cfg_type_t cfg_type_controls_sockaddr;
-static cfg_type_t cfg_type_notifytype;
-static cfg_type_t cfg_type_dialuptype;
+static cfg_type_t cfg_type_sockaddr4wild;
+static cfg_type_t cfg_type_sockaddr6wild;
+static cfg_type_t cfg_type_view;
+static cfg_type_t cfg_type_viewopts;
+static cfg_type_t cfg_type_zone;
+static cfg_type_t cfg_type_zoneopts;
 
 /* tkey-dhkey */
 
@@ -556,6 +559,7 @@ view_clauses[] = {
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "preferred-glue", &cfg_type_astring, 0 },
+	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -1259,7 +1263,6 @@ static cfg_type_t cfg_type_controls_sockaddr = {
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &controls_sockaddr_flags
 };
 
-
 /*
  * Handle the special kludge syntax of the "keys" clause in the "server"
  * statement, which takes a single key with or without braces and semicolon.
@@ -1581,4 +1584,93 @@ rndckey_clausesets[] = {
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndckey = {
 	"rndckey", cfg_parse_mapbody, cfg_print_mapbody, cfg_doc_mapbody,
 	&cfg_rep_map, rndckey_clausesets
+};
+
+static cfg_tuplefielddef_t nameport_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "port", &cfg_type_optional_port, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_nameport = {
+	"nameport", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, nameport_fields
+};
+
+static void
+doc_namesockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_chars(pctx, "( ", 2);
+	cfg_print_cstr(pctx, "<quoted_string>");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, "<ipv4_address>");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_chars(pctx, " | ", 3);
+	cfg_print_cstr(pctx, "<ipv6_address>");
+	cfg_print_chars(pctx, " ", 1);
+	cfg_print_cstr(pctx, "[port <integer>]");
+	cfg_print_chars(pctx, " )", 2);
+}
+
+static isc_result_t
+parse_namesockaddr(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
+{
+        isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, CFG_LEXOPT_QSTRING));
+	if (pctx->token.type == isc_tokentype_string ||
+	    pctx->token.type == isc_tokentype_qstring) {
+		if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V6OK))
+			CHECK(cfg_parse_sockaddr(pctx, &cfg_type_sockaddr, ret));
+		else {
+			const cfg_tuplefielddef_t *fields =
+						   cfg_type_nameport.of;	
+			CHECK(cfg_create_tuple(pctx, &cfg_type_nameport,
+					       &obj));	
+			CHECK(cfg_parse_obj(pctx, fields[0].type,
+					    &obj->value.tuple[0]));
+			CHECK(cfg_parse_obj(pctx, fields[1].type,
+					    &obj->value.tuple[1]));
+			*ret = obj;
+			obj = NULL;
+		}
+	} else {
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+			     "expected IP match list element");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+ cleanup:
+	CLEANUP_OBJ(obj);	
+	return (result);
+}
+
+static cfg_type_t cfg_type_namesockaddr = {
+	"namesockaddr_element", parse_namesockaddr, NULL, doc_namesockaddr,
+	NULL, NULL
+};
+
+static cfg_type_t cfg_type_bracketed_namesockaddrlist = {
+	"bracketed_namesockaddrlist", cfg_parse_bracketed_list,
+	cfg_print_bracketed_list, cfg_doc_bracketed_list,
+	&cfg_rep_list, &cfg_type_namesockaddr
+};
+
+/*
+ * A list of socket addresses or named with an optional default port,
+ * as used in the dual-stack-servers option.  E.g.,
+ * "port 1234 { dual-stack-servers.net; 10.0.0.1; 1::2 port 69; }"
+ */
+static cfg_tuplefielddef_t nameportiplist_fields[] = {
+	{ "port", &cfg_type_optional_port, 0 },
+	{ "addresses", &cfg_type_bracketed_namesockaddrlist, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_nameportiplist = {
+	"nameportiplist", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, nameportiplist_fields
 };
