@@ -78,16 +78,15 @@ hex_decode_char(hex_decode_ctx_t *ctx, int c) {
 		return (ISC_R_BADHEX);
 	ctx->val[ctx->digits++] = s - hex;
 	if (ctx->digits == 2) {
-		int n;
 		unsigned char num;
 
 		num = (ctx->val[0] << 4) + (ctx->val[1]);
 		RETERR(mem_tobuffer(ctx->target, &num, 1));
 		if (ctx->length >= 0) {
-			if (n > ctx->length)
+			if (ctx->length == 0)
 				return (ISC_R_BADHEX);
 			else
-				ctx->length -= n;
+				ctx->length -= 1;
 		}
 		ctx->digits = 0;
 	}
