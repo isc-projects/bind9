@@ -588,6 +588,7 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msgp, unsigned int intent)
 void
 dns_message_reset(dns_message_t *msg)
 {
+	REQUIRE(VALID_MESSAGE(msg));
 	msgreset(msg, ISC_FALSE);
 }
 
@@ -1206,7 +1207,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	dns_name_t *name, *next_name;
 	dns_rdataset_t *rdataset, *next_rdataset;
 	unsigned int count, total;
-	isc_boolean_t no_render_rdata;
 	dns_result_t result;
 	isc_buffer_t st; /* for rollbacks */
 
@@ -1218,14 +1218,10 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	REQUIRE(VALID_NAMED_SECTION(sectionid));
 
 	section = &msg->sections[sectionid];
-	if (sectionid == DNS_SECTION_QUESTION)
-		no_render_rdata = ISC_TRUE;
-	else
-		no_render_rdata = ISC_FALSE;
 
 	name = ISC_LIST_HEAD(*section);
 	if (name == NULL)
-		return (ISC_R_SUCCESS);
+		return (DNS_R_SUCCESS);
 
 	/*
 	 * Shrink the space in the buffer by the reserved amount.
@@ -1250,7 +1246,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			count = 0;
 			result = dns_rdataset_towire(rdataset, name,
 						     &msg->cctx,
-						     no_render_rdata,
 						     msg->buffer, &count);
 
 			total += count;
@@ -1287,7 +1282,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	msg->buffer->length += msg->reserved;
 	msg->counts[sectionid] += total;
 
-	return (ISC_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
