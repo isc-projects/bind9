@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.40 2000/06/22 21:55:55 tale Exp $ */
+/* $Id: rbt.h,v 1.41 2000/07/06 23:54:45 tale Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -359,9 +359,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * Find the node for 'name'.
  *
  * Notes:
- *	It is _not_ required that the node associated with 'name' has a
- *	non-NULL data pointer for an exact match.  A partial match must
- *	have associated data, unless the DNS_RBTFIND_EMPTYDATA option is set.
+ *      A node that has no data is considered not to exist for this function,
+ *      unless the DNS_RBTFIND_EMPTYDATA option is set.  This applies to both
+ *	exact matches and partial matches.
  *
  *	If the chain parameter is non-NULL, then the path through the tree
  *	to the DNSSEC predecessor of the searched for name is maintained,
@@ -419,9 +419,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	when DNS_RBTFIND_NOEXACT is set, so if you end up using a chain
  *	with this option because you want a particular node, let us know
  *	where you want the chain pointed, so this can be made more firm.
- *
- *      A node that has no data is considered not to exist for this function,
- *      unless the DNS_RBTFIND_EMPTYDATA option is set.  
  *
  * Requires:
  *	rbt is a valid rbt manager.
