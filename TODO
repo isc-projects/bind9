@@ -12,3 +12,4 @@
 10.	AD bit setting.
 11.	KEY duplication (answer + additional) in any query
 12.	Add covers to deleterdataset.
+13.	Fix rdata META flag to be set for TSIG, TKEY, OPT
