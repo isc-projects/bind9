@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sexpr.h,v 1.2 2001/03/27 20:08:11 bwelling Exp $ */
+/* $Id: sexpr.h,v 1.3 2001/05/03 18:40:33 bwelling Exp $ */
 
 #ifndef ISCCC_SEXPR_H
 #define ISCCC_SEXPR_H 1
@@ -58,9 +58,6 @@ isccc_sexpr_t *
 isccc_sexpr_tconst(void);
 
 isccc_sexpr_t *
-isccc_sexpr_nilconst(void);
-
-isccc_sexpr_t *
 isccc_sexpr_fromstring(const char *str);
 
 isccc_sexpr_t *
@@ -86,15 +83,6 @@ isccc_sexpr_setcdr(isccc_sexpr_t *pair, isccc_sexpr_t *cdr);
 
 isccc_sexpr_t *
 isccc_sexpr_addtolist(isccc_sexpr_t **l1p, isccc_sexpr_t *l2);
-
-isccc_sexpr_t *
-isccc_sexpr_assq(isccc_sexpr_t *alist, const char *key);
-
-isccc_sexpr_t *
-isccc_sexpr_define(isccc_sexpr_t *alist, const char *key, isccc_sexpr_t *value);
-
-isccc_sexpr_t *
-isccc_sexpr_lookup(isccc_sexpr_t *alist, const char *key);
 
 isc_boolean_t
 isccc_sexpr_listp(isccc_sexpr_t *sexpr);
