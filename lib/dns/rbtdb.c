@@ -252,7 +252,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		node->dirty = 0;
 		node->references = 0;
 		dns_rbt_namefromnode(node, &foundname);
-		node->locknum = dns_name_hash(&foundname) %
+		node->locknum = dns_name_hash(&foundname, ISC_TRUE) %
 			rbtdb->node_lock_count;
 		goto again;
 	}

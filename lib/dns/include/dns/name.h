@@ -243,9 +243,12 @@ isc_boolean_t dns_name_isabsolute(dns_name_t *name);
  *	FALSE		The last label in 'name' is not the root label.
  */
 
-unsigned int dns_name_hash(dns_name_t *name);
+unsigned int dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive);
 /*
  * Provide a hash value for 'name'.
+ *
+ * Note: if 'case_sensitive' is ISC_FALSE, then names which differ only in
+ * case will have the same hash value.
  *
  * Requires:
  *	'name' is a valid name

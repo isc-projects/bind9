@@ -295,11 +295,12 @@ dns_name_isabsolute(dns_name_t *name) {
 }
 
 unsigned int
-dns_name_hash(dns_name_t *name) {
+dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	unsigned int length;
 	const unsigned char *s;
 	unsigned int h = 0;
 	unsigned int g;
+	unsigned char c;
 
 	/*
 	 * Provide a hash value for 'name'.
@@ -319,14 +320,27 @@ dns_name_hash(dns_name_t *name) {
 	 */
 
 	s = name->ndata;
-	while (length > 0) {
-		h = ( h << 4 ) + *s;
-		if ((g = ( h & 0xf0000000 )) != 0) {
-			h = h ^ (g >> 24);
-			h = h ^ g;
+	if (case_sensitive) {
+		while (length > 0) {
+			h = ( h << 4 ) + *s;
+			if ((g = ( h & 0xf0000000 )) != 0) {
+				h = h ^ (g >> 24);
+				h = h ^ g;
+			}
+			s++;
+			length--;
 		}
-		s++;
-		length--;
+	} else {
+		while (length > 0) {
+			c = maptolower[*s];
+			h = ( h << 4 ) + c;
+			if ((g = ( h & 0xf0000000 )) != 0) {
+				h = h ^ (g >> 24);
+				h = h ^ g;
+			}
+			s++;
+			length--;
+		}
 	}
 
 	return (h);
