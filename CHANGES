@@ -1,4 +1,7 @@
 
+ 902.	[bug]		The -d option was ignored if both -t and -g were also
+			specified.
+
  901.	[placeholder]
 
  900.	[bug]		A config.guess update changed the system identification
