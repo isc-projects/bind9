@@ -147,7 +147,7 @@ Q: I keep getting log messages like the following.  Why?
    update failed: 'RRset exists (value dependent)' prerequisite not
    satisfied (NXRRSET)
 
-A: DNS updates allow the update request to test to see if certian
+A: DNS updates allow the update request to test to see if certain
 conditions are met prior to proceeding with the update.  The message
 above is saying that conditions were not met and the update is not
 proceeding.  See doc/rfc/rfc2136.txt for more details on prerequisites.
