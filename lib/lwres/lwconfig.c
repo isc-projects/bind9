@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.15.2.3 2000/07/10 23:20:12 gson Exp $ */
+/* $Id: lwconfig.c,v 1.15.2.4 2000/07/11 00:56:03 gson Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -286,7 +286,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 	confdata = &ctx->confdata;
 
 	if (confdata->nsnext == LWRES_CONFMAXNAMESERVERS)
-		return (LWRES_R_FAILURE);
+		return (LWRES_R_SUCCESS);
 
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
@@ -422,7 +422,7 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 		addr->length = NS_IN6ADDRSZ;
 		len = 16;
 	} else {
-		return (LWRES_R_FAILURE); /* Unrecongnised format. */
+		return (LWRES_R_FAILURE); /* Unrecognised format. */
 	}
 
 	memcpy((void *)addr->address, addrbuff, len);
@@ -560,7 +560,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 			rval = lwres_conf_parsesortlist(ctx, fp);
 		else if (strcmp(word, "option") == 0)
 			rval = lwres_conf_parseoption(ctx, fp);
-		else if (strlen(word) > 0) {
+		else {
 			/* unrecognised word. Ignore entire line */
 			rval = LWRES_R_SUCCESS;
 			stopchar = eatline(fp);
