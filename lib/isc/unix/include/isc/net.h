@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: net.h,v 1.20 2000/06/22 21:58:57 tale Exp $ */
+/* $Id: net.h,v 1.21 2000/06/23 21:43:46 tale Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -70,7 +70,6 @@
 /***
  *** Imports.
  ***/
-#include <isc/lang.h>
 #include <isc/platform.h>
 
 #include <sys/types.h>
@@ -85,6 +84,7 @@
 #include <netinet6/in6.h>	/* Required on BSD/OS for in6_pktinfo. */
 #endif
 
+#include <isc/lang.h>
 #include <isc/types.h>
 
 #ifndef AF_INET6
