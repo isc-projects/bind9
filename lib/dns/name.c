@@ -345,29 +345,49 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	return (h);
 }
 
-int
-dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
+dns_namereln_t
+dns_name_fullcompare(dns_name_t *name1, dns_name_t *name2,
+		     int *orderp,
+		     unsigned int *nlabelsp, unsigned int *nbitsp)
+{
 	unsigned int l1, l2, l, count1, count2, count;
-	unsigned int b1, b2, n;
+	unsigned int b1, b2, n, nlabels, nbits;
 	unsigned char c1, c2;
 	int cdiff, ldiff;
 	unsigned char *label1, *label2;
 	unsigned char *offsets1, *offsets2;
 	dns_offsets_t odata1, odata2;
+	dns_namereln_t namereln = dns_namereln_none;
 
 	/*
 	 * Determine the relative ordering under the DNSSEC order relation of
-	 * 'name1' and 'name2'.
+	 * 'name1' and 'name2', and also determine the hierarchical
+	 * relationship of the names.
+	 *
+	 * Note: It makes no sense for one of the names to be relative and the
+	 * other absolute.  If both names are relative, then to be meaningfully
+	 * compared the caller must ensure that they are both relative to the
+	 * same domain.
 	 */
 
 	REQUIRE(VALID_NAME(name1));
 	REQUIRE(name1->labels > 0);
 	REQUIRE(VALID_NAME(name2));
 	REQUIRE(name2->labels > 0);
+	REQUIRE(orderp != NULL);
+	REQUIRE(nlabelsp != NULL);
+	REQUIRE(nbitsp != NULL);
+	/*
+	 * Either name1 is absolute and name2 is absolute, or neither is.
+	 */
+	REQUIRE(((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ^
+		 (name2->attributes & DNS_NAMEATTR_ABSOLUTE)) == 0);
 
 	SETUP_OFFSETS(name1, offsets1, odata1);
 	SETUP_OFFSETS(name2, offsets2, odata2);
 
+	nlabels = 0;
+	nbits = 0;
 	l1 = name1->labels;
 	l2 = name2->labels;
 	if (l1 < l2) {
@@ -405,21 +425,31 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 				count--;
 				c1 = maptolower[*label1++];
 				c2 = maptolower[*label2++];
-				if (c1 < c2)
-					return (-1);
-				else if (c1 > c2)
-					return (1);
+				if (c1 < c2) {
+					*orderp = -1;
+					goto done;
+				} else if (c1 > c2) {
+					*orderp = 1;
+					goto done;
+				}
 			}
-			if (cdiff != 0)
-				return (cdiff);
+			if (cdiff != 0) {
+				*orderp = cdiff;
+				goto done;
+			}
+			nlabels++;
 		} else if (count1 == DNS_LABELTYPE_BITSTRING && count2 <= 63) {
 			if (count2 == 0)
-				return (1);
-			return (-1);
+				*orderp = 1;
+			else
+				*orderp = -1;
+			goto done;
 		} else if (count2 == DNS_LABELTYPE_BITSTRING && count1 <= 63) {
 			if (count1 == 0)
-				return (-1);
-			return (1);
+				*orderp = -1;
+			else
+				*orderp = 1;
+			goto done;
 		} else {
 			INSIST(count1 == DNS_LABELTYPE_BITSTRING &&
 			       count2 == DNS_LABELTYPE_BITSTRING);
@@ -443,17 +473,104 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 			for (n = 0; n < count; n++) {
 				b1 = get_bit(label1, n);
 				b2 = get_bit(label2, n);
-				if (b1 < b2)
-					return (-1);
-				else if (b1 > b2)
-					return (1);
+				if (b1 < b2) {
+					*orderp = -1;
+					goto done;
+				} else if (b1 > b2) {
+					*orderp = 1;
+					goto done;
+				}
+				if (nbits == 0)
+					nlabels++;
+				nbits++;
 			}
-			if (cdiff != 0)
-				return (cdiff);
+			if (cdiff != 0) {
+				/*
+				 * If we're here, then we have two bitstrings
+				 * of differing length.
+				 *
+				 * If the name with the shorter bitstring
+				 * has any labels, then it must be greater
+				 * than the longer bitstring.  This is a bit
+				 * counterintuitive.  If the name with the
+				 * shorter bitstring has any more labels, then
+				 * the next label must be an ordinary label.
+				 * It can't be a bitstring label because if it
+				 * were, then there would be room for it in
+				 * the current bitstring label (since all
+				 * bitstrings are canonicalized).  Since
+				 * there's at least one more bit in the
+				 * name with the longer bitstring, and since
+				 * a bitlabel sorts before any ordinary label,
+				 * the name with the longer bitstring must
+				 * be lexically before the one with the shorter
+				 * bitstring.
+				 *
+				 * On the other hand, if there are no more
+				 * labels in the name with the shorter
+				 * bitstring, then that name contains the
+				 * other name.
+				 */
+				namereln = dns_namereln_commonancestor;
+				if (cdiff < 0) {
+					if (l1 > 0)
+						*orderp = 1;
+					else {
+						*orderp = -1;
+						namereln =
+							dns_namereln_contains;
+					}
+				} else {
+					if (l2 > 0)
+						*orderp = -1;
+					else {
+						*orderp = 1;
+						namereln =
+							dns_namereln_subdomain;
+					}
+				}
+				goto done;
+			}
+			nbits = 0;
 		}
 	}
 
-	return (ldiff);
+	*orderp = ldiff;
+	if (ldiff < 0)
+		namereln = dns_namereln_contains;
+	else if (ldiff > 0)
+		namereln = dns_namereln_subdomain;
+	else
+		namereln = dns_namereln_equal;
+
+ done:
+	*nlabelsp = nlabels;
+	*nbitsp = nbits;
+
+	if (nlabels > 0 && namereln == dns_namereln_none)
+		namereln = dns_namereln_commonancestor;
+
+	return (namereln);
+}
+
+int
+dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
+	int order;
+	unsigned int nlabels, nbits;
+
+	/*
+	 * Determine the relative ordering under the DNSSEC order relation of
+	 * 'name1' and 'name2'.
+	 *
+	 * Note: It makes no sense for one of the names to be relative and the
+	 * other absolute.  If both names are relative, then to be meaningfully
+	 * compared the caller must ensure that they are both relative to the
+	 * same domain.
+	 */
+	
+	(void)dns_name_fullcompare(name1, name2, &order, &nlabels, &nbits);
+
+	return (order);
 }
 
 int
@@ -530,12 +647,9 @@ dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2) {
 
 isc_boolean_t
 dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
-	unsigned int l1, l2, count1, count2;
-	unsigned int b1, b2, n;
-	unsigned char c1, c2;
-	unsigned char *label1, *label2;
-	unsigned char *offsets1, *offsets2;
-	dns_offsets_t odata1, odata2;
+	int order;
+	unsigned int nlabels, nbits;
+	dns_namereln_t namereln;
 
 	/*
 	 * Is 'name1' a subdomain of 'name2'?
@@ -546,69 +660,13 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	 * same domain.
 	 */
 
-	REQUIRE(VALID_NAME(name1));
-	REQUIRE(name1->labels > 0);
-	REQUIRE(VALID_NAME(name2));
-	REQUIRE(name2->labels > 0);
+	namereln = dns_name_fullcompare(name1, name2, &order, &nlabels,
+					&nbits);
+	if (namereln == dns_namereln_subdomain ||
+	    namereln == dns_namereln_equal)
+		return (ISC_TRUE);
 
-	SETUP_OFFSETS(name1, offsets1, odata1);
-	SETUP_OFFSETS(name2, offsets2, odata2);
-
-	/*
-	 * Either name1 is absolute and name2 is absolute, or neither is.
-	 */
-	REQUIRE(((name1->ndata[offsets1[name1->labels - 1]] == 0 ? 1 : 0) ^
-		 (name2->ndata[offsets2[name2->labels - 1]] == 0 ? 1 : 0))
-		== 0);
-
-	l1 = name1->labels;
-	l2 = name2->labels;
-	if (l1 < l2)
-		return (ISC_FALSE);
-
-	while (l2 > 0) {
-		l1--;
-		l2--;
-		label1 = &name1->ndata[offsets1[l1]];
-		label2 = &name2->ndata[offsets2[l2]];
-		count1 = *label1++;
-		count2 = *label2++;
-		if (count1 <= 63 && count2 <= 63) {
-			if (count1 != count2)
-				return (ISC_FALSE);
-			while (count2 > 0) {
-				count2--;
-				c1 = maptolower[*label1++];
-				c2 = maptolower[*label2++];
-				if (c1 != c2)
-					return (ISC_FALSE);
-			}
-		} else {
-			if (count1 != count2)
-				return (ISC_FALSE);
-			INSIST(count1 == DNS_LABELTYPE_BITSTRING &&
-			       count2 == DNS_LABELTYPE_BITSTRING);
-			count1 = *label1++;
-			if (count1 == 0)
-				count1 = 256;
-			count2 = *label2++;
-			if (count2 == 0)
-				count2 = 256;
-			if (count1 < count2)
-				return (ISC_FALSE);
-			/* Yes, this loop is really slow! */
-			for (n = 0; n < count2; n++) {
-				b1 = get_bit(label1, n);
-				b2 = get_bit(label2, n);
-				if (b1 != b2)
-					return (ISC_FALSE);
-			}
-			if (count1 != count2 && l2 != 0)
-				return (ISC_FALSE);
-		}
-	}
-
-	return (ISC_TRUE);
+	return (ISC_FALSE);
 }
 
 unsigned int
