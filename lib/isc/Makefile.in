@@ -12,7 +12,7 @@ CDEFINES =
 CWARNINGS =
 
 OBJS =		assertions.o buffer.o error.o heap.o mem.o result.o rwlock.o \
-		socket.o task.o timer.o version.o \
+		socket.o symtab.o task.o timer.o version.o \
 		unix/time.o \
 		pthreads/condition.o
 
