@@ -1,4 +1,4 @@
-# Copyright (C) 1998  Internet Software Consortium.
+# Copyright (C) 1998, 1999  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	app.h net.h time.h stdtime.h
+HEADERS =	app.h net.h time.h stdtime.h @ISC_IPV6_H@
 
 SUBDIRS =
 TARGETS =
@@ -38,3 +38,6 @@ install:: installdirs
 	for i in ${HEADERS}; do \
 		${INSTALL_DATA} $(srcdir)/$$i ${includedir}/isc ; \
 	done
+
+clean distclean::
+	rm -f net.h
