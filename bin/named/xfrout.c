@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.14 1999/10/14 01:36:59 halley Exp $ */
+ /* $Id: xfrout.c,v 1.15 1999/10/21 00:36:43 gson Exp $ */
 
 #include <config.h>
 
@@ -891,7 +891,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 			goto have_stream;
 		}
 		result = ixfr_rrstream_create(mctx,
-					      dns_zone_getdatabase(zone),
+					      dns_zone_getixfrlog(zone),
 					      begin_serial,
 					      current_serial,
 					      &data_stream);
@@ -905,7 +905,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	} else {
 	axfr_fallback:
 		CHECK(axfr_rrstream_create(mctx, db, ver,
-					    &data_stream));
+					   &data_stream));
 	}
 
 	/* Bracket the the data stream with SOAs. */
