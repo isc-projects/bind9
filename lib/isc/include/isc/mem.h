@@ -31,9 +31,14 @@ ISC_LANG_BEGINDECLS
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
+#define isc_mempool_get(c)	__isc_mempool_getdebug(c, __FILE__, __LINE__)
+#define isc_mempool_put(c, p)	__isc_mempool_putdebug(c, p, s, \
+						       __FILE__, __LINE__)
 #else
 #define isc_mem_get		__isc_mem_get
 #define isc_mem_put		__isc_mem_put
+#define isc_mempool_get		__isc_mempool_get
+#define isc_mempool_put		__isc_mempool_put
 #endif /* ISC_MEM_DEBUG */
 
 isc_result_t			isc_mem_create(size_t, size_t, isc_mem_t **);
@@ -81,6 +86,26 @@ int				memvalid(void *);
 void 				memstats(FILE *);
 
 #endif /* ISC_MEMCLUSTER_LEGACY */
+
+/*
+ * Memory pools
+ */
+isc_result_t	isc_mempool_create(isc_mem_t *, size_t, isc_mempool_t **);
+void		isc_mempool_destroy(isc_mempool_t **);
+void *		__isc_mempool_get(isc_mempool_t *);
+void 		__isc_mempool_put(isc_mempool_t *, void *);
+void *		__isc_mempool_getdebug(isc_mempool_t *, const char *, int);
+void 		__isc_mempool_putdebug(isc_mempool_t *, void *,
+				       const char *, int);
+
+unsigned int	isc_mempool_getfreemax(isc_mempool_t *);
+void		isc_mempool_setfreemax(isc_mempool_t *, unsigned int);
+unsigned int	isc_mempool_getfreecount(isc_mempool_t *);
+unsigned int	isc_mempool_getmaxalloc(isc_mempool_t *);
+void		isc_mempool_setmaxalloc(isc_mempool_t *, unsigned int);
+unsigned int	isc_mempool_getallocated(isc_mempool_t *);
+unsigned int	isc_mempool_getfillcount(isc_mempool_t *);
+void		isc_mempool_setfillcount(isc_mempool_t *, unsigned int);
 
 ISC_LANG_ENDDECLS
 

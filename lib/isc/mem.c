@@ -22,6 +22,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <limits.h>
+
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
@@ -74,11 +76,32 @@ struct isc_mem {
 	struct stats *		stats;
 	size_t			quota;
 	size_t			total;
+	ISC_LIST(isc_mempool_t)	pools;
+};
+
+#define MEMPOOL_MAGIC		0x4D454d70U	/* MEMp. */
+#define VALID_MEMPOOL(c)	((c) != NULL && (c)->magic == MEMPOOL_MAGIC)
+
+struct isc_mempool {
+	unsigned int	magic;		/* magic number */
+	ISC_LINK(isc_mempool_t)	link;	/* next pool in this mem context */
+	isc_mem_t      *mctx;		/* our memory context */
+	element	       *items;		/* low water item list */
+	size_t		size;		/* size of each item on this pool */
+	unsigned int	maxalloc;	/* max number of items allowed */
+	unsigned int	allocated;	/* # of items currently given out */
+	unsigned int	freecount;	/* # of items on reserved list */
+	unsigned int	freemax;	/* # of items allowed on free list */
+	unsigned int	fillcount;	/* # of items to fetch on each fill */
+	/* Stats only. */
+	unsigned int	gets;		/* # of requests to this pool */
 };
 
 /* Forward. */
 
-static size_t			quantize(size_t);
+static inline size_t		quantize(size_t);
+static inline void		mem_putunlocked(isc_mem_t *, void *, size_t);
+static inline void *		mem_getunlocked(isc_mem_t *, size_t);
 
 /* Constants. */
 
@@ -115,6 +138,9 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
 	ctx = malloc(sizeof *ctx);
+	if (ctx == NULL)
+		return (ISC_R_NOMEMORY);
+
 	if (init_max_size == 0)
 		ctx->max_size = DEF_MAX_SIZE;
 	else
@@ -154,6 +180,8 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 	ctx->quota = 0;
 	ctx->total = 0;
 	ctx->magic = MEM_MAGIC;
+	ISC_LIST_INIT(ctx->pools);
+
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
 }
@@ -168,6 +196,8 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	ctx->magic = 0;
+
+	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
 	for (i = 0; i <= ctx->max_size; i++)
 		INSIST(ctx->stats[i].gets == 0);
@@ -247,13 +277,25 @@ more_basic_blocks(isc_mem_t *ctx) {
 }
 
 void *
-__isc_mem_get(isc_mem_t *ctx, size_t size) {
-	size_t new_size = quantize(size);
+__isc_mem_get(isc_mem_t *ctx, size_t size)
+{
 	void *ret;
 
 	REQUIRE(size > 0);
 	REQUIRE(VALID_CONTEXT(ctx));
+
 	LOCK(&ctx->lock);
+	ret = mem_getunlocked(ctx, size);
+	UNLOCK(&ctx->lock);
+
+	return (ret);
+}
+
+static inline void *
+mem_getunlocked(isc_mem_t *ctx, size_t size)
+{
+	size_t new_size = quantize(size);
+	void *ret;
 
 	if (size >= ctx->max_size || new_size >= ctx->max_size) {
 		/* memget() was called on something beyond our upper limit. */
@@ -322,7 +364,6 @@ __isc_mem_get(isc_mem_t *ctx, size_t size) {
 	ctx->stats[new_size].freefrags--;
 
  done:
-	UNLOCK(&ctx->lock);
 
 #if ISC_MEM_FILL
 	if (ret != NULL)
@@ -333,12 +374,20 @@ __isc_mem_get(isc_mem_t *ctx, size_t size) {
 }
 
 void
-__isc_mem_put(isc_mem_t *ctx, void *mem, size_t size) {
-	size_t new_size = quantize(size);
-
+__isc_mem_put(isc_mem_t *ctx, void *mem, size_t size)
+{
 	REQUIRE(size > 0);
 	REQUIRE(VALID_CONTEXT(ctx));
+
 	LOCK(&ctx->lock);
+	mem_putunlocked(ctx, mem, size);
+	UNLOCK(&ctx->lock);
+}
+
+static inline void
+mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
+{
+	size_t new_size = quantize(size);
 
 #if ISC_MEM_FILL
 	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
@@ -351,7 +400,7 @@ __isc_mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 		ctx->stats[ctx->max_size].gets--;
 		INSIST(size <= ctx->total);
 		ctx->total -= size;
-		goto done;
+		return;
 	}
 
 	/* The free list uses the "rounded-up" size "new_size": */
@@ -367,9 +416,6 @@ __isc_mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	INSIST(ctx->stats[size].gets != 0);
 	ctx->stats[size].gets--;
 	ctx->stats[new_size].freefrags++;
-
- done:
-	UNLOCK(&ctx->lock);
 }
 
 void *
@@ -395,26 +441,44 @@ __isc_mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
  * Print the stats[] on the stream "out" with suitable formatting.
  */
 void
-isc_mem_stats(isc_mem_t *ctx, FILE *out) {
+isc_mem_stats(isc_mem_t *ctx, FILE *out)
+{
 	size_t i;
+	const struct stats *s;
+	const isc_mempool_t *pool;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 	LOCK(&ctx->lock);
 
-	if (ctx->freelists == NULL)
-		return;
-	for (i = 1; i <= ctx->max_size; i++) {
-		const struct stats *s = &ctx->stats[i];
+	if (ctx->freelists != NULL) {
+		for (i = 1; i <= ctx->max_size; i++) {
+			s = &ctx->stats[i];
 
-		if (s->totalgets == 0 && s->gets == 0)
-			continue;
-		fprintf(out, "%s%5d: %11lu gets, %11lu rem",
-			(i == ctx->max_size) ? ">=" : "  ",
-			i, s->totalgets, s->gets);
-		if (s->blocks != 0)
-			fprintf(out, " (%lu bl, %lu ff)",
-				s->blocks, s->freefrags);
-		fputc('\n', out);
+			if (s->totalgets == 0 && s->gets == 0)
+				continue;
+			fprintf(out, "%s%5d: %11lu gets, %11lu rem",
+				(i == ctx->max_size) ? ">=" : "  ",
+				i, s->totalgets, s->gets);
+			if (s->blocks != 0)
+				fprintf(out, " (%lu bl, %lu ff)",
+					s->blocks, s->freefrags);
+			fputc('\n', out);
+		}
+	}
+
+	pool = ISC_LIST_HEAD(ctx->pools);
+	if (pool != NULL) {
+		fprintf(out, "[Pool statistics]\n");
+		fprintf(out, "%10s %10s %10s %10s %10s %10s %10s\n",
+			"size", "maxalloc", "allocated", "freecount",
+			"freemax", "fillcount", "gets");
+	}
+	while (pool != NULL) {
+		fprintf(out, "%10u %10u %10u %10u %10u %10u %10u\n",
+			pool->size, pool->maxalloc, pool->allocated,
+			pool->freecount, pool->freemax, pool->fillcount,
+			pool->gets);
+		pool = ISC_LIST_NEXT(pool, link);
 	}
 
 	UNLOCK(&ctx->lock);
@@ -576,3 +640,344 @@ memstats(FILE *out) {
 }
 
 #endif /* ISC_MEMCLUSTER_LEGACY */
+
+
+/*
+ * Memory pool stuff
+ */
+
+
+#if 0
+/*
+ * Free all but "n" items from the pool's free list.  If n == 0, all items
+ * will be returned to the mctx.
+ */
+static void
+mempool_release(isc_mempool_t *mpctx, unsigned int n)
+{
+	isc_mem_t *mctx;
+	element *item;
+	element *next;
+	unsigned int count;
+
+	mctx = mpctx->mctx;
+
+	if (mpctx->freecount <= n)
+		return;
+
+	INSIST(mpctx->items != NULL);
+	item = mpctx->items;
+	for (count = 0 ; count < n ; count++) {
+		item = ((element *)item)->next;
+		INSIST(item != NULL);
+	}
+
+	/*
+	 * All remaining items are to be freed.  Lock the context once,
+	 * free them all, and unlock the context.
+	 */
+	LOCK(&mctx->lock);
+	do {
+		next = ((element *)item)->next;
+		mem_putunlocked(mctx, item, mpctx->size);
+		INSIST(mpctx->freecount > 0);
+		mpctx->freecount--;
+		item = next;
+	} while (item != NULL);
+	UNLOCK(&mctx->lock);
+}
+#endif
+
+/*
+ * Release all items on the free list.  No locking is done, the memory
+ * context must be locked.
+ */
+static void
+mempool_releaseall(isc_mempool_t *mpctx)
+{
+	isc_mem_t *mctx;
+	element *item;
+	element *next;
+
+	mctx = mpctx->mctx;
+
+	if (mpctx->freecount == 0)
+		return;
+
+	INSIST(mpctx->items != NULL);
+	item = mpctx->items;
+
+	do {
+		next = ((element *)item)->next;
+		mem_putunlocked(mctx, item, mpctx->size);
+		INSIST(mpctx->freecount > 0);
+		mpctx->freecount--;
+		item = next;
+	} while (item != NULL);
+}
+
+isc_result_t
+isc_mempool_create(isc_mem_t *mctx, size_t target_size,
+		   isc_mempool_t **mpctxp)
+{
+	isc_mempool_t *mpctx;
+
+	REQUIRE(VALID_CONTEXT(mctx));
+	REQUIRE(target_size > 0);
+	REQUIRE(mpctxp != NULL && *mpctxp == NULL);
+
+	/*
+	 * Allocate space for this pool, initialize values, and if all works
+	 * well, attach to the memory context.
+	 */
+	LOCK(&mctx->lock);
+
+	mpctx = mem_getunlocked(mctx, sizeof(isc_mempool_t));
+	if (mpctx == NULL) {
+		UNLOCK(&mctx->lock);
+		return (ISC_R_NOMEMORY);
+	}
+
+	mpctx->magic = MEMPOOL_MAGIC;
+	mpctx->mctx = mctx;
+	mpctx->size = target_size;
+	mpctx->maxalloc = UINT_MAX;
+	mpctx->allocated = 0;
+	mpctx->freecount = 0;
+	mpctx->freemax = 1;
+	mpctx->fillcount = 1;
+	mpctx->gets = 0;
+	mpctx->items = NULL;
+
+	*mpctxp = mpctx;
+
+	ISC_LIST_APPEND(mctx->pools, mpctx, link);
+
+	UNLOCK(&mctx->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+isc_mempool_destroy(isc_mempool_t **mpctxp)
+{
+	isc_mempool_t *mpctx;
+	isc_mem_t *mctx;
+
+	REQUIRE(mpctxp != NULL);
+	mpctx = *mpctxp;
+	REQUIRE(VALID_MEMPOOL(mpctx));
+	REQUIRE(mpctx->allocated == 0);
+
+	mctx = mpctx->mctx;
+
+	LOCK(&mctx->lock);
+
+	/*
+	 * Return any items on the free list
+	 */
+	mempool_releaseall(mpctx);
+
+	/*
+	 * Remove our linked list entry from the memory context.
+	 */
+	ISC_LIST_UNLINK(mctx->pools, mpctx, link);
+	
+	mpctx->magic = 0;
+
+	mem_putunlocked(mpctx->mctx, mpctx, sizeof(isc_mempool_t));
+
+	UNLOCK(&mctx->lock);
+
+	*mpctxp = NULL;
+}
+
+void *
+__isc_mempool_get(isc_mempool_t *mpctx)
+{
+	element *item;
+	isc_mem_t *mctx;
+	unsigned int i;
+
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	mctx = mpctx->mctx;
+
+	/*
+	 * Don't let the caller go over quota
+	 */
+	if (mpctx->allocated >= mpctx->maxalloc)
+		return (NULL);
+
+	/*
+	 * if we have a free list item, return the first here
+	 */
+	item = mpctx->items;
+	if (item != NULL) {
+		mpctx->items = item->next;
+		INSIST(mpctx->freecount > 0);
+		mpctx->freecount--;
+		mpctx->gets++;
+		mpctx->allocated++;
+		return (item);
+	}
+
+	/*
+	 * We need to dip into the well.  Lock the memory context here and
+	 * fill up our free list.
+	 */
+	LOCK(&mctx->lock);
+	for (i = 0 ; i < mpctx->fillcount ; i++) {
+		item = mem_getunlocked(mctx, mpctx->size);
+		if (item == NULL)
+			break;
+		item->next = mpctx->items;
+		mpctx->items = item;
+		mpctx->freecount++;
+	}
+	UNLOCK(&mctx->lock);
+
+	/*
+	 * If we didn't get any items, return NULL.
+	 */
+	item = mpctx->items;
+	if (item == NULL)
+		return (NULL);
+
+	mpctx->items = item->next;
+	mpctx->freecount--;
+	mpctx->gets++;
+	mpctx->allocated++;
+	return (item);
+}
+
+void
+__isc_mempool_put(isc_mempool_t *mpctx, void *mem)
+{
+	isc_mem_t *mctx;
+	element *item;
+
+	REQUIRE(VALID_MEMPOOL(mpctx));
+	REQUIRE(mem != NULL);
+
+	mctx = mpctx->mctx;
+
+	INSIST(mpctx->allocated > 0);
+	mpctx->allocated--;
+
+	/*
+	 * If our free list is full, return this to the mctx directly.
+	 */
+	if (mpctx->freecount >= mpctx->freemax) {
+		__isc_mem_put(mctx, mem, mpctx->size);
+		return;
+	}
+
+	/*
+	 * Otherwise, attach it to our free list and bump the counter.
+	 */
+	mpctx->freecount++;
+	item = (element *)mem;
+	item->next = mpctx->items;
+	mpctx->items = item;
+}
+
+void *
+__isc_mempool_getdebug(isc_mempool_t *mpctx,
+		       const char *file, int line)
+{
+	void *ptr;
+
+	ptr = __isc_mempool_get(mpctx);
+	fprintf(stderr, "%s:%d: mempool_get(%p) -> %p\n", file, line,
+		mpctx, ptr);
+
+	return (ptr);
+}
+
+void
+__isc_mempool_putdebug(isc_mempool_t *mpctx, void *ptr,
+		       const char *file, int line)
+{
+	fprintf(stderr, "%s:%d: mempool_put(%p, %p)\n", file, line, 
+		mpctx, ptr);
+	__isc_mempool_put(mpctx, ptr);
+}
+
+/*
+ * Quotas
+ */
+
+void
+isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit)
+{
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	mpctx->freemax = limit;
+
+	/*
+	 * XXXMLG Should clamp the count to the maximum number of items we
+	 * should have on our free list.  For now, allow the condition where
+	 * allocated + freecount > maxalloc, but in the future this should
+	 * be prevented.  alos, freecount > freemax should be checked for.
+	 */
+}
+
+unsigned int
+isc_mempool_getfreemax(isc_mempool_t *mpctx)
+{
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	return (mpctx->freemax);
+}
+
+unsigned int
+isc_mempool_getfreecount(isc_mempool_t *mpctx)
+{
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	return (mpctx->freecount);
+}
+
+void
+isc_mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit)
+{
+	REQUIRE(limit > 0);
+
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	mpctx->maxalloc = limit;
+}
+
+unsigned int
+isc_mempool_getmaxalloc(isc_mempool_t *mpctx)
+{
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	return (mpctx->maxalloc);
+}
+
+unsigned int
+isc_mempool_getallocated(isc_mempool_t *mpctx)
+{
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	return (mpctx->allocated);
+}
+
+void
+isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit)
+{
+	REQUIRE(limit > 0);
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	mpctx->fillcount = limit;
+}
+
+unsigned int
+isc_mempool_getfillcount(isc_mempool_t *mpctx)
+{
+	REQUIRE(VALID_MEMPOOL(mpctx));
+
+	return (mpctx->fillcount);
+}
