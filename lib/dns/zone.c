@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.343 2001/09/05 15:01:52 marka Exp $ */
+/* $Id: zone.c,v 1.344 2001/09/08 00:21:38 gson Exp $ */
 
 #include <config.h>
 
@@ -196,7 +196,6 @@ struct dns_zone {
 	isc_uint32_t		maxxfrout;
 	isc_uint32_t		idlein;
 	isc_uint32_t		idleout;
-	isc_boolean_t		diff_on_reload;
 	isc_event_t		ctlevent;
 	dns_ssutable_t		*ssutable;
 	isc_uint32_t		sigvalidityinterval;
@@ -528,7 +527,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->xfr = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
 	zone->maxxfrout = MAX_XFER_TIME;
-	zone->diff_on_reload = ISC_FALSE;
 	zone->ssutable = NULL;
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->view = NULL;
@@ -4743,7 +4741,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	 * is enabled in the configuration.
 	 */
 	if (zone->db != NULL && zone->journal != NULL &&
-	    zone->diff_on_reload) {
+	    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 			      "generating diffs");
@@ -4752,6 +4750,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 				     zone->journal);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
+		if (dump)
+			zone_needdump(zone, DNS_DUMP_DELAY);
 	} else {
 		if (dump && zone->masterfile != NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,

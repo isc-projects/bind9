@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.13 2001/09/01 01:43:23 gson Exp $ */
+/* $Id: config.c,v 1.14 2001/09/08 00:21:35 gson Exp $ */
 
 #include <config.h>
 
@@ -144,6 +144,7 @@ options {\n\
 	sig-validity-interval 30; /* days */\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
+	ixfr-from-differences false;\n\
 };";
 
 isc_result_t

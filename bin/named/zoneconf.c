@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.91 2001/09/04 19:20:54 gson Exp $ */
+/* $Id: zoneconf.c,v 1.92 2001/09/08 00:21:36 gson Exp $ */
 
 #include <config.h>
 
@@ -500,6 +500,12 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 			journal_size = (isc_uint32_t)value;
 		}
 		dns_zone_setjournalsize(zone, journal_size);
+
+		obj = NULL;
+		result = ns_config_get(maps, "ixfr-from-differences", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
+				   cfg_obj_asboolean(obj));
 	}
 
 	/*

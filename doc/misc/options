@@ -26,7 +26,7 @@ options {
         random-device <quoted_string>;
         recursive-clients <integer>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
-            <quoted_string> ] <string> <string>; ... };
+            <quoted_string> ] <string> <string>; ... }; // not implemented
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
         stacksize <size>;
@@ -54,6 +54,7 @@ options {
         recursion <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
+        try-edns <boolean>;
         fetch-glue <boolean>; // obsolete
         rfc2308-type1 <boolean>; // not yet implemented
         additional-from-auth <boolean>;
@@ -133,6 +134,7 @@ view <string> <optional_class> {
                 file <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-tmp-file <quoted_string>; // obsolete
+                max-journal-size <size>;
                 masters [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ] [ key <string> ]; ... };
                 pubkey <integer> <integer> <integer> <quoted_string>; //
@@ -190,6 +192,7 @@ view <string> <optional_class> {
         recursion <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
+        try-edns <boolean>;
         fetch-glue <boolean>; // obsolete
         rfc2308-type1 <boolean>; // not yet implemented
         additional-from-auth <boolean>;
@@ -252,6 +255,7 @@ zone <string> <optional_class> {
         file <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-tmp-file <quoted_string>; // obsolete
+        max-journal-size <size>;
         masters [ port <integer> ] { ( <ipv4_address> | <ipv6_address> ) [
             port <integer> ] [ key <string> ]; ... };
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155 2001/08/28 17:37:24 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.156 2001/09/08 00:21:42 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3173,6 +3173,28 @@ address match lists designed for IPv4 to fail to match.
 The use of this option for any other purpose is discouraged.
 </para></listitem></varlistentry>
 
+<varlistentry><term><command>ixfr-from-differences</command></term>
+<listitem>
+<para>
+When 'yes' and the server loads a new version of a master
+zone from its zone file or receives a new version of a slave
+file by a non-incremental zone transfer, it will compare
+the new version to the previous one and calculate a set
+of differences.  The differences are then logged in the
+zone's journal file such that the changes can be transmitted
+to downstream slaves as an incremental zone transfer.
+</para><para>
+By allowing incremental zone transfers to be used for
+non-dynamic zones, this option saves bandwidth at the
+expense of increased CPU and memory consumption at the master.
+In particular, if the new version of a zone is completely
+different from the previous one, the set of differences
+will be of a size comparable to the combined size of the
+old and new zone version, and the server will need to
+temporarily allocate memory to hold this complete
+difference set.
+</para></listitem></varlistentry>
+
 </variablelist>
 
 </sect3>
@@ -4499,6 +4521,11 @@ information for this zone, which can be dumped to the
 <listitem><para>
 See the description in <xref linkend="tuning"/>.
 </para></listitem></varlistentry>
+
+<varlistentry><term><command>ixfr-from-differences</command></term>
+<listitem><para>See the description of
+<command>ixfr-from-differences</command> in <xref linkend="boolean_options"/>.</para>
+</listitem></varlistentry>
 
 </variablelist>
 

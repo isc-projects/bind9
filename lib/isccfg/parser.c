@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.76 2001/09/06 21:52:46 gson Exp $ */
+/* $Id: parser.c,v 1.77 2001/09/08 00:21:40 gson Exp $ */
 
 #include <config.h>
 
@@ -919,6 +919,7 @@ zone_clauses[] = {
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
+	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
