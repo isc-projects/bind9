@@ -51,7 +51,7 @@ EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN ns_interfacemgr_t *	ns_g_interfacemgr	INIT(NULL);
 EXTERN ns_clientmgr_t *		ns_g_clientmgr		INIT(NULL);
 EXTERN char *			ns_g_version		INIT(VERSION);
-EXTERN in_port_t		ns_g_port		INIT(5544);
+EXTERN in_port_t		ns_g_port		INIT(53);
 EXTERN dns_zonemgr_t *		ns_g_zonemgr		INIT(NULL);
 
 EXTERN dns_viewlist_t		ns_g_viewlist;

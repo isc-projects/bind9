@@ -317,7 +317,7 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 
 	inaddr.s_addr = htonl(INADDR_LOOPBACK);
-	isc_sockaddr_fromin(&address, &inaddr, 5544);
+	isc_sockaddr_fromin(&address, &inaddr, 53);
 
 	ourkey = NULL;
 	result = dst_key_fromfile("client.", 2982, DNS_KEYALG_DH,

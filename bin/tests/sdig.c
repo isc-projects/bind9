@@ -269,7 +269,7 @@ main(int argc, char *argv[]) {
 	sock = NULL;
 
 	server = "localhost";
-	port = 5544;
+	port = 53;
 	vc = ISC_FALSE;
 	have_name = ISC_FALSE;
 	have_type = ISC_FALSE;
