@@ -97,10 +97,9 @@ bind9/lib/dns/include/dns/sdb.h.  For example drivers, see
 bind9/contrib/sdb.
 
 
-
 Rebuilding the Server
 
-The driver module must be copied to (or linked into) the
+The driver module and header file must be copied to (or linked into) the
 bind9/bin/named directory, and must be added to the OBJS and SRCS
 lines in bin/named/Makefile.in.  If the driver needs additional
 header files or libraries in nonstandard places, the CINCLUDES and
@@ -110,7 +109,8 @@ Calls to dns_sdb_register() and dns_sdb_unregister() (or wrappers)
 must be inserted into the server, in bind9/bin/named/main.c.
 Registration should be in setup(), before the call to
 ns_server_create().  Unregistration should be in cleanup(),
-after the call to ns_server_destroy().
+after the call to ns_server_destroy().  A #include should be added
+corresponding to the driver header file.
 
 You should try doing this with one or more of the sample drivers
 before attempting to write a driver of your own.
@@ -161,4 +161,4 @@ Future Directions
 A future release may support dynamic loading of sdb drivers.
 
 
-$Id: sdb,v 1.1 2000/11/17 22:10:06 gson Exp $
+$Id: sdb,v 1.2 2000/11/18 01:32:04 bwelling Exp $
