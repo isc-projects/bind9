@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.161 2000/12/02 04:24:26 gson Exp $ */
+/* $Id: message.c,v 1.162 2000/12/02 04:41:27 gson Exp $ */
 
 /***
  *** Imports
@@ -2805,6 +2805,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	isc_result_t result;
 	isc_boolean_t omit_final_dot;
 
+#ifdef DNS_OPT_NEWCODES
+	char buf[sizeof("1234567890")];
+#endif /* DNS_OPT_NEWCODES */
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_PSEUDOSECTION(section));
@@ -2819,7 +2822,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 #ifdef DNS_OPT_NEWCODES
 		result = dns_opt_totext(ps, target, flags);
 #else /* DNS_OPT_NEWCODES */
-		result = dns_opt_totext(ps, target, flags);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
 		ADD_STRING(target, "; EDNS: version: ");

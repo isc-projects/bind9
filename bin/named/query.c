@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.157 2000/12/01 23:49:47 gson Exp $ */
+/* $Id: query.c,v 1.158 2000/12/02 04:43:21 gson Exp $ */
 
 #include <config.h>
 
@@ -27,7 +27,9 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#ifdef DNS_OPT_NEWCODES
 #include <dns/opt.h>
+#endif /* DNS_OPT_NEWCODES */
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>

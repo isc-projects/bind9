@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.166 2000/11/21 21:35:32 mws Exp $ */
+/* $Id: dighost.c,v 1.167 2000/12/02 04:44:51 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -40,7 +40,9 @@ extern int h_errno;
 #include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#ifdef DNS_OPT_NEWCODES
 #include <dns/opt.h>
+#endif /* DNS_OPT_NEWCODES */
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
