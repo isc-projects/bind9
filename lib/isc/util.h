@@ -79,5 +79,8 @@
 #define UNLINK(list, elt, link)		ISC_LIST_UNLINK(list, elt, link)
 #define ENQUEUE(list, elt, link)	ISC_LIST_APPEND(list, elt, link)
 #define DEQUEUE(list, elt, link)	ISC_LIST_UNLINK(list, elt, link)
+#define INSERTBEFORE(li, b, e, ln)	ISC_LIST_INSERTBEFORE(li, b, e, ln)
+#define INSERTAFTER(li, a, e, ln)	ISC_LIST_INSERTAFTER(li, a, e, ln)
+#define APPENDLIST(list1, list2, link)	ISC_LIST_APPENDLIST(list1, list2, link)
 
 #endif /* ISC_UTIL_H */
