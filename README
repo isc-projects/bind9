@@ -18,9 +18,7 @@ BIND 9.0.0b1
 	services.
 
 	Much of the core technology planned for BIND 9.0.0 is in this beta
-	release.
-
-	Some of the highlights are:
+	release.  Some of the highlights are:
 
 		IPv6
 
