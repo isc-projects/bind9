@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.26.206.2 2004/03/06 07:33:35 marka Exp $
+# $Id: update_copyrights,v 1.26.206.3 2004/03/08 12:08:12 marka Exp $
 
 require 5.002;
 
@@ -204,6 +204,7 @@ while (<>) {
                         while (<SOURCE>) {
                                 # Not very maintainable, but ok enough for now.
                                 last unless
+                                  /[Cc]opyright/ ||
                                   /See COPYRIGHT in the source root/ ||
                                   /Permission to use, copy, modify, and / ||
                                   /THE SOFTWARE IS PROVIDED "AS IS" AND /;
