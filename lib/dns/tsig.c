@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.47 2000/03/13 19:27:34 bwelling Exp $
+ * $Id: tsig.c,v 1.48 2000/03/16 23:13:25 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -935,6 +935,13 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 
 		sig_r.base = tsig->signature;
 		sig_r.length = tsig->siglen;
+		if (tsig->siglen == 0) {
+			if (tsig->error != dns_rcode_noerror)
+				ret = DNS_R_TSIGERRORSET;
+			else
+				ret = DNS_R_TSIGVERIFYFAILURE;
+			goto cleanup_struct;
+		}
 
 		ret = dst_verify(DST_SIGMODE_FINAL, key, &msg->tsigctx, NULL,
 				 &sig_r);
