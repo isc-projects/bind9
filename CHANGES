@@ -1,3 +1,6 @@
+ 706.	[bug]		Zones with an explicit "allow-update { none; };"
+			were considered dynamic and therefore not reloaded
+			on SIGHUP or "rndc reload".
 
  700.	[bug]		$GENERATE range check was wrong. [RT #688]
 

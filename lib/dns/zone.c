@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.5 2001/01/17 00:19:01 gson Exp $ */
+/* $Id: zone.c,v 1.283.2.6 2001/01/24 00:17:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -870,7 +870,7 @@ zone_isdynamic(dns_zone_t *zone) {
 		       zone->type == dns_zone_stub ||
 		       zone->ssutable != NULL ||
 		       (zone->update_acl != NULL &&
-			! (zone->update_acl->length == 0 && 
+			! (zone->update_acl->length == 1 && 
 			   zone->update_acl->elements[0].negative == ISC_TRUE
 			   &&
 			   zone->update_acl->elements[0].type ==
