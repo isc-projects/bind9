@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.29 2000/11/18 03:01:05 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.30 2000/11/22 00:30:37 mws Exp $ */
 
 #include <config.h>
 
@@ -284,7 +284,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_CLEAN_INTERVAL
 %token		L_CONTROLS
 %token		L_CORESIZE
-%token		L_STATISTICS
+%token		L_ZONE_STATISTICS
 %token		L_DATASIZE
 %token		L_DATABASE
 %token		L_DEALLOC_ON_EXIT
@@ -1610,14 +1610,16 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-	| L_STATISTICS yea_or_nay
+	| L_ZONE_STATISTICS yea_or_nay
 	{
 		tmpres = dns_c_ctx_setstatistics(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE, "cannot redefine statistics");
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone-statistics");
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE, "failed to set statistics");
+			parser_error(ISC_FALSE,
+				     "failed to set zone-statistics");
 			YYABORT;
 		}
 	}
@@ -4906,7 +4908,7 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
 	L_ENABLE_ZONE | L_DATABASE | L_PORT | L_MIN_RETRY_TIME |
 	L_MAX_RETRY_TIME | L_MIN_REFRESH_TIME | L_MAX_REFRESH_TIME |
-	L_STATISTICS
+	L_ZONE_STATISTICS
 #ifndef NOMINUM_PUBLIC
 	| L_ALLOW_NOTIFY | L_NOTIFY_FORWARD | L_MAX_NAMES 
 #endif /* NOMINUM_PUBLIC */
@@ -5554,7 +5556,7 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-	| L_STATISTICS yea_or_nay
+	| L_ZONE_STATISTICS yea_or_nay
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
@@ -5986,7 +5988,7 @@ static struct token keyword_tokens [] = {
 	{ "cleaning-interval",		L_CLEAN_INTERVAL },
 	{ "controls",			L_CONTROLS },
 	{ "coresize",			L_CORESIZE },
-	{ "statistics",			L_STATISTICS },
+	{ "zone-statistics",		L_ZONE_STATISTICS },
 	{ "database",			L_DATABASE },
 	{ "datasize",			L_DATASIZE },
 	{ "deallocate-on-exit",		L_DEALLOC_ON_EXIT },
