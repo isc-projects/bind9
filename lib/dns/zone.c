@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.1 1999/08/30 14:37:45 marka Exp $ */
+ /* $Id: zone.c,v 1.2 1999/09/03 13:21:30 marka Exp $ */
 
 #include <config.h>
 
@@ -178,6 +178,7 @@ static void add_address_tocheck(dns_message_t *msg,
 				dns_zone_checkservers_t *checkservers,
 				dns_rdatatype_t type);
 extern void dns_zone_transfer_in(dns_zone_t *zone);
+static void record_serial(void);
 
 
 
@@ -497,7 +498,8 @@ dns_zone_load(dns_zone_t *zone) {
 	if (result == DNS_R_SUCCESS) {
 		dns_rdataset_init(&rdataset);
 		result = dns_db_findrdataset(zone->top, node, version,
-					     dns_rdatatype_ns, 0, &rdataset);
+					     dns_rdatatype_ns,
+					     dns_rdatatype_none, 0, &rdataset);
 		if (result == DNS_R_SUCCESS) {
 			result = dns_rdataset_first(&rdataset);
 			while (result == DNS_R_SUCCESS) {
@@ -508,7 +510,8 @@ dns_zone_load(dns_zone_t *zone) {
 
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_db_findrdataset(zone->top, node, version,
-					     dns_rdatatype_soa, 0, &rdataset);
+					     dns_rdatatype_soa,
+					     dns_rdatatype_none, 0, &rdataset);
 
 		if (result == DNS_R_SUCCESS) {
 			result = dns_rdataset_first(&rdataset);
@@ -601,7 +604,8 @@ dns_zone_checkservers(dns_zone_t *zone) {
 	if (result == DNS_R_SUCCESS) {
 		dns_rdataset_init(&rdataset);
 		result = dns_db_findrdataset(zone->top, node, version,
-					     dns_rdatatype_ns, 0, &rdataset);
+					     dns_rdatatype_ns,
+					     dns_rdatatype_none, 0, &rdataset);
 		if (result == DNS_R_SUCCESS) {
 			result = dns_rdataset_first(&rdataset);
 			while (result == DNS_R_SUCCESS) {
@@ -839,7 +843,8 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 	 */
 	result = dns_message_findname(msg, DNS_SECTION_ANSWER,
 				      dns_fixedname_name(&zone->origin),
-				      dns_rdatatype_soa, NULL, &rdataset);
+				      dns_rdatatype_soa,
+				      dns_rdatatype_none, NULL, &rdataset);
 	if (result != DNS_R_SUCCESS) {
 		dns_zone_log_error(zone,
 				   "Unable to extract SOA from answer: %s",
@@ -868,8 +873,8 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 	dns_rdataset_init(&zonerdataset);
 	LOCK(&zone->lock);
 	result = dns_db_find(zone->top, dns_fixedname_name(&zone->origin),
-			     NULL, dns_rdatatype_soa, 0, 0, NULL, NULL,
-			     &zonerdataset);
+			     NULL, dns_rdatatype_soa, dns_rdatatype_none,
+			     0, 0, NULL, NULL, &zonerdataset);
 	UNLOCK(&zone->lock);
 	if (result != DNS_R_SUCCESS) {
 		/* XXXMPA */
@@ -942,7 +947,8 @@ add_address_tocheck(dns_message_t *msg, dns_zone_checkservers_t *checkservers,
 	if (msg->counts[DNS_SECTION_QUESTION] != 0 ||
 	    dns_message_findname(msg, DNS_SECTION_QUESTION,
 				 &checkservers->server,
-				 type, NULL, &rdataset) != DNS_R_SUCCESS)
+				 type, dns_rdatatype_none,
+				 NULL, &rdataset) != DNS_R_SUCCESS)
 		return;
 
 	result = dns_rdataset_first(rdataset);
@@ -1586,7 +1592,8 @@ dns_zone_notify(dns_zone_t *zone) {
 
 	dns_rdataset_init(&nsrdset);
 	result = dns_db_findrdataset(zone->top, node, version,
-				     dns_rdatatype_ns, 0, &nsrdset);
+				     dns_rdatatype_ns,
+				     dns_rdatatype_none, 0, &nsrdset);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup2;
 	
@@ -1754,7 +1761,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	rdataset = NULL;
 	result = dns_message_findname(msg, DNS_SECTION_ANSWER, 
 				      dns_fixedname_name(&zone->origin),
-				      dns_rdatatype_soa, NULL, &rdataset);
+				      dns_rdatatype_soa,
+				      dns_rdatatype_none, NULL, &rdataset);
 	if (result != DNS_R_SUCCESS) {
 		dns_zone_log_error(zone, "refresh: unable to get soa record");
 		goto next_master;
@@ -2046,8 +2054,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	if (msg->counts[DNS_SECTION_QUESTION] != 0 ||
 	    dns_message_findname(msg, DNS_SECTION_QUESTION,
 				 dns_fixedname_name(&zone->origin),
-				 dns_rdatatype_soa, NULL,
-				 NULL) != DNS_R_SUCCESS) {
+				 dns_rdatatype_soa, dns_rdatatype_none,
+				 NULL, NULL) != DNS_R_SUCCESS) {
 		UNLOCK(&zone->lock);
 		return (DNS_R_REFUSED);
 	}
@@ -2072,7 +2080,8 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	    !DNS_ZONE_OPTION(zone, DNS_ZONE_O_DIALUP)) {
 		result = dns_message_findname(msg, DNS_SECTION_ANSWER,
 					      dns_fixedname_name(&zone->origin),
-					      dns_rdatatype_soa, NULL, 
+					      dns_rdatatype_soa,
+					      dns_rdatatype_none, NULL, 
 					      &rdataset);
 		if (result == DNS_R_SUCCESS)
 			result = dns_rdataset_first(rdataset);

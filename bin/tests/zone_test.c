@@ -112,6 +112,7 @@ query(void) {
 	isc_buffer_t buffer;
 	dns_result_t result;
 	dns_rdataset_t rdataset;
+	dns_rdataset_t sigset;
 	fd_set rfdset;
 
 	db = dns_zone_getdb(zone);
@@ -122,6 +123,7 @@ query(void) {
 
 	dns_fixedname_init(&found);
 	dns_rdataset_init(&rdataset);
+	dns_rdataset_init(&sigset);
 
 	do {
 		
@@ -162,7 +164,7 @@ query(void) {
 				     0 /*time*/,
 				     NULL /*nodep*/,
 				     dns_fixedname_name(&found),
-				     &rdataset);
+				     &rdataset, &sigset);
 		fprintf(stderr, "%s() returned %s\n", "dns_db_find",
 			dns_result_totext(result));
 		switch (result) {
