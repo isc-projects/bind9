@@ -188,6 +188,41 @@ dns_c_ipmatchelement_copy(isc_log_t *lctx,
 	return (ISC_R_SUCCESS);
 }
 
+isc_boolean_t
+dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
+			   dns_c_ipmatchelement_t *e2)
+{
+	if ((e1->type != e2->type) || (e1->flags != e2->flags))
+		return (ISC_FALSE);
+
+	switch (e1->type) {
+	case dns_c_ipmatch_pattern:
+		if (e1->u.direct.mask != e2->u.direct.mask)
+			return (ISC_FALSE);
+		return (isc_sockaddr_equal(&e1->u.direct.address,
+					   &e2->u.direct.address));
+
+	case dns_c_ipmatch_indirect:
+		return (dns_c_ipmatchlist_equal(e1->u.indirect.list,
+						e2->u.indirect.list));
+
+	case dns_c_ipmatch_localhost:
+		break;
+
+	case dns_c_ipmatch_localnets:
+		break;
+
+	case dns_c_ipmatch_key:
+		return (strcmp(e1->u.key, e2->u.key) == 0);
+
+	case dns_c_ipmatch_acl:
+		return (strcmp(e1->u.aclname, e2->u.aclname) == 0);
+
+	case dns_c_ipmatch_none:
+		break;
+	}
+	return (ISC_TRUE);
+}
 
 isc_result_t
 dns_c_ipmatchlocalhost_new(isc_log_t *lctx,
@@ -634,6 +669,29 @@ dns_c_ipmatchlist_copy(isc_log_t *lctx, isc_mem_t *mem,
 	return (ISC_R_SUCCESS);
 }
 
+isc_boolean_t
+dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1, dns_c_ipmatchlist_t *l2) {
+	dns_c_ipmatchelement_t *e1, *e2;
+
+	if (l1 == NULL && l2 == NULL)
+		return (ISC_TRUE);
+	if (l1 != NULL || l2 != NULL)
+		return (ISC_FALSE);
+
+	e1 = ISC_LIST_HEAD(l1->elements);
+	e2 = ISC_LIST_HEAD(l2->elements);
+	while (e1 != NULL && e2 != NULL) {
+		if (!dns_c_ipmatchelement_equal(e1, e2))
+			return (ISC_FALSE);
+		e1 = ISC_LIST_NEXT(e1, next);
+		e2 = ISC_LIST_NEXT(e2, next);
+	}
+
+	if (l1 != NULL || l2 != NULL)
+		return (ISC_FALSE);
+	return (ISC_TRUE);
+}
+
 
 isc_result_t
 dns_c_ipmatchlist_append(isc_log_t *lctx,
@@ -873,6 +931,24 @@ dns_c_iplist_copy(isc_log_t *lctx,
 	*dest = newl;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_boolean_t
+dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2) {
+	isc_uint32_t i;
+
+	REQUIRE(list1 != NULL);
+	REQUIRE(list2 != NULL);
+
+	if (list1->nextidx != list2->nextidx)
+		return (ISC_FALSE);
+
+	for (i = 0 ; i < list1->nextidx ; i++) {
+		if (!isc_sockaddr_equal(&list1->ips[i], &list2->ips[i]))
+			return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
 }
 
 
