@@ -6,6 +6,9 @@
 
 1677.	[bug]		dig: +aaonly didn't work, +aaflag undocumented.
 
+1675.	[bug]		named would sometimes add extra NSEC records to
+			the authority section.
+			
 1674.	[port]		linux: increase buffer size used to scan
 			/proc/net/if_inet6.
 
