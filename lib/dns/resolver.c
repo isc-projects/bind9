@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.142 2000/07/05 20:26:46 explorer Exp $ */
+/* $Id: resolver.c,v 1.143 2000/07/06 02:33:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1969,6 +1969,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	isc_result_t iresult;
 	isc_interval_t interval;
 	dns_fixedname_t qdomain;
+	unsigned int findoptions = 0;
 
 	/*
 	 * Caller must be holding the lock for bucket number 'bucketnum'.
@@ -1992,10 +1993,12 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			 * nameservers, and we're not in forward-only mode,
 			 * so find the best nameservers to use.
 			 */
+			if (type == dns_rdatatype_key)
+				findoptions |= DNS_DBFIND_NOEXACT;
 			dns_fixedname_init(&qdomain);
 			result = dns_view_findzonecut(res->view, name,
 					      dns_fixedname_name(&qdomain), 0,
-						      0, ISC_TRUE,
+						      findoptions, ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS)
