@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.78 2000/11/15 00:51:17 gson Exp $ */
+/* $Id: result.c,v 1.79 2000/11/19 22:12:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -108,7 +108,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"seen include file",		       /* 66 DNS_R_SEENINCLUDE       */
 	"not exact",		       	       /* 67 DNS_R_NOTEXACT	     */
 	"address blackholed",	       	       /* 68 DNS_R_BLACKHOLED	     */
-	"bad algorithm"			       /* 69 DNS_R_BADALG	     */
+	"bad algorithm",		       /* 69 DNS_R_BADALG	     */
+	"invalid use of a meta type"	       /* 70 DNS_R_METATYPE	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

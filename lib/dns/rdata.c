@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.125 2000/11/15 19:11:34 gson Exp $ */
+/* $Id: rdata.c,v 1.126 2000/11/19 22:12:39 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -601,6 +601,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		if (result == ISC_R_SUCCESS)
 			result = isc_hex_tobuffer(lexer, target, 
 						  token.value.as_ulong);
+		if (result == ISC_R_SUCCESS && dns_rdatatype_ismeta(type))
+			result = DNS_R_METATYPE;
 		if (result == ISC_R_SUCCESS && dns_rdatatype_isknown(type))
 			result = rdata_valid(target, rdclass, type, mctx);
 	} else {
