@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.103 2001/02/10 22:46:24 bwelling Exp $ */
+/* $Id: rbt.c,v 1.104 2001/02/21 02:01:15 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1685,19 +1685,7 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 			rbt->hashtable[bucket] = HASHNEXT(node);
 		else {
 			while (HASHNEXT(bucket_node) != node) {
-				/*
-				  
 				INSIST(HASHNEXT(bucket_node) != NULL);
-
-				* XXXDCL This is WRONG and I have not
-				* yet had the chance to figure out why.
-				* The assertion is triggered by
-				* bin/tests/t_rbt -x -t 4
-				* It is, of course, a bitstring problem.
-				* I will figure it out next week after
-				* my move.
-
-				*/
 				if (HASHNEXT(bucket_node) == NULL)
 					break;
 
