@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.145 2000/10/13 22:55:50 bwelling Exp $ */
+/* $Id: dighost.c,v 1.146 2000/10/16 20:38:30 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2183,7 +2183,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(!free_now);
 
 	if (show_packets)
-		puts(";; begin of DNS packet");
+		puts(";; beginning of DNS packet");
 	debug("recv_done()");
 
 	LOCK_LOOKUP;
