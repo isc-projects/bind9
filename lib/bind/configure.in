@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.68 $)
+AC_REVISION($Revision: 1.69 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1515,7 +1515,7 @@ HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS char *buf, int buflen"
 HOST_R_ERRNO="#define HOST_R_ERRNO *h_errnop = h_errno"
 HOST_R_OK="#define HOST_R_OK hptr"
 HOST_R_RETURN="#define HOST_R_RETURN struct hostent *"
-HOST_R_SETANSWER=#undef HOST_R_SETANSWER"
+HOST_R_SETANSWER="#undef HOST_R_SETANSWER"
 HOSTENT_DATA="#undef HOSTENT_DATA"
 ]
 ,
@@ -1532,17 +1532,17 @@ HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS HOST_R_ARGS"
 HOST_R_ERRNO="#define HOST_R_ERRNO NULL"
 HOST_R_OK="#define HOST_R_OK 0"
 HOST_R_RETURN="#define HOST_R_RETURN int"
-HOST_R_SETANSWER=#undef HOST_R_SETANSWER"
+HOST_R_SETANSWER="#undef HOST_R_SETANSWER"
 HOSTENT_DATA="#define HOSTENT_DATA 1"
 ],
 AC_TRY_COMPILE([
 #define __USE_MISC
 #include <netdb.h>
-extern int gethostbyname_r __P ((__const char *,
+extern int gethostbyname_r (const char *,
                                  struct hostent *,
                                  char *, size_t,
                                  struct hostent **,
-                                 int *));
+                                 int *);
 ],,[
 HOST_R_ARGS="#define HOST_R_ARGS char *buf, int buflen, struct hostent **answerp, int *h_errnop"
 HOST_R_BAD="#define HOST_R_BAD ERANGE"
@@ -1551,7 +1551,7 @@ HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS char *buf, int buflen"
 HOST_R_ERRNO="#define HOST_R_ERRNO *h_errnop = h_errno"
 HOST_R_OK="#define HOST_R_OK 0"
 HOST_R_RETURN="#define HOST_R_RETURN int"
-HOST_R_SETANSWER=#define HOST_R_SETANSWER 1"
+HOST_R_SETANSWER="#define HOST_R_SETANSWER 1"
 HOSTENT_DATA="#undef HOSTENT_DATA"
 ],
 )))
@@ -1563,7 +1563,7 @@ HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS char *buf, int buflen"
 HOST_R_ERRNO="#define HOST_R_ERRNO *h_errnop = h_errno"
 HOST_R_OK="#define HOST_R_OK hptr"
 HOST_R_RETURN="#define HOST_R_RETURN struct hostent *"
-HOST_R_SETANSWER=#undef HOST_R_SETANSWER"
+HOST_R_SETANSWER="#undef HOST_R_SETANSWER"
 HOSTENT_DATA="#undef HOSTENT_DATA"
 )
 AC_SUBST(HOST_R_ARGS)
