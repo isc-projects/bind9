@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.29 1999/12/11 13:44:43 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.30 1999/12/11 14:07:19 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2941,6 +2941,81 @@ zone_option: L_FILE L_QSTRING
                         parser_error(ISC_FALSE,
                                      "Failed to set zone "
                                      "max-transfer-time-in.");
+                        break;
+                }
+        }
+        | L_MAX_TRANSFER_TIME_OUT L_INTEGER
+        {
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+                INSIST(zone != NULL);
+
+                tmpres = dns_c_zone_setmaxtranstimeout(zone, $2);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining zone "
+                                       "max-transfer-time-out.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set zone "
+                                     "max-transfer-time-out.");
+                        break;
+                }
+        }
+        | L_MAX_TRANSFER_IDLE_IN L_INTEGER
+        {
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+                INSIST(zone != NULL);
+
+                tmpres = dns_c_zone_setmaxtransidlein(zone, $2);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining zone "
+                                       "max-transfer-idle-in.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set zone "
+                                     "max-transfer-idle-in.");
+                        break;
+                }
+        }
+        | L_MAX_TRANSFER_IDLE_OUT L_INTEGER
+        {
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+                INSIST(zone != NULL);
+
+                tmpres = dns_c_zone_setmaxtransidleout(zone, $2);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining zone "
+                                       "max-transfer-idle-out.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set zone "
+                                     "max-transfer-idle-out.");
                         break;
                 }
         }
