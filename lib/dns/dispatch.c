@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.89 2001/02/07 03:01:19 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.90 2001/02/07 05:11:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -71,7 +71,7 @@ struct dns_dispatchmgr {
 	/* Locked internally. */
 	isc_mutex_t			pool_lock;
 	isc_mempool_t		       *epool;	/* memory pool for events */
-	isc_mempool_t		       *rpool;	/* memory pool request/reply */
+	isc_mempool_t		       *rpool;	/* memory pool for replies */
 	isc_mempool_t		       *dpool;  /* dispatch allocations */
 	isc_mempool_t		       *bpool;	/* memory pool for buffers */
 
@@ -127,17 +127,12 @@ struct dns_dispatch {
 	isc_result_t		shutdown_why;
 	unsigned int		requests;	/* how many requests we have */
 	unsigned int		tcpbuffers;	/* allocated buffers */
-	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
-	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	dns_tcpmsg_t		tcpmsg;		/* for tcp streams */
 	dns_qid_t		*qid;
 };
 
 #define QID_MAGIC		ISC_MAGIC('Q', 'i', 'd', ' ')
 #define VALID_QID(e)		ISC_MAGIC_VALID((e), QID_MAGIC)
-
-#define REQUEST_MAGIC		ISC_MAGIC('D', 'r', 'q', 's')
-#define VALID_REQUEST(e)	ISC_MAGIC_VALID((e), REQUEST_MAGIC)
 
 #define RESPONSE_MAGIC		ISC_MAGIC('D', 'r', 's', 'p')
 #define VALID_RESPONSE(e)	ISC_MAGIC_VALID((e), RESPONSE_MAGIC)
@@ -166,8 +161,6 @@ static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
 static void *allocate_udp_buffer(dns_dispatch_t *disp);
 static inline void free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
 static inline dns_dispatchevent_t *allocate_event(dns_dispatch_t *disp);
-static void do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp);
-static void do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp);
 static void do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp);
 static dns_dispentry_t *linear_first(dns_qid_t *disp);
 static dns_dispentry_t *linear_next(dns_qid_t *disp,
@@ -243,11 +236,6 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 			      DNS_LOGMODULE_DISPATCH, level,
 			      "dispatch %p response %p %s: %s", disp, resp,
 			      peerbuf, msgbuf);
-	} else if (VALID_REQUEST(resp)) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
-			      DNS_LOGMODULE_DISPATCH, level,
-			      "dispatch %p request %p: %s", disp, resp,
-			      msgbuf);
 	} else {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
 			      DNS_LOGMODULE_DISPATCH, level,
@@ -531,7 +519,6 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatchevent_t *rev;
 	unsigned int bucket;
 	isc_boolean_t killit;
-	isc_boolean_t queue_request;
 	isc_boolean_t queue_response;
 	dns_dispatchmgr_t *mgr;
 	dns_qid_t *qid;
@@ -632,26 +619,14 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		     ((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id);
 
 	/*
-	 * Look at flags.  If query, check to see if we have someone handling
-	 * them.  If response, look to see where it goes.
+	 * Look at flags.  If query, drop it. If response,
+	 * look to see where it goes.
 	 */
-	queue_request = ISC_FALSE;
 	queue_response = ISC_FALSE;
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
-		resp = ISC_LIST_HEAD(disp->rq_handlers);
-		while (resp != NULL) {
-			if (resp->item_out == ISC_FALSE)
-				break;
-			resp = ISC_LIST_NEXT(resp, link);
-		}
-		if (resp == NULL)
-			queue_request = ISC_TRUE;
-		rev = allocate_event(disp);
-		if (rev == NULL) {
-			free_buffer(disp, ev->region.base, ev->region.length);
-			goto restart;
-		}
 		/* query */
+		free_buffer(disp, ev->region.base, ev->region.length);
+		goto restart;
 	} else {
  		/* response */
 		bucket = dns_hash(qid, &ev->address, id);
@@ -686,9 +661,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	rev->addr = ev->address;
 	rev->pktinfo = ev->pktinfo;
 	rev->attributes = ev->attributes;
-	if (queue_request) {
-		ISC_LIST_APPEND(disp->rq_events, rev, ev_link);
-	} else if (queue_response) {
+	if (queue_response) {
 		ISC_LIST_APPEND(resp->items, rev, ev_link);
 	} else {
 		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL,
@@ -745,7 +718,6 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatchevent_t *rev;
 	unsigned int bucket;
 	isc_boolean_t killit;
-	isc_boolean_t queue_request;
 	isc_boolean_t queue_response;
 	dns_qid_t *qid;
 
@@ -836,26 +808,15 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	 */
 
 	/*
-	 * Look at flags.  If query, check to see if we have someone handling
-	 * them.  If response, look to see where it goes.
+	 * Look at flags.  If query, drop it. If response,
+	 * look to see where it goes.
 	 */
-	queue_request = ISC_FALSE;
 	queue_response = ISC_FALSE;
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
 		/*
 		 * Query.
 		 */
-		resp = ISC_LIST_HEAD(disp->rq_handlers);
-		while (resp != NULL) {
-			if (resp->item_out == ISC_FALSE)
-				break;
-			resp = ISC_LIST_NEXT(resp, link);
-		}
-		if (resp == NULL)
-			queue_request = ISC_TRUE;
-		rev = allocate_event(disp);
-		if (rev == NULL)
-			goto restart;
+		goto restart;
 	} else {
  		/*
 		 * Response.
@@ -886,9 +847,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	rev->result = ISC_R_SUCCESS;
 	rev->id = id;
 	rev->addr = tcpmsg->address;
-	if (queue_request) {
-		ISC_LIST_APPEND(disp->rq_events, rev, ev_link);
-	} else if (queue_response) {
+	if (queue_response) {
 		ISC_LIST_APPEND(resp->items, rev, ev_link);
 	} else {
 		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL, DNS_EVENT_DISPATCH,
@@ -1433,8 +1392,6 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	disp->requests = 0;
 	disp->tcpbuffers = 0;
 	disp->qid = NULL;
-	ISC_LIST_INIT(disp->rq_handlers);
-	ISC_LIST_INIT(disp->rq_events);
 
 	if (isc_mutex_init(&disp->lock) != ISC_R_SUCCESS) {
 		res = ISC_R_UNEXPECTED;
@@ -1477,7 +1434,6 @@ dispatch_free(dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
 	dns_dispatchmgr_t *mgr;
-	dns_dispatchevent_t *ev;
 
 	REQUIRE(VALID_DISPATCH(*dispp));
 	disp = *dispp;
@@ -1489,17 +1445,6 @@ dispatch_free(dns_dispatch_t **dispp)
 	if (disp->tcpmsg_valid) {
 		dns_tcpmsg_invalidate(&disp->tcpmsg);
 		disp->tcpmsg_valid = 0;
-	}
-
-	/*
-	 * Final cleanup of packets on the request list.
-	 */
-	ev = ISC_LIST_HEAD(disp->rq_events);
-	while (ev != NULL) {
-		ISC_LIST_UNLINK(disp->rq_events, ev, ev_link);
-		free_buffer(disp, ev->buffer.base, ev->buffer.length);
-		free_event(disp, ev);
-		ev = ISC_LIST_HEAD(disp->rq_events);
 	}
 
 	INSIST(disp->tcpbuffers == 0);
@@ -2016,241 +1961,6 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 		isc_task_send(disp->task, &disp->ctlevent);
 }
 
-isc_result_t
-dns_dispatch_addrequest(dns_dispatch_t *disp,
-			isc_task_t *task, isc_taskaction_t action, void *arg,
-			dns_dispentry_t **resp)
-{
-	dns_dispentry_t *res;
-
-	REQUIRE(VALID_DISPATCH(disp));
-	REQUIRE(task != NULL);
-	REQUIRE(resp != NULL && *resp == NULL);
-
-	LOCK(&disp->lock);
-
-	if (disp->shutting_down == 1) {
-		UNLOCK(&disp->lock);
-		return (ISC_R_SHUTTINGDOWN);
-	}
-
-	if (disp->requests >= disp->maxrequests) {
-		UNLOCK(&disp->lock);
-		return (ISC_R_QUOTA);
-	}
-
-	res = isc_mempool_get(disp->mgr->rpool);
-	if (res == NULL) {
-		UNLOCK(&disp->lock);
-		return (ISC_R_NOMEMORY);
-	}
-
-	disp->refcount++;
-	disp->requests++;
-	res->task = NULL;
-	isc_task_attach(task, &res->task);
-	res->magic = REQUEST_MAGIC;
-	res->disp = disp;
-	res->bucket = INVALID_BUCKET;
-	res->action = action;
-	res->arg = arg;
-	res->item_out = ISC_FALSE;
-	ISC_LIST_INIT(res->items);
-	ISC_LIST_INITANDAPPEND(disp->rq_handlers, res, link);
-
-	request_log(disp, res, LVL(90), "attaching task %p", res->task);
-
-	/*
-	 * If there are queries waiting to be processed, give this critter
-	 * one of them.
-	 */
-	do_next_request(disp, res);
-
-	startrecv(disp);
-
-	UNLOCK(&disp->lock);
-
-	*resp = res;
-
-	return (ISC_R_SUCCESS);
-}
-
-void
-dns_dispatch_removerequest(dns_dispentry_t **resp,
-			   dns_dispatchevent_t **sockevent)
-{
-	dns_dispatchmgr_t *mgr;
-	dns_dispatch_t *disp;
-	dns_dispentry_t *res;
-	dns_dispatchevent_t *ev;
-	isc_boolean_t killit;
-	unsigned int n;
-	isc_eventlist_t events;
-
-	REQUIRE(resp != NULL);
-	REQUIRE(VALID_REQUEST(*resp));
-
-	res = *resp;
-	*resp = NULL;
-
-	disp = res->disp;
-	REQUIRE(VALID_DISPATCH(disp));
-	mgr = disp->mgr;
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-
-	if (sockevent != NULL) {
-		REQUIRE(*sockevent != NULL);
-		ev = *sockevent;
-		*sockevent = NULL;
-	} else {
-		ev = NULL;
-	}
-
-	LOCK(&disp->lock);
-
-	INSIST(disp->requests > 0);
-	disp->requests--;
-	INSIST(disp->refcount > 0);
-	disp->refcount--;
-	killit = ISC_FALSE;
-	if (disp->refcount == 0) {
-		if (disp->recv_pending > 0)
-			isc_socket_cancel(disp->socket, NULL,
-					  ISC_SOCKCANCEL_RECV);
-		disp->shutting_down = 1;
-	}
-
-	ISC_LIST_UNLINK(disp->rq_handlers, res, link);
-
-	if (ev == NULL && res->item_out) {
-		/*
-		 * We've posted our event, but the caller hasn't gotten it
-		 * yet.  Take it back.
-		 */
-		ISC_LIST_INIT(events);
-		n = isc_task_unsend(res->task, res, DNS_EVENT_DISPATCH,
-				    NULL, &events);
-		/*
-		 * We had better have gotten it back.
-		 */
-		INSIST(n == 1);
-		ev = (dns_dispatchevent_t *)ISC_LIST_HEAD(events);
-	}
-
-	if (ev != NULL) {
-		REQUIRE(res->item_out == ISC_TRUE);
-		res->item_out = ISC_FALSE;
-		if (ev->buffer.base != NULL)
-			free_buffer(disp, ev->buffer.base, ev->buffer.length);
-		free_event(disp, ev);
-	}
-
-	request_log(disp, res, LVL(90), "detaching from task %p", res->task);
-	isc_task_detach(&res->task);
-
-	res->magic = 0;
-	isc_mempool_put(disp->mgr->rpool, res);
-	if (disp->shutting_down == 1)
-		do_cancel(disp, NULL);
-	else
-		startrecv(disp);
-
-	killit = destroy_disp_ok(disp);
-	UNLOCK(&disp->lock);
-	if (killit)
-		isc_task_send(disp->task, &disp->ctlevent);
-}
-
-void
-dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
-		       dns_dispatchevent_t **sockevent)
-{
-	dns_dispatchevent_t *ev;
-	isc_boolean_t response;
-
-	REQUIRE(VALID_DISPATCH(disp));
-	REQUIRE(sockevent != NULL && *sockevent != NULL);
-
-	ev = *sockevent;
-	*sockevent = NULL;
-
-	response = ISC_FALSE;
-	if (VALID_RESPONSE(resp)) {
-		response = ISC_TRUE;
-	} else {
-		REQUIRE(VALID_RESPONSE(resp) || VALID_REQUEST(resp));
-	}
-
-	LOCK(&disp->lock);
-	REQUIRE(ev != disp->failsafe_ev);
-	REQUIRE(resp->item_out == ISC_TRUE);
-	REQUIRE(ev->result == ISC_R_SUCCESS);
-	resp->item_out = ISC_FALSE;
-
-	if (ev->buffer.base != NULL)
-		free_buffer(disp, ev->buffer.base, ev->buffer.length);
-	free_event(disp, ev);
-
-	if (response)
-		do_next_response(disp, resp);
-	else
-		do_next_request(disp, resp);
-
-	if (disp->shutting_down == 0)
-		startrecv(disp);
-
-	UNLOCK(&disp->lock);
-}
-
-static void
-do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp) {
-	dns_dispatchevent_t *ev;
-
-	INSIST(resp->item_out == ISC_FALSE);
-
-	ev = ISC_LIST_HEAD(resp->items);
-	if (ev == NULL) {
-		if (disp->shutting_down == 1)
-			do_cancel(disp, NULL);
-		return;
-	}
-
-	ISC_LIST_UNLINK(resp->items, ev, ev_link);
-
-	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
-		       resp->action, resp->arg, resp, NULL, NULL);
-	resp->item_out = ISC_TRUE;
-	request_log(disp, resp, LVL(90),
-		    "[c] Sent event %p buffer %p len %d to task %p",
-		    ev, ev->buffer.base, ev->buffer.length,
-		    resp->task);
-	isc_task_send(resp->task, (isc_event_t **)&ev);
-}
-
-static void
-do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp) {
-	dns_dispatchevent_t *ev;
-
-	INSIST(resp->item_out == ISC_FALSE);
-
-	ev = ISC_LIST_HEAD(disp->rq_events);
-	if (ev == NULL) {
-		if (disp->shutting_down == 1)
-			do_cancel(disp, NULL);
-		return;
-	}
-
-	ISC_LIST_UNLINK(disp->rq_events, ev, ev_link);
-
-	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
-		       resp->action, resp->arg, resp, NULL, NULL);
-	resp->item_out = ISC_TRUE;
-	request_log(disp, resp, LVL(90),
-		    "[d] Sent event %p buffer %p len %d to task %p",
-		    ev, ev->buffer.base, ev->buffer.length, resp->task);
-	isc_task_send(resp->task, (isc_event_t **)&ev);
-}
-
 static void
 do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
@@ -2260,22 +1970,6 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		return;
 
 	qid = DNS_QID(disp);
-
-	/*
-	 * If no target given, find the first request handler.  If
-	 * there are packets waiting for any handler, however, don't
-	 * kill them.
-	 */
-	if (resp == NULL) {
-		if (ISC_LIST_EMPTY(disp->rq_events)) {
-			resp = ISC_LIST_HEAD(disp->rq_handlers);
-			while (resp != NULL) {
-				if (resp->item_out == ISC_FALSE)
-					break;
-				resp = ISC_LIST_NEXT(resp, link);
-			}
-		}
-	}
 
 	/*
 	 * Search for the first response handler without packets outstanding.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.39 2001/01/27 02:08:06 bwelling Exp $ */
+/* $Id: dispatch.h,v 1.40 2001/02/07 05:11:58 bwelling Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -61,7 +61,7 @@
 ISC_LANG_BEGINDECLS
 
 /*
- * This event is sent to a task when a response (or request) comes in.
+ * This event is sent to a task when a response comes in.
  * No part of this structure should ever be modified by the caller,
  * other than parts of the buffer.  The holy parts of the buffer are
  * the base and size of the buffer.  All other parts of the buffer may
@@ -363,62 +363,6 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
  * Requires:
  *	"resp" != NULL and "*resp" contain a value previously allocated
  *	by dns_dispatch_addresponse();
- */
-
-
-isc_result_t
-dns_dispatch_addrequest(dns_dispatch_t *disp,
-			isc_task_t *task, isc_taskaction_t action, void *arg,
-			dns_dispentry_t **resp);
-/*
- * Arranges for the given task to get a callback for request packets.  When
- * the event is delivered, it must be returned using dns_dispatch_freeevent()
- * or through dns_dispatch_removerequest() for another to be delivered.
- *
- * Requires:
- *	disp is valid.
- *
- *	task, action, and arg is valid.
- *
- *	resp != NULL && *resp == NULL
- *
- * Returns:
- *	ISC_R_SUCCESS	-- success.
- *
- *	Anything else	-- failure.
- */
-
-
-void
-dns_dispatch_removerequest(dns_dispentry_t **resp,
-			   dns_dispatchevent_t **sockevent);
-/*
- * Stops the flow of requests for the provided id and destination.
- * If "sockevent" is non-NULL, the dispatch event and associated buffer is
- * also returned to the system.
- *
- * Requires:
- *	resp != NULL and *resp is valid.
- *
- *	If sockevent != NULL, *sockevent must is valid.
- */
-
-
-void
-dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
-		       dns_dispatchevent_t **sockevent);
-/*
- * Return a dispatchevent and associated buffer to the dispatch.  This needs
- * to be called if more events are desired but a particular event is fully
- * processed, and the associated buffer is no longer needed.
- *
- * Requires:
- *	disp is valid.
- *
- *	resp is valid.
- *
- *	sockevent != NULL && *sockevent is valid.
- *	
  */
 
 
