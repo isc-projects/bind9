@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.99 2001/05/14 22:07:40 gson Exp $ */
+/* $Id: dispatch.c,v 1.100 2001/05/14 23:10:19 gson Exp $ */
 
 #include <config.h>
 
@@ -486,11 +486,7 @@ allocate_event(dns_dispatch_t *disp) {
 /*
  * General flow:
  *
- * If I/O result == CANCELED, free the buffer and notify everyone as
- * the various queues drain.
- *
- * If I/O is error (not canceled and not success) log it, free the buffer,
- * and restart.
+ * If I/O result == CANCELED or error, free the buffer.
  *
  * If query:
  *	if no listeners: free the buffer, restart.
@@ -560,24 +556,14 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	if (ev->result != ISC_R_SUCCESS) {
 		free_buffer(disp, ev->region.base, ev->region.length);
 
-		/*
-		 * If the recv() was canceled pass the word on.
-		 */
-		if (ev->result == ISC_R_CANCELED) {
-			UNLOCK(&disp->lock);
-			isc_event_free(&ev_in);
-			return;
-		}
+		if (ev->result != ISC_R_CANCELED)
+			dispatch_log(disp, ISC_LOG_ERROR,
+				     "odd socket result in udp_recv(): %s",
+				     isc_result_totext(ev->result));
 
-		/*
-		 * otherwise, on strange error, log it and restart.
-		 * XXXMLG
-		 */
-		dispatch_log(disp, ISC_LOG_ERROR,
-			     "odd socket result in udp_recv(): %s",
-			     isc_result_totext(ev->result));
-
-		goto restart;
+		UNLOCK(&disp->lock);
+		isc_event_free(&ev_in);
+		return;
 	}
 
 	/*
