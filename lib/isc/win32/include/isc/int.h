@@ -18,10 +18,6 @@
 #ifndef ISC_INT_H
 #define ISC_INT_H 1
 
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
-
 typedef __int8				isc_int8_t;
 typedef unsigned __int8			isc_uint8_t;
 typedef __int16				isc_int16_t;
@@ -30,7 +26,5 @@ typedef __int32				isc_int32_t;
 typedef unsigned __int32		isc_uint32_t;
 typedef __int64				isc_int64_t;
 typedef unsigned __int64		isc_uint64_t;
-
-ISC_LANG_ENDDECLS
 
 #endif /* ISC_INT_H */
