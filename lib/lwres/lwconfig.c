@@ -90,9 +90,46 @@ lwres_resetaddr(lwres_addr_t *addr);
 static lwres_result_t
 lwres_create_addr(const char *buff, lwres_addr_t *addr);
 
+
+/*
+ * Eat characters from FP until EOL or EOF. Returns EOF or '\n'
+ */
+static int
+eatline(FILE *fp) {
+	int ch;
+
+	ch = fgetc(fp);
+	while (ch != '\n' && ch != EOF)
+		ch = fgetc(fp);
+
+	return (ch);
+}
+
+
+/*
+ * Eats white space up to next newline or non-whitespace character (of
+ * EOF). Returns the last character read. Comments are considered white
+ * space.
+ */
+static int
+eatwhite(FILE *fp) {
+	int ch;
+
+	ch = fgetc(fp);
+	while (ch != '\n' && ch != EOF && isspace((unsigned char)ch))
+		ch = fgetc(fp);
+
+	if (ch == ';' || ch == '#')
+		ch = eatline(fp);
+
+	return (ch);
+}
+
+
 /*
  * Skip over any leading whitespace and then read in the next sequence of
- * non-whitespace characters. Returnss EOF on end-of-file, or the character
+ * non-whitespace characters. In this context newline is not considered
+ * whitespace. Returns EOF on end-of-file, or the character
  * that caused the reading to stop.
  */
 static int
@@ -105,13 +142,11 @@ getword(FILE *fp, char *buffer, size_t size) {
 
 	*p = '\0';
 
-	ch = fgetc(fp);
-	while (ch != '\n' && ch != EOF && isspace((unsigned char)ch))
-		ch = fgetc(fp);
+	ch = eatwhite(fp);
 
 	if (ch == EOF)
 		return (EOF);
-
+	
 	do {
 		*p = '\0';
 
@@ -231,7 +266,10 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
 		return (LWRES_R_FAILURE); /* Nothing on line. */
-	else if (res != EOF && res != '\n')
+	else if (res == ' ' || res == '\t')
+		res = eatwhite(fp);
+	
+	if (res != EOF && res != '\n') 
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	res = lwres_create_addr(word,
@@ -253,7 +291,10 @@ lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp) {
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
 		return (LWRES_R_FAILURE); /* Nothing else on line. */
-	else if (res != EOF && res != '\n')
+	else if (res == ' ' || res == '\t')
+		res = eatwhite(fp);
+		
+	if (res != EOF && res != '\n')
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	if (confdata->domainname != NULL)
@@ -339,12 +380,20 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 	unsigned int len;
 
 	if (lwres_net_pton(AF_INET, buffer, &addrbuff) == 1) {
+#if 1 /* XXX BRISTER. Set to 0 for testing with lwresconf_test */
 		addr->family = LWRES_ADDRTYPE_V4;
+#else
+		addr->family = AF_INET;
+#endif
 		addr->length = NS_INADDRSZ;
 		len = 4;
 #if defined(AF_INET6)
 	} else if (lwres_net_pton(AF_INET6, buffer, &addrbuff) == 1) {
+#if 1 /* XXX BRISTER. Set to 0 for testing with lwresconf_test */
 		addr->family = LWRES_ADDRTYPE_V6;
+#else
+		addr->family = AF_INET6;
+#endif	
 		addr->length = NS_IN6ADDRSZ;
 		len = 16;
 #endif
@@ -395,7 +444,7 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp) {
 			confdata->sortlist[idx].mask =
 				confdata->sortlist[idx].addr;
 
-			memset(&confdata->sortlist[idx].mask, 0xff,
+			memset(&confdata->sortlist[idx].mask.address, 0xff,
 			       confdata->sortlist[idx].addr.length);
 		}
 
@@ -454,6 +503,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	char word[256];
 	lwres_result_t rval;
 	lwres_conf_t *confdata;
+	int stopchar;
 
 	REQUIRE(ctx != NULL);
 	confdata = &ctx->confdata;
@@ -468,8 +518,8 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 		return (LWRES_R_FAILURE);
 
 	do {
-		(void)getword(fp, word, sizeof(word));
-		if (strlen(word) == 0) {
+		stopchar = getword(fp, word, sizeof(word));
+		if (stopchar == EOF) {
 			rval = LWRES_R_SUCCESS;
 			break;
 		}
@@ -484,6 +534,14 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 			rval = lwres_conf_parsesortlist(ctx, fp);
 		else if (strcmp(word, "option") == 0)
 			rval = lwres_conf_parseoption(ctx, fp);
+		else if (strlen(word) > 0) {
+			/* unrecognised word. Ignore entire line */
+			rval = LWRES_R_SUCCESS;
+			stopchar = eatline(fp);
+			if (stopchar == EOF) {
+				break;
+			}
+		}
 	} while (rval == LWRES_R_SUCCESS);
 
 	fclose(fp);
@@ -497,6 +555,7 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 	char tmp[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"];
 	const char *p;
 	lwres_conf_t *confdata;
+	lwres_addr_t tmpaddr;
 
 	REQUIRE(ctx != NULL);
 	confdata = &ctx->confdata;
@@ -537,7 +596,12 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 
 			fprintf(fp, " %s", tmp);
 
-			if (confdata->sortlist[i].mask.length > 0) {
+			tmpaddr = confdata->sortlist[i].mask;
+			memset(&tmpaddr.address, 0xff, tmpaddr.length);
+			
+			if (memcmp(&tmpaddr.address,
+				   confdata->sortlist[i].mask.address,
+				   confdata->sortlist[i].mask.length) != 0) {
 				p = lwres_net_ntop
 					(confdata->sortlist[i].mask.family,
 					 confdata->sortlist[i].mask.address,

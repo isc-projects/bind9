@@ -1,5 +1,21 @@
 domain  jab.fr
-nameserver 194.150.1.2
-nameserver 194.150.1.1
-option debug
+nameserver 194.150.1.2     ; ignore that
+
+; ignore this comment
+
+nameserver 194.150.1.1  # ignore this comment too
+
+a-bad-entry-that-will be ignored
+
+option debug ; foo
 option ndots:10
+
+sortlist 10.0.0.0/255.244.33.0 11.0.0.0
+
+search aaa bbb ccc ddd ; blank stuff
+# search eee fff ggg hhh
+
+#
+# Bar
+### bar bar bar
+#
