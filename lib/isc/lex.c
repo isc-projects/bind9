@@ -20,6 +20,8 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <sys/types.h>
+
 #include <isc/assertions.h>
 #include <isc/boolean.h>
 #include <isc/error.h>
@@ -299,7 +301,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	FILE *stream;
 	char *curr, *prev;
 	size_t remaining;
-	u_long u_long;
+	unsigned long ulong;
 	unsigned int i, saved_options;
 
 	/*
@@ -485,14 +487,14 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						c;
 					tokenp->type =
 						isc_tokentype_number;
-					u_long = 0;
+					ulong = 0;
 					for (i = 0;
 					     i < lex->max_token - remaining;
 					     i++) {
-						u_long *= 10;
-						u_long += lex->data[i] - '0';
+						ulong *= 10;
+						ulong += lex->data[i] - '0';
 					}
-					tokenp->value.as_ulong = u_long;
+					tokenp->value.as_ulong = ulong;
 					done = ISC_TRUE;
 					continue;
 				} else
