@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.8 2001/10/09 22:58:23 gson Exp $ */
+/* $Id: keycreate.c,v 1.9 2004/01/27 04:25:36 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/entropy.h>
+#include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
@@ -228,6 +229,7 @@ main(int argc, char *argv[]) {
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
 	RUNCHECK(isc_entropy_createfilesource(ectx, "random.data"));
+	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	log = NULL;
 	logconfig = NULL;
@@ -313,6 +315,7 @@ main(int argc, char *argv[]) {
 	isc_log_destroy(&log);
 
 	dst_lib_destroy();
+	isc_hash_destroy();
 	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
