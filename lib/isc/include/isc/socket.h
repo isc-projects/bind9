@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.6 1998/11/15 11:48:21 explorer Exp $ */
+/* $Id: socket.h,v 1.7 1998/11/26 00:10:33 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -82,7 +82,7 @@ typedef struct isc_socketevent {
 	unsigned int		addrlength;	/* length of address */
 } *isc_socketevent_t;
 
-typedef struct isc_socket_newconev {
+typedef struct isc_socket_newconnev {
 	struct isc_event	common;
 	isc_socket_t		newsocket;
 	isc_result_t		result;		/* OK, EOF, whatever else */
@@ -90,11 +90,16 @@ typedef struct isc_socket_newconev {
 	unsigned int		addrlength;	/* length of address */
 } *isc_socket_newconnev_t;
 
+typedef struct isc_socket_connev {
+	struct isc_event	common;
+	isc_result_t		result;		/* OK, EOF, whatever else */
+} *isc_socket_connev_t;
+
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)
 #define ISC_SOCKEVENT_SENDDONE	(ISC_EVENTCLASS_SOCKET + 2)
 #define ISC_SOCKEVENT_NEWCONN	(ISC_EVENTCLASS_SOCKET + 3)
-#define ISC_SOCKEVENT_CONNECTED	(ISC_EVENTCLASS_SOCKET + 4)
+#define ISC_SOCKEVENT_CONNECT	(ISC_EVENTCLASS_SOCKET + 4)
 #define ISC_SOCKEVENT_RECVMARK	(ISC_EVENTCLASS_SOCKET + 5)
 #define ISC_SOCKEVENT_SENDMARK	(ISC_EVENTCLASS_SOCKET + 6)
 
@@ -306,7 +311,7 @@ isc_socket_connect(isc_socket_t socket, struct isc_sockaddr *addressp,
 		   void *arg);
 /*
  * Connect 'socket' to peer with address *saddr.  When the connection
- * succeeds, or when an error occurs, a CONNECTED event with action 'action'
+ * succeeds, or when an error occurs, a CONNECT event with action 'action'
  * and arg 'arg' will be posted to the event queue for 'task'.
  *
  * Requires:

@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.9 1998/11/15 11:48:17 explorer Exp $ */
+/* $Id: socket.c,v 1.10 1998/11/26 00:10:33 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -70,9 +70,17 @@ typedef struct isc_socket_ncintev {
 	LINK(struct isc_socket_ncintev)	link;
 } *isc_socket_ncintev_t;
 
+typedef struct isc_socket_connintev {
+	struct isc_event	common;
+	isc_boolean_t		canceled;
+	isc_task_t		task;
+	isc_socket_connev_t	done;  /* the done event */
+} *isc_socket_connintev_t;
+
 #define SOCKET_MAGIC			0x494f696fU	/* IOio */
-#define VALID_SOCKET(t)			((t) != NULL && \
-				 (t)->magic == SOCKET_MAGIC)
+#define VALID_SOCKET(t)			((t) != NULL \
+					 && (t)->magic == SOCKET_MAGIC)
+
 struct isc_socket {
 	/* Not locked. */
 	unsigned int			magic;
@@ -84,12 +92,15 @@ struct isc_socket {
 	LIST(struct isc_socket_intev)	read_list;
 	LIST(struct isc_socket_intev)	write_list;
 	LIST(struct isc_socket_ncintev)	listen_list;
+	isc_socket_connintev_t		connect_ev;
 	isc_boolean_t			pending_read;
 	isc_boolean_t			pending_write;
 	isc_boolean_t			listener;  /* listener socket */
+	isc_boolean_t			connecting;
 	isc_sockettype_t		type;
 	isc_socket_intev_t		riev;
 	isc_socket_intev_t		wiev;
+	isc_socket_connintev_t		ciev;
 	struct isc_sockaddr		address;
 	unsigned int			addrlength;
 };
@@ -122,11 +133,15 @@ static void send_recvdone_event(isc_socket_t, isc_socket_intev_t *,
 				isc_socketevent_t *, isc_result_t);
 static void send_senddone_event(isc_socket_t, isc_socket_intev_t *,
 				isc_socketevent_t *, isc_result_t);
-static void rwdone_event_destroy(isc_event_t);
+static void done_event_destroy(isc_event_t);
 static void free_socket(isc_socket_t *);
 static isc_result_t allocate_socket(isc_socketmgr_t, isc_sockettype_t,
 				    isc_socket_t *);
 static void destroy(isc_socket_t *);
+static isc_boolean_t internal_accept(isc_task_t, isc_event_t);
+static isc_boolean_t internal_connect(isc_task_t, isc_event_t);
+static isc_boolean_t internal_read(isc_task_t, isc_event_t);
+static isc_boolean_t internal_write(isc_task_t, isc_event_t);
 
 /*
  * poke the select loop when there is something for us to do.  Manager must
@@ -158,18 +173,18 @@ select_readmsg(isc_socketmgr_t mgr)
 
 	cc = read(mgr->pipe_fds[0], &msg, sizeof(int));
 	if (cc < 0) {
-		if (errno == EWOULDBLOCK)
-			return SELECT_POKE_NOTHING;
+		if (errno == EAGAIN)
+			return (SELECT_POKE_NOTHING);
 
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "read() failed during watcher poke: %s",
 				 strerror(errno));
-		return SELECT_POKE_NOTHING;  /* XXX */
+		return (SELECT_POKE_NOTHING);
 	}
 
 	INSIST(cc == sizeof(int));
 
-	return msg;
+	return (msg);
 }
 
 /*
@@ -199,7 +214,7 @@ make_nonblock(int fd)
  * Handle freeing a done event when needed.
  */
 static void
-rwdone_event_destroy(isc_event_t ev)
+done_event_destroy(isc_event_t ev)
 {
 	isc_socket_t sock = ev->sender;
 	isc_boolean_t kill_socket = ISC_FALSE;
@@ -212,29 +227,8 @@ rwdone_event_destroy(isc_event_t ev)
 
 	REQUIRE(sock->references > 0);
 	sock->references--;
-	XTRACE(("rwdone_event_destroy: sock %p, ref cnt == %d\n",
+	XTRACE(("done_event_destroy: sock %p, ref cnt == %d\n",
 		sock, sock->references));
-
-	if (sock->references == 0)
-		kill_socket = ISC_TRUE;
-	UNLOCK(&sock->lock);
-	
-	if (kill_socket)
-		destroy(&sock);
-}
-
-static void
-ncdone_event_destroy(isc_event_t ev)
-{
-	isc_socket_t sock = ev->sender;
-	isc_boolean_t kill_socket = ISC_FALSE;
-
-	/*
-	 * detach from the socket.  We would have already detached from the
-	 * task when we actually queue this event up.
-	 */
-	LOCK(&sock->lock);
-	sock->references--;
 
 	if (sock->references == 0)
 		kill_socket = ISC_TRUE;
@@ -300,6 +294,8 @@ allocate_socket(isc_socketmgr_t manager, isc_sockettype_t type,
 	INIT_LIST(sock->listen_list);
 	sock->pending_read = ISC_FALSE;
 	sock->pending_write = ISC_FALSE;
+	sock->listener = ISC_FALSE;
+	sock->connecting = ISC_FALSE;
 
 	/*
 	 * initialize the lock
@@ -374,9 +370,6 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	/*
-	 * Create the associated socket XXX
-	 */
 	switch (type) {
 	case isc_socket_udp:
 		sock->fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -538,6 +531,18 @@ dispatch_listen(isc_socket_t sock)
 	isc_task_send(iev->task, &ev);
 }
 
+static void
+dispatch_connect(isc_socket_t sock)
+{
+	isc_socket_connintev_t iev;
+
+	INSIST(sock->connecting);
+
+	iev = sock->connect_ev;
+
+	isc_task_send(iev->task, (isc_event_t *)&iev);
+}
+
 /*
  * Dequeue an item off the given socket's read queue, set the result code
  * in the done event to the one provided, and send it to the task it was
@@ -642,14 +647,14 @@ internal_accept(isc_task_t task, isc_event_t ev)
 
 	/*
 	 * Try to accept the new connection.  If the accept fails with
-	 * EWOULDBLOCK, simply poke the watcher to watch this socket
+	 * EAGAIN, simply poke the watcher to watch this socket
 	 * again.
 	 */
 	addrlen = sizeof(addr);
 	fd = accept(sock->fd, &addr, &addrlen);
 	if (fd < 0) {
-		if (errno == EWOULDBLOCK) {
-			XTRACE(("internal_accept: ewouldblock\n"));
+		if (errno == EAGAIN) {
+			XTRACE(("internal_accept: EAGAIN\n"));
 			sock->pending_read = ISC_FALSE;
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
@@ -791,7 +796,7 @@ internal_read(isc_task_t task, isc_event_t ev)
 		 * check for error or block condition
 		 */
 		if (cc < 0) {
-			if (cc == EWOULDBLOCK)
+			if (errno == EAGAIN)
 				goto poke;
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal read: %s",
@@ -935,7 +940,7 @@ internal_write(isc_task_t task, isc_event_t ev)
 		 * check for error or block condition
 		 */
 		if (cc < 0) {
-			if (cc == EWOULDBLOCK)
+			if (errno == EAGAIN)
 				goto poke;
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_write: %s",
@@ -1104,7 +1109,9 @@ watcher(void *uap)
 					}
 
 					iev = HEAD(sock->write_list);
-					if (iev == NULL || sock->pending_write) {
+					if ((iev == NULL
+					     || sock->pending_write)
+					    && !sock->connecting) {
 						FD_CLR(sock->fd,
 						       &manager->write_fds);
 						XTRACE(("watch cleared w\n"));
@@ -1145,7 +1152,10 @@ watcher(void *uap)
 						unlock_sock = ISC_TRUE;
 						LOCK(&sock->lock);
 					}
-					dispatch_write(sock);
+					if (sock->connecting)
+						dispatch_connect(sock);
+					else
+						dispatch_write(sock);
 					FD_CLR(i, &manager->write_fds);
 				}
 				if (unlock_sock)
@@ -1196,7 +1206,7 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "pipe() failed: %s",
-				 strerror(errno)); /* XXX */
+				 strerror(errno));
 
 		return (ISC_R_UNEXPECTED);
 	}
@@ -1324,7 +1334,7 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 	/*
 	 * Remember that we need to detach on event free
 	 */
-	ev->common.destroy = rwdone_event_destroy;
+	ev->common.destroy = done_event_destroy;
 
 	ev->region = *region;
 	ev->n = 0;
@@ -1347,7 +1357,7 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 		}
 
 		if (cc < 0) {
-			if (cc == EWOULDBLOCK)
+			if (errno == EAGAIN)
 				goto queue;
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_socket_recv: %s",
@@ -1466,7 +1476,7 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 	/*
 	 * Remember that we need to detach on event free
 	 */
-	ev->common.destroy = rwdone_event_destroy;
+	ev->common.destroy = done_event_destroy;
 
 	ev->region = *region;
 	ev->n = 0;
@@ -1499,16 +1509,20 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 		else if (sock->type == isc_socket_tcp)
 			cc = send(sock->fd, ev->region.base,
 				  ev->region.length, 0);
-		else
-			cc = -1;  /* XXX */
+		else {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_socket_send: unknown socket type");
+			return (ISC_R_UNEXPECTED);
+		}
 
 		if (cc < 0) {
-			if (cc == EWOULDBLOCK)
+			if (errno == EAGAIN)
 				goto queue;
+
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_socket_send: %s",
 					 strerror(errno));
-			INSIST(cc >= 0);
+			return (ISC_R_UNEXPECTED);
 		}
 
 		if (cc == 0) {
@@ -1653,6 +1667,9 @@ isc_socket_listen(isc_socket_t sock, int backlog)
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * This should try to do agressive accept()
+ */
 isc_result_t
 isc_socket_accept(isc_socket_t sock,
 		  isc_task_t task, isc_taskaction_t action, void *arg)
@@ -1718,7 +1735,7 @@ isc_socket_accept(isc_socket_t sock,
 	iev->task = ntask;
 	iev->done = dev;
 	iev->canceled = ISC_FALSE;
-	dev->common.destroy = ncdone_event_destroy;
+	dev->common.destroy = done_event_destroy;
 	dev->newsocket = nsock;
 
 	/*
@@ -1734,4 +1751,208 @@ isc_socket_accept(isc_socket_t sock,
 	UNLOCK(&sock->lock);
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addr, int addrlen,
+		   isc_task_t task, isc_taskaction_t action, void *arg)
+{
+	isc_socket_connev_t dev;
+	isc_task_t ntask = NULL;
+	isc_socketmgr_t manager;
+	int cc;
+
+	XENTER("isc_socket_connect");
+	REQUIRE(VALID_SOCKET(sock));
+	manager = sock->manager;
+	REQUIRE(VALID_MANAGER(manager));
+
+	LOCK(&sock->lock);
+
+	REQUIRE(!sock->connecting);
+
+	if (sock->ciev == NULL) {
+		sock->ciev = (isc_socket_connintev_t)isc_event_allocate(manager->mctx,
+								      sock,
+								      ISC_SOCKEVENT_INTCONN,
+								      internal_connect,
+								      sock,
+								      sizeof(*(sock->ciev)));
+		if (sock->ciev == NULL) {
+			UNLOCK(&sock->lock);
+			return (ISC_R_NOMEMORY);
+		}
+	}
+
+	dev = (isc_socket_connev_t)isc_event_allocate(manager->mctx,
+						      sock,
+						      ISC_SOCKEVENT_CONNECT,
+						      action,
+						      arg,
+						      sizeof (*dev));
+	if (dev == NULL) {
+		UNLOCK(&sock->lock);
+		return (ISC_R_NOMEMORY);
+	}
+
+	/*
+	 * attach to socket
+	 */
+	sock->references++;
+
+	/*
+	 * Try to do the connect right away, as there can be only one
+	 * outstanding, and it might happen to complete.
+	 */
+	sock->address = *addr;
+	sock->addrlength = addrlen;
+	cc = connect(sock->fd, (struct sockaddr *)addr, addrlen);
+	if (cc < 0) {
+		if (errno == EAGAIN || errno == EINPROGRESS)
+			goto queue;
+		/* XXX check for normal errors here */
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s", strerror(errno));
+		return (ISC_R_UNEXPECTED);
+	}
+
+	/*
+	 * If connect completed, fire off the done event
+	 */
+	if (cc == 0) {
+		dev->result = ISC_R_SUCCESS;
+		isc_task_send(task, (isc_event_t *)&dev);
+		UNLOCK(&sock->lock);
+
+		return (ISC_R_SUCCESS);
+	}
+
+ queue:
+
+	XTRACE(("queueing connect internal event\n"));
+	/*
+	 * Attach to to task
+	 */
+	isc_task_attach(task, &ntask);
+
+	sock->connecting = ISC_TRUE;
+
+	sock->ciev->task = ntask;
+	sock->ciev->done = dev;
+	sock->ciev->canceled = ISC_FALSE;
+	dev->common.destroy = done_event_destroy;
+
+	/*
+	 * poke watcher here.  We still have the socket locked, so there
+	 * is no race condition.  We will keep the lock for such a short
+	 * bit of time waking it up now or later won't matter all that much.
+	 */
+	if (sock->connect_ev == NULL)
+		select_poke(manager, sock->fd);
+
+	sock->connect_ev = sock->ciev;
+	sock->ciev = NULL;
+
+	UNLOCK(&sock->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Called when a socket with a pending connect() finishes.
+ */
+static isc_boolean_t
+internal_connect(isc_task_t task, isc_event_t ev)
+{
+	isc_socket_t sock;
+	isc_socket_connev_t dev;
+	isc_socket_connintev_t iev;
+	int cc;
+	int optlen;
+
+	sock = ev->sender;
+	iev = (isc_socket_connintev_t)ev;
+
+	REQUIRE(VALID_SOCKET(sock));
+
+	LOCK(&sock->lock);
+	XTRACE(("internal_connect called, locked parent sock %p\n", sock));
+
+	REQUIRE(sock->connecting);
+	REQUIRE(sock->connect_ev != NULL);
+	REQUIRE(iev->task == task);
+
+	sock->connecting = ISC_FALSE;
+
+	/*
+	 * Has this event been canceled?
+	 */
+	if (iev->canceled) {
+		isc_event_free((isc_event_t *)(sock->connect_ev));
+
+		UNLOCK(&sock->lock);
+
+		return (0);
+	}
+
+	dev = iev->done;
+
+	/*
+	 * Get any possible error status here.
+	 */
+	optlen = sizeof(cc);
+	if (getsockopt(sock->fd, SOL_SOCKET, SO_ERROR,
+		       (char *)&cc, &optlen) < 0)
+		cc = errno;
+	else
+		errno = cc;
+
+	if (errno != 0) {
+		/*
+		 * If the error is EAGAIN, just re-select on this
+		 * fd and pretend nothing strange happened.
+		 */
+		if (errno == EAGAIN || errno == EINPROGRESS) {
+			XTRACE(("internal_connect: EAGAIN\n"));
+			sock->connecting = ISC_TRUE;
+			select_poke(sock->manager, sock->fd);
+			UNLOCK(&sock->lock);
+
+			return (0);
+		}
+
+		/*
+		 * Translate other errors into ISC_R_* flavors.
+		 */
+		switch (errno) {
+		case ETIMEDOUT:
+			dev->result = ISC_R_TIMEDOUT;
+			break;
+		case ECONNREFUSED:
+			dev->result = ISC_R_CONNREFUSED;
+			break;
+		case ENETUNREACH:
+			dev->result = ISC_R_NETUNREACH;
+			break;
+		default:
+			dev->result = ISC_R_UNEXPECTED;
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_connect: connect() %s",
+					 strerror(errno));
+			break;
+		}
+	}
+
+
+	UNLOCK(&sock->lock);
+
+	/*
+	 * It's safe to do this, since the done event's free routine will
+	 * detach from the socket, so sock can't disappear out from under
+	 * us.
+	 */
+	isc_task_send(iev->task, (isc_event_t *)&dev);
+	iev->done = NULL;
+
+	return (0);
 }
