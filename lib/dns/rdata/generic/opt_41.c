@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.19.4.1 2001/01/09 22:47:23 bwelling Exp $ */
+/* $Id: opt_41.c,v 1.19.4.2 2001/01/16 17:45:27 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -158,7 +158,7 @@ static inline isc_result_t
 fromstruct_opt(ARGS_FROMSTRUCT) {
 	dns_rdata_opt_t *opt = source;
 	isc_region_t region;
-	isc_uint8_t length;
+	isc_uint16_t length;
 
 	REQUIRE(type == 41);
 	REQUIRE(source != NULL);
