@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004  Internet System Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.55 2004/03/05 05:10:31 marka Exp $
+ * $Id: openssl_link.c,v 1.56 2004/03/05 05:48:24 marka Exp $
  */
 #ifdef OPENSSL
 

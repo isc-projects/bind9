@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004  Internet System Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2000-2002  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.22 2004/03/05 05:10:30 marka Exp $ */
+/* $Id: dst_parse.h,v 1.23 2004/03/05 05:48:24 marka Exp $ */
 
 #ifndef DST_DST_PARSE_H
 #define DST_DST_PARSE_H 1

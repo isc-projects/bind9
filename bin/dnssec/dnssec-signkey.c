@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004  Internet System Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2000-2003  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.61 2004/03/05 04:57:41 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.62 2004/03/05 05:48:19 marka Exp $ */
 
 #include <config.h>
 
