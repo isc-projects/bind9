@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.4 2001/11/02 22:26:21 gson Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.5 2001/11/02 22:31:14 gson Exp $";
 #endif
 
 /*
@@ -213,7 +213,6 @@ dst_compare_keys(const DST_KEY *key1, const DST_KEY *key2)
  *	Then data is hashed (SIG_MODE_UPDATE).  Finally the signature
  *	itself is created (SIG_MODE_FINAL).  This function can be called
  *	once with INIT, UPDATE and FINAL modes all set, or it can be
-
  *	called separately with a different mode set for each step.  The
  *	UPDATE step can be repeated.
  * Parameters
