@@ -24,6 +24,8 @@
 
 #include <dns/confctx.h>
 #include <dns/confcommon.h>
+#include <dns/log.h>
+
 #include "confpvt.h"
 
 
@@ -74,53 +76,54 @@
 #define EXPERT_MODE_BIT			34
 
 
-static isc_result_t cfg_set_iplist(dns_c_options_t *options,
+static isc_result_t cfg_set_iplist(isc_log_t *lctx, dns_c_options_t *options,
 				   dns_c_ipmatchlist_t **fieldaddr,
 				   dns_c_ipmatchlist_t *newval,
 				   isc_boolean_t copy);
-static isc_result_t cfg_set_boolean(dns_c_options_t *options,
+static isc_result_t cfg_set_boolean(isc_log_t *lctx, dns_c_options_t *options,
 				    isc_boolean_t *fieldaddr,
 				    isc_boolean_t newval,
-				    dns_setbits_t *setfield,
+				    dns_c_setbits_t *setfield,
 				    isc_uint32_t bitnumber);
-static isc_result_t cfg_set_int32(dns_c_options_t *options,
+static isc_result_t cfg_set_int32(isc_log_t *lctx, dns_c_options_t *options,
 				  isc_int32_t *fieldaddr,
 				  isc_int32_t newval,
-				  dns_setbits_t *setfield,
+				  dns_c_setbits_t *setfield,
 				  isc_uint32_t bitnumber);
-static isc_result_t cfg_set_uint32(dns_c_options_t *options,
+static isc_result_t cfg_set_uint32(isc_log_t *lctx, dns_c_options_t *options,
 				   isc_uint32_t *fieldaddr,
 				   isc_uint32_t newval,
-				   dns_setbits_t *setfield,
+				   dns_c_setbits_t *setfield,
 				   isc_uint32_t bitnumber);
-static isc_result_t cfg_set_string(dns_c_options_t *options,
+static isc_result_t cfg_set_string(isc_log_t *lctx, dns_c_options_t *options,
 				   char **field,
 				   const char *newval);
 
-static isc_result_t cfg_get_uint32(dns_c_options_t *options,
+static isc_result_t cfg_get_uint32(isc_log_t *lctx, dns_c_options_t *options,
 				   isc_uint32_t *field,
 				   isc_uint32_t *result,
-				   dns_setbits_t *setfield,
+				   dns_c_setbits_t *setfield,
 				   isc_uint32_t bitnumber);
-static isc_result_t cfg_get_int32(dns_c_options_t *options,
+static isc_result_t cfg_get_int32(isc_log_t *lctx, dns_c_options_t *options,
 				  isc_int32_t *field,
 				  isc_int32_t *result,
-				  dns_setbits_t *setfield,
+				  dns_c_setbits_t *setfield,
 				  isc_uint32_t bitnumber);
-static isc_result_t cfg_get_boolean(dns_c_options_t *options,
+static isc_result_t cfg_get_boolean(isc_log_t *lctx, dns_c_options_t *options,
 				    isc_boolean_t *field,
 				    isc_boolean_t *result,
-				    dns_setbits_t *setfield,
+				    dns_c_setbits_t *setfield,
 				    isc_uint32_t bitnumber);
-static isc_result_t cfg_get_iplist(dns_c_options_t *options,
+static isc_result_t cfg_get_iplist(isc_log_t *lctx, dns_c_options_t *options,
 				   dns_c_ipmatchlist_t *field,
 				   dns_c_ipmatchlist_t **resval);
-static isc_result_t acl_init(dns_c_ctx_t *cfg);
-static isc_result_t logging_init (dns_c_ctx_t *cfg);
+static isc_result_t acl_init(isc_log_t *lctx, dns_c_ctx_t *cfg);
+static isc_result_t logging_init (isc_log_t *lctx, dns_c_ctx_t *cfg);
 
 
 isc_result_t
-dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **ctx)
+dns_c_ctx_new(isc_log_t *lctx,
+	      isc_mem_t *mem, dns_c_ctx_t **ctx)
 {
 	dns_c_ctx_t *cfg;
 	isc_result_t r;
@@ -146,20 +149,20 @@ dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **ctx)
 	cfg->logging = NULL;
 	
 	
-	r = acl_init(cfg);
+	r = acl_init(lctx, cfg);
 	if (r != ISC_R_SUCCESS) {
 		return (r);
 	}
 
-	r = logging_init(cfg);
+	r = logging_init(lctx, cfg);
 	if (r != ISC_R_SUCCESS) {
 		return (r);
 	}
 	
 	
-	r = dns_c_ctrllist_new(mem, &cfg->controls);
+	r = dns_c_ctrllist_new(lctx, mem, &cfg->controls);
 	if (r != ISC_R_SUCCESS) {
-		dns_c_ctx_delete(&cfg);
+		dns_c_ctx_delete(lctx, &cfg);
 		return r;
 	}
 
@@ -170,7 +173,8 @@ dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **ctx)
 
 
 isc_result_t
-dns_c_ctx_delete(dns_c_ctx_t **cfg)
+dns_c_ctx_delete(isc_log_t *lctx,
+		 dns_c_ctx_t **cfg)
 {
 	dns_c_ctx_t *c;
 
@@ -182,14 +186,14 @@ dns_c_ctx_delete(dns_c_ctx_t **cfg)
 
 	REQUIRE(c->mem != NULL);
 
-	dns_c_ctx_optionsdelete(&c->options);
-	dns_c_ctrllist_delete(&c->controls);
-	dns_c_srvlist_delete(&c->servers);
-	dns_c_acltable_delete(&c->acls);
-	dns_c_kdeflist_delete(&c->keydefs);
-	dns_c_zonelist_delete(&c->zlist);
-	dns_c_tkeylist_delete(&c->trusted_keys);
-	dns_c_logginglist_delete(&c->logging);
+	dns_c_ctx_optionsdelete(lctx, &c->options);
+	dns_c_ctrllist_delete(lctx, &c->controls);
+	dns_c_srvlist_delete(lctx, &c->servers);
+	dns_c_acltable_delete(lctx, &c->acls);
+	dns_c_kdeflist_delete(lctx, &c->keydefs);
+	dns_c_zonelist_delete(lctx, &c->zlist);
+	dns_c_tkeylist_delete(lctx, &c->trusted_keys);
+	dns_c_logginglist_delete(lctx, &c->logging);
 	
 	isc_mem_put(c->mem, c, sizeof *c);
 	*cfg = NULL;
@@ -199,42 +203,44 @@ dns_c_ctx_delete(dns_c_ctx_t **cfg)
 
 
 void
-dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)
+dns_c_ctx_print(isc_log_t *lctx,
+		FILE *fp, int indent, dns_c_ctx_t *cfg)
 {
 	REQUIRE(fp != NULL);
 	CHECK_CONFIG(cfg);
 
-	dns_c_logginglist_print(fp, indent, cfg->logging, ISC_FALSE);
+	dns_c_logginglist_print(lctx, fp, indent, cfg->logging, ISC_FALSE);
 	fprintf(fp,"\n");
 	
-	dns_c_acltable_print(fp, indent, cfg->acls);
+	dns_c_acltable_print(lctx, fp, indent, cfg->acls);
 	fprintf(fp,"\n");
 
-	dns_c_kdeflist_print(fp, indent, cfg->keydefs);
+	dns_c_kdeflist_print(lctx, fp, indent, cfg->keydefs);
 	fprintf(fp, "\n");
 
-	dns_c_tkeylist_print(fp, indent, cfg->trusted_keys);
+	dns_c_tkeylist_print(lctx, fp, indent, cfg->trusted_keys);
 	fprintf(fp, "\n");
 
-	dns_c_zonelist_printpreopts(fp, indent, cfg->zlist);
+	dns_c_zonelist_printpreopts(lctx, fp, indent, cfg->zlist);
 	fprintf(fp, "\n");
 	
-	dns_c_ctx_optionsprint(fp, indent, cfg->options);
+	dns_c_ctx_optionsprint(lctx, fp, indent, cfg->options);
 	fprintf(fp,"\n");
 	
-	dns_c_zonelist_printpostopts(fp, indent, cfg->zlist);
+	dns_c_zonelist_printpostopts(lctx, fp, indent, cfg->zlist);
 	fprintf(fp, "\n");
 	
-	dns_c_ctrllist_print(fp, indent, cfg->controls);
+	dns_c_ctrllist_print(lctx, fp, indent, cfg->controls);
 	fprintf(fp, "\n");
 
-	dns_c_srvlist_print(fp, indent, cfg->servers);
+	dns_c_srvlist_print(lctx, fp, indent, cfg->servers);
 	fprintf(fp, "\n");
 }
 
 
 void
-dns_c_ctx_forwarderprint(FILE *fp, int indent, dns_c_options_t *options)
+dns_c_ctx_forwarderprint(isc_log_t *lctx,
+			 FILE *fp, int indent, dns_c_options_t *options)
 {
 	if (options == NULL) {
 		return;
@@ -245,23 +251,27 @@ dns_c_ctx_forwarderprint(FILE *fp, int indent, dns_c_options_t *options)
 	CHECK_OPTION(options);
 
 	if (DNS_C_CHECKBIT(FORWARD_BIT, &options->setflags1)) {
-		dns_c_printtabs(fp, indent);
+		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "forward %s;\n",
-			dns_c_forward2string(options->forward, ISC_TRUE));
+			dns_c_forward2string(lctx,
+					     options->forward, ISC_TRUE));
 	}
 
 	if (options->forwarders != NULL) {
-		dns_c_printtabs(fp, indent);
+		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "forwarders ");
-		dns_c_ipmatchlist_print(fp, indent + 1,
-					 options->forwarders);
+		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
+					options->forwarders);
 	}
 }
 
 
 isc_result_t
-dns_c_ctx_getoptions(dns_c_ctx_t *cfg, dns_c_options_t **options)
+dns_c_ctx_getoptions(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, dns_c_options_t **options)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 	if (cfg->options != NULL) {
 		CHECK_OPTION(cfg->options);
@@ -274,8 +284,11 @@ dns_c_ctx_getoptions(dns_c_ctx_t *cfg, dns_c_options_t **options)
 
 
 isc_result_t
-dns_c_ctx_getlogging(dns_c_ctx_t *cfg, dns_c_logginglist_t **retval)
+dns_c_ctx_getlogging(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, dns_c_logginglist_t **retval)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	*retval = cfg->logging;
@@ -285,8 +298,9 @@ dns_c_ctx_getlogging(dns_c_ctx_t *cfg, dns_c_logginglist_t **retval)
 
 
 isc_result_t
-dns_c_ctx_setlogging(dns_c_ctx_t *cfg, dns_c_logginglist_t *newval,
-		      isc_boolean_t deepcopy)
+dns_c_ctx_setlogging(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, dns_c_logginglist_t *newval,
+		     isc_boolean_t deepcopy)
 {
 	dns_c_logginglist_t *ll;
 	isc_result_t res;
@@ -297,7 +311,7 @@ dns_c_ctx_setlogging(dns_c_ctx_t *cfg, dns_c_logginglist_t *newval,
 	existed = (cfg->logging != NULL);
 	
 	if (deepcopy) {
-		res = dns_c_logginglist_copy(cfg->mem, &ll, newval);
+		res = dns_c_logginglist_copy(lctx, cfg->mem, &ll, newval);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -312,7 +326,36 @@ dns_c_ctx_setlogging(dns_c_ctx_t *cfg, dns_c_logginglist_t *newval,
 
 
 isc_result_t
-dns_c_ctx_addfile_channel(dns_c_ctx_t *cfg, const char *name,
+dns_c_ctx_addfile_channel(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, const char *name,
+			  dns_c_logchan_t **chan)
+{
+	dns_c_logchan_t *newc;
+	isc_result_t res;
+
+	CHECK_CONFIG(cfg);
+	REQUIRE(name != NULL);
+	REQUIRE(chan != NULL);
+	REQUIRE(cfg->logging != NULL);
+
+	res = dns_c_logchan_new(lctx, cfg->mem, name, dns_c_logchan_file,
+				&newc);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+
+	res = dns_c_logginglist_addchannel(lctx, cfg->logging, newc,
+					   ISC_FALSE);
+
+	*chan = newc;
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_ctx_addsyslogchannel(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, const char *name,
 			   dns_c_logchan_t **chan)
 {
 	dns_c_logchan_t *newc;
@@ -323,38 +366,14 @@ dns_c_ctx_addfile_channel(dns_c_ctx_t *cfg, const char *name,
 	REQUIRE(chan != NULL);
 	REQUIRE(cfg->logging != NULL);
 
-	res = dns_c_logchan_new(cfg->mem, name, dns_c_logchan_file, &newc);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-
-	res = dns_c_logginglist_addchannel(cfg->logging, newc, ISC_FALSE);
-
-	*chan = newc;
-
-	return (res);
-}
-
-
-isc_result_t
-dns_c_ctx_addsyslogchannel(dns_c_ctx_t *cfg, const char *name,
-			     dns_c_logchan_t **chan)
-{
-	dns_c_logchan_t *newc;
-	isc_result_t res;
-
-	CHECK_CONFIG(cfg);
-	REQUIRE(name != NULL);
-	REQUIRE(chan != NULL);
-	REQUIRE(cfg->logging != NULL);
-
-	res = dns_c_logchan_new(cfg->mem, name,
+	res = dns_c_logchan_new(lctx, cfg->mem, name,
 				dns_c_logchan_syslog, &newc);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
 
-	res = dns_c_logginglist_addchannel(cfg->logging, newc, ISC_FALSE);
+	res = dns_c_logginglist_addchannel(lctx, cfg->logging, newc,
+					   ISC_FALSE);
 
 	*chan = newc;
 	
@@ -363,8 +382,9 @@ dns_c_ctx_addsyslogchannel(dns_c_ctx_t *cfg, const char *name,
 
 
 isc_result_t
-dns_c_ctx_addnullchannel(dns_c_ctx_t *cfg, const char *name,
-			   dns_c_logchan_t **chan)
+dns_c_ctx_addnullchannel(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, const char *name,
+			 dns_c_logchan_t **chan)
 {
 	dns_c_logchan_t *newc;
 	isc_result_t res;
@@ -374,12 +394,14 @@ dns_c_ctx_addnullchannel(dns_c_ctx_t *cfg, const char *name,
 	REQUIRE(chan != NULL);
 	REQUIRE(cfg->logging != NULL);
 
-	res = dns_c_logchan_new(cfg->mem, name, dns_c_logchan_null, &newc);
+	res = dns_c_logchan_new(lctx, cfg->mem, name, dns_c_logchan_null,
+				&newc);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
 
-	res = dns_c_logginglist_addchannel(cfg->logging, newc, ISC_FALSE);
+	res = dns_c_logginglist_addchannel(lctx, cfg->logging, newc,
+					   ISC_FALSE);
 
 	*chan = newc;
 	
@@ -388,8 +410,9 @@ dns_c_ctx_addnullchannel(dns_c_ctx_t *cfg, const char *name,
 
 
 isc_result_t
-dns_c_ctx_addcategory(dns_c_ctx_t *cfg, dns_c_category_t category,
-		       dns_c_logcat_t **newcat)
+dns_c_ctx_addcategory(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, dns_c_category_t category,
+		      dns_c_logcat_t **newcat)
 {
 	dns_c_logcat_t *newc;
 	isc_result_t res;
@@ -398,12 +421,13 @@ dns_c_ctx_addcategory(dns_c_ctx_t *cfg, dns_c_category_t category,
 	REQUIRE(newcat != NULL);
 	REQUIRE(cfg->logging != NULL);
 
-	res = dns_c_logcat_new(cfg->mem, category, &newc);
+	res = dns_c_logcat_new(lctx, cfg->mem, category, &newc);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
 	
-	res = dns_c_logginglist_addcategory(cfg->logging, newc, ISC_FALSE);
+	res = dns_c_logginglist_addcategory(lctx, cfg->logging, newc,
+					    ISC_FALSE);
 
 	*newcat = newc;
 	
@@ -412,9 +436,12 @@ dns_c_ctx_addcategory(dns_c_ctx_t *cfg, dns_c_category_t category,
 
 
 isc_result_t
-dns_c_ctx_currchannel(dns_c_ctx_t *cfg, dns_c_logchan_t **channel)
+dns_c_ctx_currchannel(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, dns_c_logchan_t **channel)
 {
 	dns_c_logchan_t *newc;
+
+	(void)lctx;
 
 	CHECK_CONFIG(cfg);
 	REQUIRE(channel != NULL);
@@ -429,12 +456,13 @@ dns_c_ctx_currchannel(dns_c_ctx_t *cfg, dns_c_logchan_t **channel)
 
 
 isc_boolean_t
-dns_c_ctx_channeldefinedp(dns_c_ctx_t *cfg, const char *name)
+dns_c_ctx_channeldefinedp(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, const char *name)
 {
 	isc_result_t res;
 	dns_c_logchan_t *chan;
 	
-	res = dns_c_logginglist_chanbyname(cfg->logging, name, &chan);
+	res = dns_c_logginglist_chanbyname(lctx, cfg->logging, name, &chan);
 
 	return (res == ISC_R_SUCCESS);
 }
@@ -442,7 +470,8 @@ dns_c_ctx_channeldefinedp(dns_c_ctx_t *cfg, const char *name)
 
 
 isc_result_t
-dns_c_ctx_currcategory(dns_c_ctx_t *cfg, dns_c_logcat_t **category)
+dns_c_ctx_currcategory(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, dns_c_logcat_t **category)
 {
 	dns_c_logcat_t *newc;
 	dns_c_logginglist_t *llist;
@@ -451,7 +480,7 @@ dns_c_ctx_currcategory(dns_c_ctx_t *cfg, dns_c_logcat_t **category)
 	CHECK_CONFIG(cfg);
 	REQUIRE(category != NULL);
 
-	res = dns_c_ctx_getlogging(cfg, &llist);
+	res = dns_c_ctx_getlogging(lctx, cfg, &llist);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
@@ -470,14 +499,15 @@ dns_c_ctx_currcategory(dns_c_ctx_t *cfg, dns_c_logcat_t **category)
 
 
 isc_result_t
-dns_c_ctx_setdirectory(dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_setdirectory(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, const char *newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -485,21 +515,22 @@ dns_c_ctx_setdirectory(dns_c_ctx_t *cfg, const char *newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_string(cfg->options,
+	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->directory,
 			       newval));
 }
 
 
 isc_result_t
-dns_c_ctx_setversion(dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_setversion(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, const char *newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -507,21 +538,22 @@ dns_c_ctx_setversion(dns_c_ctx_t *cfg, const char *newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_string(cfg->options,
+	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->version,
 			       newval));
 }
 
 
 isc_result_t
-dns_c_ctx_setdumpfilename(dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_setdumpfilename(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, const char *newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -529,21 +561,22 @@ dns_c_ctx_setdumpfilename(dns_c_ctx_t *cfg, const char *newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_string(cfg->options,
+	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->dump_filename,
 			       newval));
 }
 
 
 isc_result_t
-dns_c_ctx_setpidfilename(dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_setpidfilename(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, const char *newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -551,21 +584,22 @@ dns_c_ctx_setpidfilename(dns_c_ctx_t *cfg, const char *newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_string(cfg->options,
+	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->pid_filename,
 			       newval));
 }
 
 
 isc_result_t
-dns_c_ctx_setstatsfilename(dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_setstatsfilename(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, const char *newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -573,21 +607,22 @@ dns_c_ctx_setstatsfilename(dns_c_ctx_t *cfg, const char *newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_string(cfg->options,
+	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->stats_filename,
 			       newval));
 }
 
 
 isc_result_t
-dns_c_ctx_setmemstatsfilename(dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_setmemstatsfilename(isc_log_t *lctx,
+			      dns_c_ctx_t *cfg, const char *newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -595,21 +630,22 @@ dns_c_ctx_setmemstatsfilename(dns_c_ctx_t *cfg, const char *newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_string(cfg->options,
+	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->memstats_filename,
 			       newval));
 }
 
 
 isc_result_t
-dns_c_ctx_setnamedxfer(dns_c_ctx_t *cfg, const char *newval)
+dns_c_ctx_setnamedxfer(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, const char *newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -617,21 +653,22 @@ dns_c_ctx_setnamedxfer(dns_c_ctx_t *cfg, const char *newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_string(cfg->options,
+	return (cfg_set_string(lctx, cfg->options,
 			       &cfg->options->named_xfer,
 			       newval));
 }
 
 
 isc_result_t
-dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval)
+dns_c_ctx_setmaxncachettl(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_uint32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -639,7 +676,7 @@ dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_uint32(cfg->options, 
+	return (cfg_set_uint32(lctx, cfg->options, 
 			       &cfg->options->max_ncache_ttl,
 			       newval,
 			       &cfg->options->setflags1,
@@ -648,14 +685,15 @@ dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval)
 
 
 isc_result_t
-dns_c_ctx_settransfersin(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_settransfersin(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -663,7 +701,7 @@ dns_c_ctx_settransfersin(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options, 
+	return (cfg_set_int32(lctx, cfg->options, 
 			      &cfg->options->transfers_in,
 			      newval,
 			      &cfg->options->setflags1,
@@ -672,14 +710,15 @@ dns_c_ctx_settransfersin(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_settransfersperns(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_settransfersperns(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -687,7 +726,7 @@ dns_c_ctx_settransfersperns(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options, 
+	return (cfg_set_int32(lctx, cfg->options, 
 			      &cfg->options->transfers_per_ns,
 			      newval,
 			      &cfg->options->setflags1,
@@ -696,14 +735,15 @@ dns_c_ctx_settransfersperns(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_settransfersout(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_settransfersout(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -711,7 +751,7 @@ dns_c_ctx_settransfersout(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options,
+	return (cfg_set_int32(lctx, cfg->options,
 			      &cfg->options->transfers_out,
 			      newval,
 			      &cfg->options->setflags1,
@@ -720,14 +760,15 @@ dns_c_ctx_settransfersout(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setmaxlogsizeixfr(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_setmaxlogsizeixfr(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -735,7 +776,7 @@ dns_c_ctx_setmaxlogsizeixfr(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options,
+	return (cfg_set_int32(lctx, cfg->options,
 			      &cfg->options->max_log_size_ixfr,
 			      newval,
 			      &cfg->options->setflags1,
@@ -744,14 +785,15 @@ dns_c_ctx_setmaxlogsizeixfr(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setcleaninterval(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_setcleaninterval(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -759,7 +801,7 @@ dns_c_ctx_setcleaninterval(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options,
+	return (cfg_set_int32(lctx, cfg->options,
 			      &cfg->options->clean_interval,
 			      newval,
 			      &cfg->options->setflags1,
@@ -768,14 +810,15 @@ dns_c_ctx_setcleaninterval(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setinterfaceinterval(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_setinterfaceinterval(isc_log_t *lctx,
+			       dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -783,7 +826,7 @@ dns_c_ctx_setinterfaceinterval(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options,
+	return (cfg_set_int32(lctx, cfg->options,
 			      &cfg->options->interface_interval,
 			      newval,
 			      &cfg->options->setflags1,
@@ -792,14 +835,15 @@ dns_c_ctx_setinterfaceinterval(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setstatsinterval(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_setstatsinterval(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -807,7 +851,7 @@ dns_c_ctx_setstatsinterval(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options,
+	return (cfg_set_int32(lctx, cfg->options,
 			      &cfg->options->stats_interval,
 			      newval,
 			      &cfg->options->setflags1,
@@ -816,14 +860,15 @@ dns_c_ctx_setstatsinterval(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setheartbeat_interval(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_setheartbeat_interval(isc_log_t *lctx,
+				dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -831,7 +876,7 @@ dns_c_ctx_setheartbeat_interval(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options,
+	return (cfg_set_int32(lctx, cfg->options,
 			      &cfg->options->heartbeat_interval,
 			      newval,
 			      &cfg->options->setflags1,
@@ -840,14 +885,15 @@ dns_c_ctx_setheartbeat_interval(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t newval)
+dns_c_ctx_setmaxtransfertimein(isc_log_t *lctx,
+			       dns_c_ctx_t *cfg, isc_int32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -855,7 +901,7 @@ dns_c_ctx_setmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_int32(cfg->options,
+	return (cfg_set_int32(lctx, cfg->options,
 			      &cfg->options->max_transfer_time_in,
 			      newval,
 			      &cfg->options->setflags1,
@@ -864,14 +910,15 @@ dns_c_ctx_setmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval)
+dns_c_ctx_setdatasize(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, isc_uint32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -879,7 +926,7 @@ dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_uint32(cfg->options,
+	return (cfg_set_uint32(lctx, cfg->options,
 			       &cfg->options->data_size,
 			       newval,
 			       &cfg->options->setflags1,
@@ -888,14 +935,15 @@ dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setstacksize(dns_c_ctx_t *cfg, isc_uint32_t newval)
+dns_c_ctx_setstacksize(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_uint32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -903,7 +951,7 @@ dns_c_ctx_setstacksize(dns_c_ctx_t *cfg, isc_uint32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_uint32(cfg->options,
+	return (cfg_set_uint32(lctx, cfg->options,
 			       &cfg->options->stack_size,
 			       newval,
 			       &cfg->options->setflags1,
@@ -912,14 +960,15 @@ dns_c_ctx_setstacksize(dns_c_ctx_t *cfg, isc_uint32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setcoresize(dns_c_ctx_t *cfg, isc_uint32_t newval)
+dns_c_ctx_setcoresize(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, isc_uint32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -927,7 +976,7 @@ dns_c_ctx_setcoresize(dns_c_ctx_t *cfg, isc_uint32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_uint32(cfg->options,
+	return (cfg_set_uint32(lctx, cfg->options,
 			       &cfg->options->core_size,
 			       newval,
 			       &cfg->options->setflags1,
@@ -936,14 +985,15 @@ dns_c_ctx_setcoresize(dns_c_ctx_t *cfg, isc_uint32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setfiles(dns_c_ctx_t *cfg, isc_uint32_t newval)
+dns_c_ctx_setfiles(isc_log_t *lctx,
+		   dns_c_ctx_t *cfg, isc_uint32_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -951,7 +1001,7 @@ dns_c_ctx_setfiles(dns_c_ctx_t *cfg, isc_uint32_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_uint32(cfg->options,
+	return (cfg_set_uint32(lctx, cfg->options,
 			       &cfg->options->files,
 			       newval,
 			       &cfg->options->setflags1,
@@ -960,14 +1010,15 @@ dns_c_ctx_setfiles(dns_c_ctx_t *cfg, isc_uint32_t newval)
 
 
 isc_result_t
-dns_c_ctx_setexpertmode(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setexpertmode(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -975,7 +1026,7 @@ dns_c_ctx_setexpertmode(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->expert_mode,
 				newval,
 				&cfg->options->setflags1,
@@ -984,14 +1035,15 @@ dns_c_ctx_setexpertmode(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setfakeiquery(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -999,7 +1051,7 @@ dns_c_ctx_setfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->fake_iquery,
 				newval,
 				&cfg->options->setflags1,
@@ -1008,14 +1060,15 @@ dns_c_ctx_setfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setrecursion(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setrecursion(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1023,7 +1076,7 @@ dns_c_ctx_setrecursion(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->recursion,
 				newval,
 				&cfg->options->setflags1,
@@ -1032,14 +1085,15 @@ dns_c_ctx_setrecursion(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setfetchglue(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setfetchglue(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1047,7 +1101,7 @@ dns_c_ctx_setfetchglue(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->fetch_glue,
 				newval,
 				&cfg->options->setflags1,
@@ -1056,14 +1110,15 @@ dns_c_ctx_setfetchglue(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setnotify(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setnotify(isc_log_t *lctx,
+		    dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1071,7 +1126,7 @@ dns_c_ctx_setnotify(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->notify,
 				newval,
 				&cfg->options->setflags1,
@@ -1080,14 +1135,15 @@ dns_c_ctx_setnotify(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_sethoststatistics(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_sethoststatistics(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1095,7 +1151,7 @@ dns_c_ctx_sethoststatistics(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->host_statistics,
 				newval,
 				&cfg->options->setflags1,
@@ -1104,14 +1160,15 @@ dns_c_ctx_sethoststatistics(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setdealloconexit(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setdealloconexit(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1119,7 +1176,7 @@ dns_c_ctx_setdealloconexit(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->dealloc_on_exit,
 				newval,
 				&cfg->options->setflags1,
@@ -1128,14 +1185,15 @@ dns_c_ctx_setdealloconexit(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setuseixfr(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setuseixfr(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1143,7 +1201,7 @@ dns_c_ctx_setuseixfr(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->use_ixfr,
 				newval,
 				&cfg->options->setflags1,
@@ -1152,14 +1210,15 @@ dns_c_ctx_setuseixfr(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setmaintainixfrbase(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setmaintainixfrbase(isc_log_t *lctx,
+			      dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1167,7 +1226,7 @@ dns_c_ctx_setmaintainixfrbase(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->maintain_ixfr_base,
 				newval,
 				&cfg->options->setflags1,
@@ -1176,14 +1235,15 @@ dns_c_ctx_setmaintainixfrbase(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_sethasoldclients(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_sethasoldclients(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1191,7 +1251,7 @@ dns_c_ctx_sethasoldclients(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->has_old_clients,
 				newval,
 				&cfg->options->setflags1,
@@ -1200,14 +1260,15 @@ dns_c_ctx_sethasoldclients(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setauthnxdomain(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setauthnxdomain(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1215,7 +1276,7 @@ dns_c_ctx_setauthnxdomain(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->auth_nx_domain,
 				newval,
 				&cfg->options->setflags1,
@@ -1224,14 +1285,15 @@ dns_c_ctx_setauthnxdomain(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setmultiplecnames(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setmultiplecnames(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1239,7 +1301,7 @@ dns_c_ctx_setmultiplecnames(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->multiple_cnames,
 				newval,
 				&cfg->options->setflags1,
@@ -1248,14 +1310,15 @@ dns_c_ctx_setmultiplecnames(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setuseidpool(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setuseidpool(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1263,7 +1326,7 @@ dns_c_ctx_setuseidpool(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->use_id_pool,
 				newval,
 				&cfg->options->setflags1,
@@ -1272,14 +1335,15 @@ dns_c_ctx_setuseidpool(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval)
+dns_c_ctx_setdialup(isc_log_t *lctx,
+		    dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1287,7 +1351,7 @@ dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval)
 	
 	CHECK_OPTION(cfg->options);
 
-	return (cfg_set_boolean(cfg->options,
+	return (cfg_set_boolean(lctx, cfg->options,
 				&cfg->options->dialup,
 				newval,
 				&cfg->options->setflags1,
@@ -1296,7 +1360,8 @@ dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
+dns_c_ctx_setquerysourceaddr(isc_log_t *lctx,
+			     dns_c_ctx_t *cfg, isc_sockaddr_t addr)
 {
 	isc_boolean_t existed;
 	isc_result_t res;
@@ -1304,7 +1369,7 @@ dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1323,7 +1388,8 @@ dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
 
 
 isc_result_t
-dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, short port)
+dns_c_ctx_setquerysourceport(isc_log_t *lctx,
+			     dns_c_ctx_t *cfg, short port)
 {
 	isc_boolean_t existed;
 	isc_result_t res;
@@ -1331,7 +1397,7 @@ dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, short port)
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1350,7 +1416,8 @@ dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, short port)
 
 
 isc_result_t
-dns_c_ctx_settransferformat(dns_c_ctx_t *cfg,
+dns_c_ctx_settransferformat(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg,
 			    dns_transfer_format_t newval)
 {
 	isc_boolean_t existed;
@@ -1359,7 +1426,7 @@ dns_c_ctx_settransferformat(dns_c_ctx_t *cfg,
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1378,9 +1445,10 @@ dns_c_ctx_settransferformat(dns_c_ctx_t *cfg,
 
 
 isc_result_t
-dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
-			 dns_c_trans_t transtype,
-			 dns_c_severity_t sever)
+dns_c_ctx_setchecknames(isc_log_t *lctx,
+			dns_c_ctx_t *cfg,
+			dns_c_trans_t transtype,
+			dns_c_severity_t sever)
 {
 	isc_boolean_t existed = ISC_FALSE;
 	isc_result_t res;
@@ -1388,7 +1456,7 @@ dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1416,7 +1484,9 @@ dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 		break;
 
 	default:
-		dns_c_error(0, "bad transport value: %d\n", transtype);
+		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "bad transport value: %d\n", transtype);
 		return (ISC_R_FAILURE);
 	}
 	
@@ -1427,15 +1497,16 @@ dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 
 
 isc_result_t
-dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
-		       dns_c_ipmatchlist_t *iml)
+dns_c_ctx_setqueryacl(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, isc_boolean_t copy,
+		      dns_c_ipmatchlist_t *iml)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1445,14 +1516,43 @@ dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->queryacl, iml, copy);
+	res = cfg_set_iplist(lctx, cfg->options, &cfg->options->queryacl,
+			     iml, copy);
 
 	return (res);
 }
 
 
 isc_result_t
-dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
+dns_c_ctx_settransferacl(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, isc_boolean_t copy,
+			 dns_c_ipmatchlist_t *iml)
+{
+	isc_result_t res;
+	
+	CHECK_CONFIG(cfg);
+
+	if (cfg->options == NULL) {
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
+	}
+	
+	CHECK_OPTION(cfg->options);
+
+	REQUIRE(iml != NULL);
+
+	res = cfg_set_iplist(lctx, cfg->options, &cfg->options->transferacl,
+			     iml, copy);
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_ctx_setrecursionacl(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_boolean_t copy,
 			  dns_c_ipmatchlist_t *iml)
 {
 	isc_result_t res;
@@ -1460,7 +1560,7 @@ dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1470,7 +1570,7 @@ dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->transferacl,
+	res = cfg_set_iplist(lctx, cfg->options, &cfg->options->recursionacl,
 			     iml, copy);
 
 	return (res);
@@ -1478,59 +1578,8 @@ dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 
 isc_result_t
-dns_c_ctx_setrecursionacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
-			  dns_c_ipmatchlist_t *iml)
-{
-	isc_result_t res;
-	
-	CHECK_CONFIG(cfg);
-
-	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
-		if (res != ISC_R_SUCCESS) {
-			return (res);
-		}
-	}
-	
-	CHECK_OPTION(cfg->options);
-
-	REQUIRE(iml != NULL);
-
-	res = cfg_set_iplist(cfg->options, &cfg->options->recursionacl,
-			     iml, copy);
-
-	return (res);
-}
-
-
-isc_result_t
-dns_c_ctx_setblackhole(dns_c_ctx_t *cfg, isc_boolean_t copy,
-			dns_c_ipmatchlist_t *iml)
-{
-	isc_result_t res;
-	
-	CHECK_CONFIG(cfg);
-
-	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
-		if (res != ISC_R_SUCCESS) {
-			return (res);
-		}
-	}
-	
-	CHECK_OPTION(cfg->options);
-
-	REQUIRE(iml != NULL);
-
-	res = cfg_set_iplist(cfg->options, &cfg->options->blackhole,
-			     iml, copy);
-
-	return (res);
-}
-
-
-isc_result_t
-dns_c_ctx_settopology(dns_c_ctx_t *cfg, isc_boolean_t copy,
+dns_c_ctx_setblackhole(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_boolean_t copy,
 		       dns_c_ipmatchlist_t *iml)
 {
 	isc_result_t res;
@@ -1538,7 +1587,7 @@ dns_c_ctx_settopology(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1548,22 +1597,24 @@ dns_c_ctx_settopology(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->topology, iml, copy);
+	res = cfg_set_iplist(lctx, cfg->options, &cfg->options->blackhole,
+			     iml, copy);
 
 	return (res);
 }
 
 
 isc_result_t
-dns_c_ctx_setsortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
-		       dns_c_ipmatchlist_t *iml)
+dns_c_ctx_settopology(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, isc_boolean_t copy,
+		      dns_c_ipmatchlist_t *iml)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1573,14 +1624,43 @@ dns_c_ctx_setsortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->sortlist, iml, copy);
+	res = cfg_set_iplist(lctx, cfg->options, &cfg->options->topology,
+			     iml, copy);
 
 	return (res);
 }
 
 
 isc_result_t
-dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw)
+dns_c_ctx_setsortlist(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, isc_boolean_t copy,
+		      dns_c_ipmatchlist_t *iml)
+{
+	isc_result_t res;
+	
+	CHECK_CONFIG(cfg);
+
+	if (cfg->options == NULL) {
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
+	}
+	
+	CHECK_OPTION(cfg->options);
+
+	REQUIRE(iml != NULL);
+
+	res = cfg_set_iplist(lctx, cfg->options, &cfg->options->sortlist,
+			     iml, copy);
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_ctx_setforward(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, dns_c_forw_t forw)
 {
 	isc_boolean_t existed;
 	isc_result_t res;
@@ -1588,7 +1668,7 @@ dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw)
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1606,15 +1686,16 @@ dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw)
 
 
 isc_result_t
-dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t *iml,
-			 isc_boolean_t copy)
+dns_c_ctx_setforwarders(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, dns_c_ipmatchlist_t *iml,
+			isc_boolean_t copy)
 {
 	isc_result_t res;
 	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1622,7 +1703,7 @@ dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t *iml,
 	
 	CHECK_OPTION(cfg->options);
 	
-	res = cfg_set_iplist(cfg->options, &cfg->options->forwarders,
+	res = cfg_set_iplist(lctx, cfg->options, &cfg->options->forwarders,
 			     iml, copy);
 
 	return (res);
@@ -1630,8 +1711,9 @@ dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t *iml,
 
 
 isc_result_t
-dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
-			      dns_c_rrsolist_t *olist)
+dns_c_ctx_setrrsetorderlist(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_boolean_t copy,
+			    dns_c_rrsolist_t *olist)
 {
 	isc_boolean_t existed;
 	dns_c_options_t *opts;
@@ -1640,7 +1722,7 @@ dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		res = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1654,19 +1736,19 @@ dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	
 	if (copy) {
 		if (opts->ordering == NULL) {
-			res = dns_c_rrsolist_new(opts->mem,
-						  &opts->ordering);
+			res = dns_c_rrsolist_new(lctx, opts->mem,
+						 &opts->ordering);
 			if (res != ISC_R_SUCCESS) {
 				return (res);
 			}
 		} else {
-			dns_c_rrsolist_clear(opts->ordering);
+			dns_c_rrsolist_clear(lctx, opts->ordering);
 		}
 		
-		res = dns_c_rrsolist_append(opts->ordering, olist);
+		res = dns_c_rrsolist_append(lctx, opts->ordering, olist);
 	} else {
 		if (opts->ordering != NULL) {
-			dns_c_rrsolist_delete(&opts->ordering);
+			dns_c_rrsolist_delete(lctx, &opts->ordering);
 		}
 		
 		opts->ordering = olist;
@@ -1682,8 +1764,9 @@ dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 
 isc_result_t
-dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg,int port, dns_c_ipmatchlist_t *ml,
-			isc_boolean_t copy)
+dns_c_ctx_addlisten_on(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg,int port, dns_c_ipmatchlist_t *ml,
+		       isc_boolean_t copy)
 {
 	dns_c_lstnon_t *lo;
 	isc_result_t result;
@@ -1692,7 +1775,7 @@ dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg,int port, dns_c_ipmatchlist_t *ml,
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
-		result = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		result = dns_c_ctx_optionsnew(lctx, cfg->mem, &cfg->options);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1704,7 +1787,7 @@ dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg,int port, dns_c_ipmatchlist_t *ml,
 	opts = cfg->options;
 
 	if (opts->listens == NULL) {
-		result = dns_c_lstnlist_new(cfg->mem, &opts->listens);
+		result = dns_c_lstnlist_new(lctx, cfg->mem, &opts->listens);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1717,20 +1800,20 @@ dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg,int port, dns_c_ipmatchlist_t *ml,
 		 * hasn't been done for the same post, ipmatch list
 		 * combination
 		 */
-		if (lo->port == port) {	/* XXX incomplete */
+		if (lo->port == port) { /* XXX incomplete */
 			return (ISC_R_FAILURE);
 		}
 		lo = ISC_LIST_NEXT(lo, next);
 	}
 #endif	
 
-	result = dns_c_lstnon_new(cfg->mem, &lo);
+	result = dns_c_lstnon_new(lctx, cfg->mem, &lo);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 	
 	lo->port = port;
-	result = dns_c_lstnon_setiml(lo, ml, copy);
+	result = dns_c_lstnon_setiml(lctx, lo, ml, copy);
 
 	ISC_LIST_APPEND(opts->listens->elements, lo, next);
 
@@ -1739,8 +1822,9 @@ dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg,int port, dns_c_ipmatchlist_t *ml,
 
 
 isc_result_t
-dns_c_ctx_settrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t *list,
-			   isc_boolean_t copy)
+dns_c_ctx_settrustedkeys(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, dns_c_tkeylist_t *list,
+			 isc_boolean_t copy)
 {
 	isc_boolean_t existed;
 	dns_c_tkeylist_t *newl;
@@ -1751,14 +1835,14 @@ dns_c_ctx_settrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t *list,
 	existed = (cfg->trusted_keys == NULL ? ISC_FALSE : ISC_TRUE);
 
 	if (cfg->trusted_keys != NULL) {
-		res = dns_c_tkeylist_delete(&cfg->trusted_keys);
+		res = dns_c_tkeylist_delete(lctx, &cfg->trusted_keys);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
 	}
 	
 	if (copy) {
-		res = dns_c_tkeylist_copy(cfg->mem, &newl, list);
+		res = dns_c_tkeylist_copy(lctx, cfg->mem, &newl, list);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -1777,8 +1861,12 @@ dns_c_ctx_settrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t *list,
  **/
 
 isc_result_t
-dns_c_ctx_getdirectory(dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_getdirectory(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, char **retval)
 {
+
+	(void)lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -1795,8 +1883,12 @@ dns_c_ctx_getdirectory(dns_c_ctx_t *cfg, char **retval)
 
 
 isc_result_t
-dns_c_ctx_getversion(dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_getversion(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, char **retval)
 {
+
+	(void)lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -1813,8 +1905,12 @@ dns_c_ctx_getversion(dns_c_ctx_t *cfg, char **retval)
 
 
 isc_result_t
-dns_c_ctx_getdumpfilename(dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_getdumpfilename(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, char **retval)
 {
+
+	(void)lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -1831,8 +1927,12 @@ dns_c_ctx_getdumpfilename(dns_c_ctx_t *cfg, char **retval)
 
 
 isc_result_t
-dns_c_ctx_getpidfilename(dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_getpidfilename(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, char **retval)
 {
+
+	(void)lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -1849,8 +1949,12 @@ dns_c_ctx_getpidfilename(dns_c_ctx_t *cfg, char **retval)
 
 
 isc_result_t
-dns_c_ctx_getstatsfilename(dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_getstatsfilename(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, char **retval)
 {
+
+	(void)lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -1867,8 +1971,11 @@ dns_c_ctx_getstatsfilename(dns_c_ctx_t *cfg, char **retval)
 
 
 isc_result_t
-dns_c_ctx_getmemstatsfilename(dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_getmemstatsfilename(isc_log_t *lctx,
+			      dns_c_ctx_t *cfg, char **retval)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -1885,8 +1992,11 @@ dns_c_ctx_getmemstatsfilename(dns_c_ctx_t *cfg, char **retval)
 
 
 isc_result_t
-dns_c_ctx_getnamedxfer(dns_c_ctx_t *cfg, char **retval)
+dns_c_ctx_getnamedxfer(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, char **retval)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -1903,7 +2013,8 @@ dns_c_ctx_getnamedxfer(dns_c_ctx_t *cfg, char **retval)
 
 
 isc_result_t
-dns_c_ctx_getmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t *retval)
+dns_c_ctx_getmaxncachettl(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -1914,7 +2025,7 @@ dns_c_ctx_getmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 	CHECK_OPTION(cfg->options);
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_uint32(cfg->options, 
+	return (cfg_get_uint32(lctx, cfg->options, 
 			       &cfg->options->max_ncache_ttl,
 			       retval,
 			       &cfg->options->setflags1,
@@ -1923,7 +2034,8 @@ dns_c_ctx_getmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_gettransfersin(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_gettransfersin(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -1935,7 +2047,7 @@ dns_c_ctx_gettransfersin(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->transfers_in,
 			      retval,
 			      &cfg->options->setflags1,
@@ -1944,7 +2056,8 @@ dns_c_ctx_gettransfersin(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_gettransfersperns(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_gettransfersperns(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -1955,7 +2068,7 @@ dns_c_ctx_gettransfersperns(dns_c_ctx_t *cfg, isc_int32_t *retval)
 	CHECK_OPTION(cfg->options);
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->transfers_per_ns,
 			      retval,
 			      &cfg->options->setflags1,
@@ -1964,7 +2077,8 @@ dns_c_ctx_gettransfersperns(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_gettransfersout(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_gettransfersout(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -1974,7 +2088,7 @@ dns_c_ctx_gettransfersout(dns_c_ctx_t *cfg, isc_int32_t *retval)
 		    
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->transfers_out,
 			      retval,
 			      &cfg->options->setflags1,
@@ -1983,7 +2097,8 @@ dns_c_ctx_gettransfersout(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getmaxlogsizeixfr(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_getmaxlogsizeixfr(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -1993,7 +2108,7 @@ dns_c_ctx_getmaxlogsizeixfr(dns_c_ctx_t *cfg, isc_int32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->max_log_size_ixfr,
 			      retval,
 			      &cfg->options->setflags1,
@@ -2002,7 +2117,8 @@ dns_c_ctx_getmaxlogsizeixfr(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getcleaninterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_getcleaninterval(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2012,7 +2128,7 @@ dns_c_ctx_getcleaninterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->clean_interval,
 			      retval,
 			      &cfg->options->setflags1,
@@ -2021,7 +2137,8 @@ dns_c_ctx_getcleaninterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getinterfaceinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_getinterfaceinterval(isc_log_t *lctx,
+			       dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 	if (cfg->options == NULL) {
@@ -2030,7 +2147,7 @@ dns_c_ctx_getinterfaceinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->interface_interval,
 			      retval,
 			      &cfg->options->setflags1,
@@ -2039,7 +2156,8 @@ dns_c_ctx_getinterfaceinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getstatsinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_getstatsinterval(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2049,7 +2167,7 @@ dns_c_ctx_getstatsinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->stats_interval,
 			      retval,
 			      &cfg->options->setflags1,
@@ -2058,7 +2176,8 @@ dns_c_ctx_getstatsinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getheartbeatinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_getheartbeatinterval(isc_log_t *lctx,
+			       dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 	if (cfg->options == NULL) {
@@ -2067,7 +2186,7 @@ dns_c_ctx_getheartbeatinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->heartbeat_interval,
 			      retval,
 			      &cfg->options->setflags1,
@@ -2076,7 +2195,8 @@ dns_c_ctx_getheartbeatinterval(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t *retval)
+dns_c_ctx_getmaxtransfertimein(isc_log_t *lctx,
+			       dns_c_ctx_t *cfg, isc_int32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 	if (cfg->options == NULL) {
@@ -2085,7 +2205,7 @@ dns_c_ctx_getmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_int32(cfg->options, 
+	return (cfg_get_int32(lctx, cfg->options, 
 			      &cfg->options->max_transfer_time_in,
 			      retval,
 			      &cfg->options->setflags1,
@@ -2094,7 +2214,8 @@ dns_c_ctx_getmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getdatasize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
+dns_c_ctx_getdatasize(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2104,7 +2225,7 @@ dns_c_ctx_getdatasize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_uint32(cfg->options, 
+	return (cfg_get_uint32(lctx, cfg->options, 
 			       &cfg->options->data_size,
 			       retval,
 			       &cfg->options->setflags1,
@@ -2113,7 +2234,8 @@ dns_c_ctx_getdatasize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getstacksize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
+dns_c_ctx_getstacksize(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2123,7 +2245,7 @@ dns_c_ctx_getstacksize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_uint32(cfg->options, 
+	return (cfg_get_uint32(lctx, cfg->options, 
 			       &cfg->options->stack_size,
 			       retval,
 			       &cfg->options->setflags1,
@@ -2132,7 +2254,8 @@ dns_c_ctx_getstacksize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getcoresize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
+dns_c_ctx_getcoresize(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2142,7 +2265,7 @@ dns_c_ctx_getcoresize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_uint32(cfg->options, 
+	return (cfg_get_uint32(lctx, cfg->options, 
 			       &cfg->options->core_size,
 			       retval,
 			       &cfg->options->setflags1,
@@ -2151,7 +2274,8 @@ dns_c_ctx_getcoresize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval)
+dns_c_ctx_getfiles(isc_log_t *lctx,
+		   dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2161,7 +2285,7 @@ dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_uint32(cfg->options, 
+	return (cfg_get_uint32(lctx, cfg->options, 
 			       &cfg->options->files,
 			       retval,
 			       &cfg->options->setflags1,
@@ -2170,7 +2294,8 @@ dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getfakeiquery(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2180,7 +2305,7 @@ dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->fake_iquery,
 				retval,
 				&cfg->options->setflags1,
@@ -2189,7 +2314,8 @@ dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getrecursion(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getrecursion(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2199,7 +2325,7 @@ dns_c_ctx_getrecursion(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->recursion,
 				retval,
 				&cfg->options->setflags1,
@@ -2208,7 +2334,8 @@ dns_c_ctx_getrecursion(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getfetchglue(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getfetchglue(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2218,7 +2345,7 @@ dns_c_ctx_getfetchglue(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->fetch_glue,
 				retval,
 				&cfg->options->setflags1,
@@ -2227,7 +2354,8 @@ dns_c_ctx_getfetchglue(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getnotify(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getnotify(isc_log_t *lctx,
+		    dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2237,7 +2365,7 @@ dns_c_ctx_getnotify(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->notify,
 				retval,
 				&cfg->options->setflags1,
@@ -2246,7 +2374,8 @@ dns_c_ctx_getnotify(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_gethoststatistics(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_gethoststatistics(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2256,7 +2385,7 @@ dns_c_ctx_gethoststatistics(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->host_statistics,
 				retval,
 				&cfg->options->setflags1,
@@ -2265,7 +2394,8 @@ dns_c_ctx_gethoststatistics(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getdealloconexit(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getdealloconexit(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2275,7 +2405,7 @@ dns_c_ctx_getdealloconexit(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->dealloc_on_exit,
 				retval,
 				&cfg->options->setflags1,
@@ -2284,7 +2414,8 @@ dns_c_ctx_getdealloconexit(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getuseixfr(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getuseixfr(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2294,7 +2425,7 @@ dns_c_ctx_getuseixfr(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->use_ixfr,
 				retval,
 				&cfg->options->setflags1,
@@ -2303,7 +2434,8 @@ dns_c_ctx_getuseixfr(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getmaintainixfrbase(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getmaintainixfrbase(isc_log_t *lctx,
+			      dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2313,7 +2445,7 @@ dns_c_ctx_getmaintainixfrbase(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->maintain_ixfr_base,
 				retval,
 				&cfg->options->setflags1,
@@ -2322,7 +2454,8 @@ dns_c_ctx_getmaintainixfrbase(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_gethasoldclients(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_gethasoldclients(isc_log_t *lctx,
+			   dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2332,7 +2465,7 @@ dns_c_ctx_gethasoldclients(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->has_old_clients,
 				retval,
 				&cfg->options->setflags1,
@@ -2341,7 +2474,8 @@ dns_c_ctx_gethasoldclients(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getauth_nx_domain(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getauth_nx_domain(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2351,7 +2485,7 @@ dns_c_ctx_getauth_nx_domain(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->auth_nx_domain,
 				retval,
 				&cfg->options->setflags1,
@@ -2360,7 +2494,8 @@ dns_c_ctx_getauth_nx_domain(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getmultiplecnames(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getmultiplecnames(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2370,7 +2505,7 @@ dns_c_ctx_getmultiplecnames(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->multiple_cnames,
 				retval,
 				&cfg->options->setflags1,
@@ -2379,7 +2514,8 @@ dns_c_ctx_getmultiplecnames(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getuseidpool(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2389,7 +2525,7 @@ dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->use_id_pool,
 				retval,
 				&cfg->options->setflags1,
@@ -2398,7 +2534,8 @@ dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getdialup(isc_log_t *lctx,
+		    dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2408,7 +2545,7 @@ dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 	
 	REQUIRE(retval != NULL);
 	
-	return (cfg_get_boolean(cfg->options, 
+	return (cfg_get_boolean(lctx, cfg->options, 
 				&cfg->options->dialup,
 				retval,
 				&cfg->options->setflags1,
@@ -2417,9 +2554,12 @@ dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
+dns_c_ctx_getquerysourceaddr(isc_log_t *lctx,
+			     dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 {
 	isc_result_t res;
+
+	(void) lctx;
 	
 	CHECK_CONFIG(cfg);
 
@@ -2441,8 +2581,11 @@ dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 
 
 isc_result_t
-dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg, short *port)
+dns_c_ctx_getquerysourceport(isc_log_t *lctx,
+			     dns_c_ctx_t *cfg, short *port)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -2461,9 +2604,12 @@ dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg, short *port)
 
 
 isc_result_t
-dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
+dns_c_ctx_gettransferformat(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg,
 			    dns_transfer_format_t *retval)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -2483,9 +2629,10 @@ dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
 
 
 isc_result_t
-dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
-			 dns_c_trans_t transtype,
-			 dns_c_severity_t *sever)
+dns_c_ctx_getchecknames(isc_log_t *lctx,
+			dns_c_ctx_t *cfg,
+			dns_c_trans_t transtype,
+			dns_c_severity_t *sever)
 {
 	isc_boolean_t isset = ISC_FALSE;
 	isc_result_t res;
@@ -2515,7 +2662,9 @@ dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
 		break;
 
 	default:
-		dns_c_error(0, "bad transport value: %d\n", transtype);
+		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "bad transport value: %d\n", transtype);
 		return (ISC_R_FAILURE);
 	}
 
@@ -2531,7 +2680,8 @@ dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
 
 
 isc_result_t
-dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_getqueryacl(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2541,12 +2691,14 @@ dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->queryacl, list));
+	return (cfg_get_iplist(lctx, cfg->options, cfg->options->queryacl,
+			       list));
 }
 
 
 isc_result_t
-dns_c_ctx_gettransferacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_gettransferacl(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2556,12 +2708,14 @@ dns_c_ctx_gettransferacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->transferacl, list));
+	return (cfg_get_iplist(lctx, cfg->options,
+			       cfg->options->transferacl, list));
 }
 
 
 isc_result_t
-dns_c_ctx_getrecursionacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_getrecursionacl(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2571,12 +2725,14 @@ dns_c_ctx_getrecursionacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->recursionacl, list));
+	return (cfg_get_iplist(lctx, cfg->options, cfg->options->recursionacl,
+			       list));
 }
 
 
 isc_result_t
-dns_c_ctx_getblackhole(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_getblackhole(isc_log_t *lctx,
+		       dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2586,12 +2742,14 @@ dns_c_ctx_getblackhole(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->blackhole, list));
+	return (cfg_get_iplist(lctx, cfg->options,
+			       cfg->options->blackhole, list));
 }
 
 
 isc_result_t
-dns_c_ctx_gettopology(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_gettopology(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2601,12 +2759,14 @@ dns_c_ctx_gettopology(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->topology, list));
+	return (cfg_get_iplist(lctx, cfg->options,
+			       cfg->options->topology, list));
 }
 
 
 isc_result_t
-dns_c_ctx_getsortlist(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_getsortlist(isc_log_t *lctx,
+		      dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2616,13 +2776,17 @@ dns_c_ctx_getsortlist(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->sortlist, list));
+	return (cfg_get_iplist(lctx, cfg->options,
+			       cfg->options->sortlist, list));
 }
 
 
 isc_result_t
-dns_c_ctx_getlistenlist(dns_c_ctx_t *cfg, dns_c_lstnlist_t **ll)
+dns_c_ctx_getlistenlist(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, dns_c_lstnlist_t **ll)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 
 	if (cfg->options == NULL) {
@@ -2642,9 +2806,12 @@ dns_c_ctx_getlistenlist(dns_c_ctx_t *cfg, dns_c_lstnlist_t **ll)
 
 
 isc_result_t
-dns_c_ctx_getforward(dns_c_ctx_t *cfg, dns_c_forw_t *forw)
+dns_c_ctx_getforward(isc_log_t *lctx,
+		     dns_c_ctx_t *cfg, dns_c_forw_t *forw)
 {
 	isc_result_t res;
+
+	(void) lctx;
 	
 	CHECK_CONFIG(cfg);
 
@@ -2666,7 +2833,8 @@ dns_c_ctx_getforward(dns_c_ctx_t *cfg, dns_c_forw_t *forw)
 
 
 isc_result_t
-dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_getforwarders(isc_log_t *lctx,
+			dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 {
 	CHECK_CONFIG(cfg);
 
@@ -2676,13 +2844,17 @@ dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->forwarders, list));
+	return (cfg_get_iplist(lctx, cfg->options,
+			       cfg->options->forwarders, list));
 }
 
 
 isc_result_t
-dns_c_ctx_getrrsetorderlist(dns_c_ctx_t *cfg, dns_c_rrsolist_t **retval)
+dns_c_ctx_getrrsetorderlist(isc_log_t *lctx,
+			    dns_c_ctx_t *cfg, dns_c_rrsolist_t **retval)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 	REQUIRE(retval != NULL);
 
@@ -2696,8 +2868,11 @@ dns_c_ctx_getrrsetorderlist(dns_c_ctx_t *cfg, dns_c_rrsolist_t **retval)
 
 
 isc_result_t
-dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t **retval)
+dns_c_ctx_gettrustedkeys(isc_log_t *lctx,
+			 dns_c_ctx_t *cfg, dns_c_tkeylist_t **retval)
 {
+	(void) lctx;
+	
 	CHECK_CONFIG(cfg);
 	REQUIRE(retval != NULL);
 
@@ -2712,11 +2887,14 @@ dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t **retval)
 
 
 isc_result_t
-dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
+dns_c_ctx_optionsnew(isc_log_t *lctx,
+		     isc_mem_t *mem, dns_c_options_t **options)
 {
 	int i;
 	dns_c_options_t *opts = NULL;
 
+	(void) lctx;
+	
 	REQUIRE(mem != NULL);
 	REQUIRE(options != NULL);
 
@@ -2797,7 +2975,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 
 
 isc_result_t
-dns_c_ctx_optionsdelete(dns_c_options_t **opts)
+dns_c_ctx_optionsdelete(isc_log_t *lctx,
+			dns_c_options_t **opts)
 {
 	dns_c_options_t *options;
 	isc_result_t r;
@@ -2839,31 +3018,31 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 		isc_mem_free(options->mem, options->named_xfer);
 	}
 
-	r = dns_c_ipmatchlist_delete(&options->queryacl);
+	r = dns_c_ipmatchlist_delete(lctx, &options->queryacl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlist_delete(&options->transferacl);
+	r = dns_c_ipmatchlist_delete(lctx, &options->transferacl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlist_delete(&options->recursionacl);
+	r = dns_c_ipmatchlist_delete(lctx, &options->recursionacl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlist_delete(&options->blackhole);
+	r = dns_c_ipmatchlist_delete(lctx, &options->blackhole);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlist_delete(&options->topology);
+	r = dns_c_ipmatchlist_delete(lctx, &options->topology);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlist_delete(&options->sortlist);
+	r = dns_c_ipmatchlist_delete(lctx, &options->sortlist);
 	if (r != ISC_R_SUCCESS) return (r);
 
-	r = dns_c_lstnlist_delete(&options->listens);
+	r = dns_c_lstnlist_delete(lctx, &options->listens);
 	if (r != ISC_R_SUCCESS) return (r);
 
-	r = dns_c_rrsolist_delete(&options->ordering);
+	r = dns_c_rrsolist_delete(lctx, &options->ordering);
 	if (r != ISC_R_SUCCESS) return (r);
 
-	r = dns_c_ipmatchlist_delete(&options->forwarders);
+	r = dns_c_ipmatchlist_delete(lctx, &options->forwarders);
 	if (r != ISC_R_SUCCESS) return (r);
 
 	*opts = NULL;
@@ -2875,7 +3054,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 
 void
-dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
+dns_c_ctx_optionsprint(isc_log_t *lctx,
+		       FILE *fp, int indent, dns_c_options_t *options)
 {
 	dns_c_severity_t nameseverity;
 	
@@ -2889,45 +3069,45 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 #define PRINT_INTEGER(field, bit, name, bitfield)			\
 	if (DNS_C_CHECKBIT(bit, &options->bitfield)) {			\
-		dns_c_printtabs(fp, indent + 1);			\
+		dns_c_printtabs(lctx, fp, indent + 1);			\
 		fprintf(fp, "%s %d;\n",name,(int)options->field);	\
 	}
 	
 #define PRINT_AS_MINUTES(field, bit, name, bitfield)		\
 	if (DNS_C_CHECKBIT(bit, &options->bitfield)) {		\
-		dns_c_printtabs(fp, indent + 1);		\
+		dns_c_printtabs(lctx, fp, indent + 1);		\
 		fprintf(fp, "%s %lu;\n",name,			\
 			(unsigned long)options->field / 60);	\
 	}
 
 #define PRINT_AS_BOOLEAN(field, bit, name, bitfield)		\
 	if (DNS_C_CHECKBIT(bit, &options->bitfield)) {		\
-		dns_c_printtabs(fp, indent + 1);		\
+		dns_c_printtabs(lctx, fp, indent + 1);		\
 		fprintf(fp, "%s %s;\n",name,			\
 			(options->field ? "true" : "false"));	\
 	}
 
 #define PRINT_AS_SIZE_CLAUSE(field, bit, name, bitfield)	\
 	if (DNS_C_CHECKBIT(bit, &options->bitfield)) {		\
-		dns_c_printtabs(fp, indent + 1);		\
+		dns_c_printtabs(lctx, fp, indent + 1);		\
 		fprintf(fp, "%s ",name);			\
 		if (options->field == DNS_C_SIZE_SPEC_DEFAULT) { \
 			fprintf(fp, "default");			\
 		} else {					\
-			dns_c_printinunits(fp, options->data_size); \
+			dns_c_printinunits(lctx, fp, options->data_size); \
 		}						\
 		fprintf(fp, ";\n");				\
 	}
 
 #define PRINT_CHAR_P(field, name)					\
 	if (options->field != NULL) {					\
-		dns_c_printtabs(fp, indent + 1);			\
+		dns_c_printtabs(lctx, fp, indent + 1);			\
 		fprintf(fp, "%s \"%s\";\n", name, options->field);	\
 	}
 	
 
 
-	dns_c_printtabs (fp, indent);
+	dns_c_printtabs (lctx, fp, indent);
 	fprintf (fp, "options {\n");
 
 	PRINT_CHAR_P(version, "version");
@@ -3000,18 +3180,19 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 			 "dialup", setflags1);
 
 	if (DNS_C_CHECKBIT(OPTIONS_TRANSFER_FORMAT_BIT, &options->setflags1)) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "transfer-format %s;\n",
-			dns_c_transformat2string(options->transfer_format,
+			dns_c_transformat2string(lctx,
+						 options->transfer_format,
 						 ISC_TRUE));
 	}
 	
 	
 	if (DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT, &options->setflags1) ||
 	    DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT, &options->setflags1)) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "query-source address ");
-		dns_c_print_ipaddr(fp, &options->query_source_addr);
+		dns_c_print_ipaddr(lctx, fp, &options->query_source_addr);
 
 		if (options->query_source_port == htons(0)) {
 			fprintf(fp, " port *");
@@ -3025,85 +3206,92 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 	if (DNS_C_CHECKBIT(CHECKNAME_PRIM_BIT, &options->setflags1)) {
 		nameseverity = options->check_names[dns_trans_primary];
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "check-names %s %s;\n",
-			dns_c_transport2string(dns_trans_primary, ISC_TRUE),
-			dns_c_nameseverity2string(nameseverity, ISC_TRUE));
+			dns_c_transport2string(lctx, dns_trans_primary,
+					       ISC_TRUE),
+			dns_c_nameseverity2string(lctx, nameseverity,
+						  ISC_TRUE));
 	}
 		
 	if (DNS_C_CHECKBIT(CHECKNAME_SEC_BIT, &options->setflags1)) {
 		nameseverity = options->check_names[dns_trans_secondary];
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "check-names %s %s;\n",
-			dns_c_transport2string(dns_trans_secondary, ISC_TRUE),
-			dns_c_nameseverity2string(nameseverity, ISC_TRUE));
+			dns_c_transport2string(lctx, dns_trans_secondary,
+					       ISC_TRUE),
+			dns_c_nameseverity2string(lctx, nameseverity,
+						  ISC_TRUE));
 	}
 		
 	if (DNS_C_CHECKBIT(CHECKNAME_RESP_BIT, &options->setflags1)) {
 		nameseverity = options->check_names[dns_trans_response];
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "check-names %s %s;\n",
-			dns_c_transport2string(dns_trans_response, ISC_TRUE),
-			dns_c_nameseverity2string(nameseverity, ISC_TRUE));
+			dns_c_transport2string(lctx, dns_trans_response,
+					       ISC_TRUE),
+			dns_c_nameseverity2string(lctx, nameseverity,
+						  ISC_TRUE));
 	}
 
 	fprintf(fp, "\n");
 	
 	if (options->queryacl != NULL) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow-query ");
-		dns_c_ipmatchlist_print(fp, 2, options->queryacl);
+		dns_c_ipmatchlist_print(lctx, fp, 2, options->queryacl);
 		fprintf(fp, "\n");
 	}
 
 	if (options->transferacl != NULL) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow-transfer ");
-		dns_c_ipmatchlist_print(fp, 2, options->transferacl);
+		dns_c_ipmatchlist_print(lctx, fp, 2, options->transferacl);
 		fprintf(fp, "\n");
 	}
 
 	if (options->recursionacl != NULL) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow-recursion ");
-		dns_c_ipmatchlist_print(fp, 2, options->recursionacl);
+		dns_c_ipmatchlist_print(lctx, fp, 2, options->recursionacl);
 		fprintf(fp, "\n");
 	}
 
 	if (options->blackhole != NULL) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "blackhole ");
-		dns_c_ipmatchlist_print(fp, 2, options->blackhole);
+		dns_c_ipmatchlist_print(lctx, fp, 2, options->blackhole);
 		fprintf(fp, "\n");
 	}
 
 	if (options->topology != NULL) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "topology ");
-		dns_c_ipmatchlist_print(fp, 2, options->topology);
+		dns_c_ipmatchlist_print(lctx, fp, 2, options->topology);
 		fprintf(fp, "\n");
 	}
 
 	if (options->sortlist != NULL) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "sortlist ");
-		dns_c_ipmatchlist_print(fp, 2, options->sortlist);
+		dns_c_ipmatchlist_print(lctx, fp, 2, options->sortlist);
 		fprintf(fp, "\n");
 	}
 
-	dns_c_lstnlist_print(fp, indent + 1, options->listens);
+	dns_c_lstnlist_print(lctx, fp, indent + 1, options->listens);
 
-	dns_c_ctx_forwarderprint(fp, indent + 1, options);
+	dns_c_ctx_forwarderprint(lctx, fp, indent + 1, options);
 
-	dns_c_rrsolist_print(fp, indent + 1, options->ordering);
+	dns_c_rrsolist_print(lctx, fp, indent + 1, options->ordering);
 
-	dns_c_printtabs(fp, indent);
+	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp,"};\n");
 }
 
 
 isc_boolean_t
-dns_c_ctx_keydefinedp(dns_c_ctx_t *ctx, const char *keyname)
+dns_c_ctx_keydefinedp(isc_log_t *lctx,
+		      dns_c_ctx_t *ctx, const char *keyname)
 {
 	dns_c_kdef_t *keyid;
 	isc_result_t res;
@@ -3114,7 +3302,7 @@ dns_c_ctx_keydefinedp(dns_c_ctx_t *ctx, const char *keyname)
 	REQUIRE(strlen(keyname) > 0);
 	
 	if (ctx->keydefs != NULL) {
-		res = dns_c_kdeflist_find(ctx->keydefs, keyname, &keyid);
+		res = dns_c_kdeflist_find(lctx, ctx->keydefs, keyname, &keyid);
 		if (res == ISC_R_SUCCESS) {
 			rval = ISC_TRUE;
 		}
@@ -3130,10 +3318,13 @@ dns_c_ctx_keydefinedp(dns_c_ctx_t *ctx, const char *keyname)
 
 
 static isc_result_t
-cfg_set_string(dns_c_options_t *options, char **field, const char *newval)
+cfg_set_string(isc_log_t *lctx,
+	       dns_c_options_t *options, char **field, const char *newval)
 {
 	char *p;
 	isc_boolean_t existed = ISC_FALSE;
+
+	(void) lctx;
 	
 	CHECK_OPTION(options);
 	REQUIRE(field != NULL);
@@ -3173,7 +3364,8 @@ cfg_set_string(dns_c_options_t *options, char **field, const char *newval)
 
 /* XXX This can get removed and replaced with set_ipmatch_list_field */
 static isc_result_t
-cfg_set_iplist(dns_c_options_t *options,
+cfg_set_iplist(isc_log_t *lctx,
+	       dns_c_options_t *options,
 	       dns_c_ipmatchlist_t **fieldaddr,
 	       dns_c_ipmatchlist_t *newval,
 	       isc_boolean_t copy)
@@ -3189,22 +3381,23 @@ cfg_set_iplist(dns_c_options_t *options,
 	}
 	
 	if (newval == NULL) {
-		res = dns_c_ipmatchlist_new(options->mem, fieldaddr);
+		res = dns_c_ipmatchlist_new(lctx, options->mem, fieldaddr);
 	} else if (copy) {
 		if (*fieldaddr != NULL) {
-			res = dns_c_ipmatchlist_empty(*fieldaddr);
+			res = dns_c_ipmatchlist_empty(lctx, *fieldaddr);
 			if (res == ISC_R_SUCCESS && newval != NULL) {
-				res = dns_c_ipmatchlist_append(*fieldaddr,
-								newval,
-								ISC_FALSE);
+				res = dns_c_ipmatchlist_append(lctx,
+							       *fieldaddr,
+							       newval,
+							       ISC_FALSE);
 			}
 		} else {
-			res = dns_c_ipmatchlist_copy(options->mem,
-						      fieldaddr, newval);
+			res = dns_c_ipmatchlist_copy(lctx, options->mem,
+						     fieldaddr, newval);
 		}
 	} else {
 		if (*fieldaddr != NULL) {
-			res = dns_c_ipmatchlist_delete(fieldaddr);
+			res = dns_c_ipmatchlist_delete(lctx, fieldaddr);
 			if (res != ISC_R_SUCCESS) {
 				return (res);
 			}
@@ -3224,13 +3417,16 @@ cfg_set_iplist(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_set_boolean(dns_c_options_t *options,
+cfg_set_boolean(isc_log_t *lctx,
+		dns_c_options_t *options,
 		isc_boolean_t *fieldaddr,
 		isc_boolean_t newval,
-		dns_setbits_t *setfield,
+		dns_c_setbits_t *setfield,
 		isc_uint32_t bitnumber)
 {
 	isc_boolean_t existed;
+
+	(void) lctx;
 	
 	CHECK_OPTION(options);
 	REQUIRE(setfield != NULL);
@@ -3247,14 +3443,17 @@ cfg_set_boolean(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_set_int32(dns_c_options_t *options,
+cfg_set_int32(isc_log_t *lctx,
+	      dns_c_options_t *options,
 	      isc_int32_t *fieldaddr,
 	      isc_int32_t newval,
-	      dns_setbits_t *setfield,
+	      dns_c_setbits_t *setfield,
 	      isc_uint32_t bitnumber)
 {
 	isc_boolean_t existed;
 
+	(void) lctx;
+	
 	CHECK_OPTION(options);
 	REQUIRE(setfield != NULL);
 	REQUIRE(fieldaddr != NULL);
@@ -3270,14 +3469,17 @@ cfg_set_int32(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_set_uint32(dns_c_options_t *options,
+cfg_set_uint32(isc_log_t *lctx,
+	       dns_c_options_t *options,
 	       isc_uint32_t *fieldaddr,
 	       isc_uint32_t newval,
-	       dns_setbits_t *setfield,
+	       dns_c_setbits_t *setfield,
 	       isc_uint32_t bitnumber)
 {
 	isc_boolean_t existed;
 
+	(void) lctx;
+	
 	CHECK_OPTION(options);
 	REQUIRE(setfield != NULL);
 	REQUIRE(fieldaddr != NULL);
@@ -3293,11 +3495,14 @@ cfg_set_uint32(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_get_iplist(dns_c_options_t *options,
+cfg_get_iplist(isc_log_t *lctx,
+	       dns_c_options_t *options,
 	       dns_c_ipmatchlist_t *field,
 	       dns_c_ipmatchlist_t **resval)
 {
 	isc_result_t res;
+
+	(void) lctx;
 	
 	CHECK_OPTION(options);
 	REQUIRE(resval != NULL);
@@ -3315,13 +3520,16 @@ cfg_get_iplist(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_get_boolean(dns_c_options_t *options,
+cfg_get_boolean(isc_log_t *lctx,
+		dns_c_options_t *options,
 		isc_boolean_t *field,
 		isc_boolean_t *result,
-		dns_setbits_t *setfield,
+		dns_c_setbits_t *setfield,
 		isc_uint32_t bitnumber)
 {
 	isc_result_t res;
+
+	(void) lctx;
 	
 	CHECK_OPTION(options);
 	REQUIRE(result != NULL);
@@ -3338,13 +3546,16 @@ cfg_get_boolean(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_get_int32(dns_c_options_t *options,
+cfg_get_int32(isc_log_t *lctx,
+	      dns_c_options_t *options,
 	      isc_int32_t *field,
 	      isc_int32_t *result,
-	      dns_setbits_t *setfield,
+	      dns_c_setbits_t *setfield,
 	      isc_uint32_t bitnumber)
 {
 	isc_result_t res;
+
+	(void) lctx;
 	
 	CHECK_OPTION(options);
 	REQUIRE(result != NULL);
@@ -3361,13 +3572,16 @@ cfg_get_int32(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_get_uint32(dns_c_options_t *options,
+cfg_get_uint32(isc_log_t *lctx,
+	       dns_c_options_t *options,
 	       isc_uint32_t *field,
 	       isc_uint32_t *result,
-	       dns_setbits_t *setfield,
+	       dns_c_setbits_t *setfield,
 	       isc_uint32_t bitnumber)
 {
 	isc_result_t res;
+
+	(void) lctx;
 	
 	CHECK_OPTION(options);
 	REQUIRE(result != NULL);
@@ -3384,7 +3598,8 @@ cfg_get_uint32(dns_c_options_t *options,
 
 
 static isc_result_t
-acl_init(dns_c_ctx_t *cfg)
+acl_init(isc_log_t *lctx,
+	 dns_c_ctx_t *cfg)
 {
 	dns_c_ipmatchelement_t *ime;
 	dns_c_ipmatchlist_t *iml;
@@ -3397,25 +3612,25 @@ acl_init(dns_c_ctx_t *cfg)
 
 	isc_sockaddr_fromin(&addr, &zeroaddr, 0);
 
-	r = dns_c_acltable_new(cfg->mem, &cfg->acls);
+	r = dns_c_acltable_new(lctx, cfg->mem, &cfg->acls);
 	if (r != ISC_R_SUCCESS) return (r);
 
 
 	/*
 	 * The ANY acl.
 	 */
-	r = dns_c_acl_new(cfg->acls, "any", ISC_TRUE, &acl);
+	r = dns_c_acl_new(lctx, cfg->acls, "any", ISC_TRUE, &acl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchpattern_new(cfg->mem, &ime, addr, 0);
+	r = dns_c_ipmatchpattern_new(lctx, cfg->mem, &ime, addr, 0);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
+	r = dns_c_ipmatchlist_new(lctx, cfg->mem, &iml);
 	if (r != ISC_R_SUCCESS) return (r);
 	
 	ISC_LIST_APPEND(iml->elements, ime, next);
 
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
+	dns_c_acl_setipml(lctx, acl, iml, ISC_FALSE);
 	iml = NULL;
 	
 
@@ -3423,56 +3638,56 @@ acl_init(dns_c_ctx_t *cfg)
 	 * The NONE acl
 	 */
 
-	r = dns_c_acl_new(cfg->acls, "none", ISC_TRUE, &acl);
+	r = dns_c_acl_new(lctx, cfg->acls, "none", ISC_TRUE, &acl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchpattern_new(cfg->mem, &ime, addr, 0);
+	r = dns_c_ipmatchpattern_new(lctx, cfg->mem, &ime, addr, 0);
 	if (r != ISC_R_SUCCESS) return (r);
 
-	dns_c_ipmatch_negate(ime);
+	dns_c_ipmatch_negate(lctx, ime);
 
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
+	r = dns_c_ipmatchlist_new(lctx, cfg->mem, &iml);
 	if (r != ISC_R_SUCCESS) return (r);
 	
 	ISC_LIST_APPEND(iml->elements, ime, next);
 	
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
+	dns_c_acl_setipml(lctx, acl, iml, ISC_FALSE);
 	iml = NULL;
 	
 
 	/*
 	 * The LOCALHOST acl
 	 */
-	r = dns_c_acl_new(cfg->acls, "localhost", ISC_TRUE, &acl);
+	r = dns_c_acl_new(lctx, cfg->acls, "localhost", ISC_TRUE, &acl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlocalhost_new(cfg->mem, &ime);
+	r = dns_c_ipmatchlocalhost_new(lctx, cfg->mem, &ime);
 	if (r != ISC_R_SUCCESS) return (r);
 
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
+	r = dns_c_ipmatchlist_new(lctx, cfg->mem, &iml);
 	if (r != ISC_R_SUCCESS) return (r);
 	
 	ISC_LIST_APPEND(iml->elements, ime, next);
 
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
+	dns_c_acl_setipml(lctx, acl, iml, ISC_FALSE);
 	iml = NULL;
 	
 	
 	/*
 	 * The LOCALNETS acl
 	 */
-	r = dns_c_acl_new(cfg->acls, "localnets", ISC_TRUE, &acl);
+	r = dns_c_acl_new(lctx, cfg->acls, "localnets", ISC_TRUE, &acl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlocalnets_new(cfg->mem, &ime);
+	r = dns_c_ipmatchlocalnets_new(lctx, cfg->mem, &ime);
 	if (r != ISC_R_SUCCESS) return (r);
 	
-	r = dns_c_ipmatchlist_new(cfg->mem, &iml);
+	r = dns_c_ipmatchlist_new(lctx, cfg->mem, &iml);
 	if (r != ISC_R_SUCCESS) return (r);
 	
 	ISC_LIST_APPEND(iml->elements, ime, next);
 
-	dns_c_acl_setipml(acl, iml, ISC_FALSE);
+	dns_c_acl_setipml(lctx, acl, iml, ISC_FALSE);
 	iml = NULL;
 	
 	return (ISC_R_SUCCESS);
@@ -3481,7 +3696,8 @@ acl_init(dns_c_ctx_t *cfg)
 
 
 static isc_result_t
-logging_init (dns_c_ctx_t *cfg)
+logging_init (isc_log_t *lctx,
+	      dns_c_ctx_t *cfg)
 {
 	isc_result_t res;
 	dns_c_logcat_t *cat;
@@ -3490,91 +3706,92 @@ logging_init (dns_c_ctx_t *cfg)
 	REQUIRE(cfg != NULL);
 	REQUIRE(cfg->logging == NULL);
 
-	res = dns_c_logginglist_new(cfg->mem, &cfg->logging);
+	res = dns_c_logginglist_new(lctx, cfg->mem, &cfg->logging);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
 
 	/* default_syslog channel */
 	chan = NULL;
-	res = dns_c_ctx_addsyslogchannel(cfg, DNS_C_DEFAULT_SYSLOG, &chan);
+	res = dns_c_ctx_addsyslogchannel(lctx, cfg, DNS_C_DEFAULT_SYSLOG,
+					 &chan);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	dns_c_logchan_setpredef(chan, ISC_TRUE);
-	dns_c_logchan_setfacility(chan, LOG_DAEMON);
-	dns_c_logchan_setseverity(chan, dns_c_log_info);
+	dns_c_logchan_setpredef(lctx, chan, ISC_TRUE);
+	dns_c_logchan_setfacility(lctx, chan, LOG_DAEMON);
+	dns_c_logchan_setseverity(lctx, chan, dns_c_log_info);
 
 	
 	/* default_debug channel */
 	chan = NULL;
-	res = dns_c_ctx_addfile_channel(cfg, DNS_C_DEFAULT_DEBUG, &chan);
+	res = dns_c_ctx_addfile_channel(lctx, cfg, DNS_C_DEFAULT_DEBUG, &chan);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	dns_c_logchan_setpredef(chan, ISC_TRUE);
-	dns_c_logchan_setpath(chan, DNS_C_DEFAULT_DEBUG_PATH);
-	dns_c_logchan_setseverity(chan, dns_c_log_dynamic);
+	dns_c_logchan_setpredef(lctx, chan, ISC_TRUE);
+	dns_c_logchan_setpath(lctx, chan, DNS_C_DEFAULT_DEBUG_PATH);
+	dns_c_logchan_setseverity(lctx, chan, dns_c_log_dynamic);
 
 
 	/* null channel */
 	chan = NULL;
-	res = dns_c_ctx_addnullchannel(cfg, DNS_C_NULL, &chan);
-	dns_c_logchan_setpredef(chan, ISC_TRUE);
+	res = dns_c_ctx_addnullchannel(lctx, cfg, DNS_C_NULL, &chan);
+	dns_c_logchan_setpredef(lctx, chan, ISC_TRUE);
 
 
 	/* default_stderr channel */
 	chan = NULL;
-	res = dns_c_ctx_addfile_channel(cfg, DNS_C_DEFAULT_STDERR, &chan);
+	res = dns_c_ctx_addfile_channel(lctx, cfg, DNS_C_DEFAULT_STDERR,
+					&chan);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	dns_c_logchan_setpredef(chan, ISC_TRUE);
-	dns_c_logchan_setpath(chan, DNS_C_STDERR_PATH);
-	dns_c_logchan_setseverity(chan, dns_c_log_info);
+	dns_c_logchan_setpredef(lctx, chan, ISC_TRUE);
+	dns_c_logchan_setpath(lctx, chan, DNS_C_STDERR_PATH);
+	dns_c_logchan_setseverity(lctx, chan, dns_c_log_info);
 
 
 	/* default category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_default, &cat);
+	res = dns_c_ctx_addcategory(lctx, cfg, dns_c_cat_default, &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	dns_c_logcat_setpredef(cat, ISC_TRUE);
-	dns_c_logcat_addname(cat, DNS_C_DEFAULT_SYSLOG);
-	dns_c_logcat_addname(cat, DNS_C_DEFAULT_DEBUG);
+	dns_c_logcat_setpredef(lctx, cat, ISC_TRUE);
+	dns_c_logcat_addname(lctx, cat, DNS_C_DEFAULT_SYSLOG);
+	dns_c_logcat_addname(lctx, cat, DNS_C_DEFAULT_DEBUG);
 	
 
 	/* panic category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_panic, &cat);
+	res = dns_c_ctx_addcategory(lctx, cfg, dns_c_cat_panic, &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	dns_c_logcat_setpredef(cat, ISC_TRUE);
-	dns_c_logcat_addname(cat, DNS_C_DEFAULT_SYSLOG);
-	dns_c_logcat_addname(cat, DNS_C_DEFAULT_DEBUG);
+	dns_c_logcat_setpredef(lctx, cat, ISC_TRUE);
+	dns_c_logcat_addname(lctx, cat, DNS_C_DEFAULT_SYSLOG);
+	dns_c_logcat_addname(lctx, cat, DNS_C_DEFAULT_DEBUG);
 
 	
 	/* eventlib category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_eventlib, &cat);
+	res = dns_c_ctx_addcategory(lctx, cfg, dns_c_cat_eventlib, &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	dns_c_logcat_setpredef(cat, ISC_TRUE);
-	dns_c_logcat_addname(cat, DNS_C_DEFAULT_DEBUG);
+	dns_c_logcat_setpredef(lctx, cat, ISC_TRUE);
+	dns_c_logcat_addname(lctx, cat, DNS_C_DEFAULT_DEBUG);
 
 
 	/* packet category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_packet, &cat);
+	res = dns_c_ctx_addcategory(lctx, cfg, dns_c_cat_packet, &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	dns_c_logcat_setpredef(cat, ISC_TRUE);
-	dns_c_logcat_addname(cat, DNS_C_DEFAULT_DEBUG);
-
+	dns_c_logcat_setpredef(lctx, cat, ISC_TRUE);
+	dns_c_logcat_addname(lctx, cat, DNS_C_DEFAULT_DEBUG);
 	
 	return (ISC_R_SUCCESS);
 }

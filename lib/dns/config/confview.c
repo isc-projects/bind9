@@ -25,6 +25,8 @@
 #include <dns/confzone.h>
 #include <dns/confcommon.h>
 #include <dns/confview.h>
+#include <dns/log.h>
+
 #include "confpvt.h"
 
 
@@ -38,7 +40,9 @@ dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable)
 
 	table = isc_mem_get(mem, sizeof *table);
 	if (table == NULL) {
-		dns_c_error(0, "Out of memory");
+		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Out of memory");
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -110,7 +114,10 @@ dns_c_viewtable_clear(dns_c_viewtable_t *table)
 		
 		r = dns_c_view_delete(&elem);
 		if (r != ISC_R_SUCCESS) {
-			dns_c_error(r, "Failed to delete view.\n");
+			isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG,
+				      ISC_LOG_CRITICAL,
+				      "Failed to delete view.\n");
 			return (r);
 		}
 
@@ -188,7 +195,9 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_c_view_t **newview)
 	view->name = isc_mem_strdup(mem, name);
 	if (view->name == NULL) {
 		isc_mem_put(mem, view, sizeof *view);
-		dns_c_error(0, "Insufficient memory");
+		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Insufficient memory");
 	}
 
 	*newview = view;

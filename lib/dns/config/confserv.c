@@ -38,10 +38,12 @@
 
 
 isc_result_t
-dns_c_srvlist_new(isc_mem_t *mem, dns_c_srvlist_t **list)
+dns_c_srvlist_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_srvlist_t **list)
 {
 	dns_c_srvlist_t *l;
 
+	(void) lctx;
+	
 	REQUIRE(list != NULL);
 
 	l = isc_mem_get(mem, sizeof *l);
@@ -59,7 +61,7 @@ dns_c_srvlist_new(isc_mem_t *mem, dns_c_srvlist_t **list)
 
 
 isc_result_t
-dns_c_srvlist_delete(dns_c_srvlist_t **list)
+dns_c_srvlist_delete(isc_log_t *lctx, dns_c_srvlist_t **list)
 {
 	dns_c_srvlist_t *l;
 	dns_c_srv_t *server, *stmp;
@@ -76,7 +78,7 @@ dns_c_srvlist_delete(dns_c_srvlist_t **list)
 	while (server != NULL) {
 		stmp = ISC_LIST_NEXT(server, next);
 		ISC_LIST_UNLINK(l->elements, server, next);
-		r = dns_c_srv_delete(&server);
+		r = dns_c_srv_delete(lctx, &server);
 		if (r != ISC_R_SUCCESS) {
 			return (r);
 		}
@@ -92,7 +94,8 @@ dns_c_srvlist_delete(dns_c_srvlist_t **list)
 
 
 void
-dns_c_srvlist_print(FILE *fp, int indent, dns_c_srvlist_t *servers)
+dns_c_srvlist_print(isc_log_t *lctx, FILE *fp, int indent,
+		    dns_c_srvlist_t *servers)
 {
 	dns_c_srv_t *server;
 	
@@ -104,7 +107,7 @@ dns_c_srvlist_print(FILE *fp, int indent, dns_c_srvlist_t *servers)
 
 	server = ISC_LIST_HEAD(servers->elements);
 	while (server != NULL) {
-		dns_c_srv_print(fp, indent, server);
+		dns_c_srv_print(lctx, fp, indent, server);
 		server = ISC_LIST_NEXT(server, next);
 		if (server != NULL) {
 			fprintf(fp, "\n");
@@ -116,10 +119,13 @@ dns_c_srvlist_print(FILE *fp, int indent, dns_c_srvlist_t *servers)
 
 
 isc_result_t
-dns_c_srv_new(isc_mem_t *mem, isc_sockaddr_t addr, dns_c_srv_t **server)
+dns_c_srv_new(isc_log_t *lctx, isc_mem_t *mem, isc_sockaddr_t addr,
+	      dns_c_srv_t **server)
 {
 	dns_c_srv_t *serv;
 
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 	REQUIRE(mem != NULL);
 
@@ -147,7 +153,7 @@ dns_c_srv_new(isc_mem_t *mem, isc_sockaddr_t addr, dns_c_srv_t **server)
 
 
 isc_result_t
-dns_c_srv_delete(dns_c_srv_t **server)
+dns_c_srv_delete(isc_log_t *lctx, dns_c_srv_t **server)
 {
 	dns_c_srv_t *serv;
 	isc_mem_t *mem;
@@ -161,7 +167,7 @@ dns_c_srv_delete(dns_c_srv_t **server)
 
 	mem = serv->mem;
 	serv->mem = NULL;
-	dns_c_kidlist_delete(&serv->keys);
+	dns_c_kidlist_delete(lctx, &serv->keys);
 
 	isc_mem_put(mem, serv, sizeof *serv);
 
@@ -172,52 +178,54 @@ dns_c_srv_delete(dns_c_srv_t **server)
 
 
 void
-dns_c_srv_print(FILE *fp, int indent, dns_c_srv_t *server)
+dns_c_srv_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_srv_t *server)
 {
 	REQUIRE(server != NULL);
 	REQUIRE(fp != NULL);
 
-	dns_c_printtabs(fp, indent);
+	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "server ");
-	dns_c_print_ipaddr(fp, &server->address);
+	dns_c_print_ipaddr(lctx, fp, &server->address);
 	fprintf(fp, " {\n");
 
 	if (DNS_C_CHECKBIT(BOGUS_BIT, &server->bitflags)) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "bogus %s;\n",
 			(server->bogus ? "true" : "false"));
 	}
 
 	if (DNS_C_CHECKBIT(SERVER_TRANSFER_FORMAT_BIT, &server->bitflags)) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "transfer-format %s;\n",
-			dns_c_transformat2string(server->transfer_format,
+			dns_c_transformat2string(lctx, server->transfer_format,
 						 ISC_TRUE));
 	}
 
 	if (DNS_C_CHECKBIT(TRANSFERS_BIT, &server->bitflags)) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "transfers %d;\n", server->transfers);
 	}
 
 	if (DNS_C_CHECKBIT(SUPPORT_IXFR_BIT,&server->bitflags)) {
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "support-ixfr %s;\n",
 			(server->support_ixfr ? "true" : "false"));
 	}
 
 	if (server->keys != NULL) {
-		dns_c_kidlist_print(fp, indent + 1, server->keys);
+		dns_c_kidlist_print(lctx, fp, indent + 1, server->keys);
 	}
 	
-	dns_c_printtabs(fp, indent);
+	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "};\n");
 }
 
 
 isc_result_t
-dns_c_srv_setbogus(dns_c_srv_t *server, isc_boolean_t newval)
+dns_c_srv_setbogus(isc_log_t *lctx, dns_c_srv_t *server, isc_boolean_t newval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 
 	server->bogus = newval;
@@ -228,9 +236,11 @@ dns_c_srv_setbogus(dns_c_srv_t *server, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_srv_getbogus(dns_c_srv_t *server,
-		    isc_boolean_t *retval)
+dns_c_srv_getbogus(isc_log_t *lctx, dns_c_srv_t *server,
+		   isc_boolean_t *retval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 	REQUIRE(retval != NULL);
 
@@ -244,8 +254,11 @@ dns_c_srv_getbogus(dns_c_srv_t *server,
 
 
 isc_result_t
-dns_c_srv_setsupportixfr(dns_c_srv_t *server, isc_boolean_t newval)
+dns_c_srv_setsupportixfr(isc_log_t *lctx, dns_c_srv_t *server,
+			 isc_boolean_t newval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 
 	server->support_ixfr = newval;
@@ -256,9 +269,11 @@ dns_c_srv_setsupportixfr(dns_c_srv_t *server, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_srv_getsupportixfr(dns_c_srv_t *server,
-			   isc_boolean_t *retval)
+dns_c_srv_getsupportixfr(isc_log_t *lctx, dns_c_srv_t *server,
+			 isc_boolean_t *retval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 	REQUIRE(retval != NULL);
 
@@ -272,8 +287,11 @@ dns_c_srv_getsupportixfr(dns_c_srv_t *server,
 
 
 isc_result_t
-dns_c_srv_settransfers(dns_c_srv_t *server, isc_int32_t newval)
+dns_c_srv_settransfers(isc_log_t *lctx, dns_c_srv_t *server,
+		       isc_int32_t newval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 
 	server->transfers = newval;
@@ -284,8 +302,11 @@ dns_c_srv_settransfers(dns_c_srv_t *server, isc_int32_t newval)
 
 
 isc_result_t
-dns_c_srv_gettransfers(dns_c_srv_t *server, isc_int32_t *retval)
+dns_c_srv_gettransfers(isc_log_t *lctx, dns_c_srv_t *server,
+		       isc_int32_t *retval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 	REQUIRE(retval != NULL);
 
@@ -299,9 +320,11 @@ dns_c_srv_gettransfers(dns_c_srv_t *server, isc_int32_t *retval)
 
 
 isc_result_t
-dns_c_srv_settransferformat(dns_c_srv_t *server,
+dns_c_srv_settransferformat(isc_log_t *lctx, dns_c_srv_t *server,
 			    dns_transfer_format_t newval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 
 	server->transfer_format = newval;
@@ -312,12 +335,14 @@ dns_c_srv_settransferformat(dns_c_srv_t *server,
 
 
 isc_result_t
-dns_c_srv_gettransferformat(dns_c_srv_t *server,
+dns_c_srv_gettransferformat(isc_log_t *lctx, dns_c_srv_t *server,
 			    dns_transfer_format_t *retval)
 {
+	(void) lctx;
+	
 	REQUIRE(server != NULL);
 	REQUIRE(retval != NULL);
-
+	
 	if (DNS_C_CHECKBIT(SERVER_TRANSFER_FORMAT_BIT, &server->bitflags)) {
 		*retval = server->transfer_format;
 		return (ISC_R_SUCCESS);

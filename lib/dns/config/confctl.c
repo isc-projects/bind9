@@ -27,7 +27,8 @@
 
 
 isc_result_t
-dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
+dns_c_ctrllist_delete(isc_log_t *lctx,
+		      dns_c_ctrllist_t **list)
 {
 	dns_c_ctrl_t	       *ctrl;
 	dns_c_ctrl_t	       *tmpctrl;
@@ -42,7 +43,7 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
 	ctrl = ISC_LIST_HEAD(clist->elements);
 	while (ctrl != NULL) {
 		tmpctrl = ISC_LIST_NEXT(ctrl, next);
-		dns_c_ctrl_delete(&ctrl);
+		dns_c_ctrl_delete(lctx, &ctrl);
 		ctrl = tmpctrl;
 	}
 
@@ -55,9 +56,9 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
 
 
 isc_result_t
-dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
-		    isc_sockaddr_t addr, short port,
-		    dns_c_ipmatchlist_t *iml, isc_boolean_t copy)
+dns_c_ctrlinet_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_ctrl_t **control,
+		   isc_sockaddr_t addr, short port,
+		   dns_c_ipmatchlist_t *iml, isc_boolean_t copy)
 {
 	dns_c_ctrl_t  *ctrl;
 	isc_result_t	res;
@@ -76,8 +77,8 @@ dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	ctrl->u.inet_v.port = port;
 
 	if (copy) {
-		res = dns_c_ipmatchlist_copy(mem, &ctrl->u.inet_v.matchlist,
-					      iml);
+		res = dns_c_ipmatchlist_copy(lctx, mem,
+					     &ctrl->u.inet_v.matchlist, iml);
 		if (res != ISC_R_SUCCESS) {
 			isc_mem_put(mem, ctrl, sizeof *ctrl);
 			return (res);
@@ -93,13 +94,16 @@ dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 
 
 isc_result_t
-dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
-		    const char *path, int perm, uid_t uid, gid_t gid)
+dns_c_ctrlunix_new(isc_log_t *lctx,
+		   isc_mem_t *mem, dns_c_ctrl_t **control,
+		   const char *path, int perm, uid_t uid, gid_t gid)
 {
 	dns_c_ctrl_t  *ctrl;
 	
 	REQUIRE(mem != NULL);
 	REQUIRE(control != NULL);
+
+	(void) lctx;
 
 	ctrl = isc_mem_get(mem, sizeof *ctrl);
 	if (ctrl == NULL) {
@@ -111,6 +115,7 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	ctrl->u.unix_v.pathname = isc_mem_strdup(mem, path);
 	if (ctrl->u.unix_v.pathname == NULL) {
 		isc_mem_put(mem, ctrl, sizeof *ctrl);
+					/* XXXJAB logwrite */
 		return (ISC_R_NOMEMORY);
 	}
 	
@@ -125,7 +130,8 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 
 
 isc_result_t
-dns_c_ctrl_delete(dns_c_ctrl_t **control)
+dns_c_ctrl_delete(isc_log_t *lctx,
+		  dns_c_ctrl_t **control)
 {
 	isc_result_t res;
 	isc_result_t rval;
@@ -143,7 +149,8 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control)
 
 	switch (ctrl->control_type) {
 	case dns_c_inet_control:
-		res = dns_c_ipmatchlist_delete(&ctrl->u.inet_v.matchlist);
+		res = dns_c_ipmatchlist_delete(lctx,
+					       &ctrl->u.inet_v.matchlist);
 		break;
 
 	case dns_c_unix_control:
@@ -163,7 +170,8 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control)
 
 
 void
-dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
+dns_c_ctrl_print(isc_log_t *lctx,
+		 FILE *fp, int indent, dns_c_ctrl_t *ctl)
 {
 	short port;
 	dns_c_ipmatchlist_t *iml;
@@ -175,7 +183,7 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 		iml = ctl->u.inet_v.matchlist;
 		
 		fprintf(fp, "inet ");
-		dns_c_print_ipaddr(fp,  &ctl->u.inet_v.addr);
+		dns_c_print_ipaddr(lctx, fp,  &ctl->u.inet_v.addr);
 		
 		if (port == htons(0)) {
 			fprintf(fp, " port *\n");
@@ -183,9 +191,9 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 			fprintf(fp, " port %d\n", (int)ntohs(port));
 		}
 		
-		dns_c_printtabs(fp, indent + 1);
+		dns_c_printtabs(lctx, fp, indent + 1);
 		fprintf(fp, "allow ");
-		dns_c_ipmatchlist_print(fp, indent + 2, iml);
+		dns_c_ipmatchlist_print(lctx, fp, indent + 2, iml);
 	} else {
 		/* The "#" means force a leading zero */
 		fprintf(fp, "unix \"%s\" perm %#o owner %d group %d;\n",
@@ -198,15 +206,19 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 
 
 isc_result_t
-dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist)
+dns_c_ctrllist_new(isc_log_t *lctx,
+		   isc_mem_t *mem, dns_c_ctrllist_t **newlist)
 {
 	dns_c_ctrllist_t *newl;
 	
 	REQUIRE(mem != NULL);
 	REQUIRE (newlist != NULL);
 
+	(void) lctx;
+	
 	newl = isc_mem_get(mem, sizeof *newl);
 	if (newl == NULL) {
+		/* XXXJAB logwrite */
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -221,7 +233,8 @@ dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist)
 		
 	
 void
-dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl)
+dns_c_ctrllist_print(isc_log_t *lctx,
+		     FILE *fp, int indent, dns_c_ctrllist_t *cl)
 {
 	dns_c_ctrl_t *ctl;
 
@@ -232,8 +245,8 @@ dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl)
 	fprintf(fp, "controls {\n");
 	ctl = ISC_LIST_HEAD(cl->elements);
 	while (ctl != NULL) {
-		dns_c_printtabs(fp, indent + 1);
-		dns_c_ctrl_print(fp, indent + 1, ctl);
+		dns_c_printtabs(lctx, fp, indent + 1);
+		dns_c_ctrl_print(lctx, fp, indent + 1, ctl);
 		ctl = ISC_LIST_NEXT(ctl, next);
 	}
 	fprintf(fp, "};\n");

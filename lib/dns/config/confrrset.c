@@ -24,7 +24,7 @@
 
 
 isc_result_t
-dns_c_rrsolist_clear(dns_c_rrsolist_t *olist)
+dns_c_rrsolist_clear(isc_log_t *lctx, dns_c_rrsolist_t *olist)
 {
 	dns_c_rrso_t *elem;
 	
@@ -33,7 +33,7 @@ dns_c_rrsolist_clear(dns_c_rrsolist_t *olist)
 	elem = ISC_LIST_HEAD(olist->elements);
 	while (elem != NULL) {
 		ISC_LIST_UNLINK(olist->elements, elem, next);
-		dns_c_rrso_delete(&elem);
+		dns_c_rrso_delete(lctx, &elem);
 		elem = ISC_LIST_HEAD(olist->elements);
 	}
 
@@ -42,8 +42,8 @@ dns_c_rrsolist_clear(dns_c_rrsolist_t *olist)
 
 
 isc_result_t
-dns_c_rrsolist_append(dns_c_rrsolist_t *dest,
-		       dns_c_rrsolist_t *src)
+dns_c_rrsolist_append(isc_log_t *lctx, dns_c_rrsolist_t *dest,
+		      dns_c_rrsolist_t *src)
 {
 	dns_c_rrso_t *oldelem;
 	dns_c_rrso_t *newelem;
@@ -54,7 +54,7 @@ dns_c_rrsolist_append(dns_c_rrsolist_t *dest,
 
 	oldelem = ISC_LIST_HEAD(src->elements);
 	while (oldelem != NULL) {
-		res = dns_c_rrso_copy(dest->mem, &newelem, oldelem);
+		res = dns_c_rrso_copy(lctx, dest->mem, &newelem, oldelem);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -68,10 +68,12 @@ dns_c_rrsolist_append(dns_c_rrsolist_t *dest,
 
 
 isc_result_t
-dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval)
+dns_c_rrsolist_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrsolist_t **rval)
 {
 	dns_c_rrsolist_t *ro;
 
+	(void)lctx;
+	
 	ro = isc_mem_get(mem, sizeof *ro);
 	if (ro == NULL) {
 		return (ISC_R_NOMEMORY);
@@ -87,12 +89,14 @@ dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval)
 
 
 isc_result_t
-dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res,
+dns_c_rrso_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrso_t **res,
 	       dns_rdataclass_t oclass,
 	       dns_rdatatype_t otype, char *name, dns_c_ordering_t ordering)
 {
 	dns_c_rrso_t *newo;
 
+	(void)lctx;
+	
 	REQUIRE(mem != NULL);
 	REQUIRE(res != NULL);
 	
@@ -124,7 +128,7 @@ dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res,
 
 
 isc_result_t
-dns_c_rrsolist_delete(dns_c_rrsolist_t **list)
+dns_c_rrsolist_delete(isc_log_t *lctx, dns_c_rrsolist_t **list)
 {
 	dns_c_rrso_t *elem, *q;
 	dns_c_rrsolist_t *l;
@@ -141,7 +145,7 @@ dns_c_rrsolist_delete(dns_c_rrsolist_t **list)
 	while (elem != NULL) {
 		q = ISC_LIST_NEXT(elem, next);
 		ISC_LIST_UNLINK(l->elements, elem, next);
-		r = dns_c_rrso_delete(&elem);
+		r = dns_c_rrso_delete(lctx, &elem);
 		if (r != ISC_R_SUCCESS) {
 			return (r);
 		}
@@ -158,9 +162,11 @@ dns_c_rrsolist_delete(dns_c_rrsolist_t **list)
 
 
 isc_result_t
-dns_c_rrso_delete(dns_c_rrso_t **order)
+dns_c_rrso_delete(isc_log_t *lctx, dns_c_rrso_t **order)
 {
 	dns_c_rrso_t *oldo;
+
+	(void)lctx;
 	
 	REQUIRE(order != NULL);
 
@@ -181,7 +187,7 @@ dns_c_rrso_delete(dns_c_rrso_t **order)
 
 
 isc_result_t
-dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest,
+dns_c_rrso_copy(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrso_t **dest,
 		dns_c_rrso_t *source)
 {
 	dns_c_rrso_t *newo;
@@ -191,7 +197,7 @@ dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest,
 	REQUIRE(dest != NULL);
 	REQUIRE(source != NULL);
 
-	res = dns_c_rrso_new(mem, &newo, source->oclass,
+	res = dns_c_rrso_new(lctx, mem, &newo, source->oclass,
 			     source->otype, source->name,
 			     source->ordering);
 	if (res == ISC_R_SUCCESS) {
@@ -205,8 +211,8 @@ dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest,
 
 
 isc_result_t
-dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
-		     dns_c_rrsolist_t *source)
+dns_c_rrsolist_copy(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrsolist_t **dest,
+		    dns_c_rrsolist_t *source)
 
 {
 	dns_c_rrsolist_t *nlist;
@@ -214,16 +220,16 @@ dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
 	dns_c_rrso_t *newe;
 	dns_result_t res;
 	
-	res = dns_c_rrsolist_new(mem, &nlist);
+	res = dns_c_rrsolist_new(lctx, mem, &nlist);
 	if (res != DNS_R_SUCCESS) {
 		return (res);
 	}
 	
 	elem = ISC_LIST_HEAD(source->elements);
 	while (elem != NULL) {
-		res = dns_c_rrso_copy(mem, &newe, elem);
+		res = dns_c_rrso_copy(lctx, mem, &newe, elem);
 		if (res != DNS_R_SUCCESS) {
-			dns_c_rrsolist_delete(&nlist);
+			dns_c_rrsolist_delete(lctx, &nlist);
 			return (res);
 		}
 
@@ -239,8 +245,8 @@ dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
 
 
 void
-dns_c_rrsolist_print(FILE *fp, int indent,
-		      dns_c_rrsolist_t *rrlist)
+dns_c_rrsolist_print(isc_log_t *lctx, FILE *fp, int indent,
+		     dns_c_rrsolist_t *rrlist)
 {
 	dns_c_rrso_t *or;
 
@@ -252,31 +258,31 @@ dns_c_rrsolist_print(FILE *fp, int indent,
 		return;
 	}
 	
-	dns_c_printtabs(fp, indent);
+	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "rrset-order {\n");
 
 	or = ISC_LIST_HEAD(rrlist->elements);
 	while (or != NULL) {
-		dns_c_rrso_print(fp, indent + 1, or);
+		dns_c_rrso_print(lctx, fp, indent + 1, or);
 		or = ISC_LIST_NEXT(or, next);
 	}
 
-	dns_c_printtabs(fp, indent);
+	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "};\n");
 	
 }
 
 
 void
-dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order)
+dns_c_rrso_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_rrso_t *order)
 {
-	dns_c_printtabs(fp, indent);
+	dns_c_printtabs(lctx, fp, indent);
 
 	fputs("class ", fp);
 	if (order->oclass == dns_rdataclass_any) {
 		fputc('*', fp);
 	} else {
-		dns_c_dataclass_tostream(fp, order->oclass);
+		dns_c_dataclass_tostream(lctx, fp, order->oclass);
 	}
 	
 
@@ -284,14 +290,13 @@ dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order)
 	if (order->otype == dns_rdatatype_any) {
 		fputc('*', fp);
 	} else {
-		dns_c_datatype_tostream(fp, order->otype);
+		dns_c_datatype_tostream(lctx, fp, order->otype);
 	}
 
 	fprintf(fp, " name %s", order->name);
 
 	fprintf(fp, " order %s",
-		dns_c_ordering2string(order->ordering, ISC_TRUE));
+		dns_c_ordering2string(lctx, order->ordering, ISC_TRUE));
 	
 	fputs(";\n", fp);
 }
-
