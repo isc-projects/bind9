@@ -1,5 +1,5 @@
 /*
- * $Id: ssu.c,v 1.3 2000/02/15 21:54:59 bwelling Exp $
+ * $Id: ssu.c,v 1.4 2000/03/01 23:28:31 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -17,14 +17,15 @@
 #include <dns/name.h>
 #include <dns/ssu.h>
 
-#define SSUMAGIC		0x53535554 /* SSUT */
-#define VALID_SSUTABLE(table)	ISC_MAGIC_VALID((table), SSUMAGIC)
-
-typedef struct dns_ssurule dns_ssurule_t;
+#define SSUTABLEMAGIC		0x53535554 /* SSUT */
+#define VALID_SSUTABLE(table)	ISC_MAGIC_VALID((table), SSUTABLEMAGIC)
+#define SSURULEMAGIC		0x53535552 /* SSUR */
+#define VALID_SSURULE(table)	ISC_MAGIC_VALID((table), SSURULEMAGIC)
 
 struct dns_ssurule {
+	isc_uint32_t magic;
 	isc_boolean_t grant;	/* is this a grant or a deny? */
-	isc_boolean_t matchtype;/* which type of pattern match? */
+	unsigned int matchtype;	/* which type of pattern match? */
 	dns_name_t *identity;	/* the identity to match */
 	dns_name_t *name;	/* the name being updated */
 	unsigned int ntypes;	/* number of data types covered */
@@ -50,7 +51,7 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table) {
 
 	(*table)->mctx = mctx;
 	ISC_LIST_INIT((*table)->rules);
-	(*table)->magic = SSUMAGIC;
+	(*table)->magic = SSUTABLEMAGIC;
 	return (ISC_R_SUCCESS);
 }
 
@@ -76,6 +77,7 @@ dns_ssutable_destroy(dns_ssutable_t **table) {
 			isc_mem_put(mctx, rule->types,
 				    rule->ntypes * sizeof(dns_rdatatype_t));
 		ISC_LIST_UNLINK((*table)->rules, rule, link);
+		rule->magic = 0;
 		isc_mem_put(mctx, rule, sizeof(dns_ssurule_t));
 	}
 	(*table)->magic = 0;
@@ -148,6 +150,7 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 	else
 		rule->types = NULL;
 
+	rule->magic = SSURULEMAGIC;
 	ISC_LIST_APPEND(table->rules, rule, link);
 
 	return (ISC_R_SUCCESS);
@@ -241,4 +244,52 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 	}
 
 	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_ssurule_isgrant(const dns_ssurule_t *rule) {
+	REQUIRE(VALID_SSURULE(rule));
+	return (rule->grant);
+}
+
+dns_name_t *
+dns_ssurule_identity(const dns_ssurule_t *rule) {
+	REQUIRE(VALID_SSURULE(rule));
+	return (rule->identity);
+}
+
+unsigned int
+dns_ssurule_matchtype(const dns_ssurule_t *rule) {
+	REQUIRE(VALID_SSURULE(rule));
+	return (rule->matchtype);
+}
+
+dns_name_t *
+dns_ssurule_name(const dns_ssurule_t *rule) {
+	REQUIRE(VALID_SSURULE(rule));
+	return (rule->name);
+}
+
+unsigned int
+dns_ssurule_types(const dns_ssurule_t *rule, dns_rdatatype_t **types) {
+	REQUIRE(VALID_SSURULE(rule));
+	REQUIRE(types != NULL && *types != NULL);
+	*types = rule->types;
+	return (rule->ntypes);
+}
+
+isc_result_t
+dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule) {
+	REQUIRE(VALID_SSUTABLE(table));
+	REQUIRE(rule != NULL && *rule != NULL);
+	*rule = ISC_LIST_HEAD(table->rules);
+	return (*rule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE);
+}
+
+isc_result_t
+dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule) {
+	REQUIRE(VALID_SSURULE(rule));
+	REQUIRE(nextrule != NULL && *nextrule != NULL);
+	*nextrule = ISC_LIST_NEXT(rule, link);
+	return (*nextrule != NULL ? ISC_R_SUCCESS : ISC_R_NOMORE);
 }
