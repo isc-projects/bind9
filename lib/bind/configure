@@ -1,7 +1,7 @@
 #! /bin/sh
 
 
-# From configure.in Revision: 1.61 
+# From configure.in Revision: 1.62 
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13 
@@ -4832,7 +4832,7 @@ int main() {
 EOF
 if { (eval echo configure:4834: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
-  ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T socklen_t"
+  ISC_SOCKLEN_T="#define ISC_SOCKLEN_T socklen_t"
 
 else
   echo "configure: failed program was:" >&5
@@ -4852,7 +4852,7 @@ int main() {
 EOF
 if { (eval echo configure:4854: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
-  ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T unsigned int"
+  ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned int"
 
 else
   echo "configure: failed program was:" >&5
@@ -4872,7 +4872,7 @@ int main() {
 EOF
 if { (eval echo configure:4874: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
-  ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T unsigned long"
+  ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned long"
 
 else
   echo "configure: failed program was:" >&5
@@ -4892,13 +4892,13 @@ int main() {
 EOF
 if { (eval echo configure:4894: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
-  ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T long"
+  ISC_SOCKLEN_T="#define ISC_SOCKLEN_T long"
 
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
-  ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T int"
+  ISC_SOCKLEN_T="#define ISC_SOCKLEN_T int"
 
 fi
 rm -f conftest*
@@ -7612,7 +7612,7 @@ s%@ISC_PLATFORM_NEEDVSNPRINTF@%$ISC_PLATFORM_NEEDVSNPRINTF%g
 s%@ISC_EXTRA_OBJS@%$ISC_EXTRA_OBJS%g
 s%@ISC_EXTRA_SRCS@%$ISC_EXTRA_SRCS%g
 s%@ISC_PLATFORM_QUADFORMAT@%$ISC_PLATFORM_QUADFORMAT%g
-s%@ISC_SOCKADDR_LEN_T@%$ISC_SOCKADDR_LEN_T%g
+s%@ISC_SOCKLEN_T@%$ISC_SOCKLEN_T%g
 s%@ISC_PLATFORM_RLIMITTYPE@%$ISC_PLATFORM_RLIMITTYPE%g
 s%@GETGROUPLIST_ARGS@%$GETGROUPLIST_ARGS%g
 s%@NET_R_ARGS@%$NET_R_ARGS%g
