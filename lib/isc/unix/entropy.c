@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.43 2000/06/23 02:31:10 explorer Exp $ */
+/* $Id: entropy.c,v 1.44 2000/06/23 22:06:47 tale Exp $ */
 
 #include <config.h>
 
@@ -1316,14 +1316,11 @@ isc_result_t
 isc_entropy_addcallbacksample(isc_entropysource_t *source, isc_uint32_t sample,
 			      isc_uint32_t extra)
 {
-	isc_entropy_t *ent;
 	sample_queue_t *sq;
 	isc_result_t result;
 
 	REQUIRE(VALID_SOURCE(source));
 	REQUIRE(source->type == ENTROPY_SOURCETYPE_CALLBACK);
-
-	ent = source->ent;
 
 	sq = &source->sources.callback.samplequeue;
 	result = addsample(sq, sample, extra);
