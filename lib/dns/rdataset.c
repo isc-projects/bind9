@@ -16,9 +16,11 @@
  */
 
 #include <stddef.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 
+#include <dns/rdata.h>
 #include <dns/rdataset.h>
 
 void
@@ -123,19 +125,105 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    isc_boolean_t omit_final_dot,
 		    isc_buffer_t *target)
 {
+	dns_result_t result;
+	unsigned int common_start, common_length, length;
+	char *common, *tabs;
+	dns_rdata_t rdata;
+	isc_boolean_t first = ISC_TRUE;
+	isc_region_t r;
+	char classtypettl[100];
 
 	/*
 	 * Convert 'rdataset' to text format, storing the result in 'target'.
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	result = dns_rdataset_first(rdataset);
+	REQUIRE(result == DNS_R_SUCCESS);
 
-	/* XXX stop warnings. */
-	owner_name = NULL;
-	omit_final_dot = ISC_FALSE;
-	target = NULL;
+	/*
+	 * Make compiler happy.
+	 */
+	common_start = 0;
+	common_length = 0;
+	common = NULL;
+	tabs = NULL;
+	length = 0;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	/*
+	 * XXX Explicit buffer structure references here.  Improve buffer
+	 * API.
+	 */
+	do {
+		if (first) {
+			common_start = target->used;
+			result = dns_name_totext(owner_name, omit_final_dot,
+						 target);
+			if (result != DNS_R_SUCCESS)
+				return (result);
+			common_length = target->used - common_start;
+			common = (char *)target->base + common_start;
+			if (common_length >= 16) {
+				tabs = "\t";
+				length = 1;
+			} else if (common_length >= 8) {
+				tabs = "\t\t";
+				length = 2;
+			} else {
+				tabs = "\t\t\t";
+				length = 3;
+			}
+			isc_buffer_available(target, &r);
+			if (r.length < length)
+				return (DNS_R_NOSPACE);
+			memcpy(r.base, tabs, length);
+			isc_buffer_add(target, length);
+			common_length += length;
+			/*
+			 * XXX We print the class and type as numbers
+			 * for now, but we'll convert to the mnemonics when
+			 * the rdata implementation is available.
+			 *
+			 * XXX The following sprintf() is safe, but it
+			 * would still be good to use snprintf if we had it.
+			 */
+			length = sprintf(classtypettl, "%u %u %u  ",
+					 rdataset->class, rdataset->type,
+					 rdataset->ttl);
+			INSIST(length <= sizeof classtypettl);
+			isc_buffer_available(target, &r);
+			if (r.length < length)
+				return (DNS_R_NOSPACE);
+			memcpy(r.base, classtypettl, length);
+			isc_buffer_add(target, length);
+			common_length += length;
+			first = ISC_FALSE;
+		} else {
+			isc_buffer_available(target, &r);
+			if (r.length < common_length)
+				return (DNS_R_NOSPACE);
+			memcpy(r.base, common, common_length);
+			isc_buffer_add(target, common_length);
+		}
+
+		dns_rdataset_current(rdataset, &rdata);
+		/*
+		 * XXX Call dns_rdata_towire() here.
+		 */
+
+		isc_buffer_available(target, &r);
+		if (r.length < 1)
+			return (DNS_R_NOSPACE);
+		memcpy(r.base, "\n", 1);
+		isc_buffer_add(target, 1);
+
+		result = dns_rdataset_next(rdataset);
+	} while (result == DNS_R_SUCCESS);
+
+	if (result != DNS_R_NOMORE)
+		return (result);
+
+	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
@@ -150,12 +238,12 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	 * in cctx, and storing the result in 'target'.
 	 */
 
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+
 	/* XXX stop warnings. */
 	owner_name = NULL;
 	cctx = NULL;
 	target = NULL;
-
-	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
