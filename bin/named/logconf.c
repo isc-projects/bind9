@@ -92,6 +92,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 	int flags = 0;
 	int level;
 	
+	type = ISC_LOG_TONULL;
 	switch (cchan->ctype) {
 	case dns_c_logchan_file:
 		type = ISC_LOG_TOFILE;
@@ -128,7 +129,6 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 		break;
 
 	case dns_c_logchan_null:
-		type = ISC_LOG_TONULL;
 		break;
 	}
 
