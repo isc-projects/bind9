@@ -1,13 +1,4 @@
-Inspect dig and nsupdate (with Andreas)
-
-Check AXFR under Linux v6 / 2.4.x
-
-Statistics, from Sam's code, as well as my own.
-
 Check text strings for host and nslookup output of various types.
-
-dig, isolate -x/host/nslookup ip->in-addr auto-detection and conversion
-into dighost.c					[COMPLETED]
 
 nsupdate code check and cleanup.  Make sure prereq, etc... work.
 
@@ -36,10 +27,14 @@ Big todo list for dig, from code walkthrough with Brian:
 	atoi -> strtol
 	warning for bufsize and others out of bounds
 
+Statistics, from Sam's code. 			[PENDING]
+
 +view and +zone stuff				[PENDING draft approval]
 
+dig, isolate -x/host/nslookup ip->in-addr auto-detection and conversion
+into dighost.c					[COMPLETED]
 
-Serialize dig's transmissions to servers	[COMPLETED, in testing]
+Serialize dig's transmissions to servers	[COMPLETED]
 
 Clean up option parsing in dig			[COMPLETED]
 
