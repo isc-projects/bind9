@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.22 2000/06/26 18:14:04 explorer Exp $
+# $Id: Makefile.in,v 1.23 2000/06/26 23:01:08 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -27,9 +27,10 @@ DISTFILES =	CHANGES Makefile.in README \
 		acconfig.h aclocal.m4 config.guess config.h.in config.h.win32 \
 		config.status.win32 config.sub configure configure.in \
 		install-sh libtool.m4 ltconfig ltmain.sh \
-		bin lib make contrib \
+		lib make contrib \
 		version
-DOCDIRS =	arm draft misc rfc
+DOCDISTFILES =	arm draft misc rfc
+BINDISTFILES =	Makefile.in dig dnssec named nsupdate rndc tests
 
 @BIND9_MAKE_RULES@
 
@@ -45,8 +46,10 @@ kit: kitclean
 	mkdir bind-${VERSION}
 	@(cd bind-${VERSION}; for i in ${DISTFILES}; do ln -s ../$$i $$i; done)
 	mkdir bind-${VERSION}/doc
-	@(cd bind-${VERSION}/doc; for i in ${DOCDIRS}; do \
+	@(cd bind-${VERSION}/doc; for i in ${DOCDISTFILES}; do \
 		ln -s ../../doc/$$i $$i; done)
+	@(cd bind-${VERSION}/bin; for i in ${BINDISTFILES}; do \
+		ln -s ../../bin/$$i $$i; done)
 	gtar -c -v -z -h --exclude '*CVS*' -f bind-${VERSION}.tar.gz \
 		bind-${VERSION}
 	rm -rf bind-${VERSION}
