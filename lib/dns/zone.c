@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.25 2003/11/04 05:35:48 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.26 2003/11/04 06:01:47 marka Exp $ */
 
 #include <config.h>
 
@@ -4851,7 +4851,11 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			    zone->masterfile != NULL)
 				result = isc_file_settime(zone->masterfile,
 							  &now);
-			if (result != ISC_R_SUCCESS)
+			/* Someone removed the file from underneath us! */
+			if (result == ISC_R_FILENOTFOUND &&
+			    zone->masterfile != NULL)
+				zone_needdump(zone, DNS_DUMP_DELAY);
+			else if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "transfer: could not set file "
 					     "modification time of '%s': %s",
