@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.3 2003/08/15 01:16:06 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.4 2004/01/26 23:50:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1246,7 +1246,8 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	return (ISC_R_SUCCESS);
 
- error: /* socket allocated */
+ error:
+	isc_mem_put(manager->mctx, sock, sizeof(*sock));
 
 	return (ret);
 }

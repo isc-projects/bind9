@@ -1,3 +1,6 @@
+1562.	[bug]		isc_socket_create() and isc_socket_accept() could
+			leak memory under error conditions. [RT #10230]
+
 1561.	[bug]		It was possible to release the same name twice if
 			named ran out of memory. [RT #10197]
 

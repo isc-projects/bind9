@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.5 2004/01/08 08:23:52 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.6 2004/01/26 23:50:40 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1754,10 +1754,12 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	return (ISC_R_SUCCESS);
 
- error: /* socket allocated */
+ error:
+	isc_mem_put(manager->mctx, sock, sizeof(*sock));
 
 	return (ret);
 }
+
 /*
  * This event requires that the various lists be empty, that the reference
  * count be 1, and that the magic number is valid.  The other socket bits,
