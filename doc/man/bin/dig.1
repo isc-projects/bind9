@@ -1,0 +1,811 @@
+.\" Copyright (C) @YEARS@  Internet Software Consortium.
+.\" 
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\" 
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: dig.1,v 1.1 2000/09/03 18:04:24 jim Exp $
+.\" 
+.Dd Jun 30, 2000
+.Dt DIG 1
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm dig
+.Nd DNS lookup utility
+.Sh SYNOPSIS
+.Nm dig
+.Op @server
+.Op Fl b Ar address
+.Op Fl c Ar class
+.Op Fl f Ar filename
+.Op Fl p Ar port#
+.Op Fl t Ar type
+.Op Fl x Ar addr
+.Op Fl y Ar name:key
+.Op name
+.Op type
+.Op class
+.Op queryopt ...
+.Nm dig
+.Fl h
+.Nm dig
+.Op global-queryopt ...
+.Op query1
+.Op query2 ...
+.Sh DESCRIPTION
+.Pp
+.Nm dig 
+(domain information groper) is a flexible tool for interrogating DNS
+name servers.
+It performs DNS lookups and displays the answers that are returned from
+the name server(s) that were queried.
+Most DNS administrators use
+.Nm dig
+to troubleshoot DNS problems because of its flexibility, ease of use and
+clarity of output.
+Other lookup tools tend to have less functionality than
+.Nm dig .
+.Pp
+Although
+.NM dig
+is normally used with command-line arguments, it also has a batch
+mode of operation for reading lookup requests from a file.
+A brief summary of its command-line arguments and options is printed
+when the
+.Fl h
+option is given to
+.Nm dig .
+Unlike earlier versions, the BIND9 implementation of 
+.Nm dig
+allows multiple lookups to be issued from the command line.
+.Pp
+When no command line arguments or options are given,
+.Nm dig
+reads
+.Pa /etc/resolv.conf
+and sends a query in parallel
+for details of the root zone \*q.\*q.
+to each of the name servers listed in that file.
+The reply from the name server that responds first is printed
+and any other replies are discarded.
+.Sh SIMPLE USAGE
+.Pp
+In normal usage, a typical invocation of
+.Nm dig
+would be:
+.Bd -ragged | -offset indent
+.Ic dig Ar @server name type class
+.Ed
+.Pp
+where:
+.Bl -tag -width server
+.It Ar server
+is the name or IP address of the name server to query.
+An IPv4 address can be provided in dotted-decimal notation.
+When the supplied
+.Ar server
+argument is a hostname,
+.Nm dig
+resolves that name before querying that name server.
+If no
+.Ar server
+argument is provided,
+.Nm dig
+consults
+.Pa /etc/resolv.conf 
+and sends parallel queries to each of the name servers listed there.
+The reply from the first name server to respond is displayed.
+.It Ar name
+is the name of the resource record that is to be looked up.
+.It Ar type
+indicates what type of query is required - ANY, A, MX, SIG, etc.
+.Ar type
+can be any valid query type.
+If no
+.Ar type
+argument is supplied,
+.Nm dig
+will perform a lookup for an A record by default.
+The query type can also be defined using the
+.Fl x
+and
+.Fl t
+options.
+These are described later.
+When an incremental zone transfer (IXFR) is required,
+.Ar type
+should be supplied as
+.Dv ixfr=N .
+The incremental zone transfer will contain the changes made to the zone
+since the serial number in the zone's SOA record was
+.Ar N .
+.It Ar class
+denotes the class of query.
+If this is not provided, the default class is IN: internet.
+The
+.Fl c
+option can also be used to set the query class.
+.El
+.Pp
+If the query and class arguments are explicitly supplied on the command
+line, the BIND9 implementation requires these arguments to be
+supplied in the order described above.
+This is to avoid confusion when looking up names that also happen to be
+a valid query type or class.
+Previous versions of
+.Nm dig
+did not have this restriction.
+.Sh OPTIONS
+Command line options and arguments can be supplied to provide 
+additional flexibility to when making queries.
+.Pp
+The 
+.Fl b
+option sets the source IP address of query to
+.Ar address . 
+Most systems require that the source address corresponds to a valid
+address on one of the host's network interfaces.
+[If some non-local address was used as the source address
+.Nm dig
+would be unlikely to receive the reply because the remote name server
+would send that reply to
+.Ar address
+rather than the host which actually made the request.]
+Setting the source address on queries can be used to verify
+that the name server's access control lists or
+.Dv view{}
+statements have been set up correctly.
+.Pp
+The default query class (IN for internet) is overridden by the
+.Fl c
+option.
+.Ar class
+is any valid class: typically HS for Hesiod records or CHAOS for
+CHAOSNET records
+.Pp
+The
+.Fl f
+option gets
+.Nm dig 
+operate in batch mode by reading a list of lookup requests to process
+from the file
+.Ar filename .
+The file contains a number queries, one per line.
+Each entry in the file should be organised in the same way they would be
+presented as queries to
+.Nm dig
+using the command-line interface.
+.Pp
+If a non-standard port number is to be queried, the
+.Fl p
+option is used.
+.Ar port#
+is the port number that
+.Nm dig
+will send its queries instead of the standard DNS port number 53.
+This option would be used to test a name server that has been configured
+to listen for queries on a non-standard port number.
+.Pp
+The
+.Fl t
+option sets the query type to
+.Ar type .
+It can be any valid query type which is supported in BIND9.
+The default query type is an A record unless the
+.Fl x
+option is supplied to indicate a reverse lookup.
+When an incremental zone transfer (IXFR) is required,
+.Ar type
+is set to
+.Dv ixfr=N .
+The incremental zone transfer will contain the changes made to the zone
+since the serial number in the zone's SOA record was
+.Ar N .
+.Pp
+Reverse lookups - mapping addresses to names - are simplified
+by the
+.Fl x
+option.
+.Ar addr
+is an IPv4 in conventional dotted-decimal notation.
+A reverse lookup of
+.Ar addr
+is performed.
+When this option is used, there is no need to provide the
+.Ar name ,
+.Ar class 
+and
+.Ar type
+arguments.
+.Nm dig
+automatically performs a lookup for a name like
+.Dv 11.12.13.10.in-addr.arpa
+and sets the query type and class to PTR and IN respectively.
+.Pp
+The
+.Fl y
+option is supplied when
+.Nm dig
+is to use transaction signatures (TSIG) when exchanging queries and
+replies with a name server.
+.Ar name
+is the name of the key and
+.Ar key
+is the actual key.
+The key is normally a base-64 encoded string generated by
+.Xr dnssec-keygen 8 .
+Caution should be taken when using the
+.Fl y
+option.
+The key is usually secret but could be publicly readable in
+the output from
+.Xr ps 1
+or in the shell's history file if one exists.
+When using TSIG authentication with
+.Nm dig ,
+the name server that is queried needs to know the key and algorithm
+that is being used.
+This is done by providing appropriate
+.Dv key{}
+and
+.Dv server{}
+statements in 
+.Pa /etc/named.conf .
+.Sh QUERY OPTIONS
+.Nm dig
+provides a number of query options which affect the way in which 
+lookups are made and the results displayed.
+Some of these set or reset flag bits in the query header.
+Others determine which sections of the answer get printed.
+A small number of these query options are used to determine the timeout
+and retry strategies.
+.Pp
+Each query option is identified by a keyword preceded by a
+plus sign: \*q+\*q.
+Some keywords set or reset an option.
+These may be preceded by the string \*qno\*q to negate the meaning of
+that keyword.
+Other keywords assign values to options like the timeout interval.
+They have the form
+.Dv +keyword=value .
+The query options are:
+.Bl -tag -width +[no]additional
+.It +[no]vc
+Use [do not use] TCP when querying name servers.
+The default behaviour is to use UDP unless an AXFR or IXFR query is
+requested, when a TCP connection is used.
+.It +[no]tcp
+Use [do not use] TCP when querying name servers.
+This alternate syntax to
+.Ar +[no]vc 
+is provided for backwards compatibility for scripts
+which depend on the old form of this query option.
+.It +domain=somename
+Set the default domain name or search list to
+.Ar somename .
+.It +[no]search
+Use [do not use] the search list in 
+.Pa resolv.conf 
+(if any).
+The search list is not used by default.
+.It +[no]defname
+Use [do not use] the default domain name, if any, in
+.Pa resolv.conf 
+The default is not to append that name to 
+.Ar name
+when making queries. 
+.It +[no]aaonly
+This option does nothing.
+It is provided for compatibilty with old versions of
+.Nm dig
+that sometimes used this option to set the AA (authoritative answer) bit
+on queries, even though the AA bit is only valid in a reply.
+.It +[no]adflag
+Set [do not set] the AD (authentic data) bit in the query.
+The default is not to set the AD bit.
+\fBXXXJR\fP RFC2535 says this should be set in the server's reply, not the
+resolver's query.
+.It +[no]cdflag
+Set [do not set] the CD (checking disabled) bit in the query.
+By default this bit is not set.
+When this bit is set,
+.Nm dig
+will perform whatever cryptographic functions are needed to
+authenticate and validate the reply from the name server.
+.It +[no]recursive
+Toggle the setting of the RD (recursion desired) bit in the query.
+This bit is set by default which means recursive queries are normally made
+by 
+.Nm dig .
+Recursive queries are disabled whenever the
+.Ar +nssearch
+or
+.Ar +trace
+query options are used.
+.It +[no]nssearch
+When this option is set
+.Nm dig
+attempts to find the authoritative name servers for the zone containing
+the name being looked up and
+display the SOA record that each name server has for the zone.
+The default is not to check all authoritative name servers.
+.It +[no]trace
+Toggle tracing of the delegation path from the root name servers for
+the name being looked up.
+Tracing is disabled by default.
+When tracing is enabled,
+.Nm dig
+behaves like a name server by making iterative queries to resolve the
+name being looked up.
+It will follow referrals from the root servers, showing
+the answer from each server that was used to resolve the lookup.
+.It +[no]details
+Show [do not show] details of all requests and replies.
+By default, details are always shown.
+When the
+.Ar +trace
+query option is used, the results of iterative queries are not shown
+when
+.Ar nodetails
+is set.
+.It +[no]cmd
+toggles the printing of the initial comment in the output identifying
+the version of
+.Nm dig
+and the query options that have been applied.
+This comment is printed by default.
+.It +[no]short
+Provide a terse answer.
+The default is not to provide the short form of answer.
+.It +[no]identify
+Show [or do not show] the IP address and port number that supplied the
+answer when the
+.Ar +short
+option is enabled.
+If short form answers are requested, the default is not to show
+the source address and port number of the server that provided the
+answer.
+.It +[no]comments
+Toggle the display of comment lines in the output.
+The default behaviour is to print comments.
+.It +[no]sta
+This query option toggles the printing of statistics: when the query was
+made, the size of the reply and so on.
+The default behaviour is to print the query statistics.
+.It +[no]qr
+Print [do not print] the question section of a query as a comment
+before sending the query.
+The default is not to print the question section before making a query.
+The question is usually printed as a comment
+however when the answer is displayed.
+.It +[no]question
+Print [do not print] the question section of a query when an answer is
+returned.
+The default is to print the question section as a comment.
+.It +[no]answer
+Display [do not display] the answer section of a reply.
+It is printed by default.
+.It +[no]authority
+Display [do not display] the authority section of a reply.
+The default is to print the authority section.
+.It +[no]additional
+Display [do not display] the additional section of a reply.
+By default the reply's additional section is printed.
+.It +[no]all
+Set or clear all display flags
+This option would tend to be used when running
+.Nm dig
+in batch mode to set or clear all of the standard query option defaults.
+.It +time=T
+Sets the timeout for a query to
+.Dv T
+seconds.
+The default time out is 5 seconds.
+An attempt to set
+.Dv T
+to less than 1 will result in a query timeout of 1 second being applied.
+.It +tries=A
+Sets the number of times to retry UDP queries to server to
+.Dv T
+instead of the default, 3.
+If 
+.Dv T
+is less than or equal to zero, the number of retries is silently rounded
+up to 1.
+.It +ndots=D
+Set the number of dots that have to appear in
+.Ar name
+to
+.Dv D
+before an absolute lookup is attempted.
+i.e.
+.Ar name
+is looked up as-is,
+without appending a default domain name or components of a domain search
+list.
+The default number of dots is 1.
+If this query option is supplied, it replaces any default number of dots
+that were defined by an
+.Dv ndots
+directive in
+.Pa /etc/resolv.conf .
+.It +bufsize=B
+Sets the size of the buffer for UDP queries to
+.Dv B
+bytes.
+The maximum and minimum sizes of this buffer are 65535 and 0
+respectively.
+Values outside this range are rounded up or down appropriately.
+Setting the buffer size should only be necessary for EDNS0 queries.
+.El
+.Sh MULTIPLE QUERIES
+.Pp
+.Nm dig
+can operate in batch mode, reading query requests from a file
+The file should contain a number queries, one per line.
+Each entry in the file should be organised in the same way the
+equivalent query would be presented to
+.Nm dig
+using the command-line interface. 
+.Pp
+Multiple queries can also be made using the command line interface of the BIND9
+implementation of
+.Nm dig .
+Each of those queries can be supplied with its own set of flags,
+options and query options.
+.Pp
+In this case,
+.Ar query1 ,
+.Ar query2 
+and so on represent an individual query in the command-line syntax described
+above.
+Each consists of any of the standard options and flags, the name to be looked
+up, an optional query type and class and any query options that should
+be applied to that query.
+.Pp
+A global set of query options, which should be applied to all queries, can
+also be supplied.
+These global query options must precede the first tuple of name, class, type,
+options, flags, and query options supplied on the command line.
+Any global query options can be over-ridden by a
+query-specific set of query options.
+For example:
+.Bd -literal
+dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
+.Ed
+.Pp
+shows how
+.Nm dig
+could be used from the command line to make three lookups: an ANY query
+for
+.Dv www.isc.org ,
+a reverse lookup of 127.0.0.1
+and
+a query for the NS records of
+.Dv isc.org .
+A global query option of
+.Ar +qr
+is applied, so that
+.Nm dig
+shows the initial query it made for each lookup.
+The final query has a local query option of
+.Ar +noqr
+which means that
+.Nm dig
+will not print the initial query when it looks up the
+NS records for
+.Dv isc.org .
+.Sh EXAMPLES
+.Bd -literal
+% \fBdig localhost\fP
+
+; <<>> DiG 9.0 <<>> localhost
+;; global options:  printcmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 6284
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
+
+;; QUESTION SECTION:
+;localhost.                     IN      A
+
+;; ANSWER SECTION:
+localhost.              14400   IN      A       127.0.0.1
+
+;; AUTHORITY SECTION:
+localhost.              14400   IN      NS      localhost.
+
+;; ADDITIONAL SECTION:
+localhost.              14400   IN      A       127.0.0.1
+
+;; Query time: 27 msec
+;; SERVER: 204.152.187.11#53(204.152.187.11)
+;; WHEN: Wed Jul 5 14:13:21 2000
+;; MSG SIZE  rcvd: 73
+.Ed
+.Pp
+In the above example a lookup is being made for
+.Dv localhost .
+No query type or class arguments were supplied, so the default values of
+an A record and IN class were used.
+The commented-out question section shows that
+.Nm dig
+made a query for an A record for 
+.Dv localhost
+and the query class was IN.
+The header indicates that a standard query was made and that it
+succeeded: the status code is
+.Dv NOERROR .
+In other words, the query was answered successfully.
+The query ID was 6284.
+The QR, AA, RD and RA bits were set by the server which replied.
+These indicate that the reply was a query response, an authoritative answer,
+recursion was desired (set by the initial query) and that recursion was
+available respectively.
+Each section of the reply - query, answer, authority and additional -
+contained 1 resource record.
+.Pp
+The answer section of the reply shows the expected result.
+.Dv localhost
+has IP address 127.0.0.1 and the corresponding A record has a 4 hour
+(14400 second) TTL.
+The authority section shows that there is one name server for the
+.Dv localhost
+zone:
+.Dv localhost
+itself.
+The additional section provides the IP address of this name server
+which just happens to be the same as the answer section of the query.
+.Pp
+The final section of output shows the statistics: how long the query
+took, when the query was made and the source IP address and port number of
+the server that answered the query: port number 53 of IP address
+204.152.187.11.
+The size of the reply from the server was 73 bytes.
+.Pp
+In the following example the
+.Fl x
+option is used to make a reverse lookup for IP address 127.0.0.1.
+For this query,
+.Nm dig
+automatically generates a request for the PTR record for
+.Dv 1.0.0.127.in-addr.arpa .
+.Bd -literal
+% \fBdig -x 127.0.0.1\fP
+; <<>> DiG 9.0 <<>> -x 127.0.0.1
+;; global options:  printcmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 61518
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
+
+;; QUESTION SECTION:
+;1.0.0.127.in-addr.arpa.                IN      PTR
+
+;; ANSWER SECTION:
+1.0.0.127.in-addr.arpa. 14400   IN      PTR     localhost.
+
+;; AUTHORITY SECTION:
+0.0.127.in-addr.arpa.   14400   IN      NS      localhost.
+
+;; ADDITIONAL SECTION:
+localhost.              14400   IN      A       127.0.0.1
+
+;; Query time: 10 msec
+;; SERVER: 204.152.187.11#53(204.152.187.11)
+;; WHEN: Wed Jul 5 14:13:21 2000
+;; MSG SIZE  rcvd: 93
+.Ed
+.Pp
+A query for a Chaosnet TXT record is illustrated in the next example.
+Most versions of BIND will respond with a version identification string
+when they are asked for a Chaosnet TXT for the name 
+.Dv version.bind .
+In the example below, a remote name server is queried (198.133.199.1)
+and the
+.Ar +qr
+query option is set.
+This is used to show the original query that was sent to the server
+and the header flags that were set by the server when it replied.
+The server at 198.133.199.1 claims to be running version 9.1.0a1 of
+BIND.
+.Bd -literal
+% \fBdig @198.133.199.1 version.bind chaos txt +qr\fP
+
+; <<>> DiG 9.0 <<>> @198.133.199.1 version.bind chaos txt +qr
+;; global options:  printcmd
+;; Sending:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 42921
+;; flags: rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;version.bind.                  CHAOS   TXT
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 42921
+;; flags: qr aa rd ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;version.bind.                  CHAOS   TXT
+
+;; ANSWER SECTION:
+version.bind.           0       CHAOS   TXT     "9.1.0a1"
+
+;; Query time: 184 msec
+;; SERVER: 198.133.199.1#53(198.133.199.1)
+;; WHEN: Wed Jul 5 14:13:21 2000
+;; MSG SIZE  rcvd: 50
+.Ed
+.Bd -literal
+% \fBdig www.isc.org +trace +all\fP
+
+; <<>> DiG 9.0 <<>> www.isc.org +trace +all
+;; global options:  printcmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 28809
+;; flags: qr ra; QUERY: 1, ANSWER: 1, AUTHORITY: 13, ADDITIONAL: 13
+
+;; QUESTION SECTION:
+;.				IN	SOA
+
+;; ANSWER SECTION:
+.			42227	IN	SOA	A.ROOT-SERVERS.NET. hostmaster.nsiregistry.NET. ( 2000090201 1800 900 604800 86400 )
+
+;; AUTHORITY SECTION:
+.			404535	IN	NS	I.ROOT-SERVERS.NET.
+.			404535	IN	NS	E.ROOT-SERVERS.NET.
+.			404535	IN	NS	D.ROOT-SERVERS.NET.
+.			404535	IN	NS	A.ROOT-SERVERS.NET.
+.			404535	IN	NS	H.ROOT-SERVERS.NET.
+.			404535	IN	NS	C.ROOT-SERVERS.NET.
+.			404535	IN	NS	G.ROOT-SERVERS.NET.
+.			404535	IN	NS	F.ROOT-SERVERS.NET.
+.			404535	IN	NS	B.ROOT-SERVERS.NET.
+.			404535	IN	NS	J.ROOT-SERVERS.NET.
+.			404535	IN	NS	K.ROOT-SERVERS.NET.
+.			404535	IN	NS	L.ROOT-SERVERS.NET.
+.			404535	IN	NS	M.ROOT-SERVERS.NET.
+
+;; ADDITIONAL SECTION:
+I.ROOT-SERVERS.NET.	490935	IN	A	192.36.148.17
+E.ROOT-SERVERS.NET.	490935	IN	A	192.203.230.10
+D.ROOT-SERVERS.NET.	490935	IN	A	128.8.10.90
+A.ROOT-SERVERS.NET.	490935	IN	A	198.41.0.4
+H.ROOT-SERVERS.NET.	490935	IN	A	128.63.2.53
+C.ROOT-SERVERS.NET.	490935	IN	A	192.33.4.12
+G.ROOT-SERVERS.NET.	490935	IN	A	192.112.36.4
+F.ROOT-SERVERS.NET.	490935	IN	A	192.5.5.241
+B.ROOT-SERVERS.NET.	490935	IN	A	128.9.0.107
+J.ROOT-SERVERS.NET.	490935	IN	A	198.41.0.10
+K.ROOT-SERVERS.NET.	490935	IN	A	193.0.14.129
+L.ROOT-SERVERS.NET.	490935	IN	A	198.32.64.12
+M.ROOT-SERVERS.NET.	490935	IN	A	202.12.27.33
+
+;; Received 494 bytes from 204.152.187.11#53 in 4 ms
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 4033
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 12, ADDITIONAL: 12
+
+;; QUESTION SECTION:
+;www.isc.org.			IN	A
+
+;; AUTHORITY SECTION:
+ORG.			518400	IN	NS	A.ROOT-SERVERS.NET.
+ORG.			518400	IN	NS	E.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	F.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	F.ROOT-SERVERS.NET.
+ORG.			518400	IN	NS	J.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	K.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	A.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	M.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	G.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	C.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	I.GTLD-SERVERS.NET.
+ORG.			518400	IN	NS	B.GTLD-SERVERS.NET.
+
+;; ADDITIONAL SECTION:
+A.ROOT-SERVERS.NET.	3600000	IN	A	198.41.0.4
+E.GTLD-SERVERS.NET.	518400	IN	A	207.200.81.69
+F.GTLD-SERVERS.NET.	518400	IN	A	198.17.208.67
+F.ROOT-SERVERS.NET.	3600000	IN	A	192.5.5.241
+J.GTLD-SERVERS.NET.	518400	IN	A	198.41.0.21
+K.GTLD-SERVERS.NET.	518400	IN	A	195.8.99.11
+A.GTLD-SERVERS.NET.	518400	IN	A	198.41.3.38
+M.GTLD-SERVERS.NET.	518400	IN	A	202.153.114.101
+G.GTLD-SERVERS.NET.	518400	IN	A	198.41.3.101
+C.GTLD-SERVERS.NET.	518400	IN	A	205.188.185.18
+I.GTLD-SERVERS.NET.	518400	IN	A	192.36.144.133
+B.GTLD-SERVERS.NET.	518400	IN	A	203.181.106.5
+
+;; Received 445 bytes from 192.36.148.17#53 in 203 ms
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 41582
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 2
+
+;; QUESTION SECTION:
+;www.isc.org.			IN	A
+
+;; AUTHORITY SECTION:
+isc.org.		172800	IN	NS	NS1.GNAC.COM.
+isc.org.		172800	IN	NS	NS-EXT.VIX.COM.
+
+;; ADDITIONAL SECTION:
+NS1.GNAC.COM.		172800	IN	A	209.182.195.77
+NS-EXT.VIX.COM.		172800	IN	A	204.152.184.64
+
+;; Received 112 bytes from 192.5.5.241#53 in 3 ms
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 22863
+;; flags: qr aa; QUERY: 1, ANSWER: 2, AUTHORITY: 2, ADDITIONAL: 2
+
+;; QUESTION SECTION:
+;www.isc.org.			IN	A
+
+;; ANSWER SECTION:
+www.isc.org.		3600	IN	CNAME	isc.org.
+isc.org.		3600	IN	A	204.152.184.101
+
+;; AUTHORITY SECTION:
+isc.org.		3600	IN	NS	ns-ext.vix.com.
+isc.org.		3600	IN	NS	ns2.gnac.com.
+
+;; ADDITIONAL SECTION:
+ns-ext.vix.com.		3600	IN	A	204.152.184.64
+ns2.gnac.com.		907	IN	A	209.182.195.77
+
+;; Received 142 bytes from 204.152.184.64#53 in 2 ms
+
+.Ed
+.Pp
+The above example illustrates the use of the
+.Ar +trace
+query option.
+.Nm dig
+makes a sequence of iterative queries to resolve
+.Dv www.isc.org .
+.Nm dig
+first makes a query for the SOA record for the root zone to a local
+name server, 204.152.187.11,
+This local server returns a list of the root name servers.
+One of those root servers, 192.36.148.17 is then queried for
+an A record for
+.Dv www.isc.org . 
+This server replies with a referral to the
+.Dv .org
+name servers.
+.Pp
+The query is then repeated, but is sent to 192.5.5.241 -
+.Dv f.root-servers.net
+- one of the
+.Dv.org
+name servers.
+It returns a referral to the two
+.Dv isc.org 
+name servers.
+The query is finally repeated to one of those name servers, 204.152.184.64, 
+which returns the eventual answer.
+.Sh FILES
+.Pa /etc/resolv.conf
+.Sh SEE ALSO
+.Xr host 1 ,
+.Xr resolver 5 ,
+.Xr named 8 ,
+.Xr dnssec-keygen 8 ,
+.Xr RFC1035 ,
+.Xr RFC2535 .
+.Sh BUGS 
+The
+.Fl x
+flag and
+.Ar server
+arguments do not yet cope with IPv6 addresses.
+.Pp
+There are probably too many query options. 
