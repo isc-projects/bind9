@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.78 $)
+AC_REVISION($Revision: 1.79 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1650,6 +1650,8 @@ AC_SUBST(HOSTENT_DATA)
 
 AC_CHECK_FUNC(endhostent_r,
 AC_TRY_COMPILE([
+#undef _REENTRANT
+#define _REENTRANT
 #include <netdb.h>
 int endhostent_r(struct hostent_data *buffer);
 ], ,
@@ -1658,6 +1660,8 @@ HOST_R_END_RETURN="#define HOST_R_END_RETURN int"
 HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 ,
 AC_TRY_COMPILE([
+#undef _REENTRANT
+#define _REENTRANT
 #include <netdb.h>
 extern void endhostent_r(struct hostent_data *ht_data);
 ],[],[
@@ -1665,6 +1669,17 @@ HOST_R_END_RESULT="#define HOST_R_END_RESULT(x)"
 HOST_R_END_RETURN="#define HOST_R_END_RETURN void"
 HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 ],
+AC_TRY_COMPILE([
+#undef _REENTRANT
+#define _REENTRANT
+#include <netdb.h>
+extern void endhostent_r(void);
+],[],[
+HOST_R_END_RESULT="#define HOST_R_END_RESULT(x) /*empty*/"
+HOST_R_END_RETURN="#define HOST_R_END_RETURN void"
+HOST_R_ENT_ARGS="#undef HOST_R_ENT_ARGS /*empty*/"
+],
+)
 )
 )
 ,
@@ -1678,19 +1693,31 @@ AC_SUBST(HOST_R_ENT_ARGS)
 
 AC_CHECK_FUNC(sethostent_r,
 AC_TRY_COMPILE([
+#undef _REENTRANT
+#define _REENTRANT
 #include <netdb.h>
 extern void sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
 AC_TRY_COMPILE([
+#undef _REENTRANT
+#define _REENTRANT
 #include <netdb.h>
 extern int sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#define HOST_R_SET_RESULT 0"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN int"],
+AC_TRY_COMPILE([
+#undef _REENTRANT
+#define _REENTRANT
+#include <netdb.h>
+void            sethostent_r (int);],[],
+[HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT"
+HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
+)
 )
 )
 ,
-host_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
+HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT/"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"
 )
 AC_SUBST(HOST_R_SET_RESULT)
@@ -1818,8 +1845,18 @@ AC_SUBST(NGR_R_END_RETURN)
 AC_SUBST(NGR_R_ENT_ARGS)
 
 AC_CHECK_FUNC(setnetgrent_r,
-NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
-NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
+[
+case "$host" in
+*bsdi*)
+	NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
+	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
+	;;
+*)
+	NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
+	NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
+	;;
+esac
+]
 ,
 NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
 NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
@@ -1888,6 +1925,21 @@ AC_SUBST(PROTO_R_SETANSWER)
 AC_SUBST(PROTO_R_RETURN)
 
 AC_CHECK_FUNC(endprotoent_r,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#include <netdb.h>
+void endprotoent_r(void);
+]
+,,
+[
+PROTO_R_END_RESULT="#define PROTO_R_END_RESULT(x) /*empty*/"
+PROTO_R_END_RETURN="#define PROTO_R_END_RETURN void"
+PROTO_R_ENT_ARGS="#undef PROTO_R_ENT_ARGS"
+]
+,
+)
 ,
 PROTO_R_END_RESULT="#define PROTO_R_END_RESULT(x) /*empty*/"
 PROTO_R_END_RETURN="#define PROTO_R_END_RETURN void"
@@ -1898,8 +1950,19 @@ AC_SUBST(PROTO_R_END_RETURN)
 AC_SUBST(PROTO_R_ENT_ARGS)
 
 AC_CHECK_FUNC(setprotoent_r,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#include <netdb.h>
+void               setprotoent_r __P((int));
+],[],
+PROTO_R_SET_RESULT="#undef PROTO_R_SET_RESULT"
+PROTO_R_SET_RETURN="#define PROTO_R_SET_RETURN void"
 ,
-PROTO_R_SET_RESULT="#undef PROTO_R_SET_RESULT /*empty*/"
+)
+,
+PROTO_R_SET_RESULT="#undef PROTO_R_SET_RESULT"
 PROTO_R_SET_RETURN="#define PROTO_R_SET_RETURN void"
 )
 AC_SUBST(PROTO_R_SET_RESULT)
@@ -2042,6 +2105,22 @@ AC_SUBST(SERV_R_SETANSWER)
 AC_SUBST(SERV_R_RETURN)
 
 AC_CHECK_FUNC(endservent_r,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#include <netdb.h>
+void endservent_r(void);
+]
+,
+,
+[
+SERV_R_END_RESULT="#define SERV_R_END_RESULT(x) /*empty*/"
+SERV_R_END_RETURN="#define SERV_R_END_RETURN void "
+SERV_R_ENT_ARGS="#undef SERV_R_ENT_ARGS /*empty*/"
+]
+,
+)
 ,
 SERV_R_END_RESULT="#define SERV_R_END_RESULT(x) /*empty*/"
 SERV_R_END_RETURN="#define SERV_R_END_RETURN void "
@@ -2052,8 +2131,22 @@ AC_SUBST(SERV_R_END_RETURN)
 AC_SUBST(SERV_R_ENT_ARGS)
 
 AC_CHECK_FUNC(setservent_r,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#include <netdb.h>
+void            setservent_r(int);
+]
+,,
+[
+SERV_R_SET_RESULT="#undef SERV_R_SET_RESULT"
+SERV_R_SET_RETURN="#define SERV_R_SET_RETURN void"
+]
 ,
-SERV_R_SET_RESULT="#undef SERV_R_SET_RESULT /*empty*/"
+)
+,
+SERV_R_SET_RESULT="#undef SERV_R_SET_RESULT"
 SERV_R_SET_RETURN="#define SERV_R_SET_RETURN void"
 )
 AC_SUBST(SERV_R_SET_RESULT)
