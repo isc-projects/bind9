@@ -188,7 +188,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	int ret2;
 	int flags;
 	struct sockaddr_in sin;
-	int fromlen;
+	unsigned int fromlen;
 	fd_set readfds;
 	struct timeval timeout;
 
