@@ -32,22 +32,27 @@
 #include <dns/rdataset.h>
 #include <dns/view.h>
 
+#include <named/globals.h>
 #include <named/client.h>
+#include <named/log.h>
 #include <named/query.h>
 #include <named/update.h>
 #include <named/xfrin.h>
-#include <named/globals.h>
 
 #include "../../isc/util.h"		/* XXX */
 
 #define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE
-#include <stdio.h>
-#define CTRACE(m)	printf("client %p: %s\n", client, (m))
-#define MTRACE(m)	printf("clientmgr %p: %s\n", manager, (m))
-#else
-#define CTRACE(m)
-#define MTRACE(m)
+#define CTRACE(m)	isc_log_write(ns_g_lctx, \
+				      NS_LOGCATEGORY_CLIENT, \
+				      NS_LOGMODULE_CLIENT, \
+				      ISC_LOG_DEBUG(1), \
+				      "client %p: %s", client, (m))
+#define MTRACE(m)	isc_log_write(ns_g_lctx, \
+				      NS_LOGCATEGORY_GENERAL, \
+				      NS_LOGMODULE_CLIENT, \
+				      ISC_LOG_DEBUG(1), \
+				      "clientmgr %p: %s", manager, (m))
 #endif
 
 #define TCP_CLIENT(c)	(((c)->attributes & NS_CLIENTATTR_TCP) != 0)

@@ -36,6 +36,7 @@
 
 #include <named/client.h>
 #include <named/globals.h>
+#include <named/log.h>
 #include <named/interfacemgr.h>
 
 typedef struct ns_interface ns_interface_t;
@@ -337,10 +338,13 @@ do_ipv4(ns_interfacemgr_t *mgr, isc_boolean_t udp_only) {
 					    buf, sizeof(buf));
 			if (addrstr == NULL)
 				addrstr = "(bad address)";
-			printf("IPv4: listening on %s (%s port %u)\n",
-			       interface.name, addrstr,
-			       ntohs(listen_addr.type.sin.sin_port));
-			
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
+				      NS_LOGMODULE_INTERFACEMGR,
+				      ISC_LOG_INFO,
+				      "IPv4: listening on %s (%s port %u)",
+				      interface.name, addrstr,
+				      ntohs(listen_addr.type.sin.sin_port));
+		
 			result = ns_interface_create(mgr, &listen_addr,
 						     udp_only, &ifp);
 			if (result != DNS_R_SUCCESS) {
@@ -374,7 +378,9 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 	if (ifp != NULL) {
 		ifp->generation = mgr->generation;
 	} else {
-		printf("IPv6: listening (port %u)\n", ns_g_port);
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
+			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
+			      "IPv6: listening (port %u)", ns_g_port);
 		result = ns_interface_create(mgr, &listen_addr, ISC_FALSE,
 					     &ifp);
 		if (result != DNS_R_SUCCESS)
@@ -395,11 +401,15 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 		do_ipv6(mgr);
 		udp_only = ISC_TRUE;
 	} else
-		printf("IPv6: not available\n");
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
+			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
+			      "IPv6: not available");
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
 		do_ipv4(mgr, udp_only);
 	else
-		printf("IPv4: not available\n");
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
+			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
+			      "IPv4: not available");
 
         /*
          * Now go through the interface list and delete anything that

@@ -53,6 +53,7 @@
 
 #include <named/types.h>
 #include <named/globals.h>
+#include <named/log.h>
 #include <named/rootns.h>
 #include <named/server.h>
 #include <named/xfrin.h>
@@ -82,7 +83,7 @@ create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	 * View.
 	 */
 	view = NULL;
-	result = dns_view_create(ns_g_mctx, rdclass, "_default", &view);
+	result = dns_view_create(mctx, rdclass, "_default", &view);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -281,17 +282,14 @@ load_configuration(const char *filename) {
 	callbacks.optscbk = NULL;
 	callbacks.optscbkuap = NULL;
 
-	/* XXX should log rather than write to stderr */
-	fprintf(stderr, "named: loading config file %s\n", filename);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "Loading '%s'", ns_g_conffile);
 
 	configctx = NULL;
-	result = dns_c_parse_namedconf(NULL, /* XXX isc_log_t to use??? */
+	result = dns_c_parse_namedconf(ns_g_lctx,
 				       filename, ns_g_mctx, &configctx,
 				       &callbacks);
 	if (result != ISC_R_SUCCESS) {
-		/* XXX should log rather than write to stderr */
-		fprintf(stderr, "named: failed to load config file %s\n",
-			filename);
 		return (result);
 	}
 	
@@ -356,19 +354,22 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	(void)task;
 
-	printf("server running\n");
+	isc_event_free(&event);
 
 	result = load_configuration(ns_g_conffile);
 	if (result != ISC_R_SUCCESS) {
-		/* XXXRTH Log. */
-		fprintf(stderr, "load_configuration failed: %s\n",
-			isc_result_totext(result));
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_CRITICAL,
+			      "Load of '%s' failed: %s", ns_g_conffile,
+			      isc_result_totext(result));
 		isc_app_shutdown();
+		return;
 	}
 
 	ns_interfacemgr_scan(ns_g_interfacemgr);
 
-	isc_event_free(&event);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "Running");
 }
 
 static isc_result_t
@@ -457,7 +458,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	(void)task;
 
-	printf("server shutting down\n");
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "Shutting down");
 
 	RWLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 
@@ -522,6 +524,8 @@ ns_server_init(void) {
 		goto cleanup_task;
 
 	return (ISC_R_SUCCESS);
+
+	/* XXXRTH  Add taskpool, and version view cleanups. */
 
  cleanup_task:
 	isc_task_detach(&server_task);

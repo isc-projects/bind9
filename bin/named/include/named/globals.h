@@ -63,11 +63,18 @@ EXTERN isc_rwlock_t		ns_g_viewlock;
  */
 EXTERN dns_db_t *		ns_g_rootns		INIT(NULL);
 
+/*
+ * Logging.
+ */
+EXTERN isc_log_t *		ns_g_lctx		INIT(NULL);
+EXTERN isc_logcategory_t *	ns_g_categories		INIT(NULL);
+EXTERN isc_logmodule_t *	ns_g_modules		INIT(NULL);
+EXTERN unsigned int		ns_g_debuglevel		INIT(0);
 
 /*
  * Current config information
  */
-EXTERN dns_c_ctx_t *		ns_g_confctx		INIT(NULL);
+EXTERN dns_c_ctx_t *		ns_g_confctx	INIT(NULL);
 EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
 
 #undef EXTERN

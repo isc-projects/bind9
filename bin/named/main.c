@@ -40,6 +40,7 @@
 #include <named/globals.h>
 #include <named/client.h>
 #include <named/interfacemgr.h>
+#include <named/log.h>
 #include <named/server.h>
 
 static isc_boolean_t			want_stats = ISC_FALSE;
@@ -98,9 +99,15 @@ early_fatal(char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
-	vfprintf(stderr, format, args);
+	if (ns_g_lctx != NULL) {
+		isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			       format, args);
+	} else {
+		vfprintf(stderr, format, args);
+		fprintf(stderr, "\n");
+	}
 	va_end(args);
-	fprintf(stderr, "\n");
 
 	exit(1);
 }
@@ -223,8 +230,15 @@ static void
 setup() {
 	isc_result_t result;
 
-	ISC_LIST_INIT(ns_g_viewlist);
+	result = ns_log_init();
+	if (result != ISC_R_SUCCESS)
+		early_fatal("ns_log_init() failed: %s",
+			    isc_result_totext(result));
 
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "Starting BIND %s", ns_g_version);
+
+	ISC_LIST_INIT(ns_g_viewlist);
 	result = isc_rwlock_init(&ns_g_viewlock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		early_fatal("isc_rwlock_init() failed: %s",
@@ -251,6 +265,9 @@ cleanup() {
 	destroy_managers();
 	dns_tsig_destroy();
 	isc_rwlock_destroy(&ns_g_viewlock);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "Exiting");
+	ns_log_shutdown();
 }
 
 int
