@@ -237,6 +237,9 @@ dig_lookup_t
 
 	debug("requeue_lookup()");
 
+	if (free_now)
+		return(ISC_R_SUCCESS);
+
 	lookup_counter++;
 	if (lookup_counter > LOOKUP_LIMIT)
 		fatal ("Too many lookups.");
@@ -539,6 +542,9 @@ check_next_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
 	
+	if (free_now)
+		return;
+
 	debug("check_next_lookup(%lx)", (long int)lookup);
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
@@ -611,6 +617,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 	int len;
 
 	debug ("followup_lookup()"); 
+	if (free_now)
+		return;
 	result = dns_message_firstname (msg,section);
 	if (result != ISC_R_SUCCESS) {
 		debug ("Firstname returned %s",
@@ -715,6 +723,8 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	UNUSED (msg);
 
 	debug ("next_origin()"); 
+	if (free_now)
+		return;
 	debug ("Following up %s", query->lookup->textname);
 
 	if (query->lookup->origin == NULL) { /*Then we just did rootorg;
@@ -741,9 +751,12 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_t b;
 	char store[MXNAME];
 	
+	REQUIRE (lookup != NULL);
+
 	debug("setup_lookup(%lx)",(long int)lookup);
 
-	REQUIRE (lookup != NULL);
+	if (free_now)
+		return;
 
 	debug("Setting up for looking up %s @%lx->%lx", 
 		lookup->textname, (long int)lookup,
@@ -1102,6 +1115,10 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	debug("tcp_length_done()");
+
+	if (free_now)
+		return;
+
 	sevent = (isc_socketevent_t *)event;	
 
 	query = event->ev_arg;
@@ -1159,6 +1176,9 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 
 	debug("launch_next_query()");
 
+	if (free_now)
+		return;
+
 	if (!query->lookup->pending) {
 		debug("Ignoring launch_next_query because !pending.");
 		isc_socket_detach(&query->sock);
@@ -1211,6 +1231,9 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
+
+	if (free_now)
+		return;
 
 	sevent = (isc_socketevent_t *)event;
 	query = sevent->ev_arg;
@@ -1277,6 +1300,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *n;
 	
 	UNUSED (task);
+
+	if (free_now)
+		return;
 
 	query = event->ev_arg;
 	debug("recv_done(lookup=%lx, query=%lx)",
@@ -1559,6 +1585,10 @@ start_lookup(void) {
 	dig_lookup_t *lookup;
 
 	debug ("start_lookup()");
+
+	if (free_now)
+		return;
+
 	lookup = ISC_LIST_HEAD(lookup_list);
 	if (lookup != NULL) {
 		setup_lookup(lookup);
