@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.30 2000/08/03 19:50:12 bwelling Exp $ */
+/* $Id: masterdump.c,v 1.31 2000/08/07 19:54:50 gson Exp $ */
 
 #include <config.h>
 
@@ -136,12 +136,13 @@ dns_master_style_default = {
 	DNS_STYLEFLAG_TTL |
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_MULTILINE,
-	24, 32, 32, 40, 80, 8
+	24, 24, 24, 32, 80, 8
 };
 
 /*
  * A master file style that prints TTL values on each record line,
- * never using $TTL statements.
+ * never using $TTL statements.  The TTL has a tab stop of its
+ * own, but the class and type share one.
  */
 const dns_master_style_t
 dns_master_style_explicitttl = {
@@ -151,7 +152,7 @@ dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_REL_DATA |
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_MULTILINE,
-	24, 24, 24, 32, 80, 8
+	24, 32, 32, 40, 80, 8
 };
 
 /*
