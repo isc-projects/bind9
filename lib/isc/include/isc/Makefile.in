@@ -24,7 +24,7 @@ top_srcdir =	@top_srcdir@
 #
 HEADERS =	assertions.h base64.h bitstring.h boolean.h buffer.h \
 		bufferlist.h commandline.h error.h event.h eventclass.h \
-		heap.h interfaceiter.h lang.h lex.h lfsr.h lib.h \
+		file.h heap.h interfaceiter.h lang.h lex.h lfsr.h lib.h \
 		list.h log.h magic.h mem.h mktemplate.h msgcat.h \
 		mutexblock.h netaddr.h ondestroy.h platform.h \
 		print.h quota.h random.h ratelimiter.h rbtgen.h region.h \
