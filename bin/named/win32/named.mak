@@ -35,6 +35,7 @@ ALL : "..\..\..\Build\Release\named.exe"
 
 CLEAN :
 	-@erase "$(INTDIR)\aclconf.obj"
+	-@erase "$(INTDIR)\builtin.obj"
 	-@erase "$(INTDIR)\client.obj"
 	-@erase "$(INTDIR)\config.obj"
 	-@erase "$(INTDIR)\control.obj"
@@ -112,6 +113,7 @@ LINK32=link.exe
 LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/isccc/win32/Release/libisccc.lib ../../../lib/lwres/win32/Release/liblwres.lib ../../../lib/isccfg/win32/Release/libisccfg.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\named.pdb" /machine:I386 /out:"../../../Build/Release/named.exe" 
 LINK32_OBJS= \
 	"$(INTDIR)\aclconf.obj" \
+	"$(INTDIR)\builtin.obj" \
 	"$(INTDIR)\client.obj" \
 	"$(INTDIR)\config.obj" \
 	"$(INTDIR)\control.obj" \
@@ -161,6 +163,8 @@ ALL : "..\..\..\Build\Debug\named.exe" "$(OUTDIR)\named.bsc"
 CLEAN :
 	-@erase "$(INTDIR)\aclconf.obj"
 	-@erase "$(INTDIR)\aclconf.sbr"
+	-@erase "$(INTDIR)\builtin.obj"
+	-@erase "$(INTDIR)\builtin.sbr"
 	-@erase "$(INTDIR)\client.obj"
 	-@erase "$(INTDIR)\client.sbr"
 	-@erase "$(INTDIR)\config.obj"
@@ -268,6 +272,7 @@ BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\named.bsc" 
 BSC32_SBRS= \
 	"$(INTDIR)\aclconf.sbr" \
+	"$(INTDIR)\builtin.sbr" \
 	"$(INTDIR)\client.sbr" \
 	"$(INTDIR)\config.sbr" \
 	"$(INTDIR)\control.sbr" \
@@ -296,7 +301,8 @@ BSC32_SBRS= \
 	"$(INTDIR)\tsigconf.sbr" \
 	"$(INTDIR)\update.sbr" \
 	"$(INTDIR)\xfrout.sbr" \
-	"$(INTDIR)\zoneconf.sbr"
+	"$(INTDIR)\zoneconf.sbr" \
+	"$(INTDIR)\builtin.sbr"
 
 "$(OUTDIR)\named.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -307,6 +313,7 @@ LINK32=link.exe
 LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/isccc/win32/Debug/libisccc.lib ../../../lib/lwres/win32/Debug/liblwres.lib ../../../lib/isccfg/win32/Debug/libisccfg.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\named.pdb" /map:"$(INTDIR)\named.map" /debug /machine:I386 /out:"../../../Build/Debug/named.exe" /pdbtype:sept 
 LINK32_OBJS= \
 	"$(INTDIR)\aclconf.obj" \
+	"$(INTDIR)\builtin.obj" \
 	"$(INTDIR)\client.obj" \
 	"$(INTDIR)\config.obj" \
 	"$(INTDIR)\control.obj" \
@@ -368,6 +375,24 @@ SOURCE=..\aclconf.c
 
 
 "$(INTDIR)\aclconf.obj"	"$(INTDIR)\aclconf.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\builtin.c
+
+!IF  "$(CFG)" == "named - Win32 Release"
+
+
+"$(INTDIR)\builtin.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "named - Win32 Debug"
+
+
+"$(INTDIR)\builtin.obj"	"$(INTDIR)\builtin.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

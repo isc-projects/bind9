@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.3 2003/08/04 00:53:02 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.4 2003/08/13 03:58:09 marka Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,7 @@
  */
 #define NS_MAIN 1
 
+#include <named/builtin.h>
 #include <named/control.h>
 #include <named/globals.h>	/* Explicit, though named/log.h includes it. */
 #include <named/interfacemgr.h>
@@ -535,6 +536,8 @@ setup(void) {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
+	ns_builtin_init();
+
 	/*
 	 * Add calls to register sdb drivers here.
 	 */
@@ -548,6 +551,8 @@ cleanup(void) {
 	destroy_managers();
 
 	ns_server_destroy(&ns_g_server);
+
+	ns_builtin_deinit();
 
 	/*
 	 * Add calls to unregister sdb drivers here.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.5 2003/08/12 07:10:26 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.6 2003/08/13 03:58:09 marka Exp $ */
 
 #include <config.h>
 
@@ -87,7 +87,6 @@ options {\n\
 	treat-cr-as-space true;\n\
 	use-id-pool true;\n\
 	use-ixfr true;\n\
-	version \""VERSION"\";\n\
 \n\
 	/* view */\n\
 	allow-notify {none;};\n\
@@ -145,7 +144,27 @@ options {\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
-};";
+};
+
+view \"_bind\" chaos {
+	recursion no;
+
+	zone \"version.bind\" chaos {
+		type master;
+		database \"_builtin version\";
+	};
+
+	zone \"hostname.bind\" chaos {
+		type master;
+		database \"_builtin hostname\";
+	};
+
+	zone \"authors.bind\" chaos {
+		type master;
+		database \"_builtin authors\";
+	};
+};
+";
 
 isc_result_t
 ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {

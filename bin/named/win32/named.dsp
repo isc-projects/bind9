@@ -92,6 +92,10 @@ SOURCE=..\aclconf.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\builtin.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\client.c
 # End Source File
 # Begin Source File

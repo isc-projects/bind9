@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.h,v 1.1 2001/11/20 01:18:15 gson Exp $ */
+/* $Id: builtin.h,v 1.1.204.1 2003/08/13 03:58:10 marka Exp $ */
 
 #ifndef NAMED_BUILTIN_H
 #define NAMED_BUILTIN_H 1

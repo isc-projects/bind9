@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001, 2002  Internet Software Consortium.
+ * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.4 2003/01/20 05:46:09 marka Exp $ */
+/* $Id: builtin.c,v 1.4.106.1 2003/08/13 03:58:09 marka Exp $ */
 
 /*
- * The built-in "version", "hostname", "id" and "authors" databases.
+ * The built-in "version", "hostname", and "authors" databases.
  */
 
 #include <config.h>
@@ -43,7 +43,6 @@ typedef struct builtin builtin_t;
 static isc_result_t do_version_lookup(dns_sdblookup_t *lookup);
 static isc_result_t do_hostname_lookup(dns_sdblookup_t *lookup);
 static isc_result_t do_authors_lookup(dns_sdblookup_t *lookup);
-static isc_result_t do_id_lookup(dns_sdblookup_t *lookup);
 
 /*
  * We can't use function pointers as the db_data directly
@@ -58,7 +57,6 @@ struct builtin {
 static builtin_t version_builtin = { do_version_lookup };
 static builtin_t hostname_builtin = { do_hostname_lookup };
 static builtin_t authors_builtin = { do_authors_lookup };
-static builtin_t id_builtin = { do_id_lookup };
 
 static dns_sdbimplementation_t *builtin_impl;
 
@@ -150,23 +148,6 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 }
 
 static isc_result_t
-do_id_lookup(dns_sdblookup_t *lookup) {
-
-	if (ns_g_server->server_usehostname) {
-		char buf[256];
-		isc_result_t result = ns_os_gethostname(buf, sizeof(buf));
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		return (put_txt(lookup, buf));
-	}
-
-	if (ns_g_server->server_id == NULL)
-		return (ISC_R_SUCCESS);
-	else
-		return (put_txt(lookup, ns_g_server->server_id));
-}
-
-static isc_result_t
 builtin_authority(const char *zone, void *dbdata, dns_sdblookup_t *lookup) {
 	isc_result_t result;
 
@@ -197,8 +178,6 @@ builtin_create(const char *zone, int argc, char **argv,
 		*dbdata = &hostname_builtin;
 	else if (strcmp(argv[0], "authors") == 0)
 		*dbdata = &authors_builtin;
-	else if (strcmp(argv[0], "id") == 0)
-		*dbdata = &id_builtin;
 	else
 		return (ISC_R_NOTIMPLEMENTED);
 	return (ISC_R_SUCCESS);

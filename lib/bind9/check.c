@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.5 2003/08/13 01:41:32 marka Exp $ */
+/* $Id: check.c,v 1.37.6.6 2003/08/13 03:58:11 marka Exp $ */
 
 #include <config.h>
 
@@ -655,6 +655,30 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 				    "'cache-file' cannot be a global "
 				    "option if views are present");
 			result = ISC_R_FAILURE;
+		}
+	}
+
+        tresult = cfg_map_get(config, "acl", &acls);
+        if (tresult == ISC_R_SUCCESS) {
+		cfg_listelt_t *elt;
+		const char *aclname;
+
+		for (elt = cfg_list_first(acls);
+		     elt != NULL;
+		     elt = cfg_list_next(elt)) {
+			cfg_obj_t *acl = cfg_listelt_value(elt);
+			int i;
+
+			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
+			for (i = 0; builtin[i] != NULL; i++)
+				if (strcasecmp(aclname, builtin[i]) == 0) {
+					cfg_obj_log(acl, logctx, ISC_LOG_ERROR,
+						    "attempt to redefine "
+						    "builtin acl '%s'",
+				    		    aclname);
+					result = ISC_R_FAILURE;
+					break;
+				}
 		}
 	}
 
