@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.30.12.1 2003/08/12 07:10:30 marka Exp $ */
+/* $Id: cfg.h,v 1.30.12.2 2003/08/13 05:36:29 marka Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -396,6 +396,19 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...)
  * channel of 'pctx', at log level 'level'.  The message will be prefixed
  * with the file name(s) and line number where 'obj' was defined.
  */
+
+const char *
+cfg_obj_file(cfg_obj_t *obj);
+/*
+ * Return the file that defined this object.
+ */
+
+unsigned int
+cfg_obj_line(cfg_obj_t *obj);
+/*
+ * Return the line in file where this object was defined.
+ */
+
 
 ISC_LANG_ENDDECLS
 

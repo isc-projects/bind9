@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20.2.8 2003/08/13 04:55:28 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.9 2003/08/13 05:36:29 marka Exp $ */
 
 #include <config.h>
 
@@ -2139,6 +2139,16 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...) {
 		      obj->file == NULL ? "<unknown file>" : obj->file,
 		      obj->line, msgbuf);
 	va_end(ap);
+}
+
+const char *
+cfg_obj_file(cfg_obj_t *obj) {
+	return (obj->file);
+}
+
+unsigned int
+cfg_obj_line(cfg_obj_t *obj) {
+	return (obj->line);
 }
 
 isc_result_t
