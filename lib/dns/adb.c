@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.10 2003/07/25 03:31:42 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11 2003/07/25 04:36:45 marka Exp $ */
 
 /*
  * Implementation notes
@@ -3302,7 +3302,6 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));
-	INSIST(!NAME_FETCH_V6(adbname));
 
 	result = ISC_R_UNEXPECTED;
 

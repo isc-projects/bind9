@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76.2.4 2003/07/22 04:03:32 marka Exp $ */
+/* $Id: host.c,v 1.76.2.5 2003/07/25 04:36:44 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -212,7 +212,7 @@ show_usage(void) {
 "       -C compares SOA records on authoritative nameservers\n"
 "       -d is equivalent to -v\n"
 "       -l lists all hosts in a domain, using AXFR\n"
-"       -n Use the nibble form of IPv6 reverse lookup\n"
+"       -i Use the old IN6.INT form of IPv6 reverse lookup\n"
 "       -N changes the number of dots allowed before root lookup is done\n"
 "       -r disables recursive processing\n"
 "       -R specifies number of retries for UDP packets\n"
@@ -563,7 +563,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	lookup = make_empty_lookup();
 
-	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:Dn"))
+	while ((c = isc_commandline_parse(argc, argv, "ilvwrdt:c:aTCN:R:W:Dn"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
@@ -626,8 +626,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->rdtypeset = ISC_TRUE;
 			short_form = ISC_FALSE;
 			break;
+		case 'i':
+			lookup->ip6_int = ISC_TRUE;
+			break;
 		case 'n':
-			lookup->nibble = ISC_TRUE;
 			break;
 		case 'w':
 			/*
@@ -682,7 +684,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 
 	lookup->pending = ISC_FALSE;
-	if (get_reverse(store, hostname, lookup->nibble) == ISC_R_SUCCESS) {
+	if (get_reverse(store, hostname, lookup->ip6_int, ISC_TRUE)			     == ISC_R_SUCCESS)
+	{
 		strncpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1] = 0;
 		lookup->rdtype = dns_rdatatype_ptr;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.29 2001/06/04 19:32:57 tale Exp $ */
+/* $Id: byaddr.c,v 1.29.2.1 2003/07/25 04:36:45 marka Exp $ */
 
 #include <config.h>
 
@@ -68,6 +68,18 @@ isc_result_t
 dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 			 dns_name_t *name)
 {
+	unsigned int options = DNS_BYADDROPT_IPV6INT;
+	
+	if (nibble)
+		options |= DNS_BYADDROPT_IPV6NIBBLE;
+
+	return (dns_byaddr_createptrname2(address, options, name));
+}
+
+isc_result_t
+dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
+			  dns_name_t *name)
+{
 	char textname[128];
 	unsigned char *bytes;
 	int i;
@@ -91,7 +103,7 @@ dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 			      (bytes[1] & 0xff),
 			      (bytes[0] & 0xff));
 	} else if (address->family == AF_INET6) {
-		if (nibble) {
+		if ((options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
 			cp = textname;
 			for (i = 15; i >= 0; i--) {
 				*cp++ = hex_digits[bytes[i] & 0x0f];
@@ -99,7 +111,10 @@ dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 				*cp++ = hex_digits[(bytes[i] >> 4) & 0x0f];
 				*cp++ = '.';
 			}
-			strcpy(cp, "ip6.int.");
+			if ((options & DNS_BYADDROPT_IPV6INT) != 0)
+				strcpy(cp, "ip6.int.");
+			else
+				strcpy(cp, "ip6.arpa.");
 		} else {
 			cp = textname;
 			*cp++ = '\\';
@@ -241,9 +256,8 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 
 	dns_fixedname_init(&byaddr->name);
 
-	result = dns_byaddr_createptrname(address,
-			  ISC_TF(byaddr->options & DNS_BYADDROPT_IPV6NIBBLE),
-			  dns_fixedname_name(&byaddr->name));
+	result = dns_byaddr_createptrname2(address, byaddr->options,
+					   dns_fixedname_name(&byaddr->name));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 

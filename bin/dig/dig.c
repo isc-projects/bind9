@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.10 2003/07/23 06:57:57 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.11 2003/07/25 04:36:43 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -84,7 +84,7 @@ static char *argv0;
 static char domainopt[DNS_NAME_MAXTEXT];
 
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
-	nibble = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
+	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE;
 
 static const char *opcodetext[] = {
@@ -154,7 +154,7 @@ help(void) {
 "                 (Use ixfr=version for type ixfr)\n"
 "        q-opt    is one of:\n"
 "                 -x dot-notation     (shortcut for in-addr lookups)\n"
-"                 -n                  (nibble form for reverse IPv6 lookups)\n"
+"                 -i                  (IP6.INT reverse IPv6 lookups)\n"
 "                 -f filename         (batch mode)\n"
 "                 -b address          (bind to source address)\n"
 "                 -p port             (specify port number)\n"
@@ -906,11 +906,14 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		help();
 		exit(0);
 		break;
+	case 'i':
+		ip6_int = ISC_TRUE;
+		return (ISC_FALSE);
 	case 'm': /* memdebug */
 		/* memdebug is handled in preparse_args() */
 		return (ISC_FALSE);
 	case 'n':
-		nibble = ISC_TRUE;
+		/* deprecated */
 		return (ISC_FALSE);
 	}
 	if (value == NULL)
@@ -1010,13 +1013,15 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (value_from_next);
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
-		if (get_reverse(textname, value, nibble) == ISC_R_SUCCESS) {
+		if (get_reverse(textname, value, ip6_int, ISC_FALSE)
+		    == ISC_R_SUCCESS)
+		{
 			strncpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));
 			debug("looking up %s", (*lookup)->textname);
 			(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
 						(*lookup)->ns_search_only);
-			(*lookup)->nibble = nibble;
+			(*lookup)->ip6_int = ip6_int;
 			if (!(*lookup)->rdtypeset)
 				(*lookup)->rdtype = dns_rdatatype_ptr;
 			if (!(*lookup)->rdclassset)
