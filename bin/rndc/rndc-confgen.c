@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.7 2001/08/08 05:13:47 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.8 2001/08/08 19:42:53 gson Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <isc/keyboard.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/time.h>
