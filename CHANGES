@@ -1,6 +1,6 @@
  333.	[bug]		The resolver incorrectly accepted referrals to
-			subdomains of the query domain, causing an 
-			assertion failure.
+			domains that were not parents of the query name,
+			causing assertion failures.
 
  332.	[func]		New function dns_name_reset().
 

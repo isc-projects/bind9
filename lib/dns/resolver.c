@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.148 2000/07/15 01:02:25 gson Exp $ */
+/* $Id: resolver.c,v 1.149 2000/07/16 18:26:18 gson Exp $ */
 
 #include <config.h>
 
@@ -2982,31 +2982,6 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	return (dns_name_concatenate(dname, &tname, dname, NULL));
 }
 
-/* XXXAG should be public function in name.c */
-
-static isc_boolean_t
-dns_name_ispropersubdomain(const dns_name_t *name1, const dns_name_t *name2) {
-	int order;
-	unsigned int nlabels, nbits;
-	dns_namereln_t namereln;
-
-	/*
-	 * Is 'name1' a proper subdomain of 'name2'?
-	 *
-	 * Note: It makes no sense for one of the names to be relative and the
-	 * other absolute.  If both names are relative, then to be meaningfully
-	 * compared the caller must ensure that they are both relative to the
-	 * same domain.
-	 */
-
-	namereln = dns_name_fullcompare(name1, name2, &order, &nlabels,
-					&nbits);
-	if (namereln == dns_namereln_subdomain)
-		return (ISC_TRUE);
-
-	return (ISC_FALSE);
-}
-
 static isc_result_t
 noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	isc_result_t result;
@@ -3173,6 +3148,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	 */
 	if (!negative_response && ns_name != NULL && oqname == NULL) {
 		/*
+		 * We already know ns_name is a subdomain of fctx->domain.
 		 * If ns_name is equal to fctx->domain, we're not making
 		 * progress.  We return DNS_R_FORMERR so that we'll keep
 		 * keep trying other servers.
@@ -3181,12 +3157,11 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 			return (DNS_R_FORMERR);
 
 		/*
-		 * If the referral name is below the query name,
-		 * we are making too much progress, overshooting
-		 * the target.  Consider the responder insane.
+		 * If the referral name is not a parent of the query
+		 * name, consider the responder insane.  
 		 */
-		if (dns_name_ispropersubdomain(ns_name, &fctx->name)) {
-			FCTXTRACE("referral name below query name");
+		if (! dns_name_issubdomain(&fctx->name, ns_name)) {
+			FCTXTRACE("referral to non-parent");
 			return (DNS_R_FORMERR);
 		}
 
