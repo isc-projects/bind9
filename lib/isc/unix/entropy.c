@@ -403,7 +403,6 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	if (blocking && remaining != 0) {
 		int fds;
 		fds = wait_for_sources(ent);
-		       fds, added, needed, remaining);
 		if (fds > 0)
 			goto again;
 	}
