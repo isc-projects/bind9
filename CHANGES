@@ -1,3 +1,7 @@
+ 316.	[bug]		EOF mid line should be a error.
+
+ 315.	[bug]		Handle non-empty blanks lines.
+
  314.	[func]		Inet controls named.conf statement can now have 
 			any non-negative number of keys specified.
 
