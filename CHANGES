@@ -1,3 +1,5 @@
+1282.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
+
 1281.	[func]		libbind: ns_sign2() and ns_sign_tcp() now provide
 			support for compressed TSIG owner names.
 
