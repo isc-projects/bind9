@@ -1,3 +1,7 @@
+1610.	[bug]		On dual stack machines "dig -b" failed to set the
+			address type to be looked up with "@server".
+			[RT #11069]
+
 1609.	[func]		dig now has support to chase DNSSEC signature chains.
 			Requires -DDIG_SIGCHASE=1 to be set in STD_CDEFINES.
 
