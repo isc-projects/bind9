@@ -793,7 +793,9 @@ query_find(ns_client_t *client) {
 		goto cleanup;
 	}
 
+#if notyet
  db_find:
+#endif
 	/*
 	 * Now look for an answer in the database.
 	 */
