@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.47 2000/08/01 01:22:20 tale Exp $
+ * $Id: dnssec.c,v 1.48 2000/08/10 02:00:33 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -769,4 +769,27 @@ failure:
 		dst_context_destroy(&ctx);
 
 	return (result);
+}
+
+isc_boolean_t
+dns_dnssec_iszonekey(dns_rdata_t *keyrdata) {
+	isc_result_t result;
+	dns_rdata_key_t key;
+	isc_boolean_t iszonekey = ISC_TRUE;
+
+	REQUIRE(keyrdata != NULL);
+
+	result = dns_rdata_tostruct(keyrdata, &key, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	if ((key.flags & DNS_KEYTYPE_NOAUTH) != 0)
+		iszonekey = ISC_FALSE;
+	if ((key.flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
+		iszonekey = ISC_FALSE;
+	if (key.protocol != DNS_KEYPROTO_DNSSEC &&
+	    key.protocol != DNS_KEYPROTO_ANY)
+		iszonekey = ISC_FALSE;    
+
+	return (iszonekey);             
 }
