@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.11 2000/08/01 01:18:52 tale Exp $
+.\" $Id: dnssec-signzone.8,v 1.12 2000/08/17 22:08:16 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -182,14 +182,11 @@ as a source of random data.
 The
 .Fl p
 option instructs
-.Nm dnssec-signkey
+.Nm dnssec-signzone
 to use pseudo-random data when signing the keys.  This is faster, but
 less secure, than using genuinely random data for signing.
-This option may be useful when there are many child zone keysets to
-sign or if the entropy source is limited.
-It could also be used for short-lived keys and signatures that don't
-require as much protection against cryptanalysis, such as when the key
-will be discarded long before it could be compromised.
+This option may be useful when signing large zones or when the 
+entropy source is limited.
 .Pp
 An option of
 .Fl h
