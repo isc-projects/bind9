@@ -1,6 +1,6 @@
 <!--
  - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2001, 2003  Internet Software Consortium.
+ - Copyright (C) 2001-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.html,v 1.5.2.1.4.2 2004/03/06 10:21:14 marka Exp $ -->
+<!-- $Id: dnssec-keygen.html,v 1.5.2.1.4.3 2004/03/08 04:04:17 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -90,6 +90,14 @@ CLASS="OPTION"
 >-e</TT
 >] [<TT
 CLASS="OPTION"
+>-f <TT
+CLASS="REPLACEABLE"
+><I
+>flag</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
 >-g <TT
 CLASS="REPLACEABLE"
 ><I
@@ -144,7 +152,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN48"
+NAME="AEN51"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -161,7 +169,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN52"
+NAME="AEN55"
 ></A
 ><H2
 >OPTIONS</H2
@@ -246,6 +254,19 @@ CLASS="REPLACEABLE"
 ><DD
 ><P
 >	       If generating an RSA key, use a large exponent.
+	  </P
+></DD
+><DT
+>-f <TT
+CLASS="REPLACEABLE"
+><I
+>flag</I
+></TT
+></DT
+><DD
+><P
+>		Set the specified flag in the flag field of the key record.
+		The only recognized flag is KSK (Key Signing Key).
 	  </P
 ></DD
 ><DT
@@ -367,7 +388,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN121"
+NAME="AEN129"
 ></A
 ><H2
 >GENERATED KEYS</H2
@@ -463,7 +484,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN148"
+NAME="AEN156"
 ></A
 ><H2
 >EXAMPLE</H2
@@ -514,7 +535,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN161"
+NAME="AEN169"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -561,7 +582,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN177"
+NAME="AEN185"
 ></A
 ><H2
 >AUTHOR</H2

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.35.2.4.2.6 2004/03/06 13:16:09 marka Exp $ */
+/* $Id: acconfig.h,v 1.35.2.4.2.7 2004/03/08 04:04:12 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because

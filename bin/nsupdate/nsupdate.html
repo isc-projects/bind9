@@ -1,6 +1,6 @@
 <!--
  - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2001, 2003  Internet Software Consortium.
+ - Copyright (C) 2001-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.html,v 1.9.2.3.2.3 2004/03/06 10:21:31 marka Exp $ -->
+<!-- $Id: nsupdate.html,v 1.9.2.3.2.4 2004/03/08 04:04:23 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -908,7 +908,7 @@ This ensures that when the CNAME is added, it cannot conflict with the
 long-standing rule in RFC1034 that a name must not exist as any other
 record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
-SIG, KEY and NXT records.)</P
+RRSIG, DNSKEY and NSEC records.)</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"

@@ -80,6 +80,8 @@ options {
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        disable-algorithms <string> { <string>; ... };
+        enable-dnssec <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -223,7 +225,7 @@ view <string> <optional_class> {
                     <integer> | * ) ];
         };
         trusted-keys { <string> <integer> <integer> <integer>
-            <quoted_string>; ... }; // obsolete
+            <quoted_string>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
         sortlist { <address_match_element>; ... };
@@ -256,6 +258,8 @@ view <string> <optional_class> {
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        disable-algorithms <string> { <string>; ... };
+        enable-dnssec <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };

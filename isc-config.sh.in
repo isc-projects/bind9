@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: isc-config.sh.in,v 1.10.12.2 2004/03/06 13:16:10 marka Exp $
+# $Id: isc-config.sh.in,v 1.10.12.3 2004/03/08 04:04:12 marka Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -126,8 +126,11 @@ if test x"$echo_libs" = x"true"; then
 	if test x"$liblwres" = x"true" ; then
 		libs="$libs -llwres"
 	fi
+	if test x"$libbind9" = x"true" ; then
+		libs="$libs -lbind9"
+	fi
 	if test x"$libdns" = x"true" ; then
-		libs="$libs -ldns @DNS_OPENSSL_LIBS@"
+		libs="$libs -ldns @DNS_CRYPTO_LIBS@"
 	fi
 	if test x"$libisccfg" = x"true" ; then
 		libs="$libs -lisccfg"

@@ -1,6 +1,6 @@
 <!--
  - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2001, 2003  Internet Software Consortium.
+ - Copyright (C) 2001-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.html,v 1.4.2.1.4.2 2004/03/06 10:21:15 marka Exp $ -->
+<!-- $Id: dnssec-signzone.html,v 1.4.2.1.4.3 2004/03/08 04:04:18 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -83,14 +83,6 @@ CLASS="REPLACEABLE"
 ></TT
 >] [<TT
 CLASS="OPTION"
->-s <TT
-CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
-></TT
->] [<TT
-CLASS="OPTION"
 >-e <TT
 CLASS="REPLACEABLE"
 ><I
@@ -107,7 +99,18 @@ CLASS="REPLACEABLE"
 ></TT
 >] [<TT
 CLASS="OPTION"
+>-g</TT
+>] [<TT
+CLASS="OPTION"
 >-h</TT
+>] [<TT
+CLASS="OPTION"
+>-k <TT
+CLASS="REPLACEABLE"
+><I
+>key</I
+></TT
+></TT
 >] [<TT
 CLASS="OPTION"
 >-i <TT
@@ -145,6 +148,14 @@ CLASS="REPLACEABLE"
 ></TT
 >] [<TT
 CLASS="OPTION"
+>-s <TT
+CLASS="REPLACEABLE"
+><I
+>start-time</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
 >-t</TT
 >] [<TT
 CLASS="OPTION"
@@ -154,12 +165,15 @@ CLASS="REPLACEABLE"
 >level</I
 ></TT
 ></TT
+>] [<TT
+CLASS="OPTION"
+>-z</TT
 >] {zonefile} [key...]</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN56"
+NAME="AEN63"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -167,8 +181,8 @@ NAME="AEN56"
 >        <B
 CLASS="COMMAND"
 >dnssec-signzone</B
-> signs a zone.  It generates NXT
-	and SIG records and produces a signed version of the zone.  If there
+> signs a zone.  It generates NSEC
+	and RRSIG records and produces a signed version of the zone.  If there
 	is a <TT
 CLASS="FILENAME"
 >signedkey</TT
@@ -186,7 +200,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN62"
+NAME="AEN69"
 ></A
 ><H2
 >OPTIONS</H2
@@ -215,6 +229,19 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
+>-k <TT
+CLASS="REPLACEABLE"
+><I
+>key</I
+></TT
+></DT
+><DD
+><P
+>	       Treat specified key as a key signing key ignoring any
+	       key flags.  This option may be specified multiple times.
+	  </P
+></DD
+><DT
 >-d <TT
 CLASS="REPLACEABLE"
 ><I
@@ -234,6 +261,14 @@ CLASS="OPTION"
 	  </P
 ></DD
 ><DT
+>-g</DT
+><DD
+><P
+>		Generate DS records for child zones from keyset files.
+		Existing DS records will be removed.
+	  </P
+></DD
+><DT
 >-s <TT
 CLASS="REPLACEABLE"
 ><I
@@ -242,7 +277,7 @@ CLASS="REPLACEABLE"
 ></DT
 ><DD
 ><P
->	       Specify the date and time when the generated SIG records
+>	       Specify the date and time when the generated RRSIG records
 	       become valid.  This can be either an absolute or relative
 	       time.  An absolute start time is indicated by a number
 	       in YYYYMMDDHHMMSS notation; 20000530144500 denotes
@@ -264,7 +299,7 @@ CLASS="REPLACEABLE"
 ></DT
 ><DD
 ><P
->	       Specify the date and time when the generated SIG records
+>	       Specify the date and time when the generated RRSIG records
 	       expire.  As with <TT
 CLASS="OPTION"
 >start-time</TT
@@ -322,7 +357,7 @@ CLASS="OPTION"
 >interval</TT
 > option
 	       specifies the cycle interval as an offset from the current
-	       time (in seconds).  If a SIG record expires after the
+	       time (in seconds).  If a RRSIG record expires after the
 	       cycle interval, it is retained.  Otherwise, it is considered
 	       to be expiring soon, and it will be replaced.
 	  </P
@@ -341,7 +376,7 @@ CLASS="COMMAND"
 >dnssec-signzone</B
 > generates
 	       signatures that are valid for 30 days, with a cycle
-	       interval of 7.5 days.  Therefore, if any existing SIG records
+	       interval of 7.5 days.  Therefore, if any existing RRSIG records
 	       are due to expire in less than 7.5 days, they would be
 	       replaced.
 	  </P
@@ -430,6 +465,13 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
+>-z</DT
+><DD
+><P
+>	       Ignore KSK flag on key when determining what to sign.
+	  </P
+></DD
+><DT
 >zonefile</DT
 ><DD
 ><P
@@ -452,7 +494,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN154"
+NAME="AEN174"
 ></A
 ><H2
 >EXAMPLE</H2
@@ -511,7 +553,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN168"
+NAME="AEN188"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -543,7 +585,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN179"
+NAME="AEN199"
 ></A
 ><H2
 >AUTHOR</H2
