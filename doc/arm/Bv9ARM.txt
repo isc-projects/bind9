@@ -734,9 +734,7 @@ The key{} statement has two clauses: algorithm and secret.  While the
 configuration parser will accept any string as the argument to algorithm,
 currently only the string "hmac-md5" has any meaning.  The secret is a
 base-64 encoded string, typically generated with either dnssec-keygen or
-mmencode.  The parser will happily accept an invalid base-64 string, but it
-will never work with the server because the server validates the
-base-64 of the secret for itself when loading its own configuration file.
+mmencode.
 
 The server{} statement uses the key clause to associate a key{}-defined key
 with a server.  The argument to the server{} statement is a host name or
@@ -2920,7 +2918,7 @@ representation of the key data.
 6.2.17 view Statement Grammar
 
  view view name {
-      match_clients { address_match_list } ;
+      match-clients { address_match_list } ;
       [view_option; ...]
       [zone_statement; ...]]
 };
@@ -2957,9 +2955,6 @@ matches any client is automatically created in class IN, and any zone
 statements specified on the top level of the configuration file are
 considered to be part of this default view. If any explicit view statements
 are present, all zone statements must occur inside view statements.
-
-A zone statement of type hint for the root zone ('.') does not strictly
-define a zone. Therefore, it should not be included in a view statement.
 
 Here is an example of a typical split DNS setup implemented using view
 statements.

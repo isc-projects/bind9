@@ -16,7 +16,7 @@
  - SOFTWARE.
 -->
 
-<!-- $Id: Bv9ARM.6.html,v 1.8 2000/07/12 17:54:33 gson Exp $ -->
+<!-- $Id: Bv9ARM.6.html,v 1.9 2000/07/18 18:16:18 gson Exp $ -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
 <HTML>
@@ -3886,7 +3886,7 @@ view</CODE>
 
 <PRE CLASS="2Level-fixed"><A NAME="pgfId=1038409"></A>
 <KBD CLASS="Literal-user-input"> view </KBD><EM CLASS="variable">view name</EM><KBD CLASS="Literal-user-input"> {</KBD>
-      <KBD CLASS="Literal-user-input">match_clients {</KBD> <EM CLASS="variable">address_match_list</EM><KBD CLASS="Literal-user-input"> } ; </KBD>
+      <KBD CLASS="Literal-user-input">match-clients {</KBD> <EM CLASS="variable">address_match_list</EM><KBD CLASS="Literal-user-input"> } ; </KBD>
       <EM CLASS="Optional-meta-syntax">[</EM><CODE CLASS="grammar_literal">view_option</CODE><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ...]</EM>
       <EM CLASS="Optional-meta-syntax">[</EM><CODE CLASS="grammar_literal">zone_statement</CODE><KBD CLASS="Literal-user-input">;</KBD><EM CLASS="Optional-meta-syntax"> ...]]</EM>
 <KBD CLASS="Literal-user-input">};</KBD>
@@ -3964,18 +3964,7 @@ zone</CODE>
  statements must occur inside <CODE CLASS="Program-Process">
 view</CODE>
  statements.</P>
-<P CLASS="3LevelContinued">
-<A NAME="pgfId=1107611">
-</A>
-A <CODE CLASS="Program-Process">
-zone</CODE>
- statement of type <EM CLASS="variable">
-hint</EM>
- for the root zone (`<EM CLASS="grammar_literal">
-.</EM>
-') does not strictly define a zone. Therefore, it should not be included in a <CODE CLASS="Program-Process">
-view</CODE>
- statement.</P>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=1038608">
 </A>
