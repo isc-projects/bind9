@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.237 2000/10/17 20:57:24 mws Exp $ */
+/* $Id: zone.c,v 1.238 2000/10/20 13:29:33 marka Exp $ */
 
 #include <config.h>
 
@@ -4809,7 +4809,6 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		(forward->callback)(forward->callback_arg, result, NULL);
 		forward_destroy(forward);
 	}
-	isc_event_free(&event);
 }
 
 isc_result_t

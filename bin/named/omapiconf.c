@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.12 2000/09/15 03:22:45 tale Exp $ */
+/* $Id: omapiconf.c,v 1.13 2000/10/20 13:29:28 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -359,6 +359,7 @@ add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
 		listener->mctx = mctx;
 		listener->manager = NULL;
 		listener->address = control->u.inet_v.addr;
+		ISC_LINK_INIT(listener, link);
 
 		/*
 		 * Make the acl.

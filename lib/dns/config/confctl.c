@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.29 2000/08/01 01:23:17 tale Exp $ */
+/* $Id: confctl.c,v 1.30 2000/10/20 13:29:34 marka Exp $ */
 
 #include <config.h>
 
@@ -178,6 +178,7 @@ dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	isc_sockaddr_setport(&addr, port);
 	ctrl->u.inet_v.addr = addr;
 	ctrl->keyidlist = keylist;
+	ISC_LINK_INIT(ctrl, next);
 
 	if (copy) {
 		res = dns_c_ipmatchlist_copy(mem,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.30 2000/08/26 01:42:34 bwelling Exp $ */
+/* $Id: listener.c,v 1.31 2000/10/20 13:29:37 marka Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -200,6 +200,7 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	ISC_LIST_APPEND(connection->input_buffers, ibuffer, link);
 	ISC_LIST_INIT(connection->output_buffers);
 	ISC_LIST_APPEND(connection->output_buffers, obuffer, link);
+	ISC_LINK_INIT(connection, link);
 
 	/*
 	 * Create a new protocol object to oversee the handling of this

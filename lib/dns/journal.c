@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.59 2000/10/20 02:21:44 marka Exp $ */
+/* $Id: journal.c,v 1.60 2000/10/20 13:29:32 marka Exp $ */
 
 #include <config.h>
 
@@ -547,13 +547,13 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 
 /*
  * Create an rdataset containing the single RR of the given
- * tuple.  The caller must allocate both the rdataset and
+ * tuple.  The caller must allocate the the rdata, rdataset and
  * an rdatalist structure for it to refer to.
  */
 
 static isc_result_t
-diff_tuple_tordataset(dns_difftuple_t *t, dns_rdatalist_t *rdl,
-		      dns_rdataset_t *rds)
+diff_tuple_tordataset(dns_difftuple_t *t, dns_rdata_t *rdata,
+		      dns_rdatalist_t *rdl, dns_rdataset_t *rds)
 {
 	REQUIRE(DNS_DIFFTUPLE_VALID(t));
 	REQUIRE(rdl != NULL);
@@ -565,7 +565,9 @@ diff_tuple_tordataset(dns_difftuple_t *t, dns_rdatalist_t *rdl,
 	ISC_LIST_INIT(rdl->rdata);
 	ISC_LINK_INIT(rdl, link);
 	dns_rdataset_init(rds);
-	ISC_LIST_APPEND(rdl->rdata, &t->rdata, link);
+	ISC_LINK_INIT(rdata, link);
+	dns_rdata_clone(&t->rdata, rdata);
+	ISC_LIST_APPEND(rdl->rdata, rdata, link);
 	return (dns_rdatalist_tordataset(rdl, rds));
 }
 
@@ -590,8 +592,9 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 
 		dns_rdatalist_t rdl;
 		dns_rdataset_t rds;
+		dns_rdata_t rd;
 
-		result = diff_tuple_tordataset(t, &rdl, &rds);
+		result = diff_tuple_tordataset(t, &rd, &rdl, &rds);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "diff_tuple_tordataset failed: %s",

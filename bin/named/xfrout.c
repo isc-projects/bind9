@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.77 2000/10/20 02:21:40 marka Exp $ */
+/* $Id: xfrout.c,v 1.78 2000/10/20 13:29:30 marka Exp $ */
 
 #include <config.h>
 
@@ -255,6 +255,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	char mem[2000];
 	dns_rdatalist_t rdl;
 	dns_rdataset_t rds;
+	dns_rdata_t rd;
 
 	rdl.type = rdata->type;
 	rdl.rdclass = rdata->rdclass;
@@ -262,7 +263,9 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	ISC_LIST_INIT(rdl.rdata);
 	ISC_LINK_INIT(&rdl, link);
 	dns_rdataset_init(&rds);
-	ISC_LIST_APPEND(rdl.rdata, rdata, link);
+	dns_rdata_init(&rd);
+	dns_rdata_clone(rdata, &rd);
+	ISC_LIST_APPEND(rdl.rdata, &rd, link);
 	RUNTIME_CHECK(dns_rdatalist_tordataset(&rdl, &rds) == ISC_R_SUCCESS);
 
 	isc_buffer_init(&buf, mem, sizeof(mem));
@@ -1294,7 +1297,6 @@ sendstream(xfrout_ctx_t *xfr) {
 		unsigned int size;
 		isc_region_t r;
 
-		dns_rdata_init(&rdata);
 		xfr->stream->methods->current(xfr->stream,
 					      &name, &ttl, &rdata);
 		size = name->length + 10 + rdata->length;

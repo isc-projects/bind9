@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.34 2000/08/26 01:42:32 bwelling Exp $ */
+/* $Id: connection.c,v 1.35 2000/10/20 13:29:36 marka Exp $ */
 
 /* Principal Author: DCL */
 
@@ -340,10 +340,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Restore the input buffers to the connection object.
 	 */
-	for (buffer = ISC_LIST_HEAD(bufferlist);
-	     buffer != NULL;
-	     buffer = ISC_LIST_NEXT(buffer, link))
+	while ((buffer = ISC_LIST_HEAD(bufferlist)) != NULL) {
+		ISC_LIST_UNLINK(bufferlist, buffer, link);
 		ISC_LIST_APPEND(connection->input_buffers, buffer, link);
+	}
 
 	if (result == ISC_R_SUCCESS) {
 		connection->in_bytes += bytes_read;
@@ -438,6 +438,7 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	 * end_connection can free the buffer, if it is called below.
 	 */
 	buffer = ISC_LIST_HEAD(bufferlist);
+	ISC_LIST_UNLINK(bufferlist, buffer, link);
 	ISC_LIST_APPEND(connection->output_buffers, buffer, link);
 	isc_buffer_clear(buffer);
 

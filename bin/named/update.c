@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.67 2000/10/19 23:41:40 gson Exp $ */
+/* $Id: update.c,v 1.68 2000/10/20 13:29:29 marka Exp $ */
 
 #include <config.h>
 
@@ -186,6 +186,7 @@ do_one_tuple(dns_difftuple_t **tuple,
 	 * Apply it to the database.
 	 */
 	result = dns_diff_apply(&temp_diff, db, ver);
+	ISC_LIST_UNLINK(temp_diff.tuples, *tuple, link);
 	if (result != ISC_R_SUCCESS) {
 		dns_difftuple_free(tuple);
 		return (result);
