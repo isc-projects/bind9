@@ -19,7 +19,7 @@
 named \- Internet domain name server
 .SH SYNOPSIS
 .sp
-\fBnamed\fR [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-d \fIdebug-level\fB\fR ]  [ \fB-f\fR ]  [ \fB-g\fR ]  [ \fB-n \fI#cpus\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-s\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-u \fIuser\fB\fR ]  [ \fB-v\fR ]  [ \fB-x \fIcache-file\fB\fR ] 
+\fBnamed\fR [ \fB-4\fR ]  [ \fB-6\fR ]  [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-d \fIdebug-level\fB\fR ]  [ \fB-f\fR ]  [ \fB-g\fR ]  [ \fB-n \fI#cpus\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-s\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-u \fIuser\fB\fR ]  [ \fB-v\fR ]  [ \fB-x \fIcache-file\fB\fR ] 
 .SH "DESCRIPTION"
 .PP
 \fBnamed\fR is a Domain Name System (DNS) server,
@@ -31,6 +31,16 @@ read the default configuration file
 \fI/etc/named.conf\fR, read any initial
 data, and listen for queries.
 .SH "OPTIONS"
+.TP
+\fB-4\fR
+Use IPv4 only even if the host machine is capable of IPv6.
+\fB-4\fR and \fB-6\fR are mutually
+exclusive.
+.TP
+\fB-6\fR
+Use IPv6 only even if the host machine is capable of IPv4.
+\fB-4\fR and \fB-6\fR are mutually
+exclusive.
 .TP
 \fB-c \fIconfig-file\fB\fR
 Use \fIconfig-file\fR as the

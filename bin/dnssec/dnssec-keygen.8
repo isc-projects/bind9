@@ -19,7 +19,7 @@
 dnssec-keygen \- DNSSEC key generation tool
 .SH SYNOPSIS
 .sp
-\fBdnssec-keygen\fR \fB-a \fIalgorithm\fB\fR \fB-b \fIkeysize\fB\fR \fB-n \fInametype\fB\fR [ \fB-c \fIclass\fB\fR ]  [ \fB-e\fR ]  [ \fB-g \fIgenerator\fB\fR ]  [ \fB-h\fR ]  [ \fB-p \fIprotocol\fB\fR ]  [ \fB-r \fIrandomdev\fB\fR ]  [ \fB-s \fIstrength\fB\fR ]  [ \fB-t \fItype\fB\fR ]  [ \fB-v \fIlevel\fB\fR ]  \fBname\fR
+\fBdnssec-keygen\fR \fB-a \fIalgorithm\fB\fR \fB-b \fIkeysize\fB\fR \fB-n \fInametype\fB\fR [ \fB-c \fIclass\fB\fR ]  [ \fB-e\fR ]  [ \fB-f \fIflag\fB\fR ]  [ \fB-g \fIgenerator\fB\fR ]  [ \fB-h\fR ]  [ \fB-p \fIprotocol\fB\fR ]  [ \fB-r \fIrandomdev\fB\fR ]  [ \fB-s \fIstrength\fB\fR ]  [ \fB-t \fItype\fB\fR ]  [ \fB-v \fIlevel\fB\fR ]  \fBname\fR
 .SH "DESCRIPTION"
 .PP
 \fBdnssec-keygen\fR generates keys for DNSSEC
@@ -58,6 +58,10 @@ the specified class. If not specified, class IN is used.
 .TP
 \fB-e\fR
 If generating an RSA key, use a large exponent.
+.TP
+\fB-f \fIflag\fB\fR
+Set the specified flag in the flag field of the key record.
+The only recognized flag is KSK (Key Signing Key).
 .TP
 \fB-g \fIgenerator\fB\fR
 If generating a Diffie Hellman key, use this generator.

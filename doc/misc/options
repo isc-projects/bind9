@@ -78,6 +78,7 @@ options {
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
+        root-delegation-only [ exclude { <quoted_string>; ... } ];
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -150,7 +151,8 @@ view <string> <optional_class> {
                 secret <string>;
         };
         zone <string> <optional_class> {
-                type ( master | slave | stub | hint | forward );
+                type ( master | slave | stub | hint | forward |
+                    delegation-only );
                 allow-update { <address_match_element>; ... };
                 file <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
@@ -162,6 +164,7 @@ view <string> <optional_class> {
                 update-policy { ( grant | deny ) <string> ( name |
                     subdomain | wildcard | self ) <string> <rrtypelist>; ... };
                 database <string>;
+                delegation-only <boolean>;
                 check-names <string>; // not implemented
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
@@ -213,6 +216,10 @@ view <string> <optional_class> {
                 transfer-format ( many-answers | one-answer );
                 keys <server_key>;
                 edns <boolean>;
+                transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
+                    * ) ];
+                transfer-source-v6 ( <ipv6_address> | * ) [ port (
+                    <integer> | * ) ];
         };
         trusted-keys { <string> <integer> <integer> <integer>
             <quoted_string>; ... };
@@ -247,6 +254,7 @@ view <string> <optional_class> {
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
+        root-delegation-only [ exclude { <quoted_string>; ... } ];
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -299,7 +307,7 @@ key <string> {
 };
 
 zone <string> <optional_class> {
-        type ( master | slave | stub | hint | forward );
+        type ( master | slave | stub | hint | forward | delegation-only );
         allow-update { <address_match_element>; ... };
         file <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
@@ -310,6 +318,7 @@ zone <string> <optional_class> {
         update-policy { ( grant | deny ) <string> ( name | subdomain |
             wildcard | self ) <string> <rrtypelist>; ... };
         database <string>;
+        delegation-only <boolean>;
         check-names <string>; // not implemented
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
@@ -358,6 +367,8 @@ server <netaddr> {
         transfer-format ( many-answers | one-answer );
         keys <server_key>;
         edns <boolean>;
+        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
 };
 
 trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... };

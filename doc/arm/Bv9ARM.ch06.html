@@ -4,7 +4,7 @@
 >BIND 9 Configuration Reference</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -25,6 +25,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -42,6 +43,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -55,6 +57,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch07.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -91,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3755"
+HREF="Bv9ARM.ch06.html#AEN3956"
 >Zone File</A
 ></DT
 ></DL
@@ -146,7 +149,7 @@ file documentation:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1134"
+NAME="AEN1092"
 ></A
 ><P
 ></P
@@ -312,8 +315,31 @@ VALIGN="MIDDLE"
 ><P
 >An IPv6 address, such as <B
 CLASS="command"
->fe80::200:f8ff:fe01:9742</B
->.</P
+>2001:ffff::200:f8ff:fe01:9742</B
+>.
+IPv6 scoped addresses that have ambiguity on their scope zones must be
+disambiguated by an appropriate zone ID with the percent character
+(`%') as delimiter.
+It is strongly recommended to use string zone names rather than
+numeric identifiers, in order to be robust against system
+configuration changes.
+However, since there is no standard mapping for such names and
+identifier values, currently only interface names as link identifiers
+are supported, assuming one-to-one mapping between interfaces and links.
+For example, a link-local address <B
+CLASS="command"
+>fe80::1</B
+> on the
+link attached to the interface <B
+CLASS="command"
+>ne0</B
+>
+can be specified as <B
+CLASS="command"
+>fe80::1%ne0</B
+>.
+Note that on most systems link-local addresses always have the
+ambiguity, and need to be disambiguated.</P
 ></TD
 ></TR
 ><TR
@@ -739,7 +765,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1296"
+NAME="AEN1257"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -770,7 +796,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1304"
+NAME="AEN1265"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -884,7 +910,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1335"
+NAME="AEN1296"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -903,7 +929,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1340"
+NAME="AEN1301"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -935,7 +961,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1349"
+NAME="AEN1310"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1046,7 +1072,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1373"
+NAME="AEN1334"
 ></A
 ><P
 ></P
@@ -1155,6 +1181,26 @@ VALIGN="MIDDLE"
 ><P
 >specifies what the server logs, and where
 the log messages are sent.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="128"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>masters</B
+></P
+></TD
+><TD
+WIDTH="363"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>defines a named masters list for
+inclusion in stub and slave zone masters clauses.</P
 ></TD
 ></TR
 ><TR
@@ -1274,7 +1320,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1442"
+NAME="AEN1409"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1321,7 +1367,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1455"
+NAME="AEN1422"
 ></A
 ><P
 ></P
@@ -1384,7 +1430,7 @@ WIDTH="384"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Matches the IPv4 addresses of all network
+>Matches the IPv4 and IPv6 addresses of all network
 interfaces on the system.</P
 ></TD
 ></TR
@@ -1404,8 +1450,8 @@ WIDTH="384"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Matches any host on an IPv4 network for which
-the system has an interface.</P
+>Matches any host on an IPv4 or IPv6 network
+for which the system has an interface.</P
 ></TD
 ></TR
 ></TBODY
@@ -1413,33 +1459,13 @@ the system has an interface.</P
 ><P
 ></P
 ></DIV
-><P
->The <B
-CLASS="command"
->localhost</B
-> and <B
-CLASS="command"
->localnets</B
->
-ACLs do not currently support IPv6 (that is,
-<B
-CLASS="command"
->localhost</B
-> does not match the host's IPv6 addresses,
-and <B
-CLASS="command"
->localnets</B
-> does not match the host's attached
-IPv6 networks) due to the lack of a standard method of determining the
-complete set of local IPv6 addresses for a host.
-</P
 ></DIV
 ><DIV
 CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1489"
+NAME="AEN1451"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1761,7 +1787,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1568"
+NAME="AEN1530"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1781,7 +1807,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1573"
+NAME="AEN1535"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1810,7 +1836,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1580"
+NAME="AEN1542"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1844,7 +1870,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1587"
+NAME="AEN1549"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1932,7 +1958,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1607"
+NAME="AEN1569"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -2092,7 +2118,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1647"
+NAME="AEN1609"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -2155,16 +2181,19 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1663"
+NAME="AEN1625"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
 > Phrase</A
 ></H3
 ><P
->All log output goes to one or more <I
+>All log output goes to one or more <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >channels</I
+></SPAN
 >;
 you can make as many of them as you want.</P
 ><P
@@ -2294,7 +2323,76 @@ syslog facility as described in the <B
 CLASS="command"
 >syslog</B
 > man
-page. How <B
+page. Known facilities are <B
+CLASS="command"
+>kern</B
+>, <B
+CLASS="command"
+>user</B
+>,
+<B
+CLASS="command"
+>mail</B
+>, <B
+CLASS="command"
+>daemon</B
+>, <B
+CLASS="command"
+>auth</B
+>,
+<B
+CLASS="command"
+>syslog</B
+>, <B
+CLASS="command"
+>lpr</B
+>, <B
+CLASS="command"
+>news</B
+>,
+<B
+CLASS="command"
+>uucp</B
+>, <B
+CLASS="command"
+>cron</B
+>, <B
+CLASS="command"
+>authpriv</B
+>,
+<B
+CLASS="command"
+>ftp</B
+>, <B
+CLASS="command"
+>local0</B
+>, <B
+CLASS="command"
+>local1</B
+>,
+<B
+CLASS="command"
+>local2</B
+>, <B
+CLASS="command"
+>local3</B
+>, <B
+CLASS="command"
+>local4</B
+>,
+<B
+CLASS="command"
+>local5</B
+>, <B
+CLASS="command"
+>local6</B
+> and
+<B
+CLASS="command"
+>local7</B
+>, however not all facilities are supported on
+all operating systems.
+How <B
 CLASS="command"
 >syslog</B
 > will handle messages sent to
@@ -2597,7 +2695,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1767"
+NAME="AEN1749"
 ></A
 ><P
 ></P
@@ -2879,6 +2977,25 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
+>update-security</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Approval and denial of update requests.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
 >queries</B
 ></P
 ></TD
@@ -2956,6 +3073,31 @@ those servers during resolution.
 </P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>delegation-only</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Delegation only.  Logs queries that have have
+been forced to NXDOMAIN as the result of a delegation-only zone or
+a <B
+CLASS="command"
+>delegation-only</B
+> in a hint or stub zone declartation.
+</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
@@ -2968,7 +3110,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1878"
+NAME="AEN1873"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -3065,7 +3207,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1902"
+NAME="AEN1897"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -3139,8 +3281,87 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1921"
+NAME="AEN1916"
 >6.2.13. <B
+CLASS="command"
+>masters</B
+> Statement Grammar</A
+></H2
+><PRE
+CLASS="programlisting"
+>&#13;<B
+CLASS="command"
+>masters</B
+> <TT
+CLASS="replaceable"
+><I
+>name</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] { ( <TT
+CLASS="replaceable"
+><I
+>masters_list</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] [<SPAN
+CLASS="optional"
+>key <TT
+CLASS="replaceable"
+><I
+>key</I
+></TT
+></SPAN
+>] ) ; [<SPAN
+CLASS="optional"
+>...</SPAN
+>] } ; 
+</PRE
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="AEN1931"
+>6.2.14. <B
+CLASS="command"
+>masters</B
+> Statement Definition and Usage</A
+></H2
+><P
+><B
+CLASS="command"
+>masters</B
+> lists allow for a common set of masters
+to be easily used by multiple stub and slave zones.</P
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="AEN1936"
+>6.2.15. <B
 CLASS="command"
 >options</B
 > Statement Grammar</A
@@ -3172,6 +3393,15 @@ CLASS="optional"
 CLASS="replaceable"
 ><I
 >hostname_string</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> server-id <TT
+CLASS="replaceable"
+><I
+>server_id_string</I
 ></TT
 >; </SPAN
 >]
@@ -3317,6 +3547,15 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> flush-zones-on-shutdown <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > has-old-clients <TT
 CLASS="replaceable"
 ><I
@@ -3450,6 +3689,44 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> dual-stack-servers [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] { ( <TT
+CLASS="replaceable"
+><I
+>domain_name</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] | <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ) ; ... }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > check-names ( <TT
 CLASS="replaceable"
 ><I
@@ -3547,6 +3824,24 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> avoid-v4-udp-ports { <TT
+CLASS="replaceable"
+><I
+>port_list</I
+></TT
+> }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> avoid-v6-udp-ports { <TT
+CLASS="replaceable"
+><I
+>port_list</I
+></TT
+> }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > listen-on [<SPAN
 CLASS="optional"
 > port <TT
@@ -3582,6 +3877,36 @@ CLASS="replaceable"
     [<SPAN
 CLASS="optional"
 > query-source [<SPAN
+CLASS="optional"
+> address ( <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>*</I
+></TT
+> ) </SPAN
+>] [<SPAN
+CLASS="optional"
+> port ( <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>*</I
+></TT
+> ) </SPAN
+>]; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> query-source-v6 [<SPAN
 CLASS="optional"
 > address ( <TT
 CLASS="replaceable"
@@ -3683,6 +4008,15 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> tcp-listen-queue <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > transfer-format <TT
 CLASS="replaceable"
 ><I
@@ -3756,6 +4090,55 @@ CLASS="replaceable"
 ></TT
 ></SPAN
 >] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> alt-transfer-source (<TT
+CLASS="replaceable"
+><I
+>ip4_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> alt-transfer-source-v6 (<TT
+CLASS="replaceable"
+><I
+>ip6_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> use-alt-transfer-source <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+>; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -4126,6 +4509,46 @@ CLASS="replaceable"
 ></TT
 >; </SPAN
 >]
+    [<SPAN
+CLASS="optional"
+> preferred-glue ( <TT
+CLASS="replaceable"
+><I
+>A</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>AAAA</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>NONE</I
+></TT
+> ); </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> edns-udp-size <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> root-delegation-only [<SPAN
+CLASS="optional"
+> exclude { <TT
+CLASS="replaceable"
+><I
+>namelist</I
+></TT
+> } </SPAN
+>] ; </SPAN
+>]
 };
 </PRE
 ></DIV
@@ -4135,7 +4558,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="options"
->6.2.14. <B
+>6.2.16. <B
 CLASS="command"
 >options</B
 > Statement Definition and Usage</A
@@ -4200,9 +4623,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete.</I
+></SPAN
 >
 It was used in <SPAN
 CLASS="acronym"
@@ -4352,7 +4778,7 @@ CLASS="filename"
 server's current directory.  The format of the file is described
 in <A
 HREF="Bv9ARM.ch06.html#statsfile"
->Section 6.2.14.16</A
+>Section 6.2.16.17</A
 ></P
 ></DD
 ><DT
@@ -4393,6 +4819,38 @@ CLASS="command"
 the initial configuration load at server startup time and
 is ignored on subsequent reloads.</P
 ></DD
+><DT
+><B
+CLASS="command"
+>preferred-glue</B
+></DT
+><DD
+><P
+>&#13;If specified the listed type (A or AAAA) will be emitted before other glue
+in the additional section of a query response.
+The default is not to preference any type (NONE).
+</P
+></DD
+><DT
+><B
+CLASS="command"
+>root-delegation-only</B
+></DT
+><DD
+><P
+>&#13;Turn on enforcment of delegation-only in TLDs and root zones with an optional
+exclude list.
+</P
+><P
+>&#13;Note some TLDs are NOT delegation only (e.g. "DE", "LV", "US" and "MUSEUM").
+</P
+><PRE
+CLASS="programlisting"
+>&#13;options {
+	root-delegation-only exclude { "de"; "lv"; "us"; "museum"; };
+};
+</PRE
+></DD
 ></DL
 ></DIV
 ><DIV
@@ -4401,7 +4859,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="boolean_options"
->6.2.14.1. Boolean Options</A
+>6.2.16.1. Boolean Options</A
 ></H3
 ><P
 ></P
@@ -4516,7 +4974,7 @@ CLASS="command"
 >notify</B
 > and <B
 CLASS="command"
->notify-also</B
+>also-notify</B
 >.</P
 ><P
 >If the
@@ -4562,7 +5020,7 @@ processing.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2280"
+NAME="AEN2354"
 ></A
 ><P
 ></P
@@ -4851,6 +5309,26 @@ and BIND 9 never does it.</P
 ><DT
 ><B
 CLASS="command"
+>flush-zones-on-shutdown</B
+></DT
+><DD
+><P
+>When the nameserver exits due receiving SIGTERM,
+flush / do not flush any pending zone writes.  The default is
+<B
+CLASS="command"
+>flush-zones-on-shutdown</B
+> <TT
+CLASS="userinput"
+><B
+>no</B
+></TT
+>.
+</P
+></DD
+><DT
+><B
+CLASS="command"
 >has-old-clients</B
 ></DT
 ><DD
@@ -4913,9 +5391,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
  It was used in <SPAN
 CLASS="acronym"
@@ -5116,9 +5597,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
 <SPAN
 CLASS="acronym"
@@ -5157,7 +5641,7 @@ CLASS="command"
 >statistics-file</B
 >.  See also <A
 HREF="Bv9ARM.ch06.html#statsfile"
->Section 6.2.14.16</A
+>Section 6.2.16.17</A
 >.
 </P
 ></DD
@@ -5168,9 +5652,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
 If you need to disable IXFR to a particular server or servers see
 the information on the <B
@@ -5179,7 +5666,7 @@ CLASS="command"
 > option
 in <A
 HREF="Bv9ARM.ch06.html#server_statement_definition_and_usage"
->Section 6.2.16</A
+>Section 6.2.18</A
 >. See also
 <A
 HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
@@ -5201,7 +5688,7 @@ CLASS="command"
 > in
 <A
 HREF="Bv9ARM.ch06.html#server_statement_definition_and_usage"
->Section 6.2.16</A
+>Section 6.2.18</A
 >
 </P
 ></DD
@@ -5219,7 +5706,7 @@ CLASS="command"
 > in
 <A
 HREF="Bv9ARM.ch06.html#server_statement_definition_and_usage"
->Section 6.2.16</A
+>Section 6.2.18</A
 >
 </P
 ></DD
@@ -5295,7 +5782,7 @@ and the record found is "<TT
 CLASS="literal"
 >MX 10 mail.example.net</TT
 >", normally the address
-records (A, A6, and AAAA) for <TT
+records (A and AAAA) for <TT
 CLASS="literal"
 >mail.example.net</TT
 > will be provided as well,
@@ -5394,6 +5881,24 @@ temporarily allocate memory to hold this complete
 difference set.
 </P
 ></DD
+><DT
+><B
+CLASS="command"
+>multi-master</B
+></DT
+><DD
+><P
+>&#13;This should be set when you have multiple masters for a zone and the
+addresses refer to different machines.  If 'yes' named will not log
+when the serial number on the master is less than what named currently
+has.  The default is <TT
+CLASS="userinput"
+><B
+>no</B
+></TT
+>.
+</P
+></DD
 ></DL
 ></DIV
 ></DIV
@@ -5402,8 +5907,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2532"
->6.2.14.2. Forwarding</A
+NAME="AEN2619"
+>6.2.16.2. Forwarding</A
 ></H3
 ><P
 >The forwarding facility can be used to create a large site-wide
@@ -5462,7 +5967,7 @@ CLASS="command"
 > behavior,
 or not forward at all, see <A
 HREF="Bv9ARM.ch06.html#zone_statement_grammar"
->Section 6.2.21</A
+>Section 6.2.23</A
 >.</P
 ></DIV
 ><DIV
@@ -5470,8 +5975,48 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
+NAME="AEN2638"
+>6.2.16.3. 6 to 4 Servers</A
+></H3
+><P
+>6 to 4 servers are used as servers of last resort to work around
+problems in reachability due the lack of support for either IPv4 or IPv6
+on the host machine.</P
+><P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+><B
+CLASS="command"
+>dual-stack-servers</B
+></DT
+><DD
+><P
+>Specifies host names / addresses of machines with access to
+both IPv4 and IPv6 transports. If a hostname is used the server must be able
+to resolve the name using only the transport it has.  If the machine is dual
+stacked then the <B
+CLASS="command"
+>dual-stack-servers</B
+> have no effect unless
+access to a transport has been disabled on the command line
+(e.g. <B
+CLASS="command"
+>named -4</B
+>).</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
 NAME="access_control"
->6.2.14.3. Access Control</A
+>6.2.16.4. Access Control</A
 ></H3
 ><P
 >Access to the server can be restricted based on the IP address
@@ -5599,12 +6144,11 @@ CLASS="command"
 ></DT
 ><DD
 ><P
->Specifies which hosts are to receive
-synthetic responses to IPv6 queries as described in
-<A
-HREF="Bv9ARM.ch06.html#synthesis"
->Section 6.2.14.13</A
->.
+>This option was introduced for the smooth transition from AAAA
+to A6 and from "nibble labels" to binary labels.
+However, since both A6 and binary labels were then deprecated,
+this option was also deprecated.
+It is now ignored with some warning messages.
 </P
 ></DD
 ><DT
@@ -5627,7 +6171,7 @@ case it overrides the <B
 CLASS="command"
 >options allow-transfer</B
 > statement.
-If not specified, the default is to allow transfers from all hosts.</P
+If not specified, the default is to allow transfers to all hosts.</P
 ></DD
 ><DT
 ><B
@@ -5653,8 +6197,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2608"
->6.2.14.4. Interfaces</A
+NAME="AEN2705"
+>6.2.16.5. Interfaces</A
 ></H3
 ><P
 >The interfaces and ports that the server will answer queries
@@ -5693,43 +6237,27 @@ CLASS="command"
 > is specified, the
 server will listen on port 53 on all interfaces.</P
 ><P
->The <B
-CLASS="command"
->listen-on-v6</B
-> option is used to
-specify the ports on which the server will listen for incoming
-queries sent using IPv6.</P
-><P
->The server does not bind a separate socket to each IPv6
-interface address as it does for IPv4. Instead, it always
-listens on the IPv6 wildcard address. Therefore, the only
-values allowed for the <TT
-CLASS="varname"
->address_match_list</TT
->
-argument to the <B
-CLASS="command"
->listen-on-v6</B
-> statement are
-<PRE
-CLASS="programlisting"
->{ any; }</PRE
-> and
-<PRE
-CLASS="programlisting"
->{ none;}</PRE
-></P
+>By default, the server does not bind a separate socket to each
+IPv6 interface address as it does for IPv4. Instead, it listens on the 
+IPv6 wildcard address.
+Alternatively, a list of IPv6 addresses can be specified, in which case
+the server listens on a separate socket for each specified address.</P
 ><P
 >Multiple <B
 CLASS="command"
 >listen-on-v6</B
-> options can be
-used to listen on multiple ports:</P
+> options can be used.
+For example,</P
 ><PRE
 CLASS="programlisting"
->listen-on-v6 port 53 { any; };
-listen-on-v6 port 1234 { any; };
+>listen-on-v6 { any; };
+listen-on-v6 port 1234 { !3ffe::/16; any; };
 </PRE
+><P
+>will enable the name server on port 53 for any IPv6 addresses
+(with a single wildcard socket),
+and on port 1234 of IPv6 addresses that is not in the prefix
+3ffe::/16 (with separate sockets for each matched address.)</P
 ><P
 >To make the server not listen on any IPv6 address, use</P
 ><PRE
@@ -5748,8 +6276,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2634"
->6.2.14.5. Query Address</A
+NAME="AEN2726"
+>6.2.16.6. Query Address</A
 ></H3
 ><P
 >If the server doesn't know the answer to a question, it will
@@ -5780,11 +6308,19 @@ CLASS="command"
 CLASS="command"
 >*</B
 > or is omitted,
-a random unprivileged port will be used. The defaults are</P
+a random unprivileged port will be used, <B
+CLASS="command"
+>avoid-v4-udp-ports</B
+>
+and <B
+CLASS="command"
+>avoid-v6-udp-ports</B
+> can be used to prevent named
+from selecting certian ports. The defaults are</P
 ><PRE
 CLASS="programlisting"
 >query-source address * port *;
-query-source-v6 address * port *
+query-source-v6 address * port *;
 </PRE
 ><DIV
 CLASS="note"
@@ -5809,7 +6345,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="zone_transfers"
->6.2.14.6. Zone Transfers</A
+>6.2.16.7. Zone Transfers</A
 ></H3
 ><P
 ><SPAN
@@ -6124,6 +6660,57 @@ except zone transfers are performed using IPv6.</P
 ><DT
 ><B
 CLASS="command"
+>alt-transfer-source</B
+></DT
+><DD
+><P
+>An alternate transfer source if the one listed in
+<B
+CLASS="command"
+>transfer-source</B
+> fails and
+<B
+CLASS="command"
+>use-alt-transfer-source</B
+> is set.</P
+></DD
+><DT
+><B
+CLASS="command"
+>alt-transfer-source-v6</B
+></DT
+><DD
+><P
+>An alternate transfer source if the one listed in
+<B
+CLASS="command"
+>transfer-source-v6</B
+> fails and
+<B
+CLASS="command"
+>use-alt-transfer-source</B
+> is set.</P
+></DD
+><DT
+><B
+CLASS="command"
+>use-alt-transfer-source</B
+></DT
+><DD
+><P
+>Use the alternate transfer sources or not.  If views are
+specified this defaults to <B
+CLASS="command"
+>no</B
+> otherwise it defaults to
+<B
+CLASS="command"
+>yes</B
+> (for BIND 8 compatibility).</P
+></DD
+><DT
+><B
+CLASS="command"
 >notify-source</B
 ></DT
 ><DD
@@ -6180,8 +6767,31 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2773"
->6.2.14.7. Operating System Resource Limits</A
+NAME="AEN2888"
+>6.2.16.8. Bad UDP Port Lists</A
+></H3
+><P
+>&#13;<B
+CLASS="command"
+>avoid-v4-udp-ports</B
+> and <B
+CLASS="command"
+>avoid-v6-udp-ports</B
+>
+specify a list of IPv4 and IPv6 UDP ports that will not be used as system
+assigned source ports for UDP sockets.  These lists are expected to be
+used to prevent named using "well known" ports in the system assigned range
+that have become unusable due to wide spread use of acls containing these
+ports.
+</P
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="AEN2893"
+>6.2.16.9. Operating System Resource Limits</A
 ></H3
 ><P
 >The server's usage of many system resources can be limited.
@@ -6300,8 +6910,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2810"
->6.2.14.8. Server  Resource Limits</A
+NAME="AEN2930"
+>6.2.16.10. Server  Resource Limits</A
 ></H3
 ><P
 >The following options set limits on the server's
@@ -6401,6 +7011,20 @@ CLASS="literal"
 records are purged from the cache only when their TTLs expire.
 </P
 ></DD
+><DT
+><B
+CLASS="command"
+>tcp-listen-queue</B
+></DT
+><DD
+><P
+>The listen queue depth.  The default and minimum is 3.
+If the kernel supports the accept filter "dataready" this also controls how
+many TCP connections that will be queued in kernel space waiting for
+some data before being passed to accept.  Values less than 3 will be
+silently raised.
+</P
+></DD
 ></DL
 ></DIV
 ></DIV
@@ -6409,8 +7033,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2846"
->6.2.14.9. Periodic Task Intervals</A
+NAME="AEN2971"
+>6.2.16.11. Periodic Task Intervals</A
 ></H3
 ><P
 ></P
@@ -6508,7 +7132,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="topology"
->6.2.14.10. Topology</A
+>6.2.16.12. Topology</A
 ></H3
 ><P
 >All other things being equal, when the server chooses a name server
@@ -6572,7 +7196,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="the_sortlist_statement"
->6.2.14.11. The <B
+>6.2.16.13. The <B
 CLASS="command"
 >sortlist</B
 > Statement</A
@@ -6588,7 +7212,7 @@ CLASS="command"
 >
 statement in <A
 HREF="Bv9ARM.ch06.html#rrset_ordering"
->Section 6.2.14.12</A
+>Section 6.2.16.14</A
 >).
 The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
@@ -6611,7 +7235,7 @@ CLASS="command"
 > statement
 does (<A
 HREF="Bv9ARM.ch06.html#topology"
->Section 6.2.14.10</A
+>Section 6.2.16.12</A
 >).
 Each top level statement in the <B
 CLASS="command"
@@ -6701,7 +7325,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="rrset_ordering"
->6.2.14.12. RRset Ordering</A
+>6.2.16.14. RRset Ordering</A
 ></H3
 ><P
 >When multiple records are returned in an answer it may be
@@ -6717,7 +7341,7 @@ CLASS="command"
 > statement,
 <A
 HREF="Bv9ARM.ch06.html#the_sortlist_statement"
->Section 6.2.14.11</A
+>Section 6.2.16.13</A
 >.
 </P
 ><P
@@ -6780,7 +7404,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2934"
+NAME="AEN3059"
 ></A
 ><P
 ></P
@@ -6886,100 +7510,12 @@ CLASS="note"
 CLASS="command"
 >rrset-order</B
 > statement
-is not yet implemented in <SPAN
+is not yet fully implemented in <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > 9.
-BIND 9 currently supports only a "random-cyclic" ordering,
-where the server randomly chooses a starting point within
-the RRset and returns the records in order starting at
-that point, wrapping around the end of the RRset if 
-necessary.</P
-></BLOCKQUOTE
-></DIV
-></DIV
-><DIV
-CLASS="sect3"
-><H3
-CLASS="sect3"
-><A
-NAME="synthesis"
->6.2.14.13. Synthetic IPv6 responses</A
-></H3
-><P
->Many existing stub resolvers support IPv6 DNS lookups as defined in
-RFC1886, using AAAA records for forward lookups and "nibble labels" in
-the <TT
-CLASS="literal"
->ip6.int</TT
-> domain for reverse lookups, but do not support
-RFC2874-style lookups (using A6 records and binary labels in the
-<TT
-CLASS="literal"
->ip6.arpa</TT
-> domain).</P
-><P
->For those who wish to continue to use such stub resolvers rather than
-switching to the BIND 9 lightweight resolver, BIND 9 provides a way
-to automatically convert RFC1886-style lookups into
-RFC2874-style lookups and return the results as "synthetic" AAAA and
-PTR records.</P
-><P
->This feature is disabled by default and can be enabled on a per-client
-basis by adding a
-<B
-CLASS="command"
->allow-v6-synthesis { <TT
-CLASS="replaceable"
-><I
->address_match_list</I
-></TT
-> }</B
->
-clause to the <B
-CLASS="command"
->options</B
-> or <B
-CLASS="command"
->view</B
-> statement.
- When it is enabled, recursive
-AAAA queries cause the server to first try an A6 lookup and if that
-fails, an AAAA lookups.  No matter which one succeeds, the results are
-returned as a set of synthetic AAAA records.  Similarly, recursive PTR
-queries in <TT
-CLASS="literal"
->ip6.int</TT
-> will cause a
-lookup in <TT
-CLASS="literal"
->ip6.arpa</TT
-> using binary
-labels, and if that fails, another lookup in <TT
-CLASS="literal"
->ip6.int</TT
->.
-The results are returned as a synthetic PTR record in
-<TT
-CLASS="literal"
->ip6.int</TT
->.</P
-><P
->The synthetic records have a TTL of zero.  DNSSEC validation of
-synthetic responses is not currently supported; therefore responses
-containing synthetic RRs will not have the AD flag set.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
-><B
-CLASS="command"
->allow-v6-synthesis</B
-> is only performed for
-clients that are supplied recursive service.</P
+BIND 9 currently does not support "fixed" ordering.
+</P
 ></BLOCKQUOTE
 ></DIV
 ></DIV
@@ -6989,7 +7525,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="tuning"
->6.2.14.14. Tuning</A
+>6.2.16.15. Tuning</A
 ></H3
 ><P
 ></P
@@ -7005,9 +7541,12 @@ CLASS="command"
 ><P
 >Sets the number of seconds to cache a
 lame server indication. 0 disables caching. (This is
-<I
+<SPAN
+CLASS="bold"
+><B
 CLASS="emphasis"
->NOT</I
+>NOT</B
+></SPAN
 > recommended.)
 Default is <TT
 CLASS="literal"
@@ -7134,8 +7673,26 @@ control over their contents.
 ><P
 >&#13;These options allow the administrator to set a minimum and maximum
 refresh and retry time either per-zone, per-view, or globally.
-These options are valid for master, slave and stub zones,
+These options are valid for slave and stub zones,
 and clamp the SOA refresh and retry times to the specified values.
+</P
+></DD
+><DT
+><B
+CLASS="command"
+>edns-udp-size</B
+></DT
+><DD
+><P
+>&#13;<B
+CLASS="command"
+>edns-udp-size</B
+> sets the advertised EDNS UDP buffer
+size.  Valid values are 512 to 4096 (values outside this range will be
+silently adjusted).  The default value is 4096.  The usual reason for
+setting edns-udp-size to a non default value it to get UDP answers to
+pass through broken firewalls that block fragmented packets and/or
+block UDP packets that are greater than 512 bytes.
 </P
 ></DD
 ></DL
@@ -7147,7 +7704,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="builtin"
->6.2.14.15. Built-in server information zones</A
+>6.2.16.16. Built-in server information zones</A
 ></H3
 ><P
 >The server provides some helpful diagnostic information
@@ -7162,7 +7719,7 @@ CLASS="command"
 > class.  These zones are part of a
 built-in view (see <A
 HREF="Bv9ARM.ch06.html#view_statement_grammar"
->Section 6.2.19</A
+>Section 6.2.21</A
 >) of class
 <B
 CLASS="command"
@@ -7241,9 +7798,49 @@ found by gethostname().  The primary purpose of such queries is to
 identify which of a group of anycast servers is actually
 answering your queries.  Specifying <B
 CLASS="command"
->hostname none</B
+>hostname none;</B
 >
 disables processing of the queries.</P
+></DD
+><DT
+><B
+CLASS="command"
+>server-id</B
+></DT
+><DD
+><P
+>The ID of the server should report via a query of
+the name <TT
+CLASS="filename"
+>ID.SERVER</TT
+>
+with type <B
+CLASS="command"
+>TXT</B
+>, class <B
+CLASS="command"
+>CHAOS</B
+>.
+The primary purpose of such queries is to
+identify which of a group of anycast servers is actually
+answering your queries.  Specifying <B
+CLASS="command"
+>server-id none;</B
+>
+disables processing of the queries.
+Specifying <B
+CLASS="command"
+>server-id hostname;</B
+> will cause named to
+use the hostname as found by gethostname().
+The default <B
+CLASS="command"
+>server-id</B
+> is <B
+CLASS="command"
+>none</B
+>.
+</P
 ></DD
 ></DL
 ></DIV
@@ -7254,7 +7851,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="statsfile"
->6.2.14.16. The Statistics File</A
+>6.2.16.17. The Statistics File</A
 ></H3
 ><P
 >The statistics file generated by <SPAN
@@ -7289,7 +7886,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3079"
+NAME="AEN3203"
 ></A
 ><P
 ></P
@@ -7461,7 +8058,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="server_statement_grammar"
->6.2.15. <B
+>6.2.17. <B
 CLASS="command"
 >server</B
 > Statement Grammar</A
@@ -7543,6 +8140,46 @@ CLASS="optional"
 ></TT
 > ; </SPAN
 >]
+    [<SPAN
+CLASS="optional"
+> transfer-source (<TT
+CLASS="replaceable"
+><I
+>ip4_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> transfer-source-v6 (<TT
+CLASS="replaceable"
+><I
+>ip6_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
 };
 </PRE
 ></DIV
@@ -7552,7 +8189,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="server_statement_definition_and_usage"
->6.2.16. <B
+>6.2.18. <B
 CLASS="command"
 >server</B
 > Statement Definition and Usage</A
@@ -7744,14 +8381,47 @@ CLASS="command"
 > clause
 allows for multiple keys, only a single key per server is currently
 supported.</P
+><P
+>The <B
+CLASS="command"
+>transfer-source</B
+> and
+<B
+CLASS="command"
+>transfer-source-v6</B
+> clauses specify the IPv4 and IPv6 source
+address to be used for zone transfer with the remote server, respectively.
+For an IPv4 remote server, only <B
+CLASS="command"
+>transfer-source</B
+> can
+be specified.
+Similarly, for an IPv6 remote server, only
+<B
+CLASS="command"
+>transfer-source-v6</B
+> can be specified.
+Form more details, see the description of
+<B
+CLASS="command"
+>transfer-source</B
+> and
+<B
+CLASS="command"
+>transfer-source-v6</B
+> in
+<A
+HREF="Bv9ARM.ch06.html#zone_transfers"
+>Section 6.2.16.7</A
+>.</P
 ></DIV
 ><DIV
 CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3200"
->6.2.17. <B
+NAME="AEN3342"
+>6.2.19. <B
 CLASS="command"
 >trusted-keys</B
 > Statement Grammar</A
@@ -7825,8 +8495,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3216"
->6.2.18. <B
+NAME="AEN3358"
+>6.2.20. <B
 CLASS="command"
 >trusted-keys</B
 > Statement Definition
@@ -7861,7 +8531,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="view_statement_grammar"
->6.2.19. <B
+>6.2.21. <B
 CLASS="command"
 >view</B
 > Statement Grammar</A
@@ -7895,12 +8565,12 @@ CLASS="replaceable"
 >address_match_list</I
 ></TT
 > } ;
-      match-recursive-only { <TT
+      match-recursive-only <TT
 CLASS="replaceable"
 ><I
 >yes_or_no</I
 ></TT
-> } ;
+> ;
       [<SPAN
 CLASS="optional"
 > <TT
@@ -7927,8 +8597,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3238"
->6.2.20. <B
+NAME="AEN3380"
+>6.2.22. <B
 CLASS="command"
 >view</B
 > Statement Definition and Usage</A
@@ -8112,7 +8782,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="zone_statement_grammar"
->6.2.21. <B
+>6.2.23. <B
 CLASS="command"
 >zone</B
 >
@@ -8136,7 +8806,7 @@ CLASS="replaceable"
 >] [<SPAN
 CLASS="optional"
 >{ 
-    type ( master | slave | hint | stub | forward ) ;
+    type ( master | slave | hint | stub | forward | delegation-only ) ;
     [<SPAN
 CLASS="optional"
 > allow-notify { <TT
@@ -8251,6 +8921,15 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> delegation-only <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > file <TT
 CLASS="replaceable"
 ><I
@@ -8338,7 +9017,12 @@ CLASS="replaceable"
 >ip_port</I
 ></TT
 ></SPAN
->] { <TT
+>] { ( <TT
+CLASS="replaceable"
+><I
+>masters_list</I
+></TT
+> | <TT
 CLASS="replaceable"
 ><I
 >ip_addr</I
@@ -8359,7 +9043,7 @@ CLASS="replaceable"
 >key</I
 ></TT
 ></SPAN
->]; [<SPAN
+>] ) ; [<SPAN
 CLASS="optional"
 >...</SPAN
 >] } ; </SPAN
@@ -8489,6 +9173,55 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> alt-transfer-source (<TT
+CLASS="replaceable"
+><I
+>ip4_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> alt-transfer-source-v6 (<TT
+CLASS="replaceable"
+><I
+>ip6_addr</I
+></TT
+> | <TT
+CLASS="constant"
+>*</TT
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> use-alt-transfer-source <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > notify-source (<TT
 CLASS="replaceable"
 ><I
@@ -8592,6 +9325,15 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> multi-master <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > key-directory <TT
 CLASS="replaceable"
 ><I
@@ -8609,8 +9351,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3395"
->6.2.22. <B
+NAME="AEN3554"
+>6.2.24. <B
 CLASS="command"
 >zone</B
 > Statement Definition and Usage</A
@@ -8620,13 +9362,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3398"
->6.2.22.1. Zone Types</A
+NAME="AEN3557"
+>6.2.24.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3400"
+NAME="AEN3559"
 ></A
 ><P
 ></P
@@ -8678,6 +9420,7 @@ CLASS="command"
 >masters</B
 > list specifies one or more IP addresses
 of master servers that the slave contacts to update its copy of the zone.
+Masters list elements can also be names of other masters lists.
 By default, transfers are made from port 53 on the servers; this can
 be changed for all servers by specifying a port number before the
 list of IP addresses, or on a per-server basis after the IP address.
@@ -8854,6 +9597,36 @@ IN, the server uses a compiled-in default set of root servers hints.
 Classes other than IN have no built-in defaults hints.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="87"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="varname"
+>delegation-only</TT
+></P
+></TD
+><TD
+WIDTH="405"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>This is used to enforce the delegation only
+status of infrastructure zones (e.g. COM, NET, ORG).  Any answer that
+is received without a explicit or implict delegation in the authority
+section will be treated as NXDOMAIN.  This does not apply to the zone
+apex.  This SHOULD NOT be applied to leaf zones.</P
+>
+<P
+><TT
+CLASS="varname"
+>delegation-only</TT
+> has no effect on answers received
+from forwarders.</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
@@ -8865,8 +9638,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3455"
->6.2.22.2. Class</A
+NAME="AEN3622"
+>6.2.24.2. Class</A
 ></H3
 ><P
 >The zone's name may optionally be followed by a class. If
@@ -8903,8 +9676,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3465"
->6.2.22.3. Zone Options</A
+NAME="AEN3632"
+>6.2.24.3. Zone Options</A
 ></H3
 ><P
 ></P
@@ -8924,7 +9697,7 @@ CLASS="command"
 >allow-notify</B
 > in <A
 HREF="Bv9ARM.ch06.html#access_control"
->Section 6.2.14.3</A
+>Section 6.2.16.4</A
 ></P
 ></DD
 ><DT
@@ -8940,7 +9713,7 @@ CLASS="command"
 >allow-query</B
 > in <A
 HREF="Bv9ARM.ch06.html#access_control"
->Section 6.2.14.3</A
+>Section 6.2.16.4</A
 ></P
 ></DD
 ><DT
@@ -8956,7 +9729,7 @@ CLASS="command"
 >
 in <A
 HREF="Bv9ARM.ch06.html#access_control"
->Section 6.2.14.3</A
+>Section 6.2.16.4</A
 >.</P
 ></DD
 ><DT
@@ -8986,7 +9759,7 @@ CLASS="command"
 >Specifies a "Simple Secure Update" policy. See
 <A
 HREF="Bv9ARM.ch06.html#dynamic_update_policies"
->Section 6.2.22.4</A
+>Section 6.2.24.4</A
 >.</P
 ></DD
 ><DT
@@ -9002,7 +9775,7 @@ CLASS="command"
 >
 in <A
 HREF="Bv9ARM.ch06.html#access_control"
->Section 6.2.14.3</A
+>Section 6.2.16.4</A
 >.</P
 ></DD
 ><DT
@@ -9096,8 +9869,25 @@ CLASS="command"
 >dialup</B
 > in <A
 HREF="Bv9ARM.ch06.html#boolean_options"
->Section 6.2.14.1</A
+>Section 6.2.16.1</A
 >.</P
+></DD
+><DT
+><B
+CLASS="command"
+>delegation-only</B
+></DT
+><DD
+><P
+>The flag only applies to hint and stub zones.  If set
+to <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+> then the zone will also be treated as if it
+is also a delegation-only type zone.
+</P
 ></DD
 ><DT
 ><B
@@ -9182,7 +9972,7 @@ CLASS="command"
 >max-transfer-time-in</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
 >.</P
 ></DD
 ><DT
@@ -9198,7 +9988,7 @@ CLASS="command"
 >max-transfer-idle-in</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
 >.</P
 ></DD
 ><DT
@@ -9214,7 +10004,7 @@ CLASS="command"
 >max-transfer-time-out</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
 >.</P
 ></DD
 ><DT
@@ -9230,7 +10020,7 @@ CLASS="command"
 >max-transfer-idle-out</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
 >.</P
 ></DD
 ><DT
@@ -9246,7 +10036,7 @@ CLASS="command"
 >notify</B
 > in <A
 HREF="Bv9ARM.ch06.html#boolean_options"
->Section 6.2.14.1</A
+>Section 6.2.16.1</A
 >.</P
 ></DD
 ><DT
@@ -9299,7 +10089,7 @@ CLASS="command"
 >sig-validity-interval</B
 > in <A
 HREF="Bv9ARM.ch06.html#tuning"
->Section 6.2.14.14</A
+>Section 6.2.16.15</A
 >.</P
 ></DD
 ><DT
@@ -9315,7 +10105,7 @@ CLASS="command"
 >transfer-source</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
 >
 </P
 ></DD
@@ -9332,7 +10122,58 @@ CLASS="command"
 >transfer-source-v6</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
+>
+</P
+></DD
+><DT
+><B
+CLASS="command"
+>alt-transfer-source</B
+></DT
+><DD
+><P
+>See the description of
+<B
+CLASS="command"
+>alt-transfer-source</B
+> in <A
+HREF="Bv9ARM.ch06.html#zone_transfers"
+>Section 6.2.16.7</A
+>
+</P
+></DD
+><DT
+><B
+CLASS="command"
+>alt-transfer-source-v6</B
+></DT
+><DD
+><P
+>See the description of
+<B
+CLASS="command"
+>alt-transfer-source-v6</B
+> in <A
+HREF="Bv9ARM.ch06.html#zone_transfers"
+>Section 6.2.16.7</A
+>
+</P
+></DD
+><DT
+><B
+CLASS="command"
+>use-alt-transfer-source</B
+></DT
+><DD
+><P
+>See the description of
+<B
+CLASS="command"
+>use-alt-transfer-source</B
+> in <A
+HREF="Bv9ARM.ch06.html#zone_transfers"
+>Section 6.2.16.7</A
 >
 </P
 ></DD
@@ -9349,7 +10190,7 @@ CLASS="command"
 >notify-source</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
 >
 </P
 ></DD
@@ -9366,7 +10207,7 @@ CLASS="command"
 >notify-source-v6</B
 > in <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.6</A
+>Section 6.2.16.7</A
 >.
 </P
 ></DD
@@ -9388,7 +10229,7 @@ CLASS="command"
 ><P
 >&#13;See the description in <A
 HREF="Bv9ARM.ch06.html#tuning"
->Section 6.2.14.14</A
+>Section 6.2.16.15</A
 >.
 </P
 ></DD
@@ -9405,7 +10246,7 @@ CLASS="command"
 >ixfr-from-differences</B
 > in <A
 HREF="Bv9ARM.ch06.html#boolean_options"
->Section 6.2.14.1</A
+>Section 6.2.16.1</A
 >.</P
 ></DD
 ><DT
@@ -9421,8 +10262,24 @@ CLASS="command"
 >key-directory</B
 > in <A
 HREF="Bv9ARM.ch06.html#options"
->Section 6.2.14</A
+>Section 6.2.16</A
 ></P
+></DD
+><DT
+><B
+CLASS="command"
+>multi-master</B
+></DT
+><DD
+><P
+>See the description of
+<B
+CLASS="command"
+>multi-master</B
+> in <A
+HREF="Bv9ARM.ch06.html#boolean_options"
+>Section 6.2.16.1</A
+>.</P
 ></DD
 ></DL
 ></DIV
@@ -9433,7 +10290,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="dynamic_update_policies"
->6.2.22.4. Dynamic Update Policies</A
+>6.2.24.4. Dynamic Update Policies</A
 ></H3
 ><P
 ><SPAN
@@ -9577,7 +10434,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3714"
+NAME="AEN3915"
 ></A
 ><P
 ></P
@@ -9744,7 +10601,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3755"
+NAME="AEN3956"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9765,7 +10622,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3760"
+NAME="AEN3961"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9778,17 +10635,17 @@ NAME="AEN3760"
         permitted for optimization purposes, for example, to specify
         that a particular nearby server be tried first. See <A
 HREF="Bv9ARM.ch06.html#the_sortlist_statement"
->Section 6.2.14.11</A
+>Section 6.2.16.13</A
 > and <A
 HREF="Bv9ARM.ch06.html#rrset_ordering"
->Section 6.2.14.12</A
+>Section 6.2.16.14</A
 >.</P
 ><P
 >The components of a Resource Record are:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3766"
+NAME="AEN3967"
 ></A
 ><P
 ></P
@@ -9889,14 +10746,17 @@ data is type (and sometimes class) specific.</P
 ></P
 ></DIV
 ><P
->The following are <I
+>The following are <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >types</I
+></SPAN
 > of valid RRs:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3798"
+NAME="AEN3999"
 ></A
 ><P
 ></P
@@ -9919,25 +10779,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >a host address.  In the IN class, this is a
-32-bit IP address.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="84"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->A6</P
-></TD
-><TD
-WIDTH="348"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->an IPv6 address.  This can be a partial
-address (a suffix) and an indirection to the name where the rest of the
-address (the prefix) can be found.</P
+32-bit IP address.  Described in RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -9953,7 +10795,25 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->obsolete format of IPv6 address</P
+>IPv6 address.  Described in RFC 1886.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>A6</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>IPv6 address.  This can be a partial
+address (a suffix) and an indirection to the name where the rest of the
+address (the prefix) can be found.  Experimental.  Described in RFC 2874.</P
 ></TD
 ></TR
 ><TR
@@ -9970,7 +10830,24 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >location of AFS database servers.
-Experimental.</P
+Experimental.  Described in RFC 1183.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>APL</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>address prefix list.  Experimental.
+Described in RFC 3123.</P
 ></TD
 ></TR
 ><TR
@@ -9986,7 +10863,8 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->holds a digital certificate.</P
+>holds a digital certificate.
+Described in RFC 2538.</P
 ></TD
 ></TR
 ><TR
@@ -10002,7 +10880,8 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->identifies the canonical name of an alias.</P
+>identifies the canonical name of an alias.
+Described in RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -10021,8 +10900,8 @@ VALIGN="MIDDLE"
 >Replaces the domain name specified with
 another name to be looked up, effectively aliasing an entire
 subtree of the domain name space rather than a single record
-as in the case of the CNAME RR.  Used for delegation 
-of IPv6 reverse mappings. Described in RFC 2672.</P
+as in the case of the CNAME RR.
+Described in RFC 2672.</P
 ></TD
 ></TR
 ><TR
@@ -10038,7 +10917,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Specifies the global position. Superseded by LOC.</P
+>Specifies the global position.  Superseded by LOC.</P
 ></TD
 ></TR
 ><TR
@@ -10054,7 +10933,8 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->identifies the CPU and OS used by a host.</P
+>identifies the CPU and OS used by a host.
+Described in RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -10071,7 +10951,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >representation of ISDN addresses.
-Experimental.</P
+Experimental.  Described in RFC 1183.</P
 ></TD
 ></TR
 ><TR
@@ -10088,7 +10968,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >stores a public key associated with a
-DNS name.</P
+DNS name.  Described in RFC 2535.</P
 ></TD
 ></TR
 ><TR
@@ -10105,7 +10985,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >identifies a key exchanger for this
-DNS name.</P
+DNS name.  Described in RFC 2230.</P
 ></TD
 ></TR
 ><TR
@@ -10121,7 +11001,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->for storing GPS info. See RFC 1876.
+>for storing GPS info.  Described in RFC 1876.
 Experimental.</P
 ></TD
 ></TR
@@ -10141,7 +11021,7 @@ VALIGN="MIDDLE"
 >identifies a mail exchange for the domain.
 a 16 bit preference value (lower is better)
 followed by the host name of the mail exchange.
- See RFC 974 for details.</P
+Described in RFC 974, RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -10157,7 +11037,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->name authority pointer.</P
+>name authority pointer.  Described in RFC 2915.</P
 ></TD
 ></TR
 ><TR
@@ -10173,7 +11053,8 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->a network service access point.</P
+>a network service access point.
+Described in RFC 1706.</P
 ></TD
 ></TR
 ><TR
@@ -10190,7 +11071,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >the authoritative name server for the
-domain.</P
+domain.  Described in RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -10209,7 +11090,7 @@ VALIGN="MIDDLE"
 >used in DNSSEC to securely indicate that
 RRs with an owner name in a certain name interval do not exist in
 a zone and indicate what RR types are present for an existing name.
-See RFC 2535 for details.</P
+Described in RFC 2535.</P
 ></TD
 ></TR
 ><TR
@@ -10226,7 +11107,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >a pointer to another part of the domain
-name space.</P
+name space.  Described in RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -10243,7 +11124,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >provides mappings between RFC 822 and X.400
-addresses.</P
+addresses.  Described in RFC 2163.</P
 ></TD
 ></TR
 ><TR
@@ -10260,7 +11141,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >information on persons responsible
-for the domain. Experimental.</P
+for the domain.  Experimental.  Described in RFC 1183.</P
 ></TD
 ></TR
 ><TR
@@ -10277,7 +11158,8 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >route-through binding for hosts that
-do not have their own direct wide area network addresses. Experimental.</P
+do not have their own direct wide area network addresses.
+Experimental.  Described in RFC 1183.</P
 ></TD
 ></TR
 ><TR
@@ -10294,7 +11176,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >("signature") contains data authenticated
-in the secure DNS. See RFC 2535 for details.</P
+in the secure DNS.  Described in RFC 2535.</P
 ></TD
 ></TR
 ><TR
@@ -10310,7 +11192,8 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->identifies the start of a zone of authority.</P
+>identifies the start of a zone of authority.
+Described in RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -10327,7 +11210,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >information about well known network
-services (replaces WKS).</P
+services (replaces WKS).  Described in RFC 2782.</P
 ></TD
 ></TR
 ><TR
@@ -10343,7 +11226,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->text records.</P
+>text records.  Described in RFC 1035.</P
 ></TD
 ></TR
 ><TR
@@ -10377,7 +11260,8 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->representation of X.25 network addresses. Experimental.</P
+>representation of X.25 network addresses.
+Experimental.  Described in RFC 1183.</P
 ></TD
 ></TR
 ></TBODY
@@ -10386,15 +11270,18 @@ VALIGN="MIDDLE"
 ></P
 ></DIV
 ><P
->The following <I
+>The following <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >classes</I
+></SPAN
 > of resource records
 are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3945"
+NAME="AEN4151"
 ></A
 ><P
 ></P
@@ -10496,7 +11383,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3969"
+NAME="AEN4175"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10526,7 +11413,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3976"
+NAME="AEN4182"
 ></A
 ><P
 ></P
@@ -10735,7 +11622,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4042"
+NAME="AEN4248"
 ></A
 ><P
 ></P
@@ -10826,7 +11713,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4070"
+NAME="AEN4276"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10846,9 +11733,12 @@ chosen randomly. If no servers at a given priority are responding,
 the mail transport agent will fall back to the next largest priority.
 Priority numbers do not have any absolute meaning &#8212; they are relevant
 only respective to other MX records for that domain name. The domain
-name given is the machine to which the mail will be delivered. It <I
+name given is the machine to which the mail will be delivered. It <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >must</I
+></SPAN
 > have
 an associated A record &#8212; CNAME is not sufficient.</P
 ><P
@@ -10859,7 +11749,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4076"
+NAME="AEN4282"
 ></A
 ><P
 ></P
@@ -11155,7 +12045,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4168"
+NAME="AEN4374"
 ></A
 ><P
 ></P
@@ -11238,14 +12128,17 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4191"
+NAME="AEN4397"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
 >Reverse name resolution (that is, translation from IP address
-to name) is achieved by means of the <I
+to name) is achieved by means of the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >in-addr.arpa</I
+></SPAN
 > domain
 and PTR records. Entries in the in-addr.arpa domain are made in
 least-to-most significant order, read left to right. This is the
@@ -11262,7 +12155,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4196"
+NAME="AEN4402"
 ></A
 ><P
 ></P
@@ -11342,7 +12235,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4218"
+NAME="AEN4424"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11367,7 +12260,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4225"
+NAME="AEN4431"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11437,7 +12330,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4245"
+NAME="AEN4451"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11519,7 +12412,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4265"
+NAME="AEN4471"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11559,7 +12452,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4276"
+NAME="AEN4482"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11582,7 +12475,23 @@ CLASS="replaceable"
 ><I
 >lhs</I
 ></TT
-> <TT
+> [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>ttl</I
+></TT
+></SPAN
+>] [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>class</I
+></TT
+></SPAN
+>] <TT
 CLASS="replaceable"
 ><I
 >type</I
@@ -11628,17 +12537,17 @@ CLASS="programlisting"
 ><TT
 CLASS="literal"
 >0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
-0.0.0.192.IN-ADDR.ARPA NS SERVER2.EXAMPLE.
-1.0.0.192.IN-ADDR.ARPA CNAME 1.0.0.0.192.IN-ADDR.ARPA
-2.0.0.192.IN-ADDR.ARPA CNAME 2.0.0.0.192.IN-ADDR.ARPA
+0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
+1.0.0.192.IN-ADDR.ARPA. CNAME 1.0.0.0.192.IN-ADDR.ARPA.
+2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
 ...
-127.0.0.192.IN-ADDR.ARPA CNAME 127.0.0.0.192.IN-ADDR.ARPA
-.</TT
+127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
+</TT
 ></PRE
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4296"
+NAME="AEN4506"
 ></A
 ><P
 ></P
@@ -11758,11 +12667,79 @@ CLASS="command"
 the name.</P
 >
 <P
->For compatability with earlier versions <B
+>For compatibility with earlier versions <B
 CLASS="command"
 >$$</B
 > is still
 recognised a indicating a literal $ in the output.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>ttl</B
+></P
+></TD
+><TD
+WIDTH="408"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>ttl</B
+> specifies the
+	  ttl of the generated records. If not specified this will be
+	  inherited using the normal ttl inhertance rules.</P
+>
+	  <P
+><B
+CLASS="command"
+>class</B
+> and <B
+CLASS="command"
+>ttl</B
+> can be
+	  entered in either order.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>class</B
+></P
+></TD
+><TD
+WIDTH="408"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>class</B
+> specifies the
+	  class of the generated records.  This must match the zone class if
+	  it is specified.</P
+>
+	  <P
+><B
+CLASS="command"
+>class</B
+> and <B
+CLASS="command"
+>ttl</B
+> can be
+	  entered in either order.</P
 ></TD
 ></TR
 ><TR
@@ -11819,6 +12796,8 @@ CLASS="acronym"
 >BIND</SPAN
 > extension
 and not part of the standard zone file format.</P
+><P
+>BIND 8 does not support the optional TTL and CLASS fields.</P
 ></DIV
 ></DIV
 ></DIV
@@ -11827,6 +12806,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -11838,6 +12818,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -11846,6 +12827,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -11854,6 +12836,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch07.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR

@@ -20,7 +20,7 @@
 >nsupdate</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "></HEAD
 ><BODY
 CLASS="REFENTRY"
@@ -74,13 +74,37 @@ CLASS="REPLACEABLE"
 ></TT
 >] [<TT
 CLASS="OPTION"
+>-t <TT
+CLASS="REPLACEABLE"
+><I
+>timeout</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
+>-u <TT
+CLASS="REPLACEABLE"
+><I
+>udptimeout</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
+>-r <TT
+CLASS="REPLACEABLE"
+><I
+>udpretries</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
 >-v</TT
 >] [filename]</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN26"
+NAME="AEN35"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -273,7 +297,8 @@ specified is not an HMAC-MD5 key.</P
 CLASS="COMMAND"
 >nsupdate</B
 >
-uses UDP to send update requests to the name server.
+uses UDP to send update requests to the name server unless they are too
+large to fit in a UDP request in which case TCP will be used.
 The
 <TT
 CLASS="OPTION"
@@ -286,11 +311,31 @@ CLASS="COMMAND"
 >
 use a TCP connection.
 This may be preferable when a batch of update requests is made.</P
+><P
+>The <TT
+CLASS="OPTION"
+>-t</TT
+> option sets the maximum time a update request can
+take before it is aborted.  The default is 300 seconds.  Zero can be used
+to disable the timeout.</P
+><P
+>The <TT
+CLASS="OPTION"
+>-u</TT
+> option sets the UDP retry interval.  The default is
+3 seconds.  If zero the interval will be computed from the timeout interval
+and number of UDP retries.</P
+><P
+>The <TT
+CLASS="OPTION"
+>-r</TT
+> option sets the number of UDP retries. The default is
+3.  If zero only one update request will be made.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN67"
+NAME="AEN82"
 ></A
 ><H2
 >INPUT FORMAT</H2
@@ -396,7 +441,7 @@ When no local statement is provided,
 CLASS="COMMAND"
 >nsupdate</B
 >
-will send updates using an address and port choosen by the system.
+will send updates using an address and port chosen by the system.
 <TT
 CLASS="PARAMETER"
 ><I
@@ -761,7 +806,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN225"
+NAME="AEN240"
 ></A
 ><H2
 >EXAMPLES</H2
@@ -827,12 +872,12 @@ This ensures that when the CNAME is added, it cannot conflict with the
 long-standing rule in RFC1034 that a name must not exist as any other
 record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
-SIG, KEY and NXT records.)</P
+RRSIG, DNSKEY and NSEC records.)</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN238"
+NAME="AEN253"
 ></A
 ><H2
 >FILES</H2
@@ -888,7 +933,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN262"
+NAME="AEN277"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -960,7 +1005,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN285"
+NAME="AEN300"
 ></A
 ><H2
 >BUGS</H2

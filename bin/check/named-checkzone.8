@@ -19,7 +19,7 @@
 named-checkzone \- zone file validity checking tool
 .SH SYNOPSIS
 .sp
-\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-w \fIdirectory\fB\fR ]  \fBzonename\fR \fBfilename\fR
+\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-j\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-n \fImode\fB\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-w \fIdirectory\fB\fR ]  \fBzonename\fR \fBfilename\fR
 .SH "DESCRIPTION"
 .PP
 \fBnamed-checkzone\fR checks the syntax and integrity of
@@ -39,8 +39,17 @@ Quiet mode - exit code only.
 Print the version of the \fBnamed-checkzone\fR
 program and exit.
 .TP
+\fB-j\fR
+When loading the zone file read the journal if it exists.
+.TP
 \fB-c \fIclass\fB\fR
 Specify the class of the zone. If not specified "IN" is assumed.
+.TP
+\fB-n \fImode\fB\fR
+Specify whether NS records should be checked to see if they
+are addresses. Possible modes are \fB"fail"\fR,
+\fB"warn"\fR (default) and
+\fB"ignore"\fR.
 .TP
 \fB-t \fIdirectory\fB\fR
 chroot to \fIdirectory\fR so that include

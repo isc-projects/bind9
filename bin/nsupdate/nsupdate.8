@@ -19,7 +19,7 @@
 nsupdate \- Dynamic DNS update utility
 .SH SYNOPSIS
 .sp
-\fBnsupdate\fR [ \fB-d\fR ]  [ \fB [ -y \fIkeyname:secret\fB ]  [ -k \fIkeyfile\fB ] \fR ]  [ \fB-v\fR ]  [ \fBfilename\fR ] 
+\fBnsupdate\fR [ \fB-d\fR ]  [ \fB [ -y \fIkeyname:secret\fB ]  [ -k \fIkeyfile\fB ] \fR ]  [ \fB-t \fItimeout\fB\fR ]  [ \fB-u \fIudptimeout\fB\fR ]  [ \fB-r \fIudpretries\fB\fR ]  [ \fB-v\fR ]  [ \fBfilename\fR ] 
 .SH "DESCRIPTION"
 .PP
 \fBnsupdate\fR
@@ -118,13 +118,25 @@ specified is not an HMAC-MD5 key.
 .PP
 By default
 \fBnsupdate\fR
-uses UDP to send update requests to the name server.
+uses UDP to send update requests to the name server unless they are too
+large to fit in a UDP request in which case TCP will be used.
 The
 \fB-v\fR
 option makes
 \fBnsupdate\fR
 use a TCP connection.
 This may be preferable when a batch of update requests is made.
+.PP
+The \fB-t\fR option sets the maximum time a update request can
+take before it is aborted. The default is 300 seconds. Zero can be used
+to disable the timeout.
+.PP
+The \fB-u\fR option sets the UDP retry interval. The default is
+3 seconds. If zero the interval will be computed from the timeout interval
+and number of UDP retries.
+.PP
+The \fB-r\fR option sets the number of UDP retries. The default is
+3. If zero only one update request will be made.
 .SH "INPUT FORMAT"
 .PP
 \fBnsupdate\fR
@@ -170,7 +182,7 @@ Sends all dynamic update requests using the local
 \fIaddress\fR.
 When no local statement is provided,
 \fBnsupdate\fR
-will send updates using an address and port choosen by the system.
+will send updates using an address and port chosen by the system.
 \fIport\fR
 can additionally be used to make requests come from a specific port.
 If no port number is specified, the system will assign one.
@@ -316,7 +328,7 @@ This ensures that when the CNAME is added, it cannot conflict with the
 long-standing rule in RFC1034 that a name must not exist as any other
 record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
-SIG, KEY and NXT records.)
+RRSIG, DNSKEY and NSEC records.)
 .SH "FILES"
 .TP
 \fB/etc/resolv.conf\fR

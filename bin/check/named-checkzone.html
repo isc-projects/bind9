@@ -20,7 +20,7 @@
 >named-checkzone</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "></HEAD
 ><BODY
 CLASS="REFENTRY"
@@ -64,6 +64,9 @@ CLASS="OPTION"
 >-d</TT
 >] [<TT
 CLASS="OPTION"
+>-j</TT
+>] [<TT
+CLASS="OPTION"
 >-q</TT
 >] [<TT
 CLASS="OPTION"
@@ -74,6 +77,14 @@ CLASS="OPTION"
 CLASS="REPLACEABLE"
 ><I
 >class</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
+>-n <TT
+CLASS="REPLACEABLE"
+><I
+>mode</I
 ></TT
 ></TT
 >] [<TT
@@ -97,7 +108,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN33"
+NAME="AEN38"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -121,7 +132,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN39"
+NAME="AEN44"
 ></A
 ><H2
 >OPTIONS</H2
@@ -156,6 +167,13 @@ CLASS="COMMAND"
 	  </P
 ></DD
 ><DT
+>-j</DT
+><DD
+><P
+>              When loading the zone file read the journal if it exists.
+          </P
+></DD
+><DT
 >-c <TT
 CLASS="REPLACEABLE"
 ><I
@@ -165,6 +183,30 @@ CLASS="REPLACEABLE"
 ><DD
 ><P
 >	      Specify the class of the zone.  If not specified "IN" is assumed.
+	  </P
+></DD
+><DT
+>-n <TT
+CLASS="REPLACEABLE"
+><I
+>mode</I
+></TT
+></DT
+><DD
+><P
+>	      Specify whether NS records should be checked to see if they
+	      are addresses.  Possible modes are <B
+CLASS="COMMAND"
+>"fail"</B
+>,
+	      <B
+CLASS="COMMAND"
+>"warn"</B
+> (default) and
+	      <B
+CLASS="COMMAND"
+>"ignore"</B
+>.
 	  </P
 ></DD
 ><DT
@@ -225,7 +267,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN81"
+NAME="AEN98"
 ></A
 ><H2
 >RETURN VALUES</H2
@@ -240,7 +282,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN85"
+NAME="AEN102"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -265,7 +307,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN93"
+NAME="AEN110"
 ></A
 ><H2
 >AUTHOR</H2

@@ -86,7 +86,8 @@ ANY, A, MX, SIG, etc.
 .PP
 The \fB-b\fR option sets the source IP address of the query
 to \fIaddress\fR. This must be a valid address on
-one of the host's network interfaces.
+one of the host's network interfaces or "0.0.0.0" or "::". An optional port
+may be specified by appending "#<port>"
 .PP
 The default query class (IN for internet) is overridden by the
 \fB-c\fR option. \fIclass\fR is any valid
@@ -126,9 +127,10 @@ When this option is used, there is no need to provide the
 automatically performs a lookup for a name like
 11.12.13.10.in-addr.arpa and sets the query type and
 class to PTR and IN respectively. By default, IPv6 addresses are
-looked up using the IP6.ARPA domain and binary labels as defined in
-RFC2874. To use the older RFC1886 method using the IP6.INT domain and
-"nibble" labels, specify the \fB-n\fR (nibble) option.
+looked up using nibble format under the IP6.ARPA domain.
+To use the older RFC1886 method using the IP6.INT domain 
+specify the \fB-i\fR option. Bit string labels (RFC2874)
+are now experimental and are not attempted.
 .PP
 To sign the DNS queries sent by \fBdig\fR and their
 responses using transaction signatures (TSIG), specify a TSIG key file
@@ -190,7 +192,7 @@ The search list is not used by default.
 Deprecated, treated as a synonym for \fI+[no]search\fR
 .TP
 \fB+[no]aaonly\fR
-This option does nothing. It is provided for compatibilty with old
+This option does nothing. It is provided for compatibility with old
 versions of \fBdig\fR where it set an unimplemented
 resolver flag.
 .TP
@@ -204,7 +206,13 @@ completeness.
 Set [do not set] the CD (checking disabled) bit in the query. This
 requests the server to not perform DNSSEC validation of responses.
 .TP
-\fB+[no]recursive\fR
+\fB+[no]cl\fR
+Display [do not display] the CLASS when printing the record.
+.TP
+\fB+[no]ttlid\fR
+Display [do not display] the TTL when printing the record.
+.TP
+\fB+[no]recurse\fR
 Toggle the setting of the RD (recursion desired) bit in the query.
 This bit is set by default, which means \fBdig\fR
 normally sends recursive queries. Recursion is automatically disabled
@@ -323,7 +331,7 @@ The default is to not display malformed answers.
 .TP
 \fB+[no]dnssec\fR
 Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
-in the the OPT record in the additional section of the query.
+in the OPT record in the additional section of the query.
 .SH "MULTIPLE QUERIES"
 .PP
 The BIND 9 implementation of \fBdig \fR supports
