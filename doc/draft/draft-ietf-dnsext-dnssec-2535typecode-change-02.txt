@@ -1,9 +1,10 @@
-INTERNET-DRAFT                                             Samuel Weiler
-Expires: November 2003                                      May 22, 2003
 
+INTERNET-DRAFT                                             Samuel Weiler
+Expires: December 2003                                     June 12, 2003
+Updates: RFC 2535, [DS]
 
 	 Legacy Resolver Compatibility for Delegation Signer
-	 draft-ietf-dnsext-dnssec-2535typecode-change-01.txt
+	 draft-ietf-dnsext-dnssec-2535typecode-change-02.txt
 
 Status of this Memo
 
@@ -17,7 +18,7 @@ Status of this Memo
 
    Internet-Drafts are draft documents valid for a maximum of six
    months and may be updated, replaced, or obsoleted by other
-   documents at any time.  It is inappropriate to use Internet- Drafts
+   documents at any time.  It is inappropriate to use Internet-Drafts
    as reference material or to cite them other than as "work in
    progress."
 
@@ -42,6 +43,25 @@ Abstract
    an unsecured zone to be unresolvable.  This document proposes that
    these interactions be avoided by changing the type codes and
    mnemonics of the DNSSEC RRs (SIG, KEY, and NXT).
+
+Changes between 01 and 02:
+   
+   SIG(0) still uses SIG, not RRSIG.  Added 2931 reference.
+
+   Domain names embedded in NSECs and RRSIGs are not compressible and
+   are not downcased.  Added unknown-rrs reference.
+
+   Simplified the last paragraph of section 3 (NSEC doesn't always
+   signal a negative answer).
+
+   Changed the suggested type code assignments.
+
+   Added 2119 reference.
+
+   Added definitions of "unsecure delegation" and "unsecure referral",
+   since they're not clearly defined elsewhere.
+
+   Moved 2065 to informative references, not normative.
 
 1. Introduction
 
@@ -75,12 +95,23 @@ Abstract
    disincentive to sign zones with DS.  The proposed solution allows
    for the incremental deployment of DS.
 
-1.1 The Problem
+1.1 Terminology
 
-   Delegation signer [DS] introduces new semantics for the NXT RR that
+   In this document, the term "unsecure delegation" means any
+   delegation for which no DS record appears at the parent.  An
+   "unsecure referral" is an answer from the parent containing an NS
+   RRset and a proof that no DS record exists for that name.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+1.2 The Problem
+
+   Delegation Signer [DS] introduces new semantics for the NXT RR that
    are incompatible with the semantics in [RFC2535].  In [RFC2535],
    NXT records were only required to be returned as part of a
-   non-existence proof.  In [DS], an unsecure referral returns, in
+   non-existence proof.  With DS, an unsecure referral returns, in
    addition to the NS, a proof of non-existence of a DS RR in the form
    of an NXT and SIG(NXT).  RFC 2535 didn't specify how a resolver was
    to interpret a response with both an NS and an NXT in the authority
@@ -90,14 +121,14 @@ Abstract
    delegations being invisible to 2535-aware resolvers and violates
    the basic architectural principle that DNSSEC must do no harm --
    the signing of zones must not prevent the resolution of unsecured
-   names.
+   delegations.
 
 2. Possible Solutions
 
    This section presents several possible solutions.  Section 3
    recommends one and describes it in more detail.
 
-2.1. Change SIG, KEY, and NXT
+2.1. Change SIG, KEY, and NXT type codes
 
    To avoid the problem described above, legacy (RFC2535-aware)
    resolvers need to be kept from seeing unsecure referrals that
@@ -177,49 +208,60 @@ Abstract
 3. Protocol changes
 
    This document proposes changing the type codes of SIG, KEY, and
-   NXT.  This solution is the cleanest and safest, largely because the
-   behavior of resolvers that receive unknown type codes is well
-   understood.  This approach has also received the most testing.
+   NXT.  This approach is the cleanest and safest of those discussed
+   above, largely because the behavior of resolvers that receive
+   unknown type codes is well understood.  This approach has also
+   received the most testing.
 
    To avoid operational confusion, it's also necessary to change the
    mnemonics for these RRs.  DNSKEY will be the replacement for KEY,
    with the mnemonic indicating that these keys are not for
    application use, per [RFC3445].  RRSIG (Resource Record SIGnature)
-   will replace SIG, and NSEC (Next SECure) will replace NXT.
+   will replace SIG, and NSEC (Next SECure) will replace NXT.  These
+   new types completely replace the old types, except that SIG(0)
+   [RFC2931] will continue to use SIG.
 
    The new types will have exactly the same syntax and semantics as
-   specified for SIG, KEY, and NXT in [RFC2535] and [DS], and they
-   completely replace the old types.  A resolver, if it receives the
-   old types, SHOULD treat them as unknown RRs, and SHOULD NOT assign
-   any special semantic value to them.  It MUST NOT use them for
-   DNSSEC validations or other DNS operational decision making.  For
-   example, a resolver MUST NOT use DNSKEYs to validate SIGs or use
-   KEYs to validate RRSIGs.  Authoritative servers SHOULD NOT serve
-   SIG, KEY, or NXT records.  If those records are included, they MUST
-   NOT receive special treatment.  As an example, if a SIG is included
-   in a signed zone, there MUST be an RRSIG for it.
+   specified for SIG, KEY, and NXT in [RFC2535] and [DS] except for
+   the following:
 
-   As a clarification to previous documents, many positive responses,
-   including wildcard proofs and insecure referrals, will contain NSEC
-   RRs.  As a result, resolvers MUST NOT treat answers with NSEC RRs
-   as negative answers merely because they contain an NSEC.  A
-   resolver SHOULD either ignore the NSEC, as a DNSSEC-unaware (or
-   2535-aware) resolver would, or validate the NSEC and check its
-   applicability and interpretation as described in [RFC2535] and
-   [DS].
-   
+      1) Consistent with [UNKNOWN-RRs], domain names embedded in
+      RRSIG and NSEC RRs MUST NOT be compressed,
+
+      2) Embedded domain names in RRSIG and NSEC RRs are not downcased
+      for purposes of DNSSEC canonical form and ordering nor for
+      equality comparison, and
+
+      3) An RRSIG with a type covered field of zero has undefined
+      semantics.
+
+   If a resolver receives the old types, it SHOULD treat them as
+   unknown RRs and SHOULD NOT assign any special semantic value to
+   them.  It MUST NOT use them for DNSSEC validations or other DNS
+   operational decision making.  For example, a resolver MUST NOT use
+   DNSKEYs to validate SIGs or use KEYs to validate RRSIGs.
+   Authoritative servers SHOULD NOT serve SIG, KEY, or NXT records.
+   If those records are included, they MUST NOT receive special
+   treatment.  As an example, if a SIG is included in a signed zone,
+   there MUST be an RRSIG for it.
+
+   As a clarification to previous documents, some positive responses,
+   particularly wildcard proofs and unsecure referrals, will contain
+   NSEC RRs.  Resolvers MUST NOT treat answers with NSEC RRs as
+   negative answers merely because they contain an NSEC.  
+
 4. IANA Considerations
 
    This document updates the IANA registry for DNS Resource Record
-   Types by assigning types 46, 47, and 48 to the DNSKEY, RRSIG, and
-   NSEC RRs, respectively.
+   Types by assigning types 46, 47, and 48 to the RRSIG, NSEC, and
+   DNSKEY RRs, respectively.
 
-   Types 24, 25, and 30 (SIG, KEY, and NXT) should be marked as
-   Obsolete.
+   Types 24 (SIG) is retained for SIG(0) [RFC2931] use only.  Types 25
+   and 30 (KEY and NXT) should be marked as Obsolete.
 
 5. Security Considerations
 
-   The change proposed here does not materially effect security.  The
+   The change proposed here does not materially affect security.  The
    implications of trying to use both new and legacy types together
    are not well understood, and attempts to do so would probably lead
    to unintended and dangerous results. 
@@ -235,9 +277,6 @@ Abstract
 
 6. Normative references
 
-   [RFC2065] Eastlake, D. and C. Kaufman, "Domain Name System Security
-             Extensions", RFC 2065, January 1997.
-
    [RFC2535] Eastlake, D., "Domain Name System Security Extensions",
              RFC 2535, March 1999.
 
@@ -245,7 +284,16 @@ Abstract
              draft-ietf-dnsext-delegation-signer-14.txt, work in 
              progress, May 2003.
 
+   [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
+             Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC2931] Eastlake, D., "DNS Request and Transaction Signatures
+             (SIG(0)s)", RFC 2931, September 2000.
+
 7. Informative References
+
+   [RFC2065] Eastlake, D. and C. Kaufman, "Domain Name System Security
+             Extensions", RFC 2065, January 1997.
 
    [RFC2671] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
 	     2671, August 1999.
@@ -260,6 +308,11 @@ Abstract
    [RFC3445] Massey, D., and S. Rose.  Limiting the Scope of the KEY
 	     Resource Record (RR).  RFC 3445, December 2002.
 
+   [UNKNOWN-RRs] Gustafsson, A.  Handling of Unknown DNS Resource
+             Record Types.  draft-ietf-dnsext-unknown-rrs-05.txt  
+	     Publication as RFC pending.
+
+
 8. Acknowledgments
 
    The proposed solution and the analysis of alternatives had many
@@ -268,7 +321,7 @@ Abstract
    Bill Manning, and Suzanne Woolf.
 
    Thanks to Jakob Schlyter and Mark Andrews for identifying the
-   incompatibility described in section 1.1.
+   incompatibility described in section 1.2.
 
    In addition to the above, the author would like to thank Scott
    Rose, Olafur Gudmundsson, and Sandra Murphy for their substantive
@@ -282,5 +335,7 @@ Abstract
    Rockville, MD  20850
    USA
    weiler@tislabs.com
+
+
 
 
