@@ -260,8 +260,23 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
  *      (XXX why is it a void pointer, then?)
  */
 
-void dns_diff_print(dns_diff_t *diff);
-/* Print a diff.  This is for debugging, not for general use. */
+dns_result_t
+dns_diff_print(dns_diff_t *diff, FILE *file);
+
+/* 
+ * Print the differences to 'file' or if 'file' is NULL via the
+ * logging system.
+ *
+ * Require:
+ *	'diff' to be valid.
+ *	'file' to refer to a open file or NULL.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMEMORY
+ *	DNS_R_UNEXPECTED
+ *	any error from dns_rdataset_totext()
+ */
 	
 /**************************************************************************/
 /* 
@@ -460,7 +475,7 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
  * 
  */
 
-void dns_journal_print(isc_mem_t *mctx, const char *filename);
+dns_result_t dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
 /* For debugging not general use */
 
 dns_result_t

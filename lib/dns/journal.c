@@ -590,46 +590,73 @@ diff_tuple_tordataset(dns_difftuple_t *t, dns_rdatalist_t *rdl,
 	return (dns_rdatalist_tordataset(rdl, rds));
 }
 
-void
-dns_diff_print(dns_diff_t *diff) {
+dns_result_t
+dns_diff_print(dns_diff_t *diff, FILE *file) {
 	dns_result_t result;
 	dns_difftuple_t *t;
+	char *mem = NULL;
+	unsigned int size = 2048;
+
 	REQUIRE(DNS_DIFF_VALID(diff));
+
+	mem = isc_mem_get(diff->mctx, size);
+	if (mem == NULL)
+		return (DNS_R_NOMEMORY);
 
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
 	     t = ISC_LIST_NEXT(t, link))
 	{
 		isc_buffer_t buf;
-		char mem[2000];
 		isc_region_t r;
 
 		dns_rdatalist_t rdl;
 		dns_rdataset_t rds;		
+
 		result = diff_tuple_tordataset(t, &rdl, &rds);
 		if (result != DNS_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "diff_tuple_tordataset failed: %s",
 					 dns_result_totext(result));
-			return;
+			result =  DNS_R_UNEXPECTED;
+			goto cleanup;
 		}
-		
+ again:
 		isc_buffer_init(&buf, mem, sizeof(mem), ISC_BUFFERTYPE_TEXT);
 		result = dns_rdataset_totext(&rds, &t->name,
 					     ISC_FALSE, ISC_FALSE, &buf);
 
+		if (result == DNS_R_NOSPACE) {
+			isc_mem_put(diff->mctx, mem, size);
+			size += 1024;
+			mem = isc_mem_get(diff->mctx, size);
+			if (mem == NULL) {
+				result = DNS_R_NOMEMORY;
+				goto cleanup;
+			}
+			goto again;
+		}
 		if (result == DNS_R_SUCCESS) {
 			isc_buffer_used(&buf, &r);
-			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(7),
-				      "%s %.*s", t->op == DNS_DIFFOP_ADD ?
-				      "add" : "del",
-				      (int) r.length, (char *) r.base);
-		} else {
-			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(7),
-				      "%s <RR too large to print>",
-				      "%s %.*s", t->op == DNS_DIFFOP_ADD ?
-				      "add" : "del");
-		}
+			if (file != NULL)
+				fprintf(file, "%s %.*s\n",
+					t->op == DNS_DIFFOP_ADD ?
+					"add" : "del", (int) r.length,
+					(char *) r.base);
+			else
+				isc_log_write(JOURNAL_COMMON_LOGARGS,
+					      ISC_LOG_DEBUG(7),
+					      "%s %.*s",
+					      t->op == DNS_DIFFOP_ADD ?
+					      "add" : "del",
+					      (int) r.length, (char *) r.base);
+		} else 
+			goto cleanup;
 	}
+	result = DNS_R_SUCCESS;
+ cleanup:
+	if (mem != NULL)
+		isc_mem_put(diff->mctx, mem, size);
+	return (result);
 }
 
 /**************************************************************************/
@@ -1470,7 +1497,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
 	
 	isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "writing to journal");
-	dns_diff_print(diff);
+	dns_diff_print(diff, NULL);
 
 	/*
 	 * Pass 1: determine the buffer size needed, and
@@ -1756,7 +1783,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 		if (++n_put > 100)  {
 			isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 				      "applying diff to database");
-			dns_diff_print(&diff);
+			dns_diff_print(&diff, NULL);
 			CHECK(dns_diff_apply(&diff, db, ver));
 			dns_diff_clear(&diff);
 			n_put = 0;
@@ -1769,7 +1796,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	if (n_put != 0) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 			      "applying final diff to database");
-		dns_diff_print(&diff);
+		dns_diff_print(&diff, NULL);
 		CHECK(dns_diff_apply(&diff, db, ver));
 		dns_diff_clear(&diff);
 	}
@@ -1813,8 +1840,8 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	return (result);
 }
 
-void
-dns_journal_print(isc_mem_t *mctx, const char *filename) {
+dns_result_t
+dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	dns_journal_t *j;
 	isc_buffer_t source;		/* Transaction data from disk */
 	isc_buffer_t target;		/* Ditto after _fromwire check */
@@ -1831,13 +1858,13 @@ dns_journal_print(isc_mem_t *mctx, const char *filename) {
 	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
 	if (result == DNS_R_NOTFOUND) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no journal file");
-		return;
+		return (DNS_R_NOTFOUND);
 	}
 
 	if (result != DNS_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "journal open failure");
-		return;
+		return (result);
 	}
 	
 	dns_diff_init(j->mctx, &diff);
@@ -1885,9 +1912,11 @@ dns_journal_print(isc_mem_t *mctx, const char *filename) {
 		dns_diff_append(&diff, &tuple);
 
 		if (++n_put > 100)  {
-			dns_diff_print(&diff);
+			result = dns_diff_print(&diff, file);
 			dns_diff_clear(&diff);
 			n_put = 0;
+			if (result != DNS_R_SUCCESS)
+				break;
 		}
 	}
 	if (result == DNS_R_NOMORE)
@@ -1895,7 +1924,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename) {
 	CHECK(result);
 
 	if (n_put != 0) {
-		dns_diff_print(&diff);
+		result = dns_diff_print(&diff, file);
 		dns_diff_clear(&diff);
 	}
 	goto cleanup;
@@ -1913,8 +1942,9 @@ dns_journal_print(isc_mem_t *mctx, const char *filename) {
 	dns_diff_clear(&diff);
 	dns_journal_destroy(&j);
 	
-	return;
+	return (result);
 }
+
 /**************************************************************************/
 /*
  * Miscellaneous accessors.
