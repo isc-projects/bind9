@@ -2644,17 +2644,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 static inline void
 log_query(ns_client_t *client) {
 	isc_buffer_t b;
-	char text[1024];
+	char namebuf[1024];
+	char text[256];
 	isc_region_t r;
 	dns_rdataset_t *rdataset;
 
 	/* XXXRTH  Allow this to be turned off! */
 
+	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+	
 	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
 			ISC_BUFFERTYPE_TEXT);
-	if (dns_name_totext(client->query.qname, ISC_TRUE, &b) !=
-	    ISC_R_SUCCESS)
-		return;
 	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
 	     rdataset != NULL;
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -2668,7 +2668,7 @@ log_query(ns_client_t *client) {
 	}
 	isc_buffer_used(&b, &r);
 	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      ISC_LOG_DEBUG(1), "query: %.*s",
+		      ISC_LOG_DEBUG(1), "query: %s%.*s", namebuf,
 		      (int)r.length, (char *)r.base);
 }
 
