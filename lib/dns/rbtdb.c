@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.173 2001/11/16 00:17:07 gson Exp $ */
+/* $Id: rbtdb.c,v 1.174 2001/12/08 00:37:05 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1576,7 +1576,7 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 static inline isc_result_t
 find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 dns_name_t *foundname, dns_rdataset_t *rdataset,
-		 dns_rdataset_t *sigrdataset)
+		 dns_rdataset_t *sigrdataset, isc_boolean_t need_sig)
 {
 	dns_rbtnode_t *node;
 	rdatasetheader_t *header, *header_next, *found, *foundsig;
@@ -1639,7 +1639,9 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 			}
 		}
 		if (!empty_node) {
-			if (found != NULL && foundsig != NULL) {
+			if (found != NULL &&
+			    (foundsig != NULL || !need_sig))
+			{
 				/*
 				 * We've found the right NXT record.
 				 *
@@ -1660,9 +1662,12 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 					bind_rdataset(search->rbtdb, node,
 						      found, search->now,
 						      rdataset);
-					bind_rdataset(search->rbtdb, node,
-						      foundsig, search->now,
-						      sigrdataset);
+					if (foundsig != NULL)
+						bind_rdataset(search->rbtdb,
+							      node,
+							      foundsig,
+							      search->now,
+							      sigrdataset);
 				}
 			} else if (found == NULL && foundsig == NULL) {
 				/*
@@ -1801,9 +1806,12 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * If we're here, then the name does not exist, is not
 		 * beneath a zonecut, and there's no matching wildcard.
 		 */
-		if (search.rbtdb->secure) {
+		if (search.rbtdb->secure ||
+		    (search.options & DNS_DBFIND_FORCENXT) != 0)
+		{
 			result = find_closest_nxt(&search, nodep, foundname,
-						  rdataset, sigrdataset);
+						  rdataset, sigrdataset,
+						  search.rbtdb->secure);
 			if (result == ISC_R_SUCCESS)
 				result = DNS_R_NXDOMAIN;
 		} else
@@ -2029,15 +2037,28 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				result = DNS_R_BADDB;
 				goto node_exit;
 			}
+			if ((search.options & DNS_DBFIND_FORCENXT) != 0 &&
+			    nxtheader == NULL)
+			{
+				/*
+				 * There's no NXT record, and we were told
+				 * to find one.
+				 */
+				result = DNS_R_BADDB;
+				goto node_exit;
+			}
 			if (nodep != NULL) {
 				new_reference(search.rbtdb, node);
 				*nodep = node;
 			}
-			if (search.rbtdb->secure) {
+			if (search.rbtdb->secure ||
+			    (search.options & DNS_DBFIND_FORCENXT) != 0)
+			{
 				bind_rdataset(search.rbtdb, node, nxtheader,
 					      0, rdataset);
-				bind_rdataset(search.rbtdb, node, nxtsig,
-					      0, sigrdataset);
+				if (nxtsig != NULL)
+					bind_rdataset(search.rbtdb, node,
+						      nxtsig, 0, sigrdataset);
 			}
 		}
 		goto node_exit;
