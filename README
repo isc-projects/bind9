@@ -96,7 +96,9 @@ BIND 9.2
 		in the named.conf options statement.
 
 		There are known problems with thread signal handling 
-		under Solaris 2.6.
+		under Solaris 2.6 and BSD/OS.  We recommend disabling
+		threads with "configure --disable-threads" on these
+		platforms.
 
 		FreeBSD prior to 4.2 and OpenBSD prior to 2.8 log
 		messages like "fcntl(8, F_SETFL, 4): Inappropriate
