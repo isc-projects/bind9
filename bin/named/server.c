@@ -17,6 +17,9 @@
 
 #include <config.h>
 
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -101,6 +104,8 @@ typedef struct {
 
 static void fatal(char *msg, isc_result_t result);
 static void ns_server_reload(isc_task_t *task, isc_event_t *event);
+static FILE *write_open(char *filename);
+
 static isc_result_t
 ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 			dns_aclconfctx_t *actx,
@@ -440,6 +445,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	dns_view_t *view, *view_next;
 	dns_viewlist_t tmpviewlist;
 	dns_aclconfctx_t aclconfctx;
+	char *pidfile;
 
 	dns_aclconfctx_init(&aclconfctx);
 
@@ -562,6 +568,15 @@ load_configuration(const char *filename, ns_server_t *server) {
 			CHECK(result);
 		}
 	}
+
+
+	if (dns_c_ctx_getpidfilename(configctx, &pidfile) == ISC_R_SUCCESS) {
+		ns_update_pidfile(pidfile);
+	} else {
+		ns_update_pidfile(ns_g_defaultpidfile);
+	}
+	
+	
 
 	/*
 	 * Swap our new view list with the production one.
@@ -905,3 +920,83 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 	return (ISC_R_SUCCESS);
 }
 
+void
+ns_update_pidfile(const char *pidfile)
+{
+	FILE *fp;
+
+	INSIST(pidfile != NULL);
+	INSIST(strlen(pidfile) > 0);
+	
+	if (ns_g_pidfile != NULL) {
+		(void)unlink(ns_g_pidfile);
+		isc_mem_free(ns_g_mctx, ns_g_pidfile);
+	}
+
+	ns_g_pidfile = isc_mem_strdup(ns_g_mctx, (char *) pidfile);
+	if (ns_g_pidfile == NULL) {
+		fatal("failed to isc_mem_strdup() the pidfile",
+		      ISC_R_NOMEMORY);
+	}
+
+	/* Not sure why I'm doing it this way, but bind8 did */
+	fp = write_open(ns_g_pidfile);
+	if (fp != NULL) {
+		fprintf(fp, "%ld\n", (long)getpid());
+		(void)fclose(fp);
+	} else {
+		isc_log_write(ns_g_lctx,
+			      NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
+			      "couldn't create pid file '%s'",
+			      ns_g_pidfile);
+	}
+}
+
+		
+			
+static FILE *
+write_open(char *filename)
+{
+        FILE *stream;
+        int fd;
+        struct stat sb;
+        int regular;
+
+        if (stat(filename, &sb) < 0) {
+                if (errno != ENOENT) {
+                        isc_log_write(ns_g_lctx,
+				      NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR,
+				      "write_open: stat of %s failed: %s",
+				      filename, strerror(errno));
+                        return (NULL);
+                }
+                regular = 1;
+        } else
+                regular = (sb.st_mode & S_IFREG);
+
+        if (!regular) {
+                isc_log_write(ns_g_lctx,
+			      NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
+			      "write_open: %s isn't a regular file",
+			      filename);
+                return (NULL);
+        }
+                
+        (void)unlink(filename);
+        fd = open(filename, O_WRONLY|O_CREAT|O_EXCL,
+                  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+        if (fd < 0)
+                return (NULL);
+        stream = fdopen(fd, "w");
+        if (stream == NULL)
+                (void)close(fd);
+        return (stream);
+}
+
+	

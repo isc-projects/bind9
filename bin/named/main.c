@@ -19,10 +19,15 @@
 
 #include <config.h>
 
+#include <errno.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stddef.h>
+
+/* XXX this include will need to go. It's here for _SC_OPEN_MAX */
+#include <unistd.h>
+
 
 #include <isc/app.h>
 #include <isc/assertions.h>
@@ -140,7 +145,7 @@ parse_command_line(int argc, char *argv[]) {
 	int ch;
 
 	isc_commandline_errprint = ISC_FALSE;
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:d:N:p:sx:")) !=
+	while ((ch = isc_commandline_parse(argc, argv, "b:c:d:fN:p:st:x:")) !=
 	       -1) {
 		switch (ch) {
 		case 'b':
@@ -149,6 +154,9 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'd':
 			ns_g_debuglevel = atoi(isc_commandline_argument);
+			break;
+		case 'f':
+			ns_g_foreground = ISC_TRUE;
 			break;
 		case 'N':
 			ns_g_cpus = atoi(isc_commandline_argument);
@@ -161,6 +169,10 @@ parse_command_line(int argc, char *argv[]) {
 		case 's':
 			/* XXXRTH temporary syntax */
 			want_stats = ISC_TRUE;
+			break;
+		case 't':
+			/* XXXJAB should be make a copy? */
+			ns_g_chrootdir = isc_commandline_argument;
 			break;
 		case 'x':
 			/* XXXRTH temporary syntax */
@@ -251,15 +263,28 @@ cleanup() {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();
+
+	if (ns_g_pidfile != NULL) {
+		(void)unlink(ns_g_pidfile);
+		isc_mem_free(ns_g_mctx, ns_g_pidfile);
+	}
 }
 
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
+	int n;
 
 	program_name = argv[0];
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
+
+        for (n = sysconf(_SC_OPEN_MAX) - 1; n >= 0; n--)
+                if (n != STDIN_FILENO &&
+                    n != STDOUT_FILENO &&
+                    n != STDERR_FILENO)
+                        (void) close(n);
+
 
 	result = ns_os_init();
 	if (result != ISC_R_SUCCESS)
@@ -281,6 +306,33 @@ main(int argc, char *argv[]) {
 
 	parse_command_line(argc, argv);
 
+	if (ns_g_chrootdir != NULL) {
+#ifdef HAVE_CHROOT
+                if (chroot(ns_g_chrootdir) < 0) {
+			ns_main_earlyfatal("chroot %s failed: %s\n",
+					   ns_g_chrootdir, strerror(errno));
+                        exit(1);
+                }
+                if (chdir("/") < 0) {
+                        ns_main_earlyfatal("chdir(\"/\") failed: %s\n",
+					   strerror(errno));
+                        exit(1);
+                }
+#else
+                fprintf(stderr, "warning: chroot() not available\n");
+#endif
+        }
+
+	/*
+	 * deamon() must be called before any threads are created
+	 * (fork() is deadly to threads). Threads get created in setup().
+	 */
+	if (ns_g_foreground == ISC_FALSE) {
+		if (daemon(1, 0) != 0) {
+			ns_main_earlyfatal("daemon(): %s", strerror(errno));
+		}
+	}
+	
 	setup();
 
 	/*
@@ -315,3 +367,5 @@ main(int argc, char *argv[]) {
 
 	return (0);
 }
+
+

@@ -69,6 +69,11 @@ EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
  * Misc.
  */
 EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
+EXTERN const char *		ns_g_chrootdir		INIT(NULL);
+EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
+
+EXTERN const char *		ns_g_defaultpidfile INIT("/var/run/named.pid");
+EXTERN char *			ns_g_pidfile		INIT(NULL);
 
 /*
  * XXX  Temporary.

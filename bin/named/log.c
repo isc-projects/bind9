@@ -89,15 +89,25 @@ ns_log_init(void) {
 	/*
 	 * Create and install the default channel.
 	 */
-	destination.file.stream = stderr;
-	destination.file.name = NULL;
-	destination.file.versions = ISC_LOG_ROLLNEVER;
-	destination.file.maximum_size = 0;
-	flags = ISC_LOG_PRINTTIME;
-	result = isc_log_createchannel(ns_g_lctx, "_default",
-				       ISC_LOG_TOFILEDESC,
-				       ISC_LOG_DYNAMIC,
-				       &destination, flags);
+	if (ns_g_foreground) {
+		destination.file.stream = stderr;
+		destination.file.name = NULL;
+		destination.file.versions = ISC_LOG_ROLLNEVER;
+		destination.file.maximum_size = 0;
+		flags = ISC_LOG_PRINTTIME;
+		result = isc_log_createchannel(ns_g_lctx, "_default",
+					       ISC_LOG_TOFILEDESC,
+					       ISC_LOG_DYNAMIC,
+					       &destination, flags);
+	} else {
+		destination.facility = LOG_DAEMON;
+		flags = ISC_LOG_PRINTTIME;
+		result = isc_log_createchannel(ns_g_lctx, "_default",
+					       ISC_LOG_TOSYSLOG,
+					       ISC_LOG_DYNAMIC,
+					       &destination, flags);
+	}
+	
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = isc_log_usechannel(ns_g_lctx, "_default", NULL, NULL);
