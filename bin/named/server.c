@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.12 2003/05/15 06:37:55 marka Exp $ */
+/* $Id: server.c,v 1.339.2.13 2003/07/17 07:30:20 marka Exp $ */
 
 #include <config.h>
 
@@ -398,9 +398,24 @@ get_view_querysource_dispatch(cfg_obj_t **maps,
 				     1000, 32768, 16411, 16433,
 				     attrs, attrmask, &disp);
 	if (result != ISC_R_SUCCESS) {
+		isc_sockaddr_t any;
+		char buf[ISC_SOCKADDR_FORMATSIZE];
+
+		switch (af) {
+		case AF_INET:
+			isc_sockaddr_any(&any);
+			break;
+		case AF_INET6:
+			isc_sockaddr_any6(&any);
+			break;
+		}
+		if (isc_sockaddr_equal(&sa, &any))
+			return (ISC_R_SUCCESS);
+		isc_sockaddr_format(&sa, buf, sizeof(buf));
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "could not get query source dispatcher");
+			      "could not get query source dispatcher (%s)",
+			      buf);
 		return (result);
 	}
 
