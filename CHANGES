@@ -8,6 +8,8 @@
 
 1423.	[contrib]	queryperf: added A6 and SRV.
 
+1419.	[port]		openbsd: use /dev/arandom. [RT #4950]
+
 1418.	[bug]		'rndc reconfig' did not cause new slaves to load.
 
 1408.	[bug]		distclean was not complete. [RT #4700]
