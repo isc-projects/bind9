@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3393"
+HREF="Bv9ARM.ch06.html#AEN3400"
 >Zone File</A
 ></DT
 ></DL
@@ -4035,7 +4035,7 @@ CLASS="filename"
 server's current directory.  The format of the file is described
 in <A
 HREF="Bv9ARM.ch06.html#statsfile"
->Section 6.2.14.14</A
+>Section 6.2.14.15</A
 ></P
 ></DD
 ><DT
@@ -4580,7 +4580,7 @@ CLASS="command"
 >statistics-file</B
 >.  See also <A
 HREF="Bv9ARM.ch06.html#statsfile"
->Section 6.2.14.14</A
+>Section 6.2.14.15</A
 >.
 </P
 ></DD
@@ -4851,7 +4851,7 @@ CLASS="command"
 synthetic responses to IPv6 queries as described in
 <A
 HREF="Bv9ARM.ch06.html#synthesis"
->Section 6.2.14.12</A
+>Section 6.2.14.13</A
 >.
 </P
 ></DD
@@ -5410,15 +5410,11 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="AEN2508"
->6.2.14.7. Resource Limits</A
+>6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
 >The server's usage of many system resources can be limited.
-Some operating systems don't support some of the limits. On such
-systems, a warning will be issued if the unsupported limit is
-used. Some operating systems don't support limiting resources.</P
-><P
->Scaled values are allowed when specifying resource limits.  For
+Scaled values are allowed when specifying resource limits.  For
 example, <B
 CLASS="command"
 >1G</B
@@ -5443,6 +5439,11 @@ CLASS="command"
 HREF="Bv9ARM.ch06.html#configuration_file_elements"
 >Section 6.1</A
 >.</P
+><P
+>The following options set operating system resource limits for
+the name server process.  Some operating systems don't support some or
+any of the limits. On such systems, a warning will be issued if the
+unsupported limit is used.</P
 ><P
 ></P
 ><DIV
@@ -5472,7 +5473,26 @@ CLASS="command"
 may use. The default is <TT
 CLASS="literal"
 >default</TT
->.</P
+>.
+This is a hard limit on server memory usage.
+If the server attempts to allocate memory in excess of this
+limit, the allocation will fail, which may in turn leave
+the server unable to perform DNS service.  Therefore,
+this option is rarely useful as a way of limiting the
+amount of memory used by the server, but it can be used
+to raise an operating system data size limit that is
+too small by default.  If you wish to limit the amount
+of memory used by the server, use the
+<B
+CLASS="command"
+>max-cache-size</B
+> and 
+<B
+CLASS="command"
+>recursive-clients</B
+>
+options instead.
+</P
 ></DD
 ><DT
 ><B
@@ -5491,6 +5511,39 @@ CLASS="literal"
 ><DT
 ><B
 CLASS="command"
+>stacksize</B
+></DT
+><DD
+><P
+>The maximum amount of stack memory the server
+may use. The default is <TT
+CLASS="literal"
+>default</TT
+>.</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="AEN2545"
+>6.2.14.8. Server  Resource Limits</A
+></H3
+><P
+>The following options set limits on the server's
+resource consumption that are enforced internally by the
+server rather than the operating system.</P
+><P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+><B
+CLASS="command"
 >max-ixfr-log-size</B
 ></DT
 ><DD
@@ -5505,25 +5558,19 @@ CLASS="command"
 ></DT
 ><DD
 ><P
->The maximum number of simultaneous recursive
-lookups the server will perform on behalf of clients.  The default
-is <TT
+>The maximum number of simultaneous recursive lookups
+the server will perform on behalf of clients.  The default is
+<TT
 CLASS="literal"
 >1000</TT
->.</P
-></DD
-><DT
-><B
+>.  Because each recursing clients uses a fair
+bit of memory, on the order of 20 kilobytes, the value of the
+<B
 CLASS="command"
->stacksize</B
-></DT
-><DD
-><P
->The maximum amount of stack memory the server
-may use. The default is <TT
-CLASS="literal"
->default</TT
->.</P
+>recursive-clients</B
+> option may have to be decreased
+on hosts with limited memory.
+</P
 ></DD
 ><DT
 ><B
@@ -5533,7 +5580,8 @@ CLASS="command"
 ><DD
 ><P
 >The maximum number of simultaneous client TCP
-connections that the server will accept. The default is <TT
+connections that the server will accept.
+The default is <TT
 CLASS="literal"
 >100</TT
 >.</P
@@ -5565,8 +5613,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2566"
->6.2.14.8. Periodic Task Intervals</A
+NAME="AEN2573"
+>6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
 ></P
@@ -5660,7 +5708,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="topology"
->6.2.14.9. Topology</A
+>6.2.14.10. Topology</A
 ></H3
 ><P
 >All other things being equal, when the server chooses a nameserver
@@ -5724,7 +5772,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="the_sortlist_statement"
->6.2.14.10. The <B
+>6.2.14.11. The <B
 CLASS="command"
 >sortlist</B
 > Statement</A
@@ -5740,7 +5788,7 @@ CLASS="command"
 >
 statement in <A
 HREF="Bv9ARM.ch06.html#rrset_ordering"
->Section 6.2.14.11</A
+>Section 6.2.14.12</A
 >).
 The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
@@ -5763,7 +5811,7 @@ CLASS="command"
 > statement
 does (<A
 HREF="Bv9ARM.ch06.html#topology"
->Section 6.2.14.9</A
+>Section 6.2.14.10</A
 >).
 Each top level statement in the <B
 CLASS="command"
@@ -5853,7 +5901,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="rrset_ordering"
->6.2.14.11. RRset Ordering</A
+>6.2.14.12. RRset Ordering</A
 ></H3
 ><P
 >When multiple records are returned in an answer it may be
@@ -5869,7 +5917,7 @@ CLASS="command"
 > statement,
 <A
 HREF="Bv9ARM.ch06.html#the_sortlist_statement"
->Section 6.2.14.10</A
+>Section 6.2.14.11</A
 >.
 </P
 ><P
@@ -5932,7 +5980,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2654"
+NAME="AEN2661"
 ></A
 ><P
 ></P
@@ -6056,7 +6104,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="synthesis"
->6.2.14.12. Synthetic IPv6 responses</A
+>6.2.14.13. Synthetic IPv6 responses</A
 ></H3
 ><P
 >Many existing stub resolvers support IPv6 DNS lookups as defined in
@@ -6127,7 +6175,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="tuning"
->6.2.14.13. Tuning</A
+>6.2.14.14. Tuning</A
 ></H3
 ><P
 ></P
@@ -6284,7 +6332,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="statsfile"
->6.2.14.14. The Statistics File</A
+>6.2.14.15. The Statistics File</A
 ></H3
 ><P
 >The statistics file generated by <SPAN
@@ -6319,7 +6367,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2766"
+NAME="AEN2773"
 ></A
 ><P
 ></P
@@ -6728,7 +6776,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2874"
+NAME="AEN2881"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6803,7 +6851,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2890"
+NAME="AEN2897"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6838,7 +6886,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2898"
+NAME="AEN2905"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6901,7 +6949,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2912"
+NAME="AEN2919"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7531,7 +7579,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3059"
+NAME="AEN3066"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7542,13 +7590,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3062"
+NAME="AEN3069"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3064"
+NAME="AEN3071"
 ></A
 ><P
 ></P
@@ -7786,7 +7834,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3119"
+NAME="AEN3126"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7824,7 +7872,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3129"
+NAME="AEN3136"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8244,7 +8292,7 @@ CLASS="command"
 >sig-validity-interval</B
 > in <A
 HREF="Bv9ARM.ch06.html#tuning"
->Section 6.2.14.13</A
+>Section 6.2.14.14</A
 >.</P
 ></DD
 ><DT
@@ -8333,7 +8381,7 @@ CLASS="command"
 ><P
 >&#13;See the description in <A
 HREF="Bv9ARM.ch06.html#tuning"
->Section 6.2.14.13</A
+>Section 6.2.14.14</A
 >.
 </P
 ></DD
@@ -8465,7 +8513,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3363"
+NAME="AEN3370"
 ></A
 ><P
 ></P
@@ -8572,7 +8620,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3393"
+NAME="AEN3400"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8593,7 +8641,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3398"
+NAME="AEN3405"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8606,17 +8654,17 @@ NAME="AEN3398"
         permitted for optimization purposes, for example, to specify
         that a particular nearby server be tried first. See <A
 HREF="Bv9ARM.ch06.html#the_sortlist_statement"
->Section 6.2.14.10</A
+>Section 6.2.14.11</A
 > and <A
 HREF="Bv9ARM.ch06.html#rrset_ordering"
->Section 6.2.14.11</A
+>Section 6.2.14.12</A
 >.</P
 ><P
 >The components of a Resource Record are:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3404"
+NAME="AEN3411"
 ></A
 ><P
 ></P
@@ -8727,7 +8775,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3436"
+NAME="AEN3443"
 ></A
 ><P
 ></P
@@ -9104,7 +9152,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3548"
+NAME="AEN3555"
 ></A
 ><P
 ></P
@@ -9156,7 +9204,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3564"
+NAME="AEN3571"
 ></A
 ><P
 ></P
@@ -9333,7 +9381,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3612"
+NAME="AEN3619"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9363,7 +9411,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3619"
+NAME="AEN3626"
 ></A
 ><P
 ></P
@@ -9572,7 +9620,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3685"
+NAME="AEN3692"
 ></A
 ><P
 ></P
@@ -9663,7 +9711,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3713"
+NAME="AEN3720"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9696,7 +9744,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3719"
+NAME="AEN3726"
 ></A
 ><P
 ></P
@@ -9992,7 +10040,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3811"
+NAME="AEN3818"
 ></A
 ><P
 ></P
@@ -10075,7 +10123,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3834"
+NAME="AEN3841"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10099,7 +10147,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3839"
+NAME="AEN3846"
 ></A
 ><P
 ></P
@@ -10179,7 +10227,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3861"
+NAME="AEN3868"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10204,7 +10252,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3868"
+NAME="AEN3875"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10274,7 +10322,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3888"
+NAME="AEN3895"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10356,7 +10404,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3908"
+NAME="AEN3915"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10396,7 +10444,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3919"
+NAME="AEN3926"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10475,7 +10523,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3939"
+NAME="AEN3946"
 ></A
 ><P
 ></P
