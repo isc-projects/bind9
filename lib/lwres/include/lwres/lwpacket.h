@@ -15,19 +15,20 @@
  * SOFTWARE.
  */
 
-#ifndef ISC_LWPACKET_H
-#define ISC_LWPACKET_H 1
+#ifndef LWRES_LWPACKET_H
+#define LWRES_LWPACKET_H 1
 
 #include <stddef.h>
 
 #include <isc/lang.h>
-#include <isc/types.h>
+#include <isc/int.h>
 
-typedef struct isc_lwpacket isc_lwpacket_t;
+typedef struct lwres_lwpacket lwres_lwpacket_t;
 
-struct isc_lwpacket {
+struct lwres_lwpacket {
 	isc_uint32_t		length;
-	isc_uint32_t		version;
+	isc_uint16_t		version;
+	isc_uint16_t		flags;
 	isc_uint32_t		serial;
 	isc_uint32_t		opcode;
 	isc_uint32_t		result;
@@ -35,13 +36,20 @@ struct isc_lwpacket {
 	isc_uint16_t		authlength;
 };
 
-#define ISC_LWPACKETVERSION_0
+#define LWRES_LWPACKETFLAG_RESPONSE	0x0001U	/* if set, pkt is a response */
+
+#define LWRES_LWPACKETVERSION_0		0
 
 /*
  * "length" is the overall packet length, including the entire packet header.
  *
  * "version" specifies the header format.  Currently, there is only one
- * format, ISC_LWPACKETVERSION_0
+ * format, LWRES_LWPACKETVERSION_0.
+ *
+ * "flags" specifies library-defined flags for this packet.  None of these
+ * are definable by the caller, but library-defined values can be set by
+ * the caller.  For example, one bit in this field indicates if the packet
+ * is a request or a response.
  *
  * "serial" is set by the requestor and is returned in all replies.  If two
  * packets from the same source have the same serial number and are from 
@@ -68,7 +76,7 @@ struct isc_lwpacket {
  * authtypes for more information on what is contained in this field.
  *
  * The remainder of the packet consists of two regions, one described by
- * "authlen" and one of "length - authlen - sizeof(isc_lwpacket_t)".
+ * "authlen" and one of "length - authlen - sizeof(lwres_lwpacket_t)".
  *
  * That is:
  *
@@ -81,7 +89,7 @@ struct isc_lwpacket {
  *
  * Initially, we will define only a few opcodes:
  *
- *	NOOP.  Success is always returned.
+ *	NOOP.  Success is always returned, with the packet contents echoed.
  *
  *	GETADDRSBYNAME.  Return all known addresses for a given name.
  *		This may return NIS or /etc/hosts info as well as DNS
@@ -101,10 +109,4 @@ ISC_LANG_BEGINDECLS
 
 ISC_LANG_ENDDECLS
 
-#endif /* ISC_EVENT_H */
-
-
-
-
-
-
+#endif /* LWRES_LWPACKET_H */
