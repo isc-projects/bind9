@@ -208,8 +208,8 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 
 	REQUIRE(sevent != NULL);
-	REQUIRE(sevent->common.type == ISC_SOCKEVENT_SENDDONE);
-	client = sevent->common.arg;
+	REQUIRE(sevent->type == ISC_SOCKEVENT_SENDDONE);
+	client = sevent->arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
