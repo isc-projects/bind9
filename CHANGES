@@ -9,6 +9,10 @@
 			because the test code was optimized away.
 			[RT #2016]
 
+1116.	[bug]		Setting transfers in a server clause, transfers-in,
+			or transfers-per-ns to a value greater than
+			2147483647 disabled transfers.  [RT #2002]
+
 1114.	[port]		Ignore more accept() errors. [RT #2021]
 
 1113.	[bug]		The allow-update-forwarding option was ignored
@@ -17,7 +21,6 @@
 1111.	[bug]		Multithreaded servers could deadlock processing
 			recursive queries due to a locking hieararchy
 			violation in adb.c. [RT #2017]
-
 
 	--- 9.2.0rc9 released ---
 

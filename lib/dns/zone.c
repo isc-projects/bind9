@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.4 2001/10/23 02:41:57 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.5 2001/11/13 18:57:11 gson Exp $ */
 
 #include <config.h>
 
@@ -279,8 +279,8 @@ struct dns_zonemgr {
 	dns_zonelist_t		xfrin_in_progress;
 
 	/* Configuration data. */
-	int			transfersin;
-	int			transfersperns;
+	isc_uint32_t		transfersin;
+	isc_uint32_t		transfersperns;
 	unsigned int		serialqueryrate;
 
 	/* Locked by iolock */
@@ -5531,13 +5531,13 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 }
 
 void
-dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, int value) {
+dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, isc_uint32_t value) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	zmgr->transfersin = value;
 }
 
-int
+isc_uint32_t
 dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
@@ -5545,13 +5545,13 @@ dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr) {
 }
 
 void
-dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, int value) {
+dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, isc_uint32_t value) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	zmgr->transfersperns = value;
 }
 
-int
+isc_uint32_t
 dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
@@ -5614,9 +5614,9 @@ static isc_result_t
 zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	dns_peer_t *peer = NULL;
 	isc_netaddr_t masterip;
-	int nxfrsin, nxfrsperns;
+	isc_uint32_t nxfrsin, nxfrsperns;
 	dns_zone_t *x;
-	int maxtransfersin, maxtransfersperns;
+	isc_uint32_t maxtransfersin, maxtransfersperns;
 	isc_event_t *e;
 
 	/*
