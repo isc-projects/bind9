@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.193 2001/11/14 23:15:44 gson Exp $ */
+/* $Id: adb.c,v 1.194 2001/11/27 03:00:48 marka Exp $ */
 
 /*
  * Implementation notes
@@ -4076,6 +4076,30 @@ dns_adb_flush(dns_adb_t *adb) {
 	dump_adb(adb, stdout, ISC_TRUE);
 #endif
 
+	UNLOCK(&adb->lock);
+}
+
+void
+dns_adb_flushname(dns_adb_t *adb, dns_name_t *name) {
+	dns_adbname_t *adbname;
+	dns_adbname_t *nextname;
+	int bucket;
+
+	INSIST(DNS_ADB_VALID(adb));
+
+	LOCK(&adb->lock);
+	bucket = dns_name_hash(name, ISC_FALSE) % NBUCKETS;
+	LOCK(&adb->namelocks[bucket]);
+	adbname = ISC_LIST_HEAD(adb->names[bucket]);
+	while (adbname != NULL) {
+		nextname = ISC_LIST_NEXT(adbname, plink);
+		if (!NAME_DEAD(adbname) &&
+		    dns_name_equal(name, &adbname->name)) {
+			kill_name(&adbname, DNS_EVENT_ADBCANCELED);
+		}
+		adbname = nextname;
+	}
+	UNLOCK(&adb->namelocks[bucket]);
 	UNLOCK(&adb->lock);
 }
 

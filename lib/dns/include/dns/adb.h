@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.67 2001/10/25 04:57:44 marka Exp $ */
+/* $Id: adb.h,v 1.68 2001/11/27 03:00:50 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -580,6 +580,17 @@ dns_adb_setadbsize(dns_adb_t *adb, isc_uint32_t size);
  * Requires:
  *	'adb' is valid.
  */
+
+void
+dns_adb_flushname(dns_adb_t *adb, dns_name_t *name);
+/*
+ * Flush 'name' from the adb cache.
+ * 
+ * Requires:
+ *	'adb' is valid.
+ *	'name' is valid.
+ */
+
 
 ISC_LANG_ENDDECLS
 
