@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.27 2001/01/09 21:39:27 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.28 2001/03/31 02:12:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -45,6 +45,7 @@ extern const char *program;
 static isc_entropysource_t *source = NULL;
 static isc_keyboard_t kbd;
 static isc_boolean_t wantkeyboard = ISC_FALSE;
+static fatalcallback_t *fatalcallback = NULL;
 
 void
 fatal(const char *format, ...) {
@@ -55,7 +56,14 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
+	if (fatalcallback != NULL)
+		(*fatalcallback)();
 	exit(1);
+}
+
+void
+setfatalcallback(fatalcallback_t *callback) {
+	fatalcallback = callback;
 }
 
 void

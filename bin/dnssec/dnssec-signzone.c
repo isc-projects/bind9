@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.135 2001/03/31 01:46:13 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.136 2001/03/31 02:12:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -99,6 +99,7 @@ static isc_mem_t *mctx = NULL;
 static isc_entropy_t *ectx = NULL;
 static dns_ttl_t zonettl;
 static FILE *fp;
+static char *tempfile = NULL;
 static const dns_master_style_t *masterstyle = &dns_master_style_explicitttl;
 static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
@@ -116,6 +117,7 @@ static unsigned int ntasks = 0;
 static isc_boolean_t shuttingdown = ISC_FALSE, finished = ISC_FALSE;
 static unsigned int assigned = 0, completed = 0;
 static isc_boolean_t nokeys = ISC_FALSE;
+static isc_boolean_t removefile = ISC_FALSE;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -1486,12 +1488,17 @@ usage(void) {
 	exit(0);
 }
 
+static void
+removetempfile(void) {
+	if (removefile)
+		isc_file_remove(tempfile);
+}
+
 int
 main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
-	char *tempfile = NULL;
 	char *randomfile = NULL;
 	char *endp;
 	isc_time_t timer_start, timer_finish;
@@ -1726,6 +1733,9 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to open temporary output file: %s",
 		      isc_result_totext(result));
+	removefile = ISC_TRUE;
+	setfatalcallback(&removetempfile);
+
 	print_time(fp);
 	print_version(fp);
 
@@ -1771,6 +1781,7 @@ main(int argc, char *argv[]) {
 
 	result = isc_stdio_close(fp);
 	check_result(result, "isc_stdio_close");
+	removefile = ISC_FALSE;
 
 	result = isc_file_rename(tempfile, output);
 	if (result != ISC_R_SUCCESS)

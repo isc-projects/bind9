@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.13 2001/01/09 21:39:28 bwelling Exp $ */
+/* $Id: dnssectool.h,v 1.14 2001/03/31 02:12:26 bwelling Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -25,8 +25,13 @@
 #include <dns/rdatastruct.h>
 #include <dst/dst.h>
 
+typedef void (fatalcallback_t)(void);
+
 void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+
+void
+setfatalcallback(fatalcallback_t *callback);
 
 void
 check_result(isc_result_t result, const char *message);
