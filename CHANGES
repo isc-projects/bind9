@@ -1,4 +1,6 @@
 
+ 699.	[bug]		The lexer mishandled empty quoted strings. [RT #694]
+
  698.	[bug]		Aborting nsupdate with ^C would lead to several
 			race conditions.
 
