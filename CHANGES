@@ -13,6 +13,9 @@
 1474.	[port]		Provide strtoul() and memmove() for platforms
 			without them.
 
+1468.	[func]		Internal zones are nolonger for 'rndc status'.
+			[RT #4706]
+
 1467.	[func]		$GENERATES now supports optional class and ttl.
 
 1458.	[cleanup]	sprintf() -> snprintf().

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.29 2003/09/02 02:21:51 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.30 2003/09/10 05:23:08 marka Exp $ */
 
 #include <config.h>
 
@@ -6640,8 +6640,12 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	case DNS_ZONESTATE_ANY:
 		for (zone = ISC_LIST_HEAD(zmgr->zones);
 		     zone != NULL;
-		     zone = ISC_LIST_NEXT(zone, link))
+		     zone = ISC_LIST_NEXT(zone, link)) {
+			dns_view_t *view = zone->view;
+			if (view != NULL && strcmp(view->name, "_bind") == 0)
+				continue;
 			count++;
+		}
 		break;
 	default:
 		INSIST(0);
