@@ -17,9 +17,17 @@
 
 #include <config.h>
 
+#include <ctype.h>
+#include <stdio.h>		/* for sprintf */
+#include <stdlib.h>
+
 #include <isc/assertions.h>
 #include <isc/print.h>
 #include <isc/platform.h>
+
+#ifndef ISC_PLATFORM_NEEDVSNPRINTF
+#error ISC_PLATFORM_NEEDVSPRINTF needs to be defined to compile this file.
+#endif
 
 /*
  * Return length of string that would have been written if not truncated.
