@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.47 1999/04/22 14:36:30 tale Exp $ */
+/* $Id: rbt.c,v 1.48 1999/04/23 04:59:41 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -351,14 +351,13 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * Does this thing have too many variables or what?
 	 */
 	dns_rbtnode_t **root, *parent, *child, *current, *new_current;
-	dns_name_t add_name, current_name, new_name, tmp_name;
-	dns_offsets_t add_offsets, current_offsets, new_offsets, tmp_offsets;
+	dns_name_t *add_name, current_name, *prefix, *suffix;
+	dns_fixedname_t fixedcopy, fixedprefix, fixedsuffix;
+	dns_offsets_t current_offsets;
 	dns_namereln_t compared;
-	dns_result_t result;
+	dns_result_t result = DNS_R_SUCCESS;
 	dns_rbtnodechain_t chain;
-	isc_region_t r;
-	unsigned int add_labels, current_labels, keep_labels, start_label;
-	unsigned int common_labels, common_bits;
+	unsigned int common_labels, common_bits, add_bits;
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -367,14 +366,15 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	/*
 	 * Create a copy of the name so the original name structure is
-	 * not modified.
+	 * not modified.  The name data needs to be modifiable when
+	 * a node is split on a bitstring label.
 	 */
-	dns_name_init(&add_name, add_offsets);
-	dns_name_toregion(name, &r);
-	dns_name_fromregion(&add_name, &r);
+	dns_fixedname_init(&fixedcopy);
+	add_name = dns_fixedname_name(&fixedcopy);
+	dns_name_concatenate(name, NULL, add_name, NULL);
 
 	if (rbt->root == NULL) {
-		result = create_node(rbt->mctx, &add_name, &new_current);
+		result = create_node(rbt->mctx, add_name, &new_current);
 		if (result == DNS_R_SUCCESS) {
 			rbt->root = new_current;
 			*nodep = new_current;
@@ -385,6 +385,11 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_rbtnodechain_init(&chain, rbt->mctx);
 	ADD_ANCESTOR(&chain, NULL);
 
+	dns_fixedname_init(&fixedprefix);
+	dns_fixedname_init(&fixedsuffix);
+	prefix = dns_fixedname_name(&fixedprefix);
+	suffix = dns_fixedname_name(&fixedsuffix);
+
 	root = &rbt->root;
 	parent = NULL;
 	current = NULL;
@@ -394,14 +399,14 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		current = child;
 
 		NODENAME(current, &current_name);
-		compared = dns_name_fullcompare(&add_name, &current_name,
+		compared = dns_name_fullcompare(add_name, &current_name,
 						&order,
 						&common_labels, &common_bits);
 
 		if (compared == dns_namereln_equal) {
 			*nodep = current;
-			put_ancestor_mem(&chain);
-			return (DNS_R_EXISTS);
+			result = DNS_R_EXISTS;
+			break;
 
 		}
 
@@ -431,28 +436,22 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			 * start a new tree.
 			 */
 
-                        add_labels   = FAST_COUNTLABELS(&add_name);
-                        current_labels = FAST_COUNTLABELS(&current_name);
-
-			if (compared == dns_namereln_subdomain &&
-			    common_bits == 0) {
+			if (compared == dns_namereln_subdomain) {
 				/*
 				 * All of the exising labels are in common,
 				 * so the new name is in a subtree.
-				 * First, turn the non-in-common part of
-				 * &add_name into its own dns_name_t to be
-				 * searched for in the downtree.
+				 * Whack off the common labels for the 
+				 * not-in-common part to be searched for
+				 * in the next level.
 				 */
+				result = dns_name_split(add_name,
+							common_labels,
+							common_bits,
+							add_name, NULL);
 
-				start_label = 0;
-
-				keep_labels = add_labels - common_labels;
-
-				dns_name_getlabelsequence(&add_name,
-							  start_label,
-							  keep_labels,
-							  &add_name);
-
+				if (result != DNS_R_SUCCESS)
+					break;
+				
 				/*
 				 * Follow the down pointer (possibly NULL).
 				 */
@@ -472,9 +471,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 */
 
 				INSIST(compared == dns_namereln_commonancestor
-				       || compared == dns_namereln_contains
-				       || (compared == dns_namereln_subdomain
-					   && common_bits > 0));
+				       || compared == dns_namereln_contains);
 
 				/*
 				 * Ensure the number of levels in the tree
@@ -485,42 +482,28 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 */
 				if (chain.level_count ==
 				    (sizeof(chain.levels) / 
-				     sizeof(*chain.levels)))
-				    return (DNS_R_NOSPACE);
-
-				/* XXX DCL handle bitstrings.
-				 * When common_bits is non-zero, the last label
-				 * in common (eg, vix in a.vix.com vs
-				 * b.vix.com) is a bit label and common_bits is
-				 * how many are in common.  To split the node,
-				 * the node in question will have to split into
-				 * two bitstrings.  A comment in name.h says,
-				 * "Some provision still needs to be made for
-				 * splitting bitstring labels," and Bob has
-				 * pushed this down on the priority list,
-				 * so for now splitting on bitstrings does not
-				 * work.
-				 */
+				     sizeof(*chain.levels))) {
+					result = DNS_R_NOSPACE;
+					break;
+				}
 
 				/*
-				 * Get the common labels of the current name.
+				 * Split the name into two parts, a prefix
+				 * which is the not-in-common parts of the
+				 * two names and a suffix that is the common
+				 * parts of them.
 				 */
-				   
-				start_label = current_labels - common_labels;
-				keep_labels = common_labels;
+				result = dns_name_split(&current_name,
+							common_labels,
+							common_bits,
+							prefix, suffix);
 
-				dns_name_init(&tmp_name, tmp_offsets);
-				dns_name_getlabelsequence(&current_name,
-							  start_label,
-							  keep_labels,
-							  &tmp_name);
+				if (result == DNS_R_SUCCESS)
+					result = create_node(rbt->mctx, suffix,
+							     &new_current);
 
-				result = create_node(rbt->mctx,
-						     &tmp_name, &new_current);
-				if (result != DNS_R_SUCCESS) {
-					put_ancestor_mem(&chain);
-					return (result);
-				}
+				if (result != DNS_R_SUCCESS)
+					break;
 
 				/* 
 				 * Reproduce the tree attributes of the
@@ -542,7 +525,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					*root = new_current;
 
 				/*
-				 * Now create the new root of the subtree
+				 * Now make the new root of the subtree
 				 * as the not-in-common labels of the current
 				 * node, keeping the same memory location so
 				 * as not to break any external references to
@@ -550,32 +533,57 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * are preserved, while left and right
 				 * pointers are nullified when the node is
 				 * established as the start of the next level.
-				 */
-
-				start_label = 0;
-				keep_labels = current_labels - common_labels;
-
-				dns_name_init(&new_name, new_offsets);
-				dns_name_getlabelsequence(&current_name,
-							  start_label,
-							  keep_labels,
-							  &new_name);
-
-				/*
+				 *
 				 * The name stored at the node is effectively
 				 * truncated in place by setting the shorter
 				 * name length, moving the offsets to the
 				 * end of the truncated name, and then
 				 * updating PADBYTES to reflect the truncation.
+				 *
+				 * When bitstring labels are involved, things
+				 * are just a tad more complicated (aren't
+				 * they always?) because the splitting
+				 * has shifted the bits that this name needs,
+				 * as well as adjusted the bit count.
+				 * So there are convolutions to deal with it.
+				 * There are compromises here between
+				 * abstraction and efficiency.
 				 */
 
-				NAMELEN(current) = new_name.length;
-				OFFSETLEN(current) = keep_labels;
-				memcpy(OFFSETS(current), new_name.offsets,
-				       keep_labels);
+				if (common_bits > 0) {
+					dns_label_t label;
+
+					dns_name_getlabel(prefix,
+					      FAST_COUNTLABELS(&current_name) -
+							  common_labels,
+							  &label);
+
+					INSIST(dns_label_type(&label) ==
+					       dns_labeltype_bitstring);
+
+					memcpy(NAME(current) +
+					       (label.base - prefix->ndata),
+					       label.base,
+					       label.length);
+
+					dns_name_getlabel(add_name,
+						   FAST_COUNTLABELS(add_name) -
+							  common_labels,
+							  &label);
+					INSIST(dns_label_type(&label) ==
+					       dns_labeltype_bitstring);
+
+					add_bits = dns_label_countbits(&label);
+				} else
+					add_bits = 0;
+
+				NAMELEN(current) = prefix->length;
+				OFFSETLEN(current) = prefix->labels;
+				memcpy(OFFSETS(current), prefix->offsets,
+				       prefix->labels);
 				PADBYTES(current) +=
-					(current_name.length - new_name.length)
-				        + (current_labels - keep_labels);
+				       (current_name.length - prefix->length) +
+				       (current_name.labels - prefix->labels);
 
 				/*
 				 * Set up the new root of the next level.
@@ -593,7 +601,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				MAKE_BLACK(current);
 				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
 
-				if (common_labels == add_labels) {
+				if (common_labels ==
+				    FAST_COUNTLABELS(add_name) &&
+				    common_bits == add_bits) {
 					/*
 					 * The name has been added by pushing
 					 * the not-in-common parts down to
@@ -608,24 +618,27 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					 * The current node has no data,
 					 * because it is just a placeholder.
 					 * Its data pointer is already NULL
-					 * from create_node()).
+					 * from create_node()), so there's
+					 * nothing more to do to but add it to
+					 * the ancestor chain, because it will
+					 * be the parent node of the new node.
 					 */
+					ADD_ANCESTOR(&chain, current);
 
 					/* The not-in-common parts of the new
 					 * name will be inserted into the new
-					 * level following this loop.
+					 * level following this loop (unless
+					 * result != DNS_R_SUCCESS, which
+					 * is tested after the loop ends).
 					 */
-					start_label = 0;
-					keep_labels =
-						add_labels - common_labels;
+					result = dns_name_split(add_name, 
+								common_labels,
+								common_bits,
+								add_name,
+								NULL);
 
-					dns_name_getlabelsequence(&add_name,
-								  start_label,
-								  keep_labels,
-								  &add_name);
-
-					child = NULL;
-					ADD_ANCESTOR(&chain, current);
+				
+					break;
 				}
 
 			}
@@ -634,7 +647,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	} while (child != NULL);
 
-	result = create_node(rbt->mctx, &add_name, &new_current);
+	if (result == DNS_R_SUCCESS)
+		result = create_node(rbt->mctx, add_name, &new_current);
 
 	if (result == DNS_R_SUCCESS) {
 		dns_rbt_addonlevel(new_current, current, order, root, &chain);
@@ -687,15 +701,15 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 {
 	dns_rbtnode_t *current;
 	dns_rbtnodechain_t localchain;
-	dns_name_t *search_name, *current_name, *tmp_name, *callback_name;
-	dns_name_t name1, name2;
-	dns_offsets_t name1_offsets, name2_offsets;
+	dns_name_t *search_name, current_name, *callback_name, tmp_name;
+	dns_offsets_t tmp_offsets;
 	dns_fixedname_t fixedcallbackname;
 	dns_namereln_t compared;
 	dns_result_t result, saved_result;
-	isc_region_t r;
+	isc_region_t region;
+	isc_buffer_t buffer;
+	unsigned char data[255];
 	unsigned int common_labels, common_bits;
-	unsigned int first_common_label;
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -716,30 +730,34 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	dns_fixedname_init(&fixedcallbackname);
 	callback_name = dns_fixedname_name(&fixedcallbackname);
 
-	dns_name_init(&name1, name1_offsets);
-	dns_name_init(&name2, name2_offsets);
-
 	/*
 	 * search_name is the name segment being sought in each tree level.
 	 * Ensure that it has offsets by making a copy into a structure 
-	 * that has offsets.
+	 * that has offsets.  Since weird juju happens when splitting bitstring
+	 * labels, a buffer is provided for the bitfiddling to use; however,
+	 * the input name's data is used to avoid unnecessary copying.
 	 */
+	search_name = &tmp_name;
 	if (name->offsets == NULL) {
-		search_name = &name1;
-		dns_name_toregion(name, &r);
-		dns_name_fromregion(search_name, &r);
-	} else
-		search_name = name;
+		dns_name_init(search_name, tmp_offsets);
+		dns_name_toregion(name, &region);
+		dns_name_fromregion(search_name, &region);
+	}
 
-	current_name = &name2;
+	isc_buffer_init(&buffer, data, 255, ISC_BUFFERTYPE_BINARY);
+	dns_name_setbuffer(search_name, &buffer);
+
+	search_name->ndata = name->ndata;
+
+	dns_name_init(&current_name, NULL);
 
 	ADD_ANCESTOR(chain, NULL);
 
 	saved_result = DNS_R_SUCCESS;
 	current = rbt->root;
 	while (current != NULL) {
-		NODENAME(current, current_name);
-		compared = dns_name_fullcompare(search_name, current_name,
+		NODENAME(current, &current_name);
+		compared = dns_name_fullcompare(search_name, &current_name,
                                                 &order,
                                                 &common_labels, &common_bits);
 
@@ -765,36 +783,19 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			 * the current node's name length, then follow the
 			 * down pointer and search in the new tree.
 			 */
-			if (compared == dns_namereln_subdomain &&
-			    common_bits == 0) {
+			if (compared == dns_namereln_subdomain) {
 				/*
-				 * Set up new name to search for as
-				 * the not-in-common part.
-				 */
-				if (search_name == &name2) {
-					current_name = &name2;
-					tmp_name = &name1;
-					dns_name_init(tmp_name, name1_offsets);
-
-				} else {
-					current_name = &name1;
-					tmp_name = &name2;
-					dns_name_init(tmp_name, name2_offsets);
-				}
-
-				first_common_label =
-					FAST_COUNTLABELS(search_name)
-					- common_labels;
-
-				/*
-				 * Whack off the current node's common labels
+				 * Whack off the current node's common parts
 				 * for the name to search in the next level.
 				 */
-				dns_name_getlabelsequence(search_name, 0,
-							  first_common_label,
-							  tmp_name);
-			
-				search_name = tmp_name;
+				result = dns_name_split(search_name,
+							common_labels,
+							common_bits,
+							search_name, NULL);
+				if (result != DNS_R_SUCCESS) {
+					dns_rbtnodechain_reset(chain);
+					return (result);
+				}
 
 				/*
 				 * This might be the closest enclosing name.
@@ -813,7 +814,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * function needs the chain pointed to the
 				 * next level.
 				 */
-
 				ADD_ANCESTOR(chain, NULL);
 				ADD_LEVEL(chain, current);
 				chain->level_matches++;
@@ -864,9 +864,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * logic below then end the loop.
 				 */
 				INSIST(compared == dns_namereln_commonancestor
-				       || compared == dns_namereln_contains
-				       || (compared == dns_namereln_subdomain
-					   && common_bits > 0));
+				       || compared == dns_namereln_contains);
 
 				ADD_ANCESTOR(chain, current);
 				current = NULL;
@@ -1263,7 +1261,8 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 static dns_result_t
 join_nodes(dns_rbt_t *rbt,
-	   dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) {
+	   dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
+{
 	dns_rbtnode_t *down, *newnode;
 	dns_result_t result;
 	dns_name_t newname;
