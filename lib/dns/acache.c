@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.3.2.2 2004/12/23 00:08:03 marka Exp $ */
+/* $Id: acache.c,v 1.3.2.3 2004/12/29 22:38:09 marka Exp $ */
 
 #include <config.h>
 
@@ -1217,11 +1217,8 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	};
-	/*
-	 * We need two counters on creation: one for the caller, and one for
-	 * the cache object.
-	 */
-	isc_refcount_init(&newentry->references, 2);
+
+	isc_refcount_init(&newentry->references, 1);
 
 	ISC_LINK_INIT(newentry, link);
 	ISC_LINK_INIT(newentry, olink);
@@ -1343,6 +1340,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	dbentry_t *odbent;
 	dbentry_t *rdbent = NULL;
 	isc_boolean_t close_version = ISC_FALSE;
+	dns_acacheentry_t *dummy_entry = NULL;
 
 	REQUIRE(DNS_ACACHE_VALID(acache));
 	REQUIRE(DNS_ACACHEENTRY_VALID(entry));
@@ -1433,6 +1431,12 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	ISC_LIST_APPEND(odbent->originlist, entry, olink);
 	if (rdbent != NULL)
 		ISC_LIST_APPEND(rdbent->referlist, entry, rlink);
+
+	/*
+	 * The additional cache needs an implicit reference to entries in its
+	 * link.
+	 */
+	dns_acache_attachentry(entry, &dummy_entry);
 
 	UNLOCK(&entry->lock);
 	UNLOCK(&acache->lock);
