@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.6 2000/03/14 19:48:48 tale Exp $ */
+/* $Id: omapi.c,v 1.7 2000/03/14 19:55:26 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -238,4 +238,5 @@ listen_done(void *mgr) {
 	UNUSED(mgr);
 
 	omapi_object_dereference(&ns_g_omapimgr);
+	omapi_lib_destroy();
 }

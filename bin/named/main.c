@@ -339,7 +339,6 @@ setup() {
 static void
 cleanup() {
 	destroy_managers();
-	omapi_lib_destroy();
 	ns_server_destroy(&ns_g_server);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
