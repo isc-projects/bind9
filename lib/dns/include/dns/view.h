@@ -67,6 +67,7 @@ struct dns_view {
 	isc_mutex_t			lock;
 	/* Locked by lock. */
 	unsigned int			references;
+	unsigned int			attributes;
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view)	link;
 };
@@ -75,9 +76,10 @@ struct dns_view {
 #define DNS_VIEW_VALID(view)		((view) != NULL && \
 					 (view)->magic == DNS_VIEW_MAGIC)
 
+#define DNS_VIEWATTR_FROZEN		0x01
+
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
-		dns_db_t *cachedb, dns_resolver_t *resolver,
 		dns_view_t **viewp);
 
 void
@@ -85,6 +87,18 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp);
 
 void
 dns_view_detach(dns_view_t **viewp);
+
+void
+dns_view_setresolver(dns_view_t *view, dns_resolver_t *resolver);
+
+void
+dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb);
+
+isc_result_t
+dns_view_addzone(dns_view_t *view, dns_db_t *db);
+
+void
+dns_view_freeze(dns_view_t *view);
 
 ISC_LANG_ENDDECLS
 

@@ -34,9 +34,10 @@
 
 #include "../isc/util.h"		/* XXXRTH */
 
+#define FROZEN(v)		(((v)->attributes & DNS_VIEWATTR_FROZEN) != 0)
+
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
-		dns_db_t *cachedb, dns_resolver_t *resolver, 
 		dns_view_t **viewp)
 {
 	dns_view_t *view;
@@ -74,16 +75,13 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_mutex;
 	}
-	view->cachedb = NULL;
-	if (cachedb != NULL)
-		dns_db_attach(cachedb, &view->cachedb);
-	view->resolver = NULL;
-	if (resolver != NULL)
-		dns_resolver_attach(resolver, &view->resolver);
 
+	view->cachedb = NULL;
+	view->resolver = NULL;
 	view->mctx = mctx;
 	view->rdclass = rdclass;
 	view->references = 1;
+	view->attributes = 0;
 	view->magic = DNS_VIEW_MAGIC;
 	
 	*viewp = view;
@@ -154,4 +152,38 @@ dns_view_detach(dns_view_t **viewp) {
 
 	if (need_destroy)
 		destroy(view);
+}
+
+void
+dns_view_setresolver(dns_view_t *view, dns_resolver_t *resolver) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!FROZEN(view));
+	REQUIRE(view->resolver == NULL);
+	
+	view->resolver = resolver;
+}
+
+void
+dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!FROZEN(view));
+	REQUIRE(view->cachedb == NULL);
+
+	dns_db_attach(cachedb, &view->cachedb);
+}
+
+isc_result_t
+dns_view_addzone(dns_view_t *view, dns_db_t *db) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!FROZEN(view));
+
+	return (dns_dbtable_add(view->dbtable, db));
+}
+
+void
+dns_view_freeze(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(!FROZEN(view));
+
+	view->attributes |= DNS_VIEWATTR_FROZEN;
 }
