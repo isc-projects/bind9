@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.80 2000/07/28 00:04:44 bwelling Exp $ */
+/* $Id: dig.c,v 1.81 2000/08/01 00:53:16 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -224,6 +224,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 /*
  * Callback from dighost.c to print that it is trying a server.
  * Not used in dig.
+ * XXX print_trying
  */
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup) {
@@ -563,6 +564,7 @@ reorder_args(int argc, char *argv[]) {
  * We're not using isc_commandline_parse() here since the command line
  * syntax of dig is quite a bit different from that which can be described
  * that routine.
+ * XXX doc options
  */
 static void
 parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
@@ -837,7 +839,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit (exitcode);
+					exit(exitcode);
 				}
 				ptr = rv[1];
 				rv++;
@@ -859,7 +861,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit (exitcode);
+					exit(exitcode);
 				}
 				ptr = rv[1];
 				rv++;
@@ -888,7 +890,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit (exitcode);
+					exit(exitcode);
 				}
 				batchname = rv[1];
 				rv++;
@@ -900,7 +902,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			else {
 				if (rc <= 1) {
 					show_usage();
-					exit (exitcode);
+					exit(exitcode);
 				}
 				ptr = rv[1];
 				rv++;
@@ -924,7 +926,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			else {
 				if (rc <= 1) {
 					show_usage();
-					exit (exitcode);
+					exit(exitcode);
 				}
 				ptr = rv[1];
 				rv++;
@@ -937,7 +939,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit (exitcode);
+					exit(exitcode);
 				}
 				port = atoi(rv[1]);
 				rv++;
@@ -946,14 +948,14 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		} else if (strncmp(rv[0], "-b", 2) == 0) {
 			if (rv[0][2] != 0) {
 				strncpy(address, &rv[0][2],
-					MXRD);
+					sizeof(address));
 			} else {
 				if (rc <= 1) {
 					show_usage();
-					exit (exitcode);
+					exit(exitcode);
 				}
 				strncpy(address, rv[1],
-					MXRD);
+					sizeof(address));
 				rv++;
 				rc--;
 			}
@@ -1002,6 +1004,9 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			rv++;
 			rc--;
 		} else {
+			/*
+			 * Anything which isn't an option 
+			 */
 			tr.base = rv[0];
 			tr.length = strlen(rv[0]);
 			if (strncmp(rv[0], "ixfr=", 5) == 0) {
@@ -1024,7 +1029,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				continue;
 			}
 			if (!config_only) {
-				lookup=clone_lookup(default_lookup, ISC_TRUE);
+				lookup = clone_lookup(default_lookup,
+						      ISC_TRUE);
 				strncpy(lookup->textname, rv[0], MXNAME-1);
 				lookup->trace_root = ISC_TF(lookup->trace  ||
 						     lookup->ns_search_only);
@@ -1033,6 +1039,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				have_host = ISC_TRUE;
 				debug("looking up %s", lookup->textname);
 			}
+			/* XXX Error message */
 		}
 	}
 	/* 
@@ -1048,6 +1055,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				exitcode = 10;
 			fatal("Couldn't open specified batch file");
 		}
+		/* XXX Remove code dup from shutdown code */
 		if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 			debug("batch line %s", batchline);
 			bargc = 1;
@@ -1064,8 +1072,11 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			parse_args(ISC_TRUE, ISC_FALSE, bargc, (char **)bargv);
 		}
 	}
+	/*
+	 * If no lookup specified, search for root
+	 */
 	if ((lookup_list.head == NULL) && !config_only) {
-		lookup=clone_lookup(default_lookup, ISC_TRUE);
+		lookup = clone_lookup(default_lookup, ISC_TRUE);
 		lookup->trace_root = ISC_TF(lookup->trace ||
 					    lookup->ns_search_only);
 		lookup->new_search = ISC_TRUE;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.39 2000/07/27 19:06:12 mws Exp $ */
+/* $Id: dig.h,v 1.40 2000/08/01 00:53:20 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -33,7 +33,12 @@
 #include <isc/socket.h>
 
 #define MXSERV 6
+/* XXXMWS Get MXNAME from name.h, or wherever */
 #define MXNAME 1005
+/*
+ * MXNAME was decided upon on 7/31/00 at IETF by everyone.
+ * This may well NOT be true for bitstring labels.
+ */
 #define MXRD 32
 #define BUFSIZE 512
 #define COMMSIZE 0xffff
