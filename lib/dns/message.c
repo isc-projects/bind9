@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.182 2001/02/23 01:45:29 bwelling Exp $ */
+/* $Id: message.c,v 1.183 2001/03/05 20:06:10 bwelling Exp $ */
 
 /***
  *** Imports
@@ -547,8 +547,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 	}
 
 	msgblock = ISC_LIST_HEAD(msg->rdatas);
-	INSIST(msgblock != NULL);
-	if (!everything) {
+	if (!everything && msgblock != NULL) {
 		msgblock_reset(msgblock);
 		msgblock = ISC_LIST_NEXT(msgblock, link);
 	}
@@ -576,8 +575,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 	}
 
 	msgblock = ISC_LIST_HEAD(msg->offsets);
-	INSIST(msgblock != NULL);
-	if (!everything) {
+	if (!everything && msgblock != NULL) {
 		msgblock_reset(msgblock);
 		msgblock = ISC_LIST_NEXT(msgblock, link);
 	}
@@ -722,7 +720,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
-	isc_mempool_setfillcount(m->namepool, NAME_COUNT);
 	isc_mempool_setname(m->namepool, "msg:names");
 
 	result = isc_mempool_create(m->mctx, sizeof(dns_rdataset_t),
@@ -730,7 +727,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	isc_mempool_setfreemax(m->rdspool, NAME_COUNT);
-	isc_mempool_setfillcount(m->rdspool, NAME_COUNT);
 	isc_mempool_setname(m->rdspool, "msg:rdataset");
 
 	dynbuf = NULL;
@@ -739,26 +735,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 		goto cleanup;
 	ISC_LIST_APPEND(m->scratchpad, dynbuf, link);
 
-	msgblock = msgblock_allocate(mctx, sizeof(dns_rdata_t),
-				     RDATA_COUNT);
-	if (msgblock == NULL)
-		goto cleanup;
-	ISC_LIST_APPEND(m->rdatas, msgblock, link);
-
-	if (intent == DNS_MESSAGE_INTENTPARSE) {
-		msgblock = msgblock_allocate(mctx, sizeof(dns_rdatalist_t),
-					     RDATALIST_COUNT);
-		if (msgblock == NULL)
-			goto cleanup;
-		ISC_LIST_APPEND(m->rdatalists, msgblock, link);
-	}
-
-	msgblock = msgblock_allocate(mctx, sizeof(dns_offsets_t),
-				     OFFSET_COUNT);
-	if (msgblock == NULL)
-		goto cleanup;
-	ISC_LIST_APPEND(m->offsets, msgblock, link);
-
 	*msgp = m;
 	return (ISC_R_SUCCESS);
 
@@ -766,12 +742,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	 * Cleanup for error returns.
 	 */
  cleanup:
-	msgblock = ISC_LIST_HEAD(m->rdatas);
-	if (msgblock != NULL)
-		msgblock_free(mctx, msgblock, sizeof(dns_rdata_t));
-	msgblock = ISC_LIST_HEAD(m->rdatalists);
-	if (msgblock != NULL)
-		msgblock_free(mctx, msgblock, sizeof(dns_rdatalist_t));
 	dynbuf = ISC_LIST_HEAD(m->scratchpad);
 	if (dynbuf != NULL) {
 		ISC_LIST_UNLINK(m->scratchpad, dynbuf, link);
