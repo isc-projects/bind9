@@ -82,8 +82,8 @@ void MD5_Init(MD5_CTX *c)
 	c->num=0;
 	}
 
-#ifndef dst_md5_block_host_order
-void dst_md5_block_host_order (MD5_CTX *c, const void *data, int num)
+#ifndef dst__openssl_md5_block_host_order
+void dst__openssl_md5_block_host_order (MD5_CTX *c, const void *data, int num)
 	{
 	const MD5_LONG *X=data;
 	register unsigned long A,B,C,D;
@@ -186,11 +186,11 @@ void dst_md5_block_host_order (MD5_CTX *c, const void *data, int num)
 	}
 #endif
 
-#ifndef dst_md5_block_data_order
+#ifndef dst__openssl_md5_block_data_order
 #ifdef X
 #undef X
 #endif
-void dst_md5_block_data_order (MD5_CTX *c, const void *data_, int num)
+void dst__openssl_md5_block_data_order (MD5_CTX *c, const void *data_, int num)
 	{
 	const unsigned char *data=data_;
 	register unsigned long A,B,C,D,l;

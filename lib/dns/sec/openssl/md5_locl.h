@@ -67,15 +67,15 @@
 
 #ifdef MD5_ASM
 # if defined(__i386) || defined(_M_IX86) || defined(__INTEL__)
-#  define dst_md5_block_host_order dst_md5_block_asm_host_order
+#  define dst__openssl_md5_block_host_order dst__openssl_md5_block_asm_host_order
 # elif defined(__sparc) && defined(ULTRASPARC)
-   void dst_md5_block_asm_data_order_aligned (MD5_CTX *c, const MD5_LONG *p,int num);
-#  define HASH_BLOCK_DATA_ORDER_ALIGNED dst_md5_block_asm_data_order_aligned
+   void dst__openssl_md5_block_asm_data_order_aligned (MD5_CTX *c, const MD5_LONG *p,int num);
+#  define HASH_BLOCK_DATA_ORDER_ALIGNED dst__openssl_md5_block_asm_data_order_aligned
 # endif
 #endif
 
-void dst_md5_block_host_order (MD5_CTX *c, const void *p,int num);
-void dst_md5_block_data_order (MD5_CTX *c, const void *p,int num);
+void dst__openssl_md5_block_host_order (MD5_CTX *c, const void *p,int num);
+void dst__openssl_md5_block_data_order (MD5_CTX *c, const void *p,int num);
 
 #if defined(__i386) || defined(_M_IX86) || defined(__INTEL__)
 /*
@@ -99,7 +99,7 @@ void dst_md5_block_data_order (MD5_CTX *c, const void *p,int num);
  *
  *				<appro@fy.chalmers.se>
  */
-#define dst_md5_block_data_order dst_md5_block_host_order
+#define dst__openssl_md5_block_data_order dst__openssl_md5_block_host_order
 #endif
 
 #define DATA_ORDER_IS_LITTLE_ENDIAN
@@ -119,13 +119,13 @@ void dst_md5_block_data_order (MD5_CTX *c, const void *p,int num);
 	ll=(c)->C; HOST_l2c(ll,(s));	\
 	ll=(c)->D; HOST_l2c(ll,(s));	\
 	} while (0)
-#define HASH_BLOCK_HOST_ORDER	dst_md5_block_host_order
-#if !defined(L_ENDIAN) || defined(dst_md5_block_data_order)
-#define	HASH_BLOCK_DATA_ORDER	dst_md5_block_data_order
+#define HASH_BLOCK_HOST_ORDER	dst__openssl_md5_block_host_order
+#if !defined(L_ENDIAN) || defined(dst__openssl_md5_block_data_order)
+#define	HASH_BLOCK_DATA_ORDER	dst__openssl_md5_block_data_order
 /*
  * Little-endians (Intel and Alpha) feel better without this.
  * It looks like memcpy does better job than generic
- * dst_md5_block_data_order on copying-n-aligning input data.
+ * dst__openssl_md5_block_data_order on copying-n-aligning input data.
  * But frankly speaking I didn't expect such result on Alpha.
  * On the other hand I've got this with egcs-1.0.2 and if
  * program is compiled with another (better?) compiler it

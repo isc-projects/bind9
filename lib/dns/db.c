@@ -58,7 +58,7 @@ typedef struct {
 #include "rbtdb.h"
 #include "rbtdb64.h"
 
-impinfo_t implementations[] = {
+static impinfo_t implementations[] = {
 	{ "rbt", dns_rbtdb_create },
 	{ "rbt64", dns_rbtdb64_create },
 	{ NULL, NULL }

@@ -9,6 +9,8 @@
 #ifndef _GLOBAL_H_
 #define _GLOBAL_H_ 1
 
+#include "../rename-dnssafe.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,7 +26,7 @@ extern "C" {
 
 #include <config.h>
 #include <isc/int.h>
-#include <sys/types.h>
+#include <sys/types.h> /* XXXMLG This should go... */
 
 /* POINTER defines a generic pointer type */
 typedef unsigned char *POINTER;

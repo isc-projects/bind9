@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.24 2000/04/28 01:10:26 halley Exp $ */
+/* $Id: confcommon.c,v 1.25 2000/04/28 01:15:50 explorer Exp $ */
 
 #include <config.h>
 
@@ -146,10 +146,6 @@ static const char *category_nametable[] = {
 /***
  *** DATA
  ***/
-
-isc_boolean_t debug_mem_print;
-FILE *debug_mem_print_stream;
-
 
 
 /***

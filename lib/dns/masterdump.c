@@ -156,10 +156,10 @@ dns_masterfile_style_debug = {
 
 
 #define N_SPACES 10
-char spaces[N_SPACES+1] = "          ";
+static char spaces[N_SPACES+1] = "          ";
 
 #define N_TABS 10
-char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
+static char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
 
 
 
@@ -660,7 +660,7 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
  * the  initial size must large enough to hold the longest possible 
  * text representation of any domain name (for $ORIGIN).
  */
-const int initial_buffer_length = 1200;
+static const int initial_buffer_length = 1200;
 
 /*
  * Dump an entire database into a master file.

@@ -1,3 +1,6 @@
+ 118.	[cleanup]	libdns.a is now namespace-clean, on NetBSD, excepting
+			YACC crust (yyparse, etc) [2000-apr-27 explorer]
+
  117.	[cleanup]	libdns.a changes:
 			dns_zone_clearnotify() and dns_zone_addnotify()
 			are replaced by dns_zone_setnotifyalso().
