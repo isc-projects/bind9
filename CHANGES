@@ -1,8 +1,8 @@
 1002.	[bug]		Log unknown class including file and line.  [RT #1759]
 
 1001.	[bug]		win32 socket code doio_recv was not catching a
-			WSACONNRESET error when the client was timing out
-			the request and closing the connection. [RT #1745]
+			WSACONNRESET error when a client was timing out
+			the request and closing its socket. [RT #1745]
 
 1000.	[bug]		BIND 8 compatibility: accept "HESIOD" as a alias
 			for class "HS".  [RT #1759]
