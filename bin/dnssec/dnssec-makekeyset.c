@@ -215,7 +215,7 @@ main(int argc, char *argv[]) {
 
 	for (i = 0; i < argc; i++) {
 		isc_uint16_t id;
-		int alg;
+		unsigned int alg;
 		dns_fixedname_t fname;
 		dns_name_t *name;
 		char namestr[1025];
@@ -224,7 +224,8 @@ main(int argc, char *argv[]) {
 		isc_buffer_add(&b, strlen(argv[i]));
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
-		result = dst_key_parsefilename(&b, mctx, name, &id, &alg, NULL);
+		result = dst_key_parsefilename(&b, mctx, name, &id, &alg,
+					       NULL);
 		if (result != ISC_R_SUCCESS)
 			fatal("%s is not a valid key filename", argv[i]);
 		strncpy(namestr, nametostr(name), sizeof(namestr) - 1);
