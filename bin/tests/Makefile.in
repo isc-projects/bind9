@@ -34,7 +34,7 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS = master names rbt
+SUBDIRS = master names rbt dst
 TARGETS =	res_test \
 		lex_test \
 		name_test \

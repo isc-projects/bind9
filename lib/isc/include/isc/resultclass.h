@@ -41,6 +41,7 @@ ISC_LANG_BEGINDECLS
 
 #define	ISC_RESULTCLASS_ISC		ISC_RESULTCLASS(0)
 #define	ISC_RESULTCLASS_DNS		ISC_RESULTCLASS(1)
+#define	ISC_RESULTCLASS_DST		ISC_RESULTCLASS(2)
 
 /*
  * Result classes >= 1024 and <= 65535 are reserved for application use.

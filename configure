@@ -2850,6 +2850,14 @@ trap 'rm -fr `echo "make/rules
 	lib/dns/Makefile
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
+	lib/dns/sec/Makefile
+	lib/dns/sec/openssl/Makefile
+	lib/dns/sec/openssl/include/Makefile
+	lib/dns/sec/openssl/include/openssl/Makefile
+	lib/dns/sec/dnssafe/Makefile
+	lib/dns/sec/dst/Makefile
+	lib/dns/sec/dst/include/Makefile
+	lib/dns/sec/dst/include/dst/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
@@ -2859,6 +2867,7 @@ trap 'rm -fr `echo "make/rules
 	bin/tests/names/Makefile
 	bin/tests/master/Makefile
 	bin/tests/rbt/Makefile
+	bin/tests/dst/Makefile
  config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -2991,6 +3000,14 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/dns/Makefile
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
+	lib/dns/sec/Makefile
+	lib/dns/sec/openssl/Makefile
+	lib/dns/sec/openssl/include/Makefile
+	lib/dns/sec/openssl/include/openssl/Makefile
+	lib/dns/sec/dnssafe/Makefile
+	lib/dns/sec/dst/Makefile
+	lib/dns/sec/dst/include/Makefile
+	lib/dns/sec/dst/include/dst/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
@@ -3000,6 +3017,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/tests/names/Makefile
 	bin/tests/master/Makefile
 	bin/tests/rbt/Makefile
+	bin/tests/dst/Makefile
 "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF

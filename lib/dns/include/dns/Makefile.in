@@ -20,11 +20,11 @@ top_srcdir =	@top_srcdir@
 @BIND9_VERSION@
 
 HEADERS =	callbacks.h cert.h compress.h db.h dbiterator.h dbtable.h \
-		events.h dispatch.h events.h fixedname.h lib.h master.h \
-		masterdump.h message.h name.h rbt.h rcode.h rdata.h \
-		rdataclass.h rdatalist.h rdataset.h rdatasetiter.h \
-		rdataslab.h rdatatype.h result.h secalg.h tcpmsg.h time.h \
-		ttl.h types.h
+		events.h dispatch.h events.h fixedname.h keyvalues.h \
+		lib.h master.h masterdump.h message.h name.h rbt.h \
+		rcode.h rdata.h rdataclass.h rdatalist.h rdataset.h \
+		rdatasetiter.h rdataslab.h rdatatype.h result.h \
+		secalg.h tcpmsg.h time.h ttl.h types.h
 GENHEADERS =	enumclass.h enumtype.h rdatastruct.h
 
 SUBDIRS =

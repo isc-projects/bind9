@@ -1,0 +1,40 @@
+#ifndef DST_RESULT_H
+#define DST_RESULT_H 1
+
+#include <isc/lang.h>
+#include <isc/result.h>
+#include <isc/resultclass.h>
+
+ISC_LANG_BEGINDECLS
+
+typedef unsigned int dst_result_t;
+
+#define DST_R_SUCCESS			ISC_R_SUCCESS
+#define DST_R_NOMEMORY			ISC_R_NOMEMORY
+#define DST_R_NOSPACE			ISC_R_NOSPACE
+
+#define DST_R_UNSUPPORTED_ALG		(ISC_RESULTCLASS_DST + 0)
+#define DST_R_UNSUPPORTED_TYPE		(ISC_RESULTCLASS_DST + 1)
+#define DST_R_UNSUPPORTED_MODE		(ISC_RESULTCLASS_DST + 2)
+#define DST_R_NULL_KEY			(ISC_RESULTCLASS_DST + 3)
+#define DST_R_INVALID_PUBLIC_KEY	(ISC_RESULTCLASS_DST + 4)
+#define DST_R_INVALID_PRIVATE_KEY	(ISC_RESULTCLASS_DST + 5)
+#define DST_R_NAME_TOO_LONG		(ISC_RESULTCLASS_DST + 6)
+#define DST_R_WRITE_ERROR		(ISC_RESULTCLASS_DST + 7)
+#define DST_R_INVALID_PARAM		(ISC_RESULTCLASS_DST + 8)
+#define DST_R_SIGN_INIT_FAILURE		(ISC_RESULTCLASS_DST + 9)
+#define DST_R_SIGN_UPDATE_FAILURE	(ISC_RESULTCLASS_DST + 10)
+#define DST_R_SIGN_FINAL_FAILURE	(ISC_RESULTCLASS_DST + 11)
+#define DST_R_VERIFY_INIT_FAILURE	(ISC_RESULTCLASS_DST + 12)
+#define DST_R_VERIFY_UPDATE_FAILURE	(ISC_RESULTCLASS_DST + 13)
+#define DST_R_VERIFY_FINAL_FAILURE	(ISC_RESULTCLASS_DST + 14)
+
+#define DST_R_NRESULTS			15	/* Number of results */
+
+
+char *                                  dst_result_totext(dst_result_t);
+void					dst_result_register(void);
+
+ISC_LANG_ENDDECLS
+
+#endif /* DST_RESULT_H */
