@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.40 2000/12/05 23:28:30 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.41 2000/12/11 23:38:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -276,7 +276,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_BANG
 %token		L_BLACKHOLE
 %token		L_BOGUS
-%token		L_MAX_CACHE_SIZE
 %token		L_CATEGORY
 %token		L_CHANNEL
 %token		L_CHECK_NAMES
@@ -299,6 +298,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_END_INCLUDE
 %token		L_EOS
 %token		L_EXPERT_MODE
+%token		L_EXPLICIT
 %token		L_FAIL
 %token		L_FAKE_IQUERY
 %token		L_FALSE
@@ -338,6 +338,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_MASTERS
 %token		L_MATCH_CLIENTS
 %token		L_MAXIMAL
+%token		L_MAX_CACHE_SIZE
 %token		L_MAX_CACHE_TTL
 %token		L_MAX_LOG_SIZE_IXFR
 #ifndef NOMINUM_PUBLIC
@@ -442,7 +443,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_WILDCARD
 %token		L_YES
 %token		L_ZONE
-%token		L_EXPLICIT
 
 
 %type <addata>		additional_data
