@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.14 2002/05/03 05:28:27 marka Exp $ */
+/* $Id: os.c,v 1.15 2002/07/10 01:13:44 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -131,21 +131,21 @@ ns_os_minprivs(void) {
 static int
 safe_open(const char *filename, isc_boolean_t append) {
 	int fd;
-        struct stat sb;
+	struct stat sb;
 
-        if (stat(filename, &sb) == -1) {
-                if (errno != ENOENT)
+	if (stat(filename, &sb) == -1) {
+		if (errno != ENOENT)
 			return (-1);
-        } else if ((sb.st_mode & S_IFREG) == 0)
+	} else if ((sb.st_mode & S_IFREG) == 0)
 		return (-1);
 
 	if (append)
 		fd = open(filename, O_WRONLY|O_CREAT|O_APPEND,
-		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	else {
 		(void)unlink(filename);
 		fd = open(filename, O_WRONLY|O_CREAT|O_EXCL,
-		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	}
 	return (fd);
 }
@@ -161,7 +161,7 @@ cleanup_pidfile(void) {
 
 void
 ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
-        int fd;
+	int fd;
 	FILE *lockfile;
 	size_t len;
 	pid_t pid;
@@ -182,22 +182,22 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	pidfile = malloc(len + 1);
 	if (pidfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-                (*report)("couldn't malloc '%s': %s", filename, strbuf);
+		(*report)("couldn't malloc '%s': %s", filename, strbuf);
 		return;
 	}
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
-        fd = safe_open(filename, ISC_FALSE);
-        if (fd < 0) {
+	fd = safe_open(filename, ISC_FALSE);
+	if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-                (*report)("couldn't open pid file '%s': %s", filename, strbuf);
+		(*report)("couldn't open pid file '%s': %s", filename, strbuf);
 		free(pidfile);
 		pidfile = NULL;
 		return;
 	}
-        lockfile = fdopen(fd, "w");
-        if (lockfile == NULL) {
+	lockfile = fdopen(fd, "w");
+	if (lockfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		(*report)("could not fdopen() pid file '%s': %s",
 			  filename, strbuf);
@@ -208,14 +208,14 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	pid = getpid();
 
-        if (fprintf(lockfile, "%ld\n", (long)pid) < 0) {
-                (*report)("fprintf() to pid file '%s' failed", filename);
+	if (fprintf(lockfile, "%ld\n", (long)pid) < 0) {
+		(*report)("fprintf() to pid file '%s' failed", filename);
 		(void)fclose(fd);
 		cleanup_pidfile();
 		return;
 	}
-        if (fflush(lockfile) == EOF) {
-                (*report)("fflush() to pid file '%s' failed", filename);
+	if (fflush(lockfile) == EOF) {
+		(*report)("fflush() to pid file '%s' failed", filename);
 		(void)fclose(fd);
 		cleanup_pidfile();
 		return;
@@ -232,7 +232,7 @@ ns_os_shutdown(void) {
 
 isc_result_t
 ns_os_gethostname(char *buf, size_t len) {
-        int n;
+	int n;
 
 	n = gethostname(buf, len);
 	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
