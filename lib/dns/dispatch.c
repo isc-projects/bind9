@@ -133,9 +133,6 @@ free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
 static inline dns_dispatchevent_t *
 allocate_event(dns_dispatch_t *disp);
 
-static inline isc_boolean_t
-ok_to_kill(dns_dispatch_t *disp);
-
 static void
 do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp);
 
@@ -219,20 +216,6 @@ randomid(dns_dispatch_t *disp)
 	return ((dns_messageid_t)disp->qid_state);
 }
 
-static inline isc_boolean_t
-ok_to_kill(dns_dispatch_t *disp)
-{
-	if (disp->recvs > 0)
-		return (ISC_FALSE);
-
-	if (disp->refcount > 0)
-		return (ISC_FALSE);
-
-	INSIST(disp->requests == 0);
-
-	return (ISC_TRUE);
-}
-
 /*
  * Called when refcount reaches 0 at any time.
  */
@@ -243,8 +226,8 @@ destroy(dns_dispatch_t *disp)
 
 	disp->magic = 0;
 
-	isc_task_detach(&disp->task);
 	isc_socket_detach(&disp->socket);
+	isc_task_detach(&disp->task);
 
 	/*
 	 * Final cleanup of packets on the request list.
@@ -290,6 +273,8 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 static void
 free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 {
+	printf("Freeing buffer %p, length %d, into %s\n",
+	       buf, len, (len == disp->buffersize ? "mempool" : "mctx"));
 	if (len == disp->buffersize)
 		isc_mempool_put(disp->bpool, buf);
 	else
@@ -369,6 +354,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	dns_dispatchevent_t *rev;
 	unsigned int bucket;
 	isc_boolean_t killit;
+	isc_boolean_t queue_request;
+	isc_boolean_t queue_response;
 
 	(void)task;  /* shut up compiler */
 
@@ -437,12 +424,17 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	 * Look at flags.  If query, check to see if we have someone handling
 	 * them.  If response, look to see where it goes.
 	 */
+	queue_request = ISC_FALSE;
+	queue_response = ISC_FALSE;
 	if ((flags & DNS_MESSAGEFLAG_QR) == 0) {
 		resp = ISC_LIST_HEAD(disp->rq_handlers);
-		if (resp == NULL) {
-			free_buffer(disp, ev->region.base, ev->region.length);
-			goto restart;
+		while (resp != NULL) {
+			if (resp->item_out == ISC_FALSE)
+				break;
+			resp = ISC_LIST_NEXT(resp, link);
 		}
+		if (resp == NULL)
+			queue_request = ISC_TRUE;
 		rev = allocate_event(disp);
 		if (rev == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
@@ -457,6 +449,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 			free_buffer(disp, ev->region.base, ev->region.length);
 			goto restart;
 		}
+		queue_response = resp->item_out;
 		rev = allocate_event(disp);
 		if (rev == NULL) {
 			free_buffer(disp, ev->region.base, ev->region.length);
@@ -469,15 +462,24 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	 * resp contains the information on the place to send it to.
 	 * Send the event off.
 	 */
-	ISC_EVENT_INIT(rev, sizeof(*rev), 0, 0, DNS_EVENT_DISPATCH,
-		       resp->action, resp->arg, resp, NULL, NULL);
 	isc_buffer_init(&rev->buffer, ev->region.base, ev->region.length,
 			ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&rev->buffer, ev->n);
 	rev->result = DNS_R_SUCCESS;
 	rev->id = id;
 	rev->addr = ev->address;
-	ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
+	if (queue_request) {
+		ISC_LIST_APPEND(disp->rq_events, rev, link);
+	} else if (queue_response) {
+		ISC_LIST_APPEND(resp->items, rev, link);
+	} else {
+		ISC_EVENT_INIT(rev, sizeof(*rev), 0, 0, DNS_EVENT_DISPATCH,
+			       resp->action, resp->arg, resp, NULL, NULL);
+		printf("Sent event for buffer %p (len %d) to task %p\n",
+		       rev->buffer.base, rev->buffer.length, resp->task);
+		resp->item_out = ISC_TRUE;
+		ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
+	}
 
 	/*
 	 * Restart recv() to get the next packet.
@@ -844,6 +846,8 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	isc_mempool_put(disp->rpool, res);
 	if (ev != NULL) {
+		REQUIRE(res->item_out = ISC_TRUE);
+		res->item_out = ISC_FALSE;
 		free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
 	}
@@ -890,6 +894,12 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	ISC_LIST_INIT(res->items);
 	ISC_LINK_INIT(res, link);
 	ISC_LIST_APPEND(disp->rq_handlers, res, link);
+
+	/*
+	 * If there are queries waiting to be processed, give this critter
+	 * one of them.
+	 */
+	do_next_request(disp, res);
 
 	startrecv(disp);
 
@@ -946,6 +956,8 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	isc_mempool_put(disp->rpool, res);
 	if (ev != NULL) {
+		REQUIRE(res->item_out = ISC_TRUE);
+		res->item_out = ISC_FALSE;
 		if (ev->buffer.length != 0)
 			free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
@@ -981,6 +993,8 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
 
 	LOCK(&disp->lock);
 	REQUIRE(ev != disp->failsafe_ev);
+	REQUIRE(resp->item_out = ISC_TRUE);
+	resp->item_out = ISC_FALSE;
 
 	free_buffer(disp, ev->buffer.base, ev->buffer.length);
 	free_event(disp, ev);
@@ -1014,6 +1028,8 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
+	printf("Sent event for buffer %p (len %d) to task %p\n",
+	       ev->buffer.base, ev->buffer.length, resp->task);
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
 
@@ -1036,6 +1052,8 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
+	printf("Sent event for buffer %p (len %d) to task %p\n",
+	       ev->buffer.base, ev->buffer.length, resp->task);
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
 

@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <isc/app.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
@@ -32,6 +33,7 @@
 #include <isc/timer.h>
 
 #include <dns/dispatch.h>
+#include <dns/message.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -44,24 +46,52 @@ isc_mem_t *mctx;
 isc_taskmgr_t *manager;
 isc_socketmgr_t *socketmgr;
 dns_dispatch_t *disp;
+isc_task_t *t0, *t1, *t2;
 
-void got_packet(isc_task_t *, isc_event_t *);
+void got_request(isc_task_t *, isc_event_t *);
+void got_response(isc_task_t *, isc_event_t *);
+void start_response(void);
 
 void
-got_packet(isc_task_t *task, isc_event_t *ev_in)
+start_response(void)
+{
+	dns_dispentry_t *resp;
+	dns_messageid_t id;
+	isc_sockaddr_t from;
+	dns_message_t *msg;
+
+	printf("--- adding response\n");
+	resp = NULL;
+	RUNTIME_CHECK(dns_dispatch_addresponse(disp, &from, t2,
+					       got_response, NULL,
+					       &id, &resp)
+		      == ISC_R_SUCCESS);
+	printf("Assigned MessageID %d\n", id);
+	printf("--- removing response\n");
+	dns_dispatch_removeresponse(disp, &resp, NULL);
+	isc_app_shutdown();
+}
+
+void
+got_response(isc_task_t *task, isc_event_t *ev_in)
+{
+	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
+	dns_dispentry_t *resp = ev->sender;
+
+	dns_dispatch_freeevent(disp, resp, &ev);
+}
+
+void
+got_request(isc_task_t *task, isc_event_t *ev_in)
 {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	dns_dispentry_t *resp = ev->sender;
 	static int cnt = 0;
 
-	(void)task;
-
 	printf("App:  got packet!\n");
 
-#if 0
-	sleep (4);
+	sleep (2);
 	printf("App:  Ready.\n");
-#endif
 
 	cnt++;
 	switch (cnt) {
@@ -69,14 +99,14 @@ got_packet(isc_task_t *task, isc_event_t *ev_in)
 		printf("--- removing request\n");
 		dns_dispatch_removerequest(disp, &resp, &ev);
 		printf("--- destroying dispatcher\n");
-		dns_dispatch_destroy(&disp);
+		start_response();
 		break;
 		
 	case 3:
 		printf("--- removing request\n");
 		dns_dispatch_removerequest(disp, &resp, &ev);
 		printf("--- adding request\n");
-		RUNTIME_CHECK(dns_dispatch_addrequest(disp, task, got_packet,
+		RUNTIME_CHECK(dns_dispatch_addrequest(disp, task, got_request,
 						      NULL, &resp)
 			      == DNS_R_SUCCESS);
 		break;
@@ -90,13 +120,14 @@ got_packet(isc_task_t *task, isc_event_t *ev_in)
 int
 main(int argc, char *argv[])
 {
-	isc_task_t *t0;
 	isc_socket_t *s0;
 	isc_sockaddr_t sockaddr;
 	dns_dispentry_t *resp;
 
 	(void)argc;
 	(void)argv;
+
+	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 
 	/*
 	 * EVERYTHING needs a memory context.
@@ -115,6 +146,10 @@ main(int argc, char *argv[])
 
 	t0 = NULL;
 	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t0) == ISC_R_SUCCESS);
+	t1 = NULL;
+	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t1) == ISC_R_SUCCESS);
+	t2 = NULL;
+	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t2) == ISC_R_SUCCESS);
 
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
@@ -139,20 +174,32 @@ main(int argc, char *argv[])
 					 16, &disp) == ISC_R_SUCCESS);
 
 	resp = NULL;
-	RUNTIME_CHECK(dns_dispatch_addrequest(disp, t0, got_packet, NULL,
+	RUNTIME_CHECK(dns_dispatch_addrequest(disp, t1, got_request, NULL,
 					      &resp) == ISC_R_SUCCESS);
 
+	isc_app_run();
+
 	isc_socket_detach(&s0);
-	isc_task_detach(&t0);
+
+	dns_dispatch_destroy(&disp);
 
 	fprintf(stderr, "Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
+
+	isc_task_shutdown(t0);
+	isc_task_detach(&t0);
+	isc_task_shutdown(t1);
+	isc_task_detach(&t1);
+	isc_task_shutdown(t2);
+	isc_task_detach(&t2);
 
 	fprintf(stderr, "Destroying task manager\n");
 	isc_taskmgr_destroy(&manager);
 
 	isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
+
+	isc_app_finish();
 
 	return (0);
 }
