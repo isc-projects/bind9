@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.22 2004/03/09 06:12:30 marka Exp $ */
+/* $Id: check.c,v 1.14.2.23 2004/04/16 00:02:00 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,13 @@
 
 #include <isccfg/cfg.h>
 #include <isccfg/check.h>
+
+static void
+freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
+	UNUSED(type);
+	UNUSED(value);
+	isc_mem_free(userarg, key);
+}
 
 static isc_result_t
 check_forward(cfg_obj_t *options, isc_log_t *logctx) {
@@ -268,7 +275,8 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx,
 				    "zone '%s': already exists ", zname);
 			result = ISC_R_FAILURE;
 		} else if (tresult != ISC_R_SUCCESS) {
-			isc_mem_strdup(mctx, key);
+			isc_mem_free(mctx, key);
+
 			return (tresult);
 		}
 	}
@@ -435,13 +443,6 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 	return (result);
 }
 
-static void
-freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
-	UNUSED(type);
-	UNUSED(value);
-	isc_mem_free(userarg, key);
-}
-
 static isc_result_t
 check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -493,7 +494,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem
 	 * there are no duplicate zones.
 	 */
 	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-				    ISC_TRUE, &symtab);
+				    ISC_FALSE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 

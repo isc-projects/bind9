@@ -2,6 +2,11 @@
 			address type to be looked up with "@server".
 			[RT #11069]
 
+1600.	[bug]		Duplicate zone pre-load checks were not case
+			insensitive.
+
+1599.	[bug]		Fix memory leak on error path when checking named.conf.
+
 	--- 9.2.4rc2 released ---
 
 1607.	[bug]		dig, host and nslookup were still using random()
