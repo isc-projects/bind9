@@ -76,12 +76,17 @@
 #define RFC2308_TYPE1_BIT		38
 #define TCP_CLIENTS_BIT			39
 #define RECURSIVE_CLIENTS_BIT		40
+#define TRANSFER_SOURCE_BIT		41
 
 
 static isc_result_t cfg_set_iplist(dns_c_options_t *options,
-				   dns_c_ipmatchlist_t **fieldaddr,
-				   dns_c_ipmatchlist_t *newval,
+				   dns_c_iplist_t **fieldaddr,
+				   dns_c_iplist_t *newval,
 				   isc_boolean_t copy);
+static isc_result_t cfg_set_ipmatchlist(dns_c_options_t *options,
+					dns_c_ipmatchlist_t **fieldaddr,
+					dns_c_ipmatchlist_t *newval,
+					isc_boolean_t copy);
 static isc_result_t cfg_set_boolean(dns_c_options_t *options,
 				    isc_boolean_t *fieldaddr,
 				    isc_boolean_t newval,
@@ -116,9 +121,12 @@ static isc_result_t cfg_get_boolean(dns_c_options_t *options,
 				    isc_boolean_t *result,
 				    dns_c_setbits_t *setfield,
 				    isc_uint32_t bitnumber);
+static isc_result_t cfg_get_ipmatchlist(dns_c_options_t *options,
+					dns_c_ipmatchlist_t *field,
+					dns_c_ipmatchlist_t **resval);
 static isc_result_t cfg_get_iplist(dns_c_options_t *options,
-				   dns_c_ipmatchlist_t *field,
-				   dns_c_ipmatchlist_t **resval);
+				   dns_c_iplist_t *field,
+				   dns_c_iplist_t **resval);
 static isc_result_t acl_init(dns_c_ctx_t *cfg);
 static isc_result_t logging_init (dns_c_ctx_t *cfg);
 static isc_result_t  make_options(dns_c_ctx_t *cfg);
@@ -330,11 +338,15 @@ dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **ctx)
 	}
 	
 	
+#if 1					/* XXX brister */
+	cfg->controls = NULL;
+#else	
 	r = dns_c_ctrllist_new(mem, &cfg->controls);
 	if (r != ISC_R_SUCCESS) {
 		dns_c_ctx_delete(&cfg);
 		return r;
 	}
+#endif	
 
 	*ctx = cfg;
 
@@ -391,8 +403,38 @@ dns_c_ctx_delete(dns_c_ctx_t **cfg)
 
 
 isc_result_t
-dns_c_ctx_setcurrzone(dns_c_ctx_t *cfg,
-		      dns_c_zone_t *zone)
+dns_c_ctx_setcontrols(dns_c_ctx_t *cfg, dns_c_ctrllist_t *ctrls)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(DNS_C_CONFCTLLIST_VALID(ctrls));
+
+	if (cfg->controls != NULL) {
+		existed = ISC_TRUE;
+		dns_c_ctrllist_delete(&cfg->controls);
+	}
+
+	cfg->controls = ctrls;
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_c_ctx_getcontrols(dns_c_ctx_t *cfg, dns_c_ctrllist_t **ctrls)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	*ctrls = cfg->controls;
+
+	return (cfg->controls != NULL ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
+}
+
+	
+
+		      
+isc_result_t
+dns_c_ctx_setcurrzone(dns_c_ctx_t *cfg, dns_c_zone_t *zone)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 
@@ -483,17 +525,17 @@ dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)
 	}
 	
 
-	if (cfg->zlist != NULL) {
-		dns_c_zonelist_printpostopts(fp, indent, cfg->zlist);
-		fprintf(fp, "\n");
-	}
-
 	if (cfg->views != NULL) {
 		dns_c_viewtable_print(fp, indent, cfg->views);
 		fprintf(fp, "\n");
 	}
 	
 	
+	if (cfg->zlist != NULL) {
+		dns_c_zonelist_printpostopts(fp, indent, cfg->zlist);
+		fprintf(fp, "\n");
+	}
+
 	if (cfg->controls != NULL) {
 		dns_c_ctrllist_print(fp, indent, cfg->controls);
 		fprintf(fp, "\n");
@@ -528,8 +570,8 @@ dns_c_ctx_forwarderprint(FILE *fp, int indent, dns_c_options_t *options)
 	if (options->forwarders != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "forwarders ");
-		dns_c_ipmatchlist_print(fp, indent + 1,
-					options->forwarders);
+		dns_c_iplist_print(fp, indent + 1,
+				   options->forwarders);
 		fprintf(fp, ";\n");
 	}
 }
@@ -1778,8 +1820,8 @@ dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->queryacl,
-			     iml, copy);
+	res = cfg_set_ipmatchlist(cfg->options, &cfg->options->queryacl,
+				  iml, copy);
 
 	return (res);
 }
@@ -1800,7 +1842,7 @@ dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->transferacl,
+	res = cfg_set_ipmatchlist(cfg->options, &cfg->options->transferacl,
 			     iml, copy);
 
 	return (res);
@@ -1822,7 +1864,7 @@ dns_c_ctx_setrecursionacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->recursionacl,
+	res = cfg_set_ipmatchlist(cfg->options, &cfg->options->recursionacl,
 			     iml, copy);
 
 	return (res);
@@ -1844,7 +1886,7 @@ dns_c_ctx_setblackhole(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->blackhole,
+	res = cfg_set_ipmatchlist(cfg->options, &cfg->options->blackhole,
 			     iml, copy);
 
 	return (res);
@@ -1866,7 +1908,7 @@ dns_c_ctx_settopology(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->topology,
+	res = cfg_set_ipmatchlist(cfg->options, &cfg->options->topology,
 			     iml, copy);
 
 	return (res);
@@ -1888,7 +1930,7 @@ dns_c_ctx_setsortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	
 	REQUIRE(iml != NULL);
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->sortlist,
+	res = cfg_set_ipmatchlist(cfg->options, &cfg->options->sortlist,
 			     iml, copy);
 
 	return (res);
@@ -1919,7 +1961,7 @@ dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw)
 
 isc_result_t
 dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
-			dns_c_ipmatchlist_t *iml)
+			dns_c_iplist_t *ipl)
 {
 	isc_result_t res;
 	
@@ -1931,7 +1973,7 @@ dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	}
 	
 	res = cfg_set_iplist(cfg->options, &cfg->options->forwarders,
-			     iml, copy);
+			     ipl, copy);
 
 	return (res);
 }
@@ -3034,8 +3076,8 @@ dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->queryacl,
-			       list));
+	return (cfg_get_ipmatchlist(cfg->options, cfg->options->queryacl,
+				    list));
 }
 
 
@@ -3050,8 +3092,8 @@ dns_c_ctx_gettransferacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options,
-			       cfg->options->transferacl, list));
+	return (cfg_get_ipmatchlist(cfg->options,
+				    cfg->options->transferacl, list));
 }
 
 
@@ -3066,8 +3108,8 @@ dns_c_ctx_getrecursionacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options, cfg->options->recursionacl,
-			       list));
+	return (cfg_get_ipmatchlist(cfg->options, cfg->options->recursionacl,
+				    list));
 }
 
 
@@ -3082,8 +3124,8 @@ dns_c_ctx_getblackhole(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options,
-			       cfg->options->blackhole, list));
+	return (cfg_get_ipmatchlist(cfg->options,
+				    cfg->options->blackhole, list));
 }
 
 
@@ -3098,8 +3140,8 @@ dns_c_ctx_gettopology(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options,
-			       cfg->options->topology, list));
+	return (cfg_get_ipmatchlist(cfg->options,
+				    cfg->options->topology, list));
 }
 
 
@@ -3114,8 +3156,8 @@ dns_c_ctx_getsortlist(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	
 	REQUIRE(list != NULL);
 
-	return (cfg_get_iplist(cfg->options,
-			       cfg->options->sortlist, list));
+	return (cfg_get_ipmatchlist(cfg->options,
+				    cfg->options->sortlist, list));
 }
 
 
@@ -3165,7 +3207,7 @@ dns_c_ctx_getforward(dns_c_ctx_t *cfg, dns_c_forw_t *forw)
 
 
 isc_result_t
-dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_iplist_t **list)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 
@@ -3235,6 +3277,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->memstats_filename = NULL;
 	opts->named_xfer = NULL;
 	opts->tkeydomain = NULL;
+	opts->also_notify = NULL;
 	opts->tkeydhkeycp = NULL;
 	opts->tkeydhkeyi = 0;
 
@@ -3261,6 +3304,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->use_ixfr = ISC_FALSE;
 	opts->maintain_ixfr_base = ISC_FALSE;
 	opts->has_old_clients = ISC_FALSE;
+	opts->expert_mode = ISC_FALSE;
 	opts->auth_nx_domain = ISC_FALSE;
 	opts->multiple_cnames = ISC_FALSE;
 	opts->use_id_pool = ISC_FALSE;
@@ -3349,6 +3393,10 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 		isc_mem_free(options->mem, options->named_xfer);
 	}
 
+	if (options->also_notify != NULL) {
+		dns_c_iplist_detach(&options->also_notify);
+	}
+
 	if (options->tkeydomain != NULL) {
 		isc_mem_free(options->mem, options->tkeydomain);
 	}
@@ -3408,7 +3456,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	}
 	
 	if (options->forwarders != NULL) {
-		r = dns_c_ipmatchlist_detach(&options->forwarders);
+		r = dns_c_iplist_detach(&options->forwarders);
 		if (r != ISC_R_SUCCESS)
 			result = r;
 	}
@@ -3462,7 +3510,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 		if (options->field == DNS_C_SIZE_SPEC_DEFAULT) { \
 			fprintf(fp, "default");			\
 		} else {					\
-			dns_c_printinunits(fp, options->data_size); \
+			dns_c_printinunits(fp, options->field); \
 		}						\
 		fprintf(fp, ";\n");				\
 	}
@@ -3585,13 +3633,22 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	if (DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT, &options->setflags1) ||
 	    DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT, &options->setflags1)) {
 		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "query-source address ");
-		dns_c_print_ipaddr(fp, &options->query_source_addr);
+		fprintf(fp, "query-source ");
 
-		if (options->query_source_port == 0) {
-			fprintf(fp, " port *");
-		} else {
-			fprintf(fp, " port %d", options->query_source_port);
+		if (DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT,
+				   &options->setflags1)) {
+			fprintf(fp, "address ");
+			dns_c_print_ipaddr(fp, &options->query_source_addr);
+		}
+
+		if (DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT,
+				   &options->setflags1)) {
+			if (options->query_source_port == 0) {
+				fprintf(fp, " port *");
+			} else {
+				fprintf(fp, " port %d",
+					options->query_source_port);
+			}
 		}
 		fprintf(fp, " ;\n");
 	}
@@ -3681,6 +3738,20 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	if (options->ordering != NULL) {
 		dns_c_rrsolist_print(fp, indent + 1, options->ordering);
 	}
+
+	if (options->also_notify != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "also-notify ") ;
+		dns_c_iplist_print(fp, indent + 2, options->also_notify);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(TRANSFER_SOURCE_BIT, &options->setflags1)) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "transfer-source ");
+		dns_c_print_ipaddr(fp, &options->transfer_source);
+		fprintf(fp, ";\n");
+	}
 	
 
 	dns_c_printtabs(fp, indent);
@@ -3709,6 +3780,91 @@ dns_c_ctx_keydefinedp(dns_c_ctx_t *ctx, const char *keyname)
 	return rval;
 }
 
+
+isc_result_t
+dns_c_ctx_setalsonotify(dns_c_ctx_t *cfg,
+			dns_c_iplist_t *iml,
+			isc_boolean_t copy)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	REQUIRE(iml != NULL);
+
+	res = cfg_set_iplist(cfg->options, &cfg->options->also_notify,
+			     iml, copy);
+
+	return (res);
+}
+	
+
+isc_result_t
+dns_c_ctx_getalsonotify(dns_c_ctx_t *cfg, dns_c_iplist_t **ret)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(ret != NULL);
+
+	return (cfg_get_iplist(cfg->options, cfg->options->also_notify, ret));
+}
+
+
+isc_result_t
+dns_c_ctx_settransfersource(dns_c_ctx_t *cfg, isc_sockaddr_t newval)
+{
+	isc_boolean_t existed;
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	existed = DNS_C_CHECKBIT(TRANSFER_SOURCE_BIT,
+				 &cfg->options->setflags1);
+	DNS_C_SETBIT(TRANSFER_SOURCE_BIT, &cfg->options->setflags1);
+	
+	cfg->options->transfer_source = newval;
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ctx_gettransfersource(dns_c_ctx_t *cfg, isc_sockaddr_t *retval)
+{
+	isc_result_t res;
+
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(retval != NULL);
+
+	if (DNS_C_CHECKBIT(TRANSFER_SOURCE_BIT, &cfg->options->setflags1)) {
+		*retval = cfg->options->transfer_source;
+		res = ISC_R_SUCCESS;
+	} else {
+		res = ISC_R_NOTFOUND;
+	}
+
+	return (res);
+}
+	
 
 
 
@@ -3757,11 +3913,10 @@ cfg_set_string(dns_c_options_t *options, char **field, const char *newval)
 }
 
 
-/* XXX This can get removed and replaced with set_ipmatch_list_field */
 static isc_result_t
 cfg_set_iplist(dns_c_options_t *options,
-	       dns_c_ipmatchlist_t **fieldaddr,
-	       dns_c_ipmatchlist_t *newval,
+	       dns_c_iplist_t **fieldaddr,
+	       dns_c_iplist_t *newval,
 	       isc_boolean_t copy)
 {
 	isc_result_t res;
@@ -3775,22 +3930,19 @@ cfg_set_iplist(dns_c_options_t *options,
 	}
 	
 	if (newval == NULL) {
-		res = dns_c_ipmatchlist_new(options->mem, fieldaddr);
+		res = dns_c_iplist_new(options->mem,
+				       newval->size,
+				       fieldaddr);
 	} else if (copy) {
 		if (*fieldaddr != NULL) {
-			res = dns_c_ipmatchlist_empty(*fieldaddr);
-			if (res == ISC_R_SUCCESS && newval != NULL) {
-				res = dns_c_ipmatchlist_append(*fieldaddr,
-							       newval,
-							       ISC_FALSE);
-			}
-		} else {
-			res = dns_c_ipmatchlist_copy(options->mem,
-						     fieldaddr, newval);
+			dns_c_iplist_detach(fieldaddr);
 		}
+		
+		res = dns_c_iplist_copy(options->mem, fieldaddr,
+					newval);
 	} else {
 		if (*fieldaddr != NULL) {
-			res = dns_c_ipmatchlist_detach(fieldaddr);
+			res = dns_c_iplist_detach(fieldaddr);
 			if (res != ISC_R_SUCCESS) {
 				return (res);
 			}
@@ -3807,6 +3959,58 @@ cfg_set_iplist(dns_c_options_t *options,
 	
 	return (res);
 }
+
+
+isc_result_t
+cfg_set_ipmatchlist(dns_c_options_t *options,
+		    dns_c_ipmatchlist_t **fieldaddr,
+		    dns_c_ipmatchlist_t *newval,
+		    isc_boolean_t copy)
+{
+        isc_result_t res;
+        isc_boolean_t existed = ISC_FALSE;
+        
+        REQUIRE(DNS_C_CONFOPT_VALID(options));
+        REQUIRE(fieldaddr != NULL);
+
+        if (*fieldaddr != NULL) {
+                existed = ISC_TRUE;
+        }
+        
+        if (newval == NULL) {
+                res = dns_c_ipmatchlist_new(options->mem, fieldaddr);
+        } else if (copy) {
+                if (*fieldaddr != NULL) {
+                        res = dns_c_ipmatchlist_empty(*fieldaddr);
+                        if (res == ISC_R_SUCCESS && newval != NULL) {
+                                res = dns_c_ipmatchlist_append(*fieldaddr,
+                                                               newval,
+                                                               ISC_FALSE);
+                        }
+                } else {
+                        res = dns_c_ipmatchlist_copy(options->mem,
+                                                     fieldaddr, newval);
+                }
+        } else {
+                if (*fieldaddr != NULL) {
+                        res = dns_c_ipmatchlist_detach(fieldaddr);
+                        if (res != ISC_R_SUCCESS) {
+                                return (res);
+                        }
+                } 
+
+                res = ISC_R_SUCCESS;
+                
+                *fieldaddr = newval;
+        }
+
+        if (res == ISC_R_SUCCESS && existed) {
+                res = ISC_R_EXISTS;
+        }
+        
+        return (res);
+}
+
 
 
 static isc_result_t
@@ -3879,9 +4083,9 @@ cfg_set_uint32(dns_c_options_t *options,
 
 
 static isc_result_t
-cfg_get_iplist(dns_c_options_t *options,
-	       dns_c_ipmatchlist_t *field,
-	       dns_c_ipmatchlist_t **resval)
+cfg_get_ipmatchlist(dns_c_options_t *options,
+		    dns_c_ipmatchlist_t *field,
+		    dns_c_ipmatchlist_t **resval)
 {
 	isc_result_t res;
 
@@ -3890,6 +4094,28 @@ cfg_get_iplist(dns_c_options_t *options,
 
 	if (field != NULL && !ISC_LIST_EMPTY(field->elements)) {
 		dns_c_ipmatchlist_attach(field, resval);
+		res = ISC_R_SUCCESS;
+	} else {
+		*resval = NULL;
+		res = ISC_R_NOTFOUND;
+	}
+
+	return (res);
+}
+
+
+static isc_result_t
+cfg_get_iplist(dns_c_options_t *options,
+	       dns_c_iplist_t *field,
+	       dns_c_iplist_t **resval)
+{
+	isc_result_t res;
+
+	REQUIRE(DNS_C_CONFOPT_VALID(options));
+	REQUIRE(resval != NULL);
+
+	if (field != NULL && field->nextidx != 0) {
+		dns_c_iplist_attach(field, resval);
 		res = ISC_R_SUCCESS;
 	} else {
 		*resval = NULL;
@@ -4194,4 +4420,5 @@ make_options(dns_c_ctx_t *cfg)
 
 	return (res);
 }
+
 
