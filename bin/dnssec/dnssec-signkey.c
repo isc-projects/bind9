@@ -325,6 +325,7 @@ main(int argc, char *argv[]) {
 		result = dns_dnssec_sign(domain, &rdataset, key,
 					 &sig.timesigned, &sig.timeexpire,
 					 mctx, &b, rdata);
+		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS)
 			fatal("key '%s/%s/%d' failed to sign data: %s",
 			      nametostr(dst_key_name(key)),

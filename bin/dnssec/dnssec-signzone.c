@@ -99,6 +99,7 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	dns_rdata_init(rdata);
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &endtime,
 				 mctx, b, rdata);
+	isc_entropy_stopcallbacksources(ectx);
 	if (result != ISC_R_SUCCESS)
 		fatal("key '%s/%s/%d' failed to sign data: %s",
 		      nametostr(dst_key_name(key)), algtostr(dst_key_alg(key)),

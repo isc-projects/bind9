@@ -343,6 +343,7 @@ main(int argc, char *argv[]) {
 		result = dns_dnssec_sign(domain, &rdataset, keynode->key,
 					 &starttime, &endtime, mctx, &b,
 					 rdata);
+		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS)
 			fatal("failed to sign keyset with key %s/%s/%d: %s",
 			      nametostr(dst_key_name(keynode->key)),
