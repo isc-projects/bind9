@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.19.18.1 2005/01/16 23:56:05 marka Exp $ */
+/* $Id: peer.c,v 1.19.18.2 2005/01/17 23:57:36 marka Exp $ */
 
 #include <config.h>
 

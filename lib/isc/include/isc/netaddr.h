@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.25.18.1 2005/01/16 23:56:07 marka Exp $ */
+/* $Id: netaddr.h,v 1.25.18.2 2005/01/17 23:57:37 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
