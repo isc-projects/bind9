@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.90 2000/06/05 20:32:00 brister Exp $ */
+/* $Id: confparser.y,v 1.91 2000/06/05 22:08:47 brister Exp $ */
 
 #include <config.h>
 
@@ -291,6 +291,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_LAME_TTL
 %token		L_LBRACE
 %token		L_LISTEN_ON
+%token		L_LISTEN_ON_V6
 %token		L_LOGGING
 %token		L_MAINTAIN_IXFR_BASE
 %token		L_MANY_ANSWERS
@@ -841,6 +842,24 @@ option: /* Empty */
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
 					     "failed to add listen statement");
+				YYABORT;
+			}
+		}
+	}
+	| L_LISTEN_ON_V6 maybe_port L_LBRACE address_match_list L_RBRACE
+	{
+		if ($4 == NULL) {
+			parser_warning(ISC_FALSE,
+				       "address-match-list empty implies"
+				       "listen statement ignored");
+		} else {
+			tmpres = dns_c_ctx_addv6listen_on(currcfg, $2, $4,
+							  ISC_FALSE);
+
+			if (tmpres != ISC_R_SUCCESS) {
+				parser_error(ISC_FALSE,
+					     "failed to add "
+					     "v6listen statement");
 				YYABORT;
 			}
 		}
@@ -5014,6 +5033,7 @@ static struct token keyword_tokens [] = {
 	{ "keys",			L_KEYS },
 	{ "lame-ttl",			L_LAME_TTL },
 	{ "listen-on",			L_LISTEN_ON },
+	{ "listen-on-v6",		L_LISTEN_ON_V6 },
 	{ "logging",			L_LOGGING },
 	{ "maintain-ixfr-base",		L_MAINTAIN_IXFR_BASE },
 	{ "many-answers",		L_MANY_ANSWERS },

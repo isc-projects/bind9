@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.61 2000/06/05 09:17:05 brister Exp $ */
+/* $Id: confctx.c,v 1.62 2000/06/05 22:08:43 brister Exp $ */
 
 #include <config.h>
 
@@ -228,6 +228,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	isc_result_t 		result = ISC_R_SUCCESS;
 	isc_result_t		tmpres;
 	dns_c_rrsolist_t       *olist;
+	dns_c_lstnlist_t       *listenlist;
 
 	
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
@@ -492,7 +493,21 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			result = tmpres;
 		}
 	}
-	
+
+	if (dns_c_ctx_getlistenlist(cfg, &listenlist) != ISC_R_NOTFOUND) {
+		tmpres = dns_c_lstnlist_validate(listenlist);
+		if (tmpres != ISC_R_SUCCESS) {
+			result = tmpres;
+		}
+	}
+
+	if (dns_c_ctx_getv6listenlist(cfg, &listenlist) != ISC_R_NOTFOUND) {
+		tmpres = dns_c_lstnlistv6_validate(listenlist);
+		if (tmpres != ISC_R_SUCCESS) {
+			result = tmpres;
+		}
+	}
+
 	return (result);
 }
 
@@ -1001,6 +1016,12 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 				     defport);
 	}
 	
+	if (options->v6listens != NULL) {
+		dns_c_lstnlistv6_print(fp, indent + 1,
+				       options->v6listens,
+				       defport);
+	}
+	
 	dns_c_ctx_forwarderprint(fp, indent + 1, options);
 
 	if (options->ordering != NULL) {
@@ -1471,6 +1492,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->allowupdateforwarding = NULL;
 	
 	opts->listens = NULL;
+	opts->v6listens = NULL;
+	
 	opts->ordering = NULL;
 
 	opts->forwarders = NULL;
@@ -1607,6 +1630,12 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 	if (options->listens != NULL) {
 		r = dns_c_lstnlist_delete(&options->listens);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
+	
+	if (options->v6listens != NULL) {
+		r = dns_c_lstnlist_delete(&options->v6listens);
 		if (r != ISC_R_SUCCESS)
 			result = r;
 	}
@@ -2250,59 +2279,6 @@ dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 
 
 isc_result_t
-dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg,int port, dns_c_ipmatchlist_t *ml,
-		       isc_boolean_t copy)
-{
-	dns_c_lstnon_t *lo;
-	isc_result_t res;
-	dns_c_options_t *opts;
-
-	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
-	REQUIRE(port >= 0 && port <= 65535);
-
-	res = make_options(cfg);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-	
-	opts = cfg->options;
-
-	if (opts->listens == NULL) {
-		res = dns_c_lstnlist_new(cfg->mem, &opts->listens);
-		if (res != ISC_R_SUCCESS) {
-			return (res);
-		}
-	}
-
-#if 0	
-	lo = ISC_LIST_HEAD(opts->listens->elements);
-	while (lo != NULL) {
-		/* XXX we should probably check that a listen on statement
-		 * hasn't been done for the same post, ipmatch list
-		 * combination
-		 */
-		if (lo->port == port) { /* XXX incomplete */
-			return (ISC_R_FAILURE);
-		}
-		lo = ISC_LIST_NEXT(lo, next);
-	}
-#endif	
-
-	res = dns_c_lstnon_new(cfg->mem, &lo);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-	
-	lo->port = port;
-	res = dns_c_lstnon_setiml(lo, ml, copy);
-
-	ISC_LIST_APPEND(opts->listens->elements, lo, next);
-
-	return (res);
-}
-
-
-isc_result_t
 dns_c_ctx_settrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t *list,
 			 isc_boolean_t copy)
 {
@@ -2389,6 +2365,60 @@ dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg,
 
 
 isc_result_t
+dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg, in_port_t port,
+		       dns_c_ipmatchlist_t *ml,
+		       isc_boolean_t copy)
+{
+	dns_c_lstnon_t *lo;
+	isc_result_t res;
+	dns_c_options_t *opts;
+
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	opts = cfg->options;
+
+	if (opts->listens == NULL) {
+		res = dns_c_lstnlist_new(cfg->mem, &opts->listens);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
+	}
+
+#if 0	
+	lo = ISC_LIST_HEAD(opts->listens->elements);
+	while (lo != NULL) {
+		/* XXX we should probably check that a listen on statement
+		 * hasn't been done for the same post, ipmatch list
+		 * combination
+		 */
+		if (lo->port == port) { /* XXX incomplete */
+			return (ISC_R_FAILURE);
+		}
+		lo = ISC_LIST_NEXT(lo, next);
+	}
+#endif	
+
+	res = dns_c_lstnon_new(cfg->mem, &lo);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	lo->port = port;
+	res = dns_c_lstnon_setiml(lo, ml, copy);
+
+	ISC_LIST_APPEND(opts->listens->elements, lo, next);
+
+	return (res);
+}
+
+
+
+isc_result_t
 dns_c_ctx_getlistenlist(dns_c_ctx_t *cfg, dns_c_lstnlist_t **ll)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
@@ -2407,6 +2437,85 @@ dns_c_ctx_getlistenlist(dns_c_ctx_t *cfg, dns_c_lstnlist_t **ll)
 
 	return (*ll == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
+
+
+
+
+isc_result_t
+dns_c_ctx_addv6listen_on(dns_c_ctx_t *cfg, in_port_t port,
+			 dns_c_ipmatchlist_t *ml, isc_boolean_t copy)
+{
+	dns_c_lstnon_t *lo;
+	isc_result_t res;
+	dns_c_options_t *opts;
+
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	opts = cfg->options;
+
+	if (opts->v6listens == NULL) {
+		res = dns_c_lstnlist_new(cfg->mem, &opts->v6listens);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
+	}
+
+#if 0	
+	lo = ISC_LIST_HEAD(opts->v6listens->elements);
+	while (lo != NULL) {
+		/* XXX we should probably check that a listen on statement
+		 * hasn't been done for the same post, ipmatch list
+		 * combination
+		 */
+		if (lo->port == port) { /* XXX incomplete */
+			return (ISC_R_FAILURE);
+		}
+		lo = ISC_LIST_NEXT(lo, next);
+	}
+#endif	
+
+	res = dns_c_lstnon_new(cfg->mem, &lo);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	lo->port = port;
+	res = dns_c_lstnon_setiml(lo, ml, copy);
+
+	ISC_LIST_APPEND(opts->v6listens->elements, lo, next);
+
+	return (res);
+}
+
+
+
+isc_result_t
+dns_c_ctx_getv6listenlist(dns_c_ctx_t *cfg, dns_c_lstnlist_t **ll)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(ll != NULL);
+
+	*ll = NULL;
+
+	if (cfg->options->v6listens != NULL) {
+		*ll = cfg->options->v6listens;
+	}
+
+	return (*ll == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+}
+
+
+
 
 
 

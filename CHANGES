@@ -1,3 +1,9 @@
+ 236.	[func]		Added new listen-on-v6 config file statement.
+
+ 235.	[func]		Consider it a config file error if a listen-on 
+			statement has an IPv6 address in it, or a 
+			listen-on-v6 statement has an IPv4 address in it.
+			
  234.	[bug]		Allow a trusted-key's first field (domain-name) be
 			either a quoted or an unquoted string, instead of
 			requiring a quoted string.

@@ -192,6 +192,8 @@ struct dns_c_options {
 	dns_c_ipmatchlist_t    *allowupdateforwarding;
 
 	dns_c_lstnlist_t       *listens;
+	dns_c_lstnlist_t       *v6listens;
+	
 	dns_c_rrsolist_t       *ordering;
 
 	dns_c_iplist_t	       *forwarders;
@@ -691,11 +693,18 @@ isc_result_t dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_iplist_t **list);
 isc_result_t dns_c_ctx_unsetforwarders(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg, int port,
+isc_result_t dns_c_ctx_addlisten_on(dns_c_ctx_t *cfg, in_port_t port,
 				    dns_c_ipmatchlist_t *ml,
 				    isc_boolean_t copy);
 isc_result_t dns_c_ctx_getlistenlist(dns_c_ctx_t *cfg,
 				     dns_c_lstnlist_t **ll);
+
+
+isc_result_t dns_c_ctx_addv6listen_on(dns_c_ctx_t *cfg, in_port_t port,
+				      dns_c_ipmatchlist_t *ml,
+				      isc_boolean_t copy);
+isc_result_t dns_c_ctx_getv6listenlist(dns_c_ctx_t *cfg,
+				       dns_c_lstnlist_t **ll);
 
 
 isc_result_t dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg, isc_boolean_t copy,

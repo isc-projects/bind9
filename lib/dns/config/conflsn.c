@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: conflsn.c,v 1.14 2000/06/04 19:51:14 brister Exp $ */
+/* $Id: conflsn.c,v 1.15 2000/06/05 22:08:45 brister Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/util.h>
 
 #include <dns/conflsn.h>
+#include <dns/log.h>
 
 #include "confpvt.h"
 
@@ -180,6 +181,25 @@ dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll,
 }
 
 isc_result_t
+dns_c_lstnlistv6_print(FILE *fp, int indent, dns_c_lstnlist_t *ll,
+		     in_port_t default_port)
+{
+	dns_c_lstnon_t *lo;
+
+	REQUIRE(DNS_C_LISTENLIST_VALID(ll));
+
+	lo = ISC_LIST_HEAD(ll->elements);
+	while (lo != NULL) {
+		dns_c_printtabs(fp, indent);
+		dns_c_lstnonv6_print(fp, indent, lo, default_port);
+		lo = ISC_LIST_NEXT(lo, next);
+		fprintf(fp, "\n");
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
 		   in_port_t default_port) {
 	REQUIRE(lo != NULL);
@@ -195,4 +215,95 @@ dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
 
 	return (ISC_R_SUCCESS);
 }
+
+
+isc_result_t
+dns_c_lstnonv6_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
+		   in_port_t default_port) {
+	REQUIRE(lo != NULL);
+	REQUIRE(DNS_C_LISTEN_VALID(lo));
+	
+	fprintf(fp, "listen-on-v6 ");
+	if (lo->port != default_port) {
+		fprintf(fp, "port %d ", lo->port);
+	}
+
+	dns_c_ipmatchlist_print(fp, indent + 1, lo->iml);
+	fprintf(fp, ";\n");
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+static isc_boolean_t
+checklisten_element(dns_c_ipmatch_direct_t *element)
+{
+	return (ISC_TF(isc_sockaddr_pf(&element->address) == AF_INET));
+}
+
+static isc_boolean_t
+checkv6listen_element(dns_c_ipmatch_direct_t *element)
+{
+	return (ISC_TF(isc_sockaddr_pf(&element->address) == AF_INET6));
+}
+
+
+/*
+ * Post confirguation load validation of list-on lists.
+ */
+isc_result_t
+dns_c_lstnlist_validate(dns_c_lstnlist_t *ll)
+{
+	dns_c_lstnon_t *lo;
+	isc_boolean_t checkval;
+
+	REQUIRE(DNS_C_LISTENLIST_VALID(ll));
+
+	lo = ISC_LIST_HEAD(ll->elements);
+	while (lo != NULL) {
+		checkval = dns_c_ipmatchlist_walk(lo->iml,
+						  checklisten_element);
+		if (!checkval) {
+			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
+				      "listen-on must have IPv4 "
+				      "addresses only.");
+			return (ISC_R_FAILURE);
+		}
+		
+		lo = ISC_LIST_NEXT(lo, next);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_lstnlistv6_validate(dns_c_lstnlist_t *ll)
+{
+	dns_c_lstnon_t *lo;
+	isc_boolean_t checkval;
+
+	REQUIRE(DNS_C_LISTENLIST_VALID(ll));
+
+	lo = ISC_LIST_HEAD(ll->elements);
+	while (lo != NULL) {
+		checkval = dns_c_ipmatchlist_walk(lo->iml,
+						  checkv6listen_element);
+		if (!checkval) {
+			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_ERROR,
+				      "listen-on-v6 must have IPv6 "
+				      "addresses only.");
+			return (ISC_R_FAILURE);
+		}
+		
+		lo = ISC_LIST_NEXT(lo, next);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+
 

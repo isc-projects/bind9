@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.24 2000/05/08 14:35:27 tale Exp $ */
+/* $Id: confip.c,v 1.25 2000/06/05 22:08:44 brister Exp $ */
 
 #include <config.h>
 
@@ -729,6 +729,41 @@ dns_c_ipmatchlist_print(FILE *fp, int indent, dns_c_ipmatchlist_t *ml) {
 
 	return (ISC_R_SUCCESS);
 }
+
+
+isc_boolean_t
+dns_c_ipmatchlist_walk(dns_c_ipmatchlist_t *list, dns_c_ipmlwalker func)
+{
+	isc_boolean_t retval = ISC_TRUE;
+	dns_c_ipmatchelement_t *ipme ;
+
+	REQUIRE(DNS_C_IPMLIST_VALID(list));
+
+	ipme = ISC_LIST_HEAD(list->elements);
+	while (retval == ISC_TRUE && ipme != NULL) {
+		switch (ipme->type) {
+		case dns_c_ipmatch_pattern:
+			retval = retval && (*func)(&ipme->u.direct);
+			break;
+
+		case dns_c_ipmatch_indirect:
+			retval = retval &&
+				dns_c_ipmatchlist_walk(ipme->u.indirect.list,
+						       func);
+			break;
+
+		default:
+			break;
+		}
+
+		ipme = ISC_LIST_NEXT(ipme, next);
+	}
+	
+	return (retval);
+}
+
+
+
 
 isc_result_t
 dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist) {

@@ -99,7 +99,7 @@ struct dns_c_iplist {
 struct dns_c_ipmatch_direct {
 	isc_uint32_t	magic;
 	
-	isc_sockaddr_t	address;		/* XXX IPv6??? */
+	isc_sockaddr_t	address;
 	isc_uint32_t	mask;
 };
 
@@ -150,109 +150,108 @@ ISC_LANG_BEGINDECLS
  */
 
 
-isc_result_t
-dns_c_ipmatchelement_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result);
+isc_result_t dns_c_ipmatchelement_new(isc_mem_t *mem,
+				      dns_c_ipmatchelement_t **result);
 
-isc_result_t
-dns_c_ipmatchelement_delete(isc_mem_t *mem, dns_c_ipmatchelement_t **ipme);
+isc_result_t dns_c_ipmatchelement_delete(isc_mem_t *mem,
+					 dns_c_ipmatchelement_t **ipme);
 
-isc_result_t
-dns_c_ipmatchelement_copy(isc_mem_t *mem, dns_c_ipmatchelement_t **dest,
-			  dns_c_ipmatchelement_t *src);
+isc_result_t dns_c_ipmatchelement_copy(isc_mem_t *mem,
+				       dns_c_ipmatchelement_t **dest,
+				       dns_c_ipmatchelement_t *src);
 
-isc_result_t
-dns_c_ipmatchelement_print(FILE *fp, int indent, dns_c_ipmatchelement_t *ime);
+isc_result_t dns_c_ipmatchelement_print(FILE *fp, int indent,
+					dns_c_ipmatchelement_t *ime);
 
-isc_boolean_t
-dns_c_ipmatchelement_isneg(dns_c_ipmatchelement_t *elem);
+isc_boolean_t dns_c_ipmatchelement_isneg(dns_c_ipmatchelement_t *elem);
 
-isc_result_t
-dns_c_ipmatch_negate(dns_c_ipmatchelement_t *ipe);
+isc_result_t dns_c_ipmatch_negate(dns_c_ipmatchelement_t *ipe);
 
-isc_result_t
-dns_c_ipmatch_aclnew(isc_mem_t *mem, dns_c_ipmatchelement_t **result,
-		     const char *aclname);
+isc_result_t dns_c_ipmatch_aclnew(isc_mem_t *mem,
+				  dns_c_ipmatchelement_t **result,
+				  const char *aclname);
 
-isc_result_t
-dns_c_ipmatchkey_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result,
-		     const char *key);
+isc_result_t dns_c_ipmatchkey_new(isc_mem_t *mem,
+				  dns_c_ipmatchelement_t **result,
+				  const char *key);
 
-isc_result_t
-dns_c_ipmatchany_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result); 
+isc_result_t dns_c_ipmatchany_new(isc_mem_t *mem,
+				  dns_c_ipmatchelement_t **result); 
 
-isc_result_t
-dns_c_ipmatchlocalhost_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result); 
+isc_result_t dns_c_ipmatchlocalhost_new(isc_mem_t *mem,
+					dns_c_ipmatchelement_t **result); 
 
-isc_result_t
-dns_c_ipmatchlocalnets_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result); 
+isc_result_t dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
+					dns_c_ipmatchelement_t **result); 
 
-isc_result_t
-dns_c_ipmatchpattern_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result,
-			 isc_sockaddr_t address, isc_uint32_t maskbits);
+isc_result_t dns_c_ipmatchpattern_new(isc_mem_t *mem,
+				      dns_c_ipmatchelement_t **result,
+				      isc_sockaddr_t address,
+				      isc_uint32_t maskbits);
 
-isc_result_t
-dns_c_ipmatchindirect_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result,
-			  dns_c_ipmatchlist_t *iml, const char *name);
+isc_result_t dns_c_ipmatchindirect_new(isc_mem_t *mem,
+				       dns_c_ipmatchelement_t **result,
+				       dns_c_ipmatchlist_t *iml,
+				       const char *name);
 
-isc_result_t
-dns_c_ipmatchlist_new(isc_mem_t *mem, dns_c_ipmatchlist_t **ptr);
+isc_result_t dns_c_ipmatchlist_new(isc_mem_t *mem,
+				   dns_c_ipmatchlist_t **ptr);
 
-isc_result_t
-dns_c_ipmatchlist_detach(dns_c_ipmatchlist_t **ml);
+isc_result_t dns_c_ipmatchlist_detach(dns_c_ipmatchlist_t **ml);
 
-void
-dns_c_ipmatchlist_attach(dns_c_ipmatchlist_t *source,
-			 dns_c_ipmatchlist_t **target);
+void dns_c_ipmatchlist_attach(dns_c_ipmatchlist_t *source,
+			      dns_c_ipmatchlist_t **target);
 
-isc_result_t
-dns_c_ipmatchlist_copy(isc_mem_t *mem, dns_c_ipmatchlist_t **dest,
-		       dns_c_ipmatchlist_t *src);
+isc_result_t dns_c_ipmatchlist_copy(isc_mem_t *mem,
+				    dns_c_ipmatchlist_t **dest,
+				    dns_c_ipmatchlist_t *src);
 
-isc_result_t
-dns_c_ipmatchlist_empty(dns_c_ipmatchlist_t *ipml);
+isc_result_t dns_c_ipmatchlist_empty(dns_c_ipmatchlist_t *ipml);
 
-isc_result_t
-dns_c_ipmatchlist_append(dns_c_ipmatchlist_t *dest, dns_c_ipmatchlist_t *src,
-			 isc_boolean_t negate);
+isc_result_t dns_c_ipmatchlist_append(dns_c_ipmatchlist_t *dest,
+				      dns_c_ipmatchlist_t *src,
+				      isc_boolean_t negate);
 
-isc_result_t
-dns_c_ipmatchlist_print(FILE *fp, int indent, dns_c_ipmatchlist_t *iml);
+isc_result_t dns_c_ipmatchlist_print(FILE *fp, int indent,
+				     dns_c_ipmatchlist_t *iml);
 
-isc_result_t
-dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist);
+isc_result_t dns_c_iplist_new(isc_mem_t *mem, int length,
+			      dns_c_iplist_t **newlist);
 
-isc_result_t
-dns_c_iplist_detach(dns_c_iplist_t **list);
+isc_result_t dns_c_iplist_detach(dns_c_iplist_t **list);
 
-isc_result_t
-dns_c_iplist_copy(isc_mem_t *mem, dns_c_iplist_t **dest, dns_c_iplist_t *src);
+isc_result_t dns_c_iplist_copy(isc_mem_t *mem, dns_c_iplist_t **dest,
+			       dns_c_iplist_t *src);
 
-void
-dns_c_iplist_attach(dns_c_iplist_t *source, dns_c_iplist_t **target);
+void dns_c_iplist_attach(dns_c_iplist_t *source, dns_c_iplist_t **target);
 
-isc_result_t
-dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr);
+isc_result_t dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr);
 
-isc_result_t
-dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr);
+isc_result_t dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr);
 
-void
-dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list);
+void dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list);
 
-void
-dns_c_iplist_printfully(FILE *fp, int indent, isc_boolean_t porttoo,
-			dns_c_iplist_t *list);
+void dns_c_iplist_printfully(FILE *fp, int indent, isc_boolean_t porttoo,
+			     dns_c_iplist_t *list);
 
-isc_boolean_t
-dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2);
+isc_boolean_t dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2);
 
-isc_boolean_t
-dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
-			   dns_c_ipmatchelement_t *e2);
+isc_boolean_t dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
+					 dns_c_ipmatchelement_t *e2);
 
-isc_boolean_t
-dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1, dns_c_ipmatchlist_t *l2);
+isc_boolean_t dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1,
+				      dns_c_ipmatchlist_t *l2);
 
-ISC_LANG_ENDDECLS
 
+
+typedef isc_boolean_t (*dns_c_ipmlwalker)(dns_c_ipmatch_direct_t *element);
+
+/*
+ * Recursively decends the list and returns the boolean AND of the return 
+ * values of func
+ */
+isc_boolean_t dns_c_ipmatchlist_walk(dns_c_ipmatchlist_t *list,
+				     dns_c_ipmlwalker func);
+
+ISC_LANG_ENDDECLS 
 #endif /* DNS_CONFIP_H */
