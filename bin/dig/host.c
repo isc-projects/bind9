@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.51 2000/09/11 21:48:11 mws Exp $ */
+/* $Id: host.c,v 1.52 2000/09/13 00:12:49 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -235,7 +235,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	isc_result_t result;
 	int diff;
 
-	if ((!short_form) || (show_details)) {
+	if (!short_form || show_details) {
 		result = isc_time_now(&now);
 		check_result(result, "isc_time_now");
 		diff = isc_time_microdiff(&now, &query->time_sent);
@@ -493,7 +493,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	} else {
-		if ((short_form) && (listed_server)) {
+		if (short_form && listed_server) {
 			printf("Using domain server:\n");
 			printf("Name: %s\n", query->servname);
 			result = isc_buffer_allocate(mctx, &b, MXNAME);
