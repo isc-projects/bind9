@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.131 2000/11/15 23:51:13 tale Exp $ */
+/* $Id: rbtdb.c,v 1.132 2000/11/16 22:33:45 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3864,7 +3864,7 @@ dns_rbtdb_create
 #endif
 		(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
-		 dns_db_t **dbp)
+		 void *driverarg, dns_db_t **dbp)
 {
 	dns_rbtdb_t *rbtdb;
 	isc_result_t result;
@@ -3874,6 +3874,7 @@ dns_rbtdb_create
 	/* Keep the compiler happy. */
 	UNUSED(argc);
 	UNUSED(argv);
+	UNUSED(driverarg);
 
 	rbtdb = isc_mem_get(mctx, sizeof *rbtdb);
 	if (rbtdb == NULL)

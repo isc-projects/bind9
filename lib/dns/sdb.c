@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.14 2000/11/16 01:41:01 bwelling Exp $ */
+/* $Id: sdb.c,v 1.15 2000/11/16 22:33:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -33,6 +34,7 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -43,20 +45,20 @@
 #include <dns/types.h>
 
 #include "rdatalist_p.h"
-#include "sdb_p.h"
 
-typedef struct sdbimp {
-	const char			*drivername;
+struct dns_sdbimplementation {
 	const dns_sdbmethods_t		*methods;
 	void				*driverdata;
 	unsigned int			flags;
-} sdbimp_t;
+	isc_mem_t			*mctx;
+	dns_dbimplementation_t		*dbimp;
+};
 
 struct dns_sdb {
 	/* Unlocked */
 	dns_db_t			common;
 	char				*zone;
-	sdbimp_t			*implementation;
+	dns_sdbimplementation_t		*implementation;
 	void				*dbdata;
 	isc_mutex_t			lock;
 	/* Locked */
@@ -110,14 +112,12 @@ typedef struct sdb_rdatasetiter {
 /* This is a reasonable value */
 #define SDB_DEFAULT_TTL		(60 * 60 * 24)
 
-#define MAXSDBIMP 10
-
 static int dummy;
 
-static sdbimp_t imps[MAXSDBIMP];
-static int nimps = 0;
-static isc_mutex_t implock;
-static isc_once_t once;
+static isc_result_t dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin,
+				   dns_dbtype_t type, dns_rdataclass_t rdclass,
+				   unsigned int argc, char *argv[],
+				   void *driverarg, dns_db_t **dbp);
 
 static isc_result_t findrdataset(dns_db_t *db, dns_dbnode_t *node,
 				 dns_dbversion_t *version,
@@ -175,64 +175,58 @@ static dns_rdatasetitermethods_t rdatasetiter_methods = {
 	rdatasetiter_current
 };
 
-static void
-initialize(void) {
-	RUNTIME_CHECK(isc_mutex_init(&implock) == ISC_R_SUCCESS);
-}
-
 /*
  * Functions used by implementors of simple databases
  */
 isc_result_t
 dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
-		 void *driverdata, unsigned int flags)
+		 void *driverdata, unsigned int flags, isc_mem_t *mctx,
+		 dns_sdbimplementation_t **sdbimp)
 {
-	int i;
-	int slot = -1;
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+	dns_sdbimplementation_t *imp;
+	isc_result_t result;
 
 	REQUIRE(drivername != NULL);
 	REQUIRE(methods != NULL);
 	REQUIRE(methods->lookup != NULL);
+	REQUIRE(mctx != NULL);
+	REQUIRE(sdbimp != NULL && *sdbimp == NULL);
 
-	LOCK(&implock);
-	for (i = 0; i < nimps; i++) {
-		if (imps[i].drivername == NULL)
-			slot = i;
-		else if (strcmp(drivername, imps[i].drivername) == 0) {
-			UNLOCK(&implock);
-			return (ISC_R_EXISTS);
-		}
+	imp = isc_mem_get(mctx, sizeof(dns_sdbimplementation_t));
+	if (imp == NULL)
+		return (ISC_R_NOMEMORY);
+	imp->methods = methods;
+	imp->driverdata = driverdata;
+	imp->flags = flags;
+	imp->mctx = NULL;
+	isc_mem_attach(mctx, &imp->mctx);
+	imp->dbimp = NULL;
+	result = dns_db_register(drivername, dns_sdb_create, imp, mctx,
+				 &imp->dbimp);
+	if (result != ISC_R_SUCCESS) {
+		dns_sdb_unregister(&imp);
+		return (result);
 	}
-	if (i == nimps) {
-		if (nimps < MAXSDBIMP)
-			slot = nimps++;
-		else {
-			UNLOCK(&implock);
-			return (ISC_R_NOSPACE);
-		}
-	}
-	INSIST(slot >= 0 && slot < MAXSDBIMP);
-	imps[slot].drivername = drivername;
-	imps[slot].methods = methods;
-	imps[slot].driverdata = driverdata;
-	imps[slot].flags = flags;
-	UNLOCK(&implock);
+	*sdbimp = imp;
 
 	return (ISC_R_SUCCESS);
 }
 
 void
-dns_sdb_unregister(const char *drivername) {
-	int i;
-	LOCK(&implock);
-	for (i = 0; i < nimps; i++) {
-		if (imps[i].drivername != NULL &&
-		    strcmp(imps[i].drivername, drivername) == 0)
-			imps[i].drivername = NULL;
-	}
-	UNLOCK(&implock);
+dns_sdb_unregister(dns_sdbimplementation_t **sdbimp) {
+	dns_sdbimplementation_t *imp;
+	isc_mem_t *mctx;
 
+	REQUIRE(sdbimp != NULL && *sdbimp != NULL);
+
+	imp = *sdbimp;
+	dns_db_unregister(&imp->dbimp);
+
+	mctx = imp->mctx;
+	isc_mem_put(mctx, imp, sizeof(dns_sdbimplementation_t));
+	isc_mem_detach(&mctx);
+
+	*sdbimp = NULL;
 }
 
 isc_result_t
@@ -249,7 +243,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	isc_result_t result;
 	unsigned int size;
 	isc_mem_t *mctx;
-	sdbimp_t *imp;
+	dns_sdbimplementation_t *imp;
 	dns_name_t *origin;
 
 
@@ -355,7 +349,7 @@ dns_sdb_putnamedrr(dns_sdballnodes_t *allnodes, const char *name,
 	dns_name_t *newname, *origin;
 	dns_fixedname_t fnewname;
 	dns_sdb_t *sdb = (dns_sdb_t *)allnodes->common.db;
-	sdbimp_t *imp = sdb->implementation;
+	dns_sdbimplementation_t *imp = sdb->implementation;
 	dns_sdbnode_t *sdbnode;
 	isc_mem_t *mctx = sdb->common.mctx;
 	isc_buffer_t b;
@@ -448,7 +442,7 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 static void
 destroy(dns_sdb_t *sdb) {
 	isc_mem_t *mctx;
-	sdbimp_t *imp = sdb->implementation;
+	dns_sdbimplementation_t *imp = sdb->implementation;
 
 	mctx = sdb->common.mctx;
 
@@ -630,7 +624,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	isc_buffer_t b;
 	char namestr[DNS_NAME_MAXTEXT + 1];
 	isc_boolean_t isorigin;
-	sdbimp_t *imp;
+	dns_sdbimplementation_t *imp;
 
 	REQUIRE(VALID_SDB(sdb));
 	REQUIRE(create == ISC_FALSE);
@@ -912,7 +906,7 @@ createiterator(dns_db_t *db, isc_boolean_t relative_names,
 {
 	dns_sdb_t *sdb = (dns_sdb_t *)db;
 	sdb_dbiterator_t *sdbiter;
-	sdbimp_t *imp = sdb->implementation;
+	dns_sdbimplementation_t *imp = sdb->implementation;
 	isc_result_t result;
 
 	REQUIRE(VALID_SDB(sdb));
@@ -1114,31 +1108,17 @@ static dns_dbmethods_t sdb_methods = {
 isc_result_t
 dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 	       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
-	       dns_db_t **dbp)
+	       void *driverarg, dns_db_t **dbp)
 {
 	dns_sdb_t *sdb;
 	isc_result_t result;
-	char *sdbtype;
 	char zonestr[DNS_NAME_MAXTEXT + 1];
 	isc_buffer_t b;
-	sdbimp_t *imp;
-	int i;
+	dns_sdbimplementation_t *imp;
 
-	if (argc < 1)
-		return (ISC_R_NOTIMPLEMENTED);
-	sdbtype = argv[0];
+	REQUIRE(driverarg != NULL);
 
-	LOCK(&implock);
-	for (i = 0; i < nimps; i++)
-		if (imps[i].drivername != NULL &&
-		    strcmp(sdbtype, imps[i].drivername) == 0)
-			break;
-	if (i == nimps) {
-		UNLOCK(&implock);
-		return (ISC_R_NOTFOUND);
-	}
-	UNLOCK(&implock);
-	imp = &imps[i];
+	imp = driverarg;
 
 	if (type != dns_dbtype_zone)
 		return (ISC_R_NOTIMPLEMENTED);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.59 2000/10/18 23:53:29 marka Exp $ */
+/* $Id: db.h,v 1.60 2000/11/16 22:33:50 bwelling Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -146,6 +146,12 @@ typedef struct dns_dbmethods {
 	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
 } dns_dbmethods_t;
 
+typedef isc_result_t
+(*dns_dbcreatefunc_t)(isc_mem_t *mctx, dns_name_t *name,
+		      dns_dbtype_t type, dns_rdataclass_t rdclass,
+		      unsigned int argc, char *argv[], void *driverarg,
+		      dns_db_t **dbp);
+					
 #define DNS_DB_MAGIC		0x444E5344U		/* DNSD. */
 #define DNS_DB_VALID(db)	ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
 
@@ -1170,6 +1176,47 @@ dns_db_ispersistent(dns_db_t *db);
  * Returns:
  *	ISC_TRUE	'db' is persistent.
  *	ISC_FALSE	'db' is not persistent.
+ */
+
+isc_result_t
+dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
+		isc_mem_t *mctx, dns_dbimplementation_t **dbimp);
+
+/*
+ * Register a new database implementation and add it to the list of
+ * supported implementations.
+ *
+ * Requires:
+ *
+ * 	'name' is not NULL
+ * 	'order' is a valid function pointer
+ * 	'mctx' is a valid memory context
+ * 	dbimp != NULL && *dbimp == NULL
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS	The registration succeeded
+ * 	ISC_R_NOMEMORY	Out of memory
+ * 	ISC_R_EXISTS	A database implementation with the same name exists
+ *
+ * Ensures:
+ *
+ *	*dbimp points to an opaque structure which must be passed to
+ *	dns_db_unregister().
+ */
+
+void
+dns_db_unregister(dns_dbimplementation_t **dbimp);
+/*
+ * Remove a database implementation from the the list of supported
+ * implementations.  No databases of this type can be active when this
+ * is called.
+ *
+ * Requires:
+ * 	dbimp != NULL && *dbimp == NULL
+ *
+ * Ensures:
+ *
+ * 	Any memory allocated in *dbimp will be freed.
  */
 
 ISC_LANG_ENDDECLS

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.61 2000/11/16 01:40:59 bwelling Exp $ */
+/* $Id: db.c,v 1.62 2000/11/16 22:33:43 bwelling Exp $ */
 
 /***
  *** Imports
@@ -24,10 +24,14 @@
 #include <config.h>
 
 #include <isc/buffer.h>
+#include <isc/mem.h>
+#include <isc/once.h>
+#include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
+#include <dns/db.h>
 #include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
@@ -38,35 +42,65 @@
  *** Private Types
  ***/
 
-typedef struct {
-	const char *		name;
-	isc_result_t		(*create)(isc_mem_t *mctx, dns_name_t *name,
-					  dns_dbtype_t type,
-					  dns_rdataclass_t rdclass,
-					  unsigned int argc, char *argv[],
-					  dns_db_t **dbp);
-} impinfo_t;
+struct dns_dbimplementation {
+	const char *				name;
+	dns_dbcreatefunc_t			create;
+	isc_mem_t *				mctx;
+	void *					driverarg;
+	ISC_LINK(dns_dbimplementation_t)	link;
+};
 
 /***
  *** Supported DB Implementations Registry
  ***/
 
 /*
- * Supported database implementations must be registered here.
- *
- * It might be nice to generate this automatically some day.
+ * Built in database implementations are registered here.
  */
 
 #include "rbtdb.h"
 #include "rbtdb64.h"
-#include "sdb_p.h"
 
-static impinfo_t implementations[] = {
-	{ "rbt", dns_rbtdb_create },
-	{ "rbt64", dns_rbtdb64_create },
-	{ "simple", dns_sdb_create },
-	{ NULL, NULL }
-};
+static ISC_LIST(dns_dbimplementation_t) implementations;
+static isc_rwlock_t implock;
+static isc_once_t once = ISC_ONCE_INIT;
+
+static dns_dbimplementation_t rbtimp;
+static dns_dbimplementation_t rbt64imp;
+
+static void
+initialize() {
+	RUNTIME_CHECK(isc_rwlock_init(&implock, 0, 0) == ISC_R_SUCCESS);
+
+	rbtimp.name = "rbt";
+	rbtimp.create = dns_rbtdb_create;
+	rbtimp.mctx = NULL;
+	rbtimp.driverarg = NULL;
+	ISC_LINK_INIT(&rbtimp, link);
+
+	rbt64imp.name = "rbt64";
+	rbt64imp.create = dns_rbtdb64_create;
+	rbt64imp.mctx = NULL;
+	rbt64imp.driverarg = NULL;
+	ISC_LINK_INIT(&rbt64imp, link);
+
+	ISC_LIST_INIT(implementations);
+	ISC_LIST_APPEND(implementations, &rbtimp, link);
+	ISC_LIST_APPEND(implementations, &rbt64imp, link);
+}
+
+static inline dns_dbimplementation_t *
+impfind(const char *name) {
+	dns_dbimplementation_t *imp;
+
+	for (imp = ISC_LIST_HEAD(implementations); 
+	     imp != NULL;
+	     imp = ISC_LIST_NEXT(imp, link))
+		if (strcasecmp(name, imp->name) == 0)
+			return (imp);
+	return (NULL);
+}
+
 
 /***
  *** Basic DB Methods
@@ -77,7 +111,9 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
 	      dns_dbtype_t type, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp)
 {
-	impinfo_t *impinfo;
+	dns_dbimplementation_t *impinfo;
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
 	/*
 	 * Create a new database using implementation 'db_type'.
@@ -86,10 +122,18 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
 	REQUIRE(dbp != NULL && *dbp == NULL);
 	REQUIRE(dns_name_isabsolute(origin));
 
-	for (impinfo = implementations; impinfo->name != NULL; impinfo++)
-		if (strcasecmp(db_type, impinfo->name) == 0)
-			return ((impinfo->create)(mctx, origin, type, rdclass,
-						  argc, argv, dbp));
+	RWLOCK(&implock, isc_rwlocktype_read);
+	impinfo = impfind(db_type);
+	if (impinfo != NULL) {
+		isc_result_t result;
+		result = ((impinfo->create)(mctx, origin, type,
+					    rdclass, argc, argv,
+					    impinfo->driverarg, dbp));
+		RWUNLOCK(&implock, isc_rwlocktype_read);
+		return (result);
+	}
+
+	RWUNLOCK(&implock, isc_rwlocktype_read);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 		      DNS_LOGMODULE_DB, ISC_LOG_ERROR,
@@ -682,4 +726,55 @@ dns_db_nodecount(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	return ((db->methods->nodecount)(db));
+}
+
+isc_result_t
+dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
+		isc_mem_t *mctx, dns_dbimplementation_t **dbimp)
+{
+	dns_dbimplementation_t *imp;
+
+	REQUIRE(name != NULL);
+	REQUIRE(dbimp != NULL && *dbimp == NULL);
+
+	RWLOCK(&implock, isc_rwlocktype_write);
+	imp = impfind(name);
+	if (imp != NULL) {
+		RWUNLOCK(&implock, isc_rwlocktype_write);
+		return (ISC_R_EXISTS);
+	}
+	
+	imp = isc_mem_get(mctx, sizeof(dns_dbimplementation_t));
+	if (imp == NULL) {
+		RWUNLOCK(&implock, isc_rwlocktype_write);
+		return (ISC_R_NOMEMORY);
+	}
+	imp->name = name;
+	imp->create = create;
+	imp->mctx = NULL;
+	imp->driverarg = driverarg;
+	isc_mem_attach(mctx, &imp->mctx);
+	ISC_LINK_INIT(imp, link);
+	ISC_LIST_APPEND(implementations, imp, link);
+	RWUNLOCK(&implock, isc_rwlocktype_write);
+
+	*dbimp = imp;
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_db_unregister(dns_dbimplementation_t **dbimp) {
+	dns_dbimplementation_t *imp;
+	isc_mem_t *mctx;
+
+	REQUIRE(dbimp != NULL && *dbimp != NULL);
+
+	imp = *dbimp;
+	RWLOCK(&implock, isc_rwlocktype_write);
+	ISC_LIST_UNLINK(implementations, imp, link);
+	mctx = imp->mctx;
+	isc_mem_put(mctx, imp, sizeof(dns_dbimplementation_t));
+	isc_mem_detach(&mctx);
+	RWUNLOCK(&implock, isc_rwlocktype_write);
 }

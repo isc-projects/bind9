@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.8 2000/11/16 21:58:09 marka Exp $ */
+/* $Id: sdb.h,v 1.9 2000/11/16 22:33:52 bwelling Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -93,10 +93,14 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
-		 void *driverdata, unsigned int flags);
+		 void *driverdata, unsigned int flags, isc_mem_t *mctx,
+		 dns_sdbimplementation_t **sdbimp);
 /*
  * Register a simple database driver of name 'drivername' with the
- * specified functions.
+ * specified functions, and return a handle to the implementation structure.
+ *
+ * sdbimp must point to an object with the value NULL.  That is,
+ * sdbimp != NULL && *sdbimp == NULL.
  *
  * The name server will perform lookups in the database by calling the
  * function 'lookup', passing it a printable zone name 'zone', a printable
@@ -139,10 +143,11 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  */
 
 void
-dns_sdb_unregister(const char *drivername);
+dns_sdb_unregister(dns_sdbimplementation_t **sdbimp);
 /*
  * Removes the simple database driver from the list of registered database
- * types.
+ * types.  There must be no active databases of this type when this function
+ * is called.
  */
 
 isc_result_t

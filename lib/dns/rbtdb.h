@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.h,v 1.11 2000/08/01 01:22:41 tale Exp $ */
+/* $Id: rbtdb.h,v 1.12 2000/11/16 22:33:46 bwelling Exp $ */
 
 #ifndef DNS_RBTDB_H
 #define DNS_RBTDB_H 1
@@ -36,7 +36,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, dns_dbtype_t type,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
-		 dns_db_t **dbp);
+		 void *driverarg, dns_db_t **dbp);
 
 ISC_LANG_ENDDECLS
 
