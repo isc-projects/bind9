@@ -163,16 +163,12 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 }
 
 isc_result_t
-ns_logconfig_fromconf(isc_log_t *lctx, dns_c_logginglist_t *clog,
-		      isc_logconfig_t **lcctxp)
+ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog)
 {
 	isc_result_t result;
 	dns_c_logchan_t *cchan;
 	dns_c_logcat_t *ccat;
-	isc_logconfig_t *lcctx = NULL;
 
-	CHECK(isc_logconfig_create(lctx, &lcctx));
-	
 	for (cchan = ISC_LIST_HEAD(clog->channels);
 	     cchan != NULL;
 	     cchan = ISC_LIST_NEXT(cchan, next))
@@ -187,7 +183,6 @@ ns_logconfig_fromconf(isc_log_t *lctx, dns_c_logginglist_t *clog,
 		CHECK(category_fromconf(ccat, lcctx));
 	}
 
-	*lcctxp = lcctx;
 	return (ISC_R_SUCCESS);
 
  cleanup:

@@ -938,18 +938,16 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_c_logginglist_t *clog = NULL;
 		isc_logconfig_t *logc = NULL;
 
-		/*
-		 * dns_c_ctx_getlogging() succeeds even if there
-		 * is no logging statement in named.conf;
-		 * in that case it returns the default configuration
-		 * that was set up in logging_init().  Therefore, we 
-		 * do not need to provide any defaults of our own here.
-		 */
-		CHECKM(dns_c_ctx_getlogging(configctx, &clog),
-		       "getting logging configuration");
-		
-		CHECKM(ns_logconfig_fromconf(ns_g_lctx, clog, &logc),
-		       "setting up logging configuration");
+		CHECKM(isc_logconfig_create(ns_g_lctx, &logc),
+		       "creating new logging configuration");
+		CHECKM(ns_log_setdefaults(logc),
+		       "setting up default logging defaults");
+
+		(void) dns_c_ctx_getlogging(configctx, &clog);
+		if (clog != NULL) {
+			CHECKM(ns_log_configure(logc, clog),
+			       "configuring logging");
+		}
 
 		result = isc_logconfig_use(ns_g_lctx, logc);
 		if (result != ISC_R_SUCCESS) {

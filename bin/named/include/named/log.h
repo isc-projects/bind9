@@ -47,6 +47,9 @@
 isc_result_t
 ns_log_init(void);
 
+isc_result_t
+ns_log_setdefaults(isc_logconfig_t *lcfg);
+
 void
 ns_log_shutdown(void);
 

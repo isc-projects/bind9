@@ -23,7 +23,7 @@
 #include <dns/conflog.h>
 
 isc_result_t
-ns_logconfig_fromconf(isc_log_t *lctx, dns_c_logginglist_t *clog, isc_logconfig_t **lctxp);
+ns_log_configure(isc_logconfig_t *lctx, dns_c_logginglist_t *clog);
 /*
  * Construct a new isc_logconfig_t object for use with the logging context 'lctx',
  * configuring it according to the named.conf configuration data in 'clog'.

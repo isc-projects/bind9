@@ -61,8 +61,6 @@ static isc_logmodule_t modules[] = {
 isc_result_t
 ns_log_init(void) {
 	isc_result_t result;
-	isc_logdestination_t destination;
-	unsigned int flags;
 	isc_logconfig_t *lcfg;
 
 	ns_g_categories = categories;
@@ -84,6 +82,24 @@ ns_log_init(void) {
 	isc_log_registermodules(ns_g_lctx, ns_g_modules);
 	dns_log_init(ns_g_lctx);
 
+	result = ns_log_setdefaults(lcfg);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	isc_log_destroy(&ns_g_lctx);
+
+	return (result);
+}
+
+isc_result_t
+ns_log_setdefaults(isc_logconfig_t *lcfg) {
+	isc_result_t result;
+	isc_logdestination_t destination;
+	unsigned int flags;
+	
 	/*
 	 * Create and install the default channel.
 	 */
@@ -120,8 +136,6 @@ ns_log_init(void) {
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	isc_log_destroy(&ns_g_lctx);
-
 	return (result);
 }
 
