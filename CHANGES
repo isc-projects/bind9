@@ -13,7 +13,8 @@
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.
 
-1517.   [placeholder]
+1517.   [port]          Support for IPv6 interface scanning on HP/UX and
+                        TrueUNIX 5.1.
 
 1516.   [func]          Roll the DNSSEC types to RRSIG, NSEC and DNSKEY.
 

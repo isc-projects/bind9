@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.18 2003/02/24 01:46:11 marka Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.19 2003/10/07 03:34:30 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -243,14 +243,17 @@ internal_current(isc_interfaceiter_t *iter) {
 
 		iter->current.af = family;
 
-		get_addr(family, &iter->current.address, addr_sa);
+		get_addr(family, &iter->current.address, addr_sa,
+			 iter->current.name);
 
 		if (mask_sa != NULL)
-			get_addr(family, &iter->current.netmask, mask_sa);
+			get_addr(family, &iter->current.netmask, mask_sa,
+				 iter->current.name);
 
 		if (dst_sa != NULL &&
 		    (iter->current.flags & IFF_POINTOPOINT) != 0)
-			get_addr(family, &iter->current.dstaddress, dst_sa);
+			get_addr(family, &iter->current.dstaddress, dst_sa,
+				 iter->current.name);
 
 		return (ISC_R_SUCCESS);
 	} else {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.33 2003/04/01 05:18:22 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.34 2003/10/07 03:34:30 marka Exp $ */
 
 #include <config.h>
 
@@ -60,7 +60,9 @@
  */
 
 static void
-get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
+get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
+	 char *ifname)
+{
 	struct sockaddr_in6 *sa6;
 
 	/* clear any remaining value for safety */
@@ -93,16 +95,31 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 			 * we only consider unicast link-local addresses.
 			 */
 			if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
-				isc_uint16_t zone;
+				isc_uint16_t zone16;
 
-				memcpy(&zone, &sa6->sin6_addr.s6_addr[2],
-				       sizeof(zone));
-				zone = ntohs(zone);
-				if (zone != 0) { /* the zone ID is embedded */
+				memcpy(&zone16, &sa6->sin6_addr.s6_addr[2],
+				       sizeof(zone16));
+				zone16 = ntohs(zone16);
+				if (zone16 != 0) {
+					/* the zone ID is embedded */
 					isc_netaddr_setzone(dst,
-							    (isc_uint32_t)zone);
+							    (isc_uint32_t)zone16);
 					dst->type.in6.s6_addr[2] = 0;
 					dst->type.in6.s6_addr[3] = 0;
+				} else if (ifname != NULL) {
+					unsigned int zone;
+
+					/*
+					 * sin6_scope_id is still not provided,
+					 * but the corresponding interface name
+					 * is know.  Use the interface ID as
+					 * the link ID.
+					 */
+					zone = if_nametoindex(ifname);
+					if (zone != 0) {
+						isc_netaddr_setzone(dst,
+								    (isc_uint32_t)zone);
+					}
 				}
 			}
 		}

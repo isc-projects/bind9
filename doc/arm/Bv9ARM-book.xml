@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.230 2003/09/25 18:16:45 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.231 2003/10/07 03:34:30 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2099,7 +2099,12 @@ interfaces on the system.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>localnets</command></para></entry>
 <entry colname = "2"><para>Matches any host on an IPv4 or IPv6 network
-for which the system has an interface.</para></entry>
+for which the system has an interface.
+Some systems do not provide a way to determine the prefix lengths of
+local IPv6 addresses.
+In such a case, <command>localnets</command> only matches the local
+IPv6 addresses, just like <command>localhost</command>.
+</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
