@@ -1,3 +1,5 @@
+1312.	[func]		Log TSIG key used w/ outgoing zone transfers.
+
 1309.	[func]		Log that a zone transfer was covered by a TSIG.
  
 1304.	[func]		New function: dns_zone_name().
