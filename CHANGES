@@ -1,3 +1,6 @@
+1170.	[bug]		Don't attempt to print the token when a I/O error
+			occurs when parsing named.conf.  [RT #2275]
+
 1169.	[func]		Identify recursive queries in the query log.
 
 1168.	[bug]		Empty also-notify clauses were not handled gracefully.

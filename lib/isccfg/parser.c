@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.96 2002/01/04 02:32:12 gson Exp $ */
+/* $Id: parser.c,v 1.97 2002/01/04 05:42:12 marka Exp $ */
 
 #include <config.h>
 
@@ -1970,9 +1970,14 @@ cfg_gettoken(cfg_parser_t *pctx, int options) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR, "token too big");
 		break;
 
+	case ISC_R_IOERROR:
+		cfg_parser_error(pctx, 0, "%s",
+				 isc_result_totext(result));
+		break;
+
 	default:
 		cfg_parser_error(pctx, CFG_LOG_NEAR, "%s",
-			     isc_result_totext(result));
+				 isc_result_totext(result));
 		break;
 	}
 	return (result);
