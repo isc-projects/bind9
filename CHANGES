@@ -1,3 +1,6 @@
+ 746.	[bug]		The sdb didn't clone rdatasets properly, causing
+			a crash when the server followed delegations. [RT #905]
+
  745.	[func]		Report the owner name of records that fail
 			semantic checks while loading.
 
