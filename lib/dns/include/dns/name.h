@@ -184,10 +184,14 @@ struct dns_name {
 	unsigned char *			ndata;
 	unsigned int			length;
 	unsigned int			labels;
+	unsigned int			attributes;
 	unsigned char *			offsets;
 	ISC_LINK(dns_name_t)		link;
 	ISC_LIST(dns_rdatalist_t)	list;
 };
+
+#define DNS_NAMEATTR_ABSOLUTE		0x01
+#define DNS_NAMEATTR_READONLY		0x02
 
 extern dns_name_t *dns_rootname;
 
