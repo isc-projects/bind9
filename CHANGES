@@ -1,4 +1,8 @@
 
+ 461.	[bug]		Specifying an unknown key in the "keys" clause of the
+			"controls" statement caused a NULL pointer dereference.
+			[RT #316]
+
  456.	[bug]		Stub zones were not resetting the refresh and expire
 			counters, loadtime or clearing the DNS_ZONE_REFRESH
 			(refresh in progress) flag upon successful update.
