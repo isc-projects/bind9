@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "/usr/local/share/xml/dtd/docbook/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.6 2000/09/11 17:39:25 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.7 2000/09/12 01:25:05 gson Exp $ -->
 
 <book>
 
@@ -1385,7 +1385,7 @@ allow-update { key host1-host2. ;};
     system.</para>
 
     <para>For forward lookups, <acronym>BIND</acronym> 9 supports both A6 and AAAA
-    records.  The of AAAA records is deprecated, but it is still
+    records.  The use of AAAA records is deprecated, but it is still
     useful for hosts to have both AAAA and A6 records to maintain
     backward compatibility with installations where AAAA records are
     still used.  In fact, the stub resolvers currently shipped with
