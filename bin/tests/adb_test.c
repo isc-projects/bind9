@@ -315,8 +315,8 @@ insert(char *target, char *addr, dns_ttl_t ttl, isc_stdtime_t now)
 
 	ina.s_addr = inet_addr(addr);
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name, &sockaddr, ttl, now);
-	check_result(result, "dns_adb_insert %s -> %s", target, addr);
+	result = _dns_adb_insert(adb, &name, &sockaddr, ttl, now);
+	check_result(result, "_dns_adb_insert %s -> %s", target, addr);
 	printf("Added %s -> %s\n", target, addr);
 }
 
