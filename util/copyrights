@@ -1033,9 +1033,9 @@
 ./contrib/sdb/ldap/ldapdb.h			X	2001
 ./contrib/sdb/ldap/zone2ldap.1			X	2001
 ./contrib/sdb/ldap/zone2ldap.c			X	2001
-./contrib/sdb/pgsql/zonetodb.c			C	2000,2001
 ./contrib/sdb/pgsql/pgsqldb.c			C	2000,2001
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001
+./contrib/sdb/pgsql/zonetodb.c			C	2000,2001
 ./contrib/sdb/tcl/lookup.tcl			TCL	2000,2001
 ./contrib/sdb/tcl/tcldb.c			C	2000,2001
 ./contrib/sdb/tcl/tcldb.h			C	2000,2001
