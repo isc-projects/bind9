@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.12 2001/01/09 21:55:58 bwelling Exp $ */
+/* $Id: commandline.c,v 1.13 2001/03/01 22:40:09 bwelling Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -199,7 +199,7 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 					isc_msgcat_get(isc_msgcat,
 						       ISC_MSGSET_COMMANDLINE,
 						       ISC_MSG_OPTNEEDARG,
-						       "option requires"
+						       "option requires "
 						       "an argument"),
 					isc_commandline_option);
 
