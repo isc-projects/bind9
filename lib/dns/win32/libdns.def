@@ -3,11 +3,6 @@ LIBRARY libdns
 ; Exported Functions
 EXPORTS
 
-dns_a6_init
-dns_a6_reset
-dns_a6_invalidate
-dns_a6_copy
-dns_a6_foreach
 dns_acl_create
 dns_acl_appendelement
 dns_acl_any
