@@ -31,14 +31,14 @@ CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-OBJS =		buffer.@O@ connection.@O@ data.@O@ dispatch.@O@ generic.@O@ \
-		handle.@O@ listener.@O@ message.@O@ object.@O@ protocol.@O@ \
-		support.@O@ version.@O@
+OBJS =		connection.@O@ data.@O@ dispatch.@O@ generic.@O@ \
+		handle.@O@ lib.@O@ listener.@O@ message.@O@ object.@O@ \
+		protocol.@O@ result.@O@ support.@O@ version.@O@
 
 # Alphabetically
-SRCS =		buffer.c connection.c data.c dispatch.c generic.c \
-		handle.c listener.c message.c object.c protocol.c \
-		support.c version.c
+SRCS =		connection.c data.c dispatch.c generic.c \
+		handle.c lib.c listener.c message.c object.c \
+		protocol.c result.c support.c version.c
 
 LIBS =		@LIBS@
 

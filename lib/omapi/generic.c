@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.3 2000/01/04 20:04:38 tale Exp $ */
+/* $Id: generic.c,v 1.4 2000/01/06 03:36:28 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -250,7 +250,7 @@ omapi_generic_stuff_values(omapi_object_t *c, omapi_object_t *id,
 	for (i = 0; i < src->nvalues; i++) {
 		if (src->values[i] != NULL &&
 		    src->values[i]->name->len != 0) {
-			result = omapi_connection_put_uint16(c,
+			result = omapi_connection_putuint16(c,
 						   src->values[i]->name->len);
 			if (result != ISC_R_SUCCESS)
 				return (result);
@@ -260,7 +260,7 @@ omapi_generic_stuff_values(omapi_object_t *c, omapi_object_t *id,
 			if (result != ISC_R_SUCCESS)
 				return (result);
 
-			result = omapi_connection_write_typed_data(c,
+			result = omapi_connection_puttypeddata(c,
 						       src->values[i]->value);
 			if (result != ISC_R_SUCCESS)
 				return (result);

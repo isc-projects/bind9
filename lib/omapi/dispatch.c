@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.3 2000/01/04 20:04:38 tale Exp $ */
+/* $Id: dispatch.c,v 1.4 2000/01/06 03:36:27 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -51,10 +51,6 @@ isc_uint32_t cur_time;
 
 isc_result_t
 omapi_dispatch(struct timeval *t) {
-#if 0 /*XXXDCL*/
-	return (omapi_wait_for_completion((omapi_object_t *)&omapi_io_states,
-					  t));
-#endif
 	/*
 	 * XXXDCL sleep forever?  The socket thread will be doing all the work.
 	 */
@@ -285,7 +281,7 @@ omapi_io_set_value(omapi_object_t *h, omapi_object_t *id,
 		   omapi_data_string_t *name, omapi_typed_data_t *value)
 {
 	REQUIRE(h != NULL && h->type == omapi_type_io_object);
-	
+
 	if (h->inner != NULL && h->inner->type->set_value != NULL)
 		return (*(h->inner->type->set_value))(h->inner, id,
 						      name, value);

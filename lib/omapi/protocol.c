@@ -132,12 +132,12 @@ omapi_protocol_send_intro(omapi_object_t *h, unsigned int ver,
 	if (h->outer == NULL || h->outer->type != omapi_type_connection)
 		return (ISC_R_NOTCONNECTED);
 
-	result = omapi_connection_put_uint32((omapi_object_t *)connection,
+	result = omapi_connection_putuint32((omapi_object_t *)connection,
 					     ver);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = omapi_connection_put_uint32((omapi_object_t *)connection,
+	result = omapi_connection_putuint32((omapi_object_t *)connection,
 					     hsize);
 
 	if (result != ISC_R_SUCCESS)
@@ -149,7 +149,7 @@ omapi_protocol_send_intro(omapi_object_t *h, unsigned int ver,
 	 */
 	p->state = omapi_protocol_intro_wait;
 	result = omapi_connection_require((omapi_object_t *)connection, 8);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTYET)
+	if (result != ISC_R_SUCCESS && result != OMAPI_R_NOTYET)
 		return (result);
 
 	/*
@@ -158,16 +158,7 @@ omapi_protocol_send_intro(omapi_object_t *h, unsigned int ver,
 	 */
 	p->next_xid = random();
 
-	/*
-	 * Send the intro.
-	 */
-	task = NULL;
-	result = isc_task_create(omapi_taskmgr, NULL, 0, &task);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	isc_socket_sendv(connection->socket, &connection->output_buffers,
-			 task, omapi_connection_written, connection);
+	connection_send(connection);
 
 	return (ISC_R_SUCCESS);
 }
@@ -194,12 +185,12 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	om = (omapi_message_object_t *)omo;
 
 	/* XXXTL Write the authenticator length */
-	result = omapi_connection_put_uint32(c, 0);
+	result = omapi_connection_putuint32(c, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/* XXXTL Write the ID of the authentication key we're using. */
-	result = omapi_connection_put_uint32(c, 0);
+	result = omapi_connection_putuint32(c, 0);
 	if (result != ISC_R_SUCCESS) {
 		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
@@ -208,7 +199,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	/*
 	 * Write the opcode.
 	 */
-	result = omapi_connection_put_uint32(c, m->op);
+	result = omapi_connection_putuint32(c, m->op);
 	if (result != ISC_R_SUCCESS) {
 		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
@@ -220,7 +211,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 * The caller is responsible for arranging for one of these handles
 	 * to be set (or not).
 	 */
-	result = omapi_connection_put_uint32(c, (m->h ? m->h
+	result = omapi_connection_putuint32(c, (m->h ? m->h
 						 : (m->object ?
 						    m->object->handle
 						    : 0)));
@@ -233,7 +224,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 * Set and write the transaction ID.
 	 */
 	m->id = p->next_xid++;
-	result = omapi_connection_put_uint32(c, m->id);
+	result = omapi_connection_putuint32(c, m->id);
 	if (result != ISC_R_SUCCESS) {
 		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
@@ -243,7 +234,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 * Write the transaction ID of the message to which this is a
 	 * response, if there is such a message.
 	 */
-	result = omapi_connection_put_uint32(c, om ? om->id : m->rid);
+	result = omapi_connection_putuint32(c, om ? om->id : m->rid);
 	if (result != ISC_R_SUCCESS) {
 		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
@@ -262,7 +253,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 * Write the zero-length name that terminates the list of name/value
 	 * pairs specific to the message.
 	 */
-	result = omapi_connection_put_uint16(c, 0);
+	result = omapi_connection_putuint16(c, 0);
 	if (result != ISC_R_SUCCESS) {
 		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
@@ -284,7 +275,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 * Write the zero-length name that terminates the list of name/value
 	 * pairs for the associated object.
 	 */
-	result = omapi_connection_put_uint16(c, 0);
+	result = omapi_connection_putuint16(c, 0);
 	if (result != ISC_R_SUCCESS) {
 		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
@@ -293,14 +284,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	/* XXXTL Write the authenticator... */
 
 
-	task = NULL;
-	result = isc_task_create(omapi_taskmgr, NULL, 0, &task);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	isc_socket_sendv(((omapi_connection_object_t *)c)->socket,
-			 &((omapi_connection_object_t *)c)->output_buffers,
-			 task, omapi_connection_written, c);
+	connection_send((omapi_connection_object_t *)c);
 
 	return (ISC_R_SUCCESS);
 }
@@ -339,10 +323,10 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 * Get protocol version and header size in network
 		 * byte order.
 		 */
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					    (isc_uint32_t *)
 					    &p->protocol_version);
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					    (isc_uint32_t *)&p->header_size);
 	
 		/*
@@ -392,19 +376,19 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		/*
 		 * Swap in the header.
 		 */
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					  (isc_uint32_t *)&p->message->authid);
 
 		/* XXXTL bind the authenticator here! */
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					 (isc_uint32_t *)&p->message->authlen);
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					    (isc_uint32_t *)&p->message->op);
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					  (isc_uint32_t *)&p->message->handle);
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					    (isc_uint32_t *)&p->message->id);
-		omapi_connection_get_uint32(connection,
+		omapi_connection_getuint32(connection,
 					    (isc_uint32_t *)&p->message->rid);
 
 		/*
@@ -445,7 +429,7 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 */
 
 	case omapi_protocol_name_length_wait:
-		result = omapi_connection_get_uint16(connection, &nlen);
+		result = omapi_connection_getuint16(connection, &nlen);
 		if (result != ISC_R_SUCCESS) {
 			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
 			return (result);
@@ -532,7 +516,7 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 */
 
 	case omapi_protocol_value_length_wait:
-		omapi_connection_get_uint32(connection, &vlen);
+		omapi_connection_getuint32(connection, &vlen);
 
 		/*
 		 * Zero-length values are allowed - if we get one, we

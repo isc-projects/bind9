@@ -31,8 +31,7 @@
 #include <isc/timer.h>
 
 #include <omapi/omapip.h>
-#include <omapi/buffer.h>
-#include <omapi/alloc.h>
+#include <omapi/result.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -42,6 +41,8 @@ ISC_LANG_BEGINDECLS
 #define OMAPI_OP_NOTIFY		4
 #define OMAPI_OP_STATUS		5
 #define OMAPI_OP_DELETE		6
+
+#define OMAPI_BUFFER_SIZE 4096
 
 typedef enum {
 	omapi_connection_unconnected,
@@ -71,6 +72,7 @@ typedef struct omapi_connection_object {
 	OMAPI_OBJECT_PREAMBLE;
 	isc_socket_t			*socket; /* Connection socket. */
 	isc_task_t			*task;
+	unsigned int			events_pending;
 	omapi_connection_state_t	state;
 	isc_sockaddr_t			remote_addr;
 	isc_sockaddr_t			local_addr;
@@ -84,10 +86,6 @@ typedef struct omapi_connection_object {
 	 */
 	isc_uint32_t			in_bytes;
 	/*
-	 * XXXDCL old style
-	 */
-	omapi_buffer_t *		inbufs;
-	/*
 	 * Input buffers.
 	 */
 	isc_bufferlist_t		input_buffers;
@@ -95,8 +93,6 @@ typedef struct omapi_connection_object {
 	 * Bytes of output in buffers.
 	 */
 	isc_uint32_t			out_bytes;
-	omapi_buffer_t *		outbufs;
-	isc_buffer_t *			output_buffer;
 	isc_bufferlist_t		output_buffers;
 	/*
 	 * Listener that accepted this connection.
@@ -136,7 +132,7 @@ extern isc_socketmgr_t *omapi_socketmgr;
 extern isc_boolean_t omapi_ipv6;
 
 void
-omapi_connection_written(isc_task_t *task, isc_event_t *event);
+connection_send(omapi_connection_object_t *connection);
 
 #define OBJECT_REF(objectp, object, where) \
 	omapi_object_reference((omapi_object_t **)objectp, \

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996, 1997, 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,29 +15,46 @@
  * SOFTWARE.
  */
 
-#ifndef OMAPI_ALLOC_H
-#define OMAPI_ALLOC_H 1
+#include <config.h>
 
-/*****
- ***** Definitions for the object management API protocol memory allocation.
- *****/
+#include <stddef.h>
 
-#include <isc/lang.h>
+#include <isc/once.h>
+#include <isc/error.h>
+#include <isc/msgcat.h>
 
-#include <omapi/omapip.h>
+#include <omapi/lib.h>
 
-ISC_LANG_BEGINDECLS
+/***
+ *** Globals
+ ***/
 
-isc_result_t
-omapi_buffer_new(omapi_buffer_t **buffer, const char *name);
+isc_msgcat_t *			omapi_msgcat = NULL;
+
+
+/***
+ *** Private
+ ***/
+
+static isc_once_t		msgcat_once = ISC_ONCE_INIT;
+
+
+/***
+ *** Functions
+ ***/
+
+static void
+open_msgcat(void) {
+	isc_msgcat_open("libomapi.cat", &omapi_msgcat);
+}
 
 void
-omapi_buffer_reference(omapi_buffer_t **bufferp, omapi_buffer_t *buffer,
-		       const char *);
+omapi_lib_initmsgcat(void) {
 
-void
-omapi_buffer_dereference(omapi_buffer_t **bufferp, const char *name);
+	/*
+	 * Initialize the OMAPI library's message catalog, omapi_msgcat, if it
+	 * has not already been initialized.
+	 */
 
-ISC_LANG_ENDDECLS
-
-#endif /* OMAPI_ALLOC_H */
+	RUNTIME_CHECK(isc_once_do(&msgcat_once, open_msgcat) == ISC_R_SUCCESS);
+}

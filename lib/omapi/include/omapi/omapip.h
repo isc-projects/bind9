@@ -303,17 +303,40 @@ omapi_connection_stuff_values(omapi_object_t *connection, omapi_object_t *id,
 			      omapi_object_t *object);
 
 isc_result_t
-omapi_connection_write_typed_data(omapi_object_t *connection,
+omapi_connection_require(omapi_object_t *connection, unsigned int bytes);
+
+isc_result_t
+omapi_connection_copyout(unsigned char *data, omapi_object_t *connection,
+			 unsigned int length);
+
+isc_result_t
+omapi_connection_copyin(omapi_object_t *connection, unsigned char *data,
+			 unsigned int length);
+
+isc_result_t
+omapi_connection_getuint32(omapi_object_t *c, isc_uint32_t *value);
+
+isc_result_t
+omapi_connection_putuint32(omapi_object_t *c, isc_uint32_t value);
+
+isc_result_t
+omapi_connection_getuint16(omapi_object_t *c, isc_uint16_t *value);
+
+isc_result_t
+omapi_connection_putuint16(omapi_object_t *c, isc_uint32_t value);
+
+isc_result_t
+omapi_connection_puttypeddata(omapi_object_t *connection,
 				  omapi_typed_data_t *data);
 
 isc_result_t
-omapi_connection_put_name(omapi_object_t *connection, const char *name);
+omapi_connection_putname(omapi_object_t *connection, const char *name);
 
 isc_result_t
-omapi_connection_put_string(omapi_object_t *connection, const char *string);
+omapi_connection_putstring(omapi_object_t *connection, const char *string);
 
 isc_result_t
-omapi_connection_put_handle(omapi_object_t *connection,
+omapi_connection_puthandle(omapi_object_t *connection,
 			    omapi_object_t *object);
 
 /*
@@ -585,6 +608,10 @@ omapi_handle_td_lookup(omapi_object_t **object, omapi_typed_data_t *data);
 /*
  * object.c
  */
+isc_result_t
+omapi_object_new(omapi_object_t **object, omapi_object_type_t *type,
+		    size_t size);
+
 void
 omapi_object_reference(omapi_object_t **reference, omapi_object_t *object,
 		       const char *name);

@@ -42,9 +42,9 @@ static void
 omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_buffer_t *ibuffer, *obuffer;
-	isc_task_t *recv_task;
+	isc_task_t *connection_task = NULL;
 	isc_socket_newconnev_t *incoming;
-	omapi_connection_object_t *connection;
+	omapi_connection_object_t *connection = NULL;
 	omapi_object_t *listener;
 
 	/*
@@ -72,10 +72,9 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * The new connection is good to go.  Allocate the buffers for it and
-	 * prepare the receive task.
+	 * prepare its own task.
 	 */
-	recv_task = NULL;
-	if (isc_task_create(omapi_taskmgr, NULL, 0, &recv_task) !=
+	if (isc_task_create(omapi_taskmgr, NULL, 0, &connection_task) !=
 	    ISC_R_SUCCESS)
 		return;
 
@@ -94,45 +93,23 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Create a new connection object.
 	 */
-	connection = isc_mem_get(omapi_mctx, sizeof(*connection));
-	if (connection == NULL) {
-		/*
-		 * XXXDCL at the moment, I am not confident this is
-		 * the right way to forget all about this connection.
-		 */
-		isc_task_shutdown(recv_task);
-#if 0 /*XXXDCL */
-		isc_socket_cancel(incoming->newsocket, recv_task,
-				  ISC_SOCKCANCEL_RECV);
-		isc_socket_shutdown(incoming->newsocket, ISC_SOCKSHUT_ALL);
-#endif
-		isc_buffer_free(&ibuffer);
+	result = omapi_object_new((omapi_object_t **)&connection,
+				  omapi_type_connection, sizeof(*connection));
+	if (result != ISC_R_SUCCESS) {
+		/* XXXDCL cleanup */
 		isc_buffer_free(&obuffer);
+		isc_buffer_free(&ibuffer);
 		return;
 	}
 
-	memset(connection, 0, sizeof(*connection));
-	connection->object_size = sizeof(*connection);
-	connection->refcnt = 1;
-	connection->task = task;
-	connection->type = omapi_type_connection;
+	connection->task = connection_task;
 	connection->state = omapi_connection_connected;
-
 	connection->socket = incoming->newsocket;
 
 	ISC_LIST_INIT(connection->input_buffers);
 	ISC_LIST_APPEND(connection->input_buffers, ibuffer, link);
 	ISC_LIST_INIT(connection->output_buffers);
 	ISC_LIST_APPEND(connection->output_buffers, obuffer, link);
-
-	connection->output_buffer = obuffer;
-
-	/*
-	 * Queue the receive task.
-	 */
-	isc_socket_recvv(incoming->newsocket, &connection->input_buffers, 1,
-			 recv_task, omapi_connection_read, connection);
-	isc_task_detach(&recv_task);
 
 	/*
 	 * Point the connection's listener member at the listener object.

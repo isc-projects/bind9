@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.1 2000/01/04 20:04:40 tale Exp $ */
+/* $Id: object.c,v 1.2 2000/01/06 03:36:29 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -28,6 +28,29 @@
 #include <isc/error.h>
 
 #include <omapi/private.h>
+
+isc_result_t
+omapi_object_new(omapi_object_t **object, omapi_object_type_t *type,
+		    size_t size)
+{
+	omapi_object_t *new;
+
+	REQUIRE(object != NULL && *object == NULL);
+
+	new = isc_mem_get(omapi_mctx, size);
+	if (new == NULL)
+		return (ISC_R_NOMEMORY);
+
+	memset(new, 0, size);
+
+	new->object_size = size;
+	new->refcnt = 1;
+	new->type = type;
+
+	*object = new;
+
+	return (ISC_R_SUCCESS);
+}
 
 void
 omapi_object_reference(omapi_object_t **r, omapi_object_t *h,
