@@ -113,9 +113,9 @@ get_address(char *hostname, unsigned int port, isc_sockaddr_t *sockaddr) {
 
 	if (have_ipv6 && inet_pton(AF_INET6, hostname, &in6) == 1)
 		isc_sockaddr_fromin6(sockaddr, &in6, port);
-	if (inet_pton(AF_INET, hostname, &in4) == 1) {
+	else if (inet_pton(AF_INET, hostname, &in4) == 1)
 		isc_sockaddr_fromin(sockaddr, &in4, port);
-	} else {
+	else {
 		he = gethostbyname(hostname);
 		if (he == NULL)
 			fatal("gethostbyname() failed, h_errno = %d",
