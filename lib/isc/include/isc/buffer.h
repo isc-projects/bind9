@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.36 2000/08/17 02:09:12 bwelling Exp $ */
+/* $Id: buffer.h,v 1.37 2000/12/26 20:51:14 tale Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -112,9 +112,7 @@
  * To make many functions be inline macros (via #define) define this.
  * If it is undefined, a function will be used.
  */
-#if 0
-#define ISC_BUFFER_USEINLINE
-#endif
+/* #define ISC_BUFFER_USEINLINE */
 
 ISC_LANG_BEGINDECLS
 
@@ -730,7 +728,7 @@ ISC_LANG_ENDDECLS
 		isc_uint8_t _val2 = (_val); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used++; \
-		_cp[0] = (_val2 & 0x00ff); \
+		_cp[0] = _val2 & 0x00ff; \
 	} while (0)
 
 #define ISC__BUFFER_PUTUINT16(_b, _val) \
@@ -739,8 +737,8 @@ ISC_LANG_ENDDECLS
 		isc_uint16_t _val2 = (_val); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 2; \
-		_cp[0] = (_val2 & 0xff00U) >> 8; \
-		_cp[1] = (_val2 & 0x00ffU); \
+		_cp[0] = (unsigned char)((_val2 & 0xff00U) >> 8); \
+		_cp[1] = (unsigned char)(_val2 & 0x00ffU); \
 	} while (0)
 
 #define ISC__BUFFER_PUTUINT32(_b, _val) \
@@ -749,10 +747,10 @@ ISC_LANG_ENDDECLS
 		isc_uint32_t _val2 = (_val); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 4; \
-		_cp[0] = (_val2 & 0xff000000) >> 24; \
-		_cp[1] = (_val2 & 0x00ff0000) >> 16; \
-		_cp[2] = (_val2 & 0x0000ff00) >> 8; \
-		_cp[3] = (_val2 & 0x000000ff); \
+		_cp[0] = (unsigned char)((_val2 & 0xff000000) >> 24); \
+		_cp[1] = (unsigned char)((_val2 & 0x00ff0000) >> 16); \
+		_cp[2] = (unsigned char)((_val2 & 0x0000ff00) >> 8); \
+		_cp[3] = (unsigned char)((_val2 & 0x000000ff)); \
 	} while (0)
 
 #if defined(ISC_BUFFER_USEINLINE)
