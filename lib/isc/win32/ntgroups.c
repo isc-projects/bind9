@@ -15,23 +15,23 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.3 2001/10/05 05:51:49 mayer Exp $ */
+/* $Id: ntgroups.c,v 1.4 2001/10/05 22:25:54 mayer Exp $ */
 
 /*
- * The NT Groups have two groups that are not well documented and are not
- * normally seen: None and Everyone.
- * A user account belongs to any number of groups, but if it is not a
- * member of any group then it is a member of the None Group. The None
- * group is not listed anywhere. You cannot remove an account from the
- * none group except by making it a member of some other group,
- * The second group is the Everyone group.  All accounts, no matter how many
- * groups that they belong to, also belong to the Everyone group. You
- * cannot remove an account from the Everyone group.
+ * The NT Groups have two groups that are not well documented and are
+ * not normally seen: None and Everyone.  A user account belongs to
+ * any number of groups, but if it is not a member of any group then
+ * it is a member of the None Group. The None group is not listed
+ * anywhere. You cannot remove an account from the none group except
+ * by making it a member of some other group, The second group is the
+ * Everyone group.  All accounts, no matter how many groups that they
+ * belong to, also belong to the Everyone group. You cannot remove an
+ * account from the Everyone group.
  */
 
 #ifndef UNICODE
 #define UNICODE
-#endif // UNICODE
+#endif /* UNICODE */
 
 #include <windows.h>
 #include <assert.h>
@@ -105,23 +105,20 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 	         for (i = 0;
 		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) {
 			assert(pTmpLBuf != NULL);
-			if (pTmpLBuf == NULL) {
+			if (pTmpLBuf == NULL)
 				break;
-			}
 			retlen = wcslen(pTmpLBuf->lgrui0_name);
 			GroupList[*totalGroups] = (char *) malloc(retlen +1);
-			if(GroupList[*totalGroups] == NULL)
+			if (GroupList[*totalGroups] == NULL)
 				return (ISC_R_NOMEMORY);
 
 			retlen = wcstombs(GroupList[*totalGroups],
 				 pTmpLBuf->lgrui0_name, retlen);
 			GroupList[*totalGroups][retlen] = '\0';
-			if(strcmp(GroupList[*totalGroups], "None") == 0) {
+			if (strcmp(GroupList[*totalGroups], "None") == 0)
 				free(GroupList[*totalGroups]);
-			}
-			else {
+			else
 				(*totalGroups)++;
-			}
 			pTmpLBuf++;
 		}
 	}
@@ -161,24 +158,20 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) {
 			assert(pTmpBuf != NULL);
 
-			if (pTmpBuf == NULL) {
+			if (pTmpBuf == NULL)
 				break;
-			}
 			retlen = wcslen(pTmpBuf->grui0_name);
 			GroupList[*totalGroups] = (char *) malloc(retlen +1);
-			if(GroupList[*totalGroups] == NULL)
+			if (GroupList[*totalGroups] == NULL)
 				return (ISC_R_NOMEMORY);
 
 			retlen = wcstombs(GroupList[*totalGroups],
 				 pTmpBuf->grui0_name, retlen);
 			GroupList[*totalGroups][retlen] = '\0';
-
-			if(strcmp(GroupList[*totalGroups], "None") == 0) {
+			if (strcmp(GroupList[*totalGroups], "None") == 0)
 				free(GroupList[*totalGroups]);
-			}
-			else {
+			else
 				(*totalGroups)++;
-			}
 			pTmpBuf++;
 		}
 	}
