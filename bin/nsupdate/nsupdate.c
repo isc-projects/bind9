@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.60 2000/11/09 23:54:53 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.61 2000/11/16 05:40:25 marka Exp $ */
 
 #include <config.h>
 
@@ -110,6 +110,7 @@ static isc_sockaddr_t *servers;
 static int ns_inuse = 0;
 static int ns_total = 0;
 static isc_sockaddr_t *userserver = NULL;
+static isc_sockaddr_t *localaddr = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
 
@@ -119,8 +120,8 @@ typedef struct nsu_requestinfo {
 } nsu_requestinfo_t;
 
 static void
-sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
-	    dns_request_t **request);
+sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+	    dns_message_t *msg, dns_request_t **request);
 
 #define STATUS_MORE	(isc_uint16_t)0
 #define STATUS_SEND	(isc_uint16_t)1
@@ -808,6 +809,45 @@ evaluate_server(char *cmdline) {
 }
 
 static isc_uint16_t
+evaluate_local(char *cmdline) {
+	char *word, *local;
+	long port;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0) {
+		fprintf(stderr, "failed to read server name\n");
+		return (STATUS_SYNTAX);
+	}
+	local = word;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0)
+		port = 0;
+	else {
+		char *endp;
+		port = strtol(word, &endp, 10);
+		if (*endp != 0) {
+			fprintf(stderr, "port '%s' is not numeric\n", word);
+			return (STATUS_SYNTAX);
+		} else if (port < 1 || port > 65535) {
+			fprintf(stderr, "port '%s' is out of range "
+				"(1 to 65535)\n", word);
+			return (STATUS_SYNTAX);
+		}
+	}
+
+	if (localaddr == NULL) {
+		localaddr = isc_mem_get(mctx, sizeof(isc_sockaddr_t));
+		if (localaddr == NULL)
+			fatal("out of memory");
+	}
+
+	get_address(local, (in_port_t)port, localaddr);
+
+	return (STATUS_MORE);
+}
+
+static isc_uint16_t
 evaluate_zone(char *cmdline) {
 	char *word;
 	isc_buffer_t b;
@@ -1061,6 +1101,8 @@ get_next_command(void) {
 		return (evaluate_update(cmdline));
 	if (strcasecmp(word, "server") == 0)
 		return (evaluate_server(cmdline));
+	if (strcasecmp(word, "local") == 0)
+		return (evaluate_local(cmdline));
 	if (strcasecmp(word, "zone") == 0)
 		return (evaluate_zone(cmdline));
 	if (strcasecmp(word, "send") == 0)
@@ -1146,7 +1188,9 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-send_update(dns_name_t *zonename, isc_sockaddr_t *master) {
+send_update(dns_name_t *zonename, isc_sockaddr_t *master,
+	    isc_sockaddr_t *srcaddr)
+{
 	isc_result_t result;
 	dns_request_t *request = NULL;
 	dns_name_t *name = NULL;
@@ -1169,11 +1213,11 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master) {
 
 	if (usevc)
 		options |= DNS_REQUESTOPT_TCP;
-	result = dns_request_create(requestmgr, updatemsg, master,
-				    options, key,
-				    FIND_TIMEOUT, global_task,
-				    update_completed, NULL, &request);
-	check_result(result, "dns_request_create");
+	result = dns_request_createvia(requestmgr, updatemsg, srcaddr,
+				       master, options, key,
+				       FIND_TIMEOUT, global_task,
+				       update_completed, NULL, &request);
+	check_result(result, "dns_request_createvia");
 }
 
 static void
@@ -1222,7 +1266,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(soaquery);
-		sendrequest(&servers[ns_inuse], soaquery, &request);
+		sendrequest(localaddr,&servers[ns_inuse], soaquery, &request);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		return;
 	}
@@ -1335,7 +1379,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		serveraddr = &tempaddr;
 	}
 
-	send_update(zonename, serveraddr);
+	send_update(zonename, serveraddr, localaddr);
 
 	dns_rdata_freestruct(&soa);
 	dns_message_destroy(&rcvmsg);
@@ -1344,8 +1388,8 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
-	    dns_request_t **request)
+sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+	    dns_message_t *msg, dns_request_t **request)
 {
 	isc_result_t result;
 	nsu_requestinfo_t *reqinfo;
@@ -1354,11 +1398,11 @@ sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
 	if (reqinfo == NULL)
 		fatal("out of memory");
 	reqinfo->msg = msg;
-	reqinfo->addr = address;
-	result = dns_request_create(requestmgr, msg, address,
-				    0, NULL, FIND_TIMEOUT, global_task,
-				    recvsoa, reqinfo, request);
-	check_result(result, "dns_request_create");
+	reqinfo->addr = destaddr;
+	result = dns_request_createvia(requestmgr, msg, srcaddr, destaddr,
+				       0, NULL, FIND_TIMEOUT, global_task,
+				       recvsoa, reqinfo, request);
+	check_result(result, "dns_request_createvia");
 }
 
 static void
@@ -1373,7 +1417,7 @@ start_update(void) {
 	ddebug("start_update()");
 
 	if (userzone != NULL && userserver != NULL) {
-		send_update(userzone, userserver);
+		send_update(userzone, userserver, localaddr);
 		return;
 	}
 
@@ -1408,10 +1452,10 @@ start_update(void) {
 	dns_message_addname(soaquery, name, DNS_SECTION_QUESTION);
 
 	if (userserver != NULL)
-		sendrequest(userserver, soaquery, &request);
+		sendrequest(localaddr, userserver, soaquery, &request);
 	else {
 		ns_inuse = 0;
-		sendrequest(&servers[ns_inuse], soaquery, &request);
+		sendrequest(localaddr, &servers[ns_inuse], soaquery, &request);
 	}
 }
 
