@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.22 1999/10/29 15:44:06 halley Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.23 1999/11/02 09:13:47 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -262,7 +262,7 @@ static void             yyerror(const char *);
 %token          L_NO
 %token          L_FALSE
 %token          L_VIEW
-
+%token		L_RFC2308_TYPE1
 
 %type <boolean>         yea_or_nay
 
@@ -637,6 +637,13 @@ option: /* Empty */
                         parser_error(ISC_FALSE, "Redefining use-id-pool.");
                 }
         }
+	| L_RFC2308_TYPE1 yea_or_nay
+	{
+		tmpres = dns_c_ctx_setrfc2308type1(logcontext, currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE, "Redefining rfc2308-type.");
+		}
+	}
         | L_LISTEN_ON maybe_port L_LBRACE address_match_list L_RBRACE
         {
                 if ($4 == NULL) {
@@ -3382,6 +3389,7 @@ static struct token keyword_tokens [] = {
         { "print-time",                 L_PRINT_TIME },
         { "pubkey",                     L_PUBKEY },
         { "query-source",               L_QUERY_SOURCE },
+	{ "rfc2308-type1",		L_RFC2308_TYPE1 },
         { "rrset-order",                L_RRSET_ORDER },
         { "recursion",                  L_RECURSION },
         { "response",                   L_RESPONSE },

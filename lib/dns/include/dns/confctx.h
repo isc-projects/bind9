@@ -165,7 +165,7 @@ struct dns_c_options
 	isc_boolean_t		multiple_cnames;
 	isc_boolean_t		use_id_pool;
 	isc_boolean_t		dialup;
-	isc_boolean_t		rfc2038type1; /* XXX not implemented yet */
+	isc_boolean_t		rfc2308_type1;
 	
 	isc_sockaddr_t		query_source_addr;
 	short			query_source_port;
@@ -392,6 +392,9 @@ isc_result_t	dns_c_ctx_setmultiplecnames(isc_log_t *lctx,
 isc_result_t	dns_c_ctx_setuseidpool(isc_log_t *lctx,
 				       dns_c_ctx_t *cfg,
 				       isc_boolean_t newval);
+isc_result_t	dns_c_ctx_setrfc2308type1(isc_log_t *lctx,
+					  dns_c_ctx_t *cfg,
+					  isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setdialup(isc_log_t *lctx,
 				    dns_c_ctx_t *cfg, isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setquerysourceaddr(isc_log_t *lctx,
@@ -541,6 +544,8 @@ isc_result_t	dns_c_ctx_getmultiplecnames(isc_log_t *lctx, dns_c_ctx_t *cfg,
 					    isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getuseidpool(isc_log_t *lctx, dns_c_ctx_t *cfg,
 				       isc_boolean_t *retval);
+isc_result_t	dns_c_ctx_getrfc2308type1(isc_log_t *lctx, dns_c_ctx_t *cfg,
+					  isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getdialup(isc_log_t *lctx,
 				    dns_c_ctx_t *cfg, isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getquerysourceaddr(isc_log_t *lctx, dns_c_ctx_t *cfg,

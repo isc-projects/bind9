@@ -76,6 +76,7 @@
 #define OPTIONS_TRANSFER_FORMAT_BIT	32
 #define FORWARD_BIT			33
 #define EXPERT_MODE_BIT			34
+#define RFC2308_TYPE1_BIT		35
 
 
 static isc_result_t cfg_set_iplist(isc_log_t *lctx, dns_c_options_t *options,
@@ -1364,6 +1365,27 @@ dns_c_ctx_setuseidpool(isc_log_t *lctx,
 
 
 isc_result_t
+dns_c_ctx_setrfc2308type1(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_boolean_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	res = make_options(lctx, cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_boolean(lctx, cfg->options,
+				&cfg->options->rfc2308_type1,
+				newval,
+				&cfg->options->setflags1,
+				RFC2308_TYPE1_BIT));
+}
+
+
+isc_result_t
 dns_c_ctx_setdialup(isc_log_t *lctx,
 		    dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
@@ -2560,6 +2582,26 @@ dns_c_ctx_getuseidpool(isc_log_t *lctx,
 
 
 isc_result_t
+dns_c_ctx_getrfc2308type1(isc_log_t *lctx,
+			  dns_c_ctx_t *cfg, isc_boolean_t *retval)
+{
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_boolean(lctx, cfg->options, 
+				&cfg->options->rfc2308_type1,
+				retval,
+				&cfg->options->setflags1,
+				RFC2308_TYPE1_BIT));
+}
+
+
+isc_result_t
 dns_c_ctx_getdialup(isc_log_t *lctx,
 		    dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
@@ -2968,6 +3010,7 @@ dns_c_ctx_optionsnew(isc_log_t *lctx,
 	opts->auth_nx_domain = ISC_FALSE;
 	opts->multiple_cnames = ISC_FALSE;
 	opts->use_id_pool = ISC_FALSE;
+	opts->rfc2308_type1 = ISC_FALSE;
 	opts->dialup = ISC_FALSE;
 
 	opts->max_transfer_time_in = 0;
@@ -3221,6 +3264,8 @@ dns_c_ctx_optionsprint(isc_log_t *lctx,
 			 "multiple-cnames", setflags1);
 	PRINT_AS_BOOLEAN(use_id_pool, USE_ID_POOL_BIT,
 			 "use-id-pool", setflags1);
+	PRINT_AS_BOOLEAN(rfc2308_type1, RFC2308_TYPE1_BIT,
+			 "rfc2308-type1", setflags1);
 	PRINT_AS_BOOLEAN(dialup, DIALUP_BIT,
 			 "dialup", setflags1);
 
