@@ -763,8 +763,12 @@
 ./contrib/linux/coredump-patch			X	2000,2001
 ./contrib/named-bootconf/named-bootconf.sh	SH.PORTION	1999,2000,2001
 ./contrib/nanny/nanny.pl			PERL	2000,2001
+./contrib/sdb/INSTALL.ldap			X	2001
+./contrib/sdb/README.ldap			X	2001
 ./contrib/sdb/dirdb.c				C	2000,2001
 ./contrib/sdb/dirdb.h				C	2000,2001
+./contrib/sdb/ldapdb.c				X	2001
+./contrib/sdb/ldapdb.h				X	2001
 ./contrib/sdb/lookup.tcl			TCL	2000,2001
 ./contrib/sdb/pgsqldb.c				C	2000,2001
 ./contrib/sdb/pgsqldb.h				C	2000,2001
@@ -773,6 +777,8 @@
 ./contrib/sdb/timedb.c				C	2000,2001
 ./contrib/sdb/timedb.h				C	2000,2001
 ./contrib/sdb/zonetodb.c			C	2000,2001
+./contrib/sdb/zonetoldap.c			X	2001
+./contrib/sdb/zonetoldap.1			X	2001
 ./doc/.cvsignore				X	2000,2001
 ./doc/Makefile.in				MAKE	2000,2001
 ./doc/arm/.cvsignore				X	2000,2001
