@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.24 2000/03/17 02:11:35 explorer Exp $ */
+/* $Id: mx_15.c,v 1.25 2000/03/17 02:19:55 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -82,7 +82,6 @@ fromwire_mx(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
         dns_name_t name;
 	isc_region_t sregion;
-	isc_region_t tregion;
 
 	REQUIRE(type == 15);
 
@@ -108,7 +107,6 @@ towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 {
 	dns_name_t name;
 	isc_region_t region;
-	isc_region_t tr;
 
 	REQUIRE(rdata->type == 15);
 
