@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.134 
+# From configure.in Revision: 1.135 
 
 
 
@@ -2334,7 +2334,7 @@ else
 			MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 			;;
                 *-sgi-irix*)
-			STD_CWARNINGS="-fullwarn"
+			STD_CWARNINGS="-fullwarn -woff 1209"
                         ;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
