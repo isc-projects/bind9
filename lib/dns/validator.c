@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.87.2.1 2001/01/09 22:44:26 bwelling Exp $ */
+/* $Id: validator.c,v 1.87.2.2 2001/09/19 21:52:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -164,7 +164,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_validator: got %s",
 			      dns_result_totext(eresult));
-		validator_done(val, eresult);
+		validator_done(val, DNS_R_NOVALIDKEY);
 	}
 
  out:
@@ -283,7 +283,7 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_nullkey: got %s",
 			      dns_result_totext(eresult));
-		validator_done(val, eresult);
+		validator_done(val, DNS_R_NOVALIDKEY);
 	}
 	UNLOCK(&val->lock);
 
