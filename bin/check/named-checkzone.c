@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.9 2001/01/11 04:07:34 bwelling Exp $ */
+/* $Id: named-checkzone.c,v 1.10 2001/01/11 18:29:53 gson Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,7 @@ static const char *dbtype[] = { "rbt" };
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named_checkzone [-dq] [-c class] zone [filename]\n");
+		"usage: named-checkzone [-dq] [-c class] zone [filename]\n");
 	exit(1);
 }
 
