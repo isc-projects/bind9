@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.61 2001/01/22 02:46:34 gson Exp $ */
+/* $Id: lex.c,v 1.62 2001/01/24 21:12:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -43,7 +43,7 @@ typedef struct inputsource {
 	char *				name;
 	unsigned long			line;
 	unsigned long			saved_line;
-	LINK(struct inputsource)	link;
+	ISC_LINK(struct inputsource)	link;
 } inputsource;
 
 #define LEX_MAGIC			0x4C657821U	/* Lex!. */
@@ -295,7 +295,7 @@ isc_lex_close(isc_lex_t *lex) {
 	if (source == NULL)
 		return (ISC_R_NOMORE);
 
-	UNLINK(lex->sources, source, link);
+	ISC_LIST_UNLINK(lex->sources, source, link);
 	if (source->is_file) {
 #ifdef HAVE_FLOCKFILE
 		funlockfile((FILE *)(source->input));
@@ -826,8 +826,10 @@ isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r)
 	UNUSED(tokenp);
 
 	INSIST(source->ignored <= isc_buffer_consumedlength(source->pushback));
-	r->base = (unsigned char *)isc_buffer_base(source->pushback) + source->ignored;
-	r->length = isc_buffer_consumedlength(source->pushback) - source->ignored;
+	r->base = (unsigned char *)isc_buffer_base(source->pushback) +
+		  source->ignored;
+	r->length = isc_buffer_consumedlength(source->pushback) -
+		    source->ignored;
 }
 
 
