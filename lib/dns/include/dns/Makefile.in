@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.34 2000/09/26 22:45:57 bwelling Exp $
+# $Id: Makefile.in,v 1.35 2000/09/26 23:25:51 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,10 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
+OTHERHEADERS =
+#ifndef NOMINUM_PUBLIC
 OTHERHEADERS =	sdb.h
+#endif /* NOMINUM_PUBLIC */
 
 HEADERS =	a6.h acl.h aclconf.h adb.h byaddr.h cache.h callbacks.h \
 		cert.h compress.h \

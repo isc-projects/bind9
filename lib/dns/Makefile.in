@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.103 2000/09/26 22:45:50 bwelling Exp $
+# $Id: Makefile.in,v 1.104 2000/09/26 23:25:48 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -85,7 +85,10 @@ OPENSSLOBJS =	sec/openssl/a_bitstr.@O@ sec/openssl/a_bytes.@O@ \
 		sec/openssl/stack.@O@ sec/openssl/th-lock.@O@ \
 		sec/openssl/x_sig.@O@ sec/openssl/x_algor.@O@
 
+OTHEROBJS =	
+#ifndef NOMINUM_PUBLIC
 OTHEROBJS =	sdb.@O@
+#endif /* NOMINUM_PUBLIC */
 
 # Alphabetically
 OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
@@ -102,7 +105,11 @@ OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zoneconf.@O@ zt.@O@ \
 		${OTHEROBJS} ${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
 
-OTHERSRCS =	sdb.c
+OTHERSRCS =	
+#ifndef NOMINUM_PUBLIC
+OTHERSRCS =	sdb.@O@
+#endif /* NOMINUM_PUBLIC */
+
 
 # Alphabetically
 SRCS =		a6.c acl.c aclconf.c adb.c byaddr.c \
