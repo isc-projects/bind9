@@ -1,13 +1,11 @@
-Copyright (C) 2000  Internet Software Consortium.
-See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
-
-$Id: Bv9ARM.txt,v 1.3.2.2 2000/06/29 00:15:10 gson Exp $
-
 BIND 9 Administrator Reference Manual
-June 2000
+July 2000
 Copyright (c) 2000 Internet Software Consortium
 
 --------------------------------------------------------------------
+
+
+                BIND 9 ADMINISTRATOR REFERENCE MANUAL
 
 Table of Contents
 
@@ -45,6 +43,7 @@ Section 3 : Nameserver Configuration
 3.4.1 Tools for Use With the Nameserver Daemon
 3.4.1.1 Diagnostic Tools
 3.4.1.2 Administrative Tools
+3.4.2 Signals
 
 Section 4 : Advanced Concepts
 
@@ -144,7 +143,7 @@ Section 6 : BIND 9 Configuration Reference
 6.3.5.2 The $INCLUDE Directive
 6.3.5.3 The $TTL Directive
 6.3.6 BIND Master File Extension: the  $GENERATE Directive
-6.3.7 Signals 	69
+6.3.7 Signals   69
 
 Section 7 : BIND 9 Security Considerations
 
@@ -216,7 +215,7 @@ In this document, Section 1 introduces the basic DNS and BIND concepts.
 Section 2 describes resource requirements for running BIND in various
 environments. Information in Section 3 is task-oriented in its presentation
 and is organized functionally, to aid in the process of installing the
-BIND 9 software. The task-oriented section is followed by Section 4 , which
+BIND 9 software. The task-oriented section is followed by Section 4, which
 contains more advanced concepts that the system administrator may need for
 implementing certain options. Section 5 describes the BIND 9 lightweight
 resolver. The contents of Section 6 are organized as in a reference manual
@@ -262,7 +261,7 @@ nameserver (or "daemon") called named and a resolver library. The BIND
 server runs in the background, servicing queries on a well known network
 port. The standard port for the User Datagram Protocol (UDP) and
 Transmission Control Protocol (TCP), usually port 53, is specified in
-/etc/services . The resolver is a set of routines residing in a system
+/etc/services. The resolver is a set of routines residing in a system
 library that provides the interface that programs can use to access the
 domain name services.
 
@@ -280,7 +279,7 @@ a label. The name of the domain is the concatenation of all the labels of
 the domains from the root to the current domain. This is represented in
 written form as a string of labels listed from right to left and separated
 by dots. A label need only be unique within its domain. The whole name space
-is partitioned into areas called zones , each starting at a domain and
+is partitioned into areas called zones, each starting at a domain and
 extending down to the leaf domains or to domains where other zones start.
 Zones usually represent administrative boundaries. For example, a domain
 name for a host at the company Example, Inc. would be:
@@ -288,16 +287,15 @@ name for a host at the company Example, Inc. would be:
 ourhost.example.com
 
 where com is the top level domain to which ourhost.example.com belongs,
-example is a subdomain of com , and ourhost is the name of the host.
+example is a subdomain of com, and ourhost is the name of the host.
 
-The specifications for the domain nameserver are defined in the RFC 1034,
-RFC 1035 and RFC 974. These documents can be found in
-/usr/src/etc/named/doc in 4.4BSD or are available via File Transfer Protocol
-(FTP) from
-ftp://www.isi.edu/in-notes/ or via the Web at http://www.ietf.org/rfc/ .
-(See Appendix C for complete information on finding and retrieving RFCs.) It
-is also recommended that you read the related man pages: named and resolver
-.
+The specifications for the domain nameserver are defined in the RFC
+1034, RFC 1035 and RFC 974. These documents can be found in
+/usr/src/etc/named/doc in 4.4BSD or are available via File Transfer
+Protocol (FTP) from ftp://www.isi.edu/in-notes/ or via the Web at
+http://www.ietf.org/rfc/.  (See Appendix C for complete information
+on finding and retrieving RFCs.) It is also recommended that you read
+the related man pages: named and resolver.
 
      1.4.2 Types of Zones
 
@@ -310,15 +308,15 @@ or more NS records in the parent zone, which should be matched by equivalent
 NS records at the root of the delegated zone.
 
 To properly operate a nameserver, it is important to understand the
-difference between a zone and a domain .
+difference between a zone and a domain.
 
 For instance, consider the example.com domain which includes names such as
 host.aaa.example.com and host.bbb.example.com even though the example.com
 zone includes only delegations for the aaa.example.com and bbb.example.com
 zones. A zone can map exactly to a single domain, but could also include
 only part of a domain, the rest of which could be delegated to other
-nameservers. Every name in the DNS tree is a domain , even if it is terminal
-, that is, has no subdomains . Every subdomain is a domain and every domain
+nameservers. Every name in the DNS tree is a domain, even if it is terminal
+, that is, has no subdomains. Every subdomain is a domain and every domain
 except the root is also a subdomain. The terminology is not intuitive and we
 suggest that you read RFCs 1033, 1034 and 1035 to gain a complete
 understanding of this difficult and subtle topic.
@@ -326,22 +324,22 @@ understanding of this difficult and subtle topic.
 Though BIND is a Domain Nameserver, it deals primarily in terms of zones.
 The master and slave declarations in the named.conf file specify zones, not
 domains. When you ask some other site if it is willing to be a slave server
-for your domain , you are actually asking for slave service for some
+for your domain, you are actually asking for slave service for some
 collection of zones.
 
-Each zone will have one primary master (also called primary ) server which
+Each zone will have one primary master (also called primary) server which
 loads the zone contents from some local file edited by humans or perhaps
 generated mechanically from some other local file which is edited by humans.
 There there will be some number of slave (also called secondary) servers,
 which load the zone contents using the DNS protocol (that is, the secondary
 servers will contact the primary and fetch the zone data using TCP). This
 set of servers--the primary and all of its secondaries--should be listed in
-the NS records in the parent zone and will constitute a delegation . This
+the NS records in the parent zone and will constitute a delegation. This
 set of servers must also be listed in the zone file itself, usually under
 the @ name which indicates the top level or root of the current zone. You
 can list servers in the zone's top-level @ NS records that are not in the
 parent's NS delegation, but you cannot list servers in the parent's
-delegation that are not present in the zone's @ .
+delegation that are not present in the zone's @.
 
 Any servers listed in the NS records must be configured as authoritative for
 the zone. A server is authoritative for a zone when it has been configured
@@ -363,8 +361,8 @@ the AA bit.
 
 A DNS server can be master for some zones and slave for others or can be
 only a master, or only a slave, or can serve no zones and just answer
-queries via its cache . Master servers are often also called primaries and
-slave servers are often also called secondaries . Both master/primary and
+queries via its cache. Master servers are often also called primaries and
+slave servers are often also called secondaries. Both master/primary and
 slave/secondary servers are authoritative for a zone.
 
 All servers keep data in their cache until the data expires, based on a Time
@@ -379,7 +377,7 @@ master server obtains data for the zone from a file on disk.
 
      1.4.3.2 Slave Server
 
-A slave server , also called a secondary server , is an authoritative server
+A slave server, also called a secondary server, is an authoritative server
 that uses zone transfers from the primary master server to retrieve the zone
 data. Optionally, the slave server obtains zone data from a cache on disk.
 Slave servers provide necessary redundancy. All secondary/slave servers are
@@ -387,7 +385,7 @@ named in the NS RRs for the zone.
 
      1.4.3.3 Caching Only Server
 
-Some servers are caching only servers . This means that the server caches
+Some servers are caching only servers. This means that the server caches
 the information that it receives and uses it until the data expires. A
 caching only server is a server that is not authoritative for any zone. This
 server services queries and asks other servers, who have the authority, for
@@ -398,7 +396,7 @@ the information it needs.
 Instead of interacting with the nameservers for the root and other domains,
 a forwarding server always forwards queries it cannot satisfy from its
 authoritative data or cache to a fixed list of other servers. The forwarded
-queries are also known as recursive queries , the same type as a client
+queries are also known as recursive queries, the same type as a client
 would send to a server. There may be one or more servers forwarded to, and
 they are queried in turn until the list is exhausted or an answer is found.
 A forwarding server is typically used when you do not wish all the servers
@@ -594,8 +592,8 @@ master server, the slave will check to see that its version of the zone is
 the current version and, if not, initiate a transfer.
 
 DNS Notify is fully documented in RFC 1996. See also the description of the
-zone option also-notify under Zone Transfers . More information about notify
-can be found under Boolean Options .
+zone option also-notify under Zone Transfers. More information about notify
+can be found under Boolean Options.
 
      3.4 Nameserver Operations
 
@@ -609,7 +607,7 @@ the nameserver daemon. We describe several in this section
 
 dig
 
-The domain information groper ( dig ) is a command line tool that can be
+The domain information groper ( dig) is a command line tool that can be
 used to gather information from the Domain Name System servers. Dig has two
 modes: simple interactive mode for a single query, and batch mode which
 executes a query for each in a list of several query lines. All query
@@ -638,6 +636,9 @@ Usage
 
 host [-aCdlrTwv] [-c class] [-N ndots] [-t type]
      [-W timeout] [-R retries] hostname [server]
+
+For more information and a list of available commands and options, see the
+host man page.
 
 nslookup
 
@@ -672,7 +673,7 @@ For more information and a list of available commands and options, see the
 nslookup man page.
 
 Due to its arcane user interface and frequently inconsistent behavior, we do
-not recommend the use of nslookup , and it is not installed by default when
+not recommend the use of nslookup, and it is not installed by default when
 installing BIND 9. Use dig instead.
 
      3.4.1.2 Administrative Tools
@@ -681,16 +682,106 @@ Administrative tools play an integral part in the management of a server.
 
 rndc
 
-The remote name daemon control ( rndc ) program is a program that allows the
-system administrator to control the operation of a nameserver. If you run
-rndc without any options it will display a usage message.
+The remote name daemon control (rndc) program allows the system
+administrator to control the operation of a nameserver.  If you run
+rndc without any options it will display a usage message as follows:
 
-Usage:
+Usage: rndc [-c config] [-s server] [-p port] [-y key] command [command ...]
 
-rndc [-p port] [-m] server command [command ...]
+  command is one of the following for named:
 
-For more information and a list of available commands and options, see the
-rndc man page.
+    *status       Display ps(1) status of named.
+    *dumpdb       Dump database and cache to /var/tmp/named_dump.db.
+    reload        Reload configuration file and zones.
+    *stats        Dump statistics to /var/tmp/named.stats.
+    *trace        Increment debugging level by one.
+    *notrace      Set debugging level to 0.
+    *querylog     Toggle query logging.
+    *stop         Stop the server.
+    *restart      Restart the server.
+
+  * == not yet implemented
+
+As noted above, "reload" is the only command available for BIND 9.0.0.
+The other commands, and more, are planned to be implemented for future
+releases.
+
+A configuration file is required, since all communication with the
+server is authenticated with digital signatures that rely on a shared
+secret, and there is no way to provide that secret other than with a
+configuration file.  The default location for the rndc configuration
+file is /etc/rndc.conf, but an alternate location can be specified
+with the "-c" option.
+
+The format of the configuration file is similar to that of named.conf, but
+limited to only three statements, the options{}, key{} and server{}
+statements.  These statements are what associate the secret keys to the
+servers with which they are meant to be shared.  The order of statements is not
+significant.
+
+The options{} statement has two clauses: default-server and
+default-key.  default-server takes a host name or address argument and
+represents the server that will be contacted if no "-s" option is
+provided on the command line.  default-key takes the name of the key
+as its argument, as defined by a key{} statement.  In the future a
+default-port clause will be added to specify the port to which rndc
+should connect.
+
+The key{} statement names a key with its string argument.  The string is
+required by the server to be a valid domain name, though it need not
+actually be hierarchical; thus, a string like "rndc_key" is a valid name.
+The key{} statement has two clauses: algorithm and secret.  While the
+configuration parser will accept any string as the argument to algorithm,
+currently only the string "hmac-md5" has any meaning.  The secret is a
+base-64 encoded string, typically generated with either dnssec-keygen or
+mmencode.  The parser will happily accept an invalid base-64 string, but it
+will never work with the server because the server validates the
+base-64 of the secret for itself when loading its own configuration file.
+
+The server{} statement uses the key clause to associate a key{}-defined key
+with a server.  The argument to the server{} statement is a host name or
+address (addresses must be double quoted).  The argument to the key clause
+is the name of key as defined by the key{} statement.  A port clause will
+be added to a future release to specify the port to which rndc should
+connect on the given server.
+
+A sample minimal configuration file is as follows:
+
+key rndc_key {
+    algorithm "hmac-md5";
+    secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
+};
+
+options {
+    default-server localhost;
+    default-key    rndc_key;
+};
+
+This file, if installed as /etc/rndc.conf, would allow the command:
+
+$ rndc reload
+
+to connect to 127.0.0.1 port 953 and cause the nameserver to reload,
+if a nameserver on the local machine were running with following controls
+statements:
+
+controls {
+   inet 127.0.0.1 allow { localhost; } keys { rndc_key; };
+};
+
+and it had an identical key statement for rndc_key.
+
+
+3.4.2 Signals
+
+Certain UNIX signals cause the name server to take specific actions, as
+described in the following table. These signals can be sent using the kill
+command.
+
+ SIGHUP  Causes the server to read named.conf and reload the database.
+ SIGTERM Causes the server to clean up and exit.
+ SIGINT  Causes the server to clean up and exit.
+
 
   ------------------------------------------------------------------------
 
@@ -718,7 +809,7 @@ The zone files of dynamic zones must not be edited by hand. The zone file on
 disk at any given time may not contain the latest changes performed by
 dynamic update. The zone file is written to disk only periodically, and
 changes that have occurred since the zone file was last written to disk are
-stored only in the zone's journal ( .jnl ) file. BIND 9 currently does not
+stored only in the zone's journal ( .jnl) file. BIND 9 currently does not
 update the zone file when it exits as BIND 8 does, so editing the zone file
 manually is unsafe even when the server has been shut down.
 
@@ -727,7 +818,7 @@ manually is unsafe even when the server has been shut down.
 The incremental zone transfer (IXFR) protocol is a way for slave servers to
 transfer only changed data, instead of having to transfer the entire zone.
 The IXFR protocol is documented in RFC 1995. See the list of proposed
-standards in Appendix C .
+standards in Appendix C.
 
 When acting as a master, BIND 9 supports IXFR for those zones where the
 necessary change history information is available. These include master
@@ -774,23 +865,23 @@ space) and the other set will be on bastion hosts, which are "proxy" hosts
 that can talk to both sides of its network, in the DMZ.
 
 The internal servers will be configured to forward all queries, except
-queries for site1.internal , site2.internal , site1.example.com , and
-site2.example.com , to the servers in the DMZ. These internal servers will
-have complete sets of information for site1.example.com , site2.example.com
-, site1.internal , and site2.internal .
+queries for site1.internal, site2.internal, site1.example.com, and
+site2.example.com, to the servers in the DMZ. These internal servers
+will have complete sets of information for site1.example.com,
+site2.example.com, site1.internal, and site2.internal.
 
-To protect the site1.interna l and site2.internal domains, the internal
-nameservers must be configured to disallow all queries to these domains from
-any external hosts, including the bastion hosts.
+To protect the site1.internal and site2.internal domains, the internal
+nameservers must be configured to disallow all queries to these
+domains from any external hosts, including the bastion hosts.
 
-The external servers, which are on the bastion hosts, will be configured to
-serve the "public" version of the site1 and site2.example.com zones. This
-could include things such as the host records for public servers (
-www.example.com and ftp.example.com ), and mail exchange (MX) records (
-a.mx.example.com and b.mx.example.com ).
+The external servers, which are on the bastion hosts, will be
+configured to serve the "public" version of the site1 and
+site2.example.com zones. This could include things such as the host
+records for public servers (www.example.com and ftp.example.com), and
+mail exchange (MX) records (a.mx.example.com and b.mx.example.com).
 
 In addition, the public site1 and site2.example.com zones should have
-special MX records that contain wildcard (`*') records pointing to the
+special MX records that contain wildcard ('*') records pointing to the
 bastion hosts. This is needed because external mail servers do not have any
 other way of looking up how to deliver mail to those internal hosts. With
 the wildcard records, the mail will be delivered to the bastion host, which
@@ -814,7 +905,7 @@ In order for all this to work properly, internal clients will need to be
 configured to query only the internal nameservers for DNS queries. This
 could also be enforced via selective filtering on the network.
 
-If everything has been set properly, Example, Inc. 's internal clients will
+If everything has been set properly, Example, Inc.'s internal clients will
 now be able to:
 
    * Look up any hostnames in the site1 and site2.example.com zones.
@@ -829,7 +920,7 @@ Hosts on the Internet will be able to:
 
 Here is an example configuration for the setup we just described above. Note
 that this is only configuration information; for information on how to
-configure your zone files, see the Sample Configurations .
+configure your zone files, see the Sample Configurations.
 
 Internal DNS server config:
 
@@ -890,9 +981,9 @@ bastion-ips-go-here; };
 options {
   ...
   ...
-  allow-transfer { none; };                                                     // sample allow-transfer (no one)
-  allow-query { internals; externals; };                                                        // restrict query access
-  allow-recursion { internals; externals; };                                                    // restrict recursion
+  allow-transfer { none; };                       // sample allow-transfer (no one)
+  allow-query { internals; externals; };          // restrict query access
+  allow-recursion { internals; externals; };      // restrict recursion
   ...
   ...
 };
@@ -931,16 +1022,16 @@ BIND primarily supports TSIG for server to server communication. This
 includes zone transfer, notify, and recursive query messages. Resolvers
 based on newer versions of BIND 8 have limited support for TSIG.
 
-TSIG might be most useful for dynamic update. A primary server for a dynamic
-zone should use access control to control updates, but IP-based access
-control is insufficient. Key-based access control is far superior. See RFC
-2845 in the Proposed Standards section of the Appendix. The nsupdate program
-that is shipped with BIND 8 supports TSIG via the " -k " command line
-option.
+TSIG might be most useful for dynamic update. A primary server for a
+dynamic zone should use access control to control updates, but
+IP-based access control is insufficient. Key-based access control is
+far superior. See RFC 2845 in the Proposed Standards section of the
+Appendix. The nsupdate program supports TSIG via the " -k " and "-y"
+command line options.
 
 4.4.1 Generate Shared Keys for Each Pair of Hosts
 
-A shared secret is generated to be shared between host1 and host2 . An
+A shared secret is generated to be shared between host1 and host2. An
 arbitrary key name is chosen: "host1-host2.". The key name must be the same
 on both hosts.
 
@@ -953,7 +1044,7 @@ will be digested with MD5 to produce a 128 bit key.
 
 dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.
 
-The key is in the file Khost1-host2.+157+00000.private . Nothing directly
+The key is in the file Khost1-host2.+157+00000.private. Nothing directly
 uses this file, but the base-64 encoded string following " Key :" can be
 extracted from the file and used as a shared secret:
 
@@ -989,7 +1080,7 @@ key host1-host2. {
 The algorithm, hmac-md5, is the only one supported by BIND. The secret is
 the one generated above. Since this is a secret, it is recommended that
 either named.conf be non-world readable, or the key directive be added to a
-non-world readable file that is included by named.conf .
+non-world readable file that is included by named.conf.
 
 At this point, the key is recognized. This means that if the server receives
 a message signed by this key, it can verify the signature. If the signature
@@ -997,9 +1088,9 @@ succeeds, the response is signed by the same key.
 
 4.4.4 Instructing the Server to Use the Key
 
-Since keys are shared between two hosts only, the server must be told when
-keys are to be used. The following is added to the named.conf file for host1
-, if the IP address of host2 is 10.1.2.3:
+Since keys are shared between two hosts only, the server must be told
+when keys are to be used. The following is added to the named.conf
+file for host1, if the IP address of host2 is 10.1.2.3:
 
 server 10.1.2.3 {
   keys { host1-host2. ;};
@@ -1012,8 +1103,8 @@ If host1 sends a message that is a response to that address, the message
 will be signed with the specified key. host1 will expect any responses to
 signed messages to be signed with the same key.
 
-A similar statement must be present in host2 's configuration file (with
-host1 's address) for host2 to sign non-response messages to host1 .
+A similar statement must be present in host2's configuration file (with
+host1's address) for host2 to sign non-response messages to host1.
 
 4.4.5 TSIG Key Based Access Control
 
@@ -1029,7 +1120,7 @@ This allows dynamic updates to succeed only if the request was signed by a
 key named " host1-host2. ".
 
 The more powerful update-policy statement is described Dynamic Update
-Policies .
+Policies.
 
 4.4.6 Errors
 
@@ -1085,7 +1176,7 @@ BIND 9 does not ship with any tools that generate SIG(0) signed messages.
 4.7 DNSSEC
 
 Cryptographic authentication of DNS information is possible through the DNS
-Security ( DNSSEC ) extensions, defined in RFC 2535. This section describes
+Security ( DNSSEC) extensions, defined in RFC 2535. This section describes
 the creation and use of DNSSEC signed zones.
 
 In order to set up a DNSSEC secure zone, there are a series of steps which
@@ -1109,7 +1200,7 @@ The dnssec-keygen program is used to generate keys.
 A secure zone must contain one or more zone keys. The zone keys will sign
 all other records in the zone, as well as the zone keys of any secure
 delegated zones. Zone keys must have the same name as the zone, a name type
-of ZONE , and must be usable for authentication. It is recommended that zone
+of ZONE, and must be usable for authentication. It is recommended that zone
 keys be mandatory to implement a cryptographic algorithm; currently the only
 key mandatory to implement an algorithm is DSA.
 
@@ -1120,7 +1211,7 @@ dnssec-keygen -a DSA -b 768 -n ZONE child.example.
 
 Two output files will be produced: Kchild.example.+003+12345.key and
 Kchild.example.+003+12345.private (where 12345 is an example of a key
-identifier). The key file names contain the key name ( child.example. ),
+identifier). The key file names contain the key name ( child.example.),
 algorithm (3 is DSA, 1 is RSA, etc.), and the key identifier (12345 in this
 case). The private key (in the .private file) is used to generate
 signatures, and the public key (in the .key file) is used for signature
@@ -1145,17 +1236,17 @@ be included and the TTL of the set must be specified, and the desired
 signature validity period of the parent's signature may also be specified.
 
 The list of keys to be inserted into the key set may also included non-zone
-keys present at the apex. dnssec-makekeyset may also be used at non-apex
-names.
+keys present at the top of the zone. dnssec-makekeyset may also be used at other
+names in the zone.
 
 The following command generates a key set containing the above key and
 another key similarly generated, with a TTL of 3600 and a signature validity
 period of 10 days starting from now.
 
-dnssec-makekeyset -t 3600 -s now -e now+864000 Kchild.example.+003+12345
+dnssec-makekeyset -t 3600 -e +864000 Kchild.example.+003+12345
 Kchild.example.+003+23456
 
-One output file is produced: child.example.keyset . This file should be
+One output file is produced: child.example.keyset. This file should be
 transmitted to the parent to be signed. It includes the keys, as well as
 signatures over the key set generated by the zone keys themselves, which are
 used to prove ownership of the private keys and encode the desired validity
@@ -1166,7 +1257,7 @@ period.
 The dnssec-signkey program is used to sign one child's keyset.
 
 If the child.example zone has any delegations which are secure, for example,
-grand.child.example , the child.example administrator should receive keyset
+grand.child.example, the child.example administrator should receive keyset
 files for each secure subzone. These keys must be signed by this zone's zone
 keys.
 
@@ -1175,7 +1266,7 @@ The following command signs the child's key set with the zone keys:
 dnssec-signkey grand.child.example.keyset Kchild.example.+003+12345
 Kchild.example.+003+23456
 
-One output file is produced: grand.child.example.signedkey . This file
+One output file is produced: grand.child.example.signedkey. This file
 should be both transmitted back to the child and retained. It includes all
 keys (the child's keys) from the keyset file and signatures generated by
 this zone's zone keys.
@@ -1191,12 +1282,12 @@ well as incorporate the zone key signature from the parent and indicate the
 security status at all delegation points.
 
 The following command signs the zone, assuming it is in a file called
-zone.child.example . By default, all zone keys which have an available
+zone.child.example. By default, all zone keys which have an available
 private key are used to generate signatures.
 
 dnssec-signzone -o child.example zone.child.example
 
-One output file is produced: zone.child.example.signed . This file should be
+One output file is produced: zone.child.example.signed. This file should be
 referenced by named.conf as the input file for the zone.
 
 4.7.5 Configuring Servers
@@ -1270,12 +1361,12 @@ host    1h      IN      A6      64      0:0:0:0:42::1   company.example2.net.
 ISP1 will use:
 
 $ORIGIN example1.net.
-company         1h              IN              A6      0       3ffe:8050:201:1860::
+company  1h       IN       A6   0      3ffe:8050:201:1860::
 
 ISP2 will use:
 
 $ORIGIN example2.net.
-company         1h              IN              A6      0       1234:5678:90ab:fffa::
+company  1h       IN       A6   0      1234:5678:90ab:fffa::
 
 When host.example.com is looked up, the resolver (in the resolver daemon or
 caching name server) will find two partial A6 records, and will use the
@@ -1305,50 +1396,64 @@ supported for backwards compatiblity with existing IPv6 applications.
 When looking up an address in nibble format, the address components are
 simply reversed, just as in IPv4, and ip6.int. is appended to the resulting
 name. For example, the following would provide reverse name lookup for a
-host with address 3ffe:8050:201:1860:42::1 .
+host with address 3ffe:8050:201:1860:42::1.
 
 $ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
-1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0 4h                                                                              IN      PTR     host.example.com.
+1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0   4h   IN    PTR   host.example.com.
 
 4.8.4 Address to Name Lookups Using Bitstring Format
 
 Bitstring labels can start and end on any bit boundary, rather than on a
 multiple of 4 bits as in the nibble format. They also use ip6.arpa rather
-than ip6.int .
+than ip6.int.
 
 To replicate the previous example using bitstrings:
 
 $ORIGIN \[x3ffe805002011860/64].ip6.arpa.
-\[x0042000000000001/64]                                                                                 4h              IN              PTR             host.example.com.
+\[x0042000000000001/64]  4h  IN  PTR  host.example.com.
 
 4.8.5 Using DNAME for Delegation of IPv6 Reverse Addresses
 
-Delegation of reverse addresses is done through the new DNAME RR. In the
-example above, where \[x2/3].ip6.int. needs to delegate \[xFFF0] to an
-organization ( example2.com ), the domain administrator would insert a line
-similar to the following in the \[x2/3].ip6.int. zone:
+In IPV6, the same host may have many addresses from many network
+providers.  Since the trailing portion of the address usually
+remains constant, DNAME can help reduce the number of zone files used
+for reverse mapping that need to be maintained.
 
-$ORIGIN \[x2/3].ip6.int.
-\[xFFF0/13] 1h IN DNAME ip6.example2.com.
+For example, consider a host which has two providers (example.net and
+example2.net) and therefore two IPv6 addresses.  Since the host chooses
+its own 64 bit host address portion, the provider address is the only
+part that changes:
 
-example2.com would then place into the ip6 zone:
+$ORIGIN example.com.
+host            A6      64 ::1234:5678:1212:5675 cust1.example.net.
+                A6      64 ::1234:5678:1212:5675 subnet5.example2.net.
 
-$ORIGIN ip6.example.com.
-\[x80500201/32] 1h IN DNAME ip6.example.com.
+$ORIGIN example.net.
+cust1           A6      48 0:0:0:dddd:: ipv6net.example.net.
+ipv6net         A6      0  aa:bb:cccc::
 
-Finally, example.com needs to include in the ip6.example.com zone:
+$ORIGIN example2.net.
+subnet5         A6      48 0:0:0:1:: ipv6net2.example2.net.
+ipv6net2        A6      0  6666:5555:4::
 
-$ORIGIN ip6.example.com.
-\[x00090A0020FFFE812B32/80] 1h IN PTR host.example.com.
 
-We suggest that the top of your administrative control ( example.com , in
-this case) provide all the bits required for reverse and forward resolution
-to allow name resolution even if the network is disconnected from the
-Internet. This will also allow operation with DNSSEC if you set up a false
-trusted server for "." containing only delegations for your forward and
-reverse zones directly to the top of your administrative control. This
-should be signed with a key trusted by all of your clients, equivalent to
-the real key for ".".
+This sets up forward lookups.  To handle the reverse lookups, the
+provider example.net would have:
+
+$ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
+\[xdddd/16]             DNAME           ipv6-rev.example.com.
+
+and example2.net would have:
+
+$ORIGIN \[x666655550004/48].ip6.arpa.
+\[x0001/16]             DNAME           ipv6-rev.example.com.
+
+example.com needs only one zone file to handle both of these reverse
+mappings:
+
+$ORIGIN ipv6-rev.example.com.
+\[x1234567812125675/64]         PTR             host.example.com.
+
 
   ------------------------------------------------------------------------
 
@@ -1373,7 +1478,7 @@ simpler than the full DNS protocol.
      5.2 Running a Resolver Daemon
 
 To use the lightweight resolver interface, the system must run the resolver
-daemon lwresd .
+daemon lwresd.
 
 Applications using the lightweight resolver library will make UDP requests
 to the IPv4 loopback address (127.0.0.1) on port 921. The daemon will try to
@@ -1381,7 +1486,7 @@ find the answer to the questions "what are the addresses for host
 foo.example.com ?" and "what are the names for IPv4 address 204.152.184.79?"
 
 The daemon currently only looks in the DNS, but in the future it may use
-other sources such as /etc/hosts , NIS, etc.
+other sources such as /etc/hosts, NIS, etc.
 
 The lwresd daemon is essentially a stripped-down, caching-only name server
 that answers requests using the lightweight resolver protocol rather than
@@ -1402,7 +1507,7 @@ implemented using the new features found in BIND 9.
 
 BIND 4 configuration files can be converted to the new format using the
 shell script
-contrib/named-bootconf/named-bootconf.sh .
+contrib/named-bootconf/named-bootconf.sh.
 
 6.1 Configuration File Elements
 
@@ -1414,62 +1519,67 @@ documentation:
  acl_name           The name of an address_match_list as defined by the acl
                     statement.
 
- address_match_list A list of one or more ip_addr , ip_prefix , key_id , or
-                    acl_name elements, as described in Address Match Lists
-                    .
+ address_match_list A list of one or more ip_addr, ip_prefix, key_id, or
+                    acl_name elements, as described in Address Match Lists.
+
  domain_name        A quoted string which will be used as a DNS name, for
                     example " my.test.domain ".
 
  dotted_decimal     One or more integers valued 0 through 255 separated
-                    only by dots (`.'), such as 123 , 45.67 or 89.123.45.67
-                    .
+                    only by dots ('.'), such as 123, 45.67 or 89.123.45.67.
+
  ip4_addr           An IPv4 address with exactly four elements in
                     dotted_decimal notation.
  ip6_addr
-                    An IPv6 address, such as fe80::200:f8ff:fe01:9742 .
+                    An IPv6 address, such as fe80::200:f8ff:fe01:9742.
 
- ip_addr
-                    An ip4_addr or ip6_addr .
+ ip_addr            An ip4_addr or ip6_addr.
 
-                    An IP port number . number is limited to 0 through
- ip_port            65535, with values below 1024 typically restricted to
-                    root-owned processes. In some cases an asterisk (`*')
+ ip_port            An IP port number. number is limited to 0 through
+                    65535, with values below 1024 typically restricted to
+                    root-owned processes. In some cases an asterisk ('*')
                     character can be used as a placeholder to select a
                     random high-numbered port.
-                    An IP network specified as an ip_addr , followed by a
- ip_prefix          slash (`/') and then the number of bits in the netmask.
+
+                    An IP network specified as an ip_addr, followed by a
+ ip_prefix          slash ('/') and then the number of bits in the netmask.
                     For example, 127/8 is the network 127.0.0.0 with
                     netmask 255.0.0.0 and 1.2.3.0/28 is network 1.2.3.0
-                    with netmask 255.255.255.240 .
- key_name           A domain_name representing the name of a shared key, to
+                    with netmask 255.255.255.240.
+
+ key_id             A domain_name representing the name of a shared key, to
                     be used for transaction security.
-                    A non-negative integer with an entire range limited by
- number             the range of a C language signed integer (2,147,483,647
+
+ key_list           A list of one or more key_ids, separated by semicolons
+                    and ending with a semicolon.
+
+ number             A non-negative integer with an entire range limited by
+                    the range of a C language signed integer (2,147,483,647
                     on a machine with 32 bit integers). Its acceptable
                     value might further be limited by the context in which
                     it is used.
- path_name          A quoted string which will be used as a pathname, such
-                    as " zones/master/my.test.domain " .
-                    A number, the word unlimited , or the word default .
 
+ path_name          A quoted string which will be used as a pathname, such
+                    as " zones/master/my.test.domain ".
+
+ size_spec          A number, the word unlimited, or the word default.
                     The maximum value of size_spec is that of unsigned long
                     integers on the machine. An unlimited size_spec
                     requests unlimited use, or the maximum available
                     amount. A default size_spec uses the limit that was in
                     force when the server was started.
-
- size_spec          A number can optionally be followed by a scaling
+                    A number can optionally be followed by a scaling
                     factor: K or k for kilobytes, M or m for megabytes, and
                     G or g for gigabytes, which scale by 1024, 1024*1024,
                     and 1024*1024*1024 respectively.
-
                     Integer storage overflow is currently silently ignored
                     during conversion of scaled values, resulting in values
                     less than intended, possibly even negative. Using
                     unlimited is the best way to safely set a really large
                     number.
- yes_or_no          Either yes or no . The words true and false are also
-                    accepted, as are the numbers 1 and 0 .
+
+ yes_or_no          Either yes or no. The words true and false are also
+                    accepted, as are the numbers 1 and 0.
 
 6.1.1 Address Match Lists
 
@@ -1495,7 +1605,7 @@ be any of the following:
      statement
    * a nested address match list enclosed in braces
 
-Elements can be negated with a leading exclamation mark (`!') and the match
+Elements can be negated with a leading exclamation mark ('!') and the match
 list names "any," "none," "localhost" and "localnets" are predefined. More
 information on those names can be found in the description of the acl
 statement.
@@ -1512,7 +1622,7 @@ listen-on ports, or as a topology, and whether the element was negated.
 
 When used as an access control list, a non-negated match allows access and a
 negated match denies access. If there is no match, access is denied. The
-clauses allow-query , allow-transfer , allow-update and blackhole all use
+clauses allow-query, allow-transfer, allow-update and blackhole all use
 address match lists this. Similarly, the listen-on option will cause the
 server to not accept queries on any of the machine's addresses which do not
 match the list.
@@ -1583,7 +1693,7 @@ For example:
 # is a new comment, even though it is logically
 # part of the previous comment.
 
-WARNING: you cannot use the semicolon (`;') character to start a comment
+WARNING: you cannot use the semicolon (';') character to start a comment
 such as you would in a zone file. The semicolon indicates the end of a
 configuration statement.
 
@@ -1596,11 +1706,11 @@ substatements, which are also terminated with a semicolon.
 
 The following statements are supported:
 
-
-
  acl          defines a named IP address matching list, for access control
               and other uses.
+
  controls     declares control channels to be used by the rndc utility.
+
  include      includes a file.
 
  key          specifies key information for use in authentication and
@@ -1611,9 +1721,13 @@ The following statements are supported:
 
  options      controls global server configuration options and sets
               defaults for other statements.
+
  server       sets certain configuration options on a per-server basis.
+
  trusted-keys defines trusted DNSSEC keys.
+
  view         defines a view.
+
  zone         defines a zone.
 
 The logging and options statements may only occur once per configuration.
@@ -1635,8 +1749,6 @@ can be used elsewhere; no forward references are allowed.
 
 The following ACLs are built-in:
 
-
-
  any       Matches all hosts.
  none      Matches no hosts.
  localhost Matches the IP addresses of all interfaces on the system.
@@ -1648,36 +1760,41 @@ The following ACLs are built-in:
 
 controls {
    [ inet (ip_addr|*) port ip_port allow { address_match_list } ;
-         [ inet...;[...]]]
-   [ unix string permission number owner number group number ;
-         [ unix...;[..]]]
+         keys { key_list };
+   [ inet...; ]
 };
 
 6.2.4 controls Statement Definition and Usage
 
 The controls statement declares control channels to be used by system
 administrators to affect the operation of the local nameserver. These
-control channels are used by the ndc utility to send commands to and
+control channels are used by the rndc utility to send commands to and
 retrieve non-DNS results from a nameserver.
 
-A UNIX control channel is a "first in first out" (FIFO) named pipe in the
-file system, and access to it is controlled by normal file system
-permissions. It is created by named with the specified file mode bits (see
-the chmod(1) manual page), user and group owner. Note that, unlike chmod ,
-the mode bits specified for permission will normally have a leading 0 so the
-number is interpreted as octal. Also note that the user and group ownership
-specified as owner and group must be given as numbers, not names. It is
-recommended that the permissions be restricted to administrative personnel
-only to prevent random users on the system from having the ability to manage
-the local nameserver.
-
 An inet control channel is a TCP/IP socket accessible to the Internet,
-created at the specified ip_port on the specified ip_addr . It is
-recommended that 127.0.0.1 be the only ip_addr used, and this only if you
-trust all non-privileged users on the local host to manage your nameserver.
+created at the specified ip_port on the specified ip_addr.  If no port
+is specified, port 953 is used by default.  "*" cannot be used for
+ip_port.
 
-The controls statement is not yet implemented in BIND 9. The server always
-listens for control connections on IP address 127.0.0.1, port 953.
+The ability to issue commands over the control channel is restricted
+by the allow and keys clauses.  Connections to the control channel are
+permitted based on the address permissions in address_match_list.
+key_id members of the address_match_list are ignored, and instead are
+interpreted independently based the key_list.  Each key_id in the
+key_list is allowed to be used to authenticate commands and responses
+given over the control channel by digitally signing each message
+between the server and a command client (see rndc in section 3.4.1.2).
+All commands to the control channel must be signed by one of its
+specified keys to be honored.
+
+For the initial release of BIND 9.0.0, only one command is possible
+over the command channel, the command to reload the server.  We will
+expand command set in future releases.
+
+The UNIX control channel type of BIND 8 is not supported in BIND
+9.0.0, and is not expected to be added in future releases.  If it is
+present in the controls statement from a BIND 8 configuration file, a
+non-fatal warning will be logged.
 
 6.2.5 include Statement Grammar
 
@@ -1700,9 +1817,9 @@ secret string;
 
 6.2.8 key Statement Definition and Usage
 
-The key statement defines a shared secret key for use with TSIG. See TSIG .
+The key statement defines a shared secret key for use with TSIG. See TSIG.
 
-The key_id , also known as the key name, is a domain name uniquely
+The key_id, also known as the key name, is a domain name uniquely
 identifying the key. It can be used in a "server" statement to cause
 requests sent to that server to be signed with this key, or in address match
 lists to verify that incoming requests have been signed with a key matching
@@ -1710,7 +1827,7 @@ this name, algorithm, and secret.
 
 The algorithm_id is a string that specifies a security/authentication
 algorithm. The only algorithm currently supported with TSIG authentication
-is hmac-md5 . The secret_string is the secret to be used by the algorithm,
+is hmac-md5. The secret_string is the secret to be used by the algorithm,
 and is treated as a base-64 encoded string.
 
 6.2.9 logging Statement Grammar
@@ -1763,7 +1880,7 @@ as you want.
 Every channel definition must include a clause that says whether messages
 selected for the channel go to a file, to a particular syslog facility, or
 are discarded. It can optionally also limit the message severity level that
-will be accepted by the channel (the default is info ), and whether to
+will be accepted by the channel (the default is info), and whether to
 include a named -generated time stamp, the category name and/or severity
 level (the default is not to include any).
 
@@ -1783,8 +1900,8 @@ trigger a reopen. The default behavior is not to limit the size of the file.
 If you use the version log file option, then named will retain that many
 backup versions of the file by renaming them when opening. For example, if
 you choose to keep 3 old versions of the file lamers.log then just before it
-is opened lamers.log.1 is renamed to lamers.log.2 , lamers.log.0 is renamed
-to lamers.log.1 , and lamers.log is renamed to lamers.log.0 . No rolled
+is opened lamers.log.1 is renamed to lamers.log.2, lamers.log.0 is renamed
+to lamers.log.1, and lamers.log is renamed to lamers.log.0. No rolled
 versions are kept by default; any existing log file is simply appended. The
 unlimited keyword is synonymous with 99 in current BIND releases.
 
@@ -1802,13 +1919,13 @@ described in the syslog.conf man page. If you have a system which uses a
 very old version of syslog that only uses two arguments to the openlog()
 function, then this clause is silently ignored.
 
-The severity clause works like syslog 's "priorities," except that they can
-also be used if you are writing straight to a file rather than using syslog
-. Messages which are not at least of the severity level given will not be
-selected for the channel; messages of higher severity levels will be
-accepted.
+The severity clause works like syslog's "priorities," except that they
+can also be used if you are writing straight to a file rather than
+using syslog.  Messages which are not at least of the severity level
+given will not be selected for the channel; messages of higher
+severity levels will be accepted.
 
-If you are using syslog , then the syslog.conf priorities will also
+If you are using syslog, then the syslog.conf priorities will also
 determine what eventually passes through. For example, defining a channel
 facility and severity as daemon and debug but only logging daemon.warning
 via syslog.conf will cause messages of severity info and notice to be
@@ -1817,14 +1934,15 @@ warning or higher, then syslogd would print all messages it received from
 the channel.
 
 The server can supply extensive debugging information when it is in
-debugging mode. If the server's global debug level is greater than zero,
-then debugging mode will be active. The global debug level is set either by
-starting the named server with the " -d " flag followed by a positive
-integer, or by running rndc trace ( the latter method is not yet implemented
-). The global debug level can be set to zero, and debugging mode turned off,
-by running ndc notrace . All debugging messages in the server have a debug
-level, and higher debug levels give more detailed output. Channels that
-specify a specific debug severity, for example:
+debugging mode. If the server's global debug level is greater than
+zero, then debugging mode will be active. The global debug level is
+set either by starting the named server with the " -d " flag followed
+by a positive integer, or by running rndc trace (the latter method is
+not yet implemented). The global debug level can be set to zero, and
+debugging mode turned off, by running ndc notrace. All debugging
+messages in the server have a debug level, and higher debug levels
+give more detailed output. Channels that specify a specific debug
+severity, for example:
 
   channel "specific_debug_level" {
       file "foo";
@@ -1843,12 +1961,12 @@ then the category of the message will be logged as well. Finally, if
 print-severity is on, then the severity level of the message will be logged.
 The print- options may be used in any combination, and will always be
 printed in the following order: time, category, severity. Here is an example
-where all three print- options are on:
+where all three print-options are on:
 
 28-Feb-2000 15:05:32.863 general: notice: running
 
-There are four predefined channels that are used for named 's default
-logging as follows. How they are used is described in the category Phrase .
+There are four predefined channels that are used for named's default
+logging as follows. How they are used is described in the category Phrase.
 
     channel "default_syslog" {
         syslog daemon;                          // end to syslog's daemon
@@ -1881,16 +1999,16 @@ logging as follows. How they are used is described in the category Phrase .
     };
 
 The default_debug channel normally writes to a file named.run in the
-server's working directory. For security reasons, when the " -u " command
-line option is used, the named.run file is created only after named has
-changed to the new UID, and any debug output generated while named is
-starting up and still running as root is discarded. If you need to capture
-this output, you must run the server with the " -g " option and redirect
-standard error to a file.
+server's working directory. For security reasons, when the "-u"
+command line option is used, the named.run file is created only after
+named has changed to the new UID, and any debug output generated while
+named is starting up and still running as root is discarded. If you
+need to capture this output, you must run the server with the "-g"
+option and redirect standard error to a file.
 
-Once a channel is defined, it cannot be redefined. Thus you cannot alter the
-built-in channels directly, but you can modify the default logging by
-pointing categories at channels you have defined.
+Once a channel is defined, it cannot be redefined. Thus you cannot
+alter the built-in channels directly, but you can modify the default
+logging by pointing categories at channels you have defined.
 
 6.2.10.2 The category Phrase
 
@@ -1921,7 +2039,7 @@ category "xfer-out" { "null"; };
 category "notify" { "null"; };
 
 Following are the available categories and brief descriptions of the types
-of log information they contain . More categories may be added in future
+of log information they contain. More categories may be added in future
 BIND releases.
 
  default  The default category defines the logging options for those
@@ -1932,16 +2050,24 @@ BIND releases.
 
  database Messages relating to the databases used internally by the name
           server to store zone and cache data.
+
  security Approval and denial of requests.
+
  config   Configuration file parsing and processing.
 
  resolver DNS resolution, such as the recursive lookups performed on behalf
           of clients by a caching name server.
+
  xfer-in  Zone transfers the server is receiving.
+
  xfer-out Zone transfers the server is sending.
+
  notify   The NOTIFY protocol.
+
  client   Processing of client requests.
+
  network  Network operations.
+
  update   Dynamic updates.
 
 6.2.11 options Statement Grammar
@@ -1995,10 +2121,19 @@ options {
     [ transfer-source ip4_addr; ]
     [ transfer-source-v6 ip6_addr; ]
     [ also-notify { ip_addr; [ ip_addr; ... ] }; ]
-    [ max-ixfr-log-size number; ]    [ coresize size_spec ; ]    [ datasize size_spec ; ]    [ files size_spec ; ]    [ stacksize size_spec ; ]    [ cleaning-interval number; ]    [ heartbeat-interval number; ]    [ interface-interval number; ]    [ statistics-interval number; ]
+    [ max-ixfr-log-size number; ]  
+    [ coresize size_spec ; ]
+    [ datasize size_spec ; ]
+    [ files size_spec ; ]
+    [ stacksize size_spec ; ]
+    [ cleaning-interval number; ]
+    [ heartbeat-interval number; ]
+    [ interface-interval number; ]
+    [ statistics-interval number; ]
     [ topology { address_match_list }; ]
     [ sortlist { address_match_list }; ]
-    [ rrset-order { order_spec ; [ order_spec ; ... ] ] };    [ lame-ttl number; ]    [ max-ncache-ttl number; ]
+    [ rrset-order { order_spec ; [ order_spec ; ... ] ] };
+    [ lame-ttl number; ]    [ max-ncache-ttl number; ]
     [ max-cache-ttl number; ]
     [ sig-validity-interval number ; ]
     [ min-roots number; ]
@@ -2014,63 +2149,73 @@ occurrence is found, the first occurrence determines the actual options
 used, and a warning will be generated. If there is no options statement, an
 options block with each option set to its default will be used.
 
-                    The version the server should report via a query of
- version            name version.bind in class chaos . The default is the
+ version            The version the server should report via a query of
+                    name version.bind in class chaos. The default is the
                     real version number of this server.
-                    The working directory of the server. Any non-absolute
+
+ directory          The working directory of the server. Any non-absolute
                     pathnames in the configuration file will be taken as
                     relative to this directory. The default location for
- directory          most server output files (e.g. named.run ) is this
+                    most server output files (e.g. named.run) is this
                     directory. If a directory is not specified, the working
-                    directory defaults to ` . ', the directory from which
+                    directory defaults to '.', the directory from which
                     the server was started. The directory specified should
                     be an absolute path.
-                    This option is obsolete. It was used in BIND 8 to
- named-xfer         specify the pathname to the named-xfer program. In
+
+ named-xfer         This option is obsolete. It was used in BIND 8 to
+                    specify the pathname to the named-xfer program. In
                     BIND 9, no separate named-xfer program is needed; its
                     functionality is built into the name server.
-                    The domain appended to the names of all shared keys
-                    generated with TKEY . When a client requests a TKEY
+
+ tkey-domain        The domain appended to the names of all shared keys
+                    generated with TKEY. When a client requests a TKEY
                     exchange, it may or may not specify the desired name
- tkey-domain        for the key. If present, the name of the shared key
+                    for the key. If present, the name of the shared key
                     will be " client specified part " + " tkey-domain ".
                     Otherwise, the name of the shared key will be " random
                     hex digits " + " tkey-domain ". In most cases, the
                     domainname should be the server's domain name.
-                    The Diffie-Hellman key used by the server to generate
+
+ tkey-dhkey         The Diffie-Hellman key used by the server to generate
                     shared keys with clients using the Diffie-Hellman mode
- tkey-dhkey         of TKEY . The server must be able to load the public
+                    of TKEY. The server must be able to load the public
                     and private keys from files in the working directory.
                     In most cases, the keyname should be the server's host
                     name.
-                    The pathname of the file the server dumps the database
- dump-file          to when it receives SIGINT signal ( ndc dumpdb ). If
-                    not specified, the default is named_dump.db . Not yet
+
+ dump-file          The pathname of the file the server dumps the database
+                    to when it receives SIGINT signal (ndc dumpdb). If
+                    not specified, the default is named_dump.db. Not yet
                     implemented in BIND 9.
-                    The pathname of the file the server writes memory usage
- memstatistics-file statistics to on exit. If not specified, the default is
-                    named.memstats . Not yet implemented in BIND 9.
-                    The pathname of the file the server writes its process
+
+ memstatistics-file The pathname of the file the server writes memory usage
+                    statistics to on exit. If not specified, the default is
+                    named.memstats. Not yet implemented in BIND 9.
+
+ pid-file           The pathname of the file the server writes its process
                     ID in. If not specified, the default is operating
- pid-file           system dependent, but is usually
-                    /var/run/named.pid or /etc/named.pid . The pid-file is
+                    system dependent, but is usually
+                    /var/run/named.pid or /etc/named.pid. The pid-file is
                     used by programs that want to send signals to the
                     running nameserver.
-                    The pathname of the file the server appends statistics
- statistics-file    to. If not specified, the default is named.stats . Not
-                    yet implemented in BIND 9 .
+
+ statistics-file    The pathname of the file the server appends statistics
+                    to. If not specified, the default is named.stats. Not
+                    yet implemented in BIND 9.
 
 6.2.12.1 Boolean Options
 
-                    If yes , then the AA bit is always set on NXDOMAIN
+ auth-nxdomain      If yes, then the AA bit is always set on NXDOMAIN
                     responses, even if the server is not actually
- auth-nxdomain      authoritative. The default is no ; this is a change
+                    authoritative. The default is no ; this is a change
                     from BIND 8. If you are using very old DNS software,
-                    you may need to set it to yes .
-                    This option was used in BIND 8 to enable checking for
- deallocate-on-exit memory leaks on exit. BIND 9 ignores the option and
+                    you may need to set it to yes.
+
+ deallocate-on-exit This option was used in BIND 8 to enable checking for
+                    memory leaks on exit. BIND 9 ignores the option and
                     always performs the checks.
-                    If yes , then the server treats all zones as if they
+
+ dialup             If yes, then the server treats all zones as if they
                     are doing zone transfers across a dial on demand dialup
                     link, which can be brought up by traffic originating
                     from this server. This has different effects according
@@ -2078,80 +2223,87 @@ options block with each option set to its default will be used.
                     that it all happens in a short interval, once every
                     heartbeat-interval and hopefully during the one call.
                     It also suppresses some of the normal zone maintenance
-                    traffic. The default is no .
-
+                    traffic. The default is no.
                     The dialup option may also be specified in the zone
                     statement, in which case it overrides the options
- dialup             dialup statement.
-
+                    dialup statement.
                     If the zone is a master then the server will send out a
                     NOTIFY request to all the slaves. This will trigger the
                     zone serial number check in the slave (providing it
                     supports NOTIFY) allowing the slave to verify the zone
                     while the connection is active.
-
                     If the zone is a slave or stub then the server will
                     suppress the regular "zone up to date" queries and only
                     perform them when the
                     heartbeat-interval expires. Not yet implemented in
                     BIND 9.
-                    In BIND 8, this option was used to enable simulating
- fake-iquery        the obsolete DNS query type IQUERY. BIND 9 never does
+
+ fake-iquery        In BIND 8, this option was used to enable simulating
+                    the obsolete DNS query type IQUERY. BIND 9 never does
                     IQUERY simulation.
-                    (Information present outside of the authoritative nodes
+
+ fetch-glue         (Information present outside of the authoritative nodes
                     in the zone is called glue information). If yes (the
                     default), the server will fetch glue resource records
                     it doesn't have when constructing the additional data
- fetch-glue         section of a response. fetch-glue no can be used in
+                    section of a response. fetch-glue no can be used in
                     conjunction with recursion no to prevent the server's
                     cache from growing or becoming corrupted (at the cost
                     of requiring more work from the client). Not yet
                     implemented in BIND 9.
-                    This option was incorrectly implemented in BIND 8, and
- has-old-clients    is ignored by BIND 9. To achieve the intended effect of
-                    has-old-clients yes , specify the two separate options
+
+ has-old-clients    This option was incorrectly implemented in BIND 8, and
+                    is ignored by BIND 9. To achieve the intended effect of
+                    has-old-clients yes, specify the two separate options
                     auth-nxdomain yes and rfc2308-type1 no instead.
-                    If yes , then statistics are kept for every host that
- host-statistics    the nameserver interacts with. The default is no .
+
+ host-statistics    If yes, then statistics are kept for every host that
+                    the nameserver interacts with. The default is no.
                     Note: turning on host-statistics can consume huge
                     amounts of memory. Not yet implemented in BIND 9.
-                    This option is obsolete . It was used in BIND 8 to
+
+ maintain-ixfr-base This option is obsolete. It was used in BIND 8 to
                     determine whether a transaction log was kept for
- maintain-ixfr-base Incremental Zone Transfer. BIND 9 maintains a
+                    Incremental Zone Transfer. BIND 9 maintains a
                     transaction log whenever possible. If you need to
                     disable outgoing incremental zone transfers, use
-                    provide-ixfr no .
-                    This option was used in BIND 8 to allow a domain name
+                    provide-ixfr no.
+
+ multiple-cnames    This option was used in BIND 8 to allow a domain name
                     to allow multiple CNAME records in violation of the DNS
                     standards. BIND 9 currently does not check for multiple
- multiple-cnames    CNAMEs in zone data loaded from master files, but such
+                    CNAMEs in zone data loaded from master files, but such
                     checks may be introduced in a later release. BIND 9
                     always strictly enforces the CNAME rules in dynamic
                     updates.
-                    If yes (the default), DNS NOTIFY messages are sent when
+
+ notify             If yes (the default), DNS NOTIFY messages are sent when
                     a zone the server is authoritative for changes. See
-                    Notify , for more information. The notify option may
- notify             also be specified in the zone statement, in which case
+                    Notify, for more information. The notify option may
+                    also be specified in the zone statement, in which case
                     it overrides the options notify statement. It would
                     only be necessary to turn off this option if it caused
-                    slaves to crash .
-                    If yes , and a DNS query requests recursion, then the
-                    server will attempt to do all the work required to
- recursion          answer the query. If recursion is not on, the server
-                    will return a referral to the client if it doesn't know
-                    the answer. The default is yes . See also fetch-glue
-                    above.
-                    Setting this to yes will cause the server to send NS
- rfc2308-type1      records along with the SOA record for negative answers.
-                    The default is no . Not yet implemented in BIND 9 .
+                    slaves to crash.
 
- use-id-pool        This option is obsolete . BIND 9 always allocates query
+ recursion          If yes, and a DNS query requests recursion, then the
+                    server will attempt to do all the work required to
+                    answer the query. If recursion is not on, the server
+                    will return a referral to the client if it doesn't know
+                    the answer. The default is yes. See also fetch-glue
+                    above.
+
+ rfc2308-type1      Setting this to yes will cause the server to send NS
+                    records along with the SOA record for negative answers.
+                    The default is no. Not yet implemented in BIND 9.
+
+ use-id-pool        This option is obsolete. BIND 9 always allocates query
                     IDs from a pool.
-                    This option was used in BIND 8 to make the server treat
-                    " \r " characters the same way as <space> " " or " \t
- treat-cr-as-space  ", to facilitate loading of zone files on a UNIX system
+
+ treat-cr-as-space  This option was used in BIND 8 to make the server treat
+                    "\r" characters the same way as <space> " " or "\t",
+                    to facilitate loading of zone files on a UNIX system
                     that were generated on an NT or DOS machine. In BIND 9,
-                    both UNIX " \n " and NT/DOS " \r\n " newlines are
+                    both UNIX "\n" and NT/DOS "\r\n" newlines are
                     always accepted, and the option is ignored.
 
 6.2.12.2 Forwarding
@@ -2164,10 +2316,9 @@ only on those queries for which the server is not authoritative and does not
 have the answer in its cache.
 
 
-
-            This option is only meaningful if the forwarders list is not
-            empty. A value of first , the default, causes the server to
- forward    query the forwarders first, and if that doesn't answer the
+ forward    This option is only meaningful if the forwarders list is not
+            empty. A value of first, the default, causes the server to
+            query the forwarders first, and if that doesn't answer the
             question the server will then look for the answer itself. If
             only is specified, the server will only query the forwarders.
 
@@ -2187,8 +2338,6 @@ For example, a domain name used as a hostname can be checked for compliance
 with the RFCs defining valid hostnames.
 
 Three checking methods are available:
-
-
 
  ignore No checking is done.
 
@@ -2222,32 +2371,33 @@ Access to the server can be restricted based on the IP address of the
 requesting system. See Address Match Lists for details on how to specify IP
 address lists.
 
-
-
-                 Specifies which hosts are allowed to ask ordinary
+ allow-query     Specifies which hosts are allowed to ask ordinary
                  questions. allow-query may also be specified in the zone
- allow-query     statement, in which case it overrides the options
+                 statement, in which case it overrides the options
                  allow-query statement. If not specified, the default is to
                  allow queries from all hosts.
-                 Specifies which hosts are allowed to make recursive
- allow-recursion queries through this server. If not specified, the default
+
+ allow-recursion Specifies which hosts are allowed to make recursive
+                 queries through this server. If not specified, the default
                  is to allow recursive queries from all hosts.
-                 Specifies which hosts are allowed to receive zone
+
+ allow-transfer  Specifies which hosts are allowed to receive zone
                  transfers from the server. allow-transfer may also be
- allow-transfer  specified in the zone statement, in which case it
+                 specified in the zone statement, in which case it
                  overrides the options allow-transfer statement. If not
                  specified, the default is to allow transfers from all
                  hosts.
-                 Specifies a list of addresses that the server will not
- blackhole       accept queries from or use to resolve a query. Queries
+
+ blackhole       Specifies a list of addresses that the server will not
+                 accept queries from or use to resolve a query. Queries
                  from these addresses will not be responded to. The default
-                 is none . Not yet implemented in BIND 9.
+                 is none. Not yet implemented in BIND 9.
 
 6.2.12.5 Interfaces
 
 The interfaces and ports that the server will answer queries from may be
 specified using the listen-on option. listen-on takes an optional port, and
-an address_match_list . The server will listen on all interfaces allowed by
+an address_match_list. The server will listen on all interfaces allowed by
 the address match list. If a port is not specified, port 53 will be used.
 
 Multiple listen-on statements are allowed. For example,
@@ -2286,7 +2436,7 @@ on the IPv6 wildcard address.
 If the server doesn't know the answer to a question, it will query other
 nameservers. query-source specifies the address and port used for such
 queries. For queries sent over IPv6, there is a separate query-source-v6
-option. If address is * or is omitted, a wildcard IP address ( INADDR_ANY )
+option. If address is * or is omitted, a wildcard IP address (INADDR_ANY)
 will be used. If port is * or is omitted, a random unprivileged port will be
 used. The defaults are
 
@@ -2303,32 +2453,36 @@ the amount of load that transfers place on the system. The following options
 apply to zone transfers.
 
 
-
-                       Defines a global list of IP addresses that are also
+ 
+ also-notify           Defines a global list of IP addresses that are also
                        sent NOTIFY messages whenever a fresh copy of the
                        zone is loaded. This helps to ensure that copies of
                        the zones will quickly converge on stealth servers.
- also-notify           If an also-notify list is given in a zone statement,
+                       If an also-notify list is given in a zone statement,
                        it will override the options also-notify statement.
-                       When a zone notify statement is set to no , the IP
+                       When a zone notify statement is set to no, the IP
                        addresses in the global also-notify list will not be
                        sent NOTIFY messages for that zone. The default is
                        the empty list (no global notification list).
-                       Inbound zone transfers running longer than this many
- max-transfer-time-in  minutes will be terminated. The default is 120
-                       minutes (2 hours).
-                       Inbound zone transfers making no progress in this
- max-transfer-idle-in  many minutes will be terminated. The default is 60
-                       minutes (1 hour).
-                       Outbound zone transfers running longer than this
- max-transfer-time-out many minutes will be terminated. The default is 120
-                       minutes (2 hours).
-                       Outbound zone transfers making no progress in this
-                       many minutes will be terminated. The default is 60
- max-transfer-idle-out minutes
 
-                       (1 hour).
-                       Slave servers will periodically query master servers
+
+ max-transfer-time-in  Inbound zone transfers running longer than this many
+                       minutes will be terminated. The default is 120
+                       minutes (2 hours).
+
+ max-transfer-idle-in  Inbound zone transfers making no progress in this
+                       many minutes will be terminated. The default is 60
+                       minutes (1 hour).
+
+ max-transfer-time-out Outbound zone transfers running longer than this
+                       many minutes will be terminated. The default is 120
+                       minutes (2 hours).
+
+ max-transfer-idle-out Outbound zone transfers making no progress in this
+                       many minutes will be terminated. The default is 60
+                       minutes (1 hour).
+
+ serial-queries        Slave servers will periodically query master servers
                        to find out if zone serial numbers have changed.
                        Each such query uses a minute amount of the slave
                        server's network bandwidth, but more importantly
@@ -2337,7 +2491,7 @@ apply to zone transfers.
                        respond. The serial-queries option sets the maximum
                        number of concurrent serial-number queries allowed
                        to be outstanding at any given time. The default is
- serial-queries        4. Note: If a server loads a large (tens or hundreds
+                       4. Note: If a server loads a large (tens or hundreds
                        of thousands) number of slave zones, then this limit
                        should be raised to the high hundreds or low
                        thousands, otherwise the slave server may never
@@ -2348,39 +2502,44 @@ apply to zone transfers.
                        resources. As with all tunable limits, this one
                        should be changed gently and monitored for its
                        effects. Not yet implemented in BIND 9.
-                       The server supports two zone transfer methods.
+
+ transfer-format       The server supports two zone transfer methods.
                        one-answer uses one DNS message per resource record
                        transferred. many-answers packs as many resource
                        records as possible into a message. many-answers is
- transfer-format       more efficient, but is only known to be understood
+                       more efficient, but is only known to be understood
                        by BIND 9, BIND 8.x and patched versions of
-                       BIND 4.9.5. The default is many-answers .
+                       BIND 4.9.5. The default is many-answers.
                        transfer-format may be overridden on a per-server
                        basis by using the server statement.
-                       The maximum number of inbound zone transfers that
-                       can be running concurrently. The default value is 10
- transfers-in          . Increasing transfers-in may speed up the
+
+ transfers-in          The maximum number of inbound zone transfers that
+                       can be running concurrently. The default value is 10.
+                       Increasing transfers-in may speed up the
                        convergence of slave zones, but it also may increase
                        the load on the local system.
-                       The maximum number of outbound zone transfers that
- transfers-out         can be running concurrently. Zone transfer requests
+
+ transfers-out         The maximum number of outbound zone transfers that
+                       can be running concurrently. Zone transfer requests
                        in excess of the limit will be refused. The default
-                       value is 10 .
-                       The maximum number of inbound zone transfers that
+                       value is 10.
+
+ transfers-per-ns      The maximum number of inbound zone transfers that
                        can be concurrently transferring from a given remote
-                       nameserver. The default value is 2 . Increasing
- transfers-per-ns      transfers-per-ns may speed up the convergence of
+                       nameserver. The default value is 2. Increasing
+                       transfers-per-ns may speed up the convergence of
                        slave zones, but it also may increase the load on
                        the remote nameserver. transfers-per-ns may be
                        overridden on a per-server basis by using the
                        transfers phrase of the server statement.
-                       transfer-source determines which local address will
+
+ transfer-source       transfer-source determines which local address will
                        be bound to IPv4 TCP connections used to fetch zones
                        transferred inbound by the server. If not set, it
                        defaults to a system controlled value which will
                        usually be the address of the interface "closest to"
                        the remote end. This address must appear in the
- transfer-source       remote end's allow-transfer option for the zone
+                       remote end's allow-transfer option for the zone
                        being transferred, if one is specified. This
                        statement sets the transfer-source for all zones,
                        but can be overridden on a per-zone basis by
@@ -2388,7 +2547,7 @@ apply to zone transfers.
                        transfer-source statement within the zone block in
                        the configuration file.
 
- transfer-source-v6    The same as transfer-source , except zone transfers
+ transfer-source-v6    The same as transfer-source, except zone transfers
                        are performed using IPv6.
 
 6.2.12.8 Resource Limits
@@ -2406,34 +2565,38 @@ description of size_spec in Configuration File Elements for more details.
 
 
 
- coresize          The maximum size of a core dump. The default is default
-                   . Not yet implemented in BIND 9.
+ coresize          The maximum size of a core dump. The default is default.
+                   Not yet implemented in BIND 9.
 
  datasize          The maximum amount of data memory the server may use.
-                   The default is default . Not yet implemented in BIND 9.
+                   The default is default. Not yet implemented in BIND 9.
+
                    The maximum number of files the server may have open
-                   concurrently. The default is unlimited . Note: on some
+                   concurrently. The default is unlimited. Note: on some
                    operating systems the server cannot set an unlimited
                    value and cannot determine the maximum number of open
  files             files the kernel can support. On such systems, choosing
                    unlimited will cause the server to use the larger of the
                    rlim_max for RLIMIT_NOFILE and the value returned by
-                   sysconf(_SC_OPEN_MAX) . If the actual kernel limit is
+                   sysconf(_SC_OPEN_MAX). If the actual kernel limit is
                    larger than this value, use limit files to specify the
                    limit explicitly. Not yet implemented in BIND 9.
-                   The max-ixfr-log-size will be used in a future release
- max-ixfr-log-size of the server to limit the size of the transaction log
+
+ max-ixfr-log-size The max-ixfr-log-size will be used in a future release
+                   of the server to limit the size of the transaction log
                    kept for Incremental Zone Transfer. Not yet implemented
                    in BIND 9.
-                   The maximum number of simultaneous recursive lookups the
- recursive-clients server will perform on behalf of clients. The default is
-                   100 .
+
+ recursive-clients The maximum number of simultaneous recursive lookups the
+                   server will perform on behalf of clients. The default is
+                   100.
 
  stacksize         The maximum amount of stack memory the server may use.
-                   The default is default . Not yet implemented in BIND 9.
-                   The maximum number of simultaneous client TCP
- tcp-clients       connections that the server will accept. The default is
-                   100 .
+                   The default is default. Not yet implemented in BIND 9.
+
+ tcp-clients       The maximum number of simultaneous client TCP
+                   connections that the server will accept. The default is
+                   100.
 
 Resource limits are not yet implemented in BIND 9.
 
@@ -2441,27 +2604,30 @@ Resource limits are not yet implemented in BIND 9.
 
 
 
-                     The server will remove expired resource records from
- cleaning-interval   the cache every cleaning-interval minutes. The default
-                     is 60 minutes. If set to 0 , no periodic cleaning will
+ cleaning-interval   The server will remove expired resource records from
+                     the cache every cleaning-interval minutes. The default
+                     is 60 minutes. If set to 0, no periodic cleaning will
                      occur.
-                     The server will perform zone maintenance tasks for all
+ 
+ heartbeat-interval  The server will perform zone maintenance tasks for all
                      zones marked dialup yes whenever this interval
- heartbeat-interval  expires. The default is 60 minutes. Reasonable values
-                     are up to 1 day (1440 minutes). If set to 0 , no zone
+                     expires. The default is 60 minutes. Reasonable values
+                     are up to 1 day (1440 minutes). If set to 0, no zone
                      maintenance for these zones will occur. Not yet
                      implemented in BIND 9.
-                     The server will scan the network interface list every
+
+ interface-interval  The server will scan the network interface list every
                      interface-interval minutes. The default is 60 minutes.
-                     If set to 0 , interface scanning will only occur when
- interface-interval  the configuration file is loaded. After the scan,
+                     If set to 0, interface scanning will only occur when
+                     the configuration file is loaded. After the scan,
                      listeners will be started on any new interfaces
                      (provided they are allowed by the listen-on
                      configuration). Listeners on interfaces that have gone
                      away will be cleaned up.
-                     Nameserver statistics will be logged every
- statistics-interval statistics-interval minutes. The default is 60 . If
-                     set to 0 , no statistics will be logged. Not yet
+
+ statistics-interval Nameserver statistics will be logged every
+                     statistics-interval minutes. The default is 60. If
+                     set to 0, no statistics will be logged. Not yet
                      implemented in BIND 9.
 
 6.2.12.10 Topology
@@ -2498,11 +2664,11 @@ The topology option is not yet implemented in BIND 9.
 Resource Records (RRs) are the data associated with the names in a domain
 name space. The data is maintained in the form of sets of RRs. The order of
 RRs in a set is, by default, not significant. Therefore, to control the
-sorting of records in a set of resource records, or RRset , you must use the
+sorting of records in a set of resource records, or RRset, you must use the
 sortlist statement.
 
 RRs are explained more fully in See Types of Resource Records and When to
-Use Them . Specifications for RRs are documented in RFC 1035.
+Use Them. Specifications for RRs are documented in RFC 1035.
 
 When returning multiple RRs the nameserver will normally return them in
 Round Robin order, that is, after each request the first RR is put at the
@@ -2515,10 +2681,10 @@ configuring the nameservers, not all the clients.
 
 The sortlist statement (see below) takes an address_match_list and
 interprets it even more specifically than the topology statement does (see
-Topology ). Each top level statement in the sortlist must itself be an
+Topology). Each top level statement in the sortlist must itself be an
 explicit address_match_list with one or two elements. The first element
 (which may be an IP address, an IP prefix, an ACL name or a nested
-address_match_list ) of each top level list is checked against the source
+address_match_list) of each top level list is checked against the source
 address of the query until a match is found.
 
 Once the source address of the query has been matched, if the top level
@@ -2590,16 +2756,16 @@ An order_spec is defined as follows:
 [ class class_name  ][ type type_name ][ name "domain_name"]
      order ordering
 
-If no class is specified, the default is ANY . If no type is specified, the
-default is ANY . If no name is specified, the default is " * ".
+If no class is specified, the default is ANY. If no type is specified, the
+default is ANY. If no name is specified, the default is "*".
 
 The legal values for ordering are:
 
-
-
  fixed  Records are returned in the order they are defined in the zone
         file.
+
  random Records are returned in some random order.
+
  cyclic Records are returned in a round-robin order.
 
 For example:
@@ -2609,9 +2775,9 @@ For example:
         order cyclic;
     };
 
-will cause any responses for type A records in class IN that have "
-host.example.com " as a suffix, to always be returned in random order. All
-other records are returned in cyclic order.
+will cause any responses for type A records in class IN that have
+"host.example.com" as a suffix, to always be returned in random
+order. All other records are returned in cyclic order.
 
 If multiple rrset-order statements appear, they are not combined--the last
 one applies.
@@ -2628,30 +2794,33 @@ The rrset-order statement is not yet implemented in BIND 9.
 6.2.12.13 Tuning
 
 
-
-                       Sets the number of seconds to cache a lame server
+ lame-ttl              Sets the number of seconds to cache a lame server
                        indication. 0 disables caching. (This is NOT
- lame-ttl              recommended.) Default is 600 (10 minutes). Maximum
+                       recommended.) Default is 600 (10 minutes). Maximum
                        value is 1800 (30 minutes). Not yet implemented in
                        BIND 9.
-                       To reduce network traffic and increase performance
+
+ max-ncache-ttl        To reduce network traffic and increase performance
                        the server stores negative answers. max-ncache-ttl
                        is used to set a maximum retention time for these
- max-ncache-ttl        answers in the server in seconds. The default
+                       answers in the server in seconds. The default
                        max-ncache-ttl is 10800 seconds (3 hours).
                        max-ncache-ttl cannot exceed 7 days and will be
                        silently truncated to 7 days if set to a greater
                        value.
-                       max-cache-ttl sets the maximum time for which the
- max-cache-ttl         server will cache ordinary (positive) answers. The
+
+ max-cache-ttl         max-cache-ttl sets the maximum time for which the
+                       server will cache ordinary (positive) answers. The
                        default is one week (7 days).
-                       The minimum number of root servers that is required
- min-roots             for a request for the root servers to be accepted.
-                       Default is 2 . Not yet implemented in BIND 9.
-                       Specifies the number of days into the future when
+
+ min-roots             The minimum number of root servers that is required
+                       for a request for the root servers to be accepted.
+                       Default is 2. Not yet implemented in BIND 9.
+
+ sig-validity-interval Specifies the number of days into the future when
                        DNSSEC signatures automatically generated as a
-                       result of dynamic updates (see Dynamic Update ) will
- sig-validity-interval expire. The default is 30 days. The signature
+                       result of dynamic updates (see Dynamic Update) will
+                       expire. The default is 30 days. The signature
                        inception time is unconditionally set to one hour
                        before the current time to allow for a limited
                        amount of clock skew.
@@ -2660,8 +2829,8 @@ The rrset-order statement is not yet implemented in BIND 9.
 
 use-ixfr is deprecated in BIND 9. If you need to disable IXFR to a
 particular server or servers see the information on the provide-ixfr option
-in server Statement Definition and Usage . See also the description of IXFR
-in the section Incremental Zone Transfers (IXFR) .
+in server Statement Definition and Usage. See also the description of IXFR
+in the section Incremental Zone Transfers (IXFR).
 
 6.2.13 server Statement Grammar
 
@@ -2681,13 +2850,13 @@ The server statement defines the characteristics to be associated with a
 remote nameserver.
 
 If you discover that a remote server is giving out bad data, marking it as
-bogus will prevent further queries to it. The default value of bogus is no .
+bogus will prevent further queries to it. The default value of bogus is no.
 The bogus clause is not yet implemented in BIND 9.
 
 The provide-ixfr clause determines whether the local server, acting as
 master, will respond with an incremental zone transfer when the given remote
-server, a slave, requests it. If set to yes , incremental transfer will be
-provided whenever possible. If set to no , all transfers to the remote
+server, a slave, requests it. If set to yes, incremental transfer will be
+provided whenever possible. If set to no, all transfers to the remote
 server will be nonincremental. If not set, the value of the provide-ixfr
 option in the global options block is used as a default.
 
@@ -2704,7 +2873,7 @@ possible to disable the use of IXFR even when both master and slave claim to
 support it, for example if one of the servers is buggy and crashes or
 corrupts data when IXFR is used.
 
-The server supports two zone transfer methods. The first, one-answer , uses
+The server supports two zone transfer methods. The first, one-answer, uses
 one DNS message per resource record transferred. many-answers packs as many
 resource records as possible into a message. many-answers is more efficient,
 but is only known to be understood by BIND 9, BIND 8.x, and patched versions
@@ -2770,7 +2939,7 @@ client query will be resolved in the context of the first view whose
 match-clients list matches the client's IP address.
 
 Zones defined within a view statement will be only be accessible to clients
-that match the view . By defining a zone of the same name in multiple views,
+that match the view. By defining a zone of the same name in multiple views,
 different zone data can be given to different clients, for example,
 "internal" and "external" clients in a split DNS setup.
 
@@ -2789,7 +2958,7 @@ statements specified on the top level of the configuration file are
 considered to be part of this default view. If any explicit view statements
 are present, all zone statements must occur inside view statements.
 
-A zone statement of type hint for the root zone (` . ') does not strictly
+A zone statement of type hint for the root zone ('.') does not strictly
 define a zone. Therefore, it should not be included in a view statement.
 
 Here is an example of a typical split DNS setup implemented using view
@@ -2857,14 +3026,15 @@ zone zone name [class] [{
 
  master  The server has a master copy of the data for the zone and will be
          able to provide authoritative answers for it.
-         A slave zone is a replica of a master zone. The masters list
+
+ slave   A slave zone is a replica of a master zone. The masters list
          specifies one or more IP addresses that the slave contacts to
          update its copy of the zone. If a port is specified, the slave
          then checks to see if the zone is current and zone transfers will
          be done to the port given. If a file is specified, then the
          replica will be written to this file whenever the zone is changed,
          and reloaded from this file on a server restart. Use of a file is
- slave   recommended, since it often speeds server start-up and eliminates
+         recommended, since it often speeds server start-up and eliminates
          a needless waste of bandwidth. Note that for large numbers (in the
          tens or hundreds of thousands) of zones per server, it is best to
          use a two level naming scheme for zone file names. For example, a
@@ -2873,7 +3043,8 @@ zone zone name [class] [{
          ex/example.com where ex/ is just the first two letters of the zone
          name. (Most operating systems behave very slowly if you put 100K
          files into a single directory.)
-         A stub zone is similar to a slave zone, except that it replicates
+
+stub     A stub zone is similar to a slave zone, except that it replicates
          only the NS records of a master zone instead of the entire zone.
          Stub zones are not a standard part of the DNS; they are a
          peculiarity of BIND 4 and BIND 8 that relies heavily on the
@@ -2881,7 +3052,6 @@ zone zone name [class] [{
          BIND 9 attempts to emulate the BIND 4/8 stub zone feature for
          backwards compatibility, but we do not recommend its use in new
          configurations.
- stub
          In BIND 4/8, zone transfers of a parent zone included the NS
          records from stub children of that zone. This meant that, in some
          cases, users could get away with configuring child stubs only in
@@ -2890,21 +3060,23 @@ zone zone name [class] [{
          master serving a parent zone has child stub zones configured, all
          the slave servers for the parent zone also need to have the same
          child stub zones configured..
-         A "forward zone" is a way to configure forwarding on a per-domain
+
+ forward A "forward zone" is a way to configure forwarding on a per-domain
          basis. A zone statement of type forward can contain a forward
          and/or forwarders statement, which will apply to queries within
          the domain given by the zone name. If no forwarders statement is
          present or an empty list for forwarders is given, then no
- forward forwarding will be done for the domain, cancelling the effects of
+         forwarding will be done for the domain, cancelling the effects of
          any forwarders in the options statement. Thus if you want to use
          this type of zone to change the behavior of the global forward
          option (that is, "forward first to", then "forward only", or vice
          versa, but want to use the same servers as set globally) you need
          to respecify the global forwarders. Domain-specific forwarding is
          not yet implemented in BIND 9.
-         The initial set of root nameservers is specified using a "hint
+
+ hint    The initial set of root nameservers is specified using a "hint
          zone". When the server starts up, it uses the root hints to find a
- hint    root nameserver and get the most recent list of root nameservers.
+         root nameserver and get the most recent list of root nameservers.
          If no hint zone is specified for class IN, the server users a
          compiled-in default set of root servers hints. Classes other than
          IN have no built-in defaults hints.
@@ -2912,7 +3084,7 @@ zone zone name [class] [{
 6.2.20.2 Class
 
 The zone's name may optionally be followed by a class. If a class is not
-specified, class IN (for Internet ), is assumed. This is correct for the
+specified, class IN (for Internet), is assumed. This is correct for the
 vast majority of cases.
 
 The hesiod class is named for an information service from MIT's Project
@@ -2926,82 +3098,92 @@ mid-1970s. Zone data for it can be specified with the CHAOS class.
 6.2.20.3 Zone Options
 
  allow-query             See the description of allow-query under Access
-                         Control .
+                         Control.
 
  allow-transfer          See the description of allow-transfer under Access
-                         Control .
-                         Specifies which hosts are allowed to submit
- allow-update            Dynamic DNS updates for master zones. The default
-                         is to deny updates from all hosts.
+                         Control.
+
+ allow-update            Specifies which hosts are allowed to submit Dynamic DNS
+                         updates for master zones. The default is to deny updates
+                         from all hosts.
 
  update-policy           Specifies a "Simple Secure Update" policy. See
-                         description in Dynamic Update Policies .
-                         Specifies which hosts are allowed to submit
+                         description in Dynamic Update Policies.
+
+ allow-update-forwarding Specifies which hosts are allowed to submit
                          Dynamic DNS updates to slave zones to be forwarded
- allow-update-forwarding to the master. The default is to deny update
+                         to the master. The default is to deny update
                          forwarding from all hosts. Update forwarding is
                          not yet implemented.
-                         Only meaningful if notify is active for this zone.
-                         The set of machines that will receive a DNS NOTIFY
-                         message for this zone is made up of all the listed
- also-notify             nameservers (other than the primary master) for
-                         the zone plus any IP addresses specified with
-                         also-notify .
-                         also-notify is not meaningful for stub zones. The
-                         default is the empty list .
 
- check-names             See Name Checking .
+ also-notify             Only meaningful if notify is active for this zone.  The
+                         set of machines that will receive a DNS
+                         NOTIFY message for this zone is made up of
+                         all the listed nameservers (other than the
+                         primary master) for the zone plus any IP
+                         addresses specified with also-notify.
+                         also-notify is not meaningful for stub
+                         zones. The default is the empty list.
+
+ check-names             See Name Checking.
                          Not yet implemented in BIND 9.
-                         See the description of dialup under Boolean
- dialup                  Options .
+
+ dialup                  See the description of dialup under Boolean
+                         Options.
                          Not yet implemented in BIND 9.
-                         Only meaningful if the zone has a forwarders list.
+
+ forward                 Only meaningful if the zone has a forwarders list.
                          The only value causes the lookup to fail after
- forward                 trying the forwarders and getting no answer, while
+                         trying the forwarders and getting no answer, while
                          first would allow a normal lookup to be tried.
                          Not yet implemented in BIND 9.
-                         Used to override the list of global forwarders. If
-                         it is not specified in a zone of type forward , no
- forwarders              forwarding is done for the zone; the global
-                         options are not used.
 
+ forwarders              Used to override the list of global forwarders. If
+                         it is not specified in a zone of type forward, no
+                         forwarding is done for the zone; the global
+                         options are not used.
                          Not yet implemented in BIND 9.
-                         Was used in BIND 8 to specify the name of the
+
+ ixfr-base               Was used in BIND 8 to specify the name of the
                          transaction log (journal) file for dynamic update
- ixfr-base               and IXFR. BIND 9 ignores the option and constructs
-                         the name of the journal file by appending ". jnl "
+                         and IXFR. BIND 9 ignores the option and constructs
+                         the name of the journal file by appending ".jnl"
                          to the name of the zone file.
 
  max-transfer-time-in    See the description of
-                         max-transfer-time-in under Zone Transfers .
+                         max-transfer-time-in under Zone Transfers.
 
  max-transfer-idle-in    See the description of
-                         max-transfer-idle-in under Zone Transfers .
+                         max-transfer-idle-in under Zone Transfers.
 
  max-transfer-time-out   See the description of
-                         max-transfer-time-out under Zone Transfers .
+                         max-transfer-time-out under Zone Transfers.
 
  max-transfer-idle-out   See the description of
-                         max-transfer-idle-out under Zone Transfers .
+                         max-transfer-idle-out under Zone Transfers.
 
  notify                  See the description of notify under Boolean
-                         Options .
-                         In BIND 8, this option was intended for specifying
+                         Options.
+
+ pubkey                  In BIND 8, this option was intended for specifying
                          a public zone key for verification of signatures
- pubkey                  in DNSSEC signed zones when they are loaded from
+                         in DNSSEC signed zones when they are loaded from
                          disk. BIND 9 does not verify signatures on loading
                          and ignores the option.
 
  sig-validity-interval   See the description of sig-validity-interval in
-                         Tuning .
-                         Determines which local address will be bound to
-                         the IPv4 TCP connection used to fetch this zone.
-                         If not set, it defaults to a system controlled
- transfer-source         value which will usually be the address of the
-                         interface "closest to" the remote end. This
-                         address must appear in the remote end's
-                         allow-transfer option for this zone if one is
-                         specified.
+                         Tuning.
+
+ transfer-source         Determines which local address will be bound
+                         to the IPv4 TCP connection used to fetch this
+                         zone.  If not set, it defaults to a system
+                         controlled value which will
+                         usually be the address of the interface
+                         "closest to" the remote end. If the remote
+                         end user is an allow-transfer option for
+                         this zone, the address, supplied by the
+                         transfer-source option, needs to be specified
+                         in that allow-transfer option.
 
  transfer-source-v6      Similar to transfer-source, but for zone transfers
                          performed using IPv6.
@@ -3040,7 +3222,7 @@ identity field, the name matches the name field, and the type is specified
 in the type field.
 
 The identity field specifies a name or a wildcard name. The nametype field
-has 4 values: name , subdomain , wildcard , and self .
+has 4 values: name, subdomain, wildcard, and self.
 
  name      Matches when the updated name is the same as the name in the
            name field.
@@ -3096,37 +3278,53 @@ The following are types of valid RRs (some of these listed, although not
 obsolete, are experimental (x) or historical (h) and no longer in general
 use):
 
- A    a host address.
- A6   an IPv6 address.
- AAAA Obsolete format of IPv6 address
+ A        a host address.
+
+ A6       an IPv6 address.
+
+ AAAA     Obsolete format of IPv6 address
+
  AFSDB(x) location of AFS database servers. Experimental.
- CNAMEidentifies the canonical name of an alias.
 
- DNAMEfor delegation of reverse addresses. Replaces the domain name
-      specified with another name to be looked up. Described in RFC 2672.
- HINFOidentifies the CPU and OS used by a host.
- ISDN (x) representation of ISDN addresses. Experimental.
- KEY  stores a public key associated with a DNS name.
- LOC  (x) for storing GPS info. See RFC 1876. Experimental.
- MX   identifies a mail exchange for the domain. See RFC 974 for details.
- NS   the authoritative nameserver for the domain.
-      used in DNSSEC to securely indicate that RRs with an owner name in a
- NXT  certain name interval do not exist in a zone and indicate what RR
-      types are present for an existing name. See RFC 2535 for details.
- PTR  a pointer to another part of the domain name space.
- RP   (x) information on persons responsible for the domain. Experimental.
+ CNAME    identifies the canonical name of an alias.
 
- RT   (x) route-through binding for hosts that do not have their own direct
-      wide area network addresses. Experimental.
+ DNAME    for delegation of reverse addresses. Replaces the domain name
+          specified with another name to be looked up. Described in RFC 2672.
 
- SIG  ("signature") contains data authenticated in the secure DNS. See RFC
-      2535 for details.
- SOA  identifies the start of a zone of authority.
- SRV  information about well known network services (replaces WKS).
+ HINFO    identifies the CPU and OS used by a host.
 
- WKS  (h) information about which well known network services, such as
-      SMTP, that a domain supports. Historical, replaced by newer RR SRV.
- X25  (x) representation of X.25 network addresses. Experimental.
+ ISDN     (x) representation of ISDN addresses. Experimental.
+
+ KEY      stores a public key associated with a DNS name.
+
+ LOC      (x) for storing GPS info. See RFC 1876. Experimental.
+
+ MX       identifies a mail exchange for the domain. See RFC 974 for details.
+
+ NS       the authoritative nameserver for the domain.
+          used in DNSSEC to securely indicate that RRs with an owner name in a
+
+ NXT      certain name interval do not exist in a zone and indicate what RR
+          types are present for an existing name. See RFC 2535 for details.
+
+ PTR      a pointer to another part of the domain name space.
+
+ RP       (x) information on persons responsible for the domain. Experimental.
+
+ RT       (x) route-through binding for hosts that do not have their own direct
+          wide area network addresses. Experimental.
+
+ SIG      ("signature") contains data authenticated in the secure DNS. See RFC
+          2535 for details.
+
+ SOA      identifies the start of a zone of authority.
+
+ SRV      information about well known network services (replaces WKS).
+
+ WKS      (h) information about which well known network services, such as
+          SMTP, that a domain supports. Historical, replaced by newer RR SRV.
+
+ X25      (x) representation of X.25 network addresses. Experimental.
 
 The following classes of resource records are currently valid in the DNS:
 
@@ -3137,21 +3335,26 @@ The following classes of resource records are currently valid in the DNS:
 RDATA is the type-dependent or class-dependent data that describes the
 resource:
 
- A    for the IN class, a 32 bit IP address.
+ A       for the IN class, a 32 bit IP address.
 
- A6   maps a domain name to an IPv6 address, with a provision for
-      indirection for leading "prefix" bits.
- CNAMEa domain name.
-      provides alternate naming to an entire subtree of the domain name
- DNAMEspace, rather than to a single node. It causes some suffix of a
-      queried name to be substituted with a name from the DNAME record's
-      RDATA.
+ A6      maps a domain name to an IPv6 address, with a provision for
+         indirection for leading "prefix" bits.
 
- MX   a 16 bit preference value (lower is better) followed by a host name
-      willing to act as a mail exchange for the owner domain.
- NS   a fully qualified domain name.
- PTR  a fully qualified domain name.
- SOA  several fields.
+ CNAME   a domain name.
+         provides alternate naming to an entire subtree of the domain name
+
+ DNAME   space, rather than to a single node. It causes some suffix of a
+         queried name to be substituted with a name from the DNAME record's
+         RDATA.
+
+ MX      a 16 bit preference value (lower is better) followed by a host name
+         willing to act as a mail exchange for the owner domain.
+
+ NS      a fully qualified domain name.
+
+ PTR     a fully qualified domain name.
+
+ SOA     several fields.
 
 The owner name is often implicit, rather than forming an integral part of
 the RR. For example, many nameservers internally form tree or hash
@@ -3218,7 +3421,7 @@ Similarly we might see:
  XX.LCS.MIT.EDU. IN A  10.0.0.44
  CH                 A  MIT.EDU. 2420
 
-This example shows two addresses for XX.LCS.MIT.EDU , each of a different
+This example shows two addresses for XX.LCS.MIT.EDU, each of a different
 class.
 
 6.3.2 Discussion of MX Records
@@ -3264,21 +3467,20 @@ describes how long a RR can be cached before it should be discarded. The
 following three types of TTL are currently used in a zone file.
 
 
+ SOA      The last field in the SOA is the negative caching TTL. This
+          controls how long other servers will cache no-such-domain
+          (NXDOMAIN) responses from you.
 
-        The last field in the SOA is the negative caching TTL. This
-        controls how long other servers will cache no-such-domain
- SOA    (NXDOMAIN) responses from you.
+          The maximum time for negative caching is 3 hours (3h).
 
-        The maximum time for negative caching is 3 hours (3h).
+ $TTL     The $TTL directive at the top of the zone file (before the SOA)
+          gives a default TTL for every RR without a specific TTL set.
 
- $TTL   The $TTL directive at the top of the zone file (before the SOA)
-        gives a default TTL for every RR without a specific TTL set.
-
- RR TTLsEach RR can have a TTL as the second field in the RR, which will
-        control how long other servers can cache the it.
+ RR TTLs  Each RR can have a TTL as the second field in the RR, which will
+          control how long other servers can cache the it.
 
 All of these TTLs default to units of seconds, though units can be
-explicitly specified, for example, 1h30m .
+explicitly specified, for example, 1h30m.
 
 6.3.4 Inverse Mapping in IPv4
 
@@ -3309,16 +3511,16 @@ The Master File Format was initially defined in RFC 1035 and has
 subsequently been extended. While the Master File Format itself is class
 independent all records in a Master File must be of the same class.
 
-Master File Directives include $ORIGIN , $INCLUDE , and $TTL.
+Master File Directives include $ORIGIN, $INCLUDE, and $TTL.
 
 6.3.5.1 The $ORIGIN Directive
 
 Syntax: $ORIGIN < domain-name > [ < comment > ]
 
 $ORIGIN sets the domain name that will be appended to any unqualified
-records. When a zone is first read in there is an implicit $ORIGIN <
-zone-name > . The current $ORIGIN is appended to the domain specified in the
-$ORIGIN argument if it is not absolute.
+records. When a zone is first read in there is an implicit $ORIGIN
+<zone-name>. The current $ORIGIN is appended to the domain specified
+in the $ORIGIN argument if it is not absolute.
 
 $ORIGIN example.com
 WWW     CNAME   MAIN-SERVER
@@ -3375,32 +3577,23 @@ is equivalent to
 
 
 
-       This can be one of two forms: start-stop or start-stop/step. If the
- range first form is used then step is set to 1. All of start, stop and
+ range This can be one of two forms: start-stop or start-stop/step. If the
+       first form is used then step is set to 1. All of start, stop and
        step must be positive.
-       lhs describes the owner name of the resource records to be created.
+
+ lhs   lhs describes the owner name of the resource records to be created.
        Any single $ symbols within the lhs side are replaced by the
- lhs   iterator value. To get a $ in the output use a double $ , e.g. $$ .
+       iterator value. To get a $ in the output use a double $, e.g. $$.
        If the lhs is not absolute, the current $ORIGIN is appended to the
        name.
+
  type  At present the only supported types are PTR, CNAME and NS.
+
  rhs   rhs is a domain name. It is processed similarly to lhs.
 
 The $GENERATE directive is a BIND extension and not part of the standard
 zone file format. It is not yet implemented in BIND 9.
 
-6.3.7 Signals
-
-Certain UNIX signals cause the name server to take specific actions, as
-described in the following table. These signals can be sent using the kill
-command.
-
-
-
- SIGHUP  Causes the server to read named.conf and reload the database.
- SIGTERM Causes the server to clean up and exit.
- SIGINT  Causes the server to clean up and exit.
- SIGQUIT Causes the server to clean up and exit.
 
   ------------------------------------------------------------------------
 
@@ -3409,8 +3602,8 @@ command.
      7.1 Access Control Lists
 
 Access Control Lists (ACLs), are address match lists that you can set up and
-nickname for future use in allow-query , allow-recursion , blackhole ,
-allow-transfer , etc.
+nickname for future use in allow-query, allow-recursion, blackhole,
+allow-transfer, etc.
 
 Using ACLs allows you to have finer control over who can access your
 nameserver, without cluttering up your config files with huge lists of IP
@@ -3458,25 +3651,25 @@ ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos
      7.2 chroot and setuid (for UNIX servers)
 
 On UNIX servers, it is possible to run BIND in a chrooted environment (
-chroot() ) by specifying the " -t " option. This can help improve system
+chroot() ) by specifying the "-t" option. This can help improve system
 security by placing BIND in a "sandbox," which will limit the damage done if
 a server is compromised.
 
 Another useful feature in the UNIX version of BIND is the ability to run the
-daemon as a nonprivileged user ( -u user ). We suggest running as a
+daemon as a nonprivileged user (-u user). We suggest running as a
 nonprivileged user when using the chroot feature.
 
 Here is an example command line to load BIND in a chroot() sandbox,
-/var/named , and to run named setuid to user 202:
+/var/named, and to run named setuid to user 202:
 
 /usr/local/bin/named -u 202 -t /var/named
 
      7.2.1 The chroot Environment
 
 In order for a chroot() environment to work properly in a particular
-directory (for example, /var/named ), you will need to set up an environment
+directory (for example, /var/named), you will need to set up an environment
 that includes everything BIND needs to run. From BIND's point of view,
-/var/named is the root of the filesystem. You will need /dev/null , and any
+/var/named is the root of the filesystem. You will need /dev/null, and any
 library directories and files that BIND needs to run on your system. Please
 consult your operating system's instructions if you need help figuring out
 which library files you need to copy over to the chroot() sandbox.
@@ -3629,8 +3822,8 @@ IPv6 addresses (A6)
 
 IPv6 addresses are 128-bit identifiers for interfaces and sets of interfaces
 which were introduced in the DNS to facilitate scalable Internet routing.
-There are three types of addresses: Unicast , an identifier for a single
-interface; Anycast , an identifier for a set of interfaces; and Multicast ,
+There are three types of addresses: Unicast, an identifier for a single
+interface; Anycast, an identifier for a set of interfaces; and Multicast,
 an identifier for a set of interfaces. Here we describe the global Unicast
 address scheme. For more information, see RFC 2374.
 
@@ -3640,26 +3833,24 @@ The aggregatable global Unicast address format is as follows:
 
  3   13      8     24       16                64 bits
  FP  TLA ID  RES   NLA ID   SLA ID            Interface ID
- <------ Public Topology
- ------>
+ <-- Public Topology -->
                             <-Site Topology->
 
-                                              <------ Interface Identifier
-                                              ------>
+                                              <- Interface Identifier ->
 
 Where
 
- FP          = Format Prefix (001)
- TLA ID      = Top-Level Aggregation Identifier
- RES         = Reserved for future use
- NLA ID      = Next-Level Aggregation Identifier
- SLA ID      = Site-Level Aggregation Identifier
- INTERFACE ID= Interface Identifier
+ FP            = Format Prefix (001)
+ TLA ID        = Top-Level Aggregation Identifier
+ RES           = Reserved for future use
+ NLA ID        = Next-Level Aggregation Identifier
+ SLA ID        = Site-Level Aggregation Identifier
+ INTERFACE ID  = Interface Identifier
 
 The Public Topology is provided by the upstream provider or ISP, and
 (roughly) corresponds to the IPv4 network section of the address range. The
 Site Topology is where you can subnet this space, much the same as
-subnetting an IPv4 class A or B network into class Cs. The Interface
+subnetting an IPv4 /16 network into /24 subnets. The Interface
 Identifier is the address of an individual interface on a given network.
 (With IPv6, addresses belong to interfaces rather than machines.)
 
@@ -3672,8 +3863,8 @@ address consists of:
 
 
 
- 3 13     8   24
- FPTLA ID RES NLA ID
+ 3    13        8      24
+ FP   TLA ID    RES    NLA ID
 
 A 3 bit FP (Format Prefix) of 001 indicates this is a global Unicast
 address. FP lengths for other types of addresses may vary.
@@ -3689,8 +3880,7 @@ client can then split up the network further by filling in more NLA bits,
 and hand out IPv6 prefixes to their clients, and so forth.
 
 There is no particular structure for the Site topology section.
-Organizations can allocate these bits in any way they desire, in the same
-way as they would subnet an IPv4 class A (8-bit prefix) network.
+Organizations can allocate these bits in any way they desire.
 
 The Interface Identifier must be unique on that network. On ethernet
 networks, one way to ensure this is to set the address to the first three
@@ -3703,7 +3893,7 @@ colon, and leading zeros of a block may be omitted, for example:
 
 IPv6 address specifications are likely to contain long strings of zeros, so
 the architects have included a shorthand for specifying them. The double
-colon (`::') indicates the longest possible string of zeros that can fit,
+colon ('::') indicates the longest possible string of zeros that can fit,
 and can be used only once in an address.
 
 Bibliography (and Suggested Reading)
@@ -3716,13 +3906,13 @@ notes. The standards themselves are defined by the Internet Engineering Task
 Force (IETF) and the Internet Engineering Steering Group (IESG). RFCs can be
 obtained online via FTP at
 ftp://www.isi.edu/in-notes/RFCxxx.txt (where xxx is the number of the RFC).
-RFCs are also available via the Web at http://www.ietf.org/rfc/ .
+RFCs are also available via the Web at http://www.ietf.org/rfc/.
 
 Standards
 
-RFC974. Partridge, C. Mail Routing and the Domain System . January 1986.
+RFC974. Partridge, C. Mail Routing and the Domain System. January 1986.
 
-RFC1034. Mockapetris, P.V. Domain Names - Concepts and Facilities . P.V.
+RFC1034. Mockapetris, P.V. Domain Names - Concepts and Facilities. P.V.
 November 1987.
 
 RFC1035. Mockapetris, P. V. Domain Names - Implementation and Specification
@@ -3730,33 +3920,33 @@ RFC1035. Mockapetris, P. V. Domain Names - Implementation and Specification
 
 Proposed Standards
 
-RFC2181. Elz, R., R. Bush. Clarifications to the DNS Specification . July
+RFC2181. Elz, R., R. Bush. Clarifications to the DNS Specification. July
 1997.
 
-RFC2308. Andrews, M. Negative Caching of DNS Queries . March 1998.
+RFC2308. Andrews, M. Negative Caching of DNS Queries. March 1998.
 
-RFC1995. Ohta, M. Incremental Zone Transfer in DNS . August 1996.
+RFC1995. Ohta, M. Incremental Zone Transfer in DNS. August 1996.
 
-RFC1996. Vixie, P. A Mechanism for Prompt Notification of Zone Changes .
+RFC1996. Vixie, P. A Mechanism for Prompt Notification of Zone Changes.
 August 1996.
 
 RFC2136. Vixie, P., S. Thomson, Y. Rekhter, J. Bound. Dynamic Updates in the
-Domain Name System . April 1997.
+Domain Name System. April 1997.
 
 RFC2845. Vixie, P., O. Gudmundsson, D. Eastlake 3rd, B. Wellington. Secret
-Key Transaction Authentication for DNS (TSIG) . May 2000.
+Key Transaction Authentication for DNS (TSIG). May 2000.
 
 Proposed Standards Still Under Development
 
 Note: the following list of RFCs are undergoing major revision by the IETF.
 
-RFC1886. Thomson, S., C. Huitema. DNS Extensions to support IP version 6 .
+RFC1886. Thomson, S., C. Huitema. DNS Extensions to support IP version 6.
 S. December 1995.
 
 RFC2065. Eastlake, 3rd, D., C. Kaufman. Domain Name System Security
-Extensions . January 1997.
+Extensions. January 1997.
 
-RFC2137. Eastlake, 3rd, D. Secure Domain Name System Dynamic Update . April
+RFC2137. Eastlake, 3rd, D. Secure Domain Name System Dynamic Update. April
 1997.
 
 Other Important RFCs About DNS Implementation
@@ -3765,55 +3955,55 @@ RFC1535. Gavron, E. A Security Problem and Proposed Correction With Widely
 Deployed DNS Software. October 1993.
 
 RFC1536. Kumar, A., J. Postel, C. Neuman, P. Danzig, S. Miller. Common DNS
-Implementation Errors and Suggested Fixes . October 1993.
+Implementation Errors and Suggested Fixes. October 1993.
 
-RFC1982. Elz, R., R. Bush. Serial Number Arithmetic . August 1996.
+RFC1982. Elz, R., R. Bush. Serial Number Arithmetic. August 1996.
 
 Resource Record Types
 
 RFC1183. Everhart, C.F., L. A. Mamakos, R. Ullmann, P. Mockapetris. New DNS
-RR Definitions . October 1990.
+RR Definitions. October 1990.
 
-RFC1706. Manning, B., R. Colella. DNS NSAP Resource Records . October 1994.
+RFC1706. Manning, B., R. Colella. DNS NSAP Resource Records. October 1994.
 
 RFC2168. Daniel, R., M. Mealling. Resolution of Uniform Resource Identifiers
 using the Domain Name System. June 1997.
 
 RFC1876. Davis, C., P. Vixie, T. Goodwin, I. Dickinson. A Means for
-Expressing Location Information in the Domain Name System . January 1996.
+Expressing Location Information in the Domain Name System. January 1996.
 
 RFC2052. Gulbrandsen, A., P. Vixie. A DNS RR for Specifying the Location of
 Services. October 1996.
 
 RFC2163. Allocchio, A. U sing the Internet DNS to Distribute MIXER
-Conformant Global Address Mapping . January 1998.
+Conformant Global Address Mapping. January 1998.
 
-RFC2230. Atkinson, R. Key Exchange Delegation Record for the DNS . October
+RFC2230. Atkinson, R. Key Exchange Delegation Record for the DNS. October
 1997.
 
 DNS and the Internet
 
-RFC1101. Mockapetris, P. V. DNS Encoding of Network Names and Other Types .
+RFC1101. Mockapetris, P. V. DNS Encoding of Network Names and Other Types.
 April 1989.
 
 RFC1123. Braden, R. Requirements for Internet Hosts - Application and
-Support . October 1989.
+Support. October 1989.
 
-RFC1591. Postel, J. D omain Name System Structure and Delegation . March
+RFC1591. Postel, J. D omain Name System Structure and Delegation. March
 1994.
 
 RFC2317. Eidnes, H., G. de Groot, P. Vixie. Classless IN-ADDR.ARPA
-Delegation . March 1998.
+Delegation. March 1998.
 
 DNS Operations
 
-RFC1537. Beertema, P. Common DNS Data File Configuration Errors . October
+RFC1537. Beertema, P. Common DNS Data File Configuration Errors. October
 1993.
 
-RFC1912. Barr, D. Common DNS Operational and Configuration Errors . February
+RFC1912. Barr, D. Common DNS Operational and Configuration Errors. February
 1996.
 
-RFC1912. Barr, D. Common DNS Operational and Configuration Errors . February
+RFC1912. Barr, D. Common DNS Operational and Configuration Errors. February
 1996.
 
 RFC2010. Manning, B., P. Vixie. Operational Criteria for Root Name Servers.
@@ -3828,25 +4018,25 @@ Note: the following list of RFCs, although DNS-related, are not concerned
 with implementing software.
 
 RFC1464. Rosenbaum, R. Using the Domain Name System To Store Arbitrary
-String Attributes . May 1993.
+String Attributes. May 1993.
 
-RFC1713. Romao, A. Tools for DNS Debugging . November 1994.
+RFC1713. Romao, A. Tools for DNS Debugging. November 1994.
 
-RFC1794. Brisco, T. DNS Support for Load Balancing . April 1995.
+RFC1794. Brisco, T. DNS Support for Load Balancing. April 1995.
 
-RFC2240. Vaughan, O. A Legal Basis for Domain Name Allocation .
+RFC2240. Vaughan, O. A Legal Basis for Domain Name Allocation.
 November1997.
 
 RFC2345. Klensin, J., T. Wolf, G. Oglesby. Domain Names and Company Name
-Retrieval . May 1998.
+Retrieval. May 1998.
 
-RFC2352. Vaughan, O. A Convention For Using Legal Names as Domain Names .
+RFC2352. Vaughan, O. A Convention For Using Legal Names as Domain Names.
 May 1998.
 
 Obsolete and Unimplemented Experimental RRs
 
 RFC1712. Farrell, C., M. Schulze, S. Pleitner, D. Baldoni. DNS Encoding of
-Geographical Location . November 1994.
+Geographical Location. November 1994.
 
 Internet Drafts
 
@@ -3860,7 +4050,7 @@ authors.
 
 Other BIND Documents
 
-Albitz, Paul and Cricket Liu. 1998. DNS and BIND . Sebastopol, CA: O'Reilly
+Albitz, Paul and Cricket Liu. 1998. DNS and BIND. Sebastopol, CA: O'Reilly
 and Associates.
 
   ------------------------------------------------------------------------
