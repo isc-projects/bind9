@@ -1,4 +1,6 @@
-1663.   [placeholder]          rt11600
+1664.	[bug]		nsupdate needed KEY for SIG(0), not DNSKEY.
+
+1663.   [placeholder]	rt11600
 
 1662.	[bug]		Change #1658 failed to one use of 'type' to 'keytype'.
 
