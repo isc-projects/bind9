@@ -87,7 +87,7 @@ STD_CDEFINES =	@STD_CDEFINES@
 STD_CWARNINGS =	@STD_CWARNINGS@
 
 .SUFFIXES:
-.SUFFIXES: .c .o .lo
+.SUFFIXES: .c .@O@ .lo
 
 ALWAYS_INCLUDES = -I${top_builddir}
 ALWAYS_DEFINES = -D_REENTRANT
@@ -101,7 +101,7 @@ ALL_CFLAGS = ${CFLAGS} \
 	${ALL_CPPFLAGS} \
 	${ALWAYS_WARNINGS} ${STD_CWARNINGS} ${CWARNINGS}
 
-.c.o:
+.c.@O@:
 	${CC} ${ALL_CFLAGS} -c $<
 
 SHELL = @SHELL@
@@ -113,7 +113,7 @@ MKDEP = ${SHELL} ${top_builddir}/make/mkdep
 	${LIBTOOL} ${CC} ${ALL_CFLAGS} -c $<
 
 clean distclean::
-	rm -f *.o *.lo *.la core *.core
+	rm -f *.@O@ *.lo *.la core *.core
 	rm -rf .libs
 
 distclean::
@@ -145,7 +145,8 @@ FORCE:
 ### Libraries
 ###
 
-AR =		ar
+AR =		@AR@
+ARFLAGS =	@ARFLAGS@
 RANLIB =	@RANLIB@
 
 ###
