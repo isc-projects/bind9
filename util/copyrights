@@ -1023,6 +1023,9 @@
 ./contrib/queryperf/configure.in		X	2001
 ./contrib/queryperf/input/sample.0		X	2001
 ./contrib/queryperf/input/sample.1		X	2001
+./contrib/queryperf/missing/addrinfo.h		C	2004
+./contrib/queryperf/missing/getaddrinfo.c	C	2004
+./contrib/queryperf/missing/getnameinfo.c	C	2004
 ./contrib/queryperf/queryperf.c			X	2001
 ./contrib/queryperf/utils/gen-data-queryperf.py	X	2003
 ./contrib/sdb/bdb/README			X	2002
