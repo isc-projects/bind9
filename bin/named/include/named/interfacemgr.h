@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.20 2000/09/22 00:13:07 gson Exp $ */
+/* $Id: interfacemgr.h,v 1.21 2000/09/26 18:26:20 gson Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -75,7 +75,6 @@ struct ns_interface {
 	char 			name[32];	/* Null terminated. */
 	dns_dispatch_t *	udpdispatch;	/* UDP dispatcher. */
 	isc_socket_t *		tcpsocket;	/* TCP socket. */
-	isc_task_t *		task;
 	int			ntcptarget;	/* Desired number of concurrent
 						   TCP accepts */
 	int			ntcpcurrent;	/* Current ditto, locked */

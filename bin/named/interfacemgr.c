@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.50 2000/09/22 00:13:04 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.51 2000/09/26 18:26:18 gson Exp $ */
 
 #include <config.h>
 
@@ -190,19 +190,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	if (result != ISC_R_SUCCESS)
 		goto lock_create_failure;
 
-	/*
-	 * Create a task.
-	 */
-	ifp->task = NULL;
-	result = isc_task_create(mgr->taskmgr, 0, &ifp->task);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-				 "isc_task_create() failed: %s",
-				 isc_result_totext(result));
-		goto task_create_failure;
-	}
-	isc_task_setname(ifp->task, "ifp", ifp);
-
 	result = ns_clientmgr_create(mgr->mctx, mgr->taskmgr,
 				     ns_g_timermgr,
 				     &ifp->clientmgr);
@@ -237,8 +224,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	return (ISC_R_SUCCESS);
 
  clientmgr_create_failure:
-	isc_task_destroy(&ifp->task);
- task_create_failure:
 	DESTROYLOCK(&ifp->lock);
  lock_create_failure:
 	ifp->magic = 0;
@@ -392,8 +377,6 @@ ns_interface_destroy(ns_interface_t *ifp) {
 		dns_dispatch_detach(&ifp->udpdispatch);
 	if (ifp->tcpsocket != NULL)
 		isc_socket_detach(&ifp->tcpsocket);
-	if (ifp->task != NULL)	
-		isc_task_detach(&ifp->task);
 
 	DESTROYLOCK(&ifp->lock);
 
