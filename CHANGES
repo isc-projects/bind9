@@ -1,3 +1,8 @@
+ 522.	[func]		The lightweight resolver daemon can now use
+			a real configuration file, and its functionality
+			can be provided by a name server.  Also, the -p and -P
+			options to lwresd have been reversed.
+
  521.	[bug]		Detect master files which contain $INCLUDE and always
 			reload. [RT #196]
 
