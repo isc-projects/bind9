@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.37 2004/03/05 05:11:59 marka Exp $ */
+/* $Id: time.c,v 1.38 2004/03/16 05:52:22 marka Exp $ */
 
 #include <config.h>
 
@@ -198,6 +198,19 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	i3 = (i1.QuadPart - i2.QuadPart) / 10;
 
 	return (i3);
+}
+
+isc_uint32_t
+isc_time_seconds(const isc_time_t *t) {
+	SYSTEMTIME st;
+
+	/*
+	 * Convert the time to a SYSTEMTIME structure and the grab the
+	 * milliseconds
+	 */
+	FileTimeToSystemTime(&t->absolute, &st);
+
+	return ((isc_uint32_t)(st.wMilliseconds / 1000));
 }
 
 isc_uint32_t

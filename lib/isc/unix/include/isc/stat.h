@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,13 +15,39 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.c,v 1.6 2004/03/16 05:52:22 marka Exp $ */
+/* $Id: stat.h,v 1.2 2004/03/16 05:52:21 marka Exp $ */
 
-#include <isc/net.h>
-#include <isc/platform.h>
+#ifndef ISC_STAT_H
+#define ISC_STAT_H 1
 
-LIBISC_EXTERNAL_DATA const struct in6_addr isc_in6addr_any =
-	IN6ADDR_ANY_INIT;
+/*****
+ ***** Module Info
+ *****/
 
-LIBISC_EXTERNAL_DATA const struct in6_addr isc_in6addr_loopback =
-	IN6ADDR_LOOPBACK_INIT;
+/*
+ * Portable netdb.h support.
+ *
+ * This module is responsible for defining S_IS??? macros.
+ *
+ * MP:
+ *	No impact.
+ *
+ * Reliability:
+ *	No anticipated impact.
+ *
+ * Resources:
+ *	N/A.
+ *
+ * Security:
+ *	No anticipated impact.
+ *
+ */
+
+/***
+ *** Imports.
+ ***/
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#endif /* ISC_STAT_H */

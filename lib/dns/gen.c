@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.72 2004/03/05 05:09:20 marka Exp $ */
+/* $Id: gen.c,v 1.73 2004/03/16 05:52:18 marka Exp $ */
 
 #include <config.h>
 
@@ -96,20 +96,20 @@
 
 const char copyright[] =
 "/*\n"
-" * Copyright (C) 1998%s Internet Software Consortium.\n"
+" * Copyright (C) 2004%s Internet Systems Consortium, Inc. (\"ISC\")\n"
+" * Copyright (C) 1998-2003 Internet Software Consortium.\n"
 " *\n"
 " * Permission to use, copy, modify, and distribute this software for any\n"
 " * purpose with or without fee is hereby granted, provided that the above\n"
 " * copyright notice and this permission notice appear in all copies.\n"
 " *\n"
-" * THE SOFTWARE IS PROVIDED \"AS IS\" AND INTERNET SOFTWARE CONSORTIUM\n"
-" * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL\n"
-" * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL\n"
-" * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,\n"
-" * INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING\n"
-" * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,\n"
-" * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION\n"
-" * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n"
+" * THE SOFTWARE IS PROVIDED \"AS IS\" AND ISC DISCLAIMS ALL WARRANTIES WITH\n"
+" * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY\n"
+" * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,\n"
+" * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM\n"
+" * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE\n"
+" * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR\n"
+" * PERFORMANCE OF THIS SOFTWARE.\n"
 " */\n"
 "\n"
 "/***************\n"
@@ -585,7 +585,7 @@ main(int argc, char **argv) {
 	sd(0, "", buf, filetype);
 
 	if (time(&now) != -1) {
-		if ((tm = localtime(&now)) != NULL && tm->tm_year > 98)
+		if ((tm = localtime(&now)) != NULL && tm->tm_year > 104) 
 			sprintf(year, "-%d", tm->tm_year + 1900);
 		else
 			year[0] = 0;
@@ -631,11 +631,11 @@ main(int argc, char **argv) {
 			 DIGESTARGS, DIGESTTYPE,
 			 DIGESTCLASS, DIGESTDEF);
 		doswitch("CHECKOWNERSWITCH", "checkowner",
-			 CHECKOWNERARGS, CHECKOWNERTYPE,
-			 CHECKOWNERCLASS, CHECKOWNERDEF);
+			CHECKOWNERARGS, CHECKOWNERTYPE,
+			CHECKOWNERCLASS, CHECKOWNERDEF);
 		doswitch("CHECKNAMESSWITCH", "checknames",
-			 CHECKNAMESARGS, CHECKNAMESTYPE,
-			 CHECKNAMESCLASS, CHECKNAMESDEF);
+			CHECKNAMESARGS, CHECKNAMESTYPE,
+			CHECKNAMESCLASS, CHECKNAMESDEF);
 
 		/*
 		 * From here down, we are processing the rdata names and
@@ -667,31 +667,6 @@ main(int argc, char **argv) {
 		insert_into_typenames(254, "maila", METAQUESTIONONLY);
 		insert_into_typenames(255, "any", METAQUESTIONONLY);
 
-		fprintf(stdout, "\ntypedef struct {\n");
-		fprintf(stdout, "\tconst char *name;\n");
-		fprintf(stdout, "\tunsigned int flags;\n");
-		fprintf(stdout, "} typeattr_t;\n");
-		fprintf(stdout, "static typeattr_t typeattr[] = {\n");
-		for (i = 0; i <= maxtype; i++) {
-			ttn = find_typename(i);
-			if (ttn == NULL) {
-				const char *attrs;
-				if (i >= 128 && i < 255)
-					attrs = "DNS_RDATATYPEATTR_UNKNOWN | "
-						"DNS_RDATATYPEATTR_META";
-				else
-					attrs = "DNS_RDATATYPEATTR_UNKNOWN";
-				fprintf(stdout, "\t{ \"TYPE%d\", %s}%s\n",
-					i, attrs, PRINT_COMMA(i));
-			} else {
-				fprintf(stdout, "\t{ \"%s\", %s }%s\n",
-				       upper(ttn->typename),
-				       upper(ttn->attr),
-				       PRINT_COMMA(i));
-			}
-		}
-		fprintf(stdout, "};\n");
-
 		/*
 		 * Spit out a quick and dirty hash function.  Here,
 		 * we walk through the list of type names, and calculate
@@ -707,7 +682,7 @@ main(int argc, char **argv) {
 		fprintf(stdout, "\t\tif (sizeof(_s) - 1 == _n && \\\n"
 				"\t\t    strncasecmp(_s,(_tn),"
 				"(sizeof(_s) - 1)) == 0) { \\\n");
-		fprintf(stdout, "\t\t\tif ((typeattr[_d].flags & "
+		fprintf(stdout, "\t\t\tif ((dns_rdatatype_attributes(_d) & "
 		       		  "DNS_RDATATYPEATTR_RESERVED) != 0) \\\n");
 		fprintf(stdout, "\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n");
 		fprintf(stdout, "\t\t\t*(_tp) = _d; \\\n");
@@ -749,6 +724,29 @@ main(int argc, char **argv) {
 				}
 			}
 			fprintf(stdout, "\t\t\tbreak; \\\n");
+		}
+		fprintf(stdout, "\t}\n");
+
+		fprintf(stdout, "#define RDATATYPE_ATTRIBUTE_SW \\\n");
+		fprintf(stdout, "\tswitch (type) { \\\n");
+		for (i = 0; i <= maxtype; i++) {
+			ttn = find_typename(i);
+			if (ttn == NULL)
+				continue;
+			fprintf(stdout, "\tcase %u: return (%s); \\\n",
+			        i, upper(ttn->attr));
+		}
+		fprintf(stdout, "\t}\n");
+
+		fprintf(stdout, "#define RDATATYPE_TOTEXT_SW \\\n");
+		fprintf(stdout, "\tswitch (type) { \\\n");
+		for (i = 0; i <= maxtype; i++) {
+			ttn = find_typename(i);
+			if (ttn == NULL)
+				continue;
+			fprintf(stdout, "\tcase %u: return "
+				"(str_totext(\"%s\", target)); \\\n",
+			        i, upper(ttn->typename));
 		}
 		fprintf(stdout, "\t}\n");
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.26 2004/03/05 05:12:06 marka Exp $ */
+/* $Id: time.h,v 1.27 2004/03/16 05:52:23 marka Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -243,6 +243,8 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
  *      'buf' points to an array of at least len chars
  *
  */
+isc_uint32_t
+isc_time_seconds(const isc_time_t *t);
 
 ISC_LANG_ENDDECLS
 

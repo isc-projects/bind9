@@ -74,6 +74,7 @@ CLEAN :
 	-@erase "$(INTDIR)\mutexblock.obj"
 	-@erase "$(INTDIR)\net.obj"
 	-@erase "$(INTDIR)\netaddr.obj"
+	-@erase "$(INTDIR)\netscope.obj"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\once.obj"
 	-@erase "$(INTDIR)\ondestroy.obj"
@@ -171,6 +172,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\msgcat.obj" \
 	"$(INTDIR)\mutexblock.obj" \
 	"$(INTDIR)\netaddr.obj" \
+	"$(INTDIR)\netscope.obj" \
 	"$(INTDIR)\ondestroy.obj" \
 	"$(INTDIR)\quota.obj" \
 	"$(INTDIR)\random.obj" \
@@ -277,6 +279,8 @@ CLEAN :
 	-@erase "$(INTDIR)\net.sbr"
 	-@erase "$(INTDIR)\netaddr.obj"
 	-@erase "$(INTDIR)\netaddr.sbr"
+	-@erase "$(INTDIR)\netscope.obj"
+	-@erase "$(INTDIR)\netscope.sbr"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\ntpaths.sbr"
 	-@erase "$(INTDIR)\once.obj"
@@ -402,6 +406,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\msgcat.sbr" \
 	"$(INTDIR)\mutexblock.sbr" \
 	"$(INTDIR)\netaddr.sbr" \
+	"$(INTDIR)\netscope.sbr" \
 	"$(INTDIR)\ondestroy.sbr" \
 	"$(INTDIR)\quota.sbr" \
 	"$(INTDIR)\random.sbr" \
@@ -478,6 +483,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\msgcat.obj" \
 	"$(INTDIR)\mutexblock.obj" \
 	"$(INTDIR)\netaddr.obj" \
+	"$(INTDIR)\netscope.obj" \
 	"$(INTDIR)\ondestroy.obj" \
 	"$(INTDIR)\quota.obj" \
 	"$(INTDIR)\random.obj" \
@@ -1370,6 +1376,24 @@ SOURCE=..\netaddr.c
 
 
 "$(INTDIR)\netaddr.obj"	"$(INTDIR)\netaddr.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\netscope.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\netscope.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\netscope.obj"	"$(INTDIR)\netscope.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

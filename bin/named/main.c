@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.135 2004/03/05 04:57:48 marka Exp $ */
+/* $Id: main.c,v 1.136 2004/03/16 05:52:14 marka Exp $ */
 
 #include <config.h>
 
@@ -216,12 +216,12 @@ library_unexpected_error(const char *file, int line, const char *format,
 static void
 lwresd_usage(void) {
 	fprintf(stderr,
-		"usage: lwresd [-c conffile | -C resolvconffile] "
-		"[-d debuglevel] [-f|-g]\n"
-		"              [-n number_of_cpus] [-p port]"
+		"usage: lwresd [-4|-6] [-c conffile | -C resolvconffile] "
+		"[-d debuglevel]\n"
+		"              [-f|-g] [-n number_of_cpus] [-p port] "
 		"[-P listen-port] [-s]\n"
 		"              [-t chrootdir] [-u username] [-i pidfile]\n"
-		"             [-m {usage|trace|record}]\n");
+		"              [-m {usage|trace|record}]\n");
 }
 
 static void
@@ -231,7 +231,7 @@ usage(void) {
 		return;
 	}
 	fprintf(stderr,
-		"usage: named [-c conffile] [-d debuglevel] "
+		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
 		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
 		"             [-m {usage|trace|record}]\n");

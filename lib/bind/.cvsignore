@@ -1,3 +1,4 @@
+configure.lineno
 port_before.h
 port_after.h
 config.log
@@ -10,4 +11,4 @@ config.cache
 config.status
 timestamp
 libtool
-configure.lineno
+autom4te.cache

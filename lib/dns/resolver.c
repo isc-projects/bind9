@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.283 2004/03/05 05:09:24 marka Exp $ */
+/* $Id: resolver.c,v 1.284 2004/03/16 05:52:19 marka Exp $ */
 
 #include <config.h>
 
@@ -6272,7 +6272,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
 	RWUNLOCK(&resolver->alglock, isc_rwlocktype_write);
 #endif
 	return (result);
-};
+}
 
 isc_boolean_t
 dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
@@ -6307,4 +6307,4 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
 	if (found)
 		return (ISC_FALSE);
 	return (dst_algorithm_supported(alg));
-};
+}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.11 2004/03/05 05:12:05 marka Exp $ */
+/* $Id: ipv6.h,v 1.12 2004/03/16 05:52:23 marka Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
@@ -43,35 +43,39 @@
  *	RFC 2553.
  */
 
-#define s6_addr8	s6_addr
-#define in6_addr in_addr6
-
+#ifndef IN6ADDR_ANY_INIT
 #define IN6ADDR_ANY_INIT 	{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}
+#endif
+#ifndef IN6ADDR_LOOPBACK_INIT
 #define IN6ADDR_LOOPBACK_INIT 	{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}
+#endif
 
-LIBISC_EXTERNAL_DATA extern const struct in_addr6 in6addr_any;
-LIBISC_EXTERNAL_DATA extern const struct in_addr6 in6addr_loopback;
+LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_any;
+LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_loopback;
 
 /*
  * Unspecified
  */
-
+#ifndef IN6_IS_ADDR_UNSPECIFIED
 #define IN6_IS_ADDR_UNSPECIFIED(a)      \
 *((u_long *)((a)->s6_addr)    ) == 0 && \
 *((u_long *)((a)->s6_addr) + 1) == 0 && \
 *((u_long *)((a)->s6_addr) + 2) == 0 && \
 *((u_long *)((a)->s6_addr) + 3) == 0 \
 )
+#endif
 
 /*
  * Loopback
  */
+#ifndef IN6_IS_ADDR_LOOPBACK
 #define IN6_IS_ADDR_LOOPBACK(a) (\
 *((u_long *)((a)->s6_addr)    ) == 0 && \
 *((u_long *)((a)->s6_addr) + 1) == 0 && \
 *((u_long *)((a)->s6_addr) + 2) == 0 && \
 *((u_long *)((a)->s6_addr) + 3) == htonl(1) \
 )
+#endif
 
 /*
  * IPv4 compatible
@@ -96,16 +100,21 @@ LIBISC_EXTERNAL_DATA extern const struct in_addr6 in6addr_loopback;
  * Multicast
  */
 #define IN6_IS_ADDR_MULTICAST(a)	\
-	((a)->s6_addr8[0] == 0xffU)
+	((a)->s6_addr[0] == 0xffU)
 
 /*
  * Unicast link / site local.
  */
+#ifndef IN6_IS_ADDR_LINKLOCAL
 #define IN6_IS_ADDR_LINKLOCAL(a)	(\
 (*((u_long *)((a)->s6_addr)    ) == 0xfe) && \
 ((*((u_long *)((a)->s6_addr) + 1) & 0xc0) == 0x80))
+#endif
+
+#ifndef IN6_IS_ADDR_SITELOCAL
 #define IN6_IS_ADDR_SITELOCAL(a)	(\
 (*((u_long *)((a)->s6_addr)    ) == 0xfe) && \
 ((*((u_long *)((a)->s6_addr) + 1) & 0xc0) == 0xc0))
+#endif
 
 #endif /* ISC_IPV6_H */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.70 2004/03/05 05:11:44 marka Exp $ */
+/* $Id: entropy.c,v 1.71 2004/03/16 05:52:21 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -189,7 +189,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			/*FALLTHROUGH*/
 
 		case isc_usocketsource_reading:
-			if (sz_to_recv != 0) {
+			if (sz_to_recv != 0U) {
 				n = recv(fd, buf, sz_to_recv, 0);
 				if (n < 0) {
 					if (errno == EWOULDBLOCK ||

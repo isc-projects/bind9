@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.3 2004/03/05 05:12:05 marka Exp $ */
+/* $Id: offset.h,v 1.4 2004/03/16 05:52:23 marka Exp $ */
 
 #ifndef ISC_OFFSET_H
 #define ISC_OFFSET_H 1
@@ -26,7 +26,7 @@
 #include <limits.h>             /* Required for CHAR_BIT. */
 #include <sys/types.h>
 
-typedef off_t isc_offset_t;
+typedef _off_t isc_offset_t;
 
 /*
  * POSIX says "Additionally, blkcnt_t and off_t are extended signed integral

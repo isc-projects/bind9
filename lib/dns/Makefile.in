@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.143 2004/03/05 05:09:17 marka Exp $
+# $Id: Makefile.in,v 1.144 2004/03/16 05:52:18 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -54,7 +54,8 @@ DNSOBJS =	acl.@O@ adb.@O@ byaddr.@O@ \
 		lib.@O@ log.@O@ lookup.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nsec.@O@ order.@O@ peer.@O@ portlist.@O@ \
-		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
+		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rcode.@O@ rdata.@O@ \
+		rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ request.@O@ \
 		resolver.@O@ result.@O@ rootns.@O@ sdb.@O@ soa.@O@ ssu.@O@ \
 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
@@ -71,7 +72,8 @@ SRCS =		acl.c adb.c byaddr.c \
 		lib.c log.c lookup.c \
 		master.c masterdump.c message.c \
 		name.c ncache.c nsec.c order.c peer.c portlist.c \
-		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
+		rbt.c rbtdb.c rbtdb64.c rcode.c rdata.c \
+		rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \
 		resolver.c result.c rootns.c sdb.c soa.c ssu.c \
 		stats.c tcpmsg.c time.c timer.c tkey.c \

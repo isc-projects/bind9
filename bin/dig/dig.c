@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.185 2004/03/05 04:57:30 marka Exp $ */
+/* $Id: dig.c,v 1.186 2004/03/16 05:52:13 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1031,7 +1031,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		goto invalid_option;
 	switch (cmd) {
 	case 'b':
-		hash = index(value, '#');
+		hash = strchr(value, '#');
 		if (hash != NULL) {
 			srcport = (in_port_t) parse_uint(hash + 1,
 						         "port number", MAXPORT);

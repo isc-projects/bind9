@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.8 2004/03/05 05:12:05 marka Exp $ */
+/* $Id: platform.h,v 1.9 2004/03/16 05:52:23 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -31,6 +31,7 @@
  ***/
 
 #define ISC_PLATFORM_HAVEIPV6
+#define ISC_PLATFORM_HAVEIN6PKTINFO
 #define ISC_PLATFORM_NEEDPORTT
 #undef MSG_TRUNC
 #define ISC_PLATFORM_NEEDNTOP
@@ -40,6 +41,7 @@
 #define ISC_PLATFORM_QUADFORMAT "I64"
 
 #define ISC_PLATFORM_NEEDSTRSEP
+#define ISC_PLATFORM_NEEDSTRLCPY
 
 /*
  * Used to control how extern data is linked; needed for Win32 platforms.
