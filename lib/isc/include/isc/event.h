@@ -36,10 +36,15 @@ ISC_LANG_BEGINDECLS
 
 #define ISC_EVENTCLASS(eclass)		((eclass) << 16)
 
+/*
+ * Classes < 1024 are reserved for ISC use.
+ */
+
 #define	ISC_EVENTCLASS_TASK		ISC_EVENTCLASS(0)
 #define	ISC_EVENTCLASS_TIMER		ISC_EVENTCLASS(1)
 #define	ISC_EVENTCLASS_SOCKET		ISC_EVENTCLASS(2)
 #define	ISC_EVENTCLASS_FILE		ISC_EVENTCLASS(3)
+#define	ISC_EVENTCLASS_DNS		ISC_EVENTCLASS(4)
 
 /*
  * Event classes >= 1024 and <= 32767 are reserved for application use.
