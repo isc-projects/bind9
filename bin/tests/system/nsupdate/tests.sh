@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.14 2000/11/20 17:59:20 gson Exp $
+# $Id: tests.sh,v 1.15 2000/11/21 23:41:25 mws Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -52,7 +52,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 echo "I:fetching second copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 
 echo "I:comparing post-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
@@ -72,7 +72,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 echo "I:fetching second copy of test zone"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
-	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 
 echo "I:comparing zones"
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
