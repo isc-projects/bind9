@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.79 2001/09/04 04:14:31 mayer Exp $ */
+/* $Id: journal.c,v 1.80 2001/09/12 18:45:02 gson Exp $ */
 
 #include <config.h>
 
@@ -1905,9 +1905,9 @@ dns_db_diff(isc_mem_t *mctx,
 	}
 	INSIST(ISC_LIST_EMPTY(diff[0].tuples));
 	INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-	dns_diff_clear(&resultdiff);
 
  failure:
+	dns_diff_clear(&resultdiff);
 	dns_dbiterator_destroy(&dbit[0]);
 	dns_dbiterator_destroy(&dbit[1]);
 	dns_journal_destroy(&journal);
