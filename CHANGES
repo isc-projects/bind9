@@ -1,4 +1,7 @@
 
+  69.   [bug]		The zone object's master and also-notify lists grew
+			longer with each server reload.
+
   68.	[func]		Partial support for SIG(0) on incoming messages.
 
   67.	[performance]	Allow use of alternate (compile-time supplied)
