@@ -161,7 +161,7 @@ dns_result_torcode(isc_result_t result) {
 	 */
 	switch (result) {
 	case ISC_R_SUCCESS:
-		return rcode = dns_rcode_noerror;
+		rcode = dns_rcode_noerror;
 		break;
 	case ISC_R_NOSPACE:
 	case ISC_R_UNEXPECTEDEND:
