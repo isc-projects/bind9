@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.61 2001/07/06 02:56:47 mayer Exp $ */
+/* $Id: gen.c,v 1.62 2001/07/06 17:35:04 gson Exp $ */
 
 #include <config.h>
 
@@ -468,10 +468,6 @@ main(int argc, char **argv) {
 	char *suffix = NULL;
 	char *file = NULL;
 	isc_dir_t dir;
-
-	isc_commandline_index = 1;
-	isc_commandline_errprint = 1;
-	isc_commandline_reset = ISC_TRUE;
 
 	for (i = 0 ; i <= 255 ; i++)
 		memset(&typenames[i], 0, sizeof(typenames[i]));
