@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.27 2000/07/07 19:19:09 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.28 2000/07/09 06:25:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -286,7 +286,7 @@ setup_key() {
 		check_result(result, "isc_lex_openbuffer");
 		result = isc_base64_tobuffer(lex, &secretbuf, -1);
 		if (result != ISC_R_SUCCESS) {
-			printf (";; Couldn't create key from %s: %s\n",
+			fprintf(stderr, "Couldn't create key from %s: %s\n",
 				keystr, isc_result_totext(result));
 			isc_lex_close(lex);
 			isc_lex_destroy(&lex);
@@ -302,7 +302,7 @@ setup_key() {
 		result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE,
 					       mctx, &dstkey);
 		if (result != ISC_R_SUCCESS) {
-			printf (";; Couldn't read key from %s: %s\n",
+			fprintf(stderr, "Couldn't read key from %s: %s\n",
 				keyfile, isc_result_totext(result));
 			goto failure;
 		}
@@ -313,7 +313,7 @@ setup_key() {
 		isc_buffer_init(&secretbuf, secret, secretlen);
 		result = dst_key_tobuffer(dstkey, &secretbuf);
 		if (result != ISC_R_SUCCESS) {
-			printf (";; Couldn't read key from %s: %s\n",
+			fprintf(stderr, "Couldn't read key from %s: %s\n",
 				keyfile, isc_result_totext(result));
 			goto failure;
 		}
@@ -330,7 +330,7 @@ setup_key() {
 			str = keystr;
 		else
 			str = keyfile;
-		printf (";; Couldn't create key from %s: %s\n",
+		fprintf(stderr, "Couldn't create key from %s: %s\n",
 			str, dns_result_totext(result));
 	}
 	isc_mem_free(mctx, secret);
@@ -533,7 +533,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (*word == 0) {
-		puts("failed to read owner name");
+		fprintf(stderr, "failed to read owner name\n");
 		return (STATUS_SYNTAX);
 	}
 
@@ -630,7 +630,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	if (isrrset) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
 		if (*word == 0) {
-			puts("failed to read class or type");
+			fprintf(stderr, "failed to read class or type\n");
 			dns_message_puttempname(updatemsg, &name);
 			return (STATUS_SYNTAX);
 		}
@@ -643,7 +643,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 			 */
 			word = nsu_strsep(&cmdline, " \t\r\n");
 			if (*word == 0) {
-				puts("failed to read type");
+				fprintf(stderr, "failed to read type\n");
 				dns_message_puttempname(updatemsg, &name);
 				return (STATUS_SYNTAX);
 			}
@@ -707,7 +707,7 @@ evaluate_prereq(char *cmdline) {
 	ddebug("evaluate_prereq()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		puts ("failed to read operation code");
+		fprintf(stderr, "failed to read operation code\n");
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "nxdomain") == 0) {
@@ -723,7 +723,7 @@ evaluate_prereq(char *cmdline) {
 		ispositive = ISC_TRUE;
 		isrrset = ISC_TRUE;
 	} else {
-		printf("incorrect operation code: %s\n", word);
+		fprintf(stderr, "incorrect operation code: %s\n", word);
 		return (STATUS_SYNTAX);
 	}
 	return (make_prereq(cmdline, ispositive, isrrset));
@@ -736,7 +736,7 @@ evaluate_server(char *cmdline) {
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		puts ("failed to read server name");
+		fprintf(stderr, "failed to read server name\n");
 		return (STATUS_SYNTAX);
 	}
 	server = word;
@@ -748,7 +748,7 @@ evaluate_server(char *cmdline) {
 		char *endp;
 		port = strtol(word, &endp, 10);
 		if (*endp != 0) {
-			printf("port '%s' is not numeric\n", word);
+			fprintf(stderr, "port '%s' is not numeric\n", word);
 			return (STATUS_SYNTAX);
 		}
 	}
@@ -772,7 +772,7 @@ evaluate_zone(char *cmdline) {
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		puts("failed to read zone name");
+		fprintf(stderr, "failed to read zone name\n");
 		return (STATUS_SYNTAX);
 	}
 
@@ -782,7 +782,7 @@ evaluate_zone(char *cmdline) {
 	isc_buffer_add(&b, strlen(word));
 	result = dns_name_fromtext(userzone, &b, dns_rootname, ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS) {
-		puts("failed to parse zone name");
+		fprintf(stderr, "failed to parse zone name\n");
 		return (STATUS_SYNTAX);
 	}
 
@@ -827,12 +827,12 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	if (!isdelete) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
 		if (*word == 0) {
-			puts ("failed to read owner ttl");
+			fprintf(stderr, "failed to read owner ttl\n");
 			goto failure;
 		}
 		ttl = strtol(word, &endp, 0);
 		if (*endp != 0) {
-			printf("ttl '%s' is not numeric\n", word);
+			fprintf(stderr, "ttl '%s' is not numeric\n", word);
 			goto failure;
 		}
 	} else
@@ -848,7 +848,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			rdatatype = dns_rdatatype_any;
 			goto doneparsing;
 		} else {
-			puts("failed to read class or type");
+			fprintf(stderr, "failed to read class or type\n");
 			goto failure;
 		}
 	}
@@ -866,7 +866,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 				rdatatype = dns_rdatatype_any;
 				goto doneparsing;
 			} else {
-				puts("failed to read type");
+				fprintf(stderr, "failed to read type\n");
 				goto failure;
 			}
 		}
@@ -892,7 +892,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			rdataclass = dns_rdataclass_none;
 	} else {
 		if (rdata->length == 0) {
-			puts("failed to read rdata");
+			fprintf(stderr, "failed to read rdata\n");
 			goto failure;
 		}
 	}
@@ -933,7 +933,7 @@ evaluate_update(char *cmdline) {
 	ddebug("evaluate_update()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		puts("failed to read operation code");
+		fprintf(stderr, "failed to read operation code\n");
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "delete") == 0)
@@ -941,7 +941,7 @@ evaluate_update(char *cmdline) {
 	else if (strcasecmp(word, "add") == 0)
 		isdelete = ISC_FALSE;
 	else {
-		printf("incorrect operation code: %s\n", word);
+		fprintf(stderr, "incorrect operation code: %s\n", word);
 		return (STATUS_SYNTAX);
 	}
 	return (update_addordelete(cmdline, isdelete));
@@ -957,7 +957,7 @@ show_message(void) {
 	isc_buffer_init(&buf, store, MSGTEXT);
 	result = dns_message_totext(updatemsg, 0, &buf);
 	if (result != ISC_R_SUCCESS) {
-		printf("Failed to concert message to text format.\n");
+		fprintf(stderr, "Failed to concert message to text format.\n");
 		return;
 	}
 	printf("Outgoing update query:\n%.*s",
@@ -973,7 +973,7 @@ get_next_command(void) {
 	char *word;
 
 	ddebug ("get_next_command()");
-	fputs ("> ", stderr);
+	fprintf(stdout, "> ");
 	fgets (cmdlinebuf, MAXCMD, stdin);
 	cmdline = cmdlinebuf;
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -998,7 +998,7 @@ get_next_command(void) {
 		show_message();
 		return (STATUS_MORE);
 	}
-	printf ("incorrect section name: %s\n", word);
+	fprintf (stderr, "incorrect section name: %s\n", word);
 	return (STATUS_SYNTAX);
 }
 
@@ -1039,7 +1039,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	if (reqev->result != ISC_R_SUCCESS) {
-		printf ("; Communication with server failed: %s\n",
+		fprintf(stderr, "; Communication with server failed: %s\n",
 			isc_result_totext(reqev->result));
 		goto done;
 	}
@@ -1052,7 +1052,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_init(&buf, bufstore, MSGTEXT);
 		result = dns_message_totext(rcvmsg, 0, &buf);
 		check_result(result, "dns_message_totext");
-		printf ("\nReply from update query:\n%.*s\n",
+		fprintf(stderr, "\nReply from update query:\n%.*s\n",
 			(int)isc_buffer_usedlength(&buf),
 			(char*)isc_buffer_base(&buf));
 	}
@@ -1131,7 +1131,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	
 		isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
-		printf("; Communication with %s failed: %s\n",
+		fprintf(stderr, "; Communication with %s failed: %s\n",
 		       addrbuf, isc_result_totext(eresult));
 		if (userserver != NULL)
 			fatal("Couldn't talk to specified nameserver.");
@@ -1159,7 +1159,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_init(&buf, bufstore, MSGTEXT);
 		result = dns_message_totext(rcvmsg, 0, &buf);
 		check_result(result, "dns_message_totext");
-		printf ("Reply from SOA query:\n%.*s\n",
+		fprintf(stderr, "Reply from SOA query:\n%.*s\n",
 			(int)isc_buffer_usedlength(&buf),
 			(char*)isc_buffer_base(&buf));
 	}
@@ -1201,7 +1201,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	if (debugging) {
 		char namestr[MAXPNAME];
 		dns_name_format(name, namestr, sizeof(namestr));
-		printf("Found zone name: %s\n", namestr);
+		fprintf(stderr, "Found zone name: %s\n", namestr);
 	}
 
 	result = dns_rdataset_first(soaset);
@@ -1223,7 +1223,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	if (debugging) {
 		char namestr[MAXPNAME];
 		dns_name_format(&master, namestr, sizeof(namestr));
-		printf("The master is: %s\n", namestr);
+		fprintf(stderr, "The master is: %s\n", namestr);
 	}
 
 	if (userserver != NULL)
@@ -1408,7 +1408,7 @@ main(int argc, char **argv) {
 			WAIT(&cond, &lock);
         }
 
-        puts("");
+        fprintf(stderr, "\n");
         isc_mutex_destroy(&lock);
         isc_condition_destroy(&cond);
         cleanup();
