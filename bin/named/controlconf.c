@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.4 2001/05/07 21:01:45 gson Exp $ */
+/* $Id: controlconf.c,v 1.5 2001/05/07 21:57:25 gson Exp $ */
 
 #include <config.h>
 
@@ -608,7 +608,7 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
 		result = cfgkeylist_find(keylist, keyid->keyname, &keydef);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
-				    "couldn't find key %s for use with "
+				    "couldn't find key '%s' for use with "
 				    "command channel %s",
 				    keyid->keyname, socktext);
 			ISC_LIST_UNLINK(*keyids, keyid, link);
@@ -838,7 +838,7 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 	ISC_LIST_INIT(new_listeners);
 
 	/*
-	 * Get te list of named.conf 'controls' statements.
+	 * Get the list of named.conf 'controls' statements.
 	 */
 	(void)cfg_map_get(config, "controls", &controlslist);
 
@@ -847,7 +847,7 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 	 * Run through the new control channel list, noting sockets that
 	 * are already being listened on and moving them to the new list.
 	 *
-	 * Identifying duplicates addr/port combinations is left to either
+	 * Identifying duplicate addr/port combinations is left to either
 	 * the underlying config code, or to the bind attempt getting an
 	 * address-in-use error.
 	 */
@@ -963,8 +963,8 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 
 	/*
 	 * ns_control_shutdown() will stop whatever is on the global listeners
-	 * list, which currently only has whatever sockaddr was in the previous
-	 * configuration (if any) that does not remain in the current
+	 * list, which currently only has whatever sockaddrs were in the previous
+	 * configuration (if any) that do not remain in the current
 	 * configuration.
 	 */
 	ns_control_shutdown(ISC_FALSE);
