@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.1 2003/08/07 04:47:35 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.2 2003/08/08 04:35:17 marka Exp $ */
 
 /*
  * Implementation notes
@@ -2207,8 +2207,8 @@ destroy(dns_adb_t *adb) {
 	isc_mempool_destroy(&adb->afmp);
 	isc_mempool_destroy(&adb->af6mp);
 
-	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
-	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->entrylocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->namelocks, NBUCKETS);
 
 	DESTROYLOCK(&adb->reflock);
 	DESTROYLOCK(&adb->lock);
@@ -2366,10 +2366,10 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 		isc_timer_detach(&adb->timer);
 
 	/* clean up entrylocks */
-	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->entrylocks, NBUCKETS);
 
  fail2: /* clean up namelocks */
-	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->namelocks, NBUCKETS);
 
  fail1: /* clean up only allocated memory */
 	if (adb->nmp != NULL)
@@ -4143,6 +4143,30 @@ dns_adb_flush(dns_adb_t *adb) {
 	dump_adb(adb, stdout, ISC_TRUE);
 #endif
 
+	UNLOCK(&adb->lock);
+}
+
+void
+dns_adb_flushname(dns_adb_t *adb, dns_name_t *name) {
+	dns_adbname_t *adbname;
+	dns_adbname_t *nextname;
+	int bucket;
+
+	INSIST(DNS_ADB_VALID(adb));
+
+	LOCK(&adb->lock);
+	bucket = dns_name_hash(name, ISC_FALSE) % NBUCKETS;
+	LOCK(&adb->namelocks[bucket]);
+	adbname = ISC_LIST_HEAD(adb->names[bucket]);
+	while (adbname != NULL) {
+		nextname = ISC_LIST_NEXT(adbname, plink);
+		if (!NAME_DEAD(adbname) &&
+		    dns_name_equal(name, &adbname->name)) {
+			kill_name(&adbname, DNS_EVENT_ADBCANCELED);
+		}
+		adbname = nextname;
+	}
+	UNLOCK(&adb->namelocks[bucket]);
 	UNLOCK(&adb->lock);
 }
 

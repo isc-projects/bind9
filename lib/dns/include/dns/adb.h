@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.66.2.5.2.1 2003/08/07 04:47:36 marka Exp $ */
+/* $Id: adb.h,v 1.66.2.5.2.2 2003/08/08 04:35:17 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -255,7 +255,7 @@ dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
  * Requires:
  *	'adb' to be a valid dns_adb_t, created via dns_adb_create().
  *	'adbp' to be a valid pointer to a *dns_adb_t which is initialized
- *		to NULL.
+ *	to NULL.
  */
 
 void
@@ -581,6 +581,17 @@ dns_adb_setadbsize(dns_adb_t *adb, isc_uint32_t size);
  * Requires:
  *	'adb' is valid.
  */
+
+void
+dns_adb_flushname(dns_adb_t *adb, dns_name_t *name);
+/*
+ * Flush 'name' from the adb cache.
+ * 
+ * Requires:
+ *	'adb' is valid.
+ *	'name' is valid.
+ */
+
 
 ISC_LANG_ENDDECLS
 

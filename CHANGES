@@ -1,3 +1,6 @@
+1137.	[func]		It is now possible to flush a given name from the
+			ADB by calling the new function dns_adb_flushname().
+
 1135.	[func]		You can now override the default syslog() facility for
 			named/lwresd at compile time. [RT #1982]
 
