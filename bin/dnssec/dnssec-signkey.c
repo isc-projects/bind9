@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.57 2001/10/11 22:53:46 gson Exp $ */
+/* $Id: dnssec-signkey.c,v 1.58 2002/12/03 05:01:34 marka Exp $ */
 
 #include <config.h>
 
@@ -70,6 +70,8 @@ usage(void) {
 	fprintf(stderr, "\t%s [options] keyset keys\n", program);
 
 	fprintf(stderr, "\n");
+
+	fprintf(stderr, "Version: %s\n", VERSION);
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-a\n");
