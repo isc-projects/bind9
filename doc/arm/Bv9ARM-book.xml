@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.37 2004/10/17 23:19:28 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.38 2005/03/14 23:24:54 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1818,7 +1818,7 @@ which constitute an address match list can be any of the following:</para>
 <listitem>
             <simpara>a key ID, as defined by the key statement</simpara></listitem>
 <listitem>
-            <simpara>the name of an address match list previously defined with
+            <simpara>the name of an address match list defined with
 the <command>acl</command> statement</simpara></listitem>
 <listitem>
             <simpara>a nested address match list enclosed in braces</simpara></listitem></itemizedlist>

@@ -1,3 +1,6 @@
+1821.	[doc]		acls definitions are no longer required to be
+			in named.conf prior to reference.  They can be
+			defined after being referenced.
 
 	--- 9.2.5 released ---
 
