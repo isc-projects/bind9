@@ -117,6 +117,7 @@ struct dns_dispatchevent {
 #define DNS_DISPATCHATTR_IPV6		0x00000010U
 #define DNS_DISPATCHATTR_ACCEPTREQUEST	0x00000020U
 #define DNS_DISPATCHATTR_MAKEQUERY	0x00000040U
+#define DNS_DISPATCHATTR_CONNECTED	0x00000080U
 
 ISC_LANG_BEGINDECLS
 
@@ -258,6 +259,14 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
  *	< mumble >
  */
 
+void    
+dns_dispatch_starttcp(dns_dispatch_t *disp);
+/*
+ * Start processing of a TCP dispatch.
+ *
+ * Requires:
+ *	'disp' is valid.
+ */
 
 isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,

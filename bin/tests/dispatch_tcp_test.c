@@ -111,6 +111,7 @@ my_accept(isc_task_t *task, isc_event_t *ev_in) {
 	attrs = 0;
 	attrs |= DNS_DISPATCHATTR_IPV4;
 	attrs |= DNS_DISPATCHATTR_TCP;
+	attrs |= DNS_DISPATCHATTR_CONNECTED;
 	disp = NULL;
 	RUNTIME_CHECK(dns_dispatch_createtcp(dispatchmgr, ev->newsocket,
 					     taskmgr, 4096, 64, 1024,

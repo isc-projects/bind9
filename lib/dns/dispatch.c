@@ -1643,7 +1643,9 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	request_log(disp, res, LVL(90),
 		    "attached to task %p", res->task);
 
-	startrecv(disp);
+	if (((disp->attributes & DNS_DISPATCHATTR_UDP) != 0) ||
+	    ((disp->attributes & DNS_DISPATCHATTR_CONNECTED) != 0))
+		startrecv(disp);
 
 	UNLOCK(&disp->lock);
 
@@ -1651,6 +1653,19 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	*resp = res;
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_dispatch_starttcp(dns_dispatch_t *disp) {
+
+	REQUIRE(VALID_DISPATCH(disp));
+	
+	dispatch_log(disp, LVL(90), "starttcp %p", disp->task);
+
+	LOCK(&disp->lock);
+	disp->attributes |= DNS_DISPATCHATTR_CONNECTED;
+	startrecv(disp);
+	UNLOCK(&disp->lock);
 }
 
 void
