@@ -15,16 +15,15 @@
  * SOFTWARE.
  */
 
+#ifndef ISC_FILE_H
+#define ISC_FILE_H 1
+
 #include <stdio.h>
 
 #include <isc/lang.h>
-#include <isc/result.h>
-#include <isc/time.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
-
-#ifndef ISC_FILE_H
-#define ISC_FILE_H 1
 
 isc_result_t
 isc_file_getmodtime(const char *file, isc_time_t *time);
