@@ -1,3 +1,5 @@
+ 966.	[port]		#include <asm/unistd.h> is required on some Linux
+			ports.  [RT #1670]
 
  965.	[bug]		Including data other than root server NS and A
 			records in the root hint file could cause a rbtdb
