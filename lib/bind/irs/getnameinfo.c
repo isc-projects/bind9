@@ -1,8 +1,6 @@
 /*
  * Issues to be discussed:
  * - Thread safe-ness must be checked
- * - Return values.  There seems to be no standard for return value (RFC2133)
- *   but INRIA implementation returns EAI_xxx defined for getaddrinfo().
  */
 
 /*
@@ -50,13 +48,9 @@
 #include <netdb.h>
 #include <resolv.h>
 #include <string.h>
+#include <stddef.h>
 
 #include <port_after.h>
-
-#define SUCCESS 0
-#define ANY 0
-#define YES 1
-#define NO  0
 
 /*
  * Note that a_off will be dynamically adjusted so that to be consistent
@@ -71,25 +65,19 @@ static struct afd {
 } afdl [] = {
 	/* first entry is linked last... */
 	{PF_INET, sizeof(struct in_addr), sizeof(struct sockaddr_in),
-		4 /*XXX*/},
+	 offsetof(struct sockaddr_in, sin_addr)},
 	{PF_INET6, sizeof(struct in6_addr), sizeof(struct sockaddr_in6),
-		8 /*XXX*/},
+	 offsetof(struct sockaddr_in6, sin6_addr)},
 	{0, 0, 0, 0},
 };
 
 struct sockinet {
+#ifdef HAVE_SA_LEN
 	u_char	si_len;
+#endif
 	u_char	si_family;
 	u_short	si_port;
 };
-
-#define ENI_NOSOCKET 	0
-#define ENI_NOSERVNAME	1
-#define ENI_NOHOSTNAME	2
-#define ENI_MEMORY	3
-#define ENI_SYSTEM	4
-#define ENI_FAMILY	5
-#define ENI_SALEN	6
 
 int
 getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
@@ -112,72 +100,49 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 	const char *addr;
 	char *p;
 	u_char pfx;
-	static int firsttime = 1;
-	static char numserv[512];
-	static char numaddr[512];
-
-
-	/* dynamically adjust a_off */
-	if (firsttime) {
-		struct afd *p;
-		u_char *q;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-
-		for (p = &afdl[0]; p->a_af; p++) {
-			switch (p->a_af) {
-			case PF_INET:
-				q = (u_char *)&sin.sin_addr.s_addr;
-				p->a_off = q - (u_char *)&sin;
-				break;
-			case PF_INET6:
-				q = (u_char *)&sin6.sin6_addr.s6_addr;
-				p->a_off = q - (u_char *)&sin6;
-				break;
-			default:
-				break;
-			}
-		}
-		firsttime = 0;
-	}
+	char numserv[512];
+	char numaddr[512];
 
 	if (sa == NULL)
-		return ENI_NOSOCKET;
+		return EAI_FAIL;
 
 #ifdef HAVE_SA_LEN
 	len = sa->sa_len;
-	if (len != salen) return ENI_SALEN;
+	if (len != salen) return EAI_FAIL;
 #endif
-	
+
 	family = sa->sa_family;
 	for (i = 0; afdl[i].a_af; i++)
 		if (afdl[i].a_af == family) {
 			afd = &afdl[i];
 			goto found;
 		}
-	return ENI_FAMILY;
-	
+	return EAI_FAMILY;
+
  found:
-	if (salen != afd->a_socklen) return ENI_SALEN;
-	
+	if (salen != afd->a_socklen) return EAI_FAIL;
+
 	port = ((const struct sockinet *)sa)->si_port; /* network byte order */
 	addr = (const char *)sa + afd->a_off;
 
 	if (serv == NULL || servlen == 0) {
-		/* what we should do? */
+		/*
+		 * rfc2553bis says that serv == NULL or servlen == 0 means that
+		 * the caller does not want the result.
+		 */
 	} else if (flags & NI_NUMERICSERV) {
 		snprintf(numserv, sizeof(numserv), "%d", ntohs(port));
 		if (strlen(numserv) > servlen)
-			return ENI_MEMORY;
+			return EAI_MEMORY;
 		strcpy(serv, numserv);
 	} else {
 		sp = getservbyport(port, (flags & NI_DGRAM) ? "udp" : "tcp");
 		if (sp) {
 			if (strlen(sp->s_name) + 1 > servlen)
-				return ENI_MEMORY;
+				return EAI_MEMORY;
 			strcpy(serv, sp->s_name);
 		} else
-			return ENI_NOSERVNAME;
+			return EAI_NONAME;
 	}
 
 	switch (sa->sa_family) {
@@ -192,14 +157,12 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 		break;
 	}
 	if (host == NULL || hostlen == 0) {
-		/* what should we do? */
+		/*
+		 * rfc2553bis says that host == NULL or hostlen == 0 means that
+		 * the caller does not want the result.
+		 */
 	} else if (flags & NI_NUMERICHOST) {
-		if (inet_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
-		    == NULL)
-			return ENI_SYSTEM;
-		if (strlen(numaddr) + 1 > hostlen)
-			return ENI_MEMORY;
-		strcpy(host, numaddr);
+		goto numeric;
 	} else {
 		hp = gethostbyaddr(addr, afd->a_addrlen, afd->a_af);
 
@@ -209,18 +172,19 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 				if (p) *p = '\0';
 			}
 			if (strlen(hp->h_name) + 1 > hostlen)
-				return ENI_MEMORY;
+				return EAI_MEMORY;
 			strcpy(host, hp->h_name);
 		} else {
 			if (flags & NI_NAMEREQD)
-				return ENI_NOHOSTNAME;
-			if (inet_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
-			    == NULL)
-				return ENI_NOHOSTNAME;
+				return EAI_NONAME;
+		  numeric:
+			if (inet_ntop(afd->a_af, addr, numaddr,
+				      sizeof(numaddr)) == NULL)
+				return EAI_NONAME;
 			if (strlen(numaddr) + 1 > hostlen)
-				return ENI_MEMORY;
+				return EAI_MEMORY;
 			strcpy(host, numaddr);
 		}
 	}
-	return SUCCESS;
+	return(0);
 }
