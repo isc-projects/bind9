@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174.2.5 2001/02/07 19:26:20 gson Exp $ */
+/* $Id: dighost.c,v 1.174.2.6 2001/02/25 01:31:03 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2622,7 +2622,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
 #ifdef USE_GETADDRINFO
-	struct addrinfo *res = NULL;
+	struct addrinfo *res = NULL, hints;
 	int result;
 #else
 	struct hostent *he;
@@ -2640,9 +2640,16 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		isc_sockaddr_fromin(sockaddr, &in4, port);
 	else {
 #ifdef USE_GETADDRINFO
+		memset(&hints, 0, sizeof(hints));
+		if (!have_ipv6)
+			hints.ai_family = PF_INET;
+		else if (!have_ipv4)
+			hints.ai_family = PF_INET6;
+		else
+			hints.ai_family = PF_UNSPEC;
 		debug ("before getaddrinfo()");
 		is_blocking = ISC_TRUE;
-		result = getaddrinfo(host, NULL, NULL, &res);
+ 		result = getaddrinfo(host, NULL, &hints, &res);
 		is_blocking = ISC_FALSE;
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",

@@ -5,6 +5,11 @@
 			cause the server to retry the transmission
 			indefinitely. [RT #902]
 
+ 753.	[bug]		dig, host, and nslookup would fail to contact a
+			remote server if getaddrinfo() returned an IPv6
+			address on a system that doesn't support IPv6.
+			[RT #917]
+
  750.	[bug]		A query should not match a DNAME whose trust level
 			is pending.  [RT #916]
 
