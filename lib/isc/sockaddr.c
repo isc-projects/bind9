@@ -128,7 +128,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		sprintf(pbuf, "%u", ntohs(sin6->sin6_port));
 		break;
 	default:
-		return (NULL);
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 
 	alen = strlen(abuf);
