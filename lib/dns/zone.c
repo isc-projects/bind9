@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.420 2004/08/28 05:53:12 marka Exp $ */
+/* $Id: zone.c,v 1.421 2004/10/06 05:56:29 marka Exp $ */
 
 #include <config.h>
 
@@ -1266,12 +1266,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     "no master file");
 			else if (result != DNS_R_NOMASTERFILE)
 				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "loading master file %s: %s",
+					     "loading from master file %s "
+					     "failed: %s",
 					     zone->masterfile,
 					     dns_result_totext(result));
 		} else
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "loading master file %s: %s",
+				     "loading from master file %s failed: %s",
 				     zone->masterfile,
 				     dns_result_totext(result));
 		goto cleanup;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10 2004/03/05 04:57:20 marka Exp $ */
+/* $Id: check-tool.c,v 1.11 2004/10/06 05:56:28 marka Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,9 @@ static const char *dbtype[] = { "rbt" };
 
 int debug = 0;
 isc_boolean_t nomerge = ISC_TRUE;
-unsigned int zone_options = DNS_ZONEOPT_CHECKNS|DNS_ZONEOPT_MANYERRORS;
+unsigned int zone_options = DNS_ZONEOPT_CHECKNS | 
+			    DNS_ZONEOPT_MANYERRORS |
+			    DNS_ZONEOPT_CHECKNAMES;
 
 isc_result_t
 setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
