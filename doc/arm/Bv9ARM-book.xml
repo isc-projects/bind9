@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.147 2001/06/29 21:10:45 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.148 2001/07/06 20:39:43 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3304,10 +3304,11 @@ a random unprivileged port will be used. The defaults are</para>
 <programlisting>query-source address * port *;
 query-source-v6 address * port *
 </programlisting>
-        <note>
-<para><command>query-source</command> currently applies only
-to UDP queries; TCP queries always use a wildcard IP address and
-a random unprivileged port.</para></note></sect3>
+<note>
+<para>The address specified in the <command>query-source</command> option
+is used for both UDP and TCP queries, but the port applies only to 
+UDP queries.  TCP queries always use a random
+unprivileged port.</para></note></sect3>
 
 <sect3 id="zone_transfers"><title>Zone Transfers</title>
 <para><acronym>BIND</acronym> has mechanisms in place to facilitate zone transfers
