@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.67 2000/07/26 00:50:02 bwelling Exp $ */
+/* $Id: validator.c,v 1.68 2000/07/27 01:26:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -115,6 +115,28 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	val->event->ev_arg = val->arg;
 	isc_task_sendanddetach(&task, (isc_event_t **)&val->event);
 	
+}
+
+static void
+auth_nonpending(dns_message_t *message) {
+	isc_result_t result;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+
+	for (result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY))
+	{
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
+			if (rdataset->trust == dns_trust_pending)
+				rdataset->trust = dns_trust_authauthority;
+		}
+	}
 }
 
 static void
@@ -459,6 +481,7 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 		val->attributes |= VALATTR_FOUNDNONEXISTENCE;
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "nonexistence proof found");
+		auth_nonpending(val->event->message);
 		validator_done(val, ISC_R_SUCCESS);
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3), 
