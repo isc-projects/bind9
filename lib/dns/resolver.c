@@ -158,6 +158,7 @@ struct fetchctx {
 	 * # of events we're waiting for.
 	 */
 	unsigned int			pending;
+	unsigned int			validating;
 	unsigned int			restarts;
 };
 
@@ -931,7 +932,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 			want_done = ISC_TRUE;
 		}
 	} else if (fctx->pending == 0 && fctx->references == 0 &&
-		   SHUTTINGDOWN(fctx)) {
+		   fctx->validating == 0 && SHUTTINGDOWN(fctx)) {
 		bucketnum = fctx->bucketnum;
 		LOCK(&res->buckets[bucketnum].lock);
 		bucket_empty = fctx_destroy(fctx);
@@ -1013,7 +1014,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	dns_resolver_t *res;
 	isc_stdtime_t now;
 	dns_adbfind_t *find;
-	unsigned int options;
+	unsigned int stdoptions, options;
 
 	FCTXTRACE("getaddresses");
 
@@ -1025,12 +1026,12 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		return (DNS_R_SERVFAIL);
 
 	res = fctx->res;
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT |
+	stdoptions = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT |
 		DNS_ADBFIND_AVOIDFETCHES;
 	if (res->dispatch4 != NULL)
-		options |= DNS_ADBFIND_INET;
+		stdoptions |= DNS_ADBFIND_INET;
 	if (res->dispatch6 != NULL)
-		options |= DNS_ADBFIND_INET6;
+		stdoptions |= DNS_ADBFIND_INET6;
 	isc_stdtime_get(&now);
 
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
@@ -1044,12 +1045,23 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		dns_rdata_toregion(&rdata, &r);
 		dns_name_init(&name, NULL);
 		dns_name_fromregion(&name, &r);
+		options = stdoptions;
 		/*
-		 * XXXRTH  If this name is the same as QNAME (and we're
-		 *	   looking for an address type), remember to
-		 *         skip it, and remember that we did so so we can
-		 *         use an ancestor QDOMAIN if we find no addresses.
+		 * If this name is a subdomain of the query domain, tell
+		 * the ADB to start looking at "." if it doesn't know the
+		 * address.  This keeps us from getting stuck if the
+		 * nameserver is beneath the zone cut and we don't know its
+		 * address (e.g. because the A record has expired).
+		 * By restarting from ".", we ensure that any missing glue
+		 * will be reestablished.
+		 *
+		 * A further optimization would be to get the ADB to start
+		 * looking at the most enclosing zone cut above fctx->domain.
+		 * We don't expect this situation to happen very frequently,
+		 * so we've chosen the simple solution.
 		 */
+		if (dns_name_issubdomain(&name, &fctx->domain))
+			options |= DNS_ADBFIND_STARTATROOT;
 		/*
 		 * See what we know about this address.
 		 */
@@ -1238,6 +1250,7 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
 	REQUIRE(fctx->pending == 0);
+	REQUIRE(fctx->validating == 0);
 
 	FCTXTRACE("destroy");
 
@@ -1353,7 +1366,8 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 		fctx_sendevents(fctx, ISC_R_CANCELED);
 	}
 
-	if (fctx->references == 0 && fctx->pending == 0)
+	if (fctx->references == 0 && fctx->pending == 0 &&
+	    fctx->validating == 0)
 		bucket_empty = fctx_destroy(fctx);
 
 	UNLOCK(&res->buckets[bucketnum].lock);
@@ -1507,6 +1521,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->finds);
 	fctx->find = NULL;
 	fctx->pending = 0;
+	fctx->validating = 0;
 	fctx->restarts = 0;
 	fctx->attributes = 0;
 
@@ -1673,16 +1688,42 @@ clone_results(fetchctx_t *fctx) {
 #define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
 #define CHAINING(r)	(((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
 
+#ifdef notyet
+static void
+validation_done(isc_task_t *task, isc_event_t *event) {
+	fetchctx_t *fctx;
+
+	REQUIRE(event->type == XXX);
+	fctx = event->arg;
+	REQUIRE(VALID_FCTX(fctx));
+	REQUIRE(fctx->validating > 0);
+
+	fctx->validating--;
+
+	/*
+	 * If shutting down, ignore the results.  Check to see if we're
+	 * done waiting for validator completions and ADB pending events; if
+	 * so, destroy the fctx.
+	 *
+	 * Else, we're not shutting down.  If this is "the answer"
+	 * call fctx_done().
+	 */
+
+	isc_event_free(&event);
+}
+#endif
+
 static inline isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
-	dns_rdataset_t *rdataset, *addedrdataset, *ardataset, *asigrdataset;
+	dns_rdataset_t *rdataset, *sigrdataset;
+	dns_rdataset_t *addedrdataset, *ardataset, *asigrdataset;
 	dns_dbnode_t *node, **anodep;
 	dns_db_t **adbp;
 	dns_fixedname_t foundname;
 	dns_name_t *fname, *aname;
 	dns_resolver_t *res;
 	void *data;
-	isc_boolean_t need_validation, have_answer;
+	isc_boolean_t need_validation, have_answer, is_answer;
 	isc_result_t result, eresult;
 	dns_fetchevent_t *event;
 
@@ -1693,6 +1734,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	res = fctx->res;
 	need_validation = ISC_FALSE;
 	have_answer = ISC_FALSE;
+	is_answer = ISC_FALSE;
 	eresult = ISC_R_SUCCESS;
 
 	/*
@@ -1757,11 +1799,44 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 		if (!CACHE(rdataset))
 			continue;
-		if (need_validation) {
+		if ((rdataset->attributes & DNS_RDATASETATTR_ANSWER) != 0)
+			is_answer = ISC_TRUE;
+		else
+			is_answer = ISC_FALSE;
+		/*
+		 * If this rrset is in a secure domain, do DNSSEC validation
+		 * for it, unless it is glue.
+		 */
+		if (need_validation && rdataset->trust != dns_trust_glue) {
 			/*
-			 * XXXRTH.
+			 * SIGs are validated as part of validating the
+			 * type they cover.
 			 */
-			return (DNS_R_NOTIMPLEMENTED);
+			if (rdataset->type == dns_rdatatype_sig)
+				continue;
+			/*
+			 * Find the SIG for this rdataset, if we have it.
+			 */
+			for (sigrdataset = ISC_LIST_HEAD(name->list);
+			     sigrdataset != NULL;
+			     sigrdataset = ISC_LIST_NEXT(sigrdataset, link)) {
+				if (sigrdataset->type == dns_rdatatype_sig &&
+				    sigrdataset->covers == rdataset->type)
+					break;
+			}
+#ifdef notyet
+			validation = NULL;
+			result = dns_validation_create(rdataset, sigrdataset,
+						      is_answer, fctx->task,
+						      validation_done, fctx,
+						      &validation);
+			if (result == ISC_R_SUCCESS) {
+				ISC_LIST_APPEND(validation);
+				fctx->validating++;
+			}
+#else
+			result = DNS_R_NOTIMPLEMENTED;
+#endif
 		} else if (!EXTERNAL(rdataset)) {
 			/*
 			 * It's OK to cache this rdataset now.
@@ -3639,7 +3714,8 @@ dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 		/*
 		 * No one cares about the result of this fetch anymore.
 		 */
-		if (fctx->pending == 0 && SHUTTINGDOWN(fctx)) {
+		if (fctx->pending == 0 && fctx->validating == 0 &&
+		    SHUTTINGDOWN(fctx)) {
 			/*
 			 * This fctx is already shutdown; we were just
 			 * waiting for the last reference to go away.
