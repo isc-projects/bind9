@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.288 2001/01/05 00:17:31 bwelling Exp $ */
+/* $Id: zone.c,v 1.289 2001/01/05 00:51:04 marka Exp $ */
 
 #include <config.h>
 
@@ -1193,7 +1193,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		    zone->type == dns_zone_stub) {
 			isc_time_t t;
 
-			result = isc_file_getmodtime(zone->masterfile, &t);
+			result = isc_file_getmodtime(zone->journal, &t);
+			if (result != ISC_R_SUCCESS)
+				result = isc_file_getmodtime(zone->masterfile,
+							     &t);
 
 			if (result == ISC_R_SUCCESS)
 				zone->expiretime = isc_time_seconds(&t) +
@@ -1956,13 +1959,6 @@ zone_expire(dns_zone_t *zone) {
 
 	zone_log(zone, "zone_expire", ISC_LOG_WARNING, "expired");
 
-	/*
-	 * Move the on disk version of the zone sideways.
-	 */
-	if (zone->journal != NULL)
-		zone_saveunique(zone, zone->journal, "jn-XXXXXXXX");
-	if (zone->masterfile != NULL)
-		zone_saveunique(zone, zone->masterfile, "db-XXXXXXXX");
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXPIRED);
 	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
 	zone->retry = DNS_ZONE_DEFAULTRETRY;
@@ -4595,9 +4591,15 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 * however it is necessary for an IXFR / UPTODATE and
 		 * won't hurt with an AXFR.
 		 */
-		if (zone->masterfile != NULL) {
+		if (zone->masterfile != NULL || zone->journal != NULL) {
 			isc_time_t t;
 			isc_time_set(&t, now, 0);
+
+			result = ISC_R_FAILURE;
+			if (zone->journal != NULL)
+				result = isc_file_settime(zone->journal, &t);
+			if (result != ISC_R_SUCCESS &&
+			    zone->masterfile != NULL)
 			result = isc_file_settime(zone->masterfile, &t);
 			if (result != ISC_R_SUCCESS)
 				zone_log(zone, me, ISC_LOG_ERROR,
