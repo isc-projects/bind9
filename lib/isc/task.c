@@ -145,11 +145,11 @@ task_finished(isc_task_t *task) {
 
 	(void)isc_mutex_destroy(&task->lock);
 	task->magic = 0;
-	isc_mem_put(task->mctx, task, sizeof *task);
+	isc_mem_put(manager->mctx, task, sizeof *task);
 }
 
 isc_result_t
-isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
+isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 		isc_task_t **taskp)
 {
 	isc_task_t *task;
@@ -158,16 +158,13 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
-	if (mctx == NULL)
-		mctx = manager->mctx;
-	task = isc_mem_get(mctx, sizeof *task);
+	task = isc_mem_get(manager->mctx, sizeof *task);
 	if (task == NULL)
 		return (ISC_R_NOMEMORY);
 	XTRACE("create");
 	task->manager = manager;
-	task->mctx = mctx;
 	if (isc_mutex_init(&task->lock) != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, task, sizeof *task);
+		isc_mem_put(manager->mctx, task, sizeof *task);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
@@ -197,7 +194,7 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 
 	if (exiting) {
 		isc_mutex_destroy(&task->lock);
-		isc_mem_put(mctx, task, sizeof *task);
+		isc_mem_put(manager->mctx, task, sizeof *task);
 		return (ISC_R_SHUTTINGDOWN);
 	}
 
@@ -331,18 +328,6 @@ isc_task_detach(isc_task_t **taskp) {
 		task_ready(task);
 
 	*taskp = NULL;
-}
-
-isc_mem_t *
-isc_task_mem(isc_task_t *task) {
-
-	/*
-	 * Get the task's memory context.
-	 */
-
-	REQUIRE(VALID_TASK(task));
-	
-	return (task->mctx);
 }
 
 static inline isc_boolean_t
@@ -622,7 +607,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(action != NULL);
 
-	event = isc_event_allocate(task->mctx,
+	event = isc_event_allocate(task->manager->mctx,
 				   NULL,
 				   ISC_TASKEVENT_SHUTDOWN,
 				   action,
@@ -640,7 +625,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 	UNLOCK(&task->lock);
 
 	if (disallowed)
-		isc_mem_put(task->mctx, event, sizeof *event);
+		isc_mem_put(task->manager->mctx, event, sizeof *event);
 
 	return (result);
 }
@@ -924,12 +909,16 @@ run(void *uap) {
 
 static void
 manager_free(isc_taskmgr_t *manager) {
+	isc_mem_t *mctx;
+
 	(void)isc_condition_destroy(&manager->work_available);
 	(void)isc_mutex_destroy(&manager->lock);
 	isc_mem_put(manager->mctx, manager->threads,
 		    manager->workers * sizeof (isc_thread_t));
 	manager->magic = 0;
-	isc_mem_put(manager->mctx, manager, sizeof *manager);
+	mctx = manager->mctx;
+	isc_mem_put(mctx, manager, sizeof *manager);
+	isc_mem_detach(&mctx);
 }
 
 isc_result_t
@@ -951,7 +940,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
 	manager->magic = TASK_MANAGER_MAGIC;
-	manager->mctx = mctx;
+	manager->mctx = NULL;
 	threads = isc_mem_get(mctx, workers * sizeof (isc_thread_t));
 	if (threads == NULL) {
 		isc_mem_put(mctx, manager, sizeof *manager);
@@ -981,6 +970,8 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	}
 	manager->exiting = ISC_FALSE;
 	manager->workers = 0;
+
+	isc_mem_attach(mctx, &manager->mctx);
 
 	LOCK(&manager->lock);
 	/*

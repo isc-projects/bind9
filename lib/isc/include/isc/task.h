@@ -73,8 +73,8 @@ ISC_LANG_BEGINDECLS
  *****/
 
 isc_result_t
-isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx,
-		unsigned int quantum, isc_task_t **taskp);
+isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
+		isc_task_t **taskp);
 /*
  * Create a task.
  *
@@ -92,8 +92,6 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx,
  * Requires:
  *
  *	'manager' is a valid task manager.
- *
- *	'mctx' is a valid memory context.
  *
  *	taskp != NULL && *taskp == NULL
  *
@@ -146,20 +144,6 @@ isc_task_detach(isc_task_t **taskp);
  *	the task has been shutdown,
  *
  *		All resources used by the task will be freed.
- */
-
-isc_mem_t *
-isc_task_mem(isc_task_t *task);
-/*
- * Get the task's memory context.
- *
- * Requires:
- *
- *	'task' is a valid task.
- *
- * Returns:
- *
- *	The memory context specified when the task was created.
  */
 
 void
