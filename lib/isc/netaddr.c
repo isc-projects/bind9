@@ -28,6 +28,28 @@
 #include <isc/types.h>
 
 isc_boolean_t
+isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
+	REQUIRE(a != NULL && b != NULL);
+
+	if (a->family != b->family)
+		return (ISC_FALSE);
+
+	switch (a->family) {
+	case AF_INET:
+		if (a->type.in.s_addr != b->type.in.s_addr)
+			return (ISC_FALSE);
+		break;
+	case AF_INET6:
+		if (memcmp(&a->type.in6, &b->type.in6, sizeof a->type.in6) != 0)
+			return (ISC_FALSE);
+		break;
+	default:
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
+}
+
+isc_boolean_t
 isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		     unsigned int prefixlen)
 {

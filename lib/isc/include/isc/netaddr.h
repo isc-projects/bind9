@@ -33,6 +33,9 @@ struct isc_netaddr {
 };
 
 isc_boolean_t
+isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b);
+
+isc_boolean_t
 isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		     unsigned int prefixlen);
 /*
