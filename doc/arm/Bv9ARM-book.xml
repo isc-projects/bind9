@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.75 2001/01/03 02:19:05 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.76 2001/01/03 20:15:10 gson Exp $ -->
 
 <book>
 
@@ -1283,6 +1283,9 @@ allow-update { key host1-host2. ;};
     <para>When a SIG(0) signed message is received, it will only be
     verified if the key is known and trusted by the server; the server
     will not attempt to locate and/or validate the key.</para>
+
+    <para>SIG(0) signing of multiple-message TCP streams is not
+    implemented.</para>
 
     <para><acronym>BIND</acronym> 9 does not ship with any tools that generate SIG(0)
     signed messages.</para>
