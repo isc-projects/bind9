@@ -1,3 +1,12 @@
+
+ 295.	[bug]		When invoked with type==CNAME and a message
+			not constructed by dns_message_parse(),
+			dns_message_findname() failed to find anything
+			due to checking for attribute bits that are set
+			only in dns_message_parse().   This caused an
+			infinite loop when constructing the response to
+			an ANY query at a CNAME in a secure zone.
+
  294.	[bug]		If we run out of space in while processing glue
 			when reading a master file and commit "current name"
 			reverts to "name_current" instead of staying as
