@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.126 2000/08/21 23:45:41 bwelling Exp $ */
+/* $Id: query.c,v 1.127 2000/08/26 23:22:36 explorer Exp $ */
 
 #include <config.h>
 
@@ -493,7 +493,9 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		if (client->query.authdb != NULL) {
 			if (db != client->query.authdb)
 				goto refuse;
+#if 0
 			dns_db_attach(client->query.authdb, &db);
+#endif
 		} else {
 			dns_db_attach(db, &client->query.authdb);
 		}
