@@ -1,10 +1,10 @@
 <!--
- - Copyright (C) 2001  Internet Software Consortium.
- -
+ - Copyright (C) 2000, 2001  Internet Software Consortium.
+ - 
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- -
+ - 
  - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  - DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  - IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -14,9 +14,6 @@
  - NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<!-- $Id: lwres_resutil.html,v 1.2 2001/04/10 21:52:12 bwelling Exp $ -->
-
 <HTML
 ><HEAD
 ><TITLE
@@ -228,16 +225,16 @@ structure defined below:
 <PRE
 CLASS="PROGRAMLISTING"
 >typedef struct {
-	lwres_uint32_t		flags;
-	lwres_uint16_t		naliases;
-	lwres_uint16_t		naddrs;
-	char		       *realname;
-	char		      **aliases;
-	lwres_uint16_t		realnamelen;
-	lwres_uint16_t	       *aliaslen;
-	lwres_addrlist_t	addrs;
-	void		       *base;
-	size_t			baselen;
+        lwres_uint32_t          flags;
+        lwres_uint16_t          naliases;
+        lwres_uint16_t          naddrs;
+        char                   *realname;
+        char                  **aliases;
+        lwres_uint16_t          realnamelen;
+        lwres_uint16_t         *aliaslen;
+        lwres_addrlist_t        addrs;
+        void                   *base;
+        size_t                  baselen;
 } lwres_gabnresponse_t;</PRE
 >
 The contents of this structure are not manipulated directly but

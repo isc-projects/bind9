@@ -70,22 +70,22 @@ These structures are defined in
 They are shown below.
 .sp
 .nf
-#define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
+#define LWRES_OPCODE_GETNAMEBYADDR      0x00010002U
 
 typedef struct {
-	lwres_uint32_t	flags;
-	lwres_addr_t	addr;
+        lwres_uint32_t  flags;
+        lwres_addr_t    addr;
 } lwres_gnbarequest_t;
 
 typedef struct {
-	lwres_uint32_t	flags;
-	lwres_uint16_t	naliases;
-	char	       *realname;
-	char	      **aliases;
-	lwres_uint16_t	realnamelen;
-	lwres_uint16_t *aliaslen;
-	void	       *base;
-	size_t		baselen;
+        lwres_uint32_t  flags;
+        lwres_uint16_t  naliases;
+        char           *realname;
+        char          **aliases;
+        lwres_uint16_t  realnamelen;
+        lwres_uint16_t *aliaslen;
+        void           *base;
+        size_t          baselen;
 } lwres_gnbaresponse_t;
 .sp
 .fi

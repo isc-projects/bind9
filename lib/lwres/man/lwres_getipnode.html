@@ -1,10 +1,10 @@
 <!--
- - Copyright (C) 2001  Internet Software Consortium.
- -
+ - Copyright (C) 2000, 2001  Internet Software Consortium.
+ - 
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- -
+ - 
  - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  - DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  - IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -14,9 +14,6 @@
  - NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<!-- $Id: lwres_getipnode.html,v 1.2 2001/04/10 21:51:44 bwelling Exp $ -->
-
 <HTML
 ><HEAD
 ><TITLE
@@ -115,14 +112,14 @@ CLASS="FILENAME"
 
 <PRE
 CLASS="PROGRAMLISTING"
->struct	hostent {
-	char	*h_name;	/* official name of host */
-	char	**h_aliases;	/* alias list */
-	int	h_addrtype;	/* host address type */
-	int	h_length;	/* length of address */
-	char	**h_addr_list;	/* list of addresses from name server */
+>struct  hostent {
+        char    *h_name;        /* official name of host */
+        char    **h_aliases;    /* alias list */
+        int     h_addrtype;     /* host address type */
+        int     h_length;       /* length of address */
+        char    **h_addr_list;  /* list of addresses from name server */
 };
-#define	h_addr  h_addr_list[0]	/* address, for backward compatibility */</PRE
+#define h_addr  h_addr_list[0]  /* address, for backward compatibility */</PRE
 ></P
 ><P
 >The members of this structure are:

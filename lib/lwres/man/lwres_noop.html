@@ -1,10 +1,10 @@
 <!--
- - Copyright (C) 2001  Internet Software Consortium.
- -
+ - Copyright (C) 2000, 2001  Internet Software Consortium.
+ - 
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- -
+ - 
  - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  - DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  - IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -14,9 +14,6 @@
  - NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<!-- $Id: lwres_noop.html,v 1.2 2001/04/10 21:52:04 bwelling Exp $ -->
-
 <HTML
 ><HEAD
 ><TITLE
@@ -160,16 +157,16 @@ CLASS="FILENAME"
 They are shown below.
 <PRE
 CLASS="PROGRAMLISTING"
->#define LWRES_OPCODE_NOOP	0x00000000U
+>#define LWRES_OPCODE_NOOP       0x00000000U
 
 typedef struct {
-	lwres_uint16_t	datalength;
-	unsigned char   *data;
+        lwres_uint16_t  datalength;
+        unsigned char   *data;
 } lwres_nooprequest_t;
 
 typedef struct {
-	lwres_uint16_t	datalength;
-	unsigned char	*data;
+        lwres_uint16_t  datalength;
+        unsigned char   *data;
 } lwres_noopresponse_t;</PRE
 >
 Although the structures have different types, they are identical.

@@ -88,16 +88,16 @@ structure defined below:
 .sp
 .nf
 typedef struct {
-	lwres_uint32_t		flags;
-	lwres_uint16_t		naliases;
-	lwres_uint16_t		naddrs;
-	char		       *realname;
-	char		      **aliases;
-	lwres_uint16_t		realnamelen;
-	lwres_uint16_t	       *aliaslen;
-	lwres_addrlist_t	addrs;
-	void		       *base;
-	size_t			baselen;
+        lwres_uint32_t          flags;
+        lwres_uint16_t          naliases;
+        lwres_uint16_t          naddrs;
+        char                   *realname;
+        char                  **aliases;
+        lwres_uint16_t          realnamelen;
+        lwres_uint16_t         *aliaslen;
+        lwres_addrlist_t        addrs;
+        void                   *base;
+        size_t                  baselen;
 } lwres_gabnresponse_t;
 .sp
 .fi

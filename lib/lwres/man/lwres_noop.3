@@ -74,16 +74,16 @@ These structures are defined in
 They are shown below.
 .sp
 .nf
-#define LWRES_OPCODE_NOOP	0x00000000U
+#define LWRES_OPCODE_NOOP       0x00000000U
 
 typedef struct {
-	lwres_uint16_t	datalength;
-	unsigned char   *data;
+        lwres_uint16_t  datalength;
+        unsigned char   *data;
 } lwres_nooprequest_t;
 
 typedef struct {
-	lwres_uint16_t	datalength;
-	unsigned char	*data;
+        lwres_uint16_t  datalength;
+        unsigned char   *data;
 } lwres_noopresponse_t;
 .sp
 .fi
