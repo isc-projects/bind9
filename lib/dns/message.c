@@ -2321,8 +2321,16 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(msg->sig0, &rdata);
 
+		/*
+		 * This can occur when the message is a dynamic update, since
+		 * the rdata length checking is relaxed.  This should not
+		 * happen in a well-formed message, since the SIG(0) is only
+		 * looked for in the additional section, and the dynamic update
+		 * meta-records are in the prerequisite and update sections.
+		 */
 		if (rdata.length == 0)
 			return (ISC_R_UNEXPECTEDEND);
+
 		result = dns_rdata_tostruct(&rdata, &sig, msg->mctx);
 		if (result != ISC_R_SUCCESS)
 			return (result);
