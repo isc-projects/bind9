@@ -139,7 +139,7 @@ applies to redefinitions of the predefined channels, with one
 exception:  redefining default_stderr will change the default
 destination of messages, as explained in more detail in a few paragraphs.
 
-Channels can additionally have any of four options associated with
+Channels can additionally have any of five options associated with
 them.  The following options are listed in the order which their
 corresponding print strings appear in a log message:
 
@@ -148,8 +148,15 @@ corresponding print strings appear in a log message:
   ISC_LOG_PRINTMODULE   -- The module name.
   ISC_LOG_PRINTLEVEL    -- The level.
 
+You can set all four of those options with ISC_LOG_PRINTALL.
+
 Syslog channels do not need ISC_LOG_PRINTTIME, but it is usally a good
 idea for file and file descriptor feeds.
+
+The additional option does not affect formatting.  It is
+ISC_LOG_DEBUGONLY, and marks a channel as only being eligible for
+messages when the debugging level is non-zero.  It acts like the
+null channel when the debugging level is zero.
 
 Now with these objects -- the category, module, and channel -- you can
 actually direct messages to your desired destinations.  As shown in
@@ -216,7 +223,7 @@ associated with a particular category but you know the one you want to
 shut up.  Because of this, it is likely that specifying a null
 destination _will_ block other channels that also specify a particular
 category/module pair, but the exact mechanism has not yet been
-determine.
+determined.
 
 No attempt is made to filter out duplicate destinations, so it is
 certainly possible to define things such that a single log gets more
@@ -279,8 +286,8 @@ descriptor log, and syslog.
                             &destination, ISC_LOG_PRINTTIME) != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
-  destination.facility = LOG_ERR
-  if (isc_log_createchannel(lctx, "sample2" ISC_LOG_SYSLOG, ISC_LOG_ERROR,
+  destination.facility = LOG_ERR;
+  if (isc_log_createchannel(lctx, "sample3" ISC_LOG_SYSLOG, ISC_LOG_ERROR,
                             &destination, 0) != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
@@ -321,7 +328,8 @@ category."
 6) If you are sending any messages to syslog, call
 isc_log_opensyslog().  Currently the arguments to this function are
 exactly the same as to syslog's openlog() function, but it is expected
-that this will change.  This is necessary
+that this will change when the logging library is made to work with the
+system logging facility on Windows NT.
 
   isc_log_opensyslog(NULL, LOG_PID, LOG_DAEMON);
 
@@ -376,14 +384,14 @@ logging system internally.
   #include <dns/log.h>
 
   isc_logcategory_t dns_categories[] = {
-          { "dns_general: ", 	0 },
-          { "dns_database: ", 	0 },
-          { "dns_security: ", 	0 },
+          { "dns_general", 	0 },
+          { "dns_database", 	0 },
+          { "dns_security", 	0 },
           { NULL, 		0 }
   };
   isc_logmodule_t dns_modules[] = {
-          { "db: ", 	0 },
-          { "rbtdb: ", 	0 }, 
+          { "db", 	0 },
+          { "rbtdb", 	0 }, 
           { NULL, 	0 }
   };
 
@@ -432,9 +440,6 @@ format string, with strerrr(errno) from the system libary or functions
 like isc_result_totext(result) and dns_result_totext(result).
 
 THINGS I AM NOT KEEN ABOUT
-
-The category/module names passed into the registration functions need
-to have a colon-space (": ") at the end of each name.
 
 I am not happy that using a null channel for a category/module pair
 has no effect on other associations with that pair.  It seems to me
