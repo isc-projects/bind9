@@ -52,8 +52,7 @@ void send_done(isc_task_t *, isc_event_t *);
 void hex_dump(isc_buffer_t *);
 
 void
-hex_dump(isc_buffer_t *b)
-{
+hex_dump(isc_buffer_t *b) {
 	unsigned int len;
 	isc_region_t r;
 
@@ -70,8 +69,7 @@ hex_dump(isc_buffer_t *b)
 }
 
 static inline void
-CHECKRESULT(isc_result_t result, char *msg)
-{
+CHECKRESULT(isc_result_t result, char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, isc_result_totext(result));
 
@@ -80,8 +78,7 @@ CHECKRESULT(isc_result_t result, char *msg)
 }
 
 void
-my_accept(isc_task_t *task, isc_event_t *ev_in)
-{
+my_accept(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socket_newconnev_t *ev = (isc_socket_newconnev_t *)ev_in;
 	dns_dispentry_t *resp;
 
@@ -109,8 +106,7 @@ my_accept(isc_task_t *task, isc_event_t *ev_in)
 }
 
 void
-send_done(isc_task_t *task, isc_event_t *ev_in)
-{
+send_done(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	dns_dispentry_t *resp = (dns_dispentry_t *)ev_in->ev_arg;
 
@@ -132,8 +128,7 @@ send_done(isc_task_t *task, isc_event_t *ev_in)
 }
 
 void
-start_response(void)
-{
+start_response(void) {
 	dns_dispentry_t *resp;
 	dns_messageid_t id;
 	isc_sockaddr_t from;
@@ -234,8 +229,7 @@ start_response(void)
 }
 
 void
-got_response(isc_task_t *task, isc_event_t *ev_in)
-{
+got_response(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	dns_dispentry_t *resp = ev->ev_sender;
 	dns_message_t *msg;
@@ -265,8 +259,7 @@ got_response(isc_task_t *task, isc_event_t *ev_in)
 }
 
 void
-got_request(isc_task_t *task, isc_event_t *ev_in)
-{
+got_request(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	dns_dispentry_t *resp = ev->ev_sender;
 	static int cnt = 0;
@@ -326,8 +319,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 }
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	isc_socket_t *s0;
 	isc_sockaddr_t sockaddr;
 

@@ -76,5 +76,6 @@ main(int argc, char **argv) {
 	isc_interfaceiter_destroy(&iter);
  cleanup:
 	isc_mem_destroy(&mctx);
-	exit(0);
+
+	return (0);
 }

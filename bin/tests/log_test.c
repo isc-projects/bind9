@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.14 2000/05/08 14:33:37 tale Exp $ */
+/* $Id: log_test.c,v 1.15 2000/05/08 20:12:42 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -331,5 +331,5 @@ main (int argc, char **argv) {
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
 
-	exit(0);
+	return (0);
 }

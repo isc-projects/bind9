@@ -27,7 +27,8 @@
 #include <dns/confndc.h>
 
 
-int main (int argc, char **argv) {
+int
+main(int argc, char **argv) {
 	dns_c_ndcctx_t *ndcctx = NULL;
 	const char *conffile;
 	isc_mem_t *mem = NULL;
@@ -80,7 +81,4 @@ int main (int argc, char **argv) {
 
 	return (0);
 }
-	
-	
-
-	
+     

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.15 2000/05/08 14:33:32 tale Exp $ */
+/* $Id: keygen.c,v 1.16 2000/05/08 20:12:41 tale Exp $ */
 
 #include <config.h>
 
@@ -264,7 +264,8 @@ main(int argc, char **argv) {
 		isc_mem_free(mctx, type);
 	dst_key_free(key);
 	isc_mem_destroy(&mctx);
-	exit(0);
+
+	return (0);
 }
 
 static isc_boolean_t

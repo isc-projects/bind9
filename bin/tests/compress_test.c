@@ -108,7 +108,7 @@ main(int argc, char *argv[]) {
 	test(DNS_COMPRESS_GLOBAL, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, bit, sizeof bit);
 
-	exit(0);
+	return (0);
 }
 
 void
