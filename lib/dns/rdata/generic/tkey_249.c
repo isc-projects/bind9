@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.30 2000/05/05 05:50:09 marka Exp $ */
+/* $Id: tkey_249.c,v 1.31 2000/05/05 18:15:02 gson Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -295,7 +295,6 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_region_t tr;
 	dns_rdata_tkey_t *tkey;
-	dns_compress_t cctx;
 
 	UNUSED(rdclass);
 	UNUSED(source);
@@ -303,14 +302,10 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 249);
 	
-	tkey = (dns_rdata_tkey_t *) source;
-	REQUIRE(tkey->mctx != NULL);
+	tkey = (dns_rdata_tkey_t *)source;
 
 	/* Algorithm Name */
-	RETERR(dns_compress_init(&cctx, -1, tkey->mctx));
-	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
-	RETERR(dns_name_towire(&tkey->algorithm, &cctx, target));
-	dns_compress_invalidate(&cctx);
+	RETERR(name_tobuffer(&tkey->algorithm, target));
 
 	/* Inception: 32 bits */
 	RETERR(uint32_tobuffer(tkey->inception, target));

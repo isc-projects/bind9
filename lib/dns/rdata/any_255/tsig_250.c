@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.32 2000/05/04 22:19:05 gson Exp $ */
+/* $Id: tsig_250.c,v 1.33 2000/05/05 18:15:00 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -294,19 +294,14 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_region_t tr;
 	dns_rdata_any_tsig_t *tsig;
-	dns_compress_t cctx;
 
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
 	
-	tsig = (dns_rdata_any_tsig_t *) source;
-	REQUIRE(tsig->mctx != NULL);
+	tsig = (dns_rdata_any_tsig_t *)source;
 
 	/* Algorithm Name */
-	RETERR(dns_compress_init(&cctx, -1, tsig->mctx));
-	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
-	RETERR(dns_name_towire(&tsig->algorithm, &cctx, target));
-	dns_compress_invalidate(&cctx);
+	RETERR(name_tobuffer(&tsig->algorithm, target));
 
 	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 6 + 2 + 2)

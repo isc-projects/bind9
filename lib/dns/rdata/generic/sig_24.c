@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.37 2000/05/05 05:50:06 marka Exp $ */
+/* $Id: sig_24.c,v 1.38 2000/05/05 18:15:01 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -301,14 +301,12 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 {
 	isc_region_t tr;
 	dns_rdata_sig_t *sig;
-	dns_compress_t cctx;
 
 	REQUIRE(type == 24);
 	
 	UNUSED(rdclass);
 
-	sig = (dns_rdata_sig_t *) source;
-	REQUIRE(sig->mctx != NULL);
+	sig = (dns_rdata_sig_t *)source;
 
 	/* Type covered */
 	RETERR(uint16_tobuffer(sig->covered, target));
@@ -332,10 +330,7 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	RETERR(uint16_tobuffer(sig->keyid, target));
 
 	/* Signer name */
-	RETERR(dns_compress_init(&cctx, -1, sig->mctx));
-	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
-	RETERR(dns_name_towire(&sig->signer, &cctx, target));
-	dns_compress_invalidate(&cctx);
+	RETERR(name_tobuffer(&sig->signer, target));
 
 	/* Signature */
 	if (sig->siglen > 0) {

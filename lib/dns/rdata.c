@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.83 2000/05/02 16:36:22 explorer Exp $ */
+/* $Id: rdata.c,v 1.84 2000/05/05 18:14:59 gson Exp $ */
 
 #include <config.h>
 
@@ -83,6 +83,7 @@ static isc_result_t	uint16_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
 static isc_result_t	uint8_tobuffer(isc_uint32_t value,
 				       isc_buffer_t *target);
+static isc_result_t 	name_tobuffer(dns_name_t *name, isc_buffer_t *target);
 static isc_uint32_t	uint32_fromregion(isc_region_t *region);
 static isc_uint16_t	uint16_fromregion(isc_region_t *region);
 static isc_uint8_t	uint8_fromregion(isc_region_t *region);
@@ -1163,6 +1164,13 @@ uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 		return (ISC_R_NOSPACE);
 	isc_buffer_putuint8(target, (isc_uint8_t)value);
 	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+name_tobuffer(dns_name_t *name, isc_buffer_t *target) {
+	isc_region_t r;
+	dns_name_toregion(name, &r);
+	return (isc_buffer_copyregion(target, &r));
 }
 
 static isc_uint32_t
