@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.151 2000/10/11 23:57:38 bwelling Exp $ */
+/* $Id: message.c,v 1.152 2000/10/12 00:40:48 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1149,8 +1149,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (msg->opcode != dns_opcode_update
 		    && rdtype != dns_rdatatype_tsig
 		    && rdtype != dns_rdatatype_opt
-		    && rdtype != dns_rdatatype_key /* XXX in a TKEY query */
-		    && rdtype != dns_rdatatype_sig /* XXX SIG(0) */
+		    && rdtype != dns_rdatatype_key /* in a TKEY query */
+		    && rdtype != dns_rdatatype_sig /* SIG(0) */
+		    && rdtype != dns_rdatatype_tkey /* Win2000 TKEY */
 		    && msg->rdclass != rdclass)
 			DO_FORMERR;
 
@@ -1192,7 +1193,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			/*
 			 * A TKEY must be in the additional section if this
 			 * is a query, and the answer section if this is a
-			 * response.
+			 * response.  Unless it's a Win2000 client.
+			 *
 			 * Its class is ignored.
 			 */
 			dns_section_t tkeysection;
@@ -1201,7 +1203,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				tkeysection = DNS_SECTION_ADDITIONAL;
 			else
 				tkeysection = DNS_SECTION_ANSWER;
-			if (sectionid != tkeysection)
+			if (sectionid != tkeysection &&
+			    sectionid != DNS_SECTION_ANSWER)
 				DO_FORMERR;
 		}
 

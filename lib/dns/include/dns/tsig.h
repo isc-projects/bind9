@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.35 2000/08/25 01:06:39 bwelling Exp $ */
+/* $Id: tsig.h,v 1.36 2000/10/12 00:40:52 bwelling Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -37,6 +37,8 @@ extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_HMACMD5_NAME		dns_tsig_hmacmd5_name
 extern dns_name_t *dns_tsig_gssapi_name;
 #define DNS_TSIG_GSSAPI_NAME		dns_tsig_gssapi_name
+extern dns_name_t *dns_tsig_gssapims_name;
+#define DNS_TSIG_GSSAPIMS_NAME		dns_tsig_gssapims_name
 
 /*
  * Default fudge value.

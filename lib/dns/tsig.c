@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.92 2000/10/07 00:09:27 bwelling Exp $
+ * $Id: tsig.c,v 1.93 2000/10/12 00:40:51 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -47,7 +47,8 @@
 #define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
 #define algname_is_allocated(algname) \
 	((algname) != dns_tsig_hmacmd5_name && \
-	 (algname) != dns_tsig_gssapi_name)
+	 (algname) != dns_tsig_gssapi_name && \
+	 (algname) != dns_tsig_gssapims_name)
 
 #define BADTIMELEN 6
 
@@ -88,6 +89,22 @@ static struct dns_constname gsstsig = {
 
 dns_name_t *dns_tsig_gssapi_name = &gsstsig.name;
 
+/* It's nice of Microsoft to conform to their own standard. */
+static struct dns_constname gsstsigms = {
+	{
+		DNS_NAME_MAGIC,
+		gsstsigms.const_ndata, 19, 4,
+		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+		gsstsigms.const_offsets, NULL,
+		{(void *)-1, (void *)-1},
+		{NULL, NULL}
+	},
+	{ "\003gss\011microsoft\003com" },		/* const_ndata */
+	{ 0, 4, 14, 18 }				/* const_offsets */
+};
+
+dns_name_t *dns_tsig_gssapims_name = &gsstsigms.name;
+
 static isc_result_t
 tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
 
@@ -120,6 +137,8 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 		tkey->algorithm = DNS_TSIG_HMACMD5_NAME;
 	else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPI_NAME))
 		tkey->algorithm = DNS_TSIG_GSSAPI_NAME;
+	else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPIMS_NAME))
+		tkey->algorithm = DNS_TSIG_GSSAPIMS_NAME;
 	else {
 		if (key != NULL) {
 			ret = ISC_R_NOTIMPLEMENTED;

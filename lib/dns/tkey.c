@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.53 2000/10/07 00:09:25 bwelling Exp $
+ * $Id: tkey.c,v 1.54 2000/10/12 00:40:50 bwelling Exp $
  */
 
 #include <config.h>
@@ -105,7 +105,8 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp) {
 	if (tctx->dhkey != NULL)
 		dst_key_free(&tctx->dhkey);
 	if (tctx->domain != NULL) {
-		dns_name_free(tctx->domain, mctx);
+		if (dns_name_dynamic(tctx->domain))
+			dns_name_free(tctx->domain, mctx);
 		isc_mem_put(mctx, tctx->domain, sizeof(dns_name_t));
 	}
 	isc_entropy_detach(&tctx->ectx);
@@ -243,6 +244,12 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_buffer_t secret;
 	unsigned char *randomdata = NULL, secretdata[256];
 	isc_stdtime_t now;
+
+	if (tctx->dhkey == NULL) {
+		tkey_log("process_dhtkey: tkey-dhkey not defined");
+		tkeyout->error = dns_tsigerror_badalg;
+		return (DNS_R_REFUSED);
+	}
 
 	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_HMACMD5_NAME)) {
 		tkey_log("process_dhtkey: algorithms other than "
@@ -434,7 +441,8 @@ process_gsstkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	if (tctx->gsscred == NULL)
 		return (ISC_R_NOPERM);
 
-	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPI_NAME)) {
+	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPI_NAME) &&
+	    !dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPIMS_NAME)) {
 		tkeyout->error = dns_tsigerror_badalg;
 		return (ISC_R_SUCCESS);
 	}
@@ -565,10 +573,19 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL, qname,
 				      dns_rdatatype_tkey, 0, &name, &tkeyset);
 	if (result != ISC_R_SUCCESS) {
-		result = DNS_R_FORMERR;
-		tkey_log("dns_tkey_processquery: couldn't find a TKEY "
-			 "matching the question");
-		goto failure;
+		/*
+		 * Try the answer section, since that's where Win2000
+		 * puts it.
+		 */
+		if (dns_message_findname(msg, DNS_SECTION_ANSWER, qname,
+					 dns_rdatatype_tkey, 0, &name,
+					 &tkeyset) != ISC_R_SUCCESS)
+		{
+			result = DNS_R_FORMERR;
+			tkey_log("dns_tkey_processquery: couldn't find a TKEY "
+				 "matching the question");
+			goto failure;
+		}
 	}
 	result = dns_rdataset_first(tkeyset);
 	if (result != ISC_R_SUCCESS) {
@@ -674,6 +691,11 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 				dns_message_takebuffer(msg, &buf);
 				goto failure;
 			}
+		}
+		if (tctx->domain == NULL) {
+			tkey_log("dns_tkey_processquery: tkey-domain not set");
+			result = DNS_R_REFUSED;
+			goto failure;
 		}
 		result = dns_name_concatenate(&prefix, tctx->domain,
 					      keyname, buf);
@@ -1140,9 +1162,9 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			    dns_name_t *gname, void *cred, void **context,
 			    dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring)
 {
-	dns_rdata_t rtkeyrdata;
+	dns_rdata_t rtkeyrdata, qtkeyrdata;
 	dns_name_t *tkeyname;
-	dns_rdata_tkey_t rtkey;
+	dns_rdata_tkey_t rtkey, qtkey;
 	isc_buffer_t outtoken;
 	dst_key_t *dstkey = NULL;
 	isc_region_t r;
@@ -1156,16 +1178,18 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 		REQUIRE(*outkey == NULL);
 	REQUIRE(ring != NULL);
 
-	UNUSED(qmsg);
-
 	if (rmsg->rcode != dns_rcode_noerror)
 		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, NULL));
 
+	RETERR(find_tkey(qmsg, &tkeyname, &qtkeyrdata,
+			 DNS_SECTION_ADDITIONAL));
+	RETERR(dns_rdata_tostruct(&qtkeyrdata, &qtkey, NULL));
+
 	if (rtkey.error != dns_rcode_noerror ||
 	    rtkey.mode != DNS_TKEYMODE_GSSAPI ||
-	    !dns_name_equal(&rtkey.algorithm, DNS_TSIG_GSSAPI_NAME))
+	    !dns_name_equal(&rtkey.algorithm, &rtkey.algorithm))
 	{
 		tkey_log("dns_tkey_processdhresponse: tkey mode invalid "
 			 "or error set");
