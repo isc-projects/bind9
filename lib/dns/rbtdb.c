@@ -922,6 +922,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		 * unlocking then relocking.
 		 */
 		RWLOCK(&rbtdb->tree_lock, locktype);
+		node = NULL;
 		result = dns_rbt_addnode(rbtdb->tree, name, &node);
 		if (result != DNS_R_SUCCESS && result != DNS_R_EXISTS) {
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
