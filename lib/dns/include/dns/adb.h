@@ -365,6 +365,24 @@ dns_adb_dumphandle(dns_adb_t *adb, dns_adbhandle_t *handle, FILE *f);
  *	f != NULL, and be a file open for writing.
  */
 
+isc_result_t
+dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone);
+/*
+ * Mark the given address as lame for the zone "zone".
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	addr be valid.
+ *
+ *	zone be the zone used in the dns_adb_lookup() call.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		-- all is well.
+ *	ISC_R_NOMEMORY		-- could not mark address as lame.
+ */
 
 /*
  * XXX Need functions/macros to:

@@ -174,7 +174,7 @@ static inline void free_adbname(dns_adb_t *, dns_adbname_t **);
 static inline dns_adbnamehook_t *new_adbnamehook(dns_adb_t *,
 						 dns_adbentry_t *);
 static inline void free_adbnamehook(dns_adb_t *, dns_adbnamehook_t **);
-static inline dns_adbzoneinfo_t *new_adbzoneinfo(dns_adb_t *);
+static inline dns_adbzoneinfo_t *new_adbzoneinfo(dns_adb_t *, dns_name_t *);
 static inline void free_adbzoneinfo(dns_adb_t *, dns_adbzoneinfo_t **);
 static inline dns_adbentry_t *new_adbentry(dns_adb_t *);
 static inline void free_adbentry(dns_adb_t *, dns_adbentry_t **);
@@ -522,7 +522,7 @@ free_adbnamehook(dns_adb_t *adb, dns_adbnamehook_t **namehook)
 }
 
 static inline dns_adbzoneinfo_t *
-new_adbzoneinfo(dns_adb_t *adb)
+new_adbzoneinfo(dns_adb_t *adb, dns_name_t *zone)
 {
 	dns_adbzoneinfo_t *zi;
 
@@ -530,8 +530,13 @@ new_adbzoneinfo(dns_adb_t *adb)
 	if (zi == NULL)
 		return (NULL);
 
-	zi->magic = DNS_ADBZONEINFO_MAGIC;
 	dns_name_init(&zi->zone, NULL);
+	if (dns_name_dup(zone, adb->mctx, &zi->zone) != ISC_R_SUCCESS) {
+		isc_mempool_put(adb->zimp, zi);
+		return (NULL);
+	}
+
+	zi->magic = DNS_ADBZONEINFO_MAGIC;
 	zi->lame_timer = 0;
 	ISC_LINK_INIT(zi, link);
 
@@ -1693,5 +1698,18 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	return (result);
 }
 
-#if 0
-#endif
+isc_result_t
+dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone)
+{
+	dns_adbzoneinfo_t *zi;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+	REQUIRE(zone != NULL);
+
+	zi = new_adbzoneinfo(adb, zone);
+	if (zi == NULL)
+		return (ISC_R_NOMEMORY);
+
+	return (ISC_R_SUCCESS);
+}
