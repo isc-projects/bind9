@@ -11,7 +11,7 @@
 1474.	[port]		Provide strtoul() and memmove() for platforms
 			without them.
 
-1473.	[bug]		free_map() and free_string() failed to handle out
+1473.	[bug]		create_map() and create_string() failed to handle out
 			of memory cleanup.  [RT #6813]
 
 1472.	[contrib]	idnkit-1.0 from JPNIC, replaces mdnkit.
