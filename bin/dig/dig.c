@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.136 2001/02/13 23:12:13 tamino Exp $ */
+/* $Id: dig.c,v 1.137 2001/02/14 01:46:03 tamino Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -421,6 +421,13 @@ buftoosmall:
 		result = dns_message_pseudosectiontotext(msg,
 			 DNS_PSEUDOSECTION_OPT,
 			 flags, buf);
+		if (result == ISC_R_NOSPACE) {
+			len += OUTPUTBUF;
+			isc_buffer_free(&buf);
+			result = isc_buffer_allocate(mctx, &buf, len);
+			if (result == ISC_R_SUCCESS)
+				goto buftoosmall;
+		}
 		check_result(result,
 		     "dns_message_pseudosectiontotext");
 	}
@@ -1016,10 +1023,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 					(*lookup)->section_question = plusquest;
 					(*lookup)->comments = pluscomm;
 				}
-				else {
-					(*lookup)->section_question = ISC_TRUE;
-					(*lookup)->comments = ISC_TRUE;
-				}
 				(*lookup)->ixfr_serial = ISC_FALSE;
 			}
 		} else
@@ -1261,10 +1264,6 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 								plusquest;
 							lookup->comments = pluscomm;
 						}
-						else {
-							lookup->section_question = ISC_TRUE;
-							lookup->comments = ISC_TRUE;
-						}
 						lookup->ixfr_serial = ISC_FALSE;
 					}
 					continue;
@@ -1354,10 +1353,12 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
 
-	/* If we haven't already printed a greeting, and we have a lookup
+	/*
+	 * If we haven't already printed a greeting, and we have a lookup
 	 * with which to print one, do it now. The reason that we sometimes
 	 * call it earlier than this is that we munge some of the things
-	 * printgreeting() needs under certain circumstances. */
+	 * printgreeting() needs under certain circumstances.
+	 */
 	if (lookup && firstarg)
 	{
 		printgreeting(argc, argv, lookup);
