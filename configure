@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.51 
+# From configure.in Revision: 1.54 
 
 
 
@@ -2756,6 +2756,58 @@ ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
 
 fi
 
+echo $ac_n "checking for vsnprintf""... $ac_c" 1>&6
+echo "configure:2761: checking for vsnprintf" >&5
+if eval "test \"`echo '$''{'ac_cv_func_vsnprintf'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2766 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char vsnprintf(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char vsnprintf();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_vsnprintf) || defined (__stub___vsnprintf)
+choke me
+#else
+vsnprintf();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:2789: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_func_vsnprintf=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_vsnprintf=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'vsnprintf`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  ISC_NEED_VSNPRINTF="#undef ISC_NEED_VSNPRINTF"
+else
+  echo "$ac_t""no" 1>&6
+ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS vsnprintf.$O"
+	 ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS vsnprintf.c"
+	 ISC_NEEDVSNPRINTF="#define ISC_NEED_VSNPRINTF 1"
+fi
+
+
 
 
 
@@ -2905,6 +2957,7 @@ trap 'rm -fr `echo "make/rules
 	lib/dns/sec/dst/Makefile
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
+	lib/dns/config/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
@@ -2991,6 +3044,7 @@ s%@ISC_IPV6_C@%$ISC_IPV6_C%g
 s%@ISC_NET_NEEDNTOP@%$ISC_NET_NEEDNTOP%g
 s%@ISC_NET_NEEDPTON@%$ISC_NET_NEEDPTON%g
 s%@ISC_NET_NEEDATON@%$ISC_NET_NEEDATON%g
+s%@ISC_NEED_VSNPRINTF@%$ISC_NEED_VSNPRINTF%g
 s%@ISC_EXTRA_OBJS@%$ISC_EXTRA_OBJS%g
 s%@ISC_EXTRA_SRCS@%$ISC_EXTRA_SRCS%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
