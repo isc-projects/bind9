@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.74 2000/11/03 19:55:15 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.75 2000/11/10 03:08:57 gson Exp $ */
 
 #include <config.h>
 
@@ -65,9 +65,9 @@ struct dns_dispatchmgr {
 	/* locked by buffer lock */
 	dns_qid_t			*qid;
 	isc_mutex_t			buffer_lock;
-	unsigned int			buffers; /* size of each buffer */
+	unsigned int			buffers;    /* allocated buffers */
 	unsigned int			buffersize; /* size of each buffer */
-	unsigned int			maxbuffers;	/* max buffers */
+	unsigned int			maxbuffers; /* max buffers */
 
 	/* Locked internally. */
 	isc_mutex_t			pool_lock;
@@ -2306,7 +2306,7 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	ev->buffer.length = 0;
 	disp->shutdown_out = 1;
 	request_log(disp, resp, LVL(10),
-		    "cancel:  failsafe event %p -> task %p",
+		    "cancel: failsafe event %p -> task %p",
 		    ev, resp->task);
 	resp->item_out = ISC_TRUE;
 	isc_task_send(resp->task, (isc_event_t **)&ev);
