@@ -1,7 +1,6 @@
 
-
 IPNG Working Group                                         R.E. Gilligan
-INTERNET-DRAFT: draft-ietf-ipngwg-rfc2553bis-09.txt           Cache Flow
+INTERNET-DRAFT: draft-ietf-ipngwg-rfc2553bis-10.txt           Cache Flow
 Obsoletes RFC 2553                                            S. Thomson
                                                                    Cisco
                                                                 J. Bound
@@ -13,7 +12,7 @@ Obsoletes RFC 2553                                            S. Thomson
 
                Basic Socket Interface Extensions for IPv6
 
-                 <draft-ietf-ipngwg-rfc2553bis-09.txt>
+                 <draft-ietf-ipngwg-rfc2553bis-10.txt>
 
 
 Status of this Memo
@@ -62,10 +61,10 @@ Abstract
    extension headers) are defined in another document [4].
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 1]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 1]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 Table of Contents:
@@ -128,10 +127,10 @@ Authors' Addresses.............................................31
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 2]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 2]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 1. Introduction
@@ -194,10 +193,10 @@ this well-worn API:
      to simplify the task of converting existing IPv4 applications to
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 3]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 3]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
      IPv6.
@@ -260,10 +259,10 @@ of interfaces identifying the scope for an IPv6 address.
 The IPv4 name-to-address translation functions in the socket interface
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 4]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 4]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 are gethostbyname() and gethostbyaddr().  These are left as is, and new
@@ -276,13 +275,13 @@ two analogous functions that convert both IPv4 and IPv6 addresses, and
 carry an address type parameter so that they can be extended to other
 protocol families as well.
 
-Finally, a few miscellaneous features are needed to support IPv6.  New
-interfaces are needed to support the IPv6 traffic class, flow label, and
-hop limit header fields.  New socket options are needed to control the
-sending and receiving of IPv6 multicast packets.
+Finally, a few miscellaneous features are needed to support IPv6.  A new
+interface is needed to support the IPv6 hop limit header field.  New 
+socket options are needed to control the sending and receiving of IPv6 
+multicast packets.
 
 The socket interface will be enhanced in the future to provide access to
-other IPv6 features.  These extensions are described in [4].
+other IPv6 features.  Some of these extensions are described in [4].
 
 
 
@@ -326,10 +325,10 @@ This section specifies the socket interface changes for IPv6.
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 5]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 5]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 3.1 IPv6 Address Family and Protocol Family
@@ -392,10 +391,10 @@ structure.  This field identifies the type of the data structure.
 The sockaddr_in structure is the protocol-specific address data
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 6]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 6]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 structure for IPv4.  It is used to pass addresses between applications
 and the system in the socket functions.  The following sockaddr_in6
@@ -405,7 +404,7 @@ the <netinet/in.h> header:
    struct sockaddr_in6 {
        sa_family_t     sin6_family;    /* AF_INET6 */
        in_port_t       sin6_port;      /* transport layer port # */
-       uint32_t        sin6_flowinfo;  /* IPv6 traffic class & flow info */
+       uint32_t        sin6_flowinfo;  /* IPv6 flow information */
        struct in6_addr sin6_addr;      /* IPv6 address */
        uint32_t        sin6_scope_id;  /* set of interfaces for a scope */
    };
@@ -458,10 +457,10 @@ was changed from a 16-bit value to an 8-bit value, and the space saved
 used to hold a length field, named "sa_len".  The sockaddr_in6 data
 structure given in the previous section cannot be correctly cast into
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 7]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 7]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 the newer sockaddr data structure.  For this reason, the following
@@ -524,10 +523,10 @@ system are:
    bind()
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 8]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 8]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    connect()
@@ -590,10 +589,10 @@ destination's IPv4 address as an IPv4-mapped IPv6 address, and passing
 that address, within a sockaddr_in6 structure, in the connect() or
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003           [Page 9]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003           [Page 9]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 sendto() call.  When applications use AF_INET6 sockets to accept TCP
@@ -656,10 +655,10 @@ example, the following code will not work:
    /* This is the WRONG way to assign an unspecified address */
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 10]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 10]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    struct sockaddr_in6 sin6;
@@ -722,10 +721,10 @@ writing code that is portable across multiple address families and
 platforms. This data structure is designed with the following goals.
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 11]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 11]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    - Large enough to accommodate all supported protocol-specific address
@@ -788,10 +787,10 @@ _SS_MAXSIZE (chosen value 128) and _SS_ALIGNSIZE (with chosen value 8).
 Constants _SS_PAD1SIZE (derived value 6) and _SS_PAD2SIZE (derived value
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 12]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 12]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 112) are also for illustration and not required. The derived values
@@ -854,10 +853,10 @@ functions using the existing sysctl() function with the NET_RT_IFLIST
 command.  Other implementations may wish to use ioctl() for this
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 13]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 13]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 purpose.
@@ -920,10 +919,10 @@ structure per interface.
 The end of the array of structures is indicated by a structure with an
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 14]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 14]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 if_index of 0 and an if_name of NULL.  The function returns a NULL
@@ -986,10 +985,10 @@ follows:
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 15]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 15]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    x < -1:        return an error of EINVAL
@@ -1052,10 +1051,10 @@ used with getsockopt().
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 16]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 16]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
          If IPV6_MULTICAST_HOPS is not set, the default is 1
@@ -1118,10 +1117,10 @@ delivered to the socket.
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 17]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 17]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 5.3 IPV6_V6ONLY option for AF_INET6 Sockets
@@ -1184,10 +1183,10 @@ is no longer part of the basic API.
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 18]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 18]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 6.1 Protocol-Independent Nodename and Service Name Translation
@@ -1250,10 +1249,10 @@ fashion using the getaddrinfo() function.
    for use with the address family or families. If the specified address
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 19]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 19]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    family is AF_INET, AF_INET6 or AF_UNSPEC, the service can be
@@ -1316,10 +1315,10 @@ INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
    string supplied shall be a numeric port string. Otherwise, an
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 20]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 20]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    [EAI_NONAME] error shall be returned. This flag shall prevent any
@@ -1382,10 +1381,10 @@ INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
    then addresses are returned for use only with the specified address
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 21]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 21]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    family and protocol; the value of ai_protocol shall be interpreted as
@@ -1448,10 +1447,10 @@ INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 22]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 22]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
       [EAI_BADFLAGS]  The flags parameter had an invalid value.
@@ -1514,10 +1513,10 @@ The salen argument holds the size of the socket address structure
 pointed to by sa.
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 23]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 23]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 If the socket address structure contains an IPv4-mapped IPv6 address or
@@ -1580,10 +1579,10 @@ Note:
   2.  The NI_DGRAM flag is required for the few AF_INET and AF_INET6 port
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 24]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 24]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
       numbers (for example, [512,514]) that represent different services
@@ -1646,10 +1645,10 @@ specify the family of the address.  The AF_INET and AF_INET6 address
 families shall be supported.  The src argument points to the string
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 25]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 25]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 being passed in.  The dst argument points to a buffer into which the
@@ -1712,10 +1711,10 @@ The following macros can be used to test for special IPv6 addresses.
    int  IN6_IS_ADDR_LINKLOCAL   (const struct in6_addr *);
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 26]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 26]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    int  IN6_IS_ADDR_SITELOCAL   (const struct in6_addr *);
@@ -1778,10 +1777,10 @@ definitions discussed in this memo, sorted by header.
    <netinet/in.h>  IN6ADDR_ANY_INIT
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 27]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 27]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
    <netinet/in.h>  IN6ADDR_LOOPBACK_INIT
@@ -1844,10 +1843,10 @@ discussed in this memo, sorted by header.
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 28]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 28]
 
 
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 8. Security Considerations
@@ -1875,6 +1874,13 @@ Changes from RFC 2553
 
    5.  Added SIIT to references and added new contributors.
 
+   6.  In previous versions of this specification, the sin6_flowinfo
+       field was associated with the IPv6 traffic class and flow label,
+       but its usage was not completely specified.  The complete 
+       definition of the sin6_flowinfo field, including its association
+       with the traffic class or flow label, is now deferred to a 
+       future specification.
+
 
 
 
@@ -1901,6 +1907,14 @@ Williams, Kazu Yamamoto, Vlad Yasevich, Stig Venaas, and Brian Zill.
 
 The getaddrinfo() and getnameinfo() functions are taken from an earlier
 Internet Draft by Keith Sklower.  As noted in that draft, William Durst,
+
+
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 29]
+
+
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
+
+
 Steven Wise, Michael Karels, and Eric Allman provided many useful
 discussions on the subject of protocol-independent name-to-address
 translation, and reviewed early versions of Keith Sklower's original
@@ -1908,14 +1922,6 @@ proposal.  Eric Allman implemented the first prototype of getaddrinfo().
 The observation that specifying the pair of name and service would
 suffice for connecting to a service independent of protocol details was
 made by Marshall Rose in a proposal to X/Open for a "Uniform Network
-
-
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 29]
-
-
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
-
-
 Interface".
 
 Craig Metz, Jack McCann, Erik Nordmark, Tim Hartrick, and Mukesh Kacker
@@ -1969,17 +1975,10 @@ References
 
 
 
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 30]
 
 
-
-
-
-
-
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 30]
-
-
-INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-09.txt      December 2002
+INTERNET-DRAFT    draft-ietf-ipngwg-rfc2553bis-10.txt      December 2002
 
 
 Authors' Addresses
@@ -2042,5 +2041,5 @@ Email: Jack.McCann@hp.com
 
 
 
-draft-ietf-ipngwg-rfc2553bis-09.txt Expires June 2003          [Page 31]
+draft-ietf-ipngwg-rfc2553bis-10.txt Expires June 2003          [Page 31]
 
