@@ -1,4 +1,7 @@
 
+1627.	[bug]		win32: sockets were not being closed when the
+			last external reference was removed. [RT# 11179]
+
 	--- 9.2.4rc3 released ---
 
 1623.	[bug]		A serial number of zero was being displayed in the
