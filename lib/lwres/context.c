@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <fcntl.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -192,7 +193,16 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	fd_set readfds;
 	struct timeval timeout;
 
-	timeout.tv_sec = ctx->timeout;
+
+	/*
+	 * Type of tv_sec is long, so make sure the unsigned long timeout
+	 * does not overflow it.
+	 */
+	if (ctx->timeout <= LONG_MAX)
+		timeout.tv_sec = (long)ctx->timeout;
+	else
+		timeout.tv_sec = LONG_MAX;
+
 	timeout.tv_usec = 0;
 
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);
