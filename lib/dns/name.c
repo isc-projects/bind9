@@ -1315,6 +1315,12 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				if (tbcount == 0)
 					return (DNS_R_BADBITSTRING);
 
+				if (count > 0) {
+					n1 = count % 8;
+					if (n1 != 0)
+						value <<= (8 - n1);
+				}
+
 				if (bitlength != 0) {
 					if (bitlength > tbcount)
 						return (DNS_R_BADBITSTRING);
@@ -1412,9 +1418,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					bitlength = tbcount;
 
 				if (count > 0) {
-					n1 = count % 8;
-					if (n1 != 0)
-						value <<= (8 - n1);
 					*ndata++ = value;
 					nrem--;
 					nused++;
