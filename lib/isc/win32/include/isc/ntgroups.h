@@ -15,17 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.h,v 1.1 2001/09/25 01:37:02 mayer Exp $ */
+/* $Id: ntgroups.h,v 1.2 2001/10/05 05:51:50 mayer Exp $ */
 
 #ifndef ISC_NTGROUPS_H
 #define ISC_NTGROUPS_H 1
 
 #include <isc/lang.h>
+#include <isc/result.h>
 
 ISC_LANG_BEGINDECLS
 
 
-int
+isc_result_t
 isc_ntsecurity_getaccountgroups(char *name, char **Groups, unsigned int maxgroups,
 	     unsigned int *total);
 

@@ -15,29 +15,30 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.2 2001/09/28 23:34:55 gson Exp $ */
+/* $Id: ntgroups.c,v 1.3 2001/10/05 05:51:49 mayer Exp $ */
 
 /*
- * The NT Groups have two groups that are not well documented and are
- * not normally seen: None and Everyone.  A user account belongs to
- * any number of groups, but if it is not a member of any group then
- * it is a member of the None Group. The None group is not listed
- * anywhere. You cannot remove an account from the none group except
- * by making it a member of some other group, The second group is the
- * Everyone group.  All accounts, no matter how many groups that they
- * belong to, also belong to the Everyone group. You cannot remove an
- * account from the Everyone group.
+ * The NT Groups have two groups that are not well documented and are not
+ * normally seen: None and Everyone.
+ * A user account belongs to any number of groups, but if it is not a
+ * member of any group then it is a member of the None Group. The None
+ * group is not listed anywhere. You cannot remove an account from the
+ * none group except by making it a member of some other group,
+ * The second group is the Everyone group.  All accounts, no matter how many
+ * groups that they belong to, also belong to the Everyone group. You
+ * cannot remove an account from the Everyone group.
  */
 
 #ifndef UNICODE
 #define UNICODE
-#endif /* UNICODE */
+#endif // UNICODE
 
 #include <windows.h>
 #include <assert.h>
 #include <lm.h>
 
 #include <isc/ntgroups.h>
+#include <isc/result.h>
 
 #define MAX_NAME_LENGTH 25
 
@@ -45,11 +46,10 @@
 #define STATUS_SUCCESS  ((NTSTATUS)0x00000000L)
 #endif
 
-int
+isc_result_t
 isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 				unsigned int maxgroups,
-				unsigned int *totalGroups)
-{
+				unsigned int *totalGroups) {
 	LPGROUP_USERS_INFO_0 pTmpBuf;
 	LPLOCALGROUP_USERS_INFO_0 pTmpLBuf;
 	DWORD i;
@@ -63,8 +63,7 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 	NET_API_STATUS nStatus;
 	DWORD dwTotalCount = 0;
 	int retlen;
-
-	wchar_t *user = (wchar_t *)malloc(MAX_NAME_LENGTH*sizeof(wchar_t) + 1);
+	wchar_t user[MAX_NAME_LENGTH];
 
 	retlen = mbstowcs(user, username, MAX_NAME_LENGTH);
 
@@ -86,38 +85,51 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
                                    &dwEntriesRead,
                                    &dwTotalEntries);
 	/*
-	 * If the call succeeds,
+	 * See if the call succeeds,
 	 */
-	if (nStatus != NERR_Success)
-		return (nStatus);
+	if (nStatus != NERR_Success) {
+		if (nStatus == ERROR_ACCESS_DENIED)
+			return (ISC_R_NOPERM);
+		if (nStatus == ERROR_MORE_DATA)
+			return (ISC_R_NOSPACE);
+		if (nStatus == NERR_UserNotFound)
+			dwEntriesRead = 0;
+	}
 
- 	dwTotalCount = 0;
-	if ((pTmpLBuf = pBuf) != NULL) {
+	dwTotalCount = 0;
+	if (pBuf != NULL) {
+		pTmpLBuf = pBuf;
 		/*
 		 * Loop through the entries
 		 */
 	         for (i = 0;
-		     (i < dwEntriesRead && *totalGroups < maxgroups); i++)
-		 {
+		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) {
 			assert(pTmpLBuf != NULL);
-			if (pTmpLBuf == NULL)
+			if (pTmpLBuf == NULL) {
 				break;
+			}
 			retlen = wcslen(pTmpLBuf->lgrui0_name);
 			GroupList[*totalGroups] = (char *) malloc(retlen +1);
+			if(GroupList[*totalGroups] == NULL)
+				return (ISC_R_NOMEMORY);
+
 			retlen = wcstombs(GroupList[*totalGroups],
 				 pTmpLBuf->lgrui0_name, retlen);
 			GroupList[*totalGroups][retlen] = '\0';
-			if (strcmp(GroupList[*totalGroups], "None") == 0)
+			if(strcmp(GroupList[*totalGroups], "None") == 0) {
 				free(GroupList[*totalGroups]);
-			else
+			}
+			else {
 				(*totalGroups)++;
+			}
 			pTmpLBuf++;
 		}
 	}
-
+	/* Free the allocated memory. */
 	if (pBuf != NULL)
 		NetApiBufferFree(pBuf);
 
+   
 	/*
 	 * Call the NetUserGetGroups function, specifying level 0.
 	 */
@@ -129,40 +141,52 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
                               &dwEntriesRead,
                               &dwTotalEntries);
 	/*
-	 * If the call succeeds,
+	 * See if the call succeeds,
 	 */
-	if (nStatus != NERR_Success)
-		return (nStatus);
+	if (nStatus != NERR_Success) {
+		if (nStatus == ERROR_ACCESS_DENIED)
+			return (ISC_R_NOPERM);
+		if (nStatus == ERROR_MORE_DATA)
+			return (ISC_R_NOSPACE);
+		if (nStatus == NERR_UserNotFound)
+			dwEntriesRead = 0;
+	}
  
-	if ((pTmpBuf = pgrpBuf) != NULL) {
+	if (pgrpBuf != NULL) {
+		pTmpBuf = pgrpBuf;
 		/*
 		 * Loop through the entries
 		 */
 	         for (i = 0;
-		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) 
-		 {
+		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) {
 			assert(pTmpBuf != NULL);
 
-			if (pTmpBuf == NULL)
+			if (pTmpBuf == NULL) {
 				break;
+			}
 			retlen = wcslen(pTmpBuf->grui0_name);
 			GroupList[*totalGroups] = (char *) malloc(retlen +1);
+			if(GroupList[*totalGroups] == NULL)
+				return (ISC_R_NOMEMORY);
+
 			retlen = wcstombs(GroupList[*totalGroups],
 				 pTmpBuf->grui0_name, retlen);
 			GroupList[*totalGroups][retlen] = '\0';
-			if (strcmp(GroupList[*totalGroups], "None") == 0)
+
+			if(strcmp(GroupList[*totalGroups], "None") == 0) {
 				free(GroupList[*totalGroups]);
-			else
+			}
+			else {
 				(*totalGroups)++;
+			}
 			pTmpBuf++;
 		}
 	}
-
+	/*
+	 * Free the allocated memory.
+	 */
 	if (pgrpBuf != NULL)
 		NetApiBufferFree(pgrpBuf);
 
-	if (user != NULL)
-		free(user);
-
-	return (0);
+	return (ISC_R_SUCCESS);
 }
