@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.106 2000/10/14 04:38:22 tale Exp $ */
+/* $Id: name.c,v 1.107 2000/11/14 23:48:02 tale Exp $ */
 
 #include <config.h>
 
@@ -2629,11 +2629,12 @@ dns_name_split(dns_name_t *name,
 	       dns_name_t *prefix, dns_name_t *suffix)
 
 {
-	dns_offsets_t name_odata, split_odata;
-	unsigned char *offsets, *splitoffsets;
+	dns_offsets_t name_odata, prefix_odata, suffix_odata;
+	unsigned char *offsets, *prefix_offsets = NULL, *suffix_offsets;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int splitlabel, bitbytes, mod, len;
 	unsigned char *p, *src, *dst;
+	isc_boolean_t maybe_compact_prefix = ISC_FALSE;
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(suffixlabels > 0);
@@ -2701,11 +2702,14 @@ dns_name_split(dns_name_t *name,
 			}
 
 			/*
-			 * Set the new bit count.
+			 * Set the new bit count.  Also, when a bitstring
+			 * label being split is maximal length, compaction
+			 * might be necessary on the prefix.
 			 */
-			if (*p == 0)
+			if (*p == 0) {
+				maybe_compact_prefix = ISC_TRUE;
 				*p = 256 - nbits;
-			else
+			} else
 				*p = *p - nbits;
 
 			/*
@@ -2780,8 +2784,8 @@ dns_name_split(dns_name_t *name,
 			 */
 			INSIST(len = prefix->length);
 
-			INIT_OFFSETS(prefix, splitoffsets, split_odata);
-			set_offsets(prefix, splitoffsets, prefix);
+			INIT_OFFSETS(prefix, prefix_offsets, prefix_odata);
+			set_offsets(prefix, prefix_offsets, prefix);
 
 			INSIST(prefix->labels == splitlabel + 1 &&
 			       prefix->length == len);
@@ -2805,7 +2809,9 @@ dns_name_split(dns_name_t *name,
 			 * the new name.
 			 */
 			src = &name->ndata[offsets[splitlabel] + 1];
-			len = (*src++ - 1) / 8 - (bitbytes - 1);
+			len = ((*src == 0 ? 256 : *src) - 1) / 8;
+			len -= (bitbytes - 1);
+			src++;
 
 			suffix->length = name->length -
 				offsets[splitlabel] - len;
@@ -2881,8 +2887,8 @@ dns_name_split(dns_name_t *name,
 			 */
 			INSIST(len = suffix->length);
 
-			INIT_OFFSETS(suffix, splitoffsets, split_odata);
-			set_offsets(suffix, splitoffsets, suffix);
+			INIT_OFFSETS(suffix, suffix_offsets, suffix_odata);
+			set_offsets(suffix, suffix_offsets, suffix);
 
 			INSIST(suffix->labels == suffixlabels &&
 			       suffix->length == len);
@@ -2892,6 +2898,16 @@ dns_name_split(dns_name_t *name,
 						  suffixlabels, suffix);
 
 	}
+
+	/*
+	 * Compacting the prefix can't be done until after the suffix is
+	 * set, because it would screw up the offsets table of 'name'
+	 * when 'name' == 'prefix'.
+	 */
+	if (maybe_compact_prefix && splitlabel > 0 &&
+	    prefix->ndata[prefix_offsets[splitlabel - 1]] ==
+	    DNS_LABELTYPE_BITSTRING)
+		compact(prefix, prefix_offsets);
 
 	return (result);
 }
