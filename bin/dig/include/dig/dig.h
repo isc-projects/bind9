@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.38 2000/07/27 09:36:32 tale Exp $ */
+/* $Id: dig.h,v 1.39 2000/07/27 19:06:12 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -123,8 +123,7 @@ struct dig_lookup {
 
 struct dig_query {
 	dig_lookup_t *lookup;
-	isc_boolean_t working,
-		waiting_connect,
+	isc_boolean_t waiting_connect,
 		first_pass,
 		first_soa_rcvd,
 		second_rr_rcvd,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.101 2000/07/27 18:36:59 mws Exp $ */
+/* $Id: dighost.c,v 1.102 2000/07/27 19:06:10 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -860,22 +860,15 @@ start_lookup(void) {
  */
 static void
 check_next_lookup(dig_lookup_t *lookup) {
-	dig_query_t *query;
-	isc_boolean_t still_working=ISC_FALSE;
 	
 	INSIST(!free_now);
 
 	debug("check_next_lookup(%p)", lookup);
-	for (query = ISC_LIST_HEAD(lookup->q);
-	     query != NULL;
-	     query = ISC_LIST_NEXT(query, link)) {
-		if (query->working) {
-			debug("still have a worker", stderr);
-			still_working=ISC_TRUE;
-		}
-	}
-	if (still_working)
+	
+	if (ISC_LIST_HEAD(lookup->q) != NULL) {
+		debug("still have a worker");
 		return;
+	}
 	if (try_clear_lookup(lookup)) {
 		current_lookup = NULL;
 		start_lookup();
@@ -1314,7 +1307,6 @@ setup_lookup(dig_lookup_t *lookup) {
 		debug("create query %p linked to lookup %p",
 		       query, lookup);
 		query->lookup = lookup;
-		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		query->first_pass = ISC_TRUE;
 		query->first_soa_rcvd = ISC_FALSE;
@@ -1381,9 +1373,6 @@ cancel_lookup(dig_lookup_t *lookup) {
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
-		if (query->working) {
-			debug("cancelling a worker");
-		}
 		if (query->sock != NULL) {
 			isc_socket_cancel(query->sock, global_task,
 					  ISC_SOCKCANCEL_ALL);
@@ -1443,7 +1432,6 @@ send_udp(dig_lookup_t *lookup, isc_boolean_t make_recv) {
 		if (make_recv) {
 			ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf,
 					 link);
-			query->working = ISC_TRUE;
 			debug("recving with lookup=%p, query=%p, sock=%p",
 			      query->lookup, query,
 			      query->sock);
@@ -1536,7 +1524,6 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(recvcount >= 0);
 
 	if (sevent->result == ISC_R_CANCELED) {
-		query->working = ISC_FALSE;
 		isc_event_free(&event);
 		l = query->lookup;
 		clear_query(query);
@@ -1612,7 +1599,6 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 		sockcount--;
 		debug("sockcount=%d", sockcount);
 		INSIST(sockcount >= 0);
-		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		l = query->lookup;
 		clear_query(query);
@@ -1702,7 +1688,6 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 			exitcode = 9;
 		debug("sockcount=%d",sockcount);
 		isc_buffer_free(&b);
-		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
 		l = query->lookup;
@@ -1749,7 +1734,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	if (result != ISC_R_SUCCESS) {
 		puts("; Transfer failed.");
-		query->working = ISC_FALSE;
 		return (ISC_TRUE);
 	}
 	do {
@@ -1776,7 +1760,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					puts("; Transfer failed.  "
 					     "Didn't start with "
 					     "SOA answer.");
-					query->working = ISC_FALSE;
 					return (ISC_TRUE);
 				}
 				if ((!query->second_rr_rcvd) &&
@@ -1842,7 +1825,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					isc_buffer_usedregion(&b, &r);
 					received(b.used, r.length,
 						 (char *)r.base, query);
-					query->working = ISC_FALSE;
 					dns_rdata_freestruct(&soa);
 					if (atlimit) {
 						exitcode = 7;
@@ -1930,7 +1912,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 		debug("no longer pending.  Got %s",
 			isc_result_totext(sevent->result));
-		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		
 		isc_event_free(&event);
@@ -1972,7 +1953,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Got bad UDP packet:\n");
 			hex_dump(b);
-			query->working = ISC_FALSE;
 			query->waiting_connect = ISC_FALSE;
 			if (!l->tcp_mode) {
 				printf(";; Retrying in TCP mode.\n");
@@ -2095,7 +2075,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if (query != l->xfr_q) {
 				dns_message_destroy(&msg);
 				isc_event_free (&event);
-				query->working = ISC_FALSE;
 				query->waiting_connect = ISC_FALSE;
 				UNLOCK_LOOKUP;
 				return;
@@ -2123,7 +2102,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					 (char *)r.base,
 					 query);
 			}
-			query->working = ISC_FALSE;
 			query->lookup->pending = ISC_FALSE;
 			if (!query->lookup->ns_search_only ||
 			    query->lookup->trace_root) {
@@ -2145,7 +2123,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (sevent->result == ISC_R_CANCELED) {
 		debug("in recv cancel handler");
-		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
 		clear_query(query);
@@ -2231,7 +2208,6 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
-		query->working = ISC_TRUE;
 		query->waiting_connect = ISC_TRUE;
 		get_address(query->servname, port, &query->sockaddr);
 
@@ -2273,7 +2249,6 @@ do_lookup_udp(dig_lookup_t *lookup) {
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
-		query->working = ISC_TRUE;
 		query->waiting_connect = ISC_FALSE;
 		get_address(query->servname, port, &query->sockaddr);
 
