@@ -46,10 +46,10 @@ BIND 9
 
 BIND 9.0.0
 
-	BIND 9.0.0 is the first production release of BIND version 9.
-	It is aimed at early adopters and those who wish to make use
-	of new 9.0 features, such as IPv6 and DNSSEC secure resolution
-	support.
+	BIND 9.0.0 is the first "general availability" release of BIND
+	version 9. It is aimed at early adopters and those who wish to 
+	make use of new 9.0 features, such as IPv6 and DNSSEC secure 
+	resolution support.
 
 	We are running BIND 9.0.0 in production, and it has been used
 	as a root name server.
