@@ -642,6 +642,7 @@ addlookup(char *opt) {
 	lookup->origin = NULL;
 	lookup->use_my_server_list = ISC_FALSE;
 	lookup->doing_xfr = ISC_FALSE;
+	lookup->ixfr_serial = 0;
 	lookup->defname = ISC_FALSE;
 	lookup->trace = (trace || ns_search_only);
 	lookup->trace_root = trace;

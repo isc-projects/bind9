@@ -939,6 +939,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->trace_root = trace;
 			lookup->ns_search_only = ns_search_only;
 			lookup->doing_xfr = ISC_FALSE;
+			lookup->ixfr_serial = 0;
 			lookup->defname = ISC_FALSE;
 			lookup->identify = identify;
 			lookup->recurse = recurse;
@@ -964,14 +965,20 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else {
  			if (have_host) {
 				ENSURE(lookup != NULL);
-			       if (istype(rv[0])) {
+				if (strncmp(rv[0],"ixfr=",5) == 0) {
+					strcpy(lookup->rttext, "ixfr");
+					lookup->ixfr_serial = 
+						atoi(&rv[0][5]);
+					continue;
+				}
+				if (istype(rv[0])) {
 					strncpy(lookup->rttext, rv[0], MXRD);
 					continue;
-			       } else if (isclass(rv[0])) {
-				       strncpy(lookup->rctext, rv[0],
-					       MXRD);
-				       continue;
-			       }
+				} else if (isclass(rv[0])) {
+					strncpy(lookup->rctext, rv[0],
+						MXRD);
+					continue;
+				}
 			}
 			lookup = isc_mem_allocate(mctx, 
 						  sizeof(struct dig_lookup));
@@ -991,6 +998,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->origin = NULL;
 			lookup->use_my_server_list = ISC_FALSE;
 			lookup->doing_xfr = ISC_FALSE;
+			lookup->ixfr_serial = 0;
 			lookup->defname = ISC_FALSE;
 			lookup->trace = ISC_TF(trace || ns_search_only);
 			lookup->trace_root = trace;
@@ -1064,6 +1072,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->origin = NULL;
 		lookup->use_my_server_list = ISC_FALSE;
 		lookup->doing_xfr = ISC_FALSE;
+		lookup->ixfr_serial = 0;
 		lookup->defname = ISC_FALSE;
 		lookup->trace = ISC_TF(trace || ns_search_only);
 		lookup->trace_root = trace;

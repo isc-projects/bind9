@@ -28,6 +28,7 @@
 #include <isc/mem.h>
 #include <isc/list.h>
 #include <isc/print.h>
+#include <dns/rdatalist.h>
 
 #define MXSERV 4
 #define MXNAME 256
@@ -98,6 +99,9 @@ struct dig_lookup {
 	int retries;
 	int nsfound;
 	isc_uint16_t udpsize;
+	isc_uint32_t ixfr_serial;
+	isc_buffer_t rdatabuf;
+	char rdatastore[MXNAME];
 };
 
 struct dig_query {
@@ -105,7 +109,11 @@ struct dig_query {
 	isc_boolean_t working,
 		waiting_connect,
 		first_pass,
-		first_soa_rcvd;
+		first_soa_rcvd,
+		second_rr_rcvd,
+		first_repeat_rcvd;
+	isc_uint32_t first_rr_serial;
+	isc_uint32_t second_rr_serial;
 	int retries;
 	char *servname;
 	isc_bufferlist_t sendlist,

@@ -657,6 +657,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->xfr_q = NULL;
 	lookup->origin = NULL;
 	lookup->doing_xfr = ISC_FALSE;
+	lookup->ixfr_serial = 0;
 	lookup->defname = ISC_FALSE;
 	lookup->identify = ISC_FALSE;
 	lookup->recurse = recursion;

@@ -46,6 +46,7 @@ extern int h_errno;
 #include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/result.h>
+#include <dns/rdatastruct.h>
 
 #include <dig/dig.h>
 
@@ -260,6 +261,7 @@ dig_lookup_t
 	looknew->timer = NULL;
 	looknew->xfr_q = NULL;
 	looknew->doing_xfr = lookold->doing_xfr;
+	looknew->ixfr_serial = lookold->ixfr_serial;
 	looknew->defname = lookold->defname;
 	looknew->trace = lookold->trace;
 	looknew->trace_root = lookold->trace_root;
@@ -739,6 +741,67 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 }
 
 
+static void
+insert_soa(dig_lookup_t *lookup) {
+	isc_result_t result;
+	dns_rdata_soa_t soa;
+	dns_rdata_t *rdata = NULL;
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdataset_t *rdataset = NULL;
+	dns_name_t *soaname = NULL;
+	
+	debug ("insert_soa()");
+	soa.mctx = mctx;
+	soa.serial = lookup->ixfr_serial;
+	soa.refresh = 1;
+	soa.retry = 1;
+	soa.expire = 1;
+	soa.minimum = 1;
+	soa.common.rdclass = dns_rdataclass_in;
+	soa.common.rdtype = dns_rdatatype_soa;
+
+	dns_name_init(&soa.origin, NULL);
+	dns_name_init(&soa.mname, NULL);
+
+	dns_name_clone(lookup->name, &soa.origin);
+	dns_name_clone(lookup->name, &soa.mname);
+	
+	isc_buffer_init(&lookup->rdatabuf, lookup->rdatastore,
+			MXNAME);
+
+	result = dns_message_gettemprdata(lookup->sendmsg, &rdata);
+	check_result(result, "dns_message_gettemprdata");
+	result = dns_rdata_fromstruct(rdata, dns_rdataclass_in,
+				      dns_rdatatype_soa, &soa,
+				      &lookup->rdatabuf);
+	check_result(result, "isc_rdata_fromstruct");
+
+	result = dns_message_gettemprdatalist(lookup->sendmsg, &rdatalist);
+	check_result(result, "dns_message_gettemprdatalist");
+	
+	result = dns_message_gettemprdataset(lookup->sendmsg, &rdataset);
+	check_result(result, "dns_message_gettemprdataset");
+
+	dns_rdatalist_init(rdatalist);
+	rdatalist->type = dns_rdatatype_soa;
+	rdatalist->rdclass = dns_rdataclass_in;
+	rdatalist->covers = dns_rdatatype_soa;
+	rdatalist->ttl = 1;
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+
+	dns_rdataset_init(rdataset);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
+
+	result = dns_message_gettempname(lookup->sendmsg, &soaname);
+	check_result(result, "dns_message_gettempname");
+	dns_name_init(soaname, NULL);
+	dns_name_clone(lookup->name, soaname);
+	ISC_LIST_INIT(soaname->list);
+	ISC_LIST_APPEND(soaname->list, rdataset, link);
+	dns_message_addname(lookup->sendmsg, soaname, DNS_SECTION_AUTHORITY);
+}
+
 void
 setup_lookup(dig_lookup_t *lookup) {
 	isc_result_t result, res2;
@@ -889,8 +952,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	dns_message_addname(lookup->sendmsg, lookup->name,
 			    DNS_SECTION_QUESTION);
-	
-	
+
 	if (lookup->trace_root) {
 		tr.base="SOA";
 		tr.length=3;
@@ -898,9 +960,11 @@ setup_lookup(dig_lookup_t *lookup) {
 		tr.base=lookup->rttext;
 		tr.length=strlen(lookup->rttext);
 	}
+	debug ("Data type is %s", lookup->rttext);
 	result = dns_rdatatype_fromtext(&rdtype, (isc_textregion_t *)&tr);
 	check_result(result, "dns_rdatatype_fromtext");
-	if (rdtype == dns_rdatatype_axfr) {
+	if ((rdtype == dns_rdatatype_axfr) ||
+	    (rdtype == dns_rdatatype_ixfr)) {
 		lookup->doing_xfr = ISC_TRUE;
 		/*
 		 * Force TCP mode if we're doing an xfr.
@@ -918,6 +982,9 @@ setup_lookup(dig_lookup_t *lookup) {
 	check_result(result, "dns_rdataclass_fromtext");
 	add_type(lookup->sendmsg, lookup->name, rdclass, rdtype);
 
+	if (rdtype == dns_rdatatype_ixfr)
+		insert_soa(lookup);
+
 	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
 	debug ("Starting to render the message");
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
@@ -927,6 +994,9 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 	result = dns_message_rendersection(lookup->sendmsg,
 					   DNS_SECTION_QUESTION, 0);
+	check_result(result, "dns_message_rendersection");
+	result = dns_message_rendersection(lookup->sendmsg,
+					   DNS_SECTION_AUTHORITY, 0);
 	check_result(result, "dns_message_rendersection");
 	result = dns_message_renderend(lookup->sendmsg);
 	check_result(result, "dns_message_renderend");
@@ -951,6 +1021,8 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->waiting_connect = ISC_FALSE;
 		query->first_pass = ISC_TRUE;
 		query->first_soa_rcvd = ISC_FALSE;
+		query->second_rr_rcvd = ISC_FALSE;
+		query->second_rr_serial = 0;
 		query->servname = serv->servername;
 		ISC_LIST_INIT(query->sendlist);
 		ISC_LIST_INIT(query->recvlist);
@@ -1292,13 +1364,15 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
+
+#if 0
 static isc_boolean_t
 msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
 	isc_result_t result;
 	dns_name_t *name=NULL;
-
+	
 	debug("msg_contains_soa()");
-
+	
 	result = dns_message_findname(msg, DNS_SECTION_ANSWER,
 				      query->lookup->name, dns_rdatatype_soa,
 				      0, &name, NULL);
@@ -1307,10 +1381,149 @@ msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
 		return (ISC_TRUE);
 	} else {
 		debug("Didn't find SOA, result=%d:%s",
-			result, dns_result_totext(result));
+		      result, dns_result_totext(result));
 		return (ISC_FALSE);
 	}
 	
+}
+#endif
+
+static void
+check_for_more_data(dig_query_t *query, dns_message_t *msg,
+		    isc_socketevent_t *sevent)
+{
+	dns_name_t *name = NULL;
+	dns_rdataset_t *rdataset = NULL;
+	dns_rdata_t rdata;
+	dns_rdata_soa_t soa;
+	isc_result_t result;
+	isc_buffer_t b;
+	isc_region_t r;
+	char *abspace[MXNAME];
+
+	debug ("check_for_more_data()");
+
+	/*
+	 * By the time we're in this routine, we know we're doing
+	 * either an AXFR or IXFR.  If there's no second_rr_type,
+	 * then we don't yet know which kind of answer we got back
+	 * from the server.  Here, we're going to walk through the
+	 * rr's in the message, acting as necessary whenever we hit
+	 * an SOA rr.
+	 */
+	
+	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
+	check_result(result, "dns_message_firstname");
+	do {
+		dns_message_currentname(msg, DNS_SECTION_ANSWER,
+					&name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			result = dns_rdataset_first(rdataset);
+			if (result != ISC_R_SUCCESS)
+				continue;
+			do {
+				dns_rdataset_current(rdataset, &rdata);
+				/*
+				 * If this is the first rr, make sure
+				 * it's an SOA
+				 */
+				if ((!query->first_soa_rcvd) &&
+				    (rdata.type != dns_rdatatype_soa)) {
+					puts("; Transfer failed.  "
+					     "Didn't start with "
+					     "SOA answer.");
+					query->working = ISC_FALSE;
+					cancel_lookup(query->lookup);
+					return;
+				}
+				if ((!query->second_rr_rcvd) &&
+				    (rdata.type != dns_rdatatype_soa)) {
+					query->second_rr_rcvd = ISC_TRUE;
+					query->second_rr_serial = 0;
+					continue;
+				}
+
+				/*
+				 * If the record is anything except an SOA
+				 * now, just continue on...
+				 */
+				if (rdata.type != dns_rdatatype_soa)
+					goto NEXT_RDATA;
+				/* Now we have an SOA.  Work with it. */
+				debug ("before tostruct");
+				result = dns_rdata_tostruct(&rdata,
+							    &soa,
+							    mctx);
+				check_result(result,
+					     "dns_rdata_tostruct");
+				debug ("after tostruct");
+				if (!query->first_soa_rcvd) {
+					query->first_soa_rcvd =
+						ISC_TRUE;
+					query->first_rr_serial =
+						soa.serial;
+					if (query->lookup->ixfr_serial >=
+					    soa.serial) {
+						dns_rdata_freestruct(&soa);
+						goto XFR_DONE;
+					}
+					dns_rdata_freestruct(&soa);
+					goto NEXT_RDATA;
+				}
+				if (!query->second_rr_rcvd) {
+					query->second_rr_rcvd = ISC_TRUE;
+					query->second_rr_serial =
+						soa.serial;
+					goto NEXT_RDATA;
+				}
+				if (query->second_rr_serial == 0) {
+					/*
+					 * If the second RR was a non-SOA
+					 * record, and we're getting any
+					 * other SOA, then this is an
+					 * AXFR, and we're done.
+					 */
+				XFR_DONE:
+					isc_buffer_init(&b, abspace, MXNAME);
+					result = isc_sockaddr_totext(&sevent->
+								     address,
+								     &b);
+					check_result(result,
+						     "isc_sockaddr_totext");
+					isc_buffer_usedregion(&b, &r);
+					received(b.used, r.length,
+						 (char *)r.base, query);
+					query->working = ISC_FALSE;
+					cancel_lookup(query->lookup);
+					dns_rdata_freestruct(&soa);
+					return;
+				}
+				/*
+				 * If we get to this point, we're doing an
+				 * IXFR and have to start really looking
+				 * at serial numbers.
+				 */
+				if (query->second_rr_serial == soa.serial) {
+					if (!query->first_repeat_rcvd) {
+						query->first_repeat_rcvd =
+							ISC_TRUE;
+						dns_rdata_freestruct(&soa);
+						goto NEXT_RDATA;
+					}
+					dns_rdata_freestruct(&soa);
+					goto XFR_DONE;
+				}
+				dns_rdata_freestruct(&soa);
+			NEXT_RDATA:
+				result = dns_rdataset_next(rdataset);
+			} while (result == ISC_R_SUCCESS);
+		}
+		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
+	} while (result == ISC_R_SUCCESS);
+	launch_next_query(query, ISC_FALSE);
+	return;
 }
 
 static void
@@ -1439,42 +1652,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				query->waiting_connect = ISC_FALSE;
 				return;
 			}
-			if (!query->first_soa_rcvd) {
-				debug("Not yet got first SOA");
-				if (!msg_contains_soa(msg, query)) {
-					puts("; Transfer failed.  "
-					     "Didn't start with SOA answer.");
-					query->working = ISC_FALSE;
-					cancel_lookup(query->lookup);
-					dns_message_destroy (&msg);
-					isc_event_free(&event);
-					return;
-				}
-				else {
-					query->first_soa_rcvd = ISC_TRUE;
-					launch_next_query(query, ISC_FALSE);
-				}
-			} else {
-				if (msg_contains_soa(msg, query)) {
-					isc_buffer_init(&ab, abspace, MXNAME);
-					result = isc_sockaddr_totext(&sevent->
-								     address,
-								     &ab);
-					check_result(result,
-						     "isc_sockaddr_totext");
-					isc_buffer_usedregion(&ab, &r);
-					received(b->used, r.length,
-						 (char *)r.base, query);
-					query->working = ISC_FALSE;
-					cancel_lookup(query->lookup);
-					dns_message_destroy (&msg);
-					isc_event_free(&event);
-					return;
-				}
-				else {
-					launch_next_query(query, ISC_FALSE);
-				}
-			}
+			check_for_more_data(query, msg, sevent);
 		}
 		else {
 			if ((msg->rcode == 0) ||
