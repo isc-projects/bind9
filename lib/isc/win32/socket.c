@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.1 2001/09/17 22:28:57 gson Exp $ */
+/* $Id: socket.c,v 1.5.2.2 2002/01/23 01:07:54 gson Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -2918,6 +2918,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 			ERROR_MATCH(WSAENOBUFS, ISC_R_NORESOURCES);
 			ERROR_MATCH(EPERM, ISC_R_HOSTUNREACH);
 			ERROR_MATCH(EPIPE, ISC_R_NOTCONNECTED);
+			ERROR_MATCH(WSAECONNRESET, ISC_R_CONNECTIONRESET);
 #undef ERROR_MATCH
 		}
 

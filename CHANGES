@@ -13,6 +13,9 @@
 			exceptions when printing "out of memory" errors.
 			[RT #2335]
 
+1174.	[bug]		Win32: add WSAECONNRESET to the expected errors
+			from connect(). [RT #2308]
+
 1165.	[bug]		We were rejecting notify-source{-v6} in zone clauses.
 
 1164.	[bug]		Empty masters clauses in slave / stub zones were not
