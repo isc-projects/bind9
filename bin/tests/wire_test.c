@@ -452,7 +452,7 @@ printmessage(dns_message_t *message) {
 
 int
 main(int argc, char *argv[]) {
-	char *cp;
+	char *rp, *wp;
 	unsigned char *bp;
 	isc_buffer_t source, target;
 	isc_region_t r;
@@ -477,10 +477,16 @@ main(int argc, char *argv[]) {
 
 	bp = b;
 	while (fgets(s, sizeof s, f) != NULL) {
-		len = strlen(s);
-		if (len > 0 && s[len - 1] == '\n') {
-			len--;
-			s[len] = '\0';
+		rp = s;
+		wp = s;
+		len = 0;
+		while (*rp != '\0') {
+			if (*rp != ' ' && *rp != '\t' &&
+			    *rp != '\r' && *rp != '\n') {
+				*wp++ = *rp;
+				len++;
+			}
+			rp++;
 		}
 		if (len == 0)
 			break;
@@ -488,15 +494,15 @@ main(int argc, char *argv[]) {
 			printf("bad input format: %d\n", len);
 			exit(1);
 		}
-		if (len > 510) {
+		if (len > (sizeof b) * 2) {
 			printf("input too long\n");
 			exit(2);
 		}
-		cp = s;
+		rp = s;
 		for (i = 0; i < len; i += 2) {
-			n = fromhex(*cp++);
+			n = fromhex(*rp++);
 			n *= 16;
-			n += fromhex(*cp++);
+			n += fromhex(*rp++);
 			*bp++ = n;
 		}
 	}
