@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.1 2001/09/28 05:35:47 marka Exp $ */
+/* $Id: server.c,v 1.339.2.2 2002/01/23 02:11:32 gson Exp $ */
 
 #include <config.h>
 
@@ -2851,7 +2851,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	int zonecount, xferrunning, xferdeferred, soaqueries;
-	int n;
+	unsigned int n;
 
 	zonecount = dns_zonemgr_getcount(server->zonemgr, DNS_ZONESTATE_ANY);
 	xferrunning = dns_zonemgr_getcount(server->zonemgr,
@@ -2871,7 +2871,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "server is up and running",
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
 		     soaqueries, server->log_queries ? "ON" : "OFF");
-	if (n < 0)
+	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
 	isc_buffer_add(text, n);
 	return (ISC_R_SUCCESS);
