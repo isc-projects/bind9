@@ -52,8 +52,8 @@
 #define STACK_SIZE_BIT			14
 #define CORE_SIZE_BIT			15
 #define FILES_BIT			16
-#define QUERY_SOURCE_ADDR_BIT		17
-#define QUERY_SOURCE_PORT_BIT		18
+#define QUERY_SOURCE_BIT		17
+#define QUERY_SOURCE_V6_BIT		18
 #define FAKE_IQUERY_BIT			19
 #define RECURSION_BIT			20
 #define FETCH_GLUE_BIT			21
@@ -77,6 +77,7 @@
 #define TCP_CLIENTS_BIT			39
 #define RECURSIVE_CLIENTS_BIT		40
 #define TRANSFER_SOURCE_BIT		41
+#define TRANSFER_SOURCE_V6_BIT		42
 
 
 static isc_result_t cfg_set_iplist(dns_c_options_t *options,
@@ -1689,46 +1690,48 @@ dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
+dns_c_ctx_setquerysource(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
 {
 	isc_boolean_t existed;
 	isc_result_t res;
 	
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(addr.type.sa.sa_family == AF_INET); /* XXX too strong? */
 
 	res = make_options(cfg);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
 	
-	existed = DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT,
+	existed = DNS_C_CHECKBIT(QUERY_SOURCE_BIT,
 				 &cfg->options->setflags1);
-	DNS_C_SETBIT(QUERY_SOURCE_ADDR_BIT, &cfg->options->setflags1);
+	DNS_C_SETBIT(QUERY_SOURCE_BIT, &cfg->options->setflags1);
 	
-	cfg->options->query_source_addr = addr;
+	cfg->options->query_source = addr;
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
 
 isc_result_t
-dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, in_port_t port)
+dns_c_ctx_setquerysourcev6(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
 {
 	isc_boolean_t existed;
 	isc_result_t res;
 	
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
-
+	REQUIRE(addr.type.sa.sa_family == AF_INET6);	/* XXX too strong? */
+	
 	res = make_options(cfg);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
 	
-	existed = DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT,
+	existed = DNS_C_CHECKBIT(QUERY_SOURCE_V6_BIT,
 				 &cfg->options->setflags1);
-	DNS_C_SETBIT(QUERY_SOURCE_PORT_BIT, &cfg->options->setflags1);
+	DNS_C_SETBIT(QUERY_SOURCE_V6_BIT, &cfg->options->setflags1);
 	
-	cfg->options->query_source_port = port;
+	cfg->options->query_source_v6 = addr;
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
@@ -2950,7 +2953,7 @@ dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
+dns_c_ctx_getquerysource(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 {
 	isc_result_t res;
 
@@ -2962,8 +2965,8 @@ dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 	
 	REQUIRE(addr != NULL);
 
-	if (DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT, &cfg->options->setflags1)) {
-		*addr = cfg->options->query_source_addr;
+	if (DNS_C_CHECKBIT(QUERY_SOURCE_BIT, &cfg->options->setflags1)) {
+		*addr = cfg->options->query_source;
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;
@@ -2974,22 +2977,26 @@ dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 
 
 isc_result_t
-dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg, in_port_t *port)
+dns_c_ctx_getquerysourcev6(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 {
+	isc_result_t res;
+
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 
 	if (cfg->options == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
 	
-	REQUIRE(port != NULL);
+	REQUIRE(addr != NULL);
 
-	if (DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT, &cfg->options->setflags1)) {
-		*port = cfg->options->query_source_port;
-		return (ISC_R_SUCCESS);
+	if (DNS_C_CHECKBIT(QUERY_SOURCE_V6_BIT, &cfg->options->setflags1)) {
+		*addr = cfg->options->query_source_v6;
+		res = ISC_R_SUCCESS;
 	} else {
-		return (ISC_R_NOTFOUND);
+		res = ISC_R_NOTFOUND;
 	}
+
+	return (res);
 }
 
 
@@ -3474,6 +3481,7 @@ void
 dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 {
 	dns_severity_t nameseverity;
+	in_port_t port;
 	
 	REQUIRE(fp != NULL);
 
@@ -3630,25 +3638,35 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	}
 	
 	
-	if (DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT, &options->setflags1) ||
-	    DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT, &options->setflags1)) {
+	if (DNS_C_CHECKBIT(QUERY_SOURCE_BIT, &options->setflags1)) {
+		port = isc_sockaddr_getport(&options->query_source);
+
 		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "query-source ");
+		fprintf(fp, "query-source address ");
 
-		if (DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT,
-				   &options->setflags1)) {
-			fprintf(fp, "address ");
-			dns_c_print_ipaddr(fp, &options->query_source_addr);
+		dns_c_print_ipaddr(fp, &options->query_source);
+
+		if (port == 0) {
+			fprintf(fp, " port *");
+		} else {
+			fprintf(fp, " port %d", port);
 		}
+		fprintf(fp, " ;\n");
+	}
 
-		if (DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT,
-				   &options->setflags1)) {
-			if (options->query_source_port == 0) {
-				fprintf(fp, " port *");
-			} else {
-				fprintf(fp, " port %d",
-					options->query_source_port);
-			}
+
+	if (DNS_C_CHECKBIT(QUERY_SOURCE_V6_BIT, &options->setflags1)) {
+		port = isc_sockaddr_getport(&options->query_source_v6);
+
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "query-source-v6 address ");
+
+		dns_c_print_ipaddr(fp, &options->query_source_v6);
+
+		if (port == 0) {
+			fprintf(fp, " port *");
+		} else {
+			fprintf(fp, " port %d", port);
 		}
 		fprintf(fp, " ;\n");
 	}
@@ -3750,6 +3768,14 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "transfer-source ");
 		dns_c_print_ipaddr(fp, &options->transfer_source);
+		fprintf(fp, ";\n");
+	}
+	
+
+	if (DNS_C_CHECKBIT(TRANSFER_SOURCE_V6_BIT, &options->setflags1)) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "transfer-source-v6 ");
+		dns_c_print_ipaddr(fp, &options->transfer_source_v6);
 		fprintf(fp, ";\n");
 	}
 	
@@ -3857,6 +3883,54 @@ dns_c_ctx_gettransfersource(dns_c_ctx_t *cfg, isc_sockaddr_t *retval)
 
 	if (DNS_C_CHECKBIT(TRANSFER_SOURCE_BIT, &cfg->options->setflags1)) {
 		*retval = cfg->options->transfer_source;
+		res = ISC_R_SUCCESS;
+	} else {
+		res = ISC_R_NOTFOUND;
+	}
+
+	return (res);
+}
+	
+
+isc_result_t
+dns_c_ctx_settransfersourcev6(dns_c_ctx_t *cfg, isc_sockaddr_t newval)
+{
+	isc_boolean_t existed;
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(newval.type.sa.sa_family == AF_INET6);	/* XXX too strong? */
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	existed = DNS_C_CHECKBIT(TRANSFER_SOURCE_V6_BIT,
+				 &cfg->options->setflags1);
+	DNS_C_SETBIT(TRANSFER_SOURCE_V6_BIT, &cfg->options->setflags1);
+	
+	cfg->options->transfer_source_v6 = newval;
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_ctx_gettransfersourcev6(dns_c_ctx_t *cfg, isc_sockaddr_t *retval)
+{
+	isc_result_t res;
+
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(retval != NULL);
+
+	if (DNS_C_CHECKBIT(TRANSFER_SOURCE_V6_BIT, &cfg->options->setflags1)) {
+		*retval = cfg->options->transfer_source_v6;
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;
