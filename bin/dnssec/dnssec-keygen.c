@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.32 2000/06/09 21:30:33 gson Exp $ */
+/* $Id: dnssec-keygen.c,v 1.33 2000/06/09 22:34:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/string.h>
@@ -89,7 +90,7 @@ main(int argc, char **argv) {
 	dns_name_t	*name;
 	isc_uint16_t	flags = 0;
 	dns_secalg_t	alg;
-	isc_boolean_t    conflict = ISC_FALSE, null_key = ISC_FALSE;
+	isc_boolean_t	conflict = ISC_FALSE, null_key = ISC_FALSE;
 	isc_mem_t	*mctx = NULL;
 	int		ch, rsa_exp = 0, generator = 0, param = 0;
 	int		protocol = -1, size = -1, signatory = 0;
@@ -98,6 +99,7 @@ main(int argc, char **argv) {
 	char		filename[255];
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
+	isc_entropy_t	*ectx = NULL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -112,8 +114,6 @@ main(int argc, char **argv) {
 		usage();
 
 	dns_result_register();
-	dst_result_register();
-	dst_lib_init(mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "a:b:eg:n:t:p:s:hv:")) != -1)
@@ -178,6 +178,12 @@ main(int argc, char **argv) {
 			usage();
 		} 
 	}
+
+	setup_entropy(mctx, &ectx);
+	ret = dst_lib_init(mctx, ectx,
+			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	if (ret != ISC_R_SUCCESS)
+		fatal("could not initialize dst");
 
 	setup_logging(verbose, mctx, &log);
 
@@ -311,8 +317,8 @@ main(int argc, char **argv) {
 				       mctx, &key);
 
 		if (ret != ISC_R_SUCCESS) {
-			fatal("failed to generate key %s/%d: %s\n", name, alg,
-				dst_result_totext(ret));
+			fatal("failed to generate key %s/%d: %s\n",
+			      nametostr(name), alg, dst_result_totext(ret));
 			exit(-1);
 		}
 		
@@ -351,7 +357,7 @@ main(int argc, char **argv) {
 
 	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, NULL);
 	if (ret != ISC_R_SUCCESS)
-		fatal("failed to write key %s/%s/%d: %s\n", name, 
+		fatal("failed to write key %s/%s/%d: %s\n", nametostr(name),
 		      dst_key_id(key), algtostr(alg), isc_result_totext(ret));
 
 	isc_buffer_clear(&buf);
@@ -366,6 +372,7 @@ main(int argc, char **argv) {
 
 	if (log != NULL)
 		isc_log_destroy(&log);
+	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);

@@ -23,6 +23,7 @@
 
 #include <isc/string.h>
 #include <isc/commandline.h>
+#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 
@@ -56,6 +57,7 @@ typedef ISC_LIST(keynode_t) keylist_t;
 static isc_stdtime_t now;
 
 static isc_mem_t *mctx = NULL;
+static isc_entropy_t *ectx = NULL;
 static keylist_t keylist;
 
 static void
@@ -152,7 +154,6 @@ main(int argc, char *argv[]) {
 	check_result(result, "isc_mem_create()");
 
 	dns_result_register();
-	dst_lib_init(mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, "v:")) != -1)
 	{
@@ -175,6 +176,12 @@ main(int argc, char *argv[]) {
 
 	if (argc < 2)
 		usage();
+
+	setup_entropy(mctx, &ectx);
+	result = dst_lib_init(mctx, ectx,
+			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not initialize dst");
 
 	isc_stdtime_get(&now);
 
@@ -342,6 +349,7 @@ main(int argc, char *argv[]) {
 		isc_log_destroy(&log);
 
         isc_mem_free(mctx, output);
+	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);

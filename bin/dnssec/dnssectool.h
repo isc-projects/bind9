@@ -39,4 +39,10 @@ algtostr(const dns_secalg_t alg);
 void
 setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);
 
+void
+setup_entropy(isc_mem_t *mctx, isc_entropy_t **ectx);
+
+void
+cleanup_entropy(isc_entropy_t **ectx);
+
 #endif /* DNSSEC_DNSSECTOOL_H */

@@ -22,6 +22,7 @@
 #include <unistd.h>		/* XXX */
 
 #include <isc/buffer.h>
+#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
@@ -212,24 +213,11 @@ generate(int alg, isc_mem_t *mctx) {
 	dst_key_free(&key);
 }
 
-static void
-get_random(void) {
-	unsigned char data[25];
-	isc_buffer_t databuf;
-	isc_result_t ret;
-	unsigned int i;
-
-	isc_buffer_init(&databuf, data, sizeof(data));
-	ret = dst_random_get(sizeof(data), &databuf);
-	printf("random() returned: %s\n", isc_result_totext(ret));
-	for (i = 0; i < sizeof data; i++)
-		printf("%02x ", data[i]);
-	printf("\n");
-}
-
 int
 main(void) {
 	isc_mem_t *mctx = NULL;
+	isc_entropy_t *ectx = NULL;
+	isc_entropysource_t *devrandom = NULL;
 	isc_buffer_t b;
 	dns_fixedname_t fname;
 	dns_name_t *name;
@@ -240,8 +228,11 @@ main(void) {
 	getcwd(current, 256);
 
 	dns_result_register();
-	dst_result_register();
-	dst_lib_init(mctx);
+
+	isc_entropy_create(mctx, &ectx);
+	isc_entropy_createfilesource(ectx, "/dev/random", 0,
+			&devrandom);
+	dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -264,9 +255,10 @@ main(void) {
 	generate(DST_ALG_DSA, mctx);
 	generate(DST_ALG_HMACMD5, mctx);
 
-	get_random();
-
 	dst_lib_destroy();
+	if (devrandom != NULL)
+		isc_entropy_destroysource(&devrandom);
+	isc_entropy_detach(&ectx);
 
 	isc_mem_put(mctx, current, 256);
 /*	isc_mem_stats(mctx, stdout);*/

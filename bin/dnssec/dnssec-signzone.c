@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include <isc/commandline.h>
+#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -73,6 +74,7 @@ static isc_stdtime_t starttime = 0, endtime = 0, now;
 static int cycle = -1;
 static isc_boolean_t tryverify = ISC_FALSE;
 static isc_mem_t *mctx = NULL;
+static isc_entropy_t *ectx = NULL;
 
 static inline void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
@@ -1216,7 +1218,6 @@ main(int argc, char *argv[]) {
 		fatal("out of memory");
 
 	dns_result_register();
-	dst_lib_init(mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ah"))
 	       != -1) {
@@ -1273,6 +1274,12 @@ main(int argc, char *argv[]) {
 
 		}
 	}
+
+	setup_entropy(mctx, &ectx);
+	result = dst_lib_init(mctx, ectx,
+			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not initialize dst");
 
 	isc_stdtime_get(&now);
 
@@ -1412,6 +1419,7 @@ main(int argc, char *argv[]) {
 
 	if (log != NULL)
 		isc_log_destroy(&log);
+	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);

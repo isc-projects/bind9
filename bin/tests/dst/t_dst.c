@@ -29,6 +29,7 @@
 #include <unistd.h>		/* XXX */
 
 #include <isc/buffer.h>
+#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/string.h>
@@ -326,47 +327,6 @@ generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 
 #define	DBUFSIZ	25
 
-static void
-get_random(int *nfails) {
-	unsigned char data1[DBUFSIZ];
-	unsigned char data2[DBUFSIZ];
-	isc_buffer_t databuf1;
-	isc_buffer_t databuf2;
-	isc_result_t ret;
-	unsigned int i;
-
-	isc_buffer_init(&databuf1, data1, sizeof(data1));
-	ret = dst_random_get(sizeof(data1), &databuf1);
-	if (ret != ISC_R_SUCCESS) {
-		t_info("random() returned: %s\n", dst_result_totext(ret));
-		++*nfails;
-		return;
-	}
-
-	isc_buffer_init(&databuf2, data2, sizeof(data2));
-	ret = dst_random_get(sizeof(data2), &databuf2);
-	if (ret != ISC_R_SUCCESS) {
-		t_info("random() returned: %s\n", dst_result_totext(ret));
-		++*nfails;
-		return;
-	}
-
-	/*
-	 * Weak test, but better than nought.
-	 */
-	if (memcmp(data1, data2, DBUFSIZ) == 0) {
-		t_info("data not random\n");
-		++*nfails;
-	}
-
-	if (T_debug) {
-		for (i = 0; i < sizeof(data1); i++)
-			t_info("data1[%d]: %02x ", i, data1[i]);
-		for (i = 0; i < sizeof(data2); i++)
-			t_info("data2[%d]: %02x ", i, data2[i]);
-	}
-}
-
 static const char *a1 =
 		"the dst module provides the capability to "
 		"generate, store and retrieve public and private keys, "
@@ -376,6 +336,8 @@ static const char *a1 =
 static void
 t1(void) {
 	isc_mem_t	*mctx;
+	isc_entropy_t	*ectx;
+	isc_entropysource_t *devrandom;
 	int		nfails;
 	int		nprobs;
 	int		result;
@@ -396,7 +358,25 @@ t1(void) {
 		t_result(T_UNRESOLVED);
 		return;
 	}
-	dst_lib_init(mctx);
+	ectx = NULL;
+	isc_result = isc_entropy_create(mctx, &ectx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_entropy_create failed %d\n",
+		       isc_result_totext(isc_result));
+		t_result(T_UNRESOLVED);
+		return;
+	}
+	devrandom = NULL;
+	isc_entropy_createfilesource(ectx, "/dev/random", 0,
+			&devrandom);
+	isc_result = dst_lib_init(mctx, ectx,
+				  ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_lib_init failed %d\n",
+		       isc_result_totext(isc_result));
+		t_result(T_UNRESOLVED);
+		return;
+	}
 
 	t_info("testing use of stored keys [1]\n");
 
@@ -435,9 +415,12 @@ t1(void) {
 	generate(DST_ALG_HMACMD5, mctx, 512, &nfails);
 
 	t_info("testing random number sequence generation\n");
-	get_random(&nfails);
 
 	dst_lib_destroy();
+
+	if (devrandom != NULL)
+		isc_entropy_destroysource(&devrandom);
+	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
 
@@ -820,6 +803,8 @@ t2_vfy(char **av) {
 	int		nfails;
 	int		nprobs;
 	isc_mem_t	*mctx;
+	isc_entropy_t	*ectx;
+	isc_entropysource_t *devrandom;
 	isc_result_t	isc_result;
 	int		result;
 
@@ -849,7 +834,23 @@ t2_vfy(char **av) {
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
-	dst_lib_init(mctx);
+	ectx = NULL;
+	isc_result = isc_entropy_create(mctx, &ectx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_entropy_create failed %d\n",
+		       isc_result_totext(isc_result));
+		return(T_UNRESOLVED);
+	}
+	devrandom = NULL;
+	isc_entropy_createfilesource(ectx, "/dev/random", 0,
+			&devrandom);
+	isc_result = dst_lib_init(mctx, ectx,
+				  ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_lib_init failed %d\n",
+		       isc_result_totext(isc_result));
+		return(T_UNRESOLVED);
+	}
 
 	t_info("testing %s, %s, %s, %s, %s, %s\n",
 			datapath, sigpath, keyname, key, alg, exp_result);
@@ -859,6 +860,10 @@ t2_vfy(char **av) {
 			&nfails, &nprobs);
 
 	dst_lib_destroy();
+
+	if (devrandom != NULL)
+		isc_entropy_destroysource(&devrandom);
+	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
 
