@@ -47,19 +47,34 @@ static pthread_t		main_thread;
 
 #ifndef HAVE_SIGWAIT
 static void
-empty_action(int arg) {
+no_action(int arg) {
 	(void)arg;
 }
 #endif
+
+static isc_result_t
+handle_signal(int sig, void (*handler)(int)) {
+	struct sigaction sa;
+
+	memset(&sa, 0, sizeof sa);
+	sa.sa_handler = handler;
+
+	if (sigfillset(&sa.sa_mask) != 0 ||
+	    sigaction(sig, &sa, NULL) < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "handle_signal() %d setup: %s", sig,
+				 strerror(errno));
+		return (ISC_R_UNEXPECTED);
+	}
+	
+	return (ISC_R_SUCCESS);
+}
 
 isc_result_t
 isc_app_start(void) {
 	isc_result_t result;
 	int presult;
 	sigset_t sset;
-#ifndef HAVE_SIGWAIT
-	struct sigaction sa;
-#endif
 
 	/*
 	 * Start an ISC library application.
@@ -94,23 +109,20 @@ isc_app_start(void) {
 	 * the default actions, regardless of what we do with
 	 * pthread_sigmask().
 	 */
-	memset(&sa, 0, sizeof sa);
-	sa.sa_handler = empty_action;
-	if (sigfillset(&sa.sa_mask) != 0 ||
-	    sigaction(SIGINT, &sa, NULL) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_run() SIGINT setup: %s", 
-				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
-	}
-	if (sigfillset(&sa.sa_mask) != 0 ||
-	    sigaction(SIGTERM, &sa, NULL) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_run() SIGTERM setup: %s", 
-				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
-	}
+	result = handle_signal(SIGINT, no_action);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = handle_signal(SIGTERM, no_action);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 #endif
+
+	/*
+	 * Always ignore SIGPIPE.
+	 */
+	result = handle_signal(SIGPIPE, SIG_IGN);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Block SIGINT and SIGTERM.
