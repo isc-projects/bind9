@@ -1,3 +1,5 @@
+1152.	[bug]		libbind: read buffer overflows.
+
 1151.	[bug]		nslookup failed to check that the arguments to
 			the port, timeout, and retry options were
 			valid integers and in range. [RT #2099]
