@@ -79,7 +79,7 @@ process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 					    dns_fixedname_name(&name),
 					    dns_rootname,
 					    options | DNS_ADBFIND_INET,
-					    0, &client->v4find);
+					    0, NULL /*XXX*/, &client->v4find);
 	}
 
 	if ((req->addrtypes & LWRES_ADDRTYPE_V6) != 0) {
@@ -89,7 +89,7 @@ process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 					    dns_fixedname_name(&name),
 					    dns_rootname,
 					    options | DNS_ADBFIND_INET6,
-					    0, &client->v6find);
+					    0, NULL /*XXX*/, &client->v6find);
 	}
 
 	return (ISC_R_SUCCESS);
