@@ -1617,6 +1617,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 {
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
+	unsigned int options = 0;
 
 	/*
 	 * Invoke the resolver.
@@ -1634,11 +1635,15 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		return (ISC_R_NOMEMORY);
 	}
 
+	if ((client->attributes & NS_CLIENTATTR_TCP) != 0)
+		options |= DNS_FETCHOPT_TCP;
+
 	result = dns_resolver_createfetch(client->view->resolver,
 					  client->query.qname,
 					  qtype, qdomain, nameservers,
-					  NULL, 0, client->task, query_resume,
-					  client, rdataset, sigrdataset,
+					  NULL, options, client->task,
+					  query_resume, client,
+					  rdataset, sigrdataset,
 					  &client->query.fetch);
 
 	if (result == ISC_R_SUCCESS) {
