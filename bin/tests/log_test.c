@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.9 2000/03/01 17:35:00 tale Exp $ */
+/* $Id: log_test.c,v 1.10 2000/03/02 01:52:47 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -101,10 +101,10 @@ main (int argc, char **argv) {
 	}
 
 	fprintf(stderr, "EXPECT:\n%s%d%s%s%s",
-		"8 lines to stderr (first 5 numbered)\n",
+		"8 lines to stderr (first 4 numbered, #3 repeated)\n",
 		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER ? 1 :
 		file_versions > 0 ? file_versions + 1 : FILE_VERSIONS + 1,
-		" /tmp/test_log* files, and\n",
+		" /tmp/test_log files, and\n",
 		"2 lines to syslog\n",
 		"lines ending with exclamation marks are errors\n\n");
 
@@ -143,7 +143,8 @@ main (int argc, char **argv) {
 	CHECK_ISC(isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
 					ISC_LOG_DYNAMIC, &destination,
 					ISC_LOG_PRINTTIME|
-					ISC_LOG_PRINTLEVEL));
+					ISC_LOG_PRINTLEVEL|
+					ISC_LOG_DEBUGONLY));
 
 	/*
 	 * Test the usability of the four predefined logging channels.
@@ -190,12 +191,10 @@ main (int argc, char **argv) {
 
 	/*
 	 * Write to default_syslog, default_stderr and default_debug.
-	 * default_debug should end up not be used, because it has the
-	 * ISC_LOG_DEBUGONLY flag set, and the debug level is not set.
 	 */
 	isc_log_write(lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_WARNING, "%s (%d)",
-		      "Using the predefined channels to send to syslog+stderr",
+		      ISC_LOG_WARNING, "%s (%d twice)",
+		      "Using the predefined channels to syslog+stderr",
 		      stderr_line++);
 
 	/*
@@ -264,6 +263,10 @@ main (int argc, char **argv) {
 	/*
 	 * Write debugging messages to a dynamic debugging channel.
 	 */
+	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
+		      ISC_LOG_CRITICAL, "This critical message should "
+		      "not appear because the debug level is 0!");
+
 	isc_log_setdebuglevel(lctx, 3);
 
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
@@ -272,16 +275,6 @@ main (int argc, char **argv) {
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		      ISC_LOG_DEBUG(5),
 		      "This debug level is too high and should not appear!");
-
-	/*
-	 * Test the ISC_LOG_DEBUGONLY feature of default_debug.
-	 */
-	CHECK_ISC(isc_log_usechannel(lcfg, "default_debug",
-				     DNS_LOGCATEGORY_RESOLVER, NULL));
-	isc_log_write(lctx, DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_WARNING, "%s (%d)",
-		      "Dynamic debugging with default_debug to stderr",
-		      stderr_line++);
 
 	/*
 	 * Test out the duplicate filtering using the debug_test channel.
