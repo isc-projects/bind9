@@ -299,7 +299,8 @@ A: (BIND 9.3 and later) Use TSIG to select the appropriate view.
 		...
 	};
 
-Q. I have Freebsd 4.4 and "rndcconfgen -a" just sits there.
+
+Q: I have Freebsd 4.4 and "rndcconfgen -a" just sits there.
 
 A: /dev/random is not configured.  Use rndcontrol(8) to tell the kernel
 to use certian interupts as a source of random events.  You can make this
@@ -308,3 +309,15 @@ permanent by setting rand_irqs in /etc/rc.conf.
 e.g.
 	/etc/rc.conf
 	rand_irqs="3 14 15"
+
+
+Q: Why is named listening on UDP port other than 53?
+
+A: Named uses a system selected port to make queries of other nameservers.
+This behaviour can be overridden by using query-source to lock down the
+port and/or address.
+
+The reason for this behaviour was to correct the mis-perception of firewall
+designers that they only had to allow queries from other nameservers (port
+53) and not ordinary DNS clients.  Named acts like any other DNS client
+when making queries.  Firewall designers have learnt their lesson.
