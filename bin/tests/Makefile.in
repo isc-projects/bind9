@@ -51,6 +51,8 @@ XTARGETS =	adb_test \
 		gxba_test \
 		gxbn_test \
 		inter_test \
+		keysettool \
+		keysigner \
 		lex_test \
 		lfsr_test \
 		log_test \
@@ -92,6 +94,8 @@ SRCS =		adb_test.c \
 		gxbn_test.c \
 		inter_test.c \
 		keygen.c \
+		keysettool.c \
+		keysigner.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
@@ -144,6 +148,14 @@ signer: signer.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 keygen: keygen.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keygen.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+keysettool: keysettool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keysettool.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+keysigner: keysigner.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keysigner.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 byaddr_test: byaddr_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

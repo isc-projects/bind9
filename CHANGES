@@ -1,3 +1,5 @@
+ 107.   [func]		Add keysigner and keysettool
+
  106.   [func]		Allow dnssec verifications to ignore the validity
 			period.  Used by several of the dnssec tools.
 
