@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.44 2000/02/24 14:48:19 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.45 2000/02/24 18:44:16 gson Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2196,7 +2196,7 @@ server_info: L_BOGUS yea_or_nay
 		}
 	}
 	| L_KEYS key_value {
-		dns_peer_t *peer;
+		dns_peer_t *peer = NULL;
 		dns_name_t *name = NULL;
 
 		/* XXX need to validate key exists */
