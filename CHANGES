@@ -1,3 +1,7 @@
+ 979.	[func]		Incremental master file dumping.  dns_master_dumpinc(),
+			dns_master_dumptostreaminc(), dns_dumpctx_attach(),
+			dns_dumpctx_detach() and dns_dumpctx_cancel().
+
  978.	[bug]		dns_db_attachversion() had an invalid REQUIRE()
 			condition.
 
