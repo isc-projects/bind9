@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.27 2000/12/01 01:22:42 marka Exp $ */
+/* $Id: rdataslab.c,v 1.28 2000/12/06 22:19:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -244,8 +244,6 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 
 	REQUIRE(tslabp != NULL && *tslabp == NULL);
 	REQUIRE(oslab != NULL && nslab != NULL);
-	REQUIRE((flags & (DNS_RDATASLAB_FORCE|DNS_RDATASLAB_EXACT)) !=
-		(DNS_RDATASLAB_FORCE|DNS_RDATASLAB_EXACT));
 
 	ocurrent = oslab + reservelen;
 	ocount = *ocurrent++ * 256;

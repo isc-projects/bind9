@@ -1,4 +1,7 @@
 
+ 596.	[bug]		DNS_RDATASLAB_FORCE and DNS_RDATASLAB_EXACT are
+			not mutually exclusive.
+
  595.	[port]		On Linux 2.2, socket() returns EINVAL when it
 			should return EAFNOSUPPORT.  Work around this.
 			[RT #531]

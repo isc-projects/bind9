@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.h,v 1.18 2000/12/01 01:22:45 marka Exp $ */
+/* $Id: rdataslab.h,v 1.19 2000/12/06 22:19:05 bwelling Exp $ */
 
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
@@ -102,8 +102,6 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int flags, unsigned char **tslabp);
 /*
  * Merge 'oslab' and 'nslab'.
- *
- * DNS_RDATASLAB_FORCE and DNS_RDATASLAB_EXACT are mutually exclusive.
  */
 
 isc_result_t
