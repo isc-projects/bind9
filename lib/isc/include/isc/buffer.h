@@ -49,6 +49,24 @@
  * is empty.  If the current offset advances beyond the chosen offset, the
  * active region will also be empty.
  *
+ *  /----- used region -----\/-- available --\
+ *  +----------------------------------------+
+ *  | consumed  | remaining |                |
+ *  +----------------------------------------+
+ *  a           b     c     d                e
+ *
+ * a == base of buffer.
+ * b == current pointer.  Can be anywhere between a and d.
+ * c == active pointer.  Meaningful between b and d.
+ * d == used pointer.
+ * e == length of buffer.
+ *
+ * a-e == entire (length) of buffer.
+ * a-d == used region.
+ * a-b == consumed region.
+ * b-d == remaining region.
+ * b-c == optional active region.
+ *
  * The following invariants are maintained by all routines:
  *
  *	length > 0
@@ -60,6 +78,7 @@
  *	0 <= current <= used
  *
  *	0 <= active <= used
+ *	(although active < current implies empty active region)
  *
  * MP:
  *	Buffers have no synchronization.  Clients must ensure exclusive
@@ -69,7 +88,7 @@
  *	No anticipated impact.
  *
  * Resources:
- *	Memory: 2 pointers + 2 unsigned integers per buffer.
+ *	Memory: 1 pointer + 6 unsigned integers per buffer.
  *
  * Security:
  *	No anticipated impact.
@@ -83,6 +102,8 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/list.h>
+#include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/int.h>
 
@@ -115,11 +136,57 @@ typedef struct isc_buffer {
 	unsigned int 	active;
 } isc_buffer_t;
 
+/*
+ * A handy thing to have, linkable buffers with built-in storage.  These
+ * are allocated and freed with the isc_dynbuffer_alloc() and _free()
+ * functions below.  These function should _ALWAYS_ be used to create these
+ * dynbuffers.  The link is initialized on allocation and is solely for the
+ * caller to use.
+ */
+typedef struct isc_dynbuffer isc_dynbuffer_t;
+struct isc_dynbuffer {
+	unsigned int			magic;
+	isc_buffer_t			buffer;
+	ISC_LINK(isc_dynbuffer_t)	link;
+};  /* variable sized */
 
 /***
  *** Functions
  ***/
 
+isc_result_t
+isc_dynbuffer_allocate(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer,
+		       unsigned int length, unsigned int type);
+/*
+ * Allocate a dynamic linkable buffer which has "length" bytes in the
+ * data region.
+ *
+ * Requires:
+ *	"mctx" is valid.
+ *
+ *	"dynbuffer" is non-NULL, and "*dynbuffer" is NULL.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		- success
+ *	ISC_R_NOMEMORY		- no memory available
+ */
+
+void
+isc_dynbuffer_free(isc_mem_t *mctx, isc_dynbuffer_t **dynbuffer);
+/*
+ * Release resources allocated for a dynamic buffer.
+ *
+ * Requires:
+ *	"dynbuffer" is not NULL.
+ *
+ *	"*dynbuffer" is a valid dynamic buffer.
+ *
+ *	"mctx" is valid.
+ *
+ * Ensures:
+ *	"*dynbuffer" will be NULL on return, and all memory associated with
+ *	the dynamic buffer is returned to memory context "mctx".
+ */
 
 void
 isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
