@@ -42,53 +42,15 @@
 #define ZONE_FREE_MAGIC 0x0
 
 
-
-/* This structure contains all the run-time information about a zone. */
-struct zoneinfo 
-{
-	char		*origin;	/* name of zone */
-	time_t		filemodtime;	/* mod time of zone file */
-	char		*source;	/* where zone data came from */
-
-#if 0
-	dns_db_t	what_am_i;	/* XXX unknown thing... */
-#endif
-	
-	time_t		lastupdate;	/* time last soa serial increment */
-	u_int32_t	refresh;	/* refresh interval */
-	u_int32_t	retry;		/* refresh retry interval */
-	u_int32_t	expire;		/* expiration time for cached info */
-	u_int32_t	minimum;	/* minimum TTL value */
-	u_int32_t	serial;		/* SOA serial number */
-
-	u_int		options;	/* zone specific options */
-	int		zoneclass;	/* zone class type */
-
-	int32_t		magic;		/* private magic stamp for valid'ng */
-
-	struct zonectx	*zctx;		/* contect zone came from. */
-	
-	ISC_LINK(struct zoneinfo) chainlink;
-};
-
-
-/* This structure contains context information about a set of
-   zones. Presumamable there'd only be one of these passed around the
-   various threads, but separating out zones might be useful in some way */
-struct zonectx 
-{
-	ISC_LIST(zoneinfo_t) 	freezones;
-	ISC_LIST(zoneinfo_t) 	usedzones;
-
-	isc_mem_t		*memctx; /* where we get all our memory from */
-};
-
+static isc_result_t set_string(char **string, size_t *len,
+			       const char *source, isc_mem_t *mem);
 
 
 
 isc_result_t
-new_zonecontext(isc_mem_t *memctx, zonectx_t **zctx) {
-	zonectx_t *zc ;
+isc_zone_newcontext(isc_mem_t *memctx, isc_zonectx_t **zctx)
+{
+	isc_zonectx_t *zc ;
 	
 	INSIST(zctx != NULL);
 	INSIST(memctx != NULL);
@@ -105,9 +67,23 @@ new_zonecontext(isc_mem_t *memctx, zonectx_t **zctx) {
 }
 	
 
+isc_result_t
+isc_zone_freecontext(isc_zonectx_t *zonectx)
+{
+	isc_zoneinfo_t *zi ;
+
+	zi = ISC_LIST_HEAD(zonectx->freezones) ;
+	while (zi != NULL ) {
+		isc_zone_release_zone(zi);
+	}
+	
+	return (ISC_R_SUCCESS);	
+}
+
 isc_result_t 
-new_zone(zonectx_t *zctx, zoneinfo_t **zone) {
-	struct zoneinfo *zp;
+isc_zone_newinfo(isc_zonectx_t *zctx, isc_zoneinfo_t **zone)
+{
+	struct isc_zoneinfo *zp;
 
 	INSIST(zctx != NULL);
 	INSIST(zone != NULL);
@@ -144,7 +120,8 @@ new_zone(zonectx_t *zctx, zoneinfo_t **zone) {
 
 
 isc_result_t
-free_zone(zoneinfo_t *zone) {
+isc_zone_freezone(isc_zoneinfo_t *zone)
+{
 	INSIST(zone != NULL);
 	INSIST(zone->magic == ZONE_USED_MAGIC);
 	INSIST(zone->zctx != NULL);
@@ -157,235 +134,65 @@ free_zone(zoneinfo_t *zone) {
 }
 
 
+isc_result_t
+isc_zone_release_zone(isc_zoneinfo_t *zone)
+{
+	isc_mem_put(zone->zctx->memctx, zone, sizeof *zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+isc_zone_setsource(isc_zoneinfo_t *zone, const char *source)
+{
+	INSIST(zone != NULL);
+	INSIST(source != NULL);
+	INSIST(strlen(source) > 0);
+
+	return (set_string(&zone->source, &zone->sourcelen,
+			   source, zone->zctx->memctx));
 	
-isc_result_t	zone_setorigin(zoneinfo_t *zone, char *origin)
-{
-	(void) zone;
-	(void) origin;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getorigin(zoneinfo_t *zone, char **origin)
-{
-	(void) zone;
-	(void) origin;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
 }
 
 
-isc_result_t	zone_setfilemodtime(zoneinfo_t *zone, time_t ftime)
+isc_result_t
+isc_zone_setorigin(isc_zoneinfo_t *zone, const char *source)
 {
-	(void) zone;
-	(void) ftime;
+	INSIST(zone != NULL);
+	INSIST(source != NULL);
+	INSIST(strlen(source) > 0);
 
-  /* XXX fill this in */
+	return (set_string(&zone->origin, &zone->originlen,
+			   source, zone->zctx->memctx));
+}	
 
-	return ISC_R_SUCCESS;
-}
 
-isc_result_t	zone_getfilemodtime(zoneinfo_t *zone, time_t *ftime)
+
+static isc_result_t
+set_string(char **string, size_t *len, const char *source, isc_mem_t *mem)
 {
-	(void) zone;
-	(void) ftime;
+	INSIST(string != NULL);
+	INSIST(len != 0);
+	INSIST(mem != NULL);
+	
+	if (*len > 0 && *len <= strlen(source)) {
+		isc_mem_put(mem, *string, *len);
+		*len = 0;
+		*string = NULL;
+	}
 
-  /* XXX fill this in */
+	if (*len == 0) {
+		size_t need = strlen(source) + 1;
 
-	return ISC_R_SUCCESS;
+		*string = isc_mem_get(mem, need);
+		if (*string == NULL) {
+			return (ISC_R_NOMEMORY);
+		}
+	}
+
+	strcpy (*string, source);
+
+	return (ISC_R_SUCCESS);
 }
-
-
-isc_result_t	zone_setsource(zoneinfo_t *zone, char *source)
-{
-	(void) zone;
-	(void) source;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getsource(zoneinfo_t *zone, char **source)
-{
-	(void) zone;
-	(void) source;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setlastupdate(zoneinfo_t *zone, time_t lastupdate)
-{
-	(void) zone;
-	(void) lastupdate;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getlastupdate(zoneinfo_t *zone, time_t *lastupdate)
-{
-	(void) zone;
-	(void) lastupdate;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setrefresh(zoneinfo_t *zone, u_int32_t refresh)
-{
-	(void) zone;
-	(void) refresh;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getrefresh(zoneinfo_t *zone, u_int32_t *refresh)
-{
-	(void) zone;
-	(void) refresh;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setretry(zoneinfo_t *zone, u_int32_t retry)
-{
-	(void) zone;
-	(void) retry;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getretry(zoneinfo_t *zone, u_int32_t *retry)
-{
-	(void) zone;
-	(void) retry;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setexpire(zoneinfo_t *zone, u_int32_t expire)
-{
-	(void) zone;
-	(void) expire;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getexpire(zoneinfo_t *zone, u_int32_t *expire)
-{
-	(void) zone;
-	(void) expire;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setminimum(zoneinfo_t *zone, u_int32_t minimum)
-{
-	(void) zone;
-	(void) minimum;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getminimum(zoneinfo_t *zone, u_int32_t *minimum)
-{
-	(void) zone;
-	(void) minimum;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setserial(zoneinfo_t *zone, u_int32_t serial)
-{
-	(void) zone;
-	(void) serial;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getserial(zoneinfo_t *zone, u_int32_t *serial)
-{
-	(void) zone;
-	(void) serial;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setoptions(zoneinfo_t *zone, u_int options)
-{
-	(void) zone;
-	(void) options;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getoptions(zoneinfo_t *zone, u_int *options)
-{
-	(void) zone;
-	(void) options;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-
-isc_result_t	zone_setzoneclass(zoneinfo_t *zone, int zclass)
-{
-	(void) zone;
-	(void) zclass;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
-isc_result_t	zone_getzoneclass(zoneinfo_t *zone, int *zclass)
-{
-	(void) zone;
-	(void) zclass;
-
-  /* XXX fill this in */
-
-	return ISC_R_SUCCESS;
-}
-
 

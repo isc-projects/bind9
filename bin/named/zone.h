@@ -15,6 +15,9 @@
  * SOFTWARE.
  */
 
+#if ! defined(ZONE_H)
+#define ZONE_H
+
 #include <config.h>
 
 #include <sys/types.h>
@@ -23,66 +26,87 @@
 #include <isc/result.h>
 #include <isc/mem.h>
 
+#include <dns/types.h>
+
 /* Zone context structures contain a set of zones and related information
    (like isc_mem_t contexts to allocate memory from). */
-typedef struct zonectx zonectx_t;
+typedef struct isc_zonectx isc_zonectx_t;
 
 /* The zone. All access is through function API */
-typedef struct zoneinfo zoneinfo_t;
+typedef struct isc_zoneinfo isc_zoneinfo_t;
+
+
+typedef enum {
+  zone_master, zone_slave, zone_hint, zone_stub, zone_forward
+} isc_zonet_t ;
+  
+
+/* This structure contains all the run-time information about a zone. */
+struct isc_zoneinfo 
+{
+	int32_t		magic;		/* private magic stamp for valid'ng */
+
+	size_t		originlen;
+	char		*origin;	/* name of zone */
+
+	size_t		sourcelen;
+	char		*source;	/* where zone data came from */
+
+	isc_zonet_t	type;		/* master, slave etc. */
+	
+	dns_db_t	*thedb;
+
+
+	/* The rest below aren't implmented yet */
+
+	time_t		filemodtime;	/* mod time of zone file */
+	time_t		lastupdate;	/* time last soa serial increment */
+	u_int32_t	refresh;	/* refresh interval */
+	u_int32_t	retry;		/* refresh retry interval */
+	u_int32_t	expire;		/* expiration time for cached info */
+	u_int32_t	minimum;	/* minimum TTL value */
+	u_int32_t	serial;		/* SOA serial number */
+
+	u_int		options;	/* zone specific options */
+	int		zoneclass;	/* zone class type */
+
+	struct isc_zonectx	*zctx;		/* contect zone came from. */
+	
+	ISC_LINK(struct isc_zoneinfo) chainlink;
+};
+
+
+/* This structure contains context information about a set of
+   zones. Presumamable there'd only be one of these passed around the
+   various threads, but separating out zones might be useful in some way */
+struct isc_zonectx 
+{
+	ISC_LIST(isc_zoneinfo_t) 	freezones;
+	ISC_LIST(isc_zoneinfo_t) 	usedzones;
+
+	isc_mem_t		*memctx; /* where we get all our memory from */
+};
+
 
 
 /* Allocate a zone context from the memctx pool. All zone-private data
  * structures will be will be made from that same pool.
  */
-isc_result_t	new_zonecontext(isc_mem_t *memctx, zonectx_t **ctx);
+isc_result_t	isc_zone_newcontext(isc_mem_t *memctx, isc_zonectx_t **ctx);
 
 /* Allocate a zone from the give zone context. */
-isc_result_t 	new_zone(zonectx_t *zctx, zoneinfo_t **zone);
+isc_result_t 	isc_zone_newinfo(isc_zonectx_t *zctx, isc_zoneinfo_t **zone);
+
+isc_result_t	isc_zone_release_zone(isc_zoneinfo_t *zone);
 
 /* Free up a zone and all associated data structures. The zone knows which
  *zone context to go back to
-*/	
-isc_result_t 	free_zone(zoneinfo_t *zone);
+ */	
+isc_result_t 	isc_zone_freezone(isc_zoneinfo_t *zone);
+isc_result_t	isc_zone_freecontext(isc_zonectx_t *ctx);
+
+isc_result_t    isc_zone_setsource(isc_zoneinfo_t *zone, const char *source);
+isc_result_t	isc_zone_setorigin(isc_zoneinfo_t *zone, const char *origin);
 
 
-/* Misc accessor routines. All returned data is through the parameter
- * lists. Function return values indicates success (or not).  All the set
- * functions copy their arguments so the caller retains ownership of any
- * pointers passed through the API.  All pointers that come back through
- * the API in the get functions (e.g. getorigin and getsource) are still
- * owned by the zoneinfo_t structure and the data they point to must be
- * copied by the caller
- */
-isc_result_t	zone_setorigin(zoneinfo_t *zone, char *origin);
-isc_result_t	zone_getorigin(zoneinfo_t *zone, char **origin);
-
-isc_result_t	zone_setfilemodtime(zoneinfo_t *zone, time_t ftime);
-isc_result_t	zone_getfilemodtime(zoneinfo_t *zone, time_t *ftime);
-
-isc_result_t	zone_setsource(zoneinfo_t *zone, char *source);
-isc_result_t	zone_getsource(zoneinfo_t *zone, char **source);
-
-isc_result_t	zone_setlastupdate(zoneinfo_t *zone, time_t lastupdate);
-isc_result_t	zone_getlastupdate(zoneinfo_t *zone, time_t *lastupdate);
-
-isc_result_t	zone_setrefresh(zoneinfo_t *zone, u_int32_t refresh);
-isc_result_t	zone_getrefresh(zoneinfo_t *zone, u_int32_t *refresh);
-
-isc_result_t	zone_setretry(zoneinfo_t *zone, u_int32_t retry);
-isc_result_t	zone_getretry(zoneinfo_t *zone, u_int32_t *retry);
-
-isc_result_t	zone_setexpire(zoneinfo_t *zone, u_int32_t expire);
-isc_result_t	zone_getexpire(zoneinfo_t *zone, u_int32_t *expire);
-
-isc_result_t	zone_setminimum(zoneinfo_t *zone, u_int32_t minimum);
-isc_result_t	zone_getminimum(zoneinfo_t *zone, u_int32_t *minimum);
-
-isc_result_t	zone_setserial(zoneinfo_t *zone, u_int32_t serial);
-isc_result_t	zone_getserial(zoneinfo_t *zone, u_int32_t *serial);
-
-isc_result_t	zone_setoptions(zoneinfo_t *zone, u_int options);
-isc_result_t	zone_getoptions(zoneinfo_t *zone, u_int *options);
-
-isc_result_t	zone_setzoneclass(zoneinfo_t *zone, int zclass);
-isc_result_t	zone_getzoneclass(zoneinfo_t *zone, int *zclass);
-
+#endif
