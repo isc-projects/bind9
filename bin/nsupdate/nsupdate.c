@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.7 2000/09/15 23:47:14 gson Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.8 2000/09/18 17:51:38 gson Exp $ */
 
 #include <config.h>
 
@@ -108,6 +108,8 @@ static int ns_total = 0;
 static isc_sockaddr_t *userserver = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
+
+extern int h_errno;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;

@@ -1,4 +1,6 @@
 
+ 471.	[bug]		nsupdate didn't compile on HP/UX 10.20
+
 	--- 9.0.0 released ---
 
  463.	[bug]		nsupdate sent malformed SOA queries to the second
