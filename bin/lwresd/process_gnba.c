@@ -41,5 +41,5 @@ process_gnba(client_t *client, lwres_buffer_t *b)
 	lwres_gnbarequest_t *req;
 	lwres_gnbaresponse_t resp;
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return /*XXX (ISC_R_NOTIMPLEMENTED)*/;
 }

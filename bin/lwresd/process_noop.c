@@ -41,5 +41,5 @@ process_noop(client_t *client, lwres_buffer_t *b)
 	lwres_nooprequest_t *req;
 	lwres_noopresponse_t resp;
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return /* XXX (ISC_R_NOTIMPLEMENTED) */;
 }
