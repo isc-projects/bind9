@@ -1,4 +1,7 @@
 
+ 598.	[bug]		An update-policy statement would cause the server
+			to assert while loading. [RT #536]
+
  597.	[func]		dnssec-signzone is now multithreaded.
 
  596.	[bug]		DNS_RDATASLAB_FORCE and DNS_RDATASLAB_EXACT are
