@@ -41,6 +41,7 @@
 #include <named/client.h>
 #include <named/globals.h>
 #include <named/query.h>
+#include <named/xfrout.h>
 
 #include "../../isc/util.h"		/* XXX */
 
@@ -1225,10 +1226,8 @@ ns_query_start(ns_client_t *client) {
 				break; /* Let query_find handle it. */
 			case dns_rdatatype_ixfr:
 			case dns_rdatatype_axfr:
-#ifdef notyet
 				ns_xfr_start(client, rdataset->type);
 				return;
-#endif
 			case dns_rdatatype_maila:
 			case dns_rdatatype_mailb:
 				ns_client_error(client, DNS_R_NOTIMP);
