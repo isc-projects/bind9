@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.7 2000/10/04 23:19:01 bwelling Exp $ */
+/* $Id: lwresd.h,v 1.8 2000/10/24 04:27:24 bwelling Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1
@@ -33,6 +33,8 @@ struct ns_lwresd {
 	ISC_LIST(ns_lwdclientmgr_t) cmgrs;
 	isc_socket_t *sock;
 	dns_view_t *view;
+	ns_lwsearchlist_t *search;
+	unsigned int ndots;
 	isc_mem_t *mctx;
 	isc_boolean_t shutting_down;
 };

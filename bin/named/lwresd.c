@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.20 2000/10/20 02:21:38 marka Exp $ */
+/* $Id: lwresd.c,v 1.21 2000/10/24 04:27:25 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -55,6 +55,7 @@
 #include <named/log.h>
 #include <named/lwresd.h>
 #include <named/lwdclient.h>
+#include <named/lwsearch.h>
 #include <named/server.h>
 #include <named/os.h>
 
@@ -76,6 +77,8 @@ struct ns_lwreslistener {
 	isc_sockaddr_t			address;
 	ns_lwresd_t			*manager;
 	dns_view_t			*view;
+	ns_lwsearchlist_t		*search;
+	unsigned int			ndots;
 	LINK(ns_lwreslistener_t)        link;
 };
 
@@ -124,6 +127,8 @@ ns__lwresd_destroy(ns_lwresd_t *lwresd) {
 
 	isc_socket_detach(&lwresd->sock);
 	dns_view_detach(&lwresd->view);
+	if (lwresd->search != NULL)
+		ns_lwsearchlist_detach(&lwresd->search);
 
 	mctx = lwresd->mctx;
 
@@ -144,6 +149,8 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	dns_c_iplist_t *locallist = NULL;
 	dns_c_lwreslist_t *lwreslist = NULL;
 	dns_c_lwres_t *lwres = NULL;
+	dns_c_search_t *search = NULL;
+	dns_c_searchlist_t *searchlist = NULL;
 	isc_result_t result;
 	lwres_result_t lwresult;
 	struct in_addr localhost;
@@ -169,46 +176,68 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	/*
 	 * Build the list of forwarders.
 	 */
-	result = dns_c_iplist_new(mctx, lwc->nsnext, &forwarders);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	if (ns_g_port != 0)
-		port = ns_g_port;
-	else
-		port = 53;
-
-	for (i = 0 ; i < lwc->nsnext ; i++) {
-		if (lwc->nameservers[i].family != LWRES_ADDRTYPE_V4 &&
-		    lwc->nameservers[i].family != LWRES_ADDRTYPE_V6)
-			continue;
-
-		if (lwc->nameservers[i].family == LWRES_ADDRTYPE_V4) {
-			struct in_addr ina;
-			memcpy(&ina.s_addr, lwc->nameservers[i].address, 4);
-			isc_sockaddr_fromin(&sa, &ina, port);
-		} else {
-			struct in6_addr ina6;
-			memcpy(&ina6.s6_addr, lwc->nameservers[i].address, 16);
-			isc_sockaddr_fromin6(&sa, &ina6, port);
-		}
-#ifndef NOMINUM_PUBLIC
-		result = dns_c_iplist_append(forwarders, sa, NULL);
-#else /* NOMINUM_PUBLIC */
-		result = dns_c_iplist_append(forwarders, sa);
-#endif /* NOMINUM_PUBLIC */
+	if (lwc->nsnext > 0) {
+		result = dns_c_iplist_new(mctx, lwc->nsnext, &forwarders);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+
+		if (ns_g_port != 0)
+			port = ns_g_port;
+		else
+			port = 53;
+
+		for (i = 0 ; i < lwc->nsnext ; i++) {
+			if (lwc->nameservers[i].family != LWRES_ADDRTYPE_V4 &&
+			    lwc->nameservers[i].family != LWRES_ADDRTYPE_V6)
+				continue;
+	
+			if (lwc->nameservers[i].family == LWRES_ADDRTYPE_V4) {
+				struct in_addr ina;
+				memcpy(&ina.s_addr,
+				       lwc->nameservers[i].address, 4);
+				isc_sockaddr_fromin(&sa, &ina, port);
+			} else {
+				struct in6_addr ina6;
+				memcpy(&ina6.s6_addr,
+				       lwc->nameservers[i].address, 16);
+				isc_sockaddr_fromin6(&sa, &ina6, port);
+			}
+#ifndef NOMINUM_PUBLIC
+			result = dns_c_iplist_append(forwarders, sa, NULL);
+#else /* NOMINUM_PUBLIC */
+			result = dns_c_iplist_append(forwarders, sa);
+#endif /* NOMINUM_PUBLIC */
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+		}
+	
+		if (forwarders->nextidx != 0) {
+			result = dns_c_ctx_setforwarders(ctx, ISC_FALSE,
+							 forwarders);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+			forwarders = NULL;
+			result = dns_c_ctx_setforward(ctx, dns_c_forw_first);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+		}
 	}
 
-	if (forwarders->nextidx != 0) {
-		result = dns_c_ctx_setforwarders(ctx, ISC_FALSE, forwarders);
+	/*
+	 * Build the search path
+	 */
+	if (lwc->searchnxt > 0) {
+		result = dns_c_searchlist_new(mctx, &searchlist);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		forwarders = NULL;
-		result = dns_c_ctx_setforward(ctx, dns_c_forw_first);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		for (i = 0; i < lwc->searchnxt; i++) {
+			search = NULL;
+			result = dns_c_search_new(mctx, lwc->search[i],
+						  &search);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+			dns_c_searchlist_append(searchlist, search);
+		}
 	}
 
 	result = dns_c_lwreslist_new(mctx, &lwreslist);
@@ -261,6 +290,15 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 		goto cleanup;
 	dns_c_iplist_detach(&locallist);
 
+	result = dns_c_lwres_setsearchlist(lwres, searchlist);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	searchlist = NULL;
+
+	result = dns_c_lwres_setndots(lwres, lwc->ndots);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
 	result = dns_c_lwreslist_append(lwreslist, lwres);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -281,6 +319,8 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 			dns_c_iplist_detach(&forwarders);
 		if (locallist != NULL)
 			dns_c_iplist_detach(&locallist);
+		if (searchlist != NULL)
+			dns_c_searchlist_delete(&searchlist);
 		if (lwres != NULL)
 			dns_c_lwres_delete(&lwres);
 		if (lwreslist != NULL)
@@ -297,18 +337,17 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 }
 
 static isc_result_t
-lwresd_create(isc_mem_t *mctx, dns_view_t *view,
-	      isc_sockaddr_t *address, ns_lwresd_t **lwresdp) {
+lwresd_create(ns_lwreslistener_t *listener, ns_lwresd_t **lwresdp)
+{
 	ns_lwresd_t *lwresd;
 	unsigned int i;
 	ns_lwdclientmgr_t *cm;
 	isc_socket_t *sock;
 	isc_result_t result;
 
-	REQUIRE(view != NULL);
-
 	sock = NULL;
-	result = isc_socket_create(ns_g_socketmgr, isc_sockaddr_pf(address),
+	result = isc_socket_create(ns_g_socketmgr,
+				   isc_sockaddr_pf(&listener->address),
 				   isc_sockettype_udp, &sock);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
@@ -318,15 +357,15 @@ lwresd_create(isc_mem_t *mctx, dns_view_t *view,
 		return (result);
 	}
 
-	if (isc_sockaddr_getport(address) == 0) {
+	if (isc_sockaddr_getport(&listener->address) == 0) {
 		in_port_t port;
 		port = lwresd_g_listenport;
 		if (port == 0)
 			port = LWRES_UDP_PORT;
-		isc_sockaddr_setport(address, port);
+		isc_sockaddr_setport(&listener->address, port);
 	}
 
-	result = isc_socket_bind(sock, address);
+	result = isc_socket_bind(sock, &listener->address);
 	if (result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
@@ -336,7 +375,7 @@ lwresd_create(isc_mem_t *mctx, dns_view_t *view,
 		return (result);
 	}
 
-	lwresd = isc_mem_get(mctx, sizeof(*lwresd));
+	lwresd = isc_mem_get(listener->mctx, sizeof(*lwresd));
 	if (lwresd == NULL) {
 		isc_socket_detach(&sock);
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
@@ -346,15 +385,19 @@ lwresd_create(isc_mem_t *mctx, dns_view_t *view,
 	}
 
 	lwresd->mctx = NULL;
-	isc_mem_attach(mctx, &lwresd->mctx);
+	isc_mem_attach(listener->mctx, &lwresd->mctx);
 
 	RUNTIME_CHECK(isc_mutex_init(&lwresd->lock) == ISC_R_SUCCESS);
 
 	lwresd->shutting_down = ISC_FALSE;
 	lwresd->sock = sock;
 	lwresd->view = NULL;
+	lwresd->search = NULL;
 	ISC_LIST_INIT(lwresd->cmgrs);
-	dns_view_attach(view, &lwresd->view);
+	dns_view_attach(listener->view, &lwresd->view);
+	if (listener->search != NULL)
+		ns_lwsearchlist_attach(listener->search, &lwresd->search);
+	lwresd->ndots = listener->ndots;
 
 	/*
 	 * Create the managers.
@@ -390,6 +433,8 @@ free_listener(ns_lwreslistener_t **listenerp) {
 
 	if (listener->view != NULL)
 		dns_view_detach(&listener->view);
+	if (listener->search != NULL)
+		ns_lwsearchlist_detach(&listener->search);
 	if (listener->manager != NULL)
 		lwresd_shutdown(&listener->manager);
 
@@ -403,8 +448,7 @@ lwres_listen(ns_lwreslistener_t *listener) {
 
 	REQUIRE(listener->manager == NULL);
 
-	result = lwresd_create(listener->mctx, listener->view,
-			       &listener->address, &listener->manager);
+	result = lwresd_create(listener, &listener->manager);
 
 	return (result);
 }
@@ -470,6 +514,7 @@ add_listener(isc_mem_t *mctx, ns_lwreslistener_t **listenerp,
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_view_t *view;
 	const char *vname;
+	dns_c_search_t *search;
 
 	listener = isc_mem_get(mctx, sizeof(ns_lwreslistener_t));
 	if (listener == NULL)
@@ -498,6 +543,57 @@ add_listener(isc_mem_t *mctx, ns_lwreslistener_t **listenerp,
 	}
 	dns_view_attach(view, &listener->view);
 	dns_view_detach(&view);
+
+	listener->search = NULL;
+	if (lwres->searchlist != NULL) {
+		listener->search = NULL;
+		result = ns_lwsearchlist_create(mctx, &listener->search);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_LWRESD, ISC_LOG_WARNING,
+				      "couldn't create searchlist");
+			return;
+		}
+		listener->ndots = lwres->ndots;
+		for (search = ISC_LIST_HEAD(lwres->searchlist->searches);
+		     search != NULL;
+		     search = ISC_LIST_NEXT(search, next))
+		{
+			isc_buffer_t namebuf;
+			dns_fixedname_t fname;
+			dns_name_t *name;
+
+			dns_fixedname_init(&fname);
+			name = dns_fixedname_name(&fname);
+			isc_buffer_init(&namebuf, search->search,
+					strlen(search->search));
+			isc_buffer_add(&namebuf, strlen(search->search));
+			result = dns_name_fromtext(name, &namebuf,
+						   dns_rootname, ISC_FALSE,
+						   NULL);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_LWRESD,
+					      ISC_LOG_WARNING,
+					      "invalid name %s in searchlist",
+					      search->search);
+				continue;
+			}
+
+			result = ns_lwsearchlist_append(listener->search,
+							name);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_LWRESD,
+					      ISC_LOG_WARNING,
+					      "couldn't create searchlist");
+				ns_lwsearchlist_detach(&listener->search);
+				return;
+			}
+		}
+	}
 
 	if (result == ISC_R_SUCCESS)
 		result = lwres_listen(listener);
