@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.10.2.1 2000/06/28 16:33:42 tale Exp $
+# $Id: Makefile.in,v 1.10.2.2 2000/08/08 00:17:59 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -67,6 +67,7 @@ installdirs:
 		mkdir ${DESTDIR}${bindir}; \
 	fi
 
-install:: dig host installdirs
+install:: dig host nslookup installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${bindir}
 	${LIBTOOL} ${INSTALL_PROGRAM} host ${DESTDIR}${bindir}
+	${LIBTOOL} ${INSTALL_PROGRAM} nslookup ${DESTDIR}${bindir}
