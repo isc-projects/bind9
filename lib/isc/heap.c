@@ -29,6 +29,7 @@
 
 #include <isc/heap.h>
 #include <isc/mem.h>
+#include <isc/string.h>		/* Required for memcpy. */
 #include <isc/util.h>
 
 /*
