@@ -1,6 +1,9 @@
 
 	--- 9.2.0rc6 released ---
 
+1031.	[bug]		libbind.a: isc__gettimeofday() infinite recursion.
+			[RT #1858]
+
 1030.	[bug]		On systems with no resolv.conf file, nsupdate
 			exited with an error rather than defaulting
 			to using the loopback address. [RT #1836]
