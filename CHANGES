@@ -1,4 +1,4 @@
-1454.	[bug]		inet_pton() failed to reject certian malformed
+1460.	[bug]		inet_pton() failed to reject certian malformed
 			IPv6 literals.
 
 1459.	[placeholder]
