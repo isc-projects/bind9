@@ -19,9 +19,6 @@
 
 #include <stdio.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
@@ -33,7 +30,8 @@
 static void
 print_lock(char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	fprintf(stderr,
-		"%s(%s): %s, %u active, %u granted, %u rwaiting, %u wwaiting\n",
+		"%s(%s): %s, %u active, %u granted, "
+		"%u rwaiting, %u wwaiting\n",
 		operation, (type == isc_rwlocktype_read ? "read" : "write"),
 	        (rwl->type == isc_rwlocktype_read ? "reading" : "writing"),
 	        rwl->active, rwl->granted, rwl->readers_waiting,
