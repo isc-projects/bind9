@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: release,v 1.9 2000/06/23 03:16:24 tale Exp $
+$Id: release,v 1.10 2000/07/10 16:16:25 gson Exp $
 
 Preparing a bind9 release
 
@@ -36,13 +36,14 @@ release.
      subdirectory internally.
 
      $ make distclean
-     $ util/merge_copyrights
+     ... [I prefer to check out a fresh source tree --gson]
+     $ perl util/merge_copyrights
      $ diff util/copyrights util/newcopyrights
      ... examine output, particularly any files with the "?" type, and
      ... then edit util/newcopyrights if necessary
      $ mv util/newcopyrights util/copyrights
      $ cvs ci -m'merge_copyrights' util/copyrights
-     $ util/update_copyrights < util/copyrights
+     $ perl util/update_copyrights < util/copyrights
      $ cvs diff
      ... examine output, edit as necessary.  mail me about anything that
      ... the script should have been able to do itself. :-)
@@ -61,10 +62,15 @@ release.
       recursive query
       exit cleanly with no leaks
 
- - On a system with gcc, run
+ - Do a test build using a separate build directory and libtool
 
-      find lib -name '*.h' -print | xargs util/check-includes.pl
-      util/check-instincludes.sh
+ - Run
+
+      find lib -name '*.h' -print | xargs perl util/check-includes.pl
+
+ -  On a system using gcc, do a "make install" and then
+
+      util/check-instincludes.sh $prefix
 
  - On selected platforms, do more detailed tests:
 
@@ -76,29 +82,38 @@ release.
    to the CHANGES file.
 
  - Tag the CVS source tree with the final tag, as in
-   "cvs rtag v9_0_0b3 bind9".
+   "cvs rtag v9_0_0b3 bind9" (mainline) or
+   "cvs rtag -r v9_0 v9_0_0rc1 bind9" (release branch).
 
  - Export the source tree in to a fresh directory by
    running "cvs export", as in "cvs export -rv9_0_0b3 bind9"
 
- - Run "make kit" (actually, "sh configure && make kit").
+ - Build the kit:
+
+	cd bind9
+	sh configure
+	make kit
+
+ - Build bind9 from the kit on at least one machine
+   and test it
+
+ - If problems are found at this stage, fix them, move the
+   release tag up using "rtag -F", and respin the kit.
 
  - Take the resulting distribution files to a secure system 
    and sign them with the ISC signing PGP key:
    "pgp -sba bind-9.0.0b3.tar.gz -u 0x51BAB2ED"
 
- - Change file permissions on the signature file to make sure
-   it is not writable
+ - Fix the perissions permissions on the signature file:
 
- - Build bind9 from the kit on at least one machine
-   and test it
+	chmod 644 bind-9.0.0b3.tar.gz.asc
+
+ - Verify the PGP signature:
+   pgp bind-9.0.0b3.tar.gz.asc bind-9.0.0b3.tar.gz
 
  - Prepare a release announcement based on the previous one
 
  - Prepare new web site information
-
- - Verify the PGP signature:
-   pgp bind-9.0.0b3.tar.gz.asc bind-9.0.0b3.tar.gz
 
  - Copy the distribution and PGP signature files to the FTP site:
 
