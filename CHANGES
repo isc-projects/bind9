@@ -10,7 +10,8 @@
 
 1579.	[placeholder]	rt3746a
 
-1578.	[placeholder]	rt10346
+1578.	[bug]		Don't use CLASS E IPv4 addresses when resolving.
+			[RT #10346]
 
 1577.	[placeholder]	rt10331
 

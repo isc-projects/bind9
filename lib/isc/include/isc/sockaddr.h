@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.40 2003/07/25 02:22:26 marka Exp $ */
+/* $Id: sockaddr.h,v 1.41 2004/02/20 00:52:46 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -171,6 +171,12 @@ isc_boolean_t
 isc_sockaddr_ismulticast(isc_sockaddr_t *sa);
 /*
  * Returns ISC_TRUE if the address is a multicast address.
+ */
+
+isc_boolean_t
+isc_sockaddr_isexperimental(isc_sockaddr_t *sa);
+/*
+ * Returns ISC_TRUE if the address is a experimental (CLASS E) address.
  */
 
 isc_boolean_t

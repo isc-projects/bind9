@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.280 2004/02/03 00:59:05 marka Exp $ */
+/* $Id: resolver.c,v 1.281 2004/02/20 00:52:45 marka Exp $ */
 
 #include <config.h>
 
@@ -2025,6 +2025,9 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 	} else if (isc_sockaddr_ismulticast(sa)) {
 		addr->flags |= FCTX_ADDRINFO_MARK;
 		msg = "ignoring multicast address: ";
+	} else if (isc_sockaddr_isexperimental(sa)) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring experimental address: ";
 	} else if (sa->type.sa.sa_family != AF_INET6) {
 		return;
 	} else if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {

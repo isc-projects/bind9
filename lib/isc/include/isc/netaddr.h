@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.23 2002/10/28 02:16:20 marka Exp $ */
+/* $Id: netaddr.h,v 1.24 2004/02/20 00:52:46 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -117,6 +117,12 @@ isc_boolean_t
 isc_netaddr_ismulticast(isc_netaddr_t *na);
 /*
  * Returns ISC_TRUE if the address is a multicast address.
+ */
+
+isc_boolean_t
+isc_netaddr_isexperimental(isc_netaddr_t *na);
+/*
+ * Returns ISC_TRUE if the address is a experimental (CLASS E) address.
  */
 
 isc_boolean_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.37 2003/01/16 03:59:27 marka Exp $ */
+/* $Id: net.h,v 1.38 2004/02/20 00:52:46 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -229,6 +229,10 @@ typedef isc_uint16_t in_port_t;
 #define ISC_IPADDR_ISMULTICAST(i) \
 		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
 		 == ISC__IPADDR(0xe0000000))
+
+#define ISC_IPADDR_ISEXPERIMENTAL(i) \
+		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
+		 == ISC__IPADDR(0xf0000000))
 
 /***
  *** Functions.
