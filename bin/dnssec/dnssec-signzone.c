@@ -1298,6 +1298,8 @@ setup_logging(int level, isc_log_t **logp) {
 	isc_log_setcontext(log);
 	dns_log_init(log);
 	dns_log_setcontext(log);
+
+	isc_log_settag(logconfig, PROGRAM);
 	
 	/*
 	 * Set up a channel similar to default_stderr except:
@@ -1313,9 +1315,9 @@ setup_logging(int level, isc_log_t **logp) {
 				       ISC_LOG_TOFILEDESC,
 				       level,
 				       &destination,
-				       ISC_LOG_PRINTLEVEL);
+				       ISC_LOG_PRINTTAG|ISC_LOG_PRINTLEVEL);
 	check_result(result, "isc_log_createchannel()");
-
+	
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
 					 NULL, NULL) == ISC_R_SUCCESS);
 
