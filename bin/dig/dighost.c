@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.175 2001/01/04 18:19:18 mws Exp $ */
+/* $Id: dighost.c,v 1.176 2001/01/08 19:50:32 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1361,7 +1361,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
 			isc_buffer_init(&b, store, MXNAME);
-			fatal("'%s' is not a legal name syntax "
+			fatal("'%s' is not a legal name "
 			      "(%s)", lookup->textname,
 			      dns_result_totext(result));
 		}
