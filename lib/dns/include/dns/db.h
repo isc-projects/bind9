@@ -78,6 +78,8 @@ typedef struct dns_dbmethods {
 					  dns_dbversion_t **versionp);
 	dns_result_t	(*newversion)(dns_db_t *db,
 				      dns_dbversion_t **versionp);
+	void		(*attachversion)(dns_db_t *db, dns_dbversion_t *source,
+					 dns_dbversion_t **targetp);
 	void		(*closeversion)(dns_db_t *db,
 					dns_dbversion_t **versionp,
 					isc_boolean_t commit);
@@ -344,6 +346,25 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  *	Other results are possible, depending upon the database
  *	implementation used.
+ */
+
+void
+dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
+		     dns_dbversion_t **targetp);
+/*
+ * Attach '*targetp' to 'source'.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database with zone semantics.
+ *
+ *	source is a valid open version
+ *
+ *	targetp != NULL && *targetp == NULL
+ *
+ * Ensures:
+ *
+ *	'*targetp' is attached to source.
  */
 
 void

@@ -202,6 +202,24 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 }
 
 void
+dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
+		     dns_dbversion_t **targetp)
+{
+	/*
+	 * Attach '*targetp' to 'source'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
+	REQUIRE(source != NULL);
+	REQUIRE(targetp != NULL && *targetp != NULL);
+
+	(db->methods->attachversion)(db, source, targetp);
+
+	ENSURE(*targetp != NULL);
+}	
+
+void
 dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		    isc_boolean_t commit)
 {
