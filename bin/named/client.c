@@ -982,3 +982,11 @@ ns_clientmgr_accepttcp(ns_clientmgr_t *manager, isc_socket_t *socket,
 
 	return (result);
 }
+
+isc_sockaddr_t *
+ns_client_getsockaddr(ns_client_t *client) {
+	if (TCP_CLIENT(client))
+		return (&client->tcpmsg.address);
+	else
+		return (&client->dispevent->addr);
+}

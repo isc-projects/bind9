@@ -113,4 +113,7 @@ isc_result_t
 ns_clientmgr_accepttcp(ns_clientmgr_t *manager, isc_socket_t *socket,
 		       unsigned int n);
 
+isc_sockaddr_t *
+ns_client_getsockaddr(ns_client_t *client);
+
 #endif /* NS_CLIENT_H */
