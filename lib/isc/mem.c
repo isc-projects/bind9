@@ -35,6 +35,8 @@
 #define UNLOCK(l)
 #endif
 
+boolean isc_mem_debugging = ISC_FALSE;
+
 #ifndef ISC_MEM_FILL
 	/*
 	 * XXXMPA
@@ -721,8 +723,9 @@ isc__mem_getdebug(isc_mem_t *ctx, size_t size, const char *file, int line) {
 	void *ptr;
 
 	ptr = isc__mem_get(ctx, size);
-	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
-		ctx, (unsigned long)size, ptr);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
+			ctx, (unsigned long)size, ptr);
 	return (ptr);
 }
 
@@ -730,8 +733,9 @@ void
 isc__mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
 		 int line)
 {
-	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
-		ctx, ptr, (unsigned long)size);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
+			ctx, ptr, (unsigned long)size);
 	isc__mem_put(ctx, ptr, size);
 }
 
@@ -854,8 +858,9 @@ isc__mem_allocatedebug(isc_mem_t *ctx, size_t size, const char *file,
 	si = isc__mem_allocate(ctx, size);
 	if (si == NULL)
 		return (NULL);
-	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
-		ctx, (unsigned long)si[-1].u.size, si);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
+			ctx, (unsigned long)si[-1].u.size, si);
 	return (si);
 }
 
@@ -872,8 +877,9 @@ isc__mem_freedebug(isc_mem_t *ctx, void *ptr, const char *file, int line) {
 	size_info *si;
 
 	si = &(((size_info *)ptr)[-1]);
-	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
-		ctx, ptr, (unsigned long)si->u.size);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
+			ctx, ptr, (unsigned long)si->u.size);
 	isc__mem_put(ctx, si, si->u.size);
 }
 
@@ -903,8 +909,9 @@ isc__mem_strdupdebug(isc_mem_t *mctx, const char *s, const char *file,
 
 	ptr = isc__mem_strdup(mctx, s);
 	si = &(((size_info *)ptr)[-1]);
-	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
-		mctx, (unsigned long)si->u.size, ptr);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
+			mctx, (unsigned long)si->u.size, ptr);
 	return (ptr);
 }
 
@@ -1022,15 +1029,17 @@ void *
 isc__legacy_memget_debug(size_t size, const char *file, int line) {
 	void *ptr;
 	ptr = isc__legacy_memget(size);
-	fprintf(stderr, "%s:%d: memget(%lu) -> %p\n", file, line,
-		(unsigned long)size, ptr);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: memget(%lu) -> %p\n", file, line,
+			(unsigned long)size, ptr);
 	return (ptr);
 }
 
 void
 isc__legacy_memput_debug(void *ptr, size_t size, const char *file, int line) {
-	fprintf(stderr, "%s:%d: memput(%p, %lu)\n", file, line, 
-		ptr, (unsigned long)size);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: memput(%p, %lu)\n", file, line, 
+			ptr, (unsigned long)size);
 	isc__legacy_memput(ptr, size);
 }
 
@@ -1352,8 +1361,9 @@ isc__mempool_getdebug(isc_mempool_t *mpctx, const char *file, int line) {
 	void *ptr;
 
 	ptr = isc__mempool_get(mpctx);
-	fprintf(stderr, "%s:%d: mempool_get(%p) -> %p\n", file, line,
-		mpctx, ptr);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: mempool_get(%p) -> %p\n", file, line,
+			mpctx, ptr);
 
 	return (ptr);
 }
@@ -1362,8 +1372,9 @@ void
 isc__mempool_putdebug(isc_mempool_t *mpctx, void *ptr, const char *file,
 		      int line)
 {
-	fprintf(stderr, "%s:%d: mempool_put(%p, %p)\n", file, line, 
-		mpctx, ptr);
+	if (isc_mem_debugging)
+		fprintf(stderr, "%s:%d: mempool_put(%p, %p)\n", file, line, 
+			mpctx, ptr);
 	isc__mempool_put(mpctx, ptr);
 }
 

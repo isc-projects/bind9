@@ -1,3 +1,7 @@
+ 239.	[feature]	If ISC_MEM_DEBUG is enabled, the variable
+			isc_mem_debugging controls whether messages
+			are printed or not.
+
  238.   [cleanup]       A few more compilation warnings have been quieted:
                         + missing sigwait prototype on BSD/OS 4.0/4.0.1.
                         + PTHREAD_ONCE_INIT unbraced initializer warnings on
