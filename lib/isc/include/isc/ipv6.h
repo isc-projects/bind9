@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.18 2001/11/19 03:08:24 mayer Exp $ */
+/* $Id: ipv6.h,v 1.19 2002/04/03 06:38:33 marka Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
@@ -136,5 +136,13 @@ struct sockaddr_in6 {
  */
 #define IN6_IS_ADDR_MULTICAST(a)	\
 	((a)->s6_addr8[0] == 0xffU)
+
+/*
+ * Unicast link / site local.
+ */
+#define IN6_IS_ADDR_LINKLOCAL(a)	\
+	(((a)->s6_addr[0] == 0xfe) && (((a)->s6_addr[1] & 0xc0) == 0x80))
+#define IN6_IS_ADDR_SITELOCAL(a)	\
+	(((a)->s6_addr[0] == 0xfe) && (((a)->s6_addr[1] & 0xc0) == 0xc0))
 
 #endif /* ISC_IPV6_H */

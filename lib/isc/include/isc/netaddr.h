@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.20 2002/02/20 03:35:36 marka Exp $ */
+/* $Id: netaddr.h,v 1.21 2002/04/03 06:38:35 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -109,7 +109,19 @@ isc_netaddr_any6(isc_netaddr_t *netaddr);
 isc_boolean_t
 isc_netaddr_ismulticast(isc_netaddr_t *na);
 /*
- * Returns ISC_TRUE if the address is a multicast address
+ * Returns ISC_TRUE if the address is a multicast address.
+ */
+
+isc_boolean_t
+isc_netaddr_islinklocal(isc_netaddr_t *na);
+/*
+ * Returns ISC_TRUE if the address is a link local address.
+ */
+
+isc_boolean_t
+isc_netaddr_issitelocal(isc_netaddr_t *na);
+/*
+ * Returns ISC_TRUE if the address is a site local address.
  */
 
 void

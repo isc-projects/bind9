@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.21 2002/02/20 03:35:27 marka Exp $ */
+/* $Id: netaddr.c,v 1.22 2002/04/03 06:38:31 marka Exp $ */
 
 #include <config.h>
 
@@ -255,6 +255,30 @@ isc_netaddr_ismulticast(isc_netaddr_t *na) {
 		return (ISC_TF(IN6_IS_ADDR_MULTICAST(&na->type.in6)));
 	default:
 		return (ISC_FALSE);  /* XXXMLG ? */
+	}
+}
+
+isc_boolean_t
+isc_netaddr_islinklocal(isc_netaddr_t *na) {
+	switch (na->family) {
+	case AF_INET:
+		return (ISC_FALSE);
+	case AF_INET6:
+		return (ISC_TF(IN6_IS_ADDR_LINKLOCAL(&na->type.in6)));
+	default:
+		return (ISC_FALSE);
+	}
+}
+
+isc_boolean_t
+isc_netaddr_issitelocal(isc_netaddr_t *na) {
+	switch (na->family) {
+	case AF_INET:
+		return (ISC_FALSE);
+	case AF_INET6:
+		return (ISC_TF(IN6_IS_ADDR_SITELOCAL(&na->type.in6)));
+	default:
+		return (ISC_FALSE);
 	}
 }
 
