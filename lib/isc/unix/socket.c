@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.20 1998/12/11 20:36:01 halley Exp $ */
+/* $Id: socket.c,v 1.21 1998/12/11 20:47:15 halley Exp $ */
 
 #include <errno.h>
 #include <stddef.h>
@@ -892,7 +892,7 @@ internal_recv(isc_task_t task, isc_event_t ev)
 			cc = recv(sock->fd, dev->region.base + dev->n,
 				  read_count, 0);
 			memcpy(&dev->address, &sock->address,
-			       sock->addrlength);
+			       (size_t)sock->addrlength);
 			dev->addrlength = sock->addrlength;
 		}			
 
@@ -1042,7 +1042,7 @@ internal_send(isc_task_t task, isc_event_t ev)
 			cc = sendto(sock->fd, dev->region.base + dev->n,
 				    write_count, 0,
 				    (struct sockaddr *)&dev->address,
-				    dev->addrlength);
+				    (int)dev->addrlength);
 
 		else
 			cc = send(sock->fd, dev->region.base + dev->n,
@@ -1722,7 +1722,7 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 			cc = sendto(sock->fd, ev->region.base,
 				    ev->region.length, 0,
 				    (struct sockaddr *)&ev->address,
-				    ev->addrlength);
+				    (int)ev->addrlength);
 		else if (sock->type == isc_socket_tcp)
 			cc = send(sock->fd, ev->region.base,
 				  ev->region.length, 0);
@@ -2192,7 +2192,7 @@ isc_socket_getpeername(isc_socket_t sock, struct isc_sockaddr *addressp,
 		return (ISC_R_TOOSMALL);
 	}
 
-	memcpy(addressp, &sock->address, sock->addrlength);
+	memcpy(addressp, &sock->address, (size_t)sock->addrlength);
 	*lengthp = sock->addrlength;
 
 	UNLOCK(&sock->lock);
@@ -2226,7 +2226,7 @@ isc_socket_getsockname(isc_socket_t sock, struct isc_sockaddr *addressp,
 		return (ISC_R_TOOSMALL);
 	}
 
-	memcpy(addressp, &sock->address, sock->addrlength);
+	memcpy(addressp, &sock->address, (size_t)sock->addrlength);
 	*lengthp = sock->addrlength;
 
 	UNLOCK(&sock->lock);
