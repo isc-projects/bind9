@@ -43,7 +43,6 @@ status=`expr $status + $?`
 $PERL ../digcomp.pl knowngood.dig.out dig.out.ns3
 status=`expr $status + $?`
 
-status=0;
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
 	> dig.out.ns2
