@@ -191,6 +191,12 @@ ns_lwresd_createview(isc_mem_t *mctx, dns_view_t **viewp) {
 	REQUIRE(viewp != NULL && *viewp == NULL);
 	cache = NULL;
 
+	result = dns_dispatchmgr_create(ns_g_mctx, ns_g_entropy,
+					&ns_g_dispatchmgr);
+
+	if (result != ISC_R_SUCCESS)
+		fatal("creating dispatch manager", result);
+
 	/*
 	 * View.
 	 */
@@ -323,7 +329,13 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 	lwresd->sock = sock;
 
 	lwresd->view = NULL;
-	dns_view_attach(view, &lwresd->view);
+	if (view != NULL)
+		dns_view_attach(view, &lwresd->view);
+	else {
+		result = ns_lwresd_createview(ns_g_mctx, &lwresd->view);
+		if (result != ISC_R_SUCCESS)
+			fatal("failed to create default view", result);
+	}
 
 	lwresd->task = NULL;
 	result = isc_task_create(ns_g_taskmgr, 0, &lwresd->task);

@@ -22,6 +22,7 @@
 
 #include <isc/app.h>
 #include <isc/commandline.h>
+#include <isc/entropy.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -364,13 +365,15 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = dns_dispatchmgr_create(ns_g_mctx, NULL, &ns_g_dispatchmgr);
+	result = isc_entropy_create(ns_g_mctx, &ns_g_entropy);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_dispatchmgr_create() failed: %s",
+				 "isc_entropy_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
+
+	(void)isc_entropy_createfilesource(ns_g_entropy, "/dev/random");
 
 	return (ISC_R_SUCCESS);
 }
@@ -384,7 +387,7 @@ destroy_managers(void) {
 			omapi_lib_destroy();
 	}
 
-	dns_dispatchmgr_destroy(&ns_g_dispatchmgr);
+	isc_entropy_detach(&ns_g_entropy);
 	/*
 	 * isc_taskmgr_destroy() will  block until all tasks have exited,
 	 */
@@ -432,15 +435,9 @@ setup(void) {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
-	if (lwresd_only) {
-		dns_view_t *view = NULL;
-		result = ns_lwresd_createview(ns_g_mctx, &view);
-		if (result != ISC_R_SUCCESS)
-			ns_main_earlyfatal("ns_lwresd_createview() failed: %s",
-					   isc_result_totext(result));
-		ns_lwresd_create(ns_g_mctx, view, &ns_g_lwresd);
-		dns_view_detach(&view);
-	} else
+	if (lwresd_only)
+		ns_lwresd_create(ns_g_mctx, NULL, &ns_g_lwresd);
+	else
 		ns_server_create(ns_g_mctx, &ns_g_server);
 
 	if (!lwresd_only) {

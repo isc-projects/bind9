@@ -1316,7 +1316,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	{
 		dns_tkeyctx_t *t = NULL;
-		CHECKM(dns_tkeyctx_fromconfig(cctx, ns_g_mctx, server->entropy,
+		CHECKM(dns_tkeyctx_fromconfig(cctx, ns_g_mctx, ns_g_entropy,
 					      &t),
 		       "configuring TKEY");
 		if (server->tkeyctx != NULL)
@@ -1443,6 +1443,10 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
+	CHECKFATAL(dns_dispatchmgr_create(ns_g_mctx, ns_g_entropy,
+					  &ns_g_dispatchmgr),
+		   "creating dispatch manager");
+
 	CHECKFATAL(ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				       &server->clientmgr),
 		   "creating client manager");
@@ -1494,6 +1498,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
+
+	dns_dispatchmgr_destroy(&ns_g_dispatchmgr);
 
 	dns_zonemgr_shutdown(server->zonemgr);
 
@@ -1553,16 +1559,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
 
-	server->entropy = NULL;
-	CHECKFATAL(isc_entropy_create(ns_g_mctx, &server->entropy),
-		   "initializing entropy pool");
-	(void)isc_entropy_createfilesource(server->entropy, "/dev/random");
-
-	CHECKFATAL(dst_lib_init(ns_g_mctx, server->entropy, 0),
+	CHECKFATAL(dst_lib_init(ns_g_mctx, ns_g_entropy, 0),
 		   "initializing DST");
 
 	server->tkeyctx = NULL;
-	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, server->entropy,
+	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, ns_g_entropy,
 				      &server->tkeyctx),
 		   "creating TKEY context");
 
@@ -1601,9 +1602,6 @@ ns_server_destroy(ns_server_t **serverp) {
 		dns_tkeyctx_destroy(&server->tkeyctx);
 
 	dst_lib_destroy();
-
-	if (server->entropy != NULL)
-		isc_entropy_detach(&server->entropy);
 
 	isc_event_free(&server->reload_event);
 	
