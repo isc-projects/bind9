@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.82 2001/02/24 21:02:38 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.83 2001/03/09 18:18:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1233,7 +1233,9 @@ get_next_command(void) {
 	ddebug("get_next_command()");
 	if (interactive)
 		fprintf(stdout, "> ");
+	isc_app_block();
 	cmdline = fgets(cmdlinebuf, MAXCMD, input);
+	isc_app_unblock();
 	if (cmdline == NULL)
 		return (STATUS_QUIT);
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -1711,9 +1713,7 @@ getinput(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	reset_system();
-	isc_app_block();
 	more = user_interaction();
-	isc_app_unblock();
 	if (!more) {
 		isc_app_shutdown();
 		return;
