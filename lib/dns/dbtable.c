@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.8 1999/05/25 18:41:52 tale Exp $
+ * $Id: dbtable.c,v 1.9 1999/09/22 18:24:05 halley Exp $
  */
 
 /*
@@ -51,6 +51,15 @@ struct dns_dbtable {
 #define VALID_DBTABLE(dbtable)	((dbtable) != NULL && \
 				 (dbtable)->magic == DBTABLE_MAGIC)
 
+static void
+dbdetach(void *data, void *arg) {
+	dns_db_t *db = data;
+
+	(void)arg;
+
+	dns_db_detach(&db);
+}
+
 dns_result_t
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_dbtable_t **dbtablep)
@@ -66,12 +75,8 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (dbtable == NULL)
 		return (DNS_R_NOMEMORY);
 
-	/*
-	 * The pointer to the RBT needs to definitely be NULL to make
-	 * dns_rbt_create happy.
-	 */
 	dbtable->rbt = NULL;
-	result = dns_rbt_create(mctx, NULL, NULL, &dbtable->rbt);
+	result = dns_rbt_create(mctx, dbdetach, NULL, &dbtable->rbt);
 	if (result != DNS_R_SUCCESS)
 		goto clean1;
 
@@ -117,7 +122,6 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 static inline void
 dbtable_free(dns_dbtable_t *dbtable) {
-	
 	/*
 	 * Caller must ensure that it is safe to
 	 * call.
@@ -128,7 +132,6 @@ dbtable_free(dns_dbtable_t *dbtable) {
 	if (dbtable->default_db != NULL)
 		dns_db_detach(&dbtable->default_db);
 
-	/* XXXRTH Need to detach from all db entries. */
 	dns_rbt_destroy(&dbtable->rbt);
 
 	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
