@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.25.4.1 2001/01/09 22:50:56 bwelling Exp $ */
+/* $Id: condition.c,v 1.25.4.2 2001/03/14 18:06:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -59,7 +59,7 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	UNEXPECTED_ERROR(__FILE__, __LINE__,
 			 "pthread_cond_timedwait() %s %s",
 			 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-					ISC_MSG_RETURNED, "returned %s"),
+					ISC_MSG_RETURNED, "returned"),
 			 strerror(presult));
 	return (ISC_R_UNEXPECTED);
 }
