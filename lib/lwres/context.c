@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: context.c,v 1.24 2000/06/22 21:59:23 tale Exp $ */
+/* $Id: context.c,v 1.25 2000/06/26 20:30:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -90,7 +90,7 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	ctx->sock = -1;
 
 	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
-	ctx->serial = (lwres_uint32_t)ctx; /* XXXMLG */
+	ctx->serial = time(NULL); /* XXXMLG or BEW */
 
 	if ((flags & LWRES_CONTEXT_SERVERMODE) == 0)
 		(void)context_connect(ctx); /* XXXMLG */
