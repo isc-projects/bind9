@@ -38,4 +38,3 @@ install:: installdirs
 	for i in ${HEADERS}; do \
 		${INSTALL_DATA} ${srcdir}/$$i ${includedir}/omapi ; \
 	done
-	${INSTALL_DATA} ${includedir}/omapi

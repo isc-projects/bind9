@@ -74,7 +74,7 @@ installdirs:
 	fi
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${libdir}
+	${LIBTOOL} ${INSTALL_DATA} libomapi.@A@ ${libdir}
 
 clean distclean::
 	rm -f libomapi.@A@ libomapi.la timestamp
