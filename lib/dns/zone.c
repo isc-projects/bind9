@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.233 2000/10/16 04:05:43 marka Exp $ */
+/* $Id: zone.c,v 1.234 2000/10/16 21:14:29 mws Exp $ */
 
 #include <config.h>
 
@@ -2104,7 +2104,9 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 
 	notify->mctx = NULL;
 	isc_mem_attach(mctx, &notify->mctx);
+#ifndef NOMINUM_PUBLIC
 	notify->flags = flags;
+#endif /* NOMINUM_PUBLIC */
 	notify->zone = NULL;
 	notify->find = NULL;
 	notify->request = NULL;
