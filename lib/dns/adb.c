@@ -522,6 +522,25 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
 	REQUIRE(zone != NULL);
 	REQUIRE(handle != NULL && *handle == NULL);
 
+	/*
+	 * Iterate through the nsrdataset.  For each name found, do a search
+	 * for it in our database.
+	 *
+	 * Possibilities:  Note that these are not always exclusive.
+	 *
+	 *	No name found.  In this case, allocate a new name header,
+	 *	an initial namehook or two, and a job id.  If any of these
+	 *	allocations fail, clean up and simply skip this address.
+	 *
+	 *	Name found, valid addresses present.  Allocate one addrinfo
+	 *	structure for each found and append it to the linked list
+	 *	of addresses for this header.
+	 *
+	 *	Name found, queries pending.  In this case, if a task was
+	 *	passed in, allocate a job id, attach it to the name's job
+	 *	list and remember to tell the caller that there will be
+	 *	more info coming later.
+	 */
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
