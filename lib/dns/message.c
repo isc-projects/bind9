@@ -700,7 +700,7 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		 * When the rdata is empty, the data pointer is never
 		 * dereferenced, but it must still be non-NULL.
 		 */
-		rdata->data = ""; 
+		rdata->data = (unsigned char *)""; 
 		rdata->length = 0;
 		rdata->class = rdclass;
 		rdata->type = rdtype;

@@ -131,7 +131,7 @@ typedef struct dns_totext_ctx {
  * Because the TTL is always omitted, and the class is almost always
  * omitted, neither is allocated any columns.
  */
-dns_master_style_t 
+const dns_master_style_t 
 dns_master_style_default = {
 	DNS_STYLEFLAG_OMIT_OWNER |
 	DNS_STYLEFLAG_OMIT_CLASS |
@@ -168,7 +168,9 @@ char tabs[N_TABS] = "\t\t\t\t\t\t\t\t\t\t";
  * current column.
  */
 static dns_result_t
-indent(int *current, int to, int tabwidth, isc_buffer_t *target) {
+indent(unsigned int *current, unsigned int to, int tabwidth,
+       isc_buffer_t *target)
+{
 	isc_region_t r;
 	unsigned char *p;
 	int from, ntabs, nspaces, t;
@@ -237,7 +239,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 	if ((ctx->style.flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		isc_buffer_t buf;
 		isc_region_t r;
-		int col = 0;
+		unsigned int col = 0;
 
 		isc_buffer_init(&buf, ctx->linebreak_buf, sizeof(ctx->linebreak_buf),
 				ISC_BUFFERTYPE_TEXT);

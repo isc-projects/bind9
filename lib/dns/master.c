@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.19 1999/06/09 11:56:00 gson Exp $ */
+ /* $Id: master.c,v 1.20 1999/06/24 17:55:38 halley Exp $ */
 
 #include <config.h>
 
@@ -360,7 +360,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 				finish_include = ISC_TRUE;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$DATE") == 0) {
-				isc_uint64_t dump_time64;
+				isc_int64_t dump_time64;
 				isc_stdtime_t dump_time, current_time;
 				GETTOKEN(lex, 0, &token, ISC_FALSE);
 				iresult = isc_stdtime_get(&current_time);
