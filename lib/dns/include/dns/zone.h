@@ -496,7 +496,15 @@ isc_uint32_t dns_zone_getxfrtime(dns_zone_t *zone);
 
 dns_zonetype_t dns_zone_gettype(dns_zone_t *zone);
 /*
- * Return the type of the zone (master/slave/etc.)
+ * Returns the type of the zone (master/slave/etc.)
+ *
+ * Requires:
+ *	'zone' to be valid initialised zone.
+ */
+
+dns_name_t *dns_zone_getorigin(dns_zone_t *zone);
+/*
+ * Returns the zone's origin.
  *
  * Requires:
  *	'zone' to be valid initialised zone.
@@ -505,6 +513,23 @@ dns_zonetype_t dns_zone_gettype(dns_zone_t *zone);
 isc_task_t *dns_zone_gettask(dns_zone_t *zone);
 /*
  * Return a pointer to the zone's task.
+ *
+ * Requires:
+ *	'zone' to be valid initialised zone.
+ */
+
+const char *dns_zone_getdatabase(dns_zone_t *zone);
+/*
+ * Gets the name of the database.  For databases loaded from
+ * master files, this corresponds to the file name of the master file.
+ *
+ * Requires:
+ *	'zone' to be valid initialised zone.
+ */
+
+const char *dns_zone_getixfrlog(dns_zone_t *zone);
+/*
+ * Gets the name of the IXFR log file.
  *
  * Requires:
  *	'zone' to be valid initialised zone.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.12 1999/09/23 23:55:33 halley Exp $ */
+ /* $Id: zone.c,v 1.13 1999/09/24 05:57:54 gson Exp $ */
 
 #include <config.h>
 
@@ -2694,8 +2694,20 @@ dns_zonetype_t dns_zone_gettype(dns_zone_t *zone) {
 	return (zone->type);
 }
 
+dns_name_t *dns_zone_getorigin(dns_zone_t *zone) {
+	return (dns_fixedname_name(&zone->origin));
+}
+
 isc_task_t *dns_zone_gettask(dns_zone_t *zone) {
 	return (zone->task);
+}
+
+const char *dns_zone_getdatabase(dns_zone_t *zone) {
+	return (zone->database);
+}
+
+const char *dns_zone_getixfrlog(dns_zone_t *zone) {
+	return (zone->ixfrlog);
 }
 
 /*
