@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.59 2000/08/09 23:03:15 bwelling Exp $ */
+/* $Id: mem.c,v 1.60 2000/08/26 01:23:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -705,7 +705,7 @@ destroy(isc_mem_t *ctx) {
 
 	ondest = ctx->ondestroy;
 
-	(void)isc_mutex_destroy(&ctx->lock);
+	DESTROYLOCK(&ctx->lock);
 	(ctx->memfree)(ctx->arg, ctx);
 
 	isc_ondestroy_notify(&ondest, ctx);

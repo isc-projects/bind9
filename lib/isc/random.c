@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.9 2000/08/01 01:29:41 tale Exp $ */
+/* $Id: random.c,v 1.10 2000/08/26 01:23:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -63,7 +63,8 @@ isc_random_invalidate(isc_random_t *r)
 	REQUIRE(ISC_RANDOM_VALID(r));
 
 #if 0
-	result = isc_mutex_destroy(&r->lock);
+	DESTROYLOCK(&r->lock);
+	result = ISC_R_SUCCESS;
 #else
 	result = ISC_R_SUCCESS;
 #endif

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.c,v 1.9 2000/08/24 23:26:12 bwelling Exp $ */
+/* $Id: quota.c,v 1.10 2000/08/26 01:23:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,7 @@ isc_quota_destroy(isc_quota_t *quota) {
 	INSIST(quota->used == 0);
 	quota->max = -1;
 	quota->used = -1;
-	RUNTIME_CHECK(isc_mutex_destroy(&quota->lock) == ISC_R_SUCCESS);
+	DESTROYLOCK(&quota->lock);
 }
 
 isc_result_t

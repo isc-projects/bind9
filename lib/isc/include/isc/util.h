@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.17 2000/08/17 18:33:41 gson Exp $ */
+/* $Id: util.h,v 1.18 2000/08/26 01:23:17 bwelling Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -94,6 +94,10 @@
 			       (lp), __FILE__, __LINE__)); \
 	} while (0)
 #define ISLOCKED(lp) (1)
+#define DESTROYLOCK(lp) do { \
+	RUNTIME_CHECK(isc_mutex_destroy((lp)) == ISC_R_SUCCESS); \
+	} while (0);
+
 
 #define BROADCAST(cvp) do { \
 	ISC_UTIL_TRACE(fprintf(stderr, "BROADCAST %p %s %d\n", \

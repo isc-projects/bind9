@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.44 2000/08/24 23:22:40 bwelling Exp $ */
+/* $Id: log.c,v 1.45 2000/08/26 01:23:11 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -446,7 +446,7 @@ isc_log_destroy(isc_log_t **lctxp) {
 		isc_logconfig_destroy(&lcfg);
 	}
 
-	RUNTIME_CHECK(isc_mutex_destroy(&lctx->lock) == ISC_R_SUCCESS);
+	DESTROYLOCK(&lctx->lock);
 
 	while ((message = ISC_LIST_HEAD(lctx->messages)) != NULL) {
 		ISC_LIST_UNLINK(lctx->messages, message, link);
