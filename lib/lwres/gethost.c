@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.18 2000/06/26 20:39:42 bwelling Exp $ */
+/* $Id: gethost.c,v 1.19 2000/06/27 00:24:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -72,7 +72,6 @@ lwres_gethostbyaddr(const char *addr, int len, int type) {
 
 struct hostent *
 lwres_gethostent(void) {
-
 	if (he != NULL)
 		lwres_freehostent(he);
 
@@ -81,8 +80,10 @@ lwres_gethostent(void) {
 
 void
 lwres_sethostent(int stayopen) {
-	/* empty */
-	(void)stayopen;
+	/*
+	 * Empty.
+	 */
+	UNUSED(stayopen);
 }
 
 void
@@ -135,19 +136,19 @@ lwres_gethostbyaddr_r(const char *addr, int len, int type,
 
 struct hostent  *
 lwres_gethostent_r(struct hostent *resbuf, char *buf, int buflen, int *error) {
-	(void)resbuf;
-	(void)buf;
-	(void)buflen;
+	UNUSED(resbuf);
+	UNUSED(buf);
+	UNUSED(buflen);
 	*error = 0;
 	return (NULL);
 }
 
 void
 lwres_sethostent_r(int stayopen) {
-	(void)stayopen;
 	/*
 	 * Empty.
 	 */
+	UNUSED(stayopen);
 }
 
 void

@@ -20,7 +20,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.25 2000/06/26 22:50:20 gson Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.26 2000/06/27 00:23:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -86,7 +86,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 
 	proto = NULL;
 	if (hints != NULL) {
-		if (hints->ai_flags & ~(ISC_AI_MASK))
+		if ((hints->ai_flags & ~(ISC_AI_MASK)) != 0)
 			return (EAI_BADFLAGS);
 		if (hints->ai_addrlen || hints->ai_canonname ||
 		    hints->ai_addr || hints->ai_next) {
@@ -100,27 +100,42 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 		switch (family) {
 		case AF_UNSPEC:
 			switch (hints->ai_socktype) {
-			case SOCK_STREAM:	proto = "tcp"; break;
-			case SOCK_DGRAM:	proto = "udp"; break;
+			case SOCK_STREAM:
+				proto = "tcp";
+				break;
+			case SOCK_DGRAM:
+				proto = "udp";
+				break;
 			}
 			break;
 		case AF_INET:
 		case AF_INET6:
 			switch (hints->ai_socktype) {
-			case 0:			break;
-			case SOCK_STREAM:	proto = "tcp"; break;
-			case SOCK_DGRAM:	proto = "udp"; break;
-			case SOCK_RAW:		break;
-			default:		return (EAI_SOCKTYPE);
+			case 0:
+				break;
+			case SOCK_STREAM:
+				proto = "tcp";
+				break;
+			case SOCK_DGRAM:
+				proto = "udp";
+				break;
+			case SOCK_RAW:
+				break;
+			default:
+				return (EAI_SOCKTYPE);
 			}
 			break;
 #ifdef	AF_LOCAL
 		case AF_LOCAL:
 			switch (hints->ai_socktype) {
-			case 0:			break;
-			case SOCK_STREAM:	break;
-			case SOCK_DGRAM:	break;
-			default:		return (EAI_SOCKTYPE);
+			case 0:
+				break;
+			case SOCK_STREAM:
+				break;
+			case SOCK_DGRAM:
+				break;
+			default:
+				return (EAI_SOCKTYPE);
 			}
 			break;
 #endif
@@ -141,11 +156,11 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 	 * hostname/servname is '/'.
 	 */
 
-	if (hostname &&
+	if (hostname != NULL &&
 	    (family == AF_LOCAL || (family == 0 && *hostname == '/')))
 		return (get_local(hostname, socktype, res));
 
-	if (servname &&
+	if (servname != NULL &&
 	    (family == AF_LOCAL || (family == 0 && *servname == '/')))
 		return (get_local(servname, socktype, res));
 #endif
@@ -160,7 +175,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 	 * requested.  If the socket type wasn't specified, then
 	 * try and figure it out.
 	 */
-	if (servname) {
+	if (servname != NULL) {
 		char *e;
 
 		port = strtol(servname, &e, 10);
@@ -220,7 +235,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 
 	/*
 	 * If the family isn't specified or AI_NUMERICHOST specified,
-	 * check first to see if it * is a numeric address.
+	 * check first to see if it is a numeric address.
 	 * Though the gethostbyname2() routine
 	 * will recognize numeric addresses, it will only recognize
 	 * the format that it is being called for.  Thus, a numeric
@@ -266,7 +281,9 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			scopeid = 0;
 #endif
 
-               if (lwres_net_pton(AF_INET, hostname, (struct in_addr *)abuf)) {
+               if (lwres_net_pton(AF_INET, hostname, (struct in_addr *)abuf)
+		   != 0)
+	       {
 			if (family == AF_INET6) {
 				/*
 				 * Convert to a V4 mapped address.
@@ -281,15 +298,17 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			addroff = (char *)(&SIN(0)->sin_addr) - (char *)0;
 			family = AF_INET;
 			goto common;
-		} else if (ntmp[0] && lwres_net_pton(AF_INET6, ntmp, abuf)) {
+		} else if (ntmp[0] != 0 &&
+			   lwres_net_pton(AF_INET6, ntmp, abuf) != 0)
+		{
 			if (family && family != AF_INET6)
 				return (EAI_NONAME);
 			addrsize = sizeof(struct in6_addr);
 			addroff = (char *)(&SIN6(0)->sin6_addr) - (char *)0;
 			family = AF_INET6;
 			goto common;
-		} else if (lwres_net_pton(AF_INET6, hostname, abuf)) {
-			if (family && family != AF_INET6)
+		} else if (lwres_net_pton(AF_INET6, hostname, abuf) != 0) {
+			if (family != 0 && family != AF_INET6)
 				return (EAI_NONAME);
 		inet6_addr:
 			addrsize = sizeof(struct in6_addr);
@@ -297,7 +316,8 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			family = AF_INET6;
 
 		common:
-			if ((ai = ai_clone(ai_list, family)) == NULL)
+			ai = ai_clone(ai_list, family);
+			if (ai == NULL)
 				return (EAI_MEMORY);
 			ai_list = ai;
 			ai->ai_socktype = socktype;
@@ -306,7 +326,8 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			if (flags & AI_CANONNAME) {
 #if defined(LWRES_HAVE_SIN6_SCOPE_ID)
 				if (ai->ai_family == AF_INET6)
-					SIN6(ai->ai_addr)->sin6_scope_id = scopeid;
+					SIN6(ai->ai_addr)->sin6_scope_id =
+									scopeid;
 #endif
 				if (lwres_getnameinfo(ai->ai_addr,
 				    ai->ai_addrlen, nbuf, sizeof(nbuf),
@@ -330,9 +351,9 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 	for (i = 0; i < FOUND_MAX; i++) {
 		if (net_order[i] == NULL)
 			break;
-		if ((err = (net_order[i])(hostname, flags, &ai_list,
-		    socktype, port)) != 0)
-			return(err);
+		err = (net_order[i])(hostname, flags, &ai_list, socktype, port);
+		if (err != 0)
+			return (err);
 	}
 
 	if (ai_list == NULL)
@@ -355,13 +376,15 @@ lwres_strsep(char **stringp, const char *delim) {
 	if (string == NULL)
 		return (NULL);
 
-	for (s = string; (sc = *s) != '\0'; s++)
+	for (s = string; *s != '\0'; s++) {
+		sc = *s;
 		for (d = delim; (dc = *d) != '\0'; d++)
 			if (sc == dc) {
 				*s++ = '\0';
 				*stringp = s;
 				return (string);
 			}
+	}
 	*stringp = NULL;
 	return (string);
 }
@@ -440,7 +463,8 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 	if (lwres != 0)
 		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
-		if ((ai = ai_clone(*aip, AF_INET)) == NULL) {
+		ai = ai_clone(*aip, AF_INET);
+		if (ai == NULL) {
 			lwres_freeaddrinfo(*aip);
 			ERR(EAI_MEMORY);
 		}
@@ -497,7 +521,8 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 		ERR(EAI_FAIL);
 
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
-		if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
+		ai = ai_clone(*aip, AF_INET6);
+		if (ai == NULL) {
 			lwres_freeaddrinfo(*aip);
 			ERR(EAI_MEMORY);
 		}
@@ -510,7 +535,8 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 					LWRES_ADDRTYPE_V6, &by) == 0) {
 		addr = LWRES_LIST_HEAD(by->addrs);
 		while (addr != NULL) {
-			if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
+			ai = ai_clone(*aip, AF_INET6);
+			if (ai == NULL) {
 				lwres_freeaddrinfo(*aip);
 				ERR(EAI_MEMORY);
 			}
@@ -541,8 +567,8 @@ lwres_freeaddrinfo(struct addrinfo *ai) {
 
 	while (ai != NULL) {
 		ai_next = ai->ai_next;
-		if (ai->ai_addr)
-			free(ai->ai_addr);
+		if (ai->ai_addr != NULL)
+			free(ai->ai_addr != NULL);
 		if (ai->ai_canonname)
 			free(ai->ai_canonname);
 		free(ai);
@@ -559,7 +585,8 @@ get_local(const char *name, int socktype, struct addrinfo **res) {
 	if (socktype == 0)
 		return (EAI_SOCKTYPE);
 
-	if ((ai = ai_alloc(AF_LOCAL, sizeof(*sun))) == NULL)
+	ai = ai_alloc(AF_LOCAL, sizeof(*sun));
+	if (ai == NULL)
 		return (EAI_MEMORY);
 
 	sun = SUN(ai->ai_addr);
@@ -590,10 +617,12 @@ static struct addrinfo *
 ai_alloc(int family, int addrlen) {
 	struct addrinfo *ai;
 
-	if ((ai = (struct addrinfo *)calloc(1, sizeof(*ai))) == NULL)
+	ai = (struct addrinfo *)calloc(1, sizeof(*ai));
+	if (ai == NULL)
 		return (NULL);
 
-	if ((ai->ai_addr = SA(calloc(1, addrlen))) == NULL) {
+	ai->ai_addr = SA(calloc(1, addrlen));
+	if (ai->ai_addr == NULL) {
 		free(ai);
 		return (NULL);
 	}
@@ -634,7 +663,7 @@ ai_reverse(struct addrinfo *oai) {
 
 	nai = NULL;
 
-	while (oai) {
+	while (oai != NULL) {
 		/*
 		 * Grab one off the old list.
 		 */
