@@ -1,4 +1,6 @@
 
+1026.	[port]		Recognize OpenUNIX 8 in config.guess. [RT #1830]
+
 1022.	[bug]		Don't report empty root hints as "extra data".
 			[RT #1802]
 
