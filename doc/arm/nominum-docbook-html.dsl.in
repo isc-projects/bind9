@@ -107,6 +107,41 @@
 	(normalize "set")  ;; sets are definitely chunks...
 	))
 
+;
+; Add some cell padding to tables so that they don't look so cramped
+; in Netscape.
+;
+; The following definition was cut-and-pasted from dbtable.dsl and the 
+; single line containing the word CELLPADDING was added.
+;
+(element tgroup
+  (let* ((wrapper   (parent (current-node)))
+	 (frameattr (attribute-string (normalize "frame") wrapper))
+	 (pgwide    (attribute-string (normalize "pgwide") wrapper))
+	 (footnotes (select-elements (descendants (current-node)) 
+				     (normalize "footnote")))
+	 (border (if (equal? frameattr (normalize "none"))
+		     '(("BORDER" "0"))
+		     '(("BORDER" "1"))))
+	 (width (if (equal? pgwide "1")
+		    (list (list "WIDTH" ($table-width$)))
+		    '()))
+	 (head (select-elements (children (current-node)) (normalize "thead")))
+	 (body (select-elements (children (current-node)) (normalize "tbody")))
+	 (feet (select-elements (children (current-node)) (normalize "tfoot"))))
+    (make element gi: "TABLE"
+	  attributes: (append
+		       '(("CELLPADDING" "3"))
+		       border
+		       width
+		       (if %cals-table-class%
+			   (list (list "CLASS" %cals-table-class%))
+			   '()))
+	  (process-node-list head)
+	  (process-node-list body)
+	  (process-node-list feet)
+	  (make-table-endnotes))))
+
 </style-specification-body>
 </style-specification>
 <external-specification id="docbook" document="dbstyle">
