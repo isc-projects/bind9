@@ -76,11 +76,15 @@
 ./bin/named/lwdgnba.c				C	2000,2001
 ./bin/named/lwdgrbn.c				C	2000,2001
 ./bin/named/lwdnoop.c				C	2000,2001
-./bin/named/lwresd.8				MAN	2000,2001
+./bin/named/lwresd.8				X	2000,2001
+./bin/named/lwresd.docbook			SGML	2000,2001
+./bin/named/lwresd.html				X	2000,2001
 ./bin/named/lwresd.c				C	2000,2001
 ./bin/named/lwsearch.c				C	2000,2001
 ./bin/named/main.c				C	1999,2000,2001
-./bin/named/named.8				MAN	2000,2001
+./bin/named/named.8				X	2000,2001
+./bin/named/named.docbook			SGML	2000,2001
+./bin/named/named.html				X	2000,2001
 ./bin/named/notify.c				C	1999,2000,2001
 ./bin/named/query.c				C	1999,2000,2001
 ./bin/named/server.c				C	1999,2000,2001
