@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.3 2000/04/28 22:13:15 tale Exp $ */
+/* $Id: offset.h,v 1.4 2000/05/25 03:34:34 tale Exp $ */
 
 #ifndef ISC_OFFSET_H
 #define ISC_OFFSET_H 1
@@ -23,9 +23,15 @@
 /*
  * File offsets are operating-system dependent.
  */
-
+#include <limits.h>
 #include <sys/types.h>
 
 typedef off_t isc_offset_t;
+
+/*
+ * POSIX says "Additionally, blkcnt_t and off_t are extended signed integral
+ * types", so the maximum value is all 1s except for the high bit.
+ */
+#define ISC_OFFSET_MAXIMUM (~((off_t)1 << (sizeof(off_t) * CHAR_BIT - 1)))
 
 #endif /* ISC_OFFSET_H */
