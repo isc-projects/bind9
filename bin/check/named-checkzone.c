@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.24 2002/07/19 02:34:58 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.25 2002/10/25 01:02:53 marka Exp $ */
 
 #include <config.h>
 
@@ -60,7 +60,8 @@ dns_zonetype_t zonetype = dns_zone_master;
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named-checkzone [-djqv] [-c class] zonename filename\n");
+		"usage: named-checkzone [-djqv] [-c class] [-t directory] "
+		"[-w directory] zonename filename\n");
 	exit(1);
 }
 
