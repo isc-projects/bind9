@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.14 2000/08/26 01:36:57 bwelling Exp $
+ * $Id: ssu.c,v 1.15 2000/12/07 06:07:12 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -212,6 +212,7 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 		rule->types = NULL;
 
 	rule->magic = SSURULEMAGIC;
+	ISC_LINK_INIT(rule, link);
 	ISC_LIST_APPEND(table->rules, rule, link);
 
 	return (ISC_R_SUCCESS);
