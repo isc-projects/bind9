@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.38.2.1 2001/01/09 22:43:48 bwelling Exp $ */
+/* $Id: masterdump.c,v 1.38.2.2 2001/01/16 22:30:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -924,14 +924,6 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		(void)isc_file_remove(tempname);
 		goto cleanup;
 		
-	}
-
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
-			      "dumping master file: %s: close: %s",
-			      tempname, isc_result_totext(result));
-		goto cleanup;
 	}
 
 	result = isc_file_rename(tempname, filename);
