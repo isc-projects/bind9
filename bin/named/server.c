@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.247 2000/11/14 00:37:19 bwelling Exp $ */
+/* $Id: server.c,v 1.248 2000/11/14 21:30:24 gson Exp $ */
 
 #include <config.h>
 
@@ -2250,10 +2250,10 @@ ns_server_dumpstats(ns_server_t *server) {
 	}
 	numbercounters = dns_zone_numbercounters();
 	fp = server->statsfp;
-	fprintf(fp,"+++ Statistics Dump +++ (%ld)\n",
+	fprintf(fp, "+++ Statistics Dump +++ (%ld)\n",
 			  (long)now);
-	for (i=0; i<numbercounters; i++)
-		fprintf(fp,"%s %ld\n",dns_zonecount_names[i],
+	for (i = 0; i < numbercounters; i++)
+		fprintf(fp, "%s %ld\n", dns_zonecount_names[i],
 			(long)server->globalcount[i]);
 	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
 	dns_zone_first(server->zonemgr, &zone);
@@ -2263,18 +2263,18 @@ ns_server_dumpstats(ns_server_t *server) {
 		dns_name_totext(zoneorg, ISC_FALSE, &zonebuf);
 		/* Make sure there is room for the NULL terminator */
 		if (isc_buffer_availablelength(&zonebuf) < 1)
-			isc_buffer_subtract(&zonebuf,1);
+			isc_buffer_subtract(&zonebuf, 1);
 		isc_buffer_putuint8(&zonebuf, 0); /* NULL terminate */
 		zoneview = dns_zone_getview(zone);
 		viewname = zoneview->name;
 		if (dns_zone_hascounts(zone)) {
-			for (i=0; i<numbercounters; i++)
-				fprintf(fp,"%s %ld %s:%s\n",
+			for (i = 0; i < numbercounters; i++)
+				fprintf(fp, "%s %ld %s:%s\n",
 					dns_zonecount_names[i],
 					(long)dns_zone_getcounts(zone, i),
 					viewname, zonestore);
 		} else {
-			fprintf(fp,"nostatistics 0 %s:%s\n",
+			fprintf(fp, "nostatistics 0 %s:%s\n",
 					  viewname, zonestore);
 		}
 		isc_buffer_invalidate(&zonebuf);
@@ -2282,8 +2282,8 @@ ns_server_dumpstats(ns_server_t *server) {
 		zone = next;
 		next = NULL;
 	}
-	fprintf(fp,"--- Statistics Dump --- (%ld)\n",
-			  (long)now);
+	fprintf(fp, "--- Statistics Dump --- (%ld)\n",
+		(long)now);
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
 	ns_server_closestatsfile(server);
 	return (ISC_R_SUCCESS);
