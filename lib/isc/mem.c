@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.104 2001/10/19 00:17:17 gson Exp $ */
+/* $Id: mem.c,v 1.105 2001/10/19 00:38:18 gson Exp $ */
 
 #include <config.h>
 
@@ -1038,9 +1038,8 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	}
 	UNLOCK(&ctx->lock);
 
-	if (call_water) {
+	if (call_water)
 		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
-	}
 
 	return (ptr);
 }
@@ -1078,9 +1077,8 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	}
 	UNLOCK(&ctx->lock);
 
-	if (call_water) {
+	if (call_water)
 		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
-	}
 }
 
 #if ISC_MEM_TRACKLINES
