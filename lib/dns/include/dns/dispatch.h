@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.43 2001/02/11 19:11:52 gson Exp $ */
+/* $Id: dispatch.h,v 1.44 2001/03/13 05:48:41 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -383,6 +383,20 @@ dns_dispatch_getsocket(dns_dispatch_t *disp);
  *	The socket the dispatcher is using.
  */
 
+isc_result_t 
+dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp);
+/*
+ * Return the local address for this dispatch.
+ * This currently only works for dispatches using UDP sockets.
+ *
+ * Requires:
+ *	disp is valid.
+ *	addrp to be non null.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	
+ *	ISC_R_NOTIMPLEMENTED
+ */
 
 void
 dns_dispatch_cancel(dns_dispatch_t *disp);

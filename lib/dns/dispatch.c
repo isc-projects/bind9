@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.96 2001/02/17 00:23:49 gson Exp $ */
+/* $Id: dispatch.c,v 1.97 2001/03/13 05:48:40 marka Exp $ */
 
 #include <config.h>
 
@@ -2008,6 +2008,19 @@ dns_dispatch_getsocket(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
 
 	return (disp->socket);
+}
+
+isc_result_t
+dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp) {
+
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE(addrp != NULL);
+
+	if (disp->socktype == isc_sockettype_udp) {
+		*addrp = disp->local;
+		return (ISC_R_SUCCESS);
+	}
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 void
