@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.100 2002/02/05 19:46:30 bwelling Exp $ */
+/* $Id: validator.c,v 1.101 2002/02/05 20:02:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1585,7 +1585,6 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 	} else {
 		isc_log_write(dns_lctx, category, module, level,
 			      "validator @%p: %s", val, msgbuf);
-
 	}
 }
 
