@@ -8,12 +8,12 @@ rt4687		review		explorer
 rt4898		review		explorer
 rt4715		review		explorer
 peter		private		peter		(hostname.bind for 9.2.x)
-ksk		open		marka
+ksk		review		explorer
 openssl_stub	open		marka
 chroot		open		marka
 edns_size	open		marka
 rt4347		open		marka
-rt4675		open		marka
+rt4675		review		explorer
 
 a6_remove	closed
 adb_race	closed		explorer
