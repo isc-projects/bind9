@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.146 2001/01/30 02:50:45 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.147 2001/02/09 01:26:51 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -984,8 +984,12 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		result = dns_rbt_addnode(rbtdb->tree, name, &node);
 		if (result == ISC_R_SUCCESS) {
 			dns_rbt_namefromnode(node, &nodename);
+#ifdef DNS_RBT_USEHASH
+			node->locknum = node->hashval % rbtdb->node_lock_count;
+#else
 			node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
 				rbtdb->node_lock_count;
+#endif
 		} else if (result != ISC_R_EXISTS) {
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
 			return (result);
@@ -3709,8 +3713,12 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	if (result != ISC_R_EXISTS) {
 		dns_name_init(&foundname, NULL);
 		dns_rbt_namefromnode(node, &foundname);
+#ifdef DNS_RBT_USEHASH
+		node->locknum = node->hashval % rbtdb->node_lock_count;
+#else
 		node->locknum = dns_name_hash(&foundname, ISC_TRUE) %
 			rbtdb->node_lock_count;
+#endif
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
@@ -4080,9 +4088,15 @@ dns_rbtdb_create
 		 */
 		dns_name_init(&name, NULL);
 		dns_rbt_namefromnode(rbtdb->origin_node, &name);
+#ifdef DNS_RBT_USEHASH
+		rbtdb->origin_node->locknum =
+			rbtdb->origin_node->hashval %
+			rbtdb->node_lock_count;
+#else
 		rbtdb->origin_node->locknum =
 			dns_name_hash(&name, ISC_TRUE) %
 			rbtdb->node_lock_count;
+#endif
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.100 2001/02/05 20:07:20 bwelling Exp $ */
+/* $Id: rbt.c,v 1.101 2001/02/09 01:26:49 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -50,7 +50,7 @@
 
 #ifdef RBT_MEM_TEST
 #undef RBT_HASH_SIZE
-#define RBT_HASH_SIZE 1	/* To give the reallocation code a workout. */
+#define RBT_HASH_SIZE 2	/* To give the reallocation code a workout. */
 #endif
 
 struct dns_rbt {
@@ -1621,7 +1621,7 @@ static isc_result_t
 inithash(dns_rbt_t *rbt) {
 	unsigned int bytes;
 
-	rbt->hashsize = RBT_HASH_SIZE * 2;
+	rbt->hashsize = RBT_HASH_SIZE;
 	bytes = rbt->hashsize * sizeof(dns_rbtnode_t *);
 	rbt->hashtable = isc_mem_get(rbt->mctx, bytes);
 
@@ -1675,12 +1675,9 @@ static inline isc_result_t
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	if (rbt->hashtable == NULL) {
-		if (rbt->nodecount == RBT_HASH_SIZE)
-			result = inithash(rbt);
-		return (result);
-
-	} else if (rbt->nodecount >= rbt->hashsize)
+	if (rbt->hashtable == NULL)
+		result = inithash(rbt);
+	else if (rbt->nodecount >= rbt->hashsize)
 		result = rehash(rbt);
 
 	if (result == ISC_R_SUCCESS)
