@@ -119,7 +119,7 @@
 ./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2003
 ./bin/named/listenlist.c			C	2000,2001
 ./bin/named/log.c				C	1999,2000,2001,2003
-./bin/named/logconf.c				C	1999,2000,2001
+./bin/named/logconf.c				C	1999,2000,2001,2004
 ./bin/named/lwaddr.c				C	2000,2001
 ./bin/named/lwdclient.c				C	2000,2001,2003
 ./bin/named/lwderror.c				C	2000,2001
