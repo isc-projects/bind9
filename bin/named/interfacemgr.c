@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59 2001/06/15 23:18:04 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.60 2001/09/10 23:03:09 gson Exp $ */
 
 #include <config.h>
 
@@ -473,6 +473,9 @@ static void
 do_ipv4(ns_interfacemgr_t *mgr) {
 	isc_interfaceiter_t *iter = NULL;
 	isc_result_t result;
+	isc_netaddr_t zero_address;
+
+	isc_netaddr_any(&zero_address);
 
 	result = isc_interfaceiter_create(mgr->mctx, &iter);
 	if (result != ISC_R_SUCCESS)
@@ -502,7 +505,14 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		if (interface.address.family != AF_INET)
 			continue;
 
-		if ((interface.flags & INTERFACE_F_UP) == 0)
+		/*
+		 * Test for the address being nonzero rather than testing
+		 * INTERFACE_F_UP, because on some systems the latter
+		 * follows the media state and we could end up ignoring
+		 * the interface for an entire rescan interval due to
+		 * a temporary media glitch at rescan time.
+		 */
+		if (isc_netaddr_equal(&interface.address, &zero_address))
 			continue;
 
 		result = isc_netaddr_masktoprefixlen(&interface.netmask,

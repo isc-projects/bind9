@@ -1,4 +1,8 @@
 
+ 985.	[func]		Consider network interfaces to be up iff they have
+			a nonzero IP address rather than based on the
+			IFF_UP flag. [RT #1160]
+
  984.	[bug]		Multithreading should be enabled by default on
 			Solaris 2.7 and newer, but it wasn't.
 
