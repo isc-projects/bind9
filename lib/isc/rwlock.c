@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.20 2000/08/24 01:38:46 gson Exp $ */
+/* $Id: rwlock.c,v 1.21 2000/08/24 17:06:31 gson Exp $ */
 
 #include <config.h>
 
@@ -36,12 +36,13 @@
 
 #ifdef ISC_RWLOCK_TRACE
 #include <stdio.h>		/* Required for fprintf/stderr. */
+#include <isc/thread.h>		/* Requried for isc_thread_self(). */
 
 static void
 print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	fprintf(stderr,
-		"%s(%s): %s, %u active, %u granted, "
-		"%u rwaiting, %u wwaiting\n",
+		"rwlock %p thread %lu %s(%s): %s, %u active, %u granted, "
+		"%u rwaiting, %u wwaiting\n", rwl, isc_thread_self(),
 		operation, (type == isc_rwlocktype_read ? "read" : "write"),
 	        (rwl->type == isc_rwlocktype_read ? "reading" : "writing"),
 	        rwl->active, rwl->granted, rwl->readers_waiting,
