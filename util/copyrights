@@ -698,7 +698,7 @@
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000
 ./lib/isc/include/isc/types.h			C	1999,2000
 ./lib/isc/include/isc/util.h			C	1998,1999,2000
-./lib/isc/inet_aton.c				PORTION	1999,2000
+./lib/isc/inet_aton.c				C.PORTION	1999,2000
 ./lib/isc/inet_ntop.c				FIXME	1999,2000
 ./lib/isc/inet_pton.c				FIXME	1999,2000
 ./lib/isc/lex.c					C	1998,1999,2000
@@ -802,12 +802,12 @@
 ./lib/lwres/context.c				C	2000
 ./lib/lwres/context_p.h				C	2000
 ./lib/lwres/gai_strerror.c			C	2000
-./lib/lwres/getaddrinfo.c			PORTION	1999,2000
+./lib/lwres/getaddrinfo.c			C.PORTION	1999,2000
 ./lib/lwres/gethost.c				C	2000
 ./lib/lwres/getipnode.c				C	1999,2000
-./lib/lwres/getnameinfo.c			PORTION	1999,2000
+./lib/lwres/getnameinfo.c			C.PORTION	1999,2000
 ./lib/lwres/getnet.c				C	2000
-./lib/lwres/herror.c				PORTION	2000
+./lib/lwres/herror.c				C.PORTION	2000
 ./lib/lwres/include/.cvsignore			X	2000
 ./lib/lwres/include/Makefile.in			MAKE	2000
 ./lib/lwres/include/lwres/.cvsignore		X	2000
@@ -826,7 +826,7 @@
 ./lib/lwres/include/lwres/result.h		C	2000
 ./lib/lwres/lwbuffer.c				C	2000
 ./lib/lwres/lwconfig.c				C	2000
-./lib/lwres/lwinetaton.c			PORTION	1999,2000
+./lib/lwres/lwinetaton.c			C.PORTION	1999,2000
 ./lib/lwres/lwinetntop.c			FIXME	1999,2000
 ./lib/lwres/lwinetpton.c			FIXME	1999,2000
 ./lib/lwres/lwpacket.c				C	2000

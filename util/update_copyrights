@@ -23,7 +23,8 @@ require 5.002;
 
 my %owner2filename = (
     "" => "util/COPYRIGHT",
-    "NAI" => "util/COPYRIGHT.NAI"
+    "NAI" => "util/COPYRIGHT.NAI",
+    "PORTION" => "util/COPYRIGHT.PORTION",
 );
 
 # Map each copyright owner name to a reference to an array containing
