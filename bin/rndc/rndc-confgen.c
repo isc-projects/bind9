@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.5 2001/08/03 22:33:02 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.6 2001/08/03 23:44:49 gson Exp $ */
 
 #include <config.h>
 
@@ -269,13 +269,6 @@ main(int argc, char **argv) {
 
 	isc_entropy_detach(&ectx);
 	dst_lib_destroy();
-
-	if (open_keyboard)
-		/*
-		 * Add a little vertical whitespace to separate it
-		 * from the "stop typing" message".
-		 */
-		printf("\n\n");
 
 	if (keyonly) {
 		write_key_file(keyfile, chrootdir == NULL ? user : NULL,
