@@ -877,22 +877,28 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 
 		}
 
-		while (result == ISC_R_SUCCESS) {
+		do {
 			result = dns_dnssec_verify(event->name,
 						   event->rdataset,
 						   val->key, ISC_FALSE,
 						   val->view->mctx, &rdata);
-			/*
-			 * If val->keynode != NULL, this should get other keys
-			 * from the list of keynodes.
-			 */
-			if (result == ISC_R_SUCCESS || val->keynode != NULL)
-				break;
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "key failed to verify rdataset");
-			result = get_dst_key(val, val->siginfo,
-					     event->rdataset);
-		};
+				      "verify rdataset: %s",
+				      isc_result_totext(result));
+			if (result == ISC_R_SUCCESS)
+				break;
+			if (val->keynode != NULL) {
+				val->keynode = dns_keynode_next(val->keynode);
+				if (val->keynode == NULL)
+					break;
+				val->key = dns_keynode_key(val->keynode);
+			}
+			else
+				if (get_dst_key(val, val->siginfo,
+						event->rdataset)
+				    != ISC_R_SUCCESS)
+					break;
+		} while (1);
 		if (result != ISC_R_SUCCESS)
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "failed to verify rdataset");
