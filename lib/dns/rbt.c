@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.91 2000/08/03 19:46:32 bwelling Exp $ */
+/* $Id: rbt.c,v 1.92 2000/08/03 21:34:27 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1344,10 +1344,11 @@ join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	 */
 	newlength = newname->length + newname->labels;
 	oldlength = NAMELEN(down) + OFFSETLEN(down);
-	if (newlength > oldlength + PADBYTES(down))
+	if (newlength > oldlength + PADBYTES(down)) {
 		result = create_node(rbt->mctx, newname, &newnode);
-
-	else {
+		if (result == ISC_R_SUCCESS)
+			rbt->nodecount++;
+	} else {
 		memcpy(NAME(down), newname->ndata, newname->length);
 		PADBYTES(down) -= newlength - oldlength;
 		NAMELEN(down) = newname->length;
