@@ -37,7 +37,7 @@ while (<FILES>) {
 	if ($_ =~ /\.[chy]$/) {
 	    $file_types{$_} = "C";
 	} elsif ($_ =~ /\/Makefile\.in$/) {
-	    $file_types{$_} = "SH";
+	    $file_types{$_} = "MAKE";
 	} elsif ($_ =~ /\/\.cvsignore$/) {
 	    $file_types{$_} = "X";
 	} else {
