@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.6 2002/07/10 00:04:57 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.7 2002/07/31 03:10:58 mayer Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -55,7 +55,7 @@
 #include "errno2result.h"
 
 #define MAX_SELECT_SECONDS 0
-#define MAX_SELECT_MILLISECONDS 400
+#define MAX_SELECT_MILLISECONDS 40
 /*
  * Some systems define the socket length argument as an int, some as size_t,
  * some as socklen_t.  This is here so it can be easily changed if needed.
@@ -2198,7 +2198,7 @@ watcher(void *uap) {
 	/* Timeout on select in case it's necesasary */
 	struct timeval tv;
 	tv.tv_sec = MAX_SELECT_SECONDS;
-	tv.tv_usec = MAX_SELECT_MILLISECONDS;
+	tv.tv_usec = MAX_SELECT_MILLISECONDS*1000;
 
 	/*
 	 * Get the control fd here.  This will never change.
