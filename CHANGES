@@ -1,3 +1,8 @@
+1037.	[bug]		Negative responses whose authority section contain
+			SOA or NS records whose owner names are not equal
+			equal to or parents of the query name should be
+			rejected. [RT #1862]
+
 1036.	[func]		Silently drop requests received via multicast as
 			long as there is no final multicast DNS standard.
 
