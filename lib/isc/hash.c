@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.4 2003/07/29 04:31:23 marka Exp $ */
+/* $Id: hash.c,v 1.5 2003/07/30 01:10:46 marka Exp $ */
 
 /*
  * Some portion of this code was derived from universal hash function
@@ -69,6 +69,7 @@ if advised of the possibility of such damage.
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #define HASH_MAGIC		ISC_MAGIC('H', 'a', 's', 'h')
