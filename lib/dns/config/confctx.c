@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.47 2000/04/07 17:40:40 brister Exp $ */
+/* $Id: confctx.c,v 1.48 2000/04/12 02:04:03 halley Exp $ */
 
 #include <config.h>
 
@@ -256,7 +256,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getauthnxdomain(cfg, &bval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getauthnxdomain(cfg, &bval) == ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "the default for `auth-nxdomain' option "
@@ -274,7 +274,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getdialup(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option `dialup' is not yet implemted.");
+			      "option `dialup' is not yet implemented.");
 	}
 
 	
