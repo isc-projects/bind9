@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.92 2001/11/06 20:47:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.93 2001/11/06 22:27:52 bwelling Exp $
  */
 
 #include <config.h>
@@ -145,7 +145,6 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
-
 	dst_initialized = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 
@@ -392,6 +391,12 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 		return (ISC_R_SUCCESS);
 	}
 
+	result = algorithm_status(pubkey->key_alg);
+	if (result != ISC_R_SUCCESS) {
+		dst_key_free(&pubkey);
+		return (result);
+	}
+
 	key = get_key_struct(pubkey->key_name, pubkey->key_alg,
 			     pubkey->key_flags, pubkey->key_proto, 0,
 			     pubkey->key_class, mctx);
@@ -479,8 +484,6 @@ dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
 	proto = isc_buffer_getuint8(source);
 	alg = isc_buffer_getuint8(source);
 
-	CHECKALG(alg);
-
 	id = dst_region_computeid(&r, alg);
 
 	if (flags & DNS_KEYFLAG_EXTENDED) {
@@ -510,8 +513,6 @@ dst_key_frombuffer(dns_name_t *name, unsigned int alg,
 	isc_result_t result;
 
 	REQUIRE(dst_initialized);
-
-	CHECKALG(alg);
 
 	result = frombuffer(name, alg, flags, protocol, rdclass, source,
 			    mctx, &key);
@@ -656,10 +657,10 @@ dst_key_free(dst_key_t **keyp) {
 	key = *keyp;
 	mctx = key->mctx;
 
-	INSIST(key->func->destroy != NULL);
-
-	if (key->opaque != NULL)
+	if (key->opaque != NULL) {
+		INSIST(key->func->destroy != NULL);
 		key->func->destroy(key);
+	}
 
 	dns_name_free(key->key_name, mctx);
 	isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
@@ -749,8 +750,6 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 {
 	dst_key_t *key;
 	isc_result_t result;
-
-	REQUIRE(dst_algorithm_supported(alg) != ISC_FALSE);
 
 	key = (dst_key_t *) isc_mem_get(mctx, sizeof(dst_key_t));
 	if (key == NULL)
@@ -1058,15 +1057,18 @@ frombuffer(dns_name_t *name, unsigned int alg, unsigned int flags,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	if (key->func->fromdns == NULL) {
-		dst_key_free(&key);
-		return (DST_R_UNSUPPORTEDALG);
-	}
+	if (isc_buffer_remaininglength(source) > 0) {
+		CHECKALG(alg);
+		if (key->func->fromdns == NULL) {
+			dst_key_free(&key);
+			return (DST_R_UNSUPPORTEDALG);
+		}
 
-	ret = key->func->fromdns(key, source);
-	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (ret);
+		ret = key->func->fromdns(key, source);
+		if (ret != ISC_R_SUCCESS) {
+			dst_key_free(&key);
+			return (ret);
+		}
 	}
 
 	*keyp = key;
