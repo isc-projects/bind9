@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.10 2000/02/03 23:14:31 halley Exp $ */
+/* $Id: generic.c,v 1.11 2000/03/14 03:38:54 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -189,8 +189,16 @@ generic_destroy(omapi_object_t *h) {
 
 static isc_result_t
 generic_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
-
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
+
+	/*
+	 * XXXDCL I suppose that ideally the status would be set in all
+	 * objects in the chain.
+	 */
+	if (strcmp(name, "status") == 0) {
+		h->waitresult = va_arg(ap, isc_result_t);
+		return (ISC_R_SUCCESS);
+	}
 
 	return (omapi_object_passsignal(h, name, ap));
 }
