@@ -8,7 +8,8 @@
 
 1761.	[placeholder]	rt12971
 
-1760.	[placeholder]	rt12970
+1760.	[bug]		Host / net unreachable was not penalising rtt
+			estimates. [RT #12970]
 
 1759.	[placeholder]	rt12942
 
