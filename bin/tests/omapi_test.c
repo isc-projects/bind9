@@ -473,6 +473,8 @@ do_connect(const char *host, int port) {
 static void
 do_listen(int port) {
 	omapi_object_t *listener = NULL;
+	isc_sockaddr_t sockaddr;
+	struct in_addr inaddr;
 
 	/*
 	 * Create the manager for handling incoming server connections.
@@ -512,8 +514,9 @@ do_listen(int port) {
 	/*
 	 * Start listening for connections.
 	 */
-	INSIST(omapi_protocol_listen(listener, port, 1)
-	       == ISC_R_SUCCESS);
+	inaddr.s_addr = INADDR_ANY;
+	isc_sockaddr_fromin(&sockaddr, &inaddr, port);
+	INSIST(omapi_protocol_listen(listener, &sockaddr, 1) == ISC_R_SUCCESS);
 
 	fprintf(stderr, "SERVER STARTED\n");
 
