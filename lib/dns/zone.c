@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.253 2000/11/17 19:04:48 gson Exp $ */
+/* $Id: zone.c,v 1.254 2000/11/18 00:57:20 gson Exp $ */
 
 #include <config.h>
 
@@ -116,7 +116,7 @@ struct dns_zone {
 	unsigned int		erefs;
 	unsigned int		irefs;
 	dns_name_t		origin;
-	char 			*dbname;
+	char 			*masterfile;
 	char			*journal;
 	isc_int32_t		journalsize;
 	dns_rdataclass_t	rdclass;
@@ -452,7 +452,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->erefs = 1;		/* Implicit attach. */
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
-	zone->dbname = NULL;
+	zone->masterfile = NULL;
 	zone->journalsize = -1;
 	zone->journal = NULL;
 	zone->rdclass = dns_rdataclass_none;
@@ -561,9 +561,9 @@ zone_free(dns_zone_t *zone) {
 		dns_zonemgr_releasezone(zone->zmgr, zone);
 
 	/* Unmanaged objects */
-	if (zone->dbname != NULL)
-		isc_mem_free(zone->mctx, zone->dbname);
-	zone->dbname = NULL;
+	if (zone->masterfile != NULL)
+		isc_mem_free(zone->mctx, zone->masterfile);
+	zone->masterfile = NULL;
 	zone->journalsize = -1;
 	if (zone->journal != NULL)
 		isc_mem_free(zone->mctx, zone->journal);
@@ -760,17 +760,17 @@ dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin) {
 }
 
 isc_result_t
-dns_zone_setdatabase(dns_zone_t *zone, const char *dbname) {
+dns_zone_setfile(dns_zone_t *zone, const char *file) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(dbname != NULL);
+	REQUIRE(file != NULL);
 
 	LOCK(&zone->lock);
-	if (zone->dbname != NULL)
-		isc_mem_free(zone->mctx, zone->dbname);
-	zone->dbname = isc_mem_strdup(zone->mctx, dbname);
-	if (zone->dbname == NULL)
+	if (zone->masterfile != NULL)
+		isc_mem_free(zone->mctx, zone->masterfile);
+	zone->masterfile = isc_mem_strdup(zone->mctx, file);
+	if (zone->masterfile == NULL)
 		result = ISC_R_NOMEMORY;
 	else
 		result = default_journal(zone);
@@ -778,20 +778,27 @@ dns_zone_setdatabase(dns_zone_t *zone, const char *dbname) {
 	return (result);
 }
 
+const char *
+dns_zone_getfile(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->masterfile);
+}
+
 static isc_result_t
 default_journal(dns_zone_t *zone) {
 	int len;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(zone->dbname != NULL);
+	REQUIRE(zone->masterfile != NULL);
 
 	if (zone->journal != NULL)
 		isc_mem_free(zone->mctx, zone->journal);
-	len = strlen(zone->dbname) + sizeof ".jnl"; 	/* includes '\0' */
+	len = strlen(zone->masterfile) + sizeof ".jnl"; 	/* includes '\0' */
 	zone->journal = isc_mem_allocate(zone->mctx, len);
 	if (zone->journal == NULL)
 		return (ISC_R_NOMEMORY);
-	strcpy(zone->journal, zone->dbname);
+	strcpy(zone->journal, zone->masterfile);
 	strcat(zone->journal, ".jnl");
 	return (ISC_R_SUCCESS);
 }
@@ -835,7 +842,7 @@ dns_zone_load(dns_zone_t *zone) {
 
 	INSIST(zone->type != dns_zone_none);
 
-	if (zone->dbname == NULL) {
+	if (zone->masterfile == NULL) {
 		/*
 		 * The zone has no master file (maybe it is the built-in
 		 * version.bind. CH zone).  Do nothing.
@@ -852,7 +859,7 @@ dns_zone_load(dns_zone_t *zone) {
 	 * been loaded yet, zone->loadtime will be the epoch.
 	 */
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE)) {
-		result = isc_file_getmodtime(zone->dbname, &filetime);
+		result = isc_file_getmodtime(zone->masterfile, &filetime);
 		if (result == ISC_R_SUCCESS &&
 		    !isc_time_isepoch(&zone->loadtime) &&
 		    isc_time_compare(&filetime, &zone->loadtime) < 0) {
@@ -919,7 +926,7 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_CANCELED)
 		goto fail;
 
-	result = dns_master_loadfileinc(load->zone->dbname,
+	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
 					load->zone->rdclass, ISC_FALSE,
@@ -971,7 +978,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		} else
 			result = DNS_R_CONTINUE;
 	} else {
-		result = dns_db_load(db, zone->dbname);
+		result = dns_db_load(db, zone->masterfile);
 	}
 
 	return (result);
@@ -1012,12 +1019,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			else
 				zone_log(zone, me, ISC_LOG_ERROR,
 					 "loading master file %s: %s",
-					 zone->dbname,
+					 zone->masterfile,
 					 dns_result_totext(result));
 		} else
 			zone_log(zone, me, ISC_LOG_ERROR,
 				 "loading master file %s: %s",
-				 zone->dbname, dns_result_totext(result));
+				 zone->masterfile, dns_result_totext(result));
 		goto cleanup;
 	}
 
@@ -1109,7 +1116,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		    zone->type == dns_zone_stub) {
 			isc_time_t t;
 
-			result = isc_file_getmodtime(zone->dbname, &t);
+			result = isc_file_getmodtime(zone->masterfile, &t);
 
 			if (result == ISC_R_SUCCESS)
 				zone->expiretime = isc_time_seconds(&t) +
@@ -1159,8 +1166,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	    zone->type == dns_zone_stub) {
 		if (zone->journal != NULL)
 			zone_saveunique(zone, zone->journal, "jn-XXXXXXXX");
-		if (zone->dbname != NULL)
-			zone_saveunique(zone, zone->dbname, "db-XXXXXXXX");
+		if (zone->masterfile != NULL)
+			zone_saveunique(zone, zone->masterfile, "db-XXXXXXXX");
 
 		/* Mark the zone for immediate refresh. */
 		zone->refreshtime = now;
@@ -1736,7 +1743,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_master:
 	case dns_zone_slave:
 		LOCK(&zone->lock);
-		if (zone->dbname != NULL &&
+		if (zone->masterfile != NULL &&
 		    now >= zone->dumptime &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
@@ -1902,7 +1909,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	/*
 	 * Do we have a place to dump to and are we loaded?
 	 */
-	if (zone->dbname == NULL ||
+	if (zone->masterfile == NULL ||
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) == 0)
 		return;
 
@@ -1934,7 +1941,7 @@ zone_dump(dns_zone_t *zone) {
 
 	result = dns_master_dump(zone->mctx, zone->db, version,
 				 &dns_master_style_default,
-				 zone->dbname);
+				 zone->masterfile);
 
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
 
@@ -2024,13 +2031,13 @@ zone_deletefile(dns_zone_t *zone) {
 	 */
 	REQUIRE(ISLOCKED(&zone->lock));
 
-	if (zone->dbname == NULL)
+	if (zone->masterfile == NULL)
 		return;
-	result = isc_file_remove(zone->dbname);
+	result = isc_file_remove(zone->masterfile);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_WARNING,
 			 "failed to delete '%s': %s",
-			 zone->dbname, dns_result_totext(result));
+			 zone->masterfile, dns_result_totext(result));
 	}
 	if (zone->journal != NULL)
 		(void)isc_file_remove(zone->journal);
@@ -2790,7 +2797,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&zone->lock);
 	dns_db_detach(&stub->db);
 
-	if (zone->dbname != NULL) {
+	if (zone->masterfile != NULL) {
 		dns_zone_dump(zone);
 		(void)isc_time_now(&zone->loadtime);
 	}
@@ -3051,14 +3058,14 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		if (msg != NULL)
 			dns_message_destroy(&msg);
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
-		if (zone->dbname != NULL) {
+		if (zone->masterfile != NULL) {
 			isc_time_t t;
 			isc_time_set(&t, now, 0);
-			result = isc_file_settime(zone->dbname, &t);
+			result = isc_file_settime(zone->masterfile, &t);
 			if (result != ISC_R_SUCCESS)
 				zone_log(zone, me, ISC_LOG_ERROR,
 					 "isc_file_settime(%s): %s",
-					 zone->dbname,
+					 zone->masterfile,
 					 dns_result_totext(result));
 		}
 		zone->refreshtime = now +
@@ -4211,13 +4218,6 @@ dns_zone_gettask(dns_zone_t *zone, isc_task_t **target) {
 	isc_task_attach(zone->task, target);
 }
 
-const char *
-dns_zone_getdatabase(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->dbname);
-}
-
 void
 dns_zone_setidlein(dns_zone_t *zone, isc_uint32_t idlein) {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -4345,12 +4345,12 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	} else {
-		if (dump && zone->dbname != NULL) {
+		if (dump && zone->masterfile != NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "dumping new zone version");
 			/* XXX should use temporary file and rename */
-			result = dns_db_dump(db, ver, zone->dbname);
+			result = dns_db_dump(db, ver, zone->masterfile);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
 
@@ -4421,14 +4421,14 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 * however it is necessary for an IXFR / UPTODATE and
 		 * won't hurt with an AXFR.
 		 */
-		if (zone->dbname != NULL) {
+		if (zone->masterfile != NULL) {
 			isc_time_t t;
 			isc_time_set(&t, now, 0);
-			result = isc_file_settime(zone->dbname, &t);
+			result = isc_file_settime(zone->masterfile, &t);
 			if (result != ISC_R_SUCCESS)
 				zone_log(zone, me, ISC_LOG_ERROR,
 					 "isc_file_settime(%s): %s",
-					 zone->dbname,
+					 zone->masterfile,
 					 dns_result_totext(result));
 		}
 

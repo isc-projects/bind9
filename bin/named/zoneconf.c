@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.69 2000/11/16 19:32:13 tale Exp $ */
+/* $Id: zoneconf.c,v 1.70 2000/11/18 00:57:23 gson Exp $ */
 
 #include <config.h>
 
@@ -208,7 +208,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 	result = dns_c_zone_getfile(czone, &filename);
 	if (result == ISC_R_SUCCESS)
-		RETERR(dns_zone_setdatabase(zone, filename));
+		RETERR(dns_zone_setfile(zone, filename));
 	else if (czone->ztype != dns_c_zone_slave &&
 		 czone->ztype != dns_c_zone_stub)
 		return (result);
@@ -493,7 +493,7 @@ dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone) {
 
 	cfilename = NULL;
 	(void) dns_c_zone_getfile(czone, &cfilename);
-	zfilename = dns_zone_getdatabase(zone);
+	zfilename = dns_zone_getfile(zone);
 	if (cfilename == NULL || zfilename == NULL ||
 	    strcmp(cfilename, zfilename) != 0)
 		return (ISC_FALSE);

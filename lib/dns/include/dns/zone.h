@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.89 2000/11/17 19:04:50 gson Exp $ */
+/* $Id: zone.h,v 1.90 2000/11/18 00:57:22 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -183,19 +183,33 @@ dns_zone_getorigin(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setdatabase(dns_zone_t *zone, const char *database);
+dns_zone_setfile(dns_zone_t *zone, const char *file);
 /*
- *	Sets the name of the database to be loaded.
- *	For databases loaded from MASTER files this corresponds to the
- *	file name of the MASTER file.
+ *	Sets the name of the master file from which the zone
+ *	loads its database.
+ *
+ *	For zones with persistent databases, the file name
+ *	is ignored.
  *
  * Require:
  *	'zone' to be a valid zone.
- *	'database' to be non NULL.
+ *	'file' to be non-NULL.
  *
  * Returns:
  *	ISC_R_NOMEMORY
  *	ISC_R_SUCCESS
+ */
+
+const char *
+dns_zone_getfile(dns_zone_t *zone);
+/*
+ * 	Gets the name of the zone's master file, if any.
+ *
+ * Requires:
+ *	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *	Pointer to null-terminated file name, or NULL.
  */
 
 isc_result_t
@@ -828,8 +842,8 @@ isc_result_t
 dns_zone_setjournal(dns_zone_t *zone, const char *journal);
 /*
  * Sets the filename used for journaling updates / IXFR transfers.
- * The default journal name is set by dns_zone_setdatabase() to be
- * "database.jnl".
+ * The default journal name is set by dns_zone_setfile() to be
+ * "file.jnl".
  *
  * Requires:
  *	'zone' to be a valid zone.
@@ -878,16 +892,6 @@ dns_zone_gettask(dns_zone_t *zone, isc_task_t **target);
  *	'zone' to be valid initialised zone.
  *	'zone' to have a task.
  *	'target' to be != NULL && '*target' == NULL.
- */
-
-const char *
-dns_zone_getdatabase(dns_zone_t *zone);
-/*
- * Gets the name of the database.  For databases loaded from
- * master files, this corresponds to the file name of the master file.
- *
- * Requires:
- *	'zone' to be valid initialised zone.
  */
 
 void
