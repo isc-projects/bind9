@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.9 1999/10/25 13:11:13 marka Exp $ */
+/* $Id: log.c,v 1.10 1999/10/25 19:55:06 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -29,10 +29,12 @@
 #include <isc/assertions.h>
 #include <isc/boolean.h>
 #include <isc/dir.h>
+#include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/print.h>
+#include <isc/time.h>
 
 #define LOG_MAGIC		0x494C4F47U	/* ILOG. */
 #define VALID_CONTEXT(lctx)	((lctx) != NULL && (lctx)->magic == LOG_MAGIC)
@@ -73,7 +75,18 @@ struct isc_logchannellist {
 	isc_logmodule_t *	module;
 	isc_logchannel_t *	channel;
 	isc_logchannellist_t *	next;
-	
+};
+
+/*
+ * This structure is used to remember messages for pruning via
+ * isc_log_[v]write1().
+ */
+typedef struct isc_logmessage isc_logmessage_t;
+
+struct isc_logmessage {
+	char *			text;
+	isc_time_t		time;
+	isc_logmessage_t *	next;
 };
 
 /*
@@ -89,16 +102,18 @@ struct isc_logchannellist {
  * XXX enforce it?
  */
 struct isc_log {
-	unsigned int		magic;
-	isc_mem_t *		mctx;
-	isc_mutex_t		lock;
-	char 			buffer[LOG_BUFFER_SIZE];
-	int			debug_level;
-	isc_logchannel_t *	channels;
-	isc_logchannellist_t **	categories;
-	unsigned int		category_count;
-	isc_logmodule_t **	modules;
-	unsigned int		module_count;
+	unsigned int			magic;
+	isc_mem_t *			mctx;
+	isc_mutex_t			lock;
+	char 				buffer[LOG_BUFFER_SIZE];
+	int				debug_level;
+	unsigned int			duplicate_interval;
+	isc_logchannel_t *		channels;
+	isc_logchannellist_t **		categories;
+	unsigned int			category_count;
+	isc_logmodule_t **		modules;
+	unsigned int			module_count;
+	ISC_LIST(isc_logmessage_t)	messages;
 };
 
 /*
@@ -150,6 +165,10 @@ greatest_version(isc_logchannel_t *channel);
 static isc_result_t
 roll_log(isc_logchannel_t *channel);
 
+static void
+isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
+	     isc_logmodule_t *module, int level, isc_boolean_t write_once,
+	     const char *format, va_list args);
 
 /*
  * Convenience macros.
@@ -186,8 +205,11 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp) {
 	lctx->categories = NULL;
 	lctx->category_count = 0;
 	lctx->debug_level = 0;
+	lctx->duplicate_interval = 0;
 	lctx->modules = NULL;
 	lctx->module_count = 0;
+
+	ISC_LIST_INIT(lctx->messages);
 
 	result = isc_mutex_init(&lctx->lock);
 	
@@ -264,6 +286,7 @@ isc_log_destroy(isc_log_t **lctxp) {
 	isc_mem_t *mctx;
 	isc_logchannel_t *channel, *next_channel;
 	isc_logchannellist_t *channellist, *next_channellist;
+	isc_logmessage_t *message, *next_message;
 	unsigned int i;
 
 	REQUIRE(lctxp != NULL && VALID_CONTEXT(*lctxp));
@@ -295,6 +318,15 @@ isc_log_destroy(isc_log_t **lctxp) {
 
 	isc_mem_put(mctx, &lctx->categories[0],
 		    lctx->category_count * sizeof(isc_logchannellist_t **));
+
+	for (message = ISC_LIST_HEAD(lctx->messages); message != NULL;
+	     message = next_message) {
+
+	     next_message = message->next;
+	     isc_mem_put(mctx, message,
+			 sizeof(*message) + strlen(message->text) + 1);
+	}
+	ISC_LIST_INIT(lctx->messages);
 
 	isc_mutex_destroy(&lctx->lock);
 
@@ -495,12 +527,52 @@ isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
 	va_list args;
 
 	/*
-	 * Contract checking is done in isc_log_vwrite().
+	 * Contract checking is done in isc_log_doit().
 	 */
 
 	va_start(args, format);
-	isc_log_vwrite(lctx, category, module, level, format, args);
+	isc_log_doit(lctx, category, module, level, ISC_FALSE, format, args);
 	va_end(args);
+}
+
+void
+isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
+	       isc_logmodule_t *module, int level,
+	       const char *format, va_list args)
+
+{
+	/*
+	 * Contract checking is done in isc_log_doit().
+	 */
+	isc_log_doit(lctx, category, module, level, ISC_FALSE, format, args);
+}
+
+void
+isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
+	       isc_logmodule_t *module, int level, const char *format, ...)
+
+{
+	va_list args;
+
+	/*
+	 * Contract checking is done in isc_log_doit().
+	 */
+
+	va_start(args, format);
+	isc_log_doit(lctx, category, module, level, ISC_TRUE, format, args);
+	va_end(args);
+}
+
+void
+isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+		isc_logmodule_t *module, int level,
+		const char *format, va_list args)
+
+{
+	/*
+	 * Contract checking is done in isc_log_doit().
+	 */
+	isc_log_doit(lctx, category, module, level, ISC_TRUE, format, args);
 }
 
 void
@@ -517,6 +589,19 @@ isc_log_getdebuglevel(isc_log_t *lctx) {
 	return (lctx->debug_level);
 }
 
+void
+isc_log_setduplicateinterval(isc_log_t *lctx, unsigned int interval) {
+	REQUIRE(VALID_CONTEXT(lctx));
+
+	lctx->duplicate_interval = interval;
+}
+
+unsigned int
+isc_log_getduplicateinterval(isc_log_t *lctx) {
+	REQUIRE(VALID_CONTEXT(lctx));
+
+	return (lctx->duplicate_interval);
+}
 
 /* XXXDCL NT  -- This interface will assuredly be changing. */
 void
@@ -739,10 +824,10 @@ isc_log_open(isc_logchannel_t *channel) {
 	return (ISC_R_SUCCESS);
 }
 
-void
-isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *format,
-	       va_list args)
+static void
+isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
+	     isc_logmodule_t *module, int level, isc_boolean_t write_once,
+	     const char *format, va_list args)
 {
 	int syslog_level;
 	char time_string[64];
@@ -780,9 +865,14 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 		return;
 
 	/*
-	 * XXX duplicate filtering
+	 * XXX duplicate filtering (do not write multiple times to same source
+	 * via various channels)
 	 */
 	while (1) {
+		/*
+		 * If the channel list end was reached and a match was made,
+		 * everything is finished.
+		 */
 		if (category_channels == NULL && matched)
 			break;
 
@@ -848,9 +938,125 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 		/*
 		 * Only format the message once.
 		 */
-		if (lctx->buffer[0] == '\0')
+		if (lctx->buffer[0] == '\0') {
 			(void)vsnprintf(lctx->buffer, sizeof(lctx->buffer),
 					format, args);
+
+			/*
+			 * Check for duplicates.
+			 */
+			if (write_once) {
+				isc_logmessage_t *message, *new;
+				isc_time_t oldest;
+				isc_interval_t interval;
+
+				isc_interval_set(&interval,
+						 lctx->duplicate_interval, 0);
+
+				/*
+				 * 'oldest' is the age of the oldest messages
+				 * which fall within the duplicate_interval
+				 * range.
+				 */
+				if (isc_time_now(&oldest) != ISC_R_SUCCESS)
+					message = NULL;
+				else
+					isc_time_subtract(&oldest, &interval,
+							  &oldest);
+
+				message = ISC_LIST_HEAD(lctx->messages);
+				while (message != NULL) {
+					if (isc_time_compare(&message->time,
+							     &oldest) < 0) {
+						/*
+						 * This message is older
+						 * than the duplicate_interval,
+						 * so it should be dropped from
+						 * the history.
+						 *
+						 * XXX Setting the interval
+						 * to be longer will obviously
+						 * not cause the expired 
+						 * message to spring back into
+						 * existence.
+						 */
+						new = message->next;
+						isc_mem_put(lctx->mctx,
+							message,
+							sizeof(*message) + 1 +
+							strlen(message->text));
+
+						lctx->messages.head = new;
+						if (new == NULL)
+							/*
+							 * Last element of the
+							 * list was removed, so
+							 * the tail pointer
+							 * is no longer valid.
+							 */
+							lctx->messages.tail =
+								NULL;
+
+						message = new;
+						continue;
+					}
+
+					/*
+					 * This message is in the duplicate
+					 * filtering interval ...
+					 */
+					if (strcmp(lctx->buffer, message->text)
+					    == 0) {
+						/*
+						 * ... and it is a duplicate.
+						 * Unlock the mutex and
+						 * get the hell out of Dodge.
+						 */
+						isc_mutex_unlock(&lctx->lock);
+						return;
+					}
+
+					message = message->next;
+				}
+
+				/*
+				 * It wasn't in the duplicate interval,
+				 * so add it to the message list.
+				 */
+				new = isc_mem_get(lctx->mctx,
+						  sizeof(isc_logmessage_t) +
+						  strlen(lctx->buffer) + 1);
+				if (new != NULL) {
+					/*
+					 * Put the text immediately after
+					 * the struct.  The strcpy is safe.
+					 */
+					new->text = (char *)(new + 1);
+					strcpy(new->text, lctx->buffer);
+
+					if (isc_time_now(&new->time) !=
+					    ISC_R_SUCCESS)
+						/*
+						 * This will cause the message
+						 * to immediately expire on
+						 * the next call to [v]write1.
+						 * XXX ok?
+						 */
+					       isc_time_settoepoch(&new->time);
+
+					new->next = NULL;
+
+					if (ISC_LIST_EMPTY(lctx->messages)) {
+						lctx->messages.head = new;
+						lctx->messages.tail = new;
+					} else {
+						lctx->messages.tail->next =
+							new;
+						lctx->messages.tail = new;
+					}
+				}
+			}
+		}
 
 		switch (channel->type) {
 		case ISC_LOG_TOFILE:
@@ -866,7 +1072,7 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 			/* FALLTHROUGH */
 
 		case ISC_LOG_TOFILEDESC:
-			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s\n",
+			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s\n",
 				(channel->flags & ISC_LOG_PRINTTIME) ?
 					time_string : "",
 				(channel->flags & ISC_LOG_PRINTCATEGORY) ?
@@ -874,14 +1080,13 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 				(channel->flags & ISC_LOG_PRINTCATEGORY) ?
 					": " : "",
 				(channel->flags & ISC_LOG_PRINTMODULE) ?
-					(module != NULL ? module->name : "")
+					(module != NULL ? module->name :
+					                  "no_module")
 					: "",
 				(channel->flags & ISC_LOG_PRINTMODULE) ?
 					": " : "",
 				(channel->flags & ISC_LOG_PRINTLEVEL) ?
 					level_string : "",
-				(channel->flags & ISC_LOG_PRINTLEVEL) ?
-					": " : "",
 				lctx->buffer);
 
 			fflush(FILE_STREAM(channel));
@@ -915,7 +1120,7 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 				syslog_level = syslog_map[-level];
 
 			syslog(FACILITY(channel) | syslog_level,
-			       "%s%s%s%s%s%s%s%s",
+			       "%s%s%s%s%s%s%s",
 			       (channel->flags & ISC_LOG_PRINTTIME) ?
 			       		time_string : "",
 			       (channel->flags & ISC_LOG_PRINTCATEGORY) ?
@@ -923,14 +1128,13 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 			       (channel->flags & ISC_LOG_PRINTCATEGORY) ?
 			       		": " : "",
 			       (channel->flags & ISC_LOG_PRINTMODULE) ?
-					(module != NULL ? module->name : "")
+					(module != NULL ? module->name :
+					                  "no_module")
 			       		: "",
 			       (channel->flags & ISC_LOG_PRINTMODULE) ?
 			       		": " : "",
 			       (channel->flags & ISC_LOG_PRINTLEVEL) ?
 			       		level_string : "",
-			       (channel->flags & ISC_LOG_PRINTLEVEL) ?
-			       		": " : "",
 			       lctx->buffer);
 			break;
 
@@ -941,6 +1145,5 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 
 	}
 
-	if (isc_mutex_unlock(&lctx->lock) != ISC_R_SUCCESS)
-		return;
+	isc_mutex_unlock(&lctx->lock);
 }
