@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.25 2001/11/27 01:55:53 gson Exp $ */
+/* $Id: base64.c,v 1.26 2003/04/17 06:04:13 marka Exp $ */
 
 #include <config.h>
 
@@ -125,6 +125,17 @@ base64_decode_char(base64_decode_ctx_t *ctx, int c) {
 		if (ctx->val[0] == 64 || ctx->val[1] == 64)
 			return (ISC_R_BADBASE64);
 		if (ctx->val[2] == 64 && ctx->val[3] != 64)
+			return (ISC_R_BADBASE64);
+		/*
+		 * Check that bits that should be zero are.
+		 */
+		if (ctx->val[2] == 64 && (ctx->val[1] & 0xf) != 0)
+			return (ISC_R_BADBASE64);
+		/*
+		 * We don't need to test for ctx->val[2] != 64 as
+		 * the bottom two bits of 64 are zero.
+		 */
+		if (ctx->val[3] == 64 && (ctx->val[2] & 0x3) != 0)
 			return (ISC_R_BADBASE64);
 		n = (ctx->val[2] == 64) ? 1 :
 			(ctx->val[3] == 64) ? 2 : 3;
