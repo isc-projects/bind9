@@ -438,6 +438,10 @@
 ./bin/tests/system/glue/xx.good			X	2000,2001
 ./bin/tests/system/glue/yy.good			X	2000,2001
 ./bin/tests/system/ifconfig.sh			SH	2000,2001
+./bin/tests/system/ixfr/clean.sh		SH	2001
+./bin/tests/system/ixfr/setup.sh		SH	2001
+./bin/tests/system/ixfr/tests.sh		SH	2001
+./bin/tests/system/ixfr/ans2/ans.pl		PERL	2001
 ./bin/tests/system/limits/clean.sh		SH	2000,2001
 ./bin/tests/system/limits/knowngood.dig.out.1000	X	2000,2001
 ./bin/tests/system/limits/knowngood.dig.out.2000	X	2000,2001
@@ -520,6 +524,7 @@
 ./bin/tests/system/resolver/tests.sh		SH	2000,2001
 ./bin/tests/system/run.sh			SH	2000,2001
 ./bin/tests/system/runall.sh			SH	2000,2001
+./bin/tests/system/send.pl			PERL	2001
 ./bin/tests/system/setup.sh			SH	2000,2001
 ./bin/tests/system/sortlist/clean.sh		SH	2000,2001
 ./bin/tests/system/sortlist/ns1/.cvsignore	X	2000,2001
