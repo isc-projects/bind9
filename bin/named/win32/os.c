@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.5.2.3.8.9 2004/03/08 04:04:22 marka Exp $ */
+/* $Id: os.c,v 1.5.2.3.8.10 2004/09/29 06:36:44 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -281,4 +281,8 @@ ns_os_tzset(void) {
 #ifdef HAVE_TZSET
 	tzset();
 #endif
+}
+
+void
+ns_os_started(void) {
 }
