@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.87.2.5 2001/01/12 20:33:17 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.87.2.6 2001/02/22 19:33:14 gson Exp $ */
 
 #include <config.h>
 
@@ -865,6 +865,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_netaddr_t na;
 	dns_peer_t *peer = NULL;
 	isc_buffer_t *tsigbuf = NULL;
+	char *journalfile;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -1048,11 +1049,15 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 			CHECK(soa_rrstream_create(mctx, db, ver, &stream));
 			goto have_stream;
 		}
-		result = ixfr_rrstream_create(mctx,
-					      dns_zone_getjournal(zone),
-					      begin_serial,
-					      current_serial,
-					      &data_stream);
+		journalfile = dns_zone_getjournal(zone);
+		if (journalfile != NULL)
+			result = ixfr_rrstream_create(mctx,
+						      journalfile,
+						      begin_serial,
+						      current_serial,
+						      &data_stream);
+		else
+			result = ISC_R_NOTFOUND;
 		if (result == ISC_R_NOTFOUND ||
 		    result == ISC_R_RANGE) {
 			xfrout_log1(client, question_name, ISC_LOG_DEBUG(4),

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.79.2.2 2001/02/15 19:39:09 gson Exp $ */
+/* $Id: update.c,v 1.79.2.3 2001/02/22 19:33:12 gson Exp $ */
 
 #include <config.h>
 
@@ -2356,6 +2356,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * to the journal.
 	 */
 	if (! ISC_LIST_EMPTY(diff.tuples)) {
+		char *journalfile;
 		dns_journal_t *journal;
 
 		/*
@@ -2380,22 +2381,25 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			}
 		}
 
-		isc_log_write(UPDATE_DEBUG_LOGARGS, "writing journal %s",
-			      dns_zone_getjournal(zone));
+		journalfile = dns_zone_getjournal(zone);
+		if (journalfile != NULL) {
+			isc_log_write(UPDATE_DEBUG_LOGARGS,
+				      "writing journal %s", journalfile);
 
-		journal = NULL;
-		result = dns_journal_open(mctx, dns_zone_getjournal(zone),
-					  ISC_TRUE, &journal);
-		if (result != ISC_R_SUCCESS)
-			FAILS(result, "journal open failed");
+			journal = NULL;
+			result = dns_journal_open(mctx, journalfile,
+						  ISC_TRUE, &journal);
+			if (result != ISC_R_SUCCESS)
+				FAILS(result, "journal open failed");
 
-		result = dns_journal_write_transaction(journal, &diff);
-		if (result != ISC_R_SUCCESS) {
+			result = dns_journal_write_transaction(journal, &diff);
+			if (result != ISC_R_SUCCESS) {
+				dns_journal_destroy(&journal);
+				FAILS(result, "journal write failed");
+			}
+
 			dns_journal_destroy(&journal);
-			FAILS(result, "journal write failed");
 		}
-
-		dns_journal_destroy(&journal);
 	}
 
 	/*
