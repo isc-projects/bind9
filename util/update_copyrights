@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: update_copyrights,v 1.14 2000/06/22 22:24:05 tale Exp $
+# $Id: update_copyrights,v 1.14.2.1 2000/06/28 19:58:55 gson Exp $
 
 require 5.002;
 
@@ -101,6 +101,9 @@ while (<>) {
 	print "$file: type '$type' not supported yet; skipping\n";
 	next;
     }
+
+    ($nonspaceprefix = $prefix) =~ s/\s+$//;
+
     open(SOURCE, "<$file") || die "can't open $file: $!";
     $_ = <SOURCE>;
     if ($type eq "YACC") {
@@ -148,8 +151,7 @@ while (<>) {
 	    $first = $_;
 	}
     } elsif (($m4_comment || $zone_comment || $man_comment) &&
-             /^\Q$prefix\E/) {
-        ($nonspaceprefix = $prefix) =~ s/\s+$//;
+             /^\Q$nonspaceprefix\E/) {
 
         while (/^\Q$nonspaceprefix\E\s*$/) {
             $_ = <SOURCE>;
@@ -161,7 +163,7 @@ while (<>) {
 	    next;
 	}
 	while (<SOURCE>) {
-	    if ($_ !~ /^\Q$prefix\E/) {
+	    if ($_ !~ /^\Q$nonspaceprefix\E/) {
 		$first = $_;
 		last;
 	    }
