@@ -82,12 +82,22 @@
  *
  * This value must be coordinated with CLEAN_SECONDS (below).
  */
-#define NBUCKETS	       101	/* how many buckets for names/addrs */
+#define NBUCKETS	       1009	/* how many buckets for names/addrs */
+
+/*
+ * For type 3 negative cache entries, we will remember that the address is
+ * broken for this long.
+ */
+#define ADB_NCACHE_MINIMUM	600	/* seconds */
 
 /*
  * Clean one bucket every CLEAN_SECONDS.
  */
 #define CLEAN_SECONDS		(300 / NBUCKETS)
+#if CLEAN_SECONDS < 1
+#undef CLEAN_SECONDS
+#define CLEAN_SECONDS		1
+#endif
 
 #define FREE_ITEMS		16	/* free count for memory pools */
 #define FILL_COUNT		 8	/* fill count for memory pools */
@@ -370,6 +380,7 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 #define EXIT_LEVEL		ENTER_LEVEL
 #define CLEAN_LEVEL		100
 #define DEF_LEVEL		5
+#define NCACHE_LEVEL		20
 
 #define NCACHE_RESULT(r)	((r) == DNS_R_NCACHENXDOMAIN || \
 				 (r) == DNS_R_NCACHENXRRSET)
@@ -423,15 +434,9 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	new_addresses_added = ISC_FALSE;
 
+	nh = NULL;
 	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
-		nh = new_adbnamehook(adb, NULL);
-		if (nh == NULL) {
-			adbname->partial_result |= findoptions;
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
-
 		dns_rdataset_current(rdataset, &rdata);
 		if (rdtype == dns_rdatatype_a) {
 			INSIST(rdata.length == 4);
@@ -441,6 +446,20 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			INSIST(rdata.length == 16);
 			memcpy(in6a.s6_addr, rdata.data, 16);
 			isc_sockaddr_fromin6(&sockaddr, &in6a, 53);
+		}
+
+		if (IN6_IS_ADDR_V4MAPPED(&sockaddr.type.sin6.sin6_addr)
+		    || IN6_IS_ADDR_V4COMPAT(&sockaddr.type.sin6.sin6_addr)) {
+			DP(1, "Ignoring IPv6 mapped IPv4 address");
+			goto next;
+		}
+
+		INSIST(nh == NULL);
+		nh = new_adbnamehook(adb, NULL);
+		if (nh == NULL) {
+			adbname->partial_result |= findoptions;
+			result = ISC_R_NOMEMORY;
+			goto fail;
 		}
 
 		foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
@@ -474,6 +493,8 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			ISC_LIST_APPEND(adbname->v6, nh, plink);
 		nh = NULL;
 
+	next:
+
 		result = dns_rdataset_next(rdataset);
 	}
 
@@ -484,19 +505,21 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
-	if (new_addresses_added) {
-		if (rdtype == dns_rdatatype_a) {
-			DP(1, "expire_v4 set to MIN(%u,%u) import_rdataset",
-			   adbname->expire_v4, now + rdataset->ttl);
-			adbname->expire_v4 = ISC_MIN(adbname->expire_v4,
-						     now + rdataset->ttl);
-		} else {
-			DP(1, "expire_v6 set to MIN(%u,%u) import_rdataset",
-			   adbname->expire_v6, now + rdataset->ttl);
-			adbname->expire_v6 = ISC_MIN(adbname->expire_v6,
-						     now + rdataset->ttl);
-		}
+	if (rdataset->ttl == 0)
+		rdataset->ttl = ADB_NCACHE_MINIMUM;
+	if (rdtype == dns_rdatatype_a) {
+		DP(NCACHE_LEVEL, "expire_v4 set to MIN(%u,%u) import_rdataset",
+		   adbname->expire_v4, now + rdataset->ttl);
+		adbname->expire_v4 = ISC_MIN(adbname->expire_v4,
+					     now + rdataset->ttl);
+	} else {
+		DP(NCACHE_LEVEL, "expire_v6 set to MIN(%u,%u) import_rdataset",
+		   adbname->expire_v6, now + rdataset->ttl);
+		adbname->expire_v6 = ISC_MIN(adbname->expire_v6,
+					     now + rdataset->ttl);
+	}
 
+	if (new_addresses_added) {
 		/*
 		 * Lie a little here.  This is more or less so code that cares
 		 * can find out if any new information was added or not.
@@ -534,6 +557,12 @@ import_a6(dns_a6context_t *a6ctx)
 
 	isc_sockaddr_fromin6(&sockaddr, &a6ctx->in6addr, 53);
 
+	if (IN6_IS_ADDR_V4MAPPED(&sockaddr.type.sin6.sin6_addr)
+	    || IN6_IS_ADDR_V4COMPAT(&sockaddr.type.sin6.sin6_addr)) {
+		DP(1, "Ignoring IPv6 mapped IPv4 address");
+		goto fail;
+	}
+
 	foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
 	if (foundentry == NULL) {
 		dns_adbentry_t *entry;
@@ -556,13 +585,13 @@ import_a6(dns_a6context_t *a6ctx)
 	ISC_LIST_APPEND(name->v6, nh, plink);
 	nh = NULL;
 
-	DP(1, "expire_v6 set to MIN(%u,%u) in import_v6",
+ fail:
+	DP(NCACHE_LEVEL, "expire_v6 set to MIN(%u,%u) in import_v6",
 	   name->expire_v6, a6ctx->expiration);
 	name->expire_v6 = ISC_MIN(name->expire_v6, a6ctx->expiration);
 
 	name->flags |= NAME_NEEDS_POKE;
 
- fail:
 	if (nh != NULL)
 		free_adbnamehook(adb, &nh);
 
@@ -1986,6 +2015,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_task_create(adb->taskmgr, adb->mctx, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
+	/*
+	 * XXXMLG When this is changed to be a config file option,
+	 */ 
 	isc_interval_set(&adb->tick_interval, CLEAN_SECONDS, 0);
 	result = isc_timer_create(adb->timermgr, isc_timertype_once,
 				  NULL, &adb->tick_interval, adb->task,
@@ -2925,12 +2957,14 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		 * We found a negative cache entry.  Pull the TTL from it
 		 * so we won't ask again for a while.
 		 */
+		if (rdataset.ttl == 0)
+			rdataset.ttl = ADB_NCACHE_MINIMUM;
 		if (rdtype == dns_rdatatype_a) {
 			adbname->expire_v4 = rdataset.ttl + now;
-			DP(1, "adb name %p: Caching negative entry for A (ttl %u)",
+			DP(NCACHE_LEVEL, "adb name %p: Caching negative entry for A (ttl %u)",
 			   adbname, rdataset.ttl);
 		} else {
-			DP(1, "adb name %p: Caching negative entry for AAAA (ttl %u)",
+			DP(NCACHE_LEVEL, "adb name %p: Caching negative entry for AAAA (ttl %u)",
 			   adbname, rdataset.ttl);
 			adbname->expire_v6 = rdataset.ttl + now;
 		}
@@ -2982,7 +3016,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 		 * We found a negative cache entry.  Pull the TTL from it
 		 * so we won't ask again for a while.
 		 */
-		DP(1, "adb name %p: Caching negative entry for A6 (ttl %u)",
+		DP(NCACHE_LEVEL, "adb name %p: Caching negative entry for A6 (ttl %u)",
 		   adbname, rdataset.ttl);
 		adbname->expire_v6 = ISC_MIN(rdataset.ttl + now,
 					     adbname->expire_v6);
@@ -3075,13 +3109,13 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	 */
 	if (NCACHE_RESULT(dev->result)) {
 		if (address_type == DNS_ADBFIND_INET) {
-			DP(1, "adb fetch name %p: "
+			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for A (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v4 = ISC_MIN(name->expire_v4,
 						  dev->rdataset->ttl + now);
 		} else {
-			DP(1, "adb fetch name %p: "
+			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for AAAA (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
@@ -3223,7 +3257,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		 * If we got a negative cache response, remember it.
 		 */
 		if (NCACHE_RESULT(dev->result)) {
-			DP(1, "adb fetch name %p: "
+			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for A6 (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
