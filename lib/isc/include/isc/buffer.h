@@ -75,7 +75,7 @@
  ***/
 
 #include <isc/region.h>
-
+#include <isc/int.h>
 
 /***
  *** Types
@@ -311,6 +311,48 @@ isc_buffer_compact(isc_buffer_t *b);
  *	The size of the used region is now equal to the size of the remaining
  *	region (as it was before the call).  The contents of the used region
  *	are those of the remaining region (as it was before the call).
+ */
+
+isc_uint16_t
+isc_buffer_getuint16(isc_buffer_t *b);
+/*
+ * Read an unsigned 16-bit integer in network byte order from 'b', convert
+ * it to host byte order, and return it.
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
+ *
+ *	The length of the available region of 'b' is at least 2.
+ *
+ * Ensures:
+ *
+ *	The current pointer in 'b' is advanced by 2.
+ *
+ * Returns:
+ *
+ *	A 16-bit unsigned integer.
+ */
+
+isc_uint32_t
+isc_buffer_getuint32(isc_buffer_t *b);
+/*
+ * Read an unsigned 32-bit integer in network byte order from 'b', convert
+ * it to host byte order, and return it.
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
+ *
+ *	The length of the available region of 'b' is at least 2.
+ *
+ * Ensures:
+ *
+ *	The current pointer in 'b' is advanced by 2.
+ *
+ * Returns:
+ *
+ *	A 32-bit unsigned integer.
  */
 
 #endif /* ISC_BUFFER_H */

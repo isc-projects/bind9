@@ -226,3 +226,49 @@ isc_buffer_compact(isc_buffer_t *b) {
 	b->current = 0;
 	b->used = length;
 }
+
+isc_uint16_t
+isc_buffer_getuint16(isc_buffer_t *b) {
+	unsigned char *cp;
+	isc_uint16_t result;
+
+	/*
+	 * Read an unsigned 16-bit integer in network byte order from 'b',
+	 * convert it to host byte order, and return it.
+	 */
+
+	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(b->used - b->current >= 2);
+
+	cp = b->base;
+	cp += b->current;
+	b->current += 2;
+	result = ((unsigned int)(cp[0])) << 8;
+	result |= ((unsigned int)(cp[1]));
+
+	return (result);
+}
+
+isc_uint32_t
+isc_buffer_getuint32(isc_buffer_t *b) {
+	unsigned char *cp;
+	isc_uint32_t result;
+
+	/*
+	 * Read an unsigned 32-bit integer in network byte order from 'b',
+	 * convert it to host byte order, and return it.
+	 */
+
+	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(b->used - b->current >= 4);
+
+	cp = b->base;
+	cp += b->current;
+	b->current += 4;
+	result = ((unsigned int)(cp[0])) << 24;
+	result |= ((unsigned int)(cp[1])) << 16;
+	result |= ((unsigned int)(cp[2])) << 8;
+	result |= ((unsigned int)(cp[3]));
+
+	return (result);
+}
