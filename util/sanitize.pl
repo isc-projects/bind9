@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.9 2000/09/28 17:35:19 gson Exp $
+# $Id: sanitize.pl,v 1.10 2000/09/29 21:31:01 mws Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -23,18 +23,18 @@
 # sanitized.
 #
 # In normal mode, check file, removing code between
-#      #ifndef NOMINUM_key
+#      #ifndef key
 # and the accompanying #else or #endif.  Similarly, code in an #else
 # clause after an #ifndef test will be removed.  The #else or #endif's
 # must appear as:
-#      #else /* NOMINUM_key */
-#      #endif /* NOMINUM_key */
+#      #else /* key */
+#      #endif /* key */
 # Balance is tested.
 # Non-.c/.h files are tested for the existance of NOMINUM_anything anywhere
 # in the file, and a warning is generated, unless the string
 # NOMINUM_IGNORE appears before NOMINUM_.
 
-# If the string NOMINUM_key_DELETE is present, delete the file.
+# If the string key_DELETE is present, delete the file.
 
 # Usage:
 #  ./sanitize.pl -c     - Check syntax only, don't change anything
@@ -98,8 +98,9 @@ sub runfile($) {
 			break;
 		}
 		$masterstate = 0;
+		$intest = 0;
 		for ($i = 0 ; $i < $curkeys; $i++) {
-			if ((/NOMINUM_$key[$i]_DELETE/) &&
+			if ((/$key[$i]_DELETE/) &&
 			    ($showon[$i] == 1)) {
 				close(INFILE);
 				close(OUTFILE);
@@ -107,7 +108,7 @@ sub runfile($) {
 				$deletefile = 1;
 				goto bailout;
 			}
-			elsif (/\#ifdef.+NOMINUM_$key[$i]/) {
+			elsif (/\#.*ifdef.+$key[$i]/) {
 				if ($state[$i] != 0) {
 					print(STDERR "*** ERROR in file ".
 					      "$_[0] line $.: ".
@@ -122,7 +123,7 @@ sub runfile($) {
 				$state[$i] = 1;
 				goto doneline;
 			}
-			elsif (/\#ifndef.+NOMINUM_$key[$i]/) {
+			elsif (/\#.*ifndef.+$key[$i]/) {
 				if ($state[$i] != 0) {
 					print(STDERR "*** ERROR in file ".
 					      "$_[0] line $.: ".
@@ -138,7 +139,7 @@ sub runfile($) {
 				goto doneline;
 
 			}
-			elsif (/\#else.+NOMINUM_$key[$i]/) {
+			elsif (/\#.*else.+$key[$i]/) {
 				if ($state[$i] == 0) {
 					print(STDERR "*** ERROR in file ".
 					      "$_[0] line $.: ".
@@ -157,7 +158,7 @@ sub runfile($) {
 				}
 				goto doneline;
 			}
-			elsif (/\#endif.+NOMINUM_$key[$i]/) {
+			elsif (/\#.*endif.+$key[$i]/) {
 				if ($state[$i] == 0) {
 					print(STDERR "*** ERROR in file ".
 					      "$_[0] line $.: ".
@@ -180,14 +181,25 @@ sub runfile($) {
 		}
 	      doneline:
 		for ($i = 0 ; $i < $curkeys; $i++) {
-			if (($state[i] != 0) &&
-			    ($state[i] != $showon[$i])) {
+			if ($state[$i] != 0) {
+				$intest++;
+			}
+			if (($state[$i] != 0) &&
+			    ($state[$i] != $showon[$i])) {
 				$masterstate++;
 				break;
 			}
 		}
 		if (($masterstate == 0) && $makechange) {
-			print(OUTFILE);
+			if ($intest != 0) {
+				if (/^#\+(.*)/) {
+				    print(OUTFILE "$1\n");
+			    } else {
+				    print(OUTFILE);
+			    }
+			} else {
+				print(OUTFILE);
+			}
 		}
 	}
       bailout:
