@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.75 2000/07/25 17:55:37 brister Exp $ */
+/* $Id: confctx.c,v 1.76 2000/07/26 15:21:04 brister Exp $ */
 
 #include <config.h>
 
@@ -198,6 +198,7 @@ PVT_CONCAT(dns_c_ctx_unset, FUNC)(dns_c_ctx_t *cfg)		\
 	}							\
 								\
 	isc_mem_free(cfg->options->mem, cfg->options->FIELD);	\
+	cfg->options->FIELD = NULL;				\
 								\
 	return (ISC_R_SUCCESS);					\
 }
