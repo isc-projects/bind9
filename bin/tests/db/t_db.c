@@ -225,7 +225,8 @@ t_dns_db_load(char **av) {
 
 	if (dns_result != DNS_R_NOTFOUND) {
 		dns_db_detachnode(db, &nodep);
-		dns_rdataset_disassociate(&rdataset);
+		if (dns_rdataset_isassociated(&rdataset))
+			dns_rdataset_disassociate(&rdataset);
 	}
 
 	if (dns_db_iszone(db))
@@ -898,6 +899,7 @@ t_dns_db_newversion(char **av) {
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
+	dns_dbnode_t		*found_nodep;
 	isc_textregion_t	textregion;
 	isc_buffer_t		newname_buffer;
 	dns_fixedname_t		dns_newname;
@@ -988,6 +990,7 @@ t_dns_db_newversion(char **av) {
 	textregion.base = newtype;
 	textregion.length = strlen(newtype);
 	dns_result = dns_rdatatype_fromtext(&rdatatype, &textregion);
+
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("dns_rdatatype_fromtext %s failed %s\n",
 				newtype,
@@ -1059,12 +1062,15 @@ t_dns_db_newversion(char **av) {
 	/* close and commit the version */
 	dns_db_closeversion(db, &nversionp, ISC_TRUE);
 	dns_db_detachnode(db, &nodep);
+	if (dns_rdataset_isassociated(&added_rdataset))
+		dns_rdataset_disassociate(&added_rdataset);
 	nodep = NULL;
 
 	/* open a new version and find the data we added */
 	dns_fixedname_init(&dns_foundname);
 	dns_rdataset_init(&found_rdataset);
 	nversionp = NULL;
+	found_nodep = NULL;
 	dns_db_newversion(db, &nversionp);
 
 	/* find the recently added name and rdata */
@@ -1074,13 +1080,19 @@ t_dns_db_newversion(char **av) {
 			rdatatype,
 			0,
 			0,
-			&nodep,
+			&found_nodep,
 			dns_fixedname_name(&dns_foundname),
-			&found_rdataset, NULL);
+			&found_rdataset,
+			NULL);
 
 	if (dns_result != DNS_R_SUCCESS) {
-		t_info("unable to find %s\n", newname);
+/* ZZZ - NXRRSET ???  reference counts ??? */
+		t_info("dns_db_find failed %s\n",
+				dns_result_totext(dns_result));
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
+		dns_db_detachnode(db, &found_nodep);
+		if (dns_rdataset_isassociated(&found_rdataset))
+			dns_rdataset_disassociate(&found_rdataset);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
 		return(T_FAIL);
@@ -1091,7 +1103,8 @@ t_dns_db_newversion(char **av) {
 		t_info("dns_rdataset_first failed %s\n",
 				dns_result_totext(dns_result));
 		dns_db_detachnode(db, &nodep);
-		dns_rdataset_disassociate(&found_rdataset);
+		if (dns_rdataset_isassociated(&found_rdataset))
+			dns_rdataset_disassociate(&found_rdataset);
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1110,11 +1123,11 @@ t_dns_db_newversion(char **av) {
 		result = T_FAIL;
 	}
 
-
 	/* don't need these now */
 	dns_db_closeversion(db, &nversionp, ISC_FALSE);
-	dns_rdataset_disassociate(&found_rdataset);
-	dns_db_detachnode(db, &nodep);
+	if (dns_rdataset_isassociated(&found_rdataset))
+		dns_rdataset_disassociate(&found_rdataset);
+	dns_db_detachnode(db, &found_nodep);
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx);
 
@@ -1403,8 +1416,13 @@ t_dns_db_closeversion_1(char **av) {
 			&found_rdataset, NULL);
 
 	if (dns_result != DNS_R_SUCCESS) {
-		t_info("unable to find %s\n", new_name);
+/* ZZZ NXRRSET ??? reference counting ??? */
+		t_info("dns_db_find failed %s\n",
+				dns_result_totext(dns_result));
 		dns_db_closeversion(db, &cversionp, ISC_FALSE);
+		dns_db_detachnode(db, &nodep);
+		if (dns_rdataset_isassociated(&found_rdataset))
+			dns_rdataset_disassociate(&found_rdataset);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
 		return(T_FAIL);
@@ -1415,7 +1433,8 @@ t_dns_db_closeversion_1(char **av) {
 		t_info("dns_rdataset_first failed %s\n",
 				dns_result_totext(dns_result));
 		dns_db_detachnode(db, &nodep);
-		dns_rdataset_disassociate(&found_rdataset);
+		if (dns_rdataset_isassociated(&found_rdataset))
+			dns_rdataset_disassociate(&found_rdataset);
 		dns_db_closeversion(db, &cversionp, ISC_FALSE);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1433,7 +1452,8 @@ t_dns_db_closeversion_1(char **av) {
 	
 	/* now check the rdata deletion */
 
-	dns_rdataset_disassociate(&found_rdataset);
+	if (dns_rdataset_isassociated(&found_rdataset))
+		dns_rdataset_disassociate(&found_rdataset);
 	dns_rdataset_init(&found_rdataset);
 	dns_db_detachnode(db, &nodep);
 	nodep = NULL;
@@ -1747,8 +1767,12 @@ t_dns_db_closeversion_2(char **av) {
 		(dns_result == DNS_R_NXDOMAIN)	||
 		(dns_result == DNS_R_NXRDATASET)) {
 
-		t_info("unable to find %s\n", new_name);
+		t_info("dns_db_find failed %s\n",
+				dns_result_totext(dns_result));
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
+		dns_db_detachnode(db, &nodep);
+		if (dns_rdataset_isassociated(&found_rdataset))
+			dns_rdataset_disassociate(&found_rdataset);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
 		return(T_FAIL);
@@ -1759,7 +1783,8 @@ t_dns_db_closeversion_2(char **av) {
 		t_info("dns_rdataset_first failed %s\n",
 				dns_result_totext(dns_result));
 		dns_db_detachnode(db, &nodep);
-		dns_rdataset_disassociate(&found_rdataset);
+		if (dns_rdataset_isassociated(&found_rdataset))
+			dns_rdataset_disassociate(&found_rdataset);
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1777,7 +1802,8 @@ t_dns_db_closeversion_2(char **av) {
 	
 	/* now check the rdata deletion */
 
-	dns_rdataset_disassociate(&found_rdataset);
+	if (dns_rdataset_isassociated(&found_rdataset))
+		dns_rdataset_disassociate(&found_rdataset);
 	dns_rdataset_init(&found_rdataset);
 	dns_db_detachnode(db, &nodep);
 	nodep = NULL;
@@ -1797,7 +1823,8 @@ t_dns_db_closeversion_2(char **av) {
 	if ((dns_result != DNS_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
 		t_info("dns_db_find %s returned %s\n", existing_name,
 				dns_result_totext(dns_result));
-		dns_rdataset_disassociate(&found_rdataset);
+		if (dns_rdataset_isassociated(&found_rdataset))
+			dns_rdataset_disassociate(&found_rdataset);
 		dns_db_detachnode(db, &nodep);
 		++nfails;
 	}
@@ -2529,7 +2556,8 @@ t_dns_db_find_x(char **av) {
 	if ((dns_result != DNS_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
 
 		if ((dns_result != DNS_R_NXRDATASET) && (dns_result != DNS_R_ZONECUT))
-			dns_rdataset_disassociate(&rdataset);
+			if (dns_rdataset_isassociated(&rdataset))
+				dns_rdataset_disassociate(&rdataset);
 		dns_db_detachnode(db, &nodep);
 	}
 

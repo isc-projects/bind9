@@ -178,9 +178,14 @@ t1_add(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, dns_result_t *dns_result) {
 	if (name && dns_result) {
 		*dns_result = create_name(name, mctx, &dns_name);
 		if (*dns_result == DNS_R_SUCCESS) {
+			if (T_debug)
+				t_info("dns_rbt_addname succeeded\n");
 			*dns_result = dns_rbt_addname(rbt, dns_name, dns_name);
 		}
 		else {
+			t_info("dns_rbt_addname failed %s\n",
+		       			dns_result_totext(*dns_result));
+			delete_name(dns_name, mctx);
 			++nprobs;
 		}
 	}
@@ -297,6 +302,7 @@ test_rbt_gen(char *filename, char *command, char *testname, dns_result_t exp_res
 	isc_result_t	isc_result;
 	dns_result_t	dns_result;
 	isc_mem_t	*mctx;
+	dns_name_t	*dns_name;
 
 	result = T_UNRESOLVED;
 
@@ -324,27 +330,44 @@ test_rbt_gen(char *filename, char *command, char *testname, dns_result_t exp_res
 		result = T_PASS;
 	}
 	else if (strcmp(command, "add") == 0) {
-		rval = t1_add(testname, rbt, mctx, &dns_result);
-		if (rval == 0) {
+		dns_result = create_name(testname, mctx, &dns_name);
+		if (dns_result == DNS_R_SUCCESS) {
+			dns_result = dns_rbt_addname(rbt, dns_name, dns_name);
+
+			if (dns_result != DNS_R_SUCCESS)
+				delete_name(dns_name, mctx);
+
 			if (dns_result == exp_result) {
-				rval = t1_search(testname, rbt, mctx, &dns_result);
-				if (rval == 0) {
-					if (dns_result == DNS_R_SUCCESS) {
-						result = T_PASS;
+				if (dns_result == DNS_R_SUCCESS) {
+					rval = t1_search(testname, rbt, mctx, &dns_result);
+					if (rval == 0) {
+						if (dns_result == DNS_R_SUCCESS) {
+							result = T_PASS;
+						}
+						else {
+							result = T_FAIL;
+						}
 					}
 					else {
-						t_info("dns_rbt_addname didn't "
-							"add the name");
-						result = T_FAIL;
+						t_info("t1_search failed\n");
+						result = T_UNRESOLVED;
 					}
+				}
+				else {
+					result = T_PASS;
 				}
 			}
 			else {
-				t_info("add returned %s, expected %s\n",
+				t_info("dns_rbt_addname returned %s, expected %s\n",
 					dns_result_totext(dns_result),
 					dns_result_totext(exp_result));
 				result = T_FAIL;
 			}
+		}
+		else {
+			t_info("create_name failed %s\n",
+				dns_result_totext(dns_result));
+			result = T_UNRESOLVED;
 		}
 	}
 	else if ((strcmp(command, "delete") == 0) ||
@@ -1459,6 +1482,7 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 	}
 
 	/* set the starting node */
+	node = NULL;
 	dns_result = dns_rbt_findnode(rbt, dns_fixedname_name(&dns_findname),
 					dns_fixedname_name(&dns_foundname),
 					&node, &chain, ISC_TRUE, NULL, NULL);
