@@ -40,7 +40,7 @@ LIBS =		@LIBS@
 SUBDIRS = db dst master mem names rbt sockaddr tasks timers
 
 # Alphabetically
-TARGETS =	sdig signer
+TARGETS =	keygen sdig signer
 XTARGETS =	adb_test \
 		compress_test \
 		db_test \
@@ -49,7 +49,6 @@ XTARGETS =	adb_test \
 		gxba_test \
 		gxbn_test \
 		inter_test \
-		keygen \
 		lex_test \
 		lfsr_test \
 		log_test \
