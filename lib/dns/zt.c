@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.30 2001/05/07 23:34:07 gson Exp $ */
+/* $Id: zt.c,v 1.31 2001/05/09 21:34:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -295,6 +295,12 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 	dns_rbtnodechain_invalidate(&chain);
 
 	return (result);
+}
+
+unsigned int
+dns_zt_zonecount(dns_zt_t *zt) {
+	REQUIRE(VALID_ZT(zt));
+	return (dns_rbt_nodecount(zt->table));
 }
 
 /***
