@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.11 2000/03/04 03:05:17 tale Exp $ */
+/* $Id: log_test.c,v 1.12 2000/04/06 20:28:29 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -123,11 +123,11 @@ main (int argc, char **argv) {
 	/*
 	 * Test isc_log_categorybyname and isc_log_modulebyname.
 	 */
-	category = isc_log_categorybyname(lctx, "dns_parser");
+	category = isc_log_categorybyname(lctx, "xfer-in");
 	if (category != NULL)
 		fprintf(stderr, "%s category found.\n", category->name);
 	else
-		fprintf(stderr, "dns_parser category not found!\n");
+		fprintf(stderr, "xfer-in category not found!\n");
 
 	module = isc_log_modulebyname(lctx, "xyzzy");
 	if (module != NULL)
