@@ -1,3 +1,9 @@
+ 117.	[cleanup]	libdns.a changes:
+			dns_zone_clearnotify() and dns_zone_addnotify()
+			are replaced by dns_zone_setnotifyalso().
+ 			dns_zone_clearmasters() and dns_zone_addmaster()
+			are replaced by dns_zone_setmasters().
+			
  116.   [func]          Added <isc/offset.h> for isc_offset_t (aka off_t
                         on Unix systems).
 

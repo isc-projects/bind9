@@ -362,38 +362,26 @@ void dns_zone_maintenance(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_clearmasters(dns_zone_t *zone);
-/*
- *	Clear the set of master servers the zone transfers from.
- *
- * Require
- *	'zone' to be a valid initalised zone.
- */
-
-isc_result_t dns_zone_addmaster(dns_zone_t *zone, isc_sockaddr_t *master);
+isc_result_t dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
+				 isc_uint32_t count);
 /*
  *	Add a master server to the end of the set of master servers for
  *	the zone.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
- *	'master' to be non NULL.
+ *	'masters' array of isc_sockaddr_t with port set or NULL.
+ *	'count' the number of masters.
+ *
+ * 	If 'masters' is NULL then 'count' must be zero.
  *
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOMEMORY
  */
 
-void dns_zone_clearnotify(dns_zone_t *zone);
-/*
- *	Clear the set of additional servers to be notified when the zone
- *	changes.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- */
-
-isc_result_t dns_zone_addnotify(dns_zone_t *zone, isc_sockaddr_t *notify);
+isc_result_t dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
+				    isc_uint32_t count);
 /*
  *	Add a server to the end of the list of additional servers to be
  *	notified when a zone changes.
@@ -401,6 +389,9 @@ isc_result_t dns_zone_addnotify(dns_zone_t *zone, isc_sockaddr_t *notify);
  * Require:
  *	'zone' to be a valid initalised zone.
  *	'notify' to be non NULL.
+ *	'count' the number of notify.
+ *
+ * 	If 'notify' is NULL then 'count' must be zero.
  *
  * Returns:
  *	ISC_R_SUCCESS

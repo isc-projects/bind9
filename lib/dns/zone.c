@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.102 2000/04/27 00:02:09 tale Exp $ */
+/* $Id: zone.c,v 1.103 2000/04/28 00:58:40 marka Exp $ */
 
 #include <config.h>
 
@@ -135,9 +135,9 @@ struct dns_zone {
 	dns_zonetype_t		type;
 	unsigned int		flags;
 	unsigned int		options;
-	char *			db_type;
+	char			*db_type;
 	unsigned int		db_argc;
-	char **			db_argv;
+	char			**db_argv;
 	isc_stdtime_t		expiretime;
 	isc_stdtime_t		refreshtime;
 	isc_stdtime_t		dumptime;
@@ -150,18 +150,18 @@ struct dns_zone {
 	isc_uint32_t		retry;
 	isc_uint32_t		expire;
 	isc_uint32_t		minimum;
-	isc_sockaddr_t *	masters;
+	isc_sockaddr_t		*masters;
 	unsigned int		masterscnt;
 	in_port_t		masterport;
 	unsigned int		curmaster;
 	isc_sockaddr_t		masteraddr;
-	isc_sockaddr_t *	notify;
+	isc_sockaddr_t		*notify;
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
-	isc_task_t *		task;
+	isc_task_t		*task;
 	isc_sockaddr_t	 	xfrsource4;
 	isc_sockaddr_t	 	xfrsource6;
-	dns_xfrin_ctx_t *	xfr;
+	dns_xfrin_ctx_t		*xfr;
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
 	dns_acl_t		*query_acl;
@@ -200,6 +200,8 @@ struct dns_zone {
 						 * uptodate */
 #define DNS_ZONE_F_NEEDNOTIFY	0x00000400U	/* need to send out notify
 						 * messages */
+#define DNS_ZONE_F_DIFFONRELOAD 0x00000800U	/* generate a journal diff on
+						 * reload */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -442,9 +444,9 @@ zone_free(dns_zone_t *zone) {
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	dns_zone_cleardbargs(zone);
-	dns_zone_clearmasters(zone);
+	dns_zone_setmasters(zone, NULL, 0);
 	zone->masterport = 0;
-	dns_zone_clearnotify(zone);
+	dns_zone_setnotifyalso(zone, NULL, 0);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
@@ -1612,84 +1614,65 @@ dns_zone_getxfrsource6(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_addnotify(dns_zone_t *zone, isc_sockaddr_t *notify) {
+dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
+		       isc_uint32_t count)
+{
 	isc_sockaddr_t *new;
+
 	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE((notify == NULL) ^ (count != 0));
 	
-	LOCK(&zone->lock);
-	new = isc_mem_get(zone->mctx, (zone->notifycnt + 1) * sizeof *new);
-	if (new == NULL)
-		goto cleanup;
-
-	new[zone->notifycnt] = *notify;
-	if (zone->notifycnt > 0) {
-		memcpy(new, zone->notify, zone->notifycnt * sizeof *new);
-		isc_mem_put(zone->mctx, zone->notify,
-			    zone->notifycnt * sizeof *new);
-	}
-	zone->notify = new;
-	zone->notifycnt++;
-	UNLOCK(&zone->lock);
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	UNLOCK(&zone->lock);
-	return (ISC_R_NOMEMORY);
-}
-
-void
-dns_zone_clearnotify(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
 	LOCK(&zone->lock);
 	if (zone->notify != NULL) {
 		isc_mem_put(zone->mctx, zone->notify,
-			    zone->notifycnt * sizeof *zone->notify);
-		zone->notify = NULL;
+			    zone->notifycnt * sizeof *new);
 		zone->notifycnt = 0;
 	}
-	UNLOCK(&zone->lock);
-}
+	if (notify == NULL)
+		goto unlock;
 
-isc_result_t
-dns_zone_addmaster(dns_zone_t *zone, isc_sockaddr_t *master) {
-	isc_sockaddr_t *new;
-	REQUIRE(DNS_ZONE_VALID(zone));
-	
-	LOCK(&zone->lock);
-	new = isc_mem_get(zone->mctx, (zone->masterscnt + 1) * sizeof *new);
+	new = isc_mem_get(zone->mctx, count * sizeof *new);
 	if (new == NULL) {
 		UNLOCK(&zone->lock);
 		return (ISC_R_NOMEMORY);
 	}
-	new[zone->masterscnt] = *master;
-	if (zone->masterscnt > 0) {
-		memcpy(new, zone->masters, zone->masterscnt * sizeof *new);
-		isc_mem_put(zone->mctx, zone->masters,
-			    zone->masterscnt * sizeof *new);
-	}
-	zone->masters = new;
-	zone->masterscnt++;
+	memcpy(new, notify, count * sizeof *new);
+	zone->notify = new;
+	zone->notifycnt = count;
+ unlock:
 	UNLOCK(&zone->lock);
 	return (ISC_R_SUCCESS);
 }
 
-void
-dns_zone_clearmasters(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
+isc_result_t
+dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
+		    isc_uint32_t count)
+{
+	isc_sockaddr_t *new;
 
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE((masters == NULL) ^ (count != 0));
+	
 	LOCK(&zone->lock);
-	while (DNS_ZONE_FLAG(zone, DNS_ZONE_F_REFRESH)) {
-		cancel_refresh(zone);
-	}
 	if (zone->masters != NULL) {
 		isc_mem_put(zone->mctx, zone->masters,
-			    zone->masterscnt * sizeof *zone->masters);
-		zone->masters = NULL;
+			    zone->masterscnt * sizeof *new);
 		zone->masterscnt = 0;
-		zone->curmaster = 0;
 	}
+	if (masters == NULL)
+		goto unlock;
+
+	new = isc_mem_get(zone->mctx, count * sizeof *new);
+	if (new == NULL) {
+		UNLOCK(&zone->lock);
+		return (ISC_R_NOMEMORY);
+	}
+	memcpy(new, masters, count * sizeof *new);
+	zone->masters = new;
+	zone->masterscnt = count;
+ unlock:
 	UNLOCK(&zone->lock);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

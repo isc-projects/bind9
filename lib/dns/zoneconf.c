@@ -103,7 +103,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_c_severity_t severity;
 #endif
 	dns_c_iplist_t *iplist = NULL;
-	isc_uint32_t i;
 	isc_sockaddr_t sockaddr;
 	isc_int32_t maxxfr;
 	in_port_t port;
@@ -185,16 +184,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			boolean = ISC_TRUE;
 		dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
 
-		dns_zone_clearnotify(zone);
 		result = dns_c_zone_getalsonotify(czone, &iplist);
-		if (result == ISC_R_SUCCESS) {
-			for (i = 0; i < iplist->nextidx; i++) {
-				result = dns_zone_addnotify(zone,
-							    &iplist->ips[i]);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-			}
-		}
+		if (result == ISC_R_SUCCESS)
+			result = dns_zone_setnotifyalso(zone, iplist->ips,
+						        iplist->nextidx);
+		else
+			result = dns_zone_setnotifyalso(zone, NULL, 0);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
@@ -264,16 +261,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			port = 53;
 		dns_zone_setmasterport(zone, port);
 
-		dns_zone_clearmasters(zone);
 		result = dns_c_zone_getmasterips(czone, &iplist);
-		if (result == ISC_R_SUCCESS) {
-			for (i = 0; i < iplist->nextidx; i++) {
-				result = dns_zone_addmaster(zone,
-							    &iplist->ips[i]);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-			}
-		}
+		if (result == ISC_R_SUCCESS)
+			result = dns_zone_setmasters(zone, iplist->ips,
+						     iplist->nextidx);
+		else
+			result = dns_zone_setmasters(zone, NULL, 0);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS) 
@@ -345,16 +340,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			boolean = ISC_TRUE;
 		dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
 
-		dns_zone_clearnotify(zone);
 		result = dns_c_zone_getalsonotify(czone, &iplist);
-		if (result == ISC_R_SUCCESS) {
-			for (i = 0; i < iplist->nextidx; i++) {
-				result = dns_zone_addnotify(zone,
-							    &iplist->ips[i]);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-			}
-		}
+		if (result == ISC_R_SUCCESS)
+			result = dns_zone_setnotifyalso(zone, iplist->ips,
+						        iplist->nextidx);
+		else
+			result = dns_zone_setnotifyalso(zone, NULL, 0);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
 		break;
 
@@ -387,16 +380,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			port = 53;
 		dns_zone_setmasterport(zone, port);
 
-		dns_zone_clearmasters(zone);
 		result = dns_c_zone_getmasterips(czone, &iplist);
-		if (result == ISC_R_SUCCESS) {
-			for (i = 0; i < iplist->nextidx; i++) {
-				result = dns_zone_addmaster(zone,
-							    &iplist->ips[i]);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-			}
-		}
+		if (result == ISC_R_SUCCESS)
+			result = dns_zone_setmasters(zone, iplist->ips,
+						     iplist->nextidx);
+		else
+			result = dns_zone_setmasters(zone, NULL, 0);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS) 
