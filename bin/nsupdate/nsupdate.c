@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.81 2001/01/23 19:55:04 gson Exp $ */
+/* $Id: nsupdate.c,v 1.82 2001/02/24 21:02:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -546,20 +546,35 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
 #ifdef USE_GETADDRINFO
-	struct addrinfo *res = NULL;
+	struct addrinfo *res = NULL, hints;
 	int result;
 #else
 	struct hostent *he;
 #endif
 
 	ddebug("get_address()");
+
+	/*
+	 * Assume we have v4 if we don't have v6, since setup_libs
+	 * fatal()'s out if we don't have either.
+	 */
 	if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
 		isc_sockaddr_fromin6(sockaddr, &in6, port);
 	else if (inet_pton(AF_INET, host, &in4) == 1)
 		isc_sockaddr_fromin(sockaddr, &in4, port);
 	else {
 #ifdef USE_GETADDRINFO
-		result = getaddrinfo(host, NULL, NULL, &res);
+		memset(&hints, 0, sizeof(hints));
+		if (!have_ipv6)
+			hints.ai_family = PF_INET;
+		else if (!have_ipv4)
+			hints.ai_family = PF_INET6;
+		else
+			hints.ai_family = PF_UNSPEC;
+		debug ("before getaddrinfo()");
+		isc_app_block();
+		result = getaddrinfo(host, NULL, &hints, &res);
+		isc_app_unblock();
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",
 			      host, gai_strerror(result));
@@ -569,10 +584,13 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		isc_sockaddr_setport(sockaddr, port);
 		freeaddrinfo(res);
 #else
+		debug ("before gethostbyname()");
+		isc_app_block();
 		he = gethostbyname(host);
+		isc_app_unblock();
 		if (he == NULL)
-		     fatal("Couldn't look up your server host %s.  errno=%d",
-			      host, h_errno);
+		     fatal("Couldn't find server '%s' (h_errno=%d)",
+			   host, h_errno);
 		INSIST(he->h_addrtype == AF_INET);
 		isc_sockaddr_fromin(sockaddr,
 				    (struct in_addr *)(he->h_addr_list[0]),
@@ -908,6 +926,8 @@ static isc_uint16_t
 evaluate_local(char *cmdline) {
 	char *word, *local;
 	long port;
+	struct in_addr in4;
+	struct in6_addr in6;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
@@ -938,7 +958,14 @@ evaluate_local(char *cmdline) {
 			fatal("out of memory");
 	}
 
-	get_address(local, (in_port_t)port, localaddr);
+	if (have_ipv6 && inet_pton(AF_INET6, local, &in6) == 1)
+		isc_sockaddr_fromin6(localaddr, &in6, (in_port_t)port);
+	else if (have_ipv4 && inet_pton(AF_INET, local, &in4) == 1)
+		isc_sockaddr_fromin(localaddr, &in4, (in_port_t)port);
+	else {
+		fprintf(stderr, "invalid address %s", local);
+		return (STATUS_SYNTAX);
+	}
 
 	return (STATUS_MORE);
 }
