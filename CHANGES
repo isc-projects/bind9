@@ -1,3 +1,7 @@
+ 657.	[bug]		When a listen-on statement in an lwres block does not
+			specifiy a port, use 921, not 53.  Also update the
+			listen-on documentation. [RT #616]
+
  656.	[func]		Treat an unescaped newline in a quoted string as
 			an error.  This means that TXT records with missing
 			close quotes should have meaningful errors printed.
