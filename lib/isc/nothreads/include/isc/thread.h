@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.1 2000/08/28 23:16:50 bwelling Exp $ */
+/* $Id: thread.h,v 1.2 2000/12/11 19:17:29 gson Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -28,7 +28,7 @@ ISC_LANG_BEGINDECLS
 void
 isc_thread_setconcurrency(unsigned int level);
 
-#define isc_thread_self (unsigned long)0
+#define isc_thread_self() ((unsigned long)0)
 
 ISC_LANG_ENDDECLS
 
