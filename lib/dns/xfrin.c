@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.48 2000/02/15 20:05:37 gson Exp $ */
+ /* $Id: xfrin.c,v 1.49 2000/02/24 21:43:11 gson Exp $ */
 
 #include <config.h>
 
@@ -43,6 +43,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/peer.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -513,15 +514,34 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 	else
 		CHECK(result);
 
+	/*
+	 * Decide whether we should use IXFR or AXFR.
+	 */
 	if (db == NULL) {
 		xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
 			   "no database exists yet, "
 			   "requesting AXFR of initial version");
 		xfrtype = dns_rdatatype_axfr;
 	} else {
-		xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
-			  "database exists, trying IXFR");
-		xfrtype = dns_rdatatype_ixfr;
+		dns_peer_t *peer = NULL;
+		isc_boolean_t use_ixfr = ISC_TRUE;
+		isc_netaddr_t na;
+		isc_netaddr_fromsockaddr(&na, masteraddr);
+		if (dns_peerlist_peerbyaddr(dns_zone_getview(zone)->peers,
+					    &na, &peer)
+		    == ISC_R_SUCCESS &&
+		    dns_peer_getsupportixfr(peer, &use_ixfr)
+		    == ISC_R_SUCCESS &&
+		    use_ixfr == ISC_FALSE)
+	        {
+			xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
+				   "IXFR disabled for server, using AXFR");
+			xfrtype = dns_rdatatype_axfr;			
+		} else {
+			xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
+				   "trying IXFR");
+			xfrtype = dns_rdatatype_ixfr;
+		}
 	}
 
 	CHECK(xfrin_create(mctx,

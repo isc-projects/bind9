@@ -91,7 +91,7 @@ options {
   [ tcp-clients number; ]				    Yes*
 };
 
-acl { }						            Yes@
+acl 						            Yes@
 
 include                                                     Yes
 
@@ -101,7 +101,13 @@ logging						            No
 
 controls                                                    No
 
-server                                                      No
+server ip_addr {
+  [ bogus yes_or_no; ]					    No
+  [ support-ixfr yes_or_no; ]				    Yes
+  [ transfers number; ]					    No
+  [ transfer-format ( one-answer | many-answers ); ]	    No
+  [ keys { key_id [key_id ... ] }; ]                        No
+};
 
 trusted-keys                                                No
 
@@ -125,7 +131,7 @@ zone domain_name [ ( in | hs | hesiod | chaos ) ] {
 
 zone domain_name [ ( in | hs | hesiod | chaos ) ] { 	    
   type stub;						    No
-}
+};
 
 zone domain_name [ ( in | hs | hesiod | chaos ) ] { 	    
   type slave;						    Yes
