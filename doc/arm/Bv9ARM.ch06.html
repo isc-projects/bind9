@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3225"
+HREF="Bv9ARM.ch06.html#AEN3260"
 >Zone File</A
 ></DT
 ></DL
@@ -731,7 +731,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1185"
+NAME="AEN1193"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -762,7 +762,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1193"
+NAME="AEN1201"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -868,7 +868,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1221"
+NAME="AEN1229"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -887,7 +887,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1226"
+NAME="AEN1234"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -919,7 +919,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1235"
+NAME="AEN1243"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1251,7 +1251,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1328"
+NAME="AEN1336"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1390,7 +1390,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1370"
+NAME="AEN1378"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1429,7 +1429,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1379"
+NAME="AEN1387"
 >6.2.4. <B
 CLASS="command"
 >controls</B
@@ -1542,7 +1542,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1407"
+NAME="AEN1415"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1562,7 +1562,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1412"
+NAME="AEN1420"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1592,7 +1592,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1419"
+NAME="AEN1427"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1626,7 +1626,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1426"
+NAME="AEN1434"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1680,7 +1680,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1438"
+NAME="AEN1446"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1836,7 +1836,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1477"
+NAME="AEN1485"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1902,7 +1902,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1494"
+NAME="AEN1502"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2571,8 +2571,153 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1671"
+NAME="AEN1679"
 >6.2.11. <B
+CLASS="command"
+>lwres</B
+> Statement Grammar</A
+></H2
+><P
+> This is the grammar of the <B
+CLASS="command"
+>lwres</B
+>
+      statement in the <TT
+CLASS="filename"
+>named.conf</TT
+> file:</P
+><PRE
+CLASS="programlisting"
+><B
+CLASS="command"
+>lwres</B
+>
+    [<SPAN
+CLASS="optional"
+> listen-on { <TT
+CLASS="replaceable"
+><I
+>address_match_list</I
+></TT
+> }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> view <TT
+CLASS="replaceable"
+><I
+>view_name</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> search { <TT
+CLASS="replaceable"
+><I
+>domain_name</I
+></TT
+> ; [<SPAN
+CLASS="optional"
+> <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> ; ... </SPAN
+>] }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> ndots <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+>; </SPAN
+>]
+</PRE
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="AEN1697"
+>6.2.12. <B
+CLASS="command"
+>lwres</B
+> Statement Definition and Usage</A
+></H2
+><P
+>The <B
+CLASS="command"
+>lwres</B
+> statement configures the name
+      server to also act as a lightweight resolver server, see
+      <A
+HREF="Bv9ARM.ch05.html#lwresd"
+>Section 5.2</A
+>.  There may be be multiple
+      <B
+CLASS="command"
+>lwres</B
+> statements configuring
+      lightweight resolver servers with different properties.</P
+><P
+>The <B
+CLASS="command"
+>listen-on</B
+> statement specifies a list of
+      addresses (and ports) that this instance of a lightweight resolver daemon
+      should accept requests on.  If this statement is omitted, requests
+      will be accepted on 127.0.0.1, port 53.</P
+><P
+>The <B
+CLASS="command"
+>view</B
+> statement binds this instance of a
+      lightweight resolver daemon to a view in the DNS namespace, so that the
+      response will be constructed in the same manner as a normal DNS query
+      matching this view.  If this statement is omitted, the default view is
+      used, and if there is no default view, an error is triggered.</P
+><P
+>The <B
+CLASS="command"
+>search</B
+> statement is equivalent to the
+      <B
+CLASS="command"
+>search</B
+> statement in
+      <TT
+CLASS="filename"
+>/etc/resolv.conf</TT
+>.  It provides a list of domains
+      which are appended to relative names in queries.</P
+><P
+>The <B
+CLASS="command"
+>ndots</B
+> statement is equivalent to the
+      <B
+CLASS="command"
+>ndots</B
+> statement in
+      <TT
+CLASS="filename"
+>/etc/resolv.conf</TT
+>.  It indicates the minimum
+      number of dots in a relative domain name that should result in an
+      exact match lookup before search path elements are appended.</P
+></DIV
+><DIV
+CLASS="sect2"
+><H2
+CLASS="sect2"
+><A
+NAME="AEN1716"
+>6.2.13. <B
 CLASS="command"
 >options</B
 > Statement Grammar</A
@@ -2756,6 +2901,11 @@ CLASS="optional"
 CLASS="replaceable"
 ><I
 >yes_or_no</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>explicit</I
 ></TT
 >; </SPAN
 >]
@@ -3361,8 +3511,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1851"
->6.2.12. <B
+NAME="AEN1897"
+>6.2.14. <B
 CLASS="command"
 >options</B
 > Statement Definition and
@@ -3719,7 +3869,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="boolean_options"
->6.2.12.1. Boolean Options</A
+>6.2.14.1. Boolean Options</A
 ></H3
 ><DIV
 CLASS="informaltable"
@@ -4205,8 +4355,34 @@ DNS NOTIFY messages are sent when a zone the server is authoritative for
 changes, see <A
 HREF="Bv9ARM.ch03.html#notify"
 >Section 3.3</A
+>.  The messages are sent to the
+servers listed in the zone's NS records (except the master server identified
+in the SOA MNAME field), and to any servers listed in the
+<B
+CLASS="command"
+>also-notify</B
+> option.
+</P
+><P
+>&#13;If <TT
+CLASS="userinput"
+><B
+>explicit</B
+></TT
+>, notifies are sent only to
+servers explicitly listed using <B
+CLASS="command"
+>also-notify</B
 >.
-The <B
+If <TT
+CLASS="userinput"
+><B
+>no</B
+></TT
+>, no notifies are sent.
+</P
+><P
+>&#13;The <B
 CLASS="command"
 >notify</B
 > option may also be specified in the <B
@@ -4460,8 +4636,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2140"
->6.2.12.2. Forwarding</A
+NAME="AEN2192"
+>6.2.14.2. Forwarding</A
 ></H3
 ><P
 >The forwarding facility can be used to create a large site-wide
@@ -4544,7 +4720,7 @@ CLASS="command"
 > behavior,
 or not forward at all, see <A
 HREF="Bv9ARM.ch06.html#zone_statement_grammar"
->Section 6.2.19</A
+>Section 6.2.21</A
 >.</P
 ></DIV
 ><DIV
@@ -4553,7 +4729,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="name_checking"
->6.2.12.3. Name Checking</A
+>6.2.14.3. Name Checking</A
 ></H3
 ><P
 >The server can check domain names based upon their expected
@@ -4689,7 +4865,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="access_control"
->6.2.12.4. Access Control</A
+>6.2.14.4. Access Control</A
 ></H3
 ><P
 >Access to the server can be restricted based on the IP address
@@ -4818,20 +4994,6 @@ CLASS="userinput"
 >none</B
 ></TT
 >.</P
->
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
 ></TD
 ></TR
 ></TABLE
@@ -4845,8 +5007,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2250"
->6.2.12.5. Interfaces</A
+NAME="AEN2299"
+>6.2.14.5. Interfaces</A
 ></H3
 ><P
 >The interfaces and ports that the server will answer queries
@@ -4940,8 +5102,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2276"
->6.2.12.6. Query Address</A
+NAME="AEN2325"
+>6.2.14.6. Query Address</A
 ></H3
 ><P
 >If the server doesn't know the answer to a question, it will
@@ -5000,7 +5162,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="zone_transfers"
->6.2.12.7. Zone Transfers</A
+>6.2.14.7. Zone Transfers</A
 ></H3
 ><P
 ><SPAN
@@ -5032,9 +5194,10 @@ WIDTH="264"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Defines a global list of IP addresses
+>Defines a global list of IP addresses of name servers
 that are also sent NOTIFY messages whenever a fresh copy of the
-zone is loaded. This helps to ensure that copies of the zones will
+zone is loaded, in addition to the servers listed in the zone's NS records.
+This helps to ensure that copies of the zones will
 quickly converge on stealth servers. If an <B
 CLASS="command"
 >also-notify</B
@@ -5431,8 +5594,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2406"
->6.2.12.8. Resource Limits</A
+NAME="AEN2455"
+>6.2.14.8. Resource Limits</A
 ></H3
 ><P
 >The server's usage of many system resources can be
@@ -5764,8 +5927,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2495"
->6.2.12.9. Periodic Task Intervals</A
+NAME="AEN2544"
+>6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><DIV
 CLASS="informaltable"
@@ -5903,7 +6066,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="topology"
->6.2.12.10. Topology</A
+>6.2.14.10. Topology</A
 ></H3
 ><P
 >All other things being equal, when the server chooses a nameserver
@@ -5966,7 +6129,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="the_sortlist_statement"
->6.2.12.11. The <B
+>6.2.14.11. The <B
 CLASS="command"
 >sortlist</B
 > Statement</A
@@ -6017,7 +6180,7 @@ CLASS="command"
 > statement
 does (<A
 HREF="Bv9ARM.ch06.html#topology"
->Section 6.2.12.10</A
+>Section 6.2.14.10</A
 >). Each top level statement in the <B
 CLASS="command"
 >sortlist</B
@@ -6123,7 +6286,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="rrset_ordering"
->6.2.12.12. RRset Ordering</A
+>6.2.14.12. RRset Ordering</A
 ></H3
 ><P
 >When multiple records are returned in an answer it may be
@@ -6323,7 +6486,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="tuning"
->6.2.12.13. Tuning</A
+>6.2.14.13. Tuning</A
 ></H3
 ><DIV
 CLASS="informaltable"
@@ -6522,8 +6685,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2687"
->6.2.12.14. Deprecated Features</A
+NAME="AEN2736"
+>6.2.14.14. Deprecated Features</A
 ></H3
 ><P
 ><B
@@ -6540,7 +6703,7 @@ CLASS="command"
 > option
         in <A
 HREF="Bv9ARM.ch06.html#server_statement_definition_and_usage"
->Section 6.2.14</A
+>Section 6.2.16</A
 >. See also
         <A
 HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
@@ -6554,7 +6717,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="server_statement_grammar"
->6.2.13. <B
+>6.2.15. <B
 CLASS="command"
 >server</B
 >
@@ -6637,7 +6800,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="server_statement_definition_and_usage"
->6.2.14. <B
+>6.2.16. <B
 CLASS="command"
 >server</B
 > Statement Definition
@@ -6659,23 +6822,6 @@ CLASS="command"
 CLASS="command"
 >no</B
 >.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->The <B
-CLASS="command"
->bogus</B
-> clause
-is not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
 ><P
 >The <B
 CLASS="command"
@@ -6816,8 +6962,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2761"
->6.2.15. <B
+NAME="AEN2806"
+>6.2.17. <B
 CLASS="command"
 >trusted-keys</B
 > Statement Grammar</A
@@ -6891,8 +7037,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2777"
->6.2.16. <B
+NAME="AEN2822"
+>6.2.18. <B
 CLASS="command"
 >trusted-keys</B
 > Statement Definition
@@ -6926,8 +7072,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2785"
->6.2.17. <B
+NAME="AEN2830"
+>6.2.19. <B
 CLASS="command"
 >view</B
 > Statement Grammar</A
@@ -6980,8 +7126,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2797"
->6.2.18. <B
+NAME="AEN2842"
+>6.2.20. <B
 CLASS="command"
 >view</B
 > Statement Definition and Usage</A
@@ -7122,7 +7268,7 @@ CLASS="sect2"
 CLASS="sect2"
 ><A
 NAME="zone_statement_grammar"
->6.2.19. <B
+>6.2.21. <B
 CLASS="command"
 >zone</B
 >
@@ -7407,6 +7553,11 @@ CLASS="replaceable"
 ><I
 >yes_or_no</I
 ></TT
+> | <TT
+CLASS="replaceable"
+><I
+>explicit</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
@@ -7491,8 +7642,8 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2917"
->6.2.20. <B
+NAME="AEN2963"
+>6.2.22. <B
 CLASS="command"
 >zone</B
 > Statement Definition and Usage</A
@@ -7502,8 +7653,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2920"
->6.2.20.1. Zone Types</A
+NAME="AEN2966"
+>6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
@@ -7690,21 +7841,7 @@ CLASS="command"
 to", then "forward only", or vice versa, but want to use the same
 servers as set globally) you need to respecify the global forwarders.</P
 >
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Domain-specific
-forwarding is not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
-></TD
+</TD
 ></TR
 ><TR
 ><TD
@@ -7740,8 +7877,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2980"
->6.2.20.2. Class</A
+NAME="AEN3023"
+>6.2.22.2. Class</A
 ></H3
 ><P
 >The zone's name may optionally be followed by a class. If
@@ -7778,8 +7915,8 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2990"
->6.2.20.3. Zone Options</A
+NAME="AEN3033"
+>6.2.22.3. Zone Options</A
 ></H3
 ><DIV
 CLASS="informaltable"
@@ -7810,7 +7947,7 @@ CLASS="command"
 >allow-query</B
 > in <A
 HREF="Bv9ARM.ch06.html#access_control"
->Section 6.2.12.4</A
+>Section 6.2.14.4</A
 ></P
 ></TD
 ></TR
@@ -7835,7 +7972,7 @@ CLASS="command"
 >allow-transfer</B
 > in <A
 HREF="Bv9ARM.ch06.html#access_control"
->Section 6.2.12.4</A
+>Section 6.2.14.4</A
 >.</P
 ></TD
 ></TR
@@ -7879,7 +8016,7 @@ VALIGN="MIDDLE"
 >Specifies a "Simple Secure Update" policy. See
 <A
 HREF="Bv9ARM.ch06.html#dynamic_update_policies"
->Section 6.2.20.4</A
+>Section 6.2.22.4</A
 >.</P
 ></TD
 ></TR
@@ -7901,19 +8038,14 @@ VALIGN="MIDDLE"
 ><P
 >Specifies which hosts are allowed to
 submit Dynamic DNS updates to slave zones to be forwarded to the
-master. The default is to deny update forwarding from all hosts.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Update
-forwarding is not yet implemented.</P
-></BLOCKQUOTE
-></DIV
-></TD
+master.
+This applies only to unsigned updates.
+Signed updates are always forwarded.
+If there is no acl defined then the server will return NOTIMPL, causing the
+client to skip to the next server.  If an acl is defined and there is no
+match then the default is to deny update forwarding.</P
+>
+</TD
 ></TR
 ><TR
 ><TD
@@ -7976,7 +8108,7 @@ VALIGN="MIDDLE"
 ><P
 >See <A
 HREF="Bv9ARM.ch06.html#name_checking"
->Section 6.2.12.3</A
+>Section 6.2.14.3</A
 >.</P
 >
 <DIV
@@ -8016,7 +8148,7 @@ CLASS="command"
 >dialup</B
 > under <A
 HREF="Bv9ARM.ch06.html#boolean_options"
->Section 6.2.12.1</A
+>Section 6.2.14.1</A
 >.</P
 ></TD
 ></TR
@@ -8047,20 +8179,7 @@ CLASS="command"
 > would
 allow a normal lookup to be tried.</P
 >
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
-></TD
+</TD
 ></TR
 ><TR
 ><TD
@@ -8084,21 +8203,8 @@ CLASS="command"
 >forward</B
 >,
 no forwarding is done for the zone; the global options are not used.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not
-yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
-></TD
+>
+</TD
 ></TR
 ><TR
 ><TD
@@ -8154,7 +8260,7 @@ CLASS="command"
 >max-transfer-time-in</B
 > under <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.12.7</A
+>Section 6.2.14.7</A
 >.</P
 ></TD
 ></TR
@@ -8180,7 +8286,7 @@ CLASS="command"
 >max-transfer-idle-in</B
 > under <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.12.7</A
+>Section 6.2.14.7</A
 >.</P
 ></TD
 ></TR
@@ -8206,7 +8312,7 @@ CLASS="command"
 >max-transfer-time-out</B
 > under <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.12.7</A
+>Section 6.2.14.7</A
 >.</P
 ></TD
 ></TR
@@ -8232,7 +8338,7 @@ CLASS="command"
 >max-transfer-idle-out</B
 > under <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.12.7</A
+>Section 6.2.14.7</A
 >.</P
 ></TD
 ></TR
@@ -8258,7 +8364,7 @@ CLASS="command"
 >notify</B
 > under <A
 HREF="Bv9ARM.ch06.html#boolean_options"
->Section 6.2.12.1</A
+>Section 6.2.14.1</A
 >.</P
 ></TD
 ></TR
@@ -8312,7 +8418,7 @@ CLASS="command"
 >sig-validity-interval</B
 > under <A
 HREF="Bv9ARM.ch06.html#tuning"
->Section 6.2.12.13</A
+>Section 6.2.14.13</A
 >.</P
 ></TD
 ></TR
@@ -8380,7 +8486,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="dynamic_update_policies"
->6.2.20.4. Dynamic Update Policies</A
+>6.2.22.4. Dynamic Update Policies</A
 ></H3
 ><P
 ><SPAN
@@ -8599,7 +8705,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3225"
+NAME="AEN3260"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8620,7 +8726,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3230"
+NAME="AEN3265"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8633,10 +8739,10 @@ NAME="AEN3230"
         permitted for optimization purposes, for example, to specify
         that a particular nearby server be tried first. See <A
 HREF="Bv9ARM.ch06.html#the_sortlist_statement"
->Section 6.2.12.11</A
+>Section 6.2.14.11</A
 > and <A
 HREF="Bv9ARM.ch06.html#rrset_ordering"
->Section 6.2.12.12</A
+>Section 6.2.14.12</A
 >.</P
 ><P
 >The components of a Resource Record are:</P
@@ -9336,7 +9442,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3444"
+NAME="AEN3479"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9654,7 +9760,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3545"
+NAME="AEN3580"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10053,7 +10159,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3666"
+NAME="AEN3701"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10151,7 +10257,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3693"
+NAME="AEN3728"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10176,7 +10282,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3700"
+NAME="AEN3735"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10246,7 +10352,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3720"
+NAME="AEN3755"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10322,7 +10428,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3739"
+NAME="AEN3774"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10362,7 +10468,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3750"
+NAME="AEN3785"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10494,14 +10600,58 @@ within the <B
 CLASS="command"
 >lhs</B
 > side are replaced by the iterator
-value. To get a $ in the output use a double <B
+value.
+To get a $ in the output you need to escape the <B
 CLASS="command"
 >$</B
+>
+using a backslash <B
+CLASS="command"
+>\</B
 >,
 e.g. <B
 CLASS="command"
->$$</B
->. If the <B
+>\$</B
+>. The <B
+CLASS="command"
+>$</B
+> may optionally be followed
+by modifiers which change the offset from the interator, field width and base. 
+Modifiers are introduced by a <B
+CLASS="command"
+>{</B
+> immediately following the
+<B
+CLASS="command"
+>$</B
+> as <B
+CLASS="command"
+>${offset[,width[,base]]}</B
+>.
+e.g. <B
+CLASS="command"
+>${-20,3,d}</B
+> which subtracts 20 from the current value,
+prints the result as a decimal in a zero padded field of with 3.  Available
+output forms are decimal (<B
+CLASS="command"
+>d</B
+>), octal (<B
+CLASS="command"
+>o</B
+>)
+and hexadecimal (<B
+CLASS="command"
+>x</B
+> or <B
+CLASS="command"
+>X</B
+> for uppercase).
+The default modifier is <B
+CLASS="command"
+>${0,0,d}</B
+>.
+If the <B
 CLASS="command"
 >lhs</B
 > is not
@@ -10510,6 +10660,13 @@ CLASS="command"
 >$ORIGIN</B
 > is appended to
 the name.</P
+>
+<P
+>For compatability with earlier versions <B
+CLASS="command"
+>$$</B
+> is still
+recognised a indicating a literal $ in the output.</P
 ></TD
 ></TR
 ><TR
@@ -10564,22 +10721,7 @@ CLASS="command"
 CLASS="acronym"
 >BIND</SPAN
 > extension
-and not part of the standard zone file format.
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->It is not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
->
-</P
+and not part of the standard zone file format.</P
 ></DIV
 ></DIV
 ></DIV

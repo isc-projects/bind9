@@ -83,7 +83,7 @@ HREF="Bv9ARM.ch05.html#AEN988"
 ></DT
 ><DT
 >5.2. <A
-HREF="Bv9ARM.ch05.html#AEN994"
+HREF="Bv9ARM.ch05.html#lwresd"
 >Running a Resolver Daemon</A
 ></DT
 ></DL
@@ -120,7 +120,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN994"
+NAME="lwresd"
 >5.2. Running a Resolver Daemon</A
 ></H1
 ><P
@@ -130,18 +130,27 @@ CLASS="command"
 >lwresd</B
 >.</P
 ><P
->Applications using the lightweight resolver library will make
-UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
- The daemon will try to find the answer to the questions "what are the
-addresses for host <SPAN
+>By default, applications using the lightweight resolver library will make
+UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.  The
+address can be overriden by <B
+CLASS="command"
+>lwserver</B
+> lines in
+<TT
+CLASS="filename"
+>/etc/resolv.conf</TT
+>.
+The daemon will try to find the answer to the questions "what are the
+addresses for host
+<SPAN
 CLASS="systemitem"
 >foo.example.com</SPAN
 >?" and "what are
-the names for IPv4 address 204.152.184.79?"</P
+the names for IPv4 address 10.1.2.3?"</P
 ><P
 >The daemon currently only looks in the DNS, but in the future
 it may use other sources such as <TT
-CLASS="literal"
+CLASS="filename"
 >/etc/hosts</TT
 >,
 NIS, etc.</P
@@ -149,19 +158,41 @@ NIS, etc.</P
 >The <B
 CLASS="command"
 >lwresd</B
-> daemon is essentially a stripped-down,
+> daemon is essentially a
 caching-only name server that answers requests using the lightweight
 resolver protocol rather than the DNS protocol.  Because it needs
 to run on each host, it is designed to require no or minimal configuration.
- It uses the name servers listed on <B
+Unless configured otherwise, it uses the name servers listed on
+<B
 CLASS="command"
 >nameserver</B
-> lines
-in <TT
+> lines in <TT
 CLASS="filename"
 >/etc/resolv.conf</TT
-> as forwarders, but is also
-capable of doing the resolution autonomously if none are specified.</P
+>
+as forwarders, but is also capable of doing the resolution autonomously if
+none are specified.</P
+><P
+>The <B
+CLASS="command"
+>lwresd</B
+> daemon may also be configured with a
+<TT
+CLASS="filename"
+>named.conf</TT
+> style configuration file, in
+<TT
+CLASS="filename"
+>/etc/lwresd.conf</TT
+> by default.  A name server may also
+be configured to act as a lightweight resolver daemon using the
+<B
+CLASS="command"
+>lwres{}</B
+> statement in <TT
+CLASS="filename"
+>named.conf</TT
+>.</P
 ></DIV
 ></DIV
 ><DIV
