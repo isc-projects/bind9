@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.37 1999/12/01 16:28:53 brister Exp $ */
+ /* $Id: zone.c,v 1.38 1999/12/01 17:59:22 brister Exp $ */
 
 #include <config.h>
 
@@ -2502,9 +2502,10 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 			dns_zone_setpubkey(zone, pubkey);
 		else
 			dns_zone_setpubkey(zone, NULL);
+
+#endif	
 		break;
 		
-#endif	
 		
 	case dns_c_zone_forward:
 #ifdef notyet
@@ -2687,9 +2688,10 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 			dns_zone_setpubkey(zone, pubkey);
 		else
 			dns_zone_setpubkey(zone, NULL);
-		break;
 
 #endif	
+		break;
+
 	}
 
 	return (DNS_R_SUCCESS);
