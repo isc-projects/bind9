@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.28 1999/11/02 13:07:51 marka Exp $ */
+ /* $Id: master.c,v 1.29 1999/11/04 01:21:27 marka Exp $ */
 
 #include <config.h>
 
@@ -281,16 +281,12 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				finish_origin = ISC_TRUE;
 			} else if (strcasecmp(token.value.as_pointer,
 				              "$TTL") == 0) {
-				GETTOKEN(lex, ISC_LEXOPT_NUMBER, &token,
-					 ISC_FALSE);
-				if (token.type != isc_tokentype_number) {
-					(callbacks->warn)(callbacks,
-				"dns_master_load: %s:%d $TTL expects number\n",
-						isc_lex_getsourcename(lex),
-						isc_lex_getsourceline(lex));
-						result = DNS_R_BADTTL;
-						goto cleanup;
-				}
+				GETTOKEN(lex, 0, &token, ISC_FALSE);
+				result =
+				    dns_ttl_fromtext(&token.value.as_textregion,
+						     &ttl);
+				if (result != DNS_R_SUCCESS)
+					goto cleanup;
 				ttl = token.value.as_ulong;
 				if (ttl > 0x7fffffffUL) {
 					(callbacks->warn)(callbacks,
@@ -301,7 +297,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					ttl = 0;
 				}
 				default_ttl = ttl;
-				ttl_known = ISC_TRUE;
 				default_ttl_known = ISC_TRUE;
 				read_till_eol = ISC_TRUE;
 				continue;

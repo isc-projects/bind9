@@ -66,7 +66,7 @@ dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
  *
  * Returns:
  *	DNS_R_SUCCESS
- *	DNS_R_SYNTAX
+ *	DNS_R_BADTTL
  */
 
 ISC_LANG_ENDDECLS

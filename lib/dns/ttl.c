@@ -125,7 +125,12 @@ dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
 
 dns_result_t
 dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
-	return (bind_ttl(source, ttl));
+	dns_result_t result;
+
+	result = bind_ttl(source, ttl);
+	if (result != DNS_R_SUCCESS)
+		result = DNS_R_BADTTL;
+	return (result);
 }
 
 static dns_result_t
