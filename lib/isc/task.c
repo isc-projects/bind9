@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.82 2001/02/07 21:16:12 bwelling Exp $ */
+/* $Id: task.c,v 1.83 2001/02/09 18:27:18 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -699,8 +699,8 @@ isc_task_setname(isc_task_t *task, const char *name, void *tag) {
 	task->tag = tag;
 	UNLOCK(&task->lock);
 #else
-	(void)name;
-	(void)tag;
+	UNUSED(name);
+	UNUSED(tag);
 #endif
 
 }
