@@ -46,7 +46,7 @@
 
 struct isc_heap {
 	unsigned int			magic;
-	mem_context_t			mctx;
+	isc_memctx_t			mctx;
 	unsigned int			size;
 	unsigned int			size_increment;
 	unsigned int			last;
@@ -56,16 +56,16 @@ struct isc_heap {
 };
 
 isc_result
-isc_heap_create(mem_context_t mctx, isc_heapcompare_t compare,
-	    isc_heapindex_t index, unsigned int size_increment,
-	    isc_heap_t *heapp)
+isc_heap_create(isc_memctx_t mctx, isc_heapcompare_t compare,
+		isc_heapindex_t index, unsigned int size_increment,
+		isc_heap_t *heapp)
 {
 	isc_heap_t heap;
 
 	REQUIRE(heapp != NULL && *heapp == NULL);
 	REQUIRE(compare != NULL);
 
-	heap = mem_get(mctx, sizeof *heap);
+	heap = isc_mem_get(mctx, sizeof *heap);
 	if (heap == NULL)
 		return (ISC_R_NOMEMORY);
 	heap->magic = HEAP_MAGIC;
@@ -94,10 +94,10 @@ isc_heap_destroy(isc_heap_t *heapp) {
 	REQUIRE(VALID_HEAP(heap));
 
 	if (heap->array != NULL)
-		mem_put(heap->mctx, heap->array,
-			heap->size * sizeof (void *));
+		isc_mem_put(heap->mctx, heap->array,
+			    heap->size * sizeof (void *));
 	heap->magic = 0;
-	mem_put(heap->mctx, heap, sizeof *heap);
+	isc_mem_put(heap->mctx, heap, sizeof *heap);
 
 	*heapp = NULL;
 }
@@ -110,13 +110,13 @@ resize(isc_heap_t heap) {
 	REQUIRE(VALID_HEAP(heap));
 
 	new_size = heap->size + heap->size_increment;
-	new_array = mem_get(heap->mctx, new_size * sizeof (void *));
+	new_array = isc_mem_get(heap->mctx, new_size * sizeof (void *));
 	if (new_array == NULL)
 		return (ISC_FALSE);
 	if (heap->array != NULL) {
 		memcpy(new_array, heap->array, heap->size);
-		mem_put(heap->mctx, heap->array, 
-			heap->size * sizeof (void *));
+		isc_mem_put(heap->mctx, heap->array, 
+			    heap->size * sizeof (void *));
 	}
 	heap->size = new_size;
 	heap->array = new_array;

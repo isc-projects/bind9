@@ -39,7 +39,7 @@ typedef struct isc_heap *isc_heap_t;
 #define isc_heap_element	__isc_heap_element
 #define isc_heap_foreach	__isc_heap_foreach
 
-isc_result	isc_heap_create(mem_context_t, isc_heapcompare_t,
+isc_result	isc_heap_create(isc_memctx_t, isc_heapcompare_t,
 				isc_heapindex_t, unsigned int, isc_heap_t *);
 void		isc_heap_destroy(isc_heap_t *);
 isc_result	isc_heap_insert(isc_heap_t, void *);

@@ -71,7 +71,7 @@ struct isc_task {
 struct isc_taskmgr {
 	/* Not locked. */
 	unsigned int			magic;
-	mem_context_t			mctx;
+	isc_memctx_t			mctx;
 	os_mutex_t			lock;
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
@@ -92,12 +92,12 @@ struct isc_taskmgr {
  ***/
 
 static inline isc_event_t
-event_allocate(mem_context_t mctx, void *sender, isc_eventtype_t type,
+event_allocate(isc_memctx_t mctx, void *sender, isc_eventtype_t type,
 	       isc_taskaction_t action, void *arg, size_t size)
 {
 	isc_event_t event;
 
-	event = mem_get(mctx, size);
+	event = isc_mem_get(mctx, size);
 	if (event == NULL)
 		return (NULL);
 	event->mctx = mctx;
@@ -111,8 +111,8 @@ event_allocate(mem_context_t mctx, void *sender, isc_eventtype_t type,
 }
 
 isc_event_t
-isc_event_allocate(mem_context_t mctx, void *sender, isc_eventtype_t type,
-		    isc_taskaction_t action, void *arg, size_t size)
+isc_event_allocate(isc_memctx_t mctx, void *sender, isc_eventtype_t type,
+		   isc_taskaction_t action, void *arg, size_t size)
 {
 	if (size < sizeof (struct isc_event))
 		return (NULL);
@@ -132,7 +132,7 @@ isc_event_free(isc_event_t *eventp) {
 	event = *eventp;
 	REQUIRE(event != NULL);
 
-	mem_put(event->mctx, event, event->size);
+	isc_mem_put(event->mctx, event, event->size);
 
 	*eventp = NULL;
 }
@@ -164,7 +164,7 @@ task_free(isc_task_t task) {
 	if (task->shutdown_event != NULL)
 		isc_event_free(&task->shutdown_event);
 	task->magic = 0;
-	mem_put(manager->mctx, task, sizeof *task);
+	isc_mem_put(manager->mctx, task, sizeof *task);
 }
 
 isc_boolean_t
@@ -176,14 +176,14 @@ isc_task_create(isc_taskmgr_t manager, isc_taskaction_t shutdown_action,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
-	task = mem_get(manager->mctx, sizeof *task);
+	task = isc_mem_get(manager->mctx, sizeof *task);
 	if (task == NULL)
 		return (ISC_FALSE);
 
 	task->magic = TASK_MAGIC;
 	task->manager = manager;
 	if (!os_mutex_init(&task->lock)) {
-		mem_put(manager->mctx, task, sizeof *task);
+		isc_mem_put(manager->mctx, task, sizeof *task);
 		return (ISC_FALSE);
 	}
 	task->state = task_state_idle;
@@ -199,7 +199,7 @@ isc_task_create(isc_taskmgr_t manager, isc_taskaction_t shutdown_action,
 					      sizeof *task->shutdown_event);
 	if (task->shutdown_event == NULL) {
 		(void)os_mutex_destroy(&task->lock);
-		mem_put(manager->mctx, task, sizeof *task);
+		isc_mem_put(manager->mctx, task, sizeof *task);
 		return (ISC_FALSE);
 	}
 	INIT_LINK(task, link);
@@ -689,12 +689,12 @@ manager_free(isc_taskmgr_t manager) {
 	(void)os_condition_destroy(&manager->no_workers);
 	(void)os_mutex_destroy(&manager->lock);
 	manager->magic = 0;
-	mem_put(manager->mctx, manager, sizeof *manager);
+	isc_mem_put(manager->mctx, manager, sizeof *manager);
 }
 
 unsigned int
-isc_taskmgr_create(mem_context_t mctx, unsigned int workers, 
-		    unsigned int default_quantum, isc_taskmgr_t *managerp)
+isc_taskmgr_create(isc_memctx_t mctx, unsigned int workers, 
+		   unsigned int default_quantum, isc_taskmgr_t *managerp)
 {
 	unsigned int i, started = 0;
 	isc_taskmgr_t manager;
@@ -702,13 +702,13 @@ isc_taskmgr_create(mem_context_t mctx, unsigned int workers,
 
 	if (workers == 0)
 		return (0);
-	manager = mem_get(mctx, sizeof *manager);
+	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
 		return (0);
 	manager->magic = TASK_MANAGER_MAGIC;
 	manager->mctx = mctx;
 	if (!os_mutex_init(&manager->lock)) {
-		mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof *manager);
 		return (0);
 	}
 	if (default_quantum == 0)
@@ -718,7 +718,7 @@ isc_taskmgr_create(mem_context_t mctx, unsigned int workers,
 	INIT_LIST(manager->ready_tasks);
 	if (!os_condition_init(&manager->work_available)) {
 		(void)os_mutex_destroy(&manager->lock);
-		mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof *manager);
 		return (0);
 	}
 	manager->exiting = ISC_FALSE;
@@ -726,7 +726,7 @@ isc_taskmgr_create(mem_context_t mctx, unsigned int workers,
 	if (!os_condition_init(&manager->no_workers)) {
 		(void)os_condition_destroy(&manager->work_available);
 		(void)os_mutex_destroy(&manager->lock);
-		mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof *manager);
 		return (0);
 	}
 

@@ -23,6 +23,7 @@
 
 #include "attribute.h"
 #include <isc/assertions.h>
+#include <isc/unexpect.h>
 
 #include <isc/memcluster.h>
 
@@ -31,7 +32,7 @@
 #endif
 
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.5 1998/09/16 21:38:08 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.6 1998/10/21 22:00:56 halley Exp $";
 #endif /* not lint */
 
 /*
@@ -40,7 +41,7 @@ static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.5 1998/09/16 21:38
 
 typedef struct {
 	void *			next;
-} memcluster_element;
+} element;
 
 typedef struct {
 	size_t			size;
@@ -56,11 +57,11 @@ struct stats {
 	unsigned long		freefrags;
 };
 
-struct mem_context {
+struct isc_memctx {
 	size_t			max_size;
 	size_t			mem_target;
-	memcluster_element **	freelists;
-	memcluster_element *	basic_blocks;
+	element **		freelists;
+	element *		basic_blocks;
 	unsigned char **	basic_table;
 	unsigned int		basic_table_count;
 	unsigned int		basic_table_size;
@@ -69,9 +70,6 @@ struct mem_context {
 	struct stats *		stats;
 	os_mutex_t		mutex;
 };
-
-/* Private Data. */
-static mem_context_t 		default_context = NULL;
 
 /* Forward. */
 
@@ -117,10 +115,13 @@ quantize(size_t size) {
 
 /* Public. */
 
-int
-mem_context_create(size_t init_max_size, size_t target_size,
-		   mem_context_t *ctxp) {
-	mem_context_t ctx;
+isc_result_t
+isc_memctx_create(size_t init_max_size, size_t target_size,
+		  isc_memctx_t *ctxp)
+{
+	isc_memctx_t ctx;
+
+	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
 	ctx = malloc(sizeof *ctx);
 	if (init_max_size == 0)
@@ -131,18 +132,18 @@ mem_context_create(size_t init_max_size, size_t target_size,
 		ctx->mem_target = DEF_MEM_TARGET;
 	else
 		ctx->mem_target = target_size;
-	ctx->freelists = malloc(ctx->max_size * sizeof (memcluster_element *));
+	ctx->freelists = malloc(ctx->max_size * sizeof (element *));
 	if (ctx->freelists == NULL) {
 		free(ctx);
-		return (-1);
+		return (ISC_R_NOMEMORY);
 	}
 	memset(ctx->freelists, 0,
-	       ctx->max_size * sizeof (memcluster_element *));
+	       ctx->max_size * sizeof (element *));
 	ctx->stats = malloc((ctx->max_size+1) * sizeof (struct stats));
 	if (ctx->stats == NULL) {
 		free(ctx->freelists);
 		free(ctx);
-		return (-1);
+		return (ISC_R_NOMEMORY);
 	}
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof (struct stats));
 	ctx->basic_blocks = NULL;
@@ -155,18 +156,21 @@ mem_context_create(size_t init_max_size, size_t target_size,
 		free(ctx->stats);
 		free(ctx->freelists);
 		free(ctx);
-		return (-1);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "os_mutex_init() failed");
+		return (ISC_R_UNEXPECTED);
 	}
 	*ctxp = ctx;
-	return (0);
+	return (ISC_R_SUCCESS);
 }
 
 void
-mem_context_destroy(mem_context_t *ctxp) {
+isc_memctx_destroy(isc_memctx_t *ctxp) {
 	unsigned int i;
-	mem_context_t ctx;
+	isc_memctx_t ctx;
 
 	REQUIRE(ctxp != NULL);
+
 	ctx = *ctxp;
 
 	for (i = 0; i <= ctx->max_size; i++)
@@ -174,7 +178,6 @@ mem_context_destroy(mem_context_t *ctxp) {
 
 	for (i = 0; i < ctx->basic_table_count; i++)
 		free(ctx->basic_table[i]);
-
 	free(ctx->freelists);
 	free(ctx->stats);
 	free(ctx->basic_table);
@@ -185,7 +188,7 @@ mem_context_destroy(mem_context_t *ctxp) {
 }
 
 static void
-more_basic_blocks(mem_context_t ctx) {
+more_basic_blocks(isc_memctx_t ctx) {
 	void *new;
 	unsigned char *curr, *next;
 	unsigned char *first, *last;
@@ -219,7 +222,7 @@ more_basic_blocks(mem_context_t ctx) {
 	curr = new;
 	next = curr + ctx->mem_target;
 	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
-		((memcluster_element *)curr)->next = next;
+		((element *)curr)->next = next;
 		curr = next;
 		next += ctx->mem_target;
 	}
@@ -227,7 +230,7 @@ more_basic_blocks(mem_context_t ctx) {
 	 * curr is now pointing at the last block in the
 	 * array.
 	 */
-	((memcluster_element *)curr)->next = NULL;
+	((element *)curr)->next = NULL;
 	first = new;
 	last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
 	if (first < ctx->lowest || ctx->lowest == NULL)
@@ -238,7 +241,7 @@ more_basic_blocks(mem_context_t ctx) {
 }
 
 void *
-__mem_get(mem_context_t ctx, size_t size) {
+__isc_mem_get(isc_memctx_t ctx, size_t size) {
 	size_t new_size = quantize(size);
 	void *ret;
 
@@ -284,12 +287,12 @@ __mem_get(mem_context_t ctx, size_t size) {
 		curr = new;
 		next = curr + new_size;
 		for (i = 0; i < (frags - 1); i++) {
-			((memcluster_element *)curr)->next = next;
+			((element *)curr)->next = next;
 			curr = next;
 			next += new_size;
 		}
 		/* curr is now pointing at the last block in the array. */
-		((memcluster_element *)curr)->next = NULL;
+		((element *)curr)->next = NULL;
 		ctx->freelists[new_size] = new;
 	}
 
@@ -318,7 +321,7 @@ __mem_get(mem_context_t ctx, size_t size) {
  * so we want to count this as a user "put". 
  */
 void
-__mem_put(mem_context_t ctx, void *mem, size_t size) {
+__isc_mem_put(isc_memctx_t ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
 
 	REQUIRE(size > 0);
@@ -334,8 +337,8 @@ __mem_put(mem_context_t ctx, void *mem, size_t size) {
 	}
 
 	/* The free list uses the "rounded-up" size "new_size": */
-	((memcluster_element *)mem)->next = ctx->freelists[new_size];
-	ctx->freelists[new_size] = (memcluster_element *)mem;
+	((element *)mem)->next = ctx->freelists[new_size];
+	ctx->freelists[new_size] = (element *)mem;
 
 	/* 
 	 * The stats[] uses the _actual_ "size" requested by the
@@ -352,28 +355,29 @@ __mem_put(mem_context_t ctx, void *mem, size_t size) {
 }
 
 void *
-__mem_get_debug(mem_context_t ctx, size_t size, const char *file, int line) {
+__isc_mem_getdebug(isc_memctx_t ctx, size_t size, const char *file, int line) {
 	void *ptr;
-	ptr = __mem_get(ctx, size);
+
+	ptr = __isc_mem_get(ctx, size);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
 		ctx, (unsigned long)size, ptr);
 	return (ptr);
 }
 
 void
-__mem_put_debug(mem_context_t ctx, void *ptr, size_t size, const char *file,
-		int line)
+__isc_mem_putdebug(isc_memctx_t ctx, void *ptr, size_t size, const char *file,
+		   int line)
 {
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
 		ctx, ptr, (unsigned long)size);
-	__mem_put(ctx, ptr, size);
+	__isc_mem_put(ctx, ptr, size);
 }
 
 /*
  * Print the stats[] on the stream "out" with suitable formatting.
  */
 void
-mem_stats(mem_context_t ctx, FILE *out) {
+isc_mem_stats(isc_memctx_t ctx, FILE *out) {
 	size_t i;
 
 	LOCK_CONTEXT(ctx);
@@ -397,20 +401,19 @@ mem_stats(mem_context_t ctx, FILE *out) {
 	UNLOCK_CONTEXT(ctx);
 }
 
-int
-mem_valid(mem_context_t ctx, void *ptr) {
+isc_boolean_t
+isc_mem_valid(isc_memctx_t ctx, void *ptr) {
 	unsigned char *cp = ptr;
-	int ret;
+	isc_boolean_t result = ISC_FALSE;
 
 	LOCK_CONTEXT(ctx);
 
-	ret = 0;
 	if (ctx->lowest != NULL && cp >= ctx->lowest && cp <= ctx->highest)
-		ret = 1;
+		result = ISC_TRUE;
 
 	UNLOCK_CONTEXT(ctx);
 
-	return (ret);
+	return (result);
 }
 
 /*
@@ -418,11 +421,11 @@ mem_valid(mem_context_t ctx, void *ptr) {
  */
 
 void *
-mem_allocate(mem_context_t ctx, size_t size) {
+isc_mem_allocate(isc_memctx_t ctx, size_t size) {
 	size_info si;
 
 	size += ALIGNMENT_SIZE;
-	si = mem_get(ctx, size);
+	si = isc_mem_get(ctx, size);
 	if (si == NULL)
 		return (NULL);
 	si->size = size;
@@ -430,27 +433,31 @@ mem_allocate(mem_context_t ctx, size_t size) {
 }
 
 void
-mem_free(mem_context_t ctx, void *ptr) {
+isc_mem_free(isc_memctx_t ctx, void *ptr) {
 	size_info si;
 
 	si = &(((size_info)ptr)[-1]);
-	mem_put(ctx, si, si->size);
+	isc_mem_put(ctx, si, si->size);
 }
+
+#ifdef ISC_MEMCLUSTER_LEGACY
 
 /*
  * Public Legacy.
  */
+
+static isc_memctx_t 		default_context = NULL;
 
 int
 meminit(size_t init_max_size, size_t target_size) {
 	/* need default_context lock here */
 	if (default_context != NULL)
 		return (-1);
-	return (mem_context_create(init_max_size, target_size,
+	return (isc_mem_create(init_max_size, target_size,
 				   &default_context));
 }
 
-mem_context_t
+isc_memctx_t
 mem_default_context(void) {
 	/* need default_context lock here */
 	if (default_context == NULL && meminit(0, 0) == -1)
@@ -502,3 +509,5 @@ memstats(FILE *out) {
 	REQUIRE(default_context != NULL);
 	mem_stats(default_context, out);
 }
+
+#endif /* ISC_MEMCLUSTER_LEGACY */

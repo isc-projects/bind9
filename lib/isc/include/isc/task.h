@@ -37,7 +37,7 @@ typedef isc_boolean_t (*isc_taskaction_t)(isc_task_t, isc_event_t);
  * defining new event types.
  */ 
 struct isc_event {
-	mem_context_t			mctx;
+	isc_memctx_t			mctx;
 	size_t				size;
 	void *				sender;
 	isc_eventtype_t			type;
@@ -51,7 +51,7 @@ struct isc_event {
 
 typedef LIST(struct isc_event)		isc_eventlist_t;
 
-isc_event_t				isc_event_allocate(mem_context_t,
+isc_event_t				isc_event_allocate(isc_memctx_t,
 							   void *,
 							   isc_eventtype_t,
 							   isc_taskaction_t,
@@ -83,7 +83,7 @@ void					isc_task_destroy(isc_task_t *);
  *** Task Manager.
  ***/
 
-unsigned int				isc_taskmgr_create(mem_context_t,
+unsigned int				isc_taskmgr_create(isc_memctx_t,
 							   unsigned int,
 							   unsigned int,
 							   isc_taskmgr_t *);

@@ -71,7 +71,7 @@ struct isc_timer {
 struct isc_timermgr {
 	/* Not locked. */
 	unsigned int			magic;
-	mem_context_t			mctx;
+	isc_memctx_t			mctx;
 	os_mutex_t			lock;
 	/* Locked by manager lock. */
 	isc_boolean_t			done;
@@ -200,7 +200,7 @@ destroy(isc_timer_t timer) {
 	isc_task_detach(&timer->task);
 	(void)os_mutex_destroy(&timer->lock);
 	timer->magic = 0;
-	mem_put(manager->mctx, timer, sizeof *timer);
+	isc_mem_put(manager->mctx, timer, sizeof *timer);
 }
 
 isc_result
@@ -238,7 +238,7 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	timer = mem_get(manager->mctx, sizeof *timer);
+	timer = isc_mem_get(manager->mctx, sizeof *timer);
 	if (timer == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -260,7 +260,7 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	timer->arg = arg;
 	timer->index = 0;
 	if (!os_mutex_init(&timer->lock)) {
-		mem_put(manager->mctx, timer, sizeof *timer);
+		isc_mem_put(manager->mctx, timer, sizeof *timer);
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "os_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
@@ -533,7 +533,7 @@ set_index(void *what, unsigned int index) {
 }
 
 isc_result
-isc_timermgr_create(mem_context_t mctx, isc_timermgr_t *managerp) {
+isc_timermgr_create(isc_memctx_t mctx, isc_timermgr_t *managerp) {
 	isc_timermgr_t manager;
 	isc_result result;
 
@@ -543,7 +543,7 @@ isc_timermgr_create(mem_context_t mctx, isc_timermgr_t *managerp) {
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
-	manager = mem_get(mctx, sizeof *manager);
+	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
 	
@@ -558,19 +558,19 @@ isc_timermgr_create(mem_context_t mctx, isc_timermgr_t *managerp) {
 	result = isc_heap_create(mctx, sooner, set_index, 0, &manager->heap);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(result == ISC_R_NOMEMORY);
-		mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof *manager);
 		return (ISC_R_NOMEMORY);
 	}
 	if (!os_mutex_init(&manager->lock)) {
 		isc_heap_destroy(&manager->heap);
-		mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "os_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
 	if (!os_condition_init(&manager->wakeup)) {
 		(void)os_mutex_destroy(&manager->lock);
 		isc_heap_destroy(&manager->heap);
-		mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_condition_init() failed");
 		return (ISC_R_UNEXPECTED);
@@ -579,7 +579,7 @@ isc_timermgr_create(mem_context_t mctx, isc_timermgr_t *managerp) {
 		(void)os_condition_destroy(&manager->wakeup);
 		(void)os_mutex_destroy(&manager->lock);
 		isc_heap_destroy(&manager->heap);
-		mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_thread_create() failed");
 		return (ISC_R_UNEXPECTED);
@@ -626,7 +626,7 @@ isc_timermgr_destroy(isc_timermgr_t *managerp) {
 	(void)os_mutex_destroy(&manager->lock);
 	isc_heap_destroy(&manager->heap);
 	manager->magic = 0;
-	mem_put(manager->mctx, manager, sizeof *manager);
+	isc_mem_put(manager->mctx, manager, sizeof *manager);
 
 	*managerp = NULL;
 }
