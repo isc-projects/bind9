@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.40 2001/07/19 04:57:46 marka Exp $ */
+/* $Id: context.c,v 1.41 2001/07/19 16:59:32 gson Exp $ */
 
 #include <config.h>
 
@@ -47,16 +47,16 @@
 #endif
 
 /*
- * Define a Macro to make a socket nonblocking
+ * Make a socket nonblocking.
  */
 #ifndef MAKE_NONBLOCKING
-#define MAKE_NONBLOCKING(sd, retval)\
-do {\
-	retval = fcntl(sd, F_GETFL, 0);\
-	if (retval != -1) {\
+#define MAKE_NONBLOCKING(sd, retval) \
+do { \
+	retval = fcntl(sd, F_GETFL, 0); \
+	if (retval != -1) { \
 		retval |= O_NONBLOCK; \
-		retval = fcntl(sd, F_SETFL, retval);\
-	}\
+		retval = fcntl(sd, F_SETFL, retval); \
+	} \
 } while (0)
 #endif
 
@@ -241,7 +241,7 @@ context_connect(lwres_context_t *ctx) {
 		return (LWRES_R_IOERROR);
 	}
 
-	MAKE_NONBLOCKING(s, ret);		
+	MAKE_NONBLOCKING(s, ret);
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
 
