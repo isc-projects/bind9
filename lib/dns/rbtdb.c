@@ -27,6 +27,7 @@
 #include <dns/rbt.h>
 #include <dns/master.h>
 #include <dns/rdataslab.h>
+#include <dns/rdata.h>
 
 #include "rbtdb.h"
 
@@ -46,6 +47,7 @@ typedef struct rdatasetheader {
 	 * both head and tail pointers.  We only have a head pointer in
 	 * the node to save space.
 	 */
+	unsigned int			version;
 	struct rdatasetheader		*prev;
 	struct rdatasetheader		*next;
 } rdatasetheader_t;
@@ -70,6 +72,22 @@ typedef struct {
 	/* Locked by tree_lock */
 	dns_rbt_t *			tree;
 } dns_rbtdb_t;
+
+static dns_result_t disassociate(dns_rdataset_t *rdatasetp);
+static dns_result_t first(dns_rdataset_t *rdataset);
+static dns_result_t next(dns_rdataset_t *rdataset);
+static void current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+
+static dns_rdatasetmethods_t rdataset_methods = {
+	disassociate,
+	first,
+	next,
+	current
+};
+
+/*
+ * DB Routines
+ */
 
 static void
 attach(dns_db_t *source, dns_db_t **targetp) {
@@ -207,8 +225,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	node = dns_rbt_findnode(rbtdb->tree, name);
  again:
 	if (node != NULL) {
-		dns_rbt_namefromnode(node, &foundname);
-		locknum = dns_name_hash(&foundname) % rbtdb->node_lock_count;
+		locknum = node->locknum;
 		LOCK(&rbtdb->node_locks[locknum].lock);
 		if (node->references == 0)
 			rbtdb->node_locks[locknum].references++;
@@ -232,6 +249,11 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		}
 		node = dns_rbt_findnode(rbtdb->tree, name);
 		INSIST(node != NULL);
+		node->dirty = 0;
+		node->references = 0;
+		dns_rbt_namefromnode(node, &foundname);
+		node->locknum = dns_name_hash(&foundname) %
+			rbtdb->node_lock_count;
 		goto again;
 	}
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
@@ -245,18 +267,14 @@ static void
 attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node = (dns_rbtnode_t *)source;
-	unsigned int locknum;
-	dns_name_t name;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	dns_name_init(&name, NULL);
-	dns_rbt_namefromnode(node, &name);
-	locknum = dns_name_hash(&name) % rbtdb->node_lock_count;
-	LOCK(&rbtdb->node_locks[locknum].lock);
-	INSIST(node->references != 0);
+	LOCK(&rbtdb->node_locks[node->locknum].lock);
+	INSIST(node->references > 0);
 	node->references++;
-	UNLOCK(&rbtdb->node_locks[locknum].lock);
+	INSIST(node->references != 0);			/* Catch overflow. */
+	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
 	*targetp = source;
 }
@@ -265,38 +283,81 @@ static void
 detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node;
-	unsigned int locknum;
-	dns_name_t name;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
 
 	node = (dns_rbtnode_t *)(*targetp);
-	dns_name_init(&name, NULL);
-	dns_rbt_namefromnode(node, &name);
-	locknum = dns_name_hash(&name) % rbtdb->node_lock_count;
-	LOCK(&rbtdb->node_locks[locknum].lock);
+	LOCK(&rbtdb->node_locks[node->locknum].lock);
 	INSIST(node->references > 0);
 	node->references--;
 	if (node->references == 0) {
-		INSIST(rbtdb->node_locks[locknum].references > 0);
-		rbtdb->node_locks[locknum].references--;
+		INSIST(rbtdb->node_locks[node->locknum].references > 0);
+		rbtdb->node_locks[node->locknum].references--;
 		/* XXX other detach stuff here */
 	}
-	UNLOCK(&rbtdb->node_locks[locknum].lock);
+	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
 	*targetp = NULL;
 }
 
 static dns_result_t
 findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	     dns_rdatatype_t type, dns_rdataset_t *rdataset) {
-	db = NULL;
-	node = NULL;
-	version = NULL;
-	type = 0;
-	rdataset = NULL;
-	return (DNS_R_NOTIMPLEMENTED);
+	     dns_rdatatype_t type, dns_rdataset_t *rdataset)
+{
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
+	rdatasetheader_t *header;
+	unsigned char *raw;
+	unsigned int count;
+
+	(void)version;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods == NULL);
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+	for (header = rbtnode->data; header != NULL; header = header->next) {
+		/* XXX version */
+		if (header->type == type)
+			break;
+	}
+	if (header != NULL) {
+		INSIST(rbtnode->references > 0);
+		rbtnode->references++;
+		INSIST(rbtnode->references != 0);	/* Catch overflow. */
+
+		rdataset->methods = &rdataset_methods;
+		rdataset->class = rbtdb->common.class;
+		rdataset->type = header->type;
+		rdataset->ttl = header->ttl;
+		rdataset->private1 = rbtdb;
+		rdataset->private2 = rbtnode;
+		raw = (unsigned char *)header + sizeof *header;
+		rdataset->private3 = raw;
+		count = raw[0] * 256 + raw[1];
+		raw += 2;
+		if (count == 0) {
+			rdataset->private4 = (void *)0;
+			rdataset->private5 = NULL;
+		} else {
+			/*
+			 * The private4 field is the number of rdata beyond
+			 * the cursor position, so we decrement the total
+			 * count by one before storing it.
+			 */
+			count--;
+			rdataset->private4 = (void *)count; 
+			rdataset->private5 = raw;
+		}
+	}
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	if (header == NULL)
+		return (DNS_R_NOTFOUND);
+
+	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
@@ -304,10 +365,14 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	    dns_rdataset_t *rdataset, dns_addmode_t mode)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
 	isc_region_t region;
-	rdatasetheader_t *header;
+	rdatasetheader_t *header, *newheader;
 	dns_result_t result;
 
+	(void)version;
+	(void)mode;
+	
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
@@ -315,10 +380,19 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					    sizeof (rdatasetheader_t));
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	header = (rdatasetheader_t *)region.base;
-	header->ttl = rdataset->ttl;
-	header->type = rdataset->type;
-	/* XXX Lock node, add to list */
+	newheader = (rdatasetheader_t *)region.base;
+	newheader->ttl = rdataset->ttl;
+	newheader->type = rdataset->type;
+	newheader->version = 0;			/* XXX version */
+	newheader->prev = NULL;
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+	header = rbtnode->data;
+	newheader->next = header;
+	if (header != NULL)
+		header->prev = newheader;
+	rbtnode->data = newheader;
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	return (DNS_R_SUCCESS);
 }
@@ -390,6 +464,9 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 	int i;
 	isc_region_t r1, r2;
 
+	(void)argc;
+	(void)argv;
+
 	rbtdb = isc_mem_get(mctx, sizeof *rbtdb);
 	if (rbtdb == NULL)
 		return (DNS_R_NOMEMORY);
@@ -417,6 +494,8 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 				 isc_result_totext(iresult));
 		return (DNS_R_UNEXPECTED);
 	}
+
+	INSIST(rbtdb->node_lock_count < (1 << DNS_RBT_LOCKLENGTH));
 
 	if (rbtdb->node_lock_count == 0)
 		rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
@@ -478,4 +557,75 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 	*dbp = (dns_db_t *)rbtdb;
 
 	return (ISC_R_SUCCESS);
+}
+
+
+
+/*
+ * Slabbed Rdataset Methods
+ */
+
+static dns_result_t
+disassociate(dns_rdataset_t *rdataset) {
+	dns_db_t *db = rdataset->private1;
+	dns_dbnode_t *node = rdataset->private2;
+
+	detachnode(db, &node);
+
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+first(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->private3;
+	unsigned int count;
+
+	count = raw[0] * 256 + raw[1];
+	if (count == 0) {
+		rdataset->private5 = NULL;
+		return (DNS_R_NOMORE);
+	}
+	raw += 2;
+	/*
+	 * The private4 field is the number of rdata beyond the cursor
+	 * position, so we decrement the total count by one before storing
+	 * it.
+	 */
+	count--;
+	rdataset->private4 = (void *)count;
+	rdataset->private5 = raw;
+
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+next(dns_rdataset_t *rdataset) {
+	unsigned int count;
+	unsigned int length;
+	unsigned char *raw;
+
+	count = (unsigned int)rdataset->private4;
+	if (count == 0)
+		return (DNS_R_NOMORE);
+	count--;
+	rdataset->private4 = (void *)count;
+	raw = rdataset->private5;
+	length = raw[0] * 256 + raw[1];
+	raw += length + 2;
+	rdataset->private5 = raw;
+
+	return (DNS_R_SUCCESS);
+}
+
+static void
+current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+	unsigned char *raw = rdataset->private5;
+	isc_region_t r;
+
+	REQUIRE(raw != NULL);
+
+	r.length = raw[0] * 256 + raw[1];
+	raw += 2;
+	r.base = raw;
+	dns_rdata_fromregion(rdata, rdataset->class, rdataset->type, &r);
 }
