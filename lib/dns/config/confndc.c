@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.18 2000/06/19 17:41:42 bwelling Exp $ */
+/* $Id: confndc.c,v 1.19 2000/07/04 01:29:48 tale Exp $ */
 
 /*
 **	options {
@@ -1111,7 +1111,7 @@ parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server) {
 
 	if (keyname == NULL) {
 		parser_error(pctx, ISC_FALSE,
-			     "server statement requiresult a key value");
+			     "server statement requires a key value");
 		result = ISC_R_FAILURE;
 		goto done;
 	}
