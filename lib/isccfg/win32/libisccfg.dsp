@@ -98,6 +98,10 @@ SOURCE=.\DLLMain.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\aclconf.c.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\log.c
 # End Source File
 # Begin Source File
@@ -127,6 +131,10 @@ SOURCE=..\include\isccfg\check.h
 # Begin Source File
 
 SOURCE=..\include\isccfg\grammar.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isccfg\aclconf.c.h
 # End Source File
 # Begin Source File
 
