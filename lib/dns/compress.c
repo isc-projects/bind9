@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.48 2001/02/12 18:07:50 bwelling Exp $ */
+/* $Id: compress.c,v 1.49 2001/02/15 01:14:16 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -65,15 +65,13 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 
 	cctx->magic = 0;
-	if (cctx->table != NULL) {
-		for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++) {
-			while (cctx->table[i] != NULL) {
-				node = cctx->table[i];
-				cctx->table[i] = cctx->table[i]->next;
-				if (node->count < DNS_COMPRESS_INITIALNODES)
-					continue;
-				isc_mem_put(cctx->mctx, node, sizeof(*node));
-			}
+	for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++) {
+		while (cctx->table[i] != NULL) {
+			node = cctx->table[i];
+			cctx->table[i] = cctx->table[i]->next;
+			if (node->count < DNS_COMPRESS_INITIALNODES)
+				continue;
+			isc_mem_put(cctx->mctx, node, sizeof(*node));
 		}
 	}
 	cctx->allowed = 0;
