@@ -3,7 +3,7 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.15 2001/02/02 22:37:18 scanner Exp $
+Version: $Id: README-SGML,v 1.16 2001/02/15 22:00:32 scanner Exp $
 
 The entire ARM is in the single file:
 
@@ -19,7 +19,7 @@ alternate formats of this document.
 This file will also spend a very little time describing the XML and
 SGML headers so you can understand a bit what you may need to do to be
 able to work with this document in any fashion other than simply
-editing it.
+editing it. 
 
 We will spend almost no time on the actual tags and how to write an
 XML DocBook compliant document. If you are at all familiar with SGML
