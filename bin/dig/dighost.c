@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.203 2001/06/14 21:40:02 bwelling Exp $ */
+/* $Id: dighost.c,v 1.204 2001/06/15 01:26:14 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -157,6 +157,9 @@ recv_done(isc_task_t *task, isc_event_t *event);
 
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event);
+
+static void
+launch_next_query(dig_query_t *query, isc_boolean_t include_question);
 
 char *
 next_token(char **stringp, const char *delim) {
