@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.139.4.3 2001/02/23 18:42:59 gson Exp $ */
+/* $Id: rbtdb.c,v 1.139.4.4 2001/03/03 09:33:12 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4264,6 +4264,12 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 
 	rbtiterator = (rbtdb_rdatasetiter_t *)(*iteratorp);
 
+				 *
+				 * Note: unlike everywhere else, we
+				 * check for now > header->ttl instead
+				 * of now >= header->ttl.  This allows
+				 * ANY and SIG queries for 0 TTL
+				 * rdatasets to work.
 	if (rbtiterator->common.version != NULL)
 		closeversion(rbtiterator->common.db,
 			     &rbtiterator->common.version, ISC_FALSE);
@@ -4304,7 +4310,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 				 */
 				if ((header->attributes &
 				     RDATASET_ATTR_NONEXISTENT) != 0 ||
-				    (now != 0 && now >= header->ttl))
+				    (now != 0 && now > header->ttl))
 					header = NULL;
 				break;
 			} else
@@ -4359,10 +4365,16 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 					/*
 					 * Is this a "this rdataset doesn't
 					 * exist" record?
+					 *
+					 * Note: unlike everywhere else, we
+					 * check for now > header->ttl instead
+					 * of now >= header->ttl.  This allows
+					 * ANY and SIG queries for 0 TTL
+					 * rdatasets to work.
 					 */
 					if ((header->attributes &
 					     RDATASET_ATTR_NONEXISTENT) != 0 ||
-					    (now != 0 && now >= header->ttl))
+					    (now != 0 && now > header->ttl))
 						header = NULL;
 					break;
 				} else

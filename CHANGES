@@ -1,3 +1,6 @@
+ 709.	[bug]		ANY or SIG queries for data with a TTL of 0
+			would return SERVFAIL. [RT #620]
+
  759.	[bug]		The resolver didn't turn off "avoid fetches" mode
 			when restarting, possibly causing resolution
 			to fail when it should not.  This bug only affected
