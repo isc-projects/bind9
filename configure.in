@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.2 $)
+AC_REVISION($Revision: 1.355.18.3 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -343,7 +343,7 @@ AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
 [  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
                           (Required for DNSSEC)],
-    use_openssl="$withval", use_openssl="no")
+    use_openssl="$withval", use_openssl="auto")
 
 case "$use_openssl" in
 	no)
@@ -352,7 +352,7 @@ case "$use_openssl" in
 		USE_OPENSSL=""
 		;;
 	*)
-		if test "$use_openssl" = "yes"
+		if test "$use_openssl" = "yes" -o "$use_openssl" = "auto"
 		then
 		    	# User did not specify a path - guess it
 			openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg"
@@ -369,6 +369,10 @@ case "$use_openssl" in
 			    	AC_MSG_RESULT(not found)
 				AC_MSG_ERROR(
 [OpenSSL was not found in any of $openssldirs; use --with-openssl=/path])
+			elif test "$use_openssl" = "auto"
+			then
+				AC_MSG_RESULT(not found)
+				break
 			fi
 		fi
 		USE_OPENSSL='-DOPENSSL'
