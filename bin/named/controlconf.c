@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.26 2001/08/04 07:49:38 marka Exp $ */
+/* $Id: controlconf.c,v 1.27 2001/08/06 01:03:53 marka Exp $ */
 
 #include <config.h>
 
@@ -891,7 +891,7 @@ update_listener(ns_controls_t *cp,
 		ISC_LIST_INIT(keys);
 		result = controlkeylist_fromcfg(control_keylist,
 						listener->mctx, &keys);
-		if (result) {
+		if (result == ISC_R_SUCCESS) {
 			free_controlkeylist(&listener->keys, listener->mctx);
 			listener->keys = keys;
 			register_keys(control, global_keylist, &listener->keys,
@@ -1158,7 +1158,7 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 		for (i = 0 ;i < 2; i++) {
 			isc_sockaddr_t addr;
 
-			if (i == 1) {
+			if (i == 0) {
 				if (isc_net_probeipv4() != ISC_R_SUCCESS)
 					continue;
 				isc_sockaddr_any(&addr);
