@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.107 2001/02/01 23:41:40 sjacob Exp $
+# $Id: Makefile.in,v 1.108 2001/02/15 05:15:27 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,19 +21,21 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${LWRES_INCLUDES} \
-		${OMAPI_INCLUDES}
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
+		${LWRES_INCLUDES} ${OMAPI_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
+ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 OMAPILIBS =	../../lib/omapi/libomapi.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
+ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
@@ -47,6 +49,7 @@ TARGETS =	genrandom
 XTARGETS =	adb_test \
 		byaddr_test \
 		byname_test \
+		cfg_test \
 		compress_test \
 		db_test \
 		dispatch_tcp_test \
@@ -300,6 +303,10 @@ sig0_test: sig0_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 journalprint: journalprint.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ journalprint.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+cfg_test: cfg_test.@O@ ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ cfg_test.@O@ \
+		${ISCCFGLIBS} ${ISCLIBS} ${LIBS}
 
 distclean::
 	rm -f headerdep_test.sh
