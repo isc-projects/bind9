@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.155 2000/08/10 21:47:46 bwelling Exp $ */
+/* $Id: socket.c,v 1.156 2000/08/10 23:11:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -134,6 +134,7 @@ struct isc_socket {
 	ISC_LINK(isc_socket_t)	link;
 	unsigned int		references;
 	int			fd;
+	int			pf;
 	isc_result_t		recv_result;
 	isc_result_t		send_result;
 
@@ -1149,6 +1150,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
+	sock->pf = pf;
 	switch (type) {
 	case isc_sockettype_udp:
 		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
@@ -2575,6 +2577,10 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 
 	INSIST(!sock->bound);
 
+	if (sock->pf != sockaddr->type.sa.sa_family) {
+		UNLOCK(&sock->lock);
+		return(ISC_R_FAMILY);
+	}
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof on) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",

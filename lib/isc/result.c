@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.46 2000/08/01 01:29:43 tale Exp $ */
+/* $Id: result.c,v 1.47 2000/08/10 23:11:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -84,7 +84,8 @@ static const char *text[ISC_R_NRESULTS] = {
 	"invalid use of multicast address",	/* 43 */
 	"not a file",				/* 44 */
 	"not a directory",			/* 45 */
-	"queue is full"				/* 46 */
+	"queue is full",			/* 46 */
+	"address family mismatch"		/* 47 */
 };
 
 #define ISC_RESULT_RESULTSET			2
