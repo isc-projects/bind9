@@ -658,7 +658,7 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 }
 
 void
-ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
+ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
@@ -667,12 +667,14 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
 		do_ipv6(mgr);
 	} else
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+		isc_log_write(IFMGR_COMMON_LOGARGS,
+			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv6 interfaces found");
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
 		do_ipv4(mgr);
 	else
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+		isc_log_write(IFMGR_COMMON_LOGARGS,
+			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv4 interfaces found");
 
         /*

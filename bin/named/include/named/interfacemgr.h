@@ -108,7 +108,7 @@ void
 ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr);
 
 void
-ns_interfacemgr_scan(ns_interfacemgr_t *mgr);
+ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose);
 /*
  * Scan the operatings system's list of network interfaces
  * and create listeners when new interfaces are discovered.

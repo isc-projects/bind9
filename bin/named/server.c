@@ -1063,8 +1063,8 @@ options_callback(dns_c_ctx_t *cctx, void *uap) {
 
 
 static void 
-scan_interfaces(ns_server_t *server) {
-	ns_interfacemgr_scan(server->interfacemgr);
+scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
+	ns_interfacemgr_scan(server->interfacemgr, verbose);
 	dns_aclenv_copy(&server->aclenv,
 			ns_interfacemgr_getaclenv(server->interfacemgr));
 }
@@ -1079,7 +1079,7 @@ interface_timer_tick(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	isc_event_free(&event);
 	RWLOCK(&server->conflock, isc_rwlocktype_write);
-	scan_interfaces(server);
+	scan_interfaces(server, ISC_FALSE);
 	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
 }
 
@@ -1214,7 +1214,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * to configure the query source, since the dispatcher we use might
 	 * be shared with an interface.
 	 */
-	scan_interfaces(server);
+	scan_interfaces(server, ISC_TRUE);
 
 	/*
 	 * Arrange for further interface scanning to occur periodically
