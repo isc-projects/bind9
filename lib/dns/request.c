@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.51 2001/01/23 07:36:06 marka Exp $ */
+/* $Id: request.c,v 1.52 2001/01/23 07:45:39 marka Exp $ */
 
 #include <config.h>
 
@@ -878,7 +878,6 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		dns_dispatch_detach(&request->dispatch);
 		socket = NULL;
 		options |= DNS_REQUESTOPT_TCP;
-		tcp = ISC_TRUE;
 		goto use_tcp;
 	}
 	if (result != ISC_R_SUCCESS)
