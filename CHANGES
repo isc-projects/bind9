@@ -1,3 +1,6 @@
+ 371.	[doc]		document that dns_journal_rollforward can return
+			ISC_R_RANGE.
+
  370.	[bug]		The error message for roll forward failures was
 			overly terse.
 
