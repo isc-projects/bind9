@@ -15,6 +15,7 @@
  * SOFTWARE.
  */
 
+#define NOISY
 #include <config.h>
 
 #include <ctype.h>
@@ -29,9 +30,39 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+#include <dns/rdata.h>
 #include <dns/compress.h>
 
+#define DNS_FLAG_QR		0x8000U
+#define DNS_FLAG_AA		0x0400U
+#define DNS_FLAG_TC		0x0200U
+#define DNS_FLAG_RD		0x0100U
+#define DNS_FLAG_RA		0x0080U
+
+#define DNS_OPCODE_MASK		0x7000U
+#define DNS_OPCODE_SHIFT	11
+#define DNS_RCODE_MASK		0x000FU
+
+typedef struct dns_message {
+	unsigned int		id;
+	unsigned int		flags;
+	unsigned int		qcount;
+	unsigned int		ancount;
+	unsigned int		aucount;
+	unsigned int		adcount;
+	dns_namelist_t		question;
+	dns_namelist_t		answer;
+	dns_namelist_t		authority;
+	dns_namelist_t		additional;
+} dns_message_t;
+
+#define MAX_PREALLOCATED	100
+
 dns_decompress_t dctx;
+unsigned int rdcount, rlcount, ncount;
+dns_name_t names[MAX_PREALLOCATED];
+dns_rdata_t rdatas[MAX_PREALLOCATED];
+dns_rdatalist_t lists[MAX_PREALLOCATED];
 
 static void
 print_wirename(isc_region_t *name) {
@@ -70,29 +101,27 @@ getshort(isc_buffer_t *buffer) {
 }
 
 static unsigned int
-getname(isc_buffer_t *source) {
-	unsigned char t[255];
+getname(dns_name_t *name, isc_buffer_t *source, isc_buffer_t *target) {
 	unsigned char c[255];
 	dns_result_t result;
-	dns_name_t name;
-	isc_buffer_t target, text;
+	isc_buffer_t text;
 	isc_region_t r;
 	unsigned int current;
 
-	isc_buffer_init(&target, t, 255, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_init(&text, c, 255, ISC_BUFFERTYPE_TEXT);
-	dns_name_init(&name, NULL);
+	dns_name_init(name, NULL);
 
 	current = source->current;
-	result = dns_name_fromwire(&name, source, &dctx, ISC_FALSE, &target);
+	result = dns_name_fromwire(name, source, &dctx, ISC_FALSE, target);
 				   
+#ifdef NOISY
 	if (result == DNS_R_SUCCESS) {
-		dns_name_toregion(&name, &r);
+		dns_name_toregion(name, &r);
 		print_wirename(&r);
 		printf("%u labels, %u bytes.\n",
-		       dns_name_countlabels(&name),
+		       dns_name_countlabels(name),
 		       r.length);
-		result = dns_name_totext(&name, 0, &text);
+		result = dns_name_totext(name, ISC_FALSE, &text);
 		if (result == DNS_R_SUCCESS) {
 			isc_buffer_used(&text, &r);
 			printf("%.*s\n", (int)r.length, r.base);
@@ -100,23 +129,309 @@ getname(isc_buffer_t *source) {
 			printf("%s\n", dns_result_totext(result));
 	} else
 		printf("%s\n", dns_result_totext(result));
+#else
+	if (result != DNS_R_SUCCESS)
+		printf("%s\n", dns_result_totext(result));
+#endif
 
 	return (source->current - current);
 }
 
+static void
+getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
+	     isc_buffer_t *target)
+{
+	unsigned int type, class;
+	dns_name_t *name, *curr;
+	dns_rdatalist_t *rdatalist;
+
+	ISC_LIST_INIT(*section);
+	while (count > 0) {
+		count--;
+
+		if (ncount == MAX_PREALLOCATED) {
+			printf("out of names\n");
+			exit(1);
+		}
+		name = &names[ncount++];
+		(void)getname(name, source, target);
+		for (curr = ISC_LIST_HEAD(*section);
+		     curr != NULL;
+		     curr = ISC_LIST_NEXT(curr, link)) {
+			if (dns_name_compare(curr, name) == 0) {
+				ncount--;
+				name = curr;
+				break;
+			}
+		}
+		if (name != curr)
+			ISC_LIST_APPEND(*section, name, link);
+		type = getshort(source);
+		class = getshort(source);
+		for (rdatalist = ISC_LIST_HEAD(name->list);
+		     rdatalist != NULL;
+		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
+			if (rdatalist->class == class &&
+			    rdatalist->type == type)
+				break;
+		}
+		if (rdatalist == NULL) {
+			ISC_LIST(dns_rdatalist_t) list;
+
+			if (rlcount == MAX_PREALLOCATED) {
+				printf("out of rdatalists\n");
+				exit(1);
+			}
+			rdatalist = &lists[rlcount++];
+			rdatalist->class = class;
+			rdatalist->type = type;
+			rdatalist->ttl = 0;
+			ISC_LIST_INIT(rdatalist->rdata);
+			list.head = name->list.head;
+			list.tail = name->list.tail;
+			ISC_LIST_APPEND(list, rdatalist, link);
+		} else
+			printf(";; duplicate question\n");
+	}
+}
+
+static void
+getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
+	   isc_buffer_t *target)
+{
+	unsigned int type, class, ttl, rdlength;
+	isc_region_t r;
+	dns_name_t *name, *curr;
+	dns_name_t rname;
+	unsigned char *data, *sdata;
+	dns_rdata_t *rdata;
+	dns_rdatalist_t *rdatalist;
+
+	ISC_LIST_INIT(*section);
+	while (count > 0) {
+		count--;
+		
+		if (ncount == MAX_PREALLOCATED) {
+			printf("out of names\n");
+			exit(1);
+		}
+		name = &names[ncount++];
+		(void)getname(name, source, target);
+		for (curr = ISC_LIST_HEAD(*section);
+		     curr != NULL;
+		     curr = ISC_LIST_NEXT(curr, link)) {
+			if (dns_name_compare(curr, name) == 0) {
+				ncount--;
+				name = curr;
+				break;
+			}
+		}
+		if (name != curr)
+			ISC_LIST_APPEND(*section, name, link);
+		type = getshort(source);
+		class = getshort(source);
+		ttl = getshort(source);
+		ttl *= 65536;
+		ttl += getshort(source);
+		rdlength = getshort(source);
+		isc_buffer_remaining(source, &r);
+		if (r.length < rdlength) {
+			printf("unexpected end of rdata\n");
+			exit(7);
+		}
+		data = (unsigned char *)target->base + target->used;
+		/* This is also naughty. */
+		if (type == 2 && class == 1) {
+			if (getname(&rname, source, target) != rdlength) {
+				printf("rdata length mismatch\n");
+				exit(11);
+			}
+		} else {
+			isc_region_t r;
+
+			isc_buffer_available(target, &r);
+			if (r.length < rdlength) {
+				printf("no space in target\n");
+				exit(12);
+			}
+			sdata = (unsigned char *)source->base +
+				source->current;
+			memcpy(data, sdata, (size_t)rdlength);
+			isc_buffer_add(target, rdlength);
+			isc_buffer_forward(source, rdlength);
+		}
+		for (rdatalist = ISC_LIST_HEAD(name->list);
+		     rdatalist != NULL;
+		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
+			if (rdatalist->class == class &&
+			    rdatalist->type == type)
+				break;
+		}
+		if (rdatalist == NULL) {
+			if (rlcount == MAX_PREALLOCATED) {
+				printf("out of rdatalists\n");
+				exit(1);
+			}
+			rdatalist = &lists[rlcount++];
+			rdatalist->class = class;
+			rdatalist->type = type;
+			rdatalist->ttl = ttl;
+			ISC_LIST_INIT(rdatalist->rdata);
+			ISC_LIST_APPEND(name->list, rdatalist, link);
+		} else {
+			if (ttl < rdatalist->ttl)
+				rdatalist->ttl = ttl;
+		}
+
+		if (rdcount == MAX_PREALLOCATED) {
+			printf("out of rdata\n");
+			exit(1);
+		}
+		rdata = &rdatas[rdcount++];
+
+		/* This is naughty. */
+		rdata->class = class;
+		rdata->type = type;
+		rdata->data = data;
+		rdata->length = rdlength;
+
+		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	}
+}
+
+static char *opcodetext[] = {
+	"QUERY",
+	"IQUERY",
+	"STATUS",
+	"RESERVED3",
+	"NOTIFY",
+	"UPDATE",
+	"RESERVED6",
+	"RESERVED7",
+	"RESERVED8",
+	"RESERVED9",
+	"RESERVED10",
+	"RESERVED11",
+	"RESERVED12",
+	"RESERVED13",
+	"RESERVED14",
+	"RESERVED15"
+};
+
+static char *rcodetext[] = {
+	"NOERROR",
+	"FORMERR",
+	"SERVFAIL",
+	"NXDOMAIN",
+	"NOTIMPL",
+	"REFUSED",
+	"YXDOMAIN",
+	"YXRRSET",
+	"NXRRSET",
+	"NOTAUTH",
+	"NOTZONE",
+	"RESERVED11",
+	"RESERVED12",
+	"RESERVED13",
+	"RESERVED14",
+	"RESERVED15"
+};
+
+static void
+printquestions(dns_namelist_t *section) {
+	printf("\n;; QUERY SECTION:\n");
+}
+
+static void
+printsection(dns_namelist_t *section, char *section_name) {
+	dns_name_t *name;
+	dns_rdatalist_t *rdatalist;
+	dns_rdata_t *rdata;
+	char t[1000];
+	isc_buffer_t target;
+	dns_result_t result;
+
+	printf("\n;; %s SECTION:\n", section_name);
+	for (name = ISC_LIST_HEAD(*section);
+	     name != NULL;
+	     name = ISC_LIST_NEXT(name, link)) {
+		isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+		result = dns_name_totext(name, ISC_FALSE, &target);
+		if (result != DNS_R_SUCCESS) {
+			printf("%s\n", dns_result_totext(result));
+			exit(15);
+		}
+		for (rdatalist = ISC_LIST_HEAD(name->list);
+		     rdatalist != NULL;
+		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
+			for (rdata = ISC_LIST_HEAD(rdatalist->rdata);
+			     rdata != NULL;
+			     rdata = ISC_LIST_NEXT(rdata, link)) {
+				printf("%.*s\t%u %u %u\t",
+				       (int)target.used,
+				       target.base,
+				       rdatalist->ttl,
+				       rdatalist->class,
+				       rdatalist->type);
+				printf("\n");
+			}
+		}
+	}
+}
+
+static void
+printmessage(dns_message_t *message) {
+	isc_boolean_t did_flag = ISC_FALSE;
+	unsigned int opcode, rcode;
+
+	opcode = (message->flags & DNS_OPCODE_MASK) >> DNS_OPCODE_SHIFT;
+	rcode = message->flags & DNS_RCODE_MASK;
+	printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
+	       opcodetext[opcode], rcodetext[rcode], message->id);
+	printf(";; flags: ");
+	if ((message->flags & DNS_FLAG_QR) != 0) {
+		printf("qr");
+		did_flag = ISC_TRUE;
+	}
+	if ((message->flags & DNS_FLAG_AA) != 0) {
+		printf("%saa", did_flag ? " " : "");
+		did_flag = ISC_TRUE;
+	}
+	if ((message->flags & DNS_FLAG_TC) != 0) {
+		printf("%stc", did_flag ? " " : "");
+		did_flag = ISC_TRUE;
+	}
+	if ((message->flags & DNS_FLAG_RD) != 0) {
+		printf("%srd", did_flag ? " " : "");
+		did_flag = ISC_TRUE;
+	}
+	if ((message->flags & DNS_FLAG_RA) != 0) {
+		printf("%sra", did_flag ? " " : "");
+		did_flag = ISC_TRUE;
+	}
+	printf("; QUERY: %u ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
+	       message->qcount, message->ancount, message->aucount,
+	       message->adcount);
+	printquestions(&message->question);
+	printsection(&message->answer, "ANSWER");
+	printsection(&message->authority, "AUTHORITY");
+	printsection(&message->additional, "ADDITIONAL");
+}
+
 int
 main(int argc, char *argv[]) {
-	char s[1000];
 	char *cp;
 	unsigned char *bp;
-	unsigned char b[255];
-	isc_buffer_t source;
+	isc_buffer_t source, target;
 	isc_region_t r;
 	size_t len, i;
 	int n;
 	FILE *f;
 	isc_boolean_t need_close = ISC_FALSE;
-	unsigned int ui, tc, type, class;
+	unsigned char b[1000];
+	char s[1000];
+	char t[5000];
+	dns_message_t message;
 	
 	if (argc > 1) {
 		f = fopen(argv[1], "r");
@@ -157,73 +472,34 @@ main(int argc, char *argv[]) {
 	if (need_close)
 		fclose(f);
 
-	dctx.allowed = DNS_COMPRESS_GLOBAL14 | DNS_COMPRESS_GLOBAL16;
+	rdcount = 0;
+	rlcount = 0;
+	ncount = 0;
+
+	dctx.allowed = DNS_COMPRESS_GLOBAL14;
 	dns_name_init(&dctx.owner_name, NULL);
 
-	isc_buffer_init(&source, b, 255, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&source, b, sizeof b, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, bp - b);
+	isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_BINARY);
 
-	ui = getshort(&source);
-	printf("id = %u\n", ui);
-	ui = getshort(&source);
-	printf("2nd short = %u\n", ui);
-	ui = getshort(&source);
-	printf("qdcount = %u\n", ui);
-	if (ui > 1) {
-		printf("qdcount > 1 not supported\n");
-		exit(6);
-	}
-	if (ui == 0) {
-		printf("qdcount 0\n");
-		exit(6);
-	}
-	ui = getshort(&source);
-	printf("ancount = %u\n", ui);
-	tc = ui;
-	ui = getshort(&source);
-	printf("nscount = %u\n", ui);
-	tc += ui;
-	ui = getshort(&source);
-	printf("arcount = %u\n", ui);
-	tc += ui;
+	message.id = getshort(&source);
+	message.flags = getshort(&source);
+	message.qcount = getshort(&source);
+	message.ancount = getshort(&source);
+	message.aucount = getshort(&source);
+	message.adcount = getshort(&source);
 
-	(void)getname(&source);
-	ui = getshort(&source);
-	printf("type = %u\n", ui);
-	ui = getshort(&source);
-	printf("class = %u\n\n", ui);
+	getquestions(&source, &message.question, message.qcount, &target);
+	getsection(&source, &message.answer, message.ancount, &target);
+	getsection(&source, &message.authority, message.aucount, &target);
+	getsection(&source, &message.additional, message.adcount, &target);
 
-	while (tc > 0) {
-		tc--;
-		
-		(void)getname(&source);
-		type = getshort(&source);
-		printf("type = %u\n", type);
-		class = getshort(&source);
-		printf("class = %u\n", class);
-		ui = getshort(&source);
-		ui *= 65536;
-		ui += getshort(&source);
-		printf("ttl = %u\n", ui);
-		ui = getshort(&source);
-		printf("rdlength = %u\n", ui);
-		isc_buffer_remaining(&source, &r);
-		if (r.length < ui) {
-			printf("unexpected end of rdata\n");
-			exit(7);
-		}
-		if (type == 2 && class == 1) {
-			if (getname(&source) != ui) {
-				printf("rdata length mismatch\n");
-				exit(11);
-			}
-		} else
-			isc_buffer_forward(&source, ui);
-		printf("\n");
-	}
 	isc_buffer_remaining(&source, &r);
 	if (r.length != 0)
 		printf("extra data at end of packet.\n");
+
+	printmessage(&message);
 
 	return (0);
 }
