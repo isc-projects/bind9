@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.13 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: a6_38.c,v 1.14 1999/08/31 22:03:59 halley Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -25,10 +25,6 @@
 #include <string.h>
 
 #include <isc/net.h>
-
-#ifndef MAX
-#define MAX(A, B) ((A > B) ? (A) : (B))
-#endif
 
 static inline dns_result_t
 fromtext_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
@@ -213,7 +209,7 @@ towire_in_a6(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 static inline int
 compare_in_a6(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
-	unsigned char prefixlen;
+	unsigned char prefixlen1, prefixlen2;
 	unsigned char octets;
 	dns_name_t name1;
 	dns_name_t name2;
@@ -227,15 +223,33 @@ compare_in_a6(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
-	prefixlen = MAX(region1.base[0], region2.base[0]);
-	octets = 1 + 16 - prefixlen / 8;
+	prefixlen1 = region1.base[0];
+	prefixlen2 = region2.base[0];
+	isc_region_consume(&region1, 1);
+	isc_region_consume(&region2, 1);
+	if (prefixlen1 < prefixlen2)
+		return (-1);
+	else if (prefixlen1 > prefixlen2)
+		return (1);
+	/*
+	 * Prefix lengths are equal.
+	 */
+	octets = 16 - prefixlen1 / 8;
 
-	result = memcmp(region1.base, region2.base, octets);
-	if (result != 0)
-		result = (result < 0) ? -1 : 1;
-
-	isc_region_consume(&region1, octets);
-	isc_region_consume(&region2, octets);
+	if (octets > 0) {
+		result = memcmp(region1.base, region2.base, octets);
+		if (result < 0)
+			return (-1);
+		else if (result > 0)
+			return (1);
+		/*
+		 * Address suffixes are equal.
+		 */
+		if (prefixlen1 == 0)
+			return (result);
+		isc_region_consume(&region1, octets);
+		isc_region_consume(&region2, octets);
+	}
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -287,6 +301,34 @@ additionaldata_in_a6(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_in_a6(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r1, r2;
+	unsigned char prefixlen, octets;
+	dns_result_t result;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 38);
+	REQUIRE(rdata->rdclass == 1);
+
+	dns_rdata_toregion(rdata, &r1);
+	r2 = r1;
+	prefixlen = r1.base[0];
+	octets = 1 + 16 - prefixlen / 8;
+
+	r1.length = octets;
+	result = (digest)(arg, &r1);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	if (prefixlen == 0)
+		return (DNS_R_SUCCESS);
+
+	isc_region_consume(&r2, octets);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r2);
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_IN_1_A6_38_C */

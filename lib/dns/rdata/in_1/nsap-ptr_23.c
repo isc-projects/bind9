@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.c,v 1.9 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: nsap-ptr_23.c,v 1.10 1999/08/31 22:04:00 halley Exp $ */
 
  /* RFC 1348 */
 
@@ -174,6 +174,21 @@ additionaldata_in_nsap_ptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_in_nsap_ptr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 23);
+	REQUIRE(rdata->rdclass == 1);
+
+	dns_rdata_toregion(rdata, &r);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_IN_1_NSAP_PTR_23_C */

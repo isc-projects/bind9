@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.c,v 1.9 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: px_26.c,v 1.10 1999/08/31 22:04:00 halley Exp $ */
 
  /* RFC 2163 */
 
@@ -241,6 +241,34 @@ additionaldata_in_px(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_in_px(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r1, r2;
+	dns_name_t name;
+	dns_result_t result;
+
+	REQUIRE(rdata->type == 26);
+	REQUIRE(rdata->rdclass == 1);
+
+	dns_rdata_toregion(rdata, &r1);
+	r2 = r1;
+	isc_region_consume(&r2, 2);
+	r1.length = 2;
+	result = (digest)(arg, &r1);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r2);
+	result = dns_name_digest(&name, digest, arg);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	isc_region_consume(&r2, name_length(&name));
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r2);
+
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_IN_1_PX_26_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.8 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: nsap_22.c,v 1.9 1999/08/31 22:04:00 halley Exp $ */
 
  /* RFC 1706 */
 
@@ -183,6 +183,18 @@ additionaldata_in_nsap(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_in_nsap(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+
+	REQUIRE(rdata->type == 22);
+	REQUIRE(rdata->rdclass == 1);
+
+	dns_rdata_toregion(rdata, &r);
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_IN_1_NSAP_22_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.11 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: naptr_35.c,v 1.12 1999/08/31 22:04:00 halley Exp $ */
 
  /* RFC 2168 */
 
@@ -289,6 +289,55 @@ additionaldata_in_naptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_in_naptr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r1, r2;
+	unsigned int length, n;
+	dns_result_t result;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 35);
+	REQUIRE(rdata->rdclass == 1);
+
+	dns_rdata_toregion(rdata, &r1);
+	r2 = r1;
+	length = 0;
+
+	/* priority, weight */
+	length += 4;
+	isc_region_consume(&r2, 4);
+
+	/* flags */
+	n = r2.base[0] + 1;
+	length += n;
+	isc_region_consume(&r2, n);
+
+	/* service */
+	n = r2.base[0] + 1;
+	length += n;
+	isc_region_consume(&r2, n);
+
+	/* regexp */
+	n = r2.base[0] + 1;
+	length += n;
+	isc_region_consume(&r2, n);
+
+	/*
+	 * Digest the RR up to the replacement name.
+	 */
+	r1.length = length;
+	result = (digest)(arg, &r1);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	/* replacement */
+
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r2);
+	
+	return (dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_IN_1_NAPTR_35_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.12 1999/08/12 01:32:32 halley Exp $ */
+ /* $Id: aaaa_28.c,v 1.13 1999/08/31 22:03:59 halley Exp $ */
 
  /* RFC 1886 */
 
@@ -178,6 +178,18 @@ additionaldata_in_aaaa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)arg;
 
 	return (DNS_R_SUCCESS);
+}
+
+static inline dns_result_t
+digest_in_aaaa(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	isc_region_t r;
+
+	REQUIRE(rdata->type == 28);
+	REQUIRE(rdata->rdclass == 1);
+
+	dns_rdata_toregion(rdata, &r);
+
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_IN_1_AAAA_28_C */
