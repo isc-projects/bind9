@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.91 $)
+AC_REVISION($Revision: 1.92 $)
 
 AC_PREREQ(2.13)
 
@@ -254,7 +254,7 @@ if test "X$GCC" = "Xyes"; then
 else
 	case "$host" in
 		*-dec-osf*)
-			CC="$CC -pthread"
+			CC="$CC -std -pthread"
 			MKDEPCC="$CC"
 			;;
 		*-sun-solaris*)
