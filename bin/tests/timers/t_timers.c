@@ -15,9 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.15.4.2 2001/01/09 22:38:51 bwelling Exp $ */
-
-/* $Id: t_timers.c,v 1.15.4.2 2001/01/09 22:38:51 bwelling Exp $ */
+/* $Id: t_timers.c,v 1.15.4.3 2001/01/12 20:39:10 bwelling Exp $ */
 
 #include <config.h>
 

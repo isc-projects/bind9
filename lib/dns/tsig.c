@@ -15,10 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.c,v 1.98.4.3 2001/01/11 20:58:35 bwelling Exp $ */
-
 /*
- * $Id: tsig.c,v 1.98.4.3 2001/01/11 20:58:35 bwelling Exp $
+ * $Id: tsig.c,v 1.98.4.4 2001/01/12 20:39:12 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 

@@ -15,9 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174.2.3 2001/01/09 22:31:22 bwelling Exp $ */
-
-/* $Id: dighost.c,v 1.174.2.3 2001/01/09 22:31:22 bwelling Exp $ */
+/* $Id: dighost.c,v 1.174.2.4 2001/01/12 20:39:06 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
