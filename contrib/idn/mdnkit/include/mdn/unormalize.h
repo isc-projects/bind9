@@ -1,6 +1,7 @@
-/* $Id: unormalize.h,v 1.9 2000/08/02 02:06:41 ishisone Exp $ */
+/* $Id: unormalize.h,v 1.1 2002/01/02 02:46:36 marka Exp $ */
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -8,8 +9,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -70,14 +71,15 @@
  */
 
 #include <mdn/result.h>
+#include <mdn/unicode.h>
 
 /*
  * Perform Unicode Normalication Form C, D, KC and KD.
  *
  * They take NUL-terminated UTF-8 encoded string 'from', perform
- * the normalization, put the result (also a NUL-terminated UTF-8
- * encoded string) to 'to', which must be able to hold at least
- * 'tolen' bytes.
+ * the normalization specified by 'version', put the result
+ * (also a NUL-terminated UTF-8 encoded string) to 'to', which must be
+ * able to hold at least 'tolen' bytes.
  *
  * Returns:
  *	mdn_success		-- ok.
@@ -86,15 +88,19 @@
  * 	mdn_buffer_overflow	-- 'tolen' is too small.
  */
 extern mdn_result_t
-mdn__unormalize_formc(const char *from, char *to, size_t tolen);
+mdn__unormalize_formc(mdn__unicode_version_t version,
+		      const char *from, char *to, size_t tolen);
 
 extern mdn_result_t
-mdn__unormalize_formd(const char *from, char *to, size_t tolen);
+mdn__unormalize_formd(mdn__unicode_version_t version,
+		      const char *from, char *to, size_t tolen);
 
 extern mdn_result_t
-mdn__unormalize_formkc(const char *from, char *to, size_t tolen);
+mdn__unormalize_formkc(mdn__unicode_version_t version,
+		       const char *from, char *to, size_t tolen);
 
 extern mdn_result_t
-mdn__unormalize_formkd(const char *from, char *to, size_t tolen);
+mdn__unormalize_formkd(mdn__unicode_version_t version,
+		       const char *from, char *to, size_t tolen);
 
 #endif /* MDN_UNORMALIZE_H */

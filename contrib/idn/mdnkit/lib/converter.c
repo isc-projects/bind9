@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: converter.c,v 1.35 2001/04/17 01:35:42 ishisone Exp $";
+static char *rcsid = "$Id: converter.c,v 1.1 2002/01/02 02:46:40 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: converter.c,v 1.35 2001/04/17 01:35:42 ishisone Exp $
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -75,18 +75,24 @@ static char *rcsid = "$Id: converter.c,v 1.35 2001/04/17 01:35:42 ishisone Exp $
 #include <mdn/logmacro.h>
 #include <mdn/converter.h>
 #include <mdn/strhash.h>
-#include <mdn/utf8.h>
-#include <mdn/utf6.h>
-#include <mdn/utf5.h>
 #include <mdn/debug.h>
+#include <mdn/utf8.h>
+#include <mdn/amcacez.h>
 #include <mdn/race.h>
+#include <mdn/dude.h>
+#ifdef MDN_EXTRA_ACE
+#include <mdn/utf5.h>
+#include <mdn/utf6.h>
 #include <mdn/brace.h>
 #include <mdn/lace.h>
-#include <mdn/dude.h>
 #include <mdn/altdude.h>
 #include <mdn/amcacem.h>
 #include <mdn/amcaceo.h>
 #include <mdn/amcacer.h>
+#include <mdn/amcacev.h>
+#include <mdn/amcacew.h>
+#include <mdn/mace.h>
+#endif /* MDN_EXTRA_ACE */
 
 #ifndef MDN_UTF8_ENCODING_NAME
 #define MDN_UTF8_ENCODING_NAME "UTF-8"		/* by IANA */
@@ -121,6 +127,18 @@ static char *rcsid = "$Id: converter.c,v 1.35 2001/04/17 01:35:42 ishisone Exp $
 #ifndef MDN_AMCACER_ENCODING_NAME
 #define MDN_AMCACER_ENCODING_NAME "AMC-ACE-R"
 #endif
+#ifndef MDN_AMCACEV_ENCODING_NAME
+#define MDN_AMCACEV_ENCODING_NAME "AMC-ACE-V"
+#endif
+#ifndef MDN_AMCACEW_ENCODING_NAME
+#define MDN_AMCACEW_ENCODING_NAME "AMC-ACE-W"
+#endif
+#ifndef MDN_AMCACEZ_ENCODING_NAME
+#define MDN_AMCACEZ_ENCODING_NAME "AMC-ACE-Z"
+#endif
+#ifndef MDN_MACE_ENCODING_NAME
+#define MDN_MACE_ENCODING_NAME "MACE"
+#endif
 
 #define MAX_RECURSE	20
 
@@ -128,7 +146,7 @@ typedef struct {
 	mdn_converter_openproc_t open;
 	mdn_converter_closeproc_t close;
 	mdn_converter_convertproc_t convert;
-	int ascii_compatible;
+	int encoding_type;
 } converter_ops_t;
 
 struct mdn_converter {
@@ -176,6 +194,7 @@ static mdn_result_t	converter_iconv_convert(mdn_converter_t ctx,
 						mdn_converter_dir_t dir,
 						const char *from,
 						char *to, size_t tolen);
+#ifdef MDN_EXTRA_ACE
 static mdn_result_t	converter_utf5_open(mdn_converter_t ctx,
 					    mdn_converter_dir_t dir,
 					    void **privdata);
@@ -187,6 +206,8 @@ static mdn_result_t	converter_utf5_convert(mdn_converter_t ctx,
 					       mdn_converter_dir_t dir,
 					       const char *from,
 					       char *to, size_t tolen);
+#endif
+
 #ifdef DEBUG
 static mdn_result_t	converter_uescape_open(mdn_converter_t ctx,
 					       mdn_converter_dir_t dir,
@@ -205,14 +226,14 @@ static converter_ops_t none_converter_ops = {
 	converter_none_open,
 	converter_none_close,
 	converter_none_convert,
-	0,
+	MDN_NONACE,
 };
 
 static converter_ops_t iconv_converter_ops = {
 	converter_iconv_open,
 	converter_iconv_close,
 	converter_iconv_convert,
-	0,
+	MDN_NONACE,
 };
 
 /*
@@ -372,10 +393,17 @@ mdn_converter_localencoding(mdn_converter_t ctx) {
 }
 	
 int
+mdn_converter_encodingtype(mdn_converter_t ctx) {
+	assert(ctx != NULL);
+	TRACE(("mdn_converter_encodingtype()\n"));
+	return (ctx->ops->encoding_type);
+}
+
+int
 mdn_converter_isasciicompatible(mdn_converter_t ctx) {
 	assert(ctx != NULL);
 	TRACE(("mdn_converter_isasciicompatible()\n"));
-	return (ctx->ops->ascii_compatible);
+	return (ctx->ops->encoding_type != MDN_NONACE);
 }
 
 mdn_result_t
@@ -422,7 +450,7 @@ mdn_converter_register(const char *name,
 		       mdn_converter_openproc_t open,
 		       mdn_converter_closeproc_t close,
 		       mdn_converter_convertproc_t convert,
-		       int ascii_compatible) {
+		       int encoding_type) {
 	converter_ops_t *ops;
 	mdn_result_t r;
 
@@ -438,7 +466,7 @@ mdn_converter_register(const char *name,
 	ops->open = open;
 	ops->close = close;
 	ops->convert = convert;
-	ops->ascii_compatible = ascii_compatible;
+	ops->encoding_type = encoding_type;
 
 	r = mdn_strhash_put(encoding_name_hash, name, ops);
 	if (r != mdn_success)
@@ -451,11 +479,11 @@ static mdn_result_t
 register_standard_encoding(void) {
 	mdn_result_t r;
 
-	r = mdn_converter_register(MDN_UTF5_ENCODING_NAME,
-				   converter_utf5_open,
-				   converter_utf5_close,
-				   converter_utf5_convert,
-				   1);
+	r = mdn_converter_register(MDN_AMCACEZ_ENCODING_NAME,
+				   mdn__amcacez_open,
+				   mdn__amcacez_close,
+				   mdn__amcacez_convert,
+				   MDN_ACE_STRICTCASE);
 	if (r != mdn_success)
 		return (r);
 
@@ -463,23 +491,7 @@ register_standard_encoding(void) {
 				   mdn__race_open,
 				   mdn__race_close,
 				   mdn__race_convert,
-				   1);
-	if (r != mdn_success)
-		return (r);
-
-	r = mdn_converter_register(MDN_BRACE_ENCODING_NAME,
-				   mdn__brace_open,
-				   mdn__brace_close,
-				   mdn__brace_convert,
-				   1);
-	if (r != mdn_success)
-		return (r);
-
-	r = mdn_converter_register(MDN_LACE_ENCODING_NAME,
-				   mdn__lace_open,
-				   mdn__lace_close,
-				   mdn__lace_convert,
-				   1);
+				   MDN_ACE_LOOSECASE);
 	if (r != mdn_success)
 		return (r);
 
@@ -487,7 +499,32 @@ register_standard_encoding(void) {
 				   mdn__dude_open,
 				   mdn__dude_close,
 				   mdn__dude_convert,
-				   1);
+				   MDN_ACE_LOOSECASE);
+	if (r != mdn_success)
+		return (r);
+
+#ifdef MDN_EXTRA_ACE
+	r = mdn_converter_register(MDN_UTF5_ENCODING_NAME,
+				   converter_utf5_open,
+				   converter_utf5_close,
+				   converter_utf5_convert,
+				   MDN_ACE_LOOSECASE);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_BRACE_ENCODING_NAME,
+				   mdn__brace_open,
+				   mdn__brace_close,
+				   mdn__brace_convert,
+				   MDN_ACE_STRICTCASE);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_LACE_ENCODING_NAME,
+				   mdn__lace_open,
+				   mdn__lace_close,
+				   mdn__lace_convert,
+				   MDN_ACE_LOOSECASE);
 	if (r != mdn_success)
 		return (r);
 
@@ -495,7 +532,7 @@ register_standard_encoding(void) {
 				   mdn__utf6_open,
 				   mdn__utf6_close,
 				   mdn__utf6_convert,
-				   1);
+				   MDN_ACE_LOOSECASE);
 	if (r != mdn_success)
 		return (r);
 
@@ -503,7 +540,7 @@ register_standard_encoding(void) {
 				   mdn__altdude_open,
 				   mdn__altdude_close,
 				   mdn__altdude_convert,
-				   1);
+				   MDN_ACE_LOOSECASE);
 	if (r != mdn_success)
 		return (r);
 
@@ -511,7 +548,7 @@ register_standard_encoding(void) {
 				   mdn__amcacem_open,
 				   mdn__amcacem_close,
 				   mdn__amcacem_convert,
-				   1);
+				   MDN_ACE_STRICTCASE);
 	if (r != mdn_success)
 		return (r);
 
@@ -519,7 +556,7 @@ register_standard_encoding(void) {
 				   mdn__amcaceo_open,
 				   mdn__amcaceo_close,
 				   mdn__amcaceo_convert,
-				   1);
+				   MDN_ACE_STRICTCASE);
 	if (r != mdn_success)
 		return (r);
 
@@ -527,9 +564,34 @@ register_standard_encoding(void) {
 				   mdn__amcacer_open,
 				   mdn__amcacer_close,
 				   mdn__amcacer_convert,
-				   1);
+				   MDN_ACE_STRICTCASE);
 	if (r != mdn_success)
 		return (r);
+
+	r = mdn_converter_register(MDN_AMCACEV_ENCODING_NAME,
+				   mdn__amcacev_open,
+				   mdn__amcacev_close,
+				   mdn__amcacev_convert,
+				   MDN_ACE_STRICTCASE);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_AMCACEW_ENCODING_NAME,
+				   mdn__amcacew_open,
+				   mdn__amcacew_close,
+				   mdn__amcacew_convert,
+				   MDN_ACE_STRICTCASE);
+	if (r != mdn_success)
+		return (r);
+
+	r = mdn_converter_register(MDN_MACE_ENCODING_NAME,
+				   mdn__mace_open,
+				   mdn__mace_close,
+				   mdn__mace_convert,
+				   MDN_ACE_STRICTCASE);
+	if (r != mdn_success)
+		return (r);
+#endif /* MDN_EXTRA_ACE */
 
 #ifdef DEBUG
 	/* This is convenient for debug.  Not useful for other purposes. */
@@ -537,7 +599,7 @@ register_standard_encoding(void) {
 				   converter_uescape_open,
 				   converter_uescape_close,
 				   converter_uescape_convert,
-				   0);
+				   MDN_NONACE);
 	if (r != mdn_success)
 		return (r);
 #endif /* DEBUG */
@@ -561,8 +623,11 @@ mdn_converter_addalias(const char *alias_name, const char *real_name) {
 	if (strcmp(alias_name, real_name) == 0)
 		return (mdn_success);
 
-	if (encoding_alias_hash == NULL)
+	if (encoding_alias_hash == NULL) {
+		WARNING(("mdn_converter_addalias: the module is not \n"
+			 "initialized"));
 		return (mdn_failure);
+	}
 
 	if ((rn_copy = malloc(strlen(real_name) + 1)) == NULL) {
 		WARNING(("mdn_converter_addalias: malloc failed\n"));
@@ -905,6 +970,7 @@ converter_iconv_convert(mdn_converter_t ctx, void *privdata,
 		case E2BIG:
 			return (mdn_buffer_overflow);
 		default:
+			WARNING(("iconv failed with errno %d\n", errno));
 			return (mdn_failure);
 		}
 	}
@@ -935,6 +1001,8 @@ converter_iconv_convert(mdn_converter_t ctx, void *privdata,
 			case E2BIG:
 				return (mdn_buffer_overflow);
 			default:
+				WARNING(("iconv failed with errno %d\n",
+					 errno));
 				return (mdn_failure);
 			}
 		}
@@ -947,6 +1015,8 @@ converter_iconv_convert(mdn_converter_t ctx, void *privdata,
 /*
  * Conversion to/from UTF-5.
  */
+
+#ifdef MDN_EXTRA_ACE
 
 /* ARGSUSED */
 static mdn_result_t
@@ -1019,6 +1089,8 @@ overflow:
 	WARNING(("mdn_converter_convert: buffer overflow\n"));
 	return (mdn_buffer_overflow);
 }
+
+#endif
 
 #ifdef DEBUG
 /*

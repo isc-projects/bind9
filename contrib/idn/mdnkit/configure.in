@@ -1,4 +1,4 @@
-dnl $Id: configure.in,v 1.47 2001/05/18 04:02:29 ishisone Exp $
+dnl $Id: configure.in,v 1.1 2002/01/02 02:46:23 marka Exp $
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
@@ -9,8 +9,8 @@ dnl 			LICENSE TERMS AND CONDITIONS
 dnl 
 dnl The following License Terms and Conditions apply, unless a different
 dnl license is obtained from Japan Network Information Center ("JPNIC"),
-dnl a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-dnl Tokyo, Japan.
+dnl a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+dnl Chiyoda-ku, Tokyo 101-0047, Japan.
 dnl 
 dnl 1. Use, Modification and Redistribution (including distribution of any
 dnl    modified or derived work) in source and/or binary forms is permitted
@@ -61,6 +61,16 @@ AC_INIT(include/mdn/converter.h)
 
 AC_CANONICAL_HOST
 
+debug=no
+AC_ARG_ENABLE(debug,
+[  --enable-debug          enable debug codes [default=no]],
+	debug=$enableval)
+case "$enableval" in
+yes)
+    CFLAGS="$CFLAGS -DDEBUG"
+    ;;
+esac
+
 logdir=no
 AC_ARG_WITH(logdir,
 [  --with-logdir=DIR       mdnsproxy's log files are in DIR.
@@ -98,6 +108,7 @@ AC_ARG_WITH(utf8,
 	utf8name=$withval)
 case "$utf8name" in
 no)
+    utf8name=UTF-8
     ;;
 yes)
     AC_MSG_ERROR([You must specify NAME to --with-utf8 option.])
@@ -117,12 +128,76 @@ AC_ACE_SIGNATURE(AltDUDE, [a---], [])
 AC_ACE_SIGNATURE(AMC-ACE-M, [], [-amc1])
 AC_ACE_SIGNATURE(AMC-ACE-O, [], [-amc2])
 AC_ACE_PREFIX(AMC-ACE-R, [amc3-])
+AC_ACE_PREFIX(AMC-ACE-V, [amc4-])
+AC_ACE_PREFIX(AMC-ACE-W, [amc5-])
+AC_ACE_PREFIX(AMC-ACE-Z, [zq--])
+AC_ACE_PREFIX(MACE, [mq--])
 
-iconv=no
+ICONVINC=
+ICONVLIB=
+
+libiconv=unspec
+AC_ARG_WITH(libiconv,
+[  --with-libiconv=IPREFIX  GNU libiconv are installed in IPREFIX [PREFIX]],
+	libiconv=$withval)
+case "$libiconv" in
+unspec)
+    ;;
+no)
+    ICONVINC=
+    ICONVLIB=
+    ;;
+yes)
+    if test X$prefix = XNONE ; then
+	libiconv=$ac_default_prefix
+    else
+	libiconv=$prefix
+    fi
+    ICONVINC="-I$libiconv/include"
+    ICONVLIB="-L$libiconv/lib -R$libiconv/lib -liconv"
+    ;;
+*)
+    ICONVINC="-I$libiconv/include"
+    ICONVLIB="-L$libiconv/lib -R$libiconv/lib -liconv"
+    ;;
+esac
+
+iconv_include=unspec
+AC_ARG_WITH(iconv-include,
+[  --with-iconv-include=DIR  iconv include files are in DIR []],
+	iconv_include=$withval)
+case "$iconv_include" in
+unspec)
+    ;;
+no)
+    ICONVINC=
+    ;;
+yes)
+    AC_MSG_WARN([You must supply DIR to --with-iconv-include option.
+  Ignored.])
+    ICONVINC=
+    ;;
+*)
+    ICONVINC="-I$iconv_include"
+    ;;
+esac
+
+if test "X$ICONVINC" != X ; then
+    iconv_include="`echo X$ICONVINC | sed -e 's/^X-I//'`"
+    if test ! -f "$iconv_include/iconv.h" ; then
+	AC_MSG_ERROR([iconv.h doesn't exist in $iconv_include])
+    fi
+fi
+
+AC_SUBST(ICONVINC)
+
+iconv=unspec
 AC_ARG_WITH(iconv,
 [  --with-iconv=LIB        special library for iconv []],
 	iconv=$withval)
 case "$iconv" in
+unspec)
+    ;;
 no)
     ICONVLIB=
     ;;
@@ -138,7 +213,7 @@ esac
 AC_SUBST(ICONVLIB)
 
 AC_ARG_WITH(iconv-sofile,
-[  --with-iconv-sofile=PATH shared library file for libiconv []],
+[  --with-iconv-sofile=PATH  shared library file for libiconv []],
 	iconv_file=$withval, iconv_file=guess)
 ICONVSOFILE=
 case "$iconv_file" in
@@ -242,7 +317,17 @@ case "$host" in
     PRELOAD_VAR="_RLD_LIST"
     PRELOAD_LAST=":DEFAULT"
     ;;
+*-netbsd*)
+    if test -x /usr/bin/file -a -x /usr/bin/grep ; then
+        case "`/usr/bin/file /usr/bin/grep`" in
+	*ELF*)
+	    PRELOAD_SEP=" "
+	    ;;
+	esac
+    fi
+    ;;
 esac
+
 AC_SUBST(PRELOAD_VAR)
 AC_SUBST(PRELOAD_SEP)
 AC_SUBST(PRELOAD_LAST)
@@ -257,6 +342,11 @@ AC_CHECK_HEADERS(unistd.h locale.h langinfo.h resolv.h)
 AC_CHECK_HEADERS(sys/select.h arpa/nameser.h)
 AC_CHECK_HEADERS(dlfcn.h)
 
+saved_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$CPPFLAGS $ICONVINC"
+AC_CHECK_HEADER(iconv.h, , [AC_MSG_ERROR([iconv.h doesn't exist])])
+CPPFLAGS=$saved_CPPFLAGS
+
 dnl Checks for data types.
 AC_TYPE_UID_T
 dnl for dnsproxy.
@@ -268,7 +358,7 @@ AC_CHECK_LIB(nsl, inet_addr)
 AC_CHECK_LIB(dl, dlopen, [
     LIBS="-ldl $LIBS"
     LIBDL="-ldl"
-    AC_DEFINE(HAVE_LIBDL, 1)
+    AC_DEFINE(HAVE_LIBDL, 1, [Define if you have the dl library (-ldl).])
     AC_SUBST(LIBDL)
 ])
 
@@ -282,9 +372,27 @@ AC_CHECK_FUNCS(dlopen dlsym)
 
 dnl Checks the flavor of gethostbyaddr* functions.
 AC_CACHE_CHECK(flavor of gethostbyaddr, ac_cv_flavor_gethostbyaddr,
-[AC_TRY_RUN(
+[ac_cv_flavor_gethostbyaddr=unknown
+AC_TRY_RUN(
 [
 #include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type) {
+    return NULL;
+}
+int main() {
+    (void)gethostbyaddr(NULL, 0, 0);
+    return 0;
+}
+], ac_cv_flavor_gethostbyaddr=glibc2_2,,
+   ac_cv_flavor_gethostbyaddr=unknown)
+AC_TRY_RUN(
+[
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
 struct hostent *gethostbyaddr(const char *addr, size_t len, int type) {
     return NULL;
@@ -293,15 +401,169 @@ int main() {
     (void)gethostbyaddr(NULL, 0, 0);
     return 0;
 }
-],
-  ac_cv_flavor_gethostbyaddr=standard,
-  ac_cv_flavor_gethostbyaddr=traditional,
-  ac_cv_flavor_gethostbyaddr=traditional)])
-if test "$ac_cv_flavor_gethostbyaddr" = "standard"; then
-    AC_DEFINE(GHBA_ADDRLEN_T, size_t)
-else
-    AC_DEFINE(GHBA_ADDRLEN_T, int)
+], ac_cv_flavor_gethostbyaddr=glibc,,
+   ac_cv_flavor_gethostbyaddr=unknown)
+AC_TRY_RUN(
+[
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+struct hostent *gethostbyaddr(const char *addr, int len, int type) {
+    return NULL;
+}
+int main() {
+    (void)gethostbyaddr(NULL, 0, 0);
+    return 0;
+}
+], ac_cv_flavor_gethostbyaddr=traditional,,
+   ac_cv_flavor_gethostbyaddr=unknown)
+if test "$ac_cv_func_gethostbyaddr" = no ; then
+    ac_cv_flavor_gethostbyaddr=none
+fi])
+
+case "$ac_cv_flavor_gethostbyaddr" in
+glibc2_2)
+    ac_cv_type_ghba_addr_t='const void *'
+    ac_cv_type_ghba_addrlen_t='socklen_t'
+    ;;
+glibc)
+    ac_cv_type_ghba_addr_t='const char *'
+    ac_cv_type_ghba_addrlen_t='size_t'
+    ;;
+traditional | none)
+    ac_cv_type_ghba_addr_t='const char *'
+    ac_cv_type_ghba_addrlen_t='int'
+    ;;
+*)
+    AC_MSG_WARN([runmdn command will not be built.])
+    ;;
+esac
+AC_DEFINE_UNQUOTED(GHBA_ADDR_T, $ac_cv_type_ghba_addr_t,
+    [Define as the type of the 1st argument of gethostbyaddr.])
+AC_DEFINE_UNQUOTED(GHBA_ADDRLEN_T, $ac_cv_type_ghba_addrlen_t,
+    [Define as the type of the 2nd argument of gethostbyaddr.])
+
+dnl Checks the flavor of getnameinfo functions.
+AC_CACHE_CHECK(flavor of getnameinfo, ac_cv_flavor_getnameinfo,
+[ac_cv_flavor_getnameinfo=unknown
+AC_TRY_RUN(
+[
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
+                socklen_t hostlen, char *serv, socklen_t servlen,
+                unsigned int flags) {
+    return NULL;
+}
+int main() {
+    (void)getnameinfo(NULL, 0, NULL, 0, NULL, 0, 0);
+    return 0;
+}
+], ac_cv_flavor_getnameinfo=glibc2_2_2,,
+   ac_cv_flavor_getnameinfo=unknown)
+AC_TRY_RUN(
+[
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
+                socklen_t hostlen, char *serv, socklen_t servlen, int flags) {
+    return NULL;
+}
+int main() {
+    (void)getnameinfo(NULL, 0, NULL, 0, NULL, 0, 0);
+    return 0;
+}
+], ac_cv_flavor_getnameinfo=rfc2553bis_03,,
+   ac_cv_flavor_getnameinfo=unknown)
+AC_TRY_RUN(
+[
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
+                size_t hostlen, char *serv, size_t servlen, int flags) {
+    return NULL;
+}
+int main() {
+    (void)getnameinfo(NULL, 0, NULL, 0, NULL, 0, 0);
+    return 0;
+}
+], ac_cv_flavor_getnameinfo=rfc2553,,
+   ac_cv_flavor_getnameinfo=unknown)
+AC_TRY_RUN(
+[
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
+                size_t hostlen, char *serv, size_t servlen, int flags) {
+    return NULL;
+}
+int main() {
+    (void)getnameinfo(NULL, 0, NULL, 0, NULL, 0, 0);
+    return 0;
+}
+], ac_cv_flavor_getnameinfo=rfc2133,,
+   ac_cv_flavor_getnameinfo=unknown)
+if test "$ac_cv_func_getnameinfo" = no ; then
+    ac_cv_flavor_getnameinfo=none
+fi])
+
+case "$ac_cv_flavor_getnameinfo" in
+glibc2_2_2)
+    ac_cv_type_gni_salen_t='socklen_t'
+    ac_cv_type_gni_hostlen_t='socklen_t'
+    ac_cv_type_gni_servlen_t='socklen_t'
+    ac_cv_type_gni_flags_t='unsigned int'
+    ;;
+rfc2553bis_03)
+    ac_cv_type_gni_salen_t='socklen_t'
+    ac_cv_type_gni_hostlen_t='socklen_t'
+    ac_cv_type_gni_servlen_t='socklen_t'
+    ac_cv_type_gni_flags_t='int'
+    ;;
+rfc2553)
+    ac_cv_type_gni_salen_t='socklen_t'
+    ac_cv_type_gni_hostlen_t='size_t'
+    ac_cv_type_gni_servlen_t='size_t'
+    ac_cv_type_gni_flags_t='int'
+    ;;
+rfc2133 | none)
+    ac_cv_type_gni_salen_t='size_t'
+    ac_cv_type_gni_hostlen_t='size_t'
+    ac_cv_type_gni_servlen_t='size_t'
+    ac_cv_type_gni_flags_t='int'
+    ;;
+*)
+    AC_MSG_WARN([runmdn command will not be built.])
+    ;;
+esac
+AC_SUBST(RUNMDN_SUBDIR)
+AC_DEFINE_UNQUOTED(GNI_SALEN_T, $ac_cv_type_gni_salen_t,
+    [Define as the type of the 2nd argument of getnameinfo.])
+AC_DEFINE_UNQUOTED(GNI_HOSTLEN_T, $ac_cv_type_gni_hostlen_t,
+    [Define as the type of the 4th argument of getnameinfo.])
+AC_DEFINE_UNQUOTED(GNI_SERVLEN_T, $ac_cv_type_gni_servlen_t,
+    [Define as the type of the 6th argument of getnameinfo.])
+AC_DEFINE_UNQUOTED(GNI_FLAGS_T, $ac_cv_type_gni_flags_t,
+    [Define as the type of the 7th argument of getnameinfo.])
+
+dnl Check whether building runmdn or not.
+RUNMDN_SUBDIR=runmdn
+if test "$ac_cv_flavor_gethostbyaddr" = unknown ; then
+    RUNMDN_SUBDIR=
 fi
+if test "$ac_cv_flavor_getnameinfo" = unknown ; then
+    RUNMDN_SUBDIR=
+fi
+AC_SUBST(RUNMDN_SUBDIR)
 
 dnl Checks the flavor of gethost*_r functions.
 if test "$find_gethost_r" = yes; then
@@ -309,8 +571,11 @@ if test "$find_gethost_r" = yes; then
     [AC_TRY_RUN(
 changequote(<<, >>)dnl
 <<
-#include <stdio.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
+#include <stdio.h>
 int main()
 {
     int err = 0;
@@ -329,7 +594,8 @@ changequote([, ])dnl
 	ac_cv_flavor_gethost_r=sun,
 	ac_cv_flavor_gethost_r=sun)])
     if test "$ac_cv_flavor_gethost_r" = "glibc"; then
-	AC_DEFINE(GETHOST_R_GLIBC_FLAVOR)
+	AC_DEFINE(GETHOST_R_GLIBC_FLAVOR, 1,
+	    [Define if the prototype of gethost*_r is glibc flavor.])
     fi
 fi
 
@@ -339,7 +605,9 @@ AC_FIND_SYSTEM_SHOBJ(libnsl)
 
 dnl Checks for iconv library.
 AC_MSG_CHECKING(for iconv)
+saved_CPPFLAGS=$CPPFLAGS
 saved_LIBS=$LIBS
+CPPFLAGS="$CPPFLAGS $ICONVINC"
 LIBS="$LIBS $ICONVLIB"
 AC_TRY_LINK([
 #include <iconv.h>
@@ -348,10 +616,46 @@ AC_TRY_LINK([
     i = iconv_open("ISO-8859-1", "UTF-8");
 ], [iconv_try_link=yes], [iconv_try_link=no])
 LIBS=$saved_LIBS
+CPPFLAGS=$saved_CPPFLAGS
 AC_MSG_RESULT($iconv_try_link)
 if test "$iconv_try_link" = no ; then
     AC_MSG_ERROR(iconv function not available)
 fi
+
+dnl Check for codeset name for UTF-8.
+AC_MSG_CHECKING([for codeset name $utf8name])
+saved_CPPFLAGS=$CPPFLAGS
+saved_LIBS=$LIBS
+CPPFLAGS="$CPPFLAGS $ICONVINC"
+LIBS="$LIBS $ICONVLIB"
+AC_TRY_RUN([
+#include <stddef.h>
+#include <stdlib.h>
+#include <iconv.h>
+#define UTF8_NAME "$utf8name"
+#define ICONV_FAIL ((iconv_t)(-1))
+/* Check if the codeset name UTF8_NAME is valid by performing iconv_open(). */
+int main() {
+    int i;
+    /* list of codeset names likely to exist */
+    static char *codeset[] = {
+	"ASCII", "ISO-8859-1", "ISO8859-1", "iso8859_1", "8859-1",
+	"Shift_JIS", "SJIS", "sjis", NULL,
+    };
+
+    /* First try null conversion. */
+    if (iconv_open(UTF8_NAME, UTF8_NAME) != ICONV_FAIL) return 0;
+
+    /* Unfortunately, above check fails on certain systems, such as Solaris. */
+    for (i = 0; codeset[i] != NULL; i++) {
+	if (iconv_open(UTF8_NAME, codeset[i]) != ICONV_FAIL) return 0;
+    }
+    return 1;
+}
+], utf8_name_valid=yes, utf8_name_valid=no, utf8_name_valid=unknown)
+LIBS=$saved_LIBS
+CPPFLAGS=$saved_CPPFLAGS
+AC_MSG_RESULT($utf8_name_valid)
 
 dnl Output.
 AC_CONFIG_HEADER(include/config.h)
@@ -368,3 +672,21 @@ AC_OUTPUT(
 	tools/runmdn/runmdn
 	map/Makefile
 )
+AC_OUTPUT_COMMANDS([
+if test "$ac_cv_flavor_gethostbyaddr" = unknown ; then
+    echo 
+    echo "NOTICE: runmdn command will not be built, since parameter type"
+    echo "        list of gethostbyaddr() is unknown to configure."
+fi
+if test "$ac_cv_flavor_getnameinfo" = unknown ; then
+    echo 
+    echo "NOTICE: runmdn command will not be built, since parameter type"
+    echo "        list of getnameinfo() is unknown to configure."
+fi
+if test "$utf8_name_valid" = no ; then
+    echo
+    echo "WARNING: It seems that iconv does not accept codeset name $utf8name,"
+    echo "         which is supposed to refer to UTF-8 encoding."
+    echo "         Please make sure it is indeed correct."
+fi
+])

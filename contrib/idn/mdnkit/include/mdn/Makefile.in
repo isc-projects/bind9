@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.21 2001/04/16 06:20:25 m-kasahr Exp $
+# $Id: Makefile.in,v 1.1 2002/01/02 02:46:26 marka Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -7,8 +7,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is permitted
@@ -76,6 +76,9 @@ HDRS = \
 	amcacem.h \
 	amcaceo.h \
 	amcacer.h \
+	amcacev.h \
+	amcacew.h \
+	amcacez.h \
 	api.h \
 	assert.h \
 	brace.h \
@@ -91,6 +94,7 @@ HDRS = \
 	localencoding.h \
 	log.h \
 	logmacro.h \
+	mace.h \
 	mapper.h \
 	mapselector.h \
 	msgheader.h \

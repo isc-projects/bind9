@@ -1,9 +1,10 @@
 #ifndef lint
-static char *rcsid = "$Id: unormalize.c,v 1.14 2000/10/13 05:34:48 ishisone Exp $";
+static char *rcsid = "$Id: unormalize.c,v 1.1 2002/01/02 02:46:50 marka Exp $";
 #endif
 
 /*
- * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+ * Copyright (c) 2000,2001 Japan Network Information Center.
+ * All rights reserved.
  *  
  * By using this file, you agree to the terms and conditions set forth bellow.
  * 
@@ -11,8 +12,8 @@ static char *rcsid = "$Id: unormalize.c,v 1.14 2000/10/13 05:34:48 ishisone Exp 
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -65,9 +66,6 @@ static char *rcsid = "$Id: unormalize.c,v 1.14 2000/10/13 05:34:48 ishisone Exp 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef DEBUG_HASHSTAT
-#include <stdio.h>
-#endif
 
 #include <mdn/result.h>
 #include <mdn/assert.h>
@@ -85,6 +83,7 @@ static char *rcsid = "$Id: unormalize.c,v 1.14 2000/10/13 05:34:48 ishisone Exp 
 #define WORKBUF_SIZE_MAX	10000
 
 typedef struct {
+	mdn__unicode_version_t version; /* Unicode version */
 	int cur;		/* pointing now processing character */
 	int last;		/* pointing just after the last character */
 	int size;		/* size of UCS and CLASS array */
@@ -94,7 +93,8 @@ typedef struct {
 	int class_buf[WORKBUF_SIZE];		/* ditto */
 } workbuf_t;
 
-static mdn_result_t	normalize(int do_composition, int compat,
+static mdn_result_t	normalize(mdn__unicode_version_t version,
+				  int do_composition, int compat,
 				  const char *from, char *to, size_t tolen);
 static mdn_result_t	decompose(workbuf_t *wb, unsigned long c, int compat);
 static void		get_class(workbuf_t *wb);
@@ -111,39 +111,47 @@ static void		workbuf_removevoid(workbuf_t *wb);
 
 
 mdn_result_t
-mdn__unormalize_formc(const char *from, char *to, size_t tolen) {
-	assert(from != NULL && to != NULL && tolen >= 0);
+mdn__unormalize_formc(mdn__unicode_version_t version,
+		      const char *from, char *to, size_t tolen)
+{
+	assert(version != NULL && from != NULL && to != NULL && tolen >= 0);
 	TRACE(("mdn__unormalize_formc(from=\"%s\", tolen=%d)\n",
-	      mdn_debug_xstring(from, 20), tolen));
-	return (normalize(1, 0, from, to, tolen));
+	       mdn_debug_xstring(from, 20), tolen));
+	return (normalize(version, 1, 0, from, to, tolen));
 }
 
 mdn_result_t
-mdn__unormalize_formd(const char *from, char *to, size_t tolen) {
-	assert(from != NULL && to != NULL && tolen >= 0);
+mdn__unormalize_formd(mdn__unicode_version_t version,
+		      const char *from, char *to, size_t tolen)
+{
+	assert(version != NULL && from != NULL && to != NULL && tolen >= 0);
 	TRACE(("mdn__unormalize_formd(from=\"%s\", tolen=%d)\n",
-	      mdn_debug_xstring(from, 20), tolen));
-	return (normalize(0, 0, from, to, tolen));
+	       mdn_debug_xstring(from, 20), tolen));
+	return (normalize(version, 0, 0, from, to, tolen));
 }
 
 mdn_result_t
-mdn__unormalize_formkc(const char *from, char *to, size_t tolen) {
-	assert(from != NULL && to != NULL && tolen >= 0);
+mdn__unormalize_formkc(mdn__unicode_version_t version,
+		       const char *from, char *to, size_t tolen)
+{
+	assert(version != NULL && from != NULL && to != NULL && tolen >= 0);
 	TRACE(("mdn__unormalize_formkc(from=\"%s\", tolen=%d)\n",
-	      mdn_debug_xstring(from, 20), tolen));
-	return (normalize(1, 1, from, to, tolen));
+	       mdn_debug_xstring(from, 20), tolen));
+	return (normalize(version, 1, 1, from, to, tolen));
 }
 
 mdn_result_t
-mdn__unormalize_formkd(const char *from, char *to, size_t tolen) {
-	assert(from != NULL && to != NULL && tolen >= 0);
+mdn__unormalize_formkd(mdn__unicode_version_t version,
+		       const char *from, char *to, size_t tolen)
+{
+	assert(version != NULL && from != NULL && to != NULL && tolen >= 0);
 	TRACE(("mdn__unormalize_formkd(from=\"%s\", tolen=%d)\n",
-	      mdn_debug_xstring(from, 20), tolen));
-	return (normalize(0, 1, from, to, tolen));
+	       mdn_debug_xstring(from, 20), tolen));
+	return (normalize(version, 0, 1, from, to, tolen));
 }
 
 static mdn_result_t
-normalize(int do_composition, int compat,
+normalize(mdn__unicode_version_t version, int do_composition, int compat,
 	  const char *from, char *to, size_t tolen)
 {
 	workbuf_t wb;
@@ -154,6 +162,7 @@ normalize(int do_composition, int compat,
 	 * Initialize working buffer.
 	 */
 	workbuf_init(&wb);
+	wb.version = version;
 
 	while (fromlen > 0) {
 		unsigned long c;
@@ -254,9 +263,8 @@ decompose(workbuf_t *wb, unsigned long c, int compat) {
 	int dec_len;
 
 again:
-	r = mdn__unicode_decompose(compat, wb->ucs + wb->last,
-				   wb->size - wb->last,
-				   c, &dec_len);
+	r = mdn__unicode_decompose(wb->version, compat, wb->ucs + wb->last,
+				   wb->size - wb->last, c, &dec_len);
 	switch (r) {
 	case mdn_success:
 		wb->last += dec_len;
@@ -283,7 +291,8 @@ get_class(workbuf_t *wb) {
 	int i;
 
 	for (i = wb->cur; i < wb->last; i++)
-		wb->class[i] = mdn__unicode_canonicalclass(wb->ucs[i]);
+		wb->class[i] = mdn__unicode_canonicalclass(wb->version,
+							   wb->ucs[i]);
 }
 
 static void
@@ -315,18 +324,20 @@ compose(workbuf_t *wb) {
 	int last_class;
 	int nvoids;
 	int i;
+	mdn__unicode_version_t ver;
 
 	assert(wb != NULL && wb->class[0] == 0);
 
 	cur = wb->cur;
 	ucs = wb->ucs;
 	class = wb->class;
+	ver = wb->version;
 
 	/*
 	 * If there are no decomposition sequence that begins with
 	 * the top character, composition is impossible.
 	 */
-	if (!mdn__unicode_iscompositecandidate(ucs[0]))
+	if (!mdn__unicode_iscompositecandidate(ver, ucs[0]))
 		return;
 
 	last_class = 0;
@@ -336,12 +347,13 @@ compose(workbuf_t *wb) {
 		int cl = class[i];
 
 		if ((last_class < cl || cl == 0) &&
-		    mdn__unicode_compose(ucs[0], ucs[i], &c) == mdn_success) {
+		    mdn__unicode_compose(ver, ucs[0], ucs[i],
+					 &c) == mdn_success) {
 			/*
 			 * Replace the top character with the composed one.
 			 */
 			ucs[0] = c;
-			class[0] = mdn__unicode_canonicalclass(c);
+			class[0] = mdn__unicode_canonicalclass(ver, c);
 
 			class[i] = -1;	/* void this character */
 			nvoids++;

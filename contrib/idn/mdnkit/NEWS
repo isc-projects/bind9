@@ -1,13 +1,70 @@
-; $Id: NEWS,v 1.22 2001/06/01 01:20:39 ishisone Exp $
+; $Id: NEWS,v 1.1 2002/01/02 02:46:20 marka Exp $
+
+Major changes in version 2.2.3:
+
+* BIND-9 patch for BIND-9.2.0 is available.
+
+* NAMEPREP draft -06 is supported.
+
+* Problems on Tru64 are fixed.
+
+Major changes in version 2.2.2:
+
+* Now runmdn can work on NetBSD-1.5 or later.
+
+Major changes in version 2.2.1:
+
+* Fix a bug that the MDN library misses prohibited characters.
+
+Major changes in version 2.2:
+
+* Alternate encoding is no longer supported. 
+  mDNkit now follows IDNA-03 which says in the section 2.1.2 that An
+  IDNA-aware application MUST NOT do any preparation or conversion to
+  ACE on any non-internationalized name part.  `alternate-encoding'
+  entry in configuration file is simply ignored.
+
+* The MDN library (libmdn) performs NAMEPREP check at decoding an ACE
+  name.  If the name is not NAMEPREPed, libmdn returns a name with ACE
+  encoding instead of local encoding.
+
+* Supported ACEs are now AMC-ACE-Z, RACE and DUDE only.
+  Since the IDN working group has chosen AMC-ACE-Z, most of other ACEs
+  are no longer supported by default.  If you wanted to use those
+  ACEs, specify `--enable-extra-ace' option of configure.
+
+* mdnsproxy can output log messages to standard error.
+
+* mdnsproxy adds date and time string to a message logged to a regular
+  file.
+
+* `--with-iconv-include', `--with-libiconv' and `--enable-debug'
+  options are added to `configure'.
+
+* `--with-libiconv' option is also added to `configure' in BIND-9 patch.
+
+* A build problem on Linux with glibc-2.2 is fixed.
+
+* The base version of BIND-9 patch is now 9.1.3.
+
+* Supported NAMEPREP drafts are -03 and -05.
+  -02 and -04 are not supported.
+
+* `-e' option is added to runmdn to set local encoding.
+
+* `dig', `host' and `nslookup' of BIND-9 with MDN support patch
+  recognize the MDN_DISABLE environment variable.  Those commands turn
+  off MDN support if the variable is defined.
 
 Major changes in version 2.1:
 
 * BIND-9 patch is back.  The patch adds encoding conversion and
   NAMEPREP capability to `dig', `host' and `nslookup'.
-  Since version 2 adopts IDNA, in which all the MDN processing are
-  performed in the application layer before calling the resolver
-  layer, patch to the BIND-9's light-weight resolver found in version
-  1.x are removed.
+  Since mDNkit version 2 adopts IDNA, in which all the MDN processing
+  are performed in the application layer before calling the resolver
+  layer, the patch no longer contains modification of the light-weight
+  resolver or `allow-utf8' extension of `named' configuration syntax
+  found in mDNkit version 1.x.
 
 * Runmdn is back.  The strategy for making resolver MDN-aware has been
   changed from replacing low-level resolver functions to wrapping

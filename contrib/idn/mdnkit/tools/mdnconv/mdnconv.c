@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: mdnconv.c,v 1.32 2001/05/18 04:16:28 ishisone Exp $";
+static char *rcsid = "$Id: mdnconv.c,v 1.1 2002/01/02 02:47:02 marka Exp $";
 #endif
 
 /*
@@ -12,8 +12,8 @@ static char *rcsid = "$Id: mdnconv.c,v 1.32 2001/05/18 04:16:28 ishisone Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -256,7 +256,7 @@ main(int ac, char **av) {
 	/* Create resource context. */
 	resconf = NULL;
 	if ((r = mdn_resconf_create(&resconf)) != mdn_success) {
-		errormsg("error initilizing configuration parameters\n");
+		errormsg("error initializing configuration parameters\n");
 		return (1);
 	}
 
@@ -278,13 +278,21 @@ main(int ac, char **av) {
 	if (flags & FLAG_REVERSE) {
 		if (in_code != NULL)
 			set_idncode(resconf, in_code);
+		else
+			check_defaultidncode(resconf, "-in");
 		if (out_code != NULL)
 			set_localcode(resconf, out_code);
+		else
+			check_defaultlocalcode(resconf, "-out");
 	} else {
 		if (in_code != NULL)
 			set_localcode(resconf, in_code);
+		else
+			check_defaultlocalcode(resconf, "-in");
 		if (out_code != NULL)
 			set_idncode(resconf, out_code);
+		else
+			check_defaultidncode(resconf, "-out");
 	}
 
 	/* Set delimiter map(s). */
@@ -355,7 +363,19 @@ convert_file(mdn_resconf_t conf, FILE *fp, int flags) {
 		mdn_converter_destroy(conv);
 
 	if (flags & FLAG_REVERSE) {
-		strcpy(insn1, "i");
+		char *insnp = insn1;
+
+		*insnp++ = 'i';
+		if (flags & FLAG_NAMEPREP) {
+			*insnp++ = '!';
+			*insnp++ = 'N';
+		}
+		if (flags & FLAG_UNASSIGNCHECK) {
+			*insnp++ = '!';
+			*insnp++ = 'u';
+		}
+		*insnp = '\0';
+
 		strcpy(insn2, "L");
 	} else {
 		char *insnp = insn2;
@@ -392,7 +412,7 @@ convert_file(mdn_resconf_t conf, FILE *fp, int flags) {
 		/*
 		 * Convert input line to UTF-8.
 		 */
-		if (ace_hack) {
+		if (ace_hack && (flags & FLAG_SELECTIVE)) {
 			/*
 			 * Selectively decode those portions.
 			 */
@@ -418,7 +438,7 @@ convert_file(mdn_resconf_t conf, FILE *fp, int flags) {
 		 * Perform local mapping and NAMEPREP, and convert to
 		 * the output codeset.
 		 */
-		if (flags & FLAG_SELECTIVE) {
+		if (!(flags & FLAG_REVERSE) && (flags & FLAG_SELECTIVE)) {
 			r = selective_encode(conf, insn2, line2, line1,
 					     sizeof(line1));
 		} else {
