@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gabn.c,v 1.25.4.1 2001/01/09 22:52:27 bwelling Exp $ */
+/* $Id: lwres_gabn.c,v 1.25.4.2 2001/05/29 23:02:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -287,6 +287,8 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	gabn->naliases = naliases;
 	gabn->naddrs = naddrs;
 
+	LWRES_LIST_INIT(addrlist);
+
 	if (naliases > 0) {
 		gabn->aliases = CTXMALLOC(sizeof(char *) * naliases);
 		if (gabn->aliases == NULL) {
@@ -301,7 +303,6 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		}
 	}
 
-	LWRES_LIST_INIT(addrlist);
 	for (x = 0 ; x < naddrs ; x++) {
 		addr = CTXMALLOC(sizeof(lwres_addr_t));
 		if (addr == NULL) {
