@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.158 2002/01/21 01:07:16 marka Exp $ */
+/* $Id: rdata.c,v 1.159 2002/02/11 22:30:28 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -193,11 +193,19 @@ getquad(const void *src, struct in_addr *dst,
 	result = inet_aton(src, dst);
 	if (result == 1 && callbacks != NULL &&
 	    inet_pton(AF_INET, src, &tmp) != 1) {
-		(*callbacks->warn)(callbacks, "%s:%lu: warning \"%s\" "
-			           "is not a decimal dotted quad",
-				   isc_lex_getsourcename(lexer),
-				   isc_lex_getsourceline(lexer),
-				   src);
+		void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
+		const char *name;
+
+		if (callbacks != NULL && callbacks->warn != NULL)
+			callback = callbacks->warn;
+		else
+			callback = default_fromtext_callback;
+		name = isc_lex_getsourcename(lexer);
+		if (name == NULL)
+			name = "UNKNOWN";
+		(*callback)(callbacks, "%s:%lu: warning \"%s\" "
+			    "is not a decimal dotted quad", name,
+			    isc_lex_getsourceline(lexer), src);
 	}
 	return (result);
 }
@@ -681,12 +689,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	st = *target;
 
-	if (callbacks == NULL)
-		callback = NULL;
-	else
+	if (callbacks != NULL && callbacks->error != NULL)
 		callback = callbacks->error;
-
-	if (callback == NULL)
+	else
 		callback = default_fromtext_callback;
 
 	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
@@ -1939,11 +1944,18 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
 
 static void
 fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
-	if (isc_lex_isfile(lexer) && callbacks != NULL)
-		(*callbacks->warn)(callbacks,
-				   "%s:%lu: file does not end with newline",
-				    isc_lex_getsourcename(lexer),
-				    isc_lex_getsourceline(lexer));
+	if (isc_lex_isfile(lexer) && callbacks != NULL) {
+		void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
+
+		if (callbacks->warn != NULL)
+			callback = callbacks->warn;
+		else
+			callback = default_fromtext_callback;
+		(*callback)(callbacks,
+			    "%s:%lu: file does not end with newline",
+			    isc_lex_getsourcename(lexer),
+			    isc_lex_getsourceline(lexer));
+	}
 }
 
 static void
