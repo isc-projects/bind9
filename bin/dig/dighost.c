@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.87 2000/07/14 17:57:25 mws Exp $ */
+/* $Id: dighost.c,v 1.88 2000/07/14 20:14:36 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -109,6 +109,7 @@ extern isc_boolean_t isc_mem_debugging;
 isc_boolean_t debugging = ISC_FALSE;
 char *progname = NULL;
 isc_mutex_t lookup_lock;
+dig_lookup_t *current_lookup = NULL;
 
 /*
  * Apply and clear locks at the event level in global task.
@@ -765,6 +766,7 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	 * At this point, we know there are no queries on the lookup,
 	 * so can make it go away also.
 	 */
+	debug("cleared");
 	s = ISC_LIST_HEAD(lookup->my_server_list);
 	while (s != NULL) {
 		debug("freeing server %p belonging to %p",
@@ -783,13 +785,10 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	}
 	if (lookup->timer != NULL)
 		isc_timer_detach(&lookup->timer);
-	INSIST(lookup->sendspace != NULL);
-	isc_mempool_put(commctx, lookup->sendspace);
+	if (lookup->sendspace != NULL) 
+		isc_mempool_put(commctx, lookup->sendspace);
 	
-	ptr = lookup;
-	lookup = ISC_LIST_NEXT(lookup, link);
-	ISC_LIST_DEQUEUE(lookup_list, (dig_lookup_t *)ptr, link);
-	isc_mem_free(mctx, ptr);
+	isc_mem_free(mctx, lookup);
 	return (ISC_TRUE);
 }	
 	
@@ -799,15 +798,27 @@ try_clear_lookup(dig_lookup_t *lookup) {
  * This assumes that the lookup on the head of the queue hasn't been
  * started yet.
  */
-static void
-begin_next_lookup(void) {
+void
+start_lookup(void) {
 	dig_lookup_t *next;
      
-	debug("begin_next_lookup()");
+	debug("start_lookup()");
 	if (cancel_now)
 		return;
+
+	/*
+	 * If there's a current lookup running, we really shouldn't get
+	 * here.
+	 */
+	INSIST(current_lookup == NULL);
+
 	next = ISC_LIST_HEAD(lookup_list);
+	current_lookup = next;
+	/*
+	 * Put the current lookup somewhere so cancel_all can find it
+	 */
 	if (next != NULL) {
+		ISC_LIST_DEQUEUE(lookup_list, next, link);
 		setup_lookup(next);
 		do_lookup(next);
 	} else {
@@ -838,8 +849,10 @@ check_next_lookup(dig_lookup_t *lookup) {
 	}
 	if (still_working)
 		return;
-	if (try_clear_lookup(lookup))
-		begin_next_lookup();
+	if (try_clear_lookup(lookup)) {
+		current_lookup = NULL;
+		start_lookup();
+	}
 }
 
 static void
@@ -2242,21 +2255,6 @@ do_lookup(dig_lookup_t *lookup) {
 }
 
 void
-start_lookup(void) {
-	dig_lookup_t *lookup;
-
-	INSIST(!free_now);
-
-	debug("start_lookup()");
-
-	lookup = ISC_LIST_HEAD(lookup_list);
-	if (lookup != NULL) {
-		setup_lookup(lookup);
-		do_lookup(lookup);
-	}
-}
-
-void
 onrun_callback(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	isc_event_free(&event);
@@ -2270,7 +2268,7 @@ onrun_callback(isc_task_t *task, isc_event_t *event) {
  */
 void
 cancel_all(void) {
-	dig_lookup_t *l;
+	dig_lookup_t *l, *n;
 	dig_query_t *q;
 
 	debug("cancel_all()");
@@ -2281,21 +2279,26 @@ cancel_all(void) {
 		return;
 	}
 	cancel_now = ISC_TRUE;
-	l = ISC_LIST_HEAD(lookup_list);
-	while (l != NULL) {
-		if (l->timer != NULL)
-			isc_timer_detach(&l->timer);
-		q = ISC_LIST_HEAD(l->q);
+	if (current_lookup != NULL) {
+		if (current_lookup->timer != NULL)
+			isc_timer_detach(&current_lookup->timer);
+		q = ISC_LIST_HEAD(current_lookup->q);
 		while (q != NULL) {
 			debug("cancelling query %p, belonging to %p",
-			       q, l);
+			       q, current_lookup);
 			if (q->sock != NULL) {
 				isc_socket_cancel(q->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
 			}
 			q = ISC_LIST_NEXT(q, link);
 		}
-		l = ISC_LIST_NEXT(l, link);
+	}
+	l = ISC_LIST_HEAD(lookup_list);
+	while (l != NULL) {
+		n = ISC_LIST_NEXT(l, link);
+		ISC_LIST_DEQUEUE(lookup_list, l, link);
+		try_clear_lookup(l);
+		l = n;
 	}
 	UNLOCK_LOOKUP;
 }
@@ -2313,6 +2316,7 @@ xfree_lists(void) {
 	REQUIRE(sendcount == 0);
 
 	INSIST(ISC_LIST_HEAD(lookup_list) == NULL);
+	INSIST(current_lookup == NULL);
 	INSIST(!free_now);
 
 	free_now = ISC_TRUE;
