@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include <isc/mem.h>
+#include <isc/net.h>		/* Required for ntohl. */
 #include <isc/string.h>
 #include <isc/util.h>
 
