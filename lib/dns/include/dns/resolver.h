@@ -272,7 +272,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *	This call starts a query for 'name', type 'type'.
  *
  *	XXXRTH  Explain query domain and nameservers.
- *		'forwarders' is unimplmented, and subject to change when
+ *		'forwarders' is unimplemented, and subject to change when
  *		we figure out how selective forwarding will work.
  *
  *	When the fetch completes (successfully or otherwise), a 
