@@ -6,17 +6,13 @@ v6source
 rt4663		review		explorer
 rt4687		review		explorer
 rt4898		review		explorer
-rt4715		open		????
+rt4715		open		marka
 peter		private		peter		(hostname.bind for 9.2.x)
-rt4764		open		????
 ksk		open		marka
 openssl_stub	open		marka
-rt4687		open		????
-chroot		open		mark
-rt4398		open		????
-edns_size	open		????
-rt4347		open		????
-rt3445		open		????
+chroot		open		marka
+edns_size	open		marka
+rt4347		open		marka
 
 a6_remove	closed
 adb_race	closed		explorer
@@ -44,4 +40,5 @@ rt4319		closed		explorer
 rt4398		closed
 rt4425		closed
 rt4463		closed
+rt4764		closed
 rt4802		closed
