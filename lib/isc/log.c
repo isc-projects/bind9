@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.18 2000/03/01 20:38:58 gson Exp $ */
+/* $Id: log.c,v 1.19 2000/03/04 00:43:38 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -133,7 +133,9 @@ struct isc_log {
 	/* Not locked. */
 	unsigned int			magic;
 	isc_mem_t *			mctx;
+	isc_logcategory_t *		categories;
 	unsigned int			category_count;
+	isc_logmodule_t *		modules;
 	unsigned int			module_count;
 	int				debug_level;
 	isc_mutex_t			lock;
@@ -228,7 +230,9 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
 	if (lctx != NULL) {
 		lctx->mctx = mctx;
+		lctx->categories = NULL;
 		lctx->category_count = 0;
+		lctx->modules = NULL;
 		lctx->module_count = 0;
 		lctx->debug_level = 0;
 
@@ -420,7 +424,9 @@ isc_log_destroy(isc_log_t **lctxp) {
 
 	lctx->buffer[0] = '\0';
 	lctx->debug_level = 0;
+	lctx->categories = NULL;
 	lctx->category_count = 0;
+	lctx->modules = NULL;
 	lctx->module_count = 0;
 	lctx->mctx = NULL;
 	lctx->magic = 0;
@@ -485,41 +491,109 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 void
 isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]) {
 	isc_logcategory_t *catp;
-	unsigned int old_count, new_count;
 
 	REQUIRE(VALID_CONTEXT(lctx));
-	REQUIRE(categories != NULL);
-
-	old_count = lctx->category_count;
+	REQUIRE(categories != NULL && categories[0].name != NULL);
 
 	/*
-	 * Total the number of categories that will exist when these are added.
+	 * XXXDCL This somewhat sleazy situation of using the last pointer
+	 * in one category array to point to the next array exists because
+	 * this registration function returns void and I didn't want to have
+	 * change everything that used it by making it return an isc_result_t.
+	 * It would need to do that if it had to allocate memory to store
+	 * pointers to each array passed in.
+	 */
+	if (lctx->categories == NULL)
+		lctx->categories = categories;
+
+	else {
+		/*
+		 * Adjust the last (NULL) pointer of the already registered
+		 * categories to point to the incoming array.
+		 */
+		for (catp = lctx->categories; catp->name != NULL; catp++)
+			if (catp->id == UINT_MAX)
+				catp = (isc_logcategory_t *)catp->name;
+
+		catp->name = (void *)categories;
+		catp->id = UINT_MAX;
+	}
+
+	/*
 	 * Update the id number of the category with its new global id.
 	 */
-	for (new_count = old_count, catp = categories; catp->name != NULL; )
-		catp++->id = new_count++;
+	for (catp = categories; catp->name != NULL; catp++)
+		catp->id = lctx->category_count++;
+}
 
-	lctx->category_count = new_count;
+isc_logcategory_t *
+isc_log_categorybyname(isc_log_t *lctx, const char *name) {
+	isc_logcategory_t *catp;
+
+	REQUIRE(VALID_CONTEXT(lctx));
+
+	for (catp = lctx->categories; catp->name != NULL; catp++)
+		if (catp->id == UINT_MAX)
+			catp = (isc_logcategory_t *)catp->name;
+		else
+			if (strcmp(catp->name, name) == 0)
+				return catp;
+
+	return (NULL);
 }
 
 void
 isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]) {
 	isc_logmodule_t *modp;
-	unsigned int old_count, new_count;
 
 	REQUIRE(VALID_CONTEXT(lctx));
-	REQUIRE(modules != NULL);
-
-	old_count = lctx->module_count;
+	REQUIRE(modules != NULL && modules[0].name != NULL);
 
 	/*
-	 * Total the number of modules that will exist when these are added.
+	 * XXXDCL This somewhat sleazy situation of using the last pointer
+	 * in one category array to point to the next array exists because
+	 * this registration function returns void and I didn't want to have
+	 * change everything that used it by making it return an isc_result_t.
+	 * It would need to do that if it had to allocate memory to store
+	 * pointers to each array passed in.
+	 */
+	if (lctx->modules == NULL)
+		lctx->modules = modules;
+
+	else {
+		/*
+		 * Adjust the last (NULL) pointer of the already registered
+		 * modules to point to the incoming array.
+		 */
+		for (modp = lctx->modules; modp->name != NULL; modp++)
+			if (modp->id == UINT_MAX)
+				modp = (isc_logmodule_t *)modp->name;
+
+		modp->name = (void *)modules;
+		modp->id = UINT_MAX;
+	}
+
+	/*
 	 * Update the id number of the module with its new global id.
 	 */
-	for (new_count = old_count, modp = modules; modp->name != NULL; )
-		modp++->id = new_count++;
+	for (modp = modules; modp->name != NULL; modp++)
+		modp->id = lctx->module_count++;
+}
 
-	lctx->module_count = new_count;
+isc_logmodule_t *
+isc_log_modulebyname(isc_log_t *lctx, const char *name) {
+	isc_logmodule_t *modp;
+
+	REQUIRE(VALID_CONTEXT(lctx));
+
+	for (modp = lctx->modules; modp->name != NULL; modp++)
+		if (modp->id == UINT_MAX)
+			modp = (isc_logmodule_t *)modp->name;
+		else
+			if (strcmp(modp->name, name) == 0)
+				return modp;
+
+	return (NULL);
 }
 
 isc_result_t

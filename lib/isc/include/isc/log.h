@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.11 2000/03/01 21:30:49 tale Exp $ */
+/* $Id: log.h,v 1.12 2000/03/04 00:43:40 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -296,18 +296,32 @@ isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
  * Identify logging categories a library will use.
  *
  * Notes:
+ *	A category should only be registered once, but no mechanism enforces
+ *	this rule.
+ *
  *	The end of the categories array is identified by a NULL name.
  *
  *	Because the name is used by ISC_LOG_PRINTCATEGORY, it should not
  *	be altered or destroyed after isc_log_registercategories().
  *
+ *	Because each element of the categories array is used by
+ *	isc_log_categorybyname, it should not be altered or destroyed
+ *	after registration.
+ *
  *	The value of the id integer in each structure is overwritten
  *	by this function, and so id need not be initalized to any particular
  *	value prior to the function call.
  *
+ *	A subsequent call to isc_log_registercategories with the same
+ *	logging context (but new categories) will cause the last
+ *	element of the categories array from the prior call to have
+ *	its "name" member changed from NULL to point to the new
+ *	categories array, and its "id" member set to UINT_MAX.
+ *
  * Requires:
  *	lctx is a valid logging context.
  *	categories != NULL.
+ *	categories[0].name != NULL.
  *
  * Ensures:
  * 	There are references to each category in the logging context,
@@ -320,18 +334,32 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
  * Identify logging categories a library will use.
  *
  * Notes:
+ *	A module should only be registered once, but no mechanism enforces
+ *	this rule.
+ *
  *	The end of the modules array is identified by a NULL name.
  *
  *	Because the name is used by ISC_LOG_PRINTMODULE, it should not
  *	be altered or destroyed after isc_log_registermodules().
  *
+ *	Because each element of the modules array is used by
+ *	isc_log_modulebyname, it should not be altered or destroyed
+ *	after registration.
+ *
  *	The value of the id integer in each structure is overwritten
  *	by this function, and so id need not be initalized to any particular
  *	value prior to the function call.
  *
+ *	A subsequent call to isc_log_registermodules with the same
+ *	logging context (but new modules) will cause the last
+ *	element of the modules array from the prior call to have
+ *	its "name" member changed from NULL to point to the new
+ *	modules array, and its "id" member set to UINT_MAX.
+ *
  * Requires:
  *	lctx is a valid logging context.
  *	modules != NULL.
+ *	modules[0].name != NULL;
  *
  * Ensures:
  *	Each module has a reference in the logging context, so they can be
@@ -689,6 +717,34 @@ isc_log_closefilelogs(isc_log_t *lctx);
  * Ensures:
  *	The open files are closed and will be reopened when they are
  *	next needed.
+ */
+
+isc_logcategory_t *
+isc_log_categorybyname(isc_log_t *lctx, const char *name);
+/*
+ * Find a category by its name.
+ * 
+ * Notes:
+ *	The string name of a category is not required to be unique.
+ *
+ * Returns:
+ *	A pointer to the _first_ isc_logcategory_t structure used by "name".
+ *
+ *	NULL if no category exists by that name.
+ */
+
+isc_logmodule_t *
+isc_log_modulebyname(isc_log_t *lctx, const char *name);
+/*
+ * Find a module by its name.
+ * 
+ * Notes:
+ *	The string name of a module is not required to be unique.
+ *
+ * Returns:
+ *	A pointer to the _first_ isc_logmodule_t structure used by "name".
+ *
+ *	NULL if no module exists by that name.
  */
 
 ISC_LANG_ENDDECLS
