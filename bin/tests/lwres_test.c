@@ -155,17 +155,17 @@ test_noop(void)
 }
 
 static void
-test_gabn(void)
+test_gabn(char *target)
 {
 	lwres_gabnresponse_t *res;
 	int ret;
 	unsigned int i;
 
 	res = NULL;
-	ret = lwres_getaddrsbyname(ctx, "alias-05.test.flame.org.",
+	ret = lwres_getaddrsbyname(ctx, target,
 				   LWRES_ADDRTYPE_V4 | LWRES_ADDRTYPE_V6,
 				   &res);
-	printf("ret == %d\n", ret);
+	printf("gabn %s ret == %d\n", target, ret);
 	assert(ret == 0);
 	assert(res != NULL);
 
@@ -184,19 +184,19 @@ test_gabn(void)
 }
 
 static void
-test_gnba(void)
+test_gnba(char *target)
 {
 	lwres_gnbaresponse_t *res;
 	int ret;
 	unsigned int i;
 	struct in_addr in;
 
-	in.s_addr = inet_addr("198.133.199.1");
+	in.s_addr = inet_addr(target);
 
 	res = NULL;
 	ret = lwres_getnamebyaddr(ctx, LWRES_ADDRTYPE_V4, 4,
 				  (unsigned char *)&in.s_addr, &res);
-	printf("ret == %d\n", ret);
+	printf("gnba %s ret == %d\n", target, ret);
 	assert(ret == 0);
 	assert(res != NULL);
 
@@ -253,8 +253,10 @@ main(int argc, char *argv[])
 	CHECK(ret, "lwres_context_create");
 
 	test_noop();
-	test_gabn();
-	test_gnba();
+	test_gabn("notthereatall.flame.org.");
+	test_gabn("alias-05.test.flame.org.");
+	test_gabn("f.root-servers.net.");
+	test_gnba("198.133.199.1");
 
 	lwres_context_destroy(&ctx);
 

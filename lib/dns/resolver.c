@@ -1150,6 +1150,9 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 */
 		if (dns_name_issubdomain(&name, &fctx->domain))
 			options |= DNS_ADBFIND_STARTATROOT;
+		options |= DNS_ADBFIND_GLUEOK;
+		options |= DNS_ADBFIND_HINTOK;
+
 		/*
 		 * See what we know about this address.
 		 */

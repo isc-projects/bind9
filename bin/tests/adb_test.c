@@ -74,7 +74,6 @@ void free_client(client_t **);
 static inline void CLOCK(void);
 static inline void CUNLOCK(void);
 void lookup(char *);
-void insert(char *, char *, dns_ttl_t, isc_stdtime_t);
 
 static void
 check_result(isc_result_t result, char *format, ...)
@@ -217,35 +216,6 @@ create_view(void)
 	dns_view_freeze(view);
 }
 
-
-void
-insert(char *target, char *addr, dns_ttl_t ttl, isc_stdtime_t now)
-{
-	isc_sockaddr_t sockaddr;
-	struct in_addr ina;
-	dns_name_t name;
-	unsigned char namedata[256];
-	isc_buffer_t t, namebuf;
-	isc_result_t result;
-
-	INSIST(target != NULL);
-
-	isc_buffer_init(&t, target, strlen(target), ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&t, strlen(target));
-	isc_buffer_init(&namebuf, namedata, sizeof namedata,
-			ISC_BUFFERTYPE_BINARY);
-	dns_name_init(&name, NULL);
-	result = dns_name_fromtext(&name, &t, dns_rootname, ISC_FALSE,
-				   &namebuf);
-	check_result(result, "dns_name_fromtext %s", target);
-
-	ina.s_addr = inet_addr(addr);
-	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = _dns_adb_insert(adb, &name, &sockaddr, ttl, now);
-	check_result(result, "_dns_adb_insert %s -> %s", target, addr);
-	printf("Added %s -> %s\n", target, addr);
-}
-
 void
 lookup(char *target)
 {
@@ -275,6 +245,8 @@ lookup(char *target)
 	options |= DNS_ADBFIND_INET;
 	options |= DNS_ADBFIND_INET6;
 	options |= DNS_ADBFIND_WANTEVENT;
+	options |= DNS_ADBFIND_HINTOK;
+	options |= DNS_ADBFIND_GLUEOK;
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
 				    &client->name, dns_rootname, options,
 				    now, NULL, &client->find);
@@ -379,11 +351,11 @@ main(int argc, char **argv)
 	lookup("i.root-servers.net.");		/* Should be in hints */
 	CUNLOCK();
 
-	sleep(5);
+	sleep(10);
 
 	dns_adb_dump(adb, stderr);
 
-	sleep (5);
+	sleep(10);
 
 	CLOCK();
 	lookup("f.root-servers.net.");		/* Should be in hints */

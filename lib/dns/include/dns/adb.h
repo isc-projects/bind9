@@ -134,6 +134,34 @@ struct dns_adbfind {
 	ISC_LINK(dns_adbfind_t)		plink;
 };
 
+/*
+ * _INET:
+ * _INET6:
+ *	return addresses of that type.
+ *
+ * _EMPTYEVENT:
+ *	Only schedule an event if no addresses are known.
+ *	Must set _WANTEVENT for this to be meaningful.
+ *
+ * _WANTEVENT:
+ *	An event is desired.  Check this bit in the returned find to see
+ *	if one will actually be generated.
+ *
+ * _AVOIDFETCHES:
+ *
+ * _STARTATROOT:
+ *
+ * _GLUEOK:
+ * _HINTOK:
+ *	Glue or hints are ok.  These are used when matching names already
+ *	in the adb, and when dns databases are searched.
+ *
+ * _IGNORELAME:
+ *	Ignore lame servers in a find, so that all addresses are returned.
+ *
+ * _LAMEPRUNED:
+ *	At least one address was omitted from the list because it was lame.
+ */
 #define DNS_ADBFIND_INET		0x00000001
 #define DNS_ADBFIND_INET6		0x00000002
 #define DNS_ADBFIND_ADDRESSMASK		0x00000003
@@ -142,6 +170,10 @@ struct dns_adbfind {
 #define DNS_ADBFIND_WANTEVENT		0x00000008
 #define DNS_ADBFIND_AVOIDFETCHES	0x00000010
 #define DNS_ADBFIND_STARTATROOT		0x00000020
+#define DNS_ADBFIND_GLUEOK		0x00000040
+#define DNS_ADBFIND_HINTOK		0x00000080
+#define DNS_ADBFIND_IGNORELAME		0x00000100
+#define DNS_ADBFIND_LAMEPRUNED		0x00000200
 
 /* dns_adbaddrinfo_t
  *
@@ -323,50 +355,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *
  *	No internal reference to "name" exists after this function
  *	returns.
- */
-
-
-isc_result_t
-dns_adb_deletename(dns_adb_t *adb, dns_name_t *host);
-/*
- * Deletes the name and drops reference counts on all subordinate
- * addresses.
- *
- * Requires:
- *
- *	'adb' must be valid.
- *
- *	'host' contains the name of the host to be deleted.
- *
- * Returns:
- *
- *	ISC_R_SUCCESS	-- it's gone.
- *	ISC_R_NOTFOUND	-- the host is not in the database
- */
-
-isc_result_t
-_dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
-	       dns_ttl_t ttl, isc_stdtime_t now);
-/*
- * Insert a host name and address into the database.  A new (blank, no
- * badness) record is inserted.
- *
- * This function should be used with caution, since it may not exist
- * for more than testing purposes.
- *
- * Requires:
- *
- *	'adb' be valid.
- *
- *	'host' contain the name of the host to be inserted.
- *
- *	'addr' point to the address of the host to insert.
- *
- * Returns:
- *
- *	ISC_R_SUCCESS	-- all is well.
- *	ISC_R_NOMEMORY	-- no memory
- *	ISC_R_EXISTS	-- the <host, address> tuple exists already.
  */
 
 void

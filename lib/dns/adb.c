@@ -286,7 +286,7 @@ static inline dns_adbfetch6_t *new_adbfetch6(dns_adb_t *, dns_adbname_t *,
 					     dns_a6context_t *);
 static inline void free_adbfetch6(dns_adb_t *, dns_adbfetch6_t **);
 static inline dns_adbname_t *find_name_and_lock(dns_adb_t *, dns_name_t *,
-						int *);
+						unsigned int, int *);
 static inline dns_adbentry_t *find_entry_and_lock(dns_adb_t *,
 						  isc_sockaddr_t *, int *);
 static void dump_adb(dns_adb_t *, FILE *);
@@ -309,11 +309,10 @@ static void clean_finds_at_name(dns_adbname_t *, isc_eventtype_t,
 static void check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static void cancel_fetches_at_name(dns_adbname_t *);
 static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
-				isc_boolean_t, dns_rdatatype_t);
+				dns_rdatatype_t);
 static isc_result_t fetch_name_v4(dns_adbname_t *, isc_boolean_t);
 static isc_result_t fetch_name_aaaa(dns_adbname_t *);
-static isc_result_t fetch_name_a6(dns_adbname_t *, isc_boolean_t,
-				  isc_boolean_t);
+static isc_result_t fetch_name_a6(dns_adbname_t *, isc_boolean_t);
 static inline void check_exit(dns_adb_t *);
 static void timer_cleanup(isc_task_t *, isc_event_t *);
 static void destroy(dns_adb_t *);
@@ -325,7 +324,7 @@ static inline void link_entry(dns_adb_t *, int, dns_adbentry_t *);
 static inline void unlink_entry(dns_adb_t *, dns_adbentry_t *);
 static void kill_name(dns_adbname_t **, isc_eventtype_t);
 static void fetch_callback_a6(isc_task_t *, isc_event_t *);
-static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
+static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
@@ -337,8 +336,12 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 
 #define NAME_NEEDS_POKE		0x80000000
 #define NAME_IS_DEAD		0x40000000
+#define NAME_HINT_OK		DNS_ADBFIND_HINTOK
+#define NAME_GLUE_OK		DNS_ADBFIND_GLUEOK
 #define NAME_DEAD(n)		(((n)->flags & NAME_IS_DEAD) != 0)
 #define NAME_NEEDSPOKE(n)	(((n)->flags & NAME_NEEDS_POKE) != 0)
+#define NAME_HINTOK(n)		(((n)->flags & NAME_HINT_OK) != 0)
+#define NAME_GLUEOK(n)		(((n)->flags & NAME_GLUE_OK) != 0)
 
 /*
  * To the name, address classes are all that really exist.  If it has a
@@ -365,9 +368,7 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
  * Was this the initial fetch for the A6 record?  If so, we might want to
  * start AAAA queries if it fails.
  */
-#define FETCH_USE_HINTS		0x80000000
-#define FETCH_FIRST_A6		0x40000000
-#define FETCH_USEHINTS(f)	(((f)->flags & FETCH_USE_HINTS) != 0)
+#define FETCH_FIRST_A6		0x80000000
 #define FETCH_FIRSTA6(f)	(((f)->flags & FETCH_FIRST_A6) != 0)
 
 /*
@@ -379,8 +380,10 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 				 != 0)
 #define FIND_STARTATROOT(fn)	(((fn)->options & DNS_ADBFIND_STARTATROOT) \
 				 != 0)
+#define FIND_HINTOK(fn)		(((fn)->options & DNS_ADBFIND_HINTOK) != 0)
+#define FIND_GLUEOK(fn)		(((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
-
+#define FIND_IGNORELAME(fn)	(((fn)->options & DNS_ADBFIND_IGNORELAME) != 0)
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -390,6 +393,15 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 #define WANT_INET6(x)		(((x) & DNS_ADBFIND_INET6) != 0)
 
 #define EXPIRE_OK(exp, now)	((exp == INT_MAX) || (exp < now))
+
+/*
+ * Find out if the flags on a name (nf) indicate if it is a hint or
+ * glue, and compare this to the appropriate bits set in o, to see if
+ * this is ok.
+ */
+#define GLUE_OK(nf, o) (!NAME_GLUEOK(nf) || (((o) & DNS_ADBFIND_GLUEOK) != 0))
+#define HINT_OK(nf, o) (!NAME_HINTOK(nf) || (((o) & DNS_ADBFIND_HINTOK) != 0))
+#define GLUEHINT_OK(nf, o) (GLUE_OK(nf, o) || HINT_OK(nf, o))
 
 #define ENTER_LEVEL		50
 #define EXIT_LEVEL		ENTER_LEVEL
@@ -1724,7 +1736,8 @@ free_adbaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **ainfo)
  * DNS_ADB_INVALIDBUCKET.
  */
 static inline dns_adbname_t *
-find_name_and_lock(dns_adb_t *adb, dns_name_t *name, int *bucketp)
+find_name_and_lock(dns_adb_t *adb, dns_name_t *name,
+		   unsigned int options, int *bucketp)
 {
 	dns_adbname_t *adbname;
 	int bucket;
@@ -1743,7 +1756,8 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name, int *bucketp)
 	adbname = ISC_LIST_HEAD(adb->names[bucket]);
 	while (adbname != NULL) {
 		if (!NAME_DEAD(adbname)) {
-			if (dns_name_equal(name, &adbname->name))
+			if (dns_name_equal(name, &adbname->name)
+			    && GLUEHINT_OK(adbname, options))
 				return (adbname);
 		}
 		adbname = ISC_LIST_NEXT(adbname, plink);
@@ -1844,9 +1858,12 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *zone,
 		while (namehook != NULL) {
 			bucket = namehook->entry->lock_bucket;
 			LOCK(&adb->entrylocks[bucket]);
-			if (entry_is_bad_for_zone(adb, namehook->entry,
-						  zone, now))
+			if (!FIND_IGNORELAME(find)
+			    && entry_is_bad_for_zone(adb, namehook->entry,
+						     zone, now)) {
+				find->options |= DNS_ADBFIND_LAMEPRUNED;
 				goto nextv4;
+			}
 			addrinfo = new_adbaddrinfo(adb, namehook->entry);
 			if (addrinfo == NULL) {
 				find->partial_result |= DNS_ADBFIND_INET;
@@ -2372,7 +2389,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
 	int bucket;
-	isc_boolean_t use_hints, want_event, start_at_root, alias;
+	isc_boolean_t want_event, start_at_root, alias;
 	isc_result_t result;
 	unsigned int wanted_addresses;
 	unsigned int wanted_fetches;
@@ -2438,7 +2455,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * Try to see if we know anything about this name at all.
 	 */
 	bucket = DNS_ADB_INVALIDBUCKET;
-	adbname = find_name_and_lock(adb, name, &bucket);
+	adbname = find_name_and_lock(adb, name, find->options, &bucket);
 	if (adb->name_sd[bucket]) {
 		DP(DEF_LEVEL,
 		   "dns_adb_createfind: returning ISC_R_SHUTTINGDOWN");
@@ -2458,14 +2475,16 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			goto out;
 		}
 		link_name(adb, bucket, adbname);
+		if (FIND_HINTOK(find))
+			adbname->flags |= NAME_HINT_OK;
+		if (FIND_GLUEOK(find))
+			adbname->flags |= NAME_GLUE_OK;
 	}
 
 	/*
 	 * Expire old entries, etc.
 	 */
 	check_expire_namehooks(adbname, now);
-
-	use_hints = dns_name_equal(zone, dns_rootname);
 
 	/*
 	 * Do we know that the name is an alias?
@@ -2488,7 +2507,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (!NAME_HAS_V4(adbname) && !NAME_FETCH_V4(adbname)
 	    && EXPIRE_OK(adbname->expire_v4, now)
 	    && WANT_INET(wanted_addresses)) {
-		result = dbfind_name(adbname, now, use_hints, dns_rdatatype_a);
+		result = dbfind_name(adbname, now, dns_rdatatype_a);
 		if (result == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Found A for name %p in db",
@@ -2521,7 +2540,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (!NAME_HAS_V6(adbname) && !NAME_FETCH_V6(adbname)
 	    && EXPIRE_OK(adbname->expire_v6, now)
 	    && WANT_INET6(wanted_addresses)) {
-		result = dbfind_a6(adbname, now, use_hints);
+		result = dbfind_a6(adbname, now);
 		if (result == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Found A6 for name %p",
@@ -2567,8 +2586,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Start V4.
 		 */
 		if (WANT_INET(wanted_fetches) &&
-		    fetch_name_v4(adbname, start_at_root) ==
-		    ISC_R_SUCCESS) {
+		    fetch_name_v4(adbname, start_at_root) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Started A fetch for name %p",
 			   adbname);
@@ -2578,8 +2596,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Start V6.
 		 */
 		if (WANT_INET6(wanted_fetches) &&
-		    fetch_name_a6(adbname, use_hints, start_at_root) ==
-		    ISC_R_SUCCESS) {
+		    fetch_name_a6(adbname, start_at_root) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Started A6 fetch for name %p",
 			   adbname);
@@ -2665,182 +2682,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 	if (bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->namelocks[bucket]);
-
-	return (result);
-}
-
-isc_result_t
-dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
-{
-	int name_bucket;
-	dns_adbname_t *name;
-	isc_boolean_t want_check_exit = ISC_FALSE;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(host != NULL);
-
-	name = NULL;
-
-	/*
-	 * Find the name.
-	 */
-	name_bucket = DNS_ADB_INVALIDBUCKET;
-	name = find_name_and_lock(adb, host, &name_bucket);
-	if (name == NULL) {
-		UNLOCK(&adb->namelocks[name_bucket]);
-		return (ISC_R_NOTFOUND);
-	}
-
-	kill_name(&name, DNS_EVENT_ADBNAMEDELETED);
-
-	/*
-	 * If we're shutting down and this bucket is empty, we need to call
-	 * check_exit() to see if we're done.
-	 */
-	if (adb->name_sd[name_bucket] && adb->name_refcnt[name_bucket] == 0)
-		want_check_exit = ISC_TRUE;
-
-
-	if (name_bucket != DNS_ADB_INVALIDBUCKET)
-		UNLOCK(&adb->namelocks[name_bucket]);
-
-	if (want_check_exit) {
-		LOCK(&adb->lock);
-		check_exit(adb);
-		UNLOCK(&adb->lock);
-	}
-
-	return (DNS_R_SUCCESS);
-}
-
-/* XXXMLG needs v6 support */
-isc_result_t
-_dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
-		dns_ttl_t ttl, isc_stdtime_t now)
-{
-	dns_adbname_t *name;
-	isc_boolean_t free_name;
-	dns_adbentry_t *entry;
-	isc_boolean_t free_entry;
-	dns_adbnamehook_t *namehook;
-	isc_boolean_t free_namehook;
-	int name_bucket, addr_bucket; /* unlock if != DNS_ADB_INVALIDBUCKET */
-	isc_result_t result;
-	isc_stdtime_t expire_time;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(host != NULL);
-	REQUIRE(addr != NULL);
-
-	if (now == 0)
-		isc_stdtime_get(&now);
-
-	expire_time = now + ttl;
-
-	name = NULL;
-	free_name = ISC_FALSE;
-	entry = NULL;
-	free_entry = ISC_FALSE;
-	namehook = NULL;
-	free_namehook = ISC_FALSE;
-	result = ISC_R_UNEXPECTED;
-
-	/*
-	 * First, see if the host is already in the database.  If it is,
-	 * don't make a new host entry.  If not, copy the name and name's
-	 * contents into our structure and allocate what we'll need
-	 * to attach things together.
-	 */
-	name_bucket = DNS_ADB_INVALIDBUCKET;
-	name = find_name_and_lock(adb, host, &name_bucket);
-	if (name == NULL) {
-		name = new_adbname(adb, host);
-		if (name == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto out;
-		}
-		free_name = ISC_TRUE;
-		name->expire_v4 = ISC_MIN(expire_time, name->expire_v4);
-	}
-
-	/*
-	 * Now, while keeping the name locked, search for the address.
-	 * Three possibilities:  One, the address doesn't exist.
-	 * Two, the address exists, but we aren't linked to it.
-	 * Three, the address exists and we are linked to it.
-	 * (1) causes a new entry and namehook to be created.
-	 * (2) causes only a new namehook.
-	 * (3) is an error.
-	 */
-	addr_bucket = DNS_ADB_INVALIDBUCKET;
-	entry = find_entry_and_lock(adb, addr, &addr_bucket);
-	/*
-	 * Case (1):  new entry and namehook.
-	 */
-	if (entry == NULL) {
-		entry = new_adbentry(adb);
-		if (entry == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto out;
-		}
-		free_entry = ISC_TRUE;
-	}
-
-	/*
-	 * Case (3):  entry exists, we're linked.
-	 */
-	namehook = ISC_LIST_HEAD(name->v4);
-	while (namehook != NULL) {
-		if (namehook->entry == entry) {
-			result = ISC_R_EXISTS;
-			goto out;
-		}
-		namehook = ISC_LIST_NEXT(namehook, plink);
-	}
-
-	/*
-	 * Case (2):  New namehook, link to entry from above.
-	 */
-	namehook = new_adbnamehook(adb, entry);
-	if (namehook == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto out;
-	}
-	free_namehook = ISC_TRUE;
-	ISC_LIST_APPEND(name->v4, namehook, plink);
-
-	entry->lock_bucket = addr_bucket;
-	inc_entry_refcnt(adb, entry, ISC_FALSE);
-	entry->sockaddr = *addr;
-
-	/*
-	 * If needed, string up the name and entry.
-	 */
-	if (!ISC_LINK_LINKED(name, plink))
-		link_name(adb, name_bucket, name);
-	if (!ISC_LINK_LINKED(entry, plink))
-		link_entry(adb, addr_bucket, entry);
-
-	name->expire_v4 = ISC_MIN(name->expire_v4, expire_time);
-
-	UNLOCK(&adb->namelocks[name_bucket]);
-	name_bucket = DNS_ADB_INVALIDBUCKET;
-	UNLOCK(&adb->entrylocks[addr_bucket]);
-	addr_bucket = DNS_ADB_INVALIDBUCKET;
-
-	return (ISC_R_SUCCESS);
-
- out:
-	if (free_name)
-		free_adbname(adb, &name);
-	if (free_entry)
-		isc_mempool_put(adb->emp, entry);
-	if (free_namehook)
-		isc_mempool_put(adb->nhmp, namehook);
-	if (name_bucket != DNS_ADB_INVALIDBUCKET)
-		UNLOCK(&adb->namelocks[name_bucket]);
-	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
-		UNLOCK(&adb->entrylocks[addr_bucket]);
 
 	return (result);
 }
@@ -3009,7 +2850,8 @@ dump_adb(dns_adb_t *adb, FILE *f)
 			continue;
 		fprintf(f, "Name bucket %d:\n", i);
 		while (name != NULL) {
-			fprintf(f, "name %p\n", name);
+			fprintf(f, "name %p (flags %08x)\n",
+				name, name->flags);
 			if (!DNS_ADBNAME_VALID(name))
 				fprintf(f, "\tMAGIC %08x\n", name->magic);
 			fprintf(f, "\texpiry [");
@@ -3225,7 +3067,7 @@ print_find_list(FILE *f, dns_adbname_t *name)
 
 static isc_result_t
 dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
-	    isc_boolean_t use_hints, dns_rdatatype_t rdtype)
+	    dns_rdatatype_t rdtype)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
@@ -3243,8 +3085,9 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 	dns_rdataset_init(&rdataset);
 
 	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
-			       DNS_DBFIND_GLUEOK, use_hints, fname,
-			       &rdataset, NULL);
+			       NAME_GLUEOK(adbname), NAME_HINTOK(adbname),
+			       fname, &rdataset, NULL);
+
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
@@ -3299,6 +3142,12 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		break;
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
+		/*
+		 * Clear the hint and glue flags, so this will match
+		 * more often.
+		 */
+		adbname->flags &= ~(DNS_ADBFIND_GLUEOK | DNS_ADBFIND_HINTOK);
+
 		rdataset.ttl = ISC_MAX(rdataset.ttl, ADB_CACHE_MINIMUM);
 		clean_target(adb, &adbname->target);
 		adbname->expire_target = INT_MAX;
@@ -3321,7 +3170,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 }
 
 static isc_result_t
-dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
+dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
@@ -3342,8 +3191,9 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 	dns_rdataset_init(&rdataset);
 
 	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a6,
-			       now, DNS_DBFIND_GLUEOK, use_hints, fname,
-			       &rdataset, NULL);
+			       now, NAME_GLUEOK(adbname), NAME_HINTOK(adbname),
+			       fname, &rdataset, NULL);
+
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
@@ -3651,8 +3501,6 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	 * don't do this.
 	 */
 	if (dev->result != ISC_R_SUCCESS) {
-		isc_boolean_t use_hints;
-
 		DP(DEF_LEVEL, "name %p: A6 failed, result %u",
 		   name, dev->result);
 
@@ -3698,12 +3546,6 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 			goto out;
 		}
 
-		if (FETCH_USEHINTS(fetch))
-			use_hints = ISC_TRUE;
-		else
-			use_hints = ISC_FALSE;
-
-
 		if (FETCH_FIRSTA6(fetch) && !NAME_HAS_V6(name)) {
 			DP(DEF_LEVEL,
 			   "name %p: A6 query failed, starting AAAA", name);
@@ -3712,8 +3554,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 			 * Since this is the very first fetch, and it
 			 * failed, we know there are no more running.
 			 */
-			result = dbfind_name(name, now, use_hints,
-					     dns_rdatatype_aaaa);
+			result = dbfind_name(name, now, dns_rdatatype_aaaa);
 			if (result == ISC_R_SUCCESS) {
 				DP(DEF_LEVEL,
 				   "name %p: callback_a6: Found AAAA for",
@@ -3855,8 +3696,7 @@ fetch_name_aaaa(dns_adbname_t *adbname)
 }
 
 static isc_result_t
-fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t use_hints,
-	      isc_boolean_t start_at_root)
+fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root)
 {
 	isc_result_t result;
 	dns_adbfetch6_t *fetch;
@@ -3881,8 +3721,6 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t use_hints,
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
-	if (use_hints)
-		fetch->flags |= FETCH_USE_HINTS;
 	fetch->flags |= FETCH_FIRST_A6;
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
