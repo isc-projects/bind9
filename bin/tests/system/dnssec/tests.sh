@@ -75,7 +75,7 @@ $PERL ../digcomp.pl dig.out.ns3 dig.out.ns4 || status=1
 
 rm -f dig.out.*
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300 \
 	a.bogus.example. @10.53.0.4 a > dig.out.ns4 || status=1
 grep "SERVFAIL" dig.out.ns4 > /dev/null || status=1
 
