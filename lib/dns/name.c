@@ -141,7 +141,7 @@ static unsigned char maptolower[] = {
 
 static struct dns_name root = {
 	NAME_MAGIC,
-	(unsigned char *)"", 1, 1, 0, NULL,
+	(unsigned char *)"", 1, 1, DNS_NAMEATTR_ABSOLUTE, NULL,
 	{(void *)-1, (void *)-1},
 	{NULL, NULL}
 };
