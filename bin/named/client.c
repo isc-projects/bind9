@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.10 2003/08/14 07:00:33 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.11 2003/08/21 06:17:55 marka Exp $ */
 
 #include <config.h>
 
@@ -96,6 +96,7 @@ struct ns_clientmgr {
 	/* Locked by lock. */
 	isc_boolean_t			exiting;
 	client_list_t			active; 	/* Active clients */
+	client_list_t			recursing; 	/* Recursing clients */
 	client_list_t 			inactive;	/* To be recycled */
 };
 
@@ -190,6 +191,27 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 			      isc_result_totext(result));
 		/* Continue anyway. */
 	}
+}
+
+void
+ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest) {
+	ns_client_t *oldest;
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	LOCK(&client->manager->lock);
+	if (killoldest) {
+		oldest = ISC_LIST_HEAD(client->manager->recursing);
+		if (oldest != NULL) {
+			ns_query_cancel(oldest);
+			ISC_LIST_UNLINK(*oldest->list, oldest, link);
+			ISC_LIST_APPEND(client->manager->active, oldest, link);
+			oldest->list = &client->manager->active;
+		}
+	}
+	ISC_LIST_UNLINK(*client->list, client, link);
+	ISC_LIST_APPEND(client->manager->recursing, client, link);
+	client->list = &client->manager->recursing;
+	UNLOCK(&client->manager->lock);
 }
 
 /*
@@ -424,7 +446,8 @@ exit_check(ns_client_t *client) {
 			client->list = NULL;
 			if (manager->exiting &&
 			    ISC_LIST_EMPTY(manager->active) &&
-			    ISC_LIST_EMPTY(manager->inactive))
+			    ISC_LIST_EMPTY(manager->inactive) &&
+			    ISC_LIST_EMPTY(manager->recursing))
 				destroy_manager = manager;
 		}
 		/*
@@ -512,7 +535,6 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 	client->newstate = NS_CLIENTSTATE_FREED;
 	(void)exit_check(client);
 }
-
 
 static void
 ns_client_endrequest(ns_client_t *client) {
@@ -1927,6 +1949,7 @@ static void
 clientmgr_destroy(ns_clientmgr_t *manager) {
 	REQUIRE(ISC_LIST_EMPTY(manager->active));
 	REQUIRE(ISC_LIST_EMPTY(manager->inactive));
+	REQUIRE(ISC_LIST_EMPTY(manager->recursing));
 
 	MTRACE("clientmgr_destroy");
 
@@ -1956,6 +1979,7 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	manager->exiting = ISC_FALSE;
 	ISC_LIST_INIT(manager->active);
 	ISC_LIST_INIT(manager->inactive);
+	ISC_LIST_INIT(manager->recursing);
 	manager->magic = MANAGER_MAGIC;
 
 	MTRACE("create");
@@ -1986,6 +2010,11 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 	manager->exiting = ISC_TRUE;
 
+	for (client = ISC_LIST_HEAD(manager->recursing);
+	     client != NULL;
+	     client = ISC_LIST_NEXT(client, link))
+		isc_task_shutdown(client->task);
+
 	for (client = ISC_LIST_HEAD(manager->active);
 	     client != NULL;
 	     client = ISC_LIST_NEXT(client, link))
@@ -1997,7 +2026,8 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 		isc_task_shutdown(client->task);
 
 	if (ISC_LIST_EMPTY(manager->active) &&
-	    ISC_LIST_EMPTY(manager->inactive))
+	    ISC_LIST_EMPTY(manager->inactive) &&
+	    ISC_LIST_EMPTY(manager->recursing))
 		need_destroy = ISC_TRUE;
 
 	UNLOCK(&manager->lock);
@@ -2230,4 +2260,35 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 
 	if (buf != NULL)
 		isc_mem_put(client->mctx, buf, len);
+}
+
+void
+ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
+	ns_client_t *client;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	const char *name;
+	const char *sep;
+
+	REQUIRE(VALID_MANAGER(manager));
+	      
+	LOCK(&manager->lock);
+	client = ISC_LIST_HEAD(manager->recursing);
+	while (client != NULL) {
+		ns_client_name(client, peerbuf, sizeof(peerbuf));
+		if (client->view != NULL &&
+		    strcmp(client->view->name, "_bind") != 0 &&
+		    strcmp(client->view->name, "_default") != 0) {
+			name = client->view->name;
+			sep = ": view ";
+		} else {
+			name = "";
+			sep = "";
+		}
+		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+		fprintf(f, "; client %s%s%s: '%s' requesttime %d\n",
+			peerbuf, sep, name, namebuf, client->requesttime);
+		client = ISC_LIST_NEXT(client, link);
+	}
+	UNLOCK(&manager->lock);
 }

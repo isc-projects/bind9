@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.7.2.2.2.6 2003/08/21 05:19:19 marka Exp $ */
+/* $Id: control.c,v 1.7.2.2.2.7 2003/08/21 06:17:55 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/app.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <isccc/alist.h>
@@ -121,6 +122,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ns_server_freeze(ns_g_server, ISC_TRUE, command);
 	} else if (command_compare(command, NS_COMMAND_UNFREEZE)) {
 		result = ns_server_freeze(ns_g_server, ISC_FALSE, command);
+	} else if (command_compare(command, NS_COMMAND_RECURSING)) {
+		result = ns_server_dumprecursing(ns_g_server);
 	} else if (command_compare(command, NS_COMMAND_NULL)) {
 		result = ISC_R_SUCCESS;
 	} else {

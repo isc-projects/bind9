@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.28.2.3.8.1 2003/08/13 02:18:18 marka Exp $ */
+/* $Id: query.h,v 1.28.2.3.8.2 2003/08/21 06:17:57 marka Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -49,6 +49,7 @@ struct ns_query {
 	dns_zone_t *			authzone;
 	isc_boolean_t			authdbset;
 	isc_boolean_t			isreferral;
+	isc_mutex_t			fetchlock;
 	dns_fetch_t *			fetch;
 	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;
@@ -83,5 +84,8 @@ ns_query_free(ns_client_t *client);
 
 void
 ns_query_start(ns_client_t *client);
+
+void
+ns_query_cancel(ns_client_t *client);
 
 #endif /* NAMED_QUERY_H */

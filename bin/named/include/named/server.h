@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.58.2.1.10.6 2003/08/21 05:19:20 marka Exp $ */
+/* $Id: server.h,v 1.58.2.1.10.7 2003/08/21 06:17:57 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -51,6 +51,7 @@ struct ns_server {
 	dns_acl_t		*blackholeacl;
 	char *			statsfile;	/* Statistics file name */
 	char *			dumpfile;	/* Dump file name */
+	char *			recfile;	/* Recursive file name */
 	isc_boolean_t		version_set;	/* User has set version */
 	char *			version;	/* User-specified version */
 	isc_boolean_t		hostname_set;	/* User has set hostname */
@@ -190,5 +191,11 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text);
  */
 isc_result_t
 ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args);
+
+/*
+ * Dump the current recursive queries.
+ */
+isc_result_t
+ns_server_dumprecursing(ns_server_t *server);
 
 #endif /* NAMED_SERVER_H */

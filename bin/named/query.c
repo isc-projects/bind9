@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.12 2003/08/21 03:22:48 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.13 2003/08/21 06:17:55 marka Exp $ */
 
 #include <config.h>
 
@@ -220,6 +220,17 @@ query_maybeputqname(ns_client_t *client) {
 	}
 }
 
+void
+ns_query_cancel(ns_client_t *client) {
+	LOCK(&client->query.fetchlock);
+	if (client->query.fetch != NULL) {
+		dns_resolver_cancelfetch(client->query.fetch);
+
+		client->query.fetch = NULL;
+	}
+	UNLOCK(&client->query.fetchlock);
+}
+
 static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
@@ -233,11 +244,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	/*
 	 * Cancel the fetch if it's running.
 	 */
-	if (client->query.fetch != NULL) {
-		dns_resolver_cancelfetch(client->query.fetch);
-
-		client->query.fetch = NULL;
-	}
+	ns_query_cancel(client);
 
 	/*
 	 * Cleanup any active versions.
@@ -525,6 +532,9 @@ ns_query_init(ns_client_t *client) {
 	client->query.restarts = 0;
 	client->query.timerset = ISC_FALSE;
 	client->query.qname = NULL;
+	result = isc_mutex_init(&client->query.fetchlock);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	client->query.fetch = NULL;
 	client->query.authdb = NULL;
 	client->query.authzone = NULL;
@@ -532,11 +542,26 @@ ns_query_init(ns_client_t *client) {
 	client->query.isreferral = ISC_FALSE;	
 	query_reset(client, ISC_FALSE);
 	result = query_newdbversion(client, 3);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		DESTROYLOCK(&client->query.fetchlock);
 		return (result);
+	}
 	dns_a6_init(&client->query.a6ctx, query_simplefind, query_adda6rrset,
 		    NULL, NULL, client);
-	return (query_newnamebuf(client));
+	result = query_newnamebuf(client);
+	if (result != ISC_R_SUCCESS) {
+		ns_dbversion_t *dbversion;
+		DESTROYLOCK(&client->query.fetchlock);
+		for (dbversion = ISC_LIST_HEAD(client->query.freeversions);
+		     dbversion != NULL;
+		     dbversion = ISC_LIST_HEAD(client->query.freeversions)) {
+			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
+					link);
+			isc_mem_put(client->mctx, dbversion,
+				    sizeof(*dbversion));
+		}
+	}
+	return (result);
 }
 
 static inline ns_dbversion_t *
@@ -2179,7 +2204,8 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
 
-	if (devent->fetch != NULL) {
+	LOCK(&client->query.fetchlock);
+	if (client->query.fetch != NULL) {
 		/*
 		 * This is the fetch we've been waiting for.
 		 */
@@ -2197,6 +2223,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		 */
 		fetch_cancelled = ISC_TRUE;
 	}
+	UNLOCK(&client->query.fetchlock);
 	INSIST(client->query.fetch == NULL);
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
@@ -2216,7 +2243,10 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		if (devent->sigrdataset != NULL)
 			query_putrdataset(client, &devent->sigrdataset);
 		isc_event_free(&event);
-		query_next(client, ISC_R_CANCELED);
+		if (fetch_cancelled)
+			query_error(client, DNS_R_SERVFAIL);
+		else
+			query_next(client, ISC_R_CANCELED);
 		/*
 		 * This may destroy the client.
 		 */
@@ -2246,8 +2276,17 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	 * connection was accepted (if allowed by the TCP quota).
 	 */
 	if (client->recursionquota == NULL) {
+		isc_boolean_t killoldest = ISC_FALSE;
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
+		if (result == ISC_R_SOFTQUOTA) {
+			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "killing oldest recursive client: %s",
+				      isc_result_totext(result));
+			killoldest = ISC_TRUE;
+			result = ISC_R_SUCCESS;
+		}
 		if (dns_resolver_nrunning(client->view->resolver) >
 		    (unsigned int)ns_g_server->recursionquota.max)
 			result = ISC_R_QUOTA;
@@ -2263,6 +2302,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 				isc_quota_detach(&client->recursionquota);
 			return (result);
 		}
+		ns_client_recursing(client, killoldest);
 	}
 
 	/*
