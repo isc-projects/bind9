@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.124 2001/04/19 18:39:42 gson Exp $ */
+/* $Id: name.c,v 1.125 2001/04/24 00:56:17 gson Exp $ */
 
 #include <config.h>
 
@@ -1823,7 +1823,6 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				nibbles--;
 				if (nibbles != 0) {
 					*tdata++ = hexdigits[c & 0xf];
-					i++;
 					nibbles--;
 				}
 			}
