@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.22 2001/07/16 05:10:25 mayer Exp $ */
+/* $Id: masterdump.h,v 1.22.12.1 2003/08/01 23:19:13 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -89,6 +89,63 @@ LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_debug;
  ***	Functions
  ***/
 
+void
+dns_dumpctx_attach(dns_dumpctx_t *source, dns_dumpctx_t **target);
+/*
+ * Attach to a dump context.
+ *
+ * Require:
+ *	'source' to be valid.
+ *	'target' to be non NULL and '*target' to be NULL.
+ */
+
+void
+dns_dumpctx_detach(dns_dumpctx_t **dctxp);
+/*
+ * Detach from a dump context.
+ *
+ * Require:
+ *	'dctxp' to point to a valid dump context.
+ *
+ * Ensures:
+ *	'*dctxp' is NULL.
+ */
+
+void
+dns_dumpctx_cancel(dns_dumpctx_t *dctx);
+/*
+ * Cancel a in progress dump.
+ *
+ * Require:
+ *	'dctx' to be valid.
+ */
+
+dns_dbversion_t *
+dns_dumpctx_version(dns_dumpctx_t *dctx);
+/*
+ * Return the version handle (if any) of the database being dumped.
+ *
+ * Require:
+ *	'dctx' to be valid.
+ */
+
+dns_db_t *
+dns_dumpctx_db(dns_dumpctx_t *dctx);
+/*
+ * Return the database being dumped.
+ *
+ * Require:
+ *	'dctx' to be valid.
+ */
+
+
+isc_result_t
+dns_master_dumptostreaminc(isc_mem_t *mctx, dns_db_t *db,
+			   dns_dbversion_t *version,
+			   const dns_master_style_t *style, FILE *f,
+			   isc_task_t *task, dns_dumpdonefunc_t done,
+			   void *done_arg, dns_dumpctx_t **dctxp);
+
 isc_result_t
 dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			dns_dbversion_t *version,
@@ -100,12 +157,24 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
  *
  * Temporary dynamic memory may be allocated from 'mctx'.
  *
+ * Require:
+ *	'task' to be valid.
+ *	'done' to be non NULL.
+ *	'dctxp' to be non NULL && '*dctxp' to be NULL.
+ * 
  * Returns:
  *	ISC_R_SUCCESS
+ *	ISC_R_CONTINUE	dns_master_dumptostreaminc() only.
  *	ISC_R_NOMEMORY
  * 	Any database or rrset iterator error.
  *	Any dns_rdata_totext() error code.
  */
+
+isc_result_t
+dns_master_dumpinc(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
+		   const dns_master_style_t *style, const char *filename,
+		   isc_task_t *task, dns_dumpdonefunc_t done, void *done_arg,
+		   dns_dumpctx_t **dctxp);
 
 isc_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
@@ -120,6 +189,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
  *
  * Returns:
  *	ISC_R_SUCCESS
+ *	ISC_R_CONTINUE	dns_master_dumpinc() only.
  *	ISC_R_NOMEMORY
  * 	Any database or rrset iterator error.
  *	Any dns_rdata_totext() error code.

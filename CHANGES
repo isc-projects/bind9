@@ -1,3 +1,8 @@
+ 979.	[func]		Incremental master file dumping.  dns_master_dumpinc(),
+			dns_master_dumptostreaminc(), dns_dumpctx_attach(),
+			dns_dumpctx_detach(), dns_dumpctx_cancel(),
+			dns_dumpctx_db() and dns_dumpctx_version().
+
  976.	[func]		named-checkconf will now test load master zone
 			files (-z).  [RT #1468]
 

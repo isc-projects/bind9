@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.1 2003/07/31 23:34:57 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.2 2003/08/01 23:19:12 marka Exp $ */
 
 #include <config.h>
 
@@ -190,6 +190,8 @@ struct dns_zone {
 	dns_request_t		*request;
 	dns_loadctx_t		*lctx;
 	dns_io_t		*readio;
+	dns_dumpctx_t		*dctx;
+	dns_io_t		*writeio;
 	isc_uint32_t		maxxfrin;
 	isc_uint32_t		maxxfrout;
 	isc_uint32_t		idlein;
@@ -429,6 +431,7 @@ static void zone_saveunique(dns_zone_t *zone, const char *path,
 			    const char *templat);
 static void zone_maintenance(dns_zone_t *zone);
 static void zone_notify(dns_zone_t *zone);
+static void dump_done(void *arg, isc_result_t result);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -512,6 +515,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->request = NULL;
 	zone->lctx = NULL;
 	zone->readio = NULL;
+	zone->dctx = NULL;
+	zone->writeio = NULL;
 	zone->timer = NULL;
 	zone->idlein = DNS_DEFAULT_IDLEIN;
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
@@ -570,6 +575,7 @@ zone_free(dns_zone_t *zone) {
 		dns_request_destroy(&zone->request); /* XXXMPA */
 	INSIST(zone->readio == NULL);
 	INSIST(zone->statelist == NULL);
+	INSIST(zone->writeio == NULL);
 
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
@@ -1069,6 +1075,39 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 
  fail:
 	zone_loaddone(load, result);
+}
+
+static void
+zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
+	const char me[] = "zone_gotwritehandle";
+	dns_zone_t *zone = event->ev_arg;
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_dbversion_t *version = NULL;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	INSIST(task == zone->task);
+	ENTER;
+
+	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0)
+		result = ISC_R_CANCELED;
+	isc_event_free(&event);
+	if (result == ISC_R_CANCELED)
+		goto fail;
+
+	LOCK(&zone->lock);
+	dns_db_currentversion(zone->db, &version);
+	result = dns_master_dumpinc(zone->mctx, zone->db, version,
+				    &dns_master_style_default,
+				    zone->masterfile, zone->task,
+				    dump_done, zone, &zone->dctx);
+	dns_db_closeversion(zone->db, &version, ISC_FALSE);
+	UNLOCK(&zone->lock);
+	if (result != DNS_R_CONTINUE)
+		goto fail;
+	return;
+
+ fail:
+	dump_done(zone, result);
 }
 
 static isc_result_t
@@ -1992,8 +2031,11 @@ zone_maintenance(dns_zone_t *zone) {
 	 */
 	switch (zone->type) {
 	case dns_zone_master:
-	case dns_zone_slave:
+	case dns_zone_slave: {
+		char tb[80];
 		LOCK_ZONE(zone);
+		isc_time_formattimestamp(&zone->dumptime, tb, sizeof(tb));
+		fprintf(stderr,"dumptime = %s\n", tb);
 		if (zone->masterfile != NULL &&
 		    isc_time_compare(&now, &zone->dumptime) >= 0 &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
@@ -2010,6 +2052,7 @@ zone_maintenance(dns_zone_t *zone) {
 					     dns_result_totext(result));
 		}
 		break;
+		}
 	default:
 		break;
 	}
@@ -2187,6 +2230,69 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 		zone_settimer(zone, &now);
 }
 
+static void
+dump_done(void *arg, isc_result_t result) {
+	const char me[] = "dump_done";
+	dns_zone_t *zone = arg;
+	dns_db_t *db;
+	dns_dbversion_t *version;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	ENTER;
+
+	/*
+	 * We don't own these, zone->dctx must stay valid.
+	 */
+	db = dns_dumpctx_db(zone->dctx);
+	version = dns_dumpctx_version(zone->dctx);
+
+	if (result == ISC_R_SUCCESS && zone->journal != NULL &&
+	    zone->journalsize != -1) {
+		isc_uint32_t serial;
+		isc_result_t tresult;
+
+		tresult = dns_db_getsoaserial(db, version, &serial);
+		if (tresult == ISC_R_SUCCESS) {
+			tresult = dns_journal_compact(zone->mctx, zone->journal,
+						     serial, zone->journalsize);
+			switch (tresult) {
+			case ISC_R_SUCCESS:
+			case ISC_R_NOSPACE:
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "dns_journal_compact: %s",
+					     dns_result_totext(tresult));
+				break;
+			default:
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "dns_journal_compact failed: %s",
+					     dns_result_totext(tresult));
+				break;
+			}
+		}
+	}
+
+	LOCK_ZONE(zone);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_DUMPING);
+	if (result != ISC_R_SUCCESS && result != ISC_R_CANCELED) {
+		/*
+		 * Try again in a short while.
+		 */
+		zone_needdump(zone, DNS_DUMP_DELAY);
+	} else if (result == ISC_R_SUCCESS &&
+		   DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FLUSH) &&
+		   DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
+		   DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DUMPING);
+		isc_time_settoepoch(&zone->dumptime);
+	}
+	dns_dumpctx_detach(&zone->dctx);
+	UNLOCK_ZONE(zone);
+	zonemgr_putio(&zone->writeio);
+	dns_zone_idetach(&zone);
+}
+
 static isc_result_t
 zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 	isc_result_t result;
@@ -2217,46 +2323,35 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 		result = DNS_R_NOMASTERFILE;
 		goto fail;
 	}
-	dns_db_currentversion(db, &version);
 
-	result = dns_master_dump(zone->mctx, db, version,
-				 &dns_master_style_default, masterfile);
-
-	/*
-	 * Journal updates are task locked (bin/named/update.c), compact
-	 * is only set if we are task locked.
-	 */
-	if (result == ISC_R_SUCCESS && compact &&
-	    zone->journal != NULL && zone->journalsize != -1) {
-		isc_uint32_t serial;
-		isc_result_t tresult;
-
-		tresult = dns_db_getsoaserial(db, version, &serial);
-		if (tresult == ISC_R_SUCCESS) {
-			tresult = dns_journal_compact(zone->mctx, zone->journal,
-						     serial, zone->journalsize);
-			switch (tresult) {
-			case ISC_R_SUCCESS:
-			case ISC_R_NOSPACE:
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "dns_journal_compact: %s",
-					     dns_result_totext(tresult));
-				break;
-			default:
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "dns_journal_compact failed: %s",
-					     dns_result_totext(tresult));
-				break;
-			}
-		}
+	if (compact) {
+		dns_zone_t *dummy = NULL;
+		LOCK_ZONE(zone);
+		zone_iattach(zone, &dummy);
+		result = zonemgr_getio(zone->zmgr, ISC_FALSE, zone->task,
+				       zone_gotwritehandle, zone,
+				       &zone->writeio);
+		if (result != ISC_R_SUCCESS)
+			zone_idetach(&dummy);
+		else
+			result = DNS_R_CONTINUE;
+		UNLOCK_ZONE(zone);
+	} else {
+		dns_db_currentversion(db, &version);
+		result = dns_master_dump(zone->mctx, db, version,
+					 &dns_master_style_default,
+					 masterfile);
+		dns_db_closeversion(db, &version, ISC_FALSE);
 	}
-	dns_db_closeversion(db, &version, ISC_FALSE);
  fail:
 	if (db != NULL)
 		dns_db_detach(&db);
 	if (masterfile != NULL)
 		isc_mem_free(zone->mctx, masterfile);
 	masterfile = NULL;
+
+	if (result == DNS_R_CONTINUE)
+		return (ISC_R_SUCCESS); /* XXXMPA */
 
 	again = ISC_FALSE;
 	LOCK_ZONE(zone);
@@ -2283,11 +2378,13 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 
 isc_result_t
 dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
+	const char me[] = "dns_zone_dumptostream";
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
 	dns_db_t *db = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
+	ENTER;
 
 	LOCK_ZONE(zone);
 	if (zone->db != NULL)
@@ -3824,8 +3921,14 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->readio != NULL)
 		zonemgr_cancelio(zone->readio);
 
+	if (zone->writeio != NULL)
+		zonemgr_cancelio(zone->writeio);
+
 	if (zone->lctx != NULL)
 		dns_loadctx_cancel(zone->lctx);
+
+	if (zone->dctx != NULL)
+		dns_dumpctx_cancel(zone->dctx);
 
 	notify_cancel(zone);
 

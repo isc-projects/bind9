@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.103 2001/07/23 17:55:37 gson Exp $ */
+/* $Id: types.h,v 1.103.12.1 2003/08/01 23:19:13 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -57,6 +57,7 @@ typedef struct dns_dispatchevent		dns_dispatchevent_t;
 typedef struct dns_dispatchlist			dns_dispatchlist_t;
 typedef struct dns_dispatchmgr			dns_dispatchmgr_t;
 typedef struct dns_dispentry			dns_dispentry_t;
+typedef struct dns_dumpctx			dns_dumpctx_t;
 typedef struct dns_fetch			dns_fetch_t;
 typedef struct dns_fixedname			dns_fixedname_t;
 typedef struct dns_forwarders			dns_forwarders_t;
@@ -280,6 +281,9 @@ typedef enum {
 /*
  * Functions.
  */
+typedef void
+(*dns_dumpdonefunc_t)(void *, isc_result_t);
+
 typedef void
 (*dns_loaddonefunc_t)(void *, isc_result_t);
 
