@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.7 2001/01/09 21:50:52 bwelling Exp $ */
+/* $Id: gen-win32.h,v 1.8 2001/03/12 01:05:52 marka Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -228,7 +228,7 @@ typedef struct {
 } isc_dir_t;
 
 isc_boolean_t
-start_directory(char *path, isc_dir_t *dir) {
+start_directory(const char *path, isc_dir_t *dir) {
 	char pattern[_MAX_PATH], *p;
 
 	/*
