@@ -1,5 +1,5 @@
 
- 377.	[bug]		WHen additional data lookups were refused due to 
+ 377.	[bug]		When additional data lookups were refused due to 
 			"allow-query", the databases were still being
 			attached causing reference leaks.
 
