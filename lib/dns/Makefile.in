@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.126.2.3 2003/07/22 04:03:40 marka Exp $
+# $Id: Makefile.in,v 1.126.2.4 2003/10/09 06:47:59 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -29,6 +29,10 @@ CINCLUDES =	-I. ${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
+
+ISCLIBS =	../../lib/isc/libisc.@A@
+
+ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
 LIBS =		@LIBS@
 
@@ -98,7 +102,7 @@ libdns.la: ${OBJS}
 	${LIBTOOL} --mode=link \
 		${CC} ${ALL_CFLAGS} -o libdns.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${LIBS}
+		${OBJS} ${LIBS} ${ISCLIBS}
 
 libdstcypto.@SA@: ${OPENSSLOBJS}
 	${AR} ${ARFLAGS} $@ ${OPENSSLOBJS}
