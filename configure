@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# Copyright (C) 1996-2000  Internet Software Consortium.
+# Copyright (C) 1996-2001  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.212 
+# From configure.in Revision: 1.213 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5054,6 +5054,7 @@ trap 'rm -fr `echo "make/rules
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
 	bin/tests/system/lwresd/Makefile
+	bin/tests/system/tkey/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 	doc/Makefile
@@ -5303,6 +5304,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
 	bin/tests/system/lwresd/Makefile
+	bin/tests/system/tkey/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 	doc/Makefile

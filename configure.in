@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.212 $)
+AC_REVISION($Revision: 1.213 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1341,6 +1341,7 @@ AC_OUTPUT(
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
 	bin/tests/system/lwresd/Makefile
+	bin/tests/system/tkey/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 	doc/Makefile
