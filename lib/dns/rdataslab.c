@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.16 2000/09/01 01:35:19 bwelling Exp $ */
+/* $Id: rdataslab.c,v 1.17 2000/09/01 16:37:30 gson Exp $ */
 
 #include <config.h>
 
@@ -57,9 +57,6 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	unsigned int	nalloc;
 	unsigned int	i;
 
-	result = dns_rdataset_first(rdataset);
-	REQUIRE(result == ISC_R_SUCCESS);
-
 	buflen = reservelen + 2;
 
 	nalloc = dns_rdataset_count(rdataset);
@@ -72,6 +69,8 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	/*
 	 * Save all of the rdata members into an array.
 	 */
+	result = dns_rdataset_first(rdataset);
+	INSIST(result == ISC_R_SUCCESS);
 	for (i = 0; i < nalloc; i++) {
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdatas[i]);
