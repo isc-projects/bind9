@@ -361,8 +361,23 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				 dns_c_view_getrecursionacl,
 				 dns_c_ctx_getallowrecursion,
 				 &view->recursionacl));
-	
-	
+
+	result = ISC_R_NOTFOUND;
+	if (cview != NULL)
+		result = dns_c_view_getrequestixfr(cview, &view->requestixfr);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getrequestixfr(cctx, &view->requestixfr);
+	if (result != ISC_R_SUCCESS)
+		view->requestixfr = ISC_TRUE;
+
+	result = ISC_R_NOTFOUND;
+	if (cview != NULL)
+		result = dns_c_view_getprovideixfr(cview, &view->provideixfr);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getprovideixfr(cctx, &view->provideixfr);
+	if (result != ISC_R_SUCCESS)
+		view->provideixfr = ISC_TRUE;
+
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
 
@@ -973,9 +988,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	configure_server_quota(configctx, dns_c_ctx_getrecursiveclients,
 				     &server->recursionquota, 100);
 
-	(void) dns_c_ctx_getprovideixfr(configctx, &server->provide_ixfr);
-	
-
 	/*
 	 * Configure the zone manager.
 	 */
@@ -989,12 +1001,6 @@ load_configuration(const char *filename, ns_server_t *server,
 		(void) dns_c_ctx_gettransfersperns(configctx, &transfersperns);
 		dns_zonemgr_settransfersperns(server->zonemgr, transfersperns);
 	}
-	{
- 		isc_boolean_t requestixfr = ISC_TRUE;
-		(void) dns_c_ctx_getrequestixfr(configctx, &requestixfr);
-		dns_zonemgr_setrequestixfr(server->zonemgr, requestixfr);
-	}
-	
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
@@ -1304,8 +1310,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
-
-	server->provide_ixfr = ISC_TRUE;
 
 	result = dns_aclenv_init(mctx, &server->aclenv);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.54 2000/04/07 19:17:33 explorer Exp $ */
+/* $Id: xfrout.c,v 1.55 2000/04/07 22:30:41 gson Exp $ */
 
 #include <config.h>
 
@@ -949,7 +949,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		 * Outgoing IXFR may have been disabled for this peer
 		 * or globally.
 		 */
-		provide_ixfr = ns_g_server->provide_ixfr;
+		provide_ixfr = client->view->provideixfr;
 		if (peer != NULL)
 			(void) dns_peer_getprovideixfr(peer, &provide_ixfr);
 		if (provide_ixfr == ISC_FALSE)

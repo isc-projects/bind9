@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.90 2000/04/06 22:02:34 explorer Exp $ */
+/* $Id: zone.c,v 1.91 2000/04/07 22:30:42 gson Exp $ */
 
 #include <config.h>
 
@@ -201,7 +201,6 @@ struct dns_zonemgr {
 	/* Locked by conflock. */
 	int			transfersin;
 	int			transfersperns;
-	isc_boolean_t		requestixfr;
 	/* Contains its own lock. */
 	dns_xfrinlist_t		transferlist;
 };
@@ -3330,16 +3329,6 @@ dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr) {
 dns_xfrinlist_t	*
 dns_zonemgr_gettransferlist(dns_zonemgr_t *zmgr) {
 	return (&zmgr->transferlist);
-}
-
-void
-dns_zonemgr_setrequestixfr(dns_zonemgr_t *zmgr, isc_boolean_t value) {
-	zmgr->requestixfr = value;
-}
-
-isc_boolean_t
-dns_zonemgr_getrequestixfr(dns_zonemgr_t *zmgr) {
-	return (zmgr->requestixfr);
 }
 
 #if 0

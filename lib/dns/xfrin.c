@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.60 2000/04/07 19:38:50 gson Exp $ */
+/* $Id: xfrin.c,v 1.61 2000/04/07 22:30:42 gson Exp $ */
 
 #include <config.h>
 
@@ -559,8 +559,7 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 		    ISC_R_SUCCESS) {
 			; /* Using peer setting */ 
 		} else {
-			use_ixfr = dns_zonemgr_getrequestixfr(
-				dns_zone_getmgr(zone));
+			use_ixfr = dns_zone_getview(zone)->requestixfr;
 		}
 		if (use_ixfr == ISC_FALSE) {
 			xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,

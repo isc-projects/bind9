@@ -100,7 +100,9 @@ struct dns_view {
 	dns_transfer_format_t		transfer_format;
 	dns_acl_t *			queryacl;
 	dns_acl_t *			recursionacl;
-	
+	isc_boolean_t			requestixfr;
+	isc_boolean_t			provideixfr;
+
 	/*
 	 * Configurable data for server use only,
 	 * locked by server configuration lock.

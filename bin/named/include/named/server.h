@@ -45,7 +45,6 @@ struct ns_server {
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
-	isc_boolean_t		provide_ixfr;
 
 	/* Not really configurable, but covered by conflock. */
 	dns_aclenv_t		aclenv;

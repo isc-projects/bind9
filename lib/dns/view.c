@@ -141,6 +141,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;
 	view->recursionacl = NULL;
+	view->requestixfr = ISC_TRUE;
+	view->provideixfr = ISC_TRUE;
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)
