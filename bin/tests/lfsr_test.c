@@ -20,6 +20,7 @@
 #include <isc/assertions.h>
 #include <isc/types.h>
 #include <isc/lfsr.h>
+#include <isc/util.h>
 
 isc_uint32_t state[1024 * 64];
 
