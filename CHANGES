@@ -1,4 +1,9 @@
 
+ 614.	[bug]		Checks for uninitialized link fields were prone
+			to false positives, causing assertion failures.
+			The checks are now disabled by default and may
+			be re-enabled by defining ISC_LIST_CHECKINIT.
+
  613.	[bug]		"rndc reload zone" now reloads primary zones.
 			It previously only updated slave and stub zones,
 			if an SOA query indicated an out of date serial.

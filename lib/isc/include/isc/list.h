@@ -15,14 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.16 2000/12/07 20:15:58 marka Exp $ */
+/* $Id: list.h,v 1.17 2000/12/15 00:20:53 gson Exp $ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
 #include <isc/boolean.h>
 #include <isc/assertions.h>
 
-#if 1
+#ifdef ISC_LIST_CHECKINIT
 #define ISC_LINK_INSIST(x) ISC_INSIST(x)
 #else
 #define ISC_LINK_INSIST(x)

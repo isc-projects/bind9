@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.135 2000/12/14 22:09:51 marka Exp $ */
+/* $Id: rdata.c,v 1.136 2000/12/15 00:20:55 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -334,8 +334,12 @@ dns_rdata_init(dns_rdata_t *rdata) {
 	 (rdata)->rdclass == 0 && (rdata)->type == 0 && (rdata)->flags == 0 && \
 	 !ISC_LINK_LINKED((rdata), link))
 #else
+#ifdef ISC_LIST_CHECKINIT
 #define DNS_RDATA_INITIALIZED(rdata) \
 	(!ISC_LINK_LINKED((rdata), link))
+#else
+#endif
+#define DNS_RDATA_INITIALIZED(rdata) ISC_TRUE
 #endif
 #define DNS_RDATA_VALIDFLAGS(rdata) \
 	(((rdata)->flags & ~DNS_RDATA_UPDATE) == 0)
