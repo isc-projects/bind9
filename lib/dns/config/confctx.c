@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.109 2000/12/02 00:25:42 gson Exp $ */
+/* $Id: confctx.c,v 1.110 2000/12/06 20:36:26 gson Exp $ */
 
 #include <config.h>
 
@@ -868,8 +868,10 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 #define PRINT_IF_EQUAL(VAL, STRVAL, FIELD, NAME)		\
 	if (options->FIELD != NULL) {				\
-		dns_c_printtabs(fp, indent + 1);		\
-		fprintf(fp, "%s %s;\n", NAME, STRVAL);		\
+		if ((*options->FIELD) == (VAL)) {		\
+			dns_c_printtabs(fp, indent + 1);	\
+			fprintf(fp, "%s %s;\n", NAME, STRVAL);	\
+		}						\
 	}
 
 #define PRINT_AS_BOOLEAN(FIELD, NAME)				\
