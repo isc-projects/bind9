@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.43 2001/06/27 20:18:03 tale Exp $ */
+/* $Id: cache.c,v 1.44 2001/06/28 13:51:40 marka Exp $ */
 
 #include <config.h>
 
@@ -40,11 +40,9 @@
  * The following three variables control incremental cleaning.
  * MINSIZE is how many bytes is the floor for dns_cache_setcachesize().
  * CLEANERINCREMENT is how many nodes are examined in one pass.
- * CLEANERINTERVAL is the minimum amount of time between passes.
  */
 #define DNS_CACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2 MB */
 #define DNS_CACHE_CLEANERINCREMENT	1000	/* Number of nodes. */
-#define DNS_CACHE_CLEANERINTERVAL	6	/* Seconds. */
 
 /***
  ***	Types
@@ -434,9 +432,6 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	if (cache->cleaner.cleaning_timer == NULL)
 		goto unlock;
 
-	if (t < DNS_CACHE_CLEANERINTERVAL)
-		t = DNS_CACHE_CLEANERINTERVAL;
-
 	cache->cleaner.cleaning_interval = t;
 
 	if (t == 0) {
@@ -678,7 +673,6 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 static void
 incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->ev_arg;
-	isc_interval_t interval;
 	isc_result_t result;
 	int n_names;
 
@@ -767,23 +761,14 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	result = dns_dbiterator_pause(cleaner->iterator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
+	
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
 		      ISC_LOG_DEBUG(1), "cache cleaner: checked %d nodes, "
 		      "mem inuse %d, sleeping",
 		      cleaner->increment, isc_mem_inuse(cleaner->cache->mctx));
 
-	/*
-	 * Even though the interval timer might be in use for periodic
-	 * cache cleaning, steal it for scheduling another iteration.
-	 * When end_cleaning() is finally called, it will reset the
-	 * interval for the periodic cleaner.
-	 */
-	isc_interval_set(&interval, DNS_CACHE_CLEANERINTERVAL, 0);
-	isc_timer_reset(cleaner->cleaning_timer, isc_timertype_ticker,
-			NULL, &interval, ISC_FALSE);
-
-	isc_event_free(&event);
-
+	isc_task_send(task, &event);
+	INSIST(CLEANER_BUSY(cleaner));
 	return;
 }
 
