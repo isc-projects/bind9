@@ -1,3 +1,17 @@
+ 502.	[func]		On a SERVFAIL reply, DiG will now try the next server
+			in the list, unless the +fail option is specified.
+
+ 501.	[bug]		Incorrect port numbers were being displayed by
+			nslookup.  [RT #352]
+
+ 500.   [func]		Nearly useless +details option removed from DiG.
+
+ 499.	[func]		In DiG, specifying a class with -c or type with -t
+			changes command-line parsing so that classes and
+			types are only recognized if following -c or -t.
+			This allows hosts with the same name as a class or
+			type to be looked up.
+
  498.	[doc]		There is now a man page for "dig" 
 			in doc/man/bin/dig.1.
 
