@@ -18,13 +18,13 @@
 #include <config.h>
 
 #include <assert.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwpacket.h>
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "context_p.h"
 #include "assert_p.h"
@@ -51,10 +51,8 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
-	if (buf == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
+	if (buf == NULL)
+		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, buflen);
 
 	pkt->length = buflen;
@@ -66,7 +64,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	pkt->authlength = 0;
 
 	ret = lwres_lwpacket_renderheader(b, pkt);
-	if (ret != 0) {
+	if (ret != LWRES_R_SUCCESS) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
 		return (ret);
@@ -84,7 +82,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -113,10 +111,8 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
-	if (buf == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
+	if (buf == NULL)
+		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, buflen);
 
 	pkt->length = buflen;
@@ -127,7 +123,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	pkt->authlength = 0;
 
 	ret = lwres_lwpacket_renderheader(b, pkt);
-	if (ret != 0) {
+	if (ret != LWRES_R_SUCCESS) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
 		return (ret);
@@ -153,7 +149,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -169,23 +165,23 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(structp != NULL && *structp == NULL);
 
 	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
-		return (-1);
+		return (LWRES_R_FAILURE);
 
 	gnba = CTXMALLOC(sizeof(lwres_gnbarequest_t));
 	if (gnba == NULL)
-		return (-1);
+		return (LWRES_R_NOMEMORY);
 
 	ret = lwres_addr_parse(b, &gnba->addr);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 
 	*structp = gnba;
-	return (0);
+	return (LWRES_R_SUCCESS);
 
  out:
 	if (gnba != NULL)
@@ -211,18 +207,18 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	gnba = NULL;
 
 	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
-		return (-1);
+		return (LWRES_R_FAILURE);
 
 	/*
 	 * Pull off the name itself
 	 */
 	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t)))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 	naliases = lwres_buffer_getuint16(b);
 
 	gnba = CTXMALLOC(sizeof(lwres_gnbaresponse_t));
 	if (gnba == NULL)
-		return (-1);
+		return (LWRES_R_NOMEMORY);
 	gnba->base = NULL;
 	gnba->aliases = NULL;
 	gnba->aliaslen = NULL;
@@ -245,7 +241,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	 * Now, pull off the real name.
 	 */
 	ret = lwres_string_parse(b, &gnba->realname, &gnba->realnamelen);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
 	/*
@@ -254,7 +250,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	for (x = 0 ; x < gnba->naliases ; x++) {
 		ret = lwres_string_parse(b, &gnba->aliases[x],
 					 &gnba->aliaslen[x]);
-		if (ret != 0)
+		if (ret != LWRES_R_SUCCESS)
 			goto out;
 	}
 
@@ -264,7 +260,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	}
 
 	*structp = gnba;
-	return (0);
+	return (LWRES_R_SUCCESS);
 
  out:
 	if (gnba != NULL) {

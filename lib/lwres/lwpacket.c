@@ -18,12 +18,12 @@
 #include <config.h>
 
 #include <assert.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwpacket.h>
+#include <lwres/result.h>
 
 #include "assert_p.h"
 
@@ -36,7 +36,7 @@ lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	REQUIRE(pkt != NULL);
 
 	if (!SPACE_OK(b, LWPACKET_LENGTH))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 
 	lwres_buffer_putuint32(b, pkt->length);
 	lwres_buffer_putuint16(b, pkt->version);
@@ -48,7 +48,7 @@ lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	lwres_buffer_putuint16(b, pkt->authtype);
 	lwres_buffer_putuint16(b, pkt->authlength);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -61,11 +61,11 @@ lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 
 	space = LWRES_BUFFER_REMAINING(b);
 	if (space < LWPACKET_LENGTH)
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 
 	pkt->length = lwres_buffer_getuint32(b);
 	if (pkt->length > space)
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 	pkt->version = lwres_buffer_getuint16(b);
 	pkt->flags = lwres_buffer_getuint16(b);
 	pkt->serial = lwres_buffer_getuint32(b);
@@ -75,5 +75,5 @@ lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	pkt->authtype = lwres_buffer_getuint16(b);
 	pkt->authlength = lwres_buffer_getuint16(b);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }

@@ -19,7 +19,6 @@
 #include <config.h>
 
 #include <assert.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,6 +30,7 @@
 
 #include <lwres/context.h>
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "context_p.h"
 #include "assert_p.h"
@@ -60,10 +60,8 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	}
 
 	ctx = malloc_function(arg, sizeof(lwres_context_t));
-	if (ctx == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
+	if (ctx == NULL)
+		return (LWRES_R_NOMEMORY);
 
 	/*
 	 * Set up the context.
@@ -79,7 +77,7 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	(void)context_connect(ctx); /* XXXMLG */
 
 	*contextp = ctx;
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 void
@@ -172,17 +170,17 @@ context_connect(lwres_context_t *ctx)
 
 	s = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (s < 0)
-		return (-1);
+		return (LWRES_R_IOERROR);
 
 	ret = connect(s, (struct sockaddr *)&localhost, sizeof(localhost));
 	if (ret != 0) {
 		close(s);
-		return (-1);
+		return (LWRES_R_IOERROR);
 	}
 
 	ctx->sock = s;
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -198,17 +196,23 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	if (ret < 0)
 		return (ret);
 	if (ret != sendlen)
-		return (-1);
+		return (LWRES_R_IOERROR);
 
+ again:
 	fromlen = sizeof(sin);
 	ret = recvfrom(ctx->sock, recvbase, recvlen, 0,
 		       (struct sockaddr *)&sin, &fromlen);
 	if (ret < 0)
-		return (-1);
+		return (LWRES_R_IOERROR);
 
+	/*
+	 * If we got something other than what we expect, re-issue our
+	 * recvfrom() call.  This can happen if an old result comes in,
+	 * or if someone is sending us random stuff.
+	 */
 	if (sin.sin_addr.s_addr != htonl(INADDR_LOOPBACK)
 	    || sin.sin_port != htons(LWRES_UDP_PORT))
-		return (-1);
+		goto again;
 
 	return (ret);
 }

@@ -18,13 +18,13 @@
 #include <config.h>
 
 #include <assert.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwpacket.h>
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "context_p.h"
 #include "assert_p.h"
@@ -47,10 +47,8 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
-	if (buf == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
+	if (buf == NULL)
+		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, buflen);
 
 	pkt->length = buflen;
@@ -62,7 +60,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 	pkt->authlength = 0;
 
 	ret = lwres_lwpacket_renderheader(b, pkt);
-	if (ret != 0) {
+	if (ret != LWRES_R_SUCCESS) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
 		return (ret);
@@ -79,7 +77,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -100,10 +98,8 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
-	if (buf == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
+	if (buf == NULL)
+		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, buflen);
 
 	pkt->length = buflen;
@@ -114,7 +110,7 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 	pkt->authlength = 0;
 
 	ret = lwres_lwpacket_renderheader(b, pkt);
-	if (ret != 0) {
+	if (ret != LWRES_R_SUCCESS) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
 		return (ret);
@@ -131,7 +127,7 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -147,33 +143,33 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(structp != NULL && *structp == NULL);
 
 	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
-		return (-1);
+		return (LWRES_R_FAILURE);
 
 	req = CTXMALLOC(sizeof(lwres_nooprequest_t));
 	if (req == NULL)
-		return (-1);
+		return (LWRES_R_NOMEMORY);
 
 	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t))) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 	req->datalength = lwres_buffer_getuint16(b);
 
 	if (!SPACE_REMAINING(b, req->datalength)) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 	req->data = b->base + b->current;
 	lwres_buffer_forward(b, req->datalength);
 
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 
 	/* success! */
 	*structp = req;
-	return (0);
+	return (LWRES_R_SUCCESS);
 
 	/* Error return */
  out:
@@ -194,33 +190,33 @@ lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(structp != NULL && *structp == NULL);
 
 	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
-		return (-1);
+		return (LWRES_R_FAILURE);
 
 	req = CTXMALLOC(sizeof(lwres_noopresponse_t));
 	if (req == NULL)
-		return (-1);
+		return (LWRES_R_NOMEMORY);
 
 	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t))) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 	req->datalength = lwres_buffer_getuint16(b);
 
 	if (!SPACE_REMAINING(b, req->datalength)) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 	req->data = b->base + b->current;
 
 	lwres_buffer_forward(b, req->datalength);
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 
 	/* success! */
 	*structp = req;
-	return (0);
+	return (LWRES_R_SUCCESS);
 
 	/* Error return */
  out:

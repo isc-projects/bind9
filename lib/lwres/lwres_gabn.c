@@ -18,13 +18,13 @@
 #include <config.h>
 
 #include <assert.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwpacket.h>
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "context_p.h"
 #include "assert_p.h"
@@ -51,10 +51,9 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
-	if (buf == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
+	if (buf == NULL)
+		return (LWRES_R_NOMEMORY);
+
 	lwres_buffer_init(b, buf, buflen);
 
 	pkt->length = buflen;
@@ -66,7 +65,7 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 	pkt->authlength = 0;
 
 	ret = lwres_lwpacket_renderheader(b, pkt);
-	if (ret != 0) {
+	if (ret != LWRES_R_SUCCESS) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
 		return (ret);
@@ -88,7 +87,7 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -122,10 +121,8 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
-	if (buf == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
+	if (buf == NULL)
+		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, buflen);
 
 	pkt->length = buflen;
@@ -136,7 +133,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	pkt->authlength = 0;
 
 	ret = lwres_lwpacket_renderheader(b, pkt);
-	if (ret != 0) {
+	if (ret != LWRES_R_SUCCESS) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
 		return (ret);
@@ -175,7 +172,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -194,10 +191,10 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(structp != NULL && *structp == NULL);
 
 	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
-		return (-1);
+		return (LWRES_R_FAILURE);
 
 	if (!SPACE_REMAINING(b, 4))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 
 	addrtypes = lwres_buffer_getuint32(b);
 
@@ -205,22 +202,22 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	 * Pull off the name itself
 	 */
 	ret = lwres_string_parse(b, &name, &namelen);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		return (ret);
 
 	if (LWRES_BUFFER_REMAINING(b) != 0)
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 
 	gabn = CTXMALLOC(sizeof(lwres_gabnrequest_t));
 	if (gabn == NULL)
-		return (-1);
+		return (LWRES_R_NOMEMORY);
 
 	gabn->addrtypes = addrtypes;
 	gabn->name = name;
 	gabn->namelen = namelen;
 
 	*structp = gabn;
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -241,19 +238,19 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	gabn = NULL;
 
 	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
-		return (-1);
+		return (LWRES_R_FAILURE);
 
 	/*
 	 * Pull off the name itself
 	 */
 	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t) * 2))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 	naliases = lwres_buffer_getuint16(b);
 	naddrs = lwres_buffer_getuint16(b);
 
 	gabn = CTXMALLOC(sizeof(lwres_gabnresponse_t));
 	if (gabn == NULL)
-		return (-1);
+		return (LWRES_R_NOMEMORY);
 	gabn->aliases = NULL;
 	gabn->aliaslen = NULL;
 	gabn->addrs = NULL;
@@ -264,19 +261,19 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 
 	gabn->aliases = CTXMALLOC(sizeof(char *) * naliases);
 	if (gabn->aliases == NULL) {
-		ret = -1;
+		ret = LWRES_R_NOMEMORY;
 		goto out;
 	}
 
 	gabn->aliaslen = CTXMALLOC(sizeof(isc_uint16_t) * naliases);
 	if (gabn->aliaslen == NULL) {
-		ret = -1;
+		ret = LWRES_R_NOMEMORY;
 		goto out;
 	}
 
 	gabn->addrs = CTXMALLOC(sizeof(lwres_addr_t) * naddrs);
 	if (gabn->addrs == NULL) {
-		ret = -1;
+		ret = LWRES_R_NOMEMORY;
 		goto out;
 	}
 
@@ -284,7 +281,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	 * Now, pull off the real name.
 	 */
 	ret = lwres_string_parse(b, &gabn->realname, &gabn->realnamelen);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
 	/*
@@ -292,7 +289,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	 */
 	for (x = 0 ; x < gabn->naddrs ; x++) {
 		ret = lwres_addr_parse(b, &gabn->addrs[x]);
-		if (ret != 0)
+		if (ret != LWRES_R_SUCCESS)
 			goto out;
 	}
 
@@ -302,17 +299,17 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	for (x = 0 ; x < gabn->naliases ; x++) {
 		ret = lwres_string_parse(b, &gabn->aliases[x],
 					 &gabn->aliaslen[x]);
-		if (ret != 0)
+		if (ret != LWRES_R_SUCCESS)
 			goto out;
 	}
 
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = -1;
+		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
 
 	*structp = gabn;
-	return (0);
+	return (LWRES_R_SUCCESS);
 
  out:
 	if (gabn != NULL) {

@@ -18,7 +18,6 @@
 #include <config.h>
 
 #include <assert.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -30,6 +29,7 @@
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "assert_p.h"
 #include "context_p.h"
@@ -58,11 +58,11 @@ lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len)
 	REQUIRE(b != NULL);
 
 	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t)))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 	datalen = lwres_buffer_getuint16(b);
 	datalen++;
 	if (!SPACE_REMAINING(b, datalen))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 
 	string = b->base + b->current;
 
@@ -73,7 +73,7 @@ lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len)
 	if (c != NULL)
 		*c = string;
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -82,15 +82,15 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 	REQUIRE(addr != NULL);
 
 	if (!SPACE_REMAINING(b, sizeof(isc_uint32_t) + sizeof(isc_uint16_t)))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 	addr->family = lwres_buffer_getuint32(b);
 	addr->length = lwres_buffer_getuint16(b);
 	if (!SPACE_REMAINING(b, addr->length))
-		return (-1);
+		return (LWRES_R_UNEXPECTEDEND);
 	addr->address = b->base + b->current;
 	lwres_buffer_forward(b, addr->length);
 
-	return (0);
+	return (LWRES_R_SUCCESS);
 }
 
 int
@@ -100,8 +100,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	lwres_gabnrequest_t request;
 	lwres_gabnresponse_t *response;
 	int ret;
-	int free_b;
-	lwres_buffer_t b;
+	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
 	isc_uint32_t serial;
 	char *buffer;
@@ -111,14 +110,15 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	REQUIRE(addrtypes != 0);
 	REQUIRE(structp != NULL && *structp == NULL);
 
+	b_in.base = NULL;
+	b_out.base = NULL;
 	response = NULL;
-	free_b = 0;
 	buffer = NULL;
 	serial = (isc_uint32_t)name;
 
 	buffer = CTXMALLOC(LWRES_RECVLENGTH);
 	if (buffer == NULL) {
-		ret = -1;
+		ret = LWRES_R_NOMEMORY;
 		goto out;
 	}
 
@@ -132,44 +132,44 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	pkt.result = 0;
 	pkt.recvlength = LWRES_RECVLENGTH;
 
-	ret = lwres_gabnrequest_render(ctx, &request, &pkt, &b);
+ again:
+	ret = lwres_gabnrequest_render(ctx, &request, &pkt, &b_out);
 	if (ret != 0)
 		goto out;
-	free_b = 1;
 
-	ret = lwres_context_sendrecv(ctx, b.base, b.length, buffer,
+	ret = lwres_context_sendrecv(ctx, b_out.base, b_out.length, buffer,
 				     LWRES_RECVLENGTH);
 	if (ret < 0)
 		goto out;
 
-	CTXFREE(b.base, b.length);
-	free_b = 0;
-
-	lwres_buffer_init(&b, buffer, ret);
+	lwres_buffer_init(&b_in, buffer, ret);
 
 	/*
 	 * Parse the packet header.
 	 */
-	ret = lwres_lwpacket_parseheader(&b, &pkt);
+	ret = lwres_lwpacket_parseheader(&b_in, &pkt);
 	if (ret != 0)
 		goto out;
 
 	/*
 	 * Sanity check.
 	 */
-	if (pkt.serial != serial) {
-		ret = -1;
-		goto out;
-	}
-	if (pkt.opcode != LWRES_OPCODE_GETADDRSBYNAME) {
-		ret = -1;
-		goto out;
-	}
+	if (pkt.serial != serial)
+		goto again;
+	if (pkt.opcode != LWRES_OPCODE_GETADDRSBYNAME)
+		goto again;
+
+	/*
+	 * Free what we've transmitted
+	 */
+	CTXFREE(b_out.base, b_out.length);
+	b_out.base = NULL;
+	b_out.length = 0;
 
 	/*
 	 * Parse the response.
 	 */
-	ret = lwres_gabnresponse_parse(ctx, &b, &pkt, &response);
+	ret = lwres_gabnresponse_parse(ctx, &b_in, &pkt, &response);
 	if (ret != 0)
 		goto out;
 	response->base = buffer;
@@ -177,11 +177,11 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	buffer = NULL; /* don't free this below */
 
 	*structp = response;
-	return (0);
+	return (LWRES_R_SUCCESS);
 
  out:
-	if (free_b != 0)
-		CTXFREE(b.base, b.length);
+	if (b_out.base != NULL)
+		CTXFREE(b_out.base, b_out.length);
 	if (buffer != NULL)
 		CTXFREE(buffer, LWRES_RECVLENGTH);
 	if (response != NULL)
@@ -199,8 +199,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	lwres_gnbarequest_t request;
 	lwres_gnbaresponse_t *response;
 	int ret;
-	int free_b;
-	lwres_buffer_t b;
+	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
 	isc_uint32_t serial;
 	char *buffer;
@@ -211,14 +210,15 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	REQUIRE(addr != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
+	b_in.base = NULL;
+	b_out.base = NULL;
 	response = NULL;
-	free_b = 0;
 	buffer = NULL;
 	serial = (isc_uint32_t)addr;
 
 	buffer = CTXMALLOC(LWRES_RECVLENGTH);
 	if (buffer == NULL) {
-		ret = -1;
+		ret = LWRES_R_NOMEMORY;
 		goto out;
 	}
 
@@ -233,44 +233,44 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	pkt.result = 0;
 	pkt.recvlength = LWRES_RECVLENGTH;
 
-	ret = lwres_gnbarequest_render(ctx, &request, &pkt, &b);
+ again:
+	ret = lwres_gnbarequest_render(ctx, &request, &pkt, &b_out);
 	if (ret != 0)
 		goto out;
-	free_b = 1;
 
-	ret = lwres_context_sendrecv(ctx, b.base, b.length, buffer,
+	ret = lwres_context_sendrecv(ctx, b_out.base, b_out.length, buffer,
 				     LWRES_RECVLENGTH);
 	if (ret < 0)
 		goto out;
 
-	CTXFREE(b.base, b.length);
-	free_b = 0;
-
-	lwres_buffer_init(&b, buffer, ret);
+	lwres_buffer_init(&b_in, buffer, ret);
 
 	/*
 	 * Parse the packet header.
 	 */
-	ret = lwres_lwpacket_parseheader(&b, &pkt);
+	ret = lwres_lwpacket_parseheader(&b_in, &pkt);
 	if (ret != 0)
 		goto out;
 
 	/*
 	 * Sanity check.
 	 */
-	if (pkt.serial != serial) {
-		ret = -1;
-		goto out;
-	}
-	if (pkt.opcode != LWRES_OPCODE_GETNAMEBYADDR) {
-		ret = -1;
-		goto out;
-	}
+	if (pkt.serial != serial)
+		goto again;
+	if (pkt.opcode != LWRES_OPCODE_GETNAMEBYADDR)
+		goto again;
+
+	/*
+	 * Free what we've transmitted
+	 */
+	CTXFREE(b_out.base, b_out.length);
+	b_out.base = NULL;
+	b_out.length = 0;
 
 	/*
 	 * Parse the response.
 	 */
-	ret = lwres_gnbaresponse_parse(ctx, &b, &pkt, &response);
+	ret = lwres_gnbaresponse_parse(ctx, &b_in, &pkt, &response);
 	if (ret != 0)
 		goto out;
 	response->base = buffer;
@@ -278,11 +278,11 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	buffer = NULL; /* don't free this below */
 
 	*structp = response;
-	return (0);
+	return (LWRES_R_SUCCESS);
 
  out:
-	if (free_b != 0)
-		CTXFREE(b.base, b.length);
+	if (b_out.base != NULL)
+		CTXFREE(b_out.base, b_out.length);
 	if (buffer != NULL)
 		CTXFREE(buffer, LWRES_RECVLENGTH);
 	if (response != NULL)
