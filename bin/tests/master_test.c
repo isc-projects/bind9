@@ -89,11 +89,11 @@ main(int argc, char *argv[]) {
 		dns_rdatacallbacks_init(&callbacks);
 		callbacks.add = print_dataset;
 		
-		result = dns_master_load(argv[1], &origin, &origin, 1,
-					 ISC_FALSE,
-					 &soacount, &nscount, 
-					 &callbacks, mctx);
-		fprintf(stdout, "dns_master_load: %s\n",
+		result = dns_master_loadfile(argv[1], &origin, &origin, 1,
+					     ISC_FALSE,
+					     &soacount, &nscount, 
+					     &callbacks, mctx);
+		fprintf(stdout, "dns_master_loadfile: %s\n",
 			dns_result_totext(result));
 		if (result == DNS_R_SUCCESS)
 			fprintf(stdout, "soacount = %d, nscount = %d\n",

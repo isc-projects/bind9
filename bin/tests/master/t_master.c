@@ -117,20 +117,20 @@ test_master(char *testfile, char *origin, char *class, dns_result_t exp_result) 
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = dns_master_load(	testfile,
-					&dns_origin,
-					&dns_origin,
-					rdataclass,
-					1,
-				 	&soacount,
-					&nscount,
-				 	&callbacks,
-					T1_mctx);
+	dns_result = dns_master_loadfile(	testfile,
+						&dns_origin,
+						&dns_origin,
+						rdataclass,
+						1,
+						&soacount,
+						&nscount,
+						&callbacks,
+						T1_mctx);
 
 	if (dns_result == exp_result)
 		result = T_PASS;
 	else {
-		t_info("dns_master_load: got %s, expected %s\n",
+		t_info("dns_master_loadfile: got %s, expected %s\n",
 			dns_result_totext(dns_result),
 			dns_result_totext(exp_result));
 		result = T_FAIL;
@@ -184,56 +184,56 @@ test_master_x(char *filename) {
 	return(result);
 }
 
-static char *a1 =	"dns_master_load loads a valid master file and "
+static char *a1 =	"dns_master_loadfile loads a valid master file and "
 			"returns DNS_R_SUCCESS";
 static void
 t1() {
 	int	result;
-	t_assert("dns_master_load", 1, T_REQUIRED, a1);
+	t_assert("dns_master_loadfile", 1, T_REQUIRED, a1);
 	result = test_master_x("dns_master_load_1_data");
 	t_result(result);
 }
 
-static char *a2 =	"dns_master_load returns DNS_R_UNEXPECTEDEND when the "
+static char *a2 =	"dns_master_loadfile returns DNS_R_UNEXPECTEDEND when the "
 			"masterfile input ends unexpectedly";
 static void
 t2() {
 	int	result;
-	t_assert("dns_master_load", 2, T_REQUIRED, a2);
+	t_assert("dns_master_loadfile", 2, T_REQUIRED, a2);
 	result = test_master_x("dns_master_load_2_data");
 	t_result(result);
 }
 
-static char *a3 =	"dns_master_load returns DNS_R_NOOWNER when the "
+static char *a3 =	"dns_master_loadfile returns DNS_R_NOOWNER when the "
 			"an ownername is not specified";
 
 static void
 t3() {
 	int	result;
-	t_assert("dns_master_load", 3, T_REQUIRED, a3);
+	t_assert("dns_master_loadfile", 3, T_REQUIRED, a3);
 	result = test_master_x("dns_master_load_3_data");
 	t_result(result);
 }
 
-static char *a4 =	"dns_master_load returns DNS_R_NOTTL when the "
+static char *a4 =	"dns_master_loadfile returns DNS_R_NOTTL when the "
 			"the ttl is not specified";
 
 static void
 t4() {
 	int	result;
-	t_assert("dns_master_load", 4, T_REQUIRED, a4);
+	t_assert("dns_master_loadfile", 4, T_REQUIRED, a4);
 	result = test_master_x("dns_master_load_4_data");
 	t_result(result);
 }
 
-static char *a5 =	"dns_master_load returns DNS_R_BADCLASS when the "
+static char *a5 =	"dns_master_loadfile returns DNS_R_BADCLASS when the "
 			"the record class did not match the zone class";
 
 static void
 t5() {
 	int	result;
 
-	t_assert("dns_master_load", 5, T_REQUIRED, a5);
+	t_assert("dns_master_loadfile", 5, T_REQUIRED, a5);
 	result = test_master_x("dns_master_load_5_data");
 
 	t_result(result);

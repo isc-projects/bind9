@@ -217,13 +217,13 @@ dns_db_load(dns_db_t *db, char *filename) {
 	result = dns_db_beginload(db, &callbacks.add, &callbacks.add_private);
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	result = dns_master_load(filename, &db->origin, &db->origin,
-				 db->rdclass, age_ttl, &soacount, &nscount,
-				 &callbacks, db->mctx);
+	result = dns_master_loadfile(filename, &db->origin, &db->origin,
+				     db->rdclass, age_ttl, &soacount, &nscount,
+				     &callbacks, db->mctx);
 	eresult = dns_db_endload(db, &callbacks.add_private);
 	/*
 	 * We always call dns_db_endload(), but we only want to return its
-	 * result if dns_master_load() succeeded.  If dns_master_load()
+	 * result if dns_master_loadfile() succeeded.  If dns_master_loadfile()
 	 * failed, we want to return the result code it gave us.
 	 */
 	if (result == ISC_R_SUCCESS)
