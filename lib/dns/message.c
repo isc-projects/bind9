@@ -1700,6 +1700,8 @@ dns_message_renderreset(dns_message_t *msg)
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
 
+	msg->buffer = NULL;
+
 	for (i = 0; i < DNS_SECTION_MAX; i++) {
 		msg->cursors[i] = NULL;
 		msg->counts[i] = 0;
