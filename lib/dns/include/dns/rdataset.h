@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.39 2001/03/28 00:22:16 gson Exp $ */
+/* $Id: rdataset.h,v 1.40 2001/06/05 09:02:16 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -354,6 +354,34 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
  *	All the requirements of dns_rdataset_towire(), and
  *	that order_arg is NULL if and only if order is NULL.
  */
+
+isc_result_t
+dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
+			   dns_name_t *owner_name,
+			   dns_compress_t *cctx,
+			   isc_buffer_t *target,
+			   dns_rdatasetorderfunc_t order,
+			   void *order_arg,
+			   unsigned int *countp,
+			   void **state);
+/*
+ * Like dns_rdataset_towiresorted() except that a partial rdataset
+ * may be written.
+ *
+ * Requires:
+ *	All the requirements of dns_rdataset_towiresorted().
+ *	If 'state' is non NULL then the current position in the
+ *	rdataset will be remembered if the rdataset in not
+ *	completely written and should be passed on on subsequent
+ *	calls (NOT CURRENTLY IMPLEMENTED).
+ *
+ * Returns:
+ *	ISC_R_SUCCESS if all of the records were written.
+ *	ISC_R_NOSPACE if unable to fit in all of the records. *countp
+ *		      will be updated to reflect the number of records
+ *		      written.
+ */
+
 
 isc_result_t
 dns_rdataset_additionaldata(dns_rdataset_t *rdataset,

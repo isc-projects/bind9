@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.97 2001/03/28 02:42:56 bwelling Exp $ */
+/* $Id: message.h,v 1.98 2001/06/05 09:02:14 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -157,6 +157,7 @@ typedef int dns_messagetextflag_t;
  * Control behavior of rendering
  */
 #define DNS_MESSAGERENDER_ORDERED	0x0001	/* don't change order */
+#define DNS_MESSAGERENDER_PARTIAL	0x0002	/* allow a partial rdataset */
 
 typedef struct dns_msgblock dns_msgblock_t;
 

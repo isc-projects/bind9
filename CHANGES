@@ -1,3 +1,7 @@
+ 856.	[func]		Allow partial rdatasets to be returned in answer and
+			authority sections to help non-TCP capable clients
+			recover from truncation.  [RT #1301]
+
  855.	[bug]		Stop spurious "using RFC 1035 TTL semantics" warnings.
 
  854.	[bug]		The config parser didn't properly handle config

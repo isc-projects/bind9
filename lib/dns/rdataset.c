@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.55 2001/01/09 21:51:23 bwelling Exp $ */
+/* $Id: rdataset.c,v 1.56 2001/06/05 09:02:13 marka Exp $ */
 
 #include <config.h>
 
@@ -269,25 +269,25 @@ towire_compare(const void *av, const void *bv) {
 	return (a->key - b->key);
 }
 
-isc_result_t
-dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
-			  dns_name_t *owner_name,
-			  dns_compress_t *cctx,
-			  isc_buffer_t *target,
-			  dns_rdatasetorderfunc_t order,
-			  void *order_arg,
-			  unsigned int *countp)
+static isc_result_t
+towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
+	     dns_compress_t *cctx, isc_buffer_t *target,
+	     dns_rdatasetorderfunc_t order, void *order_arg,
+	     isc_boolean_t partial, unsigned int *countp,
+	     void **state)
 {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_result_t result;
-	unsigned int i, count;
+	unsigned int i, count, added;
 	isc_buffer_t savedbuffer, rdlen;
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
 	isc_boolean_t shuffle = ISC_FALSE;
 	dns_rdata_t shuffled[MAX_SHUFFLE];
 	struct towire_sort sorted[MAX_SHUFFLE];
+
+	UNUSED(state);
 
 	/*
 	 * Convert 'rdataset' to wire format, compressing names as specified
@@ -376,6 +376,7 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 
 	savedbuffer = *target;
 	i = 0;
+	added = 0;
 
 	do {
 		/*
@@ -422,6 +423,7 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 			isc_buffer_putuint16(&rdlen,
 					     (isc_uint16_t)(target->used -
 							    rdlen.used - 2));
+			added++;
 		}
 
 		if (shuffle) {
@@ -443,6 +445,10 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 	return (ISC_R_SUCCESS);
 
  rollback:
+	if (partial && result == ISC_R_NOSPACE) {
+		*countp += added;
+		return (result);
+	}
 	INSIST(savedbuffer.used < 65536);
 	dns_compress_rollback(cctx, (isc_uint16_t)savedbuffer.used);
 	*countp = 0;
@@ -452,14 +458,42 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 }
 
 isc_result_t
+dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
+			  dns_name_t *owner_name,
+			  dns_compress_t *cctx,
+			  isc_buffer_t *target,
+			  dns_rdatasetorderfunc_t order,
+			  void *order_arg,
+			  unsigned int *countp)
+{
+	return (towiresorted(rdataset, owner_name, cctx, target,
+			     order, order_arg, ISC_FALSE, countp, NULL));
+}
+
+isc_result_t
+dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
+			   dns_name_t *owner_name,
+			   dns_compress_t *cctx,
+			   isc_buffer_t *target,
+			   dns_rdatasetorderfunc_t order,
+			   void *order_arg,
+			   unsigned int *countp,
+			   void **state)
+{
+	REQUIRE(state == NULL);	/* XXX remove when implemented */
+	return (towiresorted(rdataset, owner_name, cctx, target,
+			     order, order_arg, ISC_TRUE, countp, state));
+}
+
+isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
 		    unsigned int *countp)
 {
-	return (dns_rdataset_towiresorted(rdataset, owner_name, cctx, target,
-					  NULL, NULL, countp));
+	return (towiresorted(rdataset, owner_name, cctx, target,
+			     NULL, NULL, ISC_FALSE, countp, NULL));
 }
 
 isc_result_t

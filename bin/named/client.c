@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.170 2001/06/04 19:32:52 tale Exp $ */
+/* $Id: client.c,v 1.171 2001/06/05 09:02:10 marka Exp $ */
 
 #include <config.h>
 
@@ -865,7 +865,8 @@ ns_client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
-					   DNS_SECTION_ANSWER, 0);
+					   DNS_SECTION_ANSWER,
+					   DNS_MESSAGERENDER_PARTIAL);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;
@@ -873,7 +874,8 @@ ns_client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
-					   DNS_SECTION_AUTHORITY, 0);
+					   DNS_SECTION_AUTHORITY,
+					   DNS_MESSAGERENDER_PARTIAL);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;

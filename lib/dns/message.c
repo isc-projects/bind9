@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.190 2001/04/19 18:28:35 bwelling Exp $ */
+/* $Id: message.c,v 1.191 2001/06/05 09:02:11 marka Exp $ */
 
 /***
  *** Imports
@@ -1723,6 +1723,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	isc_result_t result;
 	isc_buffer_t st; /* for rollbacks */
 	int pass;
+	isc_boolean_t partial = ISC_FALSE;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->buffer != NULL);
@@ -1742,6 +1743,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	msg->buffer->length -= msg->reserved;
 
 	total = 0;
+	if (msg->reserved == 0 && (options & DNS_MESSAGERENDER_PARTIAL) != 0)
+		partial = ISC_TRUE;
 
 	do {
 		name = ISC_LIST_HEAD(*section);
@@ -1771,7 +1774,19 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				st = *(msg->buffer);
 
 				count = 0;
-				result = dns_rdataset_towiresorted(rdataset,
+				if (partial)
+					result = dns_rdataset_towirepartial(
+							  rdataset,
+							  name,
+							  msg->cctx,
+							  msg->buffer,
+							  msg->order,
+							  msg->order_arg,
+							  &count,
+							  NULL);
+				else
+					result = dns_rdataset_towiresorted(
+							  rdataset,
 							  name,
 							  msg->cctx,
 							  msg->buffer,
@@ -1794,6 +1809,11 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				 * somewhere (probably in the message struct)
 				 * to indicate where to continue from.
 				 */
+				if (partial && result == ISC_R_NOSPACE) {
+					msg->buffer->length += msg->reserved;
+					msg->counts[sectionid] += total;
+					return (result);
+				}
 				if (result != ISC_R_SUCCESS) {
 					INSIST(st.used < 65536);
 					dns_compress_rollback(msg->cctx,
