@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.100 2000/04/24 23:30:46 tale Exp $ */
+/* $Id: zone.c,v 1.101 2000/04/26 18:24:15 gson Exp $ */
 
 #include <config.h>
 
@@ -3247,8 +3247,8 @@ zone_log(dns_zone_t *zone, const char *me, int level,
 	isc_buffer_init(&buffer, namebuf, sizeof namebuf, ISC_BUFFERTYPE_TEXT);
 	result = dns_name_totext(&zone->origin, ISC_FALSE, &buffer);
 	if (result != ISC_R_SUCCESS)
-		(void)isc_buffer_putstr(&buffer, "<UNKNOWN>");
-	(void)isc_buffer_putstr(&buffer, "/");
+		isc_buffer_putstr(&buffer, "<UNKNOWN>");
+	isc_buffer_putstr(&buffer, "/");
 	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
 	len = buffer.used;	/* XXX */
 

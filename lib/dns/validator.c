@@ -1211,8 +1211,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 		    != ISC_R_SUCCESS)
 		{
 			isc_buffer_clear(&b);
-			RUNTIME_CHECK(isc_buffer_putstr(&b, "<bad type>")
-				      == ISC_R_SUCCESS);
+			isc_buffer_putstr(&b, "<bad type>");
 		}
 		isc_buffer_used(&b, &r);
 		isc_log_write(dns_lctx, category, module, level,
