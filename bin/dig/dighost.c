@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.184 2001/01/17 00:48:18 bwelling Exp $ */
+/* $Id: dighost.c,v 1.185 2001/01/18 05:12:41 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -82,9 +82,7 @@ isc_boolean_t
 	cancel_now = ISC_FALSE,
 	usesearch = ISC_FALSE,
 	qr = ISC_FALSE,
-	is_dst_up = ISC_FALSE,
-	have_domain = ISC_FALSE;
-
+	is_dst_up = ISC_FALSE;
 in_port_t port = 53;
 unsigned int timeout = 0;
 isc_mem_t *mctx = NULL;
@@ -101,8 +99,7 @@ int sockcount = 0;
 int ndots = -1;
 int tries = 2;
 int lookup_counter = 0;
-char fixeddomain[MXNAME] = "";
-dig_searchlist_t *fixedsearch = NULL;
+
 /*
  * Exit Codes:
  *   0   Everything went well, including things like NXDOMAIN
@@ -355,7 +352,6 @@ make_empty_lookup(void) {
 	looknew->current_query = NULL;
 	looknew->doing_xfr = ISC_FALSE;
 	looknew->ixfr_serial = ISC_FALSE;
-	looknew->defname = ISC_FALSE;
 	looknew->trace = ISC_FALSE;
 	looknew->trace_root = ISC_FALSE;
 	looknew->identify = ISC_FALSE;
@@ -417,7 +413,6 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->rdclassset = lookold->rdclassset;
 	looknew->doing_xfr = lookold->doing_xfr;
 	looknew->ixfr_serial = lookold->ixfr_serial;
-	looknew->defname = lookold->defname;
 	looknew->trace = lookold->trace;
 	looknew->trace_root = lookold->trace_root;
 	looknew->identify = lookold->identify;
@@ -585,6 +580,19 @@ setup_file_key(void) {
 		isc_mem_free(mctx, secretstore);
 }
 
+static dig_searchlist_t *
+make_searchlist_entry(char *domain) {
+	dig_searchlist_t *search;
+	search = isc_mem_allocate(mctx, sizeof(*search));
+	if (search == NULL)
+		fatal("Memory allocation failure in %s:%d",
+		      __FILE__, __LINE__);
+	strncpy(search->origin, domain, MXNAME);
+	search->origin[MXNAME-1] = 0;
+	ISC_LINK_INIT(search, link);
+	return (search);
+}
+
 /*
  * Setup the system as a whole, reading key information and resolv.conf
  * settings.
@@ -605,84 +613,61 @@ setup_system(void) {
 	get_servers = ISC_TF(server_list.head == NULL);
 	fp = fopen(RESOLVCONF, "r");
 	/* XXX Use lwres resolv.conf reader */
-	if (fp != NULL) {
-		while (fgets(rcinput, MXNAME, fp) != 0) {
-			input = rcinput;
-			ptr = next_token(&input, " \t\r\n");
-			if (ptr != NULL) {
-				if (get_servers &&
-				    strcasecmp(ptr, "nameserver") == 0) {
-					debug("got a nameserver line");
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr != NULL) {
-						srv = make_server(ptr);
-						ISC_LIST_APPEND
-							(server_list,
-							 srv, link);
+	if (fp == NULL)
+		goto no_file;
+
+	while (fgets(rcinput, MXNAME, fp) != 0) {
+		input = rcinput;
+		ptr = next_token(&input, " \t\r\n");
+		if (ptr != NULL) {
+			if (get_servers &&
+			    strcasecmp(ptr, "nameserver") == 0) {
+				debug("got a nameserver line");
+				ptr = next_token(&input, " \t\r\n");
+				if (ptr != NULL) {
+					srv = make_server(ptr);
+					ISC_LIST_APPEND(server_list, srv, link);
+				}
+			} else if (strcasecmp(ptr, "options") == 0) {
+				ptr = next_token(&input, " \t\r\n");
+				if (ptr != NULL) {
+					if((strncasecmp(ptr, "ndots:",
+							6) == 0) &&
+					   (ndots == -1)) {
+						ndots = atoi(
+							     &ptr[6]);
+						debug("ndots is %d.",
+						      ndots);
 					}
-				} else if (strcasecmp(ptr, "options") == 0) {
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr != NULL) {
-						if((strncasecmp(ptr, "ndots:",
-							    6) == 0) &&
-						    (ndots == -1)) {
-							ndots = atoi(
-							      &ptr[6]);
-							debug("ndots is "
-							       "%d.",
-							       ndots);
-						}
-					}
-				} else if (strcasecmp(ptr, "search") == 0){
-					while ((ptr = next_token(&input, " \t\r\n"))
-					       != NULL) {
-						debug("adding search %s",
-						      ptr);
-						search = isc_mem_allocate(
-						   mctx, sizeof(*search));
-						if (search == NULL)
-							fatal("Memory "
-							      "allocation "
-							      "failure in %s:"
-							      "%d", __FILE__,
-							      __LINE__);
-						strncpy(search->
-							origin,
-							ptr,
-							MXNAME);
-						search->origin[MXNAME-1] = 0;
-						ISC_LIST_INITANDAPPEND
-							(search_list,
-							 search,
-							 link);
-					}
-				} else if ((strcasecmp(ptr, "domain") == 0) &&
-					   (fixeddomain[0] == 0 )){
-					have_domain = ISC_TRUE;
-					while ((ptr = next_token(&input, " \t\r\n"))
-					       != NULL) {
-						domain = isc_mem_allocate(
-						   mctx, sizeof(*domain));
-						if (domain == NULL)
-							fatal("Memory "
-							      "allocation "
-							      "failure in %s:"
-							      "%d", __FILE__,
-							      __LINE__);
-						strncpy(domain->
-							origin,
-							ptr,
-							MXNAME - 1);
-						domain->origin[MXNAME-1] = 0;
-					}
+				}
+			} else if (strcasecmp(ptr, "search") == 0){
+				while ((ptr = next_token(&input, " \t\r\n"))
+				       != NULL) {
+					debug("adding search %s", ptr);
+					search = make_searchlist_entry(ptr);
+					ISC_LIST_INITANDAPPEND(search_list,
+							       search, link);
+				}
+			} else if (strcasecmp(ptr, "domain") == 0) {
+				while ((ptr = next_token(&input, " \t\r\n"))
+				       != NULL) {
+					if (domain != NULL)
+						isc_mem_free(mctx, domain);
+					domain = make_searchlist_entry(ptr);
 				}
 			}
 		}
-		fclose(fp);
 	}
+	fclose(fp);
+ no_file:
 
-	if (domain != NULL)
+	if (ISC_LIST_EMPTY(search_list) && domain != NULL) {
 		ISC_LIST_INITANDAPPEND(search_list, domain, link);
+		domain = NULL;
+	}
+	if (domain != NULL)
+		isc_mem_free(mctx, domain);
+	
 	if (ndots == -1)
 		ndots = 1;
 
@@ -695,6 +680,27 @@ setup_system(void) {
 		setup_file_key();
 	else if (keysecret[0] != 0)
 		setup_text_key();
+}
+
+static void
+clear_searchlist(void) {
+	dig_searchlist_t *search;
+	while ((search = ISC_LIST_HEAD(search_list)) != NULL) {
+		ISC_LIST_UNLINK(search_list, search, link);
+		isc_mem_free(mctx, search);
+	}
+}
+
+/*
+ * Override the search list derived from resolv.conf by 'domain'.
+ */
+void
+set_search_domain(char *domain) {
+	dig_searchlist_t *search;
+	
+	clear_searchlist();
+	search = make_searchlist_entry(domain);
+	ISC_LIST_APPEND(search_list, search, link);
 }
 
 /*
@@ -1078,7 +1084,6 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 							(query->lookup,
 							 ISC_FALSE);
 						lookup->doing_xfr = ISC_FALSE;
-						lookup->defname = ISC_FALSE;
 						if (section ==
 						    DNS_SECTION_ANSWER) {
 						      lookup->trace =
@@ -1119,8 +1124,10 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 }
 
 /*
- * Create and queue a new lookup using the next origin from the origin
+ * Create and queue a new lookup using the next origin from the search
  * list, read in setup_system().
+ *
+ * Return ISC_TRUE iff there was another searchlist entry.
  */
 static isc_boolean_t
 next_origin(dns_message_t *msg, dig_query_t *query) {
@@ -1133,16 +1140,6 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	debug("next_origin()");
 	debug("following up %s", query->lookup->textname);
 
-	if (fixedsearch == query->lookup->origin) {
-		/*
-		 * This is a fixed domain search; there is no next entry.
-		 * While we're here, clear out the fixedsearch alloc.
-		 */
-		isc_mem_free(mctx, fixedsearch);
-		fixedsearch = NULL;
-		query->lookup->origin = NULL;
-		return (ISC_FALSE);
-	}
 	if (!usesearch)
 		/*
 		 * We're not using a search list, so don't even think
@@ -1156,7 +1153,6 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 		return (ISC_FALSE);
 	cancel_lookup(query->lookup);
 	lookup = requeue_lookup(query->lookup, ISC_TRUE);
-	lookup->defname = ISC_FALSE;
 	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
 	return (ISC_TRUE);
 }
@@ -1278,26 +1274,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * is TRUE or we got a domain line in the resolv.conf file.
 	 */
 	/* XXX New search here? */
-	if ((count_dots(lookup->textname) >= ndots) ||
-	    (!lookup->defname && !usesearch))
+	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
 		lookup->origin = NULL; /* Force abs lookup */
-	else if (lookup->origin == NULL && lookup->new_search &&
-		 (usesearch || have_domain)) {
-		if (fixeddomain[0] != 0) {
-			debug("using fixed domain %s", fixeddomain);
-			if (fixedsearch != NULL)
-				isc_mem_free(mctx, fixedsearch);
-			fixedsearch = isc_mem_allocate(mctx,
-						sizeof(*fixedsearch));
-			if (fixedsearch == NULL)
-				fatal("Memory allocation failure in %s:%d",
-				      __FILE__, __LINE__);
-			strncpy(fixedsearch->origin, fixeddomain,
-				sizeof(fixedsearch->origin));
-			fixedsearch->origin[sizeof(fixedsearch->origin)-1] = 0;
-			lookup->origin = fixedsearch;
-		} else
-			lookup->origin = ISC_LIST_HEAD(search_list);
+	else if (lookup->origin == NULL && lookup->new_search && usesearch) {
+		lookup->origin = ISC_LIST_HEAD(search_list);
 	}
 	if (lookup->origin != NULL) {
 		debug("trying origin %s", lookup->origin->origin);
@@ -2734,7 +2714,6 @@ void
 destroy_libs(void) {
 	void *ptr;
 	dig_server_t *s;
-	dig_searchlist_t *o;
 
 	debug("destroy_libs()");
 	if (global_task != NULL) {
@@ -2760,11 +2739,6 @@ destroy_libs(void) {
 
 	free_now = ISC_TRUE;
 
-	if (fixedsearch != NULL) {
-		debug("freeing fixed search");
-		isc_mem_free(mctx, fixedsearch);
-		fixedsearch = NULL;
-	}
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
 		debug("freeing global server %p", s);
@@ -2772,13 +2746,7 @@ destroy_libs(void) {
 		s = ISC_LIST_NEXT(s, link);
 		isc_mem_free(mctx, ptr);
 	}
-	o = ISC_LIST_HEAD(search_list);
-	while (o != NULL) {
-		debug("freeing search %p", o);
-		ptr = o;
-		o = ISC_LIST_NEXT(o, link);
-		isc_mem_free(mctx, ptr);
-	}
+	clear_searchlist();
 	if (commctx != NULL) {
 		debug("freeing commctx");
 		isc_mempool_destroy(&commctx);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.77 2001/01/17 02:21:51 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.78 2001/01/18 05:12:43 gson Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,6 @@ extern int sendcount;
 extern int ndots;
 extern int tries;
 extern int lookup_counter;
-extern char fixeddomain[MXNAME];
 extern int exitcode;
 extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
@@ -78,11 +77,13 @@ isc_boolean_t identify = ISC_FALSE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
-	defname = ISC_TRUE, aaonly = ISC_FALSE;
+	aaonly = ISC_FALSE;
 isc_boolean_t busy = ISC_FALSE, in_use = ISC_FALSE;
 char defclass[MXRD] = "IN";
 char deftype[MXRD] = "A";
 isc_event_t *global_event = NULL;
+
+char domainopt[DNS_NAME_MAXTEXT];
 
 static const char *rcodetext[] = {
 	"NOERROR",
@@ -484,25 +485,26 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	}
 	if (serv_only)
 		return;
-	printf("\n\tSet options:\n");
-	printf("\t  %s\t\t\t%s\t\t%s\n",
-		tcpmode?"vc":"novc", short_form?"nodebug":"debug",
-		debugging?"d2":"nod2");
-	printf("\t  %s\t\t%s\t%s\n",
-		defname?"defname":"nodefname",
-		usesearch?"search  ":"nosearch",
-		recurse?"recurse":"norecurse");
-	printf("\t  timeout = %d\t\tretry = %d\tport = %d\n",
-		timeout, tries, port);
-	printf("\t  querytype = %-8s\tclass = %s\n", deftype, defclass);
-	if (fixeddomain[0] != 0)
-		printf("\t  domain = %s\n", fixeddomain);
-	else if (!ISC_LIST_EMPTY(search_list)) {
-		listent = ISC_LIST_HEAD(search_list);
-		printf("\t  domain = %s\n", listent->origin);
-	} else
-		printf("\t  domain =\n");
-
+	printf("\nSet options:\n");
+	printf("  %s\t\t\t%s\t\t%s\n",
+	       tcpmode ? "vc" : "novc",
+	       short_form ? "nodebug" : "debug",
+	       debugging ? "d2" : "nod2");
+	printf("  %s\t\t%s\n",
+	       usesearch ? "search" : "nosearch",
+	       recurse ? "recurse" : "norecurse");
+	printf("  timeout = %d\t\tretry = %d\tport = %d\n",
+	       timeout, tries, port);
+	printf("  querytype = %-8s\tclass = %s\n", deftype, defclass);
+	printf("  srchlist = ");
+	for (listent = ISC_LIST_HEAD(search_list);
+	     listent != NULL;
+	     listent = ISC_LIST_NEXT(listent, link)) {
+		     printf("%s", listent->origin);
+		     if (ISC_LIST_NEXT(listent, link) != NULL)
+			     printf("/");
+	}
+	printf("\n");
 }
 
 static isc_boolean_t
@@ -572,10 +574,12 @@ setoption(char *opt) {
 		if (testtype(&opt[3]))
 			safecpy(deftype, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
-		safecpy(fixeddomain, &opt[7], MXNAME);
+		safecpy(domainopt, &opt[7], MXNAME);
+		set_search_domain(domainopt);		
 		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "do=", 3) == 0) {
-		safecpy(fixeddomain, &opt[3], MXNAME);
+		safecpy(domainopt, &opt[3], MXNAME);
+		set_search_domain(domainopt);
 		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "port=", 5) == 0) {
 		port = atoi(&opt[5]);
@@ -594,9 +598,9 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "ret=", 4) == 0) {
 		tries = atoi(&opt[4]);
  	} else if (strncasecmp(opt, "def", 3) == 0) {
-		defname = ISC_TRUE;
+		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "nodef", 5) == 0) {
-		defname = ISC_FALSE;
+		usesearch = ISC_FALSE;
  	} else if (strncasecmp(opt, "vc", 3) == 0) {
 		tcpmode = ISC_TRUE;
 	} else if (strncasecmp(opt, "novc", 5) == 0) {
@@ -873,7 +877,8 @@ main(int argc, char **argv) {
 "the `-sil[ent]' option to prevent this message from appearing.\n", stderr);
 	}
 	setup_system();
-
+	if (domainopt[0] != '\0')
+		set_search_domain(domainopt);
 	if (in_use)
 		result = isc_app_onrun(mctx, global_task, onrun_callback,
 				       NULL);

@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: dig.1,v 1.7 2001/01/09 21:47:10 bwelling Exp $
+.\" $Id: dig.1,v 1.8 2001/01/18 05:12:38 gson Exp $
 
 .Dd Jun 30, 2000
 .Dt DIG 1
@@ -259,23 +259,27 @@ Ignore truncation in UDP responses instead of
 retrying with TCP.  By default, TCP retries are
 performed.
 .It +domain=somename
-Set the default domain to
+Set the search list to contain the single domain
 .Ar somename ,
 as if specified in a
 .Dv domain
 directive in 
-.Pa /etc/resolv.conf .
+.Pa /etc/resolv.conf ,
+and enable search list processing as if the
+.Ar +search
+option were given.
 .It +[no]search
-Use [do not use] the search list in 
+Use [do not use] the search list defined by the 
+searchlist
+or
+domain
+directive in
 .Pa resolv.conf 
 (if any).
 The search list is not used by default.
 .It +[no]defname
-Use [do not use] the default domain name, if any, in
-.Pa resolv.conf 
-The default is not to append that name to 
-.Ar name
-when making queries. 
+Deprecated, treated as a synonym for 
+.Ar +[no]search
 .It +[no]aaonly
 This option does nothing.
 It is provided for compatibilty with old versions of

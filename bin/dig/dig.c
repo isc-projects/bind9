@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.133 2001/01/09 21:39:14 bwelling Exp $ */
+/* $Id: dig.c,v 1.134 2001/01/18 05:12:39 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -64,7 +64,6 @@ extern int sendcount;
 extern int ndots;
 extern int tries;
 extern int lookup_counter;
-extern char fixeddomain[MXNAME];
 extern int exitcode;
 extern isc_sockaddr_t bind_address;
 extern char keynametext[MXNAME];
@@ -82,6 +81,8 @@ extern isc_boolean_t debugging, memdebugging;
 char *batchname = NULL;
 FILE *batchfp = NULL;
 char *argv0;
+
+char domainopt[DNS_NAME_MAXTEXT];
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	nibble = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE;
@@ -156,7 +157,7 @@ show_usage(void) {
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
-"                 +[no]defname        (Set whether to use default domain)\n"
+"                 +[no]defname        (Ditto)\n"
 "                 +[no]recursive      (Recursive mode)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)"
 "\n"
@@ -595,7 +596,7 @@ parse_int(char *arg, const char *desc, isc_uint32_t max) {
 /*
  * We're not using isc_commandline_parse() here since the command line
  * syntax of dig is quite a bit different from that which can be described
- * that routine.
+ * by that routine.
  * XXX doc options
  */
 
@@ -696,7 +697,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'd':
 		switch (cmd[1]) {
 		case 'e': /* defname */
-			lookup->defname = state;
+			usesearch = state;
 			break;
 		case 'n': /* dnssec */	
 			lookup->dnssec = state;
@@ -706,8 +707,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto need_value;
 			if (!state)
 				goto invalid_option;
-			strncpy(fixeddomain, value, sizeof(fixeddomain));
-			fixeddomain[sizeof(fixeddomain)-1]=0;
+			strncpy(domainopt, value, sizeof(domainopt));
+			domainopt[sizeof(domainopt)-1] = '\0';
 			break;
 		default:
 			goto invalid_option;
@@ -1369,6 +1370,10 @@ main(int argc, char **argv) {
 	setup_libs();
 	parse_args(ISC_FALSE, ISC_FALSE, argc, argv);
 	setup_system();
+	if (domainopt[0] != '\0') {
+		set_search_domain(domainopt);
+		usesearch = ISC_TRUE;
+	}
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();

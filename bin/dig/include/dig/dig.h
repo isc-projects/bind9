@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.61 2001/01/09 21:39:19 bwelling Exp $ */
+/* $Id: dig.h,v 1.62 2001/01/18 05:12:44 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -91,7 +91,6 @@ struct dig_lookup {
 		cdflag,
 		trace,
 		trace_root,
-		defname,
 		tcp_mode,
 		nibble,
 		comments,
@@ -239,6 +238,9 @@ cancel_all(void);
 
 void
 destroy_libs(void);
+
+void
+set_search_domain(char *domain);
 
 /*
  * Routines needed in dig.c and host.c.

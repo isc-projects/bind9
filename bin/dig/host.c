@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.61 2001/01/09 21:39:17 bwelling Exp $ */
+/* $Id: host.c,v 1.62 2001/01/18 05:12:42 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -45,13 +45,12 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
+extern isc_boolean_t usesearch;
 extern isc_boolean_t debugging;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
 extern int ndots;
 extern int tries;
-extern isc_boolean_t usesearch;
-extern int lookup_counter;
 extern char *progname;
 extern isc_task_t *global_task;
 
