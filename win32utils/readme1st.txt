@@ -43,7 +43,7 @@ to allow rndc to control named. The additions look like the following:
 key rndckey { algorithm hmac-md5; secret "xxxxxxxxx=="; };
 
 controls {
-		inet 127.0.0.1 allow { localhost; } keys { rndckey; };
+	inet 127.0.0.1 allow { localhost; } keys { rndckey; };
 };
 
 Note that the value of the secret must come from the key generated
@@ -55,7 +55,7 @@ daemon.
 	DNS Tools
 
 I have built versions of the following tools for Windows NT: dig,
-nslookup, host,nsupdate, dnssec-keygen, dnssec-makekeyset, dnssec-signkey,
+nslookup, host, nsupdate, dnssec-keygen, dnssec-makekeyset, dnssec-signkey,
 dnssec-signzone. The tools will NOT run on Win9x, only WinNT and Win2000.
 The latter tools are for use with DNSSEC.
 
