@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.26 2001/01/09 22:00:28 bwelling Exp $ */
+/* $Id: private.h,v 1.27 2001/02/15 19:44:46 bwelling Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -25,11 +25,10 @@
 #define OMAPI_PRIVATE_H 1
 
 #include <isc/condition.h>
+#include <isc/hmacmd5.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/socket.h>
-
-#include <dst/dst.h>
 
 #include <omapi/omapi.h>
 
@@ -237,9 +236,9 @@ struct omapi_protocol {
 	 */
 	char *				authname;
 	unsigned int			algorithm;
-	isc_boolean_t			dst_update;
-	dst_key_t			*key;
-	dst_context_t			*dstctx;
+	isc_boolean_t			auth_update;
+	isc_region_t			*key;
+	isc_hmacmd5_t			hmacctx;
 	isc_region_t			signature_in;
 	isc_buffer_t			*signature_out;
 	isc_result_t			verify_result;
@@ -308,7 +307,7 @@ auth_destroy(void);
 
 #define auth_makekey omapi__auth_makekey
 isc_result_t
-auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key);
+auth_makekey(const char *name, unsigned int algorithm, isc_region_t **key);
 
 /*
  * Private library functions defined in connection.c.

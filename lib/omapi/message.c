@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.29 2001/01/09 22:00:02 bwelling Exp $ */
+/* $Id: message.c,v 1.30 2001/02/15 19:44:43 bwelling Exp $ */
 
 /*
  * Subroutines for dealing with message objects.
@@ -169,13 +169,9 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 	m = (omapi_message_t *)message;
 
 	if (p->key != NULL) {
-		p->dstctx = NULL;
-		result = dst_context_create(p->key, omapi_mctx, &p->dstctx);
-
-		if (result == ISC_R_SUCCESS)
-			result = dst_key_sigsize(p->key, &authlen);
-
-		p->dst_update = ISC_TRUE;
+		isc_hmacmd5_init(&p->hmacctx, p->key->base, p->key->length);
+		authlen = ISC_MD5_DIGESTLENGTH;
+		p->auth_update = ISC_TRUE;
 	}
 
 	if (result == ISC_R_SUCCESS)
@@ -251,13 +247,16 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 
 		isc_buffer_clear(p->signature_out);
 
-		result = dst_context_sign(p->dstctx, p->signature_out);
+		INSIST(isc_buffer_availablelength(p->signature_out) >=
+		       ISC_MD5_DIGESTLENGTH);
+		isc_hmacmd5_sign(&p->hmacctx,
+				 isc_buffer_base(p->signature_out));
 
-		dst_context_destroy(&p->dstctx);
+		isc_hmacmd5_invalidate(&p->hmacctx);
 
 		isc_buffer_region(p->signature_out, &r);
 
-		p->dst_update = ISC_FALSE;
+		p->auth_update = ISC_FALSE;
 
 		if (result == ISC_R_SUCCESS)
 			result = omapi_connection_putmem(connection,
@@ -377,13 +376,12 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		m = NULL;
 
 	if (protocol->key != NULL) {
-		if (protocol->verify_result == ISC_R_SUCCESS) {
-			protocol->verify_result =
-				dst_context_verify(protocol->dstctx,
-						   &protocol->signature_in);
+		if (protocol->signature_in.length < ISC_MD5_DIGESTLENGTH ||
+		    !isc_hmacmd5_verify(&protocol->hmacctx,
+					protocol->signature_in.base))
+			protocol->verify_result = ISC_R_FAILURE;
 
-			dst_context_destroy(&protocol->dstctx);
-		}
+			isc_hmacmd5_invalidate(&protocol->hmacctx);
 
 		if (protocol->verify_result != ISC_R_SUCCESS) {
 			if (connection->is_client) {

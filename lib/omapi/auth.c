@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.16 2001/02/15 19:13:47 bwelling Exp $ */
+/* $Id: auth.c,v 1.17 2001/02/15 19:44:41 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -41,8 +41,6 @@
 #include <isc/once.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <dns/name.h>
 
 #include <dst/result.h>
 
@@ -107,15 +105,9 @@ auth_find(const char *name, unsigned int algorithm, auth_t **ap) {
 
 
 isc_result_t
-auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
+auth_makekey(const char *name, unsigned int algorithm, isc_region_t **key) {
 	isc_result_t result;
-	isc_buffer_t secret;
 	auth_t *auth = NULL;
-	unsigned int dst_algorithm;
-	unsigned int length;
-	dns_name_t dnsname;
-	char namebuf[1025];
-	isc_buffer_t srcb, dstb;
 
 	REQUIRE(name != NULL && algorithm != 0);
 	REQUIRE(key != NULL && *key == NULL);
@@ -127,7 +119,6 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 	if (result == ISC_R_SUCCESS) {
 		switch (algorithm) {
 		case OMAPI_AUTH_HMACMD5:
-			dst_algorithm = DST_ALG_HMACMD5;
 			break;
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -136,21 +127,14 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 			return (ISC_R_UNEXPECTED);
 		}
 
-		isc_buffer_init(&secret, auth->secret, auth->secretlen);
-		isc_buffer_add(&secret, auth->secretlen);
+		*key = isc_mem_get(omapi_mctx, sizeof(isc_region_t));
+		if (*key == NULL)
+			result = ISC_R_NOMEMORY;
 
-		length = strlen(auth->name);
-		isc_buffer_init(&srcb, auth->name, length);
-		isc_buffer_add(&srcb, length);
-		isc_buffer_init(&dstb, namebuf, sizeof(namebuf));
-
-		dns_name_init(&dnsname, NULL);
-		result = dns_name_fromtext(&dnsname, &srcb, dns_rootname,
-					   ISC_FALSE, &dstb);
-		if (result == ISC_R_SUCCESS)
-			result = dst_key_frombuffer(&dnsname, dst_algorithm,
-						    0, 0, dns_rdataclass_in,
-						    &secret, omapi_mctx, key);
+		if (result == ISC_R_SUCCESS) {
+			(*key)->base = auth->secret;
+			(*key)->length = auth->secretlen;
+		}
 	}
 
 	UNLOCK(&mutex);

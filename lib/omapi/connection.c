@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.38 2001/02/06 22:54:27 bwelling Exp $ */
+/* $Id: connection.c,v 1.39 2001/02/15 19:44:42 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -628,7 +628,6 @@ omapi_connection_putmem(omapi_object_t *c, const unsigned char *src,
 	omapi_protocol_t *protocol;
 	isc_buffer_t *buffer;
 	isc_bufferlist_t bufferlist;
-	isc_constregion_t region;
 	isc_result_t result;
 	unsigned int space_available;
 
@@ -643,14 +642,8 @@ omapi_connection_putmem(omapi_object_t *c, const unsigned char *src,
 	/*
 	 * XXX make the auth stuff a part of the connection object instead?
 	 */
-	if (protocol->dst_update) {
-		region.base = src;
-		region.length = len;
-		result = dst_context_adddata(protocol->dstctx,
-					     (isc_region_t *)&region);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
+	if (protocol->auth_update)
+		isc_hmacmd5_update(&protocol->hmacctx, src, len);
 
 	/*
 	 * Check for enough space in the output buffers.
@@ -739,10 +732,10 @@ connection_copyout(unsigned char *dst, omapi_connection_t *connection,
 		if (dst != NULL)
 			(void)memcpy(dst, region.base, copy_bytes);
 
-		if (protocol->dst_update &&
+		if (protocol->auth_update &&
 		    protocol->verify_result == ISC_R_SUCCESS)
-			protocol->verify_result =
-				dst_context_adddata(protocol->dstctx, &region);
+			isc_hmacmd5_update(&protocol->hmacctx,
+					   region.base, region.length);
 
 		isc_buffer_forward(buffer, copy_bytes);
 

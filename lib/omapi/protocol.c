@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.33 2001/01/09 22:00:07 bwelling Exp $ */
+/* $Id: protocol.c,v 1.34 2001/02/15 19:44:45 bwelling Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -365,12 +365,11 @@ dispatch_messages(omapi_protocol_t *protocol,
 			break;
 
 		if (protocol->key != NULL) {
-			protocol->dstctx = NULL;
-			protocol->verify_result =
-				dst_context_create(protocol->key,
-						   omapi_mctx,
-						   &protocol->dstctx);
-			protocol->dst_update = ISC_TRUE;
+			isc_hmacmd5_init(&protocol->hmacctx,
+					 protocol->key->base,
+					 protocol->key->length);
+			protocol->verify_result = ISC_R_SUCCESS;
+			protocol->auth_update = ISC_TRUE;
 		}
 
 		/*
@@ -584,7 +583,7 @@ dispatch_messages(omapi_protocol_t *protocol,
 		 * Turn off the dst_verify updating while the signature
 		 * bytes are copied; they are not part of what was signed.
 		 */
-		protocol->dst_update = ISC_FALSE;
+		protocol->auth_update = ISC_FALSE;
 
 		connection_copyout(protocol->message->authenticator->
 				   u.buffer.value,
@@ -731,13 +730,15 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 				   p->verify_key_arg))
 			return (ISC_R_NOPERM);
 
-		if (p->key != NULL)
-			dst_key_free(&p->key);
+		if (p->key != NULL) {
+			isc_mem_put(omapi_mctx, p->key, sizeof(isc_region_t));
+			p->key = NULL;
+		}
 
 		result = auth_makekey(p->authname, p->algorithm, &p->key);
 
 		if (result == ISC_R_SUCCESS)
-			result = dst_key_sigsize(p->key, &sigsize);
+			sigsize = ISC_MD5_DIGESTLENGTH;
 
 		if (result == ISC_R_SUCCESS)
 			result = isc_buffer_allocate(omapi_mctx,
@@ -745,8 +746,11 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 						     sigsize);
 
 		if (result != ISC_R_SUCCESS) {
-			if (p->key != NULL)
-				dst_key_free(&p->key);
+			if (p->key != NULL) {
+				isc_mem_put(omapi_mctx, p->key,
+					    sizeof(isc_region_t));
+				p->key = NULL;
+			}
 			isc_mem_free(omapi_mctx, p->authname);
 			p->authname = NULL;
 			p->algorithm = 0;
@@ -791,7 +795,7 @@ protocol_destroy(omapi_object_t *h) {
 	}
 
 	if (p->key != NULL) {
-		dst_key_free(&p->key);
+		isc_mem_put(omapi_mctx, p->key, sizeof(isc_region_t));
 		p->key = NULL;
 	}
 }
