@@ -1,0 +1,840 @@
+
+
+IPSECKEY WG                                                M. Richardson
+Internet-Draft                                                       SSW
+Expires: November 26, 2003                                  May 28, 2003
+
+
+           A method for storing IPsec keying material in DNS.
+                     draft-ietf-ipseckey-rr-03.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on November 26, 2003.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2003).  All Rights Reserved.
+
+Abstract
+
+   This document describes a new resource record for DNS.  This record
+   may be used to store public keys for use in IPsec systems.
+
+   This record replaces the functionality of the sub-type #1 of the KEY
+   Resource Record, which has been obsoleted by RFC3445.
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003               [Page 1]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+Table of Contents
+
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   1.1 Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Storage formats  . . . . . . . . . . . . . . . . . . . . . . .  4
+   2.1 IPSECKEY RDATA format  . . . . . . . . . . . . . . . . . . . .  4
+   2.2 RDATA format - precedence  . . . . . . . . . . . . . . . . . .  4
+   2.3 RDATA format - algorithm type  . . . . . . . . . . . . . . . .  4
+   2.4 RDATA format - gateway type  . . . . . . . . . . . . . . . . .  5
+   2.5 RDATA format - gateway . . . . . . . . . . . . . . . . . . . .  5
+   2.6 RDATA format - RSA public key  . . . . . . . . . . . . . . . .  5
+   2.7 RDATA format - DSA public key  . . . . . . . . . . . . . . . .  6
+   3.  Presentation formats . . . . . . . . . . . . . . . . . . . . .  7
+   3.1 Representation of IPSECKEY RRs . . . . . . . . . . . . . . . .  7
+   3.2 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . .  7
+   4.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
+   4.1 Active attacks against unsecured IPSECKEY resource records . .  9
+   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 11
+   6.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 12
+       Normative references . . . . . . . . . . . . . . . . . . . . . 13
+       Non-normative references . . . . . . . . . . . . . . . . . . . 14
+       Author's Address . . . . . . . . . . . . . . . . . . . . . . . 14
+       Full Copyright Statement . . . . . . . . . . . . . . . . . . . 15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003               [Page 2]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+1. Introduction
+
+   The type number for the IPSECKEY RR is TBD.
+
+1.1 Overview
+
+   The IPSECKEY resource record (RR) is used to publish a public key
+   that is to be associated with a Domain Name System (DNS) name for use
+   with the IPsec protocol suite.  This can be the  public key of a
+   host, network, or application (in the case of per-port keying).
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC2119 [6].
+
+   An IPSECKEY resource record SHOULD be used in combination with DNSSEC
+   unless some other means of authenticating the IPSECKEY resource
+   record is available.
+
+   It is expected that there will often be multiple IPSECKEY resource
+   records at the same node.  This will be due to the presence of
+   multiple gateways and the need to rollover keys.
+
+   This resource record is class independent.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003               [Page 3]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+2. Storage formats
+
+2.1 IPSECKEY RDATA format
+
+   The RDATA for an IPSECKEY RR consists of a precedence value, a public
+   key, algorithm type, and an optional gateway address.
+
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |  precedence   | gateway type  |  algorithm  |     gateway     |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-------------+                 +
+      ~                            gateway                            ~
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               /
+      /                          public key                           /
+      /                                                               /
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+
+
+2.2 RDATA format - precedence
+
+   This is an 8-bit precedence for this record.  This is interpreted in
+   the same way as the PREFERENCE field described in section 3.3.9 of
+   RFC1035 [2].
+
+   Gateways listed in IPSECKEY records records with  lower precedence
+   are to be attempted first.  Where there is a tie in precedence, they
+   order should be non-deterministic.
+
+2.3 RDATA format - algorithm type
+
+   The algorithm field indicates the type of key that is present in the
+   public key field.  A positive number larger than 0 identifies an
+   algorithm type.  The following values, which have been previously
+   defined by IANA, are useful (see RFC2535 [8]).
+
+   A value of 0 indicates that no key is present.
+
+   The following values defined by IANA are useful:
+
+   3  A DSA key is present, in the format defined in RFC2536 [9]
+
+   5  A RSA key is present, in the format defined in RFC3110 [10]
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003               [Page 4]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+2.4 RDATA format - gateway type
+
+   The gateway type field indicates the format of the information that
+   is stored in the gateway field.
+
+   The following values are defined:
+
+   0  No gateway is present
+
+   1  A 4-byte IPv4 address is present
+
+   2  A 16-byte IPv6 address is present
+
+   3  A wire-encoded domain name is present.  The wire-encoded format is
+      self-describing, so the length is implicit.  The domain name MUST
+      NOT be compressed.
+
+
+2.5 RDATA format - gateway
+
+   The gateway field indicates a gateway to which an IPsec tunnel may be
+   created in order to reach the entity named by this resource record.
+
+   There are three formats:
+
+   A 32-bit IPv4 address is present in the gateway field.  The data
+   portion is an IPv4 address as described in section 3.4.1 of RFC1035
+   [2].  This is a 32-bit number in network byte order.
+
+   A 128-bit IPv6 address is present in the gateway field.  The data
+   portion is an IPv6 address as described in section 3.2 of RFC1886
+   [5].  This is a 128-bit number in network byte order.
+
+   The gateway field is a normal wire-encoded domain name, as described
+   in section 3.3 of RFC1035 [2].
+
+2.6 RDATA format - RSA public key
+
+   If the algorithm type has the value 5, then public key portion
+   contains an RSA public key, encoded as described in section 2 of
+   RFC3110 [10].
+
+   RFC2065 limited the exponent and modulus to 2552 bits in length, and
+   RFC3110 limits them to 4096 bits.  No such limit is specified here
+   for the purposes of encoding and decoding.
+
+   The length in octets of the public exponent length is represented as
+   one octet if it is in the range of 1 to 255, and by a zero octet
+
+
+
+Richardson              Expires November 26, 2003               [Page 5]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+   followed by a two octet unsigned length if it is longer than 255
+   bytes.  The public key modulus field is a multiprecision unsigned
+   integer.  The length of the modulus can be determined from the
+   RDLENGTH and the preceding RDATA fields including the exponent.
+
+   Leading zero bytes are prohibited in the exponent and modulus.
+
+2.7 RDATA format - DSA public key
+
+   If the algorithm type has the value 3, then public key portion
+   contains an DSA public key, encoded as described in RFC2536 [9].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003               [Page 6]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+3. Presentation formats
+
+3.1 Representation of IPSECKEY RRs
+
+   IPSECKEY RRs may appears in a zone data master file.  The precedence,
+   gateway type and algorithm and gateway fields are REQUIRED.  There
+   base64 encoded public key block is OPTIONAL; if not present, then the
+   public key field of the resource record MUST be contrued being zero
+   octets in length.
+
+   If no gateway is to be indicated, then the gateway type field MUST be
+   zero, and the gateway field MUST be "."
+
+   IN     IPSECKEY ( precedence gateway-type algorithm
+                     gateway base64-encoded-public-key )
+
+
+3.2 Examples
+
+   An example of a node 192.0.2.38 that will accept IPsec tunnels on its
+   own behalf.
+
+   38.2.0.192.in-addr.arpa. 7200 IN     IPSECKEY ( 10 1 5
+                    192.0.2.38
+                    AQOrXJxB56Q28iOO43Va36elIFFKc/QB2orIeL94BdC5X4idFQZjSpsZ
+                    Th48wKVXUE9xjwUkwR4R4/+1vjNN7KFp9fcqa2OxgjsoGqCn+3OPR8La
+                    9uyvZg0OBuSTj3qkbh/2HacAUJ7vqvjQ3W8Wj6sMXtTueR8NNcdSzJh1
+                    49ch3zqfiXrxxna8+8UEDQaRR9KOPiSvXb2KjnuDan6hDKOT4qTZRRRC
+                    MWwnNQ9zPIMNbLBp0rNcZ+ZGFg2ckWtWh5yhv1iXYLV2vmd9DB6d4Dv8
+                    cW7scc3rPmDXpYR6APqPBRHlcbenfHCt+oCkEWse8OQhMM56KODIVQq3
+                    fejrfi1H )
+
+   An example of a node, 192.0.2.38 that has published its key only.
+
+   38.2.0.192.in-addr.arpa. 7200 IN     IPSECKEY ( 10 0 5
+                    .
+                    AQOrXJxB56Q28iOO43Va36elIFFKc/QB2orIeL94BdC5X4idFQZjSpsZ
+                    Th48wKVXUE9xjwUkwR4R4/+1vjNN7KFp9fcqa2OxgjsoGqCn+3OPR8La
+                    9uyvZg0OBuSTj3qkbh/2HacAUJ7vqvjQ3W8Wj6sMXtTueR8NNcdSzJh1
+                    49ch3zqfiXrxxna8+8UEDQaRR9KOPiSvXb2KjnuDan6hDKOT4qTZRRRC
+                    MWwnNQ9zPIMNbLBp0rNcZ+ZGFg2ckWtWh5yhv1iXYLV2vmd9DB6d4Dv8
+                    cW7scc3rPmDXpYR6APqPBRHlcbenfHCt+oCkEWse8OQhMM56KODIVQq3
+                    fejrfi1H )
+
+   An example of a node, 192.0.2.38 that has delegated authority to the
+   node 192.0.2.3.
+
+   38.2.0.192.in-addr.arpa. 7200 IN     IPSECKEY ( 10 1 5
+
+
+
+Richardson              Expires November 26, 2003               [Page 7]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+                    192.0.2.3
+                    AQOrXJxB56Q28iOO43Va36elIFFKc/QB2orIeL94BdC5X4idFQZjSpsZ
+                    Th48wKVXUE9xjwUkwR4R4/+1vjNN7KFp9fcqa2OxgjsoGqCn+3OPR8La
+                    9uyvZg0OBuSTj3qkbh/2HacAUJ7vqvjQ3W8Wj6sMXtTueR8NNcdSzJh1
+                    49ch3zqfiXrxxna8+8UEDQaRR9KOPiSvXb2KjnuDan6hDKOT4qTZRRRC
+                    MWwnNQ9zPIMNbLBp0rNcZ+ZGFg2ckWtWh5yhv1iXYLV2vmd9DB6d4Dv8
+                    cW7scc3rPmDXpYR6APqPBRHlcbenfHCt+oCkEWse8OQhMM56KODIVQq3
+                    fejrfi1H )
+
+   An example of a node, 192.0.1.38 that has delegated authority to the
+   node with the identity "mygateway.example.com".
+
+   38.1.0.192.in-addr.arpa. 7200 IN     IPSECKEY ( 10 3 5
+                    mygateway.example.com.
+                    AQOrXJxB56Q28iOO43Va36elIFFKc/QB2orIeL94BdC5X4idFQZjSpsZ
+                    Th48wKVXUE9xjwUkwR4R4/+1vjNN7KFp9fcqa2OxgjsoGqCn+3OPR8La
+                    9uyvZg0OBuSTj3qkbh/2HacAUJ7vqvjQ3W8Wj6sMXtTueR8NNcdSzJh1
+                    49ch3zqfiXrxxna8+8UEDQaRR9KOPiSvXb2KjnuDan6hDKOT4qTZRRRC
+                    MWwnNQ9zPIMNbLBp0rNcZ+ZGFg2ckWtWh5yhv1iXYLV2vmd9DB6d4Dv8
+                    cW7scc3rPmDXpYR6APqPBRHlcbenfHCt+oCkEWse8OQhMM56KODIVQq3
+                    fejrfi1H )
+
+   An example of a node, 2001:0DB8:0200:1:210:f3ff:fe03:4d0 that has
+   delegated authority to the node 2001:0DB8:c000:0200:2::1
+
+   $ORIGIN 1.0.0.0.0.0.2.8.B.D.0.1.0.0.2.ip6.int.
+   0.d.4.0.3.0.e.f.f.f.3.f.0.1.2.0 7200 IN     IPSECKEY ( 10 2 5
+                    2001:0DB8:0:8002::2000:1
+                    AQOrXJxB56Q28iOO43Va36elIFFKc/QB2orIeL94BdC5X4idFQZjSpsZ
+                    Th48wKVXUE9xjwUkwR4R4/+1vjNN7KFp9fcqa2OxgjsoGqCn+3OPR8La
+                    9uyvZg0OBuSTj3qkbh/2HacAUJ7vqvjQ3W8Wj6sMXtTueR8NNcdSzJh1
+                    49ch3zqfiXrxxna8+8UEDQaRR9KOPiSvXb2KjnuDan6hDKOT4qTZRRRC
+                    MWwnNQ9zPIMNbLBp0rNcZ+ZGFg2ckWtWh5yhv1iXYLV2vmd9DB6d4Dv8
+                    cW7scc3rPmDXpYR6APqPBRHlcbenfHCt+oCkEWse8OQhMM56KODIVQq3
+                    fejrfi1H )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003               [Page 8]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+4. Security Considerations
+
+   This entire memo pertains to the provision of public keying material
+   for use by key management protocols such as ISAKMP/IKE (RFC2407) [7].
+
+   The IPSECKEY resource record contains information that SHOULD be
+   communicated to the end client in an integral fashion - i.e.  free
+   from modification.  The form of this channel is up to the consumer of
+   the data - there must be a trust relationship between the end
+   consumer of this resource record and the server.  This relationship
+   may be end-to-end DNSSEC validation, a TSIG or SIG(0) channel to
+   another secure source, a secure local channel on the host, or some
+   combination of the above.
+
+   The keying material provided by the IPSECKEY resource record is not
+   sensitive to passive attacks.  The keying material may be freely
+   disclosed to any party without any impact on the security properties
+   of the resulting IPsec session: IPsec and IKE provide for defense
+   against both active and passive attacks.
+
+   Any use of this resource record MUST carefully document their trust
+   model, and why the trust model of DNSSEC is appropriate, if that is
+   the secure channel used.
+
+4.1 Active attacks against unsecured IPSECKEY resource records
+
+   This section deals with active attacks against the DNS.  These
+   attacks require that DNS requests and responses be intercepted and
+   changed.  DNSSEC is designed to defend against attacks of this kind.
+
+   The first kind of active attack is when the attacker replaces the
+   keying material with either a key under its control, or with garbage.
+
+   If the attacker is not able to mount a subsequent man-in-the-middle
+   attack on the IKE negotiation after replacing the public key, then
+   this will result in a denial of service, as the authenticator used by
+   IKE would fail.
+
+   If the attacker is able to both to mount active attacks against DNS
+   and is also in a position to perform a man-in-the-middle attack on
+   IKE and IPsec negotiations, then the attacker will be in a position
+   to compromise the resulting IPsec channel.  Note that an attacker
+   must be able to perform active DNS attacks on both sides of the IKE
+   negotiation in order for this to succeed.
+
+   The second kind of active attack is one in which the attacker
+   replaces the the gateway address to point to a node under the
+   attacker's control.  The attacker can then either replace the public
+
+
+
+Richardson              Expires November 26, 2003               [Page 9]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+   key or remove it, thus providing an IPSECKEY record of its own to
+   match the gateway address.
+
+   This later form creates a simple man-in-the-middle since the attacker
+   can then create a second tunnel to the real destination.  Note that,
+   as before, this requires that the attacker also mount an active
+   attack against the responder.
+
+   Note that the man-in-the-middle can not just forward cleartext
+   packets to the original destination.  While the destination may be
+   willing to speak in the clear, replying to the original sender, the
+   sender will have already created a policy expecting ciphertext.
+   Thus, the attacker will need to intercept traffic from both sides.
+
+   Note that the danger here only applies to cases where the gateway
+   field of the IPSECKEY RR indicates a different entity than the owner
+   name of the IPSECKEY RR.  In cases where the end-to-end integrity of
+   the IPSECKEY RR is suspect, the end client MUST restrict its use of
+   the IPSECKEY RR to cases where the RR owner name matches the content
+   of the gateway field.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003              [Page 10]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+5. IANA Considerations
+
+   IANA is asked to assign a resource record type number from the normal
+   resource record number space.
+
+   The algorithm field does not require any IANA action, as it is
+   inherited from DNS KEY algorithm values.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003              [Page 11]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+6. Acknowledgments
+
+   My thanks to Paul Hoffman, Sam Weiler, Jean-Jacques Puig, and Olafur
+   Gurmundsson who reviewed this document carefully.  Additional thanks
+   to Olafur Gurmundsson for a reference implementation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003              [Page 12]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+Normative references
+
+   [1]  Mockapetris, P., "Domain names - concepts and facilities", STD
+        13, RFC 1034, November 1987.
+
+   [2]  Mockapetris, P., "Domain names - implementation and
+        specification", STD 13, RFC 1035, November 1987.
+
+   [3]  Bradner, S., "The Internet Standards Process -- Revision 3", BCP
+        9, RFC 2026, October 1996.
+
+   [4]  Eastlake, D. and C. Kaufman, "Domain Name System Security
+        Extensions", RFC 2065, January 1997.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003              [Page 13]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+Non-normative references
+
+   [5]   Thomson, S. and C. Huitema, "DNS Extensions to support IP
+         version 6", RFC 1886, December 1995.
+
+   [6]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
+         Levels", BCP 14, RFC 2119, March 1997.
+
+   [7]   Piper, D., "The Internet IP Security Domain of Interpretation
+         for ISAKMP", RFC 2407, November 1998.
+
+   [8]   Eastlake, D., "Domain Name System Security Extensions", RFC
+         2535, March 1999.
+
+   [9]   Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
+         (DNS)", RFC 2536, March 1999.
+
+   [10]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
+         System (DNS)", RFC 3110, May 2001.
+
+   [11]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
+         Record (RR)", RFC 3445, December 2002.
+
+
+Author's Address
+
+   Michael C. Richardson
+   Sandelman Software Works
+   470 Dawson Avenue
+   Ottawa, ON  K1Z 5V7
+   CA
+
+   EMail: mcr@sandelman.ottawa.on.ca
+   URI:   http://www.sandelman.ottawa.on.ca/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003              [Page 14]
+
+Internet-Draft                   ipsecrr                        May 2003
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2003).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson              Expires November 26, 2003              [Page 15]
+
