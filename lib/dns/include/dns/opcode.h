@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opcode.h,v 1.1 2002/08/09 06:12:50 marka Exp $ */
+/* $Id: opcode.h,v 1.1.200.1 2003/08/19 07:40:20 marka Exp $ */
 
 #ifndef DNS_OPCODE_H
 #define DNS_OPCODE_H 1
