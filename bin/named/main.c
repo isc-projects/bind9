@@ -1,5 +1,3 @@
-#include <dns/rootns.h>
-
 /*
  * Copyright (C) 1999  Internet Software Consortium.
  * 
@@ -24,10 +22,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stddef.h>
-
-/* XXX this include will need to go. It's here for _SC_OPEN_MAX */
-#include <unistd.h>
-
 
 #include <isc/app.h>
 #include <isc/assertions.h>
@@ -145,7 +139,8 @@ parse_command_line(int argc, char *argv[]) {
 	int ch;
 
 	isc_commandline_errprint = ISC_FALSE;
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:d:fN:p:st:x:")) !=
+	while ((ch = isc_commandline_parse(argc, argv,
+					   "b:c:d:fN:p:st:u:x:")) !=
 	       -1) {
 		switch (ch) {
 		case 'b':
@@ -171,8 +166,11 @@ parse_command_line(int argc, char *argv[]) {
 			want_stats = ISC_TRUE;
 			break;
 		case 't':
-			/* XXXJAB should be make a copy? */
+			/* XXXJAB should we make a copy? */
 			ns_g_chrootdir = isc_commandline_argument;
+			break;
+		case 'u':
+			ns_g_username = isc_commandline_argument;
 			break;
 		case 'x':
 			/* XXXRTH temporary syntax */
@@ -240,6 +238,8 @@ static void
 setup() {
 	isc_result_t result;
 
+	ns_os_chroot(ns_g_chrootdir);
+
 	result = ns_log_init();
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("ns_log_init() failed: %s",
@@ -252,12 +252,8 @@ setup() {
 	 * because calling create_managers() will create threads, which
 	 * would be lost after fork().
 	 */
-	if (!ns_g_foreground) {
-		result = ns_os_daemonize();
-		if (result != ISC_R_SUCCESS)
-			ns_main_earlyfatal("ns_os_daemonize() failed: %s",
-					   isc_result_totext(result));
-	}
+	if (!ns_g_foreground)
+		ns_os_daemonize();
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s", ns_g_version);
@@ -287,10 +283,7 @@ main(int argc, char *argv[]) {
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
 
-	result = ns_os_init();
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("ns_os_init() failed: %s",
-				   isc_result_totext(result));
+	ns_os_init();
 
 	result = isc_app_start();
 	if (result != ISC_R_SUCCESS)
