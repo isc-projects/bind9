@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137.2.8 2000/07/27 21:42:14 gson Exp $ */
+/* $Id: resolver.c,v 1.137.2.9 2000/07/28 22:45:52 gson Exp $ */
 
 #include <config.h>
 
@@ -3341,7 +3341,7 @@ answer_response(fetchctx_t *fctx) {
 	dns_name_t *name, *qname, tname;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t done, external, chaining, aa, found, want_chaining;
-	isc_boolean_t have_answer;
+	isc_boolean_t have_answer, found_cname, found_type;
 	unsigned int aflag;
 	dns_rdatatype_t type;
 	dns_fixedname_t dname;
@@ -3356,6 +3356,8 @@ answer_response(fetchctx_t *fctx) {
 	 */
 
 	done = ISC_FALSE;
+	found_cname = ISC_FALSE;
+	found_type = ISC_FALSE;
 	chaining = ISC_FALSE;
 	have_answer = ISC_FALSE;
 	want_chaining = ISC_FALSE;
@@ -3377,11 +3379,12 @@ answer_response(fetchctx_t *fctx) {
 				found = ISC_FALSE;
 				want_chaining = ISC_FALSE;
 				aflag = 0;
-				if (rdataset->type == type) {
+				if (rdataset->type == type && !found_cname) {
 					/*
 					 * We've found an ordinary answer.
 					 */
 					found = ISC_TRUE;
+					found_type = ISC_TRUE;
 					done = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWER;
 				} else if (type == dns_rdatatype_any) {
@@ -3393,15 +3396,18 @@ answer_response(fetchctx_t *fctx) {
 					found = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWER;
 				} else if (rdataset->type == dns_rdatatype_sig
-					   && rdataset->covers == type) {
+					   && rdataset->covers == type
+					   && !found_cname) {
 					/*
 					 * We've found a signature that
 					 * covers the type we're looking for.
 					 */
 					found = ISC_TRUE;
+					found_type = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWERSIG;
 				} else if (rdataset->type ==
-					   dns_rdatatype_cname) {
+					   dns_rdatatype_cname
+					   && !found_type) {
 					/*
 					 * We're looking for something else,
 					 * but we found a CNAME.
@@ -3414,6 +3420,7 @@ answer_response(fetchctx_t *fctx) {
 					    type == dns_rdatatype_nxt)
 						return (DNS_R_FORMERR);
 					found = ISC_TRUE;
+					found_cname = ISC_TRUE;
 					want_chaining = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWER;
 					result = cname_target(rdataset,
@@ -3422,12 +3429,14 @@ answer_response(fetchctx_t *fctx) {
 						return (result);
 				} else if (rdataset->type == dns_rdatatype_sig
 					   && rdataset->covers ==
-					   dns_rdatatype_cname) {
+					   dns_rdatatype_cname
+					   && !found_type) {
 					/*
 					 * We're looking for something else,
 					 * but we found a SIG CNAME.
 					 */
 					found = ISC_TRUE;
+					found_cname = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWERSIG;
 				}
 
