@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.33 2000/03/28 22:58:25 brister Exp $ */
+/* $Id: confzone.c,v 1.34 2000/03/30 17:21:13 brister Exp $ */
 
 #include <config.h>
 
@@ -191,6 +191,46 @@ dns_c_zonelist_delete(dns_c_zonelist_t **zlist)
 }
 
 isc_result_t
+dns_c_zonelist_checkzones(dns_c_zonelist_t *list)
+{
+	dns_c_zone_t *zone;
+	dns_c_ipmatchlist_t *ipmlist = NULL;
+	dns_ssutable_t *ssutable = NULL;
+	isc_result_t result;
+	const char *autherr = "zone `%s': allow-update is ignored when "
+		"specified with update-policy";
+
+	REQUIRE(DNS_C_ZONELIST_VALID(list));
+
+	for (zone = dns_c_zonelist_firstzone(list) ;
+	     zone != NULL ;
+	     zone = dns_c_zonelist_nextzone(list, zone)) {
+
+		ipmlist = NULL;
+		ssutable = NULL;
+
+		result = dns_c_zone_getallowupd(zone, &ipmlist);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_c_zone_getssuauth(zone, &ssutable);
+			if (result == ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+					      DNS_LOGMODULE_CONFIG,
+					      ISC_LOG_WARNING, autherr,
+					      zone->name);
+				dns_c_zone_unsetallowupd(zone);
+			}
+			dns_c_ipmatchlist_detach(&ipmlist);
+		}
+		
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+
+isc_result_t
 dns_c_zonelist_addzone(dns_c_zonelist_t *zlist,
 		       dns_c_zone_t *zone)
 {
@@ -331,6 +371,52 @@ dns_c_zonelist_printpostopts(FILE *fp, int indent,
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
 	zone_list_print(zones_postopts, fp, indent, list);
 }
+
+dns_c_zone_t *
+dns_c_zonelist_firstzone(dns_c_zonelist_t *list)
+{
+	dns_c_zonelem_t *zoneelem;
+
+	REQUIRE(DNS_C_ZONELIST_VALID(list));
+
+	zoneelem = ISC_LIST_HEAD(list->zones);
+
+	if (zoneelem != NULL) {
+		return (zoneelem->thezone);
+	} else {
+		return (NULL);
+	}
+}
+
+
+dns_c_zone_t *
+dns_c_zonelist_nextzone(dns_c_zonelist_t *list,
+			dns_c_zone_t *zone)
+{
+	dns_c_zonelem_t *zoneelem;
+	
+	REQUIRE(DNS_C_ZONELIST_VALID(list));
+
+	zoneelem = ISC_LIST_HEAD(list->zones);
+
+	while (zoneelem != NULL && zoneelem->thezone != zone) {
+		zoneelem = ISC_LIST_NEXT(zoneelem, next);
+	}
+
+	/* XXX
+	 * should REQUIRE or return NULL if zone was no on list?
+	 */
+	REQUIRE(zoneelem != NULL);
+
+	zoneelem = ISC_LIST_NEXT(zoneelem, next);
+
+	if (zoneelem == NULL) {
+		return (NULL);
+	} else {
+		return (zoneelem->thezone);
+	}
+}
+
 
 
 
@@ -522,6 +608,8 @@ dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone)
 }
 
 
+
+
 isc_result_t
 dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile)
 {
@@ -628,6 +716,7 @@ dns_c_zone_setchecknames(dns_c_zone_t *zone,
 }
 
 
+
 isc_result_t
 dns_c_zone_setallowupd(dns_c_zone_t *zone,
 		       dns_c_ipmatchlist_t *ipml,
@@ -676,6 +765,48 @@ dns_c_zone_setallowupd(dns_c_zone_t *zone,
 	}
 
 	return (res);
+}
+
+isc_result_t
+dns_c_zone_unsetallowupd(dns_c_zone_t *zone)
+{
+	dns_c_ipmatchlist_t **p = NULL;
+	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		p = &zone->u.mzone.allow_update;
+		break;
+			
+	case dns_c_zone_slave:
+		p = &zone->u.szone.allow_update;
+		break;
+		
+	case dns_c_zone_stub:
+		p = &zone->u.tzone.allow_update;
+		break;
+		
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have an allow_update field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have an "
+			      "allow_update field");
+		return (ISC_R_FAILURE);
+	}
+
+	if (*p != NULL) {
+		dns_c_ipmatchlist_detach(p);
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_NOTFOUND);
+	}
 }
 
 

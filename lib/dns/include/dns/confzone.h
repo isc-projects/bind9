@@ -249,6 +249,7 @@ struct dns_c_zone
 isc_result_t	dns_c_zonelist_new(isc_mem_t *mem,
 				   dns_c_zonelist_t **zlist);
 isc_result_t	dns_c_zonelist_delete(dns_c_zonelist_t **zlist);
+isc_result_t	dns_c_zonelist_checkzones(dns_c_zonelist_t *zlist);
 #if 0
 dns_c_zone_t   *dns_c_zonelist_currzone(dns_c_zonelist_t *zlist);
 #endif
@@ -269,6 +270,13 @@ void		dns_c_zonelist_printpostopts(FILE *fp,
 void		dns_c_zonelist_printpreopts(FILE *fp,
 					    int indent,
 					    dns_c_zonelist_t *list);
+
+dns_c_zone_t   *dns_c_zonelist_firstzone(dns_c_zonelist_t *list);
+dns_c_zone_t   *dns_c_zonelist_nextzone(dns_c_zonelist_t *list,
+					dns_c_zone_t *thezone);
+
+
+
 isc_result_t	dns_c_zone_new(isc_mem_t *mem,
 			       dns_c_zonetype_t ztype, dns_rdataclass_t zclass,
 			       const char *name, const char *internalname,
@@ -282,9 +290,6 @@ isc_result_t	dns_c_zone_setfile(dns_c_zone_t *zone,
 				   const char *newfile);
 isc_result_t	dns_c_zone_setchecknames(dns_c_zone_t *zone,
 					 dns_severity_t severity);
-isc_result_t	dns_c_zone_setallowupd(dns_c_zone_t *zone,
-				       dns_c_ipmatchlist_t *ipml,
-				       isc_boolean_t deepcopy);
 isc_result_t	dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
 						    dns_c_ipmatchlist_t *ipml,
 						    isc_boolean_t deepcopy);
@@ -344,8 +349,6 @@ isc_result_t	dns_c_zone_getfile(dns_c_zone_t *zone,
 				   const char **retval);
 isc_result_t	dns_c_zone_getchecknames(dns_c_zone_t *zone,
 					 dns_severity_t *retval);
-isc_result_t	dns_c_zone_getallowupd(dns_c_zone_t *zone,
-				       dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_zone_getssuauth(dns_c_zone_t *zone,
 				      dns_ssutable_t **ssutable);
 isc_result_t	dns_c_zone_getallowupdateforwarding(dns_c_zone_t *zone,
@@ -391,5 +394,12 @@ isc_result_t	dns_c_zone_getforward(dns_c_zone_t *zone,
 isc_result_t	dns_c_zone_getforwarders(dns_c_zone_t *zone,
 					 dns_c_iplist_t **retval);
 
+
+isc_result_t	dns_c_zone_setallowupd(dns_c_zone_t *zone,
+				       dns_c_ipmatchlist_t *ipml,
+				       isc_boolean_t deepcopy);
+isc_result_t	dns_c_zone_getallowupd(dns_c_zone_t *zone,
+				       dns_c_ipmatchlist_t **retval);
+isc_result_t	dns_c_zone_unsetallowupd(dns_c_zone_t *zone);
 
 #endif /* DNS_CONFIG_CONFZONE_H */
