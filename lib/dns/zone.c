@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.143 2000/06/07 02:40:42 marka Exp $ */
+/* $Id: zone.c,v 1.144 2000/06/07 06:14:52 marka Exp $ */
 
 #include <config.h>
 
@@ -1971,6 +1971,108 @@ dns_zone_notify(dns_zone_t *zone) {
  *** Private
  ***/
 
+static inline isc_result_t 
+save_nsrrset(dns_message_t *message, dns_name_t *name, 
+	     dns_db_t *db, dns_dbversion_t *version)
+{
+	dns_rdataset_t *nsrdataset = NULL;
+	dns_rdataset_t *rdataset = NULL;
+	dns_dbnode_t *node;
+	dns_rdata_ns_t ns;
+	isc_result_t result;
+	dns_rdata_t rdata;
+
+	/*
+	 * Extract NS RRset from message.
+	 */
+	result = dns_message_findname(message, DNS_SECTION_ANSWER, name,
+				      dns_rdatatype_ns, dns_rdatatype_none,
+				      NULL, &nsrdataset);
+	if (result != ISC_R_SUCCESS)
+		goto fail;
+
+	/*
+	 * Add NS rdataset.
+	 */
+	result = dns_db_findnode(db, name, ISC_TRUE, &node);
+	if (result != ISC_R_SUCCESS)
+		goto fail;
+	result = dns_db_addrdataset(db, node, version, 0,
+				    nsrdataset, 0, NULL);
+	dns_db_detachnode(db, &node);
+	if (result != ISC_R_SUCCESS)
+		goto fail;
+	/*
+	 * Add glue rdatasets.
+	 */
+	for (result = dns_rdataset_first(nsrdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(nsrdataset)) {
+		dns_rdataset_current(nsrdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &ns, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (!dns_name_issubdomain(&ns.name, name)) {
+			result = dns_rdataset_next(nsrdataset);
+			continue;
+		}
+		rdataset = NULL;
+		result = dns_message_findname(message, DNS_SECTION_ADDITIONAL,
+					      &ns.name, dns_rdatatype_a6,
+					      dns_rdatatype_none, NULL,
+					      &rdataset);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_db_findnode(db, &ns.name,
+						 ISC_TRUE, &node);
+			if (result != ISC_R_SUCCESS)
+				goto fail;
+			result = dns_db_addrdataset(db, node, version, 0,
+						    rdataset, 0, NULL);
+			dns_db_detachnode(db, &node);
+			if (result != ISC_R_SUCCESS)
+				goto fail;
+		}
+		rdataset = NULL;
+		result = dns_message_findname(message, DNS_SECTION_ADDITIONAL,
+					      &ns.name, dns_rdatatype_aaaa,
+					      dns_rdatatype_none, NULL,
+					      &rdataset);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_db_findnode(db, &ns.name,
+						 ISC_TRUE, &node);
+			if (result != ISC_R_SUCCESS)
+				goto fail;
+			result = dns_db_addrdataset(db, node, version, 0,
+						    rdataset, 0, NULL);
+			dns_db_detachnode(db, &node);
+			if (result != ISC_R_SUCCESS)
+				goto fail;
+		}
+		rdataset = NULL;
+		result = dns_message_findname(message, DNS_SECTION_ADDITIONAL,
+					      &ns.name, dns_rdatatype_a,
+					      dns_rdatatype_none, NULL,
+					      &rdataset);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_db_findnode(db, &ns.name,
+						 ISC_TRUE, &node);
+			if (result != ISC_R_SUCCESS)
+				goto fail;
+			result = dns_db_addrdataset(db, node, version, 0,
+						    rdataset, 0, NULL);
+			dns_db_detachnode(db, &node);
+			if (result != ISC_R_SUCCESS)
+				goto fail;
+		}
+	}
+	if (result != ISC_R_NOMORE)
+		goto fail;
+
+	return (ISC_R_SUCCESS);
+
+fail:
+	return (result);
+}
+
 static void
 stub_callback(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "stub_callback";
@@ -1982,11 +2084,6 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t nscnt, cnamecnt;
 	isc_result_t result;
 	isc_stdtime_t now;
-	dns_rdata_ns_t ns;
-	dns_rdataset_t *nsrdataset = NULL;
-	dns_rdataset_t *rdataset = NULL;
-	dns_dbnode_t *node = NULL;
-	dns_rdata_t rdata;
 
 	stub = revent->ev_arg;
 	INSIST(DNS_STUB_VALID(stub));
@@ -2010,6 +2107,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
+
 	result = dns_request_getresponse(revent->request, msg, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
@@ -2030,9 +2128,13 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
+	/*
+	 * We need complete messages.
+	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
 		if (dns_request_usedtcp(revent->request)) {
-			/* XXX log failure */
+			zone_log(zone, me, ISC_LOG_INFO,
+				 "truncated TCP response from %s", master);
 			goto next_master;
 		}
 		LOCK(&zone->lock);
@@ -2042,7 +2144,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * if non-auth log and next master;
+	 * If non-auth log and next master.
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
 		zone_log(zone, me, ISC_LOG_INFO,
@@ -2050,6 +2152,9 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
+	/*
+	 * Sanity checks.
+	 */
 	cnamecnt = message_count(msg, DNS_SECTION_ANSWER, dns_rdatatype_cname);
 	nscnt = message_count(msg, DNS_SECTION_ANSWER, dns_rdatatype_ns);
 
@@ -2065,100 +2170,19 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
-	result = dns_message_findname(msg, DNS_SECTION_ANSWER, &zone->origin,
-				      dns_rdatatype_ns, dns_rdatatype_none,
-				      NULL, &nsrdataset);
-	if (result != ISC_R_SUCCESS) {
-		zone_log(zone, me, ISC_LOG_INFO,
-			 "unable to get ns records from %s", master);
-		goto next_master;
-	}
-	result = dns_db_findnode(stub->db, &zone->origin, ISC_TRUE, &node);
-	if (result != ISC_R_SUCCESS) {
-		zone_log(zone, me, ISC_LOG_INFO,
-			 "dns_db_findnode failed: %s",
-			 dns_result_totext(result));
-		goto next_master;
-	}
 	/*
-	 * Add NS rdataset.
+	 * Save answer.
 	 */
-	result = dns_db_addrdataset(stub->db, node, stub->version, now,
-				    nsrdataset, 0, NULL);
-	dns_db_detachnode(stub->db, &node);
+	result = save_nsrrset(msg, &zone->origin, stub->db, stub->version);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_INFO,
-			 "dns_db_addrdataset failed: %s",
-			 dns_result_totext(result));
+			 "unable to save ns records from %s", master);
 		goto next_master;
 	}
+
 	/*
-	 * Add glue rdatasets.
+	 * Tidy up.
 	 */
-	for (result = dns_rdataset_first(nsrdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(nsrdataset)) {
-		dns_rdataset_current(nsrdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &ns, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if (!dns_name_issubdomain(&ns.name, &zone->origin)) {
-			result = dns_rdataset_next(nsrdataset);
-			continue;
-		}
-		rdataset = NULL;
-		result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL,
-					      &ns.name, dns_rdatatype_a6,
-					      dns_rdatatype_none, NULL,
-					      &rdataset);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_db_findnode(stub->db, &ns.name,
-						 ISC_TRUE, &node);
-			if (result != ISC_R_SUCCESS)
-				goto next_master;
-			result = dns_db_addrdataset(stub->db, node,
-						    stub->version, now,
-						    rdataset, 0, NULL);
-			dns_db_detachnode(stub->db, &node);
-			if (result != ISC_R_SUCCESS)
-				goto next_master;
-		}
-		rdataset = NULL;
-		result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL,
-					      &ns.name, dns_rdatatype_aaaa,
-					      dns_rdatatype_none, NULL,
-					      &rdataset);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_db_findnode(stub->db, &ns.name,
-						 ISC_TRUE, &node);
-			if (result != ISC_R_SUCCESS)
-				goto next_master;
-			result = dns_db_addrdataset(stub->db, node,
-						    stub->version, now,
-						    rdataset, 0, NULL);
-			dns_db_detachnode(stub->db, &node);
-			if (result != ISC_R_SUCCESS)
-				goto next_master;
-		}
-		rdataset = NULL;
-		result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL,
-					      &ns.name, dns_rdatatype_a,
-					      dns_rdatatype_none, NULL,
-					      &rdataset);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_db_findnode(stub->db, &ns.name,
-						 ISC_TRUE, &node);
-			if (result != ISC_R_SUCCESS)
-				goto next_master;
-			result = dns_db_addrdataset(stub->db, node,
-						    stub->version, now,
-						    rdataset, 0, NULL);
-			dns_db_detachnode(stub->db, &node);
-			if (result != ISC_R_SUCCESS)
-				goto next_master;
-		}
-	}
-	if (result != ISC_R_NOMORE)
-		goto next_master;
 	dns_db_closeversion(stub->db, &stub->version, ISC_TRUE);
 	LOCK(&zone->lock);
 	if (zone->db == NULL)
@@ -2177,8 +2201,6 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
  next_master:
 	if (stub->version != NULL)
 		dns_db_closeversion(stub->db, &stub->version, ISC_FALSE);
-	if (node != NULL)
-		dns_db_detachnode(stub->db, &node);
 	if (stub->db != NULL)
 		dns_db_detach(&stub->db);
 	if (msg != NULL)
@@ -2207,7 +2229,6 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&zone->lock);
 	ns_query(zone, NULL, stub);
 	goto detach;
-
 
  free_stub:
 	stub->magic = 0;
@@ -2293,7 +2314,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		} else {
 			INSIST(zone->type == dns_zone_stub);
 			if (dns_request_usedtcp(revent->request)) {
-				/* XXX log failure */
+				zone_log(zone, me, ISC_LOG_INFO,
+					 "truncated TCP response from %s",
+					 master);
 				goto next_master;
 			}
 			LOCK(&zone->lock);
@@ -2488,13 +2511,59 @@ queue_soa_query(dns_zone_t *zone) {
 	}
 }
 
+static inline isc_result_t
+create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
+	     dns_message_t **messagep)
+{
+	dns_message_t *message = NULL;
+	dns_name_t *qname = NULL;
+	dns_rdataset_t *qrdataset = NULL;
+	isc_result_t result;
+
+	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
+				    &message);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	message->opcode = dns_opcode_query;
+	message->rdclass = zone->rdclass;
+
+	result = dns_message_gettempname(message, &qname);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = dns_message_gettemprdataset(message, &qrdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	/*
+	 * Make question.
+	 */
+	dns_name_init(qname, NULL);
+	dns_name_clone(&zone->origin, qname);
+	dns_rdataset_init(qrdataset);
+	dns_rdataset_makequestion(qrdataset, zone->rdclass, rdtype);
+	ISC_LIST_APPEND(qname->list, qrdataset, link);
+	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
+
+	*messagep = message;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (qname != NULL)
+		dns_message_puttempname(message, &qname);
+	if (qrdataset != NULL)
+		dns_message_puttemprdataset(message, &qrdataset);
+	if (message != NULL)
+		dns_message_destroy(&message);
+	return (result);
+}
+
 static void
 soa_query(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "soa_query";
 	isc_result_t result;
 	dns_message_t *message = NULL;
-	dns_name_t *qname = NULL;
-	dns_rdataset_t *qrdataset = NULL;
 	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t masterip;
 	dns_peer_t *peer = NULL;
@@ -2520,33 +2589,9 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	/* 
 	 * XXX Optimisation: Create message when zone is setup and reuse.
 	 */
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
-				    &message);
+	result = create_query(zone, dns_rdatatype_soa, &message);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-
-	message->opcode = dns_opcode_query;
-	message->rdclass = zone->rdclass;
-
-	result = dns_message_gettempname(message, &qname);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	result = dns_message_gettemprdataset(message, &qrdataset);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	/*
-	 * Make question.
-	 */
-	dns_name_init(qname, NULL);
-	dns_name_clone(&zone->origin, qname);
-	dns_rdataset_init(qrdataset);
-	dns_rdataset_makequestion(qrdataset, zone->rdclass, dns_rdatatype_soa);
-	ISC_LIST_APPEND(qname->list, qrdataset, link);
-	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
-	qname = NULL;
-	qrdataset = NULL;
 
 	LOCK(&zone->lock);
 	INSIST(zone->masterscnt > 0);
@@ -2585,10 +2630,6 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	return;
 
  cleanup:
-	if (qname != NULL)
-		dns_message_puttempname(message, &qname);
-	if (qrdataset != NULL)
-		dns_message_puttemprdataset(message, &qrdataset);
 	if (message != NULL)
 		dns_message_destroy(&message);
 	cancel_refresh(zone);
@@ -2602,14 +2643,11 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	const char me[] = "ns_query";
 	isc_result_t result;
 	dns_message_t *message = NULL;
-	dns_name_t *qname = NULL;
-	dns_rdataset_t *qrdataset = NULL;
 	isc_netaddr_t masterip;
 	dns_peer_t *peer = NULL;
 	dns_name_t *keyname = NULL;
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
-	isc_uint32_t options;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE((soardataset != NULL && stub == NULL) ||
@@ -2628,9 +2666,16 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		stub->db = NULL;
 		stub->version = NULL;
 
-		/* Attach so that zone won't disappear under us. */
+		/*
+		 * Attach so that the zone won't disappear from under us.
+		 */
 		dns_zone_iattach(zone, &stub->zone);
 
+		/*
+		 * If a db exists we will update it, otherwise we create a
+		 * new one and attach it to the zone once we have the NS
+		 * RRset and glue.
+		 */
 		if (zone->db != NULL)
 			dns_db_attach(zone->db, &stub->db);
 		else {
@@ -2649,6 +2694,9 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
 		dns_db_newversion(stub->db, &stub->version);
 
+		/*
+		 * Update SOA record.
+		 */
 		result = dns_db_findnode(stub->db, &zone->origin, ISC_TRUE,
 					 &node);
 		if (result != ISC_R_SUCCESS) {
@@ -2673,42 +2721,13 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	/* 
 	 * XXX Optimisation: Create message when zone is setup and reuse.
 	 */
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
-				    &message);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	message->opcode = dns_opcode_query;
-	message->rdclass = zone->rdclass;
-
-	result = dns_message_gettempname(message, &qname);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	result = dns_message_gettemprdataset(message, &qrdataset);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	/*
-	 * Make question.
-	 */
-	dns_name_init(qname, NULL);
-	dns_name_clone(&zone->origin, qname);
-	dns_rdataset_init(qrdataset);
-	dns_rdataset_makequestion(qrdataset, zone->rdclass, dns_rdatatype_ns);
-	ISC_LIST_APPEND(qname->list, qrdataset, link);
-	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
-	qname = NULL;
-	qrdataset = NULL;
+	result = create_query(zone, dns_rdatatype_ns, &message);
 
 	LOCK(&zone->lock);
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
 	zone->masteraddr = zone->masters[zone->curmaster];
 	UNLOCK(&zone->lock);
-
-	if (isc_sockaddr_getport(&zone->masteraddr) == 0)
-		isc_sockaddr_setport(&zone->masteraddr, 53); /* XXX */
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	result = dns_peerlist_peerbyaddr(zone->view->peers,
@@ -2723,10 +2742,11 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 						zone->view->dynamickeys);
 	}
 
-	options = DNS_ZONE_FLAG(zone, DNS_ZONE_F_USEVC) ?
-		  DNS_REQUESTOPT_TCP : 0;
+	/*
+	 * Always use TCP so that we shouldn't truncate in additional section.
+	 */
 	result = dns_request_create(zone->view->requestmgr, message,
-				    &zone->masteraddr, options, key,
+				    &zone->masteraddr, DNS_REQUESTOPT_TCP, key,
 				    15 /* XXX */, zone->task,
 				    stub_callback, stub, &zone->request);
 	if (result != ISC_R_SUCCESS) {
@@ -2748,10 +2768,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			dns_db_detach(&stub->db);
 		isc_mem_put(stub->mctx, stub, sizeof(*stub));
 	}
-	if (qname != NULL)
-		dns_message_puttempname(message, &qname);
-	if (qrdataset != NULL)
-		dns_message_puttemprdataset(message, &qrdataset);
 	if (message != NULL)
 		dns_message_destroy(&message);
 	cancel_refresh(zone);
