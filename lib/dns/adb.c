@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.157 2000/10/31 03:21:49 marka Exp $ */
+/* $Id: adb.c,v 1.158 2000/11/11 02:14:25 gson Exp $ */
 
 /*
  * Implementation notes
@@ -3909,9 +3909,9 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	return (result);
 }
 
-/* XXXMLG
- * Needs to take a find argument and an address info, no zone or adb, since
- * these can be extracted from the find itself.
+/* 
+ * XXXMLG Needs to take a find argument and an address info, no zone or adb,
+ * since these can be extracted from the find itself.
  */
 isc_result_t
 dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
