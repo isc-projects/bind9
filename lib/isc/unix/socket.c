@@ -193,7 +193,7 @@ static int build_msghdr_send(isc_socket_t *, isc_socketevent_t *,
 			     size_t *);
 static int build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
 			     struct msghdr *, struct iovec *, unsigned int,
-			     unsigned int *);
+			     size_t *);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
@@ -303,6 +303,9 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
  *
  * Nothing can be NULL, and the done event must list at least one buffer
  * on the buffer linked list for this function to be meaningful.
+ *
+ * If write_countp != NULL, *write_countp will hold the number of bytes
+ * this transaction can send.
  */
 static int
 build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
@@ -315,16 +318,19 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	size_t write_count;
 	size_t skip_count;
 
-	memset(msg, 0, sizeof (struct msghdr));
+	memset(msg, 0, sizeof (*msg));
 
 	if (sock->type == isc_sockettype_udp) {
 		msg->msg_name = (void *)&dev->address.type.sa;
 		msg->msg_namelen = dev->address.length;
+	} else {
+		msg->msg_name = NULL;
+		msg->msg_namelen = 0;
 	}
 
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
 	write_count = 0;
-	skip_count = 0;
+	iovcount = 0;
 
 	/*
 	 * Single buffer I/O?  Skip what we've done so far in this region.
@@ -333,8 +339,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		write_count = dev->region.length - dev->n;
 		iov[0].iov_base = (void *)(dev->region.base + dev->n);
 		iov[0].iov_len = write_count;
-		msg->msg_iov = iov;
-		msg->msg_iovlen = 1;
+		iovcount = 1;
 
 		goto config;
 	}
@@ -343,6 +348,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	 * Multibuffer I/O.
 	 * Skip the data in the buffer list that we have already written.
 	 */
+	skip_count = dev->n;
 	while (buffer != NULL) {
 		isc_buffer_used(buffer, &used);
 		if (skip_count < used.length)
@@ -351,7 +357,6 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 
-	iovcount = 0;
 	while (buffer != NULL) {
 		if (iovcount == maxiov)
 			return (-1);
@@ -364,6 +369,104 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 			iov[iovcount].iov_len = used.length - skip_count;
 			write_count += (used.length - skip_count);
 			skip_count = 0;
+			iovcount++;
+		}
+		buffer = ISC_LIST_NEXT(buffer, link);
+	}
+
+	INSIST(skip_count == 0);
+
+ config:
+	msg->msg_iov = iov;
+	msg->msg_iovlen = iovcount;
+
+#ifdef ISC_NET_BSD44MSGHDR
+	msg->msg_control = NULL;
+	msg->msg_controllen = 0;
+	msg->msg_flags = 0;
+#else
+	msg->msg_accrights = NULL;
+	msg->msg_accrightslen = 0;
+#endif
+
+	if (write_countp != NULL)
+		*write_countp = write_count;
+
+	return (0);
+}
+
+/*
+ * Construct an iov array and attach it to the msghdr passed in.  Return
+ * 0 on success, non-zero on failure.  This is the RECV constructor, which
+ * will use the avialable region of the buffer (if using a buffer list) or
+ * will use the internal region (if a single buffer I/O is requested).
+ *
+ * Nothing can be NULL, and the done event must list at least one buffer
+ * on the buffer linked list for this function to be meaningful.
+ *
+ * If read_countp != NULL, *read_countp will hold the number of bytes
+ * this transaction can receive.
+ */
+static int
+build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
+		  struct msghdr *msg, struct iovec *iov, unsigned int maxiov,
+		  size_t *read_countp)
+{
+	unsigned int iovcount;
+	isc_buffer_t *buffer;
+	isc_region_t available;
+	size_t read_count;
+
+	memset(msg, 0, sizeof (struct msghdr));
+
+	if (sock->type == isc_sockettype_udp) {
+		memset(&dev->address, 0, sizeof(dev->address));
+		msg->msg_name = (void *)&dev->address.type.sa;
+		msg->msg_namelen = sizeof(dev->address.type.sa);
+	} else {
+		msg->msg_name = NULL;
+		msg->msg_namelen = 0;
+		dev->address = sock->address;
+	}
+
+	buffer = ISC_LIST_HEAD(dev->bufferlist);
+	read_count = 0;
+
+	/*
+	 * Single buffer I/O?  Skip what we've done so far in this region.
+	 */
+	if (buffer == NULL) {
+		read_count = dev->region.length - dev->n;
+		iov[0].iov_base = (void *)(dev->region.base + dev->n);
+		iov[0].iov_len = read_count;
+		msg->msg_iov = iov;
+		msg->msg_iovlen = 1;
+
+		goto config;
+	}
+
+	/*
+	 * Multibuffer I/O.
+	 * Skip empty buffers.
+	 */
+	while (buffer != NULL) {
+		isc_buffer_available(buffer, &available);
+		if (available.length != 0)
+			break;
+		buffer = ISC_LIST_NEXT(buffer, link);
+	}
+
+	iovcount = 0;
+	while (buffer != NULL) {
+		if (iovcount == maxiov)
+			return (-1);
+
+		isc_buffer_available(buffer, &available);
+
+		if (available.length > 0) {
+			iov[iovcount].iov_base = (void *)(available.base);
+			iov[iovcount].iov_len = available.length;
+			read_count += available.length;
 			iovcount++;
 		}
 		buffer = ISC_LIST_NEXT(buffer, link);
@@ -382,8 +485,8 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_accrightslen = 0;
 #endif
 
-	if (write_countp != NULL)
-		*write_countp = write_count;
+	if (read_countp != NULL)
+		*read_countp = read_count;
 
 	return (0);
 }
@@ -421,6 +524,8 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 	ISC_LINK_INIT(ev, link);
 	ISC_LIST_INIT(ev->bufferlist);
 	ev->region.base = NULL;
+	ev->n = 0;
+	ev->offset = 0;
 
 	return (ev);
 }
@@ -1057,31 +1162,8 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		 * It must be a read request.  Try to satisfy it as best
 		 * we can.
 		 */
-		read_count = dev->region.length - dev->n;
-		iov[0].iov_base = (void *)(dev->region.base + dev->n);
-		iov[0].iov_len = read_count;
-
-		memset(&msghdr, 0, sizeof (msghdr));
-		if (sock->type == isc_sockettype_udp) {
-			memset(&dev->address, 0, sizeof(dev->address));
-			msghdr.msg_name = (void *)&dev->address.type.sa;
-			msghdr.msg_namelen = sizeof (dev->address.type);
-		} else {
-			msghdr.msg_name = NULL;
-			msghdr.msg_namelen = 0;
-			dev->address = sock->address;
-		}
-		msghdr.msg_iov = iov;
-		msghdr.msg_iovlen = 1;
-
-#ifdef ISC_NET_BSD44MSGHDR
-		msghdr.msg_control = NULL;
-		msghdr.msg_controllen = 0;
-		msghdr.msg_flags = 0;
-#else
-		msghdr.msg_accrights = NULL;
-		msghdr.msg_accrightslen = 0;
-#endif
+		build_msghdr_recv(sock, dev, &msghdr, iov,
+				  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
 
 		cc = recvmsg(sock->fd, &msghdr, 0);
 
@@ -1755,6 +1837,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	isc_boolean_t was_empty;
 	struct msghdr msghdr;
 	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
+	size_t read_count;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1799,30 +1882,8 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (!was_empty)
 		goto queue;
 
-	iov[0].iov_base = (void *)dev->region.base;
-	iov[0].iov_len = dev->region.length;
-
-	memset(&msghdr, 0, sizeof(msghdr));
-	if (sock->type == isc_sockettype_udp) {
-		memset(&dev->address, 0, sizeof(dev->address));
-		msghdr.msg_name = (void *)&dev->address.type.sa;
-		msghdr.msg_namelen = sizeof (dev->address.type);
-	} else {
-		msghdr.msg_name = NULL;
-		msghdr.msg_namelen = 0;
-		dev->address = sock->address;
-	}
-	msghdr.msg_iov = iov;
-	msghdr.msg_iovlen = 1;
-
-#ifdef ISC_NET_BSD44MSGHDR
-	msghdr.msg_control = NULL;
-	msghdr.msg_controllen = 0;
-	msghdr.msg_flags = 0;
-#else
-	msghdr.msg_accrights = NULL;
-	msghdr.msg_accrightslen = 0;
-#endif
+	build_msghdr_recv(sock, dev, &msghdr, iov,
+			  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
 	if (sock->type == isc_sockettype_udp)
@@ -1898,7 +1959,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	/*
 	 * Partial reads need to be queued
 	 */
-	if (((size_t)cc != dev->region.length) && (dev->n < dev->minimum))
+	if (((size_t)cc != read_count) && (dev->n < dev->minimum))
 		goto queue;
 
 	/*
@@ -1977,8 +2038,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		return (ISC_R_NOMEMORY);
 	}
 
-	dev->minimum = region->length;
-	dev->n = 0;
 	dev->region = *region;
 
 	set_dev_address(address, sock, dev);
@@ -1992,6 +2051,11 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	build_msghdr_send(sock, dev, &msghdr, iov,
 			  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
+
+	printf("%d: iov[0].iov_len = %d, iov_base = %p\n"
+	       "%d: msghdr.msg_iovlen = %d, write_count = %d\n",
+	       sock->fd, iov[0].iov_len, iov[0].iov_base,
+	       sock->fd, msghdr.msg_iovlen, write_count);
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 
@@ -2018,18 +2082,25 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		/*
 		 * This might not be a permanent error.
 		 */
-		if (errno == ENOBUFS) {
+		switch (errno) {
+		case ENOBUFS:
 			send_senddone_event(sock, &task, &dev,
 					    ISC_R_NORESOURCES, 0);
 			goto out;
-		}
+			break;
 
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_socket_sendto: errno: %s",
-				 strerror(errno));
-		sock->send_result = ISC_R_UNEXPECTED;
-		send_senddone_event(sock, &task, &dev,
-				    ISC_R_UNEXPECTED, 0);
+		case EINVAL:
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "isc_socket_sendto: EINVAL");
+			break;
+		default:
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_socket_sendto: errno: %s",
+					 strerror(errno));
+			sock->send_result = ISC_R_UNEXPECTED;
+			send_senddone_event(sock, &task, &dev,
+					    ISC_R_UNEXPECTED, 0);
+		}
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
