@@ -179,8 +179,9 @@ struct dns_c_options
 	isc_boolean_t		rfc2308_type1;
 	
 	isc_sockaddr_t		transfer_source;
-	isc_sockaddr_t		query_source_addr;
-	in_port_t		query_source_port;
+	isc_sockaddr_t		transfer_source_v6;
+	isc_sockaddr_t		query_source;
+	isc_sockaddr_t		query_source_v6;
 
 	dns_c_iplist_t	       *also_notify;
 
@@ -372,10 +373,13 @@ isc_result_t	dns_c_ctx_setalsonotify(dns_c_ctx_t *ctx,
 					isc_boolean_t deepcopy);
 isc_result_t	dns_c_ctx_settransfersource(dns_c_ctx_t *ctx,
 					    isc_sockaddr_t newval);
+isc_result_t	dns_c_ctx_settransfersourcev6(dns_c_ctx_t *ctx,
+					      isc_sockaddr_t newval);
 
-isc_result_t	dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg,
-					     isc_sockaddr_t addr);
-isc_result_t	dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, in_port_t port);
+isc_result_t	dns_c_ctx_setquerysource(dns_c_ctx_t *cfg,
+					 isc_sockaddr_t addr);
+isc_result_t	dns_c_ctx_setquerysourcev6(dns_c_ctx_t *cfg,
+					   isc_sockaddr_t addr);
 isc_result_t	dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 					dns_c_trans_t transtype,
 					dns_severity_t sever);
@@ -510,11 +514,13 @@ isc_result_t	dns_c_ctx_getalsonotify(dns_c_ctx_t *ctx,
 					dns_c_iplist_t **ret);
 isc_result_t	dns_c_ctx_gettransfersource(dns_c_ctx_t *ctx,
 					    isc_sockaddr_t *retval);
+isc_result_t	dns_c_ctx_gettransfersourcev6(dns_c_ctx_t *ctx,
+					      isc_sockaddr_t *retval);
 
-isc_result_t	dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg,
-					     isc_sockaddr_t *addr);
-isc_result_t	dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg,
-					     in_port_t *port);
+isc_result_t	dns_c_ctx_getquerysource(dns_c_ctx_t *cfg,
+					 isc_sockaddr_t *addr);
+isc_result_t	dns_c_ctx_getquerysourcev6(dns_c_ctx_t *cfg,
+					   isc_sockaddr_t *addr);
 isc_result_t	dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
 					dns_c_trans_t transtype,
 					dns_severity_t *sever);

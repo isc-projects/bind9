@@ -155,6 +155,7 @@ struct dns_c_slave_zone
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source;
+	isc_sockaddr_t		transfer_source_v6;
 	isc_int32_t		max_trans_time_in;
 	isc_int32_t		max_trans_time_out;
 	isc_int32_t		max_trans_idle_in;
@@ -179,6 +180,7 @@ struct dns_c_stub_zone
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source; 
+	isc_sockaddr_t		transfer_source_v6; 
 	isc_int32_t		max_trans_time_in;
 	isc_int32_t		max_trans_idle_in;
 
@@ -308,6 +310,8 @@ isc_result_t	dns_c_zone_setmasterips(dns_c_zone_t *zone,
 					isc_boolean_t deepcopy);
 isc_result_t	dns_c_zone_settransfersource(dns_c_zone_t *zone,
 					     isc_sockaddr_t newval);
+isc_result_t	dns_c_zone_settransfersourcev6(dns_c_zone_t *zone,
+					     isc_sockaddr_t newval);
 isc_result_t	dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
 					     isc_int32_t newval);
 isc_result_t	dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone,
@@ -357,6 +361,8 @@ isc_result_t	dns_c_zone_getmasterips(dns_c_zone_t *zone,
 					dns_c_iplist_t **retval);
 isc_result_t	dns_c_zone_gettransfersource(dns_c_zone_t *zone,
 					     isc_sockaddr_t *retval);
+isc_result_t	dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone,
+					       isc_sockaddr_t *retval);
 isc_result_t	dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
 					     isc_int32_t *retval);
 isc_result_t	dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone,
