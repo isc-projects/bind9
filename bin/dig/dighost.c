@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.207 2001/07/22 06:03:04 mayer Exp $ */
+/* $Id: dighost.c,v 1.208 2001/07/22 18:06:40 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2117,7 +2117,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
-	isc_buffer_t b;
 
 	debug("check_for_more_data()");
 
@@ -2259,13 +2258,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	launch_next_query(query, ISC_FALSE);
 	return (ISC_FALSE);
  doexit:
-	/*
-	 * XXXPDM. This needs to be reviewed as the variable b is not
-	 * used anywhere in this function.  set the value of used to 0
-	 * for now to stop the compiler complaining about unused variables.
-	 */
-	b.used = 0;
-	received(b.used, &sevent->address, query);
+	received(0, &sevent->address, query);
 	return (ISC_TRUE);
 }
 
