@@ -120,7 +120,7 @@ create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	 * XXXRTH hardwired number of tasks.  Also, we'll need to
 	 * see if we are dealing with a shared dispatcher in this view.
 	 */
-	result = dns_view_createresolver(view, ns_g_taskmgr, 16,
+	result = dns_view_createresolver(view, ns_g_taskmgr, 31,
 					 ns_g_socketmgr, ns_g_timermgr,
 					 NULL);
 	if (result != ISC_R_SUCCESS)
