@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.212 2001/03/16 21:50:59 bwelling Exp $ */
+/* $Id: resolver.c,v 1.213 2001/03/20 22:13:00 gson Exp $ */
 
 #include <config.h>
 
@@ -553,6 +553,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
 	fctx->state = fetchstate_done;
+	fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 	fctx_sendevents(fctx, result);
 
 	UNLOCK(&res->buckets[fctx->bucketnum].lock);

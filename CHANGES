@@ -1,3 +1,7 @@
+
+ 785.	[bug]		A race condition in the resolver could cause
+			an assertion failure. [RT #673, #872, #1048]
+
  784.	[bug]		nsupdate and other programs would not quit properly
 			if some signals were blocked by the caller. [RT #1081]
 
