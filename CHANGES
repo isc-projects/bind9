@@ -1,3 +1,8 @@
+ 245.	[bug]		If an uncompressed name will take more than 255
+			characters and the buffer is sufficiently long,
+			dns_name_fromwire should return DNS_R_FORMERR,
+			not ISC_R_NOSPACE.
+
  244.	[bug]		empty named.conf file and empty options statement are
 			now parsed properly.
 

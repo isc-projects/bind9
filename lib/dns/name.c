@@ -2188,8 +2188,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	done = ISC_FALSE;
 	ndata = (unsigned char *)target->base + target->used;
 	nrem = target->length - target->used;
-	if (nrem > 255)
-		nrem = 255;
 	nused = 0;
 	cdata = (unsigned char *)source->base + source->current;
 	cused = 0;
@@ -2211,6 +2209,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		case fw_start:
 			if (c < 64) {
 				labels++;
+				if (nused + c + 1 > 255)
+					return (DNS_R_FORMERR);
 				if (nrem < c + 1)
 					return (ISC_R_NOSPACE);
 				nrem -= c + 1;
@@ -2239,6 +2239,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				state = fw_newcurrent;
 			} else if (c == DNS_LABELTYPE_BITSTRING) {
 				labels++;
+				if (nused == 255)
+					return (DNS_R_FORMERR);
 				if (nrem == 0)
 					return (ISC_R_NOSPACE);
 				nrem--;
@@ -2276,6 +2278,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				n = c / 8;
 			if ((c % 8) != 0)
 				n++;
+			if (nused + n + 1 > 255)
+				return (DNS_R_FORMERR);
 			if (nrem < n + 1)
 				return (ISC_R_NOSPACE);
 			nrem -= n + 1;
