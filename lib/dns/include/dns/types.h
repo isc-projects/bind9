@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.95 2000/09/11 13:34:18 marka Exp $ */
+/* $Id: types.h,v 1.96 2000/10/17 10:59:48 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -69,6 +69,7 @@ typedef struct dns_loadmgr			dns_loadmgr_t;
 typedef struct dns_message			dns_message_t;
 typedef isc_uint16_t				dns_messageid_t;
 typedef isc_region_t				dns_label_t;
+typedef struct dns_lookup			dns_lookup_t;
 typedef struct dns_name				dns_name_t;
 typedef ISC_LIST(dns_name_t)			dns_namelist_t;
 typedef isc_uint16_t				dns_opcode_t;
