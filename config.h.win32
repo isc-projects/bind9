@@ -10,6 +10,15 @@
 /* Define to `unsigned' if <sys/types.h> doesn't define.  */
 /* #undef size_t */
 
+/*
+ * ANSI C compliance enabled
+ */
+#define __STDC__ 1
+
+/*
+ * Windows NT and 2K only
+ */
+#define _WIN32_WINNT 0x0400
 /* Define if you have the ANSI C header files.  */
 #define STDC_HEADERS 1
 
@@ -69,12 +78,122 @@
 /* Define if you have the socket library (-lsocket).  */
 /* #undef HAVE_LIBSOCKET */
 
+#define S_IFMT   _S_IFMT         /* file type mask */
+#define S_IFDIR  _S_IFDIR        /* directory */
+#define S_IFCHR  _S_IFCHR        /* character special */
+#define S_IFIFO  _S_IFIFO        /* pipe */
+#define S_IFREG  _S_IFREG        /* regular */
+#define S_IREAD  _S_IREAD        /* read permission, owner */
+#define S_IWRITE _S_IWRITE       /* write permission, owner */
+#define S_IEXEC  _S_IEXEC        /* execute/search permission, owner */
+
+#define O_RDONLY        _O_RDONLY
+#define O_WRONLY        _O_WRONLY
+#define O_RDWR          _O_RDWR
+#define O_APPEND        _O_APPEND
+#define O_CREAT         _O_CREAT
+#define O_TRUNC         _O_TRUNC
+#define O_EXCL          _O_EXCL
+
+/* open() under unix allows setting of read/write permissions
+ * at the owner, group and other levels.  These don't exist in NT
+ * We'll just map them all to the NT equivalent 
+ */
+
+#define S_IRUSR _S_IREAD	/* Owner read permission */
+#define S_IWUSR _S_IWRITE	/* Owner write permission */
+#define S_IRGRP _S_IREAD	/* Group read permission */
+#define S_IWGRP _S_IWRITE	/* Group write permission */
+#define S_IROTH _S_IREAD	/* Other read permission */
+#define S_IWOTH _S_IWRITE	/* Other write permission */
+
+
 /*
  * WIN32 specials until some other way of dealing with these is decided.
  */
-#define strcasecmp  stricmp
-#define strncasecmp strnicmp
-#define EAFNOSUPPORT EINVAL
+
+#define snprintf _snprintf
+#define vsnprintf _vsnprintf
+#define strcasecmp  _stricmp
+#define strncasecmp _strnicmp
+#define strdup _strdup
+#define sopen _sopen
+#define isascii __isascii
+#define stat _stat
+#define fstat _fstat
+#define fileno _fileno
+#define unlink _unlink
+#define chdir _chdir
+#define mkdir _mkdir
+#define getcwd _getcwd
+#define utime _utime
+#define utimbuf _utimbuf
+
+//#define EAFNOSUPPORT EINVAL
+#define chmod _chmod
+#define getpid _getpid
+#define getppid _getpid	/* WARNING!!! For now this gets the same pid */
+#define random rand	/* Random number generator */
+#define srandom srand	/* Random number generator seeding */
 /* for the config file */
 typedef unsigned int    uid_t;          /* user id */
 typedef unsigned int    gid_t;          /* group id */
+typedef long pid_t;			/* PID */
+typedef int ssize_t;
+typedef long off_t;
+
+/*
+ * This is where the system needs to look for the files
+ */
+/*
+ * Set up the NT Path Information
+ */
+//#include <isc/ntpaths.h>
+#include <versions.h>
+/*
+ * Information about where this are on disk
+ */
+#define NS_LOCALSTATEDIR	"dns/bin"
+#define NS_SYSCONFDIR		"dns/etc"
+
+/*
+ * DO NOT REMOVE TRAILING COMMENT, even though it is not conformant
+ * to C standards
+ */
+#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); // Done
+/* We actually are using the CryptAPI and not a device */
+#define PATH_RANDOMDEV		"CryptAPI"
+
+#include <stddef.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+/*
+ * Outside of lib isc we need to redefine these functions
+ * This is due to the way _iob is set up
+ */
+#if !defined(LIBISC_EXPORTS) && !defined(LIBLWRES_EXPORTS)
+
+#include <isc/ntfile.h>
+
+#else
+#define fdopen	_fdopen
+#define read	_read
+#define open	_open
+#define close	_close
+#define write	_write
+#endif
+
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#endif
+
+/*
+ * Make the number of available sockets large
+ * The number of sockets needed can get large and memory's cheap
+ * This must be defined before winsock2.h gets included as the
+ * macro is used there.
+ */
+
+#define FD_SETSIZE 16384
+#include <windows.h>
