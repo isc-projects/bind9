@@ -498,6 +498,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			fprintf(stderr, " (type %d) to secure\n",
 				event->rdataset->type);
 			event->rdataset->trust = dns_trust_secure;
+			event->sigrdataset->trust = dns_trust_secure;
 			return (result);
 		}
 	}
