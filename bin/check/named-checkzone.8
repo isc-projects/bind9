@@ -13,30 +13,30 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: named-checkzone.8,v 1.1 2000/12/14 00:52:44 marka Exp $
+.\" $Id: named-checkzone.8,v 1.2 2000/12/19 19:48:10 gson Exp $
 
 .Dd Jun 13, 2000
-.Dt CHECK-ZONE 1
+.Dt NAMED-CHECKZONE 1
 .Os BIND9 9
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
-.Nm check-zone
+.Nm named-checkzone
 .Nd Zone validity checking tool.
 .Sh SYNOPSIS
-.Nm check-zone
+.Nm named-checkzone
 .Op Fl dq
 .Op Fl c Ar class
 .Ar zone
 .Op filename
 .Sh DESCRIPTION
 .Pp
-.Nm check-zone
+.Nm named-checkzone
 is a tool for performing integrity checks on a zones contents.
 It uses the same integrity checks as
 .Nm named .
 .Pp
 The options to
-.Nm check-zone
+.Nm named-checkzone
 are as follows:
 .Bl -tag -width Ds
 .It Fl d
@@ -53,9 +53,9 @@ the name of the file containing the zone.
 If not specified it defaults to the zone name.
 .Sh RETURN VALUES
 .Pp
-.Nm check-zone
-return a zero exit value if no errors were detected,
-otherwise it returns 1.
+.Nm named-checkzone
+return a an exit status of 1 if errors were detected,
+0 otherwise.
 .Sh SEE ALSO
 .Xr named 8 ,
 .Xr RFC1035 .

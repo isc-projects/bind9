@@ -674,8 +674,8 @@
 ./doc/dev/results				TXT.BRIEF	1999,2000
 ./doc/dev/tests					TXT.BRIEF	2000
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000
-./doc/man/bin/check-conf.1			MAN	2000
-./doc/man/bin/check-zone.1			MAN	2000
+./doc/man/bin/named-checkconf.1			MAN	2000
+./doc/man/bin/named-checkzone.1			MAN	2000
 ./doc/man/bin/dig.1				MAN	2000
 ./doc/man/bin/host.1				MAN	2000
 ./doc/man/bin/lwresd.8				MAN	2000
