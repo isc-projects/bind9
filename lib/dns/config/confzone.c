@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.77 2001/01/27 02:11:35 gson Exp $ */
+/* $Id: confzone.c,v 1.78 2001/02/24 00:58:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -74,9 +74,6 @@
 #define SZ_MAX_RETRY_TIME_BIT			15
 #define SZ_MIN_REFRESH_TIME_BIT			16
 #define SZ_MAX_REFRESH_TIME_BIT			17
-#ifndef NOMINUM_PUBLIC
-#define SZ_NOTIFY_RELAY_BIT			19
-#endif /* NOMINUM_PUBLIC */
 #define SZ_STATISTICS_BIT			20
 #define SZ_NOTIFY_SOURCE_BIT			21
 #define SZ_NOTIFY_SOURCE_V6_BIT			22
@@ -1940,109 +1937,6 @@ dns_c_zone_getalsonotify(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 
 	return (res);
 }
-
-#ifndef NOMINUM_PUBLIC
-/*
- *
- */
-
-isc_result_t
-dns_c_zone_setnotifyforward(dns_c_zone_t *zone, isc_boolean_t newval) {
-	isc_boolean_t existed = ISC_FALSE;
-
-	REQUIRE(DNS_C_ZONE_VALID(zone));
-
-	switch (zone->ztype) {
-	case dns_c_zone_master:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "master zones do not have a "
-			      "notify-forward field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_slave:
-		zone->u.szone.notify_forward = newval;
-		existed = DNS_C_CHECKBIT(SZ_NOTIFY_RELAY_BIT,
-					 &zone->u.szone.setflags);
-		DNS_C_SETBIT(SZ_NOTIFY_RELAY_BIT, &zone->u.szone.setflags);
-		break;
-
-	case dns_c_zone_stub:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "stub zones do not have a notify-forward field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_hint:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "hint zones do not have a notify-forward field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_forward:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "forward zones do not have a "
-			      "notify-forward field");
-		return (ISC_R_FAILURE);
-	}
-
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
-}
-
-
-/*
- *
- */
-
-isc_result_t
-dns_c_zone_getnotifyforward(dns_c_zone_t *zone, isc_boolean_t *retval) {
-	isc_result_t res = ISC_R_SUCCESS;
-
-	REQUIRE(DNS_C_ZONE_VALID(zone));
-	REQUIRE(retval != NULL);
-
-	switch (zone->ztype) {
-	case dns_c_zone_master:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "master zones do not have a "
-			      "notify-forward field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_slave:
-		if (DNS_C_CHECKBIT(SZ_NOTIFY_RELAY_BIT,
-				   &zone->u.szone.setflags)) {
-			*retval = zone->u.szone.notify_forward;
-			res = ISC_R_SUCCESS;
-		} else {
-			res = ISC_R_NOTFOUND;
-		}
-		break;
-
-	case dns_c_zone_stub:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "stub zones do not have a notify-forward field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_hint:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "hint zones do not have a notify-forward field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_forward:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "forward zones do not have a "
-			      "notify-forward field");
-		return (ISC_R_FAILURE);
-	}
-
-	return (res);
-}
-#endif /* NOMINUM_PUBLIC */
 
 
 /*
@@ -5151,14 +5045,6 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-refresh-time %d;\n", szone->max_refresh_time);
 	}
-
-#ifndef NOMINUM_PUBLIC
-	if (DNS_C_CHECKBIT(SZ_NOTIFY_RELAY_BIT, &szone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "notify-forward %s;\n",
-			(szone->notify_forward ? "true" : "false"));
-	}
-#endif	/* NOMINUM_PUBLIC */
 
 	if (szone->also_notify != NULL) {
 		dns_c_printtabs(fp, indent);

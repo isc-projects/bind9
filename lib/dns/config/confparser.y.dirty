@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.54 2001/01/30 22:02:26 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.55 2001/02/24 00:58:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -364,9 +364,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_NOTIFY
 %token		L_NOTIFY_SOURCE
 %token		L_NOTIFY_SOURCE_V6
-#ifndef NOMINUM_PUBLIC
-%token		L_NOTIFY_FORWARD
-#endif /* NOMINUM_PUBLIC */
 %token		L_NOTIFY_PASSIVE
 %token		L_NULL_OUTPUT
 %token		L_ONE_ANSWER
@@ -821,17 +818,6 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
-	| L_NOTIFY_FORWARD yea_or_nay
-	{
-		tmpres = dns_c_ctx_setnotifyforward(currcfg, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine notify-forward");
-			YYABORT;
-		}
-	}
-#endif /* NOMINUM_PUBLIC */
 	| L_RECURSION yea_or_nay
 	{
 		tmpres = dns_c_ctx_setrecursion(currcfg, $2);
@@ -3871,25 +3857,6 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
-	| L_NOTIFY_FORWARD yea_or_nay
-	{
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-
-		INSIST(view != NULL);
-
-		tmpres = dns_c_view_setnotifyforward(view, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine view notify-forward");
-			YYABORT;
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set view notify-forward");
-			YYABORT;
-		}
-	}
-#endif /* NOMINUM_PUBLIC */
 	| L_RECURSION yea_or_nay
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -4972,10 +4939,7 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
 	L_ENABLE_ZONE | L_DATABASE | L_PORT | L_MIN_RETRY_TIME |
 	L_MAX_RETRY_TIME | L_MIN_REFRESH_TIME | L_MAX_REFRESH_TIME |
-	L_ZONE_STATISTICS | L_NOTIFY_SOURCE | L_NOTIFY_SOURCE_V6 |
-#ifndef NOMINUM_PUBLIC
-	| L_NOTIFY_FORWARD
-#endif /* NOMINUM_PUBLIC */
+	L_ZONE_STATISTICS | L_NOTIFY_SOURCE | L_NOTIFY_SOURCE_V6
 	;
 
 
@@ -5588,25 +5552,6 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
-	| L_NOTIFY_FORWARD yea_or_nay
-	{
-		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
-
-		INSIST(zone != NULL);
-
-		tmpres = dns_c_zone_setnotifyforward(zone, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine zone notify-forward");
-			YYABORT;
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set zone notify-forward");
-			YYABORT;
-		}
-	}
-#endif /* NOMINUM_PUBLIC */
 	| L_PUBKEY L_INTEGER L_INTEGER L_INTEGER L_QSTRING
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
@@ -6120,9 +6065,6 @@ static struct token keyword_tokens [] = {
 	{ "notify",			L_NOTIFY },
 	{ "notify-source",		L_NOTIFY_SOURCE },
 	{ "notify-source-v6",		L_NOTIFY_SOURCE_V6 },
-#ifndef NOMINUM_PUBLIC
-	{ "notify-forward",		L_NOTIFY_FORWARD },
-#endif /* NOMINUM_PUBLIC */
 	{ "notify-passive",		L_NOTIFY_PASSIVE },
 	{ "null",			L_NULL_OUTPUT },
 	{ "one-answer",			L_ONE_ANSWER },

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.308 2001/02/23 22:32:07 marka Exp $ */
+/* $Id: zone.c,v 1.309 2001/02/24 00:58:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -395,9 +395,6 @@ static void notify_send(dns_notify_t *notify);
 static isc_result_t notify_createmessage(dns_zone_t *zone,
 					 unsigned int flags,
 					 dns_message_t **messagep);
-#ifndef NOMINUM_PUBLIC
-static void zone_notifyforward(dns_zone_t *zone);
-#endif /* NOMINUM_PUBLIC */
 static void notify_done(isc_task_t *task, isc_event_t *event);
 static void notify_send_toaddr(isc_task_t *task, isc_event_t *event);
 static isc_result_t zone_dump(dns_zone_t *);
@@ -2483,48 +2480,6 @@ notify_send(dns_notify_t *notify) {
 		notify_destroy(new, ISC_TRUE);
 }
 
-#ifndef NOMINUM_PUBLIC
-static void
-zone_notifyforward(dns_zone_t *zone) {
-	isc_result_t result;
-	const char me[] = "zone_notifyforward";
-	dns_notify_t *notify = NULL;
-	unsigned int i;
-	isc_sockaddr_t dst;
-	
-	/*
-	 * Locked by caller.
-	 */
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(LOCKED_ZONE(zone));
-
-	ENTER;
-
-	/*
-	 * Enqueue notify requests for 'also-notify' servers.
-	 */
-	for (i = 0; i < zone->masterscnt; i++) {
-		dst = zone->masters[i];
-		if (notify_isqueued(zone, NULL, &dst))
-			continue;
-		result = notify_create(zone->mctx, DNS_NOTIFY_NOSOA, &notify);
-		if (result != ISC_R_SUCCESS) {
-			return;
-		}
-		zone_iattach(zone, &notify->zone);
-		notify->dst = dst;
-		ISC_LIST_APPEND(zone->notifies, notify, link);
-		result = notify_send_queue(notify);
-		if (result != ISC_R_SUCCESS) {
-			notify_destroy(notify, ISC_TRUE);
-			return;
-		}
-		notify = NULL;
-	}
-}
-#endif /* NOMINUM_PUBLIC */
-
 void
 dns_zone_notify(dns_zone_t *zone) {
 	isc_stdtime_t now;
@@ -3945,9 +3900,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 	int match = 0;
 	isc_netaddr_t netaddr;
-#ifndef NOMINUM_PUBLIC
-	isc_boolean_t forward = ISC_FALSE;
-#endif /* NOMINUM_PUBLIC */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -4014,10 +3966,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
 	    dns_acl_match(&netaddr, NULL, zone->notify_acl, NULL, &match,
 			  NULL) == ISC_R_SUCCESS && match > 0) {
-#ifndef NOMINUM_PUBLIC
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYFORWARD))
-			forward = ISC_TRUE;
-#endif /* NOMINUM_PUBLIC */
 		/* Accept notify. */
 	} else if (i >= zone->masterscnt) {
 		UNLOCK_ZONE(zone);
@@ -4060,14 +4008,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			}
 		}
 	}
-
-#ifndef NOMINUM_PUBLIC
-	if (forward) {
-		zone_notifyforward(zone);
-		UNLOCK_ZONE(zone);
-		return (ISC_R_SUCCESS);
-	}
-#endif	/* NOMINUM_PUBLIC */
 
 	/*
 	 * If we got this far and there was a refresh in progress just

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.119 2001/02/22 17:30:09 gson Exp $ */
+/* $Id: confctx.c,v 1.120 2001/02/24 00:58:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1045,9 +1045,6 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(treat_cr_as_space, "treat-cr-as-space");
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
-#ifndef NOMINUM_PUBLIC
-	PRINT_AS_BOOLEAN(notify_forward, "notify-forward");
-#endif /* NOMINUM_PUBLIC */
 
 	if (options->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -1570,9 +1567,6 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->treat_cr_as_space = NULL;
 	opts->additional_from_auth = NULL;
 	opts->additional_from_cache = NULL;
-#ifndef NOMINUM_PUBLIC
-	opts->notify_forward = NULL;
-#endif /* NOMINUM_PUBLIC */
 
 	opts->notify_source = NULL;
 	opts->notify_source_v6 = NULL;
@@ -1723,10 +1717,6 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(min_refresh_time);
 	FREEFIELD(max_refresh_time);
 
-#ifndef NOMINUM_PUBLIC
-	FREEFIELD(notify_forward);
-#endif /* NOMINUM_PUBLIC */
-
 	FREEFIELD(notify_source);
 	FREEFIELD(notify_source_v6);
 	FREEFIELD(transfer_source);
@@ -1849,10 +1839,6 @@ BOOL_FUNCS(recursion, recursion)
 BOOL_FUNCS(fetchglue, fetch_glue)
 
 NOTIFYTYPE_FUNCS(notify, notify)
-
-#ifndef NOMINUM_PUBLIC
-BOOL_FUNCS(notifyforward, notify_forward)
-#endif /* NOMINUM_PUBLIC */
 
 BOOL_FUNCS(hoststatistics, host_statistics)
 BOOL_FUNCS(dealloconexit, dealloc_on_exit)

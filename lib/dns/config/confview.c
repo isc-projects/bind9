@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.72 2001/01/30 22:02:27 gson Exp $ */
+/* $Id: confview.c,v 1.73 2001/02/24 00:58:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -577,10 +577,6 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->min_refresh_time = NULL;
 	view->max_refresh_time = NULL;
 
-#ifndef NOMINUM_PUBLIC
-	view->notify_forward = NULL;
-#endif /* NOMINUM_PUBLIC */
-
 	view->transfer_format = NULL;
 	view->keydefs = NULL;
 	view->peerlist = NULL;
@@ -820,9 +816,6 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
 	PRINT_AS_BOOLEAN(statistics, "statistics");
-#ifndef NOMINUM_PUBLIC
-	PRINT_AS_BOOLEAN(notify_forward, "notify-forward");
-#endif /* NOMINUM_PUBLIC */
 
 	PRINT_IPANDPORT(notify_source, "notify-source");
 	PRINT_IPANDPORT(notify_source_v6, "notify-source-v6");
@@ -988,10 +981,6 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(max_retry_time);
 	FREEFIELD(min_refresh_time);
 	FREEFIELD(max_refresh_time);
-
-#ifndef NOMINUM_PUBLIC
-	FREEFIELD(notify_forward);
-#endif /* NOMINUM_PUBLIC */
 
 	FREEFIELD(transfer_format);
 
@@ -1584,10 +1573,6 @@ BOOL_FUNCS(statistics, statistics)
 
 NOTIFYTYPE_FUNCS(notify, notify)
 DIALUPTYPE_FUNCS(dialup, dialup)
-
-#ifndef NOMINUM_PUBLIC
-BOOL_FUNCS(notifyforward, notify_forward)
-#endif /* NOMINUM_PUBLIC */
 
 BOOL_FUNCS(rfc2308type1, rfc2308_type1)
 BOOL_FUNCS(additionalfromcache, additional_from_cache)

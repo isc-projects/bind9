@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.81 2001/02/24 00:35:12 bwelling Exp $ */
+/* $Id: zoneconf.c,v 1.82 2001/02/24 00:58:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -257,21 +257,6 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		statistics = ISC_FALSE;
 	dns_zone_setstatistics(zone, statistics);
-
-#ifndef NOMINUM_PUBLIC
-	if (czone->ztype == dns_c_zone_slave) {
-		isc_boolean_t boolean;
-
-		result = dns_c_zone_getnotifyforward(czone, &boolean);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getnotifyforward(cview, &boolean);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getnotifyforward(cctx, &boolean);
-		if (result != ISC_R_SUCCESS)
-			boolean = ISC_FALSE;
-		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYFORWARD, boolean);
-	}
-#endif /* NOMINUM_PUBLIC */
 
 	/*
 	 * Configure master functionality.  This applies
