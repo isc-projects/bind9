@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.107 2000/10/27 21:08:03 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.108 2000/10/28 00:53:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -958,16 +958,14 @@ next_nonglue(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 }
 
 /*
- * Extracts the zone minimum TTL from the SOA.
+ * Extracts the TTL from the SOA.
  */
 static dns_ttl_t
-minimumttl(dns_db_t *db, dns_dbversion_t *version) {
+soattl(dns_db_t *db, dns_dbversion_t *version) {
 	dns_rdataset_t soaset;
 	dns_name_t *origin;
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	dns_rdata_t soarr = DNS_RDATA_INIT;
-	dns_rdata_soa_t soa;
 	isc_result_t result;
 	dns_ttl_t ttl;
 
@@ -984,15 +982,8 @@ minimumttl(dns_db_t *db, dns_dbversion_t *version) {
 		fatal("failed to find '%s SOA' in the zone: %s",
 		      namestr, isc_result_totext(result));
 	}
-	result = dns_rdataset_first(&soaset);
-	check_result(result, "dns_rdataset_first()");
-	dns_rdataset_current(&soaset, &soarr);
-	result = dns_rdata_tostruct(&soarr, &soa, NULL);
-	check_result(result, "dns_rdataset_tostruct()");
-	ttl = soa.minimum;
-	dns_rdata_freestruct(&soa);
+	ttl = soaset.ttl;
 	dns_rdataset_disassociate(&soaset);
-
 	return (ttl);
 }
 
@@ -1041,7 +1032,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_dbiterator_t *dbiter;
 	dns_name_t *origin;
 
-	zonettl = minimumttl(db, version);
+	zonettl = soattl(db, version);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
