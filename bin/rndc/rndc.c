@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.66 2001/07/01 17:36:46 bwelling Exp $ */
+/* $Id: rndc.c,v 1.67 2001/07/02 00:07:09 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -64,7 +64,7 @@
 extern int h_errno;
 #endif
 
-char progname[256];
+char *progname;
 isc_boolean_t verbose;
 
 static const char *admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";
@@ -81,6 +81,7 @@ static isc_mem_t *mctx;
 static int sends, recvs, connects;
 static char *command;
 static char *args;
+static char program[256];
 
 static void
 usage(int status) {
@@ -368,9 +369,10 @@ main(int argc, char **argv) {
 
 	isc_app_start();
 
-	result = isc_file_progname(*argv, progname, sizeof(progname));
+	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS)
 		memcpy(progname, "rndc", 5);
+	progname = program;
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vy:"))
 	       != -1) {
