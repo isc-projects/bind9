@@ -454,7 +454,7 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
-	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	REQUIRE(rdataset->rdclass == db->rdclass);
