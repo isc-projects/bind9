@@ -103,13 +103,15 @@ done(isc_task_t *task, isc_event_t *event) {
 
 static dns_fetch_t *
 launch(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
-       isc_boolean_t shared_ok, isc_task_t *task)
+       isc_boolean_t shared_ok, isc_boolean_t recursive, isc_task_t *task)
 {
 	dns_fetch_t *fetch;
 	unsigned int options = 0;
 
 	if (!shared_ok)
 		options |= DNS_FETCHOPT_UNSHARED;
+	if (recursive)
+		options |= DNS_FETCHOPT_RECURSIVE;
 
 	LOCK(&lock);
 
@@ -183,12 +185,18 @@ main(int argc, char *argv[]) {
 		      DNS_R_SUCCESS);
 
 	ISC_LIST_INIT(fetches);
-	fetch = launch(res, dns_rootname, dns_rdatatype_a, ISC_TRUE, task1);
-	fetch = launch(res, dns_rootname, dns_rdatatype_a, ISC_TRUE, task2);
-	fetch = launch(res, dns_rootname, dns_rdatatype_a, ISC_TRUE, task2);
-	fetch = launch(res, dns_rootname, dns_rdatatype_mx, ISC_TRUE, task1);
-	fetch = launch(res, dns_rootname, dns_rdatatype_a, ISC_FALSE, task2);
-	fetch = launch(res, dns_rootname, dns_rdatatype_ns, ISC_TRUE, task1);
+	fetch = launch(res, dns_rootname, dns_rdatatype_a,
+		       ISC_TRUE, ISC_FALSE, task1);
+	fetch = launch(res, dns_rootname, dns_rdatatype_a,
+		       ISC_TRUE, ISC_FALSE, task2);
+	fetch = launch(res, dns_rootname, dns_rdatatype_a,
+		       ISC_TRUE, ISC_FALSE, task2);
+	fetch = launch(res, dns_rootname, dns_rdatatype_mx,
+		       ISC_TRUE, ISC_FALSE, task1);
+	fetch = launch(res, dns_rootname, dns_rdatatype_ns,
+		       ISC_FALSE, ISC_TRUE, task2);
+	fetch = launch(res, dns_rootname, dns_rdatatype_ns,
+		       ISC_TRUE, ISC_FALSE, task1);
 	cancel(fetch, task1);
 
 	(void)isc_app_run();
