@@ -27,6 +27,10 @@
 
 1818.	[bug]		'named-checkconf -z' triggered an INSIST. [RT #13599]
 
+1815.	[bug]		nsupdate triggered a REQUIRE if the server was set
+			without also setting the zone and it encountered
+			a CNAME and was using TSIG.  [RT #13086]
+
 1814.	[func]		UNIX domain controls are now supported.
 
 1812.	[port]		win32: IN6_IS_ADDR_UNSPECIFIED macro is incorrect.
