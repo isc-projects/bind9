@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.12 2001/06/15 23:25:20 gson Exp $ */
+/* $Id: controlconf.c,v 1.13 2001/06/29 23:34:40 gson Exp $ */
 
 #include <config.h>
 
@@ -833,7 +833,7 @@ parse_automagic_key(isc_mem_t *mctx) {
 
 static void
 finalize_automagic_key(void) {
-	int fsaccess;
+	unsigned int fsaccess;
 	int i;
 	FILE *fp;
 	isc_result_t result;
