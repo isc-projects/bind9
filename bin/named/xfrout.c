@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101.2.2 2001/09/28 22:07:12 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.101.2.3 2001/10/30 01:28:29 marka Exp $ */
 
 #include <config.h>
 
@@ -1093,6 +1093,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 				    ISC_LOG_DEBUG(4),
 				    "IXFR version not in journal, "
 				    "falling back to AXFR");
+			mnemonic = "AXFR-style IXFR";
 			goto axfr_fallback;
 		}
 		CHECK(result);
@@ -1100,7 +1101,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	axfr_fallback:
 		CHECK(axfr_rrstream_create(mctx, db, ver,
 					   &data_stream));
-		mnemonic = "AXFR-style IXFR";
 	}
 
 	/*
