@@ -1862,6 +1862,8 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 			 * a negative cache entry.  Whichever case it is,
 			 * we can return success.  In the latter case,
 			 * 'eresult' is already set correctly.
+			 *
+			 * XXXRTH  Is there a CNAME/DNAME problem here?
 			 */
 			result = ISC_R_SUCCESS;
 		}
@@ -2379,16 +2381,6 @@ answer_response(fetchctx_t *fctx) {
 							rdataset,
 							check_related,
 							fctx);
-					/*
-					 * A6 special cases...
-					 */
-					if (rdataset->type ==
-					    dns_rdatatype_a6) {
-						check_related(fctx, name,
-						      dns_rdatatype_a);
-						check_related(fctx, name,
-						      dns_rdatatype_aaaa);
-					}
 
 					/*
 					 * CNAME chaining.
@@ -2728,6 +2720,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 					    DNS_FETCHOPT_NOEDNS0,
 					    DNS_FETCHOPT_NOEDNS0);
 		} else {
+			/*
+			 * XXXRTH log.
+			 */
 			broken_server = ISC_TRUE;
 			keep_trying = ISC_TRUE;
 			/*
@@ -2845,6 +2840,13 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			/*
 			 * XXXRTH  Replace "600" with a configurable
 			 *	   value.
+			 *
+			 * Would we want to mark "." or "com." lame, even
+			 * if they were???
+			 *
+			 * Do badness instead?
+			 *
+			 * Suppress/change if we're forwarding.
 			 */
 			result = dns_adb_marklame(fctx->res->view->adb,
 						  addrinfo,
