@@ -25,6 +25,7 @@ CINCLUDES =	-I../isc/unix/include \
 		-I${srcdir}/../isc/unix/include \
 		-I${srcdir}/../isc/pthreads/include \
 		-I${srcdir}/../isc/include \
+		-I../isc/include \
 		-I./include \
 		-I. \
 		-I${srcdir}/include \
