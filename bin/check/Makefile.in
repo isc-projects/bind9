@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2000  Internet Software Consortium.
+# Copyright (C) 2000  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.1 2000/12/13 06:05:42 marka Exp $
+# $Id: Makefile.in,v 1.2 2000/12/14 21:33:33 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,34 +21,33 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${LWRES_INCLUDES} \
-		${OMAPI_INCLUDES}
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
-OMAPILIBS =	../../lib/omapi/libomapi.@A@
-LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
-OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
-LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS = db dst master mem names net rbt sockaddr tasks timers system
+SUBDIRS =
 
 # Alphabetically
-TARGETS =	check-zone
+TARGETS =	check-conf check-zone
 
 # Alphabetically
-SRCS =		check-zone.c
+SRCS =		check-conf.c check-zone.c check-tool.c
 
 @BIND9_MAKE_RULES@
 
-check-zone: check-zone.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ check-zone.@O@ \
+check-conf: check-conf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ check-conf.@O@ check-tool.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+check-zone: check-zone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ check-zone.@O@ check-tool.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}

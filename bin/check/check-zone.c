@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-zone.c,v 1.2 2000/12/14 01:03:48 marka Exp $ */
+/* $Id: check-zone.c,v 1.3 2000/12/14 21:33:34 marka Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,8 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/zone.h>
+
+#include "check-tool.h"
 
 static int debug = 0;
 static int quiet = 0;
@@ -105,7 +107,6 @@ setup(char *zonename, char *filename, char *classname) {
 	dns_zone_setclass(zone, rdclass);
 
 	result = dns_zone_load(zone);
-	ERRRET(result, "dns_zone_load");
 
 	return (result);
 }
@@ -121,7 +122,7 @@ main(int argc, char **argv) {
 	int c;
 	char *origin = NULL;
 	char *filename = NULL;
-	char *classname = "IN";
+	const char *classname = "IN";
 	isc_log_t *lctx = NULL;
 	isc_result_t result;
 
@@ -145,13 +146,8 @@ main(int argc, char **argv) {
 		usage();
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	if (!quiet) {
-		RUNTIME_CHECK(isc_log_create(mctx, &lctx, NULL) ==
-			      ISC_R_SUCCESS);
-		isc_log_setcontext(lctx);
-		dns_log_init(lctx);
-		dns_log_setcontext(lctx);
-	}
+	if (!quiet)
+		RUNTIME_CHECK(setup_logging(mctx, &lctx) == ISC_R_SUCCESS);
 
 	origin = argv[isc_commandline_index];
 	isc_commandline_index++;
@@ -159,7 +155,7 @@ main(int argc, char **argv) {
 		filename = argv[isc_commandline_index];
 	else
 		filename = origin;
-	result = setup(origin, filename, classname);
+	result = setup(origin, filename, (char *)classname);
 	if (!quiet && result == ISC_R_SUCCESS)
 		fprintf(stdout, "OK\n ");
 	destroy();
