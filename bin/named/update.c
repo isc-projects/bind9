@@ -1703,14 +1703,19 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_result_t result = DNS_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
+	ns_client_t *evclient;
 	
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
-				   update_action, client, sizeof(*event));
+				   update_action, NULL, sizeof(*event));
 	if (event == NULL)
 		FAIL(DNS_R_NOMEMORY);
 	event->zone = zone;
 	event->result = DNS_R_SUCCESS;
+
+	evclient = NULL;
+	ns_client_attach(client, &evclient);
+	event->arg = evclient;
 
 	dns_zone_gettask(zone, &zonetask);
 	isc_task_send(zonetask, (isc_event_t **) &event);
@@ -2247,5 +2252,6 @@ updatedone_action(isc_task_t *task, isc_event_t *event)
 	INSIST(task == client->task);
 
 	respond(client, uev->result);
+	ns_client_detach(&client);
 	isc_event_free(&event);
 }
