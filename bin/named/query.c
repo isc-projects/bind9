@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.204 2001/10/23 06:01:14 marka Exp $ */
+/* $Id: query.c,v 1.205 2001/10/23 06:04:37 marka Exp $ */
 
 #include <config.h>
 
@@ -2043,7 +2043,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
 
-	if (devent->fetch != NULL) {
+	if (client->query.fetch != NULL) {
 		/*
 		 * This is the fetch we've been waiting for.
 		 */
