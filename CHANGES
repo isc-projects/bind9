@@ -1,7 +1,10 @@
- 965.	[bug]		Using non root hints caused a rbtdb node reference
-			leak.	 [RT #1581, RT #1618]
 
- 964.	[func]		Warn if non root hints data is found in hints file.
+ 965.	[bug]		Including data other than root server NS and A
+			records in the root hint file could cause a rbtdb
+			node reference leak. [RT #1581, #1618]
+
+ 964.	[func]		Warn if data other than root server NS and A records
+			are found in the root hint file. [RT #1581, #1618]
 
  963.	[bug]		bad ISC_LANG_ENDDECLS. [RT #1645]
 
@@ -15,7 +18,7 @@
 			getrrsetbyname() in the OS.  [RT #1592]
 
  959.	[port]		On FreeBSD, determine the number of CPUs by calling
-			sysctlbyname().  [RT #1584]
+			sysctlbyname().	 [RT #1584]
 
  958.	[port]		ssize_t is not available on all platforms.  [RT #1607]
 
