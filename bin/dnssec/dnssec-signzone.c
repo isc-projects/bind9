@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.152 2001/11/14 22:14:19 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.153 2001/11/15 00:51:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1516,7 +1516,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:s:e:i:v:o:f:ahpr:td:n:"))
+					   "c:s:e:i:v:o:f:ahpr:td:n:S"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
@@ -1579,6 +1579,12 @@ main(int argc, char *argv[]) {
 			ntasks = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0' || ntasks > ISC_INT32_MAX)
 				fatal("number of cpus must be numeric");
+			break;
+
+		case 'S':
+			/* This is intentionally undocumented */
+			/* -S: simple output style */
+			masterstyle = &dns_master_style_simple;
 			break;
 
 		case 'h':
