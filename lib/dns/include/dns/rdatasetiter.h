@@ -63,6 +63,7 @@
 #include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/lang.h>
+#include <isc/stdtime.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -102,6 +103,7 @@ struct dns_rdatasetiter {
 	dns_db_t *			db;
 	dns_dbnode_t *			node;
 	dns_dbversion_t *		version;
+	isc_stdtime_t			now;
 };
 
 void
