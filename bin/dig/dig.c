@@ -111,7 +111,7 @@ static char *rcodetext[] = {
 };
 
 static void
-show_usage() {
+show_usage(void) {
 	fputs (
 "Usage:  dig [@global-server] [domain] [q-type] [q-class] {q-opt}\n"
 "        {global-d-opt} host [@local-server] {local-d-opt}\n"
@@ -198,7 +198,7 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 
 static void
 say_message(dns_rdata_t *rdata, dig_query_t *query) {
-	isc_buffer_t *b=NULL, *b2=NULL;
+	isc_buffer_t *b = NULL, *b2 = NULL;
 	isc_region_t r, r2;
 	isc_result_t result;
 	isc_uint64_t diff;
@@ -287,6 +287,8 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 					print_name = &empty_name;
 					first = ISC_FALSE;
 				}
+#else
+				UNUSED(first); /* Shut up compiler. */
 #endif
 			} else {
 				loopresult = dns_rdataset_first(rdataset);
@@ -509,16 +511,16 @@ reorder_args(int argc, char *argv[]) {
 			return;
 	}
 	debug ("arg[end]=%s",argv[end]);
-	for (i=1; i<end-1; i++) {
-		if (argv[i][0]=='@') {
+	for (i = 1; i<end-1; i++) {
+		if (argv[i][0] == '@') {
 			debug ("Arg[%d]=%s", i, argv[i]);
-			ptr=argv[i];
-			for (j=i+1; j<end; j++) {
+			ptr = argv[i];
+			for (j = i+1; j<end; j++) {
 				debug ("Moving %s to %d", argv[j], j-1);
-				argv[j-1]=argv[j];
+				argv[j-1] = argv[j];
 			}
 			debug ("Moving %s to end, %d", ptr, end-1);
-			argv[end-1]=ptr;
+			argv[end-1] = ptr;
 			end--;
 			if (end < 1)
 				return;
@@ -560,7 +562,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	for (rc--, rv++; rc > 0; rc--, rv++) {
 		debug ("Main parsing %s", rv[0]);
 		if (strncmp(rv[0], "@", 1) == 0) {
-			srv=isc_mem_allocate(mctx, sizeof(struct dig_server));
+			srv = isc_mem_allocate(mctx,
+					       sizeof(struct dig_server));
 			if (srv == NULL)
 				fatal("Memory allocation failure.");
 			strncpy(srv->servername, &rv[0][1], MXNAME-1);
@@ -890,7 +893,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 #endif
 		} else if (strncmp(rv[0], "-c", 2) == 0) {
  			if (have_host) {
-				if (rv[0][2]!=0) {
+				if (rv[0][2] != 0) {
 					strncpy(lookup->rctext, &rv[0][2],
 						MXRD);
 				} else {
@@ -902,7 +905,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 		} else if (strncmp(rv[0], "-t", 2) == 0) {
  			if (have_host) {
-				if (rv[0][2]!=0) {
+				if (rv[0][2] != 0) {
 					strncpy(lookup->rttext, &rv[0][2],
 						MXRD);
 				} else {
@@ -913,23 +916,23 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				}
 			}
 		} else if (strncmp(rv[0], "-f", 2) == 0) {
-			if (rv[0][2]!=0) {
-				batchname=&rv[0][2];
+			if (rv[0][2] != 0) {
+				batchname = &rv[0][2];
 			} else {
-				batchname=rv[1];
+				batchname = rv[1];
 				rv++;
 				rc--;
 			}
 		} else if (strncmp(rv[0], "-p", 2) == 0) {
-			if (rv[0][2]!=0) {	
-				port=atoi(&rv[0][2]);
+			if (rv[0][2] != 0) {	
+				port = atoi(&rv[0][2]);
 			} else {
-				port=atoi(rv[1]);
+				port = atoi(rv[1]);
 				rv++;
 				rc--;
 			}
 		} else if (strncmp(rv[0], "-b", 2) == 0) {
-			if (rv[0][2]!=0) {
+			if (rv[0][2] != 0) {
 				strncpy(address, &rv[0][2],
 					MXRD);
 			} else {
@@ -965,7 +968,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (lookup == NULL)
 				fatal("Memory allocation failure.");
 			lookup->pending = ISC_FALSE;
-			lookup->textname[0]=0;
+			lookup->textname[0] = 0;
 			for (i = n - 1; i >= 0; i--) {
 				snprintf(batchline, MXNAME/8, "%d.",
 					  adrs[i]);
@@ -975,16 +978,16 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			debug("Looking up %s", lookup->textname);
 			strcpy(lookup->rttext, "ptr");
 			strcpy(lookup->rctext, "in");
-			lookup->namespace[0]=0;
-			lookup->sendspace[0]=0;
-			lookup->sendmsg=NULL;
-			lookup->name=NULL;
-			lookup->oname=NULL;
+			lookup->namespace[0] = 0;
+			lookup->sendspace[0] = 0;
+			lookup->sendmsg = NULL;
+			lookup->name = NULL;
+			lookup->oname = NULL;
 			lookup->timer = NULL;
 			lookup->xfr_q = NULL;
 			lookup->origin = NULL;
 			lookup->use_my_server_list = ISC_FALSE;
-			lookup->trace = (trace || ns_search_only);
+			lookup->trace = ISC_TF(trace || ns_search_only);
 			lookup->trace_root = trace;
 			lookup->ns_search_only = ns_search_only;
 			lookup->doing_xfr = ISC_FALSE;
@@ -1030,20 +1033,20 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				fatal("Memory allocation failure.");
 			lookup->pending = ISC_FALSE;
 			strncpy(lookup->textname, rv[0], MXNAME-1);
-			lookup->rttext[0]=0;
-			lookup->rctext[0]=0;
-			lookup->namespace[0]=0;
-			lookup->sendspace[0]=0;
-			lookup->sendmsg=NULL;
-			lookup->name=NULL;
-			lookup->oname=NULL;
+			lookup->rttext[0] = 0;
+			lookup->rctext[0] = 0;
+			lookup->namespace[0] = 0;
+			lookup->sendspace[0] = 0;
+			lookup->sendmsg = NULL;
+			lookup->name = NULL;
+			lookup->oname = NULL;
 			lookup->timer = NULL;
 			lookup->xfr_q = NULL;
 			lookup->origin = NULL;
 			lookup->use_my_server_list = ISC_FALSE;
 			lookup->doing_xfr = ISC_FALSE;
 			lookup->defname = ISC_FALSE;
-			lookup->trace = (trace || ns_search_only);
+			lookup->trace = ISC_TF(trace || ns_search_only);
 			lookup->trace_root = trace;
 			lookup->ns_search_only = ns_search_only;
 			lookup->identify = identify;
@@ -1077,15 +1080,15 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		}
 		while (fgets(batchline, MXNAME, fp) != 0) {
 			debug ("Batch line %s", batchline);
-			bargc=1;
-			bargv[bargc]=strtok(batchline, " \t\r\n");
+			bargc = 1;
+			bargv[bargc] = strtok(batchline, " \t\r\n");
 			while ((bargv[bargc] != NULL) &&
 			       (bargc < 14 )) {
 				bargc++;
-				bargv[bargc]=strtok(NULL, " \t\r\n");
+				bargv[bargc] = strtok(NULL, " \t\r\n");
 			}
 			bargc--;
-			bargv[0]="dig";
+			bargv[0] = "dig";
 			reorder_args(bargc+1, (char**)bargv);
 			parse_args(ISC_TRUE, bargc+1, (char**)bargv);
 		}
@@ -1098,19 +1101,19 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		if (lookup == NULL)
 			fatal("Memory allocation failure.");
 		lookup->pending = ISC_FALSE;
-		lookup->rctext[0]=0;
-		lookup->namespace[0]=0;
-		lookup->sendspace[0]=0;
-		lookup->sendmsg=NULL;
-		lookup->name=NULL;
-		lookup->oname=NULL;
+		lookup->rctext[0] = 0;
+		lookup->namespace[0] = 0;
+		lookup->sendspace[0] = 0;
+		lookup->sendmsg = NULL;
+		lookup->name = NULL;
+		lookup->oname = NULL;
 		lookup->timer = NULL;
 		lookup->xfr_q = NULL;
 		lookup->origin = NULL;
 		lookup->use_my_server_list = ISC_FALSE;
 		lookup->doing_xfr = ISC_FALSE;
 		lookup->defname = ISC_FALSE;
-		lookup->trace = (trace || ns_search_only);
+		lookup->trace = ISC_TF(trace || ns_search_only);
 		lookup->trace_root = trace;
 		lookup->ns_search_only = ns_search_only;
 		lookup->identify = identify;
@@ -1130,7 +1133,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		ISC_LIST_INIT(lookup->my_server_list);
 		strcpy(lookup->textname, ".");
 		strcpy(lookup->rttext, "NS");
-		lookup->rctext[0]=0;
+		lookup->rctext[0] = 0;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
 	if (!is_batchfile)
@@ -1151,7 +1154,7 @@ main(int argc, char **argv) {
 	debug ("dhmain()");
 #ifdef TWIDDLE
 	fp = fopen("/dev/urandom", "r");
-	if (fp!=NULL) {
+	if (fp != NULL) {
 		fread (&i, sizeof(int), 1, fp);
 		srandom(i);
 	}
@@ -1159,7 +1162,7 @@ main(int argc, char **argv) {
 		srandom ((int)&main);
 	}
 	p = getpid()%16+8;
-	for (i=0 ; i<p; i++);
+	for (i = 0 ; i<p; i++);
 #endif
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
