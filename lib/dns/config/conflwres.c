@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.c,v 1.4 2000/10/19 01:26:36 gson Exp $ */
+/* $Id: conflwres.c,v 1.5 2000/10/19 01:38:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -394,6 +394,10 @@ dns_c_search_new(isc_mem_t *mem, const char *val, dns_c_search_t **search)
 	ki->magic = DNS_C_SEARCH_MAGIC;
 	ki->mem = mem;
 	ki->search = isc_mem_strdup(mem, val);
+	if (ki->search == NULL) {
+		isc_mem_put(mem, ki, sizeof *ki);
+		return (ISC_R_NOMEMORY);
+	}
 
 	ISC_LINK_INIT(ki, next);
 

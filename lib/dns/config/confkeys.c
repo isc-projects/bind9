@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.27 2000/08/01 01:23:21 tale Exp $ */
+/* $Id: confkeys.c,v 1.28 2000/10/19 01:38:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -244,6 +244,7 @@ dns_c_kdef_new(isc_mem_t *mem, const char *name, dns_c_kdef_t **keyid)
 	kd->keyid = isc_mem_strdup(mem, name);
 	if (kd->keyid == NULL) {
 		isc_mem_put(mem, kd, sizeof *kd);
+		return (ISC_R_NOMEMORY);
 	}
 
 	kd->magic = DNS_C_KDEF_MAGIC;
@@ -600,6 +601,10 @@ dns_c_kid_new(isc_mem_t *mem, const char *name, dns_c_kid_t **keyid)
 	ki->magic = DNS_C_KEYID_MAGIC;
 	ki->mem = mem;
 	ki->keyid = isc_mem_strdup(mem, name);
+	if (ki->keyid == NULL) {
+		isc_mem_put(mem, ki, sizeof *ki);
+		return (ISC_R_NOMEMORY);
+	}
 
 	ISC_LINK_INIT(ki, next);
 
