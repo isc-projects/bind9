@@ -14,6 +14,8 @@
 1774.	[port]		Aix: Silence compiler warnings / build failures.
 			[RT #13154]
 
+1773.	[bug]		Fast retry on host / net unreachable. [RT #13153]
+
 1772.	[bug]		Change #1740 needed more work in 9.2 as bit-labels
 			are still supported. [RT #13015]
 

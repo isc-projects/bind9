@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.36 2004/11/10 21:47:55 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.37 2004/12/03 02:06:15 marka Exp $ */
 
 #include <config.h>
 
@@ -659,6 +659,9 @@ static void
 resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	resquery_t *query = event->ev_arg;
+	isc_boolean_t retry = ISC_FALSE;
+	isc_result_t result;
+	fetchctx_t *fctx;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
@@ -677,6 +680,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	INSIST(RESQUERY_SENDING(query));
 
 	query->sends--;
+	fctx = query->fctx;
 
 	if (RESQUERY_CANCELED(query)) {
 		if (query->sends == 0) {
@@ -688,16 +692,43 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 				isc_socket_detach(&query->tcpsocket);
 			resquery_destroy(&query);
 		}
-	} else if (sevent->result == ISC_R_HOSTUNREACH ||
-		   sevent->result == ISC_R_NETUNREACH)
-		/*
-		 * No route to remote.
-		 */
-		fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
-	else if (sevent->result != ISC_R_SUCCESS)
-		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+	} else 
+		switch (sevent->result) {
+		case ISC_R_SUCCESS:
+			break;
+
+		case ISC_R_HOSTUNREACH:
+		case ISC_R_NETUNREACH:
+		case ISC_R_NOPERM:
+		case ISC_R_ADDRNOTAVAIL:
+		case ISC_R_CONNREFUSED:
+
+			/*
+			 * No route to remote.
+			 */
+			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
+			retry = ISC_TRUE;
+			break;
+
+		default:
+			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+			break;
+		}
 
 	isc_event_free(&event);
+
+	if (retry) {
+		/*
+		 * Behave as if the idle timer has expired.  For TCP
+		 * this may not actually reflect the latest timer.
+		 */
+		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
+		result = fctx_stopidletimer(fctx);
+		if (result != ISC_R_SUCCESS)
+			fctx_done(fctx, result);
+		else
+			fctx_try(fctx);
+	}
 }
 
 static inline isc_result_t
@@ -1208,7 +1239,10 @@ static void
 resquery_connected(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	resquery_t *query = event->ev_arg;
+	isc_boolean_t retry = ISC_FALSE;
 	isc_result_t result;
+	unsigned int attrs;
+	fetchctx_t *fctx;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
 	REQUIRE(VALID_QUERY(query));
@@ -1226,6 +1260,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	query->connects--;
+	fctx = query->fctx;
 
 	if (RESQUERY_CANCELED(query)) {
 		/*
@@ -1235,9 +1270,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		isc_socket_detach(&query->tcpsocket);
 		resquery_destroy(&query);
 	} else {
-		if (sevent->result == ISC_R_SUCCESS) {
-			unsigned int attrs;
-
+		switch (sevent->result) {
+		case ISC_R_SUCCESS:
 			/*
 			 * We are connected.  Create a dispatcher and
 			 * send the query.
@@ -1270,25 +1304,46 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				result = resquery_send(query);
 
 			if (result != ISC_R_SUCCESS) {
-				fetchctx_t *fctx = query->fctx;
 				fctx_cancelquery(&query, NULL, NULL,
 						 ISC_FALSE);
 				fctx_done(fctx, result);
 			}
-		} else if (sevent->result == ISC_R_HOSTUNREACH ||
-			   sevent->result == ISC_R_NETUNREACH) {
+			break;
+
+		case ISC_R_NETUNREACH:
+		case ISC_R_HOSTUNREACH:
+		case ISC_R_CONNREFUSED:
+		case ISC_R_NOPERM:
+		case ISC_R_ADDRNOTAVAIL:
 			/*
 			 * No route to remote.
 			 */
 			isc_socket_detach(&query->tcpsocket);
 			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
-		} else {
+			retry = ISC_TRUE;
+			break;
+
+		default:
 			isc_socket_detach(&query->tcpsocket);
 			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+			break;
 		}
 	}
 
 	isc_event_free(&event);
+	
+	if (retry) {
+		/*
+		 * Behave as if the idle timer has expired.  For TCP
+		 * connections this may not actually reflect the latest timer.
+		 */
+		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
+		result = fctx_stopidletimer(fctx);
+		if (result != ISC_R_SUCCESS)
+			fctx_done(fctx, result);
+		else
+			fctx_try(fctx);
+	}
 }
 
 static void
