@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.43 2000/06/07 02:33:46 bwelling Exp $
+ * $Id: tkey.c,v 1.44 2000/06/08 06:16:09 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -153,7 +153,7 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 {
 	isc_md5_t md5ctx;
 	isc_region_t r, r2;
-	char digests[32];
+	unsigned char digests[32];
 	unsigned int i;
 
 	isc_buffer_usedregion(shared, &r);
