@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.87 2000/03/20 19:37:38 gson Exp $ */
+/* $Id: zone.c,v 1.88 2000/03/21 00:17:15 marka Exp $ */
 
 #include <config.h>
 
@@ -3029,16 +3029,15 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 	INSIST((zone->flags & DNS_ZONE_F_REFRESH) != 0);
 	zone->flags &= ~DNS_ZONE_F_REFRESH;
 
+	isc_stdtime_get(&now);
 	switch (result) {
 	case DNS_R_UPTODATE:
 	case DNS_R_SUCCESS:
-		isc_stdtime_get(&now);
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDREFRESH)) {
 			zone->flags &= ~DNS_ZONE_F_NEEDREFRESH;
 			zone->refreshtime = now;
 		} else
 			zone->refreshtime = now + zone->refresh;
-		zone_settimer(zone, now);
 		break;
 
 	default:
@@ -3051,6 +3050,7 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 		}
 		break;
 	}
+	zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 
 	/*
