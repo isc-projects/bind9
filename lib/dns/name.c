@@ -911,7 +911,8 @@ dns_name_clone(dns_name_t *source, dns_name_t *target) {
 	target->ndata = source->ndata;
 	target->length = source->length;
 	target->labels = source->labels;
-	target->attributes = source->attributes;
+	target->attributes = source->attributes &
+		~(DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC);
 	if (target->offsets != NULL && source->labels > 0) {
 		if (source->offsets != NULL)
 			memcpy(target->offsets, source->offsets,
