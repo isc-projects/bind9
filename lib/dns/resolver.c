@@ -106,12 +106,21 @@ typedef struct query {
 	dns_rdata_any_tsig_t		*tsig;
 	dns_tsigkey_t			*tsigkey;
 	unsigned int			options;
+	unsigned int			attributes;
 	unsigned char			data[512];
 } resquery_t;
 
 #define QUERY_MAGIC			0x51212121U	/* Q!!! */
 #define VALID_QUERY(query)		((query) != NULL && \
 					 (query)->magic == QUERY_MAGIC)
+
+#define RESQUERY_ATTR_CONNECTING	0x01
+#define RESQUERY_ATTR_CANCELED		0x02
+
+#define RESQUERY_CONNECTING(q)		(((q)->attributes & \
+					  RESQUERY_ATTR_CONNECTING) != 0)
+#define RESQUERY_CANCELED(q)		(((q)->attributes & \
+					  RESQUERY_ATTR_CANCELED) != 0)
 
 typedef enum {
 	fetchstate_init = 0,		/* Start event has not run yet. */
@@ -260,58 +269,94 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	}
 }
 
+static inline void
+resquery_destroy(resquery_t **queryp) {
+	resquery_t *query;
+	
+	REQUIRE(queryp != NULL);
+	query = *queryp;
+	REQUIRE(!ISC_LINK_LINKED(query, link));
+
+	query->magic = 0;
+	isc_mem_put(query->fctx->res->mctx, query, sizeof *query);
+	*queryp = NULL;
+}
+
 static void
 fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
-		 isc_time_t *finish)
+		 isc_time_t *finish, isc_boolean_t no_response)
 {
 	fetchctx_t *fctx;
 	resquery_t *query;
 	unsigned int rtt;
 	unsigned int factor;
+	isc_socket_t *socket;
 
 	query = *queryp;
 	fctx = query->fctx;
 
 	FCTXTRACE("cancelquery");
 
+	REQUIRE(!RESQUERY_CANCELED(query));
+
+	query->attributes |= RESQUERY_ATTR_CANCELED;
+
 	/*
-	 * XXXRTH  We don't want to set RTT in some cases (e.g. canceled due
-	 * to client disinterest).  Also, deal with dropped UDP datagram
-	 * case.  Don't improve RTT if this wasn't a measured time.
+	 * Should we update the RTT?
 	 */
-	if (finish != NULL) {
-		rtt = (unsigned int)isc_time_microdiff(finish, &query->start);
-		factor = DNS_ADB_RTTADJDEFAULT;
-	} else {
-		/*
-		 * We don't have an RTT for this query.  Maybe the packet
-		 * was lost, or maybe this server is very slow.  We don't
-		 * know.  Increase the RTT.
-		 */
-		rtt = query->addrinfo->srtt + (100000 * fctx->restarts);
-		if (rtt > 10000000)
-			rtt = 10000000;
-		/*
-		 * Replace the current RTT with our value.
-		 */
-		factor = DNS_ADB_RTTADJREPLACE;
+	if (finish != NULL || no_response) {
+		if (finish != NULL) {
+			/*
+			 * We have both the start and finish times for this
+			 * packet, so we can compute a real RTT.
+			 */
+			rtt = (unsigned int)isc_time_microdiff(finish,
+							       &query->start);
+			factor = DNS_ADB_RTTADJDEFAULT;
+		} else {
+			/*
+			 * We don't have an RTT for this query.  Maybe the
+			 * packet was lost, or maybe this server is very
+			 * slow.  We don't know.  Increase the RTT.
+			 */
+			INSIST(no_response);
+			rtt = query->addrinfo->srtt +
+				(100000 * fctx->restarts);
+			if (rtt > 10000000)
+				rtt = 10000000;
+			/*
+			 * Replace the current RTT with our value.
+			 */
+			factor = DNS_ADB_RTTADJREPLACE;
+		}
+		dns_adb_adjustsrtt(fctx->res->view->adb, query->addrinfo, rtt,
+				   factor);
 	}
-	dns_adb_adjustsrtt(fctx->res->view->adb, query->addrinfo, rtt, factor);
 
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
 					    deventp);
 	ISC_LIST_UNLINK(fctx->queries, query, link);
-	query->magic = 0;
 	if (query->tsig != NULL)
 		dns_rdata_freestruct(query->tsig);
+	if (RESQUERY_CONNECTING(query)) {
+		/*
+		 * Cancel the connect.
+		 */
+		socket = dns_dispatch_getsocket(query->dispatch);
+		isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_CONNECT);
+	}
 	dns_dispatch_detach(&query->dispatch);
-	isc_mem_put(fctx->res->mctx, query, sizeof *query);
-	*queryp = NULL;
+	if (!RESQUERY_CONNECTING(query)) {
+		/*
+		 * It's safe to destroy the query now.
+		 */
+		resquery_destroy(&query);
+	}
 }
 
 static void
-fctx_cancelqueries(fetchctx_t *fctx) {
+fctx_cancelqueries(fetchctx_t *fctx, isc_boolean_t no_response) {
 	resquery_t *query, *next_query;
 
 	FCTXTRACE("cancelqueries");
@@ -320,7 +365,7 @@ fctx_cancelqueries(fetchctx_t *fctx) {
 	     query != NULL;
 	     query = next_query) {
 		next_query = ISC_LIST_NEXT(query, link);
-		fctx_cancelquery(&query, NULL, NULL);
+		fctx_cancelquery(&query, NULL, NULL, no_response);
 	}
 }
 
@@ -343,7 +388,7 @@ fctx_cleanupfinds(fetchctx_t *fctx) {
 static inline void
 fctx_stopeverything(fetchctx_t *fctx) {
 	FCTXTRACE("stopeverything");
-	fctx_cancelqueries(fctx);
+	fctx_cancelqueries(fctx, ISC_FALSE);
 	fctx_cleanupfinds(fctx);
 	fctx_stoptimer(fctx);
 }
@@ -411,7 +456,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	(void)task;
 
 	if (sevent->result != ISC_R_SUCCESS)
-		fctx_cancelquery(&query, NULL, NULL);
+		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
 				 
 	isc_event_free(&event);
 }
@@ -490,6 +535,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		goto stop_timer;
 	}
 	query->options = options;
+	query->attributes = 0;
 	/*
 	 * Note that the caller MUST guarantee that 'addrinfo' will remain
 	 * valid until this query is canceled.
@@ -561,12 +607,15 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 					    task, resquery_connected, query);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_dispatch;
+		query->attributes |= RESQUERY_ATTR_CONNECTING;
 		QTRACE("connecting via TCP");
 	} else {
 		result = resquery_send(query);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_dispatch;
 	}
+
+	ISC_LIST_APPEND(fctx->queries, query, link);
 
 	return (ISC_R_SUCCESS);
 
@@ -745,12 +794,6 @@ resquery_send(resquery_t *query) {
 		goto cleanup_message;
 	QTRACE("sent");
 
-	/*
-	 * Finally, we've got everything going!		XXXRTH  move to
-	 *						fctx_query()!
-	 */
-	ISC_LIST_APPEND(fctx->queries, query, link);
-
 	return (ISC_R_SUCCESS);
 
  cleanup_message:
@@ -779,6 +822,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	REQUIRE(event->type == ISC_SOCKEVENT_CONNECT);
+	REQUIRE(VALID_QUERY(query));
 
 	QTRACE("connected");
 
@@ -792,12 +836,26 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	 * up doing extra work!
 	 */
 
-	if (sevent->result == ISC_R_SUCCESS) {
-		result = resquery_send(query);
-		if (result != ISC_R_SUCCESS)
-			fctx_cancelquery(&query, NULL, NULL);
-	} else
-		fctx_cancelquery(&query, NULL, NULL);
+	query->attributes &= ~RESQUERY_ATTR_CONNECTING;
+
+	if (RESQUERY_CANCELED(query)) {
+		/*
+		 * This query was canceled while the connect() was in
+		 * progress.
+		 */
+		resquery_destroy(&query);
+	} else {
+		if (sevent->result == ISC_R_SUCCESS) {
+			/*
+			 * We are connected.  Send the query.
+			 */
+			result = resquery_send(query);
+			if (result != ISC_R_SUCCESS)
+				fctx_cancelquery(&query, NULL, NULL,
+						 ISC_FALSE);
+		} else
+			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+	}
 				 
 	isc_event_free(&event);
 }
@@ -1095,7 +1153,7 @@ fctx_try(fetchctx_t *fctx) {
 		/*
 		 * We have no more addresses.  Start over.
 		 */
-		fctx_cancelqueries(fctx);
+		fctx_cancelqueries(fctx, ISC_TRUE);
 		fctx_cleanupfinds(fctx);
 		result = fctx_getaddresses(fctx);
 		if (result == DNS_R_WAIT) {
@@ -2648,8 +2706,27 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 * server and we don't want to retry using
 				 * TCP.
 				 */
-				broken_server = ISC_TRUE;
-				keep_trying = ISC_TRUE;
+				if ((query->options & DNS_FETCHOPT_NOEDNS0)
+				    == 0) {
+					/*
+					 * The problem might be that they
+					 * don't understand EDNS0.  Turn it
+					 * off and try again.
+					 */
+					options |= DNS_FETCHOPT_NOEDNS0;
+					resend = ISC_TRUE;
+					/*
+					 * Remember that they don't like EDNS0.
+					 */
+					dns_adb_changeflags(
+							fctx->res->view->adb,
+							query->addrinfo,
+							DNS_FETCHOPT_NOEDNS0,
+							DNS_FETCHOPT_NOEDNS0);
+				} else {
+					broken_server = ISC_TRUE;
+					keep_trying = ISC_TRUE;
+				}
 				goto done;
 			}
 			/*
@@ -2659,11 +2736,33 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			truncated = ISC_TRUE;
 			break;
 		case DNS_R_FORMERR:
-			broken_server = ISC_TRUE;
-			keep_trying = ISC_TRUE;
+			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) { 
+				/*
+				 * The problem might be that they
+				 * don't understand EDNS0.  Turn it
+				 * off and try again.
+				 */
+				options |= DNS_FETCHOPT_NOEDNS0;
+				resend = ISC_TRUE;
+				/*
+				 * Remember that they don't like EDNS0.
+				 */
+				dns_adb_changeflags(fctx->res->view->adb,
+						    query->addrinfo,
+						    DNS_FETCHOPT_NOEDNS0,
+						    DNS_FETCHOPT_NOEDNS0);
+			} else {
+				broken_server = ISC_TRUE;
+				keep_trying = ISC_TRUE;
+			}
 			goto done;
 		case DNS_R_MOREDATA:
 			result = DNS_R_NOTIMPLEMENTED;
+			goto done;
+		default:
+			/*
+			 * Something bad has happened.
+			 */
 			goto done;
 		}
 	}
@@ -2831,7 +2930,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Cancel the query.
 	 */
-	fctx_cancelquery(&query, &devent, finish);
+	fctx_cancelquery(&query, &devent, finish, ISC_FALSE);
 
 	if (keep_trying) {
 		if (result == DNS_R_FORMERR)
@@ -2894,7 +2993,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
-			fctx_cancelqueries(fctx);
+			fctx_cancelqueries(fctx, ISC_TRUE);
 			fctx_cleanupfinds(fctx);
 		}					  
 		/*
@@ -2914,7 +3013,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 * All has gone well so far, but we are waiting for the
 		 * DNSSEC validator to validate the answer.
 		 */
-		fctx_cancelqueries(fctx);
+		fctx_cancelqueries(fctx, ISC_TRUE);
 		result = fctx_stopidletimer(fctx);
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
