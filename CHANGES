@@ -1,4 +1,4 @@
-1190.	[func]		Add the "rndc freeze" and"rndc unfreeze" commands.
+1190.	[func]		Add the "rndc freeze" and "rndc unfreeze" commands.
 			[RT #2394]
 
 1189.	[bug]		On some systems, malloc(0) returns NULL, which
