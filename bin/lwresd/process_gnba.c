@@ -70,7 +70,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 
 		if (client->options & DNS_BYADDROPT_IPV6NIBBLE) {
 			error_pkt_send(client, LWRES_R_FAILURE);
-			goto out;
+			return;
 		}
 
 		client->options |= DNS_BYADDROPT_IPV6NIBBLE;
