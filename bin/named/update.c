@@ -1654,7 +1654,6 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event->result = DNS_R_SUCCESS;
 
 	isc_task_send(dns_zone_gettask(zone), (isc_event_t **) &event);
-	result = DNS_R_SUCCESS;
 
  failure:
 	if (event != NULL)
@@ -1774,7 +1773,6 @@ update_action(isc_task_t *task, isc_event_t *event)
 	dns_message_t *request = client->message;
 	dns_rdataclass_t zoneclass;
 	dns_name_t *zonename;
-	dns_result_t render_result;
 		
 	INSIST(event->type == DNS_EVENT_UPDATE);
 	INSIST(task == dns_zone_gettask(zone));
