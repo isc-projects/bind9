@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.38 2005/03/14 23:24:54 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.39 2005/03/16 02:51:58 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -977,7 +977,7 @@ reload the database. </para></entry>
 
     <para>All changes made to a zone using dynamic update are stored in the
     zone's journal file.  This file is automatically created by the
-    server when when the first dynamic update takes place.  The name of
+    server when the first dynamic update takes place.  The name of
     the journal file is formed by appending the
     extension <filename>.jnl</filename> to the
     name of the corresponding zone file.  The journal file is in a
