@@ -60,6 +60,9 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
  * Convert the authority data from 'message' into a negative cache
  * rdataset, and store it in 'cache' at 'node'.
  *
+ * The 'covers' argument is the RR type whose nonexistence we are caching,
+ * or dns_rdatatype_any when caching a NXDOMAIN response.
+ *
  * Note:
  *	If 'addedrdataset' is not NULL, then it will be attached to the added
  *	rdataset.  See dns_db_addrdataset() for more details.
