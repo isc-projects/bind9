@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.164 2001/09/18 18:25:13 bwelling Exp $ */
+/* $Id: dig.c,v 1.165 2001/09/20 17:15:02 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -169,7 +169,7 @@ help(void) {
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
 "                 +time=###           (Set query timeout) [5]\n"
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
-"                 +retries=###        (Set number of UDP retries) [2]\n"
+"                 +retry=###          (Set number of UDP retries) [2]\n"
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
@@ -794,7 +794,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			case 'c': /* recurse */
 				lookup->recurse = state;
 				break;
-			case 't': /* retries */
+			case 't': /* retry / retries */
 				if (value == NULL)
 					goto need_value;
 				if (!state)
