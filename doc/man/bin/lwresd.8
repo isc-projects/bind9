@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwresd.8,v 1.7 2000/08/30 20:43:28 bwelling Exp $
+.\" $Id: lwresd.8,v 1.8 2000/10/18 22:28:42 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRESD 8
@@ -29,7 +29,7 @@
 .Op Fl f g s
 .Op Fl i Ar pid-file
 .Op Fl n Ar #cpus
-.Op Fl P Ar query-port#
+.Op Fl P Ar listen-port#
 .Op Fl p Ar port#
 .Op Fl t Ar directory
 .Op Fl u Ar user-id
@@ -116,16 +116,16 @@ one thread per CPU.  If
 is unable to determine the number of CPUs, a single worker thread
 is created.
 .It Fl P
-send DNS lookups to port number
-.Ar query-port#
-when querying name servers.
-This provides a way of testing the lightweight resolver daemon with a
-name server that listens for queries on a non-standard port number.
-.It Fl p
 listen for lightweight resolver queries on the loopback interface
 using UDP port
 .Ar port#
 instead of the default port number, 921.
+.It Fl p
+send DNS lookups to port number
+.Ar listen-port#
+when querying name servers.
+This provides a way of testing the lightweight resolver daemon with a
+name server that listens for queries on a non-standard port number.
 .It Fl s
 write memory usage statistics to
 .Dv stdout
