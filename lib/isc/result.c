@@ -78,7 +78,8 @@ static const char *text[ISC_R_NRESULTS] = {
 	"file already exists",			/* 39 */
 	"socket is not connected",		/* 40 */
 	"out of range",				/* 41 */
-	"out of entropy"			/* 42 */
+	"out of entropy",			/* 42 */
+	"invalid use of multicast address"	/* 43 */
 };
 
 #define ISC_RESULT_RESULTSET			2

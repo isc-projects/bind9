@@ -64,8 +64,9 @@
 #define ISC_R_NOTCONNECTED		40	/* socket is not connected */
 #define ISC_R_RANGE			41	/* out of range */
 #define ISC_R_NOENTROPY			42	/* out of entropy */
+#define ISC_R_MULTICAST			43	/* invalid use of multicast */
 
-#define ISC_R_NRESULTS 			43	/* Number of results */
+#define ISC_R_NRESULTS 			44	/* Number of results */
 
 ISC_LANG_BEGINDECLS
 
