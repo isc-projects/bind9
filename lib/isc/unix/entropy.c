@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.50 2000/11/23 00:26:11 bwelling Exp $ */
+/* $Id: entropy.c,v 1.51 2000/11/23 01:04:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -134,10 +134,11 @@ struct isc_entropysource {
 	isc_uint32_t	total;		/* entropy from this source */
 	ISC_LINK(isc_entropysource_t)	link;
 	char		name[32];
+	isc_boolean_t	bad;
 	union {
 		isc_entropysamplesource_t	sample;
 		isc_entropyfilesource_t		file;
-		isc_cbsource_t	callback;
+		isc_cbsource_t			callback;
 	} sources;
 };
 
@@ -374,7 +375,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	ssize_t n, ndesired;
 	unsigned int added;
 
-	if (fd == -1)
+	if (source->bad)
 		return (0);
 
 	desired = desired / 8 + (((desired & 0x07) > 0) ? 1 : 0);
@@ -387,12 +388,12 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 			if (errno == EAGAIN)
 				goto out;
 			close(fd);
-			source->sources.file.fd = -1;
+			source->bad = ISC_TRUE;
 			goto out;
 		}
 		if (n == 0) {
 			close(fd);
-			source->sources.file.fd = -1;
+			source->bad = ISC_TRUE;
 			goto out;
 		}
 
@@ -418,6 +419,9 @@ get_from_callback(isc_entropysource_t *source, unsigned int desired,
 	if (desired == 0)
 		return (0);
 
+	if (source->bad)
+		return (0);
+
 	if (!cbs->start_called && cbs->startfunc != NULL) {
 		result = cbs->startfunc(source, cbs->arg, blocking);
 		if (result != ISC_R_SUCCESS)
@@ -434,7 +438,9 @@ get_from_callback(isc_entropysource_t *source, unsigned int desired,
 			added += got;
 			desired -= ISC_MIN(got, desired);
 			result = ISC_R_SUCCESS;
-		}
+		} else if (result != ISC_R_SUCCESS)
+			source->bad = ISC_TRUE;
+
 	}
 
 	return (added);
@@ -834,7 +840,7 @@ destroysource(isc_entropysource_t **sourcep) {
 	switch (source->type) {
 	case ENTROPY_SOURCETYPE_FILE:
 		fd = source->sources.file.fd;
-		if (fd >= 0)
+		if (!source->bad)
 			close(fd);
 		break;
 	case ENTROPY_SOURCETYPE_SAMPLE:
@@ -851,8 +857,6 @@ destroysource(isc_entropysource_t **sourcep) {
 	}
 
 	memset(source, 0, sizeof(isc_entropysource_t));
-
-	DESTROYLOCK(&ent->lock);
 
 	isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
 }
@@ -958,22 +962,20 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	LOCK(&ent->lock);
 
 	source = NULL;
-	fd = -1;
 
 	fd = open(fname, O_RDONLY | O_NONBLOCK, 0);
 	if (fd < 0) {
 		ret = ISC_R_IOERROR;
 		goto errout;
 	}
-
 	ret = make_nonblock(fd);
 	if (ret != ISC_R_SUCCESS)
-		goto errout;
+		goto closefd;
 
 	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
 	if (source == NULL) {
 		ret = ISC_R_NOMEMORY;
-		goto errout;
+		goto closefd;
 	}
 
 	/*
@@ -983,6 +985,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	source->type = ENTROPY_SOURCETYPE_FILE;
 	source->ent = ent;
 	source->total = 0;
+	source->bad = ISC_FALSE;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);
 	source->sources.file.fd = fd;
@@ -996,11 +999,12 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	UNLOCK(&ent->lock);
 	return (ISC_R_SUCCESS);
 
+ closefd:
+	close(fd);
+
  errout:
 	if (source != NULL)
 		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
-	if (fd >= 0)
-		close(fd);
 
 	UNLOCK(&ent->lock);
 
@@ -1057,6 +1061,7 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 		ret = ISC_R_NOMEMORY;
 		goto errout;
 	}
+	source->bad = ISC_FALSE;
 
 	cbs = &source->sources.callback;
 
