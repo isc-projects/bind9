@@ -102,7 +102,7 @@ main(int argc, char **argv)
 	while ((c = getopt(argc, argv, ":at:c:d:n:huxq:")) != -1) {
 		if (c == 'a') {
 			/* flag all tests to be run */
-			/* memset(T_tvec, ~0, sizeof(T_tvec)); */
+			memset(T_tvec, 0xffff, sizeof(T_tvec));
 			/* memset(T_tvec, UINT_MAX, sizeof(T_tvec)); */
 		}
 		else if (c == 't') {
