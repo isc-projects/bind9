@@ -109,6 +109,7 @@ struct timezone;        /* silence warning */
 @SERV_R_END_RETURN@
 @SERV_R_ENT_ARGS@
 @SERV_R_OK@
+@SERV_R_SETANSWER@
 @SERV_R_RETURN@
 @SERV_R_SET_RESULT@
 @SERV_R_SET_RETURN@

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getservent_r.c,v 1.2 2001/07/15 23:29:48 marka Exp $";
+static const char rcsid[] = "$Id: getservent_r.c,v 1.3 2001/07/16 14:43:40 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -41,22 +41,42 @@ SERV_R_RETURN
 getservbyname_r(const char *name, const char *proto,
 		struct servent *sptr, SERV_R_ARGS) {
 	struct servent *se = getservbyname(name, proto);
+#ifdef SERV_R_SETANSWER
+	int n = 0;
+	
+	if (se == NULL || (n = copy_servent(se, sptr, SERV_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = sptr;
 
+	return (n);
+#else
 	if (se == NULL)
 		return (SERV_R_BAD);
 
 	return (copy_servent(se, sptr, SERV_R_COPY));
+#endif
 }
 
 SERV_R_RETURN
 getservbyport_r(int port, const char *proto,
 		struct servent *sptr, SERV_R_ARGS) {
 	struct servent *se = getservbyport(port, proto);
+#ifdef SERV_R_SETANSWER
+	int n = 0;
+	
+	if (se == NULL || (n = copy_servent(se, sptr, SERV_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = sptr;
 
+	return (n);
+#else
 	if (se == NULL)
 		return (SERV_R_BAD);
 
 	return (copy_servent(se, sptr, SERV_R_COPY));
+#endif
 }
 
 /*
@@ -68,11 +88,21 @@ getservbyport_r(int port, const char *proto,
 SERV_R_RETURN
 getservent_r(struct servent *sptr, SERV_R_ARGS) {
 	struct servent *se = getservent();
+#ifdef SERV_R_SETANSWER
+	int n = 0;
+	
+	if (se == NULL || (n = copy_servent(se, sptr, SERV_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = sptr;
 
+	return (n);
+#else
 	if (se == NULL)
 		return (SERV_R_BAD);
 
 	return (copy_servent(se, sptr, SERV_R_COPY));
+#endif
 }
 
 SERV_R_SET_RETURN
@@ -120,7 +150,7 @@ copy_servent(struct servent *se, struct servent *sptr, SERV_R_COPY_ARGS) {
 	len += strlen(se->s_proto) + 1;
 	len += numptr * sizeof(char*);
 	
-	if (len > buflen) {
+	if (len > (int)buflen) {
 		errno = ERANGE;
 		return (SERV_R_BAD);
 	}

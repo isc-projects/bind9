@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.9 2001/07/16 08:37:44 marka Exp $
+ *	$Id: netdb.h,v 1.10 2001/07/16 14:43:39 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -486,11 +486,19 @@ struct protoent	*getprotoent_r __P((struct protoent *, char *, int));
 void		setprotoent_r __P((int));
 void		endprotoent_r __P((void));
 
+#ifdef __GLIBC__
+int getservbyname_r __P((const char *name, const char *,
+			 struct servent *, char *, size_t, struct servent **));
+int getservbyport_r __P((int port, const char *,
+			 struct servent *, char *, size_t, struct servent **));
+int getservent_r __P((struct servent *, char *, size_t, struct servent **));
+#else
 struct servent	*getservbyname_r __P((const char *name, const char *,
 					struct servent *, char *, int));
 struct servent	*getservbyport_r __P((int port, const char *,
 					struct servent *, char *, int));
 struct servent	*getservent_r __P((struct servent *, char *, int));
+#endif
 void		setservent_r __P((int));
 void		endservent_r __P((void));
 
