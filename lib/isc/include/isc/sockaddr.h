@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.44 2005/02/23 01:06:38 marka Exp $ */
+/* $Id: sockaddr.h,v 1.45 2005/02/24 00:33:34 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
