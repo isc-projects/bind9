@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.2.2.1 2000/06/29 00:06:11 gson Exp $
+# $Id: Makefile.in,v 1.2.2.2 2000/07/10 19:10:32 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,20 +23,22 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	-I${srcdir}/include ${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	-I${srcdir}/include ${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =	
 CWARNINGS =
 
+LWRESLIBS =	../../lib/lwres/liblwres.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
 
+LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
 DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =	
 
