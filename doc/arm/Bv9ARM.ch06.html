@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3384"
+HREF="Bv9ARM.ch06.html#AEN3385"
 >Zone File</A
 ></DT
 ></DL
@@ -2240,6 +2240,7 @@ CLASS="programlisting"
     severity info;			// only send priority info
 					// and higher
 };
+
 channel "default_debug" {
     file "named.run";			// write to named.run in
 					// the working directory
@@ -2250,11 +2251,13 @@ channel "default_debug" {
     severity dynamic;			// log at the server's
 					// current debug level
 };
+
 channel "default_stderr" {		// writes to stderr
     stderr;
     severity info;			// only send priority info
 					// and higher
 };
+
 channel "null" {
    null;				// toss anything sent to
 					// this channel
@@ -2264,12 +2267,15 @@ channel "null" {
 >The <B
 CLASS="command"
 >default_debug</B
-> channel normally writes
-to a file <TT
+> channel has the special
+property that it only produces output when the server's debug level is
+nonzero.  It normally writes to a file <TT
 CLASS="filename"
 >named.run</TT
-> in the server's working
-directory.  For security reasons, when the "<TT
+>
+in the server's working directory.</P
+><P
+>For security reasons, when the "<TT
 CLASS="option"
 >-u</TT
 >"
@@ -2356,7 +2362,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1650"
+NAME="AEN1651"
 ></A
 ><P
 ></P
@@ -2692,7 +2698,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1751"
+NAME="AEN1752"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2789,7 +2795,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1775"
+NAME="AEN1776"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2863,7 +2869,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1794"
+NAME="AEN1795"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3786,7 +3792,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2004"
+NAME="AEN2005"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4682,7 +4688,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2278"
+NAME="AEN2279"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4886,7 +4892,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2343"
+NAME="AEN2344"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -4981,7 +4987,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2369"
+NAME="AEN2370"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5394,7 +5400,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2505"
+NAME="AEN2506"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5531,7 +5537,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2557"
+NAME="AEN2558"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><P
@@ -5898,7 +5904,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2645"
+NAME="AEN2646"
 ></A
 ><P
 ></P
@@ -6285,7 +6291,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2757"
+NAME="AEN2758"
 ></A
 ><P
 ></P
@@ -6694,7 +6700,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2865"
+NAME="AEN2866"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6769,7 +6775,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2881"
+NAME="AEN2882"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6804,7 +6810,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2889"
+NAME="AEN2890"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6867,7 +6873,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2903"
+NAME="AEN2904"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7497,7 +7503,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3050"
+NAME="AEN3051"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7508,13 +7514,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3053"
+NAME="AEN3054"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3055"
+NAME="AEN3056"
 ></A
 ><P
 ></P
@@ -7752,7 +7758,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3110"
+NAME="AEN3111"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7790,7 +7796,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3120"
+NAME="AEN3121"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8431,7 +8437,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3354"
+NAME="AEN3355"
 ></A
 ><P
 ></P
@@ -8538,7 +8544,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3384"
+NAME="AEN3385"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8559,7 +8565,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3389"
+NAME="AEN3390"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8582,7 +8588,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3395"
+NAME="AEN3396"
 ></A
 ><P
 ></P
@@ -8693,7 +8699,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3427"
+NAME="AEN3428"
 ></A
 ><P
 ></P
@@ -9070,7 +9076,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3539"
+NAME="AEN3540"
 ></A
 ><P
 ></P
@@ -9122,7 +9128,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3555"
+NAME="AEN3556"
 ></A
 ><P
 ></P
@@ -9299,7 +9305,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3603"
+NAME="AEN3604"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9329,7 +9335,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3610"
+NAME="AEN3611"
 ></A
 ><P
 ></P
@@ -9538,7 +9544,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3676"
+NAME="AEN3677"
 ></A
 ><P
 ></P
@@ -9629,7 +9635,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3704"
+NAME="AEN3705"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9662,7 +9668,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3710"
+NAME="AEN3711"
 ></A
 ><P
 ></P
@@ -9958,7 +9964,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3802"
+NAME="AEN3803"
 ></A
 ><P
 ></P
@@ -10041,7 +10047,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3825"
+NAME="AEN3826"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10065,7 +10071,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3830"
+NAME="AEN3831"
 ></A
 ><P
 ></P
@@ -10145,7 +10151,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3852"
+NAME="AEN3853"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10170,7 +10176,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3859"
+NAME="AEN3860"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10240,7 +10246,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3879"
+NAME="AEN3880"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10322,7 +10328,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3899"
+NAME="AEN3900"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10362,7 +10368,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3910"
+NAME="AEN3911"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10441,7 +10447,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3930"
+NAME="AEN3931"
 ></A
 ><P
 ></P
