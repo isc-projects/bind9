@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.32 2001/09/15 00:01:49 bwelling Exp $
+ * $Id: dst_parse.c,v 1.33 2001/09/15 00:27:26 bwelling Exp $
  */
 
 #include <config.h>
@@ -39,11 +39,6 @@
 
 #define PRIVATE_KEY_STR "Private-key-format:"
 #define ALGORITHM_STR "Algorithm:"
-#define RSAMD5_STR "RSAMD5"
-#define DH_STR "DH"
-#define DSA_STR "DSA"
-#define RSASHA1_STR "RSASHA1"
-#define HMACMD5_STR "HMAC_MD5"
 
 struct parse_map {
 	const int value;
