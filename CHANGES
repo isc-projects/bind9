@@ -1,4 +1,6 @@
-1501.	[func]		allow tcp queue length to be specified via
+1502.	[bug]		nsupdate: adjust timeouts for UPDATE requests over TCP.
+
+1501.	[func]		Allow TCP queue length to be specified via
 			named.conf, tcp-listen-queue.
 
 1500.	[bug]		host failed to lookup MX records.  Also look up
