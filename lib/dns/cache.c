@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.48 2001/10/23 00:56:33 gson Exp $ */
+/* $Id: cache.c,v 1.49 2001/10/23 01:21:44 marka Exp $ */
 
 #include <config.h>
 
@@ -555,6 +555,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		isc_timer_detach(&cleaner->cleaning_timer);
 	if (cleaner->task != NULL)
 		isc_task_detach(&cleaner->task);
+	DESTROYLOCK(&cleaner->lock);
  fail:
 	return (result);
 }
