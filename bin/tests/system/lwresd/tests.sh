@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2000/10/05 22:29:32 bwelling Exp $
+# $Id: tests.sh,v 1.9 2000/10/13 23:28:00 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -28,11 +28,11 @@ sleep 5
 
 status=0
 
-echo "I: using resolv.conf"
+echo "I:using resolv.conf"
 ret=0
 ./lwtest || ret=1
 if [ $ret != 0 ]; then
-	echo "I: failed"
+	echo "I:failed"
 fi
 status=`expr $status + $ret`
 
@@ -69,11 +69,11 @@ fi
         done
 )
 
-echo "I: using lwresd.conf"
+echo "I:using lwresd.conf"
 ret=0
 ./lwtest || ret=1
 if [ $ret != 0 ]; then
-	echo "I: failed"
+	echo "I:failed"
 fi
 status=`expr $status + $ret`
 
