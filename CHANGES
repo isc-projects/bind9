@@ -22,6 +22,11 @@
 1730.	[port]		Determine the length type used by the socket API.
 			[RT #12581]
 
+1728.	[doc]		Update check-names documentation.
+
+1727.	[bug]		named-checkzone: check-names support didn't match
+			documentation.
+
 1726.	[port]		aix5: add support for aix5.
 
 1724.	[bug]		Look for DNSKEY records with "dig +sigtrace".

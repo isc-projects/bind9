@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.3.8.9 2004/03/06 10:21:11 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.3.8.10 2004/10/06 05:37:38 marka Exp $ */
 
 #include <config.h>
 
@@ -63,7 +63,8 @@ static void
 usage(void) {
 	fprintf(stderr,
 		"usage: named-checkzone [-djqvD] [-c class] [-o output] "
-		"[-t directory] [-w directory] [-k option] zonename filename\n");
+		"[-t directory] [-w directory] [-k (ignore|warn|fail)] "
+		"[-n (ignore|warn|fail)] zonename filename\n");
 	exit(1);
 }
 
@@ -111,12 +112,17 @@ main(int argc, char **argv) {
 			break;
 
 		case 'k':
-			if (!strcmp(isc_commandline_argument, "check-names")) {
+			if (!strcmp(isc_commandline_argument, "warn")) {
 				zone_options |= DNS_ZONEOPT_CHECKNAMES;
+				zone_options &= ~DNS_ZONEOPT_CHECKNAMESFAIL;
 			} else if (!strcmp(isc_commandline_argument,
-					   "check-names-fail")) {
+					   "fail")) {
 				zone_options |= DNS_ZONEOPT_CHECKNAMES |
 						DNS_ZONEOPT_CHECKNAMESFAIL;
+			} else if (!strcmp(isc_commandline_argument,
+					   "ignore")) {
+				zone_options &= ~(DNS_ZONEOPT_CHECKNAMES |
+						  DNS_ZONEOPT_CHECKNAMESFAIL);
 			}
 			break;
 
