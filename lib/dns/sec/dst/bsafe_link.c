@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.34 2000/08/16 00:30:53 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.35 2000/09/07 12:10:36 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
@@ -300,8 +300,8 @@ dnssafersa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 
 static isc_result_t
 dnssafersa_generate(dst_key_t *key, int exp) {
-	B_KEY_OBJ private;
-	B_KEY_OBJ public;
+	B_KEY_OBJ private = NULL;
+	B_KEY_OBJ public = NULL;
 	B_ALGORITHM_OBJ keypairGenerator = NULL;
 	B_ALGORITHM_OBJ randomAlgorithm = NULL;
 	A_RSA_KEY_GEN_PARAMS keygenParams;
