@@ -199,8 +199,8 @@ destroy(isc_timer_t *timer) {
 
 	isc_task_purgerange(timer->task,
 			    timer,
-			    ISC_TASKEVENT_FIRSTEVENT,
-			    ISC_TASKEVENT_LASTEVENT,
+			    ISC_TIMEREVENT_FIRSTEVENT,
+			    ISC_TIMEREVENT_LASTEVENT,
 			    NULL);
 	deschedule(timer);
 	UNLINK(manager->timers, timer, link);
@@ -375,8 +375,8 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	if (purge)
 		isc_task_purgerange(timer->task,
 				    timer,
-				    ISC_TASKEVENT_FIRSTEVENT,
-				    ISC_TASKEVENT_LASTEVENT,
+				    ISC_TIMEREVENT_FIRSTEVENT,
+				    ISC_TIMEREVENT_LASTEVENT,
 				    NULL);
 	timer->type = type;
 	timer->expires = *expires;
