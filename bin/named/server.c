@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.45 2004/03/10 02:55:52 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.46 2004/03/14 22:44:47 marka Exp $ */
 
 #include <config.h>
 
@@ -843,10 +843,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				      ns_g_socketmgr, ns_g_timermgr,
 				      check, ns_g_dispatchmgr,
 				      dispatch4, dispatch6));
-	if (dispatch4 != NULL)
-		dns_dispatch_detach(&dispatch4);
-	if (dispatch6 != NULL)
-		dns_dispatch_detach(&dispatch6);
 
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size.
@@ -1201,6 +1197,10 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (dispatch4 != NULL)
+		dns_dispatch_detach(&dispatch4);
+	if (dispatch6 != NULL)
+		dns_dispatch_detach(&dispatch6);
 	if (order != NULL)
 		dns_order_detach(&order);
 	if (cmctx != NULL)
