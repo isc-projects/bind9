@@ -421,7 +421,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	INSIST((client->message->flags & DNS_MESSAGEFLAG_QR) == 0);
 
 	/*
-	 * XXXRTH  View list management code will be moving to its own module soon.
+	 * XXXRTH  View list management code will be moving to its own module
+	 *         soon.
 	 */
 	RWLOCK(&ns_g_viewlock, isc_rwlocktype_read);
 	for (view = ISC_LIST_HEAD(ns_g_viewlist);
