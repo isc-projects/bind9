@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.18 2000/05/03 21:11:40 explorer Exp $ */
+/* $Id: log.h,v 1.19 2000/05/09 05:12:48 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -60,6 +60,7 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_ACL		(&dns_modules[15])
 #define DNS_LOGMODULE_VALIDATOR		(&dns_modules[16])
 #define DNS_LOGMODULE_DISPATCH		(&dns_modules[17])
+#define DNS_LOGMODULE_REQUEST		(&dns_modules[18])
 
 ISC_LANG_BEGINDECLS
 
