@@ -2,11 +2,11 @@
 
 DNS Extensions                                                   S. Rose
 Internet-Draft                                                      NIST
-Expires: March 6, 2003                                 September 5, 2002
+Expires: August 5, 2003                                 February 4, 2003
 
 
                      DNS Security Document Roadmap
-                  draft-ietf-dnsext-dnssec-roadmap-06
+                  draft-ietf-dnsext-dnssec-roadmap-07
 
 Status of this Memo
 
@@ -29,11 +29,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 6, 2003.
+   This Internet-Draft will expire on August 5, 2003.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+   Copyright (C) The Internet Society (2003).  All Rights Reserved.
 
 Abstract
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Rose                     Expires March 6, 2003                  [Page 1]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+Rose                     Expires August 5, 2003                 [Page 1]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 Table of Contents
@@ -70,9 +70,10 @@ Table of Contents
    4.4 The Use of DNS Security Extensions with Other Protocols  . . . 10
    5.  Security Considerations  . . . . . . . . . . . . . . . . . . . 11
    6.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 12
-       References . . . . . . . . . . . . . . . . . . . . . . . . . . 13
-       Author's Address . . . . . . . . . . . . . . . . . . . . . . . 14
-       Full Copyright Statement . . . . . . . . . . . . . . . . . . . 15
+       Normative References . . . . . . . . . . . . . . . . . . . . . 13
+       Informative References . . . . . . . . . . . . . . . . . . . . 15
+       Author's Address . . . . . . . . . . . . . . . . . . . . . . . 15
+       Full Copyright Statement . . . . . . . . . . . . . . . . . . . 16
 
 
 
@@ -107,10 +108,9 @@ Table of Contents
 
 
 
-
-Rose                     Expires March 6, 2003                  [Page 2]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+Rose                     Expires August 5, 2003                 [Page 2]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 1. Introduction
@@ -119,14 +119,14 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
    of supplemental documents describing security extensions to the
    Domain Name System (DNS).
 
-   The main goal of the DNS Security (DNSSEC) protocol extensions is to
-   add data authentication and integrity services to the DNS protocol.
-   These protocol extensions should be differentiated from DNS
-   operational security issues, which are beyond the scope of this
-   effort.  DNS Security documents fall into one or possibly more of the
-   following sub-categories: new DNS security resource records,
-   implementation details of specific digital signing algorithms for use
-   in DNS Security and Secure DNS transactions.  Since the goal of DNS
+   The main goal of the DNS Security (DNSSEC) extensions is to add data
+   authentication and integrity services to the DNS protocol.  These
+   protocol extensions should be differentiated from DNS operational
+   security issues, which are beyond the scope of this effort.  DNS
+   Security documents fall into one or possibly more of the following
+   sub-categories: new DNS security resource records, implementation
+   details of specific digital signing algorithms for use in DNS
+   Security and DNS transaction authentication.  Since the goal of DNS
    Security extensions is to become part of the DNS protocol standard,
    additional documents that seek to refine a portion of the security
    extensions will be introduced as the specifications progress along
@@ -146,12 +146,10 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
    important to securing a DNS zone, but they do not directly address
    the proposed DNS security extensions.  Authors of documents that seek
    to address the operational concerns of DNS security should be aware
-   of the structure of DNS Security documentation if they wish to
-   include their documents in the DNSEXT Working Group in addition to
-   the DNS Operations WG.
+   of the structure of DNS Security documentation.
 
    It is assumed the reader has some knowledge of the Domain Name System
-   [2] and the Domain Name System Security Extensions [1].
+   [2] and the Domain Name System Security Extensions.
 
 
 
@@ -164,9 +162,11 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
 
 
-Rose                     Expires March 6, 2003                  [Page 3]
 
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+
+Rose                     Expires August 5, 2003                 [Page 3]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 2. Interrelationship of DNS Security Documents
@@ -220,9 +220,9 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
 
 
-Rose                     Expires March 6, 2003                  [Page 4]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+Rose                     Expires August 5, 2003                 [Page 4]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
    ---------------------------------------------------------------------
@@ -247,8 +247,8 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
                                     |
                                     |
              +----------------------+***********************
-             |                      |                      *
-             |                      |                      *
+             |                      *                      *
+             |                      *                      *
        +------------+       +---------------+      +-*-*-*-*-*-*-*-*-+
        |  DS        |       |               |      | Implementation  |
        |  Algorithm |       |  Transactions |      * Notes           *
@@ -266,40 +266,43 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
    up the groundwork for adding security to the DNS protocol [1]and
    updates to this document.  RFC 2535 laid out the goals and
    expectations of DNS Security and the new security-related Resource
-   Records KEY, SIG, DS [19] and NXT.  Expanding from this document,
+   Records KEY, SIG, DS, and NXT [23].  Expanding from this document,
    related document groups include the implementation documents of
    various digital signature algorithms with DNSSEC, and documents
    further refining the transaction of messages.  It is expected that
    RFC 2535 will be obsoleted by one or more documents that refine the
-   set of security extensions and DNS security transactions [22], [23],
-   [24].  Documents that seek to modify or clarify the base protocol
+   set of security extensions [22], [23], [24].  Documents that seek to
+   modify or clarify the base protocol documents should state so clearly
 
 
 
-Rose                     Expires March 6, 2003                  [Page 5]
+Rose                     Expires August 5, 2003                 [Page 5]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
-Internet-Draft          DNSSEC Document Roadmap           September 2002
 
-
-   documents should state so clearly in the introduction of the document
-   (as well as proscribe to the IETF guidelines of RFC/Internet Draft
-   author guidelines).  Also, the portions of the specification to be
-   modified should be synopsized in the new document for the benefit of
-   the reader.  The "DNSSEC protocol" set includes the documents [1],
-   [11], [12], [9], [14], [15], [21], [20], [OPTIN], [16] and their
-   derivative documents.
+   in the introduction of the document (as well as proscribe to the IETF
+   guidelines of RFC/Internet Draft author guidelines).  Also, the
+   portions of the specification to be modified should be synopsized in
+   the new document for the benefit of the reader.  The "DNSSEC
+   protocol" set includes the documents [1], [11], [12], [9], [14],
+   [15], [21], [16], [OPTIN], [17] and their derivative documents.
 
    The "New Security RRs" set refers to the group of documents that seek
    to add additional Resource Records to the set of base DNS Record
    types.  These new records can be related to securing the DNS protocol
    [1], [8], or using DNS security for other purposes such as storing
-   certificates [5].
+   certificates [5].  Another related document is [26].  While not
+   detailing a new RR type, it defines a flag bit in the existing KEY
+   RR.  This flag bit does not affect the protocol interpretation of the
+   RR, only a possible operational difference.  Therefore, this draft is
+   place here and not with the protocol document set.
 
    The "DS Algorithm Impl" document set refers to the group of documents
    that describe how a specific digital signature algorithm is
    implemented to fit the DNSSEC Resource Record format.  Each one of
    these documents deals with one specific digital signature algorithm.
-   Examples of this set include [4], [5], [25], [18][17] and [13].
+   Examples of this set include [4], [5], [25], [19][18] and [13].
 
    The "Transactions" document set refers to the group of documents that
    deal with the message transaction sequence of security-related DNS
@@ -326,28 +329,27 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
    Lastly, there is a set of documents that should be classified as
    "Implementation Notes".  Because the DNS security extensions are
    still in the developmental stage, there is an audience for documents
+
+
+
+Rose                     Expires August 5, 2003                 [Page 6]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
+
+
    that detail the transition and implementation of the security
    extensions.  These have more to do with the practical side of DNS
    operations, but can also point to places in the protocol
-
-
-
-Rose                     Expires March 6, 2003                  [Page 6]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
-
-
-   specifications that need improvement.  Documents in this set may be
-   offspring of both the DNSEXT and/or DNSOP Working Groups.  An example
-   of this type is the report on the CAIRN DNSSEC testbed [CAIRN] This
-   document was submitted through the DNSOP Working Group, however the
-   main concern of this document is the implementation and limitations
-   of the DNS security extensions, hence their interest to the DNS
-   security community.  The CAIRN draft deals with the implementation of
-   a secure DNS.  Authors of documents that deal with the implementation
-   and operational side of the DNSSEC specifications would be advised/
-   encouraged to submit their documents to the DNSEXT Working Group as
-   well.
+   specifications that need improvement.  An example of this type is the
+   report on the CAIRN DNSSEC testbed [CAIRN] This document was
+   submitted through the DNSOP Working Group at the time of this
+   writing, however the main concern of this document is the
+   implementation and limitations of the DNS security extensions, hence
+   their interest to the DNS security community.  The CAIRN draft deals
+   with the implementation of a secure DNS.  Authors of documents that
+   deal with the implementation and operational side of the DNSSEC
+   specifications would be advised/encouraged to submit their documents
+   to any other relevant DNS related WG meeting in the problem space.
 
 
 
@@ -386,22 +388,18 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
 
 
-
-
-Rose                     Expires March 6, 2003                  [Page 7]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+Rose                     Expires August 5, 2003                 [Page 7]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 3.  Relationship of DNS Security Documents to other DNS Documents
 
    The DNS security-related extensions should be considered a subset of
-   the DNS protocol.  The DNS Security Working Group of the IETF
-   (DNSSEC) has been absorbed into the larger DNS Extensions Working
-   Group (DNSEXT).  Therefore, all DNS security-related documents should
-   be seen as a subset of the main DNS architecture documents.  It is a
-   good idea for authors of future DNS security documents to be familiar
-   with the contents of these base protocol documents.
+   the DNS protocol.  Therefore, all DNS security-related documents
+   should be seen as a subset of the main DNS architecture documents.
+   It is a good idea for authors of future DNS security documents to be
+   familiar with the contents of these base protocol documents.
 
 
 
@@ -444,9 +442,11 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
 
 
-Rose                     Expires March 6, 2003                  [Page 8]
 
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+
+Rose                     Expires August 5, 2003                 [Page 8]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 4.  Recommended Content for new DNS Security Documents
@@ -465,8 +465,10 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
    Since the addition of security to the DNS protocol is now considered
    a general extension to the DNS protocol, any guideline for the
-   contents of a DNS Security document could be taken as a suggestion
-   for the contents of any DNS extension document.
+   contents of a DNS Security document could be taken as a framework
+   suggestion for the contents of any DNS extension document.  The
+   development process of the DNS security extensions could be used as a
+   model framework for any, more general DNS extensions.
 
 4.1 Security Related Resource Records
 
@@ -496,15 +498,14 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
    signatures schemes are introduced) for use with DNS Security should
    include the following information:
 
+
+
+Rose                     Expires August 5, 2003                 [Page 9]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
+
+
    o  The format/encoding of the algorithm's public key for use in a KEY
-
-
-
-Rose                     Expires March 6, 2003                  [Page 9]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
-
-
       Resource Record;
 
    o  the acceptable key size for use with the algorithm;
@@ -545,7 +546,7 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
    other Internet protocols and applications that could make use of, or
    extend, the DNS security protocols.  Examples of this type of
    document include the use of DNS to support IPSEC [IPSEC-DNS], SSH
-   [SSH-DNS} the Public Key Infrastructure (PKI).  It is beyond the
+   [SSH-DNS] the Public Key Infrastructure (PKI).  It is beyond the
    scope of this roadmap to describe the contents of this class of
    documents.  However, if uses or extensions require the addition or
    modification of a DNS Resource Record type or DNS query/response
@@ -555,18 +556,18 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
 
 
-
-Rose                     Expires March 6, 2003                 [Page 10]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+Rose                     Expires August 5, 2003                [Page 10]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 5. Security Considerations
 
    This document provides a roadmap and guidelines for writing DNS
-   Security related documents.  The reader should follow all the
-   security procedures and guidelines described in the DNS Security
-   Extensions document [1].
+   Security related documents.  This document does not discuss the
+   aspects of the DNS security extensions.  The reader should refer to
+   the documents outlined here for the details of the services and
+   shortcomings of DNS security.
 
 
 
@@ -611,10 +612,9 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
 
 
-
-Rose                     Expires March 6, 2003                 [Page 11]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+Rose                     Expires August 5, 2003                [Page 11]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 6. Acknowledgements
@@ -668,12 +668,12 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
 
 
 
-Rose                     Expires March 6, 2003                 [Page 12]
+Rose                     Expires August 5, 2003                [Page 12]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
-Internet-Draft          DNSSEC Document Roadmap           September 2002
 
-
-References
+Normative References
 
    [1]   Eastlake, D., "Domain Name System Security Extensions", RFC
          2535, March 1999.
@@ -724,25 +724,80 @@ References
 
 
 
-Rose                     Expires March 6, 2003                 [Page 13]
+Rose                     Expires August 5, 2003                [Page 13]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+
+   [16]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
+         Record (RR)", RFC 3445, December 2002.
 
 
-   [16]  Austein, R. and D. Atkins, "Threat Analysis of the Domain Name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Rose                     Expires August 5, 2003                [Page 14]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
+
+
+Informative References
+
+   [17]  Austein, R. and D. Atkins, "Threat Analysis of the Domain Name
          System (Work in Progress)", RFC XXXX.
 
-   [17]  Eastlake, R., "Storage of Diffie-Hellman Keys in the Domain
+   [18]  Eastlake, R., "Storage of Diffie-Hellman Keys in the Domain
          Name System (DNS) (Work in Progress)", RFC XXXX.
 
-   [18]  Eastlake, D. and R. Schroeppel, "Elliptic Curve KEYs in the DNS
+   [19]  Eastlake, D. and R. Schroeppel, "Elliptic Curve KEYs in the DNS
          (Work in Progress)", RFC XXXX.
 
-   [19]  Gundmundsson, O., "Delegation Signer Record in Parent (Work in
+   [20]  Gundmundsson, O., "Delegation Signer Record in Parent (Work in
          Progress)", RFC XXXX.
-
-   [20]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
-         Record (Work in Progress)", RFC XXXX.
 
    [21]  Wellington, B., "Redefinition of the DNS AD bit (Work in
          Progress)", RFC XXXX.
@@ -750,14 +805,19 @@ Internet-Draft          DNSSEC Document Roadmap           September 2002
    [22]  Arends, R., Larson, M., Massey, D. and S. Rose, "DNS Security
          Introduction and Requirements (Work in Progress)", RFC XXXX.
 
-   [23]  Arends, R., Larson, M., Massey, D. and S. Rose, "DNS Security
-         Introduction and Requirements (Work in Progress)", RFC XXXX.
+   [23]  Arends, R., Larson, M., Massey, D. and S. Rose, "Resource
+         Records for DNS Security Extensions (Work in Progress)", RFC
+         XXXX.
 
-   [24]  Arends, R., Larson, M., Massey, D. and S. Rose, "DNS Security
-         Introduction and Requirements (Work in Progress)", RFC XXXX.
+   [24]  Arends, R., Larson, M., Massey, D. and S. Rose, "Protocol
+         Modifications for the DNS Security Extensions (Work in
+         Progress)", RFC XXXX.
 
    [25]  Kwan, S., Garg, P., Gilroy, J. and L. Esibov, "GSS Algorithm
          for TSIG (Work in Progress)", RFC XXXX.
+
+   [26]  Kolkman, O. and J. Schlyter, "KEY RR Key-Signing-Key (KSK) Flag
+         (Work in Progress)", RFC XXXX.
 
 
 Author's Address
@@ -776,18 +836,14 @@ Author's Address
 
 
 
-
-
-
-
-Rose                     Expires March 6, 2003                 [Page 14]
-
-Internet-Draft          DNSSEC Document Roadmap           September 2002
+Rose                     Expires August 5, 2003                [Page 15]
+
+Internet-Draft          DNSSEC Document Roadmap            February 2003
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+   Copyright (C) The Internet Society (2003).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -836,6 +892,5 @@ Acknowledgement
 
 
 
-Rose                     Expires March 6, 2003                 [Page 15]
-
-
+Rose                     Expires August 5, 2003                [Page 16]
+

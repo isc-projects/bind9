@@ -1,0 +1,1120 @@
+
+
+DNS Extensions                                                 R. Arends
+Internet-Draft                                      Telematica Instituut
+Expires: June 1, 2003                                          M. Larson
+                                                                VeriSign
+                                                               D. Massey
+                                                                 USC/ISI
+                                                                 S. Rose
+                                                                    NIST
+                                                           December 2002
+
+
+               DNS Security Introduction and Requirements
+                   draft-ietf-dnsext-dnssec-intro-04
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on June 1, 2003.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+Abstract
+
+   The Domain Name System Security Extensions (DNSSEC) provide data
+   origin authentication and data integrity.  This document introduces
+   these extensions and describes their capabilities and limitations.
+   The services that the security extensions provide and do not provide
+   are discussed.  Lastly, the group of documents that describe the DNS
+   security extensions and their interrelationships is discussed.
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 1]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+Table of Contents
+
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Definitions of Important DNSSEC Terms  . . . . . . . . . . . .  4
+   3.  Services Provided by DNS Security  . . . . . . . . . . . . . .  5
+   3.1 Data Origin Authentication and Data Integrity  . . . . . . . .  5
+   3.2 Authenticating Name and Type Non-Existence . . . . . . . . . .  6
+   4.  Services Not Provided by DNS Security  . . . . . . . . . . . .  7
+   5.  Resolver Considerations  . . . . . . . . . . . . . . . . . . .  8
+   6.  Zone Considerations  . . . . . . . . . . . . . . . . . . . . . 10
+   6.1 TTL values vs. SIG validity period . . . . . . . . . . . . . . 10
+   6.2 New Temporal Issues for Zones  . . . . . . . . . . . . . . . . 10
+   7.  Server Considerations  . . . . . . . . . . . . . . . . . . . . 11
+   8.  DNS Security Document Family . . . . . . . . . . . . . . . . . 12
+   8.1 DNS Security Document Roadmap  . . . . . . . . . . . . . . . . 12
+   8.2 Categories of DNS Security Documents . . . . . . . . . . . . . 12
+   9.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 14
+   10. Security Considerations  . . . . . . . . . . . . . . . . . . . 15
+   11. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 16
+       Normative References . . . . . . . . . . . . . . . . . . . . . 17
+       Informative References . . . . . . . . . . . . . . . . . . . . 18
+       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . 18
+       Full Copyright Statement . . . . . . . . . . . . . . . . . . . 20
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 2]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+1. Introduction
+
+   This document introduces the Domain Name System Security Extensions
+   (DNSSEC).  This document and a collection of related documents update
+   RFC 2535 [3] and its related documents to further clarify and refine
+   the security extensions defined in RFC 2535.  These security
+   extensions consist of a set of new resource record types and
+   modifications to the existing DNS protocol [2].  The new records and
+   protocol modifications are not fully described in this document, but
+   in a family of documents outlined in Section 8.  The capabilities and
+   limitations of the security extensions are described in greater
+   detail in Section 3 and Section 4, respectively.
+
+   These three documents update/obsolete RFC's: 2525, 3008, 3090, 3225,
+   3226, 3445 and Internet Drafts: "Redefinition of the AD bit",
+   "Delegation Signer Resource Record", "DNSSEC Opt-In".  See [18] for
+   more details of these documents.
+
+   Lastly, the effect that these security extensions will have on
+   resolvers, zones and servers is discussed in Section 5, Section 6 and
+   Section 7, respectively.
+
+   The DNS security extensions provide data origin authentication and
+   data integrity protection as well as a means of public key
+   distribution.  The security extensions do not provide protection
+   against other types of attack, nor do they provide confidentiality.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 3]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+2. Definitions of Important DNSSEC Terms
+
+   authentication key: A public key, for a zone or a host, that a
+      resolver trusts and that can therefore be used to verify data.  A
+      key can become trusted in two ways:  First, it can be statically
+      configured and declared in the resolver's initial configuration.
+      Second, if a new key is referenced by a DS record that is signed
+      by an already known authentication key, and the signature
+      verifies, the new key becomes trusted by the resolver.
+
+   key signing key: Described in [14] An authentication key that is only
+      used to sign a DNSSEC authentication key.  The zone authentication
+      key may be changed frequently (according to local policy), while
+      the key signing key is used as a more static secure entry point
+      for the zone.  Designating a key signing key is an operational
+      issue only, the key is treated the same way as an authentication
+      key by the DNS.
+
+   authentication chain: In DNSSEC, a key signs a DS record, which
+      points to another key (or key signing key), which in turn signs
+      another DS record, which points to yet another key, etc.
+      Eventually ending with a key that has generated a SIG over a RR
+      set.  This alternating succession of KEY and DS records forms a
+      chain of signed data, with each link in the chain vouching for the
+      next.  A resolver starting at a piece of data in the chain signed
+      by a known authentication key can verify all subsequent
+      signatures.  Thus all subsequent data in the chain is verified and
+      authenticated.
+
+   security-aware resolver: A resolver (defined in section 2.4 of [1])
+      that understands the DNS security extensions defined in this
+      document set.  In particular, a security-aware resolver uses known
+      authentication keys to verify signatures over RRsets and
+      (optionally) DNS messages.
+
+   security-aware server: A name server (also defined in section 2.4 of
+      [1]) that understands the DNS security extensions.  In particular,
+      it supports the KEY, SIG, DS and NXT record types, a larger DNS
+      message size via EDNS0, and other protocol changes such as support
+      for the OK bit.  Also called a "secure server".
+
+   unsecure server: The proper term for the opposite of a security-aware
+      server.
+
+   signed zone: A zone whose RRsets are signed and which contains
+      properly constructed KEY, SIG, NXT and (optionally) DS records.
+
+   unsigned zone: The proper term for the opposite of a secure zone.
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 4]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+3. Services Provided by DNS Security
+
+   The Domain Name System (DNS) protocol security extensions provide
+   data origin authentication and data integrity assurance.  In
+   addition, a means of providing an authenticated denial of existence
+   is provided, as described below.
+
+   These services protect against the threats to the Domain Name System
+   described in [11].
+
+3.1 Data Origin Authentication and Data Integrity
+
+   Authentication is provided by cryptographically generated digital
+   signatures associated with DNS RRsets.  These digital signatures are
+   stored in a new resource record, the SIG record.  Typically, there
+   will be a single private key that signs a zone's data, but multiple
+   keys are possible; e.g., for different digital signature algorithms.
+   If a security-aware resolver reliably learns a zone's public key, it
+   can authenticate that zone's signed data.  An important DNSSEC
+   concept is that the key that signs a zone's data is associated with
+   the zone itself and not with the zone's authoritative servers
+   (although hosts/services can also have key pairs in DNSSEC; see the
+   reference to SIG(0) in [7] ).  Security-aware servers attempt to send
+   the signature(s) needed to authenticate an RRset in the DNS reply
+   message along with the RRset itself, provided there is space
+   available in the message.
+
+   A resolver could learn a zone's public key by having the key
+   statically configured or by normal DNS resolution.  To allow the
+   latter, public keys are stored in a new resource record, the KEY
+   record.  Note that the private keys used to sign zone data must be
+   kept secure and best practices call for them to be stored offline.
+   To reliably discover a public key by DNS resolution, the key itself
+   needs to be signed by either a statically configured authentication
+   key or another key that has been previously authenticated.  Zone
+   information is authenticated by forming a chain from a newly learned
+   public key back to a previously known authentication public key
+   (which is either statically configured or previously learned and
+   verified).  Therefore, the resolver must be configured with at least
+   one public key (either a zone signing key or key signing key) that
+   authenticates one zone (or zone key, in the case of a key signing
+   key) as a starting point.  To establish this authentication chain,
+   security-aware servers attempt to send the signature(s) needed to
+   authenticate a zone's public key in the DNS reply message along with
+   the public key itself, provided there is space available in the
+   message.
+
+   The authentication chain specified in the original DNS security
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 5]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+   extensions proceeded from signed KEY record to signed KEY record, as
+   necessary, and finally to the queried RRset.  A new record, the
+   delegation signer (DS), has been added for additional flexibility.
+   The DS RRset resides at a delegation point in a parent zone and
+   specifies the keys used by the specified child zone to self-sign the
+   KEY RRset at its apex.  The child, in turn, uses one of these keys to
+   sign its zone data.  The authentication chain is therefore DS->KEY-
+   >[DS->KEY->...]->RRset.
+
+   This authentication chain is normally constructed "top down" (i.e.
+   from the root "." to the leaf zones).  However, this is base DNSSEC
+   protocol only.  Local policy on authentication of RR sets may
+   override this policy.  Ultimately, authentication is a matter of
+   local, resolver policy which may extend, or even override the
+   protocol extensions defined in this document set.
+
+   Adding data origin authentication and data integrity requires minor
+   changes to the on-the-wire DNS protocol.  Four new resource record
+   types are required:  SIG, KEY, DS and NXT.  EDNS0 support [4] for
+   larger message sizes [9] is required, as is support for the OK bit
+   [8].  EDNS0 support is required for the larger DNS message sizes that
+   result when DNSSEC RRs are added.  Support for the OK bit (part of
+   EDNS0) is required for a security aware resolver to indicate that it
+   is security-aware and wishes for DNSSEC RR types to be added to the
+   response.
+
+3.2 Authenticating Name and Type Non-Existence
+
+   The security mechanism referenced above in Section 3.1 only provides
+   a way to sign existing RRsets in a zone.  The problem of providing
+   negative responses with the same level of authentication and
+   integrity requires the use of another new resource record, the non-
+   existence (NXT) record.  The NXT record allows a negative reply
+   (either for name or type non-existence) to be authenticated the same
+   way as other DNS replies.  NXT records require a canonical
+   representation and order for domain names in zones.  NXT records
+   exist to cover the gaps, or "empty space", between domain names in a
+   zone, as well as non-existent record types for existing names.  Each
+   NXT record is signed and authenticated in the same way as any other
+   RRset.
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 6]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+4. Services Not Provided by DNS Security
+
+   The DNS design philosophy calls for all DNS data to be public and
+   uniform answers to all inquirers.  Accordingly, confidentiality for
+   queries or responses is not provided, nor are any sort of access
+   control lists or other means to differentiate inquirers.
+
+   There is no protection against denial of service attacks.  Security-
+   aware resolvers and security-aware servers are vulnerable to another
+   class of DoS based on cryptographic operations.  See the Security
+   Considerations section below.
+
+   The DNSSEC extensions provide data and origin authentication of DNS
+   data.  No protection is extended to operations such as zone transfers
+   and dynamic update [16].  Message authentication schemes described in
+   [5] and [7] address security operations that pertain to these
+   transactions.
+
+   Signed zone data and/or the use of transaction authentication will
+   not protect against errors in DNS zone information or servers
+   incorrectly interpreting and/or setting DNS message header fields.
+   The security extensions cannot insure the correctness of DNS
+   information.
+
+   Ultimately, final authentication is a matter of local policy.  A
+   local policy might extend or override the protocol extensions defined
+   in this document set.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 7]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+5. Resolver Considerations
+
+   A security-aware resolver needs to be able to perform necessary
+   cryptographic functions to verify digital signatures using at least
+   the mandatory-to-implement algorithms.  Security-aware resolvers must
+   also be capable of forming a authentication chain from a newly
+   learned zone back to a authentication key (as defined above).  This
+   process might require additional queries of intermediate DNS zones
+   for necessary KEY, DS and SIG records.  It is assumed that a
+   security-aware resolver will be configured with at least one
+   authentication key to establish an authentication chain.
+
+   The stub resolver found in many hosts may be augmented to provide a
+   different set of security features instead of the full security
+   awareness found in a security-aware resolver.  The use of transaction
+   authentication (i.e.  SIG(0) or TSIG) could help secure the final
+   message passing between a security-aware DNS server and a stub
+   resolver.  This a matter of local security policy.  Note that
+   transaction authentication changes the DNS protocol.  Using SIG(0) or
+   TSIG keys means that DNS clients now can have identity and are no
+   longer anonymous.  Possession of a key used for transaction
+   authentication could allow a security aware server to identify a
+   resolver and segregate resolvers it accepts queries from.
+
+   A security aware stub resolver ought to be configured to make use of
+   a security aware full resolver (e.g.  part of a security-aware
+   caching server) and to communicate with it using some form of
+   integrity protection for queries and responses.  Examples of
+   integrity protection are transaction authentication schemes as
+   defined in the context of DNS and/or IPsec to protect all traffic
+   from the stub resolver's host to the host of a security aware full
+   resolver.
+
+   If a security aware full resolver is configured to forward queries to
+   another full resolver, the latter is recommended to be security aware
+   also.  If not, the security aware resolver might not be able to
+   obtain the data needed to make a security determination.  A security
+   aware resolver ought to be capable of contacting the authoritative
+   servers directly, but do so with the consideration of performance
+   impacts.
+
+   If a security aware resolver is separated from authoritative servers
+   by a caching resolver that is not security aware, it is possible that
+   the security aware resolver will only be able to operate in an
+   insecure mode.  For example, if a security aware resolver's packets
+   are routed through a device (such as a Network Address Translator)
+   that acts as a DNS proxy and is not security aware, it might not be
+   possible to deliver secured responses.  This is because the base DNS
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 8]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+   protocol does not provide means to remotely manage intermediate DNS
+   caches, hence, it is possible that some data may be 'stuck' or
+   dropped in the cache and prevent construction of the authentication
+   chain by the client resolver.
+
+   If an unsecure server or an unsigned zone results in a break in the
+   authentication chain, the resolver cannot ensure security.  If a
+   security-aware resolver must rely on an unsecure server (or unsigned
+   zone) that cannot supply the necessary security RRs, the resolver
+   cannot verify DNS responses and should rely on local policy when
+   accepting responses.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                  [Page 9]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+6. Zone Considerations
+
+   A secure zone will have several differences from an unsigned zone.  A
+   secure zone will contain additional security-related records (SIG,
+   KEY, DS and NXT records).  SIG and NXT records may be generated by a
+   signing process prior to serving the zone.  Zone data is only valid
+   and considered secure for a definable time period.  The SIG records
+   that accompany zone data have defined inception and expiration times.
+   These times establish a validity period for the signatures and the
+   zone data the signatures cover.
+
+6.1 TTL values vs. SIG validity period
+
+   It is important to note the distinction between an RRset's TTL value
+   and the signature validity period specified in the SIG RR covering an
+   RRset.  DNSSEC does not change the definition of the TTL value, which
+   is intended to maintain database coherency in caches: stale RRsets
+   are purged from caches after the period of time defined in the TTL
+   field.
+
+   The inception and expiration fields in the SIG RR [12], on the other
+   hand, specify the time period when the signature can be used to
+   validate its covering RRset.  Zone data is only (cryptographically)
+   valid and secure (pending verification of the signature) for a
+   specific time period and these fields establish the time period that
+   a given signature covers the RRset.  The TTL value should not be used
+   to artificially extend the validity period of signed RR sets in a
+   cache, but the signature validity period may decrease the TTL of
+   signed RRsets in a cache.
+
+6.2 New Temporal Issues for Zones
+
+   With the addition of the security extensions, zone information now
+   has a temporal factor that did not previously exist in the DNS
+   protocol.  The signature validity period is a time period for which
+   an RRset can be considered valid, and applies only to the specific
+   RRset, not to the zone as a whole.  A signed zone requires regular
+   maintenance to ensure each RRset in the zone has a temporally valid
+   SIG RR.  This might also require a "zone load" which will be defined
+   as an increase in a SOA serial number, indicating a zone change has
+   occurred and may cause zone transfers to take place (IXFR or AXFR).
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 10]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+7. Server Considerations
+
+   A security-aware server must be capable of performing the following
+   operations in addition to the normal operations of a DNS server
+   described in [2]:
+
+      A security-aware server should make all attempts to include
+      necessary security-related records (SIG, KEY, DS and NXT) in
+      responses as DNS message space permits.
+
+      A caching (i.e.  recursive) security-aware server should also take
+      a signature's validation period into consideration when
+      determining the time to live (TTL) of cached data: signed data
+      should not be cached beyond the signature validity period.
+
+      All means of restricting query, zone transfer, dynamic update and
+      administrative access to an authoritative security-aware server
+      fall under the category of operational security and are not
+      addressed by the DNS security extensions.  Such issues fall under
+      the need for transaction security (see [5] and [7] ).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 11]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+8. DNS Security Document Family
+
+   The DNSSEC set of documents can be partitioned into five main groups
+   as depicted in Figure 1.  All these documents are in turn under the
+   larger umbrella of the DNS base protocol documents described in [18].
+
+8.1 DNS Security Document Roadmap
+
+   ---------------------------------------------------------------------
+
+
+                    +--------------------------------+
+                    |                                |
+                    |    Base DNS Protocol Docs      |
+                    |   [RFC1035, RFC2181, etc.]     |
+                    |                                |
+                    +--------------------------------+
+                                    |
+                                    |
+                              +-----------+          +-------------+
+                              |  DNSSEC   |          |  New        |
+                              | Protocol  |--------->|  Security   |
+                              | Documents |          |  Uses       |
+                              +-----------+          +-------------+
+                                    |
+                                    |
+                     +---------------- - - - - - - -+
+                     |                              .
+                     |                              .
+               +------------+               +---------------+
+               |  Dig. Sig. |               |               |
+               |  Algorithm |               |  Transaction  |
+               |  Impl.     |               |  Impl.        |
+               |            |               |               |
+               +------------+               +---------------+
+
+                   Figure 1: DNSSEC Document Roadmap
+
+   ---------------------------------------------------------------------
+
+
+8.2 Categories of DNS Security Documents
+
+   The "DNSSEC protocol document set" refers to the three documents that
+   form the core of the DNS security extensions:
+
+   1.  DNS Security Introduction and Requirements (this document)
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 12]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+   2.  Resource Records for DNS Security Extensions [12]
+
+   3.  Protocol Modifications for the DNS Security Extensions [13]
+
+   The "Dig.  Sig.  Algorithm Impl." document set refers to the group of
+   documents that describe how specific digital signature algorithms
+   should be implemented to fit the DNSSEC resource record format.  Each
+   of these documents deals with a specific digital signature algorithm.
+
+   The "Transaction Impl." document set refers to the group of documents
+   that deal with DNS message authentication, including secret key
+   establishment and verification.  While not strictly part of the DNS
+   Security specification as defined in this set of documents, it should
+   be included here to note its relationship to the DNS Security
+   extensions.
+
+   The final document set, "New Security Uses", refers to documents that
+   seek to use proposed DNS Security extensions for other security
+   related purposes.  The DNSSEC extensions does not provide any direct
+   security for these new uses, by may be used to support them.
+   Documents that fall in this category include the use of DNS in the
+   storage and distribution of certificates [15] and individual user
+   public keys (PGP, e-mail, etc.) [17].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 13]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+9. IANA Considerations
+
+   This document introduces no new IANA considerations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 14]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+10. Security Considerations
+
+   This document introduces the DNS security extensions and describes
+   the document set that contains the new security records and DNS
+   protocol modifications.  The capabilities and limitations of these
+   extensions are discussed.  The extensions provide data origin
+   authentication and data integrity using digital signatures over
+   resource record sets.
+
+   In order for a secure resolver to validate a DNS response, all the
+   intermediate zones and servers must be capable of DNS security
+   processing as defined in this document set.  A security-aware
+   resolver cannot verify responses originating from an unsigned zone or
+   a zone served by a non-security-aware server.  If there is a break in
+   the authentication chain (i.e., no authentication key can be
+   obtained), then a security aware resolver cannot verify those DNS
+   responses.  Other methods of adding security to a DNS query such as
+   using a secure channel (e.g.  IPSec tunnel, etc.) or using
+   transaction authentication over DNS messages are not discussed in
+   these documents.  Local security policy may extend or override the
+   protocol modifications described in this document set.
+
+   The DNS security extensions do not protect against denial of service
+   (DoS) attacks or provide confidentiality.  The DNSSEC extensions does
+   open a new class of cryptographic based class of DoS attacks against
+   a security-aware resolver or security-aware server.  These attacks
+   attempt to occupy a system's resources with cryptographic operations.
+
+   There is now also the ability to enumerate all the names in a zone by
+   following the NXT chain.  The NXT RR indicates which names do not
+   exist in a zone by linking a name to the next canonical name in a
+   zone.  A resolver can query these NXT RRs to obtain all the hostnames
+   in a zone.  While this might not be considered an attack to the
+   public DNS, this could allow a mapping of network hosts by
+   enumerating the contents of a zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 15]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+11. Acknowledgements
+
+   This document was created from the input and ideas of several members
+   of the DNS Extensions Working Group.  The authors would like to
+   acknowledge (in alphabetical order) the following people for their
+   contributions and comments on this document:
+
+     Derek Atkins
+     Rob Austein
+     Donald Eastlake
+     Miek Gieben
+     Olafur Gudmundsson
+     Olaf Kolkman
+     Ed Lewis
+     Ted Lindgreen
+     Bill Manning
+     Brian Wellington
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 16]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+Normative References
+
+   [1]   Mockapetris, P., "Domain names - concepts and facilities", STD
+         13, RFC 1034, November 1987.
+
+   [2]   Mockapetris, P., "Domain names - implementation and
+         specification", STD 13, RFC 1035, November 1987.
+
+   [3]   Eastlake, D., "Domain Name System Security Extensions", RFC
+         2535, March 1999.
+
+   [4]   Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC 2671,
+         August 1999.
+
+   [5]   Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
+         "Secret Key Transaction Authentication for DNS (TSIG)", RFC
+         2845, May 2000.
+
+   [6]   Eastlake, D., "Secret Key Establishment for DNS (TKEY RR)", RFC
+         2930, September 2000.
+
+   [7]   Eastlake, D., "DNS Request and Transaction Signatures (
+         SIG(0)s)", RFC 2931, September 2000.
+
+   [8]   Conrad, D., "Indicating Resolver Support of DNSSEC", RFC 3225,
+         December 2001.
+
+   [9]   Gudmundsson, O., "DNSSEC and IPv6 A6 aware server/resolver
+         message size requirements", RFC 3226, December 2001.
+
+   [10]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
+         Record (RR)", RFC 3445, December 2002.
+
+   [11]  Atkins, D. and R. Austein, "Threat Analysis Of The Domain Name
+         System", draft-ietf-dnsext-dns-threats-02 (work in progress),
+         February 2002.
+
+   [12]  Arends, R., Larson, M., Massey, D. and S. Rose, "Resource
+         Records for DNS Security Extensions", draft-ietf-dnsext-dnssec-
+         records-02 (work in progress), November 2002.
+
+   [13]  Arends, R., Larson, M., Massey, D. and S. Rose, "Protocol
+         Modifications for the DNS Security Extensions", draft-ietf-
+         dnsext-dnssec-protocol-00 (work in progress), October 2002.
+
+   [14]  Kolkman, O. and J. Schlyter, "KEY RR Key Signing Key (KSK)
+         Flag", draft-ietf-dnsext-keyrr-key-signing-flag-05 (work in
+         progress), December 2002.
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 17]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+Informative References
+
+   [15]  Eastlake, D. and O. Gudmundsson, "Storing Certificates in the
+         Domain Name System (DNS)", RFC 2538, March 1999.
+
+   [16]  Wellington, B., "Secure Domain Name System (DNS) Dynamic
+         Update", RFC 3007, November 2000.
+
+   [17]  Schlyter, J., "Storing application public keys in the DNS",
+         draft-schlyter-appkey-02 (work in progress), February 2002.
+
+   [18]  Rose, S., "DNS Security Document Roadmap", draft-ietf-dnsext-
+         dnssec-roadmap-06 (work in progress), November 2001.
+
+
+Authors' Addresses
+
+   Roy Arends
+   Telematica Instituut
+   Drienerlolaan 5
+   7522 NB  Enschede
+   NL
+
+   EMail: roy@logmess.com
+
+
+   Matt Larson
+   VeriSign, Inc.
+   21345 Ridgetop Circle
+   Dulles, VA  20166-6503
+   USA
+
+   EMail: mlarson@verisign.com
+
+
+   Dan Massey
+   USC Information Sciences Institute
+   3811 N. Fairfax Drive
+   Arlington, VA  22203
+   USA
+
+   EMail: masseyd@isi.edu
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 18]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+   Scott Rose
+   National Institute for Standards and Technology
+   100 Bureau Drive
+   Gaithersburg, MD  20899-8920
+   USA
+
+   EMail: scott.rose@nist.gov
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 19]
+
+Internet-Draft       DNSSEC Intro. and Requirements        December 2002
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.            Expires June 1, 2003                 [Page 20]
+
