@@ -15,6 +15,32 @@
  * SOFTWARE.
  */
 
+/*****
+ ***** Module Info
+ *****/
+
+/*
+ * DNS DB Tables
+ *
+ * XXX <TBS> XXX
+ *
+ * MP:
+ *	The module ensures appropriate synchronization of data structures it
+ *	creates and manipulates.
+ *
+ * Reliability:
+ *	No anticipated impact.
+ *
+ * Resources:
+ *	None.
+ *
+ * Security:
+ *	No anticipated impact.
+ *
+ * Standards:
+ *	None.
+ */
+
 #include <isc/mem.h>
 
 #include <dns/result.h>
@@ -38,13 +64,37 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  */
 
 void
-dns_dbtable_destroy(dns_dbtable_t **dbtablep);
+dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp);
 /*
- * Free all resources in the dbtable.
+ * Attach '*targetp' to 'source'.
  *
- * Requires: *dbtablep is a valid dbtable.
+ * Requires:
  *
- * Ensures: *dbtablep == NULL.
+ *	'source' is a valid dbtable.
+ *
+ *	'targetp' points to a NULL dns_dbtable_t *.
+ *
+ * Ensures:
+ *
+ *	*targetp is attached to source.
+ */
+
+void
+dns_dbtable_detach(dns_dbtable_t **dbtablep);
+/*
+ * Detach *dbtablep from its dbtable.
+ *
+ * Requires:
+ *
+ *	'*dbtablep' points to a valid dbtable.
+ *
+ * Ensures:
+ *
+ *	*dbtablep is NULL.
+ *
+ *	If '*dbtablep' is the last reference to the dbtable,
+ *
+ *		All resources used by the dbtable will be freed
  */
 
 dns_result_t

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.6 1999/04/20 22:26:49 halley Exp $
+ * $Id: dbtable.c,v 1.7 1999/05/11 23:18:37 halley Exp $
  */
 
 /*
@@ -38,7 +38,10 @@ struct dns_dbtable {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
 	dns_rdataclass_t	rdclass;
+	isc_mutex_t		lock;
 	isc_rwlock_t		tree_lock;
+	/* Locked by lock. */
+	unsigned int		references;
 	/* Locked by tree_lock. */
 	dns_rbt_t *		rbt;
 	dns_db_t *		default_db;
@@ -54,6 +57,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 {
 	dns_dbtable_t *dbtable;
 	dns_result_t result;
+	isc_result_t iresult;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(dbtablep != NULL && *dbtablep == NULL);
@@ -63,39 +67,56 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		return (DNS_R_NOMEMORY);
 
 	result = dns_rbt_create(mctx, NULL, NULL, &dbtable->rbt);
-	if (result != DNS_R_SUCCESS) {
-		isc_mem_put(mctx, dbtable, sizeof(*dbtable));
-		return (result);
+	if (result != DNS_R_SUCCESS)
+		goto clean1;
+
+	iresult = isc_mutex_init(&dbtable->lock);
+	if (iresult != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_lock_init() failed: %s",
+				 isc_result_totext(result));
+		result = DNS_R_UNEXPECTED;
+		goto clean2;
 	}
 
-	result = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		dns_rbt_destroy(&dbtable->rbt);
-		isc_mem_put(mctx, dbtable, sizeof(*dbtable));
+	iresult = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
+	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));
-		return (DNS_R_UNEXPECTED);
+		result = DNS_R_UNEXPECTED;
+		goto clean3;
 	}
 
 	dbtable->default_db = NULL;
 	dbtable->mctx = mctx;
 	dbtable->rdclass = rdclass;
 	dbtable->magic = DBTABLE_MAGIC;
+	dbtable->references = 1;
 
 	*dbtablep = dbtable;
 
 	return (DNS_R_SUCCESS);
+
+ clean3:
+	(void)isc_mutex_destroy(&dbtable->lock);
+
+ clean2:
+	dns_rbt_destroy(&dbtable->rbt);
+
+ clean1:
+	isc_mem_put(mctx, dbtable, sizeof(*dbtable));
+
+	return (result);
 }
 
-void
-dns_dbtable_destroy(dns_dbtable_t **dbtablep) {
-	dns_dbtable_t *dbtable;
-
-	REQUIRE(dbtablep != NULL);
-	REQUIRE(VALID_DBTABLE(*dbtablep));
-
-	dbtable = *dbtablep;
+static inline void
+dbtable_free(dns_dbtable_t *dbtable) {
+	
+	/*
+	 * Caller must ensure that it is safe to
+	 * call.
+	 */
 
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 
@@ -112,6 +133,44 @@ dns_dbtable_destroy(dns_dbtable_t **dbtablep) {
 	dbtable->magic = 0;
 
 	isc_mem_put(dbtable->mctx, dbtable, sizeof(*dbtable));
+}
+
+void
+dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp) {
+	REQUIRE(VALID_DBTABLE(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+	
+	LOCK(&source->lock);
+
+	INSIST(source->references > 0);
+	source->references++;
+	INSIST(source->references != 0);
+
+	UNLOCK(&source->lock);
+
+	*targetp = source;
+}
+
+void
+dns_dbtable_detach(dns_dbtable_t **dbtablep) {
+	dns_dbtable_t *dbtable;
+	isc_boolean_t free_dbtable = ISC_FALSE;
+
+	REQUIRE(dbtablep != NULL);
+	dbtable = *dbtablep;
+	REQUIRE(VALID_DBTABLE(dbtable));
+	
+	LOCK(&dbtable->lock);
+
+	INSIST(dbtable->references > 0);
+	dbtable->references--;
+	if (dbtable->references == 0)
+		free_dbtable = ISC_TRUE;
+
+	UNLOCK(&dbtable->lock);
+
+	if (free_dbtable)
+		dbtable_free(dbtable);
 
 	*dbtablep = NULL;
 }
