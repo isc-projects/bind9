@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20.2.3 2000/08/07 23:50:16 gson Exp $ */
+/* $Id: nslookup.c,v 1.20.2.4 2000/08/07 23:56:33 gson Exp $ */
 
 #include <config.h>
 
@@ -219,7 +219,8 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
-				dns_rdataset_current(rdataset, &rdata);				switch (rdata.type) {
+				dns_rdataset_current(rdataset, &rdata);
+				switch (rdata.type) {
 				case dns_rdatatype_a:
 					if (section != DNS_SECTION_ANSWER)
 						goto def_short_section;
