@@ -173,7 +173,8 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 {
 	isc_region_t r;
 	unsigned char *p;
-	int from, ntabs, nspaces, t;
+	unsigned int from;
+	int ntabs, nspaces, t;
 
 	from = *current;
 
