@@ -1,298 +1,208 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
-<!--
- - Copyright (C) 2000  Internet Software Consortium.
- - 
- - Permission to use, copy, modify, and distribute this software for any
- - purpose with or without fee is hereby granted, provided that the above
- - copyright notice and this permission notice appear in all copies.
- - 
- - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- - ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- - OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- - CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- - DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- - PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- - ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- - SOFTWARE.
--->
-
-<!-- $Id: Bv9ARM.7.html,v 1.5 2000/06/22 21:53:45 tale Exp $ -->
-
 <HTML>
 <HEAD>
 <META NAME="GENERATOR" CONTENT="Adobe FrameMaker 5.5/HTML Export Filter">
 <LINK REL="STYLESHEET" HREF="Bv9ARM.css">
-<TITLE> Section 7.	Troubleshooting</TITLE></HEAD>
+<TITLE> Section 7.	BIND&nbsp;9 Security Considerations</TITLE></HEAD>
 <BODY BGCOLOR="#ffffff">
 <OL>
 <H1 CLASS="1Level">
 <A NAME="pgfId=997350">
  </A>
-Section 7.	Troubleshooting</H1>
+Section 7.	BIND&nbsp;9 Security Considerations</H1>
 </OL>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
-<A NAME="pgfId=997351">
- </A>
-7.1	Common Log Messages and What They Mean</H3>
-</OL>
-<DIV>
-<UL>
-<H6 CLASS="Subhead2">
 <A NAME="pgfId=997352">
  </A>
-lame server</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997353"></A>
-<CODE CLASS="grammar_literal">ns named[111]: Lame server on 'www.example.com' (in 'example.com'?): [192.168.0.2].53 'ns2.example.com'</CODE>
-</PRE>
+7.1	<A NAME="32222">
+ </A>
+Access Control Lists</H3>
+</OL>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=997353">
+ </A>
+Access Control Lists (ACLs), are address match lists that you can set up and nickname for future use in <CODE CLASS="Program-Process">
+allow-query</CODE>
+, <CODE CLASS="Program-Process">
+allow-recursion</CODE>
+, <CODE CLASS="Program-Process">
+blackhole</CODE>
+, <CODE CLASS="Program-Process">
+allow-transfer</CODE>
+, etc.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997354">
  </A>
-This is a harmless error message. It means that the server at 192.168.0.2 (<EM CLASS="pathname">
-ns2.example.com</EM>
-) is listed as a nameserver for &quot;<EM CLASS="pathname">
-example.com</EM>
-&quot;, but it doesn't really know anything about <EM CLASS="pathname">
-example.com</EM>
-.</P>
+Using ACLs allows you to have finer control over who can access your nameserver, without cluttering up your config files with huge lists of IP addresses.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997355">
  </A>
-If this is a zone under your control, check each of the nameservers to ensure that they are configured to answer questions properly.</P>
+It is a <EM CLASS="Emphasis">
+good idea</EM>
+ to use ACLs, and to control access to your server. Limiting access to your server by outside parties can help prevent spoofing and DoS attacks against your server.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997356">
  </A>
-If it's a zone out on the Internet, it would be nice to notify the owners of the domain in question so that they can take a look at it. In practice, though, not many people have time to do this.</P>
-</DIV>
-<DIV>
-<UL>
-<H6 CLASS="Subhead2">
-<A NAME="pgfId=997357">
- </A>
-bad referral</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997358"></A>
-<CODE CLASS="grammar_literal">ns named[111]: bad referral (other.com !&lt; subdomain.other.com)</CODE>
-</PRE>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997359">
- </A>
-This indicates that your nameserver (<EM CLASS="pathname">
-ns.example.com</EM>
-) queried the nameserver for <EM CLASS="pathname">
-example2.com</EM>
- to find out how to get to <EM CLASS="pathname">
-subdomain.example2.com</EM>
-. The name server <EM CLASS="pathname">
-example2.com</EM>
- told your nameserver that <EM CLASS="pathname">
-subdomain.example2.com</EM>
- was delegated to some <EM CLASS="pathname">
-other.example2.com</EM>
-, so your nameserver queried that.</P>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997360">
- </A>
-<EM CLASS="pathname">
-someother.example2.com</EM>
- didn't think that <EM CLASS="pathname">
-subdomain.example2.com</EM>
- had been delegated to it, so it referred your server (<EM CLASS="pathname">
-ns.example.com</EM>
-) back to the <EM CLASS="pathname">
-example2.com</EM>
- nameserver.</P>
-</DIV>
-<DIV>
-<UL>
-<H6 CLASS="Subhead2">
-<A NAME="pgfId=997361">
- </A>
-not authoritative for</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997362"></A>
-<CODE CLASS="grammar_literal">ns named-xfer[111]: [192.168.0.1] not authoritative for example.com, SOA query got rcode 0, aa 0, ancount 1, aucount 0</CODE>
+Here is an example of how to properly apply ACLs:</P>
+<PRE>
+
+ 
+<CODE><STRONG>// Set up an ACL named &quot;bogusnets&quot; that will block RFC1918 space,
+// which is commonly used in spoofing attacks.
+ 
+acl bogusnets { 0.0.0.0/8; 1.0.0.0/8; 2.0.0.0/8; 192.0.2.0/24; 224.0.0.0/3;
+10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; };
+
+// Set up an ACL called our-nets. Replace this with the real IP numbers.
+ 
+acl our-nets { x.x.x.x/24; x.x.x.x/21; };
+ 
+options {
+  ...
+  ...
+  allow-query { our-nets; };
+  allow-recursion { our-nets; };
+  ...
+  blackhole { bogusnets; };
+  ...
+};
+zone &quot;example.com&quot; {
+  type master;
+  file &quot;m/example.com&quot;;
+  allow-query { any; };
+};
+</STRONG></CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997363">
  </A>
-This error usually shows up on a slave server. It indicates that the master server is not answering authoritatively for the zone. This usually happens when the zone is rejected (while <CODE CLASS="Program-Process">
-named</CODE>
- is loading) on the master server. Check the logs on the master server. If ancount -- 0, you may be pointing at the wrong master server for the zone.</P>
+This allows recursive queries of the server from the outside unless recursion has been previously disabled.</P>
+<P CLASS="2LevelContinued">
+<A NAME="pgfId=1028031">
+ </A>
+For more information on how to use ACLs to protect your server, see the <EM CLASS="Emphasis">
+AUSCERT</EM>
+ advisory at<BR>
+<a href="ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos">
+ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos</a>
 </DIV>
 <DIV>
-<UL>
-<H6 CLASS="Subhead2">
-<A NAME="pgfId=997364">
+<OL>
+<H3 CLASS="2Level">
+<A NAME="pgfId=997365">
  </A>
-rejected zone</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997365"></A>
-<CODE CLASS="grammar_literal">ns named[111]: master zone &quot;example.com&quot; (IN) rejected due to errors (serial111)</CODE>
-</PRE>
+7.2	<CODE CLASS="Program-Process">
+chroot</CODE>
+ and <CODE CLASS="Program-Process">
+setuid</CODE>
+ (for UNIX servers)</H3>
+</OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997366">
  </A>
-This indicates that the <EM CLASS="pathname">
-example.com</EM>
- zone was rejected because of an error in the zone file. Check the lines above this error. <CODE CLASS="Program-Process">
-named</CODE>
- will usually tell you what it didn't like and where to find it in the zone file.</P>
-</DIV>
-<DIV>
-<UL>
-<H6 CLASS="Subhead2">
+On UNIX servers, it is possible to run BIND in a <EM CLASS="Emphasis">
+chrooted</EM>
+ environment (<CODE CLASS="Program-Process">
+chroot()</CODE>
+) by specifying the &quot;<CODE CLASS="Program-Process">
+-t</CODE>
+&quot; option. This can help improve system security by placing BIND in a &quot;sandbox,&quot; which will limit the damage done if a server is compromised.</P>
+<P CLASS="2LevelContinued">
 <A NAME="pgfId=997367">
  </A>
-no NS RRs found</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997368"></A>
-<CODE CLASS="grammar_literal">ns named[111]: Zone &quot;example.com&quot; (file example.com.db): no NS RRs found at zonetop</CODE>
-</PRE>
+Another useful feature in the UNIX version of BIND is the ability to run the daemon as a nonprivileged user ( <CODE CLASS="Program-Process">
+-u</CODE>
+<EM CLASS="variable">
+user</EM>
+ ).  We suggest running as a nonprivileged user when using the <CODE CLASS="Program-Process">
+chroot</CODE>
+ feature.</P>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997369">
- </A>
-The <EM CLASS="pathname">
-example.com.db</EM>
- file is missing NS records at the top of the zone (in the SOA section). Check to make sure they exist and that there is white space (spaces or tabs) in front of them. White spaces matter here.</P>
-</DIV>
-<DIV>
-<UL>
-<H6 CLASS="Subhead2">
-<A NAME="pgfId=997370">
- </A>
-no default TTL set</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997371"></A>
-<CODE CLASS="grammar_literal">ns named[111]: Zone &quot;example.com&quot; (file example.com.db): No default TTL set using SOA minimum instead</CODE>
-</PRE>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997372">
- </A>
-You will need to add a <KBD CLASS="Literal-user-input">
-$TTL</KBD>
- to the top of the <EM CLASS="pathname">
-example.com.db</EM>
- zone file. See RFC 2308, or <A HREF="Bv9ARM.5.html#19693" CLASS="XRef">
-Setting TTLs</A>
- for information on how to use <CODE CLASS="grammar_literal">
-$TTL</CODE>
-.</P>
-</DIV>
-<DIV>
-<UL>
-<H6 CLASS="Subhead2">
-<A NAME="pgfId=997373">
- </A>
-no root nameserver for class</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997374"></A>
-<CODE CLASS="grammar_literal">findns: No root nameservers for class IN?</CODE>
-</PRE>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997375">
- </A>
-Your nameserver is having problems finding the root nameservers. Check your root hints file to make sure it is not corrupted. Also, make sure that your nameserver can reach the Internet.</P>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997376">
- </A>
-If you are running an internal root nameserver, make sure it is configured properly and is answering queries.</P>
-</DIV>
-<DIV>
-<UL>
-<H6 CLASS="Subhead2">
-<A NAME="pgfId=997377">
- </A>
-address already in use</H6>
-</UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997378"></A>
-<CODE CLASS="grammar_literal">ctl_server: bind: Address already in use</CODE>
-</PRE>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997379">
- </A>
-This usually indicates that another copy of BIND is already running. Verify that you have killed old copies of the daemon.</P>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997380">
- </A>
-This can also pop up if you originally ran named as &quot;root&quot; and now run it as a regular user. named may have left behind an ndc control socket that is owned by root if it crashed, or was not killed gracefully.</P>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997381">
- </A>
-This means that the regular user wouldn't be able to delete it, so it would think named is still running. The solution is to remove any ndc sockets in <EM CLASS="pathname">
-/usr/local/etc</EM>
-, or <EM CLASS="pathname">
-/var/run</EM>
-, etc.</P>
-</DIV>
-</DIV>
-<DIV>
-<OL>
-<H3 CLASS="2Level">
-<A NAME="pgfId=997382">
- </A>
-7.2	Common Problems</H3>
-</OL>
+<A NAME="pgfId=997368">
+</A>
+Here is an example command line to load BIND in a <CODE CLASS="Program-Process">
+chroot()</CODE>
+ sandbox, <BR>
+<CODE CLASS="Program-Process">
+<STRONG>/var/named</STRONG></CODE>
+, and to run <CODE CLASS="Program-Process">
+<STRONG>named setuid</STRONG></CODE>
+ to user 202:</P>
+ 
+<PRE>
+<CODE><STRONG>/usr/local/bin/named -u 202 -t /var/named
+</STRONG></CODE></PRE>
 <DIV>
 <OL>
 <H4 CLASS="3Level">
-<A NAME="pgfId=997383">
- </A>
-7.2.1	It's not working; how can I figure out what's wrong?</H4>
+<A NAME="pgfId=997370">
+</A>
+7.2.1	The <CODE CLASS="Program-Process">
+chroot</CODE>
+ Environment</H4>
 </OL>
 <P CLASS="3LevelContinued">
-<A NAME="pgfId=997384">
+<A NAME="pgfId=997371">
  </A>
-The best solution to solving installation and configuration issues is to take preventative measures by setting up logging files beforehand (see the sample configurations in <A HREF="Bv9ARM.3.html#30164" CLASS="XRef">
-Sample Configuration and Logging.</A>
-). The log files provide a source of hints and information that can be used to figure out what went wrong and how to fix the problem.</P>
+In order for a <CODE CLASS="Program-Process">
+chroot()</CODE>
+ environment to work properly in a particular directory (for example, <EM CLASS="pathname">
+/var/named</EM>
+), you will need to set up an environment that includes everything BIND needs to run. From BIND's point of view, <EM CLASS="pathname">
+/var/named</EM>
+ is the root of the filesystem. You will need <EM CLASS="pathname">
+/dev/null</EM>
+, and any library directories and files that BIND needs to run on your system. Please consult your operating system's instructions if you need help figuring out which library files you need to copy over to the <CODE CLASS="Program-Process">
+chroot()</CODE>
+ sandbox.</P>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997372">
+ </A>
+If you are running an operating system that supports static binaries, you can also compile BIND statically and avoid the need to copy system libraries over to your <CODE CLASS="Program-Process">
+chroot()</CODE>
+ sandbox.</P>
+</DIV>
+<DIV>
+<OL>
+<H4 CLASS="3Level">
+<A NAME="pgfId=997373">
+ </A>
+7.2.2	Using the <CODE CLASS="Program-Process">
+setuid</CODE>
+ Function </H4>
+</OL>
+<P CLASS="3LevelContinued">
+<A NAME="pgfId=997374">
+ </A>
+Prior to running the <CODE CLASS="Program-Process">
+named</CODE>
+ daemon, use the <CODE CLASS="Program-Process">
+touch</CODE>
+ utility (to change file access and modification times) or the <CODE CLASS="Program-Process">
+chown</CODE>
+ utility (to set the user id and/or group id) on files to which you want BIND to write.</P>
 </DIV>
 </DIV>
 <DIV>
 <OL>
 <H3 CLASS="2Level">
-<A NAME="pgfId=997388">
+<A NAME="pgfId=997375">
  </A>
-7.3	Incrementing and Changing the Serial Number</H3>
+7.3	Dynamic Updates</H3>
 </OL>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=1001230">
+<A NAME="pgfId=997376">
  </A>
-Zone serial numbers are just numbers--they aren't date related. A lot of people set them to a number that represents a date, usually of the form YYYYMMDDRR. A number of people have been testing these numbers for Y2K compliance and have set the number to the year 2000 to see if it will work. They then try to restore the old serial number. This will cause problems, because serial numbers are used to indicate that a zone has been updated. If the serial number on the secondary server is lower than the serial number on the primary, the secondary server will attempt to update its copy of the zone.</P>
+Access to the dynamic update facility should be strictly limited. In earlier versions of BIND the only way to do this was based on the IP address of the host requesting the update. BIND&nbsp;9BIND&nbsp;9 also supports authenticating updates cryptographically by means of transaction signatures (TSIG). The use of TSIG is strongly recommended.</P>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997390">
+<A NAME="pgfId=1006806">
  </A>
-Setting the serial number to a lower number on the primary server than the secondary server means that the secondary will not perform updates to its copy of the zone.</P>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997391">
- </A>
-The solution to this is to add 2147483647 (2^31-1) to the number, reload the zone and make sure all secondaries have updated to the new zone serial number, then reset the number to what you want it to be, and reload the zone again.</P>
+Some sites choose to keep all dynamically updated DNS data in a subdomain and delegate that subdomain to a separate zone. This way, the top-level zone containing critical data such as the IP addresses of public web and mail servers need not allow dynamic update at all.</P>
 </DIV>
-<DIV>
-<OL>
-<H3 CLASS="2Level">
-<A NAME="pgfId=997392">
- </A>
-7.4	Where Can I Get Help?</H3>
-</OL>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=1001264">
- </A>
-The Internet Software Consortium (ISC) offers a wide range of support and service agreements for BIND and DHCP servers. Four levels of premium support are available and each level includes support for all ISC programs, significant discounts on products and training, and a recognized priority on bug fixes and non-funded feature requests. In addition, ISC offers a standard support agreement package which includes services ranging from bug fix announcements to remote support. It also includes training in BIND and DHCP.</P>
-<P CLASS="2LevelContinued">
-<A NAME="pgfId=997394">
- </A>
-To discuss arrangements for support, contact 
-<A HREF="mailto:info@isc.org">info@isc.org</A>
-or visit the ISC web page at<BR>
-<EM CLASS="URL">
-<A HREF="http://www.isc.org/services/support/">http://www.isc.org/services/support/</A></EM>
- to read more.</P>
-</DIV>
-<DIV>
-<p>Return to <A href="Bv9ARM.html">BINDv9 Administrator Reference Manual</A> 
-</DIV>
+<HR ALIGN="center">
+<p>Return to <A href="Bv9ARM.html">BIND 9 Administrator Reference Manual</A> table of contents.</p>
+
 </BODY>
 </HTML>

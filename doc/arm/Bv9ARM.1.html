@@ -1,89 +1,71 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
-<!--
- - Copyright (C) 2000  Internet Software Consortium.
- - 
- - Permission to use, copy, modify, and distribute this software for any
- - purpose with or without fee is hereby granted, provided that the above
- - copyright notice and this permission notice appear in all copies.
- - 
- - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- - ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- - OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- - CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- - DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- - PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- - ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- - SOFTWARE.
--->
-
-<!-- $Id: Bv9ARM.1.html,v 1.5 2000/06/22 21:53:38 tale Exp $ -->
-
 <HTML>
 <HEAD>
 <META NAME="GENERATOR" CONTENT="Adobe FrameMaker 5.5/HTML Export Filter">
 <LINK REL="STYLESHEET" HREF="Bv9ARM.css">
 <TITLE> Section 1.	Introduction </TITLE></HEAD>
 <BODY BGCOLOR="#ffffff">
+<OL>
 <H1 CLASS="1Level">
 <A NAME="pgfId=1007883">
  </A>
 Section 1.	Introduction </H1>
+</OL>
 <P CLASS="1LevelContinued">
 <A NAME="pgfId=1007884">
  </A>
 The Internet Domain Name System (DNS) consists of the syntax to specify the names of entities in the Internet in a hierarchical manner, the rules used for delegating authority over names, and the system implementation that actually maps names to Internet addresses. DNS data is maintained in a group of distributed hierarchical databases.</P>
 <DIV>
-
+<OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997352">
  </A>
 1.1	Scope of Document</H3>
-
+</OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997353">
  </A>
 The Berkeley Internet Name Domain (BIND) implements an Internet nameserver for a number of operating systems. This document provides basic information about the installation and care of the Internet Software Consortium (ISC) BIND version 9 software package for system administrators.</P>
 </DIV>
 <DIV>
-
+<OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997354">
  </A>
 1.2	Organization of This Document</H3>
-
+</OL>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997355">
+<A NAME="pgfId=1155516">
  </A>
-In this document, <A HREF="Bv9ARM.2.html"><EM CLASS="Emphasis">
-Section 1</EM></A>
- introduces the basic DNS and BIND concepts. <A HREF="Bv9ARM.2.html"><EM CLASS="Emphasis">
-Section 2</EM></A>
- describes resource requirements for running BIND in various environments. Information in <A HREF="Bv9ARM.3.html"><EM CLASS="Emphasis">
-Section 3</EM></A>
+In this document, <EM CLASS="Emphasis">
+Section 1</EM>
+ introduces the basic DNS and BIND concepts. <EM CLASS="Emphasis">
+Section 2</EM>
+ describes resource requirements for running BIND in various environments. Information in <EM CLASS="Emphasis">
+Section 3</EM>
  is <EM CLASS="Emphasis">
 task-oriented</EM>
- in its presentation and is organized functionally, to aid in the process of installing the BINDv9 software. The task-oriented section is followed by <A HREF="Bv9ARM.4.html"><EM CLASS="Emphasis">
-Section 4</EM></A>
-, which contains more advanced concepts that the system administrator may need for implementing certain options. The contents of <A HREF="Bv9ARM.5.html"><EM CLASS="Emphasis">
-Section 5</EM></A>
- are organized as in a reference manual to aid in the ongoing maintenance of the software. <A HREF="Bv9ARM.6.html"><EM CLASS="Emphasis">
-Section 6</EM></A>
- addresses security considerations, and <A HREF="Bv9ARM.7.html"><EM CLASS="Emphasis">
-Section 7</EM></A>
- contains troubleshooting help. The main body of the document is followed by several <A HREF="Bv9ARM.8.html"><EM CLASS="Emphasis">
-Appendices</EM></A>
+ in its presentation and is organized functionally, to aid in the process of installing the BIND&nbsp;9 software. The task-oriented section is followed by <EM CLASS="Emphasis">
+Section 4</EM>
+, which contains more advanced concepts that the system administrator may need for implementing certain options. Section 5 describes the BIND&nbsp;9 lightweight resolver. The contents of <EM CLASS="Emphasis">
+Section 6</EM>
+ are organized as in a reference manual to aid in the ongoing maintenance of the software. <EM CLASS="Emphasis">
+Section 7 </EM>
+addresses security considerations, and <EM CLASS="Emphasis">
+Section 8</EM>
+ contains troubleshooting help. The main body of the document is followed by several <EM CLASS="Emphasis">
+Appendices</EM>
  which contain useful reference information, such as a <EM CLASS="Emphasis">
-Glossary</EM>
- and a <EM CLASS="Emphasis">
 Bibliography</EM>
-, as well as historic information related to BIND and the Domain Name System.</P>
+ and historic information related to BIND and the Domain Name System.</P>
 </DIV>
 <DIV>
+<OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997356">
  </A>
 1.3	Conventions Used in This Document</H3>
-
+</OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997382">
  </A>
@@ -207,8 +189,8 @@ keywords</P>
 <P CLASS="CellBody6">
 <A NAME="pgfId=997391">
  </A>
-<CODE CLASS="production_target">
-Sans Serif Bold</CODE>
+<EM CLASS="production_target">
+Sans Serif Bold</EM>
 </P>
 </TD>
 </TR>
@@ -293,12 +275,12 @@ Text is enclosed in square brackets</P>
 </TABLE>
 </DIV>
 <DIV>
-
+<OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997413">
  </A>
 1.4	Discussion of Domain Name System (DNS) Basics and BIND</H3>
-
+</OL>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997414">
  </A>
@@ -316,12 +298,12 @@ resolver</CODE>
 resolver</EM>
  is a set of routines residing in a system library that provides the interface that programs can use to access the domain name services.</P>
 <DIV>
-
+<OL>
 <H4 CLASS="3Level">
 <A NAME="pgfId=997415">
  </A>
 1.4.1	Nameservers</H4>
-
+</OL>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997416">
  </A>
@@ -374,16 +356,16 @@ resolver</CODE>
 .</P>
 </DIV>
 <DIV>
-
+<OL>
 <H4 CLASS="3Level">
 <A NAME="pgfId=997421">
  </A>
 1.4.2	Types of Zones</H4>
-
+</OL>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997422">
  </A>
-As we stated previously, a zone is a point of delegation in the DNS tree. A zone consists of those contiguous parts of the domain tree for which a domain server has complete information and over which it has authority. It contains all domain names from a certain point downward in the domain tree except those which are delegated to other zones. A delegation point has one or more NS records in the parent zone, which should be matched by equivalent NS records at the root of the delegated zone (i.e., the &quot;@&quot; name in the zone file).</P>
+As we stated previously, a zone is a point of delegation in the DNS tree. A zone consists of those contiguous parts of the domain tree for which a domain server has complete information and over which it has authority. It contains all domain names from a certain point downward in the domain tree except those which are delegated to other zones. A delegation point has one or more NS records in the parent zone, which should be matched by equivalent NS records at the root of the delegated zone.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997423">
  </A>
@@ -417,11 +399,11 @@ subdomains</EM>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=1007878">
  </A>
-Though BIND is a Domain Nameserver, it deals primarily in terms of zones. The primary and secondary declarations in the <CODE CLASS="Program-Process">
-named.conf</CODE>
- file specify zones, not domains. When you ask some other site if it is willing to be a secondary server for your <EM CLASS="Emphasis">
+Though BIND is a Domain Nameserver, it deals primarily in terms of zones. The master and slave declarations in the <EM CLASS="pathname">
+named.conf</EM>
+ file specify zones, not domains. When you ask some other site if it is willing to be a slave server for your <EM CLASS="Emphasis">
 domain</EM>
-, you are actually asking for secondary service for some collection of zones.</P>
+, you are actually asking for slave service for some collection of zones.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997426">
  </A>
@@ -458,12 +440,12 @@ authoritative</EM>
 Adding a zone as a type master or type slave will tell the server to answer questions for the zone authoritatively. If the server is able to load the zone into memory without any errors it will set the AA bit when it replies to queries for the zone. See RFCs 1034 and 1035 for more information about the AA bit.</P>
 </DIV>
 <DIV>
-
+<OL>
 <H4 CLASS="3Level">
 <A NAME="pgfId=997431">
  </A>
 1.4.3	Servers</H4>
-
+</OL>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997432">
  </A>
@@ -479,12 +461,12 @@ secondaries</EM>
  </A>
 All servers keep data in their cache until the data expires, based on a Time To Live (TTL) field which is maintained for all resource records.</P>
 <DIV>
-
+<OL>
 <H5 CLASS="4Level">
 <A NAME="pgfId=997434">
  </A>
 1.4.3.1	Master Server</H5>
-
+</OL>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997435">
  </A>
@@ -493,12 +475,12 @@ primary master server</EM>
  is the ultimate source of information about a domain. The primary master is an authoritative server configured to be the source of zone transfer for one or more secondary servers. The primary master server obtains data for the zone from a file on disk.</P>
 </DIV>
 <DIV>
-
+<OL>
 <H5 CLASS="4Level">
 <A NAME="pgfId=997436">
  </A>
 1.4.3.2	Slave Server </H5>
-
+</OL>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997437">
  </A>
@@ -509,12 +491,12 @@ secondary server</EM>
 , is an authoritative server that uses zone transfers from the primary master server to retrieve the zone data. Optionally, the slave server obtains zone data from a cache on disk. Slave servers provide necessary redundancy. All secondary/slave servers are named in the NS RRs for the zone.</P>
 </DIV>
 <DIV>
-
+<OL>
 <H5 CLASS="4Level">
 <A NAME="pgfId=997438">
  </A>
 1.4.3.3	Caching Only Server</H5>
-
+</OL>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997439">
  </A>
@@ -523,12 +505,12 @@ caching only servers</EM>
 . This means that the server caches the information that it receives and uses it until the data expires. A caching only server is a server that is not authoritative for any zone. This server services queries and asks other servers, who have the authority, for the information it needs.</P>
 </DIV>
 <DIV>
-
+<OL>
 <H5 CLASS="4Level">
 <A NAME="pgfId=997440">
  </A>
 1.4.3.4	Forwarding Server</H5>
-
+</OL>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997441">
  </A>
@@ -543,12 +525,12 @@ recursive queries</EM>
 There is no prohibition against declaring a server to be a forwarder even though it has master and/or slave zones as well; the effect will still be that anything in the local server's cache or zones will be answered, and anything else will be forwarded using the forwarders list.</P>
 </DIV>
 <DIV>
-
+<OL>
 <H5 CLASS="4Level">
 <A NAME="pgfId=997443">
  </A>
 1.4.3.5	Stealth Server</H5>
-
+</OL>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=1014846">
  </A>
@@ -558,8 +540,9 @@ stealth server</EM>
 </DIV>
 </DIV>
 </DIV>
-<DIV>
-<p>Return to <A href="Bv9ARM.html">BINDv9 Administrator Reference Manual</A> 
-</DIV>
+<HR ALIGN="center">
+<p>Return to <A href="Bv9ARM.html">BIND 9 Administrator Reference Manual</A> table of contents.</p>
+
+
 </BODY>
 </HTML>
