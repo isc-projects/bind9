@@ -35,6 +35,7 @@
 #define BUFSIZE 512
 #define COMMSIZE 32767
 #define RESOLVCONF "/etc/resolv.conf"
+#define OUTPUTBUF 32767
 #define LOOKUP_LIMIT 64
 /* Lookup_limit is just a limiter, keeping too many lookups from being
  * created.  It's job is mainly to prevent the program from running away

@@ -29,12 +29,19 @@ extern int h_errno;
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
+#include <dns/message.h>
 
 #include <dig/dig.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
+
+#define ADD_STRING(b, s)        {if (strlen(s) >= \
+                                   isc_buffer_availablelength(b)) \
+                                       return(ISC_R_NOSPACE); else \
+                                       isc_buffer_putstr(b, s);}
+
 
 extern isc_boolean_t have_ipv6, show_details, specified_source,
 	usesearch, qr;
@@ -196,45 +203,39 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 
 }
 
-static void
-say_message(dns_rdata_t *rdata, dig_query_t *query) {
-	isc_buffer_t *b = NULL, *b2 = NULL;
+isc_result_t
+say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_region_t r, r2;
 	isc_result_t result;
 	isc_uint64_t diff;
 	isc_time_t now;
+	char store[sizeof("12345678901234567890")];
 
-	result = isc_buffer_allocate(mctx, &b, BUFSIZE);
-	check_result (result, "isc_buffer_allocate");
-	result = dns_rdata_totext(rdata, NULL, b);
-	check_result(result, "dns_rdata_totext");
-	isc_buffer_usedregion(b, &r);
-	if (!query->lookup->trace && !query->lookup->ns_search_only)
-		printf ( "%.*s", (int)r.length, (char *)r.base);
-	else {
-		result = isc_buffer_allocate(mctx, &b2, BUFSIZE);
-		check_result (result, "isc_buffer_allocate");
-		result = dns_rdatatype_totext(rdata->type, b2);
-		check_result(result, "dns_rdatatype_totext");
-		isc_buffer_usedregion(b2, &r2);
-		printf ( "%.*s %.*s",(int)r2.length, (char *)r2.base, 
-			 (int)r.length, (char *)r.base);
-		isc_buffer_free (&b2);
+	if (query->lookup->trace || query->lookup->ns_search_only) {
+		result = dns_rdatatype_totext(rdata->type, buf);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		ADD_STRING(buf, " ");
 	}
+	result = dns_rdata_totext(rdata, NULL, buf);
+	check_result(result, "dns_rdata_totext");
 	if (query->lookup->identify) {
 		result = isc_time_now(&now);
-		check_result (result, "isc_time_now");
+		if (result != ISC_R_SUCCESS)
+			return (result);
 		diff = isc_time_microdiff(&now, &query->time_sent);
-		printf (" from server %s in %d ms", query->servname,
-			(int)diff/1000);
+		ADD_STRING(buf, " from server ");
+		ADD_STRING(buf, query->servname);
+		snprintf (store, 19, " in %d ms.", (int)diff/1000);
+		ADD_STRING(buf, store);
 	}
-	printf ("\n");
-	isc_buffer_free(&b);
+	ADD_STRING(buf,"\n");
+	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
-printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
-	     isc_boolean_t headers, dig_query_t *query)
+isc_result_t
+short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
+	     isc_buffer_t *buf, dig_query_t *query)
 {
 	dns_name_t *name, *print_name;
 	dns_rdataset_t *rdataset;
@@ -247,17 +248,8 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 	isc_boolean_t no_rdata;
 	dns_rdata_t rdata;
 	
-	if (sectionid == DNS_SECTION_QUESTION)
-		no_rdata = ISC_TRUE;
-	else
-		no_rdata = ISC_FALSE;
-
-	if (headers && query->lookup->comments && !short_form)
-		printf(";; %s SECTION:\n", section_name);
-
 	dns_name_init(&empty_name, NULL);
-
-	result = dns_message_firstname(msg, sectionid);
+	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	if (result == ISC_R_NOMORE)
 		return (ISC_R_SUCCESS);
 	else if (result != ISC_R_SUCCESS)
@@ -265,7 +257,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 
 	for (;;) {
 		name = NULL;
-		dns_message_currentname(msg, sectionid, &name);
+		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
 
 		isc_buffer_init(&target, t, sizeof(t));
 		first = ISC_TRUE;
@@ -274,40 +266,18 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			if (!short_form) {
-				result = dns_rdataset_totext(rdataset,
-							     print_name,
-							     ISC_FALSE,
-							     no_rdata,
-							     &target);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-#ifdef USEINITALWS
-				if (first) {
-					print_name = &empty_name;
-					first = ISC_FALSE;
-				}
-#else
-				UNUSED(first); /* Shut up compiler. */
-#endif
-			} else {
-				loopresult = dns_rdataset_first(rdataset);
-				while (loopresult == ISC_R_SUCCESS) {
-					dns_rdataset_current(rdataset, &rdata);
-					say_message(&rdata, query);
-					loopresult = dns_rdataset_next(
-								 rdataset);
-				}
+			loopresult = dns_rdataset_first(rdataset);
+			while (loopresult == ISC_R_SUCCESS) {
+				dns_rdataset_current(rdataset, &rdata);
+				result = say_message(&rdata, query,
+						     buf);
+				check_result (result, "say_message");
+				loopresult = dns_rdataset_next(
+							       rdataset);
 			}
-
+			
 		}
-		isc_buffer_usedregion(&target, &r);
-		if (no_rdata)
-			printf(";%.*s", (int)r.length, (char *)r.base);
-		else
-			printf("%.*s", (int)r.length, (char *)r.base);
-
-		result = dns_message_nextname(msg, sectionid);
+		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 		if (result == ISC_R_NOMORE)
 			break;
 		else if (result != ISC_R_SUCCESS)
@@ -317,39 +287,17 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
-printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
-	   char *set_name, isc_boolean_t headers)
-{
-	isc_buffer_t target;
-	isc_result_t result;
-	isc_region_t r;
-	char t[4096];
-
-	UNUSED(msg);
-	if (headers) 
-		printf(";; %s SECTION:\n", set_name);
-
-	isc_buffer_init(&target, t, sizeof(t));
-
-	result = dns_rdataset_totext(rdataset, owner, ISC_FALSE, ISC_FALSE,
-				     &target);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	isc_buffer_usedregion(&target, &r);
-	printf("%.*s", (int)r.length, (char *)r.base);
-
-	return (ISC_R_SUCCESS);
-}
 
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	isc_result_t result;
-	dns_rdataset_t *opt, *tsig = NULL;
-	dns_name_t *tsigname;
+	dns_messagetextflag_t flags;
+	isc_buffer_t *buf;
 
 	UNUSED (query);
+
+	debug ("printmessage(%s)",headers?"headers":"noheaders");
 
 	/*
 	 * Exitcode 9 means we timed out, but if we're printing a message,
@@ -359,18 +307,28 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	if (exitcode == 9)
 		exitcode = 0;
 
+	flags = 0;
+	if (!headers) {
+		flags |= DNS_MESSAGETEXTFLAG_NOHEADERS;
+		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
+	}
+	if (!query->lookup->comments)
+		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
+
 	result = ISC_R_SUCCESS;
 
-	if (query->lookup->comments && !short_form &&
-	    !query->lookup->doing_xfr) {
-		if (msg == query->lookup->sendmsg)
-			printf (";; Sending:\n");
-		else
-			printf (";; Got answer:\n");
-	}
+	result = isc_buffer_allocate(mctx, &buf, OUTPUTBUF);
+	check_result (result, "isc_buffer_allocate");
 
-	if (headers) {
-		if (query->lookup->comments && !short_form) {
+	if (query->lookup->comments && !short_form) {
+		if (!query->lookup->doing_xfr) {
+			if (msg == query->lookup->sendmsg)
+				printf (";; Sending:\n");
+			else
+				printf (";; Got answer:\n");
+		}
+
+		if (headers) {
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
 			       opcodetext[msg->opcode], rcodetext[msg->rcode],
@@ -411,67 +369,66 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			       msg->counts[DNS_SECTION_AUTHORITY],
 			       msg->counts[DNS_SECTION_ADDITIONAL]);
 
-			opt = dns_message_getopt(msg);
-			if (opt != NULL)
-				printf(";; EDNS: version: %u, udp=%u\n",
-				       (unsigned int)((opt->ttl & 
-						       0x00ff0000) >> 16),
-				       (unsigned int)opt->rdclass);
-			tsigname = NULL;
-			tsig = dns_message_gettsig(msg, &tsigname);
-			if (tsig != NULL)
-				printf(";; PSEUDOSECTIONS: TSIG\n");
+			result = dns_message_pseudosectiontotext(msg,
+						 DNS_PSEUDOSECTION_OPT,
+						 flags, buf);
+			check_result(result, 
+				     "dns_message_pseudosectiontotext");
 		}
 	}
-	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_QUESTION]) &&
-	    headers && query->lookup->section_question) {
-		printf("\n");
-		result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION",
-				      ISC_TRUE, query);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
-	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER]) && 
-	    query->lookup->section_answer ) {
-		if (headers && query->lookup->comments && !short_form)
-			printf("\n");
-		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER",
-				      headers, query);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
-	if ((! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY]) &&
-	    headers && query->lookup->section_authority) || 
-	    ( ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER]) &&
-	      headers && query->lookup->section_answer &&
-	      query->lookup->trace )) {
-		if (headers && query->lookup->comments && !short_form)
-			printf("\n");
-		result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY",
-				      ISC_TRUE, query);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
-	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ADDITIONAL]) &&
-	    headers && query->lookup->section_additional) {
-		if (headers && query->lookup->comments && !short_form)
-			printf("\n");
-		result = printsection(msg, DNS_SECTION_ADDITIONAL,
-				      "ADDITIONAL", ISC_TRUE, query);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
-	if ((tsig != NULL) && headers && query->lookup->section_additional) {
-		if (headers && query->lookup->comments && !short_form)
-			printf("\n");
-		result = printrdata(msg, tsig, tsigname,
-				    "PSEUDOSECTION TSIG", ISC_TRUE);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
+
+	if (query->lookup->section_question && headers) {
+		if (!short_form) {
+			result = dns_message_sectiontotext(msg,
+						       DNS_SECTION_QUESTION,
+						       flags, buf);
+			check_result(result, "dns_message_sectiontotext");
+		}
+	}			
+	if (query->lookup->section_answer) {
+		if (!short_form) {
+			result = dns_message_sectiontotext(msg,
+						       DNS_SECTION_ANSWER,
+						       flags, buf);
+			check_result(result, "dns_message_sectiontotext");
+		}
+		else {
+			result = short_answer(msg, flags, buf, query);
+			check_result (result, "short_answer");
+		}
+	}			
+	if (query->lookup->section_authority) {
+		if (!short_form) {
+			result = dns_message_sectiontotext(msg,
+						       DNS_SECTION_AUTHORITY,
+						       flags, buf);
+			check_result(result, "dns_message_sectiontotext");
+		}
+	}			
+	if (query->lookup->section_additional) {
+		if (!short_form) {
+			result = dns_message_sectiontotext(msg,
+						      DNS_SECTION_ADDITIONAL,
+						      flags, buf);
+			check_result(result, "dns_message_sectiontotext");
+			result = dns_message_pseudosectiontotext(msg,
+						      DNS_PSEUDOSECTION_TSIG,
+						      flags, buf);
+			check_result(result, "dns_message_pseudosectiontotext");
+			result = dns_message_pseudosectiontotext(msg,
+						      DNS_PSEUDOSECTION_SIG0,
+						      flags, buf);
+							 
+			check_result(result,
+				     "dns_message_pseudosectiontotext");
+		}
+	}			
 	if (headers && query->lookup->comments && !short_form)
 		printf("\n");
 
+	printf ("%.*s",(int)isc_buffer_usedlength(buf),
+		(char *)isc_buffer_base(buf));
+	isc_buffer_free(&buf);
 	return (result);
 }
 
