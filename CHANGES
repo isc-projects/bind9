@@ -1,3 +1,5 @@
+1021	[bug]		Win32 timestamp was one month later than it should
+			have been. SYSTEMTIME starts with January=1.
 
 1020.	[bug]		IXFR log messages did not distinguish between
 			true IXFRs, AXFR-style IXFRs, and mere version
