@@ -164,7 +164,6 @@
 ./bin/tests/dst/Makefile.in			MAKE	1999,2000
 ./bin/tests/dst/dst_2_data			X	1999,2000
 ./bin/tests/dst/dst_test.c			C	1999,2000
-./bin/tests/dst/randomfile			X	2000
 ./bin/tests/dst/t2_data_1			X	1999,2000
 ./bin/tests/dst/t2_data_2			X	1999,2000
 ./bin/tests/dst/t2_dsasig			X	1999,2000
@@ -345,7 +344,6 @@
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000
 ./bin/tests/system/dnssec/ns5/root.hint		ZONE	2000
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000
-./bin/tests/system/dnssec/random.data		X	2000
 ./bin/tests/system/dnssec/setup.sh		SH	2000
 ./bin/tests/system/dnssec/tests.sh		SH	2000
 ./bin/tests/system/forward/clean.sh		SH	2000
@@ -570,7 +568,7 @@
 ./doc/arm/Bv9ARM.7.html				HTML	2000
 ./doc/arm/Bv9ARM.8.html				HTML	2000
 ./doc/arm/Bv9ARM.9.html				HTML	2000
-./doc/arm/Bv9ARM.css				C	2000
+./doc/arm/Bv9ARM.css				X	2000
 ./doc/arm/Bv9ARM.html				HTML	2000
 ./doc/arm/Bv9ARM.txt				TXT.BRIEF	2000
 ./doc/arm/isc.color.gif				X	2000
