@@ -16,18 +16,18 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres.docbook,v 1.1 2001/03/29 02:43:28 gson Exp $ -->
+<!-- $Id: lwres.docbook,v 1.2 2001/03/31 00:08:00 gson Exp $ -->
 
 <refentry>
-  <refentryinfo>
+<refentryinfo>
 
 <date>Jun 30, 2000</date>
 </refentryinfo>
-  <refmeta>
-    <refentrytitle>lwres</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>BIND9</refmiscinfo>
-  </refmeta>
+<refmeta>
+<refentrytitle>lwres</refentrytitle>
+<manvolnum>3</manvolnum>
+<refmiscinfo>BIND9</refmiscinfo>
+</refmeta>
 <refnamediv>
 <refname>lwres</refname>
 <refpurpose>introduction to the lightweight resolver library</refpurpose>

@@ -12,38 +12,27 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_packet.3,v 1.6 2001/01/09 21:50:20 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt LWRES_PACKET 3
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm lwres_lwpacket_renderheader ,
-.Nm lwres_lwpacket_parseheader
-.Nd lightweight resolver packet handling functions
-.Sh SYNOPSIS
-.Fd #include <lwres/lwbuffer.h>
-.Fd #include <lwres/lwpacket.h>
-.Fd #include <lwres/result.h>
-.Fd
-.Ft lwres_result_t
-.Fo lwres_lwpacket_renderheader
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_lwpacket_parseheader
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fc
-.Sh DESCRIPTION
+.TH "LWRES_PACKET" "3" "Jun 30, 2000" "BIND9" ""
+.SH NAME
+lwres_lwpacket_renderheader, lwres_lwpacket_parseheader \- lightweight resolver packet handling functions
+.SH SYNOPSIS
+\fB#include <lwres/lwbuffer.h>#include <lwres/lwpacket.h>#include <lwres/result.h>
+.sp
+lwres_result_t
+lwres_lwpacket_renderheader(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+.sp
+lwres_result_t
+lwres_lwpacket_parseheader(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+\fR.SH "DESCRIPTION"
+.PP
 These functions rely on a
-.Dv "struct lwres_lwpacket"
+\fBstruct lwres_lwpacket\fR
 which is defined in
-.Pa lwres/lwpacket.h .
-.Bd -literal -offset indent
+\fIlwres/lwpacket.h\fR.
+.sp
+.nf
 typedef struct lwres_lwpacket lwres_lwpacket_t;
 
 struct lwres_lwpacket {
@@ -57,108 +46,118 @@ struct lwres_lwpacket {
 	lwres_uint16_t		authtype;
 	lwres_uint16_t		authlength;
 };
-.Ed
-.Pp
-.Pp
+.sp
+.fi
+.PP
+.PP
 The elements of this structure are:
-.Bl -tag -width recvlength
-.It Li length
+.TP
+\fBlength\fR
 the overall packet length, including the entire packet header.
 This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
 calls.
-.It Li version
+.TP
+\fBversion\fR
 the header format. There is currently only one format,
-.Dv LWRES_LWPACKETVERSION_0 .
+\fBLWRES_LWPACKETVERSION_0\fR.
 This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
 calls.
-.It Li pktflags
+.TP
+\fBpktflags\fR
 library-defined flags for this packet: for instance whether the packet
 is a request or a reply. Flag values can be set, but not defined by
 the caller.
 This field is filled in by the application wit the exception of the
 LWRES_LWPACKETFLAG_RESPONSE bit, which is set by the library in the
 lwres_gabn_*() and lwres_gnba_*() calls.
-.It Li serial
+.TP
+\fBserial\fR
 is set by the requestor and is returned in all replies. If two or more
 packets from the same source have the same serial number and are from
 the same source, they are assumed to be duplicates and the latter ones
 may be dropped.
 This field must be set by the application.
-.It Li opcode
+.TP
+\fBopcode\fR
 indicates the operation.
 Opcodes between 0x00000000 and 0x03ffffff are
 reserved for use by the lightweight resolver library. Opcodes between
 0x04000000 and 0xffffffff are application defined.
 This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
 calls.
-.It Li result
+.TP
+\fBresult\fR
 is only valid for replies.
 Results between 0x04000000 and 0xffffffff are application defined.
 Results between 0x00000000 and 0x03ffffff are reserved for library use.
 This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
 calls.
-.It Li recvlength
+.TP
+\fBrecvlength\fR
 is the maximum buffer size that the receiver can handle on requests
 and the size of the buffer needed to satisfy a request when the buffer
 is too large for replies.
 This field is supplied by the application.
-.It Li authtype
+.TP
+\fBauthtype\fR
 defines the packet level authentication that is used.
 Authorisation types between 0x1000 and 0xffff are application defined
 and types between 0x0000 and 0x0fff are reserved for library use.
 Currently these are not used and must be zero.
-.It Li authlen
+.TP
+\fBauthlen\fR
 gives the length of the authentication data.
 Since packet authentication is currently not used, this must be zero.
-.El
-.Pp
+.PP
 The following opcodes are currently defined:
-.Bl -tag -width GETADDRSBYNAME
-.It Li NOOP
+.TP
+\fBNOOP\fR
 Success is always returned and the packet contents are echoed.
 The lwres_noop_*() functions should be used for this type.
-.It Li GETADDRSBYNAME
+.TP
+\fBGETADDRSBYNAME\fR
 returns all known addresses for a given name.
 The lwres_gabn_*() functions should be used for this type.
-.It Li GETNAMEBYADDR
+.TP
+\fBGETNAMEBYADDR\fR
 return the hostname for the given address.
 The lwres_gnba_*() functions should be used for this type.
-.El
-.Pp
-.Fn lwres_lwpacket_renderheader
+.PP
+\fBlwres_lwpacket_renderheader()\fR
 transfers the contents of lightweight resolver packet structure
-.Dv lwres_lwpacket_t
-.Fa *pkt
+\fBlwres_lwpacket_t\fR
+\fI*pkt\fR
 in network byte order to the lightweight resolver buffer,
-.Fa *b .
-.Pp
-.Fn lwres_lwpacket_parseheader
+\fI*b\fR.
+.PP
+\fBlwres_lwpacket_parseheader()\fR
 performs the converse operation.
 It transfers data in network byte order from buffer
-.Fa *b
+\fI*b\fR
 to resolver packet
-.Fa *pkt .
+\fI*pkt\fR.
 The contents of the buffer
-.Fa b
+\fIb\fR
 should correspond to a
-.Dv "lwres_lwpacket_t" .
-.Pp
+\fBlwres_lwpacket_t\fR.
+.PP
 Both functions have assertion checks to ensure that
-.Fa b
+\fIb\fR
 and
-.Fa pkt
+\fIpkt\fR
 are not
-.Dv NULL .
-.Sh RETURN VALUES
+\fBNULL\fR.
+.SH "RETURN VALUES"
+.PP
 Successful calls to
-.Fn lwres_lwpacket_renderheader
+\fBlwres_lwpacket_renderheader()\fR
 and
-.Fn lwres_lwpacket_parseheader
+\fBlwres_lwpacket_parseheader()\fR
 return
-.Er LWRES_R_SUCCESS .
+LWRES_R_SUCCESS.
 If there is insufficient space to copy data between the buffer
-.Fa *b
+\fI*b\fR
 and lightweight resolver packet
-.Fa *pkt
+\fI*pkt\fR
 both functions return
-.Er LWRES_R_UNEXPECTEDEND .
+LWRES_R_UNEXPECTEDEND.

@@ -16,17 +16,17 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_buffer.docbook,v 1.1 2001/03/29 02:23:11 gson Exp $ -->
+<!-- $Id: lwres_buffer.docbook,v 1.2 2001/03/31 00:08:02 gson Exp $ -->
 
 <refentry>
-  <refentryinfo>
+<refentryinfo>
 <date>Jun 30, 2000</date>
 </refentryinfo>
 
 <refmeta>
-    <refentrytitle>lwres_buffer</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>BIND9</refmiscinfo>
+<refentrytitle>lwres_buffer</refentrytitle>
+<manvolnum>3</manvolnum>
+<refmiscinfo>BIND9</refmiscinfo>
 </refmeta>
 
 <refnamediv>

@@ -12,87 +12,70 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_noop.3,v 1.6 2001/01/09 21:50:12 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt LWRES_NOOP 3
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm lwres_nooprequest_render ,
-.Nm lwres_noopresponse_render ,
-.Nm lwres_nooprequest_parse ,
-.Nm lwres_noopresponse_parse ,
-.Nm lwres_noopresponse_free ,
-.Nm lwres_nooprequest_free
-.Nd lightweight resolver no-op message handling
-.Sh SYNOPSIS
-.Fd #include <lwres/lwres.h>
-.Fd
-.Ft lwres_result_t
-.Fo lwres_nooprequest_render
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_nooprequest_t *req"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_buffer_t *b"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_noopresponse_render
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_noopresponse_t *req"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_buffer_t *b"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_nooprequest_parse
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_nooprequest_t **structp"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_noopresponse_parse
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_noopresponse_t **structp"
-.Fc
-.Ft void
-.Fo lwres_noopresponse_free
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_noopresponse_t **structp"
-.Fc
-.Ft void
-.Fo lwres_nooprequest_free
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_nooprequest_t **structp"
-.Fc
-.Sh DESCRIPTION
+.TH "LWRES_NOOP" "3" "Jun 30, 2000" "BIND9" ""
+.SH NAME
+lwres_nooprequest_render, lwres_noopresponse_render, lwres_nooprequest_parse, lwres_noopresponse_parse, lwres_noopresponse_free, lwres_nooprequest_free \- lightweight resolver no-op message handling
+.SH SYNOPSIS
+\fB#include <lwres/lwres.h>
+.sp
+lwres_result_t
+lwres_nooprequest_render(lwres_context_t *ctx);
+(lwres_nooprequest_t *req);
+(lwres_lwpacket_t *pkt);
+(lwres_buffer_t *b);
+.sp
+lwres_result_t
+lwres_noopresponse_render(lwres_context_t *ctx);
+(lwres_noopresponse_t *req);
+(lwres_lwpacket_t *pkt);
+(lwres_buffer_t *b);
+.sp
+lwres_result_t
+lwres_nooprequest_parse(lwres_context_t *ctx);
+(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+(lwres_nooprequest_t **structp);
+.sp
+lwres_result_t
+lwres_noopresponse_parse(lwres_context_t *ctx);
+(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+(lwres_noopresponse_t **structp);
+.sp
+void
+lwres_noopresponse_free(lwres_context_t *ctx);
+(lwres_noopresponse_t **structp);
+.sp
+void
+lwres_nooprequest_free(lwres_context_t *ctx);
+(lwres_nooprequest_t **structp);
+\fR.SH "DESCRIPTION"
+.PP
 These are low-level routines for creating and parsing
 lightweight resolver no-op request and response messages.
-.P
-The no-op message is analogous to a \*qping\*q packet: 
+.PP
+The no-op message is analogous to a \fBping\fR packet: 
 a packet is sent to the resolver daemon and is simply echoed back.
 The opcode is intended to allow a client to determine if the server is
 operational or not.
-.Pp
+.PP
 There are four main functions for the no-op opcode.
-One render function converts a no-op request structure -
-.Dv lwres_nooprequest_t -
+One render function converts a no-op request structure \(em
+\fBlwres_nooprequest_t\fR \(em
 to the lighweight resolver's canonical format.
 It is complemented by a parse function that converts a packet in this
 canonical format to a no-op request structure.
-Another render function converts the no-op response structure -
-.Dv lwres_noopresponse_t
+Another render function converts the no-op response structure \(em
+\fBlwres_noopresponse_t\fR
 to the canonical format.
 This is complemented by a parse function which converts a packet in
 canonical format to a no-op response structure.
-.Pp
+.PP
 These structures are defined in
-.Pa lwres/lwres.h .
+\fIlwres/lwres.h\fR.
 They are shown below.
-.Bd -literal -offset indent
+.sp
+.nf
 #define LWRES_OPCODE_NOOP	0x00000000U
 
 typedef struct {
@@ -104,96 +87,99 @@ typedef struct {
 	lwres_uint16_t	datalength;
 	unsigned char	*data;
 } lwres_noopresponse_t;
-.Ed
+.sp
+.fi
 Although the structures have different types, they are identical.
 This is because the no-op opcode simply echos whatever data was sent:
 the response is therefore identical to the request.
-.Pp
-.Fn lwres_nooprequest_render
+.PP
+\fBlwres_nooprequest_render()\fR
 uses resolver context
-.Fa ctx
+\fIctx\fR
 to convert no-op request structure
-.Fa req
+\fIreq\fR
 to canonical format.
 The packet header structure
-.Fa pkt
+\fIpkt\fR
 is initialised and transferred to
 buffer
-.Fa b .
+\fIb\fR.
 The contents of
-.Fa *req
+\fI*req\fR
 are then appended to the buffer in canonical format.
-.Fn lwres_noopresponse_render
+\fBlwres_noopresponse_render()\fR
 performs the same task, except it converts a no-op response structure
-.Dv lwres_noopresponse_t
+\fBlwres_noopresponse_t\fR
 to the lightweight resolver's canonical format.
-.Pp
-.Fn lwres_nooprequest_parse
+.PP
+\fBlwres_nooprequest_parse()\fR
 uses context
-.Fa ctx
+\fIctx\fR
 to convert the contents of packet
-.Fa pkt
+\fIpkt\fR
 to a
-.Dv lwres_nooprequest_t
+\fBlwres_nooprequest_t\fR
 structure.
 Buffer
-.Fa b
+\fIb\fR
 provides space to be used for storing this structure.
 When the function succeeds, the resulting
-.Dv lwres_nooprequest_t
+\fBlwres_nooprequest_t\fR
 is made available through
-.Fa *structp .
-.Fn lwres_noopresponse_parse
+\fI*structp\fR.
+\fBlwres_noopresponse_parse()\fR
 offers the same semantics as
-.Fn lwres_nooprequest_parse
+\fBlwres_nooprequest_parse()\fR
 except it yields a
-.Dv lwres_noopresponse_t
+\fBlwres_noopresponse_t\fR
 structure.
-.Pp
-.Fn lwres_noopresponse_free
+.PP
+\fBlwres_noopresponse_free()\fR
 and
-.Fn lwres_nooprequest_free
+\fBlwres_nooprequest_free()\fR
 release the memory in resolver context
-.Fa ctx
+\fIctx\fR
 that was allocated to the
-.Dv lwres_noopresponse_t
+\fBlwres_noopresponse_t\fR
 or
-.Dv lwres_nooprequest_t
+\fBlwres_nooprequest_t\fR
 structures referenced via
-.Fa structp .
-.Sh RETURN VALUES
+\fIstructp\fR.
+.SH "RETURN VALUES"
+.PP
 The no-op opcode functions
-.Fn lwres_nooprequest_render ,
-.Fn lwres_noopresponse_render
-.Fn lwres_nooprequest_parse
+\fBlwres_nooprequest_render()\fR,
+\fBlwres_noopresponse_render()\fR
+\fBlwres_nooprequest_parse()\fR
 and
-.Fn lwres_noopresponse_parse
+\fBlwres_noopresponse_parse()\fR
 all return
-.Er LWRES_R_SUCCESS
+LWRES_R_SUCCESS
 on success.
 They return
-.Er LWRES_R_NOMEMORY
+LWRES_R_NOMEMORY
 if memory allocation fails.
-.Er LWRES_R_UNEXPECTEDEND
+LWRES_R_UNEXPECTEDEND
 is returned if the available space in the buffer
-.Fa b
+\fIb\fR
 is too small to accommodate the packet header or the
-.Dv lwres_nooprequest_t
+\fBlwres_nooprequest_t\fR
 and
-.Dv lwres_noopresponse_t
+\fBlwres_noopresponse_t\fR
 structures.
-.Fn lwres_nooprequest_parse
+\fBlwres_nooprequest_parse()\fR
 and
-.Fn lwres_noopresponse_parse
+\fBlwres_noopresponse_parse()\fR
 will return
-.Er LWRES_R_UNEXPECTEDEND
+LWRES_R_UNEXPECTEDEND
 if the buffer is not empty after decoding the received packet.
 These functions will return
-.Er LWRES_R_FAILURE
+LWRES_R_FAILURE
 if
-.Li pktflags
+pktflags
 in the packet header structure
-.Dv lwres_lwpacket_t
+\fBlwres_lwpacket_t\fR
 indicate that the packet is not a response to an earlier query.
-.Sh SEE ALSO
-.Xr lwres_packet 3
+.SH "SEE ALSO"
+.PP
+\fBlwres_packet\fR(3)

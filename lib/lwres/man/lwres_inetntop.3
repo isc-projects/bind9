@@ -12,60 +12,54 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_inetntop.3,v 1.5 2001/01/09 21:50:08 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt LWRES_INETNTOP 3
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm lwres_net_ntop
-.Nd lightweight resolver IP address presentation
-.Sh SYNOPSIS
-.Fd #include <lwres/net.h>
-.Fd
-.Ft const char *
-.Fo lwres_net_ntop
-.Fa "int af"
-.Fa "const void *src"
-.Fa "char *dst"
-.Fa "size_t size"
-.Fc
-.Sh DESCRIPTION
-.Fn lwres_net_ntop
+.TH "LWRES_INETNTOP" "3" "Jun 30, 2000" "BIND9" ""
+.SH NAME
+lwres_net_ntop \- lightweight resolver IP address presentation
+.SH SYNOPSIS
+\fB#include <lwres/net.h>
+.sp
+const char *
+lwres_net_ntop(int af);
+(const void *src);
+(char *dst);
+(size_t size);
+\fR.SH "DESCRIPTION"
+.PP
+\fBlwres_net_ntop()\fR
 converts an IP address of protocol family
-.Fa af
-- IPv4 or IPv6 - at location
-.Fa src
+\fIaf\fR
+\(em IPv4 or IPv6 \(em
+at location
+\fIsrc\fR
 from network format to its conventional representation as a string.
 For IPv4 addresses, that string would be a dotted-decimal.
 An IPv6 address would be represented in colon notation as described in
 RFC1884.
-.Pp
+.PP
 The generated string is copied to
-.Fa dst
+\fIdst\fR
 provided
-.Fa size
+\fIsize\fR
 indicates it is long enough to store the ASCII representation
 of the address.
-.Sh RETURN VALUES
-.Pp
+.SH "RETURN VALUES"
+.PP
 If successful, the function returns
-.Fa dst :
+\fIdst\fR:
 a pointer to a string containing
 the presentation format of the address.
-.Fn lwres_net_ntop
+\fBlwres_net_ntop()\fR
 returns
-.Dv NULL
+\fBNULL\fR
 and sets the global variable
-.Li errno
+errno
 to
-.Er EAFNOSUPPORT
+EAFNOSUPPORT
 if the protocol family given in
-.Fa af
+\fIaf\fR
 is not supported.
-.Sh SEE ALSO
-.Xr RFC1884 ,
-.Xr inet_ntop 3 ,
-.Xr errno 3 .
+.SH "SEE ALSO"
+.PP
+\fBRFC1884\fR,
+\fBinet_ntop\fR(3),
+\fBerrno\fR(3).

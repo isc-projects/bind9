@@ -12,119 +12,92 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_getnameinfo.3,v 1.8 2001/01/09 21:49:56 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt LWRES_GETNAMEINFO 3
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm lwres_getnameinfo
-.Nd lightweight resolver socket address structure to hostname and service name
-.Sh SYNOPSIS
-.Fd #include <lwres/netdb.h>
-.Fd
-.Ft int
-.Fo lwres_getnameinfo
-.Fa "const struct sockaddr *sa"
-.Fa "size_t salen"
-.Fa "char *host"
-.Fa "size_t hostlen"
-.Fa "char *serv"
-.Fa "size_t servlen"
-.Fa "int flags"
-.Fc
-.Sh DESCRIPTION
-.Pp
+.TH "LWRES_GETNAMEINFO" "3" "Jun 30, 2000" "BIND9" ""
+.SH NAME
+lwres_getnameinfo \- lightweight resolver socket address structure to hostname and service name
+.SH SYNOPSIS
+\fB#include <lwres/netdb.h>
+.sp
+int
+lwres_getnameinfo(const struct sockaddr *sa);
+(size_t salen);
+(char *host);
+(size_t hostlen);
+(char *serv);
+(size_t servlen);
+(int flags);
+\fR.SH "DESCRIPTION"
+.PP
 This function is equivalent to the
-.Xr getnameinfo 3
+\fBgetnameinfo\fR(3)
 function defined in RFC2133.
-.Fn lwres_getnameinfo
+\fBlwres_getnameinfo()\fR
 returns the hostname for the
-.Dv "struct sockaddr"
-.Fa sa
+\fBstruct sockaddr\fR
+\fIsa\fR
 which is
-.Fa salen
+\fIsalen\fR
 bytes long.
 The hostname is of length
-.Fa hostlen
+\fIhostlen\fR
 and is returned via
-.Fa *host.
+\fI*host.\fR
 The maximum length of the hostname is
 1025 bytes:
-.Li NI_MAXHOST .
-.Pp
+NI_MAXHOST.
+.PP
 The name of the service associated with the port number in
-.Fa sa
+\fIsa\fR
 is returned in
-.Fa *serv.
+\fI*serv.\fR
 It is
-.Fa servlen
+\fIservlen\fR
 bytes long.
 The maximum length of the service name is
-.Li NI_MAXSERV
-- 32 bytes.
-.Pp
+NI_MAXSERV - 32 bytes.
+.PP
 The
-.Fa flags
+\fIflags\fR
 argument sets the following bits:
-.Bl -tag -width NI_NUMERICSERV
-.It Li NI_NOFQDN
+.TP
+\fBNI_NOFQDN\fR
 A fully qualified domain name is not required for local hosts.
 The local part of the fully qualified domain name is returned instead.
-.It Li NI_NUMERICHOST
+.TP
+\fBNI_NUMERICHOST\fR
 Return the address in numeric form, as if calling inet_ntop(),
 instead of a host name.
-.It Li NI_NAMEREQD
+.TP
+\fBNI_NAMEREQD\fR
 A name is required. If the hostname cannot be found in the DNS and
 this flag is set, a non-zero error code is returned.
 If the hostname is not found and the flag is not set, the 
 address is returned in numeric form.
-.It Li NI_NUMERICSERV
+.TP
+\fBNI_NUMERICSERV\fR
 The service name is returned as a digit string representing the port number.
-.It Li NI_DGRAM
+.TP
+\fBNI_DGRAM\fR
 Specifies that the service being looked up is a datagram
-service,  and causes getservbyport() to be called with a second
-argument of "udp" instead of its default of "tcp".  This is required
+service, and causes getservbyport() to be called with a second
+argument of "udp" instead of its default of "tcp". This is required
 for the few ports (512-514) that have different services for UDP and
 TCP.
-.El
-.Pp
-.Sh RETURN VALUES
-.Fn lwres_getnameinfo
+.PP
+.SH "RETURN VALUES"
+.PP
+\fBlwres_getnameinfo()\fR
 returns 0 on success or a non-zero error code if an error occurs.
-.\"
-.\"	The error codes below were invented by the ISC/Nominum. They
-.\"	should be defined in RFC2133 before getting documented here.
-.\"	XXXJR 28/6/00
-.\" The error codes are:
-.\" Bl -tag -width ENI_NOSERVNAME
-.\" It Li ENI_NOSOCKET
-.\" there was no socket in
-.\" Fa sa
-.\" It Li ENI_NOSERVNAME
-.\" no service name was found
-.\" It Li ENI_NOHOSTNAME
-.\" no hostname was found
-.\" It Li ENI_MEMORY
-.\" memory could not be allocated
-.\" It Li ENI_SYSTEM
-.\" a system error occurred
-.\" It Li ENI_FAMILY
-.\" an unsupported protocol family was requested
-.\" It Li ENI_SALEN
-.\" Fa salen
-.\" is the wrong number of bytes for the address in
-.\" Fa sa .
-.Sh SEE ALSO
-.Xr RFC2133 ,
-.Xr getservbyport 3 ,
-.Xr lwres 3 ,
-.Xr lwres_getnameinfo 3 ,
-.Xr lwres_getnamebyaddr 3 .
-.Xr lwres_net_ntop 3 .
-.Sh BUGS
+.SH "SEE ALSO"
+.PP
+\fBRFC2133\fR,
+\fBgetservbyport\fR(3),
+\fBlwres\fR(3),
+\fBlwres_getnameinfo\fR(3),
+\fBlwres_getnamebyaddr\fR(3).
+\fBlwres_net_ntop\fR(3).
+.SH "BUGS"
+.PP
 RFC2133 fails to define what the nonzero return values of
-.Xr getnameinfo 3 
+\fBgetnameinfo\fR(3)
 are.

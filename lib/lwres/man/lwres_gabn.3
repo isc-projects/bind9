@@ -12,83 +12,66 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_gabn.3,v 1.6 2001/01/09 21:49:33 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt LWRES_GABN 3
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm lwres_gabnrequest_render ,
-.Nm lwres_gabnresponse_render ,
-.Nm lwres_gabnrequest_parse ,
-.Nm lwres_gabnresponse_parse ,
-.Nm lwres_gabnresponse_free ,
-.Nm lwres_gabnrequest_free
-.Nd lightweight resolver getaddrbyname message handling
-.Sh SYNOPSIS
-.Fd #include <lwres/lwres.h>
-.Fd
-.Ft lwres_result_t
-.Fo lwres_gabnrequest_render
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gabnrequest_t *req"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_buffer_t *b"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_gabnresponse_render
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gabnresponse_t *req"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_buffer_t *b"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_gabnrequest_parse
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_gabnrequest_t **structp"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_gabnresponse_parse
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_gabnresponse_t **structp"
-.Fc
-.Ft void
-.Fo lwres_gabnresponse_free
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gabnresponse_t **structp"
-.Fc
-.Ft void
-.Fo lwres_gabnrequest_free
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gabnrequest_t **structp"
-.Fc
-.Sh DESCRIPTION
+.TH "LWRES_GABN" "3" "Jun 30, 2000" "BIND9" ""
+.SH NAME
+lwres_gabnrequest_render, lwres_gabnresponse_render, lwres_gabnrequest_parse, lwres_gabnresponse_parse, lwres_gabnresponse_free, lwres_gabnrequest_free \- lightweight resolver getaddrbyname message handling
+.SH SYNOPSIS
+\fB#include <lwres/lwres.h>
+.sp
+lwres_result_t
+lwres_gabnrequest_render(lwres_context_t *ctx);
+(lwres_gabnrequest_t *req);
+(lwres_lwpacket_t *pkt);
+(lwres_buffer_t *b);
+.sp
+lwres_result_t
+lwres_gabnresponse_render(lwres_context_t *ctx);
+(lwres_gabnresponse_t *req);
+(lwres_lwpacket_t *pkt);
+(lwres_buffer_t *b);
+.sp
+lwres_result_t
+lwres_gabnrequest_parse(lwres_context_t *ctx);
+(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+(lwres_gabnrequest_t **structp);
+.sp
+lwres_result_t
+lwres_gabnresponse_parse(lwres_context_t *ctx);
+(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+(lwres_gabnresponse_t **structp);
+.sp
+void
+lwres_gabnresponse_free(lwres_context_t *ctx);
+(lwres_gabnresponse_t **structp);
+.sp
+void
+lwres_gabnrequest_free(lwres_context_t *ctx);
+(lwres_gabnrequest_t **structp);
+\fR.SH "DESCRIPTION"
+.PP
 These are low-level routines for creating and parsing
 lightweight resolver name-to-address lookup request and 
 response messages.
-.P
+.PP
 There are four main functions for the getaddrbyname opcode.
-One render function converts a getaddrbyname request structure -
-.Dv lwres_gabnrequest_t -
+One render function converts a getaddrbyname request structure \(em
+\fBlwres_gabnrequest_t\fR \(em
 to the lighweight resolver's canonical format.
 It is complemented by a parse function that converts a packet in this
 canonical format to a getaddrbyname request structure.
-Another render function converts the getaddrbyname response structure -
-.Dv lwres_gabnresponse_t
+Another render function converts the getaddrbyname response structure \(em
+\fBlwres_gabnresponse_t\fR \(em
 to the canonical format.
 This is complemented by a parse function which converts a packet in
 canonical format to a getaddrbyname response structure.
-.Pp
+.PP
 These structures are defined in
-.Pa <lwres/lwres.h> .
+\fI<lwres/lwres.h>\fR.
 They are shown below.
-.Bd -literal -offset indent
+.sp
+.nf
 #define LWRES_OPCODE_GETADDRSBYNAME	0x00010001U
 
 typedef struct lwres_addr lwres_addr_t;
@@ -113,95 +96,98 @@ typedef struct {
 	void		       *base;
 	size_t			baselen;
 } lwres_gabnresponse_t;
-.Ed
-.Pp
-.Fn lwres_gabnrequest_render
+.sp
+.fi
+.PP
+\fBlwres_gabnrequest_render()\fR
 uses resolver context
-.Fa ctx
+\fIctx\fR
 to convert getaddrbyname request structure
-.Fa req
+\fIreq\fR
 to canonical format.
 The packet header structure
-.Fa pkt
+\fIpkt\fR
 is initialised and transferred to
 buffer
-.Fa b .
+\fIb\fR.
 The contents of
-.Fa *req
+\fI*req\fR
 are then appended to the buffer in canonical format.
-.Fn lwres_gabnresponse_render
+\fBlwres_gabnresponse_render()\fR
 performs the same task, except it converts a getaddrbyname response structure
-.Dv lwres_gabnresponse_t
+\fBlwres_gabnresponse_t\fR
 to the lightweight resolver's canonical format.
-.Pp
-.Fn lwres_gabnrequest_parse
+.PP
+\fBlwres_gabnrequest_parse()\fR
 uses context
-.Fa ctx
+\fIctx\fR
 to convert the contents of packet
-.Fa pkt
+\fIpkt\fR
 to a
-.Dv lwres_gabnrequest_t
+\fBlwres_gabnrequest_t\fR
 structure.
 Buffer
-.Fa b
+\fIb\fR
 provides space to be used for storing this structure.
 When the function succeeds, the resulting
-.Dv lwres_gabnrequest_t
+\fBlwres_gabnrequest_t\fR
 is made available through
-.Fa *structp .
-.Fn lwres_gabnresponse_parse
+\fI*structp\fR.
+\fBlwres_gabnresponse_parse()\fR
 offers the same semantics as
-.Fn lwres_gabnrequest_parse
+\fBlwres_gabnrequest_parse()\fR
 except it yields a
-.Dv lwres_gabnresponse_t
+\fBlwres_gabnresponse_t\fR
 structure.
-.Pp
-.Fn lwres_gabnresponse_free
+.PP
+\fBlwres_gabnresponse_free()\fR
 and
-.Fn lwres_gabnrequest_free
+\fBlwres_gabnrequest_free()\fR
 release the memory in resolver context
-.Fa ctx
+\fIctx\fR
 that was allocated to the
-.Dv lwres_gabnresponse_t
+\fBlwres_gabnresponse_t\fR
 or
-.Dv lwres_gabnrequest_t
+\fBlwres_gabnrequest_t\fR
 structures referenced via
-.Fa structp .
+\fIstructp\fR.
 Any memory associated with ancillary buffers and strings for those
 structures is also discarded.
-.Sh RETURN VALUES
+.SH "RETURN VALUES"
+.PP
 The getaddrbyname opcode functions
-.Fn lwres_gabnrequest_render ,
-.Fn lwres_gabnresponse_render
-.Fn lwres_gabnrequest_parse
+\fBlwres_gabnrequest_render()\fR, 
+\fBlwres_gabnresponse_render()\fR
+\fBlwres_gabnrequest_parse()\fR
 and
-.Fn lwres_gabnresponse_parse
+\fBlwres_gabnresponse_parse()\fR
 all return
-.Er LWRES_R_SUCCESS
+LWRES_R_SUCCESS
 on success.
 They return
-.Er LWRES_R_NOMEMORY
+LWRES_R_NOMEMORY
 if memory allocation fails.
-.Er LWRES_R_UNEXPECTEDEND
+LWRES_R_UNEXPECTEDEND
 is returned if the available space in the buffer
-.Fa b
+\fIb\fR
 is too small to accommodate the packet header or the
-.Dv lwres_gabnrequest_t
+\fBlwres_gabnrequest_t\fR
 and
-.Dv lwres_gabnresponse_t
+\fBlwres_gabnresponse_t\fR
 structures.
-.Fn lwres_gabnrequest_parse
+\fBlwres_gabnrequest_parse()\fR
 and
-.Fn lwres_gabnresponse_parse
+\fBlwres_gabnresponse_parse()\fR
 will return
-.Er LWRES_R_UNEXPECTEDEND
+LWRES_R_UNEXPECTEDEND
 if the buffer is not empty after decoding the received packet.
 These functions will return
-.Er LWRES_R_FAILURE
+LWRES_R_FAILURE
 if
-.Li pktflags
+\fBpktflags\fR
 in the packet header structure
-.Dv lwres_lwpacket_t
+\fBlwres_lwpacket_t\fR
 indicate that the packet is not a response to an earlier query.
-.Sh SEE ALSO
-.Xr lwres_packet 3
+.SH "SEE ALSO"
+.PP
+\fBlwres_packet\fR(3)

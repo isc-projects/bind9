@@ -12,71 +12,74 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_gai_strerror.3,v 1.6 2001/01/09 21:49:40 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt LWRES_GAI_STRERROR 3
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm gai_strerror
-.Nd print suitable error string
-.Sh SYNOPSIS
-.Fd #include <lwres/netdb.h>
-.Fd
-.Ft char *
-.Fo gai_strerror
-.Fa "int ecode"
-.Fc
-.Sh DESCRIPTION
-.Fn lwres_gai_strerror
+.TH "LWRES_GAI_STRERROR" "3" "Jun 30, 2000" "BIND9" ""
+.SH NAME
+gai_strerror \- print suitable error string
+.SH SYNOPSIS
+\fB#include <lwres/netdb.h>
+.sp
+char *
+gai_strerror(int ecode);
+\fR.SH "DESCRIPTION"
+.PP
+\fBlwres_gai_strerror()\fR
 returns an error message corresponding to an error code returned by
-.Fn getaddrinfo .
+\fBgetaddrinfo()\fR.
 The following error codes and their meaning are defined in
-.Aq Pa include/lwres/netdb.h .
-.Bl -tag -width EAI_ADDRFAMILY -offset indent -compact
-.It Dv EAI_ADDRFAMILY
+\fIinclude/lwres/netdb.h\fR.
+.TP
+\fBEAI_ADDRFAMILY\fR
 address family for hostname not supported
-.It Dv EAI_AGAIN
+.TP
+\fBEAI_AGAIN\fR
 temporary failure in name resolution
-.It Dv EAI_BADFLAGS
+.TP
+\fBEAI_BADFLAGS\fR
 invalid value for
-.Li ai_flags
-.It Dv EAI_FAIL
+ai_flags
+.TP
+\fBEAI_FAIL\fR
 non-recoverable failure in name resolution
-.It Dv EAI_FAMILY
-.Li ai_family
+.TP
+\fBEAI_FAMILY\fR
+ai_family
 not supported
-.It Dv EAI_MEMORY
+.TP
+\fBEAI_MEMORY\fR
 memory allocation failure
-.It Dv EAI_NODATA
+.TP
+\fBEAI_NODATA\fR
 no address associated with hostname
-.It Dv EAI_NONAME
+.TP
+\fBEAI_NONAME\fR
 hostname or servname not provided, or not known
-.It Dv EAI_SERVICE
+.TP
+\fBEAI_SERVICE\fR
 servname not supported for
-.Li ai_socktype
-.It Dv EAI_SOCKTYPE
-.Li ai_socktype
+ai_socktype
+.TP
+\fBEAI_SOCKTYPE\fR
+ai_socktype
 not supported
-.It Dv EAI_SYSTEM
+.TP
+\fBEAI_SYSTEM\fR
 system error returned in errno
-.El
-The message \*qinvalid error code\*q is returned if
-.Fa ecode
+.PP
+The message \fBinvalid error code\fR is returned if
+\fIecode\fR
 is out of range.
-.Pp
-.Li ai_flags ,
-.Li ai_family
+.PP
+ai_flags,
+ai_family
 and
-.Li ai_socktype
+ai_socktype
 are elements of the
-.Dv "struct  addrinfo"
+\fBstruct addrinfo\fR
 used by
-.Fn lwres_getaddrinfo .
-.Sh SEE ALSO
-.Xr strerror 3 ,
-.Xr lwres_getaddrinfo 3 ,
-.Xr getaddrinfo 3 ,
-.Xr RFC2133 .
+\fBlwres_getaddrinfo()\fR.
+.SH "SEE ALSO"
+.PP
+\fBstrerror\fR(3),
+\fBlwres_getaddrinfo\fR(3),
+\fBgetaddrinfo\fR(3),
+\fBRFC2133\fR.

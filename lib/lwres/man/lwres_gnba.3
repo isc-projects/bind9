@@ -12,83 +12,66 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: lwres_gnba.3,v 1.6 2001/01/09 21:49:58 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt LWRES_GNBA 3
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm lwres_gnbarequest_render ,
-.Nm lwres_gnbaresponse_render ,
-.Nm lwres_gnbarequest_parse ,
-.Nm lwres_gnbaresponse_parse ,
-.Nm lwres_gnbaresponse_free ,
-.Nm lwres_gnbarequest_free
-.Nd lightweight resolver getnamebyaddress message handling
-.Sh SYNOPSIS
-.Fd #include <lwres/lwres.h>
-.Fd
-.Ft lwres_result_t
-.Fo lwres_gnbarequest_render
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gnbarequest_t *req"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_buffer_t *b"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_gnbaresponse_render
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gnbaresponse_t *req"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_buffer_t *b"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_gnbarequest_parse
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_gnbarequest_t **structp"
-.Fc
-.Ft lwres_result_t
-.Fo lwres_gnbaresponse_parse
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_buffer_t *b"
-.Fa "lwres_lwpacket_t *pkt"
-.Fa "lwres_gnbaresponse_t **structp"
-.Fc
-.Ft void
-.Fo lwres_gnbaresponse_free
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gnbaresponse_t **structp"
-.Fc
-.Ft void
-.Fo lwres_gnbarequest_free
-.Fa "lwres_context_t *ctx"
-.Fa "lwres_gnbarequest_t **structp"
-.Fc
-.Sh DESCRIPTION
+.TH "LWRES_GNBA" "3" "Jun 30, 2000" "BIND9" ""
+.SH NAME
+lwres_gnbarequest_render, lwres_gnbaresponse_render, lwres_gnbarequest_parse, lwres_gnbaresponse_parse, lwres_gnbaresponse_free, lwres_gnbarequest_free \- lightweight resolver getnamebyaddress message handling
+.SH SYNOPSIS
+\fB#include <lwres/lwres.h>
+.sp
+lwres_result_t
+lwres_gnbarequest_render(lwres_context_t *\fIctx\fB);
+(lwres_gnbarequest_t *\fIreq\fB);
+(lwres_lwpacket_t *\fIpkt\fB);
+(lwres_buffer_t *\fIb\fB);
+.sp
+lwres_result_t
+lwres_gnbaresponse_render(lwres_context_t *ctx);
+(lwres_gnbaresponse_t *req);
+(lwres_lwpacket_t *pkt);
+(lwres_buffer_t *b);
+.sp
+lwres_result_t
+lwres_gnbarequest_parse(lwres_context_t *ctx);
+(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+(lwres_gnbarequest_t **structp);
+.sp
+lwres_result_t
+lwres_gnbaresponse_parse(lwres_context_t *ctx);
+(lwres_buffer_t *b);
+(lwres_lwpacket_t *pkt);
+(lwres_gnbaresponse_t **structp);
+.sp
+void
+lwres_gnbaresponse_free(lwres_context_t *ctx);
+(lwres_gnbaresponse_t **structp);
+.sp
+void
+lwres_gnbarequest_free(lwres_context_t *ctx);
+(lwres_gnbarequest_t **structp);
+\fR.SH "DESCRIPTION"
+.PP
 These are low-level routines for creating and parsing
 lightweight resolver address-to-name lookup request and 
 response messages.
-.Pp
+.PP
 There are four main functions for the getnamebyaddr opcode.
-One render function converts a getnamebyaddr request structure -
-.Dv lwres_gnbarequest_t -
-to the lighweight resolver's canonical format.
+One render function converts a getnamebyaddr request structure \(em
+\fBlwres_gnbarequest_t\fR \(em
+to the lightweight resolver's canonical format.
 It is complemented by a parse function that converts a packet in this
 canonical format to a getnamebyaddr request structure.
-Another render function converts the getnamebyaddr response structure -
-.Dv lwres_gnbaresponse_t
+Another render function converts the getnamebyaddr response structure \(em
+\fBlwres_gnbaresponse_t\fR
 to the canonical format.
 This is complemented by a parse function which converts a packet in
 canonical format to a getnamebyaddr response structure.
-.Pp
+.PP
 These structures are defined in
-.Pa lwres/lwres.h .
+\fIlwres/lwres.h\fR.
 They are shown below.
-.Bd -literal -offset indent
+.sp
+.nf
 #define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
 
 typedef struct {
@@ -106,95 +89,98 @@ typedef struct {
 	void	       *base;
 	size_t		baselen;
 } lwres_gnbaresponse_t;
-.Ed
-.Pp
-.Fn lwres_gnbarequest_render
+.sp
+.fi
+.PP
+\fBlwres_gnbarequest_render()\fR
 uses resolver context
-.Fa ctx
+ctx
 to convert getnamebyaddr request structure
-.Fa req
+req
 to canonical format.
 The packet header structure
-.Fa pkt
+pkt
 is initialised and transferred to
 buffer
-.Fa b .
+b.
 The contents of
-.Fa *req
+*req
 are then appended to the buffer in canonical format.
-.Fn lwres_gnbaresponse_render
+\fBlwres_gnbaresponse_render()\fR
 performs the same task, except it converts a getnamebyaddr response structure
-.Dv lwres_gnbaresponse_t
+\fBlwres_gnbaresponse_t\fR
 to the lightweight resolver's canonical format.
-.Pp
-.Fn lwres_gnbarequest_parse
+.PP
+\fBlwres_gnbarequest_parse()\fR
 uses context
-.Fa ctx
+ctx
 to convert the contents of packet
-.Fa pkt
+pkt
 to a
-.Dv lwres_gnbarequest_t
+\fBlwres_gnbarequest_t\fR
 structure.
 Buffer
-.Fa b
+b
 provides space to be used for storing this structure.
 When the function succeeds, the resulting
-.Dv lwres_gnbarequest_t
+\fBlwres_gnbarequest_t\fR
 is made available through
-.Fa *structp .
-.Fn lwres_gnbaresponse_parse
+*structp.
+\fBlwres_gnbaresponse_parse()\fR
 offers the same semantics as
-.Fn lwres_gnbarequest_parse
+\fBlwres_gnbarequest_parse()\fR
 except it yields a
-.Dv lwres_gnbaresponse_t
+\fBlwres_gnbaresponse_t\fR
 structure.
-.Pp
-.Fn lwres_gnbaresponse_free
+.PP
+\fBlwres_gnbaresponse_free()\fR
 and
-.Fn lwres_gnbarequest_free
+\fBlwres_gnbarequest_free()\fR
 release the memory in resolver context
-.Fa ctx
+ctx
 that was allocated to the
-.Dv lwres_gnbaresponse_t
+\fBlwres_gnbaresponse_t\fR
 or
-.Dv lwres_gnbarequest_t
+\fBlwres_gnbarequest_t\fR
 structures referenced via
-.Fa structp .
+structp.
 Any memory associated with ancillary buffers and strings for those
 structures is also discarded.
-.Sh RETURN VALUES
+.SH "RETURN VALUES"
+.PP
 The getnamebyaddr opcode functions
-.Fn lwres_gnbarequest_render ,
-.Fn lwres_gnbaresponse_render
-.Fn lwres_gnbarequest_parse
+\fBlwres_gnbarequest_render()\fR,
+\fBlwres_gnbaresponse_render()\fR
+\fBlwres_gnbarequest_parse()\fR
 and
-.Fn lwres_gnbaresponse_parse
+\fBlwres_gnbaresponse_parse()\fR
 all return
-.Er LWRES_R_SUCCESS
+LWRES_R_SUCCESS
 on success.
 They return
-.Er LWRES_R_NOMEMORY
+LWRES_R_NOMEMORY
 if memory allocation fails.
-.Er LWRES_R_UNEXPECTEDEND
+LWRES_R_UNEXPECTEDEND
 is returned if the available space in the buffer
-.Fa b
+b
 is too small to accommodate the packet header or the
-.Dv lwres_gnbarequest_t
+\fBlwres_gnbarequest_t\fR
 and
-.Dv lwres_gnbaresponse_t
+\fBlwres_gnbaresponse_t\fR
 structures.
-.Fn lwres_gnbarequest_parse
+\fBlwres_gnbarequest_parse()\fR
 and
-.Fn lwres_gnbaresponse_parse
+\fBlwres_gnbaresponse_parse()\fR
 will return
-.Er LWRES_R_UNEXPECTEDEND
+LWRES_R_UNEXPECTEDEND
 if the buffer is not empty after decoding the received packet.
 These functions will return
-.Er LWRES_R_FAILURE
+LWRES_R_FAILURE
 if
-.Li pktflags
+\fBpktflags\fR
 in the packet header structure
-.Dv lwres_lwpacket_t
+\fBlwres_lwpacket_t\fR
 indicate that the packet is not a response to an earlier query.
-.Sh SEE ALSO
-.Xr lwres_packet 3
+.SH "SEE ALSO"
+.PP
+\fBlwres_packet\fR(3).
