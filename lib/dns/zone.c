@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.312 2001/03/19 22:34:09 bwelling Exp $ */
+/* $Id: zone.c,v 1.313 2001/03/23 00:33:28 gson Exp $ */
 
 #include <config.h>
 
@@ -5756,7 +5756,7 @@ dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
 void
 dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 	isc_interval_t interval;
-	isc_uint32_t ns;
+	isc_uint32_t s, ns;
 	isc_uint32_t pertic;
 	isc_result_t result;
 
@@ -5765,15 +5765,21 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 	if (value == 0)
 		value = 1;
 
-	if (value < 10) {
+	if (value == 1) {
+		s = 1;
+		ns = 0;
+		pertic = 1;		
+	} else if (value < 10) {
+		s = 0;
 		ns = 1000000000 / value;
 		pertic = 1;
 	} else {
+		s = 0;
 		ns = (1000000000 / value) * 10;
 		pertic = 10;
 	}
 
-	isc_interval_set(&interval, 0, ns);
+	isc_interval_set(&interval, s, ns);
 	result = isc_ratelimiter_setinterval(zmgr->rl, &interval);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_ratelimiter_setpertic(zmgr->rl, pertic);
