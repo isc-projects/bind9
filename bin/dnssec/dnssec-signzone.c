@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.125 2000/12/15 19:19:56 gson Exp $ */
+/* $Id: dnssec-signzone.c,v 1.126 2000/12/15 19:26:54 gson Exp $ */
 
 #include <config.h>
 
@@ -1790,24 +1790,24 @@ main(int argc, char *argv[]) {
 
 		runtime_us = isc_time_microdiff(&timer_finish, &timer_start);
 
-		printf("Signatures generated:               %d\n",
+		printf("Signatures generated:               %10d\n",
 		       nsigned);
-		printf("Signatures retained:                %d\n",
+		printf("Signatures retained:                %10d\n",
 		       nretained);
-		printf("Signatures dropped:                 %d\n",
+		printf("Signatures dropped:                 %10d\n",
 		       ndropped);
-		printf("Signatures successfully verified:   %d\n",
+		printf("Signatures successfully verified:   %10d\n",
 		       nverified);
-		printf("Signatures unsuccessfully verified: %d\n",
+		printf("Signatures unsuccessfully verified: %10d\n",
 		       nverifyfailed);
 #define MICROSECONDS 1000000
 		runtime_100s = 100 * runtime_us / MICROSECONDS;
-		printf("Runtime in seconds                  %u.%02u\n", 
+		printf("Runtime in seconds:                 %7u.%02u\n", 
 		       (unsigned int) (runtime_100s / 100), 
 		       (unsigned int) (runtime_100s % 100));
 		if (runtime_us > 0) {
 			sigs_100s = nsigned * 100 * MICROSECONDS / runtime_us;
-			printf("Signatures/second                   %u.%02u\n", 
+			printf("Signatures per second:              %7u.%02u\n", 
 			       (unsigned int) sigs_100s / 100, 
 			       (unsigned int) sigs_100s % 100);
 		}
