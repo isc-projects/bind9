@@ -2337,10 +2337,15 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				    cname_ok &&
 				    cnamesig != NULL) {
 					/*
-					 * We may be finding a CNAME instead
-					 * of the desired type.  If so, we
-					 * need to return the CNAME's SIG.
+					 * If we've already got the CNAME SIG,
+					 * use it, otherwise change sigtype
+					 * so that we find it.
 					 */
+					if (cnamesig != NULL)
+						foundsig = cnamesig;
+					else
+						sigtype =
+						    RBTDB_RDATATYPE_SIGCNAME;
 					foundsig = cnamesig;
 				}
 			} else if (header->type == sigtype) {
