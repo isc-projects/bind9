@@ -37,8 +37,8 @@
 #include "../isc/util.h"		/* XXXRTH */
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
-		dns_view_t **viewp)
+dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		const char *name, dns_view_t **viewp)
 {
 	dns_view_t *view;
 	isc_result_t result;
