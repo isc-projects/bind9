@@ -33,6 +33,7 @@
 typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
 typedef ISC_LIST(dns_name_t)			dns_namelist_t;
+typedef struct dns_namespace			dns_namespace_t;
 typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
