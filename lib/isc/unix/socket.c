@@ -34,7 +34,7 @@
 #include <isc/condition.h>
 #include <isc/socket.h>
 
-#include "../util.h"
+#include "util.h"
 
 #ifndef _WIN32
 #define WINAPI /* we're not windows */
