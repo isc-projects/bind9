@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.242 2002/03/14 18:11:38 bwelling Exp $ */
+/* $Id: dighost.c,v 1.243 2002/04/19 04:06:53 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2117,6 +2117,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dig_lookup_t *n, *l;
 	isc_boolean_t docancel = ISC_FALSE;
+	isc_boolean_t match = ISC_TRUE;
 	unsigned int parseflags;
 	dns_messageid_t id;
 	unsigned int msgflags;
@@ -2175,7 +2176,37 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	b = ISC_LIST_HEAD(sevent->bufferlist);
 	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
 
-	result = dns_message_peekheader(b, &id, &msgflags);
+	if (!l->tcp_mode &&
+	    !isc_sockaddr_equal(&sevent->address, &query->sockaddr)) {
+		char buf1[ISC_SOCKADDR_FORMATSIZE];
+		char buf2[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_t any;
+
+		if (isc_sockaddr_pf(&query->sockaddr) == AF_INET) 
+			isc_sockaddr_any(&any);
+		else
+			isc_sockaddr_any6(&any);
+
+		/*
+		* We don't expect a match when the packet is 
+		* sent to 0.0.0.0, :: or to a multicast addresses.
+		* XXXMPA broadcast needs to be handled here as well.
+		*/
+		if ((!isc_sockaddr_eqaddr(&query->sockaddr, &any) &&
+		     !isc_sockaddr_ismulticast(&query->sockaddr)) ||
+		    isc_sockaddr_getport(&query->sockaddr) !=
+		    isc_sockaddr_getport(&sevent->address)) {
+			isc_sockaddr_format(&sevent->address, buf1,
+			sizeof(buf1));
+			isc_sockaddr_format(&query->sockaddr, buf2,
+			sizeof(buf2));
+			printf(";; reply from unexpected source: %s,"
+			" expected %s\n", buf1, buf2);
+			match = ISC_FALSE;
+		}
+	}
+
+ 	result = dns_message_peekheader(b, &id, &msgflags);
 	if (result != ISC_R_SUCCESS || l->sendmsg->id != id) {
 		if (l->tcp_mode) {
 			if (result == ISC_R_SUCCESS)
@@ -2195,6 +2226,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			       "expected ID %u, got %u\n", l->sendmsg->id, id);
 		else
 			printf(";; Warning: runt message received\n");
+		match = ISC_FALSE;
+	}
+
+	if (!match) {
 		isc_buffer_invalidate(&query->recvbuf);
 		isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
 		ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);

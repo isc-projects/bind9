@@ -1,3 +1,7 @@
+1272.	[bug]		Dig, host and nslookup were not checking the address
+			the answer was coming from against the address it was
+			sent to. [RT# 2692]
+
 1271.   [port]          win32: a make file contained absolute version specific
                         references.
 
