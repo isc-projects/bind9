@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.33 2000/05/08 14:35:09 tale Exp $
+ * $Id: tkey.c,v 1.34 2000/05/14 02:31:13 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -217,7 +217,6 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_uint32_t ourttl;
 	unsigned char keydata[DST_KEY_MAXSIZE];
 	unsigned char namedata[1024];
-	dns_tsigkey_t *tsigkey;
 	unsigned int sharedsize;
 	isc_buffer_t randombuf, secret;
 	unsigned char *randomdata = NULL, secretdata[256];
@@ -335,7 +334,6 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 
 	dst_key_free(pubkey);
 	isc_buffer_usedregion(&secret, &r);
-	tsigkey = NULL;
 	result = dns_tsigkey_create(name, &tkeyin->algorithm, r.base, r.length,
 				    ISC_TRUE, signer, tkeyin->inception,
 				    tkeyin->expire, msg->mctx, ring, NULL);
@@ -843,7 +841,6 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	dns_rdataset_t *theirkeyset = NULL, *ourkeyset = NULL;
 	dns_rdata_t theirkeyrdata;
 	dst_key_t *theirkey;
-	dns_tsigkey_t *tsigkey;
 	dns_rdata_tkey_t qtkey, rtkey;
 	unsigned char keydata[1024], secretdata[256];
 	unsigned int sharedsize;
@@ -941,7 +938,6 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 		isc_mem_put(rmsg->mctx, r2.base, 0);
 
 	isc_buffer_usedregion(&secret, &r);
-	tsigkey = NULL;
 	result = dns_tsigkey_create(tkeyname, &rtkey.algorithm,
 				    r.base, r.length, ISC_TRUE,
 				    NULL, rtkey.inception, rtkey.expire,
