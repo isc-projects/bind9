@@ -1,3 +1,7 @@
+1126.	[bug]		The server could access a freed event if shut
+			down while a client start event was pending
+			delivery. [RT #2061]
+
 1125.	[bug]		rndc: -k missing from usage. [RT #2057]
 
 1124.	[doc]		dig: +[no]dnssec, +[no]besteffort and +[no]fail
