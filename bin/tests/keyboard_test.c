@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: keyboard_test.c,v 1.2 2000/06/22 21:50:25 tale Exp $ */
+/* $Id: keyboard_test.c,v 1.3 2000/06/23 16:18:57 tale Exp $ */
+
+#include <config.h>
+
+#include <stdio.h>
 
 #include <isc/keyboard.h>
 #include <isc/util.h>
-
-#include <stdio.h>
 
 static void
 CHECK(const char *msg, isc_result_t result) {

@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
-/* $Id: fsaccess_test.c,v 1.3 2000/06/22 21:50:18 tale Exp $ */
+/* $Id: fsaccess_test.c,v 1.4 2000/06/23 16:18:55 tale Exp $ */
+
+#include <config.h>
 
 #include <stdio.h>
 

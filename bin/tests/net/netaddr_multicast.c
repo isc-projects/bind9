@@ -15,16 +15,18 @@
  * SOFTWARE.
  */
 
-/* $Id: netaddr_multicast.c,v 1.4 2000/06/17 00:16:29 explorer Exp $ */
+/* $Id: netaddr_multicast.c,v 1.5 2000/06/23 16:19:00 tale Exp $ */
 
-#include <isc/string.h>
-#include <isc/types.h>
-#include <isc/util.h>
-#include <isc/net.h>
-#include <isc/netaddr.h>
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <isc/net.h>
+#include <isc/netaddr.h>
+#include <isc/string.h>
+#include <isc/types.h>
+#include <isc/util.h>
 
 #include "driver.h"
 

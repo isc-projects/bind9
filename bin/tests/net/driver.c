@@ -15,14 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.3 2000/06/19 17:49:54 tale Exp $ */
+/* $Id: driver.c,v 1.4 2000/06/23 16:18:58 tale Exp $ */
 
-#include <isc/string.h>
-#include <isc/util.h>
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include "driver.h"
 

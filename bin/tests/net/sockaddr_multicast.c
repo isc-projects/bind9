@@ -15,13 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: sockaddr_multicast.c,v 1.1 2000/06/16 22:17:11 explorer Exp $ */
+/* $Id: sockaddr_multicast.c,v 1.2 2000/06/23 16:19:01 tale Exp $ */
 
-#include <isc/string.h>
-#include <isc/util.h>
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include "driver.h"
 

@@ -15,14 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.3 2000/06/22 21:50:22 tale Exp $ */
+/* $Id: hash_test.c,v 1.4 2000/06/23 16:18:56 tale Exp $ */
+
+#include <config.h>
+
+#include <stdio.h>
 
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>
 #include <isc/string.h>
-
-#include <stdio.h>
 
 static void
 print_digest(char *s, const char *hash, unsigned char *d,

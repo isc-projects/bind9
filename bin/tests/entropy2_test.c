@@ -15,16 +15,18 @@
  * SOFTWARE.
  */
 
-/* $Id: entropy2_test.c,v 1.4 2000/06/22 21:50:16 tale Exp $ */
+/* $Id: entropy2_test.c,v 1.5 2000/06/23 16:18:53 tale Exp $ */
+
+#include <config.h>
+
+#include <stdio.h>
 
 #include <isc/entropy.h>
 #include <isc/keyboard.h>
 #include <isc/mem.h>
-#include <isc/util.h>
 #include <isc/string.h>
 #include <isc/time.h>
-
-#include <stdio.h>
+#include <isc/util.h>
 
 static void
 hex_dump(const char *msg, void *data, unsigned int length) {
