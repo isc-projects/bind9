@@ -29,11 +29,10 @@
 
 #include <dns/dispatch.h>
 #include <dns/log.h>
+#include <dns/message.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
-
-#include "printmsg.h"
 
 #define NCLIENTS	16
 
@@ -60,6 +59,26 @@ isc_mutex_t client_lock;
  */
 void
 got_response(isc_task_t *, isc_event_t *);
+
+static isc_result_t
+printmsg(dns_message_t *msg, FILE *out) {
+	unsigned char text[8192];
+	isc_buffer_t textbuf;
+	int result;
+
+	isc_buffer_init(&textbuf, text, sizeof text);
+	result = dns_message_totext(msg, ISC_TRUE, ISC_TRUE,
+				    ISC_FALSE, &textbuf);
+
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	fprintf(out, "msg:\n%*s\n",
+		isc_buffer_usedlength(&textbuf),
+		isc_buffer_base(&textbuf));
+
+	return (ISC_R_SUCCESS);
+}
 
 static void
 hex_dump(isc_buffer_t *b) {
@@ -176,8 +195,8 @@ start_response(clictx_t *cli, char *query, isc_task_t *task) {
 	rdataset = NULL;
 	rdatalist = NULL;
 
-	result = printmessage(msg);
-	CHECKRESULT(result, "printmessage()");
+	result = printmsg(msg, stderr);
+	CHECKRESULT(result, "printmsg() failed");
 
 	isc_buffer_init(&cli->render, cli->render_buffer,
 			sizeof(cli->render_buffer));
@@ -259,8 +278,8 @@ got_response(isc_task_t *task, isc_event_t *ev_in) {
 	result = dns_message_parse(msg, &ev->buffer, ISC_FALSE);
 	CHECKRESULT(result, "dns_message_parse() failed");
 
-	result = printmessage(msg);
-	CHECKRESULT(result, "printmessage() failed");
+	result = printmsg(msg, stderr);
+	CHECKRESULT(result, "printmsg() failed");
 
 	dns_message_destroy(&msg);
 
@@ -284,8 +303,6 @@ got_request(isc_task_t *task, isc_event_t *ev_in) {
 	dns_message_t *msg;
 	isc_result_t result;
 	unsigned int cnt;
-	unsigned char text[8192];
-	isc_buffer_t textbuf;
 
 	printf("App:  Got request.  Result: %s\n",
 	       isc_result_totext(ev->result));
@@ -314,16 +331,10 @@ got_request(isc_task_t *task, isc_event_t *ev_in) {
 	result = dns_message_parse(msg, &ev->buffer, ISC_FALSE);
 	CHECKRESULT(result, "dns_message_parse() failed");
 
-	isc_buffer_init(&textbuf, text, sizeof text);
-	result = dns_message_totext(msg, ISC_TRUE, ISC_TRUE,
-				    ISC_FALSE, ISC_FALSE, &textbuf);
-	CHECKRESULT(result, "dns_message_totext() failed");
+	result = printmsg(msg, stderr);
+	CHECKRESULT(result, "printmsg() failed");
 
 	dns_message_destroy(&msg);
-
-	fprintf(stderr, "msg:\n%*s\n",
-		isc_buffer_usedlength(&textbuf),
-		isc_buffer_base(&textbuf));
 
 	cli->count++;
 	printf("App:  Client %p(%u) ready, count == %d.\n",
@@ -487,6 +498,7 @@ main(int argc, char *argv[]) {
 
 	isc_log_destroy(&log);
 	sleep(2);
+
 	isc_mem_stats(mctx, stderr);
 	fflush(stderr);
 	isc_mem_detach(&mctx);

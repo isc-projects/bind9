@@ -231,12 +231,12 @@ zone_test: zone_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dispatch_test: dispatch_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.@O@ printmsg.@O@ \
+dispatch_test: dispatch_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dispatch_tcp_test: dispatch_tcp_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_tcp_test.@O@ printmsg.@O@ \
+dispatch_tcp_test: dispatch_tcp_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_tcp_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 nconf_test: nconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
