@@ -225,6 +225,9 @@
 ./bin/tests/serial_test.c			C	1999
 ./bin/tests/shutdown_test.c			C	1998,1999
 ./bin/tests/signer.c				C	1999
+./bin/tests/sockaddr/.cvsignore			X	1999
+./bin/tests/sockaddr/Makefile			MAKE	1999
+./bin/tests/sockaddr/sockaddr/t_sockaddr.c	C	1999
 ./bin/tests/sock_test.c				C	1998,1999
 ./bin/tests/sym_test.c				C	1998,1999
 ./bin/tests/t_api.pl				PERL	1999

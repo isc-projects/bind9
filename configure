@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.63 
+# From configure.in Revision: 1.64 
 
 
 
@@ -3154,6 +3154,7 @@ trap 'rm -fr `echo "make/rules
 	bin/tests/timers/Makefile
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
+	bin/tests/sockaddr/Makefile
  config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -3335,6 +3336,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/tests/timers/Makefile
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
+	bin/tests/sockaddr/Makefile
 "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF

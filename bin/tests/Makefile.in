@@ -32,7 +32,7 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS = db dst master mem names rbt tasks timers
+SUBDIRS = db dst master mem names rbt sockaddr tasks timers
 
 # Alphabetically
 TARGETS =	adb_test \
