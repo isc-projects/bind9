@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.21 2000/03/10 17:53:16 tale Exp $ */
+/* $Id: log.c,v 1.22 2000/03/14 19:27:55 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1189,7 +1189,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 				snprintf(time_string + len,
 					 sizeof(time_string) - len,
-					 ".%03ld ",
+					 ".%03u ",
 					 isc_time_nanoseconds(&time)
 					 / 1000000);
 
