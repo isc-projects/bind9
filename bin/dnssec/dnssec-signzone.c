@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.6 2004/10/25 01:45:25 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.7 2005/03/16 03:09:30 marka Exp $ */
 
 #include <config.h>
 
@@ -1458,9 +1458,9 @@ usage(void) {
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-d directory\n");
 	fprintf(stderr, "\t\tdirectory to find signedkey files (.)\n");
-	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
+	fprintf(stderr, "\t-s [YYYYMMDDHHMMSS|+offset]:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
-	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
+	fprintf(stderr, "\t-e [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now "
 				"(now + 30 days)\n");
 	fprintf(stderr, "\t-i interval:\n");
