@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.11 2001/05/14 03:22:06 marka Exp $ */
+/* $Id: zone.c,v 1.283.2.12 2001/05/14 23:50:49 gson Exp $ */
 
 #include <config.h>
 
@@ -4728,7 +4728,8 @@ zone_loaddone(void *arg, isc_result_t result) {
 	DNS_ENTER;
 
 	tresult = dns_db_endload(load->db, &load->callbacks.add_private);
-	if (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE)
+	if (tresult != ISC_R_SUCCESS && 
+	    (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE))
 		result = tresult;
 
 	LOCK_ZONE(load->zone);
