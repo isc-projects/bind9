@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.42 2000/10/31 20:09:14 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.43 2000/11/09 18:55:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -72,6 +72,8 @@ usage(void) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
+	fprintf(stderr, "\t-a\n");
+	fprintf(stderr, "\t\tverify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (from keyset)\n");
@@ -174,15 +176,19 @@ main(int argc, char *argv[]) {
 	isc_boolean_t pseudorandom = ISC_FALSE;
 	unsigned int eflags;
 	dns_rdataclass_t rdclass;
+	static isc_boolean_t tryverify = ISC_FALSE;
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:s:e:pr:v:h")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "ac:s:e:pr:v:h")) != -1)
 	{
 		switch (ch) {
+		case 'a':
+			tryverify = ISC_TRUE;
+			break;
 		case 'c':
 			classname = isc_commandline_argument;
 			break;
@@ -387,6 +393,17 @@ main(int argc, char *argv[]) {
 			key_format(key, keystr, sizeof keystr);
 			fatal("key '%s' failed to sign data: %s",
 			      keystr, isc_result_totext(result));
+		}
+		if (tryverify) {
+			result = dns_dnssec_verify(domain, &rdataset, key,
+						   ISC_TRUE, mctx, rdata);
+			if (result != ISC_R_SUCCESS) {
+				char keystr[KEY_FORMATSIZE];
+				key_format(key, keystr, sizeof keystr);
+				fatal("signature from key '%s' failed to "
+				      "verify: %s",
+				      keystr, isc_result_totext(result));
+			}
 		}
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
 		dst_key_free(&key);
