@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.50 2000/08/22 17:02:48 gson Exp $ */
+/* $Id: host.c,v 1.51 2000/09/11 21:48:11 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -55,7 +55,7 @@ extern int lookup_counter;
 extern char *progname;
 extern isc_task_t *global_task;
 
-isc_boolean_t short_form = ISC_TRUE;
+isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -492,7 +492,22 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				      ISC_TF(!short_form), query);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+	} else {
+		if ((short_form) && (listed_server)) {
+			printf("Using domain server:\n");
+			printf("Name: %s\n", query->servname);
+			result = isc_buffer_allocate(mctx, &b, MXNAME);
+			check_result(result, "isc_buffer_allocate");
+			result = isc_sockaddr_totext(&query->sockaddr, b);
+			check_result(result, "isc_sockaddr_totext");
+			printf("Address: %.*s\n",
+			       (int)isc_buffer_usedlength(b),
+			       (char*)isc_buffer_base(b));
+			isc_buffer_free(&b);
+			printf("Aliases: \n\n");
+		}
 	}
+
 	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY]) &&
 	    !short_form) {
 		printf("\n");
@@ -629,6 +644,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		srv = make_server(argv[isc_commandline_index+1]);
 		debug("server is %s", srv->servername);
 		ISC_LIST_APPEND(server_list, srv, link);
+		listed_server = ISC_TRUE;
 	}
 
 	lookup->pending = ISC_FALSE;
