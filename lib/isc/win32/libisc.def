@@ -71,6 +71,7 @@ isc_file_openunique
 isc_file_remove
 isc_file_rename
 isc_file_exists
+isc_file_ischdiridempotent
 isc_file_isabsolute
 isc_file_iscurrentdir
 isc_file_template
@@ -78,7 +79,7 @@ isc_file_renameunique
 isc_file_basename
 isc_file_progname
 isc_file_safemovefile
-isc_file_getabsolutepath
+isc_file_absolutepath
 isc_fsaccess_add
 isc_fsaccess_remove
 isc_fsaccess_set
