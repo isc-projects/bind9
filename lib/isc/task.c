@@ -238,12 +238,8 @@ task_detach(task_t *taskp) {
 	LOCK(&task->lock);
 	REQUIRE(task->references > 0);
 	task->references--;
-	if (task->state == task_state_shutdown &&
-	    task->references == 0) {
-		manager = task->manager;
-		INSIST(VALID_MANAGER(manager));
+	if (task->state == task_state_shutdown && task->references == 0)
 		free_task = TRUE;
-	}
 	UNLOCK(&task->lock);
 
 	if (free_task)
