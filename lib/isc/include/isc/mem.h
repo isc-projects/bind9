@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.55 2001/09/06 18:23:35 gson Exp $ */
+/* $Id: mem.h,v 1.56 2001/09/06 22:13:47 gson Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -80,21 +80,28 @@ typedef void (*isc_memfree_t)(void *, void *);
 #define ISC_MEMPOOL_NAMES 1
 #endif
 
-/*
- * _DEBUGTRACE
- *	log (to isc_lctx) each allocation and free.
- *
- * _DEBUGRECORD
- *	remember each allocation, and match them up on free.  Crash if
- *	a free doesn't match an allocation
- * _DEBUGUSAGE
- *	if a hi_water mark is set print the maximium inuse memory every
- *	time it is raised once it exceeds the hi_water mark
- */
 LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #define ISC_MEM_DEBUGTRACE		0x00000001U
 #define ISC_MEM_DEBUGRECORD		0x00000002U
 #define ISC_MEM_DEBUGUSAGE		0x00000004U
+/*
+ * The variable isc_mem_debugging holds a set of flags for
+ * turning certain memory debugging options on or off at
+ * runtime.  Its is intialized to the value ISC_MEM_DEGBUGGING,
+ * which is 0 by default but may be overridden at compile time.
+ * The following flags can be specified:
+ *
+ * ISC_MEM_DEBUGTRACE
+ *	Log each allocation and free to isc_lctx.
+ *
+ * ISC_MEM_DEBUGRECORD
+ *	Remember each allocation, and match them up on free.
+ *	Crash if a free doesn't match an allocation.
+ *
+ * ISC_MEM_DEBUGUSAGE
+ *	If a hi_water mark is set, print the maximium inuse memory
+ *	every time it is raised once it exceeds the hi_water mark.
+ */
 
 #if ISC_MEM_TRACKLINES
 #define _ISC_MEM_FILELINE	, __FILE__, __LINE__
@@ -165,12 +172,12 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 
 isc_result_t 
 isc_mem_create(size_t max_size, size_t target_size,
-			    isc_mem_t **mctxp);
+	       isc_mem_t **mctxp);
 
 isc_result_t 
 isc_mem_createx(size_t max_size, size_t target_size,
-			     isc_memalloc_t memalloc, isc_memfree_t memfree,
-			     void *arg, isc_mem_t **mctxp);
+		isc_memalloc_t memalloc, isc_memfree_t memfree,
+		void *arg, isc_mem_t **mctxp);
 /*
  * Create a memory context.
  *
@@ -217,8 +224,8 @@ isc_mem_destroy(isc_mem_t **);
 
 isc_result_t 
 isc_mem_ondestroy(isc_mem_t *ctx,
-			       isc_task_t *task,
-			       isc_event_t **event);
+		  isc_task_t *task,
+		  isc_event_t **event);
 /*
  * Request to be notified with an event when a memory context has
  * been successfully destroyed.
@@ -232,7 +239,7 @@ isc_mem_stats(isc_mem_t *mctx, FILE *out);
 
 void 
 isc_mem_setdestroycheck(isc_mem_t *mctx,
-			     isc_boolean_t on);
+			isc_boolean_t on);
 /*
  * Iff 'on' is ISC_TRUE, 'mctx' will check for memory leaks when
  * destroyed and abort the program if any are present.
