@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.62 2000/09/05 03:30:18 marka Exp $ */
+/* $Id: mem.c,v 1.63 2000/09/12 13:46:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1183,8 +1183,8 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 	if (water == NULL) {
 		ctx->water = NULL;
 		ctx->water_arg = NULL;
-		ctx->hi_water = NULL;
-		ctx->lo_water = NULL;
+		ctx->hi_water = 0;
+		ctx->lo_water = 0;
 		ctx->hi_called = ISC_FALSE;
 	} else {
 		ctx->water = water;
