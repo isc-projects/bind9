@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164.2.3 2001/02/23 18:27:59 gson Exp $ */
+/* $Id: message.c,v 1.164.2.4 2001/03/20 18:46:35 gson Exp $ */
 
 /***
  *** Imports
@@ -2106,6 +2106,7 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item) {
 	*item = isc_mempool_get(msg->namepool);
 	if (*item == NULL)
 		return (ISC_R_NOMEMORY);
+	dns_name_init(*item, NULL);
 
 	return (ISC_R_SUCCESS);
 }
