@@ -1356,7 +1356,18 @@ EOF
 	continue
 	;;
 
-     -mt|-mthreads|-kthread|-Kthread|-pthread|-pthreads|--thread-safe)
+     -mt|-mthreads|-kthread|-Kthread|-pthreads|--thread-safe)
+	deplibs="$deplibs $arg"
+	continue
+	;;
+
+     -pthread)
+        case $host in
+        *-*-osf5.1)
+	   # -pthread is a compiler only option
+           continue
+           ;;
+        esac
 	deplibs="$deplibs $arg"
 	continue
 	;;
