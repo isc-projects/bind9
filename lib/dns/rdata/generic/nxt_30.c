@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.42 2000/11/08 01:55:53 bwelling Exp $ */
+/* $Id: nxt_30.c,v 1.43 2000/11/14 18:14:44 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -201,8 +201,7 @@ fromstruct_nxt(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(nxt->common.rdtype == type);
 	REQUIRE(nxt->common.rdclass == rdclass);
-	REQUIRE((nxt->typebits != NULL && nxt->len != 0) ||
-		(nxt->typebits == NULL && nxt->len == 0));
+	REQUIRE(nxt->typebits != NULL || nxt->len == 0);
 
 	dns_name_toregion(&nxt->next, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
@@ -232,12 +231,9 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 	RETERR(name_duporclone(&name, mctx, &nxt->next));
 
 	nxt->len = region.length;
-	if (nxt->len != 0) {
-		nxt->typebits = mem_maybedup(mctx, region.base, region.length);
-		if (nxt->typebits == NULL)
-			goto cleanup;
-	} else
-		nxt->typebits = NULL;
+	nxt->typebits = mem_maybedup(mctx, region.base, region.length);
+	if (nxt->typebits == NULL)
+		goto cleanup;
 
 	nxt->mctx = mctx;
 	return (ISC_R_SUCCESS);
