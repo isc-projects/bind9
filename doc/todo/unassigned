@@ -1,3 +1,7 @@
+Support "include" inside view statements?
+
+Provide sample configuration files (root.hint, localhost.rev...)
+
 Complete the support for persistent databases (disable initial load,
 journalling, etc)
 
@@ -16,6 +20,8 @@ Review lwres input code path for buffer overflows
 Document function REQUIREs in omapi and parser
 
 Make the configure script detect systems with insufficient threads support
+
+Implement statistics similar to those in BIND 8
 
 Write libdns overview document (even if it only says "don't use
 libdns")
@@ -44,7 +50,7 @@ first, sortlist last.
 
 Support long command line options
 
-Convert the documentation to XML
+Come up with a way of converting the XML docs to plain text
 
 Add support for cross-zone glue
 
@@ -75,8 +81,6 @@ Implement "additional data max/min/internal"
 (whatever that means)
 
 Stomp error memory leaks
-
-Implement per-domain forwarding
 
 Implement sortlists (in the server)
 
