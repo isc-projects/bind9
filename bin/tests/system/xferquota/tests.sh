@@ -32,7 +32,7 @@ fi
 
 count=0
 ticks=0
-while [ $count != 1000 ]; do
+while [ $count != 100 ]; do
 	sleep 5
 	ticks=`expr $ticks + 1`
 	seconds=`expr $ticks \* 5`
@@ -46,12 +46,12 @@ done
 
 status=0;
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000999.example. @10.53.0.1 axfr > dig.out.ns1
+	zone000099.example. @10.53.0.1 axfr > dig.out.ns1
 status=`expr $status + $?`
 grep ";" dig.out.ns1
 
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000999.example. @10.53.0.2 axfr > dig.out.ns2
+	zone000099.example. @10.53.0.2 axfr > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
