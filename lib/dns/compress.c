@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.41 2001/01/04 19:25:57 bwelling Exp $ */
+/* $Id: compress.c,v 1.42 2001/01/07 22:01:12 gson Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -72,8 +72,7 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 				cctx->table[i] = cctx->table[i]->next;
 				if (node->count < DNS_COMPRESS_INITIALNODES)
 					continue;
-				isc_mem_put(cctx->mctx, node,
-					    sizeof(dns_compressnode_t));
+				isc_mem_put(cctx->mctx, node, sizeof(*node));
 			}
 		}
 	}
@@ -222,11 +221,16 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
 
 	for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++) {
 		node = cctx->table[i];
+		/*
+		 * This relies on nodes with greater offsets being
+		 * closer to the beginning of the list, and the
+		 * items with the greatest offsets being at the end 
+		 * of the initialnodes[] array.
+		 */
 		while (node != NULL && node->offset >= offset) {
 			cctx->table[i] = node->next;
 			if (node->count >= DNS_COMPRESS_INITIALNODES)
-				isc_mem_put(cctx->mctx, node,
-					    sizeof(dns_compressnode_t));
+				isc_mem_put(cctx->mctx, node, sizeof(*node));
 			cctx->count--;
 			node = cctx->table[i];
 		}
