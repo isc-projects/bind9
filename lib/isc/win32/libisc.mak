@@ -54,6 +54,7 @@ CLEAN :
 	-@erase "$(INTDIR)\event.obj"
 	-@erase "$(INTDIR)\file.obj"
 	-@erase "$(INTDIR)\fsaccess.obj"
+	-@erase "$(INTDIR)\hash.obj"
 	-@erase "$(INTDIR)\heap.obj"
 	-@erase "$(INTDIR)\hex.obj"
 	-@erase "$(INTDIR)\hmacmd5.obj"
@@ -154,6 +155,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\commandline.obj" \
 	"$(INTDIR)\error.obj" \
 	"$(INTDIR)\event.obj" \
+	"$(INTDIR)\hash.obj" \
 	"$(INTDIR)\heap.obj" \
 	"$(INTDIR)\hex.obj" \
 	"$(INTDIR)\hmacmd5.obj" \
@@ -235,6 +237,8 @@ CLEAN :
 	-@erase "$(INTDIR)\file.sbr"
 	-@erase "$(INTDIR)\fsaccess.obj"
 	-@erase "$(INTDIR)\fsaccess.sbr"
+	-@erase "$(INTDIR)\hash.obj"
+	-@erase "$(INTDIR)\hash.sbr"
 	-@erase "$(INTDIR)\heap.obj"
 	-@erase "$(INTDIR)\heap.sbr"
 	-@erase "$(INTDIR)\hex.obj"
@@ -382,6 +386,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\commandline.sbr" \
 	"$(INTDIR)\error.sbr" \
 	"$(INTDIR)\event.sbr" \
+	"$(INTDIR)\hash.sbr" \
 	"$(INTDIR)\heap.sbr" \
 	"$(INTDIR)\hex.sbr" \
 	"$(INTDIR)\hmacmd5.sbr" \
@@ -457,6 +462,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\commandline.obj" \
 	"$(INTDIR)\error.obj" \
 	"$(INTDIR)\event.obj" \
+	"$(INTDIR)\hash.obj" \
 	"$(INTDIR)\heap.obj" \
 	"$(INTDIR)\hex.obj" \
 	"$(INTDIR)\hmacmd5.obj" \
@@ -1076,6 +1082,24 @@ SOURCE=..\event.c
 
 
 "$(INTDIR)\event.obj"	"$(INTDIR)\event.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\hash.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\hash.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\hash.obj"	"$(INTDIR)\hash.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
