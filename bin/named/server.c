@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.362 2001/11/20 01:14:58 gson Exp $ */
+/* $Id: server.c,v 1.363 2001/11/20 22:30:35 gson Exp $ */
 
 #include <config.h>
 
@@ -1722,8 +1722,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	{
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		CHECK(create_view(vconfig, &viewlist, &view));
-		CHECK(configure_view(view, config, cfg_listelt_value(element),
-				     ns_g_mctx, &aclconfctx, ISC_FALSE));
+		CHECK(configure_view(view, ns_g_defaults, vconfig, ns_g_mctx,
+				     &aclconfctx, ISC_FALSE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 		view = NULL;
