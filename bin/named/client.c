@@ -413,11 +413,6 @@ client_addopt(ns_client_t *client) {
 
 	REQUIRE(client->opt == NULL);	/* XXXRTH free old. */
 
-	rdataset = NULL;
-	result = dns_message_gettemprdataset(client->message, &rdataset);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	dns_rdataset_init(rdataset);
 	rdatalist = NULL;
 	result = dns_message_gettemprdatalist(client->message, &rdatalist);
 	if (result != ISC_R_SUCCESS)
@@ -426,6 +421,11 @@ client_addopt(ns_client_t *client) {
 	result = dns_message_gettemprdata(client->message, &rdata);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(client->message, &rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_init(rdataset);
 
 	rdatalist->type = dns_rdatatype_opt;
 	rdatalist->covers = 0;
