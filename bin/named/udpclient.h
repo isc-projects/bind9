@@ -8,7 +8,7 @@ typedef struct __udp_listener udp_listener_t;
 typedef struct __udp_cctx udp_cctx_t;
 
 struct __udp_cctx {
-	char *buf;		/* input buffer */
+	unsigned char *buf;	/* input buffer */
 	isc_mem_t *mctx;	/* memory context used to allocate */
 	udp_listener_t *parent;	/* controlling listener */
 	u_int slot;		/* slot # in tasks[] (and ctxs[]) array */
