@@ -585,6 +585,8 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 
 	(void)task;  /* shut up compiler */
 
+	REQUIRE(VALID_DISPATCH(disp));
+
 	XDEBUG(("Got TCP packet!\n"));
 
 	LOCK(&disp->lock);
@@ -612,10 +614,16 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 
 		UNLOCK(&disp->lock);
 
+		/*
+		 * The event is statically allocated in the tcpmsg	
+		 * structure, and destroy() frees the tcpmsg, so we must
+		 * free the event *before* calling destroy().
+		 */
+		isc_event_free(&ev_in);
+
 		if (killit)
 			destroy(disp);
 
-		isc_event_free(&ev_in);
 		return;
 
 	default:
@@ -983,7 +991,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp)
 			killit = ISC_TRUE;
 	}
 
-	XDEBUG(("dns_dispatch_destory:  refcount = %d\n", disp->refcount));
+	XDEBUG(("dns_dispatch_detach:  refcount = %d\n", disp->refcount));
 
 	UNLOCK(&disp->lock);
 
