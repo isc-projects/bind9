@@ -15,14 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.14 2000/08/29 00:33:36 bwelling Exp $ */
+/* $Id: rwlock.h,v 1.15 2000/08/30 21:24:57 marka Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
 
-#include <isc/lang.h>
-#include <isc/types.h>
 #include <isc/condition.h>
+#include <isc/lang.h>
+#include <isc/platform.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
