@@ -24,7 +24,6 @@
 
 #include <isc/lang.h>
 #include <isc/mem.h>
-#include <isc/lex.h>
 #include <isc/mutex.h>
 #include <isc/time.h>
 #include <isc/stdtime.h>
