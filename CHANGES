@@ -1,3 +1,6 @@
+1388.	[port]		irix: check for sys/sysctl.h and NET_RT_IFLIST before
+			defining HAVE_IFLIST_SYSCTL. [RT #3770]
+
 1387.	[bug]		named could crash due to an access to invalid memory 
 			space (which caused an assertion failure) in
 			incremental cleaning.  [RT #3588]

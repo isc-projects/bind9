@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.330 $)
+AC_REVISION($Revision: 1.331 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1484,6 +1484,8 @@ AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
 #
 # Look for a sysctl call to get the list of network interfaces.
 #
+case $ac_cv_header_sys_sysctl_h in
+yes)
 AC_MSG_CHECKING(for interface list sysctl)
 AC_EGREP_CPP(found_rt_iflist, [
 #include <sys/param.h>
@@ -1496,6 +1498,8 @@ found_rt_iflist
 	[AC_MSG_RESULT(yes)
 	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
 	[AC_MSG_RESULT(no)])
+;;
+esac
 
 #
 # Check for some other useful functions that are not ever-present.
