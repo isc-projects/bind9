@@ -117,7 +117,7 @@ resize(isc_heap_t *heap) {
 	if (new_array == NULL)
 		return (ISC_FALSE);
 	if (heap->array != NULL) {
-		memcpy(new_array, heap->array, heap->size);
+		memcpy(new_array, heap->array, heap->size * sizeof (void *));
 		isc_mem_put(heap->mctx, heap->array, 
 			    heap->size * sizeof (void *));
 	}
