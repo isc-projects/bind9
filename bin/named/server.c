@@ -781,7 +781,7 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	dns_view_t *view = NULL;	/* New view */
 	dns_view_t *pview = NULL;	/* Production view */
 	dns_zone_t *zone = NULL;	/* New or reused zone */
-	dns_zone_t *tzone = NULL;	/* Temporary zone */
+	dns_zone_t *dupzone = NULL;
 	
 	isc_result_t result;
 
@@ -887,14 +887,16 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	/*
 	 * Check for duplicates in the new zone table.
 	 */
-	result = dns_view_findzone(view, origin, &tzone);
+	result = dns_view_findzone(view, origin, &dupzone);
 	if (result == ISC_R_SUCCESS) {
 		/*
 		 * We already have this zone!
 		 */
+		dns_zone_detach(&dupzone);
 		result = ISC_R_EXISTS;
 		goto cleanup;
 	}
+	INSIST(dupzone == NULL);
 
 	/*
 	 * See if we can reuse an existing zone.  This is
@@ -942,8 +944,6 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	CHECK(dns_view_addzone(view, zone));
 
  cleanup:
-	if (tzone != NULL)
-		dns_zone_detach(&tzone);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	if (pview != NULL)
