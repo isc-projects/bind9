@@ -151,6 +151,8 @@ struct fetchctx {
 #define FCTX_ATTR_GLUING		0x02
 #define FCTX_ATTR_ADDRWAIT		0x04
 #define FCTX_ATTR_SHUTTINGDOWN		0x08
+#define FCTX_ATTR_WANTCACHE		0x10
+#define FCTX_ATTR_WANTNCACHE		0x20
 
 #define HAVE_ANSWER(f)		(((f)->attributes & FCTX_ATTR_HAVEANSWER) != \
 				 0)
@@ -160,6 +162,8 @@ struct fetchctx {
 				 0)
 #define SHUTTINGDOWN(f)		(((f)->attributes & FCTX_ATTR_SHUTTINGDOWN) \
  				 != 0)
+#define WANTCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTCACHE) != 0)
+#define WANTNCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTNCACHE) != 0)
 
 struct dns_fetch {
 	unsigned int			magic;
@@ -1398,6 +1402,10 @@ cache_message(fetchctx_t *fctx, isc_stdtime_t now) {
 	dns_section_t section;
 	dns_name_t *name;
 
+	FCTXTRACE("cache_message");
+
+	fctx->attributes &= ~FCTX_ATTR_WANTCACHE;
+
 	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 
 	for (section = DNS_SECTION_ANSWER;
@@ -1439,6 +1447,10 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	dns_name_t *fname, *aname;
 	dns_fetchevent_t *event;
 	void *data;
+
+	FCTXTRACE("ncache_message");
+
+	fctx->attributes &= ~FCTX_ATTR_WANTNCACHE;
 
 	res = fctx->res;
 	need_validation = ISC_FALSE;
@@ -1503,6 +1515,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 				eresult = DNS_R_NCACHENXDOMAIN;
 			else
 				eresult = DNS_R_NCACHENXRRSET;
+			result = ISC_R_SUCCESS;
 		} else {
 			/*
 			 * Either we don't care about the nature of the
@@ -1691,9 +1704,11 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	isc_result_t result;
 	dns_message_t *message;
 	dns_name_t *name, *qname, *ns_name, *soa_name;
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset, *ns_rdataset;
 	isc_boolean_t done, aa, negative_response;
 	dns_rdatatype_t type;
+
+	FCTXTRACE("noanswer_response");
 
 	message = fctx->rmessage;
 
@@ -1721,14 +1736,25 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	
 	/*
 	 * We have to figure out if this is a negative response, or a
-	 * referral.  We start by examining the rcode.
+	 * referral.
+	 */
+
+	/*
+	 * Sometimes we can tell if its a negative response by looking at
+	 * the message header.
 	 */
 	negative_response = ISC_FALSE;
-	if (message->rcode == dns_rcode_nxdomain)
+	if (message->rcode == dns_rcode_nxdomain ||
+	    (message->counts[DNS_SECTION_ANSWER] == 0 &&
+	     message->counts[DNS_SECTION_AUTHORITY] == 0))
 		negative_response = ISC_TRUE;
 
+	/*
+	 * Process the authority section.
+	 */
 	done = ISC_FALSE;
 	ns_name = NULL;
+	ns_rdataset = NULL;
 	soa_name = NULL;
 	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	while (!done && result == ISC_R_SUCCESS) {
@@ -1755,18 +1781,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_glue;
-					/*
-					 * Mark any additional data related
-					 * to this rdataset.
-					 */
-					fctx->attributes |=
-						FCTX_ATTR_GLUING;
-					(void)dns_rdataset_additionaldata(
-							rdataset,
-							check_related,
-							fctx);
-					fctx->attributes &=
-						~FCTX_ATTR_GLUING;
+					ns_rdataset = rdataset;
 				} else if (rdataset->type ==
 					   dns_rdatatype_soa ||
 					   rdataset->type ==
@@ -1838,24 +1853,20 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	}
 
 	/*
-	 * A negative response without an SOA isn't useful.
-	 */
-	if (negative_response && soa_name == NULL) {
-		if (oqname != NULL) {
-			/*
-			 * But again, we don't care if we've got an answer
-			 * already.
-			 */
-			return (ISC_R_SUCCESS);
-		} else
-			return (DNS_R_FORMERR);
-	}
-
-	/*
 	 * Do we have a referral?  (We only want to follow a referral if
 	 * we're not following a chain.)
 	 */
 	if (!negative_response && ns_name != NULL && oqname == NULL) {
+		/*
+		 * Mark any additional data related to this rdataset.
+		 * It's important that we do this before we change the
+		 * query domain.
+		 */
+		INSIST(ns_rdataset != NULL);
+		fctx->attributes |= FCTX_ATTR_GLUING;
+		(void)dns_rdataset_additionaldata(ns_rdataset, check_related,
+						  fctx);
+		fctx->attributes &= ~FCTX_ATTR_GLUING;
 		/*
 		 * Set the current query domain to the referral name.
 		 */
@@ -1866,9 +1877,13 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 		result = dns_name_dup(ns_name, fctx->res->mctx, &fctx->domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		fctx->attributes |= FCTX_ATTR_WANTCACHE;
 		return (DNS_R_DELEGATION);
 	}
 
+	if (negative_response)
+		fctx->attributes |= FCTX_ATTR_WANTNCACHE;
+		
 	return (ISC_R_SUCCESS);
 }
 
@@ -1883,6 +1898,8 @@ answer_response(fetchctx_t *fctx) {
 	unsigned int aflag;
 	dns_rdatatype_t type;
 	dns_fixedname_t dname;
+
+	FCTXTRACE("answer_response");
 
 	message = fctx->rmessage;
 
@@ -2137,6 +2154,11 @@ answer_response(fetchctx_t *fctx) {
 		return (DNS_R_FORMERR);
 
 	/*
+	 * This response is now potentially cacheable.
+	 */
+	fctx->attributes |= FCTX_ATTR_WANTCACHE;
+
+	/*
 	 * Did chaining end before we got the final answer?
 	 */
 	if (want_chaining) {
@@ -2338,20 +2360,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			get_nameservers = ISC_TRUE;
 			keep_trying = ISC_TRUE;
-		} else if (result == ISC_R_SUCCESS) {
-			if (message->rcode == dns_rcode_nxdomain)
-				covers = dns_rdatatype_any;
-			else
-				covers = fctx->type;
-			/*
-			 * Cache any negative cache entries in the message.
-			 * This may also cause work to be queued to the
-			 * DNSSEC validator.
-			 */
-			result = ncache_message(fctx, covers, now);
-			if (result != ISC_R_SUCCESS)
-				goto done;
-		} else {
+			result = ISC_R_SUCCESS;
+		} else if (result != ISC_R_SUCCESS) {
 			/*
 			 * Something has gone wrong.
 			 */
@@ -2378,7 +2388,26 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * Cache the cacheable parts of the message.  This may also cause
 	 * work to be queued to the DNSSEC validator.
 	 */
-	result = cache_message(fctx, now);
+	if (WANTCACHE(fctx)) {
+		result = cache_message(fctx, now);
+		if (result != ISC_R_SUCCESS)
+			goto done;
+	}
+
+	/*
+	 * Ncache the negatively cacheable parts of the message.  This may
+	 * also cause work to be queued to the DNSSEC validator.
+	 */
+	if (WANTNCACHE(fctx)) {
+		if (message->rcode == dns_rcode_nxdomain)
+			covers = dns_rdatatype_any;
+		else
+			covers = fctx->type;
+		/*
+		 * Cache any negative cache entries in the message.
+		 */
+		result = ncache_message(fctx, covers, now);
+	}
 
  done:
 	/*
