@@ -30,7 +30,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		result.o rwlock.o symtab.o str.o event.o task.o timer.o \
 		version.o \
 		unix/app.o unix/time.o unix/stdtime.o unix/socket.o \
-		pthreads/condition.o
+		pthreads/condition.o unix/interfaceiter.o
 
 SUBDIRS =	include unix pthreads
 TARGETS =	timestamp
