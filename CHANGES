@@ -1,4 +1,7 @@
 
+ 686.	[bug]		dig and nslookup can now be properly aborted during
+			blocking operations. [RT #568]
+
  685.	[bug]		nslookup should use the search list/domain options
 			from resolv.conf by default, and it (and host) should
 			use the search list items first. [RT #405, #630]
