@@ -30,13 +30,15 @@ status=0
 
 rm -f dig.out.*
 
+DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300"
+
 # Check the example. domain
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG $DIGOPTS \
 	a.example. @10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG $DIGOPTS \
 	a.example. @10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
@@ -46,12 +48,12 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+$DIG $DIGOPTS +noauth \
 	a.example. @10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+$DIG $DIGOPTS +noauth \
 	a.example. @10.53.0.4 a > dig.out.ns4
 status=`expr $status + $?`
 grep ";" dig.out.ns2
@@ -63,12 +65,12 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG $DIGOPTS \
 	a.insecure.example. @10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG $DIGOPTS \
 	a.insecure.example. @10.53.0.4 a > dig.out.ns4
 status=`expr $status + $?`
 grep ";" dig.out.ns4
@@ -80,12 +82,12 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG $DIGOPTS \
 	a.secure.example. @10.53.0.3 a > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+$DIG $DIGOPTS \
 	a.secure.example. @10.53.0.4 a > dig.out.ns4
 status=`expr $status + $?`
 grep ";" dig.out.ns4
@@ -97,7 +99,7 @@ status=`expr $status + $?`
 
 rm -f dig.out.*
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocmd \
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300 \
 	a.bogus.example. @10.53.0.4 a > dig.out.ns4
 grep "SERVFAIL" dig.out.ns4 > /dev/null
 status=`expr $status + $?`
