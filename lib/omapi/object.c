@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.3 2000/01/06 23:53:00 tale Exp $ */
+/* $Id: object.c,v 1.4 2000/01/14 23:10:03 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -30,7 +30,8 @@
 #include <omapi/private.h>
 
 isc_result_t
-omapi_object_new(omapi_object_t **object, omapi_object_type_t *type, size_t size)
+omapi_object_new(omapi_object_t **object, omapi_object_type_t *type,
+		 size_t size)
 {
 	omapi_object_t *new;
 
@@ -76,9 +77,16 @@ omapi_object_dereference(omapi_object_t **h, const char *name) {
 	REQUIRE((*h)->refcnt > 0);
 
 	/*
-	 * See if this object's inner object refers to it, but don't
+	 * See if this object's inner object refers back to it, but don't
 	 * count this as a reference if we're being asked to free the
 	 * reference from the inner object.
+	 */
+	/*
+	 * XXXDCL my wording
+	 * Note whether the object being dereference has an inner object, but
+	 * only if the inner object's own outer pointer is not what is
+	 * being dereferenced.
+	 * (XXXDCL when does it happen that way ?)
 	 */
 	if ((*h)->inner != NULL && (*h)->inner->outer != NULL &&
 	    h != &((*h)->inner->outer))
@@ -120,6 +128,7 @@ omapi_object_dereference(omapi_object_t **h, const char *name) {
                          * handle table here.
 			 */
 			extra_references = 0;
+
 			for (p = (*h)->inner;
 			     p != NULL && extra_references == 0;
 			     p = p->inner) {
@@ -129,6 +138,7 @@ omapi_object_dereference(omapi_object_t **h, const char *name) {
 				if (p->handle != 0)
 					--extra_references;
 			}
+
 			for (p = (*h)->outer;
 			     p != NULL && extra_references == 0;
 			     p = p->outer) {

@@ -430,6 +430,27 @@ do_connect(const char *host, int port) {
 	       == ISC_R_SUCCESS);
 
 	ENSURE(client->waitresult == ISC_R_SUCCESS);
+
+	/*
+	 * Close the connection and wait to be disconnected.
+	 * XXXDCL This problem has been biting my butt for two days
+	 * straight!  I am totally zoning on how to best accomplish
+	 * making disconnection be either sync or async, and some
+	 * internal thread race conditions i am having in the omapi library.
+	 * grr grr grr grr GRRRRR
+	 * at the moment things work ok enough by requiring that
+	 * the connection be waited before calling omapi_connection_disconnect
+	 * and sleeping a moment.  clearly this is BOGUS
+	 */
+	sleep(1);
+	omapi_connection_disconnect(connection, ISC_FALSE);
+
+	ENSURE(client->waitresult == ISC_R_SUCCESS);
+
+	/*
+	 * Free the protocol manager.
+	 */
+       omapi_object_dereference(&manager, "do_connect");
 }
 
 static void
@@ -528,6 +549,8 @@ main (int argc, char **argv) {
 			progname);
 		exit (1);
 	}
+
+	omapi_shutdown();
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);

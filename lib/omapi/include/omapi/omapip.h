@@ -482,6 +482,9 @@ omapi_message_process(omapi_object_t *message, omapi_object_t *protocol);
 isc_result_t
 omapi_init(isc_mem_t *mctx);
 
+void
+omapi_shutdown(void);
+
 isc_result_t
 omapi_object_type_register(omapi_object_type_t **type,
 			   const char *name,

@@ -125,7 +125,8 @@ omapi_protocol_disconnect(omapi_object_t *handle, isc_boolean_t force) {
 
 	connection = (omapi_connection_object_t *)protocol->outer;
 
-	ENSURE(connection != NULL && connection->type == omapi_type_connection);
+	ENSURE(connection != NULL &&
+	       connection->type == omapi_type_connection);
 
 	omapi_connection_disconnect((omapi_object_t *)connection, force);
 }
@@ -209,19 +210,15 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 
 	/* XXXTL Write the ID of the authentication key we're using. */
 	result = omapi_connection_putuint32(c, 0);
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/*
 	 * Write the opcode.
 	 */
 	result = omapi_connection_putuint32(c, m->op);
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/*
 	 * Write the handle.  If we've been given an explicit handle, use
@@ -233,49 +230,39 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 						 : (m->object ?
 						    m->object->handle
 						    : 0)));
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/*
 	 * Set and write the transaction ID.
 	 */
 	m->id = p->next_xid++;
 	result = omapi_connection_putuint32(c, m->id);
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/*
 	 * Write the transaction ID of the message to which this is a
 	 * response, if there is such a message.
 	 */
 	result = omapi_connection_putuint32(c, om ? om->id : m->rid);
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/*
 	 * Stuff out the name/value pairs specific to this message.
 	 */
 	result = omapi_stuff_values(c, id, (omapi_object_t *)m);
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/*
 	 * Write the zero-length name that terminates the list of name/value
 	 * pairs specific to the message.
 	 */
 	result = omapi_connection_putuint16(c, 0);
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/*
 	 * Stuff out all the published name/value pairs in the object that's
@@ -283,10 +270,8 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 */
 	if (m->object != NULL) {
 		result = omapi_stuff_values(c, id, m->object);
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
 	}
 
 	/*
@@ -294,10 +279,8 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 * pairs for the associated object.
 	 */
 	result = omapi_connection_putuint16(c, 0);
-	if (result != ISC_R_SUCCESS) {
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto disconnect;
 
 	/* XXXTL Write the authenticator... */
 
@@ -306,16 +289,13 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 * When the client sends a message, it expects a reply.
 	 */
 	if (connection->is_client) {
-		result = isc_mutex_lock(&connection->mutex);
-		if (result != ISC_R_SUCCESS)
-			goto disconnect;
+		RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) ==
+			      ISC_R_SUCCESS);
 
 		connection->messages_expected++;
 
-		result = isc_mutex_unlock(&connection->mutex);
-		if (result != ISC_R_SUCCESS)
-			goto disconnect;
-
+		RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
+			      ISC_R_SUCCESS);
 	}
 
 	connection_send(connection);
@@ -378,15 +358,13 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 * We currently only support the current protocol version.
 		 */
 		if (p->protocol_version != OMAPI_PROTOCOL_VERSION) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (OMAPI_R_VERSIONMISMATCH);
+			result = OMAPI_R_VERSIONMISMATCH;
+			goto disconnect;
 		}
 
 		if (p->header_size < sizeof(omapi_protocol_header_t)) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (OMAPI_R_PROTOCOLERROR);
+			result = OMAPI_R_PROTOCOLERROR;
+			goto disconnect;
 		}
 
 		/*
@@ -395,30 +373,23 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 * XXXDCL duplicated below
 		 */
 		if (c->is_client) {
-			result = isc_mutex_lock(&c->mutex);
-			if (result != ISC_R_SUCCESS)
-				goto disconnect;
+			RUNTIME_CHECK(isc_mutex_lock(&c->mutex) ==
+				      ISC_R_SUCCESS);
 
-			/*
-			 * This is an unsigned int but on the server it will
-			 * count below 0 for each incoming message received.
-			 * But that's ok, because the server doesn't support
-			 * omapi_connection_wait.
-			 */
+			ENSURE(c->messages_expected > 0);
 			c->messages_expected--;
 
-			result = isc_condition_signal(&c->waiter);
+			RUNTIME_CHECK(isc_condition_signal(&c->waiter) ==
+				      ISC_R_SUCCESS);
 
 			/*
 			 * Release the lock.  Contrary to what you might think
 			 * from some documentation sources, it is necessary
 			 * to do this for the waiting thread to unblock.
 			 */
-			if (result == ISC_R_SUCCESS)
-				result = isc_mutex_unlock(&c->mutex);
+			RUNTIME_CHECK(isc_mutex_unlock(&c->mutex) ==
+				      ISC_R_SUCCESS);
 
-			if (result != ISC_R_SUCCESS)
-				goto disconnect;
 		}
 
 	to_header_wait:
@@ -442,11 +413,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 	case omapi_protocol_header_wait:
 		result = omapi_message_new((omapi_object_t **)&p->message,
 					   "omapi_protocol_signal_handler");
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
 
 		/*
 		 * Swap in the header.
@@ -504,11 +472,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 
 	case omapi_protocol_name_length_wait:
 		result = omapi_connection_getuint16(connection, &nlen);
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
 
 		/*
 		 * A zero-length name means that we're done reading name+value
@@ -558,11 +523,9 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 */
 		result = omapi_data_newstring(&p->name, nlen,
 					      "omapi_protocol_signal_handler");
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
+
 		p->state = omapi_protocol_name_wait;
 		if (omapi_connection_require(connection, nlen) !=
 		    ISC_R_SUCCESS)
@@ -575,11 +538,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 	case omapi_protocol_name_wait:
 		result = omapi_connection_copyout(p->name->value, connection,
 						  p->name->len);
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
 
 		/*
 		 * Wait for a 32-bit length.
@@ -606,11 +566,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 
 		result = omapi_data_new(&p->value, omapi_datatype_data, vlen,
 					"omapi_protocol_signal_handler");
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
 
 		p->state = omapi_protocol_value_wait;
 		result = omapi_connection_require(connection, vlen);
@@ -624,11 +581,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		result = omapi_connection_copyout(p->value->u.buffer.value,
 						  connection,
 						  p->value->u.buffer.len);
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
 
 	insert_new_value:
 		if (p->reading_message_values) {
@@ -643,22 +597,18 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 				 */
 				result = omapi_generic_new(&p->message->object,
 					      "omapi_protocol_signal_handler");
-				if (result != ISC_R_SUCCESS) {
-					omapi_connection_disconnect(connection,
-						       OMAPI_FORCE_DISCONNECT);
-					return (result);
-				}
+				if (result != ISC_R_SUCCESS)
+					goto disconnect;
 			}
+
 			result = (omapi_set_value
 				  ((omapi_object_t *)p->message->object,
 				   p->message->id_object,
 				   p->name, p->value));
 		}
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
+
 		omapi_data_stringdereference(&p->name,
 					      "omapi_protocol_signal_handler");
 		omapi_data_dereference(&p->value,
@@ -671,19 +621,14 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 					omapi_datatype_data,
 					p->message->authlen);
 
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
+
 		result = (omapi_connection_copyout
 			  (p->message->authenticator->u.buffer.value,
 			   connection, p->message->authlen));
-		if (result != ISC_R_SUCCESS) {
-			omapi_connection_disconnect(connection,
-						    OMAPI_FORCE_DISCONNECT);
-			return (result);
-		}
+		if (result != ISC_R_SUCCESS)
+			goto disconnect;
 
 		/* XXXTL now do something to verify the signature. */
 
@@ -699,25 +644,17 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 * XXXDCL duplicated from above.
 		 */
 		if (c->is_client) {
-			result = isc_mutex_lock(&c->mutex);
-			if (result != ISC_R_SUCCESS)
-				goto disconnect;
+			RUNTIME_CHECK(isc_mutex_lock(&c->mutex) ==
+				      ISC_R_SUCCESS);
 
-			/*
-			 * This is an unsigned int but on the server it will
-			 * count below 0 for each incoming message received.
-			 * But that's ok, because the server doesn't support
-			 * omapi_connection_wait.
-			 */
+			ENSURE(c->messages_expected > 0);
 			c->messages_expected--;
 
-			result = isc_condition_signal(&c->waiter);
-			if (result != ISC_R_SUCCESS)
-				goto disconnect;
+			RUNTIME_CHECK(isc_condition_signal(&c->waiter) ==
+				      ISC_R_SUCCESS);
 
-			result = isc_mutex_unlock(&c->mutex);
-			if (result != ISC_R_SUCCESS)
-				goto disconnect;
+			RUNTIME_CHECK(isc_mutex_unlock(&c->mutex) ==
+				      ISC_R_SUCCESS);
 		}
 
 		/* XXXTL unbind the authenticator. */
@@ -728,13 +665,15 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		OBJECT_DEREF(&p->message, "omapi_protocol_signal_handler");
 
 		/*
-		 * Now wait for the next message.
+		 * XXXDCL these gotos could be cleared up with one
+		 * more variable to control a loop around the switch.
 		 */
+		fprintf(stderr, "going to header_wait, events_pending = %d\n",
+			c->events_pending);
 		goto to_header_wait;		
 
 	default:
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unknown state in "
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "unknown state in "
 				 "omapi_protocol_signal_handler: %d\n",
 				 p->state);
 
@@ -745,6 +684,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 
 	/* XXXDCL
 	 * 'goto' could be avoided by wrapping the body in another function.
+	 * btw, what happens in C when a file has multiple instances of
+	 * the same label?
 	 */
 disconnect:
 	omapi_connection_disconnect(connection, OMAPI_FORCE_DISCONNECT);
@@ -852,16 +793,27 @@ omapi_protocol_listener_signal(omapi_object_t *h, const char *name, va_list ap)
 
 	c = va_arg(ap, omapi_object_t *);
 
-	INSIST(c != NULL && c->type == omapi_type_connection);
+	ENSURE(c != NULL && c->type == omapi_type_connection);
 
-	obj = isc_mem_get(omapi_mctx, sizeof(*obj));
-	if (obj == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(obj, 0, sizeof(*obj));
-	obj->object_size = sizeof(*obj);
-	obj->refcnt = 1;
-	obj->type = omapi_type_protocol;
+	/*
+	 * Create a new protocol object to oversee the handling of this
+	 * connection.
+	 */
+	obj = NULL;
+	result = omapi_object_new((omapi_object_t **)&obj, omapi_type_protocol,
+				  sizeof(*obj));
+	if (result != ISC_R_SUCCESS)
+		/*
+		 * When the unsuccessful return value is percolated back to
+		 * omapi_listener_accept, then it will remove the only
+		 * reference, which will close and cleanup the connection.
+		 */
+		return (result);
 
+	/*
+	 * Tie the protocol object bidirectionally to the connection
+	 * object, with the connection as the outer object.
+	 */
 	OBJECT_REF(&obj->outer, c, "omapi_protocol_accept");
 	OBJECT_REF(&c->inner, obj, "omapi_protocol_accept");
 
@@ -873,9 +825,24 @@ omapi_protocol_listener_signal(omapi_object_t *h, const char *name, va_list ap)
 					   sizeof(omapi_protocol_header_t));
 
 	if (result != ISC_R_SUCCESS)
-		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		/*
+		 * Remove the protocol object's reference to the connection
+		 * object, so that when the unsuccessful return value is
+		 * received in omapi_listener_accept, the connection object
+		 * will be destroyed.
+		 * XXXDCL aigh, this is so confusing.  I don't think the
+		 * right thing is being done.
+		 */
+		OBJECT_DEREF(&c->inner, "omapi_protocol_accept");
 
+	/*
+	 * Remove one of the references to the object, so it will be
+	 * freed when the connection dereferences its inner object.
+	 * XXXDCL this is what ted did, but i'm not sure my explanation
+	 * is correct.
+	 */
 	OBJECT_DEREF(&obj, "omapi_protocol_accept");
+
 	return (result);
 }
 

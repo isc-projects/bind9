@@ -444,7 +444,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (type == NULL) {
 			if (create != 0) {
 				return (omapi_protocol_send_status(po, NULL,
-						 OMAPI_R_INVALIDARG, message->id,
+						 OMAPI_R_INVALIDARG,
+						 message->id,
 						 "type required on create"));
 			}
 			goto refresh;
@@ -545,7 +546,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 	      case OMAPI_OP_UPDATE:
 		if (m->object != NULL) {
-			OBJECT_REF(&object, m->object, "omapi_message_process");
+			OBJECT_REF(&object, m->object,
+				   "omapi_message_process");
 		} else {
 			result = omapi_handle_lookup(&object, message->handle);
 			if (result != ISC_R_SUCCESS) {

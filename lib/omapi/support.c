@@ -175,6 +175,21 @@ omapi_init(isc_mem_t *mctx) {
 	return (result);
 }
 
+void
+omapi_shutdown() {
+	omapi_object_type_t *type, *next_type;
+
+	isc_socketmgr_destroy(&omapi_socketmgr);
+	isc_taskmgr_destroy(&omapi_taskmgr);
+	isc_timermgr_destroy(&omapi_timermgr);
+
+	for (type = omapi_object_types; type != NULL; type = next_type) {
+		next_type = type->next;
+		isc_mem_put(omapi_mctx, type, sizeof(*type));
+	}
+	
+}
+
 isc_result_t
 omapi_object_type_register(omapi_object_type_t **type, const char *name,
 			   isc_result_t (*set_value)

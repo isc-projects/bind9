@@ -24,6 +24,7 @@
 
 #include <isc/assertions.h>
 #include <isc/bufferlist.h>
+#include <isc/error.h>
 #include <isc/mem.h>
 
 #include <omapi/private.h>
@@ -51,6 +52,7 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	 * XXXDCL What are the meaningful things the listen/accept function
 	 * can do if it fails to process an incoming connection because one
 	 * of the functions it calls fails?
+	 * The cleanup options are hurting my head.
 	 */
 
 	/*
@@ -68,7 +70,7 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 		 * The result is probably ISC_R_UNEXPECTED; what can really be
 		 * done about this other than just flunking out of here?
 		 */
-		return;
+		goto free_event;
 
 	/*
 	 * The new connection is good to go.  Allocate the buffers for it and
@@ -76,60 +78,81 @@ omapi_listener_accept(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (isc_task_create(omapi_taskmgr, NULL, 0, &connection_task) !=
 	    ISC_R_SUCCESS)
-		return;
+		goto free_task;
 
 	ibuffer = NULL;
 	result = isc_buffer_allocate(omapi_mctx, &ibuffer, OMAPI_BUFFER_SIZE,
 				     ISC_BUFFERTYPE_BINARY);
 	if (result != ISC_R_SUCCESS)
-		return;
+		goto free_ibuffer;
 
 	obuffer = NULL;
 	result = isc_buffer_allocate(omapi_mctx, &obuffer, OMAPI_BUFFER_SIZE,
 				     ISC_BUFFERTYPE_BINARY);
 	if (result != ISC_R_SUCCESS)
-		return;
+		goto free_obuffer;
 
 	/*
 	 * Create a new connection object.
 	 */
 	result = omapi_object_new((omapi_object_t **)&connection,
 				  omapi_type_connection, sizeof(*connection));
-	if (result != ISC_R_SUCCESS) {
-		/* XXXDCL cleanup */
-		isc_buffer_free(&obuffer);
-		isc_buffer_free(&ibuffer);
-		return;
-	}
+	if (result != ISC_R_SUCCESS)
+		goto free_obuffer;
 
 	connection->task = connection_task;
 	connection->state = omapi_connection_connected;
 	connection->socket = incoming->newsocket;
 	connection->is_client = ISC_FALSE;
 
+	/*
+	 * No more need for the event, once all the desired data has been
+	 * used from it.
+	 */
+	listener = event->arg;
+	isc_event_free(&event);
+
 	ISC_LIST_INIT(connection->input_buffers);
 	ISC_LIST_APPEND(connection->input_buffers, ibuffer, link);
 	ISC_LIST_INIT(connection->output_buffers);
 	ISC_LIST_APPEND(connection->output_buffers, obuffer, link);
 
+	RUNTIME_CHECK(isc_mutex_init(&connection->mutex) == ISC_R_SUCCESS);
+
 	/*
 	 * Notify the listener object that a connection was made.
 	 */
-	listener = event->arg;
 	result = omapi_signal(listener, "connect", connection);
 	if (result != ISC_R_SUCCESS)
-		/*XXXDCL then what?!*/
-		;
+		goto free_object;
 
 	/*
-	 * Lose our reference to the connection, so it'll be gc'd when it's
-	 * reaped.
-	 * XXXDCL ... um, hmm?  this object only has one reference, so it
-	 * is going to be reaped right here!  unless omapi_signal added
-	 * a reference ...
+	 * Lose one reference to the connection, so it'll be gc'd when it's
+	 * reaped.  The omapi_protocol_listener_signal function added a
+	 * reference when it created a protocol object as connection->inner.
 	 */
 	OBJECT_DEREF(&connection, "omapi_listener_accept");
+	return;
 
+free_object:
+	/*
+	 * Destroy the connection.  This will free everything created
+	 * in this function but the event.
+	 */
+	OBJECT_DEREF(&connection, "omapi_listener_accept");
+	return;
+
+	/*
+	 * Free resources that were being created for the connection object.
+	 */
+free_obuffer:
+	isc_buffer_free(&obuffer);
+free_ibuffer:
+	isc_buffer_free(&ibuffer);
+free_task:
+	isc_task_destroy(&connection_task);
+free_event:
+	isc_event_free(&event);
 	return;
 }
 
