@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.110 2001/04/12 00:37:55 tale Exp $ */
+/* $Id: rbt.c,v 1.111 2001/04/12 21:18:14 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -138,7 +138,6 @@ do { \
 	(name)->attributes |= DNS_NAMEATTR_READONLY; \
 } while (0)
 
-#define DEBUG /* XXXDCL remove */
 #ifdef DEBUG
 #define inline
 /*
