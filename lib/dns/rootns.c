@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.19 2001/08/27 03:35:57 marka Exp $ */
+/* $Id: rootns.c,v 1.20 2001/08/27 17:21:56 gson Exp $ */
 
 #include <config.h>
 
@@ -235,7 +235,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (check_hints(db) != ISC_R_SUCCESS)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
-			      "extra data in root hints \"%s\"",
+			      "extra data in root hints '%s'",
 			      (filename != NULL) ? filename : "<BUILT-IN>");
 	*target = db;
 	return (ISC_R_SUCCESS);
