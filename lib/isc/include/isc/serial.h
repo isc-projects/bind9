@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
-	/* $Id: serial.h,v 1.5 2000/04/27 23:08:18 tale Exp $ */
+/* $Id: serial.h,v 1.6 2000/04/28 22:13:15 tale Exp $ */
 
 #ifndef ISC_SERIAL_H
-#define ISC_SERIAL_H
+#define ISC_SERIAL_H 1
 
 #include <isc/lang.h>
 #include <isc/types.h>

@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.2 2000/04/28 00:39:11 tale Exp $ */
+/* $Id: offset.h,v 1.3 2000/04/28 22:13:15 tale Exp $ */
 
-#ifndef ISC_OFFSET_T
-#define ISC_OFFSET_T 1
+#ifndef ISC_OFFSET_H
+#define ISC_OFFSET_H 1
 
 /*
  * File offsets are operating-system dependent.
@@ -28,4 +28,4 @@
 
 typedef off_t isc_offset_t;
 
-#endif /* ISC_OFFSET_T */
+#endif /* ISC_OFFSET_H */

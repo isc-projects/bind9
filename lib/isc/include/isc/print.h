@@ -16,7 +16,7 @@
  */
 
 #ifndef ISC_PRINT_H
-#define ISC_PRINT_H
+#define ISC_PRINT_H 1
 
 /***
  *** Imports

@@ -271,4 +271,4 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
 
 ISC_LANG_ENDDECLS
 
-#endif /* MEM_H */
+#endif /* ISC_MEM_H */

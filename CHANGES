@@ -1,3 +1,8 @@
+ 137.   [cleanup]       <isc/commandline.h>, <isc/mem.h>, <isc/print.h>
+                        <isc/serial.h>, <isc/string.h> and <isc/offset.h>
+                        made to conform to the same style for multiple
+                        inclusion protection.
+
  136.   [cleanup]       <isc/commandline.h>, <isc/interfaceiter.h>,
                         <isc/net.h> and Win32's <isc/thread.h> needed
                         ISC_LANG_BEGINDECLS/ISC_LANG_ENDDECLS.

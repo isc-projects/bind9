@@ -16,7 +16,7 @@
  */
 
 #ifndef ISC_STRING_H
-#define ISC_STRING_H
+#define ISC_STRING_H 1
 
 #include <string.h>
 
