@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.57 2000/11/07 23:49:39 mws Exp $ */
+/* $Id: confctx.h,v 1.58 2000/11/25 02:43:52 marka Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -185,6 +185,8 @@ struct dns_c_options {
 	isc_boolean_t	       *notify_forward;
 #endif /* NOMINUM_PUBLIC */
 
+	isc_sockaddr_t	       *notify_source;
+	isc_sockaddr_t	       *notify_source_v6;
 	isc_sockaddr_t	       *transfer_source;
 	isc_sockaddr_t	       *transfer_source_v6;
 	isc_sockaddr_t	       *query_source;
@@ -660,31 +662,45 @@ isc_result_t dns_c_ctx_unsetadditionalfromauth(dns_c_ctx_t *ctx);
 
 
 isc_result_t dns_c_ctx_unsettreatcrasspace(dns_c_ctx_t *cfg);
+
+
 isc_result_t dns_c_ctx_settransfersource(dns_c_ctx_t *ctx,
 					 isc_sockaddr_t transfer_source);
 isc_result_t dns_c_ctx_gettransfersource(dns_c_ctx_t *ctx,
 					 isc_sockaddr_t *transfer_source);
-
-
 isc_result_t dns_c_ctx_unsettransfersource(dns_c_ctx_t *ctx);
+
+
 isc_result_t dns_c_ctx_settransfersourcev6(dns_c_ctx_t *ctx,
 					   isc_sockaddr_t transfer_source_v6);
 isc_result_t dns_c_ctx_gettransfersourcev6(dns_c_ctx_t *ctx,
 					   isc_sockaddr_t *transfer_source_v6);
-
-
 isc_result_t dns_c_ctx_unsettransfersourcev6(dns_c_ctx_t *ctx);
+
+
+isc_result_t dns_c_ctx_setnotifysource(dns_c_ctx_t *ctx,
+				       isc_sockaddr_t notify_source);
+isc_result_t dns_c_ctx_getnotifysource(dns_c_ctx_t *ctx,
+				       isc_sockaddr_t *notify_source);
+isc_result_t dns_c_ctx_unsetnotifysource(dns_c_ctx_t *ctx);
+
+
+isc_result_t dns_c_ctx_setnotifysourcev6(dns_c_ctx_t *ctx,
+					 isc_sockaddr_t notify_source_v6);
+isc_result_t dns_c_ctx_getnotifysourcev6(dns_c_ctx_t *ctx,
+					 isc_sockaddr_t *notify_source_v6);
+isc_result_t dns_c_ctx_unsetnotifysourcev6(dns_c_ctx_t *ctx);
+
+
 isc_result_t dns_c_ctx_setquerysource(dns_c_ctx_t *ctx,
 				      isc_sockaddr_t query_source);
 isc_result_t dns_c_ctx_getquerysource(dns_c_ctx_t *ctx,
 				      isc_sockaddr_t *query_source);
-
-
 isc_result_t dns_c_ctx_unsetquerysource(dns_c_ctx_t *ctx);
+
+
 isc_result_t dns_c_ctx_setquerysourcev6(dns_c_ctx_t *ctx, isc_sockaddr_t
 					query_source_v6);
-
-
 isc_result_t dns_c_ctx_getquerysourcev6(dns_c_ctx_t *ctx,
 					isc_sockaddr_t *query_source_v6);
 isc_result_t dns_c_ctx_unsetquerysourcev6(dns_c_ctx_t *ctx);

@@ -1,3 +1,6 @@
+ 578.	[func]		Notify-source, specify the source address for notify
+			messages.
+
  577.	[func]		Log illegal RDATA combinations. e.g. multiple
 			singlton types, cname and other data.
 

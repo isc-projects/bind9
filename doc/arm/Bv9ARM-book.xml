@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.48 2000/11/25 00:26:17 mws Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.49 2000/11/25 02:43:44 marka Exp $ -->
 
 <book>
 
@@ -2479,6 +2479,8 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> transfers-per-ns <replaceable>number</replaceable>; </optional>
     <optional> transfer-source <replaceable>ip4_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 <replaceable>ip6_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-source <replaceable>ip4_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-source-v6 <replaceable>ip6_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable>; </optional>
     <optional> coresize <replaceable>size_spec</replaceable> ; </optional>
@@ -3092,6 +3094,25 @@ in the configuration file.</para></entry>
 <entry colname = "2"><para>The same as <command>transfer-source</command>,
 except zone transfers are performed using IPv6.</para></entry>
               </row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>notify-source</command></para></entry>
+<entry colname = "2"><para><command>notify-source</command> determines
+which local address and optionally UDP port, will be used to send NOTIFY
+messages.  If a <command>notify-source</command> is not specified then
+then the <command>transfer-source</command> will be used and if that
+is not specified the <command>query-source</command> will be use.
+This address must appear in the remote end's <command>masters</command>
+zone clause.
+This statement sets the <command>notify-source</command> for all zones,
+but can be overridden on a per-zone / per-view basis by including a
+<command>notify-source</command> statement within the <command>zone</command>
+/ <command>view</command> blocks in the configuration file.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>notify-source-v6</command></para></entry>
+<entry colname = "2"><para>The same as <command>notify-source</command>,
+except notify messages are sent using IPv6.</para></entry>
+              </row>
             </tbody>
           </tgroup>
         </informaltable>
@@ -3606,6 +3627,8 @@ Statement Grammar</title>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
@@ -3861,6 +3884,22 @@ needs to be specified in that <command>allow-transfer</command> option.</para></
 <entry colname = "1"><para>transfer-source-v6</para></entry>
 <entry colname = "2"><para>Similar to transfer-source, but for zone transfers
 performed using IPv6.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>notify-source</command></para></entry>
+<entry colname = "2"><para><command>notify-source</command> determines
+which local address and optionally UDP port, will be used to send NOTIFY
+messages.  If a <command>notify-source</command> is not specified then
+then the <command>transfer-source</command> will be used, if neither
+of these are set then the address and port used will be determined by
+the <command>view</command> then the <command>options</command> blocks.
+This address must appear in the remote end's <command>masters</command>
+zone clause.
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>notify-source-v6</para></entry>
+<entry colname = "2"><para>Similar to notify-source, but notify messages
+are sent using IPv6.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable></sect3>

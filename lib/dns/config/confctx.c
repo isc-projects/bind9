@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.103 2000/11/15 01:30:12 gson Exp $ */
+/* $Id: confctx.c,v 1.104 2000/11/25 02:43:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1054,6 +1054,9 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 						 ISC_TRUE));
 	}
 
+	PRINT_IPANDPORT(notify_source, "notify-source");
+	PRINT_IPANDPORT(notify_source_v6, "notify-source-v6");
+
 	PRINT_IPANDPORT(transfer_source, "transfer-source");
 	PRINT_IPANDPORT(transfer_source_v6, "transfer-source-v6");
 
@@ -1581,6 +1584,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->notify_forward = NULL;
 #endif /* NOMINUM_PUBLIC */
 
+	opts->notify_source = NULL;
+	opts->notify_source_v6 = NULL;
 	opts->transfer_source = NULL;
 	opts->transfer_source_v6 = NULL;
 	opts->query_source = NULL;
@@ -1734,6 +1739,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(notify_forward);
 #endif /* NOMINUM_PUBLIC */
 
+	FREEFIELD(notify_source);
+	FREEFIELD(notify_source_v6);
 	FREEFIELD(transfer_source);
 	FREEFIELD(transfer_source_v6);
 	FREEFIELD(query_source);
@@ -1880,6 +1887,8 @@ BOOL_FUNCS(treatcrasspace, treat_cr_as_space)
 BOOL_FUNCS(additionalfromauth, additional_from_auth)
 BOOL_FUNCS(additionalfromcache, additional_from_cache)
 
+SOCKADDR_FUNCS(notifysource, notify_source)
+SOCKADDR_FUNCS(notifysourcev6, notify_source_v6)
 SOCKADDR_FUNCS(transfersource, transfer_source)
 SOCKADDR_FUNCS(transfersourcev6, transfer_source_v6)
 SOCKADDR_FUNCS(querysource, query_source)

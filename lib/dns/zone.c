@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.258 2000/11/22 23:06:55 gson Exp $ */
+/* $Id: zone.c,v 1.259 2000/11/25 02:43:45 marka Exp $ */
 
 #include <config.h>
 
@@ -156,6 +156,8 @@ struct dns_zone {
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
 	isc_task_t		*task;
+	isc_sockaddr_t	 	notifysrc4;
+	isc_sockaddr_t	 	notifysrc6;
 	isc_sockaddr_t	 	xfrsource4;
 	isc_sockaddr_t	 	xfrsource6;
 	dns_xfrin_ctx_t		*xfr;
@@ -502,6 +504,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->idlein = DNS_DEFAULT_IDLEIN;
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
 	ISC_LIST_INIT(zone->notifies);
+	isc_sockaddr_any(&zone->notifysrc4);
+	isc_sockaddr_any6(&zone->notifysrc6);
 	isc_sockaddr_any(&zone->xfrsource4);
 	isc_sockaddr_any6(&zone->xfrsource6);
 	zone->xfr = NULL;
@@ -1565,6 +1569,40 @@ dns_zone_getxfrsource6(dns_zone_t *zone) {
 }
 
 isc_result_t
+dns_zone_setnotifysrc4(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	zone->notifysrc4 = *notifysrc;
+	UNLOCK(&zone->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getnotifysrc4(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->notifysrc4);
+}
+
+isc_result_t
+dns_zone_setnotifysrc6(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	zone->notifysrc6 = *notifysrc;
+	UNLOCK(&zone->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getnotifysrc6(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->notifysrc6);
+}
+
+isc_result_t
 dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		       isc_uint32_t count)
 {
@@ -2354,10 +2392,10 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		   addrbuf);
 	switch (isc_sockaddr_pf(&notify->dst)) {
 	case PF_INET:
-		src = notify->zone->xfrsource4;
+		src = notify->zone->notifysrc4;
 		break;
 	case PF_INET6:
-		src = notify->zone->xfrsource6;
+		src = notify->zone->notifysrc6;
 		break;
 	default:
 		result = ISC_R_NOTIMPLEMENTED;

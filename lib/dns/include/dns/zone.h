@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.91 2000/11/18 02:54:19 gson Exp $ */
+/* $Id: zone.h,v 1.92 2000/11/25 02:43:56 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -568,6 +568,52 @@ isc_sockaddr_t *
 dns_zone_getxfrsource6(dns_zone_t *zone);
 /*
  *	Returns the source address set by a previous dns_zone_setxfrsource6
+ *	call, or the default of in6addr_any, port 0.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+
+isc_result_t
+dns_zone_setnotifysrc4(dns_zone_t *zone, isc_sockaddr_t *notifysrc);
+/*
+ * 	Set the source address to be used with IPv4 NOTIFY messages.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *	'notifysrc' to contain the address.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ */
+
+isc_sockaddr_t *
+dns_zone_getnotifysrc4(dns_zone_t *zone);
+/*
+ *	Returns the source address set by a previous dns_zone_setnotifysrc4
+ *	call, or the default of inaddr_any, port 0.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+
+isc_result_t
+dns_zone_setnotifysrc6(dns_zone_t *zone, isc_sockaddr_t *notifysrc);
+/*
+ * 	Set the source address to be used with IPv6 NOTIFY messages.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *	'notifysrc' to contain the address.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ */
+
+isc_sockaddr_t *
+dns_zone_getnotifysrc6(dns_zone_t *zone);
+/*
+ *	Returns the source address set by a previous dns_zone_setnotifysrc6
  *	call, or the default of in6addr_any, port 0.
  *
  * Require:

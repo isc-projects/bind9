@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.31 2000/11/22 18:20:05 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.32 2000/11/25 02:43:48 marka Exp $ */
 
 #include <config.h>
 
@@ -361,6 +361,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_NDOTS
 %token		L_NO
 %token		L_NOTIFY
+%token		L_NOTIFY_SOURCE
+%token		L_NOTIFY_SOURCE_V6
 #ifndef NOMINUM_PUBLIC
 %token		L_NOTIFY_FORWARD
 #endif /* NOMINUM_PUBLIC */
@@ -1125,6 +1127,60 @@ option: /* Empty */
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set transfer-source-v6");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE maybe_wild_ip4_only_addr
+	{
+		tmpres = dns_c_ctx_setnotifysource(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine notify-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set notify-source");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE maybe_wild_ip4_only_addr L_PORT maybe_wild_port
+	{
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_ctx_setnotifysource(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine notify-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set notify-source");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE_V6 maybe_wild_ip6_only_addr
+	{
+		tmpres = dns_c_ctx_setnotifysourcev6(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine notify-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set notify-source-v6");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE_V6 maybe_wild_ip6_only_addr L_PORT maybe_wild_port
+	{
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_ctx_setnotifysourcev6(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine notify-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set notify-source-v6");
 			YYABORT;
 		}
 	}
@@ -4138,6 +4194,78 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_NOTIFY_SOURCE maybe_wild_ip4_only_addr
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setnotifysource(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view notify-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view notify-source");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE maybe_wild_ip4_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_view_setnotifysource(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view notify-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view notify-source");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE_V6 maybe_wild_ip6_only_addr
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setnotifysourcev6(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view "
+				     "notify-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view notify-source-v6");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE_V6 maybe_wild_ip6_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_view_setnotifysourcev6(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view "
+				     "notify-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view notify-source-v6");
+			YYABORT;
+		}
+	}
 	| L_MAX_TRANSFER_TIME_OUT L_INTEGER
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -4908,7 +5036,8 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
 	L_ENABLE_ZONE | L_DATABASE | L_PORT | L_MIN_RETRY_TIME |
 	L_MAX_RETRY_TIME | L_MIN_REFRESH_TIME | L_MAX_REFRESH_TIME |
-	L_ZONE_STATISTICS
+	L_ZONE_STATISTICS | L_NOTIFY_SOURCE |
+	L_NOTIFY_SOURCE_V6
 #ifndef NOMINUM_PUBLIC
 	| L_ALLOW_NOTIFY | L_NOTIFY_FORWARD | L_MAX_NAMES 
 #endif /* NOMINUM_PUBLIC */
@@ -5055,6 +5184,78 @@ zone_option: L_FILE L_QSTRING
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set zone transfer-source-v6");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE maybe_wild_ip4_only_addr
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setnotifysource(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone notify-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone notify-source");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE maybe_wild_ip4_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_zone_setnotifysource(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone notify-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone notify-source");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE_V6 maybe_wild_ip6_only_addr
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setnotifysourcev6(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone "
+				     "notify-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone notify-source-v6");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_SOURCE_V6 maybe_wild_ip6_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_zone_setnotifysourcev6(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone "
+				     "notify-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone notify-source-v6");
 			YYABORT;
 		}
 	}
@@ -6065,6 +6266,8 @@ static struct token keyword_tokens [] = {
 	{ "ndots",			L_NDOTS },
 	{ "no",				L_NO },
 	{ "notify",			L_NOTIFY },
+	{ "notify-source",		L_NOTIFY_SOURCE },
+	{ "notify-source-v6",		L_NOTIFY_SOURCE_V6 },
 #ifndef NOMINUM_PUBLIC
 	{ "notify-forward",		L_NOTIFY_FORWARD },
 #endif /* NOMINUM_PUBLIC */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.47 2000/11/07 23:49:41 mws Exp $ */
+/* $Id: confzone.h,v 1.48 2000/11/25 02:43:55 marka Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -120,6 +120,8 @@ struct dns_c_master_zone {
 	isc_uint32_t		max_names;
 #endif /* NOMINUM_PUBLIC */
 	
+	isc_sockaddr_t		notify_source;
+	isc_sockaddr_t		notify_source_v6;
 	isc_sockaddr_t		transfer_source;
 	isc_sockaddr_t		transfer_source_v6;
 	isc_uint32_t		min_retry_time;
@@ -158,6 +160,8 @@ struct dns_c_slave_zone {
 	dns_c_pklist_t	       *pubkeylist;
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
+	isc_sockaddr_t		notify_source;
+	isc_sockaddr_t		notify_source_v6;
 	isc_sockaddr_t		transfer_source;
 	isc_sockaddr_t		transfer_source_v6;
 	isc_uint32_t		max_trans_time_in;
@@ -416,10 +420,22 @@ isc_result_t dns_c_zone_gettransfersource(dns_c_zone_t *zone,
 					  isc_sockaddr_t *retval);
 
 
+isc_result_t dns_c_zone_setnotifysource(dns_c_zone_t *zone,
+					isc_sockaddr_t newval);
+isc_result_t dns_c_zone_getnotifysource(dns_c_zone_t *zone,
+					isc_sockaddr_t *retval);
+
+
 isc_result_t dns_c_zone_settransfersourcev6(dns_c_zone_t *zone,
 					    isc_sockaddr_t newval);
 isc_result_t dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone,
 					    isc_sockaddr_t *retval);
+
+
+isc_result_t dns_c_zone_setnotifysourcev6(dns_c_zone_t *zone,
+					  isc_sockaddr_t newval);
+isc_result_t dns_c_zone_getnotifysourcev6(dns_c_zone_t *zone,
+					  isc_sockaddr_t *retval);
 
 
 isc_result_t dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.43 2000/11/07 23:49:40 mws Exp $ */
+/* $Id: confview.h,v 1.44 2000/11/25 02:43:54 marka Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -135,6 +135,8 @@ struct dns_c_view {
 
 	isc_sockaddr_t	       *query_source;
 	isc_sockaddr_t	       *query_source_v6;
+	isc_sockaddr_t	       *notify_source;
+	isc_sockaddr_t	       *notify_source_v6;
 	isc_sockaddr_t	       *transfer_source;
 	isc_sockaddr_t	       *transfer_source_v6;
 
@@ -423,6 +425,22 @@ isc_result_t dns_c_view_settransfersourcev6(dns_c_view_t *view,
 isc_result_t dns_c_view_gettransfersourcev6(dns_c_view_t *view,
 					   isc_sockaddr_t *transfer_source_v6);
 isc_result_t dns_c_view_unsettransfersourcev6(dns_c_view_t *view);
+
+
+
+isc_result_t dns_c_view_setnotifysource(dns_c_view_t *view,
+					isc_sockaddr_t notify_source);
+isc_result_t dns_c_view_getnotifysource(dns_c_view_t *view,
+					isc_sockaddr_t *notify_source);
+isc_result_t dns_c_view_unsetnotifysource(dns_c_view_t *view);
+
+
+
+isc_result_t dns_c_view_setnotifysourcev6(dns_c_view_t *view,
+					  isc_sockaddr_t notify_source_v6);
+isc_result_t dns_c_view_getnotifysourcev6(dns_c_view_t *view,
+					  isc_sockaddr_t *notify_source_v6);
+isc_result_t dns_c_view_unsetnotifysourcev6(dns_c_view_t *view);
 
 
 

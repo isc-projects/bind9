@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.56 2000/11/15 23:11:23 tale Exp $ */
+/* $Id: confview.c,v 1.57 2000/11/25 02:43:50 marka Exp $ */
 
 #include <config.h>
 
@@ -507,6 +507,8 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->additional_from_cache = NULL;
 	view->additional_from_auth = NULL;
 
+	view->notify_source = NULL;
+	view->notify_source_v6 = NULL;
 	view->transfer_source = NULL;
 	view->transfer_source_v6 = NULL;
 	view->query_source = NULL;
@@ -750,6 +752,9 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_AS_BOOLEAN(notify_forward, "notify-forward");
 #endif /* NOMINUM_PUBLIC */
 
+	PRINT_IPANDPORT(notify_source, "notify-source");
+	PRINT_IPANDPORT(notify_source_v6, "notify-source-v6");
+
 	PRINT_IPANDPORT(transfer_source, "transfer-source");
 	PRINT_IPANDPORT(transfer_source_v6, "transfer-source-v6");
 
@@ -902,6 +907,8 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(additional_from_auth);
 	FREEFIELD(additional_from_cache);
 
+	FREEFIELD(notify_source);
+	FREEFIELD(notify_source_v6);
 	FREEFIELD(transfer_source);
 	FREEFIELD(transfer_source_v6);
 	FREEFIELD(query_source);
@@ -1550,6 +1557,8 @@ BOOL_FUNCS(rfc2308type1, rfc2308_type1)
 BOOL_FUNCS(additionalfromcache, additional_from_cache)
 BOOL_FUNCS(additionalfromauth, additional_from_auth)
 
+SOCKADDR_FUNCS(notifysource, notify_source)
+SOCKADDR_FUNCS(notifysourcev6, notify_source_v6)
 SOCKADDR_FUNCS(transfersource, transfer_source)
 SOCKADDR_FUNCS(transfersourcev6, transfer_source_v6)
 SOCKADDR_FUNCS(querysource, query_source)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.64 2000/11/15 23:12:27 tale Exp $ */
+/* $Id: confzone.c,v 1.65 2000/11/25 02:43:51 marka Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,8 @@
 #define	MZ_TRANSFER_SOURCE_BIT		14
 #define	MZ_TRANSFER_SOURCE_V6_BIT	15
 #define MZ_STATISTICS_BIT		16
+#define	MZ_NOTIFY_SOURCE_BIT		18
+#define	MZ_NOTIFY_SOURCE_V6_BIT		19
 
 /*
  * Bit positions in the dns_c_slavezone_t structure setflags field.
@@ -80,6 +82,8 @@
 #define SZ_NOTIFY_RELAY_BIT			19
 #endif /* NOMINUM_PUBLIC */
 #define SZ_STATISTICS_BIT			20
+#define SZ_NOTIFY_SOURCE_BIT			21
+#define SZ_NOTIFY_SOURCE_V6_BIT			22
 
 
 /* Bit positions of the stub zones */
@@ -2914,6 +2918,230 @@ dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
  */
 
 isc_result_t
+dns_c_zone_setnotifysource(dns_c_zone_t *zone, isc_sockaddr_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.notify_source = newval ;
+		existed = DNS_C_CHECKBIT(MZ_NOTIFY_SOURCE_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_NOTIFY_SOURCE_BIT, &zone->u.mzone.setflags);
+		break;
+
+	case dns_c_zone_slave:
+		zone->u.szone.notify_source = newval ;
+		existed = DNS_C_CHECKBIT(SZ_NOTIFY_SOURCE_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_NOTIFY_SOURCE_BIT, &zone->u.szone.setflags);
+		break;
+
+	case dns_c_zone_stub:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "stub zones do not have a "
+			      "notify_source field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "hint zones do not have a "
+			      "notify_source field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "forward zones do not have a "
+			      "notify_source field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_getnotifysource(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_NOTIFY_SOURCE_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.notify_source ;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+
+		break;
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_NOTIFY_SOURCE_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.notify_source ;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+
+		break;
+
+	case dns_c_zone_stub:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "stub zones do not have a "
+			      "notify_source field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "hint zones do not have a "
+			      "notify_source field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "forward zones do not have a "
+			      "notify_source field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (res);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_setnotifysourcev6(dns_c_zone_t *zone, isc_sockaddr_t newval) {
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		zone->u.mzone.notify_source_v6 = newval ;
+		existed = DNS_C_CHECKBIT(MZ_NOTIFY_SOURCE_V6_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_NOTIFY_SOURCE_V6_BIT,
+			     &zone->u.mzone.setflags);
+		break;
+
+	case dns_c_zone_slave:
+		zone->u.szone.notify_source_v6 = newval ;
+		existed = DNS_C_CHECKBIT(SZ_NOTIFY_SOURCE_V6_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_NOTIFY_SOURCE_V6_BIT,
+			     &zone->u.szone.setflags);
+		break;
+
+	case dns_c_zone_stub:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "stub zones do not have a "
+			      "notify_source_v6 field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "hint zones do not have a "
+			      "notify_source_v6 field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "forward zones do not have a "
+			      "notify_source_v6 field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
+dns_c_zone_getnotifysourcev6(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		if (DNS_C_CHECKBIT(MZ_NOTIFY_SOURCE_V6_BIT,
+				   &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.notify_source_v6 ;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+
+		break;
+
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_NOTIFY_SOURCE_V6_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.notify_source_v6 ;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+
+		break;
+
+	case dns_c_zone_stub:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "stub zones do not have a "
+			      "notify_source_v6 field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "hint zones do not have a "
+			      "notify_source_v6 field");
+		return (ISC_R_FAILURE);
+
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "forward zones do not have a "
+			      "notify_source_v6 field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (res);
+}
+
+
+/*
+ *
+ */
+
+isc_result_t
 dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone, isc_uint32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 
@@ -4802,6 +5030,30 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 		fprintf(fp, ";\n");
 	}
 
+	if (DNS_C_CHECKBIT(MZ_NOTIFY_SOURCE_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "notify-source ");
+		dns_c_print_ipaddr(fp, &mzone->notify_source);
+		port = isc_sockaddr_getport(&mzone->notify_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(MZ_NOTIFY_SOURCE_V6_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "notify-source-v6 ");
+		dns_c_print_ipaddr(fp, &mzone->notify_source_v6);
+		port = isc_sockaddr_getport(&mzone->notify_source_v6);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
+	}
+
 	if (DNS_C_CHECKBIT(MZ_MAX_TRANS_IDLE_OUT_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-idle-out %d;\n",
@@ -5004,6 +5256,30 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 		fprintf(fp, "transfer-source-v6 ");
 		dns_c_print_ipaddr(fp, &szone->transfer_source_v6);
 		port = isc_sockaddr_getport(&szone->transfer_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(SZ_NOTIFY_SOURCE_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "notify-source ");
+		dns_c_print_ipaddr(fp, &szone->notify_source);
+		port = isc_sockaddr_getport(&szone->notify_source);
+		if (port == 0)
+			fprintf(fp, " port *");
+		else
+			fprintf(fp, " port %u", port);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(SZ_NOTIFY_SOURCE_V6_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "notify-source-v6 ");
+		dns_c_print_ipaddr(fp, &szone->notify_source_v6);
+		port = isc_sockaddr_getport(&szone->notify_source);
 		if (port == 0)
 			fprintf(fp, " port *");
 		else
