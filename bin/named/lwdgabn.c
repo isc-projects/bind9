@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.6 2000/08/01 01:11:47 tale Exp $ */
+/* $Id: lwdgabn.c,v 1.7 2000/10/12 20:45:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -177,8 +177,7 @@ generate_reply(ns_lwdclient_t *client) {
 	r.length = lwb.used;
 	client->sendbuf = r.base;
 	client->sendlength = r.length;
-	result = isc_socket_sendto(cm->sock, &r, cm->task, ns_lwdclient_send,
-				   client, &client->address, NULL);
+	result = ns_lwdclient_sendreply(client, &r);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 

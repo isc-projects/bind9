@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwderror.c,v 1.4 2000/08/01 01:11:46 tale Exp $ */
+/* $Id: lwderror.c,v 1.5 2000/10/12 20:45:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -71,8 +71,7 @@ ns_lwdclient_errorpktsend(ns_lwdclient_t *client, isc_uint32_t _result) {
 	r.base = client->buffer;
 	r.length = b.used;
 	client->sendbuf = client->buffer;
-	result = isc_socket_sendto(cm->sock, &r, cm->task, ns_lwdclient_send,
-				   client, &client->address, NULL);
+	result = ns_lwdclient_sendreply(client, &r);
 	if (result != ISC_R_SUCCESS) {
 		ns_lwdclient_stateidle(client);
 		return;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.6 2000/08/01 01:11:48 tale Exp $ */
+/* $Id: lwdgnba.c,v 1.7 2000/10/12 20:45:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -151,9 +151,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	r.length = lwb.used;
 	client->sendbuf = r.base;
 	client->sendlength = r.length;
-	result = isc_socket_sendto(cm->sock, &r,
-				   cm->task, ns_lwdclient_send,
-				   client, &client->address, NULL);
+	result = ns_lwdclient_sendreply(client, &r);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.8 2000/10/04 23:18:51 bwelling Exp $ */
+/* $Id: lwdclient.c,v 1.9 2000/10/12 20:45:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -238,12 +238,13 @@ ns_lwdclient_recv(isc_task_t *task, isc_event_t *ev) {
 		return;
 	}
 
-	/*
-	 * XXXMLG If we wanted to run on ipv6 as well, we'd need the pktinfo
-	 * bits.  Right now we don't, so don't remember them.
-	 */
 	client->recvlength = dev->n;
 	client->address = dev->address;
+	if ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
+		client->pktinfo = dev->pktinfo;
+		client->pktinfo_valid = ISC_TRUE;
+	} else
+		client->pktinfo_valid = ISC_FALSE;
 	isc_event_free(&ev);
 	dev = NULL;
 
@@ -406,6 +407,19 @@ ns_lwdclient_send(isc_task_t *task, isc_event_t *ev) {
 	isc_event_free(&ev);
 }
 
+isc_result_t
+ns_lwdclient_sendreply(ns_lwdclient_t *client, isc_region_t *r) {
+	struct in6_pktinfo *pktinfo;
+	ns_lwdclientmgr_t *cm = client->clientmgr;
+
+	if (client->pktinfo_valid)
+		pktinfo = &client->pktinfo;
+	else
+		pktinfo = NULL;
+	return (isc_socket_sendto(cm->sock, r, cm->task, ns_lwdclient_send,
+				  client, &client->address, pktinfo));
+}
+
 void
 ns_lwdclient_initialize(ns_lwdclient_t *client, ns_lwdclientmgr_t *cmgr) {
 	client->clientmgr = cmgr;
@@ -426,6 +440,8 @@ ns_lwdclient_initialize(ns_lwdclient_t *client, ns_lwdclientmgr_t *cmgr) {
 	client->options = 0;
 	client->byaddr = NULL;
 	client->addrinfo = NULL;
+
+	client->pktinfo_valid = ISC_FALSE;
 
 	ISC_LIST_APPEND(cmgr->idle, client, link);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.6 2000/09/07 21:54:39 explorer Exp $ */
+/* $Id: lwdclient.h,v 1.7 2000/10/12 20:45:19 bwelling Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
@@ -37,10 +37,12 @@
 
 struct ns_lwdclient {
 	isc_sockaddr_t		address;	/* where to reply */
+	struct in6_pktinfo	pktinfo;
+	isc_boolean_t		pktinfo_valid;
 	ns_lwdclientmgr_t	*clientmgr;	/* our parent */
 	ISC_LINK(ns_lwdclient_t) link;
 	unsigned int		state;
-	void		       *arg;		/* packet processing state */
+	void			*arg;		/* packet processing state */
 
 	/*
 	 * Received data info.
@@ -196,6 +198,9 @@ ns_lwdclient_shutdown(isc_task_t *, isc_event_t *);
 
 void
 ns_lwdclient_send(isc_task_t *, isc_event_t *);
+
+isc_result_t
+ns_lwdclient_sendreply(ns_lwdclient_t *client, isc_region_t *r);
 
 /*
  * Processing functions of various types.

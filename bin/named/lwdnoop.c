@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdnoop.c,v 1.4 2000/08/01 01:11:49 tale Exp $ */
+/* $Id: lwdnoop.c,v 1.5 2000/10/12 20:45:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -61,9 +61,7 @@ ns_lwdclient_processnoop(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	r.length = lwb.used;
 	client->sendbuf = r.base;
 	client->sendlength = r.length;
-	result = isc_socket_sendto(client->clientmgr->sock, &r,
-				   client->clientmgr->task, ns_lwdclient_send,
-				   client, &client->address, NULL);
+	result = ns_lwdclient_sendreply(client, &r);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
