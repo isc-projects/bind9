@@ -435,6 +435,8 @@ isc_timermgr_poke
 isc_net_probe_ipv6pktinfo
 isc_string_strlcat
 isc_string_strlcpy
+isc_netaddr_prefixok
+isc_sockaddr_compare
 
 ; Exported Data
 

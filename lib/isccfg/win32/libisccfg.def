@@ -36,8 +36,8 @@ cfg_obj_log
 cfg_log_init
 cfg_obj_line
 cfg_obj_file
-
-
+cfg_acl_fromconfig
+cfg_aclconfctx_init
 
 ; Exported Data
 

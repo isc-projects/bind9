@@ -753,4 +753,17 @@ dns_resolver_resetmustbesecure
 dns_resolver_setmustbesecure
 dns_dumpctx_detach
 dns_master_dumptostreaminc
+dns_acache_setdb
+dns_acache_attach
+dns_acache_detach
+dns_acache_putdb
+dns_acache_shutdown
+dns_acache_cancelentry
+dns_acache_createentry
+dns_acache_setdb
+dns_acache_setentry
+dns_acache_getentry
+dns_acache_attachentry
+dns_acache_detachentry
+
 
