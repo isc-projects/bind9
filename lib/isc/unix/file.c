@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.26 2000/10/20 22:09:01 gson Exp $ */
+/* $Id: file.c,v 1.27 2000/12/27 17:21:53 tale Exp $ */
 
 #include <config.h>
 
@@ -163,8 +163,8 @@ isc_file_renameunique(const char *file, char *templet) {
 	if (result == ISC_R_SUCCESS) {
 		res = rename(file, templet);
 		if (res != 0) {
-			(void)unlink(templet);
 			result = isc__errno2result(errno);
+			(void)unlink(templet);
 		}
 	}
 	if (fd != -1)
