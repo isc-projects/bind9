@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.54 2000/06/09 23:31:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.55 2000/06/12 07:07:53 bwelling Exp $
  */
 
 #include <config.h>
@@ -156,11 +156,14 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
 	isc_result_t result;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(VALID_KEY(key));
 	REQUIRE(mctx != NULL);
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
 	if (key->func->createctx == NULL)
 		return (DST_R_UNSUPPORTEDALG);
+	if (key->opaque == NULL)
+		return (DST_R_NULLKEY);
 
 	dctx = isc_mem_get(mctx, sizeof(dst_context_t));
 	if (dctx == NULL)
