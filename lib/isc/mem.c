@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.102 2001/09/06 23:03:01 gson Exp $ */
+/* $Id: mem.c,v 1.103 2001/10/12 00:35:11 gson Exp $ */
 
 #include <config.h>
 
@@ -486,6 +486,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size) {
 		 * don't own.
 		 */
 		new_size = size;
+		goto done;
 	}
 
 	/*

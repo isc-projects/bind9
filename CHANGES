@@ -1,3 +1,6 @@
+1048.	[bug]		Servers built with -DISC_MEM_USE_INTERNAL_MALLOC=1
+			didn't work.
+
 1047.	[bug]		When a request was refused due to being signed with
 			a TSIG key derived from an unsigned TKEY negotiation,
 			the response could have an rcode of SUCCESS rather
