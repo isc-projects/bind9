@@ -36,6 +36,16 @@
 #define UNLOCK(l)
 #endif
 
+#ifndef ISC_MEM_FILL
+	/*
+	 * XXXMPA
+	 * We want this on during development to catch:
+	 * 1. some reference after free bugs.
+	 * 2. some failure to initalise bugs.
+	 */
+#define ISC_MEM_FILL 1
+#endif
+
 /*
  * Types.
  */
