@@ -311,8 +311,12 @@ Updates will be rejected if the tests for the prerequisite conditions fail.</P
 and zero or more updates.
 This allows a suitably authenticated update request to proceed if some
 specified resource records are present or missing from the zone.
-A blank input line causes the accumulated commands to be sent as one Dynamic
-DNS update request to the name server.</P
+A blank input line (or the <B
+CLASS="COMMAND"
+>send</B
+> command) causes the
+accumulated commands to be sent as one Dynamic DNS update request to the
+name server.</P
 ><P
 >The command formats and their meaning are as follows:
 <P
@@ -716,6 +720,29 @@ CLASS="PARAMETER"
 ></TT
 >.</P
 ></DD
+><DT
+><P
+><B
+CLASS="COMMAND"
+>show</B
+> </P
+></DT
+><DD
+><P
+>Displays the current message, containing all of the prerequisites and
+updates specified since the last send.</P
+></DD
+><DT
+><P
+><B
+CLASS="COMMAND"
+>send</B
+> </P
+></DT
+><DD
+><P
+>Sends the current message.  This is equivalent to entering a blank line.</P
+></DD
 ></DL
 ></DIV
 >&#13;</P
@@ -725,7 +752,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN210"
+NAME="AEN223"
 ></A
 ><H2
 >EXAMPLES</H2
@@ -796,7 +823,7 @@ SIG, KEY and NXT records.)</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN223"
+NAME="AEN236"
 ></A
 ><H2
 >FILES</H2
@@ -852,7 +879,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN247"
+NAME="AEN260"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -917,7 +944,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN268"
+NAME="AEN281"
 ></A
 ><H2
 >BUGS</H2
