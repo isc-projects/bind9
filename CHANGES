@@ -1,4 +1,7 @@
 
+ 340.	[bug]		The top-level COPYRIGHT file was missing from
+			the distribution.
+
  337.	[bug]		"dig" did not recognize "nsap-ptr" as an RR type
 			on the command line.
 
