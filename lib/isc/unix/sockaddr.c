@@ -51,8 +51,8 @@ isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
 	case AF_INET: {
 		struct sockaddr_in *sina, *sinb;
 
-		sina = (struct sockaddr_in)sa;
-		sinb = (struct sockaddr_in)sb;
+		sina = (struct sockaddr_in *)sa;
+		sinb = (struct sockaddr_in *)sb;
 
 		if (sina->sin_port != sinb->sin_port)
 			return (ISC_FALSE);
