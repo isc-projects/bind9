@@ -1955,8 +1955,8 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 	dns_name_t lp, ls;
 	isc_boolean_t gf;
 	isc_boolean_t lf;
-	isc_int16_t go;
-	isc_int16_t lo;
+	isc_uint16_t go;
+	isc_uint16_t lo;
 	unsigned char gb[257];
 	unsigned char lb[257];
 	isc_buffer_t gws;
