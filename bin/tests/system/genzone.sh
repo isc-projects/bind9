@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: genzone.sh,v 1.1 2001/09/07 23:29:03 gson Exp $
+# $Id: genzone.sh,v 1.2 2001/12/12 06:23:52 marka Exp $
 
 #
 # Set up a test zone
@@ -57,12 +57,12 @@ a02			A	255.255.255.255
 ; see NS records at top of file
 
 ; type 3
-md01			MD	madname
-			MD	.
+; md01			MD	madname
+; 			MD	.
 
 ; type 4
-mf01			MF	madname
-mf01			MF	.
+; mf01			MF	madname
+; mf01			MF	.
 
 ; type 5
 cname01			CNAME	cname-target.
