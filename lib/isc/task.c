@@ -51,7 +51,7 @@ struct task {
 	/* Locked by task lock. */
 	task_state_t			state;
 	unsigned int			references;
-	task_eventlist_t			events;
+	task_eventlist_t		events;
 	unsigned int			quantum;
 	boolean_t			enqueue_allowed;
 	task_event_t			shutdown_event;
@@ -79,8 +79,8 @@ struct task_manager {
 	os_condition_t			no_workers;
 };
 
-#define DEFAULT_DEFAULT_QUANTUM	5
-#define FINISHED(m)		((m)->exiting && EMPTY((m)->tasks))
+#define DEFAULT_DEFAULT_QUANTUM		5
+#define FINISHED(m)			((m)->exiting && EMPTY((m)->tasks))
 
 
 /***
