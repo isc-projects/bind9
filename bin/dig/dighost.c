@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.19 2004/10/05 03:00:57 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.20 2004/11/22 23:30:31 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2613,11 +2613,26 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		else
 			isc_sockaddr_any6(&any);
 
+#ifdef ISC_PLATFORM_HAVESCOPEID
 		/*
-		* We don't expect a match when the packet is 
-		* sent to 0.0.0.0, :: or to a multicast addresses.
-		* XXXMPA broadcast needs to be handled here as well.
-		*/
+		 * Accept answers from any scope if we havn't specified the
+		 * scope as long as the address and port match.
+		 */
+		if (isc_sockaddr_pf(&query->sockaddr) == AF_INET6 &&
+		    query->sockaddr.type.sin6.sin6_scope_id == 0 &&
+		    memcmp(&sevent->address.type.sin6.sin6_addr,
+			   &query->sockaddr.type.sin6.sin6_addr,
+			   sizeof(query->sockaddr.type.sin6.sin6_addr)) == 0 &&
+		    isc_sockaddr_getport(&sevent->address) ==
+		    isc_sockaddr_getport(&query->sockaddr))
+			/* empty */;
+		else
+#endif
+		/*
+		 * We don't expect a match above when the packet is 
+		 * sent to 0.0.0.0, :: or to a multicast addresses.
+		 * XXXMPA broadcast needs to be handled here as well.
+		 */
 		if ((!isc_sockaddr_eqaddr(&query->sockaddr, &any) &&
 		     !isc_sockaddr_ismulticast(&query->sockaddr)) ||
 		    isc_sockaddr_getport(&query->sockaddr) !=
