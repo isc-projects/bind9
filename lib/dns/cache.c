@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.47 2001/10/18 01:48:35 gson Exp $ */
+/* $Id: cache.c,v 1.48 2001/10/23 00:56:33 gson Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,14 @@ typedef enum {
  * task/event serialization, or locked from the cache object.
  */
 struct cache_cleaner {
+	isc_mutex_t	lock;
+	/*
+	 * Locks overmem_event, overmem.  Note: never allocate memory
+	 * while holding this lock - that could lead to deadlock since
+	 * the lock is take by water() which is called from the memory
+	 * allocator.
+	 */
+
 	dns_cache_t	*cache;
 	isc_task_t 	*task;
 	unsigned int	cleaning_interval; /* The cleaning-interval from
@@ -272,6 +280,8 @@ cache_free(dns_cache_t *cache) {
 	if (cache->cleaner.iterator != NULL)
 		dns_dbiterator_destroy(&cache->cleaner.iterator);
 
+	DESTROYLOCK(&cache->cleaner.lock);
+
 	if (cache->filename) {
 		isc_mem_free(cache->mctx, cache->filename);
 		cache->filename = NULL;
@@ -459,6 +469,15 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 {
 	isc_result_t result;
 
+	result = isc_mutex_init(&cleaner->lock);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init() failed: %s",
+				 dns_result_totext(result));
+		result = ISC_R_UNEXPECTED;
+		goto fail;
+	}
+
 	cleaner->increment = DNS_CACHE_CLEANERINCREMENT;
 	cleaner->state = cleaner_s_idle;
 	cleaner->cache = cache;
@@ -536,7 +555,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		isc_timer_detach(&cleaner->cleaning_timer);
 	if (cleaner->task != NULL)
 		isc_task_detach(&cleaner->task);
-
+ fail:
 	return (result);
 }
 
@@ -639,6 +658,7 @@ cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 static void
 overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->ev_arg;
+	isc_boolean_t want_cleaning = ISC_FALSE;
 	
 	UNUSED(task);
 
@@ -651,9 +671,11 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 		      "overmem = %d, state = %d", cleaner->overmem,
 		      cleaner->state);
 
+	LOCK(&cleaner->lock);
+
 	if (cleaner->overmem) {
 		if (cleaner->state == cleaner_s_idle)
-			begin_cleaning(cleaner);
+			want_cleaning = ISC_TRUE;
 	} else {
 		if (cleaner->state == cleaner_s_busy)
 			/*
@@ -668,6 +690,11 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	}
 
 	cleaner->overmem_event = event;
+
+	UNLOCK(&cleaner->lock);
+
+	if (want_cleaning)
+		begin_cleaning(cleaner);
 }
 
 /*
@@ -833,12 +860,16 @@ water(void *arg, int mark) {
 
 	REQUIRE(VALID_CACHE(cache));
 
+	LOCK(&cache->cleaner.lock);
+	
 	dns_db_overmem(cache->db, overmem);
 	cache->cleaner.overmem = overmem;
 
 	if (cache->cleaner.overmem_event != NULL)
 		isc_task_send(cache->cleaner.task,
 			      &cache->cleaner.overmem_event);
+
+	UNLOCK(&cache->cleaner.lock);
 }
 
 void
