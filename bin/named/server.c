@@ -1137,7 +1137,7 @@ ns_server_reloadwanted(ns_server_t *server) {
 	UNLOCK(&server->reload_event_lock);
 }
 
-isc_result_t
+static isc_result_t
 ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
 			  dns_aclconfctx_t *actx,
 			  isc_mem_t *mctx, ns_listenlist_t **target)

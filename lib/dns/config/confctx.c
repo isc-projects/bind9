@@ -3961,7 +3961,7 @@ cfg_set_iplist(dns_c_options_t *options,
 }
 
 
-isc_result_t
+static isc_result_t
 cfg_set_ipmatchlist(dns_c_options_t *options,
 		    dns_c_ipmatchlist_t **fieldaddr,
 		    dns_c_ipmatchlist_t *newval,
