@@ -10,6 +10,7 @@ chroot		open		marka
 edns_size	review		explorer
 rt4347		review		explorer
 slavefix	review		explorer
+rt5033		review		explorer
 
 a6_remove	closed
 adb_race	closed		explorer
