@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58.2.5 2000/07/12 00:52:57 gson Exp $ */
+/* $Id: dighost.c,v 1.58.2.6 2000/07/17 19:40:51 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -102,7 +102,7 @@ isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
 isc_entropy_t *entp = NULL;
-
+isc_mempool_t *commctx = NULL;
 extern isc_boolean_t isc_mem_debugging;
 isc_boolean_t debugging = ISC_FALSE;
 char *progname = NULL;
@@ -140,7 +140,6 @@ hex_dump(isc_buffer_t *b) {
 	if (len % 16 != 0)
 		printf("\n");
 }
-
 
 void
 fatal(const char *format, ...) {
@@ -252,7 +251,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	strncpy(looknew->rttext, lookold-> rttext, 32);
 	strncpy(looknew->rctext, lookold-> rctext, 32);
 	looknew->namespace[0] = 0;
-	looknew->sendspace[0] = 0;
+	looknew->sendspace = NULL;
 	looknew->sendmsg = NULL;
 	looknew->name = NULL;
 	looknew->oname = NULL;
@@ -566,6 +565,16 @@ setup_libs(void) {
 	result = dst_lib_init(mctx, entp, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
+
+	result = isc_mempool_create(mctx, COMMSIZE, &commctx);
+	check_result(result, "isc_mempool_create");
+	isc_mempool_setname(commctx, "COMMPOOL");
+	/*
+	 * 6 and 2 set as reasonable parameters for 3 or 4 nameserver
+	 * systems.
+	 */
+	isc_mempool_setfreemax(commctx, 6);
+	isc_mempool_setfillcount(commctx, 2);
 }
 
 static void
@@ -1079,6 +1088,10 @@ setup_lookup(dig_lookup_t *lookup) {
 		lookup->querysig = NULL;
 	}
 
+	lookup->sendspace = isc_mempool_get(commctx);
+	if (lookup->sendspace == NULL)
+		fatal("memory allocation failure");
+
 	debug("starting to render the message");
 	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
@@ -1122,6 +1135,9 @@ setup_lookup(dig_lookup_t *lookup) {
 		ISC_LIST_INIT(query->recvlist);
 		ISC_LIST_INIT(query->lengthlist);
 		query->sock = NULL;
+		query->recvspace = isc_mempool_get(commctx);
+		if (query->recvspace == NULL)
+			fatal("memory allocation failure");
 
 		isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
 		isc_buffer_init(&query->lengthbuf, query->lengthspace, 2);
@@ -2148,6 +2164,8 @@ free_lists(void) {
 			if (ISC_LINK_LINKED(&q->lengthbuf, link))
 				ISC_LIST_DEQUEUE(q->lengthlist, &q->lengthbuf,
 						 link);
+			INSIST(q->recvspace != NULL);
+			isc_mempool_put(commctx, q->recvspace);
 			isc_buffer_invalidate(&q->recvbuf);
 			isc_buffer_invalidate(&q->lengthbuf);
 			ptr = q;
@@ -2167,6 +2185,8 @@ free_lists(void) {
 		}
 		if (l->sendmsg != NULL)
 			dns_message_destroy(&l->sendmsg);
+		if (l->sendspace != NULL)
+			isc_mempool_put(commctx, l->sendspace);
 		if (l->querysig != NULL) {
 			debug("freeing buffer %p", l->querysig);
 			isc_buffer_free(&l->querysig);
@@ -2189,5 +2209,9 @@ free_lists(void) {
 	if (entp != NULL) {
 		debug("detach from entropy");
 		isc_entropy_detach(&entp);
+	}
+	if (commctx != NULL) {
+		debug("freeing commctx");
+		isc_mempool_destroy(&commctx);
 	}
 }

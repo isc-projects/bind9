@@ -1,3 +1,8 @@
+
+ 336.	[bug]		"dig -f" used 64 k of memory for each line in
+			the file.  It now uses much less, though still
+			proportionally to the file size.
+
  335.	[bug]		named would occasionally attempt recursion when
 			it was disallowed or undesired.
 

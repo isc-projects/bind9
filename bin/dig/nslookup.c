@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20.2.1 2000/07/10 19:11:38 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.20.2.2 2000/07/17 19:40:54 gson Exp $ */
 
 #include <config.h>
 
@@ -651,7 +651,7 @@ addlookup(char *opt) {
 	strncpy (lookup->rttext, deftype, MXNAME);
 	strncpy (lookup->rctext, defclass, MXNAME);
 	lookup->namespace[0]=0;
-	lookup->sendspace[0]=0;
+	lookup->sendspace = NULL;
 	lookup->sendmsg=NULL;
 	lookup->name=NULL;
 	lookup->oname=NULL;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.29.2.3 2000/07/10 19:11:37 bwelling Exp $ */
+/* $Id: host.c,v 1.29.2.4 2000/07/17 19:40:53 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -661,7 +661,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	strncpy(lookup->rttext, querytype, 32);
 	strncpy(lookup->rctext, queryclass, 32);
 	lookup->namespace[0] = 0;
-	lookup->sendspace[0] = 0;
+	lookup->sendspace = NULL;
 	lookup->sendmsg = NULL;
 	lookup->name = NULL;
 	lookup->oname = NULL;

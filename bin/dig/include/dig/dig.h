@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.25.2.2 2000/07/10 19:11:40 bwelling Exp $ */
+/* $Id: dig.h,v 1.25.2.3 2000/07/17 19:40:55 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -99,7 +99,7 @@ struct dig_lookup {
 	isc_buffer_t namebuf;
 	isc_buffer_t onamebuf;
 	isc_buffer_t sendbuf;
-	char sendspace[COMMSIZE];
+	char *sendspace;
 	dns_name_t *name;
 	isc_timer_t *timer;
 	isc_interval_t interval;
@@ -139,7 +139,7 @@ struct dig_query {
 	isc_buffer_t recvbuf,
 		lengthbuf,
 		slbuf;
-	char recvspace[COMMSIZE],
+	char *recvspace,
 		lengthspace[4],
 		slspace[4];
 	isc_socket_t *sock;
