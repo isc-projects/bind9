@@ -94,7 +94,7 @@ typedef union isc_symvalue {
 } isc_symvalue_t;
 
 typedef void (*isc_symtabaction_t)(char *key, unsigned int type,
-				   isc_symvalue_t value);
+				   isc_symvalue_t value, void *userarg);
 
 typedef enum {
 	isc_symexists_reject = 0,
@@ -107,6 +107,7 @@ typedef struct isc_symtab		isc_symtab_t;
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action,
+		  void *undefine_arg,
 		  isc_boolean_t case_sensitive,
 		  isc_symtab_t **symtabp);
 

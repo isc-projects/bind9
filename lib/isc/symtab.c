@@ -47,12 +47,14 @@ struct isc_symtab {
 	unsigned int			size;
 	eltlist_t *			table;
 	isc_symtabaction_t		undefine_action;
+	void *				undefine_arg;
 	isc_boolean_t			case_sensitive;
 };
 
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action,
+		  void *undefine_arg,
 		  isc_boolean_t case_sensitive,
 		  isc_symtab_t **symtabp)
 {
@@ -77,6 +79,7 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 	symtab->mctx = mctx;
 	symtab->size = size;
 	symtab->undefine_action = undefine_action;
+	symtab->undefine_arg = undefine_arg;
 	symtab->case_sensitive = case_sensitive;
 	symtab->magic = SYMTAB_MAGIC;
 
@@ -101,7 +104,8 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 			if (symtab->undefine_action != NULL)
 				(symtab->undefine_action)(elt->key,
 							  elt->type,
-							  elt->value);
+							  elt->value,
+							  symtab->undefine_arg);
 			isc_mem_put(symtab->mctx, elt, sizeof *elt);
 		}
 	}
@@ -207,7 +211,8 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 		UNLINK(symtab->table[bucket], elt, link);
 		if (symtab->undefine_action != NULL)
 			(symtab->undefine_action)(elt->key, elt->type,
-						  elt->value);
+						  elt->value,
+						  symtab->undefine_arg);
 	} else {
 		elt = (elt_t *)isc_mem_get(symtab->mctx, sizeof *elt);
 		if (elt == NULL)
@@ -239,7 +244,8 @@ isc_symtab_undefine(isc_symtab_t *symtab, char *key, unsigned int type) {
 		return (ISC_R_NOTFOUND);
 
 	if (symtab->undefine_action != NULL)
-		(symtab->undefine_action)(elt->key, elt->type, elt->value);
+		(symtab->undefine_action)(elt->key, elt->type,
+					  elt->value, symtab->undefine_arg);
 	UNLINK(symtab->table[bucket], elt, link);
 	isc_mem_put(symtab->mctx, elt, sizeof *elt);
 
