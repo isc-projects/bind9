@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4.8.3 2003/08/04 08:06:47 marka Exp $ */
+/* $Id: os.c,v 1.46.2.4.8.4 2003/08/06 06:03:23 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -484,6 +484,9 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	report = first_time ? ns_main_earlyfatal : ns_main_earlywarning;
 
 	cleanup_pidfile();
+
+	if (filename == NULL)
+		return;
 
 	len = strlen(filename);
 	pidfile = malloc(len + 1);

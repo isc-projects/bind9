@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.4 2003/08/04 08:06:46 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.5 2003/08/06 06:03:22 marka Exp $ */
 
 #include <config.h>
 
@@ -937,6 +937,9 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 
 	result = ns_config_get(maps, "version", &obj);
 	INSIST(result == ISC_R_SUCCESS);
+	if (cfg_obj_isvoid(obj))
+		return (ISC_R_SUCCESS);
+	
 	versiontext = cfg_obj_asstring(obj);
 	len = strlen(versiontext);
 	if (len > 255U)
@@ -1019,10 +1022,10 @@ create_hostname_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 
 	result = ns_config_get(maps, "hostname", &obj);
 	if (result == ISC_R_SUCCESS) {
+		if (cfg_obj_isvoid(obj))
+			return (ISC_R_SUCCESS);
 		hostnametext = cfg_obj_asstring(obj);
 		len = strlen(hostnametext);
-		if (len == 0)
-			return (ISC_R_SUCCESS);
 		if (len > 255)
 			len = 255; /* Silently truncate. */
 		buf[0] = len;
@@ -2167,7 +2170,10 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	obj = NULL;
 	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
-		ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
+		if (cfg_obj_isvoid(obj))
+			ns_os_writepidfile(NULL, first_time);
+		else
+			ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
 	else if (ns_g_lwresdonly)
 		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
 	else

@@ -1,3 +1,10 @@
+1055.	[func]		Version and hostname queries can now be disabled
+			using "version none;" and "hostname none;",
+			respectively.
+
+1049.	[func]		"pid-file none;" will disable writing a pid file.
+			[RT #1848]
+
 1037.	[bug]		Negative responses whose authority section contain
 			SOA or NS records whose owner names are not equal
 			equal to or parents of the query name should be
