@@ -2574,7 +2574,7 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	rdatasetheader_t *header, *found, *foundsig;
+	rdatasetheader_t *header, *header_next, *found, *foundsig;
 	rbtdb_serial_t serial;
 	rbtdb_version_t *rbtversion = version;
 	isc_boolean_t close_version = ISC_FALSE;
@@ -2600,7 +2600,8 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	else
 		sigmatchtype = 0;
 
-	for (header = rbtnode->data; header != NULL; header = header->next) {
+	for (header = rbtnode->data; header != NULL; header = header_next) {
+		header_next = header->next;
 		do {
 			if (header->serial <= serial &&
 			    !IGNORE(header)) {
