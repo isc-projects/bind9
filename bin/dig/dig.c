@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.150 2001/07/18 21:03:54 bwelling Exp $ */
+/* $Id: dig.c,v 1.151 2001/07/27 05:26:32 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -255,8 +255,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
  * XXX print_trying
  */
 void
-trying(int frmsize, char *frm, dig_lookup_t *lookup) {
-	UNUSED(frmsize);
+trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(frm);
 	UNUSED(lookup);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.69 2001/07/26 20:21:40 gson Exp $ */
+/* $Id: host.c,v 1.70 2001/07/27 05:26:35 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -245,11 +245,11 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
 }
 
 void
-trying(int frmsize, char *frm, dig_lookup_t *lookup) {
+trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(lookup);
 
 	if (!short_form)
-		printf("Trying \"%.*s\"\n", frmsize, frm);
+		printf("Trying \"%s\"\n", frm);
 }
 
 static void

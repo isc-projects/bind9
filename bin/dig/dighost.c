@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.210 2001/07/26 03:15:05 mayer Exp $ */
+/* $Id: dighost.c,v 1.211 2001/07/27 05:26:34 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -240,7 +240,6 @@ get_reverse(char *reverse, char *value, isc_boolean_t nibble) {
 		isc_netaddr_t addr;
 		dns_fixedname_t fname;
 		dns_name_t *name;
-		isc_buffer_t b;
 		
 		addr.family = AF_INET6;
 		n = inet_pton(AF_INET6, value, &addr.type.in6);
@@ -248,13 +247,10 @@ get_reverse(char *reverse, char *value, isc_boolean_t nibble) {
 			return (DNS_R_BADDOTTEDQUAD);
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
-		result = dns_byaddr_createptrname(&addr, nibble,
-						  name);
+		result = dns_byaddr_createptrname(&addr, nibble, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		isc_buffer_init(&b, reverse, MXNAME);
-		result = dns_name_totext(name, ISC_FALSE, &b);
-		isc_buffer_putuint8(&b, 0);
+		dns_name_format(name, reverse, MXNAME);
 	}
 	return (result);
 }
@@ -487,12 +483,10 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew = clone_lookup(lookold, servers);
 	INSIST(looknew != NULL);
 
-	debug("before insertion, init@%p "
-	       "-> %p, new@%p -> %p",
+	debug("before insertion, init@%p -> %p, new@%p -> %p",
 	      lookold, lookold->link.next, looknew, looknew->link.next);
 	ISC_LIST_PREPEND(lookup_list, looknew, link);
-	debug("after insertion, init -> "
-	      "%p, new = %p, new -> %p",
+	debug("after insertion, init -> %p, new = %p, new -> %p",
 	      lookold, looknew, looknew->link.next);
 	return (looknew);
 }
@@ -1034,18 +1028,15 @@ check_next_lookup(dig_lookup_t *lookup) {
  * NS records in a reply. Returns the number of followup lookups made.
  */
 static int
-followup_lookup(dns_message_t *msg, dig_query_t *query,
-		dns_section_t section) {
+followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
+{
 	dig_lookup_t *lookup = NULL;
 	dig_server_t *srv = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_name_t *name = NULL;
-	isc_result_t result, loopresult;
-	isc_buffer_t *b = NULL;
-	isc_region_t r;
+	isc_result_t result;
 	isc_boolean_t success = ISC_FALSE;
-	int len;
 	int numLookups = 0;
 
 	INSIST(!free_now);
@@ -1054,94 +1045,80 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 	result = dns_message_firstname(msg, section);
 
 	if (result != ISC_R_SUCCESS) {
-		debug("firstname returned %s",
-			isc_result_totext(result));
+		debug("firstname returned %s", isc_result_totext(result));
 		if ((section == DNS_SECTION_ANSWER) &&
 		    (query->lookup->trace || query->lookup->ns_search_only))
 			numLookups +=
 			    followup_lookup(msg, query, DNS_SECTION_AUTHORITY);
-		return numLookups;
+		return (numLookups);
 	}
 
 	debug("following up %s", query->lookup->textname);
 
-	for (;;) {
+	for (;
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(msg, section))
+	{
 		name = NULL;
 		dns_message_currentname(msg, section, &name);
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			loopresult = dns_rdataset_first(rdataset);
-			while (loopresult == ISC_R_SUCCESS) {
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
+			debug("got rdataset with type %d", rdataset->type);
+			if (rdataset->type != dns_rdatatype_ns)
+				continue;
+
+			for (result = dns_rdataset_first(rdataset);
+			     result == ISC_R_SUCCESS;
+			     result = dns_rdataset_next(rdataset))
+			{
+				char namestr[DNS_NAME_FORMATSIZE];
+				dns_rdata_ns_t ns;
+
+				if (query->lookup->trace_root &&
+				    query->lookup->nsfound >= MXSERV)
+					break;
+
 				dns_rdataset_current(rdataset, &rdata);
-				debug("got rdata with type %d",
-				       rdata.type);
-				if ((rdata.type == dns_rdatatype_ns) &&
-				    (!query->lookup->trace_root ||
-				     (query->lookup->nsfound < MXSERV)))
-				{
-					query->lookup->nsfound++;
-					result = isc_buffer_allocate(mctx, &b,
-								     BUFSIZE);
-					check_result(result,
-						      "isc_buffer_allocate");
-					result = dns_rdata_totext(&rdata,
-								  NULL,
-								  b);
-					check_result(result,
-						      "dns_rdata_totext");
-					isc_buffer_usedregion(b, &r);
-					len = r.length-1;
-					if (len >= MXNAME)
-						len = MXNAME-1;
+
+				query->lookup->nsfound++;
+				(void)dns_rdata_tostruct(&rdata, &ns, NULL);
+				dns_name_format(&ns.name, namestr,
+						sizeof(namestr));
+				dns_rdata_freestruct(&ns);
+
 				/* Initialize lookup if we've not yet */
-					debug("found NS %d %.*s",
-						 (int)r.length, (int)r.length,
-						 (char *)r.base);
-					numLookups++;
-					if (!success) {
-						success = ISC_TRUE;
-						lookup_counter++;
-						cancel_lookup(query->lookup);
-						lookup = requeue_lookup
-							(query->lookup,
-							 ISC_FALSE);
-						lookup->doing_xfr = ISC_FALSE;
-						if (section ==
-						    DNS_SECTION_ANSWER) {
-						      lookup->trace =
+				debug("found NS %d %s", namestr);
+				numLookups++;
+				if (!success) {
+					success = ISC_TRUE;
+					lookup_counter++;
+					cancel_lookup(query->lookup);
+					lookup = requeue_lookup(query->lookup,
+								ISC_FALSE);
+					lookup->doing_xfr = ISC_FALSE;
+					if (section == DNS_SECTION_ANSWER) {
+						lookup->trace = ISC_FALSE;
+						lookup->ns_search_only =
 								ISC_FALSE;
-						      lookup->ns_search_only =
-								ISC_FALSE;
-						} else {
-						      lookup->trace =
-								query->
-								lookup->trace;
-						      lookup->ns_search_only =
-							query->
-							lookup->ns_search_only;
-						      lookup->ns_search_only_leafnode =
-							query->
-							lookup->ns_search_only_leafnode;
-						}
-						lookup->trace_root = ISC_FALSE;
+					} else {
+						lookup->trace =
+							query->lookup->trace;
+						lookup->ns_search_only =
+							query->lookup->ns_search_only;
+						lookup->ns_search_only_leafnode =
+							query->lookup->ns_search_only_leafnode;
 					}
-					r.base[len] = 0;
-					srv = make_server((char *)r.base);
-					debug("adding server %s",
-					      srv->servername);
-					ISC_LIST_APPEND
-						(lookup->my_server_list,
-						 srv, link);
-					isc_buffer_free(&b);
+					lookup->trace_root = ISC_FALSE;
 				}
+				srv = make_server(namestr);
+				debug("adding server %s", srv->servername);
+				ISC_LIST_APPEND(lookup->my_server_list,
+						srv, link);
 				dns_rdata_reset(&rdata);
-				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
-		result = dns_message_nextname(msg, section);
-		if (result != ISC_R_SUCCESS)
-			break;
 	}
 	if ((lookup == NULL) && (section == DNS_SECTION_ANSWER) &&
 	    (query->lookup->trace || query->lookup->ns_search_only))
@@ -1263,7 +1240,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	int len;
 	dig_server_t *serv;
 	dig_query_t *query;
-	isc_region_t r;
 	isc_buffer_t b;
 	dns_compress_t cctx;
 	char store[MXNAME];
@@ -1370,11 +1346,8 @@ setup_lookup(dig_lookup_t *lookup) {
 			      dns_result_totext(result));
 		}
 	}
-	isc_buffer_init(&b, store, sizeof(store));
-	/* XXX Move some of this into function, dns_name_format. */
-	dns_name_totext(lookup->name, ISC_FALSE, &b);
-	isc_buffer_usedregion(&b, &r);
-	trying((int)r.length, (char *)r.base, lookup);
+	dns_name_format(lookup->name, store, sizeof(store));
+	trying(store, lookup);
 	INSIST(dns_name_isabsolute(lookup->name));
 
 	lookup->sendmsg->id = (unsigned short)(random() & 0xFFFF);
@@ -2116,6 +2089,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
+	isc_uint32_t serial;
 	isc_result_t result;
 
 	debug("check_for_more_data()");
@@ -2176,46 +2150,34 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					goto next_rdata;
 				/* Now we have an SOA.  Work with it. */
 				debug("got an SOA");
-				result = dns_rdata_tostruct(&rdata,
-							    &soa,
-							    mctx);
-				check_result(result,
-					     "dns_rdata_tostruct");
+				(void)dns_rdata_tostruct(&rdata, &soa, NULL);
+				serial = soa.serial;
+				dns_rdata_freestruct(&soa);
 				if (!query->first_soa_rcvd) {
-					query->first_soa_rcvd =
-						ISC_TRUE;
-					query->first_rr_serial =
-						soa.serial;
+					query->first_soa_rcvd = ISC_TRUE;
+					query->first_rr_serial = serial;
 					debug("this is the first %d",
 					       query->lookup->ixfr_serial);
 					if (query->lookup->ixfr_serial >=
-					    soa.serial) {
-						dns_rdata_freestruct(&soa);
+					    serial)
 						goto doexit;
-					}
-					dns_rdata_freestruct(&soa);
 					goto next_rdata;
 				}
 				if (query->lookup->rdtype ==
 				    dns_rdatatype_axfr) {
 					debug("doing axfr, got second SOA");
-					dns_rdata_freestruct(&soa);
 					goto doexit;
 				}
 				if (!query->second_rr_rcvd) {
-					if (soa.serial ==
-					    query->first_rr_serial) {
+					if (query->first_rr_serial == serial) {
 						debug("doing ixfr, got "
 						      "empty zone");
-						dns_rdata_freestruct(&soa);
 						goto doexit;
 					}
 					debug("this is the second %d",
 					       query->lookup->ixfr_serial);
 					query->second_rr_rcvd = ISC_TRUE;
-					query->second_rr_serial =
-						soa.serial;
-					dns_rdata_freestruct(&soa);
+					query->second_rr_serial = serial;
 					goto next_rdata;
 				}
 				if (query->second_rr_serial == 0) {
@@ -2226,7 +2188,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					 * AXFR, and we're done.
 					 */
 					debug("done, since axfr");
-					dns_rdata_freestruct(&soa);
 					goto doexit;
 				}
 				/*
@@ -2234,21 +2195,17 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				 * IXFR and have to start really looking
 				 * at serial numbers.
 				 */
-				if (query->first_rr_serial == soa.serial) {
+				if (query->first_rr_serial == serial) {
 					debug("got a match for ixfr");
 					if (!query->first_repeat_rcvd) {
 						query->first_repeat_rcvd =
 							ISC_TRUE;
-						dns_rdata_freestruct(&soa);
 						goto next_rdata;
 					}
 					debug("done with ixfr");
-					dns_rdata_freestruct(&soa);
 					goto doexit;
 				}
-				debug("meaningless soa %d",
-				       soa.serial);
-				dns_rdata_freestruct(&soa);
+				debug("meaningless soa %d", serial);
 			next_rdata:
 				result = dns_rdataset_next(rdataset);
 			} while (result == ISC_R_SUCCESS);
