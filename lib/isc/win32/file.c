@@ -21,7 +21,7 @@
 #define TEMPLATE "tXXXXXXX.tmp"
 
 isc_result_t
-isc__file_mktemplate(const char *file, char *buf, size_t buflen) {
+isc_file_mktemplate(const char *file, char *buf, size_t buflen) {
 	char *s;
 
 	s = ;
