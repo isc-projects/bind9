@@ -1,3 +1,7 @@
+1847.	[bug]		isc_ondestroy_init() is called too late in
+			in dns_rbtdb_create()/dns_rbtdb_create(). 
+			[RT #13661]
+			
 1846.	[contrib]	query-loc-0.3.0 from Stephane Bortzmeyer
 			<bortzmeyer@nic.fr>.
 

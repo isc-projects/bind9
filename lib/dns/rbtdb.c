@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.18 2005/03/17 03:58:30 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.19 2005/04/01 07:08:18 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4910,6 +4910,11 @@ dns_rbtdb_create
 	isc_mem_attach(mctx, &rbtdb->common.mctx);
 
 	/*
+	 * Must be initalized before free_rbtdb() is called.
+	 */
+	isc_ondestroy_init(&rbtdb->common.ondest);
+
+	/*
 	 * Make a copy of the origin name.
 	 */
 	result = dns_name_dupwithoffsets(origin, mctx, &rbtdb->common.origin);
@@ -4986,8 +4991,6 @@ dns_rbtdb_create
 	}
 	rbtdb->future_version = NULL;
 	ISC_LIST_INIT(rbtdb->open_versions);
-
-	isc_ondestroy_init(&rbtdb->common.ondest);
 
 	rbtdb->common.magic = DNS_DB_MAGIC;
 	rbtdb->common.impmagic = RBTDB_MAGIC;
