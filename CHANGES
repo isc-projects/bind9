@@ -1,3 +1,7 @@
+
+ 950.	[bug]		Explicit TTLs did not properly override $TTL
+			due to a bug in change 834. [RT #1558]
+
  949.	[bug]		host was unable to print records larger than 512
  			bytes. [RT #1557]
 

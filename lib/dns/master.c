@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.120 2001/07/24 18:49:06 bwelling Exp $ */
+/* $Id: master.c,v 1.121 2001/08/01 17:58:45 gson Exp $ */
 
 #include <config.h>
 
@@ -1424,7 +1424,7 @@ load(dns_loadctx_t *lctx) {
 					goto insist_and_cleanup;
 				}
 			}
-		} else if (lctx->default_ttl_known) {
+		} else if (!explicit_ttl && lctx->default_ttl_known) {
 			lctx->ttl = lctx->default_ttl;
 		} else if (!explicit_ttl && lctx->warn_1035) {
 			(*callbacks->warn)(callbacks,
