@@ -120,6 +120,8 @@ struct dns_c_master_zone
 	isc_int32_t		max_ixfr_log;
 	isc_boolean_t		maint_ixfr_base;
 	dns_c_pklist_t	       *pubkeylist;
+	isc_int32_t		max_trans_time_out;
+	isc_int32_t		max_trans_idle_out;
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
@@ -171,9 +173,7 @@ struct dns_c_stub_zone
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source; 
 	isc_int32_t		max_trans_time_in;
-	isc_int32_t		max_trans_time_out;
 	isc_int32_t		max_trans_idle_in;
-	isc_int32_t		max_trans_idle_out;
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
