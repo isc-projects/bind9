@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.90.2.4.2.1 2003/08/11 04:48:04 marka Exp $ */
+/* $Id: nslookup.c,v 1.90.2.4.2.2 2003/10/15 05:32:06 marka Exp $ */
 
 #include <config.h>
 
@@ -45,20 +45,15 @@
 #include <dig/dig.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
-extern ISC_LIST(dig_server_t) server_list;
+extern dig_serverlist_t server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, usesearch, qr, debugging;
+extern isc_boolean_t usesearch, debugging;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
-extern dns_messageid_t id;
-extern int sendcount;
-extern int ndots;
 extern int tries;
 extern int lookup_counter;
-extern int exitcode;
-extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern char *progname;
 
@@ -138,7 +133,8 @@ static const char *rtypetext[] = {
 	"v6 address = ",		/* 38 */
 	"dname = ",			/* 39 */
 	"rtype_40 = ",			/* 40 */
-	"optional = "};			/* 41 */
+	"optional = "			/* 41 */
+};
 
 #define N_KNOWN_RRTYPES (sizeof(rtypetext) / sizeof(rtypetext[0]))
 
@@ -543,7 +539,7 @@ set_port(const char *value) {
 	isc_uint32_t n;
 	isc_result_t result = parse_uint(&n, value, 65535, "port");
 	if (result == ISC_R_SUCCESS)
-		port = n;
+		port = (isc_uint16_t) n;
 }
 
 static void
@@ -630,11 +626,11 @@ setoption(char *opt) {
 		debugging = ISC_TRUE;
 	} else if (strncasecmp(opt, "nod2", 4) == 0) {
 		debugging = ISC_FALSE;
-	} else if (strncasecmp(opt, "search",3) == 0) {
+	} else if (strncasecmp(opt, "search", 3) == 0) {
 		usesearch = ISC_TRUE;
-	} else if (strncasecmp(opt, "nosearch",5) == 0) {
+	} else if (strncasecmp(opt, "nosearch", 5) == 0) {
 		usesearch = ISC_FALSE;
-	} else if (strncasecmp(opt, "sil",3) == 0) {
+	} else if (strncasecmp(opt, "sil", 3) == 0) {
 		deprecation_msg = ISC_FALSE;
 	} else {
 		printf("*** Invalid option: %s\n", opt);	
@@ -666,7 +662,7 @@ addlookup(char *opt) {
 		rdclass = dns_rdataclass_in;
 	}
 	lookup = make_empty_lookup();
-	if (get_reverse(store, opt, lookup->ip6_int, ISC_TRUE)
+	if (get_reverse(store, sizeof(store), opt, lookup->ip6_int, ISC_TRUE)
 	    == ISC_R_SUCCESS)
 	{
 		safecpy(lookup->textname, store, sizeof(lookup->textname));
@@ -704,39 +700,6 @@ addlookup(char *opt) {
 }
 
 static void
-flush_server_list(void) {
-	dig_server_t *s, *ps;
-
-	debug("flush_server_list()");
-	s = ISC_LIST_HEAD(server_list);
-	while (s != NULL) {
-		ps = s;
-		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(server_list, ps, link);
-		isc_mem_free(mctx, ps);
-	}
-}
-
-/*
- * This works on the global server list, instead of on a per-lookup
- * server list, since the change is persistent.
- */
-static void
-setsrv(char *opt) {
-	dig_server_t *srv;
-
-	if (opt == NULL)
-		return;
-
-	flush_server_list();
-	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
-	if (srv == NULL)
-		fatal("memory allocation failure");
-	safecpy(srv->servername, opt, sizeof(srv->servername));
-	ISC_LIST_INITANDAPPEND(server_list, srv, link);
-}
-
-static void
 get_next_command(void) {
 	char *buf;
 	char *ptr, *arg;
@@ -763,7 +726,7 @@ get_next_command(void) {
 		setoption(arg);
 	else if ((strcasecmp(ptr, "server") == 0) ||
 		 (strcasecmp(ptr, "lserver") == 0)) {
-		setsrv(arg);
+		set_nameserver(arg);
 		show_settings(ISC_TRUE, ISC_TRUE);
 	} else if (strcasecmp(ptr, "exit") == 0) {
 		in_use = ISC_FALSE;
@@ -805,7 +768,7 @@ parse_args(int argc, char **argv) {
 				addlookup(argv[0]);
 			}
 			else
-				setsrv(argv[0]);
+				set_nameserver(argv[0]);
 		}
 	}
 }

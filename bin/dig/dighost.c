@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.6 2003/09/24 03:47:07 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.7 2003/10/15 05:32:06 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -60,9 +60,15 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <lwres/lwres.h>
+#include <lwres/net.h>
+
 #include <bind9/getaddresses.h>
 
 #include <dig/dig.h>
+
+static lwres_context_t *lwctx = NULL;
+static lwres_conf_t *lwconf;
 
 ISC_LIST(dig_lookup_t) lookup_list;
 dig_serverlist_t server_list;
@@ -145,6 +151,17 @@ connect_timeout(isc_task_t *task, isc_event_t *event);
 static void
 launch_next_query(dig_query_t *query, isc_boolean_t include_question);
 
+
+static void *
+mem_alloc(void *arg, size_t size) {
+	return (isc_mem_get(arg, size));
+}
+
+static void
+mem_free(void *arg, void *mem, size_t size) {
+	isc_mem_put(arg, mem, size);
+}
+
 char *
 next_token(char **stringp, const char *delim) {
 	char *res;
@@ -221,7 +238,7 @@ reverse_octets(const char *in, char **p, char *end) {
 }
 
 isc_result_t
-get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
+get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 	    isc_boolean_t strict)
 {
 	int r;
@@ -243,7 +260,7 @@ get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 		result = dns_byaddr_createptrname2(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		dns_name_format(name, reverse, MXNAME);
+		dns_name_format(name, reverse, len);
 		return (ISC_R_SUCCESS);
 	} else {
 		/*
@@ -255,7 +272,7 @@ get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 		 * and such.
 		 */
 		char *p = reverse;
-		char *end = reverse + MXNAME;
+		char *end = reverse + len;
 		if (strict && inet_pton(AF_INET, value, &addr.type.in) != 1)
 			return (DNS_R_BADDOTTEDQUAD);
 		result = reverse_octets(value, &p, end);
@@ -318,12 +335,92 @@ make_server(const char *servname) {
 	debug("make_server(%s)", servname);
 	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
 	if (srv == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	strncpy(srv->servername, servname, MXNAME);
 	srv->servername[MXNAME-1] = 0;
 	ISC_LINK_INIT(srv, link);
 	return (srv);
+}
+static int
+addr2af(int lwresaddrtype)
+{
+	int af = 0;
+
+	switch (lwresaddrtype) {
+	case LWRES_ADDRTYPE_V4:
+		af = AF_INET;
+		break;
+
+	case LWRES_ADDRTYPE_V6:
+		af = AF_INET6;
+		break;
+	}
+
+	return (af);
+}
+/*
+ * Create a copy of the server list from the lwres configuration structure.
+ * The dest list must have already had ISC_LIST_INIT applied.
+ */
+static void
+copy_server_list(lwres_conf_t *confdata, dig_serverlist_t *dest) {
+	dig_server_t *newsrv;
+	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
+	int af;
+	int i;
+
+	debug("copy_server_list()");
+	for (i = 0; i < confdata->nsnext; i++) {
+		af = addr2af(confdata->nameservers[i].family);
+
+		lwres_net_ntop(af, confdata->nameservers[i].address,
+				   tmp, sizeof(tmp));
+		newsrv = make_server(tmp);
+		ISC_LINK_INIT(newsrv, link);
+		ISC_LIST_ENQUEUE(*dest, newsrv, link);
+	}
+}
+void
+flush_server_list(void) {
+	dig_server_t *s, *ps;
+
+	debug("flush_server_list()");
+	s = ISC_LIST_HEAD(server_list);
+	while (s != NULL) {
+		ps = s;
+		s = ISC_LIST_NEXT(s, link);
+		ISC_LIST_DEQUEUE(server_list, ps, link);
+		isc_mem_free(mctx, ps);
+	}
+}
+void
+set_nameserver(char *opt) {
+	dig_server_t *srv;
+
+	if (opt == NULL)
+		return;
+
+	flush_server_list();
+	srv = make_server(opt);
+	if (srv == NULL)
+		fatal("memory allocation failure");
+	ISC_LIST_INITANDAPPEND(server_list, srv, link);
+}
+
+static isc_result_t
+add_nameserver(lwres_conf_t *confdata, const char *addr, int af) {
+
+	int i = confdata->nsnext;
+
+	if (confdata->nsnext >= LWRES_CONFMAXNAMESERVERS)
+		return (ISC_R_FAILURE);
+
+	if (lwres_net_pton(af, addr, &confdata->nameservers[i]) == 1) {
+		confdata->nsnext++;
+		return (ISC_R_SUCCESS);
+	}
+	return (ISC_R_FAILURE);
 }
 
 /*
@@ -360,7 +457,7 @@ make_empty_lookup(void) {
 
 	looknew = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 	if (looknew == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		       __FILE__, __LINE__);
 	looknew->pending = ISC_TRUE;
 	looknew->textname[0] = 0;
@@ -486,7 +583,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 
 	lookup_counter++;
 	if (lookup_counter > LOOKUP_LIMIT)
-		fatal("Too many lookups");
+		fatal("too many lookups");
 
 	looknew = clone_lookup(lookold, servers);
 	INSIST(looknew != NULL);
@@ -517,7 +614,7 @@ setup_text_key(void) {
 	secretsize = strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);
 	if (secretstore == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	isc_buffer_init(&secretbuf, secretstore, secretsize);
 	result = isc_base64_decodestring(keysecret, &secretbuf);
@@ -580,12 +677,26 @@ make_searchlist_entry(char *domain) {
 	dig_searchlist_t *search;
 	search = isc_mem_allocate(mctx, sizeof(*search));
 	if (search == NULL)
-		fatal("Memory allocation failure in %s:%d",
+		fatal("memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	strncpy(search->origin, domain, MXNAME);
 	search->origin[MXNAME-1] = 0;
 	ISC_LINK_INIT(search, link);
 	return (search);
+}
+
+static void
+create_search_list(lwres_conf_t *confdata) {
+	int i;
+	dig_searchlist_t *search;
+
+	debug("create_search_list()");
+	ISC_LIST_INIT(search_list);
+
+	for (i = 0; i < confdata->searchnxt; i++) {
+		search = make_searchlist_entry(confdata->search[i]);
+		ISC_LIST_APPEND(search_list, search, link);
+	}
 }
 
 /*
@@ -594,80 +705,42 @@ make_searchlist_entry(char *domain) {
  */
 void
 setup_system(void) {
-	char rcinput[MXNAME];
-	FILE *fp;
-	char *ptr;
-	dig_server_t *srv;
-	dig_searchlist_t *search, *domain = NULL;
-	isc_boolean_t get_servers;
-	char *input;
+	dig_searchlist_t *domain = NULL;
+	lwres_result_t lwresult;
 
 	debug("setup_system()");
 
-	free_now = ISC_FALSE;
-	get_servers = ISC_TF(server_list.head == NULL);
-	fp = fopen(RESOLV_CONF, "r");
-	/* XXX Use lwres resolv.conf reader */
-	if (fp == NULL)
-		goto no_file;
+	lwresult = lwres_context_create(&lwctx, mctx, mem_alloc, mem_free, 1);
+	if (lwresult != LWRES_R_SUCCESS)
+		fatal("lwres_context_create failed");
 
-	while (fgets(rcinput, MXNAME, fp) != 0) {
-		input = rcinput;
-		ptr = next_token(&input, " \t\r\n");
-		if (ptr != NULL) {
-			if (get_servers &&
-			    strcasecmp(ptr, "nameserver") == 0) {
-				debug("got a nameserver line");
-				ptr = next_token(&input, " \t\r\n");
-				if (ptr != NULL) {
-					srv = make_server(ptr);
-					ISC_LIST_APPEND(server_list, srv, link);
-				}
-			} else if (strcasecmp(ptr, "options") == 0) {
-				ptr = next_token(&input, " \t\r\n");
-				if (ptr != NULL) {
-					if (strncasecmp(ptr, "ndots:", 6) == 0
-					    && ndots == -1)
-					{
-						ndots = atoi(&ptr[6]);
-						debug("ndots is %d.", ndots);
-					}
-				}
-			} else if (strcasecmp(ptr, "search") == 0){
-				while ((ptr = next_token(&input, " \t\r\n"))
-				       != NULL) {
-					debug("adding search %s", ptr);
-					search = make_searchlist_entry(ptr);
-					ISC_LIST_INITANDAPPEND(search_list,
-							       search, link);
-				}
-			} else if (strcasecmp(ptr, "domain") == 0) {
-				while ((ptr = next_token(&input, " \t\r\n"))
-				       != NULL) {
-					if (domain != NULL)
-						isc_mem_free(mctx, domain);
-					domain = make_searchlist_entry(ptr);
-				}
-			}
+	(void)lwres_conf_parse(lwctx, RESOLV_CONF);
+	lwconf = lwres_conf_get(lwctx);
+
+	/* Make the search list */
+	if (lwconf->searchnxt > 0)
+		create_search_list(lwconf);
+	else {
+		/* No search list. Use the domain name if any */
+		if (lwconf->domainname != NULL) {
+			domain = make_searchlist_entry(lwconf->domainname);
+			ISC_LIST_INITANDAPPEND(search_list, domain, link);
+			domain  = NULL;
 		}
 	}
-	fclose(fp);
- no_file:
+			
+	ndots = lwconf->ndots;
+	debug("ndots is %d.", ndots);
 
-	if (ISC_LIST_EMPTY(search_list) && domain != NULL) {
-		ISC_LIST_INITANDAPPEND(search_list, domain, link);
-		domain = NULL;
+	/* If we don't find a nameserver fall back to localhost */
+	if (lwconf->nsnext == 0) {
+		lwresult = add_nameserver(lwconf, "127.0.0.1", AF_INET);
+		if(lwresult != ISC_R_SUCCESS)
+			fatal("add_nameserver failed");
 	}
-	if (domain != NULL)
-		isc_mem_free(mctx, domain);
-	
-	if (ndots == -1)
-		ndots = 1;
 
-	if (server_list.head == NULL) {
-		srv = make_server("127.0.0.1");
-		ISC_LIST_APPEND(server_list, srv, link);
-	}
+	if (ISC_LIST_EMPTY(server_list))
+		copy_server_list(lwconf, &server_list);
 
 	if (keyfile[0] != 0)
 		setup_file_key();
@@ -896,7 +969,7 @@ try_clear_lookup(dig_lookup_t *lookup) {
 				       q->servname);
 				q = ISC_LIST_NEXT(q, link);
 			}
-		return (ISC_FALSE);
+			return (ISC_FALSE);
 		}
 	}
 	/*
@@ -1406,7 +1479,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	     serv = ISC_LIST_NEXT(serv, link)) {
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
 		if (query == NULL)
-			fatal("Memory allocation failure in %s:%d",
+			fatal("memory allocation failure in %s:%d",
 			      __FILE__, __LINE__);
 		debug("create query %p linked to lookup %p",
 		       query, lookup);
@@ -1686,8 +1759,8 @@ send_udp(dig_query_t *query) {
  */
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
-	dig_lookup_t *l=NULL, *n;
-	dig_query_t *query=NULL, *cq;
+	dig_lookup_t *l = NULL, *n;
+	dig_query_t *query = NULL, *cq;
 
 	UNUSED(task);
 	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
@@ -2580,8 +2653,6 @@ cancel_all(void) {
  */
 void
 destroy_libs(void) {
-	void *ptr;
-	dig_server_t *s;
 
 	debug("destroy_libs()");
 	if (global_task != NULL) {
@@ -2607,13 +2678,11 @@ destroy_libs(void) {
 
 	free_now = ISC_TRUE;
 
-	s = ISC_LIST_HEAD(server_list);
-	while (s != NULL) {
-		debug("freeing global server %p", s);
-		ptr = s;
-		s = ISC_LIST_NEXT(s, link);
-		isc_mem_free(mctx, ptr);
-	}
+	lwres_conf_clear(lwctx);
+	lwres_context_destroy(&lwctx);
+
+	flush_server_list();
+
 	clear_searchlist();
 	if (commctx != NULL) {
 		debug("freeing commctx");

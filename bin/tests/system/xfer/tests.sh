@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.24.12.1 2003/08/02 00:38:52 marka Exp $
+# $Id: tests.sh,v 1.24.12.2 2003/10/15 05:32:24 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -23,6 +23,8 @@ SYSTEMTESTTOP=..
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
 
 status=0
+
+echo "I:testing basic zone transfer functionality"
 $DIG $DIGOPTS example. \
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
@@ -35,6 +37,7 @@ $PERL ../digcomp.pl dig1.good dig.out.ns2 || status=1
 
 $PERL ../digcomp.pl dig1.good dig.out.ns3 || status=1
 
+echo "I:testing TSIG signed zone transfers"
 $DIG $DIGOPTS tsigzone. \
     	@10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
 	> dig.out.ns2 || status=1

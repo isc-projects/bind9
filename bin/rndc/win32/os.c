@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.2 2001/08/08 23:26:58 gson Exp $ */
+/* $Id: os.c,v 1.2.12.1 2003/10/15 05:32:16 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <stdio.h>
+#include <io.h>
 #include <sys/stat.h>
 
 int

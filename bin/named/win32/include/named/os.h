@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.1.2.2.8.4 2003/08/11 05:42:52 marka Exp $ */
+/* $Id: os.h,v 1.1.2.2.8.5 2003/10/15 05:32:14 marka Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1

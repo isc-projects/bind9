@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.3.8.5 2003/08/22 05:54:37 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.3.8.6 2003/10/15 05:32:05 marka Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,7 @@ static void
 usage(void) {
 	fprintf(stderr,
 		"usage: named-checkzone [-djqv] [-c class] [-t directory] "
-		"[-w directory] zonename filename \n");
+		"[-w directory] zonename filename\n");
 	exit(1);
 }
 
@@ -82,7 +82,7 @@ main(int argc, char **argv) {
 	char *classname = classname_in;
 	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:djn:qst:vw:")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dijn:qst:vw:")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;

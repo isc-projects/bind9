@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.15 2003/08/26 05:56:14 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.16 2003/10/15 05:32:09 marka Exp $ */
 
 #include <config.h>
 
@@ -153,7 +153,7 @@ struct ns_clientmgr {
 #define NS_CLIENTSTATE_WORKING  4
 /*
  * The client object has received a request and is working
- * on it.  It has a view, and it may  have any of a non-reset OPT,
+ * on it.  It has a view, and it may have any of a non-reset OPT,
  * recursion quota, and an outstanding write request.
  */
 
@@ -177,24 +177,6 @@ static void client_request(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 
 void
-ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
-	isc_result_t result;
-	isc_interval_t interval;
-
-	isc_interval_set(&interval, seconds, 0);
-	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
-				 &interval, ISC_FALSE);
-	client->timerset = ISC_TRUE;
-	if (result != ISC_R_SUCCESS) {
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-			      "setting timeout: %s",
-			      isc_result_totext(result));
-		/* Continue anyway. */
-	}
-}
-
-void
 ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest) {
 	ns_client_t *oldest;
 	REQUIRE(NS_CLIENT_VALID(client));
@@ -213,6 +195,24 @@ ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest) {
 	ISC_LIST_APPEND(client->manager->recursing, client, link);
 	client->list = &client->manager->recursing;
 	UNLOCK(&client->manager->lock);
+}
+
+void
+ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
+	isc_result_t result;
+	isc_interval_t interval;
+
+	isc_interval_set(&interval, seconds, 0);
+	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
+				 &interval, ISC_FALSE);
+	client->timerset = ISC_TRUE;
+	if (result != ISC_R_SUCCESS) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+			      "setting timeout: %s",
+			      isc_result_totext(result));
+		/* Continue anyway. */
+	}
 }
 
 /*
@@ -312,9 +312,9 @@ exit_check(ns_client_t *client) {
 			isc_quota_detach(&client->tcpquota);
 
 		if (client->timerset) {
-			(void) isc_timer_reset(client->timer,
-					       isc_timertype_inactive,
-					       NULL, NULL, ISC_TRUE);
+			(void)isc_timer_reset(client->timer,
+					      isc_timertype_inactive,
+					      NULL, NULL, ISC_TRUE);
 			client->timerset = ISC_FALSE;
 		}
 
@@ -635,7 +635,7 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	if (client->newstate > newstate)
 		client->newstate = newstate;
-	(void) exit_check(client);
+	(void)exit_check(client);
 }
 
 
@@ -766,7 +766,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	}
 
 	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0 &&
-	    (client->attributes |= NS_CLIENTATTR_MULTICAST) == 0)
+	    (client->attributes & NS_CLIENTATTR_MULTICAST) == 0)
 		pktinfo = &client->pktinfo;
 	else
 		pktinfo = NULL;
@@ -1562,7 +1562,7 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 
 	if (client->newstate > NS_CLIENTSTATE_READY)
 		client->newstate = NS_CLIENTSTATE_READY;
-	(void) exit_check(client);
+	(void)exit_check(client);
 }
 
 static isc_result_t
@@ -1783,8 +1783,8 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		client->state = NS_CLIENTSTATE_READING;
 		INSIST(client->recursionquota == NULL);
 
-		(void) isc_socket_getpeername(client->tcpsocket,
-					      &client->peeraddr);
+		(void)isc_socket_getpeername(client->tcpsocket,
+					     &client->peeraddr);
 		client->peeraddr_valid = ISC_TRUE;
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			   NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
@@ -1904,7 +1904,7 @@ client_udprecv(ns_client_t *client) {
 				 isc_result_totext(result));
 		/*
 		 * This cannot happen in the current implementation, since
-		 * isc_socket_recv2() cannot fail if flags == 0A
+		 * isc_socket_recv2() cannot fail if flags == 0.
 		 *
 		 * If this does fail, we just go idle.
 		 */
@@ -1936,7 +1936,7 @@ ns_client_detach(ns_client_t **clientp) {
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
 		      "ns_client_detach: ref = %d", client->references);
-	(void) exit_check(client);
+	(void)exit_check(client);
 }
 
 isc_boolean_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.33 2003/10/14 03:04:02 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.34 2003/10/15 05:32:10 marka Exp $ */
 
 #include <config.h>
 
@@ -632,7 +632,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		cfgmaps[i++] = config;
 	cfgmaps[i] = NULL;
 
-
 	/*
 	 * Set the view's port number for outgoing queries.
 	 */
@@ -811,7 +810,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * If we still have no hints, this is a non-IN view with no
 	 * "hints zone" configured.  Issue a warning, except if this
 	 * is a root server.  Root servers never need to consult 
-	 * their hints, so it's no point requireing users to configure
+	 * their hints, so it's no point requiring users to configure
 	 * them.
 	 */
 	if (view->hints == NULL) {
@@ -1441,6 +1440,8 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		/*
 		 * We already have this zone!
 		 */
+		cfg_obj_log(zconfig, ns_g_lctx, ISC_LOG_ERROR,
+			    "zone '%s' already exists", zname);
 		dns_zone_detach(&dupzone);
 		result = ISC_R_EXISTS;
 		goto cleanup;
@@ -2198,7 +2199,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
-	 * Create (or recreate) the internal _bind view. Currently
+	 * Create (or recreate) the built-in views.  Currently
 	 * there is only one, the _bind view.
 	 */
 	builtin_views = NULL;
@@ -2210,8 +2211,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	{
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		CHECK(create_view(vconfig, &viewlist, &view));
-		CHECK(configure_view(view, config, cfg_listelt_value(element),
-				     ns_g_mctx, &aclconfctx, ISC_FALSE));
+		CHECK(configure_view(view, config, vconfig, ns_g_mctx,
+				     &aclconfctx, ISC_FALSE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
 		view = NULL;
@@ -2367,7 +2368,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
 	else
 		ns_os_writepidfile(ns_g_defaultpidfile, first_time);
-
+	
 	obj = NULL;
 	if (options != NULL &&
 	    cfg_map_get(options, "memstatistics-file", &obj) == ISC_R_SUCCESS)
@@ -2504,7 +2505,7 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 	 * so that we know when we need to force AXFR of
 	 * slave zones whose master files are missing.
 	 */
-	dns_zonemgr_resumexfrs(server->zonemgr);
+	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
  cleanup:
 	isc_task_endexclusive(server->task);	
 	return (result);
@@ -2532,7 +2533,7 @@ load_new_zones(ns_server_t *server, isc_boolean_t stop) {
 	 * so that we know when we need to force AXFR of
 	 * slave zones whose master files are missing.
 	 */
-	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
+	dns_zonemgr_resumexfrs(server->zonemgr);
  cleanup:
 	isc_task_endexclusive(server->task);	
 	return (result);
@@ -2668,7 +2669,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_quota_soft(&server->recursionquota, ISC_TRUE);
+	isc_quota_soft(&server->recursionquota, ISC_FALSE);
 
 	result = dns_aclenv_init(mctx, &server->aclenv);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);

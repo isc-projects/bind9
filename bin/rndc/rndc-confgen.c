@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9.2.6.2.2 2003/08/11 05:28:12 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.6.2.3 2003/10/15 05:32:15 marka Exp $ */
 
 #include <config.h>
 
@@ -172,7 +172,7 @@ main(int argc, char **argv) {
 			keyname = isc_commandline_argument;
 			break;
 		case 'M':
-			isc_mem_debugging = 1;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 			break;
 
 		case 'm':

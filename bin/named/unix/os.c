@@ -15,12 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4.8.8 2003/09/11 00:17:59 marka Exp $ */
+/* $Id: os.c,v 1.46.2.4.8.9 2003/10/15 05:32:13 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
 
-#include <sys/types.h>  /* dev_t FreeBSD 2.1 */
+#include <sys/types.h>	/* dev_t FreeBSD 2.1 */
 #include <sys/stat.h>
 
 #include <ctype.h>
@@ -547,7 +547,7 @@ ns_os_shutdown(void) {
 
 isc_result_t
 ns_os_gethostname(char *buf, size_t len) {
-        int n;
+	int n;
 
 	n = gethostname(buf, len);
 	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.15.2.5 2003/08/25 02:42:15 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.15.2.6 2003/10/15 05:32:15 marka Exp $ */
 
 #include <config.h>
 
@@ -1510,6 +1510,10 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 					udp_timeout, udp_retries, global_task,
 					update_completed, NULL, &request);
 	check_result(result, "dns_request_createvia3");
+
+	if (debugging)
+		show_message(updatemsg);
+
 	requests++;
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.9 2003/08/22 03:20:09 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.10 2003/10/15 05:32:15 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -134,7 +134,7 @@ get_addresses(const char *host, in_port_t port) {
 	isc_result_t result;
 
 	isc_app_block();
-	result = bind9_getaddresses(host, port,
+	result = bind9_getaddresses(servername, port,
 				    serveraddrs, SERVERADDRS, &nserveraddrs);
 	isc_app_unblock();
 	if (result != ISC_R_SUCCESS)
@@ -558,7 +558,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'M':
-			isc_mem_debugging = 1;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 			break;
 
 		case 'm':

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: shutdown_test.c,v 1.18.12.1 2003/09/11 00:18:01 marka Exp $ */
+/* $Id: shutdown_test.c,v 1.18.12.2 2003/10/15 05:32:17 marka Exp $ */
 
 #include <config.h>
 
@@ -94,8 +94,7 @@ foo_event(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-tick(isc_task_t *task, isc_event_t *event)
-{
+tick(isc_task_t *task, isc_event_t *event) {
 	t_info *info = event->ev_arg;
 	isc_event_t *nevent;
 

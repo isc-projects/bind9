@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.10 2003/09/11 00:17:56 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.11 2003/10/15 05:32:05 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -172,7 +172,7 @@ help(void) {
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
 "                 +time=###           (Set query timeout) [5]\n"
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
-"                 +retries=###        (Set number of UDP retries) [2]\n"
+"                 +retry=###          (Set number of UDP retries) [2]\n"
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
@@ -651,12 +651,12 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	strncpy(option_store, option, sizeof(option_store));
 	option_store[sizeof(option_store)-1]=0;
 	ptr = option_store;
-	cmd=next_token(&ptr,"=");
+	cmd = next_token(&ptr,"=");
 	if (cmd == NULL) {
 		printf(";; Invalid option %s\n",option_store);
 		return;
 	}
-	value=ptr;
+	value = ptr;
 	if (strncasecmp(cmd,"no",2)==0) {
 		cmd += 2;
 		state = ISC_FALSE;
@@ -860,7 +860,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				FULLCHECK("recurse");
 				lookup->recurse = state;
 				break;
-			case 't': /* retries */
+			case 't': /* retry / retries */
 				FULLCHECK2("retry", "retries");
 				if (value == NULL)
 					goto need_value;
@@ -872,8 +872,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				break;
 			default:
 				goto invalid_option;
-			break;
 			}
+			break;
 		default:
 			goto invalid_option;
 		}
@@ -1136,8 +1136,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (value_from_next);
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
-		if (get_reverse(textname, value, ip6_int, ISC_FALSE)
-		    == ISC_R_SUCCESS)
+		if (get_reverse(textname, sizeof(textname), value,
+				ip6_int, ISC_FALSE) == ISC_R_SUCCESS)
 		{
 			strncpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));
@@ -1235,14 +1235,17 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 
 #ifndef NOPOSIX
 		/*
-		 * Treat .digrc as a special batchfile
+		 * Treat ${HOME}/.digrc as a special batchfile
 		 */
+		INSIST(batchfp == NULL);
 		homedir = getenv("HOME");
-		if (homedir != NULL)
-			snprintf(rcfile, sizeof(rcfile), "%s/.digrc", homedir);
-		else
-			strcpy(rcfile, ".digrc");
-		batchfp = fopen(rcfile, "r");
+		if (homedir != NULL) {
+			unsigned int n;
+			n = snprintf(rcfile, sizeof(rcfile), "%s/.digrc",
+			             homedir);
+			if (n < sizeof(rcfile))
+				batchfp = fopen(rcfile, "r");
+		}
 		if (batchfp != NULL) {
 			while (fgets(batchline, sizeof(batchline),
 				     batchfp) != 0) {
@@ -1253,7 +1256,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				while ((bargv[bargc] != NULL) &&
 				       (bargc < 62)) {
 					bargc++;
-					bargv[bargc] = next_token(&input, " \t\r\n");
+					bargv[bargc] =
+						next_token(&input, " \t\r\n");
 				}
 
 				bargv[0] = argv[0];
@@ -1311,7 +1315,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					tr.base = rv[0];
 					tr.length = strlen(rv[0]);
 					result = dns_rdatatype_fromtext(&rdtype,
-						     	(isc_textregion_t *)&tr);
+					     	(isc_textregion_t *)&tr);
 					if (result == ISC_R_SUCCESS &&
 					    rdtype == dns_rdatatype_ixfr)
 					{
@@ -1322,28 +1326,30 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 						continue;
 					}
 				}
-				if (result == ISC_R_SUCCESS)
-				{
+				if (result == ISC_R_SUCCESS) {
 					if (lookup->rdtypeset) {
 						fprintf(stderr, ";; Warning, "
 							"extra type option\n");
 					}
 					if (rdtype == dns_rdatatype_ixfr) {
-						lookup->rdtype = dns_rdatatype_ixfr;
+						lookup->rdtype =
+							dns_rdatatype_ixfr;
 						lookup->rdtypeset = ISC_TRUE;
 						lookup->ixfr_serial =
 							parse_uint(&rv[0][5],
 							  	"serial number",
 							  	MAXSERIAL);
-						lookup->section_question = plusquest;
+						lookup->section_question =
+							plusquest;
 						lookup->comments = pluscomm;
 					} else {
 						lookup->rdtype = rdtype;
 						lookup->rdtypeset = ISC_TRUE;
-						if (rdtype == dns_rdatatype_axfr) {
-							lookup->section_question =
+						if (rdtype ==
+						    dns_rdatatype_axfr) {
+						    lookup->section_question =
 								plusquest;
-							lookup->comments = pluscomm;
+						    lookup->comments = pluscomm;
 						}
 						lookup->ixfr_serial = ISC_FALSE;
 					}
@@ -1394,7 +1400,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			perror(batchname);
 			if (exitcode < 8)
 				exitcode = 8;
-			fatal("Couldn't open specified batch file");
+			fatal("couldn't open specified batch file");
 		}
 		/* XXX Remove code dup from shutdown code */
 	next_line:

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101.2.5.2.5 2003/09/24 03:47:09 marka Exp $ */
+/* $Id: xfrout.c,v 1.101.2.5.2.6 2003/10/15 05:32:12 marka Exp $ */
 
 #include <config.h>
 
@@ -1021,8 +1021,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Decide whether to allow this transfer.
 	 */
-	ns_client_aclmsg("zone transfer", question_name,
-			 reqtype, client->view->rdclass, msg, sizeof(msg));
+	ns_client_aclmsg("zone transfer", question_name, reqtype,
+			 client->view->rdclass, msg, sizeof(msg));
 	CHECK(ns_client_checkacl(client, msg,
 				 dns_zone_getxfracl(zone), ISC_TRUE,
 				 ISC_LOG_ERROR));
@@ -1399,7 +1399,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	 * Try to fit in as many RRs as possible, unless "one-answer"
 	 * format has been requested.
 	 */
-	for (n_rrs = 0;; n_rrs++) {
+	for (n_rrs = 0; ; n_rrs++) {
 		dns_name_t *name = NULL;
 		isc_uint32_t ttl;
 		dns_rdata_t *rdata = NULL;

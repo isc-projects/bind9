@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: inter_test.c,v 1.8 2001/01/09 21:41:09 bwelling Exp $ */
+/* $Id: inter_test.c,v 1.8.206.1 2003/10/15 05:32:17 marka Exp $ */
 
 #include <config.h>
 
@@ -54,7 +54,13 @@ main(int argc, char **argv) {
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
 		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,
 				sizeof(buf));
-		fprintf(stdout, "address = %s\n", res == NULL ? "BAD" : res);
+		if (ifdata.address.zone != 0)
+			fprintf(stdout, "address = %s (zone %u)\n",
+				res == NULL ? "BAD" : res,
+				ifdata.address.zone);
+		else
+			fprintf(stdout, "address = %s\n",
+				res == NULL ? "BAD" : res);
 		INSIST(ifdata.address.family == ifdata.af);
 		res = inet_ntop(ifdata.af, &ifdata.netmask.type, buf,
 				sizeof(buf));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.19 2003/10/14 03:04:02 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.20 2003/10/15 05:32:09 marka Exp $ */
 
 #include <config.h>
 
@@ -285,6 +285,7 @@ ns_config_getiplist(cfg_obj_t *config, cfg_obj_t *list,
 	isc_result_t result;
 
 	INSIST(addrsp != NULL && *addrsp == NULL);
+	INSIST(countp != NULL);
 
 	addrlist = cfg_tuple_get(list, "addresses");
 	count = ns_config_listcount(addrlist);
@@ -410,7 +411,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 
 	element = cfg_list_first(addrlist);
  resume:
-	for (;
+	for ( ;
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
@@ -588,6 +589,8 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 		isc_mem_put(mctx, lists, listcount * sizeof(*lists));
 	if (stack != NULL)
 		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+	
+	INSIST(keycount == addrcount);
 
 	*addrsp = addrs;
 	*keysp = keys;

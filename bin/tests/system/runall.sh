@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: runall.sh,v 1.4 2001/01/09 21:42:22 bwelling Exp $
+# $Id: runall.sh,v 1.4.12.1 2003/10/15 05:32:21 marka Exp $
 
 #
 # Run all the system tests.
@@ -30,5 +30,17 @@ for d in $SUBDIRS
 do
 	sh run.sh $d || status=1
 done
+
+$PERL testsock.pl || {
+    cat <<EOF >&2
+I:
+I:NOTE: Many of the tests were skipped because they require that
+I:      the IP addresses 10.53.0.1 through 10.53.0.5 are configured 
+I:	as alias addresses on the loopback interface.  Please run
+I:	"bin/tests/system/ifconfig.sh up" as root to configure them
+I:	and rerun the tests.
+EOF
+    exit 0;
+}
 
 exit $status

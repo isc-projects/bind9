@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.13.2.1.2.2 2003/09/24 03:47:08 marka Exp $ */
+/* $Id: lwdgnba.c,v 1.13.2.1.2.3 2003/10/15 05:32:09 marka Exp $ */
 
 #include <config.h>
 
@@ -80,7 +80,8 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/*
-		 * Fall back to IP6.INT reverse.
+		 * Fall back to ip6.int reverse if the default ip6.arpa
+		 * fails.
 		 */
 		client->options |= DNS_BYADDROPT_IPV6INT;
 
@@ -220,9 +221,6 @@ ns_lwdclient_processgnba(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	if (req->addr.address == NULL)
 		goto out;
 
-	/*
-	 * Start with IP6.ARPA lookups.
-	 */
 	client->options = 0;
 	if (req->addr.family == LWRES_ADDRTYPE_V4) {
 		client->na.family = AF_INET;
@@ -252,6 +250,7 @@ ns_lwdclient_processgnba(ns_lwdclient_t *client, lwres_buffer_t *b) {
 	 * going to build up.
 	 */
 	init_gnba(client);
+	client->options = 0;
 
 	/*
 	 * Start the find.

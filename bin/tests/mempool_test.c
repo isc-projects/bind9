@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mempool_test.c,v 1.12.12.1 2003/09/24 03:47:11 marka Exp $ */
+/* $Id: mempool_test.c,v 1.12.12.2 2003/10/15 05:32:17 marka Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,7 @@ main(int argc, char *argv[]) {
 	UNUSED(argc);
 	UNUSED(argv);
 
-	isc_mem_debugging = 2;
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
 	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
 

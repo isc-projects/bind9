@@ -15,11 +15,29 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.35.2.8 2003/07/30 01:55:50 marka Exp $
+# $Id: ifconfig.sh,v 1.35.2.8.2.1 2003/10/15 05:32:21 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
 #
+
+config_guess=""
+for f in ./config.guess ../../../config.guess
+do
+	if test -f $f
+	then
+		config_guess=$f
+	fi
+done
+
+if test "X$config_guess" = "X"
+then
+	echo <<EOF >&2
+$0: must be run from the top level source directory or the
+bin/tests/system directory
+EOF
+	exit 1
+fi
 
 # If running on hp-ux, don't even try to run config.guess.
 # It will try to create a temporary file in the current directory,
@@ -28,7 +46,7 @@
 
 case `uname -a` in
   *HP-UX*) sys=hpux ;;
-  *) sys=`../../../config.guess` ;;
+  *) sys=`$config_guess` ;;
 esac
 
 case "$2" in
@@ -76,7 +94,7 @@ case "$1" in
 		    *-sgi-irix6.*)
 			ifconfig lo0 alias 10.53.0.$ns
 			;;
-		    *-*-sysv5uw[7-8]*)
+		    *-*-sysv5uw7*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
 			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
 			;;
 		    *-ibm-aix4.*)
@@ -136,7 +154,7 @@ case "$1" in
 		    *-sgi-irix6.*)
 			ifconfig lo0 -alias 10.53.0.$ns
 			;;
-		    *-*-sysv5uw[7-8]*)
+		    *-*-sysv5uw7*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
 			ifconfig lo0 -alias 10.53.0.$ns
 			;;
 		    *-ibm-aix4.*)

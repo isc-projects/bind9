@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.5.2.3.8.4 2003/08/11 05:42:52 marka Exp $ */
+/* $Id: os.c,v 1.5.2.3.8.5 2003/10/15 05:32:13 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -33,11 +33,14 @@
 
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
-//#include <isc/ntfile.h>
 #include <isc/ntpaths.h>
+#include <isc/util.h>
+#include <isc/win32os.h>
 
 #include <named/main.h>
+#include <named/log.h>
 #include <named/os.h>
 #include <named/globals.h>
 #include <named/ntservice.h>
@@ -46,6 +49,9 @@
 static char *pidfile = NULL;
 
 static BOOL Initialized = FALSE;
+
+static char *version_error = 
+	"named requires Windows 2000 Service Pack 2 or later to run correctly";
 
 void
 ns_paths_init() {
@@ -63,6 +69,22 @@ ns_paths_init() {
 	Initialized = TRUE;
 }
 
+/*
+ * Due to Knowledge base article Q263823 we need to make sure that
+ * Windows 2000 systems have Service Pack 2 or later installed and
+ * warn when it isn't.
+ */
+static void
+version_check(const char *progname) {
+
+	if(isc_win32os_majorversion() < 5)
+		return;	/* No problem with Version 4.0 */
+	if(isc_win32os_versioncheck(5, 0, 2, 0) < 0)
+		if (ntservice_isservice())
+			NTReportError(progname, version_error);
+		else 
+			fprintf(stderr, "%s\n", version_error);
+}
 
 static void
 setup_syslog(const char *progname) {
@@ -81,6 +103,7 @@ ns_os_init(const char *progname) {
 	ns_paths_init();
 	setup_syslog(progname);
 	ntservice_init();
+	version_check(progname);
 }
 
 void
@@ -165,6 +188,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	FILE *lockfile;
 	size_t len;
 	pid_t pid;
+	char strbuf[ISC_STRERRORSIZE];
 	void (*report)(const char *, ...);
 
 	/*
@@ -175,11 +199,13 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	cleanup_pidfile();
 
+	if (strcmp(filename, "none") == 0)
+		return;
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
 	if (pidfile == NULL) {
-		(*report)("couldn't malloc '%s': %s", filename,
-			  strerror(errno));
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		(*report)("couldn't malloc '%s': %s", filename, strbuf);
 		return;
 	}
 	/* This is safe. */
@@ -187,16 +213,17 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	fd = safe_open(filename, ISC_FALSE);
 	if (fd < 0) {
-		(*report)("couldn't open pid file '%s': %s", filename,
-			  strerror(errno));
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		(*report)("couldn't open pid file '%s': %s", filename, strbuf);
 		free(pidfile);
 		pidfile = NULL;
 		return;
 	}
 	lockfile = fdopen(fd, "w");
 	if (lockfile == NULL) {
-		(*report)("could not fdopen() pid file '%s': %s", filename,
-			  strerror(errno));
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		(*report)("could not fdopen() pid file '%s': %s",
+			  filename, strbuf);
 		(void)close(fd);
 		cleanup_pidfile();
 		return;
@@ -226,14 +253,16 @@ ns_os_shutdown(void) {
 	ntservice_shutdown();	/* This MUST be the last thing done */
 }
 
+isc_result_t
+ns_os_gethostname(char *buf, size_t len) {
+	int n;
+
+	n = gethostname(buf, len);
+	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
+}
+
 void
 ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	UNUSED(command);
 	UNUSED(text);
-}
-isc_result_t
-ns_os_gethostname(char *buf, size_t len) {
-	UNUSED(buf);
-	UNUSED(len);
-	return (ISC_R_NOTIMPLEMENTED);
 }

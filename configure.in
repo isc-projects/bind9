@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2003  Internet Software Consortium.
+# Copyright (C) 1998-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,12 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.23.2.14 $)
+dnl
+AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
+esyscmd([sed "s/^/# /" COPYRIGHT])dnl
+AC_DIVERT_POP()dnl
+
+AC_REVISION($Revision: 1.294.2.23.2.15 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -186,6 +191,28 @@ if test "X$CC" = "X" ; then
 fi
 
 AC_PROG_CC
+
+#
+# gcc's optimiser is broken at -02 for ultrasparc
+#
+if test "$ac_env_CFLAGS_set" != set -a "X$GCC" = "Xyes"; then
+	case "$host" in
+	sparc-*)
+		CCFLAGS="-g -O1"
+		;;
+	esac
+fi
+
+#
+#	OSF 5.0: recv/send are only avaliable with -D_POSIX_PII_SOCKET or
+#	-D_XOPEN_SOURCE_EXTENDED.
+#
+case "$host" in
+	*-dec-osf*)
+		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
+		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
+		;;
+esac
 
 AC_HEADER_STDC
 
@@ -426,9 +453,9 @@ esac
 # it as needed) if it is found.
 #
 
-AC_SUBST(DST_OPENSSL_INC)
-AC_SUBST(DNS_OPENSSL_LIBS)
 AC_SUBST(USE_OPENSSL)
+AC_SUBST(DST_OPENSSL_INC)
+DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
 #
 # was --with-gssapi specified?
@@ -462,7 +489,13 @@ DNS_GSSAPI_LIBS=''
 
 AC_SUBST(USE_GSSAPI)
 AC_SUBST(DST_GSSAPI_INC)
-AC_SUBST(DNS_GSSAPI_LIBS)
+DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_GSSAPI_LIBS"
+
+#
+# Applications linking with libdns also need to link with these libraries.
+#
+
+AC_SUBST(DNS_CRYPTO_LIBS)
 
 #
 # was --with-randomdev specified?
@@ -533,12 +566,11 @@ case $host in
 	use_threads=true ;;
 *-sgi-irix*)
 	use_threads=true ;;
-*-sco-sysv*uw*)
+*-sco-sysv*uw*|*-*-sysv*UnixWare*)
         # UnixWare
 	use_threads=false ;;
-*-*-sysv*UnixW*)
-	use_threads=false ;;
 *-*-sysv*OpenUNIX*)
+        # UnixWare
 	use_threads=true ;;
 *-netbsd*)
 	# Socket I/O optimizations introduced in 9.2 expose a
@@ -703,13 +735,7 @@ then
 		#
 		# UnixWare does things its own way.
 		#
-		*-sco-sysv*uw*)
-			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
-			;;
-		*-*-sysv*UnixWare*)
-			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
-			;;
-		*-*-sysv*OpenUNIX*)
+		*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
 			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
 			;;
 	esac
@@ -750,17 +776,13 @@ then
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
 			;;
-		*-sco-sysv*uw*)
-			CC="$CC -Kthread"
-			CCOPT="$CCOPT -Kthread"
-			;;
-		*-*-sysv*UnixWare*)
+		*-sco-sysv*uw*|*-*-sysv*UnixWare*)
 			CC="$CC -Kthread"
 			CCOPT="$CCOPT -Kthread"
 			;;
 		*-*-sysv*OpenUNIX*)
-			CC="$CC -Kthread"
-			CCOPT="$CCOPT -Kthread"
+			CC="$CC -Kpthread"
+			CCOPT="$CCOPT -Kpthread"
 			;;
 		esac
 	fi
@@ -863,15 +885,7 @@ else
 	*-solaris*)
 		MKDEPCFLAGS="-xM"
 		;;
-	*-sco-sysv*uw*)
-                # UnixWare
-		CC="$CC -w"
-		;;
-	*-*-sysv*UnixWare*)
-                # UnixWare
-		CC="$CC -w"
-		;;
-	*-*-sysv*OpenUNIX*)
+	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
                 # UnixWare
 		CC="$CC -w"
 		;;
@@ -1098,21 +1112,7 @@ changequote([, ])
 # This is similar to the netinet6/in6.h issue.
 #
 case "$host" in
-*-sco-sysv*uw*)
-        # UnixWare
-	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
-        ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
-	isc_netinetin6_hack="#include <netinet/in6.h>"
-	;;
-*-*-sysv*UnixWare*)
-        # UnixWare
-	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
-        ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
-	isc_netinetin6_hack="#include <netinet/in6.h>"
-	;;
-*-*-sysv*OpenUNIX*)
+*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
         # UnixWare
 	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
 	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
@@ -1271,8 +1271,7 @@ AC_TRY_LINK([
 #include <net/if6.h>
 ],[ struct if_laddrconf a; ],
 	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEIF_LADDRCONF="#define ISC_PLATFORM_HAVEIF_LADDRCONF 1"]
-
+	ISC_PLATFORM_HAVEIF_LADDRCONF="#define ISC_PLATFORM_HAVEIF_LADDRCONF 1"],
 	[AC_MSG_RESULT(no)
 	ISC_PLATFORM_HAVEIF_LADDRCONF="#undef ISC_PLATFORM_HAVEIF_LADDRCONF"])
 AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRCONF)
@@ -1745,7 +1744,7 @@ case "$host" in
 		hack_shutup_sigwait=yes
 		hack_shutup_sputaux=yes
 		;;
-	[*-bsdi4[12]*])
+	[*-bsdi4.[12]*])
 		hack_shutup_stdargcast=yes
 		;;
 	[*-solaris2.[89]])
@@ -1821,7 +1820,7 @@ AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 #
 
 # Directory trees where SGML files are commonly found.
-sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml"
+sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml /usr/share/sgml"
 
 #
 # Look for openjade.  Plain jade is no longer supported.
@@ -1874,16 +1873,35 @@ fi
 AC_SUBST($1)
 ])
 
-NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees)
+#
+# Look for the SGML catalog.
+# Its location varies, so far we have seen:
+#
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/catalog
+# 	FreeBSD	/usr/local/share/sgml/docbook/catalog
+#	Linux	/usr/local/share/dsssl/docbook/catalog
+#		/usr/share/sgml/docbook/dsssl-stylesheets/catalog
+#
+catalogpath=""
+for d in $sgmltrees 
+do
+	catalogpath="$catalogpath $d"
+	for s in docbook/dsssl-stylesheets
+	do
+		catalogpath="$catalogpath $d/$s"
+	done
+done
+NOM_PATH_FILE(SGMLCATALOG, catalog, $catalogpath)
 
 #
 # Look for the HTML stylesheet html/docbook.dsl, used for
 # formatting man pages in HTML.  Its location varies,
 # so far we have seen:
 #
-# 	NetBSD 	/usr/pkg/share/docbook/dsssl/modular/
-# 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/
+# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/
 #	Linux	/usr/local/share/dsssl/docbook/
+#		/usr/share/sgml/docbook/dsssl-stylesheets/
 #
 # Ditto for the print stylesheet print/docbook.dsl.
 #
@@ -1891,7 +1909,7 @@ NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees)
 stylepath=""
 for d in $sgmltrees 
 do
-	for s in docbook/dsssl/modular dsssl/docbook
+	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
 	do
 		stylepath="$stylepath $d/$s"
 	done
@@ -1900,10 +1918,24 @@ NOM_PATH_FILE(HTMLSTYLE, html/docbook.dsl, $stylepath)
 NOM_PATH_FILE(PRINTSTYLE, print/docbook.dsl, $stylepath)
 
 #
-# Look for XML declarations
+# Look for XML declarations.
+# Its location varies, so far we have seen:
+#
+# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/dtds/decls/
+# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/
+#	Linux	/usr/local/share/dsssl/docbook/dtds/decls/
+#		/usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/
 #
 
-NOM_PATH_FILE(XMLDCL, docbook/dsssl/modular/dtds/decls/xml.dcl, $sgmltrees)
+xmlpath=""
+for d in $sgmltrees 
+do
+	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
+	do
+		xmlpath="$xmlpath $d/$s"
+	done
+done
+NOM_PATH_FILE(XMLDCL, dtds/decls/xml.dcl, $xmlpath)
 
 #
 # Look for docbook2man-spec.pl

@@ -1,6 +1,6 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
 <!--
- - Copyright (C) 2001, 2002  Internet Software Consortium.
+ - Copyright (C) 2001  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkconf.docbook,v 1.3.2.1.8.1 2003/08/01 07:09:50 marka Exp $ -->
+<!-- $Id: named-checkconf.docbook,v 1.3.2.1.8.2 2003/10/15 05:32:05 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -38,6 +38,7 @@
     <cmdsynopsis>
       <command>named-checkconf</command>
       <arg><option>-v</option></arg>
+      <arg><option>-j</option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="req">filename</arg>
       <arg><option>-z</option></arg>
@@ -83,6 +84,15 @@
 	  <para>
 	      Perform a check load the master zonefiles found in
 	      <filename>named.conf</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-j</term>
+	<listitem>
+	  <para>
+	      When loading a zonefile read the journal if it exists.
 	  </para>
 	</listitem>
       </varlistentry>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.19 2003/09/11 00:17:58 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.20 2003/10/15 05:32:10 marka Exp $ */
 
 #include <config.h>
 
@@ -88,6 +88,7 @@
 
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
+#define DNS_GETDB_PARTIAL 0x04U
 
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
@@ -157,6 +158,29 @@ query_maybeputqname(ns_client_t *client) {
 	}
 }
 
+static inline void
+query_freefreeversions(ns_client_t *client, isc_boolean_t everything) {
+	ns_dbversion_t *dbversion, *dbversion_next;
+	unsigned int i;
+
+	for (dbversion = ISC_LIST_HEAD(client->query.freeversions), i = 0;
+	     dbversion != NULL;
+	     dbversion = dbversion_next, i++)
+	{
+		dbversion_next = ISC_LIST_NEXT(dbversion, link);
+		/*
+		 * If we're not freeing everything, we keep the first three
+		 * dbversions structures around.
+		 */
+		if (i > 3 || everything) {
+			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
+					link);
+			isc_mem_put(client->mctx, dbversion,
+				    sizeof(*dbversion));
+		}
+	}
+}
+
 void
 ns_query_cancel(ns_client_t *client) {
 	LOCK(&client->query.fetchlock);
@@ -172,7 +196,6 @@ static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
 	ns_dbversion_t *dbversion, *dbversion_next;
-	unsigned int i;
 
 	/*
 	 * Reset the query state of a client to its default state.
@@ -203,24 +226,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	if (client->query.authzone != NULL)
 		dns_zone_detach(&client->query.authzone);
 
-	/*
-	 * Clean up free versions.
-	 */
-	for (dbversion = ISC_LIST_HEAD(client->query.freeversions), i = 0;
-	     dbversion != NULL;
-	     dbversion = dbversion_next, i++) {
-		dbversion_next = ISC_LIST_NEXT(dbversion, link);
-		/*
-		 * If we're not freeing everything, we keep the first three
-		 * dbversions structures around.
-		 */
-		if (i > 3 || everything) {
-			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
-					link);
-			isc_mem_put(client->mctx, dbversion,
-				    sizeof(*dbversion));
-		}
-	}
+	query_freefreeversions(client, everything);
 
 	for (dbuf = ISC_LIST_HEAD(client->query.namebufs);
 	     dbuf != NULL;
@@ -484,18 +490,9 @@ ns_query_init(ns_client_t *client) {
 		return (result);
 	}
 	result = query_newnamebuf(client);
-	if (result != ISC_R_SUCCESS) {
-		ns_dbversion_t *dbversion;
-		DESTROYLOCK(&client->query.fetchlock);
-		for (dbversion = ISC_LIST_HEAD(client->query.freeversions);
-		     dbversion != NULL;
-		     dbversion = ISC_LIST_HEAD(client->query.freeversions)) {
-			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
-					link);
-			isc_mem_put(client->mctx, dbversion,
-				    sizeof(*dbversion));
-		}
-	}
+	if (result != ISC_R_SUCCESS)
+		query_freefreeversions(client, ISC_TRUE);
+
 	return (result);
 }
 
@@ -549,6 +546,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	unsigned int ztoptions;
 	dns_zone_t *zone = NULL;
 	dns_db_t *db = NULL;
+	isc_boolean_t partial = ISC_FALSE;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(dbp != NULL && *dbp == NULL);
@@ -561,6 +559,8 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
 			     &zone);
+	if (result == DNS_R_PARTIALMATCH)
+		partial = ISC_TRUE;
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 
@@ -691,6 +691,8 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	*dbp = db;
 	*versionp = dbversion->version;
 
+	if (partial && (options & DNS_GETDB_PARTIAL) != 0)
+		return (DNS_R_PARTIALMATCH);
 	return (ISC_R_SUCCESS);
 
  refuse:
@@ -1842,7 +1844,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		 */
 		if (result == ISC_R_SUCCESS && ispositive)
 			break;
-		if (result == DNS_R_NXDOMAIN) {
+		if (result == DNS_R_NXDOMAIN || result == DNS_R_EMPTYNAME) {
 			if (!ispositive &&
 			    dns_name_issubdomain(name, fname))
 				done = ISC_TRUE;
@@ -2022,8 +2024,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		if (result == ISC_R_SOFTQUOTA) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "killing oldest recursive client: %s",
-				      isc_result_totext(result));
+				      "recursive-clients limit exceeded, "
+				      "aborting oldest query");
 			killoldest = ISC_TRUE;
 			result = ISC_R_SUCCESS;
 		}
@@ -2327,6 +2329,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	zdb = NULL;
 	version = NULL;
 	zone = NULL;
+	need_wildcardproof = ISC_FALSE;
 	empty_wild = ISC_FALSE;
 	options = 0;
 
@@ -2371,7 +2374,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		}
 
 		result = event->result;
-		need_wildcardproof = ISC_FALSE;
 
 		goto resume;
 	}
@@ -2449,63 +2451,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	result = dns_db_find(db, client->query.qname, version, type,
 			     client->query.dboptions, client->now,
 			     &node, fname, rdataset, sigrdataset);
-
-	/*
-	 * We interrupt our normal query processing to bring you this special
-	 * case...
-	 *
-	 * RFC 2535 (DNSSEC), section 2.3.4, discusses various special
-	 * cases that can occur at delegation points.
-	 *
-	 * One of these cases is that the NULL KEY for an unsecure zone
-	 * may occur in the delegating zone instead of in the delegated zone.
-	 * If we're authoritative for both zones, we need to look for the
-	 * key in the delegator if we didn't find it in the delegatee.  If
-	 * we didn't do this, a client doing DNSSEC validation could fail
-	 * because it couldn't get the NULL KEY.
-	 */
-	if (type == dns_rdatatype_key &&
-	    is_zone &&
-	    result == DNS_R_NXRRSET &&
-	    !dns_db_issecure(db) &&
-	    dns_name_equal(client->query.qname, dns_db_origin(db))) {
-		/*
-		 * We're looking for a KEY at the top of an unsecure zone,
-		 * and we didn't find it.
-		 */
-		result = query_findparentkey(client, client->query.qname,
-					     &zone, &db, &version, &node,
-					     rdataset, sigrdataset);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * We found the parent KEY.
-			 *
-			 * zone, db, version, node, rdataset, and sigrdataset
-			 * have all been updated to refer to the parent's
-			 * data.  We will resume query processing as if
-			 * we had looked for the KEY in the parent zone in
-			 * the first place.
-			 *
-			 * We need to set fname correctly.  We do this here
-			 * instead of in query_findparentkey() because
-			 * dns_name_copy() can fail (though it shouldn't
-			 * ever do so since we should have enough space).
-			 */
-			result = dns_name_copy(client->query.qname,
-					       fname, NULL);
-			if (result != ISC_R_SUCCESS) {
-				QUERY_ERROR(DNS_R_SERVFAIL);
-				goto cleanup;
-			}
-		} else {
-			/*
-			 * We couldn't find the KEY in a parent zone.
-			 * Continue with processing of the original
-			 * results of dns_db_find().
-			 */
-			result = DNS_R_NXRRSET;
-		}
-	}
 
  resume:
 	CTRACE("query_find: resume");
@@ -2681,7 +2626,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				/*
 				 * Recurse!
 				 */
-				if (type == dns_rdatatype_key)
+				if (dns_rdatatype_atparent(type))
 					result = query_recurse(client, qtype,
 							       NULL, NULL);
 				else
@@ -2851,7 +2796,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		    (fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
 		{
 			dns_fixedname_init(&wildcardname);
-			dns_name_copy(fname, dns_fixedname_name(&wildcardname),					      NULL);
+			dns_name_copy(fname, dns_fixedname_name(&wildcardname),
+				      NULL);
 			need_wildcardproof = ISC_TRUE;
 		}
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
@@ -3026,7 +2972,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	    (fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
 	{
 		dns_fixedname_init(&wildcardname);
-		dns_name_copy(fname, dns_fixedname_name(&wildcardname), NULL);			need_wildcardproof = ISC_TRUE;
+		dns_name_copy(fname, dns_fixedname_name(&wildcardname), NULL);
+		need_wildcardproof = ISC_TRUE;
 	}
 
 	if (type == dns_rdatatype_any) {
@@ -3130,13 +3077,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
-		if (WANTDNSSEC(client) &&
-		    (fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
-		{
-			dns_fixedname_init(&wildcardname);
-			dns_name_copy(fname, dns_fixedname_name(&wildcardname),					      NULL);
-			need_wildcardproof = ISC_TRUE;
-		}
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.6.2.1 2003/08/15 02:00:33 marka Exp $ */
+/* $Id: dig.h,v 1.71.2.6.2.2 2003/10/15 05:32:07 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -191,7 +191,7 @@ void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
 
 isc_result_t
-get_reverse(char *reverse, char *value, isc_boolean_t ip6int,
+get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 	    isc_boolean_t strict);
 
 void
@@ -235,6 +235,12 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
 dig_server_t *
 make_server(const char *servname);
+
+void
+flush_server_list(void);
+
+void
+set_nameserver(char *opt);
 
 void
 clone_server_list(dig_serverlist_t src,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.7 2003/09/24 23:37:15 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.8 2003/10/15 05:32:10 marka Exp $ */
 
 #include <config.h>
 
@@ -136,7 +136,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "exiting (due to assertion failure)");
 	} else {
-	fprintf(stderr, "%s:%d: %s(%s) failed\n",
+		fprintf(stderr, "%s:%d: %s(%s) failed\n",
 			file, line, isc_assertion_typetotext(type), cond);
 		fflush(stderr);
 	}
@@ -220,7 +220,8 @@ lwresd_usage(void) {
 		"[-d debuglevel] [-f|-g]\n"
 		"              [-n number_of_cpus] [-p port]"
 		"[-P listen-port] [-s]\n"
-		"              [-t chrootdir] [-u username] [-i pidfile]\n");
+		"              [-t chrootdir] [-u username] [-i pidfile]\n"
+		"             [-m {usage|trace|record}]\n");
 }
 
 static void
@@ -232,7 +233,8 @@ usage(void) {
 	fprintf(stderr,
 		"usage: named [-c conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
-		"             [-p port] [-s] [-t chrootdir] [-u username]\n");
+		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
+		"             [-m {usage|trace|record}]\n");
 }
 
 static void
@@ -293,6 +295,38 @@ parse_int(char *arg, const char *desc) {
 	return (tmp);
 }
 
+static struct flag_def {
+	const char *name;
+	unsigned int value;
+} mem_debug_flags[] = {
+	{ "trace",  ISC_MEM_DEBUGTRACE },
+	{ "record", ISC_MEM_DEBUGRECORD },
+	{ "usage", ISC_MEM_DEBUGUSAGE },
+	{ NULL, 0 }
+};
+
+static void
+set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
+	for (;;) {
+		const struct flag_def *def;
+		const char *end = strchr(arg, ',');
+		if (end == NULL)
+			end = arg + strlen(arg);
+		for (def = defs; def->name != NULL; def++) {
+			if (end - arg == (int)strlen(def->name) &&
+			    memcmp(arg, def->name, end - arg) == 0) {
+				*ret |= def->value;
+				goto found;
+			}
+		}
+		ns_main_earlyfatal("unrecognized flag '%.*s'", end - arg, arg);
+	 found:
+		if (*end == '\0')
+			break;
+		arg = end + 1;
+	}
+}
+
 static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
@@ -304,7 +338,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-				     "46c:C:d:fgi:ln:N:p:P:st:u:vx:")) != -1) {
+			           "46c:C:d:fgi:lm:n:N:p:P:st:u:vx:")) != -1) {
 		switch (ch) {
 		case '4':
 			if (disable4)
@@ -318,7 +352,8 @@ parse_command_line(int argc, char *argv[]) {
 			if (disable6)
 				ns_main_earlyfatal("cannot specify -4 and -6");
 			if (isc_net_probeipv6() != ISC_R_SUCCESS)
-				ns_main_earlyfatal("IPv6 not supported by OS");				isc_net_disableipv4();
+				ns_main_earlyfatal("IPv6 not supported by OS");
+			isc_net_disableipv4();
 			disable4 = ISC_TRUE;
 			break;
 		case 'c':
@@ -351,6 +386,10 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'l':
 			ns_g_lwresdonly = ISC_TRUE;
+			break;
+		case 'm':
+			set_flags(isc_commandline_argument, mem_debug_flags,
+				  &isc_mem_debugging);
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
@@ -409,16 +448,21 @@ parse_command_line(int argc, char *argv[]) {
 static isc_result_t
 create_managers(void) {
 	isc_result_t result;
+#ifdef ISC_PLATFORM_USETHREADS
+	unsigned int cpus_detected;
+#endif
 
 #ifdef ISC_PLATFORM_USETHREADS
+	cpus_detected = isc_os_ncpus();
 	if (ns_g_cpus == 0)
-		ns_g_cpus = isc_os_ncpus();
+		ns_g_cpus = cpus_detected;
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
+		      cpus_detected, cpus_detected == 1 ? "" : "s",
+		      ns_g_cpus, ns_g_cpus == 1 ? "" : "s");
 #else
 	ns_g_cpus = 1;
 #endif
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "using %u CPU%s",
-		      ns_g_cpus, ns_g_cpus == 1 ? "" : "s");
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -625,11 +669,6 @@ main(int argc, char *argv[]) {
 		ns_main_earlyfatal("isc_app_start() failed: %s",
 				   isc_result_totext(result));
 
-	result = isc_mem_create(0, 0, &ns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("isc_mem_create() failed: %s",
-				   isc_result_totext(result));
-
 	dns_result_register();
 	dst_result_register();
 	isccc_result_register();
@@ -647,6 +686,11 @@ main(int argc, char *argv[]) {
 					     "chroot path (-t %s)",
 					     ns_g_conffile, ns_g_chrootdir);
 	}
+
+	result = isc_mem_create(0, 0, &ns_g_mctx);
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("isc_mem_create() failed: %s",
+				   isc_result_totext(result));
 
 	setup();
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.11 2003/09/11 00:17:58 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.12 2003/10/15 05:32:11 marka Exp $ */
 
 #include <config.h>
 
@@ -203,10 +203,6 @@ static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
 static void forward_done(isc_task_t *task, isc_event_t *event);
 
 /**************************************************************************/
-
-static void
-update_log(ns_client_t *client, dns_zone_t *zone,
-	   int level, const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
 
 static void
 update_log(ns_client_t *client, dns_zone_t *zone,
@@ -1947,12 +1943,6 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 /*
  * The actual update code in all its glory.  We try to follow
  * the RFC2136 pseudocode as closely as possible.
- */
-
-/*
- * DS records are not allowed to exist without corresponding NS records,
- * draft-ietf-dnsext-delegation-signer-11.txt, 2.2 Protocol Change,
- * "DS RRsets MUST NOT appear at non-delegation points or at a zone's apex".
  */
 
 static isc_result_t

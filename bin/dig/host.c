@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76.2.5.2.5 2003/09/02 01:49:44 marka Exp $ */
+/* $Id: host.c,v 1.76.2.5.2.6 2003/10/15 05:32:06 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -41,7 +41,7 @@
 #include <dig/dig.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
-extern ISC_LIST(dig_server_t) server_list;
+extern dig_serverlist_t server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t usesearch;
@@ -125,14 +125,14 @@ struct rtype rtypes[] = {
 static void
 show_usage(void) {
 	fputs(
-"Usage: host [-aCdlrTwv] [-c class] [-n] [-N ndots] [-t type] [-W time]\n"
+"Usage: host [-aCdlriTwv] [-c class] [-N ndots] [-t type] [-W time]\n"
 "            [-R number] hostname [server]\n"
 "       -a is equivalent to -v -t *\n"
 "       -c specifies query class for non-IN data\n"
 "       -C compares SOA records on authoritative nameservers\n"
 "       -d is equivalent to -v\n"
 "       -l lists all hosts in a domain, using AXFR\n"
-"       -i Use the old IN6.INT form of IPv6 reverse lookup\n"
+"       -i IP6.INT reverse lookups\n"
 "       -N changes the number of dots allowed before root lookup is done\n"
 "       -r disables recursive processing\n"
 "       -R specifies number of retries for UDP packets\n"
@@ -527,7 +527,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char hostname[MXNAME];
-	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int c;
 	char store[MXNAME];
@@ -541,7 +540,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	lookup = make_empty_lookup();
 
-	while ((c = isc_commandline_parse(argc, argv, "ilvwrdt:c:aTCN:R:W:Dn"))
+	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:Dni"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
@@ -576,10 +575,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				fatalexit = 2;
 				fatal("invalid type: %s\n",
 				      isc_commandline_argument);
-			} 
+			}
 			if (!lookup->rdtypeset ||
 			    lookup->rdtype != dns_rdatatype_axfr)
 				lookup->rdtype = rdtype;
+			lookup->rdtypeset = ISC_TRUE;
 			if (rdtype == dns_rdatatype_axfr) {
 				/* -l -t any -v */
 				list_type = dns_rdatatype_any;
@@ -622,6 +622,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->ip6_int = ISC_TRUE;
 			break;
 		case 'n':
+			/* deprecated */
 			break;
 		case 'w':
 			/*
@@ -673,14 +674,14 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	strncpy(hostname, argv[isc_commandline_index], sizeof(hostname));
 	hostname[sizeof(hostname)-1]=0;
 	if (argc > isc_commandline_index + 1) {
-		srv = make_server(argv[isc_commandline_index+1]);
-		debug("server is %s", srv->servername);
-		ISC_LIST_APPEND(server_list, srv, link);
+		set_nameserver(argv[isc_commandline_index+1]);
+		debug("server is %s", argv[isc_commandline_index+1]);
 		listed_server = ISC_TRUE;
 	}
 
 	lookup->pending = ISC_FALSE;
-	if (get_reverse(store, hostname, lookup->ip6_int, ISC_TRUE)			     == ISC_R_SUCCESS)
+	if (get_reverse(store, sizeof(store), hostname,
+			lookup->ip6_int, ISC_TRUE) == ISC_R_SUCCESS) 
 	{
 		strncpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1] = 0;

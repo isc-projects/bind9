@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.h,v 1.8.2.2.8.1 2003/08/02 00:15:11 marka Exp $ */
+/* $Id: main.h,v 1.8.2.2.8.2 2003/10/15 05:32:12 marka Exp $ */
 
 #ifndef NAMED_MAIN_H
 #define NAMED_MAIN_H 1
@@ -24,9 +24,9 @@ void
 ns_main_earlyfatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
-ns_main_setmemstats(const char *);
+ns_main_earlywarning(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
-ns_main_earlywarning(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+ns_main_setmemstats(const char *);
 
 #endif /* NAMED_MAIN_H */

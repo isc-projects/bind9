@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.2.2.2.4.1 2003/08/22 04:02:26 marka Exp $ -->
+<!-- $Id: host.docbook,v 1.2.2.2.4.2 2003/10/15 05:32:06 marka Exp $ -->
 
 <refentry>
 
@@ -105,14 +105,14 @@ List mode is selected by the <option>-l</option> option.  This makes
 <command>host</command> perform a zone transfer for zone
 <parameter>name</parameter>.  Transfer the zone printing out the NS, PTR
 and address records (A/AAAA).  If combined with <option>-a</option>
-all records will be printed.
+all records will be printed.  
 </para>
 
 <para>
-The <option>-n</option>
+The <option>-i</option>
 option specifies that reverse lookups of IPv6 addresses should
-use the IP6.INT domain and "nibble" labels as defined in RFC1886.
-The default is to use IP6.ARPA and binary labels as defined in RFC2874.
+use the IP6.INT domain as defined in RFC1886.
+The default is to use IP6.ARPA.
 </para>
 
 <para>

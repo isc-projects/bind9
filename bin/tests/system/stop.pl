@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: stop.pl,v 1.4 2001/03/08 02:34:01 neild Exp $
+# $Id: stop.pl,v 1.4.12.1 2003/10/15 05:32:21 marka Exp $
 
 # Framework for stopping test servers
 # Based on the type of server specified, signal the server to stop, wait
@@ -91,9 +91,9 @@ foreach my $server (@servers) {
 wait_for_servers(5, @servers);
 
 
-# Pass 3: SIGKILL
+# Pass 3: SIGABRT
 foreach my $server (@servers) {
-	stop_signal($server, "KILL");
+	stop_signal($server, "ABRT");
 }
 
 exit($errors ? 1 : 0);
@@ -157,7 +157,10 @@ sub stop_signal {
 	my $pid = read_pid($pid_file);
 	return unless defined($pid);
 
-	print "I:$server didn't die when sent a SIGTERM\n" if ($sig eq 'KILL');
+	if ($sig eq 'ABRT') {
+		print "I:$server didn't die when sent a SIGTERM\n";
+		$errors++;
+	}
 
 	my $result = kill $sig, $pid;
 	if (!$result) {

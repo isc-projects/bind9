@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.21.208.1 2003/09/24 03:47:09 marka Exp $ */
+/* $Id: tsigconf.c,v 1.21.208.2 2003/10/15 05:32:11 marka Exp $ */
 
 #include <config.h>
 
@@ -149,7 +149,7 @@ ns_tsigkeyring_fromconfig(cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	for (i = 0;; i++) {
+	for (i = 0; ; i++) {
 		if (maps[i] == NULL)
 			break;
 		keylist = NULL;

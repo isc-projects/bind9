@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.113.2.1.8.2 2003/08/25 05:40:25 marka Exp $
+# $Id: Makefile.in,v 1.113.2.1.8.3 2003/10/15 05:32:17 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -27,7 +27,7 @@ CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
 CDEFINES =
 CWARNINGS =
 
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
@@ -279,7 +279,7 @@ journalprint@EXEEXT@: journalprint.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ journalprint.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-cfg_test@EXEEXT@: cfg_test.@O@ ${ISCCFGDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+cfg_test@EXEEXT@: cfg_test.@O@ ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ cfg_test.@O@ \
 		${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
@@ -289,6 +289,8 @@ distclean::
 clean distclean::
 	rm -f ${TARGETS} ${XTARGETS}
 	rm -f t_journal
+
+check: test
 
 test:
 	@for dir in $(SUBDIRS) ;\

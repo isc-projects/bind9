@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32.2.3.8.3 2003/08/25 05:40:25 marka Exp $
+# $Id: Makefile.in,v 1.32.2.3.8.4 2003/10/15 05:32:15 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -32,7 +32,7 @@ CWARNINGS =
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
@@ -41,10 +41,8 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 
-RNDCLIBS =	${ISCCFGLIBS} ${DNSLIBS} ${ISCCCLIBS} ${BIND9LIBS} \
-		${ISCLIBS} @LIBS@
-RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${DNSDEPLIBS} ${ISCCCDEPLIBS} \
-		${BIND9DEPLIBS} ${ISCDEPLIBS}
+RNDCLIBS =	${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
+RNDCDEPLIBS =	${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${BIND9DEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
 
 CONFLIBS =	${DNSLIBS} ${ISCLIBS} @LIBS@
 CONFDEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}

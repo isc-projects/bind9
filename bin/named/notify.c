@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.24.2.2.2.3 2003/08/27 01:28:25 marka Exp $ */
+/* $Id: notify.c,v 1.24.2.2.2.4 2003/10/15 05:32:10 marka Exp $ */
 
 #include <config.h>
 
@@ -129,7 +129,7 @@ ns_notify_start(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto notauth;
 
-	switch(dns_zone_gettype(zone)) {
+	switch (dns_zone_gettype(zone)) {
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:	/* Allow dialup passive to work. */
