@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.83 2001/11/14 23:12:18 bwelling Exp $ */
+/* $Id: rndc.c,v 1.84 2001/11/14 23:14:29 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -53,7 +53,7 @@
 
 #include "util.h"
 
-#define SERVERADDRS 4
+#define SERVERADDRS 10
 
 char *progname;
 isc_boolean_t verbose;
