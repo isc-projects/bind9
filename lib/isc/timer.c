@@ -214,7 +214,7 @@ destroy(isc_timer_t *timer) {
 isc_result_t
 isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		 isc_time_t *expires, isc_interval_t *interval,
-		 isc_task_t *task, isc_taskaction_t action, void *arg,
+		 isc_task_t *task, isc_taskaction_t action, const void *arg,
 		 isc_timer_t **timerp)
 {
 	isc_timer_t *timer;
@@ -281,7 +281,17 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	timer->task = NULL;
 	isc_task_attach(task, &timer->task);
 	timer->action = action;
-	timer->arg = arg;
+	/*
+	 * Removing the const attribute from "arg" is the best of two
+	 * evils here.  If the timer->arg member is made const, then
+	 * it affects a great many recipients of the timer event
+	 * which did not pass in an "arg" that was truly const.
+	 * Changing isc_timer_create() to not have "arg" prototyped as const,
+	 * though, can cause compilers warnings for calls that *do*
+	 * have a truly const arg.  The caller will have to carefully
+	 * keep track of whether arg started as a true const.
+	 */
+	DE_CONST(arg, timer->arg);
 	timer->index = 0;
 	if (isc_mutex_init(&timer->lock) != ISC_R_SUCCESS) {
 		isc_task_detach(&timer->task);

@@ -141,10 +141,12 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	if (1 + plen + 1 > isc_buffer_availablelength(target))
 		return (ISC_R_NOSPACE);
 	    
-	isc_buffer_putmem(target, (unsigned char *)"#", 1);
-	isc_buffer_putmem(target, (unsigned char *)pbuf, plen);
+	isc_buffer_putmem(target, (const unsigned char *)"#", 1);
+	isc_buffer_putmem(target, (const unsigned char *)pbuf, plen);
 
-	/* Null terminate after used region. */
+	/*
+	 * Null terminate after used region.
+	 */
 	isc_buffer_availableregion(target, &avail);
 	INSIST(avail.length >= 1);
 	avail.base[0] = '\0';
@@ -185,18 +187,19 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 		case AF_INET:
 			return (ntohl(sockaddr->type.sin.sin_addr.s_addr));
 		case AF_INET6:
-			s = (unsigned char *)&sockaddr->type.sin6.sin6_addr;
+			s = (const unsigned char *)&sockaddr->
+							   type.sin6.sin6_addr;
 			length = sizeof sockaddr->type.sin6.sin6_addr;
 			break;
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "unknown address family: %d",
 					 (int)sockaddr->type.sa.sa_family);
-			s = (unsigned char *)&sockaddr->type;
+			s = (const unsigned char *)&sockaddr->type;
 			length = sockaddr->length;
 		}
 	} else {
-		s = (unsigned char *)&sockaddr->type;
+		s = (const unsigned char *)&sockaddr->type;
 		length = sockaddr->length;
 	}
 

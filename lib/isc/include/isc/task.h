@@ -357,7 +357,8 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
  */
 
 isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg);
+isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
+		    const void *arg);
 /*
  * Send a shutdown event with action 'action' and argument 'arg' when
  * 'task' is shutdown.
@@ -377,6 +378,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg);
  *	When the task is shutdown, shutdown events requested with
  *	isc_task_onshutdown() will be appended to the task's event queue.
  *
+
  * Returns:
  *
  *	ISC_R_SUCCESS
@@ -438,7 +440,7 @@ isc_task_destroy(isc_task_t **taskp);
  */
 
 void
-isc_task_setname(isc_task_t *task, char *name, void *tag);
+isc_task_setname(isc_task_t *task, const char *name, void *tag);
 /*
  * Name 'task'.
  *

@@ -589,7 +589,8 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
 }
 
 isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
+isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, const void *arg)
+{
 	isc_boolean_t disallowed = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *event;
@@ -657,7 +658,7 @@ isc_task_destroy(isc_task_t **taskp) {
 }
 
 void
-isc_task_setname(isc_task_t *task, char *name, void *tag) {
+isc_task_setname(isc_task_t *task, const char *name, void *tag) {
 
 	/*
 	 * Name 'task'.

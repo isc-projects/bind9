@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.6 2000/04/10 21:52:31 gson Exp $ */
+/* $Id: base64.h,v 1.7 2000/06/01 17:20:35 tale Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
@@ -50,7 +50,7 @@ ISC_LANG_BEGINDECLS
  */
 isc_result_t
 isc_base64_totext(isc_region_t *source, int wordlength,
-		  char *wordbreak, isc_buffer_t *target);
+		  const char *wordbreak, isc_buffer_t *target);
 
 /* Convert base64 encoded text into data.
  *

@@ -188,7 +188,7 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
 }
 
 isc_result_t
-isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
+isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 		  isc_symvalue_t value, isc_symexists_t exists_policy)
 {
 	unsigned int bucket;
@@ -214,7 +214,15 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 		if (elt == NULL)
 			return (ISC_R_NOMEMORY);
 	}
-	elt->key = key;
+
+	/*
+	 * Though the "key" can be const coming in, it is not stored as const
+	 * so that the calling program can easily have writable access to
+	 * it in its undefine_action function.  In the event that it *was*
+	 * truly const coming in and then the caller modified it anyway ...
+	 * well, don't do that!
+	 */
+	DE_CONST(key, elt->key);
 	elt->type = type;
 	elt->value = value;
 
@@ -227,7 +235,7 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 }
 
 isc_result_t
-isc_symtab_undefine(isc_symtab_t *symtab, char *key, unsigned int type) {
+isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type) {
 	unsigned int bucket;
 	elt_t *elt;
 

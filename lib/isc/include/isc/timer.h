@@ -112,7 +112,7 @@ isc_timer_create(isc_timermgr_t *manager,
 		 isc_interval_t *interval,
 		 isc_task_t *task,
 		 isc_taskaction_t action,
-		 void *arg,
+		 const void *arg,
 		 isc_timer_t **timerp);
 /*
  * Create a new 'type' timer managed by 'manager'.  The timers parameters

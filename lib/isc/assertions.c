@@ -26,7 +26,8 @@
  * Forward.
  */
 
-static void default_callback(char *, int, isc_assertiontype_t, char *);
+static void
+default_callback(const char *, int, isc_assertiontype_t, const char *);
 
 /*
  * Public.
@@ -42,9 +43,9 @@ isc_assertion_setcallback(isc_assertioncallback_t cb) {
 		isc_assertion_failed = cb;
 }
 
-char *
+const char *
 isc_assertion_typetotext(isc_assertiontype_t type) {
-	char *result;
+	const char *result;
 
 	switch (type) {
 	case isc_assertiontype_require:
@@ -70,7 +71,9 @@ isc_assertion_typetotext(isc_assertiontype_t type) {
  */
 
 static void
-default_callback(char *file, int line, isc_assertiontype_t type, char *cond) {
+default_callback(const char *file, int line, isc_assertiontype_t type,
+		 const char *cond)
+{
 	fprintf(stderr, "%s:%d: %s(%s) failed.\n",
 		file, line, isc_assertion_typetotext(type), cond);
 	fflush(stderr);

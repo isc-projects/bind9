@@ -29,13 +29,13 @@
 typedef struct resulttable {
 	unsigned int				base;
 	unsigned int				last;
-	char **					text;
+	const char **				text;
 	isc_msgcat_t *				msgcat;
 	int					set;
 	ISC_LINK(struct resulttable)		link;
 } resulttable;
 
-static char *text[ISC_R_NRESULTS] = {
+static const char *text[ISC_R_NRESULTS] = {
 	"success",				/*  0 */
 	"out of memory",			/*  1 */
 	"timed out",				/*  2 */
@@ -88,7 +88,7 @@ static ISC_LIST(resulttable)			tables;
 static isc_mutex_t				lock;
 
 static isc_result_t
-register_table(unsigned int base, unsigned int nresults, char **text,
+register_table(unsigned int base, unsigned int nresults, const char **text,
 	       isc_msgcat_t *msgcat, int set)
 {
 	resulttable *table;
@@ -140,10 +140,10 @@ initialize(void) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 
-char *
+const char *
 isc_result_totext(isc_result_t result) {
 	resulttable *table;
-	char *text, *default_text;
+	const char *text, *default_text;
 	int index;
 
 	initialize();
@@ -177,8 +177,8 @@ isc_result_totext(isc_result_t result) {
 }
 
 isc_result_t
-isc_result_register(unsigned int base, unsigned int nresults, char **text,
-		    isc_msgcat_t *msgcat, int set)
+isc_result_register(unsigned int base, unsigned int nresults,
+		    const char **text, isc_msgcat_t *msgcat, int set)
 {
 	initialize();
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.21 2000/05/25 05:07:21 gson Exp $ */
+/* $Id: log.h,v 1.22 2000/06/01 17:20:40 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -97,8 +97,8 @@ struct isc_logmodule {
  * the stream before the call.
  */
 typedef struct isc_logfile {
-	FILE *stream;	/* Initialized to NULL for ISC_LOG_TOFILE. */
-	char *name;	/* NULL for ISC_LOG_TOFILEDESC. */
+	FILE *stream;		/* Initialized to NULL for ISC_LOG_TOFILE. */
+	const char *name;	/* NULL for ISC_LOG_TOFILEDESC. */
 	int versions;	/* >= 0, ISC_LOG_ROLLNEVER, ISC_LOG_ROLLINFINITE. */
 	/*
 	 * stdio's ftell is standardized to return a long, which may well not
@@ -365,7 +365,8 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
 isc_result_t
 isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		      unsigned int type, int level,
-		      isc_logdestination_t *destination, unsigned int flags);
+		      const isc_logdestination_t *destination,
+		      unsigned int flags);
 /*
  * Specify the parameters of a logging channel.
  *
@@ -433,7 +434,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 
 isc_result_t
 isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
-		   isc_logcategory_t *category, isc_logmodule_t *module);
+		   const isc_logcategory_t *category,
+		   const isc_logmodule_t *module);
 /*
  * Associate a named logging channel with a category and module that
  * will use it.
@@ -652,8 +654,8 @@ isc_log_getduplicateinterval(isc_logconfig_t *lcfg);
  *	The current duplicate filtering interval.
  */
 
-void
-isc_log_settag(isc_logconfig_t *lcfg, char *tag);
+isc_result_t
+isc_log_settag(isc_logconfig_t *lcfg, const char *tag);
 /*
  * Set the program name or other identifier for ISC_LOG_PRINTTAG.
  *
@@ -673,6 +675,10 @@ isc_log_settag(isc_logconfig_t *lcfg, char *tag);
  *
  *	Because the name is used by ISC_LOG_PRINTTAG, it should not be
  *	altered or destroyed after isc_log_settag().
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	Success
+ *	ISC_R_NOMEMORY  Resource Limit: Out of memory
  *
  * XXXDCL when creating a new isc_logconfig_t, it might be nice if the tag
  * of the currently active isc_logconfig_t was inherited.  this does not

@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.6 2000/05/08 14:37:20 tale Exp $ */
+/* $Id: commandline.c,v 1.7 2000/06/01 17:20:20 tale Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -80,9 +80,11 @@ char *isc_commandline_progname;		/* For printing error messages. */
 isc_boolean_t isc_commandline_errprint = ISC_TRUE; /* Print error messages. */
 isc_boolean_t isc_commandline_reset = ISC_TRUE; /* Reset processing. */
 
+static char endopt = '\0';
+
 #define	BADOPT	'?'
 #define	BADARG	':'
-#define ENDOPT  ""
+#define ENDOPT  &endopt
 
 /*
  * getopt --

@@ -84,7 +84,7 @@ ISC_LANG_BEGINDECLS
 
 isc_event_t *
 isc_event_allocate(isc_mem_t *, void *, isc_eventtype_t, isc_taskaction_t,
-		   void *arg, size_t);
+		   const void *arg, size_t);
 
 void
 isc_event_free(isc_event_t **);

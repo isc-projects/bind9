@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.9 2000/04/28 16:54:53 tale Exp $
+ * $Id: assertions.h,v 1.10 2000/06/01 17:20:34 tale Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
@@ -33,13 +33,16 @@ typedef enum {
 	isc_assertiontype_invariant
 } isc_assertiontype_t;
 
-typedef void (*isc_assertioncallback_t)(char *, int, isc_assertiontype_t,
-					char *);
+typedef void (*isc_assertioncallback_t)(const char *, int, isc_assertiontype_t,
+					const char *);
 
 extern isc_assertioncallback_t isc_assertion_failed;
 
-void isc_assertion_setcallback(isc_assertioncallback_t);
-char *isc_assertion_typetotext(isc_assertiontype_t type);
+void
+isc_assertion_setcallback(isc_assertioncallback_t);
+
+const char *
+isc_assertion_typetotext(isc_assertiontype_t type);
 
 #ifdef ISC_CHECK_ALL
 #define ISC_CHECK_REQUIRE		1

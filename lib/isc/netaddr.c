@@ -53,7 +53,7 @@ isc_boolean_t
 isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		     unsigned int prefixlen)
 {
-	unsigned char *pa, *pb;
+	const unsigned char *pa, *pb;
 	unsigned int ipabytes; /* Length of whole IP address in bytes */
 	unsigned int nbytes;   /* Number of significant whole bytes */
 	unsigned int nbits;    /* Number of significant leftover bits */
@@ -65,13 +65,13 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 	
 	switch (a->family) {
 	case AF_INET:
-		pa = (unsigned char *) &a->type.in;
-		pb = (unsigned char *) &b->type.in;
+		pa = (const unsigned char *) &a->type.in;
+		pb = (const unsigned char *) &b->type.in;
 		ipabytes = 4;
 		break;
 	case AF_INET6:
-		pa = (unsigned char *) &a->type.in6;
-		pb = (unsigned char *) &b->type.in6;
+		pa = (const unsigned char *) &a->type.in6;
+		pb = (const unsigned char *) &b->type.in6;
 		ipabytes = 16;
 		break;
 	default:
@@ -80,7 +80,9 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		return (ISC_FALSE);
 	}
 
-	/* Don't crash if we get a pattern like 10.0.0.1/9999999. */
+	/*
+	 * Don't crash if we get a pattern like 10.0.0.1/9999999.
+	 */
 	if (prefixlen > ipabytes * 8)
 		prefixlen = ipabytes * 8;
 
@@ -154,18 +156,17 @@ isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size) {
 }
 
 isc_result_t
-isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp)
-{
+isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp) {
 	unsigned int nbits, nbytes, ipbytes, i;
-	unsigned char *p;
+	const unsigned char *p;
 	
 	switch (s->family) {
 	case AF_INET:
-		p = (unsigned char *) &s->type.in;
+		p = (const unsigned char *) &s->type.in;
 		ipbytes = 4;
 		break;
 	case AF_INET6:
-		p = (unsigned char *) &s->type.in6;
+		p = (const unsigned char *) &s->type.in6;
 		ipbytes = 16;
 		break;
 	default:
@@ -197,16 +198,14 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp)
 }
 
 void
-isc_netaddr_fromin(isc_netaddr_t *netaddr, const struct in_addr *ina)
-{
+isc_netaddr_fromin(isc_netaddr_t *netaddr, const struct in_addr *ina) {
 	memset(netaddr, 0, sizeof *netaddr);
 	netaddr->family = AF_INET;
 	netaddr->type.in = *ina;
 }
 
 void
-isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6)
-{
+isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6) {
 	memset(netaddr, 0, sizeof *netaddr);
 	netaddr->family = AF_INET6;
 	netaddr->type.in6 = *ina6;

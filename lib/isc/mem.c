@@ -147,14 +147,6 @@ struct isc_mempool {
 };
 
 /*
- * Forward.
- */
-
-static inline size_t		quantize(size_t);
-static inline void		mem_putunlocked(isc_mem_t *, void *, size_t);
-static inline void *		mem_getunlocked(isc_mem_t *, size_t);
-
-/*
  * Private Inline-able.
  */
 
@@ -174,19 +166,314 @@ quantize(size_t size) {
 	return (temp - temp % ALIGNMENT_SIZE); 
 }
 
+static inline void
+split(isc_mem_t *ctx, size_t size, size_t new_size) {
+	unsigned char *ptr;
+	size_t remaining_size;
+
+	/*
+	 * Unlink a frag of size 'size'.
+	 */
+	ptr = (unsigned char *)ctx->freelists[size];
+	ctx->freelists[size] = ctx->freelists[size]->next;
+	ctx->stats[size].freefrags--;
+
+	/*
+	 * Create a frag of size 'new_size' and link it in.
+	 */
+	((element *)ptr)->next = ctx->freelists[new_size];
+	ctx->freelists[new_size] = (element *)ptr;
+	ctx->stats[new_size].freefrags++;
+
+	/*
+	 * Create a frag of size 'size - new_size' and link it in.
+	 */
+	remaining_size = size - new_size;
+	ptr += new_size;
+	((element *)ptr)->next = ctx->freelists[remaining_size];
+	ctx->freelists[remaining_size] = (element *)ptr;
+	ctx->stats[remaining_size].freefrags++;
+}
+
+static inline isc_boolean_t
+try_split(isc_mem_t *ctx, size_t new_size) {
+	size_t i, doubled_size;
+
+	if (!ctx->trysplit)
+		return (ISC_FALSE);
+
+	/*
+	 * Try splitting a frag that's at least twice as big as the size
+	 * we want.
+	 */
+	doubled_size = new_size * 2;
+	for (i = doubled_size;
+	     i < ctx->max_size;
+	     i += ALIGNMENT_SIZE) {
+		if (ctx->freelists[i] != NULL) {
+			split(ctx, i, new_size);
+			return (ISC_TRUE);
+		}
+	}
+
+	/*
+	 * No luck.  Try splitting any frag bigger than the size we need.
+	 */
+	for (i = new_size + ALIGNMENT_SIZE;
+	     i < doubled_size;
+	     i += ALIGNMENT_SIZE) {
+		if (ctx->freelists[i] != NULL) {
+			split(ctx, i, new_size);
+			return (ISC_TRUE);
+		}
+	}
+
+	return (ISC_FALSE);
+}
+
+static inline isc_boolean_t
+more_basic_blocks(isc_mem_t *ctx) {
+	void *new;
+	unsigned char *curr, *next;
+	unsigned char *first, *last;
+	unsigned char **table;
+	unsigned int table_size;
+	size_t increment;
+	int i;
+
+	/* Require: we hold the context lock. */
+
+	/*
+	 * Did we hit the quota for this context?
+	 */
+	increment = NUM_BASIC_BLOCKS * ctx->mem_target;
+	if (ctx->quota != 0 && ctx->total + increment > ctx->quota)
+		return (ISC_FALSE);
+
+	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
+	if (ctx->basic_table_count == ctx->basic_table_size) {
+		table_size = ctx->basic_table_size + TABLE_INCREMENT;
+		table = (ctx->memalloc)(ctx->arg,
+					table_size * sizeof (unsigned char *));
+		if (table == NULL)
+			return (ISC_FALSE);
+		if (ctx->basic_table_size != 0) {
+			memcpy(table, ctx->basic_table,
+			       ctx->basic_table_size *
+			       sizeof (unsigned char *));
+			(ctx->memfree)(ctx->arg, ctx->basic_table);
+		}
+		ctx->basic_table = table;
+		ctx->basic_table_size = table_size;
+	}
+
+	new = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
+	if (new == NULL)
+		return (ISC_FALSE);
+	ctx->total += increment;
+	ctx->basic_table[ctx->basic_table_count] = new;
+	ctx->basic_table_count++;
+
+	curr = new;
+	next = curr + ctx->mem_target;
+	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
+		((element *)curr)->next = (element *)next;
+		curr = next;
+		next += ctx->mem_target;
+	}
+	/*
+	 * curr is now pointing at the last block in the
+	 * array.
+	 */
+	((element *)curr)->next = NULL;
+	first = new;
+	last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
+	if (first < ctx->lowest || ctx->lowest == NULL)
+		ctx->lowest = first;
+	if (last > ctx->highest)
+		ctx->highest = last;
+	ctx->basic_blocks = new;
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+more_frags(isc_mem_t *ctx, size_t new_size) {
+	int i, frags;
+	size_t total_size;
+	void *new;
+	unsigned char *curr, *next;
+
+	/*
+	 * Try to get more fragments by chopping up a basic block.
+	 */
+
+	if (ctx->basic_blocks == NULL) {
+		if (!more_basic_blocks(ctx)) {
+			/*
+			 * We can't get more memory from the OS, or we've
+			 * hit the quota for this context.
+			 */
+			/*
+			 * XXXRTH  "At quota" notification here. 
+			 */
+			/*
+			 * Maybe we can split one of our existing
+			 * list frags.
+			 */
+			return (try_split(ctx, new_size));
+		}
+	}
+
+	total_size = ctx->mem_target;
+	new = ctx->basic_blocks;
+	ctx->basic_blocks = ctx->basic_blocks->next;
+	frags = total_size / new_size;
+	ctx->stats[new_size].blocks++;
+	ctx->stats[new_size].freefrags += frags;
+	/*
+	 * Set up a linked-list of blocks of size
+	 * "new_size".
+	 */
+	curr = new;
+	next = curr + new_size;
+	for (i = 0; i < (frags - 1); i++) {
+		((element *)curr)->next = (element *)next;
+		curr = next;
+		next += new_size;
+	}
+	/*
+	 * curr is now pointing at the last block in the
+	 * array.
+	 */
+	((element *)curr)->next = NULL;
+	ctx->freelists[new_size] = new;
+
+	return (ISC_TRUE);
+}
+
+static inline void *
+mem_getunlocked(isc_mem_t *ctx, size_t size) {
+	size_t new_size = quantize(size);
+	void *ret;
+
+	if (size >= ctx->max_size || new_size >= ctx->max_size) {
+		/*
+		 * memget() was called on something beyond our upper limit.
+		 */
+		if (ctx->quota != 0 && ctx->total + size > ctx->quota) {
+			ret = NULL;
+			goto done;
+		}
+		ret = (ctx->memalloc)(ctx->arg, size);
+		if (ret != NULL) {
+			ctx->total += size;
+			ctx->inuse += size;
+			ctx->stats[ctx->max_size].gets++;
+			ctx->stats[ctx->max_size].totalgets++;
+			/*
+			 * If we don't set new_size to size, then the
+			 * ISC_MEM_FILL code might write over bytes we
+			 * don't own.
+			 */
+			new_size = size;
+		}
+		goto done;
+	}
+
+	/* 
+	 * If there are no blocks in the free list for this size, get a chunk
+	 * of memory and then break it up into "new_size"-sized blocks, adding
+	 * them to the free list.
+	 */
+	if (ctx->freelists[new_size] == NULL && !more_frags(ctx, new_size))
+		return (NULL);
+
+	/*
+	 * The free list uses the "rounded-up" size "new_size".
+	 */
+	ret = ctx->freelists[new_size];
+	ctx->freelists[new_size] = ctx->freelists[new_size]->next;
+
+	/* 
+	 * The stats[] uses the _actual_ "size" requested by the
+	 * caller, with the caveat (in the code above) that "size" >= the
+	 * max. size (max_size) ends up getting recorded as a call to
+	 * max_size.
+	 */
+	ctx->stats[size].gets++;
+	ctx->stats[size].totalgets++;
+	ctx->stats[new_size].freefrags--;
+	ctx->inuse += new_size;
+
+ done:
+
+#if ISC_MEM_FILL
+	if (ret != NULL)
+		memset(ret, 0xbe, new_size); /* Mnemonic for "beef". */
+#endif
+
+	return (ret);
+}
+
+static inline void
+mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
+	size_t new_size = quantize(size);
+
+	if (size == ctx->max_size || new_size >= ctx->max_size) {
+		/*
+		 * memput() called on something beyond our upper limit.
+		 */
+#if ISC_MEM_FILL
+		memset(mem, 0xde, size); /* Mnemonic for "dead". */
+#endif
+		(ctx->memfree)(ctx->arg, mem);
+		INSIST(ctx->stats[ctx->max_size].gets != 0);
+		ctx->stats[ctx->max_size].gets--;
+		INSIST(size <= ctx->total);
+		ctx->inuse -= size;
+		ctx->total -= size;
+		return;
+	}
+
+#if ISC_MEM_FILL
+#if ISC_MEM_CHECKOVERRUN
+	check_overrun(mem, size, new_size);
+#endif
+	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
+#endif
+
+	/*
+	 * The free list uses the "rounded-up" size "new_size".
+	 */
+	((element *)mem)->next = ctx->freelists[new_size];
+	ctx->freelists[new_size] = (element *)mem;
+
+	/* 
+	 * The stats[] uses the _actual_ "size" requested by the
+	 * caller, with the caveat (in the code above) that "size" >= the
+	 * max. size (max_size) ends up getting recorded as a call to
+	 * max_size.
+	 */
+	INSIST(ctx->stats[size].gets != 0);
+	ctx->stats[size].gets--;
+	ctx->stats[new_size].freefrags++;
+	ctx->inuse -= new_size;
+}
+
 /*
  * Private.
  */
 
 static void *
 default_memalloc(void *arg, size_t size) {
-	(void)arg;
+	UNUSED(arg);
 	return (malloc(size));
 }
 
 static void
 default_memfree(void *arg, void *ptr) {
-	(void)arg;
+	UNUSED(arg);
 	free(ptr);
 }
 
@@ -392,72 +679,6 @@ isc_mem_restore(isc_mem_t *ctx) {
 	return (result);
 }
 
-static inline isc_boolean_t
-more_basic_blocks(isc_mem_t *ctx) {
-	void *new;
-	unsigned char *curr, *next;
-	unsigned char *first, *last;
-	unsigned char **table;
-	unsigned int table_size;
-	size_t increment;
-	int i;
-
-	/* Require: we hold the context lock. */
-
-	/*
-	 * Did we hit the quota for this context?
-	 */
-	increment = NUM_BASIC_BLOCKS * ctx->mem_target;
-	if (ctx->quota != 0 && ctx->total + increment > ctx->quota)
-		return (ISC_FALSE);
-
-	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
-	if (ctx->basic_table_count == ctx->basic_table_size) {
-		table_size = ctx->basic_table_size + TABLE_INCREMENT;
-		table = (ctx->memalloc)(ctx->arg,
-					table_size * sizeof (unsigned char *));
-		if (table == NULL)
-			return (ISC_FALSE);
-		if (ctx->basic_table_size != 0) {
-			memcpy(table, ctx->basic_table,
-			       ctx->basic_table_size *
-			       sizeof (unsigned char *));
-			(ctx->memfree)(ctx->arg, ctx->basic_table);
-		}
-		ctx->basic_table = table;
-		ctx->basic_table_size = table_size;
-	}
-
-	new = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
-	if (new == NULL)
-		return (ISC_FALSE);
-	ctx->total += increment;
-	ctx->basic_table[ctx->basic_table_count] = new;
-	ctx->basic_table_count++;
-
-	curr = new;
-	next = curr + ctx->mem_target;
-	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
-		((element *)curr)->next = (element *)next;
-		curr = next;
-		next += ctx->mem_target;
-	}
-	/*
-	 * curr is now pointing at the last block in the
-	 * array.
-	 */
-	((element *)curr)->next = NULL;
-	first = new;
-	last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
-	if (first < ctx->lowest || ctx->lowest == NULL)
-		ctx->lowest = first;
-	if (last > ctx->highest)
-		ctx->highest = last;
-	ctx->basic_blocks = new;
-
-	return (ISC_TRUE);
-}
-
 void *
 isc__mem_get(isc_mem_t *ctx, size_t size) {
 	void *ret;
@@ -486,190 +707,6 @@ check_overrun(void *mem, size_t size, size_t new_size) {
 }
 #endif
 
-static inline void
-split(isc_mem_t *ctx, size_t size, size_t new_size) {
-	unsigned char *ptr;
-	size_t remaining_size;
-
-	/*
-	 * Unlink a frag of size 'size'.
-	 */
-	ptr = (unsigned char *)ctx->freelists[size];
-	ctx->freelists[size] = ctx->freelists[size]->next;
-	ctx->stats[size].freefrags--;
-
-	/*
-	 * Create a frag of size 'new_size' and link it in.
-	 */
-	((element *)ptr)->next = ctx->freelists[new_size];
-	ctx->freelists[new_size] = (element *)ptr;
-	ctx->stats[new_size].freefrags++;
-
-	/*
-	 * Create a frag of size 'size - new_size' and link it in.
-	 */
-	remaining_size = size - new_size;
-	ptr += new_size;
-	((element *)ptr)->next = ctx->freelists[remaining_size];
-	ctx->freelists[remaining_size] = (element *)ptr;
-	ctx->stats[remaining_size].freefrags++;
-}
-
-static inline isc_boolean_t
-try_split(isc_mem_t *ctx, size_t new_size) {
-	size_t i, doubled_size;
-
-	if (!ctx->trysplit)
-		return (ISC_FALSE);
-
-	/*
-	 * Try splitting a frag that's at least twice as big as the size
-	 * we want.
-	 */
-	doubled_size = new_size * 2;
-	for (i = doubled_size;
-	     i < ctx->max_size;
-	     i += ALIGNMENT_SIZE) {
-		if (ctx->freelists[i] != NULL) {
-			split(ctx, i, new_size);
-			return (ISC_TRUE);
-		}
-	}
-
-	/*
-	 * No luck.  Try splitting any frag bigger than the size we need.
-	 */
-	for (i = new_size + ALIGNMENT_SIZE;
-	     i < doubled_size;
-	     i += ALIGNMENT_SIZE) {
-		if (ctx->freelists[i] != NULL) {
-			split(ctx, i, new_size);
-			return (ISC_TRUE);
-		}
-	}
-
-	return (ISC_FALSE);
-}
-
-static inline isc_boolean_t
-more_frags(isc_mem_t *ctx, size_t new_size) {
-	int i, frags;
-	size_t total_size;
-	void *new;
-	unsigned char *curr, *next;
-
-	/*
-	 * Try to get more fragments by chopping up a basic block.
-	 */
-
-	if (ctx->basic_blocks == NULL) {
-		if (!more_basic_blocks(ctx)) {
-			/*
-			 * We can't get more memory from the OS, or we've
-			 * hit the quota for this context.
-			 */
-			/*
-			 * XXXRTH  "At quota" notification here. 
-			 */
-			/*
-			 * Maybe we can split one of our existing
-			 * list frags.
-			 */
-			return (try_split(ctx, new_size));
-		}
-	}
-
-	total_size = ctx->mem_target;
-	new = ctx->basic_blocks;
-	ctx->basic_blocks = ctx->basic_blocks->next;
-	frags = total_size / new_size;
-	ctx->stats[new_size].blocks++;
-	ctx->stats[new_size].freefrags += frags;
-	/*
-	 * Set up a linked-list of blocks of size
-	 * "new_size".
-	 */
-	curr = new;
-	next = curr + new_size;
-	for (i = 0; i < (frags - 1); i++) {
-		((element *)curr)->next = (element *)next;
-		curr = next;
-		next += new_size;
-	}
-	/*
-	 * curr is now pointing at the last block in the
-	 * array.
-	 */
-	((element *)curr)->next = NULL;
-	ctx->freelists[new_size] = new;
-
-	return (ISC_TRUE);
-}
-
-static inline void *
-mem_getunlocked(isc_mem_t *ctx, size_t size) {
-	size_t new_size = quantize(size);
-	void *ret;
-
-	if (size >= ctx->max_size || new_size >= ctx->max_size) {
-		/*
-		 * memget() was called on something beyond our upper limit.
-		 */
-		if (ctx->quota != 0 && ctx->total + size > ctx->quota) {
-			ret = NULL;
-			goto done;
-		}
-		ret = (ctx->memalloc)(ctx->arg, size);
-		if (ret != NULL) {
-			ctx->total += size;
-			ctx->inuse += size;
-			ctx->stats[ctx->max_size].gets++;
-			ctx->stats[ctx->max_size].totalgets++;
-			/*
-			 * If we don't set new_size to size, then the
-			 * ISC_MEM_FILL code might write over bytes we
-			 * don't own.
-			 */
-			new_size = size;
-		}
-		goto done;
-	}
-
-	/* 
-	 * If there are no blocks in the free list for this size, get a chunk
-	 * of memory and then break it up into "new_size"-sized blocks, adding
-	 * them to the free list.
-	 */
-	if (ctx->freelists[new_size] == NULL && !more_frags(ctx, new_size))
-		return (NULL);
-
-	/*
-	 * The free list uses the "rounded-up" size "new_size".
-	 */
-	ret = ctx->freelists[new_size];
-	ctx->freelists[new_size] = ctx->freelists[new_size]->next;
-
-	/* 
-	 * The stats[] uses the _actual_ "size" requested by the
-	 * caller, with the caveat (in the code above) that "size" >= the
-	 * max. size (max_size) ends up getting recorded as a call to
-	 * max_size.
-	 */
-	ctx->stats[size].gets++;
-	ctx->stats[size].totalgets++;
-	ctx->stats[new_size].freefrags--;
-	ctx->inuse += new_size;
-
- done:
-
-#if ISC_MEM_FILL
-	if (ret != NULL)
-		memset(ret, 0xbe, new_size); /* Mnemonic for "beef". */
-#endif
-
-	return (ret);
-}
-
 void
 isc__mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -677,51 +714,6 @@ isc__mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	LOCK(&ctx->lock);
 	mem_putunlocked(ctx, mem, size);
 	UNLOCK(&ctx->lock);
-}
-
-static inline void
-mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
-	size_t new_size = quantize(size);
-
-	if (size == ctx->max_size || new_size >= ctx->max_size) {
-		/*
-		 * memput() called on something beyond our upper limit.
-		 */
-#if ISC_MEM_FILL
-		memset(mem, 0xde, size); /* Mnemonic for "dead". */
-#endif
-		(ctx->memfree)(ctx->arg, mem);
-		INSIST(ctx->stats[ctx->max_size].gets != 0);
-		ctx->stats[ctx->max_size].gets--;
-		INSIST(size <= ctx->total);
-		ctx->inuse -= size;
-		ctx->total -= size;
-		return;
-	}
-
-#if ISC_MEM_FILL
-#if ISC_MEM_CHECKOVERRUN
-	check_overrun(mem, size, new_size);
-#endif
-	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
-#endif
-
-	/*
-	 * The free list uses the "rounded-up" size "new_size".
-	 */
-	((element *)mem)->next = ctx->freelists[new_size];
-	ctx->freelists[new_size] = (element *)mem;
-
-	/* 
-	 * The stats[] uses the _actual_ "size" requested by the
-	 * caller, with the caveat (in the code above) that "size" >= the
-	 * max. size (max_size) ends up getting recorded as a call to
-	 * max_size.
-	 */
-	INSIST(ctx->stats[size].gets != 0);
-	ctx->stats[size].gets--;
-	ctx->stats[new_size].freefrags++;
-	ctx->inuse -= new_size;
 }
 
 void *
@@ -1180,7 +1172,7 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
 }
 
 void
-isc_mempool_setname(isc_mempool_t *mpctx, char *name) {
+isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
 	REQUIRE(name != NULL);
 
 #if ISC_MEMPOOL_NAMES
@@ -1193,8 +1185,8 @@ isc_mempool_setname(isc_mempool_t *mpctx, char *name) {
 	if (mpctx->lock != NULL)
 		UNLOCK(mpctx->lock);
 #else
-	(void)mpctx;
-	(void)name;
+	UNUSED(mpctx);
+	UNUSED(name);
 #endif
 }
 

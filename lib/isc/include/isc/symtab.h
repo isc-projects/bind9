@@ -114,11 +114,11 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
 		  isc_symvalue_t *value);
 
 isc_result_t
-isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
+isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 		  isc_symvalue_t value, isc_symexists_t exists_policy);
 
 isc_result_t
-isc_symtab_undefine(isc_symtab_t *symtab, char *key, unsigned int type);
+isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type);
 
 ISC_LANG_ENDDECLS
 

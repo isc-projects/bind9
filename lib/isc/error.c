@@ -23,10 +23,10 @@
 #include <isc/error.h>
 
 static void
-default_unexpected_callback(char *, int, char *, va_list);
+default_unexpected_callback(const char *, int, const char *, va_list);
 
 static void
-default_fatal_callback(char *, int, char *, va_list);
+default_fatal_callback(const char *, int, const char *, va_list);
 
 static isc_errorcallback_t unexpected_callback = default_unexpected_callback;
 static isc_errorcallback_t fatal_callback = default_fatal_callback;
@@ -48,7 +48,7 @@ isc_error_setfatal(isc_errorcallback_t cb) {
 }
 
 void
-isc_error_unexpected(char *file, int line, char *format, ...) {
+isc_error_unexpected(const char *file, int line, const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -57,7 +57,7 @@ isc_error_unexpected(char *file, int line, char *format, ...) {
 }
 
 void
-isc_error_fatal(char *file, int line, char *format, ...) {
+isc_error_fatal(const char *file, int line, const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -67,12 +67,14 @@ isc_error_fatal(char *file, int line, char *format, ...) {
 }
 
 void
-isc_error_runtimecheck(char *file, int line, char *expression) {
+isc_error_runtimecheck(const char *file, int line, const char *expression) {
 	isc_error_fatal(file, line, "RUNTIME_CHECK(%s) failed", expression);
 }
 
 static void
-default_unexpected_callback(char *file, int line, char *format, va_list args) {
+default_unexpected_callback(const char *file, int line, const char *format,
+			    va_list args)
+{
 	fprintf(stderr, "%s:%d: ", file, line);
 	vfprintf(stderr, format, args);
 	fprintf(stderr, "\n");
@@ -80,7 +82,9 @@ default_unexpected_callback(char *file, int line, char *format, va_list args) {
 }
 
 static void
-default_fatal_callback(char *file, int line, char *format, va_list args) {
+default_fatal_callback(const char *file, int line, const char *format,
+		       va_list args)
+{
 	fprintf(stderr, "%s:%d: fatal error: ", file, line);
 	vfprintf(stderr, format, args);
 	fprintf(stderr, "\n");

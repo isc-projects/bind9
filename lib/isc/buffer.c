@@ -24,9 +24,10 @@
 #include <isc/util.h>
 
 void
-isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
+isc__buffer_init(isc_buffer_t *b, const void *base, unsigned int length) {
 	/*
-	 * Make 'b' refer to the 'length'-byte region starting at base.
+	 * Make 'b' refer to the 'length'-byte region starting at 'base'.
+	 * XXXDCL see the comment in buffer.h about base being const.
 	 */
 
 	REQUIRE(b != NULL);
@@ -214,8 +215,8 @@ isc_buffer_compact(isc_buffer_t *b) {
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 
-	src = (unsigned char *)b->base + b->current;
-	length = b->used - b->current;
+	src = isc_buffer_current(b);
+	length = isc_buffer_remaininglength(b);
 	(void)memmove(b->base, src, (size_t)length);
 
 	if (b->active > b->current)
@@ -238,17 +239,15 @@ isc_buffer_getuint8(isc_buffer_t *b) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used - b->current >= 1);
 
-	cp = b->base;
-	cp += b->current;
+	cp = isc_buffer_current(b);
 	b->current += 1;
-	result = ((unsigned int)(cp[0]));
+	result = ((isc_uint8_t)(cp[0]));
 
 	return (result);
 }
 
 void
-isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val)
-{
+isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 1 <= b->length);
 
@@ -268,8 +267,7 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used - b->current >= 2);
 
-	cp = b->base;
-	cp += b->current;
+	cp = isc_buffer_current(b);
 	b->current += 2;
 	result = ((unsigned int)(cp[0])) << 8;
 	result |= ((unsigned int)(cp[1]));
@@ -278,8 +276,7 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 }
 
 void
-isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val)
-{
+isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 2 <= b->length);
 
@@ -299,8 +296,7 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used - b->current >= 4);
 
-	cp = b->base;
-	cp += b->current;
+	cp = isc_buffer_current(b);
 	b->current += 4;
 	result = ((unsigned int)(cp[0])) << 24;
 	result |= ((unsigned int)(cp[1])) << 16;
@@ -311,8 +307,7 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 }
 
 void
-isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
-{
+isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 4 <= b->length);
 
@@ -320,21 +315,26 @@ isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 }
 
 void
-isc__buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length) {
+isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
+		   unsigned int length)
+{
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + length <= b->length);
 
 	ISC__BUFFER_PUTMEM(b, base, length);
-}	
+}
 
 void
-isc_buffer_putstr(isc_buffer_t *b, const char *source) {
+isc__buffer_putstr(isc_buffer_t *b, const char *source) {
 	unsigned int l;
 	unsigned char *cp;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(source != NULL);
 
+	/*
+	 * Do not use ISC__BUFFER_PUTSTR(), so strlen is only done once.
+	 */
 	l = strlen(source);
 
 	REQUIRE(l <= isc_buffer_availablelength(b));
@@ -352,8 +352,11 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	base = (unsigned char *)b->base + b->used;
-	available = b->length - b->used;
+	/*
+	 * XXXDCL 
+	 */
+	base = isc_buffer_used(b);
+	available = isc_buffer_availablelength(b);
         if (r->length > available)
 		return (ISC_R_NOSPACE);
 	memcpy(base, r->base, r->length);
@@ -385,8 +388,7 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 }
 
 void
-isc_buffer_free(isc_buffer_t **dynbuffer)
-{
+isc_buffer_free(isc_buffer_t **dynbuffer) {
 	unsigned int real_length;
 	isc_buffer_t *dbuf;
 	isc_mem_t *mctx;

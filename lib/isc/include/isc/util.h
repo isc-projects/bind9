@@ -48,6 +48,21 @@
 #define ISC_MIN(a, b)  ((a) < (b) ? (a) : (b))
 
 /*
+ * Use this to remove the const qualifier of a variable to assign it to
+ * a non-const variable or pass it as a non-const function argument ...
+ * but only when you are sure it won't then be changed!
+ * This is necessary to sometimes shut up some compilers
+ * (as with gcc -Wcast-qual) when there is just no other good way to avoid the
+ * situation.
+ */
+#define DE_CONST(konst, var) \
+	do { \
+		union { const void *k; void *v; } _u; \
+		_u.k = konst; \
+		var = _u.v; \
+	} while (0)
+
+/*
  * We use macros instead of calling the routines directly because
  * the capital letters make the locking stand out.
  *

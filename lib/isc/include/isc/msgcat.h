@@ -67,7 +67,7 @@ ISC_LANG_BEGINDECLS
  *****/
 
 void
-isc_msgcat_open(char *name, isc_msgcat_t **msgcatp);
+isc_msgcat_open(const char *name, isc_msgcat_t **msgcatp);
 /*
  * Open a message catalog.
  *
@@ -107,8 +107,9 @@ isc_msgcat_close(isc_msgcat_t **msgcatp);
  *	*msgcatp == NULL
  */
 
-char *
-isc_msgcat_get(isc_msgcat_t *msgcat, int set, int message, char *default_text);
+const char *
+isc_msgcat_get(isc_msgcat_t *msgcat, int set, int message,
+	       const char *default_text);
 /*
  * Get message 'message' from message set 'set' in 'msgcat'.  If it
  * is not available, use 'default_text'.

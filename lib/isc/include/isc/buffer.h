@@ -62,7 +62,7 @@
  * d == used pointer.
  * e == length of buffer.
  *
- * a-e == entire (length) of buffer.
+ * a-e == entire length of buffer.
  * a-d == used region.
  * a-b == consumed region.
  * b-d == remaining region.
@@ -132,11 +132,14 @@ ISC_LANG_BEGINDECLS
 /*
  * Fundamental buffer elements.  (A through E in the introductory comment.)
  */
-#define isc_buffer_base(b)    ((unsigned char *)(b)->base) 	          /*a*/
-#define isc_buffer_current(b) ((unsigned char *)(b)->base + (b)->current) /*b*/
-#define isc_buffer_active(b)  ((unsigned char *)(b)->base + (b)->active)  /*c*/
-#define isc_buffer_used(b)    ((unsigned char *)(b)->base + (b)->used)    /*d*/
-#define isc_buffer_length(b)  ((b)->length)                               /*e*/
+#define isc_buffer_base(b)    ((void *)(b)->base)			  /*a*/
+#define isc_buffer_current(b) \
+		((void *)((unsigned char *)(b)->base + (b)->current))     /*b*/
+#define isc_buffer_active(b)  \
+		((void *)((unsigned char *)(b)->base + (b)->active))      /*c*/
+#define isc_buffer_used(b)    \
+		((void *)((unsigned char *)(b)->base + (b)->used))        /*d*/
+#define isc_buffer_length(b)  ((b)->length)				  /*e*/
 
 /*
  * Derived lengths.  (Described in the introductory comment.)
@@ -208,7 +211,7 @@ isc_buffer_free(isc_buffer_t **dynbuffer);
  */
 
 void
-isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length);
+isc__buffer_init(isc_buffer_t *b, const void *base, unsigned int length);
 /*
  * Make 'b' refer to the 'length'-byte region starting at base.
  *
@@ -525,14 +528,9 @@ isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
  *	The used pointer in 'b' is advanced by 4.
  */
 
-#define ISC__BUFFER_PUTMEM(_b, _base, _length) \
-	do { \
-		memcpy((unsigned char *)(_b)->base + (_b)->used, \
-			(_base), (_length)); \
-		(_b)->used += (_length); \
-	} while (0)
 void
-isc__buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length);
+isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
+		   unsigned int length);
 /*
  * Copy 'length' bytes of memory at 'base' into 'b'.
  *
@@ -544,7 +542,7 @@ isc__buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length);
  */
 
 void
-isc_buffer_putstr(isc_buffer_t *b, const char *source);
+isc__buffer_putstr(isc_buffer_t *b, const char *source);
 /*
  * Copy 'source' into 'b', not including terminating NUL.
  *
@@ -573,6 +571,8 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
  *					big enough.
  */
 
+ISC_LANG_ENDDECLS
+
 /*
  * Inline macro versions of the functions.  These should never be called
  * directly by an application, but will be used by the functions within
@@ -580,16 +580,38 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
  * ones beginning with "isc__"
  */
 
+/*
+ * XXXDCL Something more could be done with initializing buffers that
+ * point to const data.  For example, a new function, isc_buffer_initconst,
+ * could be used, and a new boolean flag in the buffer structure could
+ * indicate whether the buffer was initialized with that function.
+ * (isc_bufer_init itself would be reprototyped to *not* have its "base"
+ * parameter be const.)  Then if the boolean were true, the isc_buffer_put*
+ * functions could assert a contractual requirement for a non-const buffer.
+ * One drawback is that the isc_buffer_* functions (macros) that return
+ * pointers would still need to return non-const pointers to avoid compiler
+ * warnings, so it would be up to code that uses them to have to deal
+ * with the possibility that the buffer was initialized as const --
+ * a problem that they *already* have to deal with but have absolutely
+ * no ability to.  With a new isc_buffer_isconst() function returning
+ * true/false, they could at least assert a contractual requirement for
+ * non-const buffers when needed.
+ */
 #define ISC__BUFFER_INIT(_b, _base, _length) \
 	do { \
-		(_b)->magic = ISC_BUFFER_MAGIC; \
-		(_b)->base = (_base); \
+		union { \
+			const void *	konst; \
+			void *		var; \
+		} _u; \
+		_u.konst = (_base); \
+		(_b)->base = _u.var; \
 		(_b)->length = (_length); \
 		(_b)->used = 0; \
 		(_b)->current = 0; \
 		(_b)->active = 0; \
 		(_b)->mctx = NULL; \
 		ISC_LINK_INIT(b, link); \
+		(_b)->magic = ISC_BUFFER_MAGIC; \
 	} while (0)
 
 #define ISC__BUFFER_INVALIDATE(_b) \
@@ -616,8 +638,8 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 
 #define ISC__BUFFER_AVAILABLEREGION(_b, _r) \
 	do { \
-		(_r)->base = ((unsigned char *)(_b)->base) + (_b)->used; \
-		(_r)->length = (_b)->length - (_b)->used; \
+		(_r)->base = isc_buffer_used(_b); \
+		(_r)->length = isc_buffer_availablelength(_b); \
 	} while (0)
 
 #define ISC__BUFFER_ADD(_b, _n) \
@@ -649,16 +671,15 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 
 #define ISC__BUFFER_REMAININGREGION(_b, _r) \
 	do { \
-		(_r)->base = ((unsigned char *)(_b)->base) + (_b)->current; \
-		(_r)->length = (_b)->used - (_b)->current; \
+		(_r)->base = isc_buffer_current(_b); \
+		(_r)->length = isc_buffer_remaininglength(_b); \
 	} while (0)
 
 #define ISC__BUFFER_ACTIVEREGION(_b, _r) \
 	do { \
 		if ((_b)->current < (_b)->active) { \
-			(_r)->base = (unsigned char *)(_b)->base \
-				     + (_b)->current; \
-			(_r)->length = (_b)->active - (_b)->current; \
+			(_r)->base = isc_buffer_current(_b); \
+			(_r)->length = isc_buffer_activelength(_b); \
 		} else { \
 			(_r)->base = NULL; \
 			(_r)->length = 0; \
@@ -685,12 +706,27 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 		(_b)->current -= (_n); \
 	} while (0)
 
+#define ISC__BUFFER_PUTMEM(_b, _base, _length) \
+	do { \
+		memcpy(isc_buffer_used(_b), (_base), (_length)); \
+		(_b)->used += (_length); \
+	} while (0)
+
+#define ISC__BUFFER_PUTSTR(_b, _source) \
+	do { \
+		unsigned int _length; \
+		unsigned char *_cp; \
+		_length = strlen(_source); \
+		_cp = isc_buffer_used(_b); \
+		memcpy(_cp, (_source), _length); \
+		(_b)->used += (_length); \
+	} while (0)
+
 #define ISC__BUFFER_PUTUINT8(_b, _val) \
 	do { \
 		unsigned char *_cp; \
 		isc_uint8_t _val2 = (_val); \
-		_cp = (_b)->base; \
-		_cp += (_b)->used; \
+		_cp = isc_buffer_used(_b); \
 		(_b)->used++; \
 		_cp[0] = (_val2 & 0x00ff); \
 	} while (0)
@@ -699,8 +735,7 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 	do { \
 		unsigned char *_cp; \
 		isc_uint16_t _val2 = (_val); \
-		_cp = (_b)->base; \
-		_cp += (_b)->used; \
+		_cp = isc_buffer_used(_b); \
 		(_b)->used += 2; \
 		_cp[0] = (_val2 & 0xff00U) >> 8; \
 		_cp[1] = (_val2 & 0x00ffU); \
@@ -710,8 +745,7 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 	do { \
 		unsigned char *_cp; \
 		isc_uint32_t _val2 = (_val); \
-		_cp = (_b)->base; \
-		_cp += (_b)->used; \
+		_cp = isc_buffer_used(_b); \
 		(_b)->used += 4; \
 		_cp[0] = (_val2 & 0xff000000) >> 24; \
 		_cp[1] = (_val2 & 0x00ff0000) >> 16; \
@@ -735,10 +769,11 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 #define isc_buffer_first		ISC__BUFFER_FIRST
 #define isc_buffer_forward		ISC__BUFFER_FORWARD
 #define isc_buffer_back			ISC__BUFFER_BACK
+#define isc_buffer_putmem		ISC__BUFFER_PUTMEM
+#define isc_buffer_putstr		ISC__BUFFER_PUTSTR
 #define isc_buffer_putuint8		ISC__BUFFER_PUTUINT8
 #define isc_buffer_putuint16		ISC__BUFFER_PUTUINT16
 #define isc_buffer_putuint32		ISC__BUFFER_PUTUINT32
-#define isc_buffer_putmem		ISC__BUFFER_PUTMEM
 #else
 #define isc_buffer_init			isc__buffer_init
 #define isc_buffer_invalidate		isc__buffer_invalidate
@@ -755,12 +790,11 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 #define isc_buffer_first		isc__buffer_first
 #define isc_buffer_forward		isc__buffer_forward
 #define isc_buffer_back			isc__buffer_back
+#define isc_buffer_putmem		isc__buffer_putmem
+#define isc_buffer_putstr		isc__buffer_putstr
 #define isc_buffer_putuint8		isc__buffer_putuint8
 #define isc_buffer_putuint16		isc__buffer_putuint16
 #define isc_buffer_putuint32		isc__buffer_putuint32
-#define isc_buffer_putmem		isc__buffer_putmem
 #endif
-
-ISC_LANG_ENDDECLS
 
 #endif /* ISC_BUFFER_H */

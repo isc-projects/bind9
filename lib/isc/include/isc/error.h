@@ -24,13 +24,18 @@
 
 ISC_LANG_BEGINDECLS
 
-typedef void (*isc_errorcallback_t)(char *, int, char *, va_list);
+typedef void (*isc_errorcallback_t)(const char *, int, const char *, va_list);
 
-void isc_error_setunexpected(isc_errorcallback_t);
-void isc_error_setfatal(isc_errorcallback_t);
-void isc_error_unexpected(char *, int, char *, ...);
-void isc_error_fatal(char *, int, char *, ...);
-void isc_error_runtimecheck(char *, int, char *);
+void
+isc_error_setunexpected(isc_errorcallback_t);
+void
+isc_error_setfatal(isc_errorcallback_t);
+void
+isc_error_unexpected(const char *, int, const char *, ...);
+void
+isc_error_fatal(const char *, int, const char *, ...);
+void
+isc_error_runtimecheck(const char *, int, const char *);
 
 #define ISC_ERROR_RUNTIMECHECK(cond) \
 	((void) ((cond) || \

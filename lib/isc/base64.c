@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.13 2000/05/16 05:19:46 tale Exp $ */
+/* $Id: base64.c,v 1.14 2000/06/01 17:20:18 tale Exp $ */
 
 #include <config.h>
 
@@ -36,18 +36,22 @@
  * These static functions are also present in lib/dns/rdata.c.  I'm not
  * sure where they should go. -- bwelling
  */
-static isc_result_t	str_totext(char *source, isc_buffer_t *target);
-static isc_result_t	gettoken(isc_lex_t *lexer, isc_token_t *token,
-				 isc_tokentype_t expect, isc_boolean_t eol);
-static isc_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
-				     unsigned int length);
+static isc_result_t
+str_totext(const char *source, isc_buffer_t *target);
+
+static isc_result_t
+gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
+	 isc_boolean_t eol);
+
+static isc_result_t
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
 
 static const char base64[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 isc_result_t
 isc_base64_totext(isc_region_t *source, int wordlength,
-		  char *wordbreak, isc_buffer_t *target)
+		  const char *wordbreak, isc_buffer_t *target)
 {
 	char buf[5];
 	unsigned int loops = 0;
@@ -157,7 +161,7 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 }
 
 static isc_result_t
-str_totext(char *source, isc_buffer_t *target) {
+str_totext(const char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
 

@@ -668,7 +668,7 @@ set_dev_address(isc_sockaddr_t *address, isc_socket_t *sock,
 
 static isc_socketevent_t *
 allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
-		     isc_taskaction_t action, void *arg)
+		     isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *ev;
 
@@ -2081,7 +2081,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 isc_result_t
 isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 unsigned int minimum,
-		 isc_task_t *task, isc_taskaction_t action, void *arg)
+		 isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -2200,7 +2200,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 
 isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
-		isc_task_t *task, isc_taskaction_t action, void *arg)
+		isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -2302,7 +2302,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 
 isc_result_t
 isc_socket_send(isc_socket_t *sock, isc_region_t *region,
-		isc_task_t *task, isc_taskaction_t action, void *arg)
+		isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	/*
 	 * REQUIRE() checking performed in isc_socket_sendto()
@@ -2313,7 +2313,7 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
-		  isc_task_t *task, isc_taskaction_t action, void *arg,
+		  isc_task_t *task, isc_taskaction_t action, const void *arg,
 		  isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	isc_socketevent_t *dev;
@@ -2408,7 +2408,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 isc_result_t
 isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		 isc_task_t *task, isc_taskaction_t action, void *arg)
+		 isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	return (isc_socket_sendtov(sock, buflist, task, action, arg, NULL,
 				   NULL));
@@ -2416,7 +2416,7 @@ isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 
 isc_result_t
 isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		   isc_task_t *task, isc_taskaction_t action, void *arg,
+		   isc_task_t *task, isc_taskaction_t action, const void *arg,
 		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	isc_socketevent_t *dev;
@@ -2602,7 +2602,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
  */
 isc_result_t
 isc_socket_accept(isc_socket_t *sock,
-		  isc_task_t *task, isc_taskaction_t action, void *arg)
+		  isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	isc_socket_newconnev_t *dev;
 	isc_socketmgr_t *manager;
@@ -2664,7 +2664,7 @@ isc_socket_accept(isc_socket_t *sock,
 
 isc_result_t
 isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
-		   isc_task_t *task, isc_taskaction_t action, void *arg)
+		   isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	isc_socket_connev_t *dev;
 	isc_task_t *ntask = NULL;
@@ -3051,7 +3051,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 
 isc_result_t
 isc_socket_recvmark(isc_socket_t *sock,
-		    isc_task_t *task, isc_taskaction_t action, void *arg)
+		    isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -3108,7 +3108,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 
 isc_result_t
 isc_socket_sendmark(isc_socket_t *sock,
-		    isc_task_t *task, isc_taskaction_t action, void *arg)
+		    isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
