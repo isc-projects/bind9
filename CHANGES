@@ -1,4 +1,6 @@
 
+	--- 9.1.0b2 released ---
+
  628.	[bug]		If the root hints contained only AAAA addresses,
 			named would be unable to perform resolution.
 
@@ -30,7 +32,7 @@
 			conflicts between libc and the kernel.
 
  620.	[bug]		dns_master_load*inc() now require 'task' and 'load'
-			to be non-null.  Also 'done' will not be called if
+			to be non-null.	 Also 'done' will not be called if
 			dns_master_load*inc() fails immediately. [RT #565]
 
  618.	[bug]		Queries to a signed zone could sometimes cause
@@ -98,7 +100,7 @@
  600.	[bug]		Reverse lookups sometimes failed in dig, etc...
 
  599.	[func]		Added four new functions to the libisc log API to
-			support i18n messages.  isc_log_iwrite(),
+			support i18n messages.	isc_log_iwrite(),
 			isc_log_ivwrite(), isc_log_iwrite1() and
 			isc_log_ivwrite1() were added.
 
@@ -315,7 +317,7 @@
  530.	[func]		New function dns_rdata_invalidate().
 
  529.	[bug]		521 contained a bug which caused zones to always
-			reload.  [RT #410]
+			reload.	 [RT #410]
 	
  528.	[func]		The ISC_LIST_XXXX macros now perform sanity checks
 			on their arguements.  ISC_LIST_XXXXUNSAFE can be use
