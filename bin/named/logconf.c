@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.20 2000/06/22 21:49:23 tale Exp $ */
+/* $Id: logconf.c,v 1.21 2000/06/22 22:30:12 tale Exp $ */
 
 #include <config.h>
 
@@ -116,6 +116,15 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 			dest.facility = facility;
 		}
 		break;
+
+	case dns_c_logchan_stderr:
+		type = ISC_LOG_TOFILEDESC;
+		{
+			dest.file.stream = stderr;
+			dest.file.name = NULL;
+			dest.file.versions = ISC_LOG_ROLLNEVER;
+			dest.file.maximum_size = 0;
+		}
 
 	case dns_c_logchan_null:
 		break;
