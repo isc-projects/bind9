@@ -1,3 +1,7 @@
+ 429.	[bug]		The space reserved for a TSIG record in a response
+			was 2 bytes too short, leading to message
+			generation failures.
+
  428.   [bug]		rbtdb.c:find_closest_nxt() erroneously returned
 			DNS_R_BADDB for nodes which had neither NXT nor SIG NXT
 			(e.g. glue).  This could cause SERVFAILs when

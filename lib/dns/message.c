@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.142 2000/08/22 01:10:42 bwelling Exp $ */
+/* $Id: message.c,v 1.143 2000/09/07 21:08:51 bwelling Exp $ */
 
 /***
  *** Imports
@@ -587,6 +587,8 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	 *	2 bytes for the type
 	 *	2 bytes for the class
 	 *	4 bytes for the ttl
+	 *	2 bytes for the rdlength
+	 *	n2 bytes for the algorithm name
 	 *	6 bytes for the time signed
 	 *	2 bytes for the fudge
 	 *	2 bytes for the MAC size
@@ -596,7 +598,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	 *	2 bytes for the other data length
 	 *	y bytes for the other data (at most)
 	 * ---------------------------------
-	 *     30 + n1 + n2 + x + y bytes
+	 *     26 + n1 + n2 + x + y bytes
 	 */
 
 	dns_name_toregion(&key->name, &r1);
@@ -608,7 +610,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 		if (result != ISC_R_SUCCESS)
 			x = 0;
 	}
-	return (24 + r1.length + r2.length + x + otherlen);
+	return (26 + r1.length + r2.length + x + otherlen);
 }
 
 isc_result_t
