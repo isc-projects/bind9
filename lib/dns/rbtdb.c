@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.115 2000/08/08 21:41:58 gson Exp $ */
+/* $Id: rbtdb.c,v 1.116 2000/08/09 04:54:17 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1429,13 +1429,6 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 	return (result);
 }
 
-static inline isc_boolean_t
-rootname(dns_name_t *name) {
-	if (dns_name_countlabels(name) == 1 && dns_name_isabsolute(name))
-		return (ISC_TRUE);
-	return (ISC_FALSE);
-}
-
 static inline isc_result_t
 find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 dns_name_t *foundname, dns_rdataset_t *rdataset,
@@ -1516,10 +1509,7 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 * that we're looking at one.  For now, we
 				 * do nothing.
 				 */
-				if (rootname(name))
-					origin = NULL;
-				result = dns_name_concatenate(name,
-							      origin,
+				result = dns_name_concatenate(name, origin,
 							      foundname, NULL);
 				if (result == ISC_R_SUCCESS) {
 					if (nodep != NULL) {
@@ -4532,7 +4522,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		resume_iteration(rbtdbiter);
 
 	if (name != NULL) {
-		if (rbtdbiter->common.relative_names || rootname(nodename))
+		if (rbtdbiter->common.relative_names)
 			origin = NULL;
 		result = dns_name_concatenate(nodename, origin, name, NULL);
 		if (result != ISC_R_SUCCESS)
