@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.93 2000/10/25 07:21:29 tale Exp $ */
+/* $Id: rbt.c,v 1.94 2000/11/14 23:51:24 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -389,7 +389,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			IS_ROOT(new_current) = ISC_TRUE;
 			rbt->root = new_current;
 			*nodep = new_current;
-			hash_node(rbt, new_current);
+			result = hash_node(rbt, new_current);
 		}
 		return (result);
 	}
@@ -574,37 +574,67 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * When bitstring labels are involved, things
 				 * are just a tad more complicated (aren't
 				 * they always?) because the splitting
-				 * has shifted the bits that this name needs,
-				 * as well as adjusted the bit count.
-				 * So there are convolutions to deal with it.
-				 * There are compromises here between
-				 * abstraction and efficiency.
+				 * has shifted the bits that this name needs
+				 * from the end of the label they were in
+				 * to either the beginning of the label or
+				 * even to the previous (lesser significance)
+				 * label if the split was done in a maximally
+				 * sized bitstring label.  The bit count has
+				 * been adjusted too, so there are convolutions
+				 * to deal with all the bit movement.  Yay,
+				 * I *love* bit labels.  Grumble grumble.
 				 */
-
 				if (common_bits > 0) {
-					dns_label_t label;
-
-					dns_name_getlabel(prefix,
+					unsigned char *p;
+					unsigned int skip_width;
+					unsigned int start_label =
 					    dns_name_countlabels(&current_name)
-							  - common_labels,
-							  &label);
+						- common_labels;
 
-					INSIST(dns_label_type(&label) ==
-					       dns_labeltype_bitstring);
+					/*
+					 * If it is not the first label which
+					 * was split, also copy the label
+					 * before it -- which will essentially
+					 * be a NO-OP unless the preceding
+					 * label is a bitstring and the split
+					 * label was 256 bits.  Testing for
+					 * that case is probably roughly
+					 * as expensive as just unconditionally
+					 * copying the preceding label.
+					 */
+					if (start_label > 0)
+						start_label--;
 
-					memcpy(NAME(current) +
-					       (label.base - prefix->ndata),
-					       label.base,
-					       label.length);
+					skip_width =
+						prefix->offsets[start_label];
 
-					dns_name_getlabel(add_name,
-						 dns_name_countlabels(add_name)
-							  - common_labels,
-							  &label);
-					INSIST(dns_label_type(&label) ==
-					       dns_labeltype_bitstring);
+					memcpy(NAME(current) + skip_width,
+					       prefix->ndata + skip_width,
+					       prefix->length - skip_width);
 
-					add_bits = dns_label_countbits(&label);
+					/*
+					 * Now add_bits is set to the total
+					 * number of bits in the split label of
+					 * the name being added, and used later
+					 * to determine if the job was
+					 * completed by pushing the
+					 * not-in-common bits down one level.
+					 */
+					start_label =
+						dns_name_countlabels(add_name)
+						- common_labels;
+
+					p = add_name->ndata +
+						add_name->offsets[start_label];
+					INSIST(*p == DNS_LABELTYPE_BITSTRING);
+
+					add_bits = *(p + 1);
+
+					/*
+					 * A bitstring that was split would not
+					 * result in a part of maximal length.
+					 */
+					INSIST(add_bits != 0);
 				} else
 					add_bits = 0;
 
@@ -635,7 +665,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
 
 				rbt->nodecount++;
-				hash_node(rbt, new_current);
+				result = hash_node(rbt, new_current);
+				if (result != ISC_R_SUCCESS)
+					break;
 
 				if (common_labels ==
 				    dns_name_countlabels(add_name) &&
@@ -657,7 +689,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					 * nothing more to do to it.
 					 */
 
-					/* The not-in-common parts of the new
+					/*
+					 * The not-in-common parts of the new
 					 * name will be inserted into the new
 					 * level following this loop (unless
 					 * result != ISC_R_SUCCESS, which
@@ -685,8 +718,19 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	if (result == ISC_R_SUCCESS) {
 		dns_rbt_addonlevel(new_current, current, order, root);
 		rbt->nodecount++;
-		hash_node(rbt, new_current);
 		*nodep = new_current;
+		result = hash_node(rbt, new_current);
+		/*
+		 * XXXDCL Ugh.  If hash_node failed, it was because
+		 * there is not enough memory.  The node is now unfindable,
+		 * and ideally should be removed.  This is kind of tricky,
+		 * and all hell is probably going to break loose throughout
+		 * the rest of the library because of the lack of memory,
+		 * so for fixing up the tree as though no addition had been
+		 * made is skipped.  (Actually, this hash_node failing is
+		 * not the only situation in this file where an unexpected
+		 * error can leave things in an incorrect state.)
+		 */
 	}
 
 	return (result);
@@ -1502,14 +1546,15 @@ join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 			PARENT(DOWN(down))  = newnode;
 
 		rbt->nodecount--;
-		hash_node(rbt, newnode);
+		result = hash_node(rbt, newnode);
+		if (result == ISC_R_SUCCESS) {
+			unhash_node(rbt, node);
+			isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 
-		unhash_node(rbt, node);
-		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
-
-		if (newnode != down) {
-			unhash_node(rbt, down);
-			isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
+			if (newnode != down) {
+				unhash_node(rbt, down);
+				isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
+			}
 		}
 
 	}
