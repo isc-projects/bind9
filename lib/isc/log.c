@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.75 2002/06/03 03:39:56 marka Exp $ */
+/* $Id: log.c,v 1.76 2002/06/03 04:34:19 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1020,6 +1020,7 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 
 	REQUIRE(VALID_CONTEXT(lctx));
 
+	LOCK(&lctx->lock);
 	for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
 	     channel != NULL;
 	     channel = ISC_LIST_NEXT(channel, link))
@@ -1029,6 +1030,7 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 			(void)fclose(FILE_STREAM(channel));
 			FILE_STREAM(channel) = NULL;
 		}
+	UNLOCK(&lctx->lock);
 }
 
 /****
