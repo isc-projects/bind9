@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.43 2000/02/11 20:56:18 gson Exp $ */
+ /* $Id: xfrout.c,v 1.44 2000/02/14 23:56:46 gson Exp $ */
 
 #include <config.h>
 
@@ -745,7 +745,6 @@ typedef struct {
 	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
 	dns_rdata_any_tsig_t	*lasttsig;	/* the last TSIG */
 	isc_boolean_t		many_answers;
-	isc_timer_t		*timer;
 	int			sends;		/* Send in progress */
 	isc_boolean_t		shuttingdown;
 } xfrout_ctx_t;
@@ -763,11 +762,10 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 static void sendstream(xfrout_ctx_t *xfr);
 
 static void xfrout_senddone(isc_task_t *task, isc_event_t *event);
-static void xfrout_timeout(isc_task_t *task, isc_event_t *event);
 static void xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg);
 static void xfrout_maybe_destroy(xfrout_ctx_t *xfr);
 static void xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
-static void xfrout_client_shutdown(void *arg);
+static void xfrout_client_shutdown(void *arg, isc_result_t result);
 
 /**************************************************************************/
 
@@ -1032,6 +1030,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	}
 }
 
+
+
+
 static isc_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
@@ -1067,7 +1068,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->txmem = NULL;
 	xfr->txmemlen = 0;
 	xfr->nmsg = 0;
-	xfr->timer = NULL;
 	xfr->many_answers =
 		(ns_g_server->transfer_format == dns_many_answers) ?
 		ISC_TRUE : ISC_FALSE;
@@ -1112,10 +1112,10 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	CHECK(isc_time_nowplusinterval(&expires, &maxinterval));
 	isc_interval_set(&idleinterval, idletime, 0);
 
-	CHECK(isc_timer_create(ns_g_timermgr, isc_timertype_once,
-			       &expires, &idleinterval, 
-			       xfr->client->task,
-			       xfrout_timeout, xfr, &xfr->timer));
+	CHECK(isc_timer_reset(xfr->client->timer,
+			      isc_timertype_once,
+			      &expires, &idleinterval,
+			      ISC_FALSE));
 
 	/*
 	 * Register a shutdown callback with the client, so that we
@@ -1378,8 +1378,6 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	xfr->client->shutdown = NULL;
 	xfr->client->shutdown_arg = NULL;
 
-	if (xfr->timer != NULL)
-		isc_timer_detach(&xfr->timer);
 	if (xfr->stream != NULL)
 		xfr->stream->methods->destroy(&xfr->stream);
 	if (xfr->buf.base != NULL)
@@ -1414,7 +1412,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	xfr->sends--;
 	INSIST(xfr->sends == 0);
-	(void) isc_timer_touch(xfr->timer);
+	(void) isc_timer_touch(xfr->client->timer);
 	if (xfr->shuttingdown == ISC_TRUE) {
 		xfrout_maybe_destroy(xfr);
 	} else if (evresult != ISC_R_SUCCESS) {
@@ -1428,15 +1426,6 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 		ns_client_next(xfr->client, DNS_R_SUCCESS);
 		xfrout_ctx_destroy(&xfr);
 	}
-}
-
-static void
-xfrout_timeout(isc_task_t *task, isc_event_t *event) {
-	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
-	UNUSED(task);
-	/* This will log "giving up: timeout". */
-	xfrout_fail(xfr, ISC_R_TIMEDOUT, "giving up");
-	isc_event_free(&event);
 }
 
 static void
@@ -1466,8 +1455,8 @@ xfrout_maybe_destroy(xfrout_ctx_t *xfr) {
 }
 
 static void
-xfrout_client_shutdown(void *arg)
+xfrout_client_shutdown(void *arg, isc_result_t result)
 {
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) arg;
-	xfrout_fail(xfr, ISC_R_SHUTTINGDOWN, "aborted");
+	xfrout_fail(xfr, result, "aborted");
 }

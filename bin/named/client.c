@@ -254,6 +254,22 @@ client_free(ns_client_t *client) {
 		clientmgr_destroy(manager);
 }
 
+static void
+set_timeout(ns_client_t *client, unsigned int seconds) {
+	isc_result_t result;
+	isc_interval_t interval;
+	isc_interval_set(&interval, seconds, 0);
+	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
+				 &interval, ISC_FALSE);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+			      "setting timouet: %s",
+			      isc_result_totext(result));
+		/* Continue anyway. */
+	}
+}
+
 /*
  * Check for a deactivation or shutdown request and take appropriate
  * action.  Returns ISC_TRUE if either is in progress; in this case
@@ -266,6 +282,8 @@ exit_check(ns_client_t *client) {
 
 	if (client->state <= client->newstate)
 		return (ISC_FALSE); /* Business as usual. */
+
+	INSIST(client->newstate < NS_CLIENTSTATE_WORKING);
 
 	/*
 	 * We need to detach from the view early when shutting down
@@ -295,6 +313,7 @@ exit_check(ns_client_t *client) {
 			isc_socket_cancel(socket, client->task,
 					  ISC_SOCKCANCEL_SEND);
 		}
+
 		if (! (client->nsends == 0 && client->references == 0)) {
 			/*
 			 * Still waiting for I/O cancel completion.
@@ -338,7 +357,10 @@ exit_check(ns_client_t *client) {
 
 		if (client->tcpquota != NULL)
 			isc_quota_detach(&client->tcpquota);
-		
+
+		(void) isc_timer_reset(client->timer, isc_timertype_inactive,
+				       NULL, NULL, ISC_TRUE);
+				       
 		client->state = NS_CLIENTSTATE_READY;
 		if (NS_CLIENTSTATE_READY == client->newstate) {
 			if (TCP_CLIENT(client)) {
@@ -389,7 +411,6 @@ exit_check(ns_client_t *client) {
 		return (ISC_TRUE);
 	}
 
-	INSIST(0);
 	return (ISC_TRUE);
 }
 
@@ -408,10 +429,13 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("shutdown");
 
-	if (client->shutdown != NULL)
-		(client->shutdown)(client->shutdown_arg);
-
 	isc_event_free(&event);
+
+	if (client->shutdown != NULL) {
+		(client->shutdown)(client->shutdown_arg, ISC_R_SHUTTINGDOWN);
+		client->shutdown = NULL;
+		client->shutdown_arg = NULL;
+	}
 
 	client->newstate = NS_CLIENTSTATE_FREED;
 	(void) exit_check(client);
@@ -778,6 +802,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_get(&client->requesttime);
 	client->now = client->requesttime;
 
+	set_timeout(client, 60);
+
 	if (result != ISC_R_SUCCESS) {
 		if (TCP_CLIENT(client))
 			ns_client_next(client, result);
@@ -984,6 +1010,12 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
+	if (client->shutdown != NULL) {
+		(client->shutdown)(client->shutdown_arg, ISC_R_TIMEDOUT);
+		client->shutdown = NULL;
+		client->shutdown_arg = NULL;
+	}
+	
 	if (client->newstate > NS_CLIENTSTATE_READY)
 		client->newstate = NS_CLIENTSTATE_READY;
 	(void) exit_check(client);
@@ -1106,29 +1138,20 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 static void
 client_read(ns_client_t *client) {
 	isc_result_t result;
-#ifdef notyet
-	isc_interval_t interval;
-#endif
 	
 	CTRACE("read");
-
-#ifdef notyet
-	/*
-	 * Set a timeout to limit the amount of time we will wait
-	 * for a request on this TCP connection.
-	 */
-	isc_interval_set(&interval, 2, 0); /* XXX */
-	result = isc_timer_reset(client->timer, isc_timertype_once, NULL,
-				 &interval, ISC_FALSE);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
-#endif
 
 	result = dns_tcpmsg_readmessage(&client->tcpmsg, client->task,
 					client_request, client);
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 
+	/*
+	 * Set a timeout to limit the amount of time we will wait
+	 * for a request on this TCP connection.
+	 */
+	set_timeout(client, 30);
+	
 	client->state = client->newstate = NS_CLIENTSTATE_READING;
 	INSIST(client->nreads == 0);
 	client->nreads++;
