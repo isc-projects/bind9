@@ -412,7 +412,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	 * Initialize readable event
 	 */
 	ISC_EVENT_INIT(&sock->readable_ev, sizeof(intev_t),
-		       ISC_EVENTATTR_NOPURGE, 0, ISC_SOCKEVENT_INTR,
+		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTR,
 		       NULL, sock, sock, NULL, NULL);
 
 	sock->magic = SOCKET_MAGIC;

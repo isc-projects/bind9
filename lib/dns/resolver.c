@@ -24,9 +24,8 @@
 #define RTRACE(m)	printf("res %p: %s\n", res, (m))
 #define RRTRACE(r, m)	printf("res %p: %s\n", (r), (m))
 #define FCTXTRACE(m)	printf("fctx %p: %s\n", fctx, (m))
-#define FTRACE(m)	printf("fetch %p (res %p fctx %p tag %u): %s\n", \
-			       fetch, fetch->res, fetch->private, fetch->tag, \
-			       (m))
+#define FTRACE(m)	printf("fetch %p (res %p fctx %p): %s\n", \
+			       fetch, fetch->res, fetch->private, (m))
 #else
 #define RTRACE(m)
 #define RRTRACE(r, m)
@@ -61,7 +60,6 @@ typedef struct fetchctx {
 	isc_timer_t *			timer;
 	isc_time_t			expires;
 	isc_interval_t			interval;
-	unsigned int			next_tag;
 	ISC_LIST(dns_fetchdoneevent_t)	events;
 	isc_event_t			start_event;
 	dns_dispatch_t *		dispatcher;
@@ -415,8 +413,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 	if (event == NULL)
 		return (DNS_R_NOMEMORY);
 	event->result = DNS_R_SUCCESS;
-	event->tag = fctx->next_tag++;
-	INSIST(fctx->next_tag != 0);
+	event->tag = fetch;
 	/*
 	 * XXX other event initialization here.
 	 */
@@ -427,7 +424,6 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 	fetch->magic = DNS_FETCH_MAGIC;
 	fetch->res = fctx->res;
 	fetch->private = fctx;
-	fetch->tag = event->tag;
 	ISC_LINK_INIT(fetch, link);
 	
 	return (DNS_R_SUCCESS);
@@ -460,7 +456,6 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->locknum = 0;
 	fctx->state = fetchstate_init;
 	fctx->dispatcher = NULL;		/* XXX */
-	fctx->next_tag = 1;
 	ISC_LIST_INIT(fctx->queries);
 
 	fctx->qmessage = NULL;
@@ -528,7 +523,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	 * could well block on the lock we're about to release.
 	 */
 	event = &fctx->start_event;
-	ISC_EVENT_INIT(event, sizeof *event, 0, 0, DNS_EVENT_FETCH,
+	ISC_EVENT_INIT(event, sizeof *event, 0, NULL, DNS_EVENT_FETCH,
 		       fctx_start, fctx, (void *)fctx_create, NULL, NULL);
 	iresult = isc_task_send(worker, &event);
 	if (iresult != ISC_R_SUCCESS) {
@@ -992,15 +987,14 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 		     event != NULL;
 		     event = next_event) {
 			next_event = ISC_LIST_NEXT(event, link);
-			if (event->tag == fetch->tag) {
+			if (event->tag == fetch) {
 				ISC_LIST_UNLINK(fctx->events, event, link);
 				FTRACE("found");
 				break;
 			}
 		}
 	} else if (task != NULL)
-		(void)isc_task_purge(task, fctx, DNS_EVENT_FETCHDONE,
-				     fetch->tag);
+		(void)isc_task_purge(task, fctx, DNS_EVENT_FETCHDONE, fetch);
 
 	INSIST(fctx->references > 0);
 	fctx->references--;
