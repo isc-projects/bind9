@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.1 1999/11/29 17:58:39 gson Exp $ */
+ /* $Id: cache.c,v 1.2 1999/12/02 22:35:29 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -233,7 +233,7 @@ dns_cache_detach(dns_cache_t **cachep) {
 }
 
 void
-dns_cache_getdb(dns_cache_t *cache, dns_db_t **dbp) {
+dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 	REQUIRE(VALID_CACHE(cache));
 	REQUIRE(dbp != NULL && *dbp == NULL);
 	REQUIRE(cache->db != NULL);
@@ -305,7 +305,6 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->resched_event = NULL;
 	
 	if (taskmgr != NULL && timermgr != NULL) {
-		isc_time_t never;
 		isc_interval_t interval;
 
 		iresult = isc_task_create(taskmgr, cache->mctx,
@@ -324,11 +323,10 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		RUNTIME_CHECK(iresult == ISC_R_SUCCESS);
 
 		/* XXX get this from the configuration file */
-		cleaner->cleaning_interval = 86400; /* seconds */
+		cleaner->cleaning_interval = 30; /* seconds */
 		isc_interval_set(&interval, cleaner->cleaning_interval, 0);
-		isc_time_settoepoch(&never);
 		iresult = isc_timer_create(timermgr, isc_timertype_ticker,
-					   &never, &interval,
+					   NULL, &interval,
 					   cleaner->task,
 					   cleaning_timer_action, cleaner,
 					   &cleaner->cleaning_timer);
@@ -462,8 +460,6 @@ do_some_cleaning(cache_cleaner_t *cleaner, isc_stdtime_t now, int n_names) {
 static void
 cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->arg;
-
-	printf("cleaning-interval expired\n");	
 	INSIST(event->type == ISC_TIMEREVENT_TICK);
 	if (cleaner->state == cleaner_s_idle) {
 		INSIST(cleaner->resched_event != NULL);
