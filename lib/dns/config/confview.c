@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.57 2000/11/25 02:43:50 marka Exp $ */
+/* $Id: confview.c,v 1.58 2000/11/28 04:01:21 marka Exp $ */
 
 #include <config.h>
 
@@ -399,23 +399,16 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 				      "view 'rfc2308-type1' is not yet "
 				      "implemented");
 
-		if (dns_c_view_getmaxncachettl(elem,&buival) != ISC_R_NOTFOUND)
+		if (dns_c_view_getmaxcachesize(elem, &buival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'max-ncache-ttl' is not yet "
-				      "implemented");
-
-		if (dns_c_view_getmaxcachettl(elem, &buival) != ISC_R_NOTFOUND)
-			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'max-cache-ttl' is not yet "
+				      "view 'max-cache-size' is not yet "
 				      "implemented");
 
 		if (dns_c_view_getminroots(elem, &buival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'min-roots' is not yet "
-				      "implemented");
+				      "view 'min-roots' is obsolete");
 
 
 		if (dns_c_view_getordering(elem, &boval) != ISC_R_NOTFOUND)
