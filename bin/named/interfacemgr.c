@@ -44,6 +44,9 @@
 #define IFMGR_MAGIC		0x49464D47U	/* IFMG. */	
 #define NS_INTERFACEMGR_VALID(t) ((t) != NULL && (t)->magic == IFMGR_MAGIC)
 
+#define IFMGR_COMMON_LOGARGS \
+	ns_g_lctx, NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR
+
 struct ns_interfacemgr {
 	unsigned int		magic;		/* Magic number. */
 	int			references;
@@ -185,7 +188,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	ifp->task = NULL;
 	result = isc_task_create(mgr->taskmgr, mgr->mctx, 0, &ifp->task);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "isc_task_create() failed: %s",
 				 isc_result_totext(result));
 		goto task_create_failure;
@@ -236,14 +239,14 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 				   isc_sockettype_udp,
 				   &ifp->udpsocket);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "creating UDP socket: %s",
 				 isc_result_totext(result));
 		goto udp_socket_failure;
 	}
 	result = isc_socket_bind(ifp->udpsocket, &ifp->addr);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "binding UDP socket: %s",
 				 isc_result_totext(result));
 		goto udp_bind_failure;
@@ -294,22 +297,22 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 				   isc_sockettype_tcp,
 				   &ifp->tcpsocket);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "creating TCP socket: %s",
 				 isc_result_totext(result));
 		goto tcp_socket_failure;
 	}
 	result = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "binding TCP socket: %s",
 				 isc_result_totext(result));
 		goto tcp_bind_failure;
 	}
 	result = isc_socket_listen(ifp->tcpsocket, 0);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "listen TCP socket: %s",
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
+				 "listening on TCP socket: %s",
 				 isc_result_totext(result));
 		goto tcp_listen_failure;
 	}
@@ -518,19 +521,22 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			if (ifp != NULL) {
 				ifp->generation = mgr->generation;
 			} else {
-				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-					      NS_LOGMODULE_INTERFACEMGR,
+				isc_log_write(IFMGR_COMMON_LOGARGS,
 					      ISC_LOG_INFO,
-					      "listening on IPv4 interface %s, %s port %u",
+					      "listening on IPv4 interface "
+					      "%s, %s port %u",
 					      interface.name, addrstr,
-					      ntohs(listen_addr.type.sin.sin_port));
+					      ntohs(listen_addr.type.
+						    sin.sin_port));
 				
-				result = ns_interface_setup(mgr, &listen_addr, &ifp);
+				result = ns_interface_setup(mgr,
+							    &listen_addr, &ifp);
 				if (result != DNS_R_SUCCESS) {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "creating IPv4 interface %s "
-							 "failed; interface ignored",
-							 interface.name);
+					isc_log_write(IFMGR_COMMON_LOGARGS,
+						 ISC_LOG_ERROR,
+						 "creating IPv4 interface %s "
+						 "failed; interface ignored",
+						 interface.name);
 				}
 				/* Continue. */
 			}
@@ -560,14 +566,14 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 	if (ifp != NULL) {
 		ifp->generation = mgr->generation;
 	} else {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 			      "listening on IPv6 interfaces, port %u",
 			      ns_g_port);
 		result = ns_interface_setup(mgr, &listen_addr, &ifp);
 		if (result != DNS_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "listening on IPv6 interfaces failed");
+			isc_log_write(IFMGR_COMMON_LOGARGS,
+				      ISC_LOG_ERROR,			
+				      "listening on IPv6 interfaces failed");
 			/* Continue. */
 		}
 	}
@@ -583,14 +589,12 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
 		do_ipv6(mgr);
 	} else
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 			      "no IPv6 interfaces found");
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
 		do_ipv4(mgr);
 	else
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 			      "no IPv4 interfaces found");
 
         /*
@@ -602,8 +606,7 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 	purge_old_interfaces(mgr);
 
 	if (ISC_LIST_EMPTY(mgr->interfaces)) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
-			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_WARNING,
+		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "not listening on any interfaces");
 		/*
 		 * Continue anyway.
