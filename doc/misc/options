@@ -92,6 +92,8 @@ options {
   [ rrset-order { order_spec ; [ order_spec ; ... ] ] };    No
   [ recursive-clients number; ]				    Yes*
   [ tcp-clients number; ]				    Yes*
+  [ tkey-domain ... ]				            Yes*
+  [ tkey-dhkey ... ]                                        Yes*
 };
 
 acl 						            Yes@
