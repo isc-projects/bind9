@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.36 2001/08/30 04:49:35 marka Exp $
+# $Id: Makefile.in,v 1.37 2001/10/22 21:37:28 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -33,7 +33,7 @@ OBJS =		@ISC_IPV6_O@ \
 		app.@O@ dir.@O@ entropy.@O@ errno2result.@O@ file.@O@ \
 		fsaccess.@O@ interfaceiter.@O@ keyboard.@O@ net.@O@ \
 		os.@O@ resource.@O@ socket.@O@ stdio.@O@ stdtime.@O@ \
-		strerror.@O@ stdtime.@O@ syslog.@O@ time.@O@
+		strerror.@O@ syslog.@O@ time.@O@
 
 # Alphabetically
 SRCS =		@ISC_IPV6_C@ \
