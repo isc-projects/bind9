@@ -1,3 +1,7 @@
+1277.	[func]		You can now create your own customised printing
+			styles: dns_master_stylecreate() and
+			dns_master_styledestroy().
+
 1271.	[bug]		"recursion available: {denied,approved}" was too
 			confusing.
 
