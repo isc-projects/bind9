@@ -1,8 +1,8 @@
-	Alpha Release of BIND 9.2.0 for Window NT/2000
+	Beta Release of BIND 9.2.0 for Window NT/2000
 
 Date: 30-Jun-2001.
 
-  This is the Alpha Release of BIND 9.2.0 for Windows NT/2000. As such
+  This is a Beta Release of BIND 9.2.0 for Windows NT/2000. As such
 it should not be installed on a production system or anywhere that is
 considered critical for Internet access.  The release has not been
 thoroughly tested.  While IPv6 addresses should work, there is no
@@ -29,12 +29,12 @@ keys.
 Windows NT/2000 uses the same rndc program as is used on Unix
 systems.  The rndc.conf file must be configured for your system in
 order to work. You will need to generate a key for this. To do this
-use the dnssec-keygen program. The program will be installed in the
-same directory as named: dns/bin/.  The syntax of the command is:
+use the rndc-confgen program. The program will be installed in the
+same directory as named: dns/bin/.  Use the command this way:
 
-dnssec-keygen -a hmac-md5 -b 128 -n user rndc 
+rndc-confgen > rndc.conf
 
-A sample rndc.conf is include in the kit, but is not copied to
+An rndc.conf will be generated in the current but not copied to
 the dns/etc directory where it needs to reside.
 
 In addition the named.conf file will need to be modified in order

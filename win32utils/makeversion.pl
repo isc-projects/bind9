@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makeversion.pl,v 1.1 2001/07/20 05:10:29 mayer Exp $ 
+# $Id: makeversion.pl,v 1.2 2001/07/22 05:55:39 mayer Exp $ 
 
 # This script takes the version information from the version file located at the
 # root of the source tree and the api files in each library directory and writes
@@ -39,14 +39,14 @@ $versionpath = "../$versionfile";
 #
 open (VERSIONFILE, "../version");
 while (<VERSIONFILE>) {
-   chomp;
-   ($data) = split(/\#/);
-   if($data) {
-     ($name, $value) = split(/=/,$data);
-     ($name) = split(/\s+/, $name);
-     ($value) = split(/\s+/, $value);
-     $Versions{$name} = $value;
-   }
+	chomp;
+	($data) = split(/\#/);
+	if($data) {
+		($name, $value) = split(/=/,$data);
+		($name) = split(/\s+/, $name);
+		($value) = split(/\s+/, $value);
+		$Versions{$name} = $value;
+	}
 }
 close(VERSIONFILE);
 
@@ -93,24 +93,24 @@ print "BIND Version: $Version\n";
 print OUTVERSIONFILE "#define VERSION \"$Version\"\n\n";
 
 foreach $dir (@dirlist) {
-   $apifile = "../lib/$dir/api";
-   open (APIVERSION, $apifile);
-   while (<APIVERSION>) {
-      chomp;
-      ($data) = split(/\#/);
-      if ($data) {
-         ($name, $value) = split(/=/, $data);
-         $name =~ s/\s+//;
-         $value =~ s/\s+//;
-         $ApiVersions{$name} = $value;
-      }
-   }
+	$apifile = "../lib/$dir/api";
+	open (APIVERSION, $apifile);
+	while (<APIVERSION>) {
+		chomp;
+		($data) = split(/\#/);
+		if ($data) {
+			($name, $value) = split(/=/, $data);
+			$name =~ s/\s+//;
+			$value =~ s/\s+//;
+			 $ApiVersions{$name} = $value;
+		}
+	}
 
-   print OUTVERSIONFILE "\n#ifdef $LibMacros{$dir}\n";
-   foreach $name (@VersionNames) {
-      print OUTVERSIONFILE "#define $name\t$ApiVersions{$name}\n";
-   }
-   print OUTVERSIONFILE "#endif\n\n";
+	print OUTVERSIONFILE "\n#ifdef $LibMacros{$dir}\n";
+	foreach $name (@VersionNames) {
+		print OUTVERSIONFILE "#define $name\t$ApiVersions{$name}\n";
+	}
+	print OUTVERSIONFILE "#endif\n\n";
 
 }
 

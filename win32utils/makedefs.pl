@@ -1,8 +1,31 @@
+# makeversion.pl
+#
+# Copyright (C) 2001  Internet Software Consortium.
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+# DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+# INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+# FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+# NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+# WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# $Id: makedefs.pl,v 1.2 2001/07/22 05:55:38 mayer Exp $ 
+#
 # makedefs.pl
 # This script goes through all of the lib header files and creates a .def file for
 # each DLL for Win32. It recurses as necessary through the subdirectories
 #
-# This program was written by PDM. mayer@gis.net 27-Feb-2001.
+# This program should only be run if it is necessary to regenerate
+# the .def files.  Normally these files should be updated by  hand, adding
+# new functions to the end and removing obsolete ones.
+# If you do renerate them you will also need to modify them by hand to
+# to pick up those routines not detected by this program (like openlog).
 #
 # Search String: ^(([_a-z0-9])*( ))*prefix_[_a-z0-9]+_[a-z0-9]+( )*\(
 # List of directories
@@ -18,11 +41,7 @@
 @iscccdirlist = ("isccc/include/isccc");
 @iscccprefixlist = ("isccc");
 
-#@omapidirlist = ("omapi/include/omapi");
-#@omapiprefixlist = ("omapi");
-
 @dnsdirlist = ("dns/include/dns","dns/sec/dst/include/dst");
-# , "dns/sec/openssl/include/openssl");
 @dnsprefixlist = ("dns", "dst");
 
 @lwresdirlist = ("lwres/include/lwres");
@@ -33,43 +52,47 @@
 $ind = 0;
 createoutfile($iscprefixlist[0]);
 foreach $dir (@iscdirlist) {
-   createdeffile($dir, $iscprefixlist[$ind]);
-   $ind++;
+	createdeffile($dir, $iscprefixlist[$ind]);
+	$ind++;
 }
 close OUTDEFFILE;
 
 $ind = 0;
 createoutfile($isccfgprefixlist[0]);
 foreach $dir (@isccfgdirlist) {
-   createdeffile($dir, $isccfgprefixlist[$ind]);
-   $ind++;
+	createdeffile($dir, $isccfgprefixlist[$ind]);
+	$ind++;
 }
 close OUTDEFFILE;
 
 $ind = 0;
 createoutfile($dnsprefixlist[0]);
 foreach $dir (@dnsdirlist) {
-   createdeffile($dir, $dnsprefixlist[$ind]);
-   $ind++;
+	createdeffile($dir, $dnsprefixlist[$ind]);
+	$ind++;
 }
 close OUTDEFFILE;
 
 $ind = 0;
 createoutfile($iscccprefixlist[0]);
 foreach $dir (@iscccdirlist) {
-   createdeffile($dir, $iscccprefixlist[$ind]);
-   $ind++;
+	createdeffile($dir, $iscccprefixlist[$ind]);
+	$ind++;
 }
 close OUTDEFFILE;
 
 $ind = 0;
 createoutfile($lwresprefixlist[0]);
 foreach $dir (@lwresdirlist) {
-   createdeffile($dir, $lwresprefixlist[$ind]);
-   $ind++;
+	createdeffile($dir, $lwresprefixlist[$ind]);
+	$ind++;
 }
 close OUTDEFFILE;
 
+exit;
+#
+# Subroutines
+#
 sub createdeffile {
 $xdir = $_[0];
 
@@ -78,43 +101,36 @@ $xdir = $_[0];
 #
 #^(([_a-z0-9])*( ))*prefix_[_a-z]+_[a-z]+( )*\(
 $prefix = $_[1];
-#$xdir = "$prefix/include/$prefix";
 #$pattern = "\^\( \)\*$prefix\_\[\_a\-z\]\+_\[a\-z\]\+\( \)\*\\\(";
 #$pattern = "\^\(\(\[\_a\-z0\-9\]\)\*\( \)\)\*$prefix\_\[\_a\-z0\-9\]\+_\[a\-z0\-9\]\+\( \)\*\\\(";
 $pattern = "\^\(\(\[\_a\-z0\-9\]\)\*\( \)\)\*\(\\*\( \)\+\)\*$prefix\_\[\_a\-z0\-9\]\+_\[a\-z0\-9\]\+\( \)\*\\\(";
-#print "$pattern\n";
 
 opendir(DIR,$xdir) || die "No Directory: $!";
 @files = grep(/\.h$/i, readdir(DIR));
 closedir(DIR);
 
 foreach $filename (sort @files) {
-#  print "$filename\n";
-
-#
 #
 # Open the file and locate the pattern.
 #
-  open (HFILE, "$xdir/$filename") || die "Can't open file $filename : $!";
+	open (HFILE, "$xdir/$filename") || die "Can't open file $filename : $!";
 #
-#exit;
-
- while (<HFILE>) {
-   if(/$pattern/) {
-	$func = $&;
-	chop($func);
-	$space = rindex($func, " ") + 1;
-	if($space >= 0) {
-	   $func = substr($func, $space, 100); #strip out return values
-	}
-	print OUTDEFFILE "$func\n";
-   }
- }
+	while (<HFILE>) {
+		if(/$pattern/) {
+			$func = $&;
+			chop($func);
+			$space = rindex($func, " ") + 1;
+			if($space >= 0) {
+				#strip out return values
+				$func = substr($func, $space, 100);
+			}
+			print OUTDEFFILE "$func\n";
+		}
+ 	}
 # Set up the Patterns
- close(HFILE);
+ 	close(HFILE);
 }
 }
-exit;
 
 # This is the routine that applies the changes
 
