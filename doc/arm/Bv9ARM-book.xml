@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.11 2000/09/26 18:27:12 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.12 2000/09/26 18:45:08 bwelling Exp $ -->
 
 <book>
 
@@ -1227,7 +1227,8 @@ allow-update { key host1-host2. ;};
     of steps which must be followed.  <acronym>BIND</acronym> 9 ships with several tools
     that are used in this process, which are explained in more detail
     below.  In all cases, the "<option>-h</option>" option prints a
-    full list of parameters.</para>
+    full list of parameters.  Note that the DNSSEC tools require the
+    keyset and signedkey files to be in the working directory.</para>
 
     <para>There must also be communication with the administrators of
     the parent and/or child zone to transmit keys and signatures.  A
