@@ -39,5 +39,5 @@ install:: installdirs
 		${INSTALL_DATA} $(srcdir)/$$i ${includedir}/isc ; \
 	done
 
-clean distclean::
+distclean::
 	rm -f net.h
