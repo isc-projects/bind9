@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.40 2000/11/17 19:19:17 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.41 2000/11/20 17:31:33 gson Exp $ -->
 
 <book>
 
@@ -163,18 +163,22 @@ start. Zones usually represent administrative boundaries. For example,
 a domain name for a host at the company <emphasis>Example, Inc.</emphasis> would
 be:</para>
 <para><systemitem class="systemname">ourhost.example.com</systemitem></para>
-<para>where <systemitem class="systemname">com</systemitem> is the top level domain to which <systemitem class="systemname">ourhost.example.com</systemitem> belongs, <systemitem class="systemname">example</systemitem> is
-a subdomain of <systemitem class="systemname">com</systemitem>, and <systemitem class="systemname">ourhost</systemitem> is the
+<para>where <systemitem class="systemname">com</systemitem> is the top level domain to which
+<systemitem class="systemname">ourhost.example.com</systemitem> belongs, 
+<systemitem class="systemname">example</systemitem> is
+a subdomain of <systemitem class="systemname">com</systemitem>, and
+<systemitem class="systemname">ourhost</systemitem> is the
 name of the host.</para>
 <para>The specifications for the domain nameserver are defined in
 the RFC 1034, RFC 1035 and RFC 974. These documents can be found
 in
 <filename>/usr/src/etc/named/doc</filename> in 4.4BSD or are available
 via File Transfer Protocol (FTP) from
-<ulink
-       url="ftp://www.isi.edu/in-notes/">ftp://www.isi.edu/in-notes/</ulink> or via the Web at <ulink url="http://www.ietf.org/rfc/">http://www.ietf.org/rfc/</ulink>.
+<ulink url="ftp://www.isi.edu/in-notes/">ftp://www.isi.edu/in-notes/</ulink>
+or via the Web at <ulink url="http://www.ietf.org/rfc/">http://www.ietf.org/rfc/</ulink>.
 (See Appendix C for complete information on finding and retrieving
-RFCs.) It is also recommended that you read the related man pages: <command>named</command> and <command>resolver</command>.</para></sect2>
+RFCs.) It is also recommended that you read the related man pages:
+<command>named</command> and <command>resolver</command>.</para></sect2>
 <sect2><title>Types of Zones</title>
 <para>As we stated previously, a zone is a point of delegation in
 the <acronym>DNS</acronym> tree. A zone consists of those contiguous parts of the domain
@@ -187,9 +191,12 @@ the root of the delegated zone.</para>
 <para>To properly operate a nameserver, it is important to understand
 the difference between a <emphasis>zone</emphasis> and a <emphasis>domain</emphasis>.</para>
 <para>For instance, consider the <systemitem class="systemname">example.com</systemitem> domain
-which includes names such as <systemitem class="systemname">host.aaa.example.com </systemitem>and <systemitem class="systemname">host.bbb.example.com</systemitem> even
-though the <systemitem class="systemname">example.com</systemitem> zone includes only delegations
-for the <systemitem class="systemname">aaa.example.com</systemitem> and <systemitem class="systemname">bbb.example.com</systemitem> zones.
+which includes names such as <systemitem class="systemname">host.aaa.example.com</systemitem>
+and <systemitem class="systemname">host.bbb.example.com</systemitem> even
+though the <systemitem class="systemname">example.com</systemitem>
+zone includes only delegations for the
+<systemitem class="systemname">aaa.example.com</systemitem>
+and <systemitem class="systemname">bbb.example.com</systemitem> zones.
 A zone can map exactly to a single domain, but could also include
 only part of a domain, the rest of which could be delegated to other
 nameservers. Every name in the <acronym>DNS</acronym> tree is a <emphasis>domain</emphasis>,
@@ -500,8 +507,9 @@ of the time:</para>
     will use the first record returned and discard the rest.</para>
     <para>For more detail on ordering responses, check the
     <command>rrset-order</command> substatement in the
-    <command>options</command> statement, see <xref
-                                                endterm="rrset_ordering_title" linkend="rrset_ordering"/>. This substatement is not supported in
+    <command>options</command> statement, see
+    <xref endterm="rrset_ordering_title" linkend="rrset_ordering"/>.
+    This substatement is not supported in
     <acronym>BIND</acronym> 9, and only the ordering scheme described above is
     available.</para>
 
