@@ -49,8 +49,6 @@
  *** Imports
  ***/
 
-#include <config.h>
-
 #include <isc/mem.h>
 #include <isc/int.h>
 #include <isc/list.h>

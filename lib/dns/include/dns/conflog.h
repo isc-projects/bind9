@@ -54,8 +54,6 @@
  *** Imports
  ***/
 
-#include <config.h>
-
 #include <isc/mem.h>
 
 #include <dns/confcommon.h>

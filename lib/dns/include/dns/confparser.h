@@ -51,7 +51,6 @@
  *** Imports
  ***/
 
-#include <config.h>
 #include <isc/types.h>
 
 #include <dns/confctx.h>

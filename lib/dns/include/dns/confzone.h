@@ -53,8 +53,6 @@
  *** Imports
  ***/
 
-#include <config.h>
-
 #include <isc/mem.h>
 
 /* XXX these next two are needed by rdatatype.h. It should be fixed to

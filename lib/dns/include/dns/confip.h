@@ -51,8 +51,6 @@
  *** Imports
  ***/
 
-#include <config.h>
-
 #include <sys/types.h>
 
 #include <isc/region.h>

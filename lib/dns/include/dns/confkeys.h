@@ -55,8 +55,6 @@
 
 #include <stdio.h>
 
-#include <config.h>
-
 #include <isc/types.h>
 #include <isc/list.h>
 

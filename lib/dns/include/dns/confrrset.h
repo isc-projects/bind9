@@ -44,8 +44,6 @@
  *** Imports
  ***/
 
-#include <config.h>
-
 #include <isc/mem.h>
 
 /* XXX these next two are needed by rdatatype.h. It should be fixed to
@@ -94,7 +92,7 @@ struct dns_c_rrso
 struct dns_c_rrso_list
 {
 	isc_uint32_t		magic;
-	
+
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_rrso_t)	elements;
