@@ -197,9 +197,7 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 	elt->value = value;
 
 	/*
-	 * We prepend so that a 'type 0' lookup will return the most
-	 * recent definition, and a 'type 0' undefine will undefine the
-	 * most recent definition.
+	 * We prepend so that the most recent definition will be found.
 	 */
 	PREPEND(symtab->table[bucket], elt, link);
 
