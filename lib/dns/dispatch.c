@@ -24,6 +24,7 @@
 
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/lfsr.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/socket.h>
@@ -87,7 +88,7 @@ struct dns_dispatch {
 	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
 	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	dns_tcpmsg_t		tcpmsg;		/* for tcp streams */
-	isc_int32_t		qid_state;	/* state generator info */
+	isc_lfsr_t		qid_lfsr;	/* state generator info */
 	unsigned int		qid_hashsize;	/* hash table size */
 	unsigned int		qid_mask;	/* mask for hash table */
 	dns_displist_t	        *qid_table;	/* the table itself */
@@ -105,54 +106,37 @@ struct dns_dispatch {
 /*
  * statics.
  */
-static dns_dispentry_t *
-bucket_search(dns_dispatch_t *, isc_sockaddr_t *,
-	      dns_messageid_t, unsigned int);
+static dns_dispentry_t *bucket_search(dns_dispatch_t *, isc_sockaddr_t *,
+				      dns_messageid_t, unsigned int);
+static void destroy(dns_dispatch_t *);
+static void udp_recv(isc_task_t *, isc_event_t *);
+static void tcp_recv(isc_task_t *, isc_event_t *);
+static inline void startrecv(dns_dispatch_t *);
+static dns_messageid_t randomid(dns_dispatch_t *);
+static unsigned int hash(dns_dispatch_t *, isc_sockaddr_t *, dns_messageid_t);
+static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
+static void *allocate_buffer(dns_dispatch_t *disp, unsigned int len);
+static inline void free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
+static inline dns_dispatchevent_t *allocate_event(dns_dispatch_t *disp);
+static void do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp);
+static void do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp);
+static void do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp);
+static dns_dispentry_t *linear_first(dns_dispatch_t *disp);
+static dns_dispentry_t *linear_next(dns_dispatch_t *disp,
+				    dns_dispentry_t *resp);
 
-static void
-destroy(dns_dispatch_t *);
+/*
+ * Return an unpredictable message ID.
+ */
+static inline dns_messageid_t
+randomid(dns_dispatch_t *disp)
+{
+	isc_uint32_t id;
 
-static void
-udp_recv(isc_task_t *, isc_event_t *);
+	id = isc_lfsr_generate(&disp->qid_lfsr);
 
-static void
-tcp_recv(isc_task_t *, isc_event_t *);
-
-static void
-startrecv(dns_dispatch_t *);
-
-static dns_messageid_t
-randomid(dns_dispatch_t *);
-
-static unsigned int
-hash(dns_dispatch_t *, isc_sockaddr_t *, dns_messageid_t);
-
-static void
-free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
-
-static void *
-allocate_buffer(dns_dispatch_t *disp, unsigned int len);
-
-static inline void
-free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
-
-static inline dns_dispatchevent_t *
-allocate_event(dns_dispatch_t *disp);
-
-static void
-do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp);
-
-static void
-do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp);
-
-static void
-do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp);
-
-static dns_dispentry_t *
-linear_first(dns_dispatch_t *disp);
-
-static dns_dispentry_t *
-linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp);
+	return ((dns_messageid_t)(id & 0x0000ffff));
+}
 
 static dns_dispentry_t *
 linear_first(dns_dispatch_t *disp)
@@ -210,18 +194,6 @@ hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id)
 	INSIST(ret < disp->qid_hashsize);
 
 	return (ret);
-}
-
-/*
- * Return a random message ID.  For now this isn't too clever...
- * XXXMLG
- */
-static dns_messageid_t
-randomid(dns_dispatch_t *disp)
-{
-	disp->qid_state += 7;
-
-	return ((dns_messageid_t)disp->qid_state);
 }
 
 /*
@@ -919,9 +891,10 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	}
 
 	/*
-	 * should initialize qid_state here XXXMLG
+	 * Initialize to a 32-bit LFSR.
+	 *	x^31 + x^6 + x^4 + x^2 + x + 1
 	 */
-	disp->qid_state = (unsigned int)disp;
+	isc_lfsr_init(&disp->qid_lfsr, random(), 32, 0x80000057U);
 
 	disp->magic = DISPATCH_MAGIC;
 
