@@ -1327,12 +1327,12 @@ load_configuration(const char *filename, ns_server_t *server,
 			isc_logconfig_destroy(&logc);
 			CHECKM(result, "installing logging configuration");
 		}
-	}
 
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
-		      "now using logging configuration from "
-		      "config file");
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+			      "now using logging configuration from "
+			      "config file");
+	}
 
 	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) != ISC_R_NOTFOUND)
 		ns_os_writepidfile(pidfilename);
