@@ -136,9 +136,9 @@ Q: I have a BIND 9 master and a BIND 8.2.3 slave, and the master is
 logging error messages like "notify to 10.0.0.1#53 failed: unexpected
 end of input".  What's wrong?
 
-A: This error message is caused by a known bug in BIND 8.2.3 and will
-be fixed in 8.2.4.  It can be safely ignored - the notify has been
-acted on by the slave despite the error message.
+A: This error message is caused by a known bug in BIND 8.2.3 and is fixed
+in BIND 8.2.4.  It can be safely ignored - the notify has been acted on by
+the slave despite the error message.
 
 
 Q: I keep getting log messages like the following.  Why?
