@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.132 2000/11/16 22:33:45 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.133 2000/11/22 00:18:33 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3020,6 +3020,85 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (ISC_R_SUCCESS);
 }
 
+static isc_boolean_t
+cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
+	rdatasetheader_t *header, *header_next;
+	isc_boolean_t cname, other_data;
+	dns_rdatatype_t rdtype;
+
+	/*
+	 * The caller must hold the node lock.
+	 */
+
+	/*
+	 * Look for CNAME and "other data" rdatasets active in our version.
+	 */
+	cname = ISC_FALSE;
+	other_data = ISC_FALSE;
+	for (header = node->data; header != NULL; header = header_next) {
+		header_next = header->next;
+		if (header->type == dns_rdatatype_cname) {
+			/*
+			 * Look for an active extant CNAME.
+			 */
+			do {
+				if (header->serial <= serial &&
+				    !IGNORE(header)) {
+					/*
+					 * Is this a "this rdataset doesn't
+					 * exist" record?
+					 */
+					if (NONEXISTENT(header))
+						header = NULL;
+					break;
+				} else
+					header = header->down;
+			} while (header != NULL);
+			if (header != NULL)
+				cname = ISC_TRUE;
+		} else {
+			/*
+			 * Look for active extant "other data".
+			 *
+			 * "Other data" is any rdataset whose type is not
+			 * KEY, SIG KEY, NXT, SIG NXT, or SIG CNAME.
+			 */
+			rdtype = RBTDB_RDATATYPE_BASE(header->type);
+			if (rdtype == dns_rdatatype_sig)
+				rdtype = RBTDB_RDATATYPE_EXT(header->type);
+			if (rdtype != dns_rdatatype_nxt &&
+			    rdtype != dns_rdatatype_key &&
+			    rdtype != dns_rdatatype_cname) {
+				/*
+				 * We've found a type that isn't
+				 * NXT, KEY, CNAME, or one of their
+				 * signatures.  Is it active and extant?
+				 */
+				do {
+					if (header->serial <= serial &&
+					    !IGNORE(header)) {
+						/*
+						 * Is this a "this rdataset
+						 * doesn't exist" record?
+						 */
+						if (NONEXISTENT(header))
+							header = NULL;
+						break;
+					} else
+						header = header->down;
+				} while (header != NULL);
+				if (header != NULL)
+					other_data = ISC_TRUE;
+			}
+		}
+	}
+
+	if (cname && other_data)
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
+}
+
 static isc_result_t
 add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
     rdatasetheader_t *newheader, unsigned int options, isc_boolean_t loading,
@@ -3151,10 +3230,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		topheader_prev = topheader;
 	}
 
-	/*
-	 * XXXRTH  Need to check for CNAME and other data.
-	 */
-
  find_header:
 	/*
 	 * If header isn't NULL, we've found the right type.  There may be
@@ -3189,15 +3264,24 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		}
 
 		/*
-		 * Don't merge if a nonexistent rdataset is involved.
+		 * Turn off merging in certain cases.
 		 */
-		if (merge && (header_nx || newheader_nx))
-			merge = ISC_FALSE;
-
-		/*
-		 * XXXRTH  We need to turn off merging for rdata types that
-		 * cannot be merged, e.g. SOA, CNAME, WKS.
-		 */
+		if (merge) {
+			if (header_nx || newheader_nx) {
+				/*
+				 * Don't merge if a nonexistent rdataset is
+				 * involved.
+				 */
+				merge = ISC_FALSE;
+			} else {
+				/*
+				 * Do not merge singleton types.
+				 */
+				rdtype = RBTDB_RDATATYPE_BASE(newheader->type);
+				if (dns_rdatatype_issingleton(rdtype))
+					merge = ISC_FALSE;
+			}
+		}
 
 		/*
 		 * If 'merge' is ISC_TRUE, we'll try to create a new rdataset
@@ -3301,6 +3385,13 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			rbtnode->data = newheader;
 		}
 	}
+
+	/*
+	 * Check if the node now contains CNAME and other data.
+	 */
+	if (rbtversion != NULL &&
+	    cname_and_other_data(rbtnode, rbtversion->serial))
+		return (DNS_R_CNAMEANDOTHER);
 
 	if (addedrdataset != NULL)
 		bind_rdataset(rbtdb, rbtnode, newheader, now, addedrdataset);

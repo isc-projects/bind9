@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.23 2000/10/31 03:21:58 marka Exp $ */
+/* $Id: rdataslab.c,v 1.24 2000/11/22 00:18:34 halley Exp $ */
 
 #include <config.h>
 
@@ -55,6 +55,8 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 
 	nalloc = dns_rdataset_count(rdataset);
 	nitems = nalloc;
+	if (nitems == 0)
+		return (ISC_R_FAILURE);
 
 	rdatas = isc_mem_get(mctx, nalloc * sizeof(dns_rdata_t));
 	if (rdatas == NULL)
@@ -64,44 +66,58 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	 * Save all of the rdata members into an array.
 	 */
 	result = dns_rdataset_first(rdataset);
-	INSIST(result == ISC_R_SUCCESS);
-	for (i = 0; i < nalloc; i++) {
+	if (result != ISC_R_SUCCESS)
+		goto free_rdatas;
+	for (i = 0; i < nalloc && result == ISC_R_SUCCESS; i++) {
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdata_init(&rdatas[i]);
 		dns_rdataset_current(rdataset, &rdatas[i]);
 		result = dns_rdataset_next(rdataset);
 	}
-	INSIST(result == ISC_R_NOMORE);
+	if (result != ISC_R_NOMORE)
+		goto free_rdatas;
+	if (i != nalloc) {
+		/*
+		 * Somehow we iterated over fewer rdatas than
+		 * dns_rdataset_count() said there were!
+		 */
+		result = ISC_R_FAILURE;
+		goto free_rdatas;
+	}
 
 	qsort(rdatas, nalloc, sizeof(dns_rdata_t), compare_rdata);
 
 	/*
-	 * Remove duplicates.
+	 * Remove duplicates and compute the total storage required.
+	 *
+	 * If an rdata is not a duplicate, accumulate the storage size
+	 * required for the rdata.  We do not store the class, type, etc,
+	 * just the rdata, so our overhead is 2 bytes for the number of
+	 * records, and 2 for each rdata length, and then the rdata itself.
 	 */
 	for (i = 1; i < nalloc; i++) {
 		if (compare_rdata(&rdatas[i-1], &rdatas[i]) == 0) {
 			rdatas[i-1].data = NULL;
 			rdatas[i-1].length = 0;
 			nitems--;
-		}
+		} else
+			buflen += (2 + rdatas[i-1].length);
 	}
+	/*
+	 * Don't forget the last item!
+	 */
+	buflen += (2 + rdatas[i-1].length);
 
 	/*
-	 * Run through the rdataset list once, counting up the size
-	 * of all the rdata members within it.  We do not store the
-	 * class, type, etc, just the rdata, so our overhead is 2 bytes
-	 * for the number of records, and 2 for each rdata length, and
-	 * then the rdata itself.
+	 * Check that singleton types are actually singletons.
 	 */
-	for (i = 0; i < nalloc; i++) {
-		if (rdatas[i].data != NULL)
-			buflen += (2 + rdatas[i].length);
-		result = dns_rdataset_next(rdataset);
-	}
-
-	if (result != ISC_R_NOMORE) {
-		isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
-		return (result);
+	if (nitems > 1 && dns_rdatatype_issingleton(rdataset->type)) {
+		/*
+		 * We have a singleton type, but there's more than one
+		 * RR in the rdataset.
+		 */
+		result = DNS_R_SINGLETON;
+		goto free_rdatas;
 	}
 
 	/*

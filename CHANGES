@@ -1,3 +1,10 @@
+ 571.	[bug]		It was possible to create an rdataset of singleton
+			type which had more than one rdata.  [RT #154]
+			[RT #279]
+
+ 570.	[bug]		rbtdb.c allowed zones containing nodes which had
+			both a CNAME and "other data". [RT #154]
+
  569.	[func]		The DNSSEC AD bit will not be set on queries which
 			have not requested a DNSSEC response.
 
