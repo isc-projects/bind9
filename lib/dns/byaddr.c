@@ -23,11 +23,12 @@
 #include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/error.h>
+#include <isc/event.h>
+#include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/result.h>
 #include <isc/task.h>
 #include <isc/util.h>
-#include <isc/mem.h>
-#include <isc/mutex.h>
 
 #include <dns/byaddr.h>
 #include <dns/db.h>
@@ -135,15 +136,39 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 
 static inline isc_result_t
 copy_ptr_targets(dns_byaddr_t *byaddr) {
+	isc_result_t result;
+	dns_name_t *name;
+	dns_name_t target;
+	dns_rdata_t rdata;
+	isc_region_t r;
 
 	/*
 	 * The caller must be holding the byaddr's lock.
 	 */
-
-	/* XXX */
-	(void)byaddr;
-
-	return (DNS_R_NOTIMPLEMENTED);
+	
+	result = dns_rdataset_first(&byaddr->rdataset);
+	while (result == ISC_R_SUCCESS) {
+		dns_rdataset_current(&byaddr->rdataset, &rdata);
+		r.base = rdata.data;
+		r.length = rdata.length;
+		dns_name_init(&target, NULL);
+		dns_name_fromregion(&target, &r);
+		name = isc_mem_get(byaddr->mctx, sizeof *name);
+		if (name == NULL)
+			return (ISC_R_NOMEMORY);
+		dns_name_init(name, NULL);
+		result = dns_name_dup(&target, byaddr->mctx, name);
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(byaddr->mctx, name, sizeof *name);
+			return (ISC_R_NOMEMORY);
+		}
+		ISC_LIST_APPEND(byaddr->event->names, name, link);
+		result = dns_rdataset_next(&byaddr->rdataset);
+	}
+	if (result == DNS_R_NOMORE)
+		result = ISC_R_SUCCESS;
+	
+	return (result);
 }
 
 static void
@@ -311,6 +336,7 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 		if (event != NULL) {
 			ievent = (isc_event_t *)event;
 			isc_event_free(&ievent);
+			event = NULL;
 		}
 
 		/*
@@ -336,6 +362,26 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 	UNLOCK(&byaddr->lock);
 }
 
+static void
+bevent_destroy(isc_event_t *event) {
+	dns_byaddrevent_t *bevent;
+	dns_name_t *name, *next_name;
+	isc_mem_t *mctx;
+
+	REQUIRE(event->type == DNS_EVENT_BYADDRDONE);
+	mctx = event->destroy_arg;
+	bevent = (dns_byaddrevent_t *)event;
+
+	for (name = ISC_LIST_HEAD(bevent->names);
+	     name != NULL;
+	     name = next_name) {
+		next_name = ISC_LIST_NEXT(name, link);
+		dns_name_free(name, mctx);
+		isc_mem_put(mctx, name, sizeof *name);
+	}
+	isc_mem_put(mctx, event, event->size);
+}
+
 isc_result_t
 dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 		  unsigned int options, isc_task_t *task,
@@ -351,14 +397,14 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	byaddr->mctx = mctx;
 	byaddr->options = options;
 
-	byaddr->event = (dns_byaddrevent_t *)
-		isc_event_allocate(mctx, NULL, DNS_EVENT_BYADDRDONE,
-				   action, arg, sizeof *byaddr->event);
+	byaddr->event = isc_mem_get(mctx, sizeof *byaddr->event);
 	if (byaddr->event == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_byaddr;
 	}
-	byaddr->event->byaddr = byaddr;
+	ISC_EVENT_INIT(byaddr->event, sizeof *byaddr->event, 0, NULL,
+		       DNS_EVENT_BYADDRDONE, action, arg, byaddr,
+		       bevent_destroy, mctx);
 	byaddr->event->result = ISC_R_FAILURE;
 	ISC_LIST_INIT(byaddr->event->names);
 
