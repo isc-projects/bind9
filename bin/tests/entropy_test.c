@@ -87,6 +87,8 @@ main(int argc, char **argv) {
 	}
 	hex_dump("good data only:", buffer, returned);
 
+	isc_entropy_stats(ent, stderr);
+
 	CHECK("isc_entropy_getdata()",
 	      isc_entropy_getdata(ent, buffer, 128, NULL, 0));
 

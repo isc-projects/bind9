@@ -221,7 +221,7 @@ entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
 		entropypool_add_word(rp, val);
 	}
 
-	rp->entropy = ISC_MAX(rp->entropy + entropy, RND_POOLBITS);
+	rp->entropy = ISC_MIN(rp->entropy + entropy, RND_POOLBITS);
 }
 
 static isc_uint32_t
@@ -230,13 +230,14 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	unsigned char buf[128];
 	int fd = source->sources.file.fd;
 	ssize_t n, ndesired;
-	u_int32_t added = 0;
+	isc_uint32_t added;
 
 	if (fd == -1)
 		return (0);
 
 	desired = desired / 8 + (((desired & 0x07) > 0) ? 1 : 0);
 
+	added = 0;
 	while (desired > 0) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
 		n = read(fd, buf, ndesired);
@@ -270,17 +271,40 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	REQUIRE(VALID_ENTROPY(ent));
 
 	/*
-	 * The best we can do is fill the pool.  Clamp to that.
+	 * This logic is a little strange, so an explanation is in order.
+	 *
+	 * If needed is 0, it means we are being asked to "fill to whatever
+	 * we think is best."  This means that if we have at least a
+	 * partially full pool (say, > 1/4th of the pool) we probably don't
+	 * need to add anything.
+	 *
+	 * Also, we will check to see if the "pseudo" count is too high.
+	 * If it is, try to mix in better data.  Too high is currently
+	 * defined as 1/4th of the pool.
+	 *
+	 * Next, if we are asked to add a specific bit of entropy, make
+	 * certain that we will do so.  Clamp how much we try to add to
+	 * (DIGEST_SIZE * 8 < needed < POOLBITS - entropy).
 	 */
-	if (needed == 0 || (needed <= ent->pool.entropy)) {
+	if (needed == 0) {
+		isc_uint32_t needed_ent, needed_ps;
+
+		REQUIRE(!blocking);
+
 		if ((ent->pool.entropy >= RND_POOLBITS / 4)
 		    && (ent->pool.pseudo <= RND_POOLBITS / 4))
 			return;
+		needed_ent = 0;
+		needed_ps = 0;
+		if (ent->pool.entropy < RND_POOLBITS / 4)
+			needed_ent = RND_POOLBITS / 4 - ent->pool.entropy;
+		if (ent->pool.pseudo > RND_POOLBITS / 4)
+			needed_ps = RND_ENTROPY_THRESHOLD * 8;
+		needed = ISC_MAX(needed_ent, needed_ps);
+	} else {
+		needed = ISC_MAX(needed, RND_ENTROPY_THRESHOLD * 8);
+		needed = ISC_MIN(needed, RND_POOLBITS);
 	}
-	needed = ISC_MAX(needed, RND_ENTROPY_THRESHOLD * 8);
-	needed = ISC_MIN(needed, RND_POOLBITS);
-	if (!blocking)
-		needed = ISC_MAX(needed, RND_POOLBITS / 4);
 
 	/*
 	 * Poll each file source to see if we can read anything useful from
@@ -303,19 +327,17 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		source = ISC_LIST_NEXT(source, link);
 	}
 
-	isc_entropy_stats(ent, stderr);
 	fprintf(stderr, "fillpool:  needed %u, added %u\n",
 		needed, added);
-	isc_entropy_stats(ent, stderr);
 
 	/*
 	 * If we added any data, decrement the pseudo variable by
 	 * how much we added.
 	 */
 	if (ent->pool.pseudo <= added)
-		ent->pool.pseudo -= added;
-	else
 		ent->pool.pseudo = 0;
+	else
+		ent->pool.pseudo -= added;
 
 	/*
 	 * Increment the amount of entropy we have in the pool.
@@ -435,7 +457,6 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		*returned = (length - remain);
 
 	UNLOCK(&ent->lock);
-	isc_entropy_stats(ent, stderr);
 
 	return (ISC_R_SUCCESS);
 
