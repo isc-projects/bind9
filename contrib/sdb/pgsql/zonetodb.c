@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.10 2001/03/17 01:53:01 bwelling Exp $ */
+/* $Id: zonetodb.c,v 1.11 2002/03/19 03:32:08 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -151,6 +151,8 @@ main(int argc, char **argv) {
 	dbname = argv[3];
 	dbtable = argv[4];
 
+	dns_result_register();
+
 	mctx = NULL;
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
@@ -168,6 +170,8 @@ main(int argc, char **argv) {
 	check_result(result, "dns_db_create");
 
 	result = dns_db_load(db, zonefile);
+	if (result == DNS_R_SEENINCLUDE)
+		result = ISC_R_SUCCESS;
 	check_result(result, "dns_db_load");
 
 	printf("Connecting to '%s'\n", dbname);

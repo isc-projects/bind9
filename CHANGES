@@ -1,3 +1,7 @@
+1234.	[bug]		contrib/sdb: 'zonetodb' failed to call
+			dns_result_register().  DNS_R_SEENINCLUDE should not
+			be fatal.
+
 1233.	[bug]		The flags field of a KEY record can be expressed in
 			hex as well as decimal.
 
