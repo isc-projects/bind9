@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.43 2001/01/09 21:50:42 bwelling Exp $ */
+/* $Id: compress.c,v 1.44 2001/01/23 02:19:48 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -149,17 +149,26 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 	return (ISC_TRUE);
 }
 
+static inline unsigned int
+name_length(dns_name_t *name) {
+	isc_region_t r;
+	dns_name_toregion(name, &r);
+	return (r.length);
+}
+
 void
 dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
 		 isc_uint16_t offset)
 {
 	dns_name_t tname, nname;
-	dns_label_t label;
 	unsigned int start;
 	unsigned int n;
 	unsigned int count;
 	unsigned int hash;
 	dns_compressnode_t *node;
+	unsigned int length;
+	unsigned int tlength;
+	isc_uint16_t toffset;
 
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
@@ -172,12 +181,15 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
 	if (dns_name_isabsolute(prefix))
 		count--;
 	start = 0;
+	length = name_length(name);
 	while (count > 0) {
 		if (offset >= 0x4000)
 			break;
 		dns_name_getlabelsequence(name, start, n, &tname);
 		hash = dns_name_hash(&tname, ISC_FALSE) %
 		       DNS_COMPRESS_TABLESIZE;
+		tlength = name_length(&tname);
+		toffset = (isc_uint16_t)(offset + (length - tlength));
 		/*
 		 * Look for the name in the hash bucket.  If it's there,
 		 * we're done.
@@ -200,12 +212,10 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
 				return;
 		}
 		node->count = cctx->count++;
-		node->offset = offset;
+		node->offset = toffset;
 		dns_name_toregion(&tname, &node->r);
 		node->next = cctx->table[hash];
 		cctx->table[hash] = node;
-		dns_name_getlabel(&tname, 0, &label);
-		offset += label.length;
 		start++;
 		n--;
 		count--;
