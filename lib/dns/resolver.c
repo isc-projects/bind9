@@ -105,6 +105,7 @@ struct fetchctx {
 	/* Only changable by event actions running in the context's task */
 	dns_name_t			domain;
 	dns_rdataset_t			nameservers;
+	isc_boolean_t			have_answer;
 	isc_timer_t *			timer;
 	isc_time_t			expires;
 	isc_interval_t			interval;
@@ -201,10 +202,10 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp) {
 	fetchctx_t *fctx;
 	resquery_t *query;
 
-	FCTXTRACE("cancelquery");
-
 	query = *queryp;
 	fctx = query->fctx;
+
+	FCTXTRACE("cancelquery");
 
 	/*
 	 * XXXRTH  I don't think that dns_dispatch_removeresponse() will
@@ -274,7 +275,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 		next_event = ISC_LIST_NEXT(event, link);
 		task = event->sender;
 		event->sender = fctx;
-		if (result != ISC_R_SUCCESS)
+		if (!fctx->have_answer)
 			event->result = result;
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
@@ -859,6 +860,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->addresses);
 	fctx->address = NULL;
+	fctx->have_answer = ISC_FALSE;
 
 	fctx->qmessage = NULL;
 	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTRENDER,
@@ -1002,6 +1004,44 @@ same_question(fetchctx_t *fctx) {
 	return (ISC_R_SUCCESS);
 }
 
+static void
+clone_results(fetchctx_t *fctx) {
+	dns_fetchevent_t *event, *hevent;
+	isc_result_t result;
+	dns_name_t *name, *hname;
+
+	/*
+	 * Set up any other events to have the same data as the first
+	 * event.
+	 *
+	 * Caller must be holding the appropriate lock.
+	 */
+
+	hevent = ISC_LIST_HEAD(fctx->events);
+	if (hevent == NULL)
+		return;
+	hname = dns_fixedname_name(&hevent->foundname);
+	for (event = ISC_LIST_NEXT(hevent, link);
+	     event != NULL;
+	     event = ISC_LIST_NEXT(event, link)) {
+		name = dns_fixedname_name(&event->foundname);
+		result = dns_name_concatenate(hname, NULL, name, NULL);
+		if (result != ISC_R_SUCCESS)
+			event->result = result;
+		else
+			event->result = hevent->result;
+		dns_db_attach(hevent->db, &event->db);
+		dns_db_attachnode(hevent->db, hevent->node, &event->node);
+		if (hevent->rdataset != NULL &&
+		    dns_rdataset_isassociated(hevent->rdataset))
+			dns_rdataset_clone(hevent->rdataset, event->rdataset);
+		if (hevent->sigrdataset != NULL &&
+		    dns_rdataset_isassociated(hevent->sigrdataset))
+			dns_rdataset_clone(hevent->sigrdataset,
+					   event->sigrdataset);
+	}
+}
+
 #define CACHE(r)	(((r)->attributes & DNS_RDATASETATTR_CACHE) != 0)
 #define ANSWER(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWER) != 0)
 #define ANSWERSIG(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWERSIG) != 0)
@@ -1016,8 +1056,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	dns_name_t *fname, *aname;
 	dns_resolver_t *res;
 	void *data;
-	isc_boolean_t need_validation;
-	isc_result_t result;
+	isc_boolean_t need_validation, have_answer;
+	isc_result_t result, eresult;
 	dns_fetchevent_t *event;
 
 	/*
@@ -1026,6 +1066,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 
 	res = fctx->res;
 	need_validation = ISC_FALSE;
+	have_answer = ISC_FALSE;
+	eresult = ISC_R_SUCCESS;
 
 	/*
 	 * Is DNSSEC validation required for this name?
@@ -1052,7 +1094,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	anodep = NULL;
 	ardataset = NULL;
 	asigrdataset = NULL;
+	event = NULL;
 	if ((name->attributes & DNS_NAMEATTR_ANSWER) != 0) {
+		have_answer = ISC_TRUE;
 		event = ISC_LIST_HEAD(fctx->events);
 		if (event != NULL) {
 			adbp = &event->db;
@@ -1107,14 +1151,14 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 		}
 	}
 
-	if (result == ISC_R_SUCCESS) {
-		if (adbp != NULL) {
+	if (result == ISC_R_SUCCESS && have_answer) {
+		fctx->have_answer = ISC_TRUE;
+		if (event != NULL) {
+			event->result = eresult;
 			dns_db_attach(res->view->cachedb, adbp);
 			*anodep = node;
+			clone_results(fctx);
 		}
-		/*
-		 * XXXRTH  clone rdatasets to other events.
-		 */
 	} else
 		dns_db_detachnode(res->view->cachedb, &node);
 
