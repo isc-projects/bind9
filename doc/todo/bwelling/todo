@@ -2,5 +2,8 @@ GSS-TSIG
 
 Thread-free task/socket library
 
+Handle incoming AXFR without using twice the memory by using
+RBT mark bit (with Andreas)
+
 Design new update client
 

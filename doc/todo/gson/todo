@@ -5,7 +5,7 @@ Inspect dig and nsupdate (with Mike)
 RT #199  ""views" test failed on aa"
 
 handle incoming AXFR without using twice the memory by using
-RBT mark bit (with Michael)
+RBT mark bit (with Brian)
 
 Revise the AXFR draft (waiting from input from Microsoft)
 
