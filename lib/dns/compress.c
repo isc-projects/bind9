@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.38 2000/12/29 18:49:36 bwelling Exp $ */
+/* $Id: compress.c,v 1.39 2000/12/29 19:38:50 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -35,13 +35,6 @@
 
 #define DCTX_MAGIC	0x44435458U	/* DCTX */
 #define VALID_DCTX(x)	ISC_MAGIC_VALID(x, DCTX_MAGIC)
-
-static isc_boolean_t
-compress_find(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
-	      dns_name_t *suffix, isc_uint16_t *offset);
-
-static void
-compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset);
 
 /***
  ***	Compression
@@ -109,24 +102,110 @@ dns_compress_getedns(dns_compress_t *cctx) {
 	return (cctx->edns);
 }
 
+/*
+ * Find the longest match of name in the table.
+ * If match is found return ISC_TRUE. prefix, suffix and offset are updated.
+ * If no match is found return ISC_FALSE.
+ */
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 			dns_name_t *prefix, dns_name_t *suffix,
 			isc_uint16_t *offset)
 {
+	dns_name_t tname, nname;
+	dns_compressnode_t *node = NULL;
+	unsigned int labels, hash, n;
+
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
 	REQUIRE(offset != NULL);
 
-	return (compress_find(cctx, name, prefix, suffix, offset));
+	labels = dns_name_countlabels(name);
+	INSIST(labels > 0);
+
+	dns_name_init(&tname, NULL);
+	dns_name_init(&nname, NULL);
+
+	for (n = 0; n < labels - 1; n++) {
+		dns_name_getlabelsequence(name, n, labels - n, &tname);
+		hash = dns_name_hash(&tname, ISC_FALSE) %
+		       DNS_COMPRESS_TABLESIZE;
+		for (node = cctx->table[hash]; node != NULL; node = node->next)
+		{
+			dns_name_fromregion(&nname, &node->r);
+			if (dns_name_equal(&nname, &tname))
+				break;
+		}
+		if (node != NULL)
+			break;
+	}
+
+	/*
+	 * If node == NULL, we found no match at all.
+	 */
+	if (node == NULL)
+		return (ISC_FALSE);
+
+	dns_name_clone(&tname, suffix);
+	dns_name_getlabelsequence(name, 0, n, prefix);
+	*offset = node->offset;
+	return (ISC_TRUE);
 }
 
 void
 dns_compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset) {
+	dns_name_t tname, nname;
+	dns_label_t label;
+	unsigned int start;
+	unsigned int n;
+	unsigned int hash;
+	dns_compressnode_t *node;
+
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name));
 
-	compress_add(cctx, name, offset);
+	dns_name_init(&tname, NULL);
+	dns_name_init(&nname, NULL);
+
+	n = dns_name_countlabels(name);
+	start = 0;
+	while (n > 1) {
+		if (offset >= 0x4000)
+			break;
+		dns_name_getlabelsequence(name, start, n, &tname);
+		hash = dns_name_hash(&tname, ISC_FALSE) %
+		       DNS_COMPRESS_TABLESIZE;
+		/*
+		 * Look for the name in the hash bucket.  If it's there,
+		 * we're done.
+		 */
+		for (node = cctx->table[hash]; node != NULL; node = node->next)
+		{
+			dns_name_fromregion(&nname, &node->r);
+			if (dns_name_equal(&nname, &tname))
+				return;
+		}
+		/*
+		 * It's not there.  Create a new node and add it.
+		 */
+		if (cctx->count < DNS_COMPRESS_INITIALNODES)
+			node = &cctx->initialnodes[cctx->count];
+		else {
+			node = isc_mem_get(cctx->mctx,
+					   sizeof(dns_compressnode_t));
+			if (node == NULL)
+				return;
+		}
+		node->count = cctx->count++;
+		node->offset = offset;
+		dns_name_toregion(&tname, &node->r);
+		node->next = cctx->table[hash];
+		cctx->table[hash] = node;
+		dns_name_getlabel(&tname, 0, &label);
+		offset += label.length;
+		start++;
+		n--;
+	}
 }
 
 void
@@ -215,110 +294,4 @@ dns_decompress_type(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	return (dctx->type);
-}
-
-/***
- ***	Private
- ***/
-
-/*
- * Add the labels in prefix to the compression table.
- */
-static void
-compress_add(dns_compress_t *cctx, dns_name_t *name, isc_uint16_t offset) {
-	dns_name_t tname, nname;
-	dns_label_t label;
-	unsigned int start;
-	unsigned int n;
-	unsigned int hash;
-	dns_compressnode_t *node;
-
-	dns_name_init(&tname, NULL);
-	dns_name_init(&nname, NULL);
-
-	n = dns_name_countlabels(name);
-	start = 0;
-	while (n > 1) {
-		if (offset >= 0x4000)
-			break;
-		dns_name_getlabelsequence(name, start, n, &tname);
-		hash = dns_name_hash(&tname, ISC_FALSE) %
-		       DNS_COMPRESS_TABLESIZE;
-		/*
-		 * Look for the name in the hash bucket.  If it's there,
-		 * we're done.
-		 */
-		for (node = cctx->table[hash]; node != NULL; node = node->next)
-		{
-			dns_name_fromregion(&nname, &node->r);
-			if (dns_name_equal(&nname, &tname))
-				return;
-		}
-		/*
-		 * It's not there.  Create a new node and add it.
-		 */
-		if (cctx->count < DNS_COMPRESS_INITIALNODES)
-			node = &cctx->initialnodes[cctx->count];
-		else {
-			node = isc_mem_get(cctx->mctx,
-					   sizeof(dns_compressnode_t));
-			if (node == NULL)
-				return;
-		}
-		node->count = cctx->count++;
-		node->offset = offset;
-		dns_name_toregion(&tname, &node->r);
-		node->next = cctx->table[hash];
-		cctx->table[hash] = node;
-		dns_name_getlabel(&tname, 0, &label);
-		offset += label.length;
-		start++;
-		n--;
-	}
-}
-
-/*
- * Find the longest match of name in the table.
- * If match is found return ISC_TRUE. prefix, suffix and offset are updated.
- * If no match is found return ISC_FALSE.
- */
-static isc_boolean_t
-compress_find(dns_compress_t *cctx,
-	      dns_name_t *name, dns_name_t *prefix,
-	      dns_name_t *suffix, isc_uint16_t *offset)
-{
-	dns_name_t tname, nname;
-	dns_compressnode_t *node = NULL;
-	unsigned int labels, hash, n;
-
-	labels = dns_name_countlabels(name);
-	INSIST(labels > 0);
-
-	dns_name_init(&tname, NULL);
-	dns_name_init(&nname, NULL);
-
-	for (n = 0; n < labels - 1; n++) {
-		dns_name_getlabelsequence(name, n, labels - n, &tname);
-		hash = dns_name_hash(&tname, ISC_FALSE) %
-		       DNS_COMPRESS_TABLESIZE;
-		for (node = cctx->table[hash]; node != NULL; node = node->next)
-		{
-			dns_name_fromregion(&nname, &node->r);
-			if (dns_name_equal(&nname, &tname))
-				break;
-		}
-		if (node != NULL)
-			break;
-	}
-
-	/*
-	 * If node == NULL, we found no match at all.
-	 */
-	if (node == NULL)
-		return (ISC_FALSE);
-
-	dns_name_clone(&tname, suffix);
-	dns_name_getlabelsequence(name, 0, n, prefix);
-	*offset = node->offset;
-	return (ISC_TRUE);
 }
