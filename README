@@ -143,6 +143,8 @@ Building
 		./configure
 		make
 
+	Do not use a parallel "make".
+
 	Several environment variables that can be set before running
 	configure will affect compilation:
 
