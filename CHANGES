@@ -1,4 +1,8 @@
 
+ 835.	[bug]		The dispatcher could enter a busy loop if
+			it got an I/O error receiving on a UDP socket.
+			[RT #1293]
+
  834.	[func]		Accept (but warn about) master files beginning with
 			an SOA record without an explicit TTL field and
 			lacking a $TTL directive, by using the SOA MINTTL
