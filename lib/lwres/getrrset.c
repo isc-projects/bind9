@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.3 2000/11/28 01:50:46 gson Exp $ */
+/* $Id: getrrset.c,v 1.4 2000/12/13 00:22:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -83,6 +83,14 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	unsigned int result;
 
 	if (rdclass > 0xffff || rdtype > 0xffff) {
+		result = ERRSET_INVAL;
+		goto fail;
+	}
+
+	/*
+	 * Don't allow queries of class or type ANY
+	 */
+	if (rdclass == 0xff || rdtype == 0xff) {
 		result = ERRSET_INVAL;
 		goto fail;
 	}
