@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.3 2000/09/27 00:06:34 bwelling Exp $
+ * $Id: gssapi_link.c,v 1.4 2000/11/28 04:46:00 marka Exp $
  */
 
 #ifdef GSSAPI
@@ -217,4 +217,6 @@ void
 dst__gssapi_destroy(void) {
 }
 
+#else
+int  gssapi_link_unneeded = 1;
 #endif
