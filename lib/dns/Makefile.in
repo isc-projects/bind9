@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.148 2004/12/09 01:40:59 marka Exp $
+# $Id: Makefile.in,v 1.149 2004/12/21 10:45:16 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -49,7 +49,7 @@ DSTOBJS =	dst_api.@O@  dst_lib.@O@ dst_parse.@O@  dst_result.@O@ \
 		opensslrsa_link.@O@
 
 # Alphabetically
-DNSOBJS =	acl.@O@ adb.@O@ byaddr.@O@ \
+DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
 		dnssec.@O@ ds.@O@ forward.@O@ journal.@O@ keytable.@O@ \
@@ -73,7 +73,7 @@ DSTSRCS =	dst_api.c dst_lib.c dst_parse.c \
 		openssl_link.c openssldh_link.c \
 		openssldsa_link.c opensslrsa_link.c
 
-DNSSRCS =	acl.c adb.c byaddr.c \
+DNSSRCS =	acache.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dnssec.c ds.c forward.c journal.c keytable.c \

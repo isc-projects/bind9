@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.46 2004/07/22 03:58:07 marka Exp $ */
+/* $Id: sdb.c,v 1.47 2004/12/21 10:45:18 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1234,7 +1234,11 @@ static dns_dbmethods_t sdb_methods = {
 	nodecount,
 	ispersistent,
 	overmem,
-	settask
+	settask,
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 static isc_result_t
@@ -1361,7 +1365,10 @@ static dns_rdatasetmethods_t methods = {
 	rdataset_clone,
 	isc__rdatalist_count,
 	isc__rdatalist_addnoqname,
-	isc__rdatalist_getnoqname
+	isc__rdatalist_getnoqname,
+	NULL,
+	NULL,
+	NULL
 };
 
 static void

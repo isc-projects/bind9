@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.41 2004/11/11 01:08:24 marka Exp $ */
+/* $Id: namedconf.c,v 1.42 2004/12/21 10:45:20 jinmei Exp $ */
 
 #include <config.h>
 
@@ -733,6 +733,9 @@ view_clauses[] = {
 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
 	   CFG_CLAUSEFLAG_MULTI },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
+	{ "use-additional-cache", &cfg_type_boolean, 0 },
+	{ "acache-cleaning-interval", &cfg_type_uint32, 0 },
+	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
 	{ NULL, NULL, 0 }
 };
 

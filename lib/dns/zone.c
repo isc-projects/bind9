@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.425 2004/11/23 05:23:46 marka Exp $ */
+/* $Id: zone.c,v 1.426 2004/12/21 10:45:18 jinmei Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/acache.h>
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/callbacks.h>
@@ -206,6 +207,7 @@ struct dns_zone {
 	dns_ssutable_t		*ssutable;
 	isc_uint32_t		sigvalidityinterval;
 	dns_view_t		*view;
+	dns_acache_t		*acache;
 	/*
 	 * Zones in certain states such as "waiting for zone transfer"
 	 * or "zone transfer in progress" are kept on per-state linked lists
@@ -384,6 +386,8 @@ static void zone_iattach(dns_zone_t *source, dns_zone_t **target);
 static void zone_idetach(dns_zone_t **zonep);
 static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 				   isc_boolean_t dump);
+static inline void zone_attachdb(dns_zone_t *zone, dns_db_t *db);
+static inline void zone_detachdb(dns_zone_t *zone);
 static isc_result_t default_journal(dns_zone_t *zone);
 static void zone_xfrdone(dns_zone_t *zone, isc_result_t result);
 static isc_result_t zone_postload(dns_zone_t *zone, dns_db_t *db,
@@ -572,6 +576,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->ssutable = NULL;
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->view = NULL;
+	zone->acache = NULL;
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
 	zone->counters = NULL;
@@ -636,7 +641,9 @@ zone_free(dns_zone_t *zone) {
 	if (zone->counters != NULL)
 		dns_stats_freecounters(zone->mctx, &zone->counters);
 	if (zone->db != NULL)
-		dns_db_detach(&zone->db);
+		zone_detachdb(zone);
+	if (zone->acache != NULL)
+		dns_acache_detach(&zone->acache);
 	zone_freedbargs(zone);
 	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL, NULL, 0)
 		      == ISC_R_SUCCESS);
@@ -821,6 +828,33 @@ dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin) {
 	return (result);
 }
 
+void
+dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(acache != NULL);
+	
+	LOCK_ZONE(zone);
+	if (zone->acache != NULL)
+		dns_acache_detach(&zone->acache);
+	dns_acache_attach(acache, &zone->acache);
+	if (zone->db != NULL) {
+		isc_result_t result;
+
+		/*
+		 * If the zone reuses an existing DB, the DB needs to be
+		 * set in the acache explicitly.  We can safely ignore the
+		 * case where the DB is already set.  If other error happens,
+		 * the acache will not work effectively.
+		 */
+		result = dns_acache_setdb(acache, zone->db);
+		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "dns_acache_setdb() failed: %s",
+					 isc_result_totext(result));
+		}
+	}
+	UNLOCK_ZONE(zone);
+}
 
 static isc_result_t
 dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
@@ -1423,7 +1457,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else {
-		dns_db_attach(db, &zone->db);
+		zone_attachdb(zone, db);
 		DNS_ZONE_SETFLAG(zone,
 				 DNS_ZONEFLG_LOADED|DNS_ZONEFLG_NEEDNOTIFY);
 	}
@@ -2641,7 +2675,7 @@ zone_unload(dns_zone_t *zone) {
 
 	REQUIRE(LOCKED_ZONE(zone));
 
-	dns_db_detach(&zone->db);
+	zone_detachdb(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADED);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
 }
@@ -3400,7 +3434,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	dns_db_closeversion(stub->db, &stub->version, ISC_TRUE);
 	LOCK_ZONE(zone);
 	if (zone->db == NULL)
-		dns_db_attach(stub->db, &zone->db);
+		zone_attachdb(zone, stub->db);
 	UNLOCK_ZONE(zone);
 	dns_db_detach(&stub->db);
 
@@ -5427,8 +5461,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		      "replacing zone database");
 
 	if (zone->db != NULL)
-		dns_db_detach(&zone->db);
-	dns_db_attach(db, &zone->db);
+		zone_detachdb(zone);
+	zone_attachdb(zone, db);
 	dns_db_settask(zone->db, zone->task);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED|DNS_ZONEFLG_NEEDNOTIFY);
 	return (ISC_R_SUCCESS);
@@ -5436,6 +5470,31 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
  fail:
 	dns_db_closeversion(db, &ver, ISC_FALSE);
 	return (result);
+}
+
+static inline void
+zone_attachdb(dns_zone_t *zone, dns_db_t *db) {
+	REQUIRE(zone->db == NULL && db != NULL);
+
+	dns_db_attach(db, &zone->db);
+	if (zone->acache != NULL) {
+		isc_result_t result;
+		result = dns_acache_setdb(zone->acache, db);
+		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "dns_acache_setdb() failed: %s",
+					 isc_result_totext(result));
+		}
+	}
+}
+
+static inline void
+zone_detachdb(dns_zone_t *zone) {
+	REQUIRE(zone->db != NULL);
+
+	if (zone->acache != NULL)
+		(void)dns_acache_putdb(zone->acache, zone->db);
+	dns_db_detach(&zone->db);
 }
 
 static void

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.28 2004/03/05 05:09:23 marka Exp $ */
+/* $Id: rdatalist.c,v 1.29 2004/12/21 10:45:17 jinmei Exp $ */
 
 #include <config.h>
 
@@ -38,7 +38,10 @@ static dns_rdatasetmethods_t methods = {
 	isc__rdatalist_clone,
 	isc__rdatalist_count,
 	isc__rdatalist_addnoqname,
-	isc__rdatalist_getnoqname
+	isc__rdatalist_getnoqname,
+	NULL,
+	NULL,
+	NULL
 };
 
 void

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.433 2004/11/10 22:14:28 marka Exp $ */
+/* $Id: server.c,v 1.434 2004/12/21 10:45:15 jinmei Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,7 @@
 
 #include <bind9/check.h>
 
+#include <dns/acache.h>
 #include <dns/adb.h>
 #include <dns/cache.h>
 #include <dns/db.h>
@@ -733,6 +734,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	isc_result_t result;
 	isc_uint32_t max_adb_size;
 	isc_uint32_t max_cache_size;
+	isc_uint32_t max_acache_size;
 	isc_uint32_t lame_ttl;
 	dns_tsig_keyring_t *ring;
 	dns_view_t *pview = NULL;	/* Production view */
@@ -775,6 +777,51 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 */
 	CHECKM(ns_config_getport(config, &port), "port");
 	dns_view_setdstport(view, port);
+
+	/*
+	 * Create additional cache for this view and zones under the view
+	 * unless explicitly disabled.
+	 */
+	obj = NULL;
+	ns_config_get(maps, "use-additional-cache", &obj);
+	if (obj == NULL || cfg_obj_asboolean(obj)) {
+		cmctx = NULL;
+		CHECK(isc_mem_create(0, 0, &cmctx));
+		CHECK(dns_acache_create(&view->acache, cmctx, ns_g_taskmgr,
+					ns_g_timermgr));
+		isc_mem_detach(&cmctx);
+	}
+	if (view->acache != NULL) {
+		obj = NULL;
+		result = ns_config_get(maps, "acache-cleaning-interval", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_acache_setcleaninginterval(view->acache,
+					       cfg_obj_asuint32(obj) * 60);
+
+		obj = NULL;
+		result = ns_config_get(maps, "max-acache-size", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		if (cfg_obj_isstring(obj)) {
+			str = cfg_obj_asstring(obj);
+			INSIST(strcasecmp(str, "unlimited") == 0);
+			max_acache_size = ISC_UINT32_MAX;
+		} else {
+			isc_resourcevalue_t value;
+
+			value = cfg_obj_asuint64(obj);
+			if (value > ISC_UINT32_MAX) {
+				cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+					    "'max-acache-size "
+					    "%" ISC_PRINT_QUADFORMAT
+					    "d' is too large",
+					    value);
+				result = ISC_R_RANGE;
+				goto cleanup;
+			}
+			max_acache_size = (isc_uint32_t)value;
+		}
+		dns_acache_setcachesize(view->acache, max_acache_size);
+	}
 
 	/*
 	 * Configure the zones.
@@ -1737,6 +1784,8 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		 * new view.
 		 */
 		dns_zone_setview(zone, view);
+		if (view->acache != NULL)
+			dns_zone_setacache(zone, view->acache);
 	} else {
 		/*
 		 * We cannot reuse an existing zone, we have
@@ -1745,6 +1794,8 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		CHECK(dns_zone_create(&zone, mctx));
 		CHECK(dns_zone_setorigin(zone, origin));
 		dns_zone_setview(zone, view);
+		if (view->acache != NULL)
+			dns_zone_setacache(zone, view->acache);
 		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
 	}
 

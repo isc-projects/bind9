@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.74 2004/03/05 05:09:18 marka Exp $ */
+/* $Id: db.c,v 1.75 2004/12/21 10:45:16 jinmei Exp $ */
 
 /***
  *** Imports
@@ -790,4 +790,52 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 	isc_mem_put(mctx, imp, sizeof(dns_dbimplementation_t));
 	isc_mem_detach(&mctx);
 	RWUNLOCK(&implock, isc_rwlocktype_write);
+}
+
+isc_result_t
+dns_db_getsoanode(dns_db_t *db, dns_dbnode_t **nodep) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+	REQUIRE(nodep != NULL && *nodep == NULL);
+
+	if (db->methods->getsoanode != NULL)
+		return ((db->methods->getsoanode)(db, nodep));
+
+	return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
+dns_db_setsoanode(dns_db_t *db, dns_dbnode_t *node) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+	REQUIRE(node != NULL);
+
+	if (db->methods->setsoanode != NULL)
+		return ((db->methods->setsoanode)(db, node));
+
+	return (ISC_R_FAILURE);
+}
+
+isc_result_t
+dns_db_getnsnode(dns_db_t *db, dns_dbnode_t **nodep) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+	REQUIRE(nodep != NULL && *nodep == NULL);
+
+	if (db->methods->getnsnode != NULL)
+		return ((db->methods->getnsnode)(db, nodep));
+
+	return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
+dns_db_setnsnode(dns_db_t *db, dns_dbnode_t *node) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+	REQUIRE(node != NULL);
+
+	if (db->methods->setnsnode != NULL)
+		return ((db->methods->setnsnode)(db, node));
+
+	return (ISC_R_FAILURE);
 }

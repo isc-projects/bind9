@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.36 2004/03/05 05:09:21 marka Exp $ */
+/* $Id: ncache.c,v 1.37 2004/12/21 10:45:17 jinmei Exp $ */
 
 #include <config.h>
 
@@ -472,6 +472,9 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_current,
 	rdataset_clone,
 	rdataset_count,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	NULL
 };

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.36 2004/03/05 05:09:20 marka Exp $ */
+/* $Id: log.c,v 1.37 2004/12/21 10:45:16 jinmei Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -74,6 +74,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/sdb",		0 },
 	{ "dns/diff",		0 },
 	{ "dns/hints",		0 },
+	{ "dns/acache",		0 },
 	{ NULL, 		0 }
 };
 

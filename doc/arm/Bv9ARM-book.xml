@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.259 2004/11/11 01:08:24 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.260 2004/12/21 10:45:16 jinmei Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -392,7 +392,12 @@ signed zones, serving many thousands of queries per second.</para></sect1>
 cache and zones loaded off disk.  The <command>max-cache-size</command>
 option can be used to limit the amount of memory used by the cache,
 at the expense of reducing cache hit rates and causing more <acronym>DNS</acronym>
-traffic. It is still good practice to have enough memory to load
+traffic.
+Additionally, if additional section caching
+(<xref linkend="acache"/>) is enabled, 
+the <command>max-acache-size</command> can be used to limit the amount
+of memory used by the mechanism.
+It is still good practice to have enough memory to load
 all zone and cache data into memory &mdash; unfortunately, the best way
 to determine this for a given installation is to watch the name server
 in operation. After a few weeks the server process should reach
@@ -2800,8 +2805,11 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
     <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
-};
     <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>; <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
+    <optional> use-additional-cache <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> acache-cleaning-interval <replaceable>number</replaceable>; </optional>
+    <optional> max-acache-size <replaceable>size_spec</replaceable> ; </optional>
+};
 </programlisting>
 </sect2>
 
@@ -4343,6 +4351,99 @@ Each query received by the server will cause exactly one of
 to be incremented, and may additionally cause the
 <command>recursion</command> counter to be incremented.
 </para>
+
+</sect3>
+
+<sect3 id="acache">
+<title>Additional Section Caching</title>
+
+<para>
+The additional section cache, also called <command>acache,</command>
+is an internal cache to improve the response performance of BIND 9.
+When the additional section caching is enabled, BIND 9 will
+cache internal short-cut to the additional section content for each
+answer RR.
+Note that acache is an internal caching mechanism of BIND 9, and is
+not relevant to the DNS caching server function.
+</para>
+
+<para>
+The additional section caching does not make any difference on the
+response content (except the RRsets ordering of the additional
+section, see below), but can improve the response performance significantly.
+It is particularly effective when BIND 9 acts as an authoritative server
+for a zone that has many delegations with many glue RRs.
+</para>
+
+<para>
+In order to achieve the maximum performance improvement by acache,
+it is recommended to set <command>additional-from-cache</command>
+to <command>no</command>, since the current implementation of acache
+does not make a short-cut of additional section information from a DNS
+cache data.
+</para>
+
+<para>
+One obvious disadvantage of acache is that it requires much more
+memory for the internal cached data.
+Thus, if the response performance does not matter and memory
+consumption is much more severe, the acache mechanism can be
+disabled by setting <command>use-additional-cache</command> to
+<command>no</command>.
+It is also possible to specify the upper limit of memory consumption
+for acache by <command>max-acache-size</command>.
+</para>
+
+<para>
+The additional section caching also has a minor effect on the RRset
+ordering in the additional section.
+Without acache, the "cyclic" order is effective for the additional
+section as well as the answer and authority sections.
+However, the additional section caching fixes the ordering when it
+first caches an RRset for the additional section, and the same
+ordering will be kept in succeeding responses, regardless of the
+configuration for <command>rrset-order</command>.
+This should be minor, though, since an RRset in the additional section
+typically only contains a small number of RRs (and in many cases it
+only contains a single RR), in which case the
+ordering does not matter much.
+</para>
+
+<para>
+The following is a summary of options related to acache.
+</para>
+
+<variablelist>
+
+<varlistentry><term><command>use-additional-cache</command></term>
+<listitem><para>
+If yes, the additional section caching is enabled.
+The default value is yes.
+</para> 
+</listitem></varlistentry>
+
+<varlistentry><term><command>acache-cleaning-interval</command></term>
+<listitem><para>
+The server will remove stale cache entries, based on an LRU based
+algorithm, every <command>acache-cleaning-interval</command> minutes.
+The default is 60 minutes.
+If set to 0, no  periodic cleaning will occur.
+</para> 
+</listitem></varlistentry>
+
+<varlistentry><term><command>max-acache-size</command></term>
+<listitem><para>
+The maximum amount of memory to use for the server's acache, in bytes.
+When the amount of data in the acache reaches this limit, the server
+will cause more aggressive cleaning so that the limit is not exceeded.
+In a server with multiple views, the limit applies separately to the
+acache of each view.
+The default is <literal>unlimited</literal>, meaning that
+entries are purged from acache only at the periodic cleaning time.
+</para> 
+</listitem></varlistentry>
+
+</variablelist>
 
 </sect3>
 

@@ -770,7 +770,11 @@
 1527.	[cleanup]	Reduce the number of gettimeofday() calls without
 			losing necessary timer granularity.
 
-1526.	[placeholder]
+1526.	[func]		Implemented "additional section caching (or acache)",
+			an internal cache framework for additional section
+			content to improve response performance.  Several
+			configuration options were provided to control the
+			behavior.
 
 1525.	[bug]		dns_cache_create() could trigger a REQUIRE
 			failure in isc_mem_put() during error cleanup.
