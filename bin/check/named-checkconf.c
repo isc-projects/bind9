@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.11 2001/07/27 04:59:01 mayer Exp $ */
+/* $Id: named-checkconf.c,v 1.12 2001/07/27 17:45:26 gson Exp $ */
 
 #include <config.h>
 
@@ -108,7 +108,7 @@ main(int argc, char **argv) {
 	if (argv[isc_commandline_index] != NULL)
 		conffile = argv[isc_commandline_index];
 	if (conffile == NULL || conffile[0] == '\0')
-		conffile = NS_SYSCONFDIR "/named.conf";
+		conffile = NAMED_CONFFILE;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 

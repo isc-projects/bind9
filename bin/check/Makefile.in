@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.14 2001/06/29 01:04:53 gson Exp $
+# $Id: Makefile.in,v 1.15 2001/07/27 17:45:27 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -25,7 +25,7 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISCCFG_INCLUDES} ${ISC_INCLUDES}
 
-CDEFINES = 	-DNS_SYSCONFDIR=\"${sysconfdir}\"
+CDEFINES = 	-DNAMED_CONFFILE=\"${sysconfdir}/named.conf\"
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
