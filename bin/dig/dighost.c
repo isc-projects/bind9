@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.96 2000/07/21 22:25:15 mws Exp $ */
+/* $Id: dighost.c,v 1.97 2000/07/21 22:26:08 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -98,7 +98,6 @@ char keynametext[MXNAME];
 char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
 dns_name_t keyname;
-dns_tsig_keyring_t *keyring = NULL;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
@@ -383,8 +382,6 @@ setup_text_key(void) {
 	isc_stdtime_t now;
 
 	debug("setup_text_key()");
-	result = dns_tsigkeyring_create(mctx, &keyring);
-	check_result(result, "dns_tsigkeyring_create");
 	result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
 	check_result(result, "isc_buffer_allocate");
 	dns_name_init(&keyname, NULL);
@@ -417,7 +414,7 @@ setup_text_key(void) {
 	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
 				    secretstore, secretsize,
 				    ISC_TRUE, NULL, now, now, mctx,
-				    keyring, &key);
+				    NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, dns_result_totext(result));
@@ -441,8 +438,6 @@ setup_file_key(void) {
 
 	
 	debug("setup_file_key()");
-	result = dns_tsigkeyring_create(mctx, &keyring);
-	check_result(result, "dns_tsigkeyring_create");
 	result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE,
 				       mctx, &dstkey);
 	if (result != ISC_R_SUCCESS) {
@@ -467,7 +462,7 @@ setup_file_key(void) {
 	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
 				    secretstore, secretlen,
 				    ISC_TRUE, NULL, now, now, mctx,
-				    keyring, &key);
+				    NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, dns_result_totext(result));
@@ -1985,7 +1980,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			debug("querysig 2 is %p", l->querysig);
 			debug("before verify");
 			result = dns_tsig_verify(&query->recvbuf, msg,
-						 NULL, keyring);
+						 NULL, NULL);
 			debug("after verify");
 			if (result != ISC_R_SUCCESS) {
 				printf(";; Couldn't verify signature: %s\n",
@@ -2423,16 +2418,11 @@ destroy_libs(void) {
 	}
 	if (key != NULL) {
 		debug("freeing key %p", key);
-		dns_tsigkey_setdeleted(key);
 		dns_tsigkey_detach(&key);
 	}
 	if (namebuf != NULL)
 		isc_buffer_free(&namebuf);
 
-	if (keyring != NULL) {
-		debug("freeing keyring %p", keyring);
-		dns_tsigkeyring_destroy(&keyring);
-	}
 	if (is_dst_up) {
 		debug("destroy DST lib");
 		dst_lib_destroy();
