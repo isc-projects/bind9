@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.99 2001/08/30 05:40:04 marka Exp $ */
+/* $Id: mem.c,v 1.100 2001/08/30 20:23:44 gson Exp $ */
 
 #include <config.h>
 
@@ -107,7 +107,9 @@ struct stats {
 #define MEM_MAGIC		ISC_MAGIC('M', 'e', 'm', 'C')
 #define VALID_CONTEXT(c)	ISC_MAGIC_VALID(c, MEM_MAGIC)
 
+#if ISC_MEM_TRACKLINES
 typedef ISC_LIST(debuglink_t)	debuglist_t;
+#endif
 
 struct isc_mem {
 	unsigned int		magic;
@@ -725,7 +727,9 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->arg = arg;
 	ctx->stats = NULL;
 	ctx->checkfree = ISC_TRUE;
+#if ISC_MEM_TRACKLINES
 	ctx->debuglist = NULL;
+#endif
 	ISC_LIST_INIT(ctx->pools);
 
 #if ISC_MEM_USE_INTERNAL_MALLOC
