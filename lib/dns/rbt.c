@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.31 1999/04/01 03:15:53 tale Exp $ */
+/* $Id: rbt.c,v 1.32 1999/04/01 15:57:47 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -57,7 +57,7 @@ struct dns_rbt {
 #define DOWN(node)	((node)->down)
 #define DATA(node)	((node)->data)
 #define COLOR(node) 	((node)->color)
-#define CALLBACK(node)	((node)->callback)
+#define CALLBACK(node)	((node)->find_callback)
 #define NAMELEN(node)	((node)->namelen)
 #define OFFSETLEN(node)	((node)->offsetlen)
 #define ATTRS(node)	((node)->attributes)

@@ -1959,7 +1959,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	result = add(rbtdb, rbtnode, rbtversion, newheader, merge, ISC_FALSE);
 	if (result == DNS_R_SUCCESS && delegating)
-		rbtnode->callback = 1;
+		rbtnode->find_callback = 1;
 
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -2047,7 +2047,7 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 		     ISC_TRUE);
 	if (result == DNS_R_SUCCESS &&
 	    delegating_type(rbtdb, node, rdataset->type))
-		node->callback = 1;
+		node->find_callback = 1;
 
 	return (result);
 }
