@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.65 2001/08/29 21:15:56 gson Exp $ */
+/* $Id: request.c,v 1.66 2001/08/29 23:52:28 gson Exp $ */
 
 #include <config.h>
 
@@ -89,7 +89,8 @@ struct dns_request {
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
 #define DNS_REQUEST_F_SENDING 0x0002
-#define DNS_REQUEST_F_CANCELED 0x0004
+#define DNS_REQUEST_F_CANCELED 0x0004	/* ctlevent received, or otherwise
+					   synchronously canceled */
 #define DNS_REQUEST_F_TIMEDOUT 0x0008	/* cancelled due to a timeout */
 #define DNS_REQUEST_F_TCP 0x0010	/* This request used TCP */
 #define DNS_REQUEST_CANCELED(r) \
@@ -250,8 +251,6 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 static void
 mgr_shutdown(dns_requestmgr_t *requestmgr) {
 	dns_request_t *request;
-
-	req_log(ISC_LOG_DEBUG(3), "mgr_shutdown: %p", requestmgr);
 
 	/*
 	 * Caller holds lock.
@@ -1042,10 +1041,9 @@ do_cancel(isc_task_t *task, isc_event_t *event) {
 	INSIST(event->ev_type == DNS_EVENT_REQUESTCONTROL);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	request->canceling = ISC_FALSE;
-	if (!DNS_REQUEST_CANCELED(request)) {
+	if (!DNS_REQUEST_CANCELED(request))
 		req_cancel(request);
-		send_if_done(request, ISC_R_CANCELED);
-	}
+	send_if_done(request, ISC_R_CANCELED);
 	UNLOCK(&request->requestmgr->locks[request->hash]);	
 }
 
@@ -1313,6 +1311,9 @@ req_destroy(dns_request_t *request) {
 	isc_mem_detach(&mctx);
 }
 
+/*
+ * Stop the current request.  Must be called from the request's task.
+ */
 static void
 req_cancel(dns_request_t *request) {
 	isc_socket_t *socket;
