@@ -2295,6 +2295,7 @@
 ./lib/lwres/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/tests/.cvsignore				X	1999,2000,2001
 ./lib/tests/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004
+./lib/tests/T_testlist.imp			X	2004
 ./lib/tests/include/.cvsignore			X	1999,2000,2001
 ./lib/tests/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/tests/include/tests/.cvsignore		X	1999,2000,2001
