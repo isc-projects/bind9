@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.30 2001/01/09 21:50:59 bwelling Exp $ */
+/* $Id: log.c,v 1.31 2001/01/11 19:38:08 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -39,6 +39,7 @@ isc_logcategory_t dns_categories[] = {
 	{ "xfer-in",	0 },
 	{ "xfer-out",	0 },
 	{ "dispatch",	0 },
+	{ "lame-servers", 0 },
 	{ NULL, 	0 }
 };
 
