@@ -242,7 +242,7 @@ int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v)
 	long d;
 
 	a->type=V_ASN1_ENUMERATED;
-	if (a->length < (sizeof(long)+1))
+	if (a->length < (int)(sizeof(long)+1))
 		{
 		if (a->data != NULL)
 			Free(a->data);
@@ -261,7 +261,7 @@ int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v)
 		a->type=V_ASN1_NEG_ENUMERATED;
 		}
 
-	for (i=0; i<sizeof(long); i++)
+	for (i=0; i<(int)sizeof(long); i++)
 		{
 		if (d == 0) break;
 		buf[i]=(int)d&0xff;
@@ -286,7 +286,7 @@ long ASN1_ENUMERATED_get(ASN1_ENUMERATED *a)
 	else if (i != V_ASN1_ENUMERATED)
 		return(0);
 	
-	if (a->length > sizeof(long))
+	if (a->length > (int)sizeof(long))
 		{
 		/* hmm... a bit ugly */
 		return(0xffffffffL);

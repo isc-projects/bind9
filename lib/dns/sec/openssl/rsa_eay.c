@@ -90,6 +90,8 @@ static RSA_METHOD rsa_pkcs1_eay_meth={
 	RSA_eay_finish,
 	0,
 	NULL,
+	NULL,
+	NULL
 	};
 
 RSA_METHOD *RSA_PKCS1_SSLeay(void)
