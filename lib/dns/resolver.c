@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.187.2.11 2001/07/11 01:23:56 gson Exp $ */
+/* $Id: resolver.c,v 1.187.2.12 2001/11/12 22:37:56 marka Exp $ */
 
 #include <config.h>
 
@@ -1869,8 +1869,6 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("doshutdown");
 
-	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
-
 	/*
 	 * An fctx that is shutting down is no longer in ADDRWAIT mode.
 	 */
@@ -1894,6 +1892,8 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	fctx_stopeverything(fctx, ISC_FALSE);
 
 	LOCK(&res->buckets[bucketnum].lock);
+
+	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
 
 	INSIST(fctx->state == fetchstate_active ||
 	       fctx->state == fetchstate_done);
@@ -3381,6 +3381,10 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 				type = rdataset->type;
 				if (type == dns_rdatatype_sig)
 					type = rdataset->covers;
+				if (((type == dns_rdatatype_ns ||
+				      type == dns_rdatatype_soa) &&  
+				     !dns_name_issubdomain(qname, name)))
+					return (DNS_R_FORMERR);
 				if (type == dns_rdatatype_ns) {
 					/*
 					 * NS or SIG NS.
@@ -3530,7 +3534,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	if (ns_name != NULL)
 		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
 
-	if (negative_response)
+	if (negative_response && oqname == NULL)
 		fctx->attributes |= FCTX_ATTR_WANTNCACHE;
 
 	return (ISC_R_SUCCESS);

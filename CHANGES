@@ -1,3 +1,7 @@
+1118.	[bug]		On multithreaded servers, a race condition
+			could cause an assertion failure in resolver.c
+			during resolver shutdown. [RT #2029]
+
 1114.	[port]		Ignore more accept() errors. [RT #2021]
 
 1111.	[bug]		Multithreaded servers could deadlock processing
