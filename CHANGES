@@ -15,6 +15,9 @@
 
 1340.	[bug]		Delay and spread out the startup refresh load.
 
+1335.	[bug]		When performing a nonexistence proof, the validator
+			should discard parent NXTs from higher in the DNS.
+
 1334.	[bug]		When signing/verifying rdatasets, duplicate rdatas
 			need to be suppressed.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.3 2002/07/15 03:02:56 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.4 2002/08/02 05:39:56 marka Exp $ */
 
 #include <config.h>
 
@@ -413,6 +413,19 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		if (!isnxdomain) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "missing NXT record at name");
+			return (ISC_FALSE);
+		}
+		if (dns_name_issubdomain(val->event->name, nxtname) &&
+		    dns_nxt_typepresent(&rdata, dns_rdatatype_ns) &&
+		    !dns_nxt_typepresent(&rdata, dns_rdatatype_soa))
+		{
+			/*
+			 * This NXT record is from somewhere higher in
+			 * the DNS, and at the parent of a delegation.
+			 * It can not be legitimately used here.
+			 */
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "ignoring parent nxt");
 			return (ISC_FALSE);
 		}
 		result = dns_rdata_tostruct(&rdata, &nxt, NULL);
