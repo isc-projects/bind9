@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.h,v 1.10 1999/02/02 01:17:48 halley Exp $ */
+ /* $Id: a_1.h,v 1.11 1999/02/09 07:58:57 marka Exp $ */
 
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
@@ -47,7 +47,7 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	if (isc_inet_aton(token.value.as_pointer, &addr) != 1)
-		return (DNS_R_UNEXPECTED);
+		return (DNS_R_BADDOTTEDQUAD);
 	isc_buffer_available(target, &region);
 	if (region.length < 4)
 		return (DNS_R_NOSPACE);
