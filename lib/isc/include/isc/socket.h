@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.2 1998/11/06 01:45:35 explorer Exp $ */
+/* $Id: socket.h,v 1.3 1998/11/10 01:56:44 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -81,6 +81,11 @@ typedef struct isc_socketevent {
 	struct isc_sockaddr	address;	/* source address */
 	int			addrlength;	/* length of address */
 } *isc_socketevent_t;
+
+typedef struct isc_socket_newconev {
+	struct isc_event	common;
+	isc_socket_t		newsocket;
+} *isc_socket_newconnev_t;
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)

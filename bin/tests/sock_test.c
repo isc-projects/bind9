@@ -37,8 +37,6 @@ my_shutdown(isc_task_t task, isc_event_t event)
 	fflush(stdout);
 	isc_event_free(&event);
 
-	tasks_done++;
-
 	return (ISC_TRUE);
 }
 
@@ -50,6 +48,8 @@ my_listen(isc_task_t task, isc_event_t event)
 	printf("newcon %s (%p)\n", name, task);
 	fflush(stdout);
 	isc_event_free(&event);
+
+	tasks_done++;
 
 	return (ISC_TRUE);
 }
@@ -138,11 +138,6 @@ main(int argc, char *argv[])
 				   sizeof *event);
 	isc_task_send(t2, &event);
 
-	isc_task_shutdown(t1);
-	isc_task_shutdown(t2);
-	isc_task_detach(&t1);
-	isc_task_detach(&t2);
-
 	/*
 	 * Grr!  there is no way to say "wake me when it's over"
 	 */
@@ -151,6 +146,11 @@ main(int argc, char *argv[])
 		sleep(2);
 	}
 		
+	isc_task_shutdown(t1);
+	isc_task_shutdown(t2);
+	isc_task_detach(&t1);
+	isc_task_detach(&t2);
+
 	printf("destroy\n");
 	isc_socket_detach(&so1);
 	isc_socket_detach(&so2);
