@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.79 2001/01/09 00:05:03 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.80 2001/01/09 18:25:44 gson Exp $ -->
 
 <book>
 
@@ -2535,6 +2535,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> listen-on <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> listen-on-v6 <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
@@ -2973,6 +2974,7 @@ be specified in the <command>zone</command> statement, in which
 case it overrides the <command>options allow-query</command> statement. If
 not specified, the default is to allow queries from all hosts.</para></entry>
 </row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>allow-recursion</command></para></entry>
 <entry colname = "2"><para>Specifies which hosts are allowed to
@@ -2982,6 +2984,15 @@ Note that disallowing recursive queries for a host does not prevent the
 host from retrieving data that is already in the server's cache.
 </para></entry>
 </row>
+
+<row rowsep = "0">
+<entry colname = "1"><para><command>allow-v6-synthesis</command></para></entry>
+<entry colname = "2"><para>Specifies which hosts are to receive
+synthetic responses to IPv6 queries as described in
+<xref linkend="synthesis"/>.
+</para></entry>
+</row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><command>allow-transfer</command></para></entry>
 <entry colname = "2"><para>Specifies which hosts are allowed to
@@ -3464,6 +3475,40 @@ is used.</para>
 <note><simpara>The <command>rrset-order</command> statement
 is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
 </sect3>
+
+<sect3 id="synthesis"><title>Synthetic IPv6 responses</title>
+
+<para>Many existing stub resolvers support IPv6 DNS lookups as defined in
+RFC1886, using AAAA records for forward lookups and "nibble labels" in
+the <literal>ip6.int</literal> domain for reverse lookups, but do not support
+RFC2874-style lookups (using A6 records and binary labels in the
+<literal>ip6.arpa</literal> domain).</para>
+
+<para>For those who wish to continue to use such stub resolvers rather than
+switching to the BIND 9 lightweight resolver, BIND 9 provides a way
+to automatically convert RFC1886-style lookups into
+RFC2874-style lookups and return the results as "synthetic" AAAA and
+PTR records.</para>
+
+<para>This feature is disabled by default and can be enabled on a per-client
+basis by adding a
+<command>allow-v6-synthesis { <replaceable>address_match_list</replaceable> };</command>
+clause to the <command>options</command> or <command>view</command> statement.
+ When it is enabled, recursive
+AAAA queries cause the server to first try an A6 lookup and if that
+fails, an AAAA lookups.  No matter which one succeeds, the results are
+returned as a set of synthetic AAAA records.  Similarly, recursive PTR
+queries in <literal>ip6.int</literal> will cause a
+lookup in <literal>ip6.arpa</literal> using binary
+labels, and if that fails, another lookup in <literal>ip6.int</literal>.
+The results are returned as a synthetic PTR record in
+<literal>ip6.int</literal>.</para>
+
+<para>The synthetic records have a TTL of zero.  DNSSEC validation of
+synthetic responses is not currently supported; therefore responses
+containing synthetic RRs will not have the AD flag set.</para>
+</sect3>
+
 <sect3 id="tuning"><title>Tuning</title>
 <informaltable colsep = "0" rowsep = "0"><tgroup cols = "2"
     colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">

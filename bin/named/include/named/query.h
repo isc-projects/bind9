@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.24 2001/01/07 22:06:14 gson Exp $ */
+/* $Id: query.h,v 1.25 2001/01/09 18:25:50 gson Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
 
 #include <isc/types.h>
 #include <isc/buffer.h>
+#include <isc/netaddr.h>
 
 #include <dns/types.h>
 #include <dns/a6.h>
@@ -49,6 +50,12 @@ struct ns_query {
 	isc_bufferlist_t		namebufs;
 	ISC_LIST(ns_dbversion_t)	activeversions;
 	ISC_LIST(ns_dbversion_t)	freeversions;
+	/*
+	 * Additional state used during IPv6 response synthesis only.
+	 */
+	struct {
+		isc_netaddr_t na;
+	} synth;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x0001

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.89 2000/12/20 23:31:06 bwelling Exp $ */
+/* $Id: view.c,v 1.90 2001/01/09 18:25:51 gson Exp $ */
 
 #include <config.h>
 
@@ -157,6 +157,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;
 	view->recursionacl = NULL;
+	view->v6synthesisacl = NULL;
 	view->sortlist = NULL;
 	view->requestixfr = ISC_TRUE;
 	view->provideixfr = ISC_TRUE;
@@ -251,6 +252,8 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->queryacl);
 	if (view->recursionacl != NULL)
 		dns_acl_detach(&view->recursionacl);
+	if (view->v6synthesisacl != NULL)
+		dns_acl_detach(&view->v6synthesisacl);
 	if (view->sortlist != NULL)
 		dns_acl_detach(&view->sortlist);
 	if (view->cachefile != NULL)

@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.46 2001/01/08 19:27:19 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.47 2001/01/09 18:26:00 gson Exp $ */
 
 #include <config.h>
 
@@ -274,6 +274,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_ALLOW_TRANSFER
 %token		L_ALLOW_UPDATE
 %token		L_ALLOW_UPDATE_FORWARDING
+%token		L_ALLOW_V6_SYNTHESIS
 %token		L_ALSO_NOTIFY
 %token		L_AUTH_NXDOMAIN
 %token		L_BANG
@@ -1259,6 +1260,21 @@ option: /* Empty */
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set allow-recursion");
+			YYABORT;
+		}
+	}
+	| L_ALLOW_V6_SYNTHESIS L_LBRACE address_match_list L_RBRACE
+	{
+		tmpres = dns_c_ctx_setallowv6synthesis(currcfg, $3);
+		dns_c_ipmatchlist_detach(&$3);
+
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine allow-v6-synthesis list");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set allow-v6-synthesis");
 			YYABORT;
 		}
 	}
@@ -3821,6 +3837,25 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_ALLOW_V6_SYNTHESIS L_LBRACE address_match_list L_RBRACE
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setv6synthesisacl(view, $3);
+		dns_c_ipmatchlist_detach(&$3);
+
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view allow-v6-synthesis");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view allow-v6-synthesis");
+			YYABORT;
+		}
+	}
 	| L_SORTLIST L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -6159,6 +6194,7 @@ static struct token keyword_tokens [] = {
 	{ "allow-transfer",		L_ALLOW_TRANSFER },
 	{ "allow-update",		L_ALLOW_UPDATE },
 	{ "allow-update-forwarding",	L_ALLOW_UPDATE_FORWARDING },
+	{ "allow-v6-synthesis",		L_ALLOW_V6_SYNTHESIS },
 	{ "also-notify",		L_ALSO_NOTIFY },
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
 	{ "blackhole",			L_BLACKHOLE },

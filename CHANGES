@@ -1,3 +1,8 @@
+
+ 673.	[func]		The server can now convert RFC1886-style recursive
+			lookup requests into RFC2874-style lookups, when 
+			enabled using the new option "allow-v6-synthesis".
+
  672.	[bug]		The wrong time was in the "time signed" field when
 			replying with BADTIME error.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.60 2000/12/13 00:15:30 tale Exp $ */
+/* $Id: confctx.h,v 1.61 2001/01/09 18:25:57 gson Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -209,6 +209,7 @@ struct dns_c_options {
 	dns_c_ipmatchlist_t    *queryacl;
 	dns_c_ipmatchlist_t    *transferacl;
 	dns_c_ipmatchlist_t    *recursionacl;
+	dns_c_ipmatchlist_t    *v6synthesisacl;
 	dns_c_ipmatchlist_t    *blackhole;
 	dns_c_ipmatchlist_t    *topology;
 	dns_c_ipmatchlist_t    *sortlist;
@@ -772,6 +773,13 @@ isc_result_t dns_c_ctx_setallowrecursion(dns_c_ctx_t *cfg,
 isc_result_t dns_c_ctx_getallowrecursion(dns_c_ctx_t *cfg,
 					 dns_c_ipmatchlist_t **list);
 isc_result_t dns_c_ctx_unsetallowrecursion(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setallowv6synthesis(dns_c_ctx_t *cfg,
+					 dns_c_ipmatchlist_t *iml);
+isc_result_t dns_c_ctx_getallowv6synthesis(dns_c_ctx_t *cfg,
+					 dns_c_ipmatchlist_t **list);
+isc_result_t dns_c_ctx_unsetallowv6synthesis(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setblackhole(dns_c_ctx_t *cfg,

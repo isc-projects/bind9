@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.48 2000/12/13 00:15:33 tale Exp $ */
+/* $Id: confview.h,v 1.49 2001/01/09 18:25:55 gson Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -107,6 +107,7 @@ struct dns_c_view {
 	dns_c_ipmatchlist_t    *allowupdateforwarding;
 	dns_c_ipmatchlist_t    *transferacl;
 	dns_c_ipmatchlist_t    *recursionacl;
+	dns_c_ipmatchlist_t    *v6synthesisacl;
 	dns_c_ipmatchlist_t    *sortlist;
 	dns_c_ipmatchlist_t    *topology;
 	dns_c_ipmatchlist_t    *matchclients;
@@ -271,6 +272,13 @@ isc_result_t dns_c_view_getrecursionacl(dns_c_view_t *view,
 isc_result_t dns_c_view_setrecursionacl(dns_c_view_t *view,
 					dns_c_ipmatchlist_t *newval);
 isc_result_t dns_c_view_unsetrecursionacl(dns_c_view_t *view);
+
+
+isc_result_t dns_c_view_getv6synthesisacl(dns_c_view_t *view,
+					dns_c_ipmatchlist_t **retval);
+isc_result_t dns_c_view_setv6synthesisacl(dns_c_view_t *view,
+					dns_c_ipmatchlist_t *newval);
+isc_result_t dns_c_view_unsetv6synthesisacl(dns_c_view_t *view);
 
 
 

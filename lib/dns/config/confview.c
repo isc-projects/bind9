@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.66 2000/12/13 00:15:24 tale Exp $ */
+/* $Id: confview.c,v 1.67 2001/01/09 18:26:01 gson Exp $ */
 
 #include <config.h>
 
@@ -535,6 +535,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->allowupdateforwarding = NULL;
 	view->transferacl = NULL;
 	view->recursionacl = NULL;
+	view->v6synthesisacl = NULL;
 	view->sortlist = NULL;
 	view->topology = NULL;
 	view->matchclients = NULL;
@@ -775,6 +776,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_IPMLIST(allowupdateforwarding, "allow-update-forwarding");
 	PRINT_IPMLIST(transferacl, "alllow-transfer");
 	PRINT_IPMLIST(recursionacl, "allow-recursion");
+	PRINT_IPMLIST(v6synthesisacl, "allow-v6-synthesis");
 	PRINT_IPMLIST(sortlist, "sortlist");
 	PRINT_IPMLIST(topology, "topology");
 	PRINT_IPMLIST(matchclients, "match-clients");
@@ -949,6 +951,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEIPMLIST(allowupdateforwarding);
 	FREEIPMLIST(transferacl);
 	FREEIPMLIST(recursionacl);
+	FREEIPMLIST(v6synthesisacl);
 	FREEIPMLIST(sortlist);
 	FREEIPMLIST(topology);
 	FREEIPMLIST(matchclients);
@@ -1599,6 +1602,7 @@ IPMLIST_FUNCS(allowquery, allowquery)
 IPMLIST_FUNCS(allowupdateforwarding, allowupdateforwarding)
 IPMLIST_FUNCS(transferacl, transferacl)
 IPMLIST_FUNCS(recursionacl, recursionacl)
+IPMLIST_FUNCS(v6synthesisacl, v6synthesisacl)
 IPMLIST_FUNCS(sortlist, sortlist)
 IPMLIST_FUNCS(topology, topology)
 IPMLIST_FUNCS(matchclients, matchclients)

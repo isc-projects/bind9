@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.113 2000/12/13 00:15:18 tale Exp $ */
+/* $Id: confctx.c,v 1.114 2001/01/09 18:25:58 gson Exp $ */
 
 #include <config.h>
 
@@ -1091,6 +1091,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_IPMLIST(queryacl, "allow-query");
 	PRINT_IPMLIST(transferacl, "allow-transfer");
 	PRINT_IPMLIST(recursionacl, "allow-recursion");
+	PRINT_IPMLIST(v6synthesisacl, "allow-v6-synthesis");
 	PRINT_IPMLIST(blackhole, "blackhole");
 	PRINT_IPMLIST(topology, "topology");
 	PRINT_IPMLIST(sortlist, "sortlist");
@@ -1617,6 +1618,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->queryacl = NULL;
 	opts->transferacl = NULL;
 	opts->recursionacl = NULL;
+	opts->v6synthesisacl = NULL;
 	opts->blackhole = NULL;
 	opts->topology = NULL;
 	opts->sortlist = NULL;
@@ -1771,6 +1773,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEIPMLIST(queryacl);
 	FREEIPMLIST(transferacl);
 	FREEIPMLIST(recursionacl);
+	FREEIPMLIST(v6synthesisacl);
 	FREEIPMLIST(blackhole);
 	FREEIPMLIST(topology);
 	FREEIPMLIST(sortlist);
@@ -2090,6 +2093,7 @@ IPMLIST_FUNCS(allownotify, notifyacl)
 IPMLIST_FUNCS(allowquery, queryacl)
 IPMLIST_FUNCS(allowtransfer, transferacl)
 IPMLIST_FUNCS(allowrecursion, recursionacl)
+IPMLIST_FUNCS(allowv6synthesis, v6synthesisacl)
 IPMLIST_FUNCS(blackhole, blackhole)
 IPMLIST_FUNCS(topology, topology)
 IPMLIST_FUNCS(sortlist, sortlist)
