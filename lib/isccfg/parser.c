@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.4 2001/02/15 23:22:26 bwelling Exp $ */
+/* $Id: parser.c,v 1.5 2001/02/16 02:34:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -771,7 +771,6 @@ view_clauses[] = {
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
 #ifndef NOMINUM_PUBLIC
 	{ "notify-forward", &cfg_type_boolean, 0 },
-	{ "max-names", &cfg_type_uint32, 0 },
 #endif /* NOMINUM_PUBLIC */
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
