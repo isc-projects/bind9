@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.45 2000/02/24 18:44:16 gson Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.46 2000/02/25 16:35:08 gson Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -298,8 +298,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 
 %type <iplist>		in_addr_list
 %type <iplist>		master_in_addr_list
-%type <iplist>		master_in_addr_list
-%type <iplist>		master_in_addr_list 
 %type <iplist>		notify_in_addr_list
 %type <iplist>		opt_in_addr_list
 %type <iplist>		opt_zone_forwarders_list
