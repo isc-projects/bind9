@@ -27,6 +27,8 @@
 #include	<time.h>
 #include	<unistd.h>
 
+#include	<isc/commandline.h>
+
 #include	"include/tests/t_api.h"
 
 static char *Usage =	"\t-a               : run all tests\n"
@@ -64,9 +66,6 @@ static char	T_tvec[T_MAXTESTS / 8];
 static char	*T_env[T_MAXENV + 1];
 static char	T_buf[T_BIGBUF];
 
-extern char	*optarg;
-extern int	optopt;
-
 static int	t_initconf(char *path);
 static int	t_dumpconf(char *path);
 static int	t_putinfo(const char *key, const char *info);
@@ -97,14 +96,15 @@ main(int argc, char **argv)
 	T_timeout = T_TIMEOUT;
 
 	/* parse args */
-	while ((c = getopt(argc, argv, ":at:c:d:n:huxq:")) != -1) {
+	while ((c = isc_commandline_parse(argc, argv, ":at:c:d:n:huxq:"))
+	       != -1) {
 		if (c == 'a') {
 			/* flag all tests to be run */
 			memset(T_tvec, 0xffff, sizeof(T_tvec));
 			/* memset(T_tvec, UINT_MAX, sizeof(T_tvec)); */
 		}
 		else if (c == 't') {
-			tnum = atoi(optarg);
+			tnum = atoi(isc_commandline_argument);
 			if ((tnum > 0) && (tnum < T_MAXTESTS)) {
 				/* flag test tnum to be run */
 				tnum -= 1;
@@ -112,16 +112,17 @@ main(int argc, char **argv)
 			}
 		}
 		else if (c == 'c') {
-			T_config = optarg;
+			T_config = isc_commandline_argument;
 		}
 		else if (c == 'd') {
-			T_debug = atoi(optarg);
+			T_debug = atoi(isc_commandline_argument);
 		}
 		else if (c == 'n') {
 			pts = &T_testlist[0];
 			tnum = 0;
 			while (pts->pfv != NULL) {
-				if (! strcmp(pts->func_name, optarg)) {
+				if (! strcmp(pts->func_name,
+					     isc_commandline_argument)) {
 					T_tvec[tnum/8] |= (0x01 << (tnum%8));
 					break;
 				}
@@ -129,7 +130,8 @@ main(int argc, char **argv)
 				++tnum;
 			}
 			if (pts->pfv == NULL) {
-				fprintf(stderr, "no such test %s\n", optarg);
+				fprintf(stderr, "no such test %s\n",
+					isc_commandline_argument);
 				exit(1);
 			}
 		}
@@ -145,15 +147,16 @@ main(int argc, char **argv)
 			subprocs = 0;
 		}
 		else if (c == 'q') {
-			T_timeout = atoi(optarg);
+			T_timeout = atoi(isc_commandline_argument);
 		}
 		else if (c == ':') {
 			fprintf(stderr, "Option -%c requires an argument\n",
-						optopt);
+						isc_commandline_option);
 			exit(1);
 		}
 		else if (c == '?') {
-			fprintf(stderr, "Unrecognized option -%c\n", optopt);
+			fprintf(stderr, "Unrecognized option -%c\n",
+				isc_commandline_option);
 			exit(1);
 		}
 	}
