@@ -49,7 +49,8 @@ typedef unsigned int isc_result_t;
 #define ISC_R_IOERROR			26
 #define ISC_R_NOTIMPLEMENTED		27
 #define ISC_R_UNBALANCED		28
-#define ISC_R_LASTENTRY			28	/* last entry in the list */
+#define ISC_R_NOMORE			29
+#define ISC_R_LASTENTRY			29	/* last entry in the list */
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 
