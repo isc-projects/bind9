@@ -4451,6 +4451,7 @@ trap 'rm -fr `echo "make/rules
 	bin/dnssec/Makefile
         util/Makefile
 	util/conf.sh
+	isc-config.sh
  config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -4688,6 +4689,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/dnssec/Makefile
         util/Makefile
 	util/conf.sh
+	isc-config.sh
 "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
@@ -4866,3 +4868,4 @@ chmod +x $CONFIG_STATUS
 rm -fr confdefs* $ac_clean_files
 test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
 
+chmod a+x isc-config.sh

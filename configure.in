@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.161 $)
+AC_REVISION($Revision: 1.162 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1054,4 +1054,6 @@ AC_OUTPUT(
 	bin/dnssec/Makefile
         util/Makefile
 	util/conf.sh
+	isc-config.sh
 )
+chmod a+x isc-config.sh

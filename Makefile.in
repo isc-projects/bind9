@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.18 2000/06/23 17:52:07 tale Exp $
+# $Id: Makefile.in,v 1.19 2000/06/23 20:52:31 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -35,6 +35,7 @@ DOCDIRS =	arm draft misc rfc
 
 distclean::
 	rm -f config.cache config.h config.log config.status libtool TAGS
+	rm -f isc-config.sh
 
 cleandir: distclean
 
