@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.99 2002/01/22 19:31:57 gson Exp $ */
+/* $Id: parser.c,v 1.100 2002/02/01 02:33:26 gson Exp $ */
 
 #include <config.h>
 
@@ -360,7 +360,7 @@ parse_eof(cfg_parser_t *pctx) {
 	cfg_parser_error(pctx, CFG_LOG_NEAR, "syntax error");
 	return (ISC_R_UNEXPECTEDTOKEN);
  cleanup:
-	return(result);
+	return (result);
 }
 
 /* A list of files, used internally for pctx->files. */
