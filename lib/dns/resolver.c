@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.24 2003/09/22 00:32:39 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.25 2004/01/05 05:54:53 marka Exp $ */
 
 #include <config.h>
 
@@ -3917,21 +3917,20 @@ answer_response(fetchctx_t *fctx) {
 				 * We could add an "else" clause here and
 				 * log that we're ignoring this rdataset.
 				 */
-				
-				/*
-				 * If wanted_chaining is true, we've done
-				 * some chaining as the result of processing
-				 * this node, and thus we need to set
-				 * chaining to true.
-				 *
-				 * We don't set chaining inside of the
-				 * rdataset loop because doing that would
-				 * cause us to ignore the signatures of
-				 * CNAMEs.
-				 */
-				if (wanted_chaining)
-					chaining = ISC_TRUE;
 			}
+			/*
+			 * If wanted_chaining is true, we've done
+			 * some chaining as the result of processing
+			 * this node, and thus we need to set
+			 * chaining to true.
+			 *
+			 * We don't set chaining inside of the
+			 * rdataset loop because doing that would
+			 * cause us to ignore the signatures of
+			 * CNAMEs.
+			 */
+			if (wanted_chaining)
+				chaining = ISC_TRUE;
 		} else {
 			/*
 			 * Look for a DNAME (or its SIG).  Anything else is
@@ -4069,7 +4068,7 @@ answer_response(fetchctx_t *fctx) {
 	/*
 	 * Did chaining end before we got the final answer?
 	 */
-	if (want_chaining) {
+	if (chaining) {
 		/*
 		 * Yes.  This may be a negative reply, so hand off
 		 * authority section processing to the noanswer code.
