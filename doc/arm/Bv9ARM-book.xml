@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.171 2001/11/02 01:45:16 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.172 2001/11/07 03:10:25 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3018,7 +3018,62 @@ suppresses the normal refresh queries, <userinput>refresh</userinput>
 which suppresses normal refresh processing and send refresh queries 
 when the <command>heartbeat-interval</command> expires and
 <userinput>passive</userinput> which just disables normal refresh
-processing.</para></listitem></varlistentry>
+processing.</para>
+
+<informaltable colsep = "0" rowsep = "0">
+<tgroup cols = "4" colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
+<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "1.150in"/>
+<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "1.150in"/>
+<colspec colname = "3" colnum = "3" colsep = "0" colwidth = "1.150in"/>
+<colspec colname = "4" colnum = "4" colsep = "0" colwidth = "1.150in"/>
+<tbody>
+<row rowsep = "0">
+<entry colname = "1"><para>dialup mode</para></entry>
+<entry colname = "2"><para>normal refresh</para></entry>
+<entry colname = "3"><para>heart-beat refresh</para></entry>
+<entry colname = "4"><para>heart-beat notify</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>no</command> (default)</para></entry>
+<entry colname = "2"><para>yes</para></entry>
+<entry colname = "3"><para>no</para></entry>
+<entry colname = "4"><para>no</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>yes</command></para></entry>
+<entry colname = "2"><para>no</para></entry>
+<entry colname = "3"><para>yes</para></entry>
+<entry colname = "4"><para>yes</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>notify</command></para></entry>
+<entry colname = "2"><para>yes</para></entry>
+<entry colname = "3"><para>no</para></entry>
+<entry colname = "4"><para>yes</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>refresh</command></para></entry>
+<entry colname = "2"><para>no</para></entry>
+<entry colname = "3"><para>yes</para></entry>
+<entry colname = "4"><para>no</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>passive</command></para></entry>
+<entry colname = "2"><para>no</para></entry>
+<entry colname = "3"><para>no</para></entry>
+<entry colname = "4"><para>no</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>notify-passive</command></para></entry>
+<entry colname = "2"><para>no</para></entry>
+<entry colname = "3"><para>no</para></entry>
+<entry colname = "4"><para>yes</para></entry>
+</row>
+</tbody>
+</tgroup></informaltable>
+
+
+</listitem></varlistentry>
 
 <varlistentry><term><command>fake-iquery</command></term>
 <listitem><para>In <acronym>BIND</acronym> 8, this option was used to
