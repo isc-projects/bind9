@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.57 $)
+AC_REVISION($Revision: 1.58 $)
 
 AC_PREREQ(2.13)
 
@@ -277,6 +277,19 @@ AC_TRY_COMPILE([
 	[AC_MSG_RESULT(4.3BSD)
 	ISC_NET_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"])
 AC_SUBST(ISC_NET_MSGHDRFLAVOR)
+
+dnl
+dnl Look for in_port_t.
+dnl
+AC_MSG_CHECKING(for type in_port_t)
+AC_TRY_COMPILE([
+#include <netinet/in.h>],
+[in_port_t port = 25; return (0);],
+	[AC_MSG_RESULT(yes)
+	ISC_NET_NEEDPORTT="#undef ISC_NET_NEEDPORTT"],
+        [AC_MSG_RESULT(no)
+	ISC_NET_PORTDEF="#define ISC_NET_NEEDPORTT 1"])
+AC_SUBST(ISC_NET_NEEDPORTT)
 
 dnl
 dnl Look for a sysctl call to get the list of network interfaces.

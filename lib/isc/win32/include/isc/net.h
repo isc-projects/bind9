@@ -89,7 +89,12 @@
 /*
  * If this system needs inet_aton(), ISC_NET_NEEDATON will be defined.
  */
-#define ISC_NET_NEEDATON
+#define ISC_NET_NEEDATON 1
+
+/*
+ * If this system needs in_port_t, ISC_NET_NEEDPORTT will be defined.
+ */
+#define ISC_NET_NEEDPORTT 1
 
 /***
  *** Imports.
@@ -121,6 +126,15 @@
 
 #ifndef ISC_NET_HAVEIPV6
 #include <isc/ipv6.h>
+#endif
+
+/*
+ * Ensure type in_port_t is defined.
+ */
+#ifdef ISC_NET_NEEDPORTT
+#include <isc/int.h>
+
+typedef isc_uint16_t in_port_t;
 #endif
 
 /***

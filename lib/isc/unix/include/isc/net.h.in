@@ -33,6 +33,7 @@
  *		struct sockaddr
  *		struct sockaddr_in
  *		struct sockaddr_in6
+ *		in_port_t
  *
  * It ensures that the AF_ and PF_ macros are defined.
  *
@@ -91,6 +92,11 @@
  */
 @ISC_NET_NEEDATON@
 
+/*
+ * If this system needs in_port_t, ISC_NET_NEEDPORTT will be defined.
+ */
+@ISC_NET_NEEDPORTT@
+
 /***
  *** Imports.
  ***/
@@ -119,6 +125,15 @@
  * Define either ISC_NET_BSD44MSGHDR or ISC_NET_BSD43MSGHDR
  */
 @ISC_NET_MSGHDRFLAVOR@
+
+/*
+ * Ensure type in_port_t is defined.
+ */
+#ifdef ISC_NET_NEEDPORTT
+#include <isc/int.h>
+
+typedef isc_uint16_t in_port_t;
+#endif
 
 /*
  * If this system does not have MSG_TRUNC (as returned from recvmsg())
