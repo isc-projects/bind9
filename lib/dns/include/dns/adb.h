@@ -198,8 +198,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
  *
  *	'view' be a pointer to a valid view.
  *
- *	'tmgr' be a pointer to a valid timer manager.  If this is NULL,
- *	no periodic cleaning will ever occur.
+ *	'tmgr' be a pointer to a valid timer manager.
  *
  *	'newadb' != NULL && '*newadb' == NULL.
  *

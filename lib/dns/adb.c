@@ -37,6 +37,7 @@
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
 #include <isc/random.h>
+#include <isc/timer.h>
 
 #include <dns/adb.h>
 #include <dns/db.h>
@@ -70,6 +71,8 @@
 #define DNS_ADBNAMELIST_LENGTH	32	/* how many buckets for names */
 #define DNS_ADBENTRYLIST_LENGTH	32	/* how many buckets for addresses */
 
+#define CLEAN_SECONDS		20	/* clean this many seconds initially */
+
 #define FREE_ITEMS		16	/* free count for memory pools */
 #define FILL_COUNT		 8	/* fill count for memory pools */
 
@@ -89,7 +92,10 @@ struct dns_adb {
 	isc_mem_t		       *mctx;
 	dns_view_t		       *view;
 	isc_timermgr_t		       *timermgr;
+	isc_timer_t		       *timer;
 	isc_taskmgr_t		       *taskmgr;
+	isc_task_t		       *task;
+	isc_interval_t			tick_interval;
 
 	unsigned int			irefcnt;
 	unsigned int			erefcnt;
@@ -227,8 +233,8 @@ static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
 static isc_result_t construct_name(dns_adb_t *, dns_adbhandle_t *,
 				   dns_name_t *, dns_name_t *,
 				   dns_adbname_t *, int, isc_stdtime_t);
-
 static inline isc_boolean_t check_exit(dns_adb_t *);
+static void timer_cleanup(isc_task_t *, isc_event_t *);
 
 static inline void
 violate_locking_hierarchy(isc_mutex_t *have, isc_mutex_t *want)
@@ -974,10 +980,50 @@ copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
 		UNLOCK(&adb->entrylocks[bucket]);
 }
 
+/*
+ * ADB must be locked
+ */
+static void
+cleanup(dns_adb_t *adb)
+{
+}
+
+static void
+timer_cleanup(isc_task_t *task, isc_event_t *ev)
+{
+	dns_adb_t *adb;
+	isc_result_t result;
+
+	adb = ev->arg;
+	INSIST(DNS_ADB_VALID(adb));
+
+	printf("Tick!\n");
+
+	LOCK(&adb->lock);
+
+	/*
+	 * Call our cleanup routine.
+	 */
+	cleanup(adb);
+
+	/*
+	 * Reset the timer.
+	 */
+	result = isc_timer_reset(adb->timer, isc_timertype_once, NULL,
+				 &adb->tick_interval, ISC_FALSE);
+
+	UNLOCK(&adb->lock);
+
+	isc_event_free(&ev);
+}
+
 static void
 destroy(dns_adb_t *adb)
 {
 	adb->magic = 0;
+
+	isc_timer_detach(&adb->timer);
+	isc_task_detach(&adb->task);
 
 	isc_mempool_destroy(&adb->nmp);
 	isc_mempool_destroy(&adb->nhmp);
@@ -990,6 +1036,11 @@ destroy(dns_adb_t *adb)
 	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
 	isc_mutexblock_destroy(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
 
+	/*
+	 * At this point, nothing can possibly be running, so we can safely
+	 * kill the locks.
+	 */
+	UNLOCK(&adb->lock);
 	isc_mutex_destroy(&adb->lock);
 	isc_mutex_destroy(&adb->mplock);
 
@@ -1012,6 +1063,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	int i;
 
 	REQUIRE(mem != NULL);
+	REQUIRE(view != NULL);
+	REQUIRE(timermgr != NULL);
+	REQUIRE(taskmgr != NULL);
 	REQUIRE(newadb != NULL && *newadb == NULL);
 
 	adb = isc_mem_get(mem, sizeof (dns_adb_t));
@@ -1032,6 +1086,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->ahmp = NULL;
 	adb->aimp = NULL;
 	adb->afmp = NULL;
+	adb->task = NULL;
+	adb->timer = NULL;
+	adb->mctx = mem;
+	adb->view = view;
+	adb->timermgr = timermgr;
+	adb->taskmgr = taskmgr;
 
 	result = isc_random_init(&adb->rand);
 	if (result != ISC_R_SUCCESS)
@@ -1091,17 +1151,32 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 #undef MPINIT
 
 	/*
+	 * Allocate a timer and a task for our periodic cleanup.
+	 */
+	result = isc_task_create(adb->taskmgr, adb->mctx, 0, &adb->task);
+	if (result != ISC_R_SUCCESS)
+		goto fail3;
+	isc_interval_set(&adb->tick_interval, CLEAN_SECONDS, 0);
+	result = isc_timer_create(adb->timermgr, isc_timertype_once,
+				  NULL, &adb->tick_interval, adb->task,
+				  timer_cleanup, adb, &adb->timer);
+	if (result != ISC_R_SUCCESS)
+		goto fail3;
+
+	/*
 	 * Normal return.
 	 */
-	adb->mctx = mem;
-	adb->view = view;
-	adb->timermgr = timermgr;
-	adb->taskmgr = taskmgr;
 	adb->magic = DNS_ADB_MAGIC;
 	*newadb = adb;
 	return (ISC_R_SUCCESS);
 
- fail3: /* clean up entrylocks */
+ fail3:
+	if (adb->task != NULL)
+		isc_task_detach(&adb->task);
+	if (adb->timer != NULL)
+		isc_timer_detach(&adb->timer);
+
+	/* clean up entrylocks */
 	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
 
  fail2: /* clean up namelocks */
@@ -1152,10 +1227,11 @@ dns_adb_detach(dns_adb_t **adbx)
 	if (adb->erefcnt == 0)
 		shutdown_names(adb, ISC_TRUE);
 	kill = check_exit(adb);
-	UNLOCK(&adb->lock);
 
 	if (kill)
 		destroy(adb);
+	else
+		UNLOCK(&adb->lock);
 }
 
 isc_result_t
@@ -1559,10 +1635,11 @@ dns_adb_done(dns_adbhandle_t **handlep)
 	LOCK(&adb->lock);
 	free_adbhandle(adb, &handle);
 	kill = check_exit(adb);
-	UNLOCK(&adb->lock);
 
 	if (kill)
 		destroy(adb);
+	else
+		UNLOCK(&adb->lock);
 }
 
 void

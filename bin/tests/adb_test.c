@@ -48,7 +48,7 @@ struct client {
 };
 
 isc_mem_t *mctx;
-isc_taskmgr_t *manager;
+isc_taskmgr_t *taskmgr;
 isc_socketmgr_t *socketmgr;
 isc_timermgr_t *timermgr;
 isc_task_t *t1, *t2;
@@ -249,8 +249,8 @@ create_managers(void)
 {
 	isc_result_t result;
 
-	manager = NULL;
-	result = isc_taskmgr_create(mctx, 2, 0, &manager);
+	taskmgr = NULL;
+	result = isc_taskmgr_create(mctx, 2, 0, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
 	timermgr = NULL;
@@ -291,7 +291,7 @@ create_view(void)
 	 * XXXRTH hardwired number of tasks.  Also, we'll need to
 	 * see if we are dealing with a shared dispatcher in this view.
 	 */
-	result = dns_view_createresolver(view, manager, 16, socketmgr,
+	result = dns_view_createresolver(view, taskmgr, 16, socketmgr,
 					 timermgr, NULL);
 	check_result(result, "dns_view_createresolver");
 
@@ -425,10 +425,10 @@ main(int argc, char **argv)
 	create_managers();
 
 	t1 = NULL;
-	result = isc_task_create(manager, NULL, 0, &t1);
+	result = isc_task_create(taskmgr, NULL, 0, &t1);
 	check_result(result, "isc_task_create t1");
 	t2 = NULL;
-	result = isc_task_create(manager, NULL, 0, &t2);
+	result = isc_task_create(taskmgr, NULL, 0, &t2);
 	check_result(result, "isc_task_create t2");
 
 	printf("task 1 = %p\n", t1);
@@ -440,7 +440,7 @@ main(int argc, char **argv)
 	 * Create the address database.
 	 */
 	adb = NULL;
-	result = dns_adb_create(mctx, view, &adb);
+	result = dns_adb_create(mctx, view, timermgr, taskmgr, &adb);
 	check_result(result, "dns_adb_create");
 
 	/*
@@ -484,7 +484,7 @@ main(int argc, char **argv)
 	isc_timermgr_destroy(&timermgr);
 
 	fprintf(stderr, "Destroying task manager\n");
-	isc_taskmgr_destroy(&manager);
+	isc_taskmgr_destroy(&taskmgr);
 
 	isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
