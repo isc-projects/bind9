@@ -232,25 +232,11 @@ typedef enum {
  */
 typedef isc_int64_t	dns_c_setbits_t;
 
-
-/* XXX This should be moved to a more general (non-config specific) place */
-/* An IP address. We support IPv4 and IPv6 addresses together so we wrap
-   them up in this strcture*/
-#if 0
-
-typedef struct dns_c_addr {
-	int	a_family;		/* AF_INET or AF_INET6 */
-	union {
-		struct in_addr a;	/* if a_family == AF_INET */
-		struct in6_addr a6;	/* if a_family == AF_INET6 */
-	} u;
-} dns_c_addr_t;
-
-#else
-
 typedef isc_sockaddr_t dns_c_addr_t;
 
-#endif
+
+typedef struct dns_c_view		dns_c_view_t;
+typedef struct dns_c_zone_list		dns_c_zonelist_t;
 
 
 /*
@@ -261,11 +247,6 @@ typedef isc_sockaddr_t dns_c_addr_t;
 
 extern isc_boolean_t debug_mem_print;
 extern FILE *debug_mem_print_stream;	/* NULL means stderr */
-
-#if 0					/* XXXJAB remove this code. */
-typedef void (*dns_cfg_err_handler_t)(isc_result_t code,
-				      const char *fmt, va_list args);
-#endif
 
 
 /***
