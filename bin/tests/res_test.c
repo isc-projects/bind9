@@ -161,8 +161,8 @@ main(int argc, char *argv[]) {
 
 	if (verbose) {
 		printf("%u workers\n", workers);
-		printf("IPv4: %s\n", isc_result_totext(isc_net_haveipv4()));
-		printf("IPv6: %s\n", isc_result_totext(isc_net_haveipv6()));
+		printf("IPv4: %s\n", isc_result_totext(isc_net_probeipv4()));
+		printf("IPv6: %s\n", isc_result_totext(isc_net_probeipv6()));
 	}
 
 	taskmgr = NULL;
