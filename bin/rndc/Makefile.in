@@ -42,7 +42,7 @@ SRCS =		rndc.c
 @BIND9_MAKE_RULES@
 
 rndc: ${OBJS} ${DEPLIBS}
-	${LIBTOOL} ${CC} -o $@ ${OBJS} ${LIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}

@@ -45,7 +45,7 @@ SRCS =		main.c client.c err_pkt.c \
 @BIND9_MAKE_RULES@
 
 lwresd: ${OBJS} ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${CC} -o $@ ${OBJS} ${UOBJS} ${LIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}

@@ -56,7 +56,7 @@ main.@O@: main.c
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
 
 named: ${OBJS} ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${CC} -o $@ ${OBJS} ${UOBJS} ${LIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
