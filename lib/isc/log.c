@@ -15,11 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.52 2000/12/07 20:15:55 marka Exp $ */
+/* $Id: log.c,v 1.53 2000/12/12 00:18:00 gson Exp $ */
 
 /* Principal Authors: DCL */
-
-#define ISC_LOG_MSGCATARGS
 
 #include <config.h>
 
@@ -803,7 +801,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
 }
 
 void
-isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_iwrite(isc_log_t *lctx, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level,
 	      isc_msgcat_t *msgcat, int msgset, int msg,
 	      const char *format, ...)
@@ -821,7 +819,7 @@ isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
 }
 
 void
-isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_ivwrite(isc_log_t *lctx, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level,
 	       isc_msgcat_t *msgcat, int msgset, int msg,
 	       const char *format, va_list args)
@@ -834,7 +832,7 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 }
 
 void
-isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_iwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level,
 	       isc_msgcat_t *msgcat, int msgset, int msg,
 	       const char *format, ...)
@@ -852,7 +850,7 @@ isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
 }
 
 void
-isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_ivwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 		isc_logmodule_t *module, int level,
 		isc_msgcat_t *msgcat, int msgset, int msg,
 		const char *format, va_list args)
@@ -864,14 +862,8 @@ isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 		     msgcat, msgset, msg, format, args);
 }
 
-/*
- * The isc_log_i*write*() functions are transitional functions which will
- * be removed once all users of the old isc_log_*write* APIs have been
- * converted to the new form (which added msgcat, msgset and msg parameters). 
- * They are used unless the calling module has ISC_LOG_MSGCATARGS defined.
- */
 void
-isc_log_iwrite(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level, const char *format, ...)
 {
 	va_list args;
@@ -887,7 +879,7 @@ isc_log_iwrite(isc_log_t *lctx, isc_logcategory_t *category,
 }
 
 void
-isc_log_ivwrite(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 		isc_logmodule_t *module, int level,
 		const char *format, va_list args)
 {
@@ -899,7 +891,7 @@ isc_log_ivwrite(isc_log_t *lctx, isc_logcategory_t *category,
 }
 
 void
-isc_log_iwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
 		isc_logmodule_t *module, int level, const char *format, ...)
 {
 	va_list args;
@@ -915,7 +907,7 @@ isc_log_iwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 }
 
 void
-isc_log_ivwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 		 isc_logmodule_t *module, int level,
 		 const char *format, va_list args)
 {

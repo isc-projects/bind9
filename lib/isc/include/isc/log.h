@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.32 2000/12/07 19:30:28 tale Exp $ */
+/* $Id: log.h,v 1.33 2000/12/12 00:18:01 gson Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -498,23 +498,24 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  */
 
 void
-isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
-	      isc_logmodule_t *module, int level,
-	      isc_msgcat_t *msgcat, int msgset, int message,
-	      const char *format, ...)
-ISC_FORMAT_PRINTF(8, 9);
-void
 isc_log_iwrite(isc_log_t *lctx, isc_logcategory_t *category,
+	       isc_logmodule_t *module, int level,
+	       isc_msgcat_t *msgcat, int msgset, int message,
+	       const char *format, ...)
+ISC_FORMAT_PRINTF(8, 9);
+
+void
+isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level,
 	      const char *format, ...)
 ISC_FORMAT_PRINTF(5, 6);
-#ifndef ISC_LOG_MSGCATARGS
-#define isc_log_write	isc_log_iwrite
-#endif
 /*
  * Write a message to the log channels.
  *
  * Notes:
+ *	Log message containing English text should be logged with
+ *	isc_log_iwrite() to allow for localization.
+ *
  *	lctx can be NULL; this is allowed so that programs which use
  *	libraries that use the ISC logging system are not required to
  *	also use it.
@@ -543,21 +544,19 @@ ISC_FORMAT_PRINTF(5, 6);
  *	Nothing.  Failure to log a message is not construed as a
  *	meaningful error.
  */
+
+void
+isc_log_ivwrite(isc_log_t *lctx, isc_logcategory_t *category,
+		isc_logmodule_t *module, int level,
+		isc_msgcat_t *msgcat, int msgset, int message,
+		const char *format, va_list args)
+ISC_FORMAT_PRINTF(8, 0);
 
 void
 isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level,
-	       isc_msgcat_t *msgcat, int msgset, int message,
-	       const char *format, va_list args)
-ISC_FORMAT_PRINTF(8, 0);
-void
-isc_log_ivwrite(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level,
 	       const char *format, va_list args)
 ISC_FORMAT_PRINTF(5, 0);
-#ifndef ISC_LOG_MSGCATARGS
-#define isc_log_vwrite	isc_log_ivwrite
-#endif
 /*
  * Write a message to the log channels.
  *
@@ -592,19 +591,17 @@ ISC_FORMAT_PRINTF(5, 0);
  */
 
 void
-isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level,
-	       isc_msgcat_t *msgcat, int msgset, int message,
-	       const char *format, ...)
-ISC_FORMAT_PRINTF(8, 9);
-void
 isc_log_iwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+		isc_logmodule_t *module, int level,
+		isc_msgcat_t *msgcat, int msgset, int message,
+		const char *format, ...)
+ISC_FORMAT_PRINTF(8, 9);
+
+void
+isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level,
 	       const char *format, ...)
 ISC_FORMAT_PRINTF(5, 6);
-#ifndef ISC_LOG_MSGCATARGS
-#define isc_log_write1	isc_log_iwrite1
-#endif
 /*
  * Write a message to the log channels, pruning duplicates that occur within
  * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
@@ -612,19 +609,17 @@ ISC_FORMAT_PRINTF(5, 6);
  */
 
 void
-isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
-		isc_logmodule_t *module, int level,
-		isc_msgcat_t *msgcat, int msgset, int message,
-		const char *format, va_list args)
-ISC_FORMAT_PRINTF(8, 0);
-void
 isc_log_ivwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+		 isc_logmodule_t *module, int level,
+		 isc_msgcat_t *msgcat, int msgset, int message,
+		 const char *format, va_list args)
+ISC_FORMAT_PRINTF(8, 0);
+
+void
+isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 		isc_logmodule_t *module, int level, const char *format,
 		va_list args)
 ISC_FORMAT_PRINTF(5, 0);
-#ifndef ISC_LOG_MSGCATARGS
-#define isc_log_vwrite1	isc_log_ivwrite1
-#endif
 /*
  * Write a message to the log channels, pruning duplicates that occur within
  * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
