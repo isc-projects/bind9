@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.34 2000/08/01 14:12:58 mws Exp $ */
+/* $Id: confip.c,v 1.35 2000/08/01 14:48:59 explorer Exp $ */
 
 #include <config.h>
 
@@ -833,24 +833,21 @@ dns_c_iplist_detach(dns_c_iplist_t **list) {
 	l = *list;
 
 	REQUIRE(DNS_C_IPLIST_VALID(l));
-	INSIST(l->refcount > 0);
 
+	INSIST(l->refcount > 0);
 	l->refcount--;
 
 	if (l->refcount == 0) {
 #ifndef NOMINUM_PUBLIC
-		if (l->keys != NULL) {
-			for (i = 0 ; i < l->size ; i++) {
-				if (l->keys[i] != NULL) {
-					dns_name_free(l->keys[i], l->mem);
-					isc_mem_put(l->mem, l->keys[i],
-						    sizeof (dns_name_t));
-					l->keys[i] = NULL;
-				}
+		for (i = 0 ; i < l->size ; i++) {
+			if (l->keys[i] != NULL) {
+				dns_name_free(l->keys[i], l->mem);
+				isc_mem_put(l->mem, l->keys[i],
+					    sizeof (dns_name_t));
+				l->keys[i] = NULL;
 			}
-			isc_mem_put(l->mem, l->keys,
-				    sizeof(dns_name_t *) * l->size);
 		}
+		isc_mem_put(l->mem, l->keys, sizeof(dns_name_t *) * l->size);
 #endif /* NOMINUM_PUBLIC */
 		isc_mem_put(l->mem, l->ips, sizeof (isc_sockaddr_t) * l->size);
 		isc_mem_put(l->mem, l, sizeof *l);
@@ -867,14 +864,12 @@ dns_c_iplist_haskeys(dns_c_iplist_t *list)
 {
 	unsigned int i;
 
-	if (list->keys == NULL) {
+	if (list->keys == NULL)
 		return (ISC_FALSE);
-	}
 
 	for (i = 0 ; i < list->nextidx ; i++) {
-		if (list->keys[i] != NULL) {
+		if (list->keys[i] != NULL)
 			return (ISC_TRUE);
-		}
 	}
 
 	return (ISC_FALSE);
@@ -900,13 +895,13 @@ dns_c_iplist_copy(isc_mem_t *mem, dns_c_iplist_t **dest, dns_c_iplist_t *src) {
 	REQUIRE(DNS_C_IPLIST_VALID(src));
 
 	res = dns_c_iplist_new(mem, src->size, &newl);
-	if (res != ISC_R_SUCCESS) {
+	if (res != ISC_R_SUCCESS)
 		return (res);
-	}
 
 	for (i = 0 ; i < src->nextidx ; i++) {
 		newl->ips[i] = src->ips[i];
 #ifndef NOMINUM_PUBLIC
+		newl->keys[i] = NULL;
 		if (src->keys[i] != NULL) {
 			newl->keys[i] = isc_mem_get(mem, sizeof (dns_name_t));
 			if (newl->keys[i] == NULL) {
@@ -1044,9 +1039,8 @@ dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr) {
 		}
 	}
 
-	if (i < list->nextidx) {
+	if (i < list->nextidx)
 		return (ISC_R_FAILURE);
-	}
 
 	if (list->nextidx == list->size) {
 		isc_sockaddr_t *newlist;
@@ -1059,9 +1053,8 @@ dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr) {
 
 		newbytes = sizeof (list->ips[0]) * newsize;
 		newlist = isc_mem_get(list->mem, newbytes);
-		if (newlist == NULL) {
+		if (newlist == NULL)
 			return (ISC_R_NOMEMORY);
-		}
 
 		memset(newlist, 0x0, newbytes);
 		memcpy(newlist, list->ips, oldbytes);
@@ -1070,16 +1063,19 @@ dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr) {
 		list->ips = newlist;
 
 #ifndef NOMINUM_PUBLIC
-		oldbytes = list->size * sizeof(list->keys[0]);
-		newbytes = sizeof (list->ips[0]) * newsize;
+		oldbytes = sizeof(dns_name_t *) * list->size;
+		newbytes = sizeof(dns_name_t *) * newsize;
 		newkeys = isc_mem_get(list->mem, newbytes);
-		if (newkeys == NULL) {
+		if (newkeys == NULL)
 			return (ISC_R_NOMEMORY);
-		}
 
-		memcpy(newkeys, list->keys, oldbytes);
-		for (i = list->size ; i < newsize ; i++)
+		for (i = 0 ; i < list->size ; i++) {
+			newkeys[i] = list->keys[i];
 			list->keys[i] = NULL;
+		}
+		for (i = list->size ; i < newsize ; i++)
+			newkeys[i] = NULL;
+
 		isc_mem_put(list->mem, list->keys, oldbytes);
 		list->keys = newkeys;
 #endif /* NOMINUM_PUBLIC */
@@ -1087,7 +1083,6 @@ dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr) {
 		i = list->size;
 		list->size = newsize;
 	}
-
 
 	list->ips[i] = newaddr;
 	list->nextidx++;
