@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.148 2001/02/23 02:14:14 halley Exp $ */
+/* $Id: rbtdb.c,v 1.149 2001/02/23 05:33:36 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1757,6 +1757,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				new_reference(search.rbtdb, node);
 				search.zonecut = node;
 				search.zonecut_rdataset = header;
+				search.zonecut_sigrdataset = NULL;
 				search.need_cleanup = ISC_TRUE;
 				maybe_zonecut = ISC_FALSE;
 				at_zonecut = ISC_TRUE;
