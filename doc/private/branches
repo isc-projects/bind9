@@ -7,13 +7,13 @@ ipv6-scope
 ipv6_6to4	feedback	mark
 libbind_clean
 rt3536		review		jinmei	[ixfr=support]
-rt3588		review		jinmei
 rt3598		review		sho
 rt3625		review		sho
 rt3666		feedback	mark
 rt3746		open		mark
 v6source
 
+rt3588		closed
 rt3653		closed
 rt3445		closed
 marka_google	closed
