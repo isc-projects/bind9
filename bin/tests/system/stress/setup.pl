@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.pl,v 1.2 2001/01/09 21:44:44 bwelling Exp $
+# $Id: setup.pl,v 1.3 2001/09/07 00:57:25 gson Exp $
 
 #
 # Set up test data for zone transfer quota tests.
@@ -33,13 +33,13 @@ my $rootdelegations =
     new FileHandle("ns1/root.db", "w") or die;
 
 print $rootdelegations <<END;
-$TTL 300
+\$TTL 300
 .                       IN SOA  gson.nominum.com. a.root.servers.nil. (
-								       2000042100      ; serial
-								       600             ; refresh
-								       600             ; retry
-								       1200            ; expire
-								       600             ; minimum
+					       2000042100      ; serial
+					       600             ; refresh
+					       600             ; retry
+					       1200            ; expire
+					       600             ; minimum
                                 )
 .                       NS      a.root-servers.nil.
 a.root-servers.nil.     A       10.53.0.1
