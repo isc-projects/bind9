@@ -1611,7 +1611,7 @@
 ./lib/dns/db.c					C	1999,2000,2001,2003,2004
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004
-./lib/dns/diff.c				C	2000,2001,2002,2003,2004
+./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/ds.c					C	2002,2003,2004
