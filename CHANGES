@@ -1,3 +1,6 @@
+1649.	[bug]		Silence "unexpected non-minimal diff" message.
+			[RT #11206]
+
 1646.	[bug]		win32: logging file versions didn't work with
 			non-UNC filenames.  [RT#11486]
 
