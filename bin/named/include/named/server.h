@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.58.2.1.10.4 2003/08/13 03:58:10 marka Exp $ */
+/* $Id: server.h,v 1.58.2.1.10.5 2003/08/15 02:24:28 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -159,7 +159,7 @@ ns_server_dumpstats(ns_server_t *server);
  * Dump the current cache to the dump file.
  */
 isc_result_t
-ns_server_dumpdb(ns_server_t *server);
+ns_server_dumpdb(ns_server_t *server, char *args);
 
 /*
  * Change or increment the server debug level.
