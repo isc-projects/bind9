@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.188 2002/01/23 01:39:29 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.189 2002/01/30 00:09:54 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2799,6 +2799,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> version <replaceable>version_string</replaceable>; </optional>
     <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> directory <replaceable>path_name</replaceable>; </optional>
+    <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
     <optional> tkey-dhkey <replaceable>key_name</replaceable> <replaceable>key_tag</replaceable>; </optional>
@@ -2887,7 +2888,7 @@ statement in the <filename>named.conf</filename> file:</para>
 </programlisting>
 </sect2>
 
-<sect2><title><command>options</command> Statement Definition and Usage</title>
+<sect2 id="options"><title><command>options</command> Statement Definition and Usage</title>
 
 <para>The <command>options</command> statement sets up global options
 to be used by <acronym>BIND</acronym>. This statement may appear only
@@ -2905,6 +2906,13 @@ output files (e.g. <filename>named.run</filename>) is this directory.
 If a directory is not specified, the working directory defaults
 to `<filename>.</filename>', the directory from which the server
 was started. The directory specified should be an absolute path.</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>key-directory</command></term>
+<listitem><para>When performing dynamic update of secure zones, the
+directory where the public and private key files should be found,
+if different than the current working directory.  The directory specified
+must be an absolute path.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>named-xfer</command></term>
@@ -4465,6 +4473,7 @@ Statement Grammar</title>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> key-directory <replaceable>path_name</replaceable>; </optional>
 
 }</optional>;
 </programlisting>
@@ -4765,6 +4774,12 @@ See the description in <xref linkend="tuning"/>.
 <listitem><para>See the description of
 <command>ixfr-from-differences</command> in <xref linkend="boolean_options"/>.</para>
 </listitem></varlistentry>
+
+<varlistentry><term><command>key-directory</command></term>
+<listitem><para>See the description of
+<command>key-directory</command> in <xref linkend="options"/></para>
+</listitem></varlistentry>
+
 
 </variablelist>
 
