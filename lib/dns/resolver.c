@@ -1552,7 +1552,7 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 	if (external)
 		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
-#if 1
+#if 0
 	/*
 	 * XXXRTH  TEMPORARY FOR TESTING!!!
 	 */
