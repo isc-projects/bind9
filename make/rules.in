@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.31 2001/03/27 19:37:21 halley Exp $
+# $Id: rules.in,v 1.32 2001/03/29 01:02:18 gson Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -179,8 +179,8 @@ INSTALL_DATA =		@INSTALL_DATA@
 
 .SUFFIXES: .docbook .html .1 .2 .3 .4 .5 .6 .7 .8
 
-SHARESGML = /usr/local/share/sgml
-OPENJADE = openjade
+SHARESGML = @SGMLDIR@
+OPENJADE = @JADE@
 HTMLSTYLE = ${SHARESGML}/dsssl/docbook/html/docbook.dsl
 DOCBOOK2X = ${SHARESGML}/docbook2X
 ONSGMLS = onsgmls
