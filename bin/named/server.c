@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.219 2000/09/06 20:52:05 gson Exp $ */
+/* $Id: server.c,v 1.220 2000/09/07 18:37:38 gson Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/base64.h>
 #include <isc/dir.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/lex.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -153,32 +154,6 @@ configure_view_acl(dns_c_view_t *cview,
 }
 
 /*
- * Convert a null-terminated string of base64 text into binary,
- * storing it in a buffer.  'mctx' is only used internally.
- */
-static isc_result_t
-base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target) {
-	isc_result_t result;
-	isc_buffer_t source;
-	isc_lex_t *lex = NULL;
-	isc_boolean_t isopen = ISC_FALSE;
-
-	isc_buffer_init(&source, cstr, strlen(cstr));
-	isc_buffer_add(&source, strlen(cstr));
-	CHECK(isc_lex_create(mctx, 256, &lex));
-	CHECK(isc_lex_openbuffer(lex, &source));
-	isopen = ISC_TRUE;
-	CHECK(isc_base64_tobuffer(lex, target, -1));
-
- cleanup:
-	if (isopen)
-		(void)isc_lex_close(lex);
-	if (lex != NULL)
-		isc_lex_destroy(&lex);
-	return (result);
-}
-
-/*
  * Configure DNSSEC keys for a view.  Currently used only for
  * the security roots.
  *
@@ -259,7 +234,7 @@ configure_view_dnsseckeys(dns_c_view_t *cview,
 			isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
 			isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
-			CHECK(base64_cstring_tobuffer(mctx, ckey->pubkey->key,
+			CHECK(isc_base64_decodestring(mctx, ckey->pubkey->key,
 						      &keydatabuf));
 			isc_buffer_usedregion(&keydatabuf, &r);
 			keystruct.datalen = r.length;
