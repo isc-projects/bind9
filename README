@@ -76,9 +76,8 @@ BIND 9.2.0a2
 
 	  - rndc can now be configured automatically.
 
-	  - A BIND 8 compatible stub resolver library is now included
-	    in lib/bind.  It is not built by default, and may not build
-	    on all supported platforms yet.
+	  - A BIND 8 compatible stub resolver library is now
+	    included in lib/bind.
 
 	This distribution also includes a new lightweight stub
 	resolver library and associated resolver daemon that fully
