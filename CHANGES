@@ -1,4 +1,7 @@
 
+ 152.   [bug]		keygen dumped core if domain name argument was omitted
+			from command line.
+
  151.   [func]		Support 'disabled' statement in zone config (causes
 			zone to be parsed and then ignored). Currently must
 			come after the 'type' clause.
