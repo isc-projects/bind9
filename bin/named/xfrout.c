@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.3 1999/08/24 06:40:54 gson Exp $ */
+ /* $Id: xfrout.c,v 1.4 1999/08/24 09:39:48 gson Exp $ */
 
 #include <config.h>
 
@@ -1247,23 +1247,34 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 
 static void
 xfrout_send_more(isc_task_t *task, isc_event_t *event) {
-
+	isc_socketevent_t *sev = (isc_socketevent_t *) event;
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
-	sendstream(xfr);
+	if (sev->result != ISC_R_SUCCESS) {
+		xfrout_fail(xfr, sev->result, "send");
+		isc_event_free(&event);		
+		return;
+	}
 	isc_event_free(&event);	
+	sendstream(xfr);
 }
 
 static void
 xfrout_send_end(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sev = (isc_socketevent_t *) event;	
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
 	task = task; /* Unused */
 	printf("end of outgoing zone transfer\n");
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
+	if (sev->result != ISC_R_SUCCESS) {
+		xfrout_fail(xfr, sev->result, "send");
+		isc_event_free(&event);
+		return;
+	}
+	isc_event_free(&event);
 	ns_client_next(xfr->client, DNS_R_SUCCESS);
 	xfrout_ctx_destroy(&xfr);
-	isc_event_free(&event);
 
 }
 
