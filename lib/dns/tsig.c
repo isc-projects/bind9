@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.110 2001/06/15 02:24:02 bwelling Exp $
+ * $Id: tsig.c,v 1.111 2001/07/26 20:54:35 bwelling Exp $
  */
 
 #include <config.h>
@@ -211,8 +211,8 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 		dns_name_format(name, namestr, sizeof(namestr));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
 			      DNS_LOGMODULE_TSIG, ISC_LOG_INFO,
-			      "the TSIG key for '%s' is too short to "
-			      "be secure", namestr);
+			      "the key '%s' is too short to be secure",
+			      namestr);
 	}
 	if (key != NULL)
 		*key = tkey;

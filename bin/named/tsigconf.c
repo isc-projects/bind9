@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.18 2001/06/10 02:37:08 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.19 2001/07/26 20:54:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,7 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 
  failure:
 	cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
-		    "configuring TSIG key '%s': %s", keyid,
+		    "configuring key '%s': %s", keyid,
 		    isc_result_totext(ret));
 
 	if (secret != NULL)
