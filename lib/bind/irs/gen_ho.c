@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gen_ho.c,v 1.1.2.1 2004/03/09 09:17:28 marka Exp $";
+static const char rcsid[] = "$Id: gen_ho.c,v 1.1.2.2 2004/03/17 01:54:19 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports */
@@ -383,7 +383,7 @@ init(struct irs_ho *this) {
         if (!pvt->res && !ho_res_get(this))
                 return (-1);
 
-        if (((pvt->res->options & RES_INIT) == 0) &&
+        if (((pvt->res->options & RES_INIT) == 0U) &&
             (res_ninit(pvt->res) == -1))
                 return (-1);
 

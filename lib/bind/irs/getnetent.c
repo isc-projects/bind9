@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: getnetent.c,v 1.4.2.1 2004/03/09 09:17:30 marka Exp $";
+static const char rcsid[] = "$Id: getnetent.c,v 1.4.2.2 2004/03/17 01:54:21 marka Exp $";
 #endif
 
 /* Imports */
@@ -156,13 +156,13 @@ getnetbyaddr_p(unsigned long net, int type, struct net_data *net_data) {
 			return (net_data->nw_last);
 
 	/* cannonize net(host order) */
-	if (net < 256) {
+	if (net < 256UL) {
 		net <<= 24;
 		bits = 8;
-	} else if (net < 65536) {
+	} else if (net < 65536UL) {
 		net <<= 16;
 		bits = 16;
-	} else if (net < 16777216) {
+	} else if (net < 16777216UL) {
 		net <<= 8;
 		bits = 24;
 	} else

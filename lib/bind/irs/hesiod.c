@@ -1,5 +1,5 @@
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: hesiod.c,v 1.1.2.2 2004/03/09 09:17:31 marka Exp $";
+static const char rcsid[] = "$Id: hesiod.c,v 1.1.2.3 2004/03/17 01:54:21 marka Exp $";
 #endif
 
 /*
@@ -516,7 +516,7 @@ init(struct hesiod_p *ctx) {
 	if (!ctx->res && !__hesiod_res_get(ctx))
 		return (-1);
 
-	if (((ctx->res->options & RES_INIT) == 0) &&
+	if (((ctx->res->options & RES_INIT) == 0U) &&
 	    (res_ninit(ctx->res) == -1))
 		return (-1);
 

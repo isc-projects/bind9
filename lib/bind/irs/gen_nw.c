@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: gen_nw.c,v 1.1.2.1 2004/03/09 09:17:29 marka Exp $";
+static const char rcsid[] = "$Id: gen_nw.c,v 1.1.2.2 2004/03/17 01:54:20 marka Exp $";
 #endif
 
 /* Imports */
@@ -255,7 +255,7 @@ init(struct irs_nw *this) {
 	
 	if (!pvt->res && !nw_res_get(this))
 		return (-1);
-	if (((pvt->res->options & RES_INIT) == 0) &&
+	if (((pvt->res->options & RES_INIT) == 0U) &&
 	    res_ninit(pvt->res) == -1)
 		return (-1);
 	return (0);
