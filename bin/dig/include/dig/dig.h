@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.64 2001/02/13 23:12:17 tamino Exp $ */
+/* $Id: dig.h,v 1.65 2001/02/14 01:34:26 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -84,8 +84,8 @@ struct dig_lookup {
 		doing_xfr,
 		ns_search_only,
 		ns_search_only_leafnode,
-		identify,
-		identify_previous_line,
+		identify,		/* Append "on <server>" */
+		identify_previous_line, /* Prepend "Nameserver <server>" */
 		ignore,
 		recurse,
 		aaonly,
