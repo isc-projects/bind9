@@ -32,10 +32,14 @@ isc_condition_init(isc_condition_t *cond) {
 isc_result_t
 isc_condition_signal(isc_condition_t *cond) {
 	
+	/*
+	 * Unlike pthreads, the caller MUST hold the lock associated with
+	 * the condition variable when calling us.
+	 */
 	REQUIRE(cond != NULL);
 
 	if (cond->waiters > 0 &&
-		!SetEvent(cond->events[SIGNAL])) {
+	    !SetEvent(cond->events[SIGNAL])) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
@@ -46,10 +50,14 @@ isc_condition_signal(isc_condition_t *cond) {
 isc_result_t
 isc_condition_broadcast(isc_condition_t *cond) {
 		
+	/*
+	 * Unlike pthreads, the caller MUST hold the lock associated with
+	 * the condition variable when calling us.
+	 */
 	REQUIRE(cond != NULL);
 
 	if (cond->waiters > 0 &&
-		!SetEvent(cond->events[BROADCAST])) {
+	    !SetEvent(cond->events[BROADCAST])) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
@@ -68,8 +76,7 @@ isc_condition_destroy(isc_condition_t *cond) {
 	return (ISC_R_SUCCESS);
 }
 
-static
-isc_result_t
+static isc_result_t
 wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds) {
 	DWORD result;
 
@@ -83,7 +90,7 @@ wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds) {
 	EnterCriticalSection(mutex);
 	cond->waiters--;
 	if (cond->waiters == 0 &&
-		!ResetEvent(cond->events[BROADCAST])) {
+	    !ResetEvent(cond->events[BROADCAST])) {
 		/* XXX */
 		LeaveCriticalSection(mutex);
 		return (ISC_R_UNEXPECTED);
