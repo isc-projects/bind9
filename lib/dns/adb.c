@@ -603,13 +603,14 @@ clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 		handle->adbname = NULL;
 		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
 
-		DP(("Sending event %p to task %p for handle %p\n",
-		    ev, task, handle));
-
 		ev = &handle->event;
 		task = ev->sender;
 		ev->sender = handle;
 		ev->type = evtype;
+
+		DP(("Sending event %p to task %p for handle %p\n",
+		    ev, task, handle));
+
 		isc_task_sendanddetach(&task, &ev);
 
 		UNLOCK(&handle->lock);
