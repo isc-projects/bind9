@@ -1,3 +1,6 @@
+ 426.	[bug]		Attempting to generate an oversized RSA key could
+			cause dnssec-keygen to dump core.
+
  425.	[bug]		Warn about the auth-nxdomain default value change
 			if there is no auth-nxdomain statement in the
 			config file. [RT #287]
