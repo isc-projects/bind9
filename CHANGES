@@ -1,6 +1,9 @@
 
 	--- 9.2.0rc9 released ---
 
+1078.	[bug]		We failed to correct bad tv_usec values in one case.
+			[RT #1966]
+
 1076.	[bug]		A badly defined global key could trigger an assertion
 			on load/reload if views were used. [RT #1947]
 
