@@ -580,7 +580,7 @@
 
 	--- 9.2.0 released ---
 
-1134.	[bug]		Multithreaded servers could deadlock in ferror()
+1134.	[bug]		Multi-threaded servers could deadlock in ferror()
 			when reloading zone files. [RT #1951, #1998]
 
 1133.	[bug]		IN6_IS_ADDR_LOOPBACK was not portably defined on
@@ -595,7 +595,7 @@
 			did not include the out-of-range number but the
 			following token. [RT #2076]
 
-1129.	[bug]		Multithreaded servers could crash under heavy
+1129.	[bug]		Multi-threaded servers could crash under heavy
 			resolution load due to a race condition. [RT #2018]
 
 1126.	[bug]		The server could access a freed event if shut
@@ -608,7 +608,7 @@
 
 1120.	[bug]		Errors in options were not fatal. [RT #2002]
 
-1118.	[bug]		On multithreaded servers, a race condition
+1118.	[bug]		On multi-threaded servers, a race condition
 			could cause an assertion failure in resolver.c
 			during resolver shutdown. [RT #2029]
 
@@ -626,7 +626,7 @@
 1113.	[bug]		The allow-update-forwarding option was ignored
 			when specified in a view. [RT #2014]
 
-1111.	[bug]		Multithreaded servers could deadlock processing
+1111.	[bug]		Multi-threaded servers could deadlock processing
 			recursive queries due to a locking hierarchy
 			violation in adb.c. [RT #2017]
 
@@ -1064,7 +1064,7 @@
 			[RT #1423]
 
  926.	[bug]		The resolver could deadlock with the ADB when
-			shutting down (multithreaded builds only).
+			shutting down (multi-threaded builds only).
 			[RT #1324]
 
  925.	[cleanup]	Remove openssl from the distribution; require that
@@ -2080,7 +2080,7 @@
  598.	[bug]		An update-policy statement would cause the server
 			to assert while loading. [RT #536]
 
- 597.	[func]		dnssec-signzone is now multithreaded.
+ 597.	[func]		dnssec-signzone is now multi-threaded.
 
  596.	[bug]		DNS_RDATASLAB_FORCE and DNS_RDATASLAB_EXACT are
 			not mutually exclusive.
