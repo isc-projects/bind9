@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.167 2003/01/18 02:40:58 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.168 2003/04/17 03:45:49 marka Exp $ */
 
 #include <config.h>
 
@@ -644,8 +644,7 @@ loadds(dns_name_t *name, isc_uint32_t ttl, dns_rdataset_t *dsset) {
 	return (result);
 }
 
-/* XXX fix me */
-static void
+static isc_boolean_t
 nxt_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 	   unsigned int val)
 {
@@ -653,6 +652,9 @@ nxt_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nxt_t nxt;
 	unsigned int newlen;
+	unsigned char bitmap[16];
+	unsigned char nxtdata[16 + DNS_NAME_MAXWIRE];
+	isc_boolean_t answer = ISC_FALSE;
 
 	INSIST(type < 128);
 
@@ -664,18 +666,21 @@ nxt_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 
 	newlen = type / 8 + 1;
 
-	if (newlen <= nxt.len)
-		set_bit(nxt.typebits, type, val);
-	else {
-		unsigned char bitmap[16];
-		unsigned char nxtdata[16 + DNS_NAME_MAXWIRE];
-		unsigned int len = newlen;
+	INSIST(nxt.len < sizeof(bitmap));
+	INSIST(newlen < sizeof(bitmap));
+
+	memset(bitmap, 0, sizeof(bitmap));
+	memcpy(bitmap, nxt.typebits, nxt.len);
+	set_bit(bitmap, type, val);
+
+	while (newlen > 0 && bitmap[newlen - 1] == 0)
+		newlen--;
+	if (newlen != nxt.len ||
+	    memcmp(nxt.typebits, bitmap, newlen) != 0) {
 		dns_rdata_t newrdata = DNS_RDATA_INIT;
 		isc_buffer_t b;
 		dns_diff_t diff;
 		dns_difftuple_t *tuple = NULL;
-
-		INSIST(nxt.len < sizeof(bitmap));
 
 		dns_diff_init(mctx, &diff);
 		result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL, name,
@@ -683,27 +688,26 @@ nxt_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 		check_result(result, "dns_difftuple_create");
 		dns_diff_append(&diff, &tuple);
 
-		memset(bitmap, 0, sizeof(bitmap));
-		memcpy(bitmap, nxt.typebits, nxt.len);
-		set_bit(bitmap, type, val);
 		nxt.typebits = bitmap;
-		nxt.len = len;
+		nxt.len = newlen;
 		isc_buffer_init(&b, nxtdata, sizeof(nxtdata));
 		result = dns_rdata_fromstruct(&newrdata, rdata.rdclass,
-					      dns_rdatatype_nxt, &nxt, &b);
+					      dns_rdatatype_nxt, &nxt,
+					      &b);
 		check_result(result, "dns_rdata_fromstruct");
 
-		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD, name,
-					      rdataset->ttl, &newrdata,
-					      &tuple);
+		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
+					      name, rdataset->ttl,
+					      &newrdata, &tuple);
 		check_result(result, "dns_difftuple_create");
 		dns_diff_append(&diff, &tuple);
-
 		result = dns_diff_apply(&diff, gdb, gversion);
 		check_result(result, "dns_difftuple_apply");
 		dns_diff_clear(&diff);
+		answer = ISC_TRUE;
 	}
 	dns_rdata_freestruct(&nxt);
+	return (answer);
 }
 
 static void
@@ -752,6 +756,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	isc_boolean_t isdelegation = ISC_FALSE;
 	isc_boolean_t hasds = ISC_FALSE;
 	isc_boolean_t atorigin;
+	isc_boolean_t changed = ISC_FALSE;
 	dns_diff_t diff;
 	char namestr[DNS_NAME_FORMATSIZE];
 	isc_uint32_t nsttl = 0;
@@ -801,6 +806,8 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 				check_result(result, "dns_db_addrdataset");
 				hasds = ISC_TRUE;
 				dns_rdataset_disassociate(&dsset);
+				if (dns_rdataset_isassociated(&sigdsset))
+					dns_rdataset_disassociate(&sigdsset);
 			} else if (dns_rdataset_isassociated(&sigdsset)) {
 				result = dns_db_deleterdataset(gdb, node,
 							       gversion,
@@ -814,10 +821,31 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	}
 
 	/*
+	 * Make sure that NXT bits are appropriately set.
+	 */
+	dns_rdataset_init(&rdataset);
+	RUNTIME_CHECK(dns_db_findrdataset(gdb, node, gversion,
+					  dns_rdatatype_nxt, 0, 0, &rdataset,
+					  NULL) == ISC_R_SUCCESS);
+	if (!nokeys)
+		changed = nxt_setbit(name, &rdataset, dns_rdatatype_sig, 1);
+	if (changed) {
+		dns_rdataset_disassociate(&rdataset);
+		RUNTIME_CHECK(dns_db_findrdataset(gdb, node, gversion,
+						  dns_rdatatype_nxt, 0, 0,
+						  &rdataset,
+						  NULL) == ISC_R_SUCCESS);
+	}
+	if (hasds)
+		(void)nxt_setbit(name, &rdataset, dns_rdatatype_ds, 1);
+	else
+		(void)nxt_setbit(name, &rdataset, dns_rdatatype_ds, 0);
+	dns_rdataset_disassociate(&rdataset);
+
+	/*
 	 * Now iterate through the rdatasets.
 	 */
 	dns_diff_init(mctx, &diff);
-	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
@@ -843,18 +871,6 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			fatal("'%s': found DS RRset without NS RRset\n",
 			      namebuf);
-		}
-
-		if (rdataset.type == dns_rdatatype_nxt) {
-			if (!nokeys)
-				nxt_setbit(name, &rdataset, dns_rdatatype_sig,
-					   1);
-			if (hasds)
-				nxt_setbit(name, &rdataset, dns_rdatatype_ds,
-					   1);
-			else
-				nxt_setbit(name, &rdataset, dns_rdatatype_ds,
-					   0);
 		}
 
 		signset(&diff, node, name, &rdataset);
