@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.22 2000/06/05 19:10:27 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.23 2000/06/05 22:20:04 tale Exp $
  */
 
 #if defined(DNSSAFE)
@@ -232,7 +232,7 @@ dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	 * Skip PKCS#1 header in output from Decrypt function.
 	 */
 	if (memcmp(isc_buffer_base(&digestbuf),
-		   isc_buffer_used(&work) + sizeof(pkcs1),
+		   (char *)isc_buffer_used(&work) + sizeof(pkcs1),
 		   isc_buffer_usedlength(&digestbuf)) == 0)
 		return (ISC_R_SUCCESS);
 	else
