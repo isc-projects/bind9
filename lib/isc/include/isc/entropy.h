@@ -77,8 +77,23 @@ ISC_LANG_BEGINDECLS
  *	Extract only "good" data; return failure if there is not enough
  *	data available and there are no sources which we can poll to get
  *	data, or those sources are empty.
+ *
+ * _PARTIAL
+ *	Extract as much good data as possible, but if there isn't enough
+ *	at hand, return what is available.  This flag only makes sense
+ *	when used with _GOODONLY.
+ *
+ * _BLOCKING
+ *	Block the task until data is available.  This is contrary to the
+ *	ISC task system, where tasks should never block.  However, if
+ *	this is a special purpose application where blocking a task is
+ *	acceptable (say, an offline zone signer) this flag may be set.
+ *	This flag only makes sense when used with _GOODONLY, and will
+ *	block regardless of the setting for _PARTIAL.
  */
 #define ISC_ENTROPY_GOODONLY	0x00000001U
+#define ISC_ENTROPY_PARTIAL	0x00000002U
+#define ISC_ENTROPY_BLOCKING	0x00000004U
 
 /*
  * _ESTIMATE
@@ -150,7 +165,7 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 
 void
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
-		      isc_uint32_t extra, isc_boolean_t has_entropy);
+		      isc_uint32_t extra);
 /*
  * Add a sample to the sample source.  The sample MUST be a timestamp
  * that increases over time, with the exception of wrap-around for
@@ -159,10 +174,6 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
  *
  * The "extra" parameter is used only to add a bit more unpredictable
  * data.  It is not used other than included in the hash of samples.
- *
- * If "has_entropy" is ISC_TRUE, entropy calculations are performed on
- * this data, otherwise the sample is assumed to contain no entropy
- * and is simply added to the sample list.
  */
 
 isc_result_t
@@ -174,6 +185,5 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
  */
 
 ISC_LANG_ENDDECLS
-
 
 #endif /* ISC_BUFFER_H */

@@ -17,7 +17,9 @@
 
 #include <config.h>
 
+#include <fcntl.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <isc/buffer.h>
 #include <isc/entropy.h>
@@ -33,6 +35,9 @@
  * Much of this code is modeled after the NetBSD /dev/random implementation,
  * written by Michael Graff <explorer@netbsd.org>.
  */
+
+#define VALID_ENTROPY(e)	((e) != NULL)
+#define VALID_SOURCE(s)		((s) != NULL)
 
 /***
  *** "constants."  Do not change these unless you _really_ know what
@@ -86,17 +91,19 @@ typedef struct {
 
 struct isc_entropysource {
 	unsigned int	type;
+	isc_entropy_t  *ent;
 	unsigned int	flags;		/* flags */
 	isc_uint32_t	total;		/* entropy from this source */
+	ISC_LINK(isc_entropysource_t)	link;
 	char		name[32];
 	union {
-		isc_entropysamplesource_t	samplesource;
-		isc_entropyfilesource_t		filesource;
+		isc_entropysamplesource_t	sample;
+		isc_entropyfilesource_t		file;
 	} sources;
 };
 
-#define RND_TYPE_SAMPLE		1	/* Type is a sample source */
-#define RND_TYPE_FILE		2	/* Type is a file source */
+#define ENTROPY_SOURCETYPE_SAMPLE	1	/* Type is a sample source */
+#define ENTROPY_SOURCETYPE_FILE		2	/* Type is a file source */
 
 /*
  * The random pool "taps"
@@ -109,6 +116,11 @@ struct isc_entropysource {
 
 static inline void
 entropypool_add_word(isc_entropypool_t *, isc_uint32_t);
+
+static void
+fillpool(isc_entropy_t *, unsigned int, isc_boolean_t);
+
+#define ENTROPY(ent)	((ent)->pool.entropy)
 
 /*
  * Add one word to the pool, rotating the input as needed.
@@ -147,9 +159,11 @@ entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val)
 }
 
 /*
- * add a buffer's worth of data to the pool.
+ * Add a buffer's worth of data to the pool.
+ *
+ * Requires that the lock is held on the entropy pool.
  */
-void
+static void
 entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
 		    isc_uint32_t entropy)
 {
@@ -205,6 +219,14 @@ entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
 }
 
 /*
+ * Poll each source, trying to get data from it to stuff into the entropy
+ * pool.
+ */
+static void
+fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
+}
+
+/*
  * Extract some number of bytes from the random pool, decreasing the
  * estimate of randomness as each byte is extracted.
  *
@@ -213,77 +235,103 @@ entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
  * xored together before returned.
  *
  * Honor the request from the caller to only return good data, any data,
- * etc.  Note that we must have at least 80 bits of entropy in the pool
- * before we return anything in the high-quality modes.
+ * etc.
  */
-int
-entropypool_extract(isc_entropypool_t *rp, void *p, unsigned int len,
-		    unsigned int mode)
+isc_result_t
+isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
+		    unsigned int *returned, unsigned int flags)
 {
 	unsigned int i;
 	isc_sha1_t hash;
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-	isc_uint32_t remain, deltae, count;
+	isc_uint32_t remain, deltae, count, total;
 	isc_uint8_t *buf;
-	int good;
+	isc_boolean_t goodonly, partial, blocking;
 
-	buf = p;
-	remain = len;
+	REQUIRE(VALID_ENTROPY(ent));
+	REQUIRE(data != NULL);
+	REQUIRE(length > 0);
 
-	if ((mode & ISC_ENTROPY_GOODONLY) == 0)
-		good = 1;
-	else
-		good = (rp->entropy >= (8 * RND_ENTROPY_THRESHOLD));
+	goodonly = ISC_TF((flags & ISC_ENTROPY_GOODONLY) != 0);
+	partial = ISC_TF((flags & ISC_ENTROPY_PARTIAL) != 0);
+	blocking = ISC_TF((flags & ISC_ENTROPY_BLOCKING) != 0);
 
-	while (good && (remain != 0)) {
+	LOCK(&ent->lock);
+
+	/*
+	 * If we are blocking, we will block when actually extracting data.
+	 * Otherwise, if we cannot block, there is a limit on how much data
+	 * we can actually extract if good data is required.
+	 *
+	 * Here, clamp length to be the amount of data we can extract
+	 * if goodonly and partial are both set, otherwise return an
+	 * error.
+	 */
+	if (goodonly && !blocking) {
+		fillpool(ent, length * 8, ISC_FALSE);
+
 		/*
-		 * While bytes are requested, compute the hash of the pool,
-		 * and then "fold" the hash in half with XOR, keeping the
-		 * exact hash value secret, as it will be stirred back into
-		 * the pool.
-		 *
-		 * XXX this approach needs examination by competant
-		 * cryptographers!  It's rather expensive per bit but
-		 * also involves every bit of the pool in the
-		 * computation of every output bit..
+		 * To extract good data, we need to have at least
+		 * enough entropy to fill our digest.
 		 */
+		if (ENTROPY(ent) < RND_ENTROPY_THRESHOLD * 8) {
+			UNLOCK(&ent->lock);
+			return (ISC_R_NOENTROPY);
+		}
+	}
+
+	remain = length;
+	buf = data;
+	total = 0;
+	while (remain != 0) {
+		count = ISC_MIN(remain, RND_ENTROPY_THRESHOLD);
+
+		/* Try to get more entropy if we need it. */
+		if (goodonly) {
+			fillpool(ent, remain * 8, blocking);
+			if (!partial && (ENTROPY(ent) < count * 8))
+				goto zeroize;
+		}
+
 		isc_sha1_init(&hash);
-		isc_sha1_update(&hash, (unsigned char *)rp->pool,
+		isc_sha1_update(&hash, (void *)(ent->pool.pool),
 				RND_POOLWORDS * 4);
 		isc_sha1_final(&hash, digest);
     
 		/*
-		 * Stir the hash back into the pool.  This guarantees
-		 * that the next hash will generate a different value
-		 * if no new values were added to the pool.
+		 * Stir the extracted data (all of it) back into the pool.
 		 */
-		for (i = 0 ; i < 5 ; i++) {
-			isc_uint32_t word;
-			memcpy(&word, &digest[i * 4], 4);
-			entropypool_add_word(rp, word);
-		}
-
-		count = ISC_MIN(remain, RND_ENTROPY_THRESHOLD);
+		entropypool_adddata(&ent->pool, digest, ISC_SHA1_DIGESTLENGTH,
+				    0);
 
 		for (i = 0; i < count; i++)
-			buf[i] = digest[i] ^ digest[ i +RND_ENTROPY_THRESHOLD];
+			buf[i] = digest[i] ^ digest[i + RND_ENTROPY_THRESHOLD];
 
 		buf += count;
-		deltae = count * 8;
 		remain -= count;
 
-		deltae = ISC_MIN(deltae, rp->entropy);
-
-		rp->entropy -= deltae;
-
-		if ((mode & ISC_ENTROPY_GOODONLY) == 0)
-			good = (rp->entropy >= (8 * RND_ENTROPY_THRESHOLD));
+		deltae = count * 8;
+		deltae = ISC_MIN(deltae, ENTROPY(ent));
+		ent->pool.entropy -= deltae;
+		total += deltae;
 	}
-	
-	memset(&hash, 0, sizeof(hash));
+
 	memset(digest, 0, sizeof(digest));
 
-	return (len - remain);
+	if (*returned != NULL)
+		*returned = length;
+
+	return (ISC_R_SUCCESS);
+
+ zeroize:
+	/* put the entropy we almost extracted back */
+	entropypool_adddata(&ent->pool, data, length, total);
+	memset(data, 0, length);
+	memset(digest, 0, sizeof(digest));
+	if (*returned != NULL)
+		*returned = 0;
+
+	return (ISC_R_NOENTROPY);
 }
 
 static void
@@ -360,17 +408,136 @@ isc_entropy_destroy(isc_entropy_t **entp) {
 	memset(ent, 0, sizeof(isc_entropy_t));
 }
 
+/*
+ * Make a fd non-blocking
+ */
+static isc_result_t
+make_nonblock(int fd) {
+	int ret;
+	int flags;
+
+	flags = fcntl(fd, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	ret = fcntl(fd, F_SETFL, flags);
+
+	if (ret == -1) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "fcntl(%d, F_SETFL, %d): %s",
+				 fd, flags, strerror(errno));
+
+		return (ISC_R_UNEXPECTED);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
 			     unsigned int flags,
 			     isc_entropysource_t **sourcep)
 {
+	int fd;
+	isc_result_t ret;
+	isc_entropysource_t *source;
 
-	return (ISC_R_NOTIMPLEMENTED);
+	REQUIRE(VALID_ENTROPY(ent));
+	REQUIRE(fname != NULL);
+	REQUIRE(sourcep != NULL && *sourcep == NULL);
+
+	LOCK(&ent->lock);
+
+	source = NULL;
+	fd = -1;
+
+	fd = open(fname, O_RDONLY | O_NONBLOCK, 0);
+	if (fd < 0) {
+		ret = ISC_R_IOERROR;
+		goto errout;
+	}
+
+	ret = make_nonblock(fd);
+	if (ret != ISC_R_SUCCESS)
+		goto errout;
+
+	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
+	if (source == NULL) {
+		ret = ISC_R_NOMEMORY;
+		goto errout;
+	}
+
+	/*
+	 * From here down, no failures can occur.
+	 */
+	source->type = ENTROPY_SOURCETYPE_FILE;
+	source->ent = ent;
+	source->flags = flags;
+	source->total = 0;
+	memset(source->name, 0, sizeof(source->name));
+	ISC_LINK_INIT(source, link);
+	source->sources.file.fd = fd;
+
+	/*
+	 * Hook it into the entropy system.
+	 */
+	ISC_LIST_APPEND(ent->sources, source, link);
+
+	*sourcep = source;
+
+	UNLOCK(&ent->lock);
+	return (ISC_R_SUCCESS);
+
+ errout:
+	if (source != NULL)
+		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
+	if (fd >= 0)
+		close(fd);
+
+	UNLOCK(&ent->lock);
+
+	return (ret);
 }
 
 void
 isc_entropy_destroysource(isc_entropysource_t **sourcep) {
+	isc_entropysource_t *source;
+	isc_entropy_t *ent;
+	void *ptr;
+	int fd;
+
+	REQUIRE(sourcep != NULL);
+	REQUIRE(VALID_SOURCE(*sourcep));
+
+	source = *sourcep;
+	*sourcep = NULL;
+
+	ent = source->ent;
+	REQUIRE(VALID_ENTROPY(ent));
+
+	LOCK(&ent->lock);
+
+	ISC_LIST_UNLINK(ent->sources, source, link);
+
+	switch (source->type) {
+	case ENTROPY_SOURCETYPE_FILE:
+		fd = source->sources.file.fd;
+		if (fd >= 0)
+			close(fd);
+		break;
+	case ENTROPY_SOURCETYPE_SAMPLE:
+		ptr = source->sources.sample.samples;
+		if (ptr != NULL)
+			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
+		ptr = source->sources.sample.extra;
+		if (ptr != NULL)
+			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
+		break;
+	}
+
+	memset(source, 0, sizeof(isc_entropysource_t));
+
+	isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
+
+	UNLOCK(&ent->lock);
 }
 
 isc_result_t
@@ -383,14 +550,6 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 
 void
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
-		      isc_uint32_t extra, isc_boolean_t has_entropy)
+		      isc_uint32_t extra)
 {
-}
-
-isc_result_t
-isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
-		    unsigned int *returned, unsigned int flags)
-{
-
-	return (ISC_R_NOTIMPLEMENTED);
 }
