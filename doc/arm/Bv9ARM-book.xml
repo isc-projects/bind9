@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.165 2001/10/12 05:40:37 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.166 2001/10/15 18:20:22 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -701,7 +701,7 @@ of a server.</para>
               <para>The <command>named-checkzone</command> program checks a master file for
               syntax and consistency.</para>
               <cmdsynopsis label="Usage">
-                <command>check-zone</command>
+                <command>named-checkzone</command>
                 <arg>-dq</arg>
                 <arg>-c <replaceable>class</replaceable></arg>
                 <arg choice="plain"><replaceable>zone</replaceable></arg>
