@@ -1903,7 +1903,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_result_t
+static isc_result_t
 answer_response(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_message_t *message;
@@ -2364,7 +2364,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				keep_trying = ISC_TRUE;
 			goto done;
 		}
-	} else if (message->counts[DNS_SECTION_AUTHORITY] > 0) {
+	} else if (message->counts[DNS_SECTION_AUTHORITY] > 0 ||
+		   message->rcode == dns_rcode_noerror ||
+		   message->rcode == dns_rcode_nxdomain) {
 		/*
 		 * NXDOMAIN, NXRDATASET, or referral.
 		 */
@@ -2438,6 +2440,21 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	if (keep_trying) {
 		if (result == DNS_R_FORMERR)
 			broken_server = ISC_TRUE;
+		if (broken_server) {
+#ifdef notyet
+			result = dns_adb_marklame(dns_adb_t *adb,
+						  dns_adbaddrinfo_t *addr,
+						  dns_name_t *zone,
+						  isc_stdtime_t expire_time);
+#else
+			result = ISC_R_SUCCESS;
+#endif
+			if (result != ISC_R_SUCCESS) {
+				fctx_done(fctx, result);
+				return;
+			}
+		}
+
 		/*
 		 * XXXRTH  If we have a broken server at this point, we will
 		 *	   decrease its 'goodness', possibly add a 'lame'
