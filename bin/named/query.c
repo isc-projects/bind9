@@ -641,7 +641,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	dns_dbnode_t *node, *znode;
 	dns_db_t *db, *zdb;
 	dns_name_t *fname, *zfname, *mname;
-	dns_rdataset_t *rdataset, *sigrdataset, *a6rdataset;
+	dns_rdataset_t *rdataset, *sigrdataset, *a6rdataset, *trdataset;
 	dns_rdataset_t *zrdataset, *zsigrdataset;
 	isc_buffer_t *dbuf;
 	isc_buffer_t b;
@@ -667,6 +667,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	sigrdataset = NULL;
 	zsigrdataset = NULL;
 	a6rdataset = NULL;
+	trdataset = NULL;
 	db = NULL;
 	zdb = NULL;
 	version = NULL;
@@ -816,6 +817,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		} else
 			need_addname = ISC_TRUE;
 		ISC_LIST_APPEND(fname->list, rdataset, link);
+		trdataset = rdataset;
 		rdataset = NULL;
 		added_something = ISC_TRUE;
 		/*
@@ -1031,13 +1033,13 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 * we could raise the priority of glue records.
 		 */
 		eresult = query_addadditional(client, name, dns_rdatatype_key);
- 	} else if (type == dns_rdatatype_srv) {
+ 	} else if (type == dns_rdatatype_srv && trdataset != NULL) {
 		/*
 		 * If we're adding SRV records to the additional data
 		 * section, it's helpful if we add the SRV additional data
 		 * as well.
 		 */
-		eresult = dns_rdataset_additionaldata(rdataset,
+		eresult = dns_rdataset_additionaldata(trdataset,
 						      query_addadditional,
 						      client);
 	}
