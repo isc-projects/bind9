@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.62 2000/10/31 03:21:52 marka Exp $ */
+/* $Id: journal.c,v 1.63 2000/11/14 23:29:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1176,7 +1176,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	 */
 	isc_buffer_init(&j->it.source, NULL, 0);
 	isc_buffer_init(&j->it.target, NULL, 0);
-	dns_decompress_init(&j->it.dctx, -1, ISC_FALSE);
+	dns_decompress_init(&j->it.dctx, -1, DNS_DECOMPRESS_NONE);
 
 	j->state =
 		write ? JOURNAL_STATE_WRITE : JOURNAL_STATE_READ;

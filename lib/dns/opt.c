@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.5 2000/11/13 21:33:59 bwelling Exp $ */
+/* $Id: opt.c,v 1.6 2000/11/14 23:29:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -167,7 +167,7 @@ dns_opt_attrtotext(dns_optattr_t *attr, isc_buffer_t *target,
 	case DNS_OPTCODE_ZONE:
 		ADD_STRING(target, "; ZONE attribute: ", zonefail0);
 		dns_fixedname_init(&fname);
-		dns_decompress_init(&dctx, 0, ISC_FALSE);
+		dns_decompress_init(&dctx, 0, DNS_DECOMPRESS_NONE);
 		isc_buffer_init(&source, attr->value.base, attr->value.length);
 		isc_buffer_add(&source, attr->value.length);
 		isc_buffer_setactive(&source, attr->value.length);

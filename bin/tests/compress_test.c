@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.21 2000/11/10 05:34:09 bwelling Exp $ */
+/* $Id: compress_test.c,v 1.22 2000/11/14 23:29:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -177,7 +177,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 
 	isc_buffer_setactive(&source, source.used);
 	isc_buffer_init(&target, buf2, sizeof(buf2));
-	dns_decompress_init(&dctx, -1, ISC_TRUE);
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 
 	dns_name_init(&name, NULL);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,

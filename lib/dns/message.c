@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.157 2000/11/10 03:16:18 gson Exp $ */
+/* $Id: message.c,v 1.158 2000/11/14 23:29:51 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1493,7 +1493,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	/*
 	 * -1 means no EDNS.
 	 */
-	dns_decompress_init(&dctx, -1, ISC_FALSE);
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
 
 	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 

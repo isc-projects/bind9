@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.35 2000/08/01 01:22:14 tale Exp $ */
+/* $Id: compress.c,v 1.36 2000/11/14 23:29:49 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -195,14 +195,15 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
  ***/
 
 void
-dns_decompress_init(dns_decompress_t *dctx, int edns, isc_boolean_t strict) {
+dns_decompress_init(dns_decompress_t *dctx, int edns,
+		    dns_decompresstype_t type) {
 
 	REQUIRE(dctx != NULL);
 	REQUIRE(edns >= -1 && edns <= 255);
 
 	dctx->allowed = DNS_COMPRESS_NONE;
 	dctx->edns = edns;
-	dctx->strict = strict;
+	dctx->type = type;
 	dctx->rdata = 0;
 	dctx->magic = DCTX_MAGIC;
 }
@@ -220,10 +221,17 @@ dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed) {
 
 	REQUIRE(VALID_DCTX(dctx));
 
-	if (dns_decompress_strict(dctx))
-		dctx->allowed = allowed;
-	else
+	switch (dctx->type) {
+	case DNS_DECOMPRESS_ANY:
 		dctx->allowed = DNS_COMPRESS_ALL;
+		break;
+	case DNS_DECOMPRESS_NONE:
+		dctx->allowed = DNS_COMPRESS_NONE;
+		break;
+	case DNS_DECOMPRESS_STRICT:
+		dctx->allowed = allowed;
+		break;
+	}
 }
 
 unsigned int
@@ -242,12 +250,12 @@ dns_decompress_edns(dns_decompress_t *dctx) {
 	return (dctx->edns);
 }
 
-isc_boolean_t
-dns_decompress_strict(dns_decompress_t *dctx) {
+dns_decompresstype_t
+dns_decompress_type(dns_decompress_t *dctx) {
 
 	REQUIRE(VALID_DCTX(dctx));
 
-	return (dctx->strict);
+	return (dctx->type);
 }
 
 /***

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.28 2000/08/01 01:14:06 tale Exp $ */
+/* $Id: t_names.c,v 1.29 2000/11/14 23:29:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2147,7 +2147,7 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 
 	isc_buffer_init(&iscbuf2, buf2, buflen);
 	dns_name_init(&dns_name1, NULL);
-	dns_decompress_init(&dctx, -1, ISC_TRUE);
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 	dns_decompress_setmethods(&dctx, dc_method);
 	dns_result = dns_name_fromwire(&dns_name1, &iscbuf1,
 				       &dctx, downcase ? ISC_TRUE : ISC_FALSE,

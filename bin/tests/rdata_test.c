@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.32 2000/11/09 23:54:55 bwelling Exp $ */
+/* $Id: rdata_test.c,v 1.33 2000/11/14 23:29:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1000,7 +1000,7 @@ main(int argc, char *argv[]) {
 			isc_buffer_setactive(&wbuf, len);
 			dns_rdata_init(&rdata);
 			isc_buffer_init(&dbuf, inbuf, sizeof(inbuf));
-			dns_decompress_init(&dctx, -1, ISC_FALSE);
+			dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
 			result = dns_rdata_fromwire(&rdata, class, type, &wbuf,
 						    &dctx, ISC_FALSE, &dbuf);
 			dns_decompress_invalidate(&dctx);

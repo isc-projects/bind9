@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.18 2000/08/01 01:23:46 tale Exp $ */
+/* $Id: compress.h,v 1.19 2000/11/14 23:29:55 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -40,9 +40,7 @@ ISC_LANG_BEGINDECLS
 #define DNS_COMPRESS_ALL		0x03	/* all compression. */
 
 /*
- * XXX  An API for manipulating these structures will be forthcoming.
- *	Also magic numbers, _init() and _invalidate(), etc.  At that time,
- *	direct manipulation of the structures will be strongly discouraged.
+ *	Direct manipulation of the structures is strongly discouraged.
  */
 
 struct dns_compress {
@@ -55,12 +53,18 @@ struct dns_compress {
 	isc_mem_t	*mctx;			/* Memeory context. */
 };
 
+typedef enum {
+	DNS_DECOMPRESS_ANY,			/* Any compression */
+	DNS_DECOMPRESS_STRICT,			/* Allowed compression */
+	DNS_DECOMPRESS_NONE			/* No compression */
+} dns_decompresstype_t;
+
 struct dns_decompress {
-	unsigned int	magic;			/* Magic number. */
-	unsigned int	allowed;		/* Allowed methods. */
-	unsigned int	rdata;			/* Start of local rdata. */
-	int		edns;			/* Edns version or -1. */
-	isc_boolean_t	strict;			/* Strict checking */
+	unsigned int		magic;		/* Magic number. */
+	unsigned int		allowed;	/* Allowed methods. */
+	unsigned int		rdata;		/* Start of local rdata. */
+	int			edns;		/* Edns version or -1. */
+	dns_decompresstype_t	type;		/* Strict checking */
 };
 
 isc_result_t
@@ -176,11 +180,12 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset);
  */
 
 void
-dns_decompress_init(dns_decompress_t *dctx, int edns, isc_boolean_t strict);
+dns_decompress_init(dns_decompress_t *dctx, int edns,
+		    dns_decompresstype_t type);
 
 /*
  *	Initalises 'dctx'.
- *	Records 'edns' and 'strict' into the structure.
+ *	Records 'edns' and 'type' into the structure.
  *
  *	Requires:
  *		'dctx' to be a valid pointer.
@@ -226,11 +231,11 @@ dns_decompress_edns(dns_decompress_t *dctx);
  *		'dctx' to be initalised
  */
 
-isc_boolean_t
-dns_decompress_strict(dns_decompress_t *dctx);
+dns_decompresstype_t
+dns_decompress_type(dns_decompress_t *dctx);
 
 /*
- *	Returns 'dctx->strict'
+ *	Returns 'dctx->type'
  *
  *	Requires:
  *		'dctx' to be initalised

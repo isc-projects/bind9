@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.127 2000/11/13 21:33:54 bwelling Exp $ */
+/* $Id: client.c,v 1.128 2000/11/14 23:29:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1072,7 +1072,7 @@ client_getoptattrs(ns_client_t *client, dns_rdataset_t *opt) {
 			switch (optattr.code) {
 			case DNS_OPTCODE_ZONE:
 				dns_decompress_init(&dctx, 0,
-						    ISC_FALSE);
+						    DNS_DECOMPRESS_NONE);
 				client->opt_zone = isc_mem_get(
 					   client->mctx,
 					   sizeof(*client->opt_zone));
