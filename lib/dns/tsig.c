@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.82 2000/08/01 01:23:00 tale Exp $
+ * $Id: tsig.c,v 1.83 2000/08/14 18:13:07 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -47,6 +47,8 @@
 
 #define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
 
+#define algname_is_allocated(algname) ((algname) != dns_tsig_hmacmd5_name)
+
 static isc_once_t once = ISC_ONCE_INIT;
 static dns_name_t hmacmd5_name;
 dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5_name;
@@ -74,7 +76,6 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
 {
 	isc_buffer_t b;
-	isc_uint16_t alg;
 	dns_tsigkey_t *tkey;
 	isc_result_t ret;
 
@@ -87,14 +88,6 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	REQUIRE(mctx != NULL);
 
 	RUNTIME_CHECK(isc_once_do(&once, dns_tsig_inithmac) == ISC_R_SUCCESS);
-	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME)) {
-		if (length != 0)
-			return (ISC_R_NOTIMPLEMENTED);
-		else
-			alg = 0;
-	}
-	else
-		alg = DST_ALG_HMACMD5;
 
 	tkey = (dns_tsigkey_t *) isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 	if (tkey == NULL)
@@ -106,11 +99,24 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		goto cleanup_key;
 	dns_name_downcase(&tkey->name, &tkey->name, NULL);
 
-	dns_name_init(&tkey->algorithm, NULL);
-	ret = dns_name_dup(algorithm, mctx, &tkey->algorithm);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_name;
-	dns_name_downcase(&tkey->algorithm, &tkey->algorithm, NULL);
+	if (dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME))
+		tkey->algorithm = DNS_TSIG_HMACMD5_NAME;
+	else {
+		if (length != 0) {
+			ret = ISC_R_NOTIMPLEMENTED;
+			goto cleanup_name;
+		}
+		tkey->algorithm = isc_mem_get(mctx, sizeof(dns_name_t));
+		if (tkey->algorithm == NULL) {
+			ret = ISC_R_NOMEMORY;
+			goto cleanup_name;
+		}
+		dns_name_init(tkey->algorithm, NULL);
+		ret = dns_name_dup(algorithm, mctx, tkey->algorithm);
+		if (ret != ISC_R_SUCCESS)
+			goto cleanup_algorithm;
+		dns_name_downcase(tkey->algorithm, tkey->algorithm, NULL);
+	}
 
 	if (creator != NULL) {
 		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
@@ -133,9 +139,15 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	tkey->refs = 0;
 
 	if (length > 0) {
+		int dstalg;
+
+		if (tkey->algorithm == dns_tsig_hmacmd5_name)
+			dstalg = DST_ALG_HMACMD5;
+		else
+			INSIST(0);
 		isc_buffer_init(&b, secret, length);
 		isc_buffer_add(&b, length);
-		ret = dst_key_frombuffer(name, alg,
+		ret = dst_key_frombuffer(name, dstalg,
 					 DNS_KEYOWNER_ENTITY,
 					 DNS_KEYPROTO_DNSSEC,
 					 &b, mctx, &tkey->key);
@@ -175,11 +187,15 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 
 	return (ISC_R_SUCCESS);
 
-cleanup_algorithm:
-	dns_name_free(&tkey->algorithm, mctx);
-cleanup_name:
+ cleanup_algorithm:
+	if (algname_is_allocated(tkey->algorithm)) {
+		if (dns_name_dynamic(tkey->algorithm))
+			dns_name_free(tkey->algorithm, mctx);
+		isc_mem_put(mctx, tkey->algorithm, sizeof(dns_name_t));
+	}
+ cleanup_name:
 	dns_name_free(&tkey->name, mctx);
-cleanup_key:
+ cleanup_key:
 	isc_mem_put(mctx, tkey, sizeof(dns_tsigkey_t));
 
 	return (ret);
@@ -202,7 +218,10 @@ tsigkey_free(dns_tsigkey_t *key) {
 
 	key->magic = 0;
 	dns_name_free(&key->name, key->mctx);
-	dns_name_free(&key->algorithm, key->mctx);
+	if (algname_is_allocated(key->algorithm)) {
+		dns_name_free(key->algorithm, key->mctx);
+		isc_mem_put(key->mctx, key->algorithm, sizeof(dns_name_t));
+	}
 	if (key->key != NULL)
 		dst_key_free(&key->key);
 	if (key->creator != NULL) {
@@ -277,7 +296,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	tsig.common.rdtype = dns_rdatatype_tsig;
 	ISC_LINK_INIT(&tsig.common, link);
 	dns_name_init(&tsig.algorithm, NULL);
-	dns_name_clone(&key->algorithm, &tsig.algorithm);
+	dns_name_clone(key->algorithm, &tsig.algorithm);
 
 	isc_stdtime_get(&now);
 	tsig.timesigned = now;
@@ -739,7 +758,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		/*
 		 * Digest the key algorithm.
 		 */
-		dns_name_toregion(&tsigkey->algorithm, &r);
+		dns_name_toregion(tsigkey->algorithm, &r);
 		ret = dst_context_adddata(ctx, &r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_context;
@@ -1025,7 +1044,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 		return (ISC_R_NOTFOUND);
 	}
-	if (algorithm != NULL && !dns_name_equal(&key->algorithm, algorithm)) {
+	if (algorithm != NULL && !dns_name_equal(key->algorithm, algorithm)) {
 		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 		return (ISC_R_NOTFOUND);
 	}

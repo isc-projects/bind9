@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.139 2000/08/07 20:37:34 gson Exp $ */
+/* $Id: message.c,v 1.140 2000/08/14 18:13:10 bwelling Exp $ */
 
 /***
  *** Imports
@@ -600,7 +600,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	 */
 
 	dns_name_toregion(&key->name, &r1);
-	dns_name_toregion(&key->algorithm, &r2);
+	dns_name_toregion(key->algorithm, &r2);
 	if (key->key == NULL)
 		x = 0;
 	else {

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.49 2000/08/01 01:22:58 tale Exp $
+ * $Id: tkey.c,v 1.50 2000/08/14 18:13:08 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -839,7 +839,7 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key) {
 	ISC_LINK_INIT(&tkey.common, link);
 	tkey.mctx = msg->mctx;
 	dns_name_init(&tkey.algorithm, NULL);
-	dns_name_clone(&key->algorithm, &tkey.algorithm);
+	dns_name_clone(key->algorithm, &tkey.algorithm);
 	tkey.inception = tkey.expire = 0;
 	tkey.mode = DNS_TKEYMODE_DELETE;
 	tkey.error = 0;

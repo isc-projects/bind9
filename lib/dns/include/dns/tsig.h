@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.31 2000/08/01 01:24:50 tale Exp $ */
+/* $Id: tsig.h,v 1.32 2000/08/14 18:13:11 bwelling Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -30,9 +30,8 @@
 #include <dst/dst.h>
 
 /*
- * Standard algorithm.
+ * Algorithms.
  */
-#define DNS_TSIG_HMACMD5		"HMAC-MD5.SIG-ALG.REG.INT."
 extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_HMACMD5_NAME		dns_tsig_hmacmd5_name
 
@@ -53,7 +52,7 @@ struct dns_tsigkey {
 	isc_mem_t		*mctx;
 	dst_key_t		*key;		/* Key */
 	dns_name_t		name;		/* Key name */
-	dns_name_t		algorithm;	/* Algorithm name */
+	dns_name_t		*algorithm;	/* Algorithm name */
 	dns_name_t		*creator;	/* name that created secret */
 	isc_boolean_t		generated;	/* was this generated? */
 	isc_stdtime_t		inception;	/* start of validity period */
