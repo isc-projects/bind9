@@ -1,3 +1,6 @@
+ 671.	[bug]		The message code was failing to parse a message with
+			no question section and a TSIG record. [RT #628]
+
  670.	[bug]		The lwres replacements for getaddrinfo and
 			getipnodebyname didn't properly check for the
 			existence of the sockaddr sa_len field.

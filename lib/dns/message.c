@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.169 2001/01/08 20:36:11 bwelling Exp $ */
+/* $Id: message.c,v 1.170 2001/01/09 02:55:42 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1140,9 +1140,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * established a class.  Do so now.
 		 */
 		if (msg->state == DNS_SECTION_ANY) {
-			if ((msg->opcode != dns_opcode_update) &&
-			    (rdclass == 0 || rdclass == dns_rdataclass_any))
-				DO_FORMERR;
 			msg->rdclass = rdclass;
 			msg->state = DNS_SECTION_QUESTION;
 		}
