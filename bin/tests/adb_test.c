@@ -40,38 +40,60 @@
 #include <dns/master.h>
 #include <dns/name.h>
 
+typedef struct client client_t;
+struct client {
+	dns_name_t		name;
+	ISC_LINK(client_t)	link;
+	dns_adbhandle_t	       *handle;
+};
+
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;
 isc_socketmgr_t *socketmgr;
 isc_timermgr_t *timermgr;
-unsigned char namestorage1[512];
-unsigned char namestorage2[512];
-unsigned char namestorage3[512];
-unsigned char namestorage4[512];
+isc_task_t *t1, *t2;
 dns_view_t *view;
-dns_db_t *ns_g_rootns;
+dns_db_t *rootdb;
+ISC_LIST(client_t) clients;
+ISC_LIST(client_t) dead_clients;
+isc_mutex_t client_lock;
+isc_stdtime_t now;
+dns_adb_t *adb;
+
+static void check_result(isc_result_t, char *, ...);
+
+isc_result_t ns_rootns_init(void);
+void ns_rootns_destroy(void);
+
+void create_managers(void);
 
 static void lookup_callback(isc_task_t *, isc_event_t *);
-static void fatal(char *, ...);
-static inline void check_result(isc_result_t, char *);
+
+void create_view(void);
+void destroy_view(void);
+
+client_t *new_client(void);
+void free_client(client_t **);
+static inline void CLOCK(void);
+static inline void CUNLOCK(void);
+void clean_dead_client_list(void);
+
+void lookup(char *name);
+void insert(char *target, char *addr);
 
 static void
-fatal(char *format, ...)
+check_result(isc_result_t result, char *format, ...)
 {
 	va_list args;
+
+	if (result == ISC_R_SUCCESS)
+		return;
 
 	va_start(args, format);	
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
 	exit(1);
-}
-
-static inline void
-check_result(isc_result_t result, char *msg)
-{
-	if (result != ISC_R_SUCCESS)
-		fatal("%s: %s", msg, isc_result_totext(result));
 }
 
 static char root_ns[] =
@@ -117,10 +139,9 @@ ns_rootns_init(void)
 	int soacount, nscount;
 	dns_rdatacallbacks_t callbacks;
 
-	REQUIRE(ns_g_rootns == NULL);
-
+	rootdb = NULL;
 	result = dns_db_create(mctx, "rbt", dns_rootname, ISC_FALSE,
-			       dns_rdataclass_in, 0, NULL, &ns_g_rootns);
+			       dns_rdataclass_in, 0, NULL, &rootdb);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -130,16 +151,16 @@ ns_rootns_init(void)
 	isc_buffer_init(&source, root_ns, len, ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&source, len);
 
-	result = dns_db_beginload(ns_g_rootns, &callbacks.add,
+	result = dns_db_beginload(rootdb, &callbacks.add,
 				  &callbacks.add_private);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_master_loadbuffer(&source, &ns_g_rootns->origin,
-				       &ns_g_rootns->origin,
-				       ns_g_rootns->rdclass, ISC_FALSE,
+	result = dns_master_loadbuffer(&source, &rootdb->origin,
+				       &rootdb->origin,
+				       rootdb->rdclass, ISC_FALSE,
 				       &soacount, &nscount, &callbacks,
-				       ns_g_rootns->mctx);
-	eresult = dns_db_endload(ns_g_rootns, &callbacks.add_private);
+				       rootdb->mctx);
+	eresult = dns_db_endload(rootdb, &callbacks.add_private);
 	if (result == ISC_R_SUCCESS)
 		result = eresult;
 	if (result != ISC_R_SUCCESS)
@@ -148,7 +169,7 @@ ns_rootns_init(void)
 	return (DNS_R_SUCCESS);
 
  db_detach:
-	dns_db_detach(&ns_g_rootns);
+	dns_db_detach(&rootdb);
 
 	return (result);
 }
@@ -156,11 +177,52 @@ ns_rootns_init(void)
 void
 ns_rootns_destroy(void)
 {
-	REQUIRE(ns_g_rootns != NULL);
+	REQUIRE(rootdb != NULL);
 
-	dns_db_detach(&ns_g_rootns);
+	dns_db_detach(&rootdb);
 }
 
+client_t *
+new_client(void)
+{
+	client_t *client;
+
+	client = isc_mem_get(mctx, sizeof(client_t));
+	INSIST(client != NULL);
+	dns_name_init(&client->name, NULL);
+	ISC_LINK_INIT(client, link);
+	client->handle = NULL;
+
+	return (client);
+}
+
+void
+free_client(client_t **c)
+{
+	client_t *client;
+
+	INSIST(c != NULL);
+	client = *c;
+	*c = NULL;
+	INSIST(client != NULL);
+	dns_name_free(&client->name, mctx);
+	INSIST(!ISC_LINK_LINKED(client, link));
+	INSIST(client->handle == NULL);
+
+	isc_mem_put(mctx, client, sizeof(client_t));
+}
+
+static inline void
+CLOCK(void)
+{
+	RUNTIME_CHECK(isc_mutex_lock(&client_lock) == ISC_R_SUCCESS);
+}
+
+static inline void
+CUNLOCK(void)
+{
+	RUNTIME_CHECK(isc_mutex_unlock(&client_lock) == ISC_R_SUCCESS);
+}
 
 static void
 lookup_callback(isc_task_t *task, isc_event_t *ev)
@@ -174,8 +236,12 @@ lookup_callback(isc_task_t *task, isc_event_t *ev)
 	name = ev->arg;
 	handle = ev->sender;
 
+	CLOCK();
+
 	isc_event_free(&ev);
 	isc_app_shutdown();
+
+	CUNLOCK();
 }
 
 void
@@ -235,7 +301,7 @@ create_view(void)
 	/*
 	 * We have default hints for class IN.
 	 */
-	dns_view_sethints(view, ns_g_rootns);
+	dns_view_sethints(view, rootdb);
 
 	dns_view_freeze(view);
 }
@@ -247,19 +313,93 @@ destroy_view(void)
 	ns_rootns_destroy();
 }
 
+void
+insert(char *target, char *addr)
+{
+	isc_sockaddr_t sockaddr;
+	struct in_addr ina;
+	dns_name_t name;
+	unsigned char namedata[256];
+	isc_buffer_t t, namebuf;
+	isc_result_t result;
+
+	INSIST(target != NULL);
+
+	isc_buffer_init(&t, target, strlen(target), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&t, strlen(target));
+	isc_buffer_init(&namebuf, namedata, sizeof namedata,
+			ISC_BUFFERTYPE_BINARY);
+	dns_name_init(&name, NULL);
+	result = dns_name_fromtext(&name, &t, dns_rootname, ISC_FALSE,
+				   &namebuf);
+	check_result(result, "dns_name_fromtext %s", target);
+
+	ina.s_addr = inet_addr(addr);
+	isc_sockaddr_fromin(&sockaddr, &ina, 53);
+	result = dns_adb_insert(adb, &name, &sockaddr);
+	check_result(result, "dns_adb_insert %s -> %s", target, addr);
+	printf("Added %s -> %s\n", target, addr);
+}
+
+void
+lookup(char *target)
+{
+	dns_name_t name;
+	unsigned char namedata[256];
+	client_t *client;
+	isc_buffer_t t, namebuf;
+	isc_result_t result;
+
+	INSIST(target != NULL);
+
+	client = new_client();
+	isc_buffer_init(&t, target, strlen(target), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&t, strlen(target));
+	isc_buffer_init(&namebuf, namedata, sizeof namedata,
+			ISC_BUFFERTYPE_BINARY);
+	dns_name_init(&name, NULL);
+	result = dns_name_fromtext(&name, &t, dns_rootname, ISC_FALSE,
+				   &namebuf);
+	check_result(result, "dns_name_fromtext %s", target);
+
+	result = dns_name_dup(&name, mctx, &client->name);
+	check_result(result, "dns_name_dup %s", target);
+
+	result = dns_adb_lookup(adb, t2, lookup_callback, client,
+				&client->name, dns_rootname, now,
+				&client->handle);
+
+	switch (result) {
+	case ISC_R_NOTFOUND:
+		printf("Name %s not found\n", target);
+		break;
+	case ISC_R_SUCCESS:
+		dns_adb_dumphandle(adb, client->handle, stderr);
+		break;
+	}
+	ISC_LIST_APPEND(dead_clients, client, link);
+}
+
+void
+clean_dead_client_list(void)
+{
+	client_t *c;
+
+	c = ISC_LIST_HEAD(dead_clients);
+	while (c != NULL) {
+		fprintf(stderr, "client %p, handle %p\n", c, c->handle);
+		if (c->handle != NULL)
+			dns_adb_done(&c->handle);
+		ISC_LIST_UNLINK(dead_clients, c, link);
+		free_client(&c);
+		c = ISC_LIST_HEAD(dead_clients);
+	}
+}
+
 int
 main(int argc, char **argv)
 {
-	isc_task_t *t1, *t2;
-	isc_sockaddr_t sockaddr;
-	struct in_addr ina;
 	isc_result_t result;
-	dns_name_t name1, name2, name3, name4;
-	isc_buffer_t t, namebuf;
-	dns_adb_t *adb;
-	dns_adbhandle_t *handle;
-	dns_adbaddrinfo_t *ai;
-	isc_stdtime_t now;
 
 	(void)argc;
 	(void)argv;
@@ -270,6 +410,11 @@ main(int argc, char **argv)
 
 	result = isc_stdtime_get(&now);
 	check_result(result, "isc_stdtime_get()");
+
+	result = isc_mutex_init(&client_lock);
+	check_result(result, "isc_mutex_init(&client_lock)");
+	ISC_LIST_INIT(clients);
+	ISC_LIST_INIT(dead_clients);
 
 	/*
 	 * EVERYTHING needs a memory context.
@@ -298,179 +443,40 @@ main(int argc, char **argv)
 	result = dns_adb_create(mctx, view, &adb);
 	check_result(result, "dns_adb_create");
 
-#define NAME1 "kechara.flame.org."
-#define NAME2 "moghedien.isc.org."
-#define NAME3 "nonexistant.flame.org."
-#define NAME4 "f.root-servers.net."
-
-	isc_buffer_init(&t, NAME1, sizeof NAME1 - 1, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&t, strlen(NAME1));
-	isc_buffer_init(&namebuf, namestorage1, sizeof namestorage1,
-			ISC_BUFFERTYPE_BINARY);
-	dns_name_init(&name1, NULL);
-	result = dns_name_fromtext(&name1, &t, dns_rootname, ISC_FALSE,
-				   &namebuf);
-	check_result(result, "dns_name_fromtext NAME1");
-
-	isc_buffer_init(&t, NAME2, sizeof NAME2 - 1, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&t, strlen(NAME2));
-	isc_buffer_init(&namebuf, namestorage2, sizeof namestorage2,
-			ISC_BUFFERTYPE_BINARY);
-	dns_name_init(&name2, NULL);
-	result = dns_name_fromtext(&name2, &t, dns_rootname, ISC_FALSE,
-				   &namebuf);
-	check_result(result, "dns_name_fromtext NAME2");
-
-	isc_buffer_init(&t, NAME3, sizeof NAME3 - 1, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&t, strlen(NAME3));
-	isc_buffer_init(&namebuf, namestorage3, sizeof namestorage3,
-			ISC_BUFFERTYPE_BINARY);
-	dns_name_init(&name3, NULL);
-	result = dns_name_fromtext(&name3, &t, dns_rootname, ISC_FALSE,
-				   &namebuf);
-	check_result(result, "dns_name_fromtext NAME3");
-
-	isc_buffer_init(&t, NAME4, sizeof NAME4 - 1, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&t, strlen(NAME4));
-	isc_buffer_init(&namebuf, namestorage4, sizeof namestorage4,
-			ISC_BUFFERTYPE_BINARY);
-	dns_name_init(&name4, NULL);
-	result = dns_name_fromtext(&name4, &t, dns_rootname, ISC_FALSE,
-				   &namebuf);
-	check_result(result, "dns_name_fromtext NAME4");
-
 	/*
 	 * Store this address for this name.
 	 */
-	ina.s_addr = inet_addr("1.2.3.4");
-	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name1, &sockaddr);
-	check_result(result, "dns_adb_insert 1.2.3.4");
-	printf("Added 1.2.3.4 -> NAME1\n");
-
-	ina.s_addr = inet_addr("1.2.3.5");
-	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name1, &sockaddr);
-	check_result(result, "dns_adb_insert 1.2.3.5");
-	printf("Added 1.2.3.5 -> NAME1\n");
-
-	result = dns_adb_insert(adb, &name2, &sockaddr);
-	check_result(result, "dns_adb_insert 1.2.3.5");
-	printf("Added 1.2.3.5 -> NAME2\n");
-
-	ina.s_addr = inet_addr("1.2.3.6");
-	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name1, &sockaddr);
-	check_result(result, "dns_adb_insert 1.2.3.6");
-	printf("Added 1.2.3.6 -> NAME1\n");
+	insert("kechara.flame.org.", "204.152.184.79");
+	insert("moghedien.flame.org.", "204.152.184.97");
+	insert("mailrelay.flame.org.", "204.152.184.79");
+	insert("mailrelay.flame.org.", "204.152.184.97");
+	insert("blackhole.flame.org.", "127.0.0.1");
 
 	/*
-	 * Try to look up a name or two.
+	 * Lock the entire client list here.  This will cause all events
+	 * for found names to block as well.
 	 */
-	handle = NULL;
-	result = dns_adb_lookup(adb, t2, lookup_callback, &name1,
-				&name1, &name1, now, &handle);
-	check_result(result, "dns_adb_lookup name1");
-	check_result(handle->result, "handle->result");
+	CLOCK();
+	lookup("kechara.flame.org.");
+	lookup("moghedien.isc.org.");
+	lookup("nonexistant.flame.org.");
+	lookup("f.root-servers.net.");
+	CUNLOCK();
 
 	dns_adb_dump(adb, stderr);
-	dns_adb_dumphandle(adb, handle, stderr);
-
-	/*
-	 * Mark one entry as lame, then look this name up again.
-	 */
-	ai = ISC_LIST_HEAD(handle->list);
-	INSIST(ai != NULL);
-	ai = ISC_LIST_NEXT(ai, link);
-	INSIST(ai != NULL);
-	result = dns_adb_marklame(adb, ai, &name1, now + 10 * 60);
-	check_result(result, "dns_adb_marklame()");
-
-	/*
-	 * And while we're here, add some goodness to it and tweak up
-	 * the srtt value a bit.
-	 */
-	dns_adb_adjustgoodness(adb, ai, 100);
-	dns_adb_adjustgoodness(adb, ai, -50);
-	INSIST(ai->goodness == 50);
-	dns_adb_adjustsrtt(adb, ai, 10000, 0);
-	dns_adb_adjustsrtt(adb, ai, 10, 10);
-
-	dns_adb_done(adb, &handle);
-
-	/*
-	 * look it up again
-	 */
-	result = dns_adb_lookup(adb, t2, lookup_callback, &name1,
-				&name1, &name1, now, &handle);
-	check_result(result, "dns_adb_lookup name1");
-	check_result(handle->result, "handle->result");
-
-	dns_adb_dump(adb, stderr);
-	dns_adb_dumphandle(adb, handle, stderr);
-
-	/*
-	 * delete one of the names
-	 */
-	result = dns_adb_deletename(adb, &name2);
-	check_result(result, "dns_adb_deletename name2");
-
-	dns_adb_dump(adb, stderr);
-
-	dns_adb_done(adb, &handle);
-
-	/*
-	 * look up a name that doesn't exit.
-	 */
-	result = dns_adb_lookup(adb, t2, lookup_callback, &name3,
-				&name3, &name3, now, &handle);
-	if (result == ISC_R_SUCCESS) {
-		check_result(handle->result, "handle->result");
-
-		check_result(result, "dns_adb_lookup name3");
-		dns_adb_dump(adb, stderr);
-		dns_adb_dumphandle(adb, handle, stderr);
-	} else {
-		fprintf(stderr, "lookup of name3: %s\n",
-			isc_result_totext(result));
-	}
-
-	dns_adb_dump(adb, stderr);
-
-	if (handle != NULL)
-		dns_adb_done(adb, &handle);
-
-	/*
-	 * Look up a host that will be in the hints database
-	 */
-	result = dns_adb_lookup(adb, t2, lookup_callback, &name4,
-				&name4, dns_rootname, now, &handle);
-	if (result == ISC_R_SUCCESS) {
-		check_result(handle->result, "handle->result");
-
-		check_result(result, "dns_adb_lookup name4");
-		dns_adb_dump(adb, stderr);
-		dns_adb_dumphandle(adb, handle, stderr);
-	} else {
-		fprintf(stderr, "lookup of name4: %s\n",
-			isc_result_totext(result));
-	}
-
-	dns_adb_dump(adb, stderr);
-
-	if (handle != NULL) {
-		dns_adb_dumphandle(adb, handle, stderr);
-		dns_adb_done(adb, &handle);
-	}
 
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
 	isc_mem_stats(mctx, stdout);
 	dns_adb_dump(adb, stderr);
-	dns_adb_destroy(&adb);
+	dns_adb_detach(&adb);
 
 	isc_app_run();
+
+	CLOCK();
+	clean_dead_client_list();
+	CUNLOCK();
 
 	destroy_view();
 
