@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.7 1999/10/05 15:04:27 bwelling Exp $
+ * $Id: dst_parse.c,v 1.8 1999/10/08 22:25:14 tale Exp $
  */
 
 #include <config.h>
@@ -27,16 +27,18 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+
 #include <isc/assertions.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/int.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <dns/rdata.h>
 
-/* For chmod.  This should be removed. */
+/* XXXBEW For chmod.  This should be removed. */
 #include <sys/stat.h>
 
 #include "dst_internal.h"
@@ -196,7 +198,7 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 			     const isc_uint16_t id, dst_private_t *priv,
 			     isc_mem_t *mctx)
 {
-	char filename[PATH_MAX];
+	char filename[ISC_DIR_NAMEMAX];
 	int n = 0, ret, major, minor;
 	isc_buffer_t b;
 	isc_lex_t *lex = NULL;
@@ -210,7 +212,7 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 	priv->nelements = 0;
 
 	ret = dst_s_build_filename(filename, name, id, alg, PRIVATE_KEY,
-				   PATH_MAX);
+				   sizeof(filename));
 	if (ret < 0)
 		return (DST_R_NAMETOOLONG);
 
@@ -330,7 +332,7 @@ dst_s_write_private_key_file(const char *name, const int alg,
 	FILE *fp;
 	int ret, i;
 	isc_result_t iret;
-	char filename[PATH_MAX];
+	char filename[ISC_DIR_NAMEMAX];
 	char buffer[MAXFIELDSIZE * 2];
 
 	REQUIRE(priv != NULL);
@@ -339,14 +341,14 @@ dst_s_write_private_key_file(const char *name, const int alg,
 		return (DST_R_INVALIDPRIVATEKEY);
 
 	ret = dst_s_build_filename(filename, name, id, alg, PRIVATE_KEY,
-				   PATH_MAX);
+				   sizeof(filename));
 	if (ret < 0)
 		return (DST_R_NAMETOOLONG);
 
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);
 
-	/* This won't exist on non-unix systems.  Hmmm.... */
+	/* XXXBEW This won't exist on non-unix systems.  Hmmm.... */
 	chmod(filename, 0600);
 
 	fprintf(fp, "%s v%d.%d\n", PRIVATE_KEY_STR, MAJOR_VERSION,
