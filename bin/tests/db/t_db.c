@@ -48,9 +48,9 @@ t_create(const char *db_type, const char *origin, const char *class,
 	dns_rdataclass_t	rdataclass;
 
 
-	dbtype = ISC_FALSE;
+	dbtype = dns_dbtype_zone;
 	if (strcasecmp(model, "cache") == 0)
-		dbtype = ISC_TRUE;
+		dbtype = dns_dbtype_cache;
 
 	dns_fixedname_init(&dns_origin);
 	len = strlen(origin);
@@ -391,7 +391,7 @@ t2(void) {
 
 	t_assert("dns_db_iscache", 2, T_REQUIRED, a2);
 	result = test_dns_db_zc_x("dns_db_iscache_1_data",
-				  ISC_TRUE, dns_db_iscache, ISC_TRUE);
+				  dns_dbtype_cache, dns_db_iscache, ISC_TRUE);
 	t_result(result);
 }
 
@@ -407,7 +407,7 @@ t3(void) {
 
 	t_assert("dns_db_iscache", 3, T_REQUIRED, a3);
 	result = test_dns_db_zc_x("dns_db_iscache_2_data",
-				  ISC_FALSE, dns_db_iscache, ISC_FALSE);
+				  dns_dbtype_zone, dns_db_iscache, ISC_FALSE);
 	t_result(result);
 }
 
@@ -423,7 +423,7 @@ t4(void) {
 
 	t_assert("dns_db_iszone", 4, T_REQUIRED, a4);
 	result = test_dns_db_zc_x("dns_db_iszone_1_data",
-				  ISC_FALSE, dns_db_iszone, ISC_TRUE);
+				  dns_dbtype_zone, dns_db_iszone, ISC_TRUE);
 	t_result(result);
 }
 
@@ -438,7 +438,7 @@ t5(void) {
 
 	t_assert("dns_db_iszone", 5, T_REQUIRED, a5);
 	result = test_dns_db_zc_x("dns_db_iszone_2_data",
-				  ISC_TRUE, dns_db_iszone, ISC_FALSE);
+				  dns_dbtype_cache, dns_db_iszone, ISC_FALSE);
 	t_result(result);
 }
 
