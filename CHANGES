@@ -1,7 +1,10 @@
-1654.	[bug]		isc_result_totext() contained array bounds read
+
+	--- 9.2.4rc5 released ---
+
 1655.	[bug]		Logging multiple versions w/o a size was broken.
 			[RT #11446]
 
+1654.	[bug]		isc_result_totext() contained array bounds read
 			error.
 
 1650.	[bug]		dig, nslookup: flush standard out after each command.
@@ -17,7 +20,6 @@
 
 1643.	[bug]		dns_db_closeversion() could leak memory / node
 			references. [RT #11163]
-
 
 	--- 9.2.4rc4 released ---
 
