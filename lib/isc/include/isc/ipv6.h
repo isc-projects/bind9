@@ -46,6 +46,7 @@
  ***/
 
 #include <isc/int.h>
+#include <isc/platform.h>
 
 /***
  *** Types.

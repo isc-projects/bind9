@@ -46,6 +46,9 @@
  ***/
 
 #include <isc/int.h>
+#include <isc/platform.h>
+
+#undef ISC_PLATFORM_HAVESALEN
 
 /***
  *** Types.

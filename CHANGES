@@ -1,3 +1,5 @@
+ 133.   [cleanup]       <isc/ipv6.h> needs <isc/platform.h>.
+
  132.   [cleanup]       <isc/app.h> does not need <isc/task.h>, but does
                         need <isc/eventclass.h>.
 
