@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.2 2001/02/15 05:14:16 gson Exp $ */
+/* $Id: cfg.h,v 1.3 2001/02/15 18:53:03 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -62,6 +62,11 @@ typedef struct cfg_type cfg_type_t;
  * messages.
  */
 typedef struct cfg_obj cfg_obj_t;
+
+/*
+ * A configuration object list element.
+ */
+typedef struct cfg_listelt cfg_listelt_t;
 
 /***
  *** Functions
@@ -119,6 +124,18 @@ cfg_map_get(cfg_obj_t *mapobj, const char* name, cfg_obj_t **obj);
  *      ISC_R_NOTFOUND                 - name not found in map
  */
 
+cfg_obj_t *
+cfg_map_getname(cfg_obj_t *mapobj);
+/*
+ * Get the name of a named map object, like a server "key" clause.
+ *
+ * Requires:
+ *      'mapobj' ponts to a valid configuraration object of a map type.
+ *
+ * Returns:
+ *      A pointer to a configuration object naming the map object,
+ *	or NULL if the map object does not have a name.
+ */
 
 isc_uint32_t
 cfg_obj_asuint32(cfg_obj_t *obj);
@@ -143,6 +160,46 @@ cfg_obj_asstring(cfg_obj_t *obj);
  *
  * Returns:
  *      A pointer to a null terminated string.
+ */
+
+cfg_listelt_t *
+cfg_list_first(cfg_obj_t *obj);
+/*
+ * Returns the first list element in a configuration object of a list type.
+ *
+ * Requires:
+ *      'obj' points to a valid configuration object of a list type.
+ *
+ * Returns:
+ *      A pointer to a cfg_listelt_t representing the first list element,
+ * 	or NULL if the list is empty.
+ */
+
+cfg_listelt_t *
+cfg_list_next(cfg_listelt_t *elt);
+/*
+ * Returns the next element of a list of configuration objects.
+ *
+ * Requires:
+ *      'elt' points to cfg_listelt_t obtained from cfg_list_first() or
+ *	a previous call to cfg_list_next().
+ *
+ * Returns:
+ *      A pointer to a cfg_listelt_t representing the next element,
+ * 	or NULL if there are no more elements.
+ */
+
+cfg_obj_t *
+cfg_listelt_value(cfg_listelt_t *elt);
+/*
+ * Returns the configuration object associated with cfg_listelt_t.
+ *
+ * Requires:
+ *      'elt' points to cfg_listelt_t obtained from cfg_list_first() or
+ *	cfg_list_next().
+ *
+ * Returns:
+ *      A non-NULL pointer to a configuration object.
  */
 
 void

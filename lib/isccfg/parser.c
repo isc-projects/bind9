@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.2 2001/02/15 05:14:15 gson Exp $ */
+/* $Id: parser.c,v 1.3 2001/02/15 18:53:02 gson Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,6 @@
 
 typedef struct cfg_clausedef cfg_clausedef_t;
 typedef struct cfg_printer cfg_printer_t;
-typedef struct cfg_listelt cfg_listelt_t;
 typedef ISC_LIST(cfg_listelt_t) cfg_list_t;
 typedef struct cfg_map cfg_map_t;
 typedef struct cfg_rep cfg_rep_t;
@@ -1316,6 +1315,12 @@ cfg_map_get(cfg_obj_t *mapobj, const char* name, cfg_obj_t **obj) {
 	return (ISC_R_SUCCESS);
 }
 
+cfg_obj_t *
+cfg_map_getname(cfg_obj_t *mapobj) {
+	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	return (mapobj->value.map.id);
+}
+
 /*
  * void
  */
@@ -1600,9 +1605,42 @@ static cfg_type_t cfg_type_optional_keyref = {
 
 
 /*
- * Parse a homogeneous list whose elements are of type 'elttype'
- * and where each element is terminated by a semicolon.
+ * Lists.
  */
+
+static isc_result_t
+create_list(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **obj) {
+	isc_result_t result;
+	CHECK(create_cfgobj(pctx, type, obj));
+	ISC_LIST_INIT((*obj)->value.list);
+ cleanup:
+	return (result);
+}
+
+static isc_result_t
+create_listelt(cfg_parser_t *pctx, cfg_listelt_t **eltp) {
+	cfg_listelt_t *elt;
+	elt = isc_mem_get(pctx->mctx, sizeof(*elt));
+	if (elt == NULL)
+		return (ISC_R_NOMEMORY);
+	elt->obj = NULL;
+	ISC_LINK_INIT(elt, link);
+	*eltp = elt;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+free_list(cfg_parser_t *pctx, cfg_obj_t *obj) {
+	cfg_listelt_t *elt, *next;
+	for (elt = ISC_LIST_HEAD(obj->value.list);
+	     elt != NULL;
+	     elt = next)
+	{
+		next = ISC_LIST_NEXT(elt, link);
+		cfg_obj_destroy(pctx, &elt->obj);
+		isc_mem_put(pctx->mctx, elt, sizeof(*elt));
+	}
+}
 
 static isc_result_t
 parse_list_elt(cfg_parser_t *pctx, cfg_type_t *elttype, cfg_listelt_t **ret)
@@ -1627,7 +1665,10 @@ parse_list_elt(cfg_parser_t *pctx, cfg_type_t *elttype, cfg_listelt_t **ret)
 	return (result);
 }
 
-
+/*
+ * Parse a homogeneous list whose elements are of type 'elttype'
+ * and where each element is terminated by a semicolon.
+ */
 static isc_result_t
 parse_list(cfg_parser_t *pctx, cfg_type_t *listtype, cfg_obj_t **ret)
 {
@@ -1733,6 +1774,28 @@ print_spacelist(cfg_printer_t *pctx, cfg_obj_t *obj) {
 			print(pctx, " ", 1);
 	}
 }
+
+cfg_listelt_t *
+cfg_list_first(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_list);
+	return (ISC_LIST_HEAD(obj->value.list));
+}
+
+cfg_listelt_t *
+cfg_list_next(cfg_listelt_t *elt) {
+	REQUIRE(elt != NULL);
+	return (ISC_LIST_NEXT(elt, link));
+}
+
+cfg_obj_t *
+cfg_listelt_value(cfg_listelt_t *elt) {
+	REQUIRE(elt != NULL);
+	return (elt->obj);
+}
+
+/*
+ * Maps.
+ */
 
 static void
 print_mapbody(cfg_printer_t *pctx, cfg_obj_t *obj) {
@@ -3024,41 +3087,6 @@ static void
 free_map(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	CLEANUP_OBJ(obj->value.map.id);
 	isc_symtab_destroy(&obj->value.map.symtab);
-}
-
-static isc_result_t
-create_list(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **obj) {
-	isc_result_t result;
-	CHECK(create_cfgobj(pctx, type, obj));
-	ISC_LIST_INIT((*obj)->value.list);
- cleanup:
-	return (result);
-}
-
-static isc_result_t
-create_listelt(cfg_parser_t *pctx, cfg_listelt_t **eltp) {
-	cfg_listelt_t *elt;
-	elt = isc_mem_get(pctx->mctx, sizeof(*elt));
-	if (elt == NULL)
-		return (ISC_R_NOMEMORY);
-	elt->obj = NULL;
-	ISC_LINK_INIT(elt, link);
-	*eltp = elt;
-	return (ISC_R_SUCCESS);
-}
-
-
-static void
-free_list(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	cfg_listelt_t *elt, *next;
-	for (elt = ISC_LIST_HEAD(obj->value.list);
-	     elt != NULL;
-	     elt = next)
-	{
-		next = ISC_LIST_NEXT(elt, link);
-		cfg_obj_destroy(pctx, &elt->obj);
-		isc_mem_put(pctx->mctx, elt, sizeof(*elt));
-	}
 }
 
 /*
