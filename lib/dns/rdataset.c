@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.58.2.2.2.6 2004/01/12 04:29:42 marka Exp $ */
+/* $Id: rdataset.c,v 1.58.2.2.2.7 2004/02/19 01:59:44 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/mem.h>
 #include <isc/random.h>
 #include <isc/util.h>
 
@@ -289,8 +290,8 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
 	isc_boolean_t shuffle = ISC_FALSE;
-	dns_rdata_t shuffled[MAX_SHUFFLE];
-	struct towire_sort sorted[MAX_SHUFFLE];
+	dns_rdata_t *shuffled = NULL, shuffled_fixed[MAX_SHUFFLE];
+	struct towire_sort *sorted = NULL, sorted_fixed[MAX_SHUFFLE];
 
 	UNUSED(state);
 
@@ -302,6 +303,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(countp != NULL);
 	REQUIRE((order == NULL) == (order_arg == NULL));
+	REQUIRE(cctx != NULL && cctx->mctx != NULL);
 
 	count = 0;
 	if ((rdataset->attributes & DNS_RDATASETATTR_QUESTION) != 0) {
@@ -328,18 +330,24 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	}
 
 	/*
-	 * We'll only shuffle if we've got enough slots in our
-	 * deck.
-	 *
-	 * There's no point to shuffling SIGs.
+	 * Do we want to shuffle this anwer?
 	 */
-	if (!question &&
-	    count > 1 &&
+	if (!question && count > 1 &&
 	    (!WANT_FIXED(rdataset) || order != NULL) &&
-	    count <= MAX_SHUFFLE &&
 	    rdataset->type != dns_rdatatype_sig)
-	{
 		shuffle = ISC_TRUE;
+
+	if (shuffle && count > MAX_SHUFFLE) {
+		shuffled = isc_mem_get(cctx->mctx, count * sizeof(*shuffled));
+		sorted = isc_mem_get(cctx->mctx, count * sizeof(*sorted));
+		if (shuffled == NULL || sorted == NULL)
+			shuffle = ISC_FALSE;
+	} else {
+		shuffled = shuffled_fixed;
+		sorted = sorted_fixed;
+	}
+
+	if (shuffle) {
 		/*
 		 * First we get handles to all of the rdata.
 		 */
@@ -352,7 +360,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			result = dns_rdataset_next(rdataset);
 		} while (result == ISC_R_SUCCESS);
 		if (result != ISC_R_NOMORE)
-			return (result);
+			goto cleanup;
 		INSIST(i == count);
 
 		/*
@@ -490,21 +498,27 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 
 	*countp += count;
 
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
+	goto cleanup;
 
- rollback:
+	rollback:
 	if (partial && result == ISC_R_NOSPACE) {
 		INSIST(rrbuffer.used < 65536);
 		dns_compress_rollback(cctx, (isc_uint16_t)rrbuffer.used);
 		*countp += added;
 		*target = rrbuffer;
-		return (result);
+		goto cleanup;
 	}
 	INSIST(savedbuffer.used < 65536);
 	dns_compress_rollback(cctx, (isc_uint16_t)savedbuffer.used);
 	*countp = 0;
 	*target = savedbuffer;
 
+	cleanup:
+	if (sorted != NULL && sorted != sorted_fixed)
+		isc_mem_put(cctx->mctx, sorted, count * sizeof(*sorted));
+	if (shuffled != NULL && shuffled != shuffled_fixed)
+		isc_mem_put(cctx->mctx, shuffled, count * sizeof(*shuffled));
 	return (result);
 }
 
