@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.h,v 1.9 2004/03/05 05:09:46 marka Exp $ */
+/* $Id: rootns.h,v 1.9.18.1 2005/02/07 00:53:47 marka Exp $ */
 
 #ifndef DNS_ROOTNS_H
 #define DNS_ROOTNS_H 1
@@ -29,6 +29,14 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
                   const char *filename, dns_db_t **target);
+
+void
+dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db);
+/*
+ * Reports differences between hints and the real roots.
+ *
+ * Requires view, hints and (cache) db to be valid.
+ */
 
 ISC_LANG_ENDDECLS
 

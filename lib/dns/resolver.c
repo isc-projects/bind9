@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.17 2005/01/20 00:01:14 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.18 2005/02/07 00:53:46 marka Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 
 #include <dns/acl.h>
 #include <dns/adb.h>
+#include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
@@ -47,6 +48,7 @@
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/rootns.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
 
@@ -5814,6 +5816,7 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res;
 	dns_fetchevent_t *fevent;
 	dns_fetch_t *fetch;
+	dns_db_t *db = NULL;
 
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	fevent = (dns_fetchevent_t *)event;
@@ -5832,6 +5835,13 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&res->primelock);
 
 	UNLOCK(&res->lock);
+	
+	if (fevent->result == ISC_R_SUCCESS &&
+	    res->view->cache != NULL && res->view->hints != NULL) {
+		dns_cache_attachdb(res->view->cache, &db);
+		dns_root_checkhints(res->view, res->view->hints, db);
+		dns_db_detach(&db);
+	}
 
 	if (fevent->node != NULL)
 		dns_db_detachnode(fevent->db, &fevent->node);
