@@ -30,6 +30,7 @@
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 isc_mem_t *mctx1, *mctx2, *mctx3;
 isc_task_t *t1, *t2, *t3;

@@ -34,6 +34,7 @@
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/app.h>
+#include <isc/util.h>
 
 typedef struct {
 	isc_mem_t *	mctx;

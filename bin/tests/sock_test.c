@@ -31,6 +31,7 @@
 #include <isc/socket.h>
 #include <isc/timer.h>
 #include <isc/net.h>
+#include <isc/util.h>
 
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;

@@ -29,6 +29,7 @@
 #include <isc/timer.h>
 #include <isc/thread.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 isc_mem_t *mctx = NULL;
 

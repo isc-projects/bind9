@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include <isc/mem.h>
+#include <isc/util.h>
 
 #include <dns/log.h>
 #include <dns/namedconf.h>

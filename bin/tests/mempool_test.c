@@ -26,6 +26,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 isc_mem_t *mctx;
 

@@ -27,6 +27,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/util.h>
 
 #include <lwres/context.h>
 #include <lwres/lwbuffer.h>

@@ -26,6 +26,7 @@
 #include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/lex.h>
+#include <isc/util.h>
 
 #include <dns/rdata.h>
 #include <dns/compress.h>

@@ -27,6 +27,7 @@
 #include <isc/thread.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
+#include <isc/util.h>
 
 isc_rwlock_t lock;
 

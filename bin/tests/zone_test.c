@@ -25,6 +25,7 @@
 #include <isc/app.h>
 #include <isc/socket.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/zone.h>

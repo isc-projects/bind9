@@ -30,6 +30,7 @@
 #include <isc/mem.h>
 #include <isc/stdtime.h>
 #include <isc/list.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/name.h>

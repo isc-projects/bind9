@@ -26,6 +26,7 @@
 #include <isc/error.h>
 #include <isc/result.h>
 #include <isc/symtab.h>
+#include <isc/util.h>
 
 isc_mem_t *mctx;
 isc_symtab_t *st;

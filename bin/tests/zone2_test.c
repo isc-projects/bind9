@@ -25,6 +25,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/util.h>
 
 #include <dns/confparser.h>
 #include <dns/journal.h>

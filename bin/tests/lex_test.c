@@ -27,6 +27,7 @@
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 isc_mem_t *mctx;
 isc_lex_t *lex;

@@ -25,6 +25,7 @@
 
 #include <isc/mem.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 #include <dns/log.h>
 #include <dns/confndc.h>
