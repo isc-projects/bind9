@@ -1,3 +1,6 @@
+1372.	[bug]		named crashes with an assertion failure on exit when
+			sharing the same port for listening and querying, and
+			changing listening addresses several times. [RT# 3509]
 
 	--- 9.2.2rc1 released ---
 

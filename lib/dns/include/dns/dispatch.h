@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.45 2001/04/30 18:09:28 gson Exp $ */
+/* $Id: dispatch.h,v 1.45.2.1 2002/09/04 02:47:08 jinmei Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -390,6 +390,11 @@ dns_dispatch_changeattributes(dns_dispatch_t *disp,
  * That is:
  *
  *	new = (old & ~mask) | (attributes & mask)
+ *
+ * This function has a side effect when DNS_DISPATCHATTR_NOLISTEN changes. 
+ * When the flag becomes off, the dispatch will start receiving on the
+ * corresponding socket.  When the flag becomes on, receive events on the
+ * corresponding socket will be canceled.
  *
  * Requires:
  *	disp is valid.
