@@ -15,12 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.23 2000/06/23 03:14:04 tale Exp $ */
+/* $Id: netdb.h.in,v 1.24 2000/07/26 21:56:28 tale Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
 
-#include <stddef.h>
 #include <netdb.h>		/* Contractual provision. */
 
 #include <lwres/lang.h>
@@ -452,5 +451,12 @@ struct rpcent	*lwres_getrpcent();
 #endif /* __GNU_LIBRARY__ */
 #endif /* sun */
 #endif /* notyet */
+
+/*
+ * Tell Emacs to use C mode on this file.
+ * Local variables:
+ * mode: c
+ * End:
+ */
 
 #endif /* LWRES_NETDB_H */
