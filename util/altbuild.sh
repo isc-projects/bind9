@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.8 2001/06/28 01:34:01 gson Exp $
+# $Id: altbuild.sh,v 1.9 2001/07/13 01:51:28 gson Exp $
 
 #
 # "Alternative build" test.
@@ -69,7 +69,7 @@ cd $builddir || exit 1
 
 CFLAGS="-g -DISC_CHECK_NONE -DISC_MEM_FILL=0 -DISC_LIST_CHECKINIT" \
     sh $srcdir/bind-*/configure --with-libtool \
-	--disable-threads --prefix=$instdir
+	--disable-threads --with-openssl --enable-libbind --prefix=$instdir
 gmake clean
 gmake
 gmake install
