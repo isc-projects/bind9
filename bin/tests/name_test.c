@@ -36,6 +36,10 @@ static void
 print_wirename(isc_region_t *name) {
 	unsigned char *ccurr, *cend;
 		
+	if (name->length == 0) {
+		printf("<empty wire name>\n");
+		return;
+	}
 	ccurr = name->base;
 	cend = ccurr + name->length;
 	while (ccurr != cend)
@@ -47,17 +51,26 @@ int
 main(int argc, char *argv[]) {
 	char s[1000];
 	dns_result_t result;
-	dns_fixedname_t wname, oname, compname;
+	dns_fixedname_t wname, wname2, oname, compname;
 	isc_buffer_t source;
 	isc_region_t r;
 	dns_name_t *name, *origin, *comp;
 	isc_boolean_t downcase = ISC_FALSE;
 	size_t len;
 	isc_boolean_t quiet = ISC_FALSE;
+	isc_boolean_t concatenate = ISC_FALSE;
+	isc_boolean_t got_name = ISC_FALSE;
+	isc_boolean_t check_absolute = ISC_FALSE;
 	int ch;
 
-	while ((ch = getopt(argc, argv, "q")) != -1) {
+	while ((ch = getopt(argc, argv, "acq")) != -1) {
 		switch (ch) {
+		case 'a':
+			check_absolute = ISC_TRUE;
+			break;
+		case 'c':
+			concatenate = ISC_TRUE;
+			break;
 		case 'q':
 			quiet = ISC_TRUE;
 			break;
@@ -87,7 +100,9 @@ main(int argc, char *argv[]) {
 				exit(1);
 			}
 		}
-	} else
+	} else if (concatenate)
+		origin = NULL;
+	else
 		origin = dns_rootname;
 
 	if (argc > 1) {
@@ -114,13 +129,31 @@ main(int argc, char *argv[]) {
 
 	dns_fixedname_init(&wname);
 	name = &wname.name;
+	dns_fixedname_init(&wname2);
 	while (gets(s) != NULL) {
 		len = strlen(s);
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
-		result = dns_name_fromtext(name, &source, origin, downcase,
-					   NULL);
+
+		if (len > 0)
+			result = dns_name_fromtext(name, &source, origin,
+						   downcase, NULL);
+		else {
+			if (name == &wname.name)
+				dns_fixedname_init(&wname);
+			else
+				dns_fixedname_init(&wname2);
+			result = DNS_R_SUCCESS;
+		}
+
 		if (result == DNS_R_SUCCESS) {
+			if (check_absolute &&
+			    dns_name_countlabels(name) > 0) {
+				if (dns_name_isabsolute(name))
+					printf("absolute\n");
+				else
+					printf("relative\n");
+			}
 			dns_name_toregion(name, &r);
 			if (!quiet) {
 				print_wirename(&r);
@@ -132,12 +165,52 @@ main(int argc, char *argv[]) {
 			printf("%s\n", dns_result_totext(result));
 
 		if (result == DNS_R_SUCCESS) {
+			if (concatenate) {
+				if (got_name) {
+					printf("Concatenating.\n");
+					result = dns_name_concatenate(
+							      &wname.name,
+							      &wname2.name,
+							      &wname2.name,
+							      NULL);
+					name = &wname2.name;
+					if (result == DNS_R_SUCCESS) {
+						if (check_absolute &&
+					    dns_name_countlabels(name) > 0) {
+						 if (dns_name_isabsolute(name))
+							 printf("absolute\n");
+						 else
+							 printf("relative\n");
+						}
+						dns_name_toregion(name, &r);
+						if (!quiet) {
+							print_wirename(&r);
+							printf("%u labels, "
+							       "%u bytes.\n",
+						   dns_name_countlabels(name),
+							       r.length);
+						}
+					} else
+						printf("%s\n",
+						  dns_result_totext(result));
+					got_name = ISC_FALSE;
+				} else
+					got_name = ISC_TRUE;
+			}
 			isc_buffer_init(&source, s, sizeof s,
 					ISC_BUFFERTYPE_TEXT);
-			result = dns_name_totext(name, ISC_FALSE, &source);
+			if (dns_name_countlabels(name) > 0)
+				result = dns_name_totext(name, ISC_FALSE,
+							 &source);
+			else
+				result = DNS_R_SUCCESS;
 			if (result == DNS_R_SUCCESS) {
 				isc_buffer_used(&source, &r);
-				printf("%.*s\n", (int)r.length, r.base);
+				if (r.length > 0)
+					printf("%.*s\n", (int)r.length,
+					       r.base);
+				else
+					printf("<empty text name>\n");
 				if (!quiet) {
 					printf("%u bytes.\n", source.used);
 				}
@@ -145,7 +218,7 @@ main(int argc, char *argv[]) {
 				printf("%s\n", dns_result_totext(result));
 		}
 
-		if (comp != NULL) {
+		if (comp != NULL && dns_name_countlabels(name) > 0) {
 			int order;
 			unsigned int nlabels, nbits;
 			dns_namereln_t namereln;
@@ -178,6 +251,13 @@ main(int argc, char *argv[]) {
 					       nlabels, nbits);
 				printf("\n");
 			}
+		}
+
+		if (concatenate) {
+			if (got_name)
+				name = &wname2.name;
+			else
+				name = &wname.name;
 		}
 	}
 	
