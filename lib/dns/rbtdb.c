@@ -403,10 +403,10 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static dns_result_t
-add_rdataset_callback(dns_name_t *name, dns_rdataset_t *rdataset,
-		      void *private)
+add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
+		      dns_rdataset_t *rdataset)
 {
-	dns_rbtdb_t *rbtdb = private;
+	dns_rbtdb_t *rbtdb = callbacks->commit_private;
 	dns_rbtnode_t *node = NULL;
 	dns_result_t result;
 	isc_region_t region;
@@ -450,6 +450,7 @@ static dns_result_t
 load(dns_db_t *db, char *filename) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	int soacount, nscount;
+	dns_rdatacallbacks_t callbacks;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -465,10 +466,14 @@ load(dns_db_t *db, char *filename) {
 	 *	REQUIRE(!rbtdb->loaded);
 	 */
 
+	memset(&callbacks, 0, sizeof callbacks);
+	callbacks.commit = add_rdataset_callback;
+	callbacks.commit_private = rbtdb;
+
 	return (dns_master_load(filename, &rbtdb->common.base,
 				&rbtdb->common.base, rbtdb->common.class,
-				&soacount, &nscount, add_rdataset_callback,
-				rbtdb, rbtdb->common.mctx));
+				&soacount, &nscount, &callbacks,
+				rbtdb->common.mctx));
 }
 
 static void

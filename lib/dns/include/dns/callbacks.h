@@ -15,31 +15,23 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_MASTER_H
-#define DNS_MASTER_H 1
-
-#include <isc/mem.h>
-#include <isc/lex.h>
-
+#ifndef DNS_CALLBACKS_H
+#define DNS_CALLBACKS_H 1
 #include <dns/types.h>
 #include <dns/result.h>
-#include <dns/name.h>
-#include <dns/rdataset.h>
-#include <dns/callbacks.h>
+ 
+typedef struct dns_rdatacallbacks {
+	/* dns_load_master calls this when it has rdatasets to commit */
+	dns_result_t	(*commit)(struct dns_rdatacallbacks *,
+				  dns_name_t *, dns_rdataset_t *);
+	/* dns_load_master / dns_rdata_fromtext call this to issue a error */
+	void		(*error)(struct dns_rdatacallbacks *, char *, ...);
+	/* dns_load_master / dns_rdata_fromtext call this to issue a warning */
+	void		(*warn)(struct dns_rdatacallbacks *, char *, ...);
+	/* private data handles for use by the above callback functions */
+	void		*commit_private;
+	void		*error_private;
+	void		*warn_private;
+} dns_rdatacallbacks_t;
 
-dns_result_t dns_master_load(char *master_file,
-			     dns_name_t *top,
-			     dns_name_t *origin,
-			     dns_rdataclass_t class,
-			     int *soacount,
-			     int *nscount,
-			     dns_rdatacallbacks_t *callbacks,
-			     isc_mem_t *mctx);
-
-/*
- * Requires:
- *	callbacks->commit to point ta a valid function.
- *	masterfile point to a valid string.
- */
-
-#endif	/* DNS_MASTER_H */
+#endif /* DNS_CALLBACKS_H */

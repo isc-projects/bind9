@@ -15,16 +15,18 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.29 1999/02/06 01:45:10 halley Exp $ */
+ /* $Id: rdata.c,v 1.30 1999/02/09 08:02:20 marka Exp $ */
 
 #include <config.h>
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <isc/assertions.h>
+#include <isc/error.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -79,6 +81,16 @@ static dns_result_t	time_tobuffer(char *source, isc_buffer_t *target);
 static dns_result_t	btoa_totext(unsigned char *inbuf, int inbuflen,
 				    isc_buffer_t *target);
 static dns_result_t	atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target);
+static void		default_fromtext_callback(
+					    dns_rdatacallbacks_t *callbacks,
+						  char *, ...);
+
+static void		fromtext_error(void (*callback)(dns_rdatacallbacks_t *,
+							char *, ...),
+				       dns_rdatacallbacks_t *callbacks,
+				       char *name, int line,
+				       isc_token_t *token,
+				       dns_result_t result);
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
@@ -292,7 +304,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 		   dns_rdataclass_t class, dns_rdatatype_t type,
 		   isc_lex_t *lexer, dns_name_t *origin,
 		   isc_boolean_t downcase,
-		   isc_buffer_t *target) {
+		   isc_buffer_t *target,
+		   dns_rdatacallbacks_t *callbacks) {
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
@@ -300,6 +313,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	isc_token_t token;
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 			       ISC_LEXOPT_DNSMULTILINE;
+	char *name;
+	int line;
+	void (*callback)(dns_rdatacallbacks_t *, char *, ...);
 
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
@@ -309,20 +325,43 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	if (use_default)
 		(void)NULL;
 
+	if (callbacks == NULL)
+		callback = NULL;
+	else
+		callback = callbacks->error;
+
+	if (callback == NULL)
+		callback = default_fromtext_callback;
 	/*
 	 * Consume to end of line / file.
 	 * If not at end of line initially set error code.
+	 * Call callback via fromtext_error once if there was an error.
 	 */
 	do {
+		name = isc_lex_getsourcename(lexer);
+		line = isc_lex_getsourceline(lexer);
+		if (gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE))
 		if (isc_lex_gettoken(lexer, options, &token)
 		    != ISC_R_SUCCESS) {
 			if (result == DNS_R_SUCCESS)
 				result = DNS_R_UNEXPECTED;
+			if (callback != NULL)
+				fromtext_error(callback, callbacks, name,
+					       line, NULL, result);
 			break;
 		} else if (token.type != isc_tokentype_eol &&
 			   token.type != isc_tokentype_eof) {
 			if (result == DNS_R_SUCCESS)
 				result = DNS_R_EXTRATOKEN;
+			if (callback != NULL) {
+				fromtext_error(callback, callbacks, name,
+					       line, &token, result);
+				callback = NULL;
+			}
+		} else if (result != DNS_R_SUCCESS && callback != NULL) {
+			fromtext_error(callback, callbacks, name, line,
+				       &token, result);
+			break;
 		} else
 			break;
 	} while (1);
@@ -756,13 +795,23 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	 isc_boolean_t eol) {
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 			       ISC_LEXOPT_DNSMULTILINE;
+	isc_result_t result;
 	
 	if (expect == isc_tokentype_qstring)
 		options |= ISC_LEXOPT_QSTRING;
 	if (expect == isc_tokentype_number)
 		options |= ISC_LEXOPT_NUMBER;
-        if (isc_lex_gettoken(lexer, options, token) != ISC_R_SUCCESS)
+	switch (result = isc_lex_gettoken(lexer, options, token)) {
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_NOSPACE:
+		return (DNS_R_NOSPACE);
+	default:
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_lex_gettoken() failed: %s\n",
+				 isc_result_totext(result));
                 return (DNS_R_UNEXPECTED);
+	}
 	if (eol && ((token->type == isc_tokentype_eol) || 
 		    (token->type == isc_tokentype_eof)))
 		return (DNS_R_SUCCESS);
@@ -774,6 +823,8 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
                 if (token->type == isc_tokentype_eol ||
                     token->type == isc_tokentype_eof)
                         return(DNS_R_UNEXPECTEDEND);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+			 "isc_lex_gettoken() returned unexpected token type\n");
                 return (DNS_R_UNEXPECTED);
         }
 	return (DNS_R_SUCCESS);
@@ -1274,4 +1325,61 @@ btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
 	 */
 	sprintf(buf, "x %d %x %x %x", inbuflen, Ceor, Csum, Crot);
 	return (str_totext(buf, target));
+}
+
+
+static void
+default_fromtext_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+	va_list ap;
+
+	callbacks = callbacks; /*unused*/
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+}
+
+static void
+fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
+	       dns_rdatacallbacks_t *callbacks, char *name, int line,
+	       isc_token_t *token, dns_result_t result)
+{
+	if (name == NULL)
+		name = "UNKNOWN";
+
+	if (token != NULL) {
+		switch (token->type) {
+		case isc_tokentype_eol:
+			(*callback)(callbacks, "%s: %s:%d: near eol: %s\n",
+				    "dns_rdata_fromtext", name, line,
+				    dns_result_totext(result));
+			break;
+		case isc_tokentype_eof:
+			(*callback)(callbacks, "%s: %s:%d: near eof: %s\n",
+				    "dns_rdata_fromtext", name, line,
+				    dns_result_totext(result));
+			break;
+		case isc_tokentype_number:
+			(*callback)(callbacks, "%s: %s:%d: near %lu: %s\n",
+				    "dns_rdata_fromtext", name, line,
+				    token->value.as_ulong,
+				    dns_result_totext(result));
+			break;
+		case isc_tokentype_string:
+		case isc_tokentype_qstring:
+			(*callback)(callbacks, "%s: %s:%d: near \"%s\": %s\n",
+				    "dns_rdata_fromtext", name, line,
+				    (char *)token->value.as_pointer,
+				    dns_result_totext(result));
+			break;
+		default:
+			(*callback)(callbacks, "%s: %s:%d: %s\n",
+				    "dns_rdata_fromtext", name, line,
+				    dns_result_totext(result));
+			break;
+		}
+	} else {
+		(*callback)(callbacks, "dns_rdata_fromtext: %s:%d: %s\n",
+			    name, line, dns_result_totext(result));
+	}
 }

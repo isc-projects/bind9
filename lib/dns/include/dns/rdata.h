@@ -95,6 +95,7 @@
 
 #include <dns/types.h>
 #include <dns/name.h>
+#include <dns/callbacks.h>
 
 /*****
  ***** RData
@@ -253,7 +254,8 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
 				isc_lex_t *lexer,
 				dns_name_t *origin,
 				isc_boolean_t downcase,
-				isc_buffer_t *target);
+				isc_buffer_t *target,
+				dns_rdatacallbacks_t *callbacks);
 /*
  * Convert the textual representation of a DNS rdata into uncompressed wire
  * form stored in the target region.  Tokens constituting the text of the rdata

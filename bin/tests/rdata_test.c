@@ -188,7 +188,7 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
 				ISC_BUFFERTYPE_BINARY);
 		result = dns_rdata_fromtext(&rdata, class, type, lex,
-					    NULL, ISC_FALSE, &dbuf);
+					    NULL, ISC_FALSE, &dbuf, NULL);
 		if (result != DNS_R_SUCCESS) {
 			fprintf(stdout,
 				"dns_rdata_fromtext returned %s(%d)\n",

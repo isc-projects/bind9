@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/buffer.h>
@@ -13,18 +14,19 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-dns_result_t print_dataset(dns_name_t *owner, dns_rdataset_t *dataset,
-			   void *private);
+dns_result_t print_dataset(dns_rdatacallbacks_t *callbacks,
+			   dns_name_t *owner, dns_rdataset_t *dataset);
 
 isc_mem_t *mctx;
 
 dns_result_t
-print_dataset(dns_name_t *owner, dns_rdataset_t *dataset, void *private) {
+print_dataset(dns_rdatacallbacks_t *callbacks, dns_name_t *owner,
+	      dns_rdataset_t *dataset) {
 	char buf[64*1024];
 	isc_buffer_t target;
 	dns_result_t result;
 	
-	private = private;
+	callbacks = callbacks;	/*unused*/
 
 	isc_buffer_init(&target, buf, 64*1024, ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, &target);
@@ -47,6 +49,7 @@ main(int argc, char *argv[]) {
 	unsigned char name_buf[255];
 	int soacount = 0;
 	int nscount = 0;
+	dns_rdatacallbacks_t callbacks;
 
 	argc = argc;
 
@@ -67,10 +70,12 @@ main(int argc, char *argv[]) {
 			exit(1);
 		}
 				
+		memset(&callbacks, 0, sizeof callbacks);
+		callbacks.commit = print_dataset;
 		
 		result = dns_master_load(argv[1], &origin, &origin, 1,
 					 &soacount, &nscount,
-					 print_dataset, NULL, mctx);
+					 &callbacks, mctx);
 		fprintf(stdout, "dns_master_load: %s\n",
 			dns_result_totext(result));
 		if (result == DNS_R_SUCCESS)
