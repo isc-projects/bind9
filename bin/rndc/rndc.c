@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.22 2000/08/01 01:12:28 tale Exp $ */
+/* $Id: rndc.c,v 1.23 2000/08/01 14:50:15 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -361,7 +361,7 @@ main(int argc, char **argv) {
 
 	(void)dns_c_ndcctx_getoptions(config, &configopts);
 
-	if (servername == NULL)
+	if (servername == NULL && configopts != NULL)
 		result = dns_c_ndcopts_getdefserver(configopts, &servername);
 
 	if (servername != NULL)
@@ -369,7 +369,7 @@ main(int argc, char **argv) {
 	else {
 		fprintf(stderr, "%s: no server specified and no default\n",
 			progname);
-		exit (1);
+		exit(1);
 	}
 
 	/*
