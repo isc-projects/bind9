@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.143 2001/06/25 23:50:33 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.144 2001/06/26 23:53:39 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3070,16 +3070,20 @@ and the option is ignored.</para></listitem></varlistentry>
 <varlistentry>
 <term><command>additional-from-auth</command></term>
 <term><command>additional-from-cache</command></term>
-<listitem><para>
-These options control the server's behavior when answering queries
-which have additional data, or when following CNAME and DNAME
-chains to provide additional data.
-</para><para>
+<listitem>
+
+<para>
+These options control the behavior of an authoritative server when
+answering queries which have additional data, or when following CNAME
+and DNAME chains.
+</para>
+
+<para>
 When both of these options are set to <userinput>yes</userinput> 
 (the default) and a
-query is being answered from authoratitive data (a zone
+query is being answered from authoritative data (a zone
 configured into the server), the additional data section of the
-reply will be filled in using data from other authoratitive zones
+reply will be filled in using data from other authoritative zones
 and from the cache.  In some situations this is undesirable, such
 as when there is concern over the correctness of the cache, or
 in servers where slave zones may be added and modified by
@@ -3087,12 +3091,44 @@ untrusted third parties.  Also, avoiding
 the search for this additional data will speed up server operations
 at the possible expense of additional queries to resolve what would
 otherwise be provided in the additional section.
-</para><para>
+</para>
+
+<para>
 For example, if a query asks for an MX record for host <literal>foo.example.com</literal>,
 and the record found is "<literal>MX 10 mail.example.net</literal>", normally the address
 records (A, A6, and AAAA) for <literal>mail.example.net</literal> will be provided as well,
-if known.  These options disable this behavior.
-</para></listitem></varlistentry>
+if known.  Setting these options to <command>no</command> disables this behavior.
+</para>
+
+<para>
+These options are intended for use in authoritative-only 
+servers, or in authoritative-only views.  Attempts to set
+them to <command>no</command> without also specifying
+<command>recursion no;</command> will cause the server to
+ignore the options and log a warning message.
+</para>
+
+<para>
+Specifying <command>additional-from-cache no</command> actually
+disables the use of the cache not only for additional data lookups
+but also when looking up the answer.  This is usually the desired
+behavior in an authoritative-only server where the correctness of
+the cached data is an issue.
+</para>
+
+<para>
+When a name server is non-recursively queried for a name that is not
+below the apex of any served zone, it normally answers with an
+"upwards referral" to the root servers or the servers of some other
+known parent of the query name.  Since the data in an upwards referral
+comes from the cache, the server will not be able to provide upwards
+referrals when <command>additional-from-cache no</command>
+has been specified.  Instead, it will respond to such queries
+with REFUSED.  This should not cause any problems since
+upwards referrals are not required for the resolution process.
+</para>
+
+</listitem></varlistentry>
 
 <varlistentry><term><command>match-mapped-addresses</command></term>
 <listitem><para>If <userinput>yes</userinput>, then an

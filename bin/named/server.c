@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.331 2001/06/18 20:03:48 gson Exp $ */
+/* $Id: server.c,v 1.332 2001/06/26 23:53:37 gson Exp $ */
 
 #include <config.h>
 
@@ -755,17 +755,30 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		INSIST(0);
 	
 	/*
-	 * Set sources where additional data, CNAMEs, and DNAMEs may be found.
+	 * Set sources where additional data and CNAME/DNAME
+	 * targets for authoritative answers may be found.
 	 */
 	obj = NULL;
 	result = ns_config_get(maps, "additional-from-auth", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->additionalfromauth = cfg_obj_asboolean(obj);
+	if (view->recursion && ! view->additionalfromauth) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "'additional-from-auth no' is only supported "
+			    "with 'recursion no'");
+		view->additionalfromauth = ISC_TRUE;
+	}
 
 	obj = NULL;
 	result = ns_config_get(maps, "additional-from-cache", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->additionalfromcache = cfg_obj_asboolean(obj);
+	if (view->recursion && ! view->additionalfromcache) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "'additional-from-cache no' is only supported "
+			    "with 'recursion no'");
+		view->additionalfromcache = ISC_TRUE;
+	}
 
 	CHECK(configure_view_acl(vconfig, config, "allow-query",
 				 actx, ns_g_mctx, &view->queryacl));

@@ -1,3 +1,10 @@
+
+ 912.	[bug]		Attempts to set the 'additional-from-cache' or
+			'additional-from-auth' option to 'no' in a
+			server with recursion enabled will now
+			be ignored and cause a warning message.
+			[RT #1145]
+
  911.	[placeholder]
 
  910.	[port]		Some pre-RFC2133 IPv6 implementations do not define
