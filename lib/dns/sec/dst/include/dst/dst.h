@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.42.2.1.8.5 2004/03/10 02:55:59 marka Exp $ */
+/* $Id: dst.h,v 1.42.2.1.8.6 2004/06/11 00:31:01 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -218,6 +218,7 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id, unsigned int alg, int type,
  *	"id" is a valid key tag identifier.
  *	"alg" is a supported key algorithm.
  *	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union.
+ *		  DST_TYPE_KEY look for a KEY record otherwise DNSKEY
  *	"mctx" is a valid memory context.
  *	"keyp" is not NULL and "*keyp" is NULL.
  *
@@ -240,6 +241,7 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
  * Requires:
  * 	"filename" is not NULL
  *	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union
+ *		  DST_TYPE_KEY look for a KEY record otherwise DNSKEY
  *	"mctx" is a valid memory context
  *	"keyp" is not NULL and "*keyp" is NULL.
  *

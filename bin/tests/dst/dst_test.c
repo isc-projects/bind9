@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_test.c,v 1.37.206.1 2004/03/06 10:21:43 marka Exp $ */
+/* $Id: dst_test.c,v 1.37.206.2 2004/06/11 00:30:52 marka Exp $ */
 
 #include <config.h>
 
@@ -160,7 +160,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx) {
 	isc_region_t r1, r2;
 	unsigned char array1[1024], array2[1024];
 	int alg = DST_ALG_DH;
-	int type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE;
+	int type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE|DST_TYPE_KEY;
 
 	ret = dst_key_fromfile(name1, id1, alg, type, current, mctx, &key1);
 	printf("read(%d) returned: %s\n", alg, isc_result_totext(ret));

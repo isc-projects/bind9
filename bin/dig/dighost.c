@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.11 2004/04/13 03:00:06 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.12 2004/06/11 00:30:50 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -864,7 +864,7 @@ setup_file_key(void) {
 	dst_key_t *dstkey = NULL;
 
 	debug("setup_file_key()");
-	result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE,
+	result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE | DST_TYPE_KEY,
 				       mctx, &dstkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "Couldn't read key from %s: %s\n",
@@ -3552,8 +3552,8 @@ get_trusted_key(isc_mem_t *mctx)
 			return ISC_R_FAILURE;
 		}
 		fclose(fptemp);
-		result = dst_key_fromnamedfile(filetemp, DST_TYPE_PUBLIC,
-					       mctx, &key);
+		result = dst_key_fromnamedfile(filetemp, DST_TYPE_PUBLIC |
+					       DST_TYPE_KEY, mctx, &key);
 		removetmpkey(mctx, filetemp);
 		isc_mem_free(mctx, filetemp);
 		if (result !=  ISC_R_SUCCESS ) {
