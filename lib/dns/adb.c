@@ -2205,25 +2205,24 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	/*
 	 * Memory pools
 	 */
-#define MPINIT(t, p, l, n) do { \
+#define MPINIT(t, p, n) do { \
 	result = isc_mempool_create(mem, sizeof (t), &(p)); \
 	if (result != ISC_R_SUCCESS) \
 		goto fail3; \
 	isc_mempool_setfreemax((p), FREE_ITEMS); \
 	isc_mempool_setfillcount((p), FILL_COUNT); \
 	isc_mempool_setname((p), n); \
-	if (l) \
-		isc_mempool_associatelock((p), &adb->mplock); \
+	isc_mempool_associatelock((p), &adb->mplock); \
 } while (0)
 
-	MPINIT(dns_adbname_t, adb->nmp, ISC_TRUE, "adbname");
-	MPINIT(dns_adbnamehook_t, adb->nhmp, ISC_TRUE, "adbnamehook");
-	MPINIT(dns_adbzoneinfo_t, adb->zimp, ISC_TRUE, "adbzoneinfo");
-	MPINIT(dns_adbentry_t, adb->emp, ISC_TRUE, "adbentry");
-	MPINIT(dns_adbfind_t, adb->ahmp, ISC_TRUE, "adbfind");
-	MPINIT(dns_adbaddrinfo_t, adb->aimp, ISC_TRUE, "adbaddrinfo");
-	MPINIT(dns_adbfetch_t, adb->afmp, ISC_TRUE, "adbfetch");
-	MPINIT(dns_adbfetch6_t, adb->af6mp, ISC_TRUE, "adbfetch6");
+	MPINIT(dns_adbname_t, adb->nmp, "adbname");
+	MPINIT(dns_adbnamehook_t, adb->nhmp, "adbnamehook");
+	MPINIT(dns_adbzoneinfo_t, adb->zimp, "adbzoneinfo");
+	MPINIT(dns_adbentry_t, adb->emp, "adbentry");
+	MPINIT(dns_adbfind_t, adb->ahmp, "adbfind");
+	MPINIT(dns_adbaddrinfo_t, adb->aimp, "adbaddrinfo");
+	MPINIT(dns_adbfetch_t, adb->afmp, "adbfetch");
+	MPINIT(dns_adbfetch6_t, adb->af6mp, "adbfetch6");
 
 #undef MPINIT
 
