@@ -41,6 +41,8 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"already exists",			/* 18 */
 	"buffer too small",			/* 19 */
 	"operation canceled",			/* 20 */
+	"sending events is not allowed",	/* 21 */
+	"task is shutting down",		/* 22 */
 };
 
 char *
