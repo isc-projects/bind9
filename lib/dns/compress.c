@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.31 2000/05/04 22:19:00 gson Exp $ */
+/* $Id: compress.c,v 1.32 2000/05/04 22:36:24 gson Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -63,7 +63,7 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 
 	cctx->allowed = 0;
 	cctx->rdata = 0;
-	cctx->global16 = (edns >= 1) ? ISC_TRUE : ISC_FALSE;
+	cctx->global16 = ISC_FALSE;
 	cctx->edns = edns;
 	cctx->global = NULL;
 	result = dns_rbt_create(mctx, free_offset, mctx, &cctx->global);
@@ -92,8 +92,6 @@ void
 dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed) {
 	REQUIRE(VALID_CCTX(cctx));
 
-	if (cctx->edns >= 1 && (allowed & DNS_COMPRESS_GLOBAL14) != 0)
-		allowed |= DNS_COMPRESS_GLOBAL16;
 	cctx->allowed = allowed;
 }
 
