@@ -73,6 +73,9 @@ dns_message_t *query, *response, *query2, *response2;
 isc_mem_t *mctx;
 dns_tsigkey_t *tsigkey;
 isc_log_t *log = NULL;
+dns_tsig_keyring_t *ring = NULL;
+dns_tkey_ctx_t *tctx = NULL;
+isc_buffer_t *nonce = NULL;
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
@@ -114,7 +117,8 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_message_parse", result);
 
 	tsigkey = NULL;
-	result = dns_tkey_processdhresponse(query, response, ourkey, &tsigkey);
+	result = dns_tkey_processdhresponse(query, response, ourkey, nonce,
+					    &tsigkey, ring);
 	CHECK("dns_tkey_processdhresponse", result);
 	printf("response ok\n");
 
@@ -164,7 +168,7 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_parse(response2, &source, ISC_FALSE);
 	CHECK("dns_message_parse", result);
 
-	result = dns_tkey_processdeleteresponse(query2, response2);
+	result = dns_tkey_processdeleteresponse(query2, response2, ring);
 	CHECK("dns_tkey_processdeleteresponse", result);
 	printf("response ok\n");
 	exit(0);
@@ -177,12 +181,18 @@ buildquery(void) {
 	isc_region_t r, inr;
 	isc_result_t result;
 
+	result = isc_buffer_allocate(mctx, &nonce, 16, ISC_BUFFERTYPE_BINARY);
+	CHECK("isc_buffer_allocate", result);
+
+	result = dst_random_get(16, nonce);
+	CHECK("dst_random_get", result);
+	
 	query = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 	CHECK("dns_message_create", result);
 
 	result = dns_tkey_builddhquery(query, ourkey, dns_rootname,
-				       DNS_TSIG_HMACMD5_NAME, NULL);
+				       DNS_TSIG_HMACMD5_NAME, nonce);
 	CHECK("dns_tkey_builddhquery", result);
 
 	isc_buffer_init(&qbuffer, qdata, sizeof(qdata), ISC_BUFFERTYPE_BINARY);
@@ -302,8 +312,9 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_log_create(mctx, &log) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_tsig_init(log, NULL, mctx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_tkey_init(log, NULL, mctx) == ISC_R_SUCCESS);
+	ring = NULL;
+	RUNTIME_CHECK(dns_tsig_init(NULL, mctx, &ring) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_tkey_init(NULL, mctx, &tctx) == ISC_R_SUCCESS);
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
@@ -344,8 +355,8 @@ main(int argc, char *argv[]) {
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
 
-	dns_tsig_destroy();
-	dns_tkey_destroy();
+	dns_tsig_destroy(&ring);
+	dns_tkey_destroy(&tctx);
 	if (verbose)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

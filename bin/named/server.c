@@ -74,9 +74,6 @@ typedef struct {
 	dns_aclconfctx_t	*aclconf;
 } ns_load_t;
 
-/* XXX temporary kludge until TSIG/TKEY are objectified */
-static isc_boolean_t tsig_initialized = ISC_FALSE;
-
 /*
  * Configure 'view' according to 'cctx'.
  *
@@ -88,6 +85,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 	dns_cache_t *cache;
 	isc_result_t result;
 	isc_int32_t cleaning_interval;
+	dns_tsig_keyring_t *ring;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -135,6 +133,15 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 	 */
 	if (view->rdclass == dns_rdataclass_in)
 		dns_view_sethints(view, ns_g_server->roothints);
+
+	/*
+	 * Load the TSIG keys
+	 */
+	ring = NULL;
+	result = dns_tsig_init(cctx, view->mctx, &ring);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	dns_view_setkeyring(view, ring);
 
 	return (ISC_R_SUCCESS);
 
@@ -618,25 +625,13 @@ load_configuration(const char *filename, ns_server_t *server) {
 		dns_view_detach(&view);
 	}
 
-	if (tsig_initialized) {
-		dns_tkey_destroy();
-		dns_tsig_destroy();
-	}
-	tsig_initialized = ISC_TRUE;
-
-	/*
-	 * Load the TSIG information from the configuration
-	 */
-        result = dns_tsig_init(ns_g_lctx, configctx, ns_g_mctx);
-        if (result != ISC_R_SUCCESS)
-                ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
-				"dns_tsig_init() failed: %s",
-                                isc_result_totext(result));
+	if (ns_g_tkeyctx != NULL)
+		dns_tkey_destroy(&ns_g_tkeyctx);
 
 	/*
 	 * Load the TKEY information from the configuration
 	 */
-	result = dns_tkey_init(ns_g_lctx, configctx, ns_g_mctx);
+	result = dns_tkey_init(configctx, ns_g_mctx, &ns_g_tkeyctx);
 	if (result != ISC_R_SUCCESS) {
 		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 				"dns_tkey_init() failed: %s",
@@ -713,8 +708,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
 
-	dns_tkey_destroy();
-	dns_tsig_destroy();
+	dns_tkey_destroy(&ns_g_tkeyctx);
 
 	ns_clientmgr_destroy(&server->clientmgr);
 	ns_interfacemgr_shutdown(server->interfacemgr);
