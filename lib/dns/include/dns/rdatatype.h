@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatatype.h,v 1.14 2000/11/09 23:55:03 bwelling Exp $ */
+/* $Id: rdatatype.h,v 1.15 2000/11/15 19:05:32 gson Exp $ */
 
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1
@@ -58,6 +58,22 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target);
  * Returns:
  *	ISC_R_SUCCESS			on success
  *	ISC_R_NOSPACE			target buffer is too small
+ */
+
+void
+dns_rdatatype_format(dns_rdatatype_t rdtype
+		     char *array, unsigned int size);
+/*
+ * Format a human-readable representation of the type 'rdtype'
+ * into the character array 'array', which is of size 'size'.
+ * The resulting string is guaranteed to be null-terminated.
+ */
+
+#define DNS_RDATATYPE_FORMATSIZE sizeof("TYPE65535")
+/*
+ * Minimum size of array to pass to dns_rdatatype_format().
+ * May need to be adjusted if a new RR type with a very long
+ * name is defined.
  */
 
 ISC_LANG_ENDDECLS

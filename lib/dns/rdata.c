@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.123 2000/11/14 23:29:53 bwelling Exp $ */
+/* $Id: rdata.c,v 1.124 2000/11/15 19:05:28 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1018,7 +1018,30 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 		sprintf(buf, "CLASS%u", rdclass);
 		return (str_totext(buf, target));
 	}
+}
 
+void
+dns_rdataclass_format(dns_rdataclass_t rdclass,
+		      char *array, unsigned int size)
+{
+	isc_result_t result;
+	isc_buffer_t buf;
+
+	isc_buffer_init(&buf, array, size);
+	result = dns_rdataclass_totext(rdclass, &buf);
+	/*
+	 * Null terminate.
+	 */
+	if (result == ISC_R_SUCCESS) {
+		if (isc_buffer_availablelength(&buf) >= 1)
+			isc_buffer_putuint8(&buf, 0);
+		else
+			result = ISC_R_NOSPACE;
+	}
+	if (result != ISC_R_SUCCESS) {
+		snprintf(array, size, "<unknown>");
+		array[size - 1] = '\0';
+	}
 }
 
 isc_result_t
@@ -1067,6 +1090,31 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 
 	return (str_totext(typeattr[type].name, target));
 }
+
+void
+dns_rdatatype_format(dns_rdatatype_t rdtype
+		     char *array, unsigned int size);
+{
+	isc_result_t result;
+	isc_buffer_t buf;
+
+	isc_buffer_init(&buf, array, size);
+	result = dns_type_totext(rdclass, &buf);
+	/*
+	 * Null terminate.
+	 */
+	if (result == ISC_R_SUCCESS) {
+		if (isc_buffer_availablelength(&buf) >= 1)
+			isc_buffer_putuint8(&buf, 0);
+		else
+			result = ISC_R_NOSPACE;
+	}
+	if (result != ISC_R_SUCCESS) {
+		snprintf(array, size, "<unknown>");
+		array[size - 1] = '\0';
+	}
+}
+
 
 /* XXXRTH  Should we use a hash table here? */
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataclass.h,v 1.15 2000/11/09 23:55:02 bwelling Exp $ */
+/* $Id: rdataclass.h,v 1.16 2000/11/15 19:05:30 gson Exp $ */
 
 #ifndef DNS_RDATACLASS_H
 #define DNS_RDATACLASS_H 1
@@ -58,6 +58,20 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target);
  * Returns:
  *	ISC_R_SUCCESS			on success
  *	ISC_R_NOSPACE			target buffer is too small
+ */
+
+void
+dns_rdataclass_format(dns_rdataclass_t rdclass,
+		      char *array, unsigned int size);
+/*
+ * Format a human-readable representation of the class 'rdclass'
+ * into the character array 'array', which is of size 'size'.
+ * The resulting string is guaranteed to be null-terminated.
+ */
+
+#define DNS_RDATACLASS_FORMATSIZE sizeof("CLASS65535")
+/*
+ * Minimum size of array to pass to dns_rdataclass_format().
  */
 
 ISC_LANG_ENDDECLS

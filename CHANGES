@@ -1,4 +1,8 @@
 
+ 563.	[func]		New public functions dns_rdatatype_format() and
+			dns_rdataclass_format(), for convenient formatting
+			of rdata type/class mnemonics in log messages.
+
  562.	[cleanup]	Moved lib/dns/*conf.c to bin/named where they belong.
 
  561.	[func]		The 'datasize', 'stacksize', 'coresize' and 'files'
