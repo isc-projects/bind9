@@ -298,13 +298,21 @@ void dns_zone_refresh(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_dump(dns_zone_t *zone, FILE *fd);
+isc_result_t dns_zone_dump(dns_zone_t *zone);
 /*
- *	Write the zone to 'fd' in MASTER file format.
+ *	Write the zone to database.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
- *	'fd' to be an active file handle open for writing.
+ */
+
+isc_result_t dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
+/*
+ *	Write the zone to stream 'fd'.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
+ *	'fd' to be a stream open for writing.
  */
 
 void dns_zone_maintenance(dns_zone_t *zone);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.71 2000/01/28 23:48:58 gson Exp $ */
+ /* $Id: zone.c,v 1.72 2000/01/31 02:11:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1555,7 +1555,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 		if (now >= zone->dumptime &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED) &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP)) {
-			dns_zone_dump(zone, stdout);
+			dns_zone_dump(zone);
 		}
 		UNLOCK(&zone->lock);
 		break;
@@ -1630,7 +1630,7 @@ dns_zone_expire(dns_zone_t *zone) {
 static void
 expire(dns_zone_t *zone) {
 	if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP))
-		dns_zone_dump(zone, stdout); /* XXX */
+		dns_zone_dump(zone);
 	zone->flags |= DNS_ZONE_F_EXPIRED;
 	dns_zone_setrefresh(zone, DEFAULT_REFRESH, DEFAULT_RETRY);
 	unload(zone);
@@ -1675,80 +1675,34 @@ dns_zone_refresh(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_dump(dns_zone_t *zone, FILE *fd) {
-	dns_dbiterator_t *dbiterator = NULL;
-	dns_dbversion_t *version = NULL;
+dns_zone_dump(dns_zone_t *zone) {
 	isc_result_t result;
-	dns_fixedname_t fname;
-	dns_name_t *name;
-	dns_rdatasetiter_t *rdsiter = NULL;
-	dns_dbnode_t *node = NULL;
-	isc_buffer_t text;
-	isc_region_t region;
-	char *buf = NULL;
-	unsigned int buflen = 1024;
-	dns_rdataset_t rdataset;
+	dns_dbversion_t *version = NULL;
+	dns_db_t *top = NULL;
+	
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	dns_db_attach(zone->top, &top);
+	dns_db_currentversion(top, &version);
+	result = dns_master_dump(zone->mctx, top, version,
+				 &dns_master_style_default, zone->database);
+	dns_db_closeversion(top, &version, ISC_FALSE);
+	dns_db_detach(&top);
+	return (result);
+}
+
+isc_result_t
+dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
+	isc_result_t result;
+	dns_dbversion_t *version = NULL;
 	dns_db_t *top = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-
 	dns_db_attach(zone->top, &top);
 	dns_db_currentversion(top, &version);
-	result = dns_db_createiterator(top, ISC_FALSE, &dbiterator);
-	if (result == DNS_R_SUCCESS)
-		result = dns_dbiterator_first(dbiterator);
-	while (result == DNS_R_SUCCESS) {
-		result = dns_dbiterator_current(dbiterator, &node, name);
-		if (result != DNS_R_SUCCESS && result != DNS_R_NEWORIGIN)
-			break;
-		result = dns_db_allrdatasets(zone->top, node, version, 0,
-					     &rdsiter);
-		if (result != DNS_R_SUCCESS) {
-			dns_db_detachnode(top, &node);
-			break;
-		}
-		dns_rdataset_init(&rdataset);
-		result = dns_rdatasetiter_first(rdsiter);
-		while (result == DNS_R_SUCCESS) {
-			dns_rdatasetiter_current(rdsiter, &rdataset);
- retry:
-			if (buf == NULL)
-				buf = isc_mem_get(zone->mctx, buflen);
-			if (buf == NULL)
-				result = DNS_R_NOMEMORY;
-			isc_buffer_init(&text, buf, buflen,
-					ISC_BUFFERTYPE_TEXT);
-			if (result == DNS_R_SUCCESS)
-				result = dns_rdataset_totext(&rdataset, name,
-							     ISC_FALSE,
-							     ISC_FALSE, &text);
-			if (result == DNS_R_NOSPACE) {
-				isc_mem_put(zone->mctx, buf, buflen);
-				buf = NULL;
-				buflen += 1024;
-				goto retry;
-			}
-			isc_buffer_used(&text, &region);
-			if (result == DNS_R_SUCCESS)
-				fprintf(fd, "%.*s", (int)region.length,
-					(char *)region.base);
-			dns_rdataset_disassociate(&rdataset);
-			if (result == DNS_R_SUCCESS)
-				result = dns_rdatasetiter_next(rdsiter);
-		}
-		dns_rdatasetiter_destroy(&rdsiter);
-		dns_db_detachnode(top, &node);
-		if (result == DNS_R_NOMORE)
-			result = dns_dbiterator_next(dbiterator);
-	}
-	if (result == DNS_R_NOMORE)
-		result = DNS_R_SUCCESS;
-	if (buf != NULL)
-		isc_mem_put(zone->mctx, buf, buflen);
-	dns_dbiterator_destroy(&dbiterator);
+	result = dns_master_dumptostream(zone->mctx, top, version,
+					 &dns_master_style_default, fd);
 	dns_db_closeversion(top, &version, ISC_FALSE);
 	dns_db_detach(&top);
 	return (result);
