@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.175 2001/01/22 19:21:19 gson Exp $ */
+/* $Id: query.c,v 1.176 2001/01/23 01:50:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -141,10 +141,11 @@ synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent);
 /*
  * Increment query statistics counters.
  */
-static void
-count_query(dns_zone_t *zone, isc_boolean_t is_zone, dns_statscounter_t counter)
+static inline void
+count_query(dns_zone_t *zone, isc_boolean_t is_zone,
+	    dns_statscounter_t counter)
 {
-	REQUIRE(counter < dns_stats_ncounters());
+	REQUIRE(counter < DNS_STATS_NCOUNTERS);
 
 	ns_g_server->querystats[counter]++;
 
@@ -2387,8 +2388,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		}
 		fname = query_newname(client, dbuf, &b);
 		if (fname == NULL) {
-			count_query(zone, is_zone,
-				    dns_statscounter_failure);
+			count_query(zone, is_zone, dns_statscounter_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
@@ -2518,7 +2518,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			result = dns_name_copy(client->query.qname,
 					       fname, NULL);
 			if (result != ISC_R_SUCCESS) {
-				count_query(zone, is_zone, dns_statscounter_failure);
+				count_query(zone, is_zone,
+					    dns_statscounter_failure);
 				QUERY_ERROR(DNS_R_SERVFAIL);
 				goto cleanup;
 			}
@@ -2704,7 +2705,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 						NS_QUERYATTR_RECURSING;
 				else {
 					count_query(zone, is_zone,
-						       dns_statscounter_failure);
+						    dns_statscounter_failure);
 					QUERY_ERROR(DNS_R_SERVFAIL);
 				}
 			} else {
@@ -2758,8 +2759,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 */
 		result = query_addsoa(client, db, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
-			count_query(zone, is_zone,
-					     dns_statscounter_failure);
+			count_query(zone, is_zone, dns_statscounter_failure);
 			QUERY_ERROR(result);
 			goto cleanup;
 		}
@@ -2817,8 +2817,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		else
 			result = query_addsoa(client, db, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
-			count_query(zone, is_zone,
-					     dns_statscounter_failure);
+			count_query(zone, is_zone, dns_statscounter_failure);
 			QUERY_ERROR(result);
 			goto cleanup;
 		}
@@ -3042,8 +3041,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		rdsiter = NULL;
 		result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
-			count_query(zone, is_zone,
-				    dns_statscounter_failure);
+			count_query(zone, is_zone, dns_statscounter_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.283 2001/01/22 19:21:18 gson Exp $ */
+/* $Id: server.c,v 1.284 2001/01/23 01:50:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2395,7 +2395,7 @@ ns_server_dumpstats(ns_server_t *server) {
 	CHECKM(isc_stdio_open(server->statsfile, "a", &fp),
 	       "could not open statistics dump file");
 	
-	ncounters = dns_stats_ncounters();
+	ncounters = DNS_STATS_NCOUNTERS;
 	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
 	
 	for (i = 0; i < ncounters; i++)

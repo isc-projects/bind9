@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.2 2001/01/09 21:53:30 bwelling Exp $ */
+/* $Id: stats.h,v 1.3 2001/01/23 01:50:29 bwelling Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
@@ -50,12 +50,6 @@ dns_stats_freecounters(isc_mem_t *mctx, isc_uint64_t **ctrp);
 /*
  * Free an array of query statistics counters allocated from the memory
  * context 'mctx'.
- */
-
-unsigned int
-dns_stats_ncounters(void);
-/*
- * Return the number of query statistics counters.
  */
 
 ISC_LANG_ENDDECLS

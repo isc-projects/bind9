@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.c,v 1.3 2001/01/09 21:51:34 bwelling Exp $ */
+/* $Id: stats.c,v 1.4 2001/01/23 01:50:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -49,9 +49,4 @@ void
 dns_stats_freecounters(isc_mem_t *mctx, isc_uint64_t **ctrp) {
 	isc_mem_put(mctx, *ctrp, DNS_STATS_NCOUNTERS * sizeof(isc_uint64_t));
 	*ctrp = NULL;
-}
-
-unsigned int
-dns_stats_ncounters(void) {
-	return (DNS_STATS_NCOUNTERS);
 }
