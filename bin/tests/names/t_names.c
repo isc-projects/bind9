@@ -2171,7 +2171,7 @@ test_dns_name_fromwire( char *datafile_name,
 
 	isc_buffer_init(&iscbuf2, buf2, buflen);
 	dns_name_init(&dns_name1, NULL);
-	dns_decompress_init(&dctx, -1, ISC_FALSE);
+	dns_decompress_init(&dctx, -1, ISC_TRUE);
 	dns_decompress_setmethods(&dctx, dc_method);
 	dns_result = dns_name_fromwire(&dns_name1, &iscbuf1,
 					&dctx, downcase ? ISC_TRUE : ISC_FALSE, &iscbuf2);
