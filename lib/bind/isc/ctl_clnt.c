@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_clnt.c,v 1.3 2001/04/03 06:42:29 marka Exp $";
+static const char rcsid[] = "$Id: ctl_clnt.c,v 1.4 2001/06/06 01:56:32 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -136,6 +136,7 @@ ctl_client(evContext lev, const struct sockaddr *cap, size_t cap_len,
 	static const char me[] = "ctl_client";
 	static const int on = 1;
 	struct ctl_cctx *ctx;
+	struct sockaddr *captmp;
 
 	if (logger == NULL)
 		logger = ctl_logger;
@@ -174,7 +175,8 @@ ctl_client(evContext lev, const struct sockaddr *cap, size_t cap_len,
 				       "%s: setsockopt(REUSEADDR): %s",
 				       me, strerror(errno));
 		}
-		if (bind(ctx->sock, cap, cap_len) < 0) {
+		DE_CONST(cap, captmp);
+		if (bind(ctx->sock, captmp, cap_len) < 0) {
 			(*ctx->logger)(ctl_error, "%s: bind: %s", me,
 				       strerror(errno));
 			goto fatal;
