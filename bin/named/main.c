@@ -21,11 +21,11 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <unistd.h>		/* XXXRTH  Naughty.  Needed for getopt(). */
 
 #include <isc/app.h>
 #include <isc/error.h>
 #include <isc/boolean.h>
+#include <isc/commandline.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 
@@ -70,15 +70,15 @@ parse_command_line(int argc, char *argv[]) {
 	int ch;
 	ns_dbinfo_t *dbi;
 
-	/*+ XXXRTH we need a veneered getopt() */
-	while ((ch = getopt(argc, argv, "c:N:p:sz:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "c:N:p:sz:")) != -1) {
 		switch (ch) {
 		case 'c':
 			/* XXXRTH temporary syntax */
 			dbi = isc_mem_get(ns_g_mctx, sizeof *dbi);
 			if (dbi == NULL)
 				early_fatal("creating cache info failed");
-			dbi->path = isc_mem_strdup(ns_g_mctx, optarg);
+			dbi->path = isc_mem_strdup(ns_g_mctx,
+						   isc_commandline_argument);
 			if (dbi->path == NULL)
 				early_fatal("out of memory");
 			dbi->origin = isc_mem_strdup(ns_g_mctx, ".");
@@ -93,12 +93,12 @@ parse_command_line(int argc, char *argv[]) {
 			ISC_LIST_APPEND(ns_g_dbs, dbi, link);
 			break;
 		case 'N':
-			ns_g_cpus = atoi(optarg);
+			ns_g_cpus = atoi(isc_commandline_argument);
 			if (ns_g_cpus == 0)
 				ns_g_cpus = 1;
 			break;
 		case 'p':
-			ns_g_port = atoi(optarg);
+			ns_g_port = atoi(isc_commandline_argument);
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
@@ -109,7 +109,8 @@ parse_command_line(int argc, char *argv[]) {
 			dbi = isc_mem_get(ns_g_mctx, sizeof *dbi);
 			if (dbi == NULL)
 				early_fatal("creating zone info failed");
-			argtext = isc_mem_strdup(ns_g_mctx, optarg);
+			argtext = isc_mem_strdup(ns_g_mctx,
+						 isc_commandline_argument);
 			if (argtext == NULL)
 				early_fatal("out of memory");
 			mastertext = strrchr(argtext, '@');
@@ -151,12 +152,12 @@ parse_command_line(int argc, char *argv[]) {
 			early_fatal("unknown command line argument");
 			break;
 		default:
-			early_fatal("getopt() returned %d", ch);
+			early_fatal("parsing options returned %d", ch);
 		}
 	}
 
-	argc -= optind;
-	argv += optind;
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
 
 	if (argc > 1) {
 		usage();
