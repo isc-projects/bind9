@@ -11,8 +11,8 @@
 			is NULL then you need to preserve the 'rdata' until
 			you have finished using the structure as there may be
 			references to the associated memory.  If 'mctx' is 
-			non-NULL it is guaranteed that there are no 
-			references to to memory associated with 'rdata'.
+			non-NULL it is guaranteed that there are no references
+			to memory associated with 'rdata'.
 
 			dns_rdata_freestruct() must be called if 'mctx' was
 			non-NULL and may safely be called if 'mctx' was NULL.
@@ -32,8 +32,8 @@
  149.   [cleanup]	Removed usused argument 'olist' from
 			dns_c_view_unsetordering().
 
- 148.   [cleanup]	Stop issuing some warnings about some configuration file
-			statements that were not implemented, but now are.
+ 148.   [cleanup]	Stop issuing some warnings about some configuration
+			file statements that were not implemented, but now are.
 
  147.   [bug]		Changed yacc union size to be smaller for yaccs that
 			put yacc-stack on the real stack.
