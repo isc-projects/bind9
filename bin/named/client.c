@@ -225,8 +225,8 @@ client_free(ns_client_t *client) {
 	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 	isc_timer_detach(&client->timer);
 	
-	if (client->sendbuf != NULL)
-		isc_mem_put(client->mctx, client->sendbuf, TCP_BUFFER_SIZE);
+	if (client->tcpbuf != NULL)
+		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
@@ -577,6 +577,7 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	client->nsends--;
 	
 	if (client->tcpbuf != NULL) {
+		INSIST(TCP_CLIENT(client));
 		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
 		client->tcpbuf = NULL;
 	}
@@ -616,6 +617,7 @@ ns_client_send(ns_client_t *client) {
 		/*
 		 * XXXRTH  "tcpbuffer" is a hack to get things working.
 		 */
+		INSIST(client->tcpbuf == NULL);
 		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
 		if (client->tcpbuf == NULL)
 			goto done;
