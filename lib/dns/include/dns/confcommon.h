@@ -198,6 +198,7 @@ typedef enum {
 } dns_c_logseverity_t;
 
 
+#if 0					/* XXXJAB remove this */
 /* Possible logging categories. */
 typedef enum {
 	dns_c_cat_default,
@@ -225,7 +226,7 @@ typedef enum {
 	dns_c_cat_control, 
 	dns_c_cat_none
 } dns_c_category_t;
-
+#endif
 
 /* Type of the bit sets used in various structures. Macros in confpvt.h
  * depending on this being an integer type, and some structures need more
@@ -268,8 +269,6 @@ const char *		dns_c_ordering2string(dns_c_ordering_t ordering,
 					      isc_boolean_t printable);
 const char *		dns_c_logseverity2string(dns_c_logseverity_t level,
 					      isc_boolean_t printable);
-const char *		dns_c_category2string(dns_c_category_t cat,
-					      isc_boolean_t printable);
 const char *		dns_c_facility2string(int facility,
 					      isc_boolean_t printable);
 const char *		dns_c_transformat2string(dns_transfer_format_t tform,
@@ -291,8 +290,6 @@ isc_result_t		dns_c_string2ordering(char *name,
 					      dns_c_ordering_t *ordering);
 isc_result_t		dns_c_string2logseverity(const char *string,
 					      dns_c_logseverity_t *result);
-isc_result_t		dns_c_string2category(const char *string,
-					      dns_c_category_t *category);
 isc_result_t		dns_c_string2facility(const char *string, int *res);
 
 
@@ -314,6 +311,15 @@ isc_boolean_t		dns_c_netaddrisanyaddr(isc_netaddr_t *inaddr);
 void			dns_c_netaddrprint(FILE *fp, isc_netaddr_t *inaddr);
 isc_result_t		dns_c_charptoname(isc_mem_t *mem, const char *keyval,
 					  dns_name_t **name);
+
+isc_result_t		dns_c_checkcategory(const char *name);
+/*
+ * Checks the argument is a known category name.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS if the category is known.
+ *	ISC_R_FAILURE if it isn't.
+ */
 
 
 
