@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.19 2000/08/14 19:09:55 bwelling Exp $ */
+/* $Id: byaddr.c,v 1.20 2000/08/16 22:21:17 gson Exp $ */
 
 #include <config.h>
 
@@ -125,21 +125,6 @@ dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 	isc_buffer_add(&buffer, len);
 	return (dns_name_fromtext(name, &buffer, dns_rootname,
 				  ISC_FALSE, NULL));
-}
-
-static inline isc_result_t
-address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
-	isc_boolean_t nibble;
-
-	/*
-	 * The caller must be holding the byaddr's lock.
-	 */
-
-	dns_fixedname_init(&byaddr->name);
-	nibble = ISC_TF(byaddr->options & DNS_BYADDROPT_IPV6NIBBLE);
-	return (dns_byaddr_createptrname(address, nibble,
-					 dns_fixedname_name(&byaddr->name)));
-
 }
 
 static inline isc_result_t
@@ -423,7 +408,11 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_event;
 
-	result = address_to_ptr_name(byaddr, address);
+	dns_fixedname_init(&byaddr->name);
+
+	result = dns_byaddr_createptrname(address,
+			  ISC_TF(byaddr->options & DNS_BYADDROPT_IPV6NIBBLE),
+			  dns_fixedname_name(&byaddr->name));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 
