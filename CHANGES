@@ -35,7 +35,8 @@
 
 1817.	[placeholder]	rt13587
 
-1816.	[placeholder]	rt13597
+1816.	[port]		UnixWare: failed to compile lib/isc/unix/net.c.
+			[RT #13597]
 
 1815.	[bug]		nsupdate triggered a REQUIRE if the server was set
 			without also setting the zone and it encountered

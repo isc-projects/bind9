@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.32 2005/02/24 00:33:34 marka Exp $ */
+/* $Id: net.c,v 1.33 2005/03/16 01:23:08 marka Exp $ */
 
 #include <config.h>
 
@@ -247,6 +247,7 @@ initialize_ipv6only(void) {
 }
 #endif /* IPV6_V6ONLY */
 
+#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 static void
 try_ipv6pktinfo(void) {
 	int s, on;
@@ -299,6 +300,7 @@ initialize_ipv6pktinfo(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo,
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
+#endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
 #endif /* WANT_IPV6 */
 
 isc_result_t
@@ -316,10 +318,12 @@ isc_net_probe_ipv6only(void) {
 isc_result_t
 isc_net_probe_ipv6pktinfo(void) {
 #ifdef ISC_PLATFORM_HAVEIPV6
+#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 #ifdef WANT_IPV6
 	initialize_ipv6pktinfo();
 #else
 	ipv6pktinfo_result = ISC_R_NOTFOUND;
+#endif
 #endif
 #endif
 	return (ipv6pktinfo_result);
