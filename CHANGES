@@ -1,6 +1,9 @@
 
  700.	[bug]		$GENERATE range check was wrong. [RT #688]
 
+ 698.	[bug]		Aborting nsupdate with ^C would lead to several
+			race conditions.
+
  699.	[bug]		The lexer mishandled empty quoted strings. [RT #694]
 
  694.	[bug]		$GENERATE did not produce the last entry.

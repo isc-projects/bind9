@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.75.2.1 2001/01/09 22:32:54 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.75.2.2 2001/01/22 23:15:09 gson Exp $ */
 
 #include <config.h>
 
@@ -355,6 +355,50 @@ shutdown_program(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	isc_task_detach(&global_task);
 	shuttingdown = ISC_TRUE;
+
+	if (userserver != NULL)
+		isc_mem_put(mctx, userserver, sizeof(isc_sockaddr_t));
+
+	if (localaddr != NULL)
+		isc_mem_put(mctx, localaddr, sizeof(isc_sockaddr_t));
+
+	if (key != NULL) {
+		debug("Freeing key");
+		dns_tsigkey_detach(&key);
+	}
+
+	if (updatemsg != NULL)
+		dns_message_destroy(&updatemsg);
+
+	if (is_dst_up) {
+		debug("Destroy DST lib");
+		dst_lib_destroy();
+		is_dst_up = ISC_FALSE;
+	}
+
+	if (entp != NULL) {
+		debug("Detach from entropy");
+		isc_entropy_detach(&entp);
+	}
+
+	lwres_conf_clear(lwctx);
+	lwres_context_destroy(&lwctx);
+
+	isc_mem_put(mctx, servers, ns_total * sizeof(isc_sockaddr_t));
+
+	ddebug("Shutting down request manager");
+	dns_requestmgr_shutdown(requestmgr);
+	dns_requestmgr_detach(&requestmgr);
+
+	ddebug("Freeing the dispatchers");
+	if (have_ipv4)
+		dns_dispatch_detach(&dispatchv4);
+	if (have_ipv6)
+		dns_dispatch_detach(&dispatchv6);
+
+	ddebug("Shutting down dispatch manager");
+	dns_dispatchmgr_destroy(&dispatchmgr);
+
 }
 
 static void
@@ -1185,12 +1229,22 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
 	isc_result_t result;
 	dns_message_t *rcvmsg = NULL;
+	dns_request_t *request;
 
 	UNUSED(task);
 
 	ddebug("update_completed()");
+
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
+	request = reqev->request;
+
+	if (shuttingdown) {
+		dns_request_destroy(&request);
+		isc_event_free(&event);
+		return;
+	}
+
 	if (reqev->result != ISC_R_SUCCESS) {
 		fprintf(stderr, "; Communication with server failed: %s\n",
 			isc_result_totext(reqev->result));
@@ -1200,7 +1254,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	check_result(result, "dns_message_create");
-	result = dns_request_getresponse(reqev->request, rcvmsg,
+	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	check_result(result, "dns_request_getresponse");
 	if (rcvmsg->rcode != dns_rcode_noerror)
@@ -1231,7 +1285,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	}
 	dns_message_destroy(&rcvmsg);
  done:
-	dns_request_destroy(&reqev->request);
+	dns_request_destroy(&request);
 	isc_event_free(&event);
 	done_update();
 }
@@ -1300,8 +1354,13 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	soaquery = reqinfo->msg;
 	addr = reqinfo->addr;
 
-	isc_event_free(&event);
-	reqev = NULL;
+	if (shuttingdown) {
+		dns_request_destroy(&request);
+		dns_message_destroy(&soaquery);
+		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
+		isc_event_free(&event);
+		return;
+	}
 
 	if (eresult != ISC_R_SUCCESS) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -1318,9 +1377,13 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_message_renderreset(soaquery);
 		sendrequest(localaddr, &servers[ns_inuse], soaquery, &request);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
+		isc_event_free(&event);
 		return;
 	}
 	isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
+
+	isc_event_free(&event);
+	reqev = NULL;
 
 	ddebug("About to create rcvmsg");
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
@@ -1553,49 +1616,6 @@ static void
 cleanup(void) {
 	ddebug("cleanup()");
 
-	if (userserver != NULL)
-		isc_mem_put(mctx, userserver, sizeof(isc_sockaddr_t));
-
-	if (localaddr != NULL)
-		isc_mem_put(mctx, localaddr, sizeof(isc_sockaddr_t));
-
-	if (key != NULL) {
-		debug("Freeing key");
-		dns_tsigkey_detach(&key);
-	}
-
-	if (updatemsg != NULL)
-		dns_message_destroy(&updatemsg);
-
-	if (is_dst_up) {
-		debug("Destroy DST lib");
-		dst_lib_destroy();
-		is_dst_up = ISC_FALSE;
-	}
-
-	if (entp != NULL) {
-		debug("Detach from entropy");
-		isc_entropy_detach(&entp);
-	}
-
-	lwres_conf_clear(lwctx);
-	lwres_context_destroy(&lwctx);
-
-	isc_mem_put(mctx, servers, ns_total * sizeof(isc_sockaddr_t));
-
-	ddebug("Shutting down request manager");
-	dns_requestmgr_shutdown(requestmgr);
-	dns_requestmgr_detach(&requestmgr);
-
-	ddebug("Freeing the dispatchers");
-	if (have_ipv4)
-		dns_dispatch_detach(&dispatchv4);
-	if (have_ipv6)
-		dns_dispatch_detach(&dispatchv6);
-
-	ddebug("Shutting down dispatch manager");
-	dns_dispatchmgr_destroy(&dispatchmgr);
-
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);
 
@@ -1619,6 +1639,9 @@ getinput(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t more;
 
 	UNUSED(task);
+
+	if (shuttingdown)
+		return;
 
 	if (global_event == NULL)
 		global_event = event;
