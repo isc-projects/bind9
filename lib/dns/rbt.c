@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/boolean.h>
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -49,6 +50,7 @@ struct node_chain {
 	 */
 	dns_rbtnode_t *		levels[127];
 	int			level_count;
+	isc_boolean_t		mem_failure;
 };
 
 #ifndef MIN
@@ -83,6 +85,16 @@ struct node_chain {
 #define FIRST_IS_LESS	-1
 #define FIRST_IS_MORE	-2
 
+/*
+ * For use in allocating space for the chain of ancestor nodes.
+ *
+ * The maximum number of ancestors is theoretically not limited by the
+ * data tree.  This initial value of 24 ancestors would be able to scan
+ * the full height of a single level of 16,777,216 nodes, more than double
+ * the current size of .com.
+ */
+#define ANCESTOR_BLOCK 24
+
 #ifdef DEBUG
 #define inline
 /*
@@ -111,6 +123,9 @@ static dns_result_t join_nodes(dns_rbt_t *rbt,
 			       dns_rbtnode_t *node, dns_rbtnode_t *parent,
 			       dns_rbtnode_t **rootp);
 
+static inline dns_result_t get_ancestor_mem(isc_mem_t *mctx,
+					    node_chain_t *chain);
+
 static int cmp_label(dns_label_t *a, dns_label_t *b);
 static inline int cmp_names_on_level(dns_name_t *a, dns_name_t *b);
 static inline int cmp_names_for_depth(dns_name_t *a, dns_name_t *b);
@@ -127,6 +142,10 @@ static void dns_rbt_deletefromlevel(dns_rbt_t *rbt,
 				    node_chain_t *chain);
 static void dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
+static dns_result_t zapnode_and_fixlevels(dns_rbt_t *rbt,
+					  dns_rbtnode_t *node,
+					  isc_boolean_t recurse,
+					  node_chain_t *chain);
 
 /*
  * Initialize a red/black tree of trees.
@@ -453,7 +472,7 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
  */
 dns_rbtnode_t *
 dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, node_chain_t *chain) {
-	dns_rbtnode_t *current, **ancestor_mem;
+	dns_rbtnode_t *current;
 	dns_name_t *search_name, *new_search_name, *current_name;
 	dns_name_t holder1, holder2;
 	int compared, current_labels, keep_labels, dont_count_root_label;
@@ -475,29 +494,16 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, node_chain_t *chain) {
 	current_name = &holder1;
 
 	if (chain != NULL) {
-		/*
-		 * The maximum number of ancestors is theoretically
-		 * not limited by the data tree.  This initial value
-		 * of 24 ancestors would be able to scan the full
-		 * height of a single level of 16,777,216 nodes, more
-		 * than double the current size of .com.
-		 */
-		chain->ancestor_maxitems = 24;
-		ancestor_mem = isc_mem_get(rbt->mctx,
-					   chain->ancestor_maxitems *
-					   sizeof(dns_rbtnode_t *));
-
-		if (ancestor_mem == NULL)
-			return (NULL); /* @@@ flag no memory!  best way? */
-
-		chain->ancestors = ancestor_mem;
-
+		chain->ancestor_maxitems = 0;
 		chain->ancestor_count = 0;
-		ADD_ANCESTOR(chain, NULL);
-
 		chain->level_count = 0;
-	}
 
+		if (get_ancestor_mem(rbt->mctx, chain) != DNS_R_SUCCESS)
+			return (NULL);
+
+		ADD_ANCESTOR(chain, NULL);
+	}
+		
 	while (current != NULL) {
 		dns_rbt_namefromnode(current, current_name);
 		compared = cmp_names_for_depth(search_name, current_name);
@@ -509,23 +515,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, node_chain_t *chain) {
 		 * Expand the storage space for ancestors, if necessary.
 		 */
 		if (chain != NULL &&
-		    chain->ancestor_count == chain->ancestor_maxitems) {
-			int oldsize = chain->ancestor_maxitems *
-				sizeof(dns_rbtnode_t *);
-
-			chain->ancestor_maxitems += 24;
-			ancestor_mem = isc_mem_get(rbt->mctx,
-						   chain->ancestor_maxitems *
-						   sizeof(dns_rbtnode_t *));
-
-			if (ancestor_mem == NULL)
-				return (NULL); /* @@@ flag no mem! best way? */
-
-			memcpy(ancestor_mem, chain->ancestors, oldsize);
-			isc_mem_put(rbt->mctx, chain->ancestors, oldsize);
-
-			chain->ancestors = ancestor_mem;
-		}
+		    chain->ancestor_count == chain->ancestor_maxitems &&
+		    get_ancestor_mem(rbt->mctx, chain) != DNS_R_SUCCESS)
+				return (NULL);
 
 		/*
 		 * Standard binary search tree movement.
@@ -624,10 +616,9 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name) {
  */
 dns_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
-	dns_rbtnode_t *node, *down, *parent, **rootp;
+	dns_rbtnode_t *node;
 	dns_result_t result;
 	node_chain_t chain;
-	int ancestor_memory_size;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(dns_name_isabsolute(name));
@@ -635,27 +626,45 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	/*
 	 * Find the node, building the ancestor chain.
 	 *
-	 * @@@ When searching, the name might not have an exact match:
+	 * When searching, the name might not have an exact match:
 	 * consider a.b.a.com, b.b.a.com and c.b.a.com as the only
 	 * elements of a tree, which would make layer 1 a single
 	 * node tree of "b.a.com" and layer 2 a three node tree of
 	 * a, b, and c.  Deleting a.com would find only a partial depth
 	 * match in the first layer.  Should it be a requirement that
-	 * that the name have been added with data?  For now, it is.
+	 * that the name to be deleted have data?  For now, it is.
 	 *
 	 * @@@ how to ->dirty, ->locknum and ->references figure in?
 	 */
 
 	node = dns_rbt_findnode(rbt, name, &chain);
 
-	ancestor_memory_size = chain.ancestor_maxitems *
-				sizeof(dns_rbtnode_t *);
+	/*
+	 * The guts of this routine are in a separate function (which
+	 * is called only once, by this function) to make freeing the
+	 * ancestor memory easier, since there are several different
+	 * exit points from the level checking logic.
+	 */
+	result = zapnode_and_fixlevels(rbt, node, recurse, &chain);
 
-	if (node == NULL || DATA(node) == NULL) {
+	if (chain.ancestor_maxitems > 0)
 		isc_mem_put(rbt->mctx, chain.ancestors,
-			    ancestor_memory_size); /* @@@ */
-		return (DNS_R_NOTFOUND);
-	}
+			    chain.ancestor_maxitems * sizeof(dns_rbtnode_t *));
+
+	return (result);
+}
+
+static dns_result_t
+zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
+		      isc_boolean_t recurse, node_chain_t *chain) {
+	dns_rbtnode_t *down, *parent, **rootp;
+	dns_result_t result;
+
+	if (node == NULL || DATA(node) == NULL)
+		if (chain->mem_failure)
+			return (DNS_R_NOMEMORY);
+		else
+			return (DNS_R_NOTFOUND);
 
 	down = DOWN(node);
 
@@ -669,7 +678,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 				rbt->data_deleter(DATA(node));
 			DATA(node) = NULL;
 
-			if (LEFT(down) != NULL || RIGHT(down) != NULL) {
+			if (LEFT(down) != NULL || RIGHT(down) != NULL)
 				/*
 				 * This node cannot be removed because it
 				 * points down to a level that has more than
@@ -677,10 +686,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 				 * as the root for that level.  All that
 				 * could be done was to blast its data.
 				 */
-				isc_mem_put(rbt->mctx, chain.ancestors,
-					    ancestor_memory_size); /* @@@ */
 				return (DNS_R_SUCCESS);
-			}
 
 			/*
 			 * There is a down pointer to a level with a single
@@ -688,15 +694,12 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 			 * on this level.
 			 */
 			
-			rootp = chain.level_count > 0 ?
-				&DOWN(chain.levels[chain.level_count - 1]) :
+			rootp = chain->level_count > 0 ?
+				&DOWN(chain->levels[chain->level_count - 1]) :
 				&rbt->root;
-			parent = chain.ancestors[chain.ancestor_count - 1];
+			parent = chain->ancestors[chain->ancestor_count - 1];
 
 			result = join_nodes(rbt, node, parent, rootp);
-
-			isc_mem_put(rbt->mctx, chain.ancestors,
-				    ancestor_memory_size); /* @@@ */
 
 			return (result);
 		}
@@ -707,7 +710,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 * have one to start, or because it was recursively removed).
 	 * So now the node needs to be removed from this level.
 	 */
-	dns_rbt_deletefromlevel(rbt, node, &chain);
+	dns_rbt_deletefromlevel(rbt, node, chain);
 
 	if (rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node));
@@ -724,13 +727,13 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 * merged.  The focus for exploring this criteria is shifted up one
 	 * level.
 	 */
-	node = chain.level_count > 0 ?
-		chain.levels[chain.level_count - 1] : NULL;
+	node = chain->level_count > 0 ?
+		chain->levels[chain->level_count - 1] : NULL;
 
 	if (node != NULL && DATA(node) == NULL &&
 	    LEFT(DOWN(node)) == NULL && RIGHT(DOWN(node)) == NULL) {
-		rootp = chain.level_count > 1 ?
-			&DOWN(chain.levels[chain.level_count - 2]) :
+		rootp = chain->level_count > 1 ?
+			&DOWN(chain->levels[chain->level_count - 2]) :
 			&rbt->root;
 		/*
 		 * The search to find the original node went through the
@@ -746,14 +749,13 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 		 * In the second case, ancestor_count - 1 is remaining_node,
 		 * - 2, is NULL and - 3 is the parent of current_node.
 		 */
-		parent = chain.ancestors[chain.ancestor_count - 1] == NULL ?
-			 chain.ancestors[chain.ancestor_count - 2] :
-			 chain.ancestors[chain.ancestor_count - 3];
+		parent = chain->ancestors[chain->ancestor_count - 1] == NULL ?
+			 chain->ancestors[chain->ancestor_count - 2] :
+			 chain->ancestors[chain->ancestor_count - 3];
 
 		result = join_nodes(rbt, node, parent, rootp);
 	}
 
-	isc_mem_put(rbt->mctx, chain.ancestors, ancestor_memory_size);/* @@@ */
 	return (result);
 }
 
@@ -861,6 +863,34 @@ join_nodes(dns_rbt_t *rbt,
 	}
 
 	return (result);
+}
+
+static inline dns_result_t
+get_ancestor_mem(isc_mem_t *mctx, node_chain_t *chain) {
+	dns_rbtnode_t **ancestor_mem;
+	int oldsize, newsize;
+
+	oldsize = chain->ancestor_maxitems * sizeof(dns_rbtnode_t *);
+	newsize = oldsize + ANCESTOR_BLOCK * sizeof(dns_rbtnode_t *);
+
+	ancestor_mem = isc_mem_get(mctx, newsize);
+
+	if (ancestor_mem == NULL) {
+		chain->mem_failure = ISC_TRUE;
+		return (DNS_R_NOMEMORY);
+	}
+
+	chain->mem_failure = ISC_FALSE;
+
+	if (oldsize > 0) {
+		memcpy(ancestor_mem, chain->ancestors, oldsize);
+		isc_mem_put(mctx, chain->ancestors, oldsize);
+	}
+
+	chain->ancestors = ancestor_mem;
+	chain->ancestor_maxitems += ANCESTOR_BLOCK;
+
+	return (DNS_R_SUCCESS);
 }
 
 static inline void
@@ -1040,7 +1070,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(delete);
-	REQUIRE(chain->ancestor_count > 1);
+	REQUIRE(chain->ancestor_count > 0);
 
 	parent = chain->ancestors[chain->ancestor_count - 1];
 
