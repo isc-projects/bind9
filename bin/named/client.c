@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.171 2001/06/05 09:02:10 marka Exp $ */
+/* $Id: client.c,v 1.172 2001/06/15 22:35:42 gson Exp $ */
 
 #include <config.h>
 
@@ -2267,7 +2267,7 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 	isc_result_t result;
 
 	/*
-	 * Note these a multiline debug messages.  We want a newline
+	 * Note that these are multiline debug messages.  We want a newline
 	 * to appear in the log after each message.
 	 */
 
