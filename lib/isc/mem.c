@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.100 2001/08/30 20:23:44 gson Exp $ */
+/* $Id: mem.c,v 1.101 2001/09/05 06:26:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1260,7 +1260,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	mem_putstats(ctx, si, size);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
-	DELETE_TRACE(ctx, ptr, si->u.size, file, line);
+	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	UNLOCK(&ctx->lock);
 }
