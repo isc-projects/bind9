@@ -68,12 +68,12 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 		dns_byaddr_destroy(&client->byaddr);
 		isc_event_free(&event);
 
-		if (client->options & DNS_BYADDROPT_IPV6NIBBLE) {
+		if ((client->options & DNS_BYADDROPT_IPV6NIBBLE) == 0) {
 			error_pkt_send(client, LWRES_R_FAILURE);
 			return;
 		}
 
-		client->options |= DNS_BYADDROPT_IPV6NIBBLE;
+		client->options &= ~DNS_BYADDROPT_IPV6NIBBLE;
 		
 		start_byaddr(client);
 		return;
@@ -211,6 +211,7 @@ process_gnba(client_t *client, lwres_buffer_t *b)
 	/*
 	 * Start the find.
 	 */
+	client->options = DNS_BYADDROPT_IPV6NIBBLE;
 	start_byaddr(client);
 
 	return;
