@@ -1,3 +1,4 @@
+ 910.	[port]		Some pre-RFC2133 IPv6 do not define IN6ADDR_ANY_INIT.
 
  908.	[func]		New program, rndc-confgen, to simplify setting up rndc.
 

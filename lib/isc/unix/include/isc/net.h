@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.28 2001/05/31 10:54:51 tale Exp $ */
+/* $Id: net.h,v 1.29 2001/06/25 03:56:58 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -93,6 +93,29 @@
 
 #ifdef ISC_PLATFORM_HAVEINADDR6
 #define in6_addr in_addr6	/* Required for pre RFC2133 implementations. */
+#endif
+
+/*
+ * Required for some pre RFC2133 implementations.
+ * IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT were added in
+ * draft-ietf-ipngwg-bsd-api-04.txt or draft-ietf-ipngwg-bsd-api-05.txt.  
+ * If 's6_addr' is defined then assume that there is a union and three
+ * levels otherwise assume two levels required.
+ */
+#ifndef IN6ADDR_ANY_INIT
+#ifdef s6_addr
+#define IN6ADDR_ANY_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } } }
+#else
+#define IN6ADDR_ANY_INIT { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } }
+#endif
+#endif
+
+#ifndef IN6ADDR_LOOPBACK_INIT
+#ifdef s6_addr
+#define IN6ADDR_LOOPBACK_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } } }
+#else
+#define IN6ADDR_LOOPBACK_INIT { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } }
+#endif
 #endif
 
 #ifndef AF_INET6
