@@ -1,8 +1,9 @@
 1025.	[bug]		Don't use multicast addresses to resolve iterative
 			queries.  [RT #101]
 
-1024.	[port]		HP and Sun decided to use the same macros and
-			structures for different things.  [RT #1831]
+1024.	[port]		Compilation failed on HP-UX 11.11 due to
+			incompatible use of the SIOCGLIFCONF macro
+			name. [RT #1831]
 
 1023.	[func]		Accept hints without TTLs.
 
