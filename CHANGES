@@ -1,4 +1,9 @@
 
+ 774.	[func]		max-cache-size is implemented.
+
+ 773.	[func]		Added isc_rwlock_trylock() to attempt to lock without
+			blocking.
+
  772.	[bug]		Owner names could be incorrectly omitted from cache
 			dumps in the presence of negative caching entries.
 			[RT #991]
