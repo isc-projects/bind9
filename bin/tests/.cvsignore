@@ -21,3 +21,4 @@ t_journal
 mempool_test
 res_test
 dispatch_test
+dispatch_tcp_test
