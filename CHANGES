@@ -1,3 +1,5 @@
+ 306. [bug] 		Reading HMAC-MD5 private key files didn't work.
+
  305. [bug] 		When reloading the server with a config file 
 			containing a syntax error, it could catch an
 			assertion failure trying to perform zone
