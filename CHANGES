@@ -1,4 +1,4 @@
-1709.	[placeholder]	rt12404
+1709.	[port]		solaris: add SMF support from Sun.
 
 1708.	[cleanup]	Replaced dns_fullname_hash() with dns_name_fullhash()
 			for conformance to the name space convention.  Binary

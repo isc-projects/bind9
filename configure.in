@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.361 $)
+AC_REVISION($Revision: 1.362 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -855,6 +855,11 @@ AC_SUBST(ISC_PLATFORM_USETHREADS)
 
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
+
+#
+# In solaris 10, SMF can manage named service
+#
+AC_CHECK_LIB(scf, smf_enable_instance)
 
 #
 # flockfile is usually provided by pthreads, but we may want to use it
