@@ -100,6 +100,9 @@
 
 1109.	[bug]		nsupdate accepted illegal ttl values.
 
+1070.	[bug]		Copy DNSSEC OK (DO) to response as specified by
+			draft-ietf-dnsext-dnssec-okbit-03.txt.
+
 1014.	[bug]		Some queries would cause statistics counters to
 			increment more than once or not at all. [RT #1321]
 

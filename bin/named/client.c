@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.8 2001/11/16 21:21:42 bwelling Exp $ */
+/* $Id: client.c,v 1.176.2.9 2002/01/24 19:00:24 gson Exp $ */
 
 #include <config.h>
 
@@ -1014,7 +1014,7 @@ client_addopt(ns_client_t *client) {
 	/*
 	 * Set EXTENDED-RCODE, VERSION, and Z to 0.
 	 */
-	rdatalist->ttl = 0;
+	rdatalist->ttl = (client->extflags & DNS_MESSAGEEXTFLAG_REPLYPRESERVE);
 
 	/*
 	 * No ENDS options in the default case.
