@@ -315,8 +315,6 @@ dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone) {
 	    strcmp(cfilename, zfilename) != 0)
 		return (ISC_FALSE);
 
-	/* XXX Compare masters, too. */
-
 	return (ISC_TRUE);
 }
 	
