@@ -19,12 +19,6 @@
 # Set up interface aliases for bind9 system tests.
 #
 
-whoami=`whoami`
-if [ $whoami != "root" ]; then
-	echo "Ifconfig setup must be run as root."
-	exit
-fi
-
 sys=`../../../config.guess`
 
 case "$1" in
@@ -33,7 +27,11 @@ case "$1" in
 	for ns in 1 2 3 4 5
 	do
 		case "$sys" in 
-		    sparc-sun-solaris2.[6-7])
+		    *-sun-solaris2.[6-7])
+			ifconfig lo0:$ns 10.53.0.$ns up
+			;;
+		    *-sun-solaris2.8)
+    			ifconfig lo0:$ns plumb
 			ifconfig lo0:$ns 10.53.0.$ns up
 			;;
 		    *-pc-linux-gnu)
@@ -75,7 +73,10 @@ case "$1" in
 	for ns in 5 4 3 2 1
 	do
 		case "$sys" in 
-		    sparc-sun-solaris2.[6-8])
+		    *-sun-solaris2.[6-7])
+			ifconfig lo0:$ns 10.53.0.$ns down
+			;;
+		    *-sun-solaris2.8])
 			ifconfig lo0:$ns 10.53.0.$ns down
 			;;
 		    *-pc-linux-gnu)
