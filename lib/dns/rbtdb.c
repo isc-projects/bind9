@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.4 2003/05/12 03:22:44 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.5 2003/05/13 03:57:52 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3515,6 +3515,52 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				free_rdataset(rbtdb->common.mctx, newheader);
 				return (result);
 			}
+		}
+		/*
+		 * Don't replace existing NS, A and AAAA RRsets
+		 * in the cache if they are already exist.  This
+		 * prevents named being locked to old servers.
+		 */
+		if (IS_CACHE(rbtdb) && header->ttl > now &&
+		    header->type == dns_rdatatype_ns &&
+		    !header_nx && !newheader_nx &&
+		    header->trust == newheader->trust &&
+		    dns_rdataslab_equalx((unsigned char *)header,
+					 (unsigned char *)newheader,
+				         (unsigned int)(sizeof(*newheader)),
+					 rbtdb->common.rdclass,
+				         (dns_rdatatype_t)header->type)) {
+			/*
+			 * Honour the new ttl if it is less than the
+			 * older one.
+			 */
+			if (header->ttl > newheader->ttl)
+				header->ttl = newheader->ttl;
+			free_rdataset(rbtdb->common.mctx, newheader);
+			if (addedrdataset != NULL)
+				bind_rdataset(rbtdb, rbtnode, header, now,
+					      addedrdataset);
+			return (ISC_R_SUCCESS);
+		}
+		if (IS_CACHE(rbtdb) && header->ttl > now &&
+		    (header->type == dns_rdatatype_a ||
+		     header->type == dns_rdatatype_aaaa) &&
+		    !header_nx && !newheader_nx &&
+		    header->trust == newheader->trust &&
+		    dns_rdataslab_equal((unsigned char *)header,
+					(unsigned char *)newheader,
+				        (unsigned int)(sizeof(*newheader)))) {
+			/*
+			 * Honour the new ttl if it is less than the
+			 * older one.
+			 */
+			if (header->ttl > newheader->ttl)
+				header->ttl = newheader->ttl;
+			free_rdataset(rbtdb->common.mctx, newheader);
+			if (addedrdataset != NULL)
+				bind_rdataset(rbtdb, rbtnode, header, now,
+					      addedrdataset);
+			return (ISC_R_SUCCESS);
 		}
 		INSIST(rbtversion == NULL ||
 		       rbtversion->serial >= topheader->serial);

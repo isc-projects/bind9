@@ -4,6 +4,8 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1429.	[bug]		Prevent the cache getting locked to old servers.
+
 1424.	[bug]		EDNS version not being correctly printed.
 
 1423.	[contrib]	queryperf: added A6 and SRV.
