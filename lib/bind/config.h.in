@@ -4,3 +4,19 @@
 #undef _POSIX_PTHREAD_SEMANTICS
 #undef POSIX_GETGRGID_R
 #undef POSIX_GETGRNAM_R
+
+/* define if prototype for getgrnam_r() is required */
+#undef NEED_GETGRNAM_R 
+#undef NEED_GETGRGID_R 
+#undef NEED_GETGRENT_R 
+#undef NEED_SETGRENT_R 
+#undef NEED_ENDGRENT_R 
+
+#undef NEED_INNETGR_R
+#undef NEED_SETNETGRENT_R
+#undef NEED_ENDNETGRENT_R
+
+#undef NEED_SETPASSENT_R
+#undef NEED_SETPWENT_R
+#undef NEED_GETPWENT_R
+#undef NEED_ENDPWENT_R
