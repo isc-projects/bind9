@@ -58,6 +58,8 @@
 				  NS_QUERYATTR_RECURSIONOK) != 0)
 #define RECURSING(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_RECURSING) != 0)
+#define CACHEGLUEOK(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_CACHEGLUEOK) != 0)
 
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
@@ -446,7 +448,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	 */
 	dns_fixedname_init(&foundname);
 	dboptions = client->query.dboptions;
-	if (db == client->query.gluedb)
+	if (db == client->query.gluedb || (!is_zone && CACHEGLUEOK(client)))
 		dboptions |= DNS_DBFIND_GLUEOK;
 	result = dns_db_find(db, name, version, type, dboptions,
 			     client->requesttime, NULL,
@@ -454,8 +456,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			     rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION ||
-	    result == DNS_R_NOTFOUND ||
-	    result == DNS_R_NXGLUE) {
+	    result == DNS_R_NOTFOUND) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset->methods != NULL)
@@ -571,7 +572,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 }
 
 static isc_result_t
-query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
+query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	ns_client_t *client = arg;
 	isc_result_t result, eresult;
 	dns_dbnode_t *node, *znode;
@@ -585,10 +586,10 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	unsigned int dboptions;
 	isc_boolean_t is_zone, added_something, need_addname;
 	dns_zone_t *zone;
+	dns_rdatatype_t type;
 
 	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(type != dns_rdatatype_any);
-	/* XXXRTH  Other requirements. */
+	REQUIRE(qtype != dns_rdatatype_any);
 
 	/*
 	 * Initialization.
@@ -610,6 +611,10 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	added_something = ISC_FALSE;
 	need_addname = ISC_FALSE;
 	zone = NULL;
+	if (qtype == dns_rdatatype_a)
+		type = dns_rdatatype_any;
+	else
+		type = qtype;
 
 	/*
 	 * Find a database to answer the query.
@@ -651,7 +656,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	 */
 	node = NULL;
 	dboptions = client->query.dboptions;
-	if (db == client->query.gluedb)
+	if (db == client->query.gluedb || (!is_zone && CACHEGLUEOK(client)))
 		dboptions |= DNS_DBFIND_GLUEOK;
 	result = dns_db_find(db, name, version, type, dboptions,
 			     client->requesttime, &node, fname, rdataset,
@@ -706,7 +711,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 				goto cleanup;
 			}
 		}
-	} else if (result == DNS_R_GLUE || result == DNS_R_NXGLUE) {
+	} else if (result == DNS_R_GLUE) {
 		if (USECACHE(client)) {
 			/*
 			 * We found an answer, but the cache may be
@@ -726,7 +731,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 			is_zone = ISC_FALSE;
 			goto db_find;
 		}
-	} else if (result != DNS_R_SUCCESS)
+	} else if (result != ISC_R_SUCCESS && result != DNS_R_ZONECUT)
 		goto cleanup;
 
 	if (dbuf != NULL)
@@ -754,12 +759,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		}
 	}
 
-	if (type == dns_rdatatype_a) {
+	if (qtype == dns_rdatatype_a) {
 		/*
 		 * We treat type A additional section processing as if it
 		 * were "any address type" additional section processing.
 		 *
-		 * We now go looking for A6 and AAAA records, along with
+		 * We now go looking for A, A6, and AAAA records, along with
 		 * their signatures.
 		 *
 		 * XXXRTH  This code could be more efficient.
@@ -780,6 +785,44 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 			if (sigrdataset == NULL)
 				goto addname;
 		}	
+		result = dns_db_findrdataset(db, node, version,
+					     dns_rdatatype_a, 0,
+					     client->requesttime, rdataset,
+					     sigrdataset);
+		if (zdb != NULL && result == ISC_R_NOTFOUND) {
+			/*
+			 * The cache doesn't have an A, but we may have
+			 * one in the zone's glue.
+			 */
+			result = dns_db_findrdataset(zdb, znode, zversion,
+						     dns_rdatatype_a, 0,
+						     client->requesttime,
+						     rdataset,
+						     sigrdataset);
+		}
+		if (result == ISC_R_SUCCESS) {
+			mname = NULL;
+			if (!query_isduplicate(client, fname,
+					       dns_rdatatype_a, &mname)) {
+				if (mname != NULL) {
+					query_releasename(client, &fname);
+					fname = mname;
+				} else
+					need_addname = ISC_TRUE;
+				ISC_LIST_APPEND(fname->list, rdataset, link);
+				added_something = ISC_TRUE;
+				if (sigrdataset->methods != NULL) {
+					ISC_LIST_APPEND(fname->list,
+							sigrdataset, link);
+					sigrdataset =
+						query_newrdataset(client);
+				}
+				rdataset = query_newrdataset(client);
+				if (rdataset == NULL || sigrdataset == NULL)
+					goto addname;
+			} else
+				dns_rdataset_disassociate(rdataset);
+		}
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_a6, 0,
 					     client->requesttime, rdataset,
@@ -1920,10 +1963,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				 * This is the best answer.
 				 */
 				client->query.gluedb = zdb;
+				client->query.attributes |=
+					NS_QUERYATTR_CACHEGLUEOK;
 				query_addrrset(client, &fname,
 					       &rdataset, &sigrdataset,
 					       dbuf, DNS_SECTION_AUTHORITY);
 				client->query.gluedb = NULL;
+				client->query.attributes &=
+					~NS_QUERYATTR_CACHEGLUEOK;
 			}
 		}
 		goto cleanup;
