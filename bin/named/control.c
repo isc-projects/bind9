@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.20 2004/03/22 01:46:00 marka Exp $ */
+/* $Id: control.c,v 1.21 2004/09/03 03:42:58 marka Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ns_server_status(ns_g_server, text);
 	} else if (command_compare(command, NS_COMMAND_FREEZE)) {
 		result = ns_server_freeze(ns_g_server, ISC_TRUE, command);
-	} else if (command_compare(command, NS_COMMAND_UNFREEZE)) {
+	} else if (command_compare(command, NS_COMMAND_UNFREEZE) ||
+		   command_compare(command, NS_COMMAND_THAW)) {
 		result = ns_server_freeze(ns_g_server, ISC_FALSE, command);
 	} else if (command_compare(command, NS_COMMAND_RECURSING)) {
 		result = ns_server_dumprecursing(ns_g_server);

@@ -1,4 +1,4 @@
-1711.	[placeholder]	rt12416
+1711.	[func]		'rndc unfreeze' has been deprecated by 'rndc thaw'.
 
 1710.	[placeholder]	rt9479
 
