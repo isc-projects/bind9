@@ -162,7 +162,15 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 
 	if (result == DNS_R_SUCCESS) {
 		printf("\n  name from dns_rbtnodechain_current: ");
-		result = dns_name_concatenate(foundname, origin,
+
+		/*
+		 * If foundname is absolute, it includes the origin (which
+		 * is intrinsically known here to be just ".").
+		 */
+
+		result = dns_name_concatenate(foundname,
+					      dns_name_isabsolute(foundname) ?
+					          NULL : origin,
 					      fullname, NULL);
 		if (result == DNS_R_SUCCESS)
 			print_name(fullname);
