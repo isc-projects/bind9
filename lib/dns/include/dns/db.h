@@ -178,6 +178,7 @@ struct dns_db {
 #define DNS_DBFIND_VALIDATEGLUE		0x02
 #define DNS_DBFIND_NOWILD		0x04
 #define DNS_DBFIND_PENDINGOK		0x08
+#define DNS_DBFIND_NOEXACT		0x10
 
 /*
  * Options that can be specified for dns_db_addrdataset().
@@ -753,8 +754,8 @@ dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
  *
  * Notes:
  *
- *	If 'options' has DNS_DBFIND_ONLYANCESTORS set, then 'name' will
- *	be returned as the deepest match if it has an NS rdataset.
+ *	If the DNS_DBFIND_NOEXACT option is set, then the zonecut returned
+ *	(if any) will be the deepest known ancestor of 'name'.
  *
  *	If 'now' is zero, then the current time will be used.
  *

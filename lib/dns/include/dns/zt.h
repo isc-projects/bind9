@@ -26,6 +26,8 @@
 
 ISC_LANG_BEGINDECLS
 
+#define DNS_ZTFIND_NOEXACT		0x01
+
 isc_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 			   dns_zt_t **zt);
 /*
@@ -70,12 +72,16 @@ isc_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
  *	ISC_R_NOMEMORY
  */
 
-isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name,
-				dns_name_t *foundname, dns_zone_t **zone);
+isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
+			 dns_name_t *foundname, dns_zone_t **zone);
 
 /*
  * Find the best match for 'name' in 'zt'.  If foundname is non NULL
  * then the name of the zone found is returned.
+ *
+ * Notes:
+ *	If the DNS_ZTFIND_NOEXACT is set, the best partial match (if any)
+ *	to 'name' will be returned.
  *
  * Requires:
  *	'zt' to be valid

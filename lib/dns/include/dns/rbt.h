@@ -28,6 +28,13 @@
 ISC_LANG_BEGINDECLS
 
 /*
+ * Option values for dns_rbt_findnode() and dns_rbt_findname().
+ * These are used to form a bitmask.
+ */
+#define DNS_RBTFIND_EMPTYDATA			0x01
+#define DNS_RBTFIND_NOEXACT			0x02
+
+/*
  * These should add up to 30.
  */
 #define DNS_RBT_LOCKLENGTH			10
@@ -288,13 +295,19 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep);
  */
 
 isc_result_t
-dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
+dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
 		 dns_name_t *foundname, void **data);
 /*
  * Get the data pointer associated with 'name'.
  *
  * Notes:
  *	A node that has no data is considered not to exist for this function.
+ *
+ *      A node that has no data is considered not to exist for this function,
+ *      unless the DNS_RBTFIND_EMPTYDATA option is set.  When
+ *      DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
+ *      returned (also subject to DNS_RBTFIND_EMPTYDATA), even when
+ *      there is an exact match in the tree.
  *
  * Requires:
  *	rbt is a valid rbt manager.
@@ -324,7 +337,7 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
 isc_result_t
 dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
-		 isc_boolean_t empty_data_ok, dns_rbtfindcallback_t callback,
+		 unsigned int options, dns_rbtfindcallback_t callback,
 		 void *callback_arg);
 /*
  * Find the node for 'name'.
@@ -332,7 +345,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * Notes:
  *	It is _not_ required that the node associated with 'name' has a
  *	non-NULL data pointer for an exact match.  A partial match must
- *	have associated data, unless the empty_data_ok flag is true.
+ *	have associated data, unless the DNS_RBTFIND_EMPTYDATA option is set.
  *
  *	If the chain parameter is non-NULL, then the path through the tree
  *	to the DNSSEC predecessor of the searched for name is maintained.
@@ -374,6 +387,12 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	could have been stored; the amount to be freed from the rbt->mctx
  *	is ancestor_maxitems * sizeof(dns_rbtnode_t *).
  *
+ *      A node that has no data is considered not to exist for this function,
+ *      unless the DNS_RBTFIND_EMPTYDATA option is set.  When
+ *      DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
+ *      returned (also subject to DNS_RBTFIND_EMPTYDATA), even when
+ *      there is an exact match in the tree.
+ *
  * Requires:
  *	rbt is a valid rbt manager.
  *	dns_name_isabsolute(name) == TRUE
@@ -397,7 +416,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * 		of 'name' which has data.
  *
  *		'foundname' is the name of deepest superdomain (which has
- *		data, unless 'empty_data_ok').
+ *		data, unless the DNS_RBTFIND_EMPTYDATA option is set).
  *
  *		'chain' points to the DNSSEC predecessor, if any, of 'name'.
  *

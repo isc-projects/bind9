@@ -126,17 +126,22 @@ dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zt_find(dns_zt_t *zt, dns_name_t *name, dns_name_t *foundname,
-	    dns_zone_t **zonep)
+dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
+	    dns_name_t *foundname, dns_zone_t **zonep)
 {
 	isc_result_t result;
 	dns_zone_t *dummy = NULL;
+	unsigned int rbtoptions = 0;
 
 	REQUIRE(VALID_ZT(zt));
 
+	if ((options & DNS_ZTFIND_NOEXACT) != 0)
+		rbtoptions |= DNS_RBTFIND_NOEXACT;
+
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
-	result = dns_rbt_findname(zt->table, name, foundname, (void **)&dummy);
+	result = dns_rbt_findname(zt->table, name, rbtoptions, foundname,
+				  (void **)&dummy);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		dns_zone_attach(dummy, zonep);
 

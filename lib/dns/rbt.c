@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.73 2000/04/12 21:38:04 tale Exp $ */
+/* $Id: rbt.c,v 1.74 2000/04/19 18:20:26 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -725,7 +725,7 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 isc_result_t
 dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
-		 isc_boolean_t empty_data_ok, dns_rbtfindcallback_t callback,
+		 unsigned int options, dns_rbtfindcallback_t callback,
 		 void *callback_arg)
 {
 	dns_rbtnode_t *current;
@@ -820,7 +820,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				/*
 				 * This might be the closest enclosing name.
 				 */
-				if (empty_data_ok || DATA(current) != NULL)
+				if (DATA(current) != NULL ||
+				    (options & DNS_RBTFIND_EMPTYDATA) != 0)
 					*node = current;
 
 				/*
@@ -892,7 +893,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		}
 	}
 
-	if (current != NULL) {
+	if (current != NULL && (options & DNS_RBTFIND_NOEXACT) == 0) {
 		/*
 		 * Found an exact match.
 		 */
@@ -909,10 +910,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			result = saved_result;
 		} else
 			*node = NULL;
-
 	} else {
 		/*
-		 * Did not find an exact match.
+		 * Did not find an exact match (or did, but we don't want
+		 * one).
 		 */
 		if (*node != NULL) {
 			/*
@@ -950,7 +951,25 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		} else
 			result = ISC_R_NOTFOUND;
 
-		if (chain != &localchain) {
+		/*
+		 * XXXRTH  We could add a DNS_RBTFIND_NOPREDECESSOR
+		 * option to turn off the following code.  Some clients
+		 * may use a chain but may not care about the DNSSEC
+		 * predecessor (e.g. cache code), so we could improve
+		 * performance for them by letting them turn it off
+		 */
+
+		if (current != NULL) {
+			/*
+			 * We've got an exact match but DNS_RBTFIND_NOEXACT
+			 * was set.  The DNSSEC predecessor is the current
+			 * name.  It's important that we handle this case
+			 * here, because the predecessor setting code below
+			 * assumes the match was not exact.
+			 */
+			INSIST((options & DNS_RBTFIND_NOEXACT) != 0);
+			chain->end = current;
+		} else if (chain != &localchain) {
 			/*
 			 * Since there was no exact match, the chain argument
 			 * needs to be pointed at the DNSSEC predecessor of
@@ -1060,7 +1079,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * Get the data pointer associated with 'name'.
  */
 isc_result_t
-dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
+dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
 		 dns_name_t *foundname, void **data) {
 	dns_rbtnode_t *node = NULL;
 	isc_result_t result;
@@ -1068,7 +1087,7 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
 	REQUIRE(data != NULL && *data == NULL);
 
 	result = dns_rbt_findnode(rbt, name, foundname, &node, NULL,
-				  ISC_FALSE, NULL, NULL);
+				  options, NULL, NULL);
 
 	if (node != NULL && DATA(node) != NULL)
 		*data = DATA(node);
@@ -1103,7 +1122,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 * ->dirty, ->locknum and ->references are ignored; they are
 	 * solely the province of rbtdb.c.
 	 */
-	result = dns_rbt_findnode(rbt, name, NULL, &node, NULL, ISC_FALSE,
+	result = dns_rbt_findnode(rbt, name, NULL, &node, NULL, 0,
 				  NULL, NULL);
 
 	if (result == ISC_R_SUCCESS)
