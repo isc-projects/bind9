@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.42 2004/08/10 00:40:41 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.43 2004/08/28 06:25:19 marka Exp $ */
 
 #include <config.h>
 
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>

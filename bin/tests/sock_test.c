@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sock_test.c,v 1.47.12.3 2004/03/08 04:04:27 marka Exp $ */
+/* $Id: sock_test.c,v 1.47.12.4 2004/08/28 06:25:32 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/task.h>
 #include <isc/socket.h>
 #include <isc/timer.h>

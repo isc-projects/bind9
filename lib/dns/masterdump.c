@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.5.2.11 2004/05/14 01:18:10 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.5.2.12 2004/08/28 06:25:19 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/file.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>

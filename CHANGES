@@ -6,6 +6,10 @@
 1706.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #12328]
 
+1704.	[port]		lwres needed a snprintf() implementation for
+			platforms without snprintf().  Add missing
+			"#include <isc/print.h>". [RT #12321]
+
 1703.	[bug]		named would loop sending NOTIFY messages when it
 			failed to receive a response. [RT #12322]
 
@@ -2129,7 +2133,6 @@
 			files. [RT #1783]
 
 	--- 9.2.0rc4 released ---
-
 
 1013.	[bug]		It was possible to cancel a query twice when marking
 			a server as bogus or by having a blackhole acl.
