@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.13 2000/08/01 01:30:42 tale Exp $ */
+/* $Id: rwlock.h,v 1.14 2000/08/29 00:33:36 bwelling Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
@@ -31,6 +31,7 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
+#ifdef ISC_PLATFORM_USETHREADS
 struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		magic;
@@ -46,6 +47,14 @@ struct isc_rwlock {
 	unsigned int		read_quota;
 	unsigned int		write_quota;
 };
+#else /* ISC_PLATFORM_USETHREADS */
+struct isc_rwlock {
+	unsigned int		magic;
+	isc_rwlocktype_t	type;
+	unsigned int		active;
+};
+#endif /* ISC_PLATFORM_USETHREADS */
+
 
 isc_result_t
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
