@@ -1,14 +1,14 @@
 
 			Zones
 
-	$Id: zone,v 1.4 1999/03/04 01:47:40 marka Exp $
+	$Id: zone,v 1.5 1999/03/11 00:17:36 marka Exp $
 
 Overview
 	 
 	Zones are the unit of delegation in the DNS and may go from holding
 	RR's only at the zone top to holding the complete hierachy (private
-	roots zones).  Zones are a container for the RRsets that make up the
-	zone.
+	roots zones).  Zones have an associated database which is the
+	container for the RR sets that make up the zone.
 
 	Zone have certain properties associated with them.
 
@@ -33,19 +33,22 @@ Overview
 	* primary master name (required to auto generate our masters)
 	* master file name
 	* database name
+	* database type 
+		* initially only master_file (BIND 4 & 8)
+		* expanded axfr + ixfr
 	* transaction logs
 	* notification lists
 		* NS's
 		* static additional sites (stealth servers)
-		* dynamically leared sites (soa queries)
-
+		* dynamically learned sites (soa queries)
 
 	Zones have two types of versions associated with them.
 
 	Type 1.
 		The image of the "current" zone when a AXFR out is in progress.
 		There may be several of these at once but they cease to need
-		to exist once the AXFR's on this version has completed.
+		to exist once the AXFR's on this version has completed. These
+		are maintained by the various database access methods.
 
 	Type 2.
 		These are virtual versions of the zone and are required to
@@ -87,6 +90,19 @@ Overview
 	* notification
 		responding to
 		generating
+
+	While not strictly a nameserver function, bad delegation and bad
+	slave setups are continual and ongoing sources of problems in the
+	DNS.  Periodic checks to ensure parent and child servers agree on
+	the list of nameservers and that slaves are tracking the changes
+	made in the master server's zone will allow problems in
+	configurations to be identified earlier providing for a more stable
+	DNS.
+
+Compatability:
+
+	Zones are required to be configuration file compatable with
+	BIND 8.x.
 
 Types:
 
