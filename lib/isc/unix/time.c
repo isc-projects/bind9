@@ -20,6 +20,8 @@
 #include <errno.h>
 #include <time.h>
 
+#include <sys/time.h>	/* Required for struct timeval on some platforms. */
+
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
