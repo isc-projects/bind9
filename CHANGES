@@ -1,3 +1,7 @@
+ 313.	[bug]		When parsing resolv.conf, don't terminate on an
+			error.  Instead, parse as much as possible, but
+			still return an error if one was found.
+
  312.	[bug]		Increase the number of allowed elements in the
 			resolv.conf search path from 6 to 8.  If there
 			are more than this, ignore the remainder rather

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.40 2000/07/07 18:24:11 bwelling Exp $ */
+/* $Id: lwres.h,v 1.41 2000/07/07 18:58:45 bwelling Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -423,7 +423,8 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename);
  *
  * Returns:
  *	LWRES_R_SUCCESS on a successful parse.
- *	Anything else on error.
+ *	Anything else on error, although the structure may be partially filled
+ *	in.
  */
 
 lwres_result_t
