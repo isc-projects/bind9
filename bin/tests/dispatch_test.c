@@ -260,7 +260,7 @@ got_response(isc_task_t *task, isc_event_t *ev_in)
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	CHECKRESULT(result, "dns_message_create() failed");
 
-	result = dns_message_parse(msg, &ev->buffer);
+	result = dns_message_parse(msg, &ev->buffer, ISC_FALSE);
 	CHECKRESULT(result, "dns_message_parse() failed");
 
 	result = printmessage(msg);
@@ -314,7 +314,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	CHECKRESULT(result, "dns_message_create() failed");
 
-	result = dns_message_parse(msg, &ev->buffer);
+	result = dns_message_parse(msg, &ev->buffer, ISC_FALSE);
 	CHECKRESULT(result, "dns_message_parse() failed");
 
 	result = printmessage(msg);

@@ -803,7 +803,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	INSIST(fctx->state == fetchstate_active);
 
 	message = fctx->rmessage;
-	result = dns_message_parse(message, &devent->buffer);
+	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);
 	if (result != DNS_R_SUCCESS) {
 		switch (result) {
 		case DNS_R_FORMERR:

@@ -202,7 +202,8 @@ dns_message_destroy(dns_message_t **msgp);
  */
 
 dns_result_t
-dns_message_parse(dns_message_t *msg, isc_buffer_t *source);
+dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
+		  isc_boolean_t preserve_order);
 /*
  * Parse raw wire data pointed to by "buffer" and bounded by "buflen" as a
  * DNS message.
@@ -211,6 +212,18 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source);
  * TSIGs are detected and stored in the pseudo-section "tsig".  At detection
  * time, the TSIG is verified (XXX) and the message fails if the TSIG fails
  * to verify.
+ *
+ * If 'preserve_order' is true, or if the opcode of the message is UPDATE,
+ * a separate dns_name_t object will be created for each RR in the message.
+ * Each such dns_name_t will have a single rdataset containing the single RR,
+ * and the order of the RRs in the message is preserved.
+ * Otherwise, only one dns_name_t object will be created for each unique
+ * owner name in the section, and each such dns_name_t will have a list
+ * of rdatasets.  To access the names and their data, use 
+ * dns_message_firstname() and dns_message_nextname(). 
+ *
+ * OPT and TSIG records are always handled specially, regardless of the
+ * 'preserve_order' setting.
  *
  * If this is a multi-packet message (edns) and more data is required to
  * build the full message state, DNS_R_MOREDATA is returned.  In this case,
@@ -369,12 +382,7 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
  * Set internal per-section name pointer to the beginning of the section.
  *
  * The functions dns_message_firstname() and dns_message_nextname() may
- * be used for iterating over the owner names occuring in a section.  For
- * ordinary DNS messages, each unique owner name will be returned only
- * once, and will be associated with a list of rdatasets.  For dynamic
- * update messages, the owner name of each RR in the message will be
- * returned separately, it will be associated with a list containing a
- * single rdataset, and that rdataset will contain a single update RR.
+ * be used for iterating over the owner names in a section. 
  *
  * Requires:
  *

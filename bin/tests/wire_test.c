@@ -134,7 +134,7 @@ main(int argc, char *argv[]) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
-	result = dns_message_parse(message, &source);
+	result = dns_message_parse(message, &source, ISC_FALSE);
 	CHECKRESULT(result, "dns_message_parse failed");
 
 	result = printmessage(message);
@@ -188,7 +188,7 @@ main(int argc, char *argv[]) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
-	result = dns_message_parse(message, &source);
+	result = dns_message_parse(message, &source, ISC_FALSE);
 	CHECKRESULT(result, "dns_message_parse failed");
 
 	result = printmessage(message);

@@ -144,7 +144,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				ISC_BUFFERTYPE_BINARY);
 		isc_buffer_add(&b, sevent->n);
 		dns_message_reset(message, DNS_MESSAGE_INTENTPARSE);
-		result = dns_message_parse(message, &b);
+		result = dns_message_parse(message, &b, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			hex_dump(&b);
 		check_result(result, "dns_message_parse()");
