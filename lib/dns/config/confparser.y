@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.83 2000/05/24 15:07:59 tale Exp $ */
+/* $Id: confparser.y,v 1.84 2000/05/25 05:21:12 gson Exp $ */
 
 #include <config.h>
 
@@ -1513,16 +1513,11 @@ maybe_wild_addr: ip4_address
 	| ip6_address
 	| L_STRING
 	{
-		struct in_addr any;
-		any.s_addr = htonl(INADDR_ANY);
+		isc_sockaddr_any(&$$);
 
-		memset(&any, 0x0, sizeof any);
-		isc_sockaddr_fromin(&$$, &any, 0);
-
-		if (strcmp($1, "*") != 0) {
+		if (strcmp($1, "*") != 0)
 			parser_error(ISC_TRUE,
-				     "bad ip-address. using ipv4 '*'");
-		}
+				     "bad IP address, using IPv4 '*'");
 
 		isc_mem_free(memctx, $1);
 	}
@@ -1540,16 +1535,11 @@ maybe_wild_ip4_only_addr: ip4_address
 	}
 	| L_STRING
 	{
-		struct in_addr any;
-		any.s_addr = htonl(INADDR_ANY);
+		isc_sockaddr_any(&$$);
 
-		memset(&any, 0x0, sizeof any);
-		isc_sockaddr_fromin(&$$, &any, 0);
-
-		if (strcmp($1, "*") != 0) {
+		if (strcmp($1, "*") != 0)
 			parser_error(ISC_TRUE,
-				     "bad IPv4-address. using '*'");
-		}
+				     "bad IPv4 address, using '*'");
 
 		isc_mem_free(memctx, $1);
 	}
@@ -1567,12 +1557,11 @@ maybe_wild_ip6_only_addr: ip6_address
 	}
 	| L_STRING
 	{
-		isc_sockaddr_fromin6(&$$, &in6addr_any, 0);
+		isc_sockaddr_any6(&$$);
 
-		if (strcmp($1, "*") != 0) {
+		if (strcmp($1, "*") != 0)
 			parser_error(ISC_TRUE,
-				     "bad IPv6-address. using '*'");
-		}
+				     "bad IPv6 address, using '*'");
 
 		isc_mem_free(memctx, $1);
 	}
