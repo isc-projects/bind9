@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.h,v 1.31.4.1 2001/01/09 22:45:13 bwelling Exp $ */
+/* $Id: confcommon.h,v 1.31.4.1.10.1 2003/09/17 07:19:50 tale Exp $ */
 
 #ifndef DNS_CONFCOMMON_H
 #define DNS_CONFCOMMON_H 1
@@ -141,7 +141,8 @@ typedef enum {
 	dns_c_zone_slave,
 	dns_c_zone_hint,
 	dns_c_zone_stub,
-	dns_c_zone_forward
+	dns_c_zone_forward,
+	dns_c_zone_delegationonly
 } dns_c_zonetype_t;
 
 

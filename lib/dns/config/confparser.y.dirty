@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.8 2001/03/21 18:34:31 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.8.10.1 2003/09/17 07:19:49 tale Exp $ */
 
 #include <config.h>
 
@@ -292,6 +292,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_DATABASE
 %token		L_DEALLOC_ON_EXIT
 %token		L_DEBUG
+%token          L_DELEGATION_ONLY
 %token		L_DEFAULT
 %token		L_DENY
 %token		L_DIALUP
@@ -5009,6 +5010,10 @@ zone_type: L_MASTER
 	{
 		$$ = dns_c_zone_forward;
 	}
+        | L_DELEGATION_ONLY
+        {
+                $$ = dns_c_zone_delegationonly;
+        }
 	;
 
 
@@ -6176,6 +6181,7 @@ static struct token keyword_tokens [] = {
 	{ "deallocate-on-exit",		L_DEALLOC_ON_EXIT },
 	{ "debug",			L_DEBUG },
 	{ "default",			L_DEFAULT },
+        { "delegation-only",            L_DELEGATION_ONLY },
 	{ "deny",			L_DENY },
 	{ "dialup",			L_DIALUP },
 	{ "directory",			L_DIRECTORY },

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.23.4.1 2001/01/09 22:43:52 bwelling Exp $ */
+/* $Id: ncache.c,v 1.23.4.1.10.1 2003/09/17 07:19:47 tale Exp $ */
 
 #include <config.h>
 
@@ -121,7 +121,10 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ttl = maxttl;
 	trust = 0xffff;
 	isc_buffer_init(&buffer, data, sizeof(data));
-	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	if (message->counts[DNS_SECTION_AUTHORITY])
+		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	else
+		result = ISC_R_NOMORE;
 	while (result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY,

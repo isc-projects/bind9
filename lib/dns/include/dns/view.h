@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.61.2.1 2001/01/09 22:46:28 bwelling Exp $ */
+/* $Id: view.h,v 1.61.2.1.10.1 2003/09/17 07:19:51 tale Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -115,6 +115,7 @@ struct dns_view {
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
 	char *				cachefile;
+	dns_namelist_t *		delonly;
 
 	/*
 	 * Configurable data for server use only,
@@ -680,6 +681,35 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  * 	ISC_R_IGNORE	No cachefile was specified.
  * 	others		An error occurred (see dns_master_dump)
  */
+
+isc_result_t
+dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
+/*
+ * Add the given name to the delegation only table.
+ *
+ * Requires:
+ *	'view' is valid.
+ *	'name' is valid.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ */
+
+isc_boolean_t
+dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
+/*
+ * Check if 'name' is in the delegation only table.
+ *
+ * Requires:
+ *	'view' is valid.
+ *	'name' is valid.
+ *
+ * Returns:
+ *	ISC_TRUE if the name is is the table.
+ *	ISC_FALSE othewise.
+ */
+
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.276.2.3 2001/06/25 08:34:46 marka Exp $ */
+/* $Id: server.c,v 1.276.2.3.6.1 2003/09/17 07:19:47 tale Exp $ */
 
 #include <config.h>
 
@@ -1086,13 +1086,12 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	dns_zone_t *dupzone = NULL;
 	dns_c_iplist_t *forwarders = NULL;
 	dns_c_forw_t forward;
-
 	isc_result_t result;
-
 	char *corigin;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
 	dns_name_t *origin;
+	isc_boolean_t only;
 
 	/*
 	 * Get the zone origin as a dns_name_t.
@@ -1169,6 +1168,14 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	}
 
 	/*
+	 * "delegation-only zones" aren't zones either.
+	 */
+	if (czone->ztype == dns_c_zone_delegationonly) {
+		result = dns_view_adddelegationonly(view, origin);
+		goto cleanup;
+	}
+
+	/*
 	 * Check for duplicates in the new zone table.
 	 */
 	result = dns_view_findzone(view, origin, &dupzone);
@@ -1231,6 +1238,17 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			forward = dns_c_forw_first;
 		CHECK(configure_forward(cctx, view,
 					origin, forwarders, forward));
+	}
+
+	/*
+	 * Stub and forward zones may also refer to delegation only points.
+	 */
+	only = ISC_FALSE;
+	if ((czone->ztype == dns_c_zone_stub ||
+	     czone->ztype == dns_c_zone_forward) &&
+	    dns_c_zone_getdelegationonly(czone, &only) == ISC_R_SUCCESS) {
+		if (only)
+			CHECK(dns_view_adddelegationonly(view, origin));
 	}
 
 	/*

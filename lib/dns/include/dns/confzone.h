@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.50.2.1 2001/01/09 22:45:28 bwelling Exp $ */
+/* $Id: confzone.h,v 1.50.2.1.10.1 2003/09/17 07:19:50 tale Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -76,10 +76,9 @@ typedef struct dns_c_slave_zone		dns_c_slavezone_t;
 typedef struct dns_c_stub_zone		dns_c_stubzone_t;
 typedef struct dns_c_forward_zone	dns_c_forwardzone_t;
 typedef struct dns_c_hint_zone		dns_c_hintzone_t;
+typedef struct dns_c_delegationonlyzone dns_c_delegationonlyzone_t;
 typedef struct dns_c_zone		dns_c_zone_t;
 typedef struct dns_c_zonelem		dns_c_zonelem_t;
-
-
 
 struct dns_c_zonelem {
 	dns_c_zone_t	*thezone;
@@ -217,6 +216,12 @@ struct dns_c_hint_zone {
 	dns_c_setbits_t		setflags;
 };
 
+struct dns_c_delegationonlyzone {
+	dns_severity_t		check_names;
+	dns_c_setbits_t		setflags;
+};
+	
+
 struct dns_c_zone {
 	isc_int32_t			magic;
 
@@ -238,6 +243,7 @@ struct dns_c_zone {
 		dns_c_stubzone_t	tzone;
 		dns_c_forwardzone_t	fzone;
 		dns_c_hintzone_t	hzone;
+		dns_c_delegationonlyzone_t dzone;
 	} u;
 };
 
@@ -302,6 +308,11 @@ isc_result_t dns_c_zone_setchecknames(dns_c_zone_t *zone,
 				      dns_severity_t severity);
 isc_result_t dns_c_zone_getchecknames(dns_c_zone_t *zone,
 				      dns_severity_t *retval);
+
+isc_result_t dns_c_zone_setdelegationonly(dns_c_zone_t *zone,
+					  isc_boolean_t only);
+isc_result_t dns_c_zone_getdelegationonly(dns_c_zone_t *zone,
+					  isc_boolean_t *retval);
 
 
 isc_result_t dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
