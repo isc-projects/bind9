@@ -1,3 +1,5 @@
+ 776.	[func]		Improved error reporting in denied messages. [RT #252]
+
  775.	[placeholder]
 
  774.	[func]		max-cache-size is implemented.

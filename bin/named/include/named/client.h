@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.55 2001/03/06 01:24:40 bwelling Exp $ */
+/* $Id: client.h,v 1.56 2001/03/11 06:19:39 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -291,5 +291,9 @@ void
 ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level,
 	      const char *fmt, ...);
+
+void
+ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdataclass_t rdclass,
+                 char *buf, size_t len);
 
 #endif /* NAMED_CLIENT_H */

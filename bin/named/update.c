@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.84 2001/02/22 19:15:01 bwelling Exp $ */
+/* $Id: update.c,v 1.85 2001/03/11 06:19:37 marka Exp $ */
 
 #include <config.h>
 
@@ -175,7 +175,7 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 	va_end(ap);
 
 	ns_client_log(client, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
-		      level, "updating zone %s/%s: %s",
+		      level, "updating zone '%s/%s': %s",
 		      namebuf, classbuf, message);
 }
 
@@ -2118,13 +2118,21 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
-	if (ssutable == NULL)
-		CHECK(ns_client_checkacl(client, "update",
+	if (ssutable == NULL) {
+		char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
+			 + sizeof("update '/'")];
+		ns_client_aclmsg("update", zonename, client->view->rdclass,
+                                 msg, sizeof(msg));
+		CHECK(ns_client_checkacl(client, msg,
 					 dns_zone_getupdateacl(zone),
 					 ISC_FALSE, ISC_LOG_ERROR));
-	else if (client->signer == NULL) {
+	} else if (client->signer == NULL) {
 		/* This gets us a free log message. */
-		CHECK(ns_client_checkacl(client, "update", NULL, ISC_FALSE,
+		char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
+			 + sizeof("update '/'")];
+		ns_client_aclmsg("update", zonename, client->view->rdclass,
+                                 msg, sizeof(msg));
+		CHECK(ns_client_checkacl(client, msg, NULL, ISC_FALSE,
 					 ISC_LOG_ERROR));
 	}
 
@@ -2592,5 +2600,3 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 		isc_event_free((isc_event_t **)&event);
 	return (result);
 }
-
-
