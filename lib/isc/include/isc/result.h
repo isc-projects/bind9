@@ -62,8 +62,9 @@ ISC_LANG_BEGINDECLS
 #define ISC_R_UNEXPECTED		34
 #define ISC_R_ALREADYRUNNING		35
 #define ISC_R_IGNORE			36
+#define ISC_R_MASKNONCONTIG             37
 
-#define ISC_R_NRESULTS 			37	/* Number of results */
+#define ISC_R_NRESULTS 			38	/* Number of results */
 
 char *			isc_result_totext(isc_result_t);
 isc_result_t		isc_result_register(unsigned int base,

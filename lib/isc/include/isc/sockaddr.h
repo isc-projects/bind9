@@ -22,10 +22,11 @@
 #include <isc/net.h>
 #include <isc/list.h>
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
-typedef struct isc_sockaddr {
+struct isc_sockaddr {
 	union {
 		struct sockaddr		sa;
 		struct sockaddr_in	sin;
@@ -33,7 +34,7 @@ typedef struct isc_sockaddr {
 	}				type;
 	unsigned int			length;		/* XXXRTH beginning? */
 	ISC_LINK(struct isc_sockaddr)	link;
-} isc_sockaddr_t;
+};
 
 typedef ISC_LIST(struct isc_sockaddr)	isc_sockaddrlist_t;
 
@@ -61,6 +62,10 @@ isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, const struct in6_addr *ina6,
 void
 isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		      in_port_t port);
+
+void
+isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
+			 in_port_t port);
 
 int
 isc_sockaddr_pf(const isc_sockaddr_t *sockaddr);

@@ -636,6 +636,7 @@
 ./lib/isc/log.c					C	1999,2000
 ./lib/isc/mem.c					C	1997,1998,1999,2000
 ./lib/isc/mutexblock.c				C	1999,2000
+./lib/isc/netaddr.c				C	1999,2000
 ./lib/isc/nls/.cvsignore			X	1999,2000
 ./lib/isc/nls/Makefile.in			MAKE	1999,2000
 ./lib/isc/nls/msgcat.c				C	1999,2000

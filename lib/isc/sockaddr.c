@@ -26,7 +26,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/sockaddr.h>
-#include <isc/mem.h>
+#include <isc/netaddr.h>
 
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
@@ -106,58 +106,10 @@ isc_boolean_t
 isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 			  unsigned int prefixlen)
 {
-	unsigned char *pa, *pb;
-	unsigned int ipabytes; /* Length of whole IP address in bytes */
-	unsigned int nbytes;   /* Number of significant whole bytes */
-	unsigned int nbits;    /* Number of significant leftover bits */
-	
-	REQUIRE(a != NULL && b != NULL);
-
-	if (a->length != b->length)
-		return (ISC_FALSE);
-
-	if (a->type.sa.sa_family != b->type.sa.sa_family)
-		return (ISC_FALSE);
-
-	switch (a->type.sa.sa_family) {
-	case AF_INET:
-		pa = (unsigned char *) &a->type.sin.sin_addr;
-		pb = (unsigned char *) &b->type.sin.sin_addr;
-		ipabytes = 4;
-		break;
-	case AF_INET6:
-		pa = ((unsigned char *) &a->type.sin6.sin6_addr);
-		pb = ((unsigned char *) &b->type.sin6.sin6_addr);
-		ipabytes = 16;
-		break;
-	default:
-		pa = pb = NULL; /* Avoid silly compiler warning. */
-		ipabytes = 0; /* Ditto. */
-		return (ISC_FALSE); /* XXX got a better idea? */
-	}
-
-	/* Don't crash if we get a pattern like 10.0.0.1/9999999. */
-	if (prefixlen > ipabytes * 8)
-		prefixlen = ipabytes * 8;
-
-	nbytes = prefixlen / 8;
-	nbits = prefixlen % 8;
-
-	if (nbytes > 0) {
-		if (memcmp(pa, pb, nbytes) != 0)
-			return (ISC_FALSE);
-	}
-	if (nbits > 0) {
-		unsigned int bytea, byteb, mask;
-		INSIST(nbytes < ipabytes);
-		INSIST(nbits < 8);
-		bytea = pa[nbytes];
-		byteb = pb[nbytes];
-		mask = (0xFF << (8-nbits)) & 0xFF;
-		if ((bytea & mask) != (byteb & mask))
-			return (ISC_FALSE);
-	}
-	return (ISC_TRUE);
+	isc_netaddr_t na, nb;
+	isc_netaddr_fromsockaddr(&na, a);
+	isc_netaddr_fromsockaddr(&nb, b);
+	return (isc_netaddr_eqprefix(&na, &nb, prefixlen));
 }
 
 isc_result_t
@@ -322,6 +274,35 @@ isc_sockaddr_pf(const isc_sockaddr_t *sockaddr) {
 		FATAL_ERROR(__FILE__, __LINE__, "unknown address family");
 	}
 #endif
+}
+
+void
+isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
+		    in_port_t port)
+{
+	memset(sockaddr, 0, sizeof *sockaddr);
+	sockaddr->type.sin.sin_family = na->family;
+	switch (na->family) {
+	case AF_INET:
+		sockaddr->length = sizeof sockaddr->type.sin;
+#ifdef ISC_PLATFORM_HAVESALEN
+		sockaddr->type.sin.sin_len = sizeof sockaddr->type.sin;
+#endif
+		sockaddr->type.sin.sin_addr = na->type.in;
+		sockaddr->type.sin.sin_port = htons(port);
+		break;
+	case AF_INET6:
+		sockaddr->length = sizeof sockaddr->type.sin6;		
+#ifdef ISC_PLATFORM_HAVESALEN
+		sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
+#endif
+		memcpy(&sockaddr->type.sin6.sin6_addr, &na->type.in6, 16);
+		sockaddr->type.sin6.sin6_port = htons(port);
+		break;
+        default:
+                INSIST(0);
+	}
+	ISC_LINK_INIT(sockaddr, link);
 }
 
 void

@@ -76,7 +76,8 @@ static char *text[ISC_R_NRESULTS] = {
 	"quota reached",			/* 33 */
 	"unexpected error",			/* 34 */
 	"already running",			/* 35 */
-	"ignore"				/* 36 */
+	"ignore",				/* 36 */
+	"address mask not contiguous"		/* 37 */
 };
 
 #define ISC_RESULT_RESULTSET			2
