@@ -30,6 +30,8 @@
 #include <dns/result.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdatalist.h>
+#include <dns/rdataset.h>
 #include <dns/compress.h>
 
 #define DNS_FLAG_QR		0x8000U
