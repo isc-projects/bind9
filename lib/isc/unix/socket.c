@@ -150,12 +150,12 @@ struct isc_socket {
 	intev_t				readable_ev;
 
 	cnintev_t		       *connect_ev;
-	isc_boolean_t			pending_recv;
-	isc_boolean_t			pending_send;
-	isc_boolean_t			pending_accept;
-	isc_boolean_t			listener;  /* is a listener socket */
-	isc_boolean_t			connected;
-	isc_boolean_t			connecting; /* connect pending */
+	unsigned int			pending_recv : 1,
+					pending_send : 1,
+					pending_accept : 1,
+					listener : 1, /* listener socket */
+					connected : 1,
+					connecting : 1; /* connect pending */
 	rwintev_t		       *riev; /* allocated recv intev */
 	rwintev_t		       *wiev; /* allocated send intev */
 	cnintev_t		       *ciev; /* allocated accept intev */
@@ -386,12 +386,12 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
 	sock->connect_ev = NULL;
-	sock->pending_recv = ISC_FALSE;
-	sock->pending_send = ISC_FALSE;
-	sock->pending_accept = ISC_FALSE;
-	sock->listener = ISC_FALSE;
-	sock->connected = ISC_FALSE;
-	sock->connecting = ISC_FALSE;
+	sock->pending_recv = 0;
+	sock->pending_send = 0;
+	sock->pending_accept = 0;
+	sock->listener = 0;
+	sock->connected = 0;
+	sock->connecting = 0;
 	sock->riev = NULL;
 	sock->wiev = NULL;
 	sock->ciev = NULL;
@@ -611,7 +611,7 @@ dispatch_read(isc_socket_t *sock)
 
 	REQUIRE(!sock->pending_recv);
 
-	sock->pending_recv = ISC_TRUE;
+	sock->pending_recv = 1;
 
 	XTRACE(TRACE_WATCHER, ("dispatch_read:  posted event %p to task %p\n",
 			       ev, iev->task));
@@ -631,7 +631,7 @@ dispatch_write(isc_socket_t *sock)
 	ev = (isc_event_t *)iev;
 
 	REQUIRE(!sock->pending_send);
-	sock->pending_send = ISC_TRUE;
+	sock->pending_send = 1;
 
 	iev->posted = ISC_TRUE;
 
@@ -657,7 +657,7 @@ dispatch_accept(isc_socket_t *sock)
 	iev->sender = sock;
 	iev->action = internal_accept;
 	iev->arg = sock;
-	sock->pending_accept = ISC_TRUE;
+	sock->pending_accept = 1;
 
 	ISC_TASK_SEND(ev->sender, (isc_event_t **)&iev);
 }
@@ -814,7 +814,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	}
 
 	INSIST(sock->pending_accept);
-	sock->pending_accept = ISC_FALSE;
+	sock->pending_accept = 0;
 
 	/*
 	 * Get the first item off the accept list.
@@ -935,8 +935,8 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 	sock = (isc_socket_t *)ev->sender;
 	LOCK(&sock->lock);
 
-	INSIST(sock->pending_recv == ISC_TRUE);
-	sock->pending_recv = ISC_FALSE;
+	INSIST(sock->pending_recv == 1);
+	sock->pending_recv = 0;
 
 	XTRACE(TRACE_RECV,
 	       ("internal_recv: sock %p, fd %d\n", sock, sock->fd));
@@ -1132,8 +1132,8 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 	sock = (isc_socket_t *)ev->sender;
 	LOCK(&sock->lock);
 
-	INSIST(sock->pending_send == ISC_TRUE);
-	sock->pending_send = ISC_FALSE;
+	INSIST(sock->pending_send == 1);
+	sock->pending_send = 0;
 
 	XTRACE(TRACE_SEND,
 	       ("internal_send: sock %p, fd %d\n", sock, sock->fd));
@@ -2123,7 +2123,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog)
 		return (ISC_R_UNEXPECTED);
 	}
 
-	sock->listener = ISC_TRUE;
+	sock->listener = 1;
 	UNLOCK(&sock->lock);
 
 	return (ISC_R_SUCCESS);
@@ -2262,7 +2262,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 			goto err_exit;
 		}
 
-		sock->connected = ISC_FALSE;
+		sock->connected = 0;
 
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "%s", strerror(errno));
@@ -2271,7 +2271,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 		return (ISC_R_UNEXPECTED);
 
 	err_exit:
-		sock->connected = ISC_FALSE;
+		sock->connected = 0;
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
 		UNLOCK(&sock->lock);
 
@@ -2282,7 +2282,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 	 * If connect completed, fire off the done event
 	 */
 	if (cc == 0) {
-		sock->connected = ISC_TRUE;
+		sock->connected = 1;
 		dev->result = ISC_R_SUCCESS;
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
 		UNLOCK(&sock->lock);
@@ -2298,7 +2298,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 	 */
 	isc_task_attach(task, &ntask);
 
-	sock->connecting = ISC_TRUE;
+	sock->connecting = 1;
 
 	sock->ciev->task = ntask;
 	sock->ciev->done_ev = dev;
@@ -2347,7 +2347,7 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 
 	sock->connect_ev = NULL;
 
-	sock->connecting = ISC_FALSE;
+	sock->connecting = 0;
 
 	/*
 	 * Has this event been canceled?
@@ -2376,7 +2376,7 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 		 * fd and pretend nothing strange happened.
 		 */
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS) {
-			sock->connecting = ISC_TRUE;
+			sock->connecting = 1;
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
 
