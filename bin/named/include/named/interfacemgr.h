@@ -71,6 +71,7 @@ struct ns_interface {
 	int			references;	/* Locked */
 	unsigned int		generation;     /* Generation number. */
 	isc_sockaddr_t		addr;           /* Address and port. */
+	char 			name[32];	/* Null terminated. */
 	isc_socket_t *		udpsocket; 	/* UDP socket. */
 	dns_dispatch_t *	udpdispatch;	/* UDP dispatcher. */
 	isc_socket_t *		tcpsocket;	/* TCP socket. */

@@ -64,6 +64,24 @@ struct ns_interfacemgr {
 
 static void purge_old_interfaces(ns_interfacemgr_t *mgr);
 
+/*
+ * Format a human-readable representation of the socket address '*sa'
+ * into the character array 'array', which is of size 'size'.
+ * The resulting string is guaranteed to be null-terminated.
+ */
+static void
+sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
+{
+	isc_result_t result;
+	isc_buffer_t buf;
+	isc_buffer_init(&buf, array, size, ISC_BUFFERTYPE_TEXT);
+	result = isc_sockaddr_totext(sa, &buf);
+	if (result != ISC_R_SUCCESS) {
+		strncpy(array, "<unknown address>", size);
+		array[size-1] = '\0';
+	}
+}
+
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		       isc_socketmgr_t *socketmgr, ns_clientmgr_t *clientmgr,
@@ -180,7 +198,7 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr)
 
 static isc_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
-		    ns_interface_t **ifpret)
+		    char *name, ns_interface_t **ifpret)
 {
         ns_interface_t *ifp;
 	isc_result_t result;
@@ -192,6 +210,8 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	ifp->mgr = NULL;
 	ifp->generation = mgr->generation;
 	ifp->addr = *addr;
+	strncpy(ifp->name, name, sizeof(ifp->name));
+	ifp->name[sizeof(ifp->name)-1] = '\0';
 
 	result = isc_mutex_init(&ifp->lock);
 	if (result != ISC_R_SUCCESS)
@@ -347,13 +367,13 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 
 static isc_result_t
 ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
-		   ns_interface_t **ifpret)
+		   char *name, ns_interface_t **ifpret)
 {
 	isc_result_t result;
 	ns_interface_t *ifp = NULL;
 	REQUIRE(ifpret != NULL && *ifpret == NULL);
 	
-	result = ns_interface_create(mgr, addr, &ifp);
+	result = ns_interface_create(mgr, addr, name, &ifp);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
@@ -460,7 +480,12 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 		INSIST(NS_INTERFACE_VALID(ifp));
 		next = ISC_LIST_NEXT(ifp, link);
 		if (ifp->generation != mgr->generation) {
+			char sabuf[256];
 			ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
+			sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
+			isc_log_write(IFMGR_COMMON_LOGARGS,
+				      ISC_LOG_INFO,
+				      "no longer listening on %s", sabuf);
 			ns_interface_detach(&ifp);
 		}
 	}
@@ -539,8 +564,6 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			int match;
 			isc_netaddr_t listen_netaddr;
 			isc_sockaddr_t listen_sockaddr;
-			char buf[128];
-			const char *addrstr;
 
 			/*
 			 * Construct a socket address for this IP/port
@@ -551,15 +574,6 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			isc_sockaddr_fromnetaddr(&listen_sockaddr,
 						 &listen_netaddr,
 						 le->port);
-
-			/*
-			 * Construct a human-readable version of same.
-			 */
-			addrstr = inet_ntop(listen_netaddr.family,
-					    &listen_netaddr.type,
-					    buf, sizeof(buf));
-			if (addrstr == NULL)
-				addrstr = "(bad address)";
 
 			/*
 			 * See if the address matches the listen-on statement;
@@ -575,15 +589,17 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			if (ifp != NULL) {
 				ifp->generation = mgr->generation;
 			} else {
+				char sabuf[256];
+				sockaddr_format(&listen_sockaddr,
+						sabuf, sizeof(sabuf));
 				isc_log_write(IFMGR_COMMON_LOGARGS,
 					      ISC_LOG_INFO,
 					      "listening on IPv4 interface "
-					      "%s, %s port %u",
-					      interface.name, addrstr,
-					      le->port);
+					      "%s, %s", interface.name, sabuf);
 				
 				result = ns_interface_setup(mgr,
 							    &listen_sockaddr,
+							    interface.name,
 							    &ifp);
 				if (result != DNS_R_SUCCESS) {
 					isc_log_write(IFMGR_COMMON_LOGARGS,
@@ -630,7 +646,7 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 			      "listening on IPv6 interfaces, port %u",
 			      ns_g_port);
-		result = ns_interface_setup(mgr, &listen_addr, &ifp);
+		result = ns_interface_setup(mgr, &listen_addr, "<any>", &ifp);
 		if (result != DNS_R_SUCCESS) {
 			isc_log_write(IFMGR_COMMON_LOGARGS,
 				      ISC_LOG_ERROR,			
