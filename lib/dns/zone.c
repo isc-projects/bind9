@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.7 2002/02/08 03:57:31 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.8 2002/03/29 00:20:07 marka Exp $ */
 
 #include <config.h>
 
@@ -4563,7 +4563,9 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 		notify->flags |= DNS_NOTIFY_NOSOA;
 		notify->attempt++;
 		dns_request_destroy(&notify->request);
-		notify_send_queue(notify);
+		result = notify_send_queue(notify);
+		if (result != ISC_R_SUCCESS)
+			notify_destroy(notify, ISC_FALSE);
 	} else {
 		if (result == ISC_R_TIMEDOUT)
 			notify_log(notify->zone, ISC_LOG_DEBUG(1),
