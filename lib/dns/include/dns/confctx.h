@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.62 2001/01/09 21:52:28 bwelling Exp $ */
+/* $Id: confctx.h,v 1.63 2001/01/25 02:33:48 bwelling Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -810,9 +810,8 @@ isc_result_t dns_c_ctx_getallowupdateforwarding(dns_c_ctx_t *cfg,
 isc_result_t dns_c_ctx_unsetallowupdateforwarding(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
-				     dns_c_iplist_t *iml);
-isc_result_t dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_iplist_t **list);
+isc_result_t dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, dns_c_iplist_t *iml);
+isc_result_t dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_iplist_t **ret);
 isc_result_t dns_c_ctx_unsetforwarders(dns_c_ctx_t *cfg);
 
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.284 2001/01/23 01:50:26 bwelling Exp $ */
+/* $Id: server.c,v 1.285 2001/01/25 02:33:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1000,7 +1000,6 @@ configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 				goto cleanup;
 			}
 			*sa = forwarders->ips[i];
-			isc_sockaddr_setport(sa, port);
 			ISC_LINK_INIT(sa, link);
 			ISC_LIST_APPEND(addresses, sa, link);
 		}

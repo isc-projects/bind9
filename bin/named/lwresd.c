@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.29 2001/01/19 01:20:00 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.30 2001/01/25 02:33:39 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -218,9 +218,8 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 		}
 	
 		if (forwarders->nextidx != 0) {
-			CHECK(dns_c_ctx_setforwarders(ctx, ISC_FALSE,
-						      forwarders));
-			forwarders = NULL;
+			CHECK(dns_c_ctx_setforwarders(ctx, forwarders));
+			dns_c_iplist_detach(&forwarders);
 			CHECK(dns_c_ctx_setforward(ctx, dns_c_forw_first));
 		}
 	}

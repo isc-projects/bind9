@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.51 2001/01/09 21:52:41 bwelling Exp $ */
+/* $Id: confzone.h,v 1.52 2001/01/25 02:33:53 bwelling Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -305,8 +305,7 @@ isc_result_t dns_c_zone_getchecknames(dns_c_zone_t *zone,
 
 
 isc_result_t dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
-						 dns_c_ipmatchlist_t *ipml,
-						 isc_boolean_t deepcopy);
+						 dns_c_ipmatchlist_t *ipml);
 isc_result_t dns_c_zone_getallowupdateforwarding(dns_c_zone_t *zone,
 						 dns_c_ipmatchlist_t **retval);
 
@@ -318,21 +317,18 @@ isc_result_t dns_c_zone_getssuauth(dns_c_zone_t *zone,
 
 
 isc_result_t dns_c_zone_setallownotify(dns_c_zone_t *zone,
-				       dns_c_ipmatchlist_t *ipml,
-				       isc_boolean_t deepcopy);
+				       dns_c_ipmatchlist_t *ipml);
 isc_result_t dns_c_zone_getallownotify(dns_c_zone_t *zone,
 				       dns_c_ipmatchlist_t **retval);
 
 isc_result_t dns_c_zone_setallowquery(dns_c_zone_t *zone,
-				      dns_c_ipmatchlist_t *ipml,
-				      isc_boolean_t deepcopy);
+				      dns_c_ipmatchlist_t *ipml);
 isc_result_t dns_c_zone_getallowquery(dns_c_zone_t *zone,
 				      dns_c_ipmatchlist_t **retval);
 
 
 isc_result_t dns_c_zone_setallowtransfer(dns_c_zone_t *zone,
-					 dns_c_ipmatchlist_t *ipml,
-					 isc_boolean_t deepcopy);
+					 dns_c_ipmatchlist_t *ipml);
 isc_result_t dns_c_zone_getallowtransfer(dns_c_zone_t *zone,
 					 dns_c_ipmatchlist_t **retval);
 
@@ -360,8 +356,7 @@ isc_result_t dns_c_zone_getnotify(dns_c_zone_t *zone,
 
 
 isc_result_t dns_c_zone_setalsonotify(dns_c_zone_t *zone,
-				      dns_c_iplist_t *newval,
-				      isc_boolean_t deepcopy);
+				      dns_c_iplist_t *newval);
 isc_result_t dns_c_zone_getalsonotify(dns_c_zone_t *zone,
 				      dns_c_iplist_t **retval);
 
@@ -389,8 +384,7 @@ isc_result_t dns_c_zone_getmasterport(dns_c_zone_t *zone, in_port_t *retval);
 
 
 isc_result_t dns_c_zone_setmasterips(dns_c_zone_t *zone,
-				     dns_c_iplist_t *newval,
-				     isc_boolean_t deepcopy);
+				     dns_c_iplist_t *newval);
 isc_result_t dns_c_zone_getmasterips(dns_c_zone_t *zone,
 				     dns_c_iplist_t **retval);
 
@@ -484,15 +478,14 @@ isc_result_t dns_c_zone_setforward(dns_c_zone_t *zone,
 isc_result_t dns_c_zone_getforward(dns_c_zone_t *zone, dns_c_forw_t *retval);
 
 
-isc_result_t dns_c_zone_setforwarders(dns_c_zone_t *zone, dns_c_iplist_t *ipml,
-				      isc_boolean_t deepcopy);
+isc_result_t dns_c_zone_setforwarders(dns_c_zone_t *zone,
+				      dns_c_iplist_t *ipml);
 isc_result_t dns_c_zone_getforwarders(dns_c_zone_t *zone,
 				      dns_c_iplist_t **retval);
 
 
 isc_result_t dns_c_zone_setallowupd(dns_c_zone_t *zone,
-				    dns_c_ipmatchlist_t *ipml,
-				    isc_boolean_t deepcopy);
+				    dns_c_ipmatchlist_t *ipml);
 isc_result_t dns_c_zone_getallowupd(dns_c_zone_t *zone,
 				    dns_c_ipmatchlist_t **retval);
 isc_result_t dns_c_zone_unsetallowupd(dns_c_zone_t *zone);

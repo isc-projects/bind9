@@ -1,4 +1,6 @@
 
+ 710.	[func]		The forwarders statement now takes an optional port.
+
  709.	[bug]		ANY or SIG queries for data with a TTL of 0
 			would return SERVFAIL. [RT #620]
 

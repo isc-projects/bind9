@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.116 2001/01/22 03:59:12 gson Exp $ */
+/* $Id: confctx.c,v 1.117 2001/01/25 02:33:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -311,18 +311,10 @@ PVT_CONCAT(dns_c_ctx_unset, FUNC)(dns_c_ctx_t *cfg)	\
 
 
 
-static isc_result_t cfg_set_iplist(dns_c_options_t *options,
-				   dns_c_iplist_t **fieldaddr,
-				   dns_c_iplist_t *newval,
-				   isc_boolean_t copy);
 static isc_result_t cfg_set_string(dns_c_options_t *options,
 				   char **field,
 				   const char *newval);
 
-
-static isc_result_t cfg_get_iplist(dns_c_options_t *options,
-				   dns_c_iplist_t *field,
-				   dns_c_iplist_t **resval);
 static isc_result_t acl_init(dns_c_ctx_t *cfg);
 static isc_result_t logging_init (dns_c_ctx_t *cfg);
 static isc_result_t make_options(dns_c_ctx_t *cfg);
@@ -2407,8 +2399,8 @@ dns_c_ctx_getv6listenlist(dns_c_ctx_t *cfg, dns_c_lstnlist_t **ll)
 
 
 isc_result_t
-dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
-			dns_c_iplist_t *ipl)
+dns_c_ctx_setforwarders(dns_c_ctx_t *cfg,
+			dns_c_iplist_t *iml)
 {
 	isc_result_t res;
 
@@ -2419,26 +2411,31 @@ dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
 		return (res);
 	}
 
-	res = cfg_set_iplist(cfg->options, &cfg->options->forwarders,
-			     ipl, copy);
+	REQUIRE(iml != NULL);
 
-	return (res);
+	if (cfg->options->forwarders != NULL)
+		return (ISC_R_EXISTS);
+
+	dns_c_iplist_attach(iml, &cfg->options->forwarders);
+
+	return (ISC_R_SUCCESS);
 }
 
 
 isc_result_t
-dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_iplist_t **list)
+dns_c_ctx_getforwarders(dns_c_ctx_t *cfg, dns_c_iplist_t **ret)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 
-	if (cfg->options == NULL) {
+	if (cfg->options == NULL || cfg->options->forwarders == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
 
-	REQUIRE(list != NULL);
+	REQUIRE(ret != NULL);
 
-	return (cfg_get_iplist(cfg->options,
-			       cfg->options->forwarders, list));
+	dns_c_iplist_attach(cfg->options->forwarders, ret);
+
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -2551,7 +2548,7 @@ dns_c_ctx_setalsonotify(dns_c_ctx_t *cfg,
 	REQUIRE(iml != NULL);
 
 	if (cfg->options->also_notify != NULL)
-		dns_c_iplist_detach(&cfg->options->also_notify);
+		return (ISC_R_EXISTS);
 
 	dns_c_iplist_attach(iml, &cfg->options->also_notify);
 
@@ -2668,83 +2665,6 @@ cfg_set_string(dns_c_options_t *options, char **field, const char *newval)
 	*field = p;
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
-}
-
-
-static isc_result_t
-cfg_set_iplist(dns_c_options_t *options,
-	       dns_c_iplist_t **fieldaddr,
-	       dns_c_iplist_t *newval,
-	       isc_boolean_t copy)
-{
-	isc_result_t res;
-	isc_boolean_t existed = ISC_FALSE;
-
-	REQUIRE(DNS_C_CONFOPT_VALID(options));
-	REQUIRE(fieldaddr != NULL);
-
-	if (*fieldaddr != NULL) {
-		existed = ISC_TRUE;
-	}
-
-	if (newval == NULL) {
-		res = dns_c_iplist_new(options->mem,
-				       newval->size,
-				       fieldaddr);
-	} else if (copy) {
-		if (*fieldaddr != NULL) {
-			dns_c_iplist_detach(fieldaddr);
-		}
-
-		res = dns_c_iplist_copy(options->mem, fieldaddr,
-					newval);
-	} else {
-		if (*fieldaddr != NULL) {
-			res = dns_c_iplist_detach(fieldaddr);
-			if (res != ISC_R_SUCCESS) {
-				return (res);
-			}
-		}
-
-		res = ISC_R_SUCCESS;
-
-		*fieldaddr = newval;
-	}
-
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
-
-	return (res);
-}
-
-
-
-
-
-
-
-static isc_result_t
-cfg_get_iplist(dns_c_options_t *options,
-	       dns_c_iplist_t *field,
-	       dns_c_iplist_t **resval)
-{
-	isc_result_t res;
-
-	UNUSED(options);
-
-	REQUIRE(DNS_C_CONFOPT_VALID(options));
-	REQUIRE(resval != NULL);
-
-	if (field != NULL && field->nextidx != 0) {
-		dns_c_iplist_attach(field, resval);
-		res = ISC_R_SUCCESS;
-	} else {
-		*resval = NULL;
-		res = ISC_R_NOTFOUND;
-	}
-
-	return (res);
 }
 
 

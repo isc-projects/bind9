@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.79 2001/01/09 21:40:10 bwelling Exp $ */
+/* $Id: zoneconf.c,v 1.80 2001/01/25 02:33:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -420,7 +420,7 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	case dns_c_zone_stub:
 		iplist = NULL;
 		result = dns_c_zone_getmasterips(czone, &iplist);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 #ifndef NOMINUM_PUBLIC
 			result = dns_zone_setmasterswithkeys(zone,
 							     iplist->ips,
@@ -430,7 +430,8 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			result = dns_zone_setmasters(zone, iplist->ips,
 						     iplist->nextidx);
 #endif /* NOMINUM_PUBLIC */
-		else
+			dns_c_iplist_detach(&iplist);
+		} else
 			result = dns_zone_setmasters(zone, NULL, 0);
 		RETERR(result);
 

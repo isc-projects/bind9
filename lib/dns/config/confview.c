@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.70 2001/01/22 03:59:20 gson Exp $ */
+/* $Id: confview.c,v 1.71 2001/01/25 02:33:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1132,33 +1132,17 @@ BYTYPE_FUNCS(dns_c_forw_t, forward, forward)
 */
 
 isc_result_t
-dns_c_view_setforwarders(dns_c_view_t *view,
-			 dns_c_iplist_t *ipl,
-			 isc_boolean_t deepcopy)
+dns_c_view_setforwarders(dns_c_view_t *view, dns_c_iplist_t *ipl)
 {
-	isc_boolean_t existed = ISC_FALSE;
-	isc_result_t res;
-
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(DNS_C_IPLIST_VALID(ipl));
 
-	if (view->forwarders != NULL) {
-		existed = ISC_TRUE;
-		dns_c_iplist_detach(&view->forwarders);
-	}
+	if (view->forwarders != NULL)
+		return (ISC_R_EXISTS);
 
-	if (deepcopy) {
-		res = dns_c_iplist_copy(view->mem, &view->forwarders, ipl);
-	} else {
-		dns_c_iplist_attach(ipl, &view->forwarders);
-		res = ISC_R_SUCCESS;
-	}
+	dns_c_iplist_attach(ipl, &view->forwarders);
 
-	if (res == ISC_R_SUCCESS) {
-		return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
-	} else {
-		return (res);
-	}
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1197,22 +1181,17 @@ dns_c_view_getforwarders(dns_c_view_t *view,
 */
 
 isc_result_t
-dns_c_view_setalsonotify(dns_c_view_t *view,
-			 dns_c_iplist_t *ipl)
+dns_c_view_setalsonotify(dns_c_view_t *view, dns_c_iplist_t *ipl)
 {
-	isc_boolean_t existed = ISC_FALSE;
-
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(DNS_C_IPLIST_VALID(ipl));
 
-	if (view->also_notify != NULL) {
-		existed = ISC_TRUE;
-		dns_c_iplist_detach(&view->also_notify);
-	}
+	if (view->also_notify != NULL)
+		return (ISC_R_EXISTS);
 
 	dns_c_iplist_attach(ipl, &view->also_notify);
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.50 2001/01/09 21:52:40 bwelling Exp $ */
+/* $Id: confview.h,v 1.51 2001/01/25 02:33:52 bwelling Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -231,8 +231,7 @@ isc_result_t dns_c_view_unsetforward(dns_c_view_t *view);
 
 
 
-isc_result_t dns_c_view_setforwarders(dns_c_view_t *view, dns_c_iplist_t *ipl,
-				      isc_boolean_t deepcopy);
+isc_result_t dns_c_view_setforwarders(dns_c_view_t *view, dns_c_iplist_t *ipl);
 isc_result_t dns_c_view_unsetforwarders(dns_c_view_t *view);
 isc_result_t dns_c_view_getforwarders(dns_c_view_t *view,
 				      dns_c_iplist_t **ipl);

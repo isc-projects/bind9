@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.75 2001/01/22 03:59:21 gson Exp $ */
+/* $Id: confzone.c,v 1.76 2001/01/25 02:33:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -146,14 +146,6 @@ static void	hint_zone_print(FILE *fp, int indent,
 				dns_c_hintzone_t *hzone);
 static void	forward_zone_print(FILE *fp, int indent,
 				   dns_c_forwardzone_t *fzone);
-static isc_result_t set_iplist_field(isc_mem_t *mem,
-				     dns_c_iplist_t **dest,
-				     dns_c_iplist_t *src,
-				     isc_boolean_t deepcopy);
-static isc_result_t set_ipmatch_list_field(isc_mem_t *mem,
-					   dns_c_ipmatchlist_t **dest,
-					   dns_c_ipmatchlist_t *src,
-					   isc_boolean_t deepcopy);
 
 static const char *
 dialup_totext(dns_dialuptype_t dialup) {
@@ -661,6 +653,7 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 					      ISC_LOG_WARNING, autherr,
 					      zone->name);
 				dns_c_zone_unsetallowupd(zone);
+				dns_ssutable_detach(&ssutable);
 			}
 			dns_c_ipmatchlist_detach(&ipmlist);
 		}
@@ -680,8 +673,10 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 				      DNS_LOGMODULE_CONFIG,
 				      ISC_LOG_WARNING, emptymasterserr,
 				      zone->name);
+			dns_c_iplist_detach(&iplist);
 			result = ISC_R_FAILURE;
-		}
+		} else
+			dns_c_iplist_detach(&iplist);
 	}
 
 	/*
@@ -1024,12 +1019,9 @@ dns_c_zone_getchecknames(dns_c_zone_t *zone, dns_severity_t *retval) {
 
 isc_result_t
 dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
-				    dns_c_ipmatchlist_t *ipml,
-				    isc_boolean_t deepcopy)
+				    dns_c_ipmatchlist_t *ipml)
 {
 	dns_c_ipmatchlist_t **p = NULL;
-	isc_result_t res;
-	isc_boolean_t existed;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
@@ -1062,15 +1054,12 @@ dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	res = set_ipmatch_list_field(zone->mem, p,
-				     ipml, deepcopy);
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
+	dns_c_ipmatchlist_attach(ipml, p);
 
-	return (res);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1134,7 +1123,6 @@ dns_c_zone_getallowupdateforwarding(dns_c_zone_t *zone,
 isc_result_t
 dns_c_zone_setssuauth(dns_c_zone_t *zone, dns_ssutable_t *ssu) {
 	dns_ssutable_t **p = NULL;
-	isc_boolean_t existed;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 
@@ -1170,11 +1158,12 @@ dns_c_zone_setssuauth(dns_c_zone_t *zone, dns_ssutable_t *ssu) {
 		return (ISC_R_FAILURE);
 	}
 
-	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	*p = ssu;
+	dns_ssutable_attach(ssu, p);
 
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1223,7 +1212,7 @@ dns_c_zone_getssuauth(dns_c_zone_t *zone, dns_ssutable_t **retval) {
 	}
 
 	if (p != NULL) {
-		*retval = p;
+		dns_ssutable_attach(p, retval);
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;
@@ -1234,13 +1223,8 @@ dns_c_zone_getssuauth(dns_c_zone_t *zone, dns_ssutable_t **retval) {
 
 
 isc_result_t
-dns_c_zone_setallownotify(dns_c_zone_t *zone,
-			 dns_c_ipmatchlist_t *ipml,
-			 isc_boolean_t deepcopy)
-{
+dns_c_zone_setallownotify(dns_c_zone_t *zone, dns_c_ipmatchlist_t *ipml) {
 	dns_c_ipmatchlist_t **p = NULL;
-	isc_boolean_t existed;
-	isc_result_t res;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
@@ -1276,15 +1260,12 @@ dns_c_zone_setallownotify(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	res = set_ipmatch_list_field(zone->mem, p,
-				     ipml, deepcopy);
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
+	dns_c_ipmatchlist_attach(ipml, p);
 
-	return (res);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1342,13 +1323,8 @@ dns_c_zone_getallownotify(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
 }
 
 isc_result_t
-dns_c_zone_setallowquery(dns_c_zone_t *zone,
-			 dns_c_ipmatchlist_t *ipml,
-			 isc_boolean_t deepcopy)
-{
+dns_c_zone_setallowquery(dns_c_zone_t *zone, dns_c_ipmatchlist_t *ipml) {
 	dns_c_ipmatchlist_t **p = NULL;
-	isc_boolean_t existed;
-	isc_result_t res;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
@@ -1380,15 +1356,12 @@ dns_c_zone_setallowquery(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	res = set_ipmatch_list_field(zone->mem, p,
-				     ipml, deepcopy);
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
+	dns_c_ipmatchlist_attach(ipml, p);
 
-	return (res);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1447,13 +1420,8 @@ dns_c_zone_getallowquery(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
  */
 
 isc_result_t
-dns_c_zone_setallowtransfer(dns_c_zone_t *zone,
-			    dns_c_ipmatchlist_t *ipml,
-			    isc_boolean_t deepcopy)
-{
+dns_c_zone_setallowtransfer(dns_c_zone_t *zone, dns_c_ipmatchlist_t *ipml) {
 	dns_c_ipmatchlist_t **p = NULL;
-	isc_boolean_t existed;
-	isc_result_t res;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
@@ -1486,15 +1454,12 @@ dns_c_zone_setallowtransfer(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
-	res = set_ipmatch_list_field(zone->mem, p,
-				     ipml, deepcopy);
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
+	dns_c_ipmatchlist_attach(ipml, p);
 
-	return (res);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -1883,12 +1848,7 @@ dns_c_zone_getnotify(dns_c_zone_t *zone, dns_notifytype_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setalsonotify(dns_c_zone_t *zone,
-			 dns_c_iplist_t *newval,
-			 isc_boolean_t deepcopy)
-{
-	isc_boolean_t existed;
-	isc_result_t res;
+dns_c_zone_setalsonotify(dns_c_zone_t *zone, dns_c_iplist_t *newval) {
 	dns_c_iplist_t **p = NULL;
 
 	REQUIRE(zone != NULL);
@@ -1922,13 +1882,12 @@ dns_c_zone_setalsonotify(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
-	res = set_iplist_field(zone->mem, p, newval, deepcopy);
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	return (res);
+	dns_c_iplist_attach(newval, p);
+
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -2581,12 +2540,7 @@ dns_c_zone_getmasterport(dns_c_zone_t *zone, in_port_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setmasterips(dns_c_zone_t *zone,
-			dns_c_iplist_t *newval,
-			isc_boolean_t deepcopy)
-{
-	isc_boolean_t existed;
-	isc_result_t res = ISC_R_SUCCESS;
+dns_c_zone_setmasterips(dns_c_zone_t *zone, dns_c_iplist_t *newval) {
 	dns_c_iplist_t **p;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2600,19 +2554,11 @@ dns_c_zone_setmasterips(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_slave:
-	case dns_c_zone_stub:
-		if (zone->ztype == dns_c_zone_slave) {
-			p = &zone->u.szone.master_ips ;
-		} else {
-			p = &zone->u.tzone.master_ips ;
-		}
+		p = &zone->u.szone.master_ips;
+		break;
 
-		existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
-		res = set_iplist_field(zone->mem, p,
-				       newval, deepcopy);
-		if (res == ISC_R_SUCCESS && existed) {
-			res = ISC_R_EXISTS;
-		}
+	case dns_c_zone_stub:
+		p = &zone->u.tzone.master_ips ;
 		break;
 
 	case dns_c_zone_hint:
@@ -2628,7 +2574,12 @@ dns_c_zone_setmasterips(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	return (res);
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
+
+	dns_c_iplist_attach(newval, p);
+
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -2638,6 +2589,7 @@ dns_c_zone_setmasterips(dns_c_zone_t *zone,
 
 isc_result_t
 dns_c_zone_getmasterips(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
+	dns_c_iplist_t *p;
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2651,21 +2603,11 @@ dns_c_zone_getmasterips(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_slave:
-		if (zone->u.szone.master_ips != NULL) {
-			*retval = zone->u.szone.master_ips;
-			res = ISC_R_SUCCESS;
-		} else {
-			res = ISC_R_NOTFOUND;
-		}
+		p = zone->u.szone.master_ips;
 		break;
 
 	case dns_c_zone_stub:
-		if (zone->u.tzone.master_ips != NULL) {
-			*retval = zone->u.tzone.master_ips;
-			res = ISC_R_SUCCESS;
-		} else {
-			res = ISC_R_NOTFOUND;
-		}
+		p = zone->u.tzone.master_ips;
 		break;
 
 	case dns_c_zone_hint:
@@ -2679,6 +2621,13 @@ dns_c_zone_getmasterips(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "forward zones do not have a masters field");
 		return (ISC_R_FAILURE);
+	}
+
+	if (p != NULL) {
+		dns_c_iplist_attach(p, retval);
+		res = ISC_R_SUCCESS;
+	} else {
+		res = ISC_R_NOTFOUND;
 	}
 
 	return (res);
@@ -4377,12 +4326,8 @@ dns_c_zone_getforward(dns_c_zone_t *zone, dns_c_forw_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setforwarders(dns_c_zone_t *zone,
-			 dns_c_iplist_t *ipl,
-			 isc_boolean_t deepcopy)
+dns_c_zone_setforwarders(dns_c_zone_t *zone, dns_c_iplist_t *ipl)
 {
-	isc_boolean_t existed = ISC_FALSE;
-	isc_result_t res;
 	dns_c_iplist_t **p = NULL;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -4391,17 +4336,14 @@ dns_c_zone_setforwarders(dns_c_zone_t *zone,
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		p = &zone->u.mzone.forwarders;
-		existed = (*p == NULL ? ISC_FALSE : ISC_TRUE);
 		break;
 
 	case dns_c_zone_slave:
 		p = &zone->u.szone.forwarders;
-		existed = (*p == NULL ? ISC_FALSE : ISC_TRUE);
 		break;
 
 	case dns_c_zone_stub:
 		p = &zone->u.tzone.forwarders;
-		existed = (*p == NULL ? ISC_FALSE : ISC_TRUE);
 		break;
 
 	case dns_c_zone_hint:
@@ -4412,16 +4354,15 @@ dns_c_zone_setforwarders(dns_c_zone_t *zone,
 
 	case dns_c_zone_forward:
 		p = &zone->u.fzone.forwarders;
-		existed = (*p == NULL ? ISC_FALSE : ISC_TRUE);
 		break;
 	}
 
-	res = set_iplist_field(zone->mem, p, ipl, deepcopy);
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	return (res);
+	dns_c_iplist_attach(ipl, p);
+
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -4440,7 +4381,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	case dns_c_zone_master:
 		if (zone->u.mzone.forwarders != NULL &&
 		    zone->u.mzone.forwarders->nextidx > 0) {
-			*retval = zone->u.mzone.forwarders;
+			dns_c_iplist_attach(zone->u.mzone.forwarders, retval);
 			res = ISC_R_SUCCESS;
 		} else {
 			res = ISC_R_NOTFOUND;
@@ -4450,7 +4391,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	case dns_c_zone_slave:
 		if (zone->u.szone.forwarders != NULL &&
 		    zone->u.szone.forwarders->nextidx > 0) {
-			*retval = zone->u.szone.forwarders;
+			dns_c_iplist_attach(zone->u.szone.forwarders, retval);
 			res = ISC_R_SUCCESS;
 		} else {
 			res = ISC_R_NOTFOUND;
@@ -4460,7 +4401,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	case dns_c_zone_stub:
 		if (zone->u.tzone.forwarders != NULL &&
 		    zone->u.tzone.forwarders->nextidx > 0) {
-			*retval = zone->u.tzone.forwarders;
+			dns_c_iplist_attach(zone->u.tzone.forwarders, retval);
 			res = ISC_R_SUCCESS;
 		} else {
 			res = ISC_R_NOTFOUND;
@@ -4476,7 +4417,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	case dns_c_zone_forward:
 		if (zone->u.fzone.forwarders != NULL &&
 		    zone->u.fzone.forwarders->nextidx > 0) {
-			*retval = zone->u.fzone.forwarders;
+			dns_c_iplist_attach(zone->u.fzone.forwarders, retval);
 			res = ISC_R_SUCCESS;
 		} else {
 			res = ISC_R_NOTFOUND;
@@ -4493,13 +4434,8 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
  */
 
 isc_result_t
-dns_c_zone_setallowupd(dns_c_zone_t *zone,
-		       dns_c_ipmatchlist_t *ipml,
-		       isc_boolean_t deepcopy)
-{
+dns_c_zone_setallowupd(dns_c_zone_t *zone, dns_c_ipmatchlist_t *ipml) {
 	dns_c_ipmatchlist_t **p = NULL;
-	isc_result_t res;
-	isc_boolean_t existed;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
@@ -4531,15 +4467,12 @@ dns_c_zone_setallowupd(dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
+	if (*p != NULL)
+		return (ISC_R_EXISTS);
 
-	res = set_ipmatch_list_field(zone->mem, p,
-				     ipml, deepcopy);
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
-	}
+	dns_c_ipmatchlist_attach(ipml, p);
 
-	return (res);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -5810,64 +5743,3 @@ hint_zone_clear(isc_mem_t *mem, dns_c_hintzone_t *hzone) {
 
 	return (ISC_R_SUCCESS);
 }
-
-
-/*
- *
- */
-
-/**************************************************/
-
-static isc_result_t
-set_ipmatch_list_field(isc_mem_t *mem,
-		       dns_c_ipmatchlist_t **dest, dns_c_ipmatchlist_t *src,
-		       isc_boolean_t deepcopy)
-{
-	isc_result_t res;
-
-	if (*dest != NULL) {
-		res = dns_c_ipmatchlist_detach(dest);
-		if (res != ISC_R_SUCCESS) {
-			return (res);
-		}
-	}
-
-	if (deepcopy) {
-		res = dns_c_ipmatchlist_copy(mem, dest, src);
-	} else {
-		*dest = src;
-		res = ISC_R_SUCCESS;
-	}
-
-	return (res);
-}
-
-
-/*
- *
- */
-
-static isc_result_t
-set_iplist_field(isc_mem_t *mem,
-		 dns_c_iplist_t **dest, dns_c_iplist_t *src,
-		 isc_boolean_t deepcopy)
-{
-	isc_result_t res;
-
-	if (*dest != NULL) {
-		res = dns_c_iplist_detach(dest);
-		if (res != ISC_R_SUCCESS) {
-			return (res);
-		}
-	}
-
-	if (deepcopy) {
-		res = dns_c_iplist_copy(mem, dest, src);
-	} else {
-		*dest = src;
-		res = ISC_R_SUCCESS;
-	}
-
-	return (res);
-}
-

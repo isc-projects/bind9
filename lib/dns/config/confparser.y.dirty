@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.50 2001/01/22 03:59:19 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.51 2001/01/25 02:33:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -458,7 +458,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <ime>		address_match_simple
 %type <ime>		address_name
 %type <iml>		address_match_list
-%type <ipaddress>	in_addr_elem
 %type <ipaddress>	ip4_address
 %type <ipaddress>	ip4_prefix
 %type <ipaddress>	ip6_address
@@ -470,9 +469,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <ipaddress>	query_source_v4
 %type <ipaddress>	query_source_v6
 %type <ipaddress>	ip_and_port_element
-%type <iplist>		in_addr_list
-%type <iplist>		opt_in_addr_list
-%type <iplist>		opt_zone_forwarders_list
 %type <iplist>		port_ip_list
 %type <iplist>		ip_and_port_list
 %type <number>		facility_name
@@ -1040,31 +1036,21 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-	| L_FORWARDERS {
-		dns_c_iplist_t *forwarders;
+	| L_FORWARDERS port_ip_list
+	{
+		replace_zero_ports($2, default_port);
+		tmpres = dns_c_ctx_setforwarders(currcfg, $2);
+		dns_c_iplist_detach(&$2);
 
-		tmpres = dns_c_ctx_getforwarders(currcfg, &forwarders);
-		if (tmpres != ISC_R_NOTFOUND) {
-			parser_warning(ISC_FALSE,
-				       "cannot redefine options forwarders");
-			dns_c_iplist_detach(&forwarders);
-		}
-
-		tmpres = dns_c_iplist_new(currcfg->mem, 5, &forwarders);
-		if (tmpres != ISC_R_SUCCESS) {
+		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "failed to create forwarders list");
+				     "cannot redefine forwarders");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "failed to set forwarders");
 			YYABORT;
 		}
-
-		tmpres = dns_c_ctx_setforwarders(currcfg, ISC_FALSE,
-						 forwarders);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set forwarders list");
-			YYABORT;
-		}
-	} L_LBRACE opt_forwarders_list L_RBRACE
+	}
 	| L_QUERY_SOURCE query_source_v4
 	{
 		tmpres = dns_c_ctx_setquerysource(currcfg, $2);
@@ -2050,7 +2036,7 @@ ip_and_port_element: ip_address maybe_zero_port
 	};
 
 
-ip_and_port_list: ip_and_port_element maybe_key L_EOS
+ip_and_port_list: /* empty */
 	{
 		dns_c_iplist_t *list;
 
@@ -2059,17 +2045,6 @@ ip_and_port_list: ip_and_port_element maybe_key L_EOS
 			parser_error(ISC_TRUE,
 				     "failed to create new iplist");
 			YYABORT;
-		}
-
-		tmpres = dns_c_iplist_append(list, $1, $2);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_TRUE,
-				     "failed to append master address");
-			YYABORT;
-		}
-
-		if ($2 != NULL) {
-			isc_mem_free(memctx, $2);
 		}
 
 		$$ = list;
@@ -2436,29 +2411,6 @@ transfer_clause: L_TRANSFERS_IN L_INTEGER
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set transfers-per-ns");
-			YYABORT;
-		}
-	}
-	;
-
-
-opt_forwarders_list: /* nothing */ {
-	}
-	| forwarders_in_addr_list
-	;
-
-forwarders_in_addr_list: forwarders_in_addr L_EOS
-	| forwarders_in_addr_list forwarders_in_addr L_EOS
-	;
-
-forwarders_in_addr: ip_address
-	{
-		tmpres = dns_c_iplist_append(currcfg->options->forwarders,
-					     $1, NULL);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to add forwarders "
-				     "address element");
 			YYABORT;
 		}
 	}
@@ -3722,14 +3674,14 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-	| L_FORWARDERS L_LBRACE opt_in_addr_list L_RBRACE
+	| L_FORWARDERS port_ip_list
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setforwarders(view,
-						  $3, ISC_FALSE);
+		tmpres = dns_c_view_setforwarders(view, $2);
+		dns_c_iplist_detach(&$2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine view forwarders");
@@ -3739,7 +3691,6 @@ view_option: L_FORWARD zone_forward_opt
 				     "failed to set view forwarders");
 			YYABORT;
 		}
-		dns_c_iplist_detach(&$3);
 	}
 	| L_ALLOW_NOTIFY L_LBRACE address_match_list L_RBRACE
 	{
@@ -4667,9 +4618,6 @@ zone_ssu_stmt: grant_stmt {
 						     "ssutable");
 					ok = ISC_FALSE;
 				}
-			}
-
-			if (ok) {
 				dns_c_zone_setssuauth(zone, ssutable);
 			}
 		}
@@ -4679,6 +4627,7 @@ zone_ssu_stmt: grant_stmt {
 					      $1.name,
 					      $1.rdatatypes.idx,
 					      $1.rdatatypes.types);
+		dns_ssutable_detach(&ssutable);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "error creating ssu "
@@ -5137,7 +5086,8 @@ zone_option: L_FILE L_QSTRING
 
 		replace_zero_ports($2, default_port);
 
-		tmpres = dns_c_zone_setmasterips(zone, $2, ISC_FALSE);
+		tmpres = dns_c_zone_setmasterips(zone, $2);
+		dns_c_iplist_detach(&$2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone masters ips");
@@ -5315,8 +5265,8 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setallowupd(zone,
-						$3, ISC_FALSE);
+		tmpres = dns_c_zone_setallowupd(zone, $3);
+		dns_c_ipmatchlist_detach(&$3);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone allow-update");
@@ -5333,8 +5283,8 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setallowupdateforwarding(zone,
-							     $3, ISC_FALSE);
+		tmpres = dns_c_zone_setallowupdateforwarding(zone, $3);
+		dns_c_ipmatchlist_detach(&$3);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone "
@@ -5353,8 +5303,8 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setallownotify(zone,
-						  $3, ISC_FALSE);
+		tmpres = dns_c_zone_setallownotify(zone, $3);
+		dns_c_ipmatchlist_detach(&$3);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone allow-notify");
@@ -5371,8 +5321,8 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setallowquery(zone,
-						  $3, ISC_FALSE);
+		tmpres = dns_c_zone_setallowquery(zone, $3);
+		dns_c_ipmatchlist_detach(&$3);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone allow-query");
@@ -5389,8 +5339,8 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setallowtransfer(zone,
-						     $3, ISC_FALSE);
+		tmpres = dns_c_zone_setallowtransfer(zone, $3);
+		dns_c_ipmatchlist_detach(&$3);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone allow-transfer");
@@ -5418,28 +5368,14 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-	| L_FORWARDERS L_LBRACE opt_zone_forwarders_list L_RBRACE
+	| L_FORWARDERS port_ip_list
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
-		dns_c_iplist_t *iplist;
 
 		INSIST(zone != NULL);
 
-		if ($3 == NULL) {	/* user defined empty list */
-			tmpres = dns_c_iplist_new(currcfg->mem,
-						  5, &iplist);
-			if (tmpres != ISC_R_SUCCESS) {
-				parser_error(ISC_TRUE,
-					     "failed to create new zone "
-					     "iplist");
-				YYABORT;
-			}
-		} else {
-			iplist = $3;
-		}
-
-		tmpres = dns_c_zone_setforwarders(zone,
-						  iplist, ISC_FALSE);
+		tmpres = dns_c_zone_setforwarders(zone, $2);
+		dns_c_iplist_detach(&$2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone forwarders");
@@ -5749,7 +5685,8 @@ zone_option: L_FILE L_QSTRING
 
 		replace_zero_ports($2, default_port);
 
-		tmpres = dns_c_zone_setalsonotify(zone, $2, ISC_FALSE);
+		tmpres = dns_c_zone_setalsonotify(zone, $2);
+		dns_c_iplist_detach(&$2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine zone also-notify");
@@ -5859,58 +5796,6 @@ ip_prefix: ip4_address | ip4_prefix | ip6_address
 ip_address: ip4_address | ip6_address
 	;
 
-in_addr_elem: ip_address
-	;
-
-opt_in_addr_list: /* nothing */
-	{
-		dns_c_iplist_t *list;
-
-		tmpres = dns_c_iplist_new(currcfg->mem, 5, &list);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_TRUE,
-				     "failed to create new iplist");
-			YYABORT;
-		}
-
-		$$ = list;
-	}
-	| in_addr_list
-	;
-
-in_addr_list: in_addr_elem L_EOS
-	{
-		dns_c_iplist_t *list;
-
-		tmpres = dns_c_iplist_new(currcfg->mem, 5, &list);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_TRUE,
-				     "failed to create new iplist");
-			YYABORT;
-		}
-
-		tmpres = dns_c_iplist_append(list, $1, NULL);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_TRUE,
-				     "failed to append master address");
-			YYABORT;
-		}
-
-		$$ = list;
-	}
-	| in_addr_list in_addr_elem L_EOS
-	{
-		tmpres = dns_c_iplist_append($1, $2, NULL);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_TRUE,
-				     "failed to append master address");
-			YYABORT;
-		}
-
-		$$ = $1;
-	}
-	;
-
 zone_forward_opt: L_ONLY
 	{
 		$$ = dns_c_forw_only;
@@ -5919,9 +5804,6 @@ zone_forward_opt: L_ONLY
 	{
 		$$ = dns_c_forw_first;
 	}
-	;
-
-opt_zone_forwarders_list: opt_in_addr_list
 	;
 
 /*
