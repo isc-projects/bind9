@@ -197,15 +197,12 @@ iszonekey(signer_key_t *key, dns_db_t *db) {
 
 static signer_key_t *
 keythatsigned(dns_rdata_generic_sig_t *sig) {
-	char keyname[1024];
-	isc_buffer_t b;
+	char *keyname;
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *privkey = NULL;
 	signer_key_t *key;
 
-	isc_buffer_init(&b, keyname, sizeof(keyname), ISC_BUFFERTYPE_TEXT);
-	result = dns_name_totext(&sig->signer, ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
+	keyname = nametostr(&sig->signer);
 
 	key = ISC_LIST_HEAD(keylist);
 	while (key != NULL) {
@@ -241,10 +238,12 @@ keythatsigned(dns_rdata_generic_sig_t *sig) {
 static isc_boolean_t
 expecttofindkey(dns_name_t *name, dns_db_t *db, dns_dbversion_t *version) {
 	unsigned int options = DNS_DBFIND_NOWILD;
+	dns_fixedname_t fname;
 	isc_result_t result;
 
+	dns_fixedname_init(&fname);
 	result = dns_db_find(db, name, version, dns_rdatatype_key, options,
-			     0, NULL, NULL, NULL, NULL);
+			     0, NULL, dns_fixedname_name(&fname), NULL, NULL);
 	switch (result) {
 		case DNS_R_SUCCESS:
 		case DNS_R_NXDOMAIN:
@@ -370,13 +369,13 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				}
 				else {
 					vbprintf(2,
-						 "\tsig by %s/%s/%d dropped - ",
+						 "\tsig by %s/%s/%d dropped - "
 						 "%s\n",
-						 expired ? "expired" :
-							   "failed to verify",
 						 nametostr(&sig.signer),
 						 algtostr(sig.algorithm),
-						 sig.keyid);
+						 sig.keyid,
+						 expired ? "expired" :
+							   "failed to verify");
 					wassignedby[sig.algorithm] = ISC_TRUE;
 					resign = ISC_TRUE;
 				}
@@ -398,11 +397,11 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 					vbprintf(2,
 						 "\tsig by %s/%s/%d dropped - ",
 						 "%s\n",
-						 expired ? "expired" :
-							   "failed to verify",
 						 nametostr(&sig.signer),
 						 algtostr(sig.algorithm),
-						 sig.keyid);
+						 sig.keyid,
+						 expired ? "expired" :
+							   "failed to verify");
 					wassignedby[sig.algorithm] = ISC_TRUE;
 					if (dst_key_isprivate(key->key))
 						resign = ISC_TRUE;
@@ -433,6 +432,10 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			}
 			else if (resign) {
 				allocbufferandrdata;
+				vbprintf(1, "\tresigning with key %s/%s/%d\n",
+				       dst_key_name(key->key),
+				       algtostr(dst_key_alg(key->key)),
+				       dst_key_id(key->key));
 				signwithkey(name, set, trdata, key->key, &b);
 				nowsignedby[sig.algorithm] = ISC_TRUE;
 				ISC_LIST_APPEND(siglist.rdata, trdata, link);
