@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.228 2000/10/12 21:51:46 mws Exp $ */
+/* $Id: server.c,v 1.229 2000/10/13 22:35:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1283,19 +1283,31 @@ load_configuration(const char *filename, ns_server_t *server,
 	callbacks.optscbk = options_callback;
 	callbacks.optscbkuap = NULL;
 
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "loading configuration from '%s'",
-		      filename);
-
 	/*
 	 * Parse the configuration file creating a parse tree.  Any
 	 * 'zone' statements are handled immediately by calling
 	 * configure_zone() through 'callbacks'.
 	 */
 	cctx = NULL;
-	result = dns_c_parse_namedconf(filename, ns_g_mctx, &cctx, &callbacks);
-	if (result == ISC_R_FILENOTFOUND && ns_g_lwresdonly)
+	if (ns_g_lwresdonly && lwresd_g_useresolvconf)
+		result = ISC_R_FILENOTFOUND;
+	else {
+		isc_log_write(ns_g_lctx,
+			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+			      ISC_LOG_INFO, "loading configuration from '%s'",
+			      filename);
+
+		result = dns_c_parse_namedconf(filename, ns_g_mctx, &cctx,
+					       &callbacks);
+	}
+	if (result == ISC_R_FILENOTFOUND && ns_g_lwresdonly) {
+		isc_log_write(ns_g_lctx,
+			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+			      ISC_LOG_INFO, "loading configuration from '%s'",
+			      lwresd_g_resolvconffile);
+
 		result = ns_lwresd_parseresolvconf(ns_g_mctx, &cctx);
+	}
 	CHECK(result);
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.88 2000/10/04 23:18:56 bwelling Exp $ */
+/* $Id: main.c,v 1.89 2000/10/13 22:35:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -280,6 +280,7 @@ parse_command_line(int argc, char *argv[]) {
 		/* XXXBEW Should -C be removed? */
 		case 'C':
 			lwresd_g_resolvconffile = isc_commandline_argument;
+			lwresd_g_useresolvconf = ISC_TRUE;
 			break;
 		case 'd':
 			ns_g_debuglevel = parse_int(isc_commandline_argument,
