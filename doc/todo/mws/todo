@@ -26,3 +26,8 @@ are treated as hosts.
 +view and +zone stuff
 
 nsupdate code check and cleanup.  Make sure prereq, etc... work.
+
+Fix wpk's build/tests scripts to
+ - not run if the previous test failed (to keep logs and cores around)
+ - display the date and time of the last run
+
