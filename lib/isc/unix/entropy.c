@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.60 2001/07/18 01:31:13 gson Exp $ */
+/* $Id: entropy.c,v 1.60.2.1 2001/10/22 23:28:18 gson Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include <isc/platform.h>
+#include <isc/strerror.h>
 
 #ifdef ISC_PLATFORM_NEEDSYSSELECTH
 #include <sys/select.h>
@@ -267,15 +268,17 @@ static isc_result_t
 make_nonblock(int fd) {
 	int ret;
 	int flags;
+	char strbuf[ISC_STRERRORSIZE];
 
 	flags = fcntl(fd, F_GETFL, 0);
 	flags |= O_NONBLOCK;
 	ret = fcntl(fd, F_SETFL, flags);
 
 	if (ret == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "fcntl(%d, F_SETFL, %d): %s",
-				 fd, flags, strerror(errno));
+				 fd, flags, strbuf);
 
 		return (ISC_R_UNEXPECTED);
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.1 2001/08/30 04:33:19 marka Exp $ */
+/* $Id: strerror.c,v 1.1.2.1 2001/10/22 23:28:25 gson Exp $ */
 
 #include <config.h>
 
@@ -62,9 +62,7 @@ isc__strerror(int num, char *buf, size_t size) {
 	return (buf);
 #else
 	unsigned int unum = num;
-	isc_once_t once = ISC_ONCE_INIT;
-	static lock;
-	
+
 	REQUIRE(buf != NULL);
 
 	if (num >= 0 && num < sys_nerr)

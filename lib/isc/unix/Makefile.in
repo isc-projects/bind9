@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.35 2001/03/02 19:25:16 bwelling Exp $
+# $Id: Makefile.in,v 1.35.2.1 2001/10/22 23:28:16 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -33,14 +33,14 @@ OBJS =		@ISC_IPV6_O@ \
 		app.@O@ dir.@O@ entropy.@O@ errno2result.@O@ file.@O@ \
 		fsaccess.@O@ interfaceiter.@O@ keyboard.@O@ net.@O@ \
 		os.@O@ resource.@O@ socket.@O@ stdio.@O@ stdtime.@O@ \
-		syslog.@O@ time.@O@
+		strerror.@O@ syslog.@O@ time.@O@
 
 # Alphabetically
 SRCS =		@ISC_IPV6_C@ \
 		app.c dir.c entropy.c errno2result.c file.c \
 		fsaccess.c interfaceiter.c keyboard.c net.c \
 		os.c resource.c socket.c stdio.c stdtime.c \
-		syslog.c time.c
+		strerror.c syslog.c time.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}

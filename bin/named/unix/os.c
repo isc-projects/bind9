@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46 2001/08/29 18:03:36 gson Exp $ */
+/* $Id: os.c,v 1.46.2.1 2001/10/22 23:28:12 gson Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -36,6 +36,7 @@
 #include <isc/file.h>
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 
 #include <named/main.h>
@@ -133,6 +134,7 @@ static void
 linux_setcaps(unsigned int caps) {
 	struct __user_cap_header_struct caphead;
 	struct __user_cap_data_struct cap;
+	char strbuf[ISC_STRERRORSIZE];
 
 	if ((getuid() != 0 && !non_root_caps) || non_root)
 		return;
@@ -144,8 +146,10 @@ linux_setcaps(unsigned int caps) {
 	cap.effective = caps;
 	cap.permitted = caps;
 	cap.inheritable = caps;
-	if (syscall(SYS_capset, &caphead, &cap) < 0)
-		ns_main_earlyfatal("capset failed: %s", strerror(errno));
+	if (syscall(SYS_capset, &caphead, &cap) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("capset failed: %s", strbuf);
+	}
 }
 
 static void
@@ -233,15 +237,17 @@ linux_minprivs(void) {
 #ifdef HAVE_SYS_PRCTL_H
 static void
 linux_keepcaps(void) {
+	char strbuf[ISC_STRERRORSIZE];
 	/*
 	 * Ask the kernel to allow us to keep our capabilities after we
 	 * setuid().
 	 */
 
 	if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) < 0) {
-		if (errno != EINVAL)
-			ns_main_earlyfatal("prctl() failed: %s",
-					   strerror(errno));
+		if (errno != EINVAL) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			ns_main_earlyfatal("prctl() failed: %s", strbuf);
+		}
 	} else {
 		non_root_caps = ISC_TRUE;
 		if (getuid() != 0)
@@ -280,10 +286,13 @@ void
 ns_os_daemonize(void) {
 	pid_t pid;
 	int fd;
+	char strbuf[ISC_STRERRORSIZE];
 
 	pid = fork();
-	if (pid == -1)
-		ns_main_earlyfatal("fork(): %s", strerror(errno));
+	if (pid == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("fork(): %s", strbuf);
+	}
 	if (pid != 0)
 		_exit(0);
 
@@ -295,8 +304,10 @@ ns_os_daemonize(void) {
 	mainpid = getpid();
 #endif
 
-        if (setsid() == -1)
-		ns_main_earlyfatal("setsid(): %s", strerror(errno));
+        if (setsid() == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("setsid(): %s", strbuf);
+	}
 
 	/*
 	 * Try to set stdin, stdout, and stderr to /dev/null, but press
@@ -337,16 +348,22 @@ all_digits(const char *s) {
 
 void
 ns_os_chroot(const char *root) {
+	char strbuf[ISC_STRERRORSIZE];
 	if (root != NULL) {
-		if (chroot(root) < 0)
-			ns_main_earlyfatal("chroot(): %s", strerror(errno));
-		if (chdir("/") < 0)
-			ns_main_earlyfatal("chdir(/): %s", strerror(errno));
+		if (chroot(root) < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			ns_main_earlyfatal("chroot(): %s", strbuf);
+		}
+		if (chdir("/") < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			ns_main_earlyfatal("chdir(/): %s", strbuf);
+		}
 	}
 }
 
 void
 ns_os_inituserinfo(const char *username) {
+	char strbuf[ISC_STRERRORSIZE];
 	if (username == NULL)
 		return;
 
@@ -360,14 +377,17 @@ ns_os_inituserinfo(const char *username) {
 		ns_main_earlyfatal("user '%s' unknown", username);
 
 	if (getuid() == 0) {
-		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0)
-			ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			ns_main_earlyfatal("initgroups(): %s", strbuf);
+		}
 	}
 
 }
 
 void
 ns_os_changeuser(void) {
+	char strbuf[ISC_STRERRORSIZE];
 	if (runas_pw == NULL || done_setuid)
 		return;
 
@@ -382,11 +402,15 @@ ns_os_changeuser(void) {
 		   "2.3.99-pre3 or 2.2.18 when using threads");
 #endif
 
-	if (setgid(runas_pw->pw_gid) < 0)
-		ns_main_earlyfatal("setgid(): %s", strerror(errno));
+	if (setgid(runas_pw->pw_gid) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("setgid(): %s", strbuf);
+	}
 
-	if (setuid(runas_pw->pw_uid) < 0)
-		ns_main_earlyfatal("setuid(): %s", strerror(errno));
+	if (setuid(runas_pw->pw_uid) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("setuid(): %s", strbuf);
+	}
 
 #if defined(HAVE_LINUX_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
 	linux_minprivs();
@@ -447,6 +471,7 @@ ns_os_writepidfile(const char *filename) {
 	FILE *lockfile;
 	size_t len;
 	pid_t pid;
+	char strbuf[ISC_STRERRORSIZE];
 
 	/*
 	 * The caller must ensure any required synchronization.
@@ -456,20 +481,26 @@ ns_os_writepidfile(const char *filename) {
 
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
-	if (pidfile == NULL)
+	if (pidfile == NULL) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
                 ns_main_earlyfatal("couldn't malloc '%s': %s",
-				   filename, strerror(errno));
+				   filename, strbuf);
+	}
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
         fd = safe_open(filename, ISC_FALSE);
-        if (fd < 0)
+        if (fd < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
                 ns_main_earlyfatal("couldn't open pid file '%s': %s",
-				   filename, strerror(errno));
+				   filename, strbuf);
+	}
         lockfile = fdopen(fd, "w");
-        if (lockfile == NULL)
+        if (lockfile == NULL) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlyfatal("could not fdopen() pid file '%s': %s",
-				   filename, strerror(errno));
+				   filename, strbuf);
+	}
 #ifdef HAVE_LINUXTHREADS
 	pid = mainpid;
 #else

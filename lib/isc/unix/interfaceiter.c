@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.22 2001/06/05 06:34:11 bwelling Exp $ */
+/* $Id: interfaceiter.c,v 1.22.2.1 2001/10/22 23:28:21 gson Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/result.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/interfaceiter.h>

@@ -1,3 +1,8 @@
+1068.	[bug]		errno could be overwritten by catgets(). [RT #1921]
+
+1066.	[bug]		Provide a thread safe wrapper for strerror().
+			[RT #1689]
+
 1064.	[bug]		Do not shut down active network interfaces if we
 			are unable to scan the interface list. [RT #1921]
 

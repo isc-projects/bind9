@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.34.2.4 2001/09/06 00:34:06 marka Exp $ */
+/* $Id: time.c,v 1.34.2.5 2001/10/22 23:28:26 gson Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 
 #include <isc/log.h>
 #include <isc/print.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -142,11 +143,13 @@ isc_time_isepoch(isc_time_t *t) {
 isc_result_t
 isc_time_now(isc_time_t *t) {
 	struct timeval tv;
+	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(t != NULL);
 
 	if (gettimeofday(&tv, NULL) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strerror(errno));
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -182,13 +185,15 @@ isc_time_now(isc_time_t *t) {
 isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	struct timeval tv;
+	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (gettimeofday(&tv, NULL) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strerror(errno));
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 
