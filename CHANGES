@@ -90,7 +90,7 @@
 1607.	[bug]		dig, host and nslookup were still using random()
 			to generate query ids. [RT# 11013]
 
-1606.	[bug]	 	DVL insecurity proof was failing.
+1606.	[bug]	 	DLV insecurity proof was failing.
 
 1605.	[func]		New dns_db_find() option DNS_DBFIND_COVERINGNSEC.
 
