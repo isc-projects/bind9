@@ -28,14 +28,12 @@
 	       if (result != ISC_R_SUCCESS) goto cleanup; 	 \
 	} while (0)
 
-
 /*
  * Set up a logging category according to the named.conf data
  * in 'ccat' and add it to 'lctx'.
  */
 static isc_result_t
-category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
-{
+category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx) {
 	isc_result_t result;
 	unsigned int i;
 	isc_logcategory_t *category;
@@ -69,8 +67,7 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
  * in 'cchan' and add it to 'lctx'.
  */
 static isc_result_t
-channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
-{
+channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 	isc_result_t result;
 	isc_logdestination_t dest;
 	unsigned int type;
@@ -85,7 +82,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 			const char *path = NULL;
 			isc_uint32_t versions = ISC_LOG_ROLLNEVER; 
 			isc_uint32_t size = 0;
-			(void) dns_c_logchan_getpath(cchan, &path);
+			(void)dns_c_logchan_getpath(cchan, &path);
 			if (path == NULL) {
 				isc_log_write(ns_g_lctx,
 					      DNS_LOGCATEGORY_CONFIG,
@@ -95,8 +92,8 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 					      "no file name");
 				return (ISC_R_UNEXPECTED);
 			}
-			(void) dns_c_logchan_getversions(cchan, &versions);
-			(void) dns_c_logchan_getsize(cchan, &size);
+			(void)dns_c_logchan_getversions(cchan, &versions);
+			(void)dns_c_logchan_getsize(cchan, &size);
 			dest.file.stream = NULL;
 			dest.file.name = cchan->u.filec.path;
 			dest.file.versions = (int)versions;
@@ -108,7 +105,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 		type = ISC_LOG_TOSYSLOG;
 		{
 			int facility = LOG_DAEMON;
-			(void) dns_c_logchan_getfacility(cchan, &facility);
+			(void)dns_c_logchan_getfacility(cchan, &facility);
 			dest.facility = facility;
 		}
 		break;
@@ -125,9 +122,9 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 		isc_boolean_t printsev = ISC_FALSE;
 		isc_boolean_t printtime = ISC_FALSE;
 
-		(void) dns_c_logchan_getprintcat(cchan, &printcat);
-		(void) dns_c_logchan_getprintsev(cchan, &printsev);
-		(void) dns_c_logchan_getprinttime(cchan, &printtime);
+		(void)dns_c_logchan_getprintcat(cchan, &printcat);
+		(void)dns_c_logchan_getprintsev(cchan, &printsev);
+		(void)dns_c_logchan_getprinttime(cchan, &printtime);
 
 		if (printcat)
 			flags |= ISC_LOG_PRINTCATEGORY;
@@ -139,7 +136,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 	}
 	
 	level = ISC_LOG_INFO;
-	(void) dns_c_logchan_getdebuglevel(cchan, &level);
+	(void)dns_c_logchan_getdebuglevel(cchan, &level);
 	
 	result = isc_log_createchannel(lctx, cchan->name,
 				       type, level, &dest, flags);
@@ -147,8 +144,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 }
 
 isc_result_t
-ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog)
-{
+ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog) {
 	isc_result_t result;
 	dns_c_logchan_t *cchan;
 	dns_c_logcat_t *ccat;
