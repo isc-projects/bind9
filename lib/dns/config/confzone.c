@@ -17,12 +17,7 @@
 
 #include <config.h>
 
-#include <string.h>
-
-#include <sys/types.h>
-
 #include <isc/assertions.h>
-#include <isc/net.h>
 
 #include <dns/confzone.h>
 #include <dns/confcommon.h>
@@ -163,7 +158,7 @@ dns_c_zonelist_delete(isc_log_t *lctx, dns_c_zonelist_t **zlist)
 		ISC_LIST_UNLINK(list->zones, zone, next);
 
 		res = zone_delete(lctx, &zone);
-		if (res != NULL) {
+		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
 
