@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.16 2000/06/22 21:51:26 tale Exp $
+# $Id: ifconfig.sh,v 1.17 2000/06/25 16:52:31 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -79,7 +79,6 @@ case "$1" in
 			exit 1
 		esac
 	done
-	touch /var/run/system_test_ifsetup
 	;;
 
     'stop')
@@ -127,7 +126,6 @@ case "$1" in
 			exit 1
 		esac
 	done
-	rm -f /var/run/system_test_ifsetup
 	
 	;;
 
