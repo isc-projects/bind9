@@ -1,4 +1,8 @@
-1190.	[func]		Add the "rndc freeze" and"rndc unfreeze" commands.
+1192.	[bug]		The seconds fields in LOC records were restricted
+			to three decimal places.  More decimal places should
+			be allowed but warned about.
+
+1190.	[func]		Add the "rndc freeze" and "rndc unfreeze" commands.
 			[RT #2394]
 
 1187.	[bug]		named was incorrectly returning DNSSEC records

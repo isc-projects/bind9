@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.30.2.3.2.2 2003/08/13 00:36:53 marka Exp $ */
+/* $Id: loc_29.c,v 1.30.2.3.2.3 2003/08/13 04:26:36 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -56,7 +56,6 @@ fromtext_loc(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
-	UNUSED(callbacks);
 
 	/*
 	 * Defaults.
@@ -108,6 +107,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (s1 < 0 || s1 > 59)
 		RETTOK(ISC_R_RANGE);
 	if (*e == '.') {
+		const char *l;
 		e++;
 		for (i = 0; i < 3 ; i++) {
 			if (*e == 0)
@@ -119,8 +119,22 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for ( ; i < 3 ; i++)
 			s1 *= 10;
-		if (*e != 0)
-			RETTOK(DNS_R_SYNTAX);
+		l = e;
+		while (*e != 0) {
+			if (decvalue(*e++) < 0)
+				RETTOK(DNS_R_SYNTAX);
+		}
+		if (*l != '\0' && callbacks != NULL) {
+			const char *file = isc_lex_getsourcename(lexer);
+			unsigned long line = isc_lex_getsourceline(lexer);
+
+			if (file == NULL)
+				file = "UNKNOWN";
+			(*callbacks->warn)(callbacks, "%s: %s:%u: '%s' extra "
+					   "precision digits ignored",
+					   "dns_rdata_fromtext", file, line,
+					   DNS_AS_STR(token));
+		}
 	} else
 		s1 *= 1000;
 	if (d1 == 90 && s1 != 0)
@@ -178,6 +192,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (s2 < 0 || s2 > 59)
 		RETTOK(ISC_R_RANGE);
 	if (*e == '.') {
+		const char *l;
 		e++;
 		for (i = 0; i < 3 ; i++) {
 			if (*e == 0)
@@ -189,8 +204,22 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for ( ; i < 3 ; i++)
 			s2 *= 10;
-		if (*e != 0)
-			RETTOK(DNS_R_SYNTAX);
+		l = e;
+		while (*e != 0) {
+			if (decvalue(*e++) < 0)
+				RETTOK(DNS_R_SYNTAX);
+		}
+		if (*l != '\0' && callbacks != NULL) {
+			const char *file = isc_lex_getsourcename(lexer);
+			unsigned long line = isc_lex_getsourceline(lexer);
+
+			if (file == NULL)
+				file = "UNKNOWN";
+			(*callbacks->warn)(callbacks, "%s: %s:%u: '%s' extra "
+					   "precision digits ignored",
+					   "dns_rdata_fromtext",
+					   file, line, DNS_AS_STR(token));
+		}
 	} else
 		s2 *= 1000;
 	if (d2 == 180 && s2 != 0)
