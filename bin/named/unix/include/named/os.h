@@ -33,6 +33,9 @@ void
 ns_os_changeuser(const char *username);
 
 void
+ns_os_minprivs(const char *username);
+
+void
 ns_os_writepidfile(const char *filename);
 
 void

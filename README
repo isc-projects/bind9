@@ -220,13 +220,19 @@ Bug Reports and Mailing Lists
 	enhance security on most systems.  The way chroot() is defined
 	allows a process with root privileges to escape the chroot jail.
 
-	The "-u" option is not currently useful on Linux.  Linux threads
-	are actually processes sharing a common address space.  An unfortunate
-	side effect of this is that some system calls, e.g. setuid() that
-	in a typical pthreads environment would affect all threads only affect
-	the calling thread/process on Linux.  The good news is that BIND 9
-	uses the Linux kernel's capability mechanism to drop all root
-	powers except the ability to bind() to a privileged port.
+	The "-u" option is not currently useful on Linux kernels older
+	than 2.3.99-pre3.  Linux threads are actually processes sharing a
+	common address space.  An unfortunate side effect of this is that
+	some system calls, e.g. setuid() that in a typical pthreads
+	environment would affect all threads only affect the calling
+	thread/process on Linux.  The good news is that BIND 9 uses the
+	Linux kernel's capability mechanism to drop all root powers except
+	the ability to bind() to a privileged port.  2.3.99-pre3 and later
+	kernels allow a process to say that its capabilities should be
+	retained after setuid().  If BIND 9 is compiled with 2.3.99-pre3 or
+	later kernel .h files, the "-u" option will cause the server to
+	run with the specified user id, but it will retain the capability
+	to bind() to privileged ports.
 
 	On systems with more than one CPU, the "-n" option should be used
 	to indicate how many CPUs there are.

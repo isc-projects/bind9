@@ -289,6 +289,16 @@ setup() {
 
 	ns_os_chroot(ns_g_chrootdir);
 
+	/*
+	 * For operating systems which have a capability mechanism, now
+	 * is the time to switch to minimal privs and change our user id.
+	 * On traditional UNIX systems, this call will be a no-op, and we
+	 * will change the user ID after reading the config file the first
+	 * time.  (We need to read the config file to know which possibly
+	 * privileged ports to bind() to.)
+	 */
+	ns_os_minprivs(ns_g_username);
+
 	result = ns_log_init();
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("ns_log_init() failed: %s",
