@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi_test.c,v 1.28 2001/01/09 21:41:27 bwelling Exp $ */
+/* $Id: omapi_test.c,v 1.29 2001/02/16 01:00:42 bwelling Exp $ */
 
 /*
  * Test code for OMAPI.
@@ -32,6 +32,8 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
+
+#include <dns/acl.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>
