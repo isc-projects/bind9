@@ -1,4 +1,8 @@
 
+ 783.	[bug]		Following CNAMEs could cause an assertion failure
+			when either using an sdb database or under very
+			rare conditions.
+
  782.	[feature]	Implement the serial-query-rate option.
 
  781.	[func]		Avoid error packet loops by dropping duplicate FORMERR
