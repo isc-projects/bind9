@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.40 2000/01/31 23:12:35 gson Exp $ */
+ /* $Id: xfrout.c,v 1.41 2000/02/03 22:29:54 halley Exp $ */
 
 #include <config.h>
 
