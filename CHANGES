@@ -1,7 +1,7 @@
 
- 894.	[bug]		A message intended to warn when the keyboard was being
-			used because of the lack of a suitable random device
-			was not being printed.
+ 894.	[bug]		When using the DNSSEC tools, a message intended to warn
+			when the keyboard was being used because of the lack
+			of a suitable random device was not being printed.
 
  893.	[func]		Removed isc_file_test() and added isc_file_exists()
 			for the basic functionality that was being added
