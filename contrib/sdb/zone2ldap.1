@@ -54,11 +54,11 @@ zone2ldap -D dc=root -w secret -h localhost -z customer.com -b dc=provider,dc=ne
 This will create dc=customer,dc=com under dc=provider,dc=net, and add all necessary Resource Records. The final
 root DN to the SOA will be dc=@,dc=customer,dc=com,dc=provider,dc=net.
 
-
 .SH "SEE ALSO"
 named(8) ldap(3) 
+http://www.venaas.no/ldap/bind-sdb/
 .SH "BUGS"
-Send all bug reports to Jeff McNeil <jeffmcneil@mindspring.com>.
+Send all bug reports to Jeff McNeil <jeff@snapcase.g-rock.net>
 .SH AUTHOR
-Jeff McNeil <jmcneil@interland.com>
+Jeff McNeil <jeff@snapcase.g-rock.net>
 

@@ -1,9 +1,16 @@
 /*
- * Copyright (C) 2001 Jeff McNeil <jeffmcneil@mindspring.com>
+ * Copyright (C) 2001 Jeff McNeil <jeff@snapcase.g-rock.net>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
+ * 
+ * Change Log
+ *
+ * Tue May  1 19:19:54 EDT 2001 - Jeff McNeil
+ * Update to objectClass code, and add_to_rr_list function
+ * (I need to rename that) to support the dNSZone schema,
+ * ditched dNSDomain2 schema support. Version 0.3-ALPHA
  */
 
 #include <errno.h>
@@ -29,10 +36,10 @@
 
 #include <ldap.h>
 
-#define DNS_OBJECT 5
+#define DNS_OBJECT 6
 #define DNS_TOP	   2
 
-#define VERSION    "0.2-ALPHA"
+#define VERSION    "0.3-ALPHA"
 
 typedef struct LDAP_INFO
 {
@@ -81,7 +88,7 @@ ldap_info *ldap_info_base = NULL;
 char *argzone, *ldapbase, *binddn, *bindpw = NULL;
 char *ldapsystem = "localhost";
 static char *objectClasses[] =
-  { "top", "domain", "dNSDomain", "dNSDomain2", NULL };
+  { "top", "dNSZone", NULL };
 static char *topObjectClasses[] = { "top", NULL };
 LDAP *conn;
 unsigned int debug = 0;
@@ -444,11 +451,13 @@ add_to_rr_list (char *dn, char *name, char *type,
 	  return;
 	}
 
-
-
       tmp->attrs[1]->mod_op = LDAP_MOD_ADD;
-      tmp->attrs[1]->mod_type = "dc";
+      tmp->attrs[1]->mod_type = "relativeDomainName";
       tmp->attrs[1]->mod_values = (char **) calloc (sizeof (char *), 2);
+
+      if (tmp->attrs[1]->mod_values == (char **)NULL)
+	       exit(-1);
+
       tmp->attrs[1]->mod_values[0] = strdup (name);
       tmp->attrs[1]->mod_values[2] = NULL;
 
@@ -457,18 +466,31 @@ add_to_rr_list (char *dn, char *name, char *type,
       tmp->attrs[2]->mod_op = LDAP_MOD_ADD;
       tmp->attrs[2]->mod_type = strdup (ldap_type_buffer);
       tmp->attrs[2]->mod_values = (char **) calloc (sizeof (char *), 2);
+
+       if (tmp->attrs[2]->mod_values == (char **)NULL)
+	       exit(-1);
+
       tmp->attrs[2]->mod_values[0] = strdup (data);
       tmp->attrs[2]->mod_values[1] = NULL;
 
       tmp->attrs[3]->mod_op = LDAP_MOD_ADD;
       tmp->attrs[3]->mod_type = "dNSTTL";
       tmp->attrs[3]->mod_values = (char **) calloc (sizeof (char *), 2);
+
+      if (tmp->attrs[3]->mod_values == (char **)NULL)
+	      exit(-1);
+
       sprintf (charttl, "%d", ttl);
       tmp->attrs[3]->mod_values[0] = strdup (charttl);
       tmp->attrs[3]->mod_values[1] = NULL;
 
+      tmp->attrs[4]->mod_op = LDAP_MOD_ADD;
+      tmp->attrs[4]->mod_type = "zoneName";
+      tmp->attrs[4]->mod_values = (char **)calloc(sizeof(char *), 2);
+      tmp->attrs[4]->mod_values[0] = argzone;
+      tmp->attrs[4]->mod_values[1] = NULL;
 
-      tmp->attrs[4] = NULL;
+      tmp->attrs[5] = NULL;
       tmp->attrcnt = flags;
       tmp->next = ldap_info_base;
       ldap_info_base = tmp;
@@ -602,10 +624,13 @@ build_dn_from_dc_list (char **dc_list, unsigned int ttl)
   size = get_attr_list_size (dc_list);
   for (x = size - 2; x > 0; x--)
     {
-      if (x == (size - 2) && (strncmp (dc_list[x], "@", 1)) && (ttl))
-	sprintf (tmp, "dc=%s + dNSTTL=%d,", dc_list[x], ttl);
+      if (x == (size - 2) && (strncmp (dc_list[x], "@", 1) == 0) && (ttl))
+	sprintf (tmp, "relativeDomainName=%s + dNSTTL=%d,", dc_list[x], ttl);
+      else if (x == (size - 2))
+	      sprintf(tmp, "relativeDomainName=%s,",dc_list[x]);
       else
-	sprintf (tmp, "dc=%s,", dc_list[x]);
+	      sprintf(tmp,"dc=%s,", dc_list[x]);
+
 
       strncat (dn, tmp, sizeof (dn) - strlen (dn));
     }
@@ -613,6 +638,7 @@ build_dn_from_dc_list (char **dc_list, unsigned int ttl)
   sprintf (tmp, "dc=%s", dc_list[0]);
   strncat (dn, tmp, sizeof (dn) - strlen (dn));
 
+  printf("dn = %s\n", dn);
   return dn;
 }
 
