@@ -499,11 +499,11 @@ isc_buffer_getuint32(isc_buffer_t *b);
  *
  *	'b' is a valid buffer.
  *
- *	The length of the available region of 'b' is at least 2.
+ *	The length of the available region of 'b' is at least 4.
  *
  * Ensures:
  *
- *	The current pointer in 'b' is advanced by 2.
+ *	The current pointer in 'b' is advanced by 4.
  *
  * Returns:
  *
