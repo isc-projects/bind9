@@ -78,7 +78,8 @@ ISC_LANG_BEGINDECLS
 typedef struct isc_socket isc_socket_t;
 typedef struct isc_socketmgr isc_socketmgr_t;
 
-typedef struct isc_socketevent {
+typedef struct isc_socketevent  isc_socketevent_t;
+struct isc_socketevent {
 	isc_event_t		common;		/* Sender is the socket. */
 	isc_result_t		result;		/* OK, EOF, whatever else */
 	isc_boolean_t		partial;	/* partial i/o ok */
@@ -86,15 +87,16 @@ typedef struct isc_socketevent {
 	isc_region_t		region;		/* the region info */
 	isc_sockaddr_t		address;	/* source address */
 	unsigned int		addrlength;	/* length of address */
-} isc_socketevent_t;
+};
 
-typedef struct isc_socket_newconnev {
-	isc_event_t		common;
+typedef struct isc_socket_newconnev isc_socket_newconnev_t;
+struct isc_socket_newconnev {
+	ISC_EVENT_COMMON(isc_socket_newconnev_t);
 	isc_socket_t *		newsocket;
 	isc_result_t		result;		/* OK, EOF, whatever else */
 	isc_sockaddr_t		address;	/* source address */
 	unsigned int		addrlength;	/* length of address */
-} isc_socket_newconnev_t;
+};
 
 typedef struct isc_socket_connev {
 	isc_event_t		common;
@@ -116,6 +118,7 @@ typedef struct isc_socket_connev {
 #define ISC_SOCKEVENT_INTSEND	(ISC_EVENTCLASS_SOCKET + 258)
 #define ISC_SOCKEVENT_INTACCEPT	(ISC_EVENTCLASS_SOCKET + 259)
 #define ISC_SOCKEVENT_INTCONN	(ISC_EVENTCLASS_SOCKET + 260)
+#define ISC_SOCKEVENT_INTR	(ISC_EVENTCLASS_SOCKET + 261)
 
 typedef enum {
 	isc_socket_udp,

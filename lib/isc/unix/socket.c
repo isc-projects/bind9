@@ -115,14 +115,12 @@ typedef struct rwintev {
 	ISC_LINK(struct rwintev)	link;	   /* next event */
 } rwintev_t;
 
-typedef struct ncintev {
-	isc_event_t			common;	   /* Sender is the socket */
+typedef struct intev intev_t;
+struct intev {
+	ISC_EVENT_COMMON(intev_t);
 	isc_task_t		       *task;	   /* task to send these to */
-	isc_socket_newconnev_t	       *done_ev;   /* the done event */
-	isc_boolean_t			canceled;  /* accept was canceled */
 	isc_boolean_t			posted;	   /* event posted to task */
-	ISC_LINK(struct ncintev)	link;	   /* next event */
-} ncintev_t;
+};
 
 typedef struct cnintev {
 	isc_event_t			common;	   /* Sender is the socket */
@@ -149,7 +147,10 @@ struct isc_socket {
 	isc_result_t			send_result;
 	ISC_LIST(rwintev_t)		recv_list;
 	ISC_LIST(rwintev_t)		send_list;
-	ISC_LIST(ncintev_t)		accept_list;
+
+	ISC_LIST(isc_socket_newconnev_t)	accept_list;
+	intev_t				readable_ev;
+
 	cnintev_t		       *connect_ev;
 	isc_boolean_t			pending_recv;
 	isc_boolean_t			pending_send;
@@ -306,14 +307,9 @@ socket_dump(isc_socket_t *sock)
 	}
 
 	printf("accept queue:\n");
-	aiev = ISC_LIST_HEAD(sock->accept_list);
-	while (aiev != NULL) {
-		printf("\tintev %p, done_ev %p, task %p, "
-		       "canceled %d, posted %d\n",
-		       aiev, aiev->done_ev, aiev->task, aiev->canceled,
-		       aiev->posted);
-		aiev = ISC_LIST_NEXT(aiev, link);
-	}
+	aiev = sock->accept_ev;
+	printf("\tintev %p, task %p, canceled %d, posted %d\n",
+	       aiev, aiev->task, aiev->canceled, aiev->posted);
 
 	printf("--------\n");
 }
@@ -370,13 +366,16 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 		isc_socket_t **socketp)
 {
 	isc_socket_t *sock;
+	isc_result_t ret;
 
 	sock = isc_mem_get(manager->mctx, sizeof *sock);
 
 	if (sock == NULL)
 		return (ISC_R_NOMEMORY);
 
-	sock->magic = SOCKET_MAGIC;
+	ret = ISC_R_UNEXPECTED;
+
+	sock->magic = 0;
 	sock->references = 0;
 
 	sock->manager = manager;
@@ -388,7 +387,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	 */
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
-	ISC_LIST_INIT(sock->accept_list);
 	sock->connect_ev = NULL;
 	sock->pending_recv = ISC_FALSE;
 	sock->pending_send = ISC_FALSE;
@@ -400,6 +398,8 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->wiev = NULL;
 	sock->ciev = NULL;
 
+	ISC_LIST_INIT(sock->accept_list);
+
 	sock->addrlength = 0;
 
 	sock->recv_result = ISC_R_SUCCESS;
@@ -410,15 +410,28 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	 */
 	if (isc_mutex_init(&sock->lock) != ISC_R_SUCCESS) {
 		sock->magic = 0;
-		isc_mem_put(manager->mctx, sock, sizeof *sock);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
-		return (ISC_R_UNEXPECTED);
+		ret = ISC_R_UNEXPECTED;
+		goto err1;
 	}
 
+	/*
+	 * Initialize readable event
+	 */
+	ISC_EVENT_INIT(&sock->readable_ev, sizeof(intev_t),
+		       ISC_EVENTATTR_NOPURGE, ISC_SOCKEVENT_INTR,
+		       NULL, sock, sock, NULL, NULL);
+
+	sock->magic = SOCKET_MAGIC;
 	*socketp = sock;
 
 	return (ISC_R_SUCCESS);
+
+ err1: /* socket allocated */
+	isc_mem_put(manager->mctx, sock, sizeof *sock);
+
+	return (ret);
 }
 
 /*
@@ -444,7 +457,6 @@ free_socket(isc_socket_t **socketp)
 	REQUIRE(!sock->pending_accept);
 	REQUIRE(EMPTY(sock->recv_list));
 	REQUIRE(EMPTY(sock->send_list));
-	REQUIRE(EMPTY(sock->accept_list));
 
 	sock->magic = 0;
 
@@ -628,22 +640,30 @@ dispatch_write(isc_socket_t *sock)
 	ISC_TASK_SEND(iev->task, &ev);
 }
 
+/*
+ * Dispatch an internal accept event.
+ */
 static void
-dispatch_listen(isc_socket_t *sock)
+dispatch_accept(isc_socket_t *sock)
 {
-	ncintev_t *iev;
-	isc_event_t *ev;
+	intev_t *iev;
+	isc_socket_newconnev_t *ev;
 
-	iev = ISC_LIST_HEAD(sock->accept_list);
-	ev = (isc_event_t *)iev;
+	iev = &sock->readable_ev;
+	ev = ISC_LIST_HEAD(sock->accept_list);
 
-	REQUIRE(!sock->pending_accept);
+	INSIST(ev != NULL);
+	INSIST(!sock->pending_accept);
+	INSIST(iev->posted == ISC_FALSE);
 
+	sock->references++;  /* keep socket around for this internal event */
+	iev->sender = sock;
+	iev->action = internal_accept;
+	iev->arg = sock;
 	sock->pending_accept = ISC_TRUE;
-
 	iev->posted = ISC_TRUE;
 
-	ISC_TASK_SEND(iev->task, &ev);
+	ISC_TASK_SEND(ev->sender, (isc_event_t **)&iev);
 }
 
 static void
@@ -747,29 +767,16 @@ send_senddone_event(isc_socket_t *sock, isc_task_t **task,
 	}
 }
 
-static void
-send_ncdone_event(ncintev_t **iev,
-		  isc_socket_newconnev_t **dev, isc_result_t resultcode)
-{
-	REQUIRE(iev != NULL);
-	REQUIRE(*iev != NULL);
-	REQUIRE(dev != NULL);
-	REQUIRE(*dev != NULL);
-
-	(*dev)->result = resultcode;
-	ISC_TASK_SEND((*iev)->task, (isc_event_t **)dev);
-	isc_task_detach(&(*iev)->task);
-	(*iev)->done_ev = NULL;
-
-	isc_event_free((isc_event_t **)iev);
-}
-
 /*
  * Call accept() on a socket, to get the new file descriptor.  The listen
  * socket is used as a prototype to create a new isc_socket_t.  The new
- * socket is referenced twice (one for the task which is receiving this
- * message, and once for the message itself) so the task does not need to
- * attach to the socket again.  The task is not attached at all.
+ * socket has one outstanding reference.  The task receiving the event
+ * will be detached from just after the event is delivered.
+ *
+ * On entry to this function, the event delivered is the internal
+ * readable event, and the first item on the accept_list should be
+ * the done event we want to send.  If the list is empty, this is a no-op,
+ * so just unlock and return.
  */
 static void
 internal_accept(isc_task_t *task, isc_event_t *ev)
@@ -777,7 +784,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	isc_socket_t *sock;
 	isc_socketmgr_t *manager;
 	isc_socket_newconnev_t *dev;
-	ncintev_t *iev;
+	intev_t *iev = (intev_t *)ev;
 	struct sockaddr addr;
 	ISC_SOCKADDR_LEN_T addrlen;
 	int fd;
@@ -786,32 +793,42 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	sock = ev->sender;
 	REQUIRE(VALID_SOCKET(sock));
 
-	iev = (ncintev_t *)ev;
-	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
 	LOCK(&sock->lock);
 	XTRACE(TRACE_LISTEN,
 	       ("internal_accept called, locked parent sock %p\n", sock));
 
-	REQUIRE(sock->pending_accept);
-	REQUIRE(sock->listener);
-	REQUIRE(!EMPTY(sock->accept_list));
-	REQUIRE(iev->task == task);
+	manager = sock->manager;
+	REQUIRE(VALID_MANAGER(manager));
 
+	INSIST(sock->listener);
+
+	/*
+	 * Reset the internal event, since we no longer need it.  It was
+	 * used only to get us here, and is unused in the remainder of this
+	 * function.
+	 */
+	iev = (intev_t *)ev;
+	INSIST(iev->posted);
+	iev->posted = ISC_FALSE;
+	iev = NULL;  /* Make certain we don't use this anymore */
+	INSIST(sock->references > 0);
+	sock->references--;  /* the internal event is done with this socket */
+	if (sock->references == 0) {
+		UNLOCK(&sock->lock);
+		destroy(&sock);
+		return;
+	}
+
+	INSIST(sock->pending_accept);
 	sock->pending_accept = ISC_FALSE;
 
 	/*
-	 * Has this event been canceled?
+	 * Get the first item off the accept list.
+	 * If it is empty, unlock the socket and return.
 	 */
-	if (iev->canceled) {
-		ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
-		isc_event_free((isc_event_t **)iev);
-		if (!EMPTY(sock->accept_list))
-			select_poke(sock->manager, sock->fd);
-
+	dev = ISC_LIST_HEAD(sock->accept_list);
+	if (dev == NULL) {
 		UNLOCK(&sock->lock);
-
 		return;
 	}
 
@@ -845,6 +862,19 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 		result = ISC_R_UNEXPECTED;
 	}
 
+	/*
+	 * Pull off the done event.
+	 */
+	ISC_LIST_UNLINK(sock->accept_list, dev, link);
+
+	/*
+	 * Poke watcher if there are more pending accepts.
+	 */
+	if (!EMPTY(sock->accept_list))
+		select_poke(sock->manager, sock->fd);
+
+	UNLOCK(&sock->lock);
+
 	if (fd != -1 && (make_nonblock(fd) != ISC_R_SUCCESS)) {
 		close(fd);
 		fd = -1;
@@ -855,21 +885,6 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 
 		result = ISC_R_UNEXPECTED;
 	}
-
-	ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
-
-	if (!EMPTY(sock->accept_list))
-		select_poke(sock->manager, sock->fd);
-
-	UNLOCK(&sock->lock);
-
-	/*
-	 * The accept succeeded.  Pull off the done event and set the
-	 * fd and other information in the socket descriptor here.  These
-	 * were preallocated for us.
-	 */
-	dev = iev->done_ev;
-	iev->done_ev = NULL;
 
 	/*
 	 * -1 means the new socket didn't happen.
@@ -898,7 +913,15 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 				      dev->newsocket, fd));
 	}
 
-	send_ncdone_event(&iev, &dev, result);
+	/*
+	 * Fill in the done event details and send it off.
+	 */
+	dev->result = result;
+	task = (isc_task_t *)(dev->sender);
+	dev->sender = sock;
+
+	ISC_TASK_SEND(task, (isc_event_t **)&dev);
+	isc_task_detach(&task);
 }
 
 static void
@@ -1286,7 +1309,7 @@ watcher(void *uap)
 	isc_boolean_t unlock_sock;
 	int i;
 	rwintev_t *iev;
-	ncintev_t *nciev;
+	isc_event_t *ev2;
 	int maxfd;
 
 	/*
@@ -1413,8 +1436,8 @@ watcher(void *uap)
 					 * Otherwise, set it.
 					 */
 					iev = ISC_LIST_HEAD(sock->recv_list);
-					nciev = ISC_LIST_HEAD(sock->accept_list);
-					if ((iev == NULL && nciev == NULL)
+					ev2 = (isc_event_t *)ISC_LIST_HEAD(sock->accept_list);
+					if ((iev == NULL && ev2 == NULL)
 					    || sock->pending_recv
 					    || sock->pending_accept) {
 						FD_CLR(sock->fd,
@@ -1482,7 +1505,7 @@ watcher(void *uap)
 				unlock_sock = ISC_TRUE;
 				LOCK(&sock->lock);
 				if (sock->listener)
-					dispatch_listen(sock);
+					dispatch_accept(sock);
 				else
 					dispatch_read(sock);
 				FD_CLR(i, &manager->read_fds);
@@ -2113,13 +2136,12 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog)
 }
 
 /*
- * This should try to do agressive accept()
+ * This should try to do agressive accept() XXXMLG
  */
 isc_result_t
 isc_socket_accept(isc_socket_t *sock,
 		  isc_task_t *task, isc_taskaction_t action, void *arg)
 {
-	ncintev_t *iev;
 	isc_socket_newconnev_t *dev;
 	isc_task_t *ntask = NULL;
 	isc_socketmgr_t *manager;
@@ -2136,40 +2158,25 @@ isc_socket_accept(isc_socket_t *sock,
 
 	REQUIRE(sock->listener);
 
-	iev = (ncintev_t *)isc_event_allocate(manager->mctx, sock,
-					      ISC_SOCKEVENT_INTACCEPT,
-					      internal_accept, sock,
-					      sizeof(*iev));
-	if (iev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
-
-	iev->posted = ISC_FALSE;
-
+	/*
+	 * Sender field is overloaded here with the task we will be sending
+	 * this event to.  Just before the actual event is delivered the
+	 * actual sender will be touched up to be the socket.
+	 */
 	dev = (isc_socket_newconnev_t *)
-		isc_event_allocate(manager->mctx,
-				   sock,
-				   ISC_SOCKEVENT_NEWCONN,
-				   action,
-				   arg,
-				   sizeof (*dev));
+		isc_event_allocate(manager->mctx, task, ISC_SOCKEVENT_NEWCONN,
+				   action, arg, sizeof (*dev));
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
-		isc_event_free((isc_event_t **)&iev);
 		return (ISC_R_NOMEMORY);
 	}
-
 
 	ret = allocate_socket(manager, sock->type, &nsock);
 	if (ret != ISC_R_SUCCESS) {
 		UNLOCK(&sock->lock);
-		isc_event_free((isc_event_t **)&iev);
 		isc_event_free((isc_event_t **)&dev);
 		return (ret);
 	}
-
-	ISC_LINK_INIT(iev, link);
 
 	/*
 	 * Attach to socket and to task
@@ -2177,11 +2184,7 @@ isc_socket_accept(isc_socket_t *sock,
 	isc_task_attach(task, &ntask);
 	nsock->references++;
 
-	sock->listener = ISC_TRUE;
-
-	iev->task = ntask;
-	iev->done_ev = dev;
-	iev->canceled = ISC_FALSE;
+	dev->sender = ntask;
 	dev->newsocket = nsock;
 
 	/*
@@ -2192,7 +2195,7 @@ isc_socket_accept(isc_socket_t *sock,
 	if (EMPTY(sock->accept_list))
 		select_poke(manager, sock->fd);
 
-	ISC_LIST_ENQUEUE(sock->accept_list, iev, link);
+	ISC_LIST_ENQUEUE(sock->accept_list, dev, link);
 
 	UNLOCK(&sock->lock);
 
@@ -2613,56 +2616,30 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 
 	if (((how & ISC_SOCKCANCEL_ACCEPT) == ISC_SOCKCANCEL_ACCEPT)
 	    && !EMPTY(sock->accept_list)) {
-		ncintev_t *		iev;
-		ncintev_t *		next;
 		isc_socket_newconnev_t *dev;
+		isc_socket_newconnev_t *next;
 		isc_task_t	       *current_task;
 
-		iev = ISC_LIST_HEAD(sock->accept_list);
-		next = ISC_LIST_NEXT(iev, link);
+		dev = ISC_LIST_HEAD(sock->accept_list);
+		while (dev != NULL) {
+			current_task = dev->sender;
+			next = ISC_LIST_NEXT(dev, link);
 
-		if ((task == NULL || task == iev->task) && !iev->canceled) {
-			dev = iev->done_ev;
-			current_task = iev->task;
+			if ((task == NULL) || (task == current_task)) {
 
-			ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
-			if (iev->posted) {
-				if (isc_task_purge(current_task, sock,
-						   ISC_SOCKEVENT_INTACCEPT)
-				    == 0) {
-					iev->canceled = ISC_TRUE;
-					iev->done_ev = NULL;
-					ISC_LIST_PREPEND(sock->accept_list,
-							 iev, link);
-				}
-			} else {
-				isc_event_free((isc_event_t **)&iev);
-			}
-
-			dev->newsocket->references--;
-			free_socket(&dev->newsocket);
-
-			dev->result = ISC_R_CANCELED;
-			ISC_TASK_SEND(current_task, (isc_event_t **)&dev);
-			isc_task_detach(&current_task);
-		}
-
-		iev = next;
-
-		while (iev != NULL) {
-			next = ISC_LIST_NEXT(iev, link);
-
-			if (task == NULL || task == iev->task) {
-				dev = iev->done_ev;
-				iev->done_ev = NULL;
+				ISC_LIST_UNLINK(sock->accept_list, dev, link);
 
 				dev->newsocket->references--;
 				free_socket(&dev->newsocket);
-				ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
-				send_ncdone_event(&iev, &dev, ISC_R_CANCELED);
+
+				dev->result = ISC_R_CANCELED;
+				dev->sender = sock;
+				ISC_TASK_SEND(current_task,
+					      (isc_event_t **)&dev);
+				isc_task_detach(&current_task);
 			}
 
-			iev = next;
+			dev = next;
 		}
 	}
 
