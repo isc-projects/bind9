@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.147 2000/10/06 18:58:16 bwelling Exp $ */
+/* $Id: message.c,v 1.148 2000/10/06 22:02:02 bwelling Exp $ */
 
 /***
  *** Imports
@@ -927,6 +927,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	section = &msg->sections[DNS_SECTION_QUESTION];
 
 	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
+	seen_problem = ISC_FALSE;
 
 	name = NULL;
 	rdataset = NULL;
@@ -1081,6 +1082,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 	preserve_order = ISC_TF(options & DNS_MESSAGEPARSE_PRESERVEORDER);
 	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
+	seen_problem = ISC_FALSE;
 
 	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
 		int recstart = source->current;
@@ -1439,6 +1441,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 
 	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
+	seen_problem = ISC_FALSE;
 
 	origsource = *source;
 
