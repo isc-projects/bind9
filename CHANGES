@@ -56,6 +56,9 @@
 1800.	[bug]		Changes #1719 allowed a INSIST to be triggered.
 			[RT #13428]
 
+1799.	[bug]		'rndc flushname' failed to flush negative cache
+			entries. [RT #13438]
+
 1798.	[func]		The server syntax has been extended to support a
 			range of servers.  [RT #11132]
 
