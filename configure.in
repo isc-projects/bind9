@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.81 $)
+AC_REVISION($Revision: 1.82 $)
 
 AC_PREREQ(2.13)
 
@@ -351,10 +351,10 @@ AC_TRY_COMPILE([
 	ISC_LWRES_SETNETENTINT="#undef ISC_LWRES_SETNETENTINT"])
 AC_SUBST(ISC_LWRES_SETNETENTINT)
 
-AC_MSG_CHECKING(for gethostbyadd(const void *,...))
+AC_MSG_CHECKING(for gethostbyadd(const void *, size_t, ...))
 AC_TRY_COMPILE([
 #include <netdb.h>
-struct hostent *gethostbyaddr(const void *, int, int);],
+struct hostent *gethostbyaddr(const void *, size_t, int);],
 [return(0);],
 	[AC_MSG_RESULT(yes)
 	ISC_LWRES_GETHOSTBYADDRVOID="#define ISC_LWRES_GETHOSTBYADDRVOID 1"],

@@ -18,7 +18,7 @@ gethostbyname(const char *name) {
 
 #ifdef ISC_LWRES_GETHOSTBYADDRVOID
 struct hostent *
-gethostbyaddr(const void *addr, int len, int type) {
+gethostbyaddr(const void *addr, size_t len, int type) {
 	int error;
 
 	if (he != NULL) 
