@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi_test.c,v 1.22 2000/06/22 21:50:39 tale Exp $ */
+/* $Id: omapi_test.c,v 1.22.2.1 2000/06/28 00:32:32 gson Exp $ */
 
 /* 
  * Test code for OMAPI.
@@ -683,7 +683,7 @@ main(int argc, char **argv) {
 					  OMAPI_AUTH_HMACMD5)
 		      == ISC_R_SUCCESS);
 
-	if (argc > 1 && strcmp(argv[0], "listen") == 0) {
+	if (argc >= 1 && strcmp(argv[0], "listen") == 0) {
 		if (argc != 2) {
 			fprintf(stderr, "Usage: %s listen port\n", progname);
 			exit (1);
@@ -691,7 +691,7 @@ main(int argc, char **argv) {
 
 		do_listen(atoi(argv[1]));
 
-	} else if (argc > 1 && !strcmp (argv[0], "connect")) {
+	} else if (argc >= 1 && !strcmp (argv[0], "connect")) {
 		if (argc != 3) {
 			fprintf(stderr, "Usage: %s connect address port\n",
 				progname);
