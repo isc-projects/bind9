@@ -1,4 +1,6 @@
 
+	--- 9.2.0rc1 released ---
+
  955.	[bug]		When using views, the zone's class was not being
 			inherited from the view's class.  [RT #1583]
 
