@@ -1,3 +1,9 @@
+1722.	[bug]		Don't commit the journal on malformed ixfr streams.
+			[RT #12519]
+
+1721.	[bug]		Error message from the journal processing were not
+			always identifing the relevent journal. [RT #12519]
+
 1720.	[bug]		'dig +chase' did not terminate on a RFC 2308 Type 1
 			negative response. [RT #12506]
 
