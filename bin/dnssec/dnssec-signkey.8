@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signkey.8,v 1.4 2000/07/26 00:47:16 bwelling Exp $
+.\" $Id: dnssec-signkey.8,v 1.5 2000/07/26 19:13:18 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNKEY 8
@@ -51,8 +51,8 @@ Each
 argument will be a key identification string as reported by
 .Xr dnssec-keygen 8
 for the parent zone.
-This allows the child's keys to be signed by more than 1 parent zone
-key if these exist. 
+This allows the child's keys to be signed by more than one 
+parent zone key.
 .Pp
 The
 .Fl h
@@ -118,7 +118,8 @@ when it next gets signed with
 .Xr dnssec-signzone 8 .
 A copy of the generated
 .Ar signedkey
-file should be kept by the parent zone's DNS administrator.
+file should be kept by the parent zone's DNS administrator, since
+it will be needed when signing the parent zone.
 .Sh EXAMPLE
 The DNS administrator for a DNSSEC-aware
 .Dv .com
