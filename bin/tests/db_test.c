@@ -18,6 +18,8 @@
 #include <config.h>
 
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/error.h>
@@ -35,43 +37,134 @@
 #include <dns/compress.h>
 #include <dns/db.h>
 
+static void
+makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
+	char b[255];
+	isc_buffer_t source, target;
+	size_t len;
+	isc_region_t r1, r2;
+	dns_result_t result;
+
+	if (origin == NULL)
+		origin = dns_rootname;
+	dns_name_init(name, NULL);
+	len = strlen(text);
+	isc_buffer_init(&source, text, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+	isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
+	result = dns_name_fromtext(name, &source, origin, ISC_FALSE, &target);
+	RUNTIME_CHECK(result == DNS_R_SUCCESS);
+	dns_name_toregion(name, &r1);
+	r2.base = isc_mem_get(mctx, r1.length);
+	RUNTIME_CHECK(r2.base != NULL);
+	r2.length = r1.length;
+	memcpy(r2.base, r1.base, r1.length);
+	dns_name_fromregion(name, &r2);
+}
+
+static void
+freename(isc_mem_t *mctx, dns_name_t *name) {
+	isc_region_t r;
+
+	dns_name_toregion(name, &r);
+	isc_mem_put(mctx, r.base, r.length);
+	dns_name_invalidate(name);
+}
+
 int
 main(int argc, char *argv[]) {
 	isc_mem_t *mctx = NULL;
 	dns_db_t *db;
 	dns_dbnode_t *node;
 	dns_result_t result;
-	dns_name_t name, *origin;
+	dns_name_t name, base, *origin;
 	dns_offsets_t offsets;
-	isc_buffer_t source, target;
 	size_t len;
+	isc_buffer_t source, target;
 	char s[1000];
-	char b[256];
+	char b[255];
+#if 0
+	FILE *f;
+#endif
+
+	if (argc < 2) {
+		fprintf(stderr, "usage: db_test filename\n");
+		exit(1);
+	}
+#if 0
+	f = fopen(argv[1], "r");
+	if (f == NULL) {
+		fprintf(stderr, "fopen failed.\n");
+		exit(2);
+	}
+#endif
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
+	makename(mctx, "vix.com.", &base, NULL);
+
 	db = NULL;
-	result = dns_db_create(mctx, "rbt", ISC_FALSE, 1, 0, NULL,
+	result = dns_db_create(mctx, "rbt", &base, ISC_FALSE, 1, 0, NULL,
 			       &db);
 	RUNTIME_CHECK(result == DNS_R_SUCCESS);
 	
 	origin = dns_rootname;
-	dns_name_init(&name, offsets);
-	while (gets(s) != NULL) {
+#if 0
+	while (fgets(s, sizeof s, f) != NULL) {
+		dns_name_init(&name, offsets);
 		len = strlen(s);
+		if (len > 0 && s[len - 1] == '\n') {
+			len--;
+			s[len] = '\0';
+		}
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
-		isc_buffer_init(&target, b, 255, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
 		result = dns_name_fromtext(&name, &source, origin, ISC_FALSE,
 					   &target);
-		RUNTIME_CHECK(result == DNS_R_SUCCESS);
+		if (result != DNS_R_SUCCESS) {
+			printf("bad db name: %s\n", dns_result_totext(result));
+			continue;
+		}
 		node = NULL;
 		result = dns_db_findnode(db, &name, ISC_TRUE, &node);
 		RUNTIME_CHECK(result == DNS_R_SUCCESS);
-		/* dns_db_detachnode(db, &node); */
+		dns_db_detachnode(db, &node);
+	}
+#endif
+	result = dns_db_load(db, argv[1]);
+	if (result != DNS_R_SUCCESS) {
+		printf("couldn't load master file: %s\n",
+		       dns_result_totext(result));
+		exit(1);
+	}
+
+	while (gets(s) != NULL) {
+		dns_name_init(&name, offsets);
+		len = strlen(s);
+		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_add(&source, len);
+		isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
+		result = dns_name_fromtext(&name, &source, origin, ISC_FALSE,
+					   &target);
+		if (result != DNS_R_SUCCESS) {
+			printf("bad name: %s\n", dns_result_totext(result));
+			continue;
+		}
+		node = NULL;
+		result = dns_db_findnode(db, &name, ISC_FALSE, &node);
+		if (result == DNS_R_NOTFOUND)
+			printf("not found\n");
+		else if (result != DNS_R_SUCCESS)
+			printf("%s\n", dns_result_totext(result));
+		else {
+			printf("success\n");
+			dns_db_detachnode(db, &node);
+		}
 	}
 
 	dns_db_detach(&db);
+	freename(mctx, &base);
 
 	isc_mem_stats(mctx, stdout);
 
