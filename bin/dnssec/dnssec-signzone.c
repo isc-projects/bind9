@@ -1190,8 +1190,9 @@ usage(void) {
 	fprintf(stderr, "\t\tfile the signed zone is written in "
 				"(zonefile + .signed)\n");
 	fprintf(stderr, "\t-a:\n");
-	fprintf(stderr, "\t\tverify generated signatures "
-				"(if currently valid)\n");
+	fprintf(stderr, "\t\tverify generated signatures\n");
+	fprintf(stderr, "\t-r randomdev:\n");
+	fprintf(stderr,	"\t\ta file containing random data\n");
 
 	fprintf(stderr, "\n");
 
@@ -1206,6 +1207,7 @@ main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
+	char *randomfile = NULL;
 	char *endp;
 	dns_db_t *db;
 	dns_dbversion_t *version;
@@ -1219,7 +1221,7 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ah"))
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ahr:"))
 	       != -1) {
 		switch (ch) {
 		case 's':
@@ -1241,6 +1243,13 @@ main(int argc, char *argv[]) {
 			cycle = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("cycle period must be numeric");
+			break;
+
+		case 'r':
+			randomfile = isc_mem_strdup(mctx,
+						    isc_commandline_argument);
+			if (randomfile == NULL)
+				fatal("out of memory");
 			break;
 
 		case 'v':
@@ -1275,7 +1284,9 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	setup_entropy(mctx, &ectx);
+	setup_entropy(mctx, randomfile, &ectx);
+	if (randomfile != NULL)
+		isc_mem_free(mctx, randomfile);
 	result = dst_lib_init(mctx, ectx,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS)

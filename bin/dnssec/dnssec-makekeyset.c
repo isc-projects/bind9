@@ -101,6 +101,8 @@ usage(void) {
 	fprintf(stderr, "\t\tSIG end time  - "
 			     "absolute|from start|from now (now + 30 days)\n");
 	fprintf(stderr, "\t-t ttl\n");
+	fprintf(stderr, "\t-r randomdev:\n");
+	fprintf(stderr, "\t\ta file containing random data\n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
 
@@ -115,6 +117,7 @@ int
 main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL;
+	char *randomfile = NULL;
 	dns_fixedname_t fdomain;
 	dns_name_t *domain = NULL;
 	char *output = NULL;
@@ -141,7 +144,7 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:t:v:")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:t:r:v:")) != -1)
 	{
 		switch (ch) {
 		case 's':
@@ -165,6 +168,13 @@ main(int argc, char *argv[]) {
 				fatal("TTL must be numeric");
 			break;
 
+		case 'r':
+			randomfile = isc_mem_strdup(mctx,
+						    isc_commandline_argument);
+			if (randomfile == NULL)
+				fatal("out of memory");
+			break;
+
 		case 'v':
 			endp = NULL;
 			verbose = strtol(isc_commandline_argument, &endp, 0);
@@ -184,7 +194,9 @@ main(int argc, char *argv[]) {
 	if (argc < 1)
 		usage();
 
-	setup_entropy(mctx, &ectx);
+	setup_entropy(mctx, randomfile, &ectx);
+	if (randomfile != NULL)
+		isc_mem_free(mctx, randomfile);
 	result = dst_lib_init(mctx, ectx,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS)

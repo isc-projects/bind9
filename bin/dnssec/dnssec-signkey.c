@@ -70,6 +70,8 @@ usage(void) {
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
+	fprintf(stderr, "\t-r randomdev:\n");
+	fprintf(stderr, "\t\ta file containing random data\n");
 
 	fprintf(stderr, "\n");
 
@@ -136,6 +138,7 @@ main(int argc, char *argv[]) {
 	char *output = NULL;
 	char *endp;
 	unsigned char *data;
+	char *randomfile = NULL;
 	dns_db_t *db;
 	dns_dbnode_t *node;
 	dns_dbversion_t *version;
@@ -155,9 +158,16 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "v:")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "r:v:")) != -1)
 	{
 		switch (ch) {
+		case 'r':
+			randomfile = isc_mem_strdup(mctx,
+						    isc_commandline_argument);
+			if (randomfile == NULL)
+				fatal("out of memory");
+			break;
+
 		case 'v':
 			endp = NULL;
 			verbose = strtol(isc_commandline_argument, &endp, 0);
@@ -177,7 +187,9 @@ main(int argc, char *argv[]) {
 	if (argc < 2)
 		usage();
 
-	setup_entropy(mctx, &ectx);
+	setup_entropy(mctx, randomfile, &ectx);
+	if (randomfile != NULL)
+		isc_mem_free(mctx, randomfile);
 	result = dst_lib_init(mctx, ectx,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS)

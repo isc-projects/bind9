@@ -35,7 +35,7 @@
 extern int verbose;
 extern const char *program;
 
-static isc_entropysource_t *devrandom = NULL;
+static isc_entropysource_t *filesource = NULL;
 
 void
 fatal(const char *format, ...) {
@@ -169,18 +169,27 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 }
 
 void
-setup_entropy(isc_mem_t *mctx, isc_entropy_t **ectx) {
+setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	isc_result_t result;
 	result = isc_entropy_create(mctx, ectx);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not create entropy object");
-	(void) isc_entropy_createfilesource(*ectx, "/dev/random", 0,
-					    &devrandom);
+	if (randomfile != NULL) {
+		result = isc_entropy_createfilesource(*ectx, randomfile, 0,
+						      &filesource);
+		if (result == ISC_R_SUCCESS)
+			return;
+	}
+	result = isc_entropy_createfilesource(*ectx, "/dev/random", 0,
+					      &filesource);
+	if (result != ISC_R_SUCCESS)
+		fatal("No randomfile specified, and /dev/random not present.");
+	return;
 }
 
 void
 cleanup_entropy(isc_entropy_t **ectx) {
-	if (devrandom != NULL)
-		isc_entropy_destroysource(&devrandom);
+	if (filesource != NULL)
+		isc_entropy_destroysource(&filesource);
 	isc_entropy_detach(ectx);
 }

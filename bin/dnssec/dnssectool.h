@@ -40,7 +40,7 @@ void
 setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);
 
 void
-setup_entropy(isc_mem_t *mctx, isc_entropy_t **ectx);
+setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx);
 
 void
 cleanup_entropy(isc_entropy_t **ectx);

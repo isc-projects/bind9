@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.33 2000/06/09 22:34:17 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.34 2000/06/10 01:28:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,8 @@ usage(void) {
 	       			"3 (dnssec) for all others\n");
 	printf("    -s strength value this key signs DNS records with\n");
 	printf("        default: 0\n");
+	printf("    -r randomdev\n");
+        printf("        a file containing random data\n");
 	printf("    -v verbose level\n");
 
 	exit (-1);
@@ -84,6 +86,7 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
+	char		*randomfile = NULL;
 	char		*prog, *endp;
 	dst_key_t	*key = NULL, *oldkey;
 	dns_fixedname_t	fname;
@@ -116,7 +119,7 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:eg:n:t:p:s:hv:")) != -1)
+					   "a:b:eg:n:t:p:s:hr:v:")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
@@ -163,6 +166,12 @@ main(int argc, char **argv) {
 				fatal("-s must be followed by a number "
 				      "[0..15]");
 			break;
+		case 'r':
+			randomfile = isc_mem_strdup(mctx,
+						    isc_commandline_argument);
+			if (randomfile == NULL)
+				fatal("out of memory");
+			break;
 		case 'v':
 			endp = NULL;
 			verbose = strtol(isc_commandline_argument, &endp, 0);
@@ -179,7 +188,9 @@ main(int argc, char **argv) {
 		} 
 	}
 
-	setup_entropy(mctx, &ectx);
+	setup_entropy(mctx, randomfile, &ectx);
+	if (randomfile != NULL)
+		isc_mem_free(mctx, randomfile);
 	ret = dst_lib_init(mctx, ectx,
 			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (ret != ISC_R_SUCCESS)
@@ -317,8 +328,9 @@ main(int argc, char **argv) {
 				       mctx, &key);
 
 		if (ret != ISC_R_SUCCESS) {
-			fatal("failed to generate key %s/%d: %s\n",
-			      nametostr(name), alg, dst_result_totext(ret));
+			fatal("failed to generate key %s/%s: %s\n",
+			      nametostr(name), algtostr(alg),
+			      dst_result_totext(ret));
 			exit(-1);
 		}
 		
