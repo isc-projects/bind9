@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: listenlist.c,v 1.5 2000/06/22 21:49:21 tale Exp $ */
+/* $Id: listenlist.c,v 1.6 2000/06/23 01:34:36 gson Exp $ */
 
 #include <config.h>
 
@@ -99,15 +99,18 @@ ns_listenlist_detach(ns_listenlist_t **listp) {
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port,
-		      ns_listenlist_t **target)
+		      isc_boolean_t enabled, ns_listenlist_t **target)
 {
 	isc_result_t result;
 	dns_acl_t *acl = NULL;
 	ns_listenelt_t *elt = NULL;
 	ns_listenlist_t *list = NULL;
 
-	REQUIRE(target != NULL && *target == NULL);	
-	result = dns_acl_any(mctx, &acl);
+	REQUIRE(target != NULL && *target == NULL);
+	if (enabled)
+		result = dns_acl_any(mctx, &acl);
+	else
+		result = dns_acl_none(mctx, &acl);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	

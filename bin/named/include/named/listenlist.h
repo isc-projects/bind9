@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: listenlist.h,v 1.6 2000/06/22 21:49:41 tale Exp $ */
+/* $Id: listenlist.h,v 1.7 2000/06/23 01:34:38 gson Exp $ */
 
 #ifndef NAMED_LISTENLIST_H
 #define NAMED_LISTENLIST_H 1
@@ -92,10 +92,11 @@ ns_listenlist_detach(ns_listenlist_t **listp);
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port,
-		      ns_listenlist_t **target);
+		      isc_boolean_t enabled, ns_listenlist_t **target);
 /*
  * Create a listen-on list with default contents, matching
- * all addresses with port 'port'.
+ * all addresses with port 'port' (if 'enabled' is ISC_TRUE),
+ * or no addresses (if 'enabled' is ISC_FALSE).
  */
 
 #endif /* NAMED_LISTENLIST_H */
