@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.57.4.2 2001/01/16 17:49:53 gson Exp $ */
+/* $Id: lex.c,v 1.57.4.3 2001/01/22 20:04:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -419,6 +419,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		options &= ~IWSEOL;
 
 	curr = lex->data;
+	*curr = '\0';
+
 	prev = NULL;
 	remaining = lex->max_token;
 	do {
