@@ -1,4 +1,7 @@
-1354.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
+1358.	[func]		log the reason for rejecting a server when resolving
+			queries.
+
+1355.	[bug]		Fix DNSSEC wildcard proof for CNAME/DNAME.
 
 1344.	[func]		Log if the serial number on the master has gone
 			backwards.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.9.2.3 2003/08/19 04:11:24 marka Exp $ */
+/* $Id: result.c,v 1.90.2.9.2.4 2003/08/19 07:26:09 marka Exp $ */
 
 #include <config.h>
 
@@ -129,12 +129,12 @@ static const char *text[DNS_R_NRESULTS] = {
 	"<unused 84>",
 
 	"NS is an address",		       /* 85 DNS_R_NSISADDRESS	     */
-	"<unused 86>",
-	"<unused 87>",
-	"<unused 88>",
-	"<unused 89>",
+	"received FORMERR",		       /* 86 DNS_R_REMOTEFORMERR     */
+	"truncated TCP response",	       /* 87 DNS_R_TRUNCATEDTCP	     */
+	"lame server detected",		       /* 88 DNS_R_LAME		     */
+	"unexpected RCODE",		       /* 89 DNS_R_UNEXPECTEDRCODE   */
 
-	"<unused 90>",
+	"unexpected OPCODE",		       /* 90 DNS_R_UNEXPECTEDOPCODE  */
 	"<unused 91>",
 	"empty name",				/* 92 DNS_R_EMPTYNAME	     */
 	"empty wild",				/* 93 DNS_R_EMPTYWILD	     */

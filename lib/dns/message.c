@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.5 2003/08/14 05:56:09 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.6 2003/08/19 07:26:08 marka Exp $ */
 
 /***
  *** Imports
@@ -34,6 +34,7 @@
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
+#include <dns/opcode.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -3129,4 +3130,15 @@ int
 dns_message_gettimeadjust(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	return (msg->timeadjust);
+}
+
+isc_result_t
+dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target) {
+
+	REQUIRE(opcode < 16);
+
+	if (isc_buffer_availablelength(target) < strlen(opcodetext[opcode]))
+		return (ISC_R_NOSPACE);
+	isc_buffer_putstr(target, opcodetext[opcode]);
+	return (ISC_R_SUCCESS);
 }
