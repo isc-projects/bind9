@@ -75,8 +75,6 @@ main(int argc, char *argv[]) {
 		nworkers = atoi(argv[1]);
 	else
 		nworkers = 2;
-	if (nworkers > 24)
-		nworkers = 24;
 	printf("%d workers\n", nworkers);
 
 	INSIST(isc_rwlock_init(&lock, 5, 10) == ISC_R_SUCCESS);
