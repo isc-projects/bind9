@@ -133,14 +133,12 @@ respond(ns_client_t *client, isc_result_t result) {
 }
 
 void
-ns_notify_start(ns_client_t *client)
-{
+ns_notify_start(ns_client_t *client) {
 	dns_message_t *request = client->message;
 	isc_result_t result;
 	dns_name_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;
-	dns_rdataclass_t zoneclass;
 	
 	/*
 	 * Interpret the question section.
@@ -156,7 +154,6 @@ ns_notify_start(ns_client_t *client)
 	zonename = NULL;
 	dns_message_currentname(request, DNS_SECTION_QUESTION, &zonename);
 	zone_rdataset = ISC_LIST_HEAD(zonename->list);
-	zoneclass = zone_rdataset->rdclass;
 	if (ISC_LIST_NEXT(zone_rdataset, link) != NULL)
 		FAILC(DNS_R_FORMERR,
 		      "notify question section contains multiple RRs");
