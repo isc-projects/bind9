@@ -1387,12 +1387,18 @@ CLASS="acronym"
 HREF="Bv9ARM.ch05.html"
 >Chapter 5</A
 >.</P
+><P
+>For an overview of the format and structure of IPv6 addresses,
+    see <A
+HREF="Bv9ARM.ch09.html#ipv6addresses"
+>Section A.3.1</A
+>.</P
 ><DIV
 CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN947"
+NAME="AEN949"
 >4.8.1. Address Lookups Using AAAA Records</A
 ></H2
 ><P
@@ -1414,7 +1420,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN952"
+NAME="AEN954"
 >4.8.2. Address Lookups Using A6 Records</A
 ></H2
 ><P
@@ -1434,7 +1440,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN956"
+NAME="AEN958"
 >4.8.2.1. A6 Chains</A
 ></H3
 ><P
@@ -1480,7 +1486,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN967"
+NAME="AEN969"
 >4.8.2.2. A6 Records for DNS Servers</A
 ></H3
 ><P
@@ -1510,7 +1516,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN973"
+NAME="AEN975"
 >4.8.3. Address to Name Lookups Using Nibble Format</A
 ></H2
 ><P
@@ -1541,7 +1547,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN980"
+NAME="AEN982"
 >4.8.4. Address to Name Lookups Using Bitstring Format</A
 ></H2
 ><P
@@ -1568,7 +1574,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN987"
+NAME="AEN989"
 >4.8.5. Using DNAME for Delegation of IPv6 Reverse Addresses</A
 ></H2
 ><P
@@ -1596,14 +1602,14 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-host			A6	64	::1234:5678:1212:5675 cust1.example.net.
-			A6	64	::1234:5678:1212:5675 subnet5.example2.net.
+host			IN	A6	64	::1234:5678:1212:5675 cust1.example.net.
+			IN	A6	64	::1234:5678:1212:5675 subnet5.example2.net.
 $ORIGIN example.net.
-cust1			A6	48	0:0:0:dddd:: ipv6net.example.net.
-ipv6net			A6	0	aa:bb:cccc::
+cust1			IN	A6	48	0:0:0:dddd:: ipv6net.example.net.
+ipv6net			IN	A6	0	aa:bb:cccc::
 $ORIGIN example2.net.
-subnet5			A6	48	0:0:0:1:: ipv6net2.example2.net.
-ipv6net2		A6	0	6666:5555:4::
+subnet5			IN	A6	48	0:0:0:1:: ipv6net2.example2.net.
+ipv6net2		IN	A6	0	6666:5555:4::
 </PRE
 ><P
 >This sets up forward lookups.  To handle the reverse lookups,
@@ -1615,7 +1621,7 @@ would have:</P
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
-\[xdddd/16]		DNAME		ipv6-rev.example.com.
+\[xdddd/16]		IN	DNAME		ipv6-rev.example.com.
 </PRE
 ><P
 >and <TT
@@ -1625,7 +1631,7 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x666655550004/48].ip6.arpa.
-\[x0001/16]		DNAME		ipv6-rev.example.com.
+\[x0001/16]		IN	DNAME		ipv6-rev.example.com.
 </PRE
 ><P
 ><TT
@@ -1637,7 +1643,7 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN ipv6-rev.example.com.
-\[x1234567812125675/64]	PTR		host.example.com. 
+\[x1234567812125675/64]	IN	PTR		host.example.com. 
 </PRE
 ></DIV
 ></DIV
