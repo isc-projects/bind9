@@ -95,8 +95,9 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_EXPECTEDTSIG		(ISC_RESULTCLASS_DNS + 45)
 #define DNS_R_UNEXPECTEDTSIG		(ISC_RESULTCLASS_DNS + 46)
 #define DNS_R_NXGLUE			(ISC_RESULTCLASS_DNS + 47)
+#define DNS_R_HINT			(ISC_RESULTCLASS_DNS + 48)
 
-#define DNS_R_NRESULTS			48	/* Number of results */
+#define DNS_R_NRESULTS			49	/* Number of results */
 
 /*
  * DNS wire format rcodes
