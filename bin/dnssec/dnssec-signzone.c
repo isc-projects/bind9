@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.163 2002/11/04 00:16:05 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.164 2002/11/12 21:52:43 explorer Exp $ */
 
 #include <config.h>
 
@@ -786,12 +786,18 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 
 		/*
 		 * If this name is a delegation point, skip all records
-		 * except NXT and DS sets.
+		 * except NXT and DS sets.  Otherwise check that there
+		 * isn't a DS record.
 		 */
 		if (isdelegation) {
 			if (rdataset.type != dns_rdatatype_nxt &&
 			    rdataset.type != dns_rdatatype_ds)
 				goto skip;
+		} else if (rdataset.type == dns_rdatatype_ds) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			fatal("'%s': found DS RRset without NS RRset\n",
+			      namebuf);
 		}
 
 		if (rdataset.type == dns_rdatatype_nxt) {

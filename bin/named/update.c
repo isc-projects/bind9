@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.102 2002/11/12 20:16:30 marka Exp $ */
+/* $Id: update.c,v 1.103 2002/11/12 21:52:44 explorer Exp $ */
 
 #include <config.h>
 
@@ -2043,6 +2043,35 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		dns_zone_detach(&zone);
 }
 
+static isc_result_t
+remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
+	isc_result_t result;
+	isc_boolean_t ns_exists, ds_exists;
+	dns_difftuple_t *t;
+
+	for (t = ISC_LIST_HEAD(diff->tuples);
+	     t != NULL;
+	     t = ISC_LIST_NEXT(t, link)) {
+		if (t->op != DNS_DIFFOP_DEL ||
+		    t->rdata.type != dns_rdatatype_ns)
+			continue;
+		CHECK(rrset_exists(db, newver, &t->name, dns_rdatatype_ns, 0,
+				   &ns_exists));
+		if (ns_exists)
+			continue;
+		CHECK(rrset_exists(db, newver, &t->name, dns_rdatatype_ds, 0,
+				   &ds_exists));
+		if (!ds_exists)
+			continue;
+		CHECK(delete_if(true_p, db, newver, &t->name,
+				dns_rdatatype_ds, 0, NULL, diff));
+	}
+	return (ISC_R_SUCCESS);
+
+ failure:
+	return (result);
+}
+
 static void
 update_action(isc_task_t *task, isc_event_t *event) {
 	update_event_t *uev = (update_event_t *) event;
@@ -2524,6 +2553,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		if (! soa_serial_changed) {
 			CHECK(increment_soa_serial(db, ver, &diff, mctx));
 		}
+
+		CHECK(remove_orphaned_ds(db, ver, &diff));
 
 		if (dns_db_issecure(db)) {
 			result = update_signatures(client, zone, db, oldver,
