@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.11 1999/01/22 01:21:02 explorer Exp $ */
+ /* $Id: rdata.c,v 1.12 1999/01/22 01:27:29 marka Exp $ */
 
 #include <config.h>
 
@@ -607,12 +607,17 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	 isc_boolean_t eol) {
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 	
+	if (expect == isc_tokentype_qstring)
+		options |= ISC_LEXOPT_QSTRING;
 	if (expect == isc_tokentype_number)
 		options |= ISC_LEXOPT_NUMBER;
         if (isc_lex_gettoken(lexer, options, token) != ISC_R_SUCCESS)
                 return (DNS_R_UNEXPECTED);
 	if (eol && ((token->type == isc_tokentype_eol) || 
 		    (token->type == isc_tokentype_eof)))
+		return (DNS_R_SUCCESS);
+	if (token->type == isc_tokentype_string &&
+	    expect == isc_tokentype_qstring)
 		return (DNS_R_SUCCESS);
         if (token->type != expect) {
                 isc_lex_ungettoken(lexer, token);

@@ -65,8 +65,9 @@ main(int argc, char *argv[]) {
 	int debug = 0;
 	isc_region_t region;
 	int first = 1;
+	int raw = 0;
 
-	while ((c = getopt(argc, argv, "dqswtaz")) != -1) {
+	while ((c = getopt(argc, argv, "dqswtarz")) != -1) {
 		switch (c) {
 		case 'd':
 			debug = 1;
@@ -90,6 +91,9 @@ main(int argc, char *argv[]) {
 			break;
 		case 'z':
 			zero = 1;
+			break;
+		case 'r':
+			raw = 1;
 			break;
 		}
 	}
@@ -177,6 +181,19 @@ main(int argc, char *argv[]) {
 				dns_result_totext(result), result);
 			fflush(stdout);
 			continue;
+		}
+		if (raw) {
+			unsigned int i;
+			for (i = 0 ; i < rdata.length ; /* */ ) {
+				fprintf(stdout, "%02x", rdata.data[i]);
+				if ((++i % 20) == 0)
+					fputs("\n", stdout);
+				else
+					if (i == rdata.length)
+						fputs("\n", stdout);
+					else
+						fputs(" ", stdout);
+			}
 		}
 
 		/* Convert to wire and back? */

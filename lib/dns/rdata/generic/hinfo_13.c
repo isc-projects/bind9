@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.6 1999/01/22 00:36:55 marka Exp $ */
+ /* $Id: hinfo_13.c,v 1.7 1999/01/22 01:27:30 marka Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_H
 #define RDATA_GENERIC_HINFO_13_H
@@ -34,7 +34,7 @@ fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	downcase = downcase;	/*unused*/
 
 	for (i = 0; i < 2 ; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string,
+		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
 				ISC_FALSE));
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
