@@ -2,14 +2,14 @@
 
 DNSEXT Working Group                                            M. Stapp
 Internet-Draft                                       Cisco Systems, Inc.
-Expires: May 2, 2003                                            T. Lemon
+Expires: April 23, 2004                                         T. Lemon
                                                            A. Gustafsson
                                                            Nominum, Inc.
-                                                        November 1, 2002
+                                                        October 24, 2003
 
 
            A DNS RR for Encoding DHCP Information (DHCID RR)
-                  <draft-ietf-dnsext-dhcid-rr-06.txt>
+                  <draft-ietf-dnsext-dhcid-rr-07.txt>
 
 Status of this Memo
 
@@ -32,11 +32,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on May 2, 2003.
+   This Internet-Draft will expire on April 23, 2004.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2002). All Rights Reserved.
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
 
 Abstract
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Stapp, et. al.            Expires May 2, 2003                   [Page 1]
+Stapp, et. al.           Expires April 23, 2004                 [Page 1]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
 Table of Contents
@@ -75,6 +75,7 @@ Table of Contents
    7.    IANA Considerations  . . . . . . . . . . . . . . . . . . . .  7
    8.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . .  7
          References . . . . . . . . . . . . . . . . . . . . . . . . .  7
+         References . . . . . . . . . . . . . . . . . . . . . . . . .  8
          Authors' Addresses . . . . . . . . . . . . . . . . . . . . .  8
          Full Copyright Statement . . . . . . . . . . . . . . . . . . 10
 
@@ -107,10 +108,9 @@ Table of Contents
 
 
 
-
-Stapp, et. al.            Expires May 2, 2003                   [Page 2]
+Stapp, et. al.           Expires April 23, 2004                 [Page 2]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
 1. Terminology
@@ -121,9 +121,9 @@ Internet-Draft                The DHCID RR                 November 2002
 
 2. Introduction
 
-   A set of procedures to allow DHCP[3] clients and servers to
-   automatically update the DNS (RFC1034[4], RFC1035[5]) is proposed in
-   "Resolution of DNS Name Conflicts"[1].
+   A set of procedures to allow DHCP[7] clients and servers to
+   automatically update the DNS (RFC 1034[3], RFC 1035[4]) is proposed
+   in "Resolution of DNS Name Conflicts"[1].
 
    Conflicts can arise if multiple DHCP clients wish to use the same
    DNS name. To resolve such conflicts, "Resolution of DNS Name
@@ -135,7 +135,7 @@ Internet-Draft                The DHCID RR                 November 2002
    RR.
 
    In order to avoid exposing potentially sensitive identifying
-   information, the data stored is the result of a one-way MD5[6] hash
+   information, the data stored is the result of a one-way MD5[5] hash
    computation. The hash includes information from the DHCP client's
    REQUEST message as well as the domain name itself, so that the data
    stored in the DHCID RR will be dependent on both the client
@@ -164,9 +164,9 @@ Internet-Draft                The DHCID RR                 November 2002
 
 
 
-Stapp, et. al.            Expires May 2, 2003                   [Page 3]
+Stapp, et. al.           Expires April 23, 2004                 [Page 3]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
 3.1 DHCID RDATA format
@@ -190,7 +190,7 @@ Internet-Draft                The DHCID RR                 November 2002
 
    In DNS master files, the RDATA is represented as a single block in
    base 64 encoding identical to that used for representing binary data
-   in RFC2535[7]. The data may be divided up into any number of white
+   in RFC 2535[8]. The data may be divided up into any number of white
    space separated substrings, down to single base 64 digits, which are
    concatenated to form the complete RDATA.  These substrings can span
    lines using the standard parentheses.
@@ -220,9 +220,9 @@ Internet-Draft                The DHCID RR                 November 2002
 
 
 
-Stapp, et. al.            Expires May 2, 2003                   [Page 4]
+Stapp, et. al.           Expires April 23, 2004                 [Page 4]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
 3.4 Computation of the RDATA
@@ -240,7 +240,7 @@ Internet-Draft                The DHCID RR                 November 2002
        data = MD5(< identifier > < FQDN >)
 
    The FQDN is represented in the buffer in unambiguous canonical form
-   as described in RFC2535[7], section 8.1. The type code and the
+   as described in RFC 2535[8], section 8.1. The type code and the
    identifier are related as specified in Section 3.3: the type code
    describes the source of the identifier.
 
@@ -276,9 +276,9 @@ Internet-Draft                The DHCID RR                 November 2002
 
 
 
-Stapp, et. al.            Expires May 2, 2003                   [Page 5]
+Stapp, et. al.           Expires April 23, 2004                 [Page 5]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
 3.5 Examples
@@ -332,9 +332,9 @@ Internet-Draft                The DHCID RR                 November 2002
    that the client desires to use to compute a client identity hash,
 
 
-Stapp, et. al.            Expires May 2, 2003                   [Page 6]
+Stapp, et. al.           Expires April 23, 2004                 [Page 6]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
    and then compare that hash to the data in any DHCID RRs on the name
@@ -360,7 +360,7 @@ Internet-Draft                The DHCID RR                 November 2002
    Administrators should be wary of permitting unsecured DNS updates to
    zones which are exposed to the global Internet. Both DHCP clients
    and servers SHOULD use some form of update authentication (e.g.,
-   TSIG[10]) when performing DNS updates.
+   TSIG[11]) when performing DNS updates.
 
 7. IANA Considerations
 
@@ -376,77 +376,77 @@ Internet-Draft                The DHCID RR                 November 2002
    tentatively assigned after the specification for the associated type
    code, published as an Internet Draft, has received expert review by
    a designated expert. The final assignment of DHCID RR type codes is
-   through Standards Action, as defined in RFC2434[11].
+   through Standards Action, as defined in RFC 2434[6].
 
 8. Acknowledgements
 
    Many thanks to Josh Littlefield, Olafur Gudmundsson, Bernie Volz,
    and Ralph Droms for their review and suggestions.
 
-References
+Normative References
 
-   [1]   Stapp, M., "Resolution of DNS Name Conflicts Among DHCP
+   [1]  Stapp, M., "Resolution of DNS Name Conflicts Among DHCP Clients
 
 
-Stapp, et. al.            Expires May 2, 2003                   [Page 7]
+Stapp, et. al.           Expires April 23, 2004                 [Page 7]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
-         Clients (draft-ietf-dhc-dns-resolution-*)", March 2001.
+        (draft-ietf-dhc-dns-resolution-*)", November 2002.
 
-   [2]   Bradner, S., "Key words for use in RFCs to Indicate
-         Requirement Levels", RFC 2119, March 1997.
+   [2]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
+        Levels", RFC 2119, March 1997.
 
-   [3]   Droms, R., "Dynamic Host Configuration Protocol", RFC 2131,
+   [3]  Mockapetris, P., "Domain names - Concepts and Facilities", RFC
+        1034, Nov 1987.
+
+   [4]  Mockapetris, P., "Domain names - Implementation and
+        Specification", RFC 1035, Nov 1987.
+
+   [5]  Rivest, R., "The MD5 Message Digest Algorithm", RFC 1321, April
+        1992.
+
+   [6]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
+        Considerations Section in RFCs", RFC 2434, October 1998.
+
+Informative References
+
+   [7]   Droms, R., "Dynamic Host Configuration Protocol", RFC 2131,
          Mar 1997.
 
-   [4]   Mockapetris, P., "Domain names - Concepts and Facilities", RFC
-         1034, Nov 1987.
-
-   [5]   Mockapetris, P., "Domain names - Implementation and
-         Specification", RFC 1035, Nov 1987.
-
-   [6]   Rivest, R., "The MD5 Message Digest Algorithm", RFC 1321,
-         April 1992.
-
-   [7]   Eastlake, D., "Domain Name System Security Extensions", RFC
+   [8]   Eastlake, D., "Domain Name System Security Extensions", RFC
          2535, March 1999.
 
-   [8]   Alexander, S. and R. Droms, "DHCP Options and BOOTP Vendor
+   [9]   Alexander, S. and R. Droms, "DHCP Options and BOOTP Vendor
          Extensions", RFC 2132, Mar 1997.
 
-   [9]   Droms, R., Bound, J., Volz, B., Lemon, T., Perkins, C. and M.
+   [10]  Droms, R., Bound, J., Volz, B., Lemon, T., Perkins, C. and M.
          Carney, "Dynamic Host Configuration Protocol for IPv6 (DHCPv6)
          (draft-ietf-dhc-dhcpv6-*.txt)", November 2002.
 
-   [10]  Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
+   [11]  Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
          "Secret Key Transaction Authentication for DNS (TSIG)", RFC
          2845, May 2000.
-
-   [11]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
-         Considerations Section in RFCs", RFC 2434, October 1998.
 
 
 Authors' Addresses
 
    Mark Stapp
    Cisco Systems, Inc.
-   250 Apollo Dr.
-   Chelmsford, MA  01824
+   1414 Massachusetts Ave.
+   Boxborough, MA  01719
    USA
 
-   Phone: 978.244.8498
+   Phone: 978.936.1535
    EMail: mjs@cisco.com
 
 
 
 
-
-
-Stapp, et. al.            Expires May 2, 2003                   [Page 8]
+Stapp, et. al.           Expires April 23, 2004                 [Page 8]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
    Ted Lemon
@@ -500,14 +500,14 @@ Internet-Draft                The DHCID RR                 November 2002
 
 
 
-Stapp, et. al.            Expires May 2, 2003                   [Page 9]
+Stapp, et. al.           Expires April 23, 2004                 [Page 9]
 
-Internet-Draft                The DHCID RR                 November 2002
+Internet-Draft                The DHCID RR                  October 2003
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2002). All Rights Reserved.
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -556,5 +556,5 @@ Acknowledgement
 
 
 
-Stapp, et. al.            Expires May 2, 2003                  [Page 10]
+Stapp, et. al.           Expires April 23, 2004                [Page 10]
 

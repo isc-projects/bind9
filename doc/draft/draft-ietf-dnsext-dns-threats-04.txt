@@ -5,10 +5,10 @@
 
 
 Network Working Group                                          D. Atkins
-draft-ietf-dnsext-dns-threats-03.txt                    IHTFP Consulting
+draft-ietf-dnsext-dns-threats-04.txt                    IHTFP Consulting
                                                               R. Austein
                                                 Grunchweather Associates
-                                                               June 2003
+                                                            October 2003
 
 
                Threat Analysis Of The Domain Name System
@@ -55,9 +55,9 @@ Abstract
 
 
 
-Atkins & Austein        Expires 29 December 2003                [Page 1]
+Atkins & Austein          Expires 30 April 2004                 [Page 1]
 
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
 
 
 1. Introduction
@@ -77,9 +77,6 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    - While some participants in the meeting were interested in
      authentication of DNS clients and servers as a basis for access
      control, this work was also ruled out of scope for DNSSEC per se.
-     DNS Transaction Signatures (TSIG) were eventually developed as a
-     separate mechanism to address threats of unauthorized access to
-     DNS's zone transfer and dynamic update mechanisms.
 
    - Backwards compatibility and co-existence with "insecure DNS" was
      listed as an explicit requirement.
@@ -108,16 +105,16 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    it, that is nevertheless what this note attempts to do.  Better late
    than never.
 
-
-
-
-Atkins & Austein        Expires 29 December 2003                [Page 2]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
    This note assumes that the reader is familiar with both the DNS and
    with DNSSEC, and does not attempt to provide a tutorial on either.
+
+
+
+
+Atkins & Austein          Expires 30 April 2004                 [Page 2]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
 
    For purposes of discussion, this note uses the term "DNSSEC" to refer
    to the core hierarchical public key and signature mechanism specified
@@ -164,17 +161,17 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    relationships between all the parties that might be involved in
    resolving any particular query.  For heavily used name servers (such
    as the servers for the root zone), this cost would almost certainly
-
-
-
-Atkins & Austein        Expires 29 December 2003                [Page 3]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
    be prohibitively high.  Even more important, however, is that the
    underlying trust model in such a design would be wrong, since at best
    it would only provide a hop-by-hop integrity check on DNS messages
+
+
+
+Atkins & Austein          Expires 30 April 2004                 [Page 3]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
    and would not provide any sort of end-to-end integrity check between
    the producer of DNS data (the zone administrator) and the consumer of
    DNS data (the application that triggered the query).
@@ -203,16 +200,18 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
 
 2.2.  ID Guessing and Query Prediction
 
-   Since the ID field in the DNS header is only a 16-bit field and the
-   server UDP port associated with DNS is a well-known value, there are
-   only 2**32 possible combinations of ID and client UDP port for a
-   given client and server.  This is not a particularly large range, and
-   is not proof against a brute force search; furthermore, in practice
-   both the client UDP port and the ID can often be predicted from
-   previous traffic, and it is not uncommon for the client port to be a
-   known fixed value as well (due to firewalls or other restrictions),
-   thus frequently reducing the search space to a range smaller than
-   2**16.
+   Since DNS is for the most part used over UDP/IP, it is relatively
+   easy for an attacker to generate packets which will match the
+   transport protocol parameters.  The ID field in the DNS header is
+   only a 16-bit field and the server UDP port associated with DNS is a
+   well-known value, so there are only 2**32 possible combinations of ID
+   and client UDP port for a given client and server.  This is not a
+   particularly large range, and is not proof against a brute force
+   search; furthermore, in practice both the client UDP port and the ID
+   can often be predicted from previous traffic, and it is not uncommon
+   for the client port to be a known fixed value as well (due to
+   firewalls or other restrictions), thus frequently reducing the search
+   space to a range smaller than 2**16.
 
    By itself, ID guessing is not enough to allow an attacker to inject
    bogus data, but combined with knowledge (or guesses) about QNAMEs and
@@ -220,15 +219,15 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    resolver only weakly defended against injection of bogus responses.
 
    Since this attack relies on predicting a resolver's behavior, it's
-
-
-
-Atkins & Austein        Expires 29 December 2003                [Page 4]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
    most likely to be successful when the victim is in a known state,
+
+
+
+Atkins & Austein          Expires 30 April 2004                 [Page 4]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
    whether because the victim rebooted recently, or because the victim's
    behavior has been influenced by some other action by the attacker, or
    because the victim is responding (in a predictable way) to some third
@@ -276,15 +275,14 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    - Attacker injects response, whether via packet interception, query
      guessing, or by being a legitimate name server that's involved at
      some point in the process of answering the query that the victim
-
-
-
-Atkins & Austein        Expires 29 December 2003                [Page 5]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
      issued.
+
+
+
+Atkins & Austein          Expires 30 April 2004                 [Page 5]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
 
    - Attacker's response includes one or more RRs with DNS names in
      their RDATA; depending on which particular form this attack takes,
@@ -307,8 +305,10 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    This class of attack is particularly insidious given that it's quite
    easy for an attacker to provoke a victim into querying for a
    particular name of the attacker's choosing, for example, by embedding
-   a link to a 1x1-pixel "web bug" in a piece of Text/HTML mail to the
-   victim.
+   a link to a 1x1-pixel "web bug" graphic in a piece of Text/HTML mail
+   to the victim.  If the victim's mail reading program attempts to
+   follow such a link, the result will be a DNS query for a name chosen
+   by the attacker.
 
    DNSSEC should provide a good defense against most (all?) variations
    on this class of attack.  By checking signatures, a resolver can
@@ -335,9 +335,9 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
 
 
 
-Atkins & Austein        Expires 29 December 2003                [Page 6]
+Atkins & Austein          Expires 30 April 2004                 [Page 6]
 
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
 
 
    resolvers, and use trusted servers to perform all of their DNS
@@ -356,17 +356,31 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    matter what brand of middle boxes a particular hotel chain might have
    installed when adding network drops in every guest room...).
 
-   From the protocol standpoint, the only difference between this sort
-   of betrayal and a packet interception attack is that in this case the
-   client has voluntarily sent its request to the attacker.  The defense
-   against this is the same as with a packet interception attack: the
-   resolver must either check DNSSEC signatures itself or use TSIG (or
-   equivalent) to authenticate the server that it has chosen to trust.
-   Note that use of TSIG does not by itself guarantee that a name server
-   is at all trustworthy: all TSIG can do is help a resolver protect its
-   communication with a name server that it has already decided to trust
-   for other reasons.  Protecting a resolver's communication with a
-   server that's giving out bogus answers is not particularly useful.
+   While the obvious solution to this problem would be for the client to
+   chose a more trustworthy server, in practice this may not be an
+   option for the client.  In many network environments a client machine
+   has only a limited set of recursive name server from which to chose,
+   and none of them may be particularly trustworthy.  In extreme cases,
+   port filtering or other forms of packet interception may prevent the
+   client host from being able to run an iterative resolver even if the
+   owner of the client machine is willing and able to do so.  Thus,
+   while the initial source of this problem is not a DNS protocol attack
+   per se, this sort of betrayal is a threat to DNS clients, and simply
+   switching to a different recursive name server is not an adequate
+   defense.
+
+   Viewed strictly from the DNS protocol standpoint, the only difference
+   between this sort of betrayal and a packet interception attack is
+   that in this case the client has voluntarily sent its request to the
+   attacker.  The defense against this is the same as with a packet
+   interception attack: the resolver must either check DNSSEC signatures
+   itself or use TSIG (or equivalent) to authenticate the server that it
+   has chosen to trust.  Note that use of TSIG does not by itself
+   guarantee that a name server is at all trustworthy: all TSIG can do
+   is help a resolver protect its communication with a name server that
+   it has already decided to trust for other reasons.  Protecting a
+   resolver's communication with a server that's giving out bogus
+   answers is not particularly useful.
 
    Also note that if the stub resolver does not trust the name server
    that is doing work on its behalf and wants to check the DNSSEC
@@ -374,6 +388,13 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    knowledge of the DNSSEC public key(s) it needs to perform the check
    (usually the public key for the root zone, but in some cases
    knowledge of additional keys may also be appropriate).
+
+
+
+Atkins & Austein          Expires 30 April 2004                 [Page 7]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
 
    It is difficult to escape the conclusion that a properly paranoid
    resolver must always perform its own signature checking, and that
@@ -388,13 +409,6 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    signatures both increases the processing cost per DNS message and in
    some cases can also increase the number of messages needed to answer
    a query.  TSIG (and similar mechanisms) have equivalent problems.
-
-
-
-Atkins & Austein        Expires 29 December 2003                [Page 7]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
 
    DNS servers are also at risk of being used as denial of service
    amplifiers, since DNS response packets tend to be significantly
@@ -430,6 +444,14 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    Much discussion has taken place over whether and how to provide data
    integrity and data origin authentication for "wildcard" DNS names.
    Conceptually, RRs with wildcard names are patterns for synthesizing
+
+
+
+Atkins & Austein          Expires 30 April 2004                 [Page 8]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
    RRs on the fly according to the matching rules described in section
    4.3.2 of RFC 1034.  While the rules that control the behavior of
    wildcard names have a few quirks that can make them a trap for the
@@ -444,14 +466,6 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
 
    - We need to prove the non-existance of any RRs which, if they
      existed, would make the wildcard RR irrelevant according to the
-
-
-
-Atkins & Austein        Expires 29 December 2003                [Page 8]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
      synthesis rules the way in which wildcards are used (that is, we
      need to prove that the synthesis rule is applicable).
 
@@ -486,6 +500,14 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
      delays that DNSSEC will impose into account, but that's a separate
      topic for another document....)
 
+
+
+
+Atkins & Austein          Expires 30 April 2004                 [Page 9]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
    - Like DNS itself, DNSSEC's trust model is almost totally
      hierarchical.  While DNSSEC does allow resolvers to have special
      additional knowledge of public keys beyond those for the root, in
@@ -499,14 +521,6 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    - Key rollover at the root is really hard.  Work to date has not even
      come close to adequately specifying how the root key rolls over, or
      even how it's configured in the first place.
-
-
-
-
-Atkins & Austein        Expires 29 December 2003                [Page 9]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
 
    - DNSSEC creates a requirement of loose time synchronization between
      the resolver and the host creating the DNSSEC signatures.  Prior to
@@ -541,6 +555,15 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    This section lists a few subjects not covered above which probably
    need additional study, additional mechanisms, or both.
 
+
+
+
+
+Atkins & Austein          Expires 30 April 2004                [Page 10]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
 4.1.  Interactions With Other Protocols
 
    The above discussion has concentrated exclusively on attacks within
@@ -556,14 +579,6 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    authenticate the updating client to the server.  While TSIG does not
    scale very well (it requires manual configuration of shared keys
    between the DNS name server and each TSIG client), it works well in a
-
-
-
-Atkins & Austein        Expires 29 December 2003               [Page 10]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
    limited or closed environment such as a DHCP server updating a local
    DNS name server.
 
@@ -597,6 +612,14 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    access.  For example, Alice may need to be able to add new nodes to
    the zone or change existing nodes, but not remove them; Bob may need
    to be able to remove zones but not add them; Carol may need to be
+
+
+
+Atkins & Austein          Expires 30 April 2004                [Page 11]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
    able to add, remove, or modify nodes, but only A records.
 
    Scaling properties of the key management problem here are a
@@ -612,14 +635,6 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    DNSSEC does not provide object security, because zones include
    unsigned NS RRs and glue at delegation points.  Use of TSIG to
    protect zone transfer (AXFR or IXFR) operations provides "channel
-
-
-
-Atkins & Austein        Expires 29 December 2003               [Page 11]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
    security", but still does not provide object security for complete
    zones, so the trust relationships involved in zone transfer are still
    very much a hop-by-hop matter of name server operators trusting other
@@ -650,6 +665,17 @@ IANA Considerations
 
    None.
 
+
+
+
+
+
+
+Atkins & Austein          Expires 30 April 2004                [Page 12]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
 Acknowledgments
 
    This note is based both previous published works by others and on a
@@ -669,13 +695,6 @@ Normative References
    [DNS-IMPLEMENTATION] Mockapetris, P., "Domain names - implementation
         and specification", RFC 1035, November 1987.
 
-
-
-Atkins & Austein        Expires 29 December 2003               [Page 12]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
    [HOST-REQUIREMENTS] Braden, R., Editor, "Requirements for Internet
         Hosts - Application and Support", RFC 1123, October 1989.
 
@@ -684,9 +703,6 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
 
    [NCACHE] Andrews, M., "Negative Caching of DNS Queries (DNS NCACHE)"
         RFC 2308, March 1998.
-
-   [DNSSEC] Eastlake, D., "Domain Name System Security Extensions", RFC
-        2535, March 1999.
 
    [EDNS0] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC 2671,
         August 1999.
@@ -701,13 +717,22 @@ draft-ietf-dnsext-dns-threats-03.txt                           June 2003
    [SECURE-UPDATE] Wellington, B., "Secure Domain Name System (DNS)
         Dynamic Update" RFC 3007, November 2000.
 
-   [SIGNING-AUTHORITY] Wellington, B., "Domain Name System Security
-        (DNSSEC) Signing Authority" RFC 3008, November 2000.
-
-   [DNSSEC-ZONE-STATUS] Lewis, E., "DNS Security Extension Clarification
-        on Zone Status" RFC 3090, March 2001.
+   [DNSSEC] Eastlake, D., "Domain Name System Security Extensions", RFC
+        2535, March 1999.
 
 Informative References
+
+   [SEC-CONS] Rescorla, E., Korver, B., and the Internet Architecture
+        Board, "Guidelines for Writing RFC Text on Security
+
+
+
+Atkins & Austein          Expires 30 April 2004                [Page 13]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
+        Considerations", RFC 3552, July 2003.
 
    [Bellovin95] Bellovin, S., "Using the Domain Name System for System
         Break-Ins", Proceedings of the Fifth Usenix Unix Security
@@ -723,20 +748,6 @@ Informative References
    [Vixie95] Vixie, P, "DNS and BIND Security Issues", Proceedings of
         the Fifth Usenix Unix Security Symposium, June 1995.
 
-
-
-
-
-Atkins & Austein        Expires 29 December 2003               [Page 13]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
-   [SEC-CONS] Rescorla, E., Korver, B., and the Internet Architecture
-        Board, "Guidelines for Writing RFC Text on Security
-        Considerations", work in progress (draft-iab-sec-cons-03.txt),
-        January 2003.
-
 Author's addresses:
 
       Derek Atkins
@@ -751,6 +762,36 @@ Author's addresses:
       Grunchweather Associates
 
       Email: sra@hactrn.net
+
+Intellectual Property Statement
+
+   The IETF takes no position regarding the validity or scope of any
+   intellectual property or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; neither does it represent that it
+   has made any effort to identify any such rights.  Information on the
+   IETF's procedures with respect to rights in standards-track and
+   standards-related documentation can be found in BCP-11.  Copies of
+   claims of rights made available for publication and any assurances of
+   licenses to be made available, or the result of an attempt made to
+   obtain a general license or permission for the use of such
+   proprietary rights by implementors or users of this specification can
+   be obtained from the IETF Secretariat.
+
+   The IETF invites any interested party to bring to its attention any
+
+
+
+Atkins & Austein          Expires 30 April 2004                [Page 14]
+
+draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+
+
+   copyrights, patents or patent applications, or other proprietary
+   rights which may cover technology that may be required to practice
+   this standard.  Please address the information to the IETF Executive
+   Director.
 
 Full Copyright Statement
 
@@ -780,14 +821,6 @@ Full Copyright Statement
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-
-
-
-Atkins & Austein        Expires 29 December 2003               [Page 14]
-
-draft-ietf-dnsext-dns-threats-03.txt                           June 2003
-
-
 Acknowledgement
 
    Funding for the RFC Editor function is currently provided by the
@@ -806,37 +839,4 @@ Acknowledgement
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Atkins & Austein        Expires 29 December 2003               [Page 15]
+Atkins & Austein          Expires 30 April 2004                [Page 15]

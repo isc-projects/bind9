@@ -1,0 +1,3080 @@
+
+
+DNS Extensions                                                 R. Arends
+Internet-Draft                                      Telematica Instituut
+Expires: April 26, 2004                                        M. Larson
+                                                                VeriSign
+                                                              R. Austein
+                                                                     ISC
+                                                               D. Massey
+                                                                 USC/ISI
+                                                                 S. Rose
+                                                                    NIST
+                                                        October 27, 2003
+
+
+         Protocol Modifications for the DNS Security Extensions
+                  draft-ietf-dnsext-dnssec-protocol-03
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups. Note that other
+   groups may also distribute working documents as Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time. It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on April 26, 2004.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
+
+Abstract
+
+   This document is part of a family of documents which describe the DNS
+   Security Extensions (DNSSEC).  The DNS Security Extensions are a
+   collection of new resource records and protocol modifications which
+   add data origin authentication and data integrity to the DNS.  This
+   document describes the DNSSEC protocol modifications.  This document
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 1]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   defines the concept of a signed zone, along with the requirements for
+   serving and resolving using DNSSEC.  These techniques allow a
+   security-aware resolver to authenticate both DNS resource records and
+   authoritative DNS error indications.
+
+   This document obsoletes RFC 2535 and incorporates changes from all
+   updates to RFC 2535.
+
+Table of Contents
+
+   1.    Introduction . . . . . . . . . . . . . . . . . . . . . . . .  4
+   1.1   Background and Related Documents . . . . . . . . . . . . . .  4
+   1.2   Reserved Words . . . . . . . . . . . . . . . . . . . . . . .  4
+   1.3   Editors' Notes . . . . . . . . . . . . . . . . . . . . . . .  4
+   1.3.1 Open Technical Issues  . . . . . . . . . . . . . . . . . . .  4
+   1.3.2 Technical Changes or Corrections . . . . . . . . . . . . . .  4
+   1.3.3 Typos and Minor Corrections  . . . . . . . . . . . . . . . .  5
+   2.    Zone Signing . . . . . . . . . . . . . . . . . . . . . . . .  6
+   2.1   Including DNSKEY RRs in a Zone . . . . . . . . . . . . . . .  6
+   2.2   Including RRSIG RRs in a Zone  . . . . . . . . . . . . . . .  6
+   2.3   Including NSEC RRs in a Zone . . . . . . . . . . . . . . . .  8
+   2.4   Including DS RRs in a Zone . . . . . . . . . . . . . . . . .  8
+   2.5   Changes to the CNAME Resource Record.  . . . . . . . . . . .  8
+   2.6   Example of a Secure Zone . . . . . . . . . . . . . . . . . .  8
+   3.    Serving  . . . . . . . . . . . . . . . . . . . . . . . . . .  9
+   3.1   Authoritative Name Servers . . . . . . . . . . . . . . . . .  9
+   3.1.1 Including RRSIG RRs in a Response  . . . . . . . . . . . . . 10
+   3.1.2 Including DNSKEY RRs In a Response . . . . . . . . . . . . . 10
+   3.1.3 Including NSEC RRs In a Response . . . . . . . . . . . . . . 11
+   3.1.4 Including DS RRs In a Response . . . . . . . . . . . . . . . 13
+   3.1.5 Responding to Queries for Type AXFR or IXFR  . . . . . . . . 14
+   3.1.6 The AD and CD Bits in an Authoritative Response  . . . . . . 15
+   3.2   Recursive Name Servers . . . . . . . . . . . . . . . . . . . 16
+   3.2.1 The DO bit . . . . . . . . . . . . . . . . . . . . . . . . . 16
+   3.2.2 The CD bit . . . . . . . . . . . . . . . . . . . . . . . . . 17
+   3.2.3 The AD bit . . . . . . . . . . . . . . . . . . . . . . . . . 18
+   3.3   Example DNSSEC Responses . . . . . . . . . . . . . . . . . . 18
+   4.    Resolving  . . . . . . . . . . . . . . . . . . . . . . . . . 19
+   4.1   Rate Limiting  . . . . . . . . . . . . . . . . . . . . . . . 21
+   4.2   Stub resolvers . . . . . . . . . . . . . . . . . . . . . . . 21
+   5.    Authenticating DNS Responses . . . . . . . . . . . . . . . . 23
+   5.1   Special Considerations for Islands of Security . . . . . . . 24
+   5.2   Authenticating Referrals . . . . . . . . . . . . . . . . . . 24
+   5.3   Authenticating an RRset Using an RRSIG RR  . . . . . . . . . 25
+   5.3.1 Checking the RRSIG RR Validity . . . . . . . . . . . . . . . 26
+   5.3.2 Reconstructing the Signed Data . . . . . . . . . . . . . . . 27
+   5.3.3 Checking the Signature . . . . . . . . . . . . . . . . . . . 28
+   5.3.4 Authenticating A Wildcard Expanded RRset Positive
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 2]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+         Response . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+   5.4   Authenticated Denial of Existence  . . . . . . . . . . . . . 29
+   6.    IANA Considerations  . . . . . . . . . . . . . . . . . . . . 31
+   7.    Security Considerations  . . . . . . . . . . . . . . . . . . 32
+   8.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . . 33
+         Normative References . . . . . . . . . . . . . . . . . . . . 34
+         Informative References . . . . . . . . . . . . . . . . . . . 35
+         Authors' Addresses . . . . . . . . . . . . . . . . . . . . . 35
+   A.    Signed Zone Example  . . . . . . . . . . . . . . . . . . . . 37
+   B.    Example Responses  . . . . . . . . . . . . . . . . . . . . . 43
+   B.1   Answer . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+   B.2   Name Error . . . . . . . . . . . . . . . . . . . . . . . . . 44
+   B.3   No Data Error  . . . . . . . . . . . . . . . . . . . . . . . 45
+   B.4   Referral to Signed Zone  . . . . . . . . . . . . . . . . . . 46
+   B.5   Referral to Unsigned Zone  . . . . . . . . . . . . . . . . . 47
+   B.6   Wildcard Expansion . . . . . . . . . . . . . . . . . . . . . 47
+   B.7   Wildcard No Data Error . . . . . . . . . . . . . . . . . . . 48
+   B.8   DS Child Zone No Data Error  . . . . . . . . . . . . . . . . 49
+   C.    Authentication Examples  . . . . . . . . . . . . . . . . . . 51
+   C.1   Authenticating An Answer . . . . . . . . . . . . . . . . . . 51
+   C.1.1 Authenticating the example DNSKEY RR . . . . . . . . . . . . 51
+   C.2   Name Error . . . . . . . . . . . . . . . . . . . . . . . . . 52
+   C.3   No Data Error  . . . . . . . . . . . . . . . . . . . . . . . 52
+   C.4   Referral to Signed Zone  . . . . . . . . . . . . . . . . . . 52
+   C.5   Referral to Unsigned Zone  . . . . . . . . . . . . . . . . . 52
+   C.6   Wildcard Expansion . . . . . . . . . . . . . . . . . . . . . 53
+   C.7   Wildcard No Data Error . . . . . . . . . . . . . . . . . . . 53
+   C.8   DS Child Zone No Data Error  . . . . . . . . . . . . . . . . 53
+         Intellectual Property and Copyright Statements . . . . . . . 54
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 3]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+1. Introduction
+
+   The DNS Security Extensions (DNSSEC) are a collection of new resource
+   records and protocol modifications which add data origin
+   authentication and data integrity to the DNS. This document defines
+   the DNSSEC protocol modifications. Section 2 of this document defines
+   the concept of a signed zone and lists the requirements for zone
+   signing. Section 3 describes the modifications to authoritative name
+   server behavior necessary to handle signed zones. Section 4 describes
+   the behavior of entities which include security-aware resolver
+   functions. Finally, Section 5 defines how to use DNSSEC RRs to
+   authenticate a response.
+
+1.1 Background and Related Documents
+
+   The reader is assumed to be familiar with the basic DNS concepts
+   described in RFC1034 [RFC1034] and RFC1035 [RFC1035].
+
+   This document is part of a family of documents which define DNSSEC.
+   An introduction to DNSSEC and definition of common terms can be found
+   in [I-D.ietf-dnsext-dnssec-intro].  A definition of the DNSSEC
+   resource records can be found in [I-D.ietf-dnsext-dnssec-records].
+
+1.2 Reserved Words
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119. [RFC2119].
+
+1.3 Editors' Notes
+
+1.3.1 Open Technical Issues
+
+1.3.2 Technical Changes or Corrections
+
+   Please report technical corrections to dnssec-editors@east.isi.edu.
+   To assist the editors, please indicate the text in error and point
+   out the RFC that defines the correct behavior.  For a technical
+   change where no RFC that defines the correct behavior, or if there's
+   more than one applicable RFC and the definitions conflict, please
+   post the issue to namedroppers.
+
+   An example correction to dnssec-editors might be: Page X says
+   "DNSSEC RRs SHOULD be automatically returned in responses."  This was
+   true in RFC 2535, but RFC 3225 (Section 3, 3rd paragraph) says the
+   DNSSEC RR types MUST NOT be included in responses unless the resolver
+   indicated support for DNSSEC.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 4]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+1.3.3 Typos and Minor Corrections
+
+   Please report any typos corrections to dnssec-editors@east.isi.edu.
+   To assist the editors, please provide enough context for us to find
+   the incorrect text quickly.
+
+   An example message to dnssec-editors might be: page X says "the
+   DNSSEC standard has been in development for over 1 years".   It
+   should read "over 10 years".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 5]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+2. Zone Signing
+
+   DNSSEC is built around the concept of signed zones.  A signed zone
+   includes DNSKEY, RRSIG, NSEC and (optionally) DS records according to
+   the rules specified in Section 2.1, Section 2.2, Section 2.3 and
+   Section 2.4, respectively.  Any zone which does not include these
+   records according to the rules in this section MUST be considered
+   unsigned for the purposes of the DNS security extensions.
+
+   DNSSEC requires a change to the definition of the CNAME resource
+   record.  Section 2.5 changes the CNAME RR to allow RRSIG and NSEC RRs
+   to appear at the same owner name as a CNAME RR.
+
+   Section 2.6 shows a sample signed zone.
+
+2.1 Including DNSKEY RRs in a Zone
+
+   To sign a zone, the zone's administrator generates one or more
+   public/private key pairs and uses the private key(s) to sign
+   authoritative RRsets in the zone.  For each private key used to
+   create RRSIG RRs, there SHOULD be a corresponding zone DNSKEY RR
+   stored in the zone.  A zone key DNSKEY RR has the Zone Key bit of the
+   flags RDATA field set to one -- see Section 2.1.1 of
+   [I-D.ietf-dnsext-dnssec-records].  Public keys associated with other
+   DNS operations MAY be stored in DNSKEY RRs that are not marked as
+   zone keys.
+
+   If the zone is delegated and does not wish to act as an island of
+   security, the zone MUST have at least one DNSKEY RR at the apex to
+   act as a secure entry point into the zone.  This DNSKEY would then be
+   used to generate a DS RR at the delegating parent (see
+   [I-D.ietf-dnsext-dnssec-records]).  This DNSKEY RR SHOULD be either a
+   zone key or a DNSKEY signing key (see [I-D.ietf-dnsext-dnssec-intro]
+   for definition).
+
+   DNSKEY RRs MUST NOT appear at delegation points.
+
+2.2 Including RRSIG RRs in a Zone
+
+   For each authoritative RRset in a signed zone (which excludes both NS
+   RRsets at delegation points and glue RRsets), there MUST be at least
+   one RRSIG record that meets all of the following requirements:
+
+   o  The RRSIG owner name is equal to the RRset owner name;
+
+   o  The RRSIG class is equal to the RRset class;
+
+   o  The RRSIG Type Covered field is equal to the RRset type;
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 6]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   o  The RRSIG Original TTL field is equal to the TTL of the RRset;
+
+   o  The RRSIG RR's TTL is equal to the TTL of the RRset;
+
+   o  The RRSIG Labels field is equal to the number of labels in the
+      RRset owner name, not counting the null root label and not
+      counting the wildcard label if the owner name is a wildcard;
+
+   o  The RRSIG Signer's Name field is equal to the name of the zone
+      containing the RRset; and
+
+   o  The RRSIG Algorithm, Signer's Name, and Key Tag fields identify a
+      zone key DNSKEY record at the zone apex.
+
+   The process for constructing the RRSIG RR for a given RRset is
+   described in [I-D.ietf-dnsext-dnssec-records]. An RRset MAY have
+   multiple RRSIG RRs associated with it.
+
+   An RRSIG RR itself MUST NOT be signed, since signing an RRSIG RR
+   would add no value and would create an infinite loop in the signing
+   process.
+
+   The NS RRset which appears at the zone apex name MUST be signed, but
+   the NS RRsets which appear at delegation points (that is, the NS
+   RRsets in the parent zone which delegate the name to the child zone's
+   name servers) MUST NOT be signed. Glue address RRsets associated with
+   delegations MUST NOT be signed.
+
+   There MUST be an RRSIG for each RRset generated using at least one
+   DNSKEY of each algorithm in the parent zone's DS RRset and each
+   additional algorithm, if any, in the apex DNSKEY RRset.  The apex
+   DNSKEY RRset itself MUST be signed by each algorithm appearing in the
+   DS RRset.
+
+   The difference between the set of owner names which require RRSIG
+   records and the set of owner names which require NSEC records is
+   subtle and worth highlighting.  RRSIG records are present at the
+   owner names of all authoritative RRsets.  NSEC records are present at
+   the owner names of all names for which the signed zone is
+   authoritative and also at the owner names of delegations from the
+   signed zone to its children.  Neither NSEC nor RRSIG records are
+   present (in the parent zone) at the owner names of glue address
+   RRsets.  Note, however, that this distinction is for the most part
+   only visible during the zone signing process, because NSEC RRsets are
+   authoritative data, and are therefore signed, thus any owner name
+   which has an NSEC RRset will have RRSIG RRs as well in the signed
+   zone.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 7]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+2.3 Including NSEC RRs in a Zone
+
+   Each owner name in the zone MUST have an NSEC resource record, except
+   for the owner names of any glue address RRsets.  The process for
+   constructing the NSEC RR for a given name is described in
+   [I-D.ietf-dnsext-dnssec-records].
+
+   The type bitmap of every NSEC resource record in a signed zone MUST
+   indicate the presence of both the NSEC record itself and its
+   corresponding RRSIG record.
+
+2.4 Including DS RRs in a Zone
+
+   The DS resource record establishes authentication chains between DNS
+   zones.  A DS RRset SHOULD be present at a delegation point when the
+   child zone is signed.  The DS RRset MAY contain multiple records,
+   each referencing a key used by the child zone to sign its apex DNSKEY
+   RRset.  All DS RRsets in a zone MUST be signed and DS RRsets MUST NOT
+   appear at non-delegation points nor at a zone's apex.
+
+   A DS RR SHOULD point to a DNSKEY RR which is present in the child's
+   apex DNSKEY RRset, and the child's apex DNSKEY RRset SHOULD be signed
+   by the corresponding private key.
+
+   The TTL of a DS RRset SHOULD match the TTL of the corresponding NS
+   RRset.
+
+   Construction of a DS RR requires knowledge of the corresponding
+   DNSKEY RR in the child zone, which implies communication between the
+   child and parent zones.  This communication is an operational matter
+   not covered by this document.
+
+2.5 Changes to the CNAME Resource Record.
+
+   If a CNAME RRset is present at a name in a signed zone, appropriate
+   RRSIG and NSEC RRsets are REQUIRED at that name. Other types MUST NOT
+   be present at that name.
+
+   This is a modification to the original CNAME definition given in
+   [RFC1034].  The original definition of the CNAME RR did not allow any
+   other types to coexist with a CNAME record, but a signed zone
+   requires NSEC and RRSIG RRs for every authoritative name.  To resolve
+   this conflict, this specification modifies the definition of the
+   CNAME resource record to allow it to coexist with NSEC and RRSIG RRs.
+
+2.6 Example of a Secure Zone
+
+   Appendix A shows a complete example of a small signed zone.
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 8]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+3. Serving
+
+   This section describes the behavior of entities which include
+   security-aware name functions.  In many cases such functions will be
+   part of a security-aware recursive name server, but a security-aware
+   authoritative name server has some of the same requirements as a
+   security-aware recursive name server does. Functions specific to
+   security-aware recursive name servers are described in Section 3.2;
+   functions specific to authoritative servers are described in Section
+   3.1.
+
+   The terms "SNAME", "SCLASS", and "STYPE" in the following discussion
+   are as used in [RFC1034].
+
+   A security-aware name server MUST support the EDNS0 [RFC2671] message
+   size extension, MUST support a message size of at least 1220 octets,
+   and SHOULD support a message size of 4000 octets [RFC3226].
+
+   A security-aware name server which receives a DNS query which does
+   not include the EDNS OPT pseudo-RR or which has the DO bit set to
+   zero MUST treat the RRSIG, DNSKEY, and NSEC RRs as it would any other
+   RRset, and MUST NOT perform any of the additional processing
+   described below.  Since the DS RR type has the peculiar property of
+   only existing in the parent zone at delegation points, DS RRs always
+   require some special processing, as described in Section 3.1.4.1.
+
+   DNSSEC allocates two new bits in the DNS message header: the CD
+   (Checking Disabled) bit and the AD (Authentic Data) bit.  The CD bit
+   is controlled by resolvers; a security-aware name server MUST copy
+   the CD bit from a query into the corresponding response.  The AD bit
+   is controlled by name servers; a security-aware name server MUST
+   ignore the setting of the AD bit in queries.  See Section 3.1.6,
+   Section 3.2.2, Section 3.2.3, Section 4, and Section 4.2 for details
+   on the behavior of these bits.
+
+3.1 Authoritative Name Servers
+
+   Upon receiving a relevant query which has the EDNS [RFC2671] OPT
+   pseudo-RR DO bit [RFC3225] set to one, a security-aware authoritative
+   name server for a signed zone MUST include additional RRSIG, NSEC,
+   and DS RRs according to the following rules:
+
+   o  RRSIG RRs which can be used to authenticate a response MUST be
+      included in the response according to the rules in Section 3.1.1;
+
+   o  NSEC RRs which can be used to provide authenticated denial of
+      existence MUST be included in the response automatically according
+      to the rules in Section 3.1.3;
+
+
+
+Arends, et al.           Expires April 26, 2004                 [Page 9]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   o  Either a DS RRset or an NSEC RR proving that no DS RRs exist MUST
+      be included in referrals automatically according to the rules in
+      Section 3.1.4.
+
+   DNSSEC does not change the DNS zone transfer protocol.  Section 3.1.5
+   discusses zone transfer requirements.
+
+3.1.1 Including RRSIG RRs in a Response
+
+   When responding to a query which has the DO bit set to one, a
+   security-aware authoritative name server SHOULD attempt to send RRSIG
+   RRs which a security-aware resolver can use to authenticate the
+   RRsets in the response.  Inclusion of RRSIG RRs in a response is
+   subject to the following rules:
+
+   o  When placing a signed RRset in the Answer section, the name server
+      MUST also place its RRSIG RRs in the Answer section.  The RRSIG
+      RRs have a higher priority for inclusion than any other RRsets
+      which may need to be included.  If space does not permit inclusion
+      of these RRSIG RRs, the name server MUST set the TC bit.
+
+   o  When placing a signed RRset in the Authority section, the name
+      server MUST also place its RRSIG RRs in the Authority section.
+      The RRSIG RRs have a higher priority for inclusion than any other
+      RRsets that may need to be included.  If space does not permit
+      inclusion of these RRSIG RRs, the name server MUST set the TC bit.
+
+   o  When placing a signed RRset in the Additional section, the name
+      server MUST also place its RRSIG RRs in the Additional section.
+      If space does not permit inclusion of these RRSIG RRs, the name
+      server MUST NOT set the TC bit solely because these RRSIG RRs
+      didn't fit.
+
+
+3.1.2 Including DNSKEY RRs In a Response
+
+   When responding to a query which has the DO bit set to one and which
+   requests the SOA or NS RRs at the apex of a signed zone, a
+   security-aware authoritative name server for that zone MAY return the
+   zone apex DNSKEY RRset in the Additional section.  In this situation,
+   the DNSKEY RRset and associated RRSIG RRs have lower priority than
+   any other information that would be placed in the additional section.
+   The name server SHOULD NOT include the DNSKEY RRset unless there is
+   enough space in the response message for both the DNSKEY RRset and
+   its associated RRSIG RR(s). If there is not enough space to include
+   these DNSKEY and RRSIG RRs, the name server MUST omit them and MUST
+   NOT set the TC bit solely because these RRs didn't fit (see Section
+   3.1.1).
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 10]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+3.1.3 Including NSEC RRs In a Response
+
+   When responding to a query which has the DO bit set to one, a
+   security-aware authoritative name server for a signed zone MUST
+   include NSEC RRs in each of the following cases:
+
+   No Data: The zone contains RRsets which exactly match <SNAME,
+      SCLASS>, but does not contain any RRsets which exactly match
+      <SNAME, SCLASS, STYPE>.
+
+   Name Error: The zone does not contain any RRsets which match <SNAME,
+      SCLASS> either exactly or via wildcard name expansion.
+
+   Wildcard Answer: The zone does not contain any RRsets which exactly
+      match <SNAME, SCLASS> but does contain an RRset which matches
+      <SNAME, SCLASS, STYPE> via wildcard name expansion.
+
+   Wildcard No Data: The zone does not contain any RRsets which exactly
+      match <SNAME, SCLASS>, does contain one or more RRsets which
+      matches <SNAME, SCLASS> via wildcard name expansion, but does not
+      contain any RRsets which match <SNAME, SCLASS, STYPE> via wildcard
+      name expansion.
+
+   In each of these cases, the name server includes NSEC RRs in the
+   response to prove that an exact match for <SNAME, SCLASS, STYPE> was
+   not present in the zone and that the response which the name server
+   is returning is correct given the data which are in the zone.
+
+3.1.3.1 Including NSEC RRs: No Data Response
+
+   If the zone contains RRsets matching <SNAME, SCLASS> but contains no
+   RRset matching <SNAME, SCLASS, STYPE>, then the name server MUST
+   include the NSEC RR for <SNAME, SCLASS> along with its associated
+   RRSIG RR(s) in the Authority section of the response (see Section
+   3.1.1).  If space does not permit inclusion of the NSEC RR or its
+   associated RRSIG RR(s), the name server MUST set the TC bit (see
+   Section 3.1.1).
+
+   Since the search name exists, wildcard name expansion does not apply
+   to this query, and a single signed NSEC RR suffices to prove the
+   requested RR type does not exist.
+
+3.1.3.2 Including NSEC RRs: Name Error Response
+
+   If the zone does not contain any RRsets matching <SNAME, SCLASS>
+   either exactly or via wildcard name expansion, then the name server
+   MUST include the following NSEC RRs in the Authority section, along
+   with their associated RRSIG RRs:
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 11]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   o  An NSEC RR proving that there is no exact match for <SNAME,
+      SCLASS>; and
+
+   o  An NSEC RR proving that the zone contains no RRsets which would
+      match <SNAME, SCLASS> via wildcard name expansion.
+
+   In some cases a single NSEC RR may prove both of these points, in
+   which case the name server SHOULD only include the NSEC RR and its
+   RRSIG RR(s) once in the Authority section.
+
+   If space does not permit inclusion of these NSEC and RRSIG RRs, the
+   name server MUST set the TC bit (see Section 3.1.1).
+
+3.1.3.3 Including NSEC RRs: Wildcard Answer Response
+
+   If the zone does not contain any RRsets which exactly match <SNAME,
+   SCLASS> but does contain an RRset which matches <SNAME, SCLASS,
+   STYPE> via wildcard name expansion, the name server MUST include the
+   wildcard-expanded answer and the corresponding wildcard-expanded
+   RRSIG RRs in the Answer section, and MUST include in the Authority
+   section an NSEC RR and associated RRSIG RR(s) proving that the zone
+   does not contain a closer match for <SNAME, SCLASS>.  If space does
+   not permit inclusion of these answer, NSEC and RRSIG RRs, the name
+   server MUST set the TC bit (see Section 3.1.1).
+
+3.1.3.4 Including NSEC RRs: Wildcard No Data Response
+
+   This case is a combination of the previous cases.  The zone does not
+   contain an exact match for <SNAME, SCLASS>, and while the zone does
+   contain RRsets which match <SNAME, SCLASS> via wildcard name
+   expansion, none of those RRsets match STYPE.  The name server MUST
+   include the following NSEC RRs in the Authority section, along with
+   their associated RRSIG RRs:
+
+   o  An NSEC RR proving that there are no RRsets matching STYPE at the
+      wildcard owner name which matched <SNAME, SCLASS> via wildcard
+      expansion; and
+
+   o  An NSEC RR proving that there are no RRsets in the zone which
+      would have been a closer match for <SNAME, SCLASS>.
+
+   In some cases a single NSEC RR may prove both of these points, in
+   which case the name server SHOULD only include the NSEC RR and its
+   RRSIG RR(s) once in the Authority section.
+
+   If space does not permit inclusion of these NSEC and RRSIG RRs, the
+   name server MUST set the TC bit (see Section 3.1.1).
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 12]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+3.1.3.5 Finding The Right NSEC RRs
+
+   As explained above, there are several situations in which a
+   security-aware authoritative name server needs to locate an NSEC RR
+   which proves that a particular SNAME does not exist.  Locating such
+   an NSEC RR within an authoritative zone is relatively simple, at
+   least in concept.  The following discussion assumes that the name
+   server is authoritative for the zone which would have held the
+   nonexistent SNAME.  The algorithm below is written for clarity, not
+   efficiency.
+
+   To find the NSEC which proves that name N does not exist in the zone
+   Z which would have held it, construct sequence S consisting of every
+   name in Z, sorted into canonical order.  Find the name M which would
+   have immediately preceded N in S if N had existed.  M is the owner
+   name of the NSEC RR which proves that N does not exist.
+
+   The algorithm for finding the NSEC RR which proves that a given name
+   is not covered by any applicable wildcard is similar, but requires an
+   extra step.  More precisely, the algorithm for finding the NSEC
+   proving that the applicable wildcard name does not exist is precisely
+   the same as the algorithm for finding the NSEC RR which proves that
+   any other name does not exist: the part that's missing is how to
+   determine the name of the nonexistent applicable wildcard.  In
+   practice, this is easy, because the authoritative name server has
+   already checked for the presence of precisely this wildcard name as
+   part of step (1)(c) of the normal lookup algorithm described in
+   Section 4.3.2 of [RFC1034].
+
+3.1.4 Including DS RRs In a Response
+
+   When responding to a query which has the DO bit set to one, a
+   security-aware authoritative name server returning a referral
+   includes DNSSEC data along with the NS RRset.
+
+   If a DS RRset is present at the delegation point, the name server
+   MUST return both the DS RRset and its associated RRSIG RR(s) along
+   with the NS RRset.  The name server MUST place the NS RRset before
+   the DS RRset and its associated RRSIG RR(s).
+
+   If no DS RRset is present at the delegation point, the name server
+   MUST return both the NSEC RR which proves that the DS RRset is not
+   present and the NSEC RR's associated RRSIG RR(s) along with the NS
+   RRset.  The name server MUST place the NS RRset before the NSEC RRset
+   and its associated RRSIG RR(s).
+
+   Including these DS, NSEC, and RRSIG RRs increases the size of
+   referral messages, and may cause some or all glue RRs to be omitted.
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 13]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   If space does not permit inclusion of the DS or NSEC RRset and
+   associated RRSIG RRs, the name server MUST set the TC bit (see
+   Section 3.1.1).
+
+3.1.4.1 Responding to Queries for DS RRs
+
+   The DS resource record type is unusual in that it appears only on the
+   parent zone's side of a zone cut.  For example, the DS RRset for the
+   delegation of "foo.example" is stored in the "example" zone rather
+   than in the "foo.example" zone.  This requires special processing
+   rules for both name servers and resolvers, since the name server for
+   the child zone is authoritative for the name at the zone cut by the
+   normal DNS rules but the child zone does not contain the DS RRset.
+
+   A security-aware resolver will send queries to the parent zone when
+   looking for a DS RRset at a delegation point, and thus will never
+   trigger the corresponding special processing in a security-aware name
+   server.   The rest of this section describes how a security-aware
+   recursive name server processes a misdirected DS query.
+
+   The need for special processing by a security-aware name server only
+   arises when:
+
+   o  the name server has received a query for the DS RRset at a zone
+      cut;
+
+   o  the name server is authoritative for the child zone;
+
+   o  the name server is not authoritative for the parent zone; and
+
+   o  the name server does not offer recursion.
+
+   In all other cases, the name server either has some way of obtaining
+   the DS RRset or could not have been expected to have the DS RRset
+   even by the pre-DNSSEC processing rules, so the name server can
+   return either the DS RRset or an error response according to the
+   normal processing rules.
+
+   If all of the above conditions are met, however, the name server is
+   authoritative for SNAME but cannot supply the requested RRset.  In
+   this case, the name server MUST return an authoritative "no data"
+   response showing that the DS RRset does not exist in the child zone's
+   apex.  See Appendix B.8 for an example of such a response.
+
+3.1.5 Responding to Queries for Type AXFR or IXFR
+
+   DNSSEC does not change the DNS zone transfer process.  A signed zone
+   will contain RRSIG, DNSKEY, NSEC, and DS resource records, but these
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 14]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   records have no special meaning with respect to a zone transfer
+   operation, and these RRs are treated as any other resource record
+   type.
+
+   An authoritative name server is not required to verify that a zone is
+   properly signed before sending or accepting a zone transfer.
+   However, an authoritative name server MAY choose to reject the entire
+   zone transfer if the zone fails meets any of the signing requirements
+   described in Section 2.  The primary objective of a zone transfer is
+   to ensure that all authoritative name servers have identical copies
+   of the zone.  An authoritative name server which chooses to perform
+   its own zone validation MUST NOT selectively reject some RRs and
+   accept others.
+
+   DS RRsets appear only on the parental side of a zone cut and are
+   authoritative data in the parent zone.  As with any other
+   authoritative RRset, the DS RRset MUST be included in zone transfers
+   of the zone in which the RRset is authoritative data: in the case of
+   the DS RRset, this is the parent zone.
+
+   NSEC RRs appear in both the parent and child zones at a zone cut, and
+   are authoritative data in both the parent and child zones.  The
+   parental and child NSEC RRs at a zone cut are never identical to each
+   other, since the NSEC RR in the child zone's apex will always
+   indicate the presence of the child zone's SOA RR while the parental
+   NSEC RR at the zone cut will never indicate the presence of an SOA
+   RR.  As with any other authoritative RRs, NSEC RRs MUST be included
+   in zone transfers of the zone in which they are authoritative data:
+   the parental NSEC RR at a zone cut MUST be included zone transfers of
+   the parent zone, while the NSEC at the zone apex of the child zone
+   MUST be included in zone transfers of the child zone.
+
+   RRSIG RRs appear in both the parent and child zones at a zone cut,
+   and are authoritative in whichever zone contains the authoritative
+   RRset for which the RRSIG RR provides the signature.  That is, the
+   RRSIG RR for a DS RRset or a parental NSEC RR at a zone cut will be
+   authoritative in the parent zone, while the RRSIG for any RRset in
+   the child zone's apex will be authoritative in the child zone. As
+   with any other authoritative RRs, RRSIG RRs MUST be included in zone
+   transfers of the zone in which they are authoritative data.
+
+3.1.6 The AD and CD Bits in an Authoritative Response
+
+   The CD and AD bits are designed to be used in communication between
+   security-aware resolvers and security-aware recursive name servers.
+   This bits are for the most part not relevant to query processing by
+   security-aware authoritative name servers.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 15]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   Since a security-aware name server does not perform signature
+   validation for authoritative data during query processing even when
+   the CD bit is set to zero, a security-aware name server SHOULD ignore
+   the setting of the CD bit when composing an authoritative response.
+
+   A security-aware name server MUST NOT set the AD bit in a response
+   unless the name server considers all RRsets in the Answer or
+   Authority sections of the response to be authentic.  A security-aware
+   name server's local policy MAY consider data from an authoritative
+   zone to be authentic without further validation, but the name server
+   MUST NOT do so unless the name server obtained the authoritative zone
+   via secure means (such as a secure zone transfer mechanism), and MUST
+   NOT do so unless this behavior has been configured explicitly.
+
+   A security-aware name server which supports recursion MUST follow the
+   rules for the CD and AD bits given in Section 3.2 when generating a
+   response that involves data obtained via recursion.
+
+3.2 Recursive Name Servers
+
+   As explained in [I-D.ietf-dnsext-dnssec-intro], a security-aware
+   recursive name server is an entity which acts in both the
+   security-aware name server and security-aware resolver roles. This
+   section uses the terms "name server side" and "resolver side" to
+   refer to the code within a security-aware recursive name server which
+   implements the security-aware name server role and the code which
+   implements the security-aware resolver role, respectively.
+
+   A security-aware recursive name server MUST NOT attempt to answer a
+   query by piecing together cached data it received in response to
+   previous queries that requested different QNAMEs, QTYPEs, or
+   QCLASSes.  A security-aware recursive name server MUST NOT use NSEC
+   RRs from one negative response to synthesize a response for a
+   different query.  A security-aware recursive name server MUST NOT use
+   a previous wildcard expansion to generate a response to a different
+   query.
+
+   The resolver side MUST follow the usual rules for caching and
+   negative caching which would apply to any security-aware resolver.
+
+3.2.1 The DO bit
+
+   The resolver side of a security-aware recursive name server MUST set
+   the DO bit when sending requests, regardless of the state of the DO
+   bit in the initiating request received by the name server side.  If
+   the DO bit in an initiating query is not set, the name server side
+   MUST strip any authenticating DNSSEC RRs from the response, but but
+   MUST NOT strip any DNSSEC RRs that the initiating query explicitly
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 16]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   requested.
+
+3.2.2 The CD bit
+
+   The CD bit exists in order to allow a security-aware resolver to
+   disable signature validation in a security-aware name server's
+   processing of a particular query.  This is a useful but somewhat
+   dangerous capability that requires careful handling by security-aware
+   recursive name servers.
+
+   A security-aware recursive name server MUST disregard the CD bit and
+   perform normal signature validation unless:
+
+   o  the name server side received that query via a secure channel; or
+
+   o  the recursive name server's local policy dictates that the
+      recursive name server honor the CD bit even when received via an
+      insecure channel.
+
+   Discussion of cases in which the CD bit is set to one in the rest of
+   this section assumes that one or both of the above conditions applies
+   to the query being processed.  If neither condition applies, the
+   recursive name server MUST process the query as if the CD bit were
+   set to zero. Note, however, that the name server side MUST always
+   copy the setting of the CD bit from a query to the corresponding
+   response, regardless of whether or not the recursive name server
+   trusts the setting of the CD bit.
+
+   The name server side of a security-aware recursive name server MUST
+   pass the sense of the CD bit to the resolver side along with the rest
+   of an initiating query, so that the resolver side will know whether
+   or not it is required to verify the response data it returns to the
+   name server side. If the CD bit is set to one, it indicates that the
+   originating resolver is willing to perform whatever authentication
+   its local policy requires, thus the resolver side of the recursive
+   name server need not perform authentication on the RRsets in the
+   response.  When the CD bit is set to one the recursive name server
+   SHOULD, if possible, return the requested data to the originating
+   resolver even if the recursive name server's local authentication
+   policy would reject the records in question. That is, by setting the
+   CD bit, the originating resolver has indicated that it takes
+   responsibility for performing its own authentication, and the
+   recursive name server should not interfere.
+
+   If the resolver side implements a BAD cache (see Section 4.1) and the
+   name server side receives a query which matches an entry in the
+   resolver side's BAD cache, the name server side's response depends on
+   the sense of the CD bit in the original query.  If the CD bit is set,
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 17]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   the name server side SHOULD return the data from the BAD cache; if
+   the CD bit is not set, the name server side MUST return RCODE 2
+   (server failure).
+
+3.2.3 The AD bit
+
+   The name server side of a security-aware recursive name server MUST
+   NOT set the AD bit in a response unless the name server considers all
+   RRsets in the Answer or Authority sections of the response to be
+   authentic, and SHOULD set the AD bit if and only if the resolver side
+   considers all RRsets in the Answer section and any relevant negative
+   response RRs in the Authority section to be authentic.  The resolver
+   side MUST follow the procedure described in Section 5 to determine
+   whether the RRs in question are authentic.
+
+3.3 Example DNSSEC Responses
+
+   See Appendix B for example response packets.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 18]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+4. Resolving
+
+   This section describes the behavior of entities which include
+   security-aware resolver functions.  In many cases such functions will
+   be part of a security-aware recursive name server, but a stand-alone
+   security-aware resolver has many of the same requirements.  Functions
+   specific to security-aware recursive name servers are described in
+   Section 3.2.
+
+   A security-aware resolver MUST include an EDNS [RFC2671] OPT
+   pseudo-RR with the DO [RFC3225] bit set to one when sending queries.
+
+   A security-aware resolver MUST support a message size of at least
+   1220 octets, SHOULD support a message size of 4000 octets, and MUST
+   advertise the supported message size using the "sender's UDP payload
+   size" field in the EDNS OPT pseudo-RR. A security-aware resolver MUST
+   handle fragmented UDP packets correctly regardless of whether any
+   such fragmented packets were received via IPv4 or IPv6.  Please see
+   [RFC3226] for discussion of these requirements.
+
+   A security-aware resolver MUST support the signature verification
+   mechanisms described in Section 5, and MUST apply them to every
+   received response except when:
+
+   o  The security-aware resolver is part of a security-aware recursive
+      name server, and the response is the result of recursion on behalf
+      of a query received with the CD bit set;
+
+   o  The response is the result of a query generated directly via some
+      form of application interface which instructed the security-aware
+      resolver not to perform validation for this query; or
+
+   o  Validation for this query has been disabled by local policy.
+
+   A security-aware resolver's support for signature verification MUST
+   include support for verification of wildcard owner names.
+
+   A security-aware resolver MUST attempt to retrieve missing DS,
+   DNSKEY, or RRSIG RRs via explicit queries if the resolver needs these
+   RRs in order to perform signature verification.
+
+   A security-aware resolver MUST attempt to retrieve a missing NSEC RR
+   which the resolver needs to authenticate a NODATA response.  In
+   general it is not possible for a resolver to retrieve missing NSEC
+   RRs, since the resolver will have no way of knowing the owner name of
+   the missing NSEC RR, but in the specific case of a NODATA response,
+   the resolver does know the name of the missing NSEC RR, and must
+   therefore attempt to retrieve it.
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 19]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   When attempting to retrieve missing NSEC or DS RRs which reside on
+   the parental side at a zone cut, a security-aware iterative-mode
+   resolver MUST query the name servers for the parent zone, not the
+   child zone.
+
+   A security-aware resolver MUST be able to determine whether or not it
+   should expect a particular RRset to be signed.  More precisely, a
+   security-aware resolver must be able to distinguish between three
+   cases:
+
+   1.  An RRset for which the resolver is able to build a chain of
+       signed DNSKEY and DS RRs from a trusted starting point to the
+       RRset.  In this case, the RRset should be signed, and is subject
+       to signature validation as described above.
+
+   2.  An RRset for which the resolver knows that it has no chain of
+       signed DNSKEY and DS RRs from any trusted starting point to the
+       RRset.  This can occur when the target RRset lies in an unsigned
+       zone or in a descendent of an unsigned zone.  In this case, the
+       RRset may or may not be signed, but the resolver will not be able
+       to verify the signature.
+
+   3.  An RRset for which the resolver is not able to determine whether
+       or not the RRset should be signed, because the resolver is not
+       able to obtain the necessary DNSSEC RRs. This can occur when the
+       security-aware resolver is not able to contact security-aware
+       name servers for the relevant zones.
+
+   A security-aware resolver MUST be capable of being preconfigured with
+   at least one trusted public key, and MUST be capable of being
+   preconfigured with multiple trusted public keys or DS RRs. Since a
+   security-aware resolver will not be able to validate signatures
+   without such a preconfigured trusted key, the resolver SHOULD have
+   some reasonably robust mechanism for obtaining such keys when it
+   boots.
+
+   A security-aware resolver SHOULD cache each response as a single
+   atomic entry, indexed by the triple <QNAME, QTYPE, QCLASS>, with the
+   single atomic entry containing the entire answer, including the named
+   RRset and any associated DNSSEC RRs. The resolver SHOULD discard the
+   entire atomic entry when any of the RRs contained in it expire.
+
+   A security-aware resolver MAY set the CD bit in a query to one in
+   order to indicate that the resolver takes responsibility for
+   performing whatever authentication its local policy requires on the
+   RRsets in the response.  See Section 3.2 for the effect this bit has
+   on the behavior of security-aware recursive name servers.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 20]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   A security-aware resolver MUST zero the AD bit when composing query
+   messages.
+
+4.1 Rate Limiting
+
+   A security-aware resolver SHOULD NOT cache data with invalid
+   signatures under normal circumstances.  However, a security-aware
+   resolver SHOULD take steps to rate limit the number of identical
+   queries that it generates if signature validation of the responses
+   fails repeatedly.
+
+   Conceptually, this is similar in some respects to negative caching
+   [RFC2308], but since the resolver has no way of obtaining an
+   appropriate caching TTL from received data in this case, the TTL will
+   have to be set by the implementation.  This document refers to the
+   data retained as part of such a rate limiting mechanism as the "BAD
+   cache".
+
+   A security-aware resolver MAY chose to retain RRsets for which
+   signature validation has failed in its BAD cache, but MUST NOT return
+   such RRsets from its BAD cache unless both of the following
+   conditions are met:
+
+   o  The resolver has recently generated enough queries identical to
+      this one that the resolver is suppressing queries for this <QNAME,
+      QTYPE, QCLASS>; and
+
+   o  The resolver is not required to validate the signatures of the
+      RRsets in question under the rules given in Section 4 of this
+      document.
+
+   The intent of the above rule is to provide the raw data to clients
+   which are capable of performing their own signature verification
+   checks while protecting clients which depend on this resolver to
+   perform such checks.  Several of the possible reasons why signature
+   validation might fail involve conditions which may not apply equally
+   to this resolver and the client which invoked it: for example, this
+   resolver's clock may be set incorrectly, or the client may have
+   knowledge of a relevant island of security which this resolver does
+   not share.  In such cases, "protecting" a client which is capable of
+   performing its own signature validation from ever seeing the "bad"
+   data does not help the client.
+
+4.2 Stub resolvers
+
+   A security-aware stub resolver MUST include an EDNS [RFC2671] OPT
+   pseudo-RR with the DO [RFC3225] bit set to one when sending queries.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 21]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   A security-aware stub resolver MUST support a message size of at
+   least 1220 octets, SHOULD support a message size of 4000 octets, and
+   MUST advertise the supported message size using the "sender's UDP
+   payload size" field in the EDNS OPT pseudo-RR. A security-aware stub
+   resolver MUST handle fragmented UDP packets correctly regardless of
+   whether any such fragmented packets were received via IPv4 or IPv6.
+   Please see [RFC3226] for discussion of these requirements.
+
+   A security-aware stub resolver MUST support the DNSSEC RR types, at
+   least to the extent of not mishandling responses just because they
+   contain DNSSEC RRs.   A security-aware stub resolver MAY include the
+   DNSSEC RRs returned by a security-aware recursive name server as part
+   of the data that it the stub resolver hands back to the application
+   which invoked it but is not required to do so.
+
+   A security-aware stub resolver SHOULD NOT set the CD bit when sending
+   queries, since, by definition, a security-aware stub resolver does
+   not validate signatures and thus depends on the security-aware
+   recursive name server to perform validation on its behalf.
+
+   A security-aware stub resolver MAY chose to examine the setting of
+   the AD bit in response messages that it receives in order to
+   determine whether the security-aware recursive name server which sent
+   the response claims to have cryptographically verified the data in
+   the Answer and Authority sections of the response message.  Note,
+   however, that the responses received by a security-aware stub
+   resolver are heavily dependent on the local policy of the
+   security-aware recursive name server, so as a practical matter there
+   may be little practical value to checking the status of the AD bit
+   except perhaps as a debugging aid.  In any case, a security-aware
+   stub resolver MUST NOT place any reliance on signature validation
+   allegedly performed on its behalf except when the security-aware stub
+   resolver obtained the data in question from a trusted security-aware
+   recursive name server via a secure channel.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 22]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+5. Authenticating DNS Responses
+
+   In order to use DNSSEC RRs for authentication, a security-aware
+   resolver requires preconfigured knowledge of at least one
+   authenticated DNSKEY or DS RR.  The process for obtaining and
+   authenticating this initial DNSKEY or DS RR is achieved via some
+   external mechanism.  For example, a resolver could use some off-line
+   authenticated exchange to obtain a zone's DNSKEY RR or obtain a DS RR
+   that identifies and authenticates a zone's DNSKEY RR.  The remainder
+   of this section assumes that the resolver has somehow obtained an
+   initial set of authenticated DNSKEY RRs.
+
+   An initial DNSKEY RR can be used to authenticate a zone's apex DNSKEY
+   RRset.  To authenticate an apex DNSKEY RRset using an initial key,
+   the resolver MUST:
+
+   1.  Verify that the initial DNSKEY RR appears in the apex DNSKEY
+       RRset, and verify that the DNSKEY RR has the Zone Key Flag
+       (DNSKEY RDATA bit 7) set to one.
+
+   2.  Verify that there is some RRSIG RR which covers the apex DNSKEY
+       RRset, and that the combination of the RRSIG RR and the initial
+       DNSKEY RR authenticates the DNSKEY RRset.  The process for using
+       an RRSIG RR to authenticate an RRset is described in Section 5.3.
+
+   Once the resolver has authenticated the apex DNSKEY RRset using an
+   initial DNSKEY RR, delegations from that zone can be authenticated
+   using DS RRs.  This allows a resolver to start from an initial key,
+   and use DS RRsets to proceed recursively down the DNS tree obtaining
+   other apex DNSKEY RRsets.  If the resolver were preconfigured with a
+   root DNSKEY RR, and if every delegation had a DS RR associated with
+   it, then the resolver could obtain and validate any apex DNSKEY
+   RRset.  The process of using DS RRs to authenticate referrals is
+   described in Section 5.2.
+
+   Once the resolver has authenticated a zone's apex DNSKEY RRset,
+   Section 5.3 shows how the resolver can use DNSKEY RRs in the apex
+   DNSKEY RRset and RRSIG RRs from the zone to authenticate any other
+   RRsets in the zone.  Section 5.4 shows how the resolver can use
+   authenticated NSEC RRsets from the zone to prove that an RRset is not
+   present in the zone.
+
+   When a resolver indicates support for DNSSEC, a security-aware name
+   server should attempt to provide the necessary DNSKEY, RRSIG, NSEC,
+   and DS RRsets in a response (see Section 3).  However, a
+   security-aware resolver may still receive a response which that lacks
+   the appropriate DNSSEC RRs, whether due to configuration issues such
+   as a security-oblivious recursive name server which accidentally
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 23]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   interfere with DNSSEC RRs or due to a deliberate attack in which an
+   adversary forges a response, strips DNSSEC RRs from a response, or
+   modifies a query so that DNSSEC RRs appear not to be requested.  The
+   absence of DNSSEC data in a response MUST NOT by itself be taken as
+   an indication that no authentication information exists.
+
+   A resolver SHOULD expect authentication information from signed
+   zones. A resolver SHOULD believe that a zone is signed if the
+   resolver has been configured with public key information for the
+   zone, or if the zone's parent is signed and the delegation from the
+   parent contains a DS RRset.
+
+5.1 Special Considerations for Islands of Security
+
+   Islands of security (see [I-D.ietf-dnsext-dnssec-intro]) are signed
+   zones for which it is not possible to construct an authentication
+   chain to the zone from its parent.  Validating signatures within an
+   island of security requires the validator to have some other means of
+   obtaining an initial authenticated zone key for the island.  If a
+   validator cannot obtain such a key, it will have to choose whether to
+   accept the unvalidated responses or not based on local policy.
+
+   All the normal processes for validating responses apply to islands of
+   security.  The only difference between normal validation and
+   validation within an island of security is in how the validator
+   obtains a starting point for the authentication chain.
+
+5.2 Authenticating Referrals
+
+   Once the apex DNSKEY RRset for a signed parent zone has been
+   authenticated, DS RRsets can be used to authenticate the delegation
+   to a signed child zone.  A DS RR identifies a DNSKEY RR in the child
+   zone's apex DNSKEY RRset, and contains a cryptographic digest of the
+   child zone's DNSKEY RR.  A strong cryptographic digest algorithm
+   ensures that an adversary can not easily generate a DNSKEY RR that
+   matches the digest.  Thus, authenticating the digest allows a
+   resolver to authenticate the matching DNSKEY RR.  The resolver can
+   then use this child DNSKEY RR to authenticate the entire child apex
+   DNSKEY RRset.
+
+   Given a DS RR for a delegation, the child zone's apex DNSKEY RRset
+   can be authenticated if all of the following hold:
+
+   o  The DS RR has been authenticated using some DNSKEY RR in the
+      parent's apex DNSKEY RRset (see Section 5.3);
+
+   o  The Algorithm and Key Tag in the DS RR match the Algorithm field
+      and the key tag of a DNSKEY RR in the child zone's apex DNSKEY
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 24]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+      RRset which, when hashed using the digest algorithm specified in
+      the DS RR's Digest Type field, results in a digest value which
+      matches the Digest field of the DS RR; and
+
+   o  The matching DNSKEY RR in the child zone has the Zone Flag bit set
+      to one, the corresponding private key has signed the child zone's
+      apex DNSKEY RRset, and the resulting RRSIG RR authenticates the
+      child zone's apex DNSKEY RRset.
+
+   If the referral from the parent zone did not contain a DS RRset, the
+   response should have included a signed NSEC RRset proving that no DS
+   RRset exists for the delegated name (see Section 3.1.4).  A
+   security-aware resolver MUST query the name servers for the parent
+   zone for the DS RRset if the referral includes neither a DS RRset nor
+   a NSEC RRset proving that the DS RRset does not exist (see Section
+   4).
+
+   If the resolver authenticates an NSEC RRset which proves that no DS
+   RRset is present for this zone, then there is no authentication path
+   leading from the parent to the child.  If the resolver has an initial
+   DNSKEY or DS RR which belongs to the child zone or to any delegation
+   below the child zone, this initial DNSKEY or DS RR MAY be used to
+   re-establish an authentication path.  If no such initial DNSKEY or DS
+   RR exists, the resolver can not authenticate RRsets in or below the
+   child zone.
+
+   Note that, for a signed delegation, there are two NSEC RRs associated
+   with the delegated name.  One NSEC RR resides in the parent zone, and
+   can be used to prove whether a DS RRset exists for the delegated
+   name.  The second NSEC RR resides in the child zone, and identifies
+   which RRsets are present at the apex of the child zone.  The parent
+   NSEC RR and child NSEC RR can always be distinguished, since the SOA
+   bit will be set in the child NSEC RR and clear in the parent NSEC RR.
+   A security-aware resolver MUST use the parent NSEC RR when attempting
+   to prove that a DS RRset does not exist.
+
+5.3 Authenticating an RRset Using an RRSIG RR
+
+   A resolver can use an RRSIG RR and its corresponding DNSKEY RR to
+   attempt to authenticate RRsets.  The resolver first checks the RRSIG
+   RR to verify that it covers the RRset, has a valid time interval, and
+   identifies a valid DNSKEY RR.  The resolver then constructs the
+   canonical form of the signed data by appending the RRSIG RDATA
+   (excluding the Signature Field) with the canonical form of the
+   covered RRset.  Finally, resolver uses the public key and signature
+   to authenticate the signed data.  Section 5.3.1, Section 5.3.2, and
+   Section 5.3.3 describe each step in detail.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 25]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+5.3.1 Checking the RRSIG RR Validity
+
+   A security-aware resolver can use an RRSIG RR to authenticate an
+   RRset if all of the following conditions hold:
+
+   o  The RRSIG RR and the RRset MUST have the same owner name and the
+      same class;
+
+   o  The RRSIG RR's Signer's Name field MUST be the name of the zone
+      that contains the RRset;
+
+   o  The RRSIG RR's Type Covered field MUST equal the RRset's type;
+
+   o  The number of labels in the RRset owner name MUST be greater than
+      or equal to the value in the RRSIG RR's Labels field;
+
+   o  The resolver's notion of the current time MUST be less than or
+      equal to the time listed in the RRSIG RR's Expiration field;
+
+   o  The resolver's notion of the current time MUST be greater than or
+      equal to the time listed in the RRSIG RR's Inception field;
+
+   o  The RRSIG RR's Signer's Name, Algorithm, and Key Tag fields MUST
+      match the owner name, algorithm, and key tag for some DNSKEY RR in
+      the zone's apex DNSKEY RRset;
+
+   o  The matching DNSKEY RR MUST be present in the zone's apex DNSKEY
+      RRset, and MUST have the Zone Flag bit (DNSKEY RDATA Flag bit 7)
+      set to one.
+
+   It is possible for more than one DNSKEY RR to match the conditions
+   above.  In this case, the resolver can not predetermine which DNSKEY
+   RR to use to authenticate the signature, MUST try each matching
+   DNSKEY RR until the resolver has either validated the signature or
+   has run out of matching keys to try.
+
+   Note that this authentication process is only meaningful if the
+   resolver authenticates the DNSKEY RR before using it to validate
+   signatures.  The matching DNSKEY RR is considered to be authentic if:
+
+   o  The apex DNSKEY RRset containing the DNSKEY RR is considered
+      authentic; or
+
+   o  The RRset covered by the RRSIG RR is the apex DNSKEY RRset itself,
+      and the DNSKEY RR either matches an authenticated DS RR from the
+      parent zone or matches a DS RR or DNSKEY RR which the resolver has
+      been preconfigured to believe to be authentic.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 26]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+5.3.2 Reconstructing the Signed Data
+
+   Once the RRSIG RR has met the validity requirements described in
+   Section 5.3.1, the resolver needs to reconstruct the original signed
+   data.  The original signed data includes RRSIG RDATA (excluding the
+   Signature field) and the canonical form of the RRset.  Aside from
+   being ordered, the canonical form of the RRset might also differ from
+   the received RRset due to DNS name compression, decremented TTLs, or
+   wildcard expansion.  The resolver should use the following to
+   reconstruct the original signed data:
+
+         signed_data = RRSIG_RDATA | RR(1) | RR(2)...  where
+
+            "|" denotes concatenation
+
+            RRSIG_RDATA is the wire format of the RRSIG RDATA fields
+               with the Signature field excluded and the Signer's Name
+               in canonical form.
+
+            RR(i) = name | class | type | OrigTTL | RDATA length | RDATA
+
+               name is calculated according to the function below
+
+               class is the RRset's class
+
+               type is the RRset type and all RRs in the class
+
+               OrigTTL is the value from the RRSIG Original TTL field
+
+               All names in the RDATA field are in canonical form
+
+               The set of all RR(i) is sorted into canonical order.
+
+            To calculate the name:
+               let rrsig_labels = the value of the RRSIG Labels field
+
+               let fqdn = RRset's fully qualified domain name in
+                               canonical form
+
+               let fqdn_labels = RRset's fully qualified domain name in
+                               canonical form
+
+               if rrsig_labels = fqdn_labels,
+                   name = fqdn
+
+               if rrsig_labels < fqdn_labels,
+                  name = "*." | the leftmost rrsig_label labels of the
+                                fqdn
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 27]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+               if rrsig_labels > fqdn
+                  the RRSIG RR did not pass the necessary validation
+                  checks and MUST NOT be used to authenticate this
+                  RRset.
+
+   The canonical forms for names and RRsets are defined in
+   [I-D.ietf-dnsext-dnssec-records].
+
+   NSEC RRsets at a delegation boundary require special processing.
+   There are two distinct NSEC RRsets associated with a signed delegated
+   name.  One NSEC RRset resides in the parent zone, and specifies which
+   RRset are present at the parent zone.  The second NSEC RRset resides
+   at the child zone, and identifies which RRsets are present at the
+   apex in the child zone.  The parent NSEC RRset and child NSEC RRset
+   can always be distinguished since only the child NSEC RRs will
+   specify an SOA RRset exists at the name. When reconstructing the
+   original NSEC RRset for the delegation from the parent zone, the NSEC
+   RRs MUST NOT be combined with NSEC RRs from the child zone, and when
+   reconstructing the original NSEC RRset for the apex of the child
+   zone, the NSEC RRs MUST NOT be combined with NSEC RRs from the parent
+   zone.
+
+   Note also that each of the two NSEC RRsets at a delegation point has
+   a corresponding RRSIG RR with an owner name matching the delegated
+   name, and each of these RRSIG RRs is authoritative data associated
+   with the same zone which contains the corresponding NSEC RRset.  If
+   necessary, a resolver can tell these RRSIG RRs apart by checking the
+   Signer's Name field.
+
+5.3.3 Checking the Signature
+
+   Once the resolver has validated the RRSIG RR as described in Section
+   5.3.1 and reconstructed the original signed data as described in
+   Section 5.3.2, the resolver can attempt to use the cryptographic
+   signature to authenticate the signed data, and thus (finally!)
+   authenticate the RRset.
+
+   The Algorithm field in the RRSIG RR identifies the cryptographic
+   algorithm to generate the signature.  The signature itself is
+   contained in the Signature field of the RRSIG RDATA, and the public
+   key to used generate the signature is contained in the Public Key
+   field of the matching DNSKEY RR(s) (found in Section 5.3.1).
+   [I-D.ietf-dnsext-dnssec-records] provides a list of algorithm types,
+   and provides pointers to the documents that define each algorithm's
+   use.
+
+   Note that it is possible for more than one DNSKEY RR to match the
+   conditions in Section 5.3.1.  In this case, the resolver can only
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 28]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   determine which DNSKEY RR by trying each matching key until the
+   resolver either succeeds in validating the signature or runs out of
+   keys to try.
+
+   If the Labels field of the RRSIG RR is not equal to the number of
+   labels in the RRset's fully qualified owner name, then the RRset is
+   either invalid or the result of wildcard expansion.  The resolver
+   MUST verify that wildcard expansion was applied properly before
+   considering the RRset to be authentic.  Section 5.3.4 describes how
+   to determine whether a wildcard was applied properly.
+
+   If other RRSIG RRs also cover this RRSIG RR, the local resolver
+   security policy determines whether the resolver also needs to test
+   these RRSIG RRs, and determines how to resolve conflicts if these
+   RRSIG RRs lead to differing results.
+
+   If the resolver accepts the RRset as authentic, the resolver MUST set
+   the TTL of the RRSIG RR and each RR in the authenticated RRset to a
+   value no greater than the minimum of:
+
+   o  The RRset's TTL as received in the response;
+
+   o  The RRSIG RR's TTL as received in the response; and
+
+   o  The value in the RRSIG RR's Original TTL field.
+
+
+5.3.4 Authenticating A Wildcard Expanded RRset Positive Response
+
+   If the number of labels in an RRset's fully qualified domain name is
+   greater than the Labels field in the covering RRSIG RDATA, then the
+   RRset and its covering RRSIG RR were created as a result of wildcard
+   expansion.  Once the resolver has verified the signature as described
+   in Section 5.3, the resolver must take additional steps to verify the
+   non-existence of an exact match or closer wildcard match for the
+   query.   Section 5.4 discusses these steps.
+
+   Note that the response received by the resolver should include all
+   NSEC RRs needed to authenticate the response (see Section 3.1.3).
+
+5.4 Authenticated Denial of Existence
+
+   A resolver can use authenticated NSEC RRs to prove that an RRset is
+   not present in a signed zone.  Security-aware name servers should
+   automatically include any necessary NSEC RRs for signed zones in
+   their responses to security-aware resolvers.
+
+   Security-aware resolvers MUST first authenticate NSEC RRsets
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 29]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   according to the standard RRset authentication rules described in
+   Section 5.3, then apply the NSEC RRsets as follows:
+
+   o  If the requested RR name matches the owner name of an
+      authenticated NSEC RR, then the NSEC RR's type bit map field lists
+      all RR types present at that owner name, and a resolver can prove
+      that the requested RR type does not exist by checking for the RR
+      type in the bit map.  Since the existence of the authenticated
+      NSEC RR proves that the owner name exists in the zone, wildcard
+      expansion could not have been used to match the requested RR owner
+      name and type.
+
+   o  If the requested RR name would appear after an authenticated NSEC
+      RR owner name and before the name listed in that NSEC RR's Next
+      Domain Name field according to the canonical DNS name order
+      defined in [I-D.ietf-dnsext-dnssec-records], then no exact match
+      for the requested RR name exists in the zone. However, it is
+      possible that a wildcard could be used to match the requested RR
+      owner name and type, so proving that the requested RRset does not
+      exist also requires proving that no possible wildcard exists which
+      could have been used to generate a positive response.
+
+   To prove non-existence of an RRset, the resolver must be able to
+   verify both that the queried RRset does not exist and that no
+   relevant wildcard RRset exists.  Proving this may require more than
+   one NSEC RRset from the zone.  If the complete set of necessary NSEC
+   RRsets is not present in a response (perhaps due to truncation), then
+   a security-aware resolver MUST resend the query in order to attempt
+   to obtain the full collection of NSEC RRs necessary to verify
+   non-existence of the requested RRset.   As with all DNS operations,
+   however, the resolver MUST bound the work it puts into answering any
+   particular query.
+
+   Since a verified NSEC RR proves the existence of both itself and its
+   corresponding RRSIG RR, a verifier MUST ignore the settings of the
+   NSEC and RRSIG bits in an NSEC RR.
+
+   Authentication examples are given in Section Appendix C.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 30]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+6. IANA Considerations
+
+   [I-D.ietf-dnsext-dnssec-records] contains a review of the IANA
+   considerations introduced by DNSSEC.  The additional IANA
+   considerations discussed in this document:
+
+   [RFC2535] reserved the CD and AD bits in the message header.  The
+   meaning of the AD bit was redefined in [I-D.ietf-dnsext-ad-is-secure]
+   and the meaning of both the CD and AD bit are restated in this
+   document.  No new bits in the DNS message header are defined in this
+   document.
+
+   [RFC2671] introduced EDNS and [RFC3225] reserved the DNSSEC OK bit
+   and defined its use.  The use is restated but not altered in this
+   document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 31]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+7. Security Considerations
+
+   This document describes how the DNS security extensions use public
+   key cryptography to sign and authenticate DNS resource record sets.
+   Please see [I-D.ietf-dnsext-dnssec-intro] for terminology and general
+   security considerations related to DNSSEC.
+
+   An active attacker who can set the CD bit in a DNS query message or
+   the AD bit in a DNS response message can use these bits to defeat the
+   protection which DNSSEC attempts to provide to security-oblivious
+   recursive-mode resolvers.  For this reason, use of these control bits
+   by a security-aware recursive-mode resolver requires a secure
+   channel.  See Section 3.2.2 and Section 4.2 for further discussion.
+
+   DNSSEC introduces a number of denial of service issues.  These issues
+   will also be addressed in a future version of these security
+   considerations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 32]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+8. Acknowledgements
+
+   This document was created from the input and ideas of several members
+   of the DNS Extensions Working Group and working group mailing list.
+   The editors would like to express their thanks for the comments and
+   suggestions received during the revision of these security extension
+   specifications.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 33]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+Normative References
+
+   [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
+              STD 13, RFC 1034, November 1987.
+
+   [RFC1035]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, RFC 1035, November 1987.
+
+   [RFC1982]  Elz, R. and R. Bush, "Serial Number Arithmetic", RFC 1982,
+              August 1996.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC2181]  Elz, R. and R. Bush, "Clarifications to the DNS
+              Specification", RFC 2181, July 1997.
+
+   [RFC2671]  Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
+              2671, August 1999.
+
+   [RFC3225]  Conrad, D., "Indicating Resolver Support of DNSSEC", RFC
+              3225, December 2001.
+
+   [RFC3226]  Gudmundsson, O., "DNSSEC and IPv6 A6 aware server/resolver
+              message size requirements", RFC 3226, December 2001.
+
+   [I-D.ietf-dnsext-dnssec-intro]
+              Arends, R., Austein, R., Larson, M., Massey, D. and S.
+              Rose, "DNS Security Introduction and Requirements",
+              draft-ietf-dnsext-dnssec-intro-07 (work in progress),
+              October 2003.
+
+   [I-D.ietf-dnsext-dnssec-records]
+              Arends, R., Austein, R., Larson, M., Massey, D. and S.
+              Rose, "Resource Records for DNS Security Extensions",
+              draft-ietf-dnsext-dnssec-records-05 (work in progress),
+              October 2003.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 34]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+Informative References
+
+   [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
+              NCACHE)", RFC 2308, March 1998.
+
+   [RFC2535]  Eastlake, D., "Domain Name System Security Extensions",
+              RFC 2535, March 1999.
+
+   [RFC2930]  Eastlake, D., "Secret Key Establishment for DNS (TKEY
+              RR)", RFC 2930, September 2000.
+
+   [RFC2931]  Eastlake, D., "DNS Request and Transaction Signatures (
+              SIG(0)s)", RFC 2931, September 2000.
+
+   [I-D.ietf-dnsext-delegation-signer]
+              Gudmundsson, O., "Delegation Signer Resource Record",
+              draft-ietf-dnsext-delegation-signer-15 (work in progress),
+              June 2003.
+
+   [I-D.ietf-dnsext-wcard-clarify]
+              Halley, B. and E. Lewis, "Clarifying the Role of Wild Card
+              Domains in the Domain Name System",
+              draft-ietf-dnsext-wcard-clarify-02 (work in progress),
+              September 2003.
+
+   [I-D.ietf-dnsext-ad-is-secure]
+              Wellington, B. and O. Gudmundsson, "Redefinition of DNS AD
+              bit", draft-ietf-dnsext-ad-is-secure-06 (work in
+              progress), June 2002.
+
+
+Authors' Addresses
+
+   Roy Arends
+   Telematica Instituut
+   Drienerlolaan 5
+   7522 NB  Enschede
+   NL
+
+   EMail: roy.arends@telin.nl
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 35]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   Matt Larson
+   VeriSign, Inc.
+   21345 Ridgetop Circle
+   Dulles, VA  20166-6503
+   USA
+
+   EMail: mlarson@verisign.com
+
+
+   Rob Austein
+   Internet Software Consortium
+   40 Gavin Circle
+   Reading, MA  01867
+   USA
+
+   EMail: sra@isc.org
+
+
+   Dan Massey
+   USC Information Sciences Institute
+   3811 N. Fairfax Drive
+   Arlington, VA  22203
+   USA
+
+   EMail: masseyd@isi.edu
+
+
+   Scott Rose
+   National Institute for Standards and Technology
+   100 Bureau Drive
+   Gaithersburg, MD  20899-8920
+   USA
+
+   EMail: scott.rose@nist.gov
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 36]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+Appendix A. Signed Zone Example
+
+   The following example shows a (small) complete signed zone.
+
+   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
+                              1065745538
+                              3600
+                              300
+                              3600000
+                              3600
+                              )
+                  3600 RRSIG  SOA 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
+                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
+                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
+                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
+                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+                  3600 NS     ns1.example.
+                  3600 NS     ns2.example.
+                  3600 RRSIG  NS 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              KBhJYJ0vFNyMJrt07gvHN9WAOijhXbcikUNw
+                              ZEJxkL+UCv/GFJi1ABGMDowschPkpHIgDEOQ
+                              exaLWGGUrOA5xMHYONWZpkL4rQ3URAKF46VJ
+                              dMg0UTdw3pTD7Lvs8t6Dim46dj9h/QQEgNLF
+                              BYpCn/jKFJ7lYnYYGLAUofh/+mo= )
+                  3600 MX     1 xx.example.
+                  3600 RRSIG  MX 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              CSB4g+vSxyrfsfycsZwAx2hKhwK/x7GAIY0p
+                              MLBgAA/USiiMben0II4aYf5lybs0NINnFDju
+                              2Kc78M8t9zBGeJcZCZEs9mKiXhW8WJanvIjg
+                              BwJgWXwAnVnq20TXlsHiuwuhmtrb76/Avl4i
+                              lnX6XA3eeDlQlOTuPe0B91MCuow= )
+                  3600 NSEC   a.example. NS SOA MX RRSIG NSEC DNSKEY
+                  3600 RRSIG  NSEC 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              10XG3f8uExTPfof30CoonvXSMeqrhrkcN9YG
+                              krhJD4xeVKarTkQMt0dFe66Bbuy961Bv9go1
+                              IEp0R+sV3B5ldqSKBrcIRsh4QFqQp6IPZ+By
+                              yxyYV25L68I1dkM1JoV7IMFsfcTDPjyl3wv2
+                              2LAQ2lyqLBpow5BRR4sAgjZ7Yaw= )
+                  3600 DNSKEY 256 3 1 (
+                              AQPdhnap0Oj2jUq74g+vel5cukdH+wpzjiH8
+                              ZOQSOHrw+s3TmbhyqXbZ/j5Uu9p65ARoevvG
+                              yv459dxxZCKZ4wftXe5BUkJvZVf8HnhYW5R+
+                              kQduVeqGVlkBarL5haKX28Pxvs8tV7CyY/Rd
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 37]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              cfnJlZyJcfwY0ETo4P2gntVMERZuJQ==
+                              )
+                  3600 DNSKEY 257 3 1 (
+                              AQOwRqeRkdYUD6UCyJXTaErj0UYLHxOHlhDb
+                              qik1k/j2PJFOZ7GZhc95HnYco611O5VRQ6WQ
+                              pK0dL9eiwcc+gSS2L6V9pWxCfDnEPWFC6eVm
+                              jRZAdAU6gsyNSZCT7rF1lAXdmWcwkaIdNaDL
+                              oNqpieIQd2t+rd/oF8/++DRtzF0toQ==
+                              )
+                  3600 RRSIG  DNSKEY 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              EtFrBqs8i80Ath+xOtjPHcepV/cjATf2E1fo
+                              +fhSggjw2vAXDY4Sygk2tKZ9Tvhahmw1rRC3
+                              CnApLvsjQ9qmnYAvkZdMILw9gPx1rBaq9d7H
+                              nt7mPc/LFrO4G9JS6JNwBCnjwcxro8kNYLo6
+                              97FCO3y4T7y9Hb80OvCZ36cNdps= )
+                  3600 RRSIG  DNSKEY 1 1 3600 20031108232541 (
+                              20031009232541 23853 example.
+                              VseD0IGDKqJXiZMJnRNuq89ibF5g8VGPmMJS
+                              h/hS8+nu5vLiyEObJcVxfanslAlBQSGHmJsM
+                              AvXpeJUrT/zOyZ8vfy/igMhd25rnSxAD6uhl
+                              4ohJiiPtFvHgLEvT0QZHizrP4wMvpXvfwn03
+                              1/VEFzXZ0rULlTdWjoNzSMIYBwg= )
+   a.example.     3600 IN NS  ns1.a.example.
+                  3600 IN NS  ns2.a.example.
+                  3600 DS     42939 1 1 (
+                              4BA08982E5739A60E02B69409B0927F9524E
+                              3494 )
+                  3600 RRSIG  DS 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              Dp6ySNq7SgIfndS4N5wFynmqXXf+WQ7RTAW/
+                              gC4RPDljbV8WnjZp5P7ip9zsHO9A7hEW8LPp
+                              zEMMzUPfucrSnZ/Jmc60BYIkzkt493QPfz1H
+                              YFRaJ6VyZoF38oN0s/H+a97c+HxAt4TElW+c
+                              iHQEOrm7yXIHwnrre1iuzMZn1jY= )
+                  3600 NSEC   ai.example. NS DS RRSIG NSEC
+                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              mhov2WXDa2Swk/7/VQoI36e5OKvd/0CmMWdi
+                              +3k/+i7mo9omz854ZBFMLaQzFvaS7Cn//I/H
+                              7tYSY/fScUrs/UfB7le0DzdocsoaMYtexSS1
+                              KA7ofbPdYpBHngIGbO5EHaGrqbKGY61fIQ/g
+                              /WvT0KXnoX+v31Oq3VstBoWmizo= )
+   ns1.a.example. 3600 IN A   192.0.2.5
+   ns2.a.example. 3600 IN A   192.0.2.6
+   ai.example.    3600 IN A   192.0.2.9
+                  3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 38]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              MtQkYPqpRfM5ntlRR/Wg7pdFt5fuf+ESoV+a
+                              0RTtEUW9Q5ac7uV3luTnOSmWFFjes1x9Anqn
+                              KVeWcZJU/wRYqbUK2Q9s/kLb3cPMFavHal9n
+                              3gR5v5zNaTQxBrdFlxGNgX/aa9Bs3LfxK14F
+                              UU/kYIPkm9qpSE3wtELJEq2cNsU= )
+                  3600 HINFO  "KLH-10" "ITS"
+                  3600 RRSIG  HINFO 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              jDn/zgIqY5ucajWNW333u+KfxORI55wvnZDs
+                              pCHZQ9ISjWNT7467wUcfJKBaG+alNlCOJExg
+                              z8yUS5NwySlrFtGL/CBCxmrSVioKMMetg7gP
+                              Qb6x5A53OhsQAGT6azS9bdBM2RFbqBkeZkXA
+                              8mJ/QOldXdH5iPpmZb2Pn47x7V4= )
+                  3600 AAAA   2001:db8::f00:baa9
+                  3600 RRSIG  AAAA 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              LcSkeCXOOcYClsS9GYJoG/yGeuyaUJrNICK1
+                              ONN4PEzGWJ7kcF+C4N972x05bPX+wsWszBbC
+                              uP/RqMyNenc8Is25te6hZ8MU7Z0zBDtKeTTG
+                              qz4ir4NZfqvB6moHjcVu6Pwb5KkSb8nAobCv
+                              8gB4wQFPYoozOQYTprwGtIHR2k8= )
+                  3600 NSEC   b.example. A HINFO AAAA RRSIG NSEC
+                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              W3fFJqdRtmpz9QikpK+v5rL+Y5iNpx5H7X7c
+                              1yPMlcaS0nhowHGjCPnNbCP28Ktv9I5eqhO1
+                              N/A75FLTOe9L5Qzetb/C3/ME8D46apKLBEv5
+                              0GWsJqTsijj4dAjup60yeLPXTWxIdO6RNdfe
+                              Qd56t0fY79/kd25RzRCFGs2qHXs= )
+   b.example.     3600 IN NS  ns1.b.example.
+                  3600 IN NS  ns2.b.example.
+                  3600 NSEC   ns1.example. NS RRSIG NSEC
+                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              csgLA1XphdEtY9WiwZOHjcOvGiBShTobK+th
+                              0xDnKv7ZUxcMRi/g88Z99It+FV/Qufcf5zmM
+                              RxEVOjD1e7an1X/dxD389/6Qzo6NAtSu85ps
+                              TDKZscoaPBr/wYv6PG73F5yfm1hh31nhnD8f
+                              BFydo6dXwQ4WK8OUC6sMCM+OHEg= )
+   ns1.b.example. 3600 IN A   192.0.2.7
+   ns2.b.example. 3600 IN A   192.0.2.8
+   ns1.example.   3600 IN A   192.0.2.1
+                  3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              dJTb+VNXApV4lPaEwlyZxOS17eofL95DJe58
+                              +ija8iaROK9a9D7bAI7lIKJ/4hSfBN8lIjhF
+                              cpVeuGXCxldaSTOhAU5bg2GZJfxS4onfvBTE
+                              HBf19SZAT9rHBeNJISau8EwDaNBHBweiaC/s
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 39]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              Oett68JnQVQq2l/DhWsJSjuIFBQ= )
+                  3600 NSEC   ns2.example. A RRSIG NSEC
+                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              M8q/t6bDqPktgMyfa2LjkEDZiGloFp+I8LaO
+                              KBQt96RzZ9xiXOA/7wE5ZrBrgzfl1eotLn0L
+                              zbOwCwpZf7XoVm/IYCOlIEPj6kJHYvIIzp3a
+                              ZBn7uDx1kInt7qc2AmTpPiWCPtSD5KTBwdLk
+                              o3hJ8fow/NDw5Lsb6RQOSQ5Qxuo= )
+   ns2.example.   3600 IN A   192.0.2.2
+                  3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              VGTTFv2DZ+KN+tm7dzAP1vWGZTLdYn9v/yuQ
+                              tu9rQYAwVWoGq7iiADgLlY0cjR58GCKCGfn4
+                              mXMyM9mDljOj3VmHxUjRNMgUo+AoIi8Jysr9
+                              +huB5dgYRKFukcCpxKb1SmXNmSLfdS75gCas
+                              8Ic8f9zHwZmCUc0wnxX6x+422PM= )
+                  3600 NSEC   *.w.example. A RRSIG NSEC
+                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              kkYPMaBn4zJM/iQAOO9i81X57MMCQnzk+pch
+                              6tWUFF/D1ZFZf8QY2MzwDA5Bv/1DluWVbo3x
+                              WjzyUV7fn77k9QKLQseUSXGnpyL2HR1hGfBV
+                              6ZHAqJc99t5+5vjyiflLtOpA0+Ri46SlQGZf
+                              IZ4X2Ksgn+hpIu77NRQMdmh59M8= )
+   *.w.example.   3600 IN MX  1 ai.example.
+                  3600 RRSIG  MX 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              Uht2mND0Kzc4hnM4Pq4zM+fjiGTEcCzx+wSD
+                              b2flOHxLQPv75mXfnH1tZv7iwrzQmcyucWsd
+                              agwalJcGa3A2+UL45fjYR6zDEsag4cdg1D0/
+                              +T7gIqOGWhYfiXbXuTOgUfyZRXqyGsHsAu20
+                              FxfIqrcIL24dO4Ytdz2ifqvJmuM= )
+                  3600 NSEC   x.w.example. MX RRSIG NSEC
+                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              fsk9iik9+gpte3I4tffoXyca5jfuYnLLy7/9
+                              7LAVd4KKj9zqSB8f3QD1mjditUK9PGTTtlPL
+                              4mq8F3T8PIt0pfgV8mPl6GP+bR+iVQEEE1YH
+                              yzR21az4Od5KBYYdsPjZzJnOhzCtgyleAoOx
+                              vOHmndDhRTDwVCg179qlrEIsOgE= )
+   x.w.example.   3600 IN MX  1 xx.example.
+                  3600 RRSIG  MX 1 3 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              i65kcyRnXBHd3ynSNTVKpd71DS85EjGDTi7d
+                              NQR+E4/qtXVaU78hmG4BhyFMVbvyPNpj83z5
+                              UqpB0baVoSVTSqGMSLxi1T38H8gqPgaYd+4r
+                              uEEXZj5I+s8Cq/1RHXi0yqISqeUGAqMHqryp
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 40]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              IKZXg2219TD4UqJuRATLhxZj2fU= )
+                  3600 NSEC   x.y.w.example. MX RRSIG NSEC
+                  3600 RRSIG  NSEC 1 3 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              VTRE+Bu91QK7dBiMshr04tE/I5HCvSrjqDv+
+                              b4tlUqUqkv4MoxfoceUwavMkdLm9Pi/aYUrS
+                              m6XVGBDAjpDmjivlMKNkME8c0f7oQ3E1CtHS
+                              pPLjTcB9WfxEOzjJJGK5BDDT6A56P4eibLiw
+                              +bNx4OGknGvVqhg9pu5qEWi814s= )
+   x.y.w.example. 3600 IN MX  1 xx.example.
+                  3600 RRSIG  MX 1 4 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              yDPXa5Osa4r1AF0AjKWOo87kGNDlnVPmCbIi
+                              MPvBpzJ91d5TFtEZWYJpYv+eGWZCJhK7SsnL
+                              Zbbjthkn7YmX1tReDQhn8aCQ6DyrIU6wZpj5
+                              ywBx0z3HGcqoYmv+AiFtcYVPxG0elsrakIwG
+                              /e+CPi2yE2c9M+NnwMxhpEFVGRs= )
+                  3600 NSEC   xx.example. MX RRSIG NSEC
+                  3600 RRSIG  NSEC 1 4 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              cn4aj3I/EQDa+vysa08xMQSnTz8YGtLLzqAj
+                              R8gy8Yqa4uSm7J17NydsWqgJkhlVxD3oBtnb
+                              w/6tDzx45IHcbnVm6UDrc3DVby21AivrsZ8P
+                              sm5Escp1X+qBLGSNAg2K6dlX/i2vut6g3vDa
+                              66FPTb3/hhrHYkMneBO2Yvfvpj8= )
+   xx.example.    3600 IN A   192.0.2.10
+                  3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              ZW+++XV6FyceT4UtcfbVwcsx3u5tRfFLfAHp
+                              Ji11YMdORJKIJS0uVfu+UuAbe/FImnBmQq4v
+                              ShjQXbLeN9BKLvde4dlMphHSKhp24913/KFd
+                              +N0DMDWGZ/wPoACnqrpn1gDKWdT0l+gkF3y4
+                              aI16ggg9/UEWRbvn+7tp2UfMYSw= )
+                  3600 HINFO  "KLH-10" "TOPS-20"
+                  3600 RRSIG  HINFO 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              vteMgDuG1ekaSmWlXlwVRoqTXjvZ8kGWCAku
+                              6Rd3t/wPeVmn3YSbC8+szYRgP8n0HvYzmVYj
+                              qPyC1HCFoqIJIaNLkDEyCSHuhBwpVhyKGJdM
+                              EbJ1P8Yk3w5Szjap6wn7QxcLnr8Df3xUMXnB
+                              AAwDzum3fUKzVM274T9O8ggeXgE= )
+                  3600 AAAA   2001:db8::f00:baaa
+                  3600 RRSIG  AAAA 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              LY9gLxiep4FO8uuiegMzc1zdE/O7ApxjiO43
+                              YDBVfuf3z+IghfPRY9IhkAJss6zBxMxciC27
+                              ZmlPBrysWcKDfWF7fX+q0CDZ3ZbqdU32MuK+
+                              AcWaIFu9JcYUIwFRCKt/0LA0OrycwELStUB0
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 41]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              GxlD/3EneV4+IIIv0hekxzpR8Qs= )
+                  3600 NSEC   example. A HINFO AAAA RRSIG NSEC
+                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              cKkFJS6Em56M0XCjMma4zFzy5ylHh2ma62oe
+                              yHrqkMYS+QVUuJ8yfAoXoFbok/kDLN3rsCKK
+                              ICJl1dFA3fvJnMejg0JVabQHShO2W1LmWegr
+                              dh251WZQVtJHDRY8/ltYB+GHUuFpZ1CF4m+c
+                              6EPqS1uLrFpRg3k4BV5y6146nZ8= )
+
+   The apex DNSKEY set includes two DNSKEY RRs, and the DNSKEY RDATA
+   Flags indicate that each of these DNSKEY RRs is a zone key.  One of
+   these DNSKEY RRs also has the SEP flag set and has been used to sign
+   the apex DNSKEY RRset; this is the key which should be hashed to
+   generate a DS record to be inserted into the parent zone.  The other
+   DNSKEY is used to sign all the other RRsets in the zone.
+
+   The zone includes a wildcard entry "*.w.example".  Note that the name
+   "*.w.example" is used in constructing NSEC chains, and that the RRSIG
+   covering the "*.w.example" MX RRset has a label count of 2.
+
+   The zone also includes two delegations.  The delegation to
+   "b.example" includes an NS RRset, glue address records, and an NSEC
+   RR; note that only the NSEC RRset is signed.  The delegation to
+   "a.example" provides a DS RR; note that only the NSEC and DS RRsets
+   are signed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 42]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+Appendix B. Example Responses
+
+   The examples in this section show response messages using the signed
+   zone example in Appendix A.
+
+B.1 Answer
+
+   A successful query to an authoritative server.
+
+   ;; Header: QR AA DO RCODE=0
+   ;;
+   ;; Question
+   x.w.example.        IN MX
+
+   ;; Answer
+   x.w.example.   3600 IN MX  1 xx.example.
+   x.w.example.   3600 RRSIG  MX 1 3 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              i65kcyRnXBHd3ynSNTVKpd71DS85EjGDTi7d
+                              NQR+E4/qtXVaU78hmG4BhyFMVbvyPNpj83z5
+                              UqpB0baVoSVTSqGMSLxi1T38H8gqPgaYd+4r
+                              uEEXZj5I+s8Cq/1RHXi0yqISqeUGAqMHqryp
+                              IKZXg2219TD4UqJuRATLhxZj2fU= )
+
+   ;; Authority
+   example.       3600 NS     ns1.example.
+   example.       3600 NS     ns2.example.
+   example.       3600 RRSIG  NS 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              KBhJYJ0vFNyMJrt07gvHN9WAOijhXbcikUNw
+                              ZEJxkL+UCv/GFJi1ABGMDowschPkpHIgDEOQ
+                              exaLWGGUrOA5xMHYONWZpkL4rQ3URAKF46VJ
+                              dMg0UTdw3pTD7Lvs8t6Dim46dj9h/QQEgNLF
+                              BYpCn/jKFJ7lYnYYGLAUofh/+mo= )
+
+   ;; Additional
+   xx.example.    3600 IN A   192.0.2.10
+   xx.example.    3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              ZW+++XV6FyceT4UtcfbVwcsx3u5tRfFLfAHp
+                              Ji11YMdORJKIJS0uVfu+UuAbe/FImnBmQq4v
+                              ShjQXbLeN9BKLvde4dlMphHSKhp24913/KFd
+                              +N0DMDWGZ/wPoACnqrpn1gDKWdT0l+gkF3y4
+                              aI16ggg9/UEWRbvn+7tp2UfMYSw= )
+   xx.example.    3600 AAAA   2001:db8::f00:baaa
+   xx.example.    3600 RRSIG  AAAA 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              LY9gLxiep4FO8uuiegMzc1zdE/O7ApxjiO43
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 43]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              YDBVfuf3z+IghfPRY9IhkAJss6zBxMxciC27
+                              ZmlPBrysWcKDfWF7fX+q0CDZ3ZbqdU32MuK+
+                              AcWaIFu9JcYUIwFRCKt/0LA0OrycwELStUB0
+                              GxlD/3EneV4+IIIv0hekxzpR8Qs= )
+   ns1.example.   3600 IN A   192.0.2.1
+   ns1.example.   3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              dJTb+VNXApV4lPaEwlyZxOS17eofL95DJe58
+                              +ija8iaROK9a9D7bAI7lIKJ/4hSfBN8lIjhF
+                              cpVeuGXCxldaSTOhAU5bg2GZJfxS4onfvBTE
+                              HBf19SZAT9rHBeNJISau8EwDaNBHBweiaC/s
+                              Oett68JnQVQq2l/DhWsJSjuIFBQ= )
+   ns2.example.   3600 IN A   192.0.2.2
+   ns2.example.   3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              VGTTFv2DZ+KN+tm7dzAP1vWGZTLdYn9v/yuQ
+                              tu9rQYAwVWoGq7iiADgLlY0cjR58GCKCGfn4
+                              mXMyM9mDljOj3VmHxUjRNMgUo+AoIi8Jysr9
+                              +huB5dgYRKFukcCpxKb1SmXNmSLfdS75gCas
+                              8Ic8f9zHwZmCUc0wnxX6x+422PM= )
+
+
+B.2 Name Error
+
+   An authoritative name error.  The NSEC RRs prove that the name does
+   not exist and that no covering wildcard exists.
+
+   ;; Header: QR AA DO RCODE=3
+   ;;
+   ;; Question
+   ml.example.         IN A
+
+   ;; Answer
+   ;; (empty)
+
+   ;; Authority
+   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
+                              1065745538
+                              3600
+                              300
+                              3600000
+                              3600
+                              )
+   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
+                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
+                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 44]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
+                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+   b.example.     3600 NSEC   ns1.example. NS RRSIG NSEC
+   b.example.     3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              csgLA1XphdEtY9WiwZOHjcOvGiBShTobK+th
+                              0xDnKv7ZUxcMRi/g88Z99It+FV/Qufcf5zmM
+                              RxEVOjD1e7an1X/dxD389/6Qzo6NAtSu85ps
+                              TDKZscoaPBr/wYv6PG73F5yfm1hh31nhnD8f
+                              BFydo6dXwQ4WK8OUC6sMCM+OHEg= )
+   example.       3600 NSEC   a.example. NS SOA MX RRSIG NSEC DNSKEY
+   example.       3600 RRSIG  NSEC 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              10XG3f8uExTPfof30CoonvXSMeqrhrkcN9YG
+                              krhJD4xeVKarTkQMt0dFe66Bbuy961Bv9go1
+                              IEp0R+sV3B5ldqSKBrcIRsh4QFqQp6IPZ+By
+                              yxyYV25L68I1dkM1JoV7IMFsfcTDPjyl3wv2
+                              2LAQ2lyqLBpow5BRR4sAgjZ7Yaw= )
+
+   ;; Additional
+   ;; (empty)
+
+
+B.3 No Data Error
+
+   A "NODATA" response.  The NSEC RR proves that the name exists and
+   that the requested RR type does not.
+
+   ;; Header: QR AA DO RCODE=0
+   ;;
+   ;; Question
+   ns1.example.        IN MX
+
+   ;; Answer
+   ;; (empty)
+
+   ;; Authority
+   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
+                              1065745538
+                              3600
+                              300
+                              3600000
+                              3600
+                              )
+   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
+                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 45]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
+                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
+                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+   ns1.example.   3600 NSEC   ns2.example. A RRSIG NSEC
+   ns1.example.   3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              M8q/t6bDqPktgMyfa2LjkEDZiGloFp+I8LaO
+                              KBQt96RzZ9xiXOA/7wE5ZrBrgzfl1eotLn0L
+                              zbOwCwpZf7XoVm/IYCOlIEPj6kJHYvIIzp3a
+                              ZBn7uDx1kInt7qc2AmTpPiWCPtSD5KTBwdLk
+                              o3hJ8fow/NDw5Lsb6RQOSQ5Qxuo= )
+
+   ;; Additional
+   ;; (empty)
+
+
+B.4 Referral to Signed Zone
+
+   Referral to a signed zone.   The DS RR contains the data which the
+   resolver will need to validate the corresponding DNSKEY RR in the
+   child zone's apex.
+
+   ;; Header: QR DO RCODE=0
+   ;;
+   ;; Question
+   mc.a.example.       IN MX
+
+   ;; Answer
+   ;; (empty)
+
+   ;; Authority
+   a.example.     3600 IN NS  ns1.a.example.
+   a.example.     3600 IN NS  ns2.a.example.
+   a.example.     3600 DS     42939 1 1 (
+                              4BA08982E5739A60E02B69409B0927F9524E
+                              3494 )
+   a.example.     3600 RRSIG  DS 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              Dp6ySNq7SgIfndS4N5wFynmqXXf+WQ7RTAW/
+                              gC4RPDljbV8WnjZp5P7ip9zsHO9A7hEW8LPp
+                              zEMMzUPfucrSnZ/Jmc60BYIkzkt493QPfz1H
+                              YFRaJ6VyZoF38oN0s/H+a97c+HxAt4TElW+c
+                              iHQEOrm7yXIHwnrre1iuzMZn1jY= )
+
+   ;; Additional
+   ns1.a.example. 3600 IN A   192.0.2.5
+   ns2.a.example. 3600 IN A   192.0.2.6
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 46]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+B.5 Referral to Unsigned Zone
+
+   Referral to an unsigned zone.  The NSEC RR proves that no DS RR for
+   this delegation exists in the parent zone.
+
+   ;; Header: QR DO RCODE=0
+   ;;
+   ;; Question
+   mc.b.example.       IN MX
+
+   ;; Answer
+   ;; (empty)
+
+   ;; Authority
+   b.example.     3600 IN NS  ns1.b.example.
+   b.example.     3600 IN NS  ns2.b.example.
+   b.example.     3600 NSEC   ns1.example. NS RRSIG NSEC
+   b.example.     3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              csgLA1XphdEtY9WiwZOHjcOvGiBShTobK+th
+                              0xDnKv7ZUxcMRi/g88Z99It+FV/Qufcf5zmM
+                              RxEVOjD1e7an1X/dxD389/6Qzo6NAtSu85ps
+                              TDKZscoaPBr/wYv6PG73F5yfm1hh31nhnD8f
+                              BFydo6dXwQ4WK8OUC6sMCM+OHEg= )
+
+   ;; Additional
+   ns1.b.example. 3600 IN A   192.0.2.7
+   ns2.b.example. 3600 IN A   192.0.2.8
+
+
+B.6 Wildcard Expansion
+
+   A successful query which was answered via wildcard expansion. The
+   label count in the answer's RRSIG RR indicates that a wildcard RRset
+   was expanded to produce this response, and the NSEC RR proves that no
+   closer match exists in the zone.
+
+   ;; Header: QR AA DO RCODE=0
+   ;;
+   ;; Question
+   a.z.w.example.      IN MX
+
+   ;; Answer
+   a.z.w.example. 3600 IN MX  1 ai.example.
+   a.z.w.example. 3600 RRSIG  MX 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              Uht2mND0Kzc4hnM4Pq4zM+fjiGTEcCzx+wSD
+                              b2flOHxLQPv75mXfnH1tZv7iwrzQmcyucWsd
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 47]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+                              agwalJcGa3A2+UL45fjYR6zDEsag4cdg1D0/
+                              +T7gIqOGWhYfiXbXuTOgUfyZRXqyGsHsAu20
+                              FxfIqrcIL24dO4Ytdz2ifqvJmuM= )
+
+   ;; Authority
+   example.       3600 NS     ns1.example.
+   example.       3600 NS     ns2.example.
+   example.       3600 RRSIG  NS 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              KBhJYJ0vFNyMJrt07gvHN9WAOijhXbcikUNw
+                              ZEJxkL+UCv/GFJi1ABGMDowschPkpHIgDEOQ
+                              exaLWGGUrOA5xMHYONWZpkL4rQ3URAKF46VJ
+                              dMg0UTdw3pTD7Lvs8t6Dim46dj9h/QQEgNLF
+                              BYpCn/jKFJ7lYnYYGLAUofh/+mo= )
+   x.y.w.example. 3600 NSEC   xx.example. MX RRSIG NSEC
+   x.y.w.example. 3600 RRSIG  NSEC 1 4 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              cn4aj3I/EQDa+vysa08xMQSnTz8YGtLLzqAj
+                              R8gy8Yqa4uSm7J17NydsWqgJkhlVxD3oBtnb
+                              w/6tDzx45IHcbnVm6UDrc3DVby21AivrsZ8P
+                              sm5Escp1X+qBLGSNAg2K6dlX/i2vut6g3vDa
+                              66FPTb3/hhrHYkMneBO2Yvfvpj8= )
+
+   ;; Additional
+   ai.example.    3600 IN A   192.0.2.9
+   ai.example.    3600 RRSIG  A 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              MtQkYPqpRfM5ntlRR/Wg7pdFt5fuf+ESoV+a
+                              0RTtEUW9Q5ac7uV3luTnOSmWFFjes1x9Anqn
+                              KVeWcZJU/wRYqbUK2Q9s/kLb3cPMFavHal9n
+                              3gR5v5zNaTQxBrdFlxGNgX/aa9Bs3LfxK14F
+                              UU/kYIPkm9qpSE3wtELJEq2cNsU= )
+   ai.example.    3600 AAAA   2001:db8::f00:baa9
+   ai.example.    3600 RRSIG  AAAA 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              LcSkeCXOOcYClsS9GYJoG/yGeuyaUJrNICK1
+                              ONN4PEzGWJ7kcF+C4N972x05bPX+wsWszBbC
+                              uP/RqMyNenc8Is25te6hZ8MU7Z0zBDtKeTTG
+                              qz4ir4NZfqvB6moHjcVu6Pwb5KkSb8nAobCv
+                              8gB4wQFPYoozOQYTprwGtIHR2k8= )
+
+
+B.7 Wildcard No Data Error
+
+   A "NODATA" response for a name covered by a wildcard.  The NSEC RRs
+   prove that the matching wildcard name does not have any RRs of the
+   requested type and that no closer match exists in the zone.
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 48]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   ;; Header: QR AA DO RCODE=0
+   ;;
+   ;; Question
+   a.z.w.example.      IN AAAA
+
+   ;; Answer
+   ;; (empty)
+
+   ;; Authority
+   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
+                              1065745538
+                              3600
+                              300
+                              3600000
+                              3600
+                              )
+   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
+                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
+                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
+                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
+                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+   x.y.w.example. 3600 NSEC   xx.example. MX RRSIG NSEC
+   x.y.w.example. 3600 RRSIG  NSEC 1 4 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              cn4aj3I/EQDa+vysa08xMQSnTz8YGtLLzqAj
+                              R8gy8Yqa4uSm7J17NydsWqgJkhlVxD3oBtnb
+                              w/6tDzx45IHcbnVm6UDrc3DVby21AivrsZ8P
+                              sm5Escp1X+qBLGSNAg2K6dlX/i2vut6g3vDa
+                              66FPTb3/hhrHYkMneBO2Yvfvpj8= )
+   *.w.example.   3600 NSEC   x.w.example. MX RRSIG NSEC
+   *.w.example.   3600 RRSIG  NSEC 1 2 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              fsk9iik9+gpte3I4tffoXyca5jfuYnLLy7/9
+                              7LAVd4KKj9zqSB8f3QD1mjditUK9PGTTtlPL
+                              4mq8F3T8PIt0pfgV8mPl6GP+bR+iVQEEE1YH
+                              yzR21az4Od5KBYYdsPjZzJnOhzCtgyleAoOx
+                              vOHmndDhRTDwVCg179qlrEIsOgE= )
+
+   ;; Additional
+   ;; (empty)
+
+
+B.8 DS Child Zone No Data Error
+
+   A "NODATA" response for a QTYPE=DS query which was mistakenly sent to
+   a name server for the child zone.
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 49]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   ;; Header: QR AA DO RCODE=0
+   ;;
+   ;; Question
+   example.            IN DS
+
+   ;; Answer
+   ;; (empty)
+
+   ;; Authority
+   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
+                              1065745538
+                              3600
+                              300
+                              3600000
+                              3600
+                              )
+   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
+                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
+                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
+                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
+                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+   example.       3600 NSEC   a.example. NS SOA MX RRSIG NSEC DNSKEY
+   example.       3600 RRSIG  NSEC 1 1 3600 20031108232541 (
+                              20031009232541 5742 example.
+                              10XG3f8uExTPfof30CoonvXSMeqrhrkcN9YG
+                              krhJD4xeVKarTkQMt0dFe66Bbuy961Bv9go1
+                              IEp0R+sV3B5ldqSKBrcIRsh4QFqQp6IPZ+By
+                              yxyYV25L68I1dkM1JoV7IMFsfcTDPjyl3wv2
+                              2LAQ2lyqLBpow5BRR4sAgjZ7Yaw= )
+
+   ;; Additional
+   ;; (empty)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 50]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+Appendix C. Authentication Examples
+
+   The examples in this section show how the response messages in
+   Appendix B are authenticated.
+
+C.1 Authenticating An Answer
+
+   The query in section Appendix B.1 returned an MX RRset for
+   "x.w.example.com". The corresponding RRSIG indicates the MX RRset was
+   signed by an "example" DNSKEY with algorithm 1 and key tag 5742.  The
+   resolver needs the corresponding DNSKEY RR in order to authenticate
+   this answer.   The discussion below describes how a resolver might
+   obtain this DNSKEY RR.
+
+   The RRSIG indicates the original TTL of the MX RRset was 3600 and,
+   for the purpose of authentication, the current TTL is replaced by
+   3600.   The RRSIG labels field value of 3 indicates the answer was
+   not the result of wildcard expansion.  The "x.w.example.com" MX RRset
+   is placed in canonical form and, assuming the current time falls
+   between the signature inception and expiration dates, the signature
+   is authenticated.
+
+C.1.1 Authenticating the example DNSKEY RR
+
+   This example shows the logical authentication process that starts
+   from the a preconfigured root DNSKEY (or DS RR) and moves down the
+   tree to authenticate the desired "example" DNSKEY RR.   Note the
+   logical order is presented for clarity and an implementation may
+   choose to construct the authentication as referrals are received or
+   may choose to construct the authentication chain only after all
+   RRsets have been obtained, or in any other combination it sees fit.
+   The example here demonstrates only the logical process and does not
+   dictate any implementation rules.
+
+   We assume the resolver starts with an preconfigured DNSKEY RR for the
+   root zone (or a preconfigured DS RR for the root zone).  The resolver
+   checks this preconfigured DNSKEY RR is present in the root DNSKEY
+   RRset (or the DS RR matches some DNSKEY in the root DNSKEY RRset),
+   this DNSKEY RR has signed the root DNSKEY RRset and the signature
+   lifetime is valid.  If all these conditions are met, all keys in the
+   DNSKEY RRset are considered authenticated.   The resolver then uses
+   one (or more) of the root DNSKEY RRs to authenticate the "example" DS
+   RRset.  Note the resolver may need to query the root zone to obtain
+   the root DNSKEY RRset and/or "example" DS RRset.
+
+   Once the DS RRset has been authenticated using the root DNSKEY, the
+   resolver checks the "example" DNSKEY RRset for some "example" DNSKEY
+   RR that matches one of the authenticated "example" DS RRs.  If such a
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 51]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   matching "example" DNSKEY is found, the resolver checks this DNSKEY
+   RR has signed the "example" DNSKEY RRset and the signature lifetime
+   is valid.  If all these conditions are met, all keys in the "example"
+   DNSKEY RRset are considered authenticated.
+
+   Finally the resolver checks that some DNSKEY RR in the "example"
+   DNSKEY RRset uses algorithm 1 and has a key tag of 5742.  This DNSKEY
+   is used to authenticated the RRSIG included in the response.  If
+   multiple "example" DNSKEY RRs have algorithm 1 and key tag of 5742,
+   then each DNSKEY RR is tried and the answer is authenticated if
+   either DNSKEY RR validates the signature as described above.
+
+C.2 Name Error
+
+   The query in section Appendix B.2 returned NSEC RRs that prove the
+   requested data does not exist and no wildcard applies.  The negative
+   reply is authenticated by verifying both NSEC RRs. The NSEC RRs are
+   authenticated in a manner identical to that of the MX RRset discussed
+   above.
+
+C.3 No Data Error
+
+   The query in section Appendix B.3 returned an NSEC RR that proves the
+   requested name exists, but the requested RR type does not exist. The
+   negative reply is authenticated by verifying the NSEC RR.  The NSEC
+   RR is authenticated in a manner identical to that of the MX RRset
+   discussed above.
+
+C.4 Referral to Signed Zone
+
+   The query in section Appendix B.4 returned a referral to the signed
+   "a.example." zone.  The DS RR is authenticated in a manner identical
+   to that of the MX RRset discussed above. This DS RR is used to
+   authenticate the "a.example" DNSKEY RRset.
+
+   Once the "a.example" DS RRset has been authenticated using the
+   "example" DNSKEY, the resolver checks the "a.example" DNSKEY RRset
+   for some "a.example" DNSKEY RR that matches the DS RR.  If such a
+   matching "a.example" DNSKEY is found, the resolver checks this DNSKEY
+   RR has signed the "a.example" DNSKEY RRset and the signature lifetime
+   is valid.  If all these conditions are met, all keys in the
+   "a.example" DNSKEY RRset are considered authenticated.
+
+C.5 Referral to Unsigned Zone
+
+   The query in section Appendix B.5 returned a referral to an unsigned
+   "b.example." zone.  The NSEC proves that no authentication leads from
+   "example" to "b.example" and the NSEC RR is authenticated in a manner
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 52]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   identical to that of the MX RRset discussed above.
+
+C.6 Wildcard Expansion
+
+   The query in section Appendix B.6 returned an answer that was
+   produced as a result of wildcard expansion.   The RRset expanded as
+   the similar to The corresponding RRSIG indicates the MX RRset was
+   signed by an "example" DNSKEY with algorithm 1 and key tag 5742.  The
+   RRSIG indicates the original TTL of the MX RRset was 3600 and, for
+   the purpose of authentication, the current TTL is replaced by 3600.
+   The RRSIG labels field value of 2 indicates the answer the result of
+   wildcard expansion since the "a.z.w.example" name contains 4 labels.
+   The name "a.z.w.w.example" is replaced by "*.w.example", the MX RRset
+   is placed in canonical form and, assuming the current time falls
+   between the signature inception and expiration dates, the signature
+   is authenticated.
+
+   The NSEC proves that no closer match (exact or closer wildcard) could
+   have been used to answer this query and the NSEC RR must also be
+   authenticated before the answer is considered valid.
+
+C.7 Wildcard No Data Error
+
+   The query in section Appendix B.7 returned NSEC RRs that prove the
+   requested data does not exist and no wildcard applies.  The negative
+   reply is authenticated by verifying both NSEC RRs.
+
+C.8 DS Child Zone No Data Error
+
+   The query in section Appendix B.8 returned NSEC RRs that shows the
+   requested was answered by a child server ("example" server).   The
+   NSEC RR indicates the presence of an SOA RR, showing the answer is
+   from the child .  Queries for the "example" DS RRset should be sent
+   to the parent servers ("root" servers).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 53]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+Intellectual Property Statement
+
+   The IETF takes no position regarding the validity or scope of any
+   intellectual property or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; neither does it represent that it
+   has made any effort to identify any such rights. Information on the
+   IETF's procedures with respect to rights in standards-track and
+   standards-related documentation can be found in BCP-11. Copies of
+   claims of rights made available for publication and any assurances of
+   licenses to be made available, or the result of an attempt made to
+   obtain a general license or permission for the use of such
+   proprietary rights by implementors or users of this specification can
+   be obtained from the IETF Secretariat.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights which may cover technology that may be required to practice
+   this standard. Please address the information to the IETF Executive
+   Director.
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2003). All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works. However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assignees.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 54]
+
+Internet-Draft       DNSSEC Protocol Modifications          October 2003
+
+
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires April 26, 2004                [Page 55]
+
