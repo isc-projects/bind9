@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.1 2000/06/07 00:15:17 explorer Exp $ */
+/* $Id: sha1.c,v 1.2 2000/06/07 00:22:31 explorer Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -100,8 +100,8 @@ typedef union {
 /*
  * Hash a single 512-bit block. This is the core of the algorithm.
  */
-void
-isc_sha1_transform(isc_uint32_t state[5], const unsigned char buffer[64]) {
+static void
+transform(isc_uint32_t state[5], const unsigned char buffer[64]) {
 	isc_uint32_t a, b, c, d, e;
 	CHAR64LONG16 *block;
 	unsigned char workspace[64];
@@ -159,7 +159,6 @@ isc_sha1_transform(isc_uint32_t state[5], const unsigned char buffer[64]) {
 void
 isc_sha1_init(isc_sha1_t *context)
 {
-
 	INSIST(context != NULL);
 
 	/* SHA1 initialization constants */
@@ -182,7 +181,7 @@ isc_sha1_invalidate(isc_sha1_t *context) {
  */
 void
 isc_sha1_update(isc_sha1_t *context, const unsigned char *data,
-	   unsigned int len)
+		unsigned int len)
 {
 	unsigned int i, j;
 
@@ -195,9 +194,9 @@ isc_sha1_update(isc_sha1_t *context, const unsigned char *data,
 	j = (j >> 3) & 63;
 	if ((j + len) > 63) {
 		(void)memcpy(&context->buffer[j], data, (i = 64 - j));
-		isc_sha1_transform(context->state, context->buffer);
+		transform(context->state, context->buffer);
 		for ( ; i + 63 < len; i += 64)
-			isc_sha1_transform(context->state, &data[i]);
+			transform(context->state, &data[i]);
 		j = 0;
 	} else {
 		i = 0;
@@ -232,7 +231,7 @@ isc_sha1_final(isc_sha1_t *context, unsigned char digest[20]) {
 	isc_sha1_update(context, &final_200, 1);
 	while ((context->count[0] & 504) != 448)
 		isc_sha1_update(context, &final_0, 1);
-	/* The next Update should cause a isc_sha1_transform() */
+	/* The next Update should cause a transform() */
 	isc_sha1_update(context, finalcount, 8);
 
 	if (digest) {

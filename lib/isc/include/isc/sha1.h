@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.h,v 1.1 2000/06/07 00:15:19 explorer Exp $ */
+/* $Id: sha1.h,v 1.2 2000/06/07 00:22:32 explorer Exp $ */
 
 /*	$NetBSD: sha1.h,v 1.2 1998/05/29 22:55:44 thorpej Exp $	*/
 
@@ -40,7 +40,5 @@ void isc_sha1_init(isc_sha1_t *ctx);
 void isc_sha1_invalidate(isc_sha1_t *ctx);
 void isc_sha1_update(isc_sha1_t *ctx, const unsigned char *data, u_int len);
 void isc_sha1_final(isc_sha1_t *ctx, unsigned char digest[20]);
-
-void isc_sha1_transform(isc_uint32_t state[5], const unsigned char buffer[64]);
 
 #endif /* ISC_SHA1_H */
