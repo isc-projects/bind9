@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_grbn.c,v 1.3 2001/01/09 21:59:32 bwelling Exp $ */
+/* $Id: lwres_grbn.c,v 1.4 2001/06/30 04:13:50 mayer Exp $ */
 
 #include <config.h>
 
@@ -198,7 +198,7 @@ lwres_grbnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	char *name;
 	lwres_grbnrequest_t *grbn;
 	lwres_uint32_t flags;
-	lwres_uint32_t rdclass, rdtype;
+	lwres_uint16_t rdclass, rdtype;
 	lwres_uint16_t namelen;
 
 	REQUIRE(ctx != NULL);
