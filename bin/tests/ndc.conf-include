@@ -1,6 +1,0 @@
-key "another-key" {
-        algorithm "al-gore-rhythm";
-        secret "R29yZSBpbiAyMDA0IQo"; # "Gore in 2004!"
-};
-
-
