@@ -188,7 +188,13 @@ Building
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 
-	To build libbind (BIND 8 resolver library), specify 
+	To build with DNSSEC support, you must have OpenSSL 0.9.5a
+	or newer installed and specify "--with-openssl" on the
+	configure command line.  If OpenSSL is installed under
+	a nonstandard prefix, you can tell configure where to
+	look for it using "--with-openssl=/prefix".
+
+	To build libbind (the BIND 8 resolver library), specify
 	"--enable-libbind" on the configure command line.
 
 	On some platforms, BIND 9 can be built with multithreading
