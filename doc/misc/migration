@@ -164,4 +164,32 @@ see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
 details.  Some of the ndc commands are still unimplemented in rndc.
 
 
-$Id: migration,v 1.17.2.2 2001/01/10 18:21:43 gson Exp $
+6. No Information Leakage between Zones
+
+BIND 9 stores the authoritative data for each zone in a separate data
+structure, as recommended in RFC1035 and as required by DNSSEC and
+IXFR.  When a BIND 9 server is authoritative for both a child zone and
+its parent, it will have two distinct sets of NS records at the
+delegation point: the authoritative NS records at the child's apex,
+and a set of glue NS records in the parent.
+
+BIND 8 was unable to properly distinguish between these two sets of NS
+records and would "leak" the child's NS records into the parent,
+effectively causing the parent zone to be silently modified: responses
+and zone transfers from the parent contained the child's NS records
+rather than the glue configured into the parent (if any).  In the case
+of children of type "stub", this behavior was documented as a feature,
+allowing the glue NS records to be omitted from the parent
+configuration.
+
+Sites that were relying on this BIND 8 behavior need to add any
+omitted glue NS records, and any necessary glue A records, to the
+parent zone.
+
+Although stub zones can no longer be used as a mechanism for injecting
+NS records into their parent zones, they are still useful as a way of
+directing queries for a given domain to a particular set of name
+servers.
+
+
+$Id: migration,v 1.17.2.3 2001/01/16 20:36:06 gson Exp $
