@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.45 1999/12/15 17:14:52 explorer Exp $ */
+ /* $Id: zone.c,v 1.46 1999/12/16 01:23:15 marka Exp $ */
 
 #include <config.h>
 
@@ -573,10 +573,7 @@ dns_zone_load(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK(&zone->lock);
-	if (isc_stdtime_get(&now) != ISC_R_SUCCESS) {
-		result = DNS_R_UNEXPECTED;
-		goto cleanup;
-	}
+	isc_stdtime_get(&now);
 
 	switch (zone->type) {
 	case dns_zone_forward:
@@ -1512,8 +1509,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	DNS_ENTER;
 
-	if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
-		return;
+	isc_stdtime_get(&now);
 
 	/*
 	 * Expire check.
@@ -1644,8 +1640,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->masterscnt > 0);
 
-	if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
-		return;
+	isc_stdtime_get(&now);
 
 	/*
 	 * Set DNS_ZONE_F_REFRESH so that there is only one refresh operation
@@ -2198,7 +2193,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	default:
 		break;
 	}
-	zone_log(zone, me, ISC_LOG_INFO, "settimer %d %d = %d seconds\n",
+	zone_log(zone, me, ISC_LOG_INFO, "settimer %d %d = %d seconds",
 		 next, now, next - now);
 
 	if (next == 0) {
@@ -2231,8 +2226,7 @@ cancel_refresh(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	zone->flags &= ~DNS_ZONE_F_REFRESH;
-	if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
-		return;
+	isc_stdtime_get(&now);
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_EXITING))
 		zone_settimer(zone, now);
 }
@@ -2305,11 +2299,13 @@ dns_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		       dns_message_t *msg)
 {
+	const char me[] = "dns_zone_notifyreceive";
 	unsigned int i;
 	dns_rdata_soa_t soa;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata;
 	dns_result_t result;
+	isc_stdtime_t now;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2337,20 +2333,35 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 *  We only handle NOTIFY (SOA) at the present.
 	 */
 	LOCK(&zone->lock);
-	if (msg->counts[DNS_SECTION_QUESTION] != 0 ||
+	if (msg->counts[DNS_SECTION_QUESTION] == 0 ||
 	    dns_message_findname(msg, DNS_SECTION_QUESTION, &zone->origin,
 				 dns_rdatatype_soa, dns_rdatatype_none,
 				 NULL, NULL) != DNS_R_SUCCESS) {
 		UNLOCK(&zone->lock);
-		return (DNS_R_REFUSED);
+		if (msg->counts[DNS_SECTION_QUESTION] == 0) {
+			zone_log(zone, me, ISC_LOG_NOTICE,
+				 "FORMERR no question");
+			return (DNS_R_FORMERR);
+		}
+		zone_log(zone, me, ISC_LOG_NOTICE,
+			 "REFUSED zone does not match");
+		return (DNS_R_NOTIMP);
 	}
 
+	/*
+	 * If we are a master zone just succeed.
+	 */
+	if (zone->type == dns_zone_master)
+		return (DNS_R_SUCCESS);
+
 	for (i = 0; i < zone->masterscnt; i++)
-		if (isc_sockaddr_equal(from, &zone->masters[i]))
+		if (isc_sockaddr_eqaddr(from, &zone->masters[i]))
 			break;
 
 	if (i >= zone->masterscnt) {
 		UNLOCK(&zone->lock);
+		zone_log(zone, me, ISC_LOG_NOTICE,
+			 "REFUSED notify from non master");
 		return (DNS_R_REFUSED);
 	}
 
@@ -2378,8 +2389,11 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			if (result == DNS_R_SUCCESS) {
 				serial = soa.serial;
 				dns_rdata_freestruct(&soa);
-				if (isc_serial_le(serial, zone->serial))
+				if (isc_serial_le(serial, zone->serial)) {
+					zone_log(zone, me, ISC_LOG_DEBUG(3),
+						 "zone up to date");
 					return (DNS_R_SUCCESS);
+				}
 			}
 		} 
 	}
@@ -2393,10 +2407,16 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		zone->flags |= DNS_ZONE_F_NEEDREFRESH;
 		zone->notifyfrom = *from;
 		UNLOCK(&zone->lock);
+		zone_log(zone, me, ISC_LOG_DEBUG(3),
+			 "refresh in progress, refresh check queued");
 		return (DNS_R_SUCCESS);
 	}
+	isc_stdtime_get(&now);
+	zone->refreshtime = now;
+	zone->notifyfrom = *from;
+	zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
-	dns_zone_refresh(zone);
+	zone_log(zone, me, ISC_LOG_DEBUG(3), "immediate refresh check queued");
 	return (DNS_R_SUCCESS);
 }
 
@@ -3250,9 +3270,12 @@ xfrdone(dns_zone_t *zone, dns_result_t result) {
 	switch (result) {
 	case DNS_R_UPTODATE:
 	case DNS_R_SUCCESS:
-		if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
-			return;
-		zone->refreshtime = now + zone->refresh;
+		isc_stdtime_get(&now);
+		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDREFRESH)) {
+			zone->flags &= ~DNS_ZONE_F_NEEDREFRESH;
+			zone->refreshtime = now;
+		} else
+			zone->refreshtime = now + zone->refresh;
 		zone_settimer(zone, now);
 		break;
 

@@ -57,7 +57,7 @@
 #include <named/notify.h>
 
 /*
- * This module implements notify as in RFCXXXX.
+ * This module implements notify as in RFC 1996.
  */
   
 /**************************************************************************/
@@ -136,31 +136,25 @@
 
 static void
 respond(ns_client_t *client, dns_result_t result) {
-        int msg_result;
-        dns_message_t *response = NULL;
-        msg_result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTRENDER,
-                                        &response);
-        if (msg_result != DNS_R_SUCCESS)
-                goto msg_failure;
+	dns_rcode_t rcode;
+        dns_message_t *message;
+        isc_result_t msg_result;
 
-        response->id = client->message->id;
-        response->rcode = (result == DNS_R_SUCCESS ?
-                dns_rcode_noerror : dns_result_torcode(result));
-        response->flags = client->message->flags;
-        response->flags |= DNS_MESSAGEFLAG_QR;
-	response->opcode = client->message->opcode;
+	message = client->message;
+	if (result == DNS_R_SUCCESS)
+		rcode = dns_rcode_noerror;
+	else
+		rcode = dns_result_torcode(result);
 
-        dns_message_destroy(&client->message);
-        client->message = response;
-        ns_client_send(client);
-        return;
-
- msg_failure:
-        isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY,
-                      ISC_LOG_ERROR,
-                      "could not create update response message: %s",
-                      isc_result_totext(msg_result));
-        ns_client_next(client, msg_result);
+	msg_result = dns_message_reply(message, ISC_TRUE);
+	if (msg_result != ISC_R_SUCCESS)
+		msg_result = dns_message_reply(message, ISC_FALSE);
+	if (msg_result != ISC_R_SUCCESS) {
+		ns_client_next(client, msg_result);
+		return;
+	}
+	message->rcode = rcode;
+	ns_client_send(client);
 }
 
 void
@@ -205,12 +199,10 @@ ns_notify_start(ns_client_t *client)
 
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
-		FAILC(DNS_R_REFUSED,
-		      "notify to master");
 	case dns_zone_slave:
 		respond(client, dns_zone_notifyreceive(zone,
 			ns_client_getsockaddr(client), request));
-		return;
+		break;
 	default:
 		FAILC(DNS_R_REFUSED,
 		      "not authoritative for update zone");

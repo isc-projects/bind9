@@ -15,10 +15,37 @@
  * SOFTWARE.
  */
 
-#ifndef named_notify_h
-#define named_notify_h
+#ifndef NAMED_NOTIFY_H
+#define NAMED_NOTIFY_H 1
+
+#include <named/types.h>
+#include <named/client.h>
+
+/***
+ ***	Modual Info
+ ***/
+
+/*
+ *	RFC 1996
+ *	A Mechanism for Prompt Notification of Zone Changes (DNS NOTIFY)
+ */
+
+/***
+ ***	Functions.
+ ***/
 
 void
 ns_notify_start(ns_client_t *client);
+
+/*
+ *	Examines the incoming message to determine apporiate zone.
+ *	Returns FORMERR if there is not exactly one question.
+ *	Returns REFUSED if we do not server the listed zone.
+ *	Pass the message to the zone module for processing
+ *	and returns the return status.
+ *
+ * Requires
+ *	client to be valid.
+ */
 
 #endif

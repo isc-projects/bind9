@@ -39,6 +39,7 @@
 #include <named/log.h>
 #include <named/query.h>
 #include <named/update.h>
+#include <named/notify.h>
 
 #include "../../isc/util.h"		/* XXX */
 
@@ -644,7 +645,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
-		ns_client_error(client, DNS_R_NOTIMP);
+		ns_notify_start(client);
 		break;
 	case dns_opcode_iquery:
 		CTRACE("iquery");
