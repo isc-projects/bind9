@@ -15,21 +15,24 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.27 1999/10/07 02:55:00 halley Exp $ */
+ /* $Id: gen.c,v 1.28 1999/10/08 22:57:20 tale Exp $ */
 
 #include <config.h>
 
 #include <sys/types.h>
 
 #include <ctype.h>
-#include <dirent.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
+#ifdef WIN32
+#include "gen-win32.h"
+#else
+#include "gen-unix.h"
+#endif
 
 #define FROMTEXTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin, isc_boolean_t downcase, isc_buffer_t *target"
 #define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target"
@@ -323,40 +326,38 @@ add(int rdclass, char *classname, int type, char *typename, char *dirname) {
 }
 
 void
-sd(int rdclass, char *classname, char *dir, char filetype) {
+sd(int rdclass, char *classname, char *dirname, char filetype) {
 	char buf[sizeof "0123456789_65535.h"];
 	char fmt[sizeof "%10[-0-9a-z]_%d.h"];
-	DIR *d;
 	int type;
 	char typename[11];
-	struct dirent *dp;
+	isc_dir_t dir;
 
-	if ((d = opendir(dir)) == NULL)
+	if (!start_directory(dirname, &dir))
 		return;
 
 	sprintf(fmt,"%s%c", "%10[-0-9a-z]_%d.", filetype);
-	while ((dp = readdir(d)) != NULL) {
-		if (sscanf(dp->d_name, fmt, typename, &type) != 2)
+	while (next_file(&dir)) {
+		if (sscanf(dir.filename, fmt, typename, &type) != 2)
 			continue;
 		if ((type > 65535) || (type < 0))
 			continue;
 
 		sprintf(buf, "%s_%d.%c", typename, type, filetype);
-		if (strcmp(buf, dp->d_name) != 0)
+		if (strcmp(buf, dir.filename) != 0)
 			continue;
-		add(rdclass, classname, type, typename, dir);
+		add(rdclass, classname, type, typename, dirname);
 	}
-	closedir(d);
+
+	end_directory(&dir);
 }
 
 int
 main(int argc, char **argv) {
-	DIR *d;
 	char buf[256];			/* XXX Should be max path length */
 	char srcdir[256];		/* XXX Should be max path length */
 	int rdclass;
 	char classname[11];
-	struct dirent *dp;
 	struct tt *tt;
 	struct cc *cc;
 	struct tm *tm;
@@ -373,9 +374,10 @@ main(int argc, char **argv) {
 	FILE *fd;
 	char *prefix = NULL;
 	char *suffix = NULL;
+	isc_dir_t dir;
 
 	strcpy(srcdir, "");
-	while ((c = getopt(argc, argv, "cits:P:S:")) != -1)
+	while ((c = isc_commandline_parse(argc, argv, "cits:P:S:")) != -1)
 		switch (c) {
 		case 'c':
 			code = 0;
@@ -399,35 +401,36 @@ main(int argc, char **argv) {
 			filetype = 'h';
 			break;
 		case 's':
-			sprintf(srcdir, "%s/", optarg);
+			sprintf(srcdir, "%s/", isc_commandline_argument);
 			break;
 		case 'P':
-			prefix = optarg;
+			prefix = isc_commandline_argument;
 			break;
 		case 'S':
-			suffix = optarg;
+			suffix = isc_commandline_argument;
 			break;
 		case '?':
 			exit(1);
 		}
 
 	sprintf(buf, "%srdata", srcdir);
-	if ((d = opendir(buf)) == NULL)
+
+	if (!start_directory(buf, &dir))
 		exit(1);
 
-	while ((dp = readdir(d)) != NULL) {
-		if (sscanf(dp->d_name, "%10[0-9a-z]_%d",
+	while (next_file(&dir)) {
+		if (sscanf(dir.filename, "%10[0-9a-z]_%d",
 			   classname, &rdclass) != 2)
 			continue;
 		if ((rdclass > 65535) || (rdclass < 0))
 			continue;
 
 		sprintf(buf, "%srdata/%s_%d", srcdir, classname, rdclass);
-		if (strcmp(buf + 6 + strlen(srcdir), dp->d_name) != 0)
+		if (strcmp(buf + 6 + strlen(srcdir), dir.filename) != 0)
 			continue;
 		sd(rdclass, classname, buf, filetype);
 	}
-	closedir(d);
+	end_directory(&dir);
 	sprintf(buf, "%srdata/generic", srcdir);
 	sd(0, "", buf, filetype);
 
