@@ -24,3 +24,4 @@ dispatch_test
 dispatch_tcp_test
 sdig
 nxtify
+serial_test
