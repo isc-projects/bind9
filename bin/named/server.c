@@ -164,16 +164,21 @@ base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target)
 }
 
 /*
- * Configure the trusted keys or security roots of a view.
- * The configuration values are read from 'cctx' and 'cview' using 
- * the function 'cget'.  The variable to be configured is '*target'.
- * XXX not really view specific yet
+ * Configure DNSSEC keys for a view.  Currently used only for
+ * the security roots.
+ * 
+ * The per-view configuration values and their server-global
+ * defaults are are read from 'cview' and 'cctx' using 
+ * the function 'cgetv' and 'cgets', respectively.
+ * The variable to be configured is '*target'.
  */
 static isc_result_t
-configure_view_dnsseckeys(dns_c_ctx_t *cctx,
-			  dns_c_view_t *cview,
+configure_view_dnsseckeys(dns_c_view_t *cview,
+			  dns_c_ctx_t *cctx,
 			  isc_mem_t *mctx,
-			  isc_result_t (*cget)
+			  isc_result_t (*cgetv)
+			      (dns_c_view_t *, dns_c_tkeylist_t **),
+			  isc_result_t (*cgets)
 			      (dns_c_ctx_t *, dns_c_tkeylist_t **),
 			  dns_keytable_t **target)
 {
@@ -185,7 +190,12 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 	
 	CHECK(dns_keytable_create(mctx, &keytable));
 
-	result = (*cget)(cctx, &ckeys);
+	result = ISC_R_FAILURE;
+	if (cgetv != NULL && cview != NULL)
+		result = (*cgetv)(cview, &ckeys);
+	if (result != ISC_R_SUCCESS)
+		result = (*cgets)(cctx, &ckeys);
+
 	if (result == ISC_R_SUCCESS) {
 		for (ckey = ISC_LIST_HEAD(ckeys->tkeylist);
 		     ckey != NULL;
@@ -603,8 +613,12 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	/*
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
+	 *
+	 * XXX not view specific, NULL should be replaced by
+	 * dns_c_view_gettrustedkeys below
 	 */
-	CHECK(configure_view_dnsseckeys(cctx, cview, mctx,
+	CHECK(configure_view_dnsseckeys(cview, cctx, mctx,
+				  NULL,
 				  dns_c_ctx_gettrustedkeys,
 				  &view->secroots));
 
