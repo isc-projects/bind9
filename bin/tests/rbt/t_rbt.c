@@ -162,10 +162,7 @@ create_name(char *s, isc_mem_t *mctx, dns_name_t **dns_name) {
 
 static void
 delete_name(void *data, void *arg) {
-	dns_name_t *name;
-
-	name = (dns_name_t *) data;
-	isc_mem_put((isc_mem_t *) arg, data, sizeof(dns_name_t) + DNSNAMELEN);
+	isc_mem_put((isc_mem_t *)arg, data, sizeof(dns_name_t) + DNSNAMELEN);
 }
 
 
@@ -580,7 +577,6 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 	unsigned int	nbits;
 	int		nprobs;
 	isc_result_t	dns_result;
-	dns_namereln_t	dns_namereln;
 
 	dns_fixedname_t	name;
 	dns_fixedname_t	origin;
@@ -662,7 +658,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 			       fixedname_totext(&fullname1));
 			t_info("\twith\t<%s>\n", fixedname_totext(&fullname2));
 
-			dns_namereln = dns_name_fullcompare(
+			(void)dns_name_fullcompare(
 						dns_fixedname_name(&fullname1),
 						dns_fixedname_name(&fullname2),
 						&order, &nlabels, &nbits);
@@ -727,7 +723,6 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	int			result;
 	int			len;
 	int			nfails;
-	int			nprobs;
 	dns_rbt_t		*rbt;
 	dns_rbtnode_t		*node;
 	dns_rbtnodechain_t	chain;
@@ -746,7 +741,6 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	result = T_UNRESOLVED;
 
 	nfails = 0;
-	nprobs = 0;
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -1313,7 +1307,6 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	int			result;
 	int			len;
 	int			nfails;
-	int			nprobs;
 	dns_rbt_t		*rbt;
 	dns_rbtnode_t		*node;
 	dns_rbtnodechain_t	chain;
@@ -1329,7 +1322,6 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	result = T_UNRESOLVED;
 
 	nfails = 0;
-	nprobs = 0;
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -1492,7 +1484,6 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname, char *prevname,
 	int			result;
 	int			len;
 	int			nfails;
-	int			nprobs;
 	dns_rbt_t		*rbt;
 	dns_rbtnode_t		*node;
 	dns_rbtnodechain_t	chain;
@@ -1508,7 +1499,6 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname, char *prevname,
 	result = T_UNRESOLVED;
 
 	nfails = 0;
-	nprobs = 0;
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
