@@ -288,7 +288,7 @@ isc_interfaceiter_current(isc_interfaceiter_t *iter,
 {
 	REQUIRE(iter->result == ISC_R_SUCCESS);
 	memcpy(ifdata, &iter->current, sizeof(*ifdata));
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 /*
