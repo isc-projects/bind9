@@ -1,4 +1,8 @@
 
+ 820.	[bug]		Name server address lookups failed to follow
+			A6 chains into the glue of local authoritative
+			zones.
+
  819.	[bug]		In certain cases, the resolver's attempts to
 			restart an address lookup at the root could cause
 			the fetch to deadlock (with itself) instead of
