@@ -1081,6 +1081,8 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 	dns_dispatchevent_t *ev;
 	unsigned int bucket;
 	isc_boolean_t killit;
+	unsigned int n;
+	isc_eventlist_t events;
 
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(resp != NULL);
@@ -1117,9 +1119,20 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	ISC_LIST_UNLINK(disp->qid_table[bucket], res, link);
 
-	XDEBUG(("dns_dispatch_removeresponse:  detaching from task %p\n",
-		res->task));
-	isc_task_detach(&res->task);
+	if (ev == NULL && res->item_out) {
+		/*
+		 * We've posted our event, but the caller hasn't gotten it
+		 * yet.  Take it back.
+		 */
+		ISC_LIST_INIT(events);
+		n = isc_task_unsend(res->task, res, DNS_EVENT_DISPATCH,
+				    NULL, &events);
+		/*
+		 * We had better have gotten it back.
+		 */
+		INSIST(n == 1);
+		ev = (dns_dispatchevent_t *)ISC_LIST_HEAD(events);
+	}
 
 	if (ev != NULL) {
 		REQUIRE(res->item_out == ISC_TRUE);
@@ -1128,6 +1141,10 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 			free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
 	}
+
+	XDEBUG(("dns_dispatch_removeresponse:  detaching from task %p\n",
+		res->task));
+	isc_task_detach(&res->task);
 
 	/*
 	 * Free any buffered requests as well
@@ -1219,6 +1236,8 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 	dns_dispentry_t *res;
 	dns_dispatchevent_t *ev;
 	isc_boolean_t killit;
+	unsigned int n;
+	isc_eventlist_t events;
 
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(resp != NULL);
@@ -1254,8 +1273,20 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	ISC_LIST_UNLINK(disp->rq_handlers, res, link);
 
-	XDEBUG(("dns_dispatch_removerequest:  detaching from task %p\n", res->task));
-	isc_task_detach(&res->task);
+	if (ev == NULL && res->item_out) {
+		/*
+		 * We've posted our event, but the caller hasn't gotten it
+		 * yet.  Take it back.
+		 */
+		ISC_LIST_INIT(events);
+		n = isc_task_unsend(res->task, res, DNS_EVENT_DISPATCH,
+				    NULL, &events);
+		/*
+		 * We had better have gotten it back.
+		 */
+		INSIST(n == 1);
+		ev = (dns_dispatchevent_t *)ISC_LIST_HEAD(events);
+	}
 
 	if (ev != NULL) {
 		REQUIRE(res->item_out == ISC_TRUE);
@@ -1264,6 +1295,11 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 			free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
 	}
+
+	XDEBUG(("dns_dispatch_removerequest:  detaching from task %p\n",
+		res->task));
+	isc_task_detach(&res->task);
+
 	isc_mempool_put(disp->rpool, res);
 	if (disp->shutting_down == 1)
 		do_cancel(disp, NULL);
