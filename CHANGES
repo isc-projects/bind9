@@ -1,6 +1,3 @@
- 230.	[func]		Support config file trusted-keys and also-notify 
-			statemenets in views.
-
  229.	[func]		Support config file sig-validity-interval statement 
 			in options, views and zone statements (master 
 			zones only).
