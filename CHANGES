@@ -1,3 +1,9 @@
+1346.	[bug]		Win32: select timeout in socket.c was too small
+			as value given was meant to be milliseconds and
+			timeval structure requires microseconds. This
+			caused high CPU loads with a compute bound loop.
+			[RT #3358]
+
 1345.	[port]		Use a explicit -Wformat with gcc.  Not all versions
 			include it in -Wall.
 
