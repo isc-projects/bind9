@@ -33,17 +33,18 @@
 #include <isc/result.h>
 #include <isc/buffer.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
+#include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/fixedname.h>
+#include <dns/journal.h>
+#include <dns/log.h>
+#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/db.h>
-#include <dns/dbiterator.h>
-#include <dns/journal.h>
+#include <dns/result.h>
+#include <dns/types.h>
 
 /*
  * When true, accept IXFR difference sequences where the
@@ -57,10 +58,18 @@ static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
  * Miscellaneous utilities.
  */
 
+#define JOURNAL_COMMON_LOGARGS \
+	dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_JOURNAL
+
+#define JOURNAL_DEBUG_LOGARGS(n) \
+	JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(n)
+
 #define FAIL(code) do { result = (code); goto failure; } while (0)
-#define CHECK(op) do { result = (op); \
-		       if (result != DNS_R_SUCCESS) goto failure; \
-		     } while (0)
+
+#define CHECK(op) \
+     	do { result = (op); 					\
+		if (result != ISC_R_SUCCESS) goto failure; 	\
+	} while (0)
 
 /* XXX should be macros */
 
@@ -404,10 +413,12 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 			       rdata_covers(&t->rdata) == covers)
 			{
 				if (t->ttl != rdl.ttl) {
-					printf("TTL differs in rdataset, "
-					       "adjusting %lu -> %lu\n",
-					       (unsigned long) t->ttl,
-					       (unsigned long) rdl.ttl);
+					isc_log_write(JOURNAL_COMMON_LOGARGS,
+					      	ISC_LOG_WARNING,
+						"TTL differs in rdataset, "
+						"adjusting %lu -> %lu",
+					        (unsigned long) t->ttl,
+					        (unsigned long) rdl.ttl);
 				}
 				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
 				t = ISC_LIST_NEXT(t, link);
@@ -438,7 +449,9 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 				 * from a server that is not as careful.
 				 * Issue a warning and continue.
 				 */
-				printf("warning: update with no effect\n");
+				isc_log_write(JOURNAL_COMMON_LOGARGS,
+					      ISC_LOG_WARNING,
+					      "update with no effect");
 			} else if (result == DNS_R_SUCCESS ||
 				   result == DNS_R_NXRDATASET) {
 				/* OK */
@@ -500,7 +513,9 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 			INSIST(op == DNS_DIFFOP_ADD);
 			result = (*addfunc)(add_private, name, &rds);
 			if (result == DNS_R_UNCHANGED) {
-				printf("warning: update with no effect\n");
+				isc_log_write(JOURNAL_COMMON_LOGARGS,
+					      ISC_LOG_WARNING,
+					      "update with no effect");
 			} else if (result == DNS_R_SUCCESS ||
 				   result == DNS_R_NXRDATASET) {
 				/* OK */
@@ -604,11 +619,15 @@ dns_diff_print(dns_diff_t *diff) {
 
 		if (result == DNS_R_SUCCESS) {
 			isc_buffer_used(&buf, &r);
-			printf("%s %.*s", t->op == DNS_DIFFOP_ADD ?
-			       "add" : "del",
-			       (int) r.length, (char *) r.base);
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(7),
+				      "%s %.*s", t->op == DNS_DIFFOP_ADD ?
+				      "add" : "del",
+				      (int) r.length, (char *) r.base);
 		} else {
-			printf("<diff RR too long to print>\n");
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(7),
+				      "%s <RR too large to print>",
+				      "%s %.*s", t->op == DNS_DIFFOP_ADD ?
+				      "add" : "del");
 		}
 	}
 }
@@ -1057,8 +1076,11 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	fp = fopen(j->filename, write ? "r+" : "r");
 	if (fp == 0 && errno == ENOENT) {
 		if (write) {
-			printf("journal file %s does not exist, creating it\n",
-			       j->filename);
+			isc_log_write(JOURNAL_COMMON_LOGARGS,
+				      ISC_LOG_INFO,
+				      "journal file %s does not exist, "
+				      "creating it",
+				      j->filename);
 			CHECK(journal_file_create(mctx, filename));
 			/* Retry. */
 			fp = fopen(j->filename, "r+");
@@ -1096,7 +1118,8 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	 * not exist.
 	 */
 	if (! write && JOURNAL_EMPTY(&j->header)) {
-		printf("journal file %s is empty\n", j->filename);
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "journal file %s is empty", j->filename);
 		FAIL(DNS_R_NOTFOUND);
 	}
 	
@@ -1446,7 +1469,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	REQUIRE(DNS_DIFF_VALID(diff));
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
 	
-	printf("writing diff: \n");
+	isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "writing to journal");
 	dns_diff_print(diff);
 
 	/*
@@ -1731,7 +1754,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 		dns_diff_append(&diff, &tuple);
 
 		if (++n_put > 100)  {
-			printf("applying diff:\n");
+			isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
+				      "applying diff to database");
 			dns_diff_print(&diff);
 			CHECK(dns_diff_apply(&diff, db, ver));
 			dns_diff_clear(&diff);
@@ -1743,7 +1767,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	CHECK(result);
 
 	if (n_put != 0) {
-		printf("applying final diff:\n");
+		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
+			      "applying final diff to database");
 		dns_diff_print(&diff);
 		CHECK(dns_diff_apply(&diff, db, ver));
 		dns_diff_clear(&diff);
@@ -1775,7 +1800,8 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	j = NULL;
 	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
 	if (result == DNS_R_NOTFOUND) {
-		printf("no journal file\n");
+		isc_log_write(JOURNAL_DEBUG_LOGARGS(1),
+			      "no journal file, but that's OK");
 		return (DNS_R_SUCCESS);
 	}
 	if (result != DNS_R_SUCCESS)
@@ -1804,12 +1830,13 @@ dns_journal_print(isc_mem_t *mctx, const char *filename) {
 	j = NULL;
 	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
 	if (result == DNS_R_NOTFOUND) {
-		printf("no journal file\n");
+		isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no journal file");
 		return;
 	}
 
 	if (result != DNS_R_SUCCESS) {
-		printf("journal open failure\n");
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "journal open failure");
 		return;
 	}
 	
@@ -1874,7 +1901,8 @@ dns_journal_print(isc_mem_t *mctx, const char *filename) {
 	goto cleanup;
 	
  failure:
-	printf("journal corrupt\n");
+	isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+		      "journal corrupt");
 
  cleanup:
 	if (source.base != NULL)
@@ -2343,7 +2371,7 @@ dns_db_diff(isc_mem_t *mctx,
 		FAIL(itresult[1]);
 
 	if (ISC_LIST_EMPTY(resultdiff.tuples)) {
-		printf("no changes\n");
+		isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no changes");
 	} else {
 		CHECK(dns_journal_write_transaction(journal, &resultdiff));
 	}
