@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.6 2000/08/23 18:28:02 bwelling Exp $ */
+/* $Id: sdb.c,v 1.7 2000/08/23 18:45:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -752,9 +752,9 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 		/*
 		 * Look for an NS at the current label, unless this is the
-		 * origin.
+		 * origin or glue is ok.
 		 */
-		if (i != olabels) {
+		if (i != olabels && (options & DNS_DBFIND_GLUEOK) == 0) {
 			result = findrdataset(db, node, version,
 					      dns_rdatatype_ns,
 					      0, now, rdataset, sigrdataset);
