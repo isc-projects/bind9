@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.48 2000/08/10 02:00:33 bwelling Exp $
+ * $Id: dnssec.c,v 1.49 2000/08/21 17:48:46 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -582,12 +582,11 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	/*
 	 * Digest the fields of the SIG - we can cheat and use
 	 * dns_rdata_fromstruct.  Since siglen is 0, the digested data
-	 * is identical to dns format with the last 2 bytes removed.
+	 * is identical to dns format.
 	 */
 	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, &databuf));
 	isc_buffer_usedregion(&databuf, &r);
-	r.length -= 2;
 	RETERR(dst_context_adddata(ctx, &r));
 
 	RETERR(dst_key_sigsize(key, &sigsize));
@@ -744,7 +743,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	dns_name_fromregion(&tname, &r);
 	dns_name_toregion(&tname, &r2);
 	isc_region_consume(&r, r2.length + 10);
-	r.length -= (sig.siglen + 2);
+	r.length -= sig.siglen;
 	RETERR(dst_context_adddata(ctx, &r));
 
 	sig_r.base = sig.signature;
