@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.79 2000/11/19 22:12:41 bwelling Exp $ */
+/* $Id: result.c,v 1.80 2000/11/22 00:16:38 halley Exp $ */
 
 #include <config.h>
 
@@ -109,7 +109,10 @@ static const char *text[DNS_R_NRESULTS] = {
 	"not exact",		       	       /* 67 DNS_R_NOTEXACT	     */
 	"address blackholed",	       	       /* 68 DNS_R_BLACKHOLED	     */
 	"bad algorithm",		       /* 69 DNS_R_BADALG	     */
-	"invalid use of a meta type"	       /* 70 DNS_R_METATYPE	     */
+	"invalid use of a meta type",	       /* 70 DNS_R_METATYPE	     */
+
+	"CNAME and other data",		       /* 71 DNS_R_CNAMEANDOTHER     */
+	"multiple RRs in singleton type"       /* 72 DNS_R_SINGLETON         */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
