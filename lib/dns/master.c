@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.142 2002/07/19 02:34:55 marka Exp $ */
+/* $Id: master.c,v 1.143 2002/11/12 19:50:51 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/serial.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -1567,7 +1568,7 @@ load(dns_loadctx_t *lctx) {
 		if (type == dns_rdatatype_sig && lctx->warn_sigexpired) {
 			dns_rdata_sig_t sig;
 			(void)dns_rdata_tostruct(&rdata[rdcount], &sig, NULL);
-			if (now > sig.timeexpire) {
+			if (isc_serial_lt(sig.timeexpire, now)) {
 				(*callbacks->warn)(callbacks,
 						   "%s:%lu: "
 						   "signature has expired",

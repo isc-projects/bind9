@@ -1,3 +1,6 @@
+1399.	[bug]		Use serial number arithmetic when testing SIG
+			timestamps. [RT #4268]
+
 1398.	[doc]		ARM: notify-also should have been also-notify.
 			[RT #4345]
 
