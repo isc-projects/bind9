@@ -1,3 +1,6 @@
+ 441.	[bug]		Nodes obscured by a DNAME were inaccessible even
+			when DNS_DBFIND_GLUEOK was set.
+
  440.	[func]		New function dns_zone_forwardupdate().
 
  439.	[func]		New function dns_request_createraw().

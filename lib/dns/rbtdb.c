@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.125 2000/09/07 20:09:58 halley Exp $ */
+/* $Id: rbtdb.c,v 1.126 2000/09/11 16:48:25 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1086,24 +1086,11 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 		 * may clear search->wild.
 		 */
 		search->wild = ISC_FALSE;
-		if (found->type == dns_rdatatype_dname) {
-			/*
-			 * Finding a DNAME stops all further searching.
-			 *
-			 * Note: We return DNS_R_PARTIALMATCH instead of
-			 * DNS_R_DNAME here because that way zone_find()
-			 * does fewer result code comparisions.
-			 */
-			result = DNS_R_PARTIALMATCH;
-		} else if ((search->options & DNS_DBFIND_GLUEOK) == 0) {
+		if ((search->options & DNS_DBFIND_GLUEOK) == 0) {
 			/*
 			 * If the caller does not want to find glue, then
 			 * this is the best answer and the search should
 			 * stop now.
-			 *
-			 * Note: We return DNS_R_PARTIALMATCH instead of
-			 * DNS_R_DELEGATION here because that way zone_find()
-			 * does fewer result code comparisions.
 			 */
 			result = DNS_R_PARTIALMATCH;
 		} else {
