@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.16 2000/06/16 18:00:03 mws Exp $ */
+/* $Id: nslookup.c,v 1.17 2000/06/19 18:54:45 tale Exp $ */
 
 #include <config.h>
 
@@ -143,7 +143,7 @@ static const char *rtypetext[] = {
 
 
 static void
-show_usage() {
+show_usage(void) {
 	fputs (
 "Usage:\n"
 , stderr);
@@ -650,7 +650,7 @@ addlookup(char *opt) {
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->ixfr_serial = 0;
 	lookup->defname = ISC_FALSE;
-	lookup->trace = (trace || ns_search_only);
+	lookup->trace = ISC_TF(trace || ns_search_only);
 	lookup->trace_root = trace;
 	lookup->ns_search_only = ns_search_only;
 	lookup->identify = identify;
@@ -677,7 +677,7 @@ addlookup(char *opt) {
 }
 
 static void
-flush_server_list() {
+flush_server_list(void) {
 	dig_server_t *s, *ps;
 
 	debug ("flush_lookup_list()");
@@ -708,7 +708,7 @@ setsrv(char *opt) {
 }
 
 static void
-get_next_command() {
+get_next_command(void) {
 	char input[COMMSIZE];
 	char *ptr, *arg;
 
