@@ -1,3 +1,6 @@
+ 212.	[cleanup]	Added dns_message_get/settsigkey, to make TSIG
+			key management reasonable.
+
  211.	[func]		The 'key' and 'server' statements can now occur
 			inside 'view' statements.
 

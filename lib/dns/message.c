@@ -522,7 +522,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
         }
 
 	if (msg->tsigkey != NULL) {
-		dns_tsigkey_free(&msg->tsigkey);
+		dns_tsigkey_detach(&msg->tsigkey);
 		msg->tsigkey = NULL;
 	}
 
@@ -2218,6 +2218,32 @@ dns_message_gettsig(dns_message_t *msg, dns_name_t **owner) {
 
 	*owner = msg->tsigname;
 	return (msg->tsigset);
+}
+
+void 
+dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
+
+	/*
+	 * Set the TSIG key for 'msg'
+	 */
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(msg->tsigkey == NULL);
+
+	if (key != NULL)
+		dns_tsigkey_attach(key, &msg->tsigkey);
+}
+
+dns_tsigkey_t *
+dns_message_gettsigkey(dns_message_t *msg) {
+
+	/*
+	 * Get the TSIG key for 'msg'
+	 */
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+
+	return (msg->tsigkey);
 }
 
 dns_rdataset_t *

@@ -952,6 +952,29 @@ dns_message_gettsig(dns_message_t *msg, dns_name_t **owner);
  *	The TSIG rdataset of 'msg', or NULL if there isn't one.
  */
 
+void
+dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key);
+/*
+ * Set the tsig key for 'msg'.  This is only necessary for when rendering a
+ * query or parsing a response.  The key (if non-NULL) is attached to, and
+ * will be detached when the message is destroyed.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message
+ *	'key' is a valid tsig key or NULL.
+ */
+
+dns_tsigkey_t *
+dns_message_gettsigkey(dns_message_t *msg);
+/*
+ * Gets the tsig key for 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message
+ */
+
 dns_rdataset_t *
 dns_message_getsig0(dns_message_t *msg, dns_name_t **owner);
 /*

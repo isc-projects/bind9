@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.62 2000/05/15 21:14:01 tale Exp $ */
+/* $Id: xfrout.c,v 1.63 2000/05/26 00:16:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1028,7 +1028,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 */
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
 				reqtype, db, ver, quota, stream,
-				request->tsigkey, request->tsig,
+				dns_message_gettsigkey(request), request->tsig,
 				dns_zone_getmaxxfrout(zone),
 				dns_zone_getidleout(zone),
 				(format == dns_many_answers) ?
@@ -1214,7 +1214,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	msg->flags = DNS_MESSAGEFLAG_QR | DNS_MESSAGEFLAG_AA;
 	if ((xfr->client->attributes & NS_CLIENTATTR_RA) != 0)
 		msg->flags |= DNS_MESSAGEFLAG_RA;
-	msg->tsigkey = xfr->tsigkey;
+	dns_message_settsigkey(msg, xfr->tsigkey);
 	msg->querytsig = xfr->lasttsig;
 
 	/*

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.71 2000/05/18 16:47:14 gson Exp $ */
+/* $Id: xfrin.c,v 1.72 2000/05/26 00:16:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -816,7 +816,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 
 	/* Create the request message */
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
-	msg->tsigkey = xfr->tsigkey;
+	dns_message_settsigkey(msg, xfr->tsigkey);
 
 	/* Create a name for the question section. */
 	dns_message_gettempname(msg, &qname);
@@ -970,7 +970,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
 
-	msg->tsigkey = xfr->tsigkey;
+	dns_message_settsigkey(msg, xfr->tsigkey);
 	msg->querytsig = xfr->lasttsig;
 	msg->tsigctx = xfr->tsigctx;
 	if (xfr->nmsg > 0)
@@ -1054,7 +1054,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		 * Reset msg->tsig so it doesn't get freed.
 		 */
 		msg->tsig = NULL;
-	} else if (msg->tsigkey != NULL) {
+	} else if (dns_message_gettsigkey(msg) != NULL) {
 		xfr->sincetsig++;
 		if (xfr->sincetsig > 100 ||
 		    xfr->nmsg == 0 || xfr->state == XFRST_END)

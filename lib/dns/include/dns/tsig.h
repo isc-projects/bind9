@@ -102,13 +102,27 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  */
 
 void
-dns_tsigkey_free(dns_tsigkey_t **key);
+dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp);
 /*
- *	Frees the tsig key structure pointed to by 'key'.
+ *	Attach '*targetp' to 'source'.
  *
  *	Requires:
  *		'key' is a valid TSIG key
- *		'ring' is a valid TSIG keyring containing the key
+ *
+ *	Ensures:
+ *		*targetp is attached to source.
+ */
+
+void
+dns_tsigkey_detach(dns_tsigkey_t **key);
+/*
+ *	Detaches from the tsig key structure pointed to by '*key'.
+ *
+ *	Requires:
+ *		'key' not NULL and '*key' is a valid TSIG key
+ *
+ *	Ensures:
+ *		'key' points to NULL
  */
 
 void

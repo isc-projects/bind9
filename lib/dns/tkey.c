@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.39 2000/05/24 23:13:23 bwelling Exp $
+ * $Id: tkey.c,v 1.40 2000/05/26 00:16:40 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -413,7 +413,7 @@ process_deletetkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	 */
 	dns_tsigkey_setdeleted(tsigkey);
 	/* Release the reference */
-	dns_tsigkey_free(&tsigkey);
+	dns_tsigkey_detach(&tsigkey);
 
 	return (ISC_R_SUCCESS);
 }
@@ -564,7 +564,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 		result = dns_tsigkey_find(&tsigkey, keyname, NULL, ring);
 		if (result == ISC_R_SUCCESS) {
 			tkeyout.error = dns_tsigerror_badname;
-			dns_tsigkey_free(&tsigkey);
+			dns_tsigkey_detach(&tsigkey);
 			goto failure_with_tkey;
 		}
 		else if (result != ISC_R_NOTFOUND)
@@ -849,6 +849,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	isc_buffer_t *shared = NULL, secret;
 	isc_region_t r, r2;
 	isc_result_t result;
+	isc_boolean_t freertkey = ISC_FALSE;
 
 	REQUIRE(qmsg != NULL);
 	REQUIRE(rmsg != NULL);
@@ -860,9 +861,10 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	REQUIRE(ring != NULL);
 
 	if (rmsg->rcode != dns_rcode_noerror)
-		return(ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
+		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
 	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, rmsg->mctx));
+	freertkey = ISC_TRUE;
 
 	RETERR(find_tkey(qmsg, &tempname, &qtkeyrdata,
 			 DNS_SECTION_ADDITIONAL));
@@ -875,9 +877,11 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	    rmsg->rcode != dns_rcode_noerror)
 	{
 		result = DNS_R_INVALIDTKEY;
-		dns_rdata_freestruct(&rtkey);
+		dns_rdata_freestruct(&qtkey);
 		goto failure;
 	}
+
+	dns_rdata_freestruct(&qtkey);
 
 	dns_name_init(&keyname, NULL);
 	dns_name_clone(dst_key_name(key), &keyname);
@@ -941,11 +945,19 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 				    NULL, rtkey.inception, rtkey.expire,
 				    rmsg->mctx, ring, outkey);
 	isc_buffer_free(&shared);
+	dns_rdata_freestruct(&rtkey);
+	dst_key_free(&theirkey);
 	return (result);
 
  failure:
 	if (shared != NULL)
 		isc_buffer_free(&shared);
+
+	if (theirkey != NULL)
+		dst_key_free(&theirkey);
+
+	if (freertkey)
+		dns_rdata_freestruct(&rtkey);
 
 	return (result);
 }
@@ -980,11 +992,16 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	    rmsg->rcode != dns_rcode_noerror)
 	{
 		result = DNS_R_INVALIDTKEY;
+		dns_rdata_freestruct(&qtkey);
 		dns_rdata_freestruct(&rtkey);
 		goto failure;
 	}
 
+	dns_rdata_freestruct(&qtkey);
+
 	RETERR(dns_tsigkey_find(&tsigkey, tkeyname, &rtkey.algorithm, ring));
+
+	dns_rdata_freestruct(&rtkey);
 
 	/*
 	 * Mark the key as deleted.
@@ -993,7 +1010,7 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	/*
 	 * Release the reference.
 	 */
-	dns_tsigkey_free(&tsigkey);
+	dns_tsigkey_detach(&tsigkey);
 
  failure:
 	return (result);

@@ -899,15 +899,20 @@ resquery_send(resquery_t *query) {
 	if (result == ISC_R_SUCCESS &&
 	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
 	{
-		result = dns_tsigkey_find(&fctx->qmessage->tsigkey,
-					  keyname, NULL,
+		dns_tsigkey_t *tsigkey = NULL;
+
+		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
 					  fctx->res->view->statickeys);
 		if (result == ISC_R_NOTFOUND)
-			result = dns_tsigkey_find(&fctx->qmessage->tsigkey,
-						 keyname, NULL,
+			result = dns_tsigkey_find(&tsigkey, keyname, NULL,
 						 fctx->res->view->dynamickeys);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 			goto cleanup_message;
+
+		if (tsigkey != NULL) {
+			dns_message_settsigkey(fctx->qmessage, tsigkey);
+			dns_tsigkey_detach(&tsigkey);
+		}
 	}
 
 	result = dns_message_rendersection(fctx->qmessage,
@@ -919,11 +924,11 @@ resquery_send(resquery_t *query) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 
-	if (fctx->qmessage->tsigkey != NULL) {
-		query->tsigkey = fctx->qmessage->tsigkey;
+	if (dns_message_gettsigkey(fctx->qmessage) != NULL) {
+		dns_tsigkey_attach(dns_message_gettsigkey(fctx->qmessage),
+				   &query->tsigkey);
 		query->tsig = fctx->qmessage->tsig;
 		fctx->qmessage->tsig = NULL;
-		fctx->qmessage->tsigkey = NULL;
 	}
 
 	/*
@@ -3484,7 +3489,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	/* BEW - clean this up at some point */
 	message->querytsig = query->tsig;
-	message->tsigkey = query->tsigkey;
+	dns_message_settsigkey(message, query->tsigkey);
 	query->tsig = NULL;
 
 	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);

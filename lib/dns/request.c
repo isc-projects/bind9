@@ -537,11 +537,10 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto cleanup;
 
 	message->id = id;
-	message->tsigkey = request->tsigkey;
+	dns_message_settsigkey(message, request->tsigkey);
 	result = req_render(message, &request->query, mctx);
 	request->tsig = message->tsig;
 	message->tsig = NULL;
-	message->tsigkey = NULL;
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
 		/*
@@ -725,7 +724,7 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 
 	message->querytsig = request->tsig;
 	request->tsig = NULL;
-	message->tsigkey = request->tsigkey;
+	dns_message_settsigkey(message, request->tsigkey);
 	return (dns_message_parse(message, request->answer, preserve_order));
 }
 
