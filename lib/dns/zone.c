@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.263 2000/11/29 14:03:29 marka Exp $ */
+/* $Id: zone.c,v 1.264 2000/12/01 03:20:00 marka Exp $ */
 
 #include <config.h>
 
@@ -413,6 +413,8 @@ static void zone_freedbargs(dns_zone_t *zone);
 static void forward_callback(isc_task_t *task, isc_event_t *event);
 static void zone_saveunique(dns_zone_t *zone, const char *path,
 			    const char *templat);
+static void zone_maintenance(dns_zone_t *zone);
+static void zone_notify(dns_zone_t *zone);
 
 
 #define ZONE_LOG(x,y) zone_log(zone, me, ISC_LOG_DEBUG(x), y)
@@ -1817,6 +1819,21 @@ void
 dns_zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "dns_zone_maintenance";
 	isc_stdtime_t now;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	DNS_ENTER;
+
+	LOCK(&zone->lock);
+	isc_stdtime_get(&now);
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
+		(void) zone_settimer(zone, now);
+	UNLOCK(&zone->lock);
+}
+
+static void
+zone_maintenance(dns_zone_t *zone) {
+	const char me[] = "zone_maintenance";
+	isc_stdtime_t now;
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1896,7 +1913,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_master:
 	case dns_zone_slave:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
-			dns_zone_notify(zone);
+			zone_notify(zone);
 		break;
 	default:
 		break;
@@ -2531,6 +2548,21 @@ zone_notifyforward(dns_zone_t *zone) {
 
 void
 dns_zone_notify(dns_zone_t *zone) {
+	isc_stdtime_t now;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	zone->flags |= DNS_ZONEFLG_NEEDNOTIFY;
+
+	isc_stdtime_get(&now);
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
+		(void) zone_settimer(zone, now);
+	UNLOCK(&zone->lock);
+}
+
+static void
+zone_notify(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_name_t *origin = NULL;
@@ -3617,7 +3649,7 @@ zone_timer(isc_task_t *task, isc_event_t *event) {
 
 	dns_zonemgr_lockconf(zone->zmgr, isc_rwlocktype_read);
 	/* XXX if we use a view, we need to lock its configuration, too. */
-	dns_zone_maintenance(zone);
+	zone_maintenance(zone);
 	dns_zonemgr_unlockconf(zone->zmgr, isc_rwlocktype_read);
 
 	isc_event_free(&event);
@@ -3674,13 +3706,17 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
 					  NULL, NULL, ISC_TRUE);
 	} else {
-		if (next <= now)
-			next = now + 1;
+		if (next <= now) {
+			next = now;
+			isc_time_now(&expires);
+			isc_interval_set(&interval, 0, 0);
+		} else {
+			isc_time_settoepoch(&expires);
+			isc_interval_set(&interval, next - now, 0);
+		}
 		zone_log(zone, me, ISC_LOG_DEBUG(10),
 			 "settimer %d %d = %d seconds",
 			 next, now, next - now);
-		isc_time_settoepoch(&expires);
-		isc_interval_set(&interval, next - now, 0);
 		result = isc_timer_reset(zone->timer, isc_timertype_once,
 					  &expires, &interval, ISC_TRUE);
 	}
