@@ -1,4 +1,5 @@
-1611.	[placeholder]	rt11065
+1611.	[bug]		solaris: IPv6 interface scanning failed to cope with
+			no active IPv6 interfaces.
 
 1610.	[bug]		On dual stack machines "dig -b" failed to set the
 			address type to be looked up with "@server".
