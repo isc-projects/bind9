@@ -1,3 +1,5 @@
+1418.	[bug]		'rndc reconfig' did not cause new slaves to load.
+
 1417.	[func]		ID.SERVER/CHAOS is now a built in zone.
 			See "server-id" for how to configure.
 
