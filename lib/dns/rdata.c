@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.52 1999/07/05 05:50:15 gson Exp $ */
+ /* $Id: rdata.c,v 1.53 1999/07/06 19:05:24 halley Exp $ */
 
 #include <config.h>
 
@@ -77,8 +77,11 @@ static dns_result_t	uint32_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
 static dns_result_t	uint16_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
+static dns_result_t	uint8_tobuffer(isc_uint32_t value,
+				       isc_buffer_t *target);
 static isc_uint32_t	uint32_fromregion(isc_region_t *region);
 static isc_uint16_t	uint16_fromregion(isc_region_t *region);
+static isc_uint8_t	uint8_fromregion(isc_region_t *region);
 static dns_result_t	gettoken(isc_lex_t *lexer, isc_token_t *token,
 				 isc_tokentype_t expect, isc_boolean_t eol);
 static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
