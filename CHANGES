@@ -6,6 +6,9 @@
 
 1101.	[bug]		Array bounds read error in lwres_gai_strerror.
 
+1099.	[cleanup]	libbind: defining REPORT_ERRORS in lib/bind/dst caused
+			compile time errors.
+
 1098.	[bug]		libbind: HMAC-MD5 key files are now mode 0600.
 
 1093.	[doc]		libbind: miscellaneous nroff fixes.

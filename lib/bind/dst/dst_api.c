@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.1 2001/11/02 21:35:30 gson Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.2 2001/11/02 21:38:18 gson Exp $";
 #endif
 
 /*
@@ -431,7 +431,7 @@ dst_s_write_private_key(const DST_KEY *key)
 		int nn;
 		if ((nn = fwrite(encoded_block, 1, len, fp)) != len) {
 			EREPORT(("dst_write_private_key(): Write failure on %s %d != %d errno=%d\n",
-				 file, out_len, nn, errno));
+				 file, len, nn, errno));
 			return (-5);
 		}
 		fclose(fp);
