@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.10 2004/03/05 05:03:12 marka Exp $ */
+/* $Id: keycreate.c,v 1.10.18.1 2004/06/11 00:30:12 marka Exp $ */
 
 #include <config.h>
 
@@ -75,6 +75,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *query, *response;
 	char keyname[256];
 	isc_buffer_t keynamebuf;
+	int type;
 
 	UNUSED(task);
 
@@ -115,8 +116,8 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	CHECK("dst_key_buildfilename", result);
 	printf("%.*s\n", (int)isc_buffer_usedlength(&keynamebuf),
 	       (char *)isc_buffer_base(&keynamebuf));
-	result = dst_key_tofile(tsigkey->key,
-				DST_TYPE_PRIVATE | DST_TYPE_PUBLIC, "");
+	type = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_KEY;
+	result = dst_key_tofile(tsigkey->key, type, "");
 	CHECK("dst_key_tofile", result);
 
 	dns_message_destroy(&query);
@@ -209,6 +210,7 @@ main(int argc, char *argv[]) {
 	isc_logconfig_t *logconfig;
 	isc_task_t *task;
 	isc_result_t result;
+	int type;
 
 	RUNCHECK(isc_app_start());
 
@@ -280,9 +282,8 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_app_onrun(mctx, task, sendquery, NULL));
 
 	ourkey = NULL;
-	result = dst_key_fromnamedfile(ourkeyname, 
-				       DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
-				       mctx, &ourkey);
+	type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
+	result = dst_key_fromnamedfile(ourkeyname, type, mctx, &ourkey);
 	CHECK("dst_key_fromnamedfile", result);
 
 	isc_buffer_init(&nonce, noncedata, sizeof(noncedata));

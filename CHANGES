@@ -3,6 +3,15 @@
 1656.	[doc]		Update DNSSEC description in ARM to cover DS, NSEC
 			DNSKEY and RRSIG.  [RT #11542]
 
+1654.	[bug]		isc_result_totext() contained array bounds read
+			error.
+
+1653.	[func]		Add key type checking to dst_key_fromfilename(),
+			DST_TYPE_KEY should be used to read TSIG, TKEY and
+			SIG(0) keys.
+
+1652.	[bug]		TKEY still uses KEY.
+
 1651.	[bug]		dig: process multiple dash options.
 
 1650.	[bug]		dig, nslookup: flush standard out after each command.
