@@ -111,11 +111,6 @@ isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	return (h);
 }
 
-/*
- * v6v4addr is used when creating IPv4-mapped IPv6 addresses.
- */
-static struct in6_addr v6v4addr = {{{ 0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0 }}};
-
 void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
 		    unsigned int port)
@@ -155,7 +150,8 @@ isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
 #ifdef ISC_NET_HAVESALEN
 	sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
 #endif
-	sockaddr->type.sin6.sin6_addr = v6v4addr;
+	sockaddr->type.sin6.sin6_addr.s6_addr[10] = 0xff;
+	sockaddr->type.sin6.sin6_addr.s6_addr[11] = 0xff;
 	memcpy(&sockaddr->type.sin6.sin6_addr.s6_addr[12], ina, 4);
 	sockaddr->type.sin6.sin6_port = htons(port);
 	sockaddr->length = sizeof sockaddr->type.sin6;
