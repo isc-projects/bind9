@@ -967,6 +967,13 @@ test_dns_name_fullcompare(char *name1, char *name2, dns_namereln_t exp_dns_reln,
 					dns_namereln_to_text(exp_dns_reln),
 					dns_namereln_to_text(dns_reln));
 			}
+			/*
+			 * Normalize order.
+			 */
+			if (order < 0)
+				order = -1;
+			else if (order > 0)
+				order = 1;
 			if (order != exp_order) {
 				++nfails;
 				t_info("expected ordering %d, got %d\n",
@@ -1094,7 +1101,13 @@ test_dns_name_compare(char *name1, char *name2, int exp_order) {
 		dns_result = dname_from_tname(name2, &dns_name2);
 		if (dns_result == ISC_R_SUCCESS) {
 			order = dns_name_compare(&dns_name1, &dns_name2);
-			
+			/*
+			 * Normalize order.
+			 */
+			if (order < 0)
+				order = -1;
+			else if (order > 0)
+				order = 1;
 			if (order != exp_order) {
 				t_info("expected order of %d, got %d\n",
 						exp_order, order);
@@ -1192,7 +1205,13 @@ test_dns_name_rdatacompare(char *name1, char *name2, int exp_order) {
 		dns_result = dname_from_tname(name2, &dns_name2);
 		if (dns_result == ISC_R_SUCCESS) {
 			order = dns_name_rdatacompare(&dns_name1, &dns_name2);
-			
+			/*
+			 * Normalize order.
+			 */
+			if (order < 0)
+				order = -1;
+			else if (order > 0)
+				order = 1;
 			if (order != exp_order) {
 				t_info("expected order of %d, got %d\n",
 						exp_order, order);
