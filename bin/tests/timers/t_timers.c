@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.18 2001/01/09 21:46:13 bwelling Exp $ */
+/* $Id: t_timers.c,v 1.19 2001/04/12 21:31:38 tale Exp $ */
 
 #include <config.h>
 
@@ -358,8 +358,7 @@ t1(void) {
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
-#endif
-	
+#else
 	t_assert("isc_timer_create", 1, T_REQUIRED, a1);
 
 	Tx_nfails	= 0;
@@ -380,6 +379,7 @@ t1(void) {
 		result = T_FAIL;
 
 	t_result(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 #define	T2_SECONDS	5
@@ -402,8 +402,7 @@ t2(void) {
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
-#endif
-	
+#else
 	t_assert("isc_timer_create", 2, T_REQUIRED, a2);
 
 	Tx_nfails	= 0;
@@ -432,6 +431,7 @@ t2(void) {
 		result = T_FAIL;
 
 	t_result(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static void
@@ -530,8 +530,7 @@ t3(void) {
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
-#endif
-	
+#else
 	t_assert("isc_timer_create", 3, T_REQUIRED, a3);
 
 	Tx_nfails	= 0;
@@ -561,6 +560,7 @@ t3(void) {
 		result = T_FAIL;
 
 	t_result(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 #define	T4_SECONDS	2
@@ -695,8 +695,7 @@ t4(void) {
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
-#endif
-	
+#else
 	Tx_nfails = 0;
 	Tx_nprobs = 0;
 	Tx_nevents = 3;
@@ -716,6 +715,7 @@ t4(void) {
 		result = T_FAIL;
 
 	t_result(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 #define	T5_NTICKS	4
@@ -889,8 +889,7 @@ t_timers5(void) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-
+#else
 	T5_startflag = 0;
 	T5_shutdownflag = 0;
 	T5_eventcnt = 0;
@@ -1104,6 +1103,7 @@ t_timers5(void) {
 		result = T_FAIL;
 
 	return(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a5 =

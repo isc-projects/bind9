@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.23 2001/02/13 18:55:19 gson Exp $ */
+/* $Id: t_tasks.c,v 1.24 2001/04/12 21:31:36 tale Exp $ */
 
 #include <config.h>
 
@@ -470,8 +470,7 @@ t_tasks2(void) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-	
+#else	
 	T2_manager = NULL;
 	T2_done = 0;
 	T2_nprobs = 0;
@@ -554,6 +553,7 @@ t_tasks2(void) {
 		result = T_FAIL;
 
 	return(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a2 = "The task subsystem can create ISC_TASKS_MIN tasks";
@@ -662,8 +662,7 @@ t_tasks3(void) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-
+#else
 	T3_flag = 0;
 	T3_nevents = 0;
 	T3_nsdevents = 0;
@@ -815,6 +814,7 @@ t_tasks3(void) {
 		result = T_PASS;
 
 	return(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a3 =	"When isc_task_shutdown() is called, any shutdown "
@@ -888,8 +888,7 @@ t_tasks4(void) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-	
+#else
 	T4_nprobs = 0;
 	T4_nfails = 0;
 	T4_flag = 0;
@@ -1011,6 +1010,7 @@ t_tasks4(void) {
 		result = T_PASS;
 
 	return(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a4 =
@@ -1092,8 +1092,7 @@ t_tasks7(void) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-	
+#else
 	T7_nprobs = 0;
 	T7_nfails = 0;
 	T7_sdflag = 0;
@@ -1238,6 +1237,7 @@ t_tasks7(void) {
 		result = T_PASS;
 
 	return(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a7 =	"A call to isc_task_create() creates a task that can "
@@ -1661,8 +1661,7 @@ t_tasks10(void) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-	
+#else
 	T10_nprobs = 0;
 	T10_nfails = 0;
 
@@ -1707,6 +1706,7 @@ t_tasks10(void) {
 		result = T_FAIL;
 
 	return(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a10 =
@@ -1823,8 +1823,7 @@ t_tasks11(int purgable) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-
+#else
 	T11_startflag = 0;
 	T11_shutdownflag = 0;
 	T11_eventcnt = 0;
@@ -1989,6 +1988,7 @@ t_tasks11(int purgable) {
 		result = T_FAIL;
 
 	return(result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a11 =
@@ -2041,8 +2041,7 @@ t_tasks13(void) {
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
-#endif
-	
+#else
 	T13_nfails = 0;
 	T13_nprobs = 0;
 
@@ -2125,6 +2124,7 @@ t_tasks13(void) {
 		result = T_FAIL;
 
 	return (result);
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static void
