@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: app.c,v 1.18 2000/06/27 21:04:12 gson Exp $ */
+/* $Id: app.c,v 1.19 2000/06/29 07:40:58 explorer Exp $ */
 
 #include <config.h>
 
@@ -418,14 +418,14 @@ isc_app_reload(void) {
 		result = pthread_kill(main_thread, SIGHUP);
 		if (result != 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_app_shutdown() pthread_kill: %s",
+					 "isc_app_reload() pthread_kill: %s",
 					 strerror(result));
 			return (ISC_R_UNEXPECTED);
 		}
 #else
 		if (kill(getpid(), SIGHUP) < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_app_shutdown() kill: %s",
+					 "isc_app_reload() kill: %s",
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
 		}
