@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.195 2001/11/14 21:56:58 gson Exp $ */
+/* $Id: client.c,v 1.196 2001/11/14 23:15:22 gson Exp $ */
 
 #include <config.h>
 
@@ -460,7 +460,6 @@ exit_check(ns_client_t *client) {
 			    ISC_LIST_EMPTY(manager->inactive) &&
 			    ISC_LIST_EMPTY(manager->recursing))
 				destroy_manager = manager;
-			UNLOCK(&manager->lock);
 		}
 		/*
 		 * Detaching the task must be done after unlinking from
