@@ -1,3 +1,7 @@
+ 124.   [func]		signer now imports parent's zone key signature
+			and creates null keys/sets zone status bit for
+			children when necessary
+
  123.   [cleanup]       <isc/event.h> does not need <stddef.h>.
 
  122.   [cleanup]       <isc/task.h> does not need <isc/mem.h> or
