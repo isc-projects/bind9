@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.159 2001/09/11 00:58:15 marka Exp $ */
+/* $Id: dig.c,v 1.160 2001/09/12 21:48:41 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1147,7 +1147,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				while ((bargv[bargc] != NULL) &&
 				       (bargc < 62)) {
 					bargc++;
-					bargv[bargc] = next_token(&input, " \t\r\n");
+					bargv[bargc] =
+						next_token(&input, " \t\r\n");
 				}
 
 				bargv[0] = argv[0];
@@ -1205,7 +1206,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					tr.base = rv[0];
 					tr.length = strlen(rv[0]);
 					result = dns_rdatatype_fromtext(&rdtype,
-						     	(isc_textregion_t *)&tr);
+					     	(isc_textregion_t *)&tr);
 					if (result == ISC_R_SUCCESS &&
 					    rdtype == dns_rdatatype_ixfr)
 					{
@@ -1223,21 +1224,24 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 							"extra type option\n");
 					}
 					if (rdtype == dns_rdatatype_ixfr) {
-						lookup->rdtype = dns_rdatatype_ixfr;
+						lookup->rdtype =
+							dns_rdatatype_ixfr;
 						lookup->rdtypeset = ISC_TRUE;
 						lookup->ixfr_serial =
 							parse_uint(&rv[0][5],
 							  	"serial number",
 							  	MAXSERIAL);
-						lookup->section_question = plusquest;
+						lookup->section_question =
+							plusquest;
 						lookup->comments = pluscomm;
 					} else {
 						lookup->rdtype = rdtype;
 						lookup->rdtypeset = ISC_TRUE;
-						if (rdtype == dns_rdatatype_axfr) {
-							lookup->section_question =
+						if (rdtype ==
+						    dns_rdatatype_axfr) {
+						    lookup->section_question =
 								plusquest;
-							lookup->comments = pluscomm;
+						    lookup->comments = pluscomm;
 						}
 						lookup->ixfr_serial = ISC_FALSE;
 					}
