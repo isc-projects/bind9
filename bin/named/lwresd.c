@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.44 2003/04/17 06:39:33 marka Exp $ */
+/* $Id: lwresd.c,v 1.45 2003/05/05 07:16:44 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -432,6 +432,7 @@ ns_lwdmanager_detach(ns_lwresd_t **lwresdp) {
 	INSIST(VALID_LWRESD(*lwresdp));
 
 	lwresd = *lwresdp;
+	*lwresdp = NULL;
 
 	LOCK(&lwresd->lock);
 	INSIST(lwresd->refs > 0);
@@ -450,7 +451,6 @@ ns_lwdmanager_detach(ns_lwresd_t **lwresdp) {
 	lwresd->magic = 0;
 	isc_mem_put(mctx, lwresd, sizeof(*lwresd));
 	isc_mem_detach(&mctx);
-	*lwresdp = NULL;
 }
 
 
@@ -821,11 +821,13 @@ ns_lwresd_configure(isc_mem_t *mctx, cfg_obj_t *config) {
 	while (!ISC_LIST_EMPTY(listeners)) {
 		listener = ISC_LIST_HEAD(listeners);
 		ISC_LIST_UNLINK(listeners, listener, link);
-		listener_shutdown(listener);
-		ns_lwreslistener_detach(&listener);
 
 		isc_sockaddr_format(&listener->address,
 				    socktext, sizeof(socktext));
+
+		listener_shutdown(listener);
+		ns_lwreslistener_detach(&listener);
+
 		isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_LWRESD, ISC_LOG_NOTICE,
 			      "lwres no longer listening on %s", socktext);
