@@ -1,3 +1,6 @@
+1066.	[bug]		Provide a thread safe wrapper for strerror().
+			[RT #1689]
+
 1065.	[func]		Runtime support to select new / old style interface
 			scanning using ioctls.
 
