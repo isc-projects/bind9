@@ -2587,7 +2587,7 @@ description of size_spec in Configuration File Elements for more details.
 
  recursive-clients The maximum number of simultaneous recursive lookups the
                    server will perform on behalf of clients. The default is
-                   100.
+                   1000.
 
  stacksize         The maximum amount of stack memory the server may use.
                    The default is default. Not yet implemented in BIND 9.
