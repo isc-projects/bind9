@@ -8,7 +8,7 @@ peter		private		peter		(hostname.bind for 9.2.x)
 openssl_stub	open		marka
 chroot		open		marka
 edns_size	review		explorer
-rt4347		open		marka
+rt4347		review		explorer
 slavefix	review		explorer
 
 a6_remove	closed
