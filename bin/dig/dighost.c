@@ -62,7 +62,7 @@ in_port_t port = 53;
 unsigned int timeout = 5;
 isc_mem_t *mctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
-isc_task_t *task = NULL;
+isc_task_t *global_task = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
 isc_sockaddr_t bind_address;
@@ -478,7 +478,7 @@ setup_libs(void) {
 	result = isc_taskmgr_create (mctx, 1, 0, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
-	result = isc_task_create (taskmgr, 0, &task);
+	result = isc_task_create (taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
 
 	result = isc_timermgr_create (mctx, &timermgr);
@@ -989,7 +989,7 @@ cancel_lookup(dig_lookup_t *lookup) {
 			debug ("Cancelling a worker.");
 		}
 		if (query->sock != NULL) {
-			isc_socket_cancel(query->sock, task,
+			isc_socket_cancel(query->sock, global_task,
 					  ISC_SOCKCANCEL_ALL);
 			isc_socket_detach(&query->sock);
 			sockcount--;
@@ -1016,8 +1016,8 @@ send_udp(dig_lookup_t *lookup) {
 
 	isc_interval_set(&lookup->interval, timeout, 0);
 	result = isc_timer_create(timermgr, isc_timertype_once, NULL,
-				  &lookup->interval, task, connect_timeout,
-				  lookup, &lookup->timer);
+				  &lookup->interval, global_task,
+				  connect_timeout, lookup, &lookup->timer);
 	check_result(result, "isc_timer_create");
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
@@ -1030,7 +1030,7 @@ send_udp(dig_lookup_t *lookup) {
 		       (long int)query->lookup, (long int)query,
 		       (long int)query->sock);
 		result = isc_socket_recvv(query->sock, &query->recvlist, 1,
-					  task, recv_done, query);
+					  global_task, recv_done, query);
 		check_result(result, "isc_socket_recvv");
 		sendcount++;
 		debug("Sent count number %d", sendcount);
@@ -1045,7 +1045,7 @@ send_udp(dig_lookup_t *lookup) {
 		check_result(result, "isc_time_now");
 		ENSURE (query->sock != NULL);
 		result = isc_socket_sendtov(query->sock, &query->sendlist,
-					    task, send_done, query,
+					    global_task, send_done, query,
 					    &query->sockaddr, NULL);
 		check_result(result, "isc_socket_sendtov");
 	}
@@ -1225,16 +1225,16 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	}
 	ISC_LIST_ENQUEUE(query->lengthlist, &query->lengthbuf, link);
 
-	result = isc_socket_recvv(query->sock, &query->lengthlist, 0, task,
-				  tcp_length_done, query);
+	result = isc_socket_recvv(query->sock, &query->lengthlist, 0,
+				  global_task, tcp_length_done, query);
 	check_result(result, "isc_socket_recvv");
 	sendcount++;
 	if (!query->first_soa_rcvd) {
 		debug("Sending a request.");
 		result = isc_time_now(&query->time_sent);
 		check_result(result, "isc_time_now");
-		result = isc_socket_sendv(query->sock, &query->sendlist, task,
-					  send_done, query);
+		result = isc_socket_sendv(query->sock, &query->sendlist,
+					  global_task, send_done, query);
 		check_result(result, "isc_socket_recvv");
 	}
 	query->waiting_connect = ISC_FALSE;
@@ -1538,8 +1538,8 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 	lookup->pending = ISC_TRUE;
 	isc_interval_set(&lookup->interval, timeout, 0);
 	result = isc_timer_create(timermgr, isc_timertype_once, NULL,
-				  &lookup->interval, task, connect_timeout,
-				  lookup, &lookup->timer);
+				  &lookup->interval, global_task,
+				  connect_timeout, lookup, &lookup->timer);
 	check_result(result, "isc_timer_create");
 
 	for (query = ISC_LIST_HEAD(lookup->q);
@@ -1561,7 +1561,7 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 			check_result(result, "isc_socket_bind");
 		}
 		result = isc_socket_connect(query->sock, &query->sockaddr,
-					    task, connect_done, query);
+					    global_task, connect_done, query);
 		check_result (result, "isc_socket_connect");
 	}
 }
@@ -1699,8 +1699,8 @@ free_lists(int _exitcode) {
 		isc_socketmgr_destroy(&socketmgr);
 	if (timermgr != NULL)
 		isc_timermgr_destroy(&timermgr);
-	if (task != NULL)
-		isc_task_detach(&task);
+	if (global_task != NULL)
+		isc_task_detach(&global_task);
 	if (taskmgr != NULL)
 		isc_taskmgr_destroy(&taskmgr);
 

@@ -48,10 +48,6 @@ extern isc_boolean_t have_ipv6, show_details, specified_source,
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
-extern isc_taskmgr_t *taskmgr;
-extern isc_task_t *task;
-extern isc_timermgr_t *timermgr;
-extern isc_socketmgr_t *socketmgr;
 extern dns_messageid_t id;
 extern char *rootspace[BUFSIZE];
 extern isc_buffer_t rootbuf;
