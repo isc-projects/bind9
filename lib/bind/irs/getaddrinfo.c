@@ -1100,6 +1100,7 @@ ip6_str2scopeid(char *scope, struct sockaddr_in6 *sin6,
 		 */
 		scopeid = if_nametoindex(scope);
 		if (scopeid == 0)
+			goto trynumeric;
 		*scopeidp = scopeid;
 		return (1);
 	}
