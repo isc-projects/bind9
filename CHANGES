@@ -1,3 +1,5 @@
+ 785.	[bug]		A race condition in the resolver could cause
+			an assertion failure. [RT #673, #872, #1048]
 
  783.	[bug]		Following CNAMEs could cause an assertion failure
 			when either using an sdb database or under very
