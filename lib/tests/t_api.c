@@ -242,7 +242,8 @@ main(int argc, char **argv)
 						deadpid = waitpid(T_pid, &status, 0);
 						if (deadpid == T_pid) {
 							if (WIFSIGNALED(status)) {
-								t_info("the test case caught an exception\n");
+								t_info("the test case caught an exception %d\n",
+									WTERMSIG(status));
 								t_result(T_UNRESOLVED);
 							}
 						}
