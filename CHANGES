@@ -1,3 +1,6 @@
+1124.	[doc]		dig: +[no]dnssec, +[no]besteffort and +[no]fail
+			now documented. [RT #2052]
+
 1123.	[bug]		dig +[no]fail did not match description. [RT #2052]
 
 1122.	[tuning]	Resolution timeout reduced from 90 to 30 seconds.
