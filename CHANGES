@@ -1,3 +1,6 @@
+1340.	[doc]		query-source-v6 was missing from options section.
+			[RT #3218]
+
 1339.	[func]		libbind: log attempts to exploit #1338.
 
 1338.	[bug]		libbind: Remote buffer overrun.
