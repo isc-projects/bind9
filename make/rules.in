@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.30 2001/03/27 17:48:48 halley Exp $
+# $Id: rules.in,v 1.31 2001/03/27 19:37:21 halley Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -70,7 +70,7 @@ subdirs:
 		fi \
 	done
 
-install clean distclean superclean man manclean::
+install clean distclean maintainer-clean doc docclean man manclean::
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making $@ in `pwd`/$$i"; \
@@ -122,17 +122,14 @@ PURIFY = @PURIFY@
 MKDEP = ${SHELL} ${top_builddir}/make/mkdep
 
 cleandir: distclean
+superclean: maintainer-clean
 
-clean distclean::
+clean distclean maintainer-clean::
 	rm -f *.@O@ *.lo *.la core *.core
 	rm -rf .libs
 
-distclean::
+distclean maintainer-clean::
 	rm -f Makefile
-
-superclean:: manclean distclean
-
-manclean:: FORCE
 
 depend:
 	@for i in ${ALL_SUBDIRS}; do \
