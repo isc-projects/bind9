@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2000/07/07 18:25:16 bwelling Exp $
+# $Id: tests.sh,v 1.6 2000/07/07 22:45:22 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -24,26 +24,19 @@ SYSTEMTESTTOP=..
 # Perform tests
 #
 
-# sleep 5
+status=0
 
-status=0;
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd data.child.example. \
-	@10.53.0.3 axfr -p 5300 > dig.out.ns3
-status=`expr $status + $?`
-grep "; Transfer failed." dig.out.ns3 > /dev/null
-status=`expr $status + $?`
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
+grep "; Transfer failed." dig.out.ns3 > /dev/null || status=1
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3
-status=`expr $status + $?`
-$PERL ../digcomp.pl knowngood.dig.out.norec dig.out.ns3
-status=`expr $status + $?`
+	data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3 || status=1
+$PERL ../digcomp.pl knowngood.dig.out.norec dig.out.ns3 || status=1
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +rec \
-	data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3
-status=`expr $status + $?`
-$PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns3
-status=`expr $status + $?`
+	data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3 || status=1
+$PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns3 || status=1
 
 echo "I:exit status: $status"
 exit $status
