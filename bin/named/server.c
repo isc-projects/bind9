@@ -47,6 +47,7 @@
 #include <arpa/inet.h>
 
 #include "udpclient.h"
+#include "tcpclient.h"
 
 isc_mem_t *mctx = NULL;
 
@@ -56,10 +57,11 @@ main(int argc, char *argv[])
 	isc_taskmgr_t *manager = NULL;
 	unsigned int workers;
 	isc_socketmgr_t *socketmgr;
-	isc_socket_t *so1;
+	isc_socket_t *so0, *so1;
 	isc_sockaddr_t sockaddr;
 	unsigned int addrlen;
-	udp_listener_t *l;
+	udp_listener_t *ludp;
+	tcp_listener_t *ltcp;
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(5544);
@@ -82,18 +84,37 @@ main(int argc, char *argv[])
 	/*
 	 * open up a UDP socket
 	 */
+	so0 = NULL;
+	memset(&sockaddr, 0, sizeof(sockaddr));
+	sockaddr.type.sin.sin_family = AF_INET;
+	sockaddr.type.sin.sin_port = htons(5544);
+	addrlen = sizeof(struct sockaddr_in);
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_udp, &so0) ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_bind(so0, &sockaddr,
+				      (int)addrlen) == ISC_R_SUCCESS);
+
+	ludp = udp_listener_allocate(mctx, workers);
+	RUNTIME_CHECK(udp_listener_start(ludp, so0, manager, workers,
+					 workers, 0) == ISC_R_SUCCESS);
+
+	isc_mem_stats(mctx, stdout);
+
+	/*
+	 * open up a TCP socket
+	 */
 	so1 = NULL;
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_family = AF_INET;
 	sockaddr.type.sin.sin_port = htons(5544);
 	addrlen = sizeof(struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_udp, &so1) ==
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp, &so1) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_bind(so1, &sockaddr,
 				      (int)addrlen) == ISC_R_SUCCESS);
 
-	l = udp_listener_allocate(mctx, workers);
-	RUNTIME_CHECK(udp_listener_start(l, so1, manager, workers,
+	ltcp = tcp_listener_allocate(mctx, workers);
+	RUNTIME_CHECK(tcp_listener_start(ltcp, so1, manager, workers,
 					 workers, 0) == ISC_R_SUCCESS);
 
 	isc_mem_stats(mctx, stdout);

@@ -5,6 +5,13 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+
+#include <arpa/inet.h>
+
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
@@ -14,21 +21,6 @@
 #include <isc/socket.h>
 #include <isc/timer.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
-#include <dns/rdata.h>
-#include <dns/rdatalist.h>
-#include <dns/rdataset.h>
-#include <dns/compress.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
-
 #define LOCK(lp) \
 	RUNTIME_CHECK(isc_mutex_lock((lp)) == ISC_R_SUCCESS)
 #define UNLOCK(lp) \
@@ -37,9 +29,9 @@
 #include "udpclient.h"
 
 /*
- * XXX see note about debugging below
+ * For debugging only... XXX
  */
-static void dump_packet(char *buf, u_int len);
+void dump_packet(char *buf, u_int len);
 
 static udp_cctx_t *udp_cctx_allocate(isc_mem_t *mctx);
 static void udp_cctx_free(udp_cctx_t *ctx);
@@ -66,7 +58,6 @@ udp_cctx_allocate(isc_mem_t *mctx)
 
 	ctx->slot = 0;
 	ctx->mctx = mctx;
-	ctx->count = 0; /* XXX */
 
 	return (ctx);
 }
@@ -150,17 +141,6 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 
 	isc_socket_recv(sock, &dev->region, ISC_FALSE,
 			task, udp_recv, event->arg);
-
-	/*
-	 * Hack.  Shutdown after we've received (slot + 1) * 2
-	 * queries.
-	 */
-	ctx->count++;
-	if (ctx->count == (ctx->slot + 1) * 2) {
-
-		isc_socket_cancel(ctx->parent->sock, task, ISC_SOCKCANCEL_ALL);
-		printf("Shutting down slot %u\n", ctx->slot);
-	}
 
 	isc_event_free(&event);
 }
@@ -254,56 +234,4 @@ udp_listener_start(udp_listener_t *l,
 	UNLOCK(&l->lock);
 
 	return (ISC_R_SUCCESS);
-}
-
-/*
- * XXX All of the following is for debugging only, and will eventually
- * be in a library or removed when we really answer queries.
- */
-typedef struct dns_message {
-	unsigned int		id;
-	unsigned int		flags;
-	unsigned int		qcount;
-	unsigned int		ancount;
-	unsigned int		aucount;
-	unsigned int		adcount;
-	dns_namelist_t		question;
-	dns_namelist_t		answer;
-	dns_namelist_t		authority;
-	dns_namelist_t		additional;
-} dns_message_t;
-
-/*
- * in wire_test.c
- */
-void getmessage(dns_message_t *message, isc_buffer_t *source,
-		isc_buffer_t *target);
-dns_result_t printmessage(dns_message_t *message);
-
-static void
-dump_packet(char *buf, u_int len)
-{
-	extern dns_decompress_t dctx;
-	extern unsigned int rdcount, rlcount, ncount;
-	char t[5000]; /* XXX */
-	dns_message_t message;
-	dns_result_t result;
-	isc_buffer_t source, target;
-
-	rdcount = 0;
-	rlcount = 0;
-	ncount = 0;
-
-	dctx.allowed = DNS_COMPRESS_GLOBAL14;
-	dns_name_init(&dctx.owner_name, NULL);
-
-	isc_buffer_init(&source, buf, len, ISC_BUFFERTYPE_BINARY);
-	isc_buffer_add(&source, len);
-	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
-
-	getmessage(&message, &source, &target);
-	result = printmessage(&message);
-	if (result != DNS_R_SUCCESS)
-		printf("printmessage() failed: %s\n",
-		       dns_result_totext(result));
 }
