@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.6 2001/11/13 18:36:04 gson Exp $ */
+/* $Id: check.c,v 1.14.2.7 2001/12/13 06:47:48 marka Exp $ */
 
 #include <config.h>
 
@@ -114,6 +114,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "allow-notify", SLAVEZONE },
 	{ "allow-transfer", MASTERZONE | SLAVEZONE },
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
