@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.75 2000/07/24 18:07:01 mws Exp $ */
+/* $Id: dig.c,v 1.76 2000/07/24 20:46:55 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -566,7 +566,8 @@ reorder_args(int argc, char *argv[]) {
  * that routine.
  */
 static void
-parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
+parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
+	   int argc, char **argv) {
 	isc_boolean_t have_host = ISC_FALSE;
 	isc_result_t result;
 	isc_textregion_t tr;
@@ -599,6 +600,33 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (!is_batchfile) {
 		debug("making new lookup");
 		default_lookup = make_empty_lookup();
+
+		/*
+		 * Treat .digrc as a special batchfile
+		 * XXXMWS should check $HOME in some portable way
+		 */
+		batchfp = fopen(".digrc", "r");
+		if (batchfp != NULL) {
+			while (fgets(batchline, sizeof(batchline),
+				     batchfp) != 0) {
+				debug("config line %s", batchline);
+				bargc = 1;
+				bargv[bargc] = strtok(batchline, " \t\r\n");
+				while ((bargv[bargc] != NULL) &&
+				       (bargc < 14)) {
+					bargc++;
+					bargv[bargc] = strtok(NULL, " \t\r\n");
+				}
+				
+				bargv[0] = argv[0];
+				argv0 = argv[0];
+				
+				reorder_args(bargc, (char **)bargv);
+				parse_args(ISC_TRUE, ISC_TRUE, bargc,
+					   (char **)bargv);
+			}
+			fclose(batchfp);
+		}
 	}
 
 	lookup = default_lookup;
@@ -901,7 +929,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			isc_mem_debugging = 1;
 		} else if (strcmp(rv[0], "-debug") == 0) {
 			debugging = ISC_TRUE;
-		} else if (strncmp(rv[0], "-x", 2) == 0) {
+		} else if ((strncmp(rv[0], "-x", 2) == 0) &&
+			   !config_only) {
 			/*
 			 * XXXMWS Only works for ipv4 now.
 			 * Can't use inet_pton here, since we allow
@@ -957,14 +986,16 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				lookup->rdclass = rdclass;
 				continue;
 			}
-			lookup=clone_lookup(default_lookup, ISC_TRUE);
-			strncpy(lookup->textname, rv[0], MXNAME-1);
-			lookup->trace_root = ISC_TF(lookup->trace  ||
-						    lookup->ns_search_only);
-			lookup->new_search = ISC_TRUE;
-			ISC_LIST_APPEND(lookup_list, lookup, link);
-			have_host = ISC_TRUE;
-			debug("looking up %s", lookup->textname);
+			if (!config_only) {
+				lookup=clone_lookup(default_lookup, ISC_TRUE);
+				strncpy(lookup->textname, rv[0], MXNAME-1);
+				lookup->trace_root = ISC_TF(lookup->trace  ||
+						     lookup->ns_search_only);
+				lookup->new_search = ISC_TRUE;
+				ISC_LIST_APPEND(lookup_list, lookup, link);
+				have_host = ISC_TRUE;
+				debug("looking up %s", lookup->textname);
+			}
 		}
 	}
 	/* 
@@ -993,10 +1024,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			argv0 = argv[0];
 
 			reorder_args(bargc, (char **)bargv);
-			parse_args(ISC_TRUE, bargc, (char **)bargv);
+			parse_args(ISC_TRUE, ISC_FALSE, bargc, (char **)bargv);
 		}
 	}
-	if (lookup_list.head == NULL) {
+	if ((lookup_list.head == NULL) && !config_only) {
 		lookup=clone_lookup(default_lookup, ISC_TRUE);
 		lookup->trace_root = ISC_TF(lookup->trace ||
 					    lookup->ns_search_only);
@@ -1005,7 +1036,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->rdtype = dns_rdatatype_ns;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
-	printgreeting(argc, argv);
+	if (!config_only)
+		printgreeting(argc, argv);
 }
 
 /*
@@ -1044,7 +1076,7 @@ dighost_shutdown(void) {
 		bargv[0] = argv0;
 		
 		reorder_args(bargc, (char **)bargv);
-		parse_args(ISC_TRUE, bargc, (char **)bargv);
+		parse_args(ISC_TRUE, ISC_FALSE, bargc, (char **)bargv);
 		start_lookup();
 	} else {
 		batchname = NULL;
@@ -1068,7 +1100,7 @@ main(int argc, char **argv) {
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
 	setup_libs();
-	parse_args(ISC_FALSE, argc, argv);
+	parse_args(ISC_FALSE, ISC_FALSE, argc, argv);
 	setup_system();
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
