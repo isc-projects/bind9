@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.27 2000/05/05 05:49:58 marka Exp $ */
+/* $Id: ns_2.c,v 1.28 2000/05/05 17:24:21 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -154,7 +154,7 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&ns->name, NULL);
-	RETERR(name_duporclone(&name, ns->mctx, &ns->name));
+	RETERR(name_duporclone(&name, mctx, &ns->name));
 	ns->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
