@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.9 2003/08/22 06:24:21 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.10 2003/08/22 06:26:19 marka Exp $ */
 
 #include <config.h>
 
@@ -550,6 +550,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	ns_listenelt_t *le;
 	isc_sockaddr_t listen_addr;
 	ns_interface_t *ifp;
+	isc_boolean_t log_explicit = ISC_FALSE;
 
 	if (ext_listen != NULL)
 		adjusting = ISC_TRUE;
@@ -582,10 +583,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	if (scan_ipv6 == ISC_TRUE &&
 	    isc_net_probe_ipv6only() != ISC_R_SUCCESS) {
 		ipv6only = ISC_FALSE;
-		isc_log_write(IFMGR_COMMON_LOGARGS,
-			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
-			      "IPv6-only option is not available."
-			      "  use explicit binding");
+		log_explicit = ISC_TRUE;
 	}
 #endif
 	if (scan_ipv6 == ISC_TRUE && ipv6only) {
@@ -761,6 +759,17 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 				    ipv6_wildcard == ISC_TRUE)
 					continue;
 
+				if (log_explicit && family == AF_INET6 &&
+				    !adjusting) {
+					isc_log_write(IFMGR_COMMON_LOGARGS,
+						      verbose ? ISC_LOG_INFO :
+							      ISC_LOG_DEBUG(1),
+						      "IPv6-only option is not"
+						      " available; explicitly"
+						      " binding to all IPv6"
+						      " addresses.");
+					log_explicit = ISC_FALSE;
+				}
 				isc_sockaddr_format(&listen_sockaddr,
 						    sabuf, sizeof(sabuf));
 				isc_log_write(IFMGR_COMMON_LOGARGS,
