@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.348 2001/09/28 18:19:34 gson Exp $ */
+/* $Id: server.c,v 1.349 2001/10/08 07:46:06 marka Exp $ */
 
 #include <config.h>
 
@@ -927,6 +927,95 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	r.base = buf;
 	r.length = 1 + len;
 	dns_rdata_fromregion(&rdata, dns_rdataclass_ch, dns_rdatatype_txt, &r);
+
+	CHECK(dns_zone_create(&zone, ns_g_mctx));
+	CHECK(dns_zone_setorigin(zone, &origin));
+	dns_zone_settype(zone, dns_zone_master);
+	dns_zone_setclass(zone, dns_rdataclass_ch);
+	dns_zone_setview(zone, view);
+
+	CHECK(dns_zonemgr_managezone(zmgr, zone));
+
+	CHECK(dns_db_create(ns_g_mctx, "rbt", &origin, dns_dbtype_zone,
+			    dns_rdataclass_ch, 0, NULL, &db));
+
+	CHECK(dns_db_newversion(db, &dbver));
+
+	CHECK(dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
+				   0, &rdata, &tuple));
+	dns_diff_append(&diff, &tuple);
+	CHECK(dns_diff_apply(&diff, db, dbver));
+
+	dns_db_closeversion(db, &dbver, ISC_TRUE);
+
+	CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
+
+	CHECK(dns_view_addzone(view, zone));
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (dbver != NULL)
+		dns_db_closeversion(db, &dbver, ISC_FALSE);
+	if (db != NULL)
+		dns_db_detach(&db);
+	dns_diff_clear(&diff);
+
+	return (result);
+}
+
+/*
+ * Create the zone that handles queries for "hostname.bind. CH".   The
+ * hostname string is returned either from the "hostname" configuration
+ * option or the the result of gethostbyname().
+ */
+static isc_result_t
+create_hostname_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_zone_t *zone = NULL;
+	dns_dbversion_t *dbver = NULL;
+	dns_difftuple_t *tuple = NULL;
+	dns_diff_t diff;
+	char *hostnametext;
+	unsigned char buf[256];
+	isc_region_t r;
+	size_t len;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	static unsigned char origindata[] = "\010hostname\004bind";
+	dns_name_t origin;
+	cfg_obj_t *obj = NULL;
+
+	dns_name_init(&origin, NULL);
+	r.base = origindata;
+	r.length = sizeof(origindata);
+	dns_name_fromregion(&origin, &r);
+
+	result = ns_config_get(maps, "hostname", &obj);
+	if (result == ISC_R_SUCCESS) {
+		hostnametext = cfg_obj_asstring(obj);
+		len = strlen(hostnametext);
+		if (len == 0)
+			return (ISC_R_SUCCESS);
+		if (len > 255)
+			len = 255; /* Silently truncate. */
+		buf[0] = len;
+		memcpy(buf + 1, hostnametext, len);
+	} else {
+		result = ns_os_gethostname(buf + 1, sizeof(buf) - 1);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_R_SUCCESS); /* Silent failure */
+		len = strlen(buf + 1);
+		buf[0] = len;
+	}
+
+	r.base = buf;
+	r.length = 1 + len;
+	dns_rdata_fromregion(&rdata, dns_rdataclass_ch, dns_rdatatype_txt, &r);
+
+	dns_diff_init(ns_g_mctx, &diff);
 
 	CHECK(dns_zone_create(&zone, ns_g_mctx));
 	CHECK(dns_zone_setorigin(zone, &origin));
@@ -1903,6 +1992,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	ISC_LIST_APPEND(viewlist, view, link);
 	CHECK(create_version_zone(maps, server->zonemgr, view));
 	CHECK(create_authors_zone(options, server->zonemgr, view));
+	CHECK(create_hostname_zone(maps, server->zonemgr, view));
 	dns_view_freeze(view);
 	view = NULL;
 

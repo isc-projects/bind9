@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.7 2001/09/07 00:37:00 marka Exp $ */
+/* $Id: os.c,v 1.8 2001/10/08 07:46:10 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -203,4 +203,11 @@ ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
 	ntservice_shutdown();	/* This MUST be the last thing done */
+}
+
+isc_result_t
+ns_os_gethostname(char *buf, size_t len) {
+	UNUSED(buf);
+	UNUSED(len);
+	return (ISC_R_NOTIMPLEMENTED);
 }

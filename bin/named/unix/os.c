@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.50 2001/09/19 23:08:24 gson Exp $ */
+/* $Id: os.c,v 1.51 2001/10/08 07:46:07 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -520,3 +520,12 @@ ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
 }
+
+isc_result_t
+ns_os_gethostname(char *buf, size_t len) {
+        int n;
+
+	n = gethostname(buf, len);
+	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
+}
+

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.163 2001/10/02 20:43:33 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.164 2001/10/08 07:46:03 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2736,6 +2736,7 @@ exact match lookup before search path elements are appended.</para>
 statement in the <filename>named.conf</filename> file:</para>
 
 <programlisting>options {
+    <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
     <optional> version <replaceable>version_string</replaceable>; </optional>
     <optional> directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
@@ -2835,6 +2836,18 @@ statement, an options block with each option set to its default will
 be used.</para>
 
 <variablelist>
+
+<varlistentry><term><command>hostname</command></term>
+<listitem><para>This defaults to the hostname of the machine hosting
+the nameserver as found by gethostname().
+Its prime purpose is to be able to identify which of a 
+number of anycast servers is actually answering your queries by sending a
+<command>TXT</command> query for <filename>hostname.bind</filename> in
+class <command>CHAOS</command> to the anycast server and getting back a
+unique name.
+Setting the hostname to a empty string (<userinput>""</userinput>) will
+disable processing of the queries.</para>
+</listitem></varlistentry>
 
 <varlistentry><term><command>version</command></term>
 <listitem><para>The version the server should report
