@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.59 2001/01/09 21:50:49 bwelling Exp $
+ * $Id: dnssec.c,v 1.60 2001/01/17 01:22:16 bwelling Exp $
  */
 
 
@@ -761,27 +761,4 @@ failure:
 		dst_context_destroy(&ctx);
 
 	return (result);
-}
-
-isc_boolean_t
-dns_dnssec_iszonekey(dns_rdata_t *keyrdata) {
-	isc_result_t result;
-	dns_rdata_key_t key;
-	isc_boolean_t iszonekey = ISC_TRUE;
-
-	REQUIRE(keyrdata != NULL);
-
-	result = dns_rdata_tostruct(keyrdata, &key, NULL);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
-
-	if ((key.flags & DNS_KEYTYPE_NOAUTH) != 0)
-		iszonekey = ISC_FALSE;
-	if ((key.flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
-		iszonekey = ISC_FALSE;
-	if (key.protocol != DNS_KEYPROTO_DNSSEC &&
-	    key.protocol != DNS_KEYPROTO_ANY)
-		iszonekey = ISC_FALSE;    
-
-	return (iszonekey);
 }

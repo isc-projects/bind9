@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.143 2001/01/12 20:11:28 gson Exp $ */
+/* $Id: rbtdb.c,v 1.144 2001/01/17 01:22:17 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -31,7 +31,6 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/masterdump.h>
 #include <dns/rbt.h>
@@ -40,6 +39,7 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdataslab.h>
 #include <dns/result.h>
+#include <dns/zonekey.h>
 
 #ifdef DNS_RBTDB_VERSION64
 #include "rbtdb64.h"
@@ -3812,7 +3812,7 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 			result = dns_rdataset_first(&keyset);
 			while (result == ISC_R_SUCCESS) {
 				dns_rdataset_current(&keyset, &keyrdata);
-				if (dns_dnssec_iszonekey(&keyrdata)) {
+				if (dns_zonekey_iszonekey(&keyrdata)) {
 					rbtdb->secure = ISC_TRUE;
 					break;
 				}
