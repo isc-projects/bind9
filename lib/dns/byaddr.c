@@ -253,8 +253,7 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 		} else {
 			result = event->result;
 			fname = dns_fixedname_name(&event->foundname);
-			dns_resolver_destroyfetch(byaddr->view->resolver,
-						  &byaddr->fetch);
+			dns_resolver_destroyfetch(&byaddr->fetch);
 			INSIST(event->rdataset == &byaddr->rdataset);
 			INSIST(event->sigrdataset == NULL);
 			/*
@@ -459,8 +458,7 @@ dns_byaddr_cancel(dns_byaddr_t *byaddr) {
 		byaddr->canceled = ISC_TRUE;
 		if (byaddr->fetch != NULL) {
 			INSIST(byaddr->view != NULL);
-			dns_resolver_cancelfetch(byaddr->view->resolver,
-						 byaddr->fetch);
+			dns_resolver_cancelfetch(byaddr->fetch);
 		}
 	}
 

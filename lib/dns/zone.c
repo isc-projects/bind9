@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.57 2000/01/20 01:13:42 gson Exp $ */
+ /* $Id: zone.c,v 1.58 2000/01/21 02:48:28 halley Exp $ */
 
 #include <config.h>
 
@@ -344,7 +344,7 @@ zone_free(dns_zone_t *zone) {
 	if (zone->res != NULL)
 		dns_resolver_detach(&zone->res);
 	if (zone->fetch != NULL)
-		dns_resolver_destroyfetch(zone->res, &zone->fetch);
+		dns_resolver_destroyfetch(&zone->fetch);
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
 	if (zone->socketmgr != NULL)
