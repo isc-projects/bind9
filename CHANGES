@@ -1,3 +1,6 @@
+
+	--- 9.2.0rc9 released ---
+
 1076.	[bug]		A badly defined global key could trigger an assertion
 			on load/reload if views were used. [RT #1947]
 
