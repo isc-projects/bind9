@@ -216,6 +216,7 @@ isc_netaddr_fromin6
 isc_netaddr_any
 isc_netaddr_any6
 isc_netaddr_ismulticast
+isc_netaddr_isexperimental
 isc_netaddr_fromv4mapped
 isc_ntpaths_init
 isc_ntpaths_get
@@ -278,6 +279,7 @@ isc_sockaddr_getport
 isc_sockaddr_totext
 isc_sockaddr_format
 isc_sockaddr_ismulticast
+isc_sockaddr_isexperimental
 isc_socket_create
 isc_socket_cancel
 ;isc_socket_shutdown
