@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.285 2000/12/29 13:20:46 marka Exp $ */
+/* $Id: zone.c,v 1.286 2001/01/02 04:45:24 marka Exp $ */
 
 #include <config.h>
 
@@ -1948,8 +1948,6 @@ dns_zone_expire(dns_zone_t *zone) {
 
 static void
 zone_expire(dns_zone_t *zone) {
-	isc_result_t result;
-
 	/*
 	 * 'zone' locked by caller.
 	 */
@@ -1958,16 +1956,18 @@ zone_expire(dns_zone_t *zone) {
 
 	zone_log(zone, "zone_expire", ISC_LOG_WARNING, "expired");
 
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
-		result = zone_dump(zone);
-		if (result != ISC_R_SUCCESS)
-			zone_log(zone, "zone_dump", ISC_LOG_WARNING,
-				 "failure: %s", dns_result_totext(result));
-	}
+	/*
+	 * Move the on disk version of the zone sideways.
+	 */
+	if (zone->journal != NULL)
+		zone_saveunique(zone, zone->journal, "jn-XXXXXXXX");
+	if (zone->masterfile != NULL)
+		zone_saveunique(zone, zone->masterfile, "db-XXXXXXXX");
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXPIRED);
 	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
 	zone->retry = DNS_ZONE_DEFAULTRETRY;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
 	zone_unload(zone);
 }
 
