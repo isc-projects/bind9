@@ -119,6 +119,7 @@
 ./bin/tests/dst/t2_rsasig			X	1999,2000
 ./bin/tests/dst/t_dst.c				C	1999,2000
 ./bin/tests/generic-b9t.cron			X	1999,2000
+./bin/tests/gxbn_test.c				C	2000
 ./bin/tests/keygen.c				PORTION	1999,2000
 ./bin/tests/lex_test.c				C	1998,1999,2000
 ./bin/tests/lfsr_test.c				C	1999,2000
