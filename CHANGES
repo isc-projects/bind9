@@ -1,3 +1,6 @@
+ 565.	[func]		Log queries more like BIND 8.  Query logging is done
+			to category "general", module "query", debug level 1.
+			[RT #169]
 
  564.	[func]		Add sortlist support to lwresd.
 
