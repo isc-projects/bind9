@@ -151,6 +151,14 @@ do { \
 	name->attributes &= ~DNS_NAMEATTR_ABSOLUTE; \
 } while (0);
 
+/*
+ * A name is "bindable" if it can be set to point to a new value, i.e.
+ * name->ndata and name->length may be changed.
+ */
+#define BINDABLE(name) \
+	((name->attributes & (DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC)) \
+	 == 0)
+
 static struct dns_name root = {
 	NAME_MAGIC,
 	(unsigned char *)"", 1, 1,
@@ -867,7 +875,7 @@ dns_name_getlabelsequence(dns_name_t *source,
 	REQUIRE(n > 0);
 	REQUIRE(first < source->labels);
 	REQUIRE(first + n <= source->labels);
-	REQUIRE((target->attributes & DNS_NAMEATTR_READONLY) == 0);
+	REQUIRE(BINDABLE(target));
 
 	SETUP_OFFSETS(source, offsets, odata);
 
@@ -898,7 +906,7 @@ dns_name_clone(dns_name_t *source, dns_name_t *target) {
 
 	REQUIRE(VALID_NAME(source));
 	REQUIRE(VALID_NAME(target));
-	REQUIRE((target->attributes & DNS_NAMEATTR_READONLY) == 0);
+	REQUIRE(BINDABLE(target));
 
 	target->ndata = source->ndata;
 	target->length = source->length;
@@ -927,7 +935,7 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(r != NULL);
-	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+	REQUIRE(BINDABLE(name));
 
 	INIT_OFFSETS(name, offsets, odata);
 
@@ -1003,7 +1011,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 		isc_buffer_clear(target);
 	}
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
-	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+	REQUIRE(BINDABLE(name));
 	
 	INIT_OFFSETS(name, offsets, odata);
 	offsets[0] = 0;
@@ -1946,7 +1954,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	}
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE(dctx != NULL);
-	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+	REQUIRE(BINDABLE(name));
 
 	INIT_OFFSETS(name, offsets, odata);
 
@@ -2370,7 +2378,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		isc_buffer_clear(name->buffer);
 	}
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
-	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+	REQUIRE(BINDABLE(name));
 
 	/*
 	 * IMPORTANT NOTE
@@ -2505,12 +2513,12 @@ dns_name_split(dns_name_t *name,
 		(VALID_NAME(prefix) &&
 		 prefix->buffer != NULL &&
 		 isc_buffer_type(prefix->buffer) == ISC_BUFFERTYPE_BINARY &&
-		 (prefix->attributes & DNS_NAMEATTR_READONLY) == 0));
+		 BINDABLE(prefix)));
 	REQUIRE(suffix == NULL ||
 		(VALID_NAME(suffix) &&
 		 suffix->buffer != NULL &&
 		 isc_buffer_type(suffix->buffer) == ISC_BUFFERTYPE_BINARY &&
-		 (suffix->attributes & DNS_NAMEATTR_READONLY) == 0));
+		 BINDABLE(suffix)));
 
 	/*
 	 * When splitting bitstring labels, if prefix and suffix have the same
@@ -2757,7 +2765,7 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	REQUIRE(VALID_NAME(source));
 	REQUIRE(source->length > 0);
 	REQUIRE(VALID_NAME(target));
-	REQUIRE((target->attributes & DNS_NAMEATTR_READONLY) == 0);
+	REQUIRE(BINDABLE(target));
 
 	/*
 	 * Make 'target' a dynamically allocated copy of 'source'.
@@ -2776,7 +2784,7 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 	target->length = source->length;
 	target->labels = source->labels;
-	target->attributes = DNS_NAMEATTR_DYNAMIC | DNS_NAMEATTR_READONLY;
+	target->attributes = DNS_NAMEATTR_DYNAMIC;
 	if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
 		target->attributes |= DNS_NAMEATTR_ABSOLUTE;
 	if (target->offsets != NULL)
