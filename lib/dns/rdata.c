@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.20 1999/02/02 01:18:19 halley Exp $ */
+ /* $Id: rdata.c,v 1.21 1999/02/02 05:44:51 marka Exp $ */
 
 #include <config.h>
 
@@ -87,6 +87,7 @@ static const char octdigits[] = "01234567";
 	{ 23, "NSAP-PTR", RESERVED }, \
 	{ 31, "EID", RESERVED }, \
 	{ 32, "NIMLOC", RESERVED }, \
+	{ 34, "ATMA", RESERVED }, \
 	{ 100, "UINFO", RESERVED }, \
 	{ 101, "UID", RESERVED }, \
 	{ 102, "GID", RESERVED }, \
