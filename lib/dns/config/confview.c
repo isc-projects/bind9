@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.55 2000/11/08 03:53:14 marka Exp $ */
+/* $Id: confview.c,v 1.56 2000/11/15 23:11:23 tale Exp $ */
 
 #include <config.h>
 
@@ -1537,7 +1537,7 @@ BOOL_FUNCS(recursion, recursion)
 BOOL_FUNCS(provideixfr, provide_ixfr)
 BOOL_FUNCS(requestixfr, request_ixfr)
 BOOL_FUNCS(fetchglue, fetch_glue)
-BOOL_FUNCS(statistics, statistics);
+BOOL_FUNCS(statistics, statistics)
 
 NOTIFYTYPE_FUNCS(notify, notify)
 DIALUPTYPE_FUNCS(dialup, dialup)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.63 2000/11/07 23:49:37 mws Exp $ */
+/* $Id: confzone.c,v 1.64 2000/11/15 23:12:27 tale Exp $ */
 
 #include <config.h>
 
@@ -179,7 +179,7 @@ dialup_totext(dns_dialuptype_t dialup) {
 		INSIST(0);
 	}
 	return (NULL);
-};
+}
 
 isc_result_t
 dns_c_zonelist_new(isc_mem_t *mem, dns_c_zonelist_t **zlist) {
