@@ -24,7 +24,7 @@
 #endif
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.10 1999/10/13 17:55:47 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.11 1999/10/13 23:19:45 marka Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -655,8 +655,10 @@ option: /* Empty */
         | L_QUERY_SOURCE query_source
         | L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_setqueryacl(logcontext, currcfg,
-                                               ISC_FALSE, $3);
+		if ($3 == NULL)
+			YYABORT;
+		tmpres = dns_c_ctx_setqueryacl(logcontext, currcfg,
+					       ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining allow-query list");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -2471,7 +2473,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 		view = dns_c_ctx_getcurrview(logcontext, currcfg);
 		
 		dns_c_ctx_setcurrzone(logcontext, currcfg, NULL);
-		
+
                 if (callbacks != NULL && callbacks->zonecbk != NULL) {
                         tmpres = callbacks->zonecbk(currcfg,
                                                     zone,
