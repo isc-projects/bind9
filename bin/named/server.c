@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.32 2003/09/19 12:44:35 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.33 2003/10/14 03:04:02 marka Exp $ */
 
 #include <config.h>
 
@@ -747,32 +747,13 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		dns_dispatch_detach(&dispatch6);
 
 	/*
-	 * Set ADB cache size
+	 * Set the ADB cache size to 1/8th of the max-cache-size.
 	 */
-	obj = NULL;
-	result = ns_config_get(maps, "max-adb-size", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isstring(obj)) {
-		str = cfg_obj_asstring(obj);
-		INSIST(strcasecmp(str, "unlimited") == 0);
-		max_adb_size = ISC_UINT32_MAX;
-	} else {
-		isc_resourcevalue_t value;
-		value = cfg_obj_asuint64(obj);
-		if (value > ISC_UINT32_MAX) {
-			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
-				    "'max-adb-size "
-				    "%" ISC_PRINT_QUADFORMAT "d' is too large",
-				    value);
-			result = ISC_R_RANGE;
-			goto cleanup;
-		}
-		max_adb_size = (isc_uint32_t)value;
-		if (max_adb_size == 0 && max_cache_size != 0) {
-			max_adb_size = max_cache_size/8;
-			if (max_adb_size == 0)
-				max_adb_size = 1;	/* Force minimum. */
-		}
+	max_adb_size = 0;
+	if (max_cache_size != 0) {
+		max_adb_size = max_cache_size / 8;
+		if (max_adb_size == 0)
+			max_adb_size = 1;	/* Force minimum. */
 	}
 	dns_adb_setadbsize(view->adb, max_adb_size);
 

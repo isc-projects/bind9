@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.18 2003/09/24 03:47:08 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.19 2003/10/14 03:04:02 marka Exp $ */
 
 #include <config.h>
 
@@ -119,7 +119,6 @@ options {\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	transfer-format many-answers;\n\
-	max-adb-size 0;\n\
 	max-cache-size 0;\n\
 	check-names master ignore;\n\
 	check-names slave ignore;\n\
