@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.16 2002/06/03 00:34:54 marka Exp $
+ *	$Id: resolv.h,v 1.17 2002/06/28 05:46:10 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -206,9 +206,9 @@ union res_sockaddr_union {
 	struct sockaddr_in6	sin6;
 #endif
 #ifdef ISC_ALIGN64
-	int64_t			__align;        /* 64bit alignment */
+	int64_t			__align64;	/* 64bit alignment */
 #else
-	int32_t			__align;        /* 32bit alignment */
+	int32_t			__align32;	/* 32bit alignment */
 #endif
 	char			__space[128];   /* max size */
 };
