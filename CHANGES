@@ -38,6 +38,8 @@
 1172.	[doc]		Add CERT, GPOS, KX, NAPTR, NSAP, PX and TXT to 
 			table of RR types in ARM.
 
+1168.	[bug]		Empty also-notify clauses were not handled. [RT #2309]
+
 1165.	[bug]		We were rejecting notify-source{-v6} in zone clauses.
 
 1164.	[bug]		Empty masters clauses in slave / stub zones were not
