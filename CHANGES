@@ -1,7 +1,11 @@
+1383.	[func]		Track the serial number in a IXFR response and log if
+			a mismatch occurs.  This is a more specific error than
+			"not exact". [RT #3445]
+
 1380.	[func]		'rndc recursing' dump recursing queries to
 			'recursing-file = "named.recursing";'.
 
-1379.	[func]		'rndc stats' now reports tcp and recursion quota
+1379.	[func]		'rndc status' now reports tcp and recursion quota
 			states.
 
 1378.	[func]		Improved positive feedback for 'rndc {reload|refresh}.
@@ -19,7 +23,7 @@
 			with each server.
 
 1371.	[bug]		notify-source-v6, transfer-source-v6 and
-			query-source-v6 with explict addresses and using the
+			query-source-v6 with explicit addresses and using the
 			same ports as named was listening on could interfere
 			with nameds ability to answer queries sent to those
 			addresses.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.1 2003/08/11 05:28:18 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.2 2003/08/22 03:22:33 marka Exp $ */
 
 #include <config.h>
 
@@ -160,7 +160,7 @@ struct dns_xfrin_ctx {
 
 	struct {
 		isc_uint32_t 	request_serial;
-		isc_uint32_t 	end_serial;
+		isc_uint32_t 	current_serial;
 		dns_journal_t	*journal;
 
 	} ixfr;
@@ -507,7 +507,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 		if (rdata->type == dns_rdatatype_soa) {
 			isc_uint32_t soa_serial = dns_soa_getserial(rdata);
 			xfr->state = XFRST_IXFR_ADDSOA;
-			xfr->ixfr.end_serial = soa_serial;
+			xfr->ixfr.current_serial = soa_serial;
 			goto redo;
 		}
 		CHECK(ixfr_putdata(xfr, DNS_DIFFOP_DEL, name, ttl, rdata));
@@ -526,6 +526,12 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 			if (soa_serial == xfr->end_serial) {
 				xfr->state = XFRST_END;
 				break;
+			} else if (soa_serial != xfr->ixfr.current_serial) {
+				xfrin_log(xfr, ISC_LOG_ERROR,
+					  "IXFR out of sync: "
+					  "expected serial %u, got %u",
+					  xfr->ixfr.current_serial, soa_serial);
+				FAIL(DNS_R_FORMERR);
 			} else {
 				xfr->state = XFRST_IXFR_DELSOA;
 				goto redo;
@@ -754,7 +760,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->is_ixfr = ISC_FALSE;
 
 	/* ixfr.request_serial */
-	/* ixfr.end_serial */
+	/* ixfr.current_serial */
 	xfr->ixfr.journal = NULL;
 
 	xfr->axfr.add_func = NULL;
@@ -966,6 +972,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 		CHECK(dns_db_createsoatuple(xfr->db, ver, xfr->mctx,
 					    DNS_DIFFOP_EXISTS, &soatuple));
 		xfr->ixfr.request_serial = dns_soa_getserial(&soatuple->rdata);
+		xfr->ixfr.current_serial = xfr->ixfr.request_serial;
 		xfrin_log(xfr, ISC_LOG_DEBUG(3),
 			  "requesting IXFR for serial %u",
 			  xfr->ixfr.request_serial);
