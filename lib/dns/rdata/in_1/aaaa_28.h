@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.h,v 1.4 1999/02/06 01:45:11 halley Exp $ */
+ /* $Id: aaaa_28.h,v 1.5 1999/02/09 07:52:31 marka Exp $ */
 
  /* RFC 1886 */
 
@@ -49,7 +49,7 @@ fromtext_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	if (isc_inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
-		return (DNS_R_UNEXPECTED);
+		return (DNS_R_BADAAAA);
 	isc_buffer_available(target, &region);
 	if (region.length < 16)
 		return (DNS_R_NOSPACE);

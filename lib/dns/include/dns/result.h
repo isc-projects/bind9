@@ -45,8 +45,9 @@ typedef unsigned int dns_result_t;
 #define DNS_R_NOTFOUND			22
 #define DNS_R_SYNTAX			23
 #define DNS_R_BADCKSUM			24
+#define DNS_R_BADAAAA			25
 
-#define DNS_R_LASTENTRY			24	/* Last entry on list. */
+#define DNS_R_LASTENTRY			25	/* Last entry on list. */
 
 #define DNS_R_UNEXPECTED		0xFFFFFFFFL
 

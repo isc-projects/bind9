@@ -45,6 +45,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"not found",				/* 22 */
 	"syntax error",				/* 23 */
 	"bad checksum",				/* 24 */
+	"bad IPv6 address",			/* 25 */
 };
 
 char *
