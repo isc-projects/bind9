@@ -3035,3 +3035,29 @@ dns_name_print(dns_name_t *name, FILE *stream) {
 
 	return (ISC_R_SUCCESS);
 }
+
+void
+dns_name_format(dns_name_t *name, char *cp, unsigned int size)
+{
+	isc_result_t result;
+	isc_buffer_t buf;
+	isc_boolean_t omit_final_dot = ISC_TRUE;
+
+	REQUIRE(size > 0);
+	
+	if (dns_name_equal(name, dns_rootname))
+		omit_final_dot = ISC_FALSE;
+
+	/* Leave room for null termination after buffer. */
+	isc_buffer_init(&buf, cp, size - 1, ISC_BUFFERTYPE_TEXT);
+	result = dns_name_totext(name, omit_final_dot, &buf);
+	if (result == ISC_R_SUCCESS) {
+		/* Null terminate. */
+		isc_region_t r;
+		isc_buffer_used(&buf, &r);
+		((char *) r.base)[r.length] = '\0';
+	} else {
+		snprintf(cp, size, "<unknown>");
+	}
+}
+

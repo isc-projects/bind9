@@ -1,3 +1,6 @@
+  42.	[cleanup]	Simplified logging of messages with embedded domain
+			names by introducing a new convenience function
+			dns_name_format().
 
   41.	[feature]	Use PR_SET_KEEPCAPS on Linux 2.3.99-pre3 and later
 			to allow 'named' to run as a non-root user while

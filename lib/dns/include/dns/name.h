@@ -1128,6 +1128,31 @@ dns_name_print(dns_name_t *name, FILE *stream);
  *	Any error that dns_name_totext() can return.
  */
 
+void
+dns_name_format(dns_name_t *name, char *cp, unsigned int size);
+/*
+ * Format 'name' as text appropriate for use in log messages.
+ *
+ * Store the formatted name at 'cp', writing no more than
+ * 'size' bytes.  The resulting string is guaranteed to be
+ * null terminated.
+ *
+ * The formatted name will have a terminating dot only if it is 
+ * the root.
+ *
+ * This function cannot fail, instead any errors are indicated
+ * in the returned text.
+ *
+ * Requires:
+ *
+ *	'name' is a valid name.
+ *
+ *	'cp' points a valid character array of size 'size'.
+ *
+ *	'size' > 0.
+ *
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NAME_H */
