@@ -1,3 +1,4 @@
+1626.	[bug]		--enable-getifaddrs was broken. [RT#11259]
 
 	--- 9.3.0beta3 released ---
 
