@@ -439,7 +439,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
  *	the completion event will be posted to the task 'task.'  If minimum
  *	is zero, the exact number of bytes requested in the region must
  * 	be read for an event to be posted.  This only makes sense for TCP
- *	connections, and is always set to the full buffer for UDP.
+ *	connections, and is always set to 1 byte for UDP.
  *
  *	The read will complete when the desired number of bytes have been
  *	read, if end-of-input occurs, or if an error occurs.  A read done
@@ -454,6 +454,62 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
  *	'socket' is a valid socket
  *
  *	'region' is a valid region
+ *
+ *	'minimum' <= region.length
+ *
+ *	'task' is a valid task
+ *
+ *	action != NULL and is a valid action
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
+ *
+ * Event results:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_UNEXPECTED
+ *	XXX needs other net-type errors
+ */
+
+isc_result_t
+isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		 unsigned int minimum,
+		 isc_task_t *task, isc_taskaction_t action, void *arg);
+/*
+ * Receive from 'socket', storing the results in region.
+ *
+ * Notes:
+ *
+ *	Let 'length' refer to the sum of all available regions in the
+ *	list of buffers 'buflist'.
+ *
+ *	If 'minimum' is non-zero and at least that many bytes are read,
+ *	the completion event will be posted to the task 'task.'  If minimum
+ *	is zero, the exact number of bytes requested in the buflist must
+ * 	be read for an event to be posted.  This only makes sense for TCP
+ *	connections, and is always set to 1 byte for UDP.
+ *
+ *	The read will complete when the desired number of bytes have been
+ *	read, if end-of-input occurs, or if an error occurs.  A read done
+ *	event with the given 'action' and 'arg' will be posted to the
+ *	event queue of 'task'.
+ *
+ *	The caller may neither read from nor write to any buffer in the
+ *	buffer list, nor may it link or unlink these buffers from any list.
+ *	On successful completion, '*buflist' will be empty, and the list of
+ *	all buffers will be returned in the done event's 'bufferlist'
+ *	member.  On error return, '*buflist' will be unchanged.
+ *
+ * Requires:
+ *
+ *	'socket' is a valid socket
+ *
+ *	'buflist' is non-NULL, and '*buflist' contain at least one buffer.
+ *
+ *	'minimum' is <= sum of all available regions.
  *
  *	'task' is a valid task
  *

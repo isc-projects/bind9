@@ -536,7 +536,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	int cc;
 	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
 	size_t read_count;
+	size_t actual_count;
 	struct msghdr msghdr;
+	isc_buffer_t *buffer;
+	isc_region_t available;
 
 	build_msghdr_recv(sock, dev, &msghdr, iov,
 			  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
@@ -604,10 +607,31 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	process_cmsg(sock, &msghdr, dev);
 
 	/*
+	 * update the buffers (if any) and the i/o count
+	 */
+	dev->n += cc;
+	actual_count = cc;
+	buffer = ISC_LIST_HEAD(dev->bufferlist);
+	while (buffer != NULL && actual_count > 0) {
+		isc_buffer_available(buffer, &available);
+		if (available.length <= actual_count) {
+			actual_count -= available.length;
+			isc_buffer_add(buffer, available.length);
+		} else {
+			isc_buffer_add(buffer, actual_count);
+			actual_count = 0;
+			break;
+		}
+		buffer = ISC_LIST_NEXT(buffer, link);
+		if (buffer == NULL) {
+			INSIST(actual_count == 0);
+		}
+	}
+
+	/*
 	 * If we read less than we expected, update counters,
 	 * and let the upper layer poke the descriptor.
 	 */
-	dev->n += cc;
 	if (((size_t)cc != read_count) && (dev->n < dev->minimum))
 		return (DOIO_SOFT);
 
@@ -1850,6 +1874,126 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 unsigned int minimum,
 		 isc_task_t *task, isc_taskaction_t action, void *arg)
 {
+	isc_socketevent_t *dev;
+	isc_socketmgr_t *manager;
+	isc_task_t *ntask = NULL;
+	isc_boolean_t was_empty;
+	unsigned int iocount;
+	isc_region_t available;
+	isc_buffer_t *buffer;
+
+	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(buflist != NULL);
+	REQUIRE(!ISC_LIST_EMPTY(*buflist));
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
+
+	manager = sock->manager;
+	REQUIRE(VALID_MANAGER(manager));
+
+	iocount = 0;
+	buffer = ISC_LIST_HEAD(*buflist);
+	while (buffer != NULL) {
+		isc_buffer_available(buffer, &available);
+		iocount += available.length;
+	}
+	REQUIRE(iocount > 0);
+
+	LOCK(&sock->lock);
+
+	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
+	if (dev == NULL) {
+		UNLOCK(&sock->lock);
+		return (ISC_R_NOMEMORY);
+	}
+
+	/***
+	 *** From here down, only ISC_R_SUCCESS can be returned.  Any further
+	 *** error information will result in the done event being posted
+	 *** to the task rather than this function failing.
+	 ***/
+
+	/*
+	 * UDP sockets are always partial read
+	 */
+	if (sock->type == isc_sockettype_udp)
+		dev->minimum = 1;
+	else {
+		if (minimum == 0)
+			dev->minimum = iocount;
+		else
+			dev->minimum = minimum;
+	}
+
+	dev->result = ISC_R_SUCCESS;
+	dev->n = 0;
+	dev->sender = task;
+
+	/*
+	 * Move each buffer from the passed in list to our internal one.
+	 */
+	buffer = ISC_LIST_HEAD(*buflist);
+	while (buffer != NULL) {
+		ISC_LIST_DEQUEUE(*buflist, buffer, link);
+		ISC_LIST_ENQUEUE(dev->bufferlist, buffer, link);
+	}
+
+	was_empty = ISC_LIST_EMPTY(sock->recv_list);
+
+	/*
+	 * If the read queue is empty, try to do the I/O right now.
+	 */
+	if (!was_empty)
+		goto queue;
+
+	if (sock->recv_result != ISC_R_SUCCESS) {
+		send_recvdone_event(sock, &dev, sock->recv_result);
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+	}
+
+	switch (doio_recv(sock, dev)) {
+	case DOIO_SOFT:
+		goto queue;
+		break;
+
+	case DOIO_EOF:
+		send_recvdone_event(sock, &dev, ISC_R_EOF);
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+		break;
+
+	case DOIO_HARD:
+	case DOIO_UNEXPECTED:
+	case DOIO_SUCCESS:
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+		break;
+	}
+
+ queue:
+	/*
+	 * We couldn't read all or part of the request right now, so queue
+	 * it.
+	 *
+	 * Attach to socket and to task
+	 */
+	isc_task_attach(task, &ntask);
+	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+
+	/*
+	 * Enqueue the request.  If the socket was previously not being
+	 * watched, poke the watcher to start paying attention to it.
+	 */
+	ISC_LIST_ENQUEUE(sock->recv_list, dev, link);
+	if (was_empty)
+		select_poke(sock->manager, sock->fd);
+
+	XTRACE(TRACE_RECV,
+	       ("isc_socket_recvv: queued event %p, task %p\n", dev, ntask));
+
+	UNLOCK(&sock->lock);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
