@@ -18,12 +18,14 @@ Legend:
 
   -         The option is now always disabled.
 
+  %         The default value has changed since BIND 8.
+
   @	    Semantics of certain pathological address match lists, in
 	    particular those involving double negation, have changed.  The new
 	    semantics are generally safer.  The predefined ACLs "localhost" 
 	    and "localnets" are not yet supported.
 
-  %         The default value has changed since BIND 8.
+  #         BIND 9 accepts both LF and CRLF as end-of-line markers.
 
 
 options {
@@ -46,7 +48,7 @@ options {
   [ recursion yes_or_no; ]				    Yes
   [ rfc2308-type1 yes_or_no; ]				    No
   [ use-id-pool yes_or_no; ]				    Obsolete+
-  [ treat-cr-as-space yes_or_no; ]			    No
+  [ treat-cr-as-space yes_or_no; ]			    Obsolete#
   [ also-notify { ip_addr; [ ip_addr; ... ] };		    No
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ in_addr ; [ in_addr ; ... ] ] }; ]	    Yes
@@ -69,7 +71,7 @@ options {
   [ transfers-in  number; ]				    No
   [ transfers-out number; ]				    Yes
   [ transfers-per-ns number; ]				    No
-  [ transfer-source ip_addr; ]				    No
+  [ transfer-source ip_addr; ]				    Yes (IPv4 only)
   [ maintain-ixfr-base yes_or_no; ]			    Obsolete+
   [ max-ixfr-log-size number; ]				    No
   [ coresize size_spec ; ]				    No
