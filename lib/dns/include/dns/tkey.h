@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.16.4.1 2001/01/09 22:46:23 bwelling Exp $ */
+/* $Id: tkey.h,v 1.16.4.2 2001/01/11 20:34:10 gson Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
@@ -155,7 +155,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
  *		'rmsg' is a valid message (the response)
  *		'key' is a valid Diffie Hellman dst key
  *		'outkey' is either NULL or a pointer to NULL
- *		'ring' is not NULL
+ *		'ring' is a valid keyring or NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS	the shared key was successfully added

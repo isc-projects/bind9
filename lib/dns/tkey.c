@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.57.2.3 2001/01/11 18:32:58 gson Exp $
+ * $Id: tkey.c,v 1.57.2.4 2001/01/11 20:34:09 gson Exp $
  */
 
 #include <config.h>
@@ -1049,7 +1049,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	dns_name_t keyname, *tkeyname, *theirkeyname, *ourkeyname, *tempname;
 	dns_rdataset_t *theirkeyset = NULL, *ourkeyset = NULL;
 	dns_rdata_t theirkeyrdata = DNS_RDATA_INIT;
-	dst_key_t *theirkey;
+	dst_key_t *theirkey = NULL;
 	dns_rdata_tkey_t qtkey, rtkey;
 	unsigned char secretdata[256];
 	unsigned int sharedsize;
@@ -1065,7 +1065,6 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	REQUIRE(dst_key_isprivate(key));
 	if (outkey != NULL)
 		REQUIRE(*outkey == NULL);
-	REQUIRE(ring != NULL);
 
 	if (rmsg->rcode != dns_rcode_noerror)
 		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
@@ -1122,13 +1121,11 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	if (theirkeyset == NULL) {
 		tkey_log("dns_tkey_processdhresponse: failed to find server "
 			 "key");
-		result = DNS_R_INVALIDTKEY;
 		result = ISC_R_NOTFOUND;
 		goto failure;
 	}
 
 	dns_rdataset_current(theirkeyset, &theirkeyrdata);
-	theirkey = NULL;
 	RETERR(dns_dnssec_keyfromrdata(theirkeyname, &theirkeyrdata,
 				       rmsg->mctx, &theirkey));
 
@@ -1193,7 +1190,6 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	REQUIRE(gname != NULL);
 	if (outkey != NULL)
 		REQUIRE(*outkey == NULL);
-	REQUIRE(ring != NULL);
 
 	if (rmsg->rcode != dns_rcode_noerror)
 		return (ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
