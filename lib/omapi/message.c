@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.25 2000/06/23 21:28:30 tale Exp $ */
+/* $Id: message.c,v 1.26 2000/06/28 05:24:41 tale Exp $ */
 
 /*
  * Subroutines for dealing with message objects.
@@ -502,9 +502,11 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 * All messages except for the first attempt to set 
 		 * the dst key used by the protocol must be signed.
 		 */
+#ifdef notyet /* not for 9.0.0 */
 		if (type != omapi_type_protocol && protocol->key == NULL)
 			return (send_status(po, ISC_R_NOPERM, message->id,
 					    "unauthorized access"));
+#endif /* notyet */
 
 		/*
 		 * If we weren't given a type, look the object up with
@@ -609,9 +611,11 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (connection->is_client)
 			return (ISC_R_UNEXPECTED);
 
+#ifdef notyet /* not for 9.0.0 */
 		if (protocol->key == NULL)
 			return (send_status(po, ISC_R_NOPERM, message->id,
 					    "unauthorized access"));
+#endif /* notyet */
 
 	refresh:
 		result = handle_lookup(&object, message->h);
