@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.108 2001/05/08 03:42:28 gson Exp $ */
+/* $Id: main.c,v 1.109 2001/05/08 19:47:53 gson Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/app.h>
 #include <isc/commandline.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/os.h>
 #include <isc/platform.h>
 #include <isc/resource.h>
@@ -62,7 +63,7 @@
 /* #include "xxdb.h" */
 
 static isc_boolean_t	want_stats = ISC_FALSE;
-static const char *	program_name = "named";
+static char		program_name[256] = "named";
 static char    		saved_command_line[512];
 
 void
@@ -264,20 +265,8 @@ static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
-	char *s;
 
 	save_command_line(argc, argv);
-
-	/*
-	 * See if we should run as lwresd.
-	 */
-	s = strrchr(argv[0], '/');
-	if (s == NULL)
-		s = argv[0];
-	else
-		s++;
-	if (strcmp(s, "lwresd") == 0)
-		ns_g_lwresdonly = ISC_TRUE;
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
@@ -517,7 +506,13 @@ int
 main(int argc, char *argv[]) {
 	isc_result_t result;
 
-	program_name = argv[0];
+	result = isc_file_progname(argv[0], program_name, sizeof(program_name));
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("program name too long");
+
+	if (strcmp(program_name, "lwresd") == 0)
+		ns_g_lwresdonly = ISC_TRUE;
+
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
 	isc_error_setunexpected(library_unexpected_error);

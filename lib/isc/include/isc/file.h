@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.17 2001/05/05 02:47:19 bwelling Exp $ */
+/* $Id: file.h,v 1.18 2001/05/08 19:47:54 gson Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -181,6 +181,22 @@ const char *
 isc_file_basename(const char *filename);
 /*
  * Return the final component of the path in the file name.
+ */
+
+isc_result_t
+isc_file_progname(const char *filename, char *buf, size_t buflen);
+/*
+ * Given an operating system specific file name "filename"
+ * referring to a program, return the canonical program name. 
+ * Any directory prefix or executable file name extension (if
+ * used on the OS in case) is stripped.  On systems where program
+ * names are case insensitive, the name is canonicalized to all
+ * lower case.  The name is written to 'buf', an array of 'buflen'
+ * chars, and null terminated.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE 	The name did not fit in 'buf'.
  */
 
 isc_result_t

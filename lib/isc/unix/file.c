@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.32 2001/05/05 02:47:21 bwelling Exp $ */
+/* $Id: file.c,v 1.33 2001/05/08 19:47:55 gson Exp $ */
 
 #include <config.h>
 
@@ -243,4 +243,14 @@ isc_file_basename(const char *filename) {
 	if (s == NULL)
 		return (filename);
 	return (s + 1);
+}
+
+isc_result_t
+isc_file_progname(const char *filename, char *buf, size_t buflen) {
+	const char *base = isc_file_basename(filename);
+	size_t len = strlen(base) + 1;
+	if (len > buflen)
+		return (ISC_R_NOSPACE);
+	memcpy(buf, base, len);
+	return (ISC_R_SUCCESS);
 }
