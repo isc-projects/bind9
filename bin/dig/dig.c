@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.162 2001/09/13 03:02:59 marka Exp $ */
+/* $Id: dig.c,v 1.163 2001/09/14 04:54:56 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -800,6 +800,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			if (state) {
 				printcmd = ISC_FALSE;
 				lookup->section_additional = ISC_FALSE;
+				lookup->section_answer = ISC_TRUE;
 				lookup->section_authority = ISC_FALSE;
 				lookup->section_question = ISC_FALSE;
 				lookup->comments = ISC_FALSE;
