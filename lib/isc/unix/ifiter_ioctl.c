@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.31 2002/07/01 23:00:37 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.32 2002/07/02 05:51:42 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -152,9 +152,6 @@ getbuf4(isc_interfaceiter_t *iter) {
  unexpected:
 	isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
 	iter->buf = NULL;
-#ifdef HAVE_TRUCLUSTER
-	iter->clua_context = 0;
-#endif
 	return (ISC_R_UNEXPECTED);
 }
 
@@ -317,6 +314,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * A newly created iterator has an undefined position
 	 * until isc_interfaceiter_first() is called.
 	 */
+	iter->clua_context = -1;
 	iter->pos = (unsigned int) -1;
 	iter->result = ISC_R_FAILURE;
 
