@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.20 2001/02/16 00:54:27 bwelling Exp $ */
+/* $Id: auth.c,v 1.21 2001/02/17 00:53:59 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -55,7 +55,7 @@ typedef struct auth auth_t;
 struct auth {
 	unsigned int		magic;
 	char			*name;
-	char			*secret;
+	unsigned char		*secret;
 	size_t			secretlen;
 	unsigned int		algorithms;
 
