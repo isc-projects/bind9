@@ -37,29 +37,29 @@ echo Build all of the Library files
 cd ..\lib
 
 cd isc\win32
-nmake /nologo -f libisc.mak CFG="libisc - Win32 Release"
+nmake /nologo -f libisc.mak CFG="libisc - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd dns\win32
-nmake /nologo -f libdns.mak CFG="libdns - Win32 Release"
+nmake /nologo -f libdns.mak CFG="libdns - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd isccfg\win32
-nmake /nologo -f libisccfg.mak CFG="libisccfg - Win32 Release"
+nmake /nologo -f libisccfg.mak CFG="libisccfg - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd isccc\win32
-nmake /nologo -f libisccc.mak CFG="libisccc - Win32 Release"
+nmake /nologo -f libisccc.mak CFG="libisccc - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd lwres\win32
-nmake /nologo -f liblwres.mak CFG="liblwres - Win32 Release"
+nmake /nologo -f liblwres.mak CFG="liblwres - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 rem This is the DLL required for the event Viewer
 
 cd win32\bindevt
-nmake /nologo -f bindevt.mak CFG="bindevt - Win32 Release"
+nmake /nologo -f bindevt.mak CFG="bindevt - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd ..
@@ -69,48 +69,48 @@ echo Now build the apps
 cd bin
 
 cd named\win32
-nmake /nologo -f named.mak CFG="named - Win32 Release"
+nmake /nologo -f named.mak CFG="named - Win32 Release"  NO_EXTERNAL_DEPS="1"
 
 copy ..\named.html ..\..\..\Build\Release
 cd ..\..
 
 cd rndc\win32
-nmake /nologo -f rndc.mak CFG="rndc - Win32 Release"
-nmake /nologo -f confgen.mak CFG="rndcconfgen - Win32 Release"
+nmake /nologo -f rndc.mak CFG="rndc - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f confgen.mak CFG="rndcconfgen - Win32 Release"  NO_EXTERNAL_DEPS="1"
 
 copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd dig\win32
-nmake /nologo -f dig.mak CFG="dig - Win32 Release"
-nmake /nologo /nologo -f host.mak CFG="host - Win32 Release"
-nmake /nologo -f nslookup.mak CFG="nslookup - Win32 Release"
+nmake /nologo -f dig.mak CFG="dig - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo /nologo -f host.mak CFG="host - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f nslookup.mak CFG="nslookup - Win32 Release"  NO_EXTERNAL_DEPS="1"
 copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd nsupdate\win32
-nmake /nologo -f nsupdate.mak CFG="nsupdate - Win32 Release"
+nmake /nologo -f nsupdate.mak CFG="nsupdate - Win32 Release"  NO_EXTERNAL_DEPS="1"
 copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd check\win32
-nmake /nologo -f namedcheckconf.mak CFG="namedcheckconf - Win32 Release"
-nmake /nologo -f namedcheckzone.mak CFG="namedcheckzone - Win32 Release"
+nmake /nologo -f namedcheckconf.mak CFG="namedcheckconf - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f namedcheckzone.mak CFG="namedcheckzone - Win32 Release"  NO_EXTERNAL_DEPS="1"
 copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd dnssec\win32
-nmake /nologo -f keygen.mak CFG="keygen - Win32 Release"
-nmake /nologo -f makekeyset.mak CFG="makekeyset - Win32 Release"
-nmake /nologo -f signkey.mak CFG="signkey - Win32 Release"
-nmake /nologo -f signzone.mak CFG="signzone - Win32 Release"
+nmake /nologo -f keygen.mak CFG="keygen - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f makekeyset.mak CFG="makekeyset - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f signkey.mak CFG="signkey - Win32 Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f signzone.mak CFG="signzone - Win32 Release"  NO_EXTERNAL_DEPS="1"
 copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 rem This is the BIND 9 Installer
 
 cd win32\BINDInstall
-nmake /nologo -f BINDInstall.mak CFG="BINDInstall - Win32 Release"
+nmake /nologo -f BINDInstall.mak CFG="BINDInstall - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd ..
