@@ -1,3 +1,6 @@
+
+	--- 9.2.0rc5 released ---
+
 1020.	[bug]		IXFR log messages did not distinguish between
 			true IXFRs, AXFR-style IXFRs, and mere version
 			polls. [RT #1811]
