@@ -508,7 +508,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 
 	m = isc_mem_get(mctx, sizeof(dns_message_t));
 	if (m == NULL)
-		return(DNS_R_NOMEMORY);
+		return (DNS_R_NOMEMORY);
 
 	/*
 	 * No allocations until further notice.  Just initialize all lists
@@ -729,9 +729,9 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		rdata->length = 0;
 		rdata->rdclass = rdclass;
 		rdata->type = rdtype;
-		return DNS_R_SUCCESS;
+		return (DNS_R_SUCCESS);
 	}
-	    
+
 	scratch = currentbuffer(msg);
 
 	isc_buffer_setactive(source, rdatalen);
@@ -746,6 +746,7 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	 */
 	tries = 0;
 	trysize = 0;
+	/* XXX possibly change this to a while (tries < 2) loop */
 	for (;;) {
 		result = dns_rdata_fromwire(rdata, rdclass, rdtype,
 					    source, dctx, ISC_FALSE,
@@ -862,7 +863,6 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		if (msg->state == DNS_SECTION_ANY) {
 			msg->state = DNS_SECTION_QUESTION;
 			msg->rdclass = rdclass;
-			msg->state = DNS_SECTION_QUESTION;
 		} else if (msg->rdclass != rdclass) {
 			result = DNS_R_FORMERR;
 			goto cleanup;
@@ -2192,5 +2192,5 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	isc_buffer_init(&b, msg->saved->base, msg->saved->length,
 			ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&b, msg->saved->length);
-	return dns_view_checksig(view, &b, msg);
+	return (dns_view_checksig(view, &b, msg));
 }
