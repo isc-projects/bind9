@@ -1849,7 +1849,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
 	if (result == DNS_R_NOTFOUND) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "no journal file");
-		return (DNS_R_NOTFOUND);
+		return (DNS_R_NOJOURNAL);
 	}
 
 	if (result != DNS_R_SUCCESS) {
