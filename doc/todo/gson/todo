@@ -1,10 +1,9 @@
 
-Redo configuration locking using a task system call to
-ensure exclusive access
+make builds nonthreaded by default
+
+finish and integrate new config code
 
 Rewrite more ARM chapters
-
-rewrite configuration code
 
 improve lwres man pages
 
