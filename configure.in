@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.248 $)
+AC_REVISION($Revision: 1.249 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -403,7 +403,7 @@ case $host in
 	# bug in unproven-pthreads; see PR #12650
 	use_threads=false ;;
 *-openbsd*)
-	# OpenBSD userss have reported that named dumps core on
+	# OpenBSD users have reported that named dumps core on
 	# startup when built with threads.
 	use_threads=false ;;
 *-freebsd*)
@@ -415,7 +415,6 @@ case $host in
    	# Threads are disabled on Linux by default because most
 	# Linux kernels produce unusable core dumps from multithreaded
 	# programs, and because of limitations in setuid().
-	# and problems with the -u option.
 	use_threads=false ;;	
 *)
 	use_threads=false ;;
