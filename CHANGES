@@ -1,34 +1,34 @@
-1213.	[func]		Entropy can now be retrieved from EGDs. [RT #2438]
+1313.	[func]		Entropy can now be retrieved from EGDs. [RT #2438]
 
-1212.	[func]		Enable IPv6 support when using ioctl style interface
+1312.	[func]		Enable IPv6 support when using ioctl style interface
 			scanning and OS supports SIOCGLIFADDR using struct
 			if_laddrreq.
 
-1211.	[func]		Enable IPv6 support when using sysctl style interface
+1311.	[func]		Enable IPv6 support when using sysctl style interface
 			scanning.
 
-1210.	[func]		"dig axfr" now reports the number of messages
+1310.	[func]		"dig axfr" now reports the number of messages
 			as well as the number of records.
 
-1209.	[port]		See if -ldl is required for OpenSSL? [RT #2672]
+1309.	[port]		See if -ldl is required for OpenSSL? [RT #2672]
 
-1208.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
+1308.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
 			reflect written requirements.
 
-1207.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
+1307.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
 			a rdataset to a zone db in the rbtdb implementation of
 			addrdataset.
 
-1206.	[bug]		dns_name_downcase() enforce requirement that
+1306.	[bug]		dns_name_downcase() enforce requirement that
 			target != NULL or name->buffer != NULL.
 
-1205.	[func]		lwres: probe the system to see what address families
+1305.	[func]		lwres: probe the system to see what address families
 			are currently in use.
 
-1204.	[bug]		The RTT estimate on unused servers was not aged.
+1304.	[bug]		The RTT estimate on unused servers was not aged.
 			[RT #2569]
 
-1203.	[func]		Use "dataready" accept filter if available.
+1303.	[func]		Use "dataready" accept filter if available.
 
 1302.	[port]		libbind: hpux 11.11 interface scaning.
 
