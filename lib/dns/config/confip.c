@@ -643,7 +643,12 @@ dns_c_ipmatchelement_print(FILE *fp, int indent,
 		
 		bits = ipme->u.direct.mask;
 		if (bits > 0) {
-			fprintf(fp, "/%d", bits);
+			isc_uint32_t fam =
+				ipme->u.direct.address.type.sa.sa_family;
+			if ((fam == AF_INET && bits < 32) ||
+			    (fam == AF_INET6 && bits < 128)) {
+				fprintf(fp, "/%d", bits);
+			}
 		}
 		break;
 
@@ -856,7 +861,7 @@ dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list)
 	}
 	
 	dns_c_printtabs(fp, indent - 1);
-	fprintf(fp, "};\n");
+	fprintf(fp, "}");
 }
 
 
@@ -943,6 +948,10 @@ checkmask(isc_sockaddr_t *address, isc_uint32_t bits)
 		if (address->type.sa.sa_family == AF_INET) {
 			isc_uint32_t mask;
 			
+			if (bits > 32) {
+				return (ISC_R_FAILURE);
+			}
+			
 			mask = ntohl(0xffffffffU << (32 - bits));
 			
 			if ((mask & address->type.sin.sin_addr.s_addr) !=
@@ -955,6 +964,10 @@ checkmask(isc_sockaddr_t *address, isc_uint32_t bits)
 			unsigned char *addrp;
 			int i;
 			
+			if (bits > 128) {
+				return (ISC_R_FAILURE);
+			}
+					
 			if (bits2v6mask(&iaddr, bits) != ISC_R_SUCCESS) {
 				return (ISC_R_FAILURE);
 			}
@@ -986,24 +999,24 @@ bits2v6mask(struct in6_addr *addr, isc_uint32_t bits)
 	isc_uint32_t bitmask[4];
 	char addrbuff [ sizeof "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" + 1 ];
 
-	INSIST(bits < 128);
+	INSIST(bits <= 128);
 	
 	/* Break the 128 bits up into 32-bit sections */
 	bitmask[0] = bitmask[1] = bitmask[2] = bitmask[3] = 0U;
 	
-	if (bits > 32) {
+	if (bits >= 32) {
 		bitmask[0] = 0xffffffffU;
 	} else if (bits > 0) {
 		bitmask[0] = 0xffffffffU << (32 - bits);
 	}
 
-	if (bits > 64) {
+	if (bits >= 64) {
 		bitmask[1] = 0xffffffffU;
 	} else if (bits > 32) {
 		bitmask[1] = 0xffffffffU << (64 - bits);
 	}
 
-	if (bits > 96) {
+	if (bits >= 96) {
 		bitmask[2] = 0xffffffffU;
 		bitmask[3] = 0xffffffffU << (128 - bits);
 	} else if (bits > 64) {
@@ -1022,7 +1035,7 @@ bits2v6mask(struct in6_addr *addr, isc_uint32_t bits)
 		(((bitmask[3] & 0xffff0000U) >> 16) & 0xffffU),
 		(bitmask[3] & 0xffff));
 
-	i = inet_pton(AF_INET6, addrbuff, &addr);
+	i = inet_pton(AF_INET6, addrbuff, addr);
 
 	return (i == 1 ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
