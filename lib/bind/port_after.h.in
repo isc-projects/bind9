@@ -84,6 +84,31 @@ extern const struct in6_addr in6addr_any;
 	IN6_ARE_ADDR_EQUAL(a, &in6addr_any)
 #endif
 
+#ifndef IN6_IS_ADDR_SITELOCAL
+#define IN6_IS_ADDR_SITELOCAL(a)        \
+	(((a)->s6_addr[0] == 0xfe) && (((a)->s6_addr[1] & 0xc0) == 0xc0))
+#endif
+
+#ifndef
+#define IN6_IS_ADDR_MULTICAST(a)        ((a)->s6_addr[0] == 0xff)
+#endif
+
+#ifndef __IPV6_ADDR_MC_SCOPE
+#define __IPV6_ADDR_MC_SCOPE(a)         ((a)->s6_addr[1] & 0x0f)
+#endif
+
+#ifndef IN6_IS_ADDR_MC_SITELOCAL
+#define IN6_IS_ADDR_MC_SITELOCAL(a)     \
+	(IN6_IS_ADDR_MULTICAST(a) &&    \
+	 (__IPV6_ADDR_MC_SCOPE(a) == __IPV6_ADDR_SCOPE_SITELOCAL))
+#endif
+
+#ifndef IN6_IS_ADDR_MC_ORGLOCAL
+#define IN6_IS_ADDR_MC_ORGLOCAL(a)      \
+	(IN6_IS_ADDR_MULTICAST(a) &&    \
+	 (__IPV6_ADDR_MC_SCOPE(a) == __IPV6_ADDR_SCOPE_ORGLOCAL))
+#endif
+
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
 #endif
