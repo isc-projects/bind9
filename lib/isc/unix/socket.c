@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.231 2003/03/03 01:41:27 marka Exp $ */
+/* $Id: socket.c,v 1.232 2003/07/25 00:01:13 marka Exp $ */
 
 #include <config.h>
 
@@ -648,7 +648,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 
-	INSIST(skip_count == 0);
+	INSIST(skip_count == 0U);
 
  config:
 	msg->msg_iov = iov;
@@ -990,7 +990,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	dev->n += cc;
 	actual_count = cc;
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
-	while (buffer != NULL && actual_count > 0) {
+	while (buffer != NULL && actual_count > 0U) {
 		REQUIRE(ISC_BUFFER_VALID(buffer));
 		if (isc_buffer_availablelength(buffer) <= actual_count) {
 			actual_count -= isc_buffer_availablelength(buffer);
@@ -1003,7 +1003,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		}
 		buffer = ISC_LIST_NEXT(buffer, link);
 		if (buffer == NULL) {
-			INSIST(actual_count == 0);
+			INSIST(actual_count == 0U);
 		}
 	}
 

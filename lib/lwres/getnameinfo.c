@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.32 2003/07/04 05:21:47 marka Exp $ */
+/* $Id: getnameinfo.c,v 1.33 2003/07/25 00:01:16 marka Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -162,7 +162,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	}
 	proto = (flags & NI_DGRAM) ? "udp" : "tcp";
 
-	if (serv == NULL || servlen == 0) {
+	if (serv == NULL || servlen == 0U) {
 		/*
 		 * Caller does not want service.
 		 */
@@ -197,7 +197,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	}
 #endif
 
-	if (host == NULL || hostlen == 0) {
+	if (host == NULL || hostlen == 0U) {
 		/*
 		 * What should we do?
 		 */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.23 2003/04/11 07:25:27 marka Exp $ */
+/* $Id: time.c,v 1.24 2003/07/25 00:01:06 marka Exp $ */
 
 #include <config.h>
 
@@ -127,7 +127,7 @@ dns_time64_fromtext(const char *source, isc_int64_t *target) {
 			return (ISC_R_RANGE); \
 	} while (0)
 
-	if (strlen(source) != 14)
+	if (strlen(source) != 14U)
 		return (DNS_R_SYNTAX);
 	if (sscanf(source, "%4d%2d%2d%2d%2d%2d",
 		   &year, &month, &day, &hour, &minute, &second) != 6)

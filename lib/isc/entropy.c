@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.9 2002/05/30 04:21:14 marka Exp $ */
+/* $Id: entropy.c,v 1.10 2003/07/25 00:01:12 marka Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -308,7 +308,7 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 	addr = (unsigned long)p;
 	buf = p;
 
-	if ((addr & 0x03) != 0) {
+	if ((addr & 0x03U) != 0U) {
 		val = 0;
 		switch (len) {
 		case 3:

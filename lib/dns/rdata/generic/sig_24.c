@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.58 2002/02/20 03:35:00 marka Exp $ */
+/* $Id: sig_24.c,v 1.59 2003/07/25 00:01:09 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -73,7 +73,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 0xff)
+	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	c = (unsigned char)token.value.as_ulong;
 	RETERR(mem_tobuffer(target, &c, 1));

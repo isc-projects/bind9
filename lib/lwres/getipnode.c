@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.35 2002/08/08 21:14:13 marka Exp $ */
+/* $Id: getipnode.c,v 1.36 2003/07/25 00:01:15 marka Exp $ */
 
 #include <config.h>
 
@@ -243,13 +243,13 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 
 	switch (af) {
 	case AF_INET:
-		if (len != INADDRSZ) {
+		if (len != (unsigned int)INADDRSZ) {
 			*error_num = NO_RECOVERY;
 			return (NULL);
 		}
 		break;
 	case AF_INET6:
-		if (len != IN6ADDRSZ) {
+		if (len != (unsigned int)IN6ADDRSZ) {
 			*error_num = NO_RECOVERY;
 			return (NULL);
 		}

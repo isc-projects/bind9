@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.106 2002/12/13 02:51:40 marka Exp $
+ * $Id: dst_api.c,v 1.107 2003/07/25 00:01:11 marka Exp $
  */
 
 #include <config.h>
@@ -1054,7 +1054,7 @@ buildfilename(dns_name_t *name, dns_keytag_t id,
 		if (isc_buffer_availablelength(out) < strlen(directory))
 			return (ISC_R_NOSPACE);
 		isc_buffer_putstr(out, directory);
-		if (strlen(directory) > 0 &&
+		if (strlen(directory) > 0U &&
 		    directory[strlen(directory) - 1] != '/')
 			isc_buffer_putstr(out, "/");
 	}

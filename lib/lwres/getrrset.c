@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.12 2002/06/20 02:31:17 marka Exp $ */
+/* $Id: getrrset.c,v 1.13 2003/07/25 00:01:16 marka Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,7 @@ lwresult_to_result(lwres_result_t lwresult) {
 
 static void *
 sane_malloc(size_t size) {
-	if (size == 0)
+	if (size == 0U)
 		size = 1;
 	return (malloc(size));
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.181 2003/02/26 05:05:13 marka Exp $ */
+/* $Id: dig.c,v 1.182 2003/07/25 00:01:03 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1000,7 +1000,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	char *hash;
 
 	cmd = option[0];
-	if (strlen(option) > 1) {
+	if (strlen(option) > 1U) {
 		value_from_next = ISC_FALSE;
 		value = &option[1];
 	} else {

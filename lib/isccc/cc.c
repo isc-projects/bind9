@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.8 2003/06/24 05:10:34 marka Exp $ */
+/* $Id: cc.c,v 1.9 2003/07/25 00:01:14 marka Exp $ */
 
 #include <config.h>
 
@@ -106,7 +106,7 @@ value_towire(isccc_sexpr_t *elt, isccc_region_t *target)
 		 * the placeholder length too.  Adjust and
 		 * emit.
 		 */
-		INSIST(len >= 4);
+		INSIST(len >= 4U);
 		len -= 4;
 		PUT32(len, lenp);
 	} else if (isccc_sexpr_listp(elt)) {
@@ -129,7 +129,7 @@ value_towire(isccc_sexpr_t *elt, isccc_region_t *target)
 		 * 'len' is 4 bytes too big, since it counts
 		 * the placeholder length.  Adjust and emit.
 		 */
-		INSIST(len >= 4);
+		INSIST(len >= 4U);
 		len -= 4;
 		PUT32(len, lenp);
 	}
@@ -153,7 +153,7 @@ table_towire(isccc_sexpr_t *alist, isccc_region_t *target)
 		ks = isccc_sexpr_tostring(k);
 		v = ISCCC_SEXPR_CDR(kv);
 		len = strlen(ks);
-		INSIST(len <= 255);
+		INSIST(len <= 255U);
 		/*
 		 * Emit the key name.
 		 */

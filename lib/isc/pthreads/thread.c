@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.9 2001/01/09 21:58:02 bwelling Exp $ */
+/* $Id: thread.c,v 1.10 2003/07/25 00:01:13 marka Exp $ */
 
 #include <config.h>
 
@@ -23,7 +23,7 @@
 #include <isc/util.h>
 
 #ifndef THREAD_MINSTACKSIZE
-#define THREAD_MINSTACKSIZE		(64 * 1024)
+#define THREAD_MINSTACKSIZE		(64U * 1024)
 #endif
 
 isc_result_t

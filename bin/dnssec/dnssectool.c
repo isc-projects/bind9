@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.36 2001/11/27 22:08:58 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.37 2003/07/25 00:01:04 marka Exp $ */
 
 #include <config.h>
 
@@ -273,7 +273,7 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 		if (*endp != '\0')
 			fatal("time value %s is invalid", str);
 		val = now + offset;
-	} else if (strlen(str) == 8) {
+	} else if (strlen(str) == 8U) {
 		char timestr[15];
 		sprintf(timestr, "%s000000", str);
 		result = dns_time64_fromtext(timestr, &val);
