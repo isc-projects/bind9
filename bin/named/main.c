@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.90 2000/11/01 20:59:19 bwelling Exp $ */
+/* $Id: main.c,v 1.91 2000/11/14 20:04:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -173,10 +173,10 @@ static void
 lwresd_usage(void) {
 	fprintf(stderr,
 		"usage: lwresd [-c conffile | -C resolvconffile] "
-		"[-d debuglevel] [-f|-g] [-n number_of_cpus]\n"
-		"              [-p port] [-P listen-port] [-s] "
-		"[-t chrootdir]\n"
-		"              [-u username] [-i pidfile]\n");
+		"[-d debuglevel] [-f|-g]\n"
+		"              [-n number_of_cpus] [-p port]"
+		"[-P listen-port] [-s]\n"
+		"              [-t chrootdir] [-u username] [-i pidfile]\n");
 }
 
 static void
