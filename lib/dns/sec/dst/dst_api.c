@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.72 2001/01/24 02:22:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.73 2001/01/27 04:33:18 bwelling Exp $
  */
 
 #include <config.h>
@@ -696,7 +696,7 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 static dst_key_t *
 get_key_struct(dns_name_t *name, const unsigned int alg,
 	       const unsigned int flags, const unsigned int protocol,
-	       const unsigned int bits, dns_rdataclass_t rdclass,
+	       const unsigned int bits, const dns_rdataclass_t rdclass,
 	       isc_mem_t *mctx)
 {
 	dst_key_t *key;
