@@ -52,7 +52,7 @@
 /*
  * size of entropy pool in 32-bit words.  This _MUST_ be a power of 2.
  */
-#define RND_POOLWORDS	512
+#define RND_POOLWORDS	128
 #define RND_POOLBITS	(RND_POOLWORDS * 32)
 
 /*
@@ -60,6 +60,7 @@
  *	threshold * 2 <= digest_size_in_bytes
  */
 #define RND_ENTROPY_THRESHOLD	10
+#define THRESHOLD_BITS		(RND_ENTROPY_THRESHOLD * 8)
 
 /*
  * Size of the input event queue in samples.
@@ -356,10 +357,10 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		if (ent->pool.entropy < RND_POOLBITS / 4)
 			needed_ent = RND_POOLBITS / 4 - ent->pool.entropy;
 		if (ent->pool.pseudo > RND_POOLBITS / 4)
-			needed_ps = RND_ENTROPY_THRESHOLD * 8;
+			needed_ps = THRESHOLD_BITS;
 		needed = ISC_MAX(needed_ent, needed_ps);
 	} else {
-		needed = ISC_MAX(needed, RND_ENTROPY_THRESHOLD * 8);
+		needed = ISC_MAX(needed, THRESHOLD_BITS);
 		needed = ISC_MIN(needed, RND_POOLBITS);
 	}
 
@@ -369,11 +370,12 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	needed = ISC_MIN(needed, RND_POOLBITS - ent->pool.entropy);
 
 	/*
-	 * But wait!  If we're not yet initialized, we need at least 20
+	 * But wait!  If we're not yet initialized, we need at least
+	 *	THRESHOLD_BITS
 	 * bytes of randomness.
 	 */
-	if (ent->initialized < 20)
-		needed = ISC_MAX(needed, 20 - ent->initialized);
+	if (ent->initialized < THRESHOLD_BITS)
+		needed = ISC_MAX(needed, THRESHOLD_BITS - ent->initialized);
 
 	/*
 	 * Poll each file source to see if we can read anything useful from
@@ -423,7 +425,7 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	/*
 	 * Mark as initialized if we've added enough data.
 	 */
-	if (ent->initialized < 20)
+	if (ent->initialized < THRESHOLD_BITS)
 		ent->initialized += added;
 }
 
@@ -507,7 +509,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		 * To extract good data, we need to have at least
 		 * enough entropy to fill our digest.
 		 */
-		if (ent->pool.entropy < RND_ENTROPY_THRESHOLD * 8) {
+		if (ent->pool.entropy < THRESHOLD_BITS) {
 			UNLOCK(&ent->lock);
 			return (ISC_R_NOENTROPY);
 		}
@@ -527,23 +529,31 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		 */
 		if (goodonly) {
 			unsigned int fillcount;
-			unsigned int needcount;
 
 			fillcount = ISC_MAX(remain * 8, count * 8);
-			needcount = RND_ENTROPY_THRESHOLD * 8;
 
-			fillpool(ent, fillcount, blocking);
+			/*
+			 * If, however, we have at least THRESHOLD_BITS
+			 * of entropy in the pool, don't block here.  It is
+			 * better to drain the pool once in a while and
+			 * then refill it than it is to constantly keep the
+			 * pool full.
+			 */
+			if (ent->pool.entropy >= THRESHOLD_BITS)
+				fillpool(ent, fillcount, ISC_FALSE);
+			else
+				fillpool(ent, fillcount, blocking);
 
 			if (!partial)
-				if (ent->pool.entropy < needcount)
+				if (ent->pool.entropy < THRESHOLD_BITS)
 					goto zeroize;
 		} else {
 			/*
 			 * If we've extracted half our pool size in bits
 			 * since the last refresh, try to refresh here.
 			 */
-			if (ent->initialized < 20)
-				fillpool(ent, 20, blocking);
+			if (ent->initialized < THRESHOLD_BITS)
+				fillpool(ent, THRESHOLD_BITS, blocking);
 			else
 				fillpool(ent, 0, ISC_FALSE);
 
@@ -551,7 +561,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 			 * If we've not initialized with enough good random
 			 * data, fail.
 			 */
-			if (ent->initialized < 20)
+			if (ent->initialized < THRESHOLD_BITS)
 				goto zeroize;
 		}
 
@@ -735,6 +745,9 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
 	fd = open(fname, O_RDONLY | O_NONBLOCK, 0);
 	if (fd < 0) {
 		ret = ISC_R_IOERROR;
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "open(%s, O_RDONLY | O_NONBLOCK, 0): %s",
+				 fname, strerror(errno));
 		goto errout;
 	}
 
