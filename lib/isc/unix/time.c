@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.29.4.1 2001/01/09 22:51:29 bwelling Exp $ */
+/* $Id: time.c,v 1.29.4.2 2001/08/31 18:49:48 gson Exp $ */
 
 #include <config.h>
 
@@ -141,7 +141,7 @@ isc_time_now(isc_time_t *t) {
 	REQUIRE(t != NULL);
 
 	if (gettimeofday(&tv, NULL) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strerror(errno));
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -181,7 +181,7 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (gettimeofday(&tv, NULL) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strerror(errno));
 		return (ISC_R_UNEXPECTED);
 	}
 
