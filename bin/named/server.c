@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.209 2000/08/02 20:44:31 tale Exp $ */
+/* $Id: server.c,v 1.210 2000/08/02 20:47:21 tale Exp $ */
 
 #include <config.h>
 
@@ -847,10 +847,10 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 	isc_region_t r;
 	isc_constregion_t cr;
 	dns_rdata_t rdata;
-	static char origindata[] = "\007authors\004bind";
+	static const char origindata[] = "\007authors\004bind";
 	dns_name_t origin;
 	int i;
-	static char *authors[] = {
+	static const char *authors[] = {
 		"\014Mark Andrews",
 		"\015James Brister",
 		"\015Michael Graff",
