@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.80 2000/05/19 04:42:08 tale Exp $ */
+/* $Id: rbt.c,v 1.81 2000/05/19 05:58:48 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1365,8 +1365,12 @@ join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 			else
 				RIGHT(PARENT(node)) = newnode;
 
+		if (LEFT(node) != NULL)
+			PARENT(LEFT(node))  = newnode;
+		if (RIGHT(node) != NULL)
+			PARENT(RIGHT(node)) = newnode;
 		if (DOWN(down) != NULL)
-			PARENT(DOWN(down)) = newnode;
+			PARENT(DOWN(down))  = newnode;
 
 		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 
