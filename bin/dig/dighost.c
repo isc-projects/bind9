@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.204 2001/06/15 01:26:14 gson Exp $ */
+/* $Id: dighost.c,v 1.205 2001/06/30 04:43:47 mayer Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1981,7 +1981,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 
 	isc_buffer_clear(&query->slbuf);
 	isc_buffer_clear(&query->lengthbuf);
-	isc_buffer_putuint16(&query->slbuf, query->lookup->sendbuf.used);
+	isc_buffer_putuint16(&query->slbuf, (isc_uint16_t) query->lookup->sendbuf.used);
 	ISC_LIST_INIT(query->sendlist);
 	ISC_LINK_INIT(&query->slbuf, link);
 	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
