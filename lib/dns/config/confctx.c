@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.107 2000/11/28 21:20:49 gson Exp $ */
+/* $Id: confctx.c,v 1.108 2000/11/28 21:43:37 gson Exp $ */
 
 #include <config.h>
 
@@ -466,34 +466,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'max-ixfr-log-size' is obsolete");
-	}
-
-	if (dns_c_ctx_getcoresize(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'coresize' is not yet "
-			      "implemented");
-	}
-
-	if (dns_c_ctx_getdatasize(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'datasize' is not yet "
-			      "implemented");
-	}
-
-	if (dns_c_ctx_getfiles(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'files' is not yet "
-			      "implemented");
-	}
-
-	if (dns_c_ctx_getstacksize(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'stacksize' is not yet "
-			      "implemented");
 	}
 
 	if (dns_c_ctx_getstatsinterval(cfg, &uintval) != ISC_R_NOTFOUND) {
