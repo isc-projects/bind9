@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.57 2001/06/05 09:17:21 marka Exp $ */
+/* $Id: rdataset.c,v 1.58 2001/06/05 09:23:14 marka Exp $ */
 
 #include <config.h>
 
@@ -451,6 +451,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 		INSIST(rrbuffer.used < 65536);
 		dns_compress_rollback(cctx, (isc_uint16_t)rrbuffer.used);
 		*countp += added;
+		*target = rrbuffer;
 		return (result);
 	}
 	INSIST(savedbuffer.used < 65536);
