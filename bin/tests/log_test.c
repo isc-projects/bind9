@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.3 1999/10/06 20:07:24 tale Exp $ */
+/* $Id: log_test.c,v 1.4 1999/10/25 19:55:49 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <isc/commandline.h>
 #include <isc/mem.h>
@@ -34,6 +35,8 @@
 #define TEST_FILE "/tmp/test_log"
 #define SYSLOG_FILE "/var/log/daemon.log"
 #define FILE_VERSIONS 10
+
+char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 
 #define CHECK_ISC(expr) result = expr; \
 	if (result != ISC_R_SUCCESS) { \
@@ -50,7 +53,7 @@
 	
 int
 main (int argc, char **argv) {
-	char *progname, *syslog_file;
+	char *progname, *syslog_file, *message;
 	int ch, i, file_versions;
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_log_t *lctx;
@@ -88,13 +91,20 @@ main (int argc, char **argv) {
 					ISC_LOG_ROLLINFINITE);
 				exit(1);
 			}
-
 			break;
+		case '?':
+			fprintf(stderr, usage, progname);
+			exit(1);
 		}
 	}
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+
+	if (argc > 0) {
+		fprintf(stderr, usage, progname);
+		exit(1);
+	}
 
 	fprintf(stderr, "==> stderr begin\n");
 	isc_log_opensyslog(progname, LOG_PID, LOG_DAEMON);
@@ -208,7 +218,7 @@ main (int argc, char **argv) {
 			isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
 				      "This should be rolled over "
-				      " and not appear!");
+				      "and not appear!");
 
 		for (i = file_versions - 1; i >= 0; i--)
 			isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
@@ -247,6 +257,26 @@ main (int argc, char **argv) {
 	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		      ISC_LOG_DEBUG(5),
 		      "This debug level is too high and should not appear!");
+
+	/*
+	 * Test out the duplicate filtering using the debug_test channel.
+	 */
+	isc_log_setduplicateinterval(lctx, 10);
+	message = "This message should appear only once on stderr";
+
+	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
+		       ISC_LOG_CRITICAL, message);
+	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
+		       ISC_LOG_CRITICAL, message);
+
+	isc_log_setduplicateinterval(lctx, 1);
+	message = "This message should appear twice on stderr";
+	
+	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
+		       ISC_LOG_CRITICAL, message);
+	sleep(2);
+	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
+		       ISC_LOG_CRITICAL, message);
 
 	/*
 	 * Review where everything went.
