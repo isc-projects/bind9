@@ -1,0 +1,594 @@
+INTERNET-DRAFT                                                A. Costanzo
+draft-costanzo-dns-gl-02.txt                   AKC Computer Services Corp.
+Expires: November 2000                                       May 21, 2000
+
+
+
+                   Definition of the DNS GL Resource Record
+                     used to encode Geographic Locations
+
+
+
+
+
+ 1. Status of this Memo
+
+This document is an Internet-Draft and is  in full conformance  with all
+provisions  of Section 10 of  RFC2026 except that  the right to  produce
+derivative works is not granted.
+
+Internet-Drafts are  working  documents of the Internet Engineering Task
+Force (IETF), its areas, and its working groups.  Note that other groups
+may  also  distribute  working documents as Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum  of  six  months
+and  may  be  updated,  replaced, or obsoleted by other documents at any
+time.  It is inappropriate to use  Internet-Drafts as reference material
+or to cite them other than as "work in progress."
+
+
+     The list of current Internet-Drafts can be accessed at
+     http://www.ietf.org/ietf/1id-abstracts.txt
+
+     The list of Internet-Draft Shadow Directories can be accessed at
+     http://www.ietf.org/shadow.html.
+
+
+To learn the current status of  any  Internet-Draft,  please  check  the
+"1id-abstracts.txt"  listing  contained  in  the Internet- Drafts Shadow
+Directories   on   ftp.is.co.za   (Africa),   nic.nordu.net    (Europe),
+munnari.oz.au (Pacific Rim), ftp.ietf.org (US East Coast, or ftp.isi.edu
+(US West Coast).
+
+Distribution of this memo is unlimited.
+
+
+2. Abstract
+
+This document defines the format of a new Resource Record (RR) namely
+GL for the Domain Naming System (DNS), and reserves a corresponding
+DNS type mnemonic and numerical code. This definition deals with
+associating geographical host location mappings to host names within a
+domain.
+
+
+The key words "MUST", "MUST  NOT", "REQUIRED", "SHALL", "SHALL  NOT",
+"SHOULD", "SHOULD  NOT", "RECOMMENDED", "MAY"  and "OPTIONAL" in this
+document are to be interpreted as described in RFC-2119.
+
+
+
+
+
+
+
+
+Costanzo                                                          [Page  1]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+3. Introduction
+
+   The ideal way to manage and maintain a database of information, such as
+   geographical location of Internet hosts, is to delegate responsibility
+   to local domain administrators.
+
+   This document resolves the problem of relating host information within
+the
+   DNS to geographical locations. This definition has been designed to be
+easy
+   for the person who administrates DNS for a domain. The author hopes that
+the
+   lack of requiring longitude, latitude and elevation information and
+merely
+   being able to enter address information, as you would address a postal
+   letter, will mean broad acceptance and use of the GL resource record.
+
+   The availability of geographical location information will immediately be
+   able to benefit applications in network management, which would enhance
+   and supplement various network tools which currently exist.
+
+   The Domain Name System is ideally suited to provide geographic location
+   information.  The information we desire to make available globally needs
+to
+   be maintained and updated locally (perfect for DNS).
+
+   Although several other attempts by various authors have attempted to
+created
+   resource records that would allow location information on host to be
+stored
+   and distributed, none, to the authors knowledge, have either gained
+   acceptance on a wide scale or made allowance for location information
+that
+   is not with the confines of the planet Earth.
+
+4. The GL format
+
+   GL has the following format:
+
+      <owner> <ttl> <class> GL <Rdata>
+
+
+4.1 Rdata Format
+
+  Rdata has the following format:
+
+   <string> <string>
+
+   The format of the RDATA field is two character varying length
+   strings seperated by a space character. The first, the hierarchical
+   locator, then an address string. Each is quoted (like all strings)
+   only when it has spaces in it, which will never be true for the first
+   string, and almost always for the second.
+
+
+
+
+
+
+
+
+Costanzo                                                          [Page  2]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+
+
+4.1.1 The Hierarchical Locator
+
+The Hierarchical Locator contains the following components (each separated
+by a period "."):
+
+  Astronomical Location -                          (Required)
+           A coded field defining the heavenly body within
+           the known Universe, where the machine resides.  A complete list
+may
+           be referenceable at a later date.
+
+           The most common entry, "S3" is the planet Earth and is the only
+currently
+           defined location.
+
+  Country Code -                                   (Required)
+
+          The country code specifies the country the host computer resides
+          in. The code is a two character fixed length string.  These codes
+          are defined in document ISO 3166-1 and are listed in Appendix A
+          for easy reference.
+
+   Postal Zone -                                    (Optional)
+
+          This rdata component supplies the postal code (Zip Code) for the
+          location the host computer resides. For countries that have a
+          multi-segmented postal coding system, the segments should be
+          separated by period(s) ".".
+
+          This field may be omitted only if the country in which the host
+          machine resides does not use a postal coding system.
+
+   When all three Hierarchical Locator components exist for an DNS entry,
+the
+   position being defined is considered to be a "precise position".
+
+
+ 4.2 The Quoted String
+
+  This string should be entered as you would enter an address on
+  a postal letter within the country specified by the Hierarchical
+  Locator. The country code information should not be included within
+  the quoted string. This string is always required and must be
+  present in the RDATA field.
+
+  The quoted string may be used for both visual reference of the
+  physical address as well as by a software application to help
+  determine a more precise location of the host machine, if the
+  Hierarchical Locator lacks sufficient precision.
+
+  The only instance in which any application should attempt to
+  interpret the quoted string is in a case where the country
+  code defines a country that does not use, or has not implemented
+  a postal code system.
+
+
+Costanzo                                                          [Page  3]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+
+  No software or application should attempt to override a precise
+  position defined by the Hierarchical Locator with information
+  defined within the quoted string data.
+
+
+
+ 5. Example(s)
+
+     Example 1 (with a postal zone defined):
+
+            donuts A 192.188.192.1
+               GL S3.US.45420.1910 "1425 Arbor Avenue, Dayton OH"
+
+        Example 2 (no postal zone):
+
+           lorinda A 129.122.1.1
+               GL S3.SR "Marthastrasse 64, Shawproject, Uitvlug, Parimaribo"
+
+     Example 3
+
+; Authoritative data for akc.net.
+;
+; note in this example:
+;    uspring, diana and martha (even though the complete postal code was
+;    not entered) are precisely defined
+;
+;    lorinda, resides in the country of SURINAME, which has not implemented
+;    a postal coding system.
+;
+;    THIS IS ONLY AN EXAMPLE
+;
+@     IN    SOA     forme.akc.net. postmaster.akc.net.
+                (
+                        99071100        ; Serial (yymmddnn)
+                        10800           ; Refresh (3 hours)
+                        3600            ; Retry (1 hour)
+                        3600000         ; Expire (1000 hours)
+                        86400           ; Minimum (24 hours)
+                )
+
+                IN      NS      ns.akc.net.
+
+uspring         IN      A       192.188.192.2
+                IN      MX      5       mail
+                IN      HINFO   Vax VMS
+                IN      GL S3.US.45420.1910 "1425 Arbor Avenue, Dayton OH"
+ftp             IN      CNAME   uspring
+
+diana           IN      A       192.188.192.3
+                IN      MX      5       mail
+                IN      HINFO   Vax VMS
+                IN      GL S3.US.07204.1367 "808 Chestnut Street, Roselle
+Park, NJ"
+www             IN      CNAME   diana
+
+
+Costanzo                                                          [Page  4]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+
+martha          IN      A       192.188.192.4
+                IN      MX      5       mail
+                IN      HINFO   Vax VMS
+                IN      GL S3.US.07204 "815 Chestnut Willis Place, Roselle
+Park, NJ"
+
+lorinda         IN      A       129.122.1.1
+                IN      GL S3.SR "Marthastrasse 64, Shawproject, Uitvlug,
+Parimaribo"
+
+
+5. Appendix A: ISO 3166-1 Country Codes
+
+
+AFGHANISTAN                                     AF
+ALBANIA                                         AL
+ALGERIA                                         DZ
+AMERICAN SAMOA                                  AS
+ANDORRA                                         AD
+ANGOLA                                          AO
+ANGUILLA                                        AI
+ANTARCTICA                                      AQ
+ANTIGUA AND BARBUDA                             AG
+ARGENTINA                                       AR
+ARMENIA                                         AM
+ARUBA                                           AW
+AUSTRALIA                                       AU
+AUSTRIA                                         AT
+AZERBAIJAN                                      AZ
+BAHAMAS                                         BS
+BAHRAIN                                         BH
+BANGLADESH                                      BD
+BARBADOS                                        BB
+BELARUS                                         BY
+BELGIUM                                         BE
+BELIZE                                          BZ
+BENIN                                           BJ
+BERMUDA                                         BM
+BHUTAN                                          BT
+BOLIVIA                                         BO
+BOSNIA AND HERZEGOWINA                          BA
+BOTSWANA                                        BW
+BOUVET ISLAND                                   BV
+BRAZIL                                          BR
+BRITISH INDIAN OCEAN TERRITORY                  IO
+BRUNEI DARUSSALAM                               BN
+BULGARIA                                        BG
+BURKINA FASO                                    BF
+BURUNDI                                         BI
+CAMBODIA                                        KH
+
+Costanzo                                                          [Page  5]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+
+
+
+CAMEROON                                        CM
+CANADA                                          CA
+CAPE VERDE                                      CV
+CAYMAN ISLANDS                                  KY
+CENTRAL AFRICAN REPUBLIC                        CF
+CHAD                                            TD
+CHILE                                           CL
+CHINA                                           CN
+CHRISTMAS ISLAND                                CX
+COCOS (KEELING) ISLANDS                         CC
+COLOMBIA                                        CO
+COMOROS                                         KM
+CONGO                                           CG
+COOK ISLANDS                                    CK
+COSTA RICA                                      CR
+COTE D'IVOIRE                                   CI
+CROATIA                                         HR
+CUBA                                            CU
+CYPRUS                                          CY
+CZECH REPUBLIC                                  CZ
+DENMARK                                         DK
+DJIBOUTI                                        DJ
+DOMINICA                                        DM
+DOMINICAN REPUBLIC                              DO
+EAST TIMOR                                      TP
+ECUADOR                                         EC
+EGYPT                                           EG
+EL SALVADOR                                     SV
+EQUATORIAL GUINEA                               GQ
+ERITREA                                         ER
+ESTONIA                                         EE
+ETHIOPIA                                        ET
+FALKLAND ISLANDS (MALVINAS)                     FK
+FAROE ISLANDS                                   FO
+FIJI                                            FJ
+FINLAND                                         FI
+FRANCE                                          FR
+FRANCE, METROPOLITAN                            FX
+FRENCH GUIANA                                   GF
+FRENCH POLYNESIA                                PF
+FRENCH SOUTHERN TERRITORIES                     TF
+GABON                                           GA
+GAMBIA                                          GM
+GEORGIA                                         GE
+GERMANY                                         DE
+GHANA                                           GH
+GIBRALTAR                                       GI
+GREECE                                          GR
+GREENLAND                                       GL
+GRENADA                                         GD
+GUADELOUPE                                      GP
+GUAM                                            GU
+GUATEMALA                                       GT
+GUINEA                                          GN
+GUINEA-BISSAU                                   GW
+
+Costanzo                                                          [Page  6]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+GUYANA                                          GY
+HAITI                                           HT
+HEARD AND MC DONALD ISLANDS                     HM
+HONDURAS                                        HN
+HONG KONG                                       HK
+HUNGARY                                         HU
+ICELAND                                         IS
+INDIA                                           IN
+INDONESIA                                       ID
+IRAN (ISLAMIC REPUBLIC OF)                      IR
+IRAQ                                            IQ
+IRELAND                                         IE
+ISRAEL                                          IL
+ITALY                                           IT
+JAMAICA                                         JM
+JAPAN                                           JP
+JORDAN                                          JO
+KAZAKHSTAN                                      KZ
+KENYA                                           KE
+KIRIBATI                                        KI
+KOREA, DEMOCRATIC PEOPLE'S REPUBLIC OF          KP
+KOREA, REPUBLIC OF                              KR
+KUWAIT                                          KW
+KYRGYZSTAN                                      KG
+LAO PEOPLE'S DEMOCRATIC REPUBLIC                LA
+LATVIA                                          LV
+LEBANON                                         LB
+LESOTHO                                         LS
+LIBERIA                                         LR
+LIBYAN ARAB JAMAHIRIYA                          LY
+LIECHTENSTEIN                                   LI
+LITHUANIA                                       LT
+LUXEMBOURG                                      LU
+MACAU                                           MO
+MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF      MK
+MADAGASCAR                                      MG
+MALAWI                                          MW
+MALAYSIA                                        MY
+MALDIVES                                        MV
+MALI                                            ML
+MALTA                                           MT
+MARSHALL ISLANDS                                MH
+MARTINIQUE                                      MQ
+MAURITANIA                                      MR
+MAURITIUS                                       MU
+MAYOTTE                                         YT
+MEXICO                                          MX
+MICRONESIA (FEDERATED STATES OF)                FM
+MOLDOVA, REPUBLIC OF                            MD
+MONACO                                          MC
+MONGOLIA                                        MN
+MONTSERRAT                                      MS
+MOROCCO                                         MA
+MOZAMBIQUE                                      MZ
+MYANMAR                                         MM
+NAMIBIA                                         NA
+NAURU                                           NR
+NEPAL                                           NP
+NETHERLANDS                                     NL
+NETHERLANDS ANTILLES                            AN
+NEW CALEDONIA                                   NC
+NEW ZEALAND                                     NZ
+NICARAGUA                                       NI
+NIGER                                           NE
+NIGERIA                                         NG
+NIUE                                            NU
+NORFOLK ISLAND                                  NF
+
+Costanzo                                                          [Page  8]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+NORTHERN MARIANA ISLANDS                        MP
+NORWAY                                          NO
+OMAN                                            OM
+PAKISTAN                                        PK
+PALAU                                           PW
+PANAMA                                          PA
+PAPUA NEW GUINEA                                PG
+PARAGUAY                                        PY
+PERU                                            PE
+PHILIPPINES                                     PH
+PITCAIRN                                        PN
+POLAND                                          PL
+PORTUGAL                                        PT
+PUERTO RICO                                     PR
+QATAR                                           QA
+REUNION                                         RE
+ROMANIA                                         RO
+RUSSIAN FEDERATION                              RU
+RWANDA                                          RW
+ST. HELENA                                      SH
+SAINT KITTS AND NEVIS                           KN
+SAINT LUCIA                                     LC
+ST. PIERRE AND MIQUELON                         PM
+SAINT VINCENT AND THE GRENADINES                VC
+SAMOA                                           WS
+SAN MARINO                                      SM
+SAO TOME AND PRINCIPE                           ST
+SAUDI ARABIA                                    SA
+SENEGAL                                         SN
+SEYCHELLES                                      SC
+SIERRA LEONE                                    SL
+SINGAPORE                                       SG
+SLOVAKIA                                        SK
+SLOVENIA                                        SI
+SOLOMON ISLANDS                                 SB
+SOMALIA                                         SO
+SOUTH AFRICA                                    ZA
+SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS    GS
+SPAIN                                           ES
+SRI LANKA                                       LK
+SUDAN                                           SD
+SURINAME                                        SR
+SVALBARD AND JAN MAYEN ISLANDS                  SJ
+SWAZILAND                                       SZ
+SWEDEN                                          SE
+SWITZERLAND                                     CH
+SYRIAN ARAB REPUBLIC                            SY
+TAIWAN, PROVINCE OF CHINA                       TW
+TAJIKISTAN                                      TJ
+TANZANIA, UNITED REPUBLIC OF                    TZ
+THAILAND                                        TH
+TOGO                                            TG
+TOKELAU                                         TK
+TONGA                                           TO
+TRINIDAD AND TOBAGO                             TT
+TUNISIA                                         TN
+
+Costanzo                                                          [Page  8]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+TURKEY                                          TR
+TURKMENISTAN                                    TM
+TURKS AND CAICOS ISLANDS                        TC
+TUVALU                                          TV
+UGANDA                                          UG
+UKRAINE                                         UA
+UNITED ARAB EMIRATES                            AE
+UNITED KINGDOM                                  GB
+UNITED STATES                                   US
+UNITED STATES MINOR OUTLYING ISLANDS            UM
+URUGUAY                                         UY
+UZBEKISTAN                                      UZ
+VANUATU                                         VU
+VATICAN CITY STATE (HOLY SEE)                   VA
+VENEZUELA                                       VE
+VIET NAM                                        VN
+VIRGIN ISLANDS (BRITISH)                        VG
+VIRGIN ISLANDS (U.S.)                           VI
+WALLIS AND FUTUNA ISLANDS                       WF
+WESTERN SAHARA                                  EH
+YEMEN                                           YE
+YUGOSLAVIA                                      YU
+ZAIRE                                           ZR
+ZAMBIA                                          ZM
+ZIMBABWE                                        ZW
+
+
+6. Acknowledgments
+
+ The author would like to thank
+
+James Sears - for his continual editing effort
+Robert Ullmann - for his input
+
+and the members of the namedroppers mailing list for both their support and
+criticism of this document.
+
+7. Author's Address
+
+Al Costanzo
+AKC Computer Services Corp.
+ P.O. Box 4031
+Roselle Park, NJ 07204-0531
+Phone: +1 908 298 9000
+Email: AL@AKC.COM
+
+
+
+
+
+
+
+
+
+
+
+
+
+Costanzo                                                          [Page  9]
+
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
