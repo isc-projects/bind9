@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.9 2000/09/18 22:29:36 gson Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.10 2000/09/18 23:35:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#if (!(defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)))
+extern int h_errno;
+#endif
+
+#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
@@ -108,8 +113,6 @@ static int ns_total = 0;
 static isc_sockaddr_t *userserver = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
-
-extern int h_errno;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
