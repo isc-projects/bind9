@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.54.2.4 2001/03/05 23:45:26 bwelling Exp $
+$Id: options,v 1.54.2.5 2001/03/07 23:50:34 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -183,7 +183,6 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    Obsolete
   [ allow-notify { address_match_list };]		    Yes*
-  [ allow-update { address_match_list }; ]		    Obsolete
   [ allow-update-forwarding { address_match_list }; ]	    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
@@ -213,8 +212,6 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    Obsolete
-  [ allow-update { address_match_list }; ]		    Obsolete
-  [ allow-update-forwarding { address_match_list }; ]	    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ transfer-source ...; ]				    Yes
