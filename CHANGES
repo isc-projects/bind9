@@ -1,4 +1,4 @@
- 997.	[func]		Add support for RSA-SHA1 keys.
+ 997.	[func]		Add support for RSA-SHA1 keys (RFC3110).
 
  996.	[func]		Issue warning if the configuration filename contains
 			the chroot path.
