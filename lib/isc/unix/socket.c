@@ -26,7 +26,7 @@
 #elif defined(NEED_XSE_BEFORE_SOCKET_H) && !defined(_XOPEN_SOURCE_EXTENDED)
 #define _XOPEN_SOURCE_EXTENDED
 #include <sys/socket.h>
-#define _XOPEN_SOURCE_EXTENDED
+#undef _XOPEN_SOURCE_EXTENDED
 #else
 #include <sys/socket.h>
 #endif
@@ -279,11 +279,15 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 {
 	struct cmsghdr *cm;
 
+#ifdef MSG_TRUNC
 	if ((msg->msg_flags & MSG_TRUNC) == MSG_TRUNC)
 		dev->attributes |= ISC_SOCKEVENTATTR_TRUNC;
+#endif
 
+#ifdef MSG_CTRUNC
 	if ((msg->msg_flags & MSG_CTRUNC) == MSG_CTRUNC)
 		dev->attributes |= ISC_SOCKEVENTATTR_CTRUNC;
+#endif
 
 	if (msg->msg_controllen == 0 || msg->msg_control == NULL)
 		return;
