@@ -92,6 +92,9 @@ isc_time_settoepoch(isc_time_t *t);
 /*
  * Set 't' to the time of the epoch.
  *
+ * Notes:
+ * 	The date of the epoch is platform-dependent.
+ *
  * Requires:
  *
  *	't' is a valid.
@@ -192,6 +195,32 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2);
  *
  * Requires:
  *	No formal requirements are asserted.
+ */
+
+isc_uint32_t
+isc_time_seconds(isc_time_t *t);
+/*
+ * Return the number of seconds since the epoch stored in a time structure.
+ *
+ * Requires:
+ *	No formal requirements are asserted.
+ */
+
+isc_uint32_t
+isc_time_nanoseconds(isc_time_t *t);
+/*
+ * Return the number of nanoseconds stored in a time structure.
+ *
+ * Notes:
+ *	This is the number of nanoseconds in excess of the the number
+ *	of seconds since the epoch; it will always be less than one
+ *	full second.
+ *
+ * Requires:
+ *	No formal requirements are asserted.
+ *
+ * Ensures:
+ *	The returned value is less than 1*10^9.
  */
 
 ISC_LANG_ENDDECLS

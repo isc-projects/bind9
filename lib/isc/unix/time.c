@@ -227,3 +227,15 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 
 	return (i3);
 }
+
+isc_uint32_t
+isc_time_seconds(isc_time_t *t) {
+	return ((isc_uint32_t)t->seconds);
+}
+
+isc_uint32_t
+isc_time_nanoseconds(isc_time_t *t) {
+	ENSURE(t->nanoseconds < 1000000000);
+
+	return ((isc_uint32_t)t->nanoseconds);
+}
