@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: getgrent.c,v 1.1 2001/03/29 06:31:45 marka Exp $";
+static const char rcsid[] = "$Id: getgrent.c,v 1.2 2001/04/04 05:44:14 marka Exp $";
 #endif
 
 /* Imports */
@@ -81,14 +81,14 @@ setgroupent(int stayopen) {
 
 #ifdef SETGRENT_VOID
 void
-setgrent() {
+setgrent(void) {
 	struct net_data *net_data = init();
 
 	return (setgrent_p(net_data));
 }
 #else
 int
-setgrent() {
+setgrent(void) {
 	struct net_data *net_data = init();
 
 	return (setgrent_p(net_data));

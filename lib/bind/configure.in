@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.17 $)
+AC_REVISION($Revision: 1.18 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1356,6 +1356,18 @@ AC_SUBST(NET_R_END_RESULT)
 AC_SUBST(NET_R_END_RETURN)
 
 AC_CHECK_FUNC(getgrent_r,
+AC_TRY_COMPILE(
+[
+#include <grp.h>
+struct group *getgrent_r(struct group *grp, char *buffer,
+           int buflen) {}
+] ,[return (0);],[
+GROUP_R_ARGS="#define GROUP_R_ARGS char *buf, int buflen"
+GROUP_R_BAD="#define GROUP_R_BAD NULL"
+GROUP_R_OK="#define GROUP_R_OK gptr"
+GROUP_R_RETURN="#define GROUP_R_RETURN struct group *"
+],
+)
 ,
 GROUP_R_ARGS="#define GROUP_R_ARGS char *buf, int buflen"
 GROUP_R_BAD="#define GROUP_R_BAD NULL"
@@ -1452,6 +1464,20 @@ SETPWENT_VOID="#define SETPWENT_VOID 1"
 SETPWENT_VOID="#undef SETPWENT_VOID"
 )
 AC_SUBST(SETPWENT_VOID)
+
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <grp.h>
+void
+endgrent(void) {}
+],
+[return (0);],
+SETPWENT_VOID="#define SETGRENT_VOID 1"
+,
+SETPWENT_VOID="#undef SETGRENT_VOID"
+)
+AC_SUBST(SETGRENT_VOID)
+
 
 AC_CHECK_FUNC(getnetgrent_r,
 AC_TRY_COMPILE(
