@@ -1,0 +1,9 @@
+; Copyright
+
+; $Id: ignore.update.db.in,v 1.2 2004/02/27 20:44:07 marka Exp $
+
+$TTL 300
+@	SOA ns1.ignore.update. hostmaster.ignore.update. (
+	    1 3600 1200 604800 3600 )
+	NS  ns1.ignore.update.
+ns1.ignore.update. A 10.53.0.1

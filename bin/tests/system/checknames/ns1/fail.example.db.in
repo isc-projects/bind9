@@ -1,0 +1,10 @@
+; Copyright
+
+; $Id: fail.example.db.in,v 1.2 2004/02/27 20:44:07 marka Exp $
+
+$TTL 300
+@	SOA ns1.fail.example. hostmaster.fail.example. (
+	    1 3600 1200 604800 3600 )
+	NS  ns1.fail.example.
+ns1.fail.example. A 10.53.0.1
+xx_xx.fail.example. A 127.0.0.1

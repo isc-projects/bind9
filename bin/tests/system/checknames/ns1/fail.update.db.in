@@ -1,0 +1,9 @@
+; Copyright
+
+; $Id: fail.update.db.in,v 1.2 2004/02/27 20:44:07 marka Exp $
+
+$TTL 300
+@	SOA ns1.fail.update. hostmaster.fail.update. (
+	    1 3600 1200 604800 3600 )
+	NS  ns1.fail.update.
+ns1.fail.update. A 10.53.0.1
