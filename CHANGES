@@ -1,3 +1,5 @@
+ 365.	[bug]		nsupdate -k leaked memory.
+
  364.	[func]		Added additional-from-{cache,auth}
 
  363.	[doc]		doc/html was not being maintained so has been removed.

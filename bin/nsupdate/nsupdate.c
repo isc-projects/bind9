@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.39 2000/08/01 14:02:41 tale Exp $ */
+/* $Id: nsupdate.c,v 1.40 2000/08/02 02:34:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -243,6 +243,9 @@ setup_key(void) {
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname;
 
+	dns_fixedname_init(&fkeyname);
+	keyname = dns_fixedname_name(&fkeyname);
+
 	if (keystr != NULL) {
 		isc_buffer_t keynamesrc;
 		char *secretstr;
@@ -254,9 +257,6 @@ setup_key(void) {
 		if (s == NULL || s == keystr || *s == 0)
 			fatal("key option must specify keyname:secret\n");
 		secretstr = s + 1;
-
-		dns_fixedname_init(&fkeyname);
-		keyname = dns_fixedname_name(&fkeyname);
 
 		isc_buffer_init(&keynamesrc, keystr, s - keystr);
 		isc_buffer_add(&keynamesrc, s - keystr);
@@ -302,7 +302,11 @@ setup_key(void) {
 				keyfile, isc_result_totext(result));
 			goto failure;
 		}
-		keyname = dst_key_name(dstkey);
+		result = dns_name_concatenate(dst_key_name(dstkey), NULL,
+					      keyname, NULL);
+		check_result(result, "dns_name_concatenate");
+		dst_key_free(&dstkey);
+				    
 	}
 
 	debug("keycreate");
