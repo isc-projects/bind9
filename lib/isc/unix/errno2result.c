@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.5 2000/11/14 23:37:26 tale Exp $ */
+/* $Id: errno2result.c,v 1.6 2000/11/18 02:56:48 gson Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,9 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_IOERROR);
 	case ENOMEM:
 		return (ISC_R_NOMEMORY);
+	case ENFILE:
+	case EMFILE:
+		return (ISC_R_TOOMANYOPENFILES);
 	default:
 		/*
 		 * XXXDCL would be nice if perhaps this function could

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.49 2000/11/07 20:58:05 bwelling Exp $ */
+/* $Id: result.c,v 1.50 2000/11/18 02:56:45 gson Exp $ */
 
 #include <config.h>
 
@@ -88,6 +88,7 @@ static const char *text[ISC_R_NRESULTS] = {
 	"address family mismatch",		/* 47 */
 	"address family not supported",		/* 48 */
 	"bad hex encoding",			/* 49 */
+	"too many open files"			/* 50 */
 };
 
 #define ISC_RESULT_RESULTSET			2
