@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.82 2001/10/19 18:08:27 gson Exp $ */
+/* $Id: parser.c,v 1.83 2001/10/23 01:49:35 gson Exp $ */
 
 #include <config.h>
 
@@ -3812,7 +3812,7 @@ free_noop(cfg_parser_t *pctx, cfg_obj_t *obj) {
 /*
  * Data and functions for printing grammar summaries.
  */
-struct flagtext {
+static struct flagtext {
 	unsigned int flag;
 	const char *text;
 } flagtexts[] = {

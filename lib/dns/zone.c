@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.349 2001/10/18 06:12:04 marka Exp $ */
+/* $Id: zone.c,v 1.350 2001/10/23 01:49:33 gson Exp $ */
 
 #include <config.h>
 
@@ -432,8 +432,8 @@ static void dump_done(void *arg, isc_result_t result);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
-const unsigned int dbargc_default = 1;
-const char *dbargv_default[] = { "rbt" };
+static const unsigned int dbargc_default = 1;
+static const char *dbargv_default[] = { "rbt" };
 
 /***
  ***	Public functions.
