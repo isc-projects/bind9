@@ -134,9 +134,9 @@ iszonekey(signer_key_t *key, dns_db_t *db) {
 	result = dns_name_totext(dns_db_origin(db), ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
 
-	return (strcasecmp(dst_key_name(key->key), origin) == 0 &&
+	return (ISC_TF(strcasecmp(dst_key_name(key->key), origin) == 0 &&
 		(dst_key_flags(key->key) & DNS_KEYFLAG_OWNERMASK) ==
-		 DNS_KEYOWNER_ZONE);
+		 DNS_KEYOWNER_ZONE));
 }
 
 static signer_key_t *
@@ -208,7 +208,7 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 	    dns_rdata_t *sig)
 {
 	isc_result_t result = dns_dnssec_verify(name, set, key->key, mctx, sig);
-	return (result == ISC_R_SUCCESS);
+	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
 #define allocbufferandrdata \
@@ -264,8 +264,8 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			result = dns_rdata_tostruct(&oldsigrdata, &sig, mctx);
 			check_result(result, "dns_rdata_tostruct");
 
-			expired = (now + cycle > sig.timeexpire);
-			future = (now < sig.timesigned);
+			expired = ISC_TF(now + cycle > sig.timeexpire);
+			future = ISC_TF(now < sig.timesigned);
 
 			key = keythatsigned(&sig);
 
@@ -430,7 +430,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	isc_boolean_t atorigin = ISC_FALSE, isdelegation = ISC_FALSE;
 
 	origin = dns_db_origin(db);
-	atorigin = (dns_name_compare(name, origin) == 0);
+	atorigin = ISC_TF(dns_name_compare(name, origin) == 0);
 
 	if (!atorigin) {
 		dns_rdataset_init(&nsset);

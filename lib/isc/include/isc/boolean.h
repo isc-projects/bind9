@@ -26,6 +26,7 @@ typedef enum { isc_boolean_false = 0, isc_boolean_true = 1 } isc_boolean_t;
 
 #define ISC_FALSE isc_boolean_false
 #define ISC_TRUE isc_boolean_true
+#define ISC_TF(x) ((x) ? ISC_TRUE : ISC_FALSE)
 
 ISC_LANG_ENDDECLS
 

@@ -41,17 +41,20 @@
  *** TYPES
  ***/
  
+#define ordering_nametable_size \
+	(sizeof (ordering_nametable) / sizeof (struct dns_c_pvt_ont))
 static struct dns_c_pvt_ont {
 	dns_c_ordering_t val;
 	const char *strval;
 } ordering_nametable[] = {
 	{ dns_c_ordering_fixed,		"fixed" },
 	{ dns_c_ordering_random,	"random" },
-	{ dns_c_ordering_cyclic,	"cyclic" },
-	{ 0, NULL }
+	{ dns_c_ordering_cyclic,	"cyclic" }
 };
 
 
+#define log_severity_nametable_size \
+	(sizeof (log_severity_nametable) / sizeof (struct dns_c_pvt_lsnt))
 static struct dns_c_pvt_lsnt {
 	dns_c_logseverity_t val;
 	const char *strval;
@@ -62,8 +65,7 @@ static struct dns_c_pvt_lsnt {
 	{ dns_c_log_notice,		"notice" },
 	{ dns_c_log_warn,		"warning" },
 	{ dns_c_log_debug,		"debug" },
-	{ dns_c_log_dynamic,		"dynamic" },
-	{ 0, NULL, }
+	{ dns_c_log_dynamic,		"dynamic" }
 };
 
 	
@@ -105,6 +107,8 @@ static struct dsn_c_pvt_sfnt {
 };
 
 
+#define category_nametable_size \
+	(sizeof (category_nametable) / sizeof(struct dns_c_pvt_cntable))
 static struct dns_c_pvt_cntable {
 	dns_c_category_t val;
 	const char *strval;
@@ -131,8 +135,7 @@ static struct dns_c_pvt_cntable {
 	{ dns_c_cat_maint,		"maintenance" },
 	{ dns_c_cat_load,		"load" },
 	{ dns_c_cat_respchecks,		"response-checks" },
-	{ dns_c_cat_control,		"control" },
-	{ 0,				NULL }
+	{ dns_c_cat_control,		"control" }
 };
 
 
@@ -240,12 +243,12 @@ dns_c_printtabs(isc_log_t *lctx, FILE *fp, int count)
 isc_result_t
 dns_c_string2ordering(isc_log_t *lctx, char *name, dns_c_ordering_t *ordering)
 {
-	int i;
+	unsigned int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
 	(void) lctx;
 	
-	for (i = 0 ; ordering_nametable[i].strval != NULL ; i++) {
+	for (i = 0 ; i < ordering_nametable_size ; i++) {
 		if (strcmp(ordering_nametable[i].strval, name) == 0) {
 			*ordering = ordering_nametable[i].val;
 			rval = ISC_R_SUCCESS;
@@ -261,12 +264,12 @@ const char *
 dns_c_ordering2string(isc_log_t *lctx, dns_c_ordering_t ordering,
 		      isc_boolean_t printable)
 {
-	int i;
+	unsigned int i;
 	const char *rval = NULL;
 
 	(void) lctx;
 	
-	for (i = 0 ; ordering_nametable[i].strval != NULL ; i++) {
+	for (i = 0 ; i < ordering_nametable_size ; i++) {
 		if (ordering_nametable[i].val == ordering) {
 			rval = ordering_nametable[i].strval;
 			break;
@@ -281,12 +284,12 @@ const char *
 dns_c_logseverity2string(isc_log_t *lctx, dns_c_logseverity_t severity,
 			 isc_boolean_t printable)
 {
-	int i;
+	unsigned int i;
 	const char *rval = NULL;
 
 	(void) lctx;
 	
-	for (i = 0 ; log_severity_nametable[i].strval != NULL ; i++) {
+	for (i = 0 ; i < log_severity_nametable_size ; i++) {
 		if (log_severity_nametable[i].val == severity) {
 			rval = log_severity_nametable[i].strval;
 			break;
@@ -301,14 +304,14 @@ isc_result_t
 dns_c_string2logseverity(isc_log_t *lctx, const char *string,
 			 dns_c_logseverity_t *result)
 {
-	int i;
+	unsigned int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
 	(void) lctx;
 
 	REQUIRE(result != NULL);
 	
-	for (i = 0 ; log_severity_nametable[i].strval != NULL ; i++) {
+	for (i = 0 ; i < log_severity_nametable_size ; i++) {
 		if (strcmp(log_severity_nametable[i].strval, string) == 0) {
 			*result = log_severity_nametable[i].val;
 			rval = ISC_R_SUCCESS;
@@ -324,12 +327,12 @@ const char *
 dns_c_category2string(isc_log_t *lctx, dns_c_category_t cat,
 		      isc_boolean_t printable)
 {
-	int i;
+	unsigned int i;
 	const char *rval = NULL;
 
 	(void) lctx;
 	
-	for (i = 0 ; category_nametable[i].strval != NULL ; i++) {
+	for (i = 0 ; i < category_nametable_size ; i++) {
 		if (category_nametable[i].val == cat) {
 			rval = category_nametable[i].strval;
 			break;
@@ -344,14 +347,14 @@ isc_result_t
 dns_c_string2category(isc_log_t *lctx, const char *string,
 		      dns_c_category_t *category)
 {
-	int i;
+	unsigned int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
 	(void) lctx;
 	
 	REQUIRE (category != NULL);
 	
-	for (i = 0 ; category_nametable[i].strval != NULL ; i++) {
+	for (i = 0 ; i < category_nametable_size ; i++) {
 		if (strcmp(category_nametable[i].strval, string) == 0) {
 			*category = category_nametable[i].val;
 			rval = ISC_R_SUCCESS;

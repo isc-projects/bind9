@@ -86,7 +86,8 @@ dns_c_ipmatchelement_isneg(isc_log_t *lctx,
 
 	REQUIRE(DNS_IPMELEM_VALID(elem));
 	
-	return ((elem->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE);
+	return (ISC_TF((elem->flags & DNS_C_IPMATCH_NEGATE) ==
+			DNS_C_IPMATCH_NEGATE));
 }
 
 
@@ -236,10 +237,10 @@ dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
 		break;
 
 	case dns_c_ipmatch_key:
-		return (strcmp(e1->u.key, e2->u.key) == 0);
+		return (ISC_TF(strcmp(e1->u.key, e2->u.key) == 0));
 
 	case dns_c_ipmatch_acl:
-		return (strcmp(e1->u.aclname, e2->u.aclname) == 0);
+		return (ISC_TF(strcmp(e1->u.aclname, e2->u.aclname) == 0));
 
 	case dns_c_ipmatch_none:
 		break;

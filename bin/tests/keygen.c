@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: keygen.c,v 1.6 1999/10/29 08:27:34 marka Exp $ */
+ /* $Id: keygen.c,v 1.7 1999/10/29 12:56:51 marka Exp $ */
 
 #include <config.h>
 
@@ -257,7 +257,7 @@ main(int argc, char **argv) {
 
 static isc_boolean_t
 dsa_size_ok(int size) {
-	return (size >= 512 && size <= 1024 && size % 64 == 0);
+	return (ISC_TF(size >= 512 && size <= 1024 && size % 64 == 0));
 }
 
 static void

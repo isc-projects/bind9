@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.11 1999/10/20 22:14:14 bwelling Exp $
+ * $Id: openssl_link.c,v 1.12 1999/10/29 12:56:57 marka Exp $
  */
 
 #include <config.h>
@@ -252,7 +252,7 @@ dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
 static isc_boolean_t
 dst_openssl_isprivate(const dst_key_t *key) {
 	DSA *dsa = (DSA *) key->opaque;
-        return (dsa != NULL && dsa->priv_key != NULL);
+        return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
 }
 
 

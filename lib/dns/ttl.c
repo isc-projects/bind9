@@ -77,23 +77,23 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
 
 	x = 0;
 	if (weeks != 0) {
-		RETERR(ttlfmt(weeks, "week", verbose, (x > 0), target));
+		RETERR(ttlfmt(weeks, "week", verbose, ISC_TF(x > 0), target));
 		x++;
 	}
 	if (days != 0) {
-		RETERR(ttlfmt(days, "day", verbose, (x > 0), target));
+		RETERR(ttlfmt(days, "day", verbose, ISC_TF(x > 0), target));
 		x++;
 	}
 	if (hours != 0) {
-		RETERR(ttlfmt(hours, "hour", verbose, (x > 0), target));
+		RETERR(ttlfmt(hours, "hour", verbose, ISC_TF(x > 0), target));
 		x++;
 	}
 	if (mins != 0) {
-		RETERR(ttlfmt(mins, "minute", verbose, (x > 0), target));
+		RETERR(ttlfmt(mins, "minute", verbose, ISC_TF(x > 0), target));
 		x++;
 	}
 	if (secs != 0 || (weeks == 0 && days == 0 && hours == 0 && mins == 0)) {
-		RETERR(ttlfmt(secs, "second", verbose, (x > 0), target));
+		RETERR(ttlfmt(secs, "second", verbose, ISC_TF(x > 0), target));
 		x++;
 	}
 	INSIST (x > 0);

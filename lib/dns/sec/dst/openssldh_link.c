@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.5 1999/10/27 20:46:33 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.6 1999/10/29 12:56:57 marka Exp $
  */
 
 #include <config.h>
@@ -158,7 +158,7 @@ dst_openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 static isc_boolean_t
 dst_openssldh_isprivate(const dst_key_t *key) {
 	DH *dh = (DH *) key->opaque;
-        return (dh != NULL && dh->priv_key != NULL);
+        return (ISC_TF(dh != NULL && dh->priv_key != NULL));
 }
 
 

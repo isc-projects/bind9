@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/boolean.h>
 #include <isc/error.h>
 #include <isc/result.h>
 #include <isc/timer.h>
@@ -1522,7 +1523,7 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 				      addname, dns_rdatatype_any, 0, &name,
 				      NULL);
 	if (result == ISC_R_SUCCESS) {
-		external = !dns_name_issubdomain(name, &fctx->domain);
+		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
 		if (type == dns_rdatatype_a) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -1846,7 +1847,7 @@ answer_response(fetchctx_t *fctx) {
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_ANSWER, &name);
-		external = !dns_name_issubdomain(name, &fctx->domain);
+		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
 		if (dns_name_equal(name, qname)) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -2107,7 +2108,7 @@ answer_response(fetchctx_t *fctx) {
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
-		external = !dns_name_issubdomain(name, &fctx->domain);
+		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
 		if (!external) {
 			/*
 			 * We expect to find NS or SIG NS rdatasets, and

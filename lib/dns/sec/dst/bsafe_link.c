@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.10 1999/10/20 22:14:14 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.11 1999/10/29 12:56:56 marka Exp $
  */
 
 #include <config.h>
@@ -392,7 +392,7 @@ dst_bsafe_verify(const unsigned int mode, dst_key_t *key, void **context,
 static isc_boolean_t
 dst_bsafe_isprivate(const dst_key_t *key) {
 	RSA_Key *rkey = (RSA_Key *) key->opaque;
-	return (rkey != NULL && rkey->rk_Private_Key != NULL);
+	return (ISC_TF(rkey != NULL && rkey->rk_Private_Key != NULL));
 }
 
 

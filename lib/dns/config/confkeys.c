@@ -692,10 +692,10 @@ dns_c_pubkey_equal(dns_c_pubkey_t *k1, dns_c_pubkey_t *k2) {
 		return (ISC_TRUE);
 	if (k1 == NULL || k2 == NULL)
 		return (ISC_FALSE);
-	return (k1->flags == k2->flags &&
+	return (ISC_TF(k1->flags == k2->flags &&
 		k1->protocol == k2->protocol &&
 		k1->algorithm == k2->algorithm &&
-		strcmp(k1->key, k2->key) == 0);
+		strcmp(k1->key, k2->key) == 0));
 }
 
 void

@@ -120,7 +120,7 @@ test_master(char *testfile, char *origin, char *class, dns_result_t exp_result) 
 						&dns_origin,
 						&dns_origin,
 						rdataclass,
-						1,
+						ISC_TRUE,
 						&soacount,
 						&nscount,
 						&callbacks,
