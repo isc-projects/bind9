@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.36 2000/09/08 21:35:45 gson Exp $ */
+/* $Id: rdataset.h,v 1.37 2000/11/10 03:41:07 gson Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -336,6 +336,24 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *
  *	Any error returned by dns_rdata_towire(), dns_rdataset_next(),
  *	dns_name_towire().
+ */
+
+isc_result_t
+dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
+			  dns_name_t *owner_name,
+			  dns_compress_t *cctx,
+			  isc_buffer_t *target,
+			  dns_rdatasetorderfunc_t order,
+			  void *order_arg,
+			  unsigned int *countp);
+/*
+ * Like dns_rdataset_towire(), but sorting the rdatasets according to
+ * the integer value returned by 'order' when called witih the rdataset
+ * and 'order_arg' as arguments.
+ *
+ * Requires:
+ *	All the requirements of dns_rdataset_towire(), and
+ *	that order_arg is NULL if and only if order is NULL.
  */
 
 isc_result_t

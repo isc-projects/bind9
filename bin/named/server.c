@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.244 2000/11/10 03:05:36 gson Exp $ */
+/* $Id: server.c,v 1.245 2000/11/10 03:41:05 gson Exp $ */
 
 #include <config.h>
 
@@ -635,6 +635,11 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				 dns_c_view_getrecursionacl,
 				 dns_c_ctx_getallowrecursion,
 				 &view->recursionacl));
+
+	CHECK(configure_view_acl(cview, cctx, actx, ns_g_mctx,
+				 dns_c_view_getsortlist,
+				 dns_c_ctx_getsortlist,
+				 &view->sortlist));
 
 	result = ISC_R_NOTFOUND;
 	if (cview != NULL)

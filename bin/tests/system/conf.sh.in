@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.16 2000/11/10 03:05:50 bwelling Exp $
+# $Id: conf.sh.in,v 1.17 2000/11/10 03:41:08 gson Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -39,8 +39,8 @@ KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
 KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
 KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
-SUBDIRS="dnssec forward glue limits lwresd notify nsupdate resolver stub \
-    unknown upforwd views xfer xferquota"
+SUBDIRS="dnssec forward glue limits lwresd notify nsupdate resolver \
+    sortlist stub unknown upforwd views xfer xferquota"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
