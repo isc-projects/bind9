@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.190 2002/01/30 01:47:35 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.191 2002/01/30 02:23:11 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4828,10 +4828,21 @@ examines the signer of a message; the source address is not relevant.</para>
 successfully matched a rule, the operation is immediately granted
 or denied and no further rules are examined.  A rule is matched
 when the signer matches the identity field, the name matches the
-name field, and the type is specified in the type field.</para>
-<para>The identity field specifies a name or a wildcard name.  The
-nametype field has 4 values: <varname>name</varname>, <varname>subdomain</varname>, <varname>wildcard</varname>,
-and <varname>self</varname>
+name field in accordance with the nametype field, and the type matches
+the types specified in the type field.</para>
+
+<para>The identity field specifies a name or a wildcard name.  Normally, this
+is the name of the TSIG or SIG(0) key used to sign the update request.  When a
+TKEY exchange has been used to create a shared secret, the identity of the
+shared secret is the same as the identity of the key used to authenticate the
+TKEY exchange.  When the <replaceable>identity</replaceable> field specifies a
+wildcard name, it is subject to DNS wildcard expansion, so the rule will apply
+to multiple identities.  The <replaceable>identity</replaceable> field must
+contain a fully qualified domain name.</para>
+
+<para>The <replaceable>nametype</replaceable> field has 4 values:
+<varname>name</varname>, <varname>subdomain</varname>,
+<varname>wildcard</varname>, and <varname>self</varname>.
 </para>
 <informaltable>
             <tgroup cols = "2" colsep = "0"
@@ -4841,29 +4852,44 @@ and <varname>self</varname>
 <tbody>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>name</varname></para></entry>
-<entry colname = "2"><para>Matches when the updated name is the
-same as the name in the name field.</para></entry>
+<entry colname = "2"><para>Exact-match semantics.  This rule matches when the
+name being updated is identical to the contents of the
+<replaceable>name</replaceable> field.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>subdomain</varname></para></entry>
-<entry colname = "2"><para>Matches when the updated name is a subdomain
-of the name in the name field (which includes the name itself).</para></entry>
+<entry colname = "2"><para>This rule matches when the name being updated
+is a subdomain of, or identical to, the contents of the
+<replaceable>name</replaceable> field.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>wildcard</varname></para></entry>
-<entry colname = "2"><para>Matches when the updated name is a valid
-expansion of the wildcard name in the name field.</para></entry>
+<entry colname = "2"><para>The <replaceable>name</replaceable> field is
+subject to DNS wildcard expansion, and this rule matches when the name
+being updated name is a valid expansion of the wildcard.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>self</varname></para></entry>
-<entry colname = "2"><para>Matches when the updated name is the
-same as the message signer. The name field is ignored.</para></entry>
+<entry colname = "2"><para>This rule matches when the name being updated
+matches the contents of the <replaceable>identity</replaceable> field.
+The <replaceable>name</replaceable> field is ignored, but should be
+the same as the <replaceable>identity</replaceable> field.  The
+<varname>self</varname> nametype is most useful when allowing using
+one key per name to update, where the key has the same name as the name
+to be updated.  The <replaceable>identity</replaceable> would be
+specified as <constant>*</constant> in this case.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
-<para>If no types are specified, the rule matches all types except
+
+<para>In all cases, the <replaceable>name</replaceable> field must
+specify a fully qualified domain name.</para>
+
+<para>If no types are explicitly specified, this rule matches all types except
 SIG, NS, SOA, and NXT. Types may be specified by name, including
 "ANY" (ANY matches all types except NXT, which can never be updated).
+Note that when an attempt is made to delete all records associated with a
+name, the rules are checked for each existing record type.
 </para>
       </sect3>
     </sect2>
