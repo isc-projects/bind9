@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.3 2000/11/17 23:12:10 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.4 2000/11/17 23:57:32 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <pgsql/libpq-fe.h>
 
@@ -30,6 +31,7 @@
 #include <isc/util.h>
 
 #include <dns/sdb.h>
+#include <dns/result.h>
 
 #include <named/globals.h>
 
@@ -89,7 +91,7 @@ pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 		return (ISC_R_NOMEMORY);
 	canonicalize(name, canonname);
 	snprintf(str, sizeof(str),
-		 "SELECT RDTYPE,RDATA FROM \"%s\" WHERE "
+		 "SELECT TTL,RDTYPE,RDATA FROM \"%s\" WHERE "
 		 "lower(NAME) = lower('%s')", dbi->table, canonname);
 	isc_mem_put(ns_g_mctx, canonname, strlen(name) * 2 + 1);
 	res = PQexec(dbi->conn, str);
@@ -103,9 +105,17 @@ pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	for (i = 0; i < PQntuples(res); i++) {
-		char *type = PQgetvalue(res, i, 0);
-		char *data = PQgetvalue(res, i, 1);
-		result = dns_sdb_putrr(lookup, type, 3600, data);
+		char *ttlstr = PQgetvalue(res, i, 0);
+		char *type = PQgetvalue(res, i, 1);
+		char *data = PQgetvalue(res, i, 2);
+		dns_ttl_t ttl;
+		char *endp;
+		ttl = strtol(ttlstr, &endp, 10);
+		if (*endp != '\0') {
+			PQclear(res);
+			return (DNS_R_BADTTL);
+		}
+		result = dns_sdb_putrr(lookup, type, ttl, data);
 		if (result != ISC_R_SUCCESS) {
 			PQclear(res);
 			return (ISC_R_FAILURE);
@@ -131,7 +141,7 @@ pgsqldb_allnodes(const char *zone, void *dbdata, dns_sdballnodes_t *allnodes) {
 	UNUSED(zone);
 
 	snprintf(str, sizeof(str),
-		 "SELECT NAME,RDTYPE,RDATA FROM \"%s\" ORDER BY NAME",
+		 "SELECT TTL,NAME,RDTYPE,RDATA FROM \"%s\" ORDER BY NAME",
 		 dbi->table);
 	res = PQexec(dbi->conn, str);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK ) {
@@ -144,10 +154,18 @@ pgsqldb_allnodes(const char *zone, void *dbdata, dns_sdballnodes_t *allnodes) {
 	}
 
 	for (i = 0; i < PQntuples(res); i++) {
-		char *name = PQgetvalue(res, i, 0);
-		char *type = PQgetvalue(res, i, 1);
-		char *data = PQgetvalue(res, i, 2);
-		result = dns_sdb_putnamedrr(allnodes, name, type, 3600, data);
+		char *ttlstr = PQgetvalue(res, i, 0);
+		char *name = PQgetvalue(res, i, 1);
+		char *type = PQgetvalue(res, i, 2);
+		char *data = PQgetvalue(res, i, 3);
+		dns_ttl_t ttl;
+		char *endp;
+		ttl = strtol(ttlstr, &endp, 10);
+		if (*endp != '\0') {
+			PQclear(res);
+			return (DNS_R_BADTTL);
+		}
+		result = dns_sdb_putnamedrr(allnodes, name, type, ttl, data);
 		if (result != ISC_R_SUCCESS) {
 			PQclear(res);
 			return (ISC_R_FAILURE);

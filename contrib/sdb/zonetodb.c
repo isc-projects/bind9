@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.3 2000/11/17 23:12:11 bwelling Exp $ */
+/* $Id: zonetodb.c,v 1.4 2000/11/17 23:57:33 bwelling Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -77,7 +77,7 @@ canonicalize(const char *source, char *dest) {
 }
 
 void
-addrdata(dns_name_t *name, dns_rdata_t *rdata) {
+addrdata(dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata) {
 	unsigned char namearray[DNS_NAME_MAXTEXT + 1];
 	unsigned char canonnamearray[2 * DNS_NAME_MAXTEXT + 1];
 	unsigned char typearray[20];
@@ -107,9 +107,9 @@ addrdata(dns_name_t *name, dns_rdata_t *rdata) {
 	canonicalize(dataarray, canondataarray);
 	
 	snprintf(str, sizeof(str),
-		 "INSERT INTO %s (NAME, RDTYPE, RDATA)"
-		 " VALUES ('%s', '%s', '%s')",
-		 dbtable, canonnamearray, canontypearray, canondataarray);
+		 "INSERT INTO %s (NAME, TTL, RDTYPE, RDATA)"
+		 " VALUES ('%s', %d, '%s', '%s')",
+		 dbtable, canonnamearray, ttl, canontypearray, canondataarray);
 	printf("%s\n", str);
 	res = PQexec(conn, str);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -196,7 +196,8 @@ main(int argc, char **argv) {
 	PQclear(res);
 
 	snprintf(str, sizeof(str),
-		 "CREATE TABLE %s (NAME TEXT, RDTYPE TEXT, RDATA TEXT)",
+		 "CREATE TABLE %s "
+		 "(NAME TEXT, TTL INTEGER, RDTYPE TEXT, RDATA TEXT)",
 		 dbtable);
 	printf("%s\n", str);
 	res = PQexec(conn, str);
@@ -236,29 +237,19 @@ main(int argc, char **argv) {
 
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, &rdataset);
-
 			result = dns_rdataset_first(&rdataset);
 			check_result(result, "dns_rdataset_first");
-
 			while (result == ISC_R_SUCCESS) {
 				dns_rdataset_current(&rdataset, &rdata);
-
-				addrdata(name, &rdata);
-
+				addrdata(name, rdataset.ttl, &rdata);
 				dns_rdata_reset(&rdata);
-
 				result = dns_rdataset_next(&rdataset);
 			}
-
 			dns_rdataset_disassociate(&rdataset);
-
 			result = dns_rdatasetiter_next(rdsiter);
 		}
-
 		dns_rdatasetiter_destroy(&rdsiter);
-
 		dns_db_detachnode(db, &node);
-
 		result = dns_dbiterator_next(dbiter);
 	}
 
@@ -272,12 +263,8 @@ main(int argc, char **argv) {
 		closeandexit(1);
 	}
 	PQclear(res);
-
 	dns_dbiterator_destroy(&dbiter);
-
 	dns_db_detach(&db);
-
 	isc_mem_destroy(&mctx);
-
 	closeandexit(0);
 }
