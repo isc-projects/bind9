@@ -22,15 +22,23 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
+stopservers=true
+
+case $1 in
+   --keep) stopservers=false; shift ;;
+esac
+
+test $# -gt 0 || { echo "usage: $0 [--keep] test-directory" >&2; exit 1; }
 
 test=$1
 shift
 
 test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
 
-test -f /var/run/system_test_ifsetup || { echo "I:Interfaces not set up.  Not trying system tests." >&2 \
-    ; exit 1; }
+test -f /var/run/system_test_ifsetup ||
+    { echo "I:Interfaces not set up.  Not trying system tests." >&2;
+      exit 1;
+    }
 
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
@@ -47,6 +55,11 @@ sleep 10
 ( cd $test ; sh tests.sh )
 
 status=$?
+
+if ! $stopservers
+then
+    exit $status
+fi
 
 # Shutdown
 sh stop.sh $test
