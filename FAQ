@@ -145,7 +145,7 @@ Q: I keep getting log messages like the following.  Why?
 
    Jun 21 12:00:00.000 client 10.0.0.1#1234: update denied
 
-Someone is trying to update your DNS data using the RFC2136 Dynamic
+A: Someone is trying to update your DNS data using the RFC2136 Dynamic
 Update protocol.  Windows 2000 machines have a habit of sending dynamic
 update requests to DNS servers without being specifically configured to
 do so.  If the update requests are coming from a Windows 2000 machine,
@@ -157,7 +157,7 @@ Q: I see a log message like the following.  Why?
 
    couldn't open pid file '/var/run/named.pid': Permission denied
 
-You are most likely running named as a non-root user, and that user
+A: You are most likely running named as a non-root user, and that user
 does not have permission to write in /var/run.  The common ways of
 fixing this are to create a /var/run/named directory owned by the named
 user and set pid-file to "/var/run/named/named.pid", or set
