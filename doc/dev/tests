@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: tests,v 1.10 2000/11/14 17:58:44 gson Exp $
+$Id: tests,v 1.11 2000/11/27 19:52:16 gson Exp $
 
 We do hourly test builds of the bind9 tree.  This is an attempt to
 document how they work.
@@ -110,8 +110,9 @@ of fixing this is to move them to ~wpk.
 
 When a test fails, further testing on that host is disabled in order
 to preserve evidence.  To remove the lockout and allow more tests to
-be run, log in to bb, su, su wpk, and remove the file
-/proj/build-reports/bind9/hosts/{TARGET}/failed.
+be run, log in to bb, su, su wpk, and remove the "failed" files:
+
+   rm /proj/build-reports/bind9/hosts/*/failed
 
 The failed file itself contains an exit code, which is not particularly
 useful.  The more useful information is in the various log files under
