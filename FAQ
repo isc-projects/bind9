@@ -209,3 +209,47 @@ dynamic update for a zone using the "allow-update" option, you are not
 supposed to edit the zone file by hand, and the server will not
 attempt to reload it.
 
+
+Q: I can query the nameserver from the nameserver but not from other
+machines.  Why?
+
+A: This is usually the result of the firewall configuration stopping
+the queries and / or the replies.
+
+
+Q: How can I make a server a slave for both an internal and
+an external view at the same time?  When I tried, both views
+on the slave were transfered from the same view on the master.
+
+A: You will need to give the master and slave multiple IP addresses and
+use those to make sure you reach the correct view on the other machine.
+
+	e.g.
+	Master: 10.0.1.1 (internal), 10.0.1.2 (external, IP alias)
+	    internal:
+		match-clients { !10.0.1.2; !10.0.1.4; 10.0.1/24; };
+		notify-source 10.0.1.1;
+		transfer-source 10.0.1.1;
+		query-source 10.0.1.1;
+	    external:
+		match-clients { any; };
+		recursion no;	// don't offer recursion to the world
+		notify-source 10.0.1.2;
+		transfer-source 10.0.1.2;
+		query-source 10.0.1.2;
+
+	Slave: 10.0.1.3 (internal), 10.0.1.4 (external, IP alias)
+	    internal:
+		match-clients { !10.0.1.2; !10.0.1.4; 10.0.1/24; };
+		notify-source 10.0.1.3;
+		transfer-source 10.0.1.3;
+		query-source 10.0.1.3;
+	    external:
+		match-clients { any; };
+		recursion no;	// don't offer recursion to the world
+		notify-source 10.0.1.4;
+		transfer-source 10.0.1.4;
+		query-source 10.0.1.4;
+
+	You put the external address on the alias so that all the other
+	dns clients on these boxes see the internal view by default.
