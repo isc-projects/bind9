@@ -41,15 +41,14 @@ isc_string_touint64(char *source, char **endp, int base);
  * On error 'endp' points to 'source'.
  */
 
-#ifdef ISC_PLATFORM_NEEDSTRSEP
 
 char *
 isc_string_separate(char **stringp, const char *delim); 
 
+#ifdef ISC_PLATFORM_NEEDSTRSEP
 #define strsep isc_string_separate
-#endif /* ISC_PLATFORM_NEEDSTRSEP */
+#endif
 
 ISC_LANG_ENDDECLS
-
 
 #endif /* ISC_STRING_H */
