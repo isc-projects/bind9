@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.106 2000/05/08 14:35:18 tale Exp $ */
+/* $Id: zone.c,v 1.107 2000/05/10 04:47:03 marka Exp $ */
 
 #include <config.h>
 
@@ -262,6 +262,7 @@ static void notify_send(notify_t *notify);
 static isc_result_t notify_createmessage(dns_zone_t *zone,
 					 dns_message_t **messagep);
 static void notify_done(isc_task_t *task, isc_event_t *event);
+static isc_result_t zone_dump(dns_zone_t *);
 
 #define PRINT_ZONE_REF(zone) \
 	do { \
@@ -1691,6 +1692,7 @@ void
 dns_zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "dns_zone_maintenance";
 	isc_stdtime_t now;
+	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	DNS_ENTER;
@@ -1737,7 +1739,11 @@ dns_zone_maintenance(dns_zone_t *zone) {
 		if (now >= zone->dumptime &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED) &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP)) {
-			dns_zone_dump(zone);
+			result = zone_dump(zone);
+			if (result != ISC_R_SUCCESS)
+				zone_log(zone, "zone_dump", ISC_LOG_WARNING,
+					 "failed: %s",
+					 dns_result_totext(result));
 		}
 		UNLOCK(&zone->lock);
 		break;
@@ -1824,8 +1830,17 @@ dns_zone_expire(dns_zone_t *zone) {
 
 static void
 expire(dns_zone_t *zone) {
-	if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP))
-		dns_zone_dump(zone);
+	isc_result_t result;
+
+	/*
+	 * 'zone' locked by caller.
+	 */
+	if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP)) {
+		result = zone_dump(zone);
+		if (result != ISC_R_SUCCESS)
+			zone_log(zone, "zone_dump", ISC_LOG_WARNING,
+				 "failure: %s", dns_result_totext(result));
+	}
 	zone->flags |= DNS_ZONE_F_EXPIRED;
 	dns_zone_setrefresh(zone, DEFAULT_REFRESH, DEFAULT_RETRY);
 	unload(zone);
@@ -1867,6 +1882,19 @@ dns_zone_refresh(dns_zone_t *zone) {
 isc_result_t
 dns_zone_dump(dns_zone_t *zone) {
 	isc_result_t result;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	result = zone_dump(zone);
+	UNLOCK(&zone->lock);
+
+	return (result);
+}
+
+static isc_result_t
+zone_dump(dns_zone_t *zone) {
+	isc_result_t result;
 	dns_dbversion_t *version = NULL;
 	dns_db_t *db = NULL;
 	char *buf;
@@ -1874,6 +1902,9 @@ dns_zone_dump(dns_zone_t *zone) {
 	FILE *f = NULL;
 	int n;
 	
+	/*
+	 * 'zone' locked by caller.
+	 */
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	buflen = strlen(zone->dbname) + 20;
@@ -1896,19 +1927,21 @@ dns_zone_dump(dns_zone_t *zone) {
 	dns_db_closeversion(db, &version, ISC_FALSE);
 	dns_db_detach(&db);
 	n = fflush(f);
-	if (n != 0)
+	if (n != 0 && result == ISC_R_SUCCESS)
 		result = ISC_R_UNEXPECTED;
 	n = ferror(f);
-	if (n != 0)
+	if (n != 0 && result == ISC_R_SUCCESS)
 		result = ISC_R_UNEXPECTED;
 	n = fclose(f);
-	if (n != 0)
+	if (n != 0 && result == ISC_R_SUCCESS)
 		result = ISC_R_UNEXPECTED;
 	if (result == ISC_R_SUCCESS) {
 		n = rename(buf, zone->dbname);
 		if (n == -1) {
 			(void)remove(buf);
 			result = ISC_R_UNEXPECTED;
+		} else {
+			zone->flags &= ~DNS_ZONE_F_NEEDDUMP;
 		}
 	} else
 		(void)remove(buf);
