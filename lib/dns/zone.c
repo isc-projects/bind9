@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.9 1999/09/21 20:03:03 halley Exp $ */
+ /* $Id: zone.c,v 1.10 1999/09/23 06:42:09 gson Exp $ */
 
 #include <config.h>
 
@@ -2675,6 +2675,14 @@ dns_zone_transfer_in(dns_zone_t *zone) {
 	REQUIRE(VALID_ZONE(zone));
 
 	fprintf(stdout, "dns_zone_transfer_in\n");
+}
+
+dns_zonetype_t dns_zone_gettype(dns_zone_t *zone) {
+	return (zone->type);
+}
+
+isc_task_t *dns_zone_gettask(dns_zone_t *zone) {
+	return (zone->task);
 }
 
 /*
