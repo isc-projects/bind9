@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.28 2001/01/09 21:51:48 bwelling Exp $ */
+/* $Id: zt.c,v 1.29 2001/02/27 02:54:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -220,6 +220,9 @@ dns_zt_detach(dns_zt_t **ztp) {
 isc_result_t
 dns_zt_load(dns_zt_t *zt, isc_boolean_t stop) {
 	isc_result_t result;
+
+	REQUIRE(VALID_ZT(zt));
+
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 	result = dns_zt_apply(zt, stop, load, NULL);
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
