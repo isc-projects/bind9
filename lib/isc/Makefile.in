@@ -11,11 +11,11 @@ CINCLUDES =	-I${srcdir}/unix/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		assertions.o buffer.o error.o heap.o lex.o mem.o result.o \
+OBJS =		@ISC_EXTRA_OBJS@ \
+		assertions.o buffer.o error.o heap.o lex.o mem.o result.o \
 		rwlock.o symtab.o task.o timer.o version.o \
 		unix/time.o unix/socket.o \
-		pthreads/condition.o \
-		@ISC_EXTRA_OBJS@
+		pthreads/condition.o
 
 SUBDIRS =	include unix pthreads
 TARGETS =	timestamp
