@@ -59,6 +59,7 @@ TARGETS =	adb_test \
 		sym_test \
 		task_test \
 		timer_test \
+		tkey_test \
 		wire_test \
 		zone_test
 
@@ -88,6 +89,7 @@ SRCS =		adb_test.c \
 		sym_test.c \
 		task_test.c \
 		timer_test.c \
+		tkey_test.c \
 		wire_test.c \
 		zone_test.c \
 		zone2_test.c
@@ -205,6 +207,11 @@ dispatch_tcp_test: dispatch_tcp_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS
 nconf_test: nconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nconf_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+tkey_test: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ tkey_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
 
 clean distclean::
 	rm -f ${TARGETS}
