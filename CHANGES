@@ -1,4 +1,7 @@
 
+ 406.	[bug]		Log messages were occasionally lost or corrupted
+			due to a race condition in isc_log_doit().
+
  405.	[func]		Add support for selective forwarding (forward zones)
 
  404.	[bug]		The request library didn't completely work with IPv6.
