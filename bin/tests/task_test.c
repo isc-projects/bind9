@@ -140,6 +140,9 @@ main(int argc, char *argv[]) {
 	task_detach(&t4);
 
 	printf("destroy\n");
+	timer_detach(&ti1);
+	timer_detach(&ti2);
+	timer_manager_destroy(&timgr);
 	task_manager_destroy(&manager);
 	printf("destroyed\n");
 	

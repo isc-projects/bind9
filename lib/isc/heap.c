@@ -70,6 +70,7 @@ heap_create(mem_context_t mctx, heap_higher_priority_func higher_priority,
 	if (heap == NULL)
 		return (ISC_R_NOMEMORY);
 	heap->magic = HEAP_MAGIC;
+	heap->mctx = mctx;
 	heap->size = 0;
 	if (size_increment == 0)
 		heap->size_increment = SIZE_INCREMENT;
@@ -113,9 +114,11 @@ resize(heap_t heap) {
 	new_array = mem_get(heap->mctx, new_size * sizeof (void *));
 	if (new_array == NULL)
 		return (FALSE);
-	memcpy(new_array, heap->array, heap->size);
-	mem_put(heap->mctx, heap->array, 
-		heap->size * sizeof (void *));
+	if (heap->array != NULL) {
+		memcpy(new_array, heap->array, heap->size);
+		mem_put(heap->mctx, heap->array, 
+			heap->size * sizeof (void *));
+	}
 	heap->size = new_size;
 	heap->array = new_array;
 
