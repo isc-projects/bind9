@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.34 1999/10/30 00:14:08 gson Exp $ */
+ /* $Id: zone.c,v 1.35 1999/10/30 01:53:37 gson Exp $ */
 
 #include <config.h>
 
@@ -3041,7 +3041,9 @@ replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	 */
 	if (zone->top != NULL && zone->journal != NULL &&
 	    zone->diff_on_reload) {
-		printf("generating diffs\n");
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+			      "generating diffs");
 		result = dns_db_diff(zone->mctx, 
 					db, ver,
 					zone->top, NULL /* XXX */,
@@ -3050,22 +3052,27 @@ replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			goto fail;
 	} else {
 		if (dump) {
-			printf("dumping new version\n");
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+				      "dumping new zone version");
 			/* XXX should use temporary file and rename */
 			result = dns_db_dump(db, ver, zone->database);
 			if (result != DNS_R_SUCCESS)
 				goto fail;
 		}
 		if (zone->journal != NULL) {
-			/* XXXRTH log instead: printf("unlinking journal\n"); */
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+				      "removing journal file");
 			(void) remove(zone->journal);
 		}
 	}
 	dns_db_closeversion(db, &ver, ISC_FALSE);
 
-#if 0
-	printf("replacing database...\n");
-#endif
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
+		      "replacing zone database");
+	
 	if (zone->top != NULL)
 		dns_db_detach(&zone->top);
 	dns_db_attach(db, &zone->top);
