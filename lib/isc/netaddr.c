@@ -232,10 +232,8 @@ isc_netaddr_ismulticast(isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
 		return (ISC_TF(ISC_IPADDR_ISMULTICAST(na->type.in.s_addr)));
-		break;
 	case AF_INET6:
 		return (ISC_TF(IN6_IS_ADDR_MULTICAST(&na->type.in6)));
-		break;
 	default:
 		return (ISC_FALSE);  /* XXXMLG ? */
 	}
