@@ -1,4 +1,7 @@
 
+ 574.	[bug]		TSIG signed recursive queries would fail to
+			have their responses validated and would leak memory.
+
  573.	[bug]		The journal files of IXFRed slave zones were
 			inadvertantly discarded on server reload, causing
 			"journal out of sync with zone" errors on subsequent
