@@ -15,14 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: once.h,v 1.1 2000/08/28 23:16:50 bwelling Exp $ */
+/* $Id: once.h,v 1.2 2000/08/30 01:11:37 bwelling Exp $ */
 
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1
 
-#include <pthread.h>
-
-#include <isc/platform.h>
 #include <isc/result.h>
 
 typedef isc_boolean_t isc_once_t;
