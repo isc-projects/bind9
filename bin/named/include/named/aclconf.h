@@ -35,9 +35,15 @@ ISC_LANG_BEGINDECLS
 
 void
 dns_aclconfctx_init(dns_aclconfctx_t *ctx);
+/*
+ * Initialize an ACL configuration context.
+ */
 
 void
 dns_aclconfctx_destroy(dns_aclconfctx_t *ctx);
+/*
+ * Destroy an ACL configuration context.
+ */
 
 isc_result_t
 dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
@@ -45,6 +51,18 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 		   dns_aclconfctx_t *ctx,
 		   isc_mem_t *mctx,
 		   dns_acl_t **target);
+/*
+ * Construct a new dns_acl_t from configuration data in 'caml' and
+ * 'cctx'.  Memory is allocated through 'mctx'.
+ *
+ * Any named ACLs referred to within 'caml' will be be converted
+ * inte nested dns_acl_t objects.  Multiple references to the same
+ * named ACLs will be converted into shared references to a single
+ * nested dns_acl_t object when the referring objects were created
+ * passing the same ACL configuration context 'ctx'.
+ *
+ * On success, attach '*target' to the new dns_acl_t object.
+ */
 
 ISC_LANG_ENDDECLS
 

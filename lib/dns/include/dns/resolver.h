@@ -25,7 +25,12 @@
 /*
  * DNS Resolver
  *
- * XXX <TBS> XXX
+ * This is the BIND 9 resolver, the module responsible for resolving DNS
+ * requests by iteratively querying authoritative servers and following
+ * referrals.  This is a "full resolver", not to be confused with
+ * the stub resolvers most people associate with the word "resolver".
+ * The full resolver is part of the caching name server or resolver
+ * daemon the stub resolver talks to.
  *
  * MP:
  *	The module ensures appropriate synchronization of data structures it
