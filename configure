@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.294.2.1 
+# From configure.in Revision: 1.294.2.2 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -209,8 +209,8 @@ ac_help=
 ac_default_prefix=/usr/local
 # Any additions from configure.in:
 ac_help="$ac_help
-  --with-openssl=PATH  Specify path for system-supplied openssl
-                        (required for DNSSEC)"
+  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
+                          (Required for DNSSEC)"
 ac_help="$ac_help
   --with-randomdev=PATH Specify path for random device"
 ac_help="$ac_help
