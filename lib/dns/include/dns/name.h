@@ -945,6 +945,33 @@ dns_name_free(dns_name_t *name, isc_mem_t *mctx);
  *	invalidated.
  */
 
+dns_result_t
+dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg);
+/*
+ * Send 'name' in DNSSEC canonical form to 'digest'.
+ *
+ * Requires:
+ *
+ *	'name' is a valid name.
+ *
+ *	'digest' is a valid dns_digestfunc_t.
+ *
+ * Ensures:
+ *
+ *	If successful, the DNSSEC canonical form of 'name' will have been
+ *	sent to 'digest'.
+ *
+ *	If digest() returns something other than DNS_R_SUCCESS, that result
+ *	will be returned as the result of dns_name_digest().
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *
+ *	Many other results are possible if not successful.
+ *	
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NAME_H */

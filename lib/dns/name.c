@@ -2853,14 +2853,14 @@ dns_name_split(dns_name_t *name,
 
 dns_result_t
 dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
+	/*
+	 * Make 'target' a dynamically allocated copy of 'source'.
+	 */
+
 	REQUIRE(VALID_NAME(source));
 	REQUIRE(source->length > 0);
 	REQUIRE(VALID_NAME(target));
 	REQUIRE(BINDABLE(target));
-
-	/*
-	 * Make 'target' a dynamically allocated copy of 'source'.
-	 */
 
 	/*
 	 * Make 'target' empty in case of failure.
@@ -2887,13 +2887,40 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 void
 dns_name_free(dns_name_t *name, isc_mem_t *mctx) {
-	REQUIRE(VALID_NAME(name));
-	REQUIRE((name->attributes & DNS_NAMEATTR_DYNAMIC) != 0);
-
 	/*
 	 * Free 'name'.
 	 */
 
+	REQUIRE(VALID_NAME(name));
+	REQUIRE((name->attributes & DNS_NAMEATTR_DYNAMIC) != 0);
+
 	isc_mem_put(mctx, name->ndata, name->length);
 	dns_name_invalidate(name);
+}
+
+dns_result_t
+dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
+	dns_name_t downname;
+	unsigned char data[256];
+	isc_buffer_t buffer;
+	dns_result_t result;
+	isc_region_t r;
+
+	/*
+	 * Send 'name' in DNSSEC canonical form to 'digest'.
+	 */
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(digest != NULL);
+
+	dns_name_init(&downname, NULL);
+	isc_buffer_init(&buffer, data, sizeof data, ISC_BUFFERTYPE_BINARY);
+	
+	result = dns_name_downcase(name, &downname, &buffer);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	
+	isc_buffer_used(&buffer, &r);
+	
+	return ((digest)(arg, &r));
 }
