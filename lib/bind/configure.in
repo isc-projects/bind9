@@ -19,7 +19,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.56 $)
+AC_REVISION($Revision: 1.57 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1093,17 +1093,32 @@ BSD_COMP="#undef BSD_COMP"
 case "$host" in
 	*aix3.2*)	PORT_INCLUDE="-I\${top_builddir}/port/aix32/include";;
 	*aix4*)		PORT_INCLUDE="-I\${top_builddir}/port/aix4/include";;
+	*aux3*)		PORT_INCLUDE="-I\${top_builddir}/port/aux3/include";;
 	*-bsdi2*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos2/include";;
 	*-bsdi*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos/include";;
+	*-cygwin*)	PORT_INCLUDE="-I\${top_builddir}/port/cygwin/include";;
+	*-darwin*)	PORT_INCLUDE="-I\${top_builddir}/port/darwin/include";;
+	*-osf*)		PORT_INCLUDE="-I\${top_builddir}/port/decunix/include";;
+	*-freebsd*)	PORT_INCLUDE="-I\${top_builddir}/port/freebsd/include";;
+	*-hpux9*)	PORT_INCLUDE="-I\${top_builddir}/port/hpux9/include";;
+	*-hpux10*)	PORT_INCLUDE="-I\${top_builddir}/port/hpux10/include";;
+	*-hpux11*)	PORT_INCLUDE="-I\${top_builddir}/port/hpux/include";;
+	*-irix*)	PORT_INCLUDE="-I\${top_builddir}/port/irix/include";;
+	*-linux*)	PORT_INCLUDE="-I\${top_builddir}/port/linux/include";;
+	*-lynxos*)	PORT_INCLUDE="-I\${top_builddir}/port/lynxos/include";;
+	*-mpe*)		PORT_INCLUDE="-I\${top_builddir}/port/mpe/include";;
+	*-netbsd*)	PORT_INCLUDE="-I\${top_builddir}/port/netbsd/include";;
+	*-next*)	PORT_INCLUDE="-I\${top_builddir}/port/next/include";;
+	*-openbsd*)	PORT_INCLUDE="-I\${top_builddir}/port/openbsd/include";;
+	*-qnx*)		PORT_INCLUDE="-I\${top_builddir}/port/qnx/include";;
+	*-rhapsody*)	PORT_INCLUDE="-I\${top_builddir}/port/rhapsody/include";;
 	*-solaris2.[[012345]]*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1";
 			PORT_INCLUDE="-I\${top_builddir}/port/solaris/include";;
 	*-solaris2*)	BSD_COMP="#define BSD_COMP 1"
 			PORT_INCLUDE="-I\${top_builddir}/port/solaris/include";;
-	*-freebsd*)	PORT_INCLUDE="-I\${top_builddir}/port/freebsd/include";;
-	*-hpux11*)	PORT_INCLUDE="-I\${top_builddir}/port/hpux/include";;
-	*-osf*)		PORT_INCLUDE="-I\${top_builddir}/port/decunix/include";;
+	*-ultrix*)	PORT_INCLUDE="-I\${top_builddir}/port/ultrix/include";;
 esac
 AC_SUBST(BSD_COMP)
 AC_SUBST(SOLARIS_BITTYPES)
