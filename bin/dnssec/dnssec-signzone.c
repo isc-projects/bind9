@@ -301,7 +301,8 @@ sign(char *filename) {
 	isc_boolean_t defaultkey[MAXKEYS];
 	unsigned char curdata[1024];
 	isc_buffer_t curbuf;
-	int nkeys = 0, i;
+	unsigned int nkeys = 0;
+	int i;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
