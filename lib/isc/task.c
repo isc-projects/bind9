@@ -331,7 +331,7 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 
 unsigned int
 isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		    isc_eventtype_t last)
+		    isc_eventtype_t last, unsigned int tag)
 {
 	isc_event_t *event, *next_event;
 	isc_eventlist_t purgeable;
@@ -343,6 +343,9 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(last >= first);
+
+
+	XTRACE("purgerange");
 
 	/*
 	 * Events matching 'sender' and whose type is >= first and
@@ -360,9 +363,9 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 	     event != NULL;
 	     event = next_event) {
 		next_event = NEXT(event, link);
-		if ((sender == NULL || event->sender == sender) &&
-		    event->type >= first &&
-		    event->type <= last &&
+		if (event->type >= first && event->type <= last &&
+		    (sender == NULL || event->sender == sender) &&
+		    (tag == 0 || event->tag == tag) &&
 		    (event->attributes & ISC_EVENTATTR_NOPURGE) == 0) {
 			DEQUEUE(task->events, event, link);
 			ENQUEUE(purgeable, event, link);
@@ -382,13 +385,14 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 }
 
 unsigned int
-isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type) {
-
+isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
+	       unsigned int tag)
+{
 	/*
 	 * Purge events from a task's event queue.
 	 */
 
-	return (isc_task_purgerange(task, sender, type, type));
+	return (isc_task_purgerange(task, sender, type, type, tag));
 }
 
 isc_boolean_t

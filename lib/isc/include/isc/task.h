@@ -180,7 +180,7 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp);
 
 unsigned int
 isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		    isc_eventtype_t last);
+		    isc_eventtype_t last, unsigned int tag);
 /*
  * Purge events from a task's event queue.
  *
@@ -194,7 +194,8 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
  *
  *	Events whose sender is 'sender', and whose type is >= first and
  *	<= last will be purged, unless they are marked as unpurgable.
- *	A sender of NULL will match any sender.
+ *	A sender of NULL will match any sender.  A tag of zero matches any
+ *	tag.
  *
  * Returns:
  *
@@ -202,7 +203,8 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
  */
 
 unsigned int
-isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type);
+isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
+	       unsigned int tag);
 /*
  * Purge events from a task's event queue.
  *
@@ -210,7 +212,7 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type);
  *
  *	This function is equivalent to
  *
- *		isc_task_purgerange(task, sender, type, type);
+ *		isc_task_purgerange(task, sender, type, type, tag);
  *
  * Requires:
  *
@@ -222,7 +224,8 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type);
  *
  *	Events whose sender is 'sender', and whose type is 'type'
  *	will be purged, unless they are marked as unpurgable.
- *	A sender of NULL will match any sender.
+ *	A sender of NULL will match any sender.  A tag of zero matches any
+ *	tag.
  *
  * Returns:
  *
