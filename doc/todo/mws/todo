@@ -1,29 +1,8 @@
 Inspect dig and nsupdate (with Andreas)
 
-Serialize dig's transmissions to servers	[COMPLETED, in testing]
-
-Clean up option parsing in dig			[COMPLETED]
-
-Examine dig8's behavior when one of the servers it talks to servfail's
-back, and, if necessary, reproduce behavior in dig9.  (RT351)
-
-Remove or fix port number display in places where it is not correctly
-reported (nslookup, in particular). (RT352)	[COMPLETED]
-
-Modify sanitize script to allow more than one key [COMPLETED]
-
-Check text strings for host and nslookup output ov various types.
-
-Check functionality of +search option		[COMPLETED]
-
-Check necessity of +details option / remove it	[COMPLETED]
-
 Check AXFR under Linux v6 / 2.4.x
 
-Make -t and -c change command line parsing so that unprefixed class and types
-are treated as hosts.				[COMPLETED]
-
-+view and +zone stuff				[PENDING draft approval]
+Check text strings for host and nslookup output of various types.
 
 dig, isolate -x/host/nslookup ip->in-addr auto-detection and conversion
 into dighost.c
@@ -33,7 +12,6 @@ nsupdate code check and cleanup.  Make sure prereq, etc... work.
 Fix wpk's build/tests scripts to
  - not run if the previous test failed (to keep logs and cores around)
  - display the date and time of the last run
-
 
 Big todo list for dig, from code walkthrough with Brian:
 	strncpy -> isc_mem_strdup
@@ -55,3 +33,27 @@ Big todo list for dig, from code walkthrough with Brian:
 	Opcode 100 spelled wrong in host.c
 	atoi -> strtol
 	warning for bufsize and others out of bounds
+
++view and +zone stuff				[PENDING draft approval]
+
+
+Serialize dig's transmissions to servers	[COMPLETED, in testing]
+
+Clean up option parsing in dig			[COMPLETED]
+
+Examine dig8's behavior when one of the servers it talks to servfail's
+back, and, if necessary, reproduce behavior in dig9.  (RT351)
+						[COMPLETED]
+
+Remove or fix port number display in places where it is not correctly
+reported (nslookup, in particular). (RT352)	[COMPLETED]
+
+Modify sanitize script to allow more than one key [COMPLETED]
+
+Check functionality of +search option		[COMPLETED]
+
+Check necessity of +details option / remove it	[COMPLETED]
+
+Make -t and -c change command line parsing so that unprefixed class and types
+are treated as hosts.				[COMPLETED]
+
