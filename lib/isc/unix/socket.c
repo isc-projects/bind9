@@ -867,7 +867,8 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	}
 #define ALWAYS_HARD(_system, _isc) \
 	if (errno == _system) { \
-		sock->send_result = _isc; \
+		if (sock->connected && sock->type == isc_sockettype_tcp) \
+			sock->send_result = _isc; \
 		send_senddone_event(sock, &dev, _isc); \
 		return (DOIO_HARD); \
 	}
