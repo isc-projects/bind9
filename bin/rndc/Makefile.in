@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.18 2001/02/04 15:52:41 bwelling Exp $
+# $Id: Makefile.in,v 1.19 2001/02/16 00:41:42 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -24,22 +24,22 @@ top_srcdir =	@top_srcdir@
 @BIND9_INCLUDES@
 
 CINCLUDES =	-I${top_srcdir}/bin/named/include \
-		${ISC_INCLUDES} ${DNS_INCLUDES} ${OMAPI_INCLUDES}
+		${ISC_INCLUDES} ${ISCCFG_INCLUDES} ${OMAPI_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 OMAPILIBS =	../../lib/omapi/libomapi.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 
 OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
-DNSDEPLIBS =	../../lib/dns/libdns.@A@
+ISCDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-DEPLIBS =	${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${OMAPIDEPLIBS} ${ISCCFGLIBS} ${ISCDEPLIBS}
 
-LIBS =		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
+LIBS =		${OMAPILIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
 
 TARGETS =	rndc
 

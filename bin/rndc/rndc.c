@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.41 2001/02/15 19:45:27 bwelling Exp $ */
+/* $Id: rndc.c,v 1.42 2001/02/16 00:41:43 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -28,14 +28,14 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
-#include <dns/confndc.h>
-#include <dns/result.h>
+#include <isccfg/cfg.h>
 
 #include <named/omapi.h>
 
@@ -296,21 +296,31 @@ main(int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
+	isc_log_t *log = NULL;
+	isc_logconfig_t *logconfig = NULL;
+	isc_logdestination_t logdest;
 	omapi_object_t *omapimgr = NULL;
-	dns_c_ndcctx_t *config = NULL;
-	dns_c_ndcopts_t *configopts = NULL;
-	dns_c_ndcserver_t *server = NULL;
-	dns_c_kdeflist_t *keys = NULL;
-	dns_c_kdef_t *key = NULL;
+	cfg_parser_t *pctx = NULL;
+	cfg_obj_t *config = NULL;
+	cfg_obj_t *options = NULL;
+	cfg_obj_t *servers = NULL;
+	cfg_obj_t *server = NULL;
+	cfg_obj_t *defkey = NULL;
+	cfg_obj_t *keys = NULL;
+	cfg_obj_t *key = NULL;
+	cfg_obj_t *secretobj = NULL;
+	cfg_obj_t *algorithmobj = NULL;
+	cfg_listelt_t *elt;
 	const char *keyname = NULL;
-	char secret[1024];
+	const char *secret;
+	const char *algorithm;
+	char secretarray[1024];
 	isc_buffer_t secretbuf;
 	char *command, *args, *p;
 	size_t argslen;
 	const char *servername = NULL;
-	const char *host = NULL;
+	int alg;
 	unsigned int port = NS_OMAPI_PORT;
-	unsigned int algorithm;
 	int ch;
 	int i;
 
@@ -319,8 +329,6 @@ main(int argc, char **argv) {
 		progname++;
 	else
 		progname = *argv;
-
-	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vy:"))
 	       != -1) {
@@ -379,19 +387,53 @@ main(int argc, char **argv) {
 	DO("create socket manager", isc_socketmgr_create(mctx, &socketmgr));
 	DO("create task manager", isc_taskmgr_create(mctx, 1, 0, &taskmgr));
 
-	DO(conffile, dns_c_ndcparseconf(conffile, mctx, &config));
+	DO("create logging context", isc_log_create(mctx, &log, &logconfig));
+	isc_log_setcontext(log);
+	DO("setting log tag", isc_log_settag(logconfig, progname));
+	logdest.file.stream = stderr;
+	logdest.file.name = NULL;
+	logdest.file.versions = ISC_LOG_ROLLNEVER;
+	logdest.file.maximum_size = 0;
+	DO("creating log channel",
+	   isc_log_createchannel(logconfig, "stderr",
+		   		 ISC_LOG_TOFILEDESC, ISC_LOG_INFO, &logdest,
+				 ISC_LOG_PRINTTAG|ISC_LOG_PRINTLEVEL));
+	DO("enabling log channel", isc_log_usechannel(logconfig, "stderr",
+						      NULL, NULL));
 
-	(void)dns_c_ndcctx_getoptions(config, &configopts);
+	DO("create parser", cfg_parser_create(mctx, log, &pctx));
+	result = cfg_parse_file(pctx, conffile, &cfg_type_rndcconf, &config);
+	if (result != ISC_R_SUCCESS)
+		exit(1);
 
-	if (servername == NULL && configopts != NULL)
-		(void)dns_c_ndcopts_getdefserver(configopts, &servername);
+	(void)cfg_map_get(config, "options", &options);
 
-	if (servername != NULL)
-		result = dns_c_ndcctx_getserver(config, servername, &server);
-	else {
+	if (servername == NULL && options != NULL) {
+		cfg_obj_t *defserverobj = NULL;
+		(void)cfg_map_get(options, "default-server", &defserverobj);
+		if (defserverobj != NULL)
+			servername = cfg_obj_asstring(defserverobj);
+	}
+
+	if (servername == NULL) {
 		fprintf(stderr, "%s: no server specified and no default\n",
 			progname);
 		exit(1);
+	}
+
+	cfg_map_get(config, "server", &servers);
+	if (servers != NULL) {
+		for (elt = cfg_list_first(servers);
+		     elt != NULL; 
+		     elt = cfg_list_next(elt))
+		{
+			const char *name;
+			server = cfg_listelt_value(elt);
+			name = cfg_obj_asstring(cfg_map_getname(server));
+			if (strcasecmp(name, servername) == 0)
+				break;
+			server = NULL;
+		}
 	}
 
 	/*
@@ -400,44 +442,53 @@ main(int argc, char **argv) {
 	if (keyname != NULL)
 		;		/* Was set on command line, do nothing. */
 	else if (server != NULL)
-		DO("get key for server", dns_c_ndcserver_getkey(server,
-								&keyname));
-	else if (configopts != NULL)
-		DO("get default key",
-		   dns_c_ndcopts_getdefkey(configopts, &keyname));
-	else {
+		DO("get key for server", cfg_map_get(server, "key", &defkey));
+	else if (options != NULL) {
+		DO("get default key", cfg_map_get(options, "default-key",
+						  &defkey));
+	} else {
 		fprintf(stderr, "%s: no key for server and no default\n",
 			progname);
 		exit(1);
 	}
+	keyname = cfg_obj_asstring(defkey);
 
 	/*
 	 * Get the key's definition.
 	 */
-	DO("get config key list", dns_c_ndcctx_getkeys(config, &keys));
-	DO("get key definition", dns_c_kdeflist_find(keys, keyname, &key));
+	DO("get config key list", cfg_map_get(config, "key", &keys));
+	for (elt = cfg_list_first(keys);
+	     elt != NULL; 
+	     elt = cfg_list_next(elt))
+	{
+		key = cfg_listelt_value(elt);
+		if (strcasecmp(cfg_obj_asstring(cfg_map_getname(key)),
+			       keyname) == 0)
+			break;
+		key = NULL;
+	}
 
-	/* XXX need methods for structure access? */
-	INSIST(key->secret != NULL);
-	INSIST(key->algorithm != NULL);
+	(void)cfg_map_get(key, "secret", &secretobj);
+	(void)cfg_map_get(key, "algorithm", &algorithmobj);
+	if (secretobj == NULL || algorithmobj == NULL) {
+		fprintf(stderr, "%s: key must have algorithm and secret\n",
+			progname);
+		exit(1);
+	}
+	secret = cfg_obj_asstring(secretobj);
+	algorithm = cfg_obj_asstring(algorithmobj);
 
-	if (strcasecmp(key->algorithm, "hmac-md5") == 0)
-		algorithm = OMAPI_AUTH_HMACMD5;
+	if (strcasecmp(algorithm, "hmac-md5") == 0)
+		alg = OMAPI_AUTH_HMACMD5;
 	else {
 		fprintf(stderr, "%s: unsupported algorithm: %s\n",
-			progname, key->algorithm);
+			progname, algorithm);
 		exit(1);
 	}
 
-	isc_buffer_init(&secretbuf, secret, sizeof(secret));
+	isc_buffer_init(&secretbuf, secretarray, sizeof(secretarray));
 	DO("decode base64 secret",
-	   isc_base64_decodestring(mctx, key->secret, &secretbuf));
-
-	if (server != NULL)
-		(void)dns_c_ndcserver_gethost(server, &host);
-
-	if (host == NULL)
-		host = servername;
+	   isc_base64_decodestring(mctx, secret, &secretbuf));
 
 	DO("initialize omapi",  omapi_lib_init(mctx, taskmgr, socketmgr));
 
@@ -460,16 +511,16 @@ main(int argc, char **argv) {
 	ndc_g_ndc.type = ndc_type;
 
 	DO("register local authenticator",
-	   omapi_auth_register(keyname, algorithm, isc_buffer_base(&secretbuf),
+	   omapi_auth_register(keyname, alg, isc_buffer_base(&secretbuf),
 			       isc_buffer_usedlength(&secretbuf)));
 
 	DO("create protocol manager", omapi_object_create(&omapimgr, NULL, 0));
 
-	DO("connect", omapi_protocol_connect(omapimgr, host, (in_port_t)port,
-					     NULL));
+	DO("connect", omapi_protocol_connect(omapimgr, servername,
+					     (in_port_t)port, NULL));
 
 	DO("send remote authenticator",
-	   omapi_auth_use(omapimgr, keyname, algorithm));
+	   omapi_auth_use(omapimgr, keyname, alg));
 
 	/*
 	 * Preload the waitresult as successful.
@@ -542,19 +593,20 @@ main(int argc, char **argv) {
 		omapi_object_dereference(&omapimgr);
 	}
 
-	dns_c_ndcctx_destroy(&config);
+	cfg_obj_destroy(pctx, &config);
+	cfg_parser_destroy(&pctx);
 
 	omapi_lib_destroy();
 
 	isc_socketmgr_destroy(&socketmgr);
 	isc_taskmgr_destroy(&taskmgr);
+	isc_log_destroy(&log);
+	isc_log_setcontext(NULL);
 
-	if (mctx != NULL) {
-		if (show_final_mem)
-			isc_mem_stats(mctx, stderr);
+	if (show_final_mem)
+		isc_mem_stats(mctx, stderr);
 
-		isc_mem_destroy(&mctx);
-	}
+	isc_mem_destroy(&mctx);
 
 	if (result != ISC_R_SUCCESS || ndc_g_ndc.waitresult != ISC_R_SUCCESS)
 		exit(1);
