@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.150 2001/03/08 01:35:27 tale Exp $ */
+/* $Id: rbtdb.c,v 1.151 2001/03/08 03:31:29 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4886,8 +4886,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		/*
 		 * expirenode() currently always returns success.
 		 */
-		if (expire_result == ISC_R_SUCCESS &&
-		    node->down == NULL && node->data == NULL) {
+		if (expire_result == ISC_R_SUCCESS && node->down == NULL) {
 			LOCK(&rbtdb->node_locks[node->locknum].lock);
 			rbtdbiter->deletions[rbtdbiter->delete++] = node;
 			UNLOCK(&rbtdb->node_locks[node->locknum].lock);
