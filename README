@@ -45,9 +45,9 @@ BIND 9
 
 
 
-BIND 9.2
+BIND 9.2.0a2
 
-	BIND 9.2.0a1 is the first alpha release of BIND 9.2.0.
+	BIND 9.2.0a2 is an alpha release of BIND 9.2.0.
 	It includes a number of new features over 9.1, including:
 
 	  - The size of the cache can now be limited using the

@@ -1,4 +1,6 @@
 
+	--- 9.2.0a2 released ---
+
  898.	[bug]		"dig" failed to set a nonzero exit status
 			on UDP query timeout. [RT #1323]
 
