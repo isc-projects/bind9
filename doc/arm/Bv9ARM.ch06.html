@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN4148"
+HREF="Bv9ARM.ch06.html#AEN4165"
 >Zone File</A
 ></DT
 ></DL
@@ -3350,6 +3350,13 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> check-wildcard <VAR
+CLASS="replaceable"
+>yes_or_no</VAR
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > allow-notify { <VAR
 CLASS="replaceable"
 >address_match_list</VAR
@@ -4569,7 +4576,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN2426"
+NAME="AEN2428"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -5437,6 +5444,23 @@ indicated that it is a reverse lookup of a hostname (the owner name ends in
 IN-ADDR.ARPA, IP6.ARPA, IP6.INT).
 </P
 ></DD
+><DT
+><B
+CLASS="command"
+>check-wildcard</B
+></DT
+><DD
+><P
+>&#13;This option is used to check for non-terminal wildcards.
+The use of non-terminal wildcards is almost always as a result of a failure
+to understand the wildcard matching algorithm (RFC 1034).  This option
+affects master zones.  The default (<B
+CLASS="command"
+>yes</B
+>) is to check
+for non-terminal wildcards and issue a warning.
+</P
+></DD
 ></DL
 ></DIV
 ></DIV
@@ -5445,7 +5469,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2727"
+NAME="AEN2735"
 >6.2.16.2. Forwarding</A
 ></H3
 ><P
@@ -5513,7 +5537,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2746"
+NAME="AEN2754"
 >6.2.16.3. Dual-stack Servers</A
 ></H3
 ><P
@@ -5795,7 +5819,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2834"
+NAME="AEN2842"
 >6.2.16.5. Interfaces</A
 ></H3
 ><P
@@ -5898,7 +5922,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2861"
+NAME="AEN2869"
 >6.2.16.6. Query Address</A
 ></H3
 ><P
@@ -6406,7 +6430,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3027"
+NAME="AEN3035"
 >6.2.16.8. Bad UDP Port Lists</A
 ></H3
 ><P
@@ -6430,7 +6454,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3032"
+NAME="AEN3040"
 >6.2.16.9. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6550,7 +6574,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3069"
+NAME="AEN3077"
 >6.2.16.10. Server  Resource Limits</A
 ></H3
 ><P
@@ -6685,7 +6709,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3115"
+NAME="AEN3123"
 >6.2.16.11. Periodic Task Intervals</A
 ></H3
 ><P
@@ -7050,7 +7074,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3203"
+NAME="AEN3211"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -7512,7 +7536,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3347"
+NAME="AEN3355"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -8117,7 +8141,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3519"
+NAME="AEN3527"
 >6.2.19. <B
 CLASS="command"
 >trusted-keys</B
@@ -8172,7 +8196,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3535"
+NAME="AEN3543"
 >6.2.20. <B
 CLASS="command"
 >trusted-keys</B
@@ -8260,7 +8284,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3557"
+NAME="AEN3565"
 >6.2.22. <B
 CLASS="command"
 >view</B
@@ -8548,6 +8572,13 @@ CLASS="constant"
 CLASS="constant"
 >ignore</CODE
 >) ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> check-wildcard <VAR
+CLASS="replaceable"
+>yes_or_no</VAR
+>; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -8904,7 +8935,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3734"
+NAME="AEN3744"
 >6.2.24. <B
 CLASS="command"
 >zone</B
@@ -8915,7 +8946,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3737"
+NAME="AEN3747"
 >6.2.24.1. Zone Types</A
 ></H3
 ><DIV
@@ -8923,7 +8954,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3739"
+NAME="AEN3749"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9155,7 +9186,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3802"
+NAME="AEN3812"
 >6.2.24.2. Class</A
 ></H3
 ><P
@@ -9193,7 +9224,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3812"
+NAME="AEN3822"
 >6.2.24.3. Zone Options</A
 ></H3
 ><P
@@ -9372,6 +9403,22 @@ CLASS="command"
 >warn</B
 >.
 </P
+></DD
+><DT
+><B
+CLASS="command"
+>check-wildcard</B
+></DT
+><DD
+><P
+>See the description of
+<B
+CLASS="command"
+>check-wildcard</B
+> in <A
+HREF="Bv9ARM.ch06.html#boolean_options"
+>Section 6.2.16.1</A
+>.</P
 ></DD
 ><DT
 ><B
@@ -9962,7 +10009,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4107"
+NAME="AEN4124"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10087,7 +10134,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4148"
+NAME="AEN4165"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -10108,7 +10155,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4153"
+NAME="AEN4170"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -10133,7 +10180,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4159"
+NAME="AEN4176"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10214,7 +10261,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4191"
+NAME="AEN4208"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10565,7 +10612,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4343"
+NAME="AEN4360"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10647,7 +10694,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4367"
+NAME="AEN4384"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10679,7 +10726,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4374"
+NAME="AEN4391"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10834,7 +10881,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4440"
+NAME="AEN4457"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10905,7 +10952,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4468"
+NAME="AEN4485"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10943,7 +10990,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4474"
+NAME="AEN4491"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11164,7 +11211,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4566"
+NAME="AEN4583"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11227,7 +11274,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4589"
+NAME="AEN4606"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -11256,7 +11303,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4594"
+NAME="AEN4611"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11322,7 +11369,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4616"
+NAME="AEN4633"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11347,7 +11394,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4623"
+NAME="AEN4640"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11413,7 +11460,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4643"
+NAME="AEN4660"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11489,7 +11536,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4663"
+NAME="AEN4680"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11525,7 +11572,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4674"
+NAME="AEN4691"
 >6.3.6. <ACRONYM
 CLASS="acronym"
 >BIND</ACRONYM
@@ -11608,7 +11655,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4698"
+NAME="AEN4715"
 ></A
 ><TABLE
 CELLPADDING="3"
