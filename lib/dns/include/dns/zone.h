@@ -346,8 +346,7 @@ isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		    isc_uint32_t count);
 /*
- *	Add a master server to the end of the set of master servers for
- *	the zone.
+ *	Set the list of master servers for the zone.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
@@ -365,8 +364,8 @@ isc_result_t
 dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
 		       isc_uint32_t count);
 /*
- *	Add a server to the end of the list of additional servers to be
- *	notified when a zone changes.
+ *	Set the list of additional servers to be notified when
+ *	a zone changes.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
