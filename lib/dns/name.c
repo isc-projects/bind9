@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.103 2000/08/22 00:46:54 gson Exp $ */
+/* $Id: name.c,v 1.104 2000/10/11 17:44:12 mws Exp $ */
 
 #include <config.h>
 
@@ -1070,14 +1070,15 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 		isc_buffer_clear(name->buffer);
 		isc_buffer_availableregion(name->buffer, &r2);
 		len = (r->length < r2.length) ? r->length : r2.length;
-		if (len > 255)
-			len = 255;
+		if (len > DNS_NAME_MAXWIRE)
+			len = DNS_NAME_MAXWIRE;
 		memcpy(r2.base, r->base, len);
 		name->ndata = r2.base;
 		name->length = len;
 	} else {
 		name->ndata = r->base;
-		name->length = (r->length <= 255) ? r->length : 255;
+		name->length = (r->length <= DNS_NAME_MAXWIRE) ? 
+			r->length : DNS_NAME_MAXWIRE;
 	}
 
 	if (r->length > 0)
@@ -2232,8 +2233,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	 * maximum legal domain name length (255).
 	 */
 	nmax = isc_buffer_availablelength(target);
-	if (nmax > 255)
-		nmax = 255;
+	if (nmax > DNS_NAME_MAXWIRE)
+		nmax = DNS_NAME_MAXWIRE;
 
 	cdata = isc_buffer_current(source);
 	cused = 0;
@@ -2372,7 +2373,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	return (ISC_R_SUCCESS);
 
  full:
-	if (nmax == 255)
+	if (nmax == DNS_NAME_MAXWIRE)
 		/*
 		 * The name did not fit even though we had a buffer
 		 * big enough to fit a maximum-length name.
@@ -2531,8 +2532,8 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	 */
 	nrem = target->length - target->used;
 	ndata = (unsigned char *)target->base + target->used;
-	if (nrem > 255)
-		nrem = 255;
+	if (nrem > DNS_NAME_MAXWIRE)
+		nrem = DNS_NAME_MAXWIRE;
 	length = 0;
 	prefix_length = 0;
 	labels = 0;
@@ -2545,7 +2546,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		length += suffix->length;
 		labels += suffix->labels;
 	}
-	if (length > 255) {
+	if (length > DNS_NAME_MAXWIRE) {
 		MAKE_EMPTY(name);
 		return (DNS_R_NAMETOOLONG);
 	}

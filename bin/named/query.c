@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.134 2000/10/07 00:09:16 bwelling Exp $ */
+/* $Id: query.c,v 1.135 2000/10/11 17:44:05 mws Exp $ */
 
 #include <config.h>
 
@@ -690,6 +690,25 @@ query_getdb(ns_client_t *client, dns_name_t *name, unsigned int options,
 {
 	isc_result_t result;
 
+#ifdef DNS_OPT_NEWCODES
+	if (client->opt_zone != NULL) {
+		result = query_getzonedb(client, &(client->opt_zone->name),
+					 options, zonep, dbp, versionp);
+		if (result == ISC_R_SUCCESS)
+			*is_zonep = ISC_TRUE;
+		else
+			result = DNS_R_REFUSED;
+	} else {
+		result = query_getzonedb(client, name, options, zonep, dbp,
+					 versionp);
+		if (result == ISC_R_SUCCESS) {
+			*is_zonep = ISC_TRUE;
+		} else if (result == ISC_R_NOTFOUND) {
+			result = query_getcachedb(client, dbp, options);
+			*is_zonep = ISC_FALSE;
+		}
+	}
+#else /* DNS_OPT_NEWCODES */
 	result = query_getzonedb(client, name, options, zonep, dbp, versionp);
 	if (result == ISC_R_SUCCESS) {
 		*is_zonep = ISC_TRUE;
@@ -697,7 +716,7 @@ query_getdb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		result = query_getcachedb(client, dbp, options);
 		*is_zonep = ISC_FALSE;
 	}
-
+#endif /* DNS_OPT_NEWCODES */
 	return (result);
 }
 
@@ -2175,7 +2194,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (result == DNS_R_REFUSED)
 			QUERY_ERROR(DNS_R_REFUSED);
 		else
-			QUERY_ERROR(DNS_R_SERVFAIL);
+		        QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
 
@@ -2324,6 +2343,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		break;
 	case DNS_R_GLUE:
+#ifdef DNS_OPT_NEWCODES
+		if (client->opt_zone != NULL)
+			break;
+		/* Fallthrough if we don't have opt_zone */
+#endif DNS_OPT_NEWCODES
 	case DNS_R_ZONECUT:
 		/*
 		 * These cases are handled in the main line below.
@@ -2332,6 +2356,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		authoritative = ISC_FALSE;
 		break;
 	case ISC_R_NOTFOUND:
+#ifdef DNS_OPT_NEWCODES
+		/*
+		 * If we've passed in opt_zone, don't try anything more.
+		 */
+		if (client->opt_zone != NULL)
+			break;
+#endif /* DNS_OPT_NEWCODES */
 		/*
 		 * The cache doesn't even have the root NS.  Get them from
 		 * the hints DB.
@@ -2357,6 +2388,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		/* FALLTHROUGH */
 	case DNS_R_DELEGATION:
+#ifdef DNS_OPT_NEWCODES
+		/*
+		 * If we've passed in opt_zone, don't try anything more.
+		 */
+		if (client->opt_zone != NULL) {
+			break;
+		}
+#endif /* DNS_OPT_NEWCODES */
 		authoritative = ISC_FALSE;
 		if (is_zone) {
 			/*

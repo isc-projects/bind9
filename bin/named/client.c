@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.117 2000/10/06 18:58:29 bwelling Exp $ */
+/* $Id: client.c,v 1.118 2000/10/11 17:44:04 mws Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -238,6 +239,15 @@ client_free(ns_client_t *client) {
 		dns_rdataset_disassociate(client->opt);
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
+#ifdef DNS_OPT_NEWCODES
+	if (client->opt_zone != NULL) {
+		isc_mem_put(client->mctx, client->opt_zone,
+			    sizeof(*client->opt_zone));
+		client->opt_zone = NULL;
+	}
+	if (client->opt_view != NULL)
+		isc_buffer_free(&client->opt_view);
+#endif /* DNS_OPT_NEWCODES */
 	dns_message_destroy(&client->message);
 	if (client->task != NULL)
 		isc_task_detach(&client->task);
@@ -888,6 +898,75 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	ns_client_send(client);
 }
 
+#ifdef DNS_OPT_NEWCODES
+static isc_result_t
+client_addoptattrs(ns_client_t *client, dns_rdata_t *rdata) {
+	isc_result_t result;
+	isc_buffer_t *zonebuf = NULL, *buf = NULL;
+	dns_optlist_t attrlist;
+	dns_optattr_t attrs[CLIENT_NUMATTRS];
+	dns_compress_t cctx;
+	int i, sizeneeded = 0;
+
+	result = dns_compress_init(&cctx, 0, client->mctx);
+	if (result != ISC_R_SUCCESS)
+		goto fail1;
+	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+	attrlist.size=2;
+	attrlist.used=0;
+	attrlist.attrs=attrs;
+	for (i=0; i<CLIENT_NUMATTRS; i++) {
+		attrs[i].code = 0;
+		attrs[i].value.base = NULL;
+		attrs[i].value.length = 0;
+	}
+	if (client->opt_zone != NULL) {
+		result = isc_buffer_allocate(client->mctx, &zonebuf,
+					     DNS_NAME_MAXWIRE);
+		if (result != ISC_R_SUCCESS)
+			goto fail2;
+		result = dns_name_towire(dns_fixedname_name(client->opt_zone),
+					 &cctx, zonebuf);
+		if (result != ISC_R_SUCCESS)
+			goto fail2;
+		attrs[attrlist.used].code = DNS_OPTCODE_ZONE;
+		attrs[attrlist.used].value.base = isc_buffer_base(zonebuf);
+		attrs[attrlist.used].value.length = 
+			isc_buffer_usedlength(zonebuf);
+		attrlist.used++;
+		sizeneeded += 4 + isc_buffer_usedlength(zonebuf);
+	}
+	if (client->opt_view != NULL) {
+		attrs[attrlist.used].code = DNS_OPTCODE_VIEW;
+		attrs[attrlist.used].value.base =
+			isc_buffer_base(client->opt_view);
+		attrs[attrlist.used].value.length = 
+			isc_buffer_usedlength(client->opt_view);
+		attrlist.used++;
+		sizeneeded += 4 + isc_buffer_usedlength(client->opt_view);
+	}
+	if (sizeneeded == 0) {
+		result = ISC_R_SUCCESS;
+		goto fail2;
+	}
+	result = isc_buffer_allocate(client->mctx, &buf, sizeneeded+1);
+	if (result != ISC_R_SUCCESS)
+		goto fail2;
+	result = dns_opt_add(rdata, &attrlist, buf);
+	if (result != ISC_R_SUCCESS)
+		goto fail2;
+	dns_message_takebuffer(client->message, &buf);
+ fail2:
+	dns_compress_invalidate(&cctx);
+ fail1:
+	if (buf != NULL)
+		isc_buffer_free(&buf);
+	if (zonebuf != NULL)
+		isc_buffer_free(&zonebuf);
+	return (result);
+}
+#endif /* DNS_OPT_NEWCODES */
+	
 static inline isc_result_t
 client_addopt(ns_client_t *client) {
 	dns_rdataset_t *rdataset;
@@ -925,12 +1004,19 @@ client_addopt(ns_client_t *client) {
 	rdatalist->ttl = 0;
 
 	/*
-	 * No ENDS options.
+	 * No ENDS options in the default case.
 	 */
 	rdata->data = NULL;
 	rdata->length = 0;
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatalist->type;
+
+#ifdef DNS_OPT_NEWCODES
+	/*
+	 * Set the attributes
+	 */
+	client_addoptattrs(client, rdata);
+#endif /* DNS_OPT_NEWCODES */
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
@@ -940,6 +1026,81 @@ client_addopt(ns_client_t *client) {
 
 	return (ISC_R_SUCCESS);
 }
+
+#ifdef DNS_OPT_NEWCODES
+static void
+client_getoptattrs(ns_client_t *client, dns_rdataset_t *opt) {
+	dns_optlist_t optlist;
+	dns_optattr_t optattr;
+	isc_result_t result, iresult;
+	isc_buffer_t zonebuf;
+	dns_decompress_t dctx;
+
+	/* If an old set of opts are still around, free them. */
+	if (client->opt_zone != NULL) {
+		isc_mem_put(client->mctx, client->opt_zone,
+			    sizeof(*client->opt_zone));
+		client->opt_zone = NULL;
+	}
+	if (client->opt_view != NULL)
+		isc_buffer_free(&client->opt_view);
+
+	/*
+	 * If there are any options, extract them here
+	 */
+	optlist.size = 1;
+	optlist.used = 0;
+	optlist.next = 0;
+	optlist.attrs = &optattr;
+	do {
+		result = dns_opt_decodeall(&optlist, opt);
+		if (result == ISC_R_SUCCESS ||
+		    result == DNS_R_MOREDATA) {
+			switch (optattr.code) {
+			case DNS_OPTCODE_ZONE:
+				dns_decompress_init(&dctx, 0,
+						    ISC_FALSE);
+				client->opt_zone = isc_mem_get(
+					   client->mctx,
+					   sizeof(*client->opt_zone));
+				if (client->opt_zone == NULL)
+					goto zonefail1;
+				dns_fixedname_init(client->opt_zone);
+				isc_buffer_init(&zonebuf,
+						optattr.value.base,
+						optattr.value.length);
+				isc_buffer_add(&zonebuf,optattr.value.length);
+				isc_buffer_setactive(&zonebuf,
+						     optattr.value.length);
+				iresult = dns_name_fromwire(
+					   dns_fixedname_name(
+						     client->opt_zone),
+					   &zonebuf,
+					   &dctx, ISC_FALSE,
+					   NULL);
+				if (iresult != ISC_R_SUCCESS) {
+					dns_fixedname_invalidate(
+						    client->opt_zone);
+				zonefail1:
+					dns_decompress_invalidate(&dctx);
+				}
+				break;
+			case DNS_OPTCODE_VIEW:
+				iresult = isc_buffer_allocate(client->mctx,
+						    &client->opt_view,
+						    optattr.value.length);
+				if (iresult != ISC_R_SUCCESS)
+					break;
+				isc_buffer_putmem(client->opt_view,
+						  optattr.value.base,
+						  optattr.value.length);
+				break;
+			}
+		}
+	} while (result == DNS_R_MOREDATA);
+}
+#endif /* DNS_OPT_NEWCODES */
+
 
 /*
  * Handle an incoming request event from the dispatch (UDP case)
@@ -1060,6 +1221,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 * Set the client's UDP buffer size.
 		 */
 		client->udpsize = opt->rdclass;
+						     
+#ifdef DNS_OPT_NEWCODES
+		/*
+		 * Set up the rest of the opt stuff
+		 */
+		client_getoptattrs(client, opt);
+		/*
+		 * If we're using a fixed zone option (opt_zone), set it to
+		 * allow glue here.
+		 */
+		if (client->opt_zone != NULL)
+			client->query.dboptions |= DNS_DBFIND_GLUEOK;
+#endif /* DNS_OPT_NEWCODES */
 
 		/*
 		 * Create an OPT for our reply.
@@ -1342,6 +1516,10 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->tcpbuf = NULL;
 	client->opt = NULL;
 	client->udpsize = 512;
+#ifdef DNS_OPT_NEWCODES
+	client->opt_zone = NULL;
+	client->opt_view = NULL;
+#endif DNS_OPT_NEWCODES
 	client->next = NULL;
 	client->shutdown = NULL;
 	client->shutdown_arg = NULL;

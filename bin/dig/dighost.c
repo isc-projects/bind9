@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.141 2000/10/04 17:14:43 mws Exp $ */
+/* $Id: dighost.c,v 1.142 2000/10/11 17:44:01 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -36,8 +36,10 @@
 extern int h_errno;
 #endif
 
+#include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/opt.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -46,6 +48,7 @@ extern int h_errno;
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/tsig.h>
+
 #include <dst/dst.h>
 
 #include <isc/app.h>
@@ -317,6 +320,10 @@ make_empty_lookup(void) {
 	looknew->section_authority = ISC_TRUE;
 	looknew->section_additional = ISC_TRUE;
 	looknew->new_search = ISC_FALSE;
+#ifdef DNS_OPT_NEWCODES
+	looknew->zonename[0] = 0;
+	looknew->viewname[0] = 0;
+#endif
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
 	return (looknew);
@@ -364,6 +371,10 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
 	looknew->retries = lookold->retries;
+#ifdef DNS_OPT_NEWCODES
+	strncpy(looknew->viewname, lookold-> viewname, MXNAME);
+	strncpy(looknew->zonename, lookold-> zonename, MXNAME);
+#endif /* DNS_OPT_NEWCODES */
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -698,11 +709,18 @@ setup_libs(void) {
  * option is UDP buffer size.
  */
 static void
-add_opt(dns_message_t *msg, isc_uint16_t udpsize) {
+add_opt(dns_message_t *msg, isc_uint16_t udpsize, dns_optlist_t optlist) {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdata_t *rdata = NULL;
 	isc_result_t result;
+#ifdef DNS_OPT_NEWCODES
+	isc_buffer_t *rdatabuf = NULL;
+	unsigned int i, optsize = 0;
+#else /* DNS_OPT_NEWCODES */
+
+	UNUSED(optlist);
+#endif /* DNS_OPT_NEWCODES */
 
 	debug("add_opt()");
 	result = dns_message_gettemprdataset(msg, &rdataset);
@@ -720,6 +738,15 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize) {
 	rdatalist->ttl = 0;
 	rdata->data = NULL;
 	rdata->length = 0;
+#ifdef DNS_OPT_NEWCODES
+	for (i=0; i<optlist.used; i++)
+		optsize += optlist.attrs[i].value.length + 4;
+	result = isc_buffer_allocate(mctx, &rdatabuf, optsize);
+	check_result(result, "isc_buffer_allocate");
+	result = dns_opt_add(rdata, &optlist, rdatabuf);
+	check_result(result, "dns_opt_add");
+	dns_message_takebuffer(msg, &rdatabuf);
+#endif /* DNS_OPT_NEWCODES */
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
@@ -1320,8 +1347,66 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
 	check_result(result, "dns_message_renderbegin");
-	if (lookup->udpsize > 0)
-		add_opt(lookup->sendmsg, lookup->udpsize);
+#ifndef DNS_OPT_NEWCODES
+	if (lookup->udpsize > 0) {
+#else /* DNS_OPT_NEWCODES */
+	if (lookup->udpsize > 0 || lookup->zonename[0] !=0 ||
+	    lookup->viewname[0] != 0) {
+		dns_fixedname_t fname;
+		isc_buffer_t namebuf, *wirebuf = NULL;
+		dns_compress_t cctx;
+#endif /* DNS_OPT_NEWCODES */
+		dns_optlist_t optlist;
+		dns_optattr_t optattr[2];
+
+		if (lookup->udpsize == 0)
+			lookup->udpsize = 2048;
+		optlist.size = 2;
+		optlist.used = 0;
+		optlist.next = 0;
+		optlist.attrs = optattr;
+
+#ifdef DNS_OPT_NEWCODES
+		if (lookup->zonename[0] != 0) {
+			optattr[optlist.used].code = DNS_OPTCODE_ZONE;
+			dns_fixedname_init(&fname);
+			isc_buffer_init(&namebuf, lookup->zonename,
+					strlen(lookup->zonename));
+			isc_buffer_add(&namebuf, strlen(lookup->zonename));
+			result = dns_name_fromtext(&(fname.name), &namebuf,
+						   dns_rootname, ISC_FALSE,
+						   NULL);
+			check_result(result, "; illegal zone option");
+			result = dns_compress_init(&cctx, 0, mctx);
+			check_result(result, "dns_compress_init");
+			result = isc_buffer_allocate(mctx, &wirebuf,
+						     MXNAME);
+			check_result(result, "isc_buffer_allocate");
+			result = dns_name_towire(&(fname.name), &cctx,
+						 wirebuf);
+			check_result(result, "dns_name_towire");
+			optattr[optlist.used].value.base =
+				isc_buffer_base(wirebuf);
+			optattr[optlist.used].value.length =
+			        isc_buffer_usedlength(wirebuf);
+			optlist.used++;
+			dns_compress_invalidate(&cctx);
+		}
+		if (lookup->viewname[0] != 0) {
+			optattr[optlist.used].code = DNS_OPTCODE_VIEW;
+			optattr[optlist.used].value.base =
+				lookup->viewname;
+			optattr[optlist.used].value.length =
+				strlen(lookup->viewname);
+			optlist.used++;
+		}
+#endif /* DNS_OPT_NEWCODES */
+		add_opt(lookup->sendmsg, lookup->udpsize, optlist);
+#ifdef DNS_OPT_NEWCODES
+		if (wirebuf != NULL)
+			isc_buffer_free(&wirebuf);
+#endif /* DNS_OPT_NEWCODES */
+	}
 
 	result = dns_message_rendersection(lookup->sendmsg,
 					   DNS_SECTION_QUESTION, 0);

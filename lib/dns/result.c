@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.72 2000/10/06 18:58:20 bwelling Exp $ */
+/* $Id: result.c,v 1.73 2000/10/11 17:44:14 mws Exp $ */
 
 #include <config.h>
 
@@ -102,6 +102,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"not insecure",			       /* 61 DNS_R_NOTINSECURE	     */
 	"zone too large",		       /* 62 DNS_R_ZONETOOLARGE	     */
 	"recoverable error occurred"	       /* 63 DNS_R_RECOVERABLE       */
+	"unknown opt attribute record"         /* 64 DNS_R_UNKNOWNOPT        */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

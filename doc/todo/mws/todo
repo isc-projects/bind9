@@ -31,3 +31,24 @@ Fix wpk's build/tests scripts to
  - not run if the previous test failed (to keep logs and cores around)
  - display the date and time of the last run
 
+
+Big todo list for dig, from code walkthrough with Brian:
+	strncpy -> isc_mem_strdup
+	oname in setup_lookup can be on the stack instead of allocated
+	Move INSIST in insert_lookup up
+	Fix -b option in UDP mode (make sure server and bind address are
+		compatible)
+	Use symbolic names for exit codes
+	l->retries-- can be moved out of if/else
+	+tcp/vc no longer needs to be prohibited in batchfiles
+	digrc filename print length shouldn't be 132
+	bargc should be more than 14
+	Split up launch_next_query
+	0 should be dns_rcode_noerror
+	How is data in additional section printer in *XFR
+	What happens if additional data is after the end of an *XFR
+	Legality of serial 0
+	query point in clear_query should be **
+	Opcode 100 spelled wrong in host.c
+	atoi -> strtol
+	warning for bufsize and others out of bounds

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.149 2000/10/07 00:09:21 bwelling Exp $ */
+/* $Id: message.c,v 1.150 2000/10/11 17:44:10 mws Exp $ */
 
 /***
  *** Imports
@@ -32,6 +32,7 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/opt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -2781,7 +2782,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_rdataset_t *ps = NULL;
 	dns_name_t *name = NULL;
 	isc_result_t result;
-	char buf[sizeof("1234567890")];
 	isc_boolean_t omit_final_dot;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2795,18 +2795,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		ps = dns_message_getopt(msg);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
-		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
-			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
-		ADD_STRING(target, "; EDNS: version: ");
-		sprintf(buf, "%4u",
-			(unsigned int)((ps->ttl &
-					0x00ff0000 >> 16)));
-		ADD_STRING(target, buf);
-		ADD_STRING(target, ", udp=");
-		sprintf(buf, "%7u\n",
-			(unsigned int)ps->rdclass);
-		ADD_STRING(target, buf);
-		return (ISC_R_SUCCESS);
+		result = dns_opt_totext(ps, target, flags);
+		return (result);
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);
 		if (ps == NULL)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.80 2000/08/08 23:20:14 gson Exp $ */
+/* $Id: name.h,v 1.81 2000/10/11 17:44:17 mws Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -213,6 +213,11 @@ struct dns_name {
 
 extern dns_name_t *dns_rootname;
 extern dns_name_t *dns_wildcardname;
+
+/*
+ * Standard size of a wire format name
+ */
+#define DNS_NAME_MAXWIRE 255
 
 /***
  *** Initialization

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.110 2000/10/03 04:29:08 marka Exp $ */
+/* $Id: dig.c,v 1.111 2000/10/11 17:44:00 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -828,10 +828,33 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			goto invalid_option;
 		}
 		break;
-	case 'v': /* vc */
-		if (!is_batchfile)
-			lookup->tcp_mode = state;
+	case 'v':
+#ifdef DNS_OPT_NEWCODES
+		switch (tolower(cmd[1])) {
+		default:
+		case 'c': /* vc, and default */
+#endif /* DNS_OPT_NEWCODES */
+			if (!is_batchfile)
+				lookup->tcp_mode = state;
+			break;
+#ifdef DNS_OPT_NEWCODES
+		case 'i': /* view */
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			strncpy(lookup->viewname, value, MXNAME);
+			break;
+		}
 		break;
+	case 'z': /* zone */
+		if (value == NULL)
+			goto need_value;
+		if (!state)
+			goto invalid_option;
+		strncpy(lookup->zonename, value, MXNAME);
+		break;
+#endif
 	default:
 	invalid_option:
 	need_value:
@@ -1287,8 +1310,6 @@ main(int argc, char **argv) {
 				 (dig_server_t *)s2, link);
 		isc_mem_free(mctx, s2);
 	}
-	if (isc_mem_debugging != 0)
-		isc_mem_stats(mctx, stderr);
 	isc_mem_free(mctx, default_lookup);
 	if (batchname != NULL) {
 		if (batchfp != stdin)

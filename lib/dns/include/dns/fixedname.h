@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fixedname.h,v 1.10 2000/08/01 01:24:11 tale Exp $ */
+/* $Id: fixedname.h,v 1.11 2000/10/11 17:44:16 mws Exp $ */
 
 #ifndef DNS_FIXEDNAME_H
 #define DNS_FIXEDNAME_H 1
@@ -64,13 +64,14 @@ struct dns_fixedname {
 	dns_name_t			name;
 	dns_offsets_t			offsets;
 	isc_buffer_t			buffer;
-	unsigned char			data[255];
+	unsigned char			data[DNS_NAME_MAXWIRE];
 };
 
 #define dns_fixedname_init(fn) \
 	do { \
 		dns_name_init(&((fn)->name), (fn)->offsets); \
-		isc_buffer_init(&((fn)->buffer), (fn)->data, 255); \
+		isc_buffer_init(&((fn)->buffer), (fn)->data, \
+                                  DNS_NAME_MAXWIRE); \
 		dns_name_setbuffer(&((fn)->name), &((fn)->buffer)); \
 	} while (0)
 

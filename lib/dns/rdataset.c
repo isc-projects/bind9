@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.49 2000/08/11 16:47:32 gson Exp $ */
+/* $Id: rdataset.c,v 1.50 2000/10/11 17:44:13 mws Exp $ */
 
 #include <config.h>
 
@@ -466,3 +466,4 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 
 	return (ISC_R_SUCCESS);
 }
+	
