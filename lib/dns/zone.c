@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.345 2001/09/12 03:46:32 marka Exp $ */
+/* $Id: zone.c,v 1.346 2001/09/12 18:44:54 gson Exp $ */
 
 #include <config.h>
 
@@ -1202,9 +1202,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	else
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	/*
-	 * Apply update log, if any.
+	 * Apply update log, if any, on initial load.
 	 */
-	if (zone->journal != NULL) {
+	if (zone->journal != NULL &&
+	    ! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
+	{
 		result = dns_journal_rollforward(zone->mctx, db,
 						 zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
