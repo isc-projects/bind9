@@ -17,6 +17,9 @@
 
 #include <config.h>
 
+#include <sys/types.h>
+#include <sys/uio.h>
+
 #include <errno.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -87,9 +90,10 @@
 #define TRACE_SEND    	0x0010
 #define TRACE_MANAGER	0x0020
 
-int trace_level = 0xffff;
+int trace_level = TRACE_RECV | TRACE_WATCHER;
 #define XTRACE(l, a)	do {						\
 				if ((l) & trace_level) {		\
+					printf("[%s:%d] ", __FILE__, __LINE__); \
 					printf a;			\
 					fflush(stdout);			\
 				}					\
@@ -830,7 +834,8 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 	isc_task_t *task;
 	int cc;
 	size_t read_count;
-	ISC_SOCKADDR_LEN_T addrlen;
+	struct msghdr msghdr;
+	struct iovec iov;
 
 	(void)me;
 
@@ -880,23 +885,33 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		 * we can.
 		 */
 		read_count = dev->region.length - dev->n;
+		iov.iov_base = dev->region.base + dev->n;
+		iov.iov_len = read_count;
+
+		memset(&msghdr, 0, sizeof (msghdr));
 		if (sock->type == isc_sockettype_udp) {
-			addrlen = sizeof dev->address.type;
-			cc = recvfrom(sock->fd,
-				      ISC_SOCKDATA_CAST(dev->region.base
-							+ dev->n),
-				      read_count, 0,
-				      &dev->address.type.sa, &addrlen);
-			dev->address.length = addrlen;
+			memset(&dev->address, 0, sizeof(dev->address));
+			msghdr.msg_name = (void *)&dev->address.type.sa;
+			msghdr.msg_namelen = sizeof (dev->address.type.sa);
 		} else {
-			cc = recv(sock->fd,
-				  ISC_SOCKDATA_CAST(dev->region.base + dev->n),
-				  read_count, 0);
+			msghdr.msg_name = NULL;
+			msghdr.msg_namelen = 0;
 			dev->address = sock->address;
 		}
+		msghdr.msg_iov = &iov;
+		msghdr.msg_iovlen = 1;
+		msghdr.msg_control = NULL;
+		msghdr.msg_controllen = 0;
+		msghdr.msg_flags = 0;
+
+		cc = recvmsg(sock->fd, &msghdr, 0);
+		if (sock->type == isc_sockettype_udp)
+			dev->address.length = msghdr.msg_namelen;
 
 		XTRACE(TRACE_RECV,
-		       ("internal_recv:  read(%d) %d\n", sock->fd, cc));
+		       ("internal_recv: recvmsg(%d) %d bytes, err %d/%s, from %s\n",
+			sock->fd, cc, errno, strerror(errno),
+			inet_ntoa(dev->address.type.sin.sin_addr)));
 
 		/*
 		 * check for error or block condition
@@ -1203,11 +1218,13 @@ watcher(void *uap)
 				printit = 0;
 
 				if (FD_ISSET(i, &readfds)) {
-					printf("watcher: select r on %d\n", i);
+					XTRACE(TRACE_WATCHER,
+					       ("select r on %d\n", i));
 					printit = 1;
 				}
 				if (FD_ISSET(i, &writefds)) {
-					printf("watcher: select w on %d\n", i);
+					XTRACE(TRACE_WATCHER,
+					       ("select w on %d\n", i));
 					printit = 1;
 				}
 			}
@@ -1555,6 +1572,8 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	isc_task_t *ntask = NULL;
 	int cc;
 	isc_boolean_t was_empty;
+	struct msghdr msghdr;
+	struct iovec iov;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1601,28 +1620,34 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (!was_empty)
 		goto queue;
 
-	if (sock->type == isc_sockettype_udp) {
-		ISC_SOCKADDR_LEN_T addrlen;
+	iov.iov_base = dev->region.base;
+	iov.iov_len = dev->region.length;
 
-		addrlen = (ISC_SOCKADDR_LEN_T)
-			(sizeof dev->address.type);
-		cc = recvfrom(sock->fd,
-			      ISC_SOCKDATA_CAST(dev->region.base),
-			      dev->region.length, 0,
-			      &dev->address.type.sa, &addrlen);
-		dev->address.length = (unsigned int)addrlen;
+	memset(&msghdr, 0, sizeof(msghdr));
+	if (sock->type == isc_sockettype_udp) {
+		memset(&dev->address, 0, sizeof(dev->address));
+		msghdr.msg_name = (void *)&dev->address.type.sa;
+		msghdr.msg_namelen = sizeof (dev->address.type.sa);
 	} else {
-		/*
-		 * recv() is used on TCP sockets, since some OSs
-		 * don't like recvfrom() being called on TCP sockets.
-		 * Failures range from function failure returns to
-		 * the addresses not being filled in properly.
-		 */
-		cc = recv(sock->fd,
-			  ISC_SOCKDATA_CAST(dev->region.base),
-			  dev->region.length, 0);
+		msghdr.msg_name = NULL;
+		msghdr.msg_namelen = 0;
 		dev->address = sock->address;
 	}
+	msghdr.msg_iov = &iov;
+	msghdr.msg_iovlen = 1;
+	msghdr.msg_control = NULL;
+	msghdr.msg_controllen = 0;
+	msghdr.msg_flags = 0;
+
+	cc = recvmsg(sock->fd, &msghdr, 0);
+	if (sock->type == isc_sockettype_udp)
+		dev->address.length = msghdr.msg_namelen;
+
+
+	XTRACE(TRACE_RECV,
+	       ("isc_socket_recv: recvmsg(%d) %d bytes, err %d/%s, from %s\n",
+		sock->fd, cc, errno, strerror(errno),
+		inet_ntoa(dev->address.type.sin.sin_addr)));
 
 	if (cc < 0) {
 		if (SOFT_ERROR(errno))
