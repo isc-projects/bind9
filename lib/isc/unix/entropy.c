@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.49 2000/08/26 01:31:54 bwelling Exp $ */
+/* $Id: entropy.c,v 1.50 2000/11/23 00:26:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -851,6 +851,8 @@ destroysource(isc_entropysource_t **sourcep) {
 	}
 
 	memset(source, 0, sizeof(isc_entropysource_t));
+
+	DESTROYLOCK(&ent->lock);
 
 	isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
 }
