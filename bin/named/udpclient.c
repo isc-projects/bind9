@@ -174,7 +174,7 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 	if (result == DNS_R_SUCCESS) {
 		/* Send a reply as soon as the socket is ready to do so. */
 		isc_socket_sendto(sock, &region, task, udp_send, ctx,
-				  &dev->address, dev->addrlength);
+				  &dev->address);
 	} else {
 		/* Send no reply, just wait for the next request. */
 		isc_socket_recv(sock, &region, ISC_FALSE, task, udp_recv, ctx);

@@ -127,8 +127,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	}
 	
 	RUNTIME_CHECK(iresult == ISC_R_SUCCESS);
-	iresult = isc_socket_bind(ifp->udpsocket, &ifp->addr,
-				  sizeof(ifp->addr));
+	iresult = isc_socket_bind(ifp->udpsocket, &ifp->addr);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "binding udp socket: %s",
@@ -157,8 +156,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		goto tcp_socket_failure;
 	}
 
-	iresult = isc_socket_bind(ifp->tcpsocket, &ifp->addr,
-				  sizeof(ifp->addr));
+	iresult = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "binding tcpp socket: %s",
@@ -218,20 +216,6 @@ ns_interface_destroy(ns_interface_t **ifpret) {
 }
 
 /*
- * Determine whether two socket addresses of type isc_sockaddr_t have 
- * the same address and port.
- */
-
-static isc_boolean_t
-sockaddr_same(isc_sockaddr_t *a, isc_sockaddr_t *b) {
-	INSIST(a->type.sin.sin_family == AF_INET); /* XXX IPv6 */
-	INSIST(b->type.sin.sin_family == AF_INET); /* XXX IPv6 */	
-	return ((a->type.sin.sin_addr.s_addr == b->type.sin.sin_addr.s_addr &&
-		 a->type.sin.sin_port == b->type.sin.sin_port) ?
-		ISC_TRUE : ISC_FALSE);
-}
-
-/*
  * Search the interface list for an interface whose address and port
  * both match those of 'addr'.  Return a pointer to it, or NULL if not found.
  */
@@ -240,7 +224,7 @@ find_matching_interface(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
         ns_interface_t *ifp;
         for (ifp = ISC_LIST_HEAD(mgr->interfaces); ifp != NULL;
 	     ifp = ISC_LIST_NEXT(ifp, link)) {
-		if (sockaddr_same(&ifp->addr, addr))
+		if (isc_sockaddr_equal(&ifp->addr, addr))
 			break;
 	}
         return (ifp);
@@ -291,6 +275,7 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 		listen_addr.type.sin.sin_family = AF_INET;
 		listen_addr.type.sin.sin_addr = interface.address.type.in;
 		listen_addr.type.sin.sin_port = htons(listen_port);
+		listen_addr.length = sizeof listen_addr.type.sin;
 
 		ifp = find_matching_interface(mgr, &listen_addr);
 		if (ifp) {
