@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.41 2000/06/06 22:50:41 mws Exp $ */
+/* $Id: dig.c,v 1.42 2000/06/06 23:06:21 mws Exp $ */
 
 #include <config.h>
 
@@ -987,6 +987,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->timer = NULL;
 			lookup->xfr_q = NULL;
 			lookup->origin = NULL;
+			lookup->querysig = NULL;
 			lookup->use_my_server_list = ISC_FALSE;
 			lookup->trace = ISC_TF(trace || ns_search_only);
 			lookup->trace_root = trace;
@@ -1049,6 +1050,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->timer = NULL;
 			lookup->xfr_q = NULL;
 			lookup->origin = NULL;
+			lookup->querysig = NULL;
 			lookup->use_my_server_list = ISC_FALSE;
 			lookup->doing_xfr = ISC_FALSE;
 			lookup->ixfr_serial = 0;
@@ -1123,6 +1125,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->timer = NULL;
 		lookup->xfr_q = NULL;
 		lookup->origin = NULL;
+		lookup->querysig = NULL;
 		lookup->use_my_server_list = ISC_FALSE;
 		lookup->doing_xfr = ISC_FALSE;
 		lookup->ixfr_serial = 0;

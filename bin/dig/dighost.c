@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.43 2000/06/06 22:50:43 mws Exp $ */
+/* $Id: dighost.c,v 1.44 2000/06/06 23:06:23 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -280,6 +280,7 @@ dig_lookup_t
 	looknew->aaonly = lookold->aaonly;
 	looknew->ns_search_only = lookold->ns_search_only;
 	looknew->origin = NULL;
+	looknew->querysig = NULL;
 	looknew->retries = tries;
 	looknew->nsfound = 0;
 	looknew->tcp_mode = lookold->tcp_mode;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.12 2000/06/06 18:49:04 mws Exp $ */
+/* $Id: nslookup.c,v 1.13 2000/06/06 23:06:25 mws Exp $ */
 
 #include <config.h>
 
@@ -643,6 +643,7 @@ addlookup(char *opt) {
 	lookup->timer = NULL;
 	lookup->xfr_q = NULL;
 	lookup->origin = NULL;
+	lookup->querysig = NULL;
 	lookup->use_my_server_list = ISC_FALSE;
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->ixfr_serial = 0;

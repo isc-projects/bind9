@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.24 2000/06/06 18:49:03 mws Exp $ */
+/* $Id: host.c,v 1.25 2000/06/06 23:06:24 mws Exp $ */
 
 #include <config.h>
 
@@ -658,6 +658,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->timer = NULL;
 	lookup->xfr_q = NULL;
 	lookup->origin = NULL;
+	lookup->querysig = NULL;
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->ixfr_serial = 0;
 	lookup->defname = ISC_FALSE;
