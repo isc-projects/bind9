@@ -46,6 +46,21 @@
  */
 @ISC_LWRES_SETNETENTINT@
 
+/*
+ * Define if gethostbyaddr takes a void * as first arguement.
+ */
+@ISC_LWRES_GETHOSTBYADDRVOID@
+
+/*
+ * Define if sethostent returns an int.
+ */
+@ISC_LWRES_SETHOSTENTINT@
+
+/*
+ * Define if endhostent returns an int.
+ */
+@ISC_LWRES_ENDHOSTENTINT@
+
 #ifdef ISC_LWRES_NEEDADDRINFO
 struct  addrinfo {
         int             ai_flags;       /* AI_PASSIVE, AI_CANONNAME */

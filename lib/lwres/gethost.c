@@ -16,6 +16,19 @@ gethostbyname(const char *name) {
 	return (he);
 }
 
+#ifdef ISC_LWRES_GETHOSTBYADDRVOID
+struct hostent *
+gethostbyaddr(const void *addr, int len, int type) {
+	int error;
+
+	if (he != NULL) 
+		freehostent(he);
+
+	he = getipnodebyaddr(addr, len, type, &error);
+	h_errno = error;
+	return (he);
+}
+#else
 struct hostent *
 gethostbyaddr(const char *addr, int len, int type) {
 	int error;
@@ -27,6 +40,7 @@ gethostbyaddr(const char *addr, int len, int type) {
 	h_errno = error;
 	return (he);
 }
+#endif
 
 struct hostent *
 gethostent(void) {
@@ -37,12 +51,28 @@ gethostent(void) {
 	return (NULL);
 }
 
+#ifdef ISC_LWRES_SETHOSTENTINT
+int
+sethostent(int stayopen) {
+	(void)stayopen;
+	return (0);
+}
+#else
 void
 sethostent(int stayopen) {
 	/* empty */
+	(void)stayopen;
 }
+#endif
 
+#ifdef ISC_LWRES_ENDHOSTENTINT
+int
+endhostent(void) {
+	return(0);
+}
+#else
 void
 endhostent(void) {
 	/* empty */
 }
+#endif
