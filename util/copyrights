@@ -1165,7 +1165,6 @@
 ./docutil/.cvsignore				X	2001
 ./docutil/HTML_COPYRIGHT			X	2001
 ./docutil/MAN_COPYRIGHT				X	2001
-./docutil/docbook2man-wrapper.sh		SH	2002
 ./docutil/docbook2man-wrapper.sh.in		SH	2001
 ./install-sh					X	1999,2000,2001
 ./isc-config.sh.in				SH	2000,2001
@@ -1623,7 +1622,7 @@
 ./lib/dns/include/dns/master.h			C	1999,2000,2001
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002
-./lib/dns/include/dns/name.h			C	1998,1999,2000,2001
+./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001
 ./lib/dns/include/dns/nxt.h			C	1999,2000,2001
 ./lib/dns/include/dns/peer.h			C	2000,2001
@@ -1632,7 +1631,7 @@
 ./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001
 ./lib/dns/include/dns/rdatalist.h		C	1999,2000,2001
-./lib/dns/include/dns/rdataset.h		C	1999,2000,2001
+./lib/dns/include/dns/rdataset.h		C	1999,2000,2001,2002
 ./lib/dns/include/dns/rdatasetiter.h		C	1999,2000,2001
 ./lib/dns/include/dns/rdataslab.h		C	1999,2000,2001
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001
@@ -1954,7 +1953,7 @@
 ./lib/isc/sockaddr.c				C	1999,2000,2001
 ./lib/isc/string.c				C	1999,2000,2001
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001
-./lib/isc/task.c				C	1998,1999,2000,2001
+./lib/isc/task.c				C	1998,1999,2000,2001,2002
 ./lib/isc/task_p.h				C	2000,2001
 ./lib/isc/taskpool.c				C	1999,2000,2001
 ./lib/isc/timer.c				C	1998,1999,2000,2001
