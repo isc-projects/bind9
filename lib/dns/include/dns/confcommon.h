@@ -318,9 +318,13 @@ void			dns_c_peerlist_print(FILE *fp, int indent,
 void			dns_c_ssutable_print(FILE *fp, int indent,
 					     dns_ssutable_t *ssutable);
 
+
+
 isc_result_t		dns_c_checkcategory(const char *name);
+isc_result_t		dns_c_checkmodule(const char *name);
+
 /*
- * Checks the argument is a known category name.
+ * Checks the argument is a known category or module name.
  *
  * Returns:
  *	ISC_R_SUCCESS if the category is known.

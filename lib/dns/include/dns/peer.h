@@ -77,6 +77,8 @@ struct dns_peer
 	dns_transfer_format_t	transfer_format;
 	int			transfers;
 	isc_boolean_t		support_ixfr;
+	isc_boolean_t		provide_ixfr;
+	isc_boolean_t		request_ixfr;
 	dns_name_t	       *key;
 
 	isc_uint32_t		bitflags;
@@ -123,6 +125,14 @@ isc_result_t	dns_peer_getbogus(dns_peer_t *peer,
 isc_result_t	dns_peer_setsupportixfr(dns_peer_t *peer,
 					isc_boolean_t newval);
 isc_result_t	dns_peer_getsupportixfr(dns_peer_t *peer,
+					isc_boolean_t *retval);
+isc_result_t	dns_peer_setrequestixfr(dns_peer_t *peer,
+					isc_boolean_t newval);
+isc_result_t	dns_peer_getrequestixfr(dns_peer_t *peer,
+					isc_boolean_t *retval);
+isc_result_t	dns_peer_setprovideixfr(dns_peer_t *peer,
+					isc_boolean_t newval);
+isc_result_t	dns_peer_getprovideixfr(dns_peer_t *peer,
 					isc_boolean_t *retval);
 isc_result_t	dns_peer_settransfers(dns_peer_t *peer,
 				      isc_int32_t newval);

@@ -37,6 +37,8 @@
 #define SERVER_TRANSFER_FORMAT_BIT	1
 #define TRANSFERS_BIT			2
 #define SUPPORT_IXFR_BIT		3
+#define REQUEST_IXFR_BIT		4
+#define PROVIDE_IXFR_BIT		5
 
 static isc_result_t dns_peerlist_delete(dns_peerlist_t **list);
 static isc_result_t dns_peer_delete(dns_peer_t **peer);
@@ -215,6 +217,8 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr)
 	peer->transfer_format = dns_one_answer;
 	peer->transfers = 0;
 	peer->support_ixfr = ISC_FALSE;
+	peer->request_ixfr = ISC_FALSE;
+	peer->provide_ixfr = ISC_FALSE;
 	peer->key = NULL;
 	peer->refs = 1;
 	
@@ -364,6 +368,72 @@ dns_peer_getsupportixfr(dns_peer_t *peer,
 
 
 isc_result_t
+dns_peer_setprovideixfr(dns_peer_t *peer,
+			isc_boolean_t newval)
+{
+	isc_boolean_t existed;
+	
+	REQUIRE(DNS_PEER_VALID(peer));
+	
+	existed = DNS_CHECKBIT(PROVIDE_IXFR_BIT, &peer->bitflags);
+	
+	peer->provide_ixfr = newval;
+	DNS_SETBIT(PROVIDE_IXFR_BIT, &peer->bitflags);
+	
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_peer_getprovideixfr(dns_peer_t *peer,
+			isc_boolean_t *retval)
+{
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(retval != NULL);
+	
+	if (DNS_CHECKBIT(PROVIDE_IXFR_BIT, &peer->bitflags)) {
+		*retval = peer->provide_ixfr;
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_NOTFOUND);
+	}
+}
+
+
+isc_result_t
+dns_peer_setrequestixfr(dns_peer_t *peer,
+			isc_boolean_t newval)
+{
+	isc_boolean_t existed;
+	
+	REQUIRE(DNS_PEER_VALID(peer));
+	
+	existed = DNS_CHECKBIT(REQUEST_IXFR_BIT, &peer->bitflags);
+	
+	peer->request_ixfr = newval;
+	DNS_SETBIT(REQUEST_IXFR_BIT, &peer->bitflags);
+	
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_peer_getrequestixfr(dns_peer_t *peer,
+			isc_boolean_t *retval)
+{
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(retval != NULL);
+	
+	if (DNS_CHECKBIT(REQUEST_IXFR_BIT, &peer->bitflags)) {
+		*retval = peer->request_ixfr;
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_NOTFOUND);
+	}
+}
+
+
+isc_result_t
 dns_peer_settransfers(dns_peer_t *peer,
 		      isc_int32_t newval)
 {
@@ -462,4 +532,3 @@ dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval)
 	
 	return (exists ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
-

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.49 2000/03/18 00:46:47 brister Exp $ */
+/* $Id: confparser.y,v 1.50 2000/03/19 02:58:13 brister Exp $ */
 
 #include <config.h>
 
@@ -294,6 +294,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_FALSE
 %token		L_VIEW
 %token		L_RFC2308_TYPE1
+%token		L_PROVIDE_IXFR
+%token		L_REQUEST_IXFR
 
 %token		L_GRANT
 %token		L_DENY
@@ -686,6 +688,20 @@ option: /* Empty */
 		tmpres = dns_c_ctx_setrfc2308type1(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "redefining rfc2308-type.");
+		}
+	}
+	| L_PROVIDE_IXFR yea_or_nay
+	{
+		tmpres = dns_c_ctx_setprovideixfr(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE, "redefining provide-ixfr.");
+		}
+	}
+	| L_REQUEST_IXFR yea_or_nay
+	{
+		tmpres = dns_c_ctx_setrequestixfr(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE, "redefining request-ixfr.");
 		}
 	}
 	| L_LISTEN_ON maybe_port L_LBRACE address_match_list L_RBRACE
@@ -2190,6 +2206,44 @@ server_info: L_BOGUS yea_or_nay
 			parser_error(ISC_FALSE,
 				     "error setting peer "
 				     "support-ixfr value");
+			YYABORT;
+		}
+	}
+	| L_PROVIDE_IXFR yea_or_nay
+	{
+		dns_peer_t *peer = NULL;
+
+		dns_peerlist_currpeer(currcfg->peers, &peer);
+		INSIST(peer != NULL);
+
+		tmpres = dns_peer_setprovideixfr(peer, $2);
+		dns_peer_detach(&peer);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining peer provide-ixfr value");
+		} else if(tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting peer "
+				     "provide-ixfr value");
+			YYABORT;
+		}
+	}
+	| L_REQUEST_IXFR yea_or_nay
+	{
+		dns_peer_t *peer = NULL;
+
+		dns_peerlist_currpeer(currcfg->peers, &peer);
+		INSIST(peer != NULL);
+
+		tmpres = dns_peer_setrequestixfr(peer, $2);
+		dns_peer_detach(&peer);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining peer request-ixfr value");
+		} else if(tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting peer "
+				     "request-ixfr value");
 			YYABORT;
 		}
 	}
@@ -4027,9 +4081,11 @@ static struct token keyword_tokens [] = {
 	{ "print-category",		L_PRINT_CATEGORY },
 	{ "print-severity",		L_PRINT_SEVERITY },
 	{ "print-time",			L_PRINT_TIME },
+        { "provide-ixfr", 		L_PROVIDE_IXFR },
 	{ "pubkey",			L_PUBKEY },
 	{ "query-source",		L_QUERY_SOURCE },
 	{ "query-source-v6",		L_QUERY_SOURCE_V6 },
+	{ "request-ixfr",		L_REQUEST_IXFR },
 	{ "rfc2308-type1",		L_RFC2308_TYPE1 },
 	{ "rrset-order",		L_RRSET_ORDER },
 	{ "recursion",			L_RECURSION },

@@ -78,6 +78,8 @@
 #define RECURSIVE_CLIENTS_BIT		40
 #define TRANSFER_SOURCE_BIT		41
 #define TRANSFER_SOURCE_V6_BIT		42
+#define REQUEST_IXFR_BIT		43
+#define PROVIDE_IXFR_BIT		44
 
 
 static isc_result_t cfg_set_iplist(dns_c_options_t *options,
@@ -1673,6 +1675,46 @@ dns_c_ctx_setrfc2308type1(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
+dns_c_ctx_setrequestixfr(dns_c_ctx_t *cfg, isc_boolean_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_boolean(cfg->options,
+				&cfg->options->request_ixfr,
+				newval,
+				&cfg->options->setflags1,
+				REQUEST_IXFR_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_setprovideixfr(dns_c_ctx_t *cfg, isc_boolean_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_boolean(cfg->options,
+				&cfg->options->provide_ixfr,
+				newval,
+				&cfg->options->setflags1,
+				PROVIDE_IXFR_BIT));
+}
+
+
+isc_result_t
 dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval)
 {
 	isc_result_t res;
@@ -2937,6 +2979,44 @@ dns_c_ctx_getrfc2308type1(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
+dns_c_ctx_getrequestixfr(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_boolean(cfg->options, 
+				&cfg->options->request_ixfr,
+				retval,
+				&cfg->options->setflags1,
+				REQUEST_IXFR_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_getprovideixfr(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_boolean(cfg->options, 
+				&cfg->options->provide_ixfr,
+				retval,
+				&cfg->options->setflags1,
+				PROVIDE_IXFR_BIT));
+}
+
+
+isc_result_t
 dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
@@ -3319,6 +3399,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->multiple_cnames = ISC_FALSE;
 	opts->use_id_pool = ISC_FALSE;
 	opts->rfc2308_type1 = ISC_FALSE;
+	opts->request_ixfr = ISC_FALSE;
+	opts->provide_ixfr = ISC_FALSE;
 	opts->dialup = ISC_FALSE;
 
 	opts->tcp_clients = 0;
@@ -3623,6 +3705,10 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 			 "use-id-pool", setflags1);
 	PRINT_AS_BOOLEAN(rfc2308_type1, RFC2308_TYPE1_BIT,
 			 "rfc2308-type1", setflags1);
+	PRINT_AS_BOOLEAN(request_ixfr, REQUEST_IXFR_BIT,
+			 "request-ixfr", setflags1);
+	PRINT_AS_BOOLEAN(provide_ixfr, PROVIDE_IXFR_BIT,
+			 "provide-ixfr", setflags1);
 	PRINT_AS_BOOLEAN(dialup, DIALUP_BIT,
 			 "dialup", setflags1);
 

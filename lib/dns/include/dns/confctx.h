@@ -177,6 +177,8 @@ struct dns_c_options
 	isc_boolean_t		use_id_pool;
 	isc_boolean_t		dialup;
 	isc_boolean_t		rfc2308_type1;
+	isc_boolean_t		request_ixfr;
+	isc_boolean_t		provide_ixfr;
 	
 	isc_sockaddr_t		transfer_source;
 	isc_sockaddr_t		transfer_source_v6;
@@ -367,6 +369,10 @@ isc_result_t	dns_c_ctx_setuseidpool(dns_c_ctx_t *cfg,
 				       isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setrfc2308type1(dns_c_ctx_t *cfg,
 					  isc_boolean_t newval);
+isc_result_t	dns_c_ctx_setrequestixfr(dns_c_ctx_t *cfg,
+                                         isc_boolean_t newval);
+isc_result_t	dns_c_ctx_setprovideixfr(dns_c_ctx_t *cfg,
+                                         isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setalsonotify(dns_c_ctx_t *ctx,
 					dns_c_iplist_t *newval,
@@ -509,6 +515,10 @@ isc_result_t	dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg,
 				       isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getrfc2308type1(dns_c_ctx_t *cfg,
 					  isc_boolean_t *retval);
+isc_result_t	dns_c_ctx_getrequestixfr(dns_c_ctx_t *cfg,
+                                         isc_boolean_t *retval);
+isc_result_t	dns_c_ctx_getprovideixfr(dns_c_ctx_t *cfg,
+                                         isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getalsonotify(dns_c_ctx_t *ctx,
 					dns_c_iplist_t **ret);
