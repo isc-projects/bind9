@@ -276,7 +276,7 @@ void lh_doall(LHASH *lh, void (*func)())
 	lh_doall_arg(lh,func,NULL);
 	}
 
-void lh_doall_arg(LHASH *lh, void (*func)(), void *arg)
+void lh_doall_arg(LHASH *lh, void (*func)(void *, void *), void *arg)
 	{
 	int i;
 	LHASH_NODE *a,*n;
@@ -396,7 +396,7 @@ static LHASH_NODE **getrn(LHASH *lh, void *data, unsigned long *rhash)
 	{
 	LHASH_NODE **ret,*n1;
 	unsigned long hash,nn;
-	int (*cf)();
+	int (*cf)(void *, void *);
 
 	hash=(*(lh->hash))(data);
 	lh->num_hash_calls++;

@@ -83,8 +83,8 @@ typedef struct lhash_node_st
 typedef struct lhash_st
 	{
 	LHASH_NODE **b;
-	int (*comp)();
-	unsigned long (*hash)();
+	int (*comp)(void *, void *);
+	unsigned long (*hash)(void *);
 	unsigned int num_nodes;
 	unsigned int num_alloc_nodes;
 	unsigned int p;
