@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2001  Internet Software Consortium.
+e# Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.271 $)
+AC_REVISION($Revision: 1.272 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -274,21 +274,47 @@ AC_SUBST(LWRES_PLATFORM_NEEDSYSSELECTH)
 AC_C_BIGENDIAN
 
 #
+# Subroutine for searching for an ordinary file (e.g., a stylesheet)
+# in a number of directories:
+#
+#   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
+#
+# If the file FILENAME is found in one of the DIRECTORIES, the shell
+# variable VARIABLE is defined to its absolute pathname.  Otherwise, 
+# it is set to FILENAME, with no directory prefix (that's not terribly
+# useful, but looks less confusing in substitutions than leaving it
+# empty).  The variable VARIABLE will be substituted into output files.
+# 
+
+AC_DEFUN(NOM_PATH_FILE, [
+$1=""
+AC_MSG_CHECKING(for $2)
+for d in $3
+do
+	f=$d/$2
+	if test -f $f
+	then
+		$1=$f
+		AC_MSG_RESULT($f)
+		break
+	fi
+done
+if test "X[$]$1" = "X"
+then
+	AC_MSG_RESULT("not found");
+	$1=$2
+fi
+AC_SUBST($1)
+])
+
+#
 # was --with-openssl specified?
 #
-AC_MSG_CHECKING(for compatible OpenSSL library)
+AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
 [  --with-openssl=PATH  Specify path for system-supplied openssl
                         (required for DNSSEC)],
     use_openssl="$withval", use_openssl="no")
-
-#
-# If the user didn't specify where openssl is, and we didn't find or it
-# is incompatible with our code, use our internal one.
-#
-# XXX This appears to assume that the user specified path is correct,
-# and does no checking.
-#
 
 case "$use_openssl" in
 	no)
@@ -296,14 +322,43 @@ case "$use_openssl" in
 		DST_OPENSSL_INC=""
 		USE_OPENSSL=""
 		;;
-	yes)
-		AC_MSG_ERROR([--with-openssl must specify a path])
-		;;
 	*)
+		AC_MSG_RESULT(yes)
+		if test "$use_openssl" = "yes"
+		then
+		    	# User did not specify a path - guess it
+			openssldirs="/usr /usr/local /usr/pkg"
+			NOM_PATH_FILE(use_openssl, include/openssl/opensslv.h, $openssldirs)
+			if test "$use_openssl" = "include/openssl/opensslv.h"
+			then
+				AC_MSG_ERROR(
+[openssl was not fine in any of $openssldirs; use --with-openssl=/path])
+			fi
+		fi
 		USE_OPENSSL='-DOPENSSL'
 		DST_OPENSSL_INC="-I$use_openssl/include"
 		DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+
 		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
+
+		AC_MSG_CHECKING(OpenSSL library version)
+		saved_cflags="$CFLAGS"
+		saved_libs="$LIBS"
+		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
+		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		AC_TRY_RUN([
+#include <openssl/opensslv.h>
+int main() {
+        if (OPENSSL_VERSION_NUMBER >= 0x0090500fL)
+                return (0);
+        return (1);
+}
+],
+	        [AC_MSG_RESULT(ok)],
+		[AC_MSG_RESULT(not compatible)
+		AC_MSG_ERROR(you need OpenSSL 0.9.5 or newer)])
+		CFLAGS="$saved_cflags"
+		LIBS="$saved_libs"
 		;;
 esac
 
@@ -1451,39 +1506,6 @@ AC_SUBST(JADETEX)
 
 AC_PATH_PROGS(PDFJADETEX, pdfjadetex, pdfjadetex)
 AC_SUBST(PDFJADETEX)
-
-#
-# Subroutine for searching for an ordinary file (e.g., a stylesheet)
-# in a number of directories:
-#
-#   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
-#
-# If the file FILENAME is found in one of the DIRECTORIES, the shell
-# variable VARIABLE is defined to its absolute pathname.  Otherwise, 
-# it is set to FILENAME, with no directory prefix (that's not terribly
-# useful, but looks less confusing in substitutions than leaving it
-# empty).  The variable VARIABLE will be substituted into output files.
-# 
-
-AC_DEFUN(NOM_PATH_FILE, [
-AC_MSG_CHECKING(for $2)
-for d in $3
-do
-	f=$d/$2
-	if test -f $f
-	then
-		$1=$f
-		AC_MSG_RESULT($f)
-		break
-	fi
-done
-if test "X[$]$1" = "X"
-then
-	AC_MSG_RESULT("not found");
-	$1=$2
-fi
-AC_SUBST($1)
-])
 
 NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees)
 
