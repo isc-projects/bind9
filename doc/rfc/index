@@ -67,3 +67,4 @@
 3123:	A DNS RR Type for Lists of Address Prefixes (APL RR)
 3225:	Indicating Resolver Support of DNSSEC
 3226:	DNSSEC and IPv6 A6 aware server/resolver message size requirements
+3258:	Distributing Authoritative Name Servers via Shared Unicast Addresses
