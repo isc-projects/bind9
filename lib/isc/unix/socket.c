@@ -245,6 +245,8 @@ static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
 #define SELECT_POKE_NOTHING		(-2)
 #define SELECT_POKE_RESCAN		(-3) /* XXX implement */
 
+#define SOCK_DEAD(s)			((s)->references == 0)
+
 /*
  * Poke the select loop when there is something for us to do.
  * We assume that if a write completes here, it will be inserted into the
@@ -1880,10 +1882,12 @@ watcher(void *uap)
 					i, manager->fds[i]));
 				unlock_sock = ISC_TRUE;
 				LOCK(&sock->lock);
-				if (sock->listener)
-					dispatch_accept(sock);
-				else
-					dispatch_read(sock);
+				if (!SOCK_DEAD(sock)) {
+					if (sock->listener)
+						dispatch_accept(sock);
+					else
+						dispatch_read(sock);
+				}
 				FD_CLR(i, &manager->read_fds);
 			}
 		check_write:
@@ -1899,10 +1903,12 @@ watcher(void *uap)
 					unlock_sock = ISC_TRUE;
 					LOCK(&sock->lock);
 				}
-				if (sock->connecting)
-					dispatch_connect(sock);
-				else
-					dispatch_write(sock);
+				if (!SOCK_DEAD(sock)) {
+					if (sock->connecting)
+						dispatch_connect(sock);
+					else
+						dispatch_write(sock);
+				}
 				FD_CLR(i, &manager->write_fds);
 			}
 			if (unlock_sock)
@@ -2744,9 +2750,6 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 	XTRACE(TRACE_CONNECT,
 	       ("internal_connect called, locked parent sock %p\n", sock));
 
-	INSIST(sock->connecting);
-	sock->connecting = 0;
-
 	/*
 	 * When the internal event was sent the reference count was bumped
 	 * to keep the socket around for us.  Decrement the count here.
@@ -2764,9 +2767,13 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 	 */
 	dev = sock->connect_ev;
 	if (dev == NULL) {
+		INSIST(!sock->connecting);
 		UNLOCK(&sock->lock);
 		return;
 	}
+
+	INSIST(sock->connecting);
+	sock->connecting = 0;
 
 	/*
 	 * Get any possible error status here.
@@ -2965,6 +2972,9 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 	    && sock->connect_ev != NULL) {
 		isc_socket_connev_t    *dev;
 		isc_task_t	       *current_task;
+
+		INSIST(sock->connecting);
+		sock->connecting = 0;
 
 		dev = sock->connect_ev;
 		current_task = dev->sender;
