@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.190 2001/02/07 23:40:28 marka Exp $ */
+/* $Id: socket.c,v 1.191 2001/02/08 00:04:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1625,6 +1625,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	ISC_SOCKADDR_LEN_T addrlen;
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_boolean_t failed = ISC_FALSE;
 
 	UNUSED(me);
 
@@ -1680,23 +1681,19 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 							"failed"),
 					 strerror(errno));
 		}
-		select_poke(sock->manager, sock->fd,
-			    SELECT_POKE_ACCEPT);
-		UNLOCK(&sock->lock);
-		return;
+		failed = ISC_TRUE;
 	} else {
 		if (addrlen == 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept(): "
 					 "accept() failed to return "
 					 "remote address");
+
 			(void)close(fd);
-			select_poke(sock->manager, sock->fd,
-				    SELECT_POKE_ACCEPT);
-			UNLOCK(&sock->lock);
-			return;
-		}
-		if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
+			failed = ISC_TRUE;
+		} else if (dev->newsocket->address.type.sa.sa_family !=
+			   sock->pf)
+		{
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept(): "
 					 "accept() returned peer address "
@@ -1705,11 +1702,14 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 					 type.sa.sa_family,
 					 sock->pf);
 			(void)close(fd);
-			select_poke(sock->manager, sock->fd,
-				    SELECT_POKE_ACCEPT);
-			UNLOCK(&sock->lock);
-			return;
+			failed = ISC_TRUE;
 		}
+	}
+
+	if (failed) {
+		select_poke(sock->manager, sock->fd, SELECT_POKE_ACCEPT);
+		UNLOCK(&sock->lock);
+		return;
 	}
 
 	dev->newsocket->address.length = addrlen;
