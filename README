@@ -206,7 +206,7 @@ Bug Reports and Mailing Lists
 
 	-g				Run in the foreground and log
 					to stderr, ignoring any "logging"
-					statement in in the config file
+					statement in in the config file.
 
 	-n <number_of_cpus>		
 
