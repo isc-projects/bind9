@@ -6,9 +6,9 @@
 
 DNSEXT Working Group                                        Yuji Kamite
 INTERNET-DRAFT                                       NTT Communications
-<draft-ietf-dnsext-tkey-renewal-mode-02.txt>            Masaya Nakayama
-Expires: Mar. 24, 2003                          The University of Tokyo
-                                                          Sep. 24, 2002
+<draft-ietf-dnsext-tkey-renewal-mode-03.txt>            Masaya Nakayama
+Expires: Sep. 3, 2003                           The University of Tokyo
+                                                           Mar. 3, 2003
 
 
 
@@ -57,7 +57,7 @@ Abstract
 
 Kamite, et. al.                                                 [Page 1]
 
-INTERNET-DRAFT                                                 Sep. 2002
+INTERNET-DRAFT                                                 Mar. 2003
 
 
                            Table of Contents
@@ -75,22 +75,22 @@ INTERNET-DRAFT                                                 Sep. 2002
   2.4  Key Adoption  . . . . . . . . . . . . . . . . . . . . . . . .   9
     2.4.1  Query for Key Adoption  . . . . . . . . . . . . . . . . .   9
     2.4.2  Response for Key Adoption . . . . . . . . . . . . . . . .  10
-  2.5  Keying Schemes  . . . . . . . . . . . . . . . . . . . . . . .  10
+  2.5  Keying Schemes  . . . . . . . . . . . . . . . . . . . . . . .  11
     2.5.1  DH Exchange for Key Renewal . . . . . . . . . . . . . . .  11
     2.5.2  Server Assigned Keying for Key Renewal  . . . . . . . . .  12
     2.5.3  Resolver Assigned Keying for Key Renewal  . . . . . . . .  13
   2.6  Considerations about Non-compliant Hosts  . . . . . . . . . .  14
 3  Secret Storage  . . . . . . . . . . . . . . . . . . . . . . . . .  14
-4  Compulsory Key Revocation by Server . . . . . . . . . . . . . . .  14
+4  Compulsory Key Revocation by Server . . . . . . . . . . . . . . .  15
   4.1  Example . . . . . . . . . . . . . . . . . . . . . . . . . . .  15
-5  Special Considerations for Two Servers' Case  . . . . . . . . . .  15
+5  Special Considerations for Two Servers' Case  . . . . . . . . . .  16
   5.1  To Cope with Collisions of Renewal Requests . . . . . . . . .  16
-6  Key Name Considerations . . . . . . . . . . . . . . . . . . . . .  16
+6  Key Name Considerations . . . . . . . . . . . . . . . . . . . . .  17
 7  Example Usage of Secret Key Renewal Mode  . . . . . . . . . . . .  17
 8  Security Considerations . . . . . . . . . . . . . . . . . . . . .  19
 9  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . .  20
 10 References  . . . . . . . . . . . . . . . . . . . . . . . . . . .  20
-Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . .  21
+Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . .  22
 
 
 
@@ -113,7 +113,7 @@ Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . .  21
 
 Kamite, et. al.                                                 [Page 2]
 
-INTERNET-DRAFT                                                 Sep. 2002
+INTERNET-DRAFT                                                 Mar. 2003
 
 
 1.  Introduction
@@ -147,9 +147,9 @@ INTERNET-DRAFT                                                 Sep. 2002
    which is defined within the framework of TKEY, and it is called "TKEY
    Secret Key Renewal Mode".
 
-   The key words "MUST", "MUST NOT", "SHOULD", "SHOULD NOT" and
+   The key words "MUST", "MUST NOT", "SHOULD", "SHOULD NOT", "MAY" and
    "OPTIONAL" in this document are to be interpreted as described in
-   [RFC 2119].
+   [RFC2119].
 
 
 1.1.  Defined Words
@@ -169,7 +169,7 @@ INTERNET-DRAFT                                                 Sep. 2002
 
 Kamite, et. al.                                                 [Page 3]
 
-INTERNET-DRAFT                                                 Sep. 2002
+INTERNET-DRAFT                                                 Mar. 2003
 
 
    and must be updated. It must be between Inception Time and Expiry
@@ -219,14 +219,16 @@ INTERNET-DRAFT                                                 Sep. 2002
    It always checks if the present time is within the range of usage
    duration it considers safe. If it is judged that the key is too old,
    i.e., after Partial Revocation Time, the server comes to be in
-   Partial Revocation state about the key.
+   Partial Revocation state about the key, and this key is called
 
 
 
 Kamite, et. al.                                                 [Page 4]
 
-INTERNET-DRAFT                                                 Sep. 2002
+INTERNET-DRAFT                                                 Mar. 2003
 
+
+   partially revoked.
 
    In this state, whenever a client sends a normal query (e.g., question
    about A RR) other than TKEY Renewal request with TSIG signed with the
@@ -236,11 +238,15 @@ INTERNET-DRAFT                                                 Sep. 2002
    The client which got this error is able to notice that it is
    necessary to refresh the secret. To make a new shared secret, it
    sends a TKEY Renewal request, in which several keying methods are
-   available.  After new secret establishment, the client sends a TKEY
-   Adoption request. If this is admitted by the server, the new key is
-   formally adopted, and at the same time the corresponding old secret
-   is invalidated. Then the client can send the first query again signed
-   with the new key.
+   available. It can make use of TSIG authentication signed with the
+   partially revoked key mentioned above.
+
+   After new secret establishment, the client sends a TKEY Adoption
+   request for renewal confirmation. This can also be authenticated with
+   the partially revoked key. If this is admitted by the server, the new
+   key is formally adopted, and at the same time the corresponding old
+   secret is invalidated. Then the client can send the first query again
+   signed with the new key.
 
    Key renewal procedure is executed based on two-phase commit
    mechanism. The first phase is the TKEY Renewal request and its
@@ -270,20 +276,20 @@ INTERNET-DRAFT                                                 Sep. 2002
    verify TSIG with the key, and server acts the same way as when no
    valid key is found, following [RFC2845].
 
+
+
+
+Kamite, et. al.                                                 [Page 5]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
    When the present time is equal to Inception Time, or between
    Inception Time and Partial Revocation Time, the behavior of the
    server is the same as when a valid key is found, required in
    [RFC2845].
 
    When the present time is the same as the Partial Revocation Time, or
-
-
-
-Kamite, et. al.                                                 [Page 5]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
    between the Partial Revocation Time and Expiry Limit, the server
    comes to be in Partial Revocation state about the TSIG key and
    behaves according to the next section.
@@ -298,11 +304,17 @@ INTERNET-DRAFT                                                 Sep. 2002
    In Partial Revocation state, we say the server has partially revoked
    the key and the key has become a "partially revoked key".
 
-   Server which has received queries signed with the partially revoked
-   key MUST NOT answer them except when they are Renewal requests (See
-   section 2.3.) or "key adoption" requests (See section 2.4.). Instead,
-   it returns TSIG error messages whose error codes are "PartialRevoke"
-   (See section 9.)
+   If server has received a query signed with the partially revoked key
+   for TKEY Renewal request (See section 2.3.) or "key adoption" request
+   (See section 2.4.), then server does proper process following each
+   specification.
+
+   If server receives other types of query signed with the partially
+   revoked key and the corresponding MAC is verified, then server SHOULD
+   return TSIG error message for response whose error code is
+   "PartialRevoke" (See section 9.). However, if it is for TKEY key
+   deletion request ([RFC2930] 4.2), server MAY process usual deletion
+   operation defined therein.
 
    PartialRevoke error messages have the role to inform clients of the
    keys' partial revocation and urge them to send TKEY Renewal requests.
@@ -320,6 +332,14 @@ INTERNET-DRAFT                                                 Sep. 2002
 
    If a client has received a PartialRevoke error and authenticated the
    response based on TSIG MAC, it sends a TKEY query for Key Renewal (in
+
+
+
+Kamite, et. al.                                                 [Page 6]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
    this document, we call it Renewal request, too.) to the server. The
    request MUST be signed with TSIG or SIG(0) [RFC2931] for
    authentication. If TSIG is selected, the client can sign it with the
@@ -332,20 +352,12 @@ INTERNET-DRAFT                                                 Sep. 2002
    The server which has received Key Renewal request first tries to
    verify TSIG or SIG(0) accompanying it. If the TSIG is signed and
    verified with the partially revoked key, the request MUST be
-
-
-
-Kamite, et. al.                                                 [Page 6]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
    authenticated.
 
    After authentication, server must check existing old key's validity.
    If the partially revoked key indicated in the request TKEY's OldName
    and OldAlgorithm field (See section 2.3.1.) does not really exist at
-   the server, "BADKEY" [RFC 2845] is given in Error field for response.
+   the server, "BADKEY" [RFC2845] is given in Error field for response.
    If any other error happens, server returns appropriate error messages
    following the specification described in section 2.5. If there are no
    errors, server returns a Key Renewal answer. This answer MUST be
@@ -376,6 +388,14 @@ INTERNET-DRAFT                                                 Sep. 2002
    Note:
       Even after the response is returned to client, possibly server
       sometimes receives another Renewal TKEY request whose OldName
+
+
+
+Kamite, et. al.                                                 [Page 7]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
       indicates the same partial revoked key. Mostly such messages
       originate in client's resending or rollback because of some kinds
       of errors. In this case, the server processes keying again and
@@ -388,14 +408,6 @@ INTERNET-DRAFT                                                 Sep. 2002
 
       Even if client sends Key Renewal request though the key described
       in OldName has not been partially revoked yet, server must do
-
-
-
-Kamite, et. al.                                                 [Page 7]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
       renewal processes.  But at the moment when the server accepts such
       requests with valid authentication, it MUST forcibly consider the
       key is already partially revoked, that is, the key's Partial
@@ -431,6 +443,15 @@ INTERNET-DRAFT                                                 Sep. 2002
          Other Data:               newly defined: see description below
 
 
+
+
+
+
+Kamite, et. al.                                                 [Page 8]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
      For "NAME" field, both non-root and root name are allowed. It may
      be used for a new key's name in the same manner as [RFC2930] 2.1.
 
@@ -444,14 +465,6 @@ INTERNET-DRAFT                                                 Sep. 2002
      "Key Data" has different meanings according to keying schemes.
 
      "Mode" field stores the value in accordance with the keying method,
-
-
-
-Kamite, et. al.                                                 [Page 8]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
      and see section 2.5. Servers and clients supporting TKEY Renewal
      method MUST implement "Diffie-Hellman exchange for key renewal"
      scheme. All other modes are OPTIONAL.
@@ -486,9 +499,18 @@ INTERNET-DRAFT                                                 Sep. 2002
    filed of TKEY written below. In additional section, there is one TKEY
    RR that has the structure and values described below.
 
+
+
+
+
+Kamite, et. al.                                                 [Page 9]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
      "NAME" field is the new key's name to be adopted which was already
-     generated by Renewal message exchange. "Algorithm" is its algorithm
-     name. "Inception" means the key's Inception Time, and "Expiration"
+     generated by Renewal message exchange. "Algorithm" is its algo-
+     rithm. "Inception" means the key's Inception Time, and "Expiration"
      means Expiry Limit.
 
      "Mode" field is the value of "key adoption". See section 9.
@@ -500,14 +522,6 @@ INTERNET-DRAFT                                                 Sep. 2002
    Key Adoption request MUST be signed with TSIG or SIG(0) for
    authentication. The client can sign TSIG with the previous key. Note
    that until Adoption is finished, the new key is treated as invalid,
-
-
-
-Kamite, et. al.                                                 [Page 9]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
    thus it cannot be used for authentication immediately.
 
 
@@ -518,7 +532,7 @@ INTERNET-DRAFT                                                 Sep. 2002
    revoked key and can be verified, the message MUST be authenticated.
 
    If the next new key indicated by the request TKEY's "NAME" is not
-   really present at the server, BADNAME [RFC 2845] is given in Error
+   really present at the server, BADNAME [RFC2845] is given in Error
    field and the error message is returned.
 
    If the next key really exists and it has not been adopted formally
@@ -542,6 +556,14 @@ INTERNET-DRAFT                                                 Sep. 2002
    Client will probably retry Adoption request; however, the request
    will be refused in the form of TSIG "BADKEY" error because the
    previous key was already revoked. In this case, client should
+
+
+
+Kamite, et. al.                                                [Page 10]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
    retransmit Adoption request signed with the next key, and expect a
    response which has null "Other Data" for confirming the completion of
    renewal.
@@ -556,12 +578,6 @@ INTERNET-DRAFT                                                 Sep. 2002
 
    Now this document specifies three algorithms in this section, but
    other future documents can make extensions defining other methods.
-
-
-
-Kamite, et. al.                                                [Page 10]
-
-INTERNET-DRAFT                                                 Sep. 2002
 
 
 2.5.1.  DH Exchange for Key Renewal
@@ -592,10 +608,18 @@ INTERNET-DRAFT                                                 Sep. 2002
       The server which received this request first verifies the TSIG or
       SIG(0). After authentication, the old key's existence validity is
       checked, following section 2.3. If any incompatible DH key is
-      found in the request, "BADKEY" [RFC 2845] is given in Error field
+      found in the request, "BADKEY" [RFC2845] is given in Error field
       for response. "FORMERR" is given if the query included no DH KEY.
 
       If there are no errors, the server processes a response according
+
+
+
+Kamite, et. al.                                                [Page 11]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
       to Diffie-Hellman algorithm and returns the answer. In this
       answer, there is one TKEY RR in answer section and KEY RR(s) in
       additional section.
@@ -612,13 +636,6 @@ INTERNET-DRAFT                                                 Sep. 2002
       key is actually generated or the time before it, and it will be
       regarded as Inception Time. "Expiration" is determined by the
       server, and it will be regarded as Expiry Limit.
-
-
-
-Kamite, et. al.                                                [Page 11]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
 
       TKEY "Key Data" is used as an additional nonce, following
       [RFC2930] 4.1.
@@ -652,6 +669,13 @@ INTERNET-DRAFT                                                 Sep. 2002
       TKEY "Key Data" is provided following the specification of
       [RFC2930] 4.4.
 
+
+
+Kamite, et. al.                                                [Page 12]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
    Response
       The server which received this request first verifies the TSIG or
       SIG(0). Resolver KEY RR is also authenticated by means of
@@ -668,14 +692,6 @@ INTERNET-DRAFT                                                 Sep. 2002
 
       TKEY "Inception" and "Expiration" mean the periods of the produced
       key usage. "Inception" should be set to be the time when the new
-
-
-
-Kamite, et. al.                                                [Page 12]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
       key is actually generated or the time before it, and it will be
       regarded as Inception Time. "Expiration" is determined by the
       server, and it will be regarded as Expiry Limit.
@@ -709,6 +725,13 @@ INTERNET-DRAFT                                                 Sep. 2002
 
       TKEY "Key Data" is the encrypted keying material.
 
+
+
+Kamite, et. al.                                                [Page 13]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
    Response
       The server which received this request first verifies the TSIG or
       SIG(0). After authentication, the old key's existence validity is
@@ -724,14 +747,6 @@ INTERNET-DRAFT                                                 Sep. 2002
       produced key which the client will have to use.
 
       TKEY "Inception" and "Expiration" mean the periods of the produced
-
-
-
-Kamite, et. al.                                                [Page 13]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
       key usage. "Inception" should be set to be the time when the new
       key is actually generated or the time before it, and it will be
       regarded as Inception Time. "Expiration" is determined by the
@@ -763,6 +778,16 @@ INTERNET-DRAFT                                                 Sep. 2002
    read by others. If possible, they should be stored in encrypted form.
 
 
+
+
+
+
+
+Kamite, et. al.                                                [Page 14]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
 4.  Compulsory Key Revocation by Server
 
    There is a rare but possible case that although servers have already
@@ -781,13 +806,6 @@ INTERNET-DRAFT                                                 Sep. 2002
    Time, perhaps clients might not be able to notice their keys' Partial
    Revocation by getting "PartialRevoke" errors.
 
-
-
-Kamite, et. al.                                                [Page 14]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
    Therefore, servers should set proper Expiry Limit to their keys,
    considering both their keys' safety, and enough time for clients to
    send requests and process renewal.
@@ -800,7 +818,7 @@ INTERNET-DRAFT                                                 Sep. 2002
 
      A client and a server start SIG(0) authentication at first, to
      establish TSIG shared keys by means of "Query for Diffie-Hellman
-     Exchanged Keying" as described in [RFC 2930] 4.1. Once they get
+     Exchanged Keying" as described in [RFC2930] 4.1. Once they get
      shared secret, they keep using TSIG for usual queries and
      responses. After a while the server returns a "ParitalRevoke" error
      and they begin a key renewal process. Both TSIG signed with
@@ -813,6 +831,17 @@ INTERNET-DRAFT                                                 Sep. 2002
      the old key, it will fail because the key is removed from the
      server. So, the client will send "Query for Diffie-Hellman
      Exchanged Keying" with SIG(0) to make a new shared key again.
+
+
+
+
+
+
+
+
+Kamite, et. al.                                                [Page 15]
+
+INTERNET-DRAFT                                                 Mar. 2003
 
 
 5.  Special Considerations for Two servers' Case
@@ -836,12 +865,6 @@ INTERNET-DRAFT                                                 Sep. 2002
    can also decide for itself to send Renewal request to Server A. But
    it is not essential for both two servers have information about key
    renewal timing.
-
-
-
-Kamite, et. al.                                                [Page 15]
-
-INTERNET-DRAFT                                                 Sep. 2002
 
 
 5.1.  To Cope with Collisions of Renewal Requests
@@ -871,6 +894,12 @@ INTERNET-DRAFT                                                 Sep. 2002
    requests now for themselves.
 
 
+
+Kamite, et. al.                                                [Page 16]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
 6.  Key Name Considerations
 
    Since both servers and clients have only to distinguish new secrets
@@ -892,12 +921,6 @@ INTERNET-DRAFT                                                 Sep. 2002
    particular IDs to be distinguished and would be identified by their
    names and algorithm, it must be understood correctly what keys are
    refreshed.
-
-
-
-Kamite, et. al.                                                [Page 16]
-
-INTERNET-DRAFT                                                 Sep. 2002
 
 
 7.  Example Usage of Secret Key Renewal Mode
@@ -926,6 +949,13 @@ INTERNET-DRAFT                                                 Sep. 2002
      with "00.client.example.com.server.example.com", and its Error Code
      indicates PartialRevoke.
 
+
+
+Kamite, et. al.                                                [Page 17]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
      (5) At 9:01. Client sends a Renewal request to Server. This request
      is signed with key "00.client.example.com.server.example.com". It
      includes data such as:
@@ -948,14 +978,6 @@ INTERNET-DRAFT                                                 Sep. 2002
      (6) As soon as Server receives this request, it verifies TSIG. It
      is signed with the partially revoked key
      "00.client.example.com.server.example.com". and Server accepts the
-
-
-
-Kamite, et. al.                                                [Page 17]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
      request.  It creates a new key by Diffie-Hellman calculation and
      returns an answer which includes data such as:
 
@@ -981,6 +1003,15 @@ INTERNET-DRAFT                                                 Sep. 2002
      Diffie-Hellman. It will get a new key, and it has been named
      "01.client.example.com.server.example.com" by Server.
 
+
+
+
+
+Kamite, et. al.                                                [Page 18]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
      (8) At 9:02. Client sends an Adoption request to Server. This
      request is signed with the previous key
      "00.client.example.com.server.example.com". It includes:
@@ -1004,14 +1035,6 @@ INTERNET-DRAFT                                                 Sep. 2002
      previous key and authenticated. It returns a response whose TKEY RR
      is the same as the request's one. The response is signed with key
      "00.client.example.com.server.example.com.". As soon as the
-
-
-
-Kamite, et. al.                                                [Page 18]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
      response is sent, Server revokes and removes the previous key. At
      the same time, key "01.client.example.com.server.example.com." is
      validated.
@@ -1037,6 +1060,14 @@ INTERNET-DRAFT                                                 Sep. 2002
    refreshment is a fundamental security practice that helps against
    potential weaknesses of the function and keys, and limits the damage
    of an exposed key. TKEY Secret Key Renewal provides the method of
+
+
+
+Kamite, et. al.                                                [Page 19]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
+
    periodical key refreshment.
 
    TKEY Secret Key Renewal forbids clients to send queries as long as
@@ -1060,14 +1091,6 @@ INTERNET-DRAFT                                                 Sep. 2002
    out, normal renewal process described in this document cannot be done
    any more as far as the key is concerned. But, after such accidents
    happened, the two hosts are able to establish secret keys and begin
-
-
-
-Kamite, et. al.                                                [Page 19]
-
-INTERNET-DRAFT                                                 Sep. 2002
-
-
    renewal procedure only if they have other (non-compromised) shared
    TSIG keys or safe SIG(0) keys for the authentication of initial
    secret establishment such as Diffie-Hellman Exchanged Keying.
@@ -1091,6 +1114,15 @@ INTERNET-DRAFT                                                 Sep. 2002
 [RFC2119]
      Bradner, S., "Key words for use in RFCs to Indicate Requirement
      Levels", RFC 2119, March 1997.
+
+
+
+
+
+Kamite, et. al.                                                [Page 20]
+
+INTERNET-DRAFT                                                 Mar. 2003
+
 
 [RFC2539]
      D. Eastlake 3rd, "Storage of Diffie-Hellman Keys in the Domain Name
@@ -1119,9 +1151,33 @@ INTERNET-DRAFT                                                 Sep. 2002
 
 
 
-Kamite, et. al.                                                [Page 20]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kamite, et. al.                                                [Page 21]
 
-INTERNET-DRAFT                                                 Sep. 2002
+INTERNET-DRAFT                                                 Mar. 2003
 
 
 Authors' Addresses
@@ -1175,5 +1231,5 @@ Authors' Addresses
 
 
 
-Kamite, et. al.                                                [Page 21]
+Kamite, et. al.                                                [Page 22]
 
