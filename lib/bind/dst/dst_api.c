@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.10 2002/02/20 01:43:59 gson Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.11 2004/09/16 00:56:12 marka Exp $";
 #endif
 
 /*
@@ -861,7 +861,8 @@ dst_s_read_private_key_file(char *name, DST_KEY *pk_key, u_int16_t in_id,
 	len = cnt;
 	p = in_buff;
 
-	if (!dst_s_verify_str((const char **) &p, "Private-key-format: v")) {
+	if (!dst_s_verify_str((const char **) (void *)&p,
+			       "Private-key-format: v")) {
 		EREPORT(("dst_s_read_private_key_file(): Not a Key file/Decrypt failed %s\n", name));
 		goto fail;
 	}
@@ -879,7 +880,7 @@ dst_s_read_private_key_file(char *name, DST_KEY *pk_key, u_int16_t in_id,
 
 	while (*p++ != '\n') ;	/* skip to end of line */
 
-	if (!dst_s_verify_str((const char **) &p, "Algorithm: "))
+	if (!dst_s_verify_str((const char **) (void *)&p, "Algorithm: "))
 		goto fail;
 
 	if (sscanf((char *)p, "%d", &alg) != 1)
