@@ -232,7 +232,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdata_generic_sig_t sig;
 	signer_key_t *key;
 	isc_result_t result;
-	isc_boolean_t notsigned = ISC_TRUE;
+	isc_boolean_t notsigned = ISC_TRUE, nosigs = ISC_FALSE;
 	isc_boolean_t wassignedby[256], nowsignedby[256];
 	signer_array_t *tdata;
 	ISC_LIST(signer_array_t) arraylist;
@@ -247,10 +247,13 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdataset_init(&oldsigset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_sig,
 				     set->type, 0, &oldsigset, NULL);
-	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
-		check_result(result, "dns_db_findrdataset()");
+	if (result == ISC_R_NOTFOUND) {
+		result = ISC_R_SUCCESS;
+		nosigs = ISC_TRUE;
+	}
+	check_result(result, "dns_db_findrdataset()");
 
-	if (result != ISC_R_NOTFOUND) {
+	if (!nosigs) {
 		result = dns_rdataset_first(&oldsigset);
 		while (result == ISC_R_SUCCESS) {
 			isc_boolean_t expired, future;
@@ -349,22 +352,30 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		key = ISC_LIST_NEXT(key, link);
 	}
 
-	siglist.rdclass = set->rdclass;
-	siglist.type = dns_rdatatype_sig;
-	siglist.covers = set->type;
-	if (end - start < set->ttl)
-		siglist.ttl = end - start;
-	else
-		siglist.ttl = set->ttl;
-	dns_rdataset_init(&sigset);
-	result = dns_rdatalist_tordataset(&siglist, &sigset);
-	check_result(result, "dns_rdatalist_tordataset");
-	result = dns_db_addrdataset(db, node, version, 0, &sigset,
-				    ISC_FALSE, NULL);
-	if (result == DNS_R_UNCHANGED)
-		result = ISC_R_SUCCESS;
-	check_result(result, "dns_db_addrdataset");
-	dns_rdataset_disassociate(&sigset);
+	if (!ISC_LIST_EMPTY(siglist.rdata)) {
+		siglist.rdclass = set->rdclass;
+		siglist.type = dns_rdatatype_sig;
+		siglist.covers = set->type;
+		if (end - start < set->ttl)
+			siglist.ttl = end - start;
+		else
+			siglist.ttl = set->ttl;
+		dns_rdataset_init(&sigset);
+		result = dns_rdatalist_tordataset(&siglist, &sigset);
+		check_result(result, "dns_rdatalist_tordataset");
+		result = dns_db_addrdataset(db, node, version, 0, &sigset,
+					    ISC_FALSE, NULL);
+		if (result == DNS_R_UNCHANGED)
+			result = ISC_R_SUCCESS;
+		check_result(result, "dns_db_addrdataset");
+		dns_rdataset_disassociate(&sigset);
+	}
+	else if (!nosigs) {
+	/*
+		dns_db_deleterdataset(db, node, version, dns_rdatatype_sig,
+				      set->type);
+	*/
+	}
 
 	trdata = ISC_LIST_HEAD(siglist.rdata);
 	while (trdata != NULL) {
@@ -867,17 +878,19 @@ main(int argc, char *argv[]) {
 	else {
 		for (i = 0; i < argc; i++) {
 			int id, alg;
-			char *idstr = NULL, *name = NULL, *algstr = NULL;
+			char *idstr = NULL, *name = NULL, *algstr = NULL, *s;
 
 			idstr = argv[i];
 			algstr = strchr(idstr, '/');
 			if (algstr != NULL) {
 				*algstr++ = 0;
-				name = idstr;
-				idstr = algstr;
-				algstr = strchr(idstr + 1, '/');
-				if (algstr != NULL)
-					*algstr++ = 0;
+				s = strchr(algstr, '/');
+				if (s != NULL) {
+					*s++ = 0;
+					name = idstr;
+					idstr = algstr;
+					algstr = s;
+				}
 			}
 
 			endp = NULL;
@@ -887,7 +900,7 @@ main(int argc, char *argv[]) {
 
 			if (algstr != NULL) {
 				endp = NULL;
-				alg = strtol(idstr, &endp, 0);
+				alg = strtol(algstr, &endp, 0);
 				if (*endp != '\0')
 					check_result(ISC_R_FAILURE, "strtol");
 			}
@@ -908,11 +921,13 @@ main(int argc, char *argv[]) {
 						check_result
 							(DST_R_NOTPRIVATEKEY,
 							 "key specify");
+					if (alg == 0)
+						alg = dst_key_alg(dkey);
 					break;
 				}
 				key = ISC_LIST_NEXT(key, link);
 			}
-			if (key == NULL) {
+			if (key == NULL && alg != 0) {
 				dst_key_t *dkey = NULL;
 				result = dst_key_fromfile(name, id, alg,
 							  DST_TYPE_PRIVATE,
@@ -922,6 +937,8 @@ main(int argc, char *argv[]) {
 				key->isdefault = ISC_TRUE;
 				ISC_LIST_APPEND(keylist, key, link);
 			}
+			else
+				printf("Ignoring key with algorithm 0\n");
 		}
 	}
 
