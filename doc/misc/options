@@ -71,7 +71,8 @@ options {
   [ transfers-in  number; ]				    No
   [ transfers-out number; ]				    Yes
   [ transfers-per-ns number; ]				    No
-  [ transfer-source ip_addr; ]				    Yes (IPv4 only)
+  [ transfer-source ip_addr; ]				    Yes
+  [ transfer-source-v6 ip_addr; ]			    Yes*
   [ maintain-ixfr-base yes_or_no; ]			    Obsolete+
   [ max-ixfr-log-size number; ]				    No
   [ coresize size_spec ; ]				    No
@@ -134,7 +135,8 @@ zone domain_name [ ( in | hs | hesiod | chaos ) ] {
   [ allow-update { address_match_list }; ]		    Yes+
   [ allow-query { address_match_list }; ]		    Yes+
   [ allow-transfer { address_match_list }; ]		    Yes+
-  [ transfer-source ip_addr; ]				    Yes (IPv4 only)
+  [ transfer-source ip_addr; ]				    Yes
+  [ transfer-source-v6 ip_addr; ]			    Yes*
   [ dialup yes_or_no; ]					    No
   [ max-transfer-time-in number; ]			    Yes
   [ max-transfer-idle-in number; ]			    Yes*
