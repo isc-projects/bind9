@@ -528,6 +528,38 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *	addr be valid.
  */
 
+isc_result_t
+dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
+		     dns_adbaddrinfo_t **addrp);
+/*
+ * Return a dns_adbaddrinfo_t that is associated with address 'sa'.
+ *
+ * Requires:
+ *
+ *	adb is valid.
+ *
+ *	sa is valid.
+ *
+ *	addrp != NULL && *addrp == NULL
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_SHUTTINGDOWN
+ */
+
+void
+dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp);
+/*
+ * Free a dns_adbaddrinfo_t allocated by dns_adb_findaddrinfo().
+ *
+ * Requires:
+ *
+ *	adb is valid.
+ *
+ *	*addrp is a valid dns_adbaddrinfo_t *.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ADB_H */
