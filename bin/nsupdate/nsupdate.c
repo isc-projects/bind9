@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.4 2001/10/15 20:25:57 gson Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.5 2001/11/06 20:42:01 gson Exp $ */
 
 #include <config.h>
 
@@ -1146,6 +1146,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto doneparsing;
 		}
 	}
+	errno = 0;
 	ttl = strtol(word, &endp, 0);
 	if (*endp != '\0') {
 		if (isdelete) {
@@ -1159,7 +1160,9 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 
 	if (isdelete)
 		ttl = 0;
-	else if (ttl < 0 || ttl > TTL_MAX || errno == ERANGE) {
+	else if (ttl < 0 || ttl > TTL_MAX ||
+		 (ttl == LONG_MAX && errno == ERANGE))
+	{
 		/*
 		 * The errno test is needed to catch when strtol()
 		 * overflows on a platform where sizeof(int) ==
