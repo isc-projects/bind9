@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.15.2.1 2003/08/05 00:42:55 marka Exp $ */
+/* $Id: random.c,v 1.15.2.2 2003/08/05 03:09:52 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>		/* Required for time(). */
 
 #include <isc/mutex.h>
@@ -34,7 +35,15 @@ static void
 initialize_rand(void)
 {
 #ifndef HAVE_ARC4RANDOM
-	srand(time(NULL));
+	unsigned int pid = getpid();
+	
+	/*
+	 * The low bits of pid generally change faster.
+	 * Xor them with the high bits of time which change slowly.
+	 */
+	pid = ((pid << 16) & 0xffff0000) | ((pid >> 16) & 0xffff);
+
+	srand(time(NULL) ^ pid);
 #endif
 }
 
