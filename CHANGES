@@ -257,7 +257,7 @@
 
  175.	[func]		New global and per-view option:
 
-				addition-data internal | minimal | maximal;
+				additional-data internal | minimal | maximal;
 
  174.   [func]		New public function isc_sockaddr_format(), for
 			formatting socket addresses in log messages.
