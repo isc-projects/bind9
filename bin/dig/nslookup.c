@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: nslookup.c,v 1.12 2000/06/06 18:49:04 mws Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

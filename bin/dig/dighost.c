@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dighost.c,v 1.42 2000/06/06 18:49:02 mws Exp $ */
+
 /*
  * Notice to programmers:  Do not use this code as an example of how to
  * use the ISC library to perform DNS lookups.  Dig and Host both operate
@@ -83,9 +85,10 @@ int exitcode = 9;
 char keynametext[MXNAME];
 char keysecret[MXNAME]="";
 dns_name_t keyname;
-dns_tsig_keyring_t *keyring=NULL;
+dns_tsig_keyring_t *keyring = NULL;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
+isc_boolean_t validated = ISC_TRUE;
 
 static void
 cancel_lookup(dig_lookup_t *lookup);
@@ -466,19 +469,24 @@ setup_system(void) {
 	     }
 
 	if (keysecret[0] != 0) {
+		debug("keyring");
 		result = dns_tsigkeyring_create(mctx, &keyring);
 		check_result(result, "dns_tsigkeyring_create");
+		debug("buffer");
 		result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
 		check_result(result, "isc_buffer_allocate");
+		debug("name");
 		dns_name_init(&keyname, NULL);
 		check_result(result, "dns_name_init");
 		isc_buffer_putstr(namebuf, keynametext);
 		secretsize = strlen(keysecret) * 3 / 4;
+		debug("secretstore");
 		secretstore = isc_mem_get(mctx, secretsize);
 		ENSURE (secretstore != NULL);
 		isc_buffer_init(&secretsrc, keysecret, strlen(keysecret));
 		isc_buffer_add(&secretsrc, strlen(keysecret));
 		isc_buffer_init(&secretbuf, secretstore, secretsize);
+		debug("lex");
 		result = isc_lex_create(mctx, strlen(keysecret), &lex);
 		check_result(result, "isc_lex_create");
 		result = isc_lex_openbuffer(lex, &secretsrc);
@@ -492,10 +500,12 @@ setup_system(void) {
 			goto SYSSETUP_FAIL;
 		}
 		secretsize = isc_buffer_usedlength(&secretbuf);
+		debug("close");
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 		isc_stdtime_get(&now);
 		
+		debug("namefromtext");
 		result = dns_name_fromtext(&keyname, namebuf,
 					   dns_rootname, ISC_FALSE,
 					   namebuf);
@@ -504,6 +514,7 @@ setup_system(void) {
 				keynametext, dns_result_totext(result));
 			goto SYSSETUP_FAIL;
 		}
+		debug("tsigkey");
 		result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
 					    secretstore, secretsize,
 					    ISC_TRUE, NULL, now, now, mctx,
@@ -1625,6 +1636,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	char abspace[MXNAME];
 	isc_region_t r;
 	dig_lookup_t *n;
+	isc_buffer_t *sigbuf = NULL;
 	
 	UNUSED (task);
 
@@ -1668,6 +1680,17 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
 					    &msg);
 		check_result(result, "dns_message_create");
+		
+		if ((key != NULL) && !query->lookup->doing_xfr) {
+			result = dns_message_getquerytsig(
+						     query->lookup->sendmsg,
+						     mctx, &sigbuf);
+			check_result(result,"dns_message_getquerytsig");
+			result = dns_message_setquerytsig(msg, sigbuf);
+			check_result(result, "dns_message_setquerytsig");
+			result = dns_message_settsigkey(msg, key);
+			check_result(result, "dns_message_settsigkey");
+		}
 		debug ("Before parse starts");
 		result = dns_message_parse(msg, b, ISC_TRUE);
 		if (result != ISC_R_SUCCESS) {
@@ -1684,6 +1707,18 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			dns_message_destroy(&msg);
 			isc_event_free(&event);
 			return;
+		}
+		if ((key != NULL) && !query->lookup->doing_xfr) {
+			debug ("Before verify");
+			result = dns_tsig_verify(&query->recvbuf, msg,
+						 NULL, keyring);
+			debug ("After verify");
+			if (result != ISC_R_SUCCESS) {
+				printf (";; Couldn't verify signature: %s\n",
+					dns_result_totext(result));
+				validated = ISC_FALSE;
+			}
+			isc_buffer_free(&sigbuf);
 		}
 		debug ("After parse has started");
 		if (query->lookup->xfr_q == NULL)
@@ -1921,6 +1956,8 @@ free_lists(int _exitcode) {
 	while (l != NULL) {
 		q = ISC_LIST_HEAD(l->q);
 		while (q != NULL) {
+			debug ("Freeing query %lx, belonging to %lx",
+			       q, l);
 			if (q->sock != NULL) {
 				isc_socket_cancel(q->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
@@ -1943,6 +1980,8 @@ free_lists(int _exitcode) {
 		if (l->use_my_server_list) {
 			s = ISC_LIST_HEAD(l->my_server_list);
 			while (s != NULL) {
+				debug ("Freeing server %lx belonging to %lx",
+				       s, l);
 				ptr = s;
 				s = ISC_LIST_NEXT(s, link);
 				isc_mem_free(mctx, ptr);
@@ -1959,31 +1998,45 @@ free_lists(int _exitcode) {
 	}
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
+		debug ("Freeing global server %lx", s);
 		ptr = s;
 		s = ISC_LIST_NEXT(s, link);
 		isc_mem_free(mctx, ptr);
 	}
 	o = ISC_LIST_HEAD(search_list);
 	while (o != NULL) {
+		debug ("Freeing search %lx", o);
 		ptr = o;
 		o = ISC_LIST_NEXT(o, link);
 		isc_mem_free(mctx, ptr);
 	}
-	if (socketmgr != NULL)
+	if (socketmgr != NULL) {
+		debug ("Freeing socketmgr");
 		isc_socketmgr_destroy(&socketmgr);
-	if (timermgr != NULL)
+	}
+	if (timermgr != NULL) {
+		debug ("Freeing timermgr");
 		isc_timermgr_destroy(&timermgr);
-	if (global_task != NULL)
+	}
+	if (global_task != NULL) {
+		debug ("Freeing task");
 		isc_task_detach(&global_task);
-	if (taskmgr != NULL)
+	}
+	if (taskmgr != NULL) {
+		debug ("Freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
-
-	if (key != NULL)
+        }
+	if (key != NULL) {
+		debug ("Freeing key %lx", key);
+		dns_tsigkey_setdeleted(key);
 		dns_tsigkey_detach(&key);
+	}
 	if (namebuf != NULL)
 		isc_buffer_free(&namebuf);
-	if (keyring != NULL)
+	if (keyring != NULL) {
+		debug ("Freeing keyring %lx", keyring);
 		dns_tsigkeyring_destroy(&keyring);
+	}
 
 #ifdef MEMDEBUG
 	isc_mem_stats(mctx, stderr);

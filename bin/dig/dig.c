@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dig.c,v 1.40 2000/06/06 18:49:01 mws Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>
@@ -64,6 +66,8 @@ extern int exitcode;
 extern isc_sockaddr_t bind_address;
 extern char keynametext[MXNAME];
 extern char keysecret[MXNAME];
+extern dns_tsigkey_t *key;
+extern isc_boolean_t validated;
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
@@ -189,9 +193,15 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		time (&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
 		printf (";; MSG SIZE  rcvd: %d\n", bytes);
-		if (keysecret[0] != 0) {
-			puts (";; WARNING - Not currently validating "
-			      "TSIG signature in reply.");
+		if (key != NULL) {
+			if (validated)
+				puts (";; All TSIG signatures validated");
+			else
+				puts (";; WARNING -- Some TSIG could not "
+				      "be validated");
+		}
+		if ((key == NULL) && (keysecret[0] != 0)) {
+			puts (";; WARNING -- TSIG key was not used.");
 		}
 		puts ("");
 	} else if (query->lookup->identify && !short_form) {

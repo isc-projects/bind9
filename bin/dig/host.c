@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: host.c,v 1.24 2000/06/06 18:49:03 mws Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

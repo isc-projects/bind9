@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dig.h,v 1.20 2000/06/06 18:49:06 mws Exp $ */
+
 #ifndef DIG_H
 #define DIG_H
 
