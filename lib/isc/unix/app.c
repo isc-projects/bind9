@@ -291,6 +291,8 @@ isc_app_run(void) {
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
 		}
+
+#ifndef HAVE_UNIXWARE_SIGWAIT
 		result = sigwait(&sset, &sig);
 		if (result == 0) {
 			if (sig == SIGINT ||
@@ -299,7 +301,19 @@ isc_app_run(void) {
 			else if (sig == SIGHUP)
 				want_reload = ISC_TRUE;
 		}
-#else
+
+#else /* Using UnixWare sigwait semantics. */
+		sig = sigwait(&sset);
+		if (sig >= 0) {
+			if (sig == SIGINT ||
+			    sig == SIGTERM)
+				want_shutdown = ISC_TRUE;
+			else if (sig == SIGHUP)
+				want_reload = ISC_TRUE;
+		}
+
+#endif /* HAVE_UNIXWARE_SIGWAIT */
+#else  /* Don't have sigwait(). */
 		/*
 		 * Listen for all signals.
 		 */
@@ -310,7 +324,7 @@ isc_app_run(void) {
 			return (ISC_R_UNEXPECTED);
 		}
 		result = sigsuspend(&sset);
-#endif
+#endif /* HAVE_SIGWAIT */
 
 		if (want_reload) {
 			want_reload = ISC_FALSE;
