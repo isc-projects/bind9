@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	-I${srcdir}/unix/include ${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -30,9 +30,11 @@ ISCLIBS =	../../lib/isc/libisc.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-LIBS =		@LIBS@
+DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
-SUBDIRS = 
+LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
+
+SUBDIRS = 	unix
 
 # Alphabetically
 TARGETS =	dnssec-keygen \
@@ -40,29 +42,25 @@ TARGETS =	dnssec-keygen \
 		dnssec-signkey \
 		dnssec-signzone
 
-SRCS =		dnssec-keygen.c \
-		dnssec-makekeyset.c \
-		dnssec-signkey.c \
-		dnssec-signzone.c \
+OBJS =		dnssectool.@O@
+
+SRCS =		dnssec-keygen.c dnssec-makekeyset.c \
+		dnssec-signkey.c dnssec-signzone.c \
 		dnssectool.c
 
 @BIND9_MAKE_RULES@
 
-dnssec-keygen: dnssec-keygen.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ dnssectool.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
+dnssec-keygen: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ ${OBJS} ${LIBS}
 
-dnssec-makekeyset: dnssec-makekeyset.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-makekeyset.@O@ dnssectool.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
+dnssec-makekeyset: dnssec-makekeyset.@O@ ${OBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-makekeyset.@O@ ${OBJS} ${LIBS}
 
-dnssec-signkey: dnssec-signkey.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signkey.@O@ dnssectool.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
+dnssec-signkey: dnssec-signkey.@O@ ${OBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signkey.@O@ ${OBJS} ${LIBS}
 
-dnssec-signzone: dnssec-signzone.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ dnssectool.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
+dnssec-signzone: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ ${OBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
