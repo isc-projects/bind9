@@ -63,12 +63,10 @@ ISC_LANG_BEGINDECLS
 #define DNS_MESSAGEFLAG_RD		0x0100U
 #define DNS_MESSAGEFLAG_RA		0x0080U
 
-#define DNS_MESSAGE_OPCODE_MASK		0x7000U
-#define DNS_MESSAGE_OPCODE_SHIFT	    11
-#define DNS_MESSAGE_RCODE_MASK		0x000fU
-#define DNS_MESSAGE_FLAG_MASK		0x8ff0U
+#define DNS_MESSAGE_HEADERLEN		    12 /* 6 u_int16_t's */
 
-#define DNS_MESSAGE_HEADER_LEN		    12 /* 6 u_int16_t's */
+#define MESSAGE_MAGIC		0x4d534740U	/* MSG@ */
+#define VALID_MESSAGE(msg)	(((msg)->magic) == MESSAGE_MAGIC)
 
 /*
  * Ordering here matters.  DNS_SECTION_ANY must be the lowest and negative,
@@ -93,13 +91,14 @@ typedef int dns_section_t;
 /*
  * These tell the message library how the created dns_message_t will be used.
  */
-#define DNS_MESSAGE_INTENT_UNKNOWN	0 /* internal use only */
-#define DNS_MESSAGE_INTENT_PARSE	1 /* parsing messages */
-#define DNS_MESSAGE_INTENT_RENDER	2 /* rendering */
+#define DNS_MESSAGE_INTENTUNKNOWN	0 /* internal use only */
+#define DNS_MESSAGE_INTENTPARSE		1 /* parsing messages */
+#define DNS_MESSAGE_INTENTRENDER	2 /* rendering */
 
 typedef struct dns_msgblock dns_msgblock_t;
 
 typedef struct {
+	/* public from here down */
 	unsigned int			magic;
 
 	unsigned int			id;
@@ -110,6 +109,8 @@ typedef struct {
 
 	/* 4 real, 1 pseudo */
 	unsigned int			counts[DNS_SECTION_MAX];
+
+	/* private from here down */
 	dns_namelist_t			sections[DNS_SECTION_MAX];
 	dns_name_t		       *cursors[DNS_SECTION_MAX];
 	dns_rdata_t		       *opt;
@@ -135,17 +136,18 @@ typedef struct {
 } dns_message_t;
 
 dns_result_t
-dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent);
+dns_message_create(isc_mem_t *mctx, dns_message_t **msgp,
+		   unsigned int intent);
 /*
- * Initialize msg structure.  Must be called on a new (or reused) structure.
+ * Create msg structure.
  *
  * This function will allocate some internal blocks of memory that are
- * exptected to be needed for parsing or rendering nearly any type of message.
+ * expected to be needed for parsing or rendering nearly any type of message.
  *
  * Requires:
  *	'mctx' be a valid memory context.
  *
- *	'msg' be non-null and '*msg' be NULL.
+ *	'msgp' be non-null and '*msg' be NULL.
  *
  *	'intent' must be one of DNS_MESSAGE_INTENT_PARSE or
  *	DNS_MESSAGE_INTENT_RENDER.
@@ -167,27 +169,25 @@ dns_message_reset(dns_message_t *msg);
  * way to call dns_message_destroy() followed by dns_message_allocate(),
  * since it avoid many memory allocations.
  *
+ * If any data loanouts (buffers, names, rdatas, etc) were requested,
+ * the caller must no longer use them after this call.
+ *
  * Requires:
  *
  *	'msg' be valid.
- *
- *	If any data loanouts (buffers, names, rdatas, etc) were requested,
- *	the caller must no longer use them after this call.
  */
 
 void
-dns_message_destroy(dns_message_t **msg);
+dns_message_destroy(dns_message_t **msgp);
 /*
  * Destroy all state in the message.
  *
  * Requires:
  *
- *	'msg' be valid.
- *
- *	'msg' be "empty" with no message elements on the internal lists.
+ *	'msgp' be valid.
  *
  * Ensures:
- *	'msg' can be reused via re-initialization with dns_message_init()
+ *	'*msgp' == NULL
  */
 
 dns_result_t
@@ -209,7 +209,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source);
  * Requires:
  *	"msg" be valid.
  *
- *	"buffer" have "sane" contents.
+ *	"buffer" be a wire format binary buffer.
  *
  * Ensures:
  *	The buffer's data format is correct.
@@ -221,7 +221,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source);
  *	DNS_R_SUCCESS		-- all is well
  *	DNS_R_NOMEMORY		-- no memory
  *	DNS_R_MOREDATA		-- more packets needed for complete message
- *	DNS_R_???		-- bad signature (XXX need more of these)
+ *	DNS_R_???		-- bad signature (XXXMLG need more of these)
+ *	Many other errors possible XXXMLG
  */
 
 dns_result_t
@@ -230,13 +231,23 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  * Begin rendering on a message.  Only one call can be made to this function
  * per message.
  *
+ * The buffer is "owned" buy the message library until dns_message_renderend()
+ * is called.
+ *
  * Requires:
  *
  *	'msg' be valid.
  *
- *	buffer != NULL.
+ *	buffer is a valid binary buffer.
  *
- *	buffer is empty.
+ * Side Effects:
+ *
+ *	The buffer is cleared before it is used.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- all is well
+ *	DNS_R_NOSPACE		-- output buffer is too small
+ *	Anything that dns_compress_init() can return.
  */
 
 dns_result_t
@@ -244,6 +255,10 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
 /*
  * Reset the buffer.  This can be used after growing the old buffer
  * on a DNS_R_NOSPACE return from most of the render functions.
+ *
+ * On successful completion, the old buffer is no longer used by the
+ * library.  The new buffer is owned by the library until
+ * dns_message_renderend() is called.
  *
  * Requires:
  *
@@ -254,7 +269,6 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
  *	buffer != NULL.
  *
  * Returns:
- *
  *	DNS_R_NOSPACE		-- new buffer is too small
  *	DNS_R_SUCCESS		-- all is well.
  */
@@ -262,6 +276,9 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
 dns_result_t
 dns_message_renderreserve(dns_message_t *msg, unsigned int space);
 /*
+ * XXXMLG should use size_t rather than unsigned int once the buffer
+ * API is cleaned up
+ *
  * Reserve "space" bytes in the given buffer.
  *
  * Requires:
@@ -271,7 +288,6 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space);
  *	dns_message_renderbegin() was called.
  *
  * Returns:
- *
  *	DNS_R_SUCCESS		-- all is well.
  *	DNS_R_NOSPACE		-- not enough free space in the buffer.
  */
@@ -279,6 +295,9 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space);
 dns_result_t
 dns_message_renderrelease(dns_message_t *msg, unsigned int space);
 /*
+ * XXXMLG should use size_t rather than unsigned int once the buffer
+ * API is cleaned up
+ *
  * Release "space" bytes in the given buffer that was previously reserved.
  *
  * Requires:
@@ -288,14 +307,13 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
  *	dns_message_renderbegin() was called.
  *
  * Returns:
- *
  *	DNS_R_SUCCESS		-- all is well.
  *	DNS_R_NOSPACE		-- trying to release more than was reserved.
  */
 
 dns_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t section,
-			  unsigned int priority, unsigned int flags);
+			  unsigned int priority, unsigned int options);
 /*
  * Render all names, rdatalists, etc from the given section at the
  * specified priority or higher.
@@ -304,9 +322,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t section,
  *	'msg' be valid.
  *
  *	'section' be a valid section.
- *
- *	'buffer' be non-NULL and be initialized to point to a valid memory
- *	block.
  *
  *	dns_message_renderbegin() was called.
  *
@@ -333,7 +348,6 @@ dns_message_renderend(dns_message_t *msg);
  *	dns_message_renderbegin() was called.
  *
  * Returns:
- *
  *	DNS_R_SUCCESS		-- all is well.
  */
 		      
@@ -350,7 +364,6 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
  *	'section' be a valid section.
  *
  * Returns:
- *
  *	DNS_R_SUCCESS		-- All is well.
  *	DNS_R_NOMORE		-- No names on given section.
  */
@@ -371,7 +384,6 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section);
  *	and the result was DNS_R_SUCCESS.
  *
  * Returns:
- *
  *	DNS_R_SUCCESS		-- All is well.
  *	DNS_R_NOMORE		-- No names in given section.
  */
@@ -399,7 +411,7 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
 dns_result_t
 dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     dns_name_t *target, dns_rdatatype_t type,
-		     dns_name_t **name, dns_rdataset_t **rdataset);
+		     dns_name_t **foundname, dns_rdataset_t **rdataset);
 /*
  * Search for a name in the specified section.  If it is found, *name is
  * set to point to the name, and *rdataset is set to point to the found
@@ -410,8 +422,8 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *
  *	'section' be a valid section.
  *
- *	If a pointer to the name is desired, 'name' should be non-NULL.
- *	If it is non-NULL, '*name' MUST be NULL.
+ *	If a pointer to the name is desired, 'foundname' should be non-NULL.
+ *	If it is non-NULL, '*foundname' MUST be NULL.
  *
  *	If a type other than dns_datatype_any is searched for, 'rdataset'
  *	may be non-NULL, '*rdataset' be NULL, and will point at the found
@@ -422,7 +434,6 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *	'type' be a valid type.
  *
  * Returns:
- *
  *	DNS_R_SUCCESS		-- all is well.
  *	DNS_R_NXDOMAIN		-- name does not exist in that section.
  *	DNS_R_NXRDATASET	-- The name does exist, but the desired
@@ -440,13 +451,11 @@ dns_message_movename(dns_message_t *msg, dns_name_t *name,
  *
  *	'msg' be valid.
  *
- *	'name' must be in 'fromsection'.
+ *	'name' must be a name already in 'fromsection'.
  *
  *	'fromsection' must be a valid section.
  *
- *	'tosection' must be a valid section, and be renderable.
- *
- *	'fromsection' and 'tosection' cannot be the same section.
+ *	'tosection' must be a valid section.
  */
 
 void
@@ -455,8 +464,8 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
 /*
  * Adds the name to the given section.
  *
- * Caller must ensure that the name does not already exist.  This condition
- * is NOT checked for by this function.
+ * It is the caller's responsibility to enforce any unique name requirements
+ * in a section.
  *
  * Requires:
  *

@@ -310,7 +310,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_add(&source, bp - b);
 
 	message = NULL;
-	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENTPARSE);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	result = dns_message_parse(message, &source);
@@ -326,7 +326,7 @@ main(int argc, char *argv[]) {
 	 * Changing this here is a hack, and should not be done in reasonable
 	 * application code, ever.
 	 */
-	message->from_to_wire = DNS_MESSAGE_INTENT_RENDER;
+	message->from_to_wire = DNS_MESSAGE_INTENTRENDER;
 	memset(b, 0, sizeof(b));
 	isc_buffer_clear(&source);
 
@@ -358,12 +358,12 @@ main(int argc, char *argv[]) {
 
 	dns_message_renderend(message);
 
-	message->from_to_wire = DNS_MESSAGE_INTENT_PARSE;
+	message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
 	dns_message_destroy(&message);
 
 	isc_mem_stats(mctx, stdout);
 
-	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENTPARSE);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	result = dns_message_parse(message, &source);

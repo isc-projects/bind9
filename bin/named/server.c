@@ -101,7 +101,7 @@ resolve_packet(isc_mem_t *mctx, dns_message_t *query, isc_buffer_t *target) {
 	isc_boolean_t possibly_auth = ISC_FALSE;
 
 	message = NULL;
-	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_RENDER);
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENTRENDER);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	message->id = query->id;
@@ -284,7 +284,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	isc_buffer_add(&source, rxr->length);
 
 	message = NULL;
-	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENTPARSE);
 	if (CHECKRESULT(result, "dns_message_create failed")) {
 		return (result);
 	}
