@@ -69,6 +69,7 @@
  
 typedef isc_result_t (*dns_c_zonecbk_t)(dns_c_ctx_t *ctx,
 					dns_c_zone_t *zone,
+					dns_c_view_t *view,
 					void *uap);
 typedef isc_result_t (*dns_c_optscbk_t)(dns_c_ctx_t *ctx, void *uap);
 
