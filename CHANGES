@@ -1,4 +1,7 @@
 
+ 790.	[bug]		Wildcards created using dynamic update or IXFR
+			could fail to match. [RT #1111]
+
  789.	[bug]		The "localhost" and "localnets" ACLs did not match
 			when used as the second element of a two-element
 			sortlist item.
