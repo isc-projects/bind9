@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.25 2000/12/06 00:30:17 tale Exp $ */
+/* $Id: condition.c,v 1.26 2001/01/04 00:28:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,7 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	REQUIRE(c != NULL && m != NULL && t != NULL);
 
 	/*
-	 * POSIX defines a timepsec's tv_sec as time_t.
+	 * POSIX defines a timespec's tv_sec as time_t.
 	 */
 	result = isc_time_secondsastimet(t, &ts.tv_sec);
 	if (result != ISC_R_SUCCESS)
