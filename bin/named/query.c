@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.191 2001/03/20 00:00:43 bwelling Exp $ */
+/* $Id: query.c,v 1.192 2001/04/04 18:47:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3385,7 +3385,9 @@ ns_query_start(ns_client_t *client) {
 	 * allow lookups to return pending data and instruct the resolver
 	 * to return data before validation has completed.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD) {
+	if (message->flags & DNS_MESSAGEFLAG_CD ||
+	    qtype == dns_rdatatype_sig)
+	{
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
 	}

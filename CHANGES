@@ -1,3 +1,6 @@
+ 803.	[bug]		Treat all SIG queries as if they have the CD bit set,
+ 			otherwise no data will be returned [RT #749]
+
  802.	[bug]		DNSSEC key tags were computed incorrectly in almost
  			all cases. [RT #1146]
 
