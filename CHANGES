@@ -1,3 +1,7 @@
+ 200.	[bug]		Failures in sending query responses to clients
+			(e.g., running out of network buffers) were
+			not logged.
+
  199.	[bug]		isc_heap_delete() sometimes violated the heap
 			invariant, causing timer events not to be posted
 			when due.
