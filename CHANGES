@@ -1,4 +1,8 @@
 
+ 664.	[bug]		The t_tasks and t_timers module tests are now skipped
+			when building without threads, since they require
+			threads.
+
  663.	[func]		Accept a size_spec, not just an integer, in the
 			(unimplemented and ignored) max-ixfr-log-size option
 			for compatibility with recent versions of BIND 8.
