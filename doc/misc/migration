@@ -34,6 +34,8 @@ named.conf.  Earlier versions would start despite errors, causing the
 server to run with a partial configuration.  Errors detected during
 subsequent reloads do not cause the server to exit.
 
+Errors in master files never cause the server to exit.
+
 1.3. Logging
 
 The set of logging categories in BIND 9 is different from that
@@ -162,4 +164,4 @@ see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
 details.  Some of the ndc commands are still unimplemented in rndc.
 
 
-$Id: migration,v 1.17.2.1 2001/01/09 22:43:12 bwelling Exp $
+$Id: migration,v 1.17.2.2 2001/01/10 18:21:43 gson Exp $
