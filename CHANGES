@@ -1,3 +1,5 @@
+1485.	[bug]		gen failed to handle high type values. [RT #6225]
+
 1484.	[bug]		The number of records reported after a AXFR was wrong.
 			[RT #6229]
 
