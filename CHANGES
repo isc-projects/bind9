@@ -1,3 +1,5 @@
+  61.   [cleanup]       use single quotes consistently in log messages.
+
   60.	[func]		Catch and disallow singleton types on message
 			parse.
 
