@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.159 2000/10/31 03:21:36 marka Exp $ */
+/* $Id: dighost.c,v 1.160 2000/11/08 00:47:16 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -124,7 +124,6 @@ isc_boolean_t memdebugging = ISC_FALSE;
 char *progname = NULL;
 isc_mutex_t lookup_lock;
 dig_lookup_t *current_lookup = NULL;
-isc_uint32_t name_limit = INT_MAX;
 isc_uint32_t rr_limit = INT_MAX;
 
 /*
@@ -1512,7 +1511,6 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->second_rr_rcvd = ISC_FALSE;
 		query->second_rr_serial = 0;
 		query->servname = serv->servername;
-		query->name_count = 0;
 		query->rr_count = 0;
 		ISC_LINK_INIT(query, link);
 		ISC_LIST_INIT(query->recvlist);
@@ -2100,7 +2098,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER,
 					&name);
-		for (rdataset = ISC_LIST_HEAD(name->list);
+	for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			result = dns_rdataset_first(rdataset);
@@ -2215,12 +2213,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 			next_rdata:
 				result = dns_rdataset_next(rdataset);
 			} while (result == ISC_R_SUCCESS);
-		}
-		query->name_count++;
-		if (query->name_count >= name_limit) {
-			debug("name_count(%d) > name_limit(%d)",
-			      query->name_count, name_limit);
-			atlimit = ISC_TRUE;
 		}
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 	} while (result == ISC_R_SUCCESS);

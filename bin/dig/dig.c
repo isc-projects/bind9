@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.125 2000/11/07 01:29:34 mws Exp $ */
+/* $Id: dig.c,v 1.126 2000/11/08 00:47:15 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -75,7 +75,6 @@ extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern isc_boolean_t free_now;
 dig_lookup_t *default_lookup = NULL;
-extern isc_uint32_t name_limit;
 extern isc_uint32_t rr_limit;
 
 extern isc_boolean_t debugging, memdebugging;
@@ -207,8 +206,8 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		time(&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
 		if (query->lookup->doing_xfr) {
-			printf(";; XFR size: %d names, %d rrs\n",
-			       query->name_count, query->rr_count);
+			printf(";; XFR size: %d records\n",
+			       query->rr_count);
 		} else {
 			printf(";; MSG SIZE  rcvd: %d\n", bytes);
 
@@ -710,13 +709,6 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		break;
 	case 'n':
 		switch (cmd[1]) {
-		case 'a': /* namelimit */
-			if (value == NULL)
-				goto need_value;
-			if (!state)
-				goto invalid_option;
-			name_limit = atoi(value);
-			break;
 		case 'd': /* ndots */
 			if (value == NULL)
 				goto need_value;
