@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.24.2.2 2001/09/05 17:32:05 gson Exp $ */
+/* $Id: time.c,v 1.24.2.3 2001/10/01 01:42:38 gson Exp $ */
 
 #include <config.h>
 
@@ -227,7 +227,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	    FileTimeToSystemTime(&localft, &st))
 	{
 		snprintf(buf, len, "%s %2u %02u:%02u:%02u.%03u",
-		months[st.wMonth], st.wDay, st.wHour, st.wMinute,
+		months[st.wMonth - 1], st.wDay, st.wHour, st.wMinute,
 		st.wSecond, st.wMilliseconds);
 	} else {
 		snprintf(buf, len, badtime);

@@ -1,6 +1,10 @@
 
 	--- 9.2.0rc5 released ---
 
+1021.	[bug]		On Win32, log message timestamps were one month
+			later than they should have been, and the server
+			would exhibit unspecified behavior in December.
+
 1020.	[bug]		IXFR log messages did not distinguish between
 			true IXFRs, AXFR-style IXFRs, and mere version
 			polls. [RT #1811]
