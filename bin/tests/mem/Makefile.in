@@ -39,7 +39,7 @@ t_mem: t_mem.@O@ ${DEPLIBS}
 	${LIBTOOL} ${CC} -o $@ t_mem.@O@ ${LIBS}
 
 test:
-	-@./t_mem -c @top_srcdir@/t_config -b @srcdir@ -a
+	-@./t_mem -b @srcdir@ -q 180 -a
 
 testhelp:
 	@./t_mem -h
