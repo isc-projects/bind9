@@ -18,8 +18,6 @@
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
 
-#include <isc/error.h>
-
 /*
  * NOTE:
  *
@@ -111,7 +109,6 @@
 /*
  * List Macros.
  */
-
 #include <isc/list.h>
 
 #define LIST(type)			ISC_LIST(type)
@@ -135,6 +132,7 @@
 /*
  * Assertions
  */
+#include <isc/assertions.h>
 
 #define REQUIRE(e)			ISC_REQUIRE(e)
 #define ENSURE(e)			ISC_ENSURE(e)
@@ -144,6 +142,7 @@
 /*
  * Errors
  */
+#include <isc/error.h>
 
 #define UNEXPECTED_ERROR		isc_error_unexpected
 #define FATAL_ERROR			isc_error_fatal
