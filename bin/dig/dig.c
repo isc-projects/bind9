@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.114 2000/10/16 19:00:01 mws Exp $ */
+/* $Id: dig.c,v 1.115 2000/10/17 00:35:17 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -78,13 +78,13 @@ dig_lookup_t *default_lookup = NULL;
 extern isc_uint32_t name_limit;
 extern isc_uint32_t rr_limit;
 
-extern isc_boolean_t debugging, memdebugging, show_packets;
+extern isc_boolean_t debugging, memdebugging;
 char *batchname = NULL;
 FILE *batchfp = NULL;
 char *argv0;
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
-	nibble = ISC_FALSE;
+	nibble = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE;
 
 isc_uint16_t bufsize = 0;
 isc_boolean_t forcecomment = ISC_FALSE;
@@ -341,7 +341,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		fputs(query->lookup->cmdline, stdout);
 		query->lookup->cmdline[0]=0;
 	}
-	debug("printmessage(%s)", headers ? "headers" : "noheaders");
+	debug("printmessage(%s %s %s)", headers ? "headers" : "noheaders",
+	      query->lookup->comments ? "comments" : "nocomments",
+	      short_form ? "short_form" : "long_form");
 
 	flags = 0;
 	if (!headers) {
@@ -357,15 +359,13 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	check_result(result, "isc_buffer_allocate");
 
 	if (query->lookup->comments && !short_form) {
-		if (!query->lookup->doing_xfr) {
-			if (query->lookup->cmdline[0] != 0)
-				printf ("; %s\n",query->lookup->cmdline);
-			if (msg == query->lookup->sendmsg)
-				printf(";; Sending:\n");
-			else
-				printf(";; Got answer:\n");
-		}
-
+		if (query->lookup->cmdline[0] != 0)
+			printf ("; %s\n",query->lookup->cmdline);
+		if (msg == query->lookup->sendmsg)
+			printf(";; Sending:\n");
+		else
+			printf(";; Got answer:\n");
+		
 		if (headers) {
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
@@ -604,14 +604,14 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		cmd += 2;
 		state = ISC_FALSE;
 	}
-	switch (tolower(cmd[0])) {
+	switch (cmd[0]) {
 	case 'a':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'a': /* aaflag */
 			lookup->aaonly = state;
 			break;
 		case 'd': 
-			switch (tolower(cmd[2])) {
+			switch (cmd[2]) {
 			case 'd': /* additional */
 				lookup->section_additional = state;
 				break;
@@ -640,7 +640,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'b':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'e':/* besteffort */
 			lookup->besteffort = state;
 			break;
@@ -660,7 +660,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'c':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'd':/* cdflag */
 			lookup->cdflag = state;
 			break;
@@ -669,13 +669,15 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'o': /* comments */
 			lookup->comments = state;
+			if (lookup == default_lookup)
+				pluscomm = state;
 			break;
 		default:
 			goto invalid_option;
 		}
 		break;
 	case 'd':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'e':
 			lookup->defname = state;
 			break;
@@ -694,7 +696,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		lookup->servfail_stops = state;
 		break;
 	case 'i':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'd': /* identify */
 			lookup->identify = state;
 			break;
@@ -704,7 +706,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'n':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'a': /* namelimit */
 			if (value == NULL)
 				goto need_value;
@@ -741,19 +743,21 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'q': 
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'r': /* qr */
 			qr = state;
 			break;
 		case 'u': /* question */
 			lookup->section_question = state;
+			if (lookup == default_lookup)
+				plusquest = state;
 			break;
 		default:
 			goto invalid_option;
 		}
 		break;
 	case 'r':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'e': /* recurse */
 			lookup->recurse = state;
 			break;
@@ -769,7 +773,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 's':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'e': /* search */
 			usesearch = state;
 			break;
@@ -792,7 +796,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 't':
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		case 'c': /* tcp */
 			if (!is_batchfile)
 				lookup->tcp_mode = state;
@@ -807,7 +811,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				timeout = 1;
 			break;
 		case 'r':
-			switch (tolower(cmd[2])) {
+			switch (cmd[2]) {
 			case 'a': /* trace */
 				lookup->trace = state;
 				lookup->trace_root = state;
@@ -840,7 +844,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		break;
 	case 'v':
 #ifdef DNS_OPT_NEWCODES
-		switch (tolower(cmd[1])) {
+		switch (cmd[1]) {
 		default:
 		case 'c': /* vc, and default */
 #endif /* DNS_OPT_NEWCODES */
@@ -902,7 +906,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		value_from_next = ISC_TRUE;
 		value = next;
 	}
-	switch (tolower(cmd)) {
+	switch (cmd) {
 	case 'd':
 		debugging = ISC_TRUE;
 		return (ISC_FALSE);
@@ -916,14 +920,10 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	case 'n':
 		nibble = ISC_TRUE;
 		return (ISC_FALSE);
-	case 'w': 
-		show_packets = ISC_TRUE;
-		return (ISC_FALSE);
-
 	}
 	if (value == NULL)
 		goto invalid_option;
-	switch (tolower(cmd)) {
+	switch (cmd) {
 	case 'b':
 		get_address(value, 0, &bind_address);
 		specified_source = ISC_TRUE;
@@ -956,15 +956,21 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			(*lookup)->rdtype = dns_rdatatype_ixfr;
 			(*lookup)->ixfr_serial =
 				atoi(&value[5]);
+			(*lookup)->section_question = plusquest;
+			(*lookup)->comments = pluscomm;
 			return (value_from_next);
 		}
 		tr.base = value;
 		tr.length = strlen(value);
 		result = dns_rdatatype_fromtext(&rdtype,
 						(isc_textregion_t *)&tr);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			(*lookup)->rdtype = rdtype;
-		else
+			if (rdtype == dns_rdatatype_axfr) {
+				(*lookup)->section_question = plusquest;
+				(*lookup)->comments = pluscomm;
+			}
+		} else
 			fprintf(stderr, ";; Warning, ignoring "
 				 "invalid type %s\n",
 				 value);
@@ -1059,7 +1065,7 @@ preparse_args(int argc, char **argv) {
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
-		if (strcasecmp(rv[0], "-m") == 0) {
+		if (strcmp(rv[0], "-m") == 0) {
 			memdebugging = ISC_TRUE;
 			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
 				ISC_MEM_DEBUGRECORD;
@@ -1182,12 +1188,19 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					lookup->rdtype = dns_rdatatype_ixfr;
 					lookup->ixfr_serial =
 						atoi(&rv[0][5]);
+					lookup->section_question = plusquest;
+					lookup->comments = pluscomm;
 					continue;
 				}
 				result = dns_rdatatype_fromtext(&rdtype,
 						     (isc_textregion_t *)&tr);
 				if ((result == ISC_R_SUCCESS) &&
 				    (rdtype != dns_rdatatype_ixfr)) {
+					if (rdtype == dns_rdatatype_axfr) {
+						lookup->section_question =
+							plusquest;
+						lookup->comments = pluscomm;
+					}
 					lookup->rdtype = rdtype;
 					continue;
 				}
