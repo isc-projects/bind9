@@ -13,6 +13,9 @@ BDIR	= $(PDIR)/build
 all:	clean config build test
 
 shuffle:
+	@if test -f $(PDIR)/.clean-last; then rm -f $(PDIR)/.clean-last; fi
+	@if test -f $(PDIR)/.build-last; then rm -f $(PDIR)/.build-last; fi
+	@if test -f $(PDIR)/.test-last; then rm -f $(PDIR)/.test-last; fi
 	@if test -f $(PDIR)/.clean; then mv $(PDIR)/.clean $(PDIR)/.clean-last; fi
 	@if test -f $(PDIR)/.build; then mv $(PDIR)/.build $(PDIR)/.build-last; fi
 	@if test -f $(PDIR)/.test; then mv $(PDIR)/.test $(PDIR)/.test-last; fi
@@ -27,5 +30,5 @@ build:
 	@( cd $(BDIR); $(MAKE) -k all ) > $(PDIR)/.build 2>&1
 
 test:
-	-@( cd $(BDIR); $(MAKE) test ) > $(PDIR)/.test 2>&1
+	-@( cd $(BDIR)/bin/tests; $(MAKE) test ) > $(PDIR)/.test 2>&1
 
