@@ -1,0 +1,8 @@
+
+1.	Rdataset/Rdatalist Union
+2.	ev_ prefix for ISC_EVENT_COMMON
+3.	Finish mempool conversion of message.c
+4.	Improve buffer & region APIs (inline?)
+5.	isc/util.h publish or perish
+6.	magic number listing
+7.	Eliminate dns_result_t and old DNS_R_ codes
