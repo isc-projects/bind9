@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.17 2000/03/16 21:49:41 bwelling Exp $ */
+/* $Id: null_10.c,v 1.18 2000/03/16 21:58:58 explorer Exp $ */
+
+/* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
 #ifndef RDATA_GENERIC_NULL_10_C
 #define RDATA_GENERIC_NULL_10_C
@@ -25,14 +27,14 @@ fromtext_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
-	REQUIRE(type == 10);
-
 	UNUSED(rdclass);
 	UNUSED(type);
 	UNUSED(lexer);
 	UNUSED(origin);
 	UNUSED(downcase);
 	UNUSED(target);
+
+	REQUIRE(type == 10);
 
 	return (DNS_R_SYNTAX);
 }
@@ -41,10 +43,10 @@ static inline isc_result_t
 totext_null(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	    isc_buffer_t *target) 
 {
-	REQUIRE(rdata->type == 10);
-
 	UNUSED(tctx);
 	UNUSED(target);
+
+	REQUIRE(rdata->type == 10);
 
 	return (DNS_R_SYNTAX);
 }
@@ -56,11 +58,11 @@ fromwire_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_region_t sr;
 
-	REQUIRE(type == 10);
-
 	UNUSED(rdclass);
 	UNUSED(dctx);
 	UNUSED(downcase);
+
+	REQUIRE(type == 10);
 
 	isc_buffer_active(source, &sr);
 	isc_buffer_forward(source, sr.length);
@@ -68,16 +70,18 @@ fromwire_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_null(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
-	REQUIRE(rdata->type == 10);
-
+towire_null(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	UNUSED(cctx);
+
+	REQUIRE(rdata->type == 10);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static inline int
-compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -94,28 +98,29 @@ static inline isc_result_t
 fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	        isc_buffer_t *target)
 {
-
-	REQUIRE(type == 10);
-
 	UNUSED(rdclass);
 	UNUSED(source);
 	UNUSED(target);
+
+	REQUIRE(type == 10);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	REQUIRE(rdata->type == 10);
-
+tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
 	UNUSED(target);
 	UNUSED(mctx);
+
+	REQUIRE(rdata->type == 10);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_null(void *source) {
+freestruct_null(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
 }
@@ -124,16 +129,17 @@ static inline isc_result_t
 additionaldata_null(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
-	REQUIRE(rdata->type == 10);
-
 	UNUSED(add);
 	UNUSED(arg);
+
+	REQUIRE(rdata->type == 10);
 
 	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
-digest_null(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_null(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 10);
