@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.23 2000/11/03 17:41:51 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.24 2000/11/03 18:23:21 gson Exp $ -->
 
 <book>
 
@@ -1738,8 +1738,8 @@ also accepted, as are the numbers <userinput>1</userinput> and <userinput>0</use
 <userinput>no</userinput>, <userinput>notify</userinput>,
 <userinput>notify-passive</userinput>, <userinput>refresh</userinput> or
 <userinput>passive</userinput>.
-When used in a zone <userinput>notify-passive</userinput>,
-<userinput>refresh</userinput> and <userinput>passive</userinput>
+When used in a zone, <userinput>notify-passive</userinput>,
+<userinput>refresh</userinput>, and <userinput>passive</userinput>
 are restricted to slave and stub zones.</para></entry>
 </row>
 </tbody>
@@ -2550,20 +2550,22 @@ originating from this server. This has different effects according
 to zone type and concentrates the zone maintenance so that it all
 happens in a short interval, once every <command>heartbeat-interval</command> and
 hopefully during the one call. It also suppresses some of the normal
-zone maintenance traffic. The default is <userinput>no</userinput>.</para><para>The <command>dialup</command> option
+zone maintenance traffic. The default is <userinput>no</userinput>.</para>
+<para>The <command>dialup</command> option
 may also be specified in the <command>view</command> and 
 <command>zone</command> statements,
-in which case it overrides the <command>options dialup</command> statement.</para><para>If
-the zone is a master then the server will send out a NOTIFY request
+in which case it overrides the global <command>dialup</command>
+option.</para><para>If
+the zone is a master zone then the server will send out a NOTIFY request
 to all the slaves. This will trigger the zone serial number check
 in the slave (providing it supports NOTIFY) allowing the slave to
 verify the zone while the connection is active.</para><para>If the
-zone is a slave or stub then the server will suppress the regular
+zone is a slave or stub zone, then the server will suppress the regular
 "zone up to date" (refresh) queries and only perform them when the
 <command>heartbeat-interval</command> expires in addition to sending
 NOTIFY requests.</para><para>Finer control can be achieved by using
-<userinput>notity</userinput> which only sends NOTIFY messages,
-<userinput>notity-passive</userinput> which sends NOTIFY messages and
+<userinput>notify</userinput> which only sends NOTIFY messages,
+<userinput>notify-passive</userinput> which sends NOTIFY messages and
 suppresses the normal refresh queries, <userinput>refresh</userinput>
 which suppresses normal refresh processing and send refresh queries 
 when the <command>heartbeat-interval</command> expires and
