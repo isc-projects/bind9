@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.34 $)
+AC_REVISION($Revision: 1.35 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1451,7 +1451,21 @@ HOST_R_OK="#define HOST_R_OK hptr"
 HOST_R_RETURN="#define HOST_R_RETURN struct hostent *"
 ]
 ,
-)
+AC_TRY_COMPILE([
+#include <netdb.h>
+int gethostbyname_r(const char *name,
+                          struct hostent *result,
+                          struct hostent_data *hdptr);
+],,[
+HOST_R_ARGS="#define HOST_R_ARGS struct hostent_data *hdptr"
+HOST_R_BAD="#define HOST_R_BAD (-1)"
+HOST_R_COPY="#define HOST_R_COPY hdptr"
+HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS HOST_R_ARGS"
+HOST_R_ERRNO="#define HOST_R_ERRNO NULL"
+HOST_R_OK="#define HOST_R_OK 0"
+HOST_R_RETURN="#define HOST_R_RETURN int"
+],
+))
 ,
 HOST_R_ARGS="#define HOST_R_ARGS char *buf, int buflen, int *h_errnop"
 HOST_R_BAD="#define HOST_R_BAD NULL"
