@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96 2004/03/05 04:58:20 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.1 2004/06/18 04:39:39 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -132,11 +132,12 @@ Version: %s\n",
 static void
 get_addresses(const char *host, in_port_t port) {
 	isc_result_t result;
+	int found = 0, count;
 
-	isc_app_block();
-	result = bind9_getaddresses(servername, port,
-				    serveraddrs, SERVERADDRS, &nserveraddrs);
-	isc_app_unblock();
+	count = SERVERADDRS - nserveraddrs;
+	result = bind9_getaddresses(host, port, &serveraddrs[nserveraddrs],
+				    count, &found);
+	nserveraddrs += found;
 	if (result != ISC_R_SUCCESS)
 		fatal("couldn't get address for '%s': %s",
 		      host, isc_result_totext(result));
@@ -365,8 +366,6 @@ static void
 rndc_start(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
-	get_addresses(servername, (in_port_t) remoteport);
-
 	currentaddr = 0;
 	rndc_startconnect(&serveraddrs[currentaddr++], task);
 }
@@ -377,6 +376,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 {
 	isc_result_t result;
 	const char *conffile = admin_conffile;
+	cfg_obj_t *addresses = NULL;
 	cfg_obj_t *defkey = NULL;
 	cfg_obj_t *options = NULL;
 	cfg_obj_t *servers = NULL;
@@ -393,6 +393,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	static char secretarray[1024];
 	const cfg_type_t *conftype = &cfg_type_rndcconf;
 	isc_boolean_t key_only = ISC_FALSE;
+	cfg_listelt_t *element;
 
 	if (! isc_file_exists(conffile)) {
 		conffile = admin_keyfile;
@@ -510,10 +511,62 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	if (defport != NULL) {
 		remoteport = cfg_obj_asuint32(defport);
 		if (remoteport > 65535 || remoteport == 0)
-			fatal("port %d out of range", remoteport);
+			fatal("port %u out of range", remoteport);
 	} else if (remoteport == 0)
 		remoteport = NS_CONTROL_PORT;
 
+	if (server != NULL)
+		result = cfg_map_get(server, "addresses", &addresses);
+	else
+		result = ISC_R_NOTFOUND;
+	if (result == ISC_R_SUCCESS) {
+		for (element = cfg_list_first(addresses);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+
+			cfg_obj_t *address = cfg_listelt_value(element);
+			isc_sockaddr_t sa;
+
+			if (!cfg_obj_issockaddr(address)) {
+				unsigned int myport;
+				const char *name;
+				cfg_obj_t *obj;
+
+				obj = cfg_tuple_get(address, "name");
+				name = cfg_obj_asstring(obj);
+				obj = cfg_tuple_get(address, "port");
+				if (cfg_obj_isuint32(obj)) {
+					myport = cfg_obj_asuint32(obj);
+					if (myport > ISC_UINT16_MAX ||
+					    myport == 0)
+						fatal("port %u out of range",
+						      myport);
+				} else
+					myport = remoteport;
+				if (nserveraddrs < SERVERADDRS)
+					get_addresses(name, (in_port_t) myport);
+				else
+					fprintf(stderr, "too many address: "
+					        "%s: dropped\n", name);
+				continue;
+			}
+			sa = *cfg_obj_assockaddr(address);
+			if (isc_sockaddr_getport(&sa) == 0)
+				isc_sockaddr_setport(&sa, remoteport);
+			if (nserveraddrs < SERVERADDRS)
+				serveraddrs[nserveraddrs++] = sa;
+			else {
+				char socktext[ISC_SOCKADDR_FORMATSIZE];
+
+				isc_sockaddr_format(&sa, socktext,
+						    sizeof(socktext));
+				fprintf(stderr,
+					"too many address: %s: dropped\n",
+					socktext);
+			}
+		}
+	}
 	*configp = config;
 }
 
@@ -653,6 +706,9 @@ main(int argc, char **argv) {
 
 	if (strcmp(command, "restart") == 0)
 		fatal("'%s' is not implemented", command);
+
+	if (nserveraddrs == 0)
+		get_addresses(servername, (in_port_t) remoteport);
 
 	DO("post event", isc_app_onrun(mctx, task, rndc_start, NULL));
 

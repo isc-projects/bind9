@@ -1,3 +1,9 @@
+1666.	[bug]		The optional port on hostnames in dual-stack-servers
+			was being ignored.
+
+1665.	[func]		rndc now allows addresses to be set in the
+			server clauses.
+
 1664.	[bug]		nsupdate needed KEY for SIG(0), not DNSKEY.
 
 1663.	[func]		Look for OpenSSL by default.
