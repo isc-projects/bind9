@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.101 2002/08/29 05:40:07 marka Exp $ */
+/* $Id: update.c,v 1.102 2002/11/12 20:16:30 marka Exp $ */
 
 #include <config.h>
 
@@ -2319,6 +2319,14 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				update_log(client, zone, LOGLEVEL_PROTOCOL,
 					   "attempt to add %s ignored",
 					   typebuf);
+				continue;
+			}
+			if (rdata.type == dns_rdatatype_ns &&
+			    dns_name_iswildcard(name)) {
+				update_log(client, zone,
+					   LOGLEVEL_PROTOCOL,
+					   "attempt to add wildcard NS record"
+					   "ignored");
 				continue;
 			}
 			if (rdata.type == dns_rdatatype_cname) {

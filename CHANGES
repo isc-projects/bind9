@@ -1,3 +1,6 @@
+1400.	[bug]		Block the addition of wildcard NS records by IXFR
+			or UPDATE. [RT #3502]
+
 1399.	[bug]		Use serial number arithmetic when testing SIG
 			timestamps. [RT #4268]
 

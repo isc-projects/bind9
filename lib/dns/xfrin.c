@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.130 2002/09/24 01:04:03 marka Exp $ */
+/* $Id: xfrin.c,v 1.131 2002/11/12 20:16:30 marka Exp $ */
 
 #include <config.h>
 
@@ -510,6 +510,9 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 				goto redo;
 			}
 		}
+		if (rdata->type == dns_rdatatype_ns &&
+		    dns_name_iswildcard(name))
+			FAIL(DNS_R_INVALIDNS);
 		CHECK(ixfr_putdata(xfr, DNS_DIFFOP_ADD, name, ttl, rdata));
 		break;
 
