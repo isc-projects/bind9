@@ -4,6 +4,7 @@
 #include <isc/buffer.h>
 
 typedef struct {
+	/* private (don't touch!) */
 	unsigned int		magic;
 	u_int16_t		size;
 	isc_buffer_t		buffer;
@@ -13,13 +14,14 @@ typedef struct {
 	isc_task_t	       *task;
 	isc_taskaction_t	action;
 	void		       *arg;
-	dns_result_t		result;
 	isc_event_t		event;
+	/* public (read-only) */
+	dns_result_t		result;
+	isc_sockaddr_t		address;
 } dns_tcpmsg_t;
 
 void
-dns_tcpmsg_initialize(isc_mem_t *mctx, isc_socket_t *sock,
-		      dns_tcpmsg_t *tcpmsg);
+dns_tcpmsg_init(isc_mem_t *mctx, isc_socket_t *sock, dns_tcpmsg_t *tcpmsg);
 /*
  * Associate a tcp message state with a given memory context and
  * TCP socket.
@@ -90,7 +92,7 @@ void
 dns_tcpmsg_keepbuffer(dns_tcpmsg_t *tcpmsg, isc_buffer_t *buffer);
 /*
  * If a dns buffer is to be kept between calls, this function marks the
- * internal state-machine buffer as invalid, and copyies all the contents
+ * internal state-machine buffer as invalid, and copies all the contents
  * of the state into "buffer".
  *
  * Requires:

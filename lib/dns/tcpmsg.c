@@ -26,8 +26,6 @@
 	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
 } while (0)
 
-#define TCPMSG_DEBUG
-
 #ifdef TCPMSG_DEBUG
 #define XDEBUG(x) printf x
 #else
@@ -79,6 +77,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 		tcpmsg->result = ISC_R_NOMEMORY;
 		goto send_and_free;
 	}
+	XDEBUG(("Allocated %d bytes\n", tcpmsg->size));
 
 	isc_buffer_init(&tcpmsg->buffer, region.base, region.length,
 			ISC_BUFFERTYPE_BINARY);
@@ -119,6 +118,9 @@ recv_message(isc_task_t *task, isc_event_t *ev_in)
 
 	tcpmsg->result = ISC_R_SUCCESS;
 	isc_buffer_add(&tcpmsg->buffer, ev->n);
+	tcpmsg->address = ev->address;
+
+	XDEBUG(("Received %d bytes (of %d)\n", ev->n, tcpmsg->size));
 
  send_and_free:
 	ISC_TASK_SEND(tcpmsg->task, &dev);
@@ -127,8 +129,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in)
 }
 
 void
-dns_tcpmsg_initialize(isc_mem_t *mctx, isc_socket_t *sock,
-		      dns_tcpmsg_t *tcpmsg)
+dns_tcpmsg_init(isc_mem_t *mctx, isc_socket_t *sock, dns_tcpmsg_t *tcpmsg)
 {
 	REQUIRE(mctx != NULL);
 	REQUIRE(sock != NULL);
@@ -211,9 +212,24 @@ dns_tcpmsg_keepbuffer(dns_tcpmsg_t *tcpmsg, isc_buffer_t *buffer)
 	REQUIRE(buffer != NULL);
 
 	*buffer = tcpmsg->buffer;
-	tcpmsg->buffer.base = 0;
+	tcpmsg->buffer.base = NULL;
 	tcpmsg->buffer.length = 0;
 }
+
+#if 0
+void
+dns_tcpmsg_freebuffer(dns_tcpmsg_t *tcpmsg)
+{
+	REQUIRE(VALID_TCPMSG(tcpmsg));
+
+	if (tcpmsg->buffer.base == NULL)
+		return;
+
+	isc_mem_put(tcpmsg->mctx, tcpmsg->buffer.base, tcpmsg->buffer.length);
+	tcpmsg->buffer.base = NULL;
+	tcpmsg->buffer.length = 0;
+}
+#endif
 
 void
 dns_tcpmsg_invalidate(dns_tcpmsg_t *tcpmsg)
