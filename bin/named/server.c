@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.9 2003/03/06 04:38:15 marka Exp $ */
+/* $Id: server.c,v 1.339.2.10 2003/03/07 00:11:28 marka Exp $ */
 
 #include <config.h>
 
@@ -163,7 +163,7 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 	return (result);
 }
 
-#ifdef ISC_RFC2335
+#ifdef ISC_RFC2535
 static isc_result_t
 configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 			 dns_keytable_t *keytable, isc_mem_t *mctx)
