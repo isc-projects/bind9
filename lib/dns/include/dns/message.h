@@ -66,26 +66,28 @@ ISC_LANG_BEGINDECLS
 #define DNS_MESSAGE_OPCODE_SHIFT	    11
 #define DNS_MESSAGE_RCODE_MASK		0x000fU
 
+/*
+ * Ordering here matters.  DNS_SECTION_ANY must be the lowest and negative,
+ * and DNS_SECTION_MAX must be one greater than the last used section.
+ */
 typedef int dns_section_t;
-#define DNS_SECTION_ANY			(-1) /* XXX good idea? */
+#define DNS_SECTION_ANY			(-1)
 #define DNS_SECTION_QUESTION		0
 #define DNS_SECTION_ANSWER		1
 #define DNS_SECTION_AUTHORITY		2
 #define DNS_SECTION_ADDITIONAL		3
 #define DNS_SECTION_OPT			4 /* pseudo-section */
 #define DNS_SECTION_TSIG		5 /* pseudo-section */
+#define DNS_SECTION_MAX			6
 
 /*
- * "helper" type, which consists of a block of some type, and is linkable.
- * For it to work, sizeof(dns_msgblock_t) must be a multiple of the pointer
- * size, or the allocated elements will not be alligned correctly.
+ * These tell the message library how the created dns_message_t will be used.
  */
+#define DNS_MESSAGE_INTENT_UNKNOWN	0 /* internal use only */
+#define DNS_MESSAGE_INTENT_PARSE	1 /* parsing messages */
+#define DNS_MESSAGE_INTENT_RENDER	2 /* rendering */
+
 typedef struct dns_msgblock dns_msgblock_t;
-struct dns_msgblock {
-	unsigned int			length;
-	unsigned int			remaining;
-	ISC_LINK(dns_msgblock_t)	link;
-}; /* dynamically sized */
 
 typedef struct {
 	unsigned int			magic;
@@ -101,26 +103,23 @@ typedef struct {
 	unsigned int			aucount;
 	unsigned int			adcount;
 
-	dns_namelist_t			question;
-	dns_namelist_t			answer;
-	dns_namelist_t			authority;
-	dns_namelist_t			additional;
+	/* 4 real, 2 pseudo */
+	dns_namelist_t			sections[DNS_SECTION_MAX];
+	dns_name_t		       *cursors[DNS_SECTION_MAX];
 
-	unsigned int			handled_question : 1;
-	unsigned int			handled_answer : 1;
-	unsigned int			handled_authority : 1;
-	unsigned int			handled_additional : 1;
+	int				state;
 	unsigned int			from_to_wire : 2;
+	unsigned int			reserved;
 
 	isc_mem_t		       *mctx;
-	isc_dynbuffer_t		       *scratchpad;
+	ISC_LIST(isc_dynbuffer_t)	scratchpad;
 	ISC_LIST(dns_msgblock_t)	names;
 	ISC_LIST(dns_msgblock_t)	rdatas;
 	ISC_LIST(dns_msgblock_t)	rdatalists;
 } dns_message_t;
 
 dns_result_t
-dns_message_init(isc_mem_t *mctx, dns_message_t *msg);
+dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent);
 /*
  * Initialize msg structure.  Must be called on a new (or reused) structure.
  *
@@ -130,13 +129,14 @@ dns_message_init(isc_mem_t *mctx, dns_message_t *msg);
  * Requires:
  *	'mctx' be a valid memory context.
  *
- *	'msg' be invalid.
+ *	'msg' be non-null and '*msg' be NULL.
+ *
+ *	'intent' must be one of DNS_MESSAGE_INTENT_PARSE or
+ *	DNS_MESSAGE_INTENT_RENDER.
  *
  * Ensures:
- *	The data in "msg" is set to indicate an unused and empty msg
+ *	The data in "*msg" is set to indicate an unused and empty msg
  *	structure.
- *
- *	Some bit of internal scratchpad memory is allocated.
  *
  * Returns:
  *	DNS_R_NOMEMORY		- out of memory
@@ -160,7 +160,7 @@ dns_message_reset(dns_message_t *msg);
  */
 
 void
-dns_message_destroy(dns_message_t *msg);
+dns_message_destroy(dns_message_t **msg);
 /*
  * Destroy all state in the message.
  *
@@ -221,7 +221,7 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
 
 dns_result_t
 dns_message_renderreserve(dns_message_t *msg, isc_buffer_t *buffer,
-			  int space);
+			  unsigned int space);
 /*
  * Reserve "space" bytes in the given buffer.
  *
@@ -233,6 +233,21 @@ dns_message_renderreserve(dns_message_t *msg, isc_buffer_t *buffer,
  *
  *	DNS_R_SUCCESS		-- all is well.
  *	DNS_R_NOSPACE		-- not enough free space in the buffer.
+ */
+
+dns_result_t
+dns_message_renderrelease(dns_message_t *msg, unsigned int space);
+/*
+ * Release "space" bytes in the given buffer that was previously reserved.
+ *
+ * Requires:
+ *
+ *	'msg' be valid.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ *	DNS_R_NOSPACE		-- trying to release more than was reserved.
  */
 
 dns_result_t
@@ -306,13 +321,16 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section);
  *
  *	'section' be a valid section.
  *
+ *	dns_message_firstname() must have been called on this section,
+ *	and the result was DNS_R_SUCCESS.
+ *
  * Returns:
  *
  *	DNS_R_SUCCESS		-- All is well.
  *	DNS_R_NOMORE		-- No names in given section.
  */
 
-dns_result_t
+void
 dns_message_currentname(dns_message_t *msg, dns_section_t section,
 			dns_name_t **name);
 /*
@@ -327,10 +345,9 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
  *
  *	'section' be a valid section.
  *
- * Returns:
- *
- *	DNS_R_SUCCESS		-- All is well.
- *	DNS_R_NOMORE		-- No names in given section.
+ *	dns_message_firstname() must have been called on this section,
+ *	and the result of it and any dns_message_nextname() calls was
+ *	DNS_R_SUCCESS.
  */
 
 dns_result_t
@@ -377,21 +394,31 @@ dns_message_movename(dns_message_t *msg, dns_name_t *name,
  *
  *	'msg' be valid.
  *
- *	'name' must be a member of the section it is to be moved from.
+ *	'name' must be in 'fromsection'.
  *
  *	'fromsection' must be a valid section.
  *
  *	'tosection' must be a valid section, and be renderable.
+ *
+ *	'fromsection' and 'tosection' cannot be the same section.
  */
 
-dns_result_t
-dns_message_addname(dns_message_t *msg, dns_section_t section,
-		    dns_name_t *name);
+void
+dns_message_addname(dns_message_t *msg, dns_name_t *name,
+		    dns_section_t section);
 /*
  * Adds the name to the given section.
  *
  * Caller must ensure that the name does not already exist.  This condition
  * is NOT checked for by this function.
+ *
+ * Requires:
+ *
+ *	'msg' be valid, and be a renderable message.
+ *
+ *	'name' be a valid name.
+ *
+ *	'section' be a named section.
  */
 
 ISC_LANG_ENDDECLS
