@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.9 2000/08/31 13:04:47 marka Exp $ */
+/* $Id: sdb.c,v 1.10 2000/09/26 22:45:53 bwelling Exp $ */
+
+/* NOMINUM_PUBLIC_DELETE */
 
 #include <config.h>
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.55 2000/08/31 12:15:09 marka Exp $ */
+/* $Id: db.c,v 1.56 2000/09/26 22:45:52 bwelling Exp $ */
 
 /***
  *** Imports
@@ -58,12 +58,16 @@ typedef struct {
 
 #include "rbtdb.h"
 #include "rbtdb64.h"
+#ifndef NOMINUM_PUBLIC
 #include "sdb_p.h"
+#endif /* NOMINUM_PUBLIC */
 
 static impinfo_t implementations[] = {
 	{ "rbt", dns_rbtdb_create },
 	{ "rbt64", dns_rbtdb64_create },
+#ifndef NOMINUM_PUBLIC
 	{ "simple", dns_sdb_create },
+#endif /* NOMINUM_PUBLIC */
 	{ NULL, NULL }
 };
 

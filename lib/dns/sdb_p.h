@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb_p.h,v 1.3 2000/08/22 01:37:50 gson Exp $ */
+/* $Id: sdb_p.h,v 1.4 2000/09/26 22:45:54 bwelling Exp $ */
+
+/* NOMINUM_PUBLIC_DELETE */
 
 #ifndef DNS_SDB_P_H
 #define DNS_SDB_P_H 1
