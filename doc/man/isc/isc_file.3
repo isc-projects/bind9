@@ -14,14 +14,13 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: isc_file.3,v 1.1 2000/06/27 21:51:44 jim Exp $
+.\" $Id: isc_file.3,v 1.2 2000/06/28 02:35:02 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt ISC_FILE 3
 .Os BIND9 9
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
-.Nm file_stats ,
 .Nm isc_file_getmodtime ,
 .Nm isc_file_settime ,
 .Nm isc_file_mktemplate ,
@@ -44,11 +43,7 @@
 .Fd #include <isc/util.h>
  
 .Fd #include \*qerrno2result.h\*q
-.Ft static isc_result_t
-.Fo file_stats
-.Fa "const char *file"
-.Fa "struct stat *stats"
-.Fc
+
 .Ft isc_result_t
 .Fo isc_file_getmodtime
 .Fa "const char *file"
@@ -76,15 +71,6 @@
 .Fc
 .Sh DESCRIPTION
 The BIND9 library provides these function calls to manipulate files.
-.Pp
-.Fn file_stats
-performs a
-.Fn stat
-call on the filename
-.Fa file
-and stores the result in the 
-.Dv "struct stat"
-.Fa stats .
 .Pp
 The modification date of filename
 .Fa file

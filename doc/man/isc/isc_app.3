@@ -14,14 +14,13 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: isc_app.3,v 1.1 2000/06/27 21:51:43 jim Exp $
+.\" $Id: isc_app.3,v 1.2 2000/06/28 02:35:01 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt ISC_APP 3
 .Os BIND9 9
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
-.Nm handle_signal ,
 .Nm isc_app_start ,
 .Nm isc_app_onrun ,
 .Nm isc_app_run ,
@@ -48,11 +47,7 @@
 .Fd #include <isc/string.h>
 .Fd #include <isc/task.h>
 .Fd #include <isc/util.h>
-.Ft static isc_result_t
-.Fo handle_signal
-.Fa "int sig"
-.Fa "void (*handler)(int)"
-.Fc
+
 .Ft isc_result_t
 .Fo isc_app_start
 .Fa void
@@ -83,19 +78,6 @@
 .Sh DESCRIPTION
 These functions define the interface for creating and terminating
 applications which use the BIND9 library.
-.Pp
-.Fn handle_signal
-sets up a signal handler for signal
-.Fa sig .
-.Fa handler
-is a pointer to the function that will be called whenever signal
-.Fa sig
-is delivered to the name server.
-The signal handler is a void function which is passed an
-.Ft int
-argument: the number of the signal
-.Fa sig
-that has been delivered.
 .Pp
 Applications which use the BIND9 library should begin by calling
 .Fn isc_app_start .
