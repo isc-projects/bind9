@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.2 1999/11/02 04:01:33 tale Exp $ */
+/* $Id: handle.c,v 1.3 2000/01/04 20:04:39 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -23,12 +23,12 @@
  * Functions for maintaining handles on objects.
  */
 #include <stddef.h>		/* NULL */
-#include <stdlib.h>		/* malloc, free */
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>
+#include <isc/boolean.h>
 
-#include <omapi/omapip_p.h>
+#include <omapi/private.h>
 
 /*
  * The handle table is a hierarchical tree designed for quick mapping
@@ -49,6 +49,7 @@
  * the tree to contain the new handle.  The pointer to the object is
  * then stored in the correct position.
  * 
+ * XXXTL
  * Theoretically, we could have some code here to free up handle
  * tables as they go out of use, but by and large handle tables won't
  * go out of use, so this is being skipped for now.  It shouldn't be
@@ -62,7 +63,7 @@ typedef struct omapi_handle_table {
 	omapi_handle_t		first;
 	omapi_handle_t		limit;
 	omapi_handle_t		next;
-	int			leafp;
+	isc_boolean_t		leaf;
 	union {
 		omapi_object_t *		object;
 		struct omapi_handle_table *	table;
@@ -95,13 +96,14 @@ omapi_object_handle(omapi_handle_t *h, omapi_object_t *o) {
 	}
 	
 	if (omapi_handle_table == NULL) {
-		omapi_handle_table = malloc(sizeof(*omapi_handle_table));
+		omapi_handle_table = isc_mem_get(omapi_mctx,
+						 sizeof(*omapi_handle_table));
 		if (omapi_handle_table == NULL)
 			return (ISC_R_NOMEMORY);
 		memset(omapi_handle_table, 0, sizeof(*omapi_handle_table));
 		omapi_handle_table->first = 0;
 		omapi_handle_table->limit = OMAPI_HANDLE_TABLE_SIZE;
-		omapi_handle_table->leafp = 1;
+		omapi_handle_table->leaf = ISC_TRUE;
 	}
 
 	/*
@@ -115,14 +117,14 @@ omapi_object_handle(omapi_handle_t *h, omapi_object_t *o) {
 	while (omapi_next_handle >= omapi_handle_table->limit) {
 		omapi_handle_table_t *new;
 		
-		new = malloc(sizeof(*new));
+		new = isc_mem_get(omapi_mctx, sizeof(*new));
 		if (new == NULL)
 			return (ISC_R_NOMEMORY);
 		memset(new, 0, sizeof(*new));
 		new->first = 0;
 		new->limit = (omapi_handle_table->limit *
 			      OMAPI_HANDLE_TABLE_SIZE);
-		new->leafp = 0;
+		new->leaf = ISC_FALSE;
 		new->children[0].table = omapi_handle_table;
 		omapi_handle_table = new;
 	}
@@ -173,10 +175,9 @@ omapi_object_handle_in_table(omapi_handle_t h, omapi_handle_table_t *table,
 	 * If this is a leaf table, just stash the object in the
 	 * appropriate place.
 	 */
-	if (table->leafp != NULL) {
-		omapi_object_reference(&table->
-				       children[h - table->first].object,
-				       o, "omapi_object_handle_in_table");
+	if (table->leaf) {
+		OBJECT_REF(&table->children[h - table->first].object, o,
+			  "omapi_object_handle_in_table");
 		o->handle = h;
 		return (ISC_R_SUCCESS);
 	}
@@ -201,14 +202,14 @@ omapi_object_handle_in_table(omapi_handle_t h, omapi_handle_table_t *table,
 	 * we came up with, make one.
 	 */
 	if (inner == NULL) {
-		inner = malloc(sizeof(*inner));
+		inner = isc_mem_get(omapi_mctx, sizeof(*inner));
 		if (inner == NULL)
 			return (ISC_R_NOMEMORY);
 		memset(inner, 0, sizeof(*inner));
 		inner->first = index * scale + table->first;
 		inner->limit = inner->first + scale;
 		if (scale == OMAPI_HANDLE_TABLE_SIZE)
-			inner->leafp = 1;
+			inner->leaf = ISC_TRUE;
 		table->children[index].table = inner;
 	}
 
@@ -257,21 +258,21 @@ omapi_handle_table_enclose(omapi_handle_table_t **table) {
 	 */
 	index = (base - inner->first) / OMAPI_HANDLE_TABLE_SIZE;
 
-	new = malloc(sizeof(*new));
+	new = isc_mem_get(omapi_mctx, sizeof(*new));
 	if (new == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(new, 0, sizeof *new);
 	new->first = base;
 	new->limit = base + scale;
 	if (scale == OMAPI_HANDLE_TABLE_SIZE)
-		new->leafp = 0;
+		new->leaf = ISC_FALSE;
 	new->children[index].table = inner;
 	*table = new;
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-omapi_handle_lookup (omapi_object_t **o, omapi_handle_t h) {
+omapi_handle_lookup(omapi_object_t **o, omapi_handle_t h) {
 	return (omapi_handle_lookup_in(o, h, omapi_handle_table));
 }
 
@@ -288,16 +289,15 @@ omapi_handle_lookup_in(omapi_object_t **o, omapi_handle_t h,
 	/*
 	 * If this is a leaf table, just grab the object.
 	 */
-	if (table->leafp != NULL) {
+	if (table->leaf) {
 		/*
 		 * Not there?
 		 */
 		if (table->children[h - table->first].object == NULL)
 			return (ISC_R_NOTFOUND);
 
-		omapi_object_reference(o,
-				     table->children[h - table->first].object,
-				     "omapi_handle_lookup_in");
+		OBJECT_REF(o, table->children[h - table->first].object,
+			   "omapi_handle_lookup_in");
 		return (ISC_R_SUCCESS);
 	}
 

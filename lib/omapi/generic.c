@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.2 1999/11/02 04:01:32 tale Exp $ */
+/* $Id: generic.c,v 1.3 2000/01/04 20:04:38 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -23,25 +23,24 @@
  * Subroutines that support the generic object.
  */
 #include <stddef.h>		/* NULL */
-#include <stdlib.h>		/* malloc, free */
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>
 
-#include <omapi/omapip_p.h>
+#include <omapi/private.h>
 
 isc_result_t
 omapi_generic_new(omapi_object_t **gen, const char *name) {
 	omapi_generic_object_t *obj;
 
-	obj = malloc(sizeof(*obj));
+	obj = isc_mem_get(omapi_mctx, sizeof(*obj));
 	if (obj == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(obj, 0, sizeof(*obj));
 	obj->refcnt = 0;
 	obj->type = omapi_type_generic;
 
-	omapi_object_reference(gen, (omapi_object_t *)obj, name);
+	OBJECT_REF(gen, obj, name);
 
 	return (ISC_R_SUCCESS);
 }
@@ -67,7 +66,7 @@ omapi_generic_set_value(omapi_object_t *h, omapi_object_t *id,
 	 * with the new one.
 	 */
 	for (i = 0; i < g->nvalues; i++) {
-		if (omapi_data_string_cmp(name, g->values [i]->name) == 0) {
+		if (omapi_data_string_cmp(name, g->values[i]->name) == 0) {
 			/*
 			 * There's an inconsistency here: the standard
 			 * behaviour of a set_values method when
@@ -84,22 +83,22 @@ omapi_generic_set_value(omapi_object_t *h, omapi_object_t *id,
 			 * returned.
 			 */
 			new = NULL;
-			result = omapi_value_new(&new,
-						 "omapi_message_get_value");
+			result = omapi_data_newvalue(&new,
+						    "omapi_message_get_value");
 			if (result != ISC_R_SUCCESS)
 				return (result);
 
-			omapi_data_string_reference(&new->name, name,
+			omapi_data_stringreference(&new->name, name,
 						    "omapi_message_get_value");
 			if (value != NULL)
-				omapi_typed_data_reference(&new->value, value,
+				omapi_data_reference(&new->value, value,
 						    "omapi_generic_set_value");
 
-			omapi_value_dereference(&(g->values [i]),
+			omapi_data_valuedereference(&(g->values[i]),
 						"omapi_message_set_value");
-			omapi_value_reference(&(g->values [i]), new,
-					      "omapi_message_set_value");
-			omapi_value_dereference(&new,
+			omapi_data_valuereference(&(g->values[i]), new,
+					        "omapi_message_set_value");
+			omapi_data_valuedereference(&new,
 						"omapi_message_set_value");
 
 			return (ISC_R_SUCCESS);
@@ -134,26 +133,29 @@ omapi_generic_set_value(omapi_object_t *h, omapi_object_t *id,
 			vm_new = 2 * g->va_max;
 		else
 			vm_new = 10;
-		va = malloc(vm_new * sizeof(*va));
+		va = isc_mem_get(omapi_mctx, vm_new * sizeof(*va));
 		if (va != NULL)
 			return (ISC_R_NOMEMORY);
-		if (g->va_max != 0)
+		if (g->va_max != 0) {
 			memcpy(va, g->values, g->va_max * sizeof(*va));
+			isc_mem_put(omapi_mctx, g->values,
+				    g->va_max * sizeof(*va));
+		}
+
 		memset(va + g->va_max, 0, (vm_new - g->va_max) * sizeof(*va));
-		free(g->values);
 		g->values = va;
 		g->va_max = vm_new;
 	}
-	result = omapi_value_new(&g->values[g->nvalues],
-				 "omapi_generic_set_value");
+	result = omapi_data_newvalue(&g->values[g->nvalues],
+				     "omapi_generic_set_value");
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	omapi_data_string_reference(&g->values[g->nvalues]->name, name,
-				    "omapi_generic_set_value");
+	omapi_data_stringreference(&g->values[g->nvalues]->name, name,
+				   "omapi_generic_set_value");
 	if (value != NULL)
-		omapi_typed_data_reference(&g->values [g->nvalues]->value,
-					   value, "omapi_generic_set_value");
+		omapi_data_reference(&g->values[g->nvalues]->value, value,
+				     "omapi_generic_set_value");
 	g->nvalues++;
 	return (ISC_R_SUCCESS);
 }
@@ -173,7 +175,7 @@ omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
 	 * Look up the specified name in our list of objects.
 	 */
 	for (i = 0; i < g->nvalues; i++) {
-		if (omapi_data_string_cmp (name, g->values [i]->name) == 0) {
+		if (omapi_data_string_cmp(name, g->values[i]->name) == 0) {
 			/*
 			 * If this is a name/null value pair, this is the
 			 * same as if there were no value that matched
@@ -184,8 +186,8 @@ omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
 			/*
 			 * Otherwise, return the name/value pair.
 			 */
-			omapi_value_reference(value, g->values[i],
-					      "omapi_message_get_value");
+			omapi_data_valuereference(value, g->values[i],
+						  "omapi_message_get_value");
 			return (ISC_R_SUCCESS);
 		}
 	}			
@@ -208,9 +210,11 @@ omapi_generic_destroy(omapi_object_t *h, const char *name) {
 	if (g->values != NULL) {
 		for (i = 0; i < g->nvalues; i++)
 			if (g->values[i] != NULL)
-				omapi_value_dereference(&g->values[i], name);
+				omapi_data_valuedereference(&g->values[i],
+							    name);
 
-		free(g->values);
+		isc_mem_put(omapi_mctx, g->values,
+			    g->va_max * sizeof(*g->values));
 		g->values = NULL;
 		g->va_max = 0;
 	}

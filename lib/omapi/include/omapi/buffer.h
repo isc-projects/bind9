@@ -78,7 +78,7 @@ omapi_connection_copyout(unsigned char *data, omapi_object_t *connection,
 			 unsigned int length);
 
 isc_result_t
-omapi_connection_copyin(omapi_object_t *connection, const unsigned char *data,
+omapi_connection_copyin(omapi_object_t *connection, unsigned char *data,
 			 unsigned int length);
 
 isc_result_t

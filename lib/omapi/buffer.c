@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.2 1999/11/02 04:01:31 tale Exp $ */
+/* $Id: buffer.c,v 1.3 2000/01/04 20:04:37 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -28,160 +28,124 @@
 
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/socket.h>
 
-#include <omapi/omapip_p.h>
+#include <omapi/private.h>
 
-/*
- * Make sure that at least len bytes are in the input buffer, and if not,
- * read enough bytes to make up the difference.
- */
+void
+omapi_connection_read(isc_task_t *task, isc_event_t *event) {
+	isc_buffer_t *buffer;
+	isc_socket_t *socket;
+	isc_socketevent_t *socketevent;
+	omapi_connection_object_t *connection;
 
-isc_result_t
-omapi_connection_reader(omapi_object_t *h) {
-	omapi_buffer_t *buffer;
-	isc_result_t result;
-	unsigned int read_len;
-	int read_status;
-	omapi_connection_object_t *c;
-	unsigned int bytes_to_read;
+	socket = event->sender;
+	socketevent = (isc_socketevent_t *)event;
+	connection = event->arg;
 
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
+	buffer = ISC_LIST_HEAD(socketevent->bufferlist);
 
-	c = (omapi_connection_object_t *)h;
+	if (socketevent->result != ISC_R_SUCCESS) {
+		/*
+		 * Abandon this socket.
+		 */
+		isc_socket_detach(&socket);
+
+		/* XXXDCL nope, not right at all */
+		ISC_LIST_UNLINK(socketevent->bufferlist, buffer, link);
+		isc_buffer_free(&buffer);
+
+		isc_event_free(&event);
+		isc_task_shutdown(task);
+		return;
+	}
+
+	connection->in_bytes += socketevent->n;
+
+	/* XXXDCL more screwage */
+	while (buffer != NULL) {
+		ISC_LIST_APPEND(connection->input_buffers, buffer, link);
+		buffer = ISC_LIST_NEXT(buffer, link);
+	}
+
+	while (connection->bytes_needed <= connection->in_bytes)
+		omapi_signal(event->arg, "ready", connection);
 
 	/*
-	 * See if there are enough bytes.
+	 * Queue up another recv task.
 	 */
-	if (c->in_bytes >= OMAPI_BUFFER_SIZE - 1 &&
-	    c->in_bytes > c->bytes_needed)
-		return (ISC_R_SUCCESS);
+	isc_socket_recvv(socket, &connection->input_buffers,
+			 connection->bytes_needed - connection->in_bytes,
+			 task, omapi_connection_read, connection);
 
-	if (c->inbufs) {
-		for (buffer = c->inbufs; buffer->next; buffer = buffer->next)
-			;
-		if (BUFFER_BYTES_FREE(buffer) == 0) {
-			result = omapi_buffer_new(&buffer->next,
-						  "omapi_private_read");
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			buffer = buffer->next;
-		}
+	isc_event_free(&event);
 
-	} else {
-		result = omapi_buffer_new(&c->inbufs, "omapi_private_read");
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		buffer = c->inbufs;
+}
+
+void
+omapi_connection_written(isc_task_t *task, isc_event_t *event) {
+	isc_buffer_t *buffer;
+	isc_socket_t *socket;
+	isc_socketevent_t *socketevent;
+	omapi_connection_object_t *connection;
+
+	socket = event->sender;
+	socketevent = (isc_socketevent_t *)event;
+	connection = event->arg;
+
+	/* XXXDCL more screwage */
+	buffer = ISC_LIST_HEAD(socketevent->bufferlist);
+	while (buffer != NULL) {
+		ISC_LIST_ENQUEUE(connection->output_buffers, buffer, link);
+		buffer = ISC_LIST_NEXT(buffer, link);
+	}
+	buffer = ISC_LIST_HEAD(connection->output_buffers);
+
+	if (socketevent->result != ISC_R_SUCCESS) {
+		/*
+		 * Abandon this socket.
+		 */
+		isc_socket_detach(&socket);
+
+		/* XXXDCL nope, not right at all */
+		ISC_LIST_UNLINK(connection->output_buffers, buffer, link);
+		isc_buffer_free(&buffer);
+		isc_event_free(&event);
+		isc_task_shutdown(task);
+		OBJECT_DEREF(&connection, "omapi_connection_written");
+		return;
 	}
 
-	bytes_to_read = BUFFER_BYTES_FREE(buffer);
+	connection->out_bytes -= socketevent->n;
+	isc_buffer_compact(buffer);
 
-	while (bytes_to_read > 0) {
-		if (buffer->tail > buffer->head)
-			read_len = sizeof(buffer->data) - buffer->tail;
-		else
-			read_len = buffer->head - buffer->tail;
+	if (connection->out_bytes > 0)
+		isc_socket_sendv(socket, &connection->output_buffers, task,
+				 omapi_connection_written, connection);
 
-		read_status = read(c->socket, &buffer->data[buffer->tail],
-				   read_len);
-		if (read_status < 0) {
-			if (errno == EWOULDBLOCK)
-				break;
-			else if (errno == EIO)
-				return (ISC_R_IOERROR);
-			else if (errno == ECONNRESET) {
-				omapi_disconnect(h, OMAPI_CLEAN_DISCONNECT);
-				return (ISC_R_SHUTTINGDOWN);
-			} else
-				return (ISC_R_UNEXPECTED);
-		}
-
-		/*
-		 * If we got a zero-length read, as opposed to EWOULDBLOCK,
-		 * the remote end closed the connection.
-		 */
-		if (read_status == 0) {
-			omapi_disconnect(h, OMAPI_CLEAN_DISCONNECT);
-			return (ISC_R_SHUTTINGDOWN);
-		}
-		buffer->tail += read_status;
-		c->in_bytes += read_status;
-		if (buffer->tail == sizeof(buffer->data))
-			buffer->tail = 0;
-		/*
-		 * Comparison between signed and unsigned.
-		 * The cast is ok because read_status < 0 was checked above.
-		 */
-		if ((unsigned int)read_status < read_len)
-			break;
-		bytes_to_read -= read_status;
-	}
-
-	if (c->bytes_needed <= c->in_bytes)
-		omapi_signal(h, "ready", c);
-
-	return (ISC_R_SUCCESS);
+	return;
 }
 
 /*
  * Put some bytes into the output buffer for a connection.
  */
-
 isc_result_t
-omapi_connection_copyin(omapi_object_t *h, const unsigned char *bufp,
+omapi_connection_copyin(omapi_object_t *h, unsigned char *bufp,
 			unsigned int len)
 {
-	omapi_buffer_t *buffer;
-	isc_result_t result;
-	unsigned int bytes_copied = 0;
-	unsigned int copy_len;
-	omapi_connection_object_t *c;
+	omapi_connection_object_t *connection;
+	isc_buffer_t *obuffer;
 
 	REQUIRE(h != NULL && h->type == omapi_type_connection);
 
-	c = (omapi_connection_object_t *)h;
+	connection = (omapi_connection_object_t *)h;
 
-	if (c->outbufs) {
-		for (buffer = c->outbufs;
-		     buffer->next; buffer = buffer->next)
-			;
-	} else {
-		result = omapi_buffer_new(&c->outbufs,
-					  "omapi_private_buffer_copyin");
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		buffer = c->outbufs;
-	}
+	obuffer = ISC_LIST_HEAD(connection->output_buffers);
+	/* XXXDCL check for space first */
+	isc_buffer_putmem(obuffer, bufp, len);
 
-	while (bytes_copied < len) {
-		/*
-		 * If there is no space available in this buffer,
-		 * allocate a new one.
-		 */
-		if (BUFFER_BYTES_FREE (buffer) == 0) {
-			result = omapi_buffer_new(&buffer->next,
-						"omapi_private_buffer_copyin");
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			buffer = buffer->next;
-		}
+	connection->out_bytes += len;
 
-		if (buffer->tail > buffer->head)
-			copy_len = sizeof(buffer->data) - buffer->tail;
-		else
-			copy_len = buffer->head - buffer->tail;
-
-		if (copy_len > (len - bytes_copied))
-			copy_len = len - bytes_copied;
-
-		memcpy (&buffer->data[buffer->tail],
-			&bufp[bytes_copied], copy_len);
-		buffer->tail += copy_len;
-		c->out_bytes += copy_len;
-		bytes_copied += copy_len;
-		if (buffer->tail == sizeof(buffer->data))
-			buffer->tail = 0;
-	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -194,185 +158,24 @@ isc_result_t
 omapi_connection_copyout(unsigned char *buf, omapi_object_t *h,
 			 unsigned int size)
 {
-	unsigned int bytes_remaining;
-	unsigned int bytes_this_copy;
-	unsigned int first_byte;
-	omapi_buffer_t *buffer;
-	unsigned char *bufp;
-	omapi_connection_object_t *c;
+	omapi_connection_object_t *connection;
+	isc_buffer_t *ibuffer;
 
 	REQUIRE(h != NULL && h->type == omapi_type_connection);
 
-	c = (omapi_connection_object_t *)h;
+	connection = (omapi_connection_object_t *)h;
 
-	if (size > c->in_bytes)
+	if (size > connection->in_bytes)
 		return (ISC_R_NOMORE);
-	bufp = buf;
-	bytes_remaining = size;
-	buffer = c->inbufs;
+	
+	ibuffer = ISC_LIST_HEAD(connection->input_buffers);
 
-	while (bytes_remaining > 0) {
-		if (buffer == NULL)
-			return (ISC_R_UNEXPECTED);
+	(void)memcpy(buf, ibuffer->base, size);
+	isc_buffer_forward(ibuffer, size);
+	isc_buffer_compact(ibuffer);
+	
+	connection->in_bytes -= size;
 
-		if (BYTES_IN_BUFFER(buffer) != 0) {
-			if (buffer->head == sizeof(buffer->data) - 1)
-				first_byte = 0;
-			else
-				first_byte = buffer->head + 1;
-
-			if (first_byte > buffer->tail)
-				bytes_this_copy = sizeof(buffer->data) -
-						  first_byte;
-			else
-				bytes_this_copy =
-					buffer->tail - first_byte;
-
-			if (bytes_this_copy > bytes_remaining)
-				bytes_this_copy = bytes_remaining;
-			if (bufp != NULL) {
-				memcpy(bufp, &buffer->data[first_byte],
-					bytes_this_copy);
-				bufp += bytes_this_copy;
-			}
-			bytes_remaining -= bytes_this_copy;
-			buffer->head = first_byte + bytes_this_copy - 1;
-			c->in_bytes -= bytes_this_copy;
-		}
-			
-		if (BYTES_IN_BUFFER (buffer) == 0)
-			buffer = buffer->next;
-	}
-
-	/*
-	 * Get rid of any input buffers that we emptied.
-	 */
-	buffer = NULL;
-	while (c->inbufs != NULL && BYTES_IN_BUFFER(c->inbufs) == 0) {
-		if (c->inbufs->next != NULL) {
-			omapi_buffer_reference(&buffer,
-					       c->inbufs->next,
-					       "omapi_private_buffer_copyout");
-			omapi_buffer_dereference(&c->inbufs->next,
-					       "omapi_private_buffer_copyout");
-		}
-		omapi_buffer_dereference(&c->inbufs,
-					 "omapi_private_buffer_copyout");
-		if (buffer != NULL) {
-			omapi_buffer_reference(&c->inbufs, buffer,
-					       "omapi_private_buffer_copyout");
-			omapi_buffer_dereference(&buffer,
-					       "omapi_private_buffer_copyout");
-		}
-	}
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-omapi_connection_writer(omapi_object_t *h) {
-	int bytes_written;
-	unsigned int bytes_this_write;
-	unsigned int first_byte;
-	omapi_buffer_t *buffer;
-	omapi_connection_object_t *c;
-
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
-
-	c = (omapi_connection_object_t *)h;
-
-	/*
-	 * Already flushed.
-	 */
-	if (c->out_bytes == 0)
-		return (ISC_R_SUCCESS);
-
-	buffer = c->outbufs;
-
-	while (c->out_bytes > 0) {
-		if (buffer == NULL)
-			return (ISC_R_UNEXPECTED);
-
-		if (BYTES_IN_BUFFER (buffer) != 0) {
-			if (buffer->head == sizeof(buffer->data) - 1)
-				first_byte = 0;
-			else
-				first_byte = buffer->head + 1;
-
-			if (first_byte > buffer->tail)
-				bytes_this_write = (sizeof(buffer->data) -
-						    first_byte);
-			else
-				bytes_this_write = buffer->tail - first_byte;
-
-			bytes_written = write(c->socket,
-					      &buffer->data[first_byte],
-					      bytes_this_write);
-			/*
-			 * If the write failed with EWOULDBLOCK or we wrote
-			 * zero bytes, a further write would block, so we have
-			 * flushed as much as we can for now.   Other errors
-			 * are really errors.
-			 */
-			if (bytes_written < 0) {
-				if (errno == EWOULDBLOCK || errno == EAGAIN)
-					return (ISC_R_SUCCESS);
-				else if (errno == EPIPE)
-					return (ISC_R_NOCONN);
-				else if (errno == EFBIG || errno == EDQUOT)
-					return (ISC_R_NORESOURCES);
-				else if (errno == ENOSPC)
-					return (ISC_R_NOSPACE);
-				else if (errno == EIO)
-					return (ISC_R_IOERROR);
-				else if (errno == ECONNRESET)
-					return (ISC_R_SHUTTINGDOWN);
-				else
-					return (ISC_R_UNEXPECTED);
-			}
-			if (bytes_written == 0)
-				return (ISC_R_SUCCESS);
-
-			buffer->head = first_byte + bytes_written - 1;
-			c->out_bytes -= bytes_written;
-
-			/*
-			 * If we didn't finish out the write, we filled the
-			 * O.S. output buffer and a further write would block,
-			 * so stop trying to flush now.
-			 *
-			 * bytes_written was already checked to not be < 0,
-			 * so the cast is ok.
-			 */
-
-			if ((unsigned int)bytes_written != bytes_this_write)
-				return (ISC_R_SUCCESS);
-		}
-
-		if (BYTES_IN_BUFFER (buffer) == 0)
-			buffer = buffer->next;
-	}
-		
-	/*
-	 * Get rid of any output buffers we emptied.
-	 */
-	buffer = NULL;
-	while (c->outbufs != NULL && BYTES_IN_BUFFER(c->outbufs) == 0) {
-		if (c->outbufs->next != NULL) {
-			omapi_buffer_reference(&buffer, c->outbufs->next,
-					       "omapi_private_flush");
-			omapi_buffer_dereference(&c->outbufs->next,
-						 "omapi_private_flush");
-		}
-
-		omapi_buffer_dereference(&c->outbufs, "omapi_private_flush");
-
-		if (buffer != NULL) {
-			omapi_buffer_reference(&c->outbufs, buffer,
-					       "omapi_private_flush");
-			omapi_buffer_dereference(&buffer,
-						 "omapi_private_flush");
-		}
-	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -489,7 +292,7 @@ omapi_connection_put_name(omapi_object_t *c, const char *name) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	return (omapi_connection_copyin(c, (const unsigned char *)name, len));
+	return (omapi_connection_copyin(c, (char *)name, len));
 }
 
 isc_result_t
@@ -505,9 +308,7 @@ omapi_connection_put_string(omapi_object_t *c, const char *string) {
 	result = omapi_connection_put_uint32(c, len);
 
 	if (result == ISC_R_SUCCESS && len > 0)
-		result = omapi_connection_copyin(c,
-						 (const unsigned char *)string,
-						 len);
+		result = omapi_connection_copyin(c, (char *)string, len);
 	return (result);
 }
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.2 1999/11/02 04:01:32 tale Exp $ */
+/* $Id: dispatch.c,v 1.3 2000/01/04 20:04:38 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -23,13 +23,12 @@
  * I/O dispatcher.
  */
 #include <stddef.h>		/* NULL */
-#include <stdlib.h>		/* malloc, free */
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>
 #include <isc/int.h>
 
-#include <omapi/omapip_p.h>
+#include <omapi/private.h>
 
 typedef struct omapi_io_object {
 	OMAPI_OBJECT_PREAMBLE;
@@ -50,80 +49,32 @@ typedef struct omapi_waiter_object {
 static omapi_io_object_t omapi_io_states;
 isc_uint32_t cur_time;
 
-/*
- * Register an I/O handle so that we can do asynchronous I/O on it.
- */
-
 isc_result_t
-omapi_register_io_object(omapi_object_t *h,
-			 int (*readfd)(omapi_object_t *),
-			 int (*writefd)(omapi_object_t *),
-			 isc_result_t (*reader)(omapi_object_t *),
-			 isc_result_t (*writer)(omapi_object_t *),
-			 isc_result_t (*reaper)(omapi_object_t *))
-{
-	omapi_io_object_t *obj, *p;
-
+omapi_dispatch(struct timeval *t) {
+#if 0 /*XXXDCL*/
+	return (omapi_wait_for_completion((omapi_object_t *)&omapi_io_states,
+					  t));
+#endif
 	/*
-	 * omapi_io_states is a static object.   If its reference count
-	 * is zero, this is the first I/O handle to be registered, so
-	 * we need to initialize it.   Because there is no inner or outer
-	 * pointer on this object, and we're setting its refcnt to 1, it
-	 * will never be freed.
+	 * XXXDCL sleep forever?  The socket thread will be doing all the work.
 	 */
-	if (omapi_io_states.refcnt == 0) {
-		omapi_io_states.refcnt = 1;
-		omapi_io_states.type = omapi_type_io_object;
-	}
-		
-	obj = (omapi_io_object_t *)malloc(sizeof(*obj));
-	if (obj == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(obj, 0, sizeof(*obj));
 
-	obj->refcnt = 1;
-	obj->type = omapi_type_io_object;
-
-	omapi_object_reference(&obj->inner, h, "omapi_register_io_object");
-	omapi_object_reference(&h->outer, (omapi_object_t *)obj,
-			       "omapi_register_io_object");
-
-	/*
-	 * Find the last I/O state, if there are any.
-	 */
-	for (p = omapi_io_states.next; p != NULL && p->next; p = p->next)
-		;
-	if (p != NULL)
-		p->next = obj;
-	else
-		omapi_io_states.next = obj;
-
-	obj->readfd = readfd;
-	obj->writefd = writefd;
-	obj->reader = reader;
-	obj->writer = writer;
-	obj->reaper = reaper;
-
+	select(0, NULL, NULL, NULL, t ? t : NULL);
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-omapi_dispatch(struct timeval *t) {
-	return (omapi_wait_for_completion((omapi_object_t *)&omapi_io_states,
-					  t));
-}
 
 isc_result_t
-omapi_wait_for_completion (omapi_object_t *object, struct timeval *t) {
+omapi_wait_for_completion(omapi_object_t *object, struct timeval *t) {
 	isc_result_t result;
 	omapi_waiter_object_t *waiter;
 	omapi_object_t *inner;
 
 	if (object != NULL) {
-		waiter = malloc(sizeof(*waiter));
+		waiter = isc_mem_get(omapi_mctx, sizeof(*waiter));
 		if (waiter == NULL)
 			return (ISC_R_NOMEMORY);
-		memset (waiter, 0, sizeof(*waiter));
+		memset(waiter, 0, sizeof(*waiter));
 		waiter->refcnt = 1;
 		waiter->type = omapi_type_waiter;
 
@@ -135,10 +86,8 @@ omapi_wait_for_completion (omapi_object_t *object, struct timeval *t) {
 		     inner = inner->inner)
 			;
 
-		omapi_object_reference(&waiter->outer, inner,
-				       "omapi_wait_for_completion");
-		omapi_object_reference(&inner->inner, (omapi_object_t *)waiter,
-				       "omapi_wait_for_completion");
+		OBJECT_REF(&waiter->outer, inner, "omapi_wait_for_completion");
+		OBJECT_REF(&inner->inner, waiter, "omapi_wait_for_completion");
 	} else
 		waiter = NULL;
 
@@ -150,22 +99,18 @@ omapi_wait_for_completion (omapi_object_t *object, struct timeval *t) {
 
 	if (waiter->outer != NULL) {
 		if (waiter->outer->inner != NULL) {
-			omapi_object_dereference(&waiter->outer->inner,
-						 "omapi_wait_for_completion");
+			OBJECT_DEREF(&waiter->outer->inner,
+				    "omapi_wait_for_completion");
 			if (waiter->inner != NULL)
-				omapi_object_reference(&waiter->outer->inner,
-						  waiter->inner,
-						  "omapi_wait_for_completion");
+				OBJECT_REF(&waiter->outer->inner, waiter->inner,
+					  "omapi_wait_for_completion");
 		}
-		omapi_object_dereference(&waiter->outer,
-					 "omapi_wait_for_completion");
+		OBJECT_DEREF(&waiter->outer, "omapi_wait_for_completion");
 	}
 	if (waiter->inner != NULL)
-		omapi_object_dereference(&waiter->inner,
-					 "omapi_wait_for_completion");
+		OBJECT_DEREF(&waiter->inner, "omapi_wait_for_completion");
 	
-	omapi_object_dereference((omapi_object_t **)&waiter,
-				 "omapi_wait_for_completion");
+	OBJECT_DEREF(&waiter, "omapi_wait_for_completion");
 
 	return (ISC_R_SUCCESS);
 }
@@ -173,9 +118,9 @@ omapi_wait_for_completion (omapi_object_t *object, struct timeval *t) {
 isc_result_t
 omapi_one_dispatch(omapi_object_t *wo, struct timeval *t) {
 	fd_set r, w, x;
-	int max = 0;
 	int count;
 	int desc;
+	int max = 0;
 	struct timeval now, to;
 	omapi_io_object_t *io, *prev;
 	isc_result_t result;
@@ -234,8 +179,8 @@ omapi_one_dispatch(omapi_object_t *wo, struct timeval *t) {
 		 * trying to read for this I/O object, either there
 		 * won't be a readfd function, or it'll return -1.
 		 */
-		if (io->readfd != NULL &&
-		    (desc = (*(io->readfd))(io->inner)) >= 0) {
+		if (io->readfd != NULL) {
+			desc = (*(io->readfd))(io->inner);
 			FD_SET(desc, &r);
 			if (desc > max)
 				max = desc;
@@ -244,8 +189,8 @@ omapi_one_dispatch(omapi_object_t *wo, struct timeval *t) {
 		/*
 		 * Same deal for write fdsets.
 		 */
-		if (io->writefd != NULL &&
-		    (desc = (*(io->writefd))(io->inner)) >= 0) {
+		if (io->writefd != NULL) {
+			desc = (*(io->writefd))(io->inner);
 			FD_SET(desc, &w);
 			if (desc > max)
 				max = desc;
@@ -307,31 +252,18 @@ omapi_one_dispatch(omapi_object_t *wo, struct timeval *t) {
 				 * pointer, if there is one.
 				 */
 				if (io->next != NULL)
-					omapi_object_reference
-						((omapi_object_t **)&tmp,
-						 (omapi_object_t *)io->next,
-						 "omapi_wfc");
+					OBJECT_REF(&tmp, io->next, "omapi_wfc");
 				if (prev != NULL) {
-					omapi_object_dereference
-					       ((omapi_object_t **)&prev->next,
-						"omapi_wfc");
+					OBJECT_DEREF(&prev->next, "omapi_wfc");
 					if (tmp != NULL)
-						omapi_object_reference
-						    (((omapi_object_t **)
-						      &prev->next),
-						     (omapi_object_t *)tmp,
-						     "omapi_wfc");
+						OBJECT_REF(&prev->next, tmp,
+							  "omapi_wfc");
 				} else {
-					omapi_object_dereference
-						(((omapi_object_t **)
-						  &omapi_io_states.next),
-						 "omapi_wfc");
+					OBJECT_DEREF(&omapi_io_states.next,
+						    "omapi_wfc");
 					if (tmp != NULL)
-						omapi_object_reference
-						    (((omapi_object_t **)
-						      &omapi_io_states.next),
-						     (omapi_object_t *)tmp,
-						     "omapi_wfc");
+						OBJECT_REF(&omapi_io_states.next,
+							  tmp, "omapi_wfc");
 					else
 						omapi_signal_in
 							((omapi_object_t *)
@@ -339,9 +271,7 @@ omapi_one_dispatch(omapi_object_t *wo, struct timeval *t) {
 							 "ready");
 				}
 				if (tmp != NULL)
-					omapi_object_dereference
-						((omapi_object_t **)&tmp,
-						 "omapi_wfc");
+					OBJECT_DEREF(&tmp, "omapi_wfc");
 			}
 		}
 		prev = io;

@@ -19,12 +19,11 @@
  * Subroutines for dealing with message objects.
  */
 #include <stddef.h>		/* NULL */
-#include <stdlib.h>		/* malloc, free */
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>
 
-#include <omapi/omapip_p.h>
+#include <omapi/private.h>
 
 omapi_message_object_t *omapi_registered_messages;
 
@@ -34,26 +33,27 @@ omapi_message_new(omapi_object_t **o, const char *name) {
 	omapi_object_t *g;
 	isc_result_t result;
 
-	m = malloc(sizeof(*m));
+	m = isc_mem_get(omapi_mctx, sizeof(*m));
 	if (m == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(m, 0, sizeof(*m));
-	m->type = omapi_type_message;
+	m->object_size = sizeof(*m);
 	m->refcnt = 1;
+	m->type = omapi_type_message;
 
 	g = NULL;
 	result = omapi_generic_new(&g, name);
 	if (result != ISC_R_SUCCESS) {
-		free (m);
+		isc_mem_put(omapi_mctx, m, sizeof(*m));
 		return (result);
 	}
 
-	omapi_object_reference(&m->inner, g, name);
-	omapi_object_reference(&g->outer, (omapi_object_t *)m, name);
-	omapi_object_reference(o, (omapi_object_t *)m, name);
+	OBJECT_REF(&m->inner, g, name);
+	OBJECT_REF(&g->outer, m, name);
+	OBJECT_REF(o, m, name);
 
-	omapi_object_dereference((omapi_object_t **)&m, name);
-	omapi_object_dereference(&g, name);
+	OBJECT_DEREF(&m, name);
+	OBJECT_DEREF(&g, name);
 
 	return (result);
 }
@@ -79,30 +79,29 @@ omapi_message_set_value(omapi_object_t *h, omapi_object_t *id,
 	 */
 	if (omapi_ds_strcmp(name, "authenticator") == 0) {
 		if (m->authenticator != NULL)
-			omapi_typed_data_dereference(&m->authenticator,
-						    "omapi_message_set_value");
-		omapi_typed_data_reference(&m->authenticator, value,
-					   "omapi_message_set_value");
+			omapi_data_dereference(&m->authenticator,
+					       "omapi_message_set_value");
+		omapi_data_reference(&m->authenticator, value,
+				     "omapi_message_set_value");
 		return (ISC_R_SUCCESS);
 
 	} else if (omapi_ds_strcmp(name, "object") == 0) {
 		INSIST(value != NULL && value->type == omapi_datatype_object);
 
 		if (m->object != NULL)
-			omapi_object_dereference(&m->object,
-						 "omapi_message_set_value");
-		omapi_object_reference(&m->object, value->u.object,
-				       "omapi_message_set_value");
+			OBJECT_DEREF(&m->object, "omapi_message_set_value");
+		OBJECT_REF(&m->object, value->u.object,
+			  "omapi_message_set_value");
 		return (ISC_R_SUCCESS);
 
-	} else if (omapi_ds_strcmp (name, "notify-object") == 0) {
+	} else if (omapi_ds_strcmp(name, "notify-object") == 0) {
 		INSIST(value != NULL && value->type == omapi_datatype_object);
 
 		if (m->notify_object != NULL)
-			omapi_object_dereference(&m->notify_object,
-						 "omapi_message_set_value");
-		omapi_object_reference(&m->notify_object, value->u.object,
-				       "omapi_message_set_value");
+			OBJECT_DEREF(&m->notify_object,
+				    "omapi_message_set_value");
+		OBJECT_REF(&m->notify_object, value->u.object,
+			  "omapi_message_set_value");
 		return (ISC_R_SUCCESS);
 
 	/*
@@ -222,19 +221,18 @@ omapi_message_destroy(omapi_object_t *h, const char *name) {
 	m = (omapi_message_object_t *)h;
 
 	if (m->authenticator != NULL)
-		omapi_typed_data_dereference(&m->authenticator, name);
+		omapi_data_dereference(&m->authenticator, name);
 
 	if (m->prev == NULL && omapi_registered_messages != m)
 		omapi_message_unregister(h);
 	if (m->prev != NULL)
-		omapi_object_dereference((omapi_object_t **)&m->prev, name);
+		OBJECT_DEREF(&m->prev, name);
 	if (m->next != NULL)
-		omapi_object_dereference((omapi_object_t **)&m->next, name);
+		OBJECT_DEREF(&m->next, name);
 	if (m->id_object != NULL)
-		omapi_object_dereference((omapi_object_t **)&m->id_object,
-					 name);
+		OBJECT_DEREF(&m->id_object, name);
 	if (m->object != NULL)
-		omapi_object_dereference((omapi_object_t **)&m->object, name);
+		OBJECT_DEREF(&m->object, name);
 }
 
 isc_result_t
@@ -290,20 +288,16 @@ omapi_message_register(omapi_object_t *h) {
 		omapi_registered_messages != m);
 
 	if (omapi_registered_messages != NULL) {
-		omapi_object_reference
-			((omapi_object_t **)&m->next,
-			 (omapi_object_t *)omapi_registered_messages,
-			 "omapi_message_register");
-		omapi_object_reference
-			((omapi_object_t **)&omapi_registered_messages->prev,
-			 (omapi_object_t *)m, "omapi_message_register");
-		omapi_object_dereference
-			((omapi_object_t **)&omapi_registered_messages,
-			 "omapi_message_register");
+		OBJECT_REF(&m->next, omapi_registered_messages,
+			  "omapi_message_register");
+		OBJECT_REF(&omapi_registered_messages->prev, m,
+			  "omapi_message_register");
+		OBJECT_DEREF(&omapi_registered_messages,
+			    "omapi_message_register");
 	}
-	omapi_object_reference
-		((omapi_object_t **)&omapi_registered_messages,
-		 (omapi_object_t *)m, "omapi_message_register");
+
+	OBJECT_REF(&omapi_registered_messages, m,
+		  "omapi_message_register");
 	return (ISC_R_SUCCESS);
 }
 
@@ -323,41 +317,34 @@ omapi_message_unregister(omapi_object_t *h) {
 
 	n = NULL;
 	if (m->next != NULL) {
-		omapi_object_reference((omapi_object_t **)&n,
-				       (omapi_object_t *)m->next,
-				       "omapi_message_unregister");
-		omapi_object_dereference((omapi_object_t **)&m->next,
-					 "omapi_message_unregister");
+		OBJECT_REF(&n, m->next, "omapi_message_unregister");
+		OBJECT_DEREF(&m->next, "omapi_message_unregister");
 	}
+
 	if (m->prev != NULL) {
 		omapi_message_object_t *tmp = NULL;
-		omapi_object_reference((omapi_object_t **)&tmp,
-				       (omapi_object_t *)m->prev,
-				       "omapi_message_register");
-		omapi_object_dereference((omapi_object_t **)&m->prev,
-					 "omapi_message_unregister");
+		OBJECT_REF(&tmp, m->prev, "omapi_message_register");
+		OBJECT_DEREF(&m->prev, "omapi_message_unregister");
+
 		if (tmp->next != NULL)
-			omapi_object_dereference((omapi_object_t **)&tmp->next,
-						 "omapi_message_unregister");
+			OBJECT_DEREF(&tmp->next, "omapi_message_unregister");
+
 		if (n != NULL)
-			omapi_object_reference((omapi_object_t **)&tmp->next,
-					       (omapi_object_t *)n,
-					       "omapi_message_unregister");
-		omapi_object_dereference((omapi_object_t **)&tmp,
-					 "omapi_message_unregister");
+			OBJECT_REF(&tmp->next, n, "omapi_message_unregister");
+
+		OBJECT_DEREF(&tmp, "omapi_message_unregister");
+
 	} else {
-		omapi_object_dereference
-			((omapi_object_t **)&omapi_registered_messages,
-			 "omapi_unregister_message");
+		OBJECT_DEREF(&omapi_registered_messages,
+			    "omapi_message_unregister");
 		if (n != NULL)
-			omapi_object_reference
-				((omapi_object_t **)&omapi_registered_messages,
-				 (omapi_object_t *)n,
-				 "omapi_message_unregister");
+			OBJECT_REF(&omapi_registered_messages, n,
+				  "omapi_message_unregister");
 	}
+
 	if (n != NULL)
-		omapi_object_dereference ((omapi_object_t **)&n,
-					  "omapi_message_unregister");
+		OBJECT_DEREF(&n, "omapi_message_unregister");
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -415,7 +402,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		} else
 			type = NULL;
 		if (tv != NULL)
-			omapi_value_dereference(&tv, "omapi_message_process");
+			omapi_data_valuedereference(&tv,
+						    "omapi_message_process");
 
 		/*
 		 * Get the create flag.
@@ -423,7 +411,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		result = omapi_get_value_str(mo, NULL, "create", &tv);
 		if (result == ISC_R_SUCCESS) {
 			result = omapi_get_int_value(&create, tv->value);
-			omapi_value_dereference (&tv, "omapi_message_process");
+			omapi_data_valuedereference(&tv,
+						    "omapi_message_process");
 			if (result != ISC_R_SUCCESS) {
 				return (omapi_protocol_send_status(po, NULL,
 						 result, message->id,
@@ -438,7 +427,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		result = omapi_get_value_str(mo, NULL, "update", &tv);
 		if (result == ISC_R_SUCCESS) {
 			result = omapi_get_int_value(&update, tv->value);
-			omapi_value_dereference (&tv, "omapi_message_process");
+			omapi_data_valuedereference(&tv,
+						    "omapi_message_process");
 			if (result != ISC_R_SUCCESS) {
 				return (omapi_protocol_send_status(po, NULL,
 						 result, message->id,
@@ -453,7 +443,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		result = omapi_get_value_str(mo, NULL, "exclusive", &tv);
 		if (result == ISC_R_SUCCESS) {
 			result = omapi_get_int_value(&exclusive, tv->value);
-			omapi_value_dereference(&tv, "omapi_message_process");
+			omapi_data_valuedereference(&tv,
+						    "omapi_message_process");
 			if (result != ISC_R_SUCCESS) {
 				return (omapi_protocol_send_status(po, NULL,
 					      result, message->id,
@@ -516,8 +507,7 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 * return an error.
 		 */
 		if (result == ISC_R_SUCCESS && create != 0 && exclusive != 0) {
-			omapi_object_dereference(&object,
-						 "omapi_message_process");
+			OBJECT_DEREF(&object, "omapi_message_process");
 			return (omapi_protocol_send_status(po, NULL,
 					   ISC_R_EXISTS, message->id,
 					   "specified object already exists"));
@@ -543,8 +533,7 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 						     message->object,
 						     message->handle);
 			if (result != ISC_R_SUCCESS) {
-				omapi_object_dereference(&object,
-						      "omapi_message_process");
+				OBJECT_DEREF(&object, "omapi_message_process");
 				return (omapi_protocol_send_status(po, NULL,
 						       result, message->id,
 						       "can't update object"));
@@ -567,13 +556,12 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 	      send:		
 		result = omapi_protocol_send_update(po, NULL,
 						    message->id, object);
-		omapi_object_dereference (&object, "omapi_message_process");
+		OBJECT_DEREF(&object, "omapi_message_process");
 		return (result);
 
 	      case OMAPI_OP_UPDATE:
 		if (m->object != NULL) {
-			omapi_object_reference(&object, m->object,
-					       "omapi_message_process");
+			OBJECT_REF(&object, m->object, "omapi_message_process");
 		} else {
 			result = omapi_handle_lookup(&object, message->handle);
 			if (result != ISC_R_SUCCESS) {
@@ -586,8 +574,7 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		result = omapi_object_update(object, NULL, message->object,
 					     message->handle);
 		if (result != ISC_R_SUCCESS) {
-			omapi_object_dereference(&object,
-						 "omapi_message_process");
+			OBJECT_DEREF(&object, "omapi_message_process");
 			if (message->rid == 0)
 				return (omapi_protocol_send_status(po, NULL,
 						       result, message->id,
@@ -626,7 +613,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (result == ISC_R_SUCCESS) {
 			result = omapi_get_int_value(&wsi, tv->value);
 			waitstatus = wsi;
-			omapi_value_dereference(&tv, "omapi_message_process");
+			omapi_data_valuedereference(&tv,
+						    "omapi_message_process");
 			if (result != ISC_R_SUCCESS)
 				waitstatus = ISC_R_UNEXPECTED;
 		} else
@@ -635,7 +623,8 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		result = omapi_get_value_str(mo, NULL, "message", &tv);
 		omapi_signal((omapi_object_t *)m, "status", waitstatus, tv);
 		if (result == ISC_R_SUCCESS)
-			omapi_value_dereference(&tv, "omapi_message_process");
+			omapi_data_valuedereference(&tv,
+						    "omapi_message_process");
 		return (ISC_R_SUCCESS);
 
 	      case OMAPI_OP_DELETE:
@@ -652,7 +641,7 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 					     "no remove method for object"));
 
 		result = (*(object->type->remove))(object, NULL);
-		omapi_object_dereference(&object, "omapi_message_process");
+		OBJECT_DEREF(&object, "omapi_message_process");
 
 		return (omapi_protocol_send_status(po, NULL, result,
 						   message->id, NULL));

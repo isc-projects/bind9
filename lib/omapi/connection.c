@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.2 1999/11/02 04:01:32 tale Exp $ */
+/* $Id: connection.c,v 1.3 2000/01/04 20:04:37 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -25,139 +25,190 @@
 #include <errno.h>
 #include <fcntl.h>		/* F_SETFL, O_NONBLOCK */
 #include <stddef.h>		/* NULL */
-#include <stdlib.h>		/* malloc, free */
 #include <string.h>		/* memset */
 #include <unistd.h>		/* close */
 
 #include <isc/assertions.h>
 #include <isc/netdb.h>
 
-#include <omapi/omapip_p.h>
+#include <omapi/private.h>
 
-isc_result_t
-omapi_connect(omapi_object_t *c, const char *server_name, int port) {
+/*
+ * Swiped from bin/tests/sdig.c.
+ */
+static isc_result_t
+get_address(const char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
+	struct in_addr in4;
+	struct in6_addr in6;
 	struct hostent *he;
-	int hix;
-	isc_result_t result;
-	omapi_connection_object_t *obj;
-	int flag;
 
-	obj = (omapi_connection_object_t *)malloc(sizeof(*obj));
+	/*
+	 * Is this an IPv6 numeric address?
+	 */
+	if (omapi_ipv6 && inet_pton(AF_INET6, hostname, &in6) == 1)
+		isc_sockaddr_fromin6(sockaddr, &in6, port);
+
+	/*
+	 * What about an IPv4 numeric address?
+	 */
+	else if (inet_pton(AF_INET, hostname, &in4) == 1)
+		isc_sockaddr_fromin(sockaddr, &in4, port);
+
+	else {
+		/*
+		 * Look up the host name.
+		 */
+		he = gethostbyname(hostname);
+		if (he == NULL)
+			return (ISC_R_NOTFOUND);
+
+		INSIST(he->h_addrtype == AF_INET);
+		isc_sockaddr_fromin(sockaddr,
+				    (struct in_addr *)(he->h_addr_list[0]),
+				    port);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * This is the function that is called when a CONNECT event is posted on
+ * the socket as a result of isc_socket_connect.
+ */
+static void
+omapi_connection_connect(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	isc_socket_connev_t *connect_event;
+	omapi_connection_object_t *connection;
+
+	ENSURE(event->sender == connection->socket);
+
+	connect_event = (isc_socket_connev_t *)event;
+	if (connect_event->result != ISC_R_SUCCESS) {
+		isc_socket_detach(&connection->socket);
+		isc_event_free(&event);
+		isc_task_shutdown(task);
+		return;
+	}
+
+	connection = event->arg;
+
+	result = isc_socket_getpeername(connection->socket,
+					&connection->remote_addr);
+	if (result != ISC_R_SUCCESS) {
+		OBJECT_DEREF(&connection, "omapi_connection_connect");
+		return;
+	}
+
+	result = isc_socket_getsockname(connection->socket,
+					&connection->local_addr);
+	if (result != ISC_R_SUCCESS) {
+		OBJECT_DEREF(&connection, "omapi_connection_connect");
+		return;
+	}
+	
+	connection->state = omapi_connection_connected;
+
+	isc_event_free(&event);
+
+	return;
+}
+
+/*
+ * Make an outgoing connection to an OMAPI server.
+ */
+isc_result_t
+omapi_connection_toserver(omapi_object_t *c, const char *server_name, int port)
+{
+	isc_result_t result;
+	isc_buffer_t *ibuffer, *obuffer;
+	isc_task_t *task;
+	isc_sockaddr_t sockaddr;
+	omapi_connection_object_t *obj;
+#if 0	/*XXXDCL*/
+	int flag;
+#endif
+
+	result = get_address(server_name, port, &sockaddr);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * Prepare the task that will wait for the connection to be made.
+	 */
+	task = NULL;
+	result = isc_task_create(omapi_taskmgr, NULL, 0, &task);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	ibuffer = NULL;
+	result = isc_buffer_allocate(omapi_mctx, &ibuffer, OMAPI_BUFFER_SIZE,
+				     ISC_BUFFERTYPE_BINARY);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	obuffer = NULL;
+	result = isc_buffer_allocate(omapi_mctx, &obuffer, OMAPI_BUFFER_SIZE,
+				     ISC_BUFFERTYPE_BINARY);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * XXXDCL on errors I need to also blast the task and buffers.
+	 */
+
+	/*
+	 * Create a new connection object.
+	 */
+	obj = isc_mem_get(omapi_mctx, sizeof(*obj));
 	if (obj == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(obj, 0, sizeof(*obj));
 	obj->refcnt = 1;
+	obj->task = task;
 	obj->type = omapi_type_connection;
 
-	omapi_object_reference(&c->outer, (omapi_object_t *)obj,
-			       "omapi_protocol_connect");
-
-	omapi_object_reference(&obj->inner, c, "omapi_protocol_connect");
-
-	/*
-	 * Set up all the constants in the address.
-	 */
-	obj->remote_addr.sin_port = htons(port);
+	ISC_LIST_INIT(obj->input_buffers);
+	ISC_LIST_APPEND(obj->input_buffers, ibuffer, link);
+	ISC_LIST_INIT(obj->output_buffers);
+	ISC_LIST_APPEND(obj->output_buffers, obuffer, link);
 
 	/*
-	 * First try for a numeric address, since that's easier to check.
+	 * Tie the new connection object to the protocol object.
 	 */
-	if (inet_aton(server_name, &obj->remote_addr.sin_addr) == 0) {
-		/*
-		 * If we didn't get a numeric address, try for a domain
-		 * name.  It's okay for this call to block.
-		 */
-		he = gethostbyname(server_name);
-		if (he == NULL) {
-			omapi_object_dereference((omapi_object_t **)&obj,
-						 "omapi_connect");
-			return (ISC_R_NOTFOUND);
-		}
-		hix = 1;
-		memcpy (&obj->remote_addr.sin_addr,
-			he->h_addr_list[0],
-			sizeof(obj->remote_addr.sin_addr));
-	} else
-		he = NULL;
-
-#ifdef ISC_NET_HAVESALEN
-	obj->remote_addr.sin_len = sizeof(struct sockaddr_in);
-#endif
-	obj->remote_addr.sin_family = AF_INET;
-	memset(&(obj->remote_addr.sin_zero), 0,
-	       sizeof(obj->remote_addr.sin_zero));
+	OBJECT_REF(&c->outer, obj, "omapi_connection_toserver");
+	OBJECT_REF(&obj->inner, c, "omapi_connection_toserver");
 
 	/*
 	 * Create a socket on which to communicate.
 	 */
-	obj->socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (obj->socket < 0) {
-		omapi_object_dereference((omapi_object_t **)&obj,
-					 "omapi_connect");
-		if (errno == EMFILE || errno == ENFILE || errno == ENOBUFS)
-			return (ISC_R_NORESOURCES);
-		return (ISC_R_UNEXPECTED);
+	result = isc_socket_create(omapi_socketmgr, isc_sockaddr_pf(&sockaddr),
+				   isc_sockettype_tcp, &obj->socket);
+	if (result != ISC_R_SUCCESS) {
+		/* XXXDCL this call and later will not free the connection obj
+		 * because it has two refcnts, one for existing plus one
+		 * for the tie to h->outer.  This does not seem right to me.
+		 */
+		OBJECT_DEREF(&obj, "omapi_connection_toserver");
+		return (result);
 	}
 
+#if 0 /*XXXDCL*/
 	/*
 	 * Set the SO_REUSEADDR flag (this should not fail).
 	 */
 	flag = 1;
 	if (setsockopt(obj->socket, SOL_SOCKET, SO_REUSEADDR,
 		       (char *)&flag, sizeof(flag)) < 0) {
-		omapi_object_dereference((omapi_object_t **)&obj,
-					 "omapi_connect");
+		OBJECT_DEREF(&obj, "omapi_connect");
 		return (ISC_R_UNEXPECTED);
 	}
+#endif
 
-	/*
-	 * Try to connect to the one IP address we were given, or any of
-	 * the IP addresses listed in the host's A RR.
-	 */
-	while (connect(obj->socket, ((struct sockaddr *)&obj->remote_addr),
-		       sizeof(obj->remote_addr)) < 0) {
-		if (he == NULL || he->h_addr_list[hix] == NULL) {
-			omapi_object_dereference((omapi_object_t **)&obj,
-						 "omapi_connect");
-			if (errno == ECONNREFUSED)
-				return (ISC_R_CONNREFUSED);
-			if (errno == ENETUNREACH)
-				return (ISC_R_NETUNREACH);
-			return (ISC_R_UNEXPECTED);
-		}
-		memcpy(&obj->remote_addr.sin_addr, he->h_addr_list[hix++],
-		       sizeof(obj->remote_addr.sin_addr));
-	}
-
-	obj->state = omapi_connection_connected;
-
-	/*
-	 * I don't know why this would fail, so I'm tempted not to test
-	 * the return value.
-	 */
-	hix = sizeof(obj->local_addr);
-	if (getsockname(obj->socket, (struct sockaddr *)&obj->local_addr,
-			&hix) < 0)
-		result = ISC_R_UNEXPECTED;
-	else	
-		result = ISC_R_SUCCESS;
-
-	if (result == ISC_R_SUCCESS)
-		if (fcntl(obj->socket, F_SETFL, O_NONBLOCK) < 0)
-			result = ISC_R_UNEXPECTED;
-
-	if (result == ISC_R_SUCCESS)
-		result = omapi_register_io_object((omapi_object_t *)obj,
-						  omapi_connection_readfd,
-						  omapi_connection_writefd,
-						  omapi_connection_reader,
-						  omapi_connection_writer,
-						  omapi_connection_reaper);
-
+	result = isc_socket_connect(obj->socket, &sockaddr, task,
+				    omapi_connection_connect, obj);
 	if (result != ISC_R_SUCCESS)
-		omapi_object_dereference((omapi_object_t **)&obj,
-					 "omapi_connect");
-
+ 		OBJECT_DEREF(&obj, "omapi_connection_toserver");
 	return (result);
 }
 
@@ -168,21 +219,21 @@ omapi_connect(omapi_object_t *c, const char *server_name, int port) {
  */
 
 void
-omapi_disconnect(omapi_object_t *h, isc_boolean_t force) {
-	omapi_connection_object_t *c;
+omapi_disconnect(omapi_object_t *generic, isc_boolean_t force) {
+	omapi_connection_object_t *connection;
 
-	REQUIRE(h != NULL);
+	REQUIRE(generic != NULL);
 
-	c = (omapi_connection_object_t *)h;
+	connection = (omapi_connection_object_t *)generic;
 
-	REQUIRE(c->type == omapi_type_connection);
+	REQUIRE(connection->type == omapi_type_connection);
 
 	if (! force) {
 		/*
 		 * If we're already disconnecting, we don't have to do
 		 * anything.
 		 */
-		if (c->state == omapi_connection_disconnecting)
+		if (connection->state == omapi_connection_disconnecting)
 			return;
 
 		/*
@@ -191,84 +242,48 @@ omapi_disconnect(omapi_object_t *h, isc_boolean_t force) {
 		 * the shutdown succeeds, and we still have bytes left to
 		 * write, defer closing the socket until that's done.
 		 */
-		if (shutdown(c->socket, SHUT_RD) == 0) {
-			if (c->out_bytes > 0) {
-				c->state = omapi_connection_disconnecting;
-				return;
-			}
+		if (connection->out_bytes > 0) {
+#if 0 /*XXXDCL*/
+			isc_socket_shutdown(connection->socket,
+					    ISC_SOCKSHUT_RECV); 
+#else
+			isc_socket_cancel(connection->socket, NULL,
+					  ISC_SOCKCANCEL_RECV);
+#endif
+			connection->state = omapi_connection_disconnecting;
+			return;
 		}
 	}
 
-	close(c->socket);
-	c->state = omapi_connection_closed;
+	isc_task_shutdown(connection->task);
+	connection->state = omapi_connection_closed;
 
 	/*
 	 * Disconnect from I/O object, if any.
 	 */
-	if (h->outer != NULL)
-		omapi_object_dereference(&h->outer, "omapi_disconnect");
+	if (connection->outer != NULL)
+		OBJECT_DEREF(&connection->outer, "omapi_disconnect");
 
 	/*
 	 * If whatever created us registered a signal handler, send it
 	 * a disconnect signal.
 	 */
-	omapi_signal(h, "disconnect", h);
+	omapi_signal(generic, "disconnect", generic);
 }
 
 isc_result_t
-omapi_connection_require(omapi_object_t *h, unsigned int bytes) {
-	omapi_connection_object_t *c;
+omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
+	omapi_connection_object_t *connection;
 
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
+	REQUIRE(generic != NULL && generic->type == omapi_type_connection);
 
-	c = (omapi_connection_object_t *)h;
+	connection = (omapi_connection_object_t *)generic;
 
-	c->bytes_needed = bytes;
-	if (c->bytes_needed <= c->in_bytes)
+	connection->bytes_needed = bytes;
+	if (connection->bytes_needed <= connection->in_bytes)
 		return (ISC_R_SUCCESS);
 
 	return (ISC_R_NOTYET);
-}
-
-/*
- * Return the socket on which the dispatcher should wait for readiness
- * to read, for a connection object.   If we already have more bytes than
- * we need to do the next thing, and we have at least a single full input
- * buffer, then don't indicate that we're ready to read.
- */
-int
-omapi_connection_readfd(omapi_object_t *h) {
-	omapi_connection_object_t *c;
-
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
-
-	c = (omapi_connection_object_t *)h;
-
-	if (c->state != omapi_connection_connected)
-		return (-1);
-	if (c->in_bytes >= OMAPI_BUFFER_SIZE - 1 &&
-	    c->in_bytes > c->bytes_needed)
-		return (-1);
-	return (c->socket);
-}
-
-/*
- * Return the socket on which the dispatcher should wait for readiness
- * to write, for a connection object.   If there are no bytes buffered
- * for writing, then don't indicate that we're ready to write.
- */
-int
-omapi_connection_writefd(omapi_object_t *h) {
-	omapi_connection_object_t *c;
-
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
-
-	c = (omapi_connection_object_t *)h;
-
-	if (c->out_bytes)
-		return (c->socket);
-	else
-		return (-1);
 }
 
 /*
@@ -329,7 +344,7 @@ omapi_connection_destroy(omapi_object_t *h, const char *name) {
 		omapi_disconnect(h, OMAPI_FORCE_DISCONNECT);
 
 	if (c->listener != NULL)
-		omapi_object_dereference(&c->listener, name);
+		OBJECT_DEREF(&c->listener, name);
 }
 
 isc_result_t
