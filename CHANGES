@@ -1,3 +1,6 @@
+
+	--- 9.2.3rc1 released ---
+
 1497.	[protocol]	dig, nslookup and host now perform nibble lookups
 			under IP6.ARPA, use -i for IP6.INT (dig and host).
 			lwres now uses IP6.ARPA.
