@@ -15,12 +15,21 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.21 2001/09/05 21:05:36 bwelling Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.22 2001/10/03 05:08:32 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
  * See netintro(4).
  */
+
+#ifndef ISC_PLATFORM_HAVELIFCONF
+/*
+ * HP uses these differently to Sun.
+ */
+#undef SIOCGLIFCONF
+#undef SIOCGLIFADDR
+#endif
+
 #ifndef SIOCGLIFCONF
 #define SIOCGLIFCONF SIOCGIFCONF
 #define lifc_len ifc_len

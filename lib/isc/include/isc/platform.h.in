@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.24 2001/07/18 08:15:21 marka Exp $ */
+/* $Id: platform.h.in,v 1.25 2001/10/03 05:08:30 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -146,6 +146,12 @@
  * Define if your compiler supports "long long int".
  */
 @ISC_PLATFORM_HAVELONGLONG@
+
+/*
+ * Define if the system has struct lifconf which is a extended struct ifconf
+ * for IPv6.
+ */
+@ISC_PLATFORM_HAVELIFCONF@
 
 /*
  * Used to control how extern data is linked; needed for Win32 platforms.
