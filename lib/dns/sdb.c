@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.3 2000/08/22 01:27:27 gson Exp $ */
+/* $Id: sdb.c,v 1.4 2000/08/22 17:32:07 gson Exp $ */
 
 #include <config.h>
 
@@ -147,7 +147,8 @@ dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
 		 dns_sdbdestroyfunc_t destroy, void *driverdata,
 		 unsigned int flags)
 {
-	int i, slot;
+	int i;
+	int slot = -1;
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
 	REQUIRE(drivername != NULL);
@@ -171,6 +172,7 @@ dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
 			return (ISC_R_NOSPACE);
 		}
 	}
+	INSIST(slot >= 0 && slot < MAXSDBIMP);
 	imps[slot].drivername = drivername;
 	imps[slot].lookup = lookup;
 	imps[slot].authority = authority;
