@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.74 2000/12/22 00:26:33 bwelling Exp $ */
+/* $Id: mem.c,v 1.75 2000/12/22 18:30:26 gson Exp $ */
 
 #include <config.h>
 
@@ -33,7 +33,7 @@
 #include <isc/mutex.h>
 #include <isc/util.h>
 
-unsigned int isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+unsigned int isc_mem_debugging = 0;
 
 /*
  * Constants.
