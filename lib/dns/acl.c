@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.11 2000/06/22 21:54:16 tale Exp $ */
+/* $Id: acl.c,v 1.11.2.1 2000/08/11 02:13:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -242,6 +242,8 @@ destroy(dns_acl_t *dacl) {
 	if (dacl->elements != NULL)
 		isc_mem_put(dacl->mctx, dacl->elements,
 			    dacl->alloc * sizeof(dns_aclelement_t));
+	if (dacl->name != NULL)
+		isc_mem_free(dacl->mctx, dacl->name);
 	dacl->magic = 0;
 	isc_mem_put(dacl->mctx, dacl, sizeof(*dacl));
 }

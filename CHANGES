@@ -1,3 +1,5 @@
+ 386.	[bug]		Missing strdup() of ACL name caused random
+			ACL matching failures [RT #228].
 
 	--- 9.0.0rc2 released ---
 
