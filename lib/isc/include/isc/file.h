@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.18 2001/05/08 19:47:54 gson Exp $ */
+/* $Id: file.h,v 1.19 2001/05/31 10:53:13 tale Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -24,6 +24,39 @@
 
 #include <isc/lang.h>
 #include <isc/types.h>
+
+/*
+ * Definitions for the isc_file_test() 'what' argument.
+ *
+ * Notes:
+ *	ISC_FILE_EXISTS tests for existence, but not type.  It can fail
+ *	if the user does not have sufficient permissions to explore the
+ *	full path of the file.
+ *
+ *	ISC_FILE_ABSOLUTE tests for pathnames that start from the root
+ *	of a filesystem hierarchy.
+ *
+ * 	ISC_FILE_CURRENTDIR is an extremely simplistic test.  On Unix systems,
+ *	it only returns true if the pathname is ".".  It will return false
+ *	for "subdir/..", for example.
+ *
+ * Unimplemented, perhaps desirable:
+ *	ISC_FILE_REGULAR
+ *	ISC_FILE_DIRECTORY
+ *	ISC_FILE_SYMLINK
+ *	ISC_FILE_SPECIAL
+ *		ISC_FILE_BLOCK ?
+ *		ISC_FILE_CHARACTER ?
+ *		ISC_FILE_PIPE ?
+ *		ISC_FILE_SOCKET ?
+ * 	ISC_FILE_READABLE
+ *	ISC_FILE_WRITABLE
+ *	ISC_FILE_RUNABLE
+ *	ISC_FILE_EMPTY
+ */
+#define ISC_FILE_EXISTS		0x00000001
+#define ISC_FILE_ABSOLUTE	0x00000002
+#define ISC_FILE_CURRENTDIR	0x00000004
 
 ISC_LANG_BEGINDECLS
 
@@ -163,6 +196,26 @@ isc_result_t
 isc_file_rename(const char *oldname, const char *newname);
 /*
  * Rename the file 'oldname' to 'newname'.
+ */
+
+isc_boolean_t
+isc_file_test(const char *filename, isc_uint32_t what);
+/*
+ * Test for various file attributes, such as existence or writability.
+ *
+ * Notes:
+ *	This is like the Unix shell test(1) command.
+ *
+ *	If more than one test is specified in 'what' then ALL
+ *	of them must be true for ISC_TRUE to be returned.
+ *	To test instead for traits that can be independently true,
+ *	use multiple calls to isc_file_test().
+ *
+ *	Functionality is being added only as it is needed.  See the list
+ *	at the start of the file for which tests have been implemented.
+ *
+ *	It is intended that this function will supersede both
+ *	isc_file_isabsolute() and isc_file_iscurrentdir().
  */
 
 isc_boolean_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.33 2001/05/08 19:47:55 gson Exp $ */
+/* $Id: file.c,v 1.34 2001/05/31 10:53:14 tale Exp $ */
 
 #include <config.h>
 
@@ -226,6 +226,36 @@ isc_file_rename(const char *oldname, const char *newname) {
 }
 
 isc_boolean_t
+isc_file_test(const char *pathname, isc_uint32_t what) {
+	isc_boolean_t tf = ISC_TRUE;
+	isc_result_t result;
+	struct stat stats;
+
+	INSIST(what != 0);
+	INSIST((what & ~(ISC_FILE_EXISTS |
+			 ISC_FILE_ABSOLUTE |
+			 ISC_FILE_CURRENTDIR))
+	       == 0);
+
+	if ((what & ISC_FILE_EXISTS) != 0) {
+		/*
+		 * When file type tests are implemented, only one
+		 * file_stats() should be done.
+		 */
+		result = file_stats(pathname, &stats);
+		tf = ISC_TF(tf && result == ISC_R_SUCCESS);
+	}
+
+	if ((what & ISC_FILE_ABSOLUTE) != 0)
+		tf = ISC_TF(tf && pathname[0] == '/');
+
+	if ((what & ISC_FILE_CURRENTDIR) != 0)
+		tf = ISC_TF(tf && pathname[0] == '.' && pathname[1] == '\0');
+
+	return (tf);
+}
+
+isc_boolean_t
 isc_file_isabsolute(const char *filename) {
 	return (ISC_TF(filename[0] == '/'));
 }
@@ -242,6 +272,7 @@ isc_file_basename(const char *filename) {
 	s = strrchr(filename, '/');
 	if (s == NULL)
 		return (filename);
+
 	return (s + 1);
 }
 
@@ -249,8 +280,10 @@ isc_result_t
 isc_file_progname(const char *filename, char *buf, size_t buflen) {
 	const char *base = isc_file_basename(filename);
 	size_t len = strlen(base) + 1;
+
 	if (len > buflen)
 		return (ISC_R_NOSPACE);
 	memcpy(buf, base, len);
+
 	return (ISC_R_SUCCESS);
 }
