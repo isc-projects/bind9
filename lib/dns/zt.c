@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.33.2.2 2004/03/09 06:11:11 marka Exp $ */
+/* $Id: zt.c,v 1.33.2.3 2004/04/15 01:38:09 marka Exp $ */
 
 #include <config.h>
 
@@ -148,7 +148,7 @@ dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
 	result = dns_rbt_findname(zt->table, name, rbtoptions, foundname,
-				  (void **)&dummy);
+				  (void **) (void*)&dummy);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		dns_zone_attach(dummy, zonep);
 

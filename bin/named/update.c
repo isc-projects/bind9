@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.6 2004/03/09 06:09:20 marka Exp $ */
+/* $Id: update.c,v 1.88.2.7 2004/04/15 01:38:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1892,11 +1892,11 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event->ev_arg = evclient;
 
 	dns_zone_gettask(zone, &zonetask);
-	isc_task_send(zonetask, (isc_event_t **)&event);
+	isc_task_send(zonetask, (isc_event_t **) (void *)&event);
 
  failure:
 	if (event != NULL)
-		isc_event_free((isc_event_t **)&event);
+		isc_event_free((isc_event_t **) (void *)&event);
 	return (result);
 }
 
@@ -2529,7 +2529,7 @@ forward_fail(isc_task_t *task, isc_event_t *event) {
 
 	respond(client, DNS_R_SERVFAIL);
 	ns_client_detach(&client);
-	isc_event_free((isc_event_t **)&event);
+	isc_event_free(&event);
 }
 
 
@@ -2547,7 +2547,7 @@ forward_callback(void *arg, isc_result_t result, dns_message_t *answer) {
 		uev->ev_action = forward_done;
 		uev->answer = answer;
 	}
-	isc_task_send(client->task, (isc_event_t**)&uev);
+	isc_task_send(client->task, (isc_event_t **) (void *)&uev);
 }
 
 static void
@@ -2559,7 +2559,7 @@ forward_done(isc_task_t *task, isc_event_t *event) {
 
 	ns_client_sendraw(client, uev->answer);
 	dns_message_destroy(&uev->answer);
-	isc_event_free((isc_event_t **)&event);
+	isc_event_free(&event);
 	ns_client_detach(&client);
 }
 
@@ -2601,10 +2601,10 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	event->ev_arg = evclient;
 
 	dns_zone_gettask(zone, &zonetask);
-	isc_task_send(zonetask, (isc_event_t **)&event);
+	isc_task_send(zonetask, (isc_event_t **) (void *)&event);
 
  failure:
 	if (event != NULL)
-		isc_event_free((isc_event_t **)&event);
+		isc_event_free((isc_event_t **) (void *)&event);
 	return (result);
 }
