@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.13 1999/10/26 19:43:25 bwelling Exp $
+ * $Id: hmac_link.c,v 1.14 1999/10/27 16:52:55 bwelling Exp $
  */
 
 #include <config.h>
@@ -130,7 +130,7 @@ dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
 	isc_result_t ret;
 	void *ctx;
 
-	if (!(mode & DST_SIGMODE_ALL))
+	if ((mode & DST_SIGMODE_ALL) != DST_SIGMODE_ALL)
 		REQUIRE(context != NULL);
 	else
 		context = &ctx;
@@ -195,7 +195,7 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 	isc_result_t ret;
 	void *ctx;
 
-	if (!(mode & DST_SIGMODE_ALL))
+	if ((mode & DST_SIGMODE_ALL) != DST_SIGMODE_ALL)
 		REQUIRE(context != NULL);
 	else
 		context = &ctx;
