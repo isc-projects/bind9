@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.4 2003/08/13 06:51:32 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.5 2003/08/25 01:44:12 marka Exp $
  */
 
 #include <config.h>
@@ -40,11 +40,12 @@
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
+#include <dns/keyvalues.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
+#include <dns/ttl.h>
 #include <dns/types.h>
-#include <dns/keyvalues.h>
 
 #include <dst/result.h>
 
@@ -841,6 +842,9 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	char *newfilename;
 	unsigned int newfilenamelen;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
+	isc_lexspecials_t specials;
+	isc_uint32_t ttl;
+	isc_result_t result;
 
 	newfilenamelen = strlen(filename) + 5;
 	newfilename = isc_mem_get(mctx, newfilenamelen);
@@ -859,6 +863,13 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	ret = isc_lex_create(mctx, 1500, &lex);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
+
+	memset(specials, 0, sizeof(specials));
+	specials['('] = 1;
+	specials[')'] = 1;
+	specials['"'] = 1;
+	isc_lex_setspecials(lex, specials);
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
 	ret = isc_lex_openfile(lex, newfilename);
 	if (ret != ISC_R_SUCCESS)
@@ -891,7 +902,8 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	NEXTTOKEN(lex, opt, &token);
 
 	/* If it's a TTL, read the next one */
-	if (token.type == isc_tokentype_number)
+	result = dns_ttl_fromtext(&token.value.as_textregion, &ttl);
+	if (result == ISC_R_SUCCESS)
 		NEXTTOKEN(lex, opt, &token);
 
 	if (token.type != isc_tokentype_string)
