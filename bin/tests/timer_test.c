@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -63,9 +64,9 @@ tick(isc_task_t *task, isc_event_t *event)
 		isc_time_add(&now, &interval, &expires);
 		isc_interval_set(&interval, 4, 0);
 		printf("*** resetting ti3 ***\n");
-		INSIST(isc_timer_reset(ti3, isc_timertype_once, &expires,
-				       &interval, ISC_TRUE)
-		       == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_timer_reset(ti3, isc_timertype_once,
+					      &expires, &interval, ISC_TRUE) ==
+			      ISC_R_SUCCESS);
 	}
 
 	isc_event_free(&event);
@@ -110,17 +111,20 @@ main(int argc, char *argv[]) {
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 	       ISC_R_SUCCESS);
-	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 
-	INSIST(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t1, shutdown_task, "1") == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t2, shutdown_task, "2") == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t3, shutdown_task, "3") == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t1, shutdown_task, "1") ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t2, shutdown_task, "2") ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t3, shutdown_task, "3") ==
+		      ISC_R_SUCCESS);
 
 	printf("task 1: %p\n", t1);
 	printf("task 2: %p\n", t2);
@@ -130,18 +134,20 @@ main(int argc, char *argv[]) {
 
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, 2, 0);
-	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
-				t2, timeout, "2", &ti2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, &expires,
+				       &interval, t2, timeout, "2", &ti2) ==
+		      ISC_R_SUCCESS);
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, 1, 0);
-	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker,
 				&expires, &interval,
 				t1, tick, "1", &ti1) == ISC_R_SUCCESS);
 	isc_interval_set(&interval, 10, 0);
 	isc_time_add(&now, &interval, &expires);
 	isc_interval_set(&interval, 2, 0);
-	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
-				t3, timeout, "3", &ti3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, &expires,
+				       &interval, t3, timeout, "3", &ti3) ==
+		      ISC_R_SUCCESS);
 
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);

@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -78,35 +79,40 @@ main(int argc, char *argv[]) {
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
-	       ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
+		      ISC_R_SUCCESS);
 
-	INSIST(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, 0, &t4) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t4) == ISC_R_SUCCESS);
 
-	INSIST(isc_task_onshutdown(t1, my_shutdown, "1") == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t2, my_shutdown, "2") == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t3, my_shutdown, "3") == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t4, my_shutdown, "4") == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t1, my_shutdown, "1") ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t2, my_shutdown, "2") ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t3, my_shutdown, "3") ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t4, my_shutdown, "4") ==
+		      ISC_R_SUCCESS);
 
 	timgr = NULL;
-	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 	ti1 = NULL;
 	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
-	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker,
 				&absolute, &interval,
 				t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
 	ti2 = NULL;
 	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
-	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
-				&absolute, &interval,
-				t2, my_tick, "bar", &ti2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker,
+				       &absolute, &interval,
+				       t2, my_tick, "bar", &ti2) ==
+		      ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);

@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -275,15 +276,17 @@ main(int argc, char *argv[])
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
-	       ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
+		      ISC_R_SUCCESS);
 
-	INSIST(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t1, my_shutdown, "1") == ISC_R_SUCCESS);
-	INSIST(isc_task_onshutdown(t2, my_shutdown, "2") == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t1, my_shutdown, "1") ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_onshutdown(t2, my_shutdown, "2") ==
+		      ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
@@ -291,12 +294,12 @@ main(int argc, char *argv[])
 	/*
 	 * create the timer we'll need
 	 */
-	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 
 	(void)isc_time_get(&now);
 
 	socketmgr = NULL;
-	INSIST(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	/*
 	 * open up a listener socket
@@ -307,21 +310,22 @@ main(int argc, char *argv[])
 	sockaddr.type.sin.sin_family = AF_INET;
 	sockaddr.type.sin.sin_port = htons(5544);
 	addrlen = sizeof(struct sockaddr_in);
-	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
-				 &so1) == ISC_R_SUCCESS);
-	INSIST(isc_socket_bind(so1, &sockaddr,
-			       (int)addrlen) == ISC_R_SUCCESS);
-	INSIST(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp, &so1) ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_bind(so1, &sockaddr,
+				      (int)addrlen) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
 
 	/*
 	 * queue up the first accept event
 	 */
-	INSIST(isc_socket_accept(so1, t1, my_listen,
-				 "so1") == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_accept(so1, t1, my_listen,
+					"so1") == ISC_R_SUCCESS);
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, 10, 0);
-	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
-				t1, timeout, so1, &ti1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, &expires,
+				       &interval, t1, timeout, so1, &ti1) ==
+		      ISC_R_SUCCESS);
 
 	/*
 	 * open up a socket that will connect to www.flame.org, port 80.
@@ -334,10 +338,10 @@ main(int argc, char *argv[])
 	sockaddr.type.sin.sin_family = AF_INET;
 	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.184.97");
 	addrlen = sizeof(struct sockaddr_in);
-	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
-				 &so2) == ISC_R_SUCCESS);
-	INSIST(isc_socket_connect(so2, &sockaddr, (int)addrlen, t1, my_connect,
-				  "so2") == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp,
+					&so2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, (int)addrlen, t1,
+					 my_connect, "so2") == ISC_R_SUCCESS);
 
 	sleep(1);
 

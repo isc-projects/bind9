@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/result.h>
 #include <isc/symtab.h>
 
@@ -64,9 +65,9 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	INSIST(isc_symtab_create(mctx, 691, undefine_action, case_sensitive,
-				 &st) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_symtab_create(mctx, 691, undefine_action,
+					case_sensitive, &st) == ISC_R_SUCCESS);
 
 	while (gets(s) != NULL) {
 		len = strlen(s);

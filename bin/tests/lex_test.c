@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/lex.h>
 
 isc_mem_t *mctx;
@@ -64,7 +65,8 @@ print_token(isc_token_t *tokenp, FILE *stream) {
 		fprintf(stream, "SPECIAL %c", tokenp->value.as_char);
 		break;
 	default:
-		INSIST(0);
+		FATAL_ERROR(__FILE__, __LINE__, "Unexpected type %d",
+			    tokenp->type);
 	}
 }
 
@@ -96,9 +98,8 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	INSIST(isc_lex_create(mctx, 256, &lex) ==
-	       ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_lex_create(mctx, 256, &lex) == ISC_R_SUCCESS);
 
 	if (masterfile) {
 		/* Set up to lex DNS master file. */
@@ -131,7 +132,7 @@ main(int argc, char *argv[]) {
 					  ISC_LEXCOMMENT_SHELL));
 	}
 
-	INSIST(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
 
 	while ((result = isc_lex_gettoken(lex, options, &token)) ==
 	       ISC_R_SUCCESS) {
