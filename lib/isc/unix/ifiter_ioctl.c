@@ -68,8 +68,7 @@ struct isc_interfaceiter {
 #define IFCONF_BUFSIZE_MAX	1048576
 
 isc_result_t
-isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
-{
+isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_interfaceiter_t *iter;
 	isc_result_t result;
 
@@ -84,7 +83,9 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 	iter->mctx = mctx;
 	iter->buf = NULL;
 
-	/* Create an unbound datagram socket to do the SIOCGLIFADDR ioctl on. */
+	/*
+	 * Create an unbound datagram socket to do the SIOCGLIFADDR ioctl on.
+	 */
 	if ((iter->socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "making interface scan socket: %s",
@@ -115,15 +116,23 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 #endif
 		iter->ifc.lifc_len = iter->bufsize;
 		iter->ifc.lifc_buf = iter->buf;
-		if (ioctl(iter->socket, SIOCGLIFCONF, (char *) &iter->ifc) == -1) {
+		/*
+		 * Ignore the HP/UX warning about "interger overflow during
+		 * conversion.  It comes from its own macro definition,
+		 * and is really hard to shut up.
+		 */
+		if (ioctl(iter->socket, SIOCGLIFCONF, (char *)&iter->ifc)
+		    == -1) {
 			if (errno != EINVAL) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "get interface configuration: %s",
+					     "get interface configuration: %s",
 						 strerror(errno));
 				result = ISC_R_UNEXPECTED;
 				goto ioctl_failure;
 			}
-			/* EINVAL.  Retry with a bigger buffer. */
+			/*
+			 * EINVAL.  Retry with a bigger buffer.
+			 */
 		} else {
 			/*
 			 * The ioctl succeeded.
@@ -207,10 +216,17 @@ internal_current(isc_interfaceiter_t *iter) {
 	get_addr(family, &iter->current.address,
 		 (struct sockaddr *)&lifreq.lifr_addr);
 
-	/* Get interface flags. */
+	/*
+	 * Get interface flags.
+	 */
 
 	iter->current.flags = 0;
 	
+	/*
+	 * Ignore the HP/UX warning about "interger overflow during
+	 * conversion.  It comes from its own macro definition,
+	 * and is really hard to shut up.
+	 */
 	if (ioctl(iter->socket, SIOCGLIFFLAGS, (char *) &lifreq) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, 
 				 "%s: getting interface flags: %s",
@@ -228,9 +244,17 @@ internal_current(isc_interfaceiter_t *iter) {
 	if ((lifreq.lifr_flags & IFF_LOOPBACK) != 0)
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
 
-	/* If the interface is point-to-point, get the destination address. */
+	/*
+	 * If the interface is point-to-point, get the destination address.
+	 */
 	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
-		if (ioctl(iter->socket, SIOCGLIFDSTADDR, (char *) &lifreq) < 0) {
+		/*
+		 * Ignore the HP/UX warning about "interger overflow during
+		 * conversion.  It comes from its own macro definition,
+		 * and is really hard to shut up.
+		 */
+		if (ioctl(iter->socket, SIOCGLIFDSTADDR, (char *)&lifreq)
+		    < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__, 
 					 "%s: getting destination address: %s",
 					 lifreq.lifr_name,
@@ -241,12 +265,20 @@ internal_current(isc_interfaceiter_t *iter) {
 			 (struct sockaddr *)&lifreq.lifr_dstaddr);
 	}
 
-	/* Get the network mask. */ 
+	/*
+	 * Get the network mask.
+	 */ 
 	memset(&lifreq, 0, sizeof lifreq);
 	memcpy(&lifreq, ifrp, sizeof lifreq);
 	switch (family) {
 	case AF_INET:
-		if (ioctl(iter->socket, SIOCGLIFNETMASK, (char *) &lifreq) < 0) {
+		/*
+		 * Ignore the HP/UX warning about "interger overflow during
+		 * conversion.  It comes from its own macro definition,
+		 * and is really hard to shut up.
+		 */
+		if (ioctl(iter->socket, SIOCGLIFNETMASK, (char *)&lifreq)
+		    < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "%s: getting netmask: %s",
 					 lifreq.lifr_name,
@@ -260,7 +292,9 @@ internal_current(isc_interfaceiter_t *iter) {
 #ifdef lifr_addrlen
 		int i, bits;
 
-		/* netmask already zeroed */
+		/*
+		 * Netmask already zeroed.
+		 */
 		iter->current.netmask.family = family;
 		for (i = 0 ; i < lifreq.lifr_addrlen; i += 8) {
 			bits = lifreq.lifr_addrlen - i;
@@ -270,7 +304,7 @@ internal_current(isc_interfaceiter_t *iter) {
 		}
 #endif
 		break;
-		}
+	}
 	}
 	
 	return (ISC_R_SUCCESS);
