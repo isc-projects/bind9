@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.172 2001/01/09 22:10:32 gson Exp $ */
+/* $Id: query.c,v 1.173 2001/01/09 23:48:44 gson Exp $ */
 
 #include <config.h>
 
@@ -3781,6 +3781,18 @@ synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event) {
 
 	if (bevent->result == ISC_R_SUCCESS) {
 		synth_rev_respond(client, bevent);
+	} else if (bevent->result == DNS_R_NCACHENXDOMAIN ||
+		   bevent->result == DNS_R_NCACHENXRRSET ||
+		   bevent->result == DNS_R_NXDOMAIN ||
+		   bevent->result == DNS_R_NXRRSET) {
+		/*
+		 * We could give a NOERROR/NODATA response instead
+		 * in some cases, but since there may be any combination
+		 * of NXDOMAIN and NXRRSET results from the IP6.INT
+		 * and IP6.ARPA lookups, it could still be wrong with
+		 * respect to one or the other.
+		 */
+		synth_finish(client, DNS_R_NXDOMAIN);
 	} else {
 		synth_finish(client, bevent->result);
 	}
