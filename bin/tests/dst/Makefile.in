@@ -22,25 +22,30 @@ CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
 		-I${srcdir}/../../../lib/isc/include \
 		-I${srcdir}/../../../lib/dns/include \
 		-I${srcdir}/../../../lib/dns/sec/dst/include \
+		-I${srcdir}/../../../lib/tests/include
 
 CDEFINES =
 CWARNINGS =
 
 LIBS =		../../../lib/dns/libdns.@A@ \
 		../../../lib/isc/libisc.@A@ \
+		../../../lib/isc/libt_api.@A@
 		@LIBS@
 
-TARGETS =	dst_test
+TARGETS =	dst_test t_dst
 
-SRCS =		dst_test.c
+SRCS =		dst_test.c t_dst.c
 
 @BIND9_MAKE_RULES@
 
 dst_test: dst_test.o
 	${LIBTOOL} ${CC} -o $@ dst_test.o ${LIBS}
 
+t_dst: t_dst.o
+	${LIBTOOL} ${CC} -o $@ t_dst.o ${LIBS}
+
 test:
-	-@ ./dst_test
+	-@ ./t_dst
 
 clean distclean::
 	rm -f ${TARGETS}
