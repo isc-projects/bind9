@@ -1,3 +1,6 @@
+
+ 562.	[cleanup]	Moved lib/dns/*conf.c to bin/named where they belong.
+
  561.	[func]		The 'datasize', 'stacksize', 'coresize' and 'files'
 			clauses of the options{} statement are now implemented.
 
