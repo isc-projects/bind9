@@ -139,7 +139,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		return (ISC_R_NOSPACE);
 	    
 	isc_buffer_putmem(target, (unsigned char *) abuf, alen);
-	isc_buffer_putmem(target, "#", 1);
+	isc_buffer_putmem(target, (unsigned char *)"#", 1);
 	isc_buffer_putmem(target, (unsigned char *) pbuf, plen);
 
 	/* Null terminate after used region. */
