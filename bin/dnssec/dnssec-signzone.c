@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.1.6.1 2003/02/17 01:15:42 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.1.6.2 2003/02/17 05:49:13 marka Exp $ */
 
 #include <config.h>
 
@@ -1492,7 +1492,7 @@ usage(void) {
 "WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n"
 "WARNING                                                         WARNING\n"
 "WARNING This version of dnssec-signzone produces zones that are WARNING\n"
-"WARNING incompatible with the forth coming DS based DNSSEC      WARNING\n"
+"WARNING incompatible with the forthcoming DS based DNSSEC       WARNING\n"
 "WARNING standard.                                               WARNING\n"
 "WARNING                                                         WARNING\n"
 "WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
