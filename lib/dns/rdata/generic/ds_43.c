@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.2 2002/06/17 04:01:35 marka Exp $ */
+/* $Id: ds_43.c,v 1.3 2002/08/01 03:31:44 mayer Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -62,7 +62,7 @@ fromtext_ds(ARGS_FROMTEXT) {
 	if (token.value.as_ulong > 0xff)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
-	type = token.value.as_ulong;
+	type = (isc_uint16_t) token.value.as_ulong;
 
 	/*
 	 * Digest.
