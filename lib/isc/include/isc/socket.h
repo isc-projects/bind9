@@ -148,10 +148,15 @@ typedef enum {
 
 isc_result_t
 isc_socket_create(isc_socketmgr_t *manager,
+		  int pf,
 		  isc_sockettype_t type,
 		  isc_socket_t **socketp);
 /*
  * Create a new 'type' socket managed by 'manager'.
+ *
+ * Note:
+ *
+ *	'pf' is the desired protocol family, e.g. PF_INET or PF_INET6.
  *
  * Requires:
  *

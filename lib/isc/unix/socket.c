@@ -335,7 +335,7 @@ destroy(isc_socket_t **sockp)
 	LOCK(&manager->lock);
 
 	/*
-	 * Noone has this socket open, so the watcher doesn't have to be
+	 * No one has this socket open, so the watcher doesn't have to be
 	 * poked, and the socket doesn't have to be locked.
 	 */
 	manager->fds[sock->fd] = NULL;
@@ -467,7 +467,7 @@ free_socket(isc_socket_t **socketp)
  * in 'socketp'.
  */
 isc_result_t
-isc_socket_create(isc_socketmgr_t *manager, isc_sockettype_t type,
+isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		  isc_socket_t **socketp)
 {
 	isc_socket_t *sock = NULL;
@@ -484,10 +484,10 @@ isc_socket_create(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	switch (type) {
 	case isc_sockettype_udp:
-		sock->fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
 		break;
 	case isc_sockettype_tcp:
-		sock->fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
 		break;
 	}
 	if (sock->fd < 0) {
