@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.77 2000/07/24 23:13:44 mws Exp $ */
+/* $Id: dig.c,v 1.78 2000/07/25 00:51:14 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -836,6 +836,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (rv[0][2] != 0) {
 				ptr = &rv[0][2];
 			} else {
+				if (rc <= 1) {
+					show_usage();
+					exit (exitcode);
+				}
 				ptr = rv[1];
 				rv++;
 				rc--;
@@ -854,6 +858,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (rv[0][2] != 0) {
 				ptr = &rv[0][2];
 			} else {
+				if (rc <= 1) {
+					show_usage();
+					exit (exitcode);
+				}
 				ptr = rv[1];
 				rv++;
 				rc--;
@@ -879,6 +887,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (rv[0][2] != 0) {
 				batchname = &rv[0][2];
 			} else {
+				if (rc <= 1) {
+					show_usage();
+					exit (exitcode);
+				}
 				batchname = rv[1];
 				rv++;
 				rc--;
@@ -887,6 +899,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (rv[0][2] != 0)
 				ptr = &rv[0][2];
 			else {
+				if (rc <= 1) {
+					show_usage();
+					exit (exitcode);
+				}
 				ptr = rv[1];
 				rv++;
 				rc--;
@@ -907,6 +923,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (rv[0][2] != 0)
 				ptr = &rv[0][2];
 			else {
+				if (rc <= 1) {
+					show_usage();
+					exit (exitcode);
+				}
 				ptr = rv[1];
 				rv++;
 				rc--;
@@ -916,6 +936,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (rv[0][2] != 0) {	
 				port = atoi(&rv[0][2]);
 			} else {
+				if (rc <= 1) {
+					show_usage();
+					exit (exitcode);
+				}
 				port = atoi(rv[1]);
 				rv++;
 				rc--;
@@ -925,6 +949,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				strncpy(address, &rv[0][2],
 					MXRD);
 			} else {
+				if (rc <= 1) {
+					show_usage();
+					exit (exitcode);
+				}
 				strncpy(address, rv[1],
 					MXRD);
 				rv++;
