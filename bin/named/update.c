@@ -1734,6 +1734,7 @@ respond(ns_client_t *client, dns_result_t result) {
 		dns_rcode_noerror : dns_result_torcode(result));
 	response->flags = client->message->flags;
 	response->flags |= DNS_MESSAGEFLAG_QR;
+	response->opcode = client->message->opcode;
 
 	dns_message_destroy(&client->message);
 	client->message = response;
