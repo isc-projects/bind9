@@ -1,4 +1,7 @@
 
+ 698.	[bug]		Aborting nsupdate with ^C would lead to several
+			race conditions.
+
  697.	[bug]		nsupdate was not compatible with the undocumented
 			BIND 8 behavior of ignoring TTLs in "update delete"
 			commands. [RT #693]
