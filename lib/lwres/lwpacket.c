@@ -59,9 +59,9 @@ lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	REQUIRE(b != NULL);
 	REQUIRE(pkt != NULL);
 
-	if (!SPACE_REMAINING(b, LWPACKET_LENGTH))
-		return (-1);
 	space = LWRES_BUFFER_REMAINING(b);
+	if (space < LWPACKET_LENGTH)
+		return (-1);
 
 	pkt->length = lwres_buffer_getuint32(b);
 	if (pkt->length > space)
