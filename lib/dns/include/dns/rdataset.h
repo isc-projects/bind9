@@ -118,6 +118,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_ANSWER		0x0010		/* used by resolver */
 #define DNS_RDATASETATTR_ANSWERSIG	0x0020		/* used by resolver */
 #define DNS_RDATASETATTR_EXTERNAL	0x0040		/* used by resolver */
+#define DNS_RDATASETATTR_NCACHE		0x0080		/* used by resolver */
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
