@@ -18,6 +18,7 @@
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
 
+#include <isc/buffer.h>
 #include <isc/net.h>
 #include <isc/list.h>
 #include <isc/lang.h>
@@ -70,8 +71,17 @@ isc_sockaddr_pf(const isc_sockaddr_t *sockaddr);
  *	The protocol family of 'sockaddr', e.g. PF_INET or PF_INET6.
  */
 
-char * 
-isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_mem_t *mctx);
+isc_result_t
+isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
+/*
+ * Append a text representation of 'sockaddr' to the buffer 'target'.
+ * The text will include both the IP address (v4 or v6) and the port.
+ * The text is not null terminated.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE	The text did not fit.
+ */
 
 ISC_LANG_ENDDECLS
 

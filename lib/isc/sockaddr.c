@@ -102,14 +102,16 @@ isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
 	return (ISC_TRUE);
 }
 
-char *
-isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_mem_t *mctx) {
+isc_result_t
+isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	char abuf[sizeof "xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255"];
+	unsigned int alen;
 	char pbuf[sizeof "65000"];
+	unsigned int plen;
+	isc_region_t avail;
 	const struct sockaddr *sa;
 	const struct sockaddr_in *sin;
 	const struct sockaddr_in6 *sin6;
-	char *res;
 
 	REQUIRE(sockaddr != NULL);
 
@@ -128,13 +130,19 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_mem_t *mctx) {
 	default:
 		return (NULL);
 	}
-	res = isc_mem_get(mctx, strlen(abuf) + strlen(pbuf) + 2);
-	if (res == NULL)
-		return (NULL);
-	strcpy(res, abuf);
-	strcat(res, "#");
-	strcat(res, pbuf);
-	return (res);
+
+	alen = strlen(abuf);
+	plen = strlen(pbuf);
+
+	isc_buffer_available(target, &avail);
+	if (alen + 1 + plen < avail.length)
+		return (ISC_R_NOSPACE);
+	    
+	isc_buffer_putmem(target, abuf, alen);
+	isc_buffer_putmem(target, "#", 1);
+	isc_buffer_putmem(target, pbuf, plen);
+
+	return (ISC_R_SUCCESS);
 }
 
 unsigned int

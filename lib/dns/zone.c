@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.32 1999/10/29 08:37:50 marka Exp $ */
+ /* $Id: zone.c,v 1.33 1999/10/29 23:46:27 gson Exp $ */
 
 #include <config.h>
 
@@ -855,7 +855,6 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_t *address;
 	dns_resolver_t *res;
 	dns_message_t *msg; 
-	char *master;
 
 	REQUIRE(DNS_CHECKSERVERS_VALID(checkservers));
 	state = checkservers->state;
@@ -866,9 +865,6 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 	res = checkservers->res;
 
 	task = task;	/* unused */
-
-	master = isc_sockaddr_totext(&zone->masters[zone->curmaster],
-				     zone->mctx);
 
 	if (devent->result != DNS_R_SUCCESS) {
 		/* timeout */
@@ -1931,7 +1927,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t soacnt, cnamecnt, soacount, nscount;
 	isc_stdtime_t now;
 	char *master;
-	char *unknown = "<UNKNOWN>";
+	isc_buffer_t masterbuf;
+	char mastermem[256];
 	dns_rdataset_t *rdataset;
 	dns_rdata_t rdata;
 	dns_rdata_soa_t soa;
@@ -1945,11 +1942,15 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 * if timeout log and next master;
 	 */
 
-	master = isc_sockaddr_totext(&zone->masters[zone->curmaster],
-				     zone->mctx);
-	if (master == NULL)
-		master = unknown;
-		
+	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem),
+			ISC_BUFFERTYPE_TEXT);
+	result = isc_sockaddr_totext(&zone->masters[zone->curmaster],
+				     &masterbuf);
+	if (result == ISC_R_SUCCESS)
+		master = (char *) buf->base;
+	else
+		master = "<UNKNOWN>";
+	
 	if (devent->result != DNS_R_SUCCESS) {
 		dns_zone_logerror(zone, "refresh: failure for %s: %s",
 				   master, dns_result_totext(devent->result));
@@ -2059,8 +2060,6 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	} else {
 		goto next_master;
 	}
-	if (master != unknown)
-		isc_mem_put(zone->mctx, master, strlen(master) + 1);
 	return;
 
  next_master:
