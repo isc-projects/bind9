@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.212 2004/01/05 06:44:30 marka Exp $ */
+/* $Id: adb.c,v 1.213 2004/02/01 23:56:18 marka Exp $ */
 
 /*
  * Implementation notes
@@ -2957,6 +2957,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 			       ISC_TF(NAME_HINTOK(adbname)),
 			       NULL, NULL, fname, &rdataset, NULL);
 
+	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
