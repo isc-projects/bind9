@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.114 2001/03/09 00:57:19 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.115 2001/03/09 00:59:44 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2270,7 +2270,7 @@ ceiling on log growth. If the file ever exceeds the size, then <command>named</c
 not write anything more to it until the file is reopened; exceeding
 the size does not automatically trigger a reopen. The default behavior
 is not to limit the size of the file.</para>
-<para>If you use the <command>version</command> log file option,
+<para>If you use the <command>versions</command> log file option,
 then <command>named</command> will retain that many backup versions
 of the file by renaming them when opening. For example, if you choose
 to keep 3 old versions of the file <filename>lamers.log</filename> then
@@ -2280,7 +2280,8 @@ renamed to <filename>lamers.log.1</filename>, and <filename>lamers.log</filename
 renamed to <filename>lamers.log.0</filename>. No rolled versions
 are kept by default; any existing log file is simply appended. The <command>unlimited</command> keyword
 is synonymous with <command>99</command> in current <acronym>BIND</acronym> releases.</para>
-<para>Example usage of the size and versions options:</para>
+<para>Example usage of the <command>size</command> and
+<command>versions</command> options:</para>
 
 <programlisting>channel "an_example_channel" {
     file "example.log" versions 3 size 20m;
