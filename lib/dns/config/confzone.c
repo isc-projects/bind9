@@ -677,6 +677,58 @@ dns_c_zone_setallowupd(dns_c_zone_t *zone,
 
 
 isc_result_t
+dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
+				    dns_c_ipmatchlist_t *ipml,
+				    isc_boolean_t deepcopy)
+{
+	dns_c_ipmatchlist_t **p = NULL;
+	isc_result_t res;
+	isc_boolean_t existed;
+	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		p = &zone->u.mzone.allow_update_forwarding;
+		break;
+			
+	case dns_c_zone_slave:
+		p = &zone->u.szone.allow_update_forwarding;
+		break;
+		
+	case dns_c_zone_stub:
+		p = &zone->u.tzone.allow_update_forwarding;
+		break;
+		
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have "
+			      "an allow_update_forwarding field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have an "
+			      "allow_update_forwarding field");
+		return (ISC_R_FAILURE);
+	}
+
+	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
+	
+	res = set_ipmatch_list_field(zone->mem, p,
+				     ipml, deepcopy);
+	if (res == ISC_R_SUCCESS && existed) {
+		res = ISC_R_EXISTS;
+	}
+
+	return (res);
+}
+
+
+isc_result_t
 dns_c_zone_setallowquery(dns_c_zone_t *zone,
 			 dns_c_ipmatchlist_t *ipml,
 			 isc_boolean_t deepcopy)
@@ -1860,6 +1912,55 @@ dns_c_zone_getallowupd(dns_c_zone_t *zone,
 
 
 isc_result_t
+dns_c_zone_getallowupdateforwarding(dns_c_zone_t *zone,
+				    dns_c_ipmatchlist_t **retval)
+{
+	dns_c_ipmatchlist_t *p = NULL;
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		p = zone->u.mzone.allow_update_forwarding;
+		break;
+			
+	case dns_c_zone_slave:
+		p = zone->u.szone.allow_update_forwarding;
+		break;
+		
+	case dns_c_zone_stub:
+		p = zone->u.tzone.allow_update_forwarding;
+		break;
+		
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have an "
+			      "allow_update_forwarding field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have an "
+			      "allow_update_forwarding field");
+		return (ISC_R_FAILURE);
+	}
+
+	if (p != NULL) {
+		dns_c_ipmatchlist_attach(p, retval);
+		res = ISC_R_SUCCESS;
+	} else {
+		res = ISC_R_NOTFOUND;
+	}
+
+	return (res);
+}
+
+
+isc_result_t
 dns_c_zone_getallowquery(dns_c_zone_t *zone,
 			 dns_c_ipmatchlist_t **retval)
 {
@@ -2972,6 +3073,15 @@ master_zone_print(FILE *fp, int indent,
 		fprintf(fp, ";\n");
 	}
 
+	if (mzone->allow_update_forwarding != NULL &&
+	    !ISC_LIST_EMPTY(mzone->allow_update_forwarding->elements)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "allow-update-forwarding ");
+		dns_c_ipmatchlist_print(fp, indent + 1,
+					mzone->allow_update_forwarding);
+		fprintf(fp, ";\n");
+	}
+
 	if (mzone->allow_query != NULL &&
 	    !ISC_LIST_EMPTY(mzone->allow_query->elements)) {
 		dns_c_printtabs(fp, indent);
@@ -3134,6 +3244,15 @@ slave_zone_print(FILE *fp, int indent,
 		fprintf(fp, ";\n");
 	}
 
+	if (szone->allow_update_forwarding != NULL &&
+	    !ISC_LIST_EMPTY(szone->allow_update_forwarding->elements)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "allow-update-forwarding ");
+		dns_c_ipmatchlist_print(fp, indent + 1,
+					szone->allow_update_forwarding);
+		fprintf(fp, ";\n");
+	}
+
 	if (szone->allow_query != NULL &&
 	    !ISC_LIST_EMPTY(szone->allow_query->elements)) {
 		dns_c_printtabs(fp, indent);
@@ -3275,6 +3394,15 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 		fprintf(fp, ";\n");
 	}
 
+	if (tzone->allow_update_forwarding != NULL &&
+	    !ISC_LIST_EMPTY(tzone->allow_update_forwarding->elements)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "allow-update-forwarding ");
+		dns_c_ipmatchlist_print(fp, indent + 1,
+					tzone->allow_update_forwarding);
+		fprintf(fp, ";\n");
+	}
+
 	if (tzone->allow_query != NULL &&
 	    !ISC_LIST_EMPTY(tzone->allow_query->elements)) {
 		dns_c_printtabs(fp, indent);
@@ -3392,6 +3520,7 @@ master_zone_init(dns_c_masterzone_t *mzone)
 	
 	mzone->file = NULL;
 	mzone->allow_update = NULL;
+	mzone->allow_update_forwarding = NULL;
 	mzone->allow_query = NULL;
 	mzone->allow_transfer = NULL;
 	mzone->also_notify = NULL;
@@ -3416,6 +3545,7 @@ slave_zone_init(dns_c_slavezone_t *szone)
 	szone->ixfr_tmp = NULL;
 	szone->master_ips = NULL;
 	szone->allow_update = NULL;
+	szone->allow_update_forwarding = NULL;
 	szone->allow_query = NULL;
 	szone->allow_transfer = NULL;
 	szone->also_notify = NULL;
@@ -3436,6 +3566,7 @@ stub_zone_init(dns_c_stubzone_t *tzone)
 	tzone->file = NULL;
 	tzone->master_ips = NULL;
 	tzone->allow_update = NULL;
+	tzone->allow_update_forwarding = NULL;
 	tzone->allow_query = NULL;
 	tzone->allow_transfer = NULL;
 	tzone->pubkeylist = NULL;
@@ -3532,6 +3663,9 @@ master_zone_clear(isc_mem_t *mem, dns_c_masterzone_t *mzone)
 	if (mzone->allow_update != NULL)
 		dns_c_ipmatchlist_detach(&mzone->allow_update);
 
+	if (mzone->allow_update_forwarding != NULL)
+		dns_c_ipmatchlist_detach(&mzone->allow_update_forwarding);
+
 	if (mzone->allow_query != NULL)
 		dns_c_ipmatchlist_detach(&mzone->allow_query);
 
@@ -3586,6 +3720,9 @@ slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone)
 	if (szone->allow_update != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_update);
 	
+	if (szone->allow_update_forwarding != NULL)
+		dns_c_ipmatchlist_detach(&szone->allow_update_forwarding);
+	
 	if (szone->allow_query != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_query);
 	
@@ -3624,6 +3761,9 @@ stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
 	
 	if (tzone->allow_update != NULL)
 		dns_c_ipmatchlist_detach(&tzone->allow_update);
+	
+	if (tzone->allow_update_forwarding != NULL)
+		dns_c_ipmatchlist_detach(&tzone->allow_update_forwarding);
 	
 	if (tzone->allow_query != NULL)
 		dns_c_ipmatchlist_detach(&tzone->allow_query);
