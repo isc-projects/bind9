@@ -103,10 +103,17 @@ BIND 9.0.0b3
 		Bug fixes.  Most bugs reported against beta 2 have been
 		fixed.
 
-	Known bugs:
+	There are still some known bugs, including:
+
+		The random data used in generating DNSSEC keys and 
+		signatures contains a significant pseudorandom 
+		component and is therefore not cryptographically 
+		strong.  We do not recommend the use of keys generated
+		by the key generation tools in this distribution 
+		in production.
 
 		The option "query-source * port 53;" will not work as
-		expected. Instead of the wildcard address "*", you need 
+		expected.  Instead of the wildcard address "*", you need 
 		to use an explicit source IP address.
 
 	For a detailed list of user-visible changes since beta 2, see
