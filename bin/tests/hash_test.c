@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.8.12.4 2005/03/16 13:41:20 marka Exp $ */
+/* $Id: hash_test.c,v 1.8.12.5 2005/03/16 19:48:01 marka Exp $ */
 
 #include <config.h>
 
@@ -29,12 +29,12 @@
 #include <isc/string.h>
 
 static void
-print_digest(char *s, const char *hash, unsigned char *d,
+print_digest(unsigned char *s, const char *hash, unsigned char *d,
 	     unsigned int words)
 {
 	unsigned int i, j;
 
-	printf("hash (%s) %s:\n\t", hash, s);
+	printf("hash (%s) %s:\n\t", hash, (char *)s);
 	for (i = 0; i < words; i++) {
 		printf(" ");
 		for (j = 0; j < 4; j++)
