@@ -1880,7 +1880,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		goto queue;
 
 	iov.iov_base = (void *)(dev->region.base);
-	iov.iov_len = dev->n;
+	iov.iov_len = dev->region.length;
 
 	memset(&msghdr, 0, sizeof (msghdr));
 	if (sock->type == isc_sockettype_udp) {
