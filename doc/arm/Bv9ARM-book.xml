@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.59 2000/11/30 21:33:22 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.60 2000/12/01 21:37:15 gson Exp $ -->
 
 <book>
 
@@ -3741,14 +3741,21 @@ updates from all hosts.</para></entry>
               </row>
               <row rowsep = "0">
                 <entry colname = "1"><para><command>allow-update-forwarding</command></para></entry>
-                <entry colname = "2"><para>Specifies which hosts are allowed to
+
+<entry colname = "2"><para>Specifies which hosts are allowed to
 submit Dynamic DNS updates to slave zones to be forwarded to the
-master.
-This applies only to unsigned updates.
-Signed updates are always forwarded.
-If there is no acl defined then the server will return NOTIMPL, causing the
-client to skip to the next server.  If an acl is defined and there is no
-match then the default is to deny update forwarding.</para>
+master.  The default is <userinput>{ none; }</userinput>, which 
+means that no update forwarding will be performed.  To enable
+update forwarding, specify  <userinput>allow-update-forwarding { any; };</userinput>.
+Specifying values other than <userinput>{ none; }</userinput> or
+<userinput>{ any; }</userinput> is usually counterproductive, since
+the responsibility for update access control should rest with the 
+master server, not the slaves.</para>
+
+<para>Note that enabling the update forwarding feature on a slave server
+may expose master servers relying on insecure IP address based
+access control to attacks; see <xref linkend="dynamic_update_security">
+for more details.</para>
 </entry>
               </row>
               <row rowsep = "0">
@@ -4609,7 +4616,7 @@ the <command>touch</command> utility (to change file access and
 modification times) or the <command>chown</command> utility (to
 set the user id and/or group id) on files to which you want <acronym>BIND</acronym>
 to write.</para></sect2></sect1>
-<sect1><title>Dynamic Updates</title> 
+<sect1 id="dynamic_update_security"><title>Dynamic Updates</title> 
 <para>Access to the dynamic
 update facility should be strictly limited.  In earlier versions of
 <acronym>BIND</acronym> the only way to do this was based on the IP

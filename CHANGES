@@ -137,7 +137,10 @@
 
  543.	[doc]		The 'port' option is now documented.
 
- 542.	[func]		Add allow-update-forwarding support.
+ 542.	[func]		Add support for update forwarding as required for
+			full compliance with RFC2136.  It is turned off
+			by default and can be enabled using the
+			'allow-update-forwarding' option.
 
  541.	[func]		Add bogus server support.
 

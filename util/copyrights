@@ -522,7 +522,6 @@
 ./bin/tests/system/unknown/ns1/example-in.db	ZONE	2000
 ./bin/tests/system/unknown/ns1/named.conf	CONF-C	2000
 ./bin/tests/system/unknown/tests.sh		SH	2000
-./bin/tests/system/upforwd/README		TXT.BRIEF	2000
 ./bin/tests/system/upforwd/clean.sh		SH	2000
 ./bin/tests/system/upforwd/knowngood.after1	X	2000
 ./bin/tests/system/upforwd/knowngood.after2	X	2000
@@ -537,8 +536,6 @@
 ./bin/tests/system/upforwd/ns3/named.conf	CONF-C	2000
 ./bin/tests/system/upforwd/setup.sh		SH	2000
 ./bin/tests/system/upforwd/tests.sh		SH	2000
-./bin/tests/system/upforwd/update.scp		X	2000
-./bin/tests/system/upforwd/update.scp2		X	2000
 ./bin/tests/system/views/.cvsignore		X	2000
 ./bin/tests/system/views/clean.sh		SH	2000
 ./bin/tests/system/views/ns1/.cvsignore		X	2000

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.74 2000/11/22 02:49:57 gson Exp $ */
+/* $Id: update.c,v 1.75 2000/12/01 21:37:08 gson Exp $ */
 
 #include <config.h>
 
@@ -1889,31 +1889,13 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		if (sigresult != ISC_R_SUCCESS)
 			FAIL(sigresult);
 		CHECK(send_update_event(client, zone));
-		break;	/* OK. */
+		break;
 	case dns_zone_slave:
-		if (dns_message_gettsig(client->message, NULL) == NULL) {
-			dns_acl_t *forwardacl;
-
-			/*
-			 * We only REFUSE if policy is explicitly set and
-			 * we fail to match.
-			 */
-			forwardacl = dns_zone_getforwardacl(zone);
-			if (forwardacl == NULL) {
-				FAILS(DNS_R_NOTIMP,
-				      "unsigned updates not forwarded (noacl)");
-			} else {
-				result = ns_client_checkacl(client,
-							    "update-forward",
-							    forwardacl,
-							    ISC_FALSE,
-							    ISC_LOG_INFO);
-				if (result != ISC_R_SUCCESS)
-					FAIL(DNS_R_REFUSED);
-			}
-		}
+		CHECK(ns_client_checkacl(client, "update forwarding",
+					 dns_zone_getforwardacl(zone),
+					 ISC_FALSE, ISC_LOG_ERROR));
 		CHECK(send_forward_event(client, zone));
-		break;	/* OK. */
+		break;
 	default:
 		FAILC(DNS_R_NOTAUTH,
 		      "not authoritative for update zone");

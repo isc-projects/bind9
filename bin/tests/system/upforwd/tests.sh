@@ -15,22 +15,26 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2000/11/28 03:21:17 marka Exp $ 
+# $Id: tests.sh,v 1.6 2000/12/01 21:37:10 gson Exp $ 
+
+# ns1 = stealth master
+# ns2 = slave with update forwarding disabled; not currently used
+# ns3 = slave with update forwarding enabled
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
 
-echo "I:fetching first copy of zone before update"
+echo "I:fetching master copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
 
-echo "I:fetching second copy of zone before update"
+echo "I:fetching slave 1 copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 
-echo "I:fetching third copy of zone before update"
+echo "I:fetching slave 2 copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 
@@ -40,20 +44,25 @@ $PERL ../digcomp.pl knowngood.before dig.out.ns2 || status=1
 $PERL ../digcomp.pl knowngood.before dig.out.ns3 || status=1
 
 echo "I:updating zone (signed)"
-# nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE -y update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K update.scp > /dev/null
+$NSUPDATE -y update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K -- - <<EOF || status=1
+server 10.53.0.3 5300
+update add updated.example. 600 A 10.10.10.1
+update add updated.example. 600 TXT Foo
+send
+EOF
+
 echo "I:sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
-echo "I:fetching first copy of zone after update"
+echo "I:fetching master copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
 
-echo "I:fetching second copy of zone after update"
+echo "I:fetching slave 1 copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 
-echo "I:fetching third copy of zone after update"
+echo "I:fetching slave 2 copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 
@@ -63,20 +72,25 @@ $PERL ../digcomp.pl knowngood.after1 dig.out.ns2 || status=1
 $PERL ../digcomp.pl knowngood.after1 dig.out.ns3 || status=1
 
 echo "I:updating zone (unsigned)"
-# nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE update.scp2 > /dev/null
+$NSUPDATE -- - <<EOF || status=1
+server 10.53.0.3 5300
+update add unsigned.example. 600 A 10.10.10.1
+update add unsigned.example. 600 TXT Foo
+send
+EOF
+
 echo "I:sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
-echo "I:fetching first copy of zone after update"
+echo "I:fetching master copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
 
-echo "I:fetching second copy of zone after update"
+echo "I:fetching slave 1 copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 
-echo "I:fetching third copy of zone after update"
+echo "I:fetching slave 2 copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.\
 	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 
