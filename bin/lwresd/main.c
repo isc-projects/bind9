@@ -213,7 +213,8 @@ parse_resolv_conf(isc_mem_t *mem) {
 	int i;
 
 	lwctx = NULL;
-	lwresult = lwres_context_create(&lwctx, mem, mem_alloc, mem_free);
+	lwresult = lwres_context_create(&lwctx, mem, mem_alloc, mem_free,
+					LWRES_CONTEXT_SERVERMODE);
 	if (lwresult != LWRES_R_SUCCESS)
 		return;
 
@@ -404,7 +405,8 @@ main(int argc, char **argv) {
 		cmgr[i].mctx = mem;
 		cmgr[i].lwctx = NULL;
 		result = lwres_context_create(&cmgr[i].lwctx, mem,
-					      mem_alloc, mem_free);
+					      mem_alloc, mem_free,
+					      LWRES_CONTEXT_SERVERMODE);
 		if (result != ISC_R_SUCCESS) {
 			isc_task_detach(&cmgr[i].task);
 			break;

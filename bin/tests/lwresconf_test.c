@@ -71,9 +71,9 @@ main(int argc, char *argv[]) {
 
 	ctx = NULL;
 #ifdef USE_ISC_MEM
-	ret = lwres_context_create(&ctx, mem, mem_alloc, mem_free);
+	ret = lwres_context_create(&ctx, mem, mem_alloc, mem_free, 0);
 #else
-	ret = lwres_context_create(&ctx, NULL, NULL, NULL);
+	ret = lwres_context_create(&ctx, NULL, NULL, NULL, 0);
 #endif
 	CHECK(ret, "lwres_context_create");
 

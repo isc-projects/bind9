@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.21 2000/06/15 21:52:21 explorer Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.22 2000/06/15 23:48:07 explorer Exp $
  */
 
 #include <config.h>
@@ -417,7 +417,7 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 	lwres_result_t lwres;
 	int result = 0;
 
-	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (lwres != 0)
 		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
@@ -470,7 +470,7 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 	lwres_result_t lwres;
 	int result = 0;
 
-	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (lwres != 0)
 		ERR(EAI_FAIL);
 

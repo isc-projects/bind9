@@ -227,7 +227,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			INSIST(0);
 		}
 
-		n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 		if (n == 0)
 			n = lwres_getnamebyaddr(lwrctx, lwf, afd->a_addrlen,
 						addr, &by);

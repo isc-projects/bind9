@@ -55,7 +55,8 @@ context_connect(lwres_context_t *);
 lwres_result_t
 lwres_context_create(lwres_context_t **contextp, void *arg,
 		     lwres_malloc_t malloc_function,
-		     lwres_free_t free_function)
+		     lwres_free_t free_function,
+		     unsigned int flags)
 {
 	lwres_context_t *ctx;
 
@@ -87,7 +88,8 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
 	ctx->serial = (lwres_uint32_t)ctx; /* XXXMLG */
 
-	(void)context_connect(ctx); /* XXXMLG */
+	if ((flags & LWRES_CONTEXT_SERVERMODE) == 0)
+		(void)context_connect(ctx); /* XXXMLG */
 
 	/*
 	 * Init resolv.conf bits.

@@ -159,7 +159,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		return (copyandmerge(&he, NULL, af, error_num));
 	}
 
-	n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+	n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (n != 0) {
 		*error_num = NO_RECOVERY;
 		goto cleanup;
@@ -269,7 +269,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 
 		if (af == AF_INET6)
 			cp += 12;
-		n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 		if (n == 0)
 			n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V4,
 						INADDRSZ, cp, &by);
@@ -306,7 +306,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		return (NULL);
 	}
 
-	n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+	n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
 	if (n == 0)
 		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, IN6ADDRSZ,
 					src, &by);
