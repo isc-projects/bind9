@@ -24,7 +24,7 @@ SYSTEMTESTTOP=.
 
 find . -type f \( \
     -name 'K*' -o -name '*~' -o -name '*.core' -o -name '*.log' \
-    -o -name '*.pid' -o -name '*.run' -o -name '*.keyset' \
+    -o -name '*.pid' -o -name '*.keyset' \
 \) -print | xargs rm -f
 
 for d in $SUBDIRS
