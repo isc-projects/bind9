@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.6 2001/04/10 21:50:57 bwelling Exp $ */
+/* $Id: cfg_test.c,v 1.7 2001/05/02 17:41:24 gson Exp $ */
 
 #include <config.h>
 
@@ -29,7 +29,6 @@
 #include <isccfg/cfg.h>
 
 #include <dns/log.h>
-#include <dns/namedconf.h>
 
 static void
 check_result(isc_result_t result, const char *format, ...) {
