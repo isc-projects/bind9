@@ -15,11 +15,11 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3 2001/07/13 18:28:58 gson Exp $
+# $Id: prereq.sh,v 1.4 2002/04/24 00:46:25 marka Exp $
 
 if $KEYGEN -a RSA -b 512 -n zone -r $KEYGEN foo > /dev/null 2>&1
 then
-    rm -f foo*
+    rm -f Kfoo*
 else
     echo "I:This test requires that --with-openssl was used." >&2
     exit 1

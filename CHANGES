@@ -1,3 +1,6 @@
+1273.	[bug]		The dnssec system test failed to remove the correct
+			files.
+
 1272.	[bug]		Dig, host and nslookup were not checking the address
 			the answer was coming from against the address it was
 			sent to. [RT# 2692]
