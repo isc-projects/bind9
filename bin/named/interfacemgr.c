@@ -218,8 +218,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 
 	return (DNS_R_SUCCESS);
 
-
-	isc_task_detach(&ifp->task);
  task_create_failure:
 	isc_mutex_destroy(&ifp->lock);
  lock_create_failure:
