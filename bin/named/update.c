@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.87 2001/05/06 02:17:48 mayer Exp $ */
+/* $Id: update.c,v 1.88 2001/05/31 10:37:58 tale Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/soa.h>
 #include <dns/ssu.h>
 #include <dns/view.h>
 #include <dns/zone.h>

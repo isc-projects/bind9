@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.118 2001/05/10 17:51:44 gson Exp $ */
+/* $Id: xfrin.c,v 1.119 2001/05/31 10:38:01 tale Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
+#include <dns/soa.h>
 #include <dns/tcpmsg.h>
 #include <dns/timer.h>
 #include <dns/tsig.h>
