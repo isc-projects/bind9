@@ -867,10 +867,6 @@ fctx_nextaddress(fetchctx_t *fctx) {
 
 	fctx->find = find;
 
-	/* XXX */
-	if (addrinfo != NULL)
-		printf("RTT = %u\n", addrinfo->srtt);
-
 	return (addrinfo);
 }
 
@@ -2365,6 +2361,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	dns_fixedname_t foundname;
 	isc_stdtime_t now;
 	isc_time_t tnow, *finish;
+	dns_adbaddrinfo_t *addrinfo;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -2540,6 +2537,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
  done:
 	/*
+	 * Remember the query's addrinfo, in case we need to mark the
+	 * server as broken.
+	 */
+	addrinfo = query->addrinfo;
+
+	/*
 	 * Cancel the query.
 	 */
 	fctx_cancelquery(&query, &devent, finish);
@@ -2548,25 +2551,21 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		if (result == DNS_R_FORMERR)
 			broken_server = ISC_TRUE;
 		if (broken_server) {
-#ifdef notyet
-			result = dns_adb_marklame(dns_adb_t *adb,
-						  dns_adbaddrinfo_t *addr,
-						  dns_name_t *zone,
-						  isc_stdtime_t expire_time);
-#else
+			/*
+			 * XXXRTH  Replace "600" with a configurable
+			 *	   value.
+			 */
+			result = dns_adb_marklame(fctx->res->view->adb,
+						  addrinfo,
+						  &fctx->domain,
+						  now + 600);
 			result = ISC_R_SUCCESS;
-#endif
 			if (result != ISC_R_SUCCESS) {
 				fctx_done(fctx, result);
 				return;
 			}
 		}
 
-		/*
-		 * XXXRTH  If we have a broken server at this point, we will
-		 *	   decrease its 'goodness', possibly add a 'lame'
-		 *         entry, and maybe log a message.
-		 */
 		if (get_nameservers) {
 			dns_fixedname_init(&foundname);
 			fname = dns_fixedname_name(&foundname);
