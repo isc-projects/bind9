@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.126 2000/09/13 08:02:11 marka Exp $ */
+/* $Id: dighost.c,v 1.127 2000/09/14 20:11:47 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -669,6 +669,8 @@ setup_libs(void) {
 
 	result = isc_mutex_init(&lookup_lock);
 	check_result(result, "isc_mutex_init");
+
+	dns_result_register();
 }
 
 /*
@@ -1679,6 +1681,20 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	query->waiting_connect = ISC_FALSE;
 
+	if (sevent->result == ISC_R_CANCELED) {
+		debug("in cancel handler");
+		isc_socket_detach(&query->sock);
+		sockcount--;
+		INSIST(sockcount >= 0);
+		debug("sockcount=%d", sockcount);
+		query->waiting_connect = ISC_FALSE;
+		isc_event_free(&event);
+		l = query->lookup;
+		clear_query(query);
+		check_next_lookup(l);
+		UNLOCK_LOOKUP;
+		return;
+	}
 	if (sevent->result != ISC_R_SUCCESS) {
 		debug("unsuccessful connection: %s",
 		      isc_result_totext(sevent->result));

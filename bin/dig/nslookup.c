@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.42 2000/09/13 00:27:25 mws Exp $ */
+/* $Id: nslookup.c,v 1.43 2000/09/14 20:11:48 mws Exp $ */
 
 #include <config.h>
 
@@ -483,6 +483,16 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_result_t result;
 
 	debug("printmessage()");
+	debug("continuing on with rcode != 0");
+	result = isc_buffer_allocate(mctx, &b, MXNAME);
+	check_result(result, "isc_buffer_allocate");
+	printf("Server:\t\t%s\n", query->servname);
+	result = isc_sockaddr_totext(&query->sockaddr, b);
+	check_result(result, "isc_sockaddr_totext");
+	printf("Address:\t%.*s\n", (int)isc_buffer_usedlength(b),
+	       (char*)isc_buffer_base(b));
+	isc_buffer_free(&b);
+	puts("");
 
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
@@ -498,16 +508,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		debug("returning with rcode == 0");
 		return (ISC_R_SUCCESS);
 	}
-	debug("continuing on with rcode != 0");
-	result = isc_buffer_allocate(mctx, &b, MXNAME);
-	check_result(result, "isc_buffer_allocate");
-	printf("Server:\t\t%s\n", query->servname);
-	result = isc_sockaddr_totext(&query->sockaddr, b);
-	check_result(result, "isc_sockaddr_totext");
-	printf("Address:\t%.*s\n", (int)isc_buffer_usedlength(b),
-	       (char*)isc_buffer_base(b));
-	isc_buffer_free(&b);
-	puts("");
 	if (!short_form){
 		puts("------------");
 		/*		detailheader(query, msg);*/
@@ -672,11 +672,17 @@ addlookup(char *opt) {
 	tr.base = deftype;
 	tr.length = strlen(deftype);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
-	INSIST(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		printf ("unknown query type: %s\n",deftype);
+		rdclass = dns_rdatatype_a;
+	}
 	tr.base = defclass;
 	tr.length = strlen(defclass);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
-	INSIST(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS) {
+		printf ("unknown query class: %s\n",defclass);
+		rdclass = dns_rdataclass_in;
+	}
 	lookup = make_empty_lookup();
 	strncpy(lookup->textname, opt, MXNAME-1);
 	lookup->rdtype = rdtype;

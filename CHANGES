@@ -1,3 +1,9 @@
+ 258.	[bug]		Nslookup didn't properly check class and type values.
+
+ 257.	[bug]		Dig/Host/Nslookup didn't properly handle connect
+			timeout in some very specific situations, and gave
+			an unnecessary warning.
+
  456.	[bug]		Stub zones were not resetting the refresh and expire
 			counters, loadtime or clearing the DNS_ZONE_REFRESH
 			(refresh in progress) flag upon successful update.
