@@ -2618,6 +2618,7 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 	isc_task_t *task;
 	dns_adb_t *adb;
 	int bucket;
+	int unlock_bucket;
 
 	LOCK(&find->lock);
 
@@ -2636,14 +2637,15 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 	/*
 	 * We need to get the adbname's lock to unlink the find.
 	 */
-	violate_locking_hierarchy(&find->lock, &adb->namelocks[bucket]);
+	unlock_bucket = bucket;
+	violate_locking_hierarchy(&find->lock, &adb->namelocks[unlock_bucket]);
 	bucket = find->name_bucket;
 	if (bucket != DNS_ADB_INVALIDBUCKET) {
 		ISC_LIST_UNLINK(find->adbname->finds, find, plink);
 		find->adbname = NULL;
 		find->name_bucket = DNS_ADB_INVALIDBUCKET;
 	}
-	UNLOCK(&adb->namelocks[bucket]);
+	UNLOCK(&adb->namelocks[unlock_bucket]);
 	bucket = DNS_ADB_INVALIDBUCKET;
 
  cleanup:
