@@ -204,7 +204,7 @@ adb_callback(isc_task_t *etask, isc_event_t *event) {
 
 static void
 run(isc_task_t *task, isc_event_t *event) {
-	(void)task;
+	UNUSED(task);
 	do_find(ISC_TRUE);
 	isc_event_free(&event);
 }
@@ -277,10 +277,36 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(dns_view_create(mctx, dns_rdataclass_in, "default",
 				      &view) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10, socketmgr,
-					      timermgr, 0,
-					      dispatchmgr, NULL, NULL) ==
+	{
+		unsigned int attrs;
+		isc_sockaddr_t any4, any6;
+		dns_dispatch_t *disp4 = NULL;
+		dns_dispatch_t *disp6 = NULL;		
+		
+		isc_sockaddr_any(&any4);
+		isc_sockaddr_any6(&any6);
+		
+		attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
+		RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr, socketmgr,
+						  taskmgr, &any4, 512, 6, 1024,
+						  17, 19, attrs, attrs, &disp4)
+			      == ISC_R_SUCCESS);
+		INSIST(disp4 != NULL);
+
+		attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
+		RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr, socketmgr,
+						  taskmgr, &any6, 512, 6, 1024,
+						  17, 19, attrs, attrs, &disp6)
+			      == ISC_R_SUCCESS);
+		INSIST(disp6 != NULL);
+		
+		RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10,
+						      socketmgr,
+						      timermgr, 0,
+						      dispatchmgr,
+						      disp4, disp6) ==
 		      ISC_R_SUCCESS);
+	}
 
 	{
 		struct in_addr ina;
