@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.90 2001/01/04 23:43:53 marka Exp $ */
+/* $Id: master.c,v 1.91 2001/01/05 01:02:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1204,7 +1204,7 @@ load(dns_loadctx_t **ctxp) {
 				== ISC_R_SUCCESS)
 			GETTOKEN(ctx->lex, 0, &token, ISC_FALSE);
 
-		if (token.type !=  isc_tokentype_string) {
+		if (token.type != isc_tokentype_string) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 			"isc_lex_gettoken() returned unexpected token type");
 			result = ISC_R_UNEXPECTED;
@@ -1287,7 +1287,7 @@ load(dns_loadctx_t **ctxp) {
 				   ctx->lex, ctx->origin, ISC_FALSE, ctx->mctx,
 				   &target, callbacks);
 		if (result != ISC_R_SUCCESS)
-			goto insist_and_cleanup;
+			goto log_and_cleanup;
 		if (type == dns_rdatatype_sig)
 			covers = dns_rdata_covers(&rdata[rdcount]);
 		else
