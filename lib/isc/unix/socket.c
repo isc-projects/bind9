@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.142.2.1 2000/06/26 21:28:21 gson Exp $ */
+/* $Id: socket.c,v 1.142.2.2 2000/07/10 19:46:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -846,6 +846,19 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	return (DOIO_SUCCESS);
 }
 
+/*
+ * Returns:
+ *	DOIO_SUCCESS	The operation succeeded.  The senddone event
+ *			was sent.
+ *
+ *	DOIO_HARD	A hard or unexpected I/O error was encountered.
+ *			The senddone event was sent.
+ *
+ *	DOIO_SOFT	A soft I/O error was encountered.  No senddone
+ *			event was sent.  The operation should be retried.
+ *
+ *	No other return values are possible.
+ */
 static int
 doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	int cc;
@@ -2864,8 +2877,11 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 					 "internal_connect: connect() %s",
 					 strerror(errno));
 		}
-	} else
+	} else {
 		dev->result = ISC_R_SUCCESS;
+		sock->connected = 1;
+		sock->bound = 1;
+	}
 
 	sock->connect_ev = NULL;
 
