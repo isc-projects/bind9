@@ -1,3 +1,6 @@
+ 357.	[bug]		The zone file parser crashed when seeing a quoted
+			$INCLUDE.
+
  356.	[cleanup]	isc_task_send no longer requires event->sender to
 			be non-null.
 
