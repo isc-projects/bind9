@@ -98,6 +98,14 @@ static void clientmgr_destroy(ns_clientmgr_t *manager);
  * task to change the client, then the client will have to be locked.
  */
 
+static void
+release_quotas(ns_client_t *client) {
+	if (client->tcpquota != NULL)
+		isc_quota_detach(&client->tcpquota);
+	if (client->recursionquota != NULL)
+		isc_quota_detach(&client->recursionquota);
+}
+
 /*
  * Free a client immediately if possible, otherwise start
  * shutting it down and postpone freeing to later.
@@ -121,9 +129,15 @@ maybe_free(ns_client_t *client) {
 				  ISC_SOCKCANCEL_ACCEPT);
 	if (client->nreads > 0)
 		dns_tcpmsg_cancelread(&client->tcpmsg);
-	if (client->nsends > 0)
+	if (client->nsends > 0) {
+		isc_socket_t *socket;
+		if (TCP_CLIENT(client))
+			socket = client->tcpsocket;
+		else
+			socket = dns_dispatch_getsocket(client->dispatch);
 		isc_socket_cancel(client->tcpsocket, client->task,
 				  ISC_SOCKCANCEL_SEND);
+	}
 
 	if (!(client->nreads == 0 && client->naccepts == 0 &&
 	      client->nsends == 0 && client->nwaiting == 0)) {
@@ -179,11 +193,8 @@ maybe_free(ns_client_t *client) {
 		UNLOCK(&manager->lock);
 	}
 
-	if (client->quota != NULL) {
-		isc_quota_release(client->quota);
-		client->quota = NULL;
-	}
-		
+	release_quotas(client);
+	
 	CTRACE("free");
 	client->magic = 0;
 	isc_mem_put(client->mctx, client, sizeof *client);
@@ -247,10 +258,9 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	client->udpsize = 512;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
-	if (client->quota != NULL) {
-		isc_quota_release(client->quota);
-		client->quota = NULL;
-	}
+
+	release_quotas(client);
+
 	if (client->mortal) {
 		/*
 		 * This client object is supposed to die now, but if we
@@ -277,8 +287,9 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 			isc_task_shutdown(client->task);		
 			return;
 		}
+		client->mortal = ISC_FALSE;
 	}
-	
+
 	if (client->dispevent != NULL) {
 		/*
 		 * Give the processed dispatch event back to the dispatch.
@@ -580,6 +591,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
+	INSIST(client->recursionquota == NULL);
+	
 	if (event->type == DNS_EVENT_DISPATCH) {
 		devent = (dns_dispatchevent_t *)event;
 		REQUIRE(client->dispentry != NULL);
@@ -782,7 +795,7 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
+client_create(ns_clientmgr_t *manager, 
 	      ns_interface_t *ifp, ns_client_t **clientp)
 {
 	ns_client_t *client;
@@ -836,7 +849,6 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->magic = NS_CLIENT_MAGIC;
 	client->mctx = manager->mctx;
 	client->manager = NULL;
-	client->type = type;
 	client->shuttingdown = ISC_FALSE;
 	client->waiting_for_bufs = ISC_FALSE;
 	client->naccepts = 0;
@@ -858,7 +870,8 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->shutdown_arg = NULL;
 	dns_name_init(&client->signername, NULL);
 	client->mortal = ISC_FALSE;
-	client->quota = NULL;
+	client->tcpquota = NULL;
+	client->recursionquota = NULL;
 	client->interface = NULL;
 	ISC_LINK_INIT(client, link);
 
@@ -948,7 +961,10 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		 * telnetting to port 35 (once per CPU) will
 		 * deny service to legititmate TCP clients.
 		 */
-		result = ns_client_replace(client, &ns_g_server->tcpquota);
+		result = isc_quota_attach(&ns_g_server->tcpquota,
+					  &client->tcpquota);
+		if (result == ISC_R_SUCCESS)
+			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
@@ -1017,37 +1033,10 @@ ns_client_unwait(ns_client_t *client) {
 		maybe_free(client);
 }
 
-
 isc_result_t
-ns_client_getquota(ns_client_t *client, isc_quota_t *quota) {
-	isc_result_t result;
-	/*
-	 * A client can only use one quota at a time.
-	 * If we are already using a quota, release it.
-	 */
-	if (client->quota != NULL) {
-		isc_quota_release(client->quota);
-		client->quota = NULL;
-	}
-
-	result = isc_quota_reserve(quota);
-	if (result == ISC_R_SUCCESS) {
-		client->quota = quota;
-	} else {
-		return (result);
-	}
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-ns_client_replace(ns_client_t *client, isc_quota_t *quota) {
+ns_client_replace(ns_client_t *client) {
 	isc_result_t result;
 	CTRACE("replace");
-	if (quota != NULL) {
-		result = ns_client_getquota(client, quota);
-		if (result != DNS_R_SUCCESS)
-			return (result);
-	}
 
 	if (TCP_CLIENT(client)) {
 		result = ns_clientmgr_accepttcp(client->manager,
@@ -1174,8 +1163,7 @@ ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
 
 	for (i = 0; i < n; i++) {
 		client = NULL;
-		result = client_create(manager, ns_clienttype_basic,
-				       ifp, &client);
+		result = client_create(manager, ifp, &client);
 		if (result != ISC_R_SUCCESS)
 			break;
 		dns_dispatch_attach(ifp->udpdispatch, &client->dispatch);
@@ -1239,8 +1227,7 @@ ns_clientmgr_accepttcp(ns_clientmgr_t *manager, unsigned int n,
 
 	for (i = 0; i < n; i++) {
 		client = NULL;
-		result = client_create(manager, ns_clienttype_tcp,
-				       ifp, &client);
+		result = client_create(manager, ifp, &client);
 		if (result != ISC_R_SUCCESS)
 			break;
 		client->attributes |= NS_CLIENTATTR_TCP;
