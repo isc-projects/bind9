@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.4 2000/08/19 01:02:07 gson Exp $
+# $Id: sanitize.pl,v 1.5 2000/09/26 22:44:19 bwelling Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -33,6 +33,8 @@
 # Non-.c/.h files are tested for the existance of NOMINUM_PUBLIC anywhere
 # in the file, and a warning is generated, unless the string
 # NOMINUM_IGNORE appears before NOMINUM_PUBLIC.
+
+# If the string NOMINUM_PUBLIC_DELETE is present, delete the file.
 
 # Usage:
 #  ./sanitize.pl -c   - Check syntax only, don't change anything
@@ -86,7 +88,14 @@ sub runfile($) {
 			unlink($_[1]);
 			break;
 		}
-		if (/\#ifdef.+NOMINUM_PUBLIC/) {
+		elsif (/NOMINUM_PUBLIC_DELETE/) {
+			close(INFILE);
+			close(OUTFILE);
+			unlink($_[0]);
+			unlink($_[1]);
+			break;
+		}
+		elsif (/\#ifdef.+NOMINUM_PUBLIC/) {
 			if ($state != 0) {
 				print(STDERR "*** ERROR in file $_[0]".
 				      "line $.: ".
