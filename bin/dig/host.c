@@ -1,21 +1,21 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+ * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.29.2.6 2000/09/15 22:56:14 gson Exp $ */
+/* $Id: host.c,v 1.29.2.7 2000/10/06 19:08:05 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -25,14 +25,19 @@ extern int h_errno;
 
 #include <isc/app.h>
 #include <isc/commandline.h>
+#include <isc/netaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/task.h>
 
+#include <dns/byaddr.h>
+#include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdataset.h>
+#include <dns/rdatatype.h>
 
 #include <dig/dig.h>
 
@@ -40,30 +45,17 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, show_details, debugging;
-extern in_port_t port;
+extern isc_boolean_t debugging;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
-extern dns_messageid_t id;
-extern dns_name_t rootorg;
-extern char *rootspace[BUFSIZE];
-extern isc_buffer_t rootbuf;
-extern int sendcount;
 extern int ndots;
 extern int tries;
 extern isc_boolean_t usesearch;
 extern int lookup_counter;
-extern int exitcode;
-extern isc_taskmgr_t *taskmgr;
 extern char *progname;
 extern isc_task_t *global_task;
 
-isc_boolean_t 
-	short_form = ISC_TRUE,
-	filter = ISC_FALSE,
-	showallsoa = ISC_FALSE,
-	tcpmode = ISC_FALSE,
-	listed_server = ISC_FALSE;
+isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -112,7 +104,7 @@ static const char *rtypetext[] = {
 	"MF",				/* 4 */
 	"is an alias for",		/* 5 */
 	"SOA",				/* 6 */
-	"MB",				/* 7 */	
+	"MB",				/* 7 */
 	"MG",				/* 8 */
 	"MR",				/* 9 */
 	"NULL",				/* 10 */
@@ -213,13 +205,14 @@ static const char *rtypetext[] = {
 static void
 show_usage(void) {
 	fputs(
-"Usage: host [-aCdlrTwv] [-c class] [-N ndots] [-t type] [-W time]\n"
+"Usage: host [-aCdlrTwv] [-c class] [-n] [-N ndots] [-t type] [-W time]\n"
 "            [-R number] hostname [server]\n"
 "       -a is equivalent to -v -t *\n"
 "       -c specifies query class for non-IN data\n"
 "       -C compares SOA records on authorative nameservers\n"
 "       -d is equivalent to -v\n"
 "       -l lists all hosts in a domain, using AXFR\n"
+"       -n Use the nibble form of IPv6 reverse lookup\n"
 "       -N changes the number of dots allowed before root lookup is done\n"
 "       -r disables recursive processing\n"
 "       -R specifies number of retries for UDP packets\n"
@@ -228,12 +221,11 @@ show_usage(void) {
 "       -v enables verbose output\n"
 "       -w specifies to wait forever for a reply\n"
 "       -W specifies how long to wait for a reply\n", stderr);
-	exit(exitcode);
-}				
+	exit(1);
+}
 
 void
 dighost_shutdown(void) {
-	free_lists();
 	isc_app_shutdown();
 }
 
@@ -243,7 +235,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	isc_result_t result;
 	int diff;
 
-	if ((!short_form) || (show_details)) {
+	if (!short_form) {
 		result = isc_time_now(&now);
 		check_result(result, "isc_time_now");
 		diff = isc_time_microdiff(&now, &query->time_sent);
@@ -305,7 +297,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
 	const char *rtt;
-	
+
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
 	else
@@ -349,7 +341,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 #else
 				UNUSED(first); /* Shut up compiler. */
 #endif
-			} else { 
+			} else {
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
@@ -376,14 +368,14 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 			else
 				printf("%.*s", (int)r.length, (char *)r.base);
 		}
-		
+
 		result = dns_message_nextname(msg, sectionid);
 		if (result == ISC_R_NOMORE)
 			break;
 		else if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -397,7 +389,7 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 	char t[4096];
 
 	UNUSED(msg);
-	if (headers) 
+	if (headers)
 		printf(";; %s SECTION:\n", set_name);
 
 	isc_buffer_init(&target, t, sizeof(t));
@@ -423,13 +415,19 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	UNUSED(headers);
 
-	/*
-	 * Exitcode 9 means we timed out, but if we're printing a message,
-	 * we much have recovered.  Go ahead and reset it to code 0, and
-	 * call this a success.
-	 */
-	if (exitcode == 9)
-		exitcode = 0;
+	if (listed_server) {
+		printf("Using domain server:\n");
+		printf("Name: %s\n", query->servname);
+		result = isc_buffer_allocate(mctx, &b, MXNAME);
+		check_result(result, "isc_buffer_allocate");
+		result = isc_sockaddr_totext(&query->sockaddr, b);
+		check_result(result, "isc_sockaddr_totext");
+		printf("Address: %.*s\n",
+		       (int)isc_buffer_usedlength(b),
+		       (char*)isc_buffer_base(b));
+		isc_buffer_free(&b);
+		printf("Aliases: \n\n");
+	}
 
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
@@ -508,21 +506,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				      ISC_TF(!short_form), query);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-       } else {
-               if ((short_form) && (listed_server)) {
-                        printf("Using domain server:\n");
-                        printf("Name: %s\n", query->servname);
-                        result = isc_buffer_allocate(mctx, &b, MXNAME);
-                        check_result(result, "isc_buffer_allocate");
-                        result = isc_sockaddr_totext(&query->sockaddr, b);
-                        check_result(result, "isc_sockaddr_totext");
-                        printf("Address: %.*s\n",
-                               (int)isc_buffer_usedlength(b),
-                               (char*)isc_buffer_base(b));
-                        isc_buffer_free(&b);
-                        printf("Aliases: \n\n");
-                }
 	}
+
 	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY]) &&
 	    !short_form) {
 		printf("\n");
@@ -554,41 +539,64 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
-	isc_boolean_t recursion = ISC_TRUE;
 	char hostname[MXNAME];
-	char querytype[32] = "";
-	char queryclass[32] = "";
 	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int i, c, n, adrs[4];
 	char store[MXNAME];
+	isc_textregion_t tr;
+	isc_result_t result;
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
 
 	UNUSED(is_batchfile);
 
-	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:D"))
+	lookup = make_empty_lookup();
+
+	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:Dn"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
-			tcpmode = ISC_TRUE;
-			filter = ISC_TRUE;
-			strcpy(querytype, "axfr");
+			lookup->tcp_mode = ISC_TRUE;
+			lookup->rdtype = dns_rdatatype_axfr;
 			break;
 		case 'v':
 		case 'd':
 			short_form = ISC_FALSE;
 			break;
 		case 'r':
-			recursion = ISC_FALSE;
+			lookup->recurse = ISC_FALSE;
 			break;
 		case 't':
-			strncpy (querytype, isc_commandline_argument, 32);
+			tr.base = isc_commandline_argument;
+			tr.length = strlen(isc_commandline_argument);
+			result = dns_rdatatype_fromtext(&rdtype,
+						   (isc_textregion_t *)&tr);
+
+			if (result != ISC_R_SUCCESS)
+				fprintf (stderr,"Warning: invalid type: %s\n",
+					 isc_commandline_argument);
+			else
+				lookup->rdtype = rdtype;
 			break;
 		case 'c':
-			strncpy (queryclass, isc_commandline_argument, 32);
+			tr.base = isc_commandline_argument;
+			tr.length = strlen(isc_commandline_argument);
+			result = dns_rdataclass_fromtext(&rdclass,
+						   (isc_textregion_t *)&tr);
+
+			if (result != ISC_R_SUCCESS)
+				fprintf (stderr,"Warning: invalid class: %s\n",
+					 isc_commandline_argument);
+			else
+				lookup->rdclass = rdclass;
 			break;
 		case 'a':
-			strcpy (querytype, "any");
+			lookup->rdtype = dns_rdatatype_any;
 			short_form = ISC_FALSE;
+			break;
+		case 'n':
+			lookup->nibble = ISC_TRUE;
 			break;
 		case 'w':
 			/*
@@ -608,19 +616,17 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				tries = 1;
 			break;
 		case 'T':
-			tcpmode = ISC_TRUE;
+			lookup->tcp_mode = ISC_TRUE;
 			break;
 		case 'C':
 			debug("showing all SOAs");
-			if (querytype[0] == 0)
-				strcpy(querytype, "soa");
-			if (queryclass[0] == 0)
-				strcpy(queryclass, "in");
-			showallsoa = ISC_TRUE;
-			show_details = ISC_TRUE;
+			lookup->rdtype = dns_rdatatype_soa;
+			lookup->rdclass = dns_rdataclass_in;
+			lookup->ns_search_only = ISC_TRUE;
+			lookup->trace_root = ISC_TRUE;
 			break;
 		case 'N':
-			debug("setting NDOTS to %s", 
+			debug("setting NDOTS to %s",
 			      isc_commandline_argument);
 			ndots = atoi(isc_commandline_argument);
 			break;
@@ -632,33 +638,22 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (isc_commandline_index >= argc) {
 		show_usage();
 	}
-	strncpy(hostname, argv[isc_commandline_index], MXNAME);
+	strncpy(hostname, argv[isc_commandline_index], sizeof(hostname));
+	hostname[sizeof(hostname)-1]=0;
 	if (argc > isc_commandline_index + 1) {
-		srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
-		if (srv == NULL)
-			fatal("Memory allocation failure.");
-		strncpy(srv->servername,
-			argv[isc_commandline_index+1], MXNAME-1);
+		srv = make_server(argv[isc_commandline_index+1]);
 		debug("server is %s", srv->servername);
 		ISC_LIST_APPEND(server_list, srv, link);
 		listed_server = ISC_TRUE;
 	}
-	
-	lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
-	if (lookup == NULL)	
-		fatal("Memory allocation failure.");
+
 	lookup->pending = ISC_FALSE;
-	/* 
-	 * XXXMWS Add IPv6 translation here, probably using inet_pton
-	 * to extract the formatted text.
-	 */
 	if (strspn(hostname, "0123456789.") == strlen(hostname)) {
 		lookup->textname[0] = 0;
 		n = sscanf(hostname, "%d.%d.%d.%d", &adrs[0], &adrs[1],
 				   &adrs[2], &adrs[3]);
 		if (n == 0) {
 			show_usage();
-			exit(exitcode);
 		}
 		for (i = n - 1; i >= 0; i--) {
 			snprintf(store, MXNAME/8, "%d.",
@@ -666,47 +661,36 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			strncat(lookup->textname, store, MXNAME);
 		}
 		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-		if (querytype[0] == 0)
-			strcpy(querytype, "ptr");
+		lookup->rdtype = dns_rdatatype_ptr;
+	} else if (strspn(hostname, "0123456789abcdef.:") == strlen(hostname))
+	{
+		isc_netaddr_t addr;
+		dns_fixedname_t fname;
+		isc_buffer_t b;
+
+		addr.family = AF_INET6;
+		n = inet_pton(AF_INET6, hostname, &addr.type.in6);
+		if (n <= 0)
+			goto notv6;
+		dns_fixedname_init(&fname);
+		result = dns_byaddr_createptrname(&addr, lookup->nibble,
+						  dns_fixedname_name(&fname));
+		if (result != ISC_R_SUCCESS)
+			show_usage();
+		isc_buffer_init(&b, lookup->textname, sizeof lookup->textname);
+		result = dns_name_totext(dns_fixedname_name(&fname),
+					 ISC_FALSE, &b);
+		isc_buffer_putuint8(&b, 0);
+		if (result != ISC_R_SUCCESS)
+			show_usage();
+		lookup->rdtype = dns_rdatatype_ptr;
 	} else {
-		strncpy(lookup->textname, hostname, MXNAME);
+ notv6:
+		strncpy(lookup->textname, hostname, sizeof(lookup->textname));
+		lookup->textname[sizeof(lookup->textname)-1]=0;
 	}
-	if (querytype[0] == 0)
-		strcpy(querytype, "a");
-	if (queryclass[0] == 0)
-		strcpy(queryclass, "in");
-	strncpy(lookup->rttext, querytype, 32);
-	strncpy(lookup->rctext, queryclass, 32);
-	lookup->namespace[0] = 0;
-	lookup->sendspace = NULL;
-	lookup->sendmsg = NULL;
-	lookup->name = NULL;
-	lookup->oname = NULL;
-	lookup->timer = NULL;
-	lookup->xfr_q = NULL;
-	lookup->origin = NULL;
-	lookup->querysig = NULL;
-	lookup->doing_xfr = ISC_FALSE;
-	lookup->ixfr_serial = 0;
-	lookup->defname = ISC_FALSE;
-	lookup->identify = ISC_FALSE;
-	lookup->recurse = recursion;
-	lookup->ns_search_only = showallsoa;
-	lookup->use_my_server_list = ISC_FALSE;
-	lookup->retries = tries;
-	lookup->udpsize = 0;
-	lookup->nsfound = 0;
-	lookup->trace = ISC_FALSE;
-	lookup->trace_root = showallsoa;
-	lookup->tcp_mode = tcpmode;
 	lookup->new_search = ISC_TRUE;
-	lookup->aaonly = ISC_FALSE;
-	lookup->adflag = ISC_FALSE;
-	lookup->cdflag = ISC_FALSE;
-	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
-	lookup->origin = NULL;
-	ISC_LIST_INIT(lookup->my_server_list);
 
 	usesearch = ISC_TRUE;
 }
@@ -721,28 +705,17 @@ main(int argc, char **argv) {
 
 	debug("main()");
 	progname = argv[0];
+	result = isc_app_start();
+	check_result(result, "isc_app_start");
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();
-	/*
-	 * XXXMWS This code should really NOT be bypassed.  However,
-	 * until the proper code can be added to handle SIGTERM/INT
-	 * correctly, just exit out "hard" and deal as best we can.
-	 */
-#if 0
-	if (taskmgr != NULL) {
-		debug("freeing taskmgr");
-		isc_taskmgr_destroy(&taskmgr);
-        }
-	if (isc_mem_debugging)
-		isc_mem_stats(mctx, stderr);
+	cancel_all();
+	destroy_libs();
 	isc_app_finish();
-	if (mctx != NULL)
-		isc_mem_destroy(&mctx);	
-#endif
 	return (0);
 }
 

@@ -1,21 +1,21 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+ * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.25.2.4 2000/08/07 23:50:17 gson Exp $ */
+/* $Id: dig.h,v 1.25.2.5 2000/10/06 19:08:08 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -32,8 +32,8 @@
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 
-#define MXSERV 4
-#define MXNAME 1005
+#define MXSERV 6
+#define MXNAME (1024)
 #define MXRD 32
 #define BUFSIZE 512
 #define COMMSIZE 0xffff
@@ -43,8 +43,10 @@
 /*
  * Default timeout values
  */
-#define TCP_TIMEOUT 60
-#define UDP_TIMEOUT 30
+#define TCP_TIMEOUT 10
+#define UDP_TIMEOUT 5
+
+#define SERVER_TIMEOUT 1
 
 #define LOOKUP_LIMIT 64
 /*
@@ -66,6 +68,7 @@ ISC_LANG_BEGINDECLS
 typedef struct dig_lookup dig_lookup_t;
 typedef struct dig_query dig_query_t;
 typedef struct dig_server dig_server_t;
+typedef ISC_LIST(dig_server_t) dig_serverlist_t;
 typedef struct dig_searchlist dig_searchlist_t;
 
 struct dig_lookup {
@@ -74,8 +77,8 @@ struct dig_lookup {
 		waiting_connect,
 		doing_xfr,
 		ns_search_only,
-		use_my_server_list,
 		identify,
+		ignore,
 		recurse,
 		aaonly,
 		adflag,
@@ -84,16 +87,19 @@ struct dig_lookup {
 		trace_root,
 		defname,
 		tcp_mode,
+		nibble,
 		comments,
 		stats,
 		section_question,
 		section_answer,
 		section_authority,
 		section_additional,
+		servfail_stops,
 		new_search;
 	char textname[MXNAME]; /* Name we're going to be looking up */
-	char rttext[MXRD]; /* rdata type text */
-	char rctext[MXRD]; /* rdata class text */
+	char cmdline[MXNAME];
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
 	char namespace[BUFSIZE];
 	char onamespace[BUFSIZE];
 	isc_buffer_t namebuf;
@@ -107,7 +113,8 @@ struct dig_lookup {
 	dns_name_t *oname;
 	ISC_LINK(dig_lookup_t) link;
 	ISC_LIST(dig_query_t) q;
-	ISC_LIST(dig_server_t) my_server_list;
+	dig_query_t *current_query;
+	dig_serverlist_t my_server_list;
 	dig_searchlist_t *origin;
 	dig_query_t *xfr_q;
 	int retries;
@@ -123,15 +130,16 @@ struct dig_lookup {
 
 struct dig_query {
 	dig_lookup_t *lookup;
-	isc_boolean_t working,
-		waiting_connect,
+	isc_boolean_t waiting_connect,
 		first_pass,
 		first_soa_rcvd,
 		second_rr_rcvd,
-		first_repeat_rcvd;
+		first_repeat_rcvd,
+		recv_made;
 	isc_uint32_t first_rr_serial;
 	isc_uint32_t second_rr_serial;
-	int retries;
+	isc_uint32_t rr_count;
+	isc_uint32_t name_count;
 	char *servname;
 	isc_bufferlist_t sendlist,
 		recvlist,
@@ -173,12 +181,6 @@ debug(const char *format, ...);
 void
 check_result(isc_result_t result, const char *msg);
 
-isc_boolean_t
-isclass(char *text);
-
-isc_boolean_t
-istype(char *text);
-
 void
 setup_lookup(dig_lookup_t *lookup);
 
@@ -191,9 +193,6 @@ start_lookup(void);
 void
 onrun_callback(isc_task_t *task, isc_event_t *event);
 
-void
-send_udp(dig_lookup_t *lookup);
-
 int
 dhmain(int argc, char **argv);
 
@@ -203,14 +202,27 @@ setup_libs(void);
 void
 setup_system(void);
 
-void
-free_lists(void);
-
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
+dig_lookup_t *
+make_empty_lookup(void);
+
+dig_lookup_t *
+clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
+
 dig_server_t *
 make_server(const char *servname);
+
+void
+clone_server_list(dig_serverlist_t src,
+		  dig_serverlist_t *dest);
+
+void
+cancel_all(void);
+
+void
+destroy_libs(void);
 
 /*
  * Routines needed in dig.c and host.c.
@@ -226,6 +238,9 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup);
 
 void
 dighost_shutdown(void);
+
+char *
+next_token(char **stringp, const char *delim);
 
 ISC_LANG_ENDDECLS
 
