@@ -2,16 +2,19 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.238 2004/03/04 21:25:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.239 2004/03/05 10:53:24 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
 
 <bookinfo>
 <copyright>
-<year>2000</year>
-<year>2001</year>
+<year>2000-2003</year>
 <holder>Internet Software Consortium</holder>
+</copyright>
+<copyright>
+<year>2004</year>
+<holder>Internet Systems Consortium, Inc. ("ISC")</holder>
 </copyright>
 </bookinfo>
 
