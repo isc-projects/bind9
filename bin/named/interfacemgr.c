@@ -163,8 +163,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 				 isc_result_totext(result));
 		goto udp_dispatch_failure;
 	}
-	result = ns_clientmgr_addtodispatch(mgr->clientmgr,
-					    ns_clienttype_basic, ns_g_cpus,
+	result = ns_clientmgr_addtodispatch(mgr->clientmgr, ns_g_cpus,
 					    ifp->udpdispatch);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -173,7 +172,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		goto addtodispatch_failure;
 	}
 
-#if 0
 	/*
 	 * Open a TCP socket.
 	 */
@@ -195,15 +193,40 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 				 isc_result_totext(result));
 		goto tcp_bind_failure;
 	}
-#else
-	ifp->tcpsocket = NULL;
-#endif
+	result = isc_socket_listen(ifp->tcpsocket, 0);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "listen TCP socket: %s",
+				 isc_result_totext(result));
+		goto tcp_listen_failure;
+	}
+	result = ns_clientmgr_accepttcp(mgr->clientmgr, ifp->tcpsocket,
+					ns_g_cpus);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "TCP ns_clientmgr_accepttcp(): %s",
+				 isc_result_totext(result));
+		goto accepttcp_failure;
+	}
 
 	ISC_LIST_APPEND(mgr->interfaces, ifp, link);
 
 	ifp->magic = IFACE_MAGIC;
 	*ifpret = ifp;
 
+	return (DNS_R_SUCCESS);
+
+ accepttcp_failure:
+ tcp_listen_failure:
+ tcp_bind_failure:
+	isc_socket_detach(&ifp->tcpsocket);
+ tcp_socket_failure:
+	/*
+	 * XXXRTH  We don't currently have a way to easily stop dispatch
+	 * service, so we return currently return DNS_R_SUCCESS (the UDP
+	 * stuff will work even if TCP creation failed).  This will be fixed
+	 * later.
+	 */
 	return (DNS_R_SUCCESS);
 
  addtodispatch_failure:
@@ -232,10 +255,8 @@ ns_interface_destroy(ns_interface_t **ifpret) {
 	dns_dispatch_detach(&ifp->udpdispatch);
 	isc_socket_detach(&ifp->udpsocket);
 
-#if 0
 	isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
 	isc_socket_detach(&ifp->tcpsocket);
-#endif
 
 	isc_task_detach(&ifp->task);
 	

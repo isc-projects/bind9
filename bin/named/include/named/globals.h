@@ -50,12 +50,11 @@ EXTERN ns_interfacemgr_t *	ns_g_interfacemgr	INIT(NULL);
 EXTERN ns_clientmgr_t *		ns_g_clientmgr		INIT(NULL);
 EXTERN char *			ns_g_version		INIT(VERSION);
 
-EXTERN isc_rwlock_t		ns_g_viewlock;
-EXTERN dns_viewlist_t		ns_g_views;
+EXTERN dns_viewmgr_t *		ns_g_viewmgr		INIT(NULL);
 
 /* XXXRTH  These are temporary. */
 EXTERN ns_dbinfolist_t		ns_g_dbs;
-EXTERN dns_dbtable_t *		ns_g_dbtable		INIT(NULL);
+EXTERN dns_dbtable_t *		ns_g_dbtable;
 
 #undef EXTERN
 #undef INIT

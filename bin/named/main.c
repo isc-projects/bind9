@@ -198,12 +198,14 @@ static void
 setup() {
 	isc_result_t result;
 
+#if 0
 	ISC_LIST_INIT(ns_g_views);
 
 	result = isc_rwlock_init(&ns_g_viewlock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		early_fatal("isc_rwlock_init() failed: %s",
 			    isc_result_totext(result));
+#endif
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)
@@ -219,7 +221,9 @@ setup() {
 static void
 cleanup() {
 	destroy_managers();
+#if 0
 	isc_rwlock_destroy(&ns_g_viewlock);
+#endif
 }
 
 int

@@ -42,6 +42,8 @@
 #define MTRACE(m)
 #endif
 
+#define TCP_CLIENT(c)	(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
+
 #define SEND_BUFFER_SIZE		512
 
 struct ns_clientmgr {
@@ -101,14 +103,22 @@ client_free(ns_client_t *client) {
 	}
 	if (client->dispatch != NULL)
 		dns_dispatch_detach(&client->dispatch);
+	if (client->tcplistener != NULL)
+		isc_socket_detach(&client->tcplistener);
+	if (client->tcpsocket != NULL) {
+		if (client->state == ns_clientstate_reading)
+			dns_tcpmsg_cancelread(&client->tcpmsg);
+		dns_tcpmsg_invalidate(&client->tcpmsg);
+		isc_socket_detach(&client->tcpsocket);
+	}
 	isc_task_detach(&client->task);
 	client->magic = 0;
 
 	isc_mem_put(client->mctx, client, sizeof *client);
 }
 
-void
-ns_client_destroy(ns_client_t *client) {
+static void
+client_destroy(ns_client_t *client) {
 	ns_clientmgr_t *manager;
 	isc_boolean_t need_clientmgr_destroy = ISC_FALSE;
 	
@@ -146,10 +156,13 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("shutdown");
 
-	ns_client_destroy(client);
+	client_destroy(client);
 
 	isc_event_free(&event);
 }
+
+static void client_read(ns_client_t *client);
+static void client_accept(ns_client_t *client);
 
 void
 ns_client_next(ns_client_t *client, isc_result_t result) {
@@ -168,15 +181,23 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	/*
 	 * XXXRTH  If result != ISC_R_SUCCESS:
 	 * 		Log result if there is interest in doing so.
-	 *		If this is a TCP client, close the connection.
 	 */
-	(void)result;
 
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 	if (client->dispevent != NULL) {
 		dns_dispatch_freeevent(client->dispatch, client->dispentry,
 				       &client->dispevent);
 		client->state = ns_clientstate_listening;
+	} else if (TCP_CLIENT(client)) {
+		if (result == ISC_R_SUCCESS)
+			client_read(client);
+		else {
+			if (client->tcpsocket != NULL) {
+				dns_tcpmsg_invalidate(&client->tcpmsg);
+				isc_socket_detach(&client->tcpsocket);
+			}
+			client_accept(client);
+		}
 	}
 }
 
@@ -216,7 +237,10 @@ ns_client_send(ns_client_t *client) {
 	isc_result_t result;
 	unsigned char *data;
 	isc_buffer_t buffer;
+	isc_buffer_t tcpbuffer;
 	isc_region_t r;
+	isc_socket_t *socket;
+	isc_sockaddr_t *address;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -241,10 +265,23 @@ ns_client_send(ns_client_t *client) {
 
 	/*
 	 * XXXRTH  The following doesn't deal with truncation, TSIGs,
-	 *         or ENDS1 more data packets.
+	 *         or ENDS1 more data packets.  Nor do we try to use a
+	 *	   buffer bigger than 512 bytes, even if we're using
+	 *	   TCP.
 	 */
-	isc_buffer_init(&buffer, data, SEND_BUFFER_SIZE,
-			ISC_BUFFERTYPE_BINARY);
+	if (TCP_CLIENT(client)) {
+		/*
+		 * XXXRTH  "tcpbuffer" is a hack to get things working.
+		 */
+		isc_buffer_init(&tcpbuffer, data, SEND_BUFFER_SIZE,
+				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&buffer, data + 2, SEND_BUFFER_SIZE - 2,
+				ISC_BUFFERTYPE_BINARY);
+	} else {
+		isc_buffer_init(&buffer, data, SEND_BUFFER_SIZE,
+				ISC_BUFFERTYPE_BINARY);
+	}
+
 	result = dns_message_renderbegin(client->message, &buffer);
 	if (result != ISC_R_SUCCESS)
 		goto done;
@@ -267,14 +304,22 @@ ns_client_send(ns_client_t *client) {
 	result = dns_message_renderend(client->message);
 	if (result != ISC_R_SUCCESS)
 		goto done;
-	isc_buffer_used(&buffer, &r);
-	/*
-	 * XXXRTH this only works for UDP clients.
-	 */
+
+	if (TCP_CLIENT(client)) {
+		socket = client->tcpsocket;
+		address = NULL;
+		isc_buffer_used(&buffer, &r);
+		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t)r.length);
+		isc_buffer_add(&tcpbuffer, r.length);
+		isc_buffer_used(&tcpbuffer, &r);
+	} else {
+		socket = dns_dispatch_getsocket(client->dispatch);
+		address = &client->dispevent->addr;
+		isc_buffer_used(&buffer, &r);
+	}
 	CTRACE("sendto");
-	result = isc_socket_sendto(dns_dispatch_getsocket(client->dispatch),
-				   &r, client->task, client_senddone, client,
-				   &client->dispevent->addr);
+	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
+				   client, address);
 	if (result == ISC_R_SUCCESS)
 		client->nsends++;
 
@@ -327,28 +372,43 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 }
 
 static void
-client_recv(isc_task_t *task, isc_event_t *event) {
+client_request(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
-	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
+	dns_dispatchevent_t *devent;
 	isc_result_t result;
+	isc_buffer_t *buffer;
 
-	REQUIRE(devent != NULL);
-	REQUIRE(devent->type == DNS_EVENT_DISPATCH);
-	client = devent->arg;
+	REQUIRE(event != NULL);
+	client = event->arg;
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
-	REQUIRE(client->dispentry != NULL);
 
-	CTRACE("recv");
+	if (event->type == DNS_EVENT_DISPATCH) {
+		devent = (dns_dispatchevent_t *)event;
+		REQUIRE(client->dispentry != NULL);
+		client->dispevent = devent;
+		buffer = &devent->buffer;
+		result = devent->result;
+	} else {
+		REQUIRE(event->type == DNS_EVENT_TCPMSG);
+		REQUIRE(event->sender == &client->tcpmsg);
+		buffer = &client->tcpmsg.buffer;
+		result = client->tcpmsg.result;
+	}
 
-	client->dispevent = devent;
-	if (devent->result != ISC_R_SUCCESS) {
-		ns_client_destroy(client);
+	CTRACE("request");
+
+	client->state = ns_clientstate_working;
+
+	if (result != ISC_R_SUCCESS) {
+		if (TCP_CLIENT(client))
+			ns_client_next(client, result);
+		else
+			isc_task_shutdown(client->task);
 		return;
 	}
 
-	client->state = ns_clientstate_working;
-	result = dns_message_parse(client->message, &devent->buffer);
+	result = dns_message_parse(client->message, buffer);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_error(client, result);
 		return;
@@ -455,6 +515,8 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->dispatch = NULL;
 	client->dispentry = NULL;
 	client->dispevent = NULL;
+	client->tcplistener = NULL;
+	client->tcpsocket = NULL;
 	client->nsends = 0;
 	client->next = NULL;
 	ISC_LINK_INIT(client, link);
@@ -494,6 +556,75 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	return (result);
 }
 
+static void
+client_read(ns_client_t *client) {
+	isc_result_t result;
+
+	CTRACE("read");
+
+	result = dns_tcpmsg_readmessage(&client->tcpmsg, client->task,
+					client_request, client);
+	if (result != ISC_R_SUCCESS)
+		ns_client_next(client, result);
+	client->state = ns_clientstate_reading;
+}
+
+static void
+client_newconn(isc_task_t *task, isc_event_t *event) {
+	ns_client_t *client = event->arg;
+	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
+
+	REQUIRE(event->type == ISC_SOCKEVENT_NEWCONN);
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(client->task == task);
+
+	CTRACE("newconn");
+
+	if (nevent->result == ISC_R_SUCCESS) {
+		client->tcpsocket = nevent->newsocket;
+		dns_tcpmsg_init(client->mctx, client->tcpsocket,
+				&client->tcpmsg);
+		client_read(client);
+	} else {
+		/*
+		 * XXXRTH  What should we do?  We're trying to accept but
+		 *         it didn't work.  If we just give up, then TCP
+		 *	   service may eventually stop.
+		 *
+		 *	   For now, we just go idle.
+		 *
+		 *	   Going idle is probably the right thing if the
+		 *	   I/O was canceled.
+		 */
+		client->state = ns_clientstate_idle;
+	}
+
+	isc_event_free(&event);
+}
+
+static void
+client_accept(ns_client_t *client) {
+	isc_result_t result;
+
+	CTRACE("accept");
+
+	result = isc_socket_accept(client->tcplistener, client->task,
+				   client_newconn, client);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_socket_accept() failed: %s",
+				 isc_result_totext(result));
+		/*
+		 * XXXRTH  What should we do?  We're trying to accept but
+		 *         it didn't work.  If we just give up, then TCP
+		 *	   service may eventually stop.
+		 *
+		 *	   For now, we just go idle.
+		 */
+		client->state = ns_clientstate_idle;
+		return;
+	}
+}
 
 /***
  *** Client Manager
@@ -578,8 +709,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 }
 
 isc_result_t
-ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, ns_clienttype_t type,
-			   unsigned int n,
+ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
 			   dns_dispatch_t *dispatch)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -601,18 +731,76 @@ ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, ns_clienttype_t type,
 
 	for (i = 0; i < n; i++) {
 		client = NULL;
-		result = client_create(manager, type, &client);
+		result = client_create(manager, ns_clienttype_basic,
+				       &client);
 		if (result != ISC_R_SUCCESS)
 			break;
+		client->state = ns_clientstate_listening;
 		dns_dispatch_attach(dispatch, &client->dispatch);
 		result = dns_dispatch_addrequest(dispatch, client->task,
-						 client_recv,
+						 client_request,
 						 client, &client->dispentry);
 		if (result != ISC_R_SUCCESS) {
 			client_free(client);
 			break;
 		}
+		manager->nclients++;
+		ISC_LIST_APPEND(manager->clients, client, link);
+	}
+	if (i != 0) {
+		/*
+		 * We managed to create at least one client, so we
+		 * declare victory.
+		 */
+		result = ISC_R_SUCCESS;
+	}
+
+	UNLOCK(&manager->lock);
+
+	return (result);
+}
+
+isc_result_t
+ns_clientmgr_accepttcp(ns_clientmgr_t *manager, isc_socket_t *socket,
+		       unsigned int n)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int i;
+	ns_client_t *client;
+
+	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(n > 0);
+
+	MTRACE("accepttcp");
+
+	/*
+	 * XXXRTH
+	 *
+	 * This does not represent the planned method for TCP support,
+	 * because we are dedicating a few clients to servicing TCP requests
+	 * instead of allocating TCP clients from a pool and applying quotas.
+	 *
+	 * All this will be fixed later, but this code will allow parts of
+	 * the server that need TCP support, e.g. IXFR and AXFR, to progress.
+	 */
+
+	/*
+	 * We MUST lock the manager lock for the entire client creation
+	 * process.  If we didn't do this, then a client could get a
+	 * shutdown event and disappear out from under us.
+	 */
+
+	LOCK(&manager->lock);
+
+	for (i = 0; i < n; i++) {
+		client = NULL;
+		result = client_create(manager, ns_clienttype_tcp, &client);
+		if (result != ISC_R_SUCCESS)
+			break;
 		client->state = ns_clientstate_listening;
+		client->attributes |= NS_CLIENTATTR_TCP;
+		isc_socket_attach(socket, &client->tcplistener);
+		client_accept(client);
 		manager->nclients++;
 		ISC_LIST_APPEND(manager->clients, client, link);
 	}

@@ -42,6 +42,9 @@
 
 #include "../../isc/util.h"		/* XXX */
 
+#define PARTIALANSWER(c)	(((c)->query.attributes & \
+				  NS_QUERYATTR_PARTIALANSWER) != 0)
+
 static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_dynbuffer_t *dbuf, *dbuf_next;
@@ -305,7 +308,32 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 		(void)query_addadditional(client, fname, dns_rdatatype_key);
 	}
 }
-		  
+
+#if 0		  
+static isc_result_t
+newfind(ns_client_t *client) {
+	isc_boolean_t cache_ok = ISC_FALSE;
+	isc_boolean_t recursion_ok = ISC_FALSE;
+	dns_db_t *db;
+
+	/*
+	 * First we must find the right database to search
+	 */
+	db = NULL;
+	result = dns_dbtable_find(client->view->dbtable,
+				  client->query.qname, &db);
+	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
+		if (PARTIALANSWER(client)) {
+			/*
+			 * If we've already got an answer we can go with,
+			 * use it.  Otherwise there's nothing we can do.
+			 */
+			return (ISC_R_SUCCESS);
+		}
+		return (DNS_R_SERVFAIL);
+	}
+}
+#endif
 
 static isc_result_t
 find(ns_client_t *client, dns_rdatatype_t type) {
@@ -325,6 +353,12 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 	isc_boolean_t again;
 	isc_boolean_t first_time;
 	dns_rdata_t rdata;
+
+	/*
+	 * XXXRTH
+	 *
+	 * This is still jury rigged.
+	 */
 
 	/*
 	 * One-time initialization.
@@ -607,7 +641,7 @@ ns_query_start(ns_client_t *client) {
 	}
 
 	/*
-	 * 
+	 * XXXRTH  comment here
 	 */
 
 	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
