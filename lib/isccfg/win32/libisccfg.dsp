@@ -98,7 +98,7 @@ SOURCE=.\DLLMain.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\aclconf.c.c
+SOURCE=..\aclconf.c
 # End Source File
 # Begin Source File
 
@@ -134,7 +134,7 @@ SOURCE=..\include\isccfg\grammar.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\isccfg\aclconf.c.h
+SOURCE=..\include\isccfg\aclconf.h
 # End Source File
 # Begin Source File
 

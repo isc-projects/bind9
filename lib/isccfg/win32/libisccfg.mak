@@ -50,7 +50,7 @@ CLEAN :"libisc - Win32 ReleaseCLEAN"
 CLEAN :
 !ENDIF 
 	-@erase "$(INTDIR)\DLLMain.obj"
-	-@erase "$(INTDIR)\aclconf.c.obj"
+	-@erase "$(INTDIR)\aclconf.obj"
 	-@erase "$(INTDIR)\log.obj"
 	-@erase "$(INTDIR)\namedconf.obj"
 	-@erase "$(INTDIR)\parser.obj"
@@ -75,7 +75,7 @@ DEF_FILE= \
 	".\libisccfg.def"
 LINK32_OBJS= \
 	"$(INTDIR)\DLLMain.obj" \
-	"$(INTDIR)\aclconf.c.obj" \
+	"$(INTDIR)\aclconf.obj" \
 	"$(INTDIR)\log.obj" \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
@@ -112,8 +112,8 @@ CLEAN :
 !ENDIF 
 	-@erase "$(INTDIR)\DLLMain.obj"
 	-@erase "$(INTDIR)\DLLMain.sbr"
-	-@erase "$(INTDIR)\aclconf.c.obj"
-	-@erase "$(INTDIR)\aclconf.c.sbr"
+	-@erase "$(INTDIR)\aclconf.obj"
+	-@erase "$(INTDIR)\aclconf.sbr"
 	-@erase "$(INTDIR)\log.obj"
 	-@erase "$(INTDIR)\log.sbr"
 	-@erase "$(INTDIR)\namedconf.obj"
@@ -140,7 +140,7 @@ BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libisccfg.bsc" 
 BSC32_SBRS= \
 	"$(INTDIR)\DLLMain.sbr" \
-	"$(INTDIR)\aclconf.c.sbr" \
+	"$(INTDIR)\aclconf.sbr" \
 	"$(INTDIR)\log.sbr" \
 	"$(INTDIR)\parser.sbr" \
 	"$(INTDIR)\version.sbr" \
@@ -157,7 +157,7 @@ DEF_FILE= \
 	".\libisccfg.def"
 LINK32_OBJS= \
 	"$(INTDIR)\DLLMain.obj" \
-	"$(INTDIR)\aclconf.c.obj" \
+	"$(INTDIR)\aclconf.obj" \
 	"$(INTDIR)\log.obj" \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
@@ -228,19 +228,19 @@ SOURCE=.\DLLMain.c
 
 !ENDIF 
 
-SOURCE=..\aclconf.c.c
+SOURCE=..\aclconf.c
 
 !IF  "$(CFG)" == "libisccfg - Win32 Release"
 
 
-"$(INTDIR)\aclconf.c.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\aclconf.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
 
 
-"$(INTDIR)\aclconf.c.obj"	"$(INTDIR)\aclconf.c.sbr" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\aclconf.obj"	"$(INTDIR)\aclconf.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
