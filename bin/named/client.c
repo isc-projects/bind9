@@ -163,6 +163,7 @@ static void client_accept(ns_client_t *client);
 static void clientmgr_destroy(ns_clientmgr_t *manager);
 static isc_boolean_t exit_check(ns_client_t *client);
 static void ns_client_endrequest(ns_client_t *client);
+static void ns_client_checkactive(ns_client_t *client);
 
 /*
  * Format a human-readable representation of the socket address '*sa'
@@ -361,6 +362,7 @@ exit_check(ns_client_t *client) {
 		 * if any.
 		 */
 		INSIST(client->newstate <= NS_CLIENTSTATE_READY);
+		CTRACE("closetcp");
 		if (client->nreads > 0)
 			dns_tcpmsg_cancelread(&client->tcpmsg);
 		if (! client->nreads == 0) {
@@ -380,8 +382,17 @@ exit_check(ns_client_t *client) {
 
 		(void) isc_timer_reset(client->timer, isc_timertype_inactive,
 				       NULL, NULL, ISC_TRUE);
-				       
+
 		client->state = NS_CLIENTSTATE_READY;
+
+		/*
+		 * Now the client is ready to accept a new TCP connection
+		 * or UDP request, but we may have enough clients doing
+		 * that already.  Check whether this client needs to remain
+		 * active and force it to go inactive if not.
+		 */
+		ns_client_checkactive(client);
+		
 		if (NS_CLIENTSTATE_READY == client->newstate) {
 			if (TCP_CLIENT(client)) {
 				client_accept(client);
@@ -490,7 +501,10 @@ ns_client_endrequest(ns_client_t *client) {
 
 	if (client->recursionquota != NULL)
 		isc_quota_detach(&client->recursionquota);
+}
 
+static void
+ns_client_checkactive(ns_client_t *client) {
 	if (client->mortal) {
 		/*
 		 * This client object should normally go inactive
