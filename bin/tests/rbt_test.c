@@ -50,7 +50,7 @@ create_name(char *s) {
 
 	/*
 	 * It isn't really necessary in this program to create individual
-	 * memory spaces for each name structure and its associate character
+	 * memory spaces for each name structure and its associated character
 	 * string.  It is done here to provide a relatively easy way to test
 	 * the callback from dns_rbt_deletename that is supposed to free the
 	 * data associated with a node.
