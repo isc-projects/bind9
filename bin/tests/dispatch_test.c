@@ -129,7 +129,9 @@ start_response(void)
 
 	memset(&from, 0, sizeof(from));
 	from.length = sizeof(struct sockaddr_in);
+#ifdef ISC_NET_HAVESALEN
 	from.type.sa.sa_len = sizeof(struct sockaddr_in);
+#endif
 	from.type.sin.sin_port = htons(53);
 	from.type.sa.sa_family = AF_INET;
 	RUNTIME_CHECK(isc_inet_aton("204.152.184.97",
