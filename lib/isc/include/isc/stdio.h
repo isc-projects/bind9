@@ -15,11 +15,17 @@
  * SOFTWARE.
  */
 
-/* $Id: stdio.h,v 1.2 2000/06/22 21:58:05 tale Exp $ */
+/* $Id: stdio.h,v 1.3 2000/06/23 03:03:14 tale Exp $ */
+
+#ifndef ISC_STDIO_H
+#define ISC_STDIO_H 1
 
 #include <stdio.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_stdio_open(const char *filename, const char *mode, FILE **fp);
@@ -55,3 +61,7 @@ isc_stdio_sync(FILE *f);
  * equivalent system-dependent operation.  Note that this function has no
  * direct counterpart in the stdio library.
  */
+
+ISC_LANG_ENDDECLS
+
+#endif /* ISC_STDIO_H */
