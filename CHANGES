@@ -1,3 +1,8 @@
+
+ 659.	[performance]	Rewrite the name compression code to be much faster.
+
+ 658.	[cleanup]	Remove all vestiges of 16 bit global compression.
+
  657.	[bug]		When a listen-on statement in an lwres block does not
 			specifiy a port, use 921, not 53.  Also update the
 			listen-on documentation. [RT #616]
