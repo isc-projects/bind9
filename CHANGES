@@ -53,7 +53,8 @@
 			equal to or parents of the query name should be
 			rejected. [RT #1862]
 
-1036.	[func]		Temporally drop requests received via multicast.
+1036.	[func]		Silently drop requests received via multicast as
+			long as there is no final multicast DNS standard.
 
 1035.	[bug]		Respond to multicast queries from a unicast address,
 			RFC 1123. [RT #137]
