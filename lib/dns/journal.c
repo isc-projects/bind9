@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.69 2000/12/11 19:24:08 bwelling Exp $ */
+/* $Id: journal.c,v 1.70 2000/12/22 23:37:03 gson Exp $ */
 
 #include <config.h>
 
@@ -1157,7 +1157,7 @@ dns_journal_commit(dns_journal_t *j) {
 		}
 		INSIST(p == j->rawindex + rawbytes);
 
-		CHECK(journal_write(j, j->index, rawbytes));
+		CHECK(journal_write(j, j->rawindex, rawbytes));
 	}
 
 	/*
