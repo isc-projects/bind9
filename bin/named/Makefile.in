@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.57 2000/11/02 01:53:22 bwelling Exp $
+# $Id: Makefile.in,v 1.58 2000/11/14 03:22:52 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -50,7 +50,8 @@ TARGETS =	named lwresd
 
 OBJS =		client.@O@ interfacemgr.@O@ listenlist.@O@ \
 		log.@O@ logconf.@O@ main.@O@ notify.@O@ omapi.@O@ \
-		omapiconf.@O@ query.@O@ server.@O@ update.@O@ xfrout.@O@ \
+		omapiconf.@O@ query.@O@ server.@O@ sortlist.@O@ \
+		update.@O@ xfrout.@O@ \
 		lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
 		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@
 
@@ -58,7 +59,8 @@ UOBJS =		unix/os.@O@
 
 SRCS =		client.c interfacemgr.c listenlist.c \
 		log.c logconf.c main.c notify.c omapi.c \
-		omapiconf.c query.c server.c update.c xfrout.c \
+		omapiconf.c query.c server.c sortlist.c \
+		update.c xfrout.c \
 		lwresd.c lwdclient.c lwderror.c lwdgabn.c \
 		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c
 

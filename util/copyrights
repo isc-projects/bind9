@@ -48,6 +48,7 @@
 ./bin/named/include/named/omapi.h		C	2000
 ./bin/named/include/named/query.h		C	1999,2000
 ./bin/named/include/named/server.h		C	1999,2000
+./bin/named/include/named/sortlist.h		C	2000
 ./bin/named/include/named/types.h		C	1999,2000
 ./bin/named/include/named/update.h		C	1999,2000
 ./bin/named/include/named/xfrout.h		C	1999,2000
@@ -69,6 +70,7 @@
 ./bin/named/omapiconf.c				C	2000
 ./bin/named/query.c				C	1999,2000
 ./bin/named/server.c				C	1999,2000
+./bin/named/sortlist.c				C	2000
 ./bin/named/unix/.cvsignore			X	1999,2000
 ./bin/named/unix/Makefile.in			MAKE	1999,2000
 ./bin/named/unix/include/named/os.h		C	1999,2000
