@@ -1,3 +1,7 @@
+1752.	[port]		Move isc_app_start() to after ns_os_daemonise()
+			as some fork() implementations unblock the signals
+			that are blocked by isc_app_start(). [RT #12810]
+
 1751.	[bug]		--enable-getifaddrs failed under linux. [RT #12867]
 
 1750.	[port]		lib/bind/make/rules.in:subdirs was not bash friendly.
