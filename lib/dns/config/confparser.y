@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.97 2000/06/15 23:38:14 brister Exp $ */
+/* $Id: confparser.y,v 1.98 2000/06/20 21:36:45 brister Exp $ */
 
 #include <config.h>
 
@@ -354,6 +354,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_STACKSIZE
 %token		L_STATS_FILE
 %token		L_STATS_INTERVAL
+%token		L_STDERR
 %token		L_STUB
 %token		L_SUBDOMAIN
 %token		L_SUPPORT_IXFR
@@ -2166,6 +2167,23 @@ channel_stmt:
 
 		tmpres = dns_c_ctx_addnullchannel(currcfg,
 						  $2, &newc);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine channel %s", $2);
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to add new channel '%s'", $2);
+			YYABORT;
+		}
+
+		isc_mem_free(memctx, $2);
+	} L_EOS optional_channel_opt_list L_RBRACE
+	| L_CHANNEL channel_name L_LBRACE L_STDERR {
+		dns_c_logchan_t *newc;
+
+		tmpres = dns_c_ctx_addstderrchannel(currcfg,
+                                                    $2, &newc);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine channel %s", $2);
@@ -5181,6 +5199,7 @@ static struct token keyword_tokens [] = {
 	{ "stacksize",			L_STACKSIZE },
 	{ "statistics-file",		L_STATS_FILE },
 	{ "statistics-interval",	L_STATS_INTERVAL },
+	{ "stderr",			L_STDERR },
 	{ "stub",			L_STUB },
 	{ "support-ixfr",		L_SUPPORT_IXFR },
 	{ "syslog",			L_SYSLOG },

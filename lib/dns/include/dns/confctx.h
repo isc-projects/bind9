@@ -251,6 +251,8 @@ isc_result_t dns_c_ctx_addsyslogchannel(dns_c_ctx_t *cfg, const char *name,
 					dns_c_logchan_t **chan);
 isc_result_t dns_c_ctx_addnullchannel(dns_c_ctx_t *cfg, const char *name,
 				      dns_c_logchan_t **chan);
+isc_result_t dns_c_ctx_addstderrchannel(dns_c_ctx_t *cfg, const char *name,
+                                        dns_c_logchan_t **chan);
 
 isc_result_t dns_c_ctx_addcategory(dns_c_ctx_t *cfg, const char *catname,
 				   dns_c_logcat_t **newcat);

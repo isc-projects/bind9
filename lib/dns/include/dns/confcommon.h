@@ -160,7 +160,8 @@ typedef enum {
 typedef enum {
 	dns_c_logchan_file,
 	dns_c_logchan_syslog,
-	dns_c_logchan_null
+	dns_c_logchan_null,
+        dns_c_logchan_stderr
 } dns_c_logchantype_t;
 
 

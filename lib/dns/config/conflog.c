@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: conflog.c,v 1.15 2000/05/08 18:42:38 brister Exp $ */
+/* $Id: conflog.c,v 1.16 2000/06/20 21:36:44 brister Exp $ */
 
 #include <config.h>
 
@@ -515,6 +515,7 @@ dns_c_logchan_new(isc_mem_t *mem, const char *name,
 
 	case dns_c_logchan_syslog:
 	case dns_c_logchan_null:
+	case dns_c_logchan_stderr:
 		break;
 	}
 	
@@ -544,6 +545,7 @@ dns_c_logchan_delete(dns_c_logchan_t **channel) {
 
 	case dns_c_logchan_syslog:
 	case dns_c_logchan_null:
+	case dns_c_logchan_stderr:
 		break;
 	}
 
@@ -590,6 +592,7 @@ dns_c_logchan_copy(isc_mem_t *mem, dns_c_logchan_t **dest,
 		break;
 
 	case dns_c_logchan_null:
+	case dns_c_logchan_stderr:
 		break;
 	}
 
@@ -643,6 +646,10 @@ dns_c_logchan_print(FILE *fp, int indent, dns_c_logchan_t *logchan,
 	case dns_c_logchan_null:
 		fputs("null", fp);
 		break;
+
+	case dns_c_logchan_stderr:
+                fputs("stderr", fp);
+                break;
 	}
 	fprintf(fp, ";\n");
 

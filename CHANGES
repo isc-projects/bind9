@@ -1,3 +1,10 @@
+ 263.	[func]		New logging channel type 'stderr'
+
+				channel some-name {
+					stderr;
+					severity error;
+				}
+
  262.	[bug]		'master' was not initalised in zone.c:stub_callback().
 
  261.	[func]		Add dns_zone_markdirty().

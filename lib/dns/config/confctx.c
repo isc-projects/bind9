@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.69 2000/06/15 23:38:12 brister Exp $ */
+/* $Id: confctx.c,v 1.70 2000/06/20 21:36:43 brister Exp $ */
 
 #include <config.h>
 
@@ -1295,6 +1295,31 @@ dns_c_ctx_addnullchannel(dns_c_ctx_t *cfg, const char *name,
 
 	res = dns_c_logginglist_addchannel(cfg->logging, newc,
 					   ISC_FALSE);
+
+	*chan = newc;
+	
+	return (res);
+}
+
+
+isc_result_t
+dns_c_ctx_addstderrchannel(dns_c_ctx_t *cfg, const char *name,
+                           dns_c_logchan_t **chan)
+{
+	dns_c_logchan_t *newc;
+	isc_result_t res;
+
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(name != NULL);
+	REQUIRE(chan != NULL);
+	REQUIRE(cfg->logging != NULL);
+
+	res = dns_c_logchan_new(cfg->mem, name, dns_c_logchan_stderr, &newc);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+
+	res = dns_c_logginglist_addchannel(cfg->logging, newc, ISC_FALSE);
 
 	*chan = newc;
 	
