@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.32 $)
+AC_REVISION($Revision: 1.33 $)
 
 AC_PREREQ(2.13)
 
@@ -228,12 +228,6 @@ dnl
 dnl Networking specifics.
 dnl
 case "$host" in
-	*-sun-solaris*)
-		AC_DEFINE(NEED_AF_INET6)
-		;;
-	*-hp-hpux*)
-		AC_DEFINE(NEED_AF_INET6)
-		;;
 	*-dec-osf*)
 		dnl Turn on 4.4BSD style sa_len support.
 		dnl (Disabled for now because it is incompatible
@@ -242,22 +236,48 @@ case "$host" in
 		;;
 esac
 
+dnl
 dnl Look for a 4.4BSD-style sa_len member in struct sockaddr.
-dnl Note: the test used when cross-compiling usually works, but can
-dnl have false positives (which is why we AC_TRY_RUN).
+dnl
 
 AC_MSG_CHECKING(for sa_len in struct sockaddr)
-AC_TRY_RUN([
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>],
+[int foo() { struct sockaddr sa; sa.sa_len = 0; return (0); }],
+	[AC_MSG_RESULT(yes)
+	ISC_NET_HAVESALEN="#define ISC_NET_HAVESALEN 1"],
+	[AC_MSG_RESULT(no)
+	ISC_NET_HAVESALEN="#undef ISC_NET_HAVESALEN"])
+AC_SUBST(ISC_NET_HAVESALEN)
+
+dnl
+dnl IPv6
+dnl
+AC_MSG_CHECKING(for AF_INET6)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>],
+[int foo(void) { return (AF_INET6); }],
+	[AC_MSG_RESULT(yes)
+	ISC_NET_NEEDAFINET6="#undef ISC_NET_NEEDAFINET6"],
+	[AC_MSG_RESULT(no)
+	ISC_NET_NEEDAFINET6="#define ISC_NET_NEEDAFINET6 1"])
+AC_SUBST(ISC_NET_NEEDAFINET6)
+AC_MSG_CHECKING(for IPv6 structures)
+AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
-int main() { struct sockaddr sa; sa.sa_len = 0; return (0); }],
+#include <netinet/in.h>],
+[int foo(void) { struct sockaddr_in6 sin6; return (0); }],
 	[AC_MSG_RESULT(yes)
-	AC_DEFINE(HAVE_SA_LEN)],
-	AC_MSG_RESULT(no),
-	AC_EGREP_HEADER([sa_len[^a-z0-9_]], sys/socket.h,
-		[AC_MSG_RESULT(yes)
-		AC_DEFINE(HAVE_SA_LEN)],
-		[AC_MSG_RESULT(no)]))
+	ISC_NET_NEEDIPV6="#undef ISC_NET_NEEDIPV6"
+	AC_DEFINE(HAVE_IPV6)],
+	[AC_MSG_RESULT(no)
+	ISC_NET_NEEDIPV6="#define ISC_NET_NEEDIPV6 1"
+	ISC_IPV6_H="ipv6.h"])
+AC_SUBST(ISC_NET_NEEDIPV6)
+AC_SUBST(ISC_IPV6_H)
 
 dnl
 dnl GNU libtool support
@@ -330,6 +350,7 @@ AC_OUTPUT(
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
+	lib/isc/unix/include/isc/net.h
 	lib/isc/nls/Makefile
 	lib/isc/pthreads/Makefile
 	lib/isc/pthreads/include/Makefile
