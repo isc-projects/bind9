@@ -80,24 +80,17 @@ main(int argc, char *argv[]) {
 	dns_name_t name, base, *origin;
 	dns_offsets_t offsets;
 	size_t len;
-	isc_buffer_t source, target;
+	isc_buffer_t source, target, text;
 	char s[1000];
+	char t[1000];
 	char b[255];
-#if 0
-	FILE *f;
-#endif
+	dns_rdataset_t rdataset;
+	isc_region_t r;
 
 	if (argc < 2) {
 		fprintf(stderr, "usage: db_test filename\n");
 		exit(1);
 	}
-#if 0
-	f = fopen(argv[1], "r");
-	if (f == NULL) {
-		fprintf(stderr, "fopen failed.\n");
-		exit(2);
-	}
-#endif
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -109,29 +102,6 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(result == DNS_R_SUCCESS);
 	
 	origin = dns_rootname;
-#if 0
-	while (fgets(s, sizeof s, f) != NULL) {
-		dns_name_init(&name, offsets);
-		len = strlen(s);
-		if (len > 0 && s[len - 1] == '\n') {
-			len--;
-			s[len] = '\0';
-		}
-		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
-		isc_buffer_add(&source, len);
-		isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
-		result = dns_name_fromtext(&name, &source, origin, ISC_FALSE,
-					   &target);
-		if (result != DNS_R_SUCCESS) {
-			printf("bad db name: %s\n", dns_result_totext(result));
-			continue;
-		}
-		node = NULL;
-		result = dns_db_findnode(db, &name, ISC_TRUE, &node);
-		RUNTIME_CHECK(result == DNS_R_SUCCESS);
-		dns_db_detachnode(db, &node);
-	}
-#endif
 	result = dns_db_load(db, argv[1]);
 	if (result != DNS_R_SUCCESS) {
 		printf("couldn't load master file: %s\n",
@@ -159,6 +129,29 @@ main(int argc, char *argv[]) {
 			printf("%s\n", dns_result_totext(result));
 		else {
 			printf("success\n");
+			dns_rdataset_init(&rdataset);
+			result = dns_db_findrdataset(db, node, NULL, 2,
+						     &rdataset);
+			if (result == DNS_R_NOTFOUND)
+				printf("type 2 rdataset not found\n");
+			else if (result != DNS_R_SUCCESS)
+				printf("%s\n", dns_result_totext(result));
+			else {
+				isc_buffer_init(&text, t, sizeof t,
+						ISC_BUFFERTYPE_TEXT);
+				result = dns_rdataset_totext(&rdataset,
+							     &name,
+							     ISC_FALSE,
+							     &text);
+				isc_buffer_used(&text, &r);
+				if (result == DNS_R_SUCCESS)
+					printf("%.*s", (int)r.length,
+					       (char *)r.base);
+				else
+					printf("%s\n",
+					       dns_result_totext(result));
+				dns_rdataset_disassociate(&rdataset);
+			}
 			dns_db_detachnode(db, &node);
 		}
 	}
