@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwsearch.c,v 1.1 2000/10/24 04:25:14 bwelling Exp $ */
+/* $Id: lwsearch.c,v 1.2 2000/10/24 17:15:54 bwelling Exp $ */
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -128,11 +128,14 @@ ns_lwsearchctx_init(ns_lwsearchctx_t *sctx, ns_lwsearchlist_t *list,
 	INSIST(sctx != NULL);
 	sctx->relname = name;
 	sctx->searchname = NULL;
-	if (dns_name_isabsolute(name) || dns_name_countlabels(name) > ndots)
-		sctx->list = NULL;
-	else
-		sctx->list = list;
 	sctx->doneexact = ISC_FALSE;
+	if (dns_name_isabsolute(name))
+		sctx->list = NULL;
+	else {
+		sctx->list = list;
+		if (dns_name_countlabels(name) <= ndots)
+			sctx->doneexact = ISC_TRUE;
+	}
 }
 
 void
