@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.36 2000/05/15 21:14:18 tale Exp $ */
+/* $Id: tsig_250.c,v 1.37 2000/05/19 13:04:45 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -428,7 +428,7 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	tsig->common.rdclass = rdata->rdclass;
 	tsig->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&tsig->common, link);
-	tsig->mctx = mctx;
+
 	dns_rdata_toregion(rdata, &sr);
 
 	/*
@@ -437,15 +437,14 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_name_init(&alg, NULL);
 	dns_name_fromregion(&alg, &sr);
 	dns_name_init(&tsig->algorithm, NULL);
-	RETERR(dns_name_dup(&alg, mctx, &tsig->algorithm));
+	RETERR(name_duporclone(&alg, mctx, &tsig->algorithm));
 	
 	isc_region_consume(&sr, name_length(&tsig->algorithm));
 
 	/*
 	 * Time Signed.
 	 */
-	if (sr.length < 6)
-		return (ISC_R_UNEXPECTEDEND);
+	INSIST(sr.length >= 6);
 	tsig->timesigned = ((isc_uint64_t)sr.base[0] << 40) |
 			   ((isc_uint64_t)sr.base[1] << 32) |
 			   (sr.base[2] << 24) | (sr.base[3] << 16) |
@@ -455,66 +454,65 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	/*
 	 * Fudge.
 	 */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tsig->fudge = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/*
 	 * Signature Size.
 	 */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tsig->siglen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/*
 	 * Signature.
 	 */
-	if (sr.length < tsig->siglen)
-		return (ISC_R_UNEXPECTEDEND);
-	tsig->signature = isc_mem_get(mctx, tsig->siglen);
-	if (tsig->signature == NULL)
-		return (ISC_R_NOMEMORY);
-	memcpy(tsig->signature, sr.base, tsig->siglen);
-	isc_region_consume(&sr, tsig->siglen);
+	INSIST(sr.length >= tsig->siglen);
+	if (tsig->siglen != 0) {
+		tsig->signature = mem_maybedup(mctx, sr.base, tsig->siglen);
+		if (tsig->signature == NULL)
+			goto cleanup;
+		isc_region_consume(&sr, tsig->siglen);
+	} else
+		tsig->signature = NULL;
 
 	/*
 	 * Original ID.
 	 */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tsig->originalid = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/*
 	 * Error.
 	 */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tsig->error = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/*
 	 * Other Size.
 	 */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tsig->otherlen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/*
 	 * Other.
 	 */
-	if (sr.length < tsig->otherlen)
-		return (ISC_R_UNEXPECTEDEND);
-	tsig->other = isc_mem_get(mctx, tsig->otherlen);
-	if (tsig->other == NULL)
-		return (ISC_R_NOMEMORY);
-	memcpy(tsig->other, sr.base, tsig->otherlen);
-	isc_region_consume(&sr, tsig->otherlen);
+	INSIST(sr.length == tsig->otherlen);
+	if (tsig->otherlen != 0) {
+		tsig->other = mem_maybedup(mctx, sr.base, tsig->otherlen);
+		if (tsig->other == NULL)
+			goto cleanup;
+	} else
+		tsig->other = NULL;
 
+	tsig->mctx = mctx;
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL)
+		dns_name_free(&tsig->algorithm, tsig->mctx);	
+	if (mctx != NULL && tsig->signature != NULL)
+		isc_mem_free(mctx, tsig->signature);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
@@ -525,11 +523,15 @@ freestruct_any_tsig(void *source) {
 	REQUIRE(tsig->common.rdclass == 255);
 	REQUIRE(tsig->common.rdtype == 250);
 
+	if (tsig->mctx == NULL)
+		return;
+
 	dns_name_free(&tsig->algorithm, tsig->mctx);	
 	if (tsig->signature != NULL)
-		isc_mem_put(tsig->mctx, tsig->signature, tsig->siglen);
+		isc_mem_free(tsig->mctx, tsig->signature);
 	if (tsig->other != NULL)
-		isc_mem_put(tsig->mctx, tsig->other, tsig->otherlen);
+		isc_mem_free(tsig->mctx, tsig->other);
+	tsig->mctx = NULL;
 }
 
 static inline isc_result_t
