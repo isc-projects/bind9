@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.390 2003/05/21 14:15:32 marka Exp $ */
+/* $Id: zone.c,v 1.391 2003/06/06 06:09:39 marka Exp $ */
 
 #include <config.h>
 
@@ -1138,14 +1138,14 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_CANCELED)
 		goto fail;
 
-	LOCK(&zone->lock);
+	LOCK_ZONE(zone);
 	dns_db_currentversion(zone->db, &version);
 	result = dns_master_dumpinc(zone->mctx, zone->db, version,
 				    &dns_master_style_default,
 				    zone->masterfile, zone->task,
 				    dump_done, zone, &zone->dctx);
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
-	UNLOCK(&zone->lock);
+	UNLOCK_ZONE(zone);
 	if (result != DNS_R_CONTINUE)
 		goto fail;
 	return;
