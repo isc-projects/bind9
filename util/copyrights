@@ -270,6 +270,7 @@
 ./lib/dns/config/confpvt.h			C	1999
 ./lib/dns/config/confrrset.c			C	1999
 ./lib/dns/config/confserv.c			C	1999
+./lib/dns/config/confview.c			C	1999
 ./lib/dns/config/confzone.c			C	1999
 ./lib/dns/db.c					C	1999
 ./lib/dns/dbiterator.c				C	1999
@@ -297,6 +298,7 @@
 ./lib/dns/include/dns/confparser.h		C	1999
 ./lib/dns/include/dns/confrrset.h		C	1999
 ./lib/dns/include/dns/confserv.h		C	1999
+./lib/dns/include/dns/confview.h		C	1999
 ./lib/dns/include/dns/confzone.h		C	1999
 ./lib/dns/include/dns/db.h			C	1999
 ./lib/dns/include/dns/dbiterator.h		C	1999
