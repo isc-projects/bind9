@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3310"
+HREF="Bv9ARM.ch06.html#AEN3333"
 >Zone File</A
 ></DT
 ></DL
@@ -2609,6 +2609,69 @@ VALIGN="MIDDLE"
 >Queries.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>dispatch</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Dispatching of incoming packets to the
+server modules where they are to be processed.
+</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>dnssec</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>DNSSEC and TSIG protocol processing.
+</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>lame-servers</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Lame servers.  These are misconfigurations
+in remote servers, discovered by BIND 9 while it is trying to use
+those servers during reolution.
+</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
@@ -2621,7 +2684,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1707"
+NAME="AEN1725"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2718,7 +2781,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1731"
+NAME="AEN1749"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2792,7 +2855,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1750"
+NAME="AEN1768"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3685,7 +3748,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1953"
+NAME="AEN1971"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4557,7 +4620,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2220"
+NAME="AEN2238"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4761,7 +4824,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2285"
+NAME="AEN2303"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -4856,7 +4919,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2311"
+NAME="AEN2329"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5028,7 +5091,7 @@ CLASS="command"
 > option set the maximum number
 of concurrent serial-number queries allowed to be outstanding at
 any given time.  BIND 9 does not limit the number of outstanding
-serial queries and ignores the The <B
+serial queries and ignores the <B
 CLASS="command"
 >serial-queries</B
 > option;
@@ -5252,7 +5315,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2440"
+NAME="AEN2458"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5389,7 +5452,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2492"
+NAME="AEN2510"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><P
@@ -5762,7 +5825,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2582"
+NAME="AEN2600"
 ></A
 ><P
 ></P
@@ -6156,7 +6219,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2697"
+NAME="AEN2715"
 ></A
 ><P
 ></P
@@ -6342,6 +6405,15 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> edns <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > transfers <TT
 CLASS="replaceable"
 ><I
@@ -6457,6 +6529,16 @@ to make it possible to disable the use of IXFR even when both master
 and slave claim to support it, for example if one of the servers
 is buggy and crashes or corrupts data when IXFR is used.</P
 ><P
+>The <B
+CLASS="command"
+>edns</B
+> clause determines whether the local server
+will attempt to use EDNS when communicating with the remote server.  The
+default is <B
+CLASS="command"
+>yes</B
+>.</P
+><P
 >The server supports two zone transfer methods. The first, <B
 CLASS="command"
 >one-answer</B
@@ -6546,7 +6628,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2800"
+NAME="AEN2823"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6621,7 +6703,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2816"
+NAME="AEN2839"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6656,7 +6738,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2824"
+NAME="AEN2847"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6719,7 +6801,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2838"
+NAME="AEN2861"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7339,7 +7421,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2983"
+NAME="AEN3006"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7350,13 +7432,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2986"
+NAME="AEN3009"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2988"
+NAME="AEN3011"
 ></A
 ><P
 ></P
@@ -7594,7 +7676,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3043"
+NAME="AEN3066"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7632,7 +7714,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3053"
+NAME="AEN3076"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8257,7 +8339,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3280"
+NAME="AEN3303"
 ></A
 ><P
 ></P
@@ -8364,7 +8446,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3310"
+NAME="AEN3333"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8385,7 +8467,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3315"
+NAME="AEN3338"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8408,7 +8490,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3321"
+NAME="AEN3344"
 ></A
 ><P
 ></P
@@ -8519,7 +8601,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3353"
+NAME="AEN3376"
 ></A
 ><P
 ></P
@@ -8896,7 +8978,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3465"
+NAME="AEN3488"
 ></A
 ><P
 ></P
@@ -8948,7 +9030,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3481"
+NAME="AEN3504"
 ></A
 ><P
 ></P
@@ -9125,7 +9207,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3529"
+NAME="AEN3552"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9155,7 +9237,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3536"
+NAME="AEN3559"
 ></A
 ><P
 ></P
@@ -9364,7 +9446,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3602"
+NAME="AEN3625"
 ></A
 ><P
 ></P
@@ -9455,7 +9537,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3630"
+NAME="AEN3653"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9488,7 +9570,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3636"
+NAME="AEN3659"
 ></A
 ><P
 ></P
@@ -9784,7 +9866,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3728"
+NAME="AEN3751"
 ></A
 ><P
 ></P
@@ -9867,7 +9949,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3751"
+NAME="AEN3774"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -9891,7 +9973,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3756"
+NAME="AEN3779"
 ></A
 ><P
 ></P
@@ -9971,7 +10053,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3778"
+NAME="AEN3801"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -9996,7 +10078,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3785"
+NAME="AEN3808"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10066,7 +10148,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3805"
+NAME="AEN3828"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10148,7 +10230,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3825"
+NAME="AEN3848"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10188,7 +10270,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3836"
+NAME="AEN3859"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10267,7 +10349,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3856"
+NAME="AEN3879"
 ></A
 ><P
 ></P

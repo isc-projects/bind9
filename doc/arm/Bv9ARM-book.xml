@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.112 2001/03/07 18:46:58 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.113 2001/03/07 18:52:27 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2496,8 +2496,8 @@ server modules where they are to be processed.
 <row rowsep = "0">
 <entry colname = "1"><para><command>lame-servers</command></para></entry>
 <entry colname = "2"><para>Lame servers.  These are misconfigurations
-in remote servers, discovered by BIND 9 while it is trying to use
-those servers during reolution.
+in remote servers, discovered by BIND 9 when trying to query
+those servers during resolution.
 </para></entry>
 </row>
 </tbody>
