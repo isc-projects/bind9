@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.2 2001/09/21 20:37:09 gson Exp $ */
+/* $Id: resolver.c,v 1.218.2.3 2001/09/21 20:40:06 gson Exp $ */
 
 #include <config.h>
 
@@ -595,24 +595,6 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static void
-resquery_aborted(isc_task_t *task, isc_event_t *event) {
-	resquery_t *query = event->ev_arg;
-
-	REQUIRE(event->ev_type == DNS_EVENT_QUERYABORTED);
-
-	QTRACE("blackholed");
-
-	UNUSED(task);
-
-	/*
-	 * Treat this as a "no response" to cause the RTT estimate to go up.
-	 */
-	fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
-
-	isc_event_free(&event);
-}
-
 static inline isc_result_t
 fctx_addopt(dns_message_t *message) {
 	dns_rdataset_t *rdataset;
@@ -865,11 +847,8 @@ resquery_send(resquery_t *query) {
 	isc_buffer_t *buffer;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
-	dns_acl_t *blackhole;
 	dns_peer_t *peer = NULL;
 	isc_boolean_t useedns;
-	isc_boolean_t bogus;
-	isc_boolean_t aborted = ISC_FALSE;
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 
@@ -1082,36 +1061,6 @@ resquery_send(resquery_t *query) {
 	if ((query->options & DNS_FETCHOPT_TCP) == 0)
 		address = &query->addrinfo->sockaddr;
 	isc_buffer_usedregion(buffer, &r);
-
-
-	blackhole = dns_dispatchmgr_getblackhole(query->dispatchmgr);
-	if (blackhole != NULL) {
-		int match;
-
-		if (dns_acl_match(&ipaddr, NULL, blackhole,
-				  &fctx->res->view->aclenv,
-				  &match, NULL) == ISC_R_SUCCESS &&
-		    match > 0)
-			aborted = ISC_TRUE;
-	}
-
-	if (peer != NULL &&
-	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
-	    bogus)
-		aborted = ISC_TRUE;
-
-	if (aborted) {
-		isc_event_t *event;
-		event = isc_event_allocate(fctx->res->mctx, NULL,
-					   DNS_EVENT_QUERYABORTED,
-					   resquery_aborted, query,
-					   sizeof(isc_event_t));
-		if (event == NULL)
-			return (ISC_R_NOMEMORY);
-		isc_task_send(task, &event);
-		result = ISC_R_SUCCESS;
-		goto cleanup_message;
-	}
 
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
@@ -1670,23 +1619,56 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 	isc_netaddr_t na;
 	char buf[ISC_NETADDR_FORMATSIZE];
 	isc_sockaddr_t *sa;
+	isc_boolean_t aborted = ISC_FALSE;
+	isc_boolean_t bogus;
+	dns_acl_t *blackhole;
+	isc_netaddr_t ipaddr;
+	dns_peer_t *peer = NULL;
+	dns_resolver_t *res;
+	const char *msg = NULL;
 
 	sa = &addr->sockaddr;
 
-	if (sa->type.sa.sa_family != AF_INET6)
+	res = fctx->res;
+	isc_netaddr_fromsockaddr(&ipaddr, sa);
+	blackhole = dns_dispatchmgr_getblackhole(res->dispatchmgr);
+	(void) dns_peerlist_peerbyaddr(res->view->peers, &ipaddr, &peer);
+	
+	if (blackhole != NULL) {
+		int match;
+
+		if (dns_acl_match(&ipaddr, NULL, blackhole,
+				  &res->view->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+			aborted = ISC_TRUE;
+	}
+
+	if (peer != NULL &&
+	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
+	    bogus)
+		aborted = ISC_TRUE;
+
+	if (aborted) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring backholed / bogus server: ";
+	} else if (sa->type.sa.sa_family != AF_INET6) {
+		return;
+	} else if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring IPv6 mapped IPV4 address: ";
+	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring IPv6 compatibility IPV4 address: ";
+	} else
 		return;
 
-	if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
-		isc_netaddr_fromsockaddr(&na, sa);
-		isc_netaddr_format(&na, buf, sizeof buf);
-		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("ignoring IPv6 mapped IPV4 address: ", buf);
-	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
-		isc_netaddr_fromsockaddr(&na, sa);
-		isc_netaddr_format(&na, buf, sizeof buf);
-		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("ignoring IPv6 compatibility IPV4 address: ", buf);
-	}
+	if (!isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3)))
+		return;
+
+	isc_netaddr_fromsockaddr(&na, sa);
+	isc_netaddr_format(&na, buf, sizeof buf);
+	FCTXTRACE2(msg, buf);
 }
 
 static inline dns_adbaddrinfo_t *
