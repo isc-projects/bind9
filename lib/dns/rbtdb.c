@@ -912,42 +912,34 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	RWLOCK(&rbtdb->tree_lock, locktype);
 	result = dns_rbt_findnode(rbtdb->tree, name, NULL, &node, NULL,
 				  ISC_TRUE, NULL, NULL);
- again:
-	if (result == DNS_R_SUCCESS) {
-		locknum = node->locknum;
-		LOCK(&rbtdb->node_locks[locknum].lock);
-		new_reference(rbtdb, node);
-		UNLOCK(&rbtdb->node_locks[locknum].lock);
-	} else {
+	if (result != DNS_R_SUCCESS) {
 		RWUNLOCK(&rbtdb->tree_lock, locktype);
 		if (!create) {
 			if (result == DNS_R_PARTIALMATCH)
 				result = DNS_R_NOTFOUND;
 			return (result);
 		}
-		locktype = isc_rwlocktype_write;
 		/*
 		 * It would be nice to try to upgrade the lock instead of
 		 * unlocking then relocking.
 		 */
+		locktype = isc_rwlocktype_write;
 		RWLOCK(&rbtdb->tree_lock, locktype);
 		node = NULL;
 		result = dns_rbt_addnode(rbtdb->tree, name, &node);
-		if (result != DNS_R_SUCCESS && result != DNS_R_EXISTS) {
+		if (result == DNS_R_SUCCESS) {
+			dns_rbt_namefromnode(node, &nodename);
+			node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
+				rbtdb->node_lock_count;
+		} else if (result != DNS_R_EXISTS) {
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
 			return (result);
 		}
-		dns_rbt_namefromnode(node, &nodename);
-		node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
-			rbtdb->node_lock_count;
-		/*
-		 * Turning off creation mode ensures that we can 'goto again'
-		 * only once.  If we didn't do this and dns_rbt_findnode()
-		 * was always failing, then we could loop forever.
-		 */
-		create = ISC_FALSE;
-		goto again;
 	}
+	locknum = node->locknum;
+	LOCK(&rbtdb->node_locks[locknum].lock);
+	new_reference(rbtdb, node);
+	UNLOCK(&rbtdb->node_locks[locknum].lock);
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
 
 	*nodep = (dns_dbnode_t *)node;
