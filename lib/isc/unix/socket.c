@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.17 1998/12/05 00:28:12 explorer Exp $ */
+/* $Id: socket.c,v 1.18 1998/12/05 01:44:38 halley Exp $ */
 
 #include "attribute.h"
 
@@ -31,8 +31,15 @@
  * if they fail.
  */
 
-#define LOCK(lp) 	do { XTRACE(TRACE_LOCK, ("%d locked socket %p\n", __LINE__, lp)); INSIST(isc_mutex_lock((lp)) == ISC_R_SUCCESS); } while (0)
-#define UNLOCK(lp) 	do { XTRACE(TRACE_LOCK, ("%d unlocked socket %p\n", __LINE__, lp)); INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS); } while (0)
+#define LOCK(lp) 	do { \
+	INSIST(isc_mutex_lock((lp)) == ISC_R_SUCCESS); \
+	XTRACE(TRACE_LOCK, ("%d locked socket %p\n", __LINE__, lp)); \
+} while (0)
+
+#define UNLOCK(lp) 	do { \
+	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS); \
+	XTRACE(TRACE_LOCK, ("%d unlocked socket %p\n", __LINE__, lp)); \
+} while (0)
 
 #define SOFT_ERROR(e)	((e) == EAGAIN || (e) == EWOULDBLOCK || (e) == EINTR)
 
@@ -48,7 +55,7 @@
 #define TRACE_LOCK	0x0040
 
 #if 1
-int trace_level = TRACE_CONNECT | TRACE_MANAGER | TRACE_WATCHER | TRACE_LOCK;
+int trace_level = 0xffffffff;
 #define XTRACE(l, a)	if (l & trace_level) printf a
 #define XENTER(l, a)	if (l & trace_level) printf("ENTER %s\n", (a))
 #define XEXIT(l, a)	if (l & trace_level) printf("EXIT %s\n", (a))
@@ -453,6 +460,8 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 	}
 
 	if (make_nonblock(sock->fd) != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "make_nonblock(%d) failed.", sock->fd);
 		free_socket(&sock);
 		return (ISC_R_UNEXPECTED);
 	}
@@ -726,12 +735,22 @@ internal_accept(isc_task_t task, isc_event_t ev)
 		 * for the best, but log it.  XXX This will have to be
 		 * changed, thanks to broken OSs trying to overload what
 		 * accept does.
+		 *
+		 * XXX we should log something.  Consider if we really
+		 * want to press on here.  Need to catch fatal errors.
 		 */
 		XTRACE(TRACE_LISTEN, ("internal_accept: accept returned %s\n",
 				      strerror(errno)));
 		select_poke(sock->manager, sock->fd);
 		UNLOCK(&sock->lock);
 		return (0);
+	}
+	if (make_nonblock(fd) != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "make_nonblock(%d) failed.", fd);
+		close(fd);
+		UNLOCK(&sock->lock);
+		return (ISC_R_UNEXPECTED);
 	}
 
 	DEQUEUE(sock->accept_list, iev, link);
@@ -1470,6 +1489,7 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 		if (iev == NULL) {
 			/* no special free routine yet */
 			isc_event_free((isc_event_t *)&ev);
+			UNLOCK(&sock->lock);
 			return (ISC_R_NOMEMORY);
 		}
 
@@ -1521,7 +1541,7 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_socket_recv: %s",
 					 strerror(errno));
-			INSIST(cc >= 0);
+			INSIST(cc >= 0);	/* XXX */
 		}
 
 		if (cc == 0) {
@@ -1750,8 +1770,16 @@ isc_result_t
 isc_socket_bind(isc_socket_t sock, struct isc_sockaddr *sockaddr,
 		int addrlen)
 {
+	int on = 1;
+
 	LOCK(&sock->lock);
 
+	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR,
+		       &on, sizeof on) < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
+				 sock->fd);
+		/* Press on... */
+	}
 	if (bind(sock->fd, (struct sockaddr *)sockaddr, addrlen) < 0) {
 		UNLOCK(&sock->lock);
 		switch (errno) {
