@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.187.2.10.6.4 2003/09/22 00:06:58 marka Exp $ */
+/* $Id: resolver.c,v 1.187.2.10.6.5 2003/09/22 00:13:04 marka Exp $ */
 
 #include <config.h>
 
@@ -4310,14 +4310,23 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	    fix_mustbedelegationornxdomain(message, fctx)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char domainbuf[DNS_NAME_FORMATSIZE];
+		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+		char classbuf[64];
+		char typebuf[64];
 
 		dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
 		dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+		dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
+		dns_rdataclass_format(fctx->res->rdclass, classbuf,
+				      sizeof(classbuf));
+		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
+				    sizeof(addrbuf));
 
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DELEGATION_ONLY,
 			     DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-			     "enforced delegation-only for '%s' (%s)",
-			     domainbuf, namebuf);
+			     "enforced delegation-only for '%s' (%s/%s/%s) "
+			     "from %s",
+			     domainbuf, namebuf, typebuf, classbuf, addrbuf);
 	}
 
 	/*
