@@ -1189,8 +1189,10 @@ usage(void) {
 	fprintf(stderr, "\t-f outfile:\n");
 	fprintf(stderr, "\t\tfile the signed zone is written in "
 				"(zonefile + .signed)\n");
-	fprintf(stderr, "\t-a:\n");
+	fprintf(stderr, "\t-a\n");
 	fprintf(stderr, "\t\tverify generated signatures\n");
+	fprintf(stderr, "\t-p\n");
+	fprintf(stderr, "\t\tuse pseudorandom data (faster but less secure)\n");
 	fprintf(stderr, "\t-r randomdev:\n");
 	fprintf(stderr,	"\t\ta file containing random data\n");
 
@@ -1214,6 +1216,8 @@ main(int argc, char *argv[]) {
 	signer_key_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
+	isc_boolean_t pseudorandom = ISC_FALSE;
+	unsigned int eflags;
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS)
@@ -1221,7 +1225,7 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ahr:"))
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ahpr:"))
 	       != -1) {
 		switch (ch) {
 		case 's':
@@ -1243,6 +1247,10 @@ main(int argc, char *argv[]) {
 			cycle = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("cycle period must be numeric");
+			break;
+
+		case 'p':
+			pseudorandom = ISC_TRUE;
 			break;
 
 		case 'r':
@@ -1287,8 +1295,10 @@ main(int argc, char *argv[]) {
 	setup_entropy(mctx, randomfile, &ectx);
 	if (randomfile != NULL)
 		isc_mem_free(mctx, randomfile);
-	result = dst_lib_init(mctx, ectx,
-			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	eflags = ISC_ENTROPY_BLOCKING;
+	if (!pseudorandom)
+		eflags |= ISC_ENTROPY_GOODONLY;
+	result = dst_lib_init(mctx, ectx, eflags);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst");
 
