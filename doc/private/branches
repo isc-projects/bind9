@@ -10,8 +10,6 @@ rt3746		open		marka
 v6source
 rt4663		review		explorer
 rt4687		review		explorer
-rt4802		review		explorer
-ds_12		review		explorer
 
 ipv6-improvements closed
 blabel-cleanup	closed
@@ -33,3 +31,5 @@ rt4319		closed		explorer
 rt3907		closed		explorer
 rt3507		closed		ogud (pull down by explorer)
 adb_race	closed		explorer
+rt4802		closed
+ds_12		closed
