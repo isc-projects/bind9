@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.25 1999/10/21 00:39:40 gson Exp $ */
+ /* $Id: zone.c,v 1.26 1999/10/22 19:32:11 halley Exp $ */
 
 #include <config.h>
 
@@ -2990,7 +2990,7 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			if (result != DNS_R_SUCCESS)
 				goto fail;
 		}
-		printf("unlinking journal\n");
+		/* XXXRTH log instead: printf("unlinking journal\n"); */
 		(void) remove(zone->ixfrlog);
 	}
 	dns_db_closeversion(db, &ver, ISC_FALSE);
