@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.15 2001/03/05 18:18:39 mayer Exp $
+ * $Id: assertions.h,v 1.16 2001/03/05 18:47:00 mayer Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
@@ -36,7 +36,7 @@ typedef enum {
 typedef void (*isc_assertioncallback_t)(const char *, int, isc_assertiontype_t,
 					const char *);
 
-LIBISC_EXTERNAL_DATA extern isc_assertioncallback_t isc_assertion_failed;
+extern isc_assertioncallback_t isc_assertion_failed;
 
 void
 isc_assertion_setcallback(isc_assertioncallback_t);
