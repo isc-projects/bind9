@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.41 2001/11/06 22:50:57 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.42 2001/11/06 23:10:34 bwelling Exp $
  */
 
 #ifdef OPENSSL
@@ -508,7 +508,7 @@ BN_fromhex(BIGNUM *b, const char *str) {
 	RUNTIME_CHECK(out != NULL);
 }
 
-void
+static void
 openssldh_cleanup(void) {
 	BN_free(&bn2);
 	BN_free(&bn768);
