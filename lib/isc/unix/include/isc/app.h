@@ -71,17 +71,17 @@
  *	None.
  */
 
+#include <isc/eventclass.h>
 #include <isc/lang.h>
 #include <isc/result.h>
-#include <isc/task.h>
-
-ISC_LANG_BEGINDECLS
 
 typedef isc_event_t isc_appevent_t;
 
 #define ISC_APPEVENT_FIRSTEVENT		(ISC_EVENTCLASS_APP + 0)
 #define ISC_APPEVENT_SHUTDOWN		(ISC_EVENTCLASS_APP + 1)
 #define ISC_APPEVENT_LASTEVENT		(ISC_EVENTCLASS_APP + 65535)
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_app_start(void);

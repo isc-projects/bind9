@@ -28,11 +28,10 @@
 #include <signal.h>
 
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 static isc_eventlist_t		on_run;
