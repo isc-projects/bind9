@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.54 1999/08/12 07:47:21 halley Exp $ */
+/* $Id: rbt.c,v 1.55 1999/08/26 07:14:25 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1894,7 +1894,6 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 		else
 			result = dns_name_concatenate(NULL, dns_rootname,
 						      origin, NULL);
-
 	}
 
 	return (result);
