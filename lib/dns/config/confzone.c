@@ -1655,7 +1655,7 @@ dns_c_zone_getallowupd(isc_log_t *lctx, dns_c_zone_t *zone,
 	}
 
 	if (p != NULL) {
-		*retval = p;
+		dns_c_ipmatchlist_attach(lctx, p, retval);
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;
@@ -1703,7 +1703,7 @@ dns_c_zone_getallowquery(isc_log_t *lctx, dns_c_zone_t *zone,
 	}
 
 	if (p != NULL) {
-		*retval = p;
+		dns_c_ipmatchlist_attach(lctx, p, retval);
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;
@@ -1752,7 +1752,7 @@ dns_c_zone_getallowtransfer(isc_log_t *lctx, dns_c_zone_t *zone,
 	}
 
 	if (p != NULL) {
-		*retval = p;
+		dns_c_ipmatchlist_attach(lctx, p, retval);
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;
