@@ -1,3 +1,6 @@
+1186.   [bug]           isc_hex_tobuffer(,,length = 0) failed to unget the
+                        EOL token when reading to end of line.
+
 1182.	[bug]		The server could throw an assertion failure when
 			constructing a negative response packet.
 
