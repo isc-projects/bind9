@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.21 2000/03/17 21:13:02 halley Exp $ */
+/* $Id: tkey_249.c,v 1.22 2000/03/20 18:40:28 gson Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -173,21 +173,22 @@ totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* Other Size */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%lu ", n);
+	sprintf(buf, "%lu", n);
 	RETERR(str_totext(buf, target));
 
 	/* Other Data */
 	REQUIRE(n <= sr.length);
-	dr = sr;
-	dr.length = n;
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
-		RETERR(str_totext(" (", target));
-	RETERR(str_totext(tctx->linebreak, target));
-	RETERR(isc_base64_totext(&dr, tctx->width - 2,
-				 tctx->linebreak, target));
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
-		RETERR(str_totext(" )", target));
-
+	if (n != 0) {
+	    dr = sr;
+	    dr.length = n;
+	    if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		    RETERR(str_totext(" (", target));
+	    RETERR(str_totext(tctx->linebreak, target));
+	    RETERR(isc_base64_totext(&dr, tctx->width - 2,
+				     tctx->linebreak, target));
+	    if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		    RETERR(str_totext(" )", target));
+	}
 	return (ISC_R_SUCCESS);
 }
 
