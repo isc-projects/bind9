@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.24.2.2.2.1 2003/08/12 04:54:58 marka Exp $ */
+/* $Id: notify.c,v 1.24.2.2.2.2 2003/08/19 02:58:19 marka Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,7 @@ ns_notify_start(ns_client_t *client) {
 	 */
 	result = dns_message_firstname(request, DNS_SECTION_QUESTION);
 	if (result != ISC_R_SUCCESS) {
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section empty");
 		goto formerr;
 	}
@@ -95,7 +95,7 @@ ns_notify_start(ns_client_t *client) {
 	dns_message_currentname(request, DNS_SECTION_QUESTION, &zonename);
 	zone_rdataset = ISC_LIST_HEAD(zonename->list);
 	if (ISC_LIST_NEXT(zone_rdataset, link) != NULL) {
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section contains multiple RRs");
 		goto formerr;
 	}
@@ -103,14 +103,14 @@ ns_notify_start(ns_client_t *client) {
 	/* The zone section must have exactly one name. */
 	result = dns_message_nextname(request, DNS_SECTION_ZONE);
 	if (result != ISC_R_NOMORE) {
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section contains multiple RRs");
 		goto failure;
 	}
 
 	/* The one rdataset must be an SOA. */
 	if (zone_rdataset->type != dns_rdatatype_soa) {
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section contains no SOA");
 		goto formerr;
 	}
@@ -137,7 +137,7 @@ ns_notify_start(ns_client_t *client) {
 	return;
 
  notauth:
-	notify_log(client, ISC_LOG_INFO,
+	notify_log(client, ISC_LOG_NOTICE,
 		   "received notify for zone '%s': not authoritative",
 		   str);
 	result = DNS_R_NOTAUTH;
