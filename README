@@ -45,14 +45,13 @@ BIND 9
 
 
 
-BIND 9.1.0b2
+BIND 9.1.0b3
 
-	BIND 9.1.0b2 is the second beta release of BIND 9.1.0.
-	It fixes a number of bugs in 9.1.0b1 and adds some new
-	features such as a multithreaded DNSSEC signer and
-	support for "rndc dumpdb" command.
+	BIND 9.1.0b3 is the third beta release of BIND 9.1.0.
+	It fixes a number of bugs in 9.1.0b2 and improves
+	query performance, particularly on multiprocessors.
 
-	Other features added since 9.0.x include:
+	Features added since 9.0.x include:
 
 	  - Many BIND 8 features previously unimplemented in BIND 9,
 	    including domain-specific forwarding, the $GENERATE
