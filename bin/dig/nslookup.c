@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.52 2000/09/21 23:10:58 gson Exp $ */
+/* $Id: nslookup.c,v 1.53 2000/09/21 23:47:40 marka Exp $ */
 
 #include <config.h>
 
@@ -147,17 +147,6 @@ static const char *rtypetext[] = {
 
 static void flush_lookup_list(void);
 static void getinput(isc_task_t *task, isc_event_t *event);
-
-static char *
-next_token(char **stringp, const char *delim) {
-	char *res;
-	do {
-		res = strsep(stringp, delim);
-		if (res == NULL)
-			break;
-	} while (*res == '\0');
-	return (res);
-}
 
 static void
 show_usage(void) {

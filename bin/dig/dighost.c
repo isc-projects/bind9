@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.131 2000/09/21 23:02:32 mws Exp $ */
+/* $Id: dighost.c,v 1.132 2000/09/21 23:47:38 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -145,7 +145,7 @@ recv_done(isc_task_t *task, isc_event_t *event);
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event);
 
-static char *
+char *
 next_token(char **stringp, const char *delim) {
 	char *res;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.47 2000/09/21 23:02:34 mws Exp $ */
+/* $Id: dig.h,v 1.48 2000/09/21 23:47:41 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -236,6 +236,9 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup);
 
 void
 dighost_shutdown(void);
+
+char *
+next_token(char **stringp, const char *delim);
 
 ISC_LANG_ENDDECLS
 

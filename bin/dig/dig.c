@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.96 2000/09/21 23:02:30 mws Exp $ */
+/* $Id: dig.c,v 1.97 2000/09/21 23:47:36 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -127,19 +127,6 @@ static const char *rcodetext[] = {
 };
 
 extern char *progname;
-
-static char *
-next_token(char **stringp, const char *delim) {
-	char *res;
-
-	do {
-		res = strsep(stringp, delim);   
-		if (res == NULL)
-			break;
-	} while (*res == '\0');
-	return (res);
-}
-
 
 static void
 show_usage(void) {
