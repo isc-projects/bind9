@@ -51,7 +51,11 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 {
 	lwres_context_t *context;
 
-	if (malloc_function == NULL) {
+	/*
+	 * If we were not given anything special to use, use our own
+	 * functions.  These are just wrappers around malloc() and free().
+	 */
+	if (malloc_function == NULL || free_function == NULL) {
 		malloc_function = lwres_malloc;
 		free_function = lwres_free;
 	}
@@ -62,8 +66,11 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 		return (-1);
 	}
 
-	context->free = lwres_free;
-	context->malloc = lwres_malloc;
+	/*
+	 * Set up the context.
+	 */
+	context->malloc = malloc_function;
+	context->free = free_function;
 	context->arg = arg;
 
 	*contextp = context;
@@ -111,16 +118,21 @@ lwres_freegetnamebyaddr(lwres_context_t *contextp,
 static void *
 lwres_malloc(void *arg, size_t len)
 {
+	void *mem;
+
 	(void)arg;
 
-	return (malloc(len));
+	mem = malloc(len);
+	if (mem == NULL)
+		return (NULL);
+	memset(mem, 0xe5, len);
 }
 
 static void
 lwres_free(void *arg, size_t len, void *mem)
 {
 	(void)arg;
-	(void)len;
 
+	memset(mem, 0xa9, len);
 	free(mem);
 }
