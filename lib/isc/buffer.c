@@ -294,6 +294,21 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 	return (result);
 }
 
+void
+isc_buffer_putuint16(isc_buffer_t *b, isc_uint16_t val)
+{
+	unsigned char *cp;
+
+	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(b->used + 2 <= b->length);
+
+	cp = b->base;
+	cp += b->used;
+	b->used += 2;
+	cp[0] = (val & 0xff00) >> 8;
+	cp[1] = (val & 0x00ff);
+}
+
 isc_uint32_t
 isc_buffer_getuint32(isc_buffer_t *b) {
 	unsigned char *cp;
@@ -316,4 +331,21 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 	result |= ((unsigned int)(cp[3]));
 
 	return (result);
+}
+
+void
+isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
+{
+	unsigned char *cp;
+
+	REQUIRE(VALID_BUFFER(b));
+	REQUIRE(b->used + 4 <= b->length);
+
+	cp = b->base;
+	cp += b->used;
+	b->used += 4;
+	cp[0] = (val & 0xff000000) >> 24;
+	cp[1] = (val & 0x00ff0000) >> 16;
+	cp[2] = (val & 0x0000ff00) >> 8;
+	cp[3] = (val & 0x000000ff);
 }

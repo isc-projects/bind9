@@ -366,6 +366,21 @@ isc_buffer_getuint16(isc_buffer_t *b);
  *	A 16-bit unsigned integer.
  */
 
+void
+isc_buffer_putuint16(isc_buffer_t *b, isc_uint16_t val);
+/*
+ * Store an unsigned 16-bit integer in host byte order from 'val'
+ * into 'b' in network byte order.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	The length of the unused region of 'b' is at least 2.
+ *
+ * Ensures:
+ *	The used pointer in 'b' is advanced by 2.
+ */
+
 isc_uint32_t
 isc_buffer_getuint32(isc_buffer_t *b);
 /*
@@ -385,6 +400,21 @@ isc_buffer_getuint32(isc_buffer_t *b);
  * Returns:
  *
  *	A 32-bit unsigned integer.
+ */
+
+void
+isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
+/*
+ * Store an unsigned 32-bit integer in host byte order from 'val'
+ * into 'b' in network byte order.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	The length of the unused region of 'b' is at least 4.
+ *
+ * Ensures:
+ *	The used pointer in 'b' is advanced by 4.
  */
 
 #endif /* ISC_BUFFER_H */

@@ -263,9 +263,6 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 {
 	dns_rdata_t rdata;
 	isc_region_t r;
-	dns_rdataclass_t rclass;
-	dns_rdatatype_t rtype;
-	dns_ttl_t rttl;
 	dns_result_t result;
 
 	/*
@@ -290,27 +287,15 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 				+ sizeof(dns_ttl_t)
 				+ 2)) /* XXX 2? it's for the rdata length */
 			return (DNS_R_NOSPACE);
-		rtype = rdataset->type;
-		r.base[0] = (rtype & 0xff00) >> 8;
-		r.base[1] = (rtype & 0xff);
-		rclass = rdataset->class;
-		r.base[2] = (rclass & 0xff00) >> 8;
-		r.base[3] = (rclass & 0x00ff);
-		rttl = rdataset->ttl;
-		r.base[4] = (rttl & 0xff000000) >> 24;
-		r.base[5] = (rttl & 0x00ff0000) >> 16;
-		r.base[6] = (rttl & 0x0000ff00) >> 8;
-		r.base[7] = (rttl & 0x000000ff);
-		isc_buffer_add(target, (sizeof(dns_rdataclass_t)
-					+ sizeof(dns_rdatatype_t)
-					+ sizeof(dns_ttl_t)
-					+ 2)); /* XXX see XXX above */
+		isc_buffer_putuint16(target, rdataset->type);
+		isc_buffer_putuint16(target, rdataset->class);
+		isc_buffer_putuint32(target, rdataset->ttl);
+
 		/*
 		 * copy out the rdata length
 		 */
 		dns_rdataset_current(rdataset, &rdata);
-		r.base[8] = (rdata.length & 0xff00) >> 8;
-		r.base[9] = (rdata.length & 0x00ff);
+		isc_buffer_putuint16(target, rdata.length);
 
 		/*
 		 * copy out the rdata
