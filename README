@@ -126,10 +126,11 @@ Interoperability
 	server.
 
 	Microsoft Windows 2000 DNS:
-		Zone transfers sometimes fail to Window 2000 DNS
-	servers due to a too small buffer.  There is a hot fix
-	available from Microsoft to address this issue in the mean
-	time set "transfer-format one-answer;" for this server.
+		Zone transfers sometimes fail to Windows 2000 DNS
+	servers due to a bug in the Windows 2000 DNS server where DNS
+	messages larger than 16K are not handled properly.  There will
+	be a hot fix available from Microsoft to address this issue.  In
+	the meantime set "transfer-format one-answer;" for this server.
 	[As of May 4 2001 the hotfix was still being prepared]
 
 
