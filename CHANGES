@@ -16,7 +16,7 @@
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.
 
-1514.	[bug]		named: isc_hash_destroy() was being called to early.
+1514.	[bug]		named: isc_hash_destroy() was being called too early.
 			[RT #9160]
 
 1513.	[doc]		Add "US" to root-delegation-only exclude list.
