@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.1 2004/03/30 02:04:47 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.2 2004/03/30 02:12:16 marka Exp $ */
 
 #include <config.h>
 
@@ -1126,7 +1126,7 @@ static cfg_type_t cfg_type_dialuptype = {
 	&cfg_rep_string, dialup_enums
 };
 
-static const char *notify_enums[] = { "explicit", NULL };
+static const char *notify_enums[] = { "explicit", "master-only", NULL };
 static isc_result_t
 parse_notify_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));

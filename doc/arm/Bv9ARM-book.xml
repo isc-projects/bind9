@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.1 2004/03/30 02:04:46 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.2 2004/03/30 02:12:14 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2752,7 +2752,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> host-statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> minimal-responses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable>; </optional>
+    <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
@@ -3165,6 +3165,8 @@ servers listed in the zone's NS records (except the master server identified
 in the SOA MNAME field), and to any servers listed in the
 <command>also-notify</command> option.
 </para><para>
+If <userinput>master-only</userinput>, notifies are only sent
+for master zones.
 If <userinput>explicit</userinput>, notifies are sent only to
 servers explicitly listed using <command>also-notify</command>.
 If <userinput>no</userinput>, no notifies are sent.
@@ -4543,7 +4545,7 @@ Statement Grammar</title>
     <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-out <replaceable>number</replaceable> ; </optional>
-    <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> ; </optional>
+    <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable> ; </optional>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>

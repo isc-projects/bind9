@@ -8,7 +8,8 @@
 
 1596.	[func]		Accept 'notify-source' style syntax for query-source.
 
-1595.	[placeholder]	rt9164
+1595.	[func]		New notify type 'master-only'.  Enable notify for
+			master zones only.
 
 1594.	[placeholder]	rt10565
 
