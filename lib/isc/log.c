@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.54 2000/12/12 05:29:31 tale Exp $ */
+/* $Id: log.c,v 1.55 2000/12/23 19:23:48 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -233,11 +233,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
  * Convenience macros.
  */
 
-#define FACILITY(channel)	(channel->destination.facility)
-#define FILE_NAME(channel)	(channel->destination.file.name)
-#define FILE_STREAM(channel)	(channel->destination.file.stream)
-#define FILE_VERSIONS(channel)	(channel->destination.file.versions)
-#define FILE_MAXSIZE(channel)	(channel->destination.file.maximum_size)
+#define FACILITY(channel)	 (channel->destination.facility)
+#define FILE_NAME(channel)	 (channel->destination.file.name)
+#define FILE_STREAM(channel)	 (channel->destination.file.stream)
+#define FILE_VERSIONS(channel)	 (channel->destination.file.versions)
+#define FILE_MAXSIZE(channel)	 (channel->destination.file.maximum_size)
+#define FILE_MAXREACHED(channel) (channel->destination.file.maximum_reached)
 
 /****
  **** Public interfaces.
@@ -724,8 +725,9 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		FILE_NAME(channel) =
 			isc_mem_strdup(mctx, destination->file.name);
 		FILE_STREAM(channel) = NULL;
-		FILE_MAXSIZE(channel) = destination->file.maximum_size;
 		FILE_VERSIONS(channel) = destination->file.versions;
+		FILE_MAXSIZE(channel) = destination->file.maximum_size;
+		FILE_MAXREACHED(channel) = ISC_FALSE;
 		break;
 
 	case ISC_LOG_TOFILEDESC:
@@ -1588,6 +1590,31 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		switch (channel->type) {
 		case ISC_LOG_TOFILE:
+			if (FILE_MAXREACHED(channel)) {
+				/*
+				 * If the file can be rolled, OR
+				 * If the file no longer exists, OR
+				 * If the file is less than the maximum size,
+				 *    (such as if it had been renamed and
+				 *     a new one touched, or it was truncated
+				 *     in place)
+				 * ... then close it to trigger reopening.
+				 */
+				if (FILE_VERSIONS(channel) !=
+				    ISC_LOG_ROLLNEVER ||
+				    (stat(FILE_NAME(channel), &statbuf) != 0 &&
+				     errno == ENOENT) ||
+				    statbuf.st_size < FILE_MAXSIZE(channel)) {
+					fclose(FILE_STREAM(channel));
+					FILE_STREAM(channel) = NULL;
+					FILE_MAXREACHED(channel) = ISC_FALSE;
+				} else
+					/*
+					 * Eh, skip it.
+					 */
+					break;
+			}
+
 			if (FILE_STREAM(channel) == NULL) {
 				result = isc_log_open(channel);
 				if (result != ISC_R_SUCCESS)
@@ -1617,8 +1644,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 			/*
 			 * If the file now exceeds its maximum size
-			 * threshold, close it and mark it ready
-			 * for reopening the next time the channel is used.
+			 * threshold, note it so that it will not be logged
+			 * to any more.
 			 */
 			if (FILE_MAXSIZE(channel) != 0) {
 				INSIST(channel->type == ISC_LOG_TOFILE);
@@ -1627,10 +1654,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				/* XXXDCL complain if fstat fails? */
 				if (fstat(fileno(FILE_STREAM(channel)),
 					  &statbuf) >= 0 &&
-				    statbuf.st_size > FILE_MAXSIZE(channel)) {
-					fclose(FILE_STREAM(channel));
-					FILE_STREAM(channel) = NULL;
-				}
+				    statbuf.st_size > FILE_MAXSIZE(channel))
+					FILE_MAXREACHED(channel) = ISC_TRUE;
 			}
 
 			break;

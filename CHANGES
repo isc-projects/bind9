@@ -1,4 +1,8 @@
 
+ 634.	[bug]		A log file will completely stop being written when
+			it reaches the maximum size in all cases, not just
+			when versioning is also enabled. [RT #570]
+
  633.	[port]		Cope with rlim_t missing on BSD/OS systems. [RT #575]
 
 	--- 9.1.0b2 released ---

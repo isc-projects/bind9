@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.34 2000/12/12 05:29:33 tale Exp $ */
+/* $Id: log.h,v 1.35 2000/12/23 19:23:47 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -107,6 +107,7 @@ typedef struct isc_logfile {
 	 * to a size large enough for the largest possible file on a system.
 	 */
 	isc_offset_t maximum_size;
+	isc_boolean_t maximum_reached; /* Private. */
 } isc_logfile_t;
 
 /*
