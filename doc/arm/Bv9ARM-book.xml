@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.49 2000/11/25 02:43:44 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.50 2000/11/27 18:06:02 gson Exp $ -->
 
 <book>
 
@@ -3796,6 +3796,7 @@ that allows 2^64 updates.  Additional databases may be implemented later or
 included.  Strings after the first string are optional arguments to
 the database driver initialization routine.  There are none defined for
 rbt or rbt64.
+</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>dialup</command></para></entry>
@@ -3888,13 +3889,13 @@ performed using IPv6.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>notify-source</command></para></entry>
 <entry colname = "2"><para><command>notify-source</command> determines
-which local address and optionally UDP port, will be used to send NOTIFY
+which local address, and optionally UDP port, will be used to send NOTIFY
 messages.  If a <command>notify-source</command> is not specified then
 then the <command>transfer-source</command> will be used, if neither
 of these are set then the address and port used will be determined by
 the <command>view</command> then the <command>options</command> blocks.
 This address must appear in the remote end's <command>masters</command>
-zone clause.
+zone clause.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>notify-source-v6</para></entry>
