@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.292 2001/01/09 00:43:21 marka Exp $ */
+/* $Id: zone.c,v 1.293 2001/01/09 00:51:53 mws Exp $ */
 
 #include <config.h>
 
@@ -3599,15 +3599,18 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * If we were waiting for xfrin quota, step out of
 	 * the queue.
+	 * If there's no zone manager, we can't be waiting for the
+	 * xfrin quota
 	 */
-	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-	if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
-		ISC_LIST_UNLINK(zone->zmgr->waiting_for_xfrin, zone,
-				statelink);
-		zone->statelist = NULL;
+	if (zone->zmgr != NULL) {
+		RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
+		if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
+			ISC_LIST_UNLINK(zone->zmgr->waiting_for_xfrin, zone,
+					statelink);
+			zone->statelist = NULL;
+		}
+		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	}
-	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
-
 
 	LOCK_ZONE(zone);
 	if (zone->xfr != NULL)
