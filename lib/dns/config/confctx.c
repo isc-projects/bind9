@@ -233,8 +233,11 @@ dns_c_ctx_print(isc_log_t *lctx,
 	
 	dns_c_ctx_optionsprint(lctx, fp, indent, cfg->options);
 	fprintf(fp,"\n");
-	
+
 	dns_c_zonelist_printpostopts(lctx, fp, indent, cfg->zlist);
+	fprintf(fp, "\n");
+
+	dns_c_viewtable_print(lctx, fp, indent, cfg->views);
 	fprintf(fp, "\n");
 	
 	dns_c_ctrllist_print(lctx, fp, indent, cfg->controls);
