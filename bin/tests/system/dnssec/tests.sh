@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.32 2001/02/23 06:14:44 bwelling Exp $
+# $Id: tests.sh,v 1.33 2001/02/23 06:22:11 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -272,6 +272,18 @@ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 # The CNAME, NXT, and their SIGs
 grep "ANSWER: 4" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that validation of an ANY query returning a DNAME works ($n)"
+ret=0
+$DIG $DIGOPTS +noauth foo.dname2.example. any @10.53.0.2 \
+	> dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS +noauth foo.dname2.example. any @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
