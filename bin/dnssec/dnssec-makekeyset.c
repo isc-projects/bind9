@@ -351,7 +351,7 @@ main(int argc, char *argv[]) {
 				     dns_rdatatype_key, &r);
 		ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
 		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
-		dst_key_free(key);
+		dst_key_free(&key);
 	}
 
 	isc_mem_free(mctx, savedname);
@@ -440,7 +440,7 @@ main(int argc, char *argv[]) {
 	while (!ISC_LIST_EMPTY(keylist)) {
 		keynode = ISC_LIST_HEAD(keylist);
 		ISC_LIST_UNLINK(keylist, keynode, link);
-		dst_key_free(keynode->key);
+		dst_key_free(&keynode->key);
 		isc_mem_put(mctx, keynode, sizeof(keynode_t));
 	}
 

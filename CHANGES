@@ -1,3 +1,5 @@
+ 193.	[func]		changed dst_key_free() prototype
+
  192.	[bug]		Zone configuration validation is now done at end 
 			of config file parsing, and before loading
 			callbacks.

@@ -368,7 +368,7 @@ main(int argc, char *argv[]) {
 			      dst_key_name(key), algtostr(dst_key_alg(key)),
 			      dst_key_id(key), isc_result_totext(result));
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
-		dst_key_free(key);
+		dst_key_free(&key);
 	}
 
 	dns_rdataset_init(&newsigrdataset);
@@ -402,7 +402,7 @@ main(int argc, char *argv[]) {
 	while (!ISC_LIST_EMPTY(keylist)) {
 		keynode = ISC_LIST_HEAD(keylist);
 		ISC_LIST_UNLINK(keylist, keynode, link);
-		dst_key_free(keynode->key);
+		dst_key_free(&keynode->key);
 		isc_mem_put(mctx, keynode, sizeof(keynode_t));
 	}
 

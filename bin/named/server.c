@@ -257,7 +257,7 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 
  cleanup:
 	if (dstkey != NULL)
-		dst_key_free(dstkey);
+		dst_key_free(&dstkey);
 	return (result);
 }
 				  

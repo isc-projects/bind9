@@ -543,7 +543,7 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 			continue;
 		if (dst_key_isnullkey(key))
 			found = ISC_TRUE;
-		dst_key_free(key);
+		dst_key_free(&key);
 		result = dns_rdataset_next(rdataset);
 	}
 	return (found);
@@ -614,19 +614,17 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 			else if (dst_key_compare(oldkey, val->key) == ISC_TRUE)
 			{
 				foundold = ISC_TRUE;
-				dst_key_free(oldkey);
-				oldkey = NULL;
+				dst_key_free(&oldkey);
 			}
 		}
-		dst_key_free(val->key);
-		val->key = NULL;
+		dst_key_free(&val->key);
 		result = dns_rdataset_next(rdataset);
 	} while (result == ISC_R_SUCCESS);
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_NOTFOUND;
 
 	if (oldkey != NULL)
-		dst_key_free(oldkey);
+		dst_key_free(&oldkey);
 
 	return (result);
 }
@@ -898,8 +896,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			dns_keytable_detachkeynode(val->keytable,
 						   &val->keynode);
 		else if (val->key != NULL)
-			dst_key_free(val->key);
-		val->key = NULL;
+			dst_key_free(&val->key);
 		if (result == ISC_R_SUCCESS) {
 			event->rdataset->trust = dns_trust_secure;
 			event->sigrdataset->trust = dns_trust_secure;
@@ -1354,7 +1351,7 @@ destroy(dns_validator_t *val) {
 	if (val->keynode != NULL)
 		dns_keytable_detachkeynode(val->keytable, &val->keynode);
 	else if (val->key != NULL)
-		dst_key_free(val->key);
+		dst_key_free(&val->key);
 	if (val->keyvalidator != NULL)
 		dns_validator_destroy(&val->keyvalidator);
 	mctx = val->view->mctx;

@@ -2357,11 +2357,11 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			    !(dst_key_proto(key) == DNS_KEYPROTO_DNSSEC ||
 			      dst_key_proto(key) == DNS_KEYPROTO_ANY))
 			{
-				dst_key_free(key);
+				dst_key_free(&key);
 				continue;
 			}
 			result = dns_dnssec_verifymessage(&msgb, msg, key);
-			dst_key_free(key);
+			dst_key_free(&key);
 			if (result == ISC_R_SUCCESS)
 				break;
 		}

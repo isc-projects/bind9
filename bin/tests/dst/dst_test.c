@@ -92,12 +92,12 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 	match = (r1.length == r2.length &&
 		 memcmp(r1.base, r2.base, r1.length) == 0);
 	printf("compare(%d): %s\n", dst_key_alg(key), match ? "true" : "false");
-	dst_key_free(newkey);
+	dst_key_free(&newkey);
 }
 
 static void
 io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
-	dst_key_t *key;
+	dst_key_t *key = NULL;
 	isc_result_t ret;
 
 	chdir(current);
@@ -112,12 +112,12 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
 		return;
 	use(key);
 	dns(key, mctx);
-	dst_key_free(key);
+	dst_key_free(&key);
 }
 
 static void
 dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx) {
-	dst_key_t *key1, *key2;
+	dst_key_t *key1 = NULL, *key2 = NULL;
 	isc_result_t ret;
 	isc_buffer_t b1, b2;
 	isc_region_t r1, r2;
@@ -173,14 +173,14 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx) {
 			printf("%02x ", r2.base[i]);
 		printf("\n");
 	}
-	dst_key_free(key1);
-	dst_key_free(key2);
+	dst_key_free(&key1);
+	dst_key_free(&key2);
 }
 
 static void
 generate(int alg, isc_mem_t *mctx) {
 	isc_result_t ret;
-	dst_key_t *key;
+	dst_key_t *key = NULL;
 
 	ret = dst_key_generate("test.", alg, 512, 0, 0, 0, mctx, &key);
 	printf("generate(%d) returned: %s\n", alg, isc_result_totext(ret));
@@ -188,7 +188,7 @@ generate(int alg, isc_mem_t *mctx) {
 	if (alg != DST_ALG_DH)
 		use(key);
 
-	dst_key_free(key);
+	dst_key_free(&key);
 }
 
 static void

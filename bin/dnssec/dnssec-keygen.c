@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.22 2000/05/18 23:28:26 tale Exp $ */
+/* $Id: dnssec-keygen.c,v 1.23 2000/05/19 00:20:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,7 @@ int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	char		*prog, *endp;
-	dst_key_t	*key, *oldkey;
+	dst_key_t	*key = NULL, *oldkey;
 	char		*name = NULL;
 	isc_uint16_t	flags = 0;
 	dns_secalg_t	alg;
@@ -348,13 +348,13 @@ main(int argc, char **argv) {
 				       DST_TYPE_PRIVATE, mctx, &oldkey);
 		/* do not overwrite an existing key  */
 		if (ret == ISC_R_SUCCESS) {
-			dst_key_free(oldkey);
+			dst_key_free(&oldkey);
 			conflict = ISC_TRUE;
 			if (null_key)
 				break;
 		}
 		if (conflict == ISC_TRUE)
-			dst_key_free(key);
+			dst_key_free(&key);
 
 	} while (conflict == ISC_TRUE);
 
@@ -377,7 +377,7 @@ main(int argc, char **argv) {
 	isc_mem_free(mctx, prog);
 	if (type != NULL)
 		isc_mem_free(mctx, type);
-	dst_key_free(key);
+	dst_key_free(&key);
 	isc_mem_destroy(&mctx);
 
 	return (0);

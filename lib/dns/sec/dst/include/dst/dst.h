@@ -143,7 +143,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
  *	"alg" is a supported key algorithm.
  *	"type" is either DST_TYPE_PUBLIC or DST_TYPE_PRIVATE.
  *	"mctx" is a valid memory context.
- *	"keyp" is not NULL.
+ *	"keyp" is not NULL and "*keyp" is NULL.
  *
  * Ensures:
  *	If successful, *keyp will contain a valid key.
@@ -169,7 +169,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
  *	"name" is not NULL.
  *	"source" is a valid buffer.  There must be at least 4 bytes available.
  *	"mctx" is a valid memory context.
- *	"keyp" is not NULL.
+ *	"keyp" is not NULL and "*keyp" is NULL.
  *
  * Ensures:
  *	If successful, *keyp will contain a valid key, and the consumed
@@ -201,7 +201,7 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
  *	"alg" is a supported key algorithm.
  *	"source" is a valid buffer.
  *	"mctx" is a valid memory context.
- *	"keyp" is not NULL.
+ *	"keyp" is not NULL and "*keyp" is NULL.
  *
  * Ensures:
  *	If successful, *keyp will contain a valid key, and the consumed
@@ -232,7 +232,7 @@ dst_key_generate(const char *name, const int alg, const int bits,
  *	"name" is not NULL
  *	"alg" is a supported algorithm
  *	"bits" is a valid key size for the given algorithm
- *	"keyp" is not NULL.
+ *	"keyp" is not NULL and "*keyp" is NULL.
  *
  * Ensures:
  *	If successful, *keyp will contain a valid key.
@@ -259,15 +259,16 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
  */
 
 void
-dst_key_free(dst_key_t *key);
+dst_key_free(dst_key_t **keyp);
 /*
  * Free a DST key.
  *
  * Requires:
- *	"key" is a valid key.
+ *	"keyp" is not NULL and "*keyp" is a valid key.
  *
  * Ensures:
- *	All memory associated with "key" will be freed.
+ *	All memory associated with "*keyp" will be freed.
+ *	*keyp == NULL
  */
 
 /*

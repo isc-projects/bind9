@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.36 2000/05/17 22:48:00 bwelling Exp $
+ * $Id: dnssec.c,v 1.37 2000/05/19 00:20:48 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -521,6 +521,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 		RETERR(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
 		if (!is_zone_key(pubkey))
 			goto next;
+		keys[count] = NULL;
 		result = dst_key_fromfile(dst_key_name(pubkey),
 					  dst_key_id(pubkey),
 					  dst_key_alg(pubkey),
@@ -531,14 +532,12 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
-			dst_key_free(keys[count]);
-			keys[count] = NULL;
+			dst_key_free(&keys[count]);
 			goto next;
 		}
 		count++;
  next:
-		dst_key_free(pubkey);
-		pubkey = NULL;
+		dst_key_free(&pubkey);
 		result = dns_rdataset_next(&rdataset);
 	}
 	if (result != ISC_R_NOMORE)
@@ -552,7 +551,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	if (pubkey != NULL)
-		dst_key_free(pubkey);
+		dst_key_free(&pubkey);
 	*nkeys = count;
 	return (result);
 }

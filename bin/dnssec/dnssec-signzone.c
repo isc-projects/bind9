@@ -243,7 +243,7 @@ keythatsigned(dns_rdata_sig_t *sig) {
 				  DST_TYPE_PRIVATE, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		key->key = privkey;
-		dst_key_free(pubkey);
+		dst_key_free(&pubkey);
 	}
 	else
 		key->key = pubkey;
@@ -573,7 +573,7 @@ hasnullkey(dns_rdataset_t *rdataset) {
 			fatal("could not convert KEY into internal format");
 		if (dst_key_isnullkey(key))
 			found = ISC_TRUE;
-                dst_key_free(key);
+                dst_key_free(&key);
 		if (found == ISC_TRUE)
 			return (ISC_TRUE);
                 result = dns_rdataset_next(rdataset);
@@ -897,7 +897,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 					fatal("failed to generate null key");
 				isc_buffer_init(&b, keydata, sizeof keydata);
 				result = dst_key_todns(dstkey, &b);
-				dst_key_free(dstkey);
+				dst_key_free(&dstkey);
 				isc_buffer_usedregion(&b, &r);
 				dns_rdata_fromregion(&keyrdata,
 						     rdataset.rdclass,
@@ -1552,7 +1552,7 @@ main(int argc, char *argv[]) {
 	key = ISC_LIST_HEAD(keylist);
 	while (key != NULL) {
 		signer_key_t *next = ISC_LIST_NEXT(key, link);
-		dst_key_free(key->key);
+		dst_key_free(&key->key);
 		isc_mem_put(mctx, key, sizeof(signer_key_t));
 		key = next;
 	}

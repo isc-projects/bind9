@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.37 2000/05/17 22:48:04 bwelling Exp $
+ * $Id: dst_api.c,v 1.38 2000/05/19 00:20:57 bwelling Exp $
  */
 
 #include <config.h>
@@ -46,7 +46,7 @@
 
 #define KEY_MAGIC	0x44535421U	/* DST! */
 
-#define VALID_KEY(key) (key != NULL && key->magic == KEY_MAGIC)
+#define VALID_KEY(key) ((key) != NULL && (key)->magic == KEY_MAGIC)
 
 dst_func *dst_t_func[DST_MAX_ALGS];
 
@@ -322,9 +322,8 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(name != NULL);
 	REQUIRE(mctx != NULL);
-	REQUIRE(keyp != NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
 
-	*keyp = NULL;
 	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
@@ -347,7 +346,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 	
 		key = get_key_struct(name, pubkey->key_alg, pubkey->key_flags,
 					   pubkey->key_proto, 0, mctx);
-		dst_key_free(pubkey);
+		dst_key_free(&pubkey);
 	}
 
 	if (key == NULL)
@@ -358,7 +357,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 	 */
 	ret = key->func->from_file(key, id, mctx);
 	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(key);
+		dst_key_free(&key);
 		return (ret);
 	}
 
@@ -433,10 +432,10 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 	dst_key_t *key = NULL;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
-	REQUIRE (name != NULL);
-	REQUIRE (source != NULL);
-	REQUIRE (mctx != NULL);
-	REQUIRE (keyp != NULL);
+	REQUIRE(name != NULL);
+	REQUIRE(source != NULL);
+	REQUIRE(mctx != NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	isc_buffer_remainingregion(source, &r);
 	if (r.length < 4) /* 2 bytes of flags, 1 proto, 1 alg */
@@ -462,7 +461,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 
 	ret = key->func->from_dns(key, source, mctx);
 	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(key);
+		dst_key_free(&key);
 		return (ret);
 	}
 
@@ -492,26 +491,30 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
 		   const int protocol, isc_buffer_t *source, isc_mem_t *mctx,
 		   dst_key_t **keyp)
 {
+	dst_key_t *key;
 	isc_result_t ret;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(name != NULL);
 	REQUIRE(source != NULL);
 	REQUIRE(mctx != NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
-	*keyp = get_key_struct(name, alg, flags, protocol, 0, mctx);
+	key = get_key_struct(name, alg, flags, protocol, 0, mctx);
 
-	if (*keyp == NULL)
+	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	ret = (*keyp)->func->from_dns((*keyp), source, mctx);
+	ret = key->func->from_dns(key, source, mctx);
 	if (ret != ISC_R_SUCCESS) {
-		dst_key_free((*keyp));
+		dst_key_free(&key);
 		return (ret);
 	}
+
+	*keyp = key;
 	return (ISC_R_SUCCESS);
 }
 
@@ -570,31 +573,34 @@ dst_key_generate(const char *name, const int alg, const int bits,
 		 const int exp, const int flags, const int protocol,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
+	dst_key_t *key;
 	isc_result_t ret;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(name != NULL);
 	REQUIRE(mctx != NULL);
-	REQUIRE(keyp != NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	if (dst_algorithm_supported(alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
-	*keyp = get_key_struct(name, alg, flags, protocol, bits, mctx);
-	if (*keyp == NULL)
+	key = get_key_struct(name, alg, flags, protocol, bits, mctx);
+	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
 	if (bits == 0) { /* NULL KEY */
-		(*keyp)->key_flags |= DNS_KEYTYPE_NOKEY;
+		key->key_flags |= DNS_KEYTYPE_NOKEY;
+		*keyp = key;
 		return (ISC_R_SUCCESS);
 	}
 
-	ret = (*keyp)->func->generate(*keyp, exp, mctx);
+	ret = key->func->generate(key, exp, mctx);
 	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(*keyp);
+		dst_key_free(&key);
 		return (ret);
 	}
 
+	*keyp = key;
 	return (ISC_R_SUCCESS);
 }
 
@@ -657,15 +663,17 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
  *  dst_key_free
  *	Release all data structures pointed to by a key structure.
  *  Parameters
- *	key	Key structure to be freed.
+ *	keyp	Pointer to key structure to be freed.
  */
 void
-dst_key_free(dst_key_t *key) {
+dst_key_free(dst_key_t **keyp) {
 	isc_mem_t *mctx;
+	dst_key_t *key;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
-	REQUIRE(VALID_KEY(key));
+	REQUIRE(keyp != NULL && VALID_KEY(*keyp));
 
+	key = *keyp;
 	mctx = key->mctx;
 
 	if (key->opaque != NULL)
@@ -674,6 +682,7 @@ dst_key_free(dst_key_t *key) {
 	isc_mem_free(mctx, key->key_name);
 	memset(key, 0, sizeof(dst_key_t));
 	isc_mem_put(mctx, key, sizeof(dst_key_t));
+	*keyp = NULL;
 }
 
 char *
@@ -1108,7 +1117,7 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 	tempkey->key_id = id;
 	isc_buffer_init(&b, filename, sizeof(filename));
 	ret = dst_key_buildfilename(tempkey, DST_TYPE_PUBLIC, &b);
-	dst_key_free(tempkey);
+	dst_key_free(&tempkey);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

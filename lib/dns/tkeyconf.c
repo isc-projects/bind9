@@ -78,10 +78,8 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
 	return (ISC_R_SUCCESS);
 
  failure:
-	if (tctx->dhkey != NULL) {
-		dst_key_free(tctx->dhkey);
-		tctx->dhkey = NULL;
-	}
+	if (tctx->dhkey != NULL)
+		dst_key_free(&tctx->dhkey);
 	if (tctx->domain != NULL) {
 		dns_name_free(tctx->domain, mctx);
 		isc_mem_put(mctx, tctx->domain, sizeof(dns_name_t));

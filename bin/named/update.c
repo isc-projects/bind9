@@ -1712,7 +1712,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 	dns_diff_clear(&diffnames);
 
 	for (i = 0; i < nkeys; i++) 
-		dst_key_free(zone_keys[i]);
+		dst_key_free(&zone_keys[i]);
 	
 	return (result);
 }	

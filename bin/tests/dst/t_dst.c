@@ -112,7 +112,7 @@ static void
 dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
    isc_result_t exp_result, int *nfails, int *nprobs)
 {
-	dst_key_t	*key1, *key2;
+	dst_key_t	*key1 = NULL, *key2 = NULL;
 	isc_result_t	ret;
 	int		rval;
 	char		current[PATH_MAX + 1];
@@ -223,15 +223,15 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 		return;
 	}
 
-	dst_key_free(key1);
-	dst_key_free(key2);
+	dst_key_free(&key1);
+	dst_key_free(&key2);
 }
 
 static void
 io(char *name, int id, int alg, int type, isc_mem_t *mctx,
    isc_result_t exp_result, int *nfails, int *nprobs)
 {
-	dst_key_t	*key;
+	dst_key_t	*key = NULL;
 	isc_result_t	ret;
 	int		rval;
 	char		current[PATH_MAX + 1];
@@ -292,13 +292,13 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx,
 
 	cleandir(tmp);
 
-	dst_key_free(key);
+	dst_key_free(&key);
 }
 
 static void
 generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 	isc_result_t ret;
-	dst_key_t *key;
+	dst_key_t *key = NULL;
 
 	ret = dst_key_generate("test.", alg, size, 0, 0, 0, mctx, &key);
 	if (ret != ISC_R_SUCCESS) {
@@ -310,7 +310,7 @@ generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 
 	if (alg != DST_ALG_DH)
 		use(key, ISC_R_SUCCESS, nfails);
-	dst_key_free(key);
+	dst_key_free(&key);
 }
 
 #define	DBUFSIZ	25
@@ -584,7 +584,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	int		len;
 	int		fd;
 	int		exp_res;
-	dst_key_t	*key;
+	dst_key_t	*key = NULL;
 	unsigned char	sig[T_SIGMAX];
 	unsigned char	*p;
 	unsigned char	*data;
@@ -662,7 +662,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		t_info("dst_sign(%d) failed %s\n",
 		       dst_result_totext(isc_result));
 		(void) free(data);
-		(void) dst_key_free(key);
+		dst_key_free(&key);
 		++*nprobs;
 		return;
 	}
@@ -672,7 +672,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		t_info("sig_tofile failed\n");
 		++*nprobs;
 		(void) free(data);
-		(void) dst_key_free(key);
+		dst_key_free(&key);
 		return;
 	}
 
@@ -688,7 +688,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	if (rval != 0) {
 		t_info("sig_fromfile failed\n");
 		(void) free(data);
-		(void) dst_key_free(key);
+		dst_key_free(&key);
 		++*nprobs;
 		return;
 	}
@@ -714,7 +714,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	}
 
 	(void) free(data);
-	(void) dst_key_free(key);
+	dst_key_free(&key);
 	return;
 }
 

@@ -721,7 +721,7 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 
 		if (result != ISC_R_SUCCESS) {
 			if (p->key != NULL)
-				dst_key_free(p->key);
+				dst_key_free(&p->key);
 			isc_mem_put(omapi_mctx, p->authname,
 				    strlen(p->authname) + 1);
 			p->authname = NULL;
@@ -767,7 +767,7 @@ protocol_destroy(omapi_object_t *h) {
 	}
 
 	if (p->key != NULL) {
-		dst_key_free(p->key);
+		dst_key_free(&p->key);
 		p->key = NULL;
 	}
 }

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.35 2000/05/17 22:48:02 bwelling Exp $
+ * $Id: tkey.c,v 1.36 2000/05/19 00:20:52 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -69,7 +69,7 @@ dns_tkeyctx_destroy(dns_tkey_ctx_t **tctx) {
 	REQUIRE(*tctx != NULL);
 
 	if ((*tctx)->dhkey != NULL)
-		dst_key_free((*tctx)->dhkey);
+		dst_key_free(&(*tctx)->dhkey);
 	if ((*tctx)->domain != NULL) {
 		dns_name_free((*tctx)->domain, (*tctx)->mctx);
 		isc_mem_put((*tctx)->mctx, (*tctx)->domain,
@@ -261,7 +261,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 					else
 						found_incompatible = ISC_TRUE;
 				}
-				dst_key_free(pubkey);
+				dst_key_free(&pubkey);
 				result = dns_rdataset_next(keyset);
 			}
 		}
@@ -338,7 +338,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	r2.length = tkeyin->keylen;
 	RETERR(compute_secret(shared, &r2, &r, &secret));
 
-	dst_key_free(pubkey);
+	dst_key_free(&pubkey);
 	isc_buffer_usedregion(&secret, &r);
 	result = dns_tsigkey_create(name, &tkeyin->algorithm, r.base, r.length,
 				    ISC_TRUE, signer, tkeyin->inception,
