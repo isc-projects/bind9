@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.14 2001/07/26 20:31:48 gson Exp $ */
+/* $Id: gen-win32.h,v 1.15 2001/09/06 01:06:24 gson Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -89,7 +89,7 @@ int isc_commandline_option;		/* Character checked for validity. */
 char *isc_commandline_argument;		/* Argument associated with option. */
 char *isc_commandline_progname;		/* For printing error messages. */
 
-isc_boolean_t isc_commandline_errprint = ISC_TRUE;/* Print error messages. */
+isc_boolean_t isc_commandline_errprint = ISC_TRUE; /* Print error messages. */
 isc_boolean_t isc_commandline_reset = ISC_TRUE; /* Reset processing. */
 
 #define BADOPT	'?'
