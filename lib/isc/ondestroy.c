@@ -22,6 +22,7 @@
 #include <isc/ondestroy.h>
 #include <isc/result.h>
 #include <isc/task.h>
+#include <isc/util.h>
 
 #define ONDESTROY_MAGIC		0x44655374 /* DeSt */
 #define VALID_ONDESTROY(s)	(s != NULL && (s->magic == ONDESTROY_MAGIC))

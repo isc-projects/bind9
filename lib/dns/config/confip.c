@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.21 2000/04/07 13:35:04 brister Exp $ */
+/* $Id: confip.c,v 1.22 2000/04/28 01:10:30 halley Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/magic.h>
+#include <isc/util.h>
 
 #include <dns/confip.h>
 #include <dns/confcommon.h>

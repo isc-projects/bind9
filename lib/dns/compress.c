@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.28 2000/04/27 21:46:31 halley Exp $ */
+/* $Id: compress.c,v 1.29 2000/04/28 01:09:56 halley Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -25,6 +25,7 @@
 #include <isc/types.h>
 #include <isc/assertions.h>
 #include <isc/buffer.h>
+#include <isc/util.h>
 
 #include <dns/compress.h>
 #include <dns/fixedname.h>

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.6 2000/03/28 03:06:37 bwelling Exp $
+ * $Id: dst_result.c,v 1.7 2000/04/28 01:10:45 halley Exp $
  */
 
 #include <config.h>
@@ -27,6 +27,7 @@
 #include <isc/resultclass.h>
 #include <isc/once.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 #include <dst/result.h>
 #include <dst/lib.h>

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.29 2000/04/27 00:01:58 tale Exp $
+ * $Id: tkey.c,v 1.30 2000/04/28 01:10:21 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -37,6 +37,7 @@
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>

@@ -27,6 +27,7 @@
 #include <isc/file.h>
 #include <isc/result.h>
 #include <isc/time.h>
+#include <isc/util.h>
 
 /*
  * XXXDCL As the API for accessing file statistics undoubtedly gets expanded,

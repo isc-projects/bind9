@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.17 2000/03/28 22:58:14 brister Exp $ */
+/* $Id: confctl.c,v 1.18 2000/04/28 01:10:28 halley Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/net.h>
 #include <isc/magic.h>
+#include <isc/util.h>
 
 #include <dns/confctl.h>
 #include <dns/confcommon.h>

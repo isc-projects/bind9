@@ -23,6 +23,7 @@
 #include <isc/assertions.h>
 #include <isc/condition.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 isc_result_t
 isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t)

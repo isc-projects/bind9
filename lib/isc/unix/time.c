@@ -29,6 +29,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/time.h>
+#include <isc/util.h>
 
 /***
  *** Intervals

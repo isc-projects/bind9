@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/util.h>
 
 #include <dns/ncache.h>
 #include <dns/rdata.h>

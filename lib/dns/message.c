@@ -28,6 +28,7 @@
 #include <isc/boolean.h>
 #include <isc/region.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/message.h>
 #include <dns/rdataset.h>

@@ -28,6 +28,7 @@
 #include <isc/region.h>
 #include <isc/buffer.h>
 #include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/result.h>
 #include <dns/ttl.h>

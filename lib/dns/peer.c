@@ -24,6 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/magic.h>
 #include <isc/net.h>
+#include <isc/util.h>
 
 #include <dns/bit.h>
 #include <dns/name.h>

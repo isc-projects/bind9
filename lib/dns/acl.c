@@ -23,6 +23,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/acl.h>
 #include <dns/log.h>

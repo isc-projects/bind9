@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.30 2000/04/27 00:02:53 tale Exp $
+ * $Id: dst_api.c,v 1.31 2000/04/28 01:10:42 halley Exp $
  */
 
 #include <config.h>
@@ -40,6 +40,8 @@
 #include <isc/random.h>
 #include <isc/region.h>
 #include <isc/time.h>
+#include <isc/util.h>
+
 #include <dns/rdata.h>
 #include <dns/keyvalues.h>
 

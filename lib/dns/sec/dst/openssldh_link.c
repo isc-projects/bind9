@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.9 2000/04/27 00:02:56 tale Exp $
+ * $Id: openssldh_link.c,v 1.10 2000/04/28 01:10:49 halley Exp $
  */
 
 #include <config.h>
@@ -36,6 +36,7 @@
 #include <isc/error.h>
 #include <isc/int.h>
 #include <isc/region.h>
+#include <isc/util.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.12 2000/04/27 18:24:26 bwelling Exp $ */
+/* $Id: keygen.c,v 1.13 2000/04/28 01:12:20 halley Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,8 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/util.h>
+
 #include <dns/keyvalues.h>
 #include <dns/secalg.h>
 #include <dst/dst.h>

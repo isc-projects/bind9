@@ -24,6 +24,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 #include <dns/compress.h>
 #include <dns/name.h>

@@ -26,6 +26,7 @@
 #include <isc/buffer.h>
 #include <isc/error.h>
 #include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/result.h>

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.7 2000/02/03 23:08:01 halley Exp $ */
+/* $Id: dir.c,v 1.8 2000/04/28 01:04:53 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -27,6 +27,7 @@
 #include <isc/dir.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 #define ISC_DIR_MAGIC		0x4449522aU	/* DIR*. */
 #define VALID_DIR(dir)		((dir) != NULL && \

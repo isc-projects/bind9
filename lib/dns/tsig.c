@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.52 2000/04/27 00:02:01 tale Exp $
+ * $Id: tsig.c,v 1.53 2000/04/28 01:10:22 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -36,6 +36,7 @@
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/keyvalues.h>
 #include <dns/name.h>

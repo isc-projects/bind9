@@ -26,6 +26,7 @@
 
 #include <isc/assertions.h>
 #include <isc/ondestroy.h>
+#include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/master.h>

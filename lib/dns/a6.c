@@ -20,6 +20,7 @@
 #include <isc/assertions.h>
 #include <isc/bitstring.h>
 #include <isc/net.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/a6.h>

@@ -22,6 +22,7 @@
 #include <isc/resultclass.h>
 #include <isc/once.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 #include <dns/result.h>
 #include <dns/lib.h>

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.67 2000/04/19 00:26:39 gson Exp $ */
+/* $Id: confparser.y,v 1.68 2000/04/28 01:10:36 halley Exp $ */
 
 #include <config.h>
 
@@ -40,6 +40,7 @@
 #include <isc/once.h>
 #include <isc/dir.h>
 #include <isc/net.h>
+#include <isc/util.h>
 
 #include <dns/confparser.h>
 #include <dns/confctx.h>

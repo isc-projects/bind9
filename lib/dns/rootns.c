@@ -23,6 +23,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/db.h>

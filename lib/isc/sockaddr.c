@@ -29,6 +29,7 @@
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.16 2000/04/27 00:02:55 tale Exp $
+ * $Id: openssl_link.c,v 1.17 2000/04/28 01:10:48 halley Exp $
  */
 
 #include <config.h>
@@ -34,6 +34,7 @@
 #include <isc/buffer.h>
 #include <isc/int.h>
 #include <isc/region.h>
+#include <isc/util.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"

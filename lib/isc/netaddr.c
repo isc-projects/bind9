@@ -26,6 +26,7 @@
 #include <isc/netaddr.h>
 #include <isc/sockaddr.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 isc_boolean_t
 isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {

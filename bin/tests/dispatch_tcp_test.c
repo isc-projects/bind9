@@ -34,6 +34,7 @@
 #include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dns/dispatch.h>
 #include <dns/message.h>

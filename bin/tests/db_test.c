@@ -34,6 +34,7 @@
 #include <isc/list.h>
 #include <isc/time.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/result.h>

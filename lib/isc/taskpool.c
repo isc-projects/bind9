@@ -21,6 +21,8 @@
 #include <isc/boolean.h>
 #include <isc/error.h>
 #include <isc/taskpool.h>
+#include <isc/util.h>
+
 /***
  *** Types.
  ***/

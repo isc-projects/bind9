@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.49 2000/04/27 00:01:29 tale Exp $ */
+/* $Id: master.c,v 1.50 2000/04/28 01:10:05 halley Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/stdtime.h>
+#include <isc/util.h>
 
 #include <dns/master.h>
 #include <dns/types.h>

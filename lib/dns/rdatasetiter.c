@@ -20,6 +20,7 @@
 #include <stddef.h>
 
 #include <isc/assertions.h>
+#include <isc/util.h>
 
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>

@@ -15,12 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: conflsn.c,v 1.11 2000/03/28 22:58:19 brister Exp $ */
+/* $Id: conflsn.c,v 1.12 2000/04/28 01:10:33 halley Exp $ */
 
 #include <config.h>
 
 #include <isc/assertions.h>
 #include <isc/magic.h>
+#include <isc/util.h>
 
 #include <dns/conflsn.h>
 #include <dns/confcommon.h>

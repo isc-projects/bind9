@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.23 2000/04/18 00:18:38 gson Exp $ */
+/* $Id: confview.c,v 1.24 2000/04/28 01:10:38 halley Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/magic.h>
 #include <isc/net.h>
+#include <isc/util.h>
 
 #include <dns/confacl.h>
 #include <dns/confzone.h>

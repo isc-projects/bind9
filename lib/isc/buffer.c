@@ -24,6 +24,7 @@
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 void
 isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length) {

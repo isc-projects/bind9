@@ -34,6 +34,7 @@
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/net.h>
+#include <isc/util.h>
 
 #include <dns/adb.h>
 #include <dns/cache.h>

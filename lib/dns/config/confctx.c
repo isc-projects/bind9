@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.51 2000/04/19 20:04:49 gson Exp $ */
+/* $Id: confctx.c,v 1.52 2000/04/28 01:10:29 halley Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/magic.h>
+#include <isc/util.h>
 
 #include <dns/confctx.h>
 #include <dns/confcommon.h>

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.23 2000/04/27 00:02:15 tale Exp $ */
+/* $Id: confcommon.c,v 1.24 2000/04/28 01:10:26 halley Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/magic.h>
+#include <isc/util.h>
 
 #include <dns/name.h>
 #include <dns/peer.h>

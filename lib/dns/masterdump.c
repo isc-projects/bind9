@@ -27,6 +27,7 @@
 #include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/region.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/result.h>

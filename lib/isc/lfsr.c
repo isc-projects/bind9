@@ -21,6 +21,7 @@
 
 #include <isc/assertions.h>
 #include <isc/lfsr.h>
+#include <isc/util.h>
 
 #define VALID_LFSR(x)	(x != NULL)
 

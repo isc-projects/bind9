@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.10 2000/04/27 00:02:58 tale Exp $ */
+/* $Id: base64.c,v 1.11 2000/04/28 01:04:36 halley Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <isc/error.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #define RETERR(x) do { \
 	isc_result_t __r = (x); \

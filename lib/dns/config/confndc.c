@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.11 2000/04/24 22:53:40 tale Exp $ */
+/* $Id: confndc.c,v 1.12 2000/04/28 01:10:35 halley Exp $ */
 
 /*
 **	options {
@@ -45,8 +45,6 @@
 #include <errno.h> 
 #include <limits.h>
 #include <string.h>
-#include <sys/types.h> 
-
 #include <syslog.h>
 
 #include <isc/assertions.h>
@@ -59,6 +57,7 @@
 #include <isc/dir.h>
 #include <isc/net.h>
 #include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/confndc.h>
 #include <dns/log.h>

@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.36 2000/04/20 12:43:05 marka Exp $ */
+/* $Id: confzone.c,v 1.37 2000/04/28 01:10:40 halley Exp $ */
 
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/util.h>
 
 #include <dns/confzone.h>
 #include <dns/confcommon.h>

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: conflog.c,v 1.12 2000/03/28 22:58:18 brister Exp $ */
+/* $Id: conflog.c,v 1.13 2000/04/28 01:10:32 halley Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include <isc/assertions.h>
 #include <isc/magic.h>
+#include <isc/util.h>
 
 #include <dns/conflog.h>
 #include <dns/confcommon.h>

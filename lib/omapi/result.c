@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.5 2000/02/03 23:14:35 halley Exp $ */
+/* $Id: result.c,v 1.6 2000/04/28 01:12:23 halley Exp $ */
 
 #include <stddef.h>
 
 #include <isc/resultclass.h>
 #include <isc/once.h>
 #include <isc/error.h>
+#include <isc/util.h>
 
 #include <omapi/result.h>
 #include <omapi/lib.h>

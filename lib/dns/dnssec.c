@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.30 2000/04/27 18:09:09 bwelling Exp $
+ * $Id: dnssec.c,v 1.31 2000/04/28 01:10:00 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -34,6 +34,7 @@
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/keyvalues.h>

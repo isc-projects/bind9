@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.10 2000/04/06 22:02:15 explorer Exp $ */
+/* $Id: rdataslab.c,v 1.11 2000/04/28 01:10:16 halley Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/region.h>
 #include <isc/buffer.h>
 #include <isc/assertions.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/result.h>

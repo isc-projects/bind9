@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.20 2000/04/27 00:02:54 tale Exp $
+ * $Id: hmac_link.c,v 1.21 2000/04/28 01:10:46 halley Exp $
  */
 
 #include <config.h>
@@ -32,6 +32,7 @@
 #include <isc/buffer.h>
 #include <isc/int.h>
 #include <isc/region.h>
+#include <isc/util.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"

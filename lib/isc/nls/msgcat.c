@@ -26,6 +26,7 @@
 
 #include <isc/assertions.h>
 #include <isc/msgcat.h>
+#include <isc/util.h>
 
 #ifdef HAVE_CATGETS
 #include <nl_types.h>

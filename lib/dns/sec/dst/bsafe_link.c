@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.13 2000/04/27 00:02:52 tale Exp $
+ * $Id: bsafe_link.c,v 1.14 2000/04/28 01:10:41 halley Exp $
  */
 
 #include <config.h>
@@ -33,6 +33,7 @@
 #include <isc/buffer.h>
 #include <isc/int.h>
 #include <isc/region.h>
+#include <isc/util.h>
 
 #include <dns/keyvalues.h>
 

@@ -29,6 +29,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/stdtime.h>
+#include <isc/util.h>
 
 void
 isc_stdtime_get(isc_stdtime_t *t)

@@ -25,6 +25,7 @@
 #include <isc/error.h>
 #include <isc/net.h>
 #include <isc/once.h>
+#include <isc/util.h>
 
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;

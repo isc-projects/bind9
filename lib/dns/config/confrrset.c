@@ -15,12 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: confrrset.c,v 1.11 2000/04/06 09:45:39 brister Exp $ */
+/* $Id: confrrset.c,v 1.12 2000/04/28 01:10:37 halley Exp $ */
 
 #include <config.h>
 
 #include <isc/assertions.h>
 #include <isc/magic.h>
+#include <isc/util.h>
 
 #include <dns/confrrset.h>
 #include <dns/confcommon.h>

@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.16 2000/04/11 18:17:35 gson Exp $ */
+/* $Id: log.c,v 1.17 2000/04/28 01:10:04 halley Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <isc/assertions.h>
 #include <isc/log.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/log.h>
 #include <dns/result.h>

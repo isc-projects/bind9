@@ -20,6 +20,7 @@
 #include <isc/assertions.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/acl.h>
 

@@ -20,6 +20,7 @@
 #include <isc/assertions.h>
 #include <isc/region.h>
 #include <isc/buffer.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/ncache.h>

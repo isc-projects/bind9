@@ -22,6 +22,7 @@
 #include <isc/types.h>
 #include <isc/assertions.h>
 #include <isc/bitstring.h>
+#include <isc/util.h>
 
 #define DIV8(x)			((x) >> 3)
 #define MOD8(x)			((x) & 0x00000007U)

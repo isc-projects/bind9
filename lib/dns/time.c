@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: time.c,v 1.9 2000/04/27 00:01:58 tale Exp $ */
+/* $Id: time.c,v 1.10 2000/04/28 01:10:19 halley Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include <isc/assertions.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/result.h>

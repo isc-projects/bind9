@@ -36,6 +36,7 @@
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/interfaceiter.h>
+#include <isc/util.h>
 
 #include <net/if.h>		/* Must follow <isc/net.h>. */
 

@@ -21,6 +21,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/aclconf.h>
 #include <dns/types.h>
