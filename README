@@ -45,10 +45,10 @@ BIND 9
 
 
 
-BIND 9.1.1rc3
+BIND 9.1.1rc4
 
-	BIND 9.1.1rc3 is a release candidate for BIND 9.1.1.
-	It contains fixes for a number of bugs in BIND 9.1.1rc2
+	BIND 9.1.1rc4 is a release candidate for BIND 9.1.1.
+	It contains fixes for a number of bugs in BIND 9.1.1rc3
 	but no new features.
 
 	Features introduced in 9.1.0 included:
