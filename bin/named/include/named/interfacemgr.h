@@ -75,7 +75,8 @@ struct ns_interface {
 	dns_dispatch_t *	udpdispatch;	/* UDP dispatcher. */
 	isc_socket_t *		tcpsocket;	/* TCP socket. */
 	isc_task_t *		task;
-	int			ntcptarget;	/* Desired # of TCP accepts */
+	int			ntcptarget;	/* Desired number of concurrent
+						   TCP accepts */
 	int			ntcpcurrent;	/* Current ditto, locked */
 	ISC_LINK(ns_interface_t) link;
 };

@@ -52,8 +52,8 @@
  *
  * A ns_clientmgr_t manages a number of ns_client_t objects.
  * New ns_client_t objects are created by calling
- * ns_clientmgr_addtodispatch() (UDP) or ns_clientmgr_accepttcp() (TCP).
- * They are destroyed by destroying their manager.
+ * ns_clientmgr_createclients(). They are destroyed by
+ * destroying their manager.
  */
 
 /***
@@ -174,19 +174,12 @@ void
 ns_clientmgr_destroy(ns_clientmgr_t **managerp);
 
 isc_result_t
-ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
-			   ns_interface_t *ifp);
+ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
+			   ns_interface_t *ifp, isc_boolean_t tcp);
 /*
- * Create up to 'n' UDP clients listening for requests through the
- * dispatch of interface 'ifp'.
- */
-       
-isc_result_t
-ns_clientmgr_accepttcp(ns_clientmgr_t *manager, unsigned int n,
-		       ns_interface_t *ifp);
-/*
- * Create up to 'n' TCP clients accepting requests on the
- * socket of interface 'ifp'.
+ * Create up to 'n' clients listening on interface 'ifp'.
+ * If 'tcp' is ISC_TRUE, the clients will listen for TCP connections,
+ * otherwise for UDP requests.
  */
 
 isc_sockaddr_t *

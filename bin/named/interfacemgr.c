@@ -195,7 +195,13 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	ifp->udpdispatch = NULL;
 	
 	ifp->tcpsocket = NULL;
-	ifp->ntcptarget = ns_g_cpus;
+	/*
+	 * Create a single TCP client object.  It will replace itself
+	 * with a new one as soon as it gets a connection, so the actual
+	 * connections will be handled in parallel even though there is
+	 * only one client initially.
+	 */
+	ifp->ntcptarget = 1;
 	ifp->ntcpcurrent = 0;
 
 	ns_interfacemgr_attach(mgr, &ifp->mgr);	
@@ -257,10 +263,11 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 		goto udp_dispatch_failure;
 	}
 
-	result = ns_clientmgr_addtodispatch(ifp->mgr->clientmgr, ns_g_cpus, ifp);
+	result = ns_clientmgr_createclients(ifp->mgr->clientmgr, ns_g_cpus, ifp,
+					    ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "UDP ns_clientmgr_addtodispatch(): %s",
+				 "UDP ns_clientmgr_createclients(): %s",
 				 isc_result_totext(result));
 		goto addtodispatch_failure;
 	}
@@ -306,11 +313,13 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 				 isc_result_totext(result));
 		goto tcp_listen_failure;
 	}
-	result = ns_clientmgr_accepttcp(ifp->mgr->clientmgr,
-					ifp->ntcptarget, ifp);
+
+	result = ns_clientmgr_createclients(ifp->mgr->clientmgr,
+					    ifp->ntcptarget, ifp,
+					    ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "TCP ns_clientmgr_accepttcp(): %s",
+				 "TCP ns_clientmgr_createclients(): %s",
 				 isc_result_totext(result));
 		goto accepttcp_failure;
 	}

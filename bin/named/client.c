@@ -1038,20 +1038,17 @@ ns_client_replace(ns_client_t *client) {
 	isc_result_t result;
 	CTRACE("replace");
 
-	if (TCP_CLIENT(client)) {
-		result = ns_clientmgr_accepttcp(client->manager,
-						1, client->interface);
-	} else {
-		result = ns_clientmgr_addtodispatch(client->manager,
-						    1, client->interface);
-	}
+	result = ns_clientmgr_createclients(client->manager,
+					    1, client->interface,
+					    (TCP_CLIENT(client) ?
+					     ISC_TRUE : ISC_FALSE));
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/*
-	 * The new client is ready to listen for new requests, therefore we
-	 * should refrain from listening from any more requests when we are
-	 * done with this one.
+	 * The responsibility for listening for new requests is hereby 
+	 * transferred to the new client.  Therefore, the old client 
+	 * should refrain from listening for any more requests.
 	 */
 	client->mortal = ISC_TRUE;
 
@@ -1141,8 +1138,8 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 }
 
 isc_result_t
-ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
-			   ns_interface_t *ifp)
+ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
+			   ns_interface_t *ifp, isc_boolean_t tcp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
@@ -1151,7 +1148,7 @@ ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(n > 0);
 
-	MTRACE("addtodispatch");
+	MTRACE("createclients");
 
 	/*
 	 * We MUST lock the manager lock for the entire client creation
@@ -1166,73 +1163,25 @@ ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
 		result = client_create(manager, ifp, &client);
 		if (result != ISC_R_SUCCESS)
 			break;
-		dns_dispatch_attach(ifp->udpdispatch, &client->dispatch);
-		result = dns_dispatch_addrequest(client->dispatch,
-						 client->task,
-						 client_request,
-						 client, &client->dispentry);
-		if (result != ISC_R_SUCCESS) {
-			client->shuttingdown = ISC_TRUE;
-			maybe_free(client); /* Will free immediately. */
-			break;
+		if (tcp) {
+			client->attributes |= NS_CLIENTATTR_TCP;
+			isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
+			client_accept(client);
+		} else {
+			dns_dispatch_attach(ifp->udpdispatch, &client->dispatch);
+			result = dns_dispatch_addrequest(client->dispatch,
+							 client->task,
+							 client_request,
+							 client, &client->dispentry);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+					      "dns_dispatch_addrequest() failed: %s",
+					      isc_result_totext(result));
+				isc_task_shutdown(client->task);
+				break;
+			}
 		}
-		client->manager = manager;
-		ISC_LIST_APPEND(manager->clients, client, link);
-		manager->nclients++;
-	}
-	if (i != 0) {
-		/*
-		 * We managed to create at least one client, so we
-		 * declare victory.
-		 */
-		result = ISC_R_SUCCESS;
-	}
-
-	UNLOCK(&manager->lock);
-
-	return (result);
-}
-
-isc_result_t
-ns_clientmgr_accepttcp(ns_clientmgr_t *manager, unsigned int n,
-		       ns_interface_t *ifp)
-{
-	isc_result_t result = ISC_R_SUCCESS;
-	unsigned int i;
-	ns_client_t *client;
-
-	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(n > 0);
-
-	MTRACE("accepttcp");
-
-	/*
-	 * XXXRTH
-	 *
-	 * This does not represent the planned method for TCP support,
-	 * because we are dedicating a few clients to servicing TCP requests
-	 * instead of allocating TCP clients from a pool and applying quotas.
-	 *
-	 * All this will be fixed later, but this code will allow parts of
-	 * the server that need TCP support, e.g. IXFR and AXFR, to progress.
-	 */
-
-	/*
-	 * We MUST lock the manager lock for the entire client creation
-	 * process.  If we didn't do this, then a client could get a
-	 * shutdown event and disappear out from under us.
-	 */
-
-	LOCK(&manager->lock);
-
-	for (i = 0; i < n; i++) {
-		client = NULL;
-		result = client_create(manager, ifp, &client);
-		if (result != ISC_R_SUCCESS)
-			break;
-		client->attributes |= NS_CLIENTATTR_TCP;
-		isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
-		client_accept(client);
 		client->manager = manager;
 		ISC_LIST_APPEND(manager->clients, client, link);
 		manager->nclients++;
