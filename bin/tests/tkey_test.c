@@ -156,6 +156,7 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	isc_buffer_t source;
 	isc_result_t result;
+	isc_buffer_t *tsigbuf = NULL;
 
 	REQUIRE(sevent != NULL);
 	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
@@ -172,8 +173,11 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 
 	response = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response2);
-	response2->querytsig = query2->tsig;
-	query2->tsig = NULL;
+	result = dns_message_getquerytsig(query2, mctx, &tsigbuf);
+	CHECK("dns_message_getquerytsig", result);
+	result = dns_message_setquerytsig(response2, tsigbuf);
+	CHECK("dns_message_setquerytsig", result);
+	isc_buffer_free(&tsigbuf);
 	dns_message_settsigkey(response2, tsigkey);
 	CHECK("dns_message_create", result);
 	result = dns_message_parse(response2, &source, ISC_FALSE);
