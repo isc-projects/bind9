@@ -232,11 +232,10 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 			keystruct.common.rdclass = viewclass;
 			keystruct.common.rdtype = dns_rdatatype_key;
 			/*
-			 * The key data in keystruct is not really
-			 * dynamically allocated, but dns_rdata_fromstruct()
-			 * requires that there is a valid mctx anyway.
+			 * The key data in keystruct is not 
+			 * dynamically allocated.
 			 */
-			keystruct.mctx = mctx; 
+			keystruct.mctx = NULL; 
 			
 			ISC_LINK_INIT(&keystruct.common, link);
 			
