@@ -114,7 +114,7 @@ DNSSAFEOBJS =	sec/dnssafe/ahchdig.@O@ sec/dnssafe/ahchencr.@O@ \
 		sec/dnssafe/seccbce.@O@ sec/dnssafe/surrendr.@O@
 
 # Alphabetically
-OBJS =		a6.@O@ adb.@O@ cache.@O@ callbacks.@O@ compress.@O@ \
+OBJS =		a6.@O@ adb.@O@ aml.@O@ cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ dispatch.@O@ dnssec.@O@ \
 		journal.@O@ lib.@O@ log.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
@@ -127,7 +127,7 @@ OBJS =		a6.@O@ adb.@O@ cache.@O@ callbacks.@O@ compress.@O@ \
 		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS} ${CONFOBJS}
 
 # Alphabetically
-SRCS =		a6.c adb.c cache.c callbacks.c compress.c \
+SRCS =		a6.c adb.c aml.c cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c dispatch.c dnssec.c \
 		journal.c lib.c log.c \
 		master.c masterdump.c message.c \
@@ -184,7 +184,7 @@ newrr::
 
 ${SUBDIRS}: include/dns/enumtype.h include/dns/enumclass.h
 	    include/dns/rdatastruct.h
-	
+
 rdata.@O@: code.h
 
 include/dns/enumtype.h: gen
