@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <dns/types.h>
 
@@ -27,24 +28,13 @@
 #include "zone.h"
 
 /*
-
-  NOTES
-
-  - This needs to be fixed for threads.
-  	-
-  
-  - we do not 'realloc' to keep all the zones in contiguous memory.
-  
+ * NOTE:  we do not 'realloc' to keep all the zones in contiguous memory.
+ *	
  */
 
 #define ZONECHUNK 50		  /* how many zone structs we make at once.*/
 #define ZONE_USED_MAGIC 0x7fffffff
 #define ZONE_FREE_MAGIC 0x0
-
-
-static isc_result_t set_string(char **string, size_t *len,
-			       const char *source, isc_mem_t *mem);
-
 
 
 isc_result_t
@@ -70,11 +60,15 @@ isc_zone_newcontext(isc_mem_t *memctx, isc_zonectx_t **zctx)
 isc_result_t
 isc_zone_freecontext(isc_zonectx_t *zonectx)
 {
-	isc_zoneinfo_t *zi ;
+	isc_zoneinfo_t *zi;
+	isc_zoneinfo_t *zp;
 
-	zi = ISC_LIST_HEAD(zonectx->freezones) ;
+	zi = ISC_LIST_HEAD(zonectx->freezones);
 	while (zi != NULL ) {
-		isc_zone_release_zone(zi);
+		zp = zi;
+		zi = ISC_LIST_NEXT(zi, chainlink);
+
+		isc_zone_release_zone(zp);
 	}
 	
 	return (ISC_R_SUCCESS);	
@@ -146,53 +140,153 @@ isc_zone_release_zone(isc_zoneinfo_t *zone)
 isc_result_t
 isc_zone_setsource(isc_zoneinfo_t *zone, const char *source)
 {
+	size_t len;
+	
 	INSIST(zone != NULL);
 	INSIST(source != NULL);
-	INSIST(strlen(source) > 0);
 
-	return (set_string(&zone->source, &zone->sourcelen,
-			   source, zone->zctx->memctx));
+	len = strlen(source) + 1;
 	
-}
+	INSIST(len > 1);
 
-
-isc_result_t
-isc_zone_setorigin(isc_zoneinfo_t *zone, const char *source)
-{
-	INSIST(zone != NULL);
-	INSIST(source != NULL);
-	INSIST(strlen(source) > 0);
-
-	return (set_string(&zone->origin, &zone->originlen,
-			   source, zone->zctx->memctx));
-}	
-
-
-
-static isc_result_t
-set_string(char **string, size_t *len, const char *source, isc_mem_t *mem)
-{
-	INSIST(string != NULL);
-	INSIST(len != 0);
-	INSIST(mem != NULL);
-	
-	if (*len > 0 && *len <= strlen(source)) {
-		isc_mem_put(mem, *string, *len);
-		*len = 0;
-		*string = NULL;
+	zone->source.base = isc_mem_get(zone->zctx->memctx, len);
+	if (zone->source.base == NULL) {
+		return (ISC_R_NOMEMORY);
 	}
-
-	if (*len == 0) {
-		size_t need = strlen(source) + 1;
-
-		*string = isc_mem_get(mem, need);
-		if (*string == NULL) {
-			return (ISC_R_NOMEMORY);
-		}
-	}
-
-	strcpy (*string, source);
+	zone->source.length = len;
+	strcpy(zone->source.base, source);
 
 	return (ISC_R_SUCCESS);
 }
 
+
+isc_result_t
+isc_zone_setorigin(isc_zoneinfo_t *zone, const char *origin)
+{
+	size_t len;
+	
+	INSIST(zone != NULL);
+	INSIST(origin != NULL);
+
+	len = strlen(origin) + 1;
+
+	INSIST(len > 1);
+
+	zone->origin.base = isc_mem_get(zone->zctx->memctx, len);
+	if (zone->origin.base == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+	zone->origin.length = len;
+	
+	strcpy(zone->origin.base, origin);
+
+	return (ISC_R_SUCCESS);
+}	
+
+
+const char *
+isc_zonetype_to_string(isc_zonet_t zone_type)
+{
+	const char *res = NULL;
+	switch (zone_type) {
+	case zone_master:
+		res = "master";
+		break;
+	case zone_slave:
+		res = "slave";
+		break;
+	case zone_hint:
+		res = "hint";
+		break;
+	case zone_stub:
+		res = "stub";
+		break;
+	case zone_forward:
+		res = "forward";
+		break;
+	}
+
+	INSIST (res != NULL);
+
+	return (res);
+}
+
+
+void
+isc_zonectx_dump(FILE *fp, isc_zonectx_t *ctx)
+{
+	isc_zoneinfo_t *zi;
+	
+	INSIST(ctx != NULL);
+
+	zi = ISC_LIST_HEAD(ctx->usedzones);
+	while (zi != NULL ) {
+		isc_zone_dump(fp, zi);
+		zi = ISC_LIST_NEXT(zi, chainlink);
+	}
+}
+
+	
+void
+isc_zone_dump(FILE *fp, isc_zoneinfo_t *zone)
+{
+	INSIST(fp != NULL);
+	INSIST(zone != NULL);
+	
+	fprintf(fp, "zone \"%s\" %s {\n", zone->origin.base,
+		rrclass_to_string(zone->zone_class));
+	fprintf(fp, "\ttype %s;\n",isc_zonetype_to_string(zone->type));
+
+	/* XXX this will get more complicated */
+	fprintf(fp, "\tfile \"%s\";\n",zone->source.base);
+	fprintf(fp, "}\n");
+}
+
+	
+	
+isc_result_t
+isc_zone_setclass(isc_zoneinfo_t *zone, isc_rrclass_t rrclass)
+{
+	INSIST(zone != NULL);
+
+	zone->zone_class = rrclass;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+const char *
+rrclass_to_string(isc_rrclass_t rrclass)
+{
+	const char *res;
+
+	switch (rrclass) {
+	case class_none:
+		res = "NONE";
+		break;
+	case class_any:
+		res = "ANY";
+		break;
+	case class_in:
+		res = "IN";
+		break;
+	case class_chaos:
+		res = "CHAOS";
+		break;
+	case class_hesiod:
+		res = "HESIOD";
+		break;
+	case class_hs:
+		res = "HS";
+		break;
+	default:
+		res = NULL;
+		break;
+	}
+
+	INSIST(res != NULL);
+
+	return (res);
+}
+
+			

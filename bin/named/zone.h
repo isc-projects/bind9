@@ -42,18 +42,22 @@ typedef enum {
 } isc_zonet_t ;
   
 
+typedef enum {
+	class_any, class_none, class_in, class_chaos, class_hesiod,
+	class_hs
+} isc_rrclass_t;
+
+
 /* This structure contains all the run-time information about a zone. */
 struct isc_zoneinfo 
 {
 	isc_int32_t	magic;		/* private magic stamp for valid'ng */
 
-	size_t		originlen;
-	char		*origin;	/* name of zone */
-
-	size_t		sourcelen;
-	char		*source;	/* where zone data came from */
+	isc_textregion_t	origin;
+	isc_textregion_t	source;
 
 	isc_zonet_t	type;		/* master, slave etc. */
+	isc_rrclass_t	zone_class;	/* IN, CHAOS etc. */
 	
 	dns_db_t	*thedb;
 
@@ -100,14 +104,31 @@ isc_result_t 	isc_zone_newinfo(isc_zonectx_t *zctx, isc_zoneinfo_t **zone);
 
 isc_result_t	isc_zone_release_zone(isc_zoneinfo_t *zone);
 
+/* write named.conf-type format */
+void		isc_zone_dump(FILE *fp, isc_zoneinfo_t *zone);
+
 /* Free up a zone and all associated data structures. The zone knows which
  *zone context to go back to
  */	
 isc_result_t 	isc_zone_freezone(isc_zoneinfo_t *zone);
 isc_result_t	isc_zone_freecontext(isc_zonectx_t *ctx);
 
-isc_result_t    isc_zone_setsource(isc_zoneinfo_t *zone, const char *source);
-isc_result_t	isc_zone_setorigin(isc_zoneinfo_t *zone, const char *origin);
+/* These functions copy the data they're given. */
+isc_result_t    isc_zone_setsource(isc_zoneinfo_t *zone,
+				   const char *source);
+isc_result_t	isc_zone_setorigin(isc_zoneinfo_t *zone,
+				   const char *origin);
+
+isc_result_t	isc_zone_setclass(isc_zoneinfo_t *zone, isc_rrclass_t class);
+
+				  
+
+const char *	isc_zonetype_to_string(isc_zonet_t zont_type);
+void		isc_zonectx_dump(FILE *fp, isc_zonectx_t *ctx);
+void		isc_zone_dump(FILE *fp, isc_zoneinfo_t *zone);
+
+const char *	rrclass_to_string(isc_rrclass_t rrclass);
+
 
 
 #endif
