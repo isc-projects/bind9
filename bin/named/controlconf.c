@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.7 2001/05/08 04:09:37 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.8 2001/05/14 18:23:39 halley Exp $ */
 
 #include <config.h>
 
@@ -312,6 +312,12 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	conn = event->ev_arg;
 	listener = conn->listener;
 	key = ISC_LIST_HEAD(listener->keys);
+	INSIST(key != NULL);
+	secret.rstart = isc_mem_get(listener->mctx, key->secret.length);
+	if (secret.rstart == NULL)
+		goto cleanup;
+	memcpy(secret.rstart, key->secret.base, key->secret.length);
+	secret.rend = secret.rstart + key->secret.length;
 
 	if (conn->ccmsg.result != ISC_R_SUCCESS) {
 		if (conn->ccmsg.result != ISC_R_CANCELED &&
@@ -323,8 +329,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	ccregion.rstart = isc_buffer_base(&conn->ccmsg.buffer);
 	ccregion.rend = isc_buffer_used(&conn->ccmsg.buffer);
 	request = NULL;
-	secret.rstart = key->secret.base;
-	secret.rend = key->secret.base + key->secret.length;
 	result = isccc_cc_fromwire(&ccregion, &request, &secret);
 	if (result != ISC_R_SUCCESS) {
 		log_invalid(&conn->ccmsg, result);
@@ -383,6 +387,9 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	conn->sending = ISC_TRUE;
 
+	if (secret.rstart != NULL)
+		isc_mem_put(listener->mctx, secret.rstart,
+			    REGION_SIZE(secret));
 	if (request != NULL)
 		isccc_sexpr_free(&request);
 	if (response != NULL)
@@ -390,6 +397,9 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	return;
 
  cleanup:
+	if (secret.rstart != NULL)
+		isc_mem_put(listener->mctx, secret.rstart,
+			    REGION_SIZE(secret));
 	isc_socket_detach(&conn->sock);
 	isccc_ccmsg_invalidate(&conn->ccmsg);
 	conn->ccmsg_valid = ISC_FALSE;
