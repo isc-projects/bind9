@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.179 2001/01/08 23:40:29 bwelling Exp $ */
+/* $Id: dighost.c,v 1.180 2001/01/08 23:44:09 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -640,8 +640,7 @@ setup_system(void) {
 						debug("adding search %s",
 						      ptr);
 						search = isc_mem_allocate(
-						   mctx, sizeof(struct
-								dig_server));
+						   mctx, sizeof(*search));
 						if (search == NULL)
 							fatal("Memory "
 							      "allocation "
@@ -664,8 +663,7 @@ setup_system(void) {
 					while ((ptr = next_token(&input, " \t\r\n"))
 					       != NULL) {
 						search = isc_mem_allocate(
-						   mctx, sizeof(struct
-								dig_server));
+						   mctx, sizeof(*search));
 						if (search == NULL)
 							fatal("Memory "
 							      "allocation "
@@ -1293,7 +1291,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			if (fixedsearch != NULL)
 				isc_mem_free(mctx, fixedsearch);
 			fixedsearch = isc_mem_allocate(mctx,
-						sizeof(struct dig_server));
+						sizeof(*fixedsearch));
 			if (fixedsearch == NULL)
 				fatal("Memory allocation failure in %s:%d",
 				      __FILE__, __LINE__);
