@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.6.2.1 2001/01/09 22:32:02 bwelling Exp $ */
+/* $Id: lwdgrbn.c,v 1.6.2.2 2001/01/23 02:05:11 gson Exp $ */
 
 #include <config.h>
 
@@ -265,7 +265,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	
 	if (sigrdataset != NULL) {
 		i = 0;
-		result = fill_array(&i, rdataset, grbn->nsigs, grbn->sigs,
+		result = fill_array(&i, sigrdataset, grbn->nsigs, grbn->sigs,
 				    grbn->siglen);
 		if (result != ISC_R_SUCCESS || i != grbn->nsigs)
 			goto out;
