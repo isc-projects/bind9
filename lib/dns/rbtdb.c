@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.2 2003/08/19 04:11:24 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.3 2003/08/21 06:48:26 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2235,6 +2235,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			bind_rdataset(search.rbtdb, node, nxtsig,
 				      0, sigrdataset);
 		}
+		if (wild)
+			foundname->attributes |= DNS_NAMEATTR_WILDCARD;
 		goto node_exit;
 	}
 
