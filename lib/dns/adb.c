@@ -41,6 +41,7 @@
 #include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/events.h>
+#include <dns/
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -58,6 +59,8 @@
 #define DNS_ADBZONEINFO_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBZONEINFO_MAGIC)
 #define DNS_ADBENTRY_MAGIC	  0x61646245	/* adbE. */
 #define DNS_ADBENTRY_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBENTRY_MAGIC)
+#define DNS_ADBFETCH_MAGIC	  0x61646246	/* adbF. */
+#define DNS_ADBFETCH_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH_MAGIC)
 
 /*
  * Lengths of lists needs to be powers of two.
@@ -74,6 +77,7 @@ typedef ISC_LIST(dns_adbname_t) dns_adbnamelist_t;
 typedef struct dns_adbnamehook dns_adbnamehook_t;
 typedef struct dns_adbzoneinfo dns_adbzoneinfo_t;
 typedef ISC_LIST(dns_adbentry_t) dns_adbentrylist_t;
+typedef struct dns_adbfetch dns_adbfetch_t;
 
 struct dns_adb {
 	unsigned int			magic;
@@ -93,6 +97,7 @@ struct dns_adb {
 	isc_mempool_t		       *emp;	/* dns_adbentry_t */
 	isc_mempool_t		       *ahmp;	/* dns_adbhandle_t */
 	isc_mempool_t		       *aimp;	/* dns_adbaddrinfo_t */
+	isc_mempool_t		       *afmp;	/* dns_adbfetch_t */
 
 	isc_random_t			rand;
 
@@ -117,9 +122,18 @@ struct dns_adbname {
 	isc_boolean_t			partial_result;
 	isc_stdtime_t			expire_time;
 	ISC_LIST(dns_adbnamehook_t)	namehooks;
-	ISC_LIST(dns_adbnamehook_t)	in_progress;
+	ISC_LIST(dns_adbfetch_t)	fetches;
 	ISC_LIST(dns_adbhandle_t)	handles;
 	ISC_LINK(dns_adbname_t)		link;
+};
+
+struct dns_adbfetch {
+	unsigned int			magic;
+	dns_adbnamehook_t	       *namehook;
+	dns_adbentry_t		       *entry;
+	dns_fetch_t		       *fetch;
+	dns_rdataset_t			rdataset;
+	ISC_LINK(dns_adbfetch_t)	link;
 };
 
 /*
@@ -486,7 +500,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 	name->partial_result = ISC_FALSE;
 	name->expire_time = 0;
 	ISC_LIST_INIT(name->namehooks);
-	ISC_LIST_INIT(name->in_progress);
+	ISC_LIST_INIT(name->fetches);
 	ISC_LIST_INIT(name->handles);
 	ISC_LINK_INIT(name, link);
 
@@ -503,7 +517,7 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name)
 	*name = NULL;
 
 	INSIST(ISC_LIST_EMPTY(n->namehooks));
-	INSIST(ISC_LIST_EMPTY(n->in_progress));
+	INSIST(ISC_LIST_EMPTY(n->fetches));
 	INSIST(ISC_LIST_EMPTY(n->handles));
 	INSIST(!ISC_LINK_LINKED(n, link));
 
@@ -674,6 +688,68 @@ new_adbhandle(dns_adb_t *adb)
 
 	h->magic = DNS_ADBHANDLE_MAGIC;
 	return (h);
+}
+
+static inline dns_adbfetch_t *
+new_adbfetch(dns_adb_t *adb)
+{
+	dns_adbfetch_t *f;
+
+	f = isc_mempool_get(adb->afmp);
+	if (f == NULL)
+		return (NULL);
+
+	f->magic = 0;
+	f->namehook = NULL;
+	f->entry = NULL;
+	f->fetch = NULL;
+
+	f->namehook = new_adbnamehook(adb, NULL);
+	if (f->namehook == NULL)
+		goto err;
+
+	f->entry = new_adbentry(adb);
+	if (f->entry == NULL)
+		goto err;
+
+	dns_rdataset_init(&f->rdataset);
+	ISC_LINK_INIT(f, link);
+
+	f->magic = DNS_ADBFETCH_MAGIC;
+
+	return (f);
+
+ err:
+	if (f->namehook != NULL)
+		free_adbnamehook(adb, &f->namehook);
+	if (f->entry != NULL)
+		free_adbentry(adb, &f->entry);
+	isc_mempool_put(adb->afmp, f);
+	return (NULL);
+}
+
+static inline void
+free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
+{
+	dns_adbfetch_t *f;
+
+	INSIST(fetch != NULL && DNS_ADBFETCH_VALID(*fetch));
+	f = *fetch;
+	*fetch = NULL;
+
+	INSIST(!ISC_LINK_LINKED(f, link));
+
+	f->magic = 0;
+
+	if (f->namehook != NULL)
+		free_adbnamehook(adb, &f->namehook);
+	if (f->entry != NULL)
+		free_adbentry(adb, &f->entry);
+
+	if (dns_rdataset_isassociated(&f->rdataset))
+		dns_rdataset_disassociate(&f->rdataset);
+
+	isc_mempool_put(adb->afmp, f);
 }
 
 static inline void
@@ -905,6 +981,7 @@ destroy(dns_adb_t *adb)
 	isc_mempool_destroy(&adb->emp);
 	isc_mempool_destroy(&adb->ahmp);
 	isc_mempool_destroy(&adb->aimp);
+	isc_mempool_destroy(&adb->afmp);
 
 	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
 	isc_mutexblock_destroy(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
@@ -949,6 +1026,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 	adb->emp = NULL;
 	adb->ahmp = NULL;
 	adb->aimp = NULL;
+	adb->afmp = NULL;
 
 	result = isc_random_init(&adb->rand);
 	if (result != ISC_R_SUCCESS)
@@ -1003,6 +1081,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 	MPINIT(dns_adbentry_t, adb->emp, ISC_TRUE, "adbentry");
 	MPINIT(dns_adbhandle_t, adb->ahmp, ISC_TRUE, "adbhandle");
 	MPINIT(dns_adbaddrinfo_t, adb->aimp, ISC_TRUE, "adbaddrinfo");
+	MPINIT(dns_adbfetch_t, adb->afmp, ISC_TRUE, "adbfetch");
 
 #undef MPINIT
 
@@ -1034,6 +1113,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 		isc_mempool_destroy(&adb->ahmp);
 	if (adb->aimp != NULL)
 		isc_mempool_destroy(&adb->aimp);
+	if (adb->aimp != NULL)
+		isc_mempool_destroy(&adb->afmp);
 
 	isc_condition_destroy(&adb->shutdown_cond);
  fail0d:
@@ -1152,7 +1233,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Attach to the name's query list if there are queries
 		 * already running.
 		 */
-		if (!ISC_LIST_EMPTY(adbname->in_progress) && (task != NULL)) {
+		if (!ISC_LIST_EMPTY(adbname->fetches) && (task != NULL)) {
 			handle->adbname = adbname;
 			handle->name_bucket = bucket;
 			ISC_LIST_APPEND(adbname->handles, handle, link);
