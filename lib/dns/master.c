@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.31 1999/11/30 02:20:24 gson Exp $ */
+ /* $Id: master.c,v 1.32 1999/11/30 02:21:59 gson Exp $ */
 
 #include <config.h>
 
@@ -289,7 +289,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					goto cleanup;
 				if (ttl > 0x7fffffffUL) {
 					(callbacks->warn)(callbacks,
-		"dns_master_load: %s:%d $TTL %lu > MAXTLL, setting TTL to 0\n",
+		"dns_master_load: %s:%d: $TTL %lu > MAXTLL, setting TTL to 0\n",
 						isc_lex_getsourcename(lex),
 						isc_lex_getsourceline(lex),
 						ttl);
@@ -518,7 +518,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				== DNS_R_SUCCESS) {
 			if (ttl > 0x7fffffffUL) {
 				(callbacks->warn)(callbacks,
-	"dns_master_load: %s:%d TTL %lu > maxtll, setting ttl to 0\n",
+	"dns_master_load: %s:%d: TTL %lu > maxtll, setting ttl to 0\n",
 					isc_lex_getsourcename(lex),
 					isc_lex_getsourceline(lex),
 					ttl);
@@ -531,7 +531,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			 * BIND 4 / 8 'USE_SOA_MINIMUM' could be set here.
 			 */
 			(*callbacks->error)(callbacks,
-					    "%s: %s:%d no TTL specified\n",
+					    "%s: %s:%d: no TTL specified\n",
 					    "dns_master_load",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex));
@@ -541,7 +541,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			ttl = default_ttl;
 		} else if (warn_1035) {
 			(*callbacks->warn)(callbacks,
-				   "%s: %s:%d using RFC 1035 TTL semantics\n",
+				   "%s: %s:%d: using RFC 1035 TTL semantics\n",
 					   "dns_master_load",
 					   isc_lex_getsourcename(lex),
 					   isc_lex_getsourceline(lex));
@@ -609,7 +609,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			isc_buffer_used(&buffer, &region);
 			len2 = region.length;
 			(*callbacks->error)(callbacks,
-			       "%s: %s:%d class (%.*s) != zone class (%.*s)\n",
+			       "%s: %s:%d: class (%.*s) != zone class (%.*s)\n",
 					    "dns_master_load",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex),
