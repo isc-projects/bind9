@@ -19,6 +19,12 @@ If your named.conf file uses an unimplemented option, named will log a
 warning message.  A message is also logged about each option whose
 default has changed unless the option is set explicitly in named.conf.
 
+The default of the "transfer-format" option has changed from
+"one-answer" to "many-answers".  If you have slave servers that do not
+understand the many-answers zone transfer format (e.g., BIND 4.9.5 or
+older) you need to explicitly specify "transfer-format one-answer;" in
+either the options block or a server statement.
+
 1.2. Handling of Configuration File Errors
 
 In BIND 9, named refuses to start if it detects an error in
@@ -179,4 +185,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.26 2001/03/11 18:39:19 bwelling Exp $
+$Id: migration,v 1.27 2001/03/19 18:07:32 gson Exp $
