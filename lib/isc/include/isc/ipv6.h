@@ -59,9 +59,6 @@ struct in6_addr {
 		isc_uint8_t	_S6_u8[16];
 		isc_uint16_t	_S6_u16[8];
 		isc_uint32_t	_S6_u32[4];
-#if 0 /* Is this really part of the standard? */
-		isc_uint64_t	_S6_u64[2];
-#endif
         } _S6_un;
 };
 #define s6_addr		_S6_un._S6_u8
@@ -91,6 +88,11 @@ struct sockaddr_in6 {
 #ifdef ISC_PLATFORM_HAVESALEN
 #define SIN6_LEN 1
 #endif
+
+struct in6_pktinfo {
+	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
+	unsigned int    ipi6_ifindex; /* send/recv interface index */
+};
 
 /*
  * Unspecified
