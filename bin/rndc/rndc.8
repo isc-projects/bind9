@@ -13,7 +13,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 .\" SOFTWARE.
 .\" 
-.\" $Id: rndc.8,v 1.2 2000/07/04 01:25:01 tale Exp $
+.\" $Id: rndc.8,v 1.3 2000/07/10 23:04:42 tale Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt RDNC 8
@@ -24,13 +24,13 @@
 .Nd name server control utility
 .Sh SYNOPSIS
 .Nm rndc
-.\"	-c option has been zapped for now
-.\"	.Op Fl c Ar config-file
+.Op Fl c Ar config-file
+.Op Fl k Ar key_id
+.Op Fl M
 .Op Fl m
 .Op Fl p Ar port#
-.\"	-s option has been zapped for now
-.\"	.Op Fl s Ar server
-.Ar server 
+.Op Fl s Ar server
+.Op Fl v
 .Ar command .... 
 .Sh DESCRIPTION
 This command allows the system administrator to control the operation
@@ -38,51 +38,46 @@ of a name server.
 It supersedes the
 .Xr ndc 8
 utility that was provided in old BIND releases.
+If
 .Nm rndc
-uses a secure channel with encryption algorithms and keys to
-communicate with the name server.
-In the current version of
-.Nm ndc ,
-the only supported encryption algorithm is HMAC-MD5 which uses a
-shared secret.
-This provides TSIG-style authentication for the command request
-and the name server's response.
+is invoked with no command line options or arguments, it
+prints a short summary of the supported commands and the available
+options and their arguments.
 .Pp
-.Nm
+.Nm rndc
+uses a secure channel with digital signatures to communicate 
+with the name server.
+In the current versions of
+.Nm rndc
+and 
+.Xr named 8
+the only supported encryption algorithm is HMAC-MD5, which uses a
+shared secret on each end of the connection.
+This provides TSIG-style authentication for the command request
+and the name server's response.  All commands sent over the channel
+must be signed by a key_id known to the server.
+.Pp
+.Nm rndc
 reads its default configuration file,
 .Pa /etc/rndc.conf
 to determine how to contact the name server and decide what algorithm
 and keys is should use.
-.\" An alternate configuration file can be specified with the
-.\" .Ar c
-.\" option.
-.\" .Ar config-file
-.\" is the name of the configuration file to use instead of the default
-.\" one,
-.\" .Pa /etc/rndc.conf .
-.\" .Pp
+An alternate configuration file can be specified with the
+.Ar c
+option.
+.Pp
 .Ar server
-is the name of the server which matches a
+is the name or address of the server which matches a
 .Dv server{}
 statement in the configuration file for
 .Nm rndc .
-If an explicit null argument is supplied in
-.Ar server ,
-.Nm rndc
-will contact some default name server which is defined by a
+If no
+.Ar server
+is supplied on the command line, the host named by the
 .Dv default-server
 clause in the
-.Fv options{}
-statement of
-.Pa /etc/rndc.conf .
-.Pp
-Currently, the
-.Fl m
-option makes
-.Nm rndc
-print details of its internal memory usage statistics.
-This option will only be of interest to BIND9 developers and may be
-removed or changed in a future release.
+.Dv options{}
+statement of the configuration file will be used.
 .Pp
 The
 .Fl p
@@ -90,19 +85,52 @@ option is used to make
 .Nm rndc
 send commands to TCP port number
 .Ar port#
-on the system running the name server instead of the default.
-The standard port number used by BIND9 name servers for receiving
-control commands is 953.
+on the system running the name server instead of BIND 9's 
+default control channel port of 953.
 .Pp
-If
+The
+.Fl k
+option identifies the
+.Ar key_id
+to use from the configuration file.  The 
+.Ar key_id
+must be known by
+.Xr named
+with the same algorithm and secret string in order for
+control message validation to succeed.  If no
+.Fl k
+option is provided,
 .Nm rndc
-is invoked with no command-line options or arguments, it
-prints a short summary of the supported commands and the available
-options and their arguments.
+will first look for a 
+.Dv key
+clause in the
+.Dv server{}
+statement of the server being used, or if no
+.Dv server{}
+statement is present for that host, then the
+.Dv default-key
+clause of the
+.Dv options{}
+statement.  Note that .Pp
+The configuration file for
+.Nm rdnc
+contains shared secrets which are used to send authenticated
+control commands to name servers, and should therefore not have
+general read or write access.
+.Pp
+The
+.Fl M ,
+.Fl m ,
+and
+.Fl v
+options provided debugging information and are primarily of interest
+only to the BIND 9 developers.  They might be changed or removed in
+future releases.
 .Pp
 The only valid value for
 .Ar command
-is \*qreload\*q, which forces the name server to reload.
+is \*qreload\*q, which forces the name server to reload its configuation
+file and zones.
 Further commands will be provided in future releases as the management
 capabilities of
 .Nm rndc
@@ -118,21 +146,23 @@ offers at least as many management capabilities as the old
 .Xr ndc
 utility.
 .Pp
-The configuration file for
-.Nm rdnc
-probably contains shared secrets which are used to send authenticated
-control commands to name servers.
-The file should therefore not have general read or write access.
+There is currently no way to provide the shared secret for a key_id 
+without using the configuration file, and thus the
+.Fl c
+option is really required in order for
+.Nm rndc
+to issue validly signed commands to
+.Xr named .
 .Pp
-In the current BIND9 release, the name server only listens for
-.Nm rndc
-commands on the loopback interface, 127.0.0.1.
-This means that
-.Nm rndc
-only works on the same system that runs the name server.
-This limitation will be removed in a future release.
+Several error messages could be clearer.  For example, trying to connect
+from an address that is not in the list of acceptable addresses
+configured into
+.Xr named
+will result in the error message "end of file" when the server just
+unceremonisously closes the connection.
 .Sh SEE ALSO
-.Xr named 8 ,
-.Xr RFC2845 ,
 .Xr rndc.conf 5 ,
+.Xr named 8 ,
+.Xr named.conf 5 ,
+.Xr RFC2845 ,
 .Xr ndc 8 .
