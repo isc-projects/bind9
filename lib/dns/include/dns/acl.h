@@ -32,7 +32,7 @@
 
 #include <dns/types.h>
 #include <dns/name.h>
-#include <isc/sockaddr.h>
+#include <isc/netaddr.h>
 
 /***
  *** Types
@@ -52,7 +52,7 @@ struct dns_aclelement {
 	isc_boolean_t negative;
 	union {
 		struct {
-			isc_sockaddr_t address; /* IP4/IP6 */
+			isc_netaddr_t address; /* IP4/IP6 */
 			unsigned int prefixlen;
 		} ip_prefix;
 		dns_name_t keyname;
@@ -160,7 +160,7 @@ dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
  */
 
 isc_result_t
-dns_acl_match(isc_sockaddr_t *reqaddr,
+dns_acl_match(isc_netaddr_t *reqaddr,
 	      dns_name_t *reqsigner,
 	      dns_acl_t *acl,
 	      dns_aclenv_t *env,

@@ -137,7 +137,8 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 		switch (ce->type) {
 		case dns_c_ipmatch_pattern:
 			de->type = dns_aclelementtype_ipprefix;
-			de->u.ip_prefix.address = ce->u.direct.address;
+			isc_netaddr_fromsockaddr(&de->u.ip_prefix.address,
+						 &ce->u.direct.address);
 			/* XXX "mask" is a misnomer */
 			de->u.ip_prefix.prefixlen = ce->u.direct.mask;
 			break;

@@ -521,8 +521,7 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			goto ignore_interface;
 		elt.type = dns_aclelementtype_ipprefix;
 		elt.negative = ISC_FALSE;
-		isc_sockaddr_fromnetaddr(&elt.u.ip_prefix.address,
-					 &interface.address, 0); /* XXX */
+		elt.u.ip_prefix.address = interface.address;
 		elt.u.ip_prefix.prefixlen = prefixlen;
 		/* XXX suppress duplicates */
 		result = dns_acl_appendelement(mgr->aclenv.localnets, &elt);
@@ -538,7 +537,8 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		     le = ISC_LIST_NEXT(le, link))
 		{
 			int match;
-			isc_sockaddr_t listen_addr;
+			isc_netaddr_t listen_netaddr;
+			isc_sockaddr_t listen_sockaddr;
 			char buf[128];
 			const char *addrstr;
 
@@ -546,15 +546,17 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			 * Construct a socket address for this IP/port
 			 * combination.
 			 */
-			isc_sockaddr_fromin(&listen_addr,
-					    &interface.address.type.in,
-					    le->port);
+			isc_netaddr_fromin(&listen_netaddr,
+					   &interface.address.type.in);
+			isc_sockaddr_fromnetaddr(&listen_sockaddr,
+						 &listen_netaddr,
+						 le->port);
 
 			/*
 			 * Construct a human-readable version of same.
 			 */
-			addrstr = inet_ntop(listen_addr.type.sin.sin_family,
-					    &listen_addr.type.sin.sin_addr,
+			addrstr = inet_ntop(listen_netaddr.family,
+					    &listen_netaddr.type,
 					    buf, sizeof(buf));
 			if (addrstr == NULL)
 				addrstr = "(bad address)";
@@ -563,13 +565,13 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			 * See if the address matches the listen-on statement;
 			 * if not, ignore the interface.
 			 */
-			result = dns_acl_match(&listen_addr, NULL,
+			result = dns_acl_match(&listen_netaddr, NULL,
 					       le->acl, &mgr->aclenv,
 					       &match, NULL);
 			if (match <= 0)
 				continue;
 			
-			ifp = find_matching_interface(mgr, &listen_addr);
+			ifp = find_matching_interface(mgr, &listen_sockaddr);
 			if (ifp != NULL) {
 				ifp->generation = mgr->generation;
 			} else {
@@ -578,11 +580,11 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 					      "listening on IPv4 interface "
 					      "%s, %s port %u",
 					      interface.name, addrstr,
-					      ntohs(listen_addr.type.
-						    sin.sin_port));
+					      le->port);
 				
 				result = ns_interface_setup(mgr,
-							    &listen_addr, &ifp);
+							    &listen_sockaddr,
+							    &ifp);
 				if (result != DNS_R_SUCCESS) {
 					isc_log_write(IFMGR_COMMON_LOGARGS,
 						 ISC_LOG_ERROR,

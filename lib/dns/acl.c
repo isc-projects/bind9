@@ -137,6 +137,7 @@ dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 {
 	isc_result_t result;
 	int match;
+	isc_netaddr_t netaddr;
 	dns_acl_t *acl = NULL;
 
 	if (main_acl != NULL)
@@ -148,7 +149,9 @@ dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 	else
 		goto deny;
 
-	result = dns_acl_match(reqaddr, signer, acl, env,
+	isc_netaddr_fromsockaddr(&netaddr, reqaddr);
+	
+	result = dns_acl_match(&netaddr, signer, acl, env,
 			       &match, NULL);
 	if (result != DNS_R_SUCCESS)
 		goto deny; /* Internal error, already logged. */
@@ -170,7 +173,7 @@ dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 }
 
 isc_result_t
-dns_acl_match(isc_sockaddr_t *reqaddr,
+dns_acl_match(isc_netaddr_t *reqaddr,
 	      dns_name_t *reqsigner,
 	      dns_acl_t *acl,
 	      dns_aclenv_t *env,
@@ -189,9 +192,9 @@ dns_acl_match(isc_sockaddr_t *reqaddr,
 		
 		switch (e->type) {
 		case dns_aclelementtype_ipprefix:
-			if (isc_sockaddr_eqaddrprefix(reqaddr,
-						      &e->u.ip_prefix.address, 
-						      e->u.ip_prefix.prefixlen))
+			if (isc_netaddr_eqprefix(reqaddr,
+						 &e->u.ip_prefix.address, 
+						 e->u.ip_prefix.prefixlen))
 				goto matched;
 			break;
 			
@@ -315,8 +318,8 @@ dns_aclelement_equal(dns_aclelement_t *ea, dns_aclelement_t *eb)
 		if (ea->u.ip_prefix.prefixlen !=
 		    eb->u.ip_prefix.prefixlen)
 			return (ISC_FALSE);
-		return (isc_sockaddr_equal(&ea->u.ip_prefix.address,
-					   &eb->u.ip_prefix.address));
+		return (isc_netaddr_equal(&ea->u.ip_prefix.address,
+					  &eb->u.ip_prefix.address));
 	case dns_aclelementtype_keyname:
 		return (dns_name_equal(&ea->u.keyname, &eb->u.keyname));
 	case dns_aclelementtype_nestedacl:
