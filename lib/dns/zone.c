@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.27 2004/01/05 04:29:32 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.28 2004/03/02 01:20:25 marka Exp $ */
 
 #include <config.h>
 
@@ -4141,15 +4141,25 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		return (ISC_R_SUCCESS);
 	}
 
-	for (i = 0; i < zone->masterscnt; i++)
+	isc_netaddr_fromsockaddr(&netaddr, from);
+	for (i = 0; i < zone->masterscnt; i++) {
 		if (isc_sockaddr_eqaddr(from, &zone->masters[i]))
 			break;
+		if (zone->view->aclenv.match_mapped &&
+		    IN6_IS_ADDR_V4MAPPED(&from->type.sin6.sin6_addr) &&
+		    isc_sockaddr_pf(&zone->masters[i]) == AF_INET) {
+			isc_netaddr_t na1, na2;
+			isc_netaddr_fromv4mapped(&na1, &netaddr);
+			isc_netaddr_fromsockaddr(&na2, &zone->masters[i]);
+			if (isc_netaddr_equal(&na1, &na2))
+				break;
+		}
+	}
 
 	/*
 	 * Accept notify requests from non masters if they are on
 	 * 'zone->notify_acl'.
 	 */
-	isc_netaddr_fromsockaddr(&netaddr, from);
 	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
 	    dns_acl_match(&netaddr, NULL, zone->notify_acl,
 		    	  &zone->view->aclenv,

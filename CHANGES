@@ -33,6 +33,9 @@
 1553.	[bug]		The windows socket code could stop accepting
 			connections.
 
+1552.	[bug]		Accept NOTIFY requests from mapped masters if
+			matched-mapped is set. [RT #10049]
+
 1551.	[port]		Open "/dev/null" before calling chroot().
 
 1550.	[port]		Call tzset(), if available, before calling chroot().
