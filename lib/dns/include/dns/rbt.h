@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.42 2000/07/07 00:25:47 tale Exp $ */
+/* $Id: rbt.h,v 1.43 2000/07/21 20:37:01 gson Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -365,8 +365,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *
  *	If the chain parameter is non-NULL, then the path through the tree
  *	to the DNSSEC predecessor of the searched for name is maintained,
- *	unless the DNS_RBT_NOPREDECESSOR or DNS_RBT_NOEXACT option is used.
- *	(For more details on those options, see below.)
+ *	unless the DNS_RBTFIND_NOPREDECESSOR or DNS_RBTFIND_NOEXACT option 
+ *	is used. (For more details on those options, see below.)
  *
  *	If there is no predecessor, then the chain will point to nowhere, as
  *	indicated by chain->end being NULL or dns_rbtnodechain_current
