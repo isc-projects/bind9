@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.65 2000/10/20 02:21:56 marka Exp $ */
+/* $Id: mem.c,v 1.66 2000/11/25 06:40:54 marka Exp $ */
 
 #include <config.h>
 
@@ -712,6 +712,16 @@ destroy(isc_mem_t *ctx) {
 #ifdef ISC_MEM_TRACKLINES
 	if (ctx->checkfree)
 		INSIST(ISC_LIST_EMPTY(ctx->debuglist));
+	else {
+		debuglink_t *dl;
+
+		for (dl = ISC_LIST_HEAD(ctx->debuglist);
+		     dl != NULL;
+		     dl = ISC_LIST_HEAD(ctx->debuglist)) {
+			ISC_LIST_UNLINK(ctx->debuglist, dl, link);
+			free(dl);
+		}
+	}
 #endif
 	INSIST(ctx->references == 0);
 
