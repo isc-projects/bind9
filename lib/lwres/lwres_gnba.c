@@ -46,8 +46,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
-	payload_length = sizeof(lwres_uint32_t) + sizeof(lwres_uint16_t)
-		+ req->addr.length;
+	payload_length = 4 + 4 + 2 + + req->addr.length;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
@@ -76,6 +75,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	 * Put the length and the data.  We know this will fit because we
 	 * just checked for it.
 	 */
+	lwres_buffer_putuint32(b, req->attributes);
 	lwres_buffer_putuint32(b, req->addr.family);
 	lwres_buffer_putuint16(b, req->addr.length);
 	lwres_buffer_putmem(b, req->addr.address, req->addr.length);
@@ -101,12 +101,13 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
-	/* naliases */
-	payload_length = sizeof(lwres_uint16_t);
-	/* real name encoding */
-	payload_length += 2 + req->realnamelen + 1;
-	/* each alias */
-	for (x = 0 ; x < req->naliases ; x++)
+	/*
+	 * Calculate packet size.
+	 */
+	payload_length = 4;			       /* attributes */
+	payload_length += 2;			       /* naliases */
+	payload_length += 2 + req->realnamelen + 1;    /* real name encoding */
+	for (x = 0 ; x < req->naliases ; x++)	       /* each alias */
 		payload_length += 2 + req->aliaslen[x] + 1;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
@@ -129,13 +130,14 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 		return (ret);
 	}
 
+	INSIST(SPACE_OK(b, payload_length));
+	lwres_buffer_putuint32(b, req->attributes);
+
 	/* encode naliases */
-	INSIST(SPACE_OK(b, sizeof(lwres_uint16_t) * 2));
 	lwres_buffer_putuint16(b, req->naliases);
 
 	/* encode the real name */
 	datalen = req->realnamelen;
-	INSIST(SPACE_OK(b, (unsigned int)(2 + req->realnamelen + 1)));
 	lwres_buffer_putuint16(b, datalen);
 	lwres_buffer_putmem(b, req->realname, datalen);
 	lwres_buffer_putuint8(b, 0);
@@ -143,7 +145,6 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	/* encode the aliases */
 	for (x = 0 ; x < req->naliases ; x++) {
 		datalen = req->aliaslen[x];
-		INSIST(SPACE_OK(b, (unsigned int)(2 + req->aliaslen[x] + 1)));
 		lwres_buffer_putuint16(b, datalen);
 		lwres_buffer_putmem(b, req->aliases[x], datalen);
 		lwres_buffer_putuint8(b, 0);
@@ -173,6 +174,11 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if (gnba == NULL)
 		return (LWRES_R_NOMEMORY);
 
+	if (!SPACE_REMAINING(b, 4))
+		return (LWRES_R_UNEXPECTEDEND);
+
+	gnba->attributes = lwres_buffer_getuint32(b);
+
 	ret = lwres_addr_parse(b, &gnba->addr);
 	if (ret != LWRES_R_SUCCESS)
 		goto out;
@@ -198,6 +204,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 {
 	int ret;
 	unsigned int x;
+	lwres_uint32_t attributes;
 	lwres_uint16_t naliases;
 	lwres_gnbaresponse_t *gnba;
 
@@ -214,8 +221,9 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	/*
 	 * Pull off the name itself
 	 */
-	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t)))
+	if (!SPACE_REMAINING(b, 4 + 2))
 		return (LWRES_R_UNEXPECTEDEND);
+	attributes = lwres_buffer_getuint32(b);
 	naliases = lwres_buffer_getuint16(b);
 
 	gnba = CTXMALLOC(sizeof(lwres_gnbaresponse_t));
@@ -225,6 +233,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	gnba->aliases = NULL;
 	gnba->aliaslen = NULL;
 
+	gnba->attributes = attributes;
 	gnba->naliases = naliases;
 
 	if (naliases > 0) {
@@ -306,7 +315,8 @@ lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp)
 
 	if (gnba->naliases > 0) {
 		CTXFREE(gnba->aliases, sizeof(char *) * gnba->naliases);
-		CTXFREE(gnba->aliaslen, sizeof(lwres_uint16_t) * gnba->naliases);
+		CTXFREE(gnba->aliaslen,
+			sizeof(lwres_uint16_t) * gnba->naliases);
 	}
 	if (gnba->base != NULL)
 		CTXFREE(gnba->base, gnba->baselen);

@@ -123,6 +123,7 @@ struct lwres_addr {
 
 typedef struct {
 	/* public */
+	lwres_uint32_t			attributes;
 	lwres_uint32_t			addrtypes;
 	lwres_uint16_t			namelen;
 	char			       *name;
@@ -130,6 +131,7 @@ typedef struct {
 
 typedef struct {
 	/* public */
+	lwres_uint32_t			attributes;
 	lwres_uint16_t			naliases;
 	lwres_uint16_t			naddrs;
 	char			       *realname;
@@ -148,11 +150,13 @@ typedef struct {
 #define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
 typedef struct {
 	/* public */
+	lwres_uint32_t			attributes;
 	lwres_addr_t			addr;
 } lwres_gnbarequest_t;
 
 typedef struct {
 	/* public */
+	lwres_uint32_t			attributes;
 	lwres_uint16_t			naliases;
 	char			       *realname;
 	char			      **aliases;

@@ -43,6 +43,7 @@ struct lwres_lwpacket {
 
 #define LWRES_LWPACKETFLAG_RESPONSE	0x0001U	/* if set, pkt is a response */
 
+
 #define LWRES_LWPACKETVERSION_0		0
 
 /*
