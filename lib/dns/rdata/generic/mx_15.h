@@ -115,13 +115,13 @@ towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	INSIST(rdata->type == 15);
 
-	isc_buffer_remaining(target, &tr);
+	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &region);
 	if (tr.length < 2)
 		return (DNS_R_NOSPACE);
 	memcpy(tr.base, region.base, 2);
 	isc_region_consume(&region, 2);
-	isc_buffer_forward(target, 2);
+	isc_buffer_add(target, 2);
 
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
