@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.9 2001/05/31 10:36:05 tale Exp $ */
+/* $Id: controlconf.c,v 1.10 2001/05/31 18:34:47 tale Exp $ */
 
 #include <config.h>
 
@@ -712,10 +712,11 @@ make_automagic_key(isc_mem_t *mctx) {
 	dst_key_t *key = NULL;
 
 	/*
-	 * First generate a secret.
+	 * First generate a secret.  The fourth parameter non-zero means
+	 * that pseudorandom data is ok; good entropy is not required.
 	 */
 	result = dst_key_generate(dns_rootname, DST_ALG_HMACMD5,
-				  NS_AUTOKEY_BITS, 0, 0, DNS_KEYPROTO_ANY,
+				  NS_AUTOKEY_BITS, 1, 0, DNS_KEYPROTO_ANY,
 				  dns_rdataclass_in, mctx, &key);
 
 	if (result == ISC_R_SUCCESS) {

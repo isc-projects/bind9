@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.41 2001/05/21 22:10:23 bwelling Exp $ */
+/* $Id: dst.h,v 1.42 2001/05/31 18:34:51 tale Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -376,7 +376,9 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
  * 			otherwise use 2 as the generator.
  * 		!0	use this value as the generator.
  * 	DSA:	unused
- * 	HMACMD5:unused
+ * 	HMACMD5: entropy
+ *		0	default - require good entropy
+ *		!0	lack of good entropy is ok
  *
  * Requires:
  *	"name" is a valid absolute dns name.
