@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.82.18.6 2005/03/31 02:37:24 marka Exp $ */
+/* $Id: dig.h,v 1.82.18.7 2005/03/31 23:59:40 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
