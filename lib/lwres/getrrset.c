@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.7 2001/01/23 01:51:21 bwelling Exp $ */
+/* $Id: getrrset.c,v 1.8 2001/03/05 22:39:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -109,8 +109,10 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	UNUSED(flags);
 	lwflags = 0;
 
-	lwresult = lwres_getrdatabyname(lwrctx, hostname, rdclass, rdtype,
-				      lwflags, &response);
+	lwresult = lwres_getrdatabyname(lwrctx, hostname,
+					(lwres_uint16_t)rdclass, 
+					(lwres_uint16_t)rdtype,
+					lwflags, &response);
 	if (lwresult != LWRES_R_SUCCESS) {
 		result = lwresult_to_result(lwresult);
 		goto fail;
