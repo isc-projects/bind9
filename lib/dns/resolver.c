@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.167 2000/08/26 01:36:54 bwelling Exp $ */
+/* $Id: resolver.c,v 1.168 2000/09/15 22:41:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1983,7 +1983,41 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 		goto cleanup_fetch;
 	dns_name_init(&fctx->domain, NULL);
 	dns_rdataset_init(&fctx->nameservers);
+
+	fctx->type = type;
+	fctx->options = options;
+	/*
+	 * Note!  We do not attach to the task.  We are relying on the
+	 * resolver to ensure that this task doesn't go away while we are
+	 * using it.
+	 */
+	fctx->res = res;
+	fctx->references = 0;
+	fctx->bucketnum = bucketnum;
+	fctx->state = fetchstate_init;
+	fctx->want_shutdown = ISC_FALSE;
+	ISC_LIST_INIT(fctx->queries);
+	ISC_LIST_INIT(fctx->finds);
+	ISC_LIST_INIT(fctx->forwaddrs);
+	ISC_LIST_INIT(fctx->forwarders);
+	fctx->fwdpolicy = dns_fwdpolicy_none;
+	ISC_LIST_INIT(fctx->bad);
+	ISC_LIST_INIT(fctx->validators);
+	fctx->find = NULL;
+	fctx->pending = 0;
+	fctx->restarts = 0;
+	if (dns_name_requiresedns(name))
+		fctx->attributes = FCTX_ATTR_NEEDEDNS0;
+	else
+		fctx->attributes = 0;
+
 	if (domain == NULL) {
+		dns_forwarders_t *forwarders = NULL;
+		result = dns_fwdtable_find(fctx->res->view->fwdtable,
+					   &fctx->name, &forwarders);
+		if (result == ISC_R_SUCCESS)
+			fctx->fwdpolicy = forwarders->fwdpolicy;
+
 		if (fctx->fwdpolicy != dns_fwdpolicy_only) {
 			/*
 			 * The caller didn't supply a query domain and
@@ -2024,33 +2058,6 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	}
 
 	INSIST(dns_name_issubdomain(&fctx->name, &fctx->domain));
-
-	fctx->type = type;
-	fctx->options = options;
-	/*
-	 * Note!  We do not attach to the task.  We are relying on the
-	 * resolver to ensure that this task doesn't go away while we are
-	 * using it.
-	 */
-	fctx->res = res;
-	fctx->references = 0;
-	fctx->bucketnum = bucketnum;
-	fctx->state = fetchstate_init;
-	fctx->want_shutdown = ISC_FALSE;
-	ISC_LIST_INIT(fctx->queries);
-	ISC_LIST_INIT(fctx->finds);
-	ISC_LIST_INIT(fctx->forwaddrs);
-	ISC_LIST_INIT(fctx->forwarders);
-	fctx->fwdpolicy = dns_fwdpolicy_none;
-	ISC_LIST_INIT(fctx->bad);
-	ISC_LIST_INIT(fctx->validators);
-	fctx->find = NULL;
-	fctx->pending = 0;
-	fctx->restarts = 0;
-	if (dns_name_requiresedns(name))
-		fctx->attributes = FCTX_ATTR_NEEDEDNS0;
-	else
-		fctx->attributes = 0;
 
 	fctx->qmessage = NULL;
 	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTRENDER,
