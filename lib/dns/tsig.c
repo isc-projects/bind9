@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.98.4.4 2001/01/12 20:39:12 bwelling Exp $
+ * $Id: tsig.c,v 1.98.4.5 2001/01/22 20:42:29 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -266,7 +266,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME) && length > 0)
 		return (DNS_R_BADALG);
 
-	if (length > 0) {
+	if (secret != NULL) {
 		isc_buffer_t b;
 
 		isc_buffer_init(&b, secret, length);
