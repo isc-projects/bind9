@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.204 2002/01/22 09:07:21 bwelling Exp $ */
+/* $Id: message.c,v 1.205 2002/02/06 04:20:23 marka Exp $ */
 
 /***
  *** Imports
@@ -942,6 +942,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	isc_boolean_t free_name;
 	isc_boolean_t best_effort;
 	isc_boolean_t seen_problem;
+	isc_buffer_t save = *source;
 
 	section = &msg->sections[DNS_SECTION_QUESTION];
 
@@ -953,6 +954,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	rdatalist = NULL;
 
 	for (count = 0; count < msg->counts[DNS_SECTION_QUESTION]; count++) {
+		save = *source;
 		name = isc_mempool_get(msg->namepool);
 		if (name == NULL)
 			return (ISC_R_NOMEMORY);
@@ -1072,6 +1074,10 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	return (ISC_R_SUCCESS);
 
  cleanup:
+	if (result == ISC_R_UNEXPECTEDEND && best_effort) {
+		*source = save;
+		result = DNS_R_RECOVERABLE;
+	}
 	if (rdataset != NULL) {
 		INSIST(!dns_rdataset_isassociated(rdataset));
 		isc_mempool_put(msg->rdspool, rdataset);
@@ -1116,6 +1122,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	isc_boolean_t free_name, free_rdataset;
 	isc_boolean_t preserve_order, best_effort, seen_problem;
 	isc_boolean_t issigzero;
+	isc_buffer_t save = *source;
 
 	preserve_order = ISC_TF(options & DNS_MESSAGEPARSE_PRESERVEORDER);
 	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
@@ -1131,6 +1138,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		skip_type_search = ISC_FALSE;
 		free_name = ISC_FALSE;
 		free_rdataset = ISC_FALSE;
+		save = *source;
 
 		name = isc_mempool_get(msg->namepool);
 		if (name == NULL)
@@ -1474,6 +1482,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	return (ISC_R_SUCCESS);
 
  cleanup:
+	if (result == ISC_R_UNEXPECTEDEND && best_effort) {
+		*source = save;
+		result = DNS_R_RECOVERABLE;
+	}
 	if (free_name)
 		isc_mempool_put(msg->namepool, name);
 	if (free_rdataset)

@@ -1,3 +1,5 @@
+1193.	[bug]		best effort parsing didn't handle packet truncation.
+
 1192.	[bug]		The seconds fields in LOC records were restricted
 			to three decimal places.  More decimal places should
 			be allowed and silently truncated.
