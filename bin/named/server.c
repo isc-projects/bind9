@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.412 2004/02/17 03:40:20 marka Exp $ */
+/* $Id: server.c,v 1.413 2004/02/24 03:31:08 marka Exp $ */
 
 #include <config.h>
 
@@ -1048,6 +1048,28 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	CHECK(configure_view_acl(vconfig, config, "allow-recursion",
 				 actx, ns_g_mctx, &view->recursionacl));
+
+	/*
+	 * Warning if both "recursion no;" and allow-recursion are active
+	 * except for "allow-recursion { none; };".
+	 */
+	if (!view->recursion && view->recursionacl != NULL &&
+	    (view->recursionacl->length != 1 ||
+	     view->recursionacl->elements[0].type != dns_aclelementtype_any ||
+	     view->recursionacl->elements[0].negative != ISC_TRUE)) {
+		const char *forview = " for view ";
+		const char *viewname = view->name;
+
+		if (!strcmp(view->name, "_bind") ||
+		    !strcmp(view->name, "_default")) {
+			forview = "";
+			viewname = "";
+		}
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "both \"recursion no;\" and \"allow-recursion\" "
+			      "active%s%s", forview, viewname);
+	}
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",
 				 actx, ns_g_mctx, &view->sortlist));
