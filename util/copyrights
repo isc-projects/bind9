@@ -898,6 +898,7 @@
 ./lib/dns/db.c					C	1999,2000
 ./lib/dns/dbiterator.c				C	1999,2000
 ./lib/dns/dbtable.c				C	1999,2000
+./lib/dns/diff.c				C	2000
 ./lib/dns/dispatch.c				C	1999,2000
 ./lib/dns/dnssec.c				C	1999,2000
 ./lib/dns/forward.c				C	2000
@@ -937,6 +938,7 @@
 ./lib/dns/include/dns/db.h			C	1999,2000
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000
 ./lib/dns/include/dns/dbtable.h			C	1999,2000
+./lib/dns/include/dns/diff.h			C	2000
 ./lib/dns/include/dns/dispatch.h		C	1999,2000
 ./lib/dns/include/dns/dnssec.h			C	1999,2000
 ./lib/dns/include/dns/events.h			C	1999,2000

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.76 2000/12/05 22:48:56 gson Exp $ */
+/* $Id: update.c,v 1.77 2000/12/09 02:17:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/diff.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>

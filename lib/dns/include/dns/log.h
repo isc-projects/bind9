@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.25 2000/11/23 02:25:02 gson Exp $ */
+/* $Id: log.h,v 1.26 2000/12/09 02:17:11 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -65,6 +65,7 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_TSIG		(&dns_modules[20])
 #define DNS_LOGMODULE_TKEY		(&dns_modules[21])
 #define DNS_LOGMODULE_SDB		(&dns_modules[22])
+#define DNS_LOGMODULE_DIFF		(&dns_modules[23])
 
 ISC_LANG_BEGINDECLS
 

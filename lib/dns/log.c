@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.28 2000/11/23 02:25:01 gson Exp $ */
+/* $Id: log.c,v 1.29 2000/12/09 02:17:07 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -70,6 +70,7 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/tsig",		0 },
 	{ "dns/tkey",		0 },
 	{ "dns/sdb",		0 },
+	{ "dns/diff",		0 },
 	{ NULL, 		0 }
 };
 

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.116 2000/12/04 23:21:40 bwelling Exp $
+# $Id: Makefile.in,v 1.117 2000/12/09 02:17:04 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -95,9 +95,10 @@ OPENSSLOBJS =	sec/openssl/a_bitstr.@O@ sec/openssl/a_bytes.@O@ \
 # Alphabetically
 OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
-		db.@O@ dbiterator.@O@ dbtable.@O@ dispatch.@O@ dnssec.@O@ \
-		forward.@O@ journal.@O@ keytable.@O@ lib.@O@ log.@O@ \
-		lookup.@O@ master.@O@ masterdump.@O@ message.@O@ \
+		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
+		dnssec.@O@ forward.@O@ journal.@O@ keytable.@O@ \
+		lib.@O@ log.@O@ lookup.@O@ \
+		master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nxt.@O@ peer.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ request.@O@ \
@@ -110,9 +111,10 @@ OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 # Alphabetically
 SRCS =		a6.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
-		db.c dbiterator.c dbtable.c dispatch.c dnssec.c \
-		forward.c journal.c keytable.c lib.c log.c \
-		lookup.c master.c masterdump.c message.c \
+		db.c dbiterator.c dbtable.c diff.c dispatch.c \
+		dnssec.c forward.c journal.c keytable.c \
+		lib.c log.c lookup.c \
+		master.c masterdump.c message.c \
 		name.c ncache.c nxt.c peer.c \
 		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.106 2000/11/17 19:04:47 gson Exp $ */
+/* $Id: xfrin.c,v 1.107 2000/12/09 02:17:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/diff.h>
 #include <dns/events.h>
 #include <dns/journal.h>
 #include <dns/log.h>
