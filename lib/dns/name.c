@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.129 2001/11/19 03:08:11 mayer Exp $ */
+/* $Id: name.c,v 1.130 2001/12/04 01:32:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -420,20 +420,13 @@ dns_name_requiresedns(const dns_name_t *name) {
 	return (requiresedns);
 }
 
-unsigned int
-dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+static inline unsigned int
+name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	unsigned int length;
 	const unsigned char *s;
 	unsigned int h = 0;
 	unsigned char c;
 
-	/*
-	 * Provide a hash value for 'name'.
-	 */
-	REQUIRE(VALID_NAME(name));
-
-	if (name->labels == 0)
-		return (0);
 	length = name->length;
 	if (length > 16)
 		length = 16;
@@ -456,6 +449,53 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 			s++;
 			length--;
 		}
+	}
+
+	return (h);
+}
+
+unsigned int
+dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+	/*
+	 * Provide a hash value for 'name'.
+	 */
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels == 0)
+		return (0);
+
+	return (name_hash(name, case_sensitive));
+}
+
+unsigned int
+dns_name_hashbylabel(dns_name_t *name, isc_boolean_t case_sensitive) {
+	unsigned char *offsets;
+	dns_offsets_t odata;
+	dns_name_t tname;
+	unsigned int h = 0;
+	unsigned int i;
+
+	/*
+	 * Provide a hash value for 'name'.
+	 */
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels == 0)
+		return (0);
+	else if (name->labels == 1)
+		return (name_hash(name, case_sensitive));
+
+	SETUP_OFFSETS(name, offsets, odata);
+	DNS_NAME_INIT(&tname, NULL);
+	tname.labels = 1;
+	h = 0;
+	for (i = 0; i < name->labels; i++) {
+		tname.ndata = name->ndata + offsets[i];
+		if (i == name->labels - 1)
+			tname.length = name->length - offsets[i];
+		else
+			tname.length = offsets[i + 1] - offsets[i];
+		h += name_hash(&tname, case_sensitive);
 	}
 
 	return (h);

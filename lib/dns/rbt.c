@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.121 2001/12/03 19:44:07 gson Exp $ */
+/* $Id: rbt.c,v 1.122 2001/12/04 01:32:43 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -173,27 +173,6 @@ find_up(dns_rbtnode_t *node) {
 	return (PARENT(root));
 }
 
-static inline unsigned int
-name_hash(dns_name_t *name) {
-	unsigned int nlabels;
-	unsigned int hash;
-	dns_name_t tname;
-
-	if (dns_name_countlabels(name) == 1)
-		return (dns_name_hash(name, ISC_FALSE));
-
-	dns_name_init(&tname, NULL);
-	nlabels = dns_name_countlabels(name);
-	hash = 0;
-
-	for (; nlabels > 0; nlabels--) {
-		dns_name_getlabelsequence(name, nlabels - 1, 1, &tname);
-		hash += dns_name_hash(&tname, ISC_FALSE);
-	}
-
-	return (hash);
-}
-
 #ifdef DNS_RBT_USEHASH
 static inline void
 compute_node_hash(dns_rbtnode_t *node) {
@@ -203,7 +182,7 @@ compute_node_hash(dns_rbtnode_t *node) {
 
 	dns_name_init(&name, NULL);
 	NODENAME(node, &name);
-	hash = name_hash(&name);
+	hash = dns_name_hashbylabel(&name, ISC_FALSE);
 
 	up_node = find_up(node);
 	if (up_node != NULL)
@@ -886,7 +865,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			dns_name_getlabelsequence(search_name,
 						  nlabels - tlabels,
 						  tlabels, &hash_name);
-			hash = HASHVAL(up_current) + name_hash(&hash_name);
+			hash = HASHVAL(up_current) +
+			       dns_name_hashbylabel(&hash_name, ISC_FALSE);
 
 			for (hnode = rbt->hashtable[hash % rbt->hashsize];
 			     hnode != NULL;
