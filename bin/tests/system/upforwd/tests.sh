@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2000/11/20 17:53:38 gson Exp $ 
+# $Id: tests.sh,v 1.5 2000/11/28 03:21:17 marka Exp $ 
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -41,7 +41,7 @@ $PERL ../digcomp.pl knowngood.before dig.out.ns3 || status=1
 
 echo "I:updating zone (signed)"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE -y update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K < update.scp > /dev/null
+$NSUPDATE -y update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K update.scp > /dev/null
 echo "I:sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
@@ -64,7 +64,7 @@ $PERL ../digcomp.pl knowngood.after1 dig.out.ns3 || status=1
 
 echo "I:updating zone (unsigned)"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE < update.scp2 > /dev/null
+$NSUPDATE update.scp2 > /dev/null
 echo "I:sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
