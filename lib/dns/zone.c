@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.299 2001/01/24 00:00:21 gson Exp $ */
+/* $Id: zone.c,v 1.300 2001/01/25 02:30:21 marka Exp $ */
 
 #include <config.h>
 
@@ -3719,7 +3719,8 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOMASTERS) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH)) {
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING)) {
 			INSIST(zone->refreshtime != 0);
 			if (zone->refreshtime < next || next == 0)
 				next = zone->refreshtime;
