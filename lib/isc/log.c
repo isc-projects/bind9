@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.58 2001/03/28 04:16:32 tale Exp $ */
+/* $Id: log.c,v 1.59 2001/03/28 05:48:16 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1251,8 +1251,7 @@ isc_log_open(isc_logchannel_t *channel) {
 							ISC_TRUE : ISC_FALSE;
 		/* XXXDCL if not regular_file complain? */
 		roll = regular_file &&
-			(FILE_MAXSIZE(channel) == 0 ||
-			 statbuf.st_size >= FILE_MAXSIZE(channel));
+			statbuf.st_size >= FILE_MAXSIZE(channel);
 	} else if (errno == ENOENT)
 		regular_file = ISC_TRUE;
 	else
