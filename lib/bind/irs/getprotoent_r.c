@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getprotoent_r.c,v 1.1 2001/03/29 06:31:47 marka Exp $";
+static const char rcsid[] = "$Id: getprotoent_r.c,v 1.2 2001/07/15 23:29:46 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -181,6 +181,6 @@ copy_protoent(struct protoent *pe, struct protoent *pptr, PROTO_R_COPY_ARGS) {
 }
 #endif /* PROTOENT_DATA */
 #else /* PROTO_R_RETURN */
-	static int getprotoent_r_unknown_systemm = 0;
+	static int getprotoent_r_unknown_system = 0;
 #endif /* PROTO_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */

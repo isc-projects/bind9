@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getservent_r.c,v 1.1 2001/03/29 06:31:48 marka Exp $";
+static const char rcsid[] = "$Id: getservent_r.c,v 1.2 2001/07/15 23:29:48 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -202,6 +202,6 @@ copy_servent(struct servent *se, struct servent *sptr, SERV_R_COPY_ARGS) {
 }
 #endif /* !SERVENT_DATA */
 #else /*SERV_R_RETURN */
-	static int getservent_r_unknown_systemm = 0;
+	static int getservent_r_unknown_system = 0;
 #endif /*SERV_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetent_r.c,v 1.1 2001/03/29 06:31:46 marka Exp $";
+static const char rcsid[] = "$Id: getnetent_r.c,v 1.2 2001/07/15 23:29:45 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -187,6 +187,6 @@ copy_netent(struct netent *ne, struct netent *nptr, NET_R_COPY_ARGS) {
 }
 #endif /* !NETENT_DATA */
 #else /* NET_R_RETURN */
-	static int getnetent_r_unknown_systemm = 0;
+	static int getnetent_r_unknown_system = 0;
 #endif /* NET_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getpwent_r.c,v 1.4 2001/06/22 05:11:02 marka Exp $";
+static const char rcsid[] = "$Id: getpwent_r.c,v 1.5 2001/07/15 23:29:47 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -270,6 +270,6 @@ copy_passwd(struct passwd *pw, struct passwd *pwptr, char *buf, int buflen) {
 	return (0);
 }
 #else /* PASS_R_RETURN */
-	static int getpwent_r_unknown_systemm = 0;
+	static int getpwent_r_unknown_system = 0;
 #endif /* PASS_R_RETURN */
 #endif /* !def(_REENTRANT) || !def(DO_PTHREADS) || !def(WANT_IRS_PW) */

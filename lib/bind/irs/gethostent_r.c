@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gethostent_r.c,v 1.2 2001/05/10 07:29:54 marka Exp $";
+static const char rcsid[] = "$Id: gethostent_r.c,v 1.3 2001/07/15 23:29:43 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -223,6 +223,6 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 }
 #endif /* !HOSTENT_DATA */
 #else /* HOST_R_RETURN */
-	static int gethostent_r_unknown_systemm = 0;
+	static int gethostent_r_unknown_system = 0;
 #endif /* HOST_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */
