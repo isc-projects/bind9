@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.7.2.2 2000/07/11 17:23:09 gson Exp $
+# $Id: Makefile.in,v 1.7.2.3 2000/07/12 01:18:43 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -49,7 +49,7 @@ SRCS =		rndc.c
 
 @BIND9_MAKE_RULES@
 
-rndc.@O@ rndc.c:
+rndc.@O@: rndc.c
 	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
 		-DRNDC_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/rndc.c
 
