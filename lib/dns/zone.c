@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.319 2001/04/24 23:03:04 gson Exp $ */
+/* $Id: zone.c,v 1.320 2001/04/27 02:34:18 marka Exp $ */
 
 #include <config.h>
 
@@ -2388,6 +2388,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_tsigkey_t *key = NULL;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t src;
+	int timeout;
 
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
@@ -2430,8 +2431,11 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup_key;
 	}
+	timeout = 15;
+	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_DIALNOTIFY))
+		timeout = 30;
 	result = dns_request_createvia(notify->zone->view->requestmgr, message,
-				       &src, &notify->dst, 0, key, 15,
+				       &src, &notify->dst, 0, key, timeout,
 				       notify->zone->task,
 				       notify_done, notify,
 				       &notify->request);
@@ -3347,6 +3351,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t options;
 	isc_sockaddr_t src;
 	isc_boolean_t cancel = ISC_TRUE;
+	int timeout;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3391,9 +3396,12 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 	zone_iattach(zone, &dummy);
+	timeout = 15;
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
+		timeout = 30;
 	result = dns_request_createvia(zone->view->requestmgr, message,
 				       &src, &zone->masteraddr, options, key,
-				       15 /* XXX */, zone->task,
+				       timeout, zone->task,
 				       refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
@@ -3426,6 +3434,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
 	isc_sockaddr_t src;
+	int timeout;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE((soardataset != NULL && stub == NULL) ||
@@ -3528,9 +3537,12 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	}
+	timeout = 15;
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
+		timeout = 30;
 	result = dns_request_createvia(zone->view->requestmgr, message,
 				       &src, &zone->masteraddr,
-				       DNS_REQUESTOPT_TCP, key, 15 /* XXX */,
+				       DNS_REQUESTOPT_TCP, key, timeout,
 				       zone->task, stub_callback, stub,
 				       &zone->request);
 	if (result != ISC_R_SUCCESS) {
