@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.4 2003/08/12 04:54:58 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.5 2003/08/13 02:18:16 marka Exp $ */
 
 #include <config.h>
 
@@ -820,6 +820,7 @@ ns_client_send(ns_client_t *client) {
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	unsigned char sendbuf[SEND_BUFFER_SIZE];
+	unsigned int dnssec_opts;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -827,6 +828,11 @@ ns_client_send(ns_client_t *client) {
 
 	if ((client->attributes & NS_CLIENTATTR_RA) != 0)
 		client->message->flags |= DNS_MESSAGEFLAG_RA;
+
+	if ((client->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
+		dnssec_opts = 0;
+	else
+		dnssec_opts = DNS_MESSAGERENDER_OMITDNSSEC;
 
 	/*
 	 * XXXRTH  The following doesn't deal with TCP buffer resizing.
@@ -863,7 +869,8 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ANSWER,
-					   DNS_MESSAGERENDER_PARTIAL);
+					   DNS_MESSAGERENDER_PARTIAL |
+					   dnssec_opts);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;
@@ -872,7 +879,8 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_AUTHORITY,
-					   DNS_MESSAGERENDER_PARTIAL);
+					   DNS_MESSAGERENDER_PARTIAL |
+					   dnssec_opts);
 	if (result == ISC_R_NOSPACE) {
 		client->message->flags |= DNS_MESSAGEFLAG_TC;
 		goto renderend;
@@ -880,7 +888,8 @@ ns_client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,
-					   DNS_SECTION_ADDITIONAL, 0);
+					   DNS_SECTION_ADDITIONAL,
+					   dnssec_opts);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 		goto done;
  renderend:

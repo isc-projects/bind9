@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.3 2003/08/12 05:36:03 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.4 2003/08/13 02:18:17 marka Exp $ */
 
 #include <config.h>
 
@@ -62,8 +62,8 @@
 				  NS_QUERYATTR_CACHEGLUEOK) != 0)
 #define WANTRECURSION(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTRECURSION) != 0)
-#define WANTDNSSEC(c)		(((c)->query.attributes & \
-				  NS_QUERYATTR_WANTDNSSEC) != 0)
+#define WANTDNSSEC(c)		(((c)->attributes & \
+				  NS_CLIENTATTR_WANTDNSSEC) != 0)
 #define NOAUTHORITY(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOAUTHORITY) != 0)
 #define NOADDITIONAL(c)		(((c)->query.attributes & \
@@ -3333,7 +3333,7 @@ ns_query_start(ns_client_t *client) {
 #ifdef ISC_RFC2535
 	if ((client->extflags & DNS_MESSAGEEXTFLAG_DO) != 0 ||
 	    (message->flags & DNS_MESSAGEFLAG_AD) != 0)
-		client->query.attributes |= NS_QUERYATTR_WANTDNSSEC;
+		client->query.attributes |= NS_CLIENTATTR_WANTDNSSEC;
 #endif
 	
 	if (client->view->minimalresponses)
