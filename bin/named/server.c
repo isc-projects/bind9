@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.310 2001/03/26 23:02:26 gson Exp $ */
+/* $Id: server.c,v 1.311 2001/03/26 23:03:05 gson Exp $ */
 
 #include <config.h>
 
@@ -1644,6 +1644,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_dispatchmgr_setblackhole(ns_g_dispatchmgr,
 					     server->blackholeacl);
 
+	obj = NULL;
 	result = ns_config_get(maps, "match-mapped-addresses", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	server->aclenv.match_mapped = cfg_obj_asboolean(obj);
