@@ -15,6 +15,7 @@ involving a different DNS setup.  They are:
   resolver/     Regression tests for resolver bugs that have been fixed
 		(not a complete resolver test suite)
   stub/		Tests of stub zone functionality
+  unknown/	Unknown type and class tests
   upforwd/	Update forwarding tests
   views/	Tests of the "views" statement
   xfer/		Zone transfer, update, and NOTIFY tests
@@ -47,4 +48,4 @@ The tests can be run individually like this:
 To run all the tests, just type "make test".
 
 
-$Id: README,v 1.7 2000/09/19 00:40:14 gson Exp $
+$Id: README,v 1.8 2000/11/10 03:05:49 bwelling Exp $

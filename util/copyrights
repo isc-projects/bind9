@@ -484,6 +484,16 @@
 ./bin/tests/system/stub/ns3/root.hint		ZONE	2000
 ./bin/tests/system/stub/tests.sh		SH	2000
 ./bin/tests/system/testsock.pl			PERL	2000
+./bin/tests/system/unknown/ns1/.cvsignore	X	2000
+./bin/tests/system/unknown/clean.sh		SH	2000
+./bin/tests/system/unknown/ns1/broken1.db	ZONE	2000
+./bin/tests/system/unknown/ns1/broken2.db	ZONE	2000
+./bin/tests/system/unknown/ns1/broken3.db	ZONE	2000
+./bin/tests/system/unknown/ns1/class10.hints	ZONE	2000
+./bin/tests/system/unknown/ns1/example-class10.db	ZONE	2000
+./bin/tests/system/unknown/ns1/example-in.db	ZONE	2000
+./bin/tests/system/unknown/ns1/named.conf	CONF-C	2000
+./bin/tests/system/unknown/tests.sh		SH	2000
 ./bin/tests/system/upforwd/README		TXT.BRIEF	2000
 ./bin/tests/system/upforwd/clean.sh		SH	2000
 ./bin/tests/system/upforwd/knowngood.ns1.after	X	2000
