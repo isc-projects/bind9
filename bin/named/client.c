@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.161 2001/03/26 21:32:52 bwelling Exp $ */
+/* $Id: client.c,v 1.162 2001/04/16 21:18:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1201,6 +1201,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view;
 	dns_rdataset_t *opt;
 	isc_boolean_t ra; 	/* Recursion available. */
+	isc_netaddr_t netaddr;
+	int match;
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -1264,6 +1266,28 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		else
 			isc_task_shutdown(client->task);
 		goto cleanup;
+	}
+
+	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+	/*
+	 * Check the blackhole ACL for UDP only, since TCP is done in
+	 * client_newconn.
+	 */
+	if (!TCP_CLIENT(client)) {
+
+		if (ns_g_server->blackholeacl != NULL &&
+		    dns_acl_match(&netaddr, NULL, ns_g_server->blackholeacl,
+				  &ns_g_server->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+		{
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+				      "blackholed query");
+			ns_client_next(client, ISC_R_SUCCESS);
+			goto cleanup;
+		}
 	}
 
 	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
@@ -1371,9 +1395,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (client->message->rdclass == view->rdclass ||
 		    client->message->rdclass == dns_rdataclass_any)
 		{
-			isc_netaddr_t netaddr;
-			int match;
-			isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 			if (view->matchclients == NULL ||
 			    (dns_acl_match(&netaddr, NULL, view->matchclients,
 					   &ns_g_server->aclenv,
@@ -1785,6 +1806,21 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		int match;
 		isc_netaddr_t netaddr;
 
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+		if (ns_g_server->blackholeacl != NULL &&
+		    dns_acl_match(&netaddr, NULL,
+			    	  ns_g_server->blackholeacl,
+				  &ns_g_server->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+		{
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+				      "blackholed connection attempt");
+			goto freeevent;
+		}
+
 		INSIST(client->tcpmsg_valid == ISC_FALSE);
 		dns_tcpmsg_init(client->mctx, client->tcpsocket,
 				&client->tcpmsg);
@@ -1805,21 +1841,6 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 				      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
 				      "no more TCP clients: %s",
 				      isc_result_totext(result));
-		}
-
-		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-
-		if (ns_g_server->blackholeacl != NULL &&
-		    dns_acl_match(&netaddr, NULL,
-			    	  ns_g_server->blackholeacl,
-				  &ns_g_server->aclenv,
-				  &match, NULL) == ISC_R_SUCCESS &&
-		    match > 0)
-		{
-			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
-				      "blackholed connection attempt");
-			goto freeevent;
 		}
 
 		client_read(client);
