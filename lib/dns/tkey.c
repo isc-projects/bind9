@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.63 2001/01/12 00:56:44 bwelling Exp $
+ * $Id: tkey.c,v 1.64 2001/01/30 19:17:31 halley Exp $
  */
 
 #include <config.h>
@@ -544,6 +544,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	REQUIRE(tctx != NULL);
 	REQUIRE(ring != NULL);
 
+	ISC_LIST_INIT(namelist);
+
 	/*
 	 * Need to do this to determine if this should be freed later.
 	 */
@@ -613,8 +615,6 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		}
 	} else
 		signer = &tsigner;
-
-	ISC_LIST_INIT(namelist);
 
 	tkeyout.common.rdclass = tkeyin.common.rdclass;
 	tkeyout.common.rdtype = tkeyin.common.rdtype;

@@ -1,3 +1,7 @@
+ 717.	[bug]		Certain TKEY processing failure modes could
+			reference an uninitialized variable, causing the
+			server to crash. [RT #750]
+
  716.	[bug]		The first line of a $INCLUDE master file was lost if
 			a origin was specified. [RT #744]
 
