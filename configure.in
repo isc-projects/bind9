@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.211 $)
+AC_REVISION($Revision: 1.212 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -202,6 +202,10 @@ case "$use_openssl" in
 		DST_OPENSSL_LIB=''
 		DST_OPENSSL_OBJS='${OPENSSLOBJS}'
 		AC_MSG_RESULT(using private library)
+		openssl_makefiles="lib/dns/sec/openssl/Makefile \
+				   lib/dns/sec/openssl/include/Makefile \
+				   lib/dns/sec/openssl/include/openssl/Makefile"
+
 		;;
 	yes)
 		AC_MSG_ERROR([--with-openssl must specify a path])
@@ -213,6 +217,7 @@ case "$use_openssl" in
 		DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
 		DST_OPENSSL_LIB=''
 		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
+		openssl_makefiles=""
 		;;
 esac
 
@@ -1299,9 +1304,7 @@ AC_OUTPUT(
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
 	lib/dns/sec/Makefile
-	lib/dns/sec/openssl/Makefile
-	lib/dns/sec/openssl/include/Makefile
-	lib/dns/sec/openssl/include/openssl/Makefile
+	$openssl_makefiles
 	lib/dns/sec/dst/Makefile
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
