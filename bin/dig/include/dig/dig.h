@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.36 2000/07/18 01:28:20 mws Exp $ */
+/* $Id: dig.h,v 1.37 2000/07/20 19:41:44 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -131,6 +131,8 @@ struct dig_query {
 		first_repeat_rcvd;
 	isc_uint32_t first_rr_serial;
 	isc_uint32_t second_rr_serial;
+	isc_uint32_t rr_count;
+	isc_uint32_t name_count;
 	char *servname;
 	isc_bufferlist_t sendlist,
 		recvlist,

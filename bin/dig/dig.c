@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.72 2000/07/20 17:56:19 mws Exp $ */
+/* $Id: dig.c,v 1.73 2000/07/20 19:41:41 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -70,6 +70,8 @@ extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern isc_boolean_t free_now;
 dig_lookup_t *default_lookup = NULL;
+extern isc_uint32_t name_limit;
+extern isc_uint32_t rr_limit;
 
 extern isc_boolean_t debugging;
 extern isc_boolean_t isc_mem_debugging;
@@ -169,6 +171,8 @@ show_usage(void) {
 "                 +[no]nssearch       (Search all authorative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
+"                 +rrlimit=###        (Limit number of rr's in xfr)\n"
+"                 +namelimit=###      (Limit number of names in xfr)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
 , stderr);
@@ -194,7 +198,13 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		       query->servname);
 		time(&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
-		printf(";; MSG SIZE  rcvd: %d\n", bytes);
+		if (query->lookup->doing_xfr) {
+			printf(";; XFR size: %d names, %d rrs\n",
+			       query->name_count, query->rr_count);
+		} else {
+			printf(";; MSG SIZE  rcvd: %d\n", bytes);
+	
+		}
 		if (key != NULL) {
 			if (!validated)
 				puts(";; WARNING -- Some TSIG could not "
@@ -643,6 +653,16 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->retries = atoi(&rv[0][7]);
 			if (lookup->retries <= 0)
 				lookup->retries = 1;
+		} else if (strncmp(rv[0], "+namelimit=", 11) == 0) {
+			name_limit = atoi(&rv[0][11]);
+		} else if (strncmp(rv[0], "+rrlimit=", 9) == 0) {
+			rr_limit = atoi(&rv[0][9]);
+		} else if (strncmp(rv[0], "+buf=", 5) == 0) {
+			lookup->udpsize = atoi(&rv[0][5]);
+			if (lookup->udpsize <= 0)
+				lookup->udpsize = 0;
+			if (lookup->udpsize > COMMSIZE)
+				lookup->udpsize = COMMSIZE;
 		} else if (strncmp(rv[0], "+buf=", 5) == 0) {
 			lookup->udpsize = atoi(&rv[0][5]);
 			if (lookup->udpsize <= 0)
