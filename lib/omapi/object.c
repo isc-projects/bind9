@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.18 2000/06/23 20:30:26 tale Exp $ */
+/* $Id: object.c,v 1.19 2000/06/23 21:05:20 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -55,7 +55,7 @@ struct omapi_objecttype {
 
 	isc_result_t		(*create)(omapi_object_t **object);
 
-	isc_result_t		(*delete)(omapi_object_t *object);
+	isc_result_t		(*expunge)(omapi_object_t *object);
 };
 
 isc_result_t
@@ -246,7 +246,7 @@ omapi_object_register(omapi_objecttype_t **type, const char *name,
 
 		      isc_result_t (*create)(omapi_object_t **),
 
-		      isc_result_t (*delete)(omapi_object_t *))
+		      isc_result_t (*expunge)(omapi_object_t *))
 {
 	omapi_objecttype_t *t;
 
@@ -264,7 +264,7 @@ omapi_object_register(omapi_objecttype_t **type, const char *name,
 	t->stuff_values = stuff_values;
 	t->lookup = lookup;
 	t->create = create;
-	t->delete = delete;
+	t->expunge = expunge;
 
 	t->next = omapi_object_types;
 	omapi_object_types = t;
@@ -590,9 +590,9 @@ object_methodcreate(omapi_objecttype_t *type, omapi_object_t **object) {
 }
 
 isc_result_t
-object_methoddelete(omapi_objecttype_t *type, omapi_object_t *object) {
-	if (type->delete != NULL)
-		return ((*(type->delete))(object));
+object_methodexpunge(omapi_objecttype_t *type, omapi_object_t *object) {
+	if (type->expunge != NULL)
+		return ((*(type->expunge))(object));
 	else
 		return (ISC_R_NOTIMPLEMENTED);
 }

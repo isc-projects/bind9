@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: private.h,v 1.19 2000/06/23 20:30:28 tale Exp $ */
+/* $Id: private.h,v 1.20 2000/06/23 21:05:22 tale Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -309,7 +309,8 @@ connection_init(void);
 
 #define connect_toserver omapi__connect_toserver
 isc_result_t
-connect_toserver(omapi_object_t *connection, const char *server, int port);
+connect_toserver(omapi_object_t *connection, const char *server, 
+		 in_port_t port);
 
 #define connection_send omapi__connection_send
 isc_result_t
