@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.27 2001/03/06 23:02:00 bwelling Exp $ */
+/* $Id: gethost.c,v 1.28 2001/03/06 23:12:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include <lwres/net.h>
 #include <lwres/netdb.h>
 
 #include "assert_p.h"
