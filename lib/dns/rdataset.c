@@ -148,7 +148,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    isc_buffer_t *target)
 {
 	dns_result_t result;
-	unsigned int common_start, common_length, length, ntabs;
+	unsigned int common_start, common_length, length, ntabs, offset;
 	char *common;
 	dns_rdata_t rdata;
 	isc_boolean_t first = ISC_TRUE;
@@ -171,6 +171,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	common = NULL;
 	length = 0;
 	ntabs = 0;
+	offset = 0;
 
 	/*
 	 * XXX Explicit buffer structure references here.  Improve buffer
@@ -195,6 +196,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 			common_length = target->used - common_start;
 			common = (char *)target->base + common_start;
 			ntabs = tabs_needed(common_length, 24);
+			offset = common_length + ntabs * 8;
 			isc_buffer_available(target, &r);
 			if (r.length < ntabs)
 				return (DNS_R_NOSPACE);
@@ -213,7 +215,8 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 					 rdataset->class, rdataset->type,
 					 rdataset->ttl);
 			INSIST(length <= sizeof classtypettl);
-			ntabs = tabs_needed(common_length, 40);
+			offset += length;
+			ntabs = tabs_needed(offset, 40);
 			isc_buffer_available(target, &r);
 			if (r.length < length + ntabs)
 				return (DNS_R_NOSPACE);
