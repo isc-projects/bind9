@@ -1,3 +1,5 @@
+1453.	[doc]		ARM: $GENERATE example wasn't accurate. [RT #5298]
+
 1452.	[placeholder]
 
 1451.	[bug]		rndc-confgen didn't exit with a error code for all
