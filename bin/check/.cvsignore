@@ -1,2 +1,6 @@
-check-zone
-check-conf
+Makefile
+.libs
+*.la
+*.lo
+named-checkconf
+named-checkzone
