@@ -95,6 +95,8 @@ static inline isc_result_t get_dst_key(dns_validator_t *val,
 static inline isc_result_t validate(dns_validator_t *val, isc_boolean_t resume);
 static inline isc_result_t nxtvalidate(dns_validator_t *val,
 				       isc_boolean_t resume);
+static inline isc_result_t proveunsecure(dns_validator_t *val,
+					 isc_boolean_t resume);
 
 static void validator_log(dns_validator_t *val, int level,
 			  const char *fmt, ...);
@@ -903,6 +905,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		result = nxtvalidate(val, ISC_FALSE);
 	} else {
 		/* This shouldn't happen */
+		result = ISC_R_FAILURE; /* Keep compiler happy. */
 		INSIST(0);
 	}
 
