@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.25 2000/07/09 12:48:43 marka Exp $ */
+/* $Id: t_master.c,v 1.26 2000/07/11 02:40:58 marka Exp $ */
 
 #include <config.h>
 
@@ -302,6 +302,20 @@ t10() {
 	t_result(result);
 }
 
+static const char *a11 =
+	"dns_master_loadfile allow leading zeros in SOA";
+
+static void
+t11() {
+	int	result;
+
+	t_assert("dns_master_loadfile", 11, T_REQUIRED, a11);
+	result = test_master_x("dns_master_load_11_data");
+
+	t_result(result);
+}
+
+
 testspec_t	T_testlist[] = {
 	{	t1,	"ISC_R_SUCCESS"		},
 	{	t2,	"ISC_R_UNEXPECTEDEND"	},
@@ -313,6 +327,7 @@ testspec_t	T_testlist[] = {
 	{	t8,	"$INCLUDE"		},
 	{	t9,	"$INCLUDE w/ DNS_BADCLASS"	},
 	{	t10,	"non empty blank lines"	},
+	{	t11,	"leading zeros in serial"	},
 	{	NULL,	NULL			}
 };
 
