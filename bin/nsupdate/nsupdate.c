@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.30 2000/07/17 17:42:54 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.31 2000/07/18 00:47:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -95,7 +95,6 @@ static dns_name_t *origin; /* Points to one of above, or dns_rootname */
 static dns_fixedname_t fuserzone;
 static dns_name_t *userzone = NULL;
 static dns_tsigkey_t *key = NULL;
-static dns_tsig_keyring_t *keyring = NULL;
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
 static isc_sockaddr_t *servers;
@@ -242,9 +241,6 @@ setup_key() {
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname;
 
-	result = dns_tsigkeyring_create(mctx, &keyring);
-	check_result(result, "dns_tsigkeyringcreate");
-
 	if (keystr != NULL) {
 		isc_buffer_t keynamesrc;
 		char *secretstr;
@@ -310,7 +306,7 @@ setup_key() {
 	debug("keycreate");
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
 				    secret, secretlen, ISC_TRUE, NULL, 0, 0,
-				    mctx, keyring, &key);
+				    mctx, NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		char *str;
 		if (keystr != NULL)
@@ -327,7 +323,6 @@ setup_key() {
 
 	if (secret != NULL)
 		isc_mem_free(mctx, secret);
-	dns_tsigkeyring_destroy(&keyring);
 }
 
 static void
@@ -1323,11 +1318,6 @@ cleanup(void) {
 		debug("Freeing key");
 		dns_tsigkey_setdeleted(key);
 		dns_tsigkey_detach(&key);
-	}
-
-	if (keyring != NULL) {
-		debug("Freeing keyring %lx", keyring);
-		dns_tsigkeyring_destroy(&keyring);
 	}
 
 	if (updatemsg != NULL)
