@@ -1,3 +1,6 @@
+1735.	[bug]		'dig +sigtrace' could die with a REQUIRE failure.
+			[RE #12688]
+
 1734.	[cleanup]	'rndc-confgen -a -t' remove extra '/' in path.
 			[RT #12588]
 
