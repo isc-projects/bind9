@@ -1,5 +1,7 @@
 Review man pages
 
+write named.conf(5) man page
+
 Complete OMAPI security review
 
 Complete server input code path security review
@@ -9,6 +11,8 @@ Complete server input code path security review
 Review lwres input code path for buffer overflows
 
 Document function REQUIREs in omapi and parser
+
+Make the configure script detect systems with insufficient threads support
 
 Write libdns overview document (even if it only says "don't use
 libdns")
@@ -68,7 +72,7 @@ Support general time specifiers like "4d10m" in named.conf
 
 Get rid of the TODO file in the top level source directory
 
-Implemente update forwarding
+Implement update forwarding
 
 Eliminate meta types on input
 
