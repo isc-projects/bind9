@@ -1,6 +1,6 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
 <!--
- - Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
+ - Copyright (C) 2000, 2001  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.3 2003/08/27 01:39:22 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.4 2003/10/21 05:56:37 marka Exp $ -->
 
 <refentry>
 
@@ -99,9 +99,9 @@ NS query for "." (the root).
 </para>
 
 <para>
-It is possible to set per user defaults for <command>dig</command> via
+It is possible to set per-user defaults for <command>dig</command> via
 <filename>${HOME}/.digrc</filename>.  This file is read and any options in it
-are applied before the command line arguements.
+are applied before the command line arguments.
 </para>
 
 </refsect1>
@@ -204,9 +204,10 @@ When this option is used, there is no need to provide the
 automatically performs a lookup for a name like
 <literal>11.12.13.10.in-addr.arpa</literal> and sets the query type and
 class to PTR and IN respectively.  By default, IPv6 addresses are
-looked up using the IP6.ARPA domain and binary labels as defined in
-RFC2874.  To use the older RFC1886 method using the IP6.INT domain and
-"nibble" labels, specify the <option>-n</option> (nibble) option.
+looked up using nibble format under the IP6.ARPA domain.
+To use the older RFC1886 method using the IP6.INT domain 
+specify the <option>-i</option> option.  Bit string labels (RFC2874)
+are now experimental and are not attempted.
 </para>
 
 <para>
@@ -319,7 +320,7 @@ requests the server to not perform DNSSEC validation of responses.
 <varlistentry><term><option>+[no]cl</option></term>
 <listitem><para>
 Display [do not display] the CLASS when printing the record.
-</para></listitem></varlistentry>  
+</para></listitem></varlistentry>
 
 <varlistentry><term><option>+[no]ttlid</option></term>
 <listitem><para>
@@ -436,10 +437,10 @@ in a query timeout of 1 second being applied.
 Sets the number of times to try UDP queries to server to
 <parameter>T</parameter> instead of the default, 3.  If
 <parameter>T</parameter> is less than or equal to zero, the number of
-retries is silently rounded up to 1.
+tries is silently rounded up to 1.
 </para></listitem></varlistentry>
 
-<varlistentry><term><option>+retries=A</option></term>
+<varlistentry><term><option>+retry=T</option></term>
 <listitem><para>
 Sets the number of times to retry UDP queries to server to
 <parameter>T</parameter> instead of the default, 2.  Unlike

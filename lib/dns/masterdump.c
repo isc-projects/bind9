@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.5.2.4 2003/10/14 03:48:00 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.5.2.5 2003/10/21 05:56:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1049,7 +1049,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dctx->do_date = dns_db_iscache(dctx->db);
 
 	relative = ((dctx->tctx.style.flags & DNS_STYLEFLAG_REL_OWNER) != 0) ?
-			ISC_TRUE : ISC_FALSE,
+			ISC_TRUE : ISC_FALSE;
 	result = dns_db_createiterator(dctx->db, relative, &dctx->dbiter);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

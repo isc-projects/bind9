@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.41.12.2 2003/09/11 00:18:10 marka Exp $ */
+/* $Id: key_25.c,v 1.41.12.3 2003/10/21 05:56:41 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -28,7 +28,7 @@
 
 #include <dst/dst.h>
 
-#define RRTYPE_KEY_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
+#define RRTYPE_KEY_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC|DNS_RDATATYPEATTR_ATPARENT)
 
 static inline isc_result_t
 fromtext_key(ARGS_FROMTEXT) {

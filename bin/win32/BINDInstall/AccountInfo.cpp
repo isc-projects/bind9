@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.cpp,v 1.5 2002/08/06 03:35:30 mayer Exp $ */
+/* $Id: AccountInfo.cpp,v 1.5.224.1 2003/10/21 05:56:38 marka Exp $ */
 
 #ifndef UNICODE
 #define UNICODE

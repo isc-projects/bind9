@@ -15,11 +15,12 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.10 2001/01/09 21:42:43 bwelling Exp $
+# $Id: clean.sh,v 1.10.12.1 2003/10/21 05:56:38 marka Exp $
 
-rm -f */K* */keyset-* */signedkey-* */*.signed */trusted.conf
+rm -f */K* */keyset-* */signedkey-* */*.signed */trusted.conf */tmp*
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
-rm -f ns3/unsecure.example.db ns3/bogus.example.db
+rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
+rm -f ns3/dynamic.example.db ns3/dynamic.example.db.signed.jnl
 rm -f dig.out.*
 rm -f random.data
 

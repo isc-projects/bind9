@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.h,v 1.3 2001/07/31 00:03:14 gson Exp $ */
+/* $Id: BINDInstallDlg.h,v 1.3.12.1 2003/10/21 05:56:39 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -72,6 +72,7 @@ protected:
 	void DeleteFiles(BOOL uninstall);
 
 	void RegisterService();
+	void UpdateService();
 	void UnregisterService(BOOL uninstall);
 
 	void RegisterMessages();
@@ -80,6 +81,8 @@ protected:
 	void FailedInstall();
 	void SetItemStatus(UINT nID, BOOL bSuccess = TRUE);
 
+	void GetCurrentServiceAccountName();
+	BOOL ValidateServiceAccount();
 protected:
 	CString DestDir(int destination);
 	int MsgBox(int id,  ...);
@@ -94,9 +97,16 @@ protected:
 	CString m_etcDir;
 	CString m_binDir;
 	CString m_winSysDir;
-	BOOL m_reboot;
+	BOOL m_installed;
 	CString m_currentDir;
-
+	BOOL	m_accountExists;
+	BOOL	m_accountUsed;
+	CString	m_currentAccount;
+	CString m_accountName;
+	CString m_accountPasswordConfirm;
+	CString m_accountPassword;
+	BOOL	m_serviceExists;
+ 
 	// Generated message map functions
 	//{{AFX_MSG(CBINDInstallDlg)
 	virtual BOOL OnInitDialog();

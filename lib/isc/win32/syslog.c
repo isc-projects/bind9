@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.3.12.2 2003/10/07 03:28:39 marka Exp $ */
+/* $Id: syslog.c,v 1.3.12.3 2003/10/21 05:56:41 marka Exp $ */
 
 #include <config.h>
 
