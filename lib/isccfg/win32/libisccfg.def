@@ -34,6 +34,7 @@ cfg_obj_istype
 cfg_obj_destroy
 cfg_obj_log
 cfg_check_namedconf
+cfg_check_key
 cfg_log_init
 
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.4 2001/07/27 05:17:39 mayer Exp $ */
+/* $Id: ntpaths.c,v 1.5 2001/08/06 05:34:23 mayer Exp $ */
 
 /*
  * This module fetches the required path information that is specific
@@ -44,6 +44,7 @@ static char lwresd_defaultpidfile[MAX_PATH];
 static char named_key_file[MAX_PATH];
 static char local_state_dir[MAX_PATH];
 static char sys_conf_dir[MAX_PATH];
+static char rndc_keyFile[MAX_PATH];
 
 static DWORD baseLen = MAX_PATH;
 static BOOL Initialized = FALSE;
@@ -82,9 +83,11 @@ isc_ntpaths_init() {
 	strcpy(lwresd_resolvconfFile, namedBase);
 	strcat(lwresd_resolvconfFile, "\\Drivers\\etc\\resolv.conf");
 
+	strcpy(rndc_keyFile, namedBase);
+	strcat(rndc_keyFile, "\\etc\\rndc.key");
+
 	strcpy(rndc_confFile, namedBase);
 	strcat(rndc_confFile, "\\etc\\rndc.conf");
-
 	strcpy(ns_defaultpidfile, namedBase);
 	strcat(ns_defaultpidfile, "\\etc\\named.pid");
 
@@ -135,6 +138,9 @@ isc_ntpaths_get(int ind) {
 		break;
 	case SYS_CONF_DIR:
 		return (sys_conf_dir);
+		break;
+	case RNDC_KEY_PATH:
+		return (rndc_keyFile);
 		break;
 	default:
 		return (NULL);
