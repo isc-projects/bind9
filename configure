@@ -3070,6 +3070,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/dns/sec/dst/Makefile
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
+	lib/dns/config/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
