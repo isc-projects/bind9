@@ -17,10 +17,6 @@ typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
 	((pthread_create((tp), NULL, (s), (a)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 
-#define isc_thread_detach(t) \
-	((pthread_detach((t)) == 0) ? \
-	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
-
 #define isc_thread_join(t, rp) \
 	((pthread_join((t), (rp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)

@@ -36,10 +36,3 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 
 	return (ISC_R_SUCCESS);
 }
-
-isc_result_t isc_thread_detach(isc_thread_t thread) {
-
-	/* XXX */
-
-	return (ISC_R_SUCCESS);
-}
