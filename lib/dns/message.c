@@ -2468,7 +2468,8 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		}
 		result = dns_message_nextname(msg, section);
 	} while (result == ISC_R_SUCCESS);
-	ADD_STRING(target, "\n");
+	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0)
+		ADD_STRING(target, "\n");
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
 	return (result);
@@ -2526,7 +2527,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			ADD_STRING(target, ";; SIG0 PSEUDOSECTION:\n");
 		result = dns_rdataset_totext(ps, name, omit_final_dot,
 					     ISC_FALSE, target);
-		ADD_STRING(target, "\n");
+		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0)
+			ADD_STRING(target, "\n");
 		return (result);
 	}
 	return (ISC_R_UNEXPECTED);
