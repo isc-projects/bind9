@@ -45,9 +45,9 @@ main(int argc, char *argv[]) {
 	unsigned int options = 0;
 	unsigned int parens = 0;
 	dns_rdatatype_t type;
-	char outbuf[1024];
-	char inbuf[1024];
-	char wirebuf[1024];
+	char outbuf[16*1024];
+	char inbuf[16*1024];
+	char wirebuf[16*1024];
 	isc_buffer_t dbuf;
 	isc_buffer_t tbuf;
 	isc_buffer_t wbuf;
@@ -151,6 +151,7 @@ main(int argc, char *argv[]) {
 				    "dns_rdatatype_fromtext returned %s(%d)\n",
 					dns_result_totext(result), result);
 				fflush(stdout);
+				need_eol = 1;
 				continue;
 			}
 			fprintf(stdout, "type = %.*s(%d)\n",

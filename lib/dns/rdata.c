@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.7 1999/01/20 22:49:34 marka Exp $ */
+ /* $Id: rdata.c,v 1.8 1999/01/21 06:02:13 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
@@ -41,12 +41,17 @@ static isc_boolean_t	buffer_empty(isc_buffer_t *source);
 static void		buffer_fromregion(isc_buffer_t *buffer,
 					  isc_region_t *region,
 					  unsigned int type);
-static isc_result_t	uint32_fromtext(unsigned long value,
+static isc_result_t	uint32_tobuffer(unsigned long value,
 					isc_buffer_t *target);
-static isc_result_t	uint16_fromtext(unsigned long value,
+static isc_result_t	uint16_tobuffer(unsigned long value,
 					isc_buffer_t *target);
 static unsigned long	uint32_fromregion(isc_region_t *region);
 static unsigned short	uint16_fromregion(isc_region_t *region);
+static dns_result_t	gettoken(isc_lex_t *lexer, isc_token_t *token,
+				 isc_tokentype_t expect, isc_boolean_t eol);
+static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
+				     unsigned int length);
+static int		compare_region(isc_region_t *r1, isc_region_t *r2);
 
 #include "code.h"
 
@@ -101,7 +106,6 @@ dns_rdata_init(dns_rdata_t *rdata) {
 int
 dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result = 0;
-	int l;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(rdata1 != NULL);
@@ -118,12 +122,12 @@ dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	COMPARESWITCH
 
 	if (use_default) {
-		l = (rdata1->length > rdata2->length) ?
-			rdata1->length : rdata2->length;
-		if ((result = memcmp(rdata1->data, rdata2->data, l)) == 0)
-			result = (result < 0) ? -1 : 1;
-		else
-			result = (rdata1->length < rdata2->length) ? -1 : 1;
+		isc_region_t r1;
+		isc_region_t r2;
+
+		dns_rdata_toregion(rdata1, &r1);
+		dns_rdata_toregion(rdata2, &r2);
+		result = compare_region(&r1, &r2);
 	}
 	return (result);
 }
@@ -541,7 +545,7 @@ buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region,
 }
 
 static isc_result_t
-uint32_fromtext(unsigned long value, isc_buffer_t *target) {
+uint32_tobuffer(unsigned long value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	isc_buffer_available(target, &region);
@@ -556,7 +560,7 @@ uint32_fromtext(unsigned long value, isc_buffer_t *target) {
 }
 
 static isc_result_t
-uint16_fromtext(unsigned long value, isc_buffer_t *target) {
+uint16_tobuffer(unsigned long value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	isc_buffer_available(target, &region);
@@ -586,4 +590,51 @@ uint16_fromregion(isc_region_t *region) {
 	INSIST(region->length >= 2);
 
 	return ((region->base[0] << 8) | region->base[1]);
+}
+
+static dns_result_t
+gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
+	 isc_boolean_t eol) {
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
+	
+	if (expect == isc_tokentype_number)
+		options |= ISC_LEXOPT_NUMBER;
+        if (isc_lex_gettoken(lexer, options, token) != ISC_R_SUCCESS)
+                return (DNS_R_UNEXPECTED);
+	if (eol && ((token->type == isc_tokentype_eol) || 
+		    (token->type == isc_tokentype_eof)))
+		return (DNS_R_SUCCESS);
+        if (token->type != expect) {
+                isc_lex_ungettoken(lexer, token);
+                if (token->type == isc_tokentype_eol ||
+                    token->type == isc_tokentype_eof)
+                        return(DNS_R_UNEXPECTEDEND);
+                return (DNS_R_UNEXPECTED);
+        }
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
+	isc_region_t tr;
+
+	isc_buffer_available(target, &tr);
+        if (length > tr.length)
+		return (DNS_R_NOSPACE);
+	memcpy(tr.base, base, length);
+	isc_buffer_add(target, length);
+	return (DNS_R_SUCCESS);
+}
+
+static int
+compare_region(isc_region_t *r1, isc_region_t *r2) {
+	unsigned int l;
+	int result;
+
+	l = (r1->length < r2->length) ? r1->length : r2->length;
+
+	if ((result = memcmp(r1->base, r2->base, l)) != 0)
+		return ((result < 0) ? -1 : 1);
+	else
+		return ((r1->length < r2->length) ? -1 : 1);
 }

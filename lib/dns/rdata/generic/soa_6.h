@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.6 1999/01/20 05:20:23 marka Exp $ */
+ /* $Id: soa_6.h,v 1.7 1999/01/21 06:02:14 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_H
 #define RDATA_GENERIC_SOA_6_H
@@ -83,7 +83,7 @@ fromtext_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 			return (DNS_R_UNEXPECTED);
 		}
 
-		result = uint32_fromtext(token.value.as_ulong, target);
+		result = uint32_tobuffer(token.value.as_ulong, target);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}

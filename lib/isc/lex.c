@@ -73,7 +73,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	lex = isc_mem_get(mctx, sizeof *lex);
 	if (lex == NULL)
 		return (ISC_R_NOMEMORY);
-	lex->data = isc_mem_get(mctx, max_token);
+	lex->data = isc_mem_get(mctx, max_token + 1);
 	if (lex->data == NULL) {
 		isc_mem_put(mctx, lex, sizeof *lex);
 		return (ISC_R_NOMEMORY);
@@ -107,7 +107,7 @@ isc_lex_destroy(isc_lex_t **lexp) {
 	while (!EMPTY(lex->sources))
 		isc_lex_close(lex);
 	if (lex->data != NULL)
-		isc_mem_put(lex->mctx, lex->data, lex->max_token);
+		isc_mem_put(lex->mctx, lex->data, lex->max_token + 1);
 	isc_mem_put(lex->mctx, lex, sizeof *lex);
 	lex->magic = 0;
 
@@ -449,6 +449,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 			if (remaining > 0) {
 				*curr++ = c;
+				*curr = '\0';
 				remaining--;
 			} else
 				return (ISC_R_NOSPACE);
@@ -467,6 +468,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 			if (remaining > 0) {
 				*curr++ = c;
+				*curr = 0;
 				remaining--;
 			} else
 				return (ISC_R_NOSPACE);
@@ -547,6 +549,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				if (remaining > 0) {
 					prev = curr;
 					*curr++ = c;
+					*curr = 0;
 					remaining--;
 				} else
 					return (ISC_R_NOSPACE);

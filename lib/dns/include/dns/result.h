@@ -40,8 +40,9 @@ typedef unsigned int dns_result_t;
 #define DNS_R_EXTRATOKEN		17
 #define DNS_R_EXTRADATA			18
 #define DNS_R_TEXTTOLONG		19
+#define DNS_R_RANGE			20
 
-#define DNS_R_LASTENTRY			19	/* Last entry on list. */
+#define DNS_R_LASTENTRY			20	/* Last entry on list. */
 
 #define DNS_R_UNEXPECTED		0xFFFFFFFFL
 

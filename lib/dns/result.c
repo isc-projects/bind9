@@ -40,6 +40,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"extra input text",			/* 17 */
 	"extra input data",			/* 18 */
 	"text too long",			/* 19 */
+	"out of range",				/* 20 */
 };
 
 char *

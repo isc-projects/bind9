@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.h,v 1.6 1999/01/20 05:20:22 marka Exp $ */
+ /* $Id: mx_15.h,v 1.7 1999/01/21 06:02:14 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H
@@ -45,7 +45,7 @@ fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 		return (DNS_R_UNEXPECTED);
 	}
 	
-	result = uint16_fromtext(token.value.as_ulong, target);
+	result = uint16_tobuffer(token.value.as_ulong, target);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
