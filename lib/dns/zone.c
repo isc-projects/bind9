@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.415 2004/05/28 23:53:46 marka Exp $ */
+/* $Id: zone.c,v 1.416 2004/06/04 02:40:50 marka Exp $ */
 
 #include <config.h>
 
@@ -3622,7 +3622,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			dns_message_destroy(&msg);
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
 		if (zone->masterfile != NULL) {
-			result = isc_file_settime(zone->masterfile, &now);
+			result = ISC_R_FAILURE;
+			if (zone->journal != NULL)
+				result = isc_file_settime(zone->journal, &now);
+			if (result != ISC_R_SUCCESS)
+				result = isc_file_settime(zone->masterfile,
+							  &now);
 			/* Someone removed the file from underneath us! */
 			if (result == ISC_R_FILENOTFOUND) {
 				LOCK_ZONE(zone);
