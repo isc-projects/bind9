@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.6 2001/11/05 22:56:49 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.7 2001/11/05 23:46:21 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1144,7 +1144,7 @@ options {
     ...
 };
 
-zone "site1.example.com" {                      // sample slave zone
+zone "site1.example.com" {                      // sample master zone
   type master;
   file "m/site1.example.com";
   forwarders { };                               // do normal iterative
@@ -1432,9 +1432,10 @@ allow-update { key host1-host2. ;};
       the zone keys of any secure delegated zones.  Zone keys must
       have the same name as the zone, a name type of
       <command>ZONE</command>, and must be usable for authentication.
-      It is recommended that zone keys be mandatory to implement a
-      cryptographic algorithm; currently the only key mandatory to
-      implement an algorithm is DSA.</para>
+      It is recommended that zone keys use a cryptographic algorithm
+      designated as "mandatory to implement" by the IETF; currently
+      these are RSASHA1 (which is not yet supported in BIND 9.2)
+      and DSA.</para>
 
       <para>The following command will generate a 768 bit DSA key for
       the <filename>child.example</filename> zone:</para>
