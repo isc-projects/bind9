@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: check-includes.pl,v 1.3 2000/06/22 22:00:32 tale Exp $
+# $Id: check-includes.pl,v 1.4 2000/06/23 02:06:44 tale Exp $
 
 # Rudimentary, primarily for use by the developers.
 # This just evolved with no serious attempt at making it
@@ -27,7 +27,14 @@
 # XXX many warnings should not be made unless the header will be a public file
 
 use strict;
-use vars qw($debug);
+use vars qw($debug $isc_includes $dns_includes $lwres_includes
+            $omapi_includes);
+
+$isc_includes =  "-Ilib/isc/include -Ilib/isc/unix/include " .
+      "-Ilib/isc/pthreads/include";
+$dns_includes = "-Ilib/dns/include -Ilib/dns/sec/dst/include";
+$lwres_includes = "-Ilib/lwres/include";
+$omapi_includes = "-Ilib/omapi/include";
 
 $0 =~ s%.*/%%;
 
@@ -82,11 +89,13 @@ for (<>) {
   }
 
   my $nocomment = '^(?!\s+/?\*)';
+  my $lib = $file =~ /lwres/ ? "lwres" : "isc";
 
   # check use of macros without having included proper header for them.
 
-  if (/^(ISC_LANG_(BEGIN|END)DECLS)$/m && ! m%^#include <isc/lang\.h>$%m) {
-    print "$file has $1 without <isc/lang.h>\n";
+  if (/^(\U$lib\E_LANG_(BEGIN|END)DECLS)$/m &&
+      ! m%^#include <$lib/lang\.h>$%m) {
+    print "$file has $1 without <$lib/lang.h>\n";
   }
 
   if (/$nocomment.*ISC_EVENTCLASS_/m && ! m%^#include <isc/eventclass\.h>%m) {
@@ -112,7 +121,7 @@ for (<>) {
       unless $file =~ m%isc/platform.h%;
   }
 
-  if ($file !~ m%isc/magic\.h$%) {
+  if ($file !~ m%isc/magic\.h$% && $lib ne "lwres") {
     print "$file has ISC_MAGIC_VALID without <isc/magic.h>\n"
       if /$nocomment.*ISC_MAGIC_VALID/m && ! m%^#include <isc/magic.h>%m;
 
@@ -126,8 +135,8 @@ for (<>) {
   }
 
   if (/^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\([^;]*\);)/m &&
-      ! m%^#include <isc/lang.h>%m) {
-    print "$file has declarations without <isc/lang.h>\n";
+      ! m%^#include <$lib/lang.h>%m) {
+    print "$file has declarations without <$lib/lang.h>\n";
   }
 
   #
@@ -136,7 +145,7 @@ for (<>) {
   # headers (thus weeding out, for example, all of the dns/rdata/*/*.h)
   #
   if ($file =~ m%/include/% && system("cp $file $tmpfile") == 0) {
-    if (compile($tmpfile, $objfile) != 0) {
+    if (compile($file, $tmpfile, $objfile) != 0) {
       print "$file does not compile stand-alone\n";
     }
   }
@@ -167,7 +176,7 @@ for (<>) {
 
     # Can mark in the header file when a #include should stay even
     # though it might not appear that way otherwise.
-    next if $comment =~ /require|provide|extend|define|contract/i;
+    next if $comment =~ /require|provide|extend|define|contract|ensure/i;
 
     #
     # Special exceptions.
@@ -202,13 +211,15 @@ for (<>) {
       }
     }
 
-    if ($elided eq "<isc/lang.h>") {
-      if (! /^ISC_LANG_BEGINDECLS$/m) {
-        print "$file includes <isc/lang.h> but has no ISC_LANG_BEGINDECLS\n";
-      } elsif (! /^ISC_LANG_ENDDECLS$/m) {
-        print "$file has ISC_LANG_BEGINDECLS but no ISC_LANG_ENDDECLS\n";
+    if ($elided eq "<$lib/lang.h>") {
+      if (! /^\U$lib\E_LANG_BEGINDECLS$/m) {
+        print "$file includes <$lib/lang.h> but " .
+          	"has no \U$lib\E_LANG_BEGINDECLS\n";
+      } elsif (! /^\U$lib\E_LANG_ENDDECLS$/m) {
+        print "$file has \U$lib\E_LANG_BEGINDECLS but " .
+          	"has no \U$lib\E_LANG_ENDDECLS\n";
       } elsif (! /^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\()/m) {
-        print "$file has <isc/lang.h> apparently not function declarations\n";
+        print "$file has <$lib/lang.h> apparently not function declarations\n";
       }
       next;
     }
@@ -267,7 +278,7 @@ for (<>) {
 
     print "$file elided $elided, compiling\n" if $debug;
 
-    if (compile($tmpfile, $objfile) == 0) {
+    if (compile($file, $tmpfile, $objfile) == 0) {
       print "$file does not need $elided\n";
     }
 
@@ -278,18 +289,24 @@ for (<>) {
 
 sub
 compile() {
-  my ($source, $objfile) = @_;
+  my ($original, $source, $objfile) = @_;
+  my $includes;
 
   my $stderr = $debug ? "" : "2>/dev/null";
 
-  #XXX -Iflags are a pain.  this needs mending.
-  system("cc " .
-         "-Ilib/isc/include -Ilib/isc/unix/include " .
-         "-Ilib/isc/pthreads/include " .
-         "-Ilib/dns/include " .
-         "-Ilib/dns/sec/dst/include " .
-         "-Ilib/omapi/include " .
-         "-c $source -o $objfile $stderr");
+  if ($original =~ m%lib/(isc|tests)/%) {
+      $includes = $isc_includes;
+  } elsif ($original =~ m%lib/dns/%) {
+      $includes = "$isc_includes $dns_includes";
+  } elsif ($original =~ m%lib/lwres/%) {
+      $includes = $lwres_includes;
+  } elsif ($original =~ m%lib/omapi/%) {
+      $includes = "$isc_includes $dns_includes $omapi_includes";
+  } else {
+      $includes = "";
+  }
+
+  system("cc $includes -c $source -o $objfile $stderr");
 
   unlink($source, $objfile);
 
