@@ -1,8 +1,9 @@
 1740.	[placeholder]	rt12729
 
-1739.	[placeholder]	rt12695
+1739.	[bug]		dns_rbt_deletetree() could incorrectly return
+			ISC_R_QUOTA.  [RT #12695]
 
-1738.	[placeholder]	rt12695
+1738.	[bug]		Enable overrun checking by default. [RT #12695]
 
 1737.	[bug]		named failed if more than 16 masters were specified.
 			[RT #12627]
