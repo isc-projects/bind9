@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "/usr/local/share/xml/dtd/docbook/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.7 2000/09/12 01:25:05 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.8 2000/09/12 01:26:56 gson Exp $ -->
 
 <book>
 
@@ -2374,6 +2374,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> listen-on <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> listen-on-v6 <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> query-source <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-time-out <replaceable>number</replaceable>; </optional>
