@@ -64,6 +64,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"nxdomain",				/* 41 */
 	"nxrdataset",				/* 42 */
 	"bad database",				/* 43 */
+	"zonecut",				/* 44 */
 };
 
 char *
