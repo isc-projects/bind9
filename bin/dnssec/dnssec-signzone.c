@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.147 2001/10/18 00:40:50 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.148 2001/10/18 22:36:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -143,6 +143,15 @@ set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
 		array[index / 8] |= mask;
 	else
 		array[index / 8] &= (~mask & 0xFF);
+}
+
+static void
+dumpnode(dns_name_t *name, dns_dbnode_t *node) {
+	isc_result_t result;
+
+	result = dns_master_dumpnodetostream(mctx, gdb, gversion, node, name,
+					     masterstyle, fp);
+	check_result(result, "dns_master_dumpnodetostream");
 }
 
 static signer_key_t *
@@ -790,6 +799,23 @@ warnwild(const char *name) {
 		"not required by the resolver\n");
 }
 
+static isc_boolean_t
+delegation(dns_name_t *name, dns_dbnode_t *node) {
+	dns_rdataset_t nsset;
+	isc_result_t result;
+
+	if (dns_name_equal(name, gorigin))
+		return (ISC_FALSE);
+
+	dns_rdataset_init(&nsset);
+	result = dns_db_findrdataset(gdb, node, gversion, dns_rdatatype_ns,
+				     0, 0, &nsset, NULL);
+	if (dns_rdataset_isassociated(&nsset))
+		dns_rdataset_disassociate(&nsset);
+
+	return (result == ISC_R_SUCCESS);
+}
+
 /*
  * Signs all records at a name.  This mostly just signs each set individually,
  * but also adds the SIG bit to any NXTs generated earlier, deals with
@@ -815,21 +841,10 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	atorigin = dns_name_equal(name, gorigin);
 
 	/*
-	 * If this is not the origin, determine if it's a delegation point.
+	 * Determine if this is a delegation point.
 	 */
-	if (!atorigin) {
-		dns_rdataset_t nsset;
-
-		dns_rdataset_init(&nsset);
-		result = dns_db_findrdataset(gdb, node, gversion,
-					     dns_rdatatype_ns, 0, 0, &nsset,
-					     NULL);
-		/* Is this a delegation point? */
-		if (result == ISC_R_SUCCESS) {
-			isdelegation = ISC_TRUE;
-			dns_rdataset_disassociate(&nsset);
-		}
-	}
+	if (delegation(name, node))
+		isdelegation = ISC_TRUE;
 
 	/*
 	 * If this is a delegation point, determine if we need to generate
@@ -1007,11 +1022,7 @@ next_nonglue(dns_name_t *name, dns_dbnode_t **nodep, dns_name_t *origin,
 			    (lastcut == NULL ||
 			     !dns_name_issubdomain(name, lastcut)))
 				return (ISC_R_SUCCESS);
-			result = dns_master_dumpnodetostream(mctx, gdb,
-							     gversion,
-							     *nodep, name,
-							     masterstyle, fp);
-			check_result(result, "dns_master_dumpnodetostream");
+			dumpnode(name, *nodep);
 			dns_db_detachnode(gdb, nodep);
 			result = dns_dbiterator_next(gdbiter);
 		}
@@ -1138,19 +1149,10 @@ getnextname(dns_name_t *name, dns_name_t *nextname, dns_dbnode_t **nodep) {
 	nextnode = NULL;
 	curnode = NULL;
 	dns_dbiterator_current(gdbiter, &curnode, name);
-	if (!dns_name_equal(name, gorigin)) {
-		dns_rdataset_t nsset;
-
-		dns_rdataset_init(&nsset);
-		result = dns_db_findrdataset(gdb, curnode, gversion,
-					     dns_rdatatype_ns, 0, 0,
-					     &nsset, NULL);
-		if (result == ISC_R_SUCCESS) {
-			dns_rdataset_disassociate(&nsset);
-			lastzonecut = dns_fixedname_name(&flastzonecut);
-			dns_name_reset(lastzonecut);
-			dns_name_copy(name, lastzonecut, NULL);
-		}
+	if (delegation(name, curnode)) {
+		lastzonecut = dns_fixedname_name(&flastzonecut);
+		dns_name_reset(lastzonecut);
+		dns_name_copy(name, lastzonecut, NULL);
 	}
 	result = dns_dbiterator_next(gdbiter);
 	if (result == ISC_R_SUCCESS)
@@ -1232,17 +1234,12 @@ startworker(isc_task_t *task, isc_event_t *event) {
  */
 static void
 writenode(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
 	isc_task_t *worker;
 	sevent_t *sevent = (sevent_t *)event;
 
 	completed++;
 	worker = (isc_task_t *)event->ev_sender;
-	result = dns_master_dumpnodetostream(mctx, gdb, gversion,
-					     sevent->node,
-					     dns_fixedname_name(sevent->fname),
-					     masterstyle, fp);
-	check_result(result, "dns_master_dumpnodetostream");
+	dumpnode(dns_fixedname_name(sevent->fname), sevent->node);
 	cleannode(gdb, gversion, sevent->node);
 	dns_db_detachnode(gdb, &sevent->node);
 	isc_mem_put(mctx, sevent->fname, sizeof(dns_fixedname_t));
