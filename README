@@ -204,7 +204,7 @@ Bug Reports and Mailing Lists
 
 	-f				Run in the foreground.
 
-	-N <number_of_cpus>		
+	-n <number_of_cpus>		
 
 	-t <directory>			Chroot to <directory> before running.
 
@@ -223,7 +223,7 @@ Bug Reports and Mailing Lists
 	uses the Linux kernel's capability mechanism to drop all root
 	powers except the ability to bind() to a privileged port.
 
-	On systems with more than one CPU, the "-N" option should be used
+	On systems with more than one CPU, the "-n" option should be used
 	to indicate how many CPUs there are.
 
 
