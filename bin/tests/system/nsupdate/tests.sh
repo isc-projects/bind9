@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2000/07/08 16:37:18 tale Exp $
+# $Id: tests.sh,v 1.4 2000/07/09 16:27:30 tale Exp $
 
 #
 # Perform tests
@@ -41,11 +41,9 @@ $PERL ../digcomp.pl knowngood.ns1.before dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || status=1
 
 echo "I:updating zone"
-# nsupdate will print ">" characters to stderr as it works, but not send
-# a final newline.
+# nsupdate will print a ">" prompt to stdout as it gets each input line.
 $NSUPDATE < update.scp > /dev/null
-# Send the final nsupdate newline.
-echo
+echo "I:sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
 echo "I:fetching first copy of zone after update"
