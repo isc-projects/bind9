@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.24.2.1.10.6 2003/09/02 02:10:51 marka Exp $ */
+/* $Id: platform.h.in,v 1.24.2.1.10.7 2003/09/02 04:51:11 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -172,6 +172,17 @@
  * Define if your compiler supports "long long int".
  */
 @ISC_PLATFORM_HAVELONGLONG@
+
+/*
+ * Define if the system has struct if_laddrconf which is a extended struct
+ * ifconf for IPv6.
+ */
+@ISC_PLATFORM_HAVEIF_LADDRCONF@
+
+/*
+ * Define if the system has struct if_laddrreq.
+ */
+@ISC_PLATFORM_HAVEIF_LADDRREQ@
 
 /*
  * Used to control how extern data is linked; needed for Win32 platforms.

@@ -15,52 +15,36 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.1 2003/08/25 05:40:31 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.2 2003/09/02 04:51:12 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
  * See netintro(4).
  */
-#ifdef __hpux
-#undef SIOCGLIFCONF
-#undef lifc_len
-#undef lifc_buf
-#undef lifc_req
-#undef lifconf
-#undef SIOCGLIFADDR
-#undef SIOCGLIFFLAGS
-#undef SIOCGLIFDSTADDR
-#undef SIOCGLIFNETMASK
-#undef lifr_addr
-#undef lifr_name
-#undef lifr_dstaddr
-#undef lifr_flags
-#undef ss_family
-#undef lifreq
-#endif
-
-#ifndef SIOCGLIFCONF
-#define SIOCGLIFCONF SIOCGIFCONF
-#define lifc_len ifc_len
-#define lifc_buf ifc_buf
-#define lifc_req ifc_req
-#define lifconf ifconf
+#ifdefined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
+#ifdef ISC_PLATFORM_HAVEIF_LADDRCONF
+#define lifc_len iflc_len
+#define lifc_buf iflc_buf
+#define lifc_req iflc_req
+#define LIFCONF if_laddrconf
 #else
 #define ISC_HAVE_LIFC_FAMILY 1
 #define ISC_HAVE_LIFC_FLAGS 1
+#define LIFCONF lifconf
 #endif
-#ifndef SIOCGLIFADDR
-#define SIOCGLIFADDR SIOCGIFADDR
-#define SIOCGLIFFLAGS SIOCGIFFLAGS
-#define SIOCGLIFDSTADDR SIOCGIFDSTADDR
-#define SIOCGLIFNETMASK SIOCGIFNETMASK
-#define lifr_addr ifr_addr
-#define lifr_name ifr_name
-#define	lifr_dstaddr ifr_dstaddr
-#define lifr_flags ifr_flags
+
+#ifdef ISC_PLATFORM_HAVEIF_LADDRREQ
+#define lifr_addr iflr_addr
+#define lifr_name iflr_name
+#define lifr_dstaddr iflr_dstaddr
+#define lifr_flags iflr_flags
 #define ss_family sa_family
-#define lifreq ifreq
+#define LIFREQ if_laddrreq
+#else
+#define LIFREQ lifreq
 #endif
+#endif
+
 
 
 #define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'T')
@@ -70,7 +54,11 @@ struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */
 	isc_mem_t		*mctx;
 	int			socket;
-	struct lifconf 		ifc;
+	int			mode;
+	struct ifconf 		ifc;
+#if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
+	struct LIFCONF 		lifc;
+#endif
 	void			*buf;		/* Buffer for sysctl data. */
 	unsigned int		bufsize;	/* Bytes allocated. */
 	unsigned int		pos;		/* Current offset in
@@ -86,6 +74,159 @@ struct isc_interfaceiter {
  */
 #define IFCONF_BUFSIZE_INITIAL	4096
 #define IFCONF_BUFSIZE_MAX	1048576
+
+static isc_result_t
+getbuf4(isc_interfaceiter_t *iter) {
+	char strbuf[ISC_STRERRORSIZE];
+
+	iter->bufsize = IFCONF_BUFSIZE_INITIAL;
+	for (;;) {
+		iter->buf = isc_mem_get(iter->mctx, iter->bufsize);
+		if (iter->buf == NULL)
+			return (ISC_R_NOMEMORY);
+
+		memset(&iter->ifc.ifc_len, 0, sizeof(iter->ifc.ifc_len));
+		iter->ifc.ifc_len = iter->bufsize;
+		iter->ifc.ifc_buf = iter->buf;
+		/*
+		 * Ignore the HP/UX warning about "interger overflow during
+		 * conversion".  It comes from its own macro definition,
+		 * and is really hard to shut up.
+		 */
+		if (ioctl(iter->socket, SIOCGIFCONF, (char *)&iter->ifc)
+		    == -1) {
+			if (errno != EINVAL) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+						 isc_msgcat_get(isc_msgcat,
+						        ISC_MSGSET_IFITERIOCTL,
+						        ISC_MSG_GETIFCONFIG,
+						        "get interface "
+						        "configuration: %s"),
+						 strbuf);
+				goto unexpected;
+			}
+			/*
+			 * EINVAL.  Retry with a bigger buffer.
+			 */
+		} else {
+			/*
+			 * The ioctl succeeded.
+			 * Some OS's just return what will fit rather
+			 * than set EINVAL if the buffer is too small
+			 * to fit all the interfaces in.  If
+			 * ifc.lifc_len is too near to the end of the
+			 * buffer we will grow it just in case and
+			 * retry.
+			 */
+			if (iter->ifc.ifc_len + 2 * sizeof(struct ifreq)
+			    < iter->bufsize)
+				break;
+		}
+		if (iter->bufsize >= IFCONF_BUFSIZE_MAX) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_IFITERIOCTL,								ISC_MSG_BUFFERMAX,								"get interface "								"configuration: "								"maximum buffer "
+							"size exceeded"));
+			goto unexpected;
+		}
+		isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
+
+		iter->bufsize *= 2;
+	}
+	iter->mode = 4;
+	return (ISC_R_SUCCESS);
+
+ unexpected:
+	isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
+	iter->buf = NULL;
+	return (ISC_R_UNEXPECTED);
+}
+
+static isc_result_t
+getbuf6(isc_interfaceiter_t *iter) {
+#if !defined(SIOCGLIFCONF) || !defined(SIOCGLIFADDR)
+	UNUSED(iter);
+	return (ISC_R_NOTIMPLEMENTED);
+#else
+	char strbuf[ISC_STRERRORSIZE];
+
+	iter->bufsize = IFCONF_BUFSIZE_INITIAL;
+
+	for (;;) {
+		iter->buf = isc_mem_get(iter->mctx, iter->bufsize);
+		if (iter->buf == NULL)
+			return (ISC_R_NOMEMORY);
+
+		memset(&iter->lifc.lifc_len, 0, sizeof(iter->lifc.lifc_len));
+#ifdef ISC_HAVE_LIFC_FAMILY
+		iter->lifc.lifc_family = AF_UNSPEC;
+#endif
+#ifdef ISC_HAVE_LIFC_FLAGS
+		iter->lifc.lifc_flags = 0;
+#endif
+		iter->lifc.lifc_len = iter->bufsize;
+		iter->lifc.lifc_buf = iter->buf;
+		/*
+		 * Ignore the HP/UX warning about "interger overflow during
+		 * conversion".  It comes from its own macro definition,
+		 * and is really hard to shut up.
+		 */
+		if (ioctl(iter->socket, SIOCGLIFCONF, (char *)&iter->lifc)
+		    == -1) {
+			if (errno != EINVAL) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+						 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_IFITERIOCTL,
+							ISC_MSG_GETIFCONFIG,
+							"get interface "
+							"configuration: %s"),
+						 strbuf);
+				goto unexpected;
+			}
+			/*
+			 * EINVAL.  Retry with a bigger buffer.
+			 */
+		} else {
+			/*
+			 * The ioctl succeeded.
+			 * Some OS's just return what will fit rather
+			 * than set EINVAL if the buffer is too small
+			 * to fit all the interfaces in.  If
+			 * ifc.ifc_len is too near to the end of the
+			 * buffer we will grow it just in case and
+			 * retry.
+			 */
+			if (iter->lifc.lifc_len + 2 * sizeof(struct LIFREQ)
+			    < iter->bufsize)
+				break;
+		}
+		if (iter->bufsize >= IFCONF_BUFSIZE_MAX) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_IFITERIOCTL,
+							ISC_MSG_BUFFERMAX,
+							"get interface "
+							"configuration: "
+							"maximum buffer "
+							"size exceeded"));
+			goto unexpected;
+		}
+		isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
+
+		iter->bufsize *= 2;
+	}
+
+	iter->mode = 6;
+	return (ISC_R_SUCCESS);
+
+ unexpected:
+	isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
+	iter->buf = NULL;
+	return (ISC_R_UNEXPECTED);
+#endif
+}
 
 isc_result_t
 isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
@@ -103,6 +244,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 	iter->mctx = mctx;
 	iter->buf = NULL;
+	iter->mode = 0;
 
 	/*
 	 * Create an unbound datagram socket to do the SIOCGLIFADDR ioctl on.
@@ -124,76 +266,14 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * Get the interface configuration, allocating more memory if
 	 * necessary.
 	 */
-	iter->bufsize = IFCONF_BUFSIZE_INITIAL;
 
-	for (;;) {
-		iter->buf = isc_mem_get(mctx, iter->bufsize);
-		if (iter->buf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto alloc_failure;
-		}
-
-		memset(&iter->ifc, 0, sizeof(iter->ifc));
-#ifdef ISC_HAVE_LIFC_FAMILY
-		iter->ifc.lifc_family = AF_UNSPEC;
-#endif
-#ifdef ISC_HAVE_LIFC_FLAGS
-		iter->ifc.lifc_flags = 0;
-#endif
-		iter->ifc.lifc_len = iter->bufsize;
-		iter->ifc.lifc_buf = iter->buf;
-		/*
-		 * Ignore the HP/UX warning about "interger overflow during
-		 * conversion".  It comes from its own macro definition,
-		 * and is really hard to shut up.
-		 */
-		if (ioctl(iter->socket, SIOCGLIFCONF, (char *)&iter->ifc)
-		    == -1) {
-			if (errno != EINVAL) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_IFITERIOCTL,
-							ISC_MSG_GETIFCONFIG,
-							"get interface "
-							"configuration: %s"),
-						 strbuf);
-				result = ISC_R_UNEXPECTED;
-				goto ioctl_failure;
-			}
-			/*
-			 * EINVAL.  Retry with a bigger buffer.
-			 */
-		} else {
-			/*
-			 * The ioctl succeeded.
-			 * Some OS's just return what will fit rather
-			 * than set EINVAL if the buffer is too small
-			 * to fit all the interfaces in.  If
-			 * ifc.lifc_len is too near to the end of the
-			 * buffer we will grow it just in case and
-			 * retry.
-			 */
-			if (iter->ifc.lifc_len + 2 * sizeof(struct lifreq)
-			    < iter->bufsize)
-				break;
-		}
-		if (iter->bufsize >= IFCONF_BUFSIZE_MAX) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_IFITERIOCTL,
-							ISC_MSG_BUFFERMAX,
-							"get interface "
-							"configuration: "
-							"maximum buffer "
-							"size exceeded"));
-			result = ISC_R_UNEXPECTED;
-			goto ioctl_failure;
-		}
-		isc_mem_put(mctx, iter->buf, iter->bufsize);
-
-		iter->bufsize *= 2;
-	}
+	result = isc_net_probeipv6();
+	if (result == ISC_R_SUCCESS)
+		result = getbuf6(iter);
+	if (result != ISC_R_SUCCESS)
+		result = getbuf4(iter);
+	if (result != ISC_R_SUCCESS)
+		goto ioctl_failure;
 
 	/*
 	 * A newly created iterator has an undefined position
@@ -207,9 +287,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	return (ISC_R_SUCCESS);
 
  ioctl_failure:
-	isc_mem_put(mctx, iter->buf, iter->bufsize);
-
- alloc_failure:
+	if (iter->buf != NULL)
+		isc_mem_put(mctx, iter->buf, iter->bufsize);
 	(void) close(iter->socket);
 
  socket_failure:
@@ -226,22 +305,149 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
  */
 
 static isc_result_t
-internal_current(isc_interfaceiter_t *iter) {
-	struct lifreq *ifrp;
-	struct lifreq lifreq;
+internal_current4(isc_interfaceiter_t *iter) {
+	struct ifreq *ifrp;
+	struct ifreq ifreq;
 	int family;
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(VALID_IFITER(iter));
-	REQUIRE (iter->pos < (unsigned int) iter->ifc.lifc_len);
+	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
 
-	ifrp = (struct lifreq *)((char *) iter->ifc.lifc_req + iter->pos);
+	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
+
+	memset(&ifreq, 0, sizeof ifreq);
+	memcpy(&ifreq, ifrp, sizeof ifreq);
+
+	family = ifreq.ifr_addr.sa_family;
+#ifdef ISC_PLATFORM_HAVEIPV6
+	if (family != AF_INET && family != AF_INET6)
+#else
+	if (family != AF_INET)
+#endif
+		return (ISC_R_IGNORE);
+
+	memset(&iter->current, 0, sizeof(iter->current));
+	iter->current.af = family;
+
+	INSIST(sizeof(ifreq.ifr_name) <= sizeof(iter->current.name));
+	memset(iter->current.name, 0, sizeof(iter->current.name));
+	memcpy(iter->current.name, ifreq.ifr_name, sizeof(ifreq.ifr_name));
+
+	get_addr(family, &iter->current.address,
+		 (struct sockaddr *)&ifreq.ifr_addr);
+
+	/*
+	 * Get interface flags.
+	 */
+
+	iter->current.flags = 0;
+
+	/*
+	 * Ignore the HP/UX warning about "interger overflow during
+	 * conversion.  It comes from its own macro definition,
+	 * and is really hard to shut up.
+	 */
+	if (ioctl(iter->socket, SIOCGIFFLAGS, (char *) &ifreq) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: getting interface flags: %s",
+				 ifreq.ifr_name, strbuf);
+		return (ISC_R_IGNORE);
+	}
+
+	if ((ifreq.ifr_flags & IFF_UP) != 0)
+		iter->current.flags |= INTERFACE_F_UP;
+
+	if ((ifreq.ifr_flags & IFF_POINTOPOINT) != 0)
+		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
+
+	if ((ifreq.ifr_flags & IFF_LOOPBACK) != 0)
+		iter->current.flags |= INTERFACE_F_LOOPBACK;
+
+	/*
+	 * If the interface is point-to-point, get the destination address.
+	 */
+	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
+		/*
+		 * Ignore the HP/UX warning about "interger overflow during
+		 * conversion.  It comes from its own macro definition,
+		 * and is really hard to shut up.
+		 */
+		if (ioctl(iter->socket, SIOCGIFDSTADDR, (char *)&ifreq)
+		    < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+				isc_msgcat_get(isc_msgcat,
+					       ISC_MSGSET_IFITERIOCTL,
+					       ISC_MSG_GETDESTADDR,
+					       "%s: getting "
+					       "destination address: %s"),
+					 ifreq.ifr_name, strbuf);
+			return (ISC_R_IGNORE);
+		}
+		get_addr(family, &iter->current.dstaddress,
+			 (struct sockaddr *)&ifreq.ifr_dstaddr);
+	}
+
+	/*
+	 * Get the network mask.
+	 */
+	memset(&ifreq, 0, sizeof ifreq);
+	memcpy(&ifreq, ifrp, sizeof ifreq);
+	switch (family) {
+	case AF_INET:
+		/*
+		 * Ignore the HP/UX warning about "interger overflow during
+		 * conversion.  It comes from its own macro definition,
+		 * and is really hard to shut up.
+		 */
+		if (ioctl(iter->socket, SIOCGIFNETMASK, (char *)&ifreq)
+		    < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+				isc_msgcat_get(isc_msgcat,
+					       ISC_MSGSET_IFITERIOCTL,
+					       ISC_MSG_GETNETMASK,
+					       "%s: getting netmask: %s"),
+					       ifreq.ifr_name, strbuf);
+			return (ISC_R_IGNORE);
+		}
+		get_addr(family, &iter->current.netmask,
+			 (struct sockaddr *)&ifreq.ifr_addr);
+		break;
+	case AF_INET6:
+		break;
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+internal_current6(isc_interfaceiter_t *iter) {
+#if !defined(SIOCGLIFCONF) || !defined(SIOCGLIFADDR)
+	UNUSED(iter);
+	return (ISC_R_NOTIMPLEMENTED);
+#else
+	struct LIFREQ *ifrp;
+	struct LIFREQ lifreq;
+	int family;
+	char strbuf[ISC_STRERRORSIZE];
+
+	REQUIRE(VALID_IFITER(iter));
+	REQUIRE (iter->pos < (unsigned int) iter->lifc.lifc_len);
+
+	ifrp = (struct LIFREQ *)((char *) iter->lifc.lifc_req + iter->pos);
 
 	memset(&lifreq, 0, sizeof lifreq);
 	memcpy(&lifreq, ifrp, sizeof lifreq);
 
 	family = lifreq.lifr_addr.ss_family;
+#ifdef ISC_PLATFORM_HAVEIPV6
+	if (family != AF_INET && family != AF_INET6)
+#else
 	if (family != AF_INET)
+#endif
 		return (ISC_R_IGNORE);
 
 	memset(&iter->current, 0, sizeof(iter->current));
@@ -372,6 +578,14 @@ internal_current(isc_interfaceiter_t *iter) {
 	}
 
 	return (ISC_R_SUCCESS);
+#endif
+}
+
+static isc_result_t
+internal_current(isc_interfaceiter_t *iter) {
+	if (iter->mode == 6)
+		return (internal_current6(iter));
+	return (internal_current4(iter));
 }
 
 /*
@@ -382,12 +596,37 @@ internal_current(isc_interfaceiter_t *iter) {
  * interfaces, otherwise ISC_R_SUCCESS.
  */
 static isc_result_t
-internal_next(isc_interfaceiter_t *iter) {
-	struct lifreq *ifrp;
+internal_next4(isc_interfaceiter_t *iter) {
+	struct ifreq *ifrp;
 
-	REQUIRE (iter->pos < (unsigned int) iter->ifc.lifc_len);
+	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
 
-	ifrp = (struct lifreq *)((char *) iter->ifc.lifc_req + iter->pos);
+	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
+
+#ifdef ISC_PLATFORM_HAVESALEN
+	if (ifrp->ifr_addr.sa_len > sizeof(struct sockaddr))
+		iter->pos += sizeof(ifrp->ifr_name) + ifrp->ifr_addr.sa_len;
+	else
+#endif
+		iter->pos += sizeof *ifrp;
+
+	if (iter->pos >= (unsigned int) iter->ifc.ifc_len)
+		return (ISC_R_NOMORE);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+internal_next6(isc_interfaceiter_t *iter) {
+#if !defined(SIOCGLIFCONF) || !defined(SIOCGLIFADDR)
+	UNUSED(iter);
+	return (ISC_R_NOTIMPLEMENTED);
+#else
+	struct LIFREQ *ifrp;
+
+	REQUIRE (iter->pos < (unsigned int) iter->lifc.lifc_len);
+
+	ifrp = (struct LIFREQ *)((char *) iter->lifc.lifc_req + iter->pos);
 
 #ifdef ISC_PLATFORM_HAVESALEN
 	if (ifrp->lifr_addr.sa_len > sizeof(struct sockaddr))
@@ -396,10 +635,18 @@ internal_next(isc_interfaceiter_t *iter) {
 #endif
 		iter->pos += sizeof *ifrp;
 
-	if (iter->pos >= (unsigned int) iter->ifc.lifc_len)
+	if (iter->pos >= (unsigned int) iter->lifc.lifc_len)
 		return (ISC_R_NOMORE);
 
 	return (ISC_R_SUCCESS);
+#endif
+}
+
+static isc_result_t
+internal_next(isc_interfaceiter_t *iter) {
+	if (iter->mode == 6)
+		return (internal_next6(iter));
+	return (internal_next4(iter));
 }
 
 static void

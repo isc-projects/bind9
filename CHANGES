@@ -1,3 +1,6 @@
+1065.	[func]		Runtime support to select new / old style interface
+			scanning using ioctls.
+
 1502.	[bug]		nsupdate: adjust timeouts for UPDATE requests over TCP.
 
 1501.	[func]		Allow TCP queue length to be specified via
@@ -80,8 +83,6 @@
 1412.	[func]		You can now specify servers to be tried if a nameserver
 			has IPv6 address and you only support IPv4 or the
 			reverse. See dual-stack-servers.
-
-1405.	[func]		Use arc4random() if available.
 
 1403.	[func]		dnssec-signzone, dnssec-keygen, dnssec-makekeyset
 			dnssec-signkey now report their version in the
@@ -683,6 +684,8 @@
 
 1406.	[bug]		dispatch initialises one of the LFSR's with a incorrect
 			polynomial.  [RT #4617]
+
+1405.	[func]		Use arc4random() if available.
 
 1401.	[bug]		adb wasn't clearing state when the timer expired.
 

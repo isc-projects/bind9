@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.22.2.1.10.4 2003/08/27 03:15:26 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.22.2.1.10.5 2003/09/02 04:51:12 marka Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,11 @@
 #include <isc/interfaceiter.h>
 #include <isc/util.h>
 
-#include <net/if.h>		/* Must follow <isc/net.h>. */
+/* Must follow <isc/net.h>. */
+#ifdef HAVE_NET_IF6_H
+#include <net/if6.h>
+#endif
+#include <net/if.h>
 
 /* Common utility functions */
 
