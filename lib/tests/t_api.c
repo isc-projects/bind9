@@ -72,7 +72,7 @@ static char	*T_dir;
 static int	t_initconf(char *path);
 static int	t_dumpconf(char *path);
 static int	t_putinfo(const char *key, const char *info);
-static char	*t_getdate(void);
+static char	*t_getdate(char *buf, size_t buflen);
 static void	printhelp(void);
 static void	printusage(void);
 static void	t_sigalrm();
@@ -90,9 +90,9 @@ main(int argc, char **argv)
 	int		c;
 	int		tnum;
 	int		subprocs;
-	char		*date;
 	pid_t		deadpid;
 	int		status;
+	int		len;
 	testspec_t	*pts;
 
 	subprocs = 1;
@@ -170,15 +170,18 @@ main(int argc, char **argv)
 	if (T_dir != NULL)
 		(void) chdir(T_dir);
 
-	/* output time to journal */
-
 	(void) setbuf(stdout, NULL);
+	(void) setbuf(stderr, NULL);
 
-	date = t_getdate();
-	t_putinfo("S", date);
+	/* output start stanza to journal */
+
+	sprintf(T_buf, "%s:", argv[0]);
+	len = strlen(T_buf);
+	(void) t_getdate(T_buf + len, T_BIGBUF - len);
+	t_info("S", T_buf);
 
 	/*
-	 * then setup the test environment using the config file
+	 * setup the test environment using the config file
 	 */
 	if (T_config == NULL)
 		T_config = T_DEFAULT_CONFIG;
@@ -247,6 +250,9 @@ main(int argc, char **argv)
 		++pts;
 		++tnum;
 	}
+
+	(void) t_getdate(T_buf, T_BIGBUF);
+	t_putinfo("E", T_buf);
 
 	return(0);
 }
@@ -472,21 +478,20 @@ t_putinfo(const char *key, const char *info)
 
 	/* for now */
 	rval = printf("%s:%s", key, info);
-	fflush(stdout);
 	return(rval);
 }
 
 static char *
-t_getdate()
+t_getdate(char *buf, size_t buflen)
 {
-	int		n;
+	size_t		n;
 	time_t		t;
 	struct tm	*p;
 
 	t = time(NULL);
 	p = localtime(&t);
-	n = strftime(T_buf, T_BIGBUF, "%A %d %B %H:%M:%S %Y\n", p);
-	return(T_buf);
+	n = strftime(buf, buflen - 1, "%A %d %B %H:%M:%S %Y\n", p);
+	return(n != 0 ? buf : NULL);
 }
 
 /* some generally used utilities */
