@@ -168,6 +168,10 @@ Building
 	Shared libraries will be built if "--with-libtool" is added to the
 	"configure" command.
 
+	If you're planning on making changes to the BIND 9 source, you
+	should also "make depend".  If you're using Emacs, you might find
+	"make tags" helpful.
+
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
 
