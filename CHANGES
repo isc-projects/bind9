@@ -1,4 +1,8 @@
 
+ 706.	[bug]		Zones with an explicit "allow-update { none; };"
+			were considered dynamic and therefore not reloaded
+			on SIGNUP or "rndc reload".
+
  705.	[port]		Work out resource limit type for use where rlim_t is
 			not available. [RT #695]
 
