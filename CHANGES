@@ -1,3 +1,7 @@
+ 861.	[port]		Add support for Mac OS X, by making it equivalent
+ 			to Darwin.  This was derived from the config.guess
+			file shipped with Mac OS X. [RT #1355]
+
  860.	[func]		Drop cross class glue in zone transfers.
 
  859.	[bug]		Cache cleaning now won't swamp the CPU if there
