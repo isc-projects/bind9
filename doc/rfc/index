@@ -77,3 +77,6 @@
 3445:	Limiting the Scope of the KEY Resource Record (RR)
 3493:	Basic Socket Interface Extensions for IPv6
 3597:	Handling of Unknown DNS Resource Record (RR) Types
+3645:	Generic Security Service Algorithm for
+	 Secret Key Transaction Authentication for DNS (GSS-TSIG)
+
