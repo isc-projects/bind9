@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.33 2000/11/07 23:49:24 mws Exp $ */
+/* $Id: os.c,v 1.34 2000/11/08 18:58:00 mws Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -39,9 +39,6 @@
 #include <named/os.h>
 
 static char *pidfile = NULL;
-static char *statsfile = NULL;
-int statsfd = -1;
-FILE *statsptr = NULL;
 
 /*
  * If there's no <linux/capability.h>, we don't care about <linux/prctl.h>
@@ -461,70 +458,6 @@ ns_os_writepidfile(const char *filename) {
                 ns_main_earlyfatal("fflush() to pid file '%s' failed",
 				   filename);
 	(void)fclose(lockfile);
-}
-
-void
-ns_os_freestatsfile(void) {
-	if (statsfile != NULL)
-		free(statsfile);
-	statsfile = NULL;
-}
-
-void
-ns_os_setstatsfilename(const char *name) {
-	int len;
-
-	ns_os_freestatsfile();
-	len = strlen(name);
-	statsfile = malloc(len + 1);
-	if (statsfile == NULL)
-                ns_main_earlyfatal("couldn't malloc '%s': %s",
-				   name, strerror(errno));
-	strcpy(statsfile, name);
-}
-
-isc_result_t
-ns_os_openstatsfile(void) {
-	/*
-	 * XXXMWS Is this "2 phase" open really necessary?
-	 */
-
-	if (statsfd >= 0)
-		close(statsfd);
-        statsfd = safe_open(statsfile, ISC_TRUE);
-        if (statsfd < 0)
-		return (ISC_R_FAILURE);
-        statsptr = fdopen(statsfd, "w");
-        if (statsptr == NULL) {
-		close(statsfd);
-		statsfd = -1;
-		return (ISC_R_FAILURE);
-	}
-	return (ISC_R_SUCCESS);
-}
-
-void
-ns_os_closestatsfile(void) {
-	if (statsptr != NULL)
-		fclose(statsptr);
-	statsptr = NULL;
-	if (statsfd >= 0)
-		close(statsfd);
-	statsfd = -1;
-}
-
-isc_result_t
-ns_os_statsprintf(const char *format, ...) {
-	va_list args;
-
-	if (statsptr == NULL)
-		return (ISC_R_FAILURE);
-	/* XXXMWS Better failure case needed */
-
-	va_start(args, format);
-	vfprintf(statsptr, format, args);
-	va_end(args);
-	return (ISC_R_SUCCESS);
 }
 
 void

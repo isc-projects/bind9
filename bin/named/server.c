@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.241 2000/11/08 18:46:40 halley Exp $ */
+/* $Id: server.c,v 1.242 2000/11/08 18:57:59 mws Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/lex.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -96,6 +97,9 @@ typedef struct {
 	dns_viewlist_t		viewlist;
 	dns_aclconfctx_t	*aclconf;
 } ns_load_t;
+
+static char *statsfile = NULL;
+FILE *statsfp = NULL;
 
 static void
 fatal(const char *msg, isc_result_t result);
@@ -1296,6 +1300,69 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 	RWUNLOCK(&server->conflock, isc_rwlocktype_read);
 }
 
+static void
+ns_server_freestatsfile(isc_mem_t *mctx) {
+	if (statsfile != NULL)
+		isc_mem_free(mctx,statsfile);
+	statsfile = NULL;
+}
+
+static void
+ns_server_setstatsfile(const char *name, isc_mem_t *mctx) {
+	int len;
+
+	ns_server_freestatsfile(mctx);
+	len = strlen(name);
+	statsfile = isc_mem_allocate(mctx, len + 1);
+	if (statsfile == NULL)
+                fatal("allocate memory for server stats", ISC_R_NOMEMORY);
+	strcpy(statsfile, name);
+}
+
+
+static isc_result_t
+ns_server_openstatsfile(void) {
+	isc_result_t result;
+	const char *defname = "named.stats";
+	union { char *nc;
+		const char *cc; } deconst;
+
+	if (statsfile == NULL)
+		deconst.cc = defname;
+	else
+		deconst.nc = statsfile;
+	result = isc_stdio_open(deconst.nc, "a", &statsfp);
+	return (result);
+}
+
+static isc_result_t
+ns_server_closestatsfile(void) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	if (statsfp != NULL)
+		result = isc_stdio_close(statsfp);
+	statsfp = NULL;
+	return (result);
+}
+
+static isc_result_t
+ns_server_statsprintf(const char *format, ...) {
+	char outputbuf[DNS_NAME_MAXTEXT + 64];
+	/* 64 is a safe estimate for the extra text */
+	va_list args;
+
+	if (statsfp == NULL)
+		return (ISC_R_FAILURE);
+	/* XXXMWS Better failure case needed */
+
+	va_start(args, format);
+	vsnprintf(outputbuf, sizeof(outputbuf), format, args);
+	va_end(args);
+	isc_stdio_write(outputbuf, strlen(outputbuf), 1, statsfp,
+			NULL);
+	return (ISC_R_SUCCESS);
+}
+
 static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
@@ -1655,7 +1722,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		ns_os_writepidfile(ns_g_defaultpidfile);
 
 	if (dns_c_ctx_getstatsfilename(cctx, &statsfilename) != ISC_R_NOTFOUND)
-		ns_os_setstatsfilename(statsfilename);
+		ns_server_setstatsfile(statsfilename, server->mctx);
 
 	dns_aclconfctx_destroy(&aclconfctx);
 
@@ -1906,6 +1973,8 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
+	ns_server_freestatsfile(server->mctx);
+
 	dns_loadmgr_detach(&server->loadmgr);
 	dns_zonemgr_detach(&server->zonemgr);
 
@@ -2146,26 +2215,26 @@ ns_server_dumpstats(ns_server_t *server) {
 	isc_stdtime_t now;
 
 	isc_stdtime_get(&now);
-	result = ns_os_openstatsfile();
+	result = ns_server_openstatsfile();
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "Failed to open statistics dump file");
 		return (result);
 	}
-	ns_os_statsprintf("+++ Statistics Dump +++ (%ld)\n",
+	ns_server_statsprintf("+++ Statistics Dump +++ (%ld)\n",
 			  (long)now);
-	ns_os_statsprintf("SUCCESS %ld\n",
+	ns_server_statsprintf("SUCCESS %ld\n",
 			  ns_globalcount[dns_zonecount_success]);
-	ns_os_statsprintf("DELEGATED %ld\n",
+	ns_server_statsprintf("DELEGATED %ld\n",
 			  ns_globalcount[dns_zonecount_delegate]);
-	ns_os_statsprintf("NXRRSET %ld\n",
+	ns_server_statsprintf("NXRRSET %ld\n",
 			  ns_globalcount[dns_zonecount_nxrrset]);
-	ns_os_statsprintf("NXDOMAIN %ld\n",
+	ns_server_statsprintf("NXDOMAIN %ld\n",
 			  ns_globalcount[dns_zonecount_nxdomain]);
-	ns_os_statsprintf("RECURSIVE %ld\n",
+	ns_server_statsprintf("RECURSIVE %ld\n",
 			  ns_globalcount[dns_zonecount_recurse]);
-	ns_os_statsprintf("FAILED %ld\n",
+	ns_server_statsprintf("FAILED %ld\n",
 			  ns_globalcount[dns_zonecount_failure]);
 	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
 	dns_zone_first(server->zonemgr, &zone);
@@ -2180,32 +2249,32 @@ ns_server_dumpstats(ns_server_t *server) {
 		zoneview = dns_zone_getview(zone);
 		viewname = zoneview->name;
 		if (dns_zone_hascounts(zone)) {
-			ns_os_statsprintf("SUCCESS %ld %s:%s\n",
+			ns_server_statsprintf("SUCCESS %ld %s:%s\n",
 					  (long)dns_zone_getcounts(zone, 
 						   dns_zonecount_success),
 					  viewname, zonestore);
-			ns_os_statsprintf("DELEGATED %ld %s:%s\n",
+			ns_server_statsprintf("DELEGATED %ld %s:%s\n",
 					  (long)dns_zone_getcounts(zone, 
 						   dns_zonecount_delegate),
 					  viewname, zonestore);
-			ns_os_statsprintf("NXRRSET %ld %s:%s\n",
+			ns_server_statsprintf("NXRRSET %ld %s:%s\n",
 					  (long)dns_zone_getcounts(zone, 
 						   dns_zonecount_nxrrset),
 					  viewname, zonestore);
-			ns_os_statsprintf("NXDOMAIN %ld %s:%s\n",
+			ns_server_statsprintf("NXDOMAIN %ld %s:%s\n",
 					  (long)dns_zone_getcounts(zone, 
 						   dns_zonecount_nxdomain),
 					  viewname, zonestore);
-			ns_os_statsprintf("RECURSIVE %ld %s:%s\n",
+			ns_server_statsprintf("RECURSIVE %ld %s:%s\n",
 					  (long)dns_zone_getcounts(zone, 
 						   dns_zonecount_recurse),
 					  viewname, zonestore);
-			ns_os_statsprintf("FAILED %ld %s:%s\n",
+			ns_server_statsprintf("FAILED %ld %s:%s\n",
 					  (long)dns_zone_getcounts(zone, 
 						   dns_zonecount_failure),
 					  viewname, zonestore);
 		} else {
-			ns_os_statsprintf("NOSTATISTICS 0 %s:%s\n",
+			ns_server_statsprintf("NOSTATISTICS 0 %s:%s\n",
 					  viewname, zonestore);
 		}
 		isc_buffer_invalidate(&zonebuf);
@@ -2213,10 +2282,9 @@ ns_server_dumpstats(ns_server_t *server) {
 		zone = next;
 		next = NULL;
 	}
-	ns_os_statsprintf("--- Statistics Dump --- (%ld)\n",
+	ns_server_statsprintf("--- Statistics Dump --- (%ld)\n",
 			  (long)now);
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
-	ns_os_closestatsfile();
+	ns_server_closestatsfile();
 	return (ISC_R_SUCCESS);
 }
-
