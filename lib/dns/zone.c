@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.267 2000/12/04 23:58:27 gson Exp $ */
+/* $Id: zone.c,v 1.268 2000/12/05 00:36:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1215,8 +1215,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	result = ISC_R_SUCCESS;
 	if (needdump)
 		zone_needdump(zone, DNS_DUMP_DELAY);
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-		(void) zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 	return (result);
 
  cleanup:
@@ -1813,8 +1812,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	isc_stdtime_get(&now);
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-		(void) zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 }
 
@@ -1906,8 +1904,7 @@ zone_maintenance(dns_zone_t *zone) {
 	default:
 		break;
 	}
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-		(void) zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 }
 
 void
@@ -2057,7 +2054,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	if (zone->dumptime == 0 ||
 	    zone->dumptime > now + delay)
 		zone->dumptime = now + delay;
-	zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 }
 
 static isc_result_t
@@ -2544,8 +2541,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	zone->flags |= DNS_ZONEFLG_NEEDNOTIFY;
 
 	isc_stdtime_get(&now);
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-		(void) zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 }
 
@@ -2963,7 +2959,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	zone_log(zone, me, ISC_LOG_DEBUG(20),
 		 "refresh time (%u/%u), now %u",
 		 zone->refreshtime, zone->refresh, now);
-	zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 	goto free_stub;
 
@@ -2982,7 +2978,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if (exiting || zone->curmaster >= zone->masterscnt) {
 		zone->flags &= ~DNS_ZONEFLG_REFRESH;
 
-		zone_settimer(zone, now);
+		(void)zone_settimer(zone, now);
 		UNLOCK(&zone->lock);
 		goto free_stub;
 	}
@@ -3248,7 +3244,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			zone->flags &= ~DNS_ZONEFLG_NEEDREFRESH;
 			zone->refreshtime = now;
 		}
-		zone_settimer(zone, now);
+		(void)zone_settimer(zone, now);
 		UNLOCK(&zone->lock);
 		return;
 	}
@@ -3632,6 +3628,7 @@ zone_timer(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "zone_timer";
 	dns_zone_t *zone = (dns_zone_t *)event->ev_arg;
 	UNUSED(task);
+	REQUIRE(DNS_ZONE_VALID(zone));
 
 	DNS_ENTER;
 
@@ -3652,6 +3649,8 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
+		return (ISC_R_SUCCESS);
 
 	switch (zone->type) {
 	case dns_zone_master:
@@ -3730,8 +3729,7 @@ cancel_refresh(dns_zone_t *zone) {
 
 	zone->flags &= ~DNS_ZONEFLG_REFRESH;
 	isc_stdtime_get(&now);
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-		zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 }
 
 static isc_result_t
@@ -4671,7 +4669,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		}
 		break;
 	}
-	zone_settimer(zone, now);
+	(void)zone_settimer(zone, now);
 	UNLOCK(&zone->lock);
 
 	/*
