@@ -55,10 +55,13 @@
 
 #include <isc/boolean.h>
 #include <isc/mem.h>
+#include <isc/lang.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+
+ISC_LANG_BEGINDECLS
 
 /*****
  ***** Types
@@ -113,13 +116,12 @@ struct dns_db {
 	unsigned int			impmagic;
 	dns_dbmethods_t *		methods;
 	isc_uint16_t			attributes;
-	dns_rdataclass_t		class;
+	dns_rdataclass_t		rdclass;
 	dns_name_t			origin;
 	isc_mem_t *			mctx;
 };
 
 #define DNS_DBATTR_CACHE		0x01
-#define DNS_DBATTR_LOADED		0x02
 
 /*****
  ***** Methods
@@ -131,14 +133,14 @@ struct dns_db {
 
 dns_result_t
 dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
-	      isc_boolean_t cache, dns_rdataclass_t class,
+	      isc_boolean_t cache, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp);
 /*
  * Create a new database using implementation 'db_type'.
  *
  * Notes:
  *	All names in the database must be subdomains of 'origin' and in class
- *	'class'.  The database makes its own copy of the origin, so the caller
+ *	'rdclass'.  The database makes its own copy of the origin, so the caller
  *	may do whatever they like with 'origin' and its storage once the
  *	call returns.
  *
@@ -284,7 +286,7 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  * Requires:
  *
- *	'db' is a valid database.
+ *	'db' is a valid database with zone semantics.
  *
  *	versionp != NULL && *verisonp == NULL
  *
@@ -301,10 +303,7 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  * Requires:
  *
- *	'db' is a valid database.
- *
- *	If 'db' has zone semantics, then no other version may be open
- *	for reading and writing.
+ *	'db' is a valid database with zone semantics.
  *
  *	versionp != NULL && *verisonp == NULL
  *
@@ -334,7 +333,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *
  * Requires:
  *
- *	'db' is a valid database.
+ *	'db' is a valid database with zone semantics.
  *
  *	'*versionp' refers to a valid version.
  *
@@ -343,9 +342,9 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *	*versionp == NULL
  *
  *	If *versionp is a read-write version, and commit is ISC_TRUE, then
- *	the version will (eventually) become the current version.  If !commit,
- *	then all changes made in the version will be undone, and the version
- *	will not become the current version.
+ *	the version will become the current version.  If !commit, then all
+ *	changes made in the version will be undone, and the version will
+ *	not become the current version.
  */
 
 /***
@@ -472,7 +471,9 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	'rdataset' is a valid, associated rdataset.
  *
- *	'version' is a valid read-write version.
+ *	The database has zone semantics and 'version' is a valid
+ *	read-write version, or the database has cache semantics
+ *	and version is NULL.
  *
  * Returns:
  *
@@ -507,7 +508,9 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  *	'node' is a valid node.
  *
- *	'version' is a valid read-write version.
+ *	The database has zone semantics and 'version' is a valid
+ *	read-write version, or the database has cache semantics
+ *	and version is NULL.
  *
  *	'type' is not a meta-RR type, except for dns_rdatatype_any, which is
  *	allowed.
@@ -529,4 +532,6 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
   * XXX Need rdataset iterator for ANY queries.
   */
  
+ISC_LANG_ENDDECLS
+
 #endif /* DNS_DB_H */
