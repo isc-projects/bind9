@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.19 2001/01/09 21:59:09 bwelling Exp $ */
+/* $Id: time.h,v 1.20 2001/08/31 22:31:18 gson Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -280,5 +280,19 @@ isc_time_nanoseconds(isc_time_t *t);
  */
 
 ISC_LANG_ENDDECLS
+
+void
+isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
+/*
+ * Format the time 't' into the buffer 'buf' of length 'len',
+ * using a format like "Aug 30 04:06:47.997" and the local time zone.
+ * If the text does not fit in the buffer, the result is indeterminate,
+ * but is always guaranteed to be null terminated.
+ *
+ *  Requires:
+ *      'len' > 0
+ *      'buf' points to an array of at least len chars
+ *
+ */
 
 #endif /* ISC_TIME_H */

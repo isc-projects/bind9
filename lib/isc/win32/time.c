@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.25 2001/08/30 04:31:31 mayer Exp $ */
+/* $Id: time.c,v 1.26 2001/08/31 22:31:17 gson Exp $ */
 
 /*
  * Windows has a different epoch than Unix. Therefore this code sets the epoch
@@ -373,4 +373,26 @@ isc_time_nanoseconds(isc_time_t *t) {
 	FileTimeToSystemTime(&t->absolute, &st);
 
 	return ((isc_uint32_t)(st.wMilliseconds * 1000000));
+}
+
+void
+isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
+	FILETIME localft;
+	SYSTEMTIME st;
+
+	static const char *months[] = {
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+	};
+	
+	REQUIRE(len > 0);
+	if (FileTimeToLocalFileTime(&t->absolute, &localft) &&
+	    FileTimeToSystemTime(&localft, &st))
+	{
+		snprintf(buf, len, "%s %2u %02u:%02u:%02u.%03u",
+		months[st.wMonth], st.wDay, st.wHour, st.wMinute,
+		st.wSecond, st.wMilliseconds);
+	} else {
+		snprintf(buf, len, "<bad time>");
+	}
 }
