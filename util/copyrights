@@ -136,9 +136,9 @@
 ./bin/named/lwsearch.c				C	2000,2001,2004
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004
 ./bin/named/named.8				MAN	2000,2001,2003,2004
-./bin/named/named.conf.5			MAN	2004
+./bin/named/named.conf.5			MAN	2004,2005
 ./bin/named/named.conf.docbook			SGML	2004,2005
-./bin/named/named.conf.html			HTML	2004
+./bin/named/named.conf.html			HTML	2004,2005
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004
 ./bin/named/named.html				HTML	2000,2001,2003,2004
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004
@@ -178,7 +178,7 @@
 ./bin/rndc/rndc-confgen.docbook			SGML	2001,2003,2004
 ./bin/rndc/rndc-confgen.html			HTML	2001,2002,2003,2004
 ./bin/rndc/rndc.8				MAN	2000,2001,2004
-./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004
+./bin/rndc/rndc.c				C	2000,2001,2002,2003,2004,2005
 ./bin/rndc/rndc.conf				CONF-C	2000,2001,2004
 ./bin/rndc/rndc.conf.5				MAN	2000,2001,2004
 ./bin/rndc/rndc.conf.docbook			SGML	2001,2004
@@ -1697,11 +1697,11 @@
 ./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004
 ./lib/dns/include/dns/version.h			C	2001,2004
-./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004
+./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004
 ./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/include/dns/zonekey.h			C	2001,2004
-./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004
+./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005
 ./lib/dns/include/dst/.cvsignore		X	2000,2001
 ./lib/dns/include/dst/Makefile.in		MAKE	1998,1999,2000,2001,2004
 ./lib/dns/include/dst/dst.h			C	2000,2001,2002,2004
@@ -1855,7 +1855,7 @@
 ./lib/dns/ttl.c					C	1999,2000,2001,2004
 ./lib/dns/validator.c				C	2000,2001,2002,2003,2004
 ./lib/dns/version.c				C	1998,1999,2000,2001,2004
-./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004
+./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/win32/DLLMain.c			C	2001,2004
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
@@ -1868,7 +1868,7 @@
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/zonekey.c				C	2001,2003,2004
-./lib/dns/zt.c					C	1999,2000,2001,2002,2004
+./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005
 ./lib/isc/.cvsignore				X	1999,2000,2001
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004
 ./lib/isc/api					X	1999,2000,2001
