@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.161 2002/02/20 03:34:16 marka Exp $ */
+/* $Id: rdata.c,v 1.162 2002/03/05 01:02:06 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -196,7 +196,7 @@ getquad(const void *src, struct in_addr *dst,
 		const char *name = isc_lex_getsourcename(lexer);
 		if (name == NULL)
 			name = "UNKNOWN";
-		(*callbacks->warn)(callbacks, "%s:%lu: warning \"%s\" "
+		(*callbacks->warn)(callbacks, "%s:%lu: \"%s\" "
 				   "is not a decimal dotted quad", name,
 				   isc_lex_getsourceline(lexer), src);
 	}
