@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.25 1999/11/17 21:52:29 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.26 1999/11/30 22:01:16 gson Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2070,9 +2070,21 @@ address_match_element: address_match_simple
 address_match_simple: ip_address
         {
                 dns_c_ipmatchelement_t *ime = NULL;
-
+		unsigned int prefixlen;
+		switch ($1.type.sa.sa_family) {
+		case AF_INET:
+			prefixlen = 32;
+			break;
+		case AF_INET6:
+			prefixlen = 128;
+			break;
+		default:
+			INSIST(0);
+			break;
+		}
                 tmpres = dns_c_ipmatchpattern_new(logcontext,
-                                                  currcfg->mem, &ime, $1, 0);
+                                                  currcfg->mem, &ime, $1,
+						  prefixlen);
                 switch (tmpres) {
                 case ISC_R_FAILURE:
                         parser_error(ISC_FALSE, "bad address match element.");
@@ -2096,8 +2108,8 @@ address_match_simple: ip_address
                 dns_c_ipmatchelement_t *ime = NULL;
 
                 if ($3 < 0 ||
-                    ($1.type.sa.sa_family == AF_INET && $3 > 31) ||
-                    ($1.type.sa.sa_family == AF_INET6 && $3 > 127)) {
+                    ($1.type.sa.sa_family == AF_INET && $3 > 32) ||
+                    ($1.type.sa.sa_family == AF_INET6 && $3 > 128)) {
                         parser_warning(ISC_FALSE,
                                        "mask bits (%d) out of range: "
                                        "skipping", (int)$3);
@@ -2145,11 +2157,8 @@ address_match_simple: ip_address
                                 $$ = NULL;
                         } else {
                                 ia.s_addr = htonl(($1 & 0xff) << 24);
-
-				memset(&address, 0x0, sizeof address);
-                                address.type.sin.sin_family = AF_INET;
-                                address.type.sin.sin_addr = ia;
-                                
+				isc_sockaddr_fromin(&address, &ia, 0);
+				
                                 tmpres =
                                         dns_c_ipmatchpattern_new(logcontext,
                                                                  currcfg->mem,
@@ -3088,15 +3097,13 @@ notify_in_addr_list: opt_in_addr_list
 
 ip4_address: L_IP4ADDR
         {
-                $$.type.sin.sin_family = AF_INET;
-                $$.type.sin.sin_addr = $1;
+		isc_sockaddr_fromin(&$$, &$1, 0);
         }
         ;
 
 ip6_address: L_IP6ADDR
         {
-                $$.type.sin6.sin6_family = AF_INET6;
-                $$.type.sin6.sin6_addr = $1;
+		isc_sockaddr_fromin6(&$$, &$1, 0);
         }
 
 
