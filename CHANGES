@@ -57,7 +57,7 @@
 1174.	[bug]		Win32: add WSAECONNRESET to the expected errors
 			from connect(). [RT #2308]
 
-1173.	[bug]		Potential leaks in isc_log_create() and
+1173.	[bug]		Potential memory leaks in isc_log_create() and
 			isc_log_settag(). [RT #2336]
 
 1172.	[doc]		Add CERT, GPOS, KX, NAPTR, NSAP, PX and TXT to 
