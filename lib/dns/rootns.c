@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.24 2002/11/27 09:52:55 marka Exp $ */
+/* $Id: rootns.c,v 1.25 2004/01/29 04:34:13 marka Exp $ */
 
 #include <config.h>
 
@@ -57,7 +57,7 @@ static char root_ns[] =
 ".                       518400  IN      NS      L.ROOT-SERVERS.NET.\n"
 ".                       518400  IN      NS      M.ROOT-SERVERS.NET.\n"
 "A.ROOT-SERVERS.NET.     3600000 IN      A       198.41.0.4\n"
-"B.ROOT-SERVERS.NET.     3600000 IN      A       128.9.0.107\n"
+"B.ROOT-SERVERS.NET.     3600000 IN      A       192.228.79.201\n"
 "C.ROOT-SERVERS.NET.     3600000 IN      A       192.33.4.12\n"
 "D.ROOT-SERVERS.NET.     3600000 IN      A       128.8.10.90\n"
 "E.ROOT-SERVERS.NET.     3600000 IN      A       192.203.230.10\n"
