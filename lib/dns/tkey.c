@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.27 2000/04/06 22:02:25 explorer Exp $
+ * $Id: tkey.c,v 1.28 2000/04/19 18:50:00 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -302,7 +302,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 #if 0
 	/* Not sure how to do this without a view... */
 	db = NULL;
-	result = dns_dbtable_find(client->view->dbtable, &ourname, &db);
+	result = dns_dbtable_find(client->view->dbtable, &ourname, 0, &db);
 	if (result == ISC_R_SUCCESS) {
 		dns_rdataset_t set;
 		dns_fixedname_t foundname;
