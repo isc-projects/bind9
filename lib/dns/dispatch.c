@@ -866,6 +866,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		res = DNS_R_NOMEMORY;
 		goto out3;
 	}
+	isc_mempool_setname(disp->epool, "disp_epool");
 
 	disp->bpool = NULL;
 	if (isc_mempool_create(mctx, maxbuffersize,
@@ -874,6 +875,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		goto out4;
 	}
 	isc_mempool_setmaxalloc(disp->bpool, maxbuffers);
+	isc_mempool_setname(disp->bpool, "disp_bpool");
 
 	disp->rpool = NULL;
 	if (isc_mempool_create(mctx, sizeof(dns_dispentry_t),
@@ -881,6 +883,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		res = DNS_R_NOMEMORY;
 		goto out5;
 	}
+	isc_mempool_setname(disp->rpool, "disp_rpool");
 
 	/*
 	 * Keep some number of items around.  This should be a config
