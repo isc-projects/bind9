@@ -115,12 +115,16 @@ typedef struct dns_adbhandle dns_adbhandle_t;
  * The handle into our internal state of what is going on, where, when...
  * This is returned to the user as a handle, so requests can be canceled,
  * etc.
+ *
+ * On return, the client can safely use "list", and can reorder the list.
+ * Items may not be _deleted_ from this list, however, or added to it
+ * other than by using the dns_adb_*() API.
  */
 struct dns_adbhandle {
 	/* Public */
 	unsigned int			magic;		/* RO: magic */
-	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
 	dns_adb_t		       *adb;		/* RO: parent adb */
+	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */

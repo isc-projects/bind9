@@ -240,23 +240,38 @@ static dns_adbhandle_t *
 new_adbhandle(dns_adb_t *adb)
 {
 	dns_adbhandle_t *h;
+	isc_result_t result;
 
 	h = isc_mempool_get(adb->ahmp);
 	if (h == NULL)
 		return (NULL);
 
-	h->magic = DNS_ADBHANDLE_MAGIC;
+	/*
+	 * public members
+	 */
+	h->magic = 0;
 	h->adb = adb;
+	ISC_LIST_INIT(h->list);
+
+	/*
+	 * private members
+	 */
+	result = isc_mutex_init(&h->lock);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init failed in new_adbhandle()");
+		isc_mempool_put(adb->ahmp, h);
+		return (NULL);
+	}
 	h->task = NULL;
 	h->taskaction = NULL;
 	h->arg = NULL;
-	dns_name_init(&h->zone, NULL);
-	ISC_LIST_INIT(h->list);
 	ISC_LINK_INIT(h, link);
 
 	ISC_EVENT_INIT(&h->event, sizeof (isc_event_t), 0, 0, 0, NULL, NULL,
 		       NULL, NULL, h);
 
+	h->magic = DNS_ADBHANDLE_MAGIC;
 	return (h);
 }
 
