@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.72 2000/08/14 22:17:40 gson Exp $ */
+/* $Id: validator.c,v 1.73 2000/08/15 00:21:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -39,33 +39,6 @@
 #include <dns/result.h>
 #include <dns/validator.h>
 #include <dns/view.h>
-
-struct dns_validator {
-	/* Unlocked. */
-	unsigned int			magic;
-	isc_mutex_t			lock;
-	dns_view_t *			view;
-	/* Locked by lock. */
-	unsigned int			options;
-	unsigned int			attributes;
-	dns_validatorevent_t *		event;
-	dns_fetch_t *			fetch;
-	dns_validator_t *		keyvalidator;
-	dns_validator_t *		authvalidator;
-	dns_keytable_t *		keytable;
-	dns_keynode_t *			keynode;
-	dst_key_t *			key;
-	dns_rdata_sig_t *		siginfo;
-	isc_task_t *			task;
-	isc_taskaction_t		action;
-	void *				arg;
-	unsigned int			labels;
-	dns_rdataset_t *		currentset;
-	isc_boolean_t			seensig;
-	dns_rdataset_t *		keyset;
-	dns_rdataset_t			frdataset;
-	dns_rdataset_t			fsigrdataset;
-};
 
 #define VALIDATOR_MAGIC			0x56616c3fU	/* Val?. */
 #define VALID_VALIDATOR(v)	 	ISC_MAGIC_VALID(v, VALIDATOR_MAGIC)
@@ -101,7 +74,8 @@ static void
 validator_done(dns_validator_t *val, isc_result_t result) {
 	isc_task_t *task;
 
-	REQUIRE(val->event != NULL);
+	if (val->event == NULL)
+		return;
 
 	/*
 	 * Caller must be holding the lock.
@@ -157,6 +131,17 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	dns_resolver_destroyfetch(&val->fetch);
 
+	if (SHUTDOWN(val)) {
+		dns_validator_destroy(&val);
+		return;
+	}
+
+	if (val->event == NULL) {
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "fetch_callback_validator: event == NULL");
+		return;
+	}
+
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
 	LOCK(&val->lock);
 	if (eresult == ISC_R_SUCCESS) {
@@ -199,7 +184,6 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_validator_t *val;
 	dns_rdataset_t *rdataset, *sigrdataset;
-	dns_fetch_t *fetch;
 	isc_result_t result;
 	isc_result_t eresult;
 
@@ -211,9 +195,23 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 	sigrdataset = &val->fsigrdataset;
 	eresult = devent->result;
 
+	dns_resolver_destroyfetch(&val->fetch);
+
+	if (SHUTDOWN(val)) {
+		dns_validator_destroy(&val);
+		isc_event_free(&event);
+		return;
+	}
+
+	if (val->event == NULL) {
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "fetch_callback_nullkey: event == NULL");
+		isc_event_free(&event);
+		return;
+	}
+
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_nullkey");
-	fetch = val->fetch;
-	val->fetch = NULL;
+
 	LOCK(&val->lock);
 	if (eresult == ISC_R_SUCCESS) {
 		if (!containsnullkey(val, rdataset)) {
@@ -251,10 +249,9 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 				if (result != ISC_R_SUCCESS)
 					validator_done(val, result);
 				/*
-				 * Don't free these, since they'll be
-				 * freed in nullkeyvalidated.
+				 * Don't free rdataset & sigrdataset, since
+				 * they'll be freed in nullkeyvalidated.
 				 */
-				dns_resolver_destroyfetch(&fetch);
 				isc_event_free(&event);
 				UNLOCK(&val->lock);
 				return;
@@ -281,8 +278,6 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK(&val->lock);
 
-	dns_resolver_destroyfetch(&fetch);
-
 	/*
 	 * Free stuff from the event.
 	 */
@@ -302,6 +297,15 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
+
+	if (SHUTDOWN(val)) {
+		dns_validator_destroy(&val);
+		return;
+	}
+
+	if (val->event == NULL)
+		return;
+
 	devent = (dns_validatorevent_t *)event;
 	val = devent->ev_arg;
 	eresult = devent->result;
@@ -427,6 +431,15 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
+
+	if (SHUTDOWN(val)) {
+		dns_validator_destroy(&val);
+		return;
+	}
+
+	if (val->event == NULL)
+		return;
+
 	devent = (dns_validatorevent_t *)event;
 	rdataset = devent->rdataset;
 	sigrdataset = devent->sigrdataset;
@@ -470,6 +483,15 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
+
+	if (SHUTDOWN(val)) {
+		dns_validator_destroy(&val);
+		return;
+	}
+
+	if (val->event == NULL)
+		return;
+
 	devent = (dns_validatorevent_t *)event;
 	val = devent->ev_arg;
 	eresult = devent->result;
@@ -509,6 +531,15 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
+
+	if (SHUTDOWN(val)) {
+		dns_validator_destroy(&val);
+		return;
+	}
+
+	if (val->event == NULL)
+		return;
+
 	devent = (dns_validatorevent_t *)event;
 	val = devent->ev_arg;
 	eresult = devent->result;
@@ -1285,6 +1316,10 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 	vevent = (dns_validatorevent_t *)event;
 	val = vevent->validator;
 
+	/* If the validator has been cancelled, val->event == NULL */
+	if (val->event == NULL)
+		return;
+
 	validator_log(val, ISC_LOG_DEBUG(3), "starting");
 
 	LOCK(&val->lock);
@@ -1408,6 +1443,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->seensig = ISC_FALSE;
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);
+	ISC_LINK_INIT(val, link);
 	val->magic = VALIDATOR_MAGIC;
 
 	isc_task_send(task, (isc_event_t **)&event);
@@ -1435,18 +1471,19 @@ dns_validator_cancel(dns_validator_t *validator) {
 
 	LOCK(&validator->lock);
 
+	validator_log(validator, ISC_LOG_DEBUG(3), "dns_validator_cancel");
+
 	if (validator->event != NULL) {
-		validator->event->result = ISC_R_CANCELED;
-		task = validator->event->ev_sender;
-		validator->event->ev_sender = validator;
-		isc_task_sendanddetach(&task,
-				       (isc_event_t **)&validator->event);
+		validator_done(validator, ISC_R_CANCELED);
 
 		if (validator->fetch != NULL)
 			dns_resolver_cancelfetch(validator->fetch);
 
 		if (validator->keyvalidator != NULL)
 			dns_validator_cancel(validator->keyvalidator);
+
+		if (validator->authvalidator != NULL)
+			dns_validator_cancel(validator->authvalidator);
 	}
 	UNLOCK(&validator->lock);
 }
@@ -1458,9 +1495,6 @@ destroy(dns_validator_t *val) {
 	REQUIRE(SHUTDOWN(val));
 	REQUIRE(val->event == NULL);
 	REQUIRE(val->fetch == NULL);
-#if 0
-	REQUIRE(val->currentset == NULL);
-#endif
 
 	if (val->keynode != NULL)
 		dns_keytable_detachkeynode(val->keytable, &val->keynode);
@@ -1492,8 +1526,11 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 
 	REQUIRE(val->event == NULL);
 
+	validator_log(val, ISC_LOG_DEBUG(3), "dns_validator_destroy");
+
 	val->attributes |= VALATTR_SHUTDOWN;
-	if (val->fetch == NULL)
+	if (val->fetch == NULL && val->keyvalidator == NULL &&
+	    val->authvalidator == NULL)
 		want_destroy = ISC_TRUE;
 
 	UNLOCK(&val->lock);
@@ -1508,7 +1545,7 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 
 static void
 validator_logv(dns_validator_t *val, isc_logcategory_t *category,
-	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+	       isc_logmodule_t *module, int level, const char *fmt, va_list ap)
 {
 	char msgbuf[2048];
 

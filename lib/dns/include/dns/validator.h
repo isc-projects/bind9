@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.12 2000/08/01 01:24:54 tale Exp $ */
+/* $Id: validator.h,v 1.13 2000/08/15 00:21:05 bwelling Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -69,6 +69,42 @@ typedef struct dns_validatorevent {
 	dns_rdataset_t *		sigrdataset;
 	dns_message_t *			message;
 } dns_validatorevent_t;
+
+
+/*
+ * A validator object represents a validation in procgress.
+ *
+ * Clients are strongly discouraged from using this type directly, with
+ * the exception of the 'link' field, which may be used directly for
+ * whatever purpose the client desires.
+ */
+struct dns_validator {
+	/* Unlocked. */
+	unsigned int			magic;
+	isc_mutex_t			lock;
+	dns_view_t *			view;
+	/* Locked by lock. */
+	unsigned int			options;
+	unsigned int			attributes;
+	dns_validatorevent_t *		event;
+	dns_fetch_t *			fetch;
+	dns_validator_t *		keyvalidator;
+	dns_validator_t *		authvalidator;
+	dns_keytable_t *		keytable;
+	dns_keynode_t *			keynode;
+	dst_key_t *			key;
+	dns_rdata_sig_t *		siginfo;
+	isc_task_t *			task;
+	isc_taskaction_t		action;
+	void *				arg;
+	unsigned int			labels;
+	dns_rdataset_t *		currentset;
+	isc_boolean_t			seensig;
+	dns_rdataset_t *		keyset;
+	dns_rdataset_t			frdataset;
+	dns_rdataset_t			fsigrdataset;
+	ISC_LINK(dns_validator_t)	link;
+};
 
 ISC_LANG_BEGINDECLS
 

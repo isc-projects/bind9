@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.163 2000/08/09 19:11:27 gson Exp $ */
+/* $Id: resolver.c,v 1.164 2000/08/15 00:21:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -170,11 +170,11 @@ struct fetchctx {
 	dns_adbaddrinfolist_t		forwaddrs;
 	isc_sockaddrlist_t		forwarders;
 	isc_sockaddrlist_t		bad;
+	ISC_LIST(dns_validator_t)	validators;
 	/*
 	 * # of events we're waiting for.
 	 */
 	unsigned int			pending;
-	unsigned int			validating;
 	unsigned int			restarts;
 };
 
@@ -1155,7 +1155,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 			want_done = ISC_TRUE;
 		}
 	} else if (SHUTTINGDOWN(fctx) && fctx->pending == 0 &&
-		   fctx->validating == 0) {
+		   ISC_LIST_EMPTY(fctx->validators)) {
 		bucketnum = fctx->bucketnum;
 		LOCK(&res->buckets[bucketnum].lock);
 		/*
@@ -1680,7 +1680,7 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
 	REQUIRE(fctx->pending == 0);
-	REQUIRE(fctx->validating == 0);
+	REQUIRE(ISC_LIST_EMPTY(fctx->validators));
 	REQUIRE(fctx->references == 0);
 
 	FCTXTRACE("destroy");
@@ -1792,6 +1792,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	dns_resolver_t *res;
 	unsigned int bucketnum;
+	dns_validator_t *validator;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -1809,6 +1810,16 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	 */
 	fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 
+	/*
+	 * Cancel all pending validators.  Note that this must be done
+	 * without the bucket lock held, since that could cause deadlock.
+	 */
+	validator = ISC_LIST_HEAD(fctx->validators);
+	while (validator != NULL) {
+		dns_validator_cancel(validator);
+		validator = ISC_LIST_NEXT(validator, link);
+	}
+
 	LOCK(&res->buckets[bucketnum].lock);
 
 	INSIST(fctx->state == fetchstate_active ||
@@ -1822,7 +1833,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (fctx->references == 0 && fctx->pending == 0 &&
-	    fctx->validating == 0)
+	    ISC_LIST_EMPTY(fctx->validators))
 		bucket_empty = fctx_destroy(fctx);
 
 	UNLOCK(&res->buckets[bucketnum].lock);
@@ -1863,7 +1874,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		 * pending ADB finds and no pending validations.
 		 */
 		INSIST(fctx->pending == 0);
-		INSIST(fctx->validating == 0);
+		INSIST(ISC_LIST_EMPTY(fctx->validators));
 		if (fctx->references == 0) {
 			/*
 			 * It's now safe to destroy this fctx.
@@ -2037,9 +2048,9 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->forwaddrs);
 	ISC_LIST_INIT(fctx->forwarders);
 	ISC_LIST_INIT(fctx->bad);
+	ISC_LIST_INIT(fctx->validators);
 	fctx->find = NULL;
 	fctx->pending = 0;
-	fctx->validating = 0;
 	fctx->restarts = 0;
 	if (dns_name_requiresedns(name))
 		fctx->attributes = FCTX_ATTR_NEEDEDNS0;
@@ -2230,7 +2241,7 @@ maybe_destroy(fetchctx_t *fctx) {
 
 	REQUIRE(SHUTTINGDOWN(fctx));
 
-	if (fctx->pending != 0 || fctx->validating != 0)
+	if (fctx->pending != 0 || !ISC_LIST_EMPTY(fctx->validators))
 		return;
 
 	bucketnum = fctx->bucketnum;
@@ -2265,19 +2276,19 @@ validated(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
 	fctx = event->ev_arg;
 	REQUIRE(VALID_FCTX(fctx));
-	REQUIRE(fctx->validating > 0);
+	REQUIRE(!ISC_LIST_EMPTY(fctx->validators));
 
 	vevent = (dns_validatorevent_t *)event;
 
 	FCTXTRACE("received validation completion event");
+
+	ISC_LIST_UNLINK(fctx->validators, vevent->validator, link);
 
 	/*
 	 * Destroy the validator early so that we can
 	 * destroy the fctx if necessary.
 	 */
 	dns_validator_destroy(&vevent->validator);
-
-	fctx->validating--;
 
 	negative = ISC_TF(vevent->rdataset == NULL);
 
@@ -2404,7 +2415,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_event;
 	}
 
-	if (fctx->validating > 0) {
+	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
 		INSIST(fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_sig);
@@ -2647,7 +2658,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 						fctx,
 						&validator);
 					if (result == ISC_R_SUCCESS)
-						fctx->validating++;
+						ISC_LIST_APPEND(
+							fctx->validators,
+							validator, link);
 				}
 			}
 		} else if (!EXTERNAL(rdataset)) {
@@ -2726,7 +2739,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					      fctx,
 					      &validator);
 		if (result == ISC_R_SUCCESS)
-			fctx->validating++;
+			ISC_LIST_APPEND(fctx->validators, validator, link);
 	}
 
 	if (result == ISC_R_SUCCESS && have_answer) {
@@ -2909,7 +2922,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 					      &validator);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		fctx->validating++;
+		ISC_LIST_APPEND(fctx->validators, validator, link);
 		/*
 		 * If validation is necessary, return now.  Otherwise continue
 		 * to process the message, letting the validation complete
@@ -4872,7 +4885,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 		/*
 		 * No one cares about the result of this fetch anymore.
 		 */
-		if (fctx->pending == 0 && fctx->validating == 0 &&
+		if (fctx->pending == 0 && ISC_LIST_EMPTY(fctx->validators) &&
 		    SHUTTINGDOWN(fctx)) {
 			/*
 			 * This fctx is already shutdown; we were just
