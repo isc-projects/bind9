@@ -10,34 +10,34 @@ you didn't get a copy, you may request one from <license@inner.net>.
 #include <lwres/netdb.h>
 #include <errno.h>
 
-char *
+const char *
 lwres_gai_strerror(int errnum) {
 	switch(errnum) {
 	case 0:
-		return "no error";
+		return ("no error");
 	case EAI_BADFLAGS:
-		return "invalid value for ai_flags";
+		return ("invalid value for ai_flags");
 	case EAI_NONAME:
-		return "name or service is not known";
+		return ("name or service is not known");
 	case EAI_AGAIN:
-		return "temporary failure in name resolution";
+		return ("temporary failure in name resolution");
 	case EAI_FAIL:
-		return "non-recoverable failure in name resolution";
+		return ("non-recoverable failure in name resolution");
 	case EAI_NODATA:
-		return "no address associated with name";
+		return ("no address associated with name");
 	case EAI_FAMILY:
-		return "ai_family not supported";
+		return ("ai_family not supported");
 	case EAI_SOCKTYPE:
-		return "ai_socktype not supported";
+		return ("ai_socktype not supported");
 	case EAI_SERVICE:
-		return "service not supported for ai_socktype";
+		return ("service not supported for ai_socktype");
 	case EAI_ADDRFAMILY:
-		return "address family for name not supported";
+		return ("address family for name not supported");
 	case EAI_MEMORY:
-		return "memory allocation failure";
+		return ("memory allocation failure");
 	case EAI_SYSTEM:
-		return "system error";
+		return ("system error");
 	default:
-		return "unknown error";
+		return ("unknown error");
 	};
 }

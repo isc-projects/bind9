@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.17 2000/05/14 03:26:31 tale Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.18 2000/06/01 17:39:24 tale Exp $
  */
 
 #include <config.h>
@@ -57,7 +57,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 	const struct addrinfo *hints, struct addrinfo **res)
 {
 	struct servent *sp;
-	char *proto;
+	const char *proto;
 	int family, socktype, flags, protocol;
 	struct addrinfo *ai, *ai_list;
 	int port, err, i;

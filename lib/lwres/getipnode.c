@@ -64,12 +64,17 @@ static const unsigned char in6addr_mapped[12] = {
  ***	Forward declarations.
  ***/
 
-static int		scan_interfaces(int *, int *);
-static struct hostent * copyandmerge(struct hostent *, struct hostent *,
-				     int, int *);
-static struct hostent * hostfromaddr(lwres_gnbaresponse_t *addr, int af,
-				     const void *src);
-static struct hostent * hostfromname(lwres_gabnresponse_t *name, int af);
+static int
+scan_interfaces(int *, int *);
+
+static struct hostent *
+copyandmerge(struct hostent *, struct hostent *, int, int *);
+
+static struct hostent *
+hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src);
+
+static struct hostent *
+hostfromname(lwres_gabnresponse_t *name, int af);
 
 /***
  ***	Public functions.
@@ -99,7 +104,9 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	lwres_gabnresponse_t *by = NULL;
 	int n;
 
-	/* If we care about active interfaces then check. */
+	/*
+	 * If we care about active interfaces then check.
+	 */
 	if ((flags & AI_ADDRCONFIG) != 0)
 		if (scan_interfaces(&have_v4, &have_v6) == -1) {
 			*error_num = NO_RECOVERY;
@@ -110,8 +117,9 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	if ((v4 = lwres_net_pton(AF_INET, name, &in4)) != 1)
 		v6 = lwres_net_pton(AF_INET6, name, &in6);
 
-	/* Impossible combination? */
-	 
+	/*
+	 * Impossible combination?
+	 */
 	if ((af == AF_INET6 && (flags & AI_V4MAPPED) == 0 && v4 == 1) ||
 	    (af == AF_INET && v6 == 1) ||
 	    (have_v4 == 0 && v4 == 1) ||
@@ -124,12 +132,19 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		return (NULL);
 	}
 
-	/* Literal address? */
+	/*
+	 * Literal address?
+	 */
 	if (v4 == 1 || v6 == 1) {
 		char *addr_list[2];
 		char *aliases[1];
+		union {
+			const char *const_name;
+			char *deconst_name;
+		} u;
 
-		he.h_name = (char *)name;
+		u.const_name = name;
+		he.h_name = u.deconst_name;
 		he.h_addr_list = addr_list;
 		he.h_addr_list[0] = (v4 == 1) ? (char *)&in4 : (char *)&in6;
 		he.h_addr_list[1] = NULL;
@@ -200,7 +215,9 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	int n;
 
 
-	/* Sanity Checks. */
+	/*
+	 * Sanity checks.
+	 */
 	if (src == NULL) {
 		*error_num = NO_RECOVERY;
 		return (NULL);
@@ -227,8 +244,10 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	/*
 	 * Lookup IPv4 and IPv4 mapped/compatible addresses
 	 */
-	if ((af == AF_INET6 && IN6_IS_ADDR_V4COMPAT((struct in6_addr *)src)) ||
-	    (af == AF_INET6 && IN6_IS_ADDR_V4MAPPED((struct in6_addr *)src)) ||
+	if ((af == AF_INET6 &&
+	     IN6_IS_ADDR_V4COMPAT((const struct in6_addr *)src)) ||
+	    (af == AF_INET6 &&
+	     IN6_IS_ADDR_V4MAPPED((const struct in6_addr *)src)) ||
 	    (af == AF_INET)) {
 		const unsigned char *cp = src;
 
@@ -249,7 +268,9 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		if (af != AF_INET6)
 			return (he1);
 
-		/* Convert from AF_INET to AF_INET6 */
+		/*
+		 * Convert from AF_INET to AF_INET6.
+		 */
 		he2 = copyandmerge(he1, NULL, af, error_num);
 		lwres_freehostent(he1);
 		if (he2 == NULL)
@@ -264,8 +285,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	/*
 	 * Lookup IPv6 address.
 	 */
-	if (memcmp((struct in6_addr *)src, &lwres_in6addr_any,
-		   IN6ADDRSZ) == 0) {
+	if (memcmp(src, &lwres_in6addr_any, IN6ADDRSZ) == 0) {
 		*error_num = HOST_NOT_FOUND;
 		return (NULL);
 	}
@@ -341,10 +361,14 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	static int bufsiz = 4095;
 	int s, cpsize, n;
 
-	/* Set to zero.  Used as loop terminators below. */
+	/*
+	 * Set to zero.  Used as loop terminators below.
+	 */
 	*have_v4 = *have_v6 = 0;
 
-	/* Get interface list from system. */
+	/*
+	 * Get interface list from system.
+	 */
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
 		goto err_ret;
 
@@ -390,7 +414,9 @@ scan_interfaces(int *have_v4, int *have_v6) {
 		bufsiz += 4096;
 	}
 
-	/* Parse system's interface list. */
+	/*
+	 * Parse system's interface list.
+	 */
 	cplim = buf + ifc.ifc_len;    /* skip over if's with big ifr_addr's */
 	for (cp = buf;
 	     (*have_v4 == 0 || *have_v6 == 0) && cp < cplim;
@@ -416,7 +442,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 		/* XXX maybe this should be a hard error? */
 		if (ioctl(s, SIOCGIFADDR, (char *)&ifreq) < 0)
 			continue;
-#endif
+#endif /* HAVE_SA_LEN */
 		switch (ifreq.ifr_addr.sa_family) {
 		case AF_INET:
 			if (*have_v4 == 0) {
@@ -476,7 +502,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	char **cpp, **npp;
 
 	/*
-	 * Work out array sizes;
+	 * Work out array sizes.
 	 */
 	if (he1 != NULL) {
 		cpp = he1->h_addr_list;
@@ -520,7 +546,9 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 		goto cleanup0;
 	memset(he->h_addr_list, 0, sizeof(char *) * (addresses));
 
-	/* copy addresses */
+	/*
+	 * Copy addresses.
+	 */
 	npp = he->h_addr_list;
 	if (he1 != NULL) {
 		cpp = he1->h_addr_list;
@@ -528,7 +556,9 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 			*npp = malloc((af == AF_INET) ? INADDRSZ : IN6ADDRSZ);
 			if (*npp == NULL)
 				goto cleanup1;
-			/* convert to mapped if required */
+			/*
+			 * Convert to mapped if required.
+			 */
 			if (af == AF_INET6 && he1->h_addrtype == AF_INET) {
 				memcpy(*npp, in6addr_mapped,
 				       sizeof in6addr_mapped);
@@ -549,7 +579,9 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 			*npp = malloc((af == AF_INET) ? INADDRSZ : IN6ADDRSZ);
 			if (*npp == NULL)
 				goto cleanup1;
-			/* convert to mapped if required */
+			/*
+			 * Convert to mapped if required.
+			 */
 			if (af == AF_INET6 && he2->h_addrtype == AF_INET) {
 				memcpy(*npp, in6addr_mapped,
 				       sizeof in6addr_mapped);
@@ -569,7 +601,9 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 		goto cleanup1;
 	memset(he->h_aliases, 0, sizeof(char *) * (names));
 
-	/* copy aliases */
+	/*
+	 * Copy aliases.
+	 */
 	npp = he->h_aliases;
 	cpp = (he1 != NULL) ? he1->h_aliases : he2->h_aliases;
 	while (*cpp != NULL) {
@@ -582,14 +616,18 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 		cpp++;
 	}
 
-	/* copy hostname */
+	/*
+	 * Copy hostname.
+	 */
 	he->h_name = malloc(strlen((he1 != NULL) ?
 			    he1->h_name : he2->h_name) + 1);
 	if (he->h_name == NULL)
 		goto cleanup2;
 	strcpy(he->h_name, (he1 != NULL) ? he1->h_name : he2->h_name);
 
-	/* set address type and length */
+	/*
+	 * Set address type and length.
+	 */
 	he->h_addrtype = af;
 	he->h_length = (af == AF_INET) ? INADDRSZ : IN6ADDRSZ;
 	return(he);
@@ -629,7 +667,9 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 		goto cleanup;
 	memset(he, 0, sizeof(*he));
 
-	/* Set family and length */
+	/*
+	 * Set family and length.
+	 */
 	he->h_addrtype = af;
 	switch (af) {
 	case AF_INET:
@@ -642,12 +682,16 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 		INSIST(0);
 	}
 
-	/* copy name */
+	/*
+	 * Copy name.
+	 */
 	he->h_name = strdup(addr->realname);
 	if (he->h_name == NULL)
 		goto cleanup;
 
-	/* copy aliases */
+	/*
+	 * Copy aliases.
+	 */
 	he->h_aliases = malloc(sizeof(char *) * (addr->naliases + 1));
 	for (i = 0 ; i < addr->naliases; i++) {
 		he->h_aliases[i] = strdup(addr->aliases[i]);
@@ -656,7 +700,9 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 	}
 	he->h_aliases[i] = NULL;
 
-	/* copy address */
+	/*
+	 * Copy address.
+	 */
 	he->h_addr_list = malloc(sizeof(char *) * 2);
 	if (he->h_addr_list == NULL)
 		goto cleanup;
@@ -685,8 +731,7 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 }
 
 static struct hostent *
-hostfromname(lwres_gabnresponse_t *name, int af)
-{
+hostfromname(lwres_gabnresponse_t *name, int af) {
 	struct hostent *he;
 	int i;
 	lwres_addr_t *addr;
@@ -696,7 +741,9 @@ hostfromname(lwres_gabnresponse_t *name, int af)
 		goto cleanup;
 	memset(he, 0, sizeof(*he));
 
-	/* Set family and length */
+	/*
+	 * Set family and length.
+	 */
 	he->h_addrtype = af;
 	switch (af) {
 	case AF_INET:
@@ -709,12 +756,16 @@ hostfromname(lwres_gabnresponse_t *name, int af)
 		INSIST(0);
 	}
 
-	/* copy name */
+	/*
+	 * Copy name.
+	 */
 	he->h_name = strdup(name->realname);
 	if (he->h_name == NULL)
 		goto cleanup;
 
-	/* copy aliases */
+	/*
+	 * Copy aliases.
+	 */
 	he->h_aliases = malloc(sizeof(char *) * (name->naliases + 1));
 	for (i = 0 ; i < name->naliases; i++) {
 		he->h_aliases[i] = strdup(name->aliases[i]);
@@ -723,7 +774,9 @@ hostfromname(lwres_gabnresponse_t *name, int af)
 	}
 	he->h_aliases[i] = NULL;
 
-	/* copy addresses */
+	/*
+	 * Copy addresses.
+	 */
 	he->h_addr_list = malloc(sizeof(char *) * (name->naddrs + 1));
 	addr = LWRES_LIST_HEAD(name->addrs);
 	i = 0;

@@ -85,7 +85,7 @@ static struct afd {
 
 int
 lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
-	    size_t hostlen, char *serv, size_t servlen, int flags)
+		  size_t hostlen, char *serv, size_t servlen, int flags)
 {
 	struct afd *afd;
 	struct servent *sp;
@@ -94,7 +94,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	size_t len;
 #endif
 	int family, i;
-	void *addr;
+	const void *addr;
 	char *p;
 #if 0
 	u_long v4a;
@@ -102,7 +102,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 #endif
 	char numserv[sizeof("65000")];
 	char numaddr[sizeof("abcd:abcd:abcd:abcd:abcd:abcd:255.255.255.255")];
-	char *proto;
+	const char *proto;
 	lwres_uint32_t lwf = 0;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gnbaresponse_t *by = NULL;
@@ -132,13 +132,13 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	
 	switch (family) {
 	case AF_INET:
-		port = ((struct sockaddr_in *)sa)->sin_port;
-		addr = &((struct sockaddr_in *)sa)->sin_addr.s_addr;
+		port = ((const struct sockaddr_in *)sa)->sin_port;
+		addr = &((const struct sockaddr_in *)sa)->sin_addr.s_addr;
 		break;
 
 	case AF_INET6:
-		port = ((struct sockaddr_in6 *)sa)->sin6_port;
-		addr = ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr;
+		port = ((const struct sockaddr_in6 *)sa)->sin6_port;
+		addr = ((const struct sockaddr_in6 *)sa)->sin6_addr.s6_addr;
 		break;
 
 	default:
@@ -149,7 +149,9 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	proto = (flags & NI_DGRAM) ? "udp" : "tcp";
 
 	if (serv == NULL || servlen == 0) {
-		/* Caller does not want service. */
+		/*
+		 * Caller does not want service.
+		 */
 	} else if ((flags & NI_NUMERICSERV) != 0 ||
 		   (sp = getservbyport(port, proto)) == NULL) {
 		sprintf(numserv, "%d", ntohs(port));
