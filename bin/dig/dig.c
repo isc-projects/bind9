@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.124 2000/10/31 03:21:35 marka Exp $ */
+/* $Id: dig.c,v 1.125 2000/11/07 01:29:34 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1249,6 +1249,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		lookup->new_search = ISC_TRUE;
 		strcpy(lookup->textname, ".");
 		lookup->rdtype = dns_rdatatype_ns;
+		printgreeting(argc, argv, lookup);
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
 }
