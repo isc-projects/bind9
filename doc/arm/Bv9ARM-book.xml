@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.14 2001/03/07 18:51:32 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.15 2001/03/19 20:26:20 gson Exp $ -->
 
 <book>
 
@@ -3318,20 +3318,18 @@ is preferred least of all.</para>
 <note><simpara>The <command>topology</command> option
 is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
       </sect3>
-      <sect3 id="the_sortlist_statement">
-        <title>The <command>sortlist</command> Statement</title>
-<para>Resource Records (RRs) are the data associated with the names
-in a  domain name space. The data is maintained in the form of sets
-of RRs. The order of RRs in a set is, by default, not significant.
-Therefore, to control the sorting of records in a set of resource
-records, or <varname>RRset</varname>, you must use the <command>sortlist</command> statement.</para>
-        <para>RRs are explained more fully in <xref
-                                                    linkend="types_of_resource_records_and_when_to_use_them"/>. Specifications for RRs
-are documented in RFC 1035.</para>
-<para>When returning multiple RRs the nameserver will normally return
-them in <varname>Round Robin</varname> order,
-that is, after each request the first RR is put at the end of the
-list. The client resolver code should rearrange the RRs as appropriate,
+
+<sect3 id="the_sortlist_statement">
+
+<title>The <command>sortlist</command> Statement</title>
+
+<para>The response to a DNS query may consist of multiple resource
+records (RRs) forming a resource records set (RRset).
+The name server will normally return the
+RRs within the RRset in an indeterminate order
+(but see the <command>rrset-order</command>
+statement in <xref linkend="rrset_ordering"/>).
+The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
 However, not all resolvers can do this or are correctly configured.
 When a client is using a local server the sorting can be performed
@@ -3401,13 +3399,12 @@ to other queries will not be sorted.</para>
 <sect3 id="rrset_ordering"><title id="rrset_ordering_title">RRset Ordering</title>
 <para>When multiple records are returned in an answer it may be
 useful to configure the order of the records placed into the response.
-For example, the records for a zone might be configured always to
-be returned in the order they are defined in the zone file. Or perhaps
-a random shuffle of the records as they are returned is wanted.
 The <command>rrset-order</command> statement permits configuration
-of the ordering made of the records in a multiple record response.
-The default, if no ordering is defined, is a cyclic ordering (round
-robin).</para>
+of the ordering of the records in a multiple record response.
+See also the <command>sortlist</command> statement,
+<xref linkend="the_sortlist_statement"/>.
+</para>
+
 <para>An <command>order_spec</command> is defined as follows:</para>
 <programlisting><optional> class <replaceable>class_name</replaceable> </optional><optional> type <replaceable>type_name</replaceable> </optional><optional> name <replaceable>"domain_name"</replaceable></optional>
       order <replaceable>ordering</replaceable>
@@ -3447,14 +3444,21 @@ order.</para></entry>
 have "<systemitem class="systemname">host.example.com</systemitem>" as a suffix, to always be returned
 in random order. All other records are returned in cyclic order.</para>
 <para>If multiple <command>rrset-order</command> statements appear,
-they are not combined-the last one applies.</para>
+they are not combined &mdash; the last one applies.</para>
 <para>If no <command>rrset-order</command> statement is specified,
 then a default one of:
 <programlisting>rrset-order { class ANY type ANY name "*" order cyclic ; };
 </programlisting>
 is used.</para>
-<note><simpara>The <command>rrset-order</command> statement
-is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
+
+<note>
+<simpara>The <command>rrset-order</command> statement
+is not yet implemented in <acronym>BIND</acronym> 9.
+BIND 9 currently supports only a "random-cyclic" ordering,
+where the server randomly chooses a starting point within
+the RRset and returns the records in order starting at
+that point, wrapping around the end of the RRset if 
+necessary.</simpara></note>
 </sect3>
 <sect3 id="tuning"><title>Tuning</title>
 <informaltable colsep = "0" rowsep = "0"><tgroup cols = "2"
