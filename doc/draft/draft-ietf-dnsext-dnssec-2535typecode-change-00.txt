@@ -1,0 +1,289 @@
+
+
+
+INTERNET-DRAFT                                             Samuel Weiler
+Expires: November 2003                                      May 12, 2003
+
+
+	 Legacy Resolver Compatibility for Delegation Signer
+	 draft-ietf-dnsext-dnssec-2535typecode-change-00.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is subject to all provisions
+   of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as
+   Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six
+   months and may be updated, replaced, or obsoleted by other
+   documents at any time.  It is inappropriate to use Internet- Drafts
+   as reference material or to cite them other than as "work in
+   progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/1id-abstracts.html
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   Comments should be sent to the author or to the DNSEXT WG mailing
+   list: namedroppers@ops.ietf.org
+
+Abstract
+
+   As the DNS Security (DNSSEC) specifications have evolved, the
+   syntax and semantics of the DNSSEC resource records (RRs) have
+   changed.  Many deployed nameservers understand variants of these
+   semantics.  Dangerous interactions can occur when a resolver that
+   understands an earlier version of these semantics queries an
+   authoritative server that understands the new delegation signer
+   semantics, including at least one failure scenario that will cause
+   an unsecured zone to be unresolvable.  This document proposes that
+   these interactions be avoided by changing the type codes and
+   mnemonics of the DNSSEC RRs (SIG, KEY, and NXT).
+
+1. Introduction
+
+   The DNSSEC protocol has been through many iterations whose syntax
+   and semantics are not completely compatible.  This has occurred as
+   part of the ordinary process of proposing a protocol, implementing
+   it, testing it in the increasingly complex and diverse environment
+   of the Internet, and refining the definitions of the initial
+   Proposed Standard.  In the case of DNSSEC, the process has been
+   complicated by DNS's criticality and wide deployment and the need
+   to add security while minimizing daily operational complexity.
+
+   A weak area for previous DNS specifications has been lack of detail
+   in specifying resolver behavior, leaving implementors largely on
+   their own to determine many details of resolver function.  This,
+   combined with the number of iterations the DNSSEC spec has been
+   through, has resulted in fielded code with a wide variety of
+   behaviors.  This variety makes it difficult to predict how a
+   protocol change will be handled by all deployed resolvers.  The
+   risk that a change will cause unacceptable or even catastrophic
+   failures makes it difficult to design and deploy a protocol change.
+   One strategy for managing that risk is to structure protocol
+   changes so that existing resolvers can completely ignore input that
+   might confuse them or trigger undesirable failure modes.
+
+   This document addresses a specific problem caused by Delegation
+   Signer's [DS] introduction of new semantics for the NXT RR that are
+   incompatible with the semantics in [RFC2535].  Answers provided by
+   DS-aware servers can trigger an unacceptable failure mode in some
+   resolvers that implement RFC 2535, which provides a great
+   disincentive to sign zones with DS.  The proposed solution allows
+   for the incremental deployment of DS.
+
+1.1 The Problem
+
+   Delegation signer [DS] introduces new semantics for the NXT RR that
+   are incompatible with the semantics in [RFC2535].  In [RFC2535],
+   NXT records were only required to be returned as part of a
+   non-existence proof.  In [DS], an unsecure referral returns, in
+   addition to the NS, a proof of non-existence of a DS RR in the form
+   of an NXT and SIG(NXT).  RFC 2535 didn't specify how a resolver was
+   to interpret a response with both an NS and an NXT in the authority
+   section and with NOERROR or NODATA set.  Some widely deployed
+   2535-aware resolvers interpret any answer with an NXT as a proof of
+   non-existence of the requested record.  This results in unsecure
+   delegations being invisible to 2535-aware resolvers and violates
+   the basic architectural principle that DNSSEC must do no harm --
+   the signing of zones must not prevent the resolution of unsecured
+   names.
+
+2. Possible Solutions
+
+   This section presents several possible solutions.  Section 3
+   recommends one and describes it in more detail.
+
+2.1. Change SIG, KEY, and NXT
+
+   To avoid the problem described above, legacy (RFC2535-aware)
+   resolvers need to be kept from seeing unsecure referrals that
+   include NXT records in the authority section.  The simplest way to
+   do that is to change the type codes for SIG, KEY, and NXT.  
+
+   The obvious drawback to this is that new resolvers will not be able
+   to validate zones signed with the old RRs.  This problem already
+   exists, however, because of the changes made by DS, and resolvers
+   that understand the old RRs (and have compatibility issues with DS)
+   are far more prevalent than 2535-signed zones.
+
+2.2. Change a subset of type codes
+
+   The observed problem with unsecure referrals could be addressed by
+   changing only the NXT type code or another subset of the type codes
+   that includes NXT.  This has the virtue of apparent simplicity, but
+   it risks introducing new problems or not going far enough.  It's
+   quite possible that more incompatibilities exist between DS and
+   earlier semantics.  Legacy resolvers may also be confused by seeing
+   records they recognize (SIG and KEY) while being unable to find
+   NXTs.  Although it may seem unnecessary to fix that which is not
+   obviously broken, it's far cleaner to change all of the type codes
+   at once.  This will leave legacy resolvers and tools completely
+   blinded to DNSSEC -- they will see only unknown RRs.
+
+2.3. Replace the DO bit
+
+   Another way to keep legacy resolvers from ever seeing DNSSEC
+   records with DS semantics is to have authoritative servers only
+   send that data to DS-aware resolvers.  It's been proposed that
+   assigning a new EDNS0 flag bit to signal DS-awareness (tentatively
+   called "DA"), and having authoritative servers send DNSSEC data
+   only in response to queries with the DA bit set, would accomplish
+   this.  This bit would presumably supplant the DO bit described in
+   [RFC3225].
+
+   This solution is sufficient only if all 2535-aware resolvers zero
+   out EDNS0 flags that they don't understand.  If one passed through
+   the DA bit unchanged, it would still see the new semantics, and it
+   would probably fail to see unsecure delegations.  Since it's
+   impractical to know how every DNS implementation handles unknown
+   EDNS0 flags, this is not a universal solution.  It could, though,
+   be considered in addition to changing the RR type codes.
+
+2.4. Increment the EDNS version
+
+   Another proposed solution is to increment the EDNS version number
+   as defined in [RFC2671], on the assumption that all existing
+   implementations will reject higher versions than they support,
+   and retain the DO bit as the signal for DNSSEC awareness.  This
+   approach has not been tested.
+
+2.5. Do nothing
+
+   There is a large deployed base of DNS resolvers that understand
+   DNSSEC as defined by the standards track [RFC2535] and [RFC2065]
+   and, due to underspecification in those documents, interpret any
+   answer with an NXT as a non-existence proof.  So long as that is
+   the case, zone owners will have a strong incentive to not sign any
+   zones that contain unsecure delegations, lest those delegations be
+   invisible to such a large installed base.  This will dramatically
+   slow DNSSEC adoption.
+
+   Unfortunately, without signed zones there's no clear incentive for
+   operators of resolvers to upgrade their software to support the new
+   version of DNSSEC, as defined in [DS].  Historical data suggests
+   that resolvers are rarely upgraded, and that old nameserver code
+   never dies.
+
+   Rather than wait years for resolvers to be upgraded through natural
+   processes before signing zones with unsecure delegations,
+   addressing this problem with a protocol change will immediately
+   remove the disincentive for signing zones and allow widespread
+   deployment of DNSSEC.
+
+3. Protocol changes
+
+   This document proposes changing the type codes of SIG, KEY, and
+   NXT.  This solution is the cleanest and safest, largely because the
+   behavior of resolvers that receive unknown type codes is well
+   understood.  This approach has also received the most testing.
+
+   To avoid operational confusion, it's also necessary to change the
+   mnemonics for these RRs.  DNSKEY will be the replacement for KEY,
+   with the mnemonic indicating that these keys are not for
+   application use, per [RFC3445].  RRSIG (Resource Record SIGnature)
+   will replace SIG, and NSEC (Next SECure) will replace NXT.
+
+   The new types will have exactly the same syntax and semantics as
+   specified for SIG, KEY, and NXT in [RFC2535] and [DS], and they
+   completely replace the old types.  A resolver, if it receives the
+   old types, SHOULD treat them as unknown RRs, and SHOULD NOT assign
+   any special semantic value to them.  It MUST NOT use them for
+   DNSSEC validations or other DNS operational decision making.  For
+   example, a resolver MUST NOT use DNSKEYs to validate SIGs or use
+   KEYs to validate RRSIGs.  Authoritative servers SHOULD NOT serve
+   SIG, KEY, or NXT records.  If those records are included, they MUST
+   NOT receive special treatment.  As an example, if a SIG is included
+   in a signed zone, there MUST be an RRSIG for it.
+
+   As a clarification to previous documents, NSEC can appear in the
+   authority section of an answer at any time, not just in negative
+   answers.  The mere presence of an NSEC record in the answer or
+   authority section of an answer with RCODE=NOERROR, MUST NOT be
+   interpreted as a negative answer.  The NSEC must be validated.
+   
+4. IANA Considerations
+
+   This document updates the IANA registry for DNS Resource Record
+   Types by assigning types 46, 47, and 48 to the DNSKEY, RRSIG, and
+   NSEC RRs, respectively.
+
+   Types 24, 25, and 30 (SIG, KEY, and NXT) should be marked as
+   Obsolete.
+
+5. Security Considerations
+
+   The change proposed here does not materially effect security.  The
+   implications of trying to use both new and legacy types together
+   are not well understood, and attempts to do so would probably lead
+   to unintended and dangerous results. 
+
+   Changing type codes will leave code paths in legacy resolvers that
+   are never exercised.  Unexercised code paths are a frequent source
+   of security holes, largely because those code paths do not get
+   frequent scrutiny.
+
+   Doing nothing, as described in 3.1, will slow DNSSEC deployment.
+   While this does not decrease security, it also fails to increase
+   it.
+
+6. Normative references
+
+   [RFC2065] Eastlake, D. and C. Kaufman, "Domain Name System Security
+             Extensions", RFC 2065, January 1997.
+
+   [RFC2535] Eastlake, D., "Domain Name System Security Extensions",
+             RFC 2535, March 1999.
+
+   [DS]      Gudmundsson, O., "Delegation Signer Resource Record",
+             draft-ietf-dnsext-delegation-signer-14.txt, work in 
+             progress, May 2003.
+
+7. Informative References
+
+   [RFC2671] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
+	     2671, August 1999.
+	    
+   [RFC3225] Conrad, D., "Indicating Resolver Support of DNSSEC", RFC
+             3225, December 2001.
+
+   [RFC2929] Eastlake, D., E. Brunner-Williams, and B. Manning.
+	     Domain Name System (DNS) IANA Considerations. BCP 42,
+	     RFC 2929, September 2000.
+
+   [RFC3445] Massey, D., and S. Rose.  Limiting the Scope of the KEY
+	     Resource Record (RR).  RFC 3445, December 2002.
+
+8. Acknowledgments
+
+   The proposed solution and the analysis of alternatives had many
+   contributors.  With apologies to anyone overlooked, those include:
+   Micheal Graff, John Ihren, Olaf Kolkman, Mark Kosters, Ed Lewis,
+   Bill Manning, and Suzanne Woolf.
+
+   Thanks to Jakob Schlyter and Mark Andrews for identifying the
+   incompatibility described in section 1.1.
+
+   In addition to the above, the author would like to thank Scott
+   Rose, Olafur Gudmundsson, and Sandra Murphy for their substantive
+   comments.
+
+9. Author's Address
+
+   Samuel Weiler
+   Network Associates Laboratories
+   15204 Omega Dr., Suite 300
+   Rockville, MD  20850
+   USA
+   weiler@tislabs.com
+
+
+
+
+
