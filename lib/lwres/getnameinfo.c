@@ -101,7 +101,7 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	char *proto;
 	isc_uint32_t lwf;
 	lwres_context_t *lwrctx = NULL;
-	lwres_getnamebyaddr_t *by = NULL;
+	lwres_gnbaresponse_t *by = NULL;
 	int result = SUCCESS;
 	int n;
 
@@ -195,7 +195,7 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			INSIST(lwf = 0);
 		}
 
-		n = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+		n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
 		if (n == 0)
 			n = lwres_getnamebyaddr(lwrctx, lwf, afd->a_addrlen,
 						addr, &by);
@@ -218,13 +218,13 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 				ERR(ENI_MEMORY);
 			strcpy(host, numaddr);
 		}
-		lwres_freecontext(&lwrctx);
+		lwres_context_destroy(&lwrctx);
 	}
 	result = SUCCESS;
  cleanup:
 	if (by != NULL)
-		lwres_freegetnamebyaddr(lwrctx, &by);
+		lwres_gnbaresponse_free(lwrctx, &by);
 	if (lwrctx != NULL)
-		lwres_freecontext(&lwrctx);
+		lwres_context_destroy(&lwrctx);
 	return (result);
 }

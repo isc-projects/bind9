@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.2 2000/01/14 05:15:52 marka Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.3 2000/01/17 03:16:24 marka Exp $
  */
 
 
@@ -318,11 +318,11 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 {
 	struct addrinfo *ai;
 	lwres_context_t *lwrctx = NULL;
-	lwres_getaddrsbyname_t *by = NULL;
+	lwres_gabnresponse_t *by = NULL;
 	int i;
 	int result = 0;
 
-	i = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+	i = lwres_context_create(&lwrctx, NULL, NULL, NULL);
 	if (i != 0)
 		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
@@ -353,9 +353,9 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 	}
  cleanup:
 	if (by != NULL)
-		lwres_freegetaddrsbyname(lwrctx, &by);
+		lwres_gabnresponse_free(lwrctx, &by);
 	if (lwrctx != NULL)
-		lwres_freecontext(&lwrctx);
+		lwres_context_destroy(&lwrctx);
 	return(result);
 }
 
@@ -367,11 +367,11 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 {
 	struct addrinfo *ai;
 	lwres_context_t *lwrctx = NULL;
-	lwres_getaddrsbyname_t *by = NULL;
+	lwres_gabnresponse_t *by = NULL;
 	int i;
 	int result = 0;
 
-	i = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+	i = lwres_context_create(&lwrctx, NULL, NULL, NULL);
 	if (i != 0)
 		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
@@ -401,9 +401,9 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 	}
  cleanup:
 	if (by != NULL)
-		lwres_freegetaddrsbyname(lwrctx, &by);
+		lwres_gabnresponse_free(lwrctx, &by);
 	if (lwrctx != NULL)
-		lwres_freecontext(&lwrctx);
+		lwres_context_destroy(&lwrctx);
 	return (result);
 }
 

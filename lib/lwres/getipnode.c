@@ -1,5 +1,6 @@
 
 #include <isc/net.h>
+#include <isc/assertions.h>
 #include <lwres/lwres.h>
 
 #include <lwres/netdb.h>	/* XXX #include <netdb.h> */
@@ -7,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define memput(x, y) free(x)
-#define memget(x) malloc(x)
 #define INADDRSZ 4
 #define IN6ADDRSZ 16
 
@@ -36,9 +35,9 @@ static const unsigned char in6addr_mapped[12] = {
 static int		scan_interfaces(int *, int *);
 static struct hostent * copyandmerge(struct hostent *, struct hostent *,
 				     int, int *);
-static struct hostent * hostfromaddr(lwres_getnamebyaddr_t *addr, int af,
+static struct hostent * hostfromaddr(lwres_gnbaresponse_t *addr, int af,
 				     const void *src);
-static struct hostent * hostfromname(lwres_getaddrsbyname_t *name, int af);
+static struct hostent * hostfromname(lwres_gabnresponse_t *name, int af);
 
 /***
  ***	Public functions.
@@ -65,7 +64,7 @@ getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	int v4 = 0, v6 = 0;
 	int tmp_err;
 	lwres_context_t *lwrctx = NULL;
-	lwres_getaddrsbyname_t *by = NULL;
+	lwres_gabnresponse_t *by = NULL;
 	int n;
 
 	/* If we care about active interfaces then check. */
@@ -109,14 +108,18 @@ getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		return (copyandmerge(&he, NULL, af, error_num));
 	}
 
-	n = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+	n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
 	tmp_err = NO_RECOVERY;
 	if (have_v6 && af == AF_INET6) {
 		
 		n = lwres_getaddrsbyname(lwrctx, name, LWRES_ADDRTYPE_V6, &by);
 		if (n == 0) {
 			he1 = hostfromname(by, AF_INET6);
-			lwres_freegetaddrsbyname(lwrctx, &by);
+			lwres_gabnresponse_free(lwrctx, &by);
+			if (he1 == NULL) {
+				*error_num = NO_RECOVERY;
+				goto cleanup;
+			}
 		} else {
 			tmp_err = HOST_NOT_FOUND;
 		}
@@ -129,10 +132,14 @@ getipnodebyname(const char *name, int af, int flags, int *error_num) {
 		n = lwres_getaddrsbyname(lwrctx, name, LWRES_ADDRTYPE_V4, &by);
 		if (n == 0) {
 			he2 = hostfromname(by, AF_INET);
-			lwres_freegetaddrsbyname(lwrctx, &by);
+			lwres_gabnresponse_free(lwrctx, &by);
+			if (he2 == NULL) {
+				*error_num = NO_RECOVERY;
+				goto cleanup;
+			}
 		} else if (he1 == NULL) {
 			*error_num = HOST_NOT_FOUND;
-			return (NULL);
+			goto cleanup;
 		} 
 	} else
 		*error_num = tmp_err;
@@ -145,7 +152,7 @@ getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	if (he2 != NULL)
 		freehostent(he2);
 	if (lwrctx != NULL)
-		lwres_freecontext(&lwrctx);
+		lwres_context_destroy(&lwrctx);
 	return (he3);
 }
 
@@ -153,7 +160,7 @@ struct hostent *
 getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	struct hostent *he1, *he2;
 	lwres_context_t *lwrctx = NULL;
-	lwres_getnamebyaddr_t *by = NULL;
+	lwres_gnbaresponse_t *by = NULL;
 	int n;
 
 
@@ -191,18 +198,18 @@ getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 
 		if (af == AF_INET6)
 			cp += 12;
-		n = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+		n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
 		if (n == 0)
-			n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V4, 4,
-						cp, &by);
+			n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V4,
+						INADDRSZ, cp, &by);
 		if (n != 0) {
-			lwres_freecontext(&lwrctx);
+			lwres_context_destroy(&lwrctx);
 			*error_num = HOST_NOT_FOUND;
 			return (NULL);
 		}
 		he1 = hostfromaddr(by, AF_INET, cp);
-		lwres_freegetnamebyaddr(lwrctx, &by);
-		lwres_freecontext(&lwrctx);
+		lwres_gnbaresponse_free(lwrctx, &by);
+		lwres_context_destroy(&lwrctx);
 		if (af != AF_INET6)
 			return (he1);
 
@@ -214,29 +221,31 @@ getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		/*
 		 * Restore original address.
 		 */
-		memcpy(he1->h_addr, src, len);
+		memcpy(he2->h_addr, src, len);
 		return (he2);
 	}
 
 	/*
 	 * Lookup IPv6 address.
 	 */
-	if (memcmp((struct in6_addr *)src, &in6addr_any, 16) == 0) {
+	if (memcmp((struct in6_addr *)src, &in6addr_any, IN6ADDRSZ) == 0) {
 		*error_num = HOST_NOT_FOUND;
 		return (NULL);
 	}
 
-	n = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+	n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
 	if (n == 0)
-		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, 16,
+		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, IN6ADDRSZ,
 					src, &by);
 	if (n != 0) {
 		*error_num = HOST_NOT_FOUND;
 		return (NULL);
 	}
 	he1 = hostfromaddr(by, AF_INET6, src);
-	lwres_freegetnamebyaddr(lwrctx, &by);
-	lwres_freecontext(&lwrctx);
+	lwres_gnbaresponse_free(lwrctx, &by);
+	if (he1 == NULL)
+		*error_num = NO_RECOVERY;
+	lwres_context_destroy(&lwrctx);
 	return (he1);
 }
 
@@ -246,12 +255,11 @@ freehostent(struct hostent *he) {
 	int names = 1;
 	int addresses = 1;
 
-	memput(he->h_name, strlen(he->h_name) + 1);
+	free(he->h_name);
 
 	cpp = he->h_addr_list;
 	while (*cpp != NULL) {
-		memput(*cpp, (he->h_addrtype == AF_INET) ?
-			     INADDRSZ : IN6ADDRSZ);
+		free(*cpp);
 		*cpp = NULL;
 		cpp++;
 		addresses++;
@@ -259,14 +267,14 @@ freehostent(struct hostent *he) {
 
 	cpp = he->h_aliases;
 	while (*cpp != NULL) {
-		memput(*cpp, strlen(*cpp) + 1);
+		free(*cpp);
 		cpp++;
 		names++;
 	}
 
-	memput(he->h_aliases, sizeof(char *) * (names));
-	memput(he->h_addr_list, sizeof(char *) * (addresses));
-	memput(he, sizeof *he);
+	free(he->h_aliases);
+	free(he->h_addr_list);
+	free(he);
 }
 
 /*
@@ -308,7 +316,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	 * descriptions.
 	 */
 	for (;;) {
-		buf = memget(bufsiz);
+		buf = malloc(bufsiz);
 		if (buf == NULL)
 			goto err_ret;
 		ifc.ifc_len = bufsiz;
@@ -341,7 +349,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 		if (bufsiz > 1000000)
 			goto err_ret;
 
-		memput(buf, bufsiz);
+		free(buf);
 		bufsiz += 4096;
 	}
 
@@ -354,7 +362,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 #ifdef HAVE_SA_LEN
 #ifdef FIX_ZERO_SA_LEN
 		if (ifreq.ifr_addr.sa_len == 0)
-			ifreq.ifr_addr.sa_len = 16;
+			ifreq.ifr_addr.sa_len = IN6ADDRSZ;
 #endif
 #ifdef HAVE_MINIMUM_IFREQ
 		cpsize = sizeof ifreq;
@@ -406,12 +414,12 @@ scan_interfaces(int *have_v4, int *have_v6) {
 		}
 	}
 	if (buf != NULL)
-		memput(buf, bufsiz);
+		free(buf);
 	close(s);
 	return (0);
  err_ret:
 	if (buf != NULL)
-		memput(buf, bufsiz);
+		free(buf);
 	if (s != -1)
 		close(s);
 	return (-1);
@@ -462,11 +470,11 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
 		return (NULL);
 	}
 
-	he = memget(sizeof *he);
+	he = malloc(sizeof *he);
 	if (he == NULL)
 		goto no_recovery;
 
-	he->h_addr_list = memget(sizeof(char *) * (addresses));
+	he->h_addr_list = malloc(sizeof(char *) * (addresses));
 	if (he->h_addr_list == NULL)
 		goto cleanup0;
 	memset(he->h_addr_list, 0, sizeof(char *) * (addresses));
@@ -476,7 +484,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
 	if (he1 != NULL) {
 		cpp = he1->h_addr_list;
 		while (*cpp != NULL) {
-			*npp = memget((af == AF_INET) ? INADDRSZ : IN6ADDRSZ);
+			*npp = malloc((af == AF_INET) ? INADDRSZ : IN6ADDRSZ);
 			if (*npp == NULL)
 				goto cleanup1;
 			/* convert to mapped if required */
@@ -497,7 +505,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
 	if (he2 != NULL) {
 		cpp = he2->h_addr_list;
 		while (*cpp != NULL) {
-			*npp = memget((af == AF_INET) ? INADDRSZ : IN6ADDRSZ);
+			*npp = malloc((af == AF_INET) ? INADDRSZ : IN6ADDRSZ);
 			if (*npp == NULL)
 				goto cleanup1;
 			/* convert to mapped if required */
@@ -515,7 +523,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
 		}
 	}
 
-	he->h_aliases = memget(sizeof(char *) * (names));
+	he->h_aliases = malloc(sizeof(char *) * (names));
 	if (he->h_aliases == NULL)
 		goto cleanup1;
 	memset(he->h_aliases, 0, sizeof(char *) * (names));
@@ -525,7 +533,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
 	cpp = (he1 != NULL) ? he1->h_aliases : he2->h_aliases;
 	while (*cpp != NULL) {
 		len = strlen (*cpp) + 1;
-		*npp = memget(len);
+		*npp = malloc(len);
 		if (*npp == NULL)
 			goto cleanup2;
 		strcpy(*npp, *cpp);
@@ -534,7 +542,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
 	}
 
 	/* copy hostname */
-	he->h_name = memget(strlen((he1 != NULL) ?
+	he->h_name = malloc(strlen((he1 != NULL) ?
 			    he1->h_name : he2->h_name) + 1);
 	if (he->h_name == NULL)
 		goto cleanup2;
@@ -548,22 +556,22 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
  cleanup2:
 	cpp = he->h_aliases;
 	while (*cpp != NULL) {
-		memput(*cpp, strlen(*cpp) + 1);
+		free(*cpp);
 		cpp++;
 	}
-	memput(he->h_aliases, sizeof(char *) * (names));
+	free(he->h_aliases);
 
  cleanup1:
 	cpp = he->h_addr_list;
 	while (*cpp != NULL) {
-		memput(*cpp, (af == AF_INET) ? INADDRSZ : IN6ADDRSZ);
+		free(*cpp);
 		*cpp = NULL;
 		cpp++;
 	}
-	memput(he->h_addr_list, sizeof(char *) * (addresses));
+	free(he->h_addr_list);
 
  cleanup0:
-	memput(he, sizeof *he);
+	free(he);
 
  no_recovery:
 	*error_num = NO_RECOVERY;
@@ -571,7 +579,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
 }
 
 static struct hostent *
-hostfromaddr(lwres_getnamebyaddr_t *addr, int af, const void *src) {
+hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 	struct hostent *he;
 	int i;
 
@@ -584,10 +592,10 @@ hostfromaddr(lwres_getnamebyaddr_t *addr, int af, const void *src) {
 	he->h_addrtype = af;
 	switch (af) {
 	case AF_INET:
-		he->h_length = 4;
+		he->h_length = INADDRSZ;
 		break;
 	case AF_INET6:
-		he->h_length = 16;
+		he->h_length = IN6ADDRSZ;
 		break;
 	default:
 		INSIST(0);
@@ -634,7 +642,7 @@ hostfromaddr(lwres_getnamebyaddr_t *addr, int af, const void *src) {
 }
 
 static struct hostent *
-hostfromname(lwres_getaddrsbyname_t *name, int af) {
+hostfromname(lwres_gabnresponse_t *name, int af) {
 	struct hostent *he;
 	int i;
 
@@ -647,10 +655,10 @@ hostfromname(lwres_getaddrsbyname_t *name, int af) {
 	he->h_addrtype = af;
 	switch (af) {
 	case AF_INET:
-		he->h_length = 4;
+		he->h_length = INADDRSZ;
 		break;
 	case AF_INET6:
-		he->h_length = 16;
+		he->h_length = IN6ADDRSZ;
 		break;
 	default:
 		INSIST(0);
