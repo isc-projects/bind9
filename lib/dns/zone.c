@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.369 2002/06/13 07:05:46 marka Exp $ */
+/* $Id: zone.c,v 1.370 2002/06/13 07:25:25 marka Exp $ */
 
 #include <config.h>
 
@@ -1170,7 +1170,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		result = dns_db_beginload(db, &callbacks.add,
 					  &callbacks.add_private);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+			return (result);
 		options = DNS_MASTER_MANYERRORS|DNS_MASTER_ZONE;
 		if (zone->type == dns_zone_slave)
 			options |= DNS_MASTER_SLAVE;

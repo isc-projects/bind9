@@ -111,7 +111,7 @@
 1285.	[bug]		libbind: LINK_INIT and UNLINK were not compatible with
 			C++, use LINK_INIT_TYPE and UNLINK_TYPE instead.
 
-1284.	[bug]		Memory leak if dns_db_beginload() failed.
+1284.	[placeholder]
 
 1283.	[bug]		Reference after free error if dns_dispatchmgr_create()
 			failed.
