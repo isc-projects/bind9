@@ -1,6 +1,6 @@
 $TTL 300	; 5 minutes
 @	IN SOA  mname1. . (
-		2000062001	; serial
+		2000062101	; serial
 		20		; refresh (20 seconds)
 		20		; retry (20 seconds)
 		1814400		; expire (3 weeks)
@@ -9,4 +9,4 @@ $TTL 300	; 5 minutes
 	NS	ns
 ns	A	10.53.0.1
 
-1	PTR	ipv4.example.
+\[x1123456789abcdef0123456789abcdef/128] PTR bitstring.example.

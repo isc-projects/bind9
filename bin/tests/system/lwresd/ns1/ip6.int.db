@@ -9,4 +9,4 @@ $TTL 300	; 5 minutes
 	NS	ns
 ns	A	10.53.0.1
 
-f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0.f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0	PTR test.example.
+f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0.f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0	PTR nibble.example.
