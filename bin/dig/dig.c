@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.48 2000/06/22 01:26:38 tale Exp $ */
+/* $Id: dig.c,v 1.49 2000/06/22 17:23:48 tale Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -313,7 +313,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	/*
 	 * Exitcode 9 means we timed out, but if we're printing a message,
-	 * we much have recovered.  Go ahead and reset it to code 0, and
+	 * we must have recovered.  Go ahead and reset it to code 0, and
 	 * call this a success.
 	 */
 	if (exitcode == 9)
