@@ -247,7 +247,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 		
 		isc_buffer_available(&buf, &r);
 		if (r.length < 1)
-			return (DNS_R_TEXTTOLONG);
+			return (DNS_R_TEXTTOOLONG);
 		r.base[0] = '\n';
 		isc_buffer_add(&buf, 1);
 
@@ -258,16 +258,16 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 		 * buffer is too small, because that would just make 
 		 * dump_rdataset() retry indenfinitely with ever 
 		 * bigger target buffers.  That's a different buffer,
-		 * so it won't help.  Use DNS_R_TEXTTOLONG as a substitute.
+		 * so it won't help.  Use DNS_R_TEXTTOOLONG as a substitute.
 		 */
 		if (result == DNS_R_NOSPACE)
-			return (DNS_R_TEXTTOLONG);
+			return (DNS_R_TEXTTOOLONG);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 		
 		isc_buffer_available(&buf, &r);
 		if (r.length < 1)
-			return (DNS_R_TEXTTOLONG);
+			return (DNS_R_TEXTTOOLONG);
 		r.base[0] = '\0';
 		isc_buffer_add(&buf, 1);
 		ctx->linebreak = ctx->linebreak_buf;
