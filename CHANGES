@@ -8,6 +8,11 @@
 			be useful to be avoided.  This bug only affected
 			platforms which support both IPv4 and IPv6. [RT #927]
 
+ 756.	[bug]		dns_zone_load() could "return" success when no master
+			file was configured.
+
+ 755.	[bug]		Fix incorrectly formatted log messages in zone.c.
+
 	--- 9.1.1rc3 released ---
 
  754.	[bug]		Certain failure conditions sending UDP packets
