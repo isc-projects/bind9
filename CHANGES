@@ -1,3 +1,8 @@
+
+  10.	[bug]		An bug in the code which makes EDNS0 OPT records in
+			bin/named/client.c and lib/dns/resolver.c could
+			trigger an assertion.
+
    9.   [cleanup]	replaced bit-setting code in confctx.c and replaced
 			repeated code with macro calls.
 
