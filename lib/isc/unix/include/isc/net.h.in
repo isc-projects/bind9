@@ -41,6 +41,9 @@
  * It declares inet_aton(), inet_ntop(), and inet_pton() if they are
  * available on the system.
  *
+ * It ensures that INADDR_ANY, IN6ADDR_ANY_INIT, in6addr_any, and
+ * in6addr_loopback are available.
+ *
  * MP:
  *	No impact.
  *
