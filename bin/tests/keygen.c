@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: keygen.c,v 1.5 1999/10/20 22:14:14 bwelling Exp $ */
+ /* $Id: keygen.c,v 1.6 1999/10/29 08:27:34 marka Exp $ */
 
 #include <config.h>
 
@@ -69,7 +69,7 @@ main(int argc, char **argv) {
 			break;
 		case 'g':
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0])) {
+			    isdigit(isc_commandline_argument[0] & 0xff)) {
 				generator = atoi(isc_commandline_argument);
 				if (generator < 0)
 					die("-g value is not positive");
@@ -79,7 +79,7 @@ main(int argc, char **argv) {
 			break;
 		case 'p':
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0]))
+			    isdigit(isc_commandline_argument[0] & 0xff))
 				protocol = atoi(isc_commandline_argument);
 				if (protocol < 0 || protocol > 255)
 					die("-p value is not [0..15]");
@@ -89,7 +89,7 @@ main(int argc, char **argv) {
 		case 's':
 			/* Default: not signatory key */
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0])) {
+			    isdigit(isc_commandline_argument[0] & 0xff)) {
 				int sign_val = atoi(isc_commandline_argument);
 				if (sign_val < 0 || sign_val > 15)
 					die("-s value is not [0..15] ");
@@ -117,7 +117,7 @@ main(int argc, char **argv) {
 			if (alg > 0) 
 				die("Only one alg can be specified");
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0]))
+			    isdigit(isc_commandline_argument[0] & 0xff))
 				size = atoi(isc_commandline_argument);
 			else
 				die("-H requires a size");
@@ -127,7 +127,7 @@ main(int argc, char **argv) {
 			if (alg > 0) 
 				die("Only one alg can be specified");
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0]))
+			    isdigit(isc_commandline_argument[0] & 0xff))
 				size = atoi(isc_commandline_argument);
 			else
 				die("-R requires a size");
@@ -137,7 +137,7 @@ main(int argc, char **argv) {
 			if (alg > 0) 
 				die("Only one alg can be specified");
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0]))
+			    isdigit(isc_commandline_argument[0] & 0xff))
 				size = atoi(isc_commandline_argument);
 			else
 				die("-D requires a size");
@@ -147,7 +147,7 @@ main(int argc, char **argv) {
 			if (alg > 0) 
 				die("Only one alg can be specified");
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0]))
+			    isdigit(isc_commandline_argument[0] & 0xff))
 				size = atoi(isc_commandline_argument);
 			else
 				die("-d requires a size");
