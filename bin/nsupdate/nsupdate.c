@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.35 2000/07/27 23:27:36 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.36 2000/07/28 03:39:12 tale Exp $ */
 
 #include <config.h>
 
@@ -1370,7 +1370,7 @@ main(int argc, char **argv) {
         check_result(result, "isc_condition_init");
 	LOCK(&lock);
 
-        while (ISC_TRUE) {
+        do {
 		reset_system();
                 if (!user_interaction())
 			break;
@@ -1378,7 +1378,7 @@ main(int argc, char **argv) {
 		start_update();
 		while (busy)
 			WAIT(&cond, &lock);
-        }
+        } while (1);
 
         fprintf(stdout, "\n");
         isc_mutex_destroy(&lock);
