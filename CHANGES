@@ -9,7 +9,7 @@
 			[RT #830]
 
  733.	[bug]		Reference counts of dns_acl_t objects need to be
-			locked but were not. [RT #801]
+			locked but were not. [RT #801, #821]
 
  732.	[bug]		Glue with 0 TTL could also cause SERVFAIL.  [RT #828]
 
