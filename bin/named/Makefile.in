@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.80.18.4 2004/09/06 21:52:16 marka Exp $
+# $Id: Makefile.in,v 1.80.18.5 2005/01/11 03:55:55 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -63,7 +63,7 @@ SUBDIRS =	unix
 
 TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
 
-OBJS =		aclconf.@O@ builtin.@O@ client.@O@ config.@O@ control.@O@ \
+OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
 		controlconf.@O@ interfacemgr.@O@ \
 		listenlist.@O@ log.@O@ logconf.@O@ main.@O@ notify.@O@ \
 		query.@O@ server.@O@ sortlist.@O@ \
@@ -75,7 +75,7 @@ OBJS =		aclconf.@O@ builtin.@O@ client.@O@ config.@O@ control.@O@ \
 
 UOBJS =		unix/os.@O@
 
-SRCS =		aclconf.c builtin.c client.c config.c control.c \
+SRCS =		builtin.c client.c config.c control.c \
 		controlconf.c interfacemgr.c \
 		listenlist.c log.c logconf.c main.c notify.c \
 		query.c server.c sortlist.c \

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.15 2004/12/21 10:58:56 jinmei Exp $ */
+/* $Id: server.c,v 1.419.18.16 2005/01/11 03:55:56 marka Exp $ */
 
 #include <config.h>
 
@@ -165,11 +165,11 @@ ns_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
 ns_listenelt_fromconfig(cfg_obj_t *listener, cfg_obj_t *config,
-			ns_aclconfctx_t *actx,
+			cfg_aclconfctx_t *actx,
 			isc_mem_t *mctx, ns_listenelt_t **target);
 static isc_result_t
 ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
-			 ns_aclconfctx_t *actx,
+			 cfg_aclconfctx_t *actx,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 static isc_result_t
@@ -183,7 +183,7 @@ configure_alternates(cfg_obj_t *config, dns_view_t *view,
 static isc_result_t
 configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	       isc_mem_t *mctx, dns_view_t *view,
-	       ns_aclconfctx_t *aclconf);
+	       cfg_aclconfctx_t *aclconf);
 
 static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
@@ -195,7 +195,7 @@ end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
  */
 static isc_result_t
 configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
-		   const char *aclname, ns_aclconfctx_t *actx,
+		   const char *aclname, cfg_aclconfctx_t *actx,
 		   isc_mem_t *mctx, dns_acl_t **aclp)
 {
 	isc_result_t result;
@@ -222,7 +222,8 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 		 */
 		return (ISC_R_SUCCESS);
 
-	result = ns_acl_fromconfig(aclobj, config, actx, mctx, aclp);
+	result = cfg_acl_fromconfig(aclobj, config, ns_g_lctx,
+				    actx, mctx, aclp);
 
 	return (result);
 }
@@ -715,7 +716,7 @@ disable_algorithms(cfg_obj_t *disabled, dns_resolver_t *resolver) {
  */
 static isc_result_t
 configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
-	       isc_mem_t *mctx, ns_aclconfctx_t *actx,
+	       isc_mem_t *mctx, cfg_aclconfctx_t *actx,
 	       isc_boolean_t need_hints)
 {
 	cfg_obj_t *maps[4];
@@ -1608,7 +1609,7 @@ create_view(cfg_obj_t *vconfig, dns_viewlist_t *viewlist, dns_view_t **viewp) {
 static isc_result_t
 configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	       isc_mem_t *mctx, dns_view_t *view,
-	       ns_aclconfctx_t *aclconf)
+	       cfg_aclconfctx_t *aclconf)
 {
 	dns_view_t *pview = NULL;	/* Production view */
 	dns_zone_t *zone = NULL;	/* New or reused zone */
@@ -2183,14 +2184,14 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_view_t *view_next;
 	dns_viewlist_t viewlist;
 	dns_viewlist_t tmpviewlist;
-	ns_aclconfctx_t aclconfctx;
+	cfg_aclconfctx_t aclconfctx;
 	isc_uint32_t interface_interval;
 	isc_uint32_t heartbeat_interval;
 	isc_uint32_t udpsize;
 	in_port_t listen_port;
 	int i;
 
-	ns_aclconfctx_init(&aclconfctx);
+	cfg_aclconfctx_init(&aclconfctx);
 	ISC_LIST_INIT(viewlist);
 
 	/* Ensure exclusive access to configuration data. */
@@ -2770,7 +2771,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	ns_aclconfctx_destroy(&aclconfctx);
+	cfg_aclconfctx_destroy(&aclconfctx);
 
 	if (parser != NULL) {
 		if (config != NULL)
@@ -3552,7 +3553,7 @@ ns_server_togglequerylog(ns_server_t *server) {
 
 static isc_result_t
 ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
-			 ns_aclconfctx_t *actx,
+			 cfg_aclconfctx_t *actx,
 			 isc_mem_t *mctx, ns_listenlist_t **target)
 {
 	isc_result_t result;
@@ -3591,7 +3592,7 @@ ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
  */
 static isc_result_t
 ns_listenelt_fromconfig(cfg_obj_t *listener, cfg_obj_t *config,
-			ns_aclconfctx_t *actx,
+			cfg_aclconfctx_t *actx,
 			isc_mem_t *mctx, ns_listenelt_t **target)
 {
 	isc_result_t result;
@@ -3623,8 +3624,8 @@ ns_listenelt_fromconfig(cfg_obj_t *listener, cfg_obj_t *config,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = ns_acl_fromconfig(cfg_tuple_get(listener, "acl"),
-				   config, actx, mctx, &delt->acl);
+	result = cfg_acl_fromconfig(cfg_tuple_get(listener, "acl"),
+				   config, ns_g_lctx, actx, mctx, &delt->acl);
 	if (result != ISC_R_SUCCESS) {
 		ns_listenelt_destroy(delt);
 		return (result);

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.12.18.1 2004/07/20 07:03:30 marka Exp $
+# $Id: Makefile.in,v 1.12.18.2 2005/01/11 03:55:59 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -43,10 +43,10 @@ LIBS =		@LIBS@
 SUBDIRS =	include
 
 # Alphabetically
-OBJS =		log.@O@ namedconf.@O@ parser.@O@ version.@O@
+OBJS =		aclconf.@O@ log.@O@ namedconf.@O@ parser.@O@ version.@O@
 
 # Alphabetically
-SRCS =		log.c namedconf.c parser.c version.c
+SRCS =		aclconf.c log.c namedconf.c parser.c version.c
 
 TARGETS = 	timestamp
 

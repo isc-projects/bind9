@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.9 2005/01/11 01:39:38 marka Exp $ */
+/* $Id: check.c,v 1.44.18.10 2005/01/11 03:55:58 marka Exp $ */
 
 #include <config.h>
 
@@ -33,11 +33,13 @@
 #include <isc/symtab.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/fixedname.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/secalg.h>
 
+#include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 
 #include <bind9/check.h>
@@ -340,6 +342,57 @@ mustbesecure(cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
 				   "dnssec-must-be-secure '%s': already "
 				   "exists previous definition: %s:%u",
 				   logctx, mctx);
+	}
+	return (result);
+}
+
+static isc_result_t
+checkacl(const char *aclname, cfg_obj_t *zconfig, cfg_obj_t *voptions,
+	 cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx)
+{
+	isc_result_t result;
+	cfg_obj_t *aclobj = NULL;
+	cfg_obj_t *options;
+	dns_acl_t *acl = NULL;
+	cfg_aclconfctx_t actx;
+
+	if (zconfig != NULL) {
+		options = cfg_tuple_get(zconfig, "options");
+		cfg_map_get(options, aclname, &aclobj);
+	}
+	if (voptions != NULL && aclobj == NULL)
+		cfg_map_get(voptions, aclname, &aclobj);
+	if (config != NULL && aclobj == NULL) {
+		options = NULL;
+		cfg_map_get(config, "options", &options);
+		if (options != NULL)
+			cfg_map_get(options, aclname, &aclobj);
+	}
+	if (aclobj == NULL)
+		return (ISC_R_SUCCESS);
+	cfg_aclconfctx_init(&actx);
+	result = cfg_acl_fromconfig(aclobj, config, logctx, &actx, mctx, &acl);
+	if (acl != NULL)
+		dns_acl_detach(&acl);
+	return (result);
+}
+
+static isc_result_t
+check_viewacls(cfg_obj_t *voptions, cfg_obj_t *config,
+	      isc_log_t *logctx, isc_mem_t *mctx)
+{
+	isc_result_t result = ISC_R_SUCCESS, tresult;
+	int i = 0;
+	
+	static const char *acls[] = { "allow-query", "allow-query-cache",
+		"allow-recursion", "blackhole", "match-clients",
+		"match-destinations", "sortlist", NULL };
+
+	while (acls[i] != NULL) {
+		tresult = checkacl(acls[i++], NULL, voptions, config,
+				   logctx, mctx);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;  
 	}
 	return (result);
 }
@@ -682,6 +735,7 @@ validate_masters(cfg_obj_t *obj, cfg_obj_t *config, isc_uint32_t *countp,
 #define HINTZONE	8
 #define FORWARDZONE	16
 #define DELEGATIONZONE	32
+#define CHECKACL	64
 
 typedef struct {
 	const char *name;
@@ -689,8 +743,9 @@ typedef struct {
 } optionstable;
 
 static isc_result_t
-check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
-	       dns_rdataclass_t defclass, isc_log_t *logctx, isc_mem_t *mctx)
+check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *voptions, cfg_obj_t *config,
+	       isc_symtab_t *symtab, dns_rdataclass_t defclass,
+	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *zname;
 	const char *typestr;
@@ -705,9 +760,9 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	isc_buffer_t b;
 
 	static optionstable options[] = {
-	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "allow-notify", SLAVEZONE },
-	{ "allow-transfer", MASTERZONE | SLAVEZONE },
+	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | CHECKACL },
+	{ "allow-notify", SLAVEZONE | CHECKACL },
+	{ "allow-transfer", MASTERZONE | SLAVEZONE | CHECKACL },
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE },
@@ -730,8 +785,8 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	{ "min-refresh-time", SLAVEZONE | STUBZONE },
 	{ "sig-validity-interval", MASTERZONE },
 	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "allow-update", MASTERZONE },
-	{ "allow-update-forwarding", SLAVEZONE },
+	{ "allow-update", MASTERZONE | CHECKACL },
+	{ "allow-update-forwarding", SLAVEZONE | CHECKACL },
 	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
 	{ "journal", MASTERZONE | SLAVEZONE },
 	{ "ixfr-base", MASTERZONE | SLAVEZONE },
@@ -833,6 +888,7 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 
 	/*
 	 * Look for inappropriate options for the given zone type.
+	 * Check that ACLs expand correctly.
 	 */
 	for (i = 0; i < sizeof(options) / sizeof(options[0]); i++) {
 		obj = NULL;
@@ -853,6 +909,16 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 					    "in '%s' zone '%s'",
 					    options[i].name, typestr, zname);
 		}
+		obj = NULL;
+		if ((options[i].allowed & ztype) != 0 &&
+		    (options[i].allowed & CHECKACL) != 0) {
+
+			tresult = checkacl(options[i].name, zconfig,
+				           voptions, config, logctx, mctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+		}
+
 	}
 
 	/*
@@ -1090,7 +1156,7 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 }
 		
 static isc_result_t
-check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
+check_viewconf(cfg_obj_t *config, cfg_obj_t *voptions, dns_rdataclass_t vclass,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	cfg_obj_t *servers = NULL;
@@ -1110,8 +1176,8 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
-	if (vconfig != NULL)
-		(void)cfg_map_get(vconfig, "zone", &zones);
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "zone", &zones);
 	else
 		(void)cfg_map_get(config, "zone", &zones);
 
@@ -1122,8 +1188,8 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 		isc_result_t tresult;
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
-		tresult = check_zoneconf(zone, config, symtab, vclass,
-					 logctx, mctx);
+		tresult = check_zoneconf(zone, voptions, config, symtab,
+					 vclass, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
@@ -1147,9 +1213,9 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 		return (tresult);
 	}
 	
-	if (vconfig != NULL) {
+	if (voptions != NULL) {
 		keys = NULL;
-		(void)cfg_map_get(vconfig, "key", &keys);
+		(void)cfg_map_get(voptions, "key", &keys);
 		tresult = check_keylist(keys, symtab, logctx);
 		if (tresult == ISC_R_EXISTS)
 			result = ISC_R_FAILURE;
@@ -1164,49 +1230,53 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	/*
 	 * Check that forwarding is reasonable.
 	 */
-	if (vconfig == NULL) {
+	if (voptions == NULL) {
 		cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			if (check_forward(options, logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
 	} else {
-		if (check_forward(vconfig, logctx) != ISC_R_SUCCESS)
+		if (check_forward(voptions, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 	/*
 	 * Check that dual-stack-servers is reasonable.
 	 */
-	if (vconfig == NULL) {
+	if (voptions == NULL) {
 		cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
 	} else {
-		if (check_dual_stack(vconfig, logctx) != ISC_R_SUCCESS)
+		if (check_dual_stack(voptions, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
 	/*
 	 * Check that rrset-order is reasonable.
 	 */
-	if (vconfig != NULL) {
-		if (check_order(vconfig, logctx) != ISC_R_SUCCESS)
+	if (voptions != NULL) {
+		if (check_order(voptions, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
-	if (vconfig != NULL) {
-		(void)cfg_map_get(vconfig, "server", &servers);
+	if (voptions != NULL) {
+		(void)cfg_map_get(voptions, "server", &servers);
 		if (servers != NULL &&
 		    check_servers(servers, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
-	if (vconfig != NULL)
-		tresult = check_options(vconfig, logctx, mctx);
+	if (voptions != NULL)
+		tresult = check_options(voptions, logctx, mctx);
 	else
 		tresult = check_options(config, logctx, mctx);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
+
+	tresult = check_viewacls(voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 

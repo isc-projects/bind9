@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.19 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: zoneconf.h,v 1.19.18.1 2005/01/11 03:55:57 marka Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
@@ -23,15 +23,14 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
+#include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
-
-#include <named/aclconf.h>
 
 ISC_LANG_BEGINDECLS
 
 isc_result_t
 ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
-		  ns_aclconfctx_t *ac, dns_zone_t *zone);
+		  cfg_aclconfctx_t *ac, dns_zone_t *zone);
 /*
  * Configure or reconfigure a zone according to the named.conf
  * data in 'cctx' and 'czone'.
