@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.107 2000/11/14 23:48:02 tale Exp $ */
+/* $Id: name.c,v 1.108 2000/11/27 19:45:45 gson Exp $ */
 
 #include <config.h>
 
@@ -2664,6 +2664,12 @@ dns_name_split(dns_name_t *name,
 	SETUP_OFFSETS(name, offsets, name_odata);
 
 	splitlabel = name->labels - suffixlabels;
+
+	/*
+	 * Make p point at the count byte of the bitstring label,
+	 * if there is one (p will not be used if we are not
+	 * splitting bits).
+	 */
 	p = &name->ndata[offsets[splitlabel] + 1];
 
 	/*
