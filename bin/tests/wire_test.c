@@ -329,7 +329,7 @@ main(int argc, char *argv[]) {
 	 * application code, ever.
 	 */
 	message->from_to_wire = DNS_MESSAGE_INTENT_RENDER;
-	memset(&b, 0, sizeof(b));
+	memset(b, 0, sizeof(b));
 	isc_buffer_clear(&source);
 
 	for (i = 0 ; i < DNS_SECTION_MAX ; i++)
