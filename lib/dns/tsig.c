@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.74 2000/07/20 19:32:56 bwelling Exp $
+ * $Id: tsig.c,v 1.75 2000/07/21 20:32:12 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -114,7 +114,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 			goto cleanup_algorithm;
 		}
 		dns_name_init(tkey->creator, NULL);
-		ret = dns_name_dup(algorithm, mctx, tkey->creator);
+		ret = dns_name_dup(creator, mctx, tkey->creator);
 		if (ret != ISC_R_SUCCESS) {
 			isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
 			goto cleanup_algorithm;
