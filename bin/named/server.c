@@ -108,8 +108,8 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	/*
 	 * Set up the temporary output buffer.
 	 */
-	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
-	isc_buffer_add(&target, reslen);
+	isc_buffer_init(&target, t + reslen, sizeof(t) - reslen,
+			ISC_BUFFERTYPE_BINARY);
 
 	/*
 	 * Set up the input buffer from the contents of the region passed
@@ -124,22 +124,21 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 		return (result);
 
 	/*
-	 * Copy the reply out
+	 * Copy the reply out, adjusting for reslen
 	 */
 	isc_buffer_used(&target, &txr);
-	txr.length += reslen;
-	txr.base = isc_mem_get(mctx, txr.length);
+	txr.base = isc_mem_get(mctx, txr.length + reslen);
 	if (txr.base == NULL)
 		return (DNS_R_NOMEMORY);
 
-	memcpy(txr.base + reslen, t + reslen, txr.length - reslen);
+	memcpy(txr.base + reslen, t + reslen, txr.length);
 	rxr->base = txr.base;
-	rxr->length = txr.length;
+	rxr->length = txr.length + reslen;
 
 	printf("Base == %p, length == %u\n", txr.base, txr.length);
 	fflush(stdout);
 
-	dump_packet(txr.base + reslen, txr.length - reslen);
+	dump_packet(rxr->base + reslen, rxr->length - reslen);
 
 	isc_mem_stats(mctx, stdout);
 
