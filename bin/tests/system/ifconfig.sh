@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.25.4.1 2001/01/09 22:34:37 bwelling Exp $
+# $Id: ifconfig.sh,v 1.25.4.2 2001/06/06 21:52:00 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -51,6 +51,9 @@ case "$1" in
 			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
 			;;
 		    *-unknown-freebsdelf4.*)
+			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
+			;;
+		    *-UnixWare7*)
 			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
 			;;
 		    *-unknown-netbsd*)
@@ -107,6 +110,9 @@ case "$1" in
 			ifconfig lo0 -alias 10.53.0.$ns
 			;;
 		    *-sgi-irix6.*)
+			ifconfig lo0 -alias 10.53.0.$ns
+			;;
+		    *-UnixWare7*)
 			ifconfig lo0 -alias 10.53.0.$ns
 			;;
 		    *-ibm-aix4.*)
