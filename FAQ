@@ -37,3 +37,13 @@ Q: Why do I see 5 (or more) copies of named on Linux?
 
 A: Linux threads each show up as a process under ps.  The approximate
 number of threads running is n+4, where n is the number of CPUs.
+
+
+Q: Why does BIND 9 log "permission denied" errors accessing its
+configuration files on my Linux sysetm even though it is running as
+root?
+
+A: On Linux, BIND 9 drops most of its root privileges on startup.
+This including the privilege to open files owned by other users.
+Therefore, if the server is running as root, the configuration files
+should also be owned by root.
