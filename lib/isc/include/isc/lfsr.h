@@ -18,6 +18,7 @@
 #ifndef ISC_LFSR_H
 #define ISC_LFSR_H 1
 
+#include <isc/lang.h>
 #include <isc/types.h>
 
 typedef struct isc_lfsr isc_lfsr_t;
