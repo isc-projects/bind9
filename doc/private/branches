@@ -5,7 +5,7 @@ blabel-cleanup
 ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
 rt3598		closed		explorer
-rt3625		review		explorer
+rt3625		closed		explorer
 rt3746		open		marka
 rt3892		review		explorer
 rt4090		review		explorer

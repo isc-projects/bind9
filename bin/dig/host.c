@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.88 2002/10/17 23:44:35 marka Exp $ */
+/* $Id: host.c,v 1.89 2002/11/12 22:57:06 explorer Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -55,6 +55,7 @@ extern isc_task_t *global_task;
 extern int fatalexit;
 
 static isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
+static isc_boolean_t default_lookups = ISC_TRUE;
 static int seen_error = -1;
 static isc_boolean_t list_addresses = ISC_TRUE;
 static dns_rdatatype_t list_type = dns_rdatatype_a;
@@ -386,6 +387,38 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		       msg->rcode, rcodetext[msg->rcode]);
 		return (ISC_R_SUCCESS);
 	}
+
+	if (default_lookups && query->lookup->rdtype == dns_rdatatype_a) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		dig_lookup_t *lookup;
+
+		/* Add AAAA and MX lookups. */
+
+		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
+		lookup = clone_lookup(query->lookup, ISC_FALSE);
+		if (lookup != NULL) {
+			strncpy(lookup->textname, namestr,
+				sizeof(lookup->textname));
+			lookup->textname[sizeof(lookup->textname)-1] = 0;
+			lookup->rdtype = dns_rdatatype_aaaa;
+                        lookup->rdtypeset = ISC_TRUE;
+			lookup->origin = NULL;
+			lookup->retries = tries;
+			ISC_LIST_APPEND(lookup_list, lookup, link);
+		}
+		lookup = clone_lookup(query->lookup, ISC_FALSE);
+		if (lookup != NULL) {
+			strncpy(lookup->textname, namestr,
+				sizeof(lookup->textname));
+			lookup->textname[sizeof(lookup->textname)-1] = 0;
+			lookup->rdtype = dns_rdatatype_mx;
+                        lookup->rdtypeset = ISC_TRUE;
+			lookup->origin = NULL;
+			lookup->retries = tries;
+			ISC_LIST_APPEND(lookup_list, lookup, link);
+		}
+	}
+
 	if (!short_form) {
 		printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
 		       opcodetext[msg->opcode], rcodetext[msg->rcode],
@@ -478,7 +511,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	if (!short_form)
 		printf("\n");
 
-	if (short_form && ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
+	if (short_form && !default_lookups &&
+	    ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
 		char namestr[DNS_NAME_FORMATSIZE];
 		char typestr[DNS_RDATATYPE_FORMATSIZE];
 		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
@@ -572,6 +606,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				lookup->rdclass = rdclass;
 				lookup->rdclassset = ISC_TRUE;
 			}
+			default_lookups = ISC_FALSE;
 			break;
 		case 'a':
 			if (!lookup->rdtypeset ||
@@ -581,6 +616,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			list_addresses = ISC_FALSE;
 			lookup->rdtypeset = ISC_TRUE;
 			short_form = ISC_FALSE;
+			default_lookups = ISC_FALSE;
 			break;
 		case 'i':
 			lookup->ip6_int = ISC_TRUE;
@@ -601,9 +637,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				timeout = 1;
 			break;
 		case 'R':
-			tries = atoi(isc_commandline_argument);
-			if (tries < 1)
-				tries = 1;
+			tries = atoi(isc_commandline_argument) + 1;
+			if (tries < 2)
+				tries = 2;
 			break;
 		case 'T':
 			lookup->tcp_mode = ISC_TRUE;
@@ -617,6 +653,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->ns_search_only = ISC_TRUE;
 			lookup->trace_root = ISC_TRUE;
 			lookup->identify_previous_line = ISC_TRUE;
+			default_lookups = ISC_FALSE;
 			break;
 		case 'N':
 			debug("setting NDOTS to %s",
@@ -628,6 +665,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			break;
 		}
 	}
+
+	lookup->retries = tries;
 
 	if (isc_commandline_index >= argc)
 		show_usage();
@@ -648,6 +687,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->textname[sizeof(lookup->textname)-1] = 0;
 		lookup->rdtype = dns_rdatatype_ptr;
 		lookup->rdtypeset = ISC_TRUE;
+		default_lookups = ISC_FALSE;
 	} else {
 		strncpy(lookup->textname, hostname, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1]=0;
@@ -662,6 +702,8 @@ int
 main(int argc, char **argv) {
 	isc_result_t result;
 
+	tries = 2;
+
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
@@ -670,7 +712,6 @@ main(int argc, char **argv) {
 
 	debug("main()");
 	progname = argv[0];
-	result = isc_app_start();
 	check_result(result, "isc_app_start");
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
