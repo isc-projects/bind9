@@ -16,8 +16,10 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_ntop.c,v 1.2 1999/01/30 04:27:48 explorer Exp $";
+static char rcsid[] = "$Id: inet_ntop.c,v 1.3 1999/02/06 08:48:07 explorer Exp $";
 #endif /* LIBC_SCCS and not lint */
+
+#include <config.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -28,8 +30,11 @@ static char rcsid[] = "$Id: inet_ntop.c,v 1.2 1999/01/30 04:27:48 explorer Exp $
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
+
+#include <isc/inet.h>
 
 #define NS_INT16SZ	 2
 #define NS_IN6ADDRSZ	16
@@ -39,9 +44,9 @@ static char rcsid[] = "$Id: inet_ntop.c,v 1.2 1999/01/30 04:27:48 explorer Exp $
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static const char *isc_inet_ntop4(const u_char *src, char *dst, size_t size);
+static const char *isc_inet_ntop4(const unsigned char *src, char *dst, size_t size);
 #ifdef AF_INET6
-static const char *isc_inet_ntop6(const u_char *src, char *dst, size_t size);
+static const char *isc_inet_ntop6(const unsigned char *src, char *dst, size_t size);
 #endif
 
 /* char *
@@ -76,12 +81,12 @@ isc_inet_ntop(int af, const void *src, char *dst, size_t size)
  *	`dst' (as a const)
  * notes:
  *	(1) uses no statics
- *	(2) takes a u_char* not an in_addr as input
+ *	(2) takes a unsigned char* not an in_addr as input
  * author:
  *	Paul Vixie, 1996.
  */
 static const char *
-isc_inet_ntop4(const u_char *src, char *dst, size_t size)
+isc_inet_ntop4(const unsigned char *src, char *dst, size_t size)
 {
 	static const char *fmt = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
@@ -103,7 +108,7 @@ isc_inet_ntop4(const u_char *src, char *dst, size_t size)
  */
 #ifdef AF_INET6
 static const char *
-isc_inet_ntop6(const u_char *src, char *dst, size_t size)
+isc_inet_ntop6(const unsigned char *src, char *dst, size_t size)
 {
 	/*
 	 * Note that int32_t and int16_t need only be "at least" large enough
@@ -114,7 +119,7 @@ isc_inet_ntop6(const u_char *src, char *dst, size_t size)
 	 */
 	char tmp[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"], *tp;
 	struct { int base, len; } best, cur;
-	u_int words[NS_IN6ADDRSZ / NS_INT16SZ];
+	unsigned int words[NS_IN6ADDRSZ / NS_INT16SZ];
 	int i;
 
 	/*

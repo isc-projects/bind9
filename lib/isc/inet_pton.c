@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_pton.c,v 1.1 1999/02/02 00:37:09 halley Exp $";
+static char rcsid[] = "$Id: inet_pton.c,v 1.2 1999/02/06 08:48:07 explorer Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -25,10 +25,14 @@ static char rcsid[] = "$Id: inet_pton.c,v 1.1 1999/02/02 00:37:09 halley Exp $";
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
+
 #include <string.h>
 #include <errno.h>
+
+#include <isc/inet.h>
 
 #define NS_INT16SZ	 2
 #define NS_INADDRSZ	 4
@@ -39,8 +43,8 @@ static char rcsid[] = "$Id: inet_pton.c,v 1.1 1999/02/02 00:37:09 halley Exp $";
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static int	inet_pton4(const char *src, u_char *dst);
-static int	inet_pton6(const char *src, u_char *dst);
+static int	inet_pton4(const char *src, unsigned char *dst);
+static int	inet_pton6(const char *src, unsigned char *dst);
 
 /* int
  * isc_inet_pton(af, src, dst)
@@ -84,11 +88,11 @@ isc_inet_pton(af, src, dst)
 static int
 inet_pton4(src, dst)
 	const char *src;
-	u_char *dst;
+	unsigned char *dst;
 {
 	static const char digits[] = "0123456789";
 	int saw_digit, octets, ch;
-	u_char tmp[NS_INADDRSZ], *tp;
+	unsigned char tmp[NS_INADDRSZ], *tp;
 
 	saw_digit = 0;
 	octets = 0;
@@ -97,7 +101,7 @@ inet_pton4(src, dst)
 		const char *pch;
 
 		if ((pch = strchr(digits, ch)) != NULL) {
-			u_int new = *tp * 10 + (pch - digits);
+			unsigned int new = *tp * 10 + (pch - digits);
 
 			if (new > 255)
 				return (0);
@@ -137,14 +141,14 @@ inet_pton4(src, dst)
 static int
 inet_pton6(src, dst)
 	const char *src;
-	u_char *dst;
+	unsigned char *dst;
 {
 	static const char xdigits_l[] = "0123456789abcdef",
 			  xdigits_u[] = "0123456789ABCDEF";
-	u_char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
+	unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
 	const char *xdigits, *curtok;
 	int ch, saw_xdigit;
-	u_int val;
+	unsigned int val;
 
 	memset((tp = tmp), '\0', NS_IN6ADDRSZ);
 	endp = tp + NS_IN6ADDRSZ;
@@ -179,8 +183,8 @@ inet_pton6(src, dst)
 			}
 			if (tp + NS_INT16SZ > endp)
 				return (0);
-			*tp++ = (u_char) (val >> 8) & 0xff;
-			*tp++ = (u_char) val & 0xff;
+			*tp++ = (unsigned char) (val >> 8) & 0xff;
+			*tp++ = (unsigned char) val & 0xff;
 			saw_xdigit = 0;
 			val = 0;
 			continue;
@@ -196,8 +200,8 @@ inet_pton6(src, dst)
 	if (saw_xdigit) {
 		if (tp + NS_INT16SZ > endp)
 			return (0);
-		*tp++ = (u_char) (val >> 8) & 0xff;
-		*tp++ = (u_char) val & 0xff;
+		*tp++ = (unsigned char) (val >> 8) & 0xff;
+		*tp++ = (unsigned char) val & 0xff;
 	}
 	if (colonp != NULL) {
 		/*

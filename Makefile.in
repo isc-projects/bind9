@@ -17,6 +17,8 @@ DISTFILES =	Makefile.in config.h.in configure.in \
 distclean:: FORCE
 	rm -f config.cache config.h config.log config.status
 
+cleandir: distclean
+
 kit: kitclean
 	mkdir bind-${VERSION}
 	@(cd bind-${VERSION}; for i in ${DISTFILES}; do ln -s ../$$i $$i; done)

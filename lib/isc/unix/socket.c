@@ -36,6 +36,9 @@
 
 #include "util.h"
 
+/* temp hack! XXX */
+#define ISC_SOCKADDR_LEN_T int
+
 #ifndef _WIN32
 #define WINAPI /* we're not windows */
 #endif
@@ -718,7 +721,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	isc_socket_newconnev_t *dev;
 	ncintev_t *iev;
 	struct sockaddr addr;
-	u_int addrlen;
+	ISC_SOCKADDR_LEN_T addrlen;
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -841,7 +844,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 	int cc;
 	size_t read_count;
 	struct sockaddr addr;
-	u_int addrlen;
+	ISC_SOCKADDR_LEN_T addrlen;
 
 	/*
 	 * Find out what socket this is and lock it.
@@ -1634,11 +1637,14 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	 */
 	if (EMPTY(sock->recv_list)) {
 		if (sock->type == isc_socket_udp) {
+			ISC_SOCKADDR_LEN_T addrlen;
 			ev->addrlength = sizeof(isc_sockaddr_t);
+			addrlen = (ISC_SOCKADDR_LEN_T)ev->addrlength;
 			cc = recvfrom(sock->fd, ev->region.base,
 				      ev->region.length, 0,
 				      (struct sockaddr *)&ev->address,
-				      &ev->addrlength);
+				      &addrlen);
+			ev->addrlength = (unsigned int)addrlen;
 		} else {
 			cc = recv(sock->fd, ev->region.base,
 				  ev->region.length, 0);
@@ -1734,13 +1740,14 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t *address, unsigned int addrlength)
+		  isc_sockaddr_t *address, unsigned int addrlen)
 {
 	isc_socketevent_t *ev;
 	rwintev_t *iev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
 	int cc;
+	ISC_SOCKADDR_LEN_T addrlength = (ISC_SOCKADDR_LEN_T)addrlen;
 
 	REQUIRE(VALID_SOCKET(sock));
 
@@ -2188,7 +2195,7 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 	isc_socket_connev_t *dev;
 	cnintev_t *iev;
 	int cc;
-	int optlen;
+	ISC_SOCKADDR_LEN_T optlen;
 
 	sock = ev->sender;
 	iev = (cnintev_t *)ev;
@@ -2302,7 +2309,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp,
 		       int *lengthp)
 {
 	isc_sockaddr_t addr;
-	int len;
+	ISC_SOCKADDR_LEN_T len;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addressp != NULL);
@@ -2318,13 +2325,13 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	if (*lengthp < sock->addrlength) {
+	if ((unsigned int)*lengthp < (unsigned int)len) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOSPACE);
 	}
 
-	memcpy(addressp, &sock->address, (size_t)sock->addrlength);
-	*lengthp = sock->addrlength;
+	memcpy(addressp, &sock->address, (size_t)len);
+	*lengthp = (unsigned int)len;
 
 	UNLOCK(&sock->lock);
 

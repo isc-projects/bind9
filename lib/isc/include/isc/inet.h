@@ -27,15 +27,18 @@
  * controlled tree.
  */
 
+#ifdef NEED_AF_INET6
+#define AF_INET6 99
+#endif
+
 #ifdef NEED_INET_NTOP
-char *isc_inet_ntop(int af, const void *src, char *dst, size_t size);
+const char *isc_inet_ntop(int af, const void *src, char *dst, size_t size);
 #else
 #define isc_inet_ntop inet_ntop
 #endif
 
 #ifdef NEED_INET_PTON
-int
-isc_inet_pton(int af, const char *src, void *dst);
+int isc_inet_pton(int af, const char *src, void *dst);
 #else
 #define isc_inet_pton inet_pton
 #endif

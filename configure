@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.13 
+# From configure.in Revision: 1.14 
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.12 
@@ -1289,8 +1289,13 @@ fi
 
 fi
 
-echo $ac_n "checking for socket in -lxnet""... $ac_c" 1>&6
-echo "configure:1294: checking for socket in -lxnet" >&5
+
+case "$host" in
+	mips-sgi-irix*)
+		;;
+	*)
+		echo $ac_n "checking for socket in -lxnet""... $ac_c" 1>&6
+echo "configure:1299: checking for socket in -lxnet" >&5
 ac_lib_var=`echo xnet'_'socket | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1298,7 +1303,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lxnet  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1302 "configure"
+#line 1307 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1309,7 +1314,7 @@ int main() {
 socket()
 ; return 0; }
 EOF
-if { (eval echo configure:1313: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1318: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1335,7 +1340,7 @@ EOF
 else
   echo "$ac_t""no" 1>&6
 echo $ac_n "checking for socket in -lsocket""... $ac_c" 1>&6
-echo "configure:1339: checking for socket in -lsocket" >&5
+echo "configure:1344: checking for socket in -lsocket" >&5
 ac_lib_var=`echo socket'_'socket | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1343,7 +1348,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lsocket  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1347 "configure"
+#line 1352 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1354,7 +1359,7 @@ int main() {
 socket()
 ; return 0; }
 EOF
-if { (eval echo configure:1358: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1363: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1381,8 +1386,8 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-	     echo $ac_n "checking for inet_ntoa in -lnsl""... $ac_c" 1>&6
-echo "configure:1386: checking for inet_ntoa in -lnsl" >&5
+		    echo $ac_n "checking for inet_ntoa in -lnsl""... $ac_c" 1>&6
+echo "configure:1391: checking for inet_ntoa in -lnsl" >&5
 ac_lib_var=`echo nsl'_'inet_ntoa | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1390,7 +1395,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lnsl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1394 "configure"
+#line 1399 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1401,7 +1406,7 @@ int main() {
 inet_ntoa()
 ; return 0; }
 EOF
-if { (eval echo configure:1405: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1410: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1428,17 +1433,19 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-
+		
 fi
 
+	;;
+esac
 
 echo $ac_n "checking for inet_ntop""... $ac_c" 1>&6
-echo "configure:1437: checking for inet_ntop" >&5
+echo "configure:1444: checking for inet_ntop" >&5
 if eval "test \"`echo '$''{'ac_cv_func_inet_ntop'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1442 "configure"
+#line 1449 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char inet_ntop(); below.  */
@@ -1461,7 +1468,7 @@ inet_ntop();
 
 ; return 0; }
 EOF
-if { (eval echo configure:1465: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1472: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_inet_ntop=yes"
 else
@@ -1488,12 +1495,12 @@ EOF
 fi
 
 echo $ac_n "checking for inet_pton""... $ac_c" 1>&6
-echo "configure:1492: checking for inet_pton" >&5
+echo "configure:1499: checking for inet_pton" >&5
 if eval "test \"`echo '$''{'ac_cv_func_inet_pton'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1497 "configure"
+#line 1504 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char inet_pton(); below.  */
@@ -1516,7 +1523,7 @@ inet_pton();
 
 ; return 0; }
 EOF
-if { (eval echo configure:1520: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1527: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_inet_pton=yes"
 else
@@ -1543,12 +1550,12 @@ EOF
 fi
 
 echo $ac_n "checking for inet_aton""... $ac_c" 1>&6
-echo "configure:1547: checking for inet_aton" >&5
+echo "configure:1554: checking for inet_aton" >&5
 if eval "test \"`echo '$''{'ac_cv_func_inet_aton'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1552 "configure"
+#line 1559 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char inet_aton(); below.  */
@@ -1571,7 +1578,7 @@ inet_aton();
 
 ; return 0; }
 EOF
-if { (eval echo configure:1575: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1582: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_func_inet_aton=yes"
 else
@@ -1599,7 +1606,7 @@ fi
 
 
 echo $ac_n "checking whether ${MAKE-make} sets \${MAKE}""... $ac_c" 1>&6
-echo "configure:1603: checking whether ${MAKE-make} sets \${MAKE}" >&5
+echo "configure:1610: checking whether ${MAKE-make} sets \${MAKE}" >&5
 set dummy ${MAKE-make}; ac_make=`echo "$2" | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_prog_make_${ac_make}_set'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1628,7 +1635,7 @@ fi
 # Extract the first word of "ranlib", so it can be a program name with args.
 set dummy ranlib; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1632: checking for $ac_word" >&5
+echo "configure:1639: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_RANLIB'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1665,7 +1672,7 @@ fi
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:1669: checking for a BSD compatible install" >&5
+echo "configure:1676: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1715,22 +1722,20 @@ test -z "$INSTALL_PROGRAM" && INSTALL_PROGRAM='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
+STD_CINCLUDES=""
+STD_CDEFINES=""
+STD_CWARNINGS=""
 
 
 
 if test "X$GCC" = "Xyes"; then
-	STD_CINCLUDES=
-	STD_CDEFINES=
-	STD_CWARNINGS="-W -Wall -Wmissing-prototypes"
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes"
 	case "$host" in
 		*-sun-solaris*)
 			LIBS="$LIBS -lthread"
 			;;
 	esac
 else
-	STD_CINCLUDES=
-	STD_CDEFINES=
-	STD_CWARNINGS=
 	case "$host" in
 		*-dec-osf*)
 			CC="$CC -pthread"
@@ -1743,23 +1748,32 @@ else
 			;;
 	esac
 fi
+
 case "$host" in
+	*-dec-osf*)
+		STD_CDEFINES="$STD_CDEFINES -DISC_SOCKADDR_LEN_T=size_t"
+		;;
 	*-sun-solaris*)
 		cat >> confdefs.h <<\EOF
 #define NEED_AF_INET6 1
 EOF
 
+		STD_CDEFINES="$STD_CDEFINES -DISC_SOCKADDR_LEN_T=int"
 		;;
 	*-hp-hpux*)
 		cat >> confdefs.h <<\EOF
 #define NEED_AF_INET6 1
 EOF
 
+		STD_CDEFINES="$STD_CDEFINES -DISC_SOCKADDR_LEN_T=int"
+		;;
+	*)
+		STD_CDEFINES="$STD_CDEFINES -DISC_SOCKADDR_LEN_T=int"
 		;;
 esac
 
 
-BIND9_MAKE_RULES=make/rules
+BIND9_MAKE_RULES=$srcdir/make/rules
 
 
 BIND9_VERSION=$srcdir/version
