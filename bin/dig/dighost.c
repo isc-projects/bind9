@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.50 2000/06/15 19:05:30 mws Exp $ */
+/* $Id: dighost.c,v 1.51 2000/06/15 20:56:24 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -33,9 +33,9 @@
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
 #include <netdb.h>
 #include <string.h>
-#endif
-
+#else
 extern int h_errno;
+#endif
 
 #include <isc/app.h>
 #include <isc/netdb.h>
