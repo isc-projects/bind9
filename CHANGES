@@ -1,3 +1,7 @@
+ 738.	[bug]		If a non-threadsafe sdb driver supported AXFR and
+			received an AXFR request, it would deadlock or die
+			with an assertion failure.
+
  737.	[port]		stdtime failed to compile on certain platforms.
 
  736.	[func]		New functions isc_task_{begin,end}exclusive().
