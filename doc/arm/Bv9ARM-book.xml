@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.69 2000/12/14 22:28:01 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.70 2000/12/15 21:17:23 gson Exp $ -->
 
 <book>
 
@@ -697,6 +697,15 @@ of a server.</para>
 <row rowsep = "0">
 <entry colname = "1"><para><userinput>querylog</userinput></para></entry>
 <entry colname = "2"><para>Toggle query logging.</para></entry>
+</row>
+
+<row rowsep = "0">
+<entry colname = "1"><para><userinput>dumpdb</userinput></para></entry>
+<entry colname = "2"><para>Dump the current contents of the cache
+(or caches if there are multiple views) into the file named by the
+<command>dump-file</command> option
+(by default, <filename>named_dump.db</filename>).
+</para></entry>
 </row>
 
 <row rowsep = "0">
