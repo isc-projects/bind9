@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.16 2000/03/16 00:18:29 explorer Exp $ */
+/* $Id: afsdb_18.c,v 1.17 2000/03/16 00:48:08 explorer Exp $ */
 
-/* reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
+/* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
 /* RFC 1183 */
 
