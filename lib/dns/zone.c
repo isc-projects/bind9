@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.78 2000/02/09 19:04:04 gson Exp $ */
+ /* $Id: zone.c,v 1.79 2000/02/10 01:12:14 gson Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,7 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dispatch.h>
+#include <dns/events.h>
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/master.h>
@@ -112,7 +113,9 @@ struct dns_zone {
 	dns_zonemgr_t		*zmgr;
 	ISC_LINK(dns_zone_t)	link;		/* Used by zmgr. */
 	isc_timer_t		*timer;
-	unsigned int		references;
+	unsigned int		erefs;
+	unsigned int		irefs;
+	isc_boolean_t		shuttingdown;
 	dns_name_t		origin;
 	char 			*database;
 	char			*journal;
@@ -161,6 +164,7 @@ struct dns_zone {
 	isc_uint32_t		idlein;
 	isc_uint32_t		idleout;
 	isc_boolean_t		diff_on_reload;
+	isc_event_t		ctlevent;
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -235,8 +239,8 @@ static void record_serial(void);
 		isc_result_t r; \
 		r = dns_zone_tostr(zone, zone->mctx, &s); \
 		if (r == DNS_R_SUCCESS) { \
-			printf("%p: %s: references = %d\n", zone, s, \
-			       zone->references); \
+			printf("%p: %s: erefs = %d\n", zone, s, \
+			       zone->erefs); \
 			isc_mem_free(zone->mctx, s); \
 		} \
 	} while (0)
@@ -281,7 +285,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->top = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
-	zone->references = 1;		/* Implicit attach. */
+	zone->erefs = 1;		/* Implicit attach. */
+	zone->irefs = 0;
+	zone->shuttingdown = ISC_FALSE;
 	dns_name_init(&zone->origin, NULL);
 	zone->database = NULL;
 	zone->journalsize = -1;
@@ -330,9 +336,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->diff_on_reload = ISC_FALSE;
 	zone->magic = ZONE_MAGIC;
-#if 0
-	PRINT_ZONE_REF(zone);
-#endif
+	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
+		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
+		       NULL, NULL);
 	*zonep = zone;
 	return (DNS_R_SUCCESS);
 }
@@ -342,7 +348,7 @@ zone_free(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	LOCK(&zone->lock);
-	REQUIRE(zone->references == 0);
+	REQUIRE(zone->erefs == 0);
 	zone->flags |= DNS_ZONE_F_EXITING;
 	UNLOCK(&zone->lock);
 
@@ -1214,20 +1220,77 @@ dns_zone_checkglue(dns_zone_t *zone) {
 	 */
 }
 
+static void
+exit_check(dns_zone_t *zone)
+{
+	if (zone->irefs == 0 && zone->shuttingdown == ISC_TRUE)
+		zone_free(zone);
+}
+
 void
 dns_zone_attach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
-
 	LOCK(&source->lock);
-	REQUIRE(source->references > 0);
-	source->references++;
-#if 0
-	PRINT_ZONE_REF(source);
-#endif
-	INSIST(source->references != 0xffffffffU);
+	REQUIRE(source->erefs > 0);
+	source->erefs++;
+	INSIST(source->erefs != 0xffffffffU);
 	UNLOCK(&source->lock);
 	*target = source;
+}
+
+void
+dns_zone_detach(dns_zone_t **zonep) {
+	dns_zone_t *zone;
+	isc_boolean_t free_now = ISC_FALSE;
+	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
+	zone = *zonep;
+	LOCK(&zone->lock);
+	REQUIRE(zone->erefs > 0);
+	zone->erefs--;
+	if (zone->erefs == 0) {
+		if (zone->task != NULL) {
+			/*
+			 * This zone is being managed.  Post
+			 * its control event and let it clean
+			 * up synchronously in the context of
+			 * its task.
+			 */
+			isc_event_t *ev = &zone->ctlevent;
+			isc_task_send(zone->task, &ev);
+		} else {
+			/*
+			 * This zone is not being managed; it has
+			 * no task and can have no outstanding
+			 * events.  Free it immediately.
+			 */
+			free_now = ISC_TRUE;
+		}
+	}
+	UNLOCK(&zone->lock);
+	if (free_now)
+		zone_free(zone);
+	*zonep = NULL;
+}
+
+void
+dns_zone_iattach(dns_zone_t *source, dns_zone_t **target) {
+	REQUIRE(DNS_ZONE_VALID(source));
+	REQUIRE(target != NULL && *target == NULL);
+	source->irefs++;
+	INSIST(source->irefs != 0xffffffffU);
+	*target = source;
+}
+
+void
+dns_zone_idetach(dns_zone_t **zonep) {
+	dns_zone_t *zone;
+	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
+	zone = *zonep;
+	REQUIRE(zone->irefs > 0);
+	zone->irefs--;
+	*zonep = NULL;
+	exit_check(zone);
 }
 
 void
@@ -1268,25 +1331,6 @@ dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx, char **s) {
 	}
 	*s = isc_mem_strdup(mctx, outbuf);
 	return ((*s == NULL) ? DNS_R_NOMEMORY : DNS_R_SUCCESS);
-}
-
-void
-dns_zone_detach(dns_zone_t **zonep) {
-	dns_zone_t *zone;
-
-	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
-
-	zone = *zonep;
-	LOCK(&zone->lock);
-	REQUIRE(zone->references > 0);
-	zone->references--;
-#if 0
-	PRINT_ZONE_REF(zone);
-#endif
-	UNLOCK(&zone->lock);
-	if (zone->references == 0)
-		zone_free(zone);
-	*zonep = NULL;
 }
 
 void
@@ -2147,15 +2191,22 @@ soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 }
 #endif
 
+/*
+ * Handle the control event.  Note that although this event causes the zone
+ * to shut down, it is not a shutdown event in the sense of the task library.
+ */
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *) event->arg;
-	isc_event_free(&event);
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
+	INSIST(event->type == DNS_EVENT_ZONECONTROL);
+	INSIST(zone->erefs == 0);
 	zone_log(zone, "zone_shutdown", ISC_LOG_DEBUG(3), "shutting down");
+	zone->shuttingdown = ISC_TRUE;
 	if (zone->xfr != NULL)
 		dns_xfrin_shutdown(zone->xfr);
+	exit_check(zone);
 }
 
 static void
@@ -3098,18 +3149,11 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
 
-	result = isc_task_onshutdown(zone->task, zone_shutdown, zone);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_timer;
-	
 	zone->zmgr = zmgr;
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 
 	goto unlock;
 
- cleanup_timer:
-	isc_timer_detach(&zone->timer);
-	
  cleanup_task:
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);

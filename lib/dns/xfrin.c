@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.46 2000/02/03 23:44:03 halley Exp $ */
+ /* $Id: xfrin.c,v 1.47 2000/02/10 01:12:12 gson Exp $ */
 
 #include <config.h>
 
@@ -610,7 +610,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->mctx = mctx;
 	xfr->refcount = 0;
 	xfr->zone = NULL;
-	dns_zone_attach(zone, &xfr->zone);
+	dns_zone_iattach(zone, &xfr->zone);
 	xfr->task = NULL;
 	isc_task_attach(task, &xfr->task);
 	xfr->timer = NULL;
@@ -1137,7 +1137,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 		dns_db_detach(&xfr->db);
 
 	if (xfr->zone != NULL)
-		dns_zone_detach(&xfr->zone);
+		dns_zone_idetach(&xfr->zone);
 		
 	isc_mem_put(xfr->mctx, xfr, sizeof(*xfr));
 }

@@ -196,7 +196,8 @@ void dns_zone_checkglue(dns_zone_t *zone);
 
 void dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
 /*
- *	Attach 'zone' to 'target'.  Increment reference count.
+ *	Attach 'zone' to 'target' incrementing its external
+ * 	reference count.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
@@ -205,8 +206,31 @@ void dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
 
 void dns_zone_detach(dns_zone_t **zonep);
 /*
- *	Detach the current zone.  If this is the last reference to the
- *	zone it will be destroyed.
+ *	Detach from a zone decrementing its external reference count.
+ *	If this was the last external reference to the zone it will be
+ * 	shut down and eventually freed.
+ *
+ * Require:
+ *	'zonep' to point to a valid initalised zone.
+ */
+
+void dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
+/*
+ *	Attach 'zone' to 'target' incrementing its internal 
+ * 	reference count.  This is intended for use by operations
+ * 	such as zone transfers that need to prevent the zone
+ * 	object from being freed but not from shutting down.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
+ *	'target' to be non NULL and '*target' to be NULL.
+ */
+
+void dns_zone_idetach(dns_zone_t **zonep);
+/*
+ *	Detach from a zone decrementing its internal reference count.
+ *	If there are no more internal or external references to the
+ * 	zone, it will be freed.
  *
  * Require:
  *	'zonep' to point to a valid initalised zone.
