@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.38 2000/06/12 18:05:12 bwelling Exp $
+ * $Id: hmac_link.c,v 1.38.2.1 2000/07/03 23:48:08 gson Exp $
  */
 
 #include <config.h>
@@ -270,9 +270,10 @@ hmacmd5_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename) {
 
 	isc_buffer_init(&b, priv.elements[0].data, priv.elements[0].length);
 	isc_buffer_add(&b, priv.elements[0].length);
+	ret = hmacmd5_fromdns(key, &b);
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
-	return (hmacmd5_fromdns(key, &b));
+	return (ret);
 }
 
 static dst_func_t hmacmd5_functions = {
