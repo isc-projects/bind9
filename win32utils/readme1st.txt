@@ -1,3 +1,8 @@
+Copyright (C) 2001  Internet Software Consortium.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id: readme1st.txt,v 1.5 2001/07/31 00:03:20 gson Exp $
+
 	Beta Release of BIND 9.2.0 for Window NT/2000
 
 Date: 20-Jul-2001.

@@ -14,9 +14,8 @@
 # FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-#
-# $Id: makedefs.pl,v 1.4 2001/07/27 17:25:41 gson Exp $ 
-#
+
+# $Id: makedefs.pl,v 1.5 2001/07/31 00:03:19 gson Exp $
 
 # makedefs.pl
 # This script goes through all of the lib header files and creates a .def file

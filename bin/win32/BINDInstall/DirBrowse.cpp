@@ -15,6 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: DirBrowse.cpp,v 1.3 2001/07/31 00:03:15 gson Exp $ */
+
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
  *

@@ -15,6 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: BINDInstallDlg.cpp,v 1.6 2001/07/31 00:03:13 gson Exp $ */
+
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
  *
