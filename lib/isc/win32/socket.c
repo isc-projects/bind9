@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.28 2004/01/26 23:33:32 marka Exp $ */
+/* $Id: socket.c,v 1.29 2004/03/04 05:54:29 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -800,23 +800,28 @@ isc_result_t
 socket_event_add(isc_socket_t *sock, long type) {
 	int stat;
 	WSAEVENT hEvent;
+	char strbuf[ISC_STRERRORSIZE];
+	const char *msg;
 
 	REQUIRE(sock != NULL);
 
 	hEvent = WSACreateEvent();
 	if (hEvent == WSA_INVALID_EVENT) {
 		stat = WSAGetLastError();
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSACreateEvent: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed"),
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSACreateEvent: %s: %s",
+				 msg, strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 	if (WSAEventSelect(sock->fd, hEvent, type) != 0) {
 		stat = WSAGetLastError();
-		WSACloseEvent(hEvent);
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s: %s",
+				 msg, strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 	sock->hEvent = hEvent;
@@ -2101,6 +2106,22 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 	 */
 	dev = ISC_LIST_HEAD(sock->accept_list);
 	if (dev == NULL) {
+		isc_sockaddr_t from;
+		/*
+		 * This should only happen if WSAEventSelect() fails
+		 * below or in isc_socket_cancel().
+		 */
+		addrlen = sizeof(from.type);
+		fd = accept(sock->fd, &from.type.sa, &addrlen);
+		if (fd != INVALID_SOCKET) {
+			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&from, addrbuf, sizeof(addrbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "sock->accept_list empty: "
+					 "dropping TCP request from %s",
+					 addrbuf);
+			(void)closesocket(fd);
+		}
 		UNLOCK(&sock->lock);
 		return;
 	}
@@ -2164,6 +2185,21 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 	 */
 	ISC_LIST_UNLINK(sock->accept_list, dev, ev_link);
 
+	/*
+	 * Stop listing for connects.
+	 */
+	if (ISC_LIST_EMPTY(sock->accept_list) &&
+	    WSAEventSelect(sock->fd, sock->hEvent, FD_CLOSE) != 0) {
+		int stat;
+		const char *msg;
+		stat = WSAGetLastError();
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s: %s",
+				 msg, strbuf);
+	}
+
 	UNLOCK(&sock->lock);
 
 	if (fd != INVALID_SOCKET) {
@@ -2186,6 +2222,23 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 		dev->newsocket->fd = fd;
 		dev->newsocket->bound = 1;
 		dev->newsocket->connected = 1;
+
+		/*
+		 * The accept socket inherits the listen socket's
+		 * selected events. Remove this socket from all events
+		 * as it is handled by IOCP. (Joe Quanaim, lucent.com)
+		 */
+		if (WSAEventSelect(dev->newsocket->fd, 0, 0) != 0) {
+			/* this is an unlikely but non-fatal error */
+			int stat;
+			const char *msg;
+			stat = WSAGetLastError();
+			isc__strerror(stat, strbuf, sizeof(strbuf));
+			msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+					     ISC_MSG_FAILED, "failed");
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "WSAEventSelect: %s: %s", msg, strbuf);
+		}
 
 		/*
 		 * Save away the remote address
@@ -2599,7 +2652,7 @@ event_wait(void *uap) {
 		if (wsock == NULL)
 			continue;
 
-		if (WSAEnumNetworkEvents(wsock->fd, 0,
+		if (WSAEnumNetworkEvents(wsock->fd, wsock->hEvent,
 			&NetworkEvents) == SOCKET_ERROR) {
 			err = WSAGetLastError();
 			isc__strerror(err, strbuf, sizeof(strbuf));
@@ -2610,7 +2663,6 @@ event_wait(void *uap) {
 		}
 
 		if(NetworkEvents.lNetworkEvents == 0 ) {
-			WSAResetEvent(wsock->hEvent);
 			continue;
 		}
 
@@ -2646,8 +2698,6 @@ event_wait(void *uap) {
 				internal_connect(wsock, event_errno);
 			}
 		}
-		if (wsock->hEvent != NULL)
-			WSAResetEvent(wsock->hEvent);
 	}
 
 	manager_log(manager, TRACE,
@@ -3242,7 +3292,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 	sock->listener = 1;
 
 	/* Add the socket to the list of events to accept */
-	retstat = socket_event_add(sock, FD_ACCEPT | FD_CLOSE);
+	retstat = socket_event_add(sock, FD_CLOSE);
 	if (retstat != ISC_R_SUCCESS) {
 		UNLOCK(&sock->lock);
 		if (retstat != ISC_R_NOSPACE) {
@@ -3310,6 +3360,26 @@ isc_socket_accept(isc_socket_t *sock,
 	dev->ev_sender = ntask;
 	dev->newsocket = nsock;
 
+	/*
+	 * Wait for connects.
+	 */
+	if (ISC_LIST_EMPTY(sock->accept_list) &&
+	    WSAEventSelect(sock->fd, sock->hEvent, FD_ACCEPT | FD_CLOSE) != 0) {
+		char strbuf[ISC_STRERRORSIZE];
+		int stat;
+		const char *msg;
+		stat = WSAGetLastError();
+		isc__strerror(stat, strbuf, sizeof(strbuf));
+		msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+				     ISC_MSG_FAILED, "failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s: %s",
+				 msg, strbuf);
+		isc_task_detach(&ntask);
+		isc_socket_detach(&nsock);
+		isc_event_free((isc_event_t **)&dev);
+		UNLOCK(&sock->lock);
+		return (ISC_R_UNEXPECTED);
+	}
 	/*
 	 * Enqueue the event
 	 */
@@ -3594,6 +3664,18 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 			}
 
 			dev = next;
+		}
+		if (sock->hEvent != NULL &&
+		    WSAEventSelect(sock->fd, sock->hEvent, FD_CLOSE) != 0) {
+			char strbuf[ISC_STRERRORSIZE];
+			int stat;
+			const char *msg;
+			stat = WSAGetLastError();
+			isc__strerror(stat, strbuf, sizeof(strbuf));
+			msg = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,	
+					     ISC_MSG_FAILED, "failed");
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "WSAEventSelect: %s: %s", msg, strbuf);
 		}
 	}
 

@@ -1,3 +1,5 @@
+1588.	[bug]		win32: TCP sockets could become blocked. [RT #10115]
+
 1587.	[placeholder]	rt10590
 
 1586.	[func]		"check-names" is now implemented.
