@@ -1,3 +1,6 @@
+
+	--- 9.0.0rc6 released ---
+
  453.	[bug]		Warn if the obsolete option "maintain-ixfr-base"
 			is specified in named.conf. [RT #306]
 
@@ -25,7 +28,7 @@
 			not logged at a high enough logging level to be
 			useful in diagnosing this situation. [RT #275]
 
- 435. [bug]		dns_zone_dump() overwrote existing zone files 
+ 435.	[bug]		dns_zone_dump() overwrote existing zone files 
 			rather than writing to a temporary file and
 			renaming.  This could lead to empty or partial
 			zone files being left around in certain error
@@ -37,7 +40,7 @@
 			was 2 bytes too short, leading to message
 			generation failures.
 
- 428.   [bug]		rbtdb.c:find_closest_nxt() erroneously returned
+ 428.	[bug]		rbtdb.c:find_closest_nxt() erroneously returned
 			DNS_R_BADDB for nodes which had neither NXT nor SIG NXT
 			(e.g. glue).  This could cause SERVFAILs when
 			generating negative responses in a secure zone.
