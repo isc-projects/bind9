@@ -26,11 +26,7 @@ if [ $whoami != "root" ]; then
 	exit
 fi
 
-sh ifconfig.sh start
-
-if [ $? != 0 ]; then
-	exit 0
-fi
+sh ifconfig.sh start || exit $?
 
 test $# -gt 0 || { echo "usage: runtest.sh test-directory" >&2; exit 1; }
 
