@@ -289,7 +289,8 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2);
 int
 dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2);
 /*
- * Compare two names as if they are part of rdata. 
+ * Compare two names as if they are part of rdata in DNSSEC cononical
+ * form.
  *
  * Requires:
  *	'name1' is a valid absolute name
@@ -430,7 +431,8 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
 			       isc_boolean_t downcase,
 			       isc_buffer_t *target);
 /*
- * Copy the possibly-compressed name at source into target, decompressing it.
+ * Copy the possibly-compressed name at source (active region) into target,
+ * decompressing it.
  *
  * Notes:
  *	Decompression policy is controlled by 'dctx'.
@@ -451,8 +453,8 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
  *	'name' is a valid name.
  *
  *	'source' is a valid buffer of type ISC_BUFFERTYPE_BINARY, and the
- *	first byte of the used region should be the first byte of a DNS wire
- *	format message.
+ *	first byte of the active region should be the first byte of a DNS
+ *	wire *	format message.
  *
  *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY.
  *

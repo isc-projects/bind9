@@ -157,6 +157,7 @@ getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 	unsigned int type, class;
 	dns_name_t *name, *curr;
 	dns_rdatalist_t *rdatalist;
+	isc_region_t r;
 
 	ISC_LIST_INIT(*section);
 	while (count > 0) {
@@ -167,6 +168,9 @@ getquestions(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 			exit(1);
 		}
 		name = &names[ncount++];
+
+		isc_buffer_remaining(source, &r);
+		isc_buffer_setactive(source, r.length);
 		(void)getname(name, source, target);
 		for (curr = ISC_LIST_HEAD(*section);
 		     curr != NULL;
@@ -224,6 +228,8 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 			exit(1);
 		}
 		name = &names[ncount++];
+		isc_buffer_remaining(source, &r);
+		isc_buffer_setactive(source, r.length);
 		(void)getname(name, source, target);
 		for (curr = ISC_LIST_HEAD(*section);
 		     curr != NULL;

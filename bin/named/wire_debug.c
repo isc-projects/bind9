@@ -124,6 +124,7 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
 	isc_boolean_t authoritative = ISC_TRUE;
+	isc_region_t r;
 
 	count = 0;
 	status = 0;
@@ -151,6 +152,8 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	 */
 	isc_buffer_init(&tbuf, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
 	dns_name_init(&name, NULL);
+	isc_buffer_remaining(source, &r);
+	isc_buffer_setactive(source, r.length);
 	result = dns_name_fromwire(&name, source, &dctx, ISC_FALSE, &tbuf);
 	qtype = getshort(source);
 	qclass = getshort(source);

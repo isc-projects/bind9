@@ -1668,7 +1668,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	 * rather for correctness.  Speed will be addressed in the future.
 	 */
 
-	while (current < source->used && !done) {
+	while (current < source->active && !done) {
 		c = *cdata++;
 		current++;
 		if (hops == 0)
@@ -1740,16 +1740,17 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				state = fw_start;
 			break;
 		case fw_bitstring:
-			if (nrem < c + 1)
-				return (DNS_R_NOSPACE);
-			nrem -= c + 1;
-			nused += c + 1;
-			*ndata++ = c;
 			if (c == 0)
-				c = 256;
-			n = c / 8;
-			if (c % 8 != 0)
+				n = 256 / 8;
+			else
+				n = c / 8;
+			if ((c % 8) != 0)
 				n++;
+			if (nrem < n + 1)
+				return (DNS_R_NOSPACE);
+			nrem -= n + 1;
+			nused += n + 1;
+			*ndata++ = c;
 			state = fw_copy;
 			break;
 		case fw_newcurrent:
