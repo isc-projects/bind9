@@ -755,7 +755,8 @@ dns_zone_print(dns_zone_t *zone);
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, dns_zonemgr_t **zmgrp);
+		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
+		   dns_zonemgr_t **zmgrp);
 /*
  * Create a zone manager.
  *

@@ -59,7 +59,6 @@
 #include <named/log.h>
 #include <named/rootns.h>
 #include <named/server.h>
-#include <named/xfrin.h>
 
 #include "../../isc/util.h"		/* XXXRTH */
 
@@ -538,7 +537,7 @@ ns_server_init(void) {
 		return (result);
 
 	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				    &ns_g_zonemgr);
+				    ns_g_socketmgr, &ns_g_zonemgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.29 1999/10/29 02:17:31 halley Exp $ */
+ /* $Id: zone.c,v 1.30 1999/10/29 02:41:56 gson Exp $ */
 
 #include <config.h>
 
@@ -43,6 +43,7 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
+#include <dns/xfrin.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
@@ -179,6 +180,7 @@ struct dns_zonemgr {
 	isc_mem_t *		mctx;
 	isc_taskmgr_t *		taskmgr;
 	isc_timermgr_t *	timermgr;
+	isc_socketmgr_t *	socketmgr;
 	isc_taskpool_t *	zonetasks;
 	struct soaquery {
 		isc_task_t *	task;
@@ -3208,14 +3210,15 @@ xfrin_start_temporary_kludge(dns_zone_t *zone) {
 		port = 53; /* XXX is this the right place? */
 	isc_sockaddr_fromin(&sa, &zone->masters[0].type.sin.sin_addr,
 			    port);
-#ifdef notyet
-	ns_xfrin_start(zone, &sa);
-#endif
+	dns_xfrin_start(zone, &sa, zone->mctx,
+			zone->zmgr->taskmgr, zone->zmgr->timermgr,
+			zone->zmgr->socketmgr);
 }
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, dns_zonemgr_t **zmgrp)
+		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
+		   dns_zonemgr_t **zmgrp)
 {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
@@ -3226,6 +3229,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->mctx = mctx;
 	zmgr->taskmgr = taskmgr;
 	zmgr->timermgr = timermgr;
+	zmgr->socketmgr = socketmgr;
 	zmgr->zonetasks = NULL;
 	zmgr->soaquery.task = NULL;
 	ISC_LIST_INIT(zmgr->zones);
@@ -3267,6 +3271,7 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 #else
 	result = ISC_R_SUCCESS;
 #endif
+	zone->zmgr = zmgr;
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 
 	/* XXX more? */

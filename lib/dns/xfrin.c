@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.21 1999/10/29 02:12:01 gson Exp $ */
+ /* $Id: xfrin.c,v 1.22 1999/10/29 02:41:55 gson Exp $ */
 
 #include <config.h>
 
@@ -164,8 +164,8 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_zone_t *zone,
 	     dns_db_t *db,
 	     isc_task_t *task,
-	     isc_socketmgr_t *socketmgr,
 	     isc_timermgr_t *timermgr,
+	     isc_socketmgr_t *socketmgr,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
@@ -492,8 +492,8 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 			   zone,
 			   db,
 			   task,
-			   socketmgr,
 			   timermgr,
+			   socketmgr,
 			   zonename,
 			   dns_rdataclass_in, xfrtype,
 			   master, key, &xfr));
@@ -537,8 +537,8 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_zone_t *zone,
 	     dns_db_t *db,
 	     isc_task_t *task,
-	     isc_socketmgr_t *socketmgr,
 	     isc_timermgr_t *timermgr,
+	     isc_socketmgr_t *socketmgr,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
@@ -736,7 +736,7 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	dns_difftuple_t *soatuple = NULL;
 	dns_name_t *qname = NULL;
 	dns_dbversion_t *ver = NULL;
-	dns_name_t *msgsoaname;
+	dns_name_t *msgsoaname = NULL;
 
 	/* Create the request message */
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
