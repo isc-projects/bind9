@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.6.2.2 2000/06/28 22:53:21 gson Exp $ */
+/* $Id: lwtest.c,v 1.6.2.3 2000/07/10 04:52:01 gson Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 
 #include <lwres/lwres.h>
 #include <lwres/netdb.h>
+#include <lwres/net.h>
 
 /*
  * XXX getnameinfo errors, which don't appear to be standard.
@@ -98,6 +99,7 @@ test_noop(void) {
 	pkt.recvlength = 0x55667788;
 	pkt.result = 0xdeadbeef;
 
+	noopresponse.datalength = strlen((char *)TESTSTRING);
 	noopresponse.data = TESTSTRING;
 	ret = lwres_noopresponse_render(ctx, &noopresponse, &pkt, &b);
 	CHECK(ret, "lwres_noopresponse_render");
@@ -443,12 +445,20 @@ test_getnameinfo(const char *address, int af, const char *name) {
 		memset(&sin, 0, sizeof(sin));
 		ret = inet_pton(AF_INET, address, &sin.sin_addr.s_addr);
 		assert(ret == 1);
+		sin.sin_family = AF_INET;
+#ifdef LWRES_PLATFORM_HAVESALEN
+		sin.sin_len = sizeof(sin);
+#endif
 		sa = (struct sockaddr *) &sin;
 		salen = sizeof(sin);
 	} else {
 		memset(&sin6, 0, sizeof(sin6));
 		ret = inet_pton(AF_INET6, address, sin6.sin6_addr.s6_addr);
 		assert(ret == 1);
+		sin6.sin6_family = AF_INET6;
+#ifdef LWRES_PLATFORM_HAVESALEN
+		sin6.sin6_len = sizeof(sin6);
+#endif
 		sa = (struct sockaddr *) &sin6;
 		salen = sizeof(sin6);
 	}

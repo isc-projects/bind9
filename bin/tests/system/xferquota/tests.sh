@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.11 2000/06/22 21:53:15 tale Exp $
+# $Id: tests.sh,v 1.11.2.1 2000/07/10 04:52:11 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -28,7 +28,7 @@ count=0
 ticks=0
 while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
-	        echo "I: Changing test zone..."
+	        echo "I:Changing test zone..."
 		cp ns1/changing2.db ns1/changing.db
 		kill -HUP `cat ns1/named.pid`
 	fi
@@ -36,45 +36,36 @@ while [ $count != 300 ]; do
 	ticks=`expr $ticks + 1`
 	seconds=`expr $ticks \* 1`
 	if [ $ticks = 60 ]; then
-		echo "Took too long to load zones"
-		echo "R:FAIL"
+		echo "I:Took too long to load zones"
 		exit 1
 	fi
 	count=`cat ns2/zone*.bk | grep xyzzy | wc -l`
 	echo "I:Have $count zones up in $seconds seconds"
 done
 
-status=0;
+status=0
+
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000099.example. @10.53.0.1 axfr -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	zone000099.example. @10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
 grep ";" dig.out.ns1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000099.example. @10.53.0.2 axfr -p 5300 > dig.out.ns2
-status=`expr $status + $?`
+	zone000099.example. @10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
 sleep 5
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	a.changing. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	a.changing. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 grep ";" dig.out.ns1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	a.changing. @10.53.0.2 a -p 5300 > dig.out.ns2
-status=`expr $status + $?`
+	a.changing. @10.53.0.2 a -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+echo "I:exit status: $status"
+exit $status

@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.21.2.1 2000/06/26 21:21:18 gson Exp $
+# $Id: start.sh,v 1.21.2.2 2000/07/10 04:51:49 gson Exp $
 
 #
 # Start name servers for running system tests.
@@ -46,7 +46,13 @@ do
     (
         cd $d
 	rm -f *.jnl *.bk *.st named.run
-	$NAMED -c named.conf -d 99 -g >named.run 2>&1 &
+	if test -f namedopts
+	then
+	    opts=`cat namedopts`
+	else
+	    opts=""
+	fi
+	$NAMED $opts -c named.conf -d 99 -g >named.run 2>&1 &
 	x=1
 	while test ! -f named.pid
 	do
@@ -88,7 +94,7 @@ do
 	do
 	    x=`expr $x + 1`
 	    if [ $x = 5 ]; then
-		echo "I: Couldn't start lwresd $d"
+		echo "I:Couldn't start lwresd $d"
 		exit 1
 	    fi
 	    sleep 1
@@ -118,7 +124,7 @@ do
 		if [ $try = 30 ]; then
 			cd ..
 			sh ./stop.sh $1
-			echo "I: no response from $d"
+			echo "I:no response from $d"
 			echo "R:FAIL"
 			exit 1
 		fi

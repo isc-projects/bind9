@@ -15,13 +15,15 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: stop.sh,v 1.8 2000/06/22 21:51:30 tale Exp $
+# $Id: stop.sh,v 1.8.2.1 2000/07/10 04:51:50 gson Exp $
 
 #
 # Stop name servers.
 #
 
 test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
+
+status=0
 
 cd $1
 
@@ -47,7 +49,10 @@ for d in ns*
 do
      pidfile="$d/named.pid"
      if [ -f $pidfile ]; then
+	echo "I:$d didn't die when sent a SIGTERM"
+	status=`expr $status + 1`
         kill -KILL `cat $pidfile`
+        rm -f $pidfile
      fi
 done
 
@@ -55,9 +60,11 @@ for d in lwresd*
 do
      pidfile="$d/lwresd.pid"
      if [ -f $pidfile ]; then
+	echo "I:$d didn't die when sent a SIGTERM"
+	status=`expr $status + 1`
         kill -KILL `cat $pidfile`
+        rm -f $pidfile
      fi
 done
 
-sleep 10
-
+exit $status

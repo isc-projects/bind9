@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2000/06/22 21:52:07 tale Exp $
+# $Id: tests.sh,v 1.2.2.1 2000/07/10 04:52:02 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,13 +26,9 @@ SYSTEMTESTTOP=..
 
 sleep 5
 
-status=0;
-./lwtest
-status=`expr $status + $?`
+status=0
 
+./lwtest || status=1
 
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+echo "I:exit status: $status"
+exit $status

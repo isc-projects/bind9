@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.15 2000/06/22 21:51:36 tale Exp $
+# $Id: tests.sh,v 1.15.2.1 2000/07/10 04:51:53 gson Exp $
 
 #
 # Perform tests
@@ -25,72 +25,71 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+n=0
 
 rm -f dig.out.*
 
-DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300"
+DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocmd -p 5300"
 
 # Check the example. domain
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2 || status=1
-grep ";" dig.out.ns2
+$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || status=1
+$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || status=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || status=1
+n=`expr $n + 1`
 
-$DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3 || status=1
-grep ";" dig.out.ns3
-
-$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
-
-rm -f dig.out.*
-
-$DIG $DIGOPTS +noauth a.example. @10.53.0.2 a > dig.out.ns2 || status=1
-grep ";" dig.out.ns2
-
-$DIG $DIGOPTS +noauth a.example. @10.53.0.4 a > dig.out.ns4 || status=1
-grep ";" dig.out.ns2
-
-$PERL ../digcomp.pl dig.out.ns2 dig.out.ns4 || status=1
+$DIG $DIGOPTS +noauth a.example. @10.53.0.2 a > dig.out.ns2.test$n || status=1
+$DIG $DIGOPTS +noauth a.example. @10.53.0.4 a > dig.out.ns4.test$n || status=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || status=1
+n=`expr $n + 1`
 
 # Check the insecure.example domain
 
-rm -f dig.out.*
-
-$DIG $DIGOPTS a.insecure.example. @10.53.0.3 a > dig.out.ns3 || status=1
-grep ";" dig.out.ns3
-
-$DIG $DIGOPTS a.insecure.example. @10.53.0.4 a > dig.out.ns4 || status=1
-grep ";" dig.out.ns4
-
-$PERL ../digcomp.pl dig.out.ns3 dig.out.ns4 || status=1
+$DIG $DIGOPTS a.insecure.example. @10.53.0.3 a > dig.out.ns3.test$n || status=1
+$DIG $DIGOPTS a.insecure.example. @10.53.0.4 a > dig.out.ns4.test$n || status=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || status=1
+n=`expr $n + 1`
 
 # Check the secure.example domain
 
-rm -f dig.out.*
-
-$DIG $DIGOPTS a.secure.example. @10.53.0.3 a > dig.out.ns3 || status=1
-grep ";" dig.out.ns3
-
-$DIG $DIGOPTS a.secure.example. @10.53.0.4 a > dig.out.ns4 || status=1
-grep ";" dig.out.ns4
-
-$PERL ../digcomp.pl dig.out.ns3 dig.out.ns4 || status=1
+$DIG $DIGOPTS a.secure.example. @10.53.0.3 a > dig.out.ns3.test$n || status=1
+$DIG $DIGOPTS a.secure.example. @10.53.0.4 a > dig.out.ns4.test$n || status=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || status=1
+n=`expr $n + 1`
 
 # Check the bogus domain
 
-rm -f dig.out.*
-
 $DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300 \
-	a.bogus.example. @10.53.0.4 a > dig.out.ns4 || status=1
-grep "SERVFAIL" dig.out.ns4 > /dev/null || status=1
+	a.bogus.example. @10.53.0.4 a > dig.out.ns4.test$n || status=1
+grep "SERVFAIL" dig.out.ns4.test$n > /dev/null || status=1
+
+n=`expr $n + 1`
 
 # Try validating a key with a bad trusted key.
 # This should fail.
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300 \
-    example. key @10.53.0.5 -p 5300 > dig.out.ns5 || status=1
-grep "SERVFAIL" dig.out.ns5 > /dev/null || status=1
+    example. key @10.53.0.5 -p 5300 > dig.out.ns5.test$n || status=1
+grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || status=1
 
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+n=`expr $n + 1`
 
+# Check the insecure.secure.example domain (insecurity proof)
+
+$DIG $DIGOPTS a.insecure.secure.example. @10.53.0.2 a > dig.out.ns2.test$n \
+	|| status=1
+$DIG $DIGOPTS a.insecure.secure.example. @10.53.0.4 a > dig.out.ns4.test$n \
+	|| status=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || status=1
+n=`expr $n + 1`
+
+# Check a negative response in insecure.secure.example
+
+$DIG $DIGOPTS q.insecure.secure.example. @10.53.0.2 a > dig.out.ns2.test$n \
+	|| status=1
+$DIG $DIGOPTS q.insecure.secure.example. @10.53.0.4 a > dig.out.ns4.test$n \
+	|| status=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || status=1
+n=`expr $n + 1`
+
+echo "I:exit status: $status"
+exit $status

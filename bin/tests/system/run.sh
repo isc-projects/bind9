@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: run.sh,v 1.26 2000/06/22 21:51:27 tale Exp $
+# $Id: run.sh,v 1.26.2.1 2000/07/10 04:51:48 gson Exp $
 
 #
 # Run a system test.
@@ -91,6 +91,14 @@ fi
 
 # Shutdown
 sh stop.sh $test
+
+status=`expr $status + $?`
+
+if [ $status != 0 ]; then
+	echo "R:FAIL"
+else
+	echo "R:PASS"
+fi
 
 # Cleanup
 if test -f $test/clean.sh

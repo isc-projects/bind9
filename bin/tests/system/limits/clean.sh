@@ -15,11 +15,10 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: clean.sh,v 1.1.2.1 2000/06/28 19:33:16 gson Exp $
+# $Id: clean.sh,v 1.1.2.2 2000/07/10 04:51:56 gson Exp $
 
 #
-# Clean up after zone transfer tests.
+# Clean up after limits tests.
 #
-
-rm -f ns2/child.example.st dig.out.ns2
+rm -f dig.out.ns1
 

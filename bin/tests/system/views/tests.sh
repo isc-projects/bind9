@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.12 2000/06/22 21:52:45 tale Exp $
+# $Id: tests.sh,v 1.12.2.1 2000/07/10 04:52:09 gson Exp $
 
 #
 # Perform tests
@@ -24,59 +24,66 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-status=0;
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.1
-status=`expr $status + $?`
-grep ";" dig.out.ns2.1
+status=0
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	a.example. @10.53.0.3 any -p 5300 > dig.out.ns3.1
-status=`expr $status + $?`
-grep ";" dig.out.ns3.1
+echo "I:fetching a.example from ns2's initial configuration"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+	a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.1 || status=1
+grep ";" dig.out.ns2.1	# XXXDCL why is this here?
 
+echo "I:fetching a.example from ns3's initial configuration"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+	a.example. @10.53.0.3 any -p 5300 > dig.out.ns3.1 || status=1
+grep ";" dig.out.ns3.1	# XXXDCL why is this here?
+
+echo "I:copying in new configuratons for ns2 and ns3"
 rm -f ns2/named.conf ns3/named.conf ns2/example.db
 cp ns2/named2.conf ns2/named.conf
 cp ns3/named2.conf ns3/named.conf
 cp ns2/example2.db ns2/example.db
+
+echo "I:sleeping five seconds then reloading ns2 and ns3"
 sleep 5
 kill -HUP `cat ns2/named.pid`
 kill -HUP `cat ns3/named.pid`
+
+echo "I:sleeping one minute"
 sleep 60
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	-b 10.53.0.4 a.example. @10.53.0.4 any -p 5300 > dig.out.ns4.2
-status=`expr $status + $?`
-grep ";" dig.out.ns4.2
+echo "I:fetching a.example from ns2's 10.53.0.4, source address 10.53.0.4"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+	-b 10.53.0.4 a.example. @10.53.0.4 any -p 5300 > dig.out.ns4.2 \
+	|| status=1
+grep ";" dig.out.ns4.2	# XXXDCL why is this here?
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	-b 10.53.0.2 a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.2
-status=`expr $status + $?`
-grep ";" dig.out.ns2.2
+echo "I:fetching a.example from ns2's 10.53.0.2, source address 10.53.0.2"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+	-b 10.53.0.2 a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.2 \
+	|| status=1
+grep ";" dig.out.ns2.2	# XXXDCL why is this here?
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	@10.53.0.3 a.example. any -p 5300 > dig.out.ns3.2
-status=`expr $status + $?`
-grep ";" dig.out.ns3.2
+echo "I:fetching a.example from ns3's 10.53.0.3, source address defaulted"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
+	@10.53.0.3 a.example. any -p 5300 > dig.out.ns3.2 || status=1
+grep ";" dig.out.ns3.2	# XXXDCL why is this here?
 
-$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2
-status=`expr $status + $?`
+echo "I:comparing ns3's initial a.example to one from reconfigured 10.53.0.2"
+$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2 || status=1
 
-$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2
-status=`expr $status + $?`
+echo "I:comparing ns3's initial a.example to one from reconfigured 10.53.0.3"
+$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2 || status=1
 
-$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2
-status=`expr $status + $?`
+echo "I:comparing ns2's initial a.example to one from reconfigured 10.53.0.4"
+$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2 || status=1
 
-echo "Differences should be found in the following lines:"
+echo "I:differences should be found in the following lines, with"
+echo "I:intmail.example in ns3.2 and mail.example in ns2.1, when"
+echo "I:comparing ns2's initial a.example to one from reconfigured 10.53.0.3"
 $PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns3.2
 if [ $? = 0 ]; then
-	echo "No differences found.  Something's wrong."
-	status=`expr $status + 1`
+	echo "I:no differences found.  something's wrong."
+	status=1
 fi
 
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+echo "I:exit status: $status"
+exit $status

@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: conf.sh.in,v 1.4 2000/06/22 21:51:24 tale Exp $
+# $Id: conf.sh.in,v 1.4.2.1 2000/07/10 04:51:44 gson Exp $
 
 # 
 # Common configuration data for system tests, to be sourced into
@@ -31,14 +31,15 @@ TOP=`cd $TOP && pwd`
 NAMED=$TOP/bin/named/named
 LWRESD=$TOP/bin/named/lwresd
 DIG=$TOP/bin/dig/dig
+NSUPDATE=$TOP/bin/nsupdate/nsupdate
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
 KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
 KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
+SUBDIRS="dnssec glue limits lwresd notify nsupdate stub views xfer xferquota"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
 
-SUBDIRS="xfer dnssec xferquota"
-
-export NAMED LWRESD DIG KEYGEN SIGNER KEYSIGNER KEYSETTOOL PERL SUBDIRS
+export NAMED LWRESD DIG NSUPDATE KEYGEN SIGNER KEYSIGNER KEYSETTOOL PERL \
+    SUBDIRS

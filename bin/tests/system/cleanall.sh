@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: cleanall.sh,v 1.1 2000/06/23 21:28:17 mws Exp $
+# $Id: cleanall.sh,v 1.1.2.1 2000/07/10 04:51:43 gson Exp $
 
 #
 # Clean up after system tests.
@@ -24,5 +24,15 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-find . -type f -name '*.run' -print | xargs rm -f
 
+find . -type f \( \
+    -name 'K*' -o -name '*~' -o -name '*.core' -o -name '*.log' \
+    -o -name '*.pid' -o -name '*.keyset' \
+\) -print | xargs rm -f
+
+status=0
+
+for d in $SUBDIRS
+do
+   test ! -f $d/clean.sh || ( cd $d && sh clean.sh )
+done

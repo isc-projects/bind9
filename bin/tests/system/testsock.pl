@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: testsock.pl,v 1.5.2.1 2000/06/26 20:50:23 gson Exp $
+# $Id: testsock.pl,v 1.5.2.2 2000/07/10 04:51:51 gson Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -36,4 +36,5 @@ for ($id = 1 ; $id < 6 ; $id++) {
 	    	or die sprintf("$0: bind(%s, %d): $!\n",
 			       inet_ntoa($addr), $port);
 	close(SOCK);
+	sleep (1);
 }

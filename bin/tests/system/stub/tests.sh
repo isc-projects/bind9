@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2000/06/22 21:52:33 tale Exp $
+# $Id: tests.sh,v 1.3.2.1 2000/07/10 04:52:07 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -24,29 +24,20 @@ SYSTEMTESTTOP=..
 # Perform tests
 #
 
-# sleep 5
+status=0
 
-status=0;
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd data.child.example. \
-	@10.53.0.3 axfr -p 5300 > dig.out.ns3
-status=`expr $status + $?`
-grep "; Transfer failed." dig.out.ns3 > /dev/null
-status=`expr $status + $?`
+echo "I:trying an axfr that should be denied (NOTAUTH)"
+$DIG +tcp data.child.example. @10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
+grep "; Transfer failed." dig.out.ns3 > /dev/null || status=1
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3
-status=`expr $status + $?`
-$PERL ../digcomp.pl knowngood.dig.out.norec dig.out.ns3
-status=`expr $status + $?`
+echo "I:look for stub zone data without recursion (should not be found)"
+$DIG +tcp +norec data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3 \
+	|| status=1
+$PERL ../digcomp.pl knowngood.dig.out.norec dig.out.ns3 || status=1
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +rec \
-	data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3
-status=`expr $status + $?`
-$PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns3
-status=`expr $status + $?`
+echo "I:look for stub zone data with recursion (should be found)"
+$DIG +tcp data.child.example. @10.53.0.3 txt -p 5300 > dig.out.ns3 || status=1
+$PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns3 || status=1
 
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+echo "I:exit status: $status"
+exit $status

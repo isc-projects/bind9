@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.17 2000/06/25 16:52:31 gson Exp $
+# $Id: ifconfig.sh,v 1.17.2.1 2000/07/10 04:51:47 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -49,6 +49,9 @@ case "$1" in
 		        ;;
 		    *-unknown-freebsdelf3.4)
 			ifconfig lo0 10.53.0.$ns alias
+			;;
+		    *-unknown-freebsdelf4.0)
+			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
 			;;
 		    *-unknown-netbsd*)
 			ifconfig lo0 10.53.0.$ns alias
@@ -95,6 +98,9 @@ case "$1" in
 			ifconfig lo:$ns 10.53.0.$ns down
 		        ;;
 		    *-unknown-freebsdelf3.4)
+			ifconfig lo0 10.53.0.$ns delete
+			;;
+		    *-unknown-freebsdelf4.0)
 			ifconfig lo0 10.53.0.$ns delete
 			;;
 		    *-unknown-netbsd*)

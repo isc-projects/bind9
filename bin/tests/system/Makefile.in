@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.10.2.1 2000/06/26 21:33:29 gson Exp $
+# $Id: Makefile.in,v 1.10.2.2 2000/07/10 04:51:41 gson Exp $
 
 @BIND9_INCLUDES@
 SUBDIRS =	lwresd
@@ -21,61 +21,12 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
-test: dnssec_test limits_test notify_test stub_test views_test xfer_test \
-	xferquota_test
+test: subdirs
+	sh ./runall.sh
 
-distclean::
+clean distclean::
 	sh ./cleanall.sh
-
-clean distclean:: dnssec_test_clean limits_test_clean notify_test_clean \
-		  stub_test_clean views_test_clean xfer_test_clean \
-		  xferquota_test_clean
 
 installdirs:
 
 install::
-
-dnssec_test:
-	sh ./run.sh dnssec
-
-limits_test:
-	sh ./run.sh limits
-
-notify_test:
-	sh ./run.sh notify
-
-stub_test:
-	sh ./run.sh stub
-
-views_test:
-	sh ./run.sh views
-
-xfer_test:
-	sh ./run.sh xfer
-
-xferquota_test:
-	sh ./run.sh xferquota
-
-distclean::
-	rm -f conf.sh
-
-dnssec_test_clean:
-	sh ./clean.sh dnssec
-
-limits_test_clean:
-	sh ./clean.sh limits
-
-notify_test_clean:
-	sh ./clean.sh notify
-
-stub_test_clean:
-	sh ./clean.sh stub
-
-views_test_clean:
-	sh ./clean.sh views
-
-xfer_test_clean:
-	sh ./clean.sh xfer
-
-xferquota_test_clean:
-	sh ./clean.sh xferquota

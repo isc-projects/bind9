@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.15 2000/06/22 21:53:01 tale Exp $
+# $Id: tests.sh,v 1.15.2.1 2000/07/10 04:52:10 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -28,38 +28,28 @@ sleep 5
 
 status=0;
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
-	@10.53.0.2 axfr -p 5300 > dig.out.ns2
-status=`expr $status + $?`
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
-	@10.53.0.3 axfr -p 5300 > dig.out.ns3
-status=`expr $status + $?`
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 grep ";" dig.out.ns3
 
-$PERL ../digcomp.pl knowngood.dig.out dig.out.ns2
-status=`expr $status + $?`
+$PERL ../digcomp.pl knowngood.dig.out dig.out.ns2 || status=1
 
-$PERL ../digcomp.pl knowngood.dig.out dig.out.ns3
-status=`expr $status + $?`
+$PERL ../digcomp.pl knowngood.dig.out dig.out.ns3 || status=1
 
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
-	> dig.out.ns2
-status=`expr $status + $?`
+	> dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	tsigzone. @10.53.0.3 axfr -y tsigzone.:1234abcd8765 -p 5300 \
-	> dig.out.ns3
-status=`expr $status + $?`
+	> dig.out.ns3 || status=1
 grep ";" dig.out.ns3
 
-$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
-status=`expr $status + $?`
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 
-if [ $status != 0 ]; then
-	echo "R:FAIL"
-else
-	echo "R:PASS"
-fi
+echo "I:exit status: $status"
+exit $status
