@@ -96,6 +96,7 @@ typedef struct dns_acl 				dns_acl_t;
 typedef struct dns_aclenv			dns_aclenv_t;
 typedef struct dns_byaddr			dns_byaddr_t;
 typedef struct dns_ssutable			dns_ssutable_t;
+typedef struct dns_ssurule			dns_ssurule_t;
 typedef struct dns_validator			dns_validator_t;
 typedef struct dns_keytable			dns_keytable_t;
 typedef struct dns_keynode			dns_keynode_t;
