@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3694"
+HREF="Bv9ARM.ch06.html#AEN3703"
 >Zone File</A
 ></DT
 ></DL
@@ -1690,7 +1690,7 @@ CLASS="command"
 command <TT
 CLASS="userinput"
 ><B
->rndc-keygen -a</B
+>rndc-confgen -a</B
 ></TT
 > after BIND 9 is
 installed.
@@ -1745,13 +1745,23 @@ CLASS="acronym"
 >BIND</SPAN
 > 8 configuration file, it is ignored
       and a warning is logged.</P
+><P
+>&#13;To disable the command channel, use an empty <B
+CLASS="command"
+>controls</B
+>
+statement: <B
+CLASS="command"
+>controls { };</B
+>.
+</P
 ></DIV
 ><DIV
 CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1544"
+NAME="AEN1547"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1771,7 +1781,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1549"
+NAME="AEN1552"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1800,7 +1810,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1556"
+NAME="AEN1559"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1834,7 +1844,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1563"
+NAME="AEN1566"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1922,7 +1932,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1583"
+NAME="AEN1586"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -2082,7 +2092,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1623"
+NAME="AEN1626"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -2145,7 +2155,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1639"
+NAME="AEN1642"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2587,7 +2597,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1743"
+NAME="AEN1746"
 ></A
 ><P
 ></P
@@ -2958,7 +2968,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1854"
+NAME="AEN1857"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -3055,7 +3065,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1878"
+NAME="AEN1881"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -3129,7 +3139,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1897"
+NAME="AEN1900"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -4115,7 +4125,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2121"
+NAME="AEN2124"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4531,7 +4541,7 @@ processing.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2249"
+NAME="AEN2252"
 ></A
 ><P
 ></P
@@ -5371,7 +5381,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2501"
+NAME="AEN2504"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5622,7 +5632,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2577"
+NAME="AEN2580"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5717,7 +5727,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2603"
+NAME="AEN2606"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -6149,7 +6159,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2742"
+NAME="AEN2745"
 >6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6269,7 +6279,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2779"
+NAME="AEN2782"
 >6.2.14.8. Server  Resource Limits</A
 ></H3
 ><P
@@ -6378,7 +6388,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2815"
+NAME="AEN2818"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6749,7 +6759,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2903"
+NAME="AEN2906"
 ></A
 ><P
 ></P
@@ -6937,6 +6947,20 @@ CLASS="literal"
 >The synthetic records have a TTL of zero.  DNSSEC validation of
 synthetic responses is not currently supported; therefore responses
 containing synthetic RRs will not have the AD flag set.</P
+><DIV
+CLASS="note"
+><BLOCKQUOTE
+CLASS="note"
+><P
+><B
+>Note: </B
+><B
+CLASS="command"
+>allow-v6-synthesis</B
+> is only performed for
+clients that are supplied recursive service.</P
+></BLOCKQUOTE
+></DIV
 ></DIV
 ><DIV
 CLASS="sect3"
@@ -7244,7 +7268,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3045"
+NAME="AEN3051"
 ></A
 ><P
 ></P
@@ -7705,7 +7729,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3166"
+NAME="AEN3172"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7780,7 +7804,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3182"
+NAME="AEN3188"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7882,7 +7906,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3204"
+NAME="AEN3210"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7929,7 +7953,19 @@ CLASS="command"
 CLASS="command"
 >match-destinations</B
 >
-default to matching all addresses.  A view can also be specified
+default to matching all addresses.  In addition to checking IP addresses
+<B
+CLASS="command"
+>match-clients</B
+> and <B
+CLASS="command"
+>match-destinations</B
+>
+can also take <B
+CLASS="command"
+>keys</B
+> which provide an mechanism for the
+client to select the view.  A view can also be specified
 as <B
 CLASS="command"
 >match-recursive-only</B
@@ -8543,7 +8579,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3356"
+NAME="AEN3365"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8554,13 +8590,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3359"
+NAME="AEN3368"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3361"
+NAME="AEN3370"
 ></A
 ><P
 ></P
@@ -8799,7 +8835,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3416"
+NAME="AEN3425"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8837,7 +8873,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3426"
+NAME="AEN3435"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -9470,7 +9506,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3664"
+NAME="AEN3673"
 ></A
 ><P
 ></P
@@ -9577,7 +9613,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3694"
+NAME="AEN3703"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9598,7 +9634,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3699"
+NAME="AEN3708"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9621,7 +9657,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3705"
+NAME="AEN3714"
 ></A
 ><P
 ></P
@@ -9729,7 +9765,7 @@ CLASS="emphasis"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3737"
+NAME="AEN3746"
 ></A
 ><P
 ></P
@@ -9812,6 +9848,22 @@ WIDTH="84"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+>CERT</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>holds a digital certificate.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
 >CNAME</P
 ></TD
 ><TD
@@ -9840,6 +9892,22 @@ another name to be looked up, effectively aliasing an entire
 subtree of the domain name space rather than a single record
 as in the case of the CNAME RR.  Used for delegation 
 of IPv6 reverse mappings. Described in RFC 2672.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>GPOS</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Specifies the global position. Superseded by LOC.</P
 ></TD
 ></TR
 ><TR
@@ -9898,6 +9966,23 @@ WIDTH="84"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+>KX</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>identifies a key exchanger for this
+DNS name.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
 >LOC</P
 ></TD
 ><TD
@@ -9926,6 +10011,38 @@ VALIGN="MIDDLE"
 a 16 bit preference value (lower is better)
 followed by the host name of the mail exchange.
  See RFC 974 for details.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>NAPTR</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>name authority pointer.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>NSAP</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>a network service access point.</P
 ></TD
 ></TR
 ><TR
@@ -9979,6 +10096,23 @@ VALIGN="MIDDLE"
 ><P
 >a pointer to another part of the domain
 name space.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>PX</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>provides mappings between RFC 822 and X.400
+addresses.</P
 ></TD
 ></TR
 ><TR
@@ -10071,6 +10205,22 @@ WIDTH="84"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+>TXT</P
+></TD
+><TD
+WIDTH="348"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>text records.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="84"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
 >WKS</P
 ></TD
 ><TD
@@ -10113,7 +10263,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3849"
+NAME="AEN3893"
 ></A
 ><P
 ></P
@@ -10215,7 +10365,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3873"
+NAME="AEN3917"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10245,7 +10395,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3880"
+NAME="AEN3924"
 ></A
 ><P
 ></P
@@ -10454,7 +10604,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3946"
+NAME="AEN3990"
 ></A
 ><P
 ></P
@@ -10545,7 +10695,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3974"
+NAME="AEN4018"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10553,9 +10703,9 @@ NAME="AEN3974"
 series of resource records, each of which contains a particular
 piece of information about a given domain name (which is usually,
 but not always, a host). The simplest way to think of a RR is as
-a typed pair of datum, a domain name matched with relevant data,
-and stored with some additional type information to help systems determine
-when the RR is relevant.</P
+a typed pair of data, a domain name matched with a relevant datum,
+and stored with some additional type information to help systems 
+determine when the RR is relevant.</P
 ><P
 >MX records are used to control delivery of email. The data
 specified in the record is a priority and a domain name. The priority
@@ -10578,7 +10728,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3980"
+NAME="AEN4024"
 ></A
 ><P
 ></P
@@ -10874,7 +11024,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4072"
+NAME="AEN4116"
 ></A
 ><P
 ></P
@@ -10957,7 +11107,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4095"
+NAME="AEN4139"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10981,7 +11131,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4100"
+NAME="AEN4144"
 ></A
 ><P
 ></P
@@ -11061,7 +11211,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4122"
+NAME="AEN4166"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11086,7 +11236,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4129"
+NAME="AEN4173"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11156,7 +11306,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4149"
+NAME="AEN4193"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11238,7 +11388,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4169"
+NAME="AEN4213"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11278,7 +11428,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4180"
+NAME="AEN4224"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11357,7 +11507,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4200"
+NAME="AEN4244"
 ></A
 ><P
 ></P
