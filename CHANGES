@@ -1,3 +1,7 @@
+
+ 572.	[bug]		Quoted strings were not accepted as key names in
+			address match lists.
+
  571.	[bug]		It was possible to create an rdataset of singleton
 			type which had more than one rdata.  [RT #154]
 			[RT #279]

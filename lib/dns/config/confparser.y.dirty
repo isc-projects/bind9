@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.30 2000/11/22 00:30:37 mws Exp $ */
+/* $Id: confparser.y.dirty,v 1.31 2000/11/22 18:20:05 gson Exp $ */
 
 #include <config.h>
 
@@ -3276,7 +3276,7 @@ address_match_element: address_match_simple
 		}
 		$$ = $2;
 	}
-	| L_SEC_KEY L_STRING
+	| L_SEC_KEY any_string
 	{
 		dns_c_ipmatchelement_t *ime = NULL;
 
