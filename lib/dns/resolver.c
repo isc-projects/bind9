@@ -172,16 +172,20 @@ struct dns_resolver {
 
 static void destroy(dns_resolver_t *res);
 static void empty_bucket(dns_resolver_t *res);
-static void query_response(isc_task_t *task, isc_event_t *event);
+static void resquery_response(isc_task_t *task, isc_event_t *event);
 
-/*
- * Internal fetch routines.  Caller must be holding the proper lock.
- */
 
 static inline isc_result_t
 fctx_starttimer(fetchctx_t *fctx) {
 	return (isc_timer_reset(fctx->timer, isc_timertype_once,
 				&fctx->expires, &fctx->interval,
+				ISC_FALSE));
+}
+
+static inline isc_result_t
+fctx_stopidletimer(fetchctx_t *fctx) {
+	return (isc_timer_reset(fctx->timer, isc_timertype_once,
+				&fctx->expires, NULL,
 				ISC_FALSE));
 }
 
@@ -291,7 +295,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 }
 
 static void
-query_senddone(isc_task_t *task, isc_event_t *event) {
+resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	resquery_t *query = event->arg;
 
@@ -391,7 +395,7 @@ fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	result = dns_dispatch_addresponse(query->dispatch,
 					  address,
 					  task,
-					  query_response,
+					  resquery_response,
 					  query,
 					  &query->id,
 					  &query->dispentry);
@@ -458,7 +462,7 @@ fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	 */
 	isc_buffer_used(&query->buffer, &r);
 	result = isc_socket_sendto(dns_dispatch_getsocket(query->dispatch),
-				   &r, task, query_senddone,
+				   &r, task, resquery_senddone,
 				   query, address);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
@@ -665,9 +669,6 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("timeout");
 
-	LOCK(&fctx->res->lock);
-	REQUIRE(fctx->state == fetchstate_active);
-
 	if (event->type == ISC_TIMEREVENT_LIFE) {
 		fctx_cancelqueries(fctx);
 		fctx_done(fctx, DNS_R_TIMEDOUT);
@@ -678,8 +679,6 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		 */
 		fctx_try(fctx);
 	}
-
-	UNLOCK(&fctx->res->lock);
 
 	isc_event_free(&event);
 }
@@ -1996,7 +1995,7 @@ answer_response(fetchctx_t *fctx) {
 }
 
 static void
-query_response(isc_task_t *task, isc_event_t *event) {
+resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	resquery_t *query = event->arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
@@ -2013,13 +2012,12 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	(void)task;
 	QTRACE("response");
 
+	(void)isc_timer_touch(fctx->timer);
+
 	keep_trying = ISC_FALSE;
 	broken_server = ISC_FALSE;
 	get_nameservers = ISC_FALSE;
 	covers = 0;
-
-	LOCK(&fctx->res->lock);
-	INSIST(fctx->state == fetchstate_active);
 
 	message = fctx->rmessage;
 	message->querytsig = query->tsig;
@@ -2068,6 +2066,8 @@ query_response(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * XXXRTH If we want to catch a FORMERR caused by an EDNS0
 		 *        OPT RR, this is the place to do it.
+		 *
+		 * XXXRTH Need to deal with YXDOMAIN code.
 		 */
 		goto done;
 	}
@@ -2078,17 +2078,13 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	result = same_question(fctx);
 	if (result != ISC_R_SUCCESS) {
 		/* XXXRTH Log */
-		if (result == DNS_R_FORMERR) {
-			broken_server = ISC_TRUE;
+		if (result == DNS_R_FORMERR)
 			keep_trying = ISC_TRUE;
-		}
 		goto done;
 	}
 
 	/*
 	 * Did we get any answers?
-	 *
-	 * XXXRTH  Deal with YXDOMAIN code.
 	 */
 	if (message->counts[DNS_SECTION_ANSWER] > 0 &&
 	    (message->rcode == dns_rcode_noerror ||
@@ -2099,8 +2095,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 		result = answer_response(fctx);
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_FORMERR)
-				broken_server = ISC_TRUE;
-			keep_trying = ISC_TRUE;
+				keep_trying = ISC_TRUE;
 			goto done;
 		}
 	} else if (message->counts[DNS_SECTION_AUTHORITY] > 0) {
@@ -2116,13 +2111,15 @@ query_response(isc_task_t *task, isc_event_t *event) {
 			get_nameservers = ISC_TRUE;
 			keep_trying = ISC_TRUE;
 		} else if (result == ISC_R_SUCCESS) {
-			/*
-			 * We have a negative response.
-			 */
 			if (message->rcode == dns_rcode_nxdomain)
 				covers = dns_rdatatype_any;
 			else
 				covers = fctx->type;
+			/*
+			 * Cache any negative cache entries in the message.
+			 * This may also cause work to be queued to the
+			 * DNSSEC validator.
+			 */
 			result = ncache_message(fctx, covers);
 			if (result != ISC_R_SUCCESS)
 				goto done;
@@ -2131,8 +2128,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 			 * Something has gone wrong.
 			 */
 			if (result == DNS_R_FORMERR)
-				broken_server = ISC_TRUE;
-			keep_trying = ISC_TRUE;
+				keep_trying = ISC_TRUE;
 			goto done;
 		}
 	} else {
@@ -2145,31 +2141,37 @@ query_response(isc_task_t *task, isc_event_t *event) {
 		goto done;
 	}
 
+	/*
+	 * XXXRTH  Explain this.
+	 */
 	query->tsig = NULL;
-	fctx_stoptimer(fctx);
-	fctx_cancelquery(&query, &devent);
 
+	/*
+	 * Cache the cacheable parts of the message.  This may also cause
+	 * work to be queued to the DNSSEC validator.
+	 */
 	result = cache_message(fctx);
 
  done:
 	/*
-	 * XXXRTH  Record round-trip statistics here.
+	 * Give the event back to the dispatcher.
+	 */
+	dns_dispatch_freeevent(query->dispatch, query->dispentry, &devent);
+
+	/*
+	 * XXXRTH  Record round-trip statistics here.  Note that 'result'
+	 *         MUST NOT be changed by this recording process.
 	 */
 	if (keep_trying) {
+		if (result == DNS_R_FORMERR)
+			broken_server = ISC_TRUE;
 		if (broken_server) {
 			/*
 			 * XXXRTH  We will mark the sender as bad here instead
 			 *         of doing the printf().
 			 */
-			printf("broken sender\n");
+			printf("broken server\n");
 		}
-		if (query != NULL) {
-			INSIST(devent != NULL);
-			dns_dispatch_freeevent(query->dispatch,
-					       query->dispentry,
-					       &devent);
-		}
-
 		/*
 		 * Do we need to find the best nameservers for this fetch?
 		 */
@@ -2182,20 +2184,25 @@ query_response(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
 			fctx_freeaddresses(fctx);
 		}					  
-
 		/*
 		 * Try again.
 		 */
 		fctx_try(fctx);
+	} else if (result == ISC_R_SUCCESS && !fctx->have_answer) {
+		/*
+		 * All has gone well so far, but we are waiting for the
+		 * DNSSEC validator to validate the answer.
+		 */
+		fctx_cancelqueries(fctx);
+		result = fctx_stopidletimer(fctx);
+		if (result != ISC_R_SUCCESS)
+			fctx_done(fctx, result);
 	} else {
 		/*
-		 * All is well, or we got an error fatal to the fetch.
-		 * In either case, we're done.
+		 * We're done.
 		 */
 		fctx_done(fctx, result);
 	}
-
-	UNLOCK(&fctx->res->lock);
 }
 
 
