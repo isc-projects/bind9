@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.243 2000/11/09 19:55:17 mws Exp $ */
+/* $Id: server.c,v 1.244 2000/11/10 03:05:36 gson Exp $ */
 
 #include <config.h>
 
@@ -2235,7 +2235,8 @@ ns_server_dumpstats(ns_server_t *server) {
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "Failed to open statistics dump file");
+			      "could not open statistics dump file: %s",
+			      isc_result_totext(result));
 		return (result);
 	}
 	numbercounters = dns_zone_numbercounters();
