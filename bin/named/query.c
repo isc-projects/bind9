@@ -1553,7 +1553,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
-	}
+	} else
+		version = NULL;
 
 	/*
 	 * Find the first unanswered type in the question section.
@@ -1968,6 +1969,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (fname == NULL)
 			goto cleanup;
 		result = dns_name_concatenate(prefix, tname, fname, NULL);
+		dns_message_puttempname(client->message, &tname);
 		if (result != ISC_R_SUCCESS) {
 			if (result == ISC_R_NOSPACE) {
 				/*
