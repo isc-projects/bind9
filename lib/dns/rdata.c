@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.139 2001/01/04 23:43:52 marka Exp $ */
+/* $Id: rdata.c,v 1.140 2001/01/08 06:54:35 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -636,10 +636,24 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	st = *target;
 
+	if (callbacks == NULL)
+		callback = NULL;
+	else
+		callback = callbacks->error;
+
+	if (callback == NULL)
+		callback = default_fromtext_callback;
+
 	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 					ISC_FALSE);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		name = isc_lex_getsourcename(lexer);
+		line = isc_lex_getsourceline(lexer);
+		fromtext_error(callback, callbacks, name, line,
+			       &token, result);
 		return (result);
+	}
+
 	if (strcmp((char *)token.value.as_pointer, "\\#") == 0)
 		result = unknown_fromtext(rdclass, type, lexer, mctx, target);
 	else {
@@ -648,13 +662,6 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		FROMTEXTSWITCH
 	}
 
-	if (callbacks == NULL)
-		callback = NULL;
-	else
-		callback = callbacks->error;
-
-	if (callback == NULL)
-		callback = default_fromtext_callback;
 	/*
 	 * Consume to end of line / file.
 	 * If not at end of line initially set error code.

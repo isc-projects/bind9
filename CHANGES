@@ -1,3 +1,4 @@
+ 662.	[bug]		dns_rdata_fromtext() failed to log certain errors.
 
  661.	[bug]		UDP IXFR requests with EDNS options caused 
 			an assertion failure (mpctx->allocated == 0).
