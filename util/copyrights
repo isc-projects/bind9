@@ -33,10 +33,10 @@
 ./bin/dig/dig.docbook				SGML	2000,2001,2002,2003
 ./bin/dig/dig.html				HTML	2000,2001,2002,2003
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004
-./bin/dig/host.1				X	2000,2001
+./bin/dig/host.1				MAN	2000,2001,2002
 ./bin/dig/host.c				C	2000,2001,2002,2003
 ./bin/dig/host.docbook				SGML	2000,2001,2002
-./bin/dig/host.html				X	2001
+./bin/dig/host.html				HTML	2000,2001,2002
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003
 ./bin/dig/nslookup.c				C	2000,2001,2002,2003
 ./bin/dig/win32/dig.dsp				X	2001
@@ -50,10 +50,10 @@
 ./bin/dig/win32/nslookup.mak			X	2001
 ./bin/dnssec/.cvsignore				X	2000,2001
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004
-./bin/dnssec/dnssec-keygen.8			X	2000,2001
+./bin/dnssec/dnssec-keygen.8			MAN	2000,2001,2002,2003
 ./bin/dnssec/dnssec-keygen.c			C.NAI	2000,2001,2002,2003
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2001,2002,2003
-./bin/dnssec/dnssec-keygen.html			X	2001
+./bin/dnssec/dnssec-keygen.html			HTML	2001,2002,2003
 ./bin/dnssec/dnssec-makekeyset.8		X	2000,2001
 ./bin/dnssec/dnssec-makekeyset.c		C.NAI	2000,2001,2002,2003
 ./bin/dnssec/dnssec-makekeyset.docbook		SGML	2001,2003
