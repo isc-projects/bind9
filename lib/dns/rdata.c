@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.5 1999/01/20 05:20:18 marka Exp $ */
+ /* $Id: rdata.c,v 1.6 1999/01/20 06:51:30 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
@@ -23,6 +23,8 @@
 #include <dns/result.h>
 #include <dns/rdata.h>
 #include <dns/region.h>
+#include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
 #include <stdio.h>
 #include <isc/assertions.h>
 
@@ -48,6 +50,10 @@ static unsigned short	uint16_fromregion(isc_region_t *region);
 
 #include "code.h"
 
+struct tbl {
+	int	value;
+	char	*name;
+} types[] = { TYPENAMES {0, NULL} }, classes[] = { CLASSNAMES { 0, NULL} };
 /***
  *** Initialization
  ***/
@@ -280,6 +286,82 @@ dns_rdata_tostruct(dns_rdata_t *rdata, void *target) {
 
 	return (result);
 }
+
+dns_result_t
+dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
+	int i = 0;
+	unsigned int n;
+
+	while (classes[i].name != NULL) {
+		n = strlen(classes[i].name);
+		if (n == source->length &&
+		    strncasecmp(source->base, classes[i].name, n) == 0) {
+			*classp = classes[i].value;
+			return(DNS_R_SUCCESS);
+		}
+		i++;
+	}
+	return (DNS_R_UNKNOWN);
+}
+
+dns_result_t
+dns_rdataclass_totext(dns_rdataclass_t class, isc_buffer_t *target) {
+	int i = 0;
+	unsigned int n;
+	isc_region_t region;
+
+	while (classes[i].name != NULL) {
+		if (classes[i].value == class) {
+			isc_buffer_available(target, &region);
+			if ((n = strlen(classes[i].name)) > region.length)
+				return (DNS_R_NOSPACE);
+			memcpy(region.base, classes[i].name, n);
+			isc_buffer_add(target, n);
+			return(DNS_R_SUCCESS);
+		}
+		i++;
+	}
+	return (DNS_R_UNKNOWN);
+}
+
+dns_result_t
+dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
+	int i = 0;
+	unsigned int n;
+
+	while (types[i].name != NULL) {
+		n = strlen(types[i].name);
+		if (n == source->length &&
+		    strncasecmp(source->base, types[i].name, n) == 0) {
+			*typep = types[i].value;
+			return(DNS_R_SUCCESS);
+		}
+		i++;
+	}
+	return (DNS_R_UNKNOWN);
+}
+
+dns_result_t
+dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
+	int i = 0;
+	unsigned int n;
+	isc_region_t region;
+
+	while (types[i].name != NULL) {
+		if (types[i].value == type) {
+			isc_buffer_available(target, &region);
+			if ((n = strlen(types[i].name)) > region.length)
+				return (DNS_R_NOSPACE);
+			memcpy(region.base, types[i].name, n);
+			isc_buffer_add(target, n);
+			return(DNS_R_SUCCESS);
+		}
+		i++;
+	}
+	return (DNS_R_UNKNOWN);
+}
+
+ /* Private function */
 
 static unsigned int
 name_length(dns_name_t *name) {

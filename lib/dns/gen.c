@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.7 1999/01/20 05:20:18 marka Exp $ */
+ /* $Id: gen.c,v 1.8 1999/01/20 06:51:29 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -93,7 +93,8 @@ char copyright[] =
 
 struct cc {
 	struct cc *next;
-	int type;
+	int class;
+	char classname[11];
 } *classes;
 
 struct tt {
@@ -241,16 +242,17 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 		return;
 
 	newcc = (struct cc *)malloc(sizeof *newcc);
-	newcc->type = type;
+	newcc->class = class;
+	strcpy(newcc->classname, classname);
 	cc = classes;
 	oldcc = NULL;
 	
-	while ((cc != NULL) && (cc->type < type)) {
+	while ((cc != NULL) && (cc->class < class)) {
 		oldcc = cc;
 		cc = cc->next;
 	}
 
-	if ((cc != NULL) && cc->type == type) {
+	if ((cc != NULL) && cc->class == class) {
 		free((char *)newcc);
 		return;
 	}
@@ -296,6 +298,7 @@ main(int argc, char **argv) {
 	char classname[11];
 	struct dirent *dp;
 	struct tt *tt;
+	struct cc *cc;
 	struct tm *tm;
 	time_t now;
 	char year[11];
@@ -361,13 +364,21 @@ main(int argc, char **argv) {
 	lasttype = 0;
 	for (tt = types; tt != NULL ; tt = tt->next)
 		if (tt->type != lasttype)
-			fprintf(stdout,
-				"\t{ %d, \"%s\" },%s\n",
+			fprintf(stdout, "\t{ %d, \"%s\" },%s\n",
 				lasttype = tt->type, tt->typename,
 				tt->next != NULL ? " \\" : "");
 
 	fputs("\n", stdout);
-	for (tt = types; tt ; tt = tt->next)
+	fprintf(stdout, "\n#define CLASSNAMES%s\n",
+		classes != NULL ? " \\" : "");
+
+	for (cc = classes; cc != NULL; cc = cc->next)
+		fprintf(stdout, "\t{ %d, \"%s\" },%s\n", cc->class,
+			cc->classname, cc->next != NULL ? " \\" : "");
+
+
+	fputs("\n", stdout);
+	for (tt = types; tt != NULL ; tt = tt->next)
 		fprintf(stdout, "#include \"%s/%s_%d.h\"\n",
 			tt->dirname, tt->typename, tt->type);
 

@@ -27,6 +27,8 @@
 #include <isc/lex.h>
 #include <dns/rdata.h>
 #include <dns/compress.h>
+#include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
 
 isc_mem_t *mctx;
 isc_lex_t *lex;
@@ -42,7 +44,7 @@ main(int argc, char *argv[]) {
 	int stats = 0;
 	unsigned int options = 0;
 	unsigned int parens = 0;
-	int type;
+	dns_rdatatype_t type;
 	char outbuf[1024];
 	char inbuf[1024];
 	char wirebuf[1024];
@@ -134,14 +136,31 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 	
-		if (token.type != isc_tokentype_number)
+		if (token.type == isc_tokentype_number) {
+			type = token.value.as_ulong;
+			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
+					ISC_BUFFERTYPE_TEXT);
+			result = dns_rdatatype_totext(type, &tbuf);
+			fprintf(stdout, "type = %.*s(%d)\n",
+				(int)tbuf.used, (char*)tbuf.base, type);
+		} else if (token.type == isc_tokentype_string) {
+			result = dns_rdatatype_fromtext(&type,
+					&token.value.as_textregion);
+			if (result != DNS_R_SUCCESS) {
+				fprintf(stdout,
+				    "dns_rdatatype_fromtext returned %s(%d)\n",
+					dns_result_totext(result), result);
+				fflush(stdout);
+				continue;
+			}
+			fprintf(stdout, "type = %.*s(%d)\n",
+				(int)token.value.as_textregion.length,
+				token.value.as_textregion.base, type);
+		} else
 			continue;
 
-		dns_rdata_init(&rdata);
-
-		type = token.value.as_ulong;
-		fprintf(stdout, "type = %d\n", type);
 		fflush(stdout);
+		dns_rdata_init(&rdata);
 		isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
 				ISC_BUFFERTYPE_BINARY);
 		result = dns_rdata_fromtext(&rdata, 1, type, lex,
