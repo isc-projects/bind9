@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.110 $)
+AC_REVISION($Revision: 1.111 $)
 
 AC_PREREQ(2.13)
 
@@ -219,7 +219,10 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h netinet6/in6.h)
 
 #
-# HAVE_NETINET6_IN6_H needs to go in platform.h.
+# HAVE_NETINET6_IN6_H needs to go in platform.h.  According to reliable
+# sources, however, netinet6/in6.h isn't supposed to be included directly,
+# but netinet/in.h is.  NetBSD at least insists on this, and will not
+# compile with it directly included.
 #
 case "$ac_cv_header_netinet6_in6_h" in
 yes)
@@ -227,6 +230,15 @@ yes)
 	LWRES_PLATFORM_HAVENETINET6IN6H="#define LWRES_PLATFORM_HAVENETINET6IN6H 1"
 	;;
 no)
+	ISC_PLATFORM_HAVENETINET6IN6H="#undef ISC_PLATFORM_HAVENETINET6IN6H"
+	LWRES_PLATFORM_HAVENETINET6IN6H="#undef LWRES_PLATFORM_HAVENETINET6IN6H"
+	;;
+esac
+#
+# If It is NetBSD, set them to undef.
+#
+case "$host" in
+  *-netbsd*)
 	ISC_PLATFORM_HAVENETINET6IN6H="#undef ISC_PLATFORM_HAVENETINET6IN6H"
 	LWRES_PLATFORM_HAVENETINET6IN6H="#undef LWRES_PLATFORM_HAVENETINET6IN6H"
 	;;
