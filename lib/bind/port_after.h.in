@@ -297,6 +297,7 @@ void endpwent_r(void);
 int setpassent(int stayopen);
 #endif
 
+#define gettimeofday isc__gettimeofday
 struct timeval;		/* silence warning */
 struct timezone;	/* silence warning */
 int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);

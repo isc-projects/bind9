@@ -19,7 +19,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.54 $)
+AC_REVISION($Revision: 1.55 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1646,6 +1646,24 @@ NGR_R_OK="#define NGR_R_OK 1"
 NGR_R_RETURN="#define NGR_R_RETURN int"
 ]
 ,
+AC_TRY_COMPILE(
+[
+#include <netdb.h>
+extern int getnetgrent_r( char **, char **, char **, void **);
+]
+,
+[return (0);],
+[
+NGR_R_ARGS="#define NGR_R_ARGS void **buf"
+NGR_R_BAD="#define NGR_R_BAD (0)"
+NGR_R_COPY="#define NGR_R_COPY buf"
+NGR_R_COPY_ARGS="#define NGR_R_COPY_ARGS NGR_R_ARGS"
+NGR_R_OK="#define NGR_R_OK 1"
+NGR_R_RETURN="#define NGR_R_RETURN int"
+NGR_R_PRIVATE="#define NGR_R_PRIVATE 1"
+]
+,
+)
 )
 )
 ,
@@ -1662,8 +1680,12 @@ AC_SUBST(NGR_R_COPY)
 AC_SUBST(NGR_R_COPY_ARGS)
 AC_SUBST(NGR_R_OK)
 AC_SUBST(NGR_R_RETURN)
+AC_SUBST(NGR_R_PRIVATE)
 
 AC_CHECK_FUNC(endnetgrent_r,
+NGR_R_END_RESULT="#define NGR_R_END_RESULT(x)  return (x)"
+NGR_R_END_RETURN="#define NGR_R_END_RETURN int"
+NGR_R_ENT_ARGS="#define NGR_R_ENT_ARGS NGR_R_ARGS"
 ,
 NGR_R_END_RESULT="#define NGR_R_END_RESULT(x)  /*empty*/"
 NGR_R_END_RETURN="#define NGR_R_END_RETURN void"
@@ -1675,10 +1697,11 @@ AC_SUBST(NGR_R_END_RETURN)
 AC_SUBST(NGR_R_ENT_ARGS)
 
 AC_CHECK_FUNC(setnetgrent_r,
+NGR_R_SET_RESULT="#define NGR_R_SET_RESULT NGR_R_OK"
+NGR_R_SET_RETURN="#define NGR_R_SET_RETURN int"
 ,
 NGR_R_SET_RESULT="#undef NGR_R_SET_RESULT /*empty*/"
 NGR_R_SET_RETURN="#define NGR_R_SET_RETURN void"
-AC_DEFINE(NEED_SETNETGRENT_R)
 )
 AC_SUBST(NGR_R_SET_RESULT)
 AC_SUBST(NGR_R_SET_RETURN)

@@ -4,13 +4,13 @@
 #ifdef HAVE_SYS_TIMERS_H
 #include <sys/timers.h>
 #endif
+#include <limits.h>
 
 
 @WANT_IRS_GR@
 @WANT_IRS_NIS@
 @WANT_IRS_PW@
 
-#define gettimeofday isc__gettimeofday
 @BSD_COMP@
 
 @DO_PTHREADS@
@@ -66,6 +66,7 @@
 @NGR_R_RETURN@
 @NGR_R_SET_RESULT@
 @NGR_R_SET_RETURN@
+@NGR_R_PRIVATE@
 
 @PROTO_R_ARGS@
 @PROTO_R_BAD@
