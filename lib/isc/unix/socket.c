@@ -19,17 +19,6 @@
 
 #include <sys/types.h>
 #include <sys/uio.h>
-#if defined(NEED_XPG4_2_BEFORE_SOCKET_H) && !defined(_XPG4_2)
-#define _XPG4_2
-#include <sys/socket.h>
-#undef _XPG4_2
-#elif defined(NEED_XSE_BEFORE_SOCKET_H) && !defined(_XOPEN_SOURCE_EXTENDED)
-#define _XOPEN_SOURCE_EXTENDED
-#include <sys/socket.h>
-#undef _XOPEN_SOURCE_EXTENDED
-#else
-#include <sys/socket.h>
-#endif
 
 #include <errno.h>
 #include <stddef.h>
@@ -42,6 +31,7 @@
 #include <isc/error.h>
 #include <isc/thread.h>
 #include <isc/mutex.h>
+#include <isc/net.h>
 #include <isc/condition.h>
 #include <isc/socket.h>
 #include <isc/list.h>
@@ -277,8 +267,10 @@ make_nonblock(int fd)
 static void
 process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 {
-	struct cmsghdr *cm;
 
+	(void)sock;
+
+#ifdef ISC_NET_BSD44MSGHDR
 #ifdef MSG_TRUNC
 	if ((msg->msg_flags & MSG_TRUNC) == MSG_TRUNC)
 		dev->attributes |= ISC_SOCKEVENTATTR_TRUNC;
@@ -291,11 +283,8 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 
 	if (msg->msg_controllen == 0 || msg->msg_control == NULL)
 		return;
+#endif /* ISC_NET_BSD44MSGHDR */
 
-	/*
-	 * Pull off the options
-	 */
-	
 }
 
 /*
@@ -455,7 +444,6 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 {
 	isc_socket_t *sock = NULL;
 	isc_result_t ret;
-	int on = 1;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
@@ -499,6 +487,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (ISC_R_UNEXPECTED);
 	}
 
+#if 0
 #ifdef SO_TIMESTAMP
 	if (type == isc_sockettype_udp
 	    && setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
@@ -507,6 +496,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 				 sock->fd);
 		/* Press on... */
 	}
+#endif
 #endif
 
 	sock->references = 1;
@@ -945,14 +935,15 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		}
 		msghdr.msg_iov = &iov;
 		msghdr.msg_iovlen = 1;
-#ifdef notyet
-		msghdr.msg_control = (void *)sock->cmsg;
-		msghdr.msg_controllen = sizeof (sock->cmsg);
-#else
+
+#ifdef ISC_NET_BSD44MSGHDR
 		msghdr.msg_control = NULL;
 		msghdr.msg_controllen = 0;
-#endif
 		msghdr.msg_flags = 0;
+#else
+		msghdr.msg_accrights = NULL;
+		msghdr.msg_accrightslen = 0;
+#endif
 
 		cc = recvmsg(sock->fd, &msghdr, 0);
 
@@ -1141,9 +1132,15 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 
 		msghdr.msg_iov = &iov;
 		msghdr.msg_iovlen = 1;
+
+#ifdef ISC_NET_BSD44MSGHDR
 		msghdr.msg_control = NULL;
 		msghdr.msg_controllen = 0;
 		msghdr.msg_flags = 0;
+#else
+		msghdr.msg_accrights = NULL;
+		msghdr.msg_accrightslen = 0;
+#endif
 
 		cc = sendmsg(sock->fd, &msghdr, 0);
 
@@ -1693,14 +1690,15 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	}
 	msghdr.msg_iov = &iov;
 	msghdr.msg_iovlen = 1;
-#ifdef notyet
-	msghdr.msg_control = (void *)sock->cmsg;
-	msghdr.msg_controllen = sizeof (sock->cmsg);
-#else
+
+#ifdef ISC_NET_BSD44MSGHDR
 	msghdr.msg_control = NULL;
 	msghdr.msg_controllen = 0;
-#endif
 	msghdr.msg_flags = 0;
+#else
+	msghdr.msg_accrights = NULL;
+	msghdr.msg_accrightslen = 0;
+#endif
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
 	if (sock->type == isc_sockettype_udp)
@@ -1892,9 +1890,15 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	msghdr.msg_iov = &iov;
 	msghdr.msg_iovlen = 1;
+
+#ifdef ISC_NET_BSD44MSGHDR
 	msghdr.msg_control = NULL;
 	msghdr.msg_controllen = 0;
 	msghdr.msg_flags = 0;
+#else
+	msghdr.msg_accrights = NULL;
+	msghdr.msg_accrightslen = 0;
+#endif
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 
@@ -2247,7 +2251,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 	ISC_SOCKADDR_LEN_T optlen;
 
 	(void)me;
-	INSIST(ev->type = ISC_SOCKEVENT_INTW);
+	INSIST(ev->type == ISC_SOCKEVENT_INTW);
 
 	sock = ev->sender;
 	INSIST(VALID_SOCKET(sock));
@@ -2285,7 +2289,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 	 */
 	optlen = sizeof(cc);
 	if (getsockopt(sock->fd, SOL_SOCKET, SO_ERROR,
-		       (char *)&cc, &optlen) < 0)
+		       (void *)&cc, (void *)&optlen) < 0)
 		cc = errno;
 	else
 		errno = cc;
@@ -2361,7 +2365,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
 	LOCK(&sock->lock);
 
 	len = sizeof addressp->type;
-	if (getsockname(sock->fd, &addressp->type.sa, &len) < 0) {
+	if (getsockname(sock->fd, &addressp->type.sa, (void *)&len) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "getsockname: %s", strerror(errno));
 		UNLOCK(&sock->lock);

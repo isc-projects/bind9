@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.51 $)
+AC_REVISION($Revision: 1.52 $)
 
 AC_PREREQ(2.13)
 
@@ -241,14 +241,6 @@ case "$host" in
 		dnl Turn on 4.4BSD style sa_len support.
 		AC_DEFINE(_SOCKADDR_LEN)
 		;;
-	*-sun-solaris*)
-		dnl Solaris has yet another trick to get 4.4BSD behavior
-		AC_DEFINE(NEED_XPG4_2_BEFORE_SOCKET_H)
-		;;
-	*-hp-hpux*)
-		dnl And HP has to be different, too.
-		AC_DEFINE(NEED_XSE_BEFORE_SOCKET_H)
-		;;
 esac
 
 dnl
@@ -265,6 +257,21 @@ AC_TRY_COMPILE([
 	[AC_MSG_RESULT(no)
 	ISC_NET_HAVESALEN="#undef ISC_NET_HAVESALEN"])
 AC_SUBST(ISC_NET_HAVESALEN)
+
+dnl
+dnl Look for a 4.4BSD or 4.3BSD struct msghdr
+dnl
+
+AC_MSG_CHECKING(for struct msghdr flavor)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>],
+[struct msghdr msg; msg.msg_flags = 0; return (0);],
+	[AC_MSG_RESULT(4.4BSD)
+	ISC_NET_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"],
+	[AC_MSG_RESULT(4.3BSD)
+	ISC_NET_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"])
+AC_SUBST(ISC_NET_MSGHDRFLAVOR)
 
 dnl
 dnl Look for a sysctl call to get the list of network interfaces.

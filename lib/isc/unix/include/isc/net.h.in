@@ -115,6 +115,11 @@
 #include <isc/ipv6.h>
 #endif
 
+/*
+ * Define either ISC_NET_BSD44MSGHDR or ISC_NET_BSD43MSGHDR
+ */
+@ISC_NET_MSGHDRFLAVOR@
+
 /***
  *** Functions.
  ***/
