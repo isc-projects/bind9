@@ -26,9 +26,13 @@
 #include <dns/rdataset.h>
 
 dns_result_t dns_load_master(char *master_file,
+			     dns_name_t *top,
 			     dns_name_t *origin,
 			     dns_rdataclass_t class,
+			     int *soacount,
+			     int *nscount,
 			     dns_result_t (*callback)(dns_name_t *owner,
-						      dns_rdataset_t *dataset),
+						      dns_rdataset_t *dataset,
+						      isc_mem_t *mctx),
 			     isc_mem_t *mctx);
 #endif	/* DNS_MASTER_H */

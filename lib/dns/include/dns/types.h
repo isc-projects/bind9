@@ -57,4 +57,17 @@ typedef enum {
 	dns_bitlabel_1 = 1
 } dns_bitlabel_t;
 
+#include <dns/enumtype.h>
+enum {
+	ns_t_none = 0,
+	TYPEENUM
+	ns_t_any = 255
+} ns_type_t;
+#include <dns/enumclass.h>
+enum {
+	ns_c_none = 0,
+	CLASSENUM
+	ns_c_any = 255
+} ns_class_t;
+
 #endif /* DNS_TYPES_H */

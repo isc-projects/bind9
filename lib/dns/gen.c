@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.10 1999/01/27 13:38:18 marka Exp $ */
+ /* $Id: gen.c,v 1.11 1999/01/28 05:03:23 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 
 #define FROMTEXTDECL "dns_rdataclass_t class, dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin, isc_boolean_t downcase, isc_buffer_t *target"
@@ -303,9 +304,26 @@ main(int argc, char **argv) {
 	time_t now;
 	char year[11];
 	int lasttype;
+	int code = 1;
+	int class_enum = 0;
+	int type_enum = 0;
+	int c;
 
-	argc = argc;
-	argv = argv;
+	while ((c = getopt(argc, argv, "ct")) != -1)
+		switch (c) {
+		case 'c':
+			code = 0;
+			type_enum = 0;
+			class_enum = 1;
+			break;
+		case 't':
+			code = 0;
+			class_enum = 0;
+			type_enum = 1;
+			break;
+		case '?':
+			exit(1);
+		}
 
 	if ((d = opendir("rdata")) == NULL)
 		exit(1);
@@ -335,52 +353,82 @@ main(int argc, char **argv) {
 
 	fprintf(stdout, copyright, year);
 
-	dodecl("dns_result_t", "fromtext", FROMTEXTDECL);
-	dodecl("dns_result_t", "totext", TOTEXTDECL);
-	dodecl("dns_result_t", "fromwire", FROMWIREDECL);
-	dodecl("dns_result_t", "towire", TOWIREDECL);
-	dodecl("int", "compare", COMPAREDECL);
-	dodecl("dns_result_t", "fromstruct", FROMSTRUCTDECL);
-	dodecl("dns_result_t", "tostruct", TOSTRUCTDECL);
+	if (code) {
+		dodecl("dns_result_t", "fromtext", FROMTEXTDECL);
+		dodecl("dns_result_t", "totext", TOTEXTDECL);
+		dodecl("dns_result_t", "fromwire", FROMWIREDECL);
+		dodecl("dns_result_t", "towire", TOWIREDECL);
+		dodecl("int", "compare", COMPAREDECL);
+		dodecl("dns_result_t", "fromstruct", FROMSTRUCTDECL);
+		dodecl("dns_result_t", "tostruct", TOSTRUCTDECL);
 
-	doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
-		 FROMTEXTTYPE, FROMTEXTCLASS, FROMTEXTDEF);
-	doswitch("TOTEXTSWITCH", "totext", TOTEXTARGS,
-		 TOTEXTTYPE, TOTEXTCLASS, TOTEXTDEF);
-	doswitch("FROMWIRESWITCH", "fromwire", FROMWIREARGS,
-		 FROMWIRETYPE, FROMWIRECLASS, FROMWIREDEF);
-	doswitch("TOWIRESWITCH", "towire", TOWIREARGS,
-		 TOWIRETYPE, TOWIRECLASS, TOWIREDEF);
-	doswitch("COMPARESWITCH", "compare", COMPAREARGS,
-		  COMPARETYPE, COMPARECLASS, COMPAREDEF);
-	doswitch("FROMSTRUCTSWITCH", "fromstruct", FROMSTRUCTARGS,
-		  FROMSTRUCTTYPE, FROMSTRUCTCLASS, FROMSTRUCTDEF);
-	doswitch("TOSTRUCTSWITCH", "tostruct", TOSTRUCTARGS,
-		  TOSTRUCTTYPE, TOSTRUCTCLASS, TOSTRUCTDEF);
+		doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
+			 FROMTEXTTYPE, FROMTEXTCLASS, FROMTEXTDEF);
+		doswitch("TOTEXTSWITCH", "totext", TOTEXTARGS,
+			 TOTEXTTYPE, TOTEXTCLASS, TOTEXTDEF);
+		doswitch("FROMWIRESWITCH", "fromwire", FROMWIREARGS,
+			 FROMWIRETYPE, FROMWIRECLASS, FROMWIREDEF);
+		doswitch("TOWIRESWITCH", "towire", TOWIREARGS,
+			 TOWIRETYPE, TOWIRECLASS, TOWIREDEF);
+		doswitch("COMPARESWITCH", "compare", COMPAREARGS,
+			  COMPARETYPE, COMPARECLASS, COMPAREDEF);
+		doswitch("FROMSTRUCTSWITCH", "fromstruct", FROMSTRUCTARGS,
+			  FROMSTRUCTTYPE, FROMSTRUCTCLASS, FROMSTRUCTDEF);
+		doswitch("TOSTRUCTSWITCH", "tostruct", TOSTRUCTARGS,
+			  TOSTRUCTTYPE, TOSTRUCTCLASS, TOSTRUCTDEF);
 
-	fprintf(stdout, "\n#define TYPENAMES%s\n",
-		types != NULL ? " \\" : "");
+		fprintf(stdout, "\n#define TYPENAMES%s\n",
+			types != NULL ? " \\" : "");
 
-	lasttype = 0;
-	for (tt = types; tt != NULL ; tt = tt->next)
-		if (tt->type != lasttype)
-			fprintf(stdout, "\t{ %d, \"%s\" },%s\n",
-				lasttype = tt->type, upper(tt->typename),
-				tt->next != NULL ? " \\" : "");
+		lasttype = 0;
+		for (tt = types; tt != NULL ; tt = tt->next)
+			if (tt->type != lasttype)
+				fprintf(stdout, "\t{ %d, \"%s\" },%s\n",
+					lasttype = tt->type,
+					upper(tt->typename),
+					tt->next != NULL ? " \\" : "");
 
-	fputs("\n", stdout);
-	fprintf(stdout, "\n#define CLASSNAMES%s\n",
-		classes != NULL ? " \\" : "");
+		fputs("\n", stdout);
+		fprintf(stdout, "\n#define CLASSNAMES%s\n",
+			classes != NULL ? " \\" : "");
 
-	for (cc = classes; cc != NULL; cc = cc->next)
-		fprintf(stdout, "\t{ %d, \"%s\" },%s\n", cc->class,
-			upper(cc->classname), cc->next != NULL ? " \\" : "");
+		for (cc = classes; cc != NULL; cc = cc->next)
+			fprintf(stdout, "\t{ %d, \"%s\" },%s\n", cc->class,
+				upper(cc->classname),
+				cc->next != NULL ? " \\" : "");
 
 
-	fputs("\n", stdout);
-	for (tt = types; tt != NULL ; tt = tt->next)
-		fprintf(stdout, "#include \"%s/%s_%d.h\"\n",
-			tt->dirname, tt->typename, tt->type);
+		fputs("\n", stdout);
+		for (tt = types; tt != NULL ; tt = tt->next)
+			fprintf(stdout, "#include \"%s/%s_%d.h\"\n",
+				tt->dirname, tt->typename, tt->type);
+	} else if (type_enum) {
+		fprintf(stdout, "#ifndef TYPEENUM\n");
+		fprintf(stdout, "#define TYPEENUM%s\n",
+			types != NULL ? " \\" : "");
+
+		lasttype = 0;
+		for (tt = types; tt != NULL ; tt = tt->next)
+			if (tt->type != lasttype)
+				fprintf(stdout, "\t ns_t_%s = %d,%s\n",
+					tt->typename,
+					lasttype = tt->type,
+					tt->next != NULL ? " \\" : "");
+		fprintf(stdout, "#endif /* TYPEENUM */\n");
+	} else if (class_enum) {
+		fprintf(stdout, "#ifndef CLASSENUM\n");
+		fprintf(stdout, "#define CLASSENUM%s\n",
+			classes != NULL ? " \\" : "");
+
+		for (cc = classes; cc != NULL; cc = cc->next)
+			fprintf(stdout, "\t ns_c_%s = %d,%s\n",
+				cc->classname,
+				cc->class,
+				cc->next != NULL ? " \\" : "");
+		fprintf(stdout, "#endif /* CLASSENUM */\n");
+
+
+	}
 
 	if (ferror(stdout) != 0)
 		exit(1);

@@ -13,16 +13,19 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-dns_result_t print_dataset(dns_name_t *owner, dns_rdataset_t *dataset);
+dns_result_t print_dataset(dns_name_t *owner, dns_rdataset_t *dataset,
+			   isc_mem_t *mctx);
 
 isc_mem_t *mctx;
 
 dns_result_t
-print_dataset(dns_name_t *owner, dns_rdataset_t *dataset) {
+print_dataset(dns_name_t *owner, dns_rdataset_t *dataset, isc_mem_t *mctx) {
 	char buf[64*1024];
 	isc_buffer_t target;
 	dns_result_t result;
 	
+	mctx = mctx;
+
 	isc_buffer_init(&target, buf, 64*1024, ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, &target);
 	if (result == DNS_R_SUCCESS)
@@ -42,6 +45,8 @@ main(int argc, char *argv[]) {
 	isc_buffer_t source;
 	isc_buffer_t target;
 	unsigned char name_buf[255];
+	int soacount = 0;
+	int nscount = 0;
 
 	argc = argc;
 
@@ -63,10 +68,14 @@ main(int argc, char *argv[]) {
 		}
 				
 		
-		result = dns_load_master(argv[1], &origin, 1,
+		result = dns_load_master(argv[1], &origin, &origin, 1,
+					 &soacount, &nscount,
 					 print_dataset, mctx);
 		fprintf(stdout, "dns_load_master: %s\n",
 			dns_result_totext(result));
+		if (result == DNS_R_SUCCESS)
+			fprintf(stdout, "soacount = %d, nscount = %d\n",
+				soacount, nscount);
 	}
 	exit(0);
 }
