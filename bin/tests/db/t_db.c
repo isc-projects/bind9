@@ -51,8 +51,7 @@
 
 static isc_result_t
 t_create(char *db_type, char *origin, char *class, char *cache,
-		isc_mem_t *mctx, dns_db_t **db) {
-
+	 isc_mem_t *mctx, dns_db_t **db) {
 	int			len;
 	isc_result_t		dns_result;
 	isc_boolean_t		iscache;
@@ -87,12 +86,12 @@ t_create(char *db_type, char *origin, char *class, char *cache,
 		return(dns_result);
 	}
 
-	dns_result = dns_db_create(mctx, db_type, dns_fixedname_name(&dns_origin),
-				iscache, rdataclass, 0, NULL, db);
-	if (dns_result != ISC_R_SUCCESS) {
+	dns_result = dns_db_create(mctx, db_type,
+				   dns_fixedname_name(&dns_origin),
+				   iscache, rdataclass, 0, NULL, db);
+	if (dns_result != ISC_R_SUCCESS)
 		t_info("dns_db_create failed %s\n",
 			dns_result_totext(dns_result));
-	}
 
 	return(dns_result);
 

@@ -27,7 +27,8 @@
 #include <isc/result.h>
 #include <tests/t_api.h>
 
-static void	t1(void);
+static void
+t1(void);
 
 /*
  * adapted from the original mempool_test.c program
@@ -43,7 +44,7 @@ isc_mem_t *mctx;
 #define	MP2_FILLCNT	25
 
 static int
-memtest() {
+memtest(void) {
 	int		nfails;
 	void		*items1[50];
 	void		*items2[50];
@@ -58,7 +59,8 @@ memtest() {
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mem_create failed %s\n", isc_result_totext(isc_result));
+		t_info("isc_mem_create failed %s\n",
+		       isc_result_totext(isc_result));
 		++nfails;
 		return(nfails);
 	}
@@ -66,7 +68,8 @@ memtest() {
 	mp1 = NULL;
 	isc_result = isc_mempool_create(mctx, 24, &mp1);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mempool_create failed %s\n", isc_result_totext(isc_result));
+		t_info("isc_mempool_create failed %s\n",
+		       isc_result_totext(isc_result));
 		++nfails;
 		return(nfails);
 	}
@@ -74,7 +77,8 @@ memtest() {
 	mp2 = NULL;
 	isc_result = isc_mempool_create(mctx, 31, &mp2);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mempool_create failed %s\n", isc_result_totext(isc_result));
+		t_info("isc_mempool_create failed %s\n",
+		       isc_result_totext(isc_result));
 		++nfails;
 		return(nfails);
 	}
