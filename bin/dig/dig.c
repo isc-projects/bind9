@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.161 2001/09/13 01:42:21 marka Exp $ */
+/* $Id: dig.c,v 1.162 2001/09/13 03:02:59 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1140,14 +1140,17 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 
 #ifndef NOPOSIX
 		/*
-		 * Treat .digrc as a special batchfile
+		 * Treat ${HOME}/.digrc as a special batchfile
 		 */
+		INSIST(batchfp == NULL);
 		homedir = getenv("HOME");
-		if (homedir != NULL)
-			snprintf(rcfile, sizeof(rcfile), "%s/.digrc", homedir);
-		else
-			strcpy(rcfile, ".digrc");
-		batchfp = fopen(rcfile, "r");
+		if (homedir != NULL) {
+			unsigned int n;
+			n = snprintf(rcfile, sizeof(rcfile), "%s/.digrc",
+			             homedir);
+			if (n < sizeof(rcfile))
+				batchfp = fopen(rcfile, "r");
+		}
 		if (batchfp != NULL) {
 			while (fgets(batchline, sizeof(batchline),
 				     batchfp) != 0) {

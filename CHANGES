@@ -2056,8 +2056,7 @@
 
  347.	[bug]		Don't crash if an argument is left off options in dig.
 
- 346.	[func]		Add support for .digrc config file, in the
-			user's current directory
+ 346.	[placeholder]
 
  345.	[bug]		Large-scale changes/cleanups to dig:
 			* Significantly improve structure handling
