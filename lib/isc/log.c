@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.20 2000/03/04 16:39:54 tale Exp $ */
+/* $Id: log.c,v 1.21 2000/03/10 17:53:16 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1080,12 +1080,11 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	char time_string[64];
 	char level_string[24];
 	struct stat statbuf;
-	struct tm *timeptr;
-	time_t now;
 	isc_boolean_t matched = ISC_FALSE;
 	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
+	isc_time_t time;
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
@@ -1166,16 +1165,41 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) &&
 		    time_string[0] == '\0') {
-			time(&now);
+			result = isc_time_now(&time);
 
-			timeptr = localtime(&now);
+			if (result == ISC_R_SUCCESS) {
+				time_t now;
+				unsigned int len;
+				struct tm *timeptr;
 
-			/*
-			 * Emulate syslog's time format.
-			 * XXXDCL it would be nice if format were configurable.
-			 */
-			strftime(time_string, sizeof(time_string),
-				 "%b %d %X ", timeptr);
+				now = isc_time_seconds(&time);
+
+				timeptr = localtime(&now);
+				/*
+				 * Emulate syslog's time format,
+				 * with milliseconds.
+				 *
+				 * It would be nice if the format
+				 * were configurable.
+				 */
+				strftime(time_string, sizeof(time_string),
+					 "%b %d %X", timeptr);
+
+				len = strlen(time_string);
+
+				snprintf(time_string + len,
+					 sizeof(time_string) - len,
+					 ".%03ld ",
+					 isc_time_nanoseconds(&time)
+					 / 1000000);
+
+			} else
+				/*
+				 * "Should never happen."
+				 */
+				snprintf(time_string, sizeof(time_string),
+					 "Bad 00 99:99:99.999 ");
+
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTLEVEL) &&
