@@ -1,0 +1,10 @@
+ 401.	[func]		Added simple database API.
+
+ 341.	[func]		Support 'key' clause in named.conf zone masters
+			statement:
+
+				masters {
+					10.0.0.1 port 666 key "foo";
+					10.0.0.2 ;
+				};
+

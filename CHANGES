@@ -313,8 +313,6 @@
 			warning and then later throwing an assertion.
 			[RT #252]
 
- 401.	[func]		Added simple database API.
-
  400.	[bug]		SIG(0) signing and verifying was done incorrectly.
 			[RT #249]
 
@@ -422,7 +420,7 @@
 			statements: 
 
 				max-retry-time, min-retry-time, 
-				max-refresh-time, min-refresh-time, max-names.
+				max-refresh-time, min-refresh-time.
 
  368.	[func]		Restructure the internal ".bind" view so that more
 			zones can be added to it.
@@ -510,14 +508,6 @@
  342.	[bug]		The wrong name was being passed to
 			dns_name_dup() when generating a TSIG
 			key using TKEY.
-
- 341.	[func]		Support 'key' clause in named.conf zone masters
-			statement:
-
-				masters {
-					10.0.0.1 port 666 key "foo";
-					10.0.0.2 ;
-				};
 
  340.	[bug]		The top-level COPYRIGHT file was missing from
 			the distribution.
