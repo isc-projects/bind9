@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.69 2000/06/02 18:59:17 bwelling Exp $
+ * $Id: tsig.c,v 1.70 2000/06/05 20:01:07 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -770,6 +770,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		}
 		else if (ret != ISC_R_SUCCESS)
 			goto cleanup_context;
+
+		dst_context_destroy(&ctx);
 	}
 	else if (tsig.error != dns_tsigerror_badsig &&
 		 tsig.error != dns_tsigerror_badkey)
