@@ -1,3 +1,13 @@
+ 759.	[bug]		The resolver didn't turn off "avoid fetches" mode
+			when restarting, possibly causing resolution
+			to fail when it should not.  This bug only affected
+			platforms which support both IPv4 and IPv6. [RT #927]
+
+ 758.	[bug]		The "avoid fetches" code did not treat negative
+			cache entries correctly, causing fetches that would
+			be useful to be avoided.  This bug only affected
+			platforms which support both IPv4 and IPv6. [RT #927]
+
  757.	[func]		Log zone transfers.
 
  756.	[bug]		dns_zone_load() could "return" success when no master
@@ -14,7 +24,8 @@
 			address on a system that doesn't support IPv6.
 			[RT #917]
 
- 752.	[func]		Correct bad tv_usec elements returned by gettimeofday().
+ 752.	[func]		Correct bad tv_usec elements returned by
+			gettimeofday().
 
  751.	[func]		Log successful zone loads / transfers.	[RT #898]
 
