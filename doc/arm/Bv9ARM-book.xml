@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.179 2001/11/21 01:02:44 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.180 2001/11/27 01:09:22 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2879,26 +2879,6 @@ be used.</para>
 
 <variablelist>
 
-<varlistentry><term><command>version</command></term>
-<listitem><para>The version the server should report
-via a query of the name <filename>version.bind</filename>
-with type <command>TXT</command>, class <command>CHAOS</command>.
-The default is the real version number of this server.
-Specifying <command>version none</command>
-disables processing of the queries.</para>
-</listitem></varlistentry>
-
-<varlistentry><term><command>hostname</command></term>
-<listitem><para>The hostname the server should report via a query of
-the name <filename>hostname.bind</filename>
-with type <command>TXT</command>, class <command>CHAOS</command>.
-This defaults to the hostname of the machine hosting the name server as
-found by gethostname().  The primary purpose of such queries is to
-identify which of a group of anycast servers is actually
-answering your queries.  Specifying <command>hostname none</command>
-disables processing of the queries.</para> 
-</listitem></varlistentry>
-
 <varlistentry><term><command>directory</command></term>
 <listitem><para>The working directory of the server.
 Any non-absolute pathnames in the configuration file will be taken
@@ -4099,6 +4079,48 @@ and clamp the SOA refresh and retry times to the specified values.
 
 </sect3>
 
+<sect3 id="builtin">
+<title>Built-in server information zones</title>
+
+<para>The server provides some helpful diagnostic information
+through a number of built-in zones under the
+pseudo-top-level-domain <literal>bind</literal> in the
+<command>CHAOS</command> class.  These zones are part of a
+built-in view (see <xref linkend="view_statement_grammar"/>) of class
+<command>CHAOS</command> which is separate from the default view of
+class <command>IN</command>; therefore, any global server options
+such as <command>allow-query</command> do not apply the these zones.
+If you feel the need to disable these zones, use the options
+below, or hide the built-in <command>CHAOS</command> view by
+defining an explicit view of class <command>CHAOS</command>
+that matches all clients.</para>
+
+<variablelist>
+
+<varlistentry><term><command>version</command></term>
+<listitem><para>The version the server should report
+via a query of the name <literal>version.bind</literal>
+with type <command>TXT</command>, class <command>CHAOS</command>.
+The default is the real version number of this server.
+Specifying <command>version none</command>
+disables processing of the queries.</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>hostname</command></term>
+<listitem><para>The hostname the server should report via a query of
+the name <filename>hostname.bind</filename>
+with type <command>TXT</command>, class <command>CHAOS</command>.
+This defaults to the hostname of the machine hosting the name server as
+found by gethostname().  The primary purpose of such queries is to
+identify which of a group of anycast servers is actually
+answering your queries.  Specifying <command>hostname none</command>
+disables processing of the queries.</para> 
+</listitem></varlistentry>
+
+</variablelist>
+
+</sect3>
+
 <sect3 id="statsfile">
 <title>The Statistics File</title>
 
@@ -4287,7 +4309,8 @@ multiple key entries, each consisting of the key's domain name,
 flags, protocol, algorithm, and the base-64 representation of the
 key data.</para></sect2>
 
-<sect2><title><command>view</command> Statement Grammar</title>
+<sect2 id="view_statement_grammar">
+<title><command>view</command> Statement Grammar</title>
 <programlisting>view <replaceable>view_name</replaceable> 
       <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
@@ -4339,11 +4362,12 @@ since only the IN class has compiled-in default hints.</para>
 
 <para>If there are no <command>view</command> statements in the config
 file, a default view that matches any client is automatically created
-in class IN, and any <command>zone</command> statements specified on
+in class IN. Any <command>zone</command> statements specified on
 the top level of the configuration file are considered to be part of
-this default view.  If any explicit <command>view</command> statements
-are present, all <command>zone</command> statements must occur inside
-<command>view</command> statements.</para>
+this default view, and the <command>options</command> statement will
+apply to the default view. If any explicit <command>view</command>
+statements are present, all <command>zone</command> statements must
+occur inside <command>view</command> statements.</para>
 
 <para>Here is an example of a typical split DNS setup implemented
 using <command>view</command> statements.</para>
