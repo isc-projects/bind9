@@ -20,7 +20,7 @@ top_srcdir =	@top_srcdir@
 #
 # Only list headers that are to be installed!
 #
-HEADERS =	lwpacket.h
+HEADERS =	lwbuffer.h lwpacket.h lwres.h
 
 SUBDIRS =
 TARGETS =
