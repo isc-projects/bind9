@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.38.2.2 2001/01/16 22:30:55 bwelling Exp $ */
+/* $Id: masterdump.c,v 1.38.2.3 2001/03/07 23:33:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -733,10 +733,10 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 					       buffer, f);
 			if (result != ISC_R_SUCCESS)
 				dumpresult = result;
+			if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
+				name = NULL;
 		}
 		dns_rdataset_disassociate(sorted[i]);
-		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
-			name = NULL;
 	}
 
 	if (dumpresult != ISC_R_SUCCESS)

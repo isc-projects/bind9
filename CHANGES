@@ -1,4 +1,8 @@
 
+ 772.	[bug]		Owner names could be incorrectly omitted from cache
+			dumps in the presence of negative caching entries.
+			[RT #991]
+
 	--- 9.1.1rc4 released ---
 
  767.	[bug]		The configuration parser handled invalid ports badly.
