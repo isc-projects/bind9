@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.12 $)
+AC_REVISION($Revision: 1.294.2.13 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -358,17 +358,17 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 #include <stdio.h>
 #include <openssl/opensslv.h>
 int main() {
-        if (OPENSSL_VERSION_NUMBER >= 0x0090581fL)
+        if (OPENSSL_VERSION_NUMBER >= 0x0090605fL)
                 return (0);
 	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
 		OPENSSL_VERSION_NUMBER);
-	printf("Require OPENSSL_VERSION_NUMBER 0x0090581f or greater\n\n");
+	printf("Require OPENSSL_VERSION_NUMBER 0x0090605f or greater\n\n");
         return (1);
 }
 ],
 	        [AC_MSG_RESULT(ok)],
 		[AC_MSG_RESULT(not compatible)
-		 AC_MSG_ERROR(you need OpenSSL 0.9.5a or newer)],
+		 AC_MSG_ERROR(you need OpenSSL 0.9.6e or newer)],
 		[AC_MSG_RESULT(assuming target platform has compatible version)])
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
