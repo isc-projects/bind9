@@ -64,6 +64,9 @@ ns_log_init(void) {
 	 *         setup.
 	 */
 
+	/*
+	 * Setup a logging context.
+	 */
 	result = isc_log_create(ns_g_mctx, &ns_g_lctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -71,6 +74,13 @@ ns_log_init(void) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	isc_log_registermodules(ns_g_lctx, ns_g_modules);
+	result = dns_log_init(ns_g_lctx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	/*
+	 * Create and install the default channel.
+	 */
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -82,13 +92,13 @@ ns_log_init(void) {
 				       &destination, flags);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-
 	result = isc_log_usechannel(ns_g_lctx, "_default", NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = dns_log_init(ns_g_lctx);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+
+	/*
+	 * Set the initial debug level.
+	 */
 	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
 
 	return (ISC_R_SUCCESS);
