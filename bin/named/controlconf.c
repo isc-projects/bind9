@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.30 2001/09/20 18:37:00 gson Exp $ */
+/* $Id: controlconf.c,v 1.31 2001/09/20 19:04:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -106,6 +106,7 @@ struct controllistener {
 struct ns_controls {
 	ns_server_t			*server;
 	controllistenerlist_t 		listeners;
+	isc_boolean_t			shuttingdown;
 };
 
 static void control_newconn(isc_task_t *task, isc_event_t *event);
@@ -335,7 +336,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	secret.rstart = NULL;
 
         /* Is the server shutting down? */
-        if (ns_g_server->task == 0)
+        if (listener->controls->shuttingdown)
                 goto cleanup;
 
 	if (conn->ccmsg.result != ISC_R_SUCCESS) {
@@ -576,6 +577,7 @@ ns_controls_shutdown(ns_controls_t *controls) {
 		ISC_LIST_UNLINK(controls->listeners, listener, link);
 		shutdown_listener(listener);
 	}
+	controls->shuttingdown = ISC_TRUE;
 }
 
 static isc_result_t
@@ -1224,6 +1226,7 @@ ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp) {
 		return (ISC_R_NOMEMORY);
 	controls->server = server;
 	ISC_LIST_INIT(controls->listeners);
+	controls->shuttingdown = ISC_FALSE;
 	*ctrlsp = controls;
 	return (ISC_R_SUCCESS);
 }
