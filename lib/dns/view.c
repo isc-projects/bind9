@@ -110,6 +110,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
 	result = dns_tsig_init(NULL, view->mctx, &view->dynamickeys);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup_zt;
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
 		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown,
@@ -166,6 +168,10 @@ destroy(dns_view_t *view) {
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
 
+	if (view->dynamickeys != NULL)	
+		dns_tsig_destroy(&view->dynamickeys);
+	if (view->statickeys != NULL)	
+		dns_tsig_destroy(&view->statickeys);
 	if (view->adb != NULL)
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
