@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.3 2000/10/31 03:21:54 marka Exp $ */
+/* $Id: lookup.c,v 1.4 2000/11/02 00:55:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -51,6 +51,7 @@ struct dns_lookup {
 	unsigned int		restarts;
 	isc_boolean_t		canceled;
 	dns_rdataset_t		rdataset;
+	dns_rdataset_t		sigrdataset;
 };
 
 #define LOOKUP_MAGIC			ISC_MAGIC('l', 'o', 'o', 'k')
@@ -90,7 +91,8 @@ start_fetch(dns_lookup_t *lookup) {
 					  lookup->type,
 					  NULL, NULL, NULL, 0,
 					  lookup->task, fetch_done, lookup,
-					  &lookup->rdataset, NULL,
+					  &lookup->rdataset,
+					  &lookup->sigrdataset,
 					  &lookup->fetch);
 
 	return (result);
@@ -100,6 +102,7 @@ static isc_result_t
 build_event(dns_lookup_t *lookup) {
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
+	dns_rdataset_t *sigrdataset = NULL;
 	isc_result_t result;
 
 	name = isc_mem_get(lookup->mctx, sizeof(dns_name_t));
@@ -121,8 +124,20 @@ build_event(dns_lookup_t *lookup) {
 	dns_rdataset_init(rdataset);
 	dns_rdataset_clone(&lookup->rdataset, rdataset);
 
+	if (dns_rdataset_isassociated(&lookup->sigrdataset)) {
+		sigrdataset = isc_mem_get(lookup->mctx,
+					  sizeof(dns_rdataset_t));
+		if (sigrdataset == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto fail;
+		}
+		dns_rdataset_init(sigrdataset);
+		dns_rdataset_clone(&lookup->sigrdataset, sigrdataset);
+	}
+
 	lookup->event->name = name;
 	lookup->event->rdataset = rdataset;
+	lookup->event->sigrdataset = sigrdataset;
 
 	return (ISC_R_SUCCESS);
 
@@ -136,6 +151,11 @@ build_event(dns_lookup_t *lookup) {
 		if (dns_rdataset_isassociated(rdataset))
 			dns_rdataset_disassociate(rdataset);
 		isc_mem_put(lookup->mctx, rdataset, sizeof(dns_rdataset_t));
+	}
+	if (sigrdataset != NULL) {
+		if (dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
+		isc_mem_put(lookup->mctx, sigrdataset, sizeof(dns_rdataset_t));
 	}
 	return (result);
 }
@@ -169,10 +189,13 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			dns_fixedname_init(&foundname);
 			fname = dns_fixedname_name(&foundname);
 			INSIST(!dns_rdataset_isassociated(&lookup->rdataset));
+			INSIST(!dns_rdataset_isassociated
+						(&lookup->sigrdataset));
 			result = dns_view_find(lookup->view, name,
 					       lookup->type, 0, 0,
 					       ISC_FALSE, fname,
-					       &lookup->rdataset, NULL);
+					       &lookup->rdataset,
+					       &lookup->sigrdataset);
 			if (result == ISC_R_NOTFOUND) {
 				/*
 				 * We don't know anything about the name.
@@ -188,7 +211,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			fname = dns_fixedname_name(&event->foundname);
 			dns_resolver_destroyfetch(&lookup->fetch);
 			INSIST(event->rdataset == &lookup->rdataset);
-			INSIST(event->sigrdataset == NULL);
+			INSIST(event->sigrdataset == &lookup->sigrdataset);
 			/*
 			 * Detach (if necessary) from things we know we
 			 * don't care about.
@@ -268,6 +291,8 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 	done:
 		if (dns_rdataset_isassociated(&lookup->rdataset))
 			dns_rdataset_disassociate(&lookup->rdataset);
+		if (dns_rdataset_isassociated(&lookup->sigrdataset))
+			dns_rdataset_disassociate(&lookup->sigrdataset);
 
 		if (event != NULL)
 			isc_event_free((isc_event_t **)&event);
@@ -312,6 +337,10 @@ levent_destroy(isc_event_t *event) {
 		dns_rdataset_disassociate(levent->rdataset);
 		isc_mem_put(mctx, levent->rdataset, sizeof(dns_rdataset_t));
 	}
+	if (levent->sigrdataset != NULL) {
+		dns_rdataset_disassociate(levent->sigrdataset);
+		isc_mem_put(mctx, levent->sigrdataset, sizeof(dns_rdataset_t));
+	}
 	isc_mem_put(mctx, event, event->ev_size);
 }
 
@@ -343,6 +372,7 @@ dns_lookup_create(isc_mem_t *mctx, dns_name_t *name, dns_rdatatype_t type,
 	lookup->event->result = ISC_R_FAILURE;
 	lookup->event->name = NULL;
 	lookup->event->rdataset = NULL;
+	lookup->event->sigrdataset = NULL;
 
 	lookup->task = NULL;
 	isc_task_attach(task, &lookup->task);
@@ -365,6 +395,7 @@ dns_lookup_create(isc_mem_t *mctx, dns_name_t *name, dns_rdatatype_t type,
 	lookup->restarts = 0;
 	lookup->canceled = ISC_FALSE;
 	dns_rdataset_init(&lookup->rdataset);
+	dns_rdataset_init(&lookup->sigrdataset);
 	lookup->magic = LOOKUP_MAGIC;
 
 	*lookupp = lookup;
@@ -418,6 +449,8 @@ dns_lookup_destroy(dns_lookup_t **lookupp) {
 	REQUIRE(lookup->view == NULL);
 	if (dns_rdataset_isassociated(&lookup->rdataset))
 		dns_rdataset_disassociate(&lookup->rdataset);
+	if (dns_rdataset_isassociated(&lookup->sigrdataset))
+		dns_rdataset_disassociate(&lookup->sigrdataset);
 
 	DESTROYLOCK(&lookup->lock);
 	lookup->magic = 0;

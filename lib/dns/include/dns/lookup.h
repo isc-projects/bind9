@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.h,v 1.2 2000/10/19 18:09:34 gson Exp $ */
+/* $Id: lookup.h,v 1.3 2000/11/02 00:55:41 bwelling Exp $ */
 
 #ifndef DNS_LOOKUP_H
 #define DNS_LOOKUP_H 1
@@ -68,6 +68,7 @@ typedef struct dns_lookupevent {
 	isc_result_t			result;
 	dns_name_t			*name;
 	dns_rdataset_t			*rdataset;
+	dns_rdataset_t			*sigrdataset;
 } dns_lookupevent_t;
 
 isc_result_t
