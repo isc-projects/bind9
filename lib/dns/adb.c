@@ -234,6 +234,7 @@ static isc_result_t construct_name(dns_adb_t *, dns_adbhandle_t *,
 				   dns_adbname_t *, int, isc_stdtime_t);
 static inline isc_boolean_t check_exit(dns_adb_t *);
 static void timer_cleanup(isc_task_t *, isc_event_t *);
+static void destroy(dns_adb_t *);
 
 static inline void
 violate_locking_hierarchy(isc_mutex_t *have, isc_mutex_t *want)
@@ -983,7 +984,8 @@ static void
 shutdown_task(isc_task_t *task, isc_event_t *ev)
 {
 	dns_adb_t *adb;
-	isc_result_t result;
+
+	(void)task;  /* not used */
 
 	adb = ev->arg;
 	INSIST(DNS_ADB_VALID(adb));
@@ -1015,6 +1017,8 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 {
 	dns_adb_t *adb;
 	isc_result_t result;
+
+	(void)task;  /* not used */
 
 	adb = ev->arg;
 	INSIST(DNS_ADB_VALID(adb));
@@ -1119,6 +1123,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_mutex_init(&adb->lock);
 	if (result != ISC_R_SUCCESS)
 		goto fail0b;
+
 	result = isc_mutex_init(&adb->mplock);
 	if (result != ISC_R_SUCCESS)
 		goto fail0c;
@@ -1215,7 +1220,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (adb->aimp != NULL)
 		isc_mempool_destroy(&adb->afmp);
 
- fail0d:
 	isc_mutex_destroy(&adb->mplock);
  fail0c:
 	isc_mutex_destroy(&adb->lock);
