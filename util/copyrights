@@ -527,6 +527,7 @@
 ./lib/isc/unix/.cvsignore			X	1999
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999
 ./lib/isc/unix/app.c				C	1999
+./lib/isc/unix/dir.c				C	1999
 ./lib/isc/unix/ifiter_ioctl.c			C	1999
 ./lib/isc/unix/ifiter_sysctl.c			C	1999
 ./lib/isc/unix/include/.cvsignore		X	1999
@@ -534,6 +535,7 @@
 ./lib/isc/unix/include/isc/.cvsignore		X	1999
 ./lib/isc/unix/include/isc/Makefile.in		MAKE	1998,1999
 ./lib/isc/unix/include/isc/app.h		C	1999
+./lib/isc/unix/include/isc/dir.h		C	1999
 ./lib/isc/unix/include/isc/ipv6.h		C	1999
 ./lib/isc/unix/include/isc/net.h.in		C	1999
 ./lib/isc/unix/include/isc/netdb.h		C	1999
@@ -548,7 +550,9 @@
 ./lib/isc/util.h				C	1998,1999
 ./lib/isc/version.c				C	1998,1999
 ./lib/isc/win32/condition.c			C	1998,1999
+./lib/isc/win32/dir.c				C	1999
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999
+./lib/isc/win32/include/isc/dir.h		C	1999
 ./lib/isc/win32/include/isc/int.h		C	1999
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999

@@ -25,13 +25,15 @@ CINCLUDES =	-I${srcdir}/.. \
 CDEFINES =
 CWARNINGS =
 
+# Alphabetically
 OBJS =		@ISC_IPV6_O@ \
-		app.@O@ time.@O@ stdtime.@O@ socket.@O@ \
-		interfaceiter.@O@ net.@O@
+		app.@O@ dir.@O@ interfaceiter.@O@ net.@O@ socket.@O@ \
+		stdtime.@O@ time.@O@
 
+# Alphabetically
 SRCS =		@ISC_IPV6_C@ \
-		app.c time.c stdtime.c socket.c \
-		interfaceiter.c net.c
+		app.c dir.c interfaceiter.c net.c socket.c \
+		stdtime.c time.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
