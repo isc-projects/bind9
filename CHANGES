@@ -1,3 +1,6 @@
+1375.	[func]		'rndc dumpdb' now dumps the adb cache along with the
+			data cache.
+
 1374.	[func]		dns_adb_dump() now logs the lame zones associated
 			with each server.
 

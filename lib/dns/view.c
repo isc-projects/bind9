@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.4 2003/08/14 05:56:09 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.5 2003/08/21 05:10:53 marka Exp $ */
 
 #include <config.h>
 
@@ -1138,9 +1138,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 					  &dns_master_style_cache, fp);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-#ifdef notyet /* clean up adb dump format first */
 	dns_adb_dump(view->adb, fp);
-#endif
 	return (ISC_R_SUCCESS);
 }
 
