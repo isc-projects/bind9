@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.3 2002/02/20 02:17:22 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.4 2003/05/20 07:30:06 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -68,14 +68,14 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-typedef struct _exception
+typedef struct _xexception
 {
-	_exception(UINT string, ...);
+	_xexception(UINT string, ...);
 	
 	CString resString;
 } Exception;
 
-_exception::_exception(UINT string, ...)
+_xexception::_xexception(UINT string, ...)
 {
 	CString format;
 	va_list va;
@@ -310,14 +310,14 @@ void CBINDInstallDlg::OnUninstall()
 		if(CheckBINDService())
 			StopBINDService();
 
-		HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+		SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 		if(!hSCManager)
 		{
 			MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 			return;
 		}
 		
-		HANDLE hService = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+		SC_HANDLE hService = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 		if(!hService && GetLastError() != ERROR_SERVICE_DOES_NOT_EXIST)
 		{
 			MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
@@ -599,8 +599,8 @@ void CBINDInstallDlg::DeleteFiles(BOOL uninstall)
 
 void CBINDInstallDlg::RegisterService()
 {
-	HANDLE hSCManager;
-	HANDLE hService;
+	SC_HANDLE hSCManager;
+	SC_HANDLE hService;
 
 	SetCurrent(IDS_OPEN_SCM);
 	hSCManager= OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
@@ -635,8 +635,8 @@ void CBINDInstallDlg::RegisterService()
 void CBINDInstallDlg::UnregisterService(BOOL uninstall)
 {
 	BOOL rc = FALSE;
-	HANDLE hSCManager;
-	HANDLE hService;
+	SC_HANDLE hSCManager;
+	SC_HANDLE hService;
 
 	while(1)
 	{
@@ -835,13 +835,13 @@ void CBINDInstallDlg::StopBINDService()
 	
 	SetCurrent(IDS_STOP_SERVICE);
 
-	HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if(!hSCManager)
 	{
 		MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 	}
 	
-	HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+	SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 	if(!hBINDSvc)
 	{
 		MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
@@ -857,13 +857,13 @@ void CBINDInstallDlg::StartBINDService()
 {
 	SetCurrent(IDS_START_SERVICE);
 
-	HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if(!hSCManager)
 	{
 		MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 	}
 	
-	HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+	SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 	if(!hBINDSvc)
 	{
 		MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
@@ -878,10 +878,10 @@ BOOL CBINDInstallDlg::CheckBINDService()
 {
 	SERVICE_STATUS svcStatus;
 
-	HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if(hSCManager)
 	{
-		HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
+		SC_HANDLE hBINDSvc = OpenService(hSCManager, BIND_SERVICE_NAME, SERVICE_ALL_ACCESS);
 		if(hBINDSvc)
 		{
 			BOOL rc = ControlService(hBINDSvc, SERVICE_CONTROL_INTERROGATE, &svcStatus);
