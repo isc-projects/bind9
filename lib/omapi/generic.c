@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.8 2000/01/22 00:17:49 tale Exp $ */
+/* $Id: generic.c,v 1.9 2000/01/31 14:38:33 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -200,8 +200,7 @@ generic_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
  * specified connection.
  */
 static isc_result_t
-generic_stuffvalues(omapi_object_t *connection, omapi_object_t *h)
-{
+generic_stuffvalues(omapi_object_t *connection, omapi_object_t *h) {
 	omapi_generic_t *src;
 	unsigned int i;
 	isc_result_t result;
