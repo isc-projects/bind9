@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.20 2000/07/27 09:37:37 tale Exp $ */
+/* $Id: rndc.c,v 1.21 2000/07/27 23:27:37 bwelling Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -297,7 +297,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'M':
-			isc_mem_debugging = ISC_TRUE;
+			isc_mem_debugging = 1;
 			break;
 
 		case 'm':

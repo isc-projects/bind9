@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.34 2000/07/27 09:37:34 tale Exp $ */
+/* $Id: nsupdate.c,v 1.35 2000/07/27 23:27:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -471,7 +471,7 @@ parse_args(int argc, char **argv) {
 		case 'M': /* was -dm */
 			debugging = ISC_TRUE;
 			ddebugging = ISC_TRUE;
-			isc_mem_debugging = ISC_TRUE;
+			isc_mem_debugging = 1;
 			break;
 		case 'y':
 			keystr = isc_commandline_argument;
