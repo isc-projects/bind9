@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.259 $)
+AC_REVISION($Revision: 1.260 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -203,7 +203,17 @@ AC_C_INLINE
 # is reported to not support "static inline" (RT #1212).
 #
 AC_MSG_CHECKING(for static inline breakage)
-AC_TRY_COMPILE(, [} static inline foo() {],
+AC_TRY_COMPILE(, [
+		foo1();
+	}
+
+	static inline int foo1() {
+		return 0;
+	}
+
+	static inline int foo2() {
+		return foo1();
+	],
 	[AC_MSG_RESULT(no)],
 	[AC_MSG_RESULT(yes)
          AC_DEFINE(inline, )])
