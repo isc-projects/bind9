@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.181 2001/10/09 02:30:20 marka Exp $ */
+/* $Id: client.c,v 1.182 2001/10/09 02:39:03 marka Exp $ */
 
 #include <config.h>
 
@@ -734,7 +734,8 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 		sockflags |= ISC_SOCKFLAG_NORETRY;
 	}
 
-	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
+	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0 &&
+	    (client->attributes |= NS_CLIENTATTR_MULTICAST) == 0)
 		pktinfo = &client->pktinfo;
 	else
 		pktinfo = NULL;
