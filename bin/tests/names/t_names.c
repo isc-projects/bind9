@@ -2083,7 +2083,7 @@ static const char *a42 =
 	 */
 static const char *a43 =
 		"when a label length is invalid, dns_name_fromwire() "
-		"returns ISC_R_NOSPACE";
+		"returns DNS_R_FORMERR";
 
 static const char *a44 =
 		"when a label type is invalid, dns_name_fromwire() "
@@ -2092,7 +2092,7 @@ static const char *a44 =
 
 static const char *a45 =
 		"when a name length is invalid, dns_name_fromwire() "
-		"returns ISC_R_NOSPACE";
+		"returns DNS_R_FORMERR";
 
 static const char *a46 =
 		"when a compression type is invalid, dns_name_fromwire() "
@@ -2223,6 +2223,8 @@ t_dns_name_fromwire_x(const char *testfile, size_t buflen) {
 					exp_result = ISC_R_NOSPACE;
 				else if (! strcmp(tok, "DNS_R_BADLABELTYPE"))
 					exp_result = DNS_R_BADLABELTYPE;
+				else if (! strcmp(tok, "DNS_R_FORMERR"))
+					exp_result = DNS_R_FORMERR;
 				else if (! strcmp(tok, "DNS_R_BADPOINTER"))
 					exp_result = DNS_R_BADPOINTER;
 				else if (! strcmp(tok, "ISC_R_UNEXPECTEDEND"))
