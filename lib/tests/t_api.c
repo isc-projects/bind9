@@ -38,7 +38,8 @@
 
 #include "include/tests/t_api.h"
 
-static char *Usage =	"\t-a               : run all tests\n"
+static const char *Usage =
+		"\t-a               : run all tests\n"
 		"\t-b <dir>         : chdir to dir before running tests"
 		"\t-c <config_file> : use specified config file\n"
 		"\t-d <debug_level> : set debug level to debug_level\n"
@@ -69,21 +70,32 @@ static char *Usage =	"\t-a               : run all tests\n"
 
 #define	T_TCTOUT		60
 
-int		T_debug;
-int		T_timeout;
-pid_t		T_pid;
-static char	*T_config;
-static char	T_tvec[T_MAXTESTS / 8];
-static char	*T_env[T_MAXENV + 1];
-static char	T_buf[T_BIGBUF];
-static char	*T_dir;
+int			T_debug;
+int			T_timeout;
+pid_t			T_pid;
+static const char *	T_config;
+static char		T_tvec[T_MAXTESTS / 8];
+static char *		T_env[T_MAXENV + 1];
+static char		T_buf[T_BIGBUF];
+static char *		T_dir;
 
-static int	t_initconf(char *path);
-static int	t_dumpconf(char *path);
-static int	t_putinfo(const char *key, const char *info);
-static char	*t_getdate(char *buf, size_t buflen);
-static void	printhelp(void);
-static void	printusage(void);
+static int
+t_initconf(const char *path);
+
+static int
+t_dumpconf(const char *path);
+
+static int
+t_putinfo(const char *key, const char *info);
+
+static char *
+t_getdate(char *buf, size_t buflen);
+
+static void
+printhelp(void);
+
+static void
+printusage(void);
 
 static int	T_int;
 
@@ -358,7 +370,7 @@ t_info(const char *format, ...) {
 
 void
 t_result(int result) {
-	char	*p;
+	const char *p;
 
 	switch (result) {
 		case T_PASS:
@@ -417,7 +429,7 @@ t_getenv(const char *name) {
  */
 
 static int
-t_initconf(char *path) {
+t_initconf(const char *path) {
 
 	int	n;
 	int	rval;
@@ -457,7 +469,7 @@ t_initconf(char *path) {
  */
 
 static int
-t_dumpconf(char *path) {
+t_dumpconf(const char *path) {
 	int	rval;
 	char	**p;
 	FILE	*fp;
@@ -563,7 +575,7 @@ t_getdate(char *buf, size_t buflen) {
  */
 struct dns_errormap {
 	isc_result_t	result;
-	char		*text;
+	const char *text;
 } dns_errormap[] = {
 	{ ISC_R_SUCCESS,		"ISC_R_SUCCESS"		},
 	{ ISC_R_EXISTS,			"ISC_R_EXISTS"		},
@@ -631,8 +643,8 @@ t_dns_result_fromtext(char *name) {
 }
 
 struct dc_method_map {
-	int	dc_method;
-	char	*text;
+	unsigned int	dc_method;
+	const char 	*text;
 } dc_method_map[] = {
 	
 	{	DNS_COMPRESS_NONE,	"DNS_COMPRESS_NONE"	},
@@ -643,10 +655,9 @@ struct dc_method_map {
 	{	0,			NULL			}
 };
 
-int
+unsigned int
 t_dc_method_fromtext(char *name) {
-
-	int			dc_method;
+	unsigned int		dc_method;
 	struct dc_method_map	*pmap;
 
 	dc_method = DNS_COMPRESS_NONE;
@@ -666,7 +677,6 @@ t_dc_method_fromtext(char *name) {
 
 int
 t_bustline(char *line, char **toks) {
-
 	int	cnt;
 	char	*p;
 
@@ -703,7 +713,7 @@ printusage(void) {
 }
 
 int
-t_eval(char *filename, int (*func)(char **), int nargs) {
+t_eval(const char *filename, int (*func)(char **), int nargs) {
 	FILE		*fp;
 	char		*p;
 	int		line;

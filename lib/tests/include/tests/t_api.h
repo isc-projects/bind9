@@ -53,8 +53,8 @@
 typedef	void (*PFV)(void);
 
 typedef struct {
-	PFV	pfv;
-	char	*func_name;
+	PFV		pfv;
+	const char	*func_name;
 } testspec_t;
 
 extern	int	T_debug;
@@ -78,14 +78,14 @@ t_fgetbs(FILE *fp);
 isc_result_t
 t_dns_result_fromtext(char *result);
 
-int
+unsigned int
 t_dc_method_fromtext(char *dc_method);
 
 int
 t_bustline(char *line, char **toks);
 
 int
-t_eval(char *filename, int (*func)(char **), int nargs);
+t_eval(const char *filename, int (*func)(char **), int nargs);
 
 #endif /* TESTS_T_API_H */
 
