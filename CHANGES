@@ -1,3 +1,6 @@
+1212.	[port]		libbind: 64k answer buffers were causing stack space
+			to be exceeded for certian OS.  Use heap space instead.
+
 1211.	[bug]		dns_name_fromtext() incorrectly handled certian
 			valid octal bitlabels. [RT #2483]
 
