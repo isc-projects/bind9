@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71 2001/08/08 22:54:15 gson Exp $ */
+/* $Id: dig.h,v 1.71.2.1 2001/10/04 22:03:42 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -40,7 +40,9 @@
 #define MXRD 32
 #define BUFSIZE 512
 #define COMMSIZE 0xffff
-#define RESOLVCONF "/etc/resolv.conf"
+#ifndef RESOLV_CONF
+#define RESOLV_CONF "/etc/resolv.conf"
+#endif
 #define OUTPUTBUF 32767
 #define MAXRRLIMIT 0xffffffff
 #define MAXTIMEOUT 0xffff
