@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.117 2001/03/19 20:21:23 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.118 2001/03/19 22:38:02 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2601,6 +2601,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> max-transfer-idle-out <replaceable>number</replaceable>; </optional>
     <optional> tcp-clients <replaceable>number</replaceable>; </optional>
     <optional> recursive-clients <replaceable>number</replaceable>; </optional>
+    <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable>; </optional>
     <optional> transfers-in  <replaceable>number</replaceable>; </optional>
@@ -3161,21 +3162,26 @@ in this many minutes will be terminated.  The default is 60 minutes (1
 hour).</para>
 </listitem></varlistentry>
 
-<varlistentry><term><command>serial-queries</command></term>
-<listitem><para>Slave servers will periodically query master
-servers to find out if zone serial numbers have changed. Each such
-query uses a minute amount of the slave server's network bandwidth,
-but more importantly each query uses a small amount of memory in
-the slave server while waiting for the master server to respond.
-In BIND 8, the <command>serial-queries</command> option set the maximum number
-of concurrent serial-number queries allowed to be outstanding at
-any given time.  BIND 9 does not limit the number of outstanding
-serial queries and ignores the <command>serial-queries</command> option;
-instead, it limits the rate at which the queries are sent.
-The maximum rate is currently fixed at 20 queries
-per second but may become configurable in a future release.  
+<varlistentry><term><command>serial-query-rate</command></term>
+<listitem><para>Slave servers will periodically query master servers
+to find out if zone serial numbers have changed. Each such query uses
+a minute amount of the slave server's network bandwidth.  To limit the
+amount of bandwith used, BIND 9 limits the rate at which queries are
+sent.  The value of the <command>serial-query-rate</command> option,
+an integer, is the maximum number of queries sent per second.
+The default is 20.
 </para>
+</listitem></varlistentry>
 
+<varlistentry><term><command>serial-queries</command></term>
+<listitem><para>In BIND 8, the <command>serial-queries</command> option
+set the maximum number of concurrent serial number queries
+allowed to be outstanding at any given time.
+BIND 9 does not limit the number of outstanding
+serial queries and ignores the <command>serial-queries</command> option.
+Instead, it limits the rate at which the queries are sent
+as defined using the <command>serial-query-rate</command> option.
+</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>transfer-format</command></term>
@@ -3390,7 +3396,7 @@ records (RRs) forming a resource records set (RRset).
 The name server will normally return the
 RRs within the RRset in an indeterminate order
 (but see the <command>rrset-order</command>
-command in <xref linkend="rrset_ordering"/>).
+statement in <xref linkend="rrset_ordering"/>).
 The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
 However, not all resolvers can do this or are correctly configured.

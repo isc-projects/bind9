@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3342"
+HREF="Bv9ARM.ch06.html#AEN3346"
 >Zone File</A
 ></DT
 ></DL
@@ -3338,6 +3338,15 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> serial-query-rate <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > serial-queries <TT
 CLASS="replaceable"
 ><I
@@ -3754,7 +3763,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1973"
+NAME="AEN1975"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4650,7 +4659,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2247"
+NAME="AEN2249"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4854,7 +4863,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2312"
+NAME="AEN2314"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -4949,7 +4958,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2338"
+NAME="AEN2340"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5106,28 +5115,45 @@ hour).</P
 ><DT
 ><B
 CLASS="command"
+>serial-query-rate</B
+></DT
+><DD
+><P
+>Slave servers will periodically query master servers
+to find out if zone serial numbers have changed. Each such query uses
+a minute amount of the slave server's network bandwidth.  To limit the
+amount of bandwith used, BIND 9 limits the rate at which queries are
+sent.  The value of the <B
+CLASS="command"
+>serial-query-rate</B
+> option,
+an integer, is the maximum number of queries sent per second.
+The default is 20.
+</P
+></DD
+><DT
+><B
+CLASS="command"
 >serial-queries</B
 ></DT
 ><DD
 ><P
->Slave servers will periodically query master
-servers to find out if zone serial numbers have changed. Each such
-query uses a minute amount of the slave server's network bandwidth,
-but more importantly each query uses a small amount of memory in
-the slave server while waiting for the master server to respond.
-In BIND 8, the <B
+>In BIND 8, the <B
 CLASS="command"
 >serial-queries</B
-> option set the maximum number
-of concurrent serial-number queries allowed to be outstanding at
-any given time.  BIND 9 does not limit the number of outstanding
+> option
+set the maximum number of concurrent serial number queries
+allowed to be outstanding at any given time.
+BIND 9 does not limit the number of outstanding
 serial queries and ignores the <B
 CLASS="command"
 >serial-queries</B
-> option;
-instead, it limits the rate at which the queries are sent.
-The maximum rate is currently fixed at 20 queries
-per second but may become configurable in a future release.  
+> option.
+Instead, it limits the rate at which the queries are sent
+as defined using the <B
+CLASS="command"
+>serial-query-rate</B
+> option.
 </P
 ></DD
 ><DT
@@ -5345,7 +5371,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2467"
+NAME="AEN2476"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5482,7 +5508,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2519"
+NAME="AEN2528"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><P
@@ -5646,31 +5672,19 @@ CLASS="command"
 > Statement</A
 ></H3
 ><P
->Resource Records (RRs) are the data associated with the names
-in a  domain name space. The data is maintained in the form of sets
-of RRs. The order of RRs in a set is, by default, not significant.
-Therefore, to control the sorting of records in a set of resource
-records, or <TT
-CLASS="varname"
->RRset</TT
->, you must use the <B
+>The response to a DNS query may consist of multiple resource
+records (RRs) forming a resource records set (RRset).
+The name server will normally return the
+RRs within the RRset in an indeterminate order
+(but see the <B
 CLASS="command"
->sortlist</B
-> statement.</P
-><P
->RRs are explained more fully in <A
-HREF="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them"
->Section 6.3.1</A
->. Specifications for RRs
-are documented in RFC 1035.</P
-><P
->When returning multiple RRs the nameserver will normally return
-them in <TT
-CLASS="varname"
->Round Robin</TT
-> order,
-that is, after each request the first RR is put at the end of the
-list. The client resolver code should rearrange the RRs as appropriate,
+>rrset-order</B
+>
+statement in <A
+HREF="Bv9ARM.ch06.html#rrset_ordering"
+>Section 6.2.14.11</A
+>).
+The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
 However, not all resolvers can do this or are correctly configured.
 When a client is using a local server the sorting can be performed
@@ -5692,7 +5706,8 @@ CLASS="command"
 does (<A
 HREF="Bv9ARM.ch06.html#topology"
 >Section 6.2.14.9</A
->). Each top level statement in the <B
+>).
+Each top level statement in the <B
 CLASS="command"
 >sortlist</B
 > must
@@ -5785,16 +5800,20 @@ NAME="rrset_ordering"
 ><P
 >When multiple records are returned in an answer it may be
 useful to configure the order of the records placed into the response.
-For example, the records for a zone might be configured always to
-be returned in the order they are defined in the zone file. Or perhaps
-a random shuffle of the records as they are returned is wanted.
 The <B
 CLASS="command"
 >rrset-order</B
 > statement permits configuration
-of the ordering made of the records in a multiple record response.
-The default, if no ordering is defined, is a cyclic ordering (round
-robin).</P
+of the ordering of the records in a multiple record response.
+See also the <B
+CLASS="command"
+>sortlist</B
+> statement,
+<A
+HREF="Bv9ARM.ch06.html#the_sortlist_statement"
+>Section 6.2.14.10</A
+>.
+</P
 ><P
 >An <B
 CLASS="command"
@@ -5855,7 +5874,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2609"
+NAME="AEN2616"
 ></A
 ><P
 ></P
@@ -5949,19 +5968,7 @@ in random order. All other records are returned in cyclic order.</P
 CLASS="command"
 >rrset-order</B
 > statements appear,
-they are not combined-the last one applies.</P
-><P
->If no <B
-CLASS="command"
->rrset-order</B
-> statement is specified,
-then a default one of:
-<PRE
-CLASS="programlisting"
->rrset-order { class ANY type ANY name "*" order cyclic ; };
-</PRE
->
-is used.</P
+they are not combined &#8212; the last one applies.</P
 ><DIV
 CLASS="note"
 ><BLOCKQUOTE
@@ -5976,7 +5983,12 @@ CLASS="command"
 is not yet implemented in <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9.</P
+> 9.
+BIND 9 currently supports only a "random-cyclic" ordering,
+where the server randomly chooses a starting point within
+the RRset and returns the records in order starting at
+that point, wrapping around the end of the RRset if 
+necessary.</P
 ></BLOCKQUOTE
 ></DIV
 ></DIV
@@ -6249,7 +6261,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2724"
+NAME="AEN2728"
 ></A
 ><P
 ></P
@@ -6658,7 +6670,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2832"
+NAME="AEN2836"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6733,7 +6745,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2848"
+NAME="AEN2852"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6768,7 +6780,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2856"
+NAME="AEN2860"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6831,7 +6843,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2870"
+NAME="AEN2874"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7451,7 +7463,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3015"
+NAME="AEN3019"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7462,13 +7474,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3018"
+NAME="AEN3022"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3020"
+NAME="AEN3024"
 ></A
 ><P
 ></P
@@ -7706,7 +7718,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3075"
+NAME="AEN3079"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7744,7 +7756,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3085"
+NAME="AEN3089"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8369,7 +8381,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3312"
+NAME="AEN3316"
 ></A
 ><P
 ></P
@@ -8476,7 +8488,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3342"
+NAME="AEN3346"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8497,7 +8509,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3347"
+NAME="AEN3351"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8520,7 +8532,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3353"
+NAME="AEN3357"
 ></A
 ><P
 ></P
@@ -8631,7 +8643,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3385"
+NAME="AEN3389"
 ></A
 ><P
 ></P
@@ -9008,7 +9020,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3497"
+NAME="AEN3501"
 ></A
 ><P
 ></P
@@ -9060,7 +9072,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3513"
+NAME="AEN3517"
 ></A
 ><P
 ></P
@@ -9237,7 +9249,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3561"
+NAME="AEN3565"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9267,7 +9279,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3568"
+NAME="AEN3572"
 ></A
 ><P
 ></P
@@ -9476,7 +9488,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3634"
+NAME="AEN3638"
 ></A
 ><P
 ></P
@@ -9567,7 +9579,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3662"
+NAME="AEN3666"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9600,7 +9612,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3668"
+NAME="AEN3672"
 ></A
 ><P
 ></P
@@ -9896,7 +9908,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3760"
+NAME="AEN3764"
 ></A
 ><P
 ></P
@@ -9979,7 +9991,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3783"
+NAME="AEN3787"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10003,7 +10015,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3788"
+NAME="AEN3792"
 ></A
 ><P
 ></P
@@ -10083,7 +10095,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3810"
+NAME="AEN3814"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10108,7 +10120,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3817"
+NAME="AEN3821"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10178,7 +10190,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3837"
+NAME="AEN3841"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10260,7 +10272,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3857"
+NAME="AEN3861"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10300,7 +10312,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3868"
+NAME="AEN3872"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10379,7 +10391,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3888"
+NAME="AEN3892"
 ></A
 ><P
 ></P
