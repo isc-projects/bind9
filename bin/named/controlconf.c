@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.11 2001/05/31 21:49:11 tale Exp $ */
+/* $Id: controlconf.c,v 1.12 2001/06/15 23:25:20 gson Exp $ */
 
 #include <config.h>
 
@@ -729,7 +729,7 @@ make_automagic_key(isc_mem_t *mctx) {
 		isc_buffer_init(&key_txtbuffer, &key_txtsecret,
 				sizeof(key_txtsecret));
 		isc_buffer_usedregion(&key_rawbuffer, &key_rawregion);
-		result = isc_base64_totext(&key_rawregion, -1, "\0",
+		result = isc_base64_totext(&key_rawregion, -1, "",
 					   &key_txtbuffer);
 	}
 
