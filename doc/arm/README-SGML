@@ -1,6 +1,6 @@
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.5 2000/09/18 17:06:15 scanner Exp $
+Version: $Id: README-SGML,v 1.6 2000/09/20 01:20:26 scanner Exp $
 
 The entire ARM is in the single file:
 
@@ -104,8 +104,34 @@ NOTE: Under FreeBSD this is the package:
 
 NetBSD instructions are coming soon.
 
-As soon as I figure out the proper "catalog" files to change and how
-to change them for this to do the proper re-mapping.
+With packages listed below installed under FreeBSD the "catalog" file
+that all the tools refer to at least one is in:
+
+    /usr/local/share/sgml/catalog
+
+In order for our SYSTEM identifier for the XML DocBook dtd to be found
+I create a new catalog file at the top of the XML directory created on
+FreeBSD:
+
+   /usr/local/share/xml/catalog
+
+This file has one line:
+
+   SYSTEM "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd" "/usr/local/share/xml/dtd/docbook/docbookx.dtd"
+
+Then in the main "catalog" I have it include this XML catalog:
+
+   CATALOG "/usr/local/share/xml/catalog"
+
+
+On your systems you need to replace "/usr/local/share" with your
+prefix root (probably /usr/pkg under NetBSD.)
+
+NOTE: The URL used above is supposed to the be the proper one for this
+XML DocBook DTD.. but there is nothing at that URL so you really do
+need the "SYSTEM" identifier mapping in your catalog (or make the
+SYSTEM identifier in your document refer to the real location of the
+file on your local system.)
 
 HOW TO VALIDATE A DOCUMENT:
 

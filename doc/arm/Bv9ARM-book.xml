@@ -1,8 +1,8 @@
 <?xml version='1.0'?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
-               "/usr/local/share/xml/dtd/docbook/docbookx.dtd">
+               "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.9 2000/09/14 03:39:23 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.10 2000/09/20 01:20:17 scanner Exp $ -->
 
 <book>
 
@@ -613,13 +613,13 @@ Use <command>dig</command> instead.</para>
           </varlistentry>
         </variablelist>
       </sect3>
-      <sect3>
+      <sect3 id="admin_tools">
         <title>Administrative Tools</title>
         <para>Administrative tools play an integral part in the management
 of a server.</para>
         <variablelist>
-          <varlistentry>
-            <term id="rndc"><command>rndc</command></term>
+          <varlistentry id="rndc" xreflabel="Remote Name Daemon Control application">
+            <term><command>rndc</command></term>
             <listitem>
               <para>The remote name daemon control
               (<command>rndc</command>) program allows the system
@@ -2006,7 +2006,8 @@ Usage</title>
       the <command>key_list</command> is allowed to be used to
       authenticate commands and responses given over the control
       channel by digitally signing each message between the server and
-      a command client (<xref linkend="rndc"/>). All commands to the
+      a command client (See <xref linkend="rndc"/> in <xref
+                                                            linkend="admin_tools"/>). All commands to the
       control channel must be signed by one of its specified keys to
       be honored.</para>
 
@@ -2503,7 +2504,7 @@ nameserver.</para></entry>
 <entry colname = "2"><para>The pathname of the file the server appends statistics
 to. If not specified, the default is <filename>named.stats</filename>.</para><note>
                       <simpara>Not
-yet implemented in <acronym>BIND</acronym> 9</simpara></note>.</entry>
+yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
 </row>
 </tbody>
 </tgroup></informaltable> </para>
@@ -2886,7 +2887,7 @@ this many minutes will be terminated. The default is 120 minutes
 <row rowsep = "0">
 <entry colname = "1"><para><command>max-transfer-idle-out</command></para></entry>
 <entry colname = "2"><para>Outbound zone transfers making no progress
-in this many minutes will be terminated.  The default is 60 minutes</para><para>(1
+in this many minutes will be terminated.  The default is 60 minutes (1
 hour).</para></entry>
 </row>
 <row rowsep = "0">
@@ -3270,10 +3271,10 @@ is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
 <row rowsep = "0">
 <entry colname = "1"><para><command>lame-ttl</command></para></entry>
 <entry colname = "2"><para>Sets the number of seconds to cache a
-lame server indication. 0 disables caching. (This is NOT recommended.)
+lame server indication. 0 disables caching. (This is
+<emphasis role="bold">NOT</emphasis> recommended.)
 Default is <literal>600</literal> (10 minutes). Maximum value is 
-<programlisting><literal>1800</literal></programlisting> (30
-minutes).</para>
+<literal>1800</literal> (30 minutes).</para>
 <note>
                     <simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
 </entry>
@@ -3284,8 +3285,7 @@ minutes).</para>
 the server stores negative answers. <command>max-ncache-ttl</command> is
 used to set a maximum retention time for these answers in the server
 in seconds. The default
-<command>max-ncache-ttl</command> is <programlisting><literal>10800</literal></programlisting> seconds
-(3 hours).
+<command>max-ncache-ttl</command> is <literal>10800</literal> seconds (3 hours).
 <command>max-ncache-ttl</command> cannot exceed 7 days and will
 be silently truncated to 7 days if set to a greater value.</para></entry>
 </row>
@@ -3642,7 +3642,7 @@ forwarding is not yet implemented.</simpara></note></entry>
                 <entry colname = "1"><para><command>also-notify</command></para></entry>
                 <entry colname = "2"><para>Only meaningful if <command>notify</command> is
 active for this zone. The set of machines that will receive a 
-<programlisting><literal>DNS NOTIFY</literal></programlisting> message
+<literal>DNS NOTIFY</literal> message
 for this zone is made up of all the listed nameservers (other than
 the primary master) for the zone plus any IP addresses specified
 with <command>also-notify</command>.
@@ -4809,7 +4809,8 @@ Specification</title>
             <pubdate>November 1987</pubdate>
           </biblioentry>
         </bibliodiv>
-        <bibliodiv id="proposed_standards">
+        <bibliodiv id="proposed_standards" xreflabel="Proposed Standards">
+
           <title>Proposed Standards</title>
           <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
           <biblioentry>
