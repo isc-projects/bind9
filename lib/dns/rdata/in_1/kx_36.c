@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.18 2000/03/17 02:17:39 explorer Exp $ */
+/* $Id: kx_36.c,v 1.19 2000/03/20 22:44:35 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -134,16 +134,16 @@ compare_in_kx(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int result;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 36);
 	REQUIRE(rdata1->rdclass == 1);
 
-	result = memcmp(rdata1->data, rdata2->data, 2);
-	if (result != 0)
-		return (result < 0 ? -1 : 1);
+	order = memcmp(rdata1->data, rdata2->data, 2);
+	if (order != 0)
+		return (order < 0 ? -1 : 1);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);

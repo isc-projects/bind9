@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.15 2000/03/17 01:22:15 explorer Exp $ */
+ /* $Id: rp_17.c,v 1.16 2000/03/20 22:44:34 gson Exp $ */
 
  /* RFC 1183 */
 
@@ -144,7 +144,7 @@ compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	isc_region_t region2;
 	dns_name_t name1;
 	dns_name_t name2;
-	int result;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -159,9 +159,9 @@ compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_rdatacompare(&name1, &name2);
-	if (result != 0)
-		return (result);
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
@@ -172,8 +172,7 @@ compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_rdatacompare(&name1, &name2);
-	return (result);
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static inline isc_result_t

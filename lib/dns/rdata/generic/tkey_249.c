@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.22 2000/03/20 18:40:28 gson Exp $ */
+/* $Id: tkey_249.c,v 1.23 2000/03/20 22:44:35 gson Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -275,7 +275,7 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 	dns_name_t name1;
 	dns_name_t name2;
-	int result;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -288,8 +288,8 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_init(&name2, NULL);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
-	if ((result = dns_name_rdatacompare(&name1, &name2)) != 0)
-		return (result);
+	if ((order = dns_name_rdatacompare(&name1, &name2)) != 0)
+		return (order);
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));
 	return (compare_region(&r1, &r2));

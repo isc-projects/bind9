@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.17 2000/03/17 02:47:01 bwelling Exp $ */
+/* $Id: naptr_35.c,v 1.18 2000/03/20 22:44:36 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -196,7 +196,7 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int result, len;
+	int order, len;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -207,33 +207,33 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_rdata_toregion(rdata2, &region2);
 
 	/* order, preference */
-	result = memcmp(region1.base, region2.base, 4);
-	if (result != 0)
-		return (result < 0 ? -1 : 1);
+	order = memcmp(region1.base, region2.base, 4);
+	if (order != 0)
+		return (order < 0 ? -1 : 1);
 	isc_region_consume(&region1, 4);
 	isc_region_consume(&region2, 4);
 
 	/* flags */
 	len = ISC_MIN(region1.base[0], region2.base[0]);
-	result = memcmp(region1.base, region2.base, len + 1);
-	if (result != 0)
-		return (result < 0 ? -1 : 1);
+	order = memcmp(region1.base, region2.base, len + 1);
+	if (order != 0)
+		return (order < 0 ? -1 : 1);
 	isc_region_consume(&region1, region1.base[0] + 1);
 	isc_region_consume(&region2, region2.base[0] + 1);
 
 	/* service */
 	len = ISC_MIN(region1.base[0], region2.base[0]);
-	result = memcmp(region1.base, region2.base, len + 1);
-	if (result != 0)
-		return (result < 0 ? -1 : 1);
+	order = memcmp(region1.base, region2.base, len + 1);
+	if (order != 0)
+		return (order < 0 ? -1 : 1);
 	isc_region_consume(&region1, region1.base[0] + 1);
 	isc_region_consume(&region2, region2.base[0] + 1);
 
 	/* regexp */
 	len = ISC_MIN(region1.base[0], region2.base[0]);
-	result = memcmp(region1.base, region2.base, len + 1);
-	if (result != 0)
-		return (result < 0 ? -1 : 1);
+	order = memcmp(region1.base, region2.base, len + 1);
+	if (order != 0)
+		return (order < 0 ? -1 : 1);
 	isc_region_consume(&region1, region1.base[0] + 1);
 	isc_region_consume(&region2, region2.base[0] + 1);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.21 2000/03/16 02:23:17 brister Exp $ */
+/* $Id: nxt_30.c,v 1.22 2000/03/20 22:44:34 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -183,7 +183,7 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 	dns_name_t name1;
 	dns_name_t name2;
-	int result;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -195,9 +195,9 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_rdata_toregion(rdata2, &r2);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
-	result = dns_name_rdatacompare(&name1, &name2);
-	if (result != 0)
-		return (result);
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
 	return (compare_region(&r1, &r2));
 }

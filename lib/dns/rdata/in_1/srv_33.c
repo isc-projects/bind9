@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.15 2000/03/17 21:03:33 bwelling Exp $ */
+/* $Id: srv_33.c,v 1.16 2000/03/20 22:44:36 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -160,7 +160,7 @@ compare_in_srv(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int result;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -168,9 +168,9 @@ compare_in_srv(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	REQUIRE(rdata1->rdclass == 1);
 
 	/* priority, weight, port */
-	result = memcmp(rdata1->data, rdata2->data, 6);
-	if (result != 0)
-		return (result < 0 ? -1 : 1);
+	order = memcmp(rdata1->data, rdata2->data, 6);
+	if (order != 0)
+		return (order < 0 ? -1 : 1);
 
 	/* target */
 	dns_name_init(&name1, NULL);

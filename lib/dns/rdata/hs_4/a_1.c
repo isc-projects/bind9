@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.4 2000/03/17 00:01:18 brister Exp $ */
+/* $Id: a_1.c,v 1.5 2000/03/20 22:44:35 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -123,18 +123,18 @@ towire_hs_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 static inline int
 compare_hs_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 {
-	int result;
+	int order;
 	
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->type);
 	REQUIRE(rdata1->type == 1);
 	REQUIRE(rdata1->rdclass == 4);
 
-	result = memcmp(rdata1->data, rdata2->data, 4);
-	if (result != 0)
-		result = (result < 0) ? -1 : 1;
+	order = memcmp(rdata1->data, rdata2->data, 4);
+	if (order != 0)
+		order = (order < 0) ? -1 : 1;
 
-	return (result);
+	return (order);
 }
 
 static inline isc_result_t

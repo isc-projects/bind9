@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.21 2000/03/19 03:15:49 brister Exp $ */
+ /* $Id: a6_38.c,v 1.22 2000/03/20 22:44:35 gson Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -208,7 +208,7 @@ towire_in_a6(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 static inline int
 compare_in_a6(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
-	int result;
+	int order;
 	unsigned char prefixlen1, prefixlen2;
 	unsigned char octets;
 	dns_name_t name1;
@@ -237,16 +237,16 @@ compare_in_a6(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	octets = 16 - prefixlen1 / 8;
 
 	if (octets > 0) {
-		result = memcmp(region1.base, region2.base, octets);
-		if (result < 0)
+		order = memcmp(region1.base, region2.base, octets);
+		if (order < 0)
 			return (-1);
-		else if (result > 0)
+		else if (order > 0)
 			return (1);
 		/*
 		 * Address suffixes are equal.
 		 */
 		if (prefixlen1 == 0)
-			return (result);
+			return (order);
 		isc_region_consume(&region1, octets);
 		isc_region_consume(&region2, octets);
 	}

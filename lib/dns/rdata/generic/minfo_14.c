@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.20 2000/03/16 02:00:37 brister Exp $ */
+/* $Id: minfo_14.c,v 1.21 2000/03/20 22:44:33 gson Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -144,7 +144,7 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	isc_region_t region2;
 	dns_name_t name1;
 	dns_name_t name2;
-	int result;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -159,9 +159,9 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_rdatacompare(&name1, &name2);
-	if (result != 0)
-		return (result);
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
@@ -172,8 +172,8 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_rdatacompare(&name1, &name2);
-	return (result);
+	order = dns_name_rdatacompare(&name1, &name2);
+	return (order);
 }
 
 static inline isc_result_t
