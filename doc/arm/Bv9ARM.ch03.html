@@ -1075,21 +1075,39 @@ CLASS="userinput"
 ><P
 >Flushes the server's cache.</P
 ></DD
+><DT
+><TT
+CLASS="userinput"
+><B
+>status</B
+></TT
+></DT
+><DD
+><P
+>Display status of the server.</P
+></DD
 ></DL
 ></DIV
 ><P
 >In <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9.1, <B
+> 9.2, <B
 CLASS="command"
 >rndc</B
-> does not
-yet support all the commands of the BIND 8 <B
+>
+	      supports all the commands of the BIND 8 <B
 CLASS="command"
 >ndc</B
 >
-utility.  Additonal commands will be added in future releases.</P
+	      utility except <B
+CLASS="command"
+>ndc start</B
+>, which was also
+	      not supported in <B
+CLASS="command"
+>ndc</B
+>'s channel mode.</P
 ><P
 >A configuration file is required, since all
               communication with the server is authenticated with
@@ -1290,7 +1308,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN634"
+NAME="AEN641"
 >3.4.2. Signals</A
 ></H2
 ><P
@@ -1303,7 +1321,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN638"
+NAME="AEN645"
 ></A
 ><P
 ></P
