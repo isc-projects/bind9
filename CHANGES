@@ -1,4 +1,7 @@
 
+ 574.	[bug]		TSIG signed queries sent by the resolver would fail to
+			have their responses validated and would leak memory.
+
  572.	[bug]		Quoted strings were not accepted as key names in
 			address match lists.
 
