@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.145 2000/08/09 00:09:35 gson Exp $ */
+/* $Id: adb.c,v 1.146 2000/08/09 21:15:32 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -3489,8 +3489,8 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 	 * don't do this.
 	 */
 	if (dev->result != ISC_R_SUCCESS) {
-		DP(DEF_LEVEL, "name %p: A6 failed, result %u",
-		   name, dev->result);
+		DP(DEF_LEVEL, "name %p: A6 failed: %s",
+		   name, isc_result_totext(dev->result));
 
 		/*
 		 * If we got a negative cache response, remember it.
