@@ -142,13 +142,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			return (result);
 
 		result = configure_zone_acl(czone, cctx, ac, zone,
-					    dns_c_zone_getallowquery,
-					    dns_zone_setqueryacl,
-					    dns_zone_clearqueryacl);
-		if (result != DNS_R_SUCCESS)
-			return (result);
-
-		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowtransfer,
 					    dns_zone_setxfracl,
 					    dns_zone_clearxfracl);
