@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.6 2001/01/09 21:59:21 bwelling Exp $ */
+/* $Id: getrrset.c,v 1.7 2001/01/23 01:51:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -210,4 +210,5 @@ lwres_freerrset(struct rrsetinfo *rrset) {
 	}
 	free(rrset->rri_sigs);
 	free(rrset->rri_name);
+	free(rrset);
 }
