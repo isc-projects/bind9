@@ -67,7 +67,9 @@ static void
 t1(void) {
 	int result;
 	t_assert("isc_sockaddr_eqaddrprefix", 1, T_REQUIRED,
-		 "IPv4 address prefix comparisons work as expected");
+		 "isc_sockaddr_eqaddrprefix() returns ISC_TRUE when "
+		 "prefixes of a and b are equal, and ISC_FALSE when "
+		 "they are not equal");
 	result = test_isc_sockaddr_eqaddrprefix();
 	t_result(result);
 }
