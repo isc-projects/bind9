@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.16 2000/08/01 01:28:02 tale Exp $
+# $Id: Makefile.in,v 1.17 2000/09/16 01:13:53 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -27,7 +27,11 @@ CWARNINGS =	@IRIX_DNSSEC_WARNINGS_HACK@
 LIBS =		@LIBS@
 
 # Alphabetically
-OBJS =		bn_add.@O@ bn_asm.@O@ bn_ctx.@O@ bn_div.@O@ \
+OBJS =		a_bytes.@O@ a_bitstr.@O@ a_enum.@O@ a_gentm.@O@ \
+		a_int.@O@ a_object.@O@ a_octet.@O@ a_print.@O@ \
+		a_set.@O@ a_type.@O@ a_utctm.@O@ a_utf8.@O@ a_vis.@O@ \
+		asn1_lib.@O@ \
+		bn_add.@O@ bn_asm.@O@ bn_blind.@O@ bn_ctx.@O@ bn_div.@O@ \
 		bn_err.@O@ bn_exp.@O@ bn_exp2.@O@ bn_gcd.@O@ \
 		bn_lib.@O@ bn_mont.@O@ bn_mul.@O@ \
 		bn_prime.@O@ bn_print.@O@ bn_rand.@O@ bn_recp.@O@ \
@@ -36,10 +40,18 @@ OBJS =		bn_add.@O@ bn_asm.@O@ bn_ctx.@O@ bn_div.@O@ \
 		dh_lib.@O@ dsa_asn1.@O@ dsa_err.@O@ dsa_gen.@O@ \
 		dsa_key.@O@ dsa_lib.@O@ dsa_ossl.@O@ dsa_sign.@O@ \
 		dsa_vrf.@O@ err.@O@ ex_data.@O@ lhash.@O@ \
-		mem.@O@ mem_dbg.@O@ rand_lib.@O@ sha1_one.@O@ sha1dgst.@O@ \
-		stack.@O@ th-lock.@O@
+		mem.@O@ mem_dbg.@O@ obj_dat.@O@ obj_lib.@O@ rand_lib.@O@ \
+		rsa_chk.@O@ rsa_eay.@O@ rsa_gen.@O@ \
+		rsa_lib.@O@ rsa_none.@O@ rsa_oaep.@O@ rsa_pk1.@O@ \
+		rsa_sign.@O@ rsa_ssl.@O@ \
+		sha1_one.@O@ sha1dgst.@O@ \
+		stack.@O@ th-lock.@O@ x_algor.@O@ x_sig.@O@
 
-SRCS =		bn_add.c bn_asm.c bn_ctx.c bn_div.c \
+SRCS =		a_bitstr.c a_bytes.c a_enum.c a_gentm.c \
+		a_int.c a_object.c a_octet.c a_print.c \
+		a_set.c a_type.c a_utctm.c a_utf8.c a_vis.c \
+		asn1_lib.c \
+		bn_add.c bn_asm.c bn_blind.c bn_ctx.c bn_div.c \
 		bn_err.c bn_exp.c bn_exp2.c bn_gcd.c \
 		bn_lib.c bn_mont.c bn_mul.c \
 		bn_prime.c bn_print.c bn_rand.c bn_recp.c \
@@ -48,8 +60,12 @@ SRCS =		bn_add.c bn_asm.c bn_ctx.c bn_div.c \
 		dh_lib.c dsa_asn1.c dsa_err.c dsa_gen.c \
 		dsa_key.c dsa_lib.c dsa_ossl.c dsa_sign.c \
 		dsa_vrf.c err.c ex_data.c lhash.c \
-		mem.c mem_dbg.c rand_lib.c sha1_one.c sha1dgst.c \
-		stack.c th-lock.c
+		mem.c mem_dbg.c obj_dat.c obj_lib.c rand_lib.c \
+		rsa_chk.c rsa_eay.c rsa_gen.c \
+		rsa_lib.c rsa_none.c rsa_oaep.c rsa_pk1.c \
+		rsa_sign.c rsa_ssl.c \
+		sha1_one.c sha1dgst.c \
+		stack.c th-lock.c x_sig.c x_algor.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}

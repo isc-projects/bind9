@@ -157,10 +157,13 @@ typedef struct err_state_st
 #define SYSerr(f,r)	do {} while (0)
 #define BNerr(f,r)	do {} while (0)
 #define DHerr(f,r)	do {} while (0)
+#define RSAerr(f,r)	do {} while (0)
 #define DSAerr(f,r)	do {} while (0)
 #define CRYPTOerr(f,r)	do {} while (0)
 #define BUFerr(f,r)	do {} while (0)
 #define RANDerr(f,r)	do {} while (0)
+#define OBJerr(f,r)	do {} while (0)
+#define ASN1err(f,r) 	do {} while (0)
 #endif
 
 /* Borland C seems too stupid to be able to shift and do longs in
