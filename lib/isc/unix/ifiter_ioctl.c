@@ -96,7 +96,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 			 * retry.
 			 */
 			if (iter->ifc.ifc_len + 2 * sizeof(struct ifreq)
-			    < iter->bufsiz) 
+			    < iter->bufsize) 
 				break;
 		}
 		if (errno != EINVAL) {
