@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.13 2004/10/07 02:15:28 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.14 2004/10/14 00:51:32 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3318,6 +3318,11 @@ will be of a size comparable to the combined size of the
 old and new zone version, and the server will need to
 temporarily allocate memory to hold this complete
 difference set.
+</para><para>
+<command>ixfr-from-differences</command> also accepts <command>master</command>
+and <command>slave</command> at the view and options levels which causes
+<command>ixfr-from-differences</command> to apply to all <command>master</command>
+or <command>slave</command> zones respectively.
 </para></listitem></varlistentry>
 
 <varlistentry><term><command>multi-master</command></term>

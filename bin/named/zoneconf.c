@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.3 2004/10/07 02:15:27 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.4 2004/10/14 00:51:32 marka Exp $ */
 
 #include <config.h>
 
@@ -337,6 +337,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	isc_boolean_t alt;
 	dns_view_t *view;
 	isc_boolean_t check = ISC_FALSE, fail = ISC_FALSE;
+	isc_boolean_t ixfrdiff;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -535,8 +536,17 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "ixfr-from-differences", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
-				   cfg_obj_asboolean(obj));
+		if (cfg_obj_isboolean(obj))
+			ixfrdiff = cfg_obj_asboolean(obj);
+		else if (strcasecmp(cfg_obj_asstring(obj), "master") &&
+			 ztype == dns_zone_master)
+			ixfrdiff = ISC_TRUE;
+		else if (strcasecmp(cfg_obj_asstring(obj), "slave") &&
+			ztype == dns_zone_slave)
+			ixfrdiff = ISC_TRUE;
+		else
+			ixfrdiff = ISC_FALSE;
+		dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS, ixfrdiff);
 
 		checknames(ztype, maps, &obj);
 		INSIST(obj != NULL);
