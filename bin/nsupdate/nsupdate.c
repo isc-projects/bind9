@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.115 2001/11/30 01:02:08 gson Exp $ */
+/* $Id: nsupdate.c,v 1.116 2002/01/21 07:59:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -46,6 +46,7 @@
 
 #include <dns/callbacks.h>
 #include <dns/dispatch.h>
+#include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/masterdump.h>
@@ -85,8 +86,6 @@ extern int h_errno;
 #define MAXCMD (4 * 1024)
 #define INITDATA (32 * 1024)
 #define MAXDATA (64 * 1024)
-#define NAMEBUF 512
-#define WORDLEN 512
 #define PACKETSIZE ((64 * 1024) - 1)
 #define INITTEXT (2 * 1024)
 #define MAXTEXT (128 * 1024)
@@ -120,7 +119,8 @@ static dns_fixedname_t resolvdomain; /* from resolv.conf's domain line */
 static dns_name_t *origin; /* Points to one of above, or dns_rootname */
 static dns_fixedname_t fuserzone;
 static dns_name_t *userzone = NULL;
-static dns_tsigkey_t *key = NULL;
+static dns_tsigkey_t *tsigkey = NULL;
+static dst_key_t *sig0key;
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
 static isc_sockaddr_t *servers;
@@ -322,7 +322,7 @@ setup_keystr(void) {
 	debug("keycreate");
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
 				    secret, secretlen, ISC_TRUE, NULL,
-				    0, 0, mctx, NULL, &key);
+				    0, 0, mctx, NULL, &tsigkey);
 	if (result != ISC_R_SUCCESS)
 		fprintf(stderr, "could not create key from %s: %s\n",
 			keystr, dns_result_totext(result));
@@ -345,16 +345,19 @@ setup_keyfile(void) {
 			keyfile, isc_result_totext(result));
 		return;
 	}
-	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
-					   dns_tsig_hmacmd5_name,
-					   dstkey, ISC_FALSE, NULL,
-					   0, 0, mctx, NULL, &key);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "could not create key from %s: %s\n",
-			keyfile, isc_result_totext(result));
-		dst_key_free(&dstkey);
-		return;
-	}
+	if (dst_key_alg(dstkey) == DST_ALG_HMACMD5) {
+		result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
+						   dns_tsig_hmacmd5_name,
+						   dstkey, ISC_FALSE, NULL,
+						   0, 0, mctx, NULL, &tsigkey);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "could not create key from %s: %s\n",
+				keyfile, isc_result_totext(result));
+			dst_key_free(&dstkey);
+			return;
+		}
+	} else
+		sig0key = dstkey;
 }
 
 static void
@@ -367,9 +370,14 @@ doshutdown(void) {
 	if (localaddr != NULL)
 		isc_mem_put(mctx, localaddr, sizeof(isc_sockaddr_t));
 
-	if (key != NULL) {
-		ddebug("Freeing key");
-		dns_tsigkey_detach(&key);
+	if (tsigkey != NULL) {
+		ddebug("Freeing TSIG key");
+		dns_tsigkey_detach(&tsigkey);
+	}
+
+	if (sig0key != NULL) {
+		ddebug("Freeing SIG(0) key");
+		dst_key_free(&sig0key);
 	}
 
 	if (updatemsg != NULL)
@@ -662,7 +670,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 
 	result = dns_message_gettempname(msg, namep);
 	check_result(result, "dns_message_gettempname");
-	result = isc_buffer_allocate(mctx, &namebuf, NAMEBUF);
+	result = isc_buffer_allocate(mctx, &namebuf, DNS_NAME_MAXWIRE);
 	check_result(result, "isc_buffer_allocate");
 	dns_name_init(*namep, NULL);
 	dns_name_setbuffer(*namep, namebuf);
@@ -1014,11 +1022,11 @@ evaluate_key(char *cmdline) {
 	}
 	secretlen = isc_buffer_usedlength(&secretbuf);
 
-	if (key != NULL)
-		dns_tsigkey_detach(&key);
+	if (tsigkey != NULL)
+		dns_tsigkey_detach(&tsigkey);
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
                                     secret, secretlen, ISC_TRUE, NULL, 0, 0,
-                                    mctx, NULL, &key);
+                                    mctx, NULL, &tsigkey);
 	isc_mem_free(mctx, secret);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s %s: %s\n",
@@ -1453,8 +1461,12 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 
 	if (usevc)
 		options |= DNS_REQUESTOPT_TCP;
+	if (tsigkey == NULL && sig0key != NULL) {
+		result = dns_message_setsig0key(updatemsg, sig0key);
+		check_result(result, "dns_message_setsig0key");
+	}
 	result = dns_request_createvia(requestmgr, updatemsg, srcaddr,
-				       master, options, key,
+				       master, options, tsigkey,
 				       FIND_TIMEOUT, global_task,
 				       update_completed, NULL, &request);
 	check_result(result, "dns_request_createvia");

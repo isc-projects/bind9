@@ -1,3 +1,5 @@
+1179.	[func]		Add SIG(0) support to nsupdate.
+
 1178.	[func]		Follow and cache (if appropriate) A6 and other
 			data chains to completion in the additional section.
 
