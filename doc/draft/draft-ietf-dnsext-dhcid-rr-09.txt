@@ -1,20 +1,22 @@
 
 
+
+
 DNSEXT                                                          M. Stapp
 Internet-Draft                                       Cisco Systems, Inc.
-Expires: January 14, 2005                                       T. Lemon
+Expires: August 13, 2005                                        T. Lemon
                                                            A. Gustafsson
                                                            Nominum, Inc.
-                                                           July 16, 2004
+                                                        February 9, 2005
 
 
            A DNS RR for Encoding DHCP Information (DHCID RR)
-                  <draft-ietf-dnsext-dhcid-rr-08.txt>
+                  <draft-ietf-dnsext-dhcid-rr-09.txt>
 
 Status of this Memo
 
    This document is an Internet-Draft and is subject to all provisions
-   of section 3 of RFC 3667.  By submitting this Internet-Draft, each
+   of Section 3 of RFC 3667.  By submitting this Internet-Draft, each
    author represents that any applicable patent or other IPR claims of
    which he or she is aware have been or will be disclosed, and any of
    which he or she become aware will be disclosed, in accordance with
@@ -30,17 +32,17 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   The list of current Internet-Drafts can be accessed at http://
-   www.ietf.org/ietf/1id-abstracts.txt.
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
 
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on January 14, 2005.
+   This Internet-Draft will expire on August 13, 2005.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2004).  All Rights Reserved.
+   Copyright (C) The Internet Society (2005).
 
 Abstract
 
@@ -48,15 +50,15 @@ Abstract
    same DNS FQDN as they obtain DHCP leases.  Whether the DHCP server or
    the clients themselves perform the DNS updates, conflicts can arise.
    To resolve such conflicts, "Resolution of DNS Name Conflicts" [1]
-   proposes storing client identifiers in the DNS to unambiguously
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 1]
+Stapp, et al.            Expires August 13, 2005                [Page 1]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
+   proposes storing client identifiers in the DNS to unambiguously
    associate domain names with the DHCP clients to which they refer.
    This memo defines a distinct RR type for this purpose for use by DHCP
    clients and servers, the "DHCID" RR.
@@ -79,8 +81,8 @@ Table of Contents
    7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  7
    8.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . .  7
    9.  References . . . . . . . . . . . . . . . . . . . . . . . . . .  8
-   9.1   Normative References . . . . . . . . . . . . . . . . . . . .  8
-   9.2   Informative References . . . . . . . . . . . . . . . . . . .  8
+     9.1   Normative References . . . . . . . . . . . . . . . . . . .  8
+     9.2   Informative References . . . . . . . . . . . . . . . . . .  8
        Authors' Addresses . . . . . . . . . . . . . . . . . . . . . .  9
        Intellectual Property and Copyright Statements . . . . . . . . 10
 
@@ -107,10 +109,9 @@ Table of Contents
 
 
 
-
-Stapp, et al.           Expires January 14, 2005                [Page 2]
+Stapp, et al.            Expires August 13, 2005                [Page 2]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
 1.  Terminology
@@ -164,9 +165,9 @@ Internet-Draft                The DHCID RR                     July 2004
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 3]
+Stapp, et al.            Expires August 13, 2005                [Page 3]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
 3.1  DHCID RDATA format
@@ -220,9 +221,9 @@ Internet-Draft                The DHCID RR                     July 2004
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 4]
+Stapp, et al.            Expires August 13, 2005                [Page 4]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
    some variable-length identifying data.
@@ -276,9 +277,9 @@ Internet-Draft                The DHCID RR                     July 2004
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 5]
+Stapp, et al.            Expires August 13, 2005                [Page 5]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
 3.5.1  Example 1
@@ -289,8 +290,8 @@ Internet-Draft                The DHCID RR                     July 2004
    the client.  The DHCID RDATA is composed by setting the two type
    bytes to zero, and performing an MD5 hash computation across a buffer
    containing the Ethernet MAC type byte, 0x01, the six bytes of MAC
-   address, and the domain name (represented as specified in Section
-   3.4).
+   address, and the domain name (represented as specified in
+   Section 3.4).
 
      client.example.com.	A   	10.0.0.1
      client.example.com. 	DHCID 	AAAUMru0ZM5OK/PdVAJgZ/HU
@@ -305,8 +306,8 @@ Internet-Draft                The DHCID RR                     July 2004
    data as input in forming a DHCID RR.  The DHCID RDATA is formed by
    setting the two type bytes to the value 0x0001, and performing an MD5
    hash computation across a buffer containing the seven bytes from the
-   client-id option and the FQDN (represented as specified in Section
-   3.4).
+   client-id option and the FQDN (represented as specified in
+   Section 3.4).
 
      chi.example.com.	A    	10.0.12.99
      chi.example.com.	DHCID 	AAHdd5jiQ3kEjANDm82cbObk\012
@@ -332,9 +333,9 @@ Internet-Draft                The DHCID RR                     July 2004
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 6]
+Stapp, et al.            Expires August 13, 2005                [Page 6]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
    that the client desires to use to compute a client identity hash, and
@@ -388,9 +389,9 @@ Internet-Draft                The DHCID RR                     July 2004
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 7]
+Stapp, et al.            Expires August 13, 2005                [Page 7]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
 9.  References
@@ -403,8 +404,8 @@ Internet-Draft                The DHCID RR                     July 2004
    [2]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
         Levels", BCP 14, RFC 2119, March 1997.
 
-   [3]  Mockapetris, P., "Domain names - concepts and facilities", STD
-        13, RFC 1034, November 1987.
+   [3]  Mockapetris, P., "Domain names - concepts and facilities",
+        STD 13, RFC 1034, November 1987.
 
    [4]  Mockapetris, P., "Domain names - implementation and
         specification", STD 13, RFC 1035, November 1987.
@@ -420,8 +421,8 @@ Internet-Draft                The DHCID RR                     July 2004
    [7]   Droms, R., "Dynamic Host Configuration Protocol", RFC 2131,
          March 1997.
 
-   [8]   Eastlake, D., "Domain Name System Security Extensions", RFC
-         2535, March 1999.
+   [8]   Eastlake, D., "Domain Name System Security Extensions",
+         RFC 2535, March 1999.
 
    [9]   Alexander, S. and R. Droms, "DHCP Options and BOOTP Vendor
          Extensions", RFC 2132, March 1997.
@@ -431,8 +432,8 @@ Internet-Draft                The DHCID RR                     July 2004
          (DHCPv6)", RFC 3315, July 2003.
 
    [11]  Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
-         "Secret Key Transaction Authentication for DNS (TSIG)", RFC
-         2845, May 2000.
+         "Secret Key Transaction Authentication for DNS (TSIG)",
+         RFC 2845, May 2000.
 
    [12]  Lemon, T. and B. Sommerfeld, "Node-Specific Client Identifiers
          for DHCPv4 (draft-ietf-dhc-3315id-for-v4-*)", February 2004.
@@ -444,9 +445,9 @@ Internet-Draft                The DHCID RR                     July 2004
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 8]
+Stapp, et al.            Expires August 13, 2005                [Page 8]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
 Authors' Addresses
@@ -458,7 +459,7 @@ Authors' Addresses
    USA
 
    Phone: 978.936.1535
-   EMail: mjs@cisco.com
+   Email: mjs@cisco.com
 
 
    Ted Lemon
@@ -467,7 +468,7 @@ Authors' Addresses
    Redwood City, CA  94063
    USA
 
-   EMail: mellon@nominum.com
+   Email: mellon@nominum.com
 
 
    Andreas Gustafsson
@@ -476,7 +477,7 @@ Authors' Addresses
    Redwood City, CA  94063
    USA
 
-   EMail: gson@nominum.com
+   Email: gson@nominum.com
 
 
 
@@ -500,9 +501,9 @@ Authors' Addresses
 
 
 
-Stapp, et al.           Expires January 14, 2005                [Page 9]
+Stapp, et al.            Expires August 13, 2005                [Page 9]
 
-Internet-Draft                The DHCID RR                     July 2004
+Internet-Draft                The DHCID RR                 February 2005
 
 
 Intellectual Property Statement
@@ -543,7 +544,7 @@ Disclaimer of Validity
 
 Copyright Statement
 
-   Copyright (C) The Internet Society (2004).  This document is subject
+   Copyright (C) The Internet Society (2005).  This document is subject
    to the rights, licenses and restrictions contained in BCP 78, and
    except as set forth therein, the authors retain all their rights.
 
@@ -556,6 +557,6 @@ Acknowledgment
 
 
 
-Stapp, et al.           Expires January 14, 2005               [Page 10]
+Stapp, et al.            Expires August 13, 2005               [Page 10]
 
 

@@ -1,13 +1,15 @@
 
+
 Network Working Group                                          B. Laurie
 Internet-Draft                                                 G. Sisson
-Expires: July 2, 2005                                            Nominet
+Expires: August 2, 2005                                          Nominet
                                                                R. Arends
                                                     Telematica Instituut
-                                                            january 2005
+                                                           february 2005
+
 
              DNSSEC Hash Authenticated Denial of Existence
-                       draft-ietf-dnsext-nsec3-00
+                       draft-ietf-dnsext-nsec3-01
 
 Status of this Memo
 
@@ -34,7 +36,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on July 2, 2005.
+   This Internet-Draft will expire on August 2, 2005.
 
 Copyright Notice
 
@@ -48,8 +50,12 @@ Abstract
    a listing of all ownernames.
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 1]
-Internet-Draft                   nsec3                      january 2005
+
+
+Laurie, et al.           Expires August 2, 2005                 [Page 1]
+
+Internet-Draft                   nsec3                     february 2005
+
 
    A complete zone file can be used either directly as a source of
    probable e-mail addresses for spam, or indirectly as a key for
@@ -63,28 +69,6 @@ Internet-Draft                   nsec3                      january 2005
    while permitting authenticated denial of existence of non-existent
    names.  Non-authoritative delegation point NS RR types may be
    excluded.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Laurie, et al.            Expires July 2, 2005                  [Page 2]
-Internet-Draft                   nsec3                      january 2005
 
 Table of Contents
 
@@ -104,26 +88,35 @@ Table of Contents
      2.2   The NSEC3 RR Presentation Format . . . . . . . . . . . . .  8
    3.  Creating Additional NSEC3 RR for Empty Non Terminals . . . . .  9
    4.  Calculation of the Hash  . . . . . . . . . . . . . . . . . . .  9
-   5.  Special Considerations . . . . . . . . . . . . . . . . . . . .  9
-     5.1   delegation points  . . . . . . . . . . . . . . . . . . . . 10
-       5.1.1   Unsigned Delegations . . . . . . . . . . . . . . . . . 10
-     5.2   Additional Complexity Caused by Wildcards  . . . . . . . . 11
-     5.3   Salting  . . . . . . . . . . . . . . . . . . . . . . . . . 11
-     5.4   Hash Collision . . . . . . . . . . . . . . . . . . . . . . 11
-       5.4.1   Avoiding Hash Collisions during generation . . . . . . 11
-       5.4.2   Second Preimage Requirement Analysis . . . . . . . . . 11
-       5.4.3   Possible Hash Value Truncation Method  . . . . . . . . 12
-   6.  Performance Considerations . . . . . . . . . . . . . . . . . . 12
-   7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 12
-   8.  Security Considerations  . . . . . . . . . . . . . . . . . . . 13
-   9.  Requirements notation  . . . . . . . . . . . . . . . . . . . . 13
-   10.   Security Considerations  . . . . . . . . . . . . . . . . . . 13
-   A.  Example Zone . . . . . . . . . . . . . . . . . . . . . . . . . 13
-   11.   References . . . . . . . . . . . . . . . . . . . . . . . . . 14
-   11.1  Normative References . . . . . . . . . . . . . . . . . . . . 14
-   11.2  Informative References . . . . . . . . . . . . . . . . . . . 15
-       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . 15
-       Intellectual Property and Copyright Statements . . . . . . . . 17
+   5.  Including NSEC3 RRs in a Zone  . . . . . . . . . . . . . . . .  9
+   6.  Special Considerations . . . . . . . . . . . . . . . . . . . . 10
+     6.1   delegation points  . . . . . . . . . . . . . . . . . . . . 10
+       6.1.1   Unsigned Delegations . . . . . . . . . . . . . . . . . 11
+     6.2   Additional Complexity Caused by Wildcards  . . . . . . . . 11
+     6.3   Salting  . . . . . . . . . . . . . . . . . . . . . . . . . 12
+     6.4   Hash Collision . . . . . . . . . . . . . . . . . . . . . . 12
+       6.4.1   Avoiding Hash Collisions during generation . . . . . . 12
+       6.4.2   Second Preimage Requirement Analysis . . . . . . . . . 12
+       6.4.3   Possible Hash Value Truncation Method  . . . . . . . . 13
+   7.  Performance Considerations . . . . . . . . . . . . . . . . . . 13
+   8.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 13
+   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 14
+   10.   Requirements notation  . . . . . . . . . . . . . . . . . . . 14
+   11.   Security Considerations  . . . . . . . . . . . . . . . . . . 14
+   A.  Example Zone . . . . . . . . . . . . . . . . . . . . . . . . . 14
+   12.   References . . . . . . . . . . . . . . . . . . . . . . . . . 15
+
+
+
+Laurie, et al.           Expires August 2, 2005                 [Page 2]
+
+Internet-Draft                   nsec3                     february 2005
+
+
+   12.1  Normative References . . . . . . . . . . . . . . . . . . . . 15
+   12.2  Informative References . . . . . . . . . . . . . . . . . . . 16
+       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . 16
+       Intellectual Property and Copyright Statements . . . . . . . . 18
 
 
 
@@ -131,8 +124,50 @@ Table of Contents
 
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 3]
-Internet-Draft                   nsec3                      january 2005
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Laurie, et al.           Expires August 2, 2005                 [Page 3]
+
+Internet-Draft                   nsec3                     february 2005
+
 
 1.  Introduction
 
@@ -184,10 +219,13 @@ Internet-Draft                   nsec3                      january 2005
    ownername.  Because this proposal uses the result of a hash function
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 4]
-Internet-Draft                   nsec3                      january 2005
 
-   over the original (unmodified) ownername, this result is refered to
+Laurie, et al.           Expires August 2, 2005                 [Page 4]
+
+Internet-Draft                   nsec3                     february 2005
+
+
+   over the original (unmodified) ownername, this result is referred to
    as "hashed ownername".
 
 2.  The NSEC3 Resource Record
@@ -235,8 +273,13 @@ Internet-Draft                   nsec3                      january 2005
 
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 5]
-Internet-Draft                   nsec3                      january 2005
+
+
+
+Laurie, et al.           Expires August 2, 2005                 [Page 5]
+
+Internet-Draft                   nsec3                     february 2005
+
 
 2.1.1  The Authoritative Only Flag Field
 
@@ -258,7 +301,7 @@ Internet-Draft                   nsec3                      january 2005
    ownername MUST be set if the NSEC3 covers a delegation, even though
    the NS RR itself is not authoritative.  This implies that all
    delegations, signed or unsigned, have an NSEC3 record associated.
-   This behavior is identical to NSEC behavior.
+   This behaviour is identical to NSEC behaviour.
 
 2.1.2  The Hash Function Field
 
@@ -288,8 +331,11 @@ Internet-Draft                   nsec3                      january 2005
    of 0.
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 6]
-Internet-Draft                   nsec3                      january 2005
+
+Laurie, et al.           Expires August 2, 2005                 [Page 6]
+
+Internet-Draft                   nsec3                     february 2005
+
 
    The salt field is prepended to the original ownername before hashing
    in order to defend against precalculated dictionary attacks.
@@ -340,8 +386,12 @@ Internet-Draft                   nsec3                      january 2005
    Type Bit Map(s) Field = ( Window Block # | Bitmap Length | Bitmap ) +
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 7]
-Internet-Draft                   nsec3                      january 2005
+
+
+Laurie, et al.           Expires August 2, 2005                 [Page 7]
+
+Internet-Draft                   nsec3                     february 2005
+
 
    Each bitmap encodes the low-order 8 bits of RR types within the
    window block, in network bit order.  The first bit is bit 0.  For
@@ -373,7 +423,7 @@ Internet-Draft                   nsec3                      january 2005
    bitmap is determined by the type code with the largest numerical
    value, within that block, among the set of RR types present at the
    NSEC3 RR's actual ownername.  Trailing zero octets not specified MUST
-   be interpretted as zero octets.
+   be interpreted as zero octets.
 
 2.2  The NSEC3 RR Presentation Format
 
@@ -393,8 +443,11 @@ Internet-Draft                   nsec3                      january 2005
    hexadecimal digits.  Whitespace is not allowed within the sequence.
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 8]
-Internet-Draft                   nsec3                      january 2005
+
+Laurie, et al.           Expires August 2, 2005                 [Page 8]
+
+Internet-Draft                   nsec3                     february 2005
+
 
    The Salt Field is represented as 00 when the Salt Length field has
    value 0.
@@ -409,7 +462,7 @@ Internet-Draft                   nsec3                      january 2005
 
 3.  Creating Additional NSEC3 RR for Empty Non Terminals
 
-   In order to prove the nonexistence of a record that might be covered
+   In order to prove the non-existence of a record that might be covered
    by a wildcard, it is necessary to prove the existence of its closest
    encloser.  A closest encloser might be an Empty Non Terminal.
 
@@ -441,27 +494,82 @@ Internet-Draft                   nsec3                      january 2005
        original unexpanded form, including the "*" label (no wildcard
        substitution);
 
-5.  Special Considerations
+5.  Including NSEC3 RRs in a Zone
 
-   The following paragraphs clarify specific behavior explain special
+   Each owner name in the zone which has authoritative data or a secured
 
 
-Laurie, et al.            Expires July 2, 2005                  [Page 9]
-Internet-Draft                   nsec3                      january 2005
 
+Laurie, et al.           Expires August 2, 2005                 [Page 9]
+
+Internet-Draft                   nsec3                     february 2005
+
+
+   delegation point NS RRset MUST have an NSEC3 resource record.
+
+   An unsecured delegation point NS RRset MAY have an NSEC3 resource
+   record.  This is different from NSEC records where an unsecured
+   delegation point NS RRset MUST have an NSEC record.
+
+   The TTL value for any NSEC3 RR SHOULD be the same as the minimum TTL
+   value field in the zone SOA RR.
+
+   The type bitmap of every NSEC3 resource record in a signed zone MUST
+   indicate the presence of both the NSEC3 record itself and its
+   corresponding RRSIG record.
+
+   The bitmap for the NSEC3 RR at a delegation point requires special
+   attention.  Bits corresponding to the delegation NS RRset and any
+   RRsets for which the parent zone has authoritative data MUST be set;
+   bits corresponding to any non-NS RRset for which the parent is not
+   authoritative MUST be clear.
+
+   The following steps describe the proper construction of NSEC3
+   records.
+   1.  Sort the zone in canonical order.
+   2.  For each unique original owner name, add a NSEC3 RRset, where the
+       ownername of the NSEC3 RR is the hashed equivalent of the
+       original owner name, prepended to the zone name.
+   3.  For each RRset at the original owner, set the corresponding bit
+       in the type bit map.  If the RRset signifies an unsecured
+       delegation point, and the policy is to have Authoritative Only
+       RRsets, mark this NSEC3 RR.
+   4.  If the difference in labels between the apex and the original
+       ownername is greater then 1, additional NSEC3 need to be added
+       for every intermediate label level between the apex and the
+       original ownername.
+   5.  sort the set of NSEC3 RRs.
+   6.  In each NSEC3 RR, insert the Next Hashed Ownername.  If the next
+       hashed ownername is a marked NSEC3 (from step 3), delete the
+       marked NSEC3 from the zone, set the Authoritative Only bit in the
+       current NSEC3 RRs, and repeat this step.  The last NSEC3 in the
+       zone will contain the value of the first NSEC3 in the zone.
+
+6.  Special Considerations
+
+   The following paragraphs clarify specific behaviour explain special
    considerations for implementations.
 
-5.1  delegation points
+6.1  delegation points
 
    This proposal introduces the Authoritative Only Flag which indicates
+
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 10]
+
+Internet-Draft                   nsec3                     february 2005
+
+
    whether non authoritative delegation point NS records are included in
    the type bit Maps.  As discussed in paragraph 2.1.1, a flag value of
    0 indicates that the interpretation of the type bit maps is identical
    to NSEC records.
 
-   The following subsections describe behavior when the flag value is 1.
+   The following subsections describe behaviour when the flag value is
+   1.
 
-5.1.1  Unsigned Delegations
+6.1.1  Unsigned Delegations
 
    Delegation point NS records are not authoritative.  They are
    authoritative in the delegated zone.  No other data exists at the
@@ -498,13 +606,17 @@ Internet-Draft                   nsec3                      january 2005
    The only possible mitigation is to either not use this method, hence
    proving absence of unsigned delegations.
 
-
-Laurie, et al.            Expires July 2, 2005                 [Page 10]
-Internet-Draft                   nsec3                      january 2005
-
-5.2  Additional Complexity Caused by Wildcards
+6.2  Additional Complexity Caused by Wildcards
 
    If a wildcard ownername appears in a zone, the wildcard label ("*")
+
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 11]
+
+Internet-Draft                   nsec3                     february 2005
+
+
    is treated as a literal symbol and is treated in the same way as any
    other ownername for purposes of generating NSEC3 RRs.  RFC 2535
    [RFC2525] describes the impact of wildcards on authenticated denial
@@ -512,10 +624,10 @@ Internet-Draft                   nsec3                      january 2005
 
    In order to prove there are no wildcards for a domain, as well as no
    RRs that match directly, an RR must be shown for the closest
-   encloser, and nonexistence must be shown for all enclosers that could
-   be closer.
+   encloser, and non-existence must be shown for all enclosers that
+   could be closer.
 
-5.3  Salting
+6.3  Salting
 
    Augmenting original ownernames with salt before hashing increases the
    cost of a dictionary of pre-generated hash-values.  For every bit of
@@ -525,7 +637,7 @@ Internet-Draft                   nsec3                      january 2005
    The salt value for each NSEC3 RR MUST be equal for a single version
    of the zone.
 
-5.4  Hash Collision
+6.4  Hash Collision
 
    Hash collisions occur when different messages have the same hash
    value.  The expected number of domain names needed to give a 1 in 2
@@ -534,30 +646,33 @@ Internet-Draft                   nsec3                      january 2005
    collisions and assessing possible damage in the event of an attack
    using Hash collisions.
 
-5.4.1  Avoiding Hash Collisions during generation
+6.4.1  Avoiding Hash Collisions during generation
 
    During generation of NSEC3 RRs, hash values are supposedly unique.
-   In the (academic) case of a collision occuring, an alternative salt
+   In the (academic) case of a collision occurring, an alternative salt
    SHOULD be chosen and all hash values SHOULD be regenerated.
 
    If hash values are not regenerated on collision, the NSEC3 RR MUST
    list all authoritative RR types that exist for both owners, to avoid
    a replay attack, spoofing an existing type as non-existent.
 
-5.4.2  Second Preimage Requirement Analysis
+6.4.2  Second Preimage Requirement Analysis
 
    A collision resistant hash function has a second-preimage resistance
    property.  The second-preimage resistance property means that it is
    computationally infeasible to find another message with the same hash
    value as a given message, i.e.  given preimage X, to find a second
-
-
-Laurie, et al.            Expires July 2, 2005                 [Page 11]
-Internet-Draft                   nsec3                      january 2005
-
    preimage X' <> X such that hash(X) = hash(X').  The probability of
    finding a second preimage is 1 in 2^160 for SHA-1 on average.  To
    mount an attack using an existing NSEC3 RR, an adversary needs to
+
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 12]
+
+Internet-Draft                   nsec3                     february 2005
+
+
    find a second preimage.
 
    Assuming an adversary is capable of mounting such an extreme attack,
@@ -569,7 +684,7 @@ Internet-Draft                   nsec3                      january 2005
    adversary can't mount this attack on an existing name but only on a
    name that the adversary can't choose and does not yet exist.
 
-5.4.3  Possible Hash Value Truncation Method
+6.4.3  Possible Hash Value Truncation Method
 
    The previous sections outlined the low probability and low impact of
    a second-preimage attack.  When impact and probability are low, while
@@ -593,25 +708,28 @@ Internet-Draft                   nsec3                      january 2005
    and limited space in DNS messages, the balance between truncation
    profit and collision damage may be determined by local policy.
 
-6.  Performance Considerations
+7.  Performance Considerations
 
    Iterated hashes will obviously impose a performance penalty on both
    authoritative servers and resolvers.  Therefore, the number of
    iterations should be carefully chosen.
 
-7.  IANA Considerations
+8.  IANA Considerations
 
    IANA has to create a new registry for NSEC3 Hash Functions.  The
    range for this registry is 0-127.  Value 1 is marked as SHA-1.
-
-
-Laurie, et al.            Expires July 2, 2005                 [Page 12]
-Internet-Draft                   nsec3                      january 2005
-
    Values 0, 2-126 are marked as Reserved For Future Use.  Value 127 is
    marked as Experimental.
 
-8.  Security Considerations
+
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 13]
+
+Internet-Draft                   nsec3                     february 2005
+
+
+9.  Security Considerations
 
    The NSEC3 records are still susceptible to dictionary attacks (i.e.
    the attacker retrieves all the NSEC3 records, then calculates the
@@ -635,17 +753,17 @@ Internet-Draft                   nsec3                      january 2005
    found.
 
    Hash collisions may occur.  If they do, it will be impossible to
-   prove the nonexistence of the colliding domain - however, this is
+   prove the non-existence of the colliding domain - however, this is
    fantastically unlikely, and, in any case, DNSSEC already relies on
    SHA-1 to not collide.
 
-9.  Requirements notation
+10.  Requirements notation
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as            described in [RFC2119].
 
-10.  Security Considerations
+11.  Security Considerations
 
 Appendix A.  Example Zone
 
@@ -655,48 +773,58 @@ Appendix A.  Example Zone
 
 
 
-Laurie, et al.            Expires July 2, 2005                 [Page 13]
-Internet-Draft                   nsec3                      january 2005
 
-   example.com. 1000    IN SOA  localhost.
-        postmaster.localhost.example.com. (
-                                1          ; serial
-                                3600       ; refresh (1 hour)
-                                1800       ; retry (30 minutes)
-                                604800     ; expire (1 week)
-                                3600       ; minimum (1 hour)
-                                )
-                1000    NS      ns1.example.com.
-                1000    NS      ns2.example.com.
+
+
+
+
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 14]
+
+Internet-Draft                   nsec3                     february 2005
+
+
+   example.com.	1000	IN SOA	localhost.
+   	postmaster.localhost.example.com. (
+   				1          ; serial
+   				3600       ; refresh (1 hour)
+   				1800       ; retry (30 minutes)
+   				604800     ; expire (1 week)
+   				3600       ; minimum (1 hour)
+   				)
+   		1000	NS	ns1.example.com.
+   		1000	NS	ns2.example.com.
    f519593e82969842a136e0f47814c881fa163833.example.com. 3600 IN NSEC3 \
            SHA-1 200 31323334 4EF8239D95C18403A509D7C336A5D0FA48FD1107 \
            NS SOA RRSIG DNSKEY NSEC3
-   a.example.com.               1000    IN A    1.2.3.4
-                        1000    IN A    1.2.3.5
-                        1000    TXT     "An example"
+   a.example.com.		1000	IN A	1.2.3.4
+   			1000	IN A	1.2.3.5
+   			1000	TXT	"An example"
    bfe6ea21dee9d228889ae11fa58c4bd551d15801.example.com. 3600 IN NSEC3 \
            SHA-1 200 31323334 F519593E82969842A136E0F47814C881FA163833 \
            A TXT RRSIG NSEC3
-   b.example.com.               1000    IN A    1.2.3.7
+   b.example.com.		1000	IN A	1.2.3.7
    83c06d3b7d01fbc9576c71af2bec1a1163435153.example.com. 3600 IN NSEC3 \
            SHA-1 200 31323334 A33559360EECB02F36B5C1B72C109126CA4F5A0D \
            A RRSIG NSEC3
-   a.b.c.example.com.   1000    IN A    1.2.3.6
+   a.b.c.example.com.	1000	IN A	1.2.3.6
    a33559360eecb02f36b5c1b72c109126ca4f5a0d.example.com. 3600 IN NSEC3 \
            SHA-1 200 31323334 BFE6EA21DEE9D228889AE11FA58C4BD551D15801 \
            A RRSIG NSEC3
-   ns1.example.com.     1000    IN A    1.2.3.8
+   ns1.example.com.	1000	IN A	1.2.3.8
    4ef8239d95c18403a509d7c336a5d0fa48fd1107.example.com. 3600 IN NSEC3 \
            SHA-1 200 31323334 50016B56FD2F0FFC7B563C50FAF0E34259763BBB \
            A RRSIG NSEC3
-   ns2.example.com.     1000    IN A    1.2.3.9
+   ns2.example.com.	1000	IN A	1.2.3.9
    50016b56fd2f0ffc7b563c50faf0e34259763bbb.example.com. 3600 IN NSEC3 \
            SHA-1 200 31323334 83C06D3B7D01FBC9576C71AF2BEC1A1163435153 \
            A RRSIG NSEC3
 
-11.  References
 
-11.1  Normative References
+12.  References
+
+12.1  Normative References
 
    [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
               STD 13, RFC 1034, November 1987.
@@ -707,8 +835,11 @@ Internet-Draft                   nsec3                      january 2005
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
 
 
-Laurie, et al.            Expires July 2, 2005                 [Page 14]
-Internet-Draft                   nsec3                      january 2005
+
+Laurie, et al.           Expires August 2, 2005                [Page 15]
+
+Internet-Draft                   nsec3                     february 2005
+
 
               Requirement Levels", BCP 14, RFC 2119, March 1997.
 
@@ -725,7 +856,7 @@ Internet-Draft                   nsec3                      january 2005
    [RFC2535]  Eastlake, D., "Domain Name System Security Extensions",
               RFC 2535, March 1999.
 
-11.2  Informative References
+12.2  Informative References
 
    [RFC2026]  Bradner, S., "The Internet Standards Process -- Revision
               3", BCP 9, RFC 2026, October 1996.
@@ -738,6 +869,7 @@ Internet-Draft                   nsec3                      january 2005
               Rollover Algorithm and a Out-Of-Band Priming Method  for
               DNS Trust Anchors.", July 2004.
 
+
 Authors' Addresses
 
    Ben Laurie
@@ -749,14 +881,21 @@ Authors' Addresses
    Phone: +44 (20) 8735 0686
    EMail: ben@algroup.co.uk
 
+
    Geoffrey Sisson
    Nominet
 
 
 
 
-Laurie, et al.            Expires July 2, 2005                 [Page 15]
-Internet-Draft                   nsec3                      january 2005
+
+
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 16]
+
+Internet-Draft                   nsec3                     february 2005
+
 
    Roy Arends
    Telematica Instituut
@@ -788,8 +927,31 @@ Internet-Draft                   nsec3                      january 2005
 
 
 
-Laurie, et al.            Expires July 2, 2005                 [Page 16]
-Internet-Draft                   nsec3                      january 2005
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 17]
+
+Internet-Draft                   nsec3                     february 2005
+
 
 Intellectual Property Statement
 
@@ -815,6 +977,7 @@ Intellectual Property Statement
    this standard.  Please address the information to the IETF at
    ietf-ipr@ietf.org.
 
+
 Disclaimer of Validity
 
    This document and the information contained herein are provided on an
@@ -825,11 +988,13 @@ Disclaimer of Validity
    INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
    WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+
 Copyright Statement
 
    Copyright (C) The Internet Society (2005).  This document is subject
    to the rights, licenses and restrictions contained in BCP 78, and
    except as set forth therein, the authors retain all their rights.
+
 
 Acknowledgment
 
@@ -837,4 +1002,8 @@ Acknowledgment
    Internet Society.
 
 
-Laurie, et al.            Expires July 2, 2005                 [Page 17]
+
+
+Laurie, et al.           Expires August 2, 2005                [Page 18]
+
+

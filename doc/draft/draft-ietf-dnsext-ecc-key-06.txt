@@ -1,13 +1,13 @@
-è©¿
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
-Expires: February 2005                                       August 2004
+Expires: June 2005                                         December 2004
 
 
 
                      Elliptic Curve KEYs in the DNS
                      -------- ----- ---- -- --- ---
-                   <draft-ietf-dnsext-ecc-key-05.txt>
+                   <draft-ietf-dnsext-ecc-key-06.txt>
 
                          Richard C. Schroeppel
                           Donald Eastlake 3rd
@@ -43,8 +43,8 @@ Status of This Document
 
 Abstract
 
-   The standard method for storing elliptic curve cryptographic keys in
-   the Domain Name System is specified.
+   The standard method for storing elliptic curve cryptographic keys and
+   signatures in the Domain Name System is specified.
 
 
 Copyright Notice
@@ -81,17 +81,17 @@ Table of Contents
       2. Elliptic Curve Data in Resource Records.................3
       3. The Elliptic Curve Equation.............................9
       4. How do I Compute Q, G, and Y?..........................10
-      5. Performance Considerations.............................11
-      6. Security Considerations................................11
-      7. IANA Considerations....................................11
-      Copyright and Disclaimer..................................12
+      5. Elliptic Curve SIG Resource Records....................11
+      6. Performance Considerations.............................13
+      7. Security Considerations................................13
+      8. IANA Considerations....................................13
+      Copyright and Disclaimer..................................14
 
-      Informational References..................................13
-      Normative Refrences.......................................13
+      Informational References..................................15
+      Normative Refrences.......................................15
 
-      Authors Addresses.........................................14
-      Expiration and File Name..................................14
-
+      Author's Addresses........................................16
+      Expiration and File Name..................................16
 
 
 
@@ -128,9 +128,9 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    protocol, records].
 
    This document describes how to store elliptic curve cryptographic
-   (ECC) keys in the DNS so they can be used for a variety of security
-   purposes.  A DNS elliptic curve SIG resource record is not defined.
-   Familiarity with ECC cryptography is assumed [Menezes].
+   (ECC) keys and signatures in the DNS so they can be used for a
+   variety of security purposes.  Familiarity with ECC cryptography is
+   assumed [Menezes].
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
@@ -141,11 +141,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 2. Elliptic Curve Data in Resource Records
 
    Elliptic curve public keys are stored in the DNS within the RDATA
-   portions of key RRs with the structure shown below [RFC records].
-
-   The period of key validity may not be in the RR with the key but
-   could be indicated by RR(s) with signatures that authenticates the
-   RR(s) containing the key.
+   portions of key RRs, such as RRKEY and KEY [RFC records] RRs, with
+   the structure shown below.
 
    The research world continues to work on the issue of which is the
    best elliptic curve system, which finite field to use, and how to
@@ -160,6 +157,9 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    reasonable for an algorithm to work internally with one field
    representation, and convert to and from a different external
    representation.
+
+
+
 
 
 
@@ -373,7 +373,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    and the constant term is least important.  Coefficients are ordered
    by sign-magnitude: 0 < 1 < -1 < 2 < -2 < ...  The first polynomial of
    degree D is X^D (which is not irreducible).  The next is X^D+1, which
-   is sometimes irreducible, followed by X^D-1, which isnÇ«÷t.  Assuming
+   is sometimes irreducible, followed by X^D-1, which isn't.  Assuming
    odd P, this series continues to X^D - (P-1)/2, and then goes to X^D +
    X, X^D + X + 1, X^D + X - 1, etc.
 
@@ -490,7 +490,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
            of the curve point is given explicitly; the Z-coordinate is
            implicit.
 
-        LY,Y is the userÇ«÷s public signing key, another curve point of
+        LY,Y is the user's public signing key, another curve point of
            order Q.  The W-coordinate is given explicitly; the Z-
            coordinate is implicit.  The LY,Y parameter pair is always
            present.
@@ -540,7 +540,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    The number of points on the curve is the number of solutions to the
    curve equation, + 1 (for the "point at infinity").  The prime Q must
    divide the number of points.  Usually the curve is chosen first, then
-   the number of points is determined with SchoofÇ«÷s algorithm.  This
+   the number of points is determined with Schoof's algorithm.  This
    number is factored, and if it has a large prime divisor, that number
    is taken as Q.
 
@@ -567,7 +567,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    smaller Z value (the one which does not contain the highest-order 1
    bit of W (or C)) is used in subsequent calculations.
 
-   Y is specified by giving the W-coordinate of the userÇ«÷s public
+   Y is specified by giving the W-coordinate of the user's public
    signature key.  The Z-coordinate value is determined from the curve
    equation.  As with G, there are two possible Z values; the same rule
    is followed for choosing which Z to use.
@@ -598,41 +598,41 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 
-5. Performance Considerations
+5. Elliptic Curve SIG Resource Records
 
-   Elliptic curve signatures use smaller moduli or field sizes than RSA
-   and DSA.  Creation of a curve is slow, but not done very often.  Key
-   generation is faster than RSA or DSA.
+   The signature portion of an RR RDATA area when using the EC
+   algorithm, for example in the RRSIG and SIG [RFC records] RRs is
+   shown below.
 
-   DNS implementations have been optimized for small transfers,
-   typically less than 512 octets including DNS overhead. Larger
-   transfers will perform correctly and and extensions have been
-   standardized to make larger transfers more efficient [RFC 2671].
-   However, it is still advisable at this time to make reasonable
-   efforts to minimize the size of RR sets stored within the DNS
-   consistent with adequate security.
+                       1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                   R, (length determined from LQ)           .../
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                   S, (length determined from LQ)           .../
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+   R and S are integers (mod Q).  Their length is specified by the LQ
+   field of the corresponding KEY RR and can also be calculated from the
+   SIG RR's RDLENGTH. They are right justified, high-order-octet first.
+   The same conditional formula for calculating the length from LQ is
+   used as for all the other length fields above.
 
+   The data signed is determined as specified in [RFC 2535].  Then the
+   following steps are taken where Q, P, G, and Y are as specified in
+   the public key [Schneier]:
 
-6. Security Considerations
+     hash = SHA-1 ( data )
 
-   Keys retrieved from the DNS should not be trusted unless (1) they
-   have been securely obtained from a secure resolver or independently
-   verified by the user and (2) this secure resolver and secure
-   obtainment or independent verification conform to security policies
-   acceptable to the user.  As with all cryptographic algorithms,
-   evaluating the necessary strength of the key is essential and
-   dependent on local policy.
+     Generate random [RFC 1750] K such that 0 < K < Q.  (Never sign two
+          different messages with the same K.  K should be chosen from a
+          very large space: If an opponent learns a K value for a single
+          signature, the user's signing key is compromised, and a forger
+          can sign arbitrary messages. There is no harm in signing the
+          same message multiple times with the same key or different
+          keys.)
 
-   Some specific key generation considerations are given in the body of
-   this document.
-
-
-
-7. IANA Considerations
-
-   Assignment of meaning to the remaining ECC data flag bits or to
-   values of ECC fields outside the ranges for which meaning in defined
+     R = (the W-coordinate of ( K*G on the elliptic curve )) interpreted
 
 
 R. Schroeppel, et al                                           [Page 11]
@@ -641,56 +641,56 @@ R. Schroeppel, et al                                           [Page 11]
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
-   in this document requires an IETF consensus as defined in [RFC 2434].
+          as an integer, and reduced (mod Q).  (R must not be 0.  In
+          this astronomically unlikely event, generate a new random K
+          and recalculate R.)
 
+     S = ( K^(-1) * (hash + X*R) ) mod Q.
 
+     S must not be 0.  In this astronomically unlikely event, generate a
+          new random K and recalculate R and S.
 
-Copyright and Disclaimer
+     If S > Q/2, set S = Q - S.
 
-   Copyright (C) The Internet Society 2004.  This document is subject to
-   the rights, licenses and restrictions contained in BCP 78 and except
-   as set forth therein, the authors retain all their rights.
+     The pair (R,S) is the signature.
 
+     Another party verifies the signature as follows:
 
-   This document and the information contained herein are provided on an
-   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
-   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND THE INTERNET
-   ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
-   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
-   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
-   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+          Check that 0 < R < Q and 0 < S < Q/2.  If not, it can not be a
+               valid EC sigature.
 
+          hash = SHA-1 ( data )
 
+          Sinv = S^(-1) mod Q.
 
+          U1 = (hash * Sinv) mod Q.
 
+          U2 = (R * Sinv) mod Q.
 
+          (U1 * G + U2 * Y) is computed on the elliptic curve.
 
+          V = (the W-coordinate of this point) interpreted as an integer
+               and reduced (mod Q).
 
+          The signature is valid if V = R.
 
+     The reason for requiring S < Q/2 is that, otherwise, both (R,S) and
+     (R,Q-S) would be valid signatures for the same data.  Note that a
+     signature that is valid for hash(data) is also valid for
+     hash(data)+Q or hash(data)-Q, if these happen to fall in the range
+     [0,2^160-1].  It's believed to be computationally infeasible to
+     find data that hashes to an assigned value, so this is only a
+     cosmetic blemish.  The blemish can be eliminated by using Q >
+     2^160, at the cost of having slightly longer signatures, 42 octets
+     instead of 40.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+     We must specify how a field-element E ("the W-coordinate") is to be
+     interpreted as an integer.  The field-element E is regarded as a
+     radix-P integer, with the digits being the coefficients in the
+     polynomial basis representation of E.  The digits are in the ragne
+     [0,P-1].  In the two most common cases, this reduces to "the
+     obvious thing".  In the (mod P) case, E is simply a residue mod P,
+     and is taken as an integer in the range [0,P-1].  In the GF[2^D]
 
 
 R. Schroeppel, et al                                           [Page 12]
@@ -699,53 +699,53 @@ R. Schroeppel, et al                                           [Page 12]
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
-Informational References
-
-   [RFC 1034] - P. Mockapetris, "Domain names - concepts and
-   facilities", 11/01/1987.
-
-   [RFC 1035] - P. Mockapetris, "Domain names - implementation and
-   specification", 11/01/1987.
-
-   [RFC 1750] - D. Eastlake, S. Crocker, J. Schiller, "Randomness
-   Recommendations for Security", 12/29/1994.
-
-   [RFC intro] - "DNS Security Introduction and Requirements", R.
-   Arends, M. Larson, R. Austein, D. Massey, S. Rose, work in progress,
-   draft-ietf-dnsext-dnssec-intro-*.txt.
-
-   [RFC protocol] - "Protocol Modifications for the DNS Security
-   Extensions", R. Arends, M. Larson, R. Austein, D. Massey, S. Rose,
-   work in progress, draft-ietf-dnsext-dnssec-protocol-*.txt.
-
-   [RFC 2671] - P. Vixie, "Extension Mechanisms for DNS (EDNS0)", August
-   1999.
-
-   [Schneier] - Bruce Schneier, "Applied Cryptography: Protocols,
-   Algorithms, and Source Code in C", 1996, John Wiley and Sons
-
-   [Menezes] - Alfred Menezes, "Elliptic Curve Public Key
-   Cryptosystems", 1993 Kluwer.
-
-   [Silverman] - Joseph Silverman, "The Arithmetic of Elliptic Curves",
-   1986, Springer Graduate Texts in mathematics #106.
+     case, E is in the D-bit polynomial basis representation, and is
+     simply taken as an integer in the range [0,(2^D)-1].  For other
+     fields GF[P^D], it's necessary to do some radix conversion
+     arithmetic.
 
 
 
-Normative Refrences
+  6. Performance Considerations
 
-   [RFC 2119] - S. Bradner, "Key words for use in RFCs to Indicate
-   Requirement Levels", March 1997.
+     Elliptic curve signatures use smaller moduli or field sizes than
+     RSA and DSA.  Creation of a curve is slow, but not done very often.
+     Key generation is faster than RSA or DSA.
 
-   [RFC 2434] - T. Narten, H. Alvestrand, "Guidelines for Writing an
-   IANA Considerations Section in RFCs", October 1998.
+     DNS implementations have been optimized for small transfers,
+     typically less than 512 octets including DNS overhead. Larger
+     transfers will perform correctly and and extensions have been
+     standardized to make larger transfers more efficient [RFC 2671].
+     However, it is still advisable at this time to make reasonable
+     efforts to minimize the size of RR sets stored within the DNS
+     consistent with adequate security.
 
-   [RFC records] - "Resource Records for the DNS Security Extensions",
-   R. Arends, R. Austein, M. Larson, D. Massey, S. Rose, work in
-   progress, draft-ietf-dnsext-dnssec-records- *.txt.
+
+
+  7. Security Considerations
+
+     Keys retrieved from the DNS should not be trusted unless (1) they
+     have been securely obtained from a secure resolver or independently
+     verified by the user and (2) this secure resolver and secure
+     obtainment or independent verification conform to security policies
+     acceptable to the user.  As with all cryptographic algorithms,
+     evaluating the necessary strength of the key is essential and
+     dependent on local policy.
+
+     Some specific key generation considerations are given in the body
+     of this document.
 
 
 
+  8. IANA Considerations
+
+     The key and signature data structures defined herein correspond to
+     the value 4 in the Algorithm number field of the IANA registry
+
+     Assignment of meaning to the remaining ECC data flag bits or to
+     values of ECC fields outside the ranges for which meaning in
+     defined in this document requires an IETF consensus as defined in
+     [RFC 2434].
 
 
 
@@ -757,33 +757,33 @@ R. Schroeppel, et al                                           [Page 13]
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
-Authors Addresses
+  Copyright and Disclaimer
 
-   Rich Schroeppel
-   500 S. Maple Drive
-   Woodland Hills, UT 84653 USA
-
-   Telephone:   1-801-423-7998(h)
-                1-505-844-9079(w)
-   Email:       rschroe@sandia.gov
+     Copyright (C) The Internet Society 2004.  This document is subject
+     to the rights, licenses and restrictions contained in BCP 78 and
+     except as set forth therein, the authors retain all their rights.
 
 
-   Donald E. Eastlake 3rd
-   Motorola Laboratories
-   155 Beaver Street
-   Milford, MA 01757 USA
-
-   Telephone:   +1 508-634-2066 (h)
-                +1 508-786-7554 (w)
-   EMail:       Donald.Eastlake@motorola.com
+     This document and the information contained herein are provided on
+     an "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE
+     REPRESENTS OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND
+     THE INTERNET ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES,
+     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT
+     THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR
+     ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A
+     PARTICULAR PURPOSE.
 
 
 
-Expiration and File Name
 
-   This draft expires in February 2004.
 
-   Its file name is draft-ietf-dnsext-ecc-key-05.txt.
+
+
+
+
+
+
+
 
 
 
@@ -810,5 +810,121 @@ Expiration and File Name
 
 
 R. Schroeppel, et al                                           [Page 14]
+
+
+INTERNET-DRAFT                                       ECC Keys in the DNS
+
+
+  Informational References
+
+     [RFC 1034] - P. Mockapetris, "Domain names - concepts and
+     facilities", 11/01/1987.
+
+     [RFC 1035] - P. Mockapetris, "Domain names - implementation and
+     specification", 11/01/1987.
+
+     [RFC 1750] - D. Eastlake, S. Crocker, J. Schiller, "Randomness
+     Recommendations for Security", 12/29/1994.
+
+     [RFC intro] - "DNS Security Introduction and Requirements", R.
+     Arends, M. Larson, R. Austein, D. Massey, S. Rose, work in
+     progress, draft-ietf-dnsext-dnssec-intro-*.txt.
+
+     [RFC protocol] - "Protocol Modifications for the DNS Security
+     Extensions", R. Arends, M. Larson, R. Austein, D. Massey, S. Rose,
+     work in progress, draft-ietf-dnsext-dnssec-protocol-*.txt.
+
+     [RFC 2671] - P. Vixie, "Extension Mechanisms for DNS (EDNS0)",
+     August 1999.
+
+     [Schneier] - Bruce Schneier, "Applied Cryptography: Protocols,
+     Algorithms, and Source Code in C", 1996, John Wiley and Sons
+
+     [Menezes] - Alfred Menezes, "Elliptic Curve Public Key
+     Cryptosystems", 1993 Kluwer.
+
+     [Silverman] - Joseph Silverman, "The Arithmetic of Elliptic
+     Curves", 1986, Springer Graduate Texts in mathematics #106.
+
+
+
+  Normative Refrences
+
+     [RFC 2119] - S. Bradner, "Key words for use in RFCs to Indicate
+     Requirement Levels", March 1997.
+
+     [RFC 2434] - T. Narten, H. Alvestrand, "Guidelines for Writing an
+     IANA Considerations Section in RFCs", October 1998.
+
+     [RFC records] - "Resource Records for the DNS Security Extensions",
+     R. Arends, R. Austein, M. Larson, D. Massey, S. Rose, work in
+     progress, draft-ietf-dnsext-dnssec-records- *.txt.
+
+
+
+
+
+
+
+
+R. Schroeppel, et al                                           [Page 15]
+
+
+INTERNET-DRAFT                                       ECC Keys in the DNS
+
+
+  Author's Addresses
+
+     Rich Schroeppel
+     500 S. Maple Drive
+     Woodland Hills, UT 84653 USA
+
+     Telephone:   +1-505-844-9079(w)
+                  +1-801-423-7998(h)
+     Email:       rschroe@sandia.gov
+
+
+     Donald E. Eastlake 3rd
+     Motorola Laboratories
+     155 Beaver Street
+     Milford, MA 01757 USA
+
+     Telephone:   +1 508-786-7554 (w)
+                  +1 508-634-2066 (h)
+     EMail:       Donald.Eastlake@motorola.com
+
+
+
+  Expiration and File Name
+
+     This draft expires in June 2004.
+
+     Its file name is draft-ietf-dnsext-ecc-key-06.txt.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+R. Schroeppel, et al                                           [Page 16]
 
 

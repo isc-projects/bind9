@@ -1,11 +1,12 @@
 
+
 Network Working Group                                       S. Josefsson
-Internet-Draft                                          January 24, 2005
-Expires: July 25, 2005
+Internet-Draft                                              January 2005
+Expires: July 2, 2005
 
 
           Storing Certificates in the Domain Name System (DNS)
-                    draft-ietf-dnsext-rfc2538bis-00
+                    draft-ietf-dnsext-rfc2538bis-01
 
 Status of this Memo
 
@@ -32,7 +33,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on July 25, 2005.
+   This Internet-Draft will expire on July 2, 2005.
 
 Copyright Notice
 
@@ -51,7 +52,7 @@ Abstract
 
 
 
-Josefsson                Expires July 25, 2005                  [Page 1]
+Josefsson                 Expires July 2, 2005                  [Page 1]
 
 Internet-Draft      Storing Certificates in the DNS         January 2005
 
@@ -62,23 +63,24 @@ Table of Contents
    2.  The CERT Resource Record . . . . . . . . . . . . . . . . . . .  3
      2.1   Certificate Type Values  . . . . . . . . . . . . . . . . .  4
      2.2   Text Representation of CERT RRs  . . . . . . . . . . . . .  5
-     2.3   X.509 OIDs . . . . . . . . . . . . . . . . . . . . . . . .  5
+     2.3   X.509 OIDs . . . . . . . . . . . . . . . . . . . . . . . .  6
    3.  Appropriate Owner Names for CERT RRs . . . . . . . . . . . . .  6
      3.1   Content-based X.509 CERT RR Names  . . . . . . . . . . . .  7
      3.2   Purpose-based X.509 CERT RR Names  . . . . . . . . . . . .  8
      3.3   Content-based OpenPGP CERT RR Names  . . . . . . . . . . .  8
      3.4   Purpose-based OpenPGP CERT RR Names  . . . . . . . . . . .  9
+     3.5   Owner names for IPKIX, ISPKI, and IPGP . . . . . . . . . .  9
    4.  Performance Considerations . . . . . . . . . . . . . . . . . .  9
    5.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 10
    6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
-   7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
+   7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 11
    8.  Changes since RFC 2538 . . . . . . . . . . . . . . . . . . . . 11
        Author's Address . . . . . . . . . . . . . . . . . . . . . . . 12
    9.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 11
    9.1   Normative References . . . . . . . . . . . . . . . . . . . . 11
    9.2   Informative References . . . . . . . . . . . . . . . . . . . 12
    A.  Copying conditions . . . . . . . . . . . . . . . . . . . . . . 12
-       Intellectual Property and Copyright Statements . . . . . . . . 13
+       Intellectual Property and Copyright Statements . . . . . . . . 14
 
 
 
@@ -106,8 +108,7 @@ Table of Contents
 
 
 
-
-Josefsson                Expires July 25, 2005                  [Page 2]
+Josefsson                 Expires July 2, 2005                  [Page 2]
 
 Internet-Draft      Storing Certificates in the DNS         January 2005
 
@@ -163,7 +164,7 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
 
 
 
-Josefsson                Expires July 25, 2005                  [Page 3]
+Josefsson                 Expires July 2, 2005                  [Page 3]
 
 Internet-Draft      Storing Certificates in the DNS         January 2005
 
@@ -190,7 +191,10 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
         1   PKIX     X.509 as per PKIX
         2   SPKI     SPKI certificate
         3   PGP      OpenPGP packet
-    4-252            available for IANA assignment
+        4   IPKIX    The URL of an X.509 data object
+        5   ISPKI    The URL of an SPKI certificate
+        6   IPGP     The URL of an OpenPGP packet
+    7-252            available for IANA assignment
       253   URI      URI private
       254   OID      OID private
    255-65534        available for IANA assignment
@@ -213,17 +217,25 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    transferable public keys as described in section 10.1 of [5], but it
    MAY handle additional OpenPGP packets.
 
-   The URI private type indicates a certificate format defined by an
-   absolute URI.  The certificate portion of the CERT RR MUST begin with
-   a null terminated URI [4] and the data after the null is the private
 
 
 
-Josefsson                Expires July 25, 2005                  [Page 4]
+Josefsson                 Expires July 2, 2005                  [Page 4]
 
 Internet-Draft      Storing Certificates in the DNS         January 2005
 
 
+   The IPKIX, ISPKI and IPGP types indicate a URL which will serve the
+   content that would have been in the "certificate, CRL or URL" field
+   of the corresponding (PKIX, SPKI or PGP) packet types.  These types
+   are known as "indirect".  These packet types MUST be used when the
+   content is too large to fit in the CERT RR, and MAY be used at the
+   implementations discretion.  They SHOULD NOT be used where the entire
+   UDP packet would have fit in 512 bytes.
+
+   The URI private type indicates a certificate format defined by an
+   absolute URI.  The certificate portion of the CERT RR MUST begin with
+   a null terminated URI [4] and the data after the null is the private
    format certificate itself.  The URI SHOULD be such that a retrieval
    from it will lead to documentation on the format of the certificate.
    Recognition of private certificate types need not be based on URI
@@ -261,6 +273,14 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    Note that the certificate / CRL portion may have internal sub-fields
    but these do not appear in the master file representation.  For
    example, with type 254, there will be an OID size, an OID, and then
+
+
+
+Josefsson                 Expires July 2, 2005                  [Page 5]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
+
    the certificate / CRL proper.  But only a single logical base 64
    string will appear in the text representation.
 
@@ -271,14 +291,6 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    of certification authority, and revocations of user certificates.
    The following table lists the OIDs, their BER encoding, and their
    length prefixed hex format for use in CERT RRs:
-
-
-
-
-Josefsson                Expires July 25, 2005                  [Page 5]
-
-Internet-Draft      Storing Certificates in the DNS         January 2005
-
 
        id-at-userCertificate
            = { joint-iso-ccitt(2) ds(5) at(4) 36 }
@@ -315,8 +327,16 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    key.  Further, the client might only know the hostname of a service
    that uses X.509 certificates or the Key ID of an OpenPGP key.
 
-   This motivate describing two different owner name guidelines.  We
+   This motivates describing two different owner name guidelines.  We
    call the two rules content-based owner names and purpose-based owner
+
+
+
+Josefsson                 Expires July 2, 2005                  [Page 6]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
+
    names.  A content-based owner name is derived from the content of the
    CERT RR data; for example the Subject field in an X.509 certificate
    or the User ID field in OpenPGP keys.  A purpose-based owner name is
@@ -328,14 +348,6 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    incoming e-mail.
 
    Implementations SHOULD use the purpose-based owner name guidelines
-
-
-
-Josefsson                Expires July 25, 2005                  [Page 6]
-
-Internet-Draft      Storing Certificates in the DNS         January 2005
-
-
    described in this document, and MAY use CNAMEs at content-based owner
    names (or other names), pointing to the purpose-based owner name.
 
@@ -368,10 +380,18 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    3.  If neither of the above it used but a URI containing a domain
        name is present, that domain name should be used.
    4.  If none of the above is included but a character string name is
-       included, then it should be treated as described for PGP names
-       below.
+       included, then it should be treated as described for OpenPGP
+       names below.
    5.  If none of the above apply, then the distinguished name (DN)
        should be mapped into a domain name as specified in [3].
+
+
+
+
+Josefsson                 Expires July 2, 2005                  [Page 7]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
 
    Example 1: Assume that an X.509v3 certificate is issued to /CN=John
    Doe/DC=Doe/DC=com/DC=xy/O=Doe Inc/C=XY/ with Subject Alternative
@@ -384,14 +404,6 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
 
    Example 2: Assume that an X.509v3 certificate is issued to /CN=James
    Hacker/L=Basingstoke/O=Widget Inc/C=GB/ with Subject Alternate names
-
-
-
-Josefsson                Expires July 25, 2005                  [Page 7]
-
-Internet-Draft      Storing Certificates in the DNS         January 2005
-
-
    of (a) domain name widget.foo.example, (b) IPv4 address
    10.251.13.201, and (c) string "James Hacker
    <hacker@mail.widget.foo.example>".  Then the storage locations
@@ -424,12 +436,19 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
       IPSEC Certificate    Hostname of the IPSEC machine, and/or
                            for the in-addr.arpa reverse lookup IP address.
 
-      CRLs                 Hostname of the issuing CA.
-
+   An alternative approach for IPSEC is to store raw public keys [12].
 
 3.3  Content-based OpenPGP CERT RR Names
 
    OpenPGP signed keys (certificates) use a general character string
+
+
+
+Josefsson                 Expires July 2, 2005                  [Page 8]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
+
    User ID [5].  However, it is recommended by OpenPGP that such names
    include the RFC 2822 [7] email address of the party, as in "Leslie
    Example <Leslie@host.example>".  If such a format is used, the CERT
@@ -441,13 +460,6 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    If a user has more than one email address, the CNAME type can be used
    to reduce the amount of data stored in the DNS.  For example:
 
-
-
-Josefsson                Expires July 25, 2005                  [Page 8]
-
-Internet-Draft      Storing Certificates in the DNS         January 2005
-
-
       $ORIGIN example.org.
       smith        IN CERT PGP 0 0 <OpenPGP binary>
       john.smith   IN CNAME smith
@@ -456,15 +468,15 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
 
 3.4  Purpose-based OpenPGP CERT RR Names
 
-   Applications that receive an OpenPGP packet but do not know the email
-   address of the sender will have difficulties constructing the correct
-   owner name, and cannot use the content-based owner name guidelines.
-   However, these clients commonly know the key fingerprint or the Key
-   ID.  The key ID is found in OpenPGP packets, and the key fingerprint
-   is commonly found in auxilliary data that may be available.  For
-   these situations, it is recommended to use an owner name identical to
-   the key fingerprint and key ID expressed in hexadecimal [11].  For
-   example:
+   Applications that receive an OpenPGP packet containing encrypted or
+   signed data but do not know the email address of the sender will have
+   difficulties constructing the correct owner name and cannot use the
+   content-based owner name guidelines.  However, these clients commonly
+   know the key fingerprint or the Key ID.  The key ID is found in
+   OpenPGP packets, and the key fingerprint is commonly found in
+   auxilliary data that may be available.  For these situations, it is
+   recommended to use an owner name identical to the key fingerprint and
+   key ID expressed in hexadecimal [11].  For example:
 
       $ORIGIN example.org.
       0424D4EE81A0E3D119C6F835EDA21E94B565716F IN CERT PGP ...
@@ -477,9 +489,22 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    purposes, and this may be sub-optimal when two keys with the same Key
    ID are stored.
 
+3.5  Owner names for IPKIX, ISPKI, and IPGP
+
+   These types are stored under the same owner names, both purpose- and
+   content-based, as the PKIX, SPKI and PGP types, respectively.
+
 4.  Performance Considerations
 
    Current Domain Name System (DNS) implementations are optimized for
+
+
+
+Josefsson                 Expires July 2, 2005                  [Page 9]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
+
    small transfers, typically not more than 512 bytes including
    overhead.  While larger transfers will perform correctly and work is
    underway to make larger transfers more efficient, it is still
@@ -493,16 +518,7 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    octets (64kb) or less.  This means that each CERT RR cannot contain
    more than 64kb worth of payload, even if the corresponding
    certificate or certificate revocation list is larger.  This document
-   do not address this limitation.
-
-
-
-
-
-Josefsson                Expires July 25, 2005                  [Page 9]
-
-Internet-Draft      Storing Certificates in the DNS         January 2005
-
+   address this by defining "indirect" data types for each normal type.
 
 5.  Acknowledgements
 
@@ -513,10 +529,9 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    contributions to the earlier work that motivated this revised
    document.
 
-   Florian Weimer suggested to clarify wording regarding what data can
-   be stored in RRDATA portion of OpenPGP CERT RRs, and that the URI
-   type may include hashes to secure the indirection.  Olivier Dubuisson
-   confirmed that the X.509 OID were indeed correct.
+   This document was improved by suggestions and comments from Olivier
+   Dubuisson, Ben Laurie, Samuel Weiler, and Florian Weimer.  No doubt
+   the list is incomplete.  We apologize to anyone we left out.
 
 6.  Security Considerations
 
@@ -533,32 +548,35 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    verifying the certificate chain if this conforms with the user's
    security policy.
 
-   When the URI type is used, it should be understood that is introduce
+   When the URI type is used, it should be understood that it introduces
    an additional indirection that may allow for a new attack vector.
    One method to secure that indirection is to include a hash of the
    certificate in the URI itself.
 
-   CERT RRs are not used in connection with securing the DNS security
-   additions so there are no security considerations related to CERT RRs
-   and securing the DNS itself.
+
+
+
+Josefsson                 Expires July 2, 2005                 [Page 10]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
+
+   CERT RRs are not used by DNSSEC [8] so there are no security
+   considerations related to CERT RRs and securing the DNS itself.
+
+   If DNSSEC [8] is used then the non-existence of a CERT RR, and
+   consequently certificates or revocation lists, can be securely
+   asserted.  Without DNSSEC, this is not possible.
 
 7.  IANA Considerations
 
    Certificate types 0x0000 through 0x00FF and 0xFF00 through 0xFFFF can
    only be assigned by an IETF standards action [6].  This document
-   assigns 0x0001 through 0x0003 and 0x00FD and 0x00FE.  Certificate
+   assigns 0x0001 through 0x0006 and 0x00FD and 0x00FE.  Certificate
    types 0x0100 through 0xFEFF are assigned through IETF Consensus [6]
    based on RFC documentation of the certificate type.  The availability
    of private types under 0x00FD and 0x00FE should satisfy most
    requirements for proprietary or private types.
-
-
-
-
-Josefsson                Expires July 25, 2005                 [Page 10]
-
-Internet-Draft      Storing Certificates in the DNS         January 2005
-
 
 8.  Changes since RFC 2538
 
@@ -582,6 +600,7 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
        for purpose-based X.509 CERT owner names, and section 3.4 for
        purpose-based OpenPGP CERT owner names.
    8.  Added size considerations.
+   9.  Added indirect types IPKIX, ISPKI, and IPGP.
 
 9.  References
 
@@ -589,6 +608,14 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
 
    [1]  Mockapetris, P., "Domain names - concepts and facilities", STD
         13, RFC 1034, November 1987.
+
+
+
+
+Josefsson                 Expires July 2, 2005                 [Page 11]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
 
    [2]  Mockapetris, P., "Domain names - implementation and
         specification", STD 13, RFC 1035, November 1987.
@@ -608,14 +635,6 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
 
    [7]  Resnick, P., "Internet Message Format", RFC 2822, April 2001.
 
-
-
-
-Josefsson                Expires July 25, 2005                 [Page 11]
-
-Internet-Draft      Storing Certificates in the DNS         January 2005
-
-
    [8]  Arends, R., Austein, R., Massey, D., Larson, M. and S. Rose,
         "DNS Security Introduction and Requirements",
         draft-ietf-dnsext-dnssec-intro-13 (work in progress), October
@@ -633,6 +652,9 @@ Internet-Draft      Storing Certificates in the DNS         January 2005
    [11]  Josefsson, S., "The Base16, Base32, and Base64 Data Encodings",
          RFC 3548, July 2003.
 
+   [12]  Richardson, M., "A method for storing IPsec keying material in
+         DNS", draft-ietf-ipseckey-rr-11 (work in progress), July 2004.
+
 
 Author's Address
 
@@ -643,6 +665,14 @@ Author's Address
 Appendix A.  Copying conditions
 
    Regarding the portion of this document that was written by Simon
+
+
+
+Josefsson                 Expires July 2, 2005                 [Page 12]
+
+Internet-Draft      Storing Certificates in the DNS         January 2005
+
+
    Josefsson ("the author", for the remainder of this section), the
    author makes no guarantees and is not responsible for any damage
    resulting from its use.  The author grants irrevocable permission to
@@ -667,7 +697,34 @@ Appendix A.  Copying conditions
 
 
 
-Josefsson                Expires July 25, 2005                 [Page 12]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Josefsson                 Expires July 2, 2005                 [Page 13]
 
 Internet-Draft      Storing Certificates in the DNS         January 2005
 
@@ -723,6 +780,6 @@ Acknowledgment
 
 
 
-Josefsson                Expires July 25, 2005                 [Page 13]
+Josefsson                 Expires July 2, 2005                 [Page 14]
 
 
