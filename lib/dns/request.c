@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.38 2000/10/06 18:58:17 bwelling Exp $ */
+/* $Id: request.c,v 1.39 2000/10/30 05:08:06 marka Exp $ */
 
 #include <config.h>
 
@@ -434,6 +434,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	isc_result_t result;
 	isc_mem_t *mctx;
 	isc_sockaddr_t bind_any;
+	isc_sockaddr_t src;
 	isc_interval_t interval;
 	dns_messageid_t	id;
 	isc_time_t expires;
@@ -448,18 +449,18 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	REQUIRE(action != NULL);
 	REQUIRE(requestp != NULL && *requestp == NULL);
 	REQUIRE(timeout > 0);
+	if (srcaddr != NULL) 
+		REQUIRE(isc_sockaddr_pf(srcaddr) == isc_sockaddr_pf(destaddr));
 
 	mctx = requestmgr->mctx;
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createraw");
 
-	if (srcaddr != NULL)
-		return (ISC_R_NOTIMPLEMENTED);
-
 	request = isc_mem_get(mctx, sizeof(*request));
 	if (request == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
+
 	/*
 	 * Zero structure.
 	 */
@@ -513,8 +514,15 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 					   isc_sockettype_tcp, &socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		isc_sockaddr_anyofpf(&bind_any, isc_sockaddr_pf(destaddr));
-		result = isc_socket_bind(socket, &bind_any);
+		if (srcaddr == NULL) {
+			isc_sockaddr_anyofpf(&bind_any,
+					     isc_sockaddr_pf(destaddr));
+			result = isc_socket_bind(socket, &bind_any);
+		} else {
+			src = *srcaddr;
+			isc_sockaddr_setport(&src, 0);
+			result = isc_socket_bind(socket, &src);
+		}
 		if (result != ISC_R_SUCCESS) {
 			isc_socket_detach(&socket);
 			goto cleanup;
@@ -536,18 +544,50 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 			goto cleanup;
 	} else {
 		dns_dispatch_t *disp = NULL;
-		switch (isc_sockaddr_pf(destaddr)) {
-		case PF_INET:
-			disp = requestmgr->dispatchv4;
-			break;
+		if (srcaddr == NULL) {
+			switch (isc_sockaddr_pf(destaddr)) {
+			case PF_INET:
+				disp = requestmgr->dispatchv4;
+				break;
 
-		case PF_INET6:
-			disp = requestmgr->dispatchv6;
-			break;
+			case PF_INET6:
+				disp = requestmgr->dispatchv6;
+				break;
 
-		default:
-			result = ISC_R_NOTIMPLEMENTED;
-			goto cleanup;
+			default:
+				result = ISC_R_NOTIMPLEMENTED;
+				goto cleanup;
+			}
+		} else {
+			unsigned int attrs, attrmask;
+			attrs = 0;
+			attrs |= DNS_DISPATCHATTR_UDP;
+			switch (isc_sockaddr_pf(srcaddr)) {
+			case PF_INET:
+				attrs |= DNS_DISPATCHATTR_IPV4;
+				break;
+
+			case PF_INET6:
+				attrs |= DNS_DISPATCHATTR_IPV6;
+				break;
+
+			default:
+				result = ISC_R_NOTIMPLEMENTED;
+				goto cleanup;
+			}
+			attrmask = 0;
+			attrmask |= DNS_DISPATCHATTR_UDP;
+			attrmask |= DNS_DISPATCHATTR_TCP;
+			attrmask |= DNS_DISPATCHATTR_IPV4;
+			attrmask |= DNS_DISPATCHATTR_IPV6;
+			result = dns_dispatch_getudp(requestmgr->dispatchmgr, 
+						     requestmgr->socketmgr,
+						     requestmgr->taskmgr,
+						     srcaddr, 4096,
+						     1000, 32768, 16411, 16433,
+						     attrs, attrmask, &disp);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
 		}
 		if (disp == NULL) {
 			result = ISC_R_FAMILYNOSUPPORT;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.240 2000/10/25 04:26:54 marka Exp $ */
+/* $Id: zone.c,v 1.241 2000/10/30 05:08:07 marka Exp $ */
 
 #include <config.h>
 
@@ -4696,6 +4696,7 @@ forward_destroy(dns_forward_t *forward) {
 static isc_result_t
 sendtomaster(dns_forward_t *forward) {
 	isc_result_t result;
+	isc_sockaddr_t src;
 
 	LOCK(&forward->zone->lock);
 	if (forward->which >= forward->zone->masterscnt) {
@@ -4709,14 +4710,26 @@ sendtomaster(dns_forward_t *forward) {
 	 * used TCP.
 	 * XXX The timeout may but a bit small if we are far down a
 	 * transfer graph and the master has to try several masters.
-	 * XXX should be using xfrsource{4,6}.
 	 */
+	switch (isc_sockaddr_pf(&forward->addr)) {
+	case PF_INET:
+		src = forward->zone->xfrsource4;
+		break;
+	case PF_INET6:
+		src = forward->zone->xfrsource6;
+		break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto unlock;
+	}
 	result = dns_request_createraw(forward->zone->view->requestmgr,
-				       forward->msgbuf, NULL, &forward->addr,
+				       forward->msgbuf,
+				       &src, &forward->addr,
 				       DNS_REQUESTOPT_TCP, 15 /* XXX */,
 				       forward->zone->task,
 				       forward_callback, forward,
 				       &forward->request);
+ unlock:
 	UNLOCK(&forward->zone->lock);
 	return (result);
 }
