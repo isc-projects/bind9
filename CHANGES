@@ -1,3 +1,5 @@
+ 113.	[func]		Utility programs dig and host added.
+
  112.   [cleanup]       <isc/serial.h> does not need <isc/boolean.h>.
 
  111.   [cleanup]       <isc/rwlock.h> does not need <isc/result.h> or
