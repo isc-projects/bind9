@@ -8,6 +8,7 @@ dispatch_tcp_test
 dispatch_test
 keygen
 lex_test
+lfsr_test
 log_test
 master_test
 mem_test
