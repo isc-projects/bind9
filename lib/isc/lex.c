@@ -273,7 +273,7 @@ typedef enum {
 	lexstate_ccomment,
 	lexstate_ccommentend,
 	lexstate_eatline,
-	lexstate_qstring,
+	lexstate_qstring
 } lexstate;
 
 isc_result_t
@@ -433,9 +433,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					tokenp->type =
 						isc_tokentype_number;
 					/* XXX convert to number */
-					tokenp->value.as_region.base =
+					tokenp->value.as_textregion.base =
 						lex->data;
-					tokenp->value.as_region.length = 
+					tokenp->value.as_textregion.length = 
 						lex->max_token - remaining;
 					done = ISC_TRUE;
 					continue;
@@ -454,8 +454,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				INSIST(source->char_count < 2);
 				source->chars[source->char_count++] = c;
 				tokenp->type = isc_tokentype_string;
-				tokenp->value.as_region.base = lex->data;
-				tokenp->value.as_region.length = 
+				tokenp->value.as_textregion.base = lex->data;
+				tokenp->value.as_textregion.length = 
 					lex->max_token - remaining;
 				done = ISC_TRUE;
 				continue;
@@ -527,9 +527,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					*prev = '"';
 				} else {
 					tokenp->type = isc_tokentype_qstring;
-					tokenp->value.as_region.base =
+					tokenp->value.as_textregion.base =
 						lex->data;
-					tokenp->value.as_region.length = 
+					tokenp->value.as_textregion.length = 
 						lex->max_token - remaining;
 					no_comments = ISC_FALSE;
 					done = ISC_TRUE;
