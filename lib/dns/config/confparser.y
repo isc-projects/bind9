@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.40 2000/02/09 16:45:52 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.41 2000/02/14 17:20:35 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -176,6 +176,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_ALLOW_QUERY
 %token		L_ALLOW_TRANSFER
 %token		L_ALLOW_UPDATE
+%token		L_ALLOW_UPDATE_FORWARDING
 %token		L_ALLOW_RECURSION
 %token		L_ALSO_NOTIFY
 %token		L_BLACKHOLE
@@ -2672,6 +2673,25 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 			YYABORT;
 		}
 	}
+	| L_ALLOW_UPDATE_FORWARDING L_LBRACE address_match_list L_RBRACE
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setallowupdateforwarding(view,
+							     $3, ISC_FALSE);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining view "
+				       "allow-update-forwarding.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view "
+				     "allow-update-forwarding.");
+			YYABORT;
+		}
+	}
 	| L_BLACKHOLE L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -2981,7 +3001,8 @@ zone_option_list: zone_option L_EOS
 
 
 zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
-	L_TRANSFER_SOURCE | L_CHECK_NAMES | L_ALLOW_UPDATE | L_ALLOW_QUERY |
+	L_TRANSFER_SOURCE | L_CHECK_NAMES | L_ALLOW_UPDATE |
+	L_ALLOW_UPDATE_FORWARDING | L_ALLOW_QUERY |
 	L_ALLOW_TRANSFER | L_FORWARD | L_FORWARDERS | L_MAX_TRANSFER_TIME_IN |
 	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
@@ -3131,6 +3152,25 @@ zone_option: L_FILE L_QSTRING
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set zone allow-update.");
+			YYABORT;
+		}
+	}
+	| L_ALLOW_UPDATE_FORWARDING L_LBRACE address_match_list L_RBRACE
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setallowupdateforwarding(zone,
+							     $3, ISC_FALSE);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining zone "
+				       "allow-update-forwarding.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone "
+				     "allow-update-forwarding.");
 			YYABORT;
 		}
 	}
@@ -3651,6 +3691,7 @@ static struct token keyword_tokens [] = {
 	{ "allow-transfer",		L_ALLOW_TRANSFER },
 	{ "allow-recursion",		L_ALLOW_RECURSION },
 	{ "allow-update",		L_ALLOW_UPDATE },
+	{ "allow-update-forwarding",	L_ALLOW_UPDATE_FORWARDING },
 	{ "also-notify",		L_ALSO_NOTIFY },
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
 	{ "blackhole",			L_BLACKHOLE },
