@@ -46,7 +46,9 @@ BIND 9
 BIND 9.2.3
 	
 	BIND 9.2.3 is a maintenance release, containing fixes for
-	a number of bugs in 9.2.1 but no new features.
+	a number of bugs in 9.2.2.
+
+	A new zone type delegation-only is now supported.
 
 	libbind: corresponds to that from BIND 8.4.0.
 
