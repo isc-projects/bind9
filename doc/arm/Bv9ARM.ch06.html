@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN4098"
+HREF="Bv9ARM.ch06.html#AEN4107"
 >Zone File</A
 ></DT
 ></DL
@@ -3385,6 +3385,13 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> allow-update { <VAR
+CLASS="replaceable"
+>address_match_list</VAR
+> }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > allow-update-forwarding { <VAR
 CLASS="replaceable"
 >address_match_list</VAR
@@ -4541,7 +4548,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN2416"
+NAME="AEN2418"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -5417,7 +5424,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2717"
+NAME="AEN2719"
 >6.2.16.2. Forwarding</A
 ></H3
 ><P
@@ -5485,7 +5492,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2736"
+NAME="AEN2738"
 >6.2.16.3. Dual-stack Servers</A
 ></H3
 ><P
@@ -5657,6 +5664,23 @@ host from retrieving data that is already in the server's cache.
 ><DT
 ><B
 CLASS="command"
+>allow-update</B
+></DT
+><DD
+><P
+>Specifies which hosts are allowed to
+submit Dynamic DNS updates for master zones. The default is to deny
+updates from all hosts.  Note that allowing updates based
+on the requestor's IP address is insecure; see
+<A
+HREF="Bv9ARM.ch07.html#dynamic_update_security"
+>Section 7.3</A
+> for details.
+</P
+></DD
+><DT
+><B
+CLASS="command"
 >allow-update-forwarding</B
 ></DT
 ><DD
@@ -5750,7 +5774,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2818"
+NAME="AEN2826"
 >6.2.16.5. Interfaces</A
 ></H3
 ><P
@@ -5853,7 +5877,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2845"
+NAME="AEN2853"
 >6.2.16.6. Query Address</A
 ></H3
 ><P
@@ -6361,7 +6385,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3011"
+NAME="AEN3019"
 >6.2.16.8. Bad UDP Port Lists</A
 ></H3
 ><P
@@ -6385,7 +6409,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3016"
+NAME="AEN3024"
 >6.2.16.9. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6505,7 +6529,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3053"
+NAME="AEN3061"
 >6.2.16.10. Server  Resource Limits</A
 ></H3
 ><P
@@ -6640,7 +6664,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3099"
+NAME="AEN3107"
 >6.2.16.11. Periodic Task Intervals</A
 ></H3
 ><P
@@ -7005,7 +7029,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3187"
+NAME="AEN3195"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -7467,7 +7491,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3331"
+NAME="AEN3339"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -7939,7 +7963,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3470"
+NAME="AEN3478"
 >6.2.19. <B
 CLASS="command"
 >trusted-keys</B
@@ -7994,7 +8018,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3486"
+NAME="AEN3494"
 >6.2.20. <B
 CLASS="command"
 >trusted-keys</B
@@ -8082,7 +8106,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3508"
+NAME="AEN3516"
 >6.2.22. <B
 CLASS="command"
 >view</B
@@ -8726,7 +8750,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3685"
+NAME="AEN3693"
 >6.2.24. <B
 CLASS="command"
 >zone</B
@@ -8737,7 +8761,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3688"
+NAME="AEN3696"
 >6.2.24.1. Zone Types</A
 ></H3
 ><DIV
@@ -8745,7 +8769,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3690"
+NAME="AEN3698"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -8977,7 +9001,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3753"
+NAME="AEN3761"
 >6.2.24.2. Class</A
 ></H3
 ><P
@@ -9015,7 +9039,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3763"
+NAME="AEN3771"
 >6.2.24.3. Zone Options</A
 ></H3
 ><P
@@ -9099,15 +9123,14 @@ CLASS="command"
 ></DT
 ><DD
 ><P
->Specifies which hosts are allowed to
-submit Dynamic DNS updates for master zones. The default is to deny
-updates from all hosts.  Note that allowing updates based
-on the requestor's IP address is insecure; see
-<A
-HREF="Bv9ARM.ch07.html#dynamic_update_security"
->Section 7.3</A
-> for details.
-</P
+>See the description of <B
+CLASS="command"
+>allow-update</B
+>
+in <A
+HREF="Bv9ARM.ch06.html#access_control"
+>Section 6.2.16.4</A
+>.</P
 ></DD
 ><DT
 ><B
@@ -9785,7 +9808,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4057"
+NAME="AEN4066"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9910,7 +9933,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4098"
+NAME="AEN4107"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9931,7 +9954,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4103"
+NAME="AEN4112"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9956,7 +9979,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4109"
+NAME="AEN4118"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10037,7 +10060,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4141"
+NAME="AEN4150"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10388,7 +10411,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4293"
+NAME="AEN4302"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10470,7 +10493,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4317"
+NAME="AEN4326"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10502,7 +10525,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4324"
+NAME="AEN4333"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10657,7 +10680,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4390"
+NAME="AEN4399"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10728,7 +10751,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4418"
+NAME="AEN4427"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10766,7 +10789,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4424"
+NAME="AEN4433"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10987,7 +11010,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4516"
+NAME="AEN4525"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11050,7 +11073,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4539"
+NAME="AEN4548"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -11079,7 +11102,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4544"
+NAME="AEN4553"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11145,7 +11168,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4566"
+NAME="AEN4575"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11170,7 +11193,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4573"
+NAME="AEN4582"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11236,7 +11259,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4593"
+NAME="AEN4602"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11312,7 +11335,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4613"
+NAME="AEN4622"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11348,7 +11371,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4624"
+NAME="AEN4633"
 >6.3.6. <ACRONYM
 CLASS="acronym"
 >BIND</ACRONYM
@@ -11431,7 +11454,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4648"
+NAME="AEN4657"
 ></A
 ><TABLE
 CELLPADDING="3"
