@@ -42,7 +42,7 @@ SRCS =		dst_test.c t_dst.c
 
 @BIND9_MAKE_RULES@
 
-dst_test: dst_test.o
+dst_test: dst_test.o ${DEPLIBS}
 	${LIBTOOL} ${CC} -o $@ dst_test.o ${LIBS}
 
 t_dst: t_dst.o ${DEPLIBS} ${TLIB}
