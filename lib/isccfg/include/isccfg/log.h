@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.1 2001/02/22 02:38:25 gson Exp $ */
+/* $Id: log.h,v 1.2 2001/02/22 02:44:08 bwelling Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
@@ -50,4 +50,4 @@ isccfg_log_init(isc_log_t *lctx);
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_LOG_H */
+#endif /* ISCCFG_LOG_H */
