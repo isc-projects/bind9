@@ -435,7 +435,12 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
-	adbname->expire_v4 = ISC_MIN(adbname->expire_v4, now + rdataset->ttl);
+	if (rdtype == dns_rdatatype_a)
+		adbname->expire_v4 = ISC_MIN(adbname->expire_v4,
+					     now + rdataset->ttl);
+	else
+		adbname->expire_v6 = ISC_MIN(adbname->expire_v6,
+					     now + rdataset->ttl);
 
 	/*
 	 * Lie a little here.  This is more or less so code that cares
@@ -681,8 +686,6 @@ shutdown_names(dns_adb_t *adb)
 
 		UNLOCK(&adb->namelocks[bucket]);
 	}
-
-	/* dump_adb(adb, stderr); */
 }
 
 /*
@@ -2518,6 +2521,11 @@ dump_adb(dns_adb_t *adb, FILE *f)
 	dns_adbentry_t *entry;
 	char tmp[512];
 	const char *tmpp;
+	isc_stdtime_t now;
+	isc_result_t result;
+
+	result = isc_stdtime_get(&now);
+	INSIST(result == ISC_R_SUCCESS);
 
 	fprintf(f, "ADB %p DUMP:\n", adb);
 	fprintf(f, "erefcnt %u, irefcnt %u, finds out %u\n",
@@ -2542,8 +2550,15 @@ dump_adb(dns_adb_t *adb, FILE *f)
 			fprintf(f, "name %p\n", name);
 			if (!DNS_ADBNAME_VALID(name))
 				fprintf(f, "\tMAGIC %08x\n", name->magic);
-			fprintf(f, "\texpiry [%u %u] ",
-				name->expire_v4, name->expire_v6);
+			fprintf(f, "\texpiry [");
+			if (name->expire_v4 == INT_MAX)
+				fprintf(f, "inf ");
+			else
+				fprintf(f, "%d ", name->expire_v4 - now);
+			if (name->expire_v6 == INT_MAX)
+				fprintf(f, "inf] ");
+			else
+				fprintf(f, "%d] ", name->expire_v6 - now);
 			print_dns_name(f, &name->name);
 			fprintf(f, "\n");
 			print_namehook_list(f, name);
