@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.44 2000/06/23 22:06:47 tale Exp $ */
+/* $Id: entropy.c,v 1.45 2000/06/26 18:41:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -289,10 +289,10 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 		    isc_uint32_t entropy)
 {
 	isc_uint32_t val;
-	isc_uint32_t addr;
+	unsigned long addr;
 	isc_uint8_t *buf;
 
-	addr = (isc_uint32_t)p;
+	addr = (unsigned long)p;
 	buf = p;
 
 	if ((addr & 0x03) != 0) {
