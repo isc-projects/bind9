@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.54 2001/07/12 05:58:25 mayer Exp $ */
+/* $Id: mem.h,v 1.55 2001/09/06 18:23:35 gson Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -37,15 +37,17 @@ typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 
 /*
- * ISC_MEM_DEBUG is enabled by default; set ISC_MEM_DEBUG=0 to disable it.
+ * Define ISC_MEM_DEBUG=1 to make all functions that free memory
+ * set the pointer being freed to NULL after being freed.
+ * This is the default; set ISC_MEM_DEBUG=0 to disable it.
  */
 #ifndef ISC_MEM_DEBUG
 #define ISC_MEM_DEBUG 1
 #endif
 
 /*
- * Define ISC_MEM_TRACKLINES=1 to turn on detailed tracing of memory allocation
- * and freeing by file and line number.
+ * Define ISC_MEM_TRACKLINES=1 to turn on detailed tracing of memory
+ * allocation and freeing by file and line number.
  */
 #ifndef ISC_MEM_TRACKLINES
 #define ISC_MEM_TRACKLINES 0
@@ -60,7 +62,7 @@ typedef void (*isc_memfree_t)(void *, void *);
 #endif
 
 /*
- * Define ISC_MEM_FILL to fill each block of memory returned to the system
+ * Define ISC_MEM_FILL=1 to fill each block of memory returned to the system
  * with the byte string '0xbe'.  This helps track down uninitialized pointers
  * and the like.  On freeing memory, the space is filled with '0xde' for
  * the same reasons.
@@ -70,7 +72,9 @@ typedef void (*isc_memfree_t)(void *, void *);
 #endif
 
 /*
- * Define this to turn on memory pool names.
+ * Define ISC_MEMPOOL_NAMES=1 to make memory pools store a symbolic
+ * name so that the leaking pool can be more readily identified in
+ * case of a memory leak.
  */
 #ifndef ISC_MEMPOOL_NAMES
 #define ISC_MEMPOOL_NAMES 1
