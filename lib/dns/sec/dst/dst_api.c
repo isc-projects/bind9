@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.67.2.3 2001/05/10 21:12:36 gson Exp $
+ * $Id: dst_api.c,v 1.67.2.4 2001/06/11 16:58:39 gson Exp $
  */
 
 #include <config.h>
@@ -1041,6 +1041,14 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);
 
+	if (key->func->issymmetric()) {
+		access = 0;
+		isc_fsaccess_add(ISC_FSACCESS_OWNER,
+				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
+				 &access);
+		(void)isc_fsaccess_set(filename, access);
+	}
+
 	ret = dns_name_print(key->key_name, fp);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
@@ -1057,14 +1065,6 @@ write_public_key(const dst_key_t *key, const char *directory) {
 
 	fputc('\n', fp);
 	fclose(fp);
-
-	if (key->func->issymmetric()) {
-		access = 0;
-		isc_fsaccess_add(ISC_FSACCESS_OWNER,
-				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
-				 &access);
-		(void)isc_fsaccess_set(filename, access);
-	}
 
 	return (ISC_R_SUCCESS);
 }
