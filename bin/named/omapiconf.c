@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.5 2000/07/11 22:03:09 tale Exp $ */
+/* $Id: omapiconf.c,v 1.6 2000/07/11 23:02:32 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -137,7 +137,7 @@ verify_connection(isc_sockaddr_t *sockaddr, void *arg) {
 	listener = arg;
 
 	result = dns_acl_match(&netaddr, NULL, listener->acl,
-			       NULL, &match, NULL);
+			       &ns_g_server->aclenv, &match, NULL);
 
 	if (result != ISC_R_SUCCESS || match <= 0)
 		return (ISC_FALSE);
