@@ -51,7 +51,10 @@ typedef struct dns_rdatacallbacks {
 void dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
 
 /*
- * Make 'callbacks' empty.
+ * Initalise 'callbacks'.
+ * 	'error' and 'warn' are set to default callbacks that print the
+ *	error message to stderr.
+ *	All other elements are initalised to NULL.
  *
  * Requires:
  *      'callbacks' is a valid dns_rdatacallbacks_t,

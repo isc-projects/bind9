@@ -243,7 +243,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 			first = ISC_FALSE;
 
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_totext(&rdata, target);
+		result = dns_rdata_totext(&rdata, NULL, target);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 		isc_buffer_available(target, &r);

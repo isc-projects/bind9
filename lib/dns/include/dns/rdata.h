@@ -276,6 +276,8 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *
  *	'target' is a valid region.
  *
+ *	'origin' if non NULL it must be absolute.
+ *
  * Ensures:
  *	If result is success:
  *	 	If 'rdata' is not NULL, it is attached to the target.
@@ -293,7 +295,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_totext(dns_rdata_t *rdata,
+dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.

@@ -277,7 +277,7 @@ main(int argc, char *argv[]) {
 
 		isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
 				ISC_BUFFERTYPE_TEXT);
-		result = dns_rdata_totext(&rdata, &tbuf);
+		result = dns_rdata_totext(&rdata, NULL, &tbuf);
 		if (result != DNS_R_SUCCESS)
 			fprintf(stdout, "dns_rdata_totext returned %s(%d)\n",
 				dns_result_totext(result), result);

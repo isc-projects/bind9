@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.33 1999/02/12 03:08:44 marka Exp $ */
+ /* $Id: rdata.c,v 1.34 1999/02/16 02:54:17 marka Exp $ */
 
 #include <config.h>
 
@@ -228,6 +228,9 @@ dns_rdata_fromregion(dns_rdata_t *rdata,
 			  dns_rdataclass_t class, dns_rdatatype_t type,
 			  isc_region_t *r) {
 			  
+	REQUIRE(rdata != NULL);
+	REQUIRE(r != NULL);
+
 	rdata->data = r->base;
 	rdata->length = r->length;
 	rdata->class = class;
@@ -236,6 +239,9 @@ dns_rdata_fromregion(dns_rdata_t *rdata,
 
 void
 dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r) {
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(r != NULL);
 
 	r->base = rdata->data;
 	r->length = rdata->length;
@@ -253,6 +259,10 @@ dns_rdata_fromwire(dns_rdata_t *rdata,
 	isc_buffer_t ss;
 	isc_buffer_t st;
 	isc_boolean_t use_default = ISC_FALSE;
+
+	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+	REQUIRE(dctx != NULL);
 
 	ss = *source;
 	st = *target;
@@ -286,6 +296,9 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_region_t tr;
 
+	REQUIRE(rdata != NULL);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+
 	TOWIRESWITCH
 	
 	if (use_default) {
@@ -317,6 +330,10 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 	int line;
 	void (*callback)(dns_rdatacallbacks_t *, char *, ...);
 	isc_result_t iresult;
+
+	if (origin != NULL)
+		REQUIRE(dns_name_isabsolute(origin) == ISC_TRUE);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
@@ -391,11 +408,17 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 }
 
 dns_result_t
-dns_rdata_totext(dns_rdata_t *rdata, isc_buffer_t *target) {
+dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
+		 isc_buffer_t *target)
+{
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
-	dns_name_t *origin = NULL;
 	isc_boolean_t use_default = ISC_FALSE;
 	
+	REQUIRE(rdata != NULL);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_TEXT);
+	if (origin != NULL)
+		REQUIRE(dns_name_isabsolute(origin) == ISC_TRUE);
+
 	TOTEXTSWITCH
 
 	if (use_default)
@@ -413,6 +436,9 @@ dns_rdata_fromstruct(dns_rdata_t *rdata,
 	isc_buffer_t st;
 	isc_region_t region;
 	isc_boolean_t use_default = ISC_FALSE;
+
+	REQUIRE(source != NULL);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
 	region.base = (unsigned char *)(target->base) + target->used;
 	st = *target;
@@ -435,6 +461,9 @@ dns_result_t
 dns_rdata_tostruct(dns_rdata_t *rdata, void *target) {
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
 	TOSTRUCTSWITCH
 

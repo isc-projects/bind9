@@ -18,6 +18,10 @@
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
 
+/***
+ ***	Imports
+ ***/
+
 #include <isc/mem.h>
 #include <isc/lex.h>
 
@@ -26,6 +30,10 @@
 #include <dns/name.h>
 #include <dns/rdataset.h>
 #include <dns/callbacks.h>
+
+/***
+ ***	Function
+ ***/
 
 dns_result_t dns_master_load(char *master_file,
 			     dns_name_t *top,
@@ -40,7 +48,8 @@ dns_result_t dns_master_load(char *master_file,
  * Loads a RFC 1305 master file from disk into rdatasets then call
  * 'callbacks->commit' to commit the dataset.  Rdata memory belongs
  * to dns_master_load and will be reused / released when the callback
- * completes.
+ * completes.  dns_load_master will abort if callbacks->commit returns
+ * any value other than DNS_R_SUCCESS.
  *
  * 'callbacks->commit' is assumed to call 'callbacks->error' or
  * 'callbacks->warn' to generate any error messages required.
@@ -55,6 +64,18 @@ dns_result_t dns_master_load(char *master_file,
  *	'callbacks->error' to point ta a valid function.
  *	'callbacks->warn' to point ta a valid function.
  *	'mctx' to point to a memory context.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS upon successfully loading the master file.
+ *	DNS_R_NOMEMORY out of memory.
+ *	DNS_R_UNEXPECTEDEND expected to be able to read a input token and
+ *		there was not one.
+ *	DNS_R_UNEXPECTED
+ *	DNS_R_NOOWNER failed to specify a ownername.
+ *	DNS_R_NOTTL failed to specify a ttl.
+ *	DNS_R_BADCLASS record class did not match zone class.
+ *	Any dns_rdata_fromtext() error code.
+ *	Any error code from callbacks->commit().
  */
 
 #endif	/* DNS_MASTER_H */
