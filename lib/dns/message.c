@@ -79,6 +79,13 @@ static const char *sectiontext[] = {
 	"ADDITIONAL"
 };
 
+static const char *updsectiontext[] = {
+	"ZONE",
+	"PREREQUISITE",
+	"UPDATE",
+	"ADDITIONAL"
+};
+
 static const char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
@@ -2716,7 +2723,12 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 
 	if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0) {
 		ADD_STRING(target, ";; ");
-		ADD_STRING(target, sectiontext[section]);
+		if (msg->opcode != dns_opcode_update) {
+			ADD_STRING(target, sectiontext[section]);
+		}
+		else {
+			ADD_STRING(target, updsectiontext[section]);
+		}
 		ADD_STRING(target, " SECTION:\n");
 	}
 
