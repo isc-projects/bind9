@@ -1,0 +1,1959 @@
+/*
+ * Copyright (C) 1999  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
+#include <config.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h> 
+#include <errno.h>
+#include <string.h>
+
+#include <sys/types.h>
+#include <sys/uio.h>
+
+#include <isc/assertions.h>
+#include <isc/error.h>
+#include <isc/mem.h>
+#include <isc/result.h>
+#include <isc/buffer.h>
+
+#include <dns/types.h>
+#include <dns/result.h>
+#include <dns/name.h>
+#include <dns/fixedname.h>
+#include <dns/rdata.h>
+#include <dns/rdatalist.h>
+#include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
+#include <dns/db.h>
+#include <dns/journal.h>
+
+/*
+ * When true, accept IXFR difference sequences where the
+ * SOA serial number does not change (BIND 8 sends such
+ * sequences).
+ */
+static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
+
+/**************************************************************************/
+/*
+ * Miscellaneous utilities.
+ */
+
+#define FAIL(code) do { result = (code); goto failure; } while (0)
+#define CHECK(op) do { result = (op); \
+		       if (result != DNS_R_SUCCESS) goto failure; \
+		     } while (0)
+
+/* XXX should be macros */
+
+static isc_uint32_t
+decode_uint32(unsigned char *p) {
+	return ((p[0] << 24) +
+		(p[1] << 16) +
+		(p[2] <<  8) +
+		(p[3] <<  0));
+}
+
+static void 
+encode_uint32(isc_uint32_t val, unsigned char *p) {
+	p[0] = val >> 24;
+	p[1] = val >> 16;
+	p[2] = val >>  8;
+	p[3] = val >>  0;
+}
+
+isc_uint32_t
+dns_soa_getserial(dns_rdata_t *rdata)
+{
+	INSIST(rdata->type == dns_rdatatype_soa);
+	/*
+	 * Locate the serial number within the SOA RDATA based
+	 * on its position relative to the end of the data.
+	 * (it starts 20 bytes from the end).  This is a bit of
+	 * a kludge, but the alternative approach of using
+	 * dns_rdata_tostruct() and dns_rdata_fromstruct()
+	 * would involve a lot of unnecessary work (like 
+	 * building domain names and allocating temporary memory)
+	 * when all we really want to do is to change 32 bits of
+	 * fixed-sized data.  Besides, fromstruct_soa() is not
+	 * implemented yet.
+	 */
+	INSIST(rdata->length > 20);
+	return (decode_uint32(rdata->data + rdata->length - 20));
+}
+
+void
+dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata)
+{
+	INSIST(rdata->type == dns_rdatatype_soa);
+	INSIST(rdata->length > 20);
+	encode_uint32(val, rdata->data + rdata->length - 20);
+}
+
+dns_result_t
+dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
+{
+	dns_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata;
+
+	REQUIRE(dns_db_iszone(db));
+		
+	result = dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa,
+				     (isc_stdtime_t) 0, &rdataset);
+ 	if (result != DNS_R_SUCCESS)
+		goto freenode;
+	
+	result = dns_rdataset_first(&rdataset);
+ 	if (result != DNS_R_SUCCESS)
+		goto freerdataset;
+	dns_rdataset_current(&rdataset, &rdata);
+
+	*serialp = dns_soa_getserial(&rdata);
+	result = DNS_R_SUCCESS;
+
+ freerdataset:
+	dns_rdataset_disassociate(&rdataset);
+	
+ freenode:
+	dns_db_detachnode(db, &node);
+	return (result);
+}
+
+dns_result_t
+dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
+		      dns_diffop_t op, dns_difftuple_t **tp)
+{
+	dns_result_t result;
+	dns_dbnode_t *node;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata;
+	dns_name_t *zonename;
+	dns_rdataclass_t zoneclass;
+	
+	zonename = dns_db_origin(db);
+	zoneclass = dns_db_class(db);
+	
+	node = NULL;
+	result = dns_db_findnode(db, zonename, ISC_FALSE, &node);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa,
+				     (isc_stdtime_t) 0, &rdataset);
+ 	if (result != DNS_R_SUCCESS)
+		goto freenode;
+	
+	result = dns_rdataset_first(&rdataset);
+ 	if (result != DNS_R_SUCCESS)
+		goto freenode;
+
+	dns_rdataset_current(&rdataset, &rdata);
+
+	result = dns_difftuple_create(mctx, op, zonename, rdataset.ttl,
+				      &rdata, tp);
+
+	dns_rdataset_disassociate(&rdataset);
+ freenode:
+	dns_db_detachnode(db, &node);
+	
+	return (result);
+}
+
+/**************************************************************************/
+/*
+ * Diffs, aka Pending Journal Entries.
+ */
+
+dns_result_t
+dns_difftuple_create(isc_mem_t *mctx,
+		     dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
+		     dns_rdata_t *rdata, dns_difftuple_t **tp)
+{
+	dns_difftuple_t *t;
+	unsigned int size;
+	unsigned char *datap;
+
+	REQUIRE(tp != NULL && *tp == NULL);
+	
+	/*
+	 * Create a new tuple.  The variable-size wire-format name data and
+	 * rdata immediately follow the dns_difftuple_t structure
+	 * in memory.
+	 */
+	size = sizeof(*t) + name->length + rdata->length;
+	t = isc_mem_allocate(mctx, size);
+	if (t == NULL)
+		return (DNS_R_NOMEMORY);
+	t->mctx = mctx;
+	t->op = op;
+
+	datap = (unsigned char *) (t + 1);
+	
+	memcpy(datap, name->ndata, name->length);
+	dns_name_init(&t->name, NULL);
+	dns_name_clone(name, &t->name);
+	t->name.ndata = datap;
+	datap += name->length;
+	
+	t->ttl = ttl;
+
+	memcpy(datap, rdata->data, rdata->length);
+	t->rdata.data = datap;
+	t->rdata.length = rdata->length;
+	t->rdata.rdclass = rdata->rdclass;
+	t->rdata.type = rdata->type;
+	datap += rdata->length;
+	
+	ISC_LINK_INIT(&t->rdata, link);
+	t->magic = DIFFTUPLE_MAGIC;
+
+	INSIST(datap == (unsigned char *) t + size);
+
+	*tp = t;
+	return (DNS_R_SUCCESS);
+}
+
+void
+dns_difftuple_free(dns_difftuple_t **tp) {
+	dns_difftuple_t *t = *tp;
+	REQUIRE(VALID_DIFFTUPLE(t));
+	dns_name_invalidate(&t->name);
+	t->magic = 0;
+	isc_mem_free(t->mctx, t);
+	*tp = NULL;
+}
+
+dns_result_t
+dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp)
+{
+	return (dns_difftuple_create(orig->mctx, orig->op, &orig->name,
+				     orig->ttl, &orig->rdata, copyp));
+}
+
+void
+dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff)
+{
+	diff->mctx = mctx;
+	ISC_LIST_INIT(diff->tuples);
+	diff->magic = DIFF_MAGIC;
+}
+
+void
+dns_diff_clear(dns_diff_t *diff) {
+	dns_difftuple_t *t;
+	REQUIRE(VALID_DIFF(diff));
+	while ((t = ISC_LIST_HEAD(diff->tuples)) != NULL) {
+		ISC_LIST_UNLINK(diff->tuples, t, link);
+		dns_difftuple_free(&t);
+	}
+	ENSURE(ISC_LIST_EMPTY(diff->tuples));
+}
+
+void
+dns_diff_append(dns_diff_t *diff, dns_difftuple_t **tuplep)
+{
+	ISC_LIST_APPEND(diff->tuples, *tuplep, link);
+	*tuplep = NULL;
+}
+
+/* XXX this is O(N) */
+
+void
+dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
+{
+	dns_difftuple_t *ot, *next_ot;
+
+	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(VALID_DIFFTUPLE(*tuplep));
+
+	/*
+	 * Look for an existing tuple with the same owner name 
+	 * and rdata.   If we are doing an addition and find a
+	 * deletion or vice versa, remove both the old and the
+	 * new tuple since they cancel each other out.
+	 *
+	 * If we find an old update of the same kind as 
+	 * the one we are doing, there must be a programming
+	 * error.  We report it but try to continue anyway. 
+	 */
+	for (ot = ISC_LIST_HEAD(diff->tuples); ot != NULL;
+	     ot = next_ot)
+	{
+		next_ot = ISC_LIST_NEXT(ot, link);
+		if (dns_name_equal(&ot->name, &(*tuplep)->name) &&
+		    dns_rdata_compare(&ot->rdata, &(*tuplep)->rdata) == 0)
+		{
+			ISC_LIST_UNLINK(diff->tuples, ot, link); 
+			if ((*tuplep)->op == ot->op) {
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "unexpected non-minimal diff");
+			} else {
+				dns_difftuple_free(tuplep);
+			}
+			dns_difftuple_free(&ot);
+			break;
+		}
+	}
+
+	if (*tuplep != NULL) {
+		ISC_LIST_APPEND(diff->tuples, *tuplep, link);
+		*tuplep = NULL;
+	}
+
+	ENSURE(*tuplep == NULL);
+}
+
+dns_result_t 
+dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
+{
+	dns_difftuple_t *t;
+	dns_dbnode_t *node = NULL;
+	dns_result_t result;
+	
+	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DB_VALID(db));
+	
+	t = ISC_LIST_HEAD(diff->tuples);
+	while (t != NULL) {
+		dns_name_t *name;
+
+		INSIST(node == NULL);
+		name = &t->name;
+		/*
+		 * Find the node.
+		 * We create the node if it does not exist.  
+		 * This will cause an empty node to be created if the diff 
+		 * contains a deletion of an RR at a nonexistent name,
+		 * but such diffs should never be created in the first 
+		 * place.
+		 */
+		node = NULL;
+		CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
+
+		while (t != NULL && dns_name_equal(&t->name, name)) {
+			dns_rdatatype_t type;
+			dns_diffop_t op;
+			dns_rdatalist_t rdl;
+			dns_rdataset_t rds;
+
+			op = t->op;
+			type = t->rdata.type;
+
+			/*
+			 * Collect a contiguous set of updates with 
+			 * the same operation (add/delete) and RR type
+			 * into a single rdatalist so that the
+			 * database rrset merging/subtraction code
+			 * can work more efficiently than if each
+			 * RR were merged into / subtracted from
+			 * the database separately.
+			 *
+			 * This is done by linking rdata structures from the
+			 * diff into "rdatalist".  This uses the rdata link
+			 * field, not the diff link field, so the structure
+			 * of the diff itself is not affected.
+			 */
+
+			rdl.type = t->rdata.type;
+			rdl.rdclass = t->rdata.rdclass;
+			rdl.ttl = t->ttl;
+			ISC_LIST_INIT(rdl.rdata);
+			ISC_LINK_INIT(&rdl, link);
+
+			while (t != NULL && dns_name_equal(&t->name, name) &&
+			       t->op == op && t->rdata.type == type) {
+				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
+				t = ISC_LIST_NEXT(t, link);
+			}
+
+			/* Convert the rdatalist into a rdataset. */
+			dns_rdataset_init(&rds);
+			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
+
+			/* Merge the rdataset into the database. */
+			if (op == DNS_DIFFOP_ADD) {
+				result = dns_db_addrdataset(db, node, ver,
+							    0, &rds,
+							    ISC_TRUE, NULL);
+			} else if (op == DNS_DIFFOP_DEL) {
+				result = dns_db_subtractrdataset(db, node, ver,
+								 &rds,
+								 NULL);
+			} else {
+				INSIST(0);
+			}
+			if (result == DNS_R_UNCHANGED) {
+			  	/*
+				 * This will not happen when executing a dynamic
+				 * update, because that code will generate strictly
+				 * minimal diffs.  It may happen when receiving an
+				 * IXFR from a server that is not as careful.
+				 * Issue a warning and continue.
+				 */
+				printf("warning: update with no effect\n");
+			} else if (result == DNS_R_SUCCESS ||
+				   result == DNS_R_NXRDATASET) {
+				/* OK */
+			} else {
+				CHECK(result);
+			}
+		}
+		dns_db_detachnode(db, &node);
+	}
+	return (DNS_R_SUCCESS);
+
+ failure:
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	return (result);
+}
+
+/* XXX this duplicates lots of code in dns_diff_apply(). */
+   
+dns_result_t 
+dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
+	      void *add_private)
+{
+	dns_difftuple_t *t;
+	dns_result_t result;
+
+	REQUIRE(VALID_DIFF(diff));
+	
+	t = ISC_LIST_HEAD(diff->tuples);
+	while (t != NULL) {
+		dns_name_t *name;
+
+		name = &t->name;
+		while (t != NULL && dns_name_equal(&t->name, name)) {
+			dns_rdatatype_t type;
+			dns_diffop_t op;
+			dns_rdatalist_t rdl;
+			dns_rdataset_t rds;
+
+			op = t->op;
+			type = t->rdata.type;
+
+			rdl.type = t->rdata.type;
+			rdl.rdclass = t->rdata.rdclass;
+			rdl.ttl = t->ttl;
+			ISC_LIST_INIT(rdl.rdata);
+			ISC_LINK_INIT(&rdl, link);
+
+			while (t != NULL && dns_name_equal(&t->name, name) &&
+			       t->op == op && t->rdata.type == type) {
+				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
+				t = ISC_LIST_NEXT(t, link);
+			}
+
+			/* Convert the rdatalist into a rdataset. */
+			dns_rdataset_init(&rds);
+			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
+
+			INSIST(op == DNS_DIFFOP_ADD);
+			result = (*addfunc)(add_private, name, &rds);
+			if (result == DNS_R_UNCHANGED) {
+				printf("warning: update with no effect\n");
+			} else if (result == DNS_R_SUCCESS ||
+				   result == DNS_R_NXRDATASET) {
+				/* OK */
+			} else {
+				CHECK(result);
+			}
+		}
+	}
+	result = DNS_R_SUCCESS;
+ failure:
+	return (result);
+}
+
+/*
+ * XXX uses qsort(); a merge sort would be more natural for lists,
+ * and perhaps safer wrt thread stack overflow.
+ */
+dns_result_t
+dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
+	unsigned int length = 0;
+	unsigned int i;
+	dns_difftuple_t **v;
+	dns_difftuple_t *p;
+	REQUIRE(VALID_DIFF(diff));
+	
+	for (p = ISC_LIST_HEAD(diff->tuples);
+	     p != NULL;
+	     p = ISC_LIST_NEXT(p, link))
+		length++;
+	if (length == 0)
+		return (ISC_R_SUCCESS);
+	v = isc_mem_get(diff->mctx, length * sizeof(dns_difftuple_t *));
+	if (v == NULL)
+		return (DNS_R_NOMEMORY);
+	i = 0;
+	for (i = 0; i < length; i++) {
+		p = ISC_LIST_HEAD(diff->tuples);
+		v[i] = p;
+		ISC_LIST_UNLINK(diff->tuples, p, link);
+	}
+	INSIST(ISC_LIST_HEAD(diff->tuples) == NULL);
+	qsort(v, length, sizeof(v[0]), compare);
+	for (i = 0; i < length; i++) {
+		ISC_LIST_APPEND(diff->tuples, v[i], link);
+	}
+	isc_mem_put(diff->mctx, v, length * sizeof(dns_difftuple_t *));
+	return (ISC_R_SUCCESS);
+}
+
+
+/*
+ * Create an rdataset containing the single RR of the given
+ * tuple.  The caller must allocate both the rdataset and
+ * an rdatalist structure for it to refer to.
+ */
+
+static dns_result_t
+diff_tuple_tordataset(dns_difftuple_t *t, dns_rdatalist_t *rdl,
+		      dns_rdataset_t *rds)
+{
+	REQUIRE(VALID_DIFFTUPLE(t));
+	REQUIRE(rdl != NULL);
+	REQUIRE(rds != NULL);
+	
+	rdl->type = t->rdata.type;
+	rdl->rdclass = t->rdata.rdclass;
+	rdl->ttl = t->ttl;
+	ISC_LIST_INIT(rdl->rdata);
+	ISC_LINK_INIT(rdl, link);
+	dns_rdataset_init(rds);
+	ISC_LIST_APPEND(rdl->rdata, &t->rdata, link);
+	return (dns_rdatalist_tordataset(rdl, rds));
+}
+
+void
+dns_diff_print(dns_diff_t *diff) {
+	dns_result_t result;
+	dns_difftuple_t *t;
+	REQUIRE(VALID_DIFF(diff));
+
+	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
+	     t = ISC_LIST_NEXT(t, link))
+	{
+		isc_buffer_t buf;
+		char mem[2000];
+		isc_region_t r;
+
+		dns_rdatalist_t rdl;
+		dns_rdataset_t rds;		
+		result = diff_tuple_tordataset(t, &rdl, &rds);
+		if (result != DNS_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "diff_tuple_tordataset failed: %s",
+					 dns_result_totext(result));
+			return;
+		}
+		
+		isc_buffer_init(&buf, mem, sizeof(mem), ISC_BUFFERTYPE_TEXT);
+		result = dns_rdataset_totext(&rds, &t->name,
+					     ISC_FALSE, ISC_FALSE, &buf);
+
+		if (result == DNS_R_SUCCESS) {
+			isc_buffer_used(&buf, &r);
+			printf("%s %.*s", t->op == DNS_DIFFOP_ADD ?
+			       "add" : "del",
+			       (int) r.length, (char *) r.base);
+		} else {
+			printf("<diff RR too long to print>\n");
+		}
+	}
+}
+
+/**************************************************************************/
+/*
+ * Journalling.
+ */
+
+/*
+ * A journal file consists of
+ *
+ *   - A fixed-size header of type journal_rawheader_t.
+ *
+ *   - The index.  This is an unordered array of index entries
+ *     of type journal_rawpos_t giving the locations
+ *     of some arbitrary subset of the journal's addressable 
+ *     transactions.  The index entries are used as hints to 
+ *     speed up the process of locating a transaction with a given 
+ *     serial number.  Unused index entries have an "offset"
+ *     field of zero.  The size of the index can vary between 
+ *     journal files, but does not change during the lifetime
+ *     of a file.  The size can be zero.
+ *
+ *   - The journal data.  This  consists of one or more transactions.
+ *     Each transaction begins with a transaction header of type
+ *     journal_rawxhdr_t.  The transaction header is followed by a 
+ *     sequence of RRs, similar in structure to an IXFR difference 
+ *     sequence (RFC1995).  That is, the pre-transaction SOA,
+ *     zero or more other deleted RRs, the post-transaction SOA, 
+ *     and zero or more other added RRs.  Unlike in IXFR, each RR 
+ *     is prefixed with a 32-bit length.
+ *
+ *     The journal data part grows as new transactions are
+ *     appended to the file.  Only those transactions 
+ *     whose serial number is current-(2^31-1) to current
+ *     are considered "addressable" and may be pointed
+ *     to from the header or index.  They may be preceded
+ *     by old transactions that are no longer addressable,
+ *     and they may be followed by transactions that were
+ *     appended to the journal but never committed by updating
+ *     the "end" position in the header.  The latter will
+ *     be overwritten when new transactions are added.
+ */
+ 
+/*
+ * On-disk representation of a "pointer" to a journal entry.
+ * These are used in the journal header to locate the beginning
+ * and end of the journal, and in the journal index to locate
+ * other transactions.
+ */
+typedef struct {
+	unsigned char	serial[4];  /* SOA serial before update. */
+	/*
+	 * XXXRTH  Should offset be 8 bytes?
+	 */
+	unsigned char	offset[4];  /* Offset from beginning of file. */
+} journal_rawpos_t;
+
+/*
+ * The on-disk representation of the journal header.
+ * All numbers are stored in big-endian order.
+ */
+
+/*
+ * The header is of a fixed size, with some spare room for future
+ * extensions.
+ */
+#define JOURNAL_HEADER_SIZE 64 /* Bytes. */
+
+typedef union {
+	struct {
+		/* File format version ID. */
+		unsigned char 		format[16];
+		/* Position of the first addressable transaction */
+		journal_rawpos_t 	begin;
+		/* Position of the next (yet nonexistent) transaction. */
+		journal_rawpos_t 	end;	    
+		/* Number of index entries following the header. */
+		unsigned char 		index_size[4];
+	} h;
+	/* Pad the header to a fixed size. */
+	unsigned char pad[JOURNAL_HEADER_SIZE];
+} journal_rawheader_t;
+
+/*
+ * The on-disk representation of the transaction header.
+ * There is one of these at the beginning of each transaction.
+ */
+typedef struct {
+	unsigned char	size[4]; 	/* In bytes, excluding header. */
+	unsigned char	serial0[4];	/* SOA serial before update. */
+	unsigned char	serial1[4];	/* SOA serial after update. */
+} journal_rawxhdr_t;
+
+/*
+ * The on-disk representation of the RR header.
+ * There is one of these at the beginning of each RR.
+ */
+typedef struct {
+	unsigned char	size[4]; 	/* In bytes, excluding header. */
+} journal_rawrrhdr_t;
+
+/* The in-core representation of the journal header. */
+
+typedef struct {
+	isc_uint32_t	serial;
+	/*
+	 * XXXRTH  Should offset be 8 bytes?
+	 */
+	isc_uint32_t	offset;
+} journal_pos_t;
+
+#define POS_VALID(pos) 		((pos).offset != 0)
+#define POS_INVALIDATE(pos) 	((pos).offset = 0, (pos).serial = 0)
+
+typedef struct {
+	unsigned char 	format[16];
+	journal_pos_t 	begin;
+	journal_pos_t 	end;
+	isc_uint32_t	index_size;
+} journal_header_t;
+
+/* The in-core representation of the transaction header. */
+
+typedef struct {
+	isc_uint32_t	size;
+	isc_uint32_t	serial0;	
+	isc_uint32_t	serial1;	
+} journal_xhdr_t;
+
+/* The in-core representation of the RR header. */
+
+typedef struct {
+	isc_uint32_t	size;
+} journal_rrhdr_t;
+
+
+/*
+ * Initial contents to store in the header of a newly created
+ * journal file.
+ *
+ * The header starts with the magic string ";BIND LOG V9\n"
+ * to identify the file as a BIND 9 journal file.  An ASCII
+ * identification string is used rather than a binary magic 
+ * number to be consistent with BIND 8 (BIND 8 journal files
+ * are ASCII text files).
+ */
+   
+static journal_header_t
+initial_journal_header = { ";BIND LOG V9\n", { 0, 0 }, { 0, 0 }, 0 };
+
+#define JOURNAL_EMPTY(h) ((h)->begin.offset == (h)->end.offset)
+
+typedef enum {
+	JOURNAL_STATE_INVALID,
+	JOURNAL_STATE_READ,
+	JOURNAL_STATE_WRITE,
+	JOURNAL_STATE_TRANSACTION,
+} journal_state_t;
+
+
+struct dns_journal {
+	unsigned int		magic;		/* JOUR */
+	isc_mem_t		*mctx;		/* Memory context */
+	journal_state_t		state;
+	char 			*filename;	/* Journal file name */
+	FILE *			fp;		/* File handle */
+	off_t			offset;		/* Current file offset */
+	journal_header_t 	header;		/* In-core journal header */
+	journal_pos_t		*index;		/* In-core journal index */
+
+	/* Current transaction state (when writing). */
+	struct {
+		unsigned int	n_soa;		/* Number of SOAs seen */
+		journal_pos_t	pos[2];		/* Begin/end position */
+	} x;
+	
+	/* Iteration state (when reading). */
+	struct {
+		/* These define the part of the journal we iterate over. */
+		journal_pos_t bpos;		/* Position before first, */
+		journal_pos_t epos;		/* and after last
+						   transaction */
+		/* The rest is iterator state. */
+		isc_uint32_t current_serial;	/* Current SOA serial */
+		isc_buffer_t source;		/* Data from disk */
+		isc_buffer_t target;		/* Data from _fromwire check */
+		dns_decompress_t dctx;		/* Dummy decompression ctx */
+		dns_name_t name;		/* Current domain name */
+		dns_rdata_t rdata;		/* Current rdata */
+		isc_uint32_t ttl;		/* Current TTL */
+		unsigned int xsize;		/* Size of transaction data */
+		unsigned int xpos;		/* Current position in it */
+		dns_result_t result;		/* Result of last call */
+	} it;
+};
+
+#define JOURNAL_MAGIC			0x4a4f5552U	/* JOUR. */
+#define VALID_JOURNAL(t)		((t) != NULL && \
+						 (t)->magic == JOURNAL_MAGIC)
+
+static void
+journal_pos_decode(journal_rawpos_t *raw, journal_pos_t *cooked)
+{
+	cooked->serial = decode_uint32(raw->serial);
+	cooked->offset = decode_uint32(raw->offset);
+}
+
+static void
+journal_pos_encode(journal_rawpos_t *raw, journal_pos_t *cooked)
+{
+	encode_uint32(cooked->serial, raw->serial);
+	encode_uint32(cooked->offset, raw->offset);
+}
+
+static void
+journal_header_decode(journal_rawheader_t *raw, journal_header_t *cooked)
+{
+	INSIST(sizeof(cooked->format) == sizeof(raw->h.format));
+	memcpy(cooked->format, raw->h.format, sizeof(cooked->format));
+	journal_pos_decode(&raw->h.begin, &cooked->begin); 
+	journal_pos_decode(&raw->h.end, &cooked->end);
+	cooked->index_size = decode_uint32(raw->h.index_size);
+}
+
+static void
+journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw)
+{
+	INSIST(sizeof(cooked->format) == sizeof(raw->h.format));
+	memset(raw->pad, 0, sizeof(raw->pad));
+	memcpy(raw->h.format, cooked->format, sizeof(raw->h.format));
+	journal_pos_encode(&raw->h.begin, &cooked->begin); 
+	journal_pos_encode(&raw->h.end, &cooked->end);
+	encode_uint32(cooked->index_size, raw->h.index_size);
+}
+
+
+/* Journal file I/O subroutines, with error checking and reporting. */
+  
+/*
+ * XXXRTH  You may not use UNIX I/O routines.  Use fread()/fwrite()/fseek().
+ *	   Alternatively, we can create isc_file_t.  We may need to do this
+ *	   anyway at some point, to provide "safe open" semantics (see
+ *	   write_open() in BIND 8's ns_config.c).  We also need a portable
+ *	   "fsync()", so isc_file_t is looking more and more probable.
+ */
+
+static dns_result_t
+journal_seek(dns_journal_t *j, isc_uint32_t offset) {
+	int seek_result;
+	seek_result = fseek(j->fp, (long) offset, SEEK_SET);
+	if (seek_result != 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: seek: %s",
+				 j->filename, strerror(errno));
+		return (DNS_R_UNEXPECTED);
+	}
+	j->offset = offset;
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+journal_read(dns_journal_t *j, void *mem, size_t nbytes) {
+	size_t nread;
+
+	clearerr(j->fp);
+	nread = fread(mem, 1, nbytes, j->fp);
+	if (nread != nbytes) {
+		if (feof(j->fp))
+			return (DNS_R_NOMORE);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: read: %s",
+				 j->filename, strerror(errno));
+		return (DNS_R_UNEXPECTED);
+	}
+	j->offset += nbytes;
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
+	size_t nwritten;
+
+	clearerr(j->fp);	
+	nwritten = fwrite(mem, 1, nbytes, j->fp);
+	if (nwritten != nbytes) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: write: %s",
+				 j->filename, strerror(errno));
+		return (DNS_R_UNEXPECTED);
+	}
+	j->offset += nbytes;	
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+journal_fsync(dns_journal_t *j) {
+	int r;
+	r = fflush(j->fp);
+	if (r < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: fflush: %s",
+				 j->filename,
+				 strerror(errno));
+		return (DNS_R_UNEXPECTED);
+	}
+	r = fsync(fileno(j->fp));
+	if (r < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: fsync: %s",
+				 j->filename,
+				 strerror(errno));
+		return (DNS_R_UNEXPECTED);
+	}
+	return (DNS_R_SUCCESS);
+}
+
+/* Read/write a transaction header at the current file position. */
+   
+static dns_result_t
+journal_read_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr) {
+	journal_rawxhdr_t raw;
+	dns_result_t result;
+	result = journal_read(j, &raw, sizeof(raw));
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	xhdr->size = decode_uint32(raw.size);
+	xhdr->serial0 = decode_uint32(raw.serial0);
+	xhdr->serial1 = decode_uint32(raw.serial1);
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+journal_write_xhdr(dns_journal_t *j, isc_uint32_t size,
+		   isc_uint32_t serial0, isc_uint32_t serial1)
+{
+	journal_rawxhdr_t raw;
+	encode_uint32(size, raw.size);
+	encode_uint32(serial0, raw.serial0);
+	encode_uint32(serial1, raw.serial1);
+	return (journal_write(j, &raw, sizeof(raw)));
+}
+
+
+/* Read an RR header at the current file position. */
+   
+static dns_result_t
+journal_read_rrhdr(dns_journal_t *j, journal_rrhdr_t *rrhdr) {
+	journal_rawrrhdr_t raw;
+	dns_result_t result;
+	result = journal_read(j, &raw, sizeof(raw));
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	rrhdr->size = decode_uint32(raw.size);
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+journal_file_create(isc_mem_t *mctx, char *filename) {
+	FILE *fp;
+	int r;
+	size_t nwritten;
+	journal_header_t header;
+	journal_rawheader_t rawheader;
+	int index_size = 56; /* XXX configurable */
+	int size;
+	void *mem; /* Memory for temporary index image. */
+
+	INSIST(sizeof(journal_rawheader_t) == JOURNAL_HEADER_SIZE);
+	       
+	fp = fopen(filename, "w");
+	if (fp == 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: create: %s",
+				 filename, strerror(errno));
+		return (DNS_R_UNEXPECTED);
+	}
+
+	header = initial_journal_header;
+	header.index_size = index_size;
+	journal_header_encode(&header, &rawheader);
+
+	size = sizeof(journal_rawheader_t) +
+		index_size * sizeof(journal_rawpos_t);
+
+	mem = isc_mem_get(mctx, size);
+	if (mem == NULL) {
+		(void) fclose(fp);
+		(void) unlink(filename);		
+		return (DNS_R_NOMEMORY);
+	}
+	memset(mem, 0, size);
+	memcpy(mem, &rawheader, sizeof(rawheader));
+
+	nwritten = fwrite(mem, 1, (size_t) size, fp);
+	if (nwritten != (size_t) size) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: write: %s",
+				 filename, strerror(errno));
+		(void) fclose(fp);
+		(void) unlink(filename);		
+		isc_mem_put(mctx, mem, size); 
+		return (DNS_R_UNEXPECTED);
+	}
+	isc_mem_put(mctx, mem, size); 	
+	
+	r = fclose(fp);
+	if (r != 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: close: %s",
+				 filename, strerror(errno));
+		(void) unlink(filename);
+		return (DNS_R_UNEXPECTED);
+	}
+
+	return (DNS_R_SUCCESS);
+}
+				    
+
+dns_result_t
+dns_journal_open(isc_mem_t *mctx, char *filename, isc_boolean_t write,
+		 dns_journal_t **journalp) {
+	FILE *fp;
+	dns_result_t result;
+	journal_rawheader_t rawheader;
+	dns_journal_t *j;
+	
+	INSIST(journalp != NULL && *journalp == NULL);
+	j = isc_mem_get(mctx, sizeof(*j));
+	if (j == NULL)
+		return (ISC_R_NOMEMORY);
+	
+	j->mctx = mctx;
+	j->state = JOURNAL_STATE_INVALID;
+	j->fp = 0;
+	j->filename = filename;
+	j->index = NULL;
+
+	/* XXX fopen() will need "b" (binary) on some platforms */
+	fp = fopen(j->filename, write ? "r+" : "r");
+	if (fp == 0 && errno == ENOENT) {
+		if (write) {
+			printf("journal file %s does not exist, creating it\n",
+			       j->filename);
+			CHECK(journal_file_create(mctx, filename));
+			/* Retry. */
+			fp = fopen(j->filename, "r+");
+		} else {
+			FAIL(ISC_R_NOTFOUND);
+		}
+	}
+	if (fp == 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: open: %s",
+				 j->filename, strerror(errno));
+		FAIL(DNS_R_UNEXPECTED);
+	}
+
+	j->fp = fp;
+
+	/* Set magic early so that seek/read can succeed. */
+	j->magic = JOURNAL_MAGIC; 
+
+	CHECK(journal_seek(j, 0));
+	CHECK(journal_read(j, &rawheader, sizeof(rawheader)));
+
+	if (memcmp(rawheader.h.format, initial_journal_header.format,
+		   sizeof(initial_journal_header.format)) != 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: jornal format not recognized",
+				 j->filename);
+		FAIL(DNS_R_UNEXPECTED);
+	}
+	journal_header_decode(&rawheader, &j->header);
+
+	/*
+	 * When opening a journal for reading, it is not supposed to
+	 * be empty - if there are no transactions, the file should
+	 * not exist.
+	 */
+	if (! write && JOURNAL_EMPTY(&j->header)) {
+		printf("journal file %s is empty\n", j->filename);
+		FAIL(DNS_R_NOTFOUND);
+	}
+	
+	/*
+	 * If there is an index, read it into dynamically allocated
+	 * memory and byte swap it if necessary.
+	 */
+	if (j->header.index_size != 0) {
+		unsigned int i;
+		INSIST(sizeof(journal_rawpos_t) == sizeof(journal_pos_t));
+		j->index = isc_mem_get(mctx, j->header.index_size *
+				       sizeof(journal_rawpos_t));
+		if (j->index == NULL)
+			FAIL(ISC_R_NOMEMORY);
+		
+		CHECK(journal_read(j, j->index, j->header.index_size *
+				   sizeof(journal_rawpos_t)));
+		for (i = 0; i < j->header.index_size; i++) {
+			j->index[i].serial = ntohl(j->index[i].serial);
+			j->index[i].offset = ntohl(j->index[i].offset);
+		}
+	}
+	j->offset = -1; /* Invalid, must seek explicitly. */
+
+	/* Initialize the iterator. */
+
+	dns_name_init(&j->it.name, NULL);
+	dns_rdata_init(&j->it.rdata);
+	
+	/*
+	 * Set up empty initial buffers for uncheched and checked
+	 * wire format RR data.  They will be reallocated
+	 * later.
+	 */
+	isc_buffer_init(&j->it.source, NULL, 0, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&j->it.target, NULL, 0, ISC_BUFFERTYPE_BINARY);
+	dns_decompress_init(&j->it.dctx, -1, ISC_FALSE);
+
+	j->state =
+		write ? JOURNAL_STATE_WRITE : JOURNAL_STATE_READ;
+	
+	*journalp = j;
+	return (DNS_R_SUCCESS);
+
+ failure:
+	j->magic = 0;
+	if (j->index != NULL) {
+		isc_mem_put(j->mctx, j->index, j->header.index_size *
+			    sizeof(journal_rawpos_t));
+		j->index = NULL;
+	}
+	if (j->fp != NULL)
+		(void) fclose(j->fp);
+	isc_mem_put(j->mctx, j, sizeof(*j));		
+	return (result);
+}
+
+/*
+ * A comparison function defining the sorting order for
+ * entries in the IXFR-style journal file.
+ *
+ * The IXFR format requires that deletions are sorted before
+ * additions, and within either one, SOA records are sorted
+ * before others.
+ *
+ * Also sort the non-SOA records by type as a courtesy to the
+ * server receiving the IXFR - it may help reduce the amount of
+ * rdataset merging it has to do.
+ */
+static int 
+ixfr_order(const void *av, const void *bv)
+{
+	dns_difftuple_t * const *ap = av;
+	dns_difftuple_t * const *bp = bv;
+	dns_difftuple_t *a = *ap;
+	dns_difftuple_t *b = *bp;
+	int r;
+
+	r = (b->op == DNS_DIFFOP_DEL) - (a->op == DNS_DIFFOP_DEL);
+	if (r != 0)
+		return (r);
+	
+	r = (b->rdata.type == dns_rdatatype_soa) -
+		(a->rdata.type == dns_rdatatype_soa);
+	if (r != 0)
+		return (r);
+
+	r = (a->rdata.type - b->rdata.type);
+	return (r);
+}
+
+/*
+ * Advance '*pos' to the next journal transaction.
+ * 
+ * Requires:
+ *	*pos refers to a valid journal transaction.
+ *
+ * Ensures:
+ *	When DNS_R_SUCCESS is returned,
+ *	*pos refers to the next journal transaction.
+ *
+ * Returns one of:
+ *
+ *    DNS_R_SUCCESS 
+ *    DNS_R_NOMORE 	*pos pointed at the last transaction
+ *    Other results due to file errors are possible.
+ */
+static dns_result_t
+journal_next(dns_journal_t *j, journal_pos_t *pos) {
+	dns_result_t result;
+	journal_xhdr_t xhdr;
+	REQUIRE(VALID_JOURNAL(j));
+	
+	result = journal_seek(j, pos->offset);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	/*
+	 * Read the header of the current transaction.
+	 * This will return DNS_R_NOMORE if we are at EOF.
+	 */
+	result = journal_read_xhdr(j, &xhdr);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	/* Check serial number consistency. */
+	if (xhdr.serial0 != pos->serial) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: journal corrupt: "
+				 "expected serial %u, got %u",
+				 j->filename,
+				 pos->serial, xhdr.serial0);
+		return (DNS_R_UNEXPECTED);
+	}
+
+	/* Check for offset wraparound. */
+	if (pos->offset + xhdr.size < pos->offset) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: offset too large",
+				 j->filename);
+		return (DNS_R_UNEXPECTED);		
+	}
+	
+	pos->offset += sizeof(journal_rawxhdr_t) + xhdr.size;
+	pos->serial = xhdr.serial1;
+	return (DNS_R_SUCCESS);
+}
+
+
+/*
+ * If the index of the journal 'j' contains an entry "better"
+ * than '*best_guess', replace '*best_guess' with it.
+ *
+ * "Better" means having a serial number closer to 'serial'
+ * but not greater than 'serial'.
+ */
+static void
+index_find(dns_journal_t *j, isc_uint32_t serial, journal_pos_t *best_guess) {
+	unsigned int i;
+	if (j->index == NULL)
+		return;
+	for (i = 0; i < j->header.index_size; i++) {
+		if (POS_VALID(j->index[i]) &&
+		    DNS_SERIAL_GE(serial, j->index[i].serial) &&
+		    DNS_SERIAL_GT(j->index[i].serial, best_guess->serial))
+			*best_guess = j->index[i];
+	}
+}
+
+/*
+ * Add a new index entry.  If there is no room, make room by removing
+ * the odd-numbered entries and compacting the others into the first
+ * half of the index.  This decimates old index entries exponentially
+ * over time, so that the index always contains a much larger fraction
+ * of recent serial numbers than of old ones.  This is deliberate - 
+ * most index searches are for outgoing IXFR, and IXFR tends to request
+ * recent versions more often than old ones.
+ */
+static void
+index_add(dns_journal_t *j, journal_pos_t *pos) {
+	unsigned int i;
+	if (j->index == NULL)
+		return;
+	/* Search for a vacant position. */
+	for (i = 0; i < j->header.index_size; i++) {
+		if (! POS_VALID(j->index[i]))
+			break;
+	}
+	if (i == j->header.index_size) {
+		unsigned int k = 0;
+		/* Found no vacant position.  Make some room. */
+		for (i = 0; i < j->header.index_size; i += 2) {
+			j->index[k++] = j->index[i];
+		}
+		i = k; /* 'i' identifies the first vacant position. */
+		while (k < j->header.index_size) {
+			POS_INVALIDATE(j->index[k]);
+			k++;
+		}
+	}
+	INSIST(i < j->header.index_size); 
+	INSIST(! POS_VALID(j->index[i]));
+
+	/* Store the new index entry. */
+	j->index[i] = *pos;
+}
+
+/*
+ * Invalidate any existing index entries that could become
+ * ambiguous when a new transaction with number 'serial' is added.
+ */
+static void
+index_invalidate(dns_journal_t *j, isc_uint32_t serial)
+{
+	unsigned int i;
+	if (j->index == NULL)
+		return;
+	for (i = 0; i < j->header.index_size; i++) {
+		if (! DNS_SERIAL_GT(serial, j->index[i].serial))
+			POS_INVALIDATE(j->index[i]);
+	}
+}
+
+/*
+ * Try to find a transaction with initial serial number 'serial'
+ * in the journal 'j'.
+ *
+ * If found, store its position at '*pos' and return DNS_R_SUCCESS.
+ *
+ * If 'serial' is current (= the ending serial number of the
+ * last transaction in the journal), set '*pos' to 
+ * the position immediately following the last transaction and
+ * return DNS_R_SUCCESS.
+ *
+ * If 'serial' is within the range of addressable serial numbers 
+ * covered by the journal but that particular serial number is missing
+ * (from the journal, not just from the index), return DNS_R_NOTFOUND.
+ *
+ * If 'serial' is outside the range of addressable serial numbers
+ * covered by the journal, return DNS_R_RANGE.
+ * 
+ */
+static dns_result_t
+journal_find(dns_journal_t *j, isc_uint32_t serial, journal_pos_t *pos) {
+	dns_result_t result;
+	journal_pos_t current_pos;
+	REQUIRE(VALID_JOURNAL(j));
+	
+	if (DNS_SERIAL_GT(j->header.begin.serial, serial))
+		return (DNS_R_RANGE);
+	if (DNS_SERIAL_GT(serial, j->header.end.serial))
+		return (DNS_R_RANGE);
+	if (serial == j->header.end.serial) {
+		*pos = j->header.end;
+		return (DNS_R_SUCCESS);
+	}
+
+	current_pos = j->header.begin;
+	index_find(j, serial, &current_pos);
+	
+	while (current_pos.serial != serial) {
+		if (DNS_SERIAL_GT(current_pos.serial, serial))
+			return (DNS_R_NOTFOUND);
+		result = journal_next(j, &current_pos);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
+	*pos = current_pos;
+	return (DNS_R_SUCCESS);
+}
+
+/* XXX this should be in isc/buffer.{h,c} */
+   
+static void
+isc_buffer_putmem(isc_buffer_t *b, void *src, unsigned int length);
+/*
+ * Store 'length' bytes of data starting at 'src' into 'b'.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	The length of the unused region of 'b' is at least 'length'.
+ *
+ * Ensures:
+ *	The used pointer in 'b' is advanced by 'length'.
+ */
+
+static void
+isc_buffer_putmem(isc_buffer_t *b, void *src, unsigned int length)
+{
+	isc_region_t avail;
+	isc_buffer_available(b, &avail);
+	INSIST(avail.length >= length);
+	memcpy(avail.base, src, length);
+	isc_buffer_add(b, length);
+}	
+
+dns_result_t
+dns_journal_begin_transaction(dns_journal_t *j) {
+	isc_uint32_t offset;
+	dns_result_t result;
+	journal_rawxhdr_t hdr;
+		
+	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(j->state == JOURNAL_STATE_WRITE);
+	
+	/*
+	 * Find the file offset where the new transaction should
+	 * be written, and seek there.
+	 */
+	if (JOURNAL_EMPTY(&j->header)) {
+		offset = sizeof(journal_rawheader_t) +
+			j->header.index_size * sizeof(journal_rawpos_t);
+	} else {
+		offset = j->header.end.offset;
+	}
+	j->x.pos[0].offset = offset;
+	j->x.pos[1].offset = offset; /* Initial value, will be incremented. */
+	j->x.n_soa = 0;
+
+	CHECK(journal_seek(j, offset));
+	
+	/*
+	 * Write a dummy transaction header of all zeroes to reserve
+	 * space.  It will be filled in when the transaction is
+	 * finished.
+	 */
+	memset(&hdr, 0, sizeof(hdr));
+	CHECK(journal_write(j, &hdr, sizeof(hdr)));
+	j->x.pos[1].offset = j->offset;
+
+	j->state = JOURNAL_STATE_TRANSACTION;
+	result = DNS_R_SUCCESS;
+ failure:
+	return (result);
+}	
+
+dns_result_t
+dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
+	dns_difftuple_t *t;
+	isc_buffer_t buffer;
+	void *mem = NULL;
+	unsigned int size;
+	dns_result_t result;
+	isc_region_t used;
+	
+	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
+	
+	printf("writing diff: \n");
+	dns_diff_print(diff);
+
+	/*
+	 * Pass 1: determine the buffer size needed, and
+	 * keep track of SOA serial numbers.
+	 */
+	size = 0;
+	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
+	     t = ISC_LIST_NEXT(t, link))
+	{
+		if (t->rdata.type == dns_rdatatype_soa) {
+			if (j->x.n_soa < 2)
+				j->x.pos[j->x.n_soa].serial =
+					dns_soa_getserial(&t->rdata);
+			j->x.n_soa++; 
+		}
+		size += sizeof(journal_rawrrhdr_t);
+		size += t->name.length; /* XXX should have access macro? */
+		size += 10;
+		size += t->rdata.length;
+	}
+
+	mem = isc_mem_get(j->mctx, size);
+	if (mem == NULL)
+		return (DNS_R_NOMEMORY);
+	
+	isc_buffer_init(&buffer, mem, size, ISC_BUFFERTYPE_BINARY);
+
+	/*
+	 * Pass 2.  Write RRs to buffer.
+	 */
+	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
+	     t = ISC_LIST_NEXT(t, link))
+	{
+		isc_region_t avail;
+		/* Write the RR header */
+		isc_buffer_putuint32(&buffer, t->name.length + 10 +
+				     t->rdata.length);
+		/* Write the owner name, RR header, and RR data. */
+		isc_buffer_putmem(&buffer, t->name.ndata, t->name.length);
+		isc_buffer_putuint16(&buffer, t->rdata.type);
+		isc_buffer_putuint16(&buffer, t->rdata.rdclass);
+		isc_buffer_putuint32(&buffer, t->ttl);
+		isc_buffer_putuint16(&buffer, t->rdata.length);
+		isc_buffer_available(&buffer, &avail);
+		isc_buffer_putmem(&buffer, t->rdata.data, t->rdata.length);		
+	}
+	
+	isc_buffer_used(&buffer, &used);
+	INSIST(used.length == size);
+
+	j->x.pos[1].offset += used.length;
+		
+	/* Write the buffer contents to the journal file. */
+	CHECK(journal_write(j, used.base, used.length));
+
+	result = DNS_R_SUCCESS;
+
+ failure:
+	if (mem != NULL)
+		isc_mem_put(j->mctx, mem, size);
+	return (result);
+	
+}
+
+dns_result_t
+dns_journal_commit(dns_journal_t *j) {
+	dns_result_t result;
+	journal_rawheader_t rawheader;
+	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
+	
+	/* Perform some basic consistency checks. */
+	if (j->x.n_soa != 2) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "malformed transaction: %d SOAs",
+				 j->x.n_soa);
+		return (ISC_R_UNEXPECTED);
+	}
+	if (! (DNS_SERIAL_GT(j->x.pos[1].serial, j->x.pos[0].serial) ||
+	       (bind8_compat &&
+		j->x.pos[1].serial == j->x.pos[0].serial)))
+	{
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "malformed transaction: serial number "
+				 "would decrease"); 
+		return (ISC_R_UNEXPECTED);
+	}
+	if (! JOURNAL_EMPTY(&j->header)) {
+		if (j->x.pos[0].serial != j->header.end.serial) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "malformed transaction: "
+					 "%s last serial %u != "
+					 "transaction first serial %u",
+					 j->filename,
+					 j->header.end.serial,
+					 j->x.pos[0].serial);
+			return (DNS_R_UNEXPECTED);
+		}
+	}
+	
+	/*
+	 * Some old journal entries may become non-addressable
+	 * when we increment the current serial number.  Purge them
+	 * by stepping header.begin forward to the first addressable
+	 * transaction.  Also purge them from the index.
+	 */
+	if (! JOURNAL_EMPTY(&j->header)) {
+		while (! DNS_SERIAL_GT(j->x.pos[1].serial,
+				       j->header.begin.serial)) {
+			CHECK(journal_next(j, &j->header.begin));
+		}
+		index_invalidate(j, j->x.pos[1].serial);
+	}
+#ifdef notyet
+	if (DNS_SERIAL_GT(last_dumped_serial, j->x.pos[1].serial)) {
+		force_dump(...);
+	}
+#endif
+
+	/* Commit the transaction data to stable storage. */
+	CHECK(journal_fsync(j));
+
+	/* Update the transaction header. */
+	CHECK(journal_seek(j, j->x.pos[0].offset));
+	CHECK(journal_write_xhdr(j, (j->x.pos[1].offset - j->x.pos[0].offset) -
+				 sizeof(journal_rawxhdr_t),
+				 j->x.pos[0].serial, j->x.pos[1].serial));
+
+	/* Update the journal header. */
+	if (JOURNAL_EMPTY(&j->header)) {
+		j->header.begin = j->x.pos[0];
+	}
+	j->header.end = j->x.pos[1];
+	journal_header_encode(&j->header, &rawheader);	
+	CHECK(journal_seek(j, 0));
+	CHECK(journal_write(j, &rawheader, sizeof(rawheader)));
+	
+	/* Update the index.  Byte swap if necessary. */
+	/* XXX leaves index in wrong byte order */
+	index_add(j, &j->x.pos[0]);
+	if (j->header.index_size != 0) {
+		unsigned int i;
+		for (i = 0; i < j->header.index_size; i++) {
+			j->index[i].serial = ntohl(j->index[i].serial);
+			j->index[i].offset = ntohl(j->index[i].offset);
+		}
+		CHECK(journal_write(j, j->index, j->header.index_size *
+				    sizeof(journal_rawpos_t)));
+	}
+
+	/* Commit the header to stable storage. */
+	CHECK(journal_fsync(j));
+	j->state = JOURNAL_STATE_INVALID; /* Since the byte order is wrong. */
+	
+	result = DNS_R_SUCCESS;
+
+ failure:
+	return (result);
+}
+
+dns_result_t
+dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff) {
+	dns_result_t result;
+	CHECK(dns_diff_sort(diff, ixfr_order));
+	CHECK(dns_journal_begin_transaction(j));
+	CHECK(dns_journal_writediff(j, diff));
+	CHECK(dns_journal_commit(j));
+	result = DNS_R_SUCCESS;
+ failure:
+	return (result);
+}
+
+void
+dns_journal_destroy(dns_journal_t **journalp) {
+	dns_journal_t *j = *journalp;
+	REQUIRE(VALID_JOURNAL(j));
+
+	j->it.result = ISC_R_FAILURE;
+	dns_name_invalidate(&j->it.name);
+	dns_decompress_invalidate(&j->it.dctx);
+	if (j->index != NULL)
+		isc_mem_put(j->mctx, j->index, j->header.index_size *
+			    sizeof(journal_rawpos_t));
+	if (j->it.target.base != NULL)
+		isc_mem_put(j->mctx, j->it.target.base, j->it.target.length);
+	if (j->it.source.base != NULL)
+		isc_mem_put(j->mctx, j->it.source.base, j->it.source.length);
+
+	if (j->fp != NULL)
+		(void) fclose(j->fp);
+	j->magic = 0;
+	isc_mem_put(j->mctx, j, sizeof(*j));
+	*journalp = NULL;
+}
+	
+/*
+ * Roll the open journal 'j' into the database 'db'.
+ * A new database version will be created.
+ */
+
+/* XXX Share code with incoming IXFR? */
+
+static dns_result_t
+roll_forward(dns_journal_t *j, dns_db_t *db) {
+	isc_buffer_t source;		/* Transaction data from disk */
+	isc_buffer_t target;		/* Ditto after _fromwire check */
+	isc_uint32_t db_serial;		/* Database SOA serial */
+	isc_uint32_t end_serial;	/* Last journal SOA serial */
+	dns_result_t result;
+	dns_dbversion_t *ver = NULL;
+	journal_pos_t pos;
+	dns_diff_t diff;
+	unsigned int n_soa = 0;
+	unsigned int n_put = 0;
+	
+	REQUIRE(VALID_JOURNAL(j));
+	REQUIRE(DNS_DB_VALID(db));
+	
+	dns_diff_init(j->mctx, &diff);
+	
+	/*
+	 * Set up empty initial buffers for uncheched and checked
+	 * wire format transaction data.  They will be reallocated
+	 * later.
+	 */
+	isc_buffer_init(&source, NULL, 0, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, NULL, 0, ISC_BUFFERTYPE_BINARY);
+
+	/* Create the new database version. */
+	CHECK(dns_db_newversion(db, &ver));
+
+	/* Get the current database SOA serial number. */
+	CHECK(dns_db_getsoaserial(db, ver, &db_serial));
+
+	/* Locate a journal entry for the current database serial. */
+	CHECK(journal_find(j, db_serial, &pos));
+        /*
+	 * XXX do more drastic things, like marking zone stale,
+	 * if this fails?
+	 */
+	/*
+	 * XXXRTH  The zone code should probably mark the zone as bad and
+	 *         scream loudly into the log if this is a dynamic update
+	 *	   log reply that failed.
+	 */
+
+	end_serial = dns_journal_last_serial(j);
+	CHECK(dns_journal_iter_init(j, db_serial, end_serial));
+
+	for (result = dns_journal_first_rr(j);
+	     result == DNS_R_SUCCESS;
+	     result = dns_journal_next_rr(j))
+	{
+		dns_name_t *name;
+		isc_uint32_t ttl;
+		dns_rdata_t *rdata;
+		dns_difftuple_t *tuple = NULL;
+		
+		name = NULL;
+		rdata = NULL;
+		dns_journal_current_rr(j, &name, &ttl, &rdata);
+		
+		if (rdata->type == dns_rdatatype_soa)
+			n_soa++;
+
+		if (n_soa == 3)
+			n_soa = 1;
+		if (n_soa == 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "journal corrupt: missing "
+					 "initial SOA");
+			FAIL (DNS_R_UNEXPECTED);
+		}
+		CHECK(dns_difftuple_create(diff.mctx, n_soa == 1 ?
+					   DNS_DIFFOP_DEL : DNS_DIFFOP_ADD,
+					   name, ttl, rdata, &tuple));
+		dns_diff_append(&diff, &tuple);
+
+		if (++n_put > 100)  {
+			printf("applying diff:\n");
+			dns_diff_print(&diff);
+			CHECK(dns_diff_apply(&diff, db, ver));
+			dns_diff_clear(&diff);
+			n_put = 0;
+		}
+	}
+	if (result == DNS_R_NOMORE)
+		result = DNS_R_SUCCESS;
+	CHECK(result);
+
+	if (n_put != 0) {
+		printf("applying final diff:\n");
+		dns_diff_print(&diff);
+		CHECK(dns_diff_apply(&diff, db, ver));
+		dns_diff_clear(&diff);
+	}
+	
+ failure:
+	if (ver != NULL)
+		dns_db_closeversion(db, &ver, result == DNS_R_SUCCESS ?
+				    ISC_TRUE : ISC_FALSE);
+
+	if (source.base != NULL)
+		isc_mem_put(j->mctx, source.base, source.length);
+	if (target.base != NULL)
+		isc_mem_put(j->mctx, target.base, target.length);
+
+	dns_diff_clear(&diff);
+	
+	return (result);
+}
+
+dns_result_t
+dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, char *filename) {
+	dns_journal_t *j;
+	dns_result_t result;
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(filename != NULL);
+	
+	j = NULL;
+	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
+	if (result == DNS_R_NOTFOUND) {
+		printf("no journal file\n");
+		return (DNS_R_SUCCESS);
+	}
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = roll_forward(j, db);
+
+	dns_journal_destroy(&j);
+
+	return (result);
+}
+
+/**************************************************************************/
+/*
+ * Miscellaneous accessors.
+ */
+isc_uint32_t dns_journal_first_serial(dns_journal_t *j) {
+	return (j->header.begin.serial);
+}
+
+isc_uint32_t dns_journal_last_serial(dns_journal_t *j) {
+	return (j->header.end.serial);
+}
+
+/**************************************************************************/
+/*
+ * Iteration support.
+ *
+ * When serving an outgoing IXFR, we transmit a part the journal starting
+ * at the serial number in the IXFR request and ending at the serial
+ * number that is current when the IXFR request arrives.  The ending
+ * serial number is not necessarily at the end of the journal:
+ * the journal may grow while the IXFR is in progress, but we stop
+ * when we reach the serial number that was current when the IXFR started.
+ */
+
+static dns_result_t read_one_rr(dns_journal_t *j);
+
+/*
+ * Make sure the buffer 'b' is has at least 'size' bytes
+ * allocated, and clear it.
+ *
+ * Requires:
+ *	Either b->base is NULL, or it points to b->length bytes of memory
+ *	previously allocated by isc_mem_get().
+ */
+
+static dns_result_t
+size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned size) {
+	if (b->length < size) {
+		void *mem = isc_mem_get(mctx, size);
+		if (mem == NULL)
+			return (DNS_R_NOMEMORY);
+		if (b->base != NULL)
+			isc_mem_put(mctx, b->base, b->length);
+		b->base = mem;
+		b->length = size;
+	}
+	isc_buffer_clear(b);
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_journal_iter_init(dns_journal_t *j,
+		      isc_uint32_t begin_serial, isc_uint32_t end_serial)
+{
+	dns_result_t result;
+	
+	CHECK(journal_find(j, begin_serial, &j->it.bpos)); 
+	INSIST(j->it.bpos.serial == begin_serial);
+
+	CHECK(journal_find(j, end_serial, &j->it.epos)); 
+	INSIST(j->it.epos.serial == end_serial);
+
+	result = DNS_R_SUCCESS;
+ failure:
+	j->it.result = result;
+	return (j->it.result);
+}
+
+
+dns_result_t
+dns_journal_first_rr(dns_journal_t *j)
+{
+	dns_result_t result;
+
+	/* 
+	 * Seek to the beginning of the first transaction we are 
+	 * interested in.
+	 */
+	CHECK(journal_seek(j, j->it.bpos.offset));
+	j->it.current_serial = j->it.bpos.serial;
+
+	j->it.xsize = 0;  /* We have no transaction data yet... */
+	j->it.xpos = 0;	  /* ...and haven't used any of it. */
+
+	return (read_one_rr(j));
+	
+ failure:
+	return (result);
+}
+
+static dns_result_t
+read_one_rr(dns_journal_t *j) {
+	dns_result_t result;
+	
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
+	unsigned int rdlen;
+	isc_uint32_t ttl;
+	journal_xhdr_t xhdr;
+	journal_rrhdr_t rrhdr;
+	isc_region_t r;
+
+	INSIST(j->offset <= j->it.epos.offset);
+	if (j->offset == j->it.epos.offset)
+		return (DNS_R_NOMORE);
+	if (j->it.xpos == j->it.xsize) {
+		/*
+		 * We are at a transaction boundary.
+		 * Read another transaction header.
+		 */
+		CHECK(journal_read_xhdr(j, &xhdr));
+		if (xhdr.size == 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "journal corrupt: empty transaction");
+			FAIL(DNS_R_UNEXPECTED);
+		}
+		if (xhdr.serial0 != j->it.current_serial) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "%s: journal corrupt: "
+					 "expected serial %u, got %u",
+					 j->filename,
+					 j->it.current_serial, xhdr.serial0);
+			FAIL(DNS_R_UNEXPECTED);
+		}
+		j->it.xsize = xhdr.size;
+		j->it.xpos = 0;
+	}
+	/* Read an RR. */
+	result = journal_read_rrhdr(j, &rrhdr);
+	if (rrhdr.size == 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "journal corrupt: empty RR");
+		FAIL(DNS_R_UNEXPECTED);
+	}
+	
+	CHECK(size_buffer(j->mctx, &j->it.source, rrhdr.size));
+	CHECK(journal_read(j, j->it.source.base, rrhdr.size));
+	isc_buffer_add(&j->it.source, rrhdr.size);
+
+	/* 
+	 * The target buffer is made the same size
+	 * as the source buffer, with the assumption that when
+	 * no compression in present, the output of dns_*_fromwire()
+	 * is no larger than the input.
+	 */
+	CHECK(size_buffer(j->mctx, &j->it.target, rrhdr.size));
+	
+	/*
+	 * Parse the owner name.  We don't know where it
+	 * ends yet, so we make the entire "remaining"
+	 * part of the buffer "active".
+	 */
+	isc_buffer_setactive(&j->it.source, 
+			     j->it.source.used - j->it.source.current);
+	CHECK(dns_name_fromwire(&j->it.name, &j->it.source,
+				&j->it.dctx, ISC_FALSE, &j->it.target));
+
+	/* Check that the RR header is there, and parse it. */
+	isc_buffer_remaining(&j->it.source, &r);
+	if (r.length < 10)
+		FAIL(DNS_R_FORMERR);
+	
+	rdtype = isc_buffer_getuint16(&j->it.source);
+	rdclass = isc_buffer_getuint16(&j->it.source);
+	ttl = isc_buffer_getuint32(&j->it.source);
+	rdlen = isc_buffer_getuint16(&j->it.source);
+
+	/* Parse the rdata. */
+	isc_buffer_setactive(&j->it.source, rdlen);
+	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass,
+				 rdtype, &j->it.source, &j->it.dctx,
+				 ISC_FALSE, &j->it.target));
+	j->it.ttl = ttl;
+
+	j->it.xpos += sizeof(journal_rawrrhdr_t) + rrhdr.size;
+	if (rdtype == dns_rdatatype_soa) {
+		/* XXX could do additional consistency checks here */
+		j->it.current_serial = dns_soa_getserial(&j->it.rdata);
+	}
+		
+	result = DNS_R_SUCCESS;
+
+ failure:
+	j->it.result = result;
+	return (result);
+}
+
+dns_result_t
+dns_journal_next_rr(dns_journal_t *j) {
+	j->it.result = read_one_rr(j);
+	return (j->it.result);
+}
+
+void
+dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, isc_uint32_t *ttl,
+		   dns_rdata_t **rdata)
+{
+	REQUIRE(j->it.result == DNS_R_SUCCESS);
+	*name = &j->it.name;
+	*ttl = j->it.ttl;
+	*rdata = &j->it.rdata;
+}
