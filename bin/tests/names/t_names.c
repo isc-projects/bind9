@@ -32,32 +32,6 @@
 #define	BUFLEN		256
 #define	BIGBUFLEN	4096
 
-void	t_dns_label_countbits(void);
-void	t_dns_label_getbit(void);
-void	t_dns_name_init(void);
-void	t_dns_name_invalidate(void);
-void	t_dns_name_setbuffer(void);
-void	t_dns_name_hasbuffer(void);
-void	t_dns_name_isabsolute(void);
-void	t_dns_name_hash(void);
-void	t_dns_name_fullcompare(void);
-void	t_dns_name_compare(void);
-void	t_dns_name_rdatacompare(void);
-void	t_dns_name_issubdomain(void);
-void	t_dns_name_countlabels(void);
-void	t_dns_name_getlabel(void);
-void	t_dns_name_getlabelsequence(void);
-void	t_dns_name_fromregion(void);
-void	t_dns_name_toregion(void);
-void	t_dns_name_fromwire(void);
-void	t_dns_name_towire(void);
-void	t_dns_name_fromtext(void);
-void	t_dns_name_totext(void);
-void	t_dns_name_concatenate(void);
-
-void	t_dns_name_towire_1(void);
-void	t_dns_name_towire_2(void);
-
 char	*a1 =	"dns_label_countbits returns the number of "
 		"bits in a bitstring label";
 
@@ -89,7 +63,7 @@ ctoh(unsigned char c) {
 	else if ((10 <= val) && (val <= 16))
 		buf[1] = 'a' + val - 10;
 	buf[2] = '\0';
-	return(buf);
+	return (buf);
 }
 
 static void
@@ -126,13 +100,16 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data, size_t exp_data_len) 
 	size_t		cnt;
 
 	if (buflen == exp_data_len) {
-		data = (unsigned char *) malloc(exp_data_len * sizeof(unsigned char));
+		data = (unsigned char *)malloc(exp_data_len *
+					       sizeof(unsigned char));
 		if (data == NULL) {
 			t_info("malloc failed unexpectedly\n");
-			return(-1);
+			return (-1);
 		}
 	
-		/* first convert exp_data from hex format */
+		/*
+		 * First convert exp_data from hex format.
+		 */
 		p = data;
 		q = exp_data;
 		cnt = 0;
@@ -159,7 +136,9 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data, size_t exp_data_len) 
 			++cnt;
 		}
 
-		/* now compare data */
+		/*
+		 * Now compare data.
+		 */
 		p = buf;
 		v = data;
 		for (cnt = 0; cnt < exp_data_len; ++cnt) {
@@ -171,31 +150,27 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data, size_t exp_data_len) 
 		if (cnt == exp_data_len)
 			result = 0;
 		else {
-			t_info("bad data at position %d, got 0x%.2x, expected 0x%.2x\n",
-					cnt, *p, *q);
+			t_info("bad data at position %d, "
+			       "got 0x%.2x, expected 0x%.2x\n",
+			       cnt, *p, *q);
 			result = cnt + 1;
 		}
-		(void) free(data);
-	}
-	else {
+		(void)free(data);
+	} else {
 		t_info("data length error, expected %d, got %d\n",
 			exp_data_len, buflen);
 		result = exp_data_len - buflen;
 	}
-	return(result);
+	return (result);
 }
 
 /*
- * get a hex formatted dns message from a data
- * file into an isc_buffer_t
- * caller supplies data storage and the isc_buffer
- * we read the file, convert, setup the buffer
- * and return the data length
+ * Get a hex formatted dns message from a data file into an isc_buffer_t.
+ * Caller supplies data storage and the isc_buffer.  We read the file, convert,
+ * setup the buffer and return the data length.
  */
-
 static int
-getmsg(char *datafile_name, unsigned char *buf, int buflen,
-       isc_buffer_t *pbuf)
+getmsg(char *datafile_name, unsigned char *buf, int buflen, isc_buffer_t *pbuf)
 {
 	int			c;
 	int			len;
@@ -207,7 +182,7 @@ getmsg(char *datafile_name, unsigned char *buf, int buflen,
 	fp = fopen(datafile_name, "r");
 	if (fp == NULL) {
 		t_info("No such file %s\n", datafile_name);
-		return(0);
+		return (0);
 	}
 
 	p = buf;
@@ -231,39 +206,39 @@ getmsg(char *datafile_name, unsigned char *buf, int buflen,
 			val = c - 'A'+ 10;
 		else {
 			t_info("Bad format in datafile\n");
-			return(0);
+			return (0);
 		}
 		if ((len % 2) == 0) {
 			*p = (val << 4);
-		}
-		else {
+		} else {
 			*p += val;
 			++p;
 			++cnt;
 			if (cnt >= buflen) {
-				/* buffer too small */
+				/*
+				 * Buffer too small.
+				 */
 				t_info("Buffer overflow error\n");
-				return(0);
+				return (0);
 			}
 		}
 		++len;
 	}
-	(void) fclose(fp);
+	(void)fclose(fp);
 
 	if (len % 2) {
 		t_info("Bad format in %s\n", datafile_name);
-		return(0);
+		return (0);
 	}
 
 	*p = '\0';
 	isc_buffer_init(pbuf, buf, cnt);
 	isc_buffer_add(pbuf, cnt);
-	return(cnt);
+	return (cnt);
 }
 
 static int
 bustline(char *line, char **toks) {
-
 	int	cnt;
 	char	*p;
 
@@ -275,7 +250,7 @@ bustline(char *line, char **toks) {
 			++cnt;
 		}
 	}
-	return(cnt);
+	return (cnt);
 }
 
 /*
@@ -288,7 +263,6 @@ bustline(char *line, char **toks) {
 
 static int
 hname_to_tname(char *src, char *target, size_t len) {
-
 	int		i;
 	int		c;
 	unsigned int	val;
@@ -299,11 +273,13 @@ hname_to_tname(char *src, char *target, size_t len) {
 	p = src;
 	srclen = strlen(p);
 	if ((srclen >= 2) && ((*p != '%') || (*(p+1) != 'x'))) {
-		/* no conversion needed */
+		/*
+		 * No conversion needed.
+		 */
 		if (srclen >= len)
-			return(1);
+			return (1);
 		memcpy(target, src, srclen + 1);
-		return(0);
+		return (0);
 	}
 
 	i = 0;
@@ -318,23 +294,21 @@ hname_to_tname(char *src, char *target, size_t len) {
 		else if (('A' <= c) && (c <= 'Z'))
 			val = c + 10 - 'A';
 		else {
-			return(1);
+			return (1);
 		}
 		if (i % 2) {
 			*q |= val;
 			++q;
-		}
-		else
+		} else
 			*q = (val << 4);
 		++i;
 		++p;
 	}
 	if (i % 2) {
-		return(1);
-	}
-	else {
+		return (1);
+	} else {
 		*q = '\0';
-		return(0);
+		return (0);
 	}
 }
 
@@ -347,8 +321,7 @@ hname_to_tname(char *src, char *target, size_t len) {
  */
 
 static isc_result_t
-dname_from_tname(char *name, dns_name_t *dns_name)
-{
+dname_from_tname(char *name, dns_name_t *dns_name) {
 	int		len;
 	isc_buffer_t	txtbuf;
 	isc_buffer_t	*binbuf;
@@ -358,7 +331,7 @@ dname_from_tname(char *name, dns_name_t *dns_name)
 	len = strlen(name);
 	isc_buffer_init(&txtbuf, name, len);
 	isc_buffer_add(&txtbuf, len);
-	junk = (unsigned char *) malloc(sizeof(unsigned char) * BUFLEN);
+	junk = (unsigned char *)malloc(sizeof(unsigned char) * BUFLEN);
 	binbuf = (isc_buffer_t *)malloc(sizeof(isc_buffer_t));
 	if ((junk != NULL) && (binbuf != NULL)) {
 		isc_buffer_init(binbuf, junk, BUFLEN);
@@ -366,20 +339,18 @@ dname_from_tname(char *name, dns_name_t *dns_name)
 		dns_name_setbuffer(dns_name, binbuf);
 		result = dns_name_fromtext(dns_name,  &txtbuf,
 						NULL, ISC_FALSE, NULL);
-	}
-	else {
+	} else {
 		result = ISC_R_NOSPACE;
 		if (junk != NULL)
-			(void) free(junk);
+			(void)free(junk);
 		if (binbuf != NULL)
-			(void) free(binbuf);
+			(void)free(binbuf);
 	}
-	return(result);
+	return (result);
 }
 
 static int
 test_dns_label_countbits(char *test_name, int pos, int expected_bits) {
-
 	dns_label_t	label;
 	dns_name_t	dns_name;
 	int		bits;
@@ -399,18 +370,16 @@ test_dns_label_countbits(char *test_name, int pos, int expected_bits) {
 			t_info("got %d, expected %d\n", bits, expected_bits);
 			rval = T_FAIL;
 		}
-	}
-	else {
+	} else {
 		t_info("dname_from_tname %s failed, result = %s\n",
 				test_name, dns_result_totext(result));
 		rval = T_UNRESOLVED;
 	}
-	return(rval);
+	return (rval);
 }
 
-void
-t_dns_label_countbits() {
-
+static void
+t_dns_label_countbits(void) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -485,17 +454,16 @@ test_dns_label_getbit(char *test_name, int label_pos, int bit_pos,
 					expected_bitval);
 			rval = T_FAIL;
 		}
-	}
-	else {
+	} else {
 		t_info("dname_from_tname %s failed, result = %s\n",
 				test_name, dns_result_totext(result));
 		rval = T_UNRESOLVED;
 	}
-	return(rval);
+	return (rval);
 }
 
-void
-t_dns_label_getbit() {
+static void
+t_dns_label_getbit(void) {
 	int	line;
 	int	cnt;
 	int	result;
@@ -544,8 +512,8 @@ t_dns_label_getbit() {
 
 char	*a3 =	"dns_name_init initializes 'name' to the empty name";
 
-void
-t_dns_name_init() {
+static void
+t_dns_name_init(void) {
 	int		rval;
 	int		result;
 	dns_name_t	name;
@@ -595,8 +563,8 @@ t_dns_name_init() {
 
 char	*a4 =	"dns_name_invalidate invalidates 'name'";
 
-void
-t_dns_name_invalidate() {
+static void
+t_dns_name_invalidate(void) {
 	int		rval;
 	int		result;
 	dns_name_t	name;
@@ -649,8 +617,8 @@ t_dns_name_invalidate() {
 char	*a5 =	"dns_name_setbuffer dedicates a binary buffer for use "
 		"with 'name'";
 
-void
-t_dns_name_setbuffer() {
+static void
+t_dns_name_setbuffer(void) {
 	int		result;
 	unsigned char	junk[BUFLEN];
 	dns_name_t	name;
@@ -672,8 +640,8 @@ t_dns_name_setbuffer() {
 char	*a6 =	"dns_name_hasbuffer returns ISC_TRUE if 'name' has a "
 		"dedicated buffer, otherwise it returns ISC_FALSE";
 
-void
-t_dns_name_hasbuffer() {
+static void
+t_dns_name_hasbuffer(void) {
 	int		result;
 	int		rval;
 	unsigned char	junk[BUFLEN];
@@ -703,7 +671,6 @@ char	*a7 =	"dns_name_isabsolute returns ISC_TRUE if 'name' ends "
 
 static int
 test_dns_name_isabsolute(char *test_name, isc_boolean_t expected) {
-
 	dns_name_t	name;
 	isc_buffer_t	buf;
 	isc_buffer_t	binbuf;
@@ -729,17 +696,15 @@ test_dns_name_isabsolute(char *test_name, isc_boolean_t expected) {
 			rval = T_PASS;
 		else
 			rval = T_FAIL;
-	}
-	else {
+	} else {
 		t_info("dns_name_fromtext %s failed, result = %s\n",
 				test_name, dns_result_totext(result));
 	}
-	return(rval);
+	return (rval);
 }
 
-void
-t_dns_name_isabsolute() {
-
+static void
+t_dns_name_isabsolute(void) {
 	int	line;
 	int	cnt;
 	int	result;
@@ -780,7 +745,7 @@ t_dns_name_isabsolute() {
 			(void)free(p);
 			t_result(result);
 		}
-		(void) fclose(fp);
+		(void)fclose(fp);
 	} else {
 		t_info("Missing datafile dns_name_isabsolute_data\n");
 		t_result(result);
@@ -838,22 +803,19 @@ test_dns_name_hash(char *test_name1, char *test_name2,
 				rval = T_PASS;
 			else
 				rval = T_FAIL;
-		}
-		else {
+		} else {
 			t_info("dns_fromtext %s failed, result = %s\n",
 				test_name2, dns_result_totext(result));
 		}
-	}
-	else {
+	} else {
 		t_info("dns_fromtext %s failed, result = %s\n",
 				test_name1, dns_result_totext(result));
 	}
-	return(rval);
+	return (rval);
 }
 
-void
-t_dns_name_hash() {
-
+static void
+t_dns_name_hash(void) {
 	int	line;
 	int	cnt;
 	int	result;
@@ -918,7 +880,6 @@ char	*a10 =	"dns_name_fullcompare(name1, name2, orderp, nlabelsp, nbitsp) "
  */
 static char *
 dns_namereln_to_text(dns_namereln_t reln) {
-
 	char	*p;
 
 	if (reln == dns_namereln_contains)
@@ -934,7 +895,7 @@ dns_namereln_to_text(dns_namereln_t reln) {
 	else
 		p = "unknown";
 
-	return(p);
+	return (p);
 }
 
 static int
@@ -985,13 +946,13 @@ test_dns_name_fullcompare(char *name1, char *name2,
 						exp_order, order);
 			}
 			if ((exp_nlabels >= 0) &&
-			    (nlabels != (unsigned int) exp_nlabels)) {
+			    (nlabels != (unsigned int)exp_nlabels)) {
 				++nfails;
 				t_info("expecting %d labels, got %d\n",
 				       exp_nlabels, nlabels);
 			}
 			if ((exp_nbits >= 0) &&
-			    (nbits != (unsigned int) exp_nbits)) {
+			    (nbits != (unsigned int)exp_nbits)) {
 				++nfails;
 				t_info("expecting %d bits, got %d\n",
 				       exp_nbits, nbits);
@@ -1012,9 +973,8 @@ test_dns_name_fullcompare(char *name1, char *name2,
 	return (result);
 }
 
-void
-t_dns_name_fullcompare() {
-
+static void
+t_dns_name_fullcompare(void) {
 	int		line;
 	int		cnt;
 	int		result;
@@ -1132,7 +1092,7 @@ test_dns_name_compare(char *name1, char *name2, int exp_order) {
 	return (result);
 }
 
-void
+static void
 t_dns_name_compare(void) {
 	int		line;
 	int		cnt;
@@ -1228,11 +1188,11 @@ test_dns_name_rdatacompare(char *name1, char *name2, int exp_order) {
 		       dns_result_totext(result));
 	}
 
-	return(result);
+	return (result);
 }
 
-void
-t_dns_name_rdatacompare() {
+static void
+t_dns_name_rdatacompare(void) {
 	int		line;
 	int		cnt;
 	int		result;
@@ -1326,7 +1286,7 @@ test_dns_name_issubdomain(char *name1, char *name2, isc_boolean_t exp_rval) {
 	return (result);
 }
 
-void
+static void
 t_dns_name_issubdomain(void) {
 	int		line;
 	int		cnt;
@@ -1403,10 +1363,10 @@ test_dns_name_countlabels(char *test_name, unsigned int exp_nlabels) {
 		       dns_result_totext(dns_result));
 	}
 
-	return(result);
+	return (result);
 }
 
-void
+static void
 t_dns_name_countlabels(void) {
 	int		line;
 	int		cnt;
@@ -1515,7 +1475,7 @@ test_dns_name_getlabel(char *test_name1, int label1_pos, char *test_name2,
 	return (result);
 }
 
-void
+static void
 t_dns_name_getlabel(void) {
 	int		line;
 	int		cnt;
@@ -1641,7 +1601,8 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 	}
 	return (result);
 }
-void
+
+static void
 t_dns_name_getlabelsequence(void) {
 	int		line;
 	int		cnt;
@@ -1726,10 +1687,10 @@ test_dns_name_fromregion(char *test_name) {
 		t_info("dname_from_tname failed, result == %s\n",
 		       dns_result_totext(result));
 	}
-	return(result);
+	return (result);
 }
 
-void
+static void
 t_dns_name_fromregion(void) {
 	int		line;
 	int		cnt;
@@ -1776,7 +1737,7 @@ t_dns_name_fromregion(void) {
 char	*a39 =	"dns_name_toregion(name, region) converts a DNS name "
 		"from a region representation to a name representation";
 
-void
+static void
 t_dns_name_toregion(void) {
 	int		line;
 	int		cnt;
@@ -1908,10 +1869,10 @@ test_dns_name_fromtext(char *test_name1, char *test_name2, char *test_origin,
 		result = T_FAIL;
 	}
 
-	return(result);
+	return (result);
 }
 
-void
+static void
 t_dns_name_fromtext(void) {
 	int		line;
 	int		cnt;
@@ -2045,7 +2006,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	return (result);
 }
 
-void
+static void
 t_dns_name_totext(void) {
 	int		line;
 	int		cnt;
@@ -2187,7 +2148,7 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 		result = T_FAIL;
 	}
 
-	return(result);
+	return (result);
 }
 
 static void
@@ -2272,7 +2233,7 @@ t_dns_name_fromwire_x(char *testfile, size_t buflen) {
 	}
 }
 
-void
+static void
 t_dns_name_fromwire(void) {
 	t_assert("dns_name_fromwire", 1, T_REQUIRED, a42);
 	t_dns_name_fromwire_x("dns_name_fromwire_1_data", BUFLEN);
@@ -2343,7 +2304,7 @@ test_dns_name_towire(char *testname, int dc_method, char *exp_data,
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mem_create failed\n");
-		return(result);
+		return (result);
 	}
 	dns_compress_init(&cctx, -1, mctx);
 	dns_compress_setmethods(&cctx, dc_method);
@@ -2436,22 +2397,23 @@ t_dns_name_towire_x(char *testfile, size_t buflen) {
 		t_result(result);
 	}
 }
-void
-t_dns_name_towire(void) {
-	t_dns_name_towire_1();
-	t_dns_name_towire_2();
-}
 
-void
+static void
 t_dns_name_towire_1(void) {
 	t_assert("dns_name_towire", 1, T_REQUIRED, a51);
 	t_dns_name_towire_x("dns_name_towire_1_data", BUFLEN);
 }
 
-void
+static void
 t_dns_name_towire_2(void) {
 	t_assert("dns_name_towire", 2, T_REQUIRED, a52);
 	t_dns_name_towire_x("dns_name_towire_2_data", 2);
+}
+
+static void
+t_dns_name_towire(void) {
+	t_dns_name_towire_1();
+	t_dns_name_towire_2();
 }
 
 char	*a53 =	"dns_name_concatenate(prefix, suffix, name, target) "
@@ -2459,14 +2421,13 @@ char	*a53 =	"dns_name_concatenate(prefix, suffix, name, target) "
 		"in target, canonicalizes any bitstring labels "
 		"and returns ISC_R_SUCCESS";
 
-void
+static void
 t_dns_name_concatenate(void) {
 	t_assert("dns_name_concatenate", 1, T_REQUIRED, a53);
 	t_result(T_UNTESTED);
 }
 
 testspec_t T_testlist[] = {
-
 	{	t_dns_label_countbits,		"dns_label_countbits"	},
 	{	t_dns_label_getbit,		"dns_label_getbit"	},
 	{	t_dns_name_init,		"dns_name_init"		},
