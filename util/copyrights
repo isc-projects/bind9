@@ -279,6 +279,7 @@
 ./bin/tests/system/setup.sh			SH	2000
 ./bin/tests/system/start.sh			SH	2000
 ./bin/tests/system/stop.sh			SH	2000
+./bin/tests/system/testsock.pl			PERL	2000
 ./bin/tests/system/dnssec/clean.sh		SH	2000
 ./bin/tests/system/dnssec/setup.sh		SH	2000
 ./bin/tests/system/dnssec/tests.sh		SH	2000
