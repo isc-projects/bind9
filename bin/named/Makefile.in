@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.62 2000/11/30 00:50:49 sjacob Exp $
+# $Id: Makefile.in,v 1.63 2000/12/06 01:04:09 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -26,10 +26,10 @@ top_srcdir =	@top_srcdir@
 #
 # Add database drivers here.
 #
-DBDRIVER_OBJS = 
-DBDRIVER_SRCS = 
-DBDRIVER_INCLUDES = 
-DBDRIVER_LIBS = 
+DBDRIVER_OBJS =
+DBDRIVER_SRCS =
+DBDRIVER_INCLUDES =
+DBDRIVER_LIBS =
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
