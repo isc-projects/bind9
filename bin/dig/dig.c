@@ -15,22 +15,22 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.47 2000/06/21 17:48:26 mws Exp $ */
+/* $Id: dig.c,v 1.48 2000/06/22 01:26:38 tale Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
 
 extern int h_errno;
 
-#include <dns/message.h>
+#include <isc/app.h>
+#include <isc/string.h>
+#include <isc/util.h>
+
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
-#include <isc/app.h>
-#include <isc/string.h>
-#include <isc/util.h>
 
 #include <dig/dig.h>
 
