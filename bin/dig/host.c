@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.60.4.1 2001/01/09 22:31:24 bwelling Exp $ */
+/* $Id: host.c,v 1.60.4.2 2001/03/14 18:08:50 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -209,7 +209,7 @@ show_usage(void) {
 "            [-R number] hostname [server]\n"
 "       -a is equivalent to -v -t *\n"
 "       -c specifies query class for non-IN data\n"
-"       -C compares SOA records on authorative nameservers\n"
+"       -C compares SOA records on authoritative nameservers\n"
 "       -d is equivalent to -v\n"
 "       -l lists all hosts in a domain, using AXFR\n"
 "       -n Use the nibble form of IPv6 reverse lookup\n"
