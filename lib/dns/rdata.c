@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.162 2002/03/05 01:02:06 bwelling Exp $ */
+/* $Id: rdata.c,v 1.163 2002/03/08 01:38:56 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1313,7 +1313,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 				break;
 		}
 		if (p->name == NULL)
-			return (DNS_R_UNKNOWN);
+			return (DNS_R_UNKNOWNFLAG);
 		value |= p->value;
 #ifdef notyet
 		if ((mask & p->mask) != 0)

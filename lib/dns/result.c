@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.96 2002/03/05 00:06:02 marka Exp $ */
+/* $Id: result.c,v 1.97 2002/03/08 01:38:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no valid KEY",		       	       /* 79 DNS_R_NOVALIDKEY	     */
 
 	"obsolete",			       /* 80 DNS_R_OBSOLETE	     */
-	"already frozen"		       /* 81 DNS_R_FROZEN	     */
+	"already frozen",		       /* 81 DNS_R_FROZEN	     */
+	"unknown flag"			       /* 82 DNS_R_UNKNOWNFLAG	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
