@@ -105,7 +105,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp);
  * Create a new entropy object.
  */
 
-isc_result_t
+void
 isc_entropy_destroy(isc_entropy_t **entp);
 /*
  * Destroys an entropy source.
@@ -134,7 +134,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
  * The file will never be opened/read again once EOF is reached.
  */
 
-isc_result_t
+void
 isc_entropy_destroysource(isc_entropysource_t **sourcep);
 /*
  * Removes an entropy source from the entropy system.
