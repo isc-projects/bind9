@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.17 1999/10/29 03:42:03 halley Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.18 1999/10/29 04:18:07 marka Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -4052,9 +4052,9 @@ is_ip4addr(const char *string, struct in_addr *addr)
         char dot = '.';
 
         while (*p) {
-                if (!isdigit(*p) && *p != dot) {
+                if (!isdigit(*p & 0xff) && *p != dot) {
                         return (ISC_FALSE);
-                } else if (!isdigit(*p)) {
+                } else if (!isdigit(*p & 0xff)) {
                         dots++;
                 }
                 p++;
