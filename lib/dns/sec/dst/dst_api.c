@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.22 2000/03/14 22:05:08 bwelling Exp $
+ * $Id: dst_api.c,v 1.23 2000/03/16 22:43:33 halley Exp $
  */
 
 #include <config.h>
@@ -711,6 +711,20 @@ isc_boolean_t
 dst_key_isprivate(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->func->isprivate(key));
+}
+
+isc_boolean_t
+dst_key_iszonekey(const dst_key_t *key) {
+	unsigned int namtyp;
+
+	REQUIRE(VALID_KEY(key));
+      
+	if ((key->key_flags & DST_KEYFLAG_NOAUTH) != 0)
+		return (ISC_FALSE);
+	namtyp = (key->key_flags & DST_KEYFLAG_NTMASK) >> DST_KEYFLAG_NTSHIFT;
+	if (namtyp != DST_NAMTYP_ZONE)
+		return (ISC_FALSE);
+	return (ISC_TRUE);
 }
 
 /*
