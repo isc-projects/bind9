@@ -117,6 +117,7 @@ struct ns_client {
 	isc_quota_t			*tcpquota;
 	isc_quota_t			*recursionquota;
 	ns_interface_t			*interface;
+	isc_sockaddr_t			peeraddr;
 	ISC_LINK(ns_client_t)		link;
 	client_list_t			*list;	/* The list 'link' is part of,
 					   or NULL if not on any list. */

@@ -17,6 +17,8 @@
 
 #include <config.h>
 
+#include <string.h>
+
 #include <isc/assertions.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -161,6 +163,24 @@ static void client_accept(ns_client_t *client);
 static void clientmgr_destroy(ns_clientmgr_t *manager);
 static isc_boolean_t exit_check(ns_client_t *client);
 static void ns_client_endrequest(ns_client_t *client);
+
+/*
+ * Format a human-readable representation of the socket address '*sa'
+ * into the character array 'array', which is of size 'size'.
+ * The resulting string is guaranteed to be null-terminated.
+ */
+static void
+sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
+{
+	isc_result_t result;
+	isc_buffer_t buf;
+	isc_buffer_init(&buf, array, size, ISC_BUFFERTYPE_TEXT);
+	result = isc_sockaddr_totext(sa, &buf);
+	if (result != ISC_R_SUCCESS) {
+		strncpy(array, "<unknown address>", size);
+		array[size-1] = '\0';
+	}
+}
 
 /*
  * Enter the inactive state.
@@ -762,6 +782,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view;
 	dns_rdataset_t *opt;
 	isc_boolean_t ra; 	/* Recursion available. */
+	char peerbuf[256];
 
 	REQUIRE(event != NULL);
 	client = event->arg;
@@ -779,21 +800,32 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 	
 	if (event->type == DNS_EVENT_DISPATCH) {
+		INSIST(! TCP_CLIENT(client));
 		devent = (dns_dispatchevent_t *)event;
 		REQUIRE(client->dispentry != NULL);
 		client->dispevent = devent;
 		buffer = &devent->buffer;
 		result = devent->result;
+		client->peeraddr = devent->addr;
 	} else {
+		INSIST(TCP_CLIENT(client));		
 		REQUIRE(event->type == DNS_EVENT_TCPMSG);
 		REQUIRE(event->sender == &client->tcpmsg);
 		buffer = &client->tcpmsg.buffer;
 		result = client->tcpmsg.result;
 		INSIST(client->nreads == 1);
+		/*
+		 * client->peeraddr was set when the connection was accepted.
+		 */
 		client->nreads--;
 	}
 
-	CTRACE("request");
+	sockaddr_format(&client->peeraddr, peerbuf, sizeof(peerbuf));	
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+		      "client %p: %s request from %s",
+		      client, TCP_CLIENT(client) ? "TCP" : "UDP",
+		      peerbuf);
 
 	if (exit_check(client))
 		goto cleanup_serverlock;
@@ -1166,7 +1198,8 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client = event->arg;
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
 	isc_result_t result;
-
+	char peerbuf[256];
+	
 	REQUIRE(event->type == ISC_SOCKEVENT_NEWCONN);
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->task == task);
@@ -1185,14 +1218,40 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * We must take ownership of the new socket before the exit
-	 * check to make sure it gets destroyed.
+	 * check to make sure it gets destroyed if we decide to exit.
 	 */
-	client->tcpsocket = nevent->newsocket;
-	client->state = NS_CLIENTSTATE_READING;
+	if (nevent->result == ISC_R_SUCCESS) {
+		client->tcpsocket = nevent->newsocket;
+		client->state = NS_CLIENTSTATE_READING;
+
+		(void) isc_socket_getpeername(client->tcpsocket,
+					      &client->peeraddr);
+		sockaddr_format(&client->peeraddr, peerbuf, sizeof(peerbuf));
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "client %p: TCP connection from %s",
+			      client, peerbuf);
+	} else {
+		/*
+		 * XXXRTH  What should we do?  We're trying to accept but
+		 *         it didn't work.  If we just give up, then TCP
+		 *	   service may eventually stop.
+		 *
+		 *	   For now, we just go idle.
+		 *
+		 *	   Going idle is probably the right thing if the
+		 *	   I/O was canceled.
+		 */
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "client %p: accept failed: %s", client,
+			      isc_result_totext(nevent->result));
+	}
 	
-	if (exit_check(client)) {
-		; 
-	} else if (nevent->result == ISC_R_SUCCESS) {
+	if (exit_check(client))
+		goto freeevent;
+
+	if (nevent->result == ISC_R_SUCCESS) {
 		INSIST(client->tcpmsg_valid == ISC_FALSE);
 		dns_tcpmsg_init(client->mctx, client->tcpsocket,
 				&client->tcpmsg);
@@ -1215,18 +1274,9 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 				      isc_result_totext(result));
 		}
 		client_read(client);
-	} else {
-		/*
-		 * XXXRTH  What should we do?  We're trying to accept but
-		 *         it didn't work.  If we just give up, then TCP
-		 *	   service may eventually stop.
-		 *
-		 *	   For now, we just go idle.
-		 *
-		 *	   Going idle is probably the right thing if the
-		 *	   I/O was canceled.
-		 */
 	}
+	
+ freeevent:
 	isc_event_free(&event);
 }
 
@@ -1476,8 +1526,5 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 
 isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client) {
-	if (TCP_CLIENT(client))
-		return (&client->tcpmsg.address);
-	else
-		return (&client->dispevent->addr);
+	return (&client->peeraddr);
 }
