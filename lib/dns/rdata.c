@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.169 2002/03/20 22:25:58 marka Exp $ */
+/* $Id: rdata.c,v 1.170 2002/03/27 03:31:49 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1074,9 +1074,9 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 			char *endp;
 			int val;
 
-			strncpy(buf, source->base + 5, sizeof(buf));
-			buf[sizeof(buf) - 1] = '\0';
-			val = strtol(buf, &endp, 10);
+			strncpy(buf, source->base + 5, source->length - 5);
+			buf[source->length - 5] = '\0';
+			val = strtoul(buf, &endp, 10);
 			if (*endp == '\0' && val >= 0 && val <= 0xffff) {
 				*classp = (dns_rdataclass_t)val;
 				return (ISC_R_SUCCESS);
@@ -1179,9 +1179,9 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 		char *endp;
 		int val;
 
-		strncpy(buf, source->base + 4, sizeof(buf));
-		buf[sizeof(buf) - 1] = '\0';
-		val = strtol(buf, &endp, 10);
+		strncpy(buf, source->base + 4, source->length - 4);
+		buf[source->length - 4] = '\0';
+		val = strtoul(buf, &endp, 10);
 		if (*endp == '\0' && val >= 0 && val <= 0xffff) {
 			*typep = (dns_rdatatype_t)val;
 			return (ISC_R_SUCCESS);
