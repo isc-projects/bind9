@@ -1,9 +1,10 @@
+
+	--- 9.2.0rc9 released ---
+
 1104.	[bug]		Invalid arguments to the transfer-format option
 			could cause an assertion failure. [RT #1995]
 
 1103.	[port]		OpenUNIX 8 support (ifconfig.sh).  [RT #1970]
-
-	--- 9.2.0rc9 released ---
 
 1102.	[doc]		Note that query logging is enabled by directing the
 			queries category to a channel.
