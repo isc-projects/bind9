@@ -1,0 +1,171 @@
+
+What follows is pseudocode for the zone and cache lookup algorithms, as they
+will work in the RBT DB.
+
+Note: These algorithms differ in some respects from those discussed in
+the RFCs and drafts, especially the DNAME draft.  I believe these
+algorithms provide better answers in some cases.
+
+
+Preliminary Stuff
+
+BIND 9 zone databases are versioned, and every search is done in the
+context of some version.  There are a number of ways of implementing
+versioning.  The method that's going to be used in the RBT DB is to
+store a serial number with every rdataset.  All rdatasets added as the
+result of a single database update have the same serial number.  This
+serial number is not related to the SOA serial, since the SOA serial
+is under user control and can do weird things.  The database serial
+number is a monotonically increasing value.  When you go to retrieve
+an rdataset, you may encounter many rdatasets of that type at any
+given node.  The correct one to return, called the "active rdataset",
+has the greatest serial number less than or equal to the serial number
+used for the search.  The version whose serial number is being used in
+the search is the "target version".
+
+If an rdataset is glue in a particular version of the database, it will
+be marked as such.
+
+Cache databases are not versioned.  A search will always return the
+most recent value.
+
+DKZC == Deepest Known Zone Cut.  This is the zone cut closest to the
+desired name.  In a zone, it's either a delegation out of authoritative
+data, or it's the top of the zone.
+
+Where you see "(node and name)" that means we have to return both the node
+handle itself, and the name of the node (since it is different than the 
+name we were searching for).  We don't have parent pointers in the database,
+and I don't want to require them, so it's not possible to get the name of
+a node from the node handle.  Because of this, the database API must return
+the name when it doesn't match the desired name.
+
+
+Zone Search Algorithm			(but not for the ANY meta-type)
+
+	Go down as far as possible remembering every parent node.
+	Remember the predecessor too.
+	
+	If some rdataset for the desired name exists in the target version
+
+		If the rdataset in the target version is glue
+			Be sure to tell the caller.
+			Find the DKZC (node and name).
+			Return glue (node and name) as well as
+			DKZC (node and name).
+		Else
+  Got Something:
+			Look for desired type or CNAME active in the target
+			version.
+
+			If found
+				If CNAME?
+					Indicate it on return.
+				Return.
+			Else
+				No error, no data case.
+				If (secure zone)
+					INSIST there's a sane NXT in this
+					version.
+					Indicate data doesn't exist and return
+					NXT.
+
+	Else
+		Go up until we find a node with non-glue rdatasets in the
+		target version.
+
+		INSIST(node != NULL) since the zone top must have SOA and NS
+		in all versions.
+
+		If there's a DNAME in the target version at the node
+			Return a DNAME result with the dname node and node name
+		Else if there's a zone cut in the target version at the node
+			Return the delegation DKZC (node and name)
+		Else
+			Look for "*" with rdatasets in the target version on
+			this level.
+			If found
+				Be sure to tell the caller this is a
+				wildcard result.  Goto "Got Something".
+			Else	
+				OK, the node really doesn't exist, and we're
+				authoritative for it.
+				If (nonsecured zone)
+					NXDOMAIN
+				Else
+					While (predecessor not active in
+					       the target version)
+						predecessor = go backwards
+					INSIST there's an NXT record.
+					INSIST the NXT record proves QNAME
+					doesn't exist on this level.
+					Return the predecessor (node and name)
+
+
+
+Now for the cache lookup algorithm, which is a little different.  The
+cache algorithm takes an optional "zone DKZC".  Say a server is
+authoritative for vix.com but not rc.vix.com.  When it looks up
+bb.rc.vix.com it will search vix.com and discover the delegation to
+rc.vix.com.  We then want to look in the cache for bb.rc.vix.com, and
+if we don't find it, the authoritative delegation might be the best
+DKZC (since there might not be anything for rc.vix.com in the cache),
+so that's why we allow it to be an argument to the cache search
+algorithm.  Of course, the cache might have data for rc.vix.com
+cached, in which case we should use it and not the DKZC.
+
+DKZC A is "better" than DKZC B if DKZC A is a proper subdomain of DKZC
+B.
+
+
+Cache Search Algorithm:
+
+	Go down as far as possible remembering every parent node.
+	Remember the predecessor too.
+	
+	If some rdataset for name exists
+
+		Look for desired type or CNAME
+
+		If found
+			If negative cache entry
+				Indicate this and return.
+			If CNAME?
+				Indicate it and return.
+			Return.
+		Else
+			Indicate we know nothing about this type at this
+			node.
+			Return.
+
+	Else
+		(Peek at predecessor to see if it has an NXT for the same
+		 zone and which covers the QNAME.  If so, return it.)
+
+		Go up until we find a node with a DNAME or a zone cut.
+		XXX DNAME draft says go up until you prove that there are no
+		    ancestor DNAMEs at all XXX
+
+		If there's a DNAME
+			Return a DNAME result with the dname node and node name
+			XXX what if the zone DKZC is better (i.e. deeper)? XXX
+
+		We know nothing about this name.
+
+		XXX DNAME draft says that if we have a zone DKZC, we should
+		    use it now.  I say use the best DKZC you've got. XXX
+
+		If we get all the way to '.' and we don't even have the
+		root NS records
+			If we have a DKZC from authoritative data
+				Return it.
+			Else
+				Return NO_KNOWN_AUTHORITY
+				(this will cause priming of root servers or,
+				 perhaps, forwarding)
+	
+		If we have a zone DKZC and it's better than the one we found
+		in the cache
+			Return it (node and name).
+
+		Return the cache DKZC (node and name).
