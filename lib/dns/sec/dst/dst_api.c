@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.87 2001/07/10 19:05:53 bwelling Exp $
+ * $Id: dst_api.c,v 1.88 2001/07/10 21:27:59 bwelling Exp $
  */
 
 #include <config.h>
@@ -1064,7 +1064,9 @@ algorithm_status(unsigned int alg) {
 	if (alg == DST_ALG_RSA || alg == DST_ALG_DSA || alg == DST_ALG_DH)
 		return (DST_R_NOCRYPTO);
 #endif
-	return (dst_algorithm_supported(alg));
+	if (!dst_algorithm_supported(alg))
+		return (DST_R_UNSUPPORTEDALG);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
