@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.98 2001/05/31 00:59:46 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.99 2001/06/07 18:18:24 gson Exp $ */
 
 #include <config.h>
 
@@ -1111,6 +1111,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	CHECK(xfr->stream->methods->first(xfr->stream));
 
+	xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
+		    "%s started", mnemonic);
+
 	/*
 	 * Hand the context over to sendstream().  Set xfr to NULL;
 	 * sendstream() is responsible for either passing the
@@ -1118,8 +1121,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 */
 	sendstream(xfr);
 	xfr = NULL;
-	xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
-		    "%s started", mnemonic);
 
 	result = ISC_R_SUCCESS;
 

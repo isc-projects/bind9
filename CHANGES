@@ -1,3 +1,10 @@
+
+ 863.	[bug]		If an error occurred while an outgoing zone transfer
+			was starting up, the server could access a domain
+			name that had already been freed when logging a
+			message saying that the transfer was starting. 
+			[RT #1383]
+
  862.	[bug]		Use after realloc(), non portable pointer arithmetic in
 			grmerge().
 
