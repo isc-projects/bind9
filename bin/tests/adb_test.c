@@ -70,6 +70,7 @@ main(int argc, char **argv)
 	unsigned char namestorage2[512];
 	dns_view_t *view;
 	dns_adb_t *adb;
+	dns_adbhandle_t *handle;
 
 	(void)argc;
 	(void)argv;
@@ -163,12 +164,26 @@ main(int argc, char **argv)
 
 	dns_adb_dump(adb, stderr);
 
+	/*
+	 * Try to look up a name or two.
+	 */
+	handle = NULL;
+	result = dns_adb_lookup(adb, NULL, NULL, NULL,
+				&name1, &name1, &handle);
+	check_result(result, "dns_adb_lookup name1");
+	check_result(handle->result, "handle->result");
+
+	/*
+	 * delete the names, and kill the adb
+	 */
 	result = dns_adb_deletename(adb, &name1);
 	check_result(result, "dns_adb_deletename name1");
 	result = dns_adb_deletename(adb, &name2);
 	check_result(result, "dns_adb_deletename name2");
 
 	dns_adb_dump(adb, stderr);
+
+	dns_adb_done(adb, &handle);
 
 	isc_mem_stats(mctx, stdout);
 	dns_adb_destroy(&adb);

@@ -30,17 +30,16 @@
  * NS rdata record to an isc_sockaddr_t. It also provides statistical
  * information on how good that address might be.
  *
- * A client will pass in an rdataset (of NS records) requesting all the
- * addresses (isc_sockaddr_t) for the NS records inside. The ADB will walk
- * through the rdataset looking up addresses associated with each name.
- * If it is found on the internal lists, a structure is filled in with
- * the address information and stats for that address.
+ * A client will pass in a dns_name_t, and the ADB will walk through
+ * the rdataset looking up addresses associated with the name.  If it
+ * is found on the internal lists, a structure is filled in with the
+ * address information and stats for found addresses.
  *
- * If the address cannot be found on the internal lists, a new entry will
- * be created for an address if all the information needed can be found
+ * If the name cannot be found on the internal lists, a new entry will
+ * be created for an name if all the information needed can be found
  * in the zone table or cache.  This new address will then be returned.
  *
- * If a request must be made to remote servers to satisfy an address lookup,
+ * If a request must be made to remote servers to satisfy a name lookup,
  * this module will start fetches to try to complete these addresses.  When
  * at least one more completes, an event is sent to the caller.  If none of
  * them resolve before the fetch times out, an event indicating this is
@@ -58,12 +57,10 @@
  *
  * MP:
  *
- *     The ADB takes care of all necessary locking. 
+ *	The ADB takes care of all necessary locking. 
  *
+ *	Only the task which initiated the name lookup can cancel the lookup.
  *
- * Reliability:
- *
- *     XXX Dunno yet. Need something here.
  *
  * Security:
  *
@@ -113,6 +110,7 @@ typedef struct dns_adb dns_adb_t;
 typedef struct dns_adbentry dns_adbentry_t;
 typedef struct dns_adbaddrinfo dns_adbaddrinfo_t;
 typedef struct dns_adbhandle dns_adbhandle_t;
+typedef struct dns_adbname dns_adbname_t;
 
 /* dns_adbhandle_t
  *
@@ -134,10 +132,10 @@ struct dns_adbhandle {
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */
-
+	int				name_bucket;
+	dns_adbname_t		       *adbname;
 	isc_event_t			event;
-
-	ISC_LINK(dns_adbhandle_t)	link;		/* private */
+	ISC_LINK(dns_adbhandle_t)	link;
 };
 
 /* dns_adbaddr_t
@@ -197,7 +195,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb);
  *
  *	ISC_R_SUCCESS	after happiness
  *	ISC_R_NOMEMORY	after resource allocation failure.
- *
  */
 
 
@@ -210,7 +207,6 @@ dns_adb_destroy(dns_adb_t **adb);
  *
  *	'adb' be non-NULL and '*adb' be a valid dns_adb_t, created via
  *	dns_adb_create().
- *
  */
 
 
@@ -269,18 +265,6 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 
 isc_result_t
-dns_adb_refresh(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
-		void *arg, dns_rdataset_t *nsrdataset, dns_name_t *zone,
-		dns_adbhandle_t *handle);
-/*
- * Refresh addresses associated with a handle.
- *
- * Requires:
- *	Same restrictions and behavior as above, other than:
- *		'handle' is a valid dns_adbhandle_t.
- */
-
-isc_result_t
 dns_adb_deletename(dns_adb_t *adb, dns_name_t *host);
 /*
  * Deletes the name and drops reference counts on all subordinate
@@ -321,25 +305,6 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr);
  *	ISC_R_SUCCESS	-- all is well.
  *	ISC_R_NOMEMORY	-- no memory
  *	ISC_R_EXISTS	-- the <host, address> tuple exists already.
- */
-
-
-void
-dns_adb_cancel(dns_adb_t *adb, dns_adbhandle_t **handle);
-/*
- * Cancels any outstanding lookups for this handle.
- *
- * Requires:
- *
- *	'adb' be a valid dns_adb_t pointer.
- *
- *	'handle' != NULL && *handle be a valid dns_adbhandle_t.
- *
- * Ensures:
- *
- *	No "address found" events will be posted to the originating task
- *	after this function returns, and all internal uses of that task
- *	will be quickly shut down.
  */
 
 
