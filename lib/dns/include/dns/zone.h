@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.79 2000/10/12 21:51:58 mws Exp $ */
+/* $Id: zone.h,v 1.80 2000/10/13 13:45:45 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -920,7 +920,7 @@ dns_zone_setidleout(dns_zone_t *zone, isc_uint32_t idleout);
 void
 dns_zone_getssutable(dns_zone_t *zone, dns_ssutable_t **table);
 /*
- * Set the simple-secure-update policy table.
+ * Get the simple-secure-update policy table.
  *
  * Requires:
  *	'zone' to be a valid zone.
@@ -929,7 +929,7 @@ dns_zone_getssutable(dns_zone_t *zone, dns_ssutable_t **table);
 void
 dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table);
 /*
- * Get the simple-secure-update policy table.
+ * Set / clear the simple-secure-update policy table.
  *
  * Requires:
  *	'zone' to be a valid zone.

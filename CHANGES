@@ -1,3 +1,6 @@
+ 515.	[bug]		The ssu table was not beinge attached / detached
+			by dns_zone_[sg]etssutable.  [RT#397]
+
  514.	[func]		Retry refresh and notify queries if they timeout.
 			[RT #388]
 
