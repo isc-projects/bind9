@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.7 2001/04/16 17:23:34 gson Exp $ */
+/* $Id: keycreate.c,v 1.8 2001/10/09 22:58:23 gson Exp $ */
 
 #include <config.h>
 
@@ -65,6 +65,7 @@ static dns_tsig_keyring_t *ring;
 static unsigned char noncedata[16];
 static isc_buffer_t nonce;
 static dns_requestmgr_t *requestmgr;
+static const char *ownername_str = ".";
 
 static void
 recvquery(isc_task_t *task, isc_event_t *event) {
@@ -132,6 +133,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_result_t result;
 	dns_fixedname_t keyname;
+	dns_fixedname_t ownername;	
 	isc_buffer_t namestr, keybuf;
 	unsigned char keydata[9];
 	dns_message_t *query;
@@ -147,6 +149,13 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_init(&namestr, "tkeytest.", 9);
 	isc_buffer_add(&namestr, 9);
 	result = dns_name_fromtext(dns_fixedname_name(&keyname), &namestr,
+				   NULL, ISC_FALSE, NULL);
+	CHECK("dns_name_fromtext", result);
+
+	dns_fixedname_init(&ownername);
+	isc_buffer_init(&namestr, ownername_str, strlen(ownername_str));
+	isc_buffer_add(&namestr, strlen(ownername_str));
+	result = dns_name_fromtext(dns_fixedname_name(&ownername), &namestr,
 				   NULL, ISC_FALSE, NULL);
 	CHECK("dns_name_fromtext", result);
 
@@ -169,7 +178,8 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 	CHECK("dns_message_create", result);
 
-	result = dns_tkey_builddhquery(query, ourkey, dns_rootname,
+	result = dns_tkey_builddhquery(query, ourkey,
+				       dns_fixedname_name(&ownername),
 				       DNS_TSIG_HMACMD5_NAME, &nonce, 3600);
 	CHECK("dns_tkey_builddhquery", result);
 
@@ -206,6 +216,9 @@ main(int argc, char *argv[]) {
 		exit(-1);
 	}
 	ourkeyname = argv[1];
+
+	if (argc >= 3)
+		ownername_str = argv[2];
 
 	dns_result_register();
 

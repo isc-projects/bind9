@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2001/01/11 20:51:16 bwelling Exp $
+# $Id: tests.sh,v 1.3 2001/10/09 22:58:24 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -36,45 +36,48 @@ if [ $ret != 0 ]; then
 fi
 status=`expr $status + $ret`
 
-echo "I:creating new key"
-ret=0
-keyname=`./keycreate $dhkeyname` || ret=1
-if [ $ret != 0 ]; then
-	echo "I:failed"
-	echo "I:exit status: $status"
-	exit $status
-fi
-status=`expr $status + $ret`
+for owner in . foo.example.
+do
+	echo "I:creating new key using owner name \"$owner\""
+	ret=0
+	keyname=`./keycreate $dhkeyname $owner` || ret=1
+	if [ $ret != 0 ]; then
+		echo "I:failed"
+		echo "I:exit status: $status"
+		exit $status
+	fi
+	status=`expr $status + $ret`
 
-echo "I:checking the new key"
-ret=0
-$DIG $DIGOPTS . ns -k $keyname > dig.out.1 || ret=1
-grep "status: NOERROR" dig.out.1 > /dev/null || ret=1
-grep "TSIG.*hmac-md5.*NOERROR" dig.out.1 > /dev/null || ret=1
-grep "Some TSIG could not be validated" dig.out.1 > /dev/null && ret=1
-if [ $ret != 0 ]; then
-	echo "I:failed"
-fi
-status=`expr $status + $ret`
+	echo "I:checking the new key"
+	ret=0
+	$DIG $DIGOPTS . ns -k $keyname > dig.out.1 || ret=1
+	grep "status: NOERROR" dig.out.1 > /dev/null || ret=1
+	grep "TSIG.*hmac-md5.*NOERROR" dig.out.1 > /dev/null || ret=1
+	grep "Some TSIG could not be validated" dig.out.1 > /dev/null && ret=1
+	if [ $ret != 0 ]; then
+		echo "I:failed"
+	fi
+	status=`expr $status + $ret`
 
-echo "I:deleting new key"
-ret=0
-./keydelete $keyname || ret=1
-if [ $ret != 0 ]; then
-	echo "I:failed"
-fi
-status=`expr $status + $ret`
+	echo "I:deleting new key"
+	ret=0
+	./keydelete $keyname || ret=1
+	if [ $ret != 0 ]; then
+		echo "I:failed"
+	fi
+	status=`expr $status + $ret`
 
-echo "I:checking that new key has been deleted"
-ret=0
-$DIG $DIGOPTS . ns -k $keyname > dig.out.2 || ret=1
-grep "status: NOERROR" dig.out.2 > /dev/null && ret=1
-grep "TSIG.*hmac-md5.*NOERROR" dig.out.2 > /dev/null && ret=1
-grep "Some TSIG could not be validated" dig.out.2 > /dev/null || ret=1
-if [ $ret != 0 ]; then
-	echo "I:failed"
-fi
-status=`expr $status + $ret`
+	echo "I:checking that new key has been deleted"
+	ret=0
+	$DIG $DIGOPTS . ns -k $keyname > dig.out.2 || ret=1
+	grep "status: NOERROR" dig.out.2 > /dev/null && ret=1
+	grep "TSIG.*hmac-md5.*NOERROR" dig.out.2 > /dev/null && ret=1
+	grep "Some TSIG could not be validated" dig.out.2 > /dev/null || ret=1
+	if [ $ret != 0 ]; then
+		echo "I:failed"
+	fi
+	status=`expr $status + $ret`
+done
 
 echo "I:exit status: $status"
 exit $status
