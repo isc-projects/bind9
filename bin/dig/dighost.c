@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.113 2000/08/03 18:26:22 mws Exp $ */
+/* $Id: dighost.c,v 1.114 2000/08/09 19:10:54 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2309,14 +2309,11 @@ do_lookup_udp(dig_lookup_t *lookup) {
 		check_result(result, "isc_socket_create");
 		sockcount++;
 		debug("sockcount=%d", sockcount);
-		if (specified_source)
+		if (specified_source) {
 			result = isc_socket_bind(query->sock, &bind_address);
-		else {
-			/* XXX Add this to lib, send gson mail. */
-			if (isc_sockaddr_pf(&query->sockaddr) == AF_INET)
-				isc_sockaddr_any(&bind_any);
-			else
-				isc_sockaddr_any6(&bind_any);
+		} else {
+			isc_sockaddr_anyofpf(&bind_any,
+					isc_sockaddr_pf(&query->sockaddr));
 			result = isc_socket_bind(query->sock, &bind_any);
 		}
 		check_result(result, "isc_socket_bind");

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.162 2000/08/01 01:22:51 tale Exp $ */
+/* $Id: resolver.c,v 1.163 2000/08/09 19:11:27 gson Exp $ */
 
 #include <config.h>
 
@@ -717,16 +717,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
 
-		switch (pf) {
-		case AF_INET:
-			isc_sockaddr_any(&any);
-			break;
-		case AF_INET6:
-			isc_sockaddr_any6(&any);
-			break;
-		default:
-			INSIST(0);
-		}
+		isc_sockaddr_anyofpf(&any, pf);
 		result = isc_socket_bind(query->tcpsocket, &any);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_socket;
