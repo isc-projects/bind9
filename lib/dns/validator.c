@@ -31,8 +31,10 @@
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/keytable.h>
+#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdatatype.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
@@ -84,6 +86,9 @@ static inline isc_result_t get_dst_key(dns_validator_t *val,
 				       dns_siginfo_t *siginfo,
 				       dns_rdataset_t *rdataset);
 static inline isc_result_t validate(dns_validator_t *val, isc_boolean_t resume);
+
+static void validator_log(dns_validator_t *val, int level,
+			  const char *fmt, ...);
 
 static void
 rdata_to_siginfo(dns_rdata_t *rdata, dns_siginfo_t *siginfo) {
@@ -141,7 +146,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	val = devent->arg;
 	rdataset = devent->rdataset;
 
-	fprintf(stderr, "in fetch_callback_validator\n");
+	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
 	if (devent->result == ISC_R_SUCCESS) {
 		result = get_dst_key(val, val->siginfo, rdataset);
 		if (result != ISC_R_SUCCESS) {
@@ -158,8 +163,9 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		UNLOCK(&val->lock);
 	}
 	else
-		fprintf(stderr, "fetch_callback_validator: got %s\n",
-			dns_result_totext(devent->result));
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "fetch_callback_validator: got %s",
+			      dns_result_totext(devent->result));
 
  free_event:
 	/* free stuff from the event */
@@ -177,7 +183,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 	devent = (dns_validatorevent_t *)event;
 	val = devent->arg;
 
-	fprintf(stderr, "in keyvalidated\n");
+	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
 	if (devent->result == ISC_R_SUCCESS) {
 		LOCK(&val->lock);
 		result = validate(val, ISC_TRUE);
@@ -186,8 +192,9 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 		UNLOCK(&val->lock);
 	}
 	else
-		fprintf(stderr, "keyvalidated: got %s\n",
-			dns_result_totext(devent->result));
+		validator_log(val, ISC_LOG_DEBUG(3), 
+			      "keyvalidated: got %s",
+			      dns_result_totext(devent->result));
 	/* free stuff from the event */
 	isc_event_free(&event);
 }
@@ -493,13 +500,8 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		result = dns_dnssec_verify(event->name, event->rdataset,
 					   val->key, val->view->mctx, &rdata);
 		if (result == ISC_R_SUCCESS) {
-			fprintf(stderr, "setting ");
-			dns_name_print(event->name, stderr);
-			fprintf(stderr, " (type %d) to secure\n",
-				event->rdataset->type);
-			event->rdataset->trust = dns_trust_secure;
-			event->sigrdataset->trust = dns_trust_secure;
-			return (result);
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "marking as secure");
 		}
 	}
 	return (result);
@@ -671,3 +673,53 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 
 	*validatorp = NULL;
 }
+
+
+
+static void
+validator_logv(dns_validator_t *val, isc_logcategory_t *category,
+	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+{
+	char msgbuf[2048];
+
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+
+	if (val->event != NULL && val->event->name != NULL &&
+	    val->event->rdataset != NULL)
+	{
+		char namebuf[1024];
+		char typebuf[256];
+		isc_buffer_t b;
+		
+		dns_name_format(val->event->name, namebuf, sizeof(namebuf));
+
+		isc_buffer_init(&b, (unsigned char *) typebuf, sizeof(typebuf),
+				ISC_BUFFERTYPE_TEXT);
+		if (dns_rdatatype_totext(val->event->rdataset->type, &b)
+		    != ISC_R_SUCCESS)
+		{
+			isc_buffer_clear(&b);
+			RUNTIME_CHECK(isc_buffer_putstr(&b, "<bad type>")
+				      == ISC_R_SUCCESS);
+		}
+			
+		isc_log_write(dns_lctx, category, module, level,
+			      "validating %s %.*s: %s", namebuf,
+			      (int) b.length, (char *) b.base, msgbuf);
+	} else {
+		isc_log_write(dns_lctx, category, module, level,
+			      "validator @%p: %s", val, msgbuf);
+		
+	}
+}
+
+static void
+validator_log(dns_validator_t *val, int level, const char *fmt, ...)
+{
+        va_list ap;
+	va_start(ap, fmt);
+	validator_logv(val, DNS_LOGCATEGORY_DNSSEC,
+		       DNS_LOGMODULE_VALIDATOR, level, fmt, ap);
+	va_end(ap);
+}
+
