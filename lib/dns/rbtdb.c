@@ -956,7 +956,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	dns_name_init(&nodename, NULL);
 	RWLOCK(&rbtdb->tree_lock, locktype);
 	result = dns_rbt_findnode(rbtdb->tree, name, NULL, &node, NULL,
-				  ISC_TRUE, NULL, NULL);
+				  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		RWUNLOCK(&rbtdb->tree_lock, locktype);
 		if (!create) {
@@ -1364,7 +1364,8 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 			wnode = NULL;
 			result = dns_rbt_findnode(rbtdb->tree, wname,
 						  NULL, &wnode, NULL,
-						  ISC_TRUE, NULL, NULL);
+						  DNS_RBTFIND_EMPTYDATA,
+						  NULL, NULL);
 			if (result == ISC_R_SUCCESS) {
 			    /*
 			     * We have found the wildcard node.  If it
@@ -1631,7 +1632,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * rdatasets at the zone cut for active DNAME or NS rdatasets.
 	 */
 	result = dns_rbt_findnode(search.rbtdb->tree, name, foundname, &node,
-				  &search.chain, ISC_TRUE,
+				  &search.chain, DNS_RBTFIND_EMPTYDATA,
 				  zone_zonecut_callback, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
@@ -2271,7 +2272,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * rdatasets at the zone cut for a DNAME rdataset.
 	 */
 	result = dns_rbt_findnode(search.rbtdb->tree, name, foundname, &node,
-				  &search.chain, ISC_TRUE,
+				  &search.chain, DNS_RBTFIND_EMPTYDATA,
 				  cache_zonecut_callback, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
@@ -2518,6 +2519,7 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 	rbtdb_search_t search;
 	rdatasetheader_t *header, *header_prev, *header_next;
 	rdatasetheader_t *found, *foundsig;
+	unsigned int rbtoptions = DNS_RBTFIND_EMPTYDATA;
 
 	search.rbtdb = (dns_rbtdb_t *)db;
 
@@ -2537,13 +2539,16 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
 	search.now = now;
 
+	if ((options & DNS_DBFIND_NOEXACT) != 0)
+		rbtoptions |= DNS_RBTFIND_NOEXACT;
+
 	RWLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
 
 	/*
 	 * Search down from the root of the tree.
 	 */
 	result = dns_rbt_findnode(search.rbtdb->tree, name, foundname, &node,
-				  &search.chain, ISC_TRUE, NULL, &search);
+				  &search.chain, rbtoptions, NULL, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
 	find_ns:
@@ -4363,7 +4368,8 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 	dns_rbtnodechain_reset(&rbtdbiter->chain);
 	rbtdbiter->node = NULL;
 	result = dns_rbt_findnode(rbtdb->tree, name, NULL, &rbtdbiter->node,
-				  &rbtdbiter->chain, ISC_TRUE, NULL, NULL);
+				  &rbtdbiter->chain, DNS_RBTFIND_EMPTYDATA,
+				  NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_PARTIALMATCH)
 			result = ISC_R_NOTFOUND;
