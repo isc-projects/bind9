@@ -65,12 +65,6 @@
 ISC_LANG_BEGINDECLS
 
 /***
- *** Magic numbers
- ***/
-#define ISC_ENTROPY_MAGIC		ISC_MAGIC('R', 'a', 'n', 'd')
-#define ISC_ENTROPY_VALID(b)		ISC_MAGIC_VALID(b, ISC_ENTROPY_MAGIC)
-
-/***
  *** Flags.
  ***/
 

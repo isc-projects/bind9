@@ -25,6 +25,7 @@
 #include <isc/buffer.h>
 #include <isc/entropy.h>
 #include <isc/list.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/region.h>
@@ -37,10 +38,11 @@
  * written by Michael Graff <explorer@netbsd.org>.
  */
 
-#define ISC_ENTROPY_MAGIC	ISC_MAGIC('E', 'n', 't', 'e')
+#define ENTROPY_MAGIC		ISC_MAGIC('E', 'n', 't', 'e')
+#define SOURCE_MAGIC		ISC_MAGIC('E', 'n', 't', 's')
 
-#define VALID_ENTROPY(e)	ISC_MAGIC_VALID(e, ISC_ENTROPY_MAGIC)
-#define VALID_SOURCE(s)		((s) != NULL)
+#define VALID_ENTROPY(e)	ISC_MAGIC_VALID(e, ENTROPY_MAGIC)
+#define VALID_SOURCE(s)		ISC_MAGIC_VALID(s, SOURCE_MAGIC)
 
 /***
  *** "constants."  Do not change these unless you _really_ know what
@@ -493,7 +495,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	 */
 	ISC_LIST_INIT(ent->sources);
 	ent->mctx = mctx;
-	ent->magic = ISC_ENTROPY_MAGIC;
+	ent->magic = ENTROPY_MAGIC;
 
 	isc_entropypool_init(&ent->pool);
 
@@ -590,6 +592,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
 	/*
 	 * From here down, no failures can occur.
 	 */
+	source->magic = SOURCE_MAGIC;
 	source->type = ENTROPY_SOURCETYPE_FILE;
 	source->ent = ent;
 	source->flags = flags;
