@@ -28,6 +28,7 @@
 
 #include <dns/validator.h>
 #include <dns/db.h>
+#include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/keytable.h>
 #include <dns/name.h>
