@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.13 2003/08/21 06:17:55 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.14 2003/08/21 07:05:12 marka Exp $ */
 
 #include <config.h>
 
@@ -2187,6 +2187,67 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 }
 
 static void
+query_addnxrrsetnxt(ns_client_t *client, dns_db_t *db, dns_name_t **namep,
+		    dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp)
+{
+	dns_name_t *name;
+	dns_rdataset_t *sigrdataset;
+	dns_rdata_t sigrdata;
+	dns_rdata_sig_t sig;
+	unsigned int labels;
+	isc_buffer_t *dbuf, b;
+	dns_name_t *fname;
+	isc_result_t result;
+
+	name = *namep;
+	if ((name->attributes & DNS_NAMEATTR_WILDCARD) == 0) {
+		query_addrrset(client, namep, rdatasetp, sigrdatasetp,
+			       NULL, DNS_SECTION_AUTHORITY);
+		return;
+	}
+
+	if (sigrdatasetp == NULL)
+		return;
+	sigrdataset = *sigrdatasetp;
+	if (sigrdataset == NULL || !dns_rdataset_isassociated(sigrdataset))
+		return;
+	result = dns_rdataset_first(sigrdataset);
+	if (result != ISC_R_SUCCESS)
+		return;
+	dns_rdata_init(&sigrdata);
+	dns_rdataset_current(sigrdataset, &sigrdata);
+	result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+	if (result != ISC_R_SUCCESS)
+		return;
+
+	labels = dns_name_countlabels(name);
+	if ((unsigned int)sig.labels + 1 >= labels)
+		return;
+
+	/* XXX */
+	query_addwildcardproof(client, db,
+			       client->query.qname,
+			       ISC_TRUE);
+
+	/*
+	 * We'll need some resources...
+	 */
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		return;
+	fname = query_newname(client, dbuf, &b);
+	if (fname == NULL)
+		return;
+	RUNTIME_CHECK(dns_name_splitatdepth(name, sig.labels + 1, NULL,
+					    fname) == ISC_R_SUCCESS);
+	/* This will succeed, since we've stripped labels. */
+	RUNTIME_CHECK(dns_name_concatenate(dns_wildcardname, fname, fname,
+					   NULL) == ISC_R_SUCCESS);
+	query_addrrset(client, &fname, rdatasetp, sigrdatasetp,
+		       dbuf, DNS_SECTION_AUTHORITY);
+}
+
+static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
@@ -3012,11 +3073,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		/*
 		 * Add NXT record if we found one.
 		 */
-		if (dns_rdataset_isassociated(rdataset)) {
-			if (WANTDNSSEC(client))
-				query_addrrset(client, &fname, &rdataset,
-					       &sigrdataset,
-					       NULL, DNS_SECTION_AUTHORITY);
+		if (WANTDNSSEC(client)) {
+			if (dns_rdataset_isassociated(rdataset))
+				query_addnxrrsetnxt(client, db, &fname,
+						    &rdataset, &sigrdataset);
 		}
 		goto cleanup;
 	case DNS_R_EMPTYWILD:
