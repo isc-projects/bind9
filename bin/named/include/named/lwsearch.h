@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwsearch.h,v 1.1 2000/10/24 04:25:14 bwelling Exp $ */
+/* $Id: lwsearch.h,v 1.2 2000/10/28 00:09:46 bwelling Exp $ */
 
 #ifndef NAMED_LWSEARCH_H
 #define NAMED_LWSEARCH_H 1
@@ -52,6 +52,7 @@ struct ns_lwsearchctx {
 	unsigned int ndots;
 	ns_lwsearchlist_t *list;
 	isc_boolean_t doneexact;
+	isc_boolean_t exactfirst;
 };
 
 isc_result_t
