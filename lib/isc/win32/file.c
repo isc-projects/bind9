@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.20.2.1 2001/09/05 00:38:09 gson Exp $ */
+/* $Id: file.c,v 1.20.2.2 2001/09/05 17:29:25 gson Exp $ */
 
 #include <config.h>
 
@@ -205,7 +205,7 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 	REQUIRE(file != NULL);
 	REQUIRE(time != NULL);
 
-	if ((fh = open(file, _O_RDWR | _O_BINARY)) < 0)
+	if ((fh = open(file, _O_RDONLY | _O_BINARY)) < 0)
 		return (isc__errno2result(errno));
 
 	if (!GetFileTime((HANDLE) _get_osfhandle(fh),
