@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.35 2003/01/20 05:46:09 marka Exp $ */
+/* $Id: config.c,v 1.36 2003/02/04 05:44:31 marka Exp $ */
 
 #include <config.h>
 
@@ -135,6 +135,8 @@ options {\n\
 #	max-ixfr-log-size <obsolete>\n\
 	transfer-source *;\n\
 	transfer-source-v6 *;\n\
+	alt-transfer-source-v4 *;\n\
+	alt-transfer-source-v6 *;\n\
 	max-transfer-time-in 120;\n\
 	max-transfer-time-out 120;\n\
 	max-transfer-idle-in 60;\n\

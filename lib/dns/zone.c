@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.379 2002/11/27 09:52:55 marka Exp $ */
+/* $Id: zone.c,v 1.380 2003/02/04 05:44:31 marka Exp $ */
 
 #include <config.h>
 
@@ -178,6 +178,8 @@ struct dns_zone {
 	isc_sockaddr_t	 	notifysrc6;
 	isc_sockaddr_t	 	xfrsource4;
 	isc_sockaddr_t	 	xfrsource6;
+	isc_sockaddr_t	 	altxfrsource4;
+	isc_sockaddr_t	 	altxfrsource6;
 	dns_xfrin_ctx_t		*xfr;		/* task locked */
 	dns_tsigkey_t		*tsigkey;	/* key used for xfr */
 	/* Access Control Lists */
@@ -258,6 +260,7 @@ struct dns_zone {
 #define DNS_ZONEFLAG_NOIXFR	0x00100000U	/* IXFR failed, force AXFR */
 #define DNS_ZONEFLG_FLUSH	0x00200000U
 #define DNS_ZONEFLG_NOEDNS	0x00400000U
+#define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -557,6 +560,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_sockaddr_any6(&zone->notifysrc6);
 	isc_sockaddr_any(&zone->xfrsource4);
 	isc_sockaddr_any6(&zone->xfrsource6);
+	isc_sockaddr_any(&zone->altxfrsource4);
+	isc_sockaddr_any6(&zone->altxfrsource6);
 	zone->xfr = NULL;
 	zone->tsigkey = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
@@ -1773,6 +1778,40 @@ dns_zone_getxfrsource6(dns_zone_t *zone) {
 }
 
 isc_result_t
+dns_zone_setaltxfrsource4(dns_zone_t *zone, isc_sockaddr_t *altxfrsource) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->altxfrsource4 = *altxfrsource;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getaltxfrsource4(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->altxfrsource4);
+}
+
+isc_result_t
+dns_zone_setaltxfrsource6(dns_zone_t *zone, isc_sockaddr_t *altxfrsource) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->altxfrsource6 = *altxfrsource;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getaltxfrsource6(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->altxfrsource6);
+}
+
+isc_result_t
 dns_zone_setnotifysrc4(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2155,6 +2194,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	}
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
 	if ((oldflags & (DNS_ZONEFLG_REFRESH|DNS_ZONEFLG_LOADING)) != 0)
 		goto unlock;
 
@@ -3246,11 +3286,18 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	zone->curmaster++;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (exiting || zone->curmaster >= zone->masterscnt) {
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
+		if (!exiting &&
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			zone->curmaster = 0;
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+		} else {
+			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 
-		zone_settimer(zone, &now);
-		UNLOCK_ZONE(zone);
-		goto free_stub;
+			zone_settimer(zone, &now);
+			UNLOCK_ZONE(zone);
+			goto free_stub;
+		}
 	}
 	queue_soa_query(zone);
 	UNLOCK_ZONE(zone);
@@ -3720,7 +3767,7 @@ add_opt(dns_message_t *message) {
 static void
 soa_query(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "soa_query";
-	isc_result_t result;
+	isc_result_t result = ISC_R_FAILURE;
 	dns_message_t *message = NULL;
 	dns_zone_t *zone = event->ev_arg;
 	dns_zone_t *dummy = NULL;
@@ -3753,9 +3800,35 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
+ again:
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
+
 	zone->masteraddr = zone->masters[zone->curmaster];
+
+	switch (isc_sockaddr_pf(&zone->masteraddr)) {
+	case PF_INET:
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			if (isc_sockaddr_equal(&zone->altxfrsource4,
+					       &zone->xfrsource4))
+				goto skip_master;
+			src = zone->altxfrsource4;
+		} else
+			src = zone->xfrsource4;
+		break;
+	case PF_INET6:
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			if (isc_sockaddr_equal(&zone->altxfrsource6,
+					       &zone->xfrsource6))
+				goto skip_master;
+			src = zone->altxfrsource6;
+		} else
+			src = zone->xfrsource6;
+		break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+	}
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	(void)dns_view_getpeertsig(zone->view, &masterip, &key);
@@ -3770,6 +3843,10 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_SUCCESS && !edns)
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	}
+
+	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
+		  DNS_REQUESTOPT_TCP : 0;
+
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message);
 		if (result != ISC_R_SUCCESS)
@@ -3778,19 +3855,6 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 				      dns_result_totext(result));
 	}
 
-	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
-		  DNS_REQUESTOPT_TCP : 0;
-	switch (isc_sockaddr_pf(&zone->masteraddr)) {
-	case PF_INET:
-		src = zone->xfrsource4;
-		break;
-	case PF_INET6:
-		src = zone->xfrsource6;
-		break;
-	default:
-		result = ISC_R_NOTIMPLEMENTED;
-		goto cleanup;
-	}
 	zone_iattach(zone, &dummy);
 	timeout = 15;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
@@ -3811,6 +3875,8 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	cancel = ISC_FALSE;
 
  cleanup:
+	if (result != ISC_R_SUCCESS)
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 	if (message != NULL)
 		dns_message_destroy(&message);
 	if (cancel)
@@ -3819,6 +3885,13 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	UNLOCK_ZONE(zone);
 	dns_zone_idetach(&zone);
 	return;
+
+ skip_master:
+	zone->curmaster++;
+	if (zone->curmaster < zone->masterscnt)
+		goto again;
+	zone->masterscnt = 0;
+	goto cleanup;
 }
 
 static void
@@ -5184,9 +5257,16 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	default:
 		zone->curmaster++;
 	same_master:
-		if (zone->curmaster >= zone->masterscnt)
+		if (zone->curmaster >= zone->masterscnt) {
 			zone->curmaster = 0;
-		else {
+			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+				again = ISC_TRUE;
+			} else
+				DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+		} else {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 			again = ISC_TRUE;
 		}
