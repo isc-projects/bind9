@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.51 2000/04/04 19:14:05 gson Exp $ */
+/* $Id: xfrout.c,v 1.52 2000/04/06 20:25:48 gson Exp $ */
 
 #include <config.h>
 
@@ -805,7 +805,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
 	isc_quota_t *quota = NULL;
-	dns_transfer_format_t format = ns_g_server->transfer_format;
+	dns_transfer_format_t format = client->view->transfer_format;
 	isc_netaddr_t na;
 	dns_peer_t *peer = NULL;
 

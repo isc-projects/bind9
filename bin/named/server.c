@@ -340,6 +340,21 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				 dns_c_view_getmatchclients, NULL,
 				 &view->matchclients));
 
+	/*
+	 * Configure other configurable data.
+	 */
+	view->recursion = ISC_TRUE;	
+	(void) dns_c_ctx_getrecursion(cctx, &view->recursion);
+	(void) dns_c_view_getrecursion(cview, &view->recursion);
+
+	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
+	(void) dns_c_ctx_getauthnxdomain(cctx, &view->auth_nxdomain);
+	(void) dns_c_view_getauthnxdomain(cview, &view->auth_nxdomain);
+
+	view->transfer_format = dns_one_answer;	
+	(void) dns_c_ctx_gettransferformat(cctx, &view->transfer_format);
+	(void) dns_c_view_gettransferformat(cview, &view->transfer_format);
+	
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
 
@@ -943,11 +958,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Configure various server options.
 	 */
-	(void) dns_c_ctx_getrecursion(configctx, &server->recursion);	
-	(void) dns_c_ctx_getauthnxdomain(configctx, &server->auth_nxdomain);
-	(void) dns_c_ctx_gettransferformat(configctx,
-					   &server->transfer_format);
-	
 	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
 				   dns_c_ctx_getallowquery,
 				   &server->queryacl));
@@ -1286,9 +1296,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   "initializing server configuration lock");
 
 	/* Initialize configuration data with default values. */
-	server->recursion = ISC_TRUE;
-	server->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
-	server->transfer_format = dns_one_answer;
 
 	server->queryacl = NULL;
 	server->recursionacl = NULL;

@@ -2607,7 +2607,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * response.
 		 */
 		if (client->message->rcode == dns_rcode_nxdomain &&
-		    ns_g_server->auth_nxdomain == ISC_TRUE)
+		    client->view->auth_nxdomain == ISC_TRUE)
 			client->message->flags |= DNS_MESSAGEFLAG_AA;
 		
 		ns_client_send(client);

@@ -134,6 +134,12 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_trustedkeys;
 	view->peers = NULL;
+
+	/* Initialize configuration data with default values. */	
+	view->recursion = ISC_TRUE;
+	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
+	view->transfer_format = dns_one_answer;
+
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_dynkeys;

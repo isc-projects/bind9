@@ -95,6 +95,10 @@ struct dns_view {
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
 	dns_peerlist_t *		peers;
+	isc_boolean_t			recursion;
+	isc_boolean_t			auth_nxdomain;
+	dns_transfer_format_t		transfer_format;
+
 	/*
 	 * Configurable data for server use only,
 	 * locked by server configuration lock.
