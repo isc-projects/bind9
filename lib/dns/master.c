@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.43 2000/03/22 17:54:15 gson Exp $ */
+/* $Id: master.c,v 1.44 2000/03/22 17:59:13 gson Exp $ */
 
 #include <config.h>
 
@@ -73,8 +73,8 @@
  * Size for tokens in the presentation format, 
  * The largest tokens are the base64 blocks in KEY and CERT records,
  * Largest key allowed is about 1372 bytes but 
- * there is no fixed upper bound on Cert records 
- * 2K is too small for some X.509's 8K is an overkill
+ * there is no fixed upper bound on CERT records.
+ * 2K is too small for some X.509s, 8K is overkill.
  */
 #define TOKENSIZ (8*1024)
 
@@ -165,7 +165,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	isc_boolean_t finish_origin = ISC_FALSE;
 	isc_boolean_t finish_include = ISC_FALSE;
 	isc_boolean_t read_till_eol = ISC_FALSE;
-	isc_boolean_t warn_1035 = ISC_TRUE;	/* XXX Arguement? */
+	isc_boolean_t warn_1035 = ISC_TRUE;	/* XXX Argument? */
 	char *include_file = NULL;
 	isc_token_t token;
 	isc_result_t result = DNS_R_UNEXPECTED; 
