@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.66 2000/05/30 23:14:54 bwelling Exp $
+ * $Id: tsig.c,v 1.67 2000/05/31 23:58:34 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -260,7 +260,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	/*
 	 * If this is a response, there should be a query tsig.
 	 */
-	if (is_response(msg) && msg->querytsigset == NULL)
+	if (is_response(msg) && msg->querytsig == NULL)
 		return (DNS_R_EXPECTEDTSIG);
 
 	dynbuf = NULL;
@@ -324,11 +324,10 @@ dns_tsig_sign(dns_message_t *msg) {
 		if (is_response(msg)) {
 			dns_rdata_t querytsigrdata;
 
-			ret = dns_rdataset_first(msg->querytsigset);
+			ret = dns_rdataset_first(msg->querytsig);
 			if (ret != ISC_R_SUCCESS)
 				goto cleanup_other;
-			dns_rdataset_current(msg->querytsigset,
-					     &querytsigrdata);
+			dns_rdataset_current(msg->querytsig, &querytsigrdata);
 			ret = dns_rdata_tostruct(&querytsigrdata, &querytsig,
 						 NULL);
 			if (ret != ISC_R_SUCCESS)
@@ -525,7 +524,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		goto cleanup_dynbuf;
 	dns_rdataset_init(dataset);
 	dns_rdatalist_tordataset(datalist, dataset);
-	msg->tsigset = dataset;
+	msg->tsig = dataset;
 	msg->tsigname = owner;
 
 	return (ISC_R_SUCCESS);
@@ -575,7 +574,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	/*
 	 * There should be a TSIG record...
 	 */
-	if (msg->tsigset == NULL)
+	if (msg->tsig == NULL)
 		return (DNS_R_EXPECTEDTSIG);
 
 	/*
@@ -583,7 +582,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 * shouldn't be one on the response.
 	 */
 	if (is_response(msg) &&
-	    (tsigkey == NULL || msg->querytsigset == NULL))
+	    (tsigkey == NULL || msg->querytsig == NULL))
 		return (DNS_R_UNEXPECTEDTSIG);
 
 	mctx = msg->mctx;
@@ -594,18 +593,18 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 */
 
 	keyname = msg->tsigname;
-	ret = dns_rdataset_first(msg->tsigset);
+	ret = dns_rdataset_first(msg->tsig);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
-	dns_rdataset_current(msg->tsigset, &rdata);
+	dns_rdataset_current(msg->tsig, &rdata);
 	ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	if (is_response(msg)) {
-		ret = dns_rdataset_first(msg->querytsigset);
+		ret = dns_rdataset_first(msg->querytsig);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
-		dns_rdataset_current(msg->querytsigset, &rdata);
+		dns_rdataset_current(msg->querytsig, &rdata);
 		ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
@@ -742,7 +741,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 		isc_buffer_init(&databuf, data, sizeof(data));
 		isc_buffer_putuint16(&databuf, tsig.common.rdclass);
-		isc_buffer_putuint32(&databuf, msg->tsigset->ttl);
+		isc_buffer_putuint32(&databuf, msg->tsig->ttl);
 		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r,
 				     &sig_r);
@@ -839,27 +838,27 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(dns_message_gettsigkey(msg) != NULL);
 	REQUIRE(msg->tcp_continuation == 1);
 	REQUIRE(is_response(msg));
-	REQUIRE(msg->querytsigset != NULL);
+	REQUIRE(msg->querytsig != NULL);
 
 	mctx = msg->mctx;
 
 	tsigkey = dns_message_gettsigkey(msg);
 
-	if (msg->tsigset != NULL) {
+	if (msg->tsig != NULL) {
 		has_tsig = ISC_TRUE;
 
 		keyname = msg->tsigname;
-		ret = dns_rdataset_first(msg->tsigset);
+		ret = dns_rdataset_first(msg->tsig);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
-		dns_rdataset_current(msg->tsigset, &rdata);
+		dns_rdataset_current(msg->tsig, &rdata);
 		ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
-		ret = dns_rdataset_first(msg->querytsigset);
+		ret = dns_rdataset_first(msg->querytsig);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
-		dns_rdataset_current(msg->querytsigset, &rdata);
+		dns_rdataset_current(msg->querytsig, &rdata);
 		ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);

@@ -165,7 +165,7 @@ struct dns_message {
 	dns_name_t		       *cursors[DNS_SECTION_MAX];
 	dns_rdataset_t		       *opt;
 	dns_rdataset_t		       *sig0;
-	dns_rdataset_t		       *tsigset;
+	dns_rdataset_t		       *tsig;
 
 	int				state;
 	unsigned int			from_to_wire : 2;
@@ -199,7 +199,7 @@ struct dns_message {
 	dns_rcode_t			tsigstatus;
 	dns_rcode_t			querytsigstatus;
 	dns_name_t		       *tsigname;
-	dns_rdataset_t		       *querytsigset;
+	dns_rdataset_t		       *querytsig;
 	dns_tsigkey_t		       *tsigkey;
 	void			       *tsigctx;
 	int				sigstart;
