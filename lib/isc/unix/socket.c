@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.169 2000/10/07 00:16:50 bwelling Exp $ */
+/* $Id: socket.c,v 1.170 2000/10/12 00:35:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1262,7 +1262,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 #if defined(SO_TIMESTAMP)
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
-			       (void *)&on, sizeof on) < 0) {
+			       (void *)&on, sizeof on) < 0
+		    && errno != ENOPROTOOPT) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, SO_TIMESTAMP) "
 					 "failed: %s",
