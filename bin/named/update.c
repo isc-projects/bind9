@@ -1724,21 +1724,12 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 static void
 respond(ns_client_t *client, isc_result_t result) {
 	isc_result_t msg_result;
-	dns_message_t *response = NULL;
 
-	msg_result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTRENDER,
-					&response);
+	msg_result = dns_message_reply(client->message, ISC_TRUE);
 	if (msg_result != DNS_R_SUCCESS)
 		goto msg_failure;
+	client->message->rcode = dns_result_torcode(result);
 	
-	response->id = client->message->id;
-	response->rcode = dns_result_torcode(result);
-	response->flags = client->message->flags;
-	response->flags |= DNS_MESSAGEFLAG_QR;
-	response->opcode = client->message->opcode;
-
-	dns_message_destroy(&client->message);
-	client->message = response;
 	ns_client_send(client);
 	return;
 	
