@@ -15,16 +15,20 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: testsock.pl,v 1.3 2000/06/24 23:09:44 gson Exp $
+# $Id: testsock.pl,v 1.4 2000/06/25 01:40:05 gson Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
 require 5.001;
 
 use Socket;
+use Getopt::Long;
+
+my $port = 0;
+GetOptions("p=i" => \$port);
 
 for ($id = 1 ; $id < 6 ; $id++) {
-	$sa = pack_sockaddr_in(0, pack("C4", 10, 53, 0, $id));
+	$sa = pack_sockaddr_in($port, pack("C4", 10, 53, 0, $id));
 	socket(SOCK, PF_INET, SOCK_STREAM, getprotobyname("tcp"))
       		or die "$0: socket: $!\n";
 	bind(SOCK, $sa)
