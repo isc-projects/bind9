@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.23 2000/03/16 02:07:06 brister Exp $ */
+/* $Id: mx_15.c,v 1.24 2000/03/17 02:11:35 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -36,11 +36,9 @@ fromtext_mx(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(rdclass);
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
 			  ISC_BUFFERTYPE_TEXT);
@@ -69,7 +67,9 @@ totext_mx(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_region_consume(&region, 2);
 	sprintf(buf, "%u", num);
 	RETERR(str_totext(buf, target));
+
 	RETERR(str_totext(" ", target));
+
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, tctx->origin, &prefix);
 	return (dns_name_totext(&prefix, sub, target));
@@ -96,14 +96,10 @@ fromwire_mx(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         dns_name_init(&name, NULL);
 
 	isc_buffer_active(source, &sregion);
-	isc_buffer_available(target, &tregion);
-	if (tregion.length < 2)
-		return (DNS_R_NOSPACE);
 	if (sregion.length < 2)
 		return (DNS_R_UNEXPECTEDEND);
-	memcpy(tregion.base, sregion.base, 2);
+	RETERR(mem_tobuffer(target, sregion.base, 2));
 	isc_buffer_forward(source, 2);
-	isc_buffer_add(target, 2);
 	return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
 
@@ -121,13 +117,9 @@ towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	else
 		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
-	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &region);
-	if (tr.length < 2)
-		return (DNS_R_NOSPACE);
-	memcpy(tr.base, region.base, 2);
+	RETERR(mem_tobuffer(target, region.base, 2));
 	isc_region_consume(&region, 2);
-	isc_buffer_add(target, 2);
 
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
@@ -220,7 +212,6 @@ static inline isc_result_t
 digest_mx(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 {
 	isc_region_t r1, r2;
-	isc_result_t result;
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 15);
@@ -229,9 +220,7 @@ digest_mx(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 	r2 = r1;
 	isc_region_consume(&r2, 2);
 	r1.length = 2;
-	result = (digest)(arg, &r1);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	RETERR((digest)(arg, &r1));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	return (dns_name_digest(&name, digest, arg));
