@@ -18,16 +18,13 @@
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
 
-#include <netinet/in.h>
-
+#include <isc/net.h>
 #include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
 
 typedef struct isc_sockaddr {
-	/*
-	 * XXX  Must be big enough for all sockaddr types we care about.
-	 */
+	unsigned int length;
 	union {
 		struct sockaddr_in sin;
 #ifdef notyet
