@@ -15,17 +15,24 @@
  * SOFTWARE.
  */
 
+#ifndef ISC_STRING_H
+#define ISC_STRING_H
+
 #include <string.h>
 
-#include <isc/lang.h>
 #include <isc/platform.h>
+
+#ifdef ISC_PLATFORM_NEEDSTRSEP
+#include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
 
-#ifdef ISC_PLATFORM_NEEDSTRSEP
 char *
 isc_strsep(char **stringp, const char *delim); 
+
 #define strsep isc_strsep
-#endif
 
 ISC_LANG_ENDDECLS
+#endif /* ISC_PLATFORM_NEEDSTRSEP */
+
+#endif /* ISC_STRING_H */
