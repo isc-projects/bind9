@@ -1503,6 +1503,7 @@ answer_response(fetchctx_t *fctx) {
 	 * in this section, and we expect that it is not external.
 	 */
 
+	done = ISC_FALSE;
 	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
@@ -1519,6 +1520,8 @@ answer_response(fetchctx_t *fctx) {
 				if (rdataset->type == dns_rdatatype_ns ||
 				    (rdataset->type == dns_rdatatype_sig &&
 				     rdataset->covers == dns_rdatatype_ns)) {
+					name->attributes |=
+						DNS_NAMEATTR_CACHE;
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
 					if (aa)
