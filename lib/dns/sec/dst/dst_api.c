@@ -19,10 +19,12 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.35 2000/05/15 21:02:28 bwelling Exp $
+ * $Id: dst_api.c,v 1.36 2000/05/15 23:14:41 bwelling Exp $
  */
 
 #include <config.h>
+
+#include <stdlib.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
@@ -771,6 +773,97 @@ dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out) {
 		key->key_alg, key->key_id, suffix);
 	isc_buffer_add(out, namelen);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, char **name,
+		      isc_uint16_t *id, int *alg, char **suffix)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	char c, str[6], *p, *endp;
+	isc_region_t r;
+	unsigned int length;
+
+	REQUIRE(source != NULL);
+	REQUIRE(mctx != NULL);
+	REQUIRE(name != NULL && *name == NULL);
+	REQUIRE(id != NULL);
+	REQUIRE(alg != NULL);
+	REQUIRE(suffix == NULL || *suffix == NULL);
+
+	if (isc_buffer_remaininglength(source) < 1)
+		return (ISC_R_UNEXPECTEDEND);
+	c = (char) isc_buffer_getuint8(source);
+	if (c != 'K') {
+		result = ISC_R_INVALIDFILE;
+		goto fail;
+	}
+	isc_buffer_remainingregion(source, &r);
+	p = (char *)r.base;
+	length = r.length;
+	while (length > 0 && *p != '+') {
+		length--;
+		p++;
+	}
+	if (length == 0)
+		return (ISC_R_UNEXPECTEDEND);
+	length = p - (char *) r.base;
+	*name = isc_mem_get(mctx, length + 1);
+	if (*name == NULL)
+		return (ISC_R_NOMEMORY);
+	memcpy(*name, r.base, length);
+	(*name)[length] = 0;
+	isc_buffer_forward(source, length);
+	if (isc_buffer_remaininglength(source) < 1 + 3 + 1 + 5) {
+		result = ISC_R_UNEXPECTEDEND;
+		goto fail;
+	}
+	c = (char) isc_buffer_getuint8(source);
+	if (c != '+') {
+		result = ISC_R_INVALIDFILE;
+		goto fail;
+	}
+	isc_buffer_remainingregion(source, &r);
+	memcpy(str, r.base, 3);
+	str[3] = 0;
+	*alg = strtol(str, &endp, 10);
+	if (*endp != '\0') {
+		result = ISC_R_INVALIDFILE;
+		goto fail;
+	}
+	isc_buffer_forward(source, 3);
+	c = (char) isc_buffer_getuint8(source);
+	if (c != '+') {
+		result = ISC_R_INVALIDFILE;
+		goto fail;
+	}
+	isc_buffer_remainingregion(source, &r);
+	memcpy(str, r.base, 5);
+	str[5] = 0;
+	*id = strtol(str, &endp, 10);
+	if (*endp != '\0') {
+		result = ISC_R_INVALIDFILE;
+		goto fail;
+	}
+	isc_buffer_forward(source, 5);
+	if (suffix == NULL)
+		return (ISC_R_SUCCESS);
+	isc_buffer_remainingregion(source, &r);
+	*suffix = isc_mem_get(mctx, r.length + 1);
+	if (*suffix == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto fail;
+	}
+	if (r.length > 0)
+		memcpy(*suffix, r.base, r.length);
+	(*suffix)[r.length] = 0;
+	return (ISC_R_SUCCESS);
+
+ fail:
+	if (*name != NULL)
+		 isc_mem_put(mctx, name, strlen(*name) + 1);
+	return (result);
+
 }
 
 /*
