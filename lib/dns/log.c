@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.33 2001/08/27 03:35:58 marka Exp $ */
+/* $Id: log.c,v 1.34 2001/10/11 01:16:17 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -33,7 +33,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ "notify", 	0 },
 	{ "database", 	0 },
 	{ "security", 	0 },
-	{ "config",	0 },
+	{ "_placeholder", 0 },
 	{ "dnssec",	0 },
 	{ "resolver",	0 },
 	{ "xfer-in",	0 },
