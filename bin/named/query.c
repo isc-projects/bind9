@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.166 2001/01/07 22:06:12 gson Exp $ */
+/* $Id: query.c,v 1.167 2001/01/07 22:18:00 gson Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/mem.h>
 #include <isc/util.h>
 
+#include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -96,6 +97,21 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
+
+static void
+synth_fwd_start(ns_client_t *client);
+
+static void
+synth_fwd_startfind(ns_client_t *client);
+
+static void
+synth_fwd_respond(ns_client_t *client, dns_adbfind_t *find);
+
+static void
+synth_fwd_finddone(isc_task_t *task, isc_event_t *ev);
+
+static void
+synth_fwd_finish(ns_client_t *client, isc_result_t result);
 
 /*
  * Increment query statistics counters.
@@ -3353,8 +3369,242 @@ ns_query_start(ns_client_t *client) {
 	 */
 	if (WANTDNSSEC(client))
 		message->flags |= DNS_MESSAGEFLAG_AD;
-	
+
+	if (RECURSIONOK(client) &&
+	    ISC_FALSE && /* XXX configurable via option allow-v6-synthesis */
+	    client->message->rdclass == dns_rdataclass_in) {
+		if (qtype == dns_rdatatype_aaaa) {
+			qclient = NULL;
+			ns_client_attach(client, &qclient);
+			synth_fwd_start(qclient);
+			return;
+		}
+#ifdef notyet
+		else if (qtype == dns_rdatatype_ptr &&
+			   dns_name_issubdomain(query->qname, &inaddrintname)) {
+			qclient = NULL;
+			ns_client_attach(client, &qclient);
+			synth_rev_start(qclient);
+			return;
+		}
+#endif
+	}
+
 	qclient = NULL;
 	ns_client_attach(client, &qclient);
 	query_find(qclient, NULL, qtype);
+}
+
+/*
+ * Generate a synthetic IPv6 forward mapping response for the current
+ * query of 'client'.
+ */
+static void
+synth_fwd_start(ns_client_t *client) {
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+		      ISC_LOG_DEBUG(5), "generating synthetic AAAA response");
+
+	synth_fwd_startfind(client);
+}
+
+/*
+ * Start an ADB find to get addresses, or more addresses, for 
+ * a synthetic IPv6 forward mapping response.
+ */
+static void
+synth_fwd_startfind(ns_client_t *client) {
+	dns_adbfind_t *find = NULL;
+	isc_result_t result;
+	dns_fixedname_t target_fixed;
+	dns_name_t *target;
+
+	dns_fixedname_init(&target_fixed);
+	target = dns_fixedname_name(&target_fixed);
+
+ find_again:
+	result = dns_adb_createfind(client->view->adb, client->task,
+			    synth_fwd_finddone, client, client->query.qname,
+			    dns_rootname, 
+			    DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_RETURNLAME |
+			    DNS_ADBFIND_INET6, client->now,
+			    target, 0, &find);
+
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+		      ISC_LOG_DEBUG(5), "find returned %s",
+		      isc_result_totext(result));
+
+	if (result == DNS_R_ALIAS) {
+		dns_name_t *ptarget = NULL;
+		dns_name_t *tname = NULL;
+		isc_buffer_t *dbuf;
+		isc_buffer_t b;
+
+		/*
+		 * Make a persistent copy of the 'target' name data in 'ptarget';
+		 * it will become the new query name.
+		 */
+		dbuf = query_getnamebuf(client);
+		if (dbuf == NULL)
+			goto fail;
+		ptarget = query_newname(client, dbuf, &b);
+		if (ptarget == NULL)
+			goto fail;
+		dns_name_copy(target, ptarget, NULL);
+		
+		dns_adb_destroyfind(&find);
+
+		/*
+		 * Get another temporary name 'tname' for insertion into the
+		 * response message.
+		 */
+		result = dns_message_gettempname(client->message, &tname);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+		dns_name_init(tname, NULL);
+		result = query_addcname(client, client->query.qname, ptarget,
+					0 /* XXX ttl */, &tname);
+		if (tname != NULL)
+			dns_message_puttempname(client->message, &tname);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+
+		query_maybeputqname(client);
+		client->query.qname = ptarget;
+		query_keepname(client, ptarget, dbuf);
+		ptarget = NULL;
+		client->query.restarts++;
+		goto find_again;
+	} else if (result != ISC_R_SUCCESS) {
+		if (find != NULL)
+			dns_adb_destroyfind(&find);
+		goto fail;
+	}
+
+	if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+			      ISC_LOG_DEBUG(5), "find will send event");
+	} else {
+		synth_fwd_respond(client, find);
+		dns_adb_destroyfind(&find);
+	}
+	return;
+
+fail:
+	synth_fwd_finish(client, DNS_R_SERVFAIL);
+	return;	
+}
+
+/*
+ * Handle an ADB finddone event generated as part of synthetic IPv6
+ * forward mapping processing.
+ */
+static void
+synth_fwd_finddone(isc_task_t *task, isc_event_t *ev) {
+	ns_client_t *client = ev->ev_arg;
+	dns_adbfind_t *find = ev->ev_sender;
+	isc_eventtype_t evtype = ev->ev_type;
+
+	UNUSED(task);
+
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+		      ISC_LOG_DEBUG(5), "got find event");
+
+	if (evtype == DNS_EVENT_ADBNOMOREADDRESSES)
+		synth_fwd_respond(client, find);
+	else if (evtype == DNS_EVENT_ADBMOREADDRESSES)
+		synth_fwd_startfind(client);
+	else
+		synth_fwd_finish(client, DNS_R_SERVFAIL);
+
+	isc_event_free(&ev);
+	dns_adb_destroyfind(&find);
+	
+}
+
+/*
+ * Generate a synthetic IPv6 forward mapping response based on
+ * a completed ADB lookup.
+ */
+static void
+synth_fwd_respond(ns_client_t *client, dns_adbfind_t *find) {
+	dns_adbaddrinfo_t *ai;
+	dns_name_t *tname = NULL;
+	dns_rdataset_t *rdataset = NULL;
+	dns_rdatalist_t *rdatalist = NULL;
+	isc_result_t result;
+
+	result = dns_message_gettempname(client->message, &tname);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	dns_name_init(tname, NULL);
+		
+	result = dns_message_gettemprdatalist(client->message, &rdatalist);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	
+	result = dns_message_gettemprdataset(client->message, &rdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	dns_rdataset_init(rdataset);
+
+	ISC_LIST_INIT(rdatalist->rdata);
+
+	rdatalist->type = dns_rdatatype_aaaa;
+	rdatalist->covers = 0;
+	rdatalist->rdclass = client->message->rdclass;
+	rdatalist->ttl = 0;
+
+	dns_name_clone(client->query.qname, tname);
+	
+	for (ai = ISC_LIST_HEAD(find->list);
+	     ai != NULL;
+	     ai = ISC_LIST_NEXT(ai, publink)) {
+		dns_rdata_t *rdata = NULL;
+		
+		struct sockaddr_in6 *sin6 = &ai->sockaddr.type.sin6;
+		/*
+		 * Could it be useful to return IPv4 addresses as A records?
+		 */
+		if (sin6->sin6_family != AF_INET6)
+			continue;
+
+		result = dns_message_gettemprdata(client->message, &rdata);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+
+		rdata->data = (unsigned char *) &sin6->sin6_addr;
+		rdata->length = 16;
+		rdata->rdclass = client->message->rdclass;
+		rdata->type = dns_rdatatype_aaaa;
+		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	}
+
+	dns_rdatalist_tordataset(rdatalist, rdataset);
+
+	query_addrrset(client, &tname, &rdataset, NULL, NULL,
+		       DNS_SECTION_ANSWER);
+
+ cleanup:
+	if (tname != NULL)
+		dns_message_puttempname(client->message, &tname);
+
+	if (rdataset != NULL) {
+		if (dns_rdataset_isassociated(rdataset))
+			dns_rdataset_disassociate(rdataset);
+		dns_message_puttemprdataset(client->message, &rdataset);
+	}
+
+	synth_fwd_finish(client, result);
+}
+
+/*
+ * Finish synthetic IPv6 forward mapping processing.
+ */
+static void
+synth_fwd_finish(ns_client_t *client, isc_result_t result) {
+	if (result == ISC_R_SUCCESS)
+		ns_client_send(client);
+	else
+		ns_client_error(client, result);
+	ns_client_detach(&client);	
 }
