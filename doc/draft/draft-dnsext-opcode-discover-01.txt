@@ -1,10 +1,11 @@
+ 
 IETF DNSEXT WG                                             Bill Manning
-draft-dnsext-opcode-discover-00.txt                                 ISI
+draft-dnsext-opcode-discover-01.txt                                 ISI
                                                              Paul Vixie
                                                                     ISC
                                                            Erik Guttman
                                                                     SUN
-                                                            11 Apr 2002
+                                                            21 Dec 2002
 
 
                          The DISCOVER opcode
@@ -36,7 +37,7 @@ The capitalized keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 document are to be interpreted as described in RFC 2119
 
-Abstract:
+0. Abstract:
 
    The QUERY opcode in the DNS is designed for unicast. With the
    development of multicast capabilities in the DNS, it is desireable
@@ -51,7 +52,7 @@ Abstract:
    was developed as part of the TBDS project, funded under DARPA grant
    F30602-99-1-0523.
 
-Introduction:
+1. Introduction:
 
    This document describes an experimental extension to the DNS to receive
    multiple responses which is the likely result when using DNS that has
@@ -60,7 +61,7 @@ Introduction:
    full processing rules used by TBDS are documented here for possible 
    incorporation in a future revision of the DNS specification."
 
-Method:
+2. Method:
 
         DISCOVER works like QUERY except:
 
@@ -88,7 +89,7 @@ Method:
            address of the requester and the source address should reflect
            the unicast address of the responder.
 
-Example usage for gethostby{name,addr}-style requestors:
+   Example usage for gethostby{name,addr}-style requestors:
 
         Compute the zone name of the enclosing in-addr.arpa, ip6.int, or
 	ip6.arpa domain.
@@ -118,7 +119,7 @@ Example usage for gethostby{name,addr}-style requestors:
 
         Cache all NS and A data learned in this process, respecting TTL's.
 
-TBDS usage for SRV requestors:
+   TBDS usage for SRV requestors:
 
         Do the gethostbyaddr() and gethostbyname() on one's own link-local
         address, using the above process.
@@ -173,22 +174,22 @@ TBDS usage for SRV requestors:
         zone names which match QNAME's, not with zone names which are owned
         by QNAME's.
 
-The only deviation from the DNS[3][4] model is that a host (like, say, a
-printer offering LPD services) has a DNS server which answers authoritatively
-for something which hasn't been delegated to it.  However, the only way that
-such DNS servers can be discovered is with a new opcode, DISCOVER, which
-is explicitly defined to discover undelegated zones for tightly scoped
-purposes.  Therefore this isn't officially a violation of DNS's coherency
-principles.
+   The only deviation from the DNS[3][4] model is that a host (like, say, a
+   printer offering LPD services) has a DNS server which answers authoritatively
+   for something which hasn't been delegated to it.  However, the only way that
+   such DNS servers can be discovered is with a new opcode, DISCOVER, which
+   is explicitly defined to discover undelegated zones for tightly scoped
+   purposes.  Therefore this isn't officially a violation of DNS's coherency 
+   principles. In some cases, a responder to DISCOVER, may not be traditional 
+   DNS software, it could be special purpose software.
 
-
-IANA Considerations
+3. IANA Considerations
 
         As a new opcode, the IANA will need to assign a numeric value
         for the memnonic. The last OPCODE assigned was "5", for UPDATE.
-        Test implementations have used OPCODE "6".
+        Test implementations have used OPCODE "6". 
 
-Security Considerations
+4. Security Considerations
 
         No new security considerations are known to be introduced with a new
         opcode, however using multicast for service discovery has the potential
@@ -229,8 +230,17 @@ Erik Guttman and Bill Manning were active contributors.
 
 7. References
 
-[1] draft-ietf-dnsext-mdns-00.txt
-[2] draft-manning-dnsext-mdns-00.txt
-[3] RFC 1034
-[4] RFC 1035
-	----------------------------------------------------------
+Informational References:
+
+[1]  Esibov, L., Aboba, B., Thaler, D., "Multicast DNS",
+	draft-ietf-dnsext-mdns-00.txt, November 2000. Expired
+
+[2] Woodcock, B., Manning, B., "Multicast Domain Name Service", 
+	draft-manning-dnsext-mdns-00.txt,  August 2000.  Expired.
+
+Normative References:
+[3]  Mockapetris, P., "DOMAIN NAMES - CONCEPTS AND FACILITIES",
+	RFC 1034, November 1987.
+[4]  Mockapetris, P., "DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION",
+	RFC 1035, November 1987
+
