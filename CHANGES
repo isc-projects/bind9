@@ -1,4 +1,7 @@
 
+1038.	[bug]		TKEY queries with an owner name other than the root
+			could cause an assertion failure. [RT #1866, #1869]
+
 	--- 9.2.0rc6 released ---
 
 1031.	[bug]		libbind.a: isc__gettimeofday() infinite recursion.
