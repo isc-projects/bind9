@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.126.2.11 2004/09/16 05:12:27 marka Exp $
+# $Id: Makefile.in,v 1.126.2.12 2004/09/16 06:05:36 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -162,7 +162,6 @@ include/dns/enumclass.h: gen
 include/dns/rdatastruct.h: gen \
 		${srcdir}/rdata/rdatastructpre.h \
 		${srcdir}/rdata/rdatastructsuf.h
-${DSTOBJS}: subdirs
 	./gen -s ${srcdir} -i \
 		-P ${srcdir}/rdata/rdatastructpre.h \
 		-S ${srcdir}/rdata/rdatastructsuf.h > $@
@@ -181,3 +180,4 @@ subdirs: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h
 ${DNSOBJS}: include/dns/enumtype.h include/dns/enumclass.h \
         include/dns/rdatastruct.h
+${DSTOBJS}: subdirs
