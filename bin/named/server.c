@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.302 2001/03/09 19:07:28 bwelling Exp $ */
+/* $Id: server.c,v 1.303 2001/03/10 06:39:47 tale Exp $ */
 
 #include <config.h>
 
@@ -1033,7 +1033,7 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	cfg_obj_t *portobj;
 	cfg_obj_t *faddresses;
 	cfg_listelt_t *element;
-	dns_fwdpolicy_t fwdpolicy;
+	dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 	isc_sockaddrlist_t addresses;
 	isc_sockaddr_t *sa;
 	isc_result_t result;
