@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.137 2001/05/08 03:20:42 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.138 2001/05/10 06:04:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -223,7 +223,8 @@ keythatsigned(dns_rdata_sig_t *sig) {
 		return (NULL);
 
 	result = dst_key_fromfile(&sig->signer, sig->keyid, sig->algorithm,
-				  DST_TYPE_PRIVATE, NULL, mctx, &privkey);
+				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
+				  NULL, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		dst_key_free(&pubkey);
 		key = newkeystruct(privkey, ISC_FALSE);
@@ -1678,6 +1679,7 @@ main(int argc, char *argv[]) {
 			dst_key_t *newkey = NULL;
 
 			result = dst_key_fromnamedfile(argv[i],
+						       DST_TYPE_PUBLIC |
 						       DST_TYPE_PRIVATE,
 						       mctx, &newkey);
 			if (result != ISC_R_SUCCESS)

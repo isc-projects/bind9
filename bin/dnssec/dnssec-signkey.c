@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.49 2001/03/27 22:57:41 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.50 2001/05/10 06:04:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -381,7 +381,9 @@ main(int argc, char *argv[]) {
 
 	for (i = 0; i < argc; i++) {
 		key = NULL;
-		result = dst_key_fromnamedfile(argv[i], DST_TYPE_PRIVATE,
+		result = dst_key_fromnamedfile(argv[i],
+					       DST_TYPE_PUBLIC |
+					       DST_TYPE_PRIVATE,
 					       mctx, &key);
 		if (result != ISC_R_SUCCESS)
 			fatal("failed to read key %s from disk: %s",

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.51 2001/03/27 23:43:12 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.52 2001/05/10 06:04:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -298,6 +298,7 @@ main(int argc, char *argv[]) {
 		if (dst_key_iszonekey(key)) {
 			dst_key_t *zonekey = NULL;
 			result = dst_key_fromnamedfile(argv[i],
+						       DST_TYPE_PUBLIC |
 						       DST_TYPE_PRIVATE,
 						       mctx, &zonekey);
 			if (result != ISC_R_SUCCESS)
