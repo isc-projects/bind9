@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.86 2001/11/27 01:56:08 gson Exp $ */
+/* $Id: task.c,v 1.87 2002/03/29 01:25:04 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1211,6 +1211,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	UNLOCK(&manager->lock);
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
+	INSIST(ISC_LIST_EMPTY(manager->tasks));
 #endif /* ISC_PLATFORM_USETHREADS */
 
 	manager_free(manager);
