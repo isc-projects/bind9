@@ -1,5 +1,12 @@
 Name		Status		Whom
 ------------------------------------
+additional_cache review			(additional RRs caching for performance)
+rt8753		review			(support IPv6-scoped addr in dig)
+rt7572		review			("cycle" RRset order)
+queryperf-v6	review			(IPv6 transport support for queryperf)
+compiled_zonefile open			(wire format zone file, under development)
+
+
 rt6539		review		???
 libbind_clean	open		jinmei
 rt3746		open		marka
