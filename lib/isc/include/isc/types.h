@@ -43,6 +43,7 @@ typedef struct isc_logmodule		isc_logmodule_t;
 typedef struct isc_mem			isc_mem_t;
 typedef struct isc_mempool		isc_mempool_t;
 typedef struct isc_msgcat		isc_msgcat_t;
+typedef struct isc_ondestroy		isc_ondestroy_t;
 typedef struct isc_netaddr		isc_netaddr_t;
 typedef struct isc_region		isc_region_t;
 typedef unsigned int			isc_result_t;

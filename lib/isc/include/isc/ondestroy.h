@@ -68,10 +68,10 @@ ISC_LANG_BEGINDECLS
  * see dns/zone.c for an ifdef'd-out example.
  */
 
-typedef struct {
+struct isc_ondestroy {
 	unsigned int magic;
 	isc_eventlist_t events;
-} isc_ondestroy_t;
+};
 
 void
 isc_ondestroy_init(isc_ondestroy_t *ondest);
