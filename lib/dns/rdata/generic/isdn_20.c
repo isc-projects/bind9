@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.32 2002/02/20 03:34:50 marka Exp $ */
+/* $Id: isdn_20.c,v 1.33 2004/02/27 20:41:47 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -35,7 +35,7 @@ fromtext_isdn(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	/* ISDN-address */
@@ -79,7 +79,7 @@ fromwire_isdn(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	RETERR(txt_fromwire(source, target));
 	if (buffer_empty(source))
@@ -204,6 +204,31 @@ digest_isdn(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_isdn(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 20);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_isdn(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 20);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_ISDN_20_C */

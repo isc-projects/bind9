@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.36 2002/02/20 03:35:13 marka Exp $ */
+/* $Id: nsap_22.c,v 1.37 2004/02/27 20:41:50 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -39,7 +39,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
@@ -104,7 +104,7 @@ fromwire_in_nsap(ARGS_FROMWIRE) {
 
 	UNUSED(type);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &region);
@@ -223,6 +223,33 @@ digest_in_nsap(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_in_nsap(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 22);
+	REQUIRE(rdclass == 1);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_in_nsap(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 22);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_NSAP_22_C */

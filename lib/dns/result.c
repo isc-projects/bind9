@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.111 2004/01/14 02:06:50 marka Exp $ */
+/* $Id: result.c,v 1.112 2004/02/27 20:41:44 marka Exp $ */
 
 #include <config.h>
 
@@ -144,7 +144,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"empty wild",			       /* 93 DNS_R_EMPTYWILD	     */
 	"bad bitmap",			       /* 94 DNS_R_BADBITMAP	     */
 
-	"from wildcard"			       /* 95 DNS_R_FROMWILDCARD	     */
+	"from wildcard",		       /* 95 DNS_R_FROMWILDCARD	     */
+	"bad owner name (check-names)",	       /* 96 DNS_R_BADOWNERNAME	     */
+	"bad name (check-names)"	       /* 97 DNS_R_BADNAME	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

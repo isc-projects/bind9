@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.181 2003/10/17 03:46:43 marka Exp $ */
+/* $Id: rdata.c,v 1.182 2004/02/27 20:41:44 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -66,7 +66,7 @@
 
 #define ARGS_FROMTEXT	int rdclass, dns_rdatatype_t type, \
 			isc_lex_t *lexer, dns_name_t *origin, \
-			isc_boolean_t downcase, isc_buffer_t *target, \
+			unsigned int options, isc_buffer_t *target, \
 			dns_rdatacallbacks_t *callbacks
 
 #define ARGS_TOTEXT	dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, \
@@ -74,7 +74,7 @@
 
 #define ARGS_FROMWIRE	int rdclass, dns_rdatatype_t type, \
 			isc_buffer_t *source, dns_decompress_t *dctx, \
-			isc_boolean_t downcase, isc_buffer_t *target
+			unsigned int options, isc_buffer_t *target
 
 #define ARGS_TOWIRE	dns_rdata_t *rdata, dns_compress_t *cctx, \
 			isc_buffer_t *target
@@ -92,6 +92,12 @@
 			void *arg
 
 #define ARGS_DIGEST	dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg
+
+#define ARGS_CHECKOWNER dns_name_t *name, dns_rdataclass_t rdclass, \
+			dns_rdatatype_t type, isc_boolean_t wildcard
+
+#define ARGS_CHECKNAMES dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad
+
 
 /*
  * Context structure for the totext_ functions.
@@ -183,6 +189,10 @@ fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks);
 static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	     isc_buffer_t *target);
+
+static void
+warn_badname(dns_name_t *name, isc_lex_t *lexer,
+	     dns_rdatacallbacks_t *callbacks);
 
 static inline int
 getquad(const void *src, struct in_addr *dst,
@@ -493,7 +503,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r) {
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t *dctx, isc_boolean_t downcase,
+		   dns_decompress_t *dctx, unsigned int options,
 		   isc_buffer_t *target)
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
@@ -607,7 +617,7 @@ rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
 	isc_buffer_setactive(src, isc_buffer_usedlength(src));
 	result = dns_rdata_fromwire(&rdata, rdclass, type, src,
-				    &dctx, ISC_FALSE, dest);
+				    &dctx, 0, dest);
 	dns_decompress_invalidate(&dctx);
 
 	return (result);
@@ -662,15 +672,15 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
-		   dns_name_t *origin, isc_boolean_t downcase, isc_mem_t *mctx,
+		   dns_name_t *origin, unsigned int options, isc_mem_t *mctx,
 		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
 	isc_token_t token;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
+	unsigned int lexoptions = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
+				  ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	char *name;
 	unsigned long line;
 	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
@@ -719,7 +729,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	do {
 		name = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
-		tresult = isc_lex_gettoken(lexer, options, &token);
+		tresult = isc_lex_gettoken(lexer, lexoptions, &token);
 		if (tresult != ISC_R_SUCCESS) {
 			if (result == ISC_R_SUCCESS)
 				result = tresult;
@@ -952,6 +962,25 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 		result = (digest)(arg, &r);
 	}
 
+	return (result);
+}
+
+isc_boolean_t
+dns_rdata_checkowner(dns_name_t *name, dns_rdataclass_t rdclass,
+		     dns_rdatatype_t type, isc_boolean_t wildcard)
+{
+	isc_boolean_t result;
+
+	CHECKOWNERSWITCH
+	return (result);
+}
+
+isc_boolean_t
+dns_rdata_checknames(dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad)
+{
+	isc_boolean_t result;
+
+	CHECKNAMESSWITCH
 	return (result);
 }
 
@@ -1966,6 +1995,24 @@ fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
 }
 
 static void
+warn_badname(dns_name_t *name, isc_lex_t *lexer,
+	     dns_rdatacallbacks_t *callbacks)
+{
+	const char *file;
+	unsigned long line;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	
+	if (lexer != NULL) {
+		file = isc_lex_getsourcename(lexer);
+		line = isc_lex_getsourceline(lexer);
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		(*callbacks->warn)(callbacks, "%s:%u: %s: %s", 
+				   file, line, namebuf,
+				   dns_result_totext(DNS_R_BADNAME));
+	}
+}
+
+static void
 fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 	       dns_rdatacallbacks_t *callbacks, const char *name,
 	       unsigned long line, isc_token_t *token, isc_result_t result)
@@ -2089,4 +2136,3 @@ dns_rdatatype_isknown(dns_rdatatype_t type) {
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
-

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.4 2002/12/20 01:19:20 marka Exp $ */
+/* $Id: ds_43.c,v 1.5 2004/02/27 20:41:47 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -34,7 +34,7 @@ fromtext_ds(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	/*
@@ -129,7 +129,7 @@ fromwire_ds(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 4)
@@ -253,6 +253,31 @@ digest_ds(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_ds(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 43);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_ds(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 43);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_DS_43_C */

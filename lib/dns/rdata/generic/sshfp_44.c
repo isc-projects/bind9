@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sshfp_44.c,v 1.1 2003/10/01 10:05:00 marka Exp $ */
+/* $Id: sshfp_44.c,v 1.2 2004/02/27 20:41:49 marka Exp $ */
 
 /* draft-ietf-secsh-dns-05.txt */
 
@@ -33,7 +33,7 @@ fromtext_sshfp(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	/*
@@ -111,7 +111,7 @@ fromwire_sshfp(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 4)
@@ -232,6 +232,31 @@ digest_sshfp(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_sshfp(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 44);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_sshfp(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 44);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_SSHFP_44_C */

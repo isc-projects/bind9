@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.50 2003/07/25 00:01:08 marka Exp $ */
+/* $Id: mx_15.c,v 1.51 2004/02/27 20:41:48 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -29,6 +29,7 @@ fromtext_mx(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
+	isc_boolean_t ok;
 
 	REQUIRE(type == 15);
 
@@ -47,7 +48,14 @@ fromtext_mx(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	ok = ISC_TRUE;
+	if ((options & DNS_RDATA_CHECKNAMES) != 0)
+		ok = dns_name_ishostname(&name, ISC_FALSE);
+	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+		RETTOK(DNS_R_BADNAME);
+	if (!ok && callbacks != NULL)
+		warn_badname(&name, lexer, callbacks);
 	return (ISC_R_SUCCESS);
 }
 
@@ -98,7 +106,7 @@ fromwire_mx(ARGS_FROMWIRE) {
 		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sregion.base, 2));
 	isc_buffer_forward(source, 2);
-	return (dns_name_fromwire(&name, source, dctx, downcase, target));
+	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -243,6 +251,38 @@ digest_mx(ARGS_DIGEST) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_mx(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 15);
+
+	UNUSED(type);
+	UNUSED(rdclass);
+
+	return (dns_name_ishostname(name, wildcard));
+}
+
+static inline isc_boolean_t
+checknames_mx(ARGS_CHECKNAMES) {
+	isc_region_t region;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 15);
+
+	UNUSED(owner);
+
+	dns_rdata_toregion(rdata, &region);
+	isc_region_consume(&region, 2);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &region);
+	if (!dns_name_ishostname(&name, ISC_FALSE)) {
+		if (bad != NULL)
+			dns_name_clone(&name, bad);
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_MX_15_C */

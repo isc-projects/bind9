@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.43 2004/02/17 03:40:19 marka Exp $ */
+/* $Id: config.c,v 1.44 2004/02/27 20:41:41 marka Exp $ */
 
 #include <config.h>
 
@@ -120,8 +120,8 @@ options {\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	transfer-format many-answers;\n\
 	max-cache-size 0;\n\
-	check-names master ignore;\n\
-	check-names slave ignore;\n\
+	check-names master fail;\n\
+	check-names slave warn;\n\
 	check-names response ignore;\n\
 	enable-dnssec no; /* Make yes for 9.4. */ \n\
 \n\

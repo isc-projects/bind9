@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.38 2004/01/14 02:06:50 marka Exp $ */
+/* $Id: resolver.h,v 1.39 2004/02/27 20:41:46 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -96,6 +96,9 @@ typedef struct dns_fetchevent {
  * _dns_resolver_create()).
  */
 
+#define DNS_RESOLVER_CHECKNAMES		0x01
+#define DNS_RESOLVER_CHECKNAMESFAIL	0x02
+
 isc_result_t
 dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
@@ -106,6 +109,7 @@ dns_resolver_create(dns_view_t *view,
 		    dns_dispatch_t *dispatchv4,
 		    dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp);
+
 /*
  * Create a resolver.
  *

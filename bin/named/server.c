@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.413 2004/02/24 03:31:08 marka Exp $ */
+/* $Id: server.c,v 1.414 2004/02/27 20:41:42 marka Exp $ */
 
 #include <config.h>
 
@@ -667,9 +667,10 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_dispatch_t *dispatch6 = NULL;
 	isc_boolean_t reused_cache = ISC_FALSE;
 	int i;
-	char *str;
+	const char *str;
 	dns_order_t *order = NULL;
 	isc_uint32_t udpsize;
+	unsigned int check = 0;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -793,6 +794,38 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_cache_detach(&cache);
 
 	/*
+	 * Check-names.
+	 */
+	obj = NULL;
+	str = "";
+	result = ns_config_get(maps, "check-names", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	for (element = cfg_list_first(obj);
+	     element != NULL;
+	     element = cfg_list_next(element)) {
+		cfg_obj_t *value, *type;
+		value = cfg_listelt_value(element);
+		type = cfg_tuple_get(value, "type");
+		if (strcasecmp(cfg_obj_asstring(type), "response") == 0) {
+			str = cfg_obj_asstring(cfg_tuple_get(value, "mode"));
+			break;
+		}
+	}
+
+        if (strcasecmp(str, "fail") == 0) {
+                check = DNS_RESOLVER_CHECKNAMES |
+			DNS_RESOLVER_CHECKNAMESFAIL;
+		view->checknames = ISC_TRUE;
+        } else if (strcasecmp(str, "warn") == 0) {
+                check = DNS_RESOLVER_CHECKNAMES;
+		view->checknames = ISC_FALSE;
+        } else if (strcasecmp(str, "ignore") == 0) {
+		check = 0;
+		view->checknames = ISC_FALSE;
+	} else
+                INSIST(0);
+
+	/*
 	 * Resolver.
 	 *
 	 * XXXRTH  Hardwired number of tasks.
@@ -808,7 +841,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
 				      ns_g_socketmgr, ns_g_timermgr,
-				      0, ns_g_dispatchmgr,
+				      check, ns_g_dispatchmgr,
 				      dispatch4, dispatch6));
 	if (dispatch4 != NULL)
 		dns_dispatch_detach(&dispatch4);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.281 2004/02/20 00:52:45 marka Exp $ */
+/* $Id: resolver.c,v 1.282 2004/02/27 20:41:44 marka Exp $ */
 
 #include <config.h>
 
@@ -2909,6 +2909,7 @@ clone_results(fetchctx_t *fctx) {
 #define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
 #define CHAINING(r)	(((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
 #define CHASE(r)	(((r)->attributes & DNS_RDATASETATTR_CHASE) != 0)
+#define CHECKNAMES(r)	(((r)->attributes & DNS_RDATASETATTR_CHECKNAMES) != 0)
 
 
 /*
@@ -3236,6 +3237,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	unsigned int options;
 	isc_task_t *task;
 	dns_validator_t *validator;
+	isc_boolean_t fail;
 
 	/*
 	 * The appropriate bucket lock must be held.
@@ -3305,11 +3307,33 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	/*
 	 * Cache or validate each cacheable rdataset.
 	 */
+	fail = (fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL) != 0;
 	for (rdataset = ISC_LIST_HEAD(name->list);
 	     rdataset != NULL;
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 		if (!CACHE(rdataset))
 			continue;
+		if (CHECKNAMES(rdataset)) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			char typebuf[DNS_RDATATYPE_FORMATSIZE];
+			char classbuf[DNS_RDATATYPE_FORMATSIZE];
+
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			dns_rdatatype_format(rdataset->type, typebuf,
+					     sizeof(typebuf));
+			dns_rdataclass_format(rdataset->rdclass, classbuf,
+					      sizeof(classbuf));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,  
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+				      "check-names %s %s/%s/%s", 
+				      fail ? "failure" : "warning",
+				      namebuf, typebuf, classbuf);
+			if (fail) {
+				if (ANSWER(rdataset))
+					return (DNS_R_BADNAME);
+				continue;
+			}
+		}
 
 		/*
 		 * Enforce the configure maximum cache TTL.
@@ -4748,6 +4772,48 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		empty_bucket(res);
 }
 
+static inline void
+checknamessection(dns_message_t *message, dns_section_t section) {
+	isc_result_t result;
+	dns_name_t *name;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdataset_t *rdataset;
+	
+	for (result = dns_message_firstname(message, section);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(message, section))
+	{
+		name = NULL;
+		dns_message_currentname(message, section, &name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			for (result = dns_rdataset_first(rdataset);
+			     result == ISC_R_SUCCESS;
+			     result = dns_rdataset_next(rdataset)) {
+				dns_rdataset_current(rdataset, &rdata);
+				if (!dns_rdata_checkowner(name, rdata.rdclass,
+							  rdata.type,
+							  ISC_FALSE) ||
+				    !dns_rdata_checknames(&rdata, name, NULL))
+				{
+					rdataset->attributes |= 
+						DNS_RDATASETATTR_CHECKNAMES;
+				}
+				dns_rdata_reset(&rdata);
+			}
+		}
+	}
+}
+
+static void
+checknames(dns_message_t *message) {
+
+	checknamessection(message, DNS_SECTION_ANSWER);
+	checknamessection(message, DNS_SECTION_AUTHORITY);
+	checknamessection(message, DNS_SECTION_ADDITIONAL);
+}
+
 static void
 resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -5083,6 +5149,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			     "from %s",
 			     domainbuf, namebuf, typebuf, classbuf, addrbuf);
 	}
+
+	if ((fctx->res->options | DNS_RESOLVER_CHECKNAMES) != 0)
+		checknames(message);
 
 	/*
 	 * Did we get any answers?

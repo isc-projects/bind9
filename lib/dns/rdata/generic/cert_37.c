@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.44 2003/07/25 00:01:08 marka Exp $ */
+/* $Id: cert_37.c,v 1.45 2004/02/27 20:41:47 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -37,7 +37,7 @@ fromtext_cert(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	/*
@@ -125,7 +125,7 @@ fromwire_cert(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 5)
@@ -251,4 +251,30 @@ digest_cert(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
+static inline isc_boolean_t
+checkowner_cert(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 37);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_cert(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 37);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
+}
+
 #endif	/* RDATA_GENERIC_CERT_37_C */
+

@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.9 2004/01/07 05:27:17 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.10 2004/02/27 20:41:41 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -42,6 +42,7 @@
       <arg><option>-q</option></arg>
       <arg><option>-v</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
+      <arg><option>-k <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
@@ -108,6 +109,18 @@
 	<listitem>
 	  <para>
 	      Specify the class of the zone.  If not specified "IN" is assumed.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-k <replaceable class="parameter">mode</replaceable></term>
+	<listitem>
+	  <para>
+	      Perform <command>"check-name"</command> checks with the specified failure mode.
+	      Possible modes are <command>"fail"</command>,
+	      <command>"warn"</command> (default) and
+	      <command>"ignore"</command>.
 	  </para>
 	</listitem>
       </varlistentry>

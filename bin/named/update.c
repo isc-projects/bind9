@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.107 2004/02/03 00:59:03 marka Exp $ */
+/* $Id: update.c,v 1.108 2004/02/27 20:41:42 marka Exp $ */
 
 #include <config.h>
 
@@ -2291,6 +2291,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				FAILC(DNS_R_FORMERR,
 				      "meta-RR in update");
 			}
+			result = dns_zone_checknames(zone, name, &rdata);
+			if (result != ISC_R_SUCCESS)
+				FAIL(DNS_R_REFUSED);
 		} else if (update_class == dns_rdataclass_any) {
 			if (ttl != 0 || rdata.length != 0 ||
 			    (dns_rdatatype_ismeta(rdata.type) &&

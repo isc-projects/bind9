@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.58 2003/10/17 03:46:45 marka Exp $ */
+/* $Id: rdata.h,v 1.59 2004/02/27 20:41:45 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -96,6 +96,7 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
+#include <dns/name.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -141,6 +142,11 @@ struct dns_rdata {
 
 /* Output explanatory comments. */
 #define DNS_STYLEFLAG_COMMENT		0x00000002U
+
+#define DNS_RDATA_DOWNCASE		DNS_NAME_DOWNCASE
+#define DNS_RDATA_CHECKNAMES		DNS_NAME_CHECKNAMES
+#define DNS_RDATA_CHECKNAMESFAIL	DNS_NAME_CHECKNAMESFAIL
+#define DNS_RDATA_CHECKREVERSE		DNS_NAME_CHECKREVERSE
 
 /***
  *** Initialization
@@ -220,8 +226,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r);
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t *dctx,
-		   isc_boolean_t downcase,
+		   dns_decompress_t *dctx, unsigned int options,
 		   isc_buffer_t *target);
 /*
  * Copy the possibly-compressed rdata at source into the target region.
@@ -229,8 +234,9 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  * Notes:
  *	Name decompression policy is controlled by 'dctx'.
  *
- *	If 'downcase' is true, any uppercase letters in domain names in
- * 	'source' will be downcased when they are copied into 'target'.
+ *	'options'
+ *	DNS_RDATA_DOWNCASE	downcase domain names when they are copied
+ *				into target.
  *
  * Requires:
  *
@@ -294,7 +300,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin,
-		   isc_boolean_t downcase, isc_mem_t *mctx,
+		   unsigned int options, isc_mem_t *mctx,
 		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks);
 /*
  * Convert the textual representation of a DNS rdata into uncompressed wire
@@ -305,8 +311,15 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *	Relative domain names in the rdata will have 'origin' appended to them.
  *	A NULL origin implies "origin == dns_rootname".
  *
- *	If 'downcase' is true, any uppercase letters in domain names in
- * 	'source' will be downcased when they are copied into 'target'.
+ *
+ *	'options'
+ *	DNS_RDATA_DOWNCASE	downcase domain names when they are copied
+ *				into target.
+ *	DNS_RDATA_CHECKNAMES 	perform checknames checks.
+ *	DNS_RDATA_CHECKNAMESFAIL fail if the checknames check fail.  If
+ *				not set a warning will be issued.
+ *	DNS_RDATA_CHECKREVERSE  this should set if the owner name ends
+ *				in IP6.ARPA, IP6.INT or IN-ADDR.ARPA.
  *
  * Requires:
  *
@@ -658,6 +671,34 @@ dns_rdata_covers(dns_rdata_t *rdata);
  *
  * Returns:
  *	The type covered.
+ */
+
+isc_boolean_t
+dns_rdata_checkowner(dns_name_t* name, dns_rdataclass_t rdclass,
+		     dns_rdatatype_t type, isc_boolean_t wildcard);
+/*
+ * Returns whether this is a valid ownername for this <type,class>.
+ * If wildcard is true allow the first label to be a wildcard if
+ * appropriate.
+ *
+ * Requires:
+ *	'name' is a valid name.
+ */
+
+isc_boolean_t
+dns_rdata_checknames(dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad);
+/*
+ * Returns whether 'rdata' contains valid domain names.  The checks are
+ * sensitive to the owner name.
+ *
+ * If 'bad' is non-NULL and a domain name fails the check the
+ * the offending name will be return in 'bad' by cloning from
+ * the 'rdata' contents.
+ *
+ * Requires:
+ *	'rdata' to be valid.
+ *	'owner' to be valid.
+ *	'bad'	to be NULL or valid.
  */
 
 ISC_LANG_ENDDECLS

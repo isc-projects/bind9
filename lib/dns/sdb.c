@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.42 2004/02/03 00:59:05 marka Exp $ */
+/* $Id: sdb.c,v 1.43 2004/02/27 20:41:44 marka Exp $ */
 
 #include <config.h>
 
@@ -392,7 +392,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		result = dns_rdata_fromtext(NULL,
 					    lookup->sdb->common.rdclass,
 					    typeval, lex,
-					    origin, ISC_FALSE,
+					    origin, 0,
 					    mctx, &rb,
 					    &lookup->callbacks);
 		if (result != ISC_R_NOSPACE)

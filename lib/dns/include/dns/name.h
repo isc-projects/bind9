@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.104 2003/10/25 00:31:12 jinmei Exp $ */
+/* $Id: name.h,v 1.105 2004/02/27 20:41:45 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -140,7 +140,12 @@ struct dns_name {
 #define DNS_NAMEATTR_NCACHE		0x0400		/* Used by resolver. */
 #define DNS_NAMEATTR_CHAINING		0x0800		/* Used by resolver. */
 #define DNS_NAMEATTR_CHASE		0x1000		/* Used by resolver. */
-#define DNS_NAMEATTR_WILDCARD		0x2000		/* Used by server */
+#define DNS_NAMEATTR_WILDCARD		0x2000		/* Used by server. */
+
+#define DNS_NAME_DOWNCASE		0x0001
+#define DNS_NAME_CHECKNAMES		0x0002		/* Used by rdata. */
+#define DNS_NAME_CHECKNAMESFAIL		0x0004		/* Used by rdata. */
+#define DNS_NAME_CHECKREVERSE		0x0008		/* Used by rdata. */
 
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_rootname;
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_wildcardname;
@@ -639,7 +644,7 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r);
 
 isc_result_t
 dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
-		  dns_decompress_t *dctx, isc_boolean_t downcase,
+		  dns_decompress_t *dctx, unsigned int options,
 		  isc_buffer_t *target);
 /*
  * Copy the possibly-compressed name at source (active region) into target,
@@ -648,7 +653,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
  * Notes:
  *	Decompression policy is controlled by 'dctx'.
  *
- *	If 'downcase' is true, any uppercase letters in 'source' will be
+ *	If DNS_NAME_DOWNCASE is set, any uppercase letters in 'source' will be
  *	downcased when they are copied into 'target'.
  *
  * Security:
@@ -676,8 +681,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
  *	If result is success:
  *	 	If 'target' is not NULL, 'name' is attached to it.
  *
- *		Uppercase letters are downcased in the copy iff. 'downcase' is
- *		true.
+ *		Uppercase letters are downcased in the copy iff
+ *		DNS_NAME_DOWNCASE is set in options.
  *
  *		The current location in source is advanced, and the used space
  *		in target is updated.
@@ -729,7 +734,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target);
 
 isc_result_t
 dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
-		  dns_name_t *origin, isc_boolean_t downcase,
+		  dns_name_t *origin, unsigned int options,
 		  isc_buffer_t *target);
 /*
  * Convert the textual representation of a DNS name at source
@@ -740,8 +745,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *	unless 'origin' is NULL, in which case relative domain names
  *	will remain relative.
  *
- *	If 'downcase' is true, any uppercase letters in 'source' will be
- *	downcased when they are copied into 'target'.
+ *	If DNS_NAME_DOWNCASE is set in 'options', any uppercase letters
+ *	in 'source' will be downcased when they are copied into 'target'.
  *
  * Requires:
  *
@@ -757,8 +762,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *	If result is success:
  *	 	If 'target' is not NULL, 'name' is attached to it.
  *
- *		Uppercase letters are downcased in the copy iff. 'downcase' is
- *		true.
+ *		Uppercase letters are downcased in the copy iff
+ *		DNS_NAME_DOWNCASE is set in 'options'.
  *
  *		The current location in source is advanced, and the used space
  *		in target is updated.
@@ -1135,6 +1140,28 @@ dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOSPACE
+ */
+
+isc_boolean_t
+dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard);
+/*
+ * Return if 'name' is a valid hostname.  RFC 952 / RFC 1123.
+ * If 'wildcard' is ISC_TRUE then allow the first label of name to
+ * be a wildcard.
+ * The root is also accepted.
+ *
+ * Requires:
+ *	'name' to be valid.
+ */
+ 
+
+isc_boolean_t
+dns_name_ismailbox(const dns_name_t *name);
+/*
+ * Return if 'name' is a valid mailbox.  RFC 821.
+ *
+ * Requires:
+ *	'name' to be valid.
  */
 
 ISC_LANG_ENDDECLS

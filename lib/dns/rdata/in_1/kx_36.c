@@ -15,14 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.39 2003/07/25 00:01:10 marka Exp $ */
+/* $Id: kx_36.c,v 1.40 2004/02/27 20:41:50 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
 /* RFC 2230 */
 
-#ifndef RDATA_GENERIC_KX_36_C
-#define RDATA_GENERIC_KX_36_C
+#ifndef RDATA_IN_1_KX_36_C
+#define RDATA_IN_1_KX_36_C
 
 #define RRTYPE_KX_ATTRIBUTES (0)
 
@@ -50,7 +50,7 @@ fromtext_in_kx(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
 
@@ -103,7 +103,7 @@ fromwire_in_kx(ARGS_FROMWIRE) {
 		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sregion.base, 2));
 	isc_buffer_forward(source, 2);
-	return (dns_name_fromwire(&name, source, dctx, downcase, target));
+	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -258,4 +258,31 @@ digest_in_kx(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-#endif	/* RDATA_GENERIC_KX_36_C */
+static inline isc_boolean_t
+checkowner_in_kx(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 36);
+	REQUIRE(rdclass == 1);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_in_kx(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 36);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
+}
+
+#endif	/* RDATA_IN_1_KX_36_C */

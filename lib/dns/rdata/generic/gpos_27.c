@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.35 2002/02/20 03:34:47 marka Exp $ */
+/* $Id: gpos_27.c,v 1.36 2004/02/27 20:41:47 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -36,7 +36,7 @@ fromtext_gpos(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	for (i = 0; i < 3; i++) {
@@ -78,7 +78,7 @@ fromwire_gpos(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	for (i = 0; i < 3; i++)
 		RETERR(txt_fromwire(source, target));
@@ -222,6 +222,31 @@ digest_gpos(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_gpos(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 27);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_gpos(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 27);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_GPOS_27_C */

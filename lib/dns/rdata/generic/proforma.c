@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.32 2002/02/20 03:34:59 marka Exp $ */
+/* $Id: proforma.c,v 1.33 2004/02/27 20:41:48 marka Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -141,6 +141,33 @@ digest_#(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_#(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == #);
+	REQUIRE(rdclass == #);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_#(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == #);
+	REQUIRE(rdata->rdclass == #);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_#_#_C */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.108 2004/01/05 06:56:44 marka Exp $ */
+/* $Id: zoneconf.c,v 1.109 2004/02/27 20:41:42 marka Exp $ */
 
 #include <config.h>
 
@@ -292,6 +292,41 @@ strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp) {
 	return (strtoargvsub(mctx, s, argcp, argvp, 0));
 }
 
+static void
+checknames(dns_zonetype_t ztype, cfg_obj_t **maps, cfg_obj_t **objp) {
+	const char *zone = NULL;
+	cfg_listelt_t *element;
+	cfg_obj_t *type;
+	cfg_obj_t *value;
+	cfg_obj_t *check;
+	int i;
+
+	switch (ztype) {
+	case dns_zone_slave: zone = "slave"; break;
+	case dns_zone_master: zone = "master"; break;
+	default:
+		INSIST(0);
+	}
+	for (i = 0; maps[i] != NULL; i++) {
+		check = NULL;
+		cfg_map_get(maps[i], "check-names", &check);
+		if (check != NULL && !cfg_obj_islist(check)) {
+			*objp = check;
+			return;
+		}
+		for (element = cfg_list_first(check);
+		     element != NULL;
+		     element = cfg_list_next(element)) {
+			value = cfg_listelt_value(element);
+			type = cfg_tuple_get(value, "type");
+			if (strcasecmp(cfg_obj_asstring(type), zone) == 0) {
+				*objp = cfg_tuple_get(value, "mode");
+				return;
+			}
+		}
+	}
+}
+
 isc_result_t
 ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		  ns_aclconfctx_t *ac, dns_zone_t *zone)
@@ -321,6 +356,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	isc_boolean_t multi;
 	isc_boolean_t alt;
 	dns_view_t *view;
+	isc_boolean_t check = ISC_FALSE, fail = ISC_FALSE;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -514,6 +550,20 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
 				   cfg_obj_asboolean(obj));
+
+		checknames(ztype, maps, &obj);
+		INSIST(obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			fail = ISC_FALSE;
+			check = ISC_TRUE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+			fail = check = ISC_TRUE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			fail = check = ISC_FALSE;
+		} else
+			INSIST(0);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMES, check);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMESFAIL, fail);
 	}
 
 	/*

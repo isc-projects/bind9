@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.219 2003/09/30 05:56:12 marka Exp $ */
+/* $Id: message.c,v 1.220 2004/02/27 20:41:43 marka Exp $ */
 
 /***
  *** Imports
@@ -889,7 +889,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	/* XXX possibly change this to a while (tries < 2) loop */
 	for (;;) {
 		result = dns_rdata_fromwire(rdata, rdclass, rdtype,
-					    source, dctx, ISC_FALSE,
+					    source, dctx, 0,
 					    scratch);
 
 		if (result == ISC_R_NOSPACE) {

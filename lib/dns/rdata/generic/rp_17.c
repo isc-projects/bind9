@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.36 2001/11/27 00:56:05 gson Exp $ */
+/* $Id: rp_17.c,v 1.37 2004/02/27 20:41:48 marka Exp $ */
 
 /* RFC 1183 */
 
@@ -30,6 +30,7 @@ fromtext_rp(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 	int i;
+	isc_boolean_t ok;
 
 	REQUIRE(type == 17);
 
@@ -46,7 +47,14 @@ fromtext_rp(ARGS_FROMTEXT) {
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		RETTOK(dns_name_fromtext(&name, &buffer, origin,
-					 downcase, target));
+					 options, target));
+		ok = ISC_TRUE;
+		if ((options & DNS_RDATA_CHECKNAMES) != 0 && i == 0)
+			ok = dns_name_ismailbox(&name);
+		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+			RETTOK(DNS_R_BADNAME);
+		if (!ok && callbacks != NULL)
+			warn_badname(&name, lexer, callbacks);
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -98,8 +106,8 @@ fromwire_rp(ARGS_FROMWIRE) {
         dns_name_init(&rmail, NULL);
         dns_name_init(&email, NULL);
 
-        RETERR(dns_name_fromwire(&rmail, source, dctx, downcase, target));
-        return (dns_name_fromwire(&email, source, dctx, downcase, target));
+        RETERR(dns_name_fromwire(&rmail, source, dctx, options, target));
+        return (dns_name_fromwire(&email, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -268,6 +276,39 @@ digest_rp(ARGS_DIGEST) {
 	dns_name_fromregion(&name, &r);
 
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_rp(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 17);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_rp(ARGS_CHECKNAMES) {
+	isc_region_t region;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 17);
+
+	UNUSED(owner);
+
+	dns_rdata_toregion(rdata, &region);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &region);
+	if (!dns_name_ismailbox(&name)) {
+		if (bad != NULL)
+				dns_name_clone(&name, bad);
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_RP_17_C */

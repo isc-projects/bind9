@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.84 2002/07/22 02:06:04 marka Exp $ */
+/* $Id: journal.c,v 1.85 2004/02/27 20:41:43 marka Exp $ */
 
 #include <config.h>
 
@@ -1597,7 +1597,7 @@ read_one_rr(dns_journal_t *j) {
 	isc_buffer_setactive(&j->it.source,
 			     j->it.source.used - j->it.source.current);
 	CHECK(dns_name_fromwire(&j->it.name, &j->it.source,
-				&j->it.dctx, ISC_FALSE, &j->it.target));
+				&j->it.dctx, 0, &j->it.target));
 
 	/*
 	 * Check that the RR header is there, and parse it.
@@ -1617,7 +1617,7 @@ read_one_rr(dns_journal_t *j) {
 	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass,
 				 rdtype, &j->it.source, &j->it.dctx,
-				 ISC_FALSE, &j->it.target));
+				 0, &j->it.target));
 	j->it.ttl = ttl;
 
 	j->it.xpos += sizeof(journal_rawrrhdr_t) + rrhdr.size;
