@@ -48,7 +48,7 @@ set up a simple DNS-based load balancing system where the name server
 answers queries about a single DNS name with a dynamically changing
 set of A records.
 
-BIND 9.1 introduces a new, simplified database interface, or "sdb",
+BIND 9.1 introduced a new, simplified database interface, or "sdb",
 which greatly simplifies the writing of drivers for these kinds of
 applications.
 
@@ -165,4 +165,4 @@ Future Directions
 A future release may support dynamic loading of sdb drivers.
 
 
-$Id: sdb,v 1.4 2001/01/09 21:50:30 bwelling Exp $
+$Id: sdb,v 1.5 2001/05/30 23:02:03 bwelling Exp $
