@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.187 $)
+AC_REVISION($Revision: 1.188 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -954,7 +954,7 @@ AC_TRY_COMPILE([
 	ISC_LWRES_ENDNETENTINT="#undef ISC_LWRES_ENDNETENTINT"])
 AC_SUBST(ISC_LWRES_ENDNETENTINT)
 
-AC_MSG_CHECKING(for gethostbyadd(const void *, size_t, ...))
+AC_MSG_CHECKING(for gethostbyaddr(const void *, size_t, ...))
 AC_TRY_COMPILE([
 #include <netdb.h>
 struct hostent *gethostbyaddr(const void *, size_t, int);],
