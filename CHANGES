@@ -1,3 +1,7 @@
+1201.	[bug]		Require that if 'callbacks' is passed to
+			dns_rdata_fromtext(), callbacks->error and 
+			callbacks->warn are initalised.
+
 1200.	[bug]		Log 'errno' that we are unable to convert to
 			isc_result_t. [RT #2404]
 

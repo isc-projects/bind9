@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.159 2002/02/11 22:30:28 marka Exp $ */
+/* $Id: rdata.c,v 1.160 2002/02/12 03:45:52 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -193,19 +193,12 @@ getquad(const void *src, struct in_addr *dst,
 	result = inet_aton(src, dst);
 	if (result == 1 && callbacks != NULL &&
 	    inet_pton(AF_INET, src, &tmp) != 1) {
-		void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
-		const char *name;
-
-		if (callbacks != NULL && callbacks->warn != NULL)
-			callback = callbacks->warn;
-		else
-			callback = default_fromtext_callback;
-		name = isc_lex_getsourcename(lexer);
+		const char *name = isc_lex_getsourcename(lexer);
 		if (name == NULL)
 			name = "UNKNOWN";
-		(*callback)(callbacks, "%s:%lu: warning \"%s\" "
-			    "is not a decimal dotted quad", name,
-			    isc_lex_getsourceline(lexer), src);
+		(*callbacks->warn)(callbacks, "%s:%lu: warning \"%s\" "
+				   "is not a decimal dotted quad", name,
+				   isc_lex_getsourceline(lexer), src);
 	}
 	return (result);
 }
@@ -686,10 +679,14 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
 		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 	}
+	if (callbacks != NULL) {
+		REQUIRE(callbacks->warn != NULL);
+		REQUIRE(callbacks->error != NULL);
+	}
 
 	st = *target;
 
-	if (callbacks != NULL && callbacks->error != NULL)
+	if (callbacks != NULL)
 		callback = callbacks->error;
 	else
 		callback = default_fromtext_callback;
@@ -1945,16 +1942,12 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
 static void
 fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
 	if (isc_lex_isfile(lexer) && callbacks != NULL) {
-		void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
-
-		if (callbacks->warn != NULL)
-			callback = callbacks->warn;
-		else
-			callback = default_fromtext_callback;
-		(*callback)(callbacks,
-			    "%s:%lu: file does not end with newline",
-			    isc_lex_getsourcename(lexer),
-			    isc_lex_getsourceline(lexer));
+		const char *name = isc_lex_getsourcename(lexer);
+		if (name == NULL)
+			name = "UNKNOWN";
+		(*callbacks->warn)(callbacks,
+				   "%s:%lu: file does not end with newline",
+				   name, isc_lex_getsourceline(lexer));
 	}
 }
 
