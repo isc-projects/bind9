@@ -1,9 +1,7 @@
-
-
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
 DNSSEC Release Notes
-
-
 
 This document summarizes the state of the DNSSEC implementation in
 this release of BIND9.
@@ -68,4 +66,4 @@ an update occurs.  Advanced access control is possible using the
 "update-policy" statement in the zone definition.
 
 
-$Id: dnssec,v 1.3 2000/06/14 23:03:21 bwelling Exp $
+$Id: dnssec,v 1.4 2000/06/22 00:14:36 tale Exp $
