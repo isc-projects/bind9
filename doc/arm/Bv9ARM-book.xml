@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.160 2001/09/19 22:15:54 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.161 2001/09/21 19:22:49 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3978,8 +3978,8 @@ number is identical to the number in the beginning line.</para>
 <entry colname = "1"><para><command>success</command></para></entry>
 <entry colname = "2"><para>The number of
 successful queries made to the server or zone.  A successful query
-is defined as query which returns a NOERROR response other than
-a referral response.</para></entry>
+is defined as query which returns a NOERROR response with at least
+one answer RR.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>referral</command></para></entry>
@@ -3997,17 +3997,28 @@ NOERROR responses with no data.</para></entry>
 of queries which resulted in NXDOMAIN responses.</para></entry>
 </row>
 <row rowsep = "0">
-<entry colname = "1"><para><command>recursion</command></para></entry>
-<entry colname = "2"><para>The number of queries which caused the server
-to perform recursion in order to find the final answer.</para></entry>
-</row
-><row rowsep = "0">
 <entry colname = "1"><para><command>failure</command></para></entry>
 <entry colname = "2"><para>The number of queries which resulted in a
 failure response other than those above.</para></entry>
 </row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>recursion</command></para></entry>
+<entry colname = "2"><para>The number of queries which caused the server
+to perform recursion in order to find the final answer.</para></entry>
+</row>
 </tbody>
 </tgroup></informaltable>
+
+<para>
+Each query received by the server will cause exactly one of
+<command>success</command>,
+<command>referral</command>,
+<command>nxrrset</command>,
+<command>nxdomain</command>, or
+<command>failure</command>
+to be incremented, and may additionally cause the
+<command>recursion</command> counter to be incremented.
+</para>
 
 </sect3>
 
