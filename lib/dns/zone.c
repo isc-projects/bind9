@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.307 2001/02/14 03:50:11 gson Exp $ */
+/* $Id: zone.c,v 1.308 2001/02/23 22:32:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1119,7 +1119,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		} else
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "loading master file %s: %s",
-				     zone->masterfile, dns_result_totext(result));
+				     zone->masterfile,
+				     dns_result_totext(result));
 		goto cleanup;
 	}
 
@@ -1264,6 +1265,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone_needdump(zone, DNS_DUMP_DELAY);
 	if (zone->task != NULL)
 		zone_settimer(zone, now);
+	dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", zone->serial);
 	return (result);
 
  cleanup:
@@ -4629,6 +4631,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	unsigned int soacount;
 	unsigned int nscount;
 	isc_uint32_t serial, refresh, retry, expire, minimum;
+	isc_result_t xfrresult = result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -4723,6 +4726,9 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 			zone->expiretime = now + zone->expire;
 		}
+		if (result == ISC_R_SUCCESS && xfrresult == ISC_R_SUCCESS)
+			dns_zone_log(zone, ISC_LOG_INFO,
+				     "transfered serial %u", zone->serial);
 
 		break;
 
