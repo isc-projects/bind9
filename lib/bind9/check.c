@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.11 2001/12/13 06:20:40 bwelling Exp $ */
+/* $Id: check.c,v 1.12 2001/12/17 22:56:58 marka Exp $ */
 
 #include <config.h>
 
@@ -120,6 +120,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	unsigned int ztype;
 	cfg_obj_t *zoptions;
 	cfg_obj_t *obj = NULL;
+	cfg_obj_t *addrlist = NULL;
 	isc_symvalue_t symvalue;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
@@ -260,6 +261,13 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 				    "zone '%s': missing 'masters' entry",
+				    zname);
+			result = ISC_R_FAILURE;
+		}
+		addrlist = cfg_tuple_get(obj, "addresses");
+		if (cfg_list_first(addrlist) == NULL) {
+			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
+				    "zone '%s': empty 'masters' entry",
 				    zname);
 			result = ISC_R_FAILURE;
 		}

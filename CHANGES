@@ -1,3 +1,6 @@
+1164.	[bug]		Empty masters clauses in slave / stub zones were not
+			handled gracefully.  [RT #2262]
+
 1163.	[func]		isc_time_formattimestamp() now includes the year.
 
 1162.	[bug]		The allow-notify option was not accepted in slave
