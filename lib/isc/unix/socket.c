@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.145 2000/06/26 20:16:01 explorer Exp $ */
+/* $Id: socket.c,v 1.146 2000/06/26 22:59:22 gson Exp $ */
 
 #include <config.h>
 
@@ -846,6 +846,19 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	return (DOIO_SUCCESS);
 }
 
+/*
+ * Returns:
+ *	DOIO_SUCCESS	The operation succeeded.  The senddone event
+ *			was sent.
+ *
+ *	DOIO_HARD	A hard or unexpected I/O error was encountered.
+ *			The senddone event was sent.
+ *
+ *	DOIO_SOFT	A soft I/O error was encountered.  No senddone
+ *			event was sent.  The operation should be retried.
+ *
+ *	No other return values are possible.
+ */
 static int
 doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	int cc;
