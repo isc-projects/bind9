@@ -1,3 +1,6 @@
+ 327.	[bug]		rndc.conf parser wasn't correctly recognising an IP
+			address where a host specification was required.
+
  326.	[func]		'keys' in an 'inet' control statement is now
 			required and must have at least one item in it.
 
