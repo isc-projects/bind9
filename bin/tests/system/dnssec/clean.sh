@@ -15,12 +15,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.10.2.2 2004/03/10 01:05:02 marka Exp $
+# $Id: clean.sh,v 1.10.2.3 2004/09/07 04:19:30 marka Exp $
 
-rm -f */K* */keyset-* */signedkey-* */*.signed */trusted.conf
+rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed */trusted.conf
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db
 rm -f */example.bk
 rm -f dig.out.*
 rm -f random.data
-
+rm -f ns2/dlv.db
