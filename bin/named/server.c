@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.7 2004/05/14 01:03:49 marka Exp $ */
+/* $Id: server.c,v 1.419.18.8 2004/06/04 02:31:52 marka Exp $ */
 
 #include <config.h>
 
@@ -1171,14 +1171,42 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-lookaside", &obj);
 	if (result == ISC_R_SUCCESS) {
-		const char *dlv;
-		isc_buffer_t b;
-		dlv = cfg_obj_asstring(obj);
-		isc_buffer_init(&b, dlv, strlen(dlv));
-		isc_buffer_add(&b, strlen(dlv));
-		CHECK(dns_name_fromtext(dns_fixedname_name(&view->dlv_fixed),
-					&b, dns_rootname, ISC_TRUE, NULL));
-		view->dlv = dns_fixedname_name(&view->dlv_fixed);
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			const char *str;
+			isc_buffer_t b;
+			dns_name_t *dlv;
+
+			obj = cfg_listelt_value(element);
+#if 0
+			dns_fixedname_t fixed;
+			dns_name_t *name;
+
+			/*
+			 * When we support multiple dnssec-lookaside
+			 * entries this is how to find the domain to be
+			 * checked. XXXMPA
+			 */
+			dns_fixedname_init(&fixed);
+			name = dns_fixedname_name(&fixed);
+			str = cfg_obj_asstring(cfg_tuple_get(obj,
+							     "domain"));
+			isc_buffer_init(&b, str, strlen(str));
+			isc_buffer_add(&b, strlen(str));
+			CHECK(dns_name_fromtext(name, &b, dns_rootname,
+						ISC_TRUE, NULL));
+#endif
+			str = cfg_obj_asstring(cfg_tuple_get(obj,
+							     "trust-anchor"));
+			isc_buffer_init(&b, str, strlen(str));
+			isc_buffer_add(&b, strlen(str));
+			dlv = dns_fixedname_name(&view->dlv_fixed);
+			CHECK(dns_name_fromtext(dlv, &b, dns_rootname,
+						ISC_TRUE, NULL));
+			view->dlv = dns_fixedname_name(&view->dlv_fixed);
+		}
 	} else
 		view->dlv = NULL;
 
