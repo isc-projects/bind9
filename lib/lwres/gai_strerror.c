@@ -10,7 +10,7 @@ you didn't get a copy, you may request one from <license@inner.net>.
 #include <lwres/netdb.h>
 #include <errno.h>
 
-const char *
+char *
 lwres_gai_strerror(int errnum) {
 	switch(errnum) {
 	case 0:
