@@ -1,3 +1,6 @@
+ 592.	[bug]		The sig-validity-interval option now specifies a
+			number of days, not seconds.  This matches the
+			documentation. [RT #529]
 
 	--- 9.1.0b1 released ---
 
