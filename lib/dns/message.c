@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.177 2001/02/14 02:51:11 gson Exp $ */
+/* $Id: message.c,v 1.178 2001/02/15 19:09:55 gson Exp $ */
 
 /***
  *** Imports
@@ -1123,9 +1123,9 @@ static isc_boolean_t
 update(dns_section_t section, dns_rdataclass_t rdclass) {
 	if (section == DNS_SECTION_PREREQUISITE)
 		return (ISC_TF(rdclass == dns_rdataclass_any ||
-			rdclass == dns_rdataclass_none));
-		if (section == DNS_SECTION_UPDATE)
-			return (ISC_TF(rdclass == dns_rdataclass_any));
+			       rdclass == dns_rdataclass_none));
+	if (section == DNS_SECTION_UPDATE)
+		return (ISC_TF(rdclass == dns_rdataclass_any));
 	return (ISC_FALSE);
 }
 
