@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.52 2000/09/05 03:35:24 marka Exp $ */
+/* $Id: view.h,v 1.53 2000/10/05 06:39:24 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -184,6 +184,21 @@ void
 dns_view_detach(dns_view_t **viewp);
 /*
  * Detach '*viewp' from its view.
+ *
+ * Requires:
+ *
+ *	'viewp' points to a valid dns_view_t *
+ *
+ * Ensures:
+ *
+ *	*viewp is NULL.
+ */
+
+void
+dns_view_flushanddetach(dns_view_t **viewp);
+/*
+ * Detach '*viewp' from its view.  If this was the last reference
+ * uncommited changed in zones will be flushed to disk.
  *
  * Requires:
  *

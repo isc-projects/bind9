@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.77 2000/09/26 18:17:10 gson Exp $ */
+/* $Id: zone.h,v 1.78 2000/10/05 06:39:25 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -322,6 +322,15 @@ dns_zone_refresh(dns_zone_t *zone);
  *	managed.
  *
  * Require
+ *	'zone' to be a valid zone.
+ */
+
+isc_result_t
+dns_zone_flush(dns_zone_t *zone);
+/*
+ *	Write the zone to database if there are uncommited changes.
+ *
+ * Require:
  *	'zone' to be a valid zone.
  */
 

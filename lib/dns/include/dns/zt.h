@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.22 2000/08/14 19:52:20 gson Exp $ */
+/* $Id: zt.h,v 1.23 2000/10/05 06:39:26 marka Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
@@ -101,6 +101,17 @@ dns_zt_detach(dns_zt_t **ztp);
 /*
  * Detach the given zonetable, if the reference count goes to zero the
  * zonetable will be freed.  In either case 'ztp' is set to NULL.
+ *
+ * Requires:
+ *	'*ztp' to be valid
+ */
+
+void
+dns_zt_flushanddetach(dns_zt_t **ztp);
+/*
+ * Detach the given zonetable, if the reference count goes to zero the
+ * zonetable will be flushed and then freed.  In either case 'ztp' is
+ * set to NULL.
  *
  * Requires:
  *	'*ztp' to be valid

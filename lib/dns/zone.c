@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.226 2000/10/03 05:47:45 marka Exp $ */
+/* $Id: zone.c,v 1.227 2000/10/05 06:39:21 marka Exp $ */
 
 #include <config.h>
 
@@ -193,7 +193,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_REFRESH	0x00000001U	/* refresh check in progress */
 #define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/* zone need consolidation */
 #define DNS_ZONEFLG_USEVC	0x00000004U	/* use tcp for refresh query */
-/* #define DNS_ZONEFLG_UNUSED	0x00000008U */	/* unused */
+#define DNS_ZONEFLG_DUMPING	0x00000008U	/* a dump is in progress */
 /* #define DNS_ZONEFLG_UNUSED	0x00000010U */	/* unused */
 #define DNS_ZONEFLG_LOADED	0x00000020U	/* database has loaded */
 #define DNS_ZONEFLG_EXITING	0x00000040U	/* zone is being destroyed */
@@ -961,6 +961,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	unsigned int nscount = 0;
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_stdtime_t now;
+	isc_boolean_t needdump = ISC_FALSE;
 
 	isc_stdtime_get(&now);
 
@@ -1017,7 +1018,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			 "dns_journal_rollforward: %s",
 			 dns_result_totext(result));
 		if (result == ISC_R_SUCCESS)
-			zone_needdump(zone, DNS_DUMP_DELAY);
+			needdump = ISC_TRUE;
 	}
 
 	/*
@@ -1110,6 +1111,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone->flags |= DNS_ZONEFLG_LOADED|DNS_ZONEFLG_NEEDNOTIFY;
 	}
 	result = ISC_R_SUCCESS;
+	if (needdump)
+		zone_needdump(zone, DNS_DUMP_DELAY);
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		(void) zone_settimer(zone, now);
 	return (result);
@@ -1820,6 +1823,20 @@ dns_zone_refresh(dns_zone_t *zone) {
 	zone->curmaster = 0;
 	/* initiate soa query */
 	queue_soa_query(zone);
+}
+
+isc_result_t
+dns_zone_flush(dns_zone_t *zone) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP))
+		result = zone_dump(zone);
+	UNLOCK(&zone->lock);
+
+	return (result);
 }
 
 isc_result_t

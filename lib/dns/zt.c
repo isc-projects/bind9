@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.25 2000/08/13 23:51:53 gson Exp $ */
+/* $Id: zt.c,v 1.26 2000/10/05 06:39:22 marka Exp $ */
 
 #include <config.h>
 
@@ -171,8 +171,14 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
 	*ztp = zt;
 }
 
-void
-dns_zt_detach(dns_zt_t **ztp) {
+static isc_result_t
+flush(dns_zone_t *zone, void *uap) {
+	UNUSED(uap);
+	return (dns_zone_flush(zone));
+}
+
+static void
+zt_flushanddetach(dns_zt_t **ztp, isc_boolean_t need_flush) {
 	isc_boolean_t destroy = ISC_FALSE;
 	dns_zt_t *zt;
 
@@ -190,6 +196,8 @@ dns_zt_detach(dns_zt_t **ztp) {
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
 	if (destroy) {
+		if (need_flush)
+			(void)dns_zt_apply(zt, ISC_FALSE, flush, NULL);
 		dns_rbt_destroy(&zt->table);
 		isc_rwlock_destroy(&zt->rwlock);
 		zt->magic = 0;
@@ -197,6 +205,16 @@ dns_zt_detach(dns_zt_t **ztp) {
 	}
 
 	*ztp = NULL;
+}
+
+void
+dns_zt_flushanddetach(dns_zt_t **ztp) {
+	zt_flushanddetach(ztp, ISC_TRUE);
+}
+
+void
+dns_zt_detach(dns_zt_t **ztp) {
+	zt_flushanddetach(ztp, ISC_FALSE);
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.80 2000/09/25 17:46:39 bwelling Exp $ */
+/* $Id: view.c,v 1.81 2000/10/05 06:39:20 marka Exp $ */
 
 #include <config.h>
 
@@ -287,8 +287,8 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 	*targetp = source;
 }
 
-void
-dns_view_detach(dns_view_t **viewp) {
+static void
+view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 	dns_view_t *view;
 	isc_boolean_t done = ISC_FALSE;
 
@@ -307,7 +307,10 @@ dns_view_detach(dns_view_t **viewp) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
-		dns_zt_detach(&view->zonetable);
+		if (flush)
+			dns_zt_flushanddetach(&view->zonetable);
+		else
+			dns_zt_detach(&view->zonetable);
 		done = all_done(view);
 	}
 	UNLOCK(&view->lock);
@@ -316,6 +319,16 @@ dns_view_detach(dns_view_t **viewp) {
 
 	if (done)
 		destroy(view);
+}
+
+void
+dns_view_flushanddetach(dns_view_t **viewp) {
+	view_flushanddetach(viewp, ISC_TRUE);
+}
+
+void
+dns_view_detach(dns_view_t **viewp) {
+	view_flushanddetach(viewp, ISC_FALSE);
 }
 
 void

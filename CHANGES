@@ -1,3 +1,6 @@
+ 507.	[func]		New functions dns_zone_flush(), dns_zt_flushanddetach()
+			and dns_view_flushanddetach().
+
  506.	[func]		Do not fail to start on errors in zone files.
 
  505.	[bug]		nsupdate was printing "unknown result code". [RT #373]
