@@ -111,6 +111,14 @@ struct dns_rdataset {
 	void *				private5;
 };
 
+/*
+ * _RENDERED:
+ *	Used by message.c to indicate that the rdataset was rendered.
+ *
+ * _TTLADJUSTED:
+ *	Used by message.c to indicate that the rdataset's rdata had differing
+ *	TTL values, and the rdataset->ttl holds the smallest.
+ */
 #define DNS_RDATASETATTR_QUESTION	0x0001
 #define DNS_RDATASETATTR_RENDERED	0x0002		/* Used by message.c */
 #define DNS_RDATASETATTR_ANSWERED	0x0004		/* Used by server. */
@@ -120,6 +128,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_EXTERNAL	0x0040		/* Used by resolver. */
 #define DNS_RDATASETATTR_NCACHE		0x0080		/* Used by resolver. */
 #define DNS_RDATASETATTR_CHAINING	0x0100		/* Used by resolver. */
+#define DNS_RDATASETATTR_TTLADJUSTED	0x0200		/* Used by message.c */
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);

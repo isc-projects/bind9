@@ -1198,8 +1198,11 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * currently treat them the as if they were authoritative and
 		 * minimize them.
 		 */
-		if (ttl < rdataset->ttl)
-			rdataset->ttl = ttl;
+		if (ttl != rdataset->ttl) {
+			rdataset->attributes |= DNS_RDATASETATTR_TTLADJUSTED;
+			if (ttl < rdataset->ttl)
+				rdataset->ttl = ttl;
+		}
 
 		/*
 		 * XXXMLG Perform a totally ugly hack here to pull
