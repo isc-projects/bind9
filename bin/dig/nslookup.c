@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.25 2000/07/14 16:35:29 mws Exp $ */
+/* $Id: nslookup.c,v 1.26 2000/07/18 01:28:19 mws Exp $ */
 
 #include <config.h>
 
@@ -23,11 +23,6 @@
 
 extern int h_errno;
 
-#include <dns/message.h>
-#include <dns/name.h>
-#include <dns/rdata.h>
-#include <dns/rdataset.h>
-#include <dns/rdatatype.h>
 #include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -37,6 +32,13 @@ extern int h_errno;
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/task.h>
+
+#include <dns/message.h>
+#include <dns/name.h>
+#include <dns/rdata.h>
+#include <dns/rdataclass.h>
+#include <dns/rdataset.h>
+#include <dns/rdatatype.h>
 
 #include <dig/dig.h>
 
@@ -533,7 +535,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	printsection(query, msg, headers, DNS_SECTION_ANSWER);
 	
 	if (((msg->flags & DNS_MESSAGEFLAG_AA) == 0) &&
-	    (strcasecmp(query->lookup->rttext,"a") != 0)) {
+	    (query->lookup->rdtype != dns_rdatatype_a)) {
 		puts ("\nAuthorative answers can be found from:");
 		printsection(query, msg, headers,
 			     DNS_SECTION_AUTHORITY);
@@ -570,18 +572,43 @@ show_settings(isc_boolean_t full) {
 	printf ("\t  %s\t\t\t%s\t\t%s\n",
 		tcpmode?"vc":"novc", short_form?"nodebug":"debug",
 		debugging?"d2":"nod2");
-	printf ("\t  %s\t\t%s\t\t%s\n",
+	printf ("\t  %s\t\t%s\t%s\n",
 		defname?"defname":"nodefname",
-		usesearch?"search":"nosearch",
+		usesearch?"search  ":"nosearch",
 		recurse?"recurse":"norecurse");
 	printf ("\t  timeout = %d\t\tretry = %d\tport = %d\n",
 		timeout, tries, port);
-	printf ("\t  querytype = %-8s\tclass=%s\n",deftype, defclass);
+	printf ("\t  querytype = %-8s\tclass = %s\n",deftype, defclass);
 #if 0
 	printf ("\t  domain = %s\n", fixeddomain);
 #endif
 
 }
+
+static isc_boolean_t
+testtype(char *typetext) {
+	isc_result_t result;
+	isc_textregion_t tr;
+	dns_rdatatype_t rdtype;
+
+	tr.base = typetext;
+	tr.length = strlen(typetext);
+	result = dns_rdatatype_fromtext(&rdtype, &tr);
+	return (result == ISC_R_SUCCESS);
+}
+
+static isc_boolean_t
+testclass(char *typetext) {
+	isc_result_t result;
+	isc_textregion_t tr;
+	dns_rdataclass_t rdclass;
+
+	tr.base = typetext;
+	tr.length = strlen(typetext);
+	result = dns_rdataclass_fromtext(&rdclass, &tr);
+	return (result == ISC_R_SUCCESS);
+}
+
 
 static void
 setoption(char *opt) {
@@ -593,9 +620,11 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "cl=", 3) == 0) {
 		strncpy(defclass, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "type=", 5) == 0) {
-		strncpy(deftype, &opt[5], MXRD);
+		if (testtype(&opt[5]))
+			strncpy(deftype, &opt[5], MXRD);
 	} else if (strncasecmp(opt, "ty=", 3) == 0) {
-		strncpy(deftype, &opt[3], MXRD);
+		if (testclass(&opt[3]))
+			strncpy(defclass, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "querytype=", 10) == 0) {
 		strncpy(deftype, &opt[10], MXRD);
 	} else if (strncasecmp(opt, "query=", 6) == 0) {
@@ -641,38 +670,32 @@ setoption(char *opt) {
 static void
 addlookup(char *opt) {
 	dig_lookup_t *lookup;
+	isc_result_t result;
+	isc_textregion_t tr;
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
 
 	debug ("addlookup()");
-	lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
-	if (lookup == NULL)
-		fatal("Memory allocation failure.");
-	lookup->pending = ISC_FALSE;
+	tr.base = deftype;
+	tr.length = strlen(deftype);
+	result = dns_rdatatype_fromtext(&rdtype, &tr);
+	INSIST(result == ISC_R_SUCCESS);
+	tr.base = defclass;
+	tr.length = strlen(defclass);
+	result = dns_rdataclass_fromtext(&rdclass, &tr);
+	INSIST(result == ISC_R_SUCCESS);
+	lookup = make_empty_lookup();
 	strncpy(lookup->textname, opt, MXNAME-1);
-	strncpy (lookup->rttext, deftype, MXNAME);
-	strncpy (lookup->rctext, defclass, MXNAME);
-	lookup->namespace[0]=0;
-	lookup->sendspace = NULL;
-	lookup->sendmsg=NULL;
-	lookup->name=NULL;
-	lookup->oname=NULL;
-	lookup->timer = NULL;
-	lookup->xfr_q = NULL;
-	lookup->origin = NULL;
-	lookup->querysig = NULL;
-	lookup->doing_xfr = ISC_FALSE;
-	lookup->ixfr_serial = 0;
-	lookup->defname = ISC_FALSE;
+	lookup->rdtype = rdtype;
+	lookup->rdclass = rdclass;
 	lookup->trace = ISC_TF(trace || ns_search_only);
 	lookup->trace_root = trace;
 	lookup->ns_search_only = ns_search_only;
 	lookup->identify = identify;
 	lookup->recurse = recurse;
 	lookup->aaonly = aaonly;
-	lookup->adflag = ISC_FALSE;
-	lookup->cdflag = ISC_FALSE;
 	lookup->retries = tries;
 	lookup->udpsize = bufsize;
-	lookup->nsfound = 0;
 	lookup->comments = comments;
 	lookup->tcp_mode = tcpmode;
 	lookup->stats = stats;
@@ -877,7 +900,7 @@ main(int argc, char **argv) {
 
 	puts ("");
 	debug ("done, and starting to shut down");
-	free_lists();
+	destroy_libs();
 	isc_mutex_destroy(&lock);
 	isc_condition_destroy(&cond);
 	if (taskmgr != NULL) {

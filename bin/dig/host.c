@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.41 2000/07/14 17:57:26 mws Exp $ */
+/* $Id: host.c,v 1.42 2000/07/18 01:28:17 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -32,7 +32,9 @@ extern int h_errno;
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdataset.h>
+#include <dns/rdatatype.h>
 
 #include <dig/dig.h>
 
@@ -58,10 +60,7 @@ extern char *progname;
 extern isc_task_t *global_task;
 
 isc_boolean_t 
-	short_form = ISC_TRUE,
-	filter = ISC_FALSE,
-	showallsoa = ISC_FALSE,
-	tcpmode = ISC_FALSE;
+short_form = ISC_TRUE;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -231,7 +230,6 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
-	free_lists();
 	isc_app_shutdown();
 }
 
@@ -538,40 +536,60 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
-	isc_boolean_t recursion = ISC_TRUE;
 	char hostname[MXNAME];
-	char querytype[32] = "";
-	char queryclass[32] = "";
 	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int i, c, n, adrs[4];
 	char store[MXNAME];
+	isc_textregion_t tr;
+	isc_result_t result;
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
 
 	UNUSED(is_batchfile);
+
+	lookup = make_empty_lookup();
 
 	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:D"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
-			tcpmode = ISC_TRUE;
-			filter = ISC_TRUE;
-			strcpy(querytype, "axfr");
+			lookup->tcp_mode = ISC_TRUE;
+			lookup->rdtype = dns_rdatatype_axfr;
 			break;
 		case 'v':
 		case 'd':
 			short_form = ISC_FALSE;
 			break;
 		case 'r':
-			recursion = ISC_FALSE;
+			lookup->recurse = ISC_FALSE;
 			break;
 		case 't':
-			strncpy (querytype, isc_commandline_argument, 32);
+			tr.base = isc_commandline_argument;
+			tr.length = strlen(isc_commandline_argument);
+			result = dns_rdatatype_fromtext(&rdtype,
+						   (isc_textregion_t *)&tr);
+			
+			if (result != ISC_R_SUCCESS)
+				fprintf (stderr,"Warning: invalid type: %s\n",
+					 isc_commandline_argument);
+			else
+				lookup->rdtype = rdtype;
 			break;
 		case 'c':
-			strncpy (queryclass, isc_commandline_argument, 32);
+			tr.base = isc_commandline_argument;
+			tr.length = strlen(isc_commandline_argument);
+			result = dns_rdataclass_fromtext(&rdclass,
+						   (isc_textregion_t *)&tr);
+			
+			if (result != ISC_R_SUCCESS)
+				fprintf (stderr,"Warning: invalid class: %s\n",
+					 isc_commandline_argument);
+			else
+				lookup->rdclass = rdclass;
 			break;
 		case 'a':
-			strcpy (querytype, "any");
+			lookup->rdtype = dns_rdatatype_any;
 			short_form = ISC_FALSE;
 			break;
 		case 'w':
@@ -592,15 +610,14 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				tries = 1;
 			break;
 		case 'T':
-			tcpmode = ISC_TRUE;
+			lookup->tcp_mode = ISC_TRUE;
 			break;
 		case 'C':
 			debug("showing all SOAs");
-			if (querytype[0] == 0)
-				strcpy(querytype, "soa");
-			if (queryclass[0] == 0)
-				strcpy(queryclass, "in");
-			showallsoa = ISC_TRUE;
+			lookup->rdtype = dns_rdatatype_soa;
+			lookup->rdclass = dns_rdataclass_in;
+			lookup->ns_search_only = ISC_TRUE;
+			lookup->trace_root = ISC_TRUE;
 			show_details = ISC_TRUE;
 			break;
 		case 'N':
@@ -623,7 +640,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		ISC_LIST_APPEND(server_list, srv, link);
 	}
 	
-	lookup = make_empty_lookup();
 	lookup->pending = ISC_FALSE;
 	/* 
 	 * XXXMWS Add IPv6 translation here, probably using inet_pton
@@ -643,20 +659,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			strncat(lookup->textname, store, MXNAME);
 		}
 		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-		if (querytype[0] == 0)
-			strcpy(querytype, "ptr");
+		lookup->rdtype = dns_rdatatype_ptr;
 	} else {
 		strncpy(lookup->textname, hostname, MXNAME);
 	}
-	if (querytype[0] == 0)
-		strcpy(querytype, "a");
-	if (queryclass[0] == 0)
-		strcpy(queryclass, "in");
-	strncpy(lookup->rttext, querytype, 32);
-	strncpy(lookup->rctext, queryclass, 32);
-	lookup->ns_search_only = showallsoa;
-	lookup->trace_root = showallsoa;
-	lookup->tcp_mode = tcpmode;
 	lookup->new_search = ISC_TRUE;
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.68 2000/07/14 21:33:02 mws Exp $ */
+/* $Id: dig.c,v 1.69 2000/07/18 01:28:15 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -30,6 +30,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
+#include <dns/rdataclass.h>
 
 #include <dig/dig.h>
 
@@ -67,9 +68,13 @@ extern isc_boolean_t validated;
 extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern isc_boolean_t free_now;
+dig_lookup_t *default_lookup = NULL;
 
 extern isc_boolean_t debugging;
 extern isc_boolean_t isc_mem_debugging;
+char *batchname = NULL;
+FILE *batchfp = NULL;
+char *argv0;
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
@@ -167,12 +172,6 @@ show_usage(void) {
 "        local d-opts and servers (after host name) affect only that lookup.\n"
 , stderr);
 }				
-
-void
-dighost_shutdown(void) {
-	free_lists();
-	isc_app_shutdown();
-}
 
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query) {
@@ -540,13 +539,14 @@ reorder_args(int argc, char *argv[]) {
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_boolean_t have_host = ISC_FALSE;
+	isc_result_t result;
+	isc_textregion_t tr;
 	dig_server_t *srv = NULL, *s, *s2;
 	dig_lookup_t *lookup = NULL;
-	static dig_lookup_t *default_lookup = NULL;
-	char *batchname = NULL;
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
 	char batchline[MXNAME];
 	char address[MXNAME];
-	FILE *fp = NULL;
 	int bargc;
 	char *bargv[16];
 	int i, n;
@@ -665,7 +665,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->section_additional = ISC_FALSE;
 			lookup->section_authority = ISC_FALSE;
 			lookup->section_question = ISC_FALSE;
-			strcpy(lookup->rttext, "soa");
+			lookup->rdtype = dns_rdatatype_soa;
 			short_form = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nons", 6) == 0) {
 			lookup->ns_search_only = ISC_FALSE;
@@ -754,23 +754,46 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->comments = ISC_FALSE;
 		} else if (strncmp(rv[0], "-c", 2) == 0) {
 			if (rv[0][2] != 0) {
-				strncpy(lookup->rctext, &rv[0][2],
-					MXRD);
+				ptr = &rv[0][2];
 			} else {
-				strncpy(lookup->rctext, rv[1],
-					MXRD);
+				ptr = rv[1];
 				rv++;
 				rc--;
 			}
+			tr.base = ptr;
+			tr.length = strlen(ptr);
+			result = dns_rdataclass_fromtext(&rdclass,
+						    (isc_textregion_t *)&tr);
+			if (result == ISC_R_SUCCESS)
+				lookup->rdclass = rdclass;
+			else
+				fprintf (stderr, ";; Warning, ignoring "
+					 "invalid class %s\n",
+					 ptr);
 		} else if (strncmp(rv[0], "-t", 2) == 0) {
 			if (rv[0][2] != 0) {
-				strncpy(lookup->rttext, &rv[0][2],
-					MXRD);
+				ptr = &rv[0][2];
 			} else {
-				strncpy(lookup->rttext, rv[1],
-					MXRD);
+				ptr = rv[1];
 				rv++;
 				rc--;
+			}
+			tr.base = ptr;
+			tr.length = strlen(ptr);
+			if (strncmp(rv[0], "ixfr=", 5) == 0) {
+				lookup->rdtype = dns_rdatatype_ixfr;
+				lookup->ixfr_serial = 
+					atoi(&rv[0][5]);
+			} else {
+				result = dns_rdatatype_fromtext(&rdtype,
+						    (isc_textregion_t *)&tr);
+				if ((result == ISC_R_SUCCESS) &&
+				    (rdtype != dns_rdatatype_ixfr))
+					lookup->rdtype = rdtype;
+				else
+					fprintf (stderr, ";; Warning, "
+						 "ignoring invalid type %s\n",
+						 ptr);
 			}
 		} else if (strncmp(rv[0], "-f", 2) == 0) {
 			if (rv[0][2] != 0) {
@@ -853,8 +876,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			debug("looking up %s", lookup->textname);
 			lookup->trace_root = ISC_TF(lookup->trace  ||
 						    lookup->ns_search_only);
-			strcpy(lookup->rttext, "ptr");
-			strcpy(lookup->rctext, "in");
+			lookup->rdtype = dns_rdatatype_ptr;
+			lookup->rdclass = dns_rdataclass_in;
 			lookup->new_search = ISC_TRUE;
 
 			ISC_LIST_APPEND(lookup_list, lookup, link);
@@ -862,18 +885,25 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			rv++;
 			rc--;
 		} else {
+			tr.base = rv[0];
+			tr.length = strlen(rv[0]);
 			if (strncmp(rv[0], "ixfr=", 5) == 0) {
-				strcpy(lookup->rttext, "ixfr");
+				lookup->rdtype = dns_rdatatype_ixfr;
 				lookup->ixfr_serial = 
 					atoi(&rv[0][5]);
 				continue;
 			}
-			if (istype(rv[0])) {
-				strncpy(lookup->rttext, rv[0], MXRD);
+			result = dns_rdatatype_fromtext(&rdtype,
+					      (isc_textregion_t *)&tr);
+			if ((result == ISC_R_SUCCESS) &&
+			    (rdtype != dns_rdatatype_ixfr)) {
+				lookup->rdtype = rdtype;
 				continue;
-			} else if (isclass(rv[0])) {
-				strncpy(lookup->rctext, rv[0],
-					MXRD);
+			}
+			result = dns_rdataclass_fromtext(&rdclass,
+					       (isc_textregion_t *)&tr);
+			if (result == ISC_R_SUCCESS) {
+				lookup->rdclass = rdclass;
 				continue;
 			}
 			lookup=clone_lookup(default_lookup, ISC_TRUE);
@@ -886,15 +916,20 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			debug("looking up %s", lookup->textname);
 		}
 	}
-	if (batchname != NULL) {
-		fp = fopen(batchname, "r");
-		if (fp == NULL) {
+	/* 
+	 * If we have a batchfile, seed the lookup list with the
+	 * first entry, then trust the callback in dighost_shutdown
+	 * to get the rest
+	 */
+	if ((batchname != NULL) && !(is_batchfile)) {
+		batchfp = fopen(batchname, "r");
+		if (batchfp == NULL) {
 			perror(batchname);
 			if (exitcode < 10)
 				exitcode = 10;
 			fatal("Couldn't open specified batch file");
 		}
-		while (fgets(batchline, sizeof(batchline), fp) != 0) {
+		if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 			debug("batch line %s", batchline);
 			bargc = 1;
 			bargv[bargc] = strtok(batchline, " \t\r\n");
@@ -904,6 +939,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 
 			bargv[0] = argv[0];
+			argv0 = argv[0];
 
 			reorder_args(bargc, (char **)bargv);
 			parse_args(ISC_TRUE, bargc, (char **)bargv);
@@ -915,7 +951,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 					    lookup->ns_search_only);
 		lookup->new_search = ISC_TRUE;
 		strcpy(lookup->textname, ".");
-		strcpy(lookup->rttext, "NS");
+		lookup->rdtype = dns_rdatatype_ns;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
 	if (!is_batchfile) {
@@ -930,7 +966,47 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 					 (dig_server_t *)s2, link);
 			isc_mem_free(mctx, s2);
 		}
-		isc_mem_free(mctx, default_lookup);
+	}
+}
+
+void
+dighost_shutdown(void) {
+	char batchline[MXNAME];
+	int bargc;
+	char *bargv[16];
+	
+
+	if (batchname == NULL) {
+		isc_app_shutdown();
+		return;
+	}
+
+	if (feof(batchfp)) {
+		batchname = NULL;
+		isc_app_shutdown();
+		fclose(batchfp);
+		return;
+	}
+
+	if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
+		debug("batch line %s", batchline);
+		bargc = 1;
+		bargv[bargc] = strtok(batchline, " \t\r\n");
+		while ((bargv[bargc] != NULL) && (bargc < 14 )) {
+			bargc++;
+			bargv[bargc] = strtok(NULL, " \t\r\n");
+		}
+		
+		bargv[0] = argv0;
+		
+		reorder_args(bargc, (char **)bargv);
+		parse_args(ISC_TRUE, bargc, (char **)bargv);
+		start_lookup();
+	} else {
+		batchname = NULL;
+		fclose(batchfp);
+		isc_app_shutdown();
+		return;
 	}
 }
 
@@ -950,6 +1026,11 @@ main(int argc, char **argv) {
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();
+	isc_mem_free(mctx, default_lookup);
+	if (batchname != NULL) {
+		fclose(batchfp);
+		batchname = NULL;
+	}
 	cancel_all();
 	destroy_libs();
 	isc_app_finish();

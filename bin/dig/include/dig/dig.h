@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.35 2000/07/14 17:57:27 mws Exp $ */
+/* $Id: dig.h,v 1.36 2000/07/18 01:28:20 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -43,8 +43,8 @@
 /*
  * Default timeout values
  */
-#define TCP_TIMEOUT 60
-#define UDP_TIMEOUT 30
+#define TCP_TIMEOUT 10
+#define UDP_TIMEOUT 5
 
 #define LOOKUP_LIMIT 64
 /*
@@ -92,8 +92,8 @@ struct dig_lookup {
 		section_additional,
 		new_search;
 	char textname[MXNAME]; /* Name we're going to be looking up */
-	char rttext[MXRD]; /* rdata type text */
-	char rctext[MXRD]; /* rdata class text */
+	dns_rdatatype_t rdtype;
+	dns_rdataclass_t rdclass;
 	char namespace[BUFSIZE];
 	char onamespace[BUFSIZE];
 	isc_buffer_t namebuf;
@@ -131,7 +131,6 @@ struct dig_query {
 		first_repeat_rcvd;
 	isc_uint32_t first_rr_serial;
 	isc_uint32_t second_rr_serial;
-	int retries;
 	char *servname;
 	isc_bufferlist_t sendlist,
 		recvlist,
@@ -173,12 +172,6 @@ debug(const char *format, ...);
 void
 check_result(isc_result_t result, const char *msg);
 
-isc_boolean_t
-isclass(char *text);
-
-isc_boolean_t
-istype(char *text);
-
 void
 setup_lookup(dig_lookup_t *lookup);
 
@@ -191,9 +184,6 @@ start_lookup(void);
 void
 onrun_callback(isc_task_t *task, isc_event_t *event);
 
-void
-send_udp(dig_lookup_t *lookup);
-
 int
 dhmain(int argc, char **argv);
 
@@ -202,9 +192,6 @@ setup_libs(void);
 
 void
 setup_system(void);
-
-void
-free_lists(void);
 
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
