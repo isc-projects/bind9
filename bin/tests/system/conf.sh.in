@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: conf.sh.in,v 1.8 2000/07/10 11:38:48 tale Exp $
+# $Id: conf.sh.in,v 1.9 2000/07/10 17:01:15 gson Exp $
 
 # 
 # Common configuration data for system tests, to be sourced into
@@ -43,4 +43,4 @@ SUBDIRS="dnssec glue limits lwresd notify nsupdate stub views xfer xferquota"
 PERL=@PERL@
 
 export NAMED LWRESD DIG NSUPDATE KEYGEN SIGNER KEYSIGNER KEYSETTOOL PERL \
-    SUBDIRS
+    SUBDIRS RNDC
