@@ -39,6 +39,7 @@
 #include <isc/random.h>
 
 #include <dns/address.h>
+#include <dns/db.h>
 #include <dns/events.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -113,7 +114,7 @@ struct dns_adb {
 struct dns_adbname {
 	unsigned int			magic;
 	dns_name_t			name;
-	isc_boolean_t			partial_results;
+	isc_boolean_t			partial_result;
 	isc_stdtime_t			expire_time;
 	ISC_LIST(dns_adbnamehook_t)	namehooks;
 	ISC_LIST(dns_adbnamehook_t)	in_progress;
@@ -206,7 +207,8 @@ static inline void violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
 static void clean_namehooks_at_name(dns_adb_t *, dns_adbname_t *);
 static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
 static isc_result_t construct_name(dns_adb_t *, dns_adbhandle_t *,
-				   dns_name_t *, dns_adbname_t *, int);
+				   dns_name_t *, dns_name_t *,
+				   dns_adbname_t *, int, isc_stdtime_t);
 
 static inline void
 violate_locking_hierarchy(isc_mutex_t *have, isc_mutex_t *want)
@@ -462,7 +464,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 	}
 
 	name->magic = DNS_ADBNAME_MAGIC;
-	name->partial_results = ISC_FALSE;
+	name->partial_result = ISC_FALSE;
 	name->expire_time = 0;
 	ISC_LIST_INIT(name->namehooks);
 	ISC_LIST_INIT(name->in_progress);
@@ -628,6 +630,7 @@ new_adbhandle(dns_adb_t *adb)
 	 */
 	h->magic = 0;
 	h->query_pending = ISC_FALSE;
+	h->partial_result = ISC_FALSE;
 	h->result = ISC_R_UNEXPECTED;
 	ISC_LIST_INIT(h->list);
 	ISC_LINK_INIT(h, next);
@@ -839,7 +842,6 @@ copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
 	int bucket;
 
 	handle->query_pending = ISC_FALSE;
-	handle->result = ISC_R_UNEXPECTED;
 	bucket = DNS_ADB_INVALIDBUCKET;
 
 	namehook = ISC_LIST_HEAD(name->namehooks);
@@ -850,6 +852,7 @@ copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
 			goto next;
 		addrinfo = new_adbaddrinfo(adb, namehook->entry);
 		if (addrinfo == NULL) {
+			handle->partial_result = ISC_TRUE;
 			handle->result = ISC_R_NOMEMORY;
 			goto out;
 		}
@@ -1176,10 +1179,12 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * of data was added, and/or fetches were started.  If nothing new
 	 * can ever be found it will return DNS_R_NOMEMORY more than likely.
 	 */
-	result = construct_name(adb, handle, name, adbname, bucket);
+	result = construct_name(adb, handle, name, zone, adbname, bucket, now);
 	if (result == ISC_R_SUCCESS) {
 		ISC_LIST_PREPEND(adb->names[bucket], adbname, link);
 		adb->name_refcnt[bucket]++;
+		if (adbname->partial_result)
+			handle->partial_result = ISC_TRUE;
 		goto again;
 	}
 
@@ -1188,8 +1193,6 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * (since it will have nothing useful in it) and return via the
 	 * failure return.
 	 */
-	free_adbname(adb, &adbname);
-
  fail:
 	free_adbhandle(adb, &handle);
 
@@ -1197,7 +1200,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * If the name isn't on a list it means we allocated it here, and it
 	 * should be killed.
 	 */
-	if (!ISC_LINK_LINKED(adbname, link))
+	if (adbname != NULL && !ISC_LINK_LINKED(adbname, link))
 		free_adbname(adb, &adbname);
 
 	/*
@@ -1673,13 +1676,18 @@ print_handle_list(FILE *f, dns_adbname_t *name)
  */
 static isc_result_t
 construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
-	       dns_adbname_t *adbname, int bucket)
+	       dns_name_t *zone, dns_adbname_t *adbname, int bucket,
+	       isc_stdtime_t now)
 {
 	dns_adbentry_t *entry;
 	dns_adbnamehook_t *nh;
 	isc_result_t result;
 	int addr_bucket;
 	isc_boolean_t return_success;
+	isc_boolean_t use_hints;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata;
+	struct in_addr ina;
 
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(DNS_ADBHANDLE_VALID(handle));
@@ -1687,34 +1695,53 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
 
+	if (adb->view == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+
 	result = ISC_R_UNEXPECTED;
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	return_success = ISC_FALSE;
+	entry = NULL;
+	nh = NULL;
 
-	/*
-	 * Allocate an entry and a namehook, but don't string them up
-	 * anywhere yet.  If we need more, we will have to get more later.
-	 * These are the first two that cannot fail or else we are broken.
-	 * Later ones can fail, but it is still bad to have that happen.
-	 */
-	entry = new_adbentry(adb);
-	if (entry == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto fail;
-	}
-	nh = new_adbnamehook(adb, NULL);
-	if (nh == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto fail;
-	}
+	use_hints = dns_name_equal(zone, dns_rootname);
+	dns_rdataset_init(&rdataset);
+	adbname->partial_result = ISC_FALSE;
 
-	/*
-	 * Look up the A record in the database, the cache, or in glue.
-	 * If it isn't found in any of these, we will have to start a
-	 * fetch for it.
-	 */
+	result = dns_view_find(adb->view, name, dns_rdatatype_a,
+			       now, DNS_DBFIND_GLUEOK, use_hints,
+			       &rdataset, NULL);
+	if (result == DNS_R_SUCCESS ||
+	    result == DNS_R_GLUE ||
+	    result == DNS_R_HINT) {
+		result = dns_rdataset_first(&rdataset);
+		while (result == ISC_R_SUCCESS) {
+			entry = new_adbentry(adb);
+			if (entry == NULL) {
+				adbname->partial_result = ISC_TRUE;
+				result = ISC_R_NOMEMORY;
+				goto fail;
+			}
+			nh = new_adbnamehook(adb, NULL);
+			if (nh == NULL) {
+				adbname->partial_result = ISC_TRUE;
+				result = ISC_R_NOMEMORY;
+				goto fail;
+			}
+			dns_rdataset_current(&rdataset, &rdata);
+			INSIST(rdata.length == 4);
+			memcpy(&ina.s_addr, rdata.data, 4);
+			isc_sockaddr_fromin(&entry->sockaddr, &ina, 53);
+
+			return_success = ISC_TRUE;
+
+			result = dns_rdataset_next(&rdataset);
+		}
+	}
 
  fail:
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
 	if (entry != NULL)
 		free_adbentry(adb, &entry);
 	if (nh != NULL)
@@ -1722,7 +1749,6 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 
 	if (return_success)
 		return (ISC_R_SUCCESS);
-	adbname->partial_results = ISC_TRUE;
 	return (result);
 }
 

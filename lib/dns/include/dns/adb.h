@@ -129,6 +129,7 @@ struct dns_adbhandle {
 	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
 	ISC_LINK(dns_adbhandle_t)	next;		/* RW: next handle */
 	isc_boolean_t			query_pending;	/* RO: partial list */
+	isc_boolean_t			partial_result;	/* RO: addrs missing */
 	isc_result_t			result;		/* RO: extra result */
 
 	/* Private */
@@ -254,7 +255,8 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *
  *	*adb be a valid isc_adb_t object.
  *
- *	*task be a valid task, and isc_taskaction_t != NULL.
+ *	If events are to be sent, *task be a valid task,
+ *	and isc_taskaction_t != NULL.
  *
  *	*name is a valid dns_name_t.
  *
@@ -267,7 +269,8 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *	ISC_R_SUCCESS	Addresses might have been returned, and events will be
  *			delivered for unresolved addresses.
  *	ISC_R_NOMORE	Addresses might have been returned, but no events
- *			will ever be posted for this context.
+ *			will ever be posted for this context.  This is only
+ *			returned if task != NULL.
  *	ISC_R_NOMEMORY	insufficient resources
  *
  * Calls, and returns error codes from:

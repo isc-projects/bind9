@@ -78,6 +78,10 @@ lookup_callback(isc_task_t *task, isc_event_t *ev)
 	isc_app_shutdown();
 }
 
+unsigned char namestorage1[512];
+unsigned char namestorage2[512];
+unsigned char namestorage3[512];
+
 int
 main(int argc, char **argv)
 {
@@ -85,10 +89,8 @@ main(int argc, char **argv)
 	isc_sockaddr_t sockaddr;
 	struct in_addr ina;
 	isc_result_t result;
-	dns_name_t name1, name2;
+	dns_name_t name1, name2, name3;
 	isc_buffer_t t, namebuf;
-	unsigned char namestorage1[512];
-	unsigned char namestorage2[512];
 	dns_view_t *view;
 	dns_adb_t *adb;
 	dns_adbhandle_t *handle;
@@ -132,6 +134,8 @@ main(int argc, char **argv)
 	result = dns_view_create(mctx, dns_rdataclass_in, "foo", &view);
 	check_result(result, "dns_view_create");
 
+	dns_view_freeze(view);
+
 	/*
 	 * Create the address database.
 	 */
@@ -139,8 +143,9 @@ main(int argc, char **argv)
 	result = dns_adb_create(mctx, view, &adb);
 	check_result(result, "dns_adb_create");
 
-#define NAME1 "nonexistant.flame.org."
-#define NAME2 "badname.isc.org."
+#define NAME1 "kechara.flame.org."
+#define NAME2 "moghedien.isc.org."
+#define NAME3 "nonexistant.flame.org."
 
 	isc_buffer_init(&t, NAME1, sizeof NAME1 - 1, ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&t, strlen(NAME1));
@@ -159,6 +164,15 @@ main(int argc, char **argv)
 	result = dns_name_fromtext(&name2, &t, dns_rootname, ISC_FALSE,
 				   &namebuf);
 	check_result(result, "dns_name_fromtext NAME2");
+
+	isc_buffer_init(&t, NAME3, sizeof NAME3 - 1, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&t, strlen(NAME3));
+	isc_buffer_init(&namebuf, namestorage3, sizeof namestorage3,
+			ISC_BUFFERTYPE_BINARY);
+	dns_name_init(&name3, NULL);
+	result = dns_name_fromtext(&name3, &t, dns_rootname, ISC_FALSE,
+				   &namebuf);
+	check_result(result, "dns_name_fromtext NAME3");
 
 	/*
 	 * Store this address for this name.
@@ -239,6 +253,28 @@ main(int argc, char **argv)
 	dns_adb_dump(adb, stderr);
 
 	dns_adb_done(adb, &handle);
+
+	/*
+	 * look up a name that doesn't exit.
+	 */
+	result = dns_adb_lookup(adb, t2, lookup_callback, &name3,
+				&name3, &name3, now, &handle);
+	if (result == ISC_R_SUCCESS) {
+		check_result(handle->result, "handle->result");
+
+		check_result(result, "dns_adb_lookup name3");
+		dns_adb_dump(adb, stderr);
+		dns_adb_dumphandle(adb, handle, stderr);
+	} else {
+		fprintf(stderr, "lookup of name3: %s\n",
+			isc_result_totext(result));
+	}
+
+	dns_adb_dump(adb, stderr);
+
+	if (handle != NULL)
+		dns_adb_done(adb, &handle);
+
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
