@@ -284,14 +284,14 @@ isc_socket_detach(isc_socket_t **socketp);
 /*
  * Detach *socketp from its socket.
  *
- * Notes:
- *
- * 	Detaching the last reference may cause any still-pending I/O to be
- *	cancelled.
- * 
  * Requires:
  *
  *	'socketp' points to a valid socket.
+ *
+ *	If '*socketp' is the last reference to the socket,
+ *	then:
+ *
+ *		There must be no pending I/O requests.
  *
  * Ensures:
  *
