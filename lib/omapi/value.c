@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: value.c,v 1.2 2000/01/24 05:35:18 tale Exp $ */
+/* $Id: value.c,v 1.3 2000/01/31 14:59:23 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -181,23 +181,31 @@ omapi_value_storestr(omapi_value_t **vp, omapi_string_t *name, char *value)
 }
 
 int
-omapi_value_asint(omapi_data_t *t) {
-	isc_uint32_t stored_value; /* Stored in network byte order. */
+omapi_value_getint(omapi_value_t *value) {
+	REQUIRE(value != NULL && value->value != NULL);
+	REQUIRE(value->value->type == omapi_datatype_int ||
+		((value->value->type == omapi_datatype_data ||
+		 (value->value->type == omapi_datatype_string)) &&
+		 value->value->u.buffer.len == sizeof(isc_uint32_t)));
 
-	REQUIRE(t != NULL);
-	REQUIRE(t->type == omapi_datatype_int ||
-		((t->type == omapi_datatype_data ||
-		 (t->type == omapi_datatype_string)) &&
-		 t->u.buffer.len == sizeof(stored_value)));
-
-	if (t->type == omapi_datatype_int)
-		return (t->u.integer);
-
-	else if (t->type == omapi_datatype_string ||
-		 t->type == omapi_datatype_data) {
-		memcpy(&stored_value, t->u.buffer.value, sizeof(stored_value));
-		return (ntohl(stored_value));
-	}
-
-	return (ISC_R_SUCCESS);
+	return (omapi_data_getint(value->value));
 }
+
+/*
+ * WARNING:  The region is valid only as long as the value pointer
+ * is valid.  See omapi.h.
+ */
+void
+omapi_value_getregion(omapi_value_t *value, isc_region_t *region) {
+	REQUIRE(value != NULL && value->value != NULL);
+	REQUIRE(value->value->type == omapi_datatype_data ||
+		value->value->type == omapi_datatype_string);
+
+	/*
+	 * Boy, the word "value" appears a lot.  Almost like a Smurf song.
+	 * La la la la la la, la la la la la.
+	 */
+	region->base = value->value->u.buffer.value;
+	region->length = value->value->u.buffer.len;
+}
+
