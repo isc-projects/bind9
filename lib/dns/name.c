@@ -1142,15 +1142,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				maxlength = 256;
 				kind = ft_octal;
 				state = ft_octal;
-				/*
-				 * XXXRTH
-				 *
-				 * The code dealing with octal bitstrings can
-				 * current generate invalid names.  Rather than
-				 * do this, we simply say they're not
-				 * implemented yet.
-				 */
-				return (DNS_R_NOTIMPLEMENTED);
 			} else if (c == 'x') {
 				vlen = 8;
 				maxlength = 256;
@@ -1196,7 +1187,15 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			value += digitvalue[(int)c];
 			count += 3;
 			tbcount += 3;
-			if (tbcount > 256)
+			/*
+			 * The total bit count is tested against 258 instead
+			 * of 256 because of the possibility that the bitstring
+			 * label is exactly 256 bits long; on the last octal
+			 * digit (which must be 4) tbcount is incremented
+			 * from 255 to 258.  This case is adequately handled
+			 * later.
+			 */
+			if (tbcount > 258)
 				return (DNS_R_BITSTRINGTOOLONG);
 			if (count == 8) {
 				*ndata++ = value;
@@ -1276,14 +1275,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			if (c == ']') {
 				if (tbcount == 0)
 					return (DNS_R_BADBITSTRING);
-				if (count > 0) {
-					n1 = count % 8;
-					if (n1 != 0)
-						value <<= (8 - n1);
-					*ndata++ = value;
-					nrem--;
-					nused++;
-				}
+
 				if (bitlength != 0) {
 					if (bitlength > tbcount)
 						return (DNS_R_BADBITSTRING);
@@ -1304,6 +1296,42 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 						/* tbcount % 3 == 0 */
 						if (n1 != n2)
 						  return (DNS_R_BADBITSTRING);
+
+						/*
+						 * Check that no bits extend
+						 * past the end of the last
+						 * byte that is included in
+						 * the bitlength.  Example:
+						 * \[o036/8] == \[b00001111],
+						 * which fits into just one
+						 * byte, but the three octal
+						 * digits actually specified
+						 * two bytes worth of data,
+						 * 9 bits, before the bitlength
+						 * limited it back to one byte.
+						 *
+						 * n1 is the number of bytes
+						 * necessary for the bitlength.
+						 * n2 is the number of bytes
+						 * encompassed by the octal
+						 * digits.  If they are not
+						 * equal, then "value" holds
+						 * the excess bits, which
+						 * must be zero.  If the bits
+						 * are zero, then "count" is
+						 * zero'ed to prevent the
+						 * addition of another byte
+						 * below.
+						 */
+						n1 = bitlength - 1 / 8;
+						n2 = tbcount - 1 / 8;
+						if (n1 != n2)
+						    if (value != 0)
+						       return
+							  (DNS_R_BADBITSTRING);
+						    else
+						       count = 0;
+
 					} else if (kind == ft_hex) {
 						/*
 						 * Figure out correct number
@@ -1331,8 +1359,28 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					}
 				} else if (kind == ft_dottedquad)
 					bitlength = 32;
+				else if (tbcount > 256)
+					/*
+					 * This can happen when an octal
+					 * bitstring label of 86 octal digits
+					 * is specified; tbcount will be 258.
+					 * This is not trapped above because
+					 * the bitstring label might be limited
+					 * by a "/256" modifier.
+					 */
+					return (DNS_R_BADBITSTRING);
 				else
 					bitlength = tbcount;
+
+				if (count > 0) {
+					n1 = count % 8;
+					if (n1 != 0)
+						value <<= (8 - n1);
+					*ndata++ = value;
+					nrem--;
+					nused++;
+				}
+
 				if (kind == ft_dottedquad) {
 					n1 = bitlength / 8;
 					if (bitlength % 8 != 0)
