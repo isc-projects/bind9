@@ -36,6 +36,7 @@ ISC_LANG_BEGINDECLS
 typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
 typedef ISC_LIST(dns_name_t)			dns_namelist_t;
+typedef struct dns_fixedname			dns_fixedname_t;
 typedef struct dns_db				dns_db_t;
 typedef void					dns_dbnode_t;
 typedef void					dns_dbversion_t;
