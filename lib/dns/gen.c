@@ -139,7 +139,7 @@ doswitch(char *name, char *function, char *args,
 			first = 0;
 		}
 		if (tt->type != lasttype && subswitch) {
-			fprintf(stdout, "\t\tdefault: result = %s; \\\n",
+			fprintf(stdout, "\t\tdefault: result = %s; break; \\\n",
 				res);
 			fputs(/*{*/ "\t\t} \\\n", stdout);
 			fputs("\t\tbreak; \\\n", stdout);
@@ -163,14 +163,14 @@ doswitch(char *name, char *function, char *args,
 		lasttype = tt->type;
 	}
 	if (subswitch) {
-		fprintf(stdout, "\t\tdefault: result = %s; \\\n", res);
+		fprintf(stdout, "\t\tdefault: result = %s; break; \\\n", res);
 		fputs(/*{*/ "\t\t}\n", stdout);
 		fputs("\t\tbreak; \\\n", stdout);
 	}
 	if (first)
 		fprintf(stdout, "\n#define %s result = %s;\n", name, res);
 	else {
-		fprintf(stdout, "\tdefault: result = %s; \\\n", res);
+		fprintf(stdout, "\tdefault: result = %s; break; \\\n", res);
 		fputs(/*{*/ "\t}\n", stdout);
 	}
 }
