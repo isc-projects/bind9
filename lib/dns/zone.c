@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.313 2001/03/23 00:33:28 gson Exp $ */
+/* $Id: zone.c,v 1.314 2001/03/26 21:11:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3964,8 +3964,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 
 	/*
 	 * Accept notify requests from non masters if they are on
-	 * 'zone->notify_acl'.  If DNS_ZONEOPT_NOTIFYFORWARD is set
-	 * then forward the notify.
+	 * 'zone->notify_acl'.
 	 */
 	isc_netaddr_fromsockaddr(&netaddr, from);
 	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
