@@ -245,6 +245,20 @@ setup() {
 		ns_main_earlyfatal("ns_log_init() failed: %s",
 				   isc_result_totext(result));
 
+	/*
+	 * Now is the time to daemonize (if we're not running in the
+	 * foreground).  We waited until now because we wanted to get
+	 * a valid logging context setup.  We cannot daemonize any later,
+	 * because calling create_managers() will create threads, which
+	 * would be lost after fork().
+	 */
+	if (!ns_g_foreground) {
+		result = ns_os_daemonize();
+		if (result != ISC_R_SUCCESS)
+			ns_main_earlyfatal("ns_os_daemonize() failed: %s",
+					   isc_result_totext(result));
+	}
+
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s", ns_g_version);
 
