@@ -15,6 +15,9 @@
 
 1340.	[bug]		Delay and spread out the startup refresh load.
 
+1334.	[bug]		When signing/verifying rdatasets, duplicate rdatas
+			need to be suppressed.
+
 1327.	[bug]		The validator would incorrectly mark data as insecure
 			when seeing a bogus signature before a correct
 			signature.
