@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.87 2000/11/10 03:14:25 gson Exp $ */
+/* $Id: zone.h,v 1.88 2000/11/11 01:15:33 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1253,7 +1253,7 @@ dns_zone_isforced(dns_zone_t *zone);
 void
 dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter);
 /*
- *      Increment a counter on a zone.
+ *      Increment a zone statistics counter.
  *
  * Requires:
  *      zone be a valid zone.
@@ -1264,11 +1264,11 @@ dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter);
 isc_uint64_t
 dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter);
 /*
- *      Return the value of a counter on a zone.
+ *      Return the value of a zone statistics counter.
  *
  * Requires:
  *      zone be a valid zone.
- *	MAY be safely called even if zone doesn't have counters
+ *	MAY be safely called even if zone doesn't have statistics counters
  *      counter be a valid counter ID
  *
  * Returns:
@@ -1276,21 +1276,20 @@ dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter);
  *	0 if the zone does not have counters
  */
 
-
 void
 dns_zone_resetcounts(dns_zone_t *zone);
 /*
- *      Reset the counters on a zone.
+ *      Reset the statistics counters of 'zone'.
  *
  * Requires:
  *      zone be a valid zone.
- *	MAY be safely called even if zone doesn't have counters
+ *	MAY be safely called even if zone doesn't have statistics counters
  */
 
 int
 dns_zone_numbercounters(void);
 /*
- *	Return the number of counters per zone.
+ *	Return the number of statistics counters per zone.
  *
  *	Use this instead of DNS_ZONE_COUNTSIZE if possible, to ensure
  *	binary compatibility if the number of counters is changed in
@@ -1300,7 +1299,7 @@ dns_zone_numbercounters(void);
 isc_boolean_t
 dns_zone_hascounts(dns_zone_t *zone);
 /*
- *	Return whether or not the zone has counters.
+ *	Return ISC_TRUE iff the zone has statistics counters.
  *
  * Requires:
  *	zone be a valid zone.
@@ -1309,11 +1308,11 @@ dns_zone_hascounts(dns_zone_t *zone);
 isc_result_t
 dns_zone_startcounting(dns_zone_t *zone);
 /*
- *	Start counting on the specified zone.
+ *	Start maintaining statistics counters for 'zone'.
  *
  * Requires:
  * 	zone be a valid zone.
- *	MAY be safely called even if zone already has counters
+ *	MAY be safely called even if zone already has statistics counters
  *
  * Returns:
  *	ISC_R_NOMEMORY -- memory allocation failed.
@@ -1323,11 +1322,11 @@ dns_zone_startcounting(dns_zone_t *zone);
 void
 dns_zone_stopcounting(dns_zone_t *zone);
 /*
- *	Stop counting on the specified zone.
+ *	Stop maintaining statistics counters for 'zone'.
  *
  * Requires:
  * 	zone be a valid zone.
- *	MAY be safely called even if zone doesn't have counters
+ *	MAY be safely called even if zone doesn't have statistics counters
  */
 
 void
