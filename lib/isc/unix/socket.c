@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.148 2000/07/13 00:25:38 gson Exp $ */
+/* $Id: socket.c,v 1.149 2000/07/13 01:13:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -76,11 +76,17 @@
  * DLVL(50)  --  Event tracing, including receiving/sending completion events.
  * DLVL(20)  --  Socket creation/destruction.
  */
-#define TRACE		DLVL(90)
-#define CORRECTNESS	DLVL(70)
-#define IOEVENT		DLVL(60)
-#define EVENT		DLVL(50)
-#define CREATION	DLVL(20)
+#define TRACE_LEVEL		90
+#define CORRECTNESS_LEVEL	70
+#define IOEVENT_LEVEL		60
+#define EVENT_LEVEL		50
+#define CREATION_LEVEL		20
+
+#define TRACE		DLVL(TRACE_LEVEL)
+#define CORRECTNESS	DLVL(CORRECTNESS_LEVEL)
+#define IOEVENT		DLVL(IOEVENT_LEVEL)
+#define EVENT		DLVL(EVENT_LEVEL)
+#define CREATION	DLVL(CREATION_LEVEL)
 
 typedef isc_event_t intev_t;
 
@@ -744,9 +750,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		if (SOFT_ERROR(errno))
 			return (DOIO_SOFT);
 
-		socket_log(sock, NULL, IOEVENT,
-			   "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
-			   sock->fd, cc, errno, strerror(errno));
+		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL))
+			socket_log(sock, NULL, IOEVENT,
+				   "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
+				   sock->fd, cc, errno, strerror(errno));
 
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
@@ -1521,8 +1528,10 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		 * If some other error, ignore it as well and hope
 		 * for the best, but log it.
 		 */
-		socket_log(sock, NULL, TRACE,
-			   "accept() returned %d/%s", errno, strerror(errno));
+		if (isc_log_wouldlog(isc_lctx, TRACE_LEVEL))
+			socket_log(sock, NULL, TRACE,
+				   "accept() returned %d/%s", errno,
+				   strerror(errno));
 
 		fd = -1;
 
@@ -1802,9 +1811,11 @@ watcher(void *uap) {
 			UNLOCK(&manager->lock);
 
 			cc = select(maxfd, &readfds, &writefds, NULL, NULL);
-			manager_log(manager, IOEVENT,
-				    "select(%d, ...) == %d, errno %d/%s",
-				    maxfd, cc, errno, strerror(errno));
+			if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL))
+				manager_log(manager, IOEVENT,
+					    "select(%d, ...) == %d, "
+					    "errno %d/%s",
+					    maxfd, cc, errno, strerror(errno));
 			if (cc < 0) {
 				if (!SOFT_ERROR(errno))
 					FATAL_ERROR(__FILE__, __LINE__,
