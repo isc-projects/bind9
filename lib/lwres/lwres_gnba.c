@@ -304,8 +304,10 @@ lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp)
 	gnba = *structp;
 	*structp = NULL;
 
-	if (gnba->naliases > 0)
+	if (gnba->naliases > 0) {
 		CTXFREE(gnba->aliases, sizeof(char *) * gnba->naliases);
+		CTXFREE(gnba->aliaslen, sizeof(isc_uint16_t) * gnba->naliases);
+	}
 	if (gnba->base != NULL)
 		CTXFREE(gnba->base, gnba->baselen);
 	CTXFREE(gnba, sizeof(lwres_gnbaresponse_t));

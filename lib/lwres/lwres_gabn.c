@@ -354,8 +354,10 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp)
 	gabn = *structp;
 	*structp = NULL;
 
-	if (gabn->naliases > 0)
+	if (gabn->naliases > 0) {
 		CTXFREE(gabn->aliases, sizeof(char *) * gabn->naliases);
+		CTXFREE(gabn->aliaslen, sizeof(isc_uint16_t) * gabn->naliases);
+	}
 	if (gabn->naddrs > 0)
 		CTXFREE(gabn->addrs, sizeof(lwres_addr_t *) * gabn->naddrs);
 	if (gabn->base != NULL)
