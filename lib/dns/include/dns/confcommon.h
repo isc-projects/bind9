@@ -172,6 +172,7 @@ typedef enum {
 	dns_c_ipmatch_localnets,
 	dns_c_ipmatch_key,
 	dns_c_ipmatch_acl,
+	dns_c_ipmatch_any,
 	dns_c_ipmatch_none
 } dns_c_ipmatch_type_t;
 
