@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.347 2001/09/27 22:46:35 gson Exp $ */
+/* $Id: server.c,v 1.348 2001/09/28 18:19:34 gson Exp $ */
 
 #include <config.h>
 
@@ -1345,6 +1345,8 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		/*
 		 * We already have this zone!
 		 */
+		cfg_obj_log(zconfig, ns_g_lctx, ISC_LOG_ERROR,
+			    "zone '%s' already exists", zname);
 		dns_zone_detach(&dupzone);
 		result = ISC_R_EXISTS;
 		goto cleanup;
