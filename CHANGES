@@ -1,4 +1,7 @@
 
+ 635.	[bug]		Reloading a server with a configured blackhole list
+			would cause an assertion. [RT #590]
+
  634.	[bug]		A log file will completely stop being written when
 			it reaches the maximum size in all cases, not just
 			when versioning is also enabled. [RT #570]
