@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.51 2002/10/31 04:35:02 marka Exp $
+ * $Id: openssl_link.c,v 1.52 2002/12/13 02:37:35 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -56,6 +56,7 @@ static int nlocks;
 static ENGINE *e;
 #endif
 
+static isc_mem_t *openssl__memory_pool = NULL;
 
 static int
 entropy_get(unsigned char *buf, int num) {
@@ -102,22 +103,22 @@ id_callback(void) {
 
 static void *
 mem_alloc(size_t size) {
-	INSIST(dst__memory_pool != NULL);
-	return (isc_mem_allocate(dst__memory_pool, size));
+	INSIST(openssl__memory_pool != NULL);
+	return (isc_mem_allocate(openssl__memory_pool, size));
 }
 
 static void
 mem_free(void *ptr) {
-	INSIST(dst__memory_pool != NULL);
+	INSIST(openssl__memory_pool != NULL);
 	if (ptr != NULL)
-		isc_mem_free(dst__memory_pool, ptr);
+		isc_mem_free(openssl__memory_pool, ptr);
 }
 
 static void *
 mem_realloc(void *ptr, size_t size) {
 	void *p;
 
-	INSIST(dst__memory_pool != NULL);
+	INSIST(openssl__memory_pool != NULL);
 	p = NULL;
 	if (size > 0) {
 		p = mem_alloc(size);
@@ -130,8 +131,13 @@ mem_realloc(void *ptr, size_t size) {
 }
 
 isc_result_t
-dst__openssl_init() {
+dst__openssl_init(void) {
 	isc_result_t result;
+
+        result = isc_mem_create(0, 0, &openssl__memory_pool);
+        if (result != ISC_R_SUCCESS)
+                return (result);
+        isc_mem_setdestroycheck(openssl__memory_pool, ISC_FALSE);
 
 	CRYPTO_set_mem_functions(mem_alloc, mem_realloc, mem_free);
 	nlocks = CRYPTO_num_locks();
@@ -179,7 +185,7 @@ dst__openssl_init() {
 }
 
 void
-dst__openssl_destroy() {
+dst__openssl_destroy(void) {
 	ERR_clear_error();
 #ifdef USE_ENGINE
 	if (e != NULL)
@@ -191,6 +197,8 @@ dst__openssl_destroy() {
 	}
 	if (rm != NULL)
 		mem_free(rm);
+	if (openssl__memory_pool != NULL)
+		isc_mem_detach(&openssl__memory_pool);
 }
 
 isc_result_t
@@ -212,7 +220,23 @@ dst__openssl_toresult(isc_result_t fallback) {
 #else /* OPENSSL */
 
 #include <isc/util.h>
+#include "dst_internal.h"
+#include "dst_openssl.h"
 
-EMPTY_TRANSLATION_UNIT
+isc_result_t
+dst__openssl_init(void) {
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+void
+dst__openssl_destroy(void) {
+	/* empty */
+}
+
+isc_result_t
+dst__openssl_toresult(isc_result_t fallback) {
+	UNUSED(fallback);
+	return (ISC_R_NOTIMPLEMENTED);
+}
 
 #endif /* OPENSSL */

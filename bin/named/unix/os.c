@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.60 2002/07/10 01:13:42 marka Exp $ */
+/* $Id: os.c,v 1.61 2002/12/13 02:37:33 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -357,6 +357,10 @@ void
 ns_os_chroot(const char *root) {
 	char strbuf[ISC_STRERRORSIZE];
 	if (root != NULL) {
+		isc_uint32_t dummy;
+
+		isc_random_get(&dummy);
+
 		if (chroot(root) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			ns_main_earlyfatal("chroot(): %s", strbuf);

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.48 2002/03/19 04:30:55 marka Exp $
+ * $Id: openssldh_link.c,v 1.49 2002/12/13 02:37:35 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -602,8 +602,17 @@ dst__openssldh_init(dst_func_t **funcp) {
 
 #else /* OPENSSL */
 
+#include <config.h>
 #include <isc/util.h>
+#include <stdlib.h>		/* NULL */
+#include "dst_internal.h"
 
-EMPTY_TRANSLATION_UNIT
+isc_result_t
+dst__openssldh_init(dst_func_t **funcp) {
+	REQUIRE(funcp != NULL);
+	UNUSED(funcp);
+	
+	return (ISC_R_NOTIMPLEMENTED);
+}
 
 #endif /* OPENSSL */

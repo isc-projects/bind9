@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.104 2002/11/12 22:22:32 explorer Exp $
+ * $Id: dst_api.c,v 1.105 2002/12/13 02:37:34 marka Exp $
  */
 
 #include <config.h>
@@ -103,6 +103,14 @@ static isc_result_t	addsuffix(char *filename, unsigned int len,
 			goto out;		\
 	} while (0)
 
+#define RETERR2(x) 				\
+	do {					\
+		result = (x);			\
+		if (result != ISC_R_SUCCESS &&	\
+		    result != ISC_R_NOTIMPLEMENTED)	\
+			goto out;		\
+	} while (0)
+
 #define CHECKALG(alg)				\
 	do {					\
 		isc_result_t _r;		\
@@ -119,22 +127,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	REQUIRE(dst_initialized == ISC_FALSE);
 
 	dst__memory_pool = NULL;
-
-#ifdef OPENSSL
-	UNUSED(mctx);
-	/*
-	 * When using --with-openssl, there seems to be no good way of not
-	 * leaking memory due to the openssl error handling mechanism.
-	 * Avoid assertions by using a local memory context and not checking
-	 * for leaks on exit.
-	 */
-	result = isc_mem_create(0, 0, &dst__memory_pool);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
-#else
 	isc_mem_attach(mctx, &dst__memory_pool);
-#endif
 	isc_entropy_attach(ectx, &dst_entropy_pool);
 	dst_entropy_flags = eflags;
 
@@ -142,16 +135,12 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
-#ifdef OPENSSL
-	RETERR(dst__openssl_init());
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
-	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
-	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
-#endif
-#ifdef GSSAPI
-	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
-#endif
+	RETERR2(dst__openssl_init());
+	RETERR2(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
+	RETERR2(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1]));
+	RETERR2(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
+	RETERR2(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
+	RETERR2(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 	dst_initialized = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 
@@ -169,14 +158,11 @@ dst_lib_destroy(void) {
 	for (i = 0; i < DST_MAX_ALGS; i++)
 		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
 			dst_t_func[i]->cleanup();
-#ifdef OPENSSL
 	dst__openssl_destroy();
-#endif
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
 	if (dst_entropy_pool != NULL)
 		isc_entropy_detach(&dst_entropy_pool);
-
 }
 
 isc_boolean_t
