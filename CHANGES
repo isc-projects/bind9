@@ -20,6 +20,9 @@
 
 1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
 
+1369.	[bug]		Adding an NS record as the lexicographically last
+			record in a secure zone didn't work.
+
 1366.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
 
 1333.	[contrib]	queryperf now reports a summary of returned
