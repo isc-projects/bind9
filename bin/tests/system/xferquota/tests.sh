@@ -30,7 +30,7 @@ count=0
 ticks=0
 while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
-	        echo "Changing test zone..."
+	        echo "I: Changing test zone..."
 		cp ns1/changing2.db ns1/changing.db
 		kill -HUP `cat ns1/named.pid`
 	fi
@@ -47,12 +47,12 @@ done
 
 status=0;
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000099.example. @10.53.0.1 axfr > dig.out.ns1
+	zone000099.example. @10.53.0.1 axfr -p 5300 > dig.out.ns1
 status=`expr $status + $?`
 grep ";" dig.out.ns1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	zone000099.example. @10.53.0.2 axfr > dig.out.ns2
+	zone000099.example. @10.53.0.2 axfr -p 5300 > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
@@ -62,12 +62,12 @@ status=`expr $status + $?`
 sleep 5
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	a.changing. @10.53.0.1 a > dig.out.ns1
+	a.changing. @10.53.0.1 a -p 5300 > dig.out.ns1
 status=`expr $status + $?`
 grep ";" dig.out.ns1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	a.changing. @10.53.0.2 a > dig.out.ns2
+	a.changing. @10.53.0.2 a -p 5300 > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 

@@ -37,7 +37,7 @@ LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS = db dst master mem names rbt sockaddr tasks timers
+SUBDIRS = db dst master mem names rbt sockaddr tasks timers system
 
 # Alphabetically
 TARGETS =	

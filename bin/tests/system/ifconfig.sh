@@ -19,6 +19,12 @@
 # Set up interface aliases for bind9 system tests.
 #
 
+whoami=`whoami`
+if [ $whoami != "root" ]; then
+	echo "Ifconfig setup must be run as root."
+	exit
+fi
+
 sys=`../../../config.guess`
 
 case "$1" in
@@ -55,6 +61,7 @@ case "$1" in
 			echo "Don't know how to set up interface.  Giving up."
 			exit 1
 		esac
+		touch /var/run/system_test_ifsetup
 	done
 	;;
 
@@ -90,6 +97,7 @@ case "$1" in
 			echo "Don't know how to destroy interface.  Giving up."
 			exit 1
 		esac
+		rm -f /var/run/system_test_ifsetup
 	done
 	;;
 

@@ -28,12 +28,12 @@ SYSTEMTESTTOP=..
 
 status=0;
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	a.example. @10.53.0.2 any > dig.out.ns2.1
+	a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.1
 status=`expr $status + $?`
 grep ";" dig.out.ns2.1
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	a.example. @10.53.0.3 any > dig.out.ns3.1
+	a.example. @10.53.0.3 any -p 5300 > dig.out.ns3.1
 status=`expr $status + $?`
 grep ";" dig.out.ns3.1
 
@@ -46,17 +46,17 @@ kill -HUP `cat ns3/named.pid`
 sleep 10
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	-b 10.53.0.4 a.example. @10.53.0.4 any > dig.out.ns4.2
+	-b 10.53.0.4 a.example. @10.53.0.4 any -p 5300 > dig.out.ns4.2
 status=`expr $status + $?`
 grep ";" dig.out.ns4.2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	-b 10.53.0.2 a.example. @10.53.0.2 any > dig.out.ns2.2
+	-b 10.53.0.2 a.example. @10.53.0.2 any -p 5300 > dig.out.ns2.2
 status=`expr $status + $?`
 grep ";" dig.out.ns2.2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
-	@10.53.0.3 a.example. any > dig.out.ns3.2
+	@10.53.0.3 a.example. any -p 5300 > dig.out.ns3.2
 status=`expr $status + $?`
 grep ";" dig.out.ns3.2
 

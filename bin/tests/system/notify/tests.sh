@@ -28,12 +28,12 @@ SYSTEMTESTTOP=..
 
 status=0
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.2 a > dig.out.ns2
+	@10.53.0.2 a -p 5300 > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.3 a > dig.out.ns3
+	@10.53.0.3 a -p 5300 > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
@@ -47,12 +47,12 @@ kill -HUP `cat ns2/named.pid`
 sleep 6
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.2 a > dig.out.ns2
+	@10.53.0.2 a -p 5300 > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.3 a > dig.out.ns3
+	@10.53.0.3 a -p 5300 > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
@@ -68,12 +68,12 @@ kill -HUP `cat ns2/named.pid`
 sleep 6
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.2 a > dig.out.ns2
+	@10.53.0.2 a -p 5300 > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.3 a > dig.out.ns3
+	@10.53.0.3 a -p 5300 > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
@@ -88,12 +88,12 @@ sleep 6
 sleep 6
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.2 a > dig.out.ns2
+	@10.53.0.2 a -p 5300 > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
-	@10.53.0.3 a > dig.out.ns3
+	@10.53.0.3 a -p 5300 > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 

@@ -22,20 +22,15 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-whoami=`whoami`
-if [ $whoami != "root" ]; then
-	echo "I:System tests must be run as root."
-	exit
-fi
-
-sh ifconfig.sh start || exit $?
-
 test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
 
 test=$1
 shift
 
 test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
+
+test -f /var/run/system_test_ifsetup || { echo "Interfaces not set up." >&2 \
+    ; exit 1; }
 
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
@@ -58,7 +53,5 @@ sh stop.sh $test
 
 # Cleanup
 ( cd $test ; sh clean.sh )
-
-sh ifconfig.sh stop
 
 exit $status

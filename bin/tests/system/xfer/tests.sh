@@ -1,4 +1,4 @@
-#!/bin/sh
+more#!/bin/sh
 #
 # Copyright (C) 2000  Internet Software Consortium.
 # 
@@ -28,12 +28,12 @@ echo "A:A test to determine online functionality of zone transfers"
 
 status=0;
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
-	@10.53.0.2 axfr > dig.out.ns2
+	@10.53.0.2 axfr -p 5300 > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
-	@10.53.0.3 axfr > dig.out.ns3
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
@@ -41,6 +41,22 @@ perl ../digcomp.pl knowngood.dig.out dig.out.ns2
 status=`expr $status + $?`
 
 perl ../digcomp.pl knowngood.dig.out dig.out.ns3
+status=`expr $status + $?`
+
+status=0;
+../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+	tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
+	> dig.out.ns2
+status=`expr $status + $?`
+grep ";" dig.out.ns2
+
+../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+	tsigzone. @10.53.0.3 axfr -y tsigzone.:1234abcd8765 -p 5300 \
+	> dig.out.ns3
+status=`expr $status + $?`
+grep ";" dig.out.ns3
+
+perl ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then
