@@ -51,6 +51,7 @@ struct ns_client {
 	ns_clienttype_t			type;
 	ns_clientstate_t		state;
 	unsigned int			attributes;
+	unsigned int			waiting;
 	isc_task_t *			task;
 	dns_view_t *			view;
 	dns_dispatch_t *		dispatch;
@@ -64,6 +65,7 @@ struct ns_client {
 	unsigned int			nsends;
 	isc_mempool_t *			sendbufs;
 	dns_rdataset_t *		opt;
+	isc_uint16_t			udpsize;
 	void				(*next)(ns_client_t *, isc_result_t);
 	ns_query_t			query;
 	isc_stdtime_t			requesttime;

@@ -195,6 +195,7 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 		dns_view_detach(&client->view);
 	if (client->opt != NULL)
 		client->opt = NULL;
+	client->udpsize = 512;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 	if (client->dispevent != NULL) {
 		dns_dispatch_freeevent(client->dispatch, client->dispentry,
@@ -289,12 +290,10 @@ ns_client_send(ns_client_t *client) {
 		isc_buffer_init(&buffer, data + 2, SEND_BUFFER_SIZE - 2,
 				ISC_BUFFERTYPE_BINARY);
 	} else {
-		if (client->opt != NULL) {
-			if (client->opt->rdclass < SEND_BUFFER_SIZE)
-				bufsize = client->opt->rdclass;
-			else
-				bufsize = SEND_BUFFER_SIZE;
-		}
+		if (client->udpsize < SEND_BUFFER_SIZE)
+			bufsize = client->udpsize;
+		else
+			bufsize = SEND_BUFFER_SIZE;
 		isc_buffer_init(&buffer, data, bufsize, ISC_BUFFERTYPE_BINARY);
 	}
 
@@ -378,6 +377,10 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	 * calling dns_message_reply() to avoid triggering an assertion.
 	 */
 	message->flags &= ~DNS_MESSAGEFLAG_QR;
+	/*
+	 * AA and AD shouldn't be set.
+	 */
+	message->flags &= ~(DNS_MESSAGEFLAG_AA | DNS_MESSAGEFLAG_AD);
 	result = dns_message_reply(message, ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
 		/*
@@ -506,6 +509,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	opt = dns_message_getopt(client->message);
 	if (opt != NULL) {
 		unsigned int version;
+
+		/*
+		 * Set the client's UDP buffer size.
+		 */
+		client->udpsize = opt->rdclass;
 
 		/*
 		 * Create an OPT for our reply.
@@ -653,6 +661,7 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->type = type;
 	client->state = ns_clientstate_idle;
 	client->attributes = 0;
+	client->waiting = 0;
 	client->view = NULL;
 	client->dispatch = NULL;
 	client->dispentry = NULL;
@@ -661,6 +670,7 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->tcpsocket = NULL;
 	client->nsends = 0;
 	client->opt = NULL;
+	client->udpsize = 512;
 	client->next = NULL;
 	ISC_LINK_INIT(client, link);
 
