@@ -35,6 +35,7 @@
 #include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/lang.h>
+#include <isc/sockaddr.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -61,13 +62,15 @@ ISC_LANG_BEGINDECLS
  */
 typedef struct dns_dispatchevent dns_dispatchevent_t;
 struct dns_dispatchevent_t {
-	ISC_EVENT_COMMON(dns_sockevent_t);	/* standard event common */
+	ISC_EVENT_COMMON(dns_dispatchevent_t);	/* standard event common */
 	dns_result_t		result;		/* result code */
 	isc_int16_t		id;		/* message id */
 	isc_sockaddr_t		addr;		/* address recv'd from */
-	unsigned int		attributes;	/* some private, some public */
+	unsigned int		lattributes;	/* some private, some public */
 	isc_buffer_t	        buffer;		/* data buffer */
 };
+
+typedef struct dns_dispatch dns_dispatch_t;
 
 /*
  * Private attributes of events
