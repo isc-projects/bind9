@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.95 2001/02/16 21:29:45 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.96 2001/02/17 00:23:49 gson Exp $ */
 
 #include <config.h>
 
@@ -708,7 +708,6 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 static void
 tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatch_t *disp = ev_in->ev_arg;
-	dns_dispatchmgr_t *mgr;
 	dns_tcpmsg_t *tcpmsg = &disp->tcpmsg;
 	dns_messageid_t id;
 	isc_result_t dres;
@@ -724,7 +723,6 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	REQUIRE(VALID_DISPATCH(disp));
 
-	mgr = disp->mgr;
 	qid = disp->qid;
 
 	dispatch_log(disp, LVL(90),
