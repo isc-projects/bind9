@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.51 2000/08/22 05:14:56 marka Exp $ */
+/* $Id: confctx.h,v 1.52 2000/08/22 17:36:29 gson Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -204,7 +204,7 @@ struct dns_c_options {
 
 #ifndef NOMINUM_PUBLIC
 	dns_c_ipmatchlist_t    *notifyacl;
-#endif
+#endif /* NOMINUM_PUBLIC */
 	dns_c_ipmatchlist_t    *queryacl;
 	dns_c_ipmatchlist_t    *transferacl;
 	dns_c_ipmatchlist_t    *recursionacl;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.84 2000/08/22 05:14:50 marka Exp $ */
+/* $Id: confctx.c,v 1.85 2000/08/22 17:36:31 gson Exp $ */
 
 #include <config.h>
 
@@ -1660,7 +1660,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 
 #ifndef NOMINUM_PUBLIC
 	opts->notifyacl = NULL;
-#endif
+#endif /* NOMINUM_PUBLIC */
 	opts->queryacl = NULL;
 	opts->transferacl = NULL;
 	opts->recursionacl = NULL;

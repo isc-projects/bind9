@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.193 2000/08/22 05:14:47 marka Exp $ */
+/* $Id: zone.c,v 1.194 2000/08/22 17:36:26 gson Exp $ */
 
 #include <config.h>
 
@@ -3529,7 +3529,7 @@ dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl) {
 	dns_acl_attach(acl, &zone->notify_acl);
 	UNLOCK(&zone->lock);
 }
-#endif
+#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.72 2000/08/22 05:14:59 marka Exp $ */
+/* $Id: zone.h,v 1.73 2000/08/22 17:36:28 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -559,7 +559,7 @@ dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl);
  *	'zone' to be a valid zone.
  *	'acl' to be a valid acl.
  */
-#endif
+#endif /* NOMINUM_PUBLIC */
 void
 dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
