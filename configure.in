@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.65 $)
+AC_REVISION($Revision: 1.66 $)
 
 AC_PREREQ(2.13)
 
@@ -52,7 +52,22 @@ if test "X$CC" = "X" ; then
 			CC="cc"
 			;;
 		*-sun-solaris*)
-			CC="cc"
+			IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=":"
+			for ac_dir in $PATH; do
+				test -z "$ac_dir" && ac_dir=.
+				case "$ac_dir" in
+				/usr/ucb)
+					# exclude
+					;;
+				*)
+					if test -f "$ac_dir/cc"; then
+						CC="$ac_dir/cc"
+						break
+					fi
+					;;
+				esac
+			done
+			IFS="$ac_save_ifs"
 			;;
 		*-hp-hpux*)
 			CC="cc"
@@ -411,12 +426,15 @@ BIND9_TOP_BUILDDIR=`pwd`
 
 AC_SUBST(BIND9_ISC_BUILDINCLUDE)
 AC_SUBST(BIND9_DNS_BUILDINCLUDE)
+AC_SUBST(BIND9_OMAPI_BUILDINCLUDE)
 if test "X$srcdir" != "X"; then
 	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
 	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
+	BIND9_OMAPI_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/omapi/include"
 else
 	BIND9_ISC_BUILDINCLUDE=""
 	BIND9_DNS_BUILDINCLUDE=""
+	BIND9_OMAPI_BUILDINCLUDE=""
 fi
 
 AC_SUBST_FILE(BIND9_INCLUDES)
