@@ -23,6 +23,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/assertions.h>
+#include <isc/error.h>
+#include <isc/mem.h>
+#include <isc/netaddr.h>
+
 #include <lwres/context.h>
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
@@ -155,8 +160,7 @@ test_gabn(void)
 	unsigned int i;
 
 	res = NULL;
-	ret = lwres_getaddrsbyname(ctx,
-				   "alias-04.test.flame.org.",
+	ret = lwres_getaddrsbyname(ctx, "alias-05.test.flame.org.",
 				   LWRES_ADDRTYPE_V4 | LWRES_ADDRTYPE_V6,
 				   &res);
 	printf("ret == %d\n", ret);
@@ -177,22 +181,73 @@ test_gabn(void)
 	lwres_gabnresponse_free(ctx, &res);
 }
 
+static void
+test_gnba(void)
+{
+	lwres_gnbaresponse_t *res;
+	int ret;
+	unsigned int i;
+	struct in_addr in;
+
+	in.s_addr = inet_addr("198.133.199.1");
+
+	res = NULL;
+	ret = lwres_getnamebyaddr(ctx, LWRES_ADDRTYPE_V4, 4,
+				  (unsigned char *)&in.s_addr, &res);
+	printf("ret == %d\n", ret);
+	assert(ret == 0);
+	assert(res != NULL);
+
+	printf("Returned real name: (%u, %s)\n",
+	       res->realnamelen, res->realname);
+	printf("%u aliases:\n", res->naliases);
+	for (i = 0 ; i < res->naliases ; i++)
+		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
+
+	lwres_gnbaresponse_free(ctx, &res);
+}
+
+/*
+ * Wrappers around our memory management stuff, for the lwres functions.
+ */
+static void *
+mem_alloc(void *arg, size_t size)
+{
+	return (isc_mem_get(arg, size));
+}
+
+static void
+mem_free(void *arg, void *mem, size_t size)
+{
+	isc_mem_put(arg, mem, size);
+}
+
 int
 main(int argc, char *argv[])
 {
 	int ret;
+	isc_mem_t *mem;
+	isc_result_t result;
 
 	(void)argc;
 	(void)argv;
 
+	mem = NULL;
+	result = isc_mem_create(0, 0, &mem);
+	INSIST(result == ISC_R_SUCCESS);
+
 	ctx = NULL;
-	ret = lwres_context_create(&ctx, NULL, NULL, NULL);
+	ret = lwres_context_create(&ctx, mem, mem_alloc, mem_free);
 	CHECK(ret, "lwres_context_create");
 
 	test_noop();
 	test_gabn();
+	test_gnba();
 
 	lwres_context_destroy(&ctx);
+
+	isc_mem_stats(mem, stdout);
+	isc_mem_destroy(&mem);
 
 	return (0);
 }

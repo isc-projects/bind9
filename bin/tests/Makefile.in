@@ -253,9 +253,9 @@ inter_test: inter_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ inter_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-lwres_test: lwres_test.@O@ ${LWRESDEPLIBS}
+lwres_test: lwres_test.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lwres_test.@O@ \
-		${LWRESLIBS} ${LIBS}
+		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
 gxbn_test: gxbn_test.@O@ ${LWRESDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ gxbn_test.@O@ \
