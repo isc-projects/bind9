@@ -2448,9 +2448,11 @@ ns_query_start(ns_client_t *client) {
 	dns_message_t *message = client->message;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t set_ra = ISC_TRUE;
+#if 0
 	isc_buffer_t b;
 	char text[1024];
 	isc_region_t r;
+#endif
 
 	/*
 	 * Ensure that appropriate cleanups occur.
