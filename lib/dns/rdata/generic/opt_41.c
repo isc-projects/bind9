@@ -15,7 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: opt_41.c,v 1.4 2000/02/03 23:43:05 halley Exp $ */
+/* $Id: opt_41.c,v 1.5 2000/03/16 22:42:10 gson Exp $ */
+
+/* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
+
+/* RFC 2671 */
 
 #ifndef RDATA_GENERIC_OPT_41_C
 #define RDATA_GENERIC_OPT_41_C
@@ -31,11 +35,11 @@ fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 41);
 
-	(void)rdclass;
-	(void)lexer;
-	(void)origin;
-	(void)downcase;
-	(void)target;
+	UNUSED(rdclass);
+	UNUSED(lexer);
+	UNUSED(origin);
+	UNUSED(downcase);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -50,8 +54,8 @@ totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	REQUIRE(rdata->type == 41);
 
-	(void)tctx;
-	(void)target;
+	UNUSED(tctx);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -68,9 +72,9 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 41);
 
-	(void)rdclass;
-	(void)dctx;
-	(void)downcase;
+	UNUSED(rdclass);
+	UNUSED(dctx);
+	UNUSED(downcase);
 
 	isc_buffer_active(source, &sregion);
 	total = 0;
@@ -78,8 +82,9 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		if (sregion.length < 4)
 			return (DNS_R_UNEXPECTEDEND);
 		option = uint16_fromregion(&sregion);
+		isc_region_consume(&sregion, 2);
 		length = uint16_fromregion(&sregion);
-		isc_region_consume(&sregion, 4);
+		isc_region_consume(&sregion, 2);
 		total += 4;
 		if (sregion.length < length)
 			return (DNS_R_UNEXPECTEDEND);
@@ -103,7 +108,7 @@ towire_opt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 41);
 
-	(void)cctx;
+	UNUSED(cctx);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -128,9 +133,9 @@ fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 {
 	REQUIRE(type == 41);
 
-	(void)rdclass;
-	(void)source;
-	(void)target;
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -140,15 +145,15 @@ tostruct_opt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 41);
 
-	(void)target;
-	(void)mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
 freestruct_opt(void *source) {
-	(void)source;
+	UNUSED(source);
 }
 
 static inline isc_result_t
@@ -157,8 +162,8 @@ additionaldata_opt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 41);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }
@@ -172,8 +177,8 @@ digest_opt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	REQUIRE(rdata->type == 41);
 
-	(void)digest;
-	(void)arg;
+	UNUSED(digest);
+	UNUSED(arg);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
