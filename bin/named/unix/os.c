@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.22 2000/07/03 20:00:44 bwelling Exp $ */
+/* $Id: os.c,v 1.23 2000/07/05 22:03:42 gson Exp $ */
 
 #include <config.h>
 
@@ -43,6 +43,7 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
 static isc_boolean_t non_root = ISC_FALSE;
 #endif
 
+static isc_boolean_t runas_uid_set = ISC_FALSE;
 static uid_t runas_uid = 0;
 
 #ifdef HAVE_LINUX_CAPABILITY_H
@@ -268,15 +269,6 @@ ns_os_inituserinfo(const char *username) {
 	if (username == NULL || getuid() != 0)
 		return;
 
-#ifdef HAVE_LINUXTHREADS
-#if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
-	linux_keepcaps();
-#endif
-	if (!non_root_caps)
-		ns_main_earlyfatal(
-		   "-u not supported on Linux kernels older than 2.3.99-pre3");
-#endif	
-
 	if (all_digits(username))
 		pw = getpwuid((uid_t)atoi(username));
 	else
@@ -293,11 +285,21 @@ ns_os_inituserinfo(const char *username) {
 		ns_main_earlyfatal("setgid(): %s", strerror(errno));
 
 	runas_uid = pw->pw_uid;
+	runas_uid_set = ISC_TRUE;
 }
 
 void
 ns_os_changeuser(void) {
-	if (runas_uid != 0 && setuid(runas_uid) < 0)
+	if (!runas_uid_set)
+		return;
+
+#ifdef HAVE_LINUXTHREADS
+	if (!non_root_caps)
+		ns_main_earlyfatal(
+		   "-u not supported on Linux kernels older than 2.3.99-pre3");
+#endif	
+
+	if (setuid(runas_uid) < 0)
 		ns_main_earlyfatal("setuid(): %s", strerror(errno));
 }
 
@@ -305,6 +307,7 @@ void
 ns_os_minprivs(void) {
 #ifdef HAVE_LINUX_CAPABILITY_H
 #if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
+	linux_keepcaps();
 	ns_os_changeuser();
 #endif
 
