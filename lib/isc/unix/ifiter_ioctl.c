@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.39 2003/05/11 02:24:11 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.40 2003/10/03 06:12:34 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -416,7 +416,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 		return (ISC_R_FAILURE);
 	if (strlen(address) != 32)
 		return (ISC_R_FAILURE);
-	for (i = 0; i < 16 ; i++) {
+	for (i = 0; i < 16; i++) {
 		unsigned char byte;
 		static const char hex[] = "0123456789abcdef";
 		byte = ((index(hex, address[i * 2]) - hex) << 4) |
@@ -430,7 +430,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 		isc_netaddr_setzone(&iter->current.address,
 				    (isc_uint32_t)ifindex);
 	}
-	for (i = 0; i < 16 ; i++) {
+	for (i = 0; i < 16; i++) {
 		if (prefix > 8) {
 			addr6.s6_addr[i] = 0xff;
 			prefix -= 8;

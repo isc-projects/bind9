@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.12 2002/02/20 03:35:22 marka Exp $ */
+/* $Id: hex.c,v 1.13 2003/10/03 06:12:33 marka Exp $ */
 
 #include <config.h>
 
@@ -144,7 +144,7 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		if (token.type != isc_tokentype_string)
 			break;
 		tr = &token.value.as_textregion;
-		for (i = 0;i < tr->length; i++)
+		for (i = 0; i < tr->length; i++)
 			RETERR(hex_decode_char(&ctx, tr->base[i]));
 	}
 	if (ctx.length < 0)
