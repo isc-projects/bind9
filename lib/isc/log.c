@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.25 2000/04/06 20:32:31 tale Exp $ */
+/* $Id: log.c,v 1.26 2000/04/11 18:22:34 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -875,7 +875,7 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	 * logging config, so isc_log_doit() can quickly return if the
 	 * message is too high to be logged by any channel.
 	 */
-	if (channel->type != NULL) {
+	if (channel->type != ISC_LOG_TONULL) {
 		if (lcfg->highest_level < channel->level)
 			lcfg->highest_level = channel->level;
 		if (channel->level == ISC_LOG_DYNAMIC)
