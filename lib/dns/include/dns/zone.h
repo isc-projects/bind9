@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126.18.4 2005/01/11 01:39:40 marka Exp $ */
+/* $Id: zone.h,v 1.126.18.5 2005/01/11 23:10:40 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1444,6 +1444,24 @@ dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache);
  *
  * Ensures:
  *	'zone' will have a reference to 'acache'
+ */
+
+void
+dns_zone_setnotifydelay(dns_zone_t *zone, isc_uint32_t delay);
+/*
+ * Set the minimum delay between sets of notify messages.
+ *
+ * Requires:
+ *	'zone' to be valid.
+ */
+
+isc_uint32_t
+dns_zone_getnotifydelay(dns_zone_t *zone);
+/*
+ * Get the minimum delay between sets of notify messages.
+ *
+ * Requires:
+ *	'zone' to be valid.
  */
 
 ISC_LANG_ENDDECLS

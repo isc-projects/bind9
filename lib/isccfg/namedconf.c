@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.14 2005/01/11 01:39:40 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.15 2005/01/11 23:10:40 marka Exp $ */
 
 #include <config.h>
 
@@ -765,6 +765,7 @@ zone_clauses[] = {
 	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "also-notify", &cfg_type_portiplist, 0 },
+	{ "notify-delay", &cfg_type_uint32, 0 },
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
