@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.26 2000/05/04 22:19:18 gson Exp $ */
+/* $Id: ns_2.c,v 1.27 2000/05/05 05:49:58 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -141,7 +141,6 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 	dns_rdata_ns_t *ns = target;
 	dns_name_t name;
-	isc_result_t result;
 
 	REQUIRE(rdata->type == 2);
 	REQUIRE(target != NULL);
@@ -154,13 +153,10 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
-	ns->mctx = mctx;
 	dns_name_init(&ns->name, NULL);
-	result = dns_name_dup(&name, ns->mctx, &ns->name);
-	if (result != ISC_R_SUCCESS)
-		ns->mctx = NULL;
-
-	return (result);
+	RETERR(name_duporclone(&name, ns->mctx, &ns->name));
+	ns->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -168,6 +164,9 @@ freestruct_ns(void *source) {
 	dns_rdata_ns_t *ns = source;
 
 	REQUIRE(source != NULL);
+
+	if (ns->mctx == NULL)
+		return;
 
 	dns_name_free(&ns->name, ns->mctx);
 	ns->mctx = NULL;

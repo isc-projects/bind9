@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.24 2000/05/04 22:19:06 gson Exp $ */
+/* $Id: afsdb_18.c,v 1.25 2000/05/05 05:49:39 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -178,14 +178,30 @@ fromstruct_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	isc_region_t region;
+	dns_rdata_afsdb_t *afsdb = target;
+	dns_name_t name;
+
 	REQUIRE(rdata->type == 18);
 	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	afsdb->common.rdclass = rdata->rdclass;
+	afsdb->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&afsdb->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&afsdb->server, NULL);
+
+	dns_rdata_toregion(rdata, &region);
+
+	afsdb->subtype = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &region);
+
+	RETERR(name_duporclone(&name, mctx, &afsdb->server));
+	afsdb->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -195,10 +211,12 @@ freestruct_afsdb(void *source)
 
 	REQUIRE(source != NULL);
 	REQUIRE(afsdb->common.rdtype == 18);
-	REQUIRE(ISC_FALSE);
 
-	UNUSED(source);
-	UNUSED(afsdb);
+	if (afsdb->mctx == NULL)
+		return;
+
+	dns_name_free(&afsdb->server, afsdb->mctx);
+	afsdb->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.22 2000/05/04 22:19:23 gson Exp $ */
+/* $Id: rp_17.c,v 1.23 2000/05/05 05:50:04 marka Exp $ */
 
 /* RFC 1183 */
 
@@ -185,22 +185,53 @@ fromstruct_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	isc_result_t result;
+	isc_region_t region;
+	dns_rdata_rp_t *rp = target;
+	dns_name_t name;
+
 	REQUIRE(rdata->type == 17);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	rp->common.rdclass = rdata->rdclass;
+	rp->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&rp->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&rp->mail, NULL);
+	RETERR(name_duporclone(&name, mctx, &rp->mail));
+	isc_region_consume(&region, name_length(&name));
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&rp->text, NULL);
+	result = name_duporclone(&name, mctx, &rp->text);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	rp->mctx = mctx;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL)
+		dns_name_free(&rp->mail, mctx);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
 freestruct_rp(void *source)
 {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_rp_t *rp = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(rp->common.rdtype == 17);
+
+	if (rp->mctx == NULL)
+		return;
+
+	dns_name_free(&rp->mail, rp->mctx);
+	dns_name_free(&rp->text, rp->mctx);
+	rp->mctx = NULL;
 }
 
 static inline isc_result_t

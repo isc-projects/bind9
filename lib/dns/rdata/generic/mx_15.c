@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.31 2000/05/04 22:19:17 gson Exp $ */
+/* $Id: mx_15.c,v 1.32 2000/05/05 05:49:57 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -169,22 +169,41 @@ fromstruct_mx(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_mx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	isc_region_t region;
+	dns_rdata_mx_t *mx = target;
+	dns_name_t name;
+
 	REQUIRE(rdata->type == 15);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	mx->common.rdclass = rdata->rdclass;
+	mx->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&mx->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	mx->pref = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&mx->mx, NULL);
+	RETERR(name_duporclone(&name, mctx, &mx->mx));
+	mx->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_mx(void *source)
 {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_mx_t *mx = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(mx->common.rdtype = 15);
+
+	if (mx->mctx == NULL)
+		return;
+
+	dns_name_free(&mx->mx, mx->mctx);
+	mx->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.29 2000/05/04 22:19:27 gson Exp $ */
+/* $Id: tkey_249.c,v 1.30 2000/05/05 05:50:09 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -353,81 +353,76 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	dns_rdata_tkey_t *tkey;
+	dns_rdata_tkey_t *tkey = target;
 	dns_name_t alg;
 	isc_region_t sr;
 
-	UNUSED(target);
-	UNUSED(mctx);
-
 	REQUIRE(rdata->type == 249);
-
-	tkey = (dns_rdata_tkey_t *) target;
+	REQUIRE(target != NULL);
 
 	tkey->common.rdclass = rdata->rdclass;
 	tkey->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&tkey->common, link);
-	tkey->mctx = mctx;
+
 	dns_rdata_toregion(rdata, &sr);
 
 	/* Algorithm Name */
 	dns_name_init(&alg, NULL);
 	dns_name_fromregion(&alg, &sr);
 	dns_name_init(&tkey->algorithm, NULL);
-	RETERR(dns_name_dup(&alg, mctx, &tkey->algorithm));
+	RETERR(name_duporclone(&alg, mctx, &tkey->algorithm));
 	isc_region_consume(&sr, name_length(&tkey->algorithm));
 
 	/* Inception */
-	if (sr.length < 4)
-		return (ISC_R_UNEXPECTEDEND);
 	tkey->inception = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Expire */
-	if (sr.length < 4)
-		return (ISC_R_UNEXPECTEDEND);
 	tkey->expire = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Mode */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tkey->mode = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Error */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tkey->error = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Key size */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tkey->keylen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Key */
-	tkey->key = isc_mem_get(mctx, tkey->keylen);
-	if (tkey->key == NULL)
-		return (ISC_R_NOMEMORY);
-	memcpy(tkey->key, sr.base, tkey->keylen);
-	isc_region_consume(&sr, tkey->keylen);
+	if (tkey->keylen > 0) {
+		tkey->key = mem_maybedup(mctx, sr.base, tkey->keylen);
+		if (tkey->key == NULL)
+			goto cleanup;
+		isc_region_consume(&sr, tkey->keylen);
+	} else
+		tkey->key = NULL;
 
 	/* Other size */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	tkey->otherlen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Other */
-	tkey->other = isc_mem_get(mctx, tkey->otherlen);
-	if (tkey->other == NULL)
-		return (ISC_R_NOMEMORY);
-	memcpy(tkey->other, sr.base, tkey->otherlen);
-	isc_region_consume(&sr, tkey->otherlen);
+	if (tkey->otherlen > 0) {
+		tkey->other = mem_maybedup(mctx, sr.base, tkey->otherlen);
+		if (tkey->other == NULL)
+			goto cleanup;
+	} else
+		tkey->other = NULL;
 
+	tkey->mctx = mctx;
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL)
+		dns_name_free(&tkey->algorithm, mctx);
+	if (mctx != NULL && tkey->key != NULL)
+		isc_mem_free(mctx, tkey->key);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
@@ -436,11 +431,15 @@ freestruct_tkey(void *source) {
 
 	REQUIRE(source != NULL);
 
+	if (tkey->mctx == NULL)
+		return;
+
 	dns_name_free(&tkey->algorithm, tkey->mctx);
 	if (tkey->key != NULL)
-		isc_mem_put(tkey->mctx, tkey->key, tkey->keylen);
+		isc_mem_free(tkey->mctx, tkey->key);
 	if (tkey->other != NULL)
-		isc_mem_put(tkey->mctx, tkey->other, tkey->otherlen);
+		isc_mem_free(tkey->mctx, tkey->other);
+	tkey->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.27 2000/05/04 22:19:10 gson Exp $ */
+/* $Id: mb_7.c,v 1.28 2000/05/05 05:49:51 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -138,20 +138,37 @@ fromstruct_mb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_mb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	isc_region_t region;
+	dns_rdata_mb_t *mb = target;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == 7);
+	REQUIRE(target != NULL);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	mb->common.rdclass = rdata->rdclass;
+	mb->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&mb->common, link);
+
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&mb->mb, NULL);
+	RETERR(name_duporclone(&name, mctx, &mb->mb));
+	mb->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_mb(void *source) {
-	UNUSED(source);
+	dns_rdata_mb_t *mb = source;
+
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	if (mb->mctx == NULL)
+		return;
+	
+	dns_name_free(&mb->mb, mb->mctx);
+	mb->mctx = NULL;
 }
 
 static inline isc_result_t

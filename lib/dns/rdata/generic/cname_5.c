@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.28 2000/05/04 22:19:07 gson Exp $ */
+/* $Id: cname_5.c,v 1.29 2000/05/05 05:49:42 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -142,24 +142,38 @@ fromstruct_cname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_cname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	isc_region_t region;
+	dns_rdata_cname_t *cname = target;
+	dns_name_t name;
 	
 	REQUIRE(rdata->type == 5);
 	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	cname->common.rdclass = rdata->rdclass;
+	cname->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&cname->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&cname->cname, NULL);
+	RETERR(name_duporclone(&name, mctx, &cname->cname));
+	cname->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_cname(void *source)
 {
-	UNUSED(source);
+	dns_rdata_cname_t *cname = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);
+
+	if (cname->mctx == NULL)
+		return;
+
+	dns_name_free(&cname->cname, cname->mctx);
+	cname->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.17 2000/04/28 01:24:01 gson Exp $ */
+/* $Id: gpos_27.c,v 1.18 2000/05/05 05:49:44 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -132,23 +132,77 @@ fromstruct_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	dns_rdata_gpos_t *gpos = target;
+	isc_region_t region;
 
 	REQUIRE(rdata->type == 27);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	gpos->common.rdclass = rdata->rdclass;
+	gpos->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&gpos->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	gpos->long_len = uint8_fromregion(&region);
+	isc_region_consume(&region, 1);
+	if (gpos->long_len != 0) {
+		gpos->longitude = mem_maybedup(mctx, region.base,
+					       gpos->long_len);
+		if (gpos->longitude == NULL)
+			return (ISC_R_NOMEMORY);
+		isc_region_consume(&region, gpos->long_len);
+	} else
+		gpos->longitude = NULL;
+
+	gpos->lat_len = uint8_fromregion(&region);
+	isc_region_consume(&region, 1);
+	if (gpos->lat_len > 0) {
+		gpos->latitude = mem_maybedup(mctx, region.base, gpos->lat_len);
+		if (gpos->latitude == NULL)
+			goto cleanup_longitude;
+		isc_region_consume(&region, gpos->lat_len);
+	} else
+		gpos->latitude = NULL;
+
+	gpos->alt_len = uint8_fromregion(&region);
+	isc_region_consume(&region, 1);
+	if (gpos->lat_len > 0) {
+		gpos->altitude = mem_maybedup(mctx, region.base, gpos->alt_len);
+		if (gpos->altitude == NULL)
+			goto cleanup_latitude;
+	} else 
+		gpos->altitude = NULL;
+
+	gpos->mctx = mctx;
+	return (ISC_R_SUCCESS);
+
+ cleanup_latitude:
+	if (mctx != NULL && gpos->longitude != NULL)
+		isc_mem_free(mctx, gpos->longitude);
+
+ cleanup_longitude:
+	if (mctx != NULL && gpos->latitude != NULL)
+		isc_mem_free(mctx, gpos->latitude);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
 freestruct_gpos(void *source)
 {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/* XXX */
+	dns_rdata_gpos_t *gpos = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(gpos->common.rdtype == 27);
+
+	if (gpos->mctx == NULL)
+		return;
+
+	if (gpos->longitude != NULL)
+		isc_mem_free(gpos->mctx, gpos->longitude);
+	if (gpos->latitude != NULL)
+		isc_mem_free(gpos->mctx, gpos->latitude);
+	if (gpos->altitude != NULL)
+		isc_mem_free(gpos->mctx, gpos->altitude);
+	gpos->mctx = NULL;
 }
 
 static inline isc_result_t

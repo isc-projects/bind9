@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.24 2000/04/28 01:24:11 gson Exp $ */
+/* $Id: txt_16.c,v 1.25 2000/05/05 05:50:10 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -138,21 +138,43 @@ fromstruct_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_txt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_txt_t *txt = target;
+	isc_region_t r;
+
 	REQUIRE(rdata->type == 16);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	txt->common.rdclass = rdata->rdclass;
+	txt->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&txt->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &r);
+	txt->txt_len = r.length;
+	if (txt->txt_len != 0) {
+		txt->txt = mem_maybedup(mctx, r.base, r.length);
+		if (txt->txt == NULL)
+			return (ISC_R_NOMEMORY);
+	} else
+		txt->txt = NULL;
+
+	txt->offset = 0;
+	txt->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_txt(void *source) {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);
+	dns_rdata_txt_t *txt = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(txt->common.rdtype == 16);
+
+	if (txt->mctx == NULL)
+		return;
+
+	if (txt->txt != NULL)
+		isc_mem_free(txt->mctx, txt->txt);
+	txt->mctx = NULL;
 }
 
 static inline isc_result_t

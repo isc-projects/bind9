@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.26 2000/05/04 22:19:15 gson Exp $ */
+/* $Id: minfo_14.c,v 1.27 2000/05/05 05:49:55 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -189,23 +189,53 @@ fromstruct_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
-	
+	isc_region_t region;
+	isc_result_t result;
+	dns_rdata_minfo_t *minfo = target;
+	dns_name_t name;
+
 	REQUIRE(rdata->type == 14);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	minfo->common.rdclass = rdata->rdclass;
+	minfo->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&minfo->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&minfo->rmailbox, NULL);
+	RETERR(name_duporclone(&name, mctx, &minfo->rmailbox));
+	isc_region_consume(&region, name_length(&name));
+
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&minfo->emailbox, NULL);
+	result = name_duporclone(&name, mctx, &minfo->emailbox);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	minfo->mctx = mctx;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL)
+		dns_name_free(&minfo->rmailbox, mctx);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
 freestruct_minfo(void *source)
 {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_minfo_t *minfo = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(minfo->common.rdtype == 14);
+
+	if (minfo->mctx == NULL)
+		return;
+
+	dns_name_free(&minfo->rmailbox, minfo->mctx);
+	dns_name_free(&minfo->emailbox, minfo->mctx);
+	minfo->mctx = NULL;
 }
 
 static inline isc_result_t

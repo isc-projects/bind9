@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.10 2000/04/28 01:24:07 gson Exp $ */
+/* $Id: opt_41.c,v 1.11 2000/05/05 05:50:02 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -145,19 +145,43 @@ fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_opt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_opt_t *opt = target;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == 41);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	opt->common.rdclass = rdata->rdclass;
+	opt->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&opt->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &r);
+	opt->length = r.length;
+	if (opt->length != 0) {
+		opt->options = mem_maybedup(mctx, r.base, r.length);
+		if (opt->options == NULL)
+			return (ISC_R_NOMEMORY);
+	} else
+		opt->options = NULL;
+
+	opt->offset = 0;
+	opt->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_opt(void *source) {
-	UNUSED(source);
+	dns_rdata_opt_t *opt = source;
+
+	REQUIRE(source != NULL);
+	REQUIRE(opt->common.rdtype == 41);
+
+	if (opt->mctx == NULL)
+		return;
+
+	if (opt->options != NULL)
+		isc_mem_free(opt->mctx, opt->options);
+	opt->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.36 2000/05/04 22:19:25 gson Exp $ */
+/* $Id: sig_24.c,v 1.37 2000/05/05 05:50:06 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -352,57 +352,43 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t sr;
-	dns_rdata_sig_t *sig;
+	dns_rdata_sig_t *sig = target;
 	dns_name_t signer;
 
 	REQUIRE(rdata->type == 24);
+	REQUIRE(target != NULL);
 	
-	sig = (dns_rdata_sig_t *) target;
 	sig->common.rdclass = rdata->rdclass;
 	sig->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&sig->common, link);
-	sig->mctx = mctx;
+
 	dns_rdata_toregion(rdata, &sr);
 
 	/* Type covered */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	sig->covered = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
 	/* Algorithm */
-	if (sr.length < 1)
-		return (ISC_R_UNEXPECTEDEND);
 	sig->algorithm = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Labels */
-	if (sr.length < 1)
-		return (ISC_R_UNEXPECTEDEND);
 	sig->labels = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
 
 	/* Original TTL */
-	if (sr.length < 4)
-		return (ISC_R_UNEXPECTEDEND);
 	sig->originalttl = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Expire time */
-	if (sr.length < 4)
-		return (ISC_R_UNEXPECTEDEND);
 	sig->timeexpire = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Time signed */
-	if (sr.length < 4)
-		return (ISC_R_UNEXPECTEDEND);
 	sig->timesigned = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 
 	/* Key ID */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
 	sig->keyid = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
@@ -414,13 +400,21 @@ tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	/* Signature */
 	sig->siglen = sr.length;
-	sig->signature = isc_mem_get(mctx, sig->siglen);
-	if (sig->signature == NULL)
-		return (ISC_R_NOMEMORY);
-	memcpy(sig->signature, sr.base, sig->siglen);
-	isc_region_consume(&sr, sig->siglen);
+	if (sig->siglen > 0) {
+		sig->signature = mem_maybedup(mctx, sr.base, sig->siglen);
+		if (sig->signature == NULL)
+			goto cleanup;
+	} else
+		sig->signature = NULL;
 
+
+	sig->mctx = mctx;
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL)
+		dns_name_free(&sig->signer, mctx);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
@@ -430,9 +424,13 @@ freestruct_sig(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(sig->common.rdtype == 24);
 
+	if (sig->mctx == NULL)
+		return;
+
 	dns_name_free(&sig->signer, sig->mctx);
 	if (sig->signature != NULL)
-		isc_mem_put(sig->mctx, sig->signature, sig->siglen);
+		isc_mem_free(sig->mctx, sig->signature);
+	sig->mctx = NULL;
 }
 
 static inline isc_result_t

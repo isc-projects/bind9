@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.31 2000/05/04 22:19:19 gson Exp $ */
+/* $Id: nxt_30.c,v 1.32 2000/05/05 05:50:01 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -213,14 +213,27 @@ fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_nxt_t *nxt = target;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == 30);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	nxt->common.rdclass = rdata->rdclass;
+	nxt->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&nxt->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &r);
+	nxt->len = r.length;
+	if (nxt->len != 0) {
+		nxt->nxt = mem_maybedup(mctx, r.base, r.length);
+		if (nxt->nxt == NULL)
+			return (ISC_R_NOMEMORY);
+	} else
+		nxt->nxt = NULL;
+
+	nxt->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -229,9 +242,13 @@ freestruct_nxt(void *source) {
 
 	REQUIRE(source != NULL);
 	REQUIRE(nxt->common.rdtype == 30);
-	REQUIRE(ISC_FALSE);
 
-	UNUSED(nxt);
+	if (nxt->mctx == NULL)
+		return;
+
+	if (nxt->nxt != NULL)
+		isc_mem_free(nxt->mctx, nxt->nxt);
+	nxt->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.35 2000/05/04 22:19:26 gson Exp $ */
+/* $Id: soa_6.c,v 1.36 2000/05/05 05:50:07 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -271,6 +271,7 @@ tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	isc_region_t region;
 	dns_rdata_soa_t *soa = target;
 	dns_name_t name;
+	isc_result_t result;
 
 	REQUIRE(rdata->type == 6);
 	REQUIRE(target != NULL);
@@ -279,7 +280,6 @@ tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	soa->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&soa->common, link);
 
-	soa->mctx = mctx;
 
 	dns_rdata_toregion(rdata, &region);
 
@@ -287,12 +287,14 @@ tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->origin, NULL);
-	RETERR(dns_name_dup(&name, soa->mctx, &soa->origin));
+	RETERR(name_duporclone(&name, mctx, &soa->origin));
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->mname, NULL);
-	RETERR(dns_name_dup(&name, soa->mctx, &soa->mname));
+	result = name_duporclone(&name, mctx, &soa->mname);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	soa->serial = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
@@ -308,7 +310,13 @@ tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	soa->minimum = uint32_fromregion(&region);
 
+	soa->mctx = mctx;
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL)
+		dns_name_free(&soa->origin, mctx);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void

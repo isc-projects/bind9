@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.24 2000/04/28 01:23:59 gson Exp $ */
+/* $Id: cert_37.c,v 1.25 2000/05/05 05:49:40 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -162,23 +162,51 @@ fromstruct_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_cert(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_cert_t *cert = target;
+	isc_region_t region;
 
 	REQUIRE(rdata->type == 37);
 	REQUIRE(target != NULL && target == NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	cert->common.rdclass = rdata->rdclass;
+	cert->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&cert->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &region);
+
+	cert->type = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	cert->key_tag = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	cert->algorithm = uint8_fromregion(&region);
+	isc_region_consume(&region, 1);
+	cert->length = region.length;
+
+	if (cert->length > 0) {
+		cert->certificate = mem_maybedup(mctx, region.base,
+						 region.length);
+		if (cert->certificate == NULL)
+			return (ISC_R_NOMEMORY);
+	} else
+		cert->certificate = NULL;
+
+	cert->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_cert(void *target) {
-	REQUIRE(target != NULL && target != NULL);
-	REQUIRE(ISC_FALSE);	/* XXX */
+	dns_rdata_cert_t *cert = target;
 
-	UNUSED(target);
+	REQUIRE(target != NULL && target != NULL);
+	REQUIRE(cert->common.rdtype == 37);
+
+	if (cert->mctx == NULL)
+		return;
+
+	if (cert->certificate != NULL)
+		isc_mem_free(cert->mctx, cert->certificate);
+	cert->mctx = NULL;
 }
 
 static inline isc_result_t

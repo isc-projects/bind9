@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.25 2000/05/04 22:19:21 gson Exp $ */
+/* $Id: ptr_12.c,v 1.26 2000/05/05 05:50:03 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -141,22 +141,39 @@ fromstruct_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	isc_region_t region;
+	dns_rdata_ptr_t *ptr = target;
+	dns_name_t name;
+
 	REQUIRE(rdata->type == 12);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	ptr->common.rdclass = rdata->rdclass;
+	ptr->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&ptr->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&ptr->ptr, NULL);
+	RETERR(name_duporclone(&name, mctx, &ptr->ptr));
+	ptr->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_ptr(void *source)
 {
+	dns_rdata_ptr_t *ptr = source;
+
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);
+	REQUIRE(ptr->common.rdtype == 12);
 	
-	UNUSED(source);
+	if (ptr->mctx == NULL)
+		return;
+
+	dns_name_free(&ptr->ptr, ptr->mctx);
+	ptr->mctx = NULL;
 }
 
 static inline isc_result_t

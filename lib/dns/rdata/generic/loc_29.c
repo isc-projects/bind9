@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.16 2000/04/28 01:24:02 gson Exp $ */
+/* $Id: loc_29.c,v 1.17 2000/05/05 05:49:48 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -583,20 +583,47 @@ fromstruct_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
-	REQUIRE(rdata->type == 29);
+	dns_rdata_loc_t *loc = target;
+	isc_region_t r;
+	isc_uint8_t version;
 
-	UNUSED(rdata);
-	UNUSED(target);
+	REQUIRE(rdata->type == 29);
+	REQUIRE(target != NULL);
+
 	UNUSED(mctx);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &r);
+	version = uint8_fromregion(&r);
+	if (version != 0)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	loc->common.rdclass = rdata->rdclass;
+	loc->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&loc->common, link);
+
+	loc->v.v0.version = version;
+	isc_region_consume(&r, 1);
+	loc->v.v0.size = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	loc->v.v0.horizontal = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	loc->v.v0.vertical = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	loc->v.v0.latitude = uint32_fromregion(&r);
+	isc_region_consume(&r, 4);
+	loc->v.v0.longitude = uint32_fromregion(&r);
+	isc_region_consume(&r, 4);
+	loc->v.v0.altitude = uint32_fromregion(&r);
+	isc_region_consume(&r, 4);
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_loc(void *source)
 {
+	dns_rdata_loc_t *loc = source;
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	REQUIRE(loc->common.rdtype == 29);
 
 	UNUSED(source);
 }

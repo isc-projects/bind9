@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.29 2000/05/04 22:19:11 gson Exp $ */
+/* $Id: md_3.c,v 1.30 2000/05/05 05:49:52 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
@@ -138,21 +138,38 @@ fromstruct_md(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_md(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	dns_rdata_md_t *md = target;
+	isc_region_t r;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == 3);
+	REQUIRE(target != NULL);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	md->common.rdclass = rdata->rdclass;
+	md->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&md->common, link);
+
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &r);
+	dns_name_fromregion(&name, &r);
+	dns_name_init(&md->md, NULL);
+	RETERR(name_duporclone(&name, mctx, &md->md));
+	md->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_md(void *source) {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_md_t *md = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(md->common.rdtype == 3);
+
+	if (md->mctx == NULL)
+		return;
+
+	dns_name_free(&md->md, md->mctx);
+	md->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.17 2000/04/28 01:24:01 gson Exp $ */
+/* $Id: isdn_20.c,v 1.18 2000/05/05 05:49:46 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -126,21 +126,61 @@ fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_isdn_t *isdn = target;
+	isc_region_t r;
+
 	REQUIRE(rdata->type == 20);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	isdn->common.rdclass = rdata->rdclass;
+	isdn->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&isdn->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &r);
+
+	isdn->isdn_len = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	if (isdn->isdn_len > 0) {
+		isdn->isdn = mem_maybedup(mctx, r.base, isdn->isdn_len);
+		if (isdn->isdn == NULL)
+			return (ISC_R_NOMEMORY);
+		isc_region_consume(&r, isdn->isdn_len);
+	} else
+		isdn->isdn = NULL;
+
+	isdn->subaddress_len = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	if (isdn->subaddress_len > 0) {
+		isdn->subaddress = mem_maybedup(mctx, r.base,
+						isdn->subaddress_len);
+		if (isdn->subaddress == NULL)
+			goto cleanup;
+	} else
+		isdn->subaddress = NULL;
+
+	isdn->mctx = mctx;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (mctx != NULL && isdn->isdn != NULL)
+		isc_mem_free(mctx, isdn->isdn);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
 freestruct_isdn(void *source) {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_isdn_t *isdn = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	
+	if (isdn->mctx == NULL)
+		return;
+
+	if (isdn->isdn != NULL)
+		isc_mem_free(isdn->mctx, isdn->isdn);
+	if (isdn->subaddress != NULL)
+		isc_mem_free(isdn->mctx, isdn->subaddress);
+	isdn->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.22 2000/04/28 01:24:06 gson Exp $ */
+/* $Id: null_10.c,v 1.23 2000/05/05 05:50:00 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -113,22 +113,43 @@ fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	dns_rdata_null_t *null = target;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == 10);
+	REQUIRE(target != NULL);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	null->common.rdclass = rdata->rdclass;
+	null->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&null->common, link);
+
+	dns_rdata_toregion(rdata, &r);
+	null->length = r.length;
+	if (null->length != 0) {
+		null->data = mem_maybedup(mctx, r.base, r.length);
+		if (null->data == NULL)
+			return (ISC_R_NOMEMORY);
+	} else
+		null->data = NULL;
+
+	null->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_null(void *source)
 {
-	UNUSED(source);
+	dns_rdata_null_t *null = source;
 	
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);
+	REQUIRE(null->common.rdtype == 10);
+
+	if (null->mctx == NULL)
+		return;
+
+	if (null->data != NULL)
+		isc_mem_free(null->mctx, null->data);
+	null->mctx = NULL;
 }
 
 static inline isc_result_t

@@ -18,15 +18,15 @@
 #ifndef GENERIC_X25_19_H
 #define GENERIC_X25_19_H 1
 
-/* $Id: x25_19.h,v 1.9 2000/04/29 02:01:52 tale Exp $ */
+/* $Id: x25_19.h,v 1.10 2000/05/05 05:50:14 marka Exp $ */
 
 /* RFC 1183 */
 
 typedef struct dns_rdata_x25 {
-        dns_rdatacommon_t       common;
-        isc_mem_t               *mctx;
-        unsigned char           *x25;
-        isc_uint16_t            x25_len;
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	unsigned char		*x25;
+	isc_uint8_t		x25_len;
 } dns_rdata_x25_t;
 
 #endif /* GENERIC_X25_19_H */

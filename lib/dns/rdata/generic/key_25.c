@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.23 2000/04/28 02:08:30 marka Exp $ */
+/* $Id: key_25.c,v 1.24 2000/05/05 05:49:47 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -199,19 +199,16 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	dns_rdata_key_t *key;
+	dns_rdata_key_t *key = target;
 	isc_region_t sr;
 
-	UNUSED(target);
-	UNUSED(mctx);
-
 	REQUIRE(rdata->type == 25);
+	REQUIRE(target != NULL);
 
-	key = (dns_rdata_key_t *) target;
 	key->common.rdclass = rdata->rdclass;
 	key->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&key->common, link);
-	key->mctx = mctx;
+
 	dns_rdata_toregion(rdata, &sr);
 
 	/* Flags */
@@ -235,15 +232,13 @@ tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	/* Data */
 	key->datalen = sr.length;
 	if (key->datalen > 0) {
-		key->data = isc_mem_get(mctx, key->datalen);
+		key->data = mem_maybedup(mctx, sr.base, key->datalen);
 		if (key->data == NULL)
 			return (ISC_R_NOMEMORY);
-		memcpy(key->data, sr.base, key->datalen);
-		isc_region_consume(&sr, key->datalen);
-	}
-	else
+	} else
 		key->data = NULL;
 
+	key->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
 
@@ -254,8 +249,12 @@ freestruct_key(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(key->common.rdtype == 25);
 
-	if (key->datalen > 0)
-		isc_mem_put(key->mctx, key->data, key->datalen);
+	if (key->mctx == NULL)
+		return;
+
+	if (key->data != NULL)
+		isc_mem_free(key->mctx, key->data);
+	key->mctx = NULL;
 }
 
 static inline isc_result_t

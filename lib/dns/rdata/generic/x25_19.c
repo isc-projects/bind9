@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.16 2000/04/28 01:24:12 gson Exp $ */
+/* $Id: x25_19.c,v 1.17 2000/05/05 05:50:12 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -122,22 +122,42 @@ fromstruct_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_x25_t *x25 = target;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == 19);
+	REQUIRE(target != NULL);
 
-	UNUSED(target);
-	UNUSED(mctx);
-	UNUSED(rdata);
+	x25->common.rdclass = rdata->rdclass;
+	x25->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&x25->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &r);
+	x25->x25_len = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	if (x25->x25_len != 0) {
+		x25->x25 = mem_maybedup(mctx, r.base, x25->x25_len);
+		if (x25->x25 == NULL)
+			return (ISC_R_NOMEMORY);
+	} else
+		x25->x25 = NULL;
+
+	x25->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_x25(void *source) {
+	dns_rdata_x25_t *x25 = source;
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	REQUIRE(x25->common.rdtype == 19);
 
-	UNUSED(source);
+	if (x25->mctx == NULL)
+		return;
+
+	if (x25->x25 != NULL)
+		isc_mem_free(x25->mctx, x25->x25);
+	x25->mctx = NULL;
 }
 
 static inline isc_result_t

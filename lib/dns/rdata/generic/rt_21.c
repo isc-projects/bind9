@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.22 2000/05/04 22:19:24 gson Exp $ */
+/* $Id: rt_21.c,v 1.23 2000/05/05 05:50:05 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -179,23 +179,42 @@ fromstruct_rt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_rt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
-
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	isc_region_t region;
+	dns_rdata_rt_t *rt = target;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == 21);
+	REQUIRE(target != NULL);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	rt->common.rdclass = rdata->rdclass;
+	rt->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&rt->common, link);
+
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	rt->preference = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&rt->host, NULL);
+	RETERR(name_duporclone(&name, mctx, &rt->host));
+
+	rt->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_rt(void *source)
 {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_rt_t *rt = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(rt->common.rdtype == 21);
+
+	if (rt->mctx == NULL)
+		return;
+
+	dns_name_free(&rt->host, rt->mctx);
+	rt->mctx = NULL;
 }
 
 static inline isc_result_t
