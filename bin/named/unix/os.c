@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.54 2001/10/16 20:04:38 gson Exp $ */
+/* $Id: os.c,v 1.55 2001/11/23 01:15:07 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -43,6 +43,10 @@
 #include <named/os.h>
 
 static char *pidfile = NULL;
+
+#ifndef ISC_FACILITY
+#define ISC_FACILITY LOG_DAEMON
+#endif
 
 /*
  * If there's no <linux/capability.h>, we don't care about <sys/prctl.h>
@@ -268,7 +272,7 @@ setup_syslog(const char *progname) {
 	options |= LOG_NDELAY;
 #endif
 
-	openlog(isc_file_basename(progname), options, LOG_DAEMON);
+	openlog(isc_file_basename(progname), options, ISC_FACILITY);
 }
 
 void

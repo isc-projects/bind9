@@ -193,6 +193,10 @@ Building
 		Any additional preprocessor symbols you want defined.
 		Defaults to empty string.
 
+		Possible settings:
+		Change the default syslog facility of named/lwresd.
+		e.g. -DISC_FACILITY=LOG_LOCAL0	
+
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 

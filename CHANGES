@@ -1,3 +1,6 @@
+1135.	[func]		You can now override the default syslog() facility for
+			named/lwresd at compile time. [RT #1982]
+
 1134.	[bug]		Multithreaded servers could deadlock in ferror()
 			when reloading zone files. [RT #1951, #1998]
 

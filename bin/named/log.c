@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.34 2001/10/31 17:42:04 gson Exp $ */
+/* $Id: log.c,v 1.35 2001/11/23 01:15:06 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,10 @@
 #include <isccfg/log.h>
 
 #include <named/log.h>
+
+#ifndef ISC_FACILITY
+#define ISC_FACILITY LOG_DAEMON
+#endif
 
 /*
  * When adding a new category, be sure to add the appropriate
@@ -125,6 +129,15 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}
+
+#if ISC_FACILITY != LOG_DAEMON
+	destination.facility = ISC_FACILITY;
+	result = isc_log_createchannel(lcfg, "default_syslog",
+				       ISC_LOG_TOSYSLOG, ISC_LOG_INFO,
+				       &destination, 0);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+#endif
 
 	/*
 	 * Set the initial debug level.
