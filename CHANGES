@@ -1,3 +1,5 @@
+1125.	[bug]		rndc: -k missing from usage. [RT #2057]
+
 1124.	[doc]		dig: +[no]dnssec, +[no]besteffort and +[no]fail
 			now documented. [RT #2052]
 
