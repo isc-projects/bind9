@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.148 2001/10/18 22:36:52 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.149 2001/10/22 23:49:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -813,7 +813,7 @@ delegation(dns_name_t *name, dns_dbnode_t *node) {
 	if (dns_rdataset_isassociated(&nsset))
 		dns_rdataset_disassociate(&nsset);
 
-	return (result == ISC_R_SUCCESS);
+	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
 /*
