@@ -44,6 +44,10 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.2.2-P1
+
+	 A new zone type delegation-only is now supported.
+
 BIND 9.2.2
 
 	BIND 9.2.2 is a maintenance release, containing fixes for
