@@ -949,10 +949,11 @@ load_configuration(const char *filename, ns_server_t *server,
 					   &server->transfer_format);
 	
 	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-				   dns_c_ctx_getqueryacl, &server->queryacl));
+				   dns_c_ctx_getallowquery,
+				   &server->queryacl));
 	
 	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-				   dns_c_ctx_getrecursionacl,
+				   dns_c_ctx_getallowrecursion,
 				   &server->recursionacl));
 	
 	configure_server_quota(configctx, dns_c_ctx_gettransfersout,
