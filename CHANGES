@@ -1,3 +1,5 @@
+1776.   [port]   	Solaris 2.9: fix broken PTHREAD_MUTEX_INIT macro.
+
 1774.	[port]		Aix: Silence compiler warnings / build failures.
 			[RT #13154]
 
