@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.32 2001/02/24 02:53:38 marka Exp $ */
+/* $Id: time.c,v 1.33 2001/02/24 10:22:20 marka Exp $ */
 
 #include <config.h>
 
 #include <errno.h>
 #include <limits.h>
+#include <syslog.h>
 #include <time.h>
 
 #include <sys/time.h>	/* Required for struct timeval on some platforms. */
@@ -51,6 +52,32 @@
 
 static isc_interval_t zero_interval = { 0, 0 };
 isc_interval_t *isc_interval_zero = &zero_interval;
+
+#if ISC_FIX_TV_USEC
+static inline void
+fix_tv_usec(struct timeval *tv) {
+	isc_boolean_t fixed = ISC_FALSE;
+
+	if (tv->tv_usec < 0) {
+		fixed = ISC_TRUE;
+		do {
+			tv->tv_sec -= 1;
+			tv->tv_usec += US_PER_S;
+		} while (tv->tv_usec < 0);
+	} else if (tv->tv_usec >= US_PER_S) {
+		fixed = ISC_TRUE;
+		do {
+			tv->tv_sec += 1;
+			tv->tv_usec -= US_PER_S;
+		} while (tv->tv_usec >=US_PER_S);
+	}
+	/*
+	 * Call syslog directly as was are called from the logging functions.
+	 */
+	if (fixed)
+		syslog(LOG_ERR, "gettimeofday returned bad tv_usec: corrected");
+}
+#endif
 
 void
 isc_interval_set(isc_interval_t *i,
@@ -139,9 +166,6 @@ isc_time_isepoch(isc_time_t *t) {
 isc_result_t
 isc_time_now(isc_time_t *t) {
 	struct timeval tv;
-#if ISC_FIX_TV_USEC
-	isc_boolean_t fixed = ISC_FALSE;
-#endif
 
 	/*
 	 * Set *t to the current absolute time.
@@ -162,24 +186,9 @@ isc_time_now(isc_time_t *t) {
 	 * certain things to be true ...
 	 */
 #if ISC_FIX_TV_USEC
-	if (tv.tv_usec < 0) {
-		fixed = ISC_TRUE;
-		do {
-			tv.tv_sec -= 1;
-			tv.tv_usec += US_PER_S;
-		} while (tv.tv_usec < 0);
-	} else if (tv.tv_usec >= US_PER_S) {
-		fixed = ISC_TRUE;
-		do {
-			tv.tv_sec += 1;
-			tv.tv_usec -= US_PER_S;
-		} while (tv.tv_usec >=US_PER_S);
-	} else if (tv.tv_sec < 0)
+	fix_tv_usec(&tv);
+	if (tv.tv_sec < 0)
 		return (ISC_R_UNEXPECTED);
-	if (fixed)
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_TIME, ISC_LOG_INFO,
-			      "gettimeofday returned bad tv_usec: corrected");
 #else
 	if (tv.tv_sec < 0 || tv.tv_usec < 0 || tv.tv_usec >= US_PER_S)
 		return (ISC_R_UNEXPECTED);
@@ -222,8 +231,14 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	 * happening are pretty much zero, but since the libisc library ensures
 	 * certain things to be true ...
 	 */
+#if ISC_FIX_TV_USEC
+	fix_tv_usec(&tv);
+	if (tv.tv_sec < 0)
+		return (ISC_R_UNEXPECTED);
+#else
 	if (tv.tv_sec < 0 || tv.tv_usec < 0 || tv.tv_usec >= US_PER_S)
 		return (ISC_R_UNEXPECTED);
+#endif
 
 	/*
 	 * Ensure the resulting seconds value fits in the size of an
