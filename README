@@ -49,6 +49,7 @@ BIND 9.2.3
 	a number of bugs in 9.2.2.
 
 	A new zone type delegation-only is now supported.
+	A new view option root-delegation-only is now supported.
 
 	libbind: corresponds to that from BIND 8.4.0.
 
