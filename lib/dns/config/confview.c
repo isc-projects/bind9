@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.21 2000/04/07 17:40:42 brister Exp $ */
+/* $Id: confview.c,v 1.22 2000/04/07 18:30:11 gson Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,7 @@ PVT_CONCAT(dns_c_view_set, FUNCNAME)(dns_c_view_t *view, TYPE newval)	    \
 	REQUIRE(DNS_C_VIEW_VALID(view));				    \
 									    \
 	if (view->FIELDNAME == NULL) {					    \
-		view->FIELDNAME = isc_mem_get(view->mem, sizeof (TYPE)); \
+		view->FIELDNAME = isc_mem_get(view->mem, sizeof (TYPE));    \
 		if (view->FIELDNAME == NULL) {				    \
 			return (ISC_R_NOMEMORY);			    \
 		}							    \
