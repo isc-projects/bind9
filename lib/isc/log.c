@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.19 2000/03/04 00:43:38 tale Exp $ */
+/* $Id: log.c,v 1.20 2000/03/04 16:39:54 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -531,6 +531,7 @@ isc_log_categorybyname(isc_log_t *lctx, const char *name) {
 	isc_logcategory_t *catp;
 
 	REQUIRE(VALID_CONTEXT(lctx));
+	REQUIRE(name != NULL);
 
 	for (catp = lctx->categories; catp->name != NULL; catp++)
 		if (catp->id == UINT_MAX)
@@ -585,6 +586,7 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name) {
 	isc_logmodule_t *modp;
 
 	REQUIRE(VALID_CONTEXT(lctx));
+	REQUIRE(name != NULL);
 
 	for (modp = lctx->modules; modp->name != NULL; modp++)
 		if (modp->id == UINT_MAX)

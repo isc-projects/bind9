@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.12 2000/03/04 00:43:40 tale Exp $ */
+/* $Id: log.h,v 1.13 2000/03/04 16:41:14 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -727,6 +727,10 @@ isc_log_categorybyname(isc_log_t *lctx, const char *name);
  * Notes:
  *	The string name of a category is not required to be unique.
  *
+ * Requires:
+ *	lctx is a valid context.
+ *	name is not NULL.
+ *
  * Returns:
  *	A pointer to the _first_ isc_logcategory_t structure used by "name".
  *
@@ -740,6 +744,10 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name);
  * 
  * Notes:
  *	The string name of a module is not required to be unique.
+ *
+ * Requires:
+ *	lctx is a valid context.
+ *	name is not NULL.
  *
  * Returns:
  *	A pointer to the _first_ isc_logmodule_t structure used by "name".
