@@ -267,6 +267,11 @@ extern omapi_objecttype_t *omapi_object_types;
 extern isc_mem_t *omapi_mctx;
 
 /*
+ * Task to keep the omapi_taskmgr alive until omapi_lib_destroy is called.
+ */
+extern isc_task_t *omapi_task;
+
+/*
  * XXXDCL comment, localize?
  */
 extern isc_taskmgr_t *omapi_taskmgr;
