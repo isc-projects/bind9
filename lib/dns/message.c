@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.215 2002/11/27 09:52:54 marka Exp $ */
+/* $Id: message.c,v 1.216 2003/01/24 04:25:53 marka Exp $ */
 
 /***
  *** Imports
@@ -2966,8 +2966,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
 		ADD_STRING(target, "; EDNS: version: ");
 		snprintf(buf, sizeof(buf), "%u",
-			 (unsigned int)((ps->ttl &
-					0x00ff0000 >> 16)));
+			 (unsigned int)((ps->ttl & 0x00ff0000) >> 16));
 		ADD_STRING(target, buf);
 		ADD_STRING(target, ", flags:");
 		if ((ps->ttl & DNS_MESSAGEEXTFLAG_DO) != 0)
