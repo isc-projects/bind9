@@ -141,7 +141,7 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 	omapi_connection_t *c;
 	omapi_message_t *m;
 	omapi_object_t *connection;
-	int authlen = 0;
+	unsigned int authlen = 0;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(message != NULL && message->type == omapi_type_message);
