@@ -150,6 +150,7 @@
 ./bin/tests/dst/t2_dsasig			X	1999,2000
 ./bin/tests/dst/t2_rsasig			X	1999,2000
 ./bin/tests/dst/t_dst.c				C	1999,2000
+./bin/tests/fsaccess_test.c			C	2000
 ./bin/tests/generic-b9t.cron			X	1999,2000
 ./bin/tests/gxba_test.c				C	2000
 ./bin/tests/gxbn_test.c				C	2000
@@ -645,6 +646,7 @@
 ./lib/isc/commandline.c				C	1999,2000
 ./lib/isc/error.c				C	1998,1999,2000
 ./lib/isc/event.c				C	1998,1999,2000
+./lib/isc/fsaccess.c				C	2000
 ./lib/isc/heap.c				C	1997,1998,1999,2000
 ./lib/isc/include/.cvsignore			X	1999,2000
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000
@@ -660,7 +662,8 @@
 ./lib/isc/include/isc/error.h			C	1998,1999,2000
 ./lib/isc/include/isc/event.h			C	1998,1999,2000
 ./lib/isc/include/isc/eventclass.h		C	1998,1999,2000
-./lib/isc/include/isc/file.h    		C	2000
+./lib/isc/include/isc/file.h			C	2000
+./lib/isc/include/isc/fsaccess.h		C	2000
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000
 ./lib/isc/include/isc/interfaceiter.h		C	1999,2000
 ./lib/isc/include/isc/lang.h			C	1999,2000
@@ -744,9 +747,10 @@
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000
 ./lib/isc/unix/app.c				C	1999,2000
 ./lib/isc/unix/dir.c				C	1999,2000
-./lib/isc/unix/errno2isc.c                      C       2000
-./lib/isc/unix/errno2isc.h                      C       2000
+./lib/isc/unix/errno2isc.c			C	2000
+./lib/isc/unix/errno2isc.h			C	2000
 ./lib/isc/unix/file.c				C	2000
+./lib/isc/unix/fsaccess.c			C	2000
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000
 ./lib/isc/unix/include/.cvsignore		X	1999,2000
@@ -775,6 +779,7 @@
 ./lib/isc/win32/condition.c			C	1998,1999,2000
 ./lib/isc/win32/dir.c				C	1999,2000
 ./lib/isc/win32/file.c				C	2000
+./lib/isc/win32/fsaccess.c			C	2000
 ./lib/isc/win32/include/.cvsignore		X	1999,2000
 ./lib/isc/win32/include/Makefile.in		MAKE	1999,2000
 ./lib/isc/win32/include/isc/.cvsignore		X	1999,2000
