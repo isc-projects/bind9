@@ -2687,6 +2687,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 				 "%s", strerror(errno));
 
 		UNLOCK(&sock->lock);
+		isc_event_free((isc_event_t **)&dev);
 		return (ISC_R_UNEXPECTED);
 
 	err_exit:
