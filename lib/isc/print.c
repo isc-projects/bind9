@@ -64,6 +64,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	unsigned long long tmpui;
 	unsigned long width;
 	unsigned long precision;
+	unsigned int length;
 	char buf[1024];
 	char *cp;
 	char *save = str;
@@ -71,7 +72,6 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	void *v;
 	char *head;
 	int count = 0;
-	int length;
 	int pad;
 	int zeropad;
 	int dot;
@@ -234,9 +234,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				if (q)
 					tmpui = va_arg(ap, unsigned long long);
 				else if (l)
-					tmpi = va_arg(ap, long int);
+					tmpui = va_arg(ap, long int);
 				else
-					tmpi = va_arg(ap, int);
+					tmpui = va_arg(ap, int);
 #ifdef ISC_PLATFORM_LONGLONGEQUALLONG
 				sprintf(buf, alt ? "%#lo" : "%lo", tmpui);
 #else
@@ -488,7 +488,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			 */
 			if (precision > 512)
 				precision = 512;
-			sprintf(fmt, "%%%s%s.%d%s%c", alt ? "#" : "",
+			sprintf(fmt, "%%%s%s.%lu%s%c", alt ? "#" : "",
 				plus ? "+" : space ? " " : "",
 				precision, l ? "L" : "", *format);
 			switch (*format) {

@@ -1,3 +1,5 @@
+ 101.   [cleanup]       Quieted EGCS warnings from lib/isc/print.c.
+
  100.   [cleanup]       <isc/random.h> does not need <isc/int.h> or
                         <isc/mutex.h>.  isc_random_t moved to <isc/types.h>.
 
