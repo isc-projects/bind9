@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.178.2.5 2001/02/25 00:33:43 bwelling Exp $ */
+/* $Id: socket.c,v 1.178.2.6 2001/04/11 17:34:47 gson Exp $ */
 
 #include <config.h>
 
@@ -1664,10 +1664,13 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 							ISC_MSG_FAILED,
 							"failed"),
 					 strerror(errno));
+			fd = -1;
+			result = ISC_R_UNEXPECTED;
+		} else {
+			select_poke(sock->manager, sock->fd);
+			UNLOCK(&sock->lock);
+			return;
 		}
-		select_poke(sock->manager, sock->fd);
-		UNLOCK(&sock->lock);
-		return;
 	} else {
 		if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1684,8 +1687,10 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		}
 	}
 
-	dev->newsocket->address.length = addrlen;
-	dev->newsocket->pf = sock->pf;
+	if (fd != -1) {
+		dev->newsocket->address.length = addrlen;
+		dev->newsocket->pf = sock->pf;
+	}
 
 	/*
 	 * Pull off the done event.
@@ -1735,6 +1740,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 
 	UNLOCK(&manager->lock);
 
+	if (fd == -1)
+		isc_socket_detach(&dev->newsocket);
+	
 	/*
 	 * Fill in the done event details and send it off.
 	 */
