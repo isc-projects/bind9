@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.4 2000/08/22 17:32:07 gson Exp $ */
+/* $Id: sdb.c,v 1.5 2000/08/22 22:06:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -44,10 +44,7 @@
 
 typedef struct sdbimp {
 	const char			*drivername;
-	dns_sdblookupfunc_t		lookup;
-	dns_sdbauthorityfunc_t		authority;
-	dns_sdbcreatefunc_t		create;
-	dns_sdbdestroyfunc_t		destroy;
+	const dns_sdbmethods_t		*methods;
 	void				*driverdata;
 	unsigned int			flags;
 } sdbimp_t;
@@ -142,18 +139,16 @@ initialize(void) {
  * Functions used by implementors of simple databases
  */
 isc_result_t
-dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
-		 dns_sdbauthorityfunc_t authority, dns_sdbcreatefunc_t create,
-		 dns_sdbdestroyfunc_t destroy, void *driverdata,
-		 unsigned int flags)
+dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
+		 void *driverdata, unsigned int flags)
 {
 	int i;
 	int slot = -1;
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
 	REQUIRE(drivername != NULL);
-	REQUIRE(lookup != NULL);
-	REQUIRE(authority != NULL);
+	REQUIRE(methods != NULL);
+	REQUIRE(methods->lookup != NULL);
 
 	LOCK(&implock);
 	for (i = 0; i < nimps; i++) {
@@ -174,10 +169,7 @@ dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
 	}
 	INSIST(slot >= 0 && slot < MAXSDBIMP);
 	imps[slot].drivername = drivername;
-	imps[slot].lookup = lookup;
-	imps[slot].authority = authority;
-	imps[slot].create = create;
-	imps[slot].destroy = destroy;
+	imps[slot].methods = methods;
 	imps[slot].driverdata = driverdata;
 	imps[slot].flags = flags;
 	UNLOCK(&implock);
@@ -355,8 +347,9 @@ destroy(dns_sdb_t *sdb) {
 
 	mctx = sdb->common.mctx;
 
-	if (imp->destroy != NULL)
-		imp->destroy(sdb->zone, imp->driverdata, &sdb->dbdata);
+	if (imp->methods->destroy != NULL)
+		imp->methods->destroy(sdb->zone, imp->driverdata,
+				      &sdb->dbdata);
 
 	isc_mem_free(mctx, sdb->zone);
 	isc_mutex_destroy(&sdb->lock);
@@ -560,14 +553,14 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	isorigin = dns_name_equal(name, &sdb->common.origin);
 
-	result = imp->lookup(sdb->zone, namestr, sdb->dbdata, node);
+	result = imp->methods->lookup(sdb->zone, namestr, sdb->dbdata, node);
 	if (result != ISC_R_SUCCESS && !isorigin) {
 		destroynode(node);
 		return (result);
 	}
 
-	if (isorigin) {
-		result = imp->authority(sdb->zone, sdb->dbdata, node);
+	if (isorigin && imp->methods->authority != NULL) {
+		result = imp->methods->authority(sdb->zone, sdb->dbdata, node);
 		if (result != ISC_R_SUCCESS) {
 			destroynode(node);
 			return (result);
@@ -1038,9 +1031,9 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 		return (ISC_R_NOMEMORY);
 	}
 	sdb->dbdata = NULL;
-	if (imp->create != NULL) {
-		result = imp->create(sdb->zone, argc - 1, argv + 1,
-				     imp->driverdata, &sdb->dbdata);
+	if (imp->methods->create != NULL) {
+		result = imp->methods->create(sdb->zone, argc - 1, argv + 1,
+					      imp->driverdata, &sdb->dbdata);
 		if (result != ISC_R_SUCCESS) {
 			destroy(sdb);
 			return (result);

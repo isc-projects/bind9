@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.4 2000/08/22 01:46:12 gson Exp $ */
+/* $Id: sdb.h,v 1.5 2000/08/22 22:06:46 bwelling Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -52,12 +52,6 @@ typedef struct dns_sdb dns_sdb_t;
 typedef struct dns_sdblookup dns_sdblookup_t;
 typedef struct dns_sdblookup dns_sdbnode_t;
 
-/***
- *** Functions
- ***/
-
-ISC_LANG_BEGINDECLS
-
 typedef isc_result_t
 (*dns_sdblookupfunc_t)(const char *zone, const char *name, void *dbdata,
 		       dns_sdblookup_t *);
@@ -72,18 +66,31 @@ typedef isc_result_t
 typedef void
 (*dns_sdbdestroyfunc_t)(const char *zone, void *driverdata, void **dbdata);
 
+typedef struct dns_sdbmethods {
+	dns_sdblookupfunc_t	lookup;
+	dns_sdbauthorityfunc_t	authority;
+	dns_sdbcreatefunc_t	create;
+	dns_sdbdestroyfunc_t	destroy;
+} dns_sdbmethods_t;
+
+/***
+ *** Functions
+ ***/
+
+ISC_LANG_BEGINDECLS
+
 #define DNS_SDBFLAG_RELATIVEOWNER 0x00000001U
 #define DNS_SDBFLAG_RELATIVERDATA 0x00000002U
 
 isc_result_t
-dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
-		 dns_sdbauthorityfunc_t authority, dns_sdbcreatefunc_t create,
-		 dns_sdbdestroyfunc_t destroy, void *driverdata,
-		 unsigned int flags);
+dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
+		 void *driverdata, unsigned int flags);
 /*
- * Register a simple database driver of name 'drivername'.  The name
- * server will perform lookups in the database by calling the function
- * 'lookup', passing it a printable zone name 'zone', a printable
+ * Register a simple database driver of name 'drivername' with the
+ * specified functions.
+ *
+ * The name server will perform lookups in the database by calling the
+ * function 'lookup', passing it a printable zone name 'zone', a printable
  * domain name 'name', and a copy of the argument 'dbdata' that
  * was potentially returned by the create function.  The 'dns_sdblookup_t'
  * argument to 'lookup' and 'authority' is an opaque pointer to be passed to
@@ -93,9 +100,10 @@ dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
  * by calling ns_sdb_putrr() once for each record found.
  *
  * Lookups at the zone apex will cause the server to also call the
- * function 'authority', which must provide an SOA record and NS
- * records for the zone by calling ns_sdb_putrr() once for each of
- * these records.
+ * function 'authority' (if non-NULL), which must provide an SOA record
+ * and NS records for the zone by calling ns_sdb_putrr() once for each of
+ * these records.  The 'authority' function may be NULL if invoking
+ * the 'lookup' function on the zone apex will return SOA and NS records.
  *
  * The create function will be called when a database is created, and
  * allows the implementation to create database specific data.
