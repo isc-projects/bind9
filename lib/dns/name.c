@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.132 2002/02/26 12:43:38 marka Exp $ */
+/* $Id: name.c,v 1.133 2002/03/14 00:36:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1068,7 +1068,7 @@ dns_name_clone(dns_name_t *source, dns_name_t *target) {
 }
 
 void
-dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
+dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 	unsigned char *offsets;
 	dns_offsets_t odata;
 	unsigned int len;

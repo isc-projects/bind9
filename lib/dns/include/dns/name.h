@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.99 2002/02/20 03:34:33 marka Exp $ */
+/* $Id: name.h,v 1.100 2002/03/14 00:36:07 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -706,7 +706,7 @@ dns_name_clone(dns_name_t *source, dns_name_t *target);
  ***/
 
 void
-dns_name_fromregion(dns_name_t *name, isc_region_t *r);
+dns_name_fromregion(dns_name_t *name, const isc_region_t *r);
 /*
  * Make 'name' refer to region 'r'.
  *
