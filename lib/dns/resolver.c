@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137.2.5 2000/07/26 23:36:04 bwelling Exp $ */
+/* $Id: resolver.c,v 1.137.2.6 2000/07/27 21:27:03 gson Exp $ */
 
 #include <config.h>
 
@@ -2251,22 +2251,23 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t eresult = ISC_R_SUCCESS;
 	isc_stdtime_t now;
-        fetchctx_t *fctx;
-        dns_validatorevent_t *vevent;
+	fetchctx_t *fctx;
+	dns_validatorevent_t *vevent;
 	dns_fetchevent_t *hevent;
 	dns_rdataset_t *ardataset = NULL;
 	dns_rdataset_t *asigrdataset = NULL;
 	dns_dbnode_t *node = NULL;
 	isc_boolean_t negative;
+	isc_boolean_t sentresponse;
 
-        UNUSED(task); /* for now */
+	UNUSED(task); /* for now */
 
-        REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
-        fctx = event->ev_arg;
-        REQUIRE(VALID_FCTX(fctx));
-        REQUIRE(fctx->validating > 0);
+	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
+	fctx = event->ev_arg;
+	REQUIRE(VALID_FCTX(fctx));
+	REQUIRE(fctx->validating > 0);
 
-        vevent = (dns_validatorevent_t *)event;
+	vevent = (dns_validatorevent_t *)event;
 	
 	FCTXTRACE("received validation completion event");
 
@@ -2276,23 +2277,27 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 */
 	dns_validator_destroy(&vevent->validator);
 
-        fctx->validating--;
+	fctx->validating--;
 
 	negative = ISC_TF(vevent->rdataset == NULL);
 
-        /*
-         * If shutting down, ignore the results.  Check to see if we're
-         * done waiting for validator completions and ADB pending events; if
-         * so, destroy the fctx.
+	sentresponse = ISC_TF((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
+
+	/*
+	 * If shutting down, ignore the results.  Check to see if we're
+	 * done waiting for validator completions and ADB pending events; if
+	 * so, destroy the fctx.
 	 */
-	if (SHUTTINGDOWN(fctx)) {
+	if (SHUTTINGDOWN(fctx) && !sentresponse ) {
 		maybe_destroy(fctx);
 		goto cleanup_event;
 	}
 
 	/*
-         * We're not shutting down.
-         */
+	 * Either we're not shutting down, or we are shutting down but want
+	 * to cache the result anyway (if this was a validation started by
+	 * a query with cd set)
+	 */
 
 	hevent = ISC_LIST_HEAD(fctx->events);
 	if (hevent != NULL) {
@@ -2309,8 +2314,24 @@ validated(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-        if (vevent->result != ISC_R_SUCCESS) {
+	if (vevent->result != ISC_R_SUCCESS) {
 		FCTXTRACE("validation failed");
+		if (vevent->rdataset != NULL) {
+			result = dns_db_findnode(fctx->res->view->cachedb,
+						 vevent->name, ISC_TRUE,
+						 &node);
+			if (result != ISC_R_SUCCESS)
+				goto noanswer_response;
+			(void)dns_db_deleterdataset(fctx->res->view->cachedb,
+						    node, NULL,
+						    vevent->type, 0);
+			if (vevent->sigrdataset != NULL)
+				(void)dns_db_deleterdataset(
+						fctx->res->view->cachedb,
+						node, NULL,
+						dns_rdatatype_sig,
+						vevent->type);
+		}
 		result = vevent->result;
 		goto noanswer_response;
 	}
@@ -2372,7 +2393,18 @@ validated(isc_task_t *task, isc_event_t *event) {
 			goto noanswer_response;
 	}
 
-        if (fctx->validating > 0) {
+	if (sentresponse) {
+		/* 
+		 * If we only deferred the destroy because we wanted to cache
+		 * the data, destroy now.
+		 */
+		if (SHUTTINGDOWN(fctx))
+			maybe_destroy(fctx);
+
+		goto cleanup_event;
+	}
+
+	if (fctx->validating > 0) {
 		INSIST(!negative);
 		INSIST(fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_sig);
@@ -2423,7 +2455,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	dns_db_t **adbp;
 	dns_name_t *aname;
 	dns_resolver_t *res;
-	isc_boolean_t need_validation, have_answer;
+	isc_boolean_t need_validation, secure_domain, have_answer;
 	isc_result_t result, eresult;
 	dns_fetchevent_t *event;
 	unsigned int options;
@@ -2436,6 +2468,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 
 	res = fctx->res;
 	need_validation = ISC_FALSE;
+	secure_domain = ISC_FALSE;
 	have_answer = ISC_FALSE;
 	eresult = ISC_R_SUCCESS;
 	task = res->buckets[fctx->bucketnum].task;
@@ -2444,12 +2477,14 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	 * Is DNSSEC validation required for this name?
 	 */
 	result = dns_keytable_issecuredomain(res->view->secroots, name,
-					     &need_validation);
+					     &secure_domain);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (need_validation) {
-		
-	}
+
+ 	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0)
+ 		need_validation = ISC_FALSE;
+ 	else
+ 		need_validation = secure_domain;
 
 	adbp = NULL;
 	aname = NULL;
@@ -2503,7 +2538,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 		 * If this rrset is in a secure domain, do DNSSEC validation
 		 * for it, unless it is glue.
 		 */
-		if (need_validation && rdataset->trust != dns_trust_glue) {
+		if (secure_domain && rdataset->trust != dns_trust_glue) {
 			/*
 			 * SIGs are validated as part of validating the
 			 * type they cover.
@@ -2521,7 +2556,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					break;
 			}
 			if (sigrdataset == NULL) {
-				if (!ANSWER(rdataset)) {
+				if (!ANSWER(rdataset) && need_validation) {
 					/*
 					 * Ignore non-answer rdatasets that
 					 * are missing signatures.
@@ -2546,23 +2581,34 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			rdataset->trust = dns_trust_pending;
 			if (sigrdataset != NULL)
 				sigrdataset->trust = dns_trust_pending;
+			if (!need_validation)
+				addedrdataset = ardataset;
+			else
+				addedrdataset = NULL;
 			result = dns_db_addrdataset(res->view->cachedb,
 						    node, NULL, now,
-						    rdataset, 0, NULL);
+						    rdataset, 0,
+						    addedrdataset);
 			if (result == DNS_R_UNCHANGED)
 				result = ISC_R_SUCCESS;
 			if (result != ISC_R_SUCCESS)
 				break;
 			if (sigrdataset != NULL) {
+				if (!need_validation)
+					addedrdataset = asigrdataset;
+				else
+					addedrdataset = NULL;
 				result = dns_db_addrdataset(res->view->cachedb,
 							    node, NULL, now,
 							    sigrdataset, 0,
-							    NULL);
+							    addedrdataset);
 				if (result == DNS_R_UNCHANGED)
 					result = ISC_R_SUCCESS;
 				if (result != ISC_R_SUCCESS)
 					break;
-			}
+			} else if (!ANSWER(rdataset))
+				continue;
+
 			if (ANSWER(rdataset)) {
 				if (fctx->type != dns_rdatatype_any &&
 				    fctx->type != dns_rdatatype_sig) {
@@ -2821,15 +2867,15 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		 * Do negative response validation.
 		 */
 		dns_validator_t *validator = NULL;		
-                isc_task_t *task = res->buckets[fctx->bucketnum].task;
-                result = dns_validator_create(res->view, name, fctx->type,
+		isc_task_t *task = res->buckets[fctx->bucketnum].task;
+		result = dns_validator_create(res->view, name, fctx->type,
 					      NULL, NULL,
-                                              fctx->rmessage, 0, task,
-                                              validated, fctx,
-                                              &validator);
-                if (result != ISC_R_SUCCESS)
-                        return (result);
-                fctx->validating++;
+					      fctx->rmessage, 0, task,
+					      validated, fctx,
+					      &validator);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		fctx->validating++;
 		return (ISC_R_SUCCESS);
 	}
 

@@ -1,4 +1,3 @@
-
  354.	[doc]		Man pages for the dnssec tools are now included in
 			the distribution, in doc/man/dnssec.
 
@@ -14,6 +13,9 @@
  350.	[bug]		Also-notify lists specified in the global options
 			block were not correctly reference counted, causing
 			a memory leak.
+
+ 349.	[bug]		Processing a query with the CD bit set now works
+			as expected.
 
  344.	[bug]		When shutting down, lwresd sometimes tried
 			to shut down its client tasks twice, 
