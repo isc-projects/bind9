@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.17 1999/10/20 22:14:14 bwelling Exp $
+ * $Id: dst_api.c,v 1.18 1999/10/25 21:04:53 bwelling Exp $
  */
 
 #include <config.h>
@@ -862,7 +862,21 @@ get_key_struct(const char *name, const int alg, const int flags,
 
 	memset(key, 0, sizeof(dst_key_t));
 	key->magic = KEY_MAGIC;
-	key->key_name = isc_mem_strdup(mctx, name);
+	if (name[strlen(name) - 1] == '.') {
+		key->key_name = isc_mem_strdup(mctx, name);
+		if (key->key_name == NULL) {
+			isc_mem_free(mctx, key);
+			return (NULL);
+		}
+	}
+	else {
+		key->key_name = isc_mem_allocate(mctx, strlen(name) + 2);
+		if (key->key_name == NULL) {
+			isc_mem_free(mctx, key);
+			return (NULL);
+		}
+		sprintf(key->key_name, "%s.", name);
+	}
 	key->key_alg = alg;
 	key->key_flags = flags;
 	key->key_proto = protocol;
