@@ -109,7 +109,7 @@ main(int argc, char *argv[]) {
 		specials[')'] = 1;
 		specials['"'] = 1;
 		isc_lex_setspecials(lex, specials);
-		options = ISC_LEXOPT_DNSMULTILINE |
+		options = ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE |
 			ISC_LEXOPT_EOF |
 			ISC_LEXOPT_QSTRING | ISC_LEXOPT_NOMORE;
 		isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);

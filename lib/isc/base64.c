@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: base64.c,v 1.3 1999/06/08 10:35:23 gson Exp $ */
+ /* $Id: base64.c,v 1.4 1999/06/09 11:56:45 gson Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	 isc_boolean_t eol)
 {
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-			       ISC_LEXOPT_DNSMULTILINE;
+			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	isc_result_t result;
 
 	if (expect == isc_tokentype_qstring)

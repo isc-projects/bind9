@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.18 1999/06/08 10:35:04 gson Exp $ */
+ /* $Id: master.c,v 1.19 1999/06/09 11:56:00 gson Exp $ */
 
 #include <config.h>
 
@@ -105,7 +105,8 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 {
 	isc_result_t result;
 
-	options |= ISC_LEXOPT_EOL | ISC_LEXOPT_EOF | ISC_LEXOPT_DNSMULTILINE;
+	options |= ISC_LEXOPT_EOL | ISC_LEXOPT_EOF | ISC_LEXOPT_DNSMULTILINE |
+		ISC_LEXOPT_ESCAPE;
 	result = isc_lex_gettoken(lex, options, token);
 	if (result != ISC_R_SUCCESS) {
 		switch (result) {
