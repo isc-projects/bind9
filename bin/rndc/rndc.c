@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.32 2000/11/30 20:45:07 gson Exp $ */
+/* $Id: rndc.c,v 1.33 2000/11/30 21:32:20 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -36,6 +36,7 @@
 #include <isc/util.h>
 
 #include <dns/confndc.h>
+#include <dns/result.h>
 
 #include <dst/dst.h>
 
