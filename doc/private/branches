@@ -6,7 +6,6 @@ v6source
 peter		private		peter		(hostname.bind for 9.2.x)
 openssl_stub	open		marka
 chroot		open		marka
-rt4347		review		explorer
 slavefix	review		explorer
 rt5033		review		explorer
 rt5042		review		explorer
@@ -44,6 +43,7 @@ rt4090		closed		explorer
 rt4112		closed		explorer
 rt4268		closed
 rt4319		closed		explorer
+rt4347		closed
 rt4398		closed
 rt4425		closed
 rt4463		closed
