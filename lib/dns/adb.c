@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.8 2003/05/19 04:47:05 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.9 2003/07/18 04:35:50 marka Exp $ */
 
 /*
  * Implementation notes
@@ -87,6 +87,7 @@
  */
 #define ADB_CACHE_MINIMUM	10	/* seconds */
 #define ADB_CACHE_MAXIMUM	86400	/* seconds (86400 = 24 hours) */
+#define ADB_ENTRY_WINDOW	1800	/* seconds  */
 
 /*
  * Wake up every CLEAN_SECONDS and clean CLEAN_BUCKETS buckets, so that all
@@ -592,7 +593,11 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
-	rdataset->ttl = ttlclamp(rdataset->ttl);
+	if (rdataset->trust == dns_trust_glue ||
+	    rdataset->trust == dns_trust_additional)
+		rdataset->ttl = ADB_CACHE_MINIMUM;
+	else
+		rdataset->ttl = ttlclamp(rdataset->ttl);
 
 	if (rdtype == dns_rdatatype_a) {
 		DP(NCACHE_LEVEL, "expire_v4 set to MIN(%u,%u) import_rdataset",
@@ -3948,6 +3953,7 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 {
 	int bucket;
 	unsigned int new_srtt;
+	isc_stdtime_t now;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
@@ -3964,6 +3970,9 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 	addr->entry->srtt = new_srtt;
 	addr->srtt = new_srtt;
+
+	isc_stdtime_get(&now);
+	addr->entry->expires = now + ADB_ENTRY_WINDOW;
 
 	UNLOCK(&adb->entrylocks[bucket]);
 }
@@ -4062,7 +4071,7 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
-	entry->expires = now + 1800;		/* XXXRTH */
+	entry->expires = now + ADB_ENTRY_WINDOW;
 
 	want_check_exit = dec_entry_refcnt(adb, entry, ISC_FALSE);
 

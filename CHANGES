@@ -1,3 +1,6 @@
+1488.	[bug]		Don't override trust levels for glue addresses.
+			[RT #5764]
+
 1487.	[bug]		A REQUIRE() failure could be triggered if a zone was
 			queued for transfer and the zone was then removed.
 			[RT #6189]
