@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51.2.7 2000/09/12 23:07:03 explorer Exp $ */
+/* $Id: dig.c,v 1.51.2.8 2000/09/15 22:56:11 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -46,7 +46,7 @@ extern ISC_LIST(dig_searchlist_t) search_list;
 
 
 extern isc_boolean_t have_ipv6, show_details, specified_source,
-	usesearch, qr;
+	usesearch, qr, ignore;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -159,6 +159,8 @@ show_usage(void) {
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]defname        (Set whether to use default domaon)\n"
 "                 +[no]recursive      (Recursive mode)\n"
+"                 +[no]ignore         (Don't revert to TCP for TC responses.)"
+"\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
@@ -827,6 +829,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 		} else if (strncmp(rv[0], "+nosho", 6) == 0) {
 			short_form = ISC_FALSE;
+		} else if (strncmp(rv[0], "+i", 2) == 0) {
+			ignore = ISC_TRUE;
+		} else if (strncmp(rv[0], "+noi", 4) == 0) {
+			ignore = ISC_FALSE;
 		} else if (strncmp(rv[0], "+id", 3) == 0) {
 			if (have_host)
 				lookup->identify = ISC_TRUE;

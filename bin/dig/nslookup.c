@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20.2.7 2000/09/05 21:58:09 gson Exp $ */
+/* $Id: nslookup.c,v 1.20.2.8 2000/09/15 22:56:15 gson Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@ extern int h_errno;
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
+#include <dns/rdataclass.h>
 #include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -496,6 +497,16 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	debug ("printmessage()");
 
+	debug ("continuing on with rcode != 0");
+	result = isc_buffer_allocate(mctx, &b, MXNAME);
+	check_result(result, "isc_buffer_allocate");
+	printf("Server:\t\t%s\n", query->servname);
+	result = isc_sockaddr_totext(&query->sockaddr, b);
+	check_result(result, "isc_sockaddr_totext");
+	printf("Address:\t%.*s\n", (int)isc_buffer_usedlength(b),
+	       (char*)isc_buffer_base(b));
+	isc_buffer_free(&b);
+	puts("");
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
 		check_result(result, "isc_buffer_allocate");
@@ -510,16 +521,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		debug ("returning with rcode == 0");
 		return (ISC_R_SUCCESS);
 	}
-	debug ("continuing on with rcode != 0");
-	result = isc_buffer_allocate(mctx, &b, MXNAME);
-	check_result(result, "isc_buffer_allocate");
-	printf("Server:\t\t%s\n", query->servname);
-	result = isc_sockaddr_totext(&query->sockaddr, b);
-	check_result(result, "isc_sockaddr_totext");
-	printf("Address:\t%.*s\n", (int)isc_buffer_usedlength(b),
-	       (char*)isc_buffer_base(b));
-	isc_buffer_free(&b);
-	puts("");
 	if (!short_form){
 		puts ("------------");
 		/*		detailheader(query, msg);*/
@@ -585,6 +586,41 @@ show_settings(isc_boolean_t full) {
 
 }
 
+static isc_boolean_t
+testtype(char *typetext) {
+	isc_result_t result;
+	isc_textregion_t tr;
+	dns_rdatatype_t rdtype;
+	
+	tr.base = typetext;
+	tr.length = strlen(typetext);
+	result = dns_rdatatype_fromtext(&rdtype, &tr);
+	if (result == ISC_R_SUCCESS)
+		return (ISC_TRUE);
+	else {
+		printf("unknown query type: %s\n", typetext);
+		return (ISC_FALSE);
+	}
+}
+
+static isc_boolean_t
+testclass(char *typetext) {
+	isc_result_t result;
+	isc_textregion_t tr;
+	dns_rdataclass_t rdclass;
+
+	tr.base = typetext;
+	tr.length = strlen(typetext);
+	result = dns_rdataclass_fromtext(&rdclass, &tr);
+	if (result == ISC_R_SUCCESS) 
+		return (ISC_TRUE);
+	else {
+		printf("unknown query class: %s\n", typetext);
+		return (ISC_FALSE);
+	}
+}
+
+
 static void
 setoption(char *opt) {
 	dig_server_t *srv;
@@ -592,19 +628,26 @@ setoption(char *opt) {
 	if (strncasecmp(opt,"all",4) == 0) {
 		show_settings(ISC_TRUE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
-		strncpy(defclass, &opt[6], MXRD);
+		if (testclass(&opt[6]))
+			strncpy(defclass, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "cl=", 3) == 0) {
-		strncpy(defclass, &opt[3], MXRD);
+		if (testclass(&opt[3]))
+			strncpy(defclass, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "type=", 5) == 0) {
-		strncpy(deftype, &opt[5], MXRD);
+		if (testtype(&opt[5]))
+			strncpy(deftype, &opt[5], MXRD);
 	} else if (strncasecmp(opt, "ty=", 3) == 0) {
-		strncpy(deftype, &opt[3], MXRD);
+		if (testtype(&opt[3]))
+			strncpy(deftype, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "querytype=", 10) == 0) {
-		strncpy(deftype, &opt[10], MXRD);
+		if (testtype(&opt[10]))
+			strncpy(deftype, &opt[10], MXRD);
 	} else if (strncasecmp(opt, "query=", 6) == 0) {
-		strncpy(deftype, &opt[6], MXRD);
+		if (testtype(&opt[6]))
+			strncpy(deftype, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "qu=", 3) == 0) {
-		strncpy(deftype, &opt[3], MXRD);
+		if (testtype(&opt[3]))
+			strncpy(deftype, &opt[3], MXRD);
 #if 0
 		/* XXXMWS domain= doesn't work now. */
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
@@ -655,8 +698,18 @@ addlookup(char *opt) {
 		fatal("Memory allocation failure.");
 	lookup->pending = ISC_FALSE;
 	strncpy(lookup->textname, opt, MXNAME-1);
-	strncpy (lookup->rttext, deftype, MXNAME);
-	strncpy (lookup->rctext, defclass, MXNAME);
+	if (istype(deftype))
+		strncpy(lookup->rttext, deftype, MXNAME);
+	else {
+		strcpy(lookup->rttext, "a");
+		printf ("unknown query type: %s\n",deftype);
+	}
+	if (isclass(defclass))
+		strncpy(lookup->rctext, defclass, MXNAME);
+	else {
+		strcpy(lookup->rctext, "in");
+		printf ("unknown query class: %s\n",defclass);
+	}
 	lookup->namespace[0]=0;
 	lookup->sendspace = NULL;
 	lookup->sendmsg=NULL;

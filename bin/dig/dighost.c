@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58.2.10 2000/08/18 20:00:11 gson Exp $ */
+/* $Id: dighost.c,v 1.58.2.11 2000/09/15 22:56:12 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -74,7 +74,8 @@ isc_boolean_t
 	show_details = ISC_FALSE,
 	usesearch = ISC_FALSE,
 	qr = ISC_FALSE,
-	is_dst_up = ISC_FALSE;
+	is_dst_up = ISC_FALSE,
+	ignore = ISC_FALSE;
 
 in_port_t port = 53;
 unsigned int timeout = 0;
@@ -1467,6 +1468,14 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	query->waiting_connect = ISC_FALSE;
 
+       if (sevent->result == ISC_R_CANCELED) {
+               debug("in cancel handler");
+               query->working = ISC_FALSE;
+               query->waiting_connect = ISC_FALSE;
+               isc_event_free(&event);
+               check_next_lookup(query->lookup);
+               return;
+       }
 	if (sevent->result != ISC_R_SUCCESS) {
 		debug("buffer allocate connect_timeout");
 		result = isc_buffer_allocate(mctx, &b, 256);
@@ -1760,15 +1769,22 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			hex_dump(b);
 			query->working = ISC_FALSE;
 			query->waiting_connect = ISC_FALSE;
-			if (!query->lookup->tcp_mode) {
-				printf(";; Retrying in TCP mode.\n");
-				n = requeue_lookup(query->lookup, ISC_TRUE);
-				n->tcp_mode = ISC_TRUE;
-			}
 			dns_message_destroy(&msg);
 			isc_event_free(&event);
-			result_bool = cancel_lookup(query->lookup);
+			cancel_lookup(query->lookup);
 			return;
+		}
+               if (((msg->flags & DNS_MESSAGEFLAG_TC) != 0) 
+                   && !query->lookup->tcp_mode && !ignore) {
+                       printf(";; Truncated, retrying in TCP mode.\n");
+                       n = requeue_lookup(query->lookup, ISC_TRUE);
+                       n->tcp_mode = ISC_TRUE;
+                       query->working = ISC_FALSE;
+                       query->waiting_connect = ISC_FALSE;
+		       dns_message_destroy(&msg);
+		       isc_event_free(&event);
+		       cancel_lookup(query->lookup);
+		       return;
 		}
 		if (key != NULL) {
 			debug("querysig 2 is %p", query->lookup->querysig);
