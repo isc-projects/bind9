@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.c,v 1.11 2001/01/09 21:50:41 bwelling Exp $ */
+/* $Id: callbacks.c,v 1.12 2001/08/08 22:54:37 gson Exp $ */
 
 #include <config.h>
 
@@ -25,7 +25,16 @@
 #include <dns/log.h>
 
 static void
-stdio_error_warn_callback(dns_rdatacallbacks_t *, const char *, ...);
+stdio_error_warn_callback(dns_rdatacallbacks_t *, const char *, ...)
+     ISC_FORMAT_PRINTF(2, 3);
+
+static void
+isclog_error_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(2, 3);
+
+static void
+isclog_warn_callback(dns_rdatacallbacks_t *callbacks, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(2, 3);
 
 /*
  * Private

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.62 2001/06/28 21:34:39 gson Exp $ */
+/* $Id: request.c,v 1.63 2001/08/08 22:54:42 gson Exp $ */
 
 #include <config.h>
 
@@ -120,7 +120,7 @@ static void req_connected(isc_task_t *task, isc_event_t *event);
 static void req_sendevent(dns_request_t *request, isc_result_t result);
 static void req_cancel(dns_request_t *request);
 static void req_destroy(dns_request_t *request);
-static void req_log(int level, const char *fmt, ...);
+static void req_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 static void do_cancel(isc_task_t *task, isc_event_t *event);
 
 /***

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.12 2001/01/22 22:29:04 gson Exp $ */
+/* $Id: lwdclient.h,v 1.13 2001/08/08 22:54:24 gson Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
@@ -224,6 +224,7 @@ void ns_lwdclient_processnoop(ns_lwdclient_t *, lwres_buffer_t *);
 
 void ns_lwdclient_errorpktsend(ns_lwdclient_t *, isc_uint32_t);
 
-void ns_lwdclient_log(int level, const char *format, ...);
+void ns_lwdclient_log(int level, const char *format, ...)
+     ISC_FORMAT_PRINTF(2, 3);
 
 #endif /* NAMED_LWDCLIENT_H */

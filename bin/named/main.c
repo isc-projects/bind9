@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.118 2001/08/08 20:36:13 gson Exp $ */
+/* $Id: main.c,v 1.119 2001/08/08 22:54:20 gson Exp $ */
 
 #include <config.h>
 
@@ -126,6 +126,10 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 
 static void
 library_fatal_error(const char *file, int line, const char *format,
+		    va_list args) ISC_FORMAT_PRINTF(3, 0);
+
+static void
+library_fatal_error(const char *file, int line, const char *format,
 		    va_list args)
 {
 	/*
@@ -159,6 +163,10 @@ library_fatal_error(const char *file, int line, const char *format,
 		abort();
 	exit(1);
 }
+
+static void
+library_unexpected_error(const char *file, int line, const char *format,
+			 va_list args) ISC_FORMAT_PRINTF(3, 0);
 
 static void
 library_unexpected_error(const char *file, int line, const char *format,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: error.c,v 1.15 2001/01/09 21:56:00 bwelling Exp $ */
+/* $Id: error.c,v 1.16 2001/08/08 22:54:49 gson Exp $ */
 
 #include <config.h>
 
@@ -26,10 +26,12 @@
 #include <isc/msgs.h>
 
 static void
-default_unexpected_callback(const char *, int, const char *, va_list);
+default_unexpected_callback(const char *, int, const char *, va_list)
+     ISC_FORMAT_PRINTF(3, 0);
 
 static void
-default_fatal_callback(const char *, int, const char *, va_list);
+default_fatal_callback(const char *, int, const char *, va_list)
+     ISC_FORMAT_PRINTF(3, 0);
 
 static isc_errorcallback_t unexpected_callback = default_unexpected_callback;
 static isc_errorcallback_t fatal_callback = default_fatal_callback;

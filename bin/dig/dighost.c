@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.220 2001/08/06 05:50:20 marka Exp $ */
+/* $Id: dighost.c,v 1.221 2001/08/08 22:54:14 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1601,7 +1601,7 @@ send_tcp_connect(dig_query_t *query) {
 	dig_query_t *next;
 	dig_lookup_t *l;
 
-	debug("send_tcp_connect(%lx)", query);
+	debug("send_tcp_connect(%p)", query);
 
 	l = query->lookup;
 	query->waiting_connect = ISC_TRUE;
@@ -1670,7 +1670,7 @@ send_udp(dig_query_t *query) {
 	dig_query_t *next;
 	isc_result_t result;
 
-	debug("send_udp(%lx)", query);
+	debug("send_udp(%p)", query);
 
 	l = query->lookup;
 	bringup_timer(query, UDP_TIMEOUT);
@@ -2292,7 +2292,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (l->current_query == query)
 			l->current_query = NULL;
 		if (next != NULL) {
-			debug("sending query %lx\n", next);
+			debug("sending query %p\n", next);
 			if (l->tcp_mode)
 				send_tcp_connect(next);
 			else

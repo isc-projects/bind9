@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.14 2001/03/31 02:12:26 bwelling Exp $ */
+/* $Id: dnssectool.h,v 1.15 2001/08/08 22:54:16 gson Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -37,7 +37,7 @@ void
 check_result(isc_result_t result, const char *message);
 
 void
-vbprintf(int level, const char *fmt, ...);
+vbprintf(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 void
 type_format(const dns_rdatatype_t type, char *cp, unsigned int size);

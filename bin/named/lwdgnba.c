@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.12 2001/01/22 22:29:01 gson Exp $ */
+/* $Id: lwdgnba.c,v 1.13 2001/08/08 22:54:19 gson Exp $ */
 
 #include <config.h>
 
@@ -98,7 +98,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			goto out;
 		ns_lwdclient_log(50, "found name '%.*s'",
-				 client->recv_buffer.used - b.used,
+				 (int)(client->recv_buffer.used - b.used),
 				 (char *)(b.base) + b.used);
 		if (gnba->realname == NULL) {
 			gnba->realname = (char *)(b.base) + b.used;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.204 2001/07/15 22:50:24 gson Exp $ */
+/* $Id: socket.c,v 1.205 2001/08/08 22:54:52 gson Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
 #include <isc/condition.h>
+#include <isc/formatcheck.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -272,6 +273,10 @@ static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
 static void
 manager_log(isc_socketmgr_t *sockmgr,
 	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	    const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
+static void
+manager_log(isc_socketmgr_t *sockmgr,
+	    isc_logcategory_t *category, isc_logmodule_t *module, int level,
 	    const char *fmt, ...)
 {
 	char msgbuf[2048];
@@ -288,6 +293,11 @@ manager_log(isc_socketmgr_t *sockmgr,
 		      "sockmgr %p: %s", sockmgr, msgbuf);
 }
 
+static void
+socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
+	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	   isc_msgcat_t *msgcat, int msgset, int message,
+	   const char *fmt, ...) ISC_FORMAT_PRINTF(9, 10);
 static void
 socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 	   isc_logcategory_t *category, isc_logmodule_t *module, int level,

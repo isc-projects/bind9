@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.28 2001/05/15 05:32:53 halley Exp $ */
+/* $Id: t_db.c,v 1.29 2001/08/08 22:54:30 gson Exp $ */
 
 #include <config.h>
 
@@ -563,8 +563,6 @@ t_dns_db_class(char **av) {
 	dns_rdataclass_t	rdataclass;
 	dns_rdataclass_t	db_rdataclass;
 	isc_textregion_t	textregion;
-	isc_buffer_t		isc_buffer;
-	char			buf[CLASSBUFLEN];
 
 	filename = T_ARG(0);
 	class = T_ARG(1);
@@ -612,10 +610,11 @@ t_dns_db_class(char **av) {
 	if (db_rdataclass == rdataclass)
 		result = T_PASS;
 	else {
-		isc_buffer_init(&isc_buffer, buf, CLASSBUFLEN);
-		dns_rdataclass_totext(db_rdataclass, &isc_buffer);
-		t_info("dns_db_class returned %.*s, expected %s\n",
-			isc_buffer.used, isc_buffer.base, class);
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
+		dns_rdataclass_format(db_rdataclass,
+				      classbuf, sizeof(classbuf));
+		t_info("dns_db_class returned %s, expected %s\n",
+		       classbuf, class);
 		result = T_FAIL;
 	}
 
@@ -1894,7 +1893,7 @@ t_dns_db_closeversion_2(char **av) {
 	    (dns_result == DNS_R_NXDOMAIN) ||
 	    (dns_result == DNS_R_NXRRSET)) {
 
-		t_info("dns_db_find %s returned %d\n", existing_name,
+		t_info("dns_db_find %s returned %s\n", existing_name,
 		       dns_result_totext(dns_result));
 		dns_rdataset_disassociate(&found_rdataset);
 		dns_db_detachnode(db, &nodep);

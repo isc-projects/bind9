@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.180 2001/06/11 04:26:41 gson Exp $ */
+/* $Id: adb.c,v 1.181 2001/08/08 22:54:36 gson Exp $ */
 
 /*
  * Implementation notes
@@ -460,6 +460,9 @@ static isc_result_t find_err_map[FIND_ERR_MAX] = {
 	ISC_R_UNEXPECTED,
 	ISC_R_NOTFOUND		/* not YET found */
 };
+
+static void
+DP(int level, const char *format, ...) ISC_FORMAT_PRINTF(2, 3);
 
 static void
 DP(int level, const char *format, ...) {

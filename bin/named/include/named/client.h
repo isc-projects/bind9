@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.58 2001/06/15 23:28:29 gson Exp $ */
+/* $Id: client.h,v 1.59 2001/08/08 22:54:23 gson Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -314,7 +314,7 @@ ns_client_checkacl(ns_client_t  *client,
 void
 ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level,
-	      const char *fmt, ...);
+	      const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
 
 void
 ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdataclass_t rdclass,

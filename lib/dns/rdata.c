@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.146 2001/07/16 09:48:05 bwelling Exp $ */
+/* $Id: rdata.c,v 1.147 2001/08/08 22:54:41 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -166,7 +166,8 @@ static isc_result_t
 atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target);
 
 static void
-default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *, ...);
+default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *, ...)
+     ISC_FORMAT_PRINTF(2, 3);
 
 static void
 fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),

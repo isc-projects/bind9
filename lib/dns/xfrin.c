@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.123 2001/06/07 20:11:30 gson Exp $ */
+/* $Id: xfrin.c,v 1.124 2001/08/08 22:54:46 gson Exp $ */
 
 #include <config.h>
 
@@ -224,13 +224,17 @@ render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
 
 static void
 xfrin_logv(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
-	   isc_sockaddr_t *masteraddr, const char *fmt, va_list ap);
+	   isc_sockaddr_t *masteraddr, const char *fmt, va_list ap)
+     ISC_FORMAT_PRINTF(5, 0);
+
 static void
 xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
-	   isc_sockaddr_t *masteraddr, const char *fmt, ...);
-static void
-xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...);
+	   isc_sockaddr_t *masteraddr, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(5, 6);
 
+static void
+xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
 
 /**************************************************************************/
 /*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.331 2001/07/19 05:08:03 marka Exp $ */
+/* $Id: zone.c,v 1.332 2001/08/08 22:54:48 gson Exp $ */
 
 #include <config.h>
 
@@ -364,8 +364,9 @@ struct dns_io {
 static void zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
 static void zone_debuglog(dns_zone_t *zone, const char *, int debuglevel,
-			  const char *msg, ...);
-static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...);
+			  const char *msg, ...) ISC_FORMAT_PRINTF(4, 5);
+static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
 static void queue_xfrin(dns_zone_t *zone);
 static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
@@ -4554,7 +4555,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_SUCCESS)
 		notify_log(notify->zone, ISC_LOG_DEBUG(3),
 			   "notify response from %s: %.*s",
-			   addrbuf, buf.used, rcode);
+			   addrbuf, (int)buf.used, rcode);
 	else
 		notify_log(notify->zone, ISC_LOG_DEBUG(1),
 			   "notify to %s failed: %s", addrbuf,

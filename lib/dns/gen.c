@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.64 2001/07/16 05:10:20 mayer Exp $ */
+/* $Id: gen.c,v 1.65 2001/08/08 22:54:39 gson Exp $ */
 
 #include <config.h>
 
@@ -84,7 +84,7 @@
 #define DIGESTTYPE "rdata->type"
 #define DIGESTDEF "use_default = ISC_TRUE"
 
-char copyright[] =
+const char copyright[] =
 "/*\n"
 " * Copyright (C) 1998%s Internet Software Consortium.\n"
 " *\n"

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.90 2001/06/04 19:33:15 tale Exp $ */
+/* $Id: validator.c,v 1.91 2001/08/08 22:54:45 gson Exp $ */
 
 #include <config.h>
 
@@ -68,7 +68,8 @@ static inline isc_result_t
 proveunsecure(dns_validator_t *val, isc_boolean_t resume);
 
 static void
-validator_log(dns_validator_t *val, int level, const char *fmt, ...);
+validator_log(dns_validator_t *val, int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
 
 static void
 validator_done(dns_validator_t *val, isc_result_t result) {
@@ -325,7 +326,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 	LOCK(&val->lock);
 	if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "keyset with trust %d", &val->frdataset.trust);
+			      "keyset with trust %d", val->frdataset.trust);
 		/*
 		 * Only extract the dst key if the keyset is secure.
 		 */
@@ -1607,6 +1608,10 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 }
 
 
+static void
+validator_logv(dns_validator_t *val, isc_logcategory_t *category,
+	       isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+     ISC_FORMAT_PRINTF(5, 0);
 
 static void
 validator_logv(dns_validator_t *val, isc_logcategory_t *category,

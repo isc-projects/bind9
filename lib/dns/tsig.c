@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.111 2001/07/26 20:54:35 bwelling Exp $
+ * $Id: tsig.c,v 1.112 2001/08/08 22:54:44 gson Exp $
  */
 
 #include <config.h>
@@ -98,6 +98,10 @@ dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
 
 static isc_result_t
 tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
+
+static void
+tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
 
 static void
 tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {

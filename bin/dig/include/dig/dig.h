@@ -15,16 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.70 2001/07/28 01:01:02 bwelling Exp $ */
+/* $Id: dig.h,v 1.71 2001/08/08 22:54:15 gson Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
 
 #include <dns/rdatalist.h>
+
 #include <dst/dst.h>
+
 #include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
+#include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/list.h>
 #include <isc/mem.h>
@@ -191,10 +194,10 @@ isc_result_t
 get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble);
 
 void
-fatal(const char *format, ...);
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
-debug(const char *format, ...);
+debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
 check_result(isc_result_t result, const char *msg);

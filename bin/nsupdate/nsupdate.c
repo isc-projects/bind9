@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.102 2001/07/26 03:15:10 mayer Exp $ */
+/* $Id: nsupdate.c,v 1.103 2001/08/08 22:54:27 gson Exp $ */
 
 #include <config.h>
 
@@ -141,6 +141,14 @@ typedef struct nsu_requestinfo {
 static void
 sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 	    dns_message_t *msg, dns_request_t **request);
+static void
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+
+static void
+debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+
+static void
+ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 #define STATUS_MORE	(isc_uint16_t)0
 #define STATUS_SEND	(isc_uint16_t)1
@@ -1557,7 +1565,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			fatal("could not talk to specified name server");
 		else if (++ns_inuse >= lwconf->nsnext)
 			fatal("could not talk to any default name server");
-		ddebug("Destroying request [%lx]", request);
+		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(soaquery);
 		sendrequest(localaddr, &servers[ns_inuse], soaquery, &request);

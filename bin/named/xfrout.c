@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.100 2001/06/18 19:04:32 gson Exp $ */
+/* $Id: xfrout.c,v 1.101 2001/08/08 22:54:22 gson Exp $ */
 
 #include <config.h>
 
@@ -1619,6 +1619,12 @@ xfrout_client_shutdown(void *arg, isc_result_t result) {
  * Log outgoing zone transfer messages in a format like
  * <client>: transfer of <zone>: <message>
  */
+
+static void
+xfrout_logv(ns_client_t *client, dns_name_t *zonename,
+	    dns_rdataclass_t rdclass, int level, const char *fmt, va_list ap)
+     ISC_FORMAT_PRINTF(5, 0);
+
 static void
 xfrout_logv(ns_client_t *client, dns_name_t *zonename,
 	    dns_rdataclass_t rdclass, int level, const char *fmt, va_list ap)
@@ -1640,8 +1646,7 @@ xfrout_logv(ns_client_t *client, dns_name_t *zonename,
  */
 static void
 xfrout_log1(ns_client_t *client, dns_name_t *zonename,
-	    dns_rdataclass_t rdclass, int level, const char *fmt, ...)
-{
+	    dns_rdataclass_t rdclass, int level, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	xfrout_logv(client, zonename, rdclass, level, fmt, ap);

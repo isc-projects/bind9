@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.28 2001/04/25 01:23:13 gson Exp $ */
+/* $Id: t_tasks.c,v 1.29 2001/08/08 22:54:33 gson Exp $ */
 
 #include <config.h>
 
@@ -57,7 +57,7 @@ t1_callback(isc_task_t *task, isc_event_t *event) {
 	for (i = 0; i < 1000000; i++)
 		j += 100;
 
-	t_info("task %s\n", event->ev_arg);
+	t_info("task %s\n", (char *)event->ev_arg);
 	isc_event_free(&event);
 }
 
@@ -65,7 +65,7 @@ static void
 t1_shutdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	t_info("shutdown %s\n", event->ev_arg);
+	t_info("shutdown %s\n", (char *)event->ev_arg);
 	isc_event_free(&event);
 }
 
@@ -73,7 +73,7 @@ static void
 my_tick(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	t_info("%s\n", event->ev_arg);
+	t_info("%s\n", (char *)event->ev_arg);
 	isc_event_free(&event);
 }
 
@@ -1316,12 +1316,12 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 	tag_match = 0;
 
 	if (T_debug) {
-		t_info("Event %p,%d,%d,%s\n",
+		t_info("Event %p,%d,%p,%s\n",
 		       event->ev_sender,
 		       (int)event->ev_type,
 		       event->ev_tag,
 		       event->ev_attributes & ISC_EVENTATTR_NOPURGE ?
-		       		"NP" : "P");
+		       "NP" : "P");
 	}
 
 	if ((T10_purge_sender == 0) ||
@@ -1345,13 +1345,13 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 
 	if (sender_match && type_match && tag_match) {
 		if (event->ev_attributes & ISC_EVENTATTR_NOPURGE) {
-			t_info("event %p,%d,%d matched but was not purgable\n",
+			t_info("event %p,%d,%p matched but was not purgable\n",
 				event->ev_sender, (int)event->ev_type,
 			       event->ev_tag);
 			++T10_eventcnt;
 		} else {
-			t_info("*** event %p,%d,%d not purged\n",
-				event->ev_sender, (int)event->ev_type,
+			t_info("*** event %p,%d,%p not purged\n",
+			       event->ev_sender, (int)event->ev_type,
 			       event->ev_tag);
 		}
 	} else {

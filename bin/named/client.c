@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.175 2001/07/26 20:42:38 bwelling Exp $ */
+/* $Id: client.c,v 1.176 2001/08/08 22:54:18 gson Exp $ */
 
 #include <config.h>
 
+#include <isc/formatcheck.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/print.h>
@@ -2246,6 +2247,11 @@ ns_client_name(ns_client_t *client, char *peerbuf, size_t len) {
 	else
 		snprintf(peerbuf, len, "@%p", client);
 }
+
+static void
+ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
+	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
+     ISC_FORMAT_PRINTF(5, 0);
 
 static void
 ns_client_logv(ns_client_t *client, isc_logcategory_t *category,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.100 2001/05/14 23:10:19 gson Exp $ */
+/* $Id: dispatch.c,v 1.101 2001/08/08 22:54:38 gson Exp $ */
 
 #include <config.h>
 
@@ -181,6 +181,10 @@ static void qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 #define LVL(x) ISC_LOG_DEBUG(x)
 
 static void
+mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
+
+static void
 mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
@@ -198,6 +202,10 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 }
 
 static void
+dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
+
+static void
 dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
@@ -213,6 +221,11 @@ dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 		      DNS_LOGCATEGORY_DISPATCH, DNS_LOGMODULE_DISPATCH,
 		      level, "dispatch %p: %s", disp, msgbuf);
 }
+
+static void
+request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
+	    int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(4, 5);
 
 static void
 request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,

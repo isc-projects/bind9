@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.70 2001/06/08 19:16:15 bwelling Exp $
+ * $Id: tkey.c,v 1.71 2001/08/08 22:54:43 gson Exp $
  */
 
 #include <config.h>
@@ -52,6 +52,9 @@
 	if (result != ISC_R_SUCCESS) \
 		goto failure; \
 	} while (0)
+
+static void
+tkey_log(const char *fmt, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
 tkey_log(const char *fmt, ...) {

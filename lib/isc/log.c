@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.69 2001/07/12 05:58:19 mayer Exp $ */
+/* $Id: log.c,v 1.70 2001/08/08 22:54:51 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -232,7 +232,8 @@ static void
 isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	     isc_logmodule_t *module, int level, isc_boolean_t write_once,
 	     isc_msgcat_t *msgcat, int msgset, int msg,
-	     const char *format, va_list args);
+	     const char *format, va_list args)
+     ISC_FORMAT_PRINTF(9, 0);
 
 /*
  * Convenience macros.

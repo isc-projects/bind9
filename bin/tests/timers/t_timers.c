@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.21 2001/04/13 02:19:37 tale Exp $ */
+/* $Id: t_timers.c,v 1.22 2001/08/08 22:54:34 gson Exp $ */
 
 #include <config.h>
 
@@ -792,7 +792,7 @@ t5_tick_event(isc_task_t *task, isc_event_t *event) {
 					     isc_timertype_ticker, &expires,
 					     &interval, ISC_TRUE);
 		if (isc_result != ISC_R_SUCCESS) {
-			t_info("isc_timer_reset failed %d\n",
+			t_info("isc_timer_reset failed %s\n",
 			       isc_result_totext(isc_result));
 			++T5_nfails;
 		}

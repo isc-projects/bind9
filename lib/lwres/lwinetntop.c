@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: lwinetntop.c,v 1.8 2001/01/25 20:10:02 gson Exp $";
+	"$Id: lwinetntop.c,v 1.9 2001/08/08 22:54:54 gson Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -81,7 +81,7 @@ lwres_net_ntop(int af, const void *src, char *dst, size_t size) {
  */
 static const char *
 inet_ntop4(const unsigned char *src, char *dst, size_t size) {
-	static const char *fmt = "%u.%u.%u.%u";
+	static const char fmt[] = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
 
 	if ((size_t)sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) >= size)
