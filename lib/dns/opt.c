@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.6 2000/11/14 23:29:52 bwelling Exp $ */
+/* $Id: opt.c,v 1.7 2000/11/15 23:40:00 tale Exp $ */
 
 #include <config.h>
 
@@ -151,17 +151,18 @@ dns_opt_attrtotext(dns_optattr_t *attr, isc_buffer_t *target,
 		   dns_messagetextflag_t flags) {
 	isc_result_t result = ISC_R_SUCCESS;
 	char store[sizeof("012345678")];
-	isc_boolean_t omit_final_dot;
 #ifdef DNS_OPT_NEWCODES
+	isc_boolean_t omit_final_dot;
 	dns_decompress_t dctx;
 	dns_fixedname_t fname;
 	isc_buffer_t source;
+
+	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
 
 #else /* DNS_OPT_NEWCODES */
 	UNUSED (flags);
 #endif /* DNS_OPT_NEWCODES */
 
-	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
 	switch (attr->code) {
 #ifdef DNS_OPT_NEWCODES
 	case DNS_OPTCODE_ZONE:
@@ -214,14 +215,11 @@ dns_opt_totext(dns_rdataset_t *opt, isc_buffer_t *target,
 	       dns_messagetextflag_t flags) {
 	isc_result_t result, iresult;
 	char buf[sizeof("1234567890")];
-	isc_boolean_t omit_final_dot;
 	dns_optattr_t attr;
 	dns_optlist_t list;
 
 	REQUIRE(DNS_RDATASET_VALID(opt));
 	REQUIRE(target != NULL);
-
-	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
 
 	if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 		ADD_STRING(target, ";; OPT PSEUDOSECTION:\n", fail);
