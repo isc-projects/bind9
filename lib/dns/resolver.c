@@ -2997,6 +2997,35 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	finish = &tnow;
 	isc_stdtime_get(&now);
 
+	/*
+	 * Did the dispatcher have a problem?
+	 */
+	if (devent->result != ISC_R_SUCCESS) {
+		if (devent->result == ISC_R_EOF &&
+		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			/*
+			 * The problem might be that they
+			 * don't understand EDNS0.  Turn it
+			 * off and try again.
+			 */
+			options |= DNS_FETCHOPT_NOEDNS0;
+			resend = ISC_TRUE;
+			/*
+			 * Remember that they don't like EDNS0.
+			 */
+			dns_adb_changeflags(fctx->res->view->adb,
+					    query->addrinfo,
+					    DNS_FETCHOPT_NOEDNS0,
+					    DNS_FETCHOPT_NOEDNS0);
+		} else {
+			/*
+			 * There's no hope for this query.
+			 */
+			keep_trying = ISC_TRUE;
+		}
+		goto done;
+	}
+
 	message = fctx->rmessage;
 	message->querytsig = query->tsig;
 	message->tsigkey = query->tsigkey;
