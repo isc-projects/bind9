@@ -33,7 +33,7 @@ DEPLIBS = 	../../../lib/dns/libdns.@A@ \
 LIBS =		${DEPLIBS} \
 		@LIBS@
 
-TLIB =		../../../lib/tests/libt_api.@A@
+TLIB =		../../../lib/tests/libt_api.a
 
 TARGETS =	dst_test t_dst
 

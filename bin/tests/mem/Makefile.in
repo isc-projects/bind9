@@ -26,8 +26,8 @@ CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-DEPLIBS =	../../../lib/dns/libdns.a \
-		../../../lib/isc/libisc.a \
+DEPLIBS =	../../../lib/dns/libdns.@A@ \
+		../../../lib/isc/libisc.@A@ \
 		../../../lib/tests/libt_api.a 
 
 LIBS =		${DEPLIBS} \
@@ -38,7 +38,7 @@ TARGETS =	t_mem
 @BIND9_MAKE_RULES@
 
 t_mem: t_mem.o ${DEPLIBS}
-	${CC} -o $@ t_mem.o ${LIBS}
+	${LIBTOOL} ${CC} -o $@ t_mem.o ${LIBS}
 
 test:
 	-@./t_mem -c @top_srcdir@/t_config >>@top_srcdir@/bin/tests/t_journal 2>&1
