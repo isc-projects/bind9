@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.4 2004/05/12 02:06:13 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.5 2004/05/20 00:24:27 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4757,10 +4757,9 @@ The default is the empty list.</para>
 
 <varlistentry><term><command>check-names</command></term>
 <listitem><para>
-This option was used in BIND 8 to restrict the character set of
-domain names in master files and/or DNS responses received from the
-network.  BIND 9 does not restrict the character set of domain names
-and does not implement the <command>check-names</command> option.
+This option is used to restrict the character set and syntax of
+certain domain names in master files and/or DNS responses received from the
+network.
 </para>
 </listitem></varlistentry>
 
