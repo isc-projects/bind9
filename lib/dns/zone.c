@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.272 2000/12/07 03:13:01 marka Exp $ */
+/* $Id: zone.c,v 1.273 2000/12/08 19:34:06 marka Exp $ */
 
 #include <config.h>
 
@@ -109,7 +109,7 @@ typedef ISC_LIST(dns_io_t) dns_iolist_t;
 	 do { LOCK(&(z)->lock); (z)->locked = ISC_TRUE; } while (0)
 #define UNLOCK_ZONE(z) \
 	do { (z)->locked = ISC_FALSE; UNLOCK(&(z)->lock); } while (0)
-#define LOCKED_ZONE(z) (z)->locked
+#define LOCKED_ZONE(z) ((z)->locked)
 #else
 #define LOCK_ZONE(z) LOCK(&(z)->lock)
 #define UNLOCK_ZONE(z) UNLOCK(&(z)->lock)
@@ -1497,6 +1497,11 @@ dns_zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 
 static void
 zone_iattach(dns_zone_t *source, dns_zone_t **target) {
+
+	/*
+	 * 'source' locked by caller.
+	 */
+	REQUIRE(LOCKED_ZONE(source));
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
 	source->irefs++;
@@ -1510,6 +1515,9 @@ void
 zone_idetach(dns_zone_t **zonep) {
 	dns_zone_t *zone;
 
+	/*
+	 * 'zone' locked by caller.
+	 */
 	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
 	zone = *zonep;
 	REQUIRE(LOCKED_ZONE(*zonep));
@@ -1966,6 +1974,7 @@ zone_expire(dns_zone_t *zone) {
 	 */
 
 	REQUIRE(LOCKED_ZONE(zone));
+
 	zone_log(zone, "zone_expire", ISC_LOG_WARNING, "expired");
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
@@ -2069,6 +2078,10 @@ static void
 zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	isc_stdtime_t now;
 
+	/*
+	 * 'zone' locked by caller
+	 */
+
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
 
@@ -2099,8 +2112,8 @@ zone_dump(dns_zone_t *zone) {
 	/*
 	 * 'zone' locked by caller.
 	 */
-	REQUIRE(DNS_ZONE_VALID(zone));
 
+	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
 
 	dns_db_currentversion(zone->db, &version);
@@ -2155,8 +2168,9 @@ notify_cancel(dns_zone_t *zone) {
 	dns_notify_t *notify;
 
 	/*
-	 * Locked by caller.
+	 * 'zone' locked by caller.
 	 */
+
 	REQUIRE(LOCKED_ZONE(zone));
 
 	for (notify = ISC_LIST_HEAD(zone->notifies);
@@ -2173,7 +2187,7 @@ static void
 zone_unload(dns_zone_t *zone) {
 
 	/*
-	 * Locked by caller.
+	 * 'zone' locked by caller.
 	 */ 
 
 	REQUIRE(LOCKED_ZONE(zone));
@@ -2495,7 +2509,6 @@ notify_send(dns_notify_t *notify) {
 	 * Zone lock held by caller.
 	 */
 	REQUIRE(DNS_NOTIFY_VALID(notify));
-
 	REQUIRE(LOCKED_ZONE(notify->zone));
 
 	for (ai = ISC_LIST_HEAD(notify->find->list);
@@ -2538,7 +2551,6 @@ zone_notifyforward(dns_zone_t *zone) {
 	 */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-
 	REQUIRE(LOCKED_ZONE(zone));
 
 	DNS_ENTER;
@@ -3668,6 +3680,7 @@ static void
 zone_timer(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "zone_timer";
 	dns_zone_t *zone = (dns_zone_t *)event->ev_arg;
+
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3764,7 +3777,7 @@ cancel_refresh(dns_zone_t *zone) {
 	isc_stdtime_t now;
 
 	/*
-	 * Locked by caller.
+	 * 'zone' locked by caller.
 	 */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -4521,6 +4534,9 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	dns_dbversion_t *ver;
 	isc_result_t result;
 
+	/*
+	 * 'zone' locked by caller.
+	 */
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
 
@@ -5823,6 +5839,7 @@ dns_zone_isforced(dns_zone_t *zone) {
 isc_result_t
 dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on) {
 	isc_result_t result = ISC_R_SUCCESS;	
+
 	LOCK_ZONE(zone);
 	if (on) {
 		if (zone->counters != NULL)
@@ -5863,6 +5880,7 @@ dns_zone_dialup(dns_zone_t *zone) {
 void
 dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+
 	LOCK_ZONE(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_DIALNOTIFY |
 			 DNS_ZONEFLG_DIALREFRESH |
