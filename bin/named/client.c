@@ -198,8 +198,11 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	if (client->view != NULL)
 		dns_view_detach(&client->view);
-	if (client->opt != NULL)
-		client->opt = NULL;
+	if (client->opt != NULL) {
+		INSIST(dns_rdataset_isassociated(client->opt));
+		dns_rdataset_disassociate(client->opt);
+		dns_message_puttemprdataset(client->message, &client->opt);
+	}
 	client->udpsize = 512;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 	if (client->dispevent != NULL) {
@@ -309,6 +312,10 @@ ns_client_send(ns_client_t *client) {
 		result = dns_message_setopt(client->message, client->opt);
 		if (result != ISC_R_SUCCESS)
 			goto done;
+		/*
+		 * XXXRTH dns_message_setopt() should probably do this...
+		 */
+		client->opt = NULL;
 	}
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_QUESTION, 0, 0);
