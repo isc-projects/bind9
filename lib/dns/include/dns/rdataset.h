@@ -112,13 +112,14 @@ struct dns_rdataset {
 };
 
 #define DNS_RDATASETATTR_QUESTION	0x0001
-#define DNS_RDATASETATTR_RENDERED	0x0002		/* used by message.c */
-#define DNS_RDATASETATTR_ANSWERED	0x0004		/* used by server */
-#define DNS_RDATASETATTR_CACHE		0x0008		/* used by resolver */
-#define DNS_RDATASETATTR_ANSWER		0x0010		/* used by resolver */
-#define DNS_RDATASETATTR_ANSWERSIG	0x0020		/* used by resolver */
-#define DNS_RDATASETATTR_EXTERNAL	0x0040		/* used by resolver */
-#define DNS_RDATASETATTR_NCACHE		0x0080		/* used by resolver */
+#define DNS_RDATASETATTR_RENDERED	0x0002		/* Used by message.c */
+#define DNS_RDATASETATTR_ANSWERED	0x0004		/* Used by server. */
+#define DNS_RDATASETATTR_CACHE		0x0008		/* Used by resolver. */
+#define DNS_RDATASETATTR_ANSWER		0x0010		/* Used by resolver. */
+#define DNS_RDATASETATTR_ANSWERSIG	0x0020		/* Used by resolver. */
+#define DNS_RDATASETATTR_EXTERNAL	0x0040		/* Used by resolver. */
+#define DNS_RDATASETATTR_NCACHE		0x0080		/* Used by resolver. */
+#define DNS_RDATASETATTR_CHAINING	0x0100		/* Used by resolver. */
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
