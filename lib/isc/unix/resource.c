@@ -15,9 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.2 2000/11/15 02:11:50 tale Exp $ */
+/* $Id: resource.c,v 1.3 2000/11/15 03:58:53 marka Exp $ */
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/resource.h>
 
 #include <isc/resource.h>
