@@ -237,7 +237,9 @@ main(int argc, char **argv) {
 	lctx = NULL;
         result = isc_log_create(mem, &lctx, &lcfg);
 	INSIST(result == ISC_R_SUCCESS);
+	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
+	dns_log_setcontext(lctx);
 
 	destination.file.stream = stderr;
 	destination.file.name = NULL;

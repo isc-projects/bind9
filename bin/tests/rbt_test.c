@@ -25,6 +25,7 @@
 
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
+#include <dns/result.h>
 
 char *progname;
 isc_mem_t *mctx;

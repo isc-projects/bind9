@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.19 2000/04/29 00:45:24 explorer Exp $ */
+/* $Id: log.c,v 1.20 2000/05/03 21:11:38 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -72,14 +72,21 @@ isc_logmodule_t dns_modules[] = {
 	{ NULL, 		0 }
 };
 
-isc_log_t *dns_lctx;
+isc_log_t *dns_lctx = NULL;
 
 void
-dns_log_init(isc_log_t *lctx) {
-	REQUIRE(dns_lctx == NULL);
+dns_log_init(isc_log_t *lctx)
+{
+	REQUIRE(lctx != NULL);
 
 	isc_log_registercategories(lctx, dns_categories);
 	isc_log_registermodules(lctx, dns_modules);
+}
+
+void
+dns_log_setcontext(isc_log_t *lctx)
+{
+	REQUIRE(dns_lctx == NULL);
 
 	dns_lctx = lctx;
 }

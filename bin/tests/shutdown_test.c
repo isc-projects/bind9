@@ -29,6 +29,7 @@
 #include <isc/thread.h>
 #include <isc/result.h>
 #include <isc/timer.h>
+#include <isc/time.h>
 #include <isc/mutex.h>
 #include <isc/condition.h>
 #include <isc/event.h>

@@ -33,6 +33,7 @@
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
 #include <dns/zt.h>
+#include <dns/result.h>
 
 #define ERRRET(result, function) \
 	do { \

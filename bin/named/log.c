@@ -72,7 +72,9 @@ ns_log_init(isc_boolean_t safe) {
 
 	isc_log_registercategories(ns_g_lctx, ns_g_categories);
 	isc_log_registermodules(ns_g_lctx, ns_g_modules);
+	isc_log_setcontext(ns_g_lctx);
 	dns_log_init(ns_g_lctx);
+	dns_log_setcontext(ns_g_lctx);
 
 	if (safe)
 		result = ns_log_setsafechannels(lcfg);

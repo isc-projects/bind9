@@ -43,6 +43,7 @@
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rootns.h>
+#include <dns/result.h>
 
 typedef struct client client_t;
 struct client {
@@ -294,7 +295,9 @@ main(int argc, char **argv)
 
 	result = isc_log_create(mctx, &lctx, &lcfg);
 	check_result(result, "isc_log_create()");
+	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
+	dns_log_setcontext(lctx);
 
 	/*
 	 * Create and install the default channel.

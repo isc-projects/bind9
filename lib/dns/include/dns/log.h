@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.17 2000/05/02 03:54:08 tale Exp $ */
+/* $Id: log.h,v 1.18 2000/05/03 21:11:40 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -66,7 +66,7 @@ ISC_LANG_BEGINDECLS
 void
 dns_log_init(isc_log_t *lctx);
 /*
- * Make the libdns.a categories and modules available for use with the
+ * Make the libdns categories and modules available for use with the
  * ISC logging library.
  *
  * Requires:
@@ -77,6 +77,18 @@ dns_log_init(isc_log_t *lctx);
  * Ensures:
  * 	The catgories and modules defined above are available for
  * 	use by isc_log_usechannnel() and isc_log_write().
+ */
+
+void
+dns_log_setcontext(isc_log_t *lctx);
+/*
+ * Make the libdns library use the provided context for logging internal
+ * messages.
+ *
+ * Requires:
+ *	lctx is a valid logging context.
+ *
+ *	dns_log_setcontext() is called only once.
  */
 
 ISC_LANG_ENDDECLS

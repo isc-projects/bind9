@@ -43,6 +43,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
+#include <dns/result.h>
 
 #include "printmsg.h"
 

@@ -113,7 +113,9 @@ int main (int argc, char **argv) {
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mem) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_log_create(mem, &log, &logcfg) == ISC_R_SUCCESS);
+	isc_log_setcontext(log);
 	dns_log_init(log);
+	dns_log_setcontext(log);
 	
 	RUNTIME_CHECK(isc_log_usechannel(logcfg, "default_stderr", NULL, NULL)
 		      == ISC_R_SUCCESS);

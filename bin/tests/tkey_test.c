@@ -52,6 +52,8 @@
 #include <dns/keyvalues.h>
 #include <dns/view.h>
 
+#include <dst/result.h>
+
 #define CHECK(str, x) { \
 	if ((x) != ISC_R_SUCCESS) { \
 		printf("%s: %s\n", (str), isc_result_totext(x)); \

@@ -79,7 +79,9 @@ log_init(void) {
 	 * Setup a logging context.
 	 */
 	RUNTIME_CHECK(isc_log_create(mctx, &lctx, &lcfg) == ISC_R_SUCCESS);
+	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
+	dns_log_setcontext(lctx);
 
 	/*
 	 * Create and install the default channel.

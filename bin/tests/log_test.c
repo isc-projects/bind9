@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.12 2000/04/06 20:28:29 tale Exp $ */
+/* $Id: log_test.c,v 1.13 2000/05/03 21:11:26 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -118,7 +118,9 @@ main (int argc, char **argv) {
 	CHECK_ISC(isc_mem_create(0, 0, &mctx));
 	CHECK_ISC(isc_log_create(mctx, &lctx, &lcfg));
 
+	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
+	dns_log_setcontext(lctx);
 
 	/*
 	 * Test isc_log_categorybyname and isc_log_modulebyname.

@@ -1374,7 +1374,9 @@ main(int argc, char *argv[]) {
 	if (verbose > 0) {
 		RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig)
 			      == ISC_R_SUCCESS);
+		isc_log_setcontext(log);
 		dns_log_init(log);
+		dns_log_setcontext(log);
 		RUNTIME_CHECK(isc_log_usechannel(logconfig, "default_stderr",
 						 NULL, NULL) == ISC_R_SUCCESS);
 	}

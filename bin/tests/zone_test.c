@@ -31,6 +31,8 @@
 #include <dns/zone.h>
 #include <dns/rdataclass.h>
 
+#include <dns/result.h>
+
 static int debug = 0;
 static int quiet = 0;
 static int stats = 0;
