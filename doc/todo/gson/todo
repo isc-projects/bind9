@@ -1,13 +1,33 @@
-handle incoming AXFR without using twice the memory by using
-RBT mark bit (with Michael)
+Fix lwres man pages
 
 Inspect dig and nsupdate (with Mike)
+
+RT #199  ""views" test failed on aa"
+
+handle incoming AXFR without using twice the memory by using
+RBT mark bit (with Michael)
 
 Revise the AXFR draft (waiting from input from Microsoft)
 
 Support 64-bit offsets and serials in the journal
+(RT #124 "journalling with large files)
 
 Redo configuration locking using a task system call to
 ensure exclusive access
+
+Check and revise algorithm for retransmitting w/o EDNS0
+(RT #124 "Cannot resolve heavy.etv.go.com")
+
+RT #222 "Documentation: "recursion no" in a view does not hide cache"
+
+RT #176 "Bind-9.0.0rc1 nit, but affects all other ISC source as well"
+
+Update forwarding (16 h)
+
+Rewrite select ARM chapters
+
+
+
+
 
 
