@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.16 1999/10/28 17:53:15 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.17 1999/10/29 03:42:03 halley Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -390,6 +390,12 @@ options_stmt: L_OPTIONS
                         tmpres = callbacks->optscbk(currcfg,
                                                     callbacks->optscbkuap);
                         if (tmpres != ISC_R_SUCCESS) {
+				isc_log_write(logcontext,
+					      DNS_LOGCATEGORY_CONFIG,
+					      DNS_LOGMODULE_CONFIG,
+					      ISC_LOG_CRITICAL,
+					      "options callback failed: %s",
+					      isc_result_totext(tmpres));
                                 YYABORT;
                         }
                 }
@@ -2515,6 +2521,12 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 						    view,
                                                     callbacks->zonecbkuap);
                         if (tmpres != ISC_R_SUCCESS) {
+				isc_log_write(logcontext,
+					      DNS_LOGCATEGORY_CONFIG,
+					      DNS_LOGMODULE_CONFIG,
+					      ISC_LOG_CRITICAL,
+					      "zone callback failed: %s",
+					      isc_result_totext(tmpres));
                                 YYABORT;
                         }
 
