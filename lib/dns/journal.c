@@ -25,7 +25,6 @@
 #include <string.h>
 
 #include <sys/types.h>
-#include <sys/uio.h>
 
 #include <isc/assertions.h>
 #include <isc/error.h>
@@ -75,10 +74,10 @@ decode_uint32(unsigned char *p) {
 
 static void 
 encode_uint32(isc_uint32_t val, unsigned char *p) {
-	p[0] = val >> 24;
-	p[1] = val >> 16;
-	p[2] = val >>  8;
-	p[3] = val >>  0;
+	p[0] = (isc_uint8_t)(val >> 24);
+	p[1] = (isc_uint8_t)(val >> 16);
+	p[2] = (isc_uint8_t)(val >>  8);
+	p[3] = (isc_uint8_t)(val >>  0);
 }
 
 static dns_rdatatype_t
@@ -1491,7 +1490,8 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 		isc_buffer_putuint16(&buffer, t->rdata.type);
 		isc_buffer_putuint16(&buffer, t->rdata.rdclass);
 		isc_buffer_putuint32(&buffer, t->ttl);
-		isc_buffer_putuint16(&buffer, t->rdata.length);
+		INSIST(t->rdata.length < 65536);
+		isc_buffer_putuint16(&buffer, (isc_uint16_t)t->rdata.length);
 		isc_buffer_available(&buffer, &avail);
 		isc_buffer_putmem(&buffer, t->rdata.data, t->rdata.length);		
 	}
