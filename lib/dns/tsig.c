@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.27 1999/10/29 13:56:56 bwelling Exp $
+ * $Id: tsig.c,v 1.28 1999/10/29 20:37:23 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -939,7 +939,6 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 static isc_result_t
 add_initial_keys(dns_c_kdeflist_t *list, isc_mem_t *mctx) {
 	isc_lex_t *lex = NULL;
-	dns_c_kdeflist_t *list;
 	dns_c_kdef_t *key;
 	unsigned char *secret = NULL;
 	int secretlen = 0;
