@@ -15,10 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_p.h,v 1.4 2001/01/09 21:58:29 bwelling Exp $ */
+/* $Id: socket_p.h,v 1.5 2001/01/23 03:07:16 marka Exp $ */
 
 #ifndef ISC_SOCKET_P_H
 #define ISC_SOCKET_P_H
+
+#ifdef ISC_PLATFORM_NEEDSYSSELECTH
+#include <sys/socket.h>
+#endif
 
 void
 isc__socketmgr_getfdsets(fd_set *readset, fd_set *writeset, int *maxfd);
