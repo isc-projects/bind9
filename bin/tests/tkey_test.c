@@ -37,6 +37,8 @@
 #include <isc/socket.h>
 #include <isc/log.h>
 #include <isc/util.h>
+#include <isc/lex.h>
+#include <isc/base64.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -74,6 +76,7 @@ dns_message_t *query, *response, *query2, *response2;
 isc_mem_t *mctx;
 dns_tsigkey_t *tsigkey;
 isc_log_t *log = NULL;
+isc_logconfig_t *logconfig = NULL;
 dns_tsig_keyring_t *ring = NULL;
 dns_tkey_ctx_t *tctx = NULL;
 isc_buffer_t *nonce = NULL;
@@ -187,6 +190,38 @@ buildquery(void) {
 	isc_buffer_t qbuffer;
 	isc_region_t r, inr;
 	isc_result_t result;
+	dns_fixedname_t keyname;
+	dns_tsigkey_t *key = NULL;
+	isc_buffer_t namestr, keybuf, keybufin;
+	isc_lex_t *lex = NULL;
+	unsigned char keydata[3];
+
+	dns_fixedname_init(&keyname);
+	isc_buffer_init(&namestr, "tkeytest.", 9, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&namestr, 9);
+	result = dns_name_fromtext(dns_fixedname_name(&keyname), &namestr,
+				   NULL, ISC_FALSE, NULL);
+	CHECK("dns_name_fromtext", result);
+
+	result = isc_lex_create(mctx, 1024, &lex);
+	CHECK("isc_lex_create", result);
+
+	isc_buffer_init(&keybufin, "1234", 4, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&keybufin, 4);
+	result = isc_lex_openbuffer(lex, &keybufin);
+	CHECK("isc_lex_openbuffer", result);
+
+	isc_buffer_init(&keybuf, keydata, 3, ISC_BUFFERTYPE_TEXT);
+	result = isc_base64_tobuffer(lex, &keybuf, -1);
+	CHECK("isc_base64_tobuffer", result);
+
+	isc_buffer_used(&keybuf, &r);
+
+	result = dns_tsigkey_create(dns_fixedname_name(&keyname),
+				    DNS_TSIG_HMACMD5_NAME,
+				    r.base, r.length, ISC_FALSE,
+				    NULL, 0, 0, mctx, ring, &key);
+	CHECK("dns_tsigkey_create", result);
 
 	result = isc_buffer_allocate(mctx, &nonce, 16, ISC_BUFFERTYPE_BINARY);
 	CHECK("isc_buffer_allocate", result);
@@ -197,6 +232,8 @@ buildquery(void) {
 	query = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 	CHECK("dns_message_create", result);
+
+	query->tsigkey = key;
 
 	result = dns_tkey_builddhquery(query, ourkey, dns_rootname,
 				       DNS_TSIG_HMACMD5_NAME, nonce, 3600);
@@ -318,7 +355,7 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_log_create(mctx, &log) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig) == ISC_R_SUCCESS);
 	ring = NULL;
 	RUNTIME_CHECK(dns_tsigkeyring_create(mctx, &ring) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_tkeyctx_create(mctx, &tctx) == ISC_R_SUCCESS);
@@ -341,6 +378,7 @@ main(int argc, char *argv[]) {
 	result = dst_key_fromfile("client.", 2982, DNS_KEYALG_DH,
 				  DST_TYPE_PRIVATE, mctx, &ourkey);
 	CHECK("dst_key_fromfile", result);
+
 
 	buildquery();
 
