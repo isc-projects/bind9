@@ -41,7 +41,7 @@ struct dns_zt {
 #define VALID_ZT(zt) 		ISC_MAGIC_VALID(zt, ZTMAGIC)
 
 static void auto_detach(void *, void *);
-static void load(dns_zone_t *zone, void *uap);
+static dns_result_t load(dns_zone_t *zone, void *uap);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
@@ -219,17 +219,19 @@ dns_zt_print(dns_zt_t *zt) {
 
 void
 dns_zt_load(dns_zt_t *zt) {
-	dns_zt_apply(zt, load, NULL);
+	(void)dns_zt_apply(zt, ISC_FALSE, load, NULL);
 }
 
-static void
+static dns_result_t
 load(dns_zone_t *zone, void *uap) {
 	uap = uap;
-	(void)dns_zone_load(zone);
+	return (dns_zone_load(zone));
 }
 
-void
-dns_zt_apply(dns_zt_t *zt, void (*action)(dns_zone_t *, void *), void *uap) {
+dns_result_t
+dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
+	     dns_result_t (*action)(dns_zone_t *, void *), void *uap)
+{
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
 	isc_result_t result;
@@ -248,13 +250,21 @@ dns_zt_apply(dns_zt_t *zt, void (*action)(dns_zone_t *, void *), void *uap) {
 		if (result == DNS_R_SUCCESS) {
 			zone = node->data;
 			if (zone != NULL)
-				(action)(zone, uap);
+				result = (action)(zone, uap);
+			if (result != DNS_R_SUCCESS && stop)
+				goto cleanup;	/* don't break */
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	}
+	if (result == DNS_R_NOMORE)
+		result = DNS_R_SUCCESS;
+
+ cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
+
+	return (result);
 }
 
 /***

@@ -132,15 +132,22 @@ void dns_zt_print(dns_zt_t *zt);
  *	'zt' to be valid.
  */
 
-void
-dns_zt_apply(dns_zt_t *zt, void (*action)(dns_zone_t *, void *), void *uap);
+dns_result_t
+dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
+	     dns_result_t (*action)(dns_zone_t *, void *), void *uap);
 
 /*
  * Apply a given 'action' to all zone zones in the table.
+ * If 'stop' is 'ISC_TRUE' then walking the zone tree will stop if
+ * 'action' does not return DNS_R_SUCCESS.
  *
  * Requires:
  *	'zt' to be valid.
  *	'action' to be non NULL.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS if action was applied to all nodes.
+ *	any error code from 'action'.
  */
 
 ISC_LANG_ENDDECLS
