@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.18 2001/05/15 22:05:35 gson Exp $ */
+/* $Id: time.c,v 1.19 2001/09/21 00:11:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -115,7 +115,7 @@ dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
 }
 
 isc_result_t
-dns_time64_fromtext(char *source, isc_int64_t *target) {
+dns_time64_fromtext(const char *source, isc_int64_t *target) {
 	int year, month, day, hour, minute, second;
 	isc_int64_t value;
 	int secs;
@@ -159,7 +159,7 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 }
 
 isc_result_t
-dns_time32_fromtext(char *source, isc_uint32_t *target) {
+dns_time32_fromtext(const char *source, isc_uint32_t *target) {
 	isc_int64_t value64;
 	isc_int32_t value32;
 	isc_result_t result;
