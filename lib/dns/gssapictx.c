@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.1 2004/12/09 01:41:03 marka Exp $ */
+/* $Id: gssapictx.c,v 1.1.4.1 2004/12/09 04:07:17 marka Exp $ */
 
 #include <config.h>
 

@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.1 2004/12/09 01:41:00 marka Exp $
+ * $Id: dst_api.c,v 1.1.4.1 2004/12/09 04:07:16 marka Exp $
  */
 
 #include <config.h>
@@ -69,6 +69,10 @@ static dst_key_t *	get_key_struct(dns_name_t *name,
 				       unsigned int bits,
 				       dns_rdataclass_t rdclass,
 				       isc_mem_t *mctx);
+static isc_result_t	read_public_key(const char *filename,
+					int type,
+					isc_mem_t *mctx,
+					dst_key_t **keyp);
 static isc_result_t	write_public_key(const dst_key_t *key, int type,
 					 const char *directory);
 static isc_result_t	buildfilename(dns_name_t *name,
@@ -388,15 +392,7 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
-	newfilenamelen = strlen(filename) + 5;
-	newfilename = isc_mem_get(mctx, newfilenamelen);
-	if (newfilename == NULL)
-		return (ISC_R_NOMEMORY);
-	result = addsuffix(newfilename, newfilenamelen, filename, ".key");
-	INSIST(result == ISC_R_SUCCESS);
-
-	result = dst_key_read_public(newfilename, type, mctx, &pubkey);
-	isc_mem_put(mctx, newfilename, newfilenamelen);
+	result = read_public_key(filename, type, mctx, &pubkey);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -829,9 +825,9 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 /*
  * Reads a public key from disk
  */
-isc_result_t
-dst_key_read_public(const char *filename, int type,
-		    isc_mem_t *mctx, dst_key_t **keyp)
+static isc_result_t
+read_public_key(const char *filename, int type,
+		isc_mem_t *mctx, dst_key_t **keyp)
 {
 	u_char rdatabuf[DST_KEY_MAXSIZE];
 	isc_buffer_t b;
@@ -841,16 +837,25 @@ dst_key_read_public(const char *filename, int type,
 	isc_result_t ret;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
+	char *newfilename;
+	unsigned int newfilenamelen;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 	isc_lexspecials_t specials;
 	isc_uint32_t ttl;
 	isc_result_t result;
 	dns_rdatatype_t keytype;
 
+	newfilenamelen = strlen(filename) + 5;
+	newfilename = isc_mem_get(mctx, newfilenamelen);
+	if (newfilename == NULL)
+		return (ISC_R_NOMEMORY);
+	ret = addsuffix(newfilename, newfilenamelen, filename, ".key");
+	INSIST(ret == ISC_R_SUCCESS);
+
 	/*
 	 * Open the file and read its formatted contents
 	 * File format:
-	 *    domain.name [ttl] [class] [KEY|DNSKEY] <flags> <protocol> <algorithm> <key>
+	 *    domain.name [ttl] [class] KEY <flags> <protocol> <algorithm> <key>
 	 */
 
 	/* 1500 should be large enough for any key */
@@ -865,7 +870,7 @@ dst_key_read_public(const char *filename, int type,
 	isc_lex_setspecials(lex, specials);
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
-	ret = isc_lex_openfile(lex, filename);
+	ret = isc_lex_openfile(lex, newfilename);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -937,6 +942,8 @@ dst_key_read_public(const char *filename, int type,
  cleanup:
 	if (lex != NULL)
 		isc_lex_destroy(&lex);
+	isc_mem_put(mctx, newfilename, newfilenamelen);
+
 	return (ret);
 }
 
