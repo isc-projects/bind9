@@ -8,13 +8,13 @@ Reload / reconfig to rndc
 
 Incremental zone file dumping
 
-Dumping zones on exit
+# Dumping zones on exit
 
-load master -> zone manager
+# load master -> zone manager
 
 # Add $GENERATE to master.c
 
-Add the ablility to specify the source address to request
+# Add the ablility to specify the source address to request
 
 Fix dns_xfer
 
