@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.22.2.1.10.3 2003/08/27 02:33:42 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.22.2.1.10.4 2003/08/27 03:15:26 marka Exp $ */
 
 #include <config.h>
 
@@ -111,7 +111,9 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
  * Include system-dependent code.
  */
 
-#if HAVE_IFLIST_SYSCTL
+#if HAVE_GETIFADDRS
+#include "ifiter_getifaddrs.c"
+#elif HAVE_IFLIST_SYSCTL
 #include "ifiter_sysctl.c"
 #else
 #include "ifiter_ioctl.c"
@@ -177,7 +179,8 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
 	REQUIRE(VALID_IFITER(iter));
 
 	internal_destroy(iter);
-	isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
+	if (iter->buf != NULL)
+		isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
 
 	iter->magic = 0;
 	isc_mem_put(iter->mctx, iter, sizeof *iter);

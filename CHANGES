@@ -6,6 +6,12 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1454.	[port]		Use getifaddrs() if available for interface scanning.
+			--disable-getifaddrs to override.  Glibc currently
+			has a getifaddrs() that does not support IPv6.
+			Use --enable-getifaddrs=glibc to force the use of
+			this version under linux machines.
+
 1446.	[func]		Implemented undocumented alternate transfer sources
 			from BIND 8.  See use-alt-transfer-source,
 			alt-transfer-source and alt-transfer-source-v6.
