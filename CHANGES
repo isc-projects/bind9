@@ -1,3 +1,6 @@
+1747.	[bug]		BIND 8 compatability: named/named-checkconf failed
+			to parse "host-statistics-max" in named.conf.
+
 1744.	[bug]		If tuple2msgname() failed to convert a tuple to
 			a name a REQUIRE could be triggered. [RT #12796]
 

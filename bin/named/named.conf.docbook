@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.6.1 2004/08/21 06:44:31 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.6.2 2004/10/17 23:19:27 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -165,6 +165,7 @@ options {
 	files <replaceable>size</replaceable>;
 	heartbeat-interval <replaceable>integer</replaceable>;
 	host-statistics <replaceable>boolean</replaceable>; // not implemented
+	host-statistics-max <replaceable>number</replaceable>; // not implemented
 	interface-interval <replaceable>integer</replaceable>;
 	listen-on <optional> port <replaceable>integer</replaceable> </optional> { <replaceable>address_match_element</replaceable>; ... };
 	listen-on-v6 <optional> port <replaceable>integer</replaceable> </optional> { <replaceable>address_match_element</replaceable>; ... };
