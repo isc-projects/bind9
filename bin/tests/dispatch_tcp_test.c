@@ -155,7 +155,7 @@ start_response(void)
 	isc_sockaddr_t from;
 	dns_message_t *msg;
 	isc_result_t result;
-	dns_name_t name;
+	dns_name_t *name;
 	unsigned char namebuf[255];
 	isc_buffer_t target;
 	isc_buffer_t source;
@@ -169,10 +169,6 @@ start_response(void)
 	isc_buffer_setactive(&source, strlen(QUESTION));
 	isc_buffer_init(&target, namebuf, sizeof(namebuf),
 			ISC_BUFFERTYPE_BINARY);
-	dns_name_init(&name, NULL);
-	result = dns_name_fromtext(&name, &source, dns_rootname, ISC_FALSE,
-				   &target);
-	CHECKRESULT(result, "dns_name_fromtext()");
 
 	memset(&from, 0, sizeof(from));
 	from.length = sizeof(struct sockaddr_in);
@@ -188,7 +184,16 @@ start_response(void)
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &msg);
 	CHECKRESULT(result, "dns_message_create()");
 
-	dns_message_addname(msg, &name, DNS_SECTION_QUESTION);
+	name = NULL;
+	result = dns_message_gettempname(msg, &name);
+	CHECKRESULT(result, "dns_message_gettempname()");
+
+	dns_name_init(name, NULL);
+	result = dns_name_fromtext(name, &source, dns_rootname, ISC_FALSE,
+				   &target);
+	CHECKRESULT(result, "dns_name_fromtext()");
+
+	dns_message_addname(msg, name, DNS_SECTION_QUESTION);
 
 	rdatalist.rdclass = dns_rdataclass_in;
 	rdatalist.type = dns_rdatatype_a;
@@ -199,7 +204,7 @@ start_response(void)
 	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
 	CHECKRESULT(result, "dns_rdatalist_tordataset()");
 
-	ISC_LIST_APPEND(name.list, &rdataset, link);
+	ISC_LIST_APPEND(name->list, &rdataset, link);
 
 	result = printmessage(msg);
 	CHECKRESULT(result, "printmessage()");

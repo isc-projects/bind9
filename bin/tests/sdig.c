@@ -219,8 +219,9 @@ main(int argc, char *argv[]) {
 	char *server;
 	unsigned int port;
 	isc_boolean_t vc, have_name, have_type, edns0;
-	dns_fixedname_t fname;
 	dns_name_t *name;
+	static unsigned char *namedata[512];
+	isc_buffer_t namebuffer;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass, nclass;
 	size_t len;
@@ -273,11 +274,16 @@ main(int argc, char *argv[]) {
 	rdclass = dns_rdataclass_in;
 	edns0 = ISC_FALSE;
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
 	message = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 	check_result(result, "dns_message_create()");
+	name = NULL;
+	result = dns_message_gettempname(message, &name);
+	check_result(result, "dns_message_gettempname()");
+	dns_name_init(name, NULL);
+
+	isc_buffer_init(&namebuffer, namedata, sizeof(namedata),
+			ISC_BUFFERTYPE_BINARY);
 
 	printf("\n; <<>> sdig <<>>");
 	for (i = 1; i < argc; i++) {
@@ -308,7 +314,7 @@ main(int argc, char *argv[]) {
 				result = dns_name_fromtext(name, &b,
 							   dns_rootname,
 							   ISC_FALSE,
-							   NULL);
+							   &namebuffer);
 				check_result(result, "dns_name_fromtext()");
 				have_name = ISC_TRUE;
 			} else {
