@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.29 2000/08/01 01:22:31 tale Exp $ */
+/* $Id: masterdump.c,v 1.30 2000/08/03 19:50:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -134,6 +134,21 @@ dns_master_style_default = {
 	DNS_STYLEFLAG_REL_DATA |
 	DNS_STYLEFLAG_OMIT_TTL |
 	DNS_STYLEFLAG_TTL |
+	DNS_STYLEFLAG_COMMENT |
+	DNS_STYLEFLAG_MULTILINE,
+	24, 32, 32, 40, 80, 8
+};
+
+/*
+ * A master file style that prints TTL values on each record line,
+ * never using $TTL statements.
+ */
+const dns_master_style_t
+dns_master_style_explicitttl = {
+	DNS_STYLEFLAG_OMIT_OWNER |
+	DNS_STYLEFLAG_OMIT_CLASS |
+	DNS_STYLEFLAG_REL_OWNER |
+	DNS_STYLEFLAG_REL_DATA |
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_MULTILINE,
 	24, 24, 24, 32, 80, 8
@@ -800,6 +815,85 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	}
 
 	result = dns_master_dumptostream(mctx, db, version, style, f);
+
+	result = isc_stdio_close(f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: close: %s", filename,
+			      isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
+
+	return (result);
+}
+
+/*
+ * Dump a database node into a master file.
+ */
+isc_result_t
+dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
+			    dns_dbversion_t *version,
+			    dns_dbnode_t *node, dns_name_t *name,
+			    const dns_master_style_t *style,
+			    FILE *f)
+{
+	isc_result_t result;
+	isc_buffer_t buffer;
+	char *bufmem;
+	isc_stdtime_t now;
+	dns_totext_ctx_t ctx;
+	dns_rdatasetiter_t *rdsiter = NULL;
+
+	result = totext_ctx_init(style, &ctx);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "could not set master file style");
+		return (ISC_R_UNEXPECTED);
+	}
+
+	isc_stdtime_get(&now);
+
+	bufmem = isc_mem_get(mctx, initial_buffer_length);
+	if (bufmem == NULL)
+		return (ISC_R_NOMEMORY);
+
+	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
+
+	result = dns_db_allrdatasets(db, node, version, now, &rdsiter);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+	result = dump_rdatasets(mctx, name, rdsiter, &ctx, &buffer, f);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+	dns_rdatasetiter_destroy(&rdsiter);
+
+	result = ISC_R_SUCCESS;
+
+ failure:
+	isc_mem_put(mctx, buffer.base, buffer.length);
+	return (result);
+}
+
+isc_result_t
+dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
+		    dns_dbnode_t *node, dns_name_t *name,
+		    const dns_master_style_t *style, const char *filename)
+{
+	FILE *f = NULL;
+	isc_result_t result;
+
+	result = isc_stdio_open(filename, "w", &f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping node to file: %s: open: %s", filename,
+			      isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
+
+	result = dns_master_dumpnodetostream(mctx, db, version, node, name,
+					     style, f);
 
 	result = isc_stdio_close(f);
 	if (result != ISC_R_SUCCESS) {

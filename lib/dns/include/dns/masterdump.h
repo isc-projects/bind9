@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.12 2000/08/01 01:24:20 tale Exp $ */
+/* $Id: masterdump.h,v 1.13 2000/08/03 19:50:11 bwelling Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -53,6 +53,7 @@ ISC_LANG_BEGINDECLS
  * The default masterfile style.
  */
 extern const dns_master_style_t dns_master_style_default;
+extern const dns_master_style_t dns_master_style_explicitttl;
 
 
 /***
@@ -94,6 +95,18 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
  * 	Any database or rrset iterator error.
  *	Any dns_rdata_totext() error code.
  */
+
+isc_result_t
+dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
+			    dns_dbversion_t *version,
+			    dns_dbnode_t *node, dns_name_t *name,
+			    const dns_master_style_t *style,
+			    FILE *f);
+
+isc_result_t
+dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
+		    dns_dbnode_t *node, dns_name_t *name,
+		    const dns_master_style_t *style, const char *filename);
 
 ISC_LANG_ENDDECLS
 
