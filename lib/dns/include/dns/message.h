@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.90 2001/02/02 22:05:04 gson Exp $ */
+/* $Id: message.h,v 1.91 2001/02/13 01:02:59 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -59,11 +59,12 @@
  *
  * The same applies to rdatasets.
  *
- * On the other hand, rdatalists and rdatas allocated using
+ * On the other hand, offsets, rdatalists and rdatas allocated using
  * dns_message_gettemp*() will always be freed automatically
  * when the message is reset or destroyed; calling dns_message_puttemp*()
- * on these is optional and serves only to enable the item to be reused
- * multiple times during the lifetime of the message.
+ * on rdatalists and rdatas is optional and serves only to enable the item
+ * to be reused multiple times during the lifetime of the message; offsets
+ * cannot be reused.
  *
  * Buffers allocated using isc_buffer_allocate() can be automatically freed
  * as well by giving the buffer to the message using dns_message_takebuffer().
@@ -206,6 +207,7 @@ struct dns_message {
 
 	ISC_LIST(dns_msgblock_t)	rdatas;
 	ISC_LIST(dns_msgblock_t)	rdatalists;
+	ISC_LIST(dns_msgblock_t)	offsets;
 
 	ISC_LIST(dns_rdata_t)		freerdata;
 	ISC_LIST(dns_rdatalist_t)	freerdatalist;
@@ -734,6 +736,23 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
  * one of the message's sections before the message is destroyed.
  *
  * It is the caller's responsibility to initialize this name.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item == NULL
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		-- All is well.
+ *	ISC_R_NOMEMORY		-- No item can be allocated.
+ */
+
+isc_result_t
+dns_message_gettempoffsets(dns_message_t *msg, dns_offsets_t **item);
+/*
+ * Return an offsets array that can be used for any temporary purpose,
+ * such as attaching to a temporary name.  The offsets will be freed
+ * when the message is destroyed or reset.
  *
  * Requires:
  *	msg be a valid message
