@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.17 2001/04/12 21:23:21 tale Exp $ */
+/* $Id: netaddr.c,v 1.18 2001/04/14 00:20:07 tale Exp $ */
 
 #include <config.h>
 
@@ -265,7 +265,7 @@ isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s) {
 	DE_CONST(s, src);	/* Must come before IN6_IS_ADDR_V4MAPPED. */
 
 	REQUIRE(s->family == AF_INET6);
-	REQUIRE(IN6_IS_ADDR_V4MAPPED(&s->type.in6));
+	REQUIRE(IN6_IS_ADDR_V4MAPPED(&src->type.in6));
 
 	memset(t, 0, sizeof(*t));
 	t->family = AF_INET;
