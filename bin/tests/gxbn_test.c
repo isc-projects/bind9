@@ -73,5 +73,5 @@ main(int argc, char **argv) {
 			freehostent(he);
 		argv++;
 	}
-	exit(0);
+	return (0);
 }
