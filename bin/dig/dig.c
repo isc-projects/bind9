@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.10 2004/09/06 06:23:47 marka Exp $ */
+/* $Id: dig.c,v 1.186.18.11 2004/09/16 01:02:17 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1338,7 +1338,7 @@ getaddresses(dig_lookup_t *lookup, const char *host) {
 	isc_result_t result;
 	isc_sockaddr_t sockaddrs[DIG_MAX_ADDRESSES];
 	isc_netaddr_t netaddr;
-	unsigned int count, i;
+	int count, i;
 	dig_server_t *srv;
 	char tmp[ISC_NETADDR_FORMATSIZE];
 

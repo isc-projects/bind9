@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.130.18.3 2004/06/17 01:42:36 marka Exp $ */
+/* $Id: nsupdate.c,v 1.130.18.4 2004/09/16 01:02:18 marka Exp $ */
 
 #include <config.h>
 
@@ -627,7 +627,7 @@ parse_args(int argc, char **argv) {
 				exit(1);
 			}
 			if (timeout == 0)
-				timeout = ULONG_MAX;
+				timeout = UINT_MAX;
 			break;
 		case 'u':
 			result = isc_parse_uint32(&udp_timeout,
@@ -637,7 +637,7 @@ parse_args(int argc, char **argv) {
 				exit(1);
 			}
 			if (udp_timeout == 0)
-				udp_timeout = ULONG_MAX;
+				udp_timeout = UINT_MAX;
 			break;
 		case 'r':
 			result = isc_parse_uint32(&udp_retries,

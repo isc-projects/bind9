@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.2 2004/08/28 06:20:14 marka Exp $ */
+/* $Id: print.c,v 1.2.2.2 2004/09/16 01:02:20 marka Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 #include <stdio.h>		/* for sprintf */
+#include <string.h>
 
 #define	LWRES__PRINT_SOURCE	/* Used to get the lwres_print_* prototypes. */
 
@@ -96,7 +97,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 
 	while (*format != '\0') {
 		if (*format != '%') {
-			if (size > 1) {
+			if (size > 1U) {
 				*str++ = *format;
 				size--;
 			}
@@ -170,7 +171,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		case '\0':
 			continue;
 		case '%':
-			if (size > 1) {
+			if (size > 1U) {
 				*str++ = *format;
 				size--;
 			}
@@ -312,28 +313,28 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				count += strlen(head) + strlen(buf) + pad +
 					 zeropad;
 				if (!left) {
-					while (pad > 0 && size > 1) {
+					while (pad > 0 && size > 1U) {
 						*str++ = ' ';
 						size--;
 						pad--;
 					}
 				}
 				cp = head;
-				while (*cp != '\0' && size > 1) {
+				while (*cp != '\0' && size > 1U) {
 					*str++ = *cp++;
 					size--;
 				}
-				while (zeropad > 0 && size > 1) {
+				while (zeropad > 0 && size > 1U) {
 					*str++ = '0';
 					size--;
 					zeropad--;
 				}
 				cp = buf;
-				while (*cp != '\0' && size > 1) {
+				while (*cp != '\0' && size > 1U) {
 					*str++ = *cp++;
 					size--;
 				}
-				while (pad > 0 && size > 1) {
+				while (pad > 0 && size > 1U) {
 					*str++ = ' ';
 					size--;
 					pad--;
@@ -369,24 +370,24 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			}
 			count += pad + length;
 			if (!left)
-				while (pad > 0 && size > 1) {
+				while (pad > 0 && size > 1U) {
 					*str++ = ' ';
 					size--;
 					pad--;
 				}
 			if (precision != 0)
 				while (precision > 0 && *cp != '\0' &&
-				       size > 1) {
+				       size > 1U) {
 					*str++ = *cp++;
 					size--;
 					precision--;
 				}
 			else
-				while (*cp != '\0' && size > 1) {
+				while (*cp != '\0' && size > 1U) {
 					*str++ = *cp++;
 					size--;
 				}
-			while (pad > 0 && size > 1) {
+			while (pad > 0 && size > 1U) {
 				*str++ = ' ';
 				size--;
 				pad--;
@@ -401,17 +402,17 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					*str++ = c;
 					size--;
 				}
-				while (width-- > 0 && size > 1) {
+				while (width-- > 0 && size > 1U) {
 					*str++ = ' ';
 					size--;
 				}
-				if (!left && size > 1) {
+				if (!left && size > 1U) {
 					*str++ = c;
 					size--;
 				}
 			} else {
 				count++;
-				if (size > 1) {
+				if (size > 1U) {
 					*str++ = c;
 					size--;
 				}
@@ -430,7 +431,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			}
 			count += length + pad + zeropad;
 			if (!left)
-				while (pad > 0 && size > 1) {
+				while (pad > 0 && size > 1U) {
 					*str++ = ' ';
 					size--;
 					pad--;
@@ -438,25 +439,25 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			cp = buf;
 			if (zeropad > 0 && buf[0] == '0' &&
 			    (buf[1] == 'x' || buf[1] == 'X')) {
-				if (size > 1) {
+				if (size > 1U) {
 					*str++ = *cp++;
 					size--;
 				}
-				if (size > 1) {
+				if (size > 1U) {
 					*str++ = *cp++;
 					size--;
 				}
-				while (zeropad > 0 && size > 1) {
+				while (zeropad > 0 && size > 1U) {
 					*str++ = '0';
 					size--;
 					zeropad--;
 				}
 			}
-			while (*cp != '\0' && size > 1) {
+			while (*cp != '\0' && size > 1U) {
 				*str++ = *cp++;
 				size--;
 			}
-			while (pad > 0 && size > 1) {
+			while (pad > 0 && size > 1U) {
 				*str++ = ' ';
 				size--;
 				pad--;
@@ -522,17 +523,17 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				}
 				count += length + pad;
 				if (!left)
-					while (pad > 0 && size > 1) {
+					while (pad > 0 && size > 1U) {
 						*str++ = ' ';
 						size--;
 						pad--;
 					}
 				cp = buf;
-				while (*cp != ' ' && size > 1) {
+				while (*cp != ' ' && size > 1U) {
 					*str++ = *cp++;
 					size--;
 				}
-				while (pad > 0 && size > 1) {
+				while (pad > 0 && size > 1U) {
 					*str++ = ' ';
 					size--;
 					pad--;
@@ -547,7 +548,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		}
 		format++;
 	}
-	if (size > 0)
+	if (size > 0U)
 		*str = '\0';
 	return (count);
 }

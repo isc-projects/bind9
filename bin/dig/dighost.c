@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.5 2004/09/06 01:32:28 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.6 2004/09/16 01:02:17 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -573,7 +573,7 @@ set_nameserver(char *opt) {
 	isc_result_t result;
 	isc_sockaddr_t sockaddrs[DIG_MAX_ADDRESSES];
 	isc_netaddr_t netaddr;
-	unsigned int count, i;
+	int count, i;
 	dig_server_t *srv;
 	char tmp[ISC_NETADDR_FORMATSIZE];
 
