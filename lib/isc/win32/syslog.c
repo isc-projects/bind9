@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.4 2001/11/27 00:56:24 gson Exp $ */
+/* $Id: syslog.c,v 1.5 2002/08/01 03:43:31 mayer Exp $ */
 
 #include <config.h>
 
@@ -78,7 +78,7 @@ isc_syslog_facilityfromstring(const char *str, int *facilityp) {
 	REQUIRE(str != NULL);
 	REQUIRE(facilityp != NULL);
 
-	for (i = 0; facilities[i].strval != NULL; i++) {
+	for (i = 0 ; facilities[i].strval != NULL ; i++) {
 		if (strcasecmp(facilities[i].strval, str) == 0) {
 			*facilityp = facilities[i].val;
 			return (ISC_R_SUCCESS);
@@ -159,4 +159,20 @@ InitNTLogging(FILE *stream, int debug) {
 	log_stream = stream;
 	ModifyLogLevel(debug);
 }
+/*
+ * This function is for reporting errors to the application
+ * event log in case the regular syslog is not available
+ * mainly during startup. It should not be used under normal
+ * circumstances.
+ */
+void
+NTReportError(const char *name, const char *str) {
+	HANDLE hNTAppLog = NULL;
 
+	hNTAppLog = RegisterEventSource(NULL, name);
+
+	ReportEvent(hNTAppLog, EVENTLOG_ERROR_TYPE, 0,
+		    BIND_ERR_MSG, NULL, 1, 0,(LPCSTR *) str, NULL);
+
+	DeregisterEventSource(hNTAppLog);
+}
