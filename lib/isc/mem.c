@@ -438,6 +438,20 @@ isc_mem_free(isc_mem_t *ctx, void *ptr) {
 	isc_mem_put(ctx, si, si->size);
 }
 
+char *
+isc_mem_strdup(isc_mem_t *mctx, const char *s) {
+	size_t len;
+	char *ns;
+
+	len = strlen(s);
+	ns = isc_mem_allocate(mctx, len + 1);
+	if (ns == NULL)
+		return (NULL);
+	strncpy(ns, s, len + 1);
+	
+	return (ns);
+}
+
 #ifdef ISC_MEMCLUSTER_LEGACY
 
 /*
