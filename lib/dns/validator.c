@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.115 2004/01/14 02:06:50 marka Exp $ */
+/* $Id: validator.c,v 1.116 2004/01/20 14:19:42 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
