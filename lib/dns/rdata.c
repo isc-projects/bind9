@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.32 1999/02/10 05:25:37 marka Exp $ */
+ /* $Id: rdata.c,v 1.33 1999/02/12 03:08:44 marka Exp $ */
 
 #include <config.h>
 
@@ -345,6 +345,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 		if (iresult != ISC_R_SUCCESS) {
 			if (result == DNS_R_SUCCESS) {
 				switch (iresult) {
+				case ISC_R_NOMEMORY:
+					result = DNS_R_NOMEMORY;
+					break;
 				case ISC_R_NOSPACE:
 					result = DNS_R_NOSPACE;
 					break;
@@ -785,7 +788,7 @@ static isc_uint32_t
 uint32_fromregion(isc_region_t *region) {
 	unsigned long value;
 	
-	INSIST(region->length >= 4);
+	REQUIRE(region->length >= 4);
 	value = region->base[0] << 24;
 	value |= region->base[1] << 16;
 	value |= region->base[2] << 8;
@@ -796,7 +799,7 @@ uint32_fromregion(isc_region_t *region) {
 static isc_uint16_t
 uint16_fromregion(isc_region_t *region) {
 	
-	INSIST(region->length >= 2);
+	REQUIRE(region->length >= 2);
 
 	return ((region->base[0] << 8) | region->base[1]);
 }
@@ -816,6 +819,8 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	switch (result) {
 	case ISC_R_SUCCESS:
 		break;
+	case ISC_R_NOMEMORY:
+		return (DNS_R_NOMEMORY);
 	case ISC_R_NOSPACE:
 		return (DNS_R_NOSPACE);
 	default:
@@ -835,9 +840,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
                 if (token->type == isc_tokentype_eol ||
                     token->type == isc_tokentype_eof)
                         return (DNS_R_UNEXPECTEDEND);
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-			"isc_lex_gettoken() returned unexpected token type\n");
-                return (DNS_R_UNEXPECTED);
+                return (DNS_R_UNEXPECTEDTOKEN);
         }
 	return (DNS_R_SUCCESS);
 }
@@ -956,15 +959,15 @@ base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		tr = &token.value.as_textregion;
 		for (i = 0 ;i < tr->length; i++) {
 			if (seen_end)
-				return (DNS_R_SYNTAX);
+				return (DNS_R_BADBASE64);
 			if ((s = strchr(base64, tr->base[i])) == NULL)
-				return (DNS_R_SYNTAX);
+				return (DNS_R_BADBASE64);
 			val[digits++] = s - base64;
 			if (digits == 4) {
 				if (val[0] == 64 || val[1] == 64)
-					return (DNS_R_SYNTAX);
+					return (DNS_R_BADBASE64);
 				if (val[2] == 64 && val[3] != 64)
-					return (DNS_R_SYNTAX);
+					return (DNS_R_BADBASE64);
 				n = (val[2] == 64) ? 1 :
 				    (val[3] == 64) ? 2 : 3;
 				if (n != 3) {
@@ -980,7 +983,7 @@ base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 				RETERR(mem_tobuffer(target, buf, n));
 				if (length >= 0)
 					if (n > length)
-						return (DNS_R_SYNTAX);
+						return (DNS_R_BADBASE64);
 					else
 						length -= n;
 				digits = 0;
@@ -991,8 +994,8 @@ base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		isc_lex_ungettoken(lexer, &token);
 	if (length > 0)
 		return (DNS_R_UNEXPECTEDEND);
-	if (digits)
-		return (DNS_R_SYNTAX);
+	if (digits != 0)
+		return (DNS_R_BADBASE64);
 	return (DNS_R_SUCCESS);
 }
 
