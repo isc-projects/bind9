@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.17 2001/02/27 01:49:46 bwelling Exp $ */
+/* $Id: cfg.h,v 1.18 2001/02/28 20:54:03 bwelling Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -33,6 +33,7 @@
  *** Imports
  ***/
 
+#include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 #include <isc/list.h>
@@ -359,8 +360,8 @@ void cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
  */
 
 void
-cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level,
-	    const char *fmt, ...);
+cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...)
+	ISC_FORMAT_PRINTF(4, 5);
 /*
  * Log a message concerning configuration object 'obj' to the logging
  * channel of 'pctx', at log level 'level'.  The message will be prefixed
