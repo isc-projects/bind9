@@ -17,9 +17,6 @@ rt5299		open		marka
 rt5456		review		explorer
 rt9976		review		jakob
 rt10131		review		jakob
-rt10132		review		jakob
-rt10133		review		jakob
-rt10134		review		jakob
 
 a6_remove	closed
 adb_race	closed		explorer
@@ -72,3 +69,6 @@ rt5124		closed
 rt5127		closed
 slavefix	closed
 rt7572		closed
+rt10132		closed
+rt10133		closed
+rt10134		closed
