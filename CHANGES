@@ -1,4 +1,8 @@
- 938.	[port]		aix 4.3.2 namespace clash on "struct token".
+
+ 937.	[bug]		A race when shutting down a zone could trigger a
+			INSIST() failure. [RT #1034]
+
+ 938.	[port]		AIX 4.3.2 namespace clash on "struct token".
 
  929.	[bug]		RUNTIME_CHECK() used inappropriately in named.conf
 			parser.

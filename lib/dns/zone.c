@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.14 2001/06/08 21:46:11 gson Exp $ */
+/* $Id: zone.c,v 1.283.2.15 2001/07/18 18:07:04 gson Exp $ */
 
 #include <config.h>
 
@@ -558,12 +558,11 @@ zone_free(dns_zone_t *zone) {
 	REQUIRE(zone->erefs == 0);
 	REQUIRE(zone->irefs == 0);
 	REQUIRE(!LOCKED_ZONE(zone));
+	REQUIRE(zone->timer == NULL);
 
 	/*
 	 * Managed objects.  Order is important.
 	 */
-	if (zone->timer != NULL)
-		isc_timer_detach(&zone->timer);
 	if (zone->request != NULL)
 		dns_request_destroy(&zone->request); /* XXXMPA */
 	INSIST(zone->readio == NULL);
@@ -1506,6 +1505,7 @@ zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(LOCKED_ZONE(source));
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
+	INSIST(source->irefs + isc_refcount_current(&source->erefs) > 0);
 	source->irefs++;
 	INSIST(source->irefs != 0);
 	*target = source;
@@ -3581,7 +3581,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *) event->ev_arg;
-	isc_result_t result;
 	isc_boolean_t free_needed;
 
 	UNUSED(task);
@@ -3627,9 +3626,9 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	notify_cancel(zone);
 
 	if (zone->timer != NULL) {
-		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
-					 NULL, NULL, ISC_TRUE);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		isc_timer_detach(&zone->timer);
+		INSIST(zone->irefs > 0);
+		zone->irefs--;
 	}
 
 	if (zone->view != NULL)
@@ -5294,6 +5293,11 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 				  &zone->timer);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
+	/*
+	 * The timer "holds" a iref.
+	 */
+	zone->irefs++;
+	INSIST(zone->irefs != 0);
 
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 	zone->zmgr = zmgr;
