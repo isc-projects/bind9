@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.18 2000/06/23 21:17:02 mws Exp $
+# $Id: start.sh,v 1.19 2000/06/24 01:44:28 mws Exp $
 
 #
 # Start name servers for running system tests.
@@ -106,7 +106,7 @@ do
 		cnt=`expr $cnt + 1`
 		n=`echo $d | sed 's/ns//'`
 		$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-		-p 5300 version.bind. chaos txt @10.53.0.1$n > dig.out
+		-p 5300 version.bind. chaos txt @10.53.0.$n > dig.out
 		ret=$?
 		grep ";" dig.out
 		if [ $cnt = 15 ]; then
