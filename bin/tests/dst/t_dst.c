@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.45 2001/07/11 21:46:32 bwelling Exp $ */
+/* $Id: t_dst.c,v 1.46 2001/07/26 22:09:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -46,6 +46,10 @@
 #include <dst/result.h>
 
 #include <tests/t_api.h>
+
+#ifndef PATH_MAX
+#define PATH_MAX	256
+#endif
 
 /*
  * Adapted from the original dst_test.c program.
