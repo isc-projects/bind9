@@ -258,6 +258,7 @@ main(int argc, char *argv[]) {
 	dns_result_t result;
 	isc_mem_t *mctx;
 
+	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	
 	if (argc > 1) {
@@ -308,6 +309,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_init(&source, b, sizeof b, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, bp - b);
 
+	message = NULL;
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
 	CHECKRESULT(result, "dns_message_create failed");
 
