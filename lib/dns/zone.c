@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.16 1999/10/05 19:50:10 halley Exp $ */
+ /* $Id: zone.c,v 1.17 1999/10/07 19:39:53 halley Exp $ */
 
 #include <config.h>
 
@@ -284,7 +284,7 @@ zone_free(dns_zone_t *zone) {
 	if (zone->res != NULL)
 		dns_resolver_detach(&zone->res);
 	if (zone->fetch != NULL)
-		dns_resolver_destroyfetch(&zone->fetch, zone->task);
+		dns_resolver_destroyfetch(zone->res, &zone->fetch);
 	if (zone->timgr != NULL)
 		isc_timermgr_destroy(&zone->timgr);
 	if (zone->task != NULL)
@@ -1512,6 +1512,10 @@ dns_zone_unmount(dns_zone_t *zone) {
 
 dns_result_t
 dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
+#if 1
+	(void)zone;
+	(void)tmgr;
+#else
 	isc_result_t iresult;
 	dns_result_t result;
 
@@ -1519,7 +1523,6 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 	 * XXXRTH  Zones do not have resolvers!!!!
 	 */
 
-#if 0
 	REQUIRE(VALID_ZONE(zone));
 	REQUIRE(zone->task == NULL);
 	REQUIRE(zone->timgr == NULL);
@@ -1682,7 +1685,11 @@ dns_zone_notify(dns_zone_t *zone) {
 
 static void
 refresh_callback(isc_task_t *task, isc_event_t *event) {
-	dns_fetchdoneevent_t *devent = (dns_fetchdoneevent_t *)event;
+#if 1
+	(void)task;
+	(void)event;
+#else
+	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	dns_zone_t *zone;
 	dns_message_t *msg = NULL;
 	isc_uint32_t soacnt, cnamecnt, soacount, nscount;
@@ -1810,7 +1817,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	    isc_serial_gt(serial, zone->serial)) {
 		dns_zone_transfer_in(zone);
 		isc_event_free(&event);
-		dns_resolver_destroyfetch(&zone->fetch, task);
+		dns_resolver_destroyfetch(zone->res, &zone->fetch);
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
 		dns_zone_uptodate(zone);
 		goto next_master;
@@ -1826,7 +1833,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (master != unknown)
 		isc_mem_put(zone->mctx, master, strlen(master) + 1);
 	isc_event_free(&event);
-	dns_resolver_destroyfetch(&zone->fetch, task);
+	dns_resolver_destroyfetch(zone->res, &zone->fetch);
 	zone->curmaster++;
 	if (zone->curmaster >= zone->masterscnt) {
 		zone->flags &= ~DNS_ZONE_F_REFRESH;
@@ -1838,10 +1845,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	UNLOCK(&zone->lock);
-#ifdef notyet
 	soa_query(zone, refresh_callback);
-#endif
 	return;
+#endif
 }
 
 #ifdef notyet
