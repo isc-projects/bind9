@@ -23,6 +23,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/app.h>
+#include <isc/timer.h>
 
 #include <dns/db.h>
 #include <dns/zone.h>
@@ -33,7 +34,10 @@ static int quiet = 0;
 static int stats = 0;
 static isc_mem_t *mctx = NULL;
 dns_zone_t *zone = NULL;
-isc_taskmgr_t *manager = NULL;
+isc_taskmgr_t *taskmgr = NULL;
+isc_timermgr_t *timermgr = NULL;
+isc_socketmgr_t *socketmgr = NULL;
+dns_zonemgr_t *zonemgr = NULL;
 dns_zonetype_t zonetype = dns_zone_master;
 isc_sockaddr_t addr;
 
@@ -109,8 +113,8 @@ setup(char *zonename, char *filename, char *classname) {
 	result = dns_zone_load(zone);
 	ERRRET(result, "dns_zone_load");
 
-	result = dns_zone_manage(zone, manager);
-	ERRRET(result, "dns_zone_load");
+	result = dns_zonemgr_managezone(zonemgr, zone);
+	ERRRET(result, "dns_zonemgr_managezone");
 }
 
 static void
@@ -205,10 +209,13 @@ query(void) {
 			print_rdataset(dns_fixedname_name(&name), &rdataset);
 			break;
 		default:
-			continue;
+			break;
 		}
 
-		dns_rdataset_disassociate(&rdataset);
+		if (dns_rdataset_isassociated(&rdataset))
+			dns_rdataset_disassociate(&rdataset);
+		if (dns_rdataset_isassociated(&sigset))
+			dns_rdataset_disassociate(&sigset);
 	} while (1);
 	dns_rdataset_invalidate(&rdataset);
 	dns_db_detach(&db);
@@ -269,15 +276,18 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, 2, 0, &manager) ==
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, 2, 0, &taskmgr) ==
 		      ISC_R_SUCCESS);
-
+	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
+					 &zonemgr) == ISC_R_SUCCESS);
 	if (filename == NULL)
 		filename = argv[isc_commandline_index];
 	setup(argv[isc_commandline_index], filename, classname);
 	query();
 	destroy();
-	isc_taskmgr_destroy(&manager);
+	isc_taskmgr_destroy(&taskmgr);
 	if (!quiet && stats)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
