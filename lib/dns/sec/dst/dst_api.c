@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.108 2003/09/30 05:56:18 marka Exp $
+ * $Id: dst_api.c,v 1.109 2003/09/30 06:18:11 marka Exp $
  */
 
 #include <config.h>
@@ -920,7 +920,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	if (strcasecmp(DST_AS_STR(token), "DNSKEY") == 0)
 		type = dns_rdatatype_dnskey;
 	else if (strcasecmp(DST_AS_STR(token), "KEY") == 0)
-		type = dns_rdatatype_key;
+		type = dns_rdatatype_key; /* SIG(0) */
 	else
 		BADTOKEN();
 
