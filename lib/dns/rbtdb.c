@@ -98,9 +98,18 @@ typedef struct rdatasetheader {
 	struct rdatasetheader		*down;
 } rdatasetheader_t;
 
-#define RDATASET_ATTR_NONEXISTENT	0x01
-#define RDATASET_ATTR_STALE		0x02
-#define RDATASET_ATTR_IGNORE		0x04
+#define RDATASET_ATTR_NONEXISTENT	0x0001
+#define RDATASET_ATTR_STALE		0x0002
+#define RDATASET_ATTR_IGNORE		0x0004
+#define RDATASET_ATTR_RETAIN		0x0008
+
+/*
+ * XXX
+ * When the cache will pre-expire data (due to memory low or other
+ * situations) before the rdataset's TTL has expired, it MUST
+ * respect the RETAIN bit and not expire the data until its TTL is
+ * expired.
+ */
 
 #undef IGNORE			/* WIN32 winbase.h defines this. */
 
@@ -110,6 +119,8 @@ typedef struct rdatasetheader {
 	(((header)->attributes & RDATASET_ATTR_NONEXISTENT) != 0)
 #define IGNORE(header) \
 	(((header)->attributes & RDATASET_ATTR_IGNORE) != 0)
+#define RETAIN(header) \
+	(((header)->attributes & RDATASET_ATTR_RETAIN) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
 
