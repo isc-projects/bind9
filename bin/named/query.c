@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.110 2000/06/26 21:42:33 explorer Exp $ */
+/* $Id: query.c,v 1.111 2000/07/04 01:33:47 gson Exp $ */
 
 #include <config.h>
 
@@ -162,7 +162,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 
 	query_maybeputqname(client);
 
-	client->query.attributes = (NS_QUERYATTR_RECURSIONOK|
+	client->query.attributes = (NS_QUERYATTR_RECURSIONOK |
 				    NS_QUERYATTR_CACHEOK);
 	client->query.restarts = 0;
 	client->query.origqname = NULL;
@@ -453,7 +453,8 @@ query_getdb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	/*
 	 * Find a database to answer the query.
 	 */
-	ztoptions = ((options & DNS_GETDB_NOEXACT) != 0) ? DNS_ZTFIND_NOEXACT : 0;
+	ztoptions = ((options & DNS_GETDB_NOEXACT) != 0) ?
+		DNS_ZTFIND_NOEXACT : 0;
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
 			     zonep);
@@ -1241,6 +1242,11 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 {
 	dns_rdatatype_t type = rdataset->type;
 
+	/*
+	 * Add 'rdataset' and any pertinent additional data to 
+	 * 'fname', a name in the response message for 'client'.
+	 */
+	
 	CTRACE("query_addrdataset");
 
 	ISC_LIST_APPEND(fname->list, rdataset, link);
@@ -1262,7 +1268,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	 * are retrieved, any KEY RRs for the owner name should be added
 	 * to the additional data section.  We treat A6 records the same way.
 	 *
-	 * We don't care if query_additional() fails.
+	 * We don't care if query_addadditional() fails.
 	 */
 	if (type == dns_rdatatype_ns || type == dns_rdatatype_soa ||
 	    type == dns_rdatatype_a || type == dns_rdatatype_aaaa ||
@@ -1288,11 +1294,15 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 	isc_result_t result;
 
 	/*
-	 * If 'dbuf' is not NULL, then '*namep' is name whose data is
+	 * To the current response for 'client', add the answer RRset
+	 * '*rdatasetp' and an optional signature set '*sigrdatasetp', with
+	 * owner name '*namep', to section 'section', unless they are
+	 * already there.  Also add any pertinent additional data.
+	 *
+	 * If 'dbuf' is not NULL, then '*namep' is the name whose data is
 	 * stored in 'dbuf'.  In this case, query_addrrset() guarantees that
 	 * when it returns the name will either have been kept or released.
 	 */
-
 	CTRACE("query_addrrset");
 	name = *namep;
 	rdataset = *rdatasetp;
