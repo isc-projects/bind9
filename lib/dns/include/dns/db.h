@@ -429,6 +429,10 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	To respond to a query for SIG records, the caller should create a
  *	rdataset iterator and extract the signatures from each rdataset.
  *
+ *	Making queries of type ANY with DNS_DBFIND_GLUEOK is not recommended,
+ *	because the burden of determining whether a given rdataset is valid
+ *	glue or not falls upon the caller.
+ *
  * Requires:
  *
  *	'db' is a valid database.
@@ -465,7 +469,14 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						the DNS_DBFIND_GLUEOK option
  *						is set.  This result can only
  *						occur if 'db' is a zone
- *						database.
+ *						database.  If type ==
+ *						dns_rdatatype_any, then the
+ *						node returned may contain, or
+ *						consist entirely of invalid
+ *						glue (i.e. data occluded by a
+ *						zone cut).  The caller must
+ *						take care not to return invalid
+ *						glue to a client.
  *
  *		DNS_R_DELEGATION		The data requested is beneath
  *						a zone cut.  node, foundname,
@@ -478,9 +489,10 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *		DNS_R_ZONECUT			type == dns_rdatatype_any, and
  *						the desired node is a zonecut.
  *						The caller must take care not
- *						to return glue.  This result
- *						can only occur if 'db' is a
- *						zone database.
+ *						to return inappropriate glue
+ *						to a client.  This result can
+ *						only occur if 'db' is a zone
+ *						database.
  *
  *		DNS_R_DNAME			The data requested is beneath
  *						a DNAME.  node, foundname,
