@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.369 2002/01/24 09:58:39 bwelling Exp $ */
+/* $Id: server.c,v 1.370 2002/01/30 00:55:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2855,6 +2855,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 	dns_view_t *view;
 	char *journal;
 	const char *vname, *sep;
+	isc_boolean_t frozen;
 	
 	result = zone_from_args(server, args, &zone);
 	if (result != ISC_R_SUCCESS)
@@ -2867,8 +2868,9 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 		return (ISC_R_NOTFOUND);
 	}
 
+	frozen = dns_zone_getupdatedisabled(zone);
 	if (freeze) {
-		if (dns_zone_getupdatedisabled(zone))
+		if (frozen)
 			result = DNS_R_FROZEN;
 		if (result == ISC_R_SUCCESS)
 			result = dns_zone_flush(zone);
@@ -2877,6 +2879,9 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 			if (journal != NULL)
 				(void)isc_file_remove(journal);
 		}
+	} else {
+		if (frozen)
+			result = dns_zone_load(zone);
 	}
 	if (result == ISC_R_SUCCESS)
 		dns_zone_setupdatedisabled(zone, freeze);
