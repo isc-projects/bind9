@@ -78,6 +78,33 @@ typedef dns_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 					      dns_name_t *name,
 					      void *callback_arg);
 
+/*****
+ *****	Chain Info
+ *****/
+
+/*
+ * A chain is used to keep track of the sequence of nodes to reach any given
+ * node from the root of the tree.  Since no parent pointer is stored with
+ * each node, it is the only way to know what is "up" from any particular
+ * node, which is necessary information for iterating through the tree or
+ * for basic internal tree maintenance issues (ie, the rotations that are
+ * done to rebalance the tree when a node is added).  The obvious implication
+ * of this is that for a chain to remain valid, the tree has to be locked
+ * down against writes for the duration of the useful life of the chain,
+ * because additions or removals can change the path from the root to the node
+ * the chain has targetted.
+ *
+ * The dns_rbtnodechain_ functions _first, _last, _prev and _next all take
+ * dns_name_t parameters for the name and the origin.  'name' will end up
+ * pointing to the name data and offsets that are stored at the node (and thus
+ * it will be read-only), so it should be a regular dns_name_t that has been
+ * initialized with dns_name_init.  'origin' will get the name of the origin
+ * stored in it, so it needs to have its own buffer space and offsets, which
+ * is most easily accomplished with a dns_fixedname_t.  It is _not_ necessary
+ * to reinitialize either 'name' or 'origin' between calls to the chain
+ * functions.
+ */
+
 /*
  * For use in allocating space for the chain of ancestor nodes.
  *
@@ -123,9 +150,13 @@ typedef struct dns_rbtnodechain {
 	unsigned int		level_count;
 } dns_rbtnodechain_t;
 
+/*****
+ ***** Public interfaces.
+ *****/
 
-dns_result_t dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
-			    void *deleter_arg, dns_rbt_t **rbtp);
+dns_result_t
+dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
+	       void *deleter_arg, dns_rbt_t **rbtp);
 /*
  * Initialize a red-black tree of trees.
  *
@@ -153,7 +184,8 @@ dns_result_t dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
  *	DNS_R_NOMEMORY	Resource limit: Out of Memory
  */
 
-dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
+dns_result_t
+dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
 /*
  * Add 'name' to the tree of trees, associated with 'data'.
  *
@@ -193,9 +225,8 @@ dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
  *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
-
-dns_result_t dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name,
-			    dns_rbtnode_t **nodep);
+dns_result_t
+dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep);
 
 /*
  * Just like dns_rbt_addname, but returns the address of the node.
@@ -230,8 +261,9 @@ dns_result_t dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name,
  *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
-dns_result_t dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
-			      dns_name_t *foundname, void **data);
+dns_result_t
+dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
+		 dns_name_t *foundname, void **data);
 /*
  * Get the data pointer associated with 'name'.
  *
@@ -337,8 +369,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	DNS_R_NOSPACE		Concatenating nodes to form foundname failed
  */
 
-dns_result_t dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name,
-				isc_boolean_t recurse);
+dns_result_t
+dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse);
 /*
  * Delete 'name' from the tree of trees.
  *
@@ -374,7 +406,8 @@ dns_result_t dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name,
  *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
-void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
+void
+dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
 /*
  * Convert the sequence of labels stored at 'node' into a 'name'.
  *
@@ -399,7 +432,8 @@ void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  *	as part of the node.
  */
 
-void dns_rbt_destroy(dns_rbt_t **rbtp);
+void
+dns_rbt_destroy(dns_rbt_t **rbtp);
 /*
  * Stop working with a red-black tree of trees.
  *
@@ -412,7 +446,8 @@ void dns_rbt_destroy(dns_rbt_t **rbtp);
  *	*rbt is invalidated as an rbt manager.
  */
 
-void dns_rbt_printall(dns_rbt_t *rbt);
+void
+dns_rbt_printall(dns_rbt_t *rbt);
 /*
  * Print an ASCII representation of the internal structure of the red-black
  * tree of trees.
@@ -424,9 +459,9 @@ void dns_rbt_printall(dns_rbt_t *rbt);
  *	NULL left and right pointers are printed.
  */
 
-/*
- * Chain Functions
- */
+/*****
+ ***** Chain Functions
+ *****/
 
 void
 dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx);
@@ -439,7 +474,7 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx);
  *	'mctx' is a valid memory context.
  *
  * Ensures:
- *	'chain' is suitable for use 
+ *	'chain' is suitable for use.
  */
 
 void
@@ -452,26 +487,108 @@ dns_rbtnodechain_reset(dns_rbtnodechain_t *chain);
  *	'chain' is a valid pointer.
  *
  * Ensures:
- *	'chain' is suitable for use, and use no dynamic storage.
+ *	'chain' is suitable for use, and uses no dynamic storage.
+ */
+
+void
+dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain);
+/*
+ * Free any dynamic storage associated with 'chain', and then invalidates it.
+ *
+ * Notes:
+ * 	Future calls to any dns_rbtnodechain_ function will need to call
+ * 	dns_rbtnodechain_init on the chain first (except, of course,
+ *	dns_rbtnodechain_init itself).
+ *
+ * Requires:
+ *	'chain' is a valid chain.
+ *
+ * Ensures:
+ *	'chain' is no longer suitable for use, and uses no dynamic storage.
  */
 
 dns_rbtnode_t *
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain);
+/*
+ * Return the node to which the chain is currently pointed.
+ *
+ * Notes:
+ *	This does not have any dependence on the tree having been locked
+ *	since the chain to the node was established.
+ *
+ * Requires:
+ *	'chain' is a valid chain.
+ *
+ * Ensures:
+ *	The returned node is the node that was found with a prior
+ *	dns_rbt_findnode, dns_rbtnodechain_first or dns_rbtnodechain_last call.
+ *	If none of those functions have been called on this chain since it
+ *	was initialized or rest, the return value is NULL.
+ */
+
+dns_result_t
+dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
+		       dns_name_t *name, dns_name_t *origin);
+/*
+ * Set the chain to the lexically first node in the tree of trees.
+ *
+ * Notes:
+ *	By the definition of ordering for DNS names, the root of the tree of
+ *	trees is the very first node, since everything else in the megatree uses
+ *	it as a common suffix.
+ *
+ * Requires:
+ *	'chain' is a valid chain.
+ *	'name' and 'origin' are not NULL.
+ *	'rbt' is a valid rbt manager.
+ *
+ * Ensures:
+ *	'name' points to the name at the root of the tree, relative to ".".
+ *	'origin' is ".".
+ *
+ * Returns:
+ *	DNS_R_NEWORIGIN		The name & origin were successfully established.
+ *	<something_else>	dns_name_concatenate failed while setting
+ *				'origin' to the root name; this is its result
+ *				code.
+ */
+
+dns_result_t
+dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
+		       dns_name_t *name, dns_name_t *origin);
+/*
+ * Set the chain to the lexically last node in the tree of trees.
+ *
+ * Requires:
+ *	'chain' is a valid chain.
+ *	'name' and 'origin' are not NULL.
+ *	'rbt' is a valid rbt manager.
+ *
+ * Ensures:
+ *	'name' points to the very last node of the megatree, and 'origin'
+ *	is the name of the level above it.
+ *
+ * Returns:
+ *	DNS_R_NEWORIGIN		The name & origin were successfully established.
+ *	<something_else>	dns_name_concatenate failed while setting
+ *				'origin' to the root name; this is its result
+ *				code.
+ */
 
 dns_result_t
 dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin);
+/*
+ *
+ */
+
 dns_result_t
 dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin);
-dns_result_t
-dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
-		       dns_name_t *name, dns_name_t *origin);
-dns_result_t
-dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
-		       dns_name_t *name, dns_name_t *origin);
-void
-dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain);
+/*
+ *
+ */
+
 
 ISC_LANG_ENDDECLS
 
