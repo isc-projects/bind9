@@ -87,6 +87,21 @@ isc_quota_release(isc_quota_t *quota);
  * Release one unit of quota.
  */
 
+isc_result_t
+isc_quota_attach(isc_quota_t *quota, isc_quota_t **p);
+/*
+ * Like isc_quota_reserve, and also attaches '*p' to the
+ * quota if successful.
+ */
+
+void
+isc_quota_detach(isc_quota_t **p);
+/*
+ * Like isc_quota_release, and also detaches '*p' from the
+ * quota.
+ */
+
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_QUOTA_H */

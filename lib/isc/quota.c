@@ -55,4 +55,22 @@ isc_quota_release(isc_quota_t *quota) {
 	UNLOCK(&quota->lock);	
 }
 
+isc_result_t
+isc_quota_attach(isc_quota_t *quota, isc_quota_t **p)
+{
+	isc_result_t result;
+	INSIST(p != NULL && *p == NULL);
+	result = isc_quota_reserve(quota);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	*p = quota;
+	return (ISC_R_SUCCESS);
+}
 
+void
+isc_quota_detach(isc_quota_t **p)
+{
+	INSIST(p != NULL && *p != NULL);
+	isc_quota_release(*p);
+	*p = NULL;
+}
