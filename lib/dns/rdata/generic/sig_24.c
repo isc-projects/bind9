@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.21 1999/09/15 23:03:32 explorer Exp $ */
+ /* $Id: sig_24.c,v 1.22 1999/09/17 09:22:40 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -55,10 +55,8 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(uint16_tobuffer(covered, target));
 
 	/* algorithm */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	if (token.value.as_ulong > 0xff)
-		return (DNS_R_RANGE);
-	c = token.value.as_ulong;
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(dns_secalg_fromtext(&c, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &c, 1));
 
 	/* labels */

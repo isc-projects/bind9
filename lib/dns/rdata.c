@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.61 1999/09/15 23:03:25 explorer Exp $ */
+ /* $Id: rdata.c,v 1.62 1999/09/17 09:22:39 gson Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,8 @@
 #include <dns/rcode.h>
 #include <dns/cert.h>
 #include <dns/secalg.h>
+#include <dns/secproto.h>
+#include <dns/keyflags.h>
 #include <dns/fixedname.h>
 #include <dns/rdatastruct.h>
 #include <dns/time.h>
@@ -168,7 +170,7 @@ static const char octdigits[] = "01234567";
 	{ 254, "OID", 0}, \
 	{ 0, NULL, 0}
 
-/* draft-ietf-dnssec-secext2-07.txt section 7 */
+/* RFC2535 section 7 */
 
 #define SECALGNAMES \
 	{ 1, "RSAMD5", 0 }, \
@@ -180,6 +182,16 @@ static const char octdigits[] = "01234567";
 	{ 254, "PRIVATEOID", 0 }, \
 	{ 0, NULL, 0}
 
+/* RFC2535 section 7.1 */
+
+#define SECPROTONAMES \
+	{   0,    "NONE", 0 }, \
+	{   1,    "TLS", 0 }, \
+	{   2,    "EMAIL", 0 }, \
+	{   3,    "DNSSEC", 0 }, \
+	{   4,    "IPSEC", 0 }, \
+	{ 255,    "ALL", 0 }, \
+	{ 0, NULL, 0}
 
 static struct tbl {
 	unsigned int	value;
@@ -189,7 +201,47 @@ static struct tbl {
 classes[] = { METACLASSES CLASSNAMES EMPTYCLASSES { 0, NULL, 0} },
 rcodes[] = { RCODENAMES },
 certs[] = { CERTNAMES },
-secalgs[] = { SECALGNAMES };
+secalgs[] = { SECALGNAMES },
+secprotos[] = { SECPROTONAMES };
+
+static struct keyflag {
+	char *name;
+	unsigned int value;
+	unsigned int mask;
+} keyflags[] = {
+	{ "NOCONF", 0x4000, 0xC000 },
+	{ "NOAUTH", 0x8000, 0xC000 },
+	{ "NOKEY",  0xC000, 0xC000 },
+	{ "FLAG2",  0x2000, 0x2000 },
+	{ "EXTEND", 0x1000, 0x1000 },
+	{ "FLAG4",  0x0800, 0x0800 },
+	{ "FLAG5",  0x0400, 0x0400 },
+	{ "USER",   0x0000, 0x0300 },
+	{ "ZONE",   0x0100, 0x0300 },
+	{ "HOST",   0x0200, 0x0300 },
+	{ "NTYP3",  0x0300, 0x0300 },
+	{ "FLAG8",  0x0080, 0x0080 },
+	{ "FLAG9",  0x0040, 0x0040 },
+	{ "FLAG10", 0x0020, 0x0020 },
+	{ "FLAG11", 0x0010, 0x0010 },
+	{ "SIG0",   0x0000, 0x000F },
+	{ "SIG1",   0x0001, 0x000F },
+	{ "SIG2",   0x0002, 0x000F },
+	{ "SIG3",   0x0003, 0x000F },
+	{ "SIG4",   0x0004, 0x000F },
+	{ "SIG5",   0x0005, 0x000F },
+	{ "SIG6",   0x0006, 0x000F },
+	{ "SIG7",   0x0007, 0x000F },
+	{ "SIG8",   0x0008, 0x000F },
+	{ "SIG9",   0x0009, 0x000F },
+	{ "SIG10",  0x000A, 0x000F },
+	{ "SIG11",  0x000B, 0x000F },
+	{ "SIG12",  0x000C, 0x000F },
+	{ "SIG13",  0x000D, 0x000F },
+	{ "SIG14",  0x000E, 0x000F },
+	{ "SIG15",  0x000F, 0x000F },
+	{ NULL,     0, 0 } 
+};
 
 /***
  *** Initialization
@@ -587,6 +639,64 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	return (result);
 }
 
+#define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */ 
+
+static dns_result_t
+dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
+		      struct tbl *table, unsigned int max)
+{
+	int i;
+
+	if (isdigit(source->base[0]) && source->length <= NUMBERSIZE - 1) {
+		unsigned int n;
+		char *e;
+		char buffer[NUMBERSIZE];
+		/*
+		 * We have a potential number.  Try to parse it with strtoul().
+		 * strtoul() requires null termination, so we must make
+		 * a copy.
+		 */
+		strncpy(buffer, source->base, NUMBERSIZE);
+		INSIST(buffer[source->length] == '\0');
+		
+		n = strtoul(buffer, &e, 10);
+		if (*e == 0) {
+			if (n > max)
+				return (DNS_R_RANGE);
+			*valuep = n;
+			return (DNS_R_SUCCESS);
+		}
+		/* It was not a number after all; fall through. */
+	}
+	
+	for (i = 0; table[i].name != NULL; i++) {
+		unsigned int n;		
+		n = strlen(table[i].name);
+		if (n == source->length &&
+		    strncasecmp(source->base, table[i].name, n) == 0) {
+			*valuep = table[i].value;
+			return (DNS_R_SUCCESS);
+		}
+	}
+	return (DNS_R_UNKNOWN);
+}
+
+static dns_result_t
+dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
+		    struct tbl *table)
+{
+	int i = 0;
+	char buf[sizeof "4294967296"];
+	while (table[i].name != NULL) {
+		if (table[i].value == value) {
+			return (str_totext(table[i].name, target));
+		}
+		i++;
+	}
+	sprintf(buf, "%u", value);
+	return (str_totext(buf, target));
+}
+
 dns_result_t
 dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 	int i = 0;
@@ -610,17 +720,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 dns_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
-	int i = 0;
-	char buf[sizeof "65000"];
-
-	while (classes[i].name != NULL) {
-		if (classes[i].value == rdclass) {
-			return (str_totext(classes[i].name, target));
-		}
-		i++;
-	}
-	sprintf(buf, "%u", rdclass);
-	return (str_totext(buf, target));
+	return (dns_mnemonic_totext(rdclass, target, classes));	
 }
 
 /* XXXRTH  Should we use a hash table here? */
@@ -648,17 +748,7 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 
 dns_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
-	int i = 0;
-	char buf[sizeof "65000"];
-
-	while (types[i].name != NULL) {
-		if (types[i].value == type) {
-			return (str_totext(types[i].name, target));
-		}
-		i++;
-	}
-	sprintf(buf, "%u", type);
-	return (str_totext(buf, target));
+	return (dns_mnemonic_totext(type, target, types));
 }
 
 /* XXXRTH  Should we use a hash table here? */
@@ -682,84 +772,109 @@ dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 
 dns_result_t
 dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
-	int i = 0;
-	char buf[sizeof "65000"];
-
-	while (rcodes[i].name != NULL) {
-		if (rcodes[i].value == rcode) {
-			return (str_totext(rcodes[i].name, target));
-		}
-		i++;
-	}
-	sprintf(buf, "%u", rcode);
-	return (str_totext(buf, target));
+	return (dns_mnemonic_totext(rcode, target, rcodes));	
 }
 
 dns_result_t
 dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source) {
-	int i = 0;
-	unsigned int n;
-
-	while (certs[i].name != NULL) {
-		n = strlen(certs[i].name);
-		if (n == source->length &&
-		    strncasecmp(source->base, certs[i].name, n) == 0) {
-			*certp = certs[i].value;
-			return (DNS_R_SUCCESS);
-		}
-		i++;
-	}
-	return (DNS_R_UNKNOWN);
-}
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, certs, 0xffff));
+	*certp = value;
+	return (DNS_R_SUCCESS);
+}	
 
 dns_result_t
 dns_cert_totext(dns_cert_t cert, isc_buffer_t *target) {
-	int i = 0;
-	char buf[sizeof "65000"];
-
-	while (certs[i].name != NULL) {
-		if (certs[i].value == cert) {
-			return (str_totext(certs[i].name, target));
-		}
-		i++;
-	}
-	sprintf(buf, "%u", cert);
-	return (str_totext(buf, target));
+	return (dns_mnemonic_totext(cert, target, certs));	
 }
 
 dns_result_t
 dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
-	int i = 0;
-	unsigned int n;
-
-	while (secalgs[i].name != NULL) {
-		n = strlen(secalgs[i].name);
-		if (n == source->length &&
-		    strncasecmp(source->base, secalgs[i].name, n) == 0) {
-			*secalgp = secalgs[i].value;
-			return (DNS_R_SUCCESS);
-		}
-		i++;
-	}
-	return (DNS_R_UNKNOWN);
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, secalgs, 0xff));
+	*secalgp = value;
+	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
 dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target) {
-	int i = 0;
-	char buf[sizeof "65000"];
-
-	while (secalgs[i].name != NULL) {
-		if (secalgs[i].value == secalg) {
-			return (str_totext(secalgs[i].name, target));
-		}
-		i++;
-	}
-	sprintf(buf, "%u", secalg);
-	return (str_totext(buf, target));
+	return (dns_mnemonic_totext(secalg, target, secalgs));
 }
 
- /* Private function */
+dns_result_t
+dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, secprotos, 0xff));
+	*secprotop = value;
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target) {
+	return (dns_mnemonic_totext(secproto, target, secprotos));
+}
+
+dns_result_t
+dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
+{
+	char *text, *end;
+	unsigned int value, mask;
+
+	if (isdigit(source->base[0]) && source->length <= NUMBERSIZE - 1) {
+		unsigned int n;
+		char *e;
+		char buffer[NUMBERSIZE];
+		/*
+		 * We have a potential number.  Try to parse it with strtoul().
+		 * strtoul() requires null termination, so we must make
+		 * a copy.
+		 */
+		strncpy(buffer, source->base, NUMBERSIZE);
+		INSIST(buffer[source->length] == '\0');
+		
+		n = strtoul(buffer, &e, 0); /* Allow hex/octal. */
+		if (*e == 0) {
+			if (n > 0xffff)
+				return (DNS_R_RANGE);
+			*flagsp = n;
+			return (DNS_R_SUCCESS);
+		}
+		/* It was not a number after all; fall through. */
+	}
+
+	text = source->base;	
+	end = source->base + source->length;
+	value = mask = 0;
+	
+	while (text < end) {
+		struct keyflag *p;
+		unsigned int len;
+		char *delim = memchr(text, '|', end - text);
+		if (delim != NULL)
+			len = delim - text;
+		else
+			len = end - text;
+		for (p = keyflags; p->name != NULL; p++) {
+			if (strncasecmp(p->name, text, len) == 0)
+				break;
+		}
+		if (p->name == NULL)
+			return (DNS_R_UNKNOWN);
+		value |= p->value;
+#ifdef notyet
+		if ((mask & p->mask) != 0)
+			warn("overlapping key flags");
+#endif
+		mask |= p->mask;		
+		text += len;
+		if (delim != NULL)
+			text++;	/* Skip "|" */
+	}
+	*flagsp = value;
+	return (DNS_R_SUCCESS);
+}
+
+/* Private function */
 
 static unsigned int
 name_length(dns_name_t *name) {

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.14 1999/09/15 23:03:27 explorer Exp $ */
+ /* $Id: cert_37.c,v 1.15 1999/09/17 09:22:40 gson Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -35,20 +35,14 @@ fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 37);
 
-	rdclass = rdclass;		/*unused*/
+	rdclass = rdclass;	/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
 	/* cert type */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	n = strtol(token.value.as_pointer, &e, 10);
-	if (*e != 0) {
-		RETERR(dns_cert_fromtext(&cert, &token.value.as_textregion));
-	} else {
-		if (n < 0 || n > 0xffff)
-			return (DNS_R_RANGE);
-		cert = n;
-	}
+	RETERR(dns_cert_fromtext(&cert, &token.value.as_textregion));
 	RETERR(uint16_tobuffer(cert, target));
 	
 	/* key tag */
@@ -59,15 +53,7 @@ fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* algorithm */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	n = strtol(token.value.as_pointer, &e, 10);
-	if (*e != 0) {
-		RETERR(dns_secalg_fromtext(&secalg,
-					   &token.value.as_textregion));
-	} else {
-		if (n < 0 || n > 0xff)
-			return (DNS_R_RANGE);
-		secalg = n;
-	}
+	RETERR(dns_secalg_fromtext(&secalg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &secalg, 1));
 
 	return (isc_base64_tobuffer(lexer, target, -1));

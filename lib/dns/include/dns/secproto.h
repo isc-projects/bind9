@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CERT_H
-#define DNS_CERT_H 1
+#ifndef DNS_SECPROTO_H
+#define DNS_SECPROTO_H 1
 
 #include <isc/lang.h>
 
@@ -24,13 +24,15 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
+dns_result_t dns_secproto_fromtext(dns_secproto_t *secprotop,
+				   isc_textregion_t *source);
 /*
- * Convert the text 'source' refers to into a certificate type.
- * The text may contain either a mnemonic type name or a decimal type number.
+ * Convert the text 'source' refers to into a DNSSEC security protocol value.
+ * The text may contain either a mnemonic protocol name or a decimal protocol
+ * number.
  *
  * Requires:
- *	'certp' is a valid pointer.
+ *	'secprotop' is a valid pointer.
  *
  *	'source' is a valid text region.
  *
@@ -40,12 +42,13 @@ dns_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
  *	DNS_R_RANGE			numeric type is out of range
  */
 
-dns_result_t dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
+dns_result_t dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target);
 /*
- * Put a textual representation of certificate type 'cert' into 'target'.
+ * Put a textual representation of the DNSSEC security protocol 'secproto'
+ * into 'target'.
  *
  * Requires:
- *	'cert' is a valid cert.
+ *	'secproto' is a valid secproto.
  *
  *	'target' is a valid text buffer.
  *
@@ -60,4 +63,4 @@ dns_result_t dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_CERT_H */
+#endif /* DNS_SECPROTO_H */

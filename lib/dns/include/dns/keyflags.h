@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CERT_H
-#define DNS_CERT_H 1
+#ifndef DNS_KEYFLAGS_H
+#define DNS_KEYFLAGS_H 1
 
 #include <isc/lang.h>
 
@@ -24,40 +24,27 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
+dns_result_t dns_keyflags_fromtext(dns_keyflags_t *flagsp,
+				   isc_textregion_t *source);
 /*
- * Convert the text 'source' refers to into a certificate type.
- * The text may contain either a mnemonic type name or a decimal type number.
+ * Convert the text 'source' refers to into a DNSSEC KEY flags value.
+ * The text may contain either a set of flag mnemonics separated by
+ * vertical bars or a decimal flags value.  For compatibility with
+ * older versions of BIND and the DNSSEC signer, octal values 
+ * prefixed with a zero and hexadecimal values prefixed with "0x"
+ * are also accepted.
  *
  * Requires:
- *	'certp' is a valid pointer.
+ *	'flagsp' is a valid pointer.
  *
  *	'source' is a valid text region.
  *
  * Returns:
  *	DNS_R_SUCCESS			on success
- *	DNS_R_UNKNOWN			mnemonic type is unknown
- *	DNS_R_RANGE			numeric type is out of range
- */
-
-dns_result_t dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
-/*
- * Put a textual representation of certificate type 'cert' into 'target'.
- *
- * Requires:
- *	'cert' is a valid cert.
- *
- *	'target' is a valid text buffer.
- *
- * Ensures:
- *	If the result is success:
- *		The used space in 'target' is updated.
- *
- * Returns:
- *	DNS_R_SUCCESS			on success
- *	DNS_R_NOSPACE			target buffer is too small
+ *	DNS_R_UNKNOWN			mnemonic flag is unknown
+ *	DNS_R_RANGE			numeric flag value is out of range
  */
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_CERT_H */
+#endif /* DNS_KEYFLAGS_H */

@@ -28,6 +28,8 @@ dns_result_t dns_secalg_fromtext(dns_secalg_t *secalgp,
 				 isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNSSEC security algorithm value.
+ * The text may contain either a mnemonic algorithm name or a decimal algorithm
+ * number.
  *
  * Requires:
  *	'secalgp' is a valid pointer.
@@ -36,7 +38,8 @@ dns_result_t dns_secalg_fromtext(dns_secalg_t *secalgp,
  *
  * Returns:
  *	DNS_R_SUCCESS			on success
- *	DNS_R_UNKNOWN			type is unknown
+ *	DNS_R_UNKNOWN			mnemonic type is unknown
+ *	DNS_R_RANGE			numeric type is out of range
  */
 
 dns_result_t dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target);

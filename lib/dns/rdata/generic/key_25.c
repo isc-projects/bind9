@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.12 1999/09/15 23:03:29 explorer Exp $ */
+ /* $Id: key_25.c,v 1.13 1999/09/17 09:22:40 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -28,32 +28,30 @@ fromtext_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_boolean_t downcase, isc_buffer_t *target)
 {
 	isc_token_t token;
-	unsigned char c; 
-	unsigned int flags;
+	dns_secalg_t alg;
+	dns_secproto_t proto;
+	dns_keyflags_t flags;
 
 	REQUIRE(type == 25);
 
-	rdclass = rdclass;		/*unused*/
+	rdclass = rdclass;	/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
-	RETERR(uint16_tobuffer(token.value.as_ulong, target));
-	flags = token.value.as_ulong;
+	/* flags */
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(dns_keyflags_fromtext(&flags, &token.value.as_textregion));
+	RETERR(uint16_tobuffer(flags, target));
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	if (token.value.as_ulong > 0xff)
-		return (DNS_R_RANGE);
-	c = token.value.as_ulong;
-	RETERR(mem_tobuffer(target, &c, 1));
+	/* protocol */
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(dns_secproto_fromtext(&proto, &token.value.as_textregion));
+	RETERR(mem_tobuffer(target, &proto, 1));
 
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	if (token.value.as_ulong > 0xff)
-		return (DNS_R_RANGE);
-	c = token.value.as_ulong;
-	RETERR(mem_tobuffer(target, &c, 1));
+	/* algorithm */	
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(dns_secalg_fromtext(&alg, &token.value.as_textregion));
+	RETERR(mem_tobuffer(target, &alg, 1));
 	
 	/* No Key? */
 	if ((flags & 0xc000) == 0xc000)

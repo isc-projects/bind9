@@ -47,6 +47,8 @@ typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
 typedef isc_uint8_t				dns_secalg_t;
+typedef isc_uint8_t				dns_secproto_t;
+typedef isc_uint16_t				dns_keyflags_t;
 typedef isc_uint16_t				dns_rdataclass_t;
 typedef isc_uint16_t				dns_rdatatype_t;
 typedef isc_uint16_t				dns_rcode_t;
