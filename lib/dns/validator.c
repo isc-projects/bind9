@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.98 2002/02/01 20:18:33 bwelling Exp $ */
+/* $Id: validator.c,v 1.99 2002/02/05 07:54:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -885,7 +885,7 @@ issecurityroot(dns_validator_t *val) {
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &key);
 		dns_rdata_reset(&rdata);
 		if (result != ISC_R_SUCCESS)
-			 continue;
+			continue;
 		keynode = NULL;
 		result = dns_keytable_findkeynode(
 						val->keytable, name,
