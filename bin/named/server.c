@@ -64,6 +64,7 @@
 #include <named/log.h>
 #include <named/rootns.h>
 #include <named/server.h>
+#include <named/interfacemgr.h>
 
 typedef struct {
 	isc_mem_t *		mctx;
@@ -567,6 +568,12 @@ load_configuration(const char *filename, ns_server_t *server) {
 				isc_result_totext(result));
 	}
 
+	/*
+	 * Rescan the interface list to pick up changes in the
+	 * listen-on option.
+	 */
+	ns_interfacemgr_scan(server->interfacemgr);
+	
 	dns_aclconfctx_destroy(&aclconfctx);	
 
 	dns_c_ctx_delete(&configctx);
@@ -580,8 +587,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	load_configuration(ns_g_conffile, server);
-
-	ns_interfacemgr_scan(ns_g_interfacemgr);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "running");
@@ -647,6 +652,17 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	server->interfacemgr = NULL;
+	result = ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
+					ns_g_socketmgr, ns_g_clientmgr,
+					&server->interfacemgr);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "ns_interfacemgr_create() failed: %s\n",
+				 isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 	return (ISC_R_SUCCESS);
@@ -656,6 +672,12 @@ void
 ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
+
+	/*
+	 * The interface manager owns tasks, so we have to destroy it before
+	 * we destroy the task manager.
+	 */
+	ns_interfacemgr_destroy(&server->interfacemgr);
 
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 	isc_rwlock_destroy(&server->viewlock);
