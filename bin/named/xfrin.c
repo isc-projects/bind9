@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.19 1999/10/28 01:10:38 gson Exp $ */
+ /* $Id: xfrin.c,v 1.20 1999/10/28 19:11:33 gson Exp $ */
 
 #include <config.h>
 
@@ -678,6 +678,47 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 }
 
 /*
+ * Convert a tuple into a dns_name_t suitable for inserting
+ * into the given dns_message_t.
+ */
+static isc_result_t
+tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target)
+{
+	dns_result_t result;
+	dns_rdata_t *rdata = NULL;
+	dns_rdatalist_t *rdl = NULL;
+	dns_rdataset_t *rds = NULL;
+	dns_name_t *name = NULL;
+
+	REQUIRE(target != NULL && *target == NULL);
+
+	CHECK(dns_message_gettemprdata(msg, &rdata));
+	dns_rdata_init(rdata);
+	*rdata = tuple->rdata; /* Struct assignment. */
+	
+	CHECK(dns_message_gettemprdatalist(msg, &rdl));
+	dns_rdatalist_init(rdl);
+	rdl->type = tuple->rdata.type;
+	rdl->rdclass = tuple->rdata.rdclass;
+	rdl->ttl = tuple->ttl;
+	ISC_LIST_APPEND(rdl->rdata, rdata, link);
+
+	CHECK(dns_message_gettemprdataset(msg, &rds));
+	dns_rdataset_init(rds);
+	CHECK(dns_rdatalist_tordataset(rdl, rds));
+
+	CHECK(dns_message_gettempname(msg, &name));
+	dns_name_init(name, NULL);
+	dns_name_clone(&tuple->name, name);
+	ISC_LIST_APPEND(name->list, rds, link);
+
+	*target = name;
+ failure:
+	return (result);
+}
+		
+
+/*
  * Build an *XFR request and send its length prefix.
  */
 static dns_result_t
@@ -688,10 +729,10 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	dns_rdataset_t *qrdataset = NULL;
 	dns_message_t *msg = NULL;
 	unsigned char length[2];
-	dns_rdatalist_t soardl;
-	dns_rdataset_t soards;
 	dns_difftuple_t *soatuple = NULL;
 	dns_name_t *qname = NULL;
+	dns_dbversion_t *ver = NULL;
+	dns_name_t *msgsoaname;
 
 	/* Create the request message */
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
@@ -711,33 +752,17 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
 
 	if (xfr->reqtype == dns_rdatatype_ixfr) {
-		/* Get the SOA. */
+		/* Get the SOA and add it to the authority section. */
 		/* XXX is using the current version the right thing? */
-		dns_dbversion_t *ver = NULL;
 		dns_db_currentversion(xfr->db, &ver);
-		dns_db_createsoatuple(xfr->db, ver, xfr->mctx,
-				      DNS_DIFFOP_EXISTS, &soatuple);
+		CHECK(dns_db_createsoatuple(xfr->db, ver, xfr->mctx,
+					    DNS_DIFFOP_EXISTS, &soatuple));
 		xfr->ixfr.request_serial = dns_soa_getserial(&soatuple->rdata);
-		dns_db_closeversion(xfr->db, &ver, ISC_FALSE);
-
 		printf("requesting IXFR for serial %u\n",
 			       xfr->ixfr.request_serial);
 
-		/* Create a dns_rdatalist_t */
-		soardl.type = soatuple->rdata.type;
-		soardl.rdclass = soatuple->rdata.rdclass;
-		soardl.ttl = soatuple->ttl;
-		ISC_LIST_INIT(soardl.rdata);
-		ISC_LINK_INIT(&soardl, link);
-		ISC_LIST_APPEND(soardl.rdata, &soatuple->rdata, link);
-
-		dns_rdataset_init(&soards);
-		result = dns_rdatalist_tordataset(&soardl, &soards);
-		INSIST(result == DNS_R_SUCCESS);
-		ISC_LIST_APPEND(soatuple->name.list, &soards, link);
-
-		dns_message_addname(msg, &soatuple->name,
-				    DNS_SECTION_AUTHORITY);
+		CHECK(tuple2msgname(soatuple, msg, &msgsoaname));
+		dns_message_addname(msg, msgsoaname, DNS_SECTION_AUTHORITY);
 	}
 
 	msg->id = ('b' << 8) | '9'; /* Arbitrary */
@@ -748,10 +773,6 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	xfr->lasttsig = msg->tsig;
 	msg->tsig = NULL;
 
-	dns_message_destroy(&msg); /* XXX in failure case, too*/
-	if (soatuple != NULL)
-		dns_difftuple_free(&soatuple);
-
 	isc_buffer_used(&xfr->qbuffer, &region);
 	INSIST(region.length <= 65535);
 
@@ -761,11 +782,14 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	lregion.length = 2;
 	CHECK(isc_socket_send(xfr->socket, &lregion, xfr->task,
 			      xfrin_sendlen_done, xfr));
-	return (DNS_R_SUCCESS);
-	
+
  failure:
+	if (msg != NULL)
+		dns_message_destroy(&msg);
 	if (soatuple != NULL)
 		dns_difftuple_free(&soatuple);
+	if (ver != NULL)
+		dns_db_closeversion(xfr->db, &ver, ISC_FALSE);
 	return (result);
 }
 
