@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.16 1999/10/08 18:36:51 bwelling Exp $
+ * $Id: tsig.c,v 1.17 1999/10/08 20:14:47 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -125,7 +125,9 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	else
 		tkey->key = NULL;
 
+	tkey->refs = 0;
 	tkey->transient = transient;
+	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
 	tkey->magic = TSIG_MAGIC;
 	return (ISC_R_SUCCESS);
@@ -140,7 +142,6 @@ cleanup_key:
 	return (ret);
 }
 
-/* Caller must be sure that this key is not in use. */
 void
 dns_tsigkey_free(dns_tsigkey_t **key) {
 	dns_tsigkey_t *tkey;
@@ -148,7 +149,11 @@ dns_tsigkey_free(dns_tsigkey_t **key) {
 	REQUIRE(key != NULL);
 	REQUIRE(VALID_TSIG_KEY(*key));
 	tkey = *key;
+	*key = NULL;
 
+	tkey->refs--;
+	if (tkey->refs > 0 || !tkey->deleted)
+		return;
 	tkey->magic = 0;
 	if (tkey->key != NULL) {
 		isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
@@ -160,6 +165,12 @@ dns_tsigkey_free(dns_tsigkey_t **key) {
 	if (tkey->key != NULL)
 		dst_key_free(tkey->key);
 	isc_mem_put(tkey->mctx, tkey, sizeof(dns_tsigkey_t));
+}
+
+void
+dns_tsigkey_setdeleted(dns_tsigkey_t *key) {
+	INSIST(VALID_TSIG_KEY(key));
+	key->deleted = ISC_TRUE;
 }
 
 isc_result_t
@@ -846,6 +857,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 	dns_tsigkey_t *key;
 
 	REQUIRE(tsigkey != NULL);
+	REQUIRE(*tsigkey == NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(algorithm != NULL);
 
@@ -853,11 +865,13 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 	key = ISC_LIST_HEAD(tsigkeys);
 	while (key != NULL) {
 		if (dns_name_equal(&key->name, name) &&
-		    dns_name_equal(&key->algorithm, algorithm))
+		    dns_name_equal(&key->algorithm, algorithm) &&
+		    !key->deleted)
 		{
+			key->refs++;
 			*tsigkey = key;
 			isc_rwlock_unlock(&tsiglock, isc_rwlocktype_read);
-			 return (ISC_R_SUCCESS);
+			return (ISC_R_SUCCESS);
 		}
 		key = ISC_LIST_NEXT(key, link);
 	}
@@ -911,6 +925,8 @@ void
 dns_tsig_destroy() {
 	while (!ISC_LIST_EMPTY(tsigkeys)) {
 		dns_tsigkey_t *key = ISC_LIST_HEAD(tsigkeys);
+		key->refs = 0;
+		key->deleted = ISC_TRUE;
 		dns_tsigkey_free(&key);
 	}
 	dns_name_free(dns_tsig_hmacmd5_name, tsig_mctx);

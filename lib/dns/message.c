@@ -434,7 +434,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 			    sizeof(dns_rdata_any_tsig_t));
         }
 
-	if (msg->tsigkey != NULL && dns_tsigkey_empty(msg->tsigkey))
+	if (msg->tsigkey != NULL)
 		dns_tsigkey_free(&msg->tsigkey);
 
 	/*

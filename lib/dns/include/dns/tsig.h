@@ -42,7 +42,9 @@ struct dns_tsigkey {
 	dst_key_t		*key;		/* Key */
 	dns_name_t		name;		/* Key name */
 	dns_name_t		algorithm;	/* Algorithm name */
+	isc_uint32_t		refs;		/* reference counter */
 	isc_boolean_t		transient;	/* dynamically created? */
+	isc_boolean_t		deleted;	/* has this been deleted? */
 	ISC_LINK(dns_tsigkey_t)	link;
 };
 
@@ -74,6 +76,15 @@ void
 dns_tsigkey_free(dns_tsigkey_t **key);
 /*
  *	Frees the tsig key structure pointed to by 'key'.
+ *
+ *	Requires:
+ *		'key' is a valid TSIG key
+ */
+
+void
+dns_tsigkey_setdeleted(dns_tsigkey_t *key);
+/*
+ *	Marks this key as deleted.  It will be deleted when no references exist.
  *
  *	Requires:
  *		'key' is a valid TSIG key
@@ -141,7 +152,8 @@ isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 dns_name_t *algorithm);
 /*
- *	Returns the TSIG key corresponding to this name and algorithm
+ *	Returns the TSIG key corresponding to this name and algorithm and
+ *	increments the keys reference counter.
  *
  *	Requires:
  *		'tsigkey' is not NULL
