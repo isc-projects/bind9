@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.25 1999/12/02 22:31:13 gson Exp $ */
+ /* $Id: xfrout.c,v 1.26 1999/12/06 18:11:49 gson Exp $ */
 
 #include <config.h>
 
@@ -60,7 +60,6 @@
 
 /*
  * TODO:
- *  - timeouts
  *  - IXFR over UDP
  */
 
