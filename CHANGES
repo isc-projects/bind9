@@ -1,3 +1,5 @@
+1841.	[placeholder]	rt13694
+
 1840.	[func]		dnssec-signzone can now randomize signature end times
 			(dnssec-signzone -j jitter). [RT #13609]
 
