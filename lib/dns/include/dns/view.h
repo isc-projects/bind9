@@ -156,8 +156,10 @@ dns_view_detach(dns_view_t **viewp);
  */
 
 isc_result_t
-dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
-			unsigned int ntasks, isc_timermgr_t *timermgr,
+dns_view_createresolver(dns_view_t *view,
+			isc_taskmgr_t *taskmgr, unsigned int ntasks,
+			isc_socketmgr_t *socketmgr,
+			isc_timermgr_t *timermgr,
 			dns_dispatch_t *dispatch);
 /*
  * Create a resolver for the view.
@@ -169,7 +171,7 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
  *	'view' does not have a resolver already.
  *
  *	The requirements of dns_resolver_create() apply to 'taskmgr',
- *	'ntasks', 'timermgr', and 'dispatch'.
+ *	'ntasks', 'socketmgr', 'timermgr', and 'dispatch'.
  *
  * Returns:
  *

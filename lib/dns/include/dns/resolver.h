@@ -45,39 +45,39 @@
  *	Drafts:	<TBS>
  */
 
+#include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/event.h>
+#include <isc/socket.h>
 
 #include <dns/types.h>
+#include <dns/name.h>
+#include <dns/fixedname.h>
 #include <dns/result.h>
 
 ISC_LANG_BEGINDECLS
 
-struct dns_fetch {
-	unsigned int			magic;
-	dns_resolver_t *		res;
-	void *				private;
-	ISC_LINK(struct dns_fetch)	link;
-};
-
-#define DNS_FETCH_MAGIC			0x46746368U	/* Ftch */
-#define DNS_FETCH_VALID(fetch)		((fetch) != NULL && \
-					 (fetch)->magic == DNS_FETCH_MAGIC)
-
-typedef struct dns_fetchdoneevent {
-	ISC_EVENT_COMMON(struct dns_fetchdoneevent);
+typedef struct dns_fetchevent {
+	ISC_EVENT_COMMON(struct dns_fetchevent);
 	dns_result_t			result;
-} dns_fetchdoneevent_t;
+	dns_rdatatype_t			qtype;
+	dns_db_t *			db;
+	dns_dbnode_t *			node;
+	dns_rdataset_t *		rdataset;
+	dns_rdataset_t *		sigrdataset;
+	dns_fixedname_t			foundname;
+} dns_fetchevent_t;
 
 #define DNS_FETCHOPT_TCP		0x01
 #define DNS_FETCHOPT_UNSHARED		0x02
 #define DNS_FETCHOPT_RECURSIVE		0x04
 
 dns_result_t
-dns_resolver_create(isc_mem_t *mctx, dns_view_t *view,
+dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
-		    isc_timermgr_t *timermgr, dns_dispatch_t *dispatch,
-		    dns_resolver_t **resp);
+		    isc_socketmgr_t *socketmgr,
+		    isc_timermgr_t *timermgr,
+		    dns_dispatch_t *dispatch, dns_resolver_t **resp);
 
 void
 dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp);
@@ -92,13 +92,12 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_forwarders_t *forwarders,
 			 unsigned int options, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
+			 dns_rdataset_t *rdataset,
+			 dns_rdataset_t *sigrdataset, 
 			 dns_fetch_t **fetchp);
 
 void
-dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task);
-
-void
-dns_resolver_getanswer(isc_event_t *event, dns_message_t **msgp);
+dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp);
 
 ISC_LANG_ENDDECLS
 

@@ -166,8 +166,10 @@ dns_view_detach(dns_view_t **viewp) {
 }
 
 isc_result_t
-dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
-			unsigned int ntasks, isc_timermgr_t *timermgr,
+dns_view_createresolver(dns_view_t *view,
+			isc_taskmgr_t *taskmgr, unsigned int ntasks,
+			isc_socketmgr_t *socketmgr,
+			isc_timermgr_t *timermgr,
 			dns_dispatch_t *dispatch)
 {
 	/*
@@ -178,12 +180,8 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 	
-#ifdef notyet
-	return (dns_resolver_create(view, taskmgr, ntasks, timermgr, dispatch,
-				    &view->resolver));
-#else
-	return (DNS_R_NOTIMPLEMENTED);
-#endif
+	return (dns_resolver_create(view, taskmgr, ntasks, socketmgr,
+				    timermgr, dispatch, &view->resolver));
 }
 
 void
@@ -309,7 +307,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	    result == DNS_R_NXGLUE) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset->methods != NULL)
+		if (sigrdataset != NULL && sigrdataset->methods != NULL)
 			dns_rdataset_disassociate(sigrdataset);
 		if (is_zone) {
 			if (view->cachedb != NULL) {
@@ -351,7 +349,8 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			version = NULL;
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
-			if (sigrdataset->methods != NULL) {
+			if (sigrdataset != NULL &&
+			    sigrdataset->methods != NULL) {
 				dns_rdataset_clone(sigrdataset, &zsigrdataset);
 				dns_rdataset_disassociate(sigrdataset);
 			}
@@ -368,7 +367,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	if (result == DNS_R_NOTFOUND && use_hints && view->hints != NULL) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset->methods != NULL)
+		if (sigrdataset != NULL && sigrdataset->methods != NULL)
 			dns_rdataset_disassociate(sigrdataset);
 		dns_fixedname_init(&foundname);
 		result = dns_db_find(view->hints, name, NULL, type, options,
