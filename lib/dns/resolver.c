@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.233 2001/11/14 22:05:05 gson Exp $ */
+/* $Id: resolver.c,v 1.234 2001/11/30 01:59:18 gson Exp $ */
 
 #include <config.h>
 
@@ -643,7 +643,7 @@ fctx_addopt(dns_message_t *message) {
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset) == ISC_R_SUCCESS);
 
 	return (dns_message_setopt(message, rdataset));
 }
@@ -717,9 +717,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 * valid until this query is canceled.
 	 */
 	query->addrinfo = addrinfo;
-	result = isc_time_now(&query->start);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_query;
+	TIME_NOW(&query->start);
 
 	/*
 	 * If this is a TCP query, then we need to make a socket and
@@ -830,7 +828,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_mem_put(res->mctx, query, sizeof(*query));
 
  stop_idle_timer:
-	fctx_stopidletimer(fctx);
+	RUNTIME_CHECK(fctx_stopidletimer(fctx) == ISC_R_SUCCESS);
 
 	return (result);
 }
@@ -1016,8 +1014,10 @@ resquery_send(resquery_t *query) {
 		goto cleanup_message;
 
 	if (tsigkey != NULL) {
-		dns_message_settsigkey(fctx->qmessage, tsigkey);
+		result = dns_message_settsigkey(fctx->qmessage, tsigkey);
 		dns_tsigkey_detach(&tsigkey);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_message;
 	}
 
 	result = dns_message_rendersection(fctx->qmessage,
@@ -1470,17 +1470,18 @@ fctx_getaddresses(fetchctx_t *fctx) {
  restart:
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 
-	result = dns_rdataset_first(&fctx->nameservers);
-	while (result == ISC_R_SUCCESS) {
+	for (result = dns_rdataset_first(&fctx->nameservers);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&fctx->nameservers))
+	{
 		dns_rdataset_current(&fctx->nameservers, &rdata);
 		/*
 		 * Extract the name from the NS record.
 		 */
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
-		if (result != ISC_R_SUCCESS) {
-			dns_rdataset_next(&fctx->nameservers);
+		if (result != ISC_R_SUCCESS)
 			continue;
-		}
+
 		options = stdoptions;
 		/*
 		 * If this name is a subdomain of the query domain, tell
@@ -1555,7 +1556,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		}
 		dns_rdata_reset(&rdata);
 		dns_rdata_freestruct(&ns);
-		result = dns_rdataset_next(&fctx->nameservers);
 	}
 	if (result != ISC_R_NOMORE)
 		return (result);
@@ -1865,6 +1865,8 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	if (event->ev_type == ISC_TIMEREVENT_LIFE) {
 		fctx_done(fctx, ISC_R_TIMEDOUT);
 	} else {
+		isc_result_t result;
+
 		fctx->timeouts++;
 		/*
 		 * We could cancel the running queries here, or we could let
@@ -1875,11 +1877,14 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		 * Our timer has triggered.  Reestablish the fctx lifetime
 		 * timer.
 		 */
-		fctx_starttimer(fctx);
-		/*
-		 * Keep trying.
-		 */
-		fctx_try(fctx);
+		result = fctx_starttimer(fctx);
+		if (result != ISC_R_SUCCESS)
+			fctx_done(fctx, result);
+		else
+			/*
+			 * Keep trying.
+			 */
+			fctx_try(fctx);
 	}
 
 	isc_event_free(&event);
@@ -2036,11 +2041,16 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&res->buckets[bucketnum].lock);
 
 	if (!done) {
+		isc_result_t result;
+
 		/*
 		 * All is well.  Start working on the fetch.
 		 */
-		fctx_starttimer(fctx);
-		fctx_try(fctx);
+		result = fctx_starttimer(fctx);
+		if (result != ISC_R_SUCCESS)
+			fctx_done(fctx, result);
+		else
+			fctx_try(fctx);
 	} else if (bucket_empty)
 		empty_bucket(res);
 }
@@ -2679,8 +2689,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	if (hevent != NULL) {
 		hevent->result = eresult;
-		dns_name_copy(vevent->name,
-			      dns_fixedname_name(&hevent->foundname), NULL);
+		RUNTIME_CHECK(dns_name_copy(vevent->name,
+			      dns_fixedname_name(&hevent->foundname), NULL)
+			      == ISC_R_SUCCESS);
 		dns_db_attach(fctx->cache, &hevent->db);
 		hevent->node = node;
 		node = NULL;
@@ -4032,7 +4043,7 @@ answer_response(fetchctx_t *fctx) {
 
 static void
 resquery_response(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	resquery_t *query = event->ev_arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
 	isc_boolean_t keep_trying, broken_server, get_nameservers, resend;
@@ -4076,9 +4087,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 *         need a routine to convert from an isc_time_t to an
 	 *	   isc_stdtime_t.
 	 */
-	result = isc_time_now(&tnow);
-	if (result != ISC_R_SUCCESS)
-		goto done;
+	TIME_NOW(&tnow);
 	finish = &tnow;
 	isc_stdtime_get(&now);
 
@@ -4322,8 +4331,14 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	if (fctx->res->lame_ttl != 0 && !ISFORWARDER(query->addrinfo) &&
 	    is_lame(fctx)) {
 		log_lame(fctx, query->addrinfo);
-		dns_adb_marklame(fctx->adb, query->addrinfo,
-				 &fctx->domain, now + fctx->res->lame_ttl);
+		result = dns_adb_marklame(fctx->adb, query->addrinfo,
+					  &fctx->domain,
+					  now + fctx->res->lame_ttl);
+		if (result != ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+				      "could not mark server as lame: %s",
+				      isc_result_totext(result));
 		broken_server = ISC_TRUE;
 		keep_trying = ISC_TRUE;
 		goto done;

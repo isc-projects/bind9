@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.197 2001/11/27 00:55:55 gson Exp $ */
+/* $Id: message.c,v 1.198 2001/11/30 01:59:12 gson Exp $ */
 
 /***
  *** Imports
@@ -1390,7 +1390,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			ISC_LIST_INIT(rdatalist->rdata);
 
 			dns_rdataset_init(rdataset);
-			dns_rdatalist_tordataset(rdatalist, rdataset);
+			RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist,
+							       rdataset)
+				      == ISC_R_SUCCESS);
 
 			if (rdtype != dns_rdatatype_opt && 
 			    rdtype != dns_rdatatype_tsig &&

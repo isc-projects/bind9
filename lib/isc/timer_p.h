@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer_p.h,v 1.4 2001/01/09 21:56:37 bwelling Exp $ */
+/* $Id: timer_p.h,v 1.5 2001/11/30 01:59:37 gson Exp $ */
 
 #ifndef ISC_TIMER_P_H
 #define ISC_TIMER_P_H
@@ -23,7 +23,7 @@
 isc_result_t
 isc__timermgr_nextevent(isc_time_t *when);
 
-isc_result_t
+void
 isc__timermgr_dispatch(void);
 
 #endif /* ISC_TIMER_P_H */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.194 2001/11/27 03:00:48 marka Exp $ */
+/* $Id: adb.c,v 1.195 2001/11/30 01:59:03 gson Exp $ */
 
 /*
  * Implementation notes
@@ -2139,8 +2139,8 @@ destroy(dns_adb_t *adb) {
 	isc_mempool_destroy(&adb->afmp);
 	isc_mempool_destroy(&adb->af6mp);
 
-	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
-	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->entrylocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->namelocks, NBUCKETS);
 
 	DESTROYLOCK(&adb->reflock);
 	DESTROYLOCK(&adb->lock);
@@ -2298,10 +2298,10 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 		isc_timer_detach(&adb->timer);
 
 	/* clean up entrylocks */
-	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->entrylocks, NBUCKETS);
 
  fail2: /* clean up namelocks */
-	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
+	DESTROYMUTEXBLOCK(adb->namelocks, NBUCKETS);
 
  fail1: /* clean up only allocated memory */
 	if (adb->nmp != NULL)

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.33 2001/09/15 00:27:26 bwelling Exp $
+ * $Id: dst_parse.c,v 1.34 2001/11/30 01:59:30 gson Exp $
  */
 
 #include <config.h>
@@ -330,7 +330,7 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 	if (check_data(priv, alg) < 0)
 		goto fail;
 
-	isc_lex_close(lex);
+	RUNTIME_CHECK(isc_lex_close(lex) == ISC_R_SUCCESS);
 	isc_lex_destroy(&lex);
 	isc_mem_put(mctx, newfilename, newfilenamelen);
 
@@ -338,7 +338,7 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 
 fail:
 	if (lex != NULL) {
-		isc_lex_close(lex);
+		(void)isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 	}
 	isc_mem_put(mctx, newfilename, newfilenamelen);

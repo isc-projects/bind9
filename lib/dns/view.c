@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.108 2001/11/27 04:06:14 marka Exp $ */
+/* $Id: view.c,v 1.109 2001/11/30 01:59:23 gson Exp $ */
 
 #include <config.h>
 
@@ -343,7 +343,7 @@ dialup(dns_zone_t *zone, void *dummy) {
 void
 dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
-	dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
+	(void)dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
 }
 
 void

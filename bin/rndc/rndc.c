@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.86 2001/11/27 04:06:13 marka Exp $ */
+/* $Id: rndc.c,v 1.87 2001/11/30 01:58:55 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -343,7 +343,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		fatal("no server specified and no default");
 
 	if (!key_only) {
-		cfg_map_get(config, "server", &servers);
+		(void)cfg_map_get(config, "server", &servers);
 		if (servers != NULL) {
 			for (elt = cfg_list_first(servers);
 			     elt != NULL; 
@@ -419,7 +419,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		if (server != NULL)
 			(void)cfg_map_get(server, "port", &defport);
 		if (defport == NULL && options != NULL)
-			cfg_map_get(options, "default-port", &defport);
+			(void)cfg_map_get(options, "default-port", &defport);
 	}
 	if (defport != NULL) {
 		remoteport = cfg_obj_asuint32(defport);
@@ -456,7 +456,9 @@ main(int argc, char **argv) {
 	admin_conffile = RNDC_CONFFILE;
 	admin_keyfile = RNDC_KEYFILE;
 
-	isc_app_start();
+	result = isc_app_start();
+	if (result != ISC_R_SUCCESS)
+		fatal("isc_app_start() failed: %s", isc_result_totext(result));
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:k:Mmp:s:Vy:"))
 	       != -1) {
@@ -566,7 +568,9 @@ main(int argc, char **argv) {
 
 	DO("post event", isc_app_onrun(mctx, task, rndc_start, NULL));
 
-	isc_app_run();
+	result = isc_app_run();
+	if (result != ISC_R_SUCCESS)
+		fatal("isc_app_run() failed: %s", isc_result_totext(result));
 
 	if (connects > 0 || sends > 0 || recvs > 0)
 		isc_socket_cancel(sock, task, ISC_SOCKCANCEL_ALL);

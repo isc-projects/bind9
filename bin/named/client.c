@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.198 2001/11/16 20:01:57 gson Exp $ */
+/* $Id: client.c,v 1.199 2001/11/30 01:58:43 gson Exp $ */
 
 #include <config.h>
 
@@ -1050,7 +1050,8 @@ client_addopt(ns_client_t *client) {
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
+		      == ISC_R_SUCCESS);
 
 	client->opt = rdataset;
 

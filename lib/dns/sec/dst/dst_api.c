@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.96 2001/11/28 02:35:02 bwelling Exp $
+ * $Id: dst_api.c,v 1.97 2001/11/30 01:59:29 gson Exp $
  */
 
 #include <config.h>
@@ -882,7 +882,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 
  cleanup:
 	if (lex != NULL) {
-		isc_lex_close(lex);
+		RUNTIME_CHECK(isc_lex_close(lex) == ISC_R_SUCCESS);
 		isc_lex_destroy(&lex);
 	}
 	isc_mem_put(mctx, newfilename, newfilenamelen);

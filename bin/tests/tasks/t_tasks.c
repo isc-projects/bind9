@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.30 2001/11/27 01:55:31 gson Exp $ */
+/* $Id: t_tasks.c,v 1.31 2001/11/30 01:58:59 gson Exp $ */
 
 #include <config.h>
 
@@ -350,7 +350,7 @@ t_tasks1(void) {
 
 	isc_task_send(task4, &event);
 
-	isc_task_purge(task3, NULL, 0, 0);
+	(void)isc_task_purge(task3, NULL, 0, 0);
 
 	isc_task_detach(&task1);
 	isc_task_detach(&task2);

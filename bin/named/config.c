@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.22 2001/11/27 00:55:32 gson Exp $ */
+/* $Id: config.c,v 1.23 2001/11/30 01:58:44 gson Exp $ */
 
 #include <config.h>
 
@@ -440,7 +440,7 @@ ns_config_getport(cfg_obj_t *config, in_port_t *portp) {
 	isc_result_t result;
 	int i;
 
-	cfg_map_get(config, "options", &options);
+	(void)cfg_map_get(config, "options", &options);
 	i = 0;
 	if (options != NULL)
 		maps[i++] = options;

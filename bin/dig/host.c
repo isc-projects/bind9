@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.81 2001/11/29 01:21:19 gson Exp $ */
+/* $Id: host.c,v 1.82 2001/11/30 01:58:40 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -147,14 +147,12 @@ dighost_shutdown(void) {
 void
 received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_time_t now;
-	isc_result_t result;
 	int diff;
 
 	if (!short_form) {
 		char fromtext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(from, fromtext, sizeof(fromtext));
-		result = isc_time_now(&now);
-		check_result(result, "isc_time_now");
+		TIME_NOW(&now);
 		diff = (int) isc_time_microdiff(&now, &query->time_sent);
 		printf("Received %u bytes from %s in %d ms\n",
 		       bytes, fromtext, diff/1000);

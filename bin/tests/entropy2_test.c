@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy2_test.c,v 1.10 2001/11/27 00:55:40 gson Exp $ */
+/* $Id: entropy2_test.c,v 1.11 2001/11/30 01:58:57 gson Exp $ */
 
 #include <config.h>
 
@@ -97,9 +97,7 @@ get(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = isc_time_now(&t);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	TIME_NOW(&t);
 
 	sample = isc_time_nanoseconds(&t);
 	extra = c;

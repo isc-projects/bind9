@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.7 2001/11/27 01:55:55 gson Exp $ */
+/* $Id: entropy.c,v 1.8 2001/11/30 01:59:32 gson Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -347,7 +347,6 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 
 static inline void
 reseed(isc_entropy_t *ent) {
-	isc_result_t result;
 	isc_time_t t;
 	pid_t pid;
 
@@ -367,11 +366,9 @@ reseed(isc_entropy_t *ent) {
 		if ((ent->initcount % 50) != 0)
 			return;
 
-	result = isc_time_now(&t);
-	if (result == ISC_R_SUCCESS) {
-		entropypool_adddata(ent, &t, sizeof(t), 0);
-		ent->initcount++;
-	}
+	TIME_NOW(&t);
+	entropypool_adddata(ent, &t, sizeof(t), 0);
+	ent->initcount++;
 }
 
 static inline unsigned int
@@ -1176,9 +1173,7 @@ kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = isc_time_now(&t);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	TIME_NOW(&t);
 
 	sample = isc_time_nanoseconds(&t);
 	extra = c;

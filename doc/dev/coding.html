@@ -15,7 +15,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: coding.html,v 1.15 2001/01/09 21:46:59 bwelling Exp $ -->
+<!-- $Id: coding.html,v 1.16 2001/11/30 01:59:01 gson Exp $ -->
 
 <H2>C Language</H2>
 
@@ -291,7 +291,18 @@ spaces.
 
 <H4>Return Values</H4>
 If a function returns a value, it should be cast to (void) if you don't
-care what the value is, except for <CODE>printf</CODE><P>
+care what the value is, except for <CODE>printf</CODE> and its variants,
+<CODE>fputc</CODE>, <CODE>fwrite</CODE> (when writing text),
+<CODE>fflush</CODE>,
+<CODE>memcpy</CODE>, <CODE>memmove</CODE>, <CODE>memset</CODE>, 
+<CODE>strcpy</CODE>, <CODE>strncpy</CODE>, and <CODE>strcat</CODE>.
+<P>
+
+Certain functions return values or not depending on the operating
+system or even compiler flags; these include 
+these include <CODE>openlog</CODE> and <CODE>srandom</CODE>.
+The return value of these should not be used nor cast to (void).
+<P>
 
 All error conditions must be handled.<P>
 

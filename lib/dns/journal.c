@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.82 2001/10/15 04:47:55 marka Exp $ */
+/* $Id: journal.c,v 1.83 2001/11/30 01:59:09 gson Exp $ */
 
 #include <config.h>
 
@@ -951,7 +951,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
 
 	isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "writing to journal");
-	dns_diff_print(diff, NULL);
+	(void)dns_diff_print(diff, NULL);
 
 	/*
 	 * Pass 1: determine the buffer size needed, and
@@ -1264,7 +1264,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 		if (++n_put > 100)  {
 			isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 				      "applying diff to database");
-			dns_diff_print(&diff, NULL);
+			(void)dns_diff_print(&diff, NULL);
 			CHECK(dns_diff_apply(&diff, db, ver));
 			dns_diff_clear(&diff);
 			n_put = 0;
@@ -1277,7 +1277,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	if (n_put != 0) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 			      "applying final diff to database");
-		dns_diff_print(&diff, NULL);
+		(void)dns_diff_print(&diff, NULL);
 		CHECK(dns_diff_apply(&diff, db, ver));
 		dns_diff_clear(&diff);
 	}

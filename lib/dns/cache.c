@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.51 2001/11/27 03:10:29 marka Exp $ */
+/* $Id: cache.c,v 1.52 2001/11/30 01:59:05 gson Exp $ */
 
 #include <config.h>
 
@@ -350,7 +350,12 @@ dns_cache_detach(dns_cache_t **cachep) {
 		 * When the cache is shut down, dump it to a file if one is
 		 * specified.
 		 */
-		dns_cache_dump(cache);
+		isc_result_t result = dns_cache_dump(cache);
+		if (result != ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
+				      "error dumping cache: %s ",
+				      isc_result_totext(result));
 
 		/*
 		 * If the cleaner task exists, let it free the cache.
@@ -435,6 +440,7 @@ dns_cache_dump(dns_cache_t *cache) {
 void
 dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	isc_interval_t interval;
+	isc_result_t result;
 
 	LOCK(&cache->lock);
 
@@ -448,15 +454,22 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	cache->cleaner.cleaning_interval = t;
 
 	if (t == 0) {
-		isc_timer_reset(cache->cleaner.cleaning_timer,
-				isc_timertype_inactive, NULL, NULL, ISC_TRUE);
+		result = isc_timer_reset(cache->cleaner.cleaning_timer,
+					 isc_timertype_inactive,
+					 NULL, NULL, ISC_TRUE);
 	} else {
 		isc_interval_set(&interval, cache->cleaner.cleaning_interval,
 				 0);
-		isc_timer_reset(cache->cleaner.cleaning_timer,
-				isc_timertype_ticker,
-				NULL, &interval, ISC_FALSE);
+		result = isc_timer_reset(cache->cleaner.cleaning_timer,
+					 isc_timertype_ticker,
+					 NULL, &interval, ISC_FALSE);
 	}
+	if (result != ISC_R_SUCCESS)	
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
+			      "could not set cache cleaning interval: %s",
+			      isc_result_totext(result));
+
  unlock:
 	UNLOCK(&cache->lock);
 }
@@ -948,7 +961,7 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 		isc_timer_detach(&cache->cleaner.cleaning_timer);
 
 	/* Make sure we don't reschedule anymore. */
-	isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
+	(void)isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
 
 	UNLOCK(&cache->lock);
 

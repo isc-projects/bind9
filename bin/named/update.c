@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.90 2001/11/20 05:04:41 marka Exp $ */
+/* $Id: update.c,v 1.91 2001/11/30 01:58:50 gson Exp $ */
 
 #include <config.h>
 
@@ -1257,9 +1257,8 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 	     result = dns_dbiterator_next(dbit))
 	{
 		dns_dbnode_t *node = NULL;
-		result = dns_dbiterator_current(dbit, &node, child);
+		CHECK(dns_dbiterator_current(dbit, &node, child));
 		dns_db_detachnode(db, &node);
-		CHECK(result);
 		if (! dns_name_issubdomain(child, name))
 			break;
 		CHECK(namelist_append_name(affected, child));
@@ -1411,7 +1410,7 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 				goto failure;
 			}
 		}
-		dns_dbiterator_current(dbit, &node, newname);
+		CHECK(dns_dbiterator_current(dbit, &node, newname));
 		dns_db_detachnode(db, &node);
 
 		/*
@@ -1781,10 +1780,9 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 			 */
 			CHECK(rrset_exists(db, newver, &t->name,
 					   dns_rdatatype_nxt, 0, &flag));
-			if (! flag) {
-				add_placeholder_nxt(db, newver, &t->name,
-						    diff);
-			}
+			if (! flag)
+				CHECK(add_placeholder_nxt(db, newver, &t->name,
+							  diff));
 		}
 	}
 

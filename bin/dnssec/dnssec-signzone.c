@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.154 2001/11/29 00:39:07 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.155 2001/11/30 01:58:42 gson Exp $ */
 
 #include <config.h>
 
@@ -1650,7 +1650,7 @@ main(int argc, char *argv[]) {
 		origin = file;
 
 	gdb = NULL;
-	isc_time_now(&timer_start);
+	TIME_NOW(&timer_start);
 	loadzone(file, origin, rdclass, &gdb);
 	gorigin = dns_db_origin(gdb);
 
@@ -1814,7 +1814,7 @@ main(int argc, char *argv[]) {
 	(void) isc_app_finish();
 
 	if (printstats) {
-		isc_time_now(&timer_finish);
+		TIME_NOW(&timer_finish);
 		print_stats(&timer_start, &timer_finish);
 	}
 

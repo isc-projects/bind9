@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.22 2001/11/20 21:28:34 gson Exp $ */
+/* $Id: util.h,v 1.23 2001/11/30 01:59:38 gson Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -172,6 +172,9 @@
 	RUNTIME_CHECK(isc_rwlock_unlock((lp), (t)) == ISC_R_SUCCESS); \
 	} while (0)
 
+#define DESTROYMUTEXBLOCK(bp, n) \
+	RUNTIME_CHECK(isc_mutexblock_destroy((bp), (n)) == ISC_R_SUCCESS)
+
 /*
  * List Macros.
  */
@@ -213,5 +216,10 @@
 #define UNEXPECTED_ERROR		isc_error_unexpected
 #define FATAL_ERROR			isc_error_fatal
 #define RUNTIME_CHECK(cond)		ISC_ERROR_RUNTIMECHECK(cond)
+
+/*
+ * Time
+ */
+#define TIME_NOW(tp) 	RUNTIME_CHECK(isc_time_now((tp)) == ISC_R_SUCCESS)
 
 #endif /* ISC_UTIL_H */

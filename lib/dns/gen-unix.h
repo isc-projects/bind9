@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen-unix.h,v 1.12 2001/01/09 21:50:51 bwelling Exp $ */
+/* $Id: gen-unix.h,v 1.13 2001/11/30 01:59:08 gson Exp $ */
 
 /*
  * This file is responsible for defining two operations that are not
@@ -82,7 +82,7 @@ next_file(isc_dir_t *dir) {
 static void
 end_directory(isc_dir_t *dir) {
 	if (dir->handle != NULL)
-		closedir(dir->handle);
+		(void)closedir(dir->handle);
 
 	dir->handle = NULL;
 }

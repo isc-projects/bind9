@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.95 2001/11/12 19:05:35 gson Exp $ */
+/* $Id: validator.c,v 1.96 2001/11/30 01:59:21 gson Exp $ */
 
 #include <config.h>
 
@@ -990,7 +990,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 					   sizeof(*val->siginfo));
 		if (val->siginfo == NULL)
 			return (ISC_R_NOMEMORY);
-		dns_rdata_tostruct(&rdata, val->siginfo, NULL);
+		result = dns_rdata_tostruct(&rdata, val->siginfo, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
 		/*
 		 * At this point we could check that the signature algorithm

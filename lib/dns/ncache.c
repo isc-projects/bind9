@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.24 2001/01/09 21:51:08 bwelling Exp $ */
+/* $Id: ncache.c,v 1.25 2001/11/30 01:59:13 gson Exp $ */
 
 #include <config.h>
 
@@ -244,7 +244,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ISC_LIST_APPEND(ncrdatalist.rdata, &rdata, link);
 
 	dns_rdataset_init(&ncrdataset);
-	dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset)
+		      == ISC_R_SUCCESS);
 	ncrdataset.trust = trust;
 
 	return (dns_db_addrdataset(cache, node, NULL, now, &ncrdataset,

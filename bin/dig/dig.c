@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.174 2001/11/30 01:02:05 gson Exp $ */
+/* $Id: dig.c,v 1.175 2001/11/30 01:58:38 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -216,14 +216,12 @@ void
 received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_uint64_t diff;
 	isc_time_t now;
-	isc_result_t result;
 	time_t tnow;
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_sockaddr_format(from, fromtext, sizeof(fromtext));
 
-	result = isc_time_now(&now);
-	check_result(result, "isc_time_now");
+	TIME_NOW(&now);
 
 	if (query->lookup->stats && !short_form) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
@@ -285,9 +283,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	result = dns_rdata_totext(rdata, NULL, buf);
 	check_result(result, "dns_rdata_totext");
 	if (query->lookup->identify) {
-		result = isc_time_now(&now);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		TIME_NOW(&now);
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);

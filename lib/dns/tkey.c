@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.72 2001/10/09 17:26:33 bwelling Exp $
+ * $Id: tkey.c,v 1.73 2001/11/30 01:59:19 gson Exp $
  */
 
 #include <config.h>
@@ -643,7 +643,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 
 		if (!dns_name_equal(qname, dns_rootname)) {
 			unsigned int n = dns_name_countlabels(qname);
-			dns_name_copy(qname, keyname, NULL);
+			RUNTIME_CHECK(dns_name_copy(qname, keyname, NULL)
+				      == ISC_R_SUCCESS);
 			dns_name_getlabelsequence(keyname, 0, n - 1, keyname);
 		}
 		else {

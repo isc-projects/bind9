@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.38 2001/11/27 00:55:36 gson Exp $ */
+/* $Id: lwresd.c,v 1.39 2001/11/30 01:58:46 gson Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -341,7 +341,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
 	}
 
 	searchobj = NULL;
-	cfg_map_get(lwres, "search", &searchobj);
+	(void)cfg_map_get(lwres, "search", &searchobj);
 	if (searchobj != NULL) {
 		lwresd->search = NULL;
 		result = ns_lwsearchlist_create(lwresd->mctx,
@@ -615,7 +615,13 @@ listener_startclients(ns_lwreslistener_t *listener) {
 	LOCK(&listener->lock);
 	cm = ISC_LIST_HEAD(listener->cmgrs);
 	while (cm != NULL) {
-		ns_lwdclient_startrecv(cm);
+		result = ns_lwdclient_startrecv(cm);
+		if (result != ISC_R_SUCCESS)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_LWRESD, ISC_LOG_ERROR,
+				      "could not start lwres "
+				      "client handler: %s",
+				      isc_result_totext(result));
 		cm = ISC_LIST_NEXT(cm, link);
 	}
 	UNLOCK(&listener->lock);
@@ -783,7 +789,7 @@ ns_lwresd_configure(isc_mem_t *mctx, cfg_obj_t *config) {
 			port = LWRES_UDP_PORT;
 
 		listenerslist = NULL;
-		cfg_map_get(lwres, "listen-on", &listenerslist);
+		(void)cfg_map_get(lwres, "listen-on", &listenerslist);
 		if (listenerslist == NULL) {
 			struct in_addr localhost;
 			isc_sockaddr_t address;

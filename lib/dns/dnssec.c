@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69 2001/06/08 22:48:28 bwelling Exp $
+ * $Id: dnssec.c,v 1.70 2001/11/30 01:59:07 gson Exp $
  */
 
 
@@ -154,7 +154,9 @@ digest_sig(dst_context_t *ctx, dns_rdata_t *sigrdata, dns_rdata_sig_t *sig) {
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	dns_fixedname_init(&fname);
-	dns_name_downcase(&sig->signer, dns_fixedname_name(&fname), NULL);
+	RUNTIME_CHECK(dns_name_downcase(&sig->signer,
+					dns_fixedname_name(&fname), NULL)
+		      == ISC_R_SUCCESS);
 	dns_name_toregion(dns_fixedname_name(&fname), &r);
 	return (dst_context_adddata(ctx, &r));
 }
@@ -250,7 +252,8 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		goto cleanup_context;
 
 	dns_fixedname_init(&fnewname);
-	dns_name_downcase(name, dns_fixedname_name(&fnewname), NULL);
+	RUNTIME_CHECK(dns_name_downcase(name, dns_fixedname_name(&fnewname),
+					NULL) == ISC_R_SUCCESS);
 	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
 
 	/*
@@ -392,11 +395,13 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_fixedname_init(&fnewname);
 	labels = dns_name_depth(name) - 1;
 	if (labels - sig.labels > 0) {
-		dns_name_splitatdepth(name, sig.labels + 1, NULL,
-				      dns_fixedname_name(&fnewname));
-		dns_name_downcase(dns_fixedname_name(&fnewname),
-				  dns_fixedname_name(&fnewname),
-				  NULL);
+		RUNTIME_CHECK(dns_name_splitatdepth(name, sig.labels + 1, NULL,
+					    dns_fixedname_name(&fnewname))
+			      == ISC_R_SUCCESS);
+		RUNTIME_CHECK(dns_name_downcase(dns_fixedname_name(&fnewname),
+						dns_fixedname_name(&fnewname),
+						NULL)
+			      == ISC_R_SUCCESS);
 	}
 	else
 		dns_name_downcase(name, dns_fixedname_name(&fnewname), NULL);
@@ -654,7 +659,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	dataset = NULL;
 	RETERR(dns_message_gettemprdataset(msg, &dataset));
 	dns_rdataset_init(dataset);
-	dns_rdatalist_tordataset(datalist, dataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(datalist, dataset) == ISC_R_SUCCESS);
 	msg->sig0 = dataset;
 
 	return (ISC_R_SUCCESS);

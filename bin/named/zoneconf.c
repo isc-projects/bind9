@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.96 2001/11/08 05:36:23 marka Exp $ */
+/* $Id: zoneconf.c,v 1.97 2001/11/30 01:58:52 gson Exp $ */
 
 #include <config.h>
 
@@ -410,7 +410,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	obj = NULL;
 	result = ns_config_get(maps, "zone-statistics", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	dns_zone_setstatistics(zone, cfg_obj_asboolean(obj));
+	RETERR(dns_zone_setstatistics(zone, cfg_obj_asboolean(obj)));
 
 	/*
 	 * Configure master functionality.  This applies
@@ -455,12 +455,12 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "notify-source", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setnotifysrc4(zone, cfg_obj_assockaddr(obj));
+		RETERR(dns_zone_setnotifysrc4(zone, cfg_obj_assockaddr(obj)));
 
 		obj = NULL;
 		result = ns_config_get(maps, "notify-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setnotifysrc6(zone, cfg_obj_assockaddr(obj));
+		RETERR(dns_zone_setnotifysrc6(zone, cfg_obj_assockaddr(obj)));
 
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-transfer", ac, zone,
@@ -596,12 +596,12 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		obj = NULL;
 		result = ns_config_get(maps, "transfer-source", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj));
+		RETERR(dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj)));
 
 		obj = NULL;
 		result = ns_config_get(maps, "transfer-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-		dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj));
+		RETERR(dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj)));
 
 		break;
 

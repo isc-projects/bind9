@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.216 2001/11/29 07:31:22 marka Exp $ */
+/* $Id: socket.c,v 1.217 2001/11/30 01:59:46 gson Exp $ */
 
 #include <config.h>
 
@@ -344,7 +344,7 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 		manager->fdstate[fd] = CLOSED;
 		FD_CLR(fd, &manager->read_fds);
 		FD_CLR(fd, &manager->write_fds);
-		close(fd);
+		(void)close(fd);
 		return;
 	}
 	if (manager->fdstate[fd] != MANAGED)
@@ -1804,7 +1804,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	UNLOCK(&sock->lock);
 
 	if (fd != -1 && (make_nonblock(fd) != ISC_R_SUCCESS)) {
-		close(fd);
+		(void)close(fd);
 		fd = -1;
 		result = ISC_R_UNEXPECTED;
 	}
@@ -2002,7 +2002,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 			FD_CLR(i, &manager->read_fds);
 			FD_CLR(i, &manager->write_fds);
 
-			close(i);
+			(void)close(i);
 
 			continue;
 		}
@@ -2252,8 +2252,8 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 				 "isc_thread_create() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"));
-		close(manager->pipe_fds[0]);
-		close(manager->pipe_fds[1]);
+		(void)close(manager->pipe_fds[0]);
+		(void)close(manager->pipe_fds[1]);
 		return (ISC_R_UNEXPECTED);
 	}
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -2339,14 +2339,14 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Clean up.
 	 */
 #ifdef ISC_PLATFORM_USETHREADS
-	close(manager->pipe_fds[0]);
-	close(manager->pipe_fds[1]);
+	(void)close(manager->pipe_fds[0]);
+	(void)close(manager->pipe_fds[1]);
 	(void)isc_condition_destroy(&manager->shutdown_ok);
 #endif /* ISC_PLATFORM_USETHREADS */
 
 	for (i = 0; i < FD_SETSIZE; i++)
 		if (manager->fdstate[i] == CLOSE_PENDING)
-			close(i);
+			(void)close(i);
 
 	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;

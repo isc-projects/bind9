@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.57 2001/11/27 01:55:15 gson Exp $ */
+/* $Id: db_test.c,v 1.58 2001/11/30 01:58:56 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -466,7 +466,7 @@ main(int argc, char *argv[]) {
 	version = NULL;
 
 	if (time_lookups) {
-		(void)isc_time_now(&start);
+		TIME_NOW(&start);
 	}
 
 	while (!done) {
@@ -923,7 +923,7 @@ main(int argc, char *argv[]) {
 	if (time_lookups) {
 		isc_uint64_t usec;
 
-		(void)isc_time_now(&finish);
+		TIME_NOW(&finish);
 
 		usec = isc_time_microdiff(&finish, &start);
 

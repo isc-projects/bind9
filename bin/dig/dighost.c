@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.237 2001/11/27 00:55:30 gson Exp $ */
+/* $Id: dighost.c,v 1.238 2001/11/30 01:58:39 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1660,8 +1660,7 @@ send_udp(dig_query_t *query) {
 	ISC_LIST_ENQUEUE(query->sendlist, &l->sendbuf,
 			 link);
 	debug("sending a request");
-	result = isc_time_now(&query->time_sent);
-	check_result(result, "isc_time_now");
+	TIME_NOW(&query->time_sent);
 	INSIST(query->sock != NULL);
 	result = isc_socket_sendtov(query->sock, &query->sendlist,
 				    global_task, send_done, query,
@@ -1867,8 +1866,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	debug("recvcount=%d",recvcount);
 	if (!query->first_soa_rcvd) {
 		debug("sending a request in launch_next_query");
-		result = isc_time_now(&query->time_sent);
-		check_result(result, "isc_time_now");
+		TIME_NOW(&query->time_sent);
 		result = isc_socket_sendv(query->sock, &query->sendlist,
 					  global_task, send_done, query);
 		check_result(result, "isc_socket_sendv");

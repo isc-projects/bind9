@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.24 2001/11/01 23:20:21 gson Exp $ */
+/* $Id: net.c,v 1.25 2001/11/30 01:59:45 gson Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,7 @@ try_proto(int domain) {
 #endif
 #endif
 
-	close(s);
+	(void)close(s);
 
 	return (result);
 }

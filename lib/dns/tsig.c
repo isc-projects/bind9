@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.114 2001/11/19 03:08:12 mayer Exp $
+ * $Id: tsig.c,v 1.115 2001/11/30 01:59:20 gson Exp $
  */
 
 #include <config.h>
@@ -146,7 +146,7 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 	ret = dns_name_dup(name, mctx, &tkey->name);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_key;
-	dns_name_downcase(&tkey->name, &tkey->name, NULL);
+	(void)dns_name_downcase(&tkey->name, &tkey->name, NULL);
 
 	if (dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME)) {
 		tkey->algorithm = DNS_TSIG_HMACMD5_NAME;
@@ -180,7 +180,8 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 		ret = dns_name_dup(algorithm, mctx, tkey->algorithm);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_algorithm;
-		dns_name_downcase(tkey->algorithm, tkey->algorithm, NULL);
+		(void)dns_name_downcase(tkey->algorithm, tkey->algorithm,
+					NULL);
 	}
 
 	if (creator != NULL) {
@@ -597,7 +598,8 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_owner;
 	dns_rdataset_init(dataset);
-	dns_rdatalist_tordataset(datalist, dataset);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(datalist, dataset)
+		      == ISC_R_SUCCESS);
 	msg->tsig = dataset;
 	msg->tsigname = owner;
 
