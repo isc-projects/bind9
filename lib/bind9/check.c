@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.27 2002/03/04 05:24:33 marka Exp $ */
+/* $Id: check.c,v 1.28 2002/03/04 05:27:29 marka Exp $ */
 
 #include <config.h>
 
@@ -419,12 +419,24 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 		const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
 		isc_symvalue_t symvalue;
 
-		symvalue.as_pointer = NULL;
+		symvalue.as_pointer = key;
 		tresult = isc_symtab_define(symtab, keyname, 1,
 					    symvalue, isc_symexists_reject);
 		if (tresult == ISC_R_EXISTS) {
+			const char *file;
+			unsigned int line;
+
+			RUNTIME_CHECK(isc_symtab_lookup(symtab, keyname,
+					    1, &symvalue) == ISC_R_SUCCESS);
+			file = cfg_obj_file(symvalue.as_pointer);
+			line = cfg_obj_line(symvalue.as_pointer);
+
+			if (file == NULL)
+				file = "<unknown file>";
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "key '%s': already exists ", keyname);
+				    "key '%s': already exists "
+				    "previous definition: %s:%u",
+				    keyname, file, line);
 			result = tresult;
 		} else if (tresult != ISC_R_SUCCESS)
 			return (tresult);
