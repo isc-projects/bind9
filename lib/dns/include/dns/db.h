@@ -816,7 +816,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	now + rdataset->ttl.
  *
  *	If 'addedrdataset' is not NULL, then it will be attached to the
- *	rdataset added to the database.
+ *	resulting new rdataset in the database.
  *
  * Requires:
  *
@@ -856,8 +856,8 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  * Notes:
  *
  *	If 'newrdataset' is not NULL, then it will be attached to the
- *	rdataset added to the database, unless the rdataset has become
- *	nonexistent.
+ *	resulting new rdataset in the database, unless the rdataset has 
+ *	become nonexistent.
  *
  * Requires:
  *
