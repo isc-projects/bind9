@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.45 2000/11/21 18:37:37 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.46 2000/11/22 20:26:46 bwelling Exp $ -->
 
 <book>
 
@@ -1135,13 +1135,13 @@ server 10.1.2.3 {
 <para>Multiple keys may be present, but only the first is used.
 This directive does not contain any secrets, so it may be in a world-readable
 file.</para>
-<para>If <emphasis>host1</emphasis> sends a message that is a response
+<para>If <emphasis>host1</emphasis> sends a message that is a request
 to that address, the message will be signed with the specified key. <emphasis>host1</emphasis> will
 expect any responses to signed messages to be signed with the same
 key.</para>
 <para>A similar statement must be present in <emphasis>host2</emphasis>'s
 configuration file (with <emphasis>host1</emphasis>'s address) for <emphasis>host2</emphasis> to
-sign non-response messages to <emphasis>host1</emphasis>.</para></sect2>
+sign request messages to <emphasis>host1</emphasis>.</para></sect2>
 <sect2><title>TSIG Key Based Access Control</title>
 <para><acronym>BIND</acronym> allows IP addresses and ranges to be specified in ACL
 definitions and
