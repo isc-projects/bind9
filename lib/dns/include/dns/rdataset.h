@@ -129,6 +129,8 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_NCACHE		0x0080		/* Used by resolver. */
 #define DNS_RDATASETATTR_CHAINING	0x0100		/* Used by resolver. */
 #define DNS_RDATASETATTR_TTLADJUSTED	0x0200		/* Used by message.c */
+#define DNS_RDATASETATTR_FIXEDORDER	0x0400
+#define DNS_RDATASETATTR_RANDOMIZE	0x0800
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
@@ -257,6 +259,12 @@ void
 dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 /*
  * Make 'rdata' refer to the current rdata.
+ *
+ * Notes:
+ *
+ *	The data returned in 'rdata' is valid for the life of the
+ *	rdataset; in particular, subsequent changes in the cursor position
+ *	do not invalidate 'rdata'.
  *
  * Requires:
  *	'rdataset' is a valid, associated rdataset.
