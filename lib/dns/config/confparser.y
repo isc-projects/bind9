@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.66 2000/04/18 00:25:40 gson Exp $ */
+/* $Id: confparser.y,v 1.67 2000/04/19 00:26:39 gson Exp $ */
 
 #include <config.h>
 
@@ -99,6 +99,18 @@ static isc_lexspecials_t	specials;
 #define yyparse dns_yyparse
 
 #define YYDEBUG 1 
+
+/*
+ * Specify a small parser stack size.  This is needed when
+ * using bison the generate the parser, because it puts
+ * the parser stack in a local variable, and the default 
+ * initial stack size of 200 is big enough to cause a
+ * thread stack overflow.  Berkeley yacc does not suffer
+ * from this problem as it allocates the parser stack
+ * using malloc.
+ */
+#define YYMAXDEPTH 20
+#define YYINITDEPTH 20
 
 static isc_result_t	tmpres;
 static int		debug_lexer;
