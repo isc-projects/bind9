@@ -30,15 +30,11 @@ ISC_LANG_BEGINDECLS
 /* 
  * define what crypto systems are supported.
  * BSAFE, DNSSAFE for RSA
- * OPENSSL, CYLINK for DSA
+ * OPENSSL for DSA
  * Only one package per algorithm can be defined.
  */
 #if defined(BSAFE) && defined(DNSSAFE)
 # error "Cannot have both BSAFE and DNSSAFE defined"
-#endif
-
-#if defined(CYLINK) && defined(OPENSSL)
-# error "Cannot have both CYLINK and OPENSSL defined"
 #endif
 
 /***
@@ -92,7 +88,6 @@ extern dst_func *dst_t_func[DST_MAX_ALGS];
 void		dst_s_hmacmd5_init(void);
 void		dst_s_bsafe_init(void);
 void		dst_s_openssl_init(void);
-void		dst_s_cylink_init(void);
 
 /* support functions */
 

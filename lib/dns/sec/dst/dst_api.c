@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.3 1999/08/03 19:48:10 bwelling Exp $
+ * $Id: dst_api.c,v 1.4 1999/08/20 17:03:30 bwelling Exp $
  */
 
 #include <config.h>
@@ -667,9 +667,6 @@ initialize() {
 #ifdef OPENSSL
 	dst_s_openssl_init();
 #endif
-#ifdef CYLINK_DSS
-	dst_s_cylink_init();
-#endif
 }
 
 /* 
@@ -750,8 +747,8 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 	 *    domain.name [ttl] [IN] KEY  <flags> <protocol> <algorithm> <key>
 	 */
 
-	/* 540 should be large enough for a 1024 bit DSA key */
-	iret = isc_lex_create(mctx, 550, &lex);
+	/* 1500 should be large enough for any key */
+	iret = isc_lex_create(mctx, 1500, &lex);
 	if (iret != ISC_R_SUCCESS)
 		return (DST_R_NOMEMORY);
 

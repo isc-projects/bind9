@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.1 1999/07/12 20:08:29 bwelling Exp $
+ * $Id: dst_parse.c,v 1.2 1999/08/20 17:03:30 bwelling Exp $
  */
 
 #include <config.h>
@@ -189,7 +189,7 @@ dst_s_parse_private_key_file(const char *name, const int alg, const int id,
 	if (ret < 0)
 		return (DST_R_NAME_TOO_LONG);
 
-	iret = isc_lex_create(mctx, 256, &lex);
+	iret = isc_lex_create(mctx, 1024, &lex);
 	if (iret != ISC_R_SUCCESS)
 		return (DST_R_NOMEMORY);
 
