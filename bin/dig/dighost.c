@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.146 2000/10/16 20:38:30 gson Exp $ */
+/* $Id: dighost.c,v 1.147 2000/10/17 00:31:17 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -78,7 +78,7 @@ isc_boolean_t
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
 	have_domain = ISC_FALSE,
-	is_blocking =ISC_FALSE,
+	is_blocking = ISC_FALSE,
 	show_packets = ISC_FALSE;
 
 in_port_t port = 53;
