@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.16.2.1 2000/09/21 22:07:21 gson Exp $ */
+/* $Id: byaddr.c,v 1.16.2.2 2000/09/23 00:24:29 gson Exp $ */
 
 #include <config.h>
 
@@ -410,6 +410,8 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	result = isc_mutex_init(&byaddr->lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_event;
+
+	dns_fixedname_init(&byaddr->name);
 
 	result = dns_byaddr_createptrname(address,
 			  ISC_TF(byaddr->options & DNS_BYADDROPT_IPV6NIBBLE),
