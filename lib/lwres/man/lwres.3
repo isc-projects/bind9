@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres.3,v 1.4 2000/09/06 21:54:23 explorer Exp $
+.\" $Id: lwres.3,v 1.5 2000/09/06 21:56:20 explorer Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES 3
@@ -304,7 +304,10 @@ such as lwres_packet_render() and storing the packet data.
 (9) Verify that the opcode and serial match a request, and process the
 packet specific information contained in the body.
 .Pp
-A typical server flow:
+A typical server flow follows.  Note that the same lwres_packet_t is used
+in both the _parse() and _render() calls, with only a few modifications made
+to the packet header's contents between uses.  This method is recommended
+as it keeps the serial, opcode, and other fields correct.
 .Pp
 (1) When a packet is received, call lwres_*request_parse() to
 unmarshall it.  This returns a lwres_packet_t (also called pkt, below)
