@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.211 2000/09/13 01:00:39 marka Exp $ */
+/* $Id: zone.c,v 1.212 2000/09/13 04:12:42 marka Exp $ */
 
 #include <config.h>
 
@@ -1949,7 +1949,7 @@ notify_isqueued(dns_zone_t *zone, dns_name_t *name, isc_sockaddr_t *addr) {
 }
 
 static void
-notify_destroy(dns_notify_t *notify) {
+notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 	isc_mem_t *mctx;
 
 	/*
@@ -1958,8 +1958,12 @@ notify_destroy(dns_notify_t *notify) {
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 
 	if (notify->zone != NULL) {
+		if (!locked)
+			LOCK(&notify->zone->lock);
 		if (ISC_LINK_LINKED(notify, link))
 			ISC_LIST_UNLINK(notify->zone->notifies, notify, link);
+		if (!locked)
+			UNLOCK(&notify->zone->lock);
 		dns_zone_idetach(&notify->zone);
 	}
 	if (notify->find != NULL)
@@ -2006,7 +2010,6 @@ static void
 process_adb_event(isc_task_t *task, isc_event_t *ev) {
 	dns_notify_t *notify;
 	isc_eventtype_t result;
-	dns_zone_t *zone = NULL;
 
 	UNUSED(task);
 
@@ -2015,45 +2018,37 @@ process_adb_event(isc_task_t *task, isc_event_t *ev) {
 	INSIST(task == notify->zone->task);
 	result = ev->ev_type;
 	isc_event_free(&ev);
-	dns_zone_iattach(notify->zone, &zone);
-	if (result == DNS_EVENT_ADBNOMOREADDRESSES) {
-		LOCK(&notify->zone->lock);
-		notify_send(notify);
-		UNLOCK(&zone->lock);
-		goto detach;
-	}
 	if (result == DNS_EVENT_ADBMOREADDRESSES) {
 		dns_adb_destroyfind(&notify->find);
 		notify_find_address(notify);
-		goto detach;
+		return;
 	}
-	LOCK(&zone->lock);
-	notify_destroy(notify);
-	UNLOCK(&zone->lock);
- detach:
-	dns_zone_idetach(&zone);
+	if (result == DNS_EVENT_ADBNOMOREADDRESSES) {
+		LOCK(&notify->zone->lock);
+		notify_send(notify);
+		UNLOCK(&notify->zone->lock);
+	}
+	notify_destroy(notify, ISC_FALSE);
 }
 
 static void
 notify_find_address(dns_notify_t *notify) {
 	isc_result_t result;
 	unsigned int options;
-	dns_zone_t *zone = NULL;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET |
 		  DNS_ADBFIND_INET6 | DNS_ADBFIND_RETURNLAME;
 
-	dns_zone_iattach(notify->zone, &zone);
-
-	if (zone->view->adb == NULL)
+	if (notify->zone->view->adb == NULL)
 		goto destroy;
 	
-	result = dns_adb_createfind(zone->view->adb,
-				    zone->task,
+	result = dns_adb_createfind(notify->zone->view->adb,
+				    notify->zone->task,
 				    process_adb_event, notify,
 				    &notify->ns, dns_rootname,
-				    options, 0, NULL, zone->view->dstport,
+				    options, 0, NULL,
+				    notify->zone->view->dstport,
 				    &notify->find);
 
 	/* Something failed? */
@@ -2062,20 +2057,15 @@ notify_find_address(dns_notify_t *notify) {
 
 	/* More addresses pending? */
 	if ((notify->find->options & DNS_ADBFIND_WANTEVENT) != 0)
-		goto detach;
+		return;
 
 	/* We have as many addresses as we can get. */
-	LOCK(&zone->lock);
+	LOCK(&notify->zone->lock);
 	notify_send(notify);
-	UNLOCK(&zone->lock);
-	goto detach;
+	UNLOCK(&notify->zone->lock);
 
  destroy:
-	LOCK(&zone->lock);
-	notify_destroy(notify);
-	UNLOCK(&zone->lock);
- detach:
-	dns_zone_idetach(&zone);
+	notify_destroy(notify, ISC_FALSE);
 }
 
 
@@ -2104,7 +2094,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_notify_t *notify;
 	isc_result_t result;
 	dns_message_t *message = NULL;
-	dns_zone_t *zone = NULL;
 	isc_netaddr_t dstip;
 	dns_tsigkey_t *key = NULL;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -2116,8 +2105,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&notify->zone->lock);
 
-	dns_zone_iattach(notify->zone, &zone);
-
 	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_LOADED) == 0) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
@@ -2125,8 +2112,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ||
 	    DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING) ||
-	    zone->view->requestmgr == NULL ||
-	    zone->db == NULL) {
+	    notify->zone->view->requestmgr == NULL ||
+	    notify->zone->db == NULL) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -2143,7 +2130,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	(void)dns_view_getpeertsig(notify->zone->view, &dstip, &key);
 
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
-	notify_log(zone, ISC_LOG_INFO, "sending NOTIFY to %s", addrbuf);
+	notify_log(notify->zone, ISC_LOG_INFO, "sending NOTIFY to %s",
+		   addrbuf);
 	result = dns_request_create(notify->zone->view->requestmgr, message,
 				    &notify->dst, 0, key, 15,
 				    notify->zone->task,
@@ -2153,10 +2141,9 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		dns_tsigkey_detach(&key);
 	dns_message_destroy(&message);
  cleanup:
+	UNLOCK(&notify->zone->lock);
 	if (result != ISC_R_SUCCESS)
-		notify_destroy(notify);
-	UNLOCK(&zone->lock);
-	dns_zone_idetach(&zone);
+		notify_destroy(notify, ISC_FALSE);
 	isc_event_free(&event);
 }
 
@@ -2195,8 +2182,7 @@ notify_send(dns_notify_t *notify) {
 
  cleanup:
 	if (new != NULL)
-		notify_destroy(new);
-	notify_destroy(notify);
+		notify_destroy(new, ISC_TRUE);
 }
 
 #ifndef NOMINUM_PUBLIC
@@ -2235,7 +2221,7 @@ zone_notifyforward(dns_zone_t *zone) {
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		result = notify_send_queue(notify);
 		if (result != ISC_R_SUCCESS) {
-			notify_destroy(notify);
+			notify_destroy(notify, ISC_TRUE);
 			return;
 		}
 		notify = NULL;
@@ -2296,7 +2282,7 @@ dns_zone_notify(dns_zone_t *zone) {
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		result = notify_send_queue(notify);
 		if (result != ISC_R_SUCCESS) {
-			notify_destroy(notify);
+			notify_destroy(notify, ISC_TRUE);
 			UNLOCK(&zone->lock);
 			return;
 		}
@@ -2378,7 +2364,7 @@ dns_zone_notify(dns_zone_t *zone) {
 		result = dns_name_dup(&ns.name, zone->mctx, &notify->ns);
 		if (result != ISC_R_SUCCESS) {
 			LOCK(&zone->lock);
-			notify_destroy(notify);
+			notify_destroy(notify, ISC_TRUE);
 			UNLOCK(&zone->lock);
 			continue;
 		}
@@ -4021,7 +4007,6 @@ static void
 notify_done(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *revent = (dns_requestevent_t *)event;
 	dns_notify_t *notify;
-	dns_zone_t *zone = NULL;
 	isc_result_t result;
 	dns_message_t *message = NULL;
 	isc_buffer_t buf;
@@ -4034,13 +4019,12 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 	INSIST(task == notify->zone->task);
 
-	dns_zone_iattach(notify->zone, &zone);
 	isc_buffer_init(&buf, rcode, sizeof(rcode));
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
 
 	result = revent->result;
 	if (result == ISC_R_SUCCESS)
-		result = dns_message_create(zone->mctx,
+		result = dns_message_create(notify->zone->mctx,
 					    DNS_MESSAGE_INTENTPARSE, &message);
 	if (result == ISC_R_SUCCESS)
 		result = dns_request_getresponse(revent->request, message,
@@ -4048,19 +4032,18 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_SUCCESS)
 		result = dns_rcode_totext(message->rcode, &buf);
 	if (result == ISC_R_SUCCESS)
-		notify_log(zone, ISC_LOG_INFO, "NOTIFY answer from %s: %.*s",
+		notify_log(notify->zone, ISC_LOG_INFO,
+			   "NOTIFY answer from %s: %.*s",
 			   addrbuf, buf.used, rcode);
 	else
-		notify_log(zone, ISC_LOG_INFO, "NOTIFY to %s failed: %s",
-			   addrbuf, dns_result_totext(result));
+		notify_log(notify->zone, ISC_LOG_INFO,
+			   "NOTIFY to %s failed: %s", addrbuf,
+			   dns_result_totext(result));
 	if (message != NULL)
 		dns_message_destroy(&message);
 
 	isc_event_free(&event);
-	LOCK(&zone->lock);
-	notify_destroy(notify);
-	UNLOCK(&zone->lock);
-	dns_zone_idetach(&zone);
+	notify_destroy(notify, ISC_FALSE);
 }
 
 isc_result_t
