@@ -20,7 +20,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.23 2000/06/21 22:20:11 tale Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.24 2000/06/26 22:30:32 gson Exp $
  */
 
 #include <config.h>
@@ -176,9 +176,9 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 				return (EAI_SERVICE);
 			port = sp->s_port;
 			if (socktype == 0) {
-				if (strcmp(sp->s_proto, "tcp"))
+				if (strcmp(sp->s_proto, "tcp") == 0)
 					socktype = SOCK_STREAM;
-				else if (strcmp(sp->s_proto, "udp"))
+				else if (strcmp(sp->s_proto, "udp") == 0)
 					socktype = SOCK_DGRAM;
 			}
 		}
@@ -313,6 +313,8 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 						      NULL, 0,
 						      NI_NUMERICHOST) == 0) {
 					ai->ai_canonname = strdup(nbuf);
+					if (ai->ai_canonname == NULL)
+						return (EAI_MEMORY);
 				} else {
 					/* XXX raise error? */
 					ai->ai_canonname = NULL;
