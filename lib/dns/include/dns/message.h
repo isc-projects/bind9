@@ -29,6 +29,7 @@
 #include <dns/result.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
+#include <dns/compress.h>
 
 /*
  * How this beast works:
@@ -111,6 +112,8 @@ typedef struct {
 	unsigned int			reserved;
 
 	isc_buffer_t		       *buffer;
+	dns_compress_t			cctx;
+	isc_boolean_t			need_cctx_cleanup;
 
 	isc_mem_t		       *mctx;
 	ISC_LIST(isc_dynbuffer_t)	scratchpad;

@@ -340,6 +340,7 @@ msginit(dns_message_t *m)
 	m->nextrdatalist = NULL;
 
 	m->buffer = NULL;
+	m->need_cctx_cleanup = ISC_FALSE;
 }
 
 /*
@@ -446,6 +447,9 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 			msgblock = next_msgblock;
 		}
 	}
+
+	if (msg->need_cctx_cleanup)
+		dns_compress_invalidate(&msg->cctx);
 
 	/*
 	 * Set other bits to normal default values.
@@ -987,6 +991,7 @@ dns_result_t
 dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer)
 {
 	isc_region_t r;
+	dns_result_t result;
 
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(buffer != NULL);
@@ -1005,6 +1010,11 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer)
 	isc_buffer_available(buffer, &r);
 	if (r.length < DNS_MESSAGE_HEADER_LEN)
 		return (DNS_R_NOSPACE);
+
+	result = dns_compress_init(&msg->cctx, -1, msg->mctx);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	msg->need_cctx_cleanup = ISC_TRUE;
 
 	/*
 	 * Reserve enough space for the header in this buffer.
@@ -1088,15 +1098,84 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 {
 	isc_region_t r;
 	unsigned int used;
-	unsigned int startused;
 	dns_namelist_t *section;
+	dns_name_t *name, *next_name;
+	dns_rdataset_t *rdataset, *next_rdataset;
+	unsigned int count, total;
+	isc_buffer_t subbuffer;
+	isc_boolean_t no_render_rdata;
+	dns_result_t result;
 
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(msg->buffer != NULL);
 	REQUIRE(VALID_NAMED_SECTION(sectionid));
 
+	total = 0;
 	section = &msg->sections[sectionid];
-	startused = msg->buffer->used;
+	if (sectionid == DNS_SECTION_QUESTION)
+		no_render_rdata = ISC_TRUE;
+	else
+		no_render_rdata = ISC_FALSE;
+
+	name = ISC_LIST_HEAD(*section);
+	if (name == NULL)
+		return (ISC_R_SUCCESS);
+
+	/*
+	 * Set up a temporary buffer to render into, since we want
+	 * dns_rdataset_towire() to fail if it goes past the reserved
+	 * size, too.
+	 */
+	isc_buffer_available(msg->buffer, &r);
+	isc_buffer_init(&subbuffer, r.base, r.length - msg->reserved,
+			ISC_BUFFERTYPE_BINARY);
+	
+	while (name != NULL) {
+		used = subbuffer.used;
+
+		next_name = ISC_LIST_NEXT(name, link);
+
+		result = dns_name_towire(name, &msg->cctx, &subbuffer);
+		if (result == DNS_R_NOSPACE) {
+			subbuffer.used = used;
+			msg->counts[sectionid] += total;
+			isc_buffer_used(&subbuffer, &r);
+			isc_buffer_add(msg->buffer, r.length);
+			return (DNS_R_NOSPACE);
+		} else if (result != DNS_R_SUCCESS)
+			return (result);
+
+		rdataset = ISC_LIST_HEAD(name->list);
+		while (rdataset != NULL) {
+			next_rdataset = ISC_LIST_NEXT(rdataset, link);
+			count = 0;
+
+			result = dns_rdataset_towire(rdataset, name,
+						     &msg->cctx, &subbuffer,
+						     &count, no_render_rdata);
+
+			/*
+			 * If out of space, record stats on what we rendered
+			 * so far, and return that status.
+			 */
+			if (result == DNS_R_NOSPACE) {
+				subbuffer.used = used;
+				msg->counts[sectionid] += total;
+				isc_buffer_used(&subbuffer, &r);
+				isc_buffer_add(msg->buffer, r.length);
+				return (DNS_R_NOSPACE);
+			} else if (result != DNS_R_SUCCESS)
+				return (result);
+
+			total += count;
+
+			ISC_LIST_UNLINK(name->list, rdataset, link);
+			rdataset = next_rdataset;
+		}
+
+		ISC_LIST_UNLINK(*section, name, link);
+		name = next_name;
+	}
 
 	/* XXX implement */
 	return (ISC_R_NOTIMPLEMENTED);
@@ -1109,6 +1188,9 @@ dns_message_renderend(dns_message_t *msg)
 	REQUIRE(msg->buffer != NULL);
 
 	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
+
+	dns_compress_invalidate(&msg->cctx);
+	msg->need_cctx_cleanup = ISC_FALSE;
 
 	/* XXX implement */
 	return (ISC_R_NOTIMPLEMENTED);
