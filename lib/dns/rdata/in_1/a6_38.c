@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.46.2.1 2003/07/23 06:57:51 marka Exp $ */
+/* $Id: a6_38.c,v 1.46.2.1.2.1 2003/08/13 00:36:55 marka Exp $ */
 
 /* RFC2874 */
 
@@ -68,7 +68,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string,
 					      ISC_FALSE));
-		if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
+		if (inet_pton(AF_INET6, DNS_AS_STR(token), addr) != 1)
 			RETTOK(DNS_R_BADAAAA);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;

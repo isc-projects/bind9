@@ -98,7 +98,7 @@
 			a single element list. [RT #1963]
 
 1077.	[func]		Do not accept further recursive clients when
-			the total number of of recursive lookups being
+			the total number of recursive lookups being
 			processed exceeds max-recursive-clients, even
 			if some of the lookups are internally generated.
 			[RT #1915, #1938]

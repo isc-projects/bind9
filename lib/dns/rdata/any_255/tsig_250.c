@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.52.2.1.2.1 2003/08/12 14:16:11 marka Exp $ */
+/* $Id: tsig_250.c,v 1.52.2.1.2.2 2003/08/13 00:36:53 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -57,7 +57,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	sigtime = isc_string_touint64(token.value.as_pointer, &e, 10);
+	sigtime = isc_string_touint64(DNS_AS_STR(token), &e, 10);
 	if (*e != 0)
 		RETTOK(DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
@@ -105,7 +105,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion)
 				!= ISC_R_SUCCESS)
 	{
-		i = strtol(token.value.as_pointer, &e, 10);
+		i = strtol(DNS_AS_STR(token), &e, 10);
 		if (*e != 0)
 			RETTOK(DNS_R_UNKNOWN);
 		if (i < 0 || i > 0xffff)

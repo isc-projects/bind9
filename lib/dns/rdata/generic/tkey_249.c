@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.48.2.1.2.1 2003/08/12 14:16:14 marka Exp $ */
+/* $Id: tkey_249.c,v 1.48.2.1.2.2 2003/08/13 00:36:55 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -85,7 +85,7 @@ fromtext_tkey(ARGS_FROMTEXT) {
 	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion)
 				!= ISC_R_SUCCESS)
 	{
-		i = strtol(token.value.as_pointer, &e, 10);
+		i = strtol(DNS_AS_STR(token), &e, 10);
 		if (*e != 0)
 			RETTOK(DNS_R_UNKNOWN);
 		if (i < 0 || i > 0xffff)

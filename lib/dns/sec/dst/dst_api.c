@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.2 2003/08/08 06:07:52 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.3 2003/08/13 00:36:56 marka Exp $
  */
 
 #include <config.h>
@@ -49,6 +49,8 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
+
+#define DST_AS_STR(t) ((t).value.as_textregion.base)
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
 static isc_entropy_t *dst_entropy_pool = NULL;
@@ -806,7 +808,6 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
 	char *newfilename;
 	unsigned int newfilenamelen;
-	isc_textregion_t r;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 
 	newfilenamelen = strlen(filename) + 5;
@@ -848,9 +849,8 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	if (token.type != isc_tokentype_string)
 		BADTOKEN();
 	dns_fixedname_init(&name);
-	isc_buffer_init(&b, token.value.as_pointer,
-			strlen(token.value.as_pointer));
-	isc_buffer_add(&b, strlen(token.value.as_pointer));
+	isc_buffer_init(&b, DST_AS_STR(token), strlen(DST_AS_STR(token)));
+	isc_buffer_add(&b, strlen(DST_AS_STR(token)));
 	ret = dns_name_fromtext(dns_fixedname_name(&name), &b, dns_rootname,
 				ISC_FALSE, NULL);
 	if (ret != ISC_R_SUCCESS)
@@ -866,16 +866,14 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	if (token.type != isc_tokentype_string)
 		BADTOKEN();
 
-	r.base = token.value.as_pointer;
-	r.length = strlen(r.base);
-	ret = dns_rdataclass_fromtext(&rdclass, &r);
+	ret = dns_rdataclass_fromtext(&rdclass, &token.value.as_textregion);
 	if (ret == ISC_R_SUCCESS)
 		NEXTTOKEN(lex, opt, &token);
 
 	if (token.type != isc_tokentype_string)
 		BADTOKEN();
 
-	if (strcasecmp(token.value.as_pointer, "KEY") != 0)
+	if (strcasecmp(DST_AS_STR(token), "KEY") != 0)
 		BADTOKEN();
 
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
