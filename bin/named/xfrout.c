@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.10 1999/09/28 13:50:04 gson Exp $ */
+ /* $Id: xfrout.c,v 1.11 1999/10/07 19:33:12 halley Exp $ */
 
 #include <config.h>
 
@@ -1043,7 +1043,7 @@ sendstream(xfrout_ctx_t *xfr)
 	isc_boolean_t done = ISC_FALSE;
 	isc_region_t used;
 	isc_region_t region;
-	dns_rdataset_t qrdataset;
+	dns_rdataset_t *qrdataset;
 	int n_rrs;
 
 	isc_buffer_clear(&xfr->buf);
@@ -1081,12 +1081,18 @@ sendstream(xfrout_ctx_t *xfr)
 		 */
 		isc_buffer_add(&xfr->buf, 12 + 4);
 		
-		dns_rdataset_init(&qrdataset);
-		dns_rdataset_makequestion(&qrdataset,
+		qrdataset = NULL;
+		result = dns_message_gettemprdataset(msg, &qrdataset);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
+		dns_rdataset_init(qrdataset);
+		dns_rdataset_makequestion(qrdataset,
 					  xfr->client->message->rdclass,
 					  xfr->qtype);
 
-		dns_message_gettempname(msg, &qname);
+		result = dns_message_gettempname(msg, &qname);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
 		dns_name_init(qname, NULL);
 		isc_buffer_available(&xfr->buf, &r);
 		INSIST(r.length >= xfr->qname->length);
@@ -1095,7 +1101,7 @@ sendstream(xfrout_ctx_t *xfr)
 				  xfr->qname->length);
 		dns_name_fromregion(qname, &r);
 		ISC_LIST_INIT(qname->list);
-		ISC_LIST_APPEND(qname->list, &qrdataset, link);
+		ISC_LIST_APPEND(qname->list, qrdataset, link);
 
 		dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
 	}
@@ -1240,6 +1246,9 @@ sendstream(xfrout_ctx_t *xfr)
 	xfr->nmsg++;
 
  failure:
+	/*
+	 * XXXRTH  need to cleanup qname and qrdataset...
+	 */
 	if (msg != NULL) {
 		dns_message_destroy(&msg);
 	}
