@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.10 2000/03/01 17:33:04 tale Exp $ */
+/* $Id: log.h,v 1.11 2000/03/01 21:30:49 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -195,7 +195,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
  *		default_stderr
  *		 - log to stderr LOG_INFO or higher
  *		default_debug
- *		 - log to stderr LOG_DEBUG dynamically with ISC_LOG_DEBUGONLY
+ *		 - log to stderr LOG_DEBUG dynamically
  *		null
  *		 - log nothing
  *
