@@ -1,4 +1,4 @@
-more#!/bin/sh
+#!/bin/sh
 #
 # Copyright (C) 2000  Internet Software Consortium.
 # 
