@@ -1,3 +1,5 @@
+1742.	[placeholder]	rt12788
+
 1741.	[bug]		Deleting all records at a node in a secure zone
 			using a update-policy grant failed. [RT #12787]
 
