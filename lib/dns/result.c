@@ -82,6 +82,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"ncache nxrrset",			/* 52 */
 	"wait",					/* 53 */
 	"not verified yet",			/* 54 */
+	"no identity",				/* 55 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
