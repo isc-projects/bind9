@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.41 2000/05/22 12:37:56 marka Exp $ */
+/* $Id: sig_24.c,v 1.42 2000/05/22 21:42:47 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -141,7 +141,17 @@ totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	 */
 	covered = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	RETERR(dns_rdatatype_totext(covered, target));
+	/*
+	 * XXXAG We should have something like dns_rdatatype_isknown()
+	 * that does the right thing with type 0.
+	 */
+	if (dns_rdatatype_isknown(covered) && covered != 0) {
+		RETERR(dns_rdatatype_totext(covered, target));
+	} else {
+		char buf[sizeof "65535"];
+		sprintf(buf, "%u", covered);
+		RETERR(str_totext(buf, target));
+	}
 	RETERR(str_totext(" ", target));
 
 	/*
