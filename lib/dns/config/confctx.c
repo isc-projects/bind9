@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.85 2000/08/22 17:36:31 gson Exp $ */
+/* $Id: confctx.c,v 1.86 2000/09/07 19:24:33 halley Exp $ */
 
 #include <config.h>
 
@@ -367,7 +367,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 
-	if (dns_c_ctx_getauthnxdomain(cfg, &bval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getauthnxdomain(cfg, &bval) == ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "the default for the 'auth-nxdomain' option "

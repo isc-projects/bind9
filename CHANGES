@@ -1,3 +1,6 @@
+ 425.	[bug]		Warn about the auth-nxdomain default value change
+			if there is no auth-nxdomain statement in the
+			config file. [RT #287]
 
  424.	[bug]		notify_createmessage() could trigger an assertion failure
 			when creating the notify message failed, e.g. due to
