@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.62 2000/08/01 01:22:19 tale Exp $ */
+/* $Id: dispatch.c,v 1.63 2000/08/24 16:56:48 gson Exp $ */
 
 #include <config.h>
 
@@ -223,12 +223,12 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 		isc_sockaddr_format(&resp->host, peerbuf, sizeof peerbuf);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
 			      DNS_LOGMODULE_DISPATCH, level,
-			      "dispatch %p request %p %s: %s", disp, resp,
+			      "dispatch %p response %p %s: %s", disp, resp,
 			      peerbuf, msgbuf);
 	} else if (VALID_REQUEST(resp)) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
 			      DNS_LOGMODULE_DISPATCH, level,
-			      "dispatch %p response %p: %s", disp, resp,
+			      "dispatch %p request %p: %s", disp, resp,
 			      msgbuf);
 	} else {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DISPATCH,
