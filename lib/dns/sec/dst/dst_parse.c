@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.29 2001/05/09 23:04:50 bwelling Exp $
+ * $Id: dst_parse.c,v 1.30 2001/05/10 19:07:12 bwelling Exp $
  */
 
 #include <config.h>
@@ -185,9 +185,8 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst__privstruct_parsefile(dst_key_t *key, const dns_keytag_t id,
-			  const char *filename, isc_mem_t *mctx,
-			  dst_private_t *priv)
+dst__privstruct_parsefile(dst_key_t *key, const char *filename,
+			  isc_mem_t *mctx, dst_private_t *priv)
 {
 	int n = 0, major, minor;
 	isc_buffer_t b;
@@ -209,8 +208,6 @@ dst__privstruct_parsefile(dst_key_t *key, const dns_keytag_t id,
 	INSIST(ret == ISC_R_SUCCESS);
 
 	priv->nelements = 0;
-
-	key->key_id = id;
 
 	ret = isc_lex_create(mctx, 1024, &lex);
 	if (ret != ISC_R_SUCCESS)

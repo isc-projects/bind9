@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.10 2001/04/04 02:02:58 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.11 2001/05/10 19:07:18 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -409,9 +409,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-opensslrsa_fromfile(dst_key_t *key, const dns_keytag_t id,
-		    const char *filename)
-{
+opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -420,7 +418,7 @@ opensslrsa_fromfile(dst_key_t *key, const dns_keytag_t id,
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, id, filename, mctx, &priv);
+	ret = dst__privstruct_parsefile(key, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

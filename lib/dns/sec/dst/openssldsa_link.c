@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.2 2001/04/04 02:02:57 bwelling Exp $ */
+/* $Id: openssldsa_link.c,v 1.3 2001/05/10 19:07:17 bwelling Exp $ */
 
 #if defined(OPENSSL)
 
@@ -355,8 +355,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldsa_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename)
-{
+openssldsa_fromfile(dst_key_t *key, const char *filename) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -365,7 +364,7 @@ openssldsa_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename)
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, id, filename, mctx, &priv);
+	ret = dst__privstruct_parsefile(key, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

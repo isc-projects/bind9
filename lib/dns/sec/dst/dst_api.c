@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.80 2001/05/10 04:50:28 bwelling Exp $
+ * $Id: dst_api.c,v 1.81 2001/05/10 19:07:10 bwelling Exp $
  */
 
 #include <config.h>
@@ -349,6 +349,7 @@ dst_key_fromfile(dns_name_t *name, const dns_keytag_t id,
 		dst_key_free(&key);
 		return (DST_R_INVALIDPRIVATEKEY);
 	}
+	key->key_id = id;
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
@@ -399,7 +400,7 @@ dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
 		return (DST_R_UNSUPPORTEDALG);
 	}
 
-	result = key->func->fromfile(key, id, filename);
+	result = key->func->fromfile(key, filename);
 	if (result != ISC_R_SUCCESS) {
 		dst_key_free(&key);
 		return (result);
