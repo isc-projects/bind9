@@ -45,7 +45,10 @@ typedef struct dig_server dig_server_t;
 struct dig_lookup {
 	isc_boolean_t pending, /* Pending a successful answer */
 		waiting_connect,
-		doing_xfr;
+		doing_xfr,
+		ns_search_only,
+		use_my_server_list,
+		identify;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */
@@ -59,6 +62,7 @@ struct dig_lookup {
 	dns_message_t *sendmsg;
 	ISC_LINK(dig_lookup_t) link;
 	ISC_LIST(dig_query_t) q;
+	ISC_LIST(dig_server_t) my_server_list;
 	dig_query_t *xfr_q;
 };
 
@@ -108,7 +112,7 @@ do_lookup_tcp (dig_lookup_t *lookup);
 void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) ;
 isc_result_t
-printmessage(dns_message_t *msg, isc_boolean_t headers) ;
+printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) ;
 void
 check_next_lookup (dig_lookup_t *lookup);
 

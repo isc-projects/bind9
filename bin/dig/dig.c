@@ -54,7 +54,6 @@ extern int h_errno;
 #include <dns/result.h>
 
 #include <dig/dig.h>
-#include <dig/printmsg.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
@@ -257,11 +256,13 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 }
 
 isc_result_t
-printmessage(dns_message_t *msg, isc_boolean_t headers) {
+printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	isc_result_t result;
 	dns_rdataset_t *opt, *tsig = NULL;
 	dns_name_t *tsigname;
+
+	UNUSED (query);
 
 	result = ISC_R_SUCCESS;
 
@@ -388,11 +389,18 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else if ((strcmp(argv[0],"+vc") == 0)
 			   && (!is_batchfile)) {
 			tcp_mode = ISC_TRUE;
-		} else if (strncmp(argv[0],"+time=",6) == 0) {
+		} else if ((strcmp(argv[0],"+novc") == 0)
+			   && (!is_batchfile)) {
+			tcp_mode = ISC_FALSE;
+		} else if ((strncmp(argv[0],"+time=",6) == 0) ||
+			   (strncmp(argv[0],"+tim=",5) == 0) ||
+			   (strncmp(argv[0],"+ti=",4) == 0)) {
 			timeout = atoi(&argv[0][6]);
 			if (timeout <= 0)
 				timeout = 1;
-		} else if (strcmp(argv[0],"+norecurs") == 0) {
+		} else if (strncmp(argv[0],"+rec",6) == 0) {
+			recurse = ISC_TRUE;
+		} else if (strncmp(argv[0],"+norec",6) == 0) {
 			recurse = ISC_FALSE;
 		} else if (strncmp(argv[0],"-f",2) == 0) {
 			if (argv[0][2]!=0) {
@@ -438,6 +446,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->name=NULL;
 			lookup->timer = NULL;
 			lookup->xfr_q = NULL;
+			lookup->use_my_server_list = ISC_FALSE;
+			lookup->ns_search_only = ISC_FALSE;
 			lookup->doing_xfr = ISC_FALSE;
 			ISC_LIST_INIT(lookup->q);
 			ISC_LIST_APPEND(lookup_list, lookup, link);
@@ -470,7 +480,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->name=NULL;
 			lookup->timer = NULL;
 			lookup->xfr_q = NULL;
+			lookup->use_my_server_list = ISC_FALSE;
 			lookup->doing_xfr = ISC_FALSE;
+			lookup->ns_search_only = ISC_FALSE;
 			ISC_LIST_INIT(lookup->q);
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			have_host = ISC_TRUE;
@@ -512,7 +524,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->name=NULL;
 		lookup->timer = NULL;
 		lookup->xfr_q = NULL;
+		lookup->use_my_server_list = ISC_FALSE;
 		lookup->doing_xfr = ISC_FALSE;
+		lookup->ns_search_only = ISC_FALSE;
 		ISC_LIST_INIT(lookup->q);
 		strcpy(lookup->textname,".");
 		strcpy(lookup->rttext, "NS");
