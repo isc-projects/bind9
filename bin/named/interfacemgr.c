@@ -32,9 +32,11 @@
 #include <isc/net.h>
 #include <isc/interfaceiter.h>
 
-#include "interfacemgr.h"
-#include "udpclient.h"
-#include "tcpclient.h"
+#include <dns/dispatch.h>
+
+#include <named/client.h>
+#include <named/globals.h>
+#include <named/interfacemgr.h>
 
 typedef struct ns_interface ns_interface_t;
 
@@ -46,7 +48,7 @@ struct ns_interfacemgr {
 	isc_mem_t *		mctx;		/* Memory context. */
 	isc_taskmgr_t *		taskmgr;	/* Task manager. */
 	isc_socketmgr_t *	socketmgr;	/* Socket manager. */
-	ns_dispatch_func *	dispatch;	/* Dispatch function */
+	ns_clientmgr_t *	clientmgr;	/* Client manager. */
 	unsigned int		generation;	/* Current generation no. */
 	ISC_LIST(ns_interface_t) interfaces;	/* List of interfaces. */
 };
@@ -59,15 +61,16 @@ struct ns_interface {
 	ns_interfacemgr_t *	mgr;		/* Interface manager. */
 	unsigned int		generation;     /* Generation number. */
 	isc_sockaddr_t		addr;           /* Address and port. */
-	isc_socket_t		*udpsocket; 	/* UDP socket. */
-	isc_socket_t		*tcpsocket;	/* TCP socket. */
+	isc_socket_t *		udpsocket; 	/* UDP socket. */
+	dns_dispatch_t *	udpdispatch;	/* UDP dispatcher. */
+	isc_socket_t *		tcpsocket;	/* TCP socket. */
+	isc_task_t *		task;
 	ISC_LINK(ns_interface_t) link;
 };
 
-dns_result_t
+isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		       isc_socketmgr_t *socketmgr,
-		       ns_dispatch_func *dispatch,
+		       isc_socketmgr_t *socketmgr, ns_clientmgr_t *clientmgr,
 		       ns_interfacemgr_t **mgrp)
 {
 	ns_interfacemgr_t *mgr;
@@ -83,7 +86,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	mgr->mctx = mctx;
 	mgr->taskmgr = taskmgr;
 	mgr->socketmgr = socketmgr;
-	mgr->dispatch = dispatch;
+	mgr->clientmgr = clientmgr;
 	mgr->generation = 1;
 	ISC_LIST_INIT(mgr->interfaces);
 
@@ -96,9 +99,7 @@ static dns_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		    ns_interface_t **ifpret) {
         ns_interface_t *ifp;
-	isc_result_t iresult;
-	udp_listener_t *udpl;
-	tcp_listener_t *tcpl;
+	isc_result_t result;
 	
 	REQUIRE(VALID_IFMGR(mgr));
 	ifp = isc_mem_get(mgr->mctx, sizeof(*ifp));
@@ -106,86 +107,117 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		return (DNS_R_NOMEMORY);
 	ifp->mgr = mgr;
 	ifp->generation = mgr->generation;
-	
 	ifp->addr = *addr;
+
+	/*
+	 * Create a task.
+	 */
+	ifp->task = NULL;
+	result = isc_task_create(mgr->taskmgr, mgr->mctx, 0, &ifp->task);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_task_create() failed: %s",
+				 isc_result_totext(result));
+		goto task_create_failure;
+	}
+	result = isc_task_allowdone(ifp->task, ISC_FALSE);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_task_allowdone() failed: %s",
+				 isc_result_totext(result));
+		goto task_create_failure;
+	}
 
 	/*
 	 * Open a UDP socket.
 	 */
 	ifp->udpsocket = NULL;
-	iresult = isc_socket_create(mgr->socketmgr, PF_INET,
-				    isc_sockettype_udp,
-				    &ifp->udpsocket);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_socket_create(mgr->socketmgr,
+				   isc_sockaddr_pf(addr),
+				   isc_sockettype_udp,
+				   &ifp->udpsocket);
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "creating udp socket: %s",
-				 isc_result_totext(iresult));
+				 "creating UDP socket: %s",
+				 isc_result_totext(result));
 		goto udp_socket_failure;
 	}
-	
-	RUNTIME_CHECK(iresult == ISC_R_SUCCESS);
-	iresult = isc_socket_bind(ifp->udpsocket, &ifp->addr);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_socket_bind(ifp->udpsocket, &ifp->addr);
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "binding udp socket: %s",
-				 isc_result_totext(iresult));
+				 "binding UDP socket: %s",
+				 isc_result_totext(result));
 		goto udp_bind_failure;
 	}
+	/* 
+	 * XXXRTH hardwired constants.  We're going to need to determine if
+	 * this UDP socket will be shared with the resolver, and if so, we
+	 * need to set the hashsize to be be something bigger than 4.
+	 */
+	ifp->udpdispatch = NULL;
+	result = dns_dispatch_create(mgr->mctx, ifp->udpsocket, ifp->task,
+				     4096, 50, 50, 4, &ifp->udpdispatch);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "UDP dns_dispatch_create(): %s",
+				 isc_result_totext(result));
+		goto udp_dispatch_failure;
+	}
+	result = ns_clientmgr_addtodispatch(mgr->clientmgr,
+					    ns_clienttype_basic, ns_g_cpus,
+					    ifp->udpdispatch);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "UDP ns_clientmgr_addtodispatch(): %s",
+				 isc_result_totext(result));
+		goto addtodispatch_failure;
+	}
 
-	udpl = udp_listener_allocate(mgr->mctx, 2); /* XXX configurable */
-	RUNTIME_CHECK(udpl != NULL);
-	iresult = udp_listener_start(udpl, ifp->udpsocket,
-				     mgr->taskmgr,
-				     2, 2, /* XXX configurable */
-				     0, mgr->dispatch);
-	RUNTIME_CHECK(iresult == ISC_R_SUCCESS);
-
+#if 0
 	/*
 	 * Open a TCP socket.
 	 */
 	ifp->tcpsocket = NULL;
-	iresult = isc_socket_create(mgr->socketmgr, PF_INET,
-				    isc_sockettype_tcp,
-				    &ifp->tcpsocket);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_socket_create(mgr->socketmgr,
+				   isc_sockaddr_pf(addr),
+				   isc_sockettype_tcp,
+				   &ifp->tcpsocket);
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "creating tcp socket: %s",
-				 isc_result_totext(iresult));
+				 "creating TCP socket: %s",
+				 isc_result_totext(result));
 		goto tcp_socket_failure;
 	}
-
-	iresult = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "binding tcpp socket: %s",
-				 isc_result_totext(iresult));
+				 "binding TCP socket: %s",
+				 isc_result_totext(result));
 		goto tcp_bind_failure;
 	}
+#else
+	ifp->tcpsocket = NULL;
+#endif
 
-	tcpl = tcp_listener_allocate(mgr->mctx, 2); /* XXX configurable */
-	RUNTIME_CHECK(tcpl != NULL);
-	iresult = tcp_listener_start(tcpl, ifp->tcpsocket,
-				     mgr->taskmgr,
-				     2, 2, /* XXX configurable */
-				     0, mgr->dispatch);
-	RUNTIME_CHECK(iresult == ISC_R_SUCCESS);
-	
 	ISC_LIST_APPEND(mgr->interfaces, ifp, link);
 
 	ifp->magic = IFACE_MAGIC;
 	*ifpret = ifp;
+
 	return (DNS_R_SUCCESS);
 
- tcp_bind_failure:
-	isc_socket_detach(&ifp->tcpsocket);
- tcp_socket_failure:
+ addtodispatch_failure:
+	dns_dispatch_detach(&ifp->udpdispatch);
+ udp_dispatch_failure:
  udp_bind_failure:
 	isc_socket_detach(&ifp->udpsocket);
  udp_socket_failure:
+	isc_task_detach(&ifp->task);
+ task_create_failure:
 	ifp->magic = 0;
 	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
+
 	return (DNS_R_UNEXPECTED);
-	
 }
 
 static dns_result_t
@@ -194,17 +226,18 @@ ns_interface_destroy(ns_interface_t **ifpret) {
 	REQUIRE(ifpret != NULL);
 	REQUIRE(VALID_IFACE(*ifpret));
 	ifp = *ifpret;
-	printf("Destroying interface\n");	
-
-	isc_socket_cancel(ifp->udpsocket, NULL, ISC_SOCKCANCEL_ALL);
-	isc_socket_detach(&ifp->udpsocket);
-
-	isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
-	isc_socket_detach(&ifp->tcpsocket);
-	
-	/* The listener will go away by itself when the socket shuts down. */
 
 	ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
+
+	dns_dispatch_detach(&ifp->udpdispatch);
+	isc_socket_detach(&ifp->udpsocket);
+
+#if 0
+	isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
+	isc_socket_detach(&ifp->tcpsocket);
+#endif
+
+	isc_task_detach(&ifp->task);
 	
 	ifp->magic = 0;
 	isc_mem_put(ifp->mgr->mctx, ifp, sizeof(*ifp));
@@ -244,67 +277,107 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 	}
 }
 
-dns_result_t
-ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
+static void
+do_ipv4(ns_interfacemgr_t *mgr) {
 	isc_interfaceiter_t *iter = NULL;
-	isc_result_t iter_result;
+	isc_result_t result;
+
+	result = isc_interfaceiter_create(mgr->mctx, &iter);
+	if (result != ISC_R_SUCCESS)
+		return;
 	
-	mgr->generation++;	/* Increment the generation count. */ 
-
-	isc_interfaceiter_create(mgr->mctx, &iter);
-
-	iter_result = isc_interfaceiter_first(iter);
-	while (iter_result == ISC_R_SUCCESS) {
+	result = isc_interfaceiter_first(iter);
+	while (result == ISC_R_SUCCESS) {
 		ns_interface_t *ifp;
-		int listen_port = 5544; /* XXX from configuration */
+		unsigned int listen_port = 5544; /* XXX from configuration */
 		isc_interface_t interface;
 		isc_sockaddr_t listen_addr;
 
 		/*
-		 * XXX insert code to match against named.conf "listen-on"
-		 * statements here.  Also build list of local addresses
-		 * and local networks.
+		 * XXX insert code to match against named.conf
+		 * "listen-on" statements here.  Also build list of
+		 * local addresses and local networks.
 		 */
-
-		iter_result = isc_interfaceiter_current(iter, &interface);
-		INSIST(iter_result == ISC_R_SUCCESS);
-
-		memset(&listen_addr, 0, sizeof(listen_addr));
-		listen_addr.type.sin.sin_family = AF_INET;
-		listen_addr.type.sin.sin_addr = interface.address.type.in;
-		listen_addr.type.sin.sin_port = htons(listen_port);
-		listen_addr.length = sizeof listen_addr.type.sin;
+		
+		result = isc_interfaceiter_current(iter, &interface);
+		if (result != ISC_R_SUCCESS)
+			break;
+		
+		isc_sockaddr_fromin(&listen_addr,
+				    &interface.address.type.in,
+				    listen_port);
 
 		ifp = find_matching_interface(mgr, &listen_addr);
-		if (ifp) {
+		if (ifp != NULL) {
 			ifp->generation = mgr->generation;
 		} else {
-			dns_result_t result;
 			char buf[128];
 			const char *addrstr;
-			/* XXX IPv6 */
+
 			addrstr = inet_ntop(listen_addr.type.sin.sin_family,
 					    &listen_addr.type.sin.sin_addr,
 					    buf, sizeof(buf));
 			if (addrstr == NULL)
 				addrstr = "(bad address)";
-			printf("listening on %s (%s port %d)\n",
+			printf("IPv4: listening on %s (%s port %u)\n",
 			       interface.name, addrstr,
 			       ntohs(listen_addr.type.sin.sin_port));
-				/* XXX IPv6 */
 			
 			result = ns_interface_create(mgr, &listen_addr, &ifp);
 			if (result != DNS_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "listening on interface %s failed, "
-					 "interface ignored", interface.name);
+					 "IPv4: listening on interface %s"
+					 " failed; interface ignored",
+						 interface.name);
 			}
 		}
-		iter_result = isc_interfaceiter_next(iter);
+		result = isc_interfaceiter_next(iter);
 	}
-	INSIST(iter_result == ISC_R_NOMORE);
+	if (result != ISC_R_NOMORE)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "IPv4: interface iteration failed: %s",
+				 isc_result_totext(result));
 
 	isc_interfaceiter_destroy(&iter);
+}
+
+static void
+do_ipv6(ns_interfacemgr_t *mgr) {
+	isc_result_t result;
+	ns_interface_t *ifp;
+	unsigned int listen_port = 5544; /* XXX from configuration */
+	isc_sockaddr_t listen_addr;
+	struct in6_addr in6a;
+
+	in6a = in6addr_any;
+	isc_sockaddr_fromin6(&listen_addr, &in6a, listen_port);
+
+	ifp = find_matching_interface(mgr, &listen_addr);
+	if (ifp != NULL) {
+		ifp->generation = mgr->generation;
+	} else {
+		printf("IPv6: listening (port %u)\n", listen_port);
+		result = ns_interface_create(mgr, &listen_addr, &ifp);
+		if (result != DNS_R_SUCCESS)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "IPv6: listening failed");
+	}
+}
+
+void
+ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
+	REQUIRE(VALID_IFMGR(mgr));
+
+	mgr->generation++;	/* Increment the generation count. */ 
+
+	if (isc_net_probeipv4() == ISC_R_SUCCESS)
+		do_ipv4(mgr);
+	else
+		printf("IPv4: not available\n");
+	if (isc_net_probeipv6() == ISC_R_SUCCESS)
+		do_ipv6(mgr);
+	else
+		printf("IPv6: not available\n");
 
         /*
          * Now go through the interface list and delete anything that
@@ -319,8 +392,6 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 				 "warning: not listening on any interfaces");
 		/* Continue anyway. */
 	}
-	
-	return (DNS_R_SUCCESS);
 }
 
 void
