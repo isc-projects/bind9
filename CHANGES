@@ -1,6 +1,9 @@
 1229.	[bug]		named would crash if it received a TSIG signed
 			query as part of an AXFR response. [RT #2570]
 
+1222.	[bug]		Specifying 'port *' did not always result in a system
+			selected (non-reserved) port being used. [RT #2537]
+
 1221.	[bug]		Zone types 'master', 'slave' and 'stub' were not being
 			compared case insensitively. [RT #2542]
 
