@@ -1,3 +1,5 @@
+1629.	[placeholder]	rt8753
+
 1628.	[bug]		Typo in Compaq Trucluster support. [RT# 11264]
 
 1627.	[bug]		win32: sockets were not being closed when the
