@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.16 2000/02/03 23:43:17 halley Exp $ */
+/* $Id: naptr_35.c,v 1.17 2000/03/17 02:47:01 bwelling Exp $ */
 
- /* RFC 2168 */
+/* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
+
+/* RFC 2168 */
 
 #ifndef RDATA_IN_1_NAPTR_35_C
 #define RDATA_IN_1_NAPTR_35_C
@@ -34,11 +36,11 @@ fromtext_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 35);
 	REQUIRE(rdclass == 1);
 
-	/* priority */
+	/* order */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* weight */
+	/* preference */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
@@ -80,15 +82,16 @@ totext_in_naptr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 
-	/* priority */
 	dns_rdata_toregion(rdata, &region);
+
+	/* order */
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	sprintf(buf, "%u", num);
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
-	/* weight */
+	/* preference */
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	sprintf(buf, "%u", num);
@@ -110,7 +113,7 @@ totext_in_naptr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* replacement */
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, tctx->origin, &prefix);
-	return(dns_name_totext(&prefix, sub, target));
+	return (dns_name_totext(&prefix, sub, target));
 }
 
 static inline isc_result_t
@@ -131,7 +134,7 @@ fromwire_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         
         dns_name_init(&name, NULL);
 
-	/* priority, weight */
+	/* order, preference */
 	isc_buffer_active(source, &sr);
 	if (sr.length < 4)
 		return (DNS_R_UNEXPECTEDEND);
@@ -164,7 +167,7 @@ towire_in_naptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) 
 	else
 		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
-	/* priority, weight */
+	/* order, preference */
 	dns_rdata_toregion(rdata, &sr);
 	RETERR(mem_tobuffer(target, sr.base, 4));
 	isc_region_consume(&sr, 4);
@@ -193,7 +196,7 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int result;
+	int result, len;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -203,7 +206,7 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
 
-	/* priority, weight */
+	/* order, preference */
 	result = memcmp(region1.base, region2.base, 4);
 	if (result != 0)
 		return (result < 0 ? -1 : 1);
@@ -211,21 +214,24 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_consume(&region2, 4);
 
 	/* flags */
-	result = memcmp(region1.base, region2.base, region1.base[0] + 1);
+	len = ISC_MIN(region1.base[0], region2.base[0]);
+	result = memcmp(region1.base, region2.base, len + 1);
 	if (result != 0)
 		return (result < 0 ? -1 : 1);
 	isc_region_consume(&region1, region1.base[0] + 1);
 	isc_region_consume(&region2, region2.base[0] + 1);
 
 	/* service */
-	result = memcmp(region1.base, region2.base, region1.base[0] + 1);
+	len = ISC_MIN(region1.base[0], region2.base[0]);
+	result = memcmp(region1.base, region2.base, len + 1);
 	if (result != 0)
 		return (result < 0 ? -1 : 1);
 	isc_region_consume(&region1, region1.base[0] + 1);
 	isc_region_consume(&region2, region2.base[0] + 1);
 
 	/* regexp */
-	result = memcmp(region1.base, region2.base, region1.base[0] + 1);
+	len = ISC_MIN(region1.base[0], region2.base[0]);
+	result = memcmp(region1.base, region2.base, len + 1);
 	if (result != 0)
 		return (result < 0 ? -1 : 1);
 	isc_region_consume(&region1, region1.base[0] + 1);
@@ -245,24 +251,22 @@ static inline isc_result_t
 fromstruct_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target)
 {
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 35);
 	REQUIRE(rdclass == 1);
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
 tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -286,12 +290,7 @@ additionaldata_in_naptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
 
-	/*
-	 * We do not currently do type SRV additional data section
-	 * processing for terminal NAPTRs.
-	 */
-
-	/* priority, weight */
+	/* order, preference */
 	dns_rdata_toregion(rdata, &sr);
 	isc_region_consume(&sr, 4);
 	
@@ -341,7 +340,7 @@ digest_in_naptr(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	r2 = r1;
 	length = 0;
 
-	/* priority, weight */
+	/* order, preference */
 	length += 4;
 	isc_region_consume(&r2, 4);
 
