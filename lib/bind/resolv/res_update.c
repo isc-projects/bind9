@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.4 2001/06/21 08:26:27 marka Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.5 2001/06/22 05:11:05 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -80,13 +80,13 @@ struct zonegrp {
 static int	nscopy(union res_sockaddr_union *,
 		       const union res_sockaddr_union *, int);
 static int	nsprom(union res_sockaddr_union *, const struct in_addr *, int);
-static void	dprintf(const char *, ...);
+static void	res_dprintf(const char *, ...);
 
 /* Macros. */
 
 #define DPRINTF(x) do {\
 		int save_errno = errno; \
-		if ((statp->options & RES_DEBUG) != 0) dprintf x; \
+		if ((statp->options & RES_DEBUG) != 0) res_dprintf x; \
 		errno = save_errno; \
 	} while (0)
 
@@ -233,7 +233,7 @@ nsprom(union res_sockaddr_union *dst, const struct in_addr *src, int n) {
 }
 
 static void
-dprintf(const char *fmt, ...) {
+res_dprintf(const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: irs.h,v 1.1 2001/03/29 06:31:34 marka Exp $
+ * $Id: irs.h,v 1.2 2001/06/22 05:10:58 marka Exp $
  */
 
 #ifndef _IRS_H_INCLUDED
@@ -30,7 +30,6 @@
 #include <netdb.h>
 #include <resolv.h>
 #include <pwd.h>
-#include <netgroup.h>
 
 /*
  * This is the group map class.

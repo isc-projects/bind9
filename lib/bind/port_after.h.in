@@ -20,6 +20,8 @@
 @NEED_IN6ADDR_ANY@
 @HAS_IN_ADDR6@
 @HAVE_SOCKADDR_STORAGE@
+@NEED_GETTIMEOFDAY@
+@HAVE_STRNDUP@
 
 /* XXX sunos and cygwin needs O_NDELAY */
 #define PORT_NONBLOCK O_NONBLOCK
@@ -295,6 +297,20 @@ void endpwent_r(void);
 int setpassent(int stayopen);
 #endif
 
+struct timeval;		/* silence warning */
+struct timezone;	/* silence warning */
 int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
+
+int getnetgrent(const char **machinep, const char **userp,
+		const char **domainp);
+
+int getnetgrent_r(char **machinep, char **userp, char **domainp, NGR_R_ARGS);
+
+void setnetgrent(const char *netgroup);
+
+void endnetgrent(void);
+
+int innetgr(const char *netgroup, const char *machine,
+	    const char *user, const char *domain);
 
 #endif

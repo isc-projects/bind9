@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.49 $)
+AC_REVISION($Revision: 1.50 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -182,6 +182,9 @@ if test "X$CC" = "X" ; then
 			;;
 		*-hp-hpux*)
 			CC="cc"
+			;;
+		*linux*)
+			CC="gcc -D_GNU_SOURCE"
 			;;
 		mips-sgi-irix*)
 			CC="cc"
@@ -1242,6 +1245,14 @@ AC_CHECK_FUNC(pselect,
 	      [NEED_PSELECT="#undef NEED_PSELECT"],
 	      [NEED_PSELECT="#define NEED_PSELECT"])
 AC_SUBST(NEED_PSELECT)
+AC_CHECK_FUNC(gettimeofday,
+	      [NEED_GETTIMEOFDAY="#undef NEED_GETTIMEOFDAY"],
+	      [NEED_GETTIMEOFDAY="#define NEED_GETTIMEOFDAY 1"])
+AC_SUBST(NEED_GETTIMEOFDAY)
+AC_CHECK_FUNC(strndup,
+	      [HAVE_STRNDUP="#define HAVE_STRNDUP 1"],
+	      [HAVE_STRNDUP="#undef HAVE_STRNDUP"])
+AC_SUBST(HAVE_STRNDUP)
 
 #
 # Look for a sysctl call to get the list of network interfaces.
