@@ -1,4 +1,7 @@
 
+ 372.	[bug]		Deal with MicroSoft DNS servers appending two bytes of
+			garbage to zone transfer requests.
+
  371.	[bug]		At high debug levels, doing an outgoing zone transfer
 			of a very large RRset could cause an assertion failure
 			during logging.
