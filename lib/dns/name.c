@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.116 2001/01/09 21:51:06 bwelling Exp $ */
+/* $Id: name.c,v 1.117 2001/01/11 21:07:20 gson Exp $ */
 
 #include <config.h>
 
@@ -158,52 +158,41 @@ do { \
 	 == 0)
 
 /*
- * This silliness is to avoid warnings about the const attribute of a string
- * being discarded, as can happen (depending on the compiler and flags)
- * when name.ndata or name.offsets is assigned to via a string literal.
- * Unfortunately, gcc -Wwrite-strings produces incorrect warnings for
- * assigning a const string to the ndata or offsets members in
- * "const struct dns_name root", which (at least according to the ANSI
- * Draft dated August 3, 1998) should have the effect of declaring all
- * members of the struct as const.
+ * Note that the name data must be a char array, not a string
+ * literal, to avoid compiler warnings about discarding
+ * the const attribute of a string.
  */
-struct dns_constname {
-	dns_name_t name;
-	unsigned char const_ndata[2];
-	unsigned char const_offsets[1];
-};
+static unsigned char root_ndata[] = { '\0' };
+static unsigned char root_offsets[] = { 0 };
 
-static struct dns_constname root = {
-	{
-		DNS_NAME_MAGIC,
-		root.const_ndata, 1, 1,
-		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-		root.const_offsets, NULL,
-		{(void *)-1, (void *)-1},
-		{NULL, NULL}
-	},
-	{ '\0', '\0' },		/* const_ndata */
-	{ '\0' }		/* const_offsets */
+static dns_name_t root = 
+{
+	DNS_NAME_MAGIC,
+	root_ndata, 1, 1,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	root_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
 };
 
 /* XXXDCL make const? */
-dns_name_t *dns_rootname = &root.name;
+dns_name_t *dns_rootname = &root;
 
-static struct dns_constname wild = {
-	{
-		DNS_NAME_MAGIC,
-		wild.const_ndata, 2, 1,
-		DNS_NAMEATTR_READONLY,
-		wild.const_offsets, NULL,
-		{(void *)-1, (void *)-1},
-		{NULL, NULL}
-	},
-	{ '\001', '*' },	/* const_ndata */
-	{ '\0' }		/* const_offsets */
+static unsigned char wild_ndata[] = { '\001', '*' };
+static unsigned char wild_offsets[] = { 0 };
+
+static dns_name_t wild =
+{
+	DNS_NAME_MAGIC,
+	wild_ndata, 2, 1,
+	DNS_NAMEATTR_READONLY,
+	wild_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
 };
 
 /* XXXDCL make const? */
-dns_name_t *dns_wildcardname = &wild.name;
+dns_name_t *dns_wildcardname = &wild;
 
 static void
 set_offsets(const dns_name_t *name, unsigned char *offsets,

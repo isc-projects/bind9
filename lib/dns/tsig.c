@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.102 2001/01/11 20:30:51 gson Exp $
+ * $Id: tsig.c,v 1.103 2001/01/11 21:07:21 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -53,58 +53,48 @@
 
 #define BADTIMELEN 6
 
-/* Copied from name.c */
-struct dns_constname {
-	dns_name_t name;
-	unsigned char const_ndata[30];
-	unsigned char const_offsets[5];
+static unsigned char hmacmd5_ndata[] = "\010hmac-md5\007sig-alg\003reg\003int";
+static unsigned char hmacmd5_offsets[] = { 0, 9, 17, 21, 25 };
+
+static dns_name_t hmacmd5 = {
+	DNS_NAME_MAGIC,
+	hmacmd5_ndata, 26, 5,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	hmacmd5_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
 };
 
-static struct dns_constname hmacmd5 = {
-	{
-		DNS_NAME_MAGIC,
-		hmacmd5.const_ndata, 26, 5,
-		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-		hmacmd5.const_offsets, NULL,
-		{(void *)-1, (void *)-1},
-		{NULL, NULL}
-	},
-	{ "\010hmac-md5\007sig-alg\003reg\003int" },	/* const_ndata */
-	{ 0, 9, 17, 21, 25 }				/* const_offsets */
+dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
+
+static unsigned char gsstsig_ndata[] = "\010gss-tsig";
+static unsigned char gsstsig_offsets[] = { 0, 9 };
+
+static dns_name_t gsstsig = {
+	DNS_NAME_MAGIC,
+	gsstsig_ndata, 10, 2,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	gsstsig_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
 };
 
-dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5.name;
-
-static struct dns_constname gsstsig = {
-	{
-		DNS_NAME_MAGIC,
-		gsstsig.const_ndata, 10, 2,
-		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-		gsstsig.const_offsets, NULL,
-		{(void *)-1, (void *)-1},
-		{NULL, NULL}
-	},
-	{ "\010gss-tsig" },				/* const_ndata */
-	{ 0, 9 }					/* const_offsets */
-};
-
-dns_name_t *dns_tsig_gssapi_name = &gsstsig.name;
+dns_name_t *dns_tsig_gssapi_name = &gsstsig;
 
 /* It's nice of Microsoft to conform to their own standard. */
-static struct dns_constname gsstsigms = {
-	{
-		DNS_NAME_MAGIC,
-		gsstsigms.const_ndata, 19, 4,
-		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-		gsstsigms.const_offsets, NULL,
-		{(void *)-1, (void *)-1},
-		{NULL, NULL}
-	},
-	{ "\003gss\011microsoft\003com" },		/* const_ndata */
-	{ 0, 4, 14, 18 }				/* const_offsets */
+static unsigned char gsstsigms_ndata[] = "\003gss\011microsoft\003com";
+static unsigned char gsstsigms_offsets[] = { 0, 4, 14, 18 };
+
+static dns_name_t gsstsigms = {
+	DNS_NAME_MAGIC,
+	gsstsigms_ndata, 19, 4,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	gsstsigms_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
 };
 
-dns_name_t *dns_tsig_gssapims_name = &gsstsigms.name;
+dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
 
 static isc_result_t
 tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
