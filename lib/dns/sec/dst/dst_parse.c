@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.6 1999/09/30 17:41:36 bwelling Exp $
+ * $Id: dst_parse.c,v 1.7 1999/10/05 15:04:27 bwelling Exp $
  */
 
 #include <config.h>
@@ -192,8 +192,9 @@ dst_s_free_private_structure_fields(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst_s_parse_private_key_file(const char *name, const int alg, const int id,
-			     dst_private_t *priv, isc_mem_t *mctx)
+dst_s_parse_private_key_file(const char *name, const int alg,
+			     const isc_uint16_t id, dst_private_t *priv,
+			     isc_mem_t *mctx)
 {
 	char filename[PATH_MAX];
 	int n = 0, ret, major, minor;
@@ -323,8 +324,8 @@ fail:
 }
 
 int
-dst_s_write_private_key_file(const char *name, const int alg, const int id,
-			     const dst_private_t *priv)
+dst_s_write_private_key_file(const char *name, const int alg,
+			     const isc_uint16_t id, const dst_private_t *priv)
 {
 	FILE *fp;
 	int ret, i;
