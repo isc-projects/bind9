@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109.2.4 2000/07/10 21:59:34 gson Exp $ */
+/* $Id: query.c,v 1.109.2.5 2000/07/19 16:22:16 gson Exp $ */
 
 #include <config.h>
 
@@ -1682,7 +1682,8 @@ query_addbestns(ns_client_t *client) {
 	}
 
 	if ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0 &&
-	    rdataset->trust == dns_trust_pending)
+	    (rdataset->trust == dns_trust_pending ||
+	     sigrdataset->trust == dns_trust_pending))
 		goto cleanup;
 
 	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
