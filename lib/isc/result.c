@@ -26,6 +26,7 @@
 #include <isc/error.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/msgcat.h>
 
 #include "util.h"
 
@@ -33,6 +34,8 @@ typedef struct resulttable {
 	unsigned int				base;
 	unsigned int				last;
 	char **					text;
+	isc_msgcat_t *				msgcat;
+	int					set;
 	ISC_LINK(struct resulttable)		link;
 } resulttable;
 
@@ -75,11 +78,14 @@ static char *text[ISC_R_NRESULTS] = {
 };
 
 static isc_once_t 				once = ISC_ONCE_INIT;
+static isc_msgcat_t *				isc_msgcat = NULL;
 static ISC_LIST(resulttable)			tables;
 static isc_mutex_t				lock;
 
 static isc_result_t
-register_table(unsigned int base, unsigned int nresults, char **text) {
+register_table(unsigned int base, unsigned int nresults, char **text,
+	       isc_msgcat_t *msgcat, int set)
+{
 	resulttable *table;
 
 	REQUIRE(base % ISC_RESULTCLASS_SIZE == 0);
@@ -96,6 +102,8 @@ register_table(unsigned int base, unsigned int nresults, char **text) {
 	table->base = base;
 	table->last = base + nresults;
 	table->text = text;
+	table->msgcat = msgcat;
+	table->set = set;
 	ISC_LINK_INIT(table, link);
 
 	LOCK(&lock);
@@ -114,7 +122,9 @@ initialize_action(void) {
 	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
 	ISC_LIST_INIT(tables);
 
-	result = register_table(ISC_RESULTCLASS_ISC, ISC_R_NRESULTS, text);
+	isc_msgcat_open("libisc.cat", &isc_msgcat);
+	result = register_table(ISC_RESULTCLASS_ISC, ISC_R_NRESULTS, text,
+				isc_msgcat, 2);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "register_table() failed: %u", result);
@@ -128,7 +138,8 @@ initialize(void) {
 char *
 isc_result_totext(isc_result_t result) {
 	resulttable *table;
-	char *text;
+	char *text, *default_text;
+	int index;
 
 	initialize();
 
@@ -139,7 +150,15 @@ isc_result_totext(isc_result_t result) {
 	     table != NULL;
 	     table = ISC_LIST_NEXT(table, link)) {
 		if (result >= table->base && result <= table->last) {
-			text = table->text[result - table->base];
+			index = (int)(result - table->base);
+			default_text = table->text[index];
+			/*
+			 * Note: we use 'index + 1' as the message number
+			 * instead of index because isc_msgcat_get() requires
+			 * the message number to be > 0.
+			 */
+			text = isc_msgcat_get(table->msgcat, table->set,
+					      index + 1, default_text);
 			break;
 		}
 	}
@@ -150,8 +169,10 @@ isc_result_totext(isc_result_t result) {
 }
 
 isc_result_t
-isc_result_register(unsigned int base, unsigned int nresults, char **text) {
+isc_result_register(unsigned int base, unsigned int nresults, char **text,
+		    isc_msgcat_t *msgcat, int set)
+{
 	initialize();
 
-	return (register_table(base, nresults, text));
+	return (register_table(base, nresults, text, msgcat, set));
 }

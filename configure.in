@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.28 $)
+AC_REVISION($Revision: 1.29 $)
 
 AC_PREREQ(2.12)
 
@@ -142,7 +142,7 @@ AC_CHECK_LIB(pthread, pthread_create,,
 
 dnl For FreeBSD which has no libpthread but instead libc_r
 if test "$ac_cv_lib_pthread" != "yes"; then
-	AC_CHECK_LIB(c_r,pthread_create)
+	AC_CHECK_LIB(c_r, pthread_create)
 fi
 
 
@@ -163,6 +163,11 @@ case "$host" in
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 		;;
 esac
+
+dnl
+dnl NLS
+dnl
+AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
 
 dnl
 dnl BSDI 3.1 needs pthread_init() to be called before certain pthreads
@@ -282,6 +287,7 @@ AC_OUTPUT(
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
+	lib/isc/nls/Makefile
 	lib/isc/pthreads/Makefile
 	lib/isc/pthreads/include/Makefile
 	lib/isc/pthreads/include/isc/Makefile

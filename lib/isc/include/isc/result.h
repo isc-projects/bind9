@@ -21,10 +21,9 @@
 #include <isc/boolean.h>
 #include <isc/lang.h>
 #include <isc/list.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
-
-typedef unsigned int isc_result_t;
 
 #define ISC_R_SUCCESS			0
 #define ISC_R_NOMEMORY			1
@@ -67,7 +66,9 @@ typedef unsigned int isc_result_t;
 char *			isc_result_totext(isc_result_t);
 isc_result_t		isc_result_register(unsigned int base,
 					    unsigned int nresults,
-					    char **text);
+					    char **text,
+					    isc_msgcat_t *msgcat,
+					    int set);
 
 ISC_LANG_ENDDECLS
 

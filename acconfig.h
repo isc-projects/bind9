@@ -44,3 +44,6 @@
 
 /* define if LinuxThreads is in use */
 #undef HAVE_LINUXTHREADS
+
+/* define if catgets() is available */
+#undef HAVE_CATGETS
