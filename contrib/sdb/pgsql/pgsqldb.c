@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.6 2000/11/20 19:34:12 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.7 2000/11/20 19:50:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -258,5 +258,6 @@ pgsqldb_init(void) {
  */
 void
 pgsqldb_clear(void) {
-	dns_sdb_unregister(&pgsqldb);
+	if (pgsqldb != NULL)
+		dns_sdb_unregister(&pgsqldb);
 }

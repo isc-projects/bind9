@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.4 2000/11/18 01:29:10 bwelling Exp $ */
+/* $Id: dirdb.c,v 1.5 2000/11/20 19:49:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -186,5 +186,6 @@ dirdb_init(void) {
  */
 void
 dirdb_clear(void) {
-	dns_sdb_unregister(&dirdb);
+	if (dirdb != NULL)
+		dns_sdb_unregister(&dirdb);
 }

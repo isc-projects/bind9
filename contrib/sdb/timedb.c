@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timedb.c,v 1.3 2000/11/17 22:01:43 bwelling Exp $ */
+/* $Id: timedb.c,v 1.4 2000/11/20 19:50:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -136,5 +136,6 @@ timedb_init(void) {
  */
 void
 timedb_clear(void) {
-	dns_sdb_unregister(&timedb);
+	if (timedb != NULL)
+		dns_sdb_unregister(&timedb);
 }
