@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.43 2000/11/07 23:49:23 mws Exp $ */
+/* $Id: server.h,v 1.44 2000/11/09 19:55:20 mws Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -67,6 +67,10 @@ struct ns_server {
 	isc_event_t *		reload_event;
 
 	isc_boolean_t		flushonshutdown;
+
+	char *			statsfile;
+	FILE *			statsfp;
+	isc_uint64_t            globalcount[DNS_ZONE_COUNTSIZE];
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */
@@ -110,5 +114,9 @@ ns_server_refreshzone(ns_server_t *server, char *args);
 
 isc_result_t
 ns_server_dumpstats(ns_server_t *server);
+
+void
+ns_server_querycount(dns_zone_t *zone, isc_boolean_t is_zone,
+		     dns_zonecount_t counter);
 
 #endif /* NAMED_SERVER_H */

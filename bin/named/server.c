@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.242 2000/11/08 18:57:59 mws Exp $ */
+/* $Id: server.c,v 1.243 2000/11/09 19:55:17 mws Exp $ */
 
 #include <config.h>
 
@@ -97,9 +97,6 @@ typedef struct {
 	dns_viewlist_t		viewlist;
 	dns_aclconfctx_t	*aclconf;
 } ns_load_t;
-
-static char *statsfile = NULL;
-FILE *statsfp = NULL;
 
 static void
 fatal(const char *msg, isc_result_t result);
@@ -1301,66 +1298,56 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-ns_server_freestatsfile(isc_mem_t *mctx) {
-	if (statsfile != NULL)
-		isc_mem_free(mctx,statsfile);
-	statsfile = NULL;
+ns_server_freestatsfile(ns_server_t *serv) {
+	if (serv->statsfile != NULL)
+		isc_mem_free(serv->mctx, serv->statsfile);
+	serv->statsfile = NULL;
 }
 
 static void
-ns_server_setstatsfile(const char *name, isc_mem_t *mctx) {
+ns_server_setstatsfile(const char *name, ns_server_t *serv) {
 	int len;
 
-	ns_server_freestatsfile(mctx);
+	ns_server_freestatsfile(serv);
 	len = strlen(name);
-	statsfile = isc_mem_allocate(mctx, len + 1);
-	if (statsfile == NULL)
+	serv->statsfile = isc_mem_allocate(serv->mctx, len + 1);
+	if (serv->statsfile == NULL)
                 fatal("allocate memory for server stats", ISC_R_NOMEMORY);
-	strcpy(statsfile, name);
+	strcpy(serv->statsfile, name);
 }
 
 
 static isc_result_t
-ns_server_openstatsfile(void) {
+ns_server_openstatsfile(ns_server_t *serv) {
 	isc_result_t result;
 	const char *defname = "named.stats";
 	union { char *nc;
 		const char *cc; } deconst;
 
-	if (statsfile == NULL)
+	if (serv->statsfile == NULL)
 		deconst.cc = defname;
 	else
-		deconst.nc = statsfile;
-	result = isc_stdio_open(deconst.nc, "a", &statsfp);
+		deconst.nc = serv->statsfile;
+	result = isc_stdio_open(deconst.nc, "a", &serv->statsfp);
 	return (result);
 }
 
 static isc_result_t
-ns_server_closestatsfile(void) {
+ns_server_closestatsfile(ns_server_t *serv) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	if (statsfp != NULL)
-		result = isc_stdio_close(statsfp);
-	statsfp = NULL;
+	if (serv->statsfp != NULL)
+		result = isc_stdio_close(serv->statsfp);
+	serv->statsfp = NULL;
 	return (result);
 }
 
-static isc_result_t
-ns_server_statsprintf(const char *format, ...) {
-	char outputbuf[DNS_NAME_MAXTEXT + 64];
-	/* 64 is a safe estimate for the extra text */
-	va_list args;
+static void
+ns_server_zeroglobal(ns_server_t *serv) {
+	int i;
 
-	if (statsfp == NULL)
-		return (ISC_R_FAILURE);
-	/* XXXMWS Better failure case needed */
-
-	va_start(args, format);
-	vsnprintf(outputbuf, sizeof(outputbuf), format, args);
-	va_end(args);
-	isc_stdio_write(outputbuf, strlen(outputbuf), 1, statsfp,
-			NULL);
-	return (ISC_R_SUCCESS);
+	for (i=0; i<DNS_ZONE_COUNTSIZE; i++)
+		serv->globalcount[i]=0;
 }
 
 static isc_result_t
@@ -1721,8 +1708,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	else
 		ns_os_writepidfile(ns_g_defaultpidfile);
 
+	server->statsfile = NULL;
+	server->statsfp = NULL;
+	ns_server_zeroglobal(server);
+
 	if (dns_c_ctx_getstatsfilename(cctx, &statsfilename) != ISC_R_NOTFOUND)
-		ns_server_setstatsfile(statsfilename, server->mctx);
+		ns_server_setstatsfile(statsfilename, server);
 
 	dns_aclconfctx_destroy(&aclconfctx);
 
@@ -1973,7 +1964,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
-	ns_server_freestatsfile(server->mctx);
+	ns_server_freestatsfile(server);
 
 	dns_loadmgr_detach(&server->loadmgr);
 	dns_zonemgr_detach(&server->zonemgr);
@@ -2198,6 +2189,28 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 	return (ISC_R_SUCCESS);
 }
 
+void
+ns_server_querycount(dns_zone_t *zone, isc_boolean_t is_zone,
+	    dns_zonecount_t counter)
+{
+	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
+
+	ns_g_server->globalcount[counter]++;
+	if (!is_zone || zone == NULL || !dns_zone_hascounts(zone)) {
+	isc_log_write(dns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+		      1, "global counter %s set to %ld", 
+		      dns_zonecount_names[counter],
+		      (long)ns_g_server->globalcount[counter]);
+		return;
+	}
+	dns_zone_count(zone, counter);
+	isc_log_write(dns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+		      1, "zone counter %s set to %ld, global %ld", 
+		      dns_zonecount_names[counter],
+		      (long)dns_zone_getcounts(zone, counter),
+		      (long)ns_g_server->globalcount[counter]);
+}
+
 /*
  * Dump the current statistics to a file
  *
@@ -2213,29 +2226,25 @@ ns_server_dumpstats(ns_server_t *server) {
 	dns_view_t *zoneview = NULL;
 	char *viewname;
 	isc_stdtime_t now;
+	FILE *fp;
+	int i;
+	int numbercounters;
 
 	isc_stdtime_get(&now);
-	result = ns_server_openstatsfile();
+	result = ns_server_openstatsfile(server);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "Failed to open statistics dump file");
 		return (result);
 	}
-	ns_server_statsprintf("+++ Statistics Dump +++ (%ld)\n",
+	numbercounters = dns_zone_numbercounters();
+	fp = server->statsfp;
+	fprintf(fp,"+++ Statistics Dump +++ (%ld)\n",
 			  (long)now);
-	ns_server_statsprintf("SUCCESS %ld\n",
-			  ns_globalcount[dns_zonecount_success]);
-	ns_server_statsprintf("DELEGATED %ld\n",
-			  ns_globalcount[dns_zonecount_delegate]);
-	ns_server_statsprintf("NXRRSET %ld\n",
-			  ns_globalcount[dns_zonecount_nxrrset]);
-	ns_server_statsprintf("NXDOMAIN %ld\n",
-			  ns_globalcount[dns_zonecount_nxdomain]);
-	ns_server_statsprintf("RECURSIVE %ld\n",
-			  ns_globalcount[dns_zonecount_recurse]);
-	ns_server_statsprintf("FAILED %ld\n",
-			  ns_globalcount[dns_zonecount_failure]);
+	for (i=0; i<numbercounters; i++)
+		fprintf(fp,"%s %ld\n",dns_zonecount_names[i],
+			(long)server->globalcount[i]);
 	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
 	dns_zone_first(server->zonemgr, &zone);
 	while (zone != NULL) {
@@ -2249,32 +2258,13 @@ ns_server_dumpstats(ns_server_t *server) {
 		zoneview = dns_zone_getview(zone);
 		viewname = zoneview->name;
 		if (dns_zone_hascounts(zone)) {
-			ns_server_statsprintf("SUCCESS %ld %s:%s\n",
-					  (long)dns_zone_getcounts(zone, 
-						   dns_zonecount_success),
-					  viewname, zonestore);
-			ns_server_statsprintf("DELEGATED %ld %s:%s\n",
-					  (long)dns_zone_getcounts(zone, 
-						   dns_zonecount_delegate),
-					  viewname, zonestore);
-			ns_server_statsprintf("NXRRSET %ld %s:%s\n",
-					  (long)dns_zone_getcounts(zone, 
-						   dns_zonecount_nxrrset),
-					  viewname, zonestore);
-			ns_server_statsprintf("NXDOMAIN %ld %s:%s\n",
-					  (long)dns_zone_getcounts(zone, 
-						   dns_zonecount_nxdomain),
-					  viewname, zonestore);
-			ns_server_statsprintf("RECURSIVE %ld %s:%s\n",
-					  (long)dns_zone_getcounts(zone, 
-						   dns_zonecount_recurse),
-					  viewname, zonestore);
-			ns_server_statsprintf("FAILED %ld %s:%s\n",
-					  (long)dns_zone_getcounts(zone, 
-						   dns_zonecount_failure),
-					  viewname, zonestore);
+			for (i=0; i<numbercounters; i++)
+				fprintf(fp,"%s %ld %s:%s\n",
+					dns_zonecount_names[i],
+					(long)dns_zone_getcounts(zone, i),
+					viewname, zonestore);
 		} else {
-			ns_server_statsprintf("NOSTATISTICS 0 %s:%s\n",
+			fprintf(fp,"nostatistics 0 %s:%s\n",
 					  viewname, zonestore);
 		}
 		isc_buffer_invalidate(&zonebuf);
@@ -2282,9 +2272,9 @@ ns_server_dumpstats(ns_server_t *server) {
 		zone = next;
 		next = NULL;
 	}
-	ns_server_statsprintf("--- Statistics Dump --- (%ld)\n",
+	fprintf(fp,"--- Statistics Dump --- (%ld)\n",
 			  (long)now);
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
-	ns_server_closestatsfile();
+	ns_server_closestatsfile(server);
 	return (ISC_R_SUCCESS);
 }

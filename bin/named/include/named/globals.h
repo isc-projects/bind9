@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.48 2000/11/07 23:49:20 mws Exp $ */
+/* $Id: globals.h,v 1.49 2000/11/09 19:55:19 mws Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -35,11 +35,9 @@
 #ifdef NS_MAIN
 #define EXTERN
 #define INIT(v)	= (v)
-#define ARRAYINIT = {0,}
 #else
 #define EXTERN extern
 #define INIT(v)
-#define ARRAYINIT
 #endif
 
 EXTERN isc_mem_t *		ns_g_mctx		INIT(NULL);
@@ -96,12 +94,6 @@ EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
 EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
 							     "/run/lwresd.pid");
 EXTERN const char *		ns_g_username		INIT(NULL);
-
-/*
- * Statistical counters.
- */
-EXTERN isc_uint64_t             ns_globalcount[DNS_ZONE_COUNTSIZE]
-							ARRAYINIT;
 
 /*
  * XXX  Temporary.
