@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.84 2000/09/16 01:41:34 gson Exp $ */
+/* $Id: main.c,v 1.85 2000/09/28 21:09:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -230,10 +230,25 @@ save_command_line(int argc, char *argv[]) {
 		*dst = '\0';
 }
 
+static int
+parse_int(char *arg, const char *desc) {
+	char *endp;
+	int tmp;
+	long int ltmp;
+
+	ltmp = strtol(arg, &endp, 0);
+	tmp = (int) ltmp;
+	if (*endp != '\0')
+		ns_main_earlyfatal("%s '%s' must be numeric", desc, arg);
+	if (tmp < 0 || tmp != ltmp)
+		ns_main_earlyfatal("%s '%s' out of range", desc, arg);
+	return (tmp);
+}
+
 static void
 parse_lwresd_command_line(int argc, char *argv[]) {
 	int ch;
-	unsigned int port;
+	int port;
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
@@ -244,7 +259,8 @@ parse_lwresd_command_line(int argc, char *argv[]) {
 			lwresd_g_conffile = isc_commandline_argument;
 			break;
 		case 'd':
-			ns_g_debuglevel = atoi(isc_commandline_argument);
+			ns_g_debuglevel = parse_int(isc_commandline_argument,
+						    "debug level");
 			break;
 		case 'f':
 			ns_g_foreground = ISC_TRUE;
@@ -257,19 +273,20 @@ parse_lwresd_command_line(int argc, char *argv[]) {
 			lwresd_g_defaultpidfile = isc_commandline_argument;
 			break;
 		case 'n':
-			ns_g_cpus = atoi(isc_commandline_argument);
+			ns_g_cpus = parse_int(isc_commandline_argument,
+					      "number of cpus");
 			if (ns_g_cpus == 0)
 				ns_g_cpus = 1;
 			break;
 		case 'p':
-			port = atoi(isc_commandline_argument);
+			port = parse_int(isc_commandline_argument, "port");
 			if (port < 1 || port > 65535)
 				ns_main_earlyfatal("port '%s' out of range",
 						   isc_commandline_argument);
 			ns_g_port = port;
 			break;
 		case 'P':
-			port = atoi(isc_commandline_argument);
+			port = parse_int(isc_commandline_argument, "port");
 			if (port < 1 || port > 65535)
 				ns_main_earlyfatal("port '%s' out of range",
 						   isc_commandline_argument);
@@ -310,7 +327,7 @@ parse_lwresd_command_line(int argc, char *argv[]) {
 static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
-	unsigned int port;
+	int port;
 	char *s;
 
 	save_command_line(argc, argv);
@@ -351,7 +368,8 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_conffile = isc_commandline_argument;
 			break;
 		case 'd':
-			ns_g_debuglevel = atoi(isc_commandline_argument);
+			ns_g_debuglevel = parse_int(isc_commandline_argument,
+						    "debug level");
 			break;
 		case 'f':
 			ns_g_foreground = ISC_TRUE;
@@ -362,12 +380,13 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
-			ns_g_cpus = atoi(isc_commandline_argument);
+			ns_g_cpus = parse_int(isc_commandline_argument,
+					      "number of cpus");
 			if (ns_g_cpus == 0)
 				ns_g_cpus = 1;
 			break;
 		case 'p':
-			port = atoi(isc_commandline_argument);
+			port = parse_int(isc_commandline_argument, "port");
 			if (port < 1 || port > 65535)
 				ns_main_earlyfatal("port '%s' out of range",
 						   isc_commandline_argument);
