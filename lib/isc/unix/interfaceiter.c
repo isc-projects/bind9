@@ -17,6 +17,16 @@
 
 #include <config.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/ioctl.h>
+#ifdef HAVE_SYS_SOCKIO_H
+#include <sys/sockio.h>
+#endif
+#include <net/if.h>
+#include <arpa/inet.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,14 +43,6 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
-#ifdef HAVE_SYS_SOCKIO_H
-#include <sys/sockio.h>
-#endif
-
-#include <net/if.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 
 #define IFITER_MAGIC		0x49464954U	/* IFIT. */	
