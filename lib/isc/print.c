@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.22.2.3.2.1 2003/09/02 01:49:46 marka Exp $ */
+/* $Id: print.c,v 1.22.2.3.2.2 2003/09/02 02:10:50 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,16 @@
 #include <isc/print.h>
 #include <isc/stdlib.h>
 #include <isc/util.h>
+
+int
+isc_print_sprintf(char *str, const char *format, ...) {
+	va_list ap;
+
+	va_start(ap, format);
+	vsprintf(str, format, ap);
+	va_end(ap);
+	return (strlen(str));
+}
 
 /*
  * Return length of string that would have been written if not truncated.

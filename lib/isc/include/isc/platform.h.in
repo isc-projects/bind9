@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.24.2.1.10.5 2003/09/02 01:49:47 marka Exp $ */
+/* $Id: platform.h.in,v 1.24.2.1.10.6 2003/09/02 02:10:51 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -142,6 +142,11 @@
  * will be defined.
  */
 @ISC_PLATFORM_NEEDVSNPRINTF@
+
+/*
+ * If this system need a modern sprintf() that returns (int) not (char*).
+ */
+@ISC_PLATFORM_NEEDSPRINTF@
 
 /*
  * The printf format string modifier to use with isc_uint64_t values.
