@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.5 1999/10/11 14:50:51 tale Exp $ */
+/* $Id: log.c,v 1.6 1999/10/11 16:10:06 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -32,6 +32,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/print.h>
 
 #define LOG_MAGIC		0x494C4F47U	/* ILOG. */
 #define VALID_CONTEXT(lctx)	((lctx) != NULL && (lctx)->magic == LOG_MAGIC)
@@ -192,7 +193,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp) {
 	
 	/*
 	 * Normally the magic number is the last thing set in the structure,
-	 * but isc_log_createchannel() needs a valid context.  if the channel
+	 * but isc_log_createchannel() needs a valid context.  If the channel
 	 * creation fails, the lctx is not returned to the caller.
 	 */
 	lctx->magic = LOG_MAGIC;
