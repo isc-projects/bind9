@@ -190,6 +190,7 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("senddone");
 
+	INSIST(client->nsends > 0);
 	client->nsends--;
 	isc_mempool_put(client->sendbufs, sevent->region.base);
 
