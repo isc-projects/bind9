@@ -207,8 +207,6 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 	unsigned int type, class, ttl, rdlength;
 	isc_region_t r;
 	dns_name_t *name, *curr;
-	dns_name_t rname;
-	unsigned char *data, *sdata;
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *rdatalist;
 	dns_result_t result;
