@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.11 2001/06/04 21:51:27 bwelling Exp $ */
+/* $Id: check.c,v 1.12 2001/06/28 21:58:54 gson Exp $ */
 
 #include <config.h>
 
@@ -413,21 +413,12 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 			result = ISC_R_FAILURE;
 	} else {
 		cfg_obj_t *zones = NULL;
-		cfg_obj_t *peers = NULL;
 
 		(void)cfg_map_get(config, "zone", &zones);
 		if (zones != NULL) {
 			cfg_obj_log(zones, logctx, ISC_LOG_ERROR,
 				    "when using 'view' statements, "
 				    "all zones must be in views");
-			result = ISC_R_FAILURE;
-		}
-
-		(void)cfg_map_get(config, "server", &peers);
-		if (peers != NULL) {
-			cfg_obj_log(peers, logctx, ISC_LOG_ERROR,
-				    "when using 'view' statements, "
-				    "all server statements must be in views");
 			result = ISC_R_FAILURE;
 		}
 	}

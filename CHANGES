@@ -1,3 +1,8 @@
+
+ 914.	[bug]		Gobal 'server' statements were rejected when
+			using views, even though they were accepted
+			in 9.1. [RT #1368]
+
  913.	[bug]		More max-cache-size tuning.
 
  912.	[bug]		Attempts to set the 'additional-from-cache' or
