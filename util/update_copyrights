@@ -39,6 +39,7 @@ while (<>) {
     $before_copyright = "";
     $c_comment = 0;
     $shell_comment = 0;
+    $m4_comment = 0;
     $first = "";
     if ($type eq "C") {
 	$c_comment = 1;
@@ -46,6 +47,9 @@ while (<>) {
     } elsif ($type eq "SH" || $type eq "PERL" || $type eq "MAKE") {
 	$shell_comment = 1;
 	$prefix = "# ";
+    } elsif ($type eq "M4") {
+	$m4_comment = 1;
+	$prefix = "dnl ";
     } else {
 	print "$file: type '$type' not supported yet; skipping\n";
 	next;
@@ -88,6 +92,18 @@ while (<>) {
 	    }
 	} else {
 	    $first = $_;
+	}
+    } elsif ($m4_comment && /^dnl /) {
+	if ($_ !~ /[Cc]opyright/) {
+	    print "$file: non-copyright comment\n";
+	    close(SOURCE);
+	    next;
+	}
+	while (<SOURCE>) {
+	    if ($_ !~ /^dnl /) {
+		$first = $_;
+		last;
+	    }
 	}
     } else {
 	$first = $_;
