@@ -44,58 +44,52 @@ omapi_protocol_connect(omapi_object_t *h, const char *server_name,
 		       int port, omapi_object_t *authinfo)
 {
 	isc_result_t result;
-	omapi_protocol_t *obj;
+	omapi_protocol_t *obj = NULL;
 
-	obj = NULL;
+	REQUIRE(server_name != NULL);
+
 	result = omapi_object_create((omapi_object_t **)&obj,
 				     omapi_type_protocol, sizeof(*obj));
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = connect_toserver((omapi_object_t *)obj, server_name, port);
-	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&obj);
-		return (result);
-	}
 	OBJECT_REF(&h->outer, obj);
 	OBJECT_REF(&obj->inner, h);
 
 	/*
-	 * Send the introductory message.
+	 * Drop this function's direct reference to the protocol object
+	 * so that connect_toserver or send_intro can free the connection
+	 * and protocol objects in the event of an error.
 	 */
-	result = send_intro((omapi_object_t *)obj, OMAPI_PROTOCOL_VERSION);
-	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&obj);
-		return (result);
-	}
-
-	/*
-	 * Wait for the server's introductory message before proceeding.
-	 * While the original design for OMAPI declared that this was
-	 * to be entirely asynchronous, it just won't work for the client
-	 * side program to go storming ahead, making calls that try to
-	 * use the connection object, when it is possible that the thread
-	 * that reads the socket will wake up with the server's intro
-	 * message, find some sort of problem, and then blow away the
-	 * connection object while the client program is asynchronously
-	 * trying to use it.  (This could be done, of course, with a lot
-	 * more thread locking than currently happens.)
-	 * XXXDCL of course, the above also implies that this function
-	 * will return something *useful* if the task thread blows away the
-	 * connection, but that is not currently true.  I need to make it so.
-	 */
-	result = connection_wait(obj->outer, NULL);
-	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&obj);
-		return (result);
-	}
-
-	if (authinfo != NULL)
-		OBJECT_REF(&obj->authinfo, authinfo);
-
 	OBJECT_DEREF(&obj);
 
-	return (ISC_R_SUCCESS);
+	if (port == 0)
+		port = OMAPI_PROTOCOL_PORT;
+
+	result = connect_toserver(h->outer, server_name, port);
+
+	/*
+	 * Send the introductory message.  This will also wait (via
+	 * connection_send) for the server's introductory message before
+	 * proceeding.  While the original design for OMAPI declared that this
+	 * was to be entirely asynchronous, it just won't work for the client
+	 * side program to go storming ahead, making calls that try to use the
+	 * connection object, when it is possible that the thread that reads
+	 * the socket will wake up with the server's intro message, find some
+	 * sort of problem, and then blow away the connection object while the
+	 * client program is asynchronously trying to use it.  (This could be
+	 * done, of course, with a lot more thread locking than currently
+	 * happens.)
+	 *
+	 * If send_intro fails, the connection is already destroyed.
+  	 */
+	if (result == ISC_R_SUCCESS)
+		result = send_intro(h->outer, OMAPI_PROTOCOL_VERSION);
+
+	if (authinfo != NULL)
+		OBJECT_REF(&((omapi_protocol_t *)h->outer)->authinfo,authinfo);
+
+	return (result);
 }
 
 void
@@ -107,7 +101,10 @@ omapi_protocol_disconnect(omapi_object_t *handle, isc_boolean_t force) {
 
 	protocol = (omapi_protocol_t *)handle->outer;
 
-	INSIST(protocol != NULL && protocol->type == omapi_type_protocol);
+	if (protocol == NULL)
+		return;		/* Already disconnected. */
+
+	INSIST(protocol->type == omapi_type_protocol);
 
 	connection = (omapi_connection_t *)protocol->outer;
 
@@ -127,42 +124,65 @@ send_intro(omapi_object_t *h, unsigned int ver) {
 	omapi_connection_t *connection;
 
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
+	REQUIRE(h->outer != NULL && h->outer->type == omapi_type_connection);
 
 	p = (omapi_protocol_t *)h;
 	connection = (omapi_connection_t *)h->outer;
 
-	if (h->outer == NULL || h->outer->type != omapi_type_connection)
-		return (OMAPI_R_NOTCONNECTED);
+	result = omapi_connection_putuint32((omapi_object_t *)connection, ver);
 
-	result = omapi_connection_putuint32((omapi_object_t *)connection,
-					     ver);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = omapi_connection_putuint32((omapi_object_t *)connection,
-					     sizeof(omapi_protocolheader_t));
-
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (result == ISC_R_SUCCESS)
+		result =
+		    omapi_connection_putuint32((omapi_object_t *)connection,
+					       sizeof(omapi_protocolheader_t));
 
 	/*
 	 * Require the other end to send an intro - this kicks off the
-	 * protocol input state machine.
+	 * protocol input state machine.  This does not use connection_require
+	 * to set the number of bytes required because then a socket recv would
+	 * be queued.  To simplify the MT issues, the library only expects to
+	 * have one task outstanding at a time, so the number of bytes
+	 * that will be expected is set here, but the actual recv for
+	 * them is not queued until after the send event posts.
 	 */
-	p->state = omapi_protocol_intro_wait;
-	result = connection_require(connection, 8);
-	if (result != ISC_R_SUCCESS && result != OMAPI_R_NOTYET)
-		return (result);
+	if (result == ISC_R_SUCCESS) {
+		p->state = omapi_protocol_intro_wait;
+		connection->bytes_needed = 8;
 
-	/*
-	 * Make up an initial transaction ID for this connection.
-	 * XXXDCL better generator than random()?
-	 */
-	p->next_xid = random();
+		/*
+		 * Make up an initial transaction ID for this connection.
+		 * XXXDCL better generator than random()?
+		 */
+		p->next_xid = random();
 
-	connection_send(connection);
+		result = connection_send(connection);
 
-	return (ISC_R_SUCCESS);
+		/*
+		 * The client waited for the result; the server did not.
+		 * The server's result will always be ISC_R_SUCCESS.
+		 *
+		 * If the client's result is not ISC_R_SUCCESS, the connection
+		 * was already closed by the socket event handler that got
+		 * the error.
+		 */
+	} else
+		/*
+		 * One of the calls to omapi_connection_put* failed.  As of the
+		 * time of writing this comment, that would pretty much only
+		 * happen if the required output buffer space could be
+		 * dynamically allocated.
+		 *
+		 * The server is in listener_accept, so the connection can just
+		 * be freed right here; listener_accept will not try to
+		 * use it when this function exits.
+		 *
+		 * The client is in omapi_protocol_connect, its driving thread.
+		 * It too has no events pending, so the connection will
+		 * be freed.
+		 */
+		omapi_connection_disconnect(h->outer, OMAPI_FORCE_DISCONNECT);
+
+	return (result);
 }
 
 /*
@@ -181,6 +201,8 @@ send_status(omapi_object_t *po, isc_result_t waitstatus,
 	omapi_object_t *message = NULL;
 
 	REQUIRE(po != NULL && po->type == omapi_type_protocol);
+	REQUIRE(po->outer != NULL && po->outer->type == omapi_type_connection);
+	REQUIRE(! ((omapi_connection_t *)po->outer)->is_client);
 
 	result = omapi_message_create(&message);
 	if (result != ISC_R_SUCCESS)
@@ -201,12 +223,12 @@ send_status(omapi_object_t *po, isc_result_t waitstatus,
 	if (result == ISC_R_SUCCESS && msg != NULL)
 		result = omapi_object_setstring(message, "message", msg);
 
-	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&message);
-		return (result);
-	}
+	if (result == ISC_R_SUCCESS)
+		result = omapi_message_send(message, po);
 
-	return (omapi_message_send(message, po));
+	OBJECT_DEREF(&message);
+
+	return (result);
 }
 
 isc_result_t
@@ -215,6 +237,7 @@ send_update(omapi_object_t *po, unsigned int rid, omapi_object_t *object) {
 	omapi_object_t *message = NULL;
 
 	REQUIRE(po != NULL && po->type == omapi_type_protocol);
+	REQUIRE(! ((omapi_connection_t *)po->outer)->is_client);
 
 	result = omapi_message_create(&message);
 	if (result != ISC_R_SUCCESS)
@@ -238,12 +261,12 @@ send_update(omapi_object_t *po, unsigned int rid, omapi_object_t *object) {
 	if (result == ISC_R_SUCCESS)
 		result = omapi_object_setobject(message, "object", object);
 
-	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&message);
-		return (result);
-	}
+	if (result == ISC_R_SUCCESS)
+		result = omapi_message_send(message, po);
 
-	return (omapi_message_send(message, po));
+	OBJECT_DEREF(&message);
+
+	return (result);
 }
 
 static isc_result_t
@@ -289,53 +312,23 @@ dispatch_messages(omapi_protocol_t *protocol,
 		protocol->state = omapi_protocol_header_wait;
 
 		/*
-		 * Signal connection_wait() to wake up.
-		 * Only do this for the client side, which needs to be
-		 * blocked otherwise it might try to use a connection
-		 * which is destroyed during the processing that is
-		 * driven by the socket thread.
+		 * The client needs to have bytes_needed primed for the
+		 * size of a message header, so that when send_done runs,
+		 * it can kick off an isc_socket_recv (via connection_require)
+		 * to get the server's response.  It does this in
+		 * omapi_message_send, so nothing need be done here now.
 		 *
-		 * XXXDCL this code is duplicated below
+		 * The server needs to actually kick off its recv now to
+		 * be ready for the first message from the client.  The
+		 * server's startup path looks like this:
+		 * 1 server sends intro, bytes_needed is set to intro size (8).
+		 * 2 send_done posts, recv of 8 for intro is queued.
+		 * 3 recv_done posts, calls the protocol_signalhandler and
+		 *	ends up here.
 		 */
 		if (connection->is_client) {
-			RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) ==
-				      ISC_R_SUCCESS);
-
-			INSIST(connection->messages_expected > 0);
-			connection->messages_expected--;
-
-			RUNTIME_CHECK(isc_condition_signal(&connection->waiter)
-				      == ISC_R_SUCCESS);
-
-			/*
-			 * If the driving program has already called
-			 * omapi_message_send and the lock
-			 * was acquired in that function, then since
-			 * messages_expected would have been >= 2 at
-			 * the critical test, the omapi_connection_require
-			 * would not have been done yet, and will need
-			 * to be.  Since messages_expected was decremented,
-			 * drop through to the connection_require only if
-			 * messages_expected is >= 1.
-			 *
-			 * The "not yet" response tells the calling
-			 * signal handler that there is not yet another
-			 * message to be processed.
-			 */
-			if (connection->messages_expected == 0) {
-				RUNTIME_CHECK(isc_mutex_unlock(&connection->
-							       mutex)
-					      == ISC_R_SUCCESS);
-				result = OMAPI_R_NOTYET;
-				break;
-			}
-
-			/*
-			 * Proceed to the omapi_connection_require
-			 * for the first "real" message's header.
-			 */
-			RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
-				      ISC_R_SUCCESS);
+			result = OMAPI_R_NOTYET;
+			break;
 		}
 
 		/*
@@ -509,7 +502,14 @@ dispatch_messages(omapi_protocol_t *protocol,
 				   connection,
 				   protocol->value->u.buffer.len);
 
+		/*
+		 * Silence the gcc message "warning: `result' might be used
+		 * uninitialized in this function"
+		 */
+		result = ISC_R_SUCCESS;
+
 	insert_new_value:
+
 		if (protocol->reading_message_values)
 			result = omapi_object_set((omapi_object_t *)
 						  protocol->message,
@@ -567,6 +567,7 @@ dispatch_messages(omapi_protocol_t *protocol,
 		 * is returned, a bit of cleanup has to be done, but
 		 * it can't muck with the result assigned here.
 		 */
+
 		result = message_process((omapi_object_t *)protocol->message,
 					 (omapi_object_t *)protocol);
 
@@ -583,36 +584,6 @@ dispatch_messages(omapi_protocol_t *protocol,
 		protocol->state = omapi_protocol_header_wait;
 
 		/*
-		 * Signal connection_wait() to wake up.
-		 * XXXDCL code is duplicated from above.
-		 */
-		if (connection->is_client) {
-			RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) ==
-				      ISC_R_SUCCESS);
-
-			INSIST(connection->messages_expected > 0);
-			connection->messages_expected--;
-
-			RUNTIME_CHECK(isc_condition_signal(&connection->waiter)
-				      == ISC_R_SUCCESS);
-
-			/*
-			 * If there are no more messages expected, exit
-			 * the signal handler.
-			 */
-			if (connection->messages_expected == 0) {
-				RUNTIME_CHECK(isc_mutex_unlock(&connection->
-							       mutex) ==
-					      ISC_R_SUCCESS);
-				result = OMAPI_R_NOTYET;
-				break;
-			}
-
-			RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) ==
-				      ISC_R_SUCCESS);
-		}
-
-		/*
 		 * Now, if message_process had indicated an error, let it be
 		 * returned from here.
 		 */
@@ -620,12 +591,16 @@ dispatch_messages(omapi_protocol_t *protocol,
 			break;
 
 		/*
-		 * Queue up the next recv; if this next header is already
-		 * received, ISC_R_SUCCESS will be returned to
-		 * protocol_signalhandler, which will cause it to immediately
-		 * call this function again to process it.
+		 * The next recv will be queued from send_done.  On the
+		 * server, this will be after it has sent its reply to the
+		 * just-processed message by using omapi_message_send.
+		 * On the client it will happen after it sends its
+		 * next message with omapi_message_send.
+		 *
+		 * The OMAPI_R_NOTYET return value tells protocol_signalhandler
+		 * that to return ISC_R_SUCCESS back to recv_done.
 		 */
-		result = connection_require(connection, protocol->header_size);
+		result = OMAPI_R_NOTYET;
 		break;
 
 	default:
