@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.17 2002/08/03 01:31:48 mayer Exp $ */
+/* $Id: os.c,v 1.18 2004/01/07 05:48:15 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -265,4 +265,11 @@ void
 ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	UNUSED(command);
 	UNUSED(text);
+}
+
+void
+ns_os_tzset(void) {
+#ifdef HAVE_TZSET
+	tzset();
+#endif
 }

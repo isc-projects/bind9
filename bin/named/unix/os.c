@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.62 2002/12/13 02:51:39 marka Exp $ */
+/* $Id: os.c,v 1.63 2004/01/07 05:48:15 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -597,4 +597,11 @@ ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	/* Only send a message if it is complete. */
 	if (n < isc_buffer_availablelength(text))
 		isc_buffer_add(text, n);
+}
+
+void
+ns_os_tzset(void) {
+#ifdef HAVE_TZSET
+	tzset();
+#endif
 }

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.349 $)
+AC_REVISION($Revision: 1.350 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1673,6 +1673,11 @@ case "$enable_linux_caps" in
 		;;
 esac
 AC_CHECK_HEADERS(sys/prctl.h)
+
+#
+# Time Zone Stuff
+#
+AC_CHECK_FUNC(tzset, AC_DEFINE(HAVE_TZSET))
 
 #
 # BSD/OS, and perhaps some others, don't define rlim_t.

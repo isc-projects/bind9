@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.41 2003/07/25 05:08:50 marka Exp $ */
+/* $Id: acconfig.h,v 1.42 2004/01/07 05:48:14 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -69,6 +69,9 @@
 
 /* define if chroot() is available */
 #undef HAVE_CHROOT
+
+/* define if tzset() is available */
+#undef HAVE_TZSET
 
 /* define if struct addrinfo exists */
 #undef HAVE_ADDRINFO

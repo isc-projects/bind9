@@ -1,3 +1,5 @@
+1550.	[port]		Call tzset(), if available, before calling chroot().
+
 1549.	[func]		named-checkzone can now write out the zone contents
 			in a easily parsable format (-D and -o).
 
