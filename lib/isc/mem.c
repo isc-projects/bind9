@@ -15,8 +15,6 @@
  * SOFTWARE.
  */
 
-/* #include "port_before.h" */
-
 #include <sys/types.h>
 
 #include <stdio.h>
@@ -30,10 +28,8 @@
 #include "mutex.h"
 #include "memcluster.h"
 
-/* #include "port_after.h" */
-
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.1 1998/08/17 22:05:58 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.2 1998/08/18 00:29:53 halley Exp $";
 #endif /* not lint */
 
 /*
@@ -52,16 +48,16 @@ typedef struct {
 } *size_info;
 
 struct stats {
-	u_long			gets;
-	u_long			totalgets;
-	u_long			blocks;
-	u_long			freefrags;
+	unsigned long		gets;
+	unsigned long		totalgets;
+	unsigned long		blocks;
+	unsigned long		freefrags;
 };
 
 #ifdef MEMCLUSTER_RANGES
 typedef struct range {
-	u_char *		first;
-	u_char *		last;
+	unsigned char *		first;
+	unsigned char *		last;
 	struct range *		next;
 } range;
 #endif
@@ -75,8 +71,8 @@ struct mem_context {
 	range *			ranges;
 	range *			freeranges;
 #else
-	u_char *		lowest;
-	u_char *		highest;
+	unsigned char *		lowest;
+	unsigned char *		highest;
 #endif
 	struct stats *		stats;
 	os_mutex_t		mutex;
@@ -196,12 +192,12 @@ __mem_get(mem_context_t ctx, size_t size) {
 		int i, frags;
 		size_t total_size;
 		void *new;
-		u_char *curr, *next;
-		u_char *first;
+		unsigned char *curr, *next;
+		unsigned char *first;
 #ifdef MEMCLUSTER_RANGES
 		range *r;
 #else
-		u_char *last;
+		unsigned char *last;
 #endif
 
 		if (ctx->basic_blocks == NULL) {
@@ -340,7 +336,7 @@ __mem_get_debug(mem_context_t ctx, size_t size, const char *file, int line) {
 	void *ptr;
 	ptr = __mem_get(ctx, size);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
-		ctx, (u_long)size, ptr);
+		ctx, (unsigned long)size, ptr);
 	return (ptr);
 }
 
@@ -349,7 +345,7 @@ __mem_put_debug(mem_context_t ctx, void *ptr, size_t size, const char *file,
 		int line)
 {
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
-		ctx, ptr, (u_long)size);
+		ctx, ptr, (unsigned long)size);
 	__mem_put(ctx, ptr, size);
 }
 
@@ -383,7 +379,7 @@ mem_stats(mem_context_t ctx, FILE *out) {
 
 int
 mem_valid(mem_context_t ctx, void *ptr) {
-	u_char *cp = ptr;
+	unsigned char *cp = ptr;
 	int ret;
 #ifdef MEMCLUSTER_RANGES
 	range *r;
@@ -475,14 +471,14 @@ __memget_debug(size_t size, const char *file, int line) {
 	void *ptr;
 	ptr = __memget(size);
 	fprintf(stderr, "%s:%d: memget(%lu) -> %p\n", file, line,
-		(u_long)size, ptr);
+		(unsigned long)size, ptr);
 	return (ptr);
 }
 
 void
 __memput_debug(void *ptr, size_t size, const char *file, int line) {
 	fprintf(stderr, "%s:%d: memput(%p, %lu)\n", file, line, 
-		ptr, (u_long)size);
+		ptr, (unsigned long)size);
 	__memput(ptr, size);
 }
 

@@ -1,4 +1,6 @@
 
+#include "attribute.h"
+
 #include <isc/assertions.h>
 
 #include "task.h"
@@ -23,6 +25,37 @@
 #else
 #define XTRACE(m)
 #endif
+
+
+/***
+ *** Tasks.
+ ***/
+
+void *
+event_get(mem_context_t mctx, event_type_t type, event_action_t action,
+	  size_t size) {
+	generic_event_t event;
+
+	if (size < sizeof *event)
+		return (NULL);
+	event = mem_get(mctx, size);
+	if (event == NULL)
+		return (NULL);
+	event->mctx = mctx;
+	event->size = size;
+	event->type = type;
+	event->action = action;
+
+	return (event);
+}
+
+void
+event_put(void *target) {
+	generic_event_t event = target;
+	
+	mem_put(event->mctx, event, event->size);
+}
+
 
 /***
  *** Tasks.
@@ -53,9 +86,9 @@ task_free(task_t task) {
 }
 
 boolean_t
-task_allocate(task_manager_t manager, void *arg,
-	      event_action_t shutdown_action, unsigned int quantum,
-	      task_t *taskp)
+task_create(task_manager_t manager, void *arg,
+	    event_action_t shutdown_action, unsigned int quantum,
+	    task_t *taskp)
 {
 	task_t task;
 
@@ -105,7 +138,7 @@ task_attach(task_t task, task_t *taskp) {
 	return (TRUE);
 }
 
-boolean_t
+void
 task_detach(task_t *taskp) {
 	boolean_t free_task = FALSE;
 	task_manager_t manager;
@@ -132,8 +165,6 @@ task_detach(task_t *taskp) {
 		task_free(task);
 
 	*taskp = NULL;
-
-	return (TRUE);
 }
 
 boolean_t
@@ -165,7 +196,7 @@ task_send_event(task_t task, generic_event_t event) {
 	UNLOCK(&task->lock);
 
 	if (discard) {
-		mem_put(event->mctx, event, event->size);
+		event_put(event);
 		return (TRUE);
 	}
 
@@ -213,7 +244,7 @@ task_send_event(task_t task, generic_event_t event) {
 	return (TRUE);
 }
 
-boolean_t
+void
 task_shutdown(task_t task) {
 	boolean_t was_idle = FALSE;
 	boolean_t discard = FALSE;
@@ -239,7 +270,7 @@ task_shutdown(task_t task) {
 	UNLOCK(&task->lock);
 
 	if (discard)
-		return (TRUE);
+		return;
 
 	if (was_idle) {
 		boolean_t need_wakeup = FALSE;
@@ -256,9 +287,17 @@ task_shutdown(task_t task) {
 		if (need_wakeup)
 			BROADCAST(&manager->work_available);
 	}
-
-	return (TRUE);
 }
+
+void
+task_destroy(task_t *taskp) {
+
+	REQUIRE(taskp != NULL);
+
+	task_shutdown(*taskp);
+	task_detach(taskp);
+}
+
 
 
 /***
@@ -403,8 +442,7 @@ void *task_manager_run(void *uap) {
 				 * callback returned.
 				 */
 				if (event != NULL)
-					mem_put(event->mctx, event,
-						event->size);
+					event_put(event);
 				else
 					wants_shutdown = TRUE;
 
@@ -465,8 +503,7 @@ void *task_manager_run(void *uap) {
 				     event != NULL;
 				     event = next_event) {
 					next_event = NEXT(event, link);
-					mem_put(event->mctx, event,
-						event->size);
+					event_put(event);
 				}
 			}
 

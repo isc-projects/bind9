@@ -1,4 +1,6 @@
 
+#include "attribute.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -7,8 +9,11 @@
 #include "task.h"
 
 /*ARGSUSED*/
-boolean_t
-my_callback(task_t task, void *arg, generic_event_t event) {
+static boolean_t
+my_callback(task_t __attribute__((unused)) task,
+	    void *arg,
+	    generic_event_t __attribute__((unused)) event)
+{
 	int i, j;
 	char *name = arg;
 
@@ -21,30 +26,15 @@ my_callback(task_t task, void *arg, generic_event_t event) {
 }
 
 /*ARGSUSED*/
-boolean_t
-my_shutdown(task_t task, void *arg, generic_event_t event) {
+static boolean_t
+my_shutdown(task_t __attribute__((unused)) task,
+	    void *arg,
+	    generic_event_t __attribute__((unused)) event)
+{
 	char *name = arg;
 
 	printf("shutdown %s\n", name);
 	return (TRUE);
-}
-
-generic_event_t
-event_allocate(mem_context_t mctx, event_type_t type, event_action_t action,
-	       size_t size) {
-	generic_event_t event;
-
-	if (size < sizeof *event)
-		return (NULL);
-	event = mem_get(mctx, size);
-	if (event == NULL)
-		return (NULL);
-	event->mctx = mctx;
-	event->size = size;
-	event->type = type;
-	event->action = action;
-
-	return (event);
 }
 
 void
@@ -65,23 +55,23 @@ main(int argc, char *argv[]) {
 
 	INSIST(task_manager_create(mctx, workers, 0, &manager) == workers);
 
-	INSIST(task_allocate(manager, "1", my_shutdown, 0, &t1));
-	INSIST(task_allocate(manager, "2", my_shutdown, 0, &t2));
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	INSIST(task_create(manager, "1", my_shutdown, 0, &t1));
+	INSIST(task_create(manager, "2", my_shutdown, 0, &t2));
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t1, event);
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t2, event);
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t1, event);
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t2, event);
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t1, event);
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t2, event);
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t1, event);
-	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
 	task_send_event(t2, event);
 
 	task_shutdown(t1);
