@@ -1,3 +1,6 @@
+1717.	[port]		solaris: ifconfig.sh did not support Solaris 10.
+			"ifconfig.sh down" didn't work for Solaris 9.
+
 1716.	[doc]		named.conf(5) was being installed in the wrong
 			location.  [RT# 12441]
 
