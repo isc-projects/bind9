@@ -1,4 +1,6 @@
 
+ 726.	[func]		Implement the "trace" and "notrace" commands in rndc.
+
  725.	[bug]		Installing man pages could fail.
 
  724.	[func]		New libisc functions isc_netaddr_any(),

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.38 2001/01/09 21:40:44 bwelling Exp $ */
+/* $Id: rndc.c,v 1.39 2001/02/06 23:57:16 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -270,9 +270,9 @@ command is one of the following:\n\
   dumpdb	Dump cache(s) to the dump file (named_dump.db).\n\
   stop		Save pending updates to master files and stop the server.\n\
   halt		Stop the server without saving pending updates.\n\
+  trace		Increment debugging level by one.\n\
+  notrace	Set debugging level to 0.\n\
   *status	Display ps(1) status of named.\n\
-  *trace	Increment debugging level by one.\n\
-  *notrace	Set debugging level to 0.\n\
   *restart	Restart the server.\n\
 \n\
 * == not yet implemented\n\
@@ -513,10 +513,8 @@ main(int argc, char **argv) {
 
 	notify(command);
 
-	if (strcmp(command, "notrace") == 0 ||
-	    strcmp(command, "restart") == 0 ||
-	    strcmp(command, "status") == 0 ||
-	    strcmp(command, "trace") == 0) {
+	if (strcmp(command, "restart") == 0 ||
+	    strcmp(command, "status") == 0) {
 		result = ISC_R_NOTIMPLEMENTED;
 	} else {
 		result = send_command(omapimgr, command, args);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.18 2001/01/09 21:40:26 bwelling Exp $ */
+/* $Id: omapi.h,v 1.19 2001/02/06 23:57:15 bwelling Exp $ */
 
 #ifndef NAMED_OMAPI_H
 #define NAMED_OMAPI_H 1
@@ -43,6 +43,8 @@
 #define NS_OMAPI_COMMAND_DUMPSTATS      "stats"
 #define NS_OMAPI_COMMAND_QUERYLOG	"querylog"
 #define NS_OMAPI_COMMAND_DUMPDB		"dumpdb"
+#define NS_OMAPI_COMMAND_TRACE		"trace"
+#define NS_OMAPI_COMMAND_NOTRACE	"notrace"
 
 isc_result_t
 ns_omapi_init(void);
