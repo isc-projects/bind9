@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +43,7 @@ mem_strdup(isc_mem_t *mctx, const char *s) {
 
 static void
 undefine_action(char *key, unsigned int type, isc_symvalue_t value) {
-	INSIST(type == 0);
+	INSIST(type == 1);
 	isc_mem_free(mctx, key);
 	isc_mem_free(mctx, value.as_pointer);
 }
@@ -54,15 +56,22 @@ main(int argc, char *argv[]) {
 	isc_symvalue_t value;
 	int trace = 0;
 	int c;
+	isc_symexists_t exists_policy = isc_symexists_reject;
 
 	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	INSIST(isc_symtab_create(mctx, 691, undefine_action, &st) ==
 	       ISC_R_SUCCESS);
 
-	while ((c = getopt(argc, argv, "t")) != -1) {
+	while ((c = getopt(argc, argv, "tar")) != -1) {
 		switch (c) {
 		case 't':
 			trace = 1;
+			break;
+		case 'a':
+			exists_policy = isc_symexists_add;
+			break;
+		case 'r':
+			exists_policy = isc_symexists_replace;
 			break;
 		}
 	}
@@ -74,7 +83,7 @@ main(int argc, char *argv[]) {
 
 		if (cp[0] == '!') {
 			cp++;
-			result = isc_symtab_undefine(st, cp, 0);
+			result = isc_symtab_undefine(st, cp, 1);
 			if (trace || result != ISC_R_SUCCESS)
 				printf("undefine('%s'): %s\n", cp,
 				       isc_result_totext(result));
@@ -97,7 +106,8 @@ main(int argc, char *argv[]) {
 				*cp++ = '\0';
 				key = mem_strdup(mctx, key);
 				value.as_pointer = mem_strdup(mctx, cp);
-				result = isc_symtab_define(st, key, 0, value);
+				result = isc_symtab_define(st, key, 1, value,
+							   exists_policy);
 				if (trace || result != ISC_R_SUCCESS)
 					printf("define('%s', '%s'): %s\n",
 					       key, cp,

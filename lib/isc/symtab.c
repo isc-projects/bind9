@@ -168,7 +168,7 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
 
 isc_result_t
 isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
-		  isc_symvalue_t value)
+		  isc_symvalue_t value, isc_symexists_t exists_policy)
 {
 	unsigned int bucket;
 	elt_t *elt;
@@ -178,17 +178,29 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 
 	FIND(symtab, key, type, bucket, elt);
 
-	if (elt != NULL)
-		return (ISC_R_EXISTS);
-
-	elt = (elt_t *)isc_mem_get(symtab->mctx, sizeof *elt);
-	if (elt == NULL)
-		return (ISC_R_NOMEMORY);
+	if (exists_policy != isc_symexists_add && elt != NULL) {
+		if (exists_policy == isc_symexists_reject)
+			return (ISC_R_EXISTS);
+		INSIST(exists_policy == isc_symexists_replace);
+		UNLINK(symtab->table[bucket], elt, link);
+		if (symtab->undefine_action != NULL)
+			(symtab->undefine_action)(elt->key, elt->type,
+						  elt->value);
+	} else {
+		elt = (elt_t *)isc_mem_get(symtab->mctx, sizeof *elt);
+		if (elt == NULL)
+			return (ISC_R_NOMEMORY);
+	}
 	elt->key = key;
 	elt->type = type;
 	elt->value = value;
 
-	APPEND(symtab->table[bucket], elt, link);
+	/*
+	 * We prepend so that a 'type 0' lookup will return the most
+	 * recent definition, and a 'type 0' undefine will undefine the
+	 * most recent definition.
+	 */
+	PREPEND(symtab->table[bucket], elt, link);
 
 	return (ISC_R_SUCCESS);
 }
