@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.2 2001/10/11 03:31:03 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.3 2001/10/18 00:35:20 marka Exp $ */
 
 #include <config.h>
 
@@ -600,7 +600,7 @@ ns_zone_reusable(dns_zone_t *zone, cfg_obj_t *zconfig) {
 		cfilename = NULL;
 	zfilename = dns_zone_getfile(zone);
 	if (!((cfilename == NULL && zfilename == NULL) ||
-	      (cfilename != NULL && cfilename != NULL &&
+	      (cfilename != NULL && zfilename != NULL &&
 	       strcmp(cfilename, zfilename) == 0)))
 	    return (ISC_FALSE);
 
