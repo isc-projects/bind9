@@ -1,3 +1,5 @@
+1781.	[placeholder]	rt12810
+
 1780.	[bug]		Update libtool to 1.5.10.
 
 1779.	[port]		OSF 5.1: libtool didn't handle -pthread correctly.
