@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.92 2000/10/12 00:38:29 bwelling Exp $ */
+/* $Id: confctx.c,v 1.93 2000/10/19 01:26:34 gson Exp $ */
 
 #include <config.h>
 
@@ -2544,7 +2544,7 @@ dns_c_ctx_getlwres(dns_c_ctx_t *cfg,
 
 isc_result_t
 dns_c_ctx_setlwres(dns_c_ctx_t *cfg,
-		   dns_c_lwreslist_t *newval, isc_boolean_t deepcopy)
+		   dns_c_lwreslist_t *newval)
 {
 	isc_result_t res;
 
@@ -2557,9 +2557,6 @@ dns_c_ctx_setlwres(dns_c_ctx_t *cfg,
 	if (newval == NULL) {
 		cfg->lwres = NULL;
 		res = ISC_R_SUCCESS;
-	} else if (deepcopy) {
-		res = dns_c_lwreslist_copy(cfg->mem,
-					   &cfg->lwres, newval);
 	} else {
 		cfg->lwres = newval;
 		res = ISC_R_SUCCESS;

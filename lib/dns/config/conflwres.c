@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.c,v 1.3 2000/10/10 22:04:29 bwelling Exp $ */
+/* $Id: conflwres.c,v 1.4 2000/10/19 01:26:36 gson Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,9 @@
 #include <dns/conflwres.h>
 #include <dns/confcommon.h>
 #include <dns/rdataclass.h>
+
+static isc_result_t
+search_delete(dns_c_search_t **search);
 
 isc_result_t
 dns_c_lwreslist_new(isc_mem_t *mem, dns_c_lwreslist_t **list) {
@@ -81,56 +84,12 @@ dns_c_lwreslist_delete(dns_c_lwreslist_t **list)
 
 isc_result_t
 dns_c_lwreslist_append(dns_c_lwreslist_t *list,
-		       dns_c_lwres_t *lwres, isc_boolean_t copy)
+		       dns_c_lwres_t *lwres)
 {
-	dns_c_lwres_t *newe;
-	isc_result_t res;
-
 	REQUIRE(DNS_C_LWLIST_VALID(list));
 	REQUIRE(DNS_C_LWRES_VALID(lwres));
 
-	if (copy) {
-		res = dns_c_lwres_copy(list->mem, &newe, lwres);
-		if (res != ISC_R_SUCCESS) {
-			return (res);
-		}
-	} else {
-		newe = lwres;
-	}
-
-	ISC_LIST_APPEND(list->lwreslist, newe, next);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_c_lwreslist_copy(isc_mem_t *mem, dns_c_lwreslist_t **dest,
-		     dns_c_lwreslist_t *src)
-{
-	dns_c_lwreslist_t *newlist;
-	dns_c_lwres_t *lwres;
-	isc_result_t res;
-
-	REQUIRE(dest != NULL);
-	REQUIRE(DNS_C_LWLIST_VALID(src));
-
-	res = dns_c_lwreslist_new(mem, &newlist);
-	if (res != ISC_R_SUCCESS) {
-		return (res);
-	}
-
-	lwres = ISC_LIST_HEAD(src->lwreslist);
-	while (lwres != NULL) {
-		res = dns_c_lwreslist_append(newlist, lwres, ISC_TRUE);
-		if (res != ISC_R_SUCCESS) {
-			dns_c_lwreslist_delete(&newlist);
-			return (res);
-		}
-
-		lwres = ISC_LIST_NEXT(lwres, next);
-	}
-
-	*dest = newlist;
+	ISC_LIST_APPEND(list->lwreslist, lwres, next);
 
 	return (ISC_R_SUCCESS);
 }
@@ -151,7 +110,6 @@ dns_c_lwreslist_head (dns_c_lwreslist_t *list) {
 
 	return (ISC_LIST_HEAD(list->lwreslist));
 }
-
 
 dns_c_lwres_t *
 dns_c_lwreslist_next(dns_c_lwres_t *lwres) {
@@ -199,6 +157,7 @@ dns_c_lwres_new(isc_mem_t *mem, dns_c_lwres_t **lwresp)
 	lwres->listeners = NULL;
 	lwres->view = NULL;
 	lwres->viewclass = dns_rdataclass_in;
+	lwres->searchlist = NULL;
 
 	ISC_LINK_INIT(lwres, next);
 
@@ -226,6 +185,8 @@ dns_c_lwres_delete(dns_c_lwres_t **lwresp)
 		isc_mem_free(mem, lwres->view);
 	if (lwres->listeners != NULL)
 		dns_c_iplist_detach(&lwres->listeners);
+	if (lwres->searchlist != NULL)
+		dns_c_searchlist_delete(&lwres->searchlist);
 	lwres->mem = NULL;
 
 	ISC_LINK_INIT(lwres, next);
@@ -233,39 +194,6 @@ dns_c_lwres_delete(dns_c_lwres_t **lwresp)
 	isc_mem_put(mem, lwres, sizeof *lwres);
 
 	*lwresp = NULL;
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t dns_c_lwres_copy(isc_mem_t *mem, dns_c_lwres_t **dest,
-			      dns_c_lwres_t *src)
-{
-	dns_c_lwres_t *newlwres;
-
-	REQUIRE(dest != NULL);
-	REQUIRE(DNS_C_LWRES_VALID(src));
-
-	newlwres = isc_mem_get(mem, sizeof *newlwres);
-	if (newlwres == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-	newlwres->magic = DNS_C_LWRES_MAGIC;
-	newlwres->listeners = NULL;
-	newlwres->view = NULL;
-
-	if (src->view != NULL) {
-		newlwres->view = isc_mem_strdup(mem, src->view);
-		if (newlwres->view == NULL) {
-			dns_c_lwres_delete(&newlwres);
-			return (ISC_R_NOMEMORY);
-		}
-	}
-
-	if (src->listeners != NULL)
-		dns_c_iplist_attach(src->listeners, &newlwres->listeners);
-	newlwres->viewclass = src->viewclass;
-
-	*dest = newlwres;
 
 	return (ISC_R_SUCCESS);
 }
@@ -288,6 +216,14 @@ dns_c_lwres_setview(dns_c_lwres_t *lwres, char *view,
 	if (lwres->view == NULL)
 		return (ISC_R_NOMEMORY);
 	lwres->viewclass = rdclass;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t dns_c_lwres_setsearchlist(dns_c_lwres_t *lwres,
+				       dns_c_searchlist_t *searchlist) {
+	if (lwres->searchlist != NULL)
+		return (ISC_R_EXISTS);
+	lwres->searchlist = searchlist;
 	return (ISC_R_SUCCESS);
 }
 
@@ -321,6 +257,148 @@ dns_c_lwres_print(FILE *fp, int indent, dns_c_lwres_t *lwres)
 		fprintf(fp, ";\n");
 	}
 
+	if (lwres->searchlist != NULL) {
+		dns_c_searchlist_print(fp, indent, lwres->searchlist);
+		fprintf(fp, ";\n");
+	}
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "};\n");
 }
+
+isc_result_t
+dns_c_searchlist_new(isc_mem_t *mem, dns_c_searchlist_t **list)
+{
+	dns_c_searchlist_t *l;
+
+	l = isc_mem_get(mem, sizeof *l);
+	if (l == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	l->magic = DNS_C_SEARCHLIST_MAGIC;
+	l->mem = mem;
+	ISC_LIST_INIT(l->searches);
+
+	*list = l;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_searchlist_delete(dns_c_searchlist_t **list)
+{
+	dns_c_searchlist_t *l;
+	dns_c_search_t *si, *tmpsi;
+	isc_result_t r;
+
+	REQUIRE(list != NULL);
+	REQUIRE(DNS_C_SEARCHLIST_VALID(*list));
+
+	l = *list;
+
+	si = ISC_LIST_HEAD(l->searches);
+	while (si != NULL) {
+		tmpsi = ISC_LIST_NEXT(si, next);
+		ISC_LIST_UNLINK(l->searches, si, next);
+		r = search_delete(&si);
+		if (r != ISC_R_SUCCESS) {
+			return (r);
+		}
+		si = tmpsi;
+	}
+
+	l->magic = 0;
+	isc_mem_put(l->mem, l, sizeof *l);
+
+	*list = NULL;
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+search_delete(dns_c_search_t **search)
+{
+	dns_c_search_t *si;
+
+	REQUIRE(search != NULL);
+	REQUIRE(DNS_C_SEARCH_VALID(*search));
+
+	si = *search;
+
+	isc_mem_free(si->mem, si->search);
+
+	si->magic = 0;
+	isc_mem_put(si->mem, si, sizeof *si);
+
+	*search = NULL;
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_c_searchlist_append(dns_c_searchlist_t *list, dns_c_search_t *search)
+{
+	REQUIRE(DNS_C_SEARCHLIST_VALID(list));
+	REQUIRE(DNS_C_SEARCH_VALID(search));
+
+	ISC_LIST_APPEND(list->searches, search, next);
+}
+
+void
+dns_c_searchlist_print(FILE *fp, int indent,
+		    dns_c_searchlist_t *list)
+{
+	dns_c_search_t *iter;
+
+	REQUIRE(fp != NULL);
+	REQUIRE(DNS_C_SEARCHLIST_VALID(list));
+
+	if (ISC_LIST_EMPTY(list->searches)) {
+		return;
+	}
+
+	dns_c_printtabs(fp, indent);
+	fprintf(fp, "search {\n");
+	iter = ISC_LIST_HEAD(list->searches);
+	if (iter == NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "/* no search list defined */\n");
+	} else {
+		while (iter != NULL) {
+			dns_c_printtabs(fp, indent + 1);
+			fprintf(fp, "\"%s\";\n", iter->search);
+			iter = ISC_LIST_NEXT(iter, next);
+		}
+	}
+
+	dns_c_printtabs(fp, indent);
+	fprintf(fp, "}");
+}
+
+isc_result_t
+dns_c_search_new(isc_mem_t *mem, const char *val, dns_c_search_t **search)
+{
+	dns_c_search_t *ki;
+
+	REQUIRE(val != NULL);
+	REQUIRE(*val != '\0');
+	REQUIRE(search != NULL);
+
+	ki = isc_mem_get(mem, sizeof *ki);
+	if (ki == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	ki->magic = DNS_C_SEARCH_MAGIC;
+	ki->mem = mem;
+	ki->search = isc_mem_strdup(mem, val);
+
+	ISC_LINK_INIT(ki, next);
+
+	*search = ki;
+
+	return (ISC_R_SUCCESS);
+}
+

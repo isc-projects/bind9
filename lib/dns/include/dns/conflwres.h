@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.h,v 1.1 2000/10/04 18:47:18 bwelling Exp $ */
+/* $Id: conflwres.h,v 1.2 2000/10/19 01:26:39 gson Exp $ */
 
 #ifndef DNS_CONFLWRES_H
 #define DNS_CONFLWRES_H 1
@@ -65,9 +65,13 @@
 
 #define DNS_C_LWRES_MAGIC		0x4C575253 /* LWRS */
 #define DNS_C_LWLIST_MAGIC		0x4C57524C /* LWRL */
+#define DNS_C_SEARCH_MAGIC		0x53524348 /* SRCH */
+#define DNS_C_SEARCHLIST_MAGIC		0x5352434C /* SRCL */
 
-#define DNS_C_LWRES_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_C_LWRES_MAGIC)
-#define DNS_C_LWLIST_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_C_LWLIST_MAGIC)
+#define DNS_C_LWRES_VALID(ptr)		ISC_MAGIC_VALID(ptr, DNS_C_LWRES_MAGIC)
+#define DNS_C_LWLIST_VALID(ptr)		ISC_MAGIC_VALID(ptr, DNS_C_LWLIST_MAGIC)
+#define DNS_C_SEARCH_VALID(ptr)	   	ISC_MAGIC_VALID(ptr, DNS_C_SEARCH_MAGIC)
+#define DNS_C_SEARCHLIST_VALID(ptr) 	ISC_MAGIC_VALID(ptr, DNS_C_SEARCHLIST_MAGIC)
 
 /***
  *** Types
@@ -75,6 +79,8 @@
 
 typedef struct dns_c_lwres		dns_c_lwres_t;
 typedef struct dns_c_lwres_list		dns_c_lwreslist_t;
+typedef struct dns_c_search		dns_c_search_t;
+typedef struct dns_c_search_list	dns_c_searchlist_t;
 
 /*
  * The type for holding an lwres config structure
@@ -86,6 +92,7 @@ struct dns_c_lwres {
 	dns_c_iplist_t	       *listeners;
 	char		       *view;
 	dns_rdataclass_t	viewclass;
+	dns_c_searchlist_t     *searchlist;
 
 	ISC_LINK(dns_c_lwres_t)	next;
 };
@@ -101,6 +108,28 @@ struct dns_c_lwres_list {
 };
 
 
+/*
+ * A search list element.
+ */
+struct dns_c_search {
+	isc_uint32_t		magic;
+	isc_mem_t	       *mem;
+	char		       *search;
+
+	ISC_LINK(dns_c_search_t)	next;
+};
+
+
+/*
+ * A search list.
+ */
+struct dns_c_search_list {
+	isc_uint32_t		magic;
+	isc_mem_t	       *mem;
+
+	ISC_LIST(dns_c_search_t)	searches;
+};
+
 /***
  *** Functions
  ***/
@@ -113,8 +142,7 @@ isc_result_t dns_c_lwreslist_new(isc_mem_t *mem,
 isc_result_t dns_c_lwreslist_delete(dns_c_lwreslist_t **list);
 
 isc_result_t dns_c_lwreslist_append(dns_c_lwreslist_t *list,
-				    dns_c_lwres_t *lwres,
-				    isc_boolean_t copy);
+				    dns_c_lwres_t *lwres);
 
 isc_result_t dns_c_lwreslist_copy(isc_mem_t *mem, dns_c_lwreslist_t **dest,
 				  dns_c_lwreslist_t *src);
@@ -132,16 +160,28 @@ isc_result_t dns_c_lwres_new(isc_mem_t *mem, dns_c_lwres_t **lwresp);
 
 isc_result_t dns_c_lwres_delete(dns_c_lwres_t **lwresp);
 
-isc_result_t dns_c_lwres_copy(isc_mem_t *mem, dns_c_lwres_t **dest,
-			      dns_c_lwres_t *src);
-
 isc_result_t dns_c_lwres_setlistenon(dns_c_lwres_t *lwres,
 				     dns_c_iplist_t *listeners);
 
 isc_result_t dns_c_lwres_setview(dns_c_lwres_t *lwres, char *view,
 				 dns_rdataclass_t rdclass);
 
+isc_result_t dns_c_lwres_setsearchlist(dns_c_lwres_t *lwres,
+				       dns_c_searchlist_t *searchlist);
+
 void dns_c_lwres_print(FILE *fp, int indent, dns_c_lwres_t *lwres);
+
+isc_result_t dns_c_searchlist_new(isc_mem_t *mem, dns_c_searchlist_t **list);
+
+isc_result_t dns_c_searchlist_delete(dns_c_searchlist_t **list);
+
+void dns_c_searchlist_append(dns_c_searchlist_t *list, dns_c_search_t *search);
+
+void dns_c_searchlist_print(FILE *fp, int indent, dns_c_searchlist_t *list);
+
+isc_result_t dns_c_search_new(isc_mem_t *mem, const char *val,
+			      dns_c_search_t **search);
+
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.54 2000/10/12 00:38:30 bwelling Exp $ */
+/* $Id: confctx.h,v 1.55 2000/10/19 01:26:38 gson Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -822,8 +822,7 @@ isc_result_t dns_c_ctx_settrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t *list,
 				      isc_boolean_t copy);
 
 isc_result_t dns_c_ctx_getlwres(dns_c_ctx_t *cfg, dns_c_lwreslist_t **retval);
-isc_result_t dns_c_ctx_setlwres(dns_c_ctx_t *cfg, dns_c_lwreslist_t *list,
-				isc_boolean_t copy);
+isc_result_t dns_c_ctx_setlwres(dns_c_ctx_t *cfg, dns_c_lwreslist_t *list);
 
 
 ISC_LANG_ENDDECLS
