@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.17 2005/01/12 01:54:51 marka Exp $ */
+/* $Id: server.c,v 1.419.18.18 2005/01/14 03:28:01 marka Exp $ */
 
 #include <config.h>
 
@@ -4109,11 +4109,11 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 }
 
 /*
- * Act on a "freeze" or "unfreeze" command from the command channel.
+ * Act on a "freeze" or "thaw" command from the command channel.
  */
 isc_result_t
 ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
-	isc_result_t result;
+	isc_result_t result, tresult;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
@@ -4126,8 +4126,26 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 	result = zone_from_args(server, args, &zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (zone == NULL)
-		return (ISC_R_UNEXPECTEDEND);
+	if (zone == NULL) {
+		result = isc_task_beginexclusive(server->task);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		tresult = ISC_R_SUCCESS;
+	        for (view = ISC_LIST_HEAD(server->viewlist);
+		     view != NULL;
+		     view = ISC_LIST_NEXT(view, link)) {
+			result = dns_view_freezezones(view, freeze);
+			if (result != ISC_R_SUCCESS &&
+			    tresult == ISC_R_SUCCESS)
+				tresult = result;
+		}
+		isc_task_endexclusive(server->task);
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "%s all zones: %s",
+			      freeze ? "freezing" : "thawing",
+			      isc_result_totext(tresult));
+		return (tresult);
+	}
 	type = dns_zone_gettype(zone);
 	if (type != dns_zone_master) {
 		dns_zone_detach(&zone);
@@ -4173,7 +4191,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 		      "%s zone '%s/%s'%s%s: %s",
-		      freeze ? "freezing" : "unfreezing",
+		      freeze ? "freezing" : "thawing",
 		      zonename, classstr, sep, vname,
 		      isc_result_totext(result));
 	dns_zone_detach(&zone);

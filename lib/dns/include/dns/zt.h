@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.30 2004/03/05 05:09:48 marka Exp $ */
+/* $Id: zt.h,v 1.30.18.1 2005/01/14 03:28:03 marka Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
@@ -146,8 +146,20 @@ dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop);
  */
 
 isc_result_t
+dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze);
+/*
+ * Freeze/thaw updates to master zones.
+ * Any pending updates will be flushed.
+ * Zones will be reloaded on thaw.
+ */
+
+isc_result_t
 dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap);
+
+isc_result_t
+dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
+	      isc_result_t (*action)(dns_zone_t *, void *), void *uap);
 /*
  * Apply a given 'action' to all zone zones in the table.
  * If 'stop' is 'ISC_TRUE' then walking the zone tree will stop if
@@ -158,7 +170,9 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
  *	'action' to be non NULL.
  *
  * Returns:
- *	ISC_R_SUCCESS if action was applied to all nodes.
+ *	ISC_R_SUCCESS if action was applied to all nodes.  If 'stop' is
+ *	ISC_FALSE and 'sub' is non NULL then the first error (if any)
+ *	reported by 'action' is returned in '*sub';
  *	any error code from 'action'.
  */
 
