@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.29 2001/10/18 06:06:13 marka Exp $ */
+/* $Id: timer.h,v 1.30 2002/09/08 18:35:55 explorer Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -278,6 +278,9 @@ isc_timer_detach(isc_timer_t **timerp);
  */
 
 isc_result_t
+isc_timer_gettype(isc_timer_t *timer);
+
+isc_result_t
 isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp);
 /*
  * Create a timer manager.
@@ -325,6 +328,8 @@ isc_timermgr_destroy(isc_timermgr_t **managerp);
  *
  *	All resources used by the manager have been freed.
  */
+
+void isc_timermgr_poke(isc_timermgr_t *m);
 
 ISC_LANG_ENDDECLS
 
