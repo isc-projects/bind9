@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.90 2001/01/09 21:40:09 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.91 2001/01/12 10:20:05 marka Exp $ */
 
 #include <config.h>
 
@@ -99,6 +99,7 @@ struct db_rr_iterator {
 	isc_result_t		result;
 	dns_db_t		*db;
     	dns_dbiterator_t 	*dbit;
+	isc_boolean_t		paused;
 	dns_dbversion_t 	*ver;
 	isc_stdtime_t		now;
 	dns_dbnode_t		*node;
@@ -138,6 +139,7 @@ db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	result = dns_db_createiterator(it->db, ISC_FALSE, &it->dbit);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	it->paused = ISC_FALSE;
 	it->rdatasetit = NULL;
 	dns_rdata_init(&it->rdata);
 	dns_rdataset_init(&it->rdataset);
@@ -194,6 +196,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 		while (it->result == ISC_R_NOMORE) {
 			dns_rdatasetiter_destroy(&it->rdatasetit);
 			dns_db_detachnode(it->db, &it->node);
+			it->paused = ISC_TRUE;
 			it->result = dns_dbiterator_next(it->dbit);
 			if (it->result == ISC_R_NOMORE) {
 				/* We are at the end of the entire database. */
@@ -225,7 +228,10 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 
 static void
 db_rr_iterator_pause(db_rr_iterator_t *it) {
-	dns_dbiterator_pause(it->dbit);
+	if (!it->paused) {
+		dns_dbiterator_pause(it->dbit);
+		it->paused = ISC_TRUE;
+	}
 }
 
 static void
@@ -436,7 +442,6 @@ static rrstream_methods_t ixfr_rrstream_methods = {
 
 typedef struct axfr_rrstream {
 	rrstream_t		common;
-	int 			state;
 	db_rr_iterator_t	it;
 	isc_boolean_t		it_valid;
 } axfr_rrstream_t;

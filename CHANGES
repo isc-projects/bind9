@@ -1,3 +1,5 @@
+ 678.	[bug]		"tranfer-format one-answer;" could trigger an assertion
+			failure. [RT #646]
 
  677.	[bug]		dnssec-signzone would occasionally use the wrong ttl
 			for database operations and fail. [RT #643]
