@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.59 2000/10/11 05:15:23 marka Exp $ */
+/* $Id: confzone.c,v 1.60 2000/10/18 21:18:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -674,13 +674,15 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 			      checknameserror, zone->name);
 
 	if (zone->ztype != dns_c_zone_hint &&
+	    zone->ztype != dns_c_zone_forward &&
 	    dns_c_zone_getdialup(zone, &tbool) == ISC_R_SUCCESS &&
 	    tbool == ISC_TRUE)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      dialuperror, zone->name);
 
-	if (dns_c_zone_getpubkeylist(zone, &pklist) == ISC_R_SUCCESS)
+	if (zone->ztype != dns_c_zone_forward &&
+	    dns_c_zone_getpubkeylist(zone, &pklist) == ISC_R_SUCCESS)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      pubkeyerror, zone->name);
