@@ -1,3 +1,5 @@
+ 784.	[bug]		nsupdate and other programs would not quit properly
+			if some signals were blocked by the caller. [RT #1081]
 
  783.	[bug]		Following CNAMEs could cause an assertion failure
 			when either using an sdb database or under very
