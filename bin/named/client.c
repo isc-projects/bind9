@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.136.2.5 2001/04/19 18:54:51 gson Exp $ */
+/* $Id: client.c,v 1.136.2.6 2001/05/15 05:15:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1170,8 +1170,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		client->dispevent = devent;
 		buffer = &devent->buffer;
 		result = devent->result;
-		client->peeraddr = devent->addr;
-		client->peeraddr_valid = ISC_TRUE;
+		if (result == ISC_R_SUCCESS) {
+			client->peeraddr = devent->addr;
+			client->peeraddr_valid = ISC_TRUE;
+		}
 		if ((devent->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
 			client->pktinfo = devent->pktinfo;
@@ -1191,11 +1193,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		client->nreads--;
 	}
 
-	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-		      "%s request",
-		      TCP_CLIENT(client) ? "TCP" : "UDP");
-
 	if (exit_check(client))
 		goto cleanup_serverlock;
 	client->state = client->newstate = NS_CLIENTSTATE_WORKING;
@@ -1206,10 +1203,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	set_timeout(client, 60);
 
 	if (result != ISC_R_SUCCESS) {
-		if (TCP_CLIENT(client))
+		if (TCP_CLIENT(client)) {
 			ns_client_next(client, result);
-		else
+		} else {
+			if  (result != ISC_R_CANCELED)
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_CLIENT,
+					      ISC_LOG_ERROR,
+					      "UDP client handler shutting "
+					      "down due to fatal receive "
+					      "error: %s",
+					      isc_result_totext(result));
 			isc_task_shutdown(client->task);
+		}
 		goto cleanup_serverlock;
 	}
 
@@ -1221,6 +1227,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, DNS_R_REFUSED);
 #endif
 	}
+
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+		      "%s request",
+		      TCP_CLIENT(client) ? "TCP" : "UDP");
 
 	result = dns_message_parse(client->message, buffer, 0);
 	if (result != ISC_R_SUCCESS) {
