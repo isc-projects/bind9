@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.48.2.1.2.2 2003/08/14 04:25:08 marka Exp $ */
+/* $Id: sockaddr.c,v 1.48.2.1.2.3 2003/08/22 05:15:02 marka Exp $ */
 
 #include <config.h>
 
@@ -361,6 +361,9 @@ isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
 		sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
 #endif
 		memcpy(&sockaddr->type.sin6.sin6_addr, &na->type.in6, 16);
+#ifdef ISC_PLATFORM_HAVESCOPEID
+		sockaddr->type.sin6.sin6_scope_id = isc_netaddr_getzone(na);
+#endif
 		sockaddr->type.sin6.sin6_port = htons(port);
 		break;
         default:

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.71.2.2.2.2 2003/08/12 14:16:16 marka Exp $
+# $Id: Makefile.in,v 1.71.2.2.2.3 2003/08/22 05:15:02 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -53,8 +53,8 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ bitstring.@O@ buffer.@O@ \
 		bufferlist.@O@ commandline.@O@ error.@O@ event.@O@ \
 		hash.@O@ heap.@O@ hex.@O@ hmacmd5.@O@ \
-		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
-		md5.@O@ mem.@O@ mutexblock.@O@ netaddr.@O@ ondestroy.@O@ \
+		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ md5.@O@ \
+		mem.@O@ mutexblock.@O@ netaddr.@O@ netscope.@O@ ondestroy.@O@ \
 		parseint.@O@ quota.@O@ random.@O@ \
 		ratelimiter.@O@ region.@O@ result.@O@ rwlock.@O@ \
 		serial.@O@ sha1.@O@ sockaddr.@O@ string.@O@ symtab.@O@ \
@@ -67,7 +67,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		bufferlist.c commandline.c error.c event.c \
 		heap.c hex.c hmacmd5.c \
 		lex.c lfsr.c lib.c log.c \
-		md5.c mem.c mutexblock.c netaddr.c ondestroy.c \
+		md5.c mem.c mutexblock.c netaddr.c netscope.c ondestroy.c \
 		parseint.c quota.c random.c \
 		ratelimiter.c result.c rwlock.c \
 		serial.c sha1.c sockaddr.c string.c symtab.c \

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.7 2003/08/21 06:17:55 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.8 2003/08/22 05:15:00 marka Exp $ */
 
 #include <config.h>
 
@@ -681,6 +681,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 			} else {
 				isc_netaddr_fromin6(&listen_netaddr,
 						    &interface.address.type.in6);
+				isc_netaddr_setzone(&listen_netaddr,
+						    interface.address.zone);
 			}
 			isc_sockaddr_fromnetaddr(&listen_sockaddr,
 						 &listen_netaddr,

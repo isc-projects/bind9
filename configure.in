@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.23.2.4 $)
+AC_REVISION($Revision: 1.294.2.23.2.5 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -507,7 +507,7 @@ case $host in
 	use_threads=true ;;
 *-sgi-irix*)
 	use_threads=true ;;
-*-sco-sysv*uw*|)
+*-sco-sysv*uw*)
         # UnixWare
 	use_threads=false ;;
 *-*-sysv*UnixW*)
@@ -1171,8 +1171,10 @@ $isc_netinet6in6_hack
 ],
 		[struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);],
 			[AC_MSG_RESULT(yes)
+			 ISC_PLATFORM_HAVESCOPEID="#define ISC_PLATFORM_HAVESCOPEID 1"
 			 result="#define LWRES_HAVE_SIN6_SCOPE_ID 1"],
 			[AC_MSG_RESULT(no)
+			 ISC_PLATFORM_HAVESCOPEID="#undef ISC_PLATFORM_HAVESCOPEID"
 			 result="#undef LWRES_HAVE_SIN6_SCOPE_ID"])
 		LWRES_HAVE_SIN6_SCOPE_ID="$result"
 
@@ -1197,6 +1199,7 @@ $isc_netinet6in6_hack
 		LWRES_PLATFORM_NEEDIN6ADDRANY="#undef LWRES_PLATFORM_NEEDIN6ADDRANY"
 		ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
 		LWRES_HAVE_SIN6_SCOPE_ID="#define LWRES_HAVE_SIN6_SCOPE_ID 1"
+		ISC_PLATFORM_HAVESCOPEID="#define ISC_PLATFORM_HAVESCOPEID 1"
 		ISC_IPV6_H="ipv6.h"
 		ISC_IPV6_O="ipv6.$O"
 		ISC_ISCIPV6_O="unix/ipv6.$O"
@@ -1223,6 +1226,7 @@ AC_SUBST(ISC_IPV6_O)
 AC_SUBST(ISC_ISCIPV6_O)
 AC_SUBST(ISC_IPV6_C)
 AC_SUBST(LWRES_HAVE_SIN6_SCOPE_ID)
+AC_SUBST(ISC_PLATFORM_HAVESCOPEID)
 
 #
 # Check for network functions that are often missing.  We do this

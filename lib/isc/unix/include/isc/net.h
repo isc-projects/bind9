@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.31.2.2.10.1 2003/08/14 04:25:09 marka Exp $ */
+/* $Id: net.h,v 1.31.2.2.10.2 2003/08/22 05:15:03 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -74,6 +74,8 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>		/* Contractual promise. */
+
+#include <net/if.h>
 
 #include <netinet/in.h>		/* Contractual promise. */
 #include <arpa/inet.h>		/* Contractual promise. */
