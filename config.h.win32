@@ -1,0 +1,80 @@
+/* config.h.  Generated automatically by configure.  */
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+/* Define to empty if the keyword does not work.  */
+/* #undef const */
+
+/* Define as __inline if that's what the C compiler calls it.  */
+#define inline __inline
+
+/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+/* #undef size_t */
+
+/* Define if you have the ANSI C header files.  */
+#define STDC_HEADERS 1
+
+/* Define if you can safely include both <sys/time.h> and <time.h>.  */
+#define TIME_WITH_SYS_TIME 1
+
+/* define on DEC OSF to enable 4.4BSD style sa_len support */
+/* #undef _SOCKADDR_LEN */
+
+/* define if your system needs pthread_init() before using pthreads */
+/* #undef NEED_PTHREAD_INIT */
+
+/* define if your system has sigwait() */
+/* #undef HAVE_SIGWAIT */
+
+/* define on Solaris to get sigwait() to work using pthreads semantics */
+/* #undef _POSIX_PTHREAD_SEMANTICS */
+
+/* define if LinuxThreads is in use */
+/* #undef HAVE_LINUXTHREADS */
+
+/* define if catgets() is available */
+/* #undef HAVE_CATGETS */
+
+/* define if you have the NET_RT_IFLIST sysctl variable. */
+#define HAVE_IFLIST_SYSCTL 1
+
+/* define if you need to #define _XPG4_2 before including sys/socket.h */
+/* #undef NEED_XPG4_2_BEFORE_SOCKET_H */
+
+/* define if you need to #define _XOPEN_SOURCE_ENTENDED before including
+ * sys/socket.h
+ */
+/* #undef NEED_XSE_BEFORE_SOCKET_H */
+
+/* Define if you have the <fcntl.h> header file.  */
+#define HAVE_FCNTL_H 1
+
+/* Define if you have the <sys/sockio.h> header file.  */
+#define HAVE_SYS_SOCKIO_H 1
+
+/* Define if you have the <sys/time.h> header file.  */
+#define HAVE_SYS_TIME_H 1
+
+/* Define if you have the <unistd.h> header file.  */
+#define HAVE_UNISTD_H 1
+
+/* Define if you have the c_r library (-lc_r).  */
+/* #undef HAVE_LIBC_R */
+
+/* Define if you have the nsl library (-lnsl).  */
+/* #undef HAVE_LIBNSL */
+
+/* Define if you have the pthread library (-lpthread).  */
+/* #undef HAVE_LIBPTHREAD */
+
+/* Define if you have the socket library (-lsocket).  */
+/* #undef HAVE_LIBSOCKET */
+
+/*
+ * WIN32 specials until some other way of dealing with these is decided.
+ */
+#define strcasecmp  stricmp
+#define strncasecmp strnicmp
+#define EAFNOSUPPORT EINVAL
+/* for the config file */
+typedef unsigned int    uid_t;          /* user id */
+typedef unsigned int    gid_t;          /* group id */
