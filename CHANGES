@@ -1,3 +1,5 @@
+ 281.	[bug]		fixed list of recognised config file category names.
+
  280.	[func]		Add isc-config.sh, which can be used to more
 			easily build applications that link with
 			our libraries.

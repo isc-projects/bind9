@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.30 2000/06/01 18:25:42 tale Exp $ */
+/* $Id: confcommon.c,v 1.31 2000/06/23 22:30:02 brister Exp $ */
 
 #include <config.h>
 
@@ -106,29 +106,49 @@ static struct dsn_c_pvt_sfnt {
 
 
 static const char *category_nametable[] = {
+	"default",
+	"general",
+	"database",
+	"security",
+	"config",
+	"resolver",
+	"xfer-in",
+	"xfer-out",
+	"notify",
+	"client",
+	"network",
+	"update",
+#if 0
+	"client",
 	"cname",
 	"config",
 	"control",
+	"database",
 	"db",
 	"default",
 	"eventlib",
+	"general",
 	"insist",
 	"lame-servers",
 	"load",
 	"maintenance",
 	"ncache",
+	"network",
 	"notify",
 	"os",
 	"packet",
 	"panic",
 	"parser",
 	"queries",
+	"resolver",
 	"response-checks",
 	"security",
 	"statistics",
 	"update",
 	"xfer-in",
 	"xfer-out",
+#endif
+	
 	NULL
 };
 
