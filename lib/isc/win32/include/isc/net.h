@@ -64,6 +64,8 @@
  *** Defines.
  ***/
 
+/* XXXRTH  ISC_NET_ should be converted to ISC_PLATFORM_ */
+
 /*
  * If sockaddrs on this system have an sa_len field, ISC_PLATFORM_HAVESALEN
  * will be defined.
