@@ -1,3 +1,6 @@
+
+	--- 9.3.0beta1 released ---
+
 1592.	[bug]		configure_view() could leak a dispatch.
 
 1591.	[bug]		libbind: updated to BIND 8.4.5.
