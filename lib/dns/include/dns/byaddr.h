@@ -58,10 +58,11 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_byaddrevent {
 	ISC_EVENT_COMMON(struct dns_byaddrevent);
-	dns_byaddr_t *			byaddr;
 	isc_result_t			result;
 	dns_namelist_t			names;
 } dns_byaddrevent_t;
+
+#define DNS_BYADDROPT_IPV6NIBBLE	0x0001
 
 isc_result_t
 dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
