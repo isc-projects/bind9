@@ -163,6 +163,7 @@ struct fetchctx {
 	dns_adbaddrinfolist_t		forwaddrs;
 	isc_sockaddrlist_t		forwarders;
 	isc_sockaddrlist_t		bad;
+	dns_validator_t *		validator;	
 	/*
 	 * # of events we're waiting for.
 	 */
@@ -1892,6 +1893,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->forwaddrs);
 	ISC_LIST_INIT(fctx->forwarders);
 	ISC_LIST_INIT(fctx->bad);
+	fctx->validator = NULL;
 	fctx->find = NULL;
 	fctx->pending = 0;
 	fctx->validating = 0;
@@ -2070,26 +2072,112 @@ clone_results(fetchctx_t *fctx) {
 
 static void
 validated(isc_task_t *task, isc_event_t *event) {
-	fetchctx_t *fctx;
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_stdtime_t now;
+        fetchctx_t *fctx;
+        dns_validatorevent_t *vevent;
+	dns_fetchevent_t *hevent;
+	dns_rdataset_t *ardataset = NULL;
+	dns_rdataset_t *asigrdataset = NULL;
+	dns_dbnode_t *node = NULL;
 
-	UNUSED(task); /* for now */
-	REQUIRE(event->type == DNS_EVENT_VALIDATORDONE);
-	fctx = event->arg;
-	REQUIRE(VALID_FCTX(fctx));
-	REQUIRE(fctx->validating > 0);
+        UNUSED(task); /* for now */
+        REQUIRE(event->type == DNS_EVENT_VALIDATORDONE);
+        fctx = event->arg;
+        REQUIRE(VALID_FCTX(fctx));
+        REQUIRE(fctx->validating > 0);
 
-	fctx->validating--;
+        /*
+         * If shutting down, ignore the results.  Check to see if we're
+         * done waiting for validator completions and ADB pending events; if
+         * so, destroy the fctx.
+	 */
+	if (SHUTTINGDOWN(fctx)) {
+		FCTXTRACE("XXX validator shutdown code is still incomplete");
+		goto cleanup;
+	}
 
 	/*
-	 * If shutting down, ignore the results.  Check to see if we're
-	 * done waiting for validator completions and ADB pending events; if
-	 * so, destroy the fctx.
+         * We're not shutting down.
 	 *
-	 * Else, we're not shutting down.  If this is "the answer"
-	 * call fctx_done().
+	 * XXX This code assumes that the result of a validation is always
+	 * "the answer".  Is it?
+         */
+        vevent = (dns_validatorevent_t *) event;
+	INSIST(vevent->validator == fctx->validator);
+
+	FCTXTRACE("received validation completion event");
+
+        if (vevent->result != ISC_R_SUCCESS) {
+		FCTXTRACE("validation failed");		
+		goto cleanup;
+	}
+
+	if (vevent->rdataset == NULL) {
+		FCTXTRACE("negative validation result handling "
+			  "is not yet implemented");
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+
+	}
+
+	FCTXTRACE("validation OK");
+	
+	hevent = ISC_LIST_HEAD(fctx->events);
+	if (hevent != NULL) {
+		ardataset = hevent->rdataset;
+		asigrdataset = hevent->sigrdataset;
+	}
+
+	/*
+	 * The data was already cached as pending data.
+	 * Re-cache it as secure and bind the cached
+	 * rdatasets to the first event on the fetch
+	 * event list.
 	 */
-	fprintf(stderr, "in validated\n");
-	isc_event_free(&event);
+	result = dns_db_findnode(fctx->res->view->cachedb,
+				 vevent->name, 
+				 ISC_TRUE, &node);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	isc_stdtime_get(&now);
+	result = dns_db_addrdataset(fctx->res->view->cachedb,
+				    node, NULL, now,
+				    vevent->rdataset, 0,
+				    ardataset);
+	if (result != ISC_R_SUCCESS &&
+	    result != DNS_R_UNCHANGED)
+		goto cleanup;
+	result = dns_db_addrdataset(fctx->res->view->cachedb,
+				    node, NULL, now,
+				    vevent->sigrdataset, 0,
+				    asigrdataset);
+	if (result != ISC_R_SUCCESS &&
+	    result != DNS_R_UNCHANGED)
+		goto cleanup;
+	
+	fctx->attributes |= FCTX_ATTR_HAVEANSWER;
+	if (hevent != NULL) {
+		hevent->result = ISC_R_SUCCESS; /* XXX eresult? */
+		dns_name_concatenate(vevent->name, NULL,
+		     dns_fixedname_name(&hevent->foundname), NULL);
+		dns_db_attach(fctx->res->view->cachedb, &hevent->db);
+		hevent->node = node;
+		node = NULL;
+		clone_results(fctx);
+	}
+
+ cleanup:
+	if (node != NULL)
+		dns_db_detachnode(fctx->res->view->cachedb, &node);
+
+        isc_event_free(&event);
+
+        fctx->validating--;
+	dns_validator_destroy(&fctx->validator);
+	
+	fctx_done(fctx, result);
 }
 
 static inline isc_result_t
@@ -2204,6 +2292,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					/*
 					 * The peer is broken.
 					 */
+					FCTXTRACE("DNSSEC response "
+						  "missing SIG");
 					result = DNS_R_FORMERR;
 					break;
 				} else {
@@ -2255,13 +2345,10 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 							       task,
 							       validated,
 							       fctx,
-							       &validator);
-				if (result == ISC_R_SUCCESS) {
-#ifdef notyet
-					ISC_LIST_APPEND(validator);
-#endif
+							       &fctx->validator);
+				if (result == ISC_R_SUCCESS)
 					fctx->validating++;
-				}
+				/* XXX what should we do in the failure case? */
 			}
 		} else if (!EXTERNAL(rdataset)) {
 			/*
