@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.c,v 1.11 2000/02/03 23:43:09 halley Exp $ */
+/* $Id: x25_19.c,v 1.12 2000/03/17 00:15:30 bwelling Exp $ */
 
- /* RFC 1183 */
+/* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
+
+/* RFC 1183 */
 
 #ifndef RDATA_GENERIC_X25_19_C
 #define RDATA_GENERIC_X25_19_C
@@ -32,16 +34,17 @@ fromtext_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_token_t token;
 	unsigned int i;
 
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
+
 	REQUIRE(type == 19);
 
-	rdclass = rdclass;		/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
-
 	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
+	if (token.value.as_textregion.length < 4)
+		return (DNS_R_SYNTAX);
 	for (i = 0; i < token.value.as_textregion.length; i++)
-		if (!isascii(token.value.as_textregion.base[i]&0xff) ||
-		    !isdigit(token.value.as_textregion.base[i]&0xff))
+		if (!isdigit(token.value.as_textregion.base[i] & 0xff))
 			return (DNS_R_RANGE);
 	return (txt_fromtext(&token.value.as_textregion, target));
 }
@@ -52,9 +55,9 @@ totext_x25(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 19);
+	UNUSED(tctx);
 
-	tctx = tctx;	/*unused*/
+	REQUIRE(rdata->type == 19);
 
 	dns_rdata_toregion(rdata, &region);
 	return (txt_totext(&region, target));
@@ -65,57 +68,52 @@ fromwire_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_buffer_t *source, dns_decompress_t *dctx,
 	     isc_boolean_t downcase, isc_buffer_t *target)
 {
+	isc_region_t sr;
+
+	UNUSED(dctx);
+	UNUSED(rdclass);
+	UNUSED(downcase);
 
 	REQUIRE(type == 19);
 
-	dctx = dctx;		/* unused */
-	rdclass = rdclass;		/* unused */
-	downcase = downcase;	/* unused */
-
+	isc_buffer_active(source, &sr);
+	if (sr.length < 5)
+		return (DNS_R_FORMERR);
 	return (txt_fromwire(source, target));
 }
 
 static inline isc_result_t
 towire_x25(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 19);
-
-	cctx = cctx;
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static inline int
 compare_x25(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
-	int l;
-	int result;
+	isc_region_t r1;
+	isc_region_t r2;
 	
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 19);
 
-	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
-	result = memcmp(rdata1->data, rdata2->data, l);
-
-	if (result != 0)
-		result = (result < 0) ? -1 : 1;
-	else if (rdata1->length != rdata2->length)
-			result = (rdata1->length < rdata2->length) ? -1 : 1;
-
-	return (result);
+	dns_rdata_toregion(rdata1, &r1);
+	dns_rdata_toregion(rdata2, &r2);
+	return (compare_region(&r1, &r2));
 }
 
 static inline isc_result_t
 fromstruct_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 19);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -125,8 +123,8 @@ tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 19);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -141,10 +139,10 @@ static inline isc_result_t
 additionaldata_x25(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
-	REQUIRE(rdata->type == 19);
+	UNUSED(add);
+	UNUSED(arg);
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 19);
 
 	return (DNS_R_SUCCESS);
 }
