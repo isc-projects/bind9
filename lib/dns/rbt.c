@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.109 2001/03/09 23:38:00 gson Exp $ */
+/* $Id: rbt.c,v 1.110 2001/04/12 00:37:55 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -36,7 +36,7 @@
 #include <dns/rbt.h>
 #include <dns/result.h>
 
-#define RBT_MAGIC		0x5242542BU /* RBT+. */
+#define RBT_MAGIC		ISC_MAGIC('R', 'B', 'T', '+')
 #define VALID_RBT(rbt)		ISC_MAGIC_VALID(rbt, RBT_MAGIC)
 
 /*
