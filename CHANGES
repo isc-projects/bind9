@@ -1,4 +1,7 @@
 
+ 607.	[bug]		nsupdate would fail if it encountered a CNAME or
+			DNAME in a response to an SOA query. [RT #515]
+
  606.	[bug]		Compiling with --disable-threads failed due
 			to isc_thread_self() being incorrectly defined
 			as an integer rather than a function.

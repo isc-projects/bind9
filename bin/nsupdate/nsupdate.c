@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.73 2000/12/11 19:15:53 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.74 2000/12/11 20:53:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1287,6 +1287,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	nsu_requestinfo_t *reqinfo;
 	dns_message_t *soaquery = NULL;
 	isc_sockaddr_t *addr;
+	isc_boolean_t seencname = ISC_FALSE;
 
 	UNUSED(task);
 
@@ -1315,11 +1316,10 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(soaquery);
-		sendrequest(localaddr,&servers[ns_inuse], soaquery, &request);
+		sendrequest(localaddr, &servers[ns_inuse], soaquery, &request);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		return;
 	}
-	dns_message_destroy(&soaquery);
 	isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 
 	ddebug("About to create rcvmsg");
@@ -1378,12 +1378,50 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 					      &soaset);
 		if (result == ISC_R_SUCCESS)
 			break;
+		if (section == DNS_SECTION_ANSWER) {
+			dns_rdataset_t *tset = NULL;
+			if (dns_message_findtype(name, dns_rdatatype_cname, 0,
+						 &tset) == ISC_R_SUCCESS
+			    ||
+			    dns_message_findtype(name, dns_rdatatype_dname, 0,
+						 &tset) == ISC_R_SUCCESS
+			    )
+			{
+				seencname = ISC_TRUE;
+				break;
+			}
+		}
+				
 		result = dns_message_nextname(rcvmsg, section);
 	}
 
-	if (soaset == NULL) {
+	if (soaset == NULL && !seencname) {
 		pass++;
 		goto lookforsoa;
+	}
+
+	if (seencname) {
+		dns_name_t tname;
+		unsigned int nlabels;
+
+		result = dns_message_firstname(soaquery, DNS_SECTION_QUESTION);
+		INSIST(result == ISC_R_SUCCESS);
+		name = NULL;
+		dns_message_currentname(soaquery, DNS_SECTION_QUESTION, &name);
+		nlabels = dns_name_countlabels(name);
+		if (nlabels == 1)
+			fatal("could not find enclosing zone");
+		dns_name_init(&tname, NULL);
+		dns_name_getlabelsequence(name, 1, nlabels - 1, &tname);
+		dns_name_clone(&tname, name);
+		dns_request_destroy(&request);
+		dns_message_renderreset(soaquery);
+		if (userserver != NULL)
+			sendrequest(localaddr, userserver, soaquery, &request);
+		else
+			sendrequest(localaddr, &servers[ns_inuse], soaquery,
+				    &request);
+		goto out;
 	}
 
 	if (debugging) {
@@ -1430,9 +1468,12 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 
 	send_update(zonename, serveraddr, localaddr);
 
+	dns_message_destroy(&soaquery);
+	dns_request_destroy(&request);
+
+ out:
 	dns_rdata_freestruct(&soa);
 	dns_message_destroy(&rcvmsg);
-	dns_request_destroy(&request);
 	ddebug("Out of recvsoa");
 }
 
