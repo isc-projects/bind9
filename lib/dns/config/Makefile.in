@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.18 2000/08/01 14:34:11 tale Exp $
+# $Id: Makefile.in,v 1.19 2000/08/01 19:12:10 tale Exp $
 
 srcdir		= @srcdir@
 VPATH		= @srcdir@
@@ -61,7 +61,7 @@ TARGETS		= ${OBJS}
 confparser.c: confparser.y
 	${YACC} -d ${srcdir}/confparser.y
 	rm -f confparser.c confparser_p.h
-	sed -e '/^\#line/d' -e 's/\(char \*yy.*\[\]\)/const \1/' \
+	sed -e '/^\#line/d' -e 's/^\(char \*yy.*\[\]\)/const \1/' \
 		< y.tab.c > confparser.c
 	rm -f y.tab.c
 	chmod a-w confparser.c
