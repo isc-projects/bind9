@@ -9,6 +9,8 @@
 1194.	[bug]		Not all duplicate zone definitions were being detected
 			at the named.conf checking stage. [RT #2431]
 
+1193.	[bug]		Best effort parsing didn't handle packet truncation.
+
 1191.   [bug]           A dynamic update removing the last non-apex name in
 			a secure zone would fail. [RT #2399]
 

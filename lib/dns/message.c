@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.4 2002/02/08 03:57:28 marka Exp $ */
+/* $Id: message.c,v 1.194.2.5 2002/02/19 22:12:58 gson Exp $ */
 
 /***
  *** Imports
@@ -1491,12 +1491,14 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	isc_uint16_t tmpflags;
 	isc_buffer_t origsource;
 	isc_boolean_t seen_problem;
+	isc_boolean_t ignore_tc;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(source != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 
 	seen_problem = ISC_FALSE;
+	ignore_tc = ISC_TF(options & DNS_MESSAGEPARSE_IGNORETRUNCATION);
 
 	origsource = *source;
 
@@ -1528,6 +1530,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 
 	ret = getquestions(source, msg, &dctx, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1537,6 +1541,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	msg->question_ok = 1;
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1545,6 +1551,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return (ret);
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1553,6 +1561,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return (ret);
 
 	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL, options);
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		goto truncated;
 	if (ret == DNS_R_RECOVERABLE) {
 		seen_problem = ISC_TRUE;
 		ret = ISC_R_SUCCESS;
@@ -1568,6 +1578,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 			      r.length);
 	}
 
+ truncated:
 	if ((options & DNS_MESSAGEPARSE_CLONEBUFFER) == 0)
 		isc_buffer_usedregion(&origsource, &msg->saved);
 	else {
@@ -1580,6 +1591,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		msg->free_saved = 1;
 	}
 
+	if (ret == ISC_R_UNEXPECTEDEND && ignore_tc)
+		return (DNS_R_RECOVERABLE);
 	if (seen_problem == ISC_TRUE)
 		return (DNS_R_RECOVERABLE);
 	return (ISC_R_SUCCESS);
