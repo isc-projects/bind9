@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.98 2000/04/19 22:21:22 marka Exp $ */
+/* $Id: zone.c,v 1.99 2000/04/24 21:59:08 tale Exp $ */
 
 #include <config.h>
 
@@ -25,7 +25,6 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/magic.h>
-#include <isc/mktemplate.h>
 #include <isc/print.h>
 #include <isc/ratelimiter.h>
 #include <isc/rwlock.h>
@@ -33,7 +32,7 @@
 #include <isc/serial.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
-#include <isc/ufile.h>
+#include <isc/file.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -145,6 +144,7 @@ struct dns_zone {
 	isc_stdtime_t		servertime;
 	isc_stdtime_t		parenttime;
 	isc_stdtime_t		childtime;
+	isc_time_t		loadtime;
 	isc_uint32_t		serial;
 	isc_uint32_t		refresh;
 	isc_uint32_t		retry;
@@ -348,6 +348,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->servertime = 0;
 	zone->parenttime = 0;
 	zone->childtime = 0;
+	isc_time_settoepoch(&zone->loadtime);
 	zone->serial = 0;
 	zone->refresh = DEFAULT_REFRESH;
 	zone->retry = DEFAULT_RETRY;
@@ -646,6 +647,7 @@ dns_zone_load(dns_zone_t *zone) {
 	dns_rdata_soa_t soa;
 	dns_rdata_t rdata;
 	isc_stdtime_t now;
+	isc_time_t loadtime, filetime;
 	dns_db_t *db = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -672,6 +674,26 @@ dns_zone_load(dns_zone_t *zone) {
 	}
 
 	REQUIRE(zone->dbname != NULL);
+
+	/*
+	 * Don't do the load if the file that stores the zone is older
+	 * than the last time the zone was loaded.  If the zone has not
+	 * been loaded yet, zone->loadtime will be the epoch.
+	 */
+	result = isc_file_getmodtime(zone->dbname, &filetime);
+	if (result == ISC_R_SUCCESS && ! isc_time_isepoch(&zone->loadtime) &&
+	    isc_time_compare(&filetime, &zone->loadtime) < 0)
+		return (ISC_R_SUCCESS);
+
+	/*
+	 * Store the current time before the zone is loaded, so that if the
+	 * file changes between the time of the load and the time that
+	 * zone->loadtime is set, then the file will still be reloaded
+	 * the next time dns_zone_load is called.
+	 */
+	result = isc_time_now(&loadtime);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	result = dns_db_create(zone->mctx, zone->db_type,
 			       &zone->origin,
@@ -703,11 +725,14 @@ dns_zone_load(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
+	zone->loadtime = loadtime;
+
 	/*
 	 * Apply update log, if any.
 	 */
 	if (zone->journal != NULL) {
-		result = dns_journal_rollforward(zone->mctx, db, zone->journal);
+		result = dns_journal_rollforward(zone->mctx, db,
+						 zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
 		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL)
 			goto cleanup;
@@ -891,11 +916,12 @@ dns_zone_checkservers(dns_zone_t *zone) {
 			result = dns_rdataset_first(&rdataset);
 			while (result == ISC_R_SUCCESS) {
 				dns_rdataset_current(&rdataset, &rdata);
-				result = dns_rdata_tostruct(&rdata, &ns, zone->mctx);
+				result = dns_rdata_tostruct(&rdata, &ns,
+							    zone->mctx);
 				if (result != ISC_R_SUCCESS)
 					continue;
 				checkservers = isc_mem_get(zone->mctx,
-							  sizeof *checkservers);
+							 sizeof *checkservers);
 				if (checkservers == NULL)
 					break;
 				dns_name_init(&checkservers->server, NULL);
@@ -905,8 +931,10 @@ dns_zone_checkservers(dns_zone_t *zone) {
 				checkservers->state = get_a; /* XXXMPA */
 				dns_zone_attach(zone, &checkservers->zone);
 				checkservers->mctx = NULL;
-				isc_mem_attach(zone->mctx, &checkservers->mctx);
-				dns_resolver_attach(zone->res, &checkservers->res);
+				isc_mem_attach(zone->mctx,
+					       &checkservers->mctx);
+				dns_resolver_attach(zone->res,
+						    &checkservers->res);
 				checkservers->request = NULL;
 				ISC_LINK_INIT(checkservers, link);
 				checkservers->magic = CHECKSERVERS_MAGIC;
@@ -1313,8 +1341,7 @@ dns_zone_checkglue(dns_zone_t *zone) {
 }
 
 static void
-exit_check(dns_zone_t *zone)
-{
+exit_check(dns_zone_t *zone) {
 	if (zone->irefs == 0 && zone->shuttingdown == ISC_TRUE)
 		zone_free(zone);
 }
@@ -1863,21 +1890,24 @@ dns_zone_dump(dns_zone_t *zone) {
 	dns_db_t *db = NULL;
 	char *buf;
 	int buflen;
-	FILE *f;
+	FILE *f = NULL;
 	int n;
 	
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	buflen = strlen(zone->dbname) + 20;
 	buf = isc_mem_get(zone->mctx, buflen);
-	result = isc_mktemplate(zone->dbname, buf, buflen);
+	if (buf == NULL)
+	    return (ISC_R_NOMEMORY);
+
+	result = isc_file_mktemplate(zone->dbname, buf, buflen);
 	if (result != ISC_R_SUCCESS)
-		return (result);
-	f = isc_ufile(buf);
-	if (f == NULL) {
-		result = ISC_R_UNEXPECTED;
 		goto cleanup;
-	}
+
+	result = isc_file_openunique(buf, &f);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
 	dns_db_attach(zone->db, &db);
 	dns_db_currentversion(db, &version);
 	result = dns_master_dumptostream(zone->mctx, db, version,
@@ -3516,10 +3546,9 @@ replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 			      "generating diffs");
-		result = dns_db_diff(zone->mctx, 
-					db, ver,
-					zone->db, NULL /* XXX */,
-					zone->journal);
+		result = dns_db_diff(zone->mctx, db, ver,
+				     zone->db, NULL /* XXX */,
+				     zone->journal);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	} else {
@@ -3531,12 +3560,21 @@ replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			result = dns_db_dump(db, ver, zone->dbname);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
+
+			/*
+			 * Update the time the zone was updated, so
+			 * dns_zone_load can avoid loading it when
+			 * the server is reloaded.  If isc_time_now
+			 * fails for some reason, all that happens is
+			 * the timestamp is not updated.
+			 */
+			(void)isc_time_now(&zone->loadtime);
 		}
 		if (zone->journal != NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "removing journal file");
-			(void) remove(zone->journal);
+			(void)remove(zone->journal);
 		}
 	}
 	dns_db_closeversion(db, &ver, ISC_FALSE);
