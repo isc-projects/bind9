@@ -1,13 +1,13 @@
 
 
 DNS Extensions Working Group                            J. Schlyter, Ed.
-Internet-Draft                                         December 16, 2003
+Internet-Draft                                         December 19, 2003
 Updates: RFC 2535, RFC TCR (if approved)
-Expires: June 15, 2004
+Expires: June 18, 2004
 
 
                         DNSSEC NSEC RDATA Format
-                  draft-ietf-dnsext-nsec-rdata-02.txt
+                  draft-ietf-dnsext-nsec-rdata-03.txt
 
 Status of this Memo
 
@@ -29,7 +29,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on June 15, 2004.
+   This Internet-Draft will expire on June 18, 2004.
 
 Copyright Notice
 
@@ -51,7 +51,7 @@ Abstract
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 1]
+Schlyter                 Expires June 18, 2004                  [Page 1]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -107,7 +107,7 @@ Table of Contents
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 2]
+Schlyter                 Expires June 18, 2004                  [Page 2]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -163,7 +163,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 3]
+Schlyter                 Expires June 18, 2004                  [Page 3]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -219,7 +219,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 4]
+Schlyter                 Expires June 18, 2004                  [Page 4]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -229,7 +229,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
    that type is present for the NSEC RR's owner name.
 
    Since bit 0 in window block 0 refers to the non-existing RR type 0,
-   it MUST be set to 0.  After verification, the validator SHOULD ignore
+   it MUST be set to 0.  After verification, the validator MUST ignore
    the value of bit 0 in window block 0.
 
    Bits representing Meta-TYPEs or QTYPEs as specified in RFC 2929 [3]
@@ -275,7 +275,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 5]
+Schlyter                 Expires June 18, 2004                  [Page 5]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -331,7 +331,7 @@ Normative References
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 6]
+Schlyter                 Expires June 18, 2004                  [Page 6]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -387,7 +387,7 @@ Appendix A. Acknowledgements
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 7]
+Schlyter                 Expires June 18, 2004                  [Page 7]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -443,7 +443,7 @@ Full Copyright Statement
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 8]
+Schlyter                 Expires June 18, 2004                  [Page 8]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -499,5 +499,5 @@ Acknowledgment
 
 
 
-Schlyter                 Expires June 15, 2004                  [Page 9]
+Schlyter                 Expires June 18, 2004                  [Page 9]
 
