@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ccmsg.c,v 1.1 2001/03/27 00:44:48 bwelling Exp $ */
+/* $Id: ccmsg.c,v 1.2 2001/03/27 18:34:55 gson Exp $ */
 
 #include <config.h>
 
@@ -188,16 +188,6 @@ isccc_ccmsg_cancelread(isccc_ccmsg_t *ccmsg) {
 	REQUIRE(VALID_CCMSG(ccmsg));
 
 	isc_socket_cancel(ccmsg->sock, NULL, ISC_SOCKCANCEL_RECV);
-}
-
-void
-isccc_ccmsg_keepbuffer(isccc_ccmsg_t *ccmsg, isc_buffer_t *buffer) {
-	REQUIRE(VALID_CCMSG(ccmsg));
-	REQUIRE(buffer != NULL);
-
-	*buffer = ccmsg->buffer;
-	ccmsg->buffer.base = NULL;
-	ccmsg->buffer.length = 0;
 }
 
 #if 0

@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ccmsg.h,v 1.1 2001/03/27 00:44:51 bwelling Exp $ */
+/* $Id: ccmsg.h,v 1.2 2001/03/27 18:34:56 gson Exp $ */
 
-#ifndef DNS_CCMSG_H
-#define DNS_CCMSG_H 1
+#ifndef ISCCC_CCMSG_H
+#define ISCCC_CCMSG_H 1
 
 #include <isc/buffer.h>
 #include <isc/lang.h>
@@ -78,8 +78,8 @@ isc_result_t
 isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg,
 		       isc_task_t *task, isc_taskaction_t action, void *arg);
 /*
- * Schedule an event to be delivered when a DNS message is readable, or
- * when an error occurs on the socket.
+ * Schedule an event to be delivered when a command channel message is
+ * readable, or when an error occurs on the socket.
  *
  * Requires:
  *
@@ -112,20 +112,6 @@ isccc_ccmsg_cancelread(isccc_ccmsg_t *ccmsg);
  */
 
 void
-isccc_ccmsg_keepbuffer(isccc_ccmsg_t *ccmsg, isc_buffer_t *buffer);
-/*
- * If a isccc buffer is to be kept between calls, this function marks the
- * internal state-machine buffer as invalid, and copies all the contents
- * of the state into "buffer".
- *
- * Requires:
- *
- *	"ccmsg" be valid.
- *
- *	"buffer" be non-NULL.
- */
-
-void
 isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg);
 /*
  * Clean up all allocated state, and invalidate the structure.
@@ -142,4 +128,4 @@ isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg);
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_CCMSG_H */
+#endif /* ISCCC_CCMSG_H */
