@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3540"
+HREF="Bv9ARM.ch06.html#AEN3547"
 >Zone File</A
 ></DT
 ></DL
@@ -6740,8 +6740,8 @@ VALIGN="MIDDLE"
 ><P
 >The number of
 successful queries made to the server or zone.  A successful query
-is defined as query which returns a NOERROR response other than
-a referral response.</P
+is defined as query which returns a NOERROR response with at least
+one answer RR.</P
 ></TD
 ></TR
 ><TR
@@ -6812,26 +6812,6 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
->recursion</B
-></P
-></TD
-><TD
-WIDTH="322"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->The number of queries which caused the server
-to perform recursion in order to find the final answer.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="110"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
-><B
-CLASS="command"
 >failure</B
 ></P
 ></TD
@@ -6844,11 +6824,59 @@ VALIGN="MIDDLE"
 failure response other than those above.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>recursion</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>The number of queries which caused the server
+to perform recursion in order to find the final answer.</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
 ></P
 ></DIV
+><P
+>&#13;Each query received by the server will cause exactly one of
+<B
+CLASS="command"
+>success</B
+>,
+<B
+CLASS="command"
+>referral</B
+>,
+<B
+CLASS="command"
+>nxrrset</B
+>,
+<B
+CLASS="command"
+>nxdomain</B
+>, or
+<B
+CLASS="command"
+>failure</B
+>
+to be incremented, and may additionally cause the
+<B
+CLASS="command"
+>recursion</B
+> counter to be incremented.
+</P
 ></DIV
 ></DIV
 ><DIV
@@ -7149,7 +7177,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3008"
+NAME="AEN3015"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7224,7 +7252,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3024"
+NAME="AEN3031"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7259,7 +7287,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3032"
+NAME="AEN3039"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7334,7 +7362,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3048"
+NAME="AEN3055"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7985,7 +8013,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3199"
+NAME="AEN3206"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7996,13 +8024,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3202"
+NAME="AEN3209"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3204"
+NAME="AEN3211"
 ></A
 ><P
 ></P
@@ -8240,7 +8268,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3259"
+NAME="AEN3266"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8278,7 +8306,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3269"
+NAME="AEN3276"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8935,7 +8963,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3510"
+NAME="AEN3517"
 ></A
 ><P
 ></P
@@ -9042,7 +9070,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3540"
+NAME="AEN3547"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9063,7 +9091,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3545"
+NAME="AEN3552"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9086,7 +9114,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3551"
+NAME="AEN3558"
 ></A
 ><P
 ></P
@@ -9197,7 +9225,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3583"
+NAME="AEN3590"
 ></A
 ><P
 ></P
@@ -9574,7 +9602,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3695"
+NAME="AEN3702"
 ></A
 ><P
 ></P
@@ -9626,7 +9654,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3711"
+NAME="AEN3718"
 ></A
 ><P
 ></P
@@ -9803,7 +9831,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3759"
+NAME="AEN3766"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9833,7 +9861,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3766"
+NAME="AEN3773"
 ></A
 ><P
 ></P
@@ -10042,7 +10070,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3832"
+NAME="AEN3839"
 ></A
 ><P
 ></P
@@ -10133,7 +10161,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3860"
+NAME="AEN3867"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10166,7 +10194,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3866"
+NAME="AEN3873"
 ></A
 ><P
 ></P
@@ -10462,7 +10490,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3958"
+NAME="AEN3965"
 ></A
 ><P
 ></P
@@ -10545,7 +10573,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3981"
+NAME="AEN3988"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10569,7 +10597,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3986"
+NAME="AEN3993"
 ></A
 ><P
 ></P
@@ -10649,7 +10677,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4008"
+NAME="AEN4015"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10674,7 +10702,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4015"
+NAME="AEN4022"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10744,7 +10772,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4035"
+NAME="AEN4042"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10826,7 +10854,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4055"
+NAME="AEN4062"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10866,7 +10894,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4066"
+NAME="AEN4073"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10945,7 +10973,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4086"
+NAME="AEN4093"
 ></A
 ><P
 ></P
