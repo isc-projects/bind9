@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.39 2001/06/04 19:32:58 tale Exp $ */
+/* $Id: cache.c,v 1.40 2001/06/05 22:27:51 tale Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,16 @@
 
 #define CACHE_MAGIC		ISC_MAGIC('$', '$', '$', '$')
 #define VALID_CACHE(cache)	ISC_MAGIC_VALID(cache, CACHE_MAGIC)
+
+/*
+ * The following three variables control incremental cleaning.
+ * MINSIZE is how many bytes is the floor for dns_cache_setcachesize().
+ * CLEANERINCREMENT is how many nodes are examined in one pass.
+ * CLEANERINTERVAL is the minimum amount of time between passes.
+ */
+#define DNS_CACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2mb */
+#define DNS_CACHE_CLEANERINCREMENT	100	/* Number of nodes. */
+#define DNS_CACHE_CLEANERINTERVAL	6	/* Seconds. */
 
 /***
  ***	Types
@@ -63,6 +73,10 @@ typedef enum {
 			 (c)->iterator != NULL && \
 			 (c)->resched_event == NULL)
 
+/*
+ * Accesses to a cache cleaner object are synchronized through
+ * task/event serialization, or locked from the cache object.
+ */
 struct cache_cleaner {
 	dns_cache_t	*cache;
 	isc_task_t 	*task;
@@ -85,7 +99,7 @@ struct cache_cleaner {
  */
 
 struct dns_cache {
-	/* Unlocked */
+	/* Unlocked. */
 	unsigned int		magic;
 	isc_mutex_t		lock;
 	isc_mutex_t		filelock;
@@ -111,9 +125,8 @@ struct dns_cache {
  ***/
 
 static isc_result_t
-cache_cleaner_init(dns_cache_t *cache,
-		   isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
-		   cache_cleaner_t *cleaner);
+cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
+		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner);
 
 static void
 cleaning_timer_action(isc_task_t *task, isc_event_t *event);
@@ -213,8 +226,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	cache->magic = CACHE_MAGIC;
 
-	result = cache_cleaner_init(cache, taskmgr, timermgr,
-				    &cache->cleaner);
+	result = cache_cleaner_init(cache, taskmgr, timermgr, &cache->cleaner);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_db;
 
@@ -319,8 +331,9 @@ dns_cache_detach(dns_cache_t **cachep) {
 		cache->cleaner.overmem = ISC_FALSE;
 		free_cache = ISC_TRUE;
 	}
-	UNLOCK(&cache->lock);
+
 	*cachep = NULL;
+
 	if (free_cache) {
 		/*
 		 * When the cache is shut down, dump it to a file if one is
@@ -328,12 +341,19 @@ dns_cache_detach(dns_cache_t **cachep) {
 		 */
 		dns_cache_dump(cache);
 
-		/* XXXRTH  This is not locked! */
-		if (cache->live_tasks > 0)
+		/*
+		 * If the cleaner task exists, let it free the cache.
+		 */
+		if (cache->live_tasks > 0) {
 			isc_task_shutdown(cache->cleaner.task);
-		else
-			cache_free(cache);
+			free_cache = ISC_FALSE;
+		}
 	}
+
+	UNLOCK(&cache->lock);
+
+	if (free_cache)
+		cache_free(cache);
 }
 
 void
@@ -341,9 +361,11 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 	REQUIRE(VALID_CACHE(cache));
 	REQUIRE(dbp != NULL && *dbp == NULL);
 	REQUIRE(cache->db != NULL);
+
 	LOCK(&cache->lock);
 	dns_db_attach(cache->db, dbp);
 	UNLOCK(&cache->lock);
+
 }
 
 isc_result_t
@@ -356,11 +378,13 @@ dns_cache_setfilename(dns_cache_t *cache, char *filename) {
 	newname = isc_mem_strdup(cache->mctx, filename);
 	if (newname == NULL)
 		return (ISC_R_NOMEMORY);
+
 	LOCK(&cache->filelock);
 	if (cache->filename)
 		isc_mem_free(cache->mctx, cache->filename);
 	cache->filename = newname;
 	UNLOCK(&cache->filelock);
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -372,9 +396,11 @@ dns_cache_load(dns_cache_t *cache) {
 
 	if (cache->filename == NULL)
 		return (ISC_R_SUCCESS);
+
 	LOCK(&cache->filelock);
 	result = dns_db_load(cache->db, cache->filename);
 	UNLOCK(&cache->filelock);
+
 	return (result);
 }
 
@@ -386,15 +412,19 @@ dns_cache_dump(dns_cache_t *cache) {
 
 	if (cache->filename == NULL)
 		return (ISC_R_SUCCESS);
+
 	LOCK(&cache->filelock);
 	result = dns_master_dump(cache->mctx, cache->db, NULL,
 				 &dns_master_style_cache, cache->filename);
 	UNLOCK(&cache->filelock);
+
 	return (result);
 }
 
 void
 dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
+	isc_interval_t interval;
+
 	LOCK(&cache->lock);
 
 	/*
@@ -403,13 +433,16 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	 */
 	if (cache->cleaner.cleaning_timer == NULL)
 		goto unlock;
-	    
+
+	if (t < DNS_CACHE_CLEANERINTERVAL)
+		t = DNS_CACHE_CLEANERINTERVAL;
+
 	cache->cleaner.cleaning_interval = t;
+
 	if (t == 0) {
 		isc_timer_reset(cache->cleaner.cleaning_timer,
 				isc_timertype_inactive, NULL, NULL, ISC_TRUE);
 	} else {
-		isc_interval_t interval;
 		isc_interval_set(&interval, cache->cleaner.cleaning_interval,
 				 0);
 		isc_timer_reset(cache->cleaner.cleaning_timer,
@@ -431,7 +464,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 {
 	isc_result_t result;
 
-	cleaner->increment = 100;
+	cleaner->increment = DNS_CACHE_CLEANERINCREMENT;
 	cleaner->state = cleaner_s_idle;
 	cleaner->cache = cache;
 	cleaner->iterator = NULL;
@@ -508,6 +541,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		isc_timer_detach(&cleaner->cleaning_timer);
 	if (cleaner->task != NULL)
 		isc_task_detach(&cleaner->task);
+
 	return (result);
 }
 
@@ -570,6 +604,9 @@ end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
 
 	dns_dbiterator_destroy(&cleaner->iterator);
 
+	dns_cache_setcleaninginterval(cleaner->cache,
+				      cleaner->cleaning_interval);
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
 		      ISC_LOG_DEBUG(1), "end cache cleaning, mem inuse %d",
 		      isc_mem_inuse(cleaner->cache->mctx));
@@ -590,16 +627,22 @@ cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == cleaner->task);
 	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
 
-	if (cleaner->state == cleaner_s_idle)
+	if (cleaner->state == cleaner_s_idle) {
 		begin_cleaning(cleaner);
-	else
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-			      "cache cleaner did not finish "
-			      "in one cleaning-interval");
-	isc_event_free(&event);
+
+		isc_event_free(&event);
+	} else
+		/*
+		 * incremental_cleaning_action() takes responsibility
+		 * for freeing or preserving the event.
+		 */
+		incremental_cleaning_action(task, event);
 }
 
+/*
+ * This is called when the cache either surpasses its upper limit
+ * or shrinks beyond its lower limit.
+ */
 static void
 overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->ev_arg;
@@ -615,6 +658,14 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 			begin_cleaning(cleaner);
 	} else {
 		if (cleaner->state == cleaner_s_busy)
+			/*
+			 * end_cleaning() can't be called here because
+			 * then both cleaner->overmem_event and
+			 * cleaner->resched_event will point to this
+			 * event.  Set the state to done, and then
+			 * when the incremental_cleaning_action() event
+			 * is posted, it will handle the end_cleaning.
+			 */
 			cleaner->state = cleaner_s_done;
 	}
 
@@ -626,12 +677,16 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
  */
 static void
 incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
 	cache_cleaner_t *cleaner = event->ev_arg;
-	isc_stdtime_t now;
+	isc_interval_t interval;
+	isc_result_t result;
 	int n_names;
 
-	INSIST(event->ev_type == DNS_EVENT_CACHECLEAN);
+	UNUSED(task);
+
+	INSIST(task == cleaner->task);
+	INSIST(event->ev_type == DNS_EVENT_CACHECLEAN ||
+	       event->ev_type == ISC_TIMEREVENT_TICK);
 
 	if (cleaner->state == cleaner_s_done) {
 		end_cleaning(cleaner, event);
@@ -641,7 +696,6 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(CLEANER_BUSY(cleaner));
 
 	n_names = cleaner->increment;
-	isc_stdtime_get(&now);
 
 	REQUIRE(DNS_DBITERATOR_VALID(cleaner->iterator));
 
@@ -660,7 +714,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/*
-		 * The node was not needed,  but was required by
+		 * The node was not needed, but was required by
 		 * dns_dbiterator_current().  Give up its reference.
 		 */
 		dns_db_detachnode(cleaner->cache->db, &node);
@@ -669,6 +723,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 		 * Step to the next node.
 		 */
 		result = dns_dbiterator_next(cleaner->iterator);
+
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * Either the end was reached (ISC_R_NOMORE) or
@@ -711,8 +766,22 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	result = dns_dbiterator_pause(cleaner->iterator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	isc_task_send(task, &event);
-	INSIST(CLEANER_BUSY(cleaner));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+		      ISC_LOG_DEBUG(1), "cache cleaner: checked %d nodes, "
+		      "mem inuse %d, sleeping",
+		      cleaner->increment, isc_mem_inuse(cleaner->cache->mctx));
+
+	/*
+	 * Even though the interval timer might be in use for periodic
+	 * cache cleaning, steal it for scheduling another iteration.
+	 * When end_cleaning() is finally called, it will reset the
+	 * interval for the periodic cleaner.
+	 */
+	isc_interval_set(&interval, DNS_CACHE_CLEANERINTERVAL, 0);
+	isc_timer_reset(cleaner->cleaning_timer, isc_timertype_ticker,
+			NULL, &interval, ISC_FALSE);
+
+	isc_event_free(&event);
 
 	return;
 }
@@ -767,7 +836,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
 
-	return result;
+	return (result);
 }
 
 static void
@@ -776,13 +845,13 @@ water(void *arg, int mark) {
 	isc_boolean_t overmem = ISC_TF(mark == ISC_MEM_HIWATER);
 
 	REQUIRE(VALID_CACHE(cache));
+
 	dns_db_overmem(cache->db, overmem);
 	cache->cleaner.overmem = overmem;
 
-	if (overmem && cache->cleaner.overmem_event != NULL) {
+	if (cache->cleaner.overmem_event != NULL)
 		isc_task_send(cache->cleaner.task,
 			      &cache->cleaner.overmem_event);
-	}	
 }
 
 void
@@ -796,27 +865,24 @@ dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size) {
 	 * Impose a minumum cache size; pathological things happen if there
 	 * is too little room.
 	 */
-	if (size != 0 && size < 2097152)
-		size = 2097152;	/* 2mb */
+	if (size != 0 && size < DNS_CACHE_MINSIZE)
+		size = DNS_CACHE_MINSIZE;
 
-	hiwater = size - (size >> 3);	/* ~(7/8) */
-	lowater = size - (size >> 2);	/* ~(3/4) */
+	hiwater = size - (size >> 3);	/* Approximately 7/8ths. */
+	lowater = size - (size >> 2);	/* Approximately 3/4ths. */
 
 	/*
-	 * This resets the overmem status if already in an overmem condition,
-	 * even though the cache is perhaps still overmem even with new values.
-	 * The overmem condition will be resignaled.
-	 * XXXDCL i am not sure this is entirely right.  what happens to
-	 * the active cleaner?
+	 * If the cache was overmem and cleaning, but now with the new limits
+	 * it is no longer in an overmem condition, then the next
+	 * isc_mem_put for cache memory will do the right thing and trigger
+	 * water().
 	 */
-	dns_db_overmem(cache->db, ISC_FALSE);
-	cache->cleaner.overmem = ISC_FALSE;
 
 	if (size == 0 || hiwater == 0 || lowater == 0)
 		/*
 		 * Disable cache memory limiting.
 		 */
-		isc_mem_setwater(cache->mctx, NULL, 0, 0, 0);
+		isc_mem_setwater(cache->mctx, water, cache, 0, 0);
 	else
 		/*
 		 * Establish new cache memory limits (either for the first
@@ -835,10 +901,15 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	LOCK(&cache->lock);
-
+	INSIST(task == cache->cleaner.task);
 	INSIST(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
-	isc_event_free(&event);
+
+	if (CLEANER_BUSY(&cache->cleaner))
+		end_cleaning(&cache->cleaner, event);
+	else
+		isc_event_free(&event);
+
+	LOCK(&cache->lock);
 
 	cache->live_tasks--;
 	INSIST(cache->live_tasks == 0);
