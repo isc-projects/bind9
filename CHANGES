@@ -1,3 +1,5 @@
+ 506.	[func]		Do not fail to start on errors in zone files.
+
  505.	[bug]		nsupdate was printing "unknown result code". [RT #373]
 
  504.	[bug]		The zone was not being marked as dirty when updated via

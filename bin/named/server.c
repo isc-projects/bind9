@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.222 2000/09/22 00:13:05 gson Exp $ */
+/* $Id: server.c,v 1.223 2000/10/03 23:56:26 marka Exp $ */
 
 #include <config.h>
 
@@ -1632,7 +1632,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(load_configuration(ns_g_conffile, server, ISC_TRUE),
 		   "loading configuration");
 
-	CHECKFATAL(load_zones(server, ISC_TRUE),
+	CHECKFATAL(load_zones(server, ISC_FALSE),
 		   "loading zones");
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
