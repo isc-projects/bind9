@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.34 2002/08/16 00:05:57 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.35 2002/10/28 06:12:13 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -549,6 +549,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 	struct LIFREQ lifreq;
 	int family;
 	char strbuf[ISC_STRERRORSIZE];
+	int fd;
 
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE (iter->pos < (unsigned int) iter->lifc.lifc_len);
@@ -597,16 +598,26 @@ internal_current6(isc_interfaceiter_t *iter) {
 
 	iter->current.flags = 0;
 
+	fd = socket(family, SOCK_DGRAM, 0);
+	if (fd < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: socket: %s",
+				 lifreq.lifr_name, strbuf);
+		return (ISC_R_IGNORE);
+	}
+
 	/*
 	 * Ignore the HP/UX warning about "interger overflow during
 	 * conversion.  It comes from its own macro definition,
 	 * and is really hard to shut up.
 	 */
-	if (ioctl(iter->socket, SIOCGLIFFLAGS, (char *) &lifreq) < 0) {
+	if (ioctl(fd, SIOCGLIFFLAGS, (char *) &lifreq) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "%s: getting interface flags: %s",
 				 lifreq.lifr_name, strbuf);
+		close(fd);
 		return (ISC_R_IGNORE);
 	}
 
@@ -628,7 +639,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 		 * conversion.  It comes from its own macro definition,
 		 * and is really hard to shut up.
 		 */
-		if (ioctl(iter->socket, SIOCGLIFDSTADDR, (char *)&lifreq)
+		if (ioctl(fd, SIOCGLIFDSTADDR, (char *)&lifreq)
 		    < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -638,6 +649,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 					       "%s: getting "
 					       "destination address: %s"),
 					 lifreq.lifr_name, strbuf);
+			close(fd);
 			return (ISC_R_IGNORE);
 		}
 		get_addr(family, &iter->current.dstaddress,
@@ -656,7 +668,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 		 * conversion.  It comes from its own macro definition,
 		 * and is really hard to shut up.
 		 */
-		if (ioctl(iter->socket, SIOCGLIFNETMASK, (char *)&lifreq)
+		if (ioctl(fd, SIOCGLIFNETMASK, (char *)&lifreq)
 		    < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -665,6 +677,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 					       ISC_MSG_GETNETMASK,
 					       "%s: getting netmask: %s"),
 					 lifreq.lifr_name, strbuf);
+			close(fd);
 			return (ISC_R_IGNORE);
 		}
 		get_addr(family, &iter->current.netmask,
@@ -689,6 +702,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 	}
 	}
 
+	close(fd);
 	return (ISC_R_SUCCESS);
 #endif
 }
