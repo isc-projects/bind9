@@ -32,7 +32,9 @@ while (<>) {
 	next;
     }
     if ($type eq "X") {
-	print "$file: X type; skipping\n";
+	if ( ! -f $file ) {
+	    print "$file: type X, but missing\n";
+	}
 	next;
     }
 
