@@ -1,4 +1,9 @@
 
+ 819.	[bug]		In certain cases, the resolver's attempts to
+			restart an address lookup at the root could cause
+			the fetch to deadlock (with itself) instead of
+			restarting. [RT #1225]
+
  818.	[bug]		Certain pathological responses to ANY queries could
 			cause an assertion failure. [RT #1218]
 
