@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.3 2000/08/02 16:02:40 gson Exp $
+# $Id: kit.sh,v 1.4 2000/08/11 19:58:19 gson Exp $
 
 # Make a release kit
 #
@@ -26,7 +26,7 @@
 
 case $# in
     2) tag=$1; tmpdir=$2 ;;
-    *) echo "usage: sh kit.sh tmpdir tag" >&2
+    *) echo "usage: sh kit.sh cvstag tmpdir" >&2
        exit 1
        ;;
 esac
