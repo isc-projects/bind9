@@ -25,8 +25,6 @@
 
 #include <named/globals.h>
 
-ISC_LANG_BEGINDECLS
-
 #define NS_LOGCATEGORY_GENERAL		(&ns_g_categories[0])
 #define NS_LOGCATEGORY_CLIENT		(&ns_g_categories[1])
 #define NS_LOGCATEGORY_NETWORK		(&ns_g_categories[2])
@@ -42,7 +40,5 @@ ns_log_init(void);
 
 void
 ns_log_shutdown(void);
-
-ISC_LANG_ENDDECLS
 
 #endif /* NS_LOG_H */
