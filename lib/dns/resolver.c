@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.223 2001/09/21 13:31:55 marka Exp $ */
+/* $Id: resolver.c,v 1.224 2001/10/03 07:43:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1652,6 +1652,9 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 	if (aborted) {
 		addr->flags |= FCTX_ADDRINFO_MARK;
 		msg = "ignoring backholed / bogus server: ";
+	} else if (isc_sockaddr_ismulticast(sa)) {
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		msg = "ignoring multicast address: ";
 	} else if (sa->type.sa.sa_family != AF_INET6) {
 		return;
 	} else if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {

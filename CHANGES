@@ -1,3 +1,6 @@
+1025.	[bug]		Don't use multicast addresses to resolve iterative
+			queries.  [RT #101]
+
 1024.	[port]		HP and Sun decided to use the same macros and
 			structures for different things.  [RT #1831]
 
