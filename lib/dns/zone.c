@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.348 2001/10/11 06:12:42 marka Exp $ */
+/* $Id: zone.c,v 1.349 2001/10/18 06:12:04 marka Exp $ */
 
 #include <config.h>
 
@@ -167,7 +167,6 @@ struct dns_zone {
 	dns_name_t		**masterkeynames;
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
-	unsigned int		refreshcnt;
 	isc_sockaddr_t		masteraddr;
 	dns_notifytype_t	notifytype;
 	isc_sockaddr_t		*notify;
@@ -303,7 +302,6 @@ struct dns_notify {
 	dns_request_t		*request;
 	dns_name_t		ns;
 	isc_sockaddr_t		dst;
-	unsigned int		attempt;
 	ISC_LINK(dns_notify_t)	link;
 };
 
@@ -500,7 +498,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->masterkeynames = NULL;
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
-	zone->refreshcnt = 0;
 	zone->notify = NULL;
 	zone->notifytype = dns_notifytype_yes;
 	zone->notifycnt = 0;
@@ -2118,7 +2115,6 @@ dns_zone_refresh(dns_zone_t *zone) {
 		zone->retry = ISC_MIN(zone->retry * 2, 6 * 3600);
 
 	zone->curmaster = 0;
-	zone->refreshcnt = 0;
 	/* initiate soa query */
 	queue_soa_query(zone);
  unlock:
@@ -2508,7 +2504,6 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 	notify->request = NULL;
 	isc_sockaddr_any(&notify->dst);
 	dns_name_init(&notify->ns, NULL);
-	notify->attempt = 0;
 	ISC_LINK_INIT(notify, link);
 	notify->magic = NOTIFY_MAGIC;
 	*notifyp = notify;
@@ -2670,11 +2665,11 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	timeout = 15;
 	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_DIALNOTIFY))
 		timeout = 30;
-	result = dns_request_createvia(notify->zone->view->requestmgr, message,
-				       &src, &notify->dst, 0, key, timeout,
-				       notify->zone->task,
-				       notify_done, notify,
-				       &notify->request);
+	result = dns_request_createvia2(notify->zone->view->requestmgr,
+				        message, &src, &notify->dst, 0, key,
+					timeout * 3, timeout,
+					notify->zone->task, notify_done,
+					notify, &notify->request);
  cleanup_key:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
@@ -3179,7 +3174,6 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
 	zone->curmaster++;
-	zone->refreshcnt = 0;
 	if (exiting || zone->curmaster >= zone->masterscnt) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 
@@ -3250,11 +3244,6 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (revent->result != ISC_R_SUCCESS) {
 		if (revent->result == ISC_R_TIMEDOUT &&
 		    !dns_request_usedtcp(revent->request)) {
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "refresh: failure trying master %s: %s",
-				     master, dns_result_totext(revent->result));
-			if (zone->refreshcnt < 3)
-				goto same_master;
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: retry limit for "
 				     "master %s exceeded",
@@ -3456,7 +3445,6 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
 	zone->curmaster++;
-	zone->refreshcnt = 0;
 	if (zone->curmaster >= zone->masterscnt) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH)) {
@@ -3472,7 +3460,6 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	goto detach;
 
  same_master:
-	zone->refreshcnt++;
 	if (msg != NULL)
 		dns_message_destroy(&msg);
 	isc_event_free(&event);
@@ -3480,6 +3467,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	dns_request_destroy(&zone->request);
 	queue_soa_query(zone);
 	UNLOCK_ZONE(zone);
+
  detach:
 	dns_zone_idetach(&zone);
 	return;
@@ -3634,14 +3622,14 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	timeout = 15;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
 		timeout = 30;
-	result = dns_request_createvia(zone->view->requestmgr, message,
-				       &src, &zone->masteraddr, options, key,
-				       timeout, zone->task,
-				       refresh_callback, zone, &zone->request);
+	result = dns_request_createvia2(zone->view->requestmgr, message,
+				        &src, &zone->masteraddr, options, key,
+				        timeout * 3, timeout, zone->task,
+				        refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
 		zone_debuglog(zone, me, 1,
-			      "dns_request_createvia() failed: %s",
+			      "dns_request_createvia2() failed: %s",
 			      dns_result_totext(result));
 		goto cleanup;
 	}
@@ -3775,11 +3763,11 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	timeout = 15;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
 		timeout = 30;
-	result = dns_request_createvia(zone->view->requestmgr, message,
-				       &src, &zone->masteraddr,
-				       DNS_REQUESTOPT_TCP, key, timeout,
-				       zone->task, stub_callback, stub,
-				       &zone->request);
+	result = dns_request_createvia2(zone->view->requestmgr, message,
+				        &src, &zone->masteraddr,
+				        DNS_REQUESTOPT_TCP, key, timeout * 3,
+				        timeout, zone->task, stub_callback,
+					stub, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_debuglog(zone, me, 1,
 			      "dns_request_createvia() failed: %s",
@@ -4711,10 +4699,8 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	if ((result == ISC_R_TIMEDOUT ||
 	     (message != NULL && message->rcode == dns_rcode_formerr &&
-	      (notify->flags & DNS_NOTIFY_NOSOA) == 0)) &&
-	     notify->attempt < 3) {
+	      (notify->flags & DNS_NOTIFY_NOSOA) == 0))) {
 		notify->flags |= DNS_NOTIFY_NOSOA;
-		notify->attempt++;
 		dns_request_destroy(&notify->request);
 		notify_send_queue(notify);
 	} else {
