@@ -163,6 +163,7 @@ struct dns_db {
  */
 #define DNS_DBFIND_GLUEOK		0x01
 #define DNS_DBFIND_VALIDATEGLUE		0x02
+#define DNS_DBFIND_NOWILD		0x04
 
 /*****
  ***** Methods
@@ -564,6 +565,9 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	If 'options' does not have DNS_DBFIND_GLUEOK set, then no glue will
  *	be returned.  This option is only meaningful for zone databases.
  *
+ *	If the DNS_DBFIND_NOWILD option is set, then wildcard matching will
+ *	be disabled.  This option is only meaningful for zone databases.
+ *
  *	To respond to a query for SIG records, the caller should create a
  *	rdataset iterator and extract the signatures from each rdataset.
  *
@@ -585,7 +589,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
  *
- *	'foundname' is NULL, or is a valid name with a dedicated buffer.
+ *	'foundname' is a valid name with a dedicated buffer.
  *
  *	'rdataset' is NULL, or is a valid unassociated rdataset.
  *
@@ -663,8 +667,8 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						use its nameserver(s) of last
  *						resort (e.g. root hints).
  *
- *		XXX There will be a result like DNS_R_WILDCARD for wildcard
- *		matches.
+ *		XXX There will be a result codes for negative cache entries
+ *		    in the future.
  *
  *	Error results:
  *
