@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.22 2001/03/27 02:06:12 bwelling Exp $ */
+/* $Id: cfg.h,v 1.23 2001/04/04 01:41:06 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -390,7 +390,6 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...)
  * Configuration object types.
  */
 extern cfg_type_t cfg_type_namedconf; /* A complete named.conf file. */
-extern cfg_type_t cfg_type_rndcconf; /* A complete rndc.conf file. */
 extern cfg_type_t cfg_type_rndcconf; /* A complete rndc.conf file. */
 extern cfg_type_t cfg_type_keyref; /* A key reference, used as an ACL element */
 
