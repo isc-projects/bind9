@@ -77,15 +77,16 @@ ISC_LANG_BEGINDECLS
  *	Extract only "good" data; return failure if there is not enough
  *	data available and there are no sources which we can poll to get
  *	data, or those sources are empty.
- *
+ */
+#define ISC_ENTROPY_GOODONLY	0x00000001U
+
+/*
  * _POLLABLE
  *	The entropy source is pollable for more data.  This is most useful
  *	for things like files and devices.  It should not be used for
  *	tty/keyboard data, device timings, etc.
  */
-
-#define ISC_ENTROPY_GOODONLY	0x00000001U
-#define ISC_ENTROPY_POLLABLE	0x00000002U
+#define ISC_ENTROPYSOURCE_POLLABLE	0x00000002U
 
 /***
  *** Functions
@@ -95,6 +96,14 @@ isc_result_t
 isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp);
 /*
  * Create a new entropy object.
+ */
+
+isc_result_t
+isc_entropy_destroy(isc_entropy_t **entp);
+/*
+ * Destroys an entropy source.
+ *
+ * All entropy sources must be detached prior to calling this function.
  */
 
 isc_result_t
@@ -123,6 +132,19 @@ isc_entropy_destroysource(isc_entropysource_t **sourcep);
 /*
  * Removes an entropy source from the entropy system.
  */
+
+isc_result_t
+isc_entropy_createsamplesource(isc_entropy_t *ent,
+			       isc_entropysource_t **sourcep);
+/*
+ * Create an entropy source that consists of samples.  Each sample is added
+ * to the source via isc_entropy_addsamples(), below.
+ */
+
+void
+isc_entropy_addsamples(isc_entropysource_t *source, isc_uint32_t *samples,
+		       unsigned int count);
+/* XXXMLG */
 
 isc_result_t
 isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
