@@ -102,7 +102,9 @@ it will be found by the chrooted \fBnamed\fR.
 .TP
 \fB-u \fIuser\fB\fR
 Used with the \fB-a\fR option to set the owner
-of the \fIrndc.key\fR file generated.
+of the \fIrndc.key\fR file generated. If
+\fB-t\fR is also specified only the file in
+the chroot area has its owner changed.
 .SH "EXAMPLES"
 .PP
 To allow \fBrndc\fR to be used with
