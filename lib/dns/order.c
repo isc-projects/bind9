@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: order.c,v 1.4.202.1 2003/08/14 02:34:16 marka Exp $ */
+/* $Id: order.c,v 1.4.202.2 2003/08/14 06:14:23 marka Exp $ */
+
+#include <config.h>
 
 #include <isc/magic.h>
 #include <isc/mem.h>

@@ -1,3 +1,6 @@
+1267.	[func]		isc_file_openunique() now creates file using mode
+			0666 rather than 0600.
+
 1254.	[func]		preferred-glue option from BIND 8.3.
 
 1250.	[func]		Nsupdate will report the address the update was
