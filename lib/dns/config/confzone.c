@@ -553,7 +553,7 @@ dns_c_zone_setfile(isc_log_t *lctx, dns_c_zone_t *zone, const char *newfile)
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a file field\n");
+			      "Forward zones do not have a file field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -992,19 +992,19 @@ dns_c_zone_setixfrbase(isc_log_t *lctx, dns_c_zone_t *zone, const char *newval)
 	case dns_c_zone_stub:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a ixfr_base field\n");
+			      "Stub zones do not have a ixfr_base field");
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a ixfr_base field\n");
+			      "Hint zones do not have a ixfr_base field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a file field\n");
+			      "Forward zones do not have a file field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -1044,19 +1044,19 @@ dns_c_zone_setixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone, const char *newval)
 	case dns_c_zone_stub:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a ixfr_tmp field\n");
+			      "Stub zones do not have a ixfr_tmp field");
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a ixfr_tmp field\n");
+			      "Hint zones do not have a ixfr_tmp field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a file field\n");
+			      "Forward zones do not have a file field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -1103,13 +1103,13 @@ dns_c_zone_setpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a pubkey field\n");
+			      "Hint zones do not have a pubkey field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a pubkey field\n");
+			      "Forward zones do not have a pubkey field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -1147,7 +1147,7 @@ dns_c_zone_setmasterport(isc_log_t *lctx, dns_c_zone_t *zone, in_port_t port)
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Forward zones do not have a "
-			      "master_port field\n");
+			      "master_port field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_slave:
@@ -1167,14 +1167,14 @@ dns_c_zone_setmasterport(isc_log_t *lctx, dns_c_zone_t *zone, in_port_t port)
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a master_port field\n");
+			      "Hint zones do not have a master_port field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Forward zones do not have a "
-			      "master_port field\n");
+			      "master_port field");
 		return (ISC_R_FAILURE);
 	}
 		
@@ -1356,20 +1356,20 @@ dns_c_zone_setmaxixfrlog(isc_log_t *lctx, dns_c_zone_t *zone,
 	case dns_c_zone_stub:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a max-ixfr-log field\n");
+			      "Stub zones do not have a max-ixfr-log field");
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a max-ixfr-log field\n");
+			      "Hint zones do not have a max-ixfr-log field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Forward zones do not have a "
-			      "max-ixfr-log field\n");
+			      "max-ixfr-log field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -1540,7 +1540,7 @@ dns_c_zone_getfile(isc_log_t *lctx, dns_c_zone_t *zone, const char **retval)
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a file field\n");
+			      "Forward zones do not have a file field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -1992,19 +1992,19 @@ dns_c_zone_getixfrbase(isc_log_t *lctx, dns_c_zone_t *zone,
 	case dns_c_zone_stub:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a ixfr_base field\n");
+			      "Stub zones do not have a ixfr_base field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a ixfr_base field\n");
+			      "Hint zones do not have a ixfr_base field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a file field\n");
+			      "Forward zones do not have a file field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -2040,19 +2040,19 @@ dns_c_zone_getixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone, const char **retval)
 	case dns_c_zone_stub:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a ixfr_tmp field\n");
+			      "Stub zones do not have a ixfr_tmp field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a ixfr_tmp field\n");
+			      "Hint zones do not have a ixfr_tmp field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a file field\n");
+			      "Forward zones do not have a file field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -2093,13 +2093,13 @@ dns_c_zone_getpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a pubkey field\n");
+			      "Hint zones do not have a pubkey field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Forward zones do not have a pubkey field\n");
+			      "Forward zones do not have a pubkey field");
 		return (ISC_R_FAILURE);
 	}
 
@@ -2128,7 +2128,7 @@ dns_c_zone_getmasterport(isc_log_t *lctx, dns_c_zone_t *zone,
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Forward zones do not have a "
-			      "master_port field\n");
+			      "master_port field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_slave:
@@ -2154,14 +2154,14 @@ dns_c_zone_getmasterport(isc_log_t *lctx, dns_c_zone_t *zone,
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Hint zones do not have a master_port field\n");
+			      "Hint zones do not have a master_port field");
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Forward zones do not have a "
-			      "master_port field\n");
+			      "master_port field");
 		return (ISC_R_FAILURE);
 	}
 
