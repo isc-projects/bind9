@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_query.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_query.c,v 1.2.2.1 2002/07/14 02:27:10 marka Exp $";
+static const char rcsid[] = "$Id: res_query.c,v 1.2.2.2 2002/07/14 04:26:59 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -132,8 +132,8 @@ again:
 	n = res_nmkquery(statp, QUERY, name, class, type, NULL, 0, NULL,
 			 buf, sizeof(buf));
 #ifdef RES_USE_EDNS0
-	if (n > 0 && (statp->options & RES_USE_EDNS0) != 0 &&
-	    (statp->_flags & RES_F_EDNS0ERR) == 0)
+	if (n > 0 && (statp->_flags & RES_F_EDNS0ERR) == 0 &&
+	    (statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC)) != 0)
 		n = res_nopt(statp, n, buf, sizeof(buf), anslen);
 #endif
 	if (n <= 0) {
@@ -148,7 +148,7 @@ again:
 	if (n < 0) {
 #ifdef RES_USE_EDNS0
 		/* if the query choked with EDNS0, retry without EDNS0 */
-		if ((statp->options & RES_USE_EDNS0) != 0 &&
+		if ((statp->options & (RES_USE_EDNS0|RES_USE_DNSSEC)) != 0 &&
 		    ((oflags ^ statp->_flags) & RES_F_EDNS0ERR) != 0) {
 			statp->_flags |= RES_F_EDNS0ERR;
 			if (statp->options & RES_DEBUG)

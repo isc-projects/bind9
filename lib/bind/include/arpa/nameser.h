@@ -49,7 +49,7 @@
  */
 
 /*
- *	$Id: nameser.h,v 1.2.2.2 2002/07/11 04:10:34 marka Exp $
+ *	$Id: nameser.h,v 1.2.2.3 2002/07/14 04:26:55 marka Exp $
  */
 
 #ifndef _ARPA_NAMESER_H_
@@ -426,6 +426,11 @@ typedef enum __ns_cert_types {
 #define	NS_NXT_BIT_CLEAR(n,p) (p[(n)/NS_NXT_BITS] &= ~(0x80>>((n)%NS_NXT_BITS)))
 #define	NS_NXT_BIT_ISSET(n,p) (p[(n)/NS_NXT_BITS] &   (0x80>>((n)%NS_NXT_BITS)))
 #define NS_NXT_MAX 127
+
+/*
+ * EDNS0 extended flags, host order.
+ */
+#define NS_OPT_DNSSEC_OK	0x8000U
 
 /*
  * Inline versions of get/put short/long.  Pointer is advanced.

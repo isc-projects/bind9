@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.7.2.6 2002/07/14 02:27:07 marka Exp $
+ *	$Id: resolv.h,v 1.7.2.7 2002/07/14 04:26:54 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -249,6 +249,7 @@ union res_sockaddr_union {
 #define RES_NO_NIBBLE	0x00040000	/* disable IPv6 nibble mode reverse */
 #define RES_NO_BITSTRING 0x00080000	/* disable IPv6 bit string mode reverse */
 #define RES_NOTLDQUERY	0x00100000	/* don't unqualified name as a tld */
+#define RES_USE_DNSSEC	0x00200000	/* use DNSSEC using OK bit in OPT */
 /* KAME extensions: use higher bit to avoid conflict with ISC use */
 #define RES_USE_DNAME	0x10000000	/* use DNAME */
 #define RES_USE_A6	0x20000000	/* use A6 */

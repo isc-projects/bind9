@@ -140,6 +140,8 @@
 1209.	[bug]		Dig, host, nslookup were not checking the message ids
 			on the responses. [RT #2454]
 
+1096.	[func]		libbind: "DNSSEC OK" (DO) support.
+
 1095.	[func]		libbind: resolver option: no-tld-query.  disables
 			trying unqualified as a tld.  no_tld_query is also
 			supported for FreeBSD compatability.
