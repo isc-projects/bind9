@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.312 2001/03/27 00:44:34 bwelling Exp $ */
+/* $Id: server.c,v 1.313 2001/03/27 18:17:09 gson Exp $ */
 
 #include <config.h>
 
@@ -2249,7 +2249,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_stats_alloccounters(ns_g_mctx, &server->querystats),
 		   "dns_stats_alloccounters");
 
-	server->dumpfile = isc_mem_strdup(server->mctx, "named.dump");
+	server->dumpfile = isc_mem_strdup(server->mctx, "named_dump.db");
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "isc_mem_strdup");
 
