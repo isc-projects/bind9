@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.105 2002/11/26 04:36:46 marka Exp $ */
+/* $Id: parser.c,v 1.106 2003/04/10 02:16:11 marka Exp $ */
 
 #include <config.h>
 
@@ -1476,6 +1476,9 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 	
 	if (type->parse == cfg_parse_named_map) {
 		cfg_doc_obj(pctx, &cfg_type_astring);
+		cfg_print_chars(pctx, " ", 1);
+	} else if (type->parse == cfg_parse_addressed_map) {
+		cfg_doc_obj(pctx, &cfg_type_netaddr);
 		cfg_print_chars(pctx, " ", 1);
 	}
 	

@@ -3,6 +3,8 @@ This is a summary of the named.conf options supported by
 this version of BIND 9.
 
 options {
+        avoid-v4-udp-ports { <port>; ... };
+        avoid-v6-udp-ports { <port>; ... };
         blackhole { <address_match_element>; ... };
         coresize <size>;
         datasize <size>;
@@ -19,22 +21,22 @@ options {
         listen-on [ port <integer> ] { <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] { <address_match_element>; ... };
         match-mapped-addresses <boolean>;
-        max-journal-size <size_no_default>;
         memstatistics-file <quoted_string>;
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
         pid-file ( <quoted_string> | none );
         port <integer>;
+        recursing-file <quoted_string>;
         random-device <quoted_string>;
         recursive-clients <integer>;
-        rrset-order { [ class <string> ] [ type <string> ] [ name
-            <quoted_string> ] <string> <string>; ... }; // not implemented
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
+        server-id ( <quoted_string> | none |;
         stacksize <size>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // not yet implemented
         tcp-clients <integer>;
+        tcp-listen-queue <integer>;
         tkey-dhkey <quoted_string> <integer>;
         tkey-gssapi-credential <quoted_string>;
         tkey-domain <quoted_string>;
@@ -46,12 +48,14 @@ options {
         use-ixfr <boolean>;
         version ( <quoted_string> | none );
         allow-recursion { <address_match_element>; ... };
-        allow-v6-synthesis { <address_match_element>; ... };
+        allow-v6-synthesis { <address_match_element>; ... }; // obsolete
         sortlist { <address_match_element>; ... };
         topology { <address_match_element>; ... }; // not implemented
         auth-nxdomain <boolean>; // default changed
         minimal-responses <boolean>;
         recursion <boolean>;
+        rrset-order { [ class <string> ] [ type <string> ] [ name
+            <quoted_string> ] <string> <string>; ... };
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
         fetch-glue <boolean>; // obsolete
@@ -70,6 +74,10 @@ options {
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         suppress-initial-notify <boolean>; // not yet implemented
+        preferred-glue <string>;
+        dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
+            <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
+        edns-udp-size <integer>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -86,8 +94,7 @@ options {
         ixfr-from-differences <boolean>;
         maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
-        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+        max-journal-size <size_no_default>;
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
         max-transfer-idle-in <integer>;
@@ -96,7 +103,15 @@ options {
         min-retry-time <integer>;
         max-refresh-time <integer>;
         min-refresh-time <integer>;
+        multi-master <boolean>;
         sig-validity-interval <integer>;
+        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+        alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
+            ];
+        alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
+            * ) ];
+        use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
 };
@@ -108,6 +123,9 @@ controls {
 };
 
 acl <string> { <address_match_element>; ... };
+
+masters <string> [ port <integer> ] { ( <masters> | <ipv4_address> [port
+    <integer>] | <ipv6_address> [port <integer>] ) [ key <string> ]; ... };
 
 logging {
         channel <string> {
@@ -137,8 +155,8 @@ view <string> <optional_class> {
                 file <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-tmp-file <quoted_string>; // obsolete
-                masters [ port <integer> ] { ( <ipv4_address> |
-                    <ipv6_address> ) [ port <integer> ] [ key <string> ]; ... };
+                masters [ port <integer> ] { ( <masters> | <ipv4_address>
+                    [port <integer>] | <ipv6_address> [port <integer>] ) [ key <string> ]; ... };
                 pubkey <integer> <integer> <integer> <quoted_string>; //
                     obsolete
                 update-policy { ( grant | deny ) <string> ( name |
@@ -163,10 +181,7 @@ view <string> <optional_class> {
                 ixfr-from-differences <boolean>;
                 maintain-ixfr-base <boolean>; // obsolete
                 max-ixfr-log-size <size>; // obsolete
-                transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
-                    * ) ];
-                transfer-source-v6 ( <ipv6_address> | * ) [ port (
-                    <integer> | * ) ];
+                max-journal-size <size_no_default>;
                 max-transfer-time-in <integer>;
                 max-transfer-time-out <integer>;
                 max-transfer-idle-in <integer>;
@@ -175,11 +190,21 @@ view <string> <optional_class> {
                 min-retry-time <integer>;
                 max-refresh-time <integer>;
                 min-refresh-time <integer>;
+                multi-master <boolean>;
                 sig-validity-interval <integer>;
+                transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
+                    * ) ];
+                transfer-source-v6 ( <ipv6_address> | * ) [ port (
+                    <integer> | * ) ];
+                alt-transfer-source ( <ipv4_address> | * ) [ port (
+                    <integer> | * ) ];
+                alt-transfer-source-v6 ( <ipv6_address> | * ) [ port (
+                    <integer> | * ) ];
+                use-alt-transfer-source <boolean>;
                 zone-statistics <boolean>;
                 key-directory <quoted_string>;
         };
-        server {
+        server <netaddr> {
                 bogus <boolean>;
                 provide-ixfr <boolean>;
                 request-ixfr <boolean>;
@@ -192,12 +217,14 @@ view <string> <optional_class> {
         trusted-keys { <string> <integer> <integer> <integer>
             <quoted_string>; ... };
         allow-recursion { <address_match_element>; ... };
-        allow-v6-synthesis { <address_match_element>; ... };
+        allow-v6-synthesis { <address_match_element>; ... }; // obsolete
         sortlist { <address_match_element>; ... };
         topology { <address_match_element>; ... }; // not implemented
         auth-nxdomain <boolean>; // default changed
         minimal-responses <boolean>;
         recursion <boolean>;
+        rrset-order { [ class <string> ] [ type <string> ] [ name
+            <quoted_string> ] <string> <string>; ... };
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
         fetch-glue <boolean>; // obsolete
@@ -216,6 +243,10 @@ view <string> <optional_class> {
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         suppress-initial-notify <boolean>; // not yet implemented
+        preferred-glue <string>;
+        dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
+            <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
+        edns-udp-size <integer>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -232,8 +263,7 @@ view <string> <optional_class> {
         ixfr-from-differences <boolean>;
         maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
-        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+        max-journal-size <size_no_default>;
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
         max-transfer-idle-in <integer>;
@@ -242,7 +272,15 @@ view <string> <optional_class> {
         min-retry-time <integer>;
         max-refresh-time <integer>;
         min-refresh-time <integer>;
+        multi-master <boolean>;
         sig-validity-interval <integer>;
+        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+        alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
+            ];
+        alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
+            * ) ];
+        use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
 };
@@ -266,8 +304,8 @@ zone <string> <optional_class> {
         file <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-tmp-file <quoted_string>; // obsolete
-        masters [ port <integer> ] { ( <ipv4_address> | <ipv6_address> ) [
-            port <integer> ] [ key <string> ]; ... };
+        masters [ port <integer> ] { ( <masters> | <ipv4_address> [port
+            <integer>] | <ipv6_address> [port <integer>] ) [ key <string> ]; ... };
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
         update-policy { ( grant | deny ) <string> ( name | subdomain |
             wildcard | self ) <string> <rrtypelist>; ... };
@@ -289,8 +327,7 @@ zone <string> <optional_class> {
         ixfr-from-differences <boolean>;
         maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
-        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+        max-journal-size <size_no_default>;
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
         max-transfer-idle-in <integer>;
@@ -299,12 +336,20 @@ zone <string> <optional_class> {
         min-retry-time <integer>;
         max-refresh-time <integer>;
         min-refresh-time <integer>;
+        multi-master <boolean>;
         sig-validity-interval <integer>;
+        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+        alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * )
+            ];
+        alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
+            * ) ];
+        use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
 };
 
-server {
+server <netaddr> {
         bogus <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;

@@ -1,3 +1,6 @@
+1455.	[bug]		<netaddr> missing from server grammar in
+			doc/misc/options. [RT #5616]
+
 1454.	[port]		Use getifaddrs() if available for interface scanning.
 			--disable-getifaddrs to override.  Glibc currently
 			has a getifaddrs() that does not support IPv6.
