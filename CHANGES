@@ -1,3 +1,10 @@
+  45.	[bug]		The trusted-key statement incorrectly loaded keys.
+
+  44.	[bug]		Don't include authority data if it would force us
+			to unset the AD bit in the message.
+
+  43.	[bug]		DNSSEC verification of cached rdatasets was failing.
+
   42.	[cleanup]	Simplified logging of messages with embedded domain
 			names by introducing a new convenience function
 			dns_name_format().
