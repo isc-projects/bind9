@@ -30,12 +30,13 @@
 
 #include <isc/assertions.h>
 #include <isc/boolean.h>
-#include <isc/thread.h>
-#include <isc/mutex.h>
 #include <isc/condition.h>
 #include <isc/error.h>
 #include <isc/event.h>
+#include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/task.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #define ISC_TASK_NAMES 1

@@ -59,10 +59,6 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 #include <isc/eventclass.h>
-#include <isc/mem.h>
-#include <isc/result.h>
-
-ISC_LANG_BEGINDECLS
 
 #define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
 #define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
@@ -71,6 +67,8 @@ ISC_LANG_BEGINDECLS
 /*****
  ***** Tasks.
  *****/
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,

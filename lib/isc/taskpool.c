@@ -20,7 +20,9 @@
 #include <isc/assertions.h>
 #include <isc/boolean.h>
 #include <isc/error.h>
+#include <isc/mem.h>
 #include <isc/taskpool.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 /***
