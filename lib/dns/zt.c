@@ -41,6 +41,7 @@ struct dns_zt {
 #define VALID_ZT(zt) 		ISC_MAGIC_VALID(zt, ZTMAGIC)
 
 static void auto_detach(void *, void *);
+static void load(dns_zone_t *zone, void *uap);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
@@ -218,12 +219,24 @@ dns_zt_print(dns_zt_t *zt) {
 
 void
 dns_zt_load(dns_zt_t *zt) {
+	dns_zt_apply(zt, load, NULL);
+}
+
+static void
+load(dns_zone_t *zone, void *uap) {
+	uap = uap;
+	(void)dns_zone_load(zone);
+}
+
+void
+dns_zt_apply(dns_zt_t *zt, void (*action)(dns_zone_t *, void *), void *uap) {
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
 	isc_result_t result;
 	dns_zone_t *zone;
 
 	REQUIRE(VALID_ZT(zt));
+	REQUIRE(action != NULL);
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
@@ -235,7 +248,7 @@ dns_zt_load(dns_zt_t *zt) {
 		if (result == DNS_R_SUCCESS) {
 			zone = node->data;
 			if (zone != NULL)
-				(void)dns_zone_load(zone);
+				(action)(zone, uap);
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	}
