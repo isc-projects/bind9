@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.43 2000/11/20 21:49:16 bwelling Exp $
+$Id: options,v 1.44 2000/11/20 21:56:22 bwelling Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -22,6 +22,8 @@ Legend:
   -	    The option is now always disabled.
 
   %	    The default value has changed since BIND 8.
+
+  &	    The option has been extended since BIND 8.
 
   @	    Semantics of certain pathological address match lists, in
 	    particular those involving double negation, have changed.
@@ -48,7 +50,7 @@ options {
   [ has-old-clients yes_or_no; ]			    Obsolete
   [ host-statistics yes_or_no; ]			    No
   [ multiple-cnames yes_or_no; ]			    Obsolete-
-  [ notify yes_or_no; ]					    Yes
+  [ notify yes_or_no | explicit; ]			    Yes&
   [ recursion yes_or_no; ]				    Yes
   [ rfc2308-type1 yes_or_no; ]				    No
   [ use-id-pool yes_or_no; ]				    Obsolete+
@@ -142,8 +144,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ dialup yes_or_no; ]					    No
   [ max-transfer-time-out number; ]			    Yes*
   [ max-transfer-idle-out number; ]			    Yes*
-  [ notify yes_or_no; ]					    Yes
-  [ also-notify { ip_addr; [ ip_addr; ... ] };		    Yes
+  [ notify yes_or_no | explicit; ]			    Yes&
+  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
   [ ixfr-base  path_name; ]				    Obsolete
   [ pubkey number number number string; ]		    No
   [ sig-validity-interval number; ]			    Yes*
@@ -169,8 +171,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ max-transfer-idle-in number; ]			    Yes*
   [ max-transfer-time-out number; ]			    Yes*
   [ max-transfer-idle-out number; ]			    Yes*
-  [ notify yes_or_no; ]					    Yes
-  [ also-notify { ip_addr; [ ip_addr; ... ] };		    Yes
+  [ notify yes_or_no | explicit; ]			    Yes&
+  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
   [ pubkey number number number string; ]		    No
 };
 
@@ -212,7 +214,7 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ zone ... ]						    Yes
   [ auth-nxdomain yes_or_no; ]				    Yes
   [ fetch-glue yes_or_no; ]				    Obsolete
-  [ notify yes_or_no; ]					    Yes
+  [ notify yes_or_no | explicit; ]			    Yes&
   [ recursion yes_or_no; ]				    Yes
   [ rfc2308-type1 yes_or_no; ]				    No
   [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
