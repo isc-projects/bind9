@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.119 2001/06/05 06:34:45 bwelling Exp $ */
+/* $Id: master.c,v 1.120 2001/07/24 18:49:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/soa.h>
@@ -101,6 +102,7 @@ struct dns_loadctx {
 	isc_boolean_t		ttl_known;
 	isc_boolean_t		default_ttl_known;
 	isc_boolean_t		warn_1035;
+	isc_boolean_t		warn_sigexpired;
 	isc_boolean_t		seen_include;
 	isc_uint32_t		ttl;
 	isc_uint32_t		default_ttl;
@@ -460,6 +462,7 @@ loadctx_create(isc_mem_t *mctx, unsigned int options, dns_name_t *top,
 	lctx->default_ttl_known = ISC_FALSE;
 	lctx->default_ttl = 0;
 	lctx->warn_1035 = ISC_TRUE;	/* XXX Argument? */
+	lctx->warn_sigexpired = ISC_TRUE;	/* XXX Argument? */
 	lctx->options = options;
 	lctx->seen_include = ISC_FALSE;
 	lctx->zclass = zclass;
@@ -803,6 +806,7 @@ load(dns_loadctx_t *lctx) {
 	const char *source = "";
 	unsigned long line = 0;
 	isc_boolean_t explicit_ttl;
+	isc_stdtime_t now;
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
 	callbacks = lctx->callbacks;
@@ -811,6 +815,8 @@ load(dns_loadctx_t *lctx) {
 
 	ISC_LIST_INIT(glue_list);
 	ISC_LIST_INIT(current_list);
+
+	isc_stdtime_get(&now);
 
 	/*
 	 * Allocate target_size of buffer space.  This is greater than twice
@@ -1426,6 +1432,19 @@ load(dns_loadctx_t *lctx) {
 					   "using RFC 1035 TTL semantics",
 					   "dns_master_load", source, line);
 			lctx->warn_1035 = ISC_FALSE;
+		}
+
+		if (type == dns_rdatatype_sig && lctx->warn_sigexpired) {
+			dns_rdata_sig_t sig;
+			(void)dns_rdata_tostruct(&rdata[rdcount], &sig, NULL);
+			if (now > sig.timeexpire) {
+				(*callbacks->warn)(callbacks,
+						   "%s: %s:%lu: "
+						   "signature has expired",
+						   "dns_master_load",
+						   source, line);
+				lctx->warn_sigexpired = ISC_FALSE;
+			}
 		}
 
 		if ((lctx->options & DNS_MASTER_AGETTL) != 0) {

@@ -1,4 +1,6 @@
 
+ 944.	[func]		Check for expired signatures on load.
+
  943.	[bug]		The server could crash when receiving a command
  			via rndc if the configuration file listed only
 			nonexistent keys in the controls statement.  [RT #1530]
