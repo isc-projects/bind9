@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.137 2002/02/21 00:51:22 marka Exp $ */
+/* $Id: master.c,v 1.138 2002/02/21 00:56:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -460,13 +460,15 @@ loadctx_create(isc_mem_t *mctx, unsigned int options, dns_name_t *top,
 	if (result != ISC_R_SUCCESS) 
 		goto cleanup_ctx;
 
-	if (lex != NULL)
+	if (lex != NULL) {
 		lctx->lex = lex;
-	else {
+		lctx->keep_lex = ISC_TRUE;
+	} else {
 		lctx->lex = NULL;
 		result = isc_lex_create(mctx, TOKENSIZ, &lctx->lex);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_inc;
+		lctx->keep_lex = ISC_FALSE;
 		memset(specials, 0, sizeof(specials));
 		specials['('] = 1;
 		specials[')'] = 1;
