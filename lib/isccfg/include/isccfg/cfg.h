@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.6 2001/02/22 00:23:31 gson Exp $ */
+/* $Id: cfg.h,v 1.7 2001/02/22 00:36:26 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -245,6 +245,15 @@ cfg_print(cfg_obj_t *obj,
 void cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
 /*
  * Destroy a configuration object.
+ */
+
+void
+cfg_obj_log(cfg_parser_t *pctx, cfg_obj_t *obj, int level,
+	    const char *fmt, ...);
+/*
+ * Log a message concerning configuration object 'obj' to the logging
+ * channel of 'pctx', at log level 'level'.  The message will be prefixed
+ * with the file name(s) and line number where 'obj' was defined.
  */
 
 /*

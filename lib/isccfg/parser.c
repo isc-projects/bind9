@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.11 2001/02/22 00:23:29 gson Exp $ */
+/* $Id: parser.c,v 1.12 2001/02/22 00:36:24 gson Exp $ */
 
 #include <config.h>
 
@@ -3090,6 +3090,23 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 	}
 	isc_log_write(pctx->lctx, CAT, MOD, level,
 		      "%s%s%s%s", where, message, prep, tokenbuf);
+}
+
+void
+cfg_obj_log(cfg_parser_t *pctx, cfg_obj_t *obj, int level, const char *fmt, ...)
+{
+	va_list ap;
+	char msgbuf[2048];
+
+	if (! isc_log_wouldlog(pctx->lctx, level))
+		return;
+
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+	isc_log_write(pctx->lctx, CAT, MOD, level,
+		      "%s:%u: %s",
+		      obj->file == NULL ? "<unknown file>" : obj->file,
+		      obj->line, msgbuf);
+	va_end(ap);
 }
 
 static isc_result_t
