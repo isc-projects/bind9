@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.53 2000/06/09 22:32:15 bwelling Exp $
+ * $Id: dst_api.c,v 1.54 2000/06/09 23:31:52 bwelling Exp $
  */
 
 #include <config.h>
@@ -107,6 +107,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	RETERR(dst__dnssafersa_init(&dst_t_func[DST_ALG_RSA]));
 #endif
 #ifdef OPENSSL
+	RETERR(dst__openssl_init());
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #endif
@@ -131,6 +132,7 @@ dst_lib_destroy(void) {
 #ifdef OPENSSL
 	dst__openssldsa_destroy();
 	dst__openssldh_destroy();
+	dst__openssl_destroy();
 #endif
 	if (dst_memory_pool != NULL)
 		isc_mem_detach(&dst_memory_pool);
@@ -994,8 +996,9 @@ dst__mem_realloc(void *ptr, size_t size) {
 }
 
 isc_result_t
-dst__entropy_getdata(void *buf, unsigned int len) {
-	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL,
-				    dst_entropy_flags));
-	
+dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
+	unsigned int flags = dst_entropy_flags;
+	if (pseudo)
+		flags &= ~ISC_ENTROPY_GOODONLY;
+	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
 }

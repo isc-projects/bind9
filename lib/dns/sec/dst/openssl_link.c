@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.29 2000/06/09 22:32:18 bwelling Exp $
+ * $Id: openssl_link.c,v 1.30 2000/06/09 23:31:55 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -38,6 +38,8 @@
 
 #include <openssl/dsa.h>
 #include <openssl/rand.h>
+
+static RAND_METHOD *rm = NULL;
 
 static isc_result_t openssldsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
@@ -467,8 +469,17 @@ entropy_get(unsigned char *buf, int num) {
 	isc_result_t result;
 	if (num < 0)
 		return (-1);
-	result = dst__entropy_getdata(buf, (unsigned int) num);
-	return (result == ISC_R_SUCCESS ? 0 : -1);
+	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_FALSE);
+	return (result == ISC_R_SUCCESS ? num : -1);
+}
+
+static int
+entropy_getpseudo(unsigned char *buf, int num) {
+	isc_result_t result;
+	if (num < 0)
+		return (-1);
+	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_TRUE);
+	return (result == ISC_R_SUCCESS ? num : -1);
 }
 
 static void
@@ -483,17 +494,24 @@ entropy_add(const void *buf, int num, double entropy) {
 
 isc_result_t
 dst__openssl_init(void) {
-	RAND_METHOD rm;
 	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
 				 dst__mem_free);
-	rm.seed = NULL;
-	rm.bytes = entropy_get;
-	rm.cleanup = NULL;
-	rm.add = entropy_add;
-	rm.pseudorand = entropy_get;
-	rm.status = NULL;
-	RAND_set_rand_method(&rm);
+	rm = dst__mem_alloc(sizeof(RAND_METHOD));
+	if (rm == NULL)
+		return (ISC_R_NOMEMORY);
+	rm->seed = NULL;
+	rm->bytes = entropy_get;
+	rm->cleanup = NULL;
+	rm->add = entropy_add;
+	rm->pseudorand = entropy_getpseudo;
+	rm->status = NULL;
+	RAND_set_rand_method(rm);
 	return (ISC_R_SUCCESS);
+}
+
+void
+dst__openssl_destroy(void) {
+	dst__mem_free(rm);
 }
 
 #endif /* OPENSSL */

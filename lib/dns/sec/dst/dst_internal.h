@@ -100,6 +100,8 @@ isc_result_t dst__openssldh_init(struct dst_func **funcp);
 /*
  * Destructors
  */
+void dst__openssl_destroy(void);
+
 void dst__hmacmd5_destroy(void);
 void dst__dnssafersa_destroy(void);
 void dst__openssldsa_destroy(void);
@@ -121,7 +123,8 @@ void * dst__mem_realloc(void *ptr, size_t size);
 /*
  * Entropy retriever using the DST entropy pool.
  */
-isc_result_t dst__entropy_getdata(void *buf, unsigned int len);
+isc_result_t dst__entropy_getdata(void *buf, unsigned int len,
+				  isc_boolean_t pseudo);
 
 ISC_LANG_ENDDECLS
 
