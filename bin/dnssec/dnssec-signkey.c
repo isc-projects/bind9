@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.33 2000/08/14 04:43:14 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.34 2000/09/08 14:15:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -57,7 +57,7 @@ struct keynode {
 };
 typedef ISC_LIST(keynode_t) keylist_t;
 
-static isc_stdtime_t now;
+static isc_stdtime_t starttime = 0, endtime = 0, now;
 
 static isc_mem_t *mctx = NULL;
 static isc_entropy_t *ectx = NULL;
@@ -71,6 +71,11 @@ usage(void) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
+	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
+	fprintf(stderr, "\t\tSIG start time - absolute|offset (from keyset)\n");
+	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
+	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now "
+		"(from keyset)\n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
 	fprintf(stderr, "\t-p\n");
@@ -137,6 +142,7 @@ findkey(dns_rdata_sig_t *sig) {
 int
 main(int argc, char *argv[]) {
 	int i, ch;
+	char *startstr = NULL, *endstr = NULL;
 	char tdomain[1025];
 	dns_fixedname_t fdomain;
 	dns_name_t *domain;
@@ -165,9 +171,17 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "pr:v:h")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:pr:v:h")) != -1)
 	{
 		switch (ch) {
+		case 's':
+			startstr = isc_commandline_argument;
+			break;
+						
+		case 'e':
+			endstr = isc_commandline_argument;
+			break;
+
 		case 'p':
 			pseudorandom = ISC_TRUE;
 			break;
@@ -210,6 +224,10 @@ main(int argc, char *argv[]) {
 		fatal("could not initialize dst");
 
 	isc_stdtime_get(&now);
+
+	if ((startstr == NULL || endstr == NULL) &&
+	    !(startstr == NULL && endstr == NULL))
+		fatal("if -s or -e is specified, both must be");
 
 	setup_logging(verbose, mctx, &log);
 
@@ -294,6 +312,15 @@ main(int argc, char *argv[]) {
 		result = dns_rdataset_next(&sigrdataset);
 	} while (result == ISC_R_SUCCESS);
 
+	if (startstr != NULL) {
+		starttime = strtotime(startstr, now, now);
+		endtime = strtotime(endstr, now, starttime);
+	} else {
+		starttime = sig.timesigned;
+		endtime = sig.timeexpire;
+	}
+
+
 	for (keynode = ISC_LIST_HEAD(keylist);
 	     keynode != NULL;
 	     keynode = ISC_LIST_NEXT(keynode, link))
@@ -333,7 +360,7 @@ main(int argc, char *argv[]) {
 			fatal("out of memory");
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dns_dnssec_sign(domain, &rdataset, key,
-					 &sig.timesigned, &sig.timeexpire,
+					 &starttime, &endtime,
 					 mctx, &b, rdata);
 		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS) {
