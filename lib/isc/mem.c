@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.80 2001/01/25 01:38:01 neild Exp $ */
+/* $Id: mem.c,v 1.81 2001/02/05 23:48:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -767,6 +767,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->memfree = memfree;
 	ctx->arg = arg;
 	ctx->stats = NULL;
+	ctx->checkfree = ISC_TRUE;
 	ISC_LIST_INIT(ctx->pools);
 
 #if ISC_MEM_USE_INTERNAL_MALLOC
@@ -791,7 +792,6 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 		result = ISC_R_NOMEMORY;
 		goto error;
 	}
-	ctx->checkfree = ISC_TRUE;
 	ctx->trysplit = ISC_FALSE;
 	memset(ctx->freelists, 0,
 	       ctx->max_size * sizeof (element *));
