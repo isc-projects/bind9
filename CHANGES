@@ -1,3 +1,6 @@
+1347.	[bug]		Incorporate OpenSSL fixes for CERT Advisory CA-2002-23
+			http://www.cert.org/advisories/CA-2002-23.html
+
 1156.	[port]		The configure test for strsep() incorrectly
 			succeeded on certain patched versions of
 			AIX 4.3.3. [RT #2190]
