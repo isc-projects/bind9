@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.1 2003/08/08 04:09:35 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.2 2003/08/12 05:21:06 marka Exp $ */
 
 #include <config.h>
 
@@ -2286,6 +2286,20 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			       &name, &rdata, &covers, &ttl, &update_class);
 
 		if (update_class == zoneclass) {
+
+			/*
+			 * RFC 1123 doesn't allow MF and MD in master zones.				 */
+			if (rdata.type == dns_rdatatype_md ||
+			    rdata.type == dns_rdatatype_mf) {
+				char typebuf[DNS_RDATATYPE_FORMATSIZE];
+
+				dns_rdatatype_format(rdata.type, typebuf,
+						     sizeof(typebuf));
+				update_log(client, zone, LOGLEVEL_PROTOCOL,
+					   "attempt to add %s ignored",
+					   typebuf);
+				continue;
+			}
 			if (rdata.type == dns_rdatatype_cname) {
 				CHECK(cname_incompatible_rrset_exists(db, ver,
 								      name,

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: genzone.sh,v 1.3 2002/02/20 03:33:46 marka Exp $
+# $Id: genzone.sh,v 1.3.202.1 2003/08/12 05:21:07 marka Exp $
 
 #
 # Set up a test zone

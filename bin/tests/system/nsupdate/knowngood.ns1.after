@@ -46,10 +46,6 @@ loc01.example.nil.	3600	IN	LOC	60 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m
 loc02.example.nil.	3600	IN	LOC	60 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m
 mb01.example.nil.	3600	IN	MG	madname.example.nil.
 mb02.example.nil.	3600	IN	MG	.
-md01.example.nil.	3600	IN	MD	madname.example.nil.
-md01.example.nil.	3600	IN	MD	.
-mf01.example.nil.	3600	IN	MF	madname.example.nil.
-mf01.example.nil.	3600	IN	MF	.
 mg01.example.nil.	3600	IN	MG	mgmname.example.nil.
 mg02.example.nil.	3600	IN	MG	.
 minfo01.example.nil.	3600	IN	MINFO	rmailbx.example.nil. emailbx.example.nil.
