@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.22 2000/09/08 21:46:59 gson Exp $ */
+/* $Id: file.c,v 1.23 2000/10/03 05:45:39 marka Exp $ */
 
 #include <config.h>
 
@@ -117,27 +117,57 @@ isc_file_settime(const char *file, isc_time_t *time) {
 
 isc_result_t
 isc_file_mktemplate(const char *path, char *buf, size_t buflen) {
+	return (isc_file_template(path, TEMPLATE, buf, buflen));
+}
+
+isc_result_t
+isc_file_template(const char *path, const char *templat, char *buf,
+			size_t buflen) {
 	char *s;
 
 	REQUIRE(buf != NULL);
 
+	s = strrchr(templat, '/');
+	if (s != NULL)
+		templat = s + 1;
+
 	s = strrchr(path, '/');
 
 	if (s != NULL) {
-		if ((s - path + 1 + sizeof(TEMPLATE)) > buflen)
+		if ((s - path + 1 + strlen(templat) + 1) > buflen)
 			return (ISC_R_NOSPACE);
 
 		strncpy(buf, path, s - path + 1);
 		buf[s - path + 1] = '\0';
-		strcat(buf, TEMPLATE);
+		strcat(buf, templat);
 	} else {
-		if (sizeof(TEMPLATE) > buflen)
+		if ((strlen(templat) + 1) > buflen)
 			return (ISC_R_NOSPACE);
 
-		strcpy(buf, TEMPLATE);
+		strcpy(buf, templat);
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_file_renameunique(const char *file, char *templet) {
+	int fd = -1;
+	int res = 0;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	fd = mkstemp(templet);
+	if (fd == -1) {
+		result = isc__errno2result(errno);
+	}
+	if (result == ISC_R_SUCCESS) {
+		res = rename(file, templet);
+		if (res != 0)
+			result = isc__errno2result(errno);
+	}
+	if (fd != -1)
+		close(fd);
+	return (result);
 }
 
 isc_result_t

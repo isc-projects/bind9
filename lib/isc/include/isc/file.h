@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.11 2000/09/08 21:46:58 gson Exp $ */
+/* $Id: file.h,v 1.12 2000/10/03 05:45:38 marka Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -169,6 +169,22 @@ isc_boolean_t
 isc_file_isabsolute(const char *filename);
 /*
  * Return ISC_TRUE iff the given file name is absolute.
+ */
+
+isc_result_t
+isc_file_template(const char *path, const char *templat, char *buf,
+                        size_t buflen);
+/*
+ * Create a OS specific template using 'path' to define the directory
+ * 'templat' to describe the filename and store the result in 'buf'
+ * such that path can be renamed to buf atomically.
+ */
+
+isc_result_t
+isc_file_renameunique(const char *file, char *templet);
+
+/*
+ * Rename 'file' using 'templet' as template for the new file name.
  */
 
 /*
