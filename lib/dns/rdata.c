@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.141 2001/01/09 21:51:20 bwelling Exp $ */
+/* $Id: rdata.c,v 1.142 2001/01/25 20:14:36 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -106,6 +106,9 @@ name_length(dns_name_t *name);
 
 static isc_result_t
 str_totext(const char *source, isc_buffer_t *target);
+
+static isc_result_t
+inet_totext(int af, isc_region_t *src, isc_buffer_t *target);
 
 static isc_boolean_t
 buffer_empty(isc_buffer_t *source);
@@ -1466,6 +1469,19 @@ str_totext(const char *source, isc_buffer_t *target) {
 
 	memcpy(region.base, source, l);
 	isc_buffer_add(target, l);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+inet_totext(int af, isc_region_t *src, isc_buffer_t *target) {
+	char tmpbuf[64];
+
+	/* Note - inet_ntop doesn't do size checking on its input. */
+	if (inet_ntop(af, src->base, tmpbuf, sizeof(tmpbuf)) == NULL)
+		return (ISC_R_NOSPACE);
+	if (strlen(tmpbuf) > isc_buffer_availablelength(target))
+		return (ISC_R_NOSPACE);
+	isc_buffer_putstr(target, tmpbuf);
 	return (ISC_R_SUCCESS);
 }
 

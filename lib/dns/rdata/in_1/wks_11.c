@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.39 2001/01/09 21:55:21 bwelling Exp $ */
+/* $Id: wks_11.c,v 1.40 2001/01/25 20:14:42 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -137,7 +137,6 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_in_wks(ARGS_TOTEXT) {
 	isc_region_t sr;
-	isc_region_t tr;
 	unsigned short proto;
 	char buf[sizeof "65535"];
 	unsigned int i, j;
@@ -146,13 +145,10 @@ totext_in_wks(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->rdclass == 1);
-	REQUIRE(rdata->length != 0);
+	REQUIRE(rdata->length >= 5);
 
 	dns_rdata_toregion(rdata, &sr);
-	isc_buffer_availableregion(target, &tr);
-	if (inet_ntop(AF_INET, sr.base, (char *)tr.base, tr.length) == NULL)
-		return (ISC_R_NOSPACE);
-	isc_buffer_add(target, strlen((char *)tr.base));
+	RETERR(inet_totext(AF_INET, &sr, target));
 	isc_region_consume(&sr, 4);
 
 	proto = uint8_fromregion(&sr);

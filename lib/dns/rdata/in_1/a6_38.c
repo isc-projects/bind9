@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.40 2001/01/09 21:55:00 bwelling Exp $ */
+/* $Id: a6_38.c,v 1.41 2001/01/25 20:14:39 bwelling Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -86,8 +86,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 
 static inline isc_result_t
 totext_in_a6(ARGS_TOTEXT) {
-	isc_region_t tr;
-	isc_region_t sr;
+	isc_region_t sr, ar;
 	unsigned char addr[16];
 	unsigned char prefixlen;
 	unsigned char octets;
@@ -115,12 +114,9 @@ totext_in_a6(ARGS_TOTEXT) {
 		memcpy(&addr[octets], sr.base, 16 - octets);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;
-		isc_buffer_availableregion(target, &tr);
-		if (inet_ntop(AF_INET6, addr,
-			      (char *)tr.base, tr.length) == NULL)
-			return (ISC_R_NOSPACE);
-
-		isc_buffer_add(target, strlen((char *)tr.base));
+		ar.base = addr;
+		ar.length = sizeof(addr);
+		RETERR(inet_totext(AF_INET6, &ar, target));
 		isc_region_consume(&sr, 16 - octets);
 	}
 

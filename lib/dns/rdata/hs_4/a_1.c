@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.21 2001/01/09 21:54:58 bwelling Exp $ */
+/* $Id: a_1.c,v 1.22 2001/01/25 20:14:38 bwelling Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -62,13 +62,8 @@ totext_hs_a(ARGS_TOTEXT) {
 
 	UNUSED(tctx);
 
-	isc_buffer_availableregion(target, &region);
-	if (inet_ntop(AF_INET, rdata->data,
-			  (char *)region.base, region.length) == NULL)
-		return (ISC_R_NOSPACE);
-
-	isc_buffer_add(target, strlen((char *)region.base));
-	return (ISC_R_SUCCESS);
+	dns_rdata_toregion(rdata, &region);
+	return (inet_totext(AF_INET, &region, target));
 }
 
 static inline isc_result_t
