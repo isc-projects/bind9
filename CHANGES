@@ -1,5 +1,5 @@
-1133.	[bug]		IN6_IS_ADDR_LOOPBACK not portably defined on platforms
-			without IN6_IS_ADDR_LOOPBACK. [RT #2106]
+1133.	[bug]		IN6_IS_ADDR_LOOPBACK was not portably defined on
+			platforms without IN6_IS_ADDR_LOOPBACK. [RT #2106]
 
 1132.	[func]		Improve UPDATE prerequisite failure diagnotic messages.
 
