@@ -82,6 +82,8 @@ send_done(isc_task_t *task, isc_event_t *ev_in)
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	dns_dispentry_t *resp = (dns_dispentry_t *)ev_in->arg;
 
+	(void)task;
+
 	if (ev->result == ISC_R_SUCCESS) {
 		printf("Send done (SUCCESS)\n");
 		isc_event_free(&ev_in);
@@ -203,6 +205,8 @@ got_response(isc_task_t *task, isc_event_t *ev_in)
 	dns_dispentry_t *resp = ev->sender;
 	dns_message_t *msg;
 	isc_result_t result;
+
+	(void)task;
 
 	printf("App:  Got response (id %d).  Result: %s\n",
 	       ev->id, isc_result_totext(ev->result));
