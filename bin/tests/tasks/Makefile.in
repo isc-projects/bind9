@@ -26,8 +26,8 @@ CWARNINGS =
 
 
 DEPLIBS =	../../../lib/dns/libdns.@A@ \
-		../../../lib/isc/libisc.@A@ \
-		../../../lib/tests/libt_api.@A@
+		../../../lib/tests/libt_api.@A@ \
+		../../../lib/isc/libisc.@A@
 
 LIBS =		${DEPLIBS} \
 		@LIBS@

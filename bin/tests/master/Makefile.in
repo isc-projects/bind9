@@ -26,8 +26,8 @@ CWARNINGS =
 
 # Note that we do not want to use libtool for libt_api
 LIBS =		../../../lib/dns/libdns.@A@ \
-		../../../lib/isc/libisc.@A@ \
 		../../../lib/tests/libt_api.@A@ \
+		../../../lib/isc/libisc.@A@ \
 		@LIBS@
 
 TARGETS =	t_master
