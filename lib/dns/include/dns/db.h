@@ -731,9 +731,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after
- *	'now'.  Any ANY query will not match unless at least one rdataset at
- *	the node expires after 'now'.  If 'now' is zero, then the current time
- *	will be used.
+ *	'now'.  If 'now' is zero, then the current time will be used.
  *
  * Requires:
  *
