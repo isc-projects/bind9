@@ -1,6 +1,9 @@
 
 	--- 9.2.0rc9 released ---
 
+1102.	[doc]		Note that query logging is enabled by directing the
+			queries category to a channel.
+
 1101.	[bug]		Array bounds read error in lwres_gai_strerror.
 
 1084.	[cleanup]	libbind: gai_strerror() rewritten.
