@@ -40,3 +40,6 @@ do
         kill -KILL `cat $pidfile`
      fi
 done
+
+sleep 10
+
