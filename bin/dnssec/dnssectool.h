@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.9 2000/08/11 23:07:53 bwelling Exp $ */
+/* $Id: dnssectool.h,v 1.10 2000/08/14 04:43:17 bwelling Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
 
 #include <isc/log.h>
 #include <dns/rdatastruct.h>
+#include <dst/dst.h>
 
 void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
@@ -32,17 +33,21 @@ check_result(isc_result_t result, const char *message);
 void
 vbprintf(int level, const char *fmt, ...);
 
-char *
-nametostr(dns_name_t *name);
+void
+type_format(const dns_rdatatype_t type, char *cp, unsigned int size);
+#define TYPE_FORMATSIZE 10
 
-char *
-typetostr(const dns_rdatatype_t type);
+void
+alg_format(const dns_secalg_t alg, char *cp, unsigned int size);
+#define ALG_FORMATSIZE 10
 
-char *
-algtostr(const dns_secalg_t alg);
+void
+sig_format(dns_rdata_sig_t *sig, char *cp, unsigned int size);
+#define SIG_FORMATSIZE (DNS_NAME_FORMATSIZE + ALG_FORMATSIZE + sizeof("65535"))
 
-char *
-sigtostr(dns_rdata_sig_t *sig);
+void
+key_format(const dst_key_t *key, char *cp, unsigned int size);
+#define KEY_FORMATSIZE (DNS_NAME_FORMATSIZE + ALG_FORMATSIZE + sizeof("65535"))
 
 void
 setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);

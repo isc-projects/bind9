@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.37 2000/08/01 01:11:21 tale Exp $ */
+/* $Id: dnssec-keygen.c,v 1.38 2000/08/14 04:43:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -329,9 +329,12 @@ main(int argc, char **argv) {
 		isc_entropy_stopcallbacksources(ectx);
 
 		if (ret != ISC_R_SUCCESS) {
+			char namestr[DNS_NAME_FORMATSIZE];
+			char algstr[ALG_FORMATSIZE];
+			dns_name_format(name, namestr, sizeof namestr);
+			alg_format(alg, algstr, sizeof algstr);
 			fatal("failed to generate key %s/%s: %s\n",
-			      nametostr(name), algtostr(alg),
-			      dst_result_totext(ret));
+			      namestr, algstr, dst_result_totext(ret));
 			exit(-1);
 		}
 
@@ -369,9 +372,12 @@ main(int argc, char **argv) {
 		      "already exists");
 
 	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, NULL);
-	if (ret != ISC_R_SUCCESS)
-		fatal("failed to write key %s/%s/%d: %s\n", nametostr(name),
-		      algtostr(alg), dst_key_id(key), isc_result_totext(ret));
+	if (ret != ISC_R_SUCCESS) {
+		char keystr[KEY_FORMATSIZE];
+		key_format(key, keystr, sizeof keystr);
+		fatal("failed to write key %s: %s\n", keystr,
+		      isc_result_totext(ret));
+	}
 
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);

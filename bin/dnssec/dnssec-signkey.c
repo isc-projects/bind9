@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.32 2000/08/10 22:08:21 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.33 2000/08/14 04:43:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -252,17 +252,23 @@ main(int argc, char *argv[]) {
 
 	node = NULL;
 	result = dns_db_findnode(db, domain, ISC_FALSE, &node);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		char domainstr[DNS_NAME_FORMATSIZE];
+		dns_name_format(domain, domainstr, sizeof domainstr);
 		fatal("failed to find database node '%s': %s",
-		      nametostr(domain), isc_result_totext(result));
+		      domainstr, isc_result_totext(result));
+	}
 
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_init(&sigrdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_key, 0,
 				     0, &rdataset, &sigrdataset);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		char domainstr[DNS_NAME_FORMATSIZE];
+		dns_name_format(domain, domainstr, sizeof domainstr);
 		fatal("failed to find rdataset '%s KEY': %s",
-		      nametostr(domain), isc_result_totext(result));
+		      domainstr, isc_result_totext(result));
+	}
 
 	loadkeys(domain, &rdataset);
 
@@ -278,11 +284,12 @@ main(int argc, char *argv[]) {
 		key = findkey(&sig);
 		result = dns_dnssec_verify(domain, &rdataset, key,
 					   ISC_TRUE, mctx, &sigrdata);
-		if (result != ISC_R_SUCCESS)
-			fatal("signature by key '%s/%s/%d' did not verify: %s",
-			      nametostr(dst_key_name(key)),
-			      algtostr(dst_key_alg(key)),
-			      dst_key_id(key), isc_result_totext(result));
+		if (result != ISC_R_SUCCESS) {
+			char keystr[KEY_FORMATSIZE];
+			key_format(key, keystr, sizeof keystr);
+			fatal("signature by key '%s' did not verify: %s",
+			      keystr, isc_result_totext(result));
+		}
 		dns_rdata_freestruct(&sig);
 		result = dns_rdataset_next(&sigrdataset);
 	} while (result == ISC_R_SUCCESS);
@@ -329,11 +336,12 @@ main(int argc, char *argv[]) {
 					 &sig.timesigned, &sig.timeexpire,
 					 mctx, &b, rdata);
 		isc_entropy_stopcallbacksources(ectx);
-		if (result != ISC_R_SUCCESS)
-			fatal("key '%s/%s/%d' failed to sign data: %s",
-			      nametostr(dst_key_name(key)),
-			      algtostr(dst_key_alg(key)),
-			      dst_key_id(key), isc_result_totext(result));
+		if (result != ISC_R_SUCCESS) {
+			char keystr[KEY_FORMATSIZE];
+			key_format(key, keystr, sizeof keystr);
+			fatal("key '%s' failed to sign data: %s",
+			      keystr, isc_result_totext(result));
+		}
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
 		dst_key_free(&key);
 	}

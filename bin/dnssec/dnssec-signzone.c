@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.93 2000/08/11 23:59:46 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.94 2000/08/14 04:43:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -100,10 +100,12 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &endtime,
 				 mctx, b, rdata);
 	isc_entropy_stopcallbacksources(ectx);
-	if (result != ISC_R_SUCCESS)
-		fatal("key '%s/%s/%d' failed to sign data: %s",
-		      nametostr(dst_key_name(key)), algtostr(dst_key_alg(key)),
-		      dst_key_id(key), isc_result_totext(result));
+	if (result != ISC_R_SUCCESS) {
+		char keystr[KEY_FORMATSIZE];
+		key_format(key, keystr, sizeof keystr);
+		fatal("key '%s' failed to sign data: %s",
+		      keystr, isc_result_totext(result));
+	}
 
 	if (tryverify) {
 		result = dns_dnssec_verify(name, rdataset, key,
@@ -178,24 +180,25 @@ expecttofindkey(dns_name_t *name, dns_db_t *db, dns_dbversion_t *version) {
 	unsigned int options = DNS_DBFIND_NOWILD;
 	dns_fixedname_t fname;
 	isc_result_t result;
+	char namestr[DNS_NAME_FORMATSIZE];
 
 	dns_fixedname_init(&fname);
 	result = dns_db_find(db, name, version, dns_rdatatype_key, options,
 			     0, NULL, dns_fixedname_name(&fname), NULL, NULL);
 	switch (result) {
-		case ISC_R_SUCCESS:
-		case DNS_R_NXDOMAIN:
-		case DNS_R_NXRRSET:
-			return ISC_TRUE;
-		case DNS_R_DELEGATION:
-		case DNS_R_CNAME:
-		case DNS_R_DNAME:
-			return ISC_FALSE;
-		default:
-			fatal("failure looking for '%s KEY' in database: %s",
-			      nametostr(name), isc_result_totext(result));
-			return ISC_FALSE; /* removes a warning */
+	case ISC_R_SUCCESS:
+	case DNS_R_NXDOMAIN:
+	case DNS_R_NXRRSET:
+		return (ISC_TRUE);
+	case DNS_R_DELEGATION:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+		return (ISC_FALSE);
 	}
+	dns_name_format(name, namestr, sizeof namestr);
+	fatal("failure looking for '%s KEY' in database: %s",
+	      namestr, isc_result_totext(result));
+	return (ISC_FALSE); /* removes a warning */
 }
 
 static inline isc_boolean_t
@@ -226,6 +229,12 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	dns_difftuple_t *tuple;
 	dns_ttl_t ttl;
 	int i;
+	char namestr[DNS_NAME_FORMATSIZE];
+	char typestr[TYPE_FORMATSIZE];
+	char sigstr[SIG_FORMATSIZE];
+
+	dns_name_format(name, namestr, sizeof namestr);
+	type_format(set->type, typestr, sizeof typestr);
 
 	ttl = ISC_MIN(set->ttl, endtime - starttime);
 
@@ -241,10 +250,9 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	}
 	if (result != ISC_R_SUCCESS)
 		fatal("failed while looking for '%s SIG %s': %s",
-		      nametostr(name), typetostr(set->type),
-		      isc_result_totext(result));
+		      namestr, typestr, isc_result_totext(result));
 
-	vbprintf(1, "%s/%s:\n", nametostr(name), typetostr(set->type));
+	vbprintf(1, "%s/%s:\n", namestr, typestr);
 
 	if (nosigs)
 		result = ISC_R_NOMORE;
@@ -264,35 +272,34 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 		future = ISC_TF(now < sig.timesigned);
 
 		key = keythatsigned(&sig);
+		sig_format(&sig, sigstr, sizeof sigstr);
 
 		if (sig.timesigned > sig.timeexpire) {
 			/* sig is dropped and not replaced */
 			vbprintf(2, "\tsig by %s dropped - "
 				 "invalid validity period\n",
-				 sigtostr(&sig));
+				 sigstr);
 		} else if (key == NULL && !future &&
 			 expecttofindkey(&sig.signer, db, version))
 		{
 			/* sig is dropped and not replaced */
 			vbprintf(2, "\tsig by %s dropped - "
 				 "private key not found\n",
-				 sigtostr(&sig));
+				 sigstr);
 		} else if (key == NULL || future) {
 			vbprintf(2, "\tsig by %s %s - key not found\n",
-				 expired ? "retained" : "dropped",
-				 sigtostr(&sig));
+				 expired ? "retained" : "dropped", sigstr);
 			if (!expired)
 				keep = ISC_TRUE;
 		} else if (issigningkey(key)) {
 			if (!expired && setverifies(name, set, key, &sigrdata))
 			{
-				vbprintf(2, "\tsig by %s retained\n",
-					 sigtostr(&sig));
+				vbprintf(2, "\tsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
 				wassignedby[sig.algorithm] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\tsig by %s dropped - %s\n",
-					 sigtostr(&sig),
+					 sigstr,
 					 expired ? "expired" :
 						   "failed to verify");
 				wassignedby[sig.algorithm] = ISC_TRUE;
@@ -301,14 +308,13 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 		} else if (iszonekey(key, db)) {
 			if (!expired && setverifies(name, set, key, &sigrdata))
 			{
-				vbprintf(2, "\tsig by %s retained\n",
-					 sigtostr(&sig));
+				vbprintf(2, "\tsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
 				wassignedby[sig.algorithm] = ISC_TRUE;
 				nowsignedby[sig.algorithm] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\tsig by %s dropped - %s\n",
-					 sigtostr(&sig),
+					 sigstr,
 					 expired ? "expired" :
 						   "failed to verify");
 				wassignedby[sig.algorithm] = ISC_TRUE;
@@ -316,12 +322,10 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 					resign = ISC_TRUE;
 			}
 		} else if (!expired) {
-			vbprintf(2, "\tsig by %s retained\n",
-				 sigtostr(&sig));
+			vbprintf(2, "\tsig by %s retained\n", sigstr);
 			keep = ISC_TRUE;
 		} else {
-			vbprintf(2, "\tsig by %s expired\n",
-				 sigtostr(&sig));
+			vbprintf(2, "\tsig by %s expired\n", sigstr);
 		}
 
 		if (keep)
@@ -339,11 +343,10 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			isc_buffer_t b;
 			dns_rdata_t trdata;
 			unsigned char array[BUFSIZE];
+			char keystr[KEY_FORMATSIZE];
 
-			vbprintf(1, "\tresigning with key %s/%s/%d\n",
-			       nametostr(dst_key_name(key->key)),
-			       algtostr(dst_key_alg(key->key)),
-			       dst_key_id(key->key));
+			key_format(key->key, keystr, sizeof keystr);
+			vbprintf(1, "\tresigning with key %s\n", keystr);
 			isc_buffer_init(&b, array, sizeof(array));
 			signwithkey(name, set, &trdata, key->key, &b);
 			nowsignedby[sig.algorithm] = ISC_TRUE;
@@ -380,11 +383,10 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			isc_buffer_t b;
 			dns_rdata_t trdata;
 			unsigned char array[BUFSIZE];
+			char keystr[KEY_FORMATSIZE];
 
-			vbprintf(1, "\tsigning with key %s/%s/%d\n",
-			       nametostr(dst_key_name(key->key)),
-			       algtostr(dst_key_alg(key->key)),
-			       dst_key_id(key->key));
+			key_format(key->key, keystr, sizeof keystr);
+			vbprintf(1, "\tsigning with key %s\n", keystr);
 			isc_buffer_init(&b, array, sizeof(array));
 			signwithkey(name, set, &trdata, key->key, &b);
 			tuple = NULL;
@@ -438,8 +440,11 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 	isc_buffer_putstr(&b, prefix);
 	result = dns_name_totext(name, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
-	if (isc_buffer_availablelength(&b) == 0)
-		fatal("name '%s' is too long", nametostr(name));
+	if (isc_buffer_availablelength(&b) == 0) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namestr, sizeof namestr);
+		fatal("name '%s' is too long", namestr);
+	}
 	isc_buffer_putuint8(&b, 0);
 
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
@@ -634,8 +639,10 @@ createnullkey(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name) {
 	dns_difftuple_t *tuple = NULL;
 	isc_buffer_t b;
 	isc_result_t result;
+	char namestr[DNS_NAME_FORMATSIZE];
 
-	vbprintf(2, "adding null key at %s\n", nametostr(name));
+	dns_name_format(name, namestr, sizeof namestr);
+	vbprintf(2, "adding null key at %s\n", namestr);
 
 	key.common.rdclass = dns_db_class(db);
 	key.common.rdtype = dns_rdatatype_key;
@@ -686,6 +693,8 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_diff_t diff;
 
 	if (dns_name_iswildcard(name)) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namestr, sizeof namestr);
 		if (warnwild++ == 0) {
 			fprintf(stderr, "%s: warning: BIND 9 doesn't properly "
 				"handle wildcards in secure zones:\n",
@@ -696,7 +705,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				"not required by the resolver\n");
 		}
 		fprintf(stderr, "%s: warning: wildcard name seen: %s\n",
-			program, nametostr(name));
+			program, namestr);
 	}
 
 	atorigin = dns_name_equal(name, dns_db_origin(db));
@@ -732,17 +741,20 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_key, 0, 0, &keyset,
 					     NULL);
-		if (result == ISC_R_SUCCESS && childkey)
+		if (result == ISC_R_SUCCESS && childkey) {
+			char namestr[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, namestr, sizeof namestr);
 			fatal("%s has both a signedkey file and KEY "
-			      "records in the zone.  Aborting.",
-			      nametostr(name));
+			      "records in the zone.  Aborting.", namestr);
+		}
 		else if (result == ISC_R_SUCCESS) {
 			if (hasnullkey(&keyset))
 				neednullkey = ISC_FALSE;
 			dns_rdataset_disassociate(&keyset);
 		} else if (childkey) {
-			vbprintf(2, "child key for %s found\n",
-				 nametostr(name));
+			char namestr[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, namestr, sizeof namestr);
+			vbprintf(2, "child key for %s found\n", namestr);
 			neednullkey = ISC_FALSE;
 		}
 
@@ -797,14 +809,20 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_rdatasetiter_next(rdsiter);
 	}
-	if (result != ISC_R_NOMORE)
+	if (result != ISC_R_NOMORE) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namestr, sizeof namestr);
 		fatal("rdataset iteration for name '%s' failed: %s",
-		      nametostr(name), isc_result_totext(result));
+		      namestr, isc_result_totext(result));
+	}
 	dns_rdatasetiter_destroy(&rdsiter);
 
 	result = dns_diff_apply(&diff, db, version);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to add SIGs at node %s", nametostr(name));
+	if (result != ISC_R_SUCCESS) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namestr, sizeof namestr);
+		fatal("failed to add SIGs at node %s", namestr);
+	}
 	dns_diff_clear(&diff);
 }
 
@@ -918,9 +936,12 @@ minimumttl(dns_db_t *db, dns_dbversion_t *version) {
 	dns_rdataset_init(&soaset);
 	result = dns_db_find(db, origin, version, dns_rdatatype_soa,
 			     0, 0, NULL, name, &soaset, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		dns_name_format(name, namestr, sizeof namestr);
 		fatal("failed to find '%s SOA' in the zone: %s",
-		      nametostr(name), isc_result_totext(result));
+		      namestr, isc_result_totext(result));
+	}
 	result = dns_rdataset_first(&soaset);
 	check_result(result, "dns_rdataset_first()");
 	dns_rdataset_current(&soaset, &soarr);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.16 2000/08/11 23:07:51 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.17 2000/08/14 04:43:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -76,72 +76,50 @@ vbprintf(int level, const char *fmt, ...) {
 	va_end(ap);
 }
 
-char *
-nametostr(dns_name_t *name) {
+void
+type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
 	isc_buffer_t b;
 	isc_region_t r;
 	isc_result_t result;
-	static char data[DNS_NAME_MAXTEXT];
 
-	isc_buffer_init(&b, data, sizeof(data));
-	result = dns_name_totext(name, ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-	return (char *) r.base;
-}
-
-char *
-typetostr(const dns_rdatatype_t type) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-	static char data[20];
-
-	isc_buffer_init(&b, data, sizeof(data));
+	isc_buffer_init(&b, cp, size - 1);
 	result = dns_rdatatype_totext(type, &b);
 	check_result(result, "dns_rdatatype_totext()");
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
-	return (char *) r.base;
 }
 
-char *
-algtostr(const dns_secalg_t alg) {
+void
+alg_format(const dns_secalg_t alg, char *cp, unsigned int size) {
 	isc_buffer_t b;
 	isc_region_t r;
 	isc_result_t result;
-	static char data[10];
 
-	isc_buffer_init(&b, data, sizeof(data));
+	isc_buffer_init(&b, cp, size - 1);
 	result = dns_secalg_totext(alg, &b);
 	check_result(result, "dns_secalg_totext()");
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
-	return ((char *)r.base);
 }
 
-char *
-sigtostr(dns_rdata_sig_t *sig) {
-	isc_buffer_t b;
-	isc_result_t result;
-	static char data[DNS_NAME_MAXTEXT + 30];
-	char number[sizeof("65536") + 1];
+void
+sig_format(dns_rdata_sig_t *sig, char *cp, unsigned int size) {
+	char namestr[DNS_NAME_FORMATSIZE];
+	char algstr[DNS_NAME_FORMATSIZE];
 
-	isc_buffer_init(&b, data, sizeof(data));
+	dns_name_format(&sig->signer, namestr, sizeof namestr);
+	alg_format(sig->algorithm, algstr, sizeof algstr);
+	snprintf(cp, size, "%s/%s/%d", namestr, algstr, sig->keyid);
+}
 
-	result = dns_name_totext(&sig->signer, ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
-	isc_buffer_putstr(&b, "/");
+void
+key_format(const dst_key_t *key, char *cp, unsigned int size) {
+	char namestr[DNS_NAME_FORMATSIZE];
+	char algstr[DNS_NAME_FORMATSIZE];
 
-	result = dns_secalg_totext(sig->algorithm, &b);
-	check_result(result, "dns_secalg_totext()");
-	isc_buffer_putstr(&b, "/");
-
-	sprintf(number, "%d", sig->keyid);
-	isc_buffer_putstr(&b, number);
-
-	return (data);
+	dns_name_format(dst_key_name(key), namestr, sizeof namestr);
+	alg_format(dst_key_alg(key), algstr, sizeof algstr);
+	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
 }
 
 void

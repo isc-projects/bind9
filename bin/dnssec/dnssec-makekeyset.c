@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.32 2000/08/10 22:08:19 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.33 2000/08/14 04:43:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -255,9 +255,7 @@ main(int argc, char *argv[]) {
 		if (result != ISC_R_SUCCESS)
 			fatal("error loading key from %s", argv[i]);
 
-		strncpy(namestr, nametostr(dst_key_name(key)),
-			sizeof(namestr) - 1);
-		namestr[sizeof(namestr) - 1] = 0;
+		dns_name_format(dst_key_name(key), namestr, sizeof namestr);
 
 		if (savedname == NULL) {
 			savedname = isc_mem_get(mctx, sizeof(dns_name_t));
@@ -269,10 +267,13 @@ main(int argc, char *argv[]) {
 			if (result != ISC_R_SUCCESS)
 				fatal("out of memory");
 		} else {
+			char savednamestr[DNS_NAME_FORMATSIZE];
+			dns_name_format(savedname, savednamestr,
+					sizeof savednamestr);
 			if (!dns_name_equal(savedname, dst_key_name(key)) != 0)
 				fatal("all keys must have the same owner - %s "
 				      "and %s do not match",
-				      nametostr(savedname), namestr);
+				      savednamestr, namestr);
 		}
 		if (output == NULL) {
 			output = isc_mem_allocate(mctx,
@@ -356,12 +357,12 @@ main(int argc, char *argv[]) {
 					 &starttime, &endtime, mctx, &b,
 					 rdata);
 		isc_entropy_stopcallbacksources(ectx);
-		if (result != ISC_R_SUCCESS)
-			fatal("failed to sign keyset with key %s/%s/%d: %s",
-			      nametostr(dst_key_name(keynode->key)),
-			      algtostr(dst_key_alg(keynode->key)),
-			      dst_key_id(keynode->key),
-			      isc_result_totext(result));
+		if (result != ISC_R_SUCCESS) {
+			char keystr[KEY_FORMATSIZE];
+			key_format(keynode->key, keystr, sizeof keystr);
+			fatal("failed to sign keyset with key %s: %s",
+			      keystr, isc_result_totext(result));
+		}
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
 		dns_rdataset_init(&sigrdataset);
 		result = dns_rdatalist_tordataset(&sigrdatalist, &sigrdataset);
@@ -371,8 +372,11 @@ main(int argc, char *argv[]) {
 	db = NULL;
 	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to create a database for %s", nametostr(domain));
+	if (result != ISC_R_SUCCESS) {
+		char domainstr[DNS_NAME_FORMATSIZE];
+		dns_name_format(domain, domainstr, sizeof domainstr);
+		fatal("failed to create a database for %s", domainstr);
+	}
 
 	version = NULL;
 	dns_db_newversion(db, &version);
@@ -389,9 +393,12 @@ main(int argc, char *argv[]) {
 	dns_db_detachnode(db, &node);
 	dns_db_closeversion(db, &version, ISC_TRUE);
 	result = dns_db_dump(db, version, output);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		char domainstr[DNS_NAME_FORMATSIZE];
+		dns_name_format(domain, domainstr, sizeof domainstr);
 		fatal("failed to write database for %s to %s",
-		      nametostr(domain), output);
+		      domainstr, output);
+	}
 
 	dns_db_detach(&db);
 
