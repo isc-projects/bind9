@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.181 2001/02/14 19:32:30 gson Exp $ */
+/* $Id: query.c,v 1.182 2001/02/18 05:56:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2892,8 +2892,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		dns_rdataset_current(trdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
 		dns_rdata_reset(&rdata);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			dns_message_puttempname(client->message, &tname);
 			goto cleanup;
+		}
 		dns_name_init(tname, NULL);
 		dns_name_clone(&cname.cname, tname);
 		dns_rdata_freestruct(&cname);
