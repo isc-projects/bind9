@@ -29,7 +29,6 @@ CDEFINES =
 CWARNINGS =
 
 LIBS =		@LIBS@
-LIBISC = 	../isc/libisc.@A@
 
 # Alphabetically
 
