@@ -166,6 +166,8 @@ quantize(size_t size) {
 	 * byte boundaries.
 	 */
 
+	if (size == 0)
+		return (ALIGNMENT_SIZE);
 	temp = size + (ALIGNMENT_SIZE - 1);
 	return (temp - temp % ALIGNMENT_SIZE); 
 }
@@ -399,7 +401,6 @@ __isc_mem_get(isc_mem_t *ctx, size_t size)
 {
 	void *ret;
 
-	REQUIRE(size > 0);
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
@@ -407,6 +408,19 @@ __isc_mem_get(isc_mem_t *ctx, size_t size)
 	UNLOCK(&ctx->lock);
 
 	return (ret);
+}
+
+static inline void
+check_overrun(void *mem, size_t size, size_t new_size) {
+	unsigned char *cp;
+
+	cp = (unsigned char *)mem;
+	cp += size;
+	while (size < new_size) {
+		INSIST(*cp == 0xbe);
+		cp++;
+		size++;
+	}
 }
 
 static inline void *
@@ -500,7 +514,6 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 void
 __isc_mem_put(isc_mem_t *ctx, void *mem, size_t size)
 {
-	REQUIRE(size > 0);
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
@@ -527,6 +540,9 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 	}
 
 #if ISC_MEM_FILL
+#if ISC_MEM_CHECKOVERRUN
+	check_overrun(mem, size, new_size);
+#endif
 	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
 #endif
 
@@ -577,7 +593,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	LOCK(&ctx->lock);
 
 	if (ctx->freelists != NULL) {
-		for (i = 1; i <= ctx->max_size; i++) {
+		for (i = 0; i <= ctx->max_size; i++) {
 			s = &ctx->stats[i];
 
 			if (s->totalgets == 0 && s->gets == 0)
