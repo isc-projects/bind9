@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.5 2000/03/14 04:07:26 tale Exp $ */
+/* $Id: omapi.c,v 1.6 2000/03/14 19:48:48 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -43,6 +43,9 @@ typedef struct control_object {
 
 static control_object_t control;
 static omapi_objecttype_t *control_type;
+
+static void
+listen_done(void *mgr);
 
 #undef REGION_FMT
 /*
@@ -216,7 +219,8 @@ ns_omapi_listen(omapi_object_t **managerp) {
 		/*
 		 * Start listening for connections.
 		 */
-		result = omapi_protocol_listen(manager, &sockaddr, acl, 1);
+		result = omapi_protocol_listen(manager, &sockaddr, acl, 1,
+					       listen_done, ns_g_omapimgr);
 
 	if (result == ISC_R_SUCCESS)
 		*managerp = manager;
@@ -227,4 +231,11 @@ ns_omapi_listen(omapi_object_t **managerp) {
 	}
 
 	return (result);
+}
+
+static void
+listen_done(void *mgr) {
+	UNUSED(mgr);
+
+	omapi_object_dereference(&ns_g_omapimgr);
 }
