@@ -437,7 +437,8 @@ listener_destroy(omapi_object_t *listener) {
 	 * Somehow this callback stuff (or its "event" equivalent) needs to
 	 * go into object_dereference.
 	 */
-	(*l->callback)(l->callback_arg);
+	if (l->callback != NULL)
+		(*l->callback)(l->callback_arg);
 }
 
 static isc_result_t
