@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.74 2001/07/28 00:55:15 bwelling Exp $ */
+/* $Id: host.c,v 1.75 2001/08/01 16:18:56 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -261,7 +261,7 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	isc_region_t r;
 	isc_result_t result;
 
-	result = isc_buffer_allocate(mctx, &b, BUFSIZE);
+	result = isc_buffer_allocate(mctx, &b, OUTPUTBUF);
 	check_result(result, "isc_buffer_allocate");
 	dns_name_format(name, namestr, sizeof(namestr));
 	result = dns_rdata_totext(rdata, NULL, b);

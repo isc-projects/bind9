@@ -1,3 +1,5 @@
+ 949.	[bug]		host was unable to print records larger than 512
+ 			bytes. [RT #1557]
 
 	--- 9.2.0b2 released ---
 
