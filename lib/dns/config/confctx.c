@@ -17,7 +17,8 @@
 
 #include <config.h>
 
-#include <syslog.h>
+#include <syslog.h>	/* XXXRTH */
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/error.h>

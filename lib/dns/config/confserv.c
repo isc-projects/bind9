@@ -17,7 +17,9 @@
 
 #include <config.h>
 
-#include <sys/types.h>
+#include <sys/types.h>	/* XXXRTH */
+
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/net.h>

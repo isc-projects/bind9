@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.15 1999/10/02 21:15:20 brister Exp $ */
+ /* $Id: zone.c,v 1.16 1999/10/05 19:50:10 halley Exp $ */
 
 #include <config.h>
+
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/error.h>

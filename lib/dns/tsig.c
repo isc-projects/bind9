@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.12 1999/09/10 20:26:17 explorer Exp $
+ * $Id: tsig.c,v 1.13 1999/10/05 19:50:10 halley Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -24,6 +24,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/buffer.h>

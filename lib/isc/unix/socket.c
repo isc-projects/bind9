@@ -957,15 +957,11 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		case ENFILE:
 		case ENOBUFS:
 			return (ISC_R_NORESOURCES);
-			/* NOTREACHED */
-			break;
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() failed: %s",
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
-			/* NOTREACHED */
-			break;
 		}
 	}
 
@@ -1417,7 +1413,6 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		switch (doio_recv(sock, dev)) {
 		case DOIO_SOFT:
 			goto poke;
-			break;
 
 		case DOIO_EOF:
 			/*
@@ -1432,7 +1427,6 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 				dev = ISC_LIST_HEAD(sock->recv_list);
 			} while (dev != NULL);
 			goto poke;
-			break;
 
 		case DOIO_UNEXPECTED:
 		case DOIO_SUCCESS:
@@ -1511,7 +1505,6 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 		switch (doio_send(sock, dev)) {
 		case DOIO_SOFT:
 			goto poke;
-			break;
 
 		case DOIO_HARD:
 		case DOIO_UNEXPECTED:
@@ -1998,20 +1991,17 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	switch (doio_recv(sock, dev)) {
 	case DOIO_SOFT:
 		goto queue;
-		break;
 
 	case DOIO_EOF:
 		send_recvdone_event(sock, &dev, ISC_R_EOF);
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
-		break;
 
 	case DOIO_HARD:
 	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
-		break;
 	}
 
  queue:
@@ -2099,20 +2089,17 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	switch (doio_recv(sock, dev)) {
 	case DOIO_SOFT:
 		goto queue;
-		break;
 
 	case DOIO_EOF:
 		send_recvdone_event(sock, &dev, ISC_R_EOF);
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
-		break;
 
 	case DOIO_HARD:
 	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
-		break;
 	}
 
  queue:
@@ -2197,14 +2184,12 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	switch (doio_send(sock, dev)) {
 	case DOIO_SOFT:
 		goto queue;
-		break;
 
 	case DOIO_HARD:
 	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
-		break;
 	}
 
  queue:
@@ -2305,14 +2290,12 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	switch (doio_send(sock, dev)) {
 	case DOIO_SOFT:
 		goto queue;
-		break;
 
 	case DOIO_HARD:
 	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
-		break;
 	}
 
  queue:
@@ -2356,26 +2339,16 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
 		switch (errno) {
 		case EACCES:
 			return (ISC_R_NOPERM);
-			/* NOTREACHED */
-			break;
 		case EADDRNOTAVAIL:
 			return (ISC_R_ADDRNOTAVAIL);
-			/* NOTREACHED */
-			break;
 		case EADDRINUSE:
 			return (ISC_R_ADDRINUSE);
-			/* NOTREACHED */
-			break;
 		case EINVAL:
 			return (ISC_R_BOUND);
-			/* NOTREACHED */
-			break;
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "bind: %s", strerror(errno));
 			return (ISC_R_UNEXPECTED);
-			/* NOTREACHED */
-			break;
 		}
 	}
 
@@ -2681,7 +2654,6 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_connect: connect() %s",
 					 strerror(errno));
-			break;
 		}
 	} else
 		dev->result = ISC_R_SUCCESS;

@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: time.c,v 1.2 1999/09/15 23:57:41 explorer Exp $ */
+ /* $Id: time.c,v 1.3 1999/10/05 19:50:10 halley Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 #include <isc/assertions.h>

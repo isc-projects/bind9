@@ -17,11 +17,12 @@
 
 #include <config.h>
 
-#include <sys/types.h>
+#include <sys/types.h>	/* XXXRTH */
 
 #include <limits.h>
-#include <syslog.h>
+#include <syslog.h>	/* XXXRTH */
 #include <ctype.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/buffer.h>

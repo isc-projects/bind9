@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.24 1999/08/31 22:08:19 halley Exp $ */
+ /* $Id: gen.c,v 1.25 1999/10/05 19:50:09 halley Exp $ */
 
 #include <config.h>
 
@@ -554,5 +554,5 @@ main(int argc, char **argv) {
 	if (ferror(stdout) != 0)
 		exit(1);
 
-	exit(0);
+	return (0);
 }

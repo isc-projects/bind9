@@ -155,10 +155,10 @@ dns_masterfile_style_debug = {
 
 
 #define N_SPACES 10
-char spaces[N_SPACES] = "          ";
+char spaces[N_SPACES+1] = "          ";
 
 #define N_TABS 10
-char tabs[N_TABS] = "\t\t\t\t\t\t\t\t\t\t";
+char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
 
 
 
