@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.4 1999/10/20 22:14:14 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.5 1999/10/27 20:46:33 bwelling Exp $
  */
 
 #include <config.h>
@@ -29,9 +29,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <memory.h>
+#include <ctype.h>
 
 #include <isc/assertions.h>
 #include <isc/buffer.h>
+#include <isc/error.h>
 #include <isc/int.h>
 #include <isc/region.h>
 
@@ -71,8 +73,9 @@ static dst_result_t	dst_openssldh_from_file(dst_key_t *key,
 
 static void		uint16_toregion(isc_uint16_t val, isc_region_t *region);
 static isc_uint16_t	uint16_fromregion(isc_region_t *region);
+static void		BN_fromhex(BIGNUM *b, const char *str);
 
-static BIGNUM *bn2, *bn768, *bn1024;
+static BIGNUM bn2, bn768, bn1024;
 
 /*
  * dst_s_openssldh_init()
@@ -98,13 +101,12 @@ dst_s_openssldh_init()
 	openssldh_functions.from_file = dst_openssldh_from_file;
 	CRYPTO_set_mem_functions(dst_mem_alloc, dst_mem_realloc, dst_mem_free);
 
-	/* BEW - should check for NULL here... */
-	bn2 = BN_new();
-	bn768 = BN_new();
-	bn1024 = BN_new();
-	BN_set_word(bn2, 2);
-	BN_hex2bn(&bn768, PRIME768);
-	BN_hex2bn(&bn1024, PRIME1024);
+	BN_init(&bn2);
+	BN_init(&bn768);
+	BN_init(&bn1024);
+	BN_set_word(&bn2, 2);
+	BN_fromhex(&bn768, PRIME768);
+	BN_fromhex(&bn1024, PRIME1024);
 }
 
 /*
@@ -183,7 +185,7 @@ dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_available(data, &r);
 
-	if (dh->g == bn2 && (dh->p == bn768 || dh->p == bn1024)) {
+	if (dh->g == &bn2 && (dh->p == &bn768 || dh->p == &bn1024)) {
 		plen = 1;
 		glen = 0;
 	}
@@ -198,7 +200,7 @@ dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	uint16_toregion(plen, &r);
 	if (plen == 1) {
-		if (dh->p == bn768)
+		if (dh->p == &bn768)
 			*r.base = 1;
 		else
 			*r.base = 2;
@@ -275,10 +277,10 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 			special = uint16_fromregion(&r);
 		switch (special) {
 			case 1:
-				dh->p = bn768;
+				dh->p = &bn768;
 				break;
 			case 2:
-				dh->p = bn1024;
+				dh->p = &bn1024;
 				break;
 			default:
 				DH_free(dh);
@@ -306,12 +308,12 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	}
 	if (special != 0) {
 		if (glen == 0)
-			dh->g = bn2;
+			dh->g = &bn2;
 		else {
 			dh->g = BN_bin2bn(r.base, glen, NULL);
-			if (BN_cmp(dh->g, bn2) == 0) {
+			if (BN_cmp(dh->g, &bn2) == 0) {
 				BN_free(dh->g);
-				dh->g = bn2;
+				dh->g = &bn2;
 			}
 			else {
 				DH_free(dh);
@@ -465,19 +467,19 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) 
 	key->key_size = BN_num_bits(dh->p);
 
 	if ((key->key_size == 768 || key->key_size == 1024) &&
-	    BN_cmp(dh->g, bn2) == 0)
+	    BN_cmp(dh->g, &bn2) == 0)
 	{
-		if (key->key_size == 768 && BN_cmp(dh->p, bn768) == 0) {
+		if (key->key_size == 768 && BN_cmp(dh->p, &bn768) == 0) {
 			BN_free(dh->p);
 			BN_free(dh->g);
-			dh->p = bn768;
-			dh->g = bn2;
+			dh->p = &bn768;
+			dh->g = &bn2;
 		}
-		else if (key->key_size == 1024 && BN_cmp(dh->p, bn1024) == 0) {
+		else if (key->key_size == 1024 && BN_cmp(dh->p, &bn1024) == 0) {
 			BN_free(dh->p);
 			BN_free(dh->g);
-			dh->p = bn1024;
-			dh->g = bn2;
+			dh->p = &bn1024;
+			dh->g = &bn2;
 		}
 	}
 	isc_buffer_init(&dns, dns_array, sizeof(dns_array),
@@ -513,9 +515,9 @@ dst_openssldh_destroy(void *key, isc_mem_t *mctx) {
 
 	mctx = mctx;	/* make the compiler happy */
 
-	if (dh->p == bn768 || dh->p == bn1024)
+	if (dh->p == &bn768 || dh->p == &bn1024)
 		dh->p = NULL;
-	if (dh->g == bn2)
+	if (dh->g == &bn2)
 		dh->g = NULL;
 	DH_free(dh);
 }
@@ -548,10 +550,10 @@ dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx) {
 			if (dh == NULL)
 				return (ISC_R_NOMEMORY);
 			if (key->key_size == 768)
-				dh->p = bn768;
+				dh->p = &bn768;
 			else
-				dh->p = bn1024;
-			dh->g = bn2;
+				dh->p = &bn1024;
+			dh->g = &bn2;
 		}
 		else
 			generator = 2;
@@ -663,5 +665,30 @@ uint16_fromregion(isc_region_t *region) {
 	return (val);
 }
 
+static void
+BN_fromhex(BIGNUM *b, const char *str) {
+	static const char hexdigits[] = "0123456789abcdef";
+	unsigned char data[512];
+	unsigned int i;
+	BIGNUM *out;
+
+	RUNTIME_CHECK(strlen(str) < 1024 && strlen(str) % 2 == 0);
+	for (i = 0; i < strlen(str); i += 2) {
+		char *s;
+		unsigned int high, low;
+
+		s = strchr(hexdigits, tolower(str[i]));
+		RUNTIME_CHECK(s != NULL);
+		high = s - hexdigits;
+
+		s = strchr(hexdigits, tolower(str[i + 1]));
+		RUNTIME_CHECK(s != NULL);
+		low = s - hexdigits;
+
+		data[i/2] = (unsigned char)((high << 4) + low);
+	}
+	out = BN_bin2bn(data, strlen(str)/2, b);
+	RUNTIME_CHECK(out != NULL);
+}
 
 #endif
