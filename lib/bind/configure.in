@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.38 $)
+AC_REVISION($Revision: 1.39 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -485,6 +485,9 @@ then
 			AC_DEFINE(POSIX_GETPWNAM_R)
 			AC_DEFINE(POSIX_GETGRGID_R)
 			AC_DEFINE(POSIX_GETGRNAM_R)
+			;;
+		*hpux11*)
+			AC_DEFINE(_PTHREADS_DRAFT4)
 			;;
 		#
 		# UnixWare does things its own way.
@@ -1711,7 +1714,7 @@ AC_TRY_COMPILE([
 int  getpwent_r(struct passwd *result, char *buffer, int buflen,
            FILE **pwfp);
 ], ,
-PASS_R_SET_RESULT="#undef PASS_R_SET_RESULT PASS_R_OK"
+PASS_R_SET_RESULT="#define PASS_R_SET_RESULT PASS_R_OK"
 PASS_R_SET_RETURN="#define PASS_R_SET_RETURN int"
 ,
 )
