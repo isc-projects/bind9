@@ -31,6 +31,7 @@ desired name.  In a zone, it's either a delegation out of authoritative
 data, or it's the top of the zone.
 
 ZC == "zone cut", a node not at the zone top which has an active NS
+rdataset, or a node (including the zone top) with an active DNAME
 rdataset.
 
 
@@ -144,7 +145,7 @@ Zone Search Algorithm
 	query, any active rdataset.
 
 	If we're beneath a zone cut
-		cname ok = no
+		cname_ok = no
 		If the caller wants us to validate glue, then see if the
 		current name is a valid glue name for the ZC.
 			If not,
@@ -154,6 +155,9 @@ Zone Search Algorithm
 				rdataset = NS
 				return
 
+	If the desired type is KEY, SIG, or NXT, then
+		cname_ok = no
+
 	foundname = current node name
 	*nodep = current node;
 
@@ -162,11 +166,6 @@ Zone Search Algorithm
 	is if there is *some* active rdataset at this node.  While searching,
 	remember the active NXT rdataset if we come across it.
 
-	If type is ANY and there's at least one active rdataset
-		result = DNS_R_SUCCESS
-		rdataset = <unbound>
-		return
-
 	If we didn't find the type we were looking for (including a failed
 	ANY search)
 		If (search_must_succeed), then
@@ -174,9 +173,6 @@ Zone Search Algorithm
 			result = DNS_R_BADDB
 			*nodep = NULL
 			foundname = <empty>
-		Else If we did find a CNAME, then
-			result = DNS_R_CNAME
-			rdataset = CNAME
 		Else if we're beneath a zone cut
 			result = DNS_R_DELEGATION
 			foundname = ZC name
@@ -195,13 +191,21 @@ Zone Search Algorithm
 				rdataset = <unbound>
 		return
 
-	Amazingly, we have found the type we were looking for!
+	We have found the type we were looking for or we've found a CNAME.
 
-	If we're beneath a zone cut
+	If we're not doing any ANY query, didn't find the type we were looking
+	for, but did find a CNAME
+		result = DNS_R_CNAME
+		rdataset = CNAME
+	Else If we're beneath a zone cut
 		result = DNS_R_GLUE
-	else
+	Else
 		result = DNS_R_SUCCESS
-	rdataset = the type we were looking for
+
+	If type is ANY
+		rdataset = <unbound>
+	else
+		rdataset = the type we were looking for
 
 
 
