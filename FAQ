@@ -4,7 +4,7 @@
 Frequently Asked Questions about BIND 9
 
 
-Q: Why doesn't -u work on Linux 2.2.x?
+Q: Why doesn't -u work on Linux 2.2.x when I build with --enable-threads?
 
 A: Linux threads do not fully implement the Posix threads (pthreads) standard.
 In particular, setuid() operates only on the current thread, not the full
@@ -23,8 +23,8 @@ of a security risk than a root process that has not dropped privileges.
 
   If Linux threads ever work correctly, this restriction will go away.
 
-  Configuring BIND9 with the --disable-threads option causes a non-threaded
-version to be built, which will allow -u to be used.
+  Configuring BIND9 with the --disable-threads option (the default) causes a
+non-threaded version to be built, which will allow -u to be used.
 
 
 Q: Why does named log the warning message "no TTL specified - using SOA
