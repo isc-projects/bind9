@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.62 2001/01/22 22:51:23 gson Exp $ */
+/* $Id: adb.h,v 1.63 2001/02/09 00:13:55 gson Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -180,7 +180,6 @@ struct dns_adbaddrinfo {
 	unsigned int			magic;		/* private */
 
 	isc_sockaddr_t			sockaddr;	/* [rw] */
-	int				goodness;	/* [rw] */
 	unsigned int			srtt;		/* [rw] microseconds */
 	unsigned int			flags;		/* [rw] */
 	dns_adbentry_t		       *entry;		/* private */
@@ -473,26 +472,6 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
  *
  *	ISC_R_SUCCESS		-- all is well.
  *	ISC_R_NOMEMORY		-- could not mark address as lame.
- */
-
-void
-dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		       int goodness_adjustment);
-/*
- * Increase or decrease the address's goodness value.
- *
- * Note:
- *
- *	Goodness values are silently clamped to INT_MAX and INT_MIN.
- *
- *	The goodness in addr will be updated to reflect the new global
- *	goodness value.  This may include changes made by others.
- *
- * Requires:
- *
- *	adb be valid.
- *
- *	addr be valid.
  */
 
 /*

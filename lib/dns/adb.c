@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.169 2001/02/05 19:47:01 bwelling Exp $ */
+/* $Id: adb.c,v 1.170 2001/02/09 00:13:52 gson Exp $ */
 
 /*
  * Implementation notes
@@ -250,7 +250,6 @@ struct dns_adbentry {
 	unsigned int			refcnt;
 
 	unsigned int			flags;
-	int				goodness;	/* bad < 0 <= good */
 	unsigned int			srtt;
 	isc_sockaddr_t			sockaddr;
 	isc_stdtime_t			expires;
@@ -1413,7 +1412,6 @@ new_adbentry(dns_adb_t *adb) {
 	e->lock_bucket = DNS_ADB_INVALIDBUCKET;
 	e->refcnt = 0;
 	e->flags = 0;
-	e->goodness = 0;
 	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
 	e->expires = 0;
@@ -1708,7 +1706,6 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	ai->magic = DNS_ADBADDRINFO_MAGIC;
 	ai->sockaddr = entry->sockaddr;
 	isc_sockaddr_setport(&ai->sockaddr, port);
-	ai->goodness = entry->goodness;
 	ai->srtt = entry->srtt;
 	ai->flags = entry->flags;
 	ai->entry = entry;
@@ -2033,30 +2030,14 @@ cleanup_names(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 static void
 cleanup_entries(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 	dns_adbentry_t *entry, *next_entry;
-	int freq;
 
 	DP(CLEAN_LEVEL, "cleaning entry bucket %d", bucket);
-
-	freq = NBUCKETS / CLEAN_SECONDS;
-	REQUIRE(freq > 0);
 
 	LOCK(&adb->entrylocks[bucket]);
 	entry = ISC_LIST_HEAD(adb->entries[bucket]);
 	while (entry != NULL) {
 		next_entry = ISC_LIST_NEXT(entry, plink);
 		check_expire_entry(adb, &entry, now);
-		if (entry != NULL && entry->goodness != 0) {
-			if (entry->goodness > 0
-			    && entry->goodness < freq)
-				entry->goodness = 0;
-			else if (entry->goodness < 0
-				 && entry->goodness > -freq)
-				entry->goodness = 0;
-			else if (entry->goodness > 0)
-				entry->goodness -= freq;
-			else if (entry->goodness < 0)
-				entry->goodness += freq;
-		}
 		entry = next_entry;
 	}
 	UNLOCK(&adb->entrylocks[bucket]);
@@ -2985,9 +2966,8 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug)
 	isc_netaddr_format(&netaddr, addrbuf, sizeof addrbuf);
 
 	if (debug)
-		fprintf(f, ";\t%p: refcnt %u flags %08x goodness %d\n",
-			entry, entry->refcnt, entry->flags,
-			entry->goodness);
+		fprintf(f, ";\t%p: refcnt %u flags %08x \n",
+			entry, entry->refcnt, entry->flags);
 			
 	fprintf(f, ";\t%s [srtt %u]", addrbuf, entry->srtt);
 	fprintf(f, "\n");
@@ -3035,9 +3015,9 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
 		if (tmpp == NULL)
 			tmpp = "BadAddress";
 
-		fprintf(f, "\t\tentry %p, flags %08x goodness %d"
+		fprintf(f, "\t\tentry %p, flags %08x"
 			" srtt %u addr %s\n",
-			ai->entry, ai->flags, ai->goodness, ai->srtt, tmpp);
+			ai->entry, ai->flags, ai->srtt, tmpp);
 
 		ai = ISC_LIST_NEXT(ai, publink);
 	}
@@ -3900,42 +3880,6 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
 	UNLOCK(&adb->entrylocks[bucket]);
 
 	return (ISC_R_SUCCESS);
-}
-
-void
-dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		       int goodness_adjustment)
-{
-	int bucket;
-	int old_goodness, new_goodness;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	if (goodness_adjustment == 0)
-		return;
-
-	bucket = addr->entry->lock_bucket;
-	LOCK(&adb->entrylocks[bucket]);
-
-	old_goodness = addr->entry->goodness;
-
-	if (goodness_adjustment > 0) {
-		if (old_goodness > INT_MAX - goodness_adjustment)
-			new_goodness = INT_MAX;
-		else
-			new_goodness = old_goodness + goodness_adjustment;
-	} else {
-		if (old_goodness < INT_MIN - goodness_adjustment)
-			new_goodness = INT_MIN;
-		else
-			new_goodness = old_goodness + goodness_adjustment;
-	}
-
-	addr->entry->goodness = new_goodness;
-	addr->goodness = new_goodness;
-
-	UNLOCK(&adb->entrylocks[bucket]);
 }
 
 void

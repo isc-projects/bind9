@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.198 2001/02/08 19:14:58 halley Exp $ */
+/* $Id: resolver.c,v 1.199 2001/02/09 00:13:53 gson Exp $ */
 
 #include <config.h>
 
@@ -4312,11 +4312,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		if (result == DNS_R_FORMERR)
 			broken_server = ISC_TRUE;
 		if (broken_server) {
-			/*
-			 * Add 500 units of "badness" to this server.
-			 */
-			dns_adb_adjustgoodness(fctx->res->view->adb, addrinfo,
-					       -500);
 			/*
 			 * Add this server to the list of bad servers for
 			 * this fctx.
