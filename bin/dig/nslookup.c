@@ -744,8 +744,6 @@ parse_args(int argc, char **argv) {
 			}
 			if (argv[0][1] != 0)
 				setoption(&argv[0][1]);
-			else {
-				
 		} else {
 			if (lookup == NULL) {
 				in_use = ISC_TRUE;

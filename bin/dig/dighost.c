@@ -24,6 +24,8 @@
  * functions in most applications.
  */
 
+#define DEBUG
+
 #include <config.h>
 
 #include <stdlib.h>
@@ -1064,6 +1066,8 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 	debug("connect_timeout()");
 	lookup = event->ev_arg;
 
+	isc_event_free(&event);
+
 	debug ("Buffer Allocate connect_timeout");
 	result = isc_buffer_allocate(mctx, &b, 256);
 	check_result(result, "isc_buffer_allocate");
@@ -1111,7 +1115,6 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 	ENSURE(lookup->timer != NULL);
 	isc_timer_detach(&lookup->timer);
 	isc_buffer_free(&b);
-	isc_event_free(&event);
 	debug ("Done with connect_timeout()");
 }
 
@@ -1129,6 +1132,8 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	debug("tcp_length_done()");
+
+	isc_event_free(&event);
 
 	if (free_now)
 		return;
@@ -1158,7 +1163,6 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		debug ("Socket = %d",sockcount);
 		isc_socket_detach(&query->sock);
 		check_next_lookup(query->lookup);
-		isc_event_free(&event);
 		return;
 	}
 	b = ISC_LIST_HEAD(sevent->bufferlist);
@@ -1183,7 +1187,6 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 				  recv_done, query);
 	check_result(result, "isc_socket_recvv");
 	debug("Resubmitted recv request with length %d", length);
-	isc_event_free(&event);
 }
 
 static void
@@ -1250,6 +1253,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
 
+	isc_event_free(&event);
+
 	if (free_now)
 		return;
 
@@ -1277,10 +1282,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		check_next_lookup(query->lookup);
-		isc_event_free(&event);
 		return;
 	}
-	isc_event_free(&event);
 	launch_next_query(query, ISC_TRUE);
 }
 
@@ -1319,6 +1322,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	
 	UNUSED (task);
 
+	isc_event_free(&event);
+
 	if (free_now)
 		return;
 
@@ -1328,7 +1333,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	if (free_now) {
 		debug("Bailing out, since freeing now.");
-		isc_event_free (&event);
 		return;
 	}
 
@@ -1345,7 +1349,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		query->waiting_connect = ISC_FALSE;
 		
 		cancel_lookup(query->lookup);
-		isc_event_free(&event);
 		return;
 	}
 
@@ -1360,7 +1363,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS) {
 			printf (";; Got bad UDP packet:\n");
 			hex_dump(b);
-			isc_event_free(&event);
 			query->working = ISC_FALSE;
 			query->waiting_connect = ISC_FALSE;
 			if (!query->lookup->tcp_mode) {
@@ -1427,7 +1429,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					     "Didn't start with SOA answer.");
 					query->working = ISC_FALSE;
 					cancel_lookup(query->lookup);
-					isc_event_free (&event);
 					dns_message_destroy (&msg);
 					return;
 				}
@@ -1448,7 +1449,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						 (char *)r.base, query);
 					query->working = ISC_FALSE;
 					cancel_lookup(query->lookup);
-					isc_event_free(&event);
 					dns_message_destroy (&msg);
 					return;
 				}
@@ -1477,7 +1477,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			check_next_lookup(query->lookup);
 		}
 		dns_message_destroy(&msg);
-		isc_event_free(&event);
 		return;
 	}
 	/* In truth, we should never get into the CANCELED routine, since
@@ -1490,7 +1489,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		isc_event_free(&event);
 		return;
 	}
-	isc_event_free(&event);
 	fatal("recv_done got result %s",
 	      isc_result_totext(sevent->result));
 }
