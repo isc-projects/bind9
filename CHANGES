@@ -1,11 +1,14 @@
- 306. [bug] 		Reading HMAC-MD5 private key files didn't work.
+ 306.	[bug] 		Reading HMAC-MD5 private key files didn't work.
 
- 305. [bug]		When reloading the server with a config file
+ 305.	[bug]		When reloading the server with a config file
 			containing a syntax error, it could catch an
 			assertion failure trying to perform zone
 			maintenance on tentatively created zones whose
 			views were never fully configured and lacked
 			an address database.
+
+ 303.	[bug]		add additional sanity checks to differentiate a AXFR
+			response vs a IXFR response. (RT #157)
 
  302.	[bug]		In dig, host, and nslookup, MXNAME should be large 
 			enough to hold any legal domain name in presentation
