@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.46.2.2.2.8 2004/03/08 09:04:46 marka Exp $
+ * $Id: openssl_link.c,v 1.46.2.2.2.9 2004/03/16 05:50:23 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -118,7 +118,7 @@ mem_realloc(void *ptr, size_t size) {
 
 	INSIST(dst__memory_pool != NULL);
 	p = NULL;
-	if (size > 0) {
+	if (size > 0U) {
 		p = mem_alloc(size);
 		if (p != NULL && ptr != NULL)
 			memcpy(p, ptr, size);

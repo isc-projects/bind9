@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.6.164.3 2004/03/06 08:14:36 marka Exp $ */
+/* $Id: string.c,v 1.6.164.4 2004/03/16 05:50:24 marka Exp $ */
 
 #include <config.h>
 
@@ -118,16 +118,16 @@ isc_string_strlcpy(char *dst, const char *src, size_t size)
 	size_t n = size;
 
 	/* Copy as many bytes as will fit */
-	if (n != 0 && --n != 0) {
+	if (n != 0U && --n != 0U) {
 		do {
 			if ((*d++ = *s++) == 0)
 				break;
-		} while (--n != 0);
+		} while (--n != 0U);
 	}
 
 	/* Not enough room in dst, add NUL and traverse rest of src */
-	if (n == 0) {
-		if (size != 0)
+	if (n == 0U) {
+		if (size != 0U)
 			*d = '\0';		/* NUL-terminate dst */
 		while (*s++)
 			;
@@ -145,15 +145,15 @@ isc_string_strlcat(char *dst, const char *src, size_t size)
 	size_t dlen;
 
 	/* Find the end of dst and adjust bytes left but don't go past end */
-	while (n-- != 0 && *d != '\0')
+	while (n-- != 0U && *d != '\0')
 		d++;
 	dlen = d - dst;
 	n = size - dlen;
 
-	if (n == 0)
+	if (n == 0U)
 		return(dlen + strlen(s));
 	while (*s != '\0') {
-		if (n != 1) {
+		if (n != 1U) {
 			*d++ = *s;
 			n--;
 		}

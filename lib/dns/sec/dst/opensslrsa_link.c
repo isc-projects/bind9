@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.12.2.4.2.7 2004/03/08 09:04:46 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.12.2.4.2.8 2004/03/16 05:50:24 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -177,7 +177,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	status = RSA_sign(type, digest, digestlen, r.base, &siglen, rsa);
 	if (status == 0) {
 		err = ERR_peek_error_line(&file, &line);
-		if (err != 0) {
+		if (err != 0U) {
 			message = ERR_error_string(err, NULL);
 			fprintf(stderr, "%s:%s:%d\n", message,
 				file ? file : "", line);

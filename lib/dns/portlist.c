@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.c,v 1.3.72.3 2004/03/06 08:13:41 marka Exp $ */
+/* $Id: portlist.c,v 1.3.72.4 2004/03/16 05:50:21 marka Exp $ */
 
 #include <stdlib.h>
 
@@ -102,29 +102,30 @@ find_port(dns_element_t *list, unsigned int len, in_port_t port) {
 	unsigned int max = len - 1;
 	unsigned int last = len;
 
-	while (1) {
+	for (;;) {
 		if (list[xtry].port == port)
 			return (&list[xtry]);
 	        if (port > list[xtry].port) {
 			if (xtry == max)
-				return (NULL);
+				break;
 			min = xtry;
 			xtry = xtry + (max - xtry + 1) / 2;
 			INSIST(xtry <= max);
 			if (xtry == last)
-				return (NULL);
+				break;
 			last = min;
 		} else {
 			if (xtry == min)
-				return (NULL);
+				break;
 			max = xtry;
 			xtry = xtry - (xtry - min + 1) / 2;
 			INSIST(xtry >= min);
 			if (xtry == last)
-				return (NULL);
+				break;
 			last = max;
 		}
 	}
+	return (NULL);
 }
 
 isc_result_t

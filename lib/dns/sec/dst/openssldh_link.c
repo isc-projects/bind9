@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.38.2.2.8.6 2004/03/08 09:04:46 marka Exp $
+ * $Id: openssldh_link.c,v 1.38.2.2.8.7 2004/03/16 05:50:23 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -536,7 +536,7 @@ BN_fromhex(BIGNUM *b, const char *str) {
 	unsigned int i;
 	BIGNUM *out;
 
-	RUNTIME_CHECK(strlen(str) < 1024 && strlen(str) % 2 == 0);
+	RUNTIME_CHECK(strlen(str) < 1024U && strlen(str) % 2 == 0U);
 	for (i = 0; i < strlen(str); i += 2) {
 		char *s;
 		unsigned int high, low;

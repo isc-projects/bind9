@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.38.12.7 2004/03/08 09:04:56 marka Exp $ */
+/* $Id: file.c,v 1.38.12.8 2004/03/16 05:50:25 marka Exp $ */
 
 #include <config.h>
 
@@ -394,7 +394,7 @@ dir_current(char *dirname, size_t length) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(dirname != NULL);
-	REQUIRE(length > 0);
+	REQUIRE(length > 0U);
 
 	cwd = getcwd(dirname, length);
 

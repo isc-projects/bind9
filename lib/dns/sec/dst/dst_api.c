@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.11 2004/03/10 02:55:59 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.12 2004/03/16 05:50:22 marka Exp $
  */
 
 #include <config.h>
@@ -1143,7 +1143,7 @@ algorithm_status(unsigned int alg) {
 	return (DST_R_UNSUPPORTEDALG);
 }
 
-isc_result_t
+static isc_result_t
 addsuffix(char *filename, unsigned int len, const char *ofilename,
 	  const char *suffix)
 {

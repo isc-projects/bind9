@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.31.2.1.10.9 2004/03/09 05:21:09 marka Exp $
+ * $Id: dst_parse.c,v 1.31.2.1.10.10 2004/03/16 05:50:22 marka Exp $
  */
 
 #include <config.h>
@@ -381,7 +381,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		fprintf(fp, "(HMAC_MD5)\n");
 		break;
 	default:
-		fprintf(fp, "(?)\n"); break;
+		fprintf(fp, "(?)\n");
 		break;
 	}
 
