@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.180 2001/01/11 18:57:23 gson Exp $ */
+/* $Id: socket.c,v 1.181 2001/01/23 20:42:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1654,7 +1654,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	addrlen = sizeof dev->newsocket->address.type;
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
+	INSIST(sock->pf == dev->newsocket->address.type.sa.sa_family);
 	dev->newsocket->address.length = addrlen;
+	dev->newsocket->pf = sock->pf;
 	if (fd < 0) {
 		if (SOFT_ERROR(errno)) {
 			select_poke(sock->manager, sock->fd);
