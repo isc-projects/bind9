@@ -66,12 +66,7 @@ EXTERN dns_db_t *		ns_g_rootns		INIT(NULL);
  * Current config information
  */
 EXTERN dns_c_ctx_t *		ns_g_confctx		INIT(NULL);
-EXTERN isc_rwlock_t		ns_g_confctxlock;
-EXTERN const char *		ns_g_conffile		INIT(NULL);
-
-
-/* XXXRTH  These are temporary. */
-EXTERN ns_dbinfolist_t		ns_g_dbs;
+EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
 
 #undef EXTERN
 #undef INIT
