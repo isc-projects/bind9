@@ -198,6 +198,7 @@ struct dns_resolver {
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
+	isc_eventlist_t			whenshutdown;
 	isc_socket_t *			udpsocket4;
 	isc_socket_t *			udpsocket6;
 	dns_dispatch_t *		dispatch4;
@@ -1135,7 +1136,8 @@ fctx_destroy(fetchctx_t *fctx) {
 	 */
 
 	REQUIRE(VALID_FCTX(fctx));
-	REQUIRE(fctx->state == fetchstate_done);
+	REQUIRE(fctx->state == fetchstate_done ||
+		fctx->state == fetchstate_init);
 	REQUIRE(ISC_LIST_EMPTY(fctx->events));
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
@@ -1195,7 +1197,39 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-fctx_shutdown(isc_task_t *task, isc_event_t *event) {
+fctx_shutdown(fetchctx_t *fctx) {
+	isc_event_t *cevent;
+
+	/*
+	 * Start the shutdown process for fctx, if it isn't already underway.
+	 */
+
+	FCTXTRACE("shutdown");
+
+	/*
+	 * The caller must be holding the appropriate bucket lock.
+	 */
+
+	if (fctx->want_shutdown)
+		return;
+	
+	fctx->want_shutdown = ISC_TRUE;
+
+	/*
+	 * Unless we're still initializing (in which case the
+	 * control event is still outstanding), we need to post
+	 * the control event to tell the fetch we want it to
+	 * exit.
+	 */
+	if (fctx->state != fetchstate_init) {
+		cevent = &fctx->control_event;
+		isc_task_send(fctx->res->buckets[fctx->bucketnum].task,
+			      &cevent);
+	}
+}
+
+static void
+fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx = event->arg;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	dns_resolver_t *res;
@@ -1207,7 +1241,7 @@ fctx_shutdown(isc_task_t *task, isc_event_t *event) {
 	bucketnum = fctx->bucketnum;
 	(void)task;	/* Keep compiler quiet. */
 	
-	FCTXTRACE("shutdown");
+	FCTXTRACE("doshutdown");
 
 	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
 
@@ -1270,8 +1304,8 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		 * the fctx.
 		 */
 		ISC_EVENT_INIT(event, sizeof *event, 0, NULL,
-			       DNS_EVENT_FETCHCONTROL, fctx_shutdown, fctx,
-			       (void *)fctx_shutdown, NULL, NULL);
+			       DNS_EVENT_FETCHCONTROL, fctx_doshutdown, fctx,
+			       (void *)fctx_doshutdown, NULL, NULL);
 	}
 
 	UNLOCK(&res->buckets[bucketnum].lock);
@@ -2920,9 +2954,27 @@ destroy(dns_resolver_t *res) {
 }
 
 static void
-empty_bucket(dns_resolver_t *res) {
-	isc_boolean_t need_destroy = ISC_FALSE;
+send_shutdown_events(dns_resolver_t *res) {
+	isc_event_t *event, *next_event;
+	isc_task_t *etask;
 
+	/*
+	 * Caller must be holding the resolver lock.
+	 */
+
+	for (event = ISC_LIST_HEAD(res->whenshutdown);
+	     event != NULL;
+	     event = next_event) {
+		next_event = ISC_LIST_NEXT(event, link);
+		ISC_LIST_UNLINK(res->whenshutdown, event, link);
+		etask = event->sender;
+		event->sender = res;
+		isc_task_sendanddetach(&etask, &event);
+	}
+}
+
+static void
+empty_bucket(dns_resolver_t *res) {
 	RTRACE("empty_bucket");
 
 	LOCK(&res->lock);
@@ -2930,12 +2982,9 @@ empty_bucket(dns_resolver_t *res) {
 	INSIST(res->activebuckets > 0);
 	res->activebuckets--;
 	if (res->activebuckets == 0)
-		need_destroy = ISC_TRUE;
+		send_shutdown_events(res);
 
 	UNLOCK(&res->lock);
-
-	if (need_destroy)
-		destroy(res);
 }
 
 isc_result_t
@@ -3048,6 +3097,7 @@ dns_resolver_create(dns_view_t *view,
 	
 	res->references = 1;
 	res->exiting = ISC_FALSE;
+	ISC_LIST_INIT(res->whenshutdown);
 
 	result = isc_mutex_init(&res->lock);
 	if (result != ISC_R_SUCCESS)
@@ -3108,27 +3158,57 @@ dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp) {
 }
 
 void
-dns_resolver_detach(dns_resolver_t **resp) {
-	dns_resolver_t *res;
-	isc_boolean_t need_destroy = ISC_FALSE;
-	unsigned int i;
+dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
+			  isc_event_t **eventp)
+{
+	isc_task_t *clone;
+	isc_event_t *event;
 
-	REQUIRE(resp != NULL);
-	res = *resp;
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(eventp != NULL);
+
+	event = *eventp;
+	*eventp = NULL;
+
+	LOCK(&res->lock);
+	
+	if (res->exiting && res->activebuckets == 0) {
+		/*
+		 * We're already shutdown.  Send the event.
+		 */
+		event->sender = res;
+		isc_task_send(task, &event);
+	} else {
+		clone = NULL;
+		isc_task_attach(task, &clone);
+		event->sender = clone;
+		ISC_LIST_APPEND(res->whenshutdown, event, link);
+	}
+	
+	UNLOCK(&res->lock);
+}
+
+void
+dns_resolver_shutdown(dns_resolver_t *res) {
+	unsigned int i;
+	fetchctx_t *fctx;
+
 	REQUIRE(VALID_RESOLVER(res));
 
-	RTRACE("detach");
+	RTRACE("shutdown");
+	
 	LOCK(&res->lock);
-	INSIST(res->references > 0);
-	res->references--;
-	if (res->references == 0) {
+
+	if (!res->exiting) {
 		RTRACE("exiting");
 		res->exiting = ISC_TRUE;
+
 		for (i = 0; i < res->nbuckets; i++) {
-			/*
-			 * XXXRTH  Post shutdown events?
-			 */
 			LOCK(&res->buckets[i].lock);
+			for (fctx = ISC_LIST_HEAD(res->buckets[i].fctxs);
+			     fctx != NULL;
+			     fctx = ISC_LIST_NEXT(fctx, link))
+				fctx_shutdown(fctx);
 			if (res->udpsocket4 != NULL)
 				isc_socket_cancel(res->udpsocket4,
 						  res->buckets[i].task,
@@ -3145,8 +3225,40 @@ dns_resolver_detach(dns_resolver_t **resp) {
 			UNLOCK(&res->buckets[i].lock);
 		}
 		if (res->activebuckets == 0)
-			need_destroy = ISC_TRUE;
+			send_shutdown_events(res);
 	}
+
+	UNLOCK(&res->lock);
+}
+
+/*
+ * XXXRTH  Do we need attach/detach semantics for the resolver and the
+ *         adb?  They can't be used separately, and the references to
+ *	   them in the view MUST exist until they're both shutdown.
+ *	   Using create/destroy is probably better.  Allow attach/detach
+ *	   to be done at the view level.
+ */
+
+void
+dns_resolver_detach(dns_resolver_t **resp) {
+	dns_resolver_t *res;
+	isc_boolean_t need_destroy = ISC_FALSE;
+
+	REQUIRE(resp != NULL);
+	res = *resp;
+	REQUIRE(VALID_RESOLVER(res));
+
+	RTRACE("detach");
+
+	LOCK(&res->lock);
+
+	INSIST(res->references > 0);
+	res->references--;
+	if (res->references == 0) {
+		INSIST(res->exiting && res->activebuckets == 0);
+		need_destroy = ISC_TRUE;
+	}
+
 	UNLOCK(&res->lock);
 
 	if (need_destroy)
@@ -3331,8 +3443,9 @@ void
 dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 	dns_fetch_t *fetch;
 	dns_fetchevent_t *event, *next_event;
-	isc_event_t *cevent;
 	fetchctx_t *fctx;
+	unsigned int bucketnum;
+	isc_boolean_t bucket_empty = ISC_FALSE;
 
 	REQUIRE(fetchp != NULL);
 	fetch = *fetchp;
@@ -3341,11 +3454,12 @@ dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 
 	FTRACE("destroyfetch");
 
-	LOCK(&res->buckets[fctx->bucketnum].lock);
+	bucketnum = fctx->bucketnum;
+	LOCK(&res->buckets[bucketnum].lock);
 
 	/*
-	 * Sanity check.  The caller should have either gotten its
-	 * fetchevent before trying to destroy the fetch.
+	 * Sanity check: the caller should have gotten its event before
+	 * trying to destroy the fetch.
 	 */
 	event = NULL;
 	if (fctx->state != fetchstate_done) {
@@ -3362,25 +3476,26 @@ dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 	if (fctx->references == 0) {
 		/*
 		 * No one cares about the result of this fetch anymore.
-		 * Shut it down.
 		 */
-		fctx->want_shutdown = ISC_TRUE;
-
-		/*
-		 * Unless we're still initializing (in which case the
-		 * control event is still outstanding), we need to post
-		 * the control event to tell the fetch we want it to
-		 * exit.
-		 */
-		if (fctx->state != fetchstate_init) {
-			cevent = &fctx->control_event;
-			isc_task_send(res->buckets[fctx->bucketnum].task,
-				      &cevent);
+		if (fctx->pending == 0 && SHUTTINGDOWN(fctx)) {
+			/*
+			 * This fctx is already shutdown; we were just
+			 * waiting for the last reference to go away.
+			 */
+			bucket_empty = fctx_destroy(fctx);
+		} else {
+			/*
+			 * Initiate shutdown.
+			 */
+			fctx_shutdown(fctx);
 		}
 	}
 
-	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+	UNLOCK(&res->buckets[bucketnum].lock);
 
 	isc_mem_put(res->mctx, fetch, sizeof *fetch);
 	*fetchp = NULL;
+
+	if (bucket_empty)
+		empty_bucket(res);
 }
