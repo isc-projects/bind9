@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.63 2000/11/22 02:54:15 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.64 2000/11/22 21:25:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -85,6 +85,7 @@ extern int h_errno;
 
 static isc_boolean_t debugging = ISC_FALSE, ddebugging = ISC_FALSE;
 static isc_boolean_t memdebugging = ISC_FALSE;
+static isc_boolean_t have_ipv4 = ISC_FALSE;
 static isc_boolean_t have_ipv6 = ISC_FALSE;
 static isc_boolean_t is_dst_up = ISC_FALSE;
 static isc_boolean_t usevc = ISC_FALSE;
@@ -366,11 +367,15 @@ setup_system(void) {
 	dns_result_register();
 
 	result = isc_net_probeipv4();
-	check_result(result, "isc_net_probeipv4");
+	if (result == ISC_R_SUCCESS)
+		have_ipv4 = ISC_TRUE;
 
 	result = isc_net_probeipv6();
 	if (result == ISC_R_SUCCESS)
 		have_ipv6 = ISC_TRUE;
+
+	if (!have_ipv4 && !have_ipv6)
+		fatal("couldn't find either IPv4 or IPv6");
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
@@ -445,14 +450,17 @@ setup_system(void) {
 		check_result(result, "dns_dispatch_getudp (v6)");
 	}
 
-	attrs = DNS_DISPATCHATTR_UDP;
-	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
-	attrs |= DNS_DISPATCHATTR_IPV4;
-	isc_sockaddr_any(&bind_any);
-	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
-				     &bind_any, PACKETSIZE, 4, 2, 3, 5,
-				     attrs, attrmask, &dispatchv4);
-	check_result(result, "dns_dispatch_getudp (v4)");
+	if (have_ipv4) {
+		attrs = DNS_DISPATCHATTR_UDP;
+		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+		attrs |= DNS_DISPATCHATTR_IPV4;
+		isc_sockaddr_any(&bind_any);
+		result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
+					     &bind_any, PACKETSIZE,
+					     4, 2, 3, 5,
+					     attrs, attrmask, &dispatchv4);
+		check_result(result, "dns_dispatch_getudp (v4)");
+	}
 
 	result = dns_requestmgr_create(mctx, timermgr,
 				       socketmgr, taskmgr, dispatchmgr,
