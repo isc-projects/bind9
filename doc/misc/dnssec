@@ -80,4 +80,12 @@ an update occurs.  Advanced access control is possible using the
 "update-policy" statement in the zone definition.
 
 
-$Id: dnssec,v 1.14.2.1 2001/09/05 00:56:38 gson Exp $
+Secure Zone Transfers
+
+BIND 9 does not implement the zone transfer security mechanisms of
+RFC2535 section 5.6, and we have no plans to implement them in the
+future as we consider them inferior to the use of TSIG or SIG(0) to
+ensure the integrity of zone transfers.
+
+
+$Id: dnssec,v 1.14.2.2 2002/02/07 03:50:14 marka Exp $
