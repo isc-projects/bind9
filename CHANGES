@@ -1,4 +1,8 @@
 
+ 821.	[bug]		The program name used when logging to syslog should
+ 			be stripped of leading path components.
+			[RT #1178, #1232]
+
  820.	[bug]		Name server address lookups failed to follow
 			A6 chains into the glue of local authoritative
 			zones.

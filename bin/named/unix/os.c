@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.42 2001/04/04 21:45:29 bwelling Exp $ */
+/* $Id: os.c,v 1.43 2001/05/03 19:06:23 bwelling Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -32,6 +32,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include <isc/file.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -260,7 +261,7 @@ setup_syslog(const char *progname) {
 	options |= LOG_NDELAY;
 #endif
 
-	openlog(progname, options, LOG_DAEMON);
+	openlog(isc_file_basename(progname), options, LOG_DAEMON);
 }
 
 void
