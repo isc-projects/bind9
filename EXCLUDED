@@ -81,8 +81,9 @@
                         hex as well as decimal.
 			[ Not applicable to 9.2.x ]
 
-1234.   [bug]           'rrset-order' and 'sortlist' should be additive
-                        not exclusive.
+1234.   [bug]           contrib/sdb: 'zonetodb' failed to call
+                        dns_result_register().  DNS_R_SEENINCLUDE should not
+                        be fatal.
 
 1271.   [bug]           "recursion available: {denied,approved}" was too
                         confusing.
