@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.85 2001/10/26 19:35:03 gson Exp $ */
+/* $Id: parser.c,v 1.86 2001/11/05 18:19:46 gson Exp $ */
 
 #include <config.h>
 
@@ -926,7 +926,7 @@ view_clauses[] = {
 	{ "lame-ttl", &cfg_type_uint32, 0 },
 	{ "max-ncache-ttl", &cfg_type_uint32, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
-	{ "transfer-format", &cfg_type_ustring, 0 },
+	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
 	{ "max-adb-size", &cfg_type_sizenodefault, 0 },
 	{ "check-names", &cfg_type_checknames,
