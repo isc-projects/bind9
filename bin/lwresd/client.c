@@ -275,11 +275,10 @@ client_send(isc_task_t *task, isc_event_t *ev)
 	INSIST(CLIENT_ISSEND(client));
 	INSIST(client->sendbuf == dev->region.base);
 
-	if (client->sendbuf != client->buffer) {
+	if (client->sendbuf != client->buffer)
 		lwres_context_freemem(cm->lwctx, client->sendbuf,
 				      client->sendlength);
-		client->sendbuf = NULL;
-	}
+	client->sendbuf = NULL;
 
 	client_state_idle(client);
 }

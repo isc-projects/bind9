@@ -37,6 +37,11 @@
 static void
 process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 {
+	client_t *client = ev->arg;
+
+	dns_adb_destroyfind(&client->v4find);
+
+	isc_event_free(&ev);
 }
 
 static isc_result_t
@@ -45,6 +50,8 @@ start_v4find(client_t *client)
 	unsigned int options;
 	isc_result_t result;
 	dns_fixedname_t cname;
+
+	printf("Starting v4 find for client %p\n", client);
 
 	/*
 	 * Issue a find for the name contained in the request.  We won't
@@ -106,6 +113,8 @@ start_v6find(client_t *client)
 {
 	unsigned int options;
 	isc_result_t result;
+
+	printf("Starting v6 find for client %p\n", client);
 
 	/*
 	 * Issue a find for the name contained in the request.  We won't
@@ -171,6 +180,8 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 
 	client->find_pending = 0;
 	client->find_wanted = req->addrtypes;
+
+	goto out;
 
 	if ((req->addrtypes & LWRES_ADDRTYPE_V4) != 0) {
 		result = start_v4find(client);
