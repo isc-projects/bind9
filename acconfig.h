@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.27 2000/08/17 19:17:44 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.28 2000/09/15 20:50:31 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -71,6 +71,9 @@
  * OS how many threads we might want to run.
  */
 #undef CALL_PTHREAD_SETCONCURRENCY
+
+/* define if IPv6 is not disabled */
+#undef WANT_IPV6
 
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
 #undef SHUTUP_SPUTAUX

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.183 $)
+AC_REVISION($Revision: 1.184 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -592,27 +592,28 @@ AC_SUBST(SA)
 AC_ARG_ENABLE(ipv6,
 	[  --enable-ipv6		use IPv6 [default=autodetect]])
 
+case "$enable_ipv6" in
+	yes|''|autodetect)
+		AC_DEFINE(WANT_IPV6)
+		;;
+	no)
+		;;
+esac
+
 #
 # We do the IPv6 compilation checking after libtool so that we can put
 # the right suffix on the files.
 #
-case "$enable_ipv6" in
-	yes|''|autodetect)
-		AC_MSG_CHECKING(for IPv6 structures)
-		AC_TRY_COMPILE([
+AC_MSG_CHECKING(for IPv6 structures)
+AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>],
-		[struct sockaddr_in6 sin6; return (0);],
-			[AC_MSG_RESULT(yes)
-			 found_ipv6=yes],
-			[AC_MSG_RESULT(no)
-			 found_ipv6=no])
-		;;
-	no)
-		found_ipv6=no
-		;;
-esac
+[struct sockaddr_in6 sin6; return (0);],
+	[AC_MSG_RESULT(yes)
+	 found_ipv6=yes],
+	[AC_MSG_RESULT(no)
+	 found_ipv6=no])
 
 #
 # See whether IPv6 support is provided via a Kame add-on.
