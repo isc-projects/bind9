@@ -14,10 +14,10 @@
 ./bin/dig/nslookup.c				C	2000
 ./bin/dig/.cvsignore				X	2000
 ./bin/dnssec/Makefile.in			MAKE	2000
-./bin/dnssec/dnssec-keygen.c			C	1999,2000
-./bin/dnssec/dnssec-makekeyset.c		C	2000
-./bin/dnssec/dnssec-signkey.c			C	2000
-./bin/dnssec/dnssec-signzone.c			C	1999,2000
+./bin/dnssec/dnssec-keygen.c			C.NAI	2000
+./bin/dnssec/dnssec-makekeyset.c		C.NAI	2000
+./bin/dnssec/dnssec-signkey.c			C.NAI	2000
+./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000
 ./bin/dnssec/dnssectool.c			C	2000
 ./bin/dnssec/dnssectool.h			C	2000
 ./bin/lwresd/.cvsignore				X	2000
