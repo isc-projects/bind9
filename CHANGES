@@ -1,6 +1,6 @@
  266.	[bug]		zone.c:save_nsrrset() node was not initalised.
 
- 265.	[bug]		dns_request_create() not works for TCP.
+ 265.	[bug]		dns_request_create() now works for TCP.
 
  264.	[func]		Dispatch can not take TCP sockets in connecting
 			state.	Set DNS_DISPATCHATTR_CONNECTED when calling
