@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.44.18.4 2004/06/22 02:37:15 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.44.18.5 2004/06/22 05:25:51 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -50,7 +50,7 @@
 #define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
 #define ISC_IF_INET6_SZ \
-	 sizeof("00000000000000000000000000000001 01 80 10 80       lo\n")
+    sizeof("00000000000000000000000000000001 01 80 10 80 XXXXXXloXXXXXXXX\n")
 
 struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */
