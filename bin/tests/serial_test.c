@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <isc/serial.h>
 
+int
 main() {
 	isc_uint32_t a, b;
 	char buf[1024];
@@ -23,4 +25,5 @@ main() {
 			isc_serial_ge(a,b), isc_serial_le(a,b),
 			isc_serial_eq(a,b), isc_serial_ne(a,b));
 	}
+	exit (0);
 }
