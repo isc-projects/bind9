@@ -96,7 +96,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 	else
 		no_rdata = ISC_FALSE;
 
-	printf("\n;; %s SECTION:\n", section_name);
+	printf(";; %s SECTION:\n", section_name);
 
 	dns_name_init(&empty_name, NULL);
 
@@ -178,24 +178,39 @@ printmessage(dns_message_t *msg) {
 	       msg->counts[DNS_SECTION_ANSWER],
 	       msg->counts[DNS_SECTION_AUTHORITY],
 	       msg->counts[DNS_SECTION_ADDITIONAL]);
-	printf("; PSEUDOSECTIONS: TSIG: %u\n",
-	       msg->counts[DNS_SECTION_TSIG]);
-
+	if (msg->counts[DNS_SECTION_TSIG] > 0)
+		printf(";; PSEUDOSECTIONS: TSIG: %u\n",
+		       msg->counts[DNS_SECTION_TSIG]);
 	result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION");
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER");
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY");
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	result = printsection(msg, DNS_SECTION_ADDITIONAL, "ADDITIONAL");
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	result = printsection(msg, DNS_SECTION_TSIG, "PSEUDOSECTION TSIG");
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	printf("\n");
+	if (msg->counts[DNS_SECTION_ANSWER] > 0) {
+		printf("\n");
+		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER");
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
+	if (msg->counts[DNS_SECTION_AUTHORITY] > 0) {
+		printf("\n");
+		result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY");
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
+	if (msg->counts[DNS_SECTION_ADDITIONAL] > 0) {
+		printf("\n");
+		result = printsection(msg, DNS_SECTION_ADDITIONAL,
+				      "ADDITIONAL");
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
+	if (msg->counts[DNS_SECTION_TSIG] > 0) {
+		printf("\n");
+		result = printsection(msg, DNS_SECTION_TSIG,
+				      "PSEUDOSECTION TSIG");
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
 
 	return (result);
 }
