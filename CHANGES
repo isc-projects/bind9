@@ -8,8 +8,11 @@
 
 1743.	[placeholder]	rt12790
 
-1742.	[placeholder]	rt12788
-
+1742.	[bug]		If isc_taskmgr_create() was not able to create the
+			requested number of worker threads then destruction
+			of the manager would trigger an INSIST() failure.
+			[RT #12790]
+			
 1741.	[bug]		Deleting all records at a node in a secure zone
 			using a update-policy grant failed. [RT #12787]
 
