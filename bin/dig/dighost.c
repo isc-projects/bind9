@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221 2001/08/08 22:54:14 gson Exp $ */
+/* $Id: dighost.c,v 1.222 2001/08/29 18:57:08 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -203,54 +203,90 @@ hex_dump(isc_buffer_t *b) {
 		printf("\n");
 }
 
+/*
+ * Append 'len' bytes of 'text' at '*p', failing with
+ * ISC_R_NOSPACE if that would advance p past 'end'.
+ */
+static isc_result_t
+append(const char *text, int len, char **p, char *end) {
+	if (len > end - *p)
+		return (ISC_R_NOSPACE);
+	memcpy(*p, text, len);
+	*p += len;
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+reverse_octets(const char *in, char **p, char *end) {
+	char *dot = strchr(in, '.');
+	int len;
+	if (dot != NULL) {
+		isc_result_t result;
+		result = reverse_octets(dot + 1, p, end);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		result = append(".", 1, p, end);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		len = dot - in;
+	} else {
+		len = strlen(in);
+	}
+	return (append(in, len, p, end));
+}
 
 isc_result_t
-get_reverse(char *reverse, char *value, isc_boolean_t nibble) {
-	int adrs[4];
-	char working[MXNAME];
-	int remaining;
-	int i, n;
+get_reverse(char *reverse, char *value, isc_boolean_t nibble,
+	    isc_boolean_t strict)
+{
+	int r;
 	isc_result_t result;
+	isc_netaddr_t addr;
 
-	result = DNS_R_BADDOTTEDQUAD;
-	reverse[0] = 0;
-
-	debug("get_reverse(%s)", value);
-	if (strspn(value, "0123456789.") == strlen(value)) {
-		n = sscanf(value, "%d.%d.%d.%d",
-			   &adrs[0], &adrs[1],
-			   &adrs[2], &adrs[3]);
-		if (n == 0) {
-			return (DNS_R_BADDOTTEDQUAD);
-		}
-		reverse[MXNAME - 1] = 0;
-		for (i = n - 1; i >= 0; i--) {
-			snprintf(working, sizeof(working), "%d.",
-				 adrs[i]);
-			remaining = MXNAME - strlen(reverse) - 1;
-			strncat(reverse, working, remaining);
-		}
-		remaining = MXNAME - strlen(reverse) - 1;
-		strncat(reverse, "in-addr.arpa.", remaining);
-		result = ISC_R_SUCCESS;
-	} else if (strspn(value, "0123456789abcdefABCDEF:") 
-		   == strlen(value)) {
-		isc_netaddr_t addr;
+	addr.family = AF_INET6;
+	r= inet_pton(AF_INET6, value, &addr.type.in6);
+	if (r > 0) {
+		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
 		dns_name_t *name;
-		
-		addr.family = AF_INET6;
-		n = inet_pton(AF_INET6, value, &addr.type.in6);
-		if (n <= 0)
-			return (DNS_R_BADDOTTEDQUAD);
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
 		result = dns_byaddr_createptrname(&addr, nibble, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_name_format(name, reverse, MXNAME);
+		return (ISC_R_SUCCESS);
+	} else {
+		/*
+		 * Not a valid IPv6 address.  Assume IPv4.
+		 * If 'strict' is not set, construct the
+		 * in-addr.arpa name by blindly reversing
+		 * octets whether or not they look like integers,
+		 * so that this can be used for RFC2317 names
+		 * and such.
+		 */
+		char *p = reverse;
+		char *end = reverse + MXNAME;
+		if (strict) {
+			int adrs[4];
+			int n;
+			if (strspn(value, "0123456789.") != strlen(value))
+				return (DNS_R_BADDOTTEDQUAD);
+			n = sscanf(value, "%d.%d.%d.%d",
+				   &adrs[0], &adrs[1],
+				   &adrs[2], &adrs[3]);
+			if (n == 0)
+				return (DNS_R_BADDOTTEDQUAD);
+		}
+		result = reverse_octets(value, &p, end);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		/* Append .in-addr.arpa. and a terminating NUL. */
+		result = append(".in-addr.arpa.", 15, &p, end);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		return (ISC_R_SUCCESS);
 	}
-	return (result);
 }
 
 void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157 2001/08/23 04:39:31 marka Exp $ */
+/* $Id: dig.c,v 1.158 2001/08/29 18:57:06 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1027,7 +1027,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (value_from_next);
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
-		if (get_reverse(textname, value, nibble) == ISC_R_SUCCESS) {
+		if (get_reverse(textname, value, nibble, ISC_FALSE)
+		    == ISC_R_SUCCESS)
+		{
 			strncpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));
 			debug("looking up %s", (*lookup)->textname);

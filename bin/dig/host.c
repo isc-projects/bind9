@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76 2001/08/27 21:31:29 gson Exp $ */
+/* $Id: host.c,v 1.77 2001/08/29 18:57:09 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -654,7 +654,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 
 	lookup->pending = ISC_FALSE;
-	if (get_reverse(store, hostname, lookup->nibble) == ISC_R_SUCCESS) {
+	if (get_reverse(store, hostname, lookup->nibble, ISC_TRUE)
+	    == ISC_R_SUCCESS) 
+	{
 		strncpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1] = 0;
 		lookup->rdtype = dns_rdatatype_ptr;
