@@ -400,7 +400,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 	key = ISC_LIST_HEAD(keylist);
 	while (key != NULL) {
-		int alg = dst_key_alg(key->key);
+		unsigned int alg = dst_key_alg(key->key);
 		if (key->isdefault &&
 		    (notsigned || (wassignedby[alg] && !nowsignedby[alg])))
 		{
@@ -1344,7 +1344,7 @@ main(int argc, char *argv[]) {
 	else {
 		for (i = 0; i < argc; i++) {
 			isc_uint16_t id;
-			int alg;
+			unsigned int alg;
 			dns_fixedname_t fname;
 			dns_name_t *name;
 			isc_buffer_t b;
@@ -1425,7 +1425,8 @@ main(int argc, char *argv[]) {
 
 	if (log != NULL)
 		isc_log_destroy(&log);
-/*	isc_mem_stats(mctx, stdout);*/
+	if (verbose > 10)
+		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
 	return (0);

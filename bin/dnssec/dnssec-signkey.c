@@ -352,6 +352,8 @@ main(int argc, char *argv[]) {
 		isc_log_destroy(&log);
 
         isc_mem_free(mctx, output);
+	if (verbose > 10)
+		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 	return (0);
 }

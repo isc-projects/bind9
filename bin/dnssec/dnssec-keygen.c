@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.29 2000/06/01 18:49:16 tale Exp $ */
+/* $Id: dnssec-keygen.c,v 1.30 2000/06/02 19:02:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -365,7 +365,8 @@ main(int argc, char **argv) {
 
 	if (log != NULL)
 		isc_log_destroy(&log);
-	/* isc_mem_stats(mctx, stdout);*/
+	if (verbose > 10)
+		isc_mem_stats(mctx, stdout);
         isc_mem_destroy(&mctx);
 
 	return (0);
