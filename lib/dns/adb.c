@@ -2961,7 +2961,7 @@ dump_adb(dns_adb_t *adb, FILE *f)
 			else
 				fprintf(f, "%d ", name->expire_v4 - now);
 			if (name->expire_v6 == INT_MAX)
-				fprintf(f, "inf] ");
+				fprintf(f, "inf ");
 			else
 				fprintf(f, "%d ", name->expire_v6 - now);
 			if (name->expire_target == INT_MAX)
