@@ -123,7 +123,7 @@ OBJS =		a6.@O@ address.@O@ callbacks.@O@ compress.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ resolver.@O@ \
 		result.@O@ \
 		tcpmsg.@O@ time.@O@ tsig.@O@ ttl.@O@ \
-		version.@O@ view.@O@ zone.@O@ \
+		version.@O@ view.@O@ zone.@O@ zt.@O@ \
 		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS} ${CONFOBJS}
 
 # Alphabetically
@@ -136,7 +136,7 @@ SRCS =		a6.c address.c callbacks.c compress.c \
 		rdataset.c rdatasetiter.c rdataslab.c resolver.c \
 		result.c \
 		tcpmsg.c time.c tsig.c ttl.c \
-		version.c view.c zone.c
+		version.c view.c zone.c zt.c
 
 SUBDIRS =	include sec config
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
@@ -176,6 +176,10 @@ install:: timestamp installdirs
 clean distclean::
 	rm -f libdns.@A@ timestamp
 	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
+	rm -f include/dns/rdatastruct.h
+
+newrr::
+	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h
 	rm -f include/dns/rdatastruct.h
 
 rdata.@O@: code.h
