@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +42,8 @@
 #include <tests/t_api.h>
 
 static void	t1(void);
+
+static void	t2(void);
 
 /*
  * adapted from the original dst_test.c program
@@ -290,8 +293,375 @@ t1() {
 
 }
 
+#define	T_SIGMAX	512
+
+#undef	NEWSIG	/* define NEWSIG to generate the original signature file */
+
+#ifdef	NEWSIG
+
+/* write a sig in buf to file at path */
+static int
+sig_tofile(char *path, isc_buffer_t *buf) {
+	int		rval;
+	int		fd;
+	int		len;
+	int		nprobs;
+	int		cnt;
+	unsigned char	c;
+	unsigned char	val;
+
+	cnt = 0;
+	nprobs = 0;
+	len = buf->used - buf->current;
+
+	t_info("buf: current %d used %d len %d\n", buf->current, buf->used, len);
+
+	fd = open(path, O_CREAT|O_TRUNC|O_WRONLY, S_IRWXU|S_IRWXO|S_IRWXG);
+	if (fd < 0) {
+		t_info("open %s failed %d\n", path, errno);
+		return(1);
+	}
+
+	while (len) {
+		c = (unsigned char) isc_buffer_getuint8(buf);
+		val = ((c >> 4 ) & 0x0f);
+		if ((0 <= val) && (val <= 9))
+			val = '0' + val;
+		else
+			val = 'A' + val - 10;
+		rval = write(fd, &val, 1);
+		if (rval != 1) {
+			++nprobs;
+			t_info("write failed %d %d\n", rval, errno);
+			break;
+		}
+		val = (c & 0x0f);
+		if ((0 <= val) && (val <= 9))
+			val = '0' + val;
+		else
+			val = 'A' + val - 10;
+		rval = write(fd, &val, 1);
+		if (rval != 1) {
+			++nprobs;
+			t_info("write failed %d %d\n", rval, errno);
+			break;
+		}
+		--len;
+		++cnt;
+		if ((cnt % 16) == 0) {
+			val = '\n';
+			rval = write(fd, &val, 1);
+			if (rval != 1) {
+				++nprobs;
+				t_info("write failed %d %d\n", rval, errno);
+				break;
+			}
+		}
+	}
+	val = '\n';
+	rval = write(fd, &val, 1);
+	if (rval != 1) {
+		++nprobs;
+		t_info("write failed %d %d\n", rval, errno);
+	}
+	(void) close(fd);
+	return(nprobs);
+}
+
+#endif	/* NEWSIG */
+
+/* read sig in file at path to buf */
+static int
+sig_fromfile(char *path, isc_buffer_t *iscbuf) {
+	int		rval;
+	int		len;
+	int		fd;
+	unsigned char	val;
+	struct stat	sb;
+	char		*p;
+	char		*buf;
+
+	rval = stat(path, &sb);
+	if (rval != 0) {
+		t_info("stat %s failed, errno == %d\n", path, errno);
+		return(1);
+	}
+
+	buf = (char *) malloc(((sb.st_size / 2) + 1) * sizeof(unsigned char));
+	if (buf == NULL) {
+		t_info("malloc failed, errno == %d\n", errno);
+		return(1);
+	}
+	
+	fd = open(path, O_RDONLY);
+	if (fd < 0) {
+		t_info("open failed, errno == %d\n", errno);
+		(void) free(buf);
+		return(1);
+	}
+
+	len = sb.st_size;
+	p = buf;
+	while (len) {
+		rval = read(fd, p, len);
+		if (rval > 0) {
+			len -= rval;
+			p += rval;
+		}
+		else {
+			t_info("read failed %d, errno == %d\n", rval, errno);
+			(void) free(buf);
+			(void) close(fd);
+			return(1);
+		}
+	}
+	close(fd);
+
+	p = buf;
+	len = sb.st_size;
+	while(len) {
+		if (*p == '\n') {
+			++p;
+			--len;
+			continue;
+		}
+		if (('0' <= *p) && (*p <= '9'))
+			val = *p - '0';
+		else
+			val = *p - 'A' + 10;
+		++p;
+		val <<= 4;
+		--len;
+		if (('0' <= *p) && (*p <= '9'))
+			val |= (*p - '0');
+		else
+			val |= (*p - 'A' + 10);
+		++p;
+		--len;
+		isc_buffer_putuint8(iscbuf, val);
+	}
+	(void) free(buf);
+	return(0);
+}
+
+
+static void
+t2_sigchk(char *datapath, char *sigpath, char *keyname,
+		int id, int alg, int type,
+		isc_mem_t *mctx, char *expected_result,
+		int *nfails, int *nprobs) {
+
+	int		rval;
+	int		len;
+	int		fd;
+	int		exp_res;
+	dst_key_t	*key;
+	unsigned char	sig[T_SIGMAX];
+	unsigned char	*p;
+	unsigned char	*data;
+	struct stat	sb;
+	dns_result_t	dns_result;
+	isc_buffer_t	databuf;
+	isc_buffer_t	sigbuf;
+	isc_region_t	datareg;
+	isc_region_t	sigreg;
+
+	/* read data from file in a form usable by dst_verify */
+	rval = stat(datapath, &sb);
+	if (rval != 0) {
+		t_info("t2_sigchk: stat (%s) failed %d\n", datapath, errno);
+		++*nprobs;
+		return;
+	}
+
+	data = (unsigned char *) malloc(sb.st_size * sizeof(char));
+	if (data == NULL) {
+		t_info("t2_sigchk: malloc failed %d\n", errno);
+		++*nprobs;
+		return;
+	}
+
+	fd = open(datapath, O_RDONLY);
+	if (fd < 0) {
+		t_info("t2_sigchk: open failed %d\n", errno);
+		(void) free(data);
+		++*nprobs;
+		return;
+	}
+
+	p = data;
+	len = sb.st_size;
+	do {
+		rval = read(fd, p, len);
+		if (rval > 0) {
+			len -= rval;
+			p += rval;
+		}
+	} while (len);
+	(void) close(fd);
+
+	/* read key from file in a form usable by dst_verify */
+	dns_result = dst_key_fromfile(keyname, id, alg, type, mctx, &key);
+	if (dns_result != DNS_R_SUCCESS) {
+		t_info("dst_key_fromfile failed %s\n",
+			dns_result_totext(dns_result));
+		(void) free(data);
+		++*nprobs;
+		return;
+	}
+
+	isc_buffer_init(&databuf, data, sb.st_size, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&databuf, sb.st_size);
+	isc_buffer_used(&databuf, &datareg);
+
+#ifdef	NEWSIG
+
+	/*
+	 * if we're generating a signature for the first time,
+	 * sign the data and save the signature to a file
+	 */
+
+	memset(sig, 0, sizeof(sig));
+	isc_buffer_init(&sigbuf, sig, sizeof(sig), ISC_BUFFERTYPE_BINARY);
+
+	dns_result = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
+	if (dns_result != DNS_R_SUCCESS) {
+		t_info("dst_sign(%d) failed %s\n", dst_result_totext(dns_result));
+		(void) free(data);
+		(void) dst_key_free(key);
+		++*nprobs;
+		return;
+	}
+
+	rval = sig_tofile(sigpath, &sigbuf);
+	if (rval != 0) {
+		t_info("sig_tofile failed\n");
+		++*nprobs;
+		(void) free(data);
+		(void) dst_key_free(key);
+		return;
+	}
+
+#endif	/* NEWSIG */
+
+	memset(sig, 0, sizeof(sig));
+	isc_buffer_init(&sigbuf, sig, sizeof(sig), ISC_BUFFERTYPE_BINARY);
+
+	/* read precomputed signature from file in a form usable by dst_verify */
+	rval = sig_fromfile(sigpath, &sigbuf);
+	if (rval != 0) {
+		t_info("sig_fromfile failed\n");
+		(void) free(data);
+		(void) dst_key_free(key);
+		++*nprobs;
+		return;
+	}
+
+	/* verify that the key signed the data */
+	isc_buffer_remaining(&sigbuf, &sigreg);
+
+	exp_res = 0;
+	if (strstr(expected_result, "!"))
+		exp_res = 1;
+
+	dns_result = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
+	if (	((exp_res == 0) && (dns_result != DNS_R_SUCCESS))	||
+		((exp_res != 0) && (dns_result == DNS_R_SUCCESS)))	{
+
+		t_info("dst_verify returned %s, expected %s\n",
+			dns_result_totext(dns_result),
+			expected_result);
+		++*nfails;
+	}
+
+	(void) free(data);
+	(void) dst_key_free(key);
+	return;
+}
+
+/*
+ * the astute observer will note that t1() signs then verifies data
+ * during the test but that t2() verifies data that has been
+ * signed at some earlier time, possibly with an entire different
+ * version or implementation of the DSA and RSA algorithms
+ */
+
+static char	*a2 =
+		"the dst module provides the capability to "
+		"verify data signed with the RSA and DSA algorithms";
+
+/* av ==  datafile, sigpath, keyname, keyid, alg, exp_result */
+static int
+t2_vfy(char **av) {
+	char		*datapath;
+	char		*sigpath;
+	char		*keyname;
+	char		*key;
+	int		keyid;
+	char		*alg;
+	int		algid;
+	char		*exp_result;
+	int		nfails;
+	int		nprobs;
+	isc_mem_t	*mctx;
+	isc_result_t	isc_result;
+	int		result;
+
+	datapath	= *av++;
+	sigpath		= *av++;
+	keyname		= *av++;
+	key		= *av++;
+	keyid		= atoi(key);
+	alg		= *av++;
+	exp_result	= *av++;
+	nfails		= 0;
+	nprobs		= 0;
+
+	if (! strcasecmp(alg, "DST_ALG_DSA"))
+		algid = DST_ALG_DSA;
+	else if (! strcasecmp(alg, "DST_ALG_RSA"))
+		algid = DST_ALG_RSA;
+	else {
+		t_info("Unknown algorithm %s\n", alg);
+		return(T_UNRESOLVED);
+	}
+
+	mctx = NULL;
+	isc_result = isc_mem_create(0, 0, &mctx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_mem_create failed %d\n", isc_result_totext(isc_result));
+		return(T_UNRESOLVED);
+	}
+
+	t_info("testing %s, %s, %s, %s, %s, %s\n",
+			datapath, sigpath, keyname, key, alg, exp_result);
+	t2_sigchk(datapath, sigpath, keyname, keyid,
+			algid, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+			mctx, exp_result,
+			&nfails, &nprobs);
+
+	isc_mem_destroy(&mctx);
+
+	result = T_UNRESOLVED;
+	if (nfails)
+		result = T_FAIL;
+	else if ((nfails == 0) && (nprobs == 0))
+		result = T_PASS;
+	return(result);
+
+}
+
+static void
+t2() {
+	int	result;
+	t_assert("dst", 3, T_REQUIRED, a2);
+	result = t_eval("dst_2_data", t2_vfy, 6);
+	t_result(result);
+}
+
 testspec_t	T_testlist[] = {
 	{	t1,	"basic dst module verification"	},
-	{	NULL,	NULL			}
+	{	t2,	"signature ineffability"	},
+	{	NULL,	NULL				}
 };
 
