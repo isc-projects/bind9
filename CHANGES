@@ -1,3 +1,6 @@
+1481.	[bug]		Refresh and stub queries failed to use masters keys
+			if specified. [RT #7391]
+
 1480.	[bug]		Provide replay protection for rndc commands.  Full
 			replay protection requires both rndc and named to
 			be updated.  Partial replay protection (limited

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.18 2003/05/15 06:30:17 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.19 2003/07/17 07:11:17 marka Exp $ */
 
 #include <config.h>
 
@@ -3514,7 +3514,24 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	zone->masteraddr = zone->masters[zone->curmaster];
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
-	(void)dns_view_getpeertsig(zone->view, &masterip, &key);
+	/*
+	 * First, look for a tsig key in the master statement, then
+	 * try for a server key.
+	 */
+	if ((zone->masterkeynames != NULL) &&
+	    (zone->masterkeynames[zone->curmaster] != NULL)) {
+		dns_view_t *view = dns_zone_getview(zone);
+		dns_name_t *keyname = zone->masterkeynames[zone->curmaster];
+		result = dns_view_gettsig(view, keyname, &key);
+		if (result != ISC_R_SUCCESS) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(keyname, namebuf, sizeof(namebuf));
+			dns_zone_log(zone, ISC_LOG_ERROR,
+			             "unable to find key: %s", namebuf);
+		}
+	}
+	if (key == NULL)
+		(void)dns_view_getpeertsig(zone->view, &masterip, &key);
 
 	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
 		  DNS_REQUESTOPT_TCP : 0;
@@ -3655,7 +3672,24 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	zone->masteraddr = zone->masters[zone->curmaster];
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
-	(void)dns_view_getpeertsig(zone->view, &masterip, &key);	
+	/*
+	 * First, look for a tsig key in the master statement, then
+	 * try for a server key.
+	 */
+	if ((zone->masterkeynames != NULL) &&
+	    (zone->masterkeynames[zone->curmaster] != NULL)) {
+		dns_view_t *view = dns_zone_getview(zone);
+		dns_name_t *keyname = zone->masterkeynames[zone->curmaster];
+		result = dns_view_gettsig(view, keyname, &key);
+		if (result != ISC_R_SUCCESS) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(keyname, namebuf, sizeof(namebuf));
+			dns_zone_log(zone, ISC_LOG_ERROR,
+			             "unable to find key: %s", namebuf);
+		}
+	}
+	if (key == NULL)
+		(void)dns_view_getpeertsig(zone->view, &masterip, &key);	
 
 	/*
 	 * Always use TCP so that we shouldn't truncate in additional section.
