@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.7 2000/05/08 14:38:20 tale Exp $ */
+/* $Id: result.c,v 1.8 2000/06/01 17:33:37 tale Exp $ */
 #include <config.h>
 
 #include <isc/once.h>
@@ -24,7 +24,7 @@
 #include <omapi/result.h>
 #include <omapi/lib.h>
 
-static char *text[OMAPI_R_NRESULTS] = {
+static const char *text[OMAPI_R_NRESULTS] = {
 	"data not yet available",		/* 0 */
 	"not connected",			/* 1 */
 	"no key specified",			/* 2 */
@@ -56,7 +56,7 @@ initialize(void) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 
-char *
+const char *
 omapi_result_totext(isc_result_t result) {
 	initialize();
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.27 2000/05/17 22:48:07 bwelling Exp $ */
+/* $Id: connection.c,v 1.28 2000/06/01 17:33:35 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -618,14 +618,14 @@ free_task:
  * Put some bytes into the output buffer for a connection.
  */
 isc_result_t
-omapi_connection_putmem(omapi_object_t *c, unsigned char *src,
+omapi_connection_putmem(omapi_object_t *c, const unsigned char *src,
 			unsigned int len)
 {
 	omapi_connection_t *connection;
 	omapi_protocol_t *protocol;
 	isc_buffer_t *buffer;
 	isc_bufferlist_t bufferlist;
-	isc_region_t region;
+	isc_constregion_t region;
 	isc_result_t result;
 	unsigned int space_available;
 
@@ -644,7 +644,8 @@ omapi_connection_putmem(omapi_object_t *c, unsigned char *src,
 		region.base = src;
 		region.length = len;
 		result = dst_key_sign(DST_SIGMODE_UPDATE, protocol->key,
-				      &protocol->dstctx, &region, NULL);
+				      &protocol->dstctx,
+				      (isc_region_t *)&region, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -1026,7 +1027,7 @@ omapi_connection_putname(omapi_object_t *c, const char *name) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	return (omapi_connection_putmem(c, (unsigned char *)name, len));
+	return (omapi_connection_putmem(c, (const unsigned char *)name, len));
 }
 
 isc_result_t
@@ -1042,7 +1043,8 @@ omapi_connection_putstring(omapi_object_t *c, const char *string) {
 	result = omapi_connection_putuint32(c, len);
 
 	if (result == ISC_R_SUCCESS && len > 0)
-		result = omapi_connection_putmem(c, (unsigned char *)string,
+		result = omapi_connection_putmem(c,
+						 (const unsigned char *)string,
 						 len);
 	return (result);
 }

@@ -33,7 +33,7 @@ ISC_LANG_BEGINDECLS
 
 #define OMAPI_R_NRESULTS		6	/* Number of results */
 
-char *
+const char *
 omapi_result_totext(isc_result_t);
 
 void

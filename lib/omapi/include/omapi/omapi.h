@@ -124,7 +124,7 @@ void
 omapi_connection_disconnect(omapi_object_t *connection, isc_boolean_t how);
 
 isc_result_t
-omapi_connection_putmem(omapi_object_t *connection, unsigned char *data,
+omapi_connection_putmem(omapi_object_t *connection, const unsigned char *data,
 			unsigned int length);
 
 isc_result_t
