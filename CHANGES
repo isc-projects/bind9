@@ -1,6 +1,9 @@
 1229.	[bug]		named would crash if it received a TSIG signed
 			query as part of an AXFR response. [RT #2570]
 
+1211.	[bug]		dns_name_fromtext() incorrectly handled certain
+			valid octal bitlabels. [RT #2483]
+
 1210.	[bug]		libbind: getnameinfo() failed to lookup IPv4 mapped /
 			compatible addresses. [RT #2461]
 

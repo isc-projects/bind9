@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127 2001/06/28 21:34:11 gson Exp $ */
+/* $Id: name.c,v 1.127.2.1 2002/03/20 19:38:49 marka Exp $ */
 
 #include <config.h>
 
@@ -1484,8 +1484,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 						 * addition of another byte
 						 * below.
 						 */
-						n1 = bitlength - 1 / 8;
-						n2 = tbcount - 1 / 8;
+						n1 = (bitlength - 1) / 8;
+						n2 = (tbcount - 1) / 8;
 						if (n1 != n2) {
 						    if (value != 0)
 						       return
