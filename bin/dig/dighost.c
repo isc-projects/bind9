@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.57 2000/06/23 20:57:19 mws Exp $ */
+/* $Id: dighost.c,v 1.58 2000/06/26 00:57:18 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1516,7 +1516,6 @@ static void
 check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		    isc_socketevent_t *sevent)
 {
-	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata;
 	dns_rdata_soa_t soa;
@@ -1547,6 +1546,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	check_result(result, "dns_message_firstname");
 #endif
 	do {
+		dns_name_t *name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER,
 					&name);
 		for (rdataset = ISC_LIST_HEAD(name->list);
