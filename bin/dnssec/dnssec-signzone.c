@@ -7,6 +7,7 @@
 
 #include <isc/types.h>
 #include <isc/assertions.h>
+#include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/error.h>
 #include <isc/mem.h>
@@ -21,6 +22,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
@@ -131,19 +133,43 @@ build_nxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 }
 
 static void
+sign_with_key(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
+	      dns_rdatalist_t *sigrdatalist, isc_stdtime_t *now,
+	      isc_stdtime_t *later, dst_key_t *key,
+	      unsigned char *array, int len)
+{
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	r.base = array;
+	r.length = len;
+	memset(r.base, 0, r.length);
+
+	dns_rdata_init(rdata);
+	isc_buffer_init(&b, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+	result = dns_dnssec_sign(name, rdataset, key, now, later,
+				 mctx, &b, rdata);
+	check_result(result, "dns_dnssec_sign()");
+	result = dns_dnssec_verify(name, rdataset, key, mctx, rdata);
+	check_result(result, "dns_dnssec_verify()");
+	ISC_LIST_APPEND(sigrdatalist->rdata, rdata, link);
+}
+
+static void
 generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	     dns_name_t *name, dst_key_t **keys, int nkeys)
+	     dns_name_t *name, dst_key_t **keys, isc_boolean_t *defaultkey,
+	     int nkeys)
 {
 	isc_result_t result;
 	dns_rdata_t rdata, rdatas[MAXKEYS];
-	dns_rdataset_t rdataset, sigrdataset;
+	dns_rdataset_t rdataset, sigrdataset, oldsigset;
 	dns_rdatalist_t sigrdatalist;
-	isc_region_t data[MAXKEYS];
 	dns_rdatasetiter_t *rdsiter;
-	isc_buffer_t buffer;
 	isc_stdtime_t now, later;
 	unsigned char array[MAXKEYS][1024];
 	int i;
+	isc_boolean_t alreadysigned;
 
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
@@ -152,8 +178,6 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type > 127)
-			fatal("rdataset type too large");
 
 		if (rdataset.type == dns_rdatatype_sig ||
 		    (rdataset.type == dns_rdatatype_key &&
@@ -164,7 +188,21 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			continue;
 		}
 
-		if (rdataset.type == dns_rdatatype_nxt) {
+		dns_rdataset_init(&oldsigset);
+		result = dns_db_findrdataset(db, node, version,
+					     dns_rdatatype_sig, rdataset.type,
+					     0, &oldsigset, NULL);
+		if (result == ISC_R_SUCCESS)
+			alreadysigned = ISC_TRUE;
+		else if (result == ISC_R_NOTFOUND) {
+			alreadysigned = ISC_FALSE;
+			result = ISC_R_SUCCESS;
+		}
+		else
+			alreadysigned = ISC_FALSE; /* not that this matters */
+		check_result(result, "dns_db_findrdataset()");
+
+		if (rdataset.type == dns_rdatatype_nxt && !alreadysigned) {
 			unsigned char *nxt_bits;
 			dns_name_t nxtname;
 			isc_region_t r, r2;
@@ -185,22 +223,48 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		later = 100000 + now;
 		ISC_LIST_INIT(sigrdatalist.rdata);
 
-		for (i = 0; i < nkeys; i++) {
-			data[i].base = array[i];
-			data[i].length = sizeof(array[i]);
-			memset(data[i].base, 0, data[i].length);
+		if (!alreadysigned) {
+			for (i = 0; i < nkeys; i++) {
+				if (!defaultkey[i])
+					continue;
+				sign_with_key(name, &rdataset, &rdatas[i],
+					      &sigrdatalist, &now, &later,
+					      keys[i], array[i],
+					      sizeof(array[i]));
+			}
+		}
+		else {
+			dns_rdata_t sigrdata;
+			dns_rdata_generic_sig_t sig;
 
-			dns_rdata_init(&rdatas[i]);
-			isc_buffer_init(&buffer, data[i].base, data[i].length,
-					ISC_BUFFERTYPE_BINARY);
-			result = dns_dnssec_sign(name, &rdataset, keys[i],
-						 &now, &later,
-						 mctx, &buffer, &rdatas[i]);
-			check_result(result, "dns_dnssec_sign()");
-			result = dns_dnssec_verify(name, &rdataset, keys[i],
-						   mctx, &rdatas[i]);
-			check_result(result, "dns_dnssec_verify()");
-			ISC_LIST_APPEND(sigrdatalist.rdata, &rdatas[i], link);
+			dns_rdata_init(&sigrdata);
+			result = dns_rdataset_first(&oldsigset);
+			while (result == ISC_R_SUCCESS) {
+				dns_rdataset_current(&oldsigset, &sigrdata);
+				result = dns_rdata_tostruct(&sigrdata, &sig,
+							    mctx);
+				check_result(result, "dns_rdata_tostruct()");
+				for (i = 0; i < nkeys; i++) {
+					dst_key_t *key = keys[i];
+					if (dst_key_id(key) == sig.keyid &&
+					    dst_key_alg(key) == sig.algorithm)
+						break;
+				}
+				if (i == nkeys) {
+					result = dns_rdataset_next(&oldsigset);
+					dns_rdata_freestruct(&sig);
+					printf("couldn't find key");
+					continue;
+				}
+				sign_with_key(name, &rdataset, &rdatas[i],
+					      &sigrdatalist, &now, &later,
+					      keys[i], array[i],
+					      sizeof(array[i]));
+
+				dns_rdata_freestruct(&sig);
+				result = dns_rdataset_next(&oldsigset);
+			}
+			dns_rdataset_disassociate(&oldsigset);
 		}
 
 		sigrdatalist.rdclass = rdataset.rdclass;
@@ -342,6 +406,7 @@ sign(char *filename) {
 	dns_dbiterator_t *dbiter;
 	char newfilename[1024];
 	dst_key_t *keys[MAXKEYS];
+	isc_boolean_t defaultkey[MAXKEYS];
 	unsigned char curdata[1024];
 	isc_buffer_t curbuf;
 	int nkeys = 0, i;
@@ -373,6 +438,8 @@ sign(char *filename) {
 	check_result(result, "dns_db_findnode()");
 	find_keys(db, node, name, keys, &nkeys);
 	dns_db_detachnode(db, &node);
+	for (i = 0; i < nkeys; i++)
+		defaultkey[i] = ISC_TRUE;
 
 	wversion = NULL;
 	result = dns_db_newversion(db, &wversion);
@@ -405,7 +472,8 @@ sign(char *filename) {
 			fatal("db iteration failed");
 		}
 		build_nxt(db, wversion, node, target);
-		generate_sig(db, wversion, node, &curname, keys, nkeys);
+		generate_sig(db, wversion, node, &curname, keys, defaultkey,
+			     nkeys);
 		dns_name_invalidate(&curname);
 		dns_db_detachnode(db, &node);
 		dns_db_detachnode(db, &curnode);
