@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.106 2000/09/05 17:09:30 gson Exp $ */
+/* $Id: rdata.c,v 1.107 2000/09/06 03:25:22 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -401,6 +401,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_buffer_t ss;
 	isc_buffer_t st;
 	isc_boolean_t use_default = ISC_FALSE;
+	isc_uint32_t activelength;
 
 	REQUIRE(dctx != NULL);
 
@@ -409,10 +410,21 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	/* XXX */
 	region.base = (unsigned char *)(target->base) + target->used;
 
+	activelength = isc_buffer_activelength(source);
+	INSIST(activelength < 65536);
+
 	FROMWIRESWITCH
 
-	if (use_default)
-		(void)NULL;
+	if (use_default) {
+		if (activelength > isc_buffer_availablelength(target))
+			result = ISC_R_NOSPACE;
+		else {
+			isc_buffer_putmem(target, isc_buffer_current(source),
+					  activelength);
+			isc_buffer_forward(source, activelength);
+			result = ISC_R_SUCCESS;
+		}
+	}
 
 	/*
 	 * We should have consumed all of our buffer.
@@ -464,6 +476,101 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 }
 
 isc_result_t
+dns_rdata_fromtextgeneric(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+			  dns_rdatatype_t type, isc_lex_t *lexer,
+			  isc_buffer_t *target,
+			  dns_rdatacallbacks_t *callbacks)
+{
+	isc_result_t result = ISC_R_NOTIMPLEMENTED;
+	isc_region_t region;
+	isc_buffer_t st;
+	isc_token_t token;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
+			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
+	char *name;
+	unsigned long line;
+	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
+	isc_result_t iresult;
+
+	st = *target;
+	region.base = (unsigned char *)(target->base) + target->used;
+
+	result = gettoken(lexer, &token, isc_tokentype_number,
+			  ISC_FALSE);
+	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
+		result = ISC_R_RANGE;
+	if (result == ISC_R_SUCCESS)
+		result = isc_base64_tobuffer(lexer, target, 
+					     token.value.as_ulong);
+
+	if (callbacks == NULL)
+		callback = NULL;
+	else
+		callback = callbacks->error;
+
+	if (callback == NULL)
+		callback = default_fromtext_callback;
+	/*
+	 * Consume to end of line / file.
+	 * If not at end of line initially set error code.
+	 * Call callback via fromtext_error once if there was an error.
+	 */
+	do {
+		name = isc_lex_getsourcename(lexer);
+		line = isc_lex_getsourceline(lexer);
+		iresult = isc_lex_gettoken(lexer, options, &token);
+		if (iresult != ISC_R_SUCCESS) {
+			if (result == ISC_R_SUCCESS) {
+				switch (iresult) {
+				case ISC_R_NOMEMORY:
+					result = ISC_R_NOMEMORY;
+					break;
+				case ISC_R_NOSPACE:
+					result = ISC_R_NOSPACE;
+					break;
+				default:
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
+					    "isc_lex_gettoken() failed: %s",
+					    isc_result_totext(result));
+					result = ISC_R_UNEXPECTED;
+					break;
+				}
+			}
+			if (callback != NULL)
+				fromtext_error(callback, callbacks, name,
+					       line, NULL, result);
+			break;
+		} else if (token.type != isc_tokentype_eol &&
+			   token.type != isc_tokentype_eof) {
+			if (result == ISC_R_SUCCESS)
+				result = DNS_R_EXTRATOKEN;
+			if (callback != NULL) {
+				fromtext_error(callback, callbacks, name,
+					       line, &token, result);
+				callback = NULL;
+			}
+		} else if (result != ISC_R_SUCCESS && callback != NULL) {
+			fromtext_error(callback, callbacks, name, line,
+				       &token, result);
+			break;
+		} else {
+			if (token.type == isc_tokentype_eof)
+				fromtext_warneof(lexer, callbacks);
+			break;
+		}
+	} while (1);
+
+	if (rdata != NULL && result == ISC_R_SUCCESS) {
+		region.length = target->used - st.used;
+		dns_rdata_fromregion(rdata, rdclass, type, &region);
+	}
+	if (result != ISC_R_SUCCESS) {
+		*target = st;
+	}
+	return (result);
+}
+
+isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
 		   dns_name_t *origin, isc_boolean_t downcase,
@@ -488,8 +595,15 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	FROMTEXTSWITCH
 
-	if (use_default)
-		(void)NULL;
+	if (use_default) {
+		result = gettoken(lexer, &token, isc_tokentype_number,
+				  ISC_FALSE);
+		if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
+			result = ISC_R_RANGE;
+		if (result == ISC_R_SUCCESS)
+			result = isc_base64_tobuffer(lexer, target, 
+						     token.value.as_ulong);
+	}
 
 	if (callbacks == NULL)
 		callback = NULL;
@@ -564,6 +678,8 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
+	char buf[sizeof "65536"];
+	isc_region_t sr;
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(tctx->origin == NULL ||
@@ -577,8 +693,25 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	TOTEXTSWITCH
 
-	if (use_default)
-		(void)NULL;
+	if (use_default) {
+		dns_rdata_toregion(rdata, &sr);
+		INSIST(sr.length < 65536);
+		sprintf(buf, "%u", sr.length);
+		result = str_totext(buf, target);
+		if (sr.length != 0 && result == ISC_R_SUCCESS) {
+			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+				result = str_totext(" ( ", target);
+			else
+				result = str_totext(" ", target);
+			if (result == ISC_R_SUCCESS)
+				result = isc_base64_totext(&sr, tctx->width - 2,
+							   tctx->linebreak,
+							   target);
+			if (result == ISC_R_SUCCESS &&
+			    (tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+				result = str_totext(" )", target);
+		}
+	}
 
 	return (result);
 }
@@ -687,8 +820,9 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 
 	ADDITIONALDATASWITCH
 
+	/* No additional processing for unknown types */
 	if (use_default)
-		(void)NULL;
+		result = ISC_R_SUCCESS;
 
 	return (result);
 }
@@ -697,6 +831,7 @@ isc_result_t
 dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
+	isc_region_t r;
 
 	/*
 	 * Send 'rdata' in DNSSEC canonical form to 'digest'.
@@ -707,8 +842,10 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	DIGESTSWITCH
 
-	if (use_default)
-		(void)NULL;
+	if (use_default) {
+		dns_rdata_toregion(rdata, &r);
+		result = (digest)(arg, &r);
+	}
 
 	return (result);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.40 2000/08/01 01:24:30 tale Exp $ */
+/* $Id: rdata.h,v 1.41 2000/09/06 03:25:23 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -293,6 +293,41 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *	'target' is a valid region.
  *
  *	'origin' if non NULL it must be absolute.
+ *
+ * Ensures:
+ *	If result is success:
+ *	 	If 'rdata' is not NULL, it is attached to the target.
+ *
+ *		The conditions dns_name_fromtext() ensures for names hold
+ *		for all names in the rdata.
+ *
+ *		The used space in target is updated.
+ *
+ * Result:
+ *	Success
+ *	<Translated result codes from isc_lex_gettoken>
+ *	<Various 'Bad Form' class failures depending on class and type>
+ *	Bad Form: Input too short
+ *	Resource Limit: Not enough space
+ */
+
+isc_result_t
+dns_rdata_fromtextgeneric(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+                          dns_rdatatype_t type, isc_lex_t *lexer,
+                          isc_buffer_t *target,
+                          dns_rdatacallbacks_t *callbacks);
+/*
+ * Convert a generic textual representation of a DNS rdata into uncompressed
+ * wire form stored in the target region.  Tokens constituting the text of
+ * the rdata are taken from 'lexer'.  
+ *
+ * Requires:
+ *
+ *	'rdclass' and 'type' are valid.
+ *
+ *	'lexer' is a valid isc_lex_t.
+ *
+ *	'target' is a valid region.
  *
  * Ensures:
  *	If result is success:
