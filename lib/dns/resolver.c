@@ -46,6 +46,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
 #include <dns/tsig.h>
+#include <dns/validator.h>
 #include <dns/view.h>
 #include <dns/log.h>
 
@@ -2056,12 +2057,12 @@ clone_results(fetchctx_t *fctx) {
 #define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
 #define CHAINING(r)	(((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
 
-#ifdef notyet
 static void
 validated(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx;
 
-	REQUIRE(event->type == XXX);
+	UNUSED(task); /* for now */
+	REQUIRE(event->type == DNS_EVENT_VALIDATORDONE);
 	fctx = event->arg;
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(fctx->validating > 0);
@@ -2076,10 +2077,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * Else, we're not shutting down.  If this is "the answer"
 	 * call fctx_done().
 	 */
-
+	fprintf(stderr, "in validated\n");
 	isc_event_free(&event);
 }
-#endif
 
 static inline isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
@@ -2093,9 +2093,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	isc_result_t result, eresult;
 	dns_fetchevent_t *event;
 	unsigned int options;
-#ifdef notyet
 	isc_task_t *task;
-#endif
+	dns_validator_t *validator;
 
 	/*
 	 * The appropriate bucket lock must be held.
@@ -2113,7 +2112,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					     &need_validation);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-#ifdef notyet
 	if (need_validation) {
 		/*
 		 * XXXRTH
@@ -2127,7 +2125,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 		 * that this name is not secure.
 		 */
 	}
-#endif
 
 	adbp = NULL;
 	aname = NULL;
@@ -2229,7 +2226,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			    result != DNS_R_UNCHANGED)
 				break;
 			if (ANSWER(rdataset)) {
-#ifdef notyet
 				/*
 				 * XXXRTH  We should probably do this
 				 *         after we've cached everything as
@@ -2244,18 +2240,17 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 							       rdataset,
 							       sigrdataset,
 							       fctx->rmessage,
-							       ISC_TRUE,
+							       0,
 							       task,
 							       validated,
 							       fctx,
 							       &validator);
 				if (result == ISC_R_SUCCESS) {
+#ifdef notyet
 					ISC_LIST_APPEND(validator);
+#endif
 					fctx->validating++;
 				}
-#else
-				result = ISC_R_NOTIMPLEMENTED;
-#endif
 			}
 		} else if (!EXTERNAL(rdataset)) {
 			/*
@@ -2402,7 +2397,6 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 					     &need_validation);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-#ifdef notyet
 	if (need_validation) {
 		/*
 		 * XXXRTH
@@ -2415,8 +2409,8 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		 * starting at the most-enclosing security root that proves
 		 * that this name is not secure.
 		 */
+		return (ISC_R_NOTIMPLEMENTED);
 	}
-#endif
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
