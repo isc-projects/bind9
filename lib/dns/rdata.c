@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.78 2000/04/25 19:09:07 explorer Exp $ */
+/* $Id: rdata.c,v 1.79 2000/04/25 21:11:50 explorer Exp $ */
 
 #include <config.h>
 
@@ -120,17 +120,6 @@ static const char octdigits[] = "01234567";
 #define META 0x0001
 #define RESERVED 0x0002
 
-/*
- * Empty classes are those without any types of their own.
- */
-#define EMPTYCLASSES \
-	{ 3, "CHAOS", 0 },
-
-#define METACLASSES \
-	{ 0, "RESERVED0", META }, \
-	{ 254, "NONE", META }, \
-	{ 255, "ANY", META },
-
 #define RCODENAMES \
 	/* standard rcodes */ \
 	{ dns_rcode_noerror, "NOERROR", 0}, \
@@ -185,9 +174,6 @@ struct tbl {
 	int	flags;
 };
 
-static struct tbl classes[] = {
-	METACLASSES CLASSNAMES EMPTYCLASSES { 0, NULL, 0}
-};
 static struct tbl rcodes[] = { RCODENAMES };
 static struct tbl certs[] = { CERTNAMES };
 static struct tbl secalgs[] = { SECALGNAMES };
@@ -697,33 +683,74 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 	return (str_totext(buf, target));
 }
 
-isc_result_t
-dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
-	int i = 0;
-	unsigned int n;
 
-	while (classes[i].name != NULL) {
-		n = strlen(classes[i].name);
-		if (n == source->length &&
-		    strncasecmp(source->base, classes[i].name, n) == 0) {
-			*classp = classes[i].value;
-			if ((classes[i].flags & RESERVED) != 0)
-				return (ISC_R_NOTIMPLEMENTED);
-			return (ISC_R_SUCCESS);
-		}
-		i++;
+/*
+ * This uses lots of hard coded values, but how often do we actually
+ * add classes?
+ */
+isc_result_t
+dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source)
+{
+
+#define COMPARE(__s, __f, __t) \
+	if (((sizeof(__s) - 1) == source->length) \
+	    && (strcasecmp(source->base, __s) == 0)) { \
+		*classp = __t; \
+		if ((__f & RESERVED) != 0) \
+			return (ISC_R_NOTIMPLEMENTED); \
+		return (ISC_R_SUCCESS); \
 	}
+
+	switch (tolower(source->base[0])) {
+	case 'a':
+		COMPARE("any", META, dns_rdataclass_any);
+		break;
+	case 'c':
+		COMPARE("chaos", 0, dns_rdataclass_chaos);
+		break;
+	case 'h':
+		COMPARE("hs", 0, dns_rdataclass_hs);
+		break;
+	case 'i':
+		COMPARE("in", 0, dns_rdataclass_in);
+		break;
+	case 'n':
+		COMPARE("none", META, dns_rdataclass_none);
+		break;
+	case 'r':
+		COMPARE("reserved0", META, dns_rdataclass_reserved0);
+		break;
+	}
+
+#undef COMPARE
+
 	return (DNS_R_UNKNOWN);
 }
 
-/* XXXRTH  This should probably be a switch() */
-
 isc_result_t
-dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(rdclass, target, classes));	
-}
+dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target)
+{
+	char buf[sizeof "RDCLASS4294967296"];
 
-/* XXXRTH  Should we use a hash table here? */
+	switch (rdclass) {
+	case dns_rdataclass_any:
+		return (str_totext("ANY", target));
+	case dns_rdataclass_chaos:
+		return (str_totext("CHAOS", target));
+	case dns_rdataclass_hs:
+		return (str_totext("HS", target));
+	case dns_rdataclass_in:
+		return (str_totext("IN", target));
+	case dns_rdataclass_none:
+		return (str_totext("NONE", target));
+	case dns_rdataclass_reserved0:
+		return (str_totext("RESERVED0", target));
+	default:
+		sprintf(buf, "RDCLASS%u", rdclass);
+		return (str_totext(buf, target));
+	}
+
+}
 
 isc_result_t
 dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source)
@@ -1587,14 +1614,12 @@ dns_rdatatype_questiononly(dns_rdatatype_t type)
 isc_boolean_t
 dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
 {
-	struct tbl *t;
-
 	REQUIRE(rdclass < 65536);
 
-	for (t = classes; t->name != NULL; t++) {
-		if (rdclass == t->value)
-			return ((t->flags & META) ? ISC_TRUE : ISC_FALSE);
-	}
+	if (rdclass == dns_rdataclass_reserved0
+	    || rdclass == dns_rdataclass_none
+	    || rdclass == dns_rdataclass_any)
+		return (ISC_TRUE);
 
 	return (ISC_FALSE);  /* assume it is not a meta class */
 }
