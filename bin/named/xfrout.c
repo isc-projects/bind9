@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.108 2002/06/25 04:08:43 marka Exp $ */
+/* $Id: xfrout.c,v 1.109 2002/07/31 02:22:15 marka Exp $ */
 
 #include <config.h>
 
@@ -1142,7 +1142,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		keyname[0] = '\0';
 	if (is_poll)
 		xfrout_log1(client, question_name, question_class,
-			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s",
+			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s%s",
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
 	else
 		xfrout_log1(client, question_name, question_class,
