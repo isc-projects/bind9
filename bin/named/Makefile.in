@@ -39,13 +39,13 @@ SUBDIRS =	unix
 TARGETS =	named
 
 OBJS =		client.@O@ interfacemgr.@O@ listenlist.@O@ \
-		log.@O@ main.@O@ notify.@O@ omapi.@O@ \
+		log.@O@ logconf.@O@ main.@O@ notify.@O@ omapi.@O@ \
 		query.@O@ server.@O@ update.@O@ xfrout.@O@
 
 UOBJS =		unix/os.@O@
 
 SRCS =		client.c interfacemgr.c listenlist.c \
-		log.c main.c notify.c omapi.c \
+		log.c logconf.c main.c notify.c omapi.c \
 		query.c server.c update.c xfrout.c
 
 @BIND9_MAKE_RULES@

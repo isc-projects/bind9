@@ -68,6 +68,7 @@
 #include <named/interfacemgr.h>
 #include <named/listenlist.h>
 #include <named/log.h>
+#include <named/logconf.h>
 #include <named/os.h>
 #include <named/server.h>
 #include <named/types.h>
@@ -925,6 +926,33 @@ load_configuration(const char *filename, ns_server_t *server,
 		server->tkeyctx = t;
 	}
 
+	/*
+	 * Configure the logging system.
+	 */
+	{
+		dns_c_logginglist_t *clog = NULL;
+		isc_logconfig_t *logc = NULL;
+
+		/*
+		 * dns_c_ctx_getlogging() succeeds even if there
+		 * is no logging statement in named.conf;
+		 * in that case it returns the default configuration
+		 * that was set up in logging_init().  Therefore, we 
+		 * do not need to provide any defaults of our own here.
+		 */
+		CHECKM(dns_c_ctx_getlogging(configctx, &clog),
+		       "getting logging configuration");
+		
+		CHECKM(ns_logconfig_fromconf(ns_g_lctx, clog, &logc),
+		       "setting up logging configuration");
+
+		result = isc_logconfig_use(ns_g_lctx, logc);
+		if (result != ISC_R_SUCCESS) {
+			isc_logconfig_destroy(&logc);
+			CHECKM(result, "intalling logging configuration");
+		}
+	}
+
 	if (first_time)
 		ns_os_changeuser(ns_g_username);
 
@@ -1273,4 +1301,3 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 	*target = delt;
 	return (ISC_R_SUCCESS);
 }
-
