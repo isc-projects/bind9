@@ -1,3 +1,17 @@
+ 561.	[func]		The 'datasize', 'stacksize', 'coresize' and 'files'
+			clauses of the options{} statement are now implemented.
+
+ 560.	[bug]		dns_name_split did not properly the resulting prefix
+			when a maximal length bitstring label was split which
+			was preceded by another bitstring label. [RT #429]
+
+ 559.	[bug]		dns_name_split did not properly create the suffix
+			when splitting within a maximal length bitstring label.
+
+ 558.	[func]		New functions, isc_resource_getlimit and
+			isc_resource_setlimit.
+
+ 557.	[func]		Symbolic constants for libisc integral types.
 
  556.	[func]		The DNSSEC OK bit in the EDNS extended flags
 			is now implemented.  Responses to queries without
