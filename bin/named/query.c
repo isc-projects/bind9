@@ -583,7 +583,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	isc_buffer_t b;
 	dns_dbversion_t *version, *zversion;
 	unsigned int dboptions;
-	isc_boolean_t is_zone, nxglue, added_something, need_addname;
+	isc_boolean_t is_zone, added_something, need_addname;
 	dns_zone_t *zone;
 
 	REQUIRE(NS_CLIENT_VALID(client));
@@ -607,7 +607,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	zversion = NULL;
 	node = NULL;
 	znode = NULL;
-	nxglue = ISC_FALSE;
 	added_something = ISC_FALSE;
 	need_addname = ISC_FALSE;
 	zone = NULL;
@@ -708,12 +707,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 			}
 		}
 	} else if (result == DNS_R_GLUE || result == DNS_R_NXGLUE) {
-		if (result == DNS_R_NXGLUE) {
-			/*
-			 * XXXRTH  Explain NXGLUE here.
-			 */
-			nxglue = ISC_TRUE;
-		}
 		if (USECACHE(client)) {
 			/*
 			 * We found an answer, but the cache may be
