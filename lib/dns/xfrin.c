@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.96 2000/08/31 23:56:00 gson Exp $ */
+/* $Id: xfrin.c,v 1.97 2000/09/19 01:44:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -153,7 +153,7 @@ struct dns_xfrin_ctx {
 	struct {
 		isc_uint32_t 	request_serial;
 		isc_uint32_t 	end_serial;
-		dns_journal_t 	*journal;
+		dns_journal_t	*journal;
 
 	} ixfr;
 };
