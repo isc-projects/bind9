@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# From configure.in Revision: 1.167 
+# From configure.in Revision: 1.168 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999 Free Software Foundation, Inc.
@@ -4876,3 +4876,8 @@ rm -fr confdefs* $ac_clean_files
 test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
 
 chmod a+x isc-config.sh
+
+# Tell Emacs to edit this file in shell mode.
+# Local Variables:
+# mode: sh
+# End:

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.167 $)
+AC_REVISION($Revision: 1.168 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1066,3 +1066,8 @@ AC_OUTPUT(
 	isc-config.sh
 )
 chmod a+x isc-config.sh
+
+# Tell Emacs to edit this file in shell mode.
+# Local Variables:
+# mode: sh
+# End:
