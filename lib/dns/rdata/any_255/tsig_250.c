@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.11 1999/06/08 10:35:08 gson Exp $ */
+ /* $Id: tsig_250.c,v 1.12 1999/06/08 20:41:30 gson Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -144,18 +144,22 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* Signature Size */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u ", n);
+	sprintf(buf, "%u", n);
 	RETERR(str_totext(buf, target));
 
 	/* Signature */
 	REQUIRE(n <= sr.length);
 	sigr = sr;
 	sigr.length = n;
-	RETERR(str_totext("(", target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)	
+		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
 	RETERR(isc_base64_totext(&sigr, tctx->width - 2, 
 				 tctx->linebreak, target));
- 	RETERR(str_totext(" ) ", target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" ) ", target));
+	else
+		RETERR(str_totext(" ", target));		
 	isc_region_consume(&sr, n);
 
 	/* Original ID */

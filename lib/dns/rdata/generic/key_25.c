@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.7 1999/06/08 10:35:11 gson Exp $ */
+ /* $Id: key_25.c,v 1.8 1999/06/08 20:41:31 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -99,11 +99,13 @@ totext_key(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		return (DNS_R_SUCCESS);
 
 	/* key */
-	RETERR(str_totext(" (", target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
 	RETERR(isc_base64_totext(&sr, tctx->width - 2,
 				 tctx->linebreak, target));
- 	RETERR(str_totext(" )", target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" )", target));
 
 	return DNS_R_SUCCESS;
 }

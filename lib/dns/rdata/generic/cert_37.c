@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.9 1999/06/08 10:35:09 gson Exp $ */
+ /* $Id: cert_37.c,v 1.10 1999/06/08 20:41:31 gson Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -101,15 +101,16 @@ totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	/* algorithm */
 	RETERR(dns_secalg_totext(sr.base[0], target));
-	RETERR(str_totext(" ", target));
 	isc_region_consume(&sr, 1);
 
 	/* cert */
-	RETERR(str_totext("(", target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
 	RETERR(isc_base64_totext(&sr, tctx->width - 2, 
 				 tctx->linebreak, target));
- 	RETERR(str_totext(" )", target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" )", target));
 	return (DNS_R_SUCCESS);
 }
 

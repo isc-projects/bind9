@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.13 1999/06/08 10:35:19 gson Exp $ */
+ /* $Id: sig_24.c,v 1.14 1999/06/08 20:41:31 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -148,9 +148,9 @@ totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	exp = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 	RETERR(dns_time32_totext(exp, target));
-	RETERR(str_totext(" ", target));
 
-	RETERR(str_totext("(", target));	
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
 
 	/* time signed */
@@ -178,7 +178,8 @@ totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	RETERR(str_totext(tctx->linebreak, target));
 	RETERR(isc_base64_totext(&sr, tctx->width - 2,
 				    tctx->linebreak, target));
-	RETERR(str_totext(" )", target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+		RETERR(str_totext(" )", target));
 	
 	return DNS_R_SUCCESS;
 }
