@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_streams.c,v 1.1 2001/03/29 06:31:54 marka Exp $";
+static const char rcsid[] = "$Id: ev_streams.c,v 1.2 2001/04/03 02:30:57 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -222,7 +222,7 @@ copyvec(evStream *str, const struct iovec *iov, int iocnt) {
 static void
 consume(evStream *str, size_t bytes) {
 	while (bytes > 0) {
-		if (bytes < str->iovCur->iov_len) {
+		if (bytes < (size_t)str->iovCur->iov_len) {
 			str->iovCur->iov_len -= bytes;
 			str->iovCur->iov_base = (void *)
 				((u_char *)str->iovCur->iov_base + bytes);

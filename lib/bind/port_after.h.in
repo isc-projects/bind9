@@ -13,6 +13,7 @@
 @HAVE_MINIMUM_IFREQ@
 @NEED_DAEMON@
 @HAS_INET6_STRUCTS@
+@NEED_IN6ADDR_ANY@
 @HAS_IN_ADDR6@
 
 /* XXX sunos and cygwin needs O_NDELAY */
@@ -45,6 +46,10 @@ struct in6_addr {
         u_int8_t        s6_addr[16];
 };
 
+#define IN6ADDR_ANY_INIT \
+	{{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+	   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }}
+
 /* Replace with structure from later rev of O/S if known. */
 struct sockaddr_in6 {
 #ifdef  HAVE_SA_LEN
@@ -59,6 +64,25 @@ struct sockaddr_in6 {
         u_int32_t       sin6_scope_id;  /* set of interfaces for a scope */
 };
 #endif  /* HAS_INET6_STRUCTS */
+
+#ifdef NEED_IN6ADDR_ANY
+#define in6addr_any isc_in6addr_any
+extern const struct in6_addr in6addr_any;
+#endif
+
+#ifndef IN6_ARE_ADDR_EQUAL
+#define IN6_ARE_ADDR_EQUAL(a,b) \
+   (memcmp(&(a)->s6_addr[0], &(b)->s6_addr[0], sizeof(struct in6_addr)) == 0)
+#endif
+
+#ifndef IN6_IS_ADDR_UNSPECIFIED
+#define IN6_IS_ADDR_UNSPECIFIED(a)      \
+	IN6_ARE_ADDR_EQUAL(a, &in6addr_any)
+#endif
+
+#ifndef INADDR_NONE
+#define INADDR_NONE 0xffffffff
+#endif
 
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256

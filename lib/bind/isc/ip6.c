@@ -1,4 +1,11 @@
 #include <port_before.h>
+
+#include <sys/types.h>
+#include <sys/param.h>
+#if (!defined(BSD)) || (BSD < 199306)
+#include <sys/bitypes.h>
+#endif
+#include <netinet/in.h>
 #include <port_after.h>
 
 /*
