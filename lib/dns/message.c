@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.7 2002/02/20 00:47:40 gson Exp $ */
+/* $Id: message.c,v 1.194.2.8 2002/02/28 05:17:49 marka Exp $ */
 
 /***
  *** Imports
@@ -23,10 +23,11 @@
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
-#include <isc/buffer.h>
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
