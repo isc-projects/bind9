@@ -9,13 +9,18 @@
 1746.	[func]		Make public the function to read a key file,
 			dst_key_read_public(). [RT #12450]
 
-1742.	[bug]		If isc_taskmgr_create() was not able to create the
+1744.	[bug]		If tuple2msgname() failed to convert a tuple to
+			a name a REQUIRE could be triggered. [RT #12796]
+
+1743.	[bug]		If isc_taskmgr_create() was not able to create the
 			requested number of worker threads then destruction
 			of the manager would trigger an INSIST() failure.
 			[RT #12790]
 			
-1744.	[bug]		If tuple2msgname() failed to convert a tuple to
-			a name a REQUIRE could be triggered. [RT #12796]
+1742.	[bug]		Deleting all records at a node then adding a
+			previously existing record, in a single UPDATE
+			transaction, failed to leave / regenerate the
+			associated RRSIG records. [RT #12788]
 
 1741.	[bug]		Deleting all records at a node in a secure zone
 			using a update-policy grant failed. [RT #12787]
