@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.31.2.1 2001/11/02 00:20:09 marka Exp $ */
+/* $Id: net.h,v 1.31.2.2 2001/11/22 00:22:02 gson Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -138,7 +138,8 @@
 #endif
 
 #ifndef IN6_IS_ADDR_LOOPBACK
-#define IN6_IS_ADDR_LOOPBACK(a)	IN6_IS_ADDR_EQUAL(a, &in6addr_loopback)
+#define IN6_IS_ADDR_LOOPBACK(x) \
+	(memcmp((x)->s6_addr, in6addr_loopback.s6_addr, 16) == 0)
 #endif
 #endif
 

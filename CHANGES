@@ -1,3 +1,5 @@
+1133.	[bug]		IN6_IS_ADDR_LOOPBACK was not portably defined on
+			platforms without IN6_IS_ADDR_LOOPBACK. [RT #2106]
 
 	--- 9.2.0rc10 released ---
 
