@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.79.2.1 2000/07/03 23:52:20 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.79.2.2 2000/07/05 20:50:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -449,7 +449,8 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 		 * If the transfer begins with one SOA record, it is an AXFR,
 		 * if it begins with two SOAs, it is an IXFR.
 		 */
-		if (rdata->type == dns_rdatatype_soa &&
+		if (xfr->reqtype == dns_rdatatype_ixfr &&
+		    rdata->type == dns_rdatatype_soa &&
 		    xfr->ixfr.request_serial == dns_soa_getserial(rdata)) {
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
 				  "got incremental response");
