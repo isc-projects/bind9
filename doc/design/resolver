@@ -1,7 +1,7 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: resolver,v 1.2 2000/06/21 23:43:42 tale Exp $
+$Id: resolver,v 1.3 2000/07/04 01:24:06 tale Exp $
 
 Multi-target Resolver
 =====================
@@ -36,7 +36,7 @@ need to be handled if the receiving client cannot handle the EDNS
 format.  (XXX need more)
 
 When a client (caller) issues a query, the first thing that happens is
-the list of currently outstanding query is checked.  If another query
+the list of currently outstanding queries is checked.  If another query
 is already being processed for another client, the new request
 attaches to the running query and shares the result when it
 completes.
