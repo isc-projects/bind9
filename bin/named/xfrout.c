@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.82 2000/11/17 19:04:51 gson Exp $ */
+/* $Id: xfrout.c,v 1.83 2000/12/04 06:31:41 gson Exp $ */
 
 #include <config.h>
 
@@ -224,6 +224,11 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 }
 
 static void
+db_rr_iterator_pause(db_rr_iterator_t *it) {
+	dns_dbiterator_pause(it->dbit);
+}
+
+static void
 db_rr_iterator_destroy(db_rr_iterator_t *it) {
 	if (dns_rdataset_isassociated(&it->rdataset))
 		dns_rdataset_disassociate(&it->rdataset);
@@ -316,8 +321,14 @@ struct rrstream_methods {
 					   dns_name_t **,
 					   isc_uint32_t *,
 					   dns_rdata_t **);
+	void	 		(*pause)(rrstream_t *);
 	void 			(*destroy)(rrstream_t **);
 };
+
+static void
+rrstream_noop_pause(rrstream_t *rs) {
+	UNUSED(rs);
+}
 
 /**************************************************************************/
 /*
@@ -410,12 +421,13 @@ static rrstream_methods_t ixfr_rrstream_methods = {
 	ixfr_rrstream_first,
 	ixfr_rrstream_next,
 	ixfr_rrstream_current,
+	rrstream_noop_pause,
 	ixfr_rrstream_destroy
 };
 
 /**************************************************************************/
 /*
- * An 'ixfr_rrstream_t' is an 'rrstream_t' that returns
+ * An 'axfr_rrstream_t' is an 'rrstream_t' that returns
  * an AXFR-like RR stream from a database.
  *
  * The SOAs at the beginning and end of the transfer are
@@ -425,7 +437,7 @@ static rrstream_methods_t ixfr_rrstream_methods = {
 typedef struct axfr_rrstream {
 	rrstream_t		common;
 	int 			state;
-	db_rr_iterator_t		it;
+	db_rr_iterator_t	it;
 	isc_boolean_t		it_valid;
 } axfr_rrstream_t;
 
@@ -517,6 +529,12 @@ axfr_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
 }
 
 static void
+axfr_rrstream_pause(rrstream_t *rs) {
+	axfr_rrstream_t *s = (axfr_rrstream_t *) rs;
+	db_rr_iterator_pause(&s->it);
+}
+
+static void
 axfr_rrstream_destroy(rrstream_t **rsp) {
 	axfr_rrstream_t *s = (axfr_rrstream_t *) *rsp;
 	if (s->it_valid)
@@ -528,6 +546,7 @@ static rrstream_methods_t axfr_rrstream_methods = {
 	axfr_rrstream_first,
 	axfr_rrstream_next,
 	axfr_rrstream_current,
+	axfr_rrstream_pause,
 	axfr_rrstream_destroy
 };
 
@@ -611,6 +630,7 @@ static rrstream_methods_t soa_rrstream_methods = {
 	soa_rrstream_first,
 	soa_rrstream_next,
 	soa_rrstream_current,
+	rrstream_noop_pause,
 	soa_rrstream_destroy
 };
 
@@ -698,6 +718,11 @@ compound_rrstream_next(rrstream_t *rs) {
 	rrstream_t *curstream = s->components[s->state];
 	s->result = curstream->methods->next(curstream);
 	while (s->result == ISC_R_NOMORE) {
+		/*
+		 * Make sure locks held by the current stream
+		 * are released before we switch streams.
+		 */
+		curstream->methods->pause(curstream);
 		if (s->state == 2)
 			return (ISC_R_NOMORE);
 		s->state++;
@@ -720,6 +745,16 @@ compound_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
 }
 
 static void
+compound_rrstream_pause(rrstream_t *rs)
+{
+	compound_rrstream_t *s = (compound_rrstream_t *) rs;
+	rrstream_t *curstream;
+	INSIST(0 <= s->state && s->state < 3);
+	curstream = s->components[s->state];
+	curstream->methods->pause(curstream);
+}
+
+static void
 compound_rrstream_destroy(rrstream_t **rsp) {
 	compound_rrstream_t *s = (compound_rrstream_t *) *rsp;
 	s->components[0]->methods->destroy(&s->components[0]);
@@ -732,6 +767,7 @@ static rrstream_methods_t compound_rrstream_methods = {
 	compound_rrstream_first,
 	compound_rrstream_next,
 	compound_rrstream_current,
+	compound_rrstream_pause,
 	compound_rrstream_destroy
 };
 
@@ -1411,7 +1447,8 @@ sendstream(xfrout_ctx_t *xfr) {
 		msg = NULL;
 		ns_client_send(xfr->client);
 		xfrout_ctx_destroy(&xfr);
-		return;
+		result = ISC_R_SUCCESS;
+		goto done;
 	}
 
 	/* Advance lasttsig to be the last TSIG generated */
@@ -1440,6 +1477,14 @@ sendstream(xfrout_ctx_t *xfr) {
 		}
 		dns_message_destroy(&msg);
 	}
+
+ done:
+	/*
+	 * Make sure to release any locks held by database
+	 * iterators before returning from the event handler.
+	 */
+	xfr->stream->methods->pause(xfr->stream);
+	
 	if (result == ISC_R_SUCCESS)
 		return;
 

@@ -1,3 +1,7 @@
+
+ 589.	[bug]		The server could deadlock if a zone was updated 
+			while being transferred out.
+
  588.	[bug]		ctx->in_use was not being correctly initalised when
 			when pushing a file for $INCLUDE. [RT #523]
 
