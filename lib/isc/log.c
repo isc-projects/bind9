@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.86 2004/06/04 02:19:17 marka Exp $ */
+/* $Id: log.c,v 1.87 2004/06/11 00:36:30 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1329,8 +1329,11 @@ isc_log_open(isc_logchannel_t *channel) {
 	if (stat(path, &statbuf) == 0) {
 		regular_file = S_ISREG(statbuf.st_mode) ? ISC_TRUE : ISC_FALSE;
 		/* XXXDCL if not regular_file complain? */
-		roll = ISC_TF(regular_file && FILE_MAXSIZE(channel) > 0 &&
-			      statbuf.st_size >= FILE_MAXSIZE(channel));
+		if ((FILE_MAXSIZE(channel) == 0 &&
+		     FILE_VERSIONS(channel) != ISC_LOG_ROLLNEVER) ||
+		    (FILE_MAXSIZE(channel) > 0 &&
+		     statbuf.st_size >= FILE_MAXSIZE(channel)))
+			roll = regular_file;
 	} else if (errno == ENOENT)
 		regular_file = ISC_TRUE;
 	else
