@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.34 2001/03/07 22:07:06 gson Exp $ */
+/* $Id: lwresd.c,v 1.35 2001/03/24 02:31:41 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -538,6 +538,12 @@ static isc_result_t
 listener_bind(ns_lwreslistener_t *listener, isc_sockaddr_t *address) {
 	isc_socket_t *sock = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
+	int pf;
+
+	pf = isc_sockaddr_pf(address);
+	if ((pf == AF_INET && isc_net_probeipv4() != ISC_R_SUCCESS) ||
+	    (pf == AF_INET6 && isc_net_probeipv6() != ISC_R_SUCCESS))
+		return (ISC_R_FAMILYNOSUPPORT);
 
 	listener->address = *address;
 
@@ -550,8 +556,7 @@ listener_bind(ns_lwreslistener_t *listener, isc_sockaddr_t *address) {
 	}
 
 	sock = NULL;
-	result = isc_socket_create(ns_g_socketmgr,
-				   isc_sockaddr_pf(&listener->address),
+	result = isc_socket_create(ns_g_socketmgr, pf,
 				   isc_sockettype_udp, &sock);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
