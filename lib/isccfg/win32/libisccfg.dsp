@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../isc/win32/Release/libisc.lib /nologo /dll /machine:I386 /out:"../../../Build/Release/libisccfg.dll"
+# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../dns/win32/Release/libdns.lib ../../isc/win32/Release/libisc.lib /nologo /dll /machine:I386 /out:"../../../Build/Release/libisccfg.dll"
 
 !ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
 
@@ -81,7 +81,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../isc/win32/debug/libisc.lib /nologo /dll /debug /machine:I386 /out:"../../../Build/Debug/libisccfg.dll" /pdbtype:sept
+# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../dns/win32/debug/libdns.lib ../../isc/win32/debug/libisc.lib /nologo /dll /debug /machine:I386 /out:"../../../Build/Debug/libisccfg.dll" /pdbtype:sept
 
 !ENDIF 
 

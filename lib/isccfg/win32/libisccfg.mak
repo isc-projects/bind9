@@ -40,12 +40,12 @@ ALL : "..\..\..\Build\Release\libisccfg.dll"
 
 !ELSE 
 
-ALL : "libisc - Win32 Release" "..\..\..\Build\Release\libisccfg.dll"
+ALL : "libdns - Win32 Release" "libisc - Win32 Release" "..\..\..\Build\Release\libisccfg.dll"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libisc - Win32 ReleaseCLEAN" 
+CLEAN :"libdns - Win32 ReleaseCLEAN" "libisc - Win32 ReleaseCLEAN" 
 !ELSE 
 CLEAN :
 !ENDIF 
@@ -70,7 +70,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\libisccfg.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../isc/win32/Release/libisc.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\libisccfg.pdb" /machine:I386 /def:".\libisccfg.def" /out:"../../../Build/Release/libisccfg.dll" /implib:"$(OUTDIR)\libisccfg.lib" 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../dns/win32/Release/libdns.lib ../../isc/win32/Release/libisc.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\libisccfg.pdb" /machine:I386 /def:".\libisccfg.def" /out:"../../../Build/Release/libisccfg.dll" /implib:"$(OUTDIR)\libisccfg.lib" 
 DEF_FILE= \
 	".\libisccfg.def"
 LINK32_OBJS= \
@@ -80,6 +80,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\namedconf.obj" \
+	"..\..\isc\win32\Release\libdns.lib"
 	"..\..\isc\win32\Release\libisc.lib"
 
 "..\..\..\Build\Release\libisccfg.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -152,7 +153,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../isc/win32/debug/libisc.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\libisccfg.pdb" /debug /machine:I386 /def:".\libisccfg.def" /out:"../../../Build/Debug/libisccfg.dll" /implib:"$(OUTDIR)\libisccfg.lib" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../dns/win32/debug/libdns.lib ../../isc/win32/debug/libisc.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\libisccfg.pdb" /debug /machine:I386 /def:".\libisccfg.def" /out:"../../../Build/Debug/libisccfg.dll" /implib:"$(OUTDIR)\libisccfg.lib" /pdbtype:sept 
 DEF_FILE= \
 	".\libisccfg.def"
 LINK32_OBJS= \
@@ -162,6 +163,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\namedconf.obj" \
+	"..\..\isc\win32\Debug\libdns.lib"
 	"..\..\isc\win32\Debug\libisc.lib"
 
 "..\..\..\Build\Debug\libisccfg.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -318,6 +320,16 @@ SOURCE=.\version.c
 
 !IF  "$(CFG)" == "libisccfg - Win32 Release"
 
+"libdns - Win32 Release" : 
+   cd "..\..\dns\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" 
+   cd "..\..\isccfg\win32"
+
+"libdns - Win32 ReleaseCLEAN" : 
+   cd "..\..\dns\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" RECURSE=1 CLEAN 
+   cd "..\..\isccfg\win32"
+
 "libisc - Win32 Release" : 
    cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" 
@@ -329,6 +341,16 @@ SOURCE=.\version.c
    cd "..\..\isccfg\win32"
 
 !ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
+
+"libdns - Win32 Debug" : 
+   cd "..\..\dns\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" 
+   cd "..\..\isccfg\win32"
+
+"libdns - Win32 DebugCLEAN" : 
+   cd "..\..\dns\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" RECURSE=1 CLEAN 
+   cd "..\..\isccfg\win32"
 
 "libisc - Win32 Debug" : 
    cd "..\..\isc\win32"
