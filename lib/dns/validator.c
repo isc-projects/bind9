@@ -864,6 +864,19 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		if (result != ISC_R_SUCCESS)
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "failed to verify rdataset");
+		else {
+			isc_uint32_t ttl;
+			isc_stdtime_t now;
+
+			isc_stdtime_get(&now);
+			ttl = ISC_MIN(event->rdataset->ttl,
+				      val->siginfo->timeexpire - now);
+			if (val->keyset != NULL)
+				ttl = ISC_MIN(ttl, val->keyset->ttl);
+			event->rdataset->ttl = ttl;
+			event->sigrdataset->ttl = ttl;
+		}
+
 		if (val->keynode != NULL)
 			dns_keytable_detachkeynode(val->keytable,
 						   &val->keynode);

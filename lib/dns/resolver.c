@@ -2449,13 +2449,18 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			}
 
 			/*
+			 * Normalize the rdataset and sigrdataset TTLs.
+			 */
+			if (sigrdataset != NULL) {
+				rdataset->ttl = ISC_MIN(rdataset->ttl,
+							sigrdataset->ttl);
+				sigrdataset->ttl = rdataset->ttl;
+			}
+
+			/*
 			 * Cache this rdataset/sigrdataset pair as
 			 * pending data.
 			 */
-#ifdef notyet
-			if (sigrdataset != NULL)
-				set_ttl(rdataset, sigrdataset);
-#endif
 			rdataset->trust = dns_trust_pending;
 			if (sigrdataset != NULL)
 				sigrdataset->trust = dns_trust_pending;

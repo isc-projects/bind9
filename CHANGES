@@ -1,3 +1,6 @@
+ 218.	[func]		When an rdataset is signed, its ttl is normalized
+			based on the signature validity period.
+
  217.	[func]		Also-notify and trusted-keys can now be used in a
 			config file.
 
