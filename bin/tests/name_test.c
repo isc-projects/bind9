@@ -47,6 +47,28 @@ print_wirename(isc_region_t *name) {
 	printf("\n");
 }
 
+static void
+print_name(dns_name_t *name) {
+	isc_result_t result;
+	isc_buffer_t source;
+	isc_region_t r;
+	char s[1000];
+
+	isc_buffer_init(&source, s, sizeof s, ISC_BUFFERTYPE_TEXT);
+	if (dns_name_countlabels(name) > 0)
+		result = dns_name_totext(name, ISC_FALSE, &source);
+	else
+		result = DNS_R_SUCCESS;
+	if (result == DNS_R_SUCCESS) {
+		isc_buffer_used(&source, &r);
+		if (r.length > 0)
+			printf("%.*s\n", (int)r.length, r.base);
+		else
+			printf("<empty text name>\n");
+	} else
+		printf("error: %s\n", dns_result_totext(result));
+}
+
 int
 main(int argc, char *argv[]) {
 	char s[1000];
@@ -64,9 +86,13 @@ main(int argc, char *argv[]) {
 	isc_boolean_t check_wildcard = ISC_FALSE;
 	isc_boolean_t test_downcase = ISC_FALSE;
 	isc_boolean_t inplace = ISC_FALSE;
+	isc_boolean_t want_split = ISC_FALSE;
+	unsigned int depth, split_depth = 0;
+	dns_fixedname_t fprefix, fsuffix;
+	dns_name_t *prefix, *suffix;
 	int ch;
 
-	while ((ch = isc_commandline_parse(argc, argv, "acdiqw")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "acdiqs:w")) != -1) {
 		switch (ch) {
 		case 'a':
 			check_absolute = ISC_TRUE;
@@ -82,6 +108,10 @@ main(int argc, char *argv[]) {
 			break;
 		case 'q':
 			quiet = ISC_TRUE;
+			break;
+		case 's':
+			want_split = ISC_TRUE;
+			split_depth = atoi(isc_commandline_argument);
 			break;
 		case 'w':
 			check_wildcard = ISC_TRUE;
@@ -264,23 +294,7 @@ main(int argc, char *argv[]) {
 			}
 			isc_buffer_init(&source, s, sizeof s,
 					ISC_BUFFERTYPE_TEXT);
-			if (dns_name_countlabels(down) > 0)
-				result = dns_name_totext(down, ISC_FALSE,
-							 &source);
-			else
-				result = DNS_R_SUCCESS;
-			if (result == DNS_R_SUCCESS) {
-				isc_buffer_used(&source, &r);
-				if (r.length > 0)
-					printf("%.*s\n", (int)r.length,
-					       r.base);
-				else
-					printf("<empty text name>\n");
-				if (!quiet) {
-					printf("%u bytes.\n", source.used);
-				}
-			} else
-				printf("%s\n", dns_result_totext(result));
+			print_name(down);
 		}
 
 		if (comp != NULL && dns_name_countlabels(name) > 0) {
@@ -318,6 +332,26 @@ main(int argc, char *argv[]) {
 			}
 			printf("dns_name_equal() returns %s\n",
 			       dns_name_equal(name, comp) ? "TRUE" : "FALSE");
+		}
+
+		depth = dns_name_depth(name);
+		if (want_split && split_depth < depth) {
+			dns_fixedname_init(&fprefix);
+			prefix = dns_fixedname_name(&fprefix);
+			dns_fixedname_init(&fsuffix);
+			suffix = dns_fixedname_name(&fsuffix);
+			printf("splitting at depth %u: ", split_depth);
+			result = dns_name_splitatdepth(name, split_depth,
+						       prefix, suffix);
+			if (result == ISC_R_SUCCESS) {
+				printf("\n    prefix = ");
+				print_name(prefix);
+				printf("    suffix = ");
+				print_name(suffix);
+			} else {
+				printf("failed: %s\n",
+				       isc_result_totext(result));
+			}
 		}
 
 		if (concatenate) {
