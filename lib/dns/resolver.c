@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.7 2003/08/19 07:26:08 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.8 2003/08/20 04:52:46 marka Exp $ */
 
 #include <config.h>
 
@@ -210,6 +210,7 @@ struct fetchctx {
 #define FCTX_ATTR_WANTCACHE		0x10
 #define FCTX_ATTR_WANTNCACHE		0x20
 #define FCTX_ATTR_NEEDEDNS0		0x40
+#define FCTX_ATTR_TRIEDFIND		0x80
 
 #define HAVE_ANSWER(f)		(((f)->attributes & FCTX_ATTR_HAVEANSWER) != \
 				 0)
@@ -222,6 +223,7 @@ struct fetchctx {
 #define WANTCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTCACHE) != 0)
 #define WANTNCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTNCACHE) != 0)
 #define NEEDEDNS0(f)		(((f)->attributes & FCTX_ATTR_NEEDEDNS0) != 0)
+#define TRIEDFIND(f)		(((f)->attributes & FCTX_ATTR_TRIEDFIND) != 0)
 
 struct dns_fetch {
 	unsigned int			magic;
@@ -371,6 +373,8 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	resquery_t *query;
 	unsigned int rtt;
 	unsigned int factor;
+	dns_adbfind_t *find;
+	dns_adbaddrinfo_t *addrinfo;
 
 	query = *queryp;
 	fctx = query->fctx;
@@ -415,11 +419,15 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	/*
 	 * Age RTTs of servers not tried.
 	 */
-	if (finish != NULL) {
-		dns_adbfind_t *find;
-		dns_adbaddrinfo_t *addrinfo;
-
-		factor = DNS_ADB_RTTADJAGE;
+	factor = DNS_ADB_RTTADJAGE;
+	if (finish != NULL)
+		for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
+		     addrinfo != NULL;
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
+			if (UNMARKED(addrinfo))
+				dns_adb_adjustsrtt(fctx->adb, addrinfo,
+						   0, factor);
+	if (finish != NULL && !TRIEDFIND(fctx))
                 for (find = ISC_LIST_HEAD(fctx->finds);
 		     find != NULL;
 		     find = ISC_LIST_NEXT(find, publink))
@@ -429,7 +437,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 				if (UNMARKED(addrinfo))
 					dns_adb_adjustsrtt(fctx->adb, addrinfo,
 							   0, factor);
-	}
 
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
@@ -1485,8 +1492,16 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		result = dns_adb_findaddrinfo(fctx->adb,
 					      sa, &ai, 0);  /* XXXMLG */
 		if (result == ISC_R_SUCCESS) {
+			dns_adbaddrinfo_t *cur;
 			ai->flags |= FCTX_ADDRINFO_FORWARDER;
-			ISC_LIST_APPEND(fctx->forwaddrs, ai, publink);
+			cur = ISC_LIST_HEAD(fctx->forwaddrs);
+			while (cur != NULL && cur->srtt < ai->srtt)
+				cur = ISC_LIST_NEXT(cur, publink);
+			if (cur != NULL)
+				ISC_LIST_INSERTBEFORE(fctx->forwaddrs, cur,
+						      ai, publink);
+			else
+				ISC_LIST_APPEND(fctx->forwaddrs, ai, publink);
 		}
 		sa = ISC_LIST_NEXT(sa, link);
 	}
@@ -1653,11 +1668,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 * We've found some addresses.  We might still be looking
 		 * for more addresses.
 		 */
-		/*
-		 * XXXRTH  We could sort the forwaddrs here if the caller
-		 *         wants to use the forwaddrs in "best order" as
-		 *         opposed to "fixed order".
-		 */
 		sort_finds(fctx);
 		result = ISC_R_SUCCESS;
 	}
@@ -1748,6 +1758,8 @@ fctx_nextaddress(fetchctx_t *fctx) {
 			return (addrinfo);
 		}
 	}
+
+	fctx->attributes |= FCTX_ATTR_TRIEDFIND;
 
 	/*
 	 * No forwarders.  Move to the next find.
