@@ -34,6 +34,21 @@ LWRES_LANG_BEGINDECLS
 typedef void *(*lwres_malloc_t)(void *arg, size_t length);
 typedef void (*lwres_free_t)(void *arg, void *mem, size_t length);
 
+/*
+ * XXXMLG
+ *
+ * Make the server reload /etc/resolv.conf periodlically.
+ *
+ * Make the server do sortlist/searchlist.
+ *
+ * Client side can disable the search/sortlist processing.
+ *
+ * Use an array of addresses/masks and searchlist for client-side, and
+ * if added to the client disable the processing on the server.
+ *
+ * Share /etc/resolv.conf data between contexts.
+ */
+
 lwres_result_t
 lwres_context_create(lwres_context_t **contextp, void *arg,
 		     lwres_malloc_t malloc_function,
@@ -44,6 +59,9 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
  * Memory management can be replaced here by passing in two functions.
  * If one is non-NULL, they must both be non-NULL.  "arg" is passed to
  * these functions.
+ *
+ * Contexts are not thread safe.  Document at the top of the file.
+ * XXXMLG
  *
  * If they are NULL, the standard malloc() and free() will be used.
  *
@@ -68,6 +86,9 @@ lwres_context_destroy(lwres_context_t **contextp);
 
 lwres_uint32_t
 lwres_context_nextserial(lwres_context_t *ctx);
+/*
+ * XXXMLG Document
+ */
 
 void
 lwres_context_initserial(lwres_context_t *ctx, lwres_uint32_t serial);

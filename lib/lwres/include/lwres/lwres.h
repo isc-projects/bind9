@@ -78,17 +78,9 @@
  *	response_free().
  */
 
-/*
- * Helper macro to calculate a string's length.  Strings are encoded
- * using a 16-bit length, the string itself, and a trailing NUL.  The
- * length does not include this NUL character -- it is there merely to
- * help reduce copying on the receive side, since most strings are
- * printable character strings, and C needs the trailing NUL.
- */
-
 #define LWRES_UDP_PORT		921	/* XXXMLG */
-#define LWRES_RECVLENGTH	2048	/* XXXMLG */
-#define LWRES_ADDR_MAXLEN	16	/* XXXMLG changing this breaks ABI */
+#define LWRES_RECVLENGTH	4096	/* XXXMLG */
+#define LWRES_ADDR_MAXLEN	16	/* changing this breaks ABI */
 
 /*
  * XXXMLG
@@ -98,7 +90,7 @@
 #endif
 
 /*
- * NO-OP
+ * no-op
  */
 #define LWRES_OPCODE_NOOP		0x00000000U
 
@@ -115,7 +107,7 @@ typedef struct {
 } lwres_noopresponse_t;
 
 /*
- * GET ADDRESSES BY NAME
+ * get addresses by name
  */
 #define LWRES_OPCODE_GETADDRSBYNAME	0x00010001U
 
@@ -151,7 +143,7 @@ typedef struct {
 } lwres_gabnresponse_t;
 
 /*
- * GET NAME BY ADDRESS
+ * get name by address
  */
 #define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
 typedef struct {
@@ -171,9 +163,8 @@ typedef struct {
 	size_t				baselen;
 } lwres_gnbaresponse_t;
 
-
 /*
- * resolv.conf DATA
+ * resolv.conf data
  */
 
 #define LWRES_CONFMAXNAMESERVERS 3	/* max 3 "nameserver" entries */
