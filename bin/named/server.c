@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.214 2000/08/08 18:15:18 bwelling Exp $ */
+/* $Id: server.c,v 1.215 2000/08/24 19:02:06 gson Exp $ */
 
 #include <config.h>
 
@@ -388,10 +388,10 @@ get_view_querysource_dispatch(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 /*
  * Configure 'view' according to 'cview', taking defaults from 'cctx'
- * where values are missing in cctx.
+ * where values are missing in cview.
  *
- * When configuring the default view, cctx will be NULL and the
- * glboal defaults in cview used exclusively.
+ * When configuring the default view, cview will be NULL and the
+ * glboal defaults in cctx used exclusively.
  */
 static isc_result_t
 configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
@@ -1543,6 +1543,11 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_write);
 	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_DEBUG(1), "load_configuration: %s",
+		      isc_result_totext(result));
+
 	return (result);
 }
 
