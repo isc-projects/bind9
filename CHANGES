@@ -1,4 +1,6 @@
 
+  67.	[func]		Partial support for SIG(0) on incoming messages.
+
   67.	[performance]	Allow use of alternate (compile-time supplied)
 			OpenSSL libraries/headers.
 

@@ -38,6 +38,7 @@
 #include <dns/compress.h>
 #include <dns/tsig.h>
 #include <dns/dnssec.h>
+#include <dns/keyvalues.h>
 #include <dns/view.h>
 
 #define DNS_MESSAGE_OPCODE_MASK		0x7800U
@@ -1150,6 +1151,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 					goto cleanup;
 				}
 				msg->sigstart = recstart;
+				skip_name_search = ISC_TRUE;
+				skip_type_search = ISC_TRUE;
 			}
 		} else
 			covers = 0;
@@ -2239,6 +2242,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		dns_rdata_generic_sig_t sig;
 
 		result = dns_rdataset_first(msg->sig0);
+		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(msg->sig0, &rdata);
 
 		result = dns_rdata_tostruct(&rdata, &sig, msg->mctx);
@@ -2276,17 +2280,86 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 
 isc_result_t
 dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
-	isc_buffer_t b;
+	isc_buffer_t b, msgb;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(view != NULL);
 
-	if (msg->tsigkey == NULL && msg->tsigset == NULL)
+	if (msg->tsigkey == NULL && msg->tsigset == NULL && msg->sig0 == NULL)
 		return (ISC_R_SUCCESS);
-	if (msg->saved == NULL)
-		return (DNS_R_EXPECTEDTSIG);
-	isc_buffer_init(&b, msg->saved->base, msg->saved->length,
+	INSIST(msg->saved != NULL);
+	isc_buffer_init(&msgb, msg->saved->base, msg->saved->length,
 			ISC_BUFFERTYPE_BINARY);
-	isc_buffer_add(&b, msg->saved->length);
-	return (dns_view_checksig(view, &b, msg));
+	isc_buffer_add(&msgb, msg->saved->length);
+	if (msg->tsigkey != NULL || msg->tsigset != NULL)
+		return (dns_view_checksig(view, &msgb, msg));
+	else {
+		dns_rdata_t rdata;
+		dns_rdata_generic_sig_t sig;
+		dns_rdataset_t keyset;
+		isc_result_t result;
+
+		result = dns_rdataset_first(msg->sig0);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_rdataset_current(msg->sig0, &rdata);
+
+		result = dns_rdata_tostruct(&rdata, &sig, msg->mctx);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+
+		dns_rdataset_init(&keyset);
+		result = dns_view_simplefind(view, &sig.signer,
+					     dns_rdatatype_key, 0, 0,
+					     ISC_FALSE, &keyset, NULL);
+
+		if (result != ISC_R_SUCCESS) {
+			/* XXXBEW Should possibly create a fetch here */
+			result = DNS_R_KEYUNAUTHORIZED;
+			goto freesig;
+		} else if (keyset.trust < dns_trust_secure) {
+			/* XXXBEW Should call a validator here */
+			result = DNS_R_KEYUNAUTHORIZED;
+			goto freesig;
+		}
+		result = dns_rdataset_first(&keyset);
+		INSIST(result == ISC_R_SUCCESS);
+		for (;
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&keyset))
+		{
+			dst_key_t *key = NULL;
+
+			dns_rdataset_current(&keyset, &rdata);
+			isc_buffer_init(&b, rdata.data, rdata.length,
+					ISC_BUFFERTYPE_BINARY);
+			isc_buffer_add(&b, rdata.length);
+
+			/*
+			 * XXXBEW should actually pass in the key name,
+			 * but it's not used anyway.
+			 */
+			result = dst_key_fromdns("", &b, view->mctx, &key);
+			if (result != ISC_R_SUCCESS)
+				continue;
+			if (dst_key_alg(key) != sig.algorithm ||
+			    dst_key_id(key) != sig.keyid ||
+			    !(dst_key_proto(key) == DNS_KEYPROTO_DNSSEC ||
+			      dst_key_proto(key) == DNS_KEYPROTO_ANY))
+			{
+				dst_key_free(key);
+				continue;
+			}
+			result = dns_dnssec_verifymessage(&msgb, msg, key);
+			dst_key_free(key);
+			if (result == ISC_R_SUCCESS)
+				break;
+		}
+		if (result == ISC_R_NOMORE)
+			result = DNS_R_KEYUNAUTHORIZED;
+
+ freesig:
+		dns_rdataset_disassociate(&keyset);
+		dns_rdata_freestruct(&sig);
+		return (result);
+	}
 }
