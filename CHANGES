@@ -1,4 +1,8 @@
 
+ 418.	[bug]		At debug levels >= 10, getting an unexpected
+			socket receive error would crash the server
+			while trying to log the error message.
+
  417.	[func]		Add isc_app_block() and isc_app_unblock(), which
 			allow an application to handle signals while
 			blocking.		
