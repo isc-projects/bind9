@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.21 2000/06/07 17:22:29 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.22 2000/06/08 20:52:12 tale Exp $
  */
 
 #if defined(OPENSSL)
@@ -565,7 +565,7 @@ dst__openssldh_init(dst_func_t **funcp) {
 }
 
 void
-dst__openssldh_destroy() {
+dst__openssldh_destroy(void) {
 	BN_free(&bn2);
 	BN_free(&bn768);
 	BN_free(&bn1024);
