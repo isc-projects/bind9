@@ -586,7 +586,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	unsigned char	*p;
 	unsigned char	*data;
 	struct stat	sb;
-	dns_result_t	dns_result;
+	isc_result_t	isc_result;
 	isc_buffer_t	databuf;
 	isc_buffer_t	sigbuf;
 	isc_region_t	datareg;
@@ -627,10 +627,10 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	(void) close(fd);
 
 	/* read key from file in a form usable by dst_verify */
-	dns_result = dst_key_fromfile(keyname, id, alg, type, mctx, &key);
-	if (dns_result != DNS_R_SUCCESS) {
+	isc_result = dst_key_fromfile(keyname, id, alg, type, mctx, &key);
+	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile failed %s\n",
-			dns_result_totext(dns_result));
+			isc_result_totext(isc_result));
 		(void) free(data);
 		++*nprobs;
 		return;
@@ -650,9 +650,9 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	memset(sig, 0, sizeof(sig));
 	isc_buffer_init(&sigbuf, sig, sizeof(sig), ISC_BUFFERTYPE_BINARY);
 
-	dns_result = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
-	if (dns_result != DNS_R_SUCCESS) {
-		t_info("dst_sign(%d) failed %s\n", dst_result_totext(dns_result));
+	isc_result = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_sign(%d) failed %s\n", dst_result_totext(isc_result));
 		(void) free(data);
 		(void) dst_key_free(key);
 		++*nprobs;
@@ -690,12 +690,12 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	if (strstr(expected_result, "!"))
 		exp_res = 1;
 
-	dns_result = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
-	if (	((exp_res == 0) && (dns_result != DNS_R_SUCCESS))	||
-		((exp_res != 0) && (dns_result == DNS_R_SUCCESS)))	{
+	isc_result = dst_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
+	if (	((exp_res == 0) && (isc_result != ISC_R_SUCCESS))	||
+		((exp_res != 0) && (isc_result == ISC_R_SUCCESS)))	{
 
 		t_info("dst_verify returned %s, expected %s\n",
-			dns_result_totext(dns_result),
+			isc_result_totext(isc_result),
 			expected_result);
 		++*nfails;
 	}
