@@ -39,15 +39,6 @@ echo "S:$test:`date`" >&2
 echo "T:$test:1:A" >&2
 echo "A:System test $test" >&2
 
-# Irix does not have /var/run
-test -f /var/run/system_test_ifsetup ||
-test -f /etc/system_test_ifsetup ||
-    { echo "I:Interfaces not set up.  Not trying system tests." >&2;
-      echo "R:UNTESTED" >&2
-      echo "E:$test:`date`" >&2
-      exit 0;
-    }
-
 if [ x$PERL = x ]
 then
     echo "I:Perl not available.  Not trying system tests." >&2
@@ -55,6 +46,23 @@ then
     echo "E:$test:`date`" >&2
     exit 0;
 fi
+
+# Irix does not have /var/run
+#test -f /var/run/system_test_ifsetup ||
+#test -f /etc/system_test_ifsetup ||
+#    { echo "I:Interfaces not set up.  Not trying system tests." >&2;
+#      echo "R:UNTESTED" >&2
+#      echo "E:$test:`date`" >&2
+#      exit 0;
+#    }
+
+$PERL testsock.pl || {
+    echo "I:Interfaces not set up.  Not trying system tests." >&2;
+    echo "R:UNTESTED" >&2;
+    echo "E:$test:`date`" >&2;
+    exit 0;
+
+}
 
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
