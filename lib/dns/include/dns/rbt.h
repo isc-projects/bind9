@@ -128,7 +128,7 @@ dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
  *
  *		The data pointer of the node for 'name' is set to 'data'.
  *
- *	If result is DNS_R_EXISTS:
+ *	If result is DNS_R_EXISTS or DNS_R_NOSPACE:
  *		The tree of trees is unaltered.
  *
  *	If result is DNS_R_NOMEMORY:
@@ -137,6 +137,7 @@ dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
  * Returns:
  *	DNS_R_SUCCESS	Success
  *	DNS_R_EXISTS	The name already exists with associated data.
+ *	DNS_R_NOSPACE 	The name had more logical labels than are allowed.
  *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
