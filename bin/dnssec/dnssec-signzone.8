@@ -13,14 +13,14 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.32 2004/06/11 03:03:12 marka Exp $
+.\" $Id: dnssec-signzone.8,v 1.33 2005/03/22 04:58:13 marka Exp $
 .\"
 .TH "DNSSEC-SIGNZONE" "8" "June 30, 2000" "BIND9" ""
 .SH NAME
 dnssec-signzone \- DNSSEC zone signing tool
 .SH SYNOPSIS
 .sp
-\fBdnssec-signzone\fR [ \fB-a\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-d \fIdirectory\fB\fR ]  [ \fB-e \fIend-time\fB\fR ]  [ \fB-f \fIoutput-file\fB\fR ]  [ \fB-g\fR ]  [ \fB-h\fR ]  [ \fB-k \fIkey\fB\fR ]  [ \fB-l \fIdomain\fB\fR ]  [ \fB-i \fIinterval\fB\fR ]  [ \fB-n \fInthreads\fB\fR ]  [ \fB-o \fIorigin\fB\fR ]  [ \fB-p\fR ]  [ \fB-r \fIrandomdev\fB\fR ]  [ \fB-s \fIstart-time\fB\fR ]  [ \fB-t\fR ]  [ \fB-v \fIlevel\fB\fR ]  [ \fB-z\fR ]  \fBzonefile\fR [ \fBkey\fR\fI...\fR ] 
+\fBdnssec-signzone\fR [ \fB-a\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-d \fIdirectory\fB\fR ]  [ \fB-e \fIend-time\fB\fR ]  [ \fB-f \fIoutput-file\fB\fR ]  [ \fB-g\fR ]  [ \fB-h\fR ]  [ \fB-k \fIkey\fB\fR ]  [ \fB-l \fIdomain\fB\fR ]  [ \fB-i \fIinterval\fB\fR ]  [ \fB-j \fIjitter\fB\fR ]  [ \fB-n \fInthreads\fB\fR ]  [ \fB-o \fIorigin\fB\fR ]  [ \fB-p\fR ]  [ \fB-r \fIrandomdev\fB\fR ]  [ \fB-s \fIstart-time\fB\fR ]  [ \fB-t\fR ]  [ \fB-v \fIlevel\fB\fR ]  [ \fB-z\fR ]  \fBzonefile\fR [ \fBkey\fR\fI...\fR ] 
 .SH "DESCRIPTION"
 .PP
 \fBdnssec-signzone\fR signs a zone. It generates
@@ -97,6 +97,23 @@ signatures that are valid for 30 days, with a cycle
 interval of 7.5 days. Therefore, if any existing RRSIG records
 are due to expire in less than 7.5 days, they would be
 replaced.
+.TP
+\fB\fR
+When signing a zone with a fixed signature lifetime, all
+RRSIG records issued at the time of signing expires
+simultaneously. If the zone is incrementally signed, i.e.
+a previously signed zone is passed as input to the signer,
+all expired signatures has to be regenerated at about the
+same time. The \fBjitter\fR option specifies a
+jitter window that will be used to randomize the signature
+expire time, thus spreading incremental signature
+regeneration over time.
+
+Signature lifetime jitter also to some extent benefits
+validators and servers by spreading out cache expiration,
+i.e. if large numbers of RRSIGs don't expire at the same time
+from all caches there will be less congestion than if all
+validators need to refetch at mostly the same time.
 .TP
 \fB-n \fIncpus\fB\fR
 Specifies the number of threads to use. By default, one
