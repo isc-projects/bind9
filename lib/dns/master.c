@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.70 2000/09/18 18:31:06 gson Exp $ */
+/* $Id: master.c,v 1.71 2000/09/19 01:47:53 gson Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/lex.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/task.h>
