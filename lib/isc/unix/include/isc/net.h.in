@@ -119,8 +119,8 @@ isc_net_haveipv6(void);
  *
  * Returns:
  *
- *	ISC_R_SUCCESS		IPv4 is supported.
- *	ISC_R_NOTFOUND		IPv4 is not supported.
+ *	ISC_R_SUCCESS		IPv6 is supported.
+ *	ISC_R_NOTFOUND		IPv6 is not supported.
  *	ISC_R_UNEXPECTED
  */
 
