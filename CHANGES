@@ -1,6 +1,8 @@
 1065.	[func]		Runtime support to select new / old style interface
 			scanning using ioctls.
 
+1503.	[port]		win32: install libeay32.dll outside of system32.
+
 1502.	[bug]		nsupdate: adjust timeouts for UPDATE requests over TCP.
 
 1501.	[func]		Allow TCP queue length to be specified via
