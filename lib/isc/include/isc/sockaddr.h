@@ -24,13 +24,14 @@
 ISC_LANG_BEGINDECLS
 
 typedef struct isc_sockaddr {
-	unsigned int length;
 	union {
-		struct sockaddr_in sin;
+		struct sockaddr		sa;
+		struct sockaddr_in	sin;
 #ifdef notyet
-		struct sockaddr_in6 sin6;
+		struct sockaddr_in6	sin6;
 #endif
 	} type;
+	unsigned int			length;		/* XXXRTH beginning? */
 } isc_sockaddr_t;
 
 isc_boolean_t
