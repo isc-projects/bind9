@@ -1,6 +1,6 @@
 
  386.	[bug]		Missing strdup() of ACL name caused random
-			ACL matching failures.
+			ACL matching failures [RT #228].
 
  385.	[cleanup]	Removed function dns_zone_equal().
 
