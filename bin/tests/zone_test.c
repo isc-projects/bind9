@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.24 2001/01/18 02:36:57 bwelling Exp $ */
+/* $Id: zone_test.c,v 1.25 2001/01/18 02:53:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -230,13 +230,6 @@ query(void) {
 	dns_db_detach(&db);
 }
 
-static void
-destroy(void) {
-	if (zone == NULL)
-		return;
-	dns_zone_detach(&zone);
-}
-
 int
 main(int argc, char **argv) {
 	int c;
@@ -295,8 +288,13 @@ main(int argc, char **argv) {
 		filename = argv[isc_commandline_index];
 	setup(argv[isc_commandline_index], filename, classname);
 	query();
-	destroy();
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	dns_zonemgr_shutdown(zonemgr);
+	dns_zonemgr_detach(&zonemgr);
+	isc_socketmgr_destroy(&socketmgr);
 	isc_taskmgr_destroy(&taskmgr);
+	isc_timermgr_destroy(&timermgr);
 	if (!quiet && stats)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
