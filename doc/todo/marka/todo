@@ -11,3 +11,7 @@ Incremental zone file dumping
 Dumping zones on exit
 
 load master -> zone manager
+
+Add $GENERATE to master.c
+
+Add the ablility to specify the source address to request
