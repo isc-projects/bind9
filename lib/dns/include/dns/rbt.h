@@ -94,6 +94,7 @@ typedef dns_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
  * because additions or removals can change the path from the root to the node
  * the chain has targetted.
  *
+ * XXX add _current
  * The dns_rbtnodechain_ functions _first, _last, _prev and _next all take
  * dns_name_t parameters for the name and the origin.  'name' will end up
  * pointing to the name data and offsets that are stored at the node (and thus
@@ -507,9 +508,11 @@ dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain);
  *	'chain' is no longer suitable for use, and uses no dynamic storage.
  */
 
-dns_rbtnode_t *
-dns_rbtnodechain_current(dns_rbtnodechain_t *chain);
+dns_result_t
+dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
+			 dns_name_t *origin, dns_rbtnode_t **node);
 /*
+ * XXX update docs
  * Return the node to which the chain is currently pointed.
  *
  * Notes:

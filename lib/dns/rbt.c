@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.38 1999/04/14 14:12:34 tale Exp $ */
+/* $Id: rbt.c,v 1.39 1999/04/16 16:12:15 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -96,7 +96,15 @@ struct dns_rbt {
  * Chain management.
  */
 #define ADD_ANCESTOR(chain, node) \
-			(chain)->ancestors[(chain)->ancestor_count++] = (node)
+do { \
+	if ((chain)->ancestor_count == (chain)->ancestor_maxitems &&	\
+	    get_ancestor_mem(chain) != DNS_R_SUCCESS) {		\
+		dns_rbtnodechain_invalidate(chain);		\
+		return (DNS_R_NOMEMORY);			\
+	}							\
+	(chain)->ancestors[(chain)->ancestor_count++] = (node);	\
+} while (0)
+
 #define ADD_LEVEL(chain, node) \
 			(chain)->levels[(chain)->level_count++] = (node)
 
@@ -222,13 +230,14 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
 
 	isc_mem_put(rbt->mctx, rbt, sizeof(*rbt));
 
-#ifdef ISC_MEM_DEBUG
-	isc_mem_stats(rbt->mctx, stderr);
-#endif
-
 	*rbtp = NULL;
 }
 
+/*
+ * The next three functions for chains, get_ancestor_mem, put_ancestor_mem
+ * and chain_name, appear early in this file so they can be effectively
+ * inlined by the other rbt functions that use them.
+ */
 
 static inline dns_result_t
 get_ancestor_mem(dns_rbtnodechain_t *chain) {
@@ -273,6 +282,64 @@ put_ancestor_mem(dns_rbtnodechain_t *chain) {
 			    * sizeof(dns_rbtnode_t *));
 }
 
+static inline dns_result_t
+chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
+	   isc_boolean_t include_chain_end)
+{
+	dns_name_t nodename;
+	dns_result_t result;
+	unsigned int i;
+
+	dns_name_init(&nodename, NULL);
+
+	/*
+	 * XXX Is this too devilish, initializing name like this?
+	 */
+	result = dns_name_concatenate(NULL, NULL, name, NULL);
+	if (result != DNS_R_SUCCESS)
+		return result;
+
+	for (i = 0; i < chain->level_count; i++) {
+		NODENAME(chain->levels[i], &nodename);
+		result = dns_name_concatenate(&nodename, name, name, NULL);
+
+		if (result != DNS_R_SUCCESS)
+			break;
+	}
+
+	if (result == DNS_R_SUCCESS && include_chain_end) {
+		NODENAME(chain->end, &nodename);
+		result = dns_name_concatenate(&nodename, name, name, NULL);
+	}
+
+	return (result);
+}
+
+static inline dns_result_t
+move_chain_to_last(dns_rbtnodechain_t *chain, dns_rbtnode_t *node) {
+	while (1) {
+		/*
+		 * Go as far right and then down as much as possible,
+		 * as long as the rightmost node has a down pointer.
+		 */
+		while (RIGHT(node) != NULL) {
+			ADD_ANCESTOR(chain, node);
+			node = RIGHT(node);
+		}
+
+		if (DOWN(node) == NULL)
+			break;
+
+		ADD_ANCESTOR(chain, NULL);
+		ADD_LEVEL(chain, node);
+		node = DOWN(node);
+	}
+
+	chain->end = node;
+
+	return (DNS_R_SUCCESS);
+}
+
 /*
  * Add 'name' to tree, initializing its data pointer with 'data'.
  */
@@ -314,12 +381,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		return (result);
 	}
 
-	chain.ancestor_maxitems = 0;
-	chain.ancestor_count = 0;
-	chain.level_count = 0;
-	chain.mctx = rbt->mctx;
-	if (get_ancestor_mem(&chain) != DNS_R_SUCCESS)
-		return (DNS_R_NOMEMORY);
+	dns_rbtnodechain_init(&chain, rbt->mctx);
 	ADD_ANCESTOR(&chain, NULL);
 
 	root = &rbt->root;
@@ -340,15 +402,6 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			put_ancestor_mem(&chain);
 			return (DNS_R_EXISTS);
 
-		}
-
-		/*
-		 * Expand the storage space for ancestors, if necessary.
-		 */
-		if (chain.ancestor_count == chain.ancestor_maxitems &&
-		    get_ancestor_mem(&chain) != DNS_R_SUCCESS) {
-			put_ancestor_mem(&chain);
-			return (DNS_R_NOMEMORY);
 		}
 
 		if (compared == dns_namereln_none) {
@@ -629,15 +682,16 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 void *callback_arg)
 {
 	dns_rbtnode_t *current;
-	dns_name_t *search_name, *current_name, *tmp_name;
-	dns_name_t name1, name2, *current_foundname, *new_foundname;
-	dns_fixedname_t foundname1, foundname2;
+	dns_rbtnodechain_t localchain;
+	dns_name_t *search_name, *current_name, *tmp_name, *callback_name;
+	dns_name_t name1, name2;
 	dns_offsets_t name1_offsets, name2_offsets;
+	dns_fixedname_t fixedcallbackname;
 	dns_namereln_t compared;
 	dns_result_t result, saved_result;
 	isc_region_t r;
 	unsigned int current_labels, common_labels, common_bits;
-	unsigned int first_common_label, foundname_labels;
+	unsigned int first_common_label;
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -645,11 +699,18 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	REQUIRE(node != NULL && *node == NULL);
 
 	/* 
-	 * If there is a chain it needs to appear to be in a sane state.
+	 * If there is a chain it needs to appear to be in a sane state,
+	 * otherwise a chain is still needed to generate foundname and
+	 * callback_name.
 	 */
-	REQUIRE(chain == NULL ||
-		(VALID_CHAIN(chain) && chain->end == NULL &&
-		 chain->ancestor_count == 0 && chain->level_count == 0));
+	if (chain == NULL) {
+		chain = &localchain;
+		dns_rbtnodechain_init(chain, rbt->mctx);
+	} else
+		dns_rbtnodechain_reset(chain);
+
+	dns_fixedname_init(&fixedcallbackname);
+	callback_name = dns_fixedname_name(&fixedcallbackname);
 
 	dns_name_init(&name1, name1_offsets);
 	dns_name_init(&name2, name2_offsets);
@@ -668,22 +729,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 	current_name = &name2;
 
-	/*
-	 * Initialize the building of the name of the returned node.
-	 * This is not wrapped in "if (foundname != NULL)" because gcc
-	 * gives spurious warnings otherwise.
-	 */
-	dns_fixedname_init(&foundname1);
-	dns_fixedname_init(&foundname2);
-	current_foundname = dns_fixedname_name(&foundname1);
-	new_foundname     = dns_fixedname_name(&foundname2);
-	foundname_labels = 0;
-
-	/*
-	 * If chaining, initialize the chain.
-	 */
-	if (chain != NULL)
-		ADD_ANCESTOR(chain, NULL);
+	ADD_ANCESTOR(chain, NULL);
 
 	saved_result = DNS_R_SUCCESS;
 	current = rbt->root;
@@ -696,27 +742,17 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		if (compared == dns_namereln_equal)
 			break;
 
-		/*
-		 * Expand the storage space for ancestors, if necessary.
-		 */
-		if (chain != NULL &&
-		    chain->ancestor_count == chain->ancestor_maxitems &&
-		    get_ancestor_mem(chain) != DNS_R_SUCCESS)
-			return (DNS_R_NOMEMORY);
-
                 if (compared == dns_namereln_none) {
+			ADD_ANCESTOR(chain, current);
+
 			/*
 			 * Standard binary search tree movement.
 			 */
-			if (order < 0) {
-				if (chain != NULL)
-					ADD_ANCESTOR(chain, current);
+			if (order < 0)
 				current = LEFT(current);
-			} else if (order > 0) {
-				if (chain != NULL)
-					ADD_ANCESTOR(chain, current);
+			else
 				current = RIGHT(current);
-                        }
+
 		} else {
 			/*
 			 * The names have some common suffix labels.
@@ -737,50 +773,15 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					tmp_name = &name1;
 					dns_name_init(tmp_name, name1_offsets);
 
-					if (foundname != NULL) {
-					    current_foundname =
-					       dns_fixedname_name(&foundname1);
-					    new_foundname =
-					       dns_fixedname_name(&foundname2);
-					    dns_fixedname_init(&foundname2);
-					}
-
 				} else {
 					current_name = &name1;
 					tmp_name = &name2;
 					dns_name_init(tmp_name, name2_offsets);
-
-					if (foundname != NULL) {
-					    current_foundname =
-					       dns_fixedname_name(&foundname2);
-					    new_foundname =
-					       dns_fixedname_name(&foundname1);
-					    dns_fixedname_init(&foundname1);
-					}
 				}
 
 				first_common_label =
 					FAST_COUNTLABELS(search_name)
 					- common_labels;
-
-				if (foundname != NULL) {
-					/*
-					 * Build foundname by getting the
-					 * common labels and prefixing them
-					 * to the current foundname.
-					 */
-					dns_name_getlabelsequence(search_name,
-							    first_common_label,
-							    current_labels,
-							    tmp_name);
-
-					result = dns_name_concatenate(tmp_name,
-						            current_foundname,
-						            new_foundname,
-						            NULL);
-					if (result != DNS_R_SUCCESS)
-						return (result);
-				}
 
 				/*
 				 * Whack off the current node's common labels
@@ -792,30 +793,36 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			
 				search_name = tmp_name;
 
-				if (chain != NULL) {
-					ADD_ANCESTOR(chain, NULL);
-					ADD_LEVEL(chain, current);
-				}
+				ADD_ANCESTOR(chain, NULL);
+				ADD_LEVEL(chain, current);
 
 				/*
 				 * This might be the closest enclosing name.
 				 */
-				if (empty_data_ok || DATA(current) != NULL) {
+				if (empty_data_ok || DATA(current) != NULL)
 					*node = current;
-					foundname_labels =
-					       FAST_COUNTLABELS(new_foundname);
-				}
 
 				/*
-				 * The caller may want to interrupt the downward
-				 * search when certain special nodes are
-				 * traversed.  If this is a special node, the
-				 * callback is used to learn what the caller
-				 * wants to do.
+				 * The caller may want to interrupt the
+				 * downward search when certain special nodes
+				 * are traversed.  If this is a special node,
+				 * the callback is used to learn what the
+				 * caller wants to do.
 				 */
 				if (callback != NULL && CALLBACK(current)) {
+					chain->end = current;
+					result = chain_name(chain,
+							    callback_name,
+							    ISC_TRUE);
+					chain->end = NULL;
+
+					if (result != DNS_R_SUCCESS) {
+						dns_rbtnodechain_reset(chain);
+						return (result);
+					}
+
 					result = (callback)(current,
-							    new_foundname,
+							    callback_name,
 							    callback_arg);
 					if (result != DNS_R_CONTINUE) {
 						saved_result = result;
@@ -836,22 +843,24 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			} else {
 				/*
 				 * Though there is a suffix in common, it
-				 * has no down pointer, so the name does
-				 * not exist.
+				 * is shorter than the length of the name at
+				 * this node, which means there is no down
+				 * pointer and the name does not exist.
+				 * Add this node to the ancestor chain
+				 * to simplify things for the chain fixing
+				 * logic below then end the loop.
 				 */
+				ADD_ANCESTOR(chain, current);
 				current = NULL;
 			}
 		}
 	}
 
 	if (current != NULL) {
-		if (chain != NULL)
-			chain->end = current;
+		chain->end = current;
 
 		if (foundname != NULL)
-			result = dns_name_concatenate(current_name,
-						      new_foundname, foundname,
-						      NULL);
+			result = chain_name(chain, foundname, ISC_TRUE);
 		else
 			result = DNS_R_SUCCESS;
 
@@ -861,31 +870,128 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		} else
 			*node = NULL;
 
-	} else if (*node != NULL) {
-		if (foundname != NULL) {
-			current_labels = FAST_COUNTLABELS(new_foundname);
+	} else {
+		if (*node != NULL) {
+			if (foundname != NULL) {
+				/*
+				 * Unwind the chain to the partial match node
+				 * to derive the name.
+				 */
+				unsigned int saved_count = chain->level_count;
 
-			if (current_labels != foundname_labels) {
-				dns_name_init(&name1, name1_offsets);
-				dns_name_getlabelsequence(new_foundname,
-							  current_labels -
-							  foundname_labels,
-							  foundname_labels,
-							  &name1);
-				result = dns_name_concatenate(&name1, NULL,
-							      foundname, NULL);
+				while (chain->levels[chain->level_count - 1] !=
+				       *node)
+					chain->level_count--;
+
+				result = chain_name(chain, foundname,
+						    ISC_FALSE);
+
+				chain->level_count = saved_count;
+
 			} else
-				result = dns_name_concatenate(new_foundname,
-							      NULL,
-							      foundname, NULL);
+				result = DNS_R_SUCCESS;
+
+			if (result == DNS_R_SUCCESS)
+				result = DNS_R_PARTIALMATCH;
+
 		} else
-			result = DNS_R_SUCCESS;
+			result = DNS_R_NOTFOUND;
 
-		if (result == DNS_R_SUCCESS)
-			result = DNS_R_PARTIALMATCH;
+		if (chain != &localchain) {
+			/*
+			 * The chain argument needs to be pointed at the
+			 * DNSSEC predecessor of the search name.
+			 *
+			 * First, point current to the node that stopped the
+			 * search, and remove that node from the ancestor
+			 * history.
+			 */
 
-	} else
-		result = DNS_R_NOTFOUND;
+			current = chain->ancestors[--chain->ancestor_count];
+
+			if (current == NULL) {
+				/*
+				 * Attempted to follow a down pointer that was
+				 * NULL, which means the searched for name was
+				 * a subdomain of a terminal name in the tree.
+				 * Since there are no existing subdomains to
+				 * order against, the terminal name is the
+				 * predecessor.
+				 */
+				chain->end =
+					chain->levels[--chain->level_count];
+
+			} else {
+				dns_result_t result2;
+
+				/*
+				 * Reached a point within a level tree that
+				 * positively indicates the name is not
+				 * present, but the stop node could be either
+				 * less than the desired name (order > 0) or
+				 * greater than the desired name (order < 0).
+				 *
+				 * If the stop node is less, it is not
+				 * necessarily the predecessor.  If the stop
+				 * node has a down pointer, then the real
+				 * predecessor is at the end of a level below
+				 * (not necessarily the next level).
+				 * Move down levels until the rightmost node
+				 * does not have a down pointer.
+				 *
+				 * When the stop node is greater, it is
+				 * the successor.  All the logic for finding
+				 * the predecessor is handily encapsulated
+				 * in dns_rbtnodechain_prev.  In the event
+				 * that the search name is less than anything
+				 * else in the tree, the chain is reset.
+				 * XXX DCL What is the best way for the caller
+				 *         to know that the search name has
+				 *         no predecessor?
+				 */
+
+				if (order > 0) {
+					if (DOWN(current) != NULL) {
+						ADD_ANCESTOR(chain, NULL);
+						ADD_LEVEL(chain, current);
+
+						result2 =
+						      move_chain_to_last(chain,
+								DOWN(current));
+
+						if (result2 != DNS_R_SUCCESS)
+							result = result2;
+					} else
+						/*
+						 * Ah, the pure and simple
+						 * case.  The stop node is the
+						 * predecessor.
+						 */
+						chain->end = current;
+
+				} else {
+					INSIST(order < 0);
+
+					chain->end = current;
+
+					result2 = dns_rbtnodechain_prev(chain,
+									NULL,
+									NULL);
+					if (result2 == DNS_R_SUCCESS ||
+					    result2 == DNS_R_NEWORIGIN)
+						; 	/* Nothing */
+					else if (result2 == DNS_R_NOMORE)
+						dns_rbtnodechain_reset(chain);
+					else
+						result = result2;
+				}
+
+			}
+		}
+	}
+
+	if (chain == &localchain)
+		put_ancestor_mem(chain);
 
 	return (result);
 }
@@ -1711,39 +1817,6 @@ dns_rbt_printall(dns_rbt_t *rbt) {
  * Chain Functions
  */
 
-static inline dns_result_t
-chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
-	   isc_boolean_t include_chain_end)
-{
-	dns_name_t nodename;
-	dns_result_t result;
-	unsigned int i;
-
-	dns_name_init(&nodename, NULL);
-
-	/*
-	 * XXX Is this too devilish, initializing name like this?
-	 */
-	result = dns_name_concatenate(NULL, NULL, name, NULL);
-	if (result != DNS_R_SUCCESS)
-		return result;
-
-	for (i = 0; i < chain->level_count; i++) {
-		NODENAME(chain->levels[i], &nodename);
-		result = dns_name_concatenate(&nodename, name, name, NULL);
-
-		if (result != DNS_R_SUCCESS)
-			break;
-	}
-
-	if (result == DNS_R_SUCCESS && include_chain_end) {
-		NODENAME(chain->end, &nodename);
-		result = dns_name_concatenate(&nodename, name, name, NULL);
-	}
-
-	return (result);
-}
-
 void
 dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 	/*
@@ -1762,11 +1835,47 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 	chain->magic = CHAIN_MAGIC;
 }
 
-dns_rbtnode_t *
-dns_rbtnodechain_current(dns_rbtnodechain_t *chain) {
+dns_result_t
+dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
+			 dns_name_t *origin, dns_rbtnode_t **node) {
+	dns_result_t result = DNS_R_SUCCESS;
+
 	REQUIRE(VALID_CHAIN(chain));
 
-	return (chain->end);
+	if (name != NULL) {
+		NODENAME(chain->end, name);
+
+		if (chain->level_count == 0) {
+			/*
+			 * Eliminate the root name, except when name is ".".
+			 */
+			if (FAST_COUNTLABELS(name) > 1) {
+				INSIST(FAST_ISABSOLUTE(name));
+
+				/*
+				 * XXX EVIL.  But what _should_ I do?
+				 */
+				name->labels--;
+				name->length--;
+				name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
+			}
+		}
+	}
+
+	if (origin != NULL) {
+		if (chain->level_count > 0)
+			result = chain_name(chain, origin, ISC_FALSE);
+		else
+			result = dns_name_concatenate(NULL, dns_rootname,
+						      origin, NULL);
+
+	}
+
+	if (node != NULL)
+		*node = chain->end;
+
+	return (result);
+
 }
 
 dns_result_t
@@ -1853,47 +1962,22 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 * for the second level tree.
 		 */
 		if (origin &&
-		    (chain->level_count > 0 ||
-		     OFFSETLEN(predecessor) > 1))
+		    (chain->level_count > 0 || OFFSETLEN(predecessor) > 1))
 			new_origin = ISC_TRUE;
 	}
 
 	if (predecessor != NULL) {
 		chain->end = predecessor;
 
-		NODENAME(chain->end, name);
-
-		if (chain->level_count == 0) {
-			/*
-			 * Eliminate the root name (except when the name is ".").
-			 */
-			if (FAST_COUNTLABELS(name) > 1) {
-				INSIST(FAST_ISABSOLUTE(name));
-
-				/*
-				 * XXX EVIL.  But what _should_ I do?
-				 */
-				name->labels--;
-				name->length--;
-				name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
-			}
-		}
-
 		if (new_origin) {
-			if (origin != NULL)
-				if (chain->level_count > 0)
-					result = chain_name(chain, origin,
-							    ISC_FALSE);
-				else
-					result = dns_name_concatenate(NULL,
-								   dns_rootname,
-								   origin, NULL);
-
+			result = dns_rbtnodechain_current(chain, name, origin,
+							  NULL);
 			if (result == DNS_R_SUCCESS)
 				result = DNS_R_NEWORIGIN;
 
 		} else
-			result = DNS_R_SUCCESS;
+			result = dns_rbtnodechain_current(chain, name, NULL,
+							  NULL);
 
 	} else
 		result = DNS_R_NOMORE;
@@ -1915,10 +1999,6 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	current = chain->end;
 
-	/*
-	 * XXX Need to do something about origins here -- See whether
-	 * to go down, and if so whether it is a new origin.
-	 */
 	if (DOWN(current) != NULL) {
 		/*
 		 * Don't declare an origin change when the new origin is "."
@@ -1941,42 +2021,48 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		successor = current;
 
 	} else if (RIGHT(current) == NULL) {
-		while (chain->ancestors[chain->ancestor_count - 1] != NULL) {
-			previous = current;
-			current = chain->ancestors[--chain->ancestor_count];
+		/*
+		 * The successor is up, either in this level or a previous one.
+		 * Head back toward the root of the tree, looking for any path
+		 * that was via a left link; the successor is the node that has
+		 * that left link.  In the event the root of the level is
+		 * reached without having traversed any left links, ascend one
+		 * level and look for either a right link off the point of
+		 * ascent, or search for a left link upward again, repeating
+		 * ascents until either case is true.
+		 */
+		do {
+			while (chain->ancestors[chain->ancestor_count - 1] !=
+			       NULL) {
+				previous = current;
+				current =
+				     chain->ancestors[--chain->ancestor_count];
 
-			if (LEFT(current) == previous) {
-				successor = current;
-				break;
+				if (LEFT(current) == previous) {
+					successor = current;
+					break;
+				}
 			}
-		}
 
-		if (successor == NULL) {
-			/*
-			 * Reached the root without having traversed any
-			 * left pointers, so this level is done.
-			 * Ascend levels through the nodes' down pointers
-			 * until one of those nodes has a right pointer.
-			 * XXX more origin hand-waving here.
-			 */
-			do {
-			       while (chain->ancestors[--chain->ancestor_count]
-				      != NULL)
-				       ; /* Decrement to the level root. */
+			if (successor == NULL) {
+				/*
+				 * Reached the root without having traversed
+				 * any left pointers, so this level is done.
+				 */
+				chain->ancestor_count--;
+				current = chain->levels[--chain->level_count];
+				new_origin = ISC_TRUE;
 
-			       current = chain->levels[--chain->level_count];
-			} while (RIGHT(current) == NULL &&
-				 chain->level_count > 0);
-
-			new_origin = ISC_TRUE;
-		}
+				if (RIGHT(current) != NULL)
+					break;
+			}
+		} while (successor == NULL && chain->level_count > 0);
 	}
 
 	if (successor == NULL && RIGHT(current) != NULL) {
 		ADD_ANCESTOR(chain, current);
 		current = RIGHT(current);
 
-		/* XXX duplicated from above; clever way to do it just once? */
 		while (LEFT(current) != NULL) {
 			ADD_ANCESTOR(chain, current);
 			current = LEFT(current);
@@ -2023,22 +2109,7 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 	chain->end = rbt->root;
 
-	NODENAME(rbt->root, name);
-
-
-	if (FAST_COUNTLABELS(name) > 1) {
-		INSIST(FAST_ISABSOLUTE(name));
-
-		/*
-		 * Remove the final "." from any name except "." itself.
-		 */
-		/* XXX Evil.  (?) */
-		name->labels--;
-		name->length--;
-		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
-	}
-
-	result = dns_name_concatenate(NULL, dns_rootname, origin, NULL);
+	result = dns_rbtnodechain_current(chain, name, origin, NULL);
 
 	if (result == DNS_R_SUCCESS)
 		result = DNS_R_NEWORIGIN;
@@ -2052,7 +2123,6 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 {
 	dns_result_t result;
-	dns_rbtnode_t *current;
 
 	REQUIRE(name != NULL && origin != NULL);
 	REQUIRE(VALID_RBT(rbt));
@@ -2062,55 +2132,11 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 	ADD_ANCESTOR(chain, NULL);
 
-	current = rbt->root;
+	result = move_chain_to_last(chain, rbt->root);
+	if (result != DNS_R_SUCCESS)
+		return (result);
 
-	while (1) {
-		/*
-		 * Go as far right and then down as much as possible,
-		 * as long as the rightmost node has a down pointer.
-		 */
-		while (RIGHT(current) != NULL) {
-			ADD_ANCESTOR(chain, current);
-			current = RIGHT(current);
-		}
-
-		if (DOWN(current) == NULL)
-			break;
-
-		ADD_ANCESTOR(chain, NULL);
-		ADD_LEVEL(chain, current);
-		current = DOWN(current);
-	}
-
-	chain->end = current;
-	NODENAME(chain->end, name);
-
-	if (chain->level_count == 0) {
-		/*
-		 * The end is in the top level tree.  Make origin "." and
-		 * force name to be relative to ".".
-		 */
-		if (FAST_COUNTLABELS(name) > 1) {
-			INSIST(FAST_ISABSOLUTE(name));
-
-			/*
-			 * Remove the final "." from any name except "." itself.
-			 */
-			/* XXX Evil.  (?) */
-			name->labels--;
-			name->length--;
-			name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
-		}
-
-		/* XXX sleazy way to initialize? */
-		result = dns_name_concatenate(NULL, NULL, origin, NULL);
-		if (result == DNS_R_SUCCESS)
-			result = dns_name_concatenate(NULL, dns_rootname,
-						      origin, NULL);
-
-	} else
-		result = chain_name(chain, origin, ISC_FALSE);
-
+	result = dns_rbtnodechain_current(chain, name, origin, NULL);
 
 	if (result == DNS_R_SUCCESS)
 		result = DNS_R_NEWORIGIN;
