@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.35 2002/09/10 02:23:45 marka Exp $ */
+/* $Id: zt.c,v 1.36 2004/02/03 00:59:05 marka Exp $ */
 
 #include <config.h>
 
@@ -148,7 +148,7 @@ dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
 	result = dns_rbt_findname(zt->table, name, rbtoptions, foundname,
-				  (void **)&dummy);
+				  (void **) (void*)&dummy);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		dns_zone_attach(dummy, zonep);
 

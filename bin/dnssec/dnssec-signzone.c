@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.173 2004/01/14 02:06:48 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.174 2004/02/03 00:59:02 marka Exp $ */
 
 #include <config.h>
 
@@ -1104,7 +1104,7 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 
 	sevent->node = node;
 	sevent->fname = fname;
-	isc_task_send(worker, (isc_event_t **)&sevent);
+	isc_task_send(worker, (isc_event_t **) (void*) &sevent);
 	assigned++;
 }
 
@@ -1160,7 +1160,7 @@ sign(isc_task_t *task, isc_event_t *event) {
 		fatal("failed to allocate event\n");
 	wevent->node = node;
 	wevent->fname = fname;
-	isc_task_send(master, (isc_event_t **)&wevent);
+	isc_task_send(master, (isc_event_t **) (void*) &wevent);
 }
 
 /*

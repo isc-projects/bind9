@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.41 2004/01/14 02:06:50 marka Exp $ */
+/* $Id: sdb.c,v 1.42 2004/02/03 00:59:05 marka Exp $ */
 
 #include <config.h>
 
@@ -341,7 +341,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 {
 	unsigned int datalen;
 	dns_rdatatype_t typeval;
-	isc_consttextregion_t r;
+	isc_textregion_t r;
 	isc_lex_t *lex = NULL;
 	isc_result_t result;
 	unsigned char *p = NULL;
@@ -358,9 +358,9 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 
 	mctx = lookup->sdb->common.mctx;
 
-	r.base = type;
+	DE_CONST(type, r.base);
 	r.length = strlen(type);
-	result = dns_rdatatype_fromtext(&typeval, (isc_textregion_t *)&r);
+	result = dns_rdatatype_fromtext(&typeval, &r);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -713,7 +713,7 @@ destroynode(dns_sdbnode_t *node) {
 	DESTROYLOCK(&node->lock);
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdbnode_t));
-	detach((dns_db_t **)&sdb);
+	detach((dns_db_t **) (void *)&sdb);
 }
 
 static isc_result_t
@@ -1054,7 +1054,7 @@ createiterator(dns_db_t *db, isc_boolean_t relative_names,
 	result = imp->methods->allnodes(sdb->zone, sdb->dbdata, sdbiter);
 	MAYBE_UNLOCK(sdb);
 	if (result != ISC_R_SUCCESS) {
-		dbiterator_destroy((dns_dbiterator_t **)&sdbiter);
+		dbiterator_destroy((dns_dbiterator_t **) (void *)&sdbiter);
 		return (result);
 	}
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.252 2004/01/27 05:01:12 marka Exp $ */
+/* $Id: query.c,v 1.253 2004/02/03 00:59:03 marka Exp $ */
 
 #include <config.h>
 
@@ -3254,7 +3254,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		dns_db_detach(&zdb);
 	}
 	if (event != NULL)
-		isc_event_free((isc_event_t **)(&event));
+		isc_event_free((isc_event_t **) (void*)&event);
 
 	/*
 	 * AA bit.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.38 2003/09/30 05:56:00 marka Exp $ */
+/* $Id: dnssectool.c,v 1.39 2004/02/03 00:59:02 marka Exp $ */
 
 #include <config.h>
 
@@ -290,15 +290,15 @@ strtotime(const char *str, isc_int64_t now, isc_int64_t base) {
 
 dns_rdataclass_t
 strtoclass(const char *str) {
-	isc_consttextregion_t r;
+	isc_textregion_t r;
 	dns_rdataclass_t rdclass;
 	isc_result_t ret;
 
 	if (str == NULL)
 		return dns_rdataclass_in;
-	r.base = str;
+	DE_CONST(str, r.base);
 	r.length = strlen(str);
-	ret = dns_rdataclass_fromtext(&rdclass, (isc_textregion_t *)&r);
+	ret = dns_rdataclass_fromtext(&rdclass, &r);
 	if (ret != ISC_R_SUCCESS)
 		fatal("unknown class %s", str);
 	return (rdclass);

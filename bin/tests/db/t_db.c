@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.29 2001/08/08 22:54:30 gson Exp $ */
+/* $Id: t_db.c,v 1.30 2004/02/03 00:59:03 marka Exp $ */
 
 #include <config.h>
 
@@ -44,7 +44,7 @@ t_create(const char *db_type, const char *origin, const char *class,
 	int			len;
 	isc_result_t		dns_result;
 	dns_dbtype_t		dbtype;
-	isc_constregion_t	region;
+	isc_textregion_t	region;
 	isc_buffer_t		origin_buffer;
 	dns_fixedname_t		dns_origin;
 	dns_rdataclass_t	rdataclass;
@@ -66,10 +66,9 @@ t_create(const char *db_type, const char *origin, const char *class,
 		return(dns_result);
 	}
 
-	region.base = class;
+	DE_CONST(class, region.base);
 	region.length = strlen(class);
-	dns_result = dns_rdataclass_fromtext(&rdataclass,
-					     (isc_textregion_t *)&region);
+	dns_result = dns_rdataclass_fromtext(&rdataclass, &region);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
 		       dns_result_totext(dns_result));

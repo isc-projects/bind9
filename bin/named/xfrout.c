@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.113 2003/04/22 04:08:54 marka Exp $ */
+/* $Id: xfrout.c,v 1.114 2004/02/03 00:59:03 marka Exp $ */
 
 #include <config.h>
 
@@ -413,7 +413,7 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 	return (ISC_R_SUCCESS);
 
  failure:
-	ixfr_rrstream_destroy((rrstream_t **) &s);
+	ixfr_rrstream_destroy((rrstream_t **) (void *)&s);
 	return (result);
 }
 
@@ -500,7 +500,7 @@ axfr_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
 	return (ISC_R_SUCCESS);
 
  failure:
-	axfr_rrstream_destroy((rrstream_t **) &s);
+	axfr_rrstream_destroy((rrstream_t **) (void *)&s);
 	return (result);
 }
 
@@ -620,7 +620,7 @@ soa_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
 	return (ISC_R_SUCCESS);
 
  failure:
-	soa_rrstream_destroy((rrstream_t **) &s);
+	soa_rrstream_destroy((rrstream_t **) (void *)&s);
 	return (result);
 }
 

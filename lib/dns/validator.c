@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.116 2004/01/20 14:19:42 marka Exp $ */
+/* $Id: validator.c,v 1.117 2004/02/03 00:59:05 marka Exp $ */
 
 #include <config.h>
 
@@ -2043,7 +2043,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LINK_INIT(val, link);
 	val->magic = VALIDATOR_MAGIC;
 
-	isc_task_send(task, (isc_event_t **)&event);
+	isc_task_send(task, (isc_event_t **) (void *)&event);
 
 	*validatorp = val;
 

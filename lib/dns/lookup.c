@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.12 2003/10/25 00:31:09 jinmei Exp $ */
+/* $Id: lookup.c,v 1.13 2004/02/03 00:59:04 marka Exp $ */
 
 #include <config.h>
 
@@ -316,7 +316,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 				dns_db_detachnode(event->db, &event->node);
 			if (event->db != NULL)
 				dns_db_detach(&event->db);
-			isc_event_free((isc_event_t **)&event);
+			isc_event_free((isc_event_t **) (void *)&event);
 		}
 
 		/*

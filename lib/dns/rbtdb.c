@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.192 2004/01/14 02:06:50 marka Exp $ */
+/* $Id: rbtdb.c,v 1.193 2004/02/03 00:59:04 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3356,7 +3356,7 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(type != dns_rdatatype_any);
 
 	if (rbtversion == NULL) {
-		currentversion(db, (dns_dbversion_t **)(&rbtversion));
+		currentversion(db, (dns_dbversion_t **) (void *)(&rbtversion));
 		close_version = ISC_TRUE;
 	}
 	serial = rbtversion->serial;
@@ -3414,7 +3414,8 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	if (close_version)
-		closeversion(db, (dns_dbversion_t **)(&rbtversion), ISC_FALSE);
+		closeversion(db, (dns_dbversion_t **) (void *)(&rbtversion),
+			     ISC_FALSE);
 
 	if (found == NULL)
 		return (ISC_R_NOTFOUND);
@@ -3520,7 +3521,8 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if ((db->attributes & DNS_DBATTR_CACHE) == 0) {
 		now = 0;
 		if (rbtversion == NULL)
-			currentversion(db, (dns_dbversion_t **)(&rbtversion));
+			currentversion(db,
+				 (dns_dbversion_t **) (void *)(&rbtversion));
 		else {
 			LOCK(&rbtdb->lock);
 			INSIST(rbtversion->references > 0);
