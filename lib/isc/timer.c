@@ -456,6 +456,9 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 
 			if (post_event) {
 				XTRACEID("posting", timer);
+				/*
+				 * XXX We could preallocate this event.
+				 */
 				event = isc_event_allocate(manager->mctx,
 							   timer,
 							   type,
