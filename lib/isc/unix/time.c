@@ -205,3 +205,25 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 		result->seconds--;
 	}
 }
+
+isc_uint64_t
+isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
+	isc_uint64_t i1, i2, i3;
+
+	REQUIRE(t1 != NULL && t2 != NULL);
+
+	i1 = t1->seconds * 1000000000 + t1->nanoseconds;
+	i2 = t2->seconds * 1000000000 + t2->nanoseconds;
+
+	if (i1 <= i2)
+		return (0);
+
+	i3 = i1 - i2;
+
+	/*
+	 * Convert to microseconds.
+	 */
+	i3 = (i1 - i2) / 10000;
+
+	return (i3);
+}
