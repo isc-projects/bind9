@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.249 2000/11/15 00:19:49 tale Exp $ */
+/* $Id: server.c,v 1.250 2000/11/15 01:16:30 gson Exp $ */
 
 #include <config.h>
 
@@ -158,6 +158,94 @@ configure_view_acl(dns_c_view_t *cview,
 	return (result);
 }
 
+static isc_result_t
+configure_view_dnsseckey(dns_c_view_t *cview, dns_c_tkey_t *ckey,
+			 dns_keytable_t *keytable, isc_mem_t *mctx)
+{
+	dns_rdataclass_t viewclass;
+	dns_rdata_key_t keystruct;
+	isc_int32_t flags, proto, alg;
+	unsigned char keydata[4096];
+	isc_buffer_t keydatabuf;
+	unsigned char rrdata[4096];
+	isc_buffer_t rrdatabuf;
+	isc_region_t r;
+	dns_fixedname_t fkeyname;
+	dns_name_t *keyname;
+	isc_buffer_t namebuf;
+	isc_result_t result;
+	dst_key_t *dstkey = NULL;
+
+	if (cview == NULL)
+		viewclass = dns_rdataclass_in;
+	else
+		CHECK(dns_c_view_getviewclass(cview,
+					      &viewclass));
+	keystruct.common.rdclass = viewclass;
+	keystruct.common.rdtype = dns_rdatatype_key;
+	/*
+	 * The key data in keystruct is not
+	 * dynamically allocated.
+	 */
+	keystruct.mctx = NULL;
+
+	ISC_LINK_INIT(&keystruct.common, link);
+
+	flags = ckey->pubkey->flags;
+	proto = ckey->pubkey->protocol;
+	alg = ckey->pubkey->algorithm;
+	if (flags < 0 || flags > 0xffff)
+		CHECKM(ISC_R_RANGE, "key flags");
+	if (proto < 0 || proto > 0xff)
+		CHECKM(ISC_R_RANGE, "key protocol");
+	if (alg < 0 || alg > 0xff)
+		CHECKM(ISC_R_RANGE, "key algorithm");
+	keystruct.flags = flags;
+	keystruct.protocol = proto;
+	keystruct.algorithm = alg;
+
+	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
+	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
+
+	CHECK(isc_base64_decodestring(mctx, ckey->pubkey->key,
+				      &keydatabuf));
+	isc_buffer_usedregion(&keydatabuf, &r);
+	keystruct.datalen = r.length;
+	keystruct.data = r.base;
+
+	CHECK(dns_rdata_fromstruct(NULL,
+				   keystruct.common.rdclass,
+				   keystruct.common.rdtype,
+				   &keystruct, &rrdatabuf));
+	dns_fixedname_init(&fkeyname);
+	keyname = dns_fixedname_name(&fkeyname);
+	isc_buffer_init(&namebuf, ckey->domain,
+			strlen(ckey->domain));
+	isc_buffer_add(&namebuf, strlen(ckey->domain));
+	CHECK(dns_name_fromtext(keyname, &namebuf,
+				dns_rootname, ISC_FALSE,
+				NULL));
+	CHECK(dst_key_fromdns(keyname, viewclass, &rrdatabuf,
+			      mctx, &dstkey));
+
+	CHECK(dns_keytable_add(keytable, &dstkey));
+	INSIST(dstkey == NULL);
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "configuring trusted key for '%s': "
+		      "%s", ckey->domain,
+		      isc_result_totext(result));
+	result = ISC_R_FAILURE;
+
+	if (dstkey != NULL)
+		dst_key_free(&dstkey);
+
+	return (result);
+}
+
 /*
  * Configure DNSSEC keys for a view.  Currently used only for
  * the security roots.
@@ -181,7 +269,6 @@ configure_view_dnsseckeys(dns_c_view_t *cview,
 	dns_c_tkeylist_t *ckeys = NULL;
 	dns_c_tkey_t *ckey;
 	dns_keytable_t *keytable = NULL;
-	dst_key_t *dstkey = NULL;
 
 	CHECK(dns_keytable_create(mctx, &keytable));
 
@@ -194,74 +281,9 @@ configure_view_dnsseckeys(dns_c_view_t *cview,
 	if (result == ISC_R_SUCCESS) {
 		for (ckey = ISC_LIST_HEAD(ckeys->tkeylist);
 		     ckey != NULL;
-		     ckey = ISC_LIST_NEXT(ckey, next))
-		{
-			dns_rdataclass_t viewclass;
-			dns_rdata_key_t keystruct;
-			isc_int32_t flags, proto, alg;
-			unsigned char keydata[4096];
-			isc_buffer_t keydatabuf;
-			unsigned char rrdata[4096];
-			isc_buffer_t rrdatabuf;
-			isc_region_t r;
-			dns_fixedname_t fkeyname;
-			dns_name_t *keyname;
-			isc_buffer_t namebuf;
-
-			if (cview == NULL)
-				viewclass = dns_rdataclass_in;
-			else
-				CHECK(dns_c_view_getviewclass(cview,
-							      &viewclass));
-			keystruct.common.rdclass = viewclass;
-			keystruct.common.rdtype = dns_rdatatype_key;
-			/*
-			 * The key data in keystruct is not
-			 * dynamically allocated.
-			 */
-			keystruct.mctx = NULL;
-
-			ISC_LINK_INIT(&keystruct.common, link);
-
-			flags = ckey->pubkey->flags;
-			proto = ckey->pubkey->protocol;
-			alg = ckey->pubkey->algorithm;
-			if (flags < 0 || flags > 0xffff)
-				CHECKM(ISC_R_RANGE, "key flags");
-			if (proto < 0 || proto > 0xff)
-				CHECKM(ISC_R_RANGE, "key protocol");
-			if (alg < 0 || alg > 0xff)
-				CHECKM(ISC_R_RANGE, "key algorithm");
-			keystruct.flags = flags;
-			keystruct.protocol = proto;
-			keystruct.algorithm = alg;
-
-			isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
-			isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
-
-			CHECK(isc_base64_decodestring(mctx, ckey->pubkey->key,
-						      &keydatabuf));
-			isc_buffer_usedregion(&keydatabuf, &r);
-			keystruct.datalen = r.length;
-			keystruct.data = r.base;
-
-			CHECK(dns_rdata_fromstruct(NULL,
-						   keystruct.common.rdclass,
-						   keystruct.common.rdtype,
-						   &keystruct, &rrdatabuf));
-			dns_fixedname_init(&fkeyname);
-			keyname = dns_fixedname_name(&fkeyname);
-			isc_buffer_init(&namebuf, ckey->domain,
-					strlen(ckey->domain));
-			isc_buffer_add(&namebuf, strlen(ckey->domain));
-			CHECK(dns_name_fromtext(keyname, &namebuf,
-						dns_rootname, ISC_FALSE,
-						NULL));
-			CHECK(dst_key_fromdns(keyname, viewclass, &rrdatabuf,
-					      mctx, &dstkey));
-
-			CHECK(dns_keytable_add(keytable, &dstkey));
-			INSIST(dstkey == NULL);
+		     ckey = ISC_LIST_NEXT(ckey, next)) {
+			CHECK(configure_view_dnsseckey(cview, ckey,
+						       keytable, mctx));
 		}
 	} else if (result != ISC_R_NOTFOUND)
 		goto cleanup;
@@ -270,10 +292,8 @@ configure_view_dnsseckeys(dns_c_view_t *cview,
 	*target = keytable; /* Transfer ownership. */
 	keytable = NULL;
 	result = ISC_R_SUCCESS;
-
+	
  cleanup:
-	if (dstkey != NULL)
-		dst_key_free(&dstkey);
 	return (result);
 }
 
@@ -362,8 +382,7 @@ get_view_querysource_dispatch(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				     attrs, attrmask, &disp);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER,
-			      ISC_LOG_ERROR,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "could not get query source dispatcher");
 		return (result);
 	}
@@ -437,8 +456,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (pview != NULL) {
 		INSIST(pview->cache != NULL);
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER,
-			      ISC_LOG_DEBUG(3), "reusing existing cache");
+			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(3),
+			      "reusing existing cache");
 		dns_cache_attach(pview->cache, &cache);
 		dns_view_detach(&pview);
 	} else {
@@ -478,9 +497,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 */
 	if (ns_g_cachefile != NULL) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER,
-			      ISC_LOG_DEBUG(1), "loading cache '%s'",
-			      ns_g_cachefile);
+			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+			      "loading cache '%s'", ns_g_cachefile);
 		/* DNS_R_SEENINCLUDE should be impossible here. */
 		CHECK(dns_db_load(view->cachedb, ns_g_cachefile));
 	}
