@@ -1,0 +1,57 @@
+
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+top_srcdir =	@top_srcdir@
+prefix =	@prefix@
+exec_prefix =	@exec_prefix@
+libdir =	@libdir@
+
+@SET_MAKE@
+
+@BIND9_VERSION@
+
+CC = 		@CC@
+CFLAGS =	@CFLAGS@
+CINCLUDES =	-I${srcdir}/../isc/unix/include \
+		-I${srcdir}/../isc/pthreads/include \
+		-I${srcdir}/../isc/include \
+		-I${srcdir}/include
+CDEFINES =
+CWARNINGS =
+STD_CINCLUDES =	@STD_CINCLUDES@
+STD_CDEFINES =	@STD_CDEFINES@
+STD_CWARNINGS =	@STD_CWARNINGS@
+
+AR =		ar
+RANLIB =	@RANLIB@
+
+INSTALL =	@INSTALL@
+INSTALL_DATA =	@INSTALL_DATA@
+
+OBJS =		name.o result.o version.o
+
+SUBDIRS =	include
+TARGETS =	timestamp
+
+@BIND9_MAKE_RULES@
+
+version.o: version.c
+	${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" -c $<
+
+libdns.a: ${OBJS}
+	${AR} cruv $@ ${OBJS}
+
+timestamp: libdns.a
+	${RANLIB} libdns.a
+	touch timestamp
+
+installdirs:
+	if [ ! -d ${libdir} ]; then \
+		mkdir ${libdir} ; \
+	fi
+
+install:: timestamp installdirs
+	${INSTALL_DATA} libdns.a ${libdir}
+
+clean::
+	rm -f libdns.a timestamp

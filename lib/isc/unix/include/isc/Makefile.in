@@ -1,0 +1,34 @@
+
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+top_srcdir =	@top_srcdir@
+prefix =	@prefix@
+exec_prefix =	@exec_prefix@
+includedir =	@includedir@
+
+@SET_MAKE@
+
+@BIND9_VERSION@
+
+INSTALL =	@INSTALL@
+INSTALL_DATA =	@INSTALL_DATA@
+
+HEADERS =	time.h
+
+SUBDIRS =
+TARGETS =
+
+@BIND9_MAKE_RULES@
+
+installdirs:
+	if [ ! -d ${includedir} ]; then \
+		mkdir ${includedir} ; \
+	fi
+	if [ ! -d ${includedir}/isc ]; then \
+		mkdir ${includedir}/isc ; \
+	fi
+
+install:: installdirs
+	for i in ${HEADERS}; do \
+		${INSTALL_DATA} $(srcdir)/$$i ${includedir}/isc ; \
+	done

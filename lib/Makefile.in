@@ -1,0 +1,11 @@
+
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+top_srcdir =	@top_srcdir@
+
+@SET_MAKE@
+
+SUBDIRS =	isc dns
+TARGETS =
+
+@BIND9_MAKE_RULES@

@@ -1,0 +1,12 @@
+
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+top_srcdir =	@top_srcdir@
+prefix =	@prefix@
+exec_prefix =	@exec_prefix@
+
+@SET_MAKE@
+
+### Configuration here ###
+
+@BIND9_MAKE_RULES@

@@ -1,0 +1,65 @@
+###
+### Common Makefile rules for BIND 9.
+###
+
+###
+### All
+###
+### Makefile must define:
+###	TARGETS
+
+all: ${SUBDIRS} ${TARGETS}
+
+###
+### Subdirectories
+###
+
+ALL_SUBDIRS = ${SUBDIRS} nulldir
+
+${ALL_SUBDIRS}: FORCE
+	@if [ "$@" != "nulldir" -a -d $@ ]; then \
+		(cd $@; ${MAKE} ${MAKEDEFS} all); \
+	fi
+
+install depend clean distclean::
+	@for i in ${ALL_SUBDIRS}; do \
+		if [ "$$i" != "nulldir" -a -d $$i ]; then \
+			(cd $$i; ${MAKE} ${MAKEDEFS} $@); \
+		fi \
+	done
+
+FORCE:
+
+###
+### C Programs
+###
+### Makefile must define
+###	CC
+### Makefile may define
+###	CFLAGS
+###	CINCLUDES
+###	CDEFINES
+###	CWARNINGS
+
+# Program
+
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+ALWAYS_INCLUDES = -I${top_srcdir}
+ALWAYS_DEFINES = -D_REENTRANT
+ALWAYS_WARNINGS =
+
+ALL_CFLAGS = ${CFLAGS} \
+	${ALWAYS_INCLUDES} ${STD_CINCLUDES} ${CINCLUDES} \
+	${ALWAYS_DEFINES} ${STD_CDEFINES} ${CDEFINES} \
+	${ALWAYS_WARNINGS} ${STD_CWARNINGS} ${CWARNINGS}
+
+.c.o:
+	${CC} ${ALL_CFLAGS} -c $<
+
+clean distclean::
+	rm -f *.o core *.core
+
+distclean::
+	rm -f Makefile

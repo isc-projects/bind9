@@ -1,0 +1,65 @@
+
+AC_REVISION($Id: configure.in,v 1.1 1998/12/11 20:10:25 halley Exp $)
+
+AC_INIT(lib/dns/name.c)
+AC_CONFIG_HEADER(config.h)
+
+AC_CANONICAL_HOST
+
+AC_PROG_CC
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h)
+
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+AC_CHECK_LIB(pthread, pthread_create)
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AC_PROG_INSTALL
+
+AC_SUBST(STD_CINCLUDES)
+AC_SUBST(STD_CDEFINES)
+AC_SUBST(STD_CWARNINGS)
+if test "X$GCC" = "Xyes"; then
+	STD_CINCLUDES=
+	STD_CDEFINES=
+	STD_CWARNINGS="-W -Wall -Wmissing-prototypes -Wconversion"
+else
+	STD_CINCLUDES=
+	STD_CDEFINES=
+	STD_CWARNINGS=
+	case "$host" in
+		*-dec-osf1*)
+			CFLAGS="$CFLAGS -pthread"
+			;;
+	esac
+fi
+
+AC_SUBST_FILE(BIND9_MAKE_RULES)
+BIND9_MAKE_RULES=$srcdir/make/rules
+
+AC_SUBST_FILE(BIND9_VERSION)
+BIND9_VERSION=$srcdir/version
+
+AC_OUTPUT(
+	Makefile
+	lib/Makefile
+	lib/isc/Makefile
+	lib/isc/include/Makefile
+	lib/isc/include/isc/Makefile
+	lib/isc/unix/Makefile
+	lib/isc/unix/include/Makefile
+	lib/isc/unix/include/isc/Makefile
+	lib/isc/pthreads/Makefile
+	lib/isc/pthreads/include/Makefile
+	lib/isc/pthreads/include/isc/Makefile
+	lib/dns/Makefile
+	lib/dns/include/Makefile
+	lib/dns/include/dns/Makefile
+	bin/Makefile
+	bin/tests/Makefile
+)
