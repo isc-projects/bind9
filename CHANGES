@@ -4,8 +4,6 @@
  452.	[bug]		Warn if the unimplemented option "statistics-file"
 			is specified in named.conf. [RT #301]
 
- 451.	[func]		Update forwarding implememted.
- 
  445.	[bug]		Doing a 0 bit isc_bitstring_copy() of an lsb0
 			bitstring triggered a REQUIRE statement.  The REQUIRE
 			statement was incorrect. [RT #297]
