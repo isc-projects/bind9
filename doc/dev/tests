@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: tests,v 1.9 2000/11/02 17:54:30 mws Exp $
+$Id: tests,v 1.10 2000/11/14 17:58:44 gson Exp $
 
 We do hourly test builds of the bind9 tree.  This is an attempt to
 document how they work.
@@ -9,19 +9,21 @@ document how they work.
 
 * How things work
 
-The scripts driving the build system are in ~wpk/b9t.  They are not
-under CVS control.  The builds are driven by cron jobs separately
-installed on each build system, running as user wpk.
+The scripts driving the build system are in ~wpk/b9t.  They are now
+under CVS control; the repository is in rc:/proj/cvs/isc/b9t (note
+that this is a separate repository from the bind9 one).  The builds
+are driven by cron jobs separately installed on each build system,
+running as user wpk.
 
 The sources are checked out, and the web reports are generated,
 on bb, as driven by the following cron jobs:
 
-    #
-    # check out the current bind 9 version and make the source tarball
-    #
-    45 2-21 * * * PLATFORM=BSD-3.1 && . $HOME/b9t/hosts/$PLATFORM/env && \
-        nice make PLATFORM=$PLATFORM -e -f $HOME/b9t/bin/b9t.mk tarsrc \
-        > $HOME/b9t/hosts/$PLATFORM/b9t-status 2>&1
+    # Check out the current bind 9 version and make the source tarball.
+    # Argument to maketar.sh should be v9_0 for 9.0 release branch, 
+    # HEAD for mainline.
+    45 2-22 * * * PLATFORM=BSD-3.1 && . $HOME/b9t/hosts/$PLATFORM/env && \
+	nice sh $HOME/b9t/bin/maketar.sh HEAD \
+	>/proj/build-reports/bind9/tarsrc.txt 2>&1
 
     #
     # run the bind 9 build status report generator
@@ -45,9 +47,11 @@ running tests.  Here are examples from bb and sol:
 
 Do not confuse the shell script ~wpk/b9t/bin/b9t.cron with the crontab
 template (?) ~wpk/b9t/b9t.cron.  Although they have the same name,
-they are not related.  The shell script b9t.cron then calls make,
-using the makefile b9t.mk in the same location.  This makefile moves
-the old status files out of the way and runs through the tests.
+they are not related.
+
+The shell script b9t.cron then calls make, using the makefile b9t.mk
+in the same location.  This makefile moves the old status files out of
+the way and runs through the tests.
 
 The current test schedule is as follows:
 
@@ -102,11 +106,12 @@ The .nfs* files cannot be deleted, but they can be moved, so one way
 of fixing this is to move them to ~wpk.
 
 
-Failure locking
+* Failure locking
 
-When a test fails, no further testing is done on that host.  To remove the
-lockout and allow more tests to be run, remove the file
-/proj/build-reports/bind9/hosts/{TARGET}/failed
+When a test fails, further testing on that host is disabled in order
+to preserve evidence.  To remove the lockout and allow more tests to
+be run, log in to bb, su, su wpk, and remove the file
+/proj/build-reports/bind9/hosts/{TARGET}/failed.
 
 The failed file itself contains an exit code, which is not particularly
 useful.  The more useful information is in the various log files under
