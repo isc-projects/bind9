@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.30 2001/04/02 23:05:14 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.31 2001/04/12 20:23:48 tale Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -430,7 +430,7 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr, int convert_zero) {
 	unsigned char addrbuff[NS_IN6ADDRSZ];
 	unsigned int len;
 
-	if (lwres_net_aton(buffer, &addrbuff) == 1) {
+	if (lwres_net_aton(buffer, (struct in_addr *)&addrbuff) == 1) {
 		if (convert_zero) {
 			unsigned char zeroaddress[] = {0, 0, 0, 0};
 			unsigned char loopaddress[] = {127, 0, 0, 1};
@@ -439,11 +439,11 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr, int convert_zero) {
 		}
 		addr->family = LWRES_ADDRTYPE_V4;
 		addr->length = NS_INADDRSZ;
-		len = 4;
+		len = NS_INADDRSZ;
 	} else if (lwres_net_pton(AF_INET6, buffer, &addrbuff) == 1) {
 		addr->family = LWRES_ADDRTYPE_V6;
 		addr->length = NS_IN6ADDRSZ;
-		len = 16;
+		len = NS_IN6ADDRSZ;
 	} else {
 		return (LWRES_R_FAILURE); /* Unrecognised format. */
 	}
