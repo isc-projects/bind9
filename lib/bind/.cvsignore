@@ -1,3 +1,4 @@
+configure.lineno
 port_before.h
 port_after.h
 config.log
