@@ -1,3 +1,6 @@
+1142.	[bug]		dnssec-signzone would fail to delete temporary files
+			in some failure cases. [RT #2144]
+
 1141.	[bug]		When named rejected a control message, it would
 			leak a file descriptor and memory.  It would also
 			fail to respond, causing rndc to hang. [RT #2139]

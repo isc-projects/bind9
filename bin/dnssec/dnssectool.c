@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.31.2.1 2001/09/06 00:14:15 gson Exp $ */
+/* $Id: dnssectool.c,v 1.31.2.2 2001/11/27 22:41:49 gson Exp $ */
 
 #include <config.h>
 
@@ -65,11 +65,8 @@ setfatalcallback(fatalcallback_t *callback) {
 
 void
 check_result(isc_result_t result, const char *message) {
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s: %s\n", program, message,
-			isc_result_totext(result));
-		exit(1);
-	}
+	if (result != ISC_R_SUCCESS)
+		fatal("%s: %s", message, isc_result_totext(result));
 }
 
 void
