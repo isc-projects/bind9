@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.32 2000/08/14 18:13:11 bwelling Exp $ */
+/* $Id: tsig.h,v 1.33 2000/08/14 22:00:00 bwelling Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -64,7 +64,6 @@ struct dns_tsigkey {
 	/* Unlocked */
 };
 
-#define dns_tsigkey_empty(tsigkey) ((tsigkey)->key == NULL)
 #define dns_tsigkey_identity(tsigkey) \
 	((tsigkey)->generated ? ((tsigkey)->creator) : (&((tsigkey)->name)))
 
