@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9.2.1 2001/09/06 00:14:16 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.2 2001/11/28 01:58:18 marka Exp $ */
 
 #include <config.h>
 
@@ -139,7 +139,8 @@ main(int argc, char **argv) {
 	int keysize;
 	int entropy_flags = 0;
 	int open_keyboard = ISC_ENTROPY_KEYBOARDMAYBE;
-	struct in_addr addr;
+	struct in_addr addr4_dummy;
+	struct in6_addr addr6_dummy;
 	char *chrootdir = NULL;
 	char *user = NULL;
 	isc_boolean_t keyonly = ISC_FALSE;
@@ -197,9 +198,9 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			serveraddr = isc_commandline_argument;
-			if (inet_aton(serveraddr, &addr) == 0)
+			if (inet_pton(AF_INET, serveraddr, &addr4_dummy) != 1 &&
+			    inet_pton(AF_INET6, serveraddr, &addr6_dummy) != 1)
 				fatal("-s should be an IPv4 or IPv6 address");
-				
 			break;
 		case 't':
 			chrootdir = isc_commandline_argument;
