@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.10 2000/09/29 21:31:01 mws Exp $
+# $Id: sanitize.pl,v 1.11 2000/10/10 22:46:46 bwelling Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -45,7 +45,7 @@
 
 $makechange = 1;
 $debug = 0;
-$curkey = 0;
+$curkeys = 0;
 
 # States:
 #    0 - Outside of test, include code
@@ -95,7 +95,7 @@ sub runfile($) {
 			close(INFILE);
 			close(OUTFILE);
 			unlink($_[1]);
-			break;
+			last;
 		}
 		$masterstate = 0;
 		$intest = 0;
@@ -132,7 +132,7 @@ sub runfile($) {
 					close(INFILE);
 					close(OUTFILE) if ($makechange);
 					unlink($_[1]);
-					break;
+					last;
 				}
 				$masterstate++;
 				$state[$i] = 2;
@@ -148,7 +148,7 @@ sub runfile($) {
 					close(INFILE);
 					close(OUTFILE) if ($makechange);
 					unlink($_[1]);
-					break;
+					last;
 				}
 				$masterstate++;
 				if ($state[$i] == 1) {
@@ -167,7 +167,7 @@ sub runfile($) {
 					close(INFILE);
 					close(OUTFILE) if ($makechange);
 					unlink($_[1]);
-					break;
+					last;
 				}
 				$masterstate++;
 				$state[$i] = 0;
@@ -187,7 +187,7 @@ sub runfile($) {
 			if (($state[$i] != 0) &&
 			    ($state[$i] != $showon[$i])) {
 				$masterstate++;
-				break;
+				last;
 			}
 		}
 		if (($masterstate == 0) && $makechange) {
@@ -205,7 +205,7 @@ sub runfile($) {
       bailout:
 	$masterstate = 0;
 	for ($i = 0 ; $i < $curkeys; $i++) {
-		if ($state[i] != 0) {
+		if ($state[$i] != 0) {
 			print(STDERR "*** ERROR in file $_[0]: ".
 			      "file ended with unterminated test.  ".
 			      "$key[$i]\n");
