@@ -58,6 +58,7 @@ extern int h_errno;
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
+extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t tcp_mode,
 	recurse,
@@ -74,6 +75,8 @@ extern dns_name_t rootorg;
 extern char *rootspace[BUFSIZE];
 extern isc_buffer_t rootbuf;
 extern int sendcount;
+extern int ndots;
+extern int tries;
 
 isc_boolean_t short_form=ISC_TRUE,
 	filter=ISC_FALSE,
@@ -180,6 +183,30 @@ check_next_lookup (dig_lookup_t *lookup) {
 	if (still_working)
 		return;
 
+	next = ISC_LIST_NEXT(lookup, link);
+	debug ("Have %d retries left for %s\n",
+	       lookup->retries, lookup->textname);
+	if ((next == NULL)&&((lookup->retries <= 1)
+			     ||tcp_mode)) {
+		debug("Shutting Down.",stderr);
+		isc_app_shutdown();
+		return;
+	}
+	
+	if (tcp_mode) {
+		setup_lookup(next);
+		do_lookup_tcp(next);
+	} else {
+		if (lookup->retries > 1) {
+			lookup->retries --;
+			send_udp(lookup);
+		} else {
+			setup_lookup(next);
+			do_lookup_udp(next);
+		}
+	}
+
+#ifdef NEVER
 	next = ISC_LIST_NEXT (lookup, link);
 	if (next == NULL) {
 		debug ("Shutting Down.");
@@ -192,13 +219,45 @@ check_next_lookup (dig_lookup_t *lookup) {
 		do_lookup_tcp(next);
 	else
 		do_lookup_udp(next);
-
+#endif
 }
 
 static void
 show_usage() {
-	fatal ("Usage.");
+	fputs (
+"Usage: host [-aCdlrTwv] [-c class] [-N ndots] [-t type] [-W time]\n"
+"            [-R number] hostname [server]\n"
+"       -a is equivalent to -v -t *\n"
+"       -c specifies query class for non-IN data\n"
+"       -C compares SOA records on authorative nameservers\n"
+"       -d is equivalent to -v\n"
+"       -l lists all hosts in a domain, using AXFR\n"
+"       -N changes the number of dots allowed before root lookup is done\n"
+"       -r disables recursive processing\n"
+"       -R specifies number of retries for UDP packets\n"
+"       -t specifies the query type\n"
+"       -T enables TCP/IP mode\n"
+"       -v enables verbose output\n"
+"       -w specifies to wait forever for a reply\n"
+"       -W specifies how long to wait for a reply\n",stderr);
+	exit (0);
 }				
+
+void
+received(int bytes, int frmsize, char *frm, dig_query_t *query) {
+	UNUSED(query);
+	if (!short_form)
+		printf("Received %u bytes from %.*s\n",
+		       bytes, frmsize, frm);
+}
+
+void
+trying(int frmsize, char *frm, dig_lookup_t *lookup) {
+	UNUSED (lookup);
+
+	if (!short_form)
+		printf ("Trying \"%.*s\"\n", frmsize, frm);
+}
 
 static void
 say_message(dns_name_t *name, char *msg, dns_rdata_t *rdata,
@@ -475,7 +534,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	UNUSED(is_batchfile);
 
-	while ((c = isc_commandline_parse(argc, argv,"lvwrdt:aTC")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv,"lvwrdt:c:aTCN:R:W:"))
+	       != EOF) {
 		switch (c) {
 		case 'l':
 			tcp_mode = ISC_TRUE;
@@ -505,6 +565,16 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			   thing! */
 			timeout = 32767;
 			break;
+		case 'W':
+			timeout = atoi(isc_commandline_argument);
+			if (timeout < 1)
+				timeout = 1;
+			break;
+		case 'R':
+			tries = atoi(isc_commandline_argument);
+			if (tries < 1)
+				tries = 1;
+			break;
 		case 'T':
 			tcp_mode = ISC_TRUE;
 			break;
@@ -516,6 +586,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				strcpy (queryclass, "in");
 			nsfind = ISC_TRUE;
 			showallsoa = ISC_TRUE;
+			break;
+		case 'N':
+			debug ("Setting NDOTS to %s", 
+			       isc_commandline_argument);
+			ndots = atoi(isc_commandline_argument);
 			break;
 		}
 	}
@@ -550,14 +625,18 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->sendspace[0]=0;
 	lookup->sendmsg=NULL;
 	lookup->name=NULL;
+	lookup->oname=NULL;
 	lookup->timer = NULL;
 	lookup->xfr_q = NULL;
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->identify = ISC_FALSE;
 	lookup->ns_search_only = showallsoa;
 	lookup->use_my_server_list = ISC_FALSE;
+	lookup->retries = tries;
 	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
+	lookup->origin = NULL;
+	ISC_LIST_INIT(lookup->my_server_list);
 	have_host = ISC_TRUE;
 }
 

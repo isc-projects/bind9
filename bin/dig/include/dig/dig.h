@@ -41,6 +41,7 @@ ISC_LANG_BEGINDECLS
 typedef struct dig_lookup dig_lookup_t;
 typedef struct dig_query dig_query_t;
 typedef struct dig_server dig_server_t;
+typedef struct dig_searchlist dig_searchlist_t;
 
 struct dig_lookup {
 	isc_boolean_t pending, /* Pending a successful answer */
@@ -53,17 +54,27 @@ struct dig_lookup {
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */
 	char namespace[BUFSIZE];
+	char onamespace[BUFSIZE];
 	isc_buffer_t namebuf;
+	isc_buffer_t onamebuf;
 	isc_buffer_t sendbuf;
 	char sendspace[COMMSIZE];
 	dns_name_t *name;
 	isc_timer_t *timer;
 	isc_interval_t interval;
 	dns_message_t *sendmsg;
+	dns_name_t *oname;
 	ISC_LINK(dig_lookup_t) link;
 	ISC_LIST(dig_query_t) q;
 	ISC_LIST(dig_server_t) my_server_list;
+	dig_searchlist_t *origin;
 	dig_query_t *xfr_q;
+	int retries;
+	isc_boolean_t comments,
+		section_question,
+		section_answer,
+		section_authority,
+		section_additional;
 };
 
 struct dig_query {
@@ -72,6 +83,7 @@ struct dig_query {
 		waiting_connect,
 		first_pass,
 		first_soa_rcvd;
+	int retries;
 	char *servname;
 	isc_bufferlist_t sendlist,
 		recvlist,
@@ -85,11 +97,17 @@ struct dig_query {
 	isc_socket_t *sock;
 	ISC_LINK(dig_query_t) link;
 	isc_sockaddr_t sockaddr;
+	isc_time_t time_sent;
 };
 
 struct dig_server {
 	char servername[MXNAME];
 	ISC_LINK(dig_server_t) link;
+};
+
+struct dig_searchlist {
+	char origin[MXNAME];
+	ISC_LINK(dig_searchlist_t) link;
 };
 
 /* Routines in dighost.c */
@@ -109,6 +127,8 @@ void
 do_lookup_udp (dig_lookup_t *lookup);
 void
 do_lookup_tcp (dig_lookup_t *lookup);
+void
+send_udp(dig_lookup_t *lookup);
 
 /* Routines needed in dig.c and host.c */
 void
@@ -117,7 +137,10 @@ isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) ;
 void
 check_next_lookup (dig_lookup_t *lookup);
-
+void
+received(int bytes, int frmsize, char *frm, dig_query_t *query);
+void
+trying(int frmsize, char *frm, dig_lookup_t *lookup);
 
 ISC_LANG_ENDDECLS
 
