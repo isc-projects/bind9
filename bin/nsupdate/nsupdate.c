@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.87 2001/03/30 00:38:27 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.88 2001/03/30 22:48:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1257,6 +1257,8 @@ get_next_command(void) {
 		return (STATUS_QUIT);
 	if (*word == 0)
 		return (STATUS_SEND);
+	if (word[0] == ';')
+		return (STATUS_MORE);
 	if (strcasecmp(word, "quit") == 0)
 		return (STATUS_QUIT);
 	if (strcasecmp(word, "prereq") == 0)
