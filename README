@@ -103,6 +103,12 @@ BIND 9.0.0b3
 		Bug fixes.  Most bugs reported against beta 2 have been
 		fixed.
 
+	Known bugs:
+
+		The option "query-source * port 53;" will not work as
+		expected. Instead of the wildcard address "*", you need 
+		to use an explicit source IP address.
+
 	For a detailed list of user-visible changes since beta 2, see
 	the CHANGES file.	
 
@@ -118,7 +124,9 @@ BIND 9.0.0b3
 
 			Future releases will contain a lot more documentation,
 			but a preliminary version of the Administrator's
-			Reference Manual is in the doc/arm subdirectory.
+			Reference Manual is in the doc/arm subdirectory in
+			HTML format.  A plain text version will be added
+			in a future release.
 
 
 Building
