@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.309 2001/03/26 21:32:54 bwelling Exp $ */
+/* $Id: server.c,v 1.310 2001/03/26 23:02:26 gson Exp $ */
 
 #include <config.h>
 
@@ -1513,7 +1513,7 @@ set_limit(cfg_obj_t **maps, const char *configname, const char *description,
 	result = isc_resource_setlimit(resourceid, value);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      result == ISC_R_SUCCESS ?
-		      	ISC_LOG_DEBUG(1) : ISC_LOG_WARNING,
+		      	ISC_LOG_DEBUG(3) : ISC_LOG_WARNING,
 		      "set maximum %s to %" ISC_PRINT_QUADFORMAT "d: %s",
 		      description, value, isc_result_totext(result));
 }
