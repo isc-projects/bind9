@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.4 2000/11/18 01:39:20 bwelling Exp $ */
+/* $Id: tcldb.c,v 1.5 2000/11/20 18:24:41 gson Exp $ */
 
 #include <config.h>
 
@@ -43,8 +43,6 @@
  * the contents of the DNS namespace.
  */
 
-static dns_sdbimplementation_t *tcldb = NULL;
-
 #define CHECK(op)						\
 	do { result = (op);					\
 		if (result != ISC_R_SUCCESS) return (result);	\
@@ -55,11 +53,14 @@ typedef struct tcldb_driver {
 	Tcl_Interp *interp;
 } tcldb_driver_t;
 
-static tcldb_driver_t *the_driver;
+static tcldb_driver_t *the_driver = NULL;
+
+static dns_sdbimplementation_t *tcldb = NULL;
 
 static isc_result_t
 tcldb_driver_create(isc_mem_t *mctx, tcldb_driver_t **driverp) {
 	int tclres;
+	isc_result_t result = ISC_R_SUCCESS;
 	tcldb_driver_t *driver = isc_mem_get(mctx, sizeof(tcldb_driver_t));
 	if (driver == NULL)
 		return (ISC_R_NOMEMORY);
@@ -71,12 +72,18 @@ tcldb_driver_create(isc_mem_t *mctx, tcldb_driver_t **driverp) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
 			      "initializing tcldb: "
-			      "loading lookup.tcl failed: %s",
+			      "loading 'lookup.tcl' failed: %s",
 			      driver->interp->result);
-		return (ISC_R_FAILURE);
+		result = ISC_R_FAILURE;
+		goto cleanup;
 	}
 	*driverp = driver;
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	isc_mem_put(mctx, driver, sizeof(tcldb_driver_t));
+	return (result);
+	
 }
 
 static void
@@ -216,6 +223,8 @@ tcldb_init(void) {
  */
 void
 tcldb_clear(void) {
-	dns_sdb_unregister(&tcldb);
-	tcldb_driver_destroy(&the_driver);
+	if (tcldb != NULL)
+		dns_sdb_unregister(&tcldb);
+	if (the_driver != NULL)
+		tcldb_driver_destroy(&the_driver);
 }
