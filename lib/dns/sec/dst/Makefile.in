@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.19.4.1 2001/01/09 22:48:17 bwelling Exp $
+# $Id: Makefile.in,v 1.19.4.2 2001/02/08 17:18:45 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -22,7 +22,6 @@ top_srcdir =	@top_srcdir@
 @BIND9_INCLUDES@
 
 CINCLUDES =	-I${srcdir} \
-		-I${srcdir}/../openssl/include \
 		${DNS_INCLUDES} ${ISC_INCLUDES} \
 		@DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 

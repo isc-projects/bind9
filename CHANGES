@@ -1,4 +1,7 @@
 
+ 708.	[bug]		When building with --with-openssl, the openssl headers
+			included should not be used. [RT #702]
+
 	--- 9.1.1rc1 released ---
 
  729.	[port]		pthread_setconcurrency() needs to be called on Solaris.
