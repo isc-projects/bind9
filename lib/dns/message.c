@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.155 2000/10/25 04:26:38 marka Exp $ */
+/* $Id: message.c,v 1.156 2000/10/27 21:56:56 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2640,16 +2640,18 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	isc_buffer_t b, msgb;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(view != NULL);
 
 	if (msg->tsigkey == NULL && msg->tsig == NULL && msg->sig0 == NULL)
 		return (ISC_R_SUCCESS);
 	INSIST(msg->saved != NULL);
 	isc_buffer_init(&msgb, msg->saved->base, msg->saved->length);
 	isc_buffer_add(&msgb, msg->saved->length);
-	if (msg->tsigkey != NULL || msg->tsig != NULL)
-		return (dns_view_checksig(view, &msgb, msg));
-	else {
+	if (msg->tsigkey != NULL || msg->tsig != NULL) {
+		if (view != NULL)
+			return (dns_view_checksig(view, &msgb, msg));
+		else
+			return (dns_tsig_verify(&msgb, msg, NULL, NULL));
+	} else {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_sig_t sig;
 		dns_rdataset_t keyset;
@@ -2674,6 +2676,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			return (result);
 
 		dns_rdataset_init(&keyset);
+		if (view == NULL)
+			return DNS_R_KEYUNAUTHORIZED;
 		result = dns_view_simplefind(view, &sig.signer,
 					     dns_rdatatype_key, 0, 0,
 					     ISC_FALSE, &keyset, NULL);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.78 2000/10/06 18:58:24 bwelling Exp $ */
+/* $Id: message.h,v 1.79 2000/10/27 21:56:57 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -1151,7 +1151,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
  * Requires:
  *
  *	msg is a valid parsed message.
- *	view is a valid view
+ *	view is a valid view or NULL
  *
  * Returns:
  *
