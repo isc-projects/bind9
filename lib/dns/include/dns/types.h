@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.105 2002/03/07 07:48:48 bwelling Exp $ */
+/* $Id: types.h,v 1.106 2002/08/27 04:53:43 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -112,20 +112,10 @@ typedef struct dns_zonemgr			dns_zonemgr_t;
 typedef struct dns_zt				dns_zt_t;
 
 typedef enum {
-	dns_bitlabel_0 = 0,
-	dns_bitlabel_1 = 1
-} dns_bitlabel_t;
-
-typedef enum {
 	dns_fwdpolicy_none = 0,
 	dns_fwdpolicy_first = 1,
 	dns_fwdpolicy_only = 2
 } dns_fwdpolicy_t;
-
-typedef enum {
-	dns_labeltype_ordinary = 0,
-	dns_labeltype_bitstring = 1
-} dns_labeltype_t;
 
 typedef enum {
 	dns_namereln_none = 0,

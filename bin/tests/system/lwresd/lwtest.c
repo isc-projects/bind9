@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.23 2002/05/23 04:32:24 marka Exp $ */
+/* $Id: lwtest.c,v 1.24 2002/08/27 04:53:39 marka Exp $ */
 
 #include <config.h>
 
@@ -695,11 +695,11 @@ main(void) {
 	test_gnba("10.10.10.17", LWRES_ADDRTYPE_V4, LWRES_R_NOTFOUND,
 		  NULL);
 	test_gnba("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
-		  LWRES_ADDRTYPE_V6, LWRES_R_SUCCESS, "nibble.example");
+		  LWRES_ADDRTYPE_V6, LWRES_R_SUCCESS, "ip6.int.example");
 	test_gnba("0123:4567:89ab:cdef:0123:4567:89ab:cde0",
 		  LWRES_ADDRTYPE_V6, LWRES_R_NOTFOUND, NULL);
 	test_gnba("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
-		  LWRES_ADDRTYPE_V6, LWRES_R_SUCCESS, "bitstring.example");
+		  LWRES_ADDRTYPE_V6, LWRES_R_SUCCESS, "ip6.arpa.example");
 	test_gnba("1123:4567:89ab:cdef:0123:4567:89ab:cde0",
 		  LWRES_ADDRTYPE_V6, LWRES_R_NOTFOUND, NULL);
 
@@ -728,16 +728,16 @@ main(void) {
 	test_gethostbyaddr("10.10.10.1", AF_INET, "ipv4.example");
 	test_gethostbyaddr("10.10.10.17", AF_INET, NULL);
 	test_gethostbyaddr("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
-			   AF_INET6, "nibble.example");
+			   AF_INET6, "ip6.int.example");
 	test_gethostbyaddr("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
-			   AF_INET6, "bitstring.example");
+			   AF_INET6, "ip6.arpa.example");
 
 	test_getipnodebyaddr("10.10.10.1", AF_INET, "ipv4.example");
 	test_getipnodebyaddr("10.10.10.17", AF_INET, NULL);
 	test_getipnodebyaddr("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
-			     AF_INET6, "nibble.example");
+			     AF_INET6, "ip6.int.example");
 	test_getipnodebyaddr("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
-			     AF_INET6, "bitstring.example");
+			     AF_INET6, "ip6.arpa.example");
 
 	test_getaddrinfo("a.example1.", AF_INET, 1, 1, "10.0.1.1");
 	test_getaddrinfo("a.example1.", AF_INET, 1, 0, "10.0.1.1");
@@ -751,9 +751,9 @@ main(void) {
 	test_getnameinfo("10.10.10.1", AF_INET, "ipv4.example");
 	test_getnameinfo("10.10.10.17", AF_INET, NULL);
 	test_getnameinfo("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
-			 AF_INET6, "nibble.example");
+			 AF_INET6, "ip6.int.example");
 	test_getnameinfo("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
-			 AF_INET6, "bitstring.example");
+			 AF_INET6, "ip6.arpa.example");
 	test_getnameinfo("1122:3344:5566:7788:99aa:bbcc:ddee:ff00",
 			 AF_INET6, "dname.example1");
 

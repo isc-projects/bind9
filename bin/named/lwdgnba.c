@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.14 2001/11/27 00:55:35 gson Exp $ */
+/* $Id: lwdgnba.c,v 1.15 2002/08/27 04:53:38 marka Exp $ */
 
 #include <config.h>
 
@@ -66,7 +66,8 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		isc_event_free(&event);
 		bevent = NULL;
 
-		if ((client->options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
+		if (client->na.family != AF_INET6 ||
+		    (client->options & DNS_BYADDROPT_IPV6INT) != 0) {
 			if (result == DNS_R_NCACHENXDOMAIN ||
 			    result == DNS_R_NCACHENXRRSET ||
 			    result == DNS_R_NXDOMAIN ||
@@ -79,10 +80,10 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/*
-		 * Fall back to nibble reverse if the default of bitstrings
+		 * Fall back to ip6.int reverse if the default ip6.arpa
 		 * fails.
 		 */
-		client->options |= DNS_BYADDROPT_IPV6NIBBLE;
+		client->options |= DNS_BYADDROPT_IPV6INT;
 
 		start_byaddr(client);
 		return;

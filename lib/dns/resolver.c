@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.247 2002/08/23 00:27:10 marka Exp $ */
+/* $Id: resolver.c,v 1.248 2002/08/27 04:53:42 marka Exp $ */
 
 #include <config.h>
 
@@ -2225,10 +2225,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->pending = 0;
 	fctx->restarts = 0;
 	fctx->timeouts = 0;
-	if (dns_name_requiresedns(name))
-		fctx->attributes = FCTX_ATTR_NEEDEDNS0;
-	else
-		fctx->attributes = 0;
+	fctx->attributes = 0;
 
 	if (domain == NULL) {
 		dns_forwarders_t *forwarders = NULL;

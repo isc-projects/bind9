@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr_test.c,v 1.22 2001/01/09 21:40:54 bwelling Exp $ */
+/* $Id: byaddr_test.c,v 1.23 2002/08/27 04:53:39 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -101,7 +101,9 @@ main(int argc, char *argv[]) {
 	while ((ch = isc_commandline_parse(argc, argv, "nvw:")) != -1) {
 		switch (ch) {
 		case 'n':
-			options |= DNS_BYADDROPT_IPV6NIBBLE;
+			/*
+			 * We only try nibbles, so do nothing for this option.
+			 */
 			break;
 		case 'v':
 			verbose = ISC_TRUE;

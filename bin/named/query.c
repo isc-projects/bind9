@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.233 2002/08/19 21:32:56 marka Exp $ */
+/* $Id: query.c,v 1.234 2002/08/27 04:53:38 marka Exp $ */
 
 #include <config.h>
 
@@ -150,16 +150,10 @@ static void
 synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event);
 
 static void
-synth_rev_byaddrdone_bitstring(isc_task_t *task, isc_event_t *event);
-
-static void
 synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent);
 
 static isc_result_t
 nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na);
-
-static isc_result_t
-bitstring2netaddr(dns_name_t *name, isc_netaddr_t *na);
 
 /*
  * Increment query statistics counters.
@@ -3594,18 +3588,7 @@ ns_query_start(ns_client_t *client) {
 					          &ip6arpa_name)) &&
 			    nibbles2netaddr(client->query.qname,
 				   &client->query.synth.na) == ISC_R_SUCCESS) {
-				qclient= NULL;
-				ns_client_attach(client, &qclient);
-				synth_rev_start(qclient);
-				return;
-			}
-			/* bitstring label + "ip6" + "arpa" + root */
-			if (dns_name_countlabels(client->query.qname) == 4 &&
-			     dns_name_issubdomain(client->query.qname,
-					          &ip6arpa_name) &&
-			    bitstring2netaddr(client->query.qname,
-				   &client->query.synth.na) == ISC_R_SUCCESS) {
-				qclient= NULL;
+				qclient = NULL;
 				ns_client_attach(client, &qclient);
 				synth_rev_start(qclient);
 				return;
@@ -3906,21 +3889,6 @@ nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
-bitstring2netaddr(dns_name_t *name, isc_netaddr_t *na) {
-	struct in6_addr ina6;
-	isc_region_t label;
-
-	dns_name_getlabel(name, 0, &label);
-	if (label.length != 18 ||
-	    label.base[0] != DNS_LABELTYPE_BITSTRING ||
-	    label.base[1] != 128)
-		return (ISC_R_FAILURE);
-	memcpy(ina6.s6_addr, &label.base[2], 16);
-	isc_netaddr_fromin6(na, &ina6);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
 /*
  * Generate a synthetic IPv6 reverse mapping response for the current
  * query of 'client'.
@@ -3933,11 +3901,10 @@ synth_rev_start(ns_client_t *client) {
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
 		      ISC_LOG_DEBUG(5), "generating synthetic PTR response");
 
-	/* Try IP6.ARPA nibble style first. */
+	/* Try IP6.ARPA first. */
 	result = dns_byaddr_create(client->mctx,
 				   &client->query.synth.na,
-				   client->view,
-				   DNS_BYADDROPT_IPV6NIBBLE, client->task,
+				   client->view, 0, client->task,
 				   synth_rev_byaddrdone_arpa,
 				   client, &byaddr_dummy);
 	if (result == ISC_R_SUCCESS)
@@ -3958,11 +3925,10 @@ synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event) {
 	if (bevent->result == ISC_R_SUCCESS) {
 		synth_rev_respond(client, bevent);
 	} else {
-		/* Try IP6.INT nibble next. */
+		/* Try IP6.INT next. */
 		result = dns_byaddr_create(client->mctx,
 					   &client->query.synth.na,
 					   client->view,
-					   DNS_BYADDROPT_IPV6NIBBLE|
 					   DNS_BYADDROPT_IPV6INT,
 					   client->task,
 					   synth_rev_byaddrdone_int,
@@ -3976,57 +3942,19 @@ synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event) {
 
 static void
 synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
 	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
 	ns_client_t *client = event->ev_arg;
 	dns_byaddr_t *byaddr = event->ev_sender;
-	dns_byaddr_t *byaddr_dummy = NULL;	
 
 	UNUSED(task);
 
-	if (bevent->result == ISC_R_SUCCESS) {
+	if (bevent->result == ISC_R_SUCCESS)
 		synth_rev_respond(client, bevent);
-	} else {
-		/* Try IP6.ARPA bitstring next. */
-		result = dns_byaddr_create(client->mctx,
-					   &client->query.synth.na,
-					   client->view, 0, client->task,
-					   synth_rev_byaddrdone_bitstring,
-					   client, &byaddr_dummy);
-		if (result != ISC_R_SUCCESS)
-			synth_finish(client, result);
-	}
+	else
+		synth_finish(client, bevent->result);
+
 	dns_byaddr_destroy(&byaddr);
 	isc_event_free(&event);
-}
-
-static void
-synth_rev_byaddrdone_bitstring(isc_task_t *task, isc_event_t *event) {
-	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
-	ns_client_t *client = event->ev_arg;
-	dns_byaddr_t *byaddr = event->ev_sender;
-	
-	UNUSED(task);
-
-	if (bevent->result == ISC_R_SUCCESS) {
-		synth_rev_respond(client, bevent);
-	} else if (bevent->result == DNS_R_NCACHENXDOMAIN ||
-		   bevent->result == DNS_R_NCACHENXRRSET ||
-		   bevent->result == DNS_R_NXDOMAIN ||
-		   bevent->result == DNS_R_NXRRSET) {
-		/*
-		 * We could give a NOERROR/NODATA response instead
-		 * in some cases, but since there may be any combination
-		 * of NXDOMAIN and NXRRSET results from the IP6.INT
-		 * and IP6.ARPA lookups, it could still be wrong with
-		 * respect to one or the other.
-		 */
-		synth_finish(client, DNS_R_NXDOMAIN);
-	} else {
-		synth_finish(client, bevent->result);
-	}
-	isc_event_free(&event);
-	dns_byaddr_destroy(&byaddr);	
 }
 
 static void

@@ -13,11 +13,11 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: ip6.arpa.db,v 1.7 2001/01/09 21:43:43 bwelling Exp $
+; $Id: ip6.arpa.db,v 1.8 2002/08/27 04:53:40 marka Exp $
 
 $TTL 300	; 5 minutes
 @	IN SOA  mname1. . (
-		2000062101	; serial
+		2002082300	; serial
 		20		; refresh (20 seconds)
 		20		; retry (20 seconds)
 		1814400		; expire (3 weeks)
@@ -26,5 +26,5 @@ $TTL 300	; 5 minutes
 	NS	ns
 ns	A	10.53.0.1
 
-\[x1123456789abcdef0123456789abcdef/128] PTR bitstring.example.
-\[x112233445566/48] DNAME example1.
+f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.0.f.e.d.c.b.a.9.8.7.6.5.4.3.2.1.1 PTR ip6.arpa.example.
+6.6.5.5.4.4.3.3.2.2.1.1 DNAME example1.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.250 2002/08/12 19:57:13 mayer Exp $ */
+/* $Id: dighost.c,v 1.251 2002/08/27 04:53:38 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -250,8 +250,8 @@ get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
 		dns_name_t *name;
-		unsigned int options = DNS_BYADDROPT_IPV6NIBBLE;
-		
+		unsigned int options = 0;
+
 		if (ip6_int)
 			options |= DNS_BYADDROPT_IPV6INT;
 		dns_fixedname_init(&fname);
