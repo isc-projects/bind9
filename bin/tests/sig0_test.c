@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.8 2001/03/28 02:42:53 bwelling Exp $ */
+/* $Id: sig0_test.c,v 1.9 2001/03/28 02:43:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -91,33 +91,33 @@ senddone(isc_task_t *task, isc_event_t *event) {
 
 static void
 recvdone(isc_task_t *task, isc_event_t *event) {
-        isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-        isc_buffer_t source;
-        isc_result_t result;
+	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	isc_buffer_t source;
+	isc_result_t result;
 	dns_message_t *response;
 
-        REQUIRE(sevent != NULL);
-        REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
-        REQUIRE(task == task1);
+	REQUIRE(sevent != NULL);
+	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
+	REQUIRE(task == task1);
 
-        printf("recvdone\n");
-        if (sevent->result != ISC_R_SUCCESS) {
-                printf("failed\n");
-                exit(-1);
-        }
+	printf("recvdone\n");
+	if (sevent->result != ISC_R_SUCCESS) {
+		printf("failed\n");
+		exit(-1);
+	}
 
-        isc_buffer_init(&source, sevent->region.base, sevent->region.length);
-        isc_buffer_add(&source, sevent->n);
+	isc_buffer_init(&source, sevent->region.base, sevent->region.length);
+	isc_buffer_add(&source, sevent->n);
 
-        response = NULL;
-        result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-        CHECK("dns_message_create", result);
-        result = dns_message_parse(response, &source, 0);
-        CHECK("dns_message_parse", result);
+	response = NULL;
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
+	CHECK("dns_message_create", result);
+	result = dns_message_parse(response, &source, 0);
+	CHECK("dns_message_parse", result);
 
 	isc_buffer_init(&outbuf, output, sizeof(output));
 	result = dns_message_totext(response, style, 0, &outbuf);
-        CHECK("dns_message_totext", result);
+	CHECK("dns_message_totext", result);
 	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
 	       (char *)isc_buffer_base(&outbuf));
 
@@ -183,7 +183,7 @@ buildquery(void) {
 
 	isc_buffer_init(&outbuf, output, sizeof(output));
 	result = dns_message_totext(query, style, 0, &outbuf);
-        CHECK("dns_message_totext", result);
+	CHECK("dns_message_totext", result);
 	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
 	       (char *)isc_buffer_base(&outbuf));
 
@@ -254,7 +254,7 @@ main(int argc, char *argv[]) {
 
 	s = NULL;
 	RUNTIME_CHECK(isc_socket_create(socketmgr, PF_INET,
-				        isc_sockettype_udp, &s) ==
+					isc_sockettype_udp, &s) ==
 		      ISC_R_SUCCESS);
 
 	inaddr.s_addr = htonl(INADDR_LOOPBACK);
