@@ -459,8 +459,6 @@
 ./bin/tests/system/dialup/tests.sh		SH	2000,2001,2004
 ./bin/tests/system/digcomp.pl			PERL	2000,2001,2004
 ./bin/tests/system/dlv/clean.sh			SH	2004
-./bin/tests/system/dlv/setup.sh			SH	2004
-./bin/tests/system/dlv/tests.sh			SH	2004
 ./bin/tests/system/dlv/ns1/named.conf		CONF-C	2004
 ./bin/tests/system/dlv/ns1/root.db		ZONE	2004
 ./bin/tests/system/dlv/ns1/rootservers.utld.db	ZONE	2004
@@ -477,6 +475,9 @@
 ./bin/tests/system/dlv/ns4/named.conf		CONF-C	2004
 ./bin/tests/system/dlv/ns5/hints		ZONE	2004
 ./bin/tests/system/dlv/ns5/named.conf		CONF-C	2004
+./bin/tests/system/dlv/ns5/rndc.conf		CONF-C	2004
+./bin/tests/system/dlv/setup.sh			SH	2004
+./bin/tests/system/dlv/tests.sh			SH	2004
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004
