@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.38 2000/09/01 22:14:32 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.39 2000/09/01 22:17:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -154,11 +154,11 @@ show_usage(void) {
 void
 dighost_shutdown(void) {
 	debug("dighost_shutdown()");
-	isc_mutex_lock(&lock);
+	LOCK(&lock);
 	busy = ISC_FALSE;
 	debug("signalling out");
 	isc_condition_signal(&cond);
-	isc_mutex_unlock(&lock);
+	UNLOCK(&lock);
 }
 
 void
@@ -850,8 +850,7 @@ main(int argc, char **argv) {
 	check_result(result, "isc_mutex_init");
 	result = isc_condition_init(&cond);
 	check_result(result, "isc_condition_init");
-	result = isc_mutex_trylock(&lock);
-	check_result(result, "isc_mutex_trylock");
+	LOCK(&lock);
 
 	parse_args(argc, argv);
 
@@ -894,6 +893,7 @@ main(int argc, char **argv) {
 	puts("");
 	debug("done, and starting to shut down");
 	destroy_libs();
+	UNLOCK(&lock);
 	DESTROYLOCK(&lock);
 	isc_condition_destroy(&cond);
 	if (taskmgr != NULL) {
