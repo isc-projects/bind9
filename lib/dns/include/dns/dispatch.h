@@ -84,8 +84,14 @@ struct dns_dispatchevent {
 	isc_result_t		result;		/* result code */
 	isc_int32_t		id;		/* message id */
 	isc_sockaddr_t		addr;		/* address recv'd from */
+	struct in6_pktinfo	pktinfo;	/* reply info for v6 */
 	isc_buffer_t	        buffer;		/* data buffer */
 };
+
+/*
+ * event attributes
+ */
+#define DNS_DISPATCHATTR_PKTINFO	0x00100000U
 
 /*
  * Functions to:

@@ -128,12 +128,12 @@ struct isc_socket_connev {
  * _TIMESTAMP:	The timestamp member is valid.
  * _PKTINFO:	The pktinfo member is valid.
  */
-#define ISC_SOCKEVENTATTR_ATTACHED		0x8000000U /* internal */
-#define ISC_SOCKEVENTATTR_FATALERROR		0x4000000U /* sock is dead */
-#define ISC_SOCKEVENTATTR_TRUNC			0x0080000U /* public */
-#define ISC_SOCKEVENTATTR_CTRUNC		0x0040000U /* public */
-#define ISC_SOCKEVENTATTR_TIMESTAMP		0x0020000U /* public */
-#define ISC_SOCKEVENTATTR_PKTINFO		0x0010000U /* public */
+#define ISC_SOCKEVENTATTR_ATTACHED		0x80000000U /* internal */
+#define ISC_SOCKEVENTATTR_FATALERROR		0x40000000U /* sock is dead */
+#define ISC_SOCKEVENTATTR_TRUNC			0x00800000U /* public */
+#define ISC_SOCKEVENTATTR_CTRUNC		0x00400000U /* public */
+#define ISC_SOCKEVENTATTR_TIMESTAMP		0x00200000U /* public */
+#define ISC_SOCKEVENTATTR_PKTINFO		0x00100000U /* public */
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)

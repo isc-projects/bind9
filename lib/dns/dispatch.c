@@ -394,6 +394,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	isc_boolean_t killit;
 	isc_boolean_t queue_request;
 	isc_boolean_t queue_response;
+	unsigned int attributes;
 
 	(void)task;  /* shut up compiler */
 
@@ -520,12 +521,20 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	rev->result = DNS_R_SUCCESS;
 	rev->id = id;
 	rev->addr = ev->address;
+	attributes = 0;
+	if ((ev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
+		rev->pktinfo = ev->pktinfo;
+		attributes |= DNS_DISPATCHATTR_PKTINFO;
+	} else {
+		attributes &= ~DNS_DISPATCHATTR_PKTINFO;
+	}
 	if (queue_request) {
 		ISC_LIST_APPEND(disp->rq_events, rev, link);
 	} else if (queue_response) {
 		ISC_LIST_APPEND(resp->items, rev, link);
 	} else {
-		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL, DNS_EVENT_DISPATCH,
+		ISC_EVENT_INIT(rev, sizeof(*rev), attributes, NULL,
+			       DNS_EVENT_DISPATCH,
 			       resp->action, resp->arg, resp, NULL, NULL);
 		XDEBUG(("Sent event %p buffer %p len %d to task %p, resp %p\n",
 			rev, rev->buffer.base, rev->buffer.length,

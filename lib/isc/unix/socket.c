@@ -368,7 +368,8 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 		if (cmsgp->cmsg_level == IPPROTO_IPV6
 		    && cmsgp->cmsg_type == IPV6_PKTINFO) {
 			pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
-			dev->pktinfo = *pktinfop;
+			memcpy(&dev->pktinfo, pktinfop,
+			       sizeof(struct in6_pktinfo));
 			dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
 			goto next;
 		}
@@ -496,7 +497,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		cmsgp->cmsg_type = IPV6_PKTINFO;
 		cmsgp->cmsg_len = CMSG_LEN(sizeof(struct in6_pktinfo));
 		pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
-		*pktinfop = dev->pktinfo;
+		memcpy(pktinfop, &dev->pktinfo, sizeof(struct in6_pktinfo));
 	}
 #endif /* USE_CMSG */
 #else /* ISC_NET_BSD44MSGHDR */

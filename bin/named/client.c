@@ -599,6 +599,7 @@ ns_client_send(ns_client_t *client) {
 	isc_region_t r;
 	isc_socket_t *socket;
 	isc_sockaddr_t *address;
+	struct in6_pktinfo *pktinfo;
 	unsigned int bufsize = 512;
 
 	REQUIRE(NS_CLIENT_VALID(client));
@@ -683,8 +684,12 @@ ns_client_send(ns_client_t *client) {
 		isc_buffer_used(&buffer, &r);
 	}
 	CTRACE("sendto");
+	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
+		pktinfo = &client->pktinfo;
+	else
+		pktinfo = NULL;
 	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
-				   client, address, NULL);
+				   client, address, pktinfo);
 	if (result == ISC_R_SUCCESS) {
 		client->nsends++;
 		return;
@@ -812,17 +817,25 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 	dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
-	
+
 	if (event->type == DNS_EVENT_DISPATCH) {
-		INSIST(! TCP_CLIENT(client));
+		INSIST(!TCP_CLIENT(client));
 		devent = (dns_dispatchevent_t *)event;
 		REQUIRE(client->dispentry != NULL);
 		client->dispevent = devent;
 		buffer = &devent->buffer;
 		result = devent->result;
 		client->peeraddr = devent->addr;
+		if ((devent->attributes & DNS_DISPATCHATTR_PKTINFO) != 0) {
+			client->attributes |= NS_CLIENTATTR_PKTINFO;
+			client->pktinfo = devent->pktinfo;
+			printf("client: interface %u\n",
+			       client->pktinfo.ipi6_ifindex);
+		} else {
+			client->attributes &= ~NS_CLIENTATTR_PKTINFO;
+		}
 	} else {
-		INSIST(TCP_CLIENT(client));		
+		INSIST(TCP_CLIENT(client));
 		REQUIRE(event->type == DNS_EVENT_TCPMSG);
 		REQUIRE(event->sender == &client->tcpmsg);
 		buffer = &client->tcpmsg.buffer;

@@ -118,6 +118,7 @@ struct ns_client {
 	isc_quota_t			*recursionquota;
 	ns_interface_t			*interface;
 	isc_sockaddr_t			peeraddr;
+	struct in6_pktinfo		pktinfo;
 	ISC_LINK(ns_client_t)		link;
 	client_list_t			*list;	/* The list 'link' is part of,
 					   or NULL if not on any list. */
@@ -129,6 +130,7 @@ struct ns_client {
 
 #define NS_CLIENTATTR_TCP		0x01
 #define NS_CLIENTATTR_RA		0x02 /* Client gets recusive service */
+#define NS_CLIENTATTR_PKTINFO		0x04 /* pktinfo is valid */
 
 /***
  *** Functions
