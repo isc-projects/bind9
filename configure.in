@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.252 $)
+AC_REVISION($Revision: 1.253 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1402,11 +1402,11 @@ esac
 #
 
 #
-# Look for jade, preferring openjade if installed.
+# Look for openjade.  Plain jade is no longer supported.
 #
 
-AC_PATH_PROGS(JADE, openjade jade, jade)
-AC_SUBST(JADE)
+AC_PATH_PROGS(OPENJADE, openjade, openjade)
+AC_SUBST(OPENJADE)
 
 #
 # Look for tex & pdftex.
@@ -1418,66 +1418,100 @@ AC_SUBST(TEX)
 AC_PATH_PROGS(PDFTEX, pdftex, pdftex)
 AC_SUBST(PDFTEX)
 
+AC_MSG_CHECKING(for SGML catalog)
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
+do
+	f=$d/catalog
+	if test -f $f
+	then
+		SGMLCATALOG=$f
+		AC_MSG_RESULT($f)
+		break
+	fi
+done
+if test "X$SGMLCATALOG" = "X"
+then
+	AC_MSG_RESULT("not found");
+	SGMLCATALOG=catalog
+fi
+AC_SUBST(SGMLCATALOG)
+
 #
-# Look for SGML files.  The location varies; so far we
-# have seen:
+# Look for the HTML stylesheet html/docbook.dsl, used for
+# formatting man pages in HTML.  Its location varies,
+# so far we have seen:
 #
 # 	NetBSD 	/usr/pkg/share/docbook/dsssl/modular/
 # 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
 #	Linux	/usr/local/share/dsssl/docbook/
 #
 
-SGMLDIR=""
-SGMLSTYLEDIR=""
-
-AC_MSG_CHECKING(for SGML files)
-for d in /usr/pkg/share/sgml /usr/local/share/sgml 
+HTMLSTYLE=""
+AC_MSG_CHECKING(for html/docbook.dsl)
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
 do
 	for s in docbook/dsssl/modular dsssl/docbook
 	do
-		if test -f $d/$s/html/docbook.dsl
+		f=$d/$s/html/docbook.dsl
+		if test -f $f
 		then
-			SGMLDIR=$d
-			SGMLSTYLEDIR=$d/$s
-			AC_MSG_RESULT(in $SGMLSTYLEDIR)
+			HTMLSTYLE=$f
+			AC_MSG_RESULT($f)
 			break
 		fi
 	done
 done
-
-if test "X$SGMLDIR" = "X"
+if test "X$HTMLSTYLE" = "X"
 then
 	AC_MSG_RESULT("not found");
-	SGMLDIR=/usr/local/share/sgml
-	SGMLSTYLEDIR=/usr/local/share/docbook/dsssl/modular
+	HTMLSTYLE=docbook.dsl
 fi
-
-AC_SUBST(SGMLDIR)
-AC_SUBST(SGMLSTYLEDIR)
+AC_SUBST(HTMLSTYLE)
 
 #
-# Look for XML files.
+# Look for XML declarations
 #
-XGMLDIR=""
-
-AC_MSG_CHECKING(for XML files)
-for d in /usr/pkg/share/xml /usr/local/share/xml
+XMLDCL=""
+AC_MSG_CHECKING(for xml.dcl)
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
 do
-	if test -f $d/dtd/docbook/docbookx.dtd
+	f=$d/docbook/dsssl/modular/dtds/decls/xml.dcl
+	if test -f $f
 	then
-		XMLDIR=$d
-		AC_MSG_RESULT(in $XMLDIR)
+		XMLDCL=$f
+		AC_MSG_RESULT($f)
 		break
 	fi
 done
-
-if test "X$XMLDIR" = "X"
+if test "X$XMLDCL" = "X"
 then
 	AC_MSG_RESULT("not found");
-	XMLDIR=/usr/local/share/xml
+	XMLDCL=xml.dcl
 fi
+AC_SUBST(XMLDCL)
 
-AC_SUBST(XMLDIR)
+#
+# Look for the docbook2X directory
+#
+
+AC_MSG_CHECKING(for docbook2X)
+DOCBOOK2X=""
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
+do
+    	dd=$d/docbook2X
+	if test -f $dd/docbook2man-spec.pl
+	then
+		DOCBOOK2X=$dd
+		AC_MSG_RESULT($dd)
+		break
+	fi
+done
+if test "X$DOCBOOK2X" = "X"
+then
+	AC_MSG_RESULT("not found");
+	DOCBOOK2X=.
+fi
+AC_SUBST(DOCBOOK2X)
 
 #
 # Substitutions
@@ -1596,7 +1630,6 @@ AC_OUTPUT(
 	bin/dnssec/Makefile
 	doc/Makefile
 	doc/arm/Makefile
-	doc/arm/catalog
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/nominum-docbook-print.dsl
 	doc/arm/validate.sh

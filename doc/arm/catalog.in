@@ -1,6 +1,0 @@
-CATALOG "@SGMLDIR@/iso8879/catalog"
-CATALOG "@SGMLDIR@/docbook/2.4.1/catalog"
-CATALOG "@SGMLDIR@/docbook/3.0/catalog"
-CATALOG "@SGMLDIR@/docbook/3.1/catalog"
-CATALOG "@SGMLDIR@/jade/catalog"
-CATALOG "@XMLDIR@/catalog"

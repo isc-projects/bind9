@@ -5150,24 +5150,24 @@ esac
 #
 
 #
-# Look for jade, preferring openjade if installed.
+# Look for openjade.  Plain jade is no longer supported.
 #
 
-for ac_prog in openjade jade
+for ac_prog in openjade
 do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
 echo "configure:5162: checking for $ac_word" >&5
-if eval "test \"`echo '$''{'ac_cv_path_JADE'+set}'`\" = set"; then
+if eval "test \"`echo '$''{'ac_cv_path_OPENJADE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  case "$JADE" in
+  case "$OPENJADE" in
   /*)
-  ac_cv_path_JADE="$JADE" # Let the user override the test with a path.
+  ac_cv_path_OPENJADE="$OPENJADE" # Let the user override the test with a path.
   ;;
   ?:/*)			 
-  ac_cv_path_JADE="$JADE" # Let the user override the test with a dos path.
+  ac_cv_path_OPENJADE="$OPENJADE" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
@@ -5175,7 +5175,7 @@ else
   for ac_dir in $ac_dummy; do 
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
-      ac_cv_path_JADE="$ac_dir/$ac_word"
+      ac_cv_path_OPENJADE="$ac_dir/$ac_word"
       break
     fi
   done
@@ -5183,16 +5183,16 @@ else
   ;;
 esac
 fi
-JADE="$ac_cv_path_JADE"
-if test -n "$JADE"; then
-  echo "$ac_t""$JADE" 1>&6
+OPENJADE="$ac_cv_path_OPENJADE"
+if test -n "$OPENJADE"; then
+  echo "$ac_t""$OPENJADE" 1>&6
 else
   echo "$ac_t""no" 1>&6
 fi
 
-test -n "$JADE" && break
+test -n "$OPENJADE" && break
 done
-test -n "$JADE" || JADE="jade"
+test -n "$OPENJADE" || OPENJADE="openjade"
 
 
 
@@ -5286,67 +5286,103 @@ test -n "$PDFTEX" || PDFTEX="pdftex"
 
 
 
+echo $ac_n "checking for SGML catalog""... $ac_c" 1>&6
+echo "configure:5291: checking for SGML catalog" >&5
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
+do
+	f=$d/catalog
+	if test -f $f
+	then
+		SGMLCATALOG=$f
+		echo "$ac_t""$f" 1>&6
+		break
+	fi
+done
+if test "X$SGMLCATALOG" = "X"
+then
+	echo "$ac_t"""not found"" 1>&6;
+	SGMLCATALOG=catalog
+fi
+
+
 #
-# Look for SGML files.  The location varies; so far we
-# have seen:
+# Look for the HTML stylesheet html/docbook.dsl, used for
+# formatting man pages in HTML.  Its location varies,
+# so far we have seen:
 #
 # 	NetBSD 	/usr/pkg/share/docbook/dsssl/modular/
 # 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
 #	Linux	/usr/local/share/dsssl/docbook/
 #
 
-SGMLDIR=""
-SGMLSTYLEDIR=""
-
-echo $ac_n "checking for SGML files""... $ac_c" 1>&6
-echo "configure:5303: checking for SGML files" >&5
-for d in /usr/pkg/share/sgml /usr/local/share/sgml 
+HTMLSTYLE=""
+echo $ac_n "checking for html/docbook.dsl""... $ac_c" 1>&6
+echo "configure:5321: checking for html/docbook.dsl" >&5
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
 do
 	for s in docbook/dsssl/modular dsssl/docbook
 	do
-		if test -f $d/$s/html/docbook.dsl
+		f=$d/$s/html/docbook.dsl
+		if test -f $f
 		then
-			SGMLDIR=$d
-			SGMLSTYLEDIR=$d/$s
-			echo "$ac_t""in $SGMLSTYLEDIR" 1>&6
+			HTMLSTYLE=$f
+			echo "$ac_t""$f" 1>&6
 			break
 		fi
 	done
 done
-
-if test "X$SGMLDIR" = "X"
+if test "X$HTMLSTYLE" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	SGMLDIR=/usr/local/share/sgml
-	SGMLSTYLEDIR=/usr/local/share/docbook/dsssl/modular
+	HTMLSTYLE=docbook.dsl
 fi
 
 
-
-
 #
-# Look for XML files.
+# Look for XML declarations
 #
-XGMLDIR=""
-
-echo $ac_n "checking for XML files""... $ac_c" 1>&6
-echo "configure:5334: checking for XML files" >&5
-for d in /usr/pkg/share/xml /usr/local/share/xml
+XMLDCL=""
+echo $ac_n "checking for xml.dcl""... $ac_c" 1>&6
+echo "configure:5347: checking for xml.dcl" >&5
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
 do
-	if test -f $d/dtd/docbook/docbookx.dtd
+	f=$d/docbook/dsssl/modular/dtds/decls/xml.dcl
+	if test -f $f
 	then
-		XMLDIR=$d
-		echo "$ac_t""in $XMLDIR" 1>&6
+		XMLDCL=$f
+		echo "$ac_t""$f" 1>&6
 		break
 	fi
 done
-
-if test "X$XMLDIR" = "X"
+if test "X$XMLDCL" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	XMLDIR=/usr/local/share/xml
+	XMLDCL=xml.dcl
 fi
 
+
+#
+# Look for the docbook2X directory
+#
+
+echo $ac_n "checking for docbook2X""... $ac_c" 1>&6
+echo "configure:5370: checking for docbook2X" >&5
+DOCBOOK2X=""
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
+do
+    	dd=$d/docbook2X
+	if test -f $dd/docbook2man-spec.pl
+	then
+		DOCBOOK2X=$dd
+		echo "$ac_t""$dd" 1>&6
+		break
+	fi
+done
+if test "X$DOCBOOK2X" = "X"
+then
+	echo "$ac_t"""not found"" 1>&6;
+	DOCBOOK2X=.
+fi
 
 
 #
@@ -5566,7 +5602,6 @@ trap 'rm -fr `echo "make/rules
 	bin/dnssec/Makefile
 	doc/Makefile
 	doc/arm/Makefile
-	doc/arm/catalog
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/nominum-docbook-print.dsl
 	doc/arm/validate.sh
@@ -5698,12 +5733,13 @@ s%@ISC_EXTRA_SRCS@%$ISC_EXTRA_SRCS%g
 s%@ISC_PLATFORM_QUADFORMAT@%$ISC_PLATFORM_QUADFORMAT%g
 s%@ISC_PLATFORM_RLIMITTYPE@%$ISC_PLATFORM_RLIMITTYPE%g
 s%@ISC_PLATFORM_BRACEPTHREADONCEINIT@%$ISC_PLATFORM_BRACEPTHREADONCEINIT%g
-s%@JADE@%$JADE%g
+s%@OPENJADE@%$OPENJADE%g
 s%@TEX@%$TEX%g
 s%@PDFTEX@%$PDFTEX%g
-s%@SGMLDIR@%$SGMLDIR%g
-s%@SGMLSTYLEDIR@%$SGMLSTYLEDIR%g
-s%@XMLDIR@%$XMLDIR%g
+s%@SGMLCATALOG@%$SGMLCATALOG%g
+s%@HTMLSTYLE@%$HTMLSTYLE%g
+s%@XMLDCL@%$XMLDCL%g
+s%@DOCBOOK2X@%$DOCBOOK2X%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
 s%@BIND9_ISC_BUILDINCLUDE@%$BIND9_ISC_BUILDINCLUDE%g
 s%@BIND9_ISCCC_BUILDINCLUDE@%$BIND9_ISCCC_BUILDINCLUDE%g
@@ -5832,7 +5868,6 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/dnssec/Makefile
 	doc/Makefile
 	doc/arm/Makefile
-	doc/arm/catalog
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/nominum-docbook-print.dsl
 	doc/arm/validate.sh
