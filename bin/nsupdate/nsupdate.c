@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.17 2004/03/03 22:55:58 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.18 2004/03/03 23:42:42 marka Exp $ */
 
 #include <config.h>
 
@@ -132,6 +132,8 @@ static isc_boolean_t interactive = ISC_TRUE;
 static isc_boolean_t seenerror = ISC_FALSE;
 static const dns_master_style_t *style;
 static int requests = 0;
+static dns_rdataclass_t defaultclass = dns_rdataclass_in;
+static dns_rdataclass_t zoneclass = dns_rdataclass_none;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -154,6 +156,23 @@ ddebug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 #define STATUS_SEND	(isc_uint16_t)1
 #define STATUS_QUIT	(isc_uint16_t)2
 #define STATUS_SYNTAX	(isc_uint16_t)3
+
+static dns_rdataclass_t
+getzoneclass(void) {
+	if (zoneclass == dns_rdataclass_none)
+		zoneclass = defaultclass;
+	return (zoneclass);
+}
+
+static isc_boolean_t
+setzoneclass(dns_rdataclass_t rdclass) {
+	if (zoneclass == dns_rdataclass_none ||
+	    rdclass == dns_rdataclass_none)
+		zoneclass = rdclass;
+	if (zoneclass != rdclass)
+		return (ISC_FALSE);
+	return (ISC_TRUE);
+}
 
 static void
 fatal(const char *format, ...) {
@@ -788,6 +807,10 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 		region.length = strlen(word);
 		result = dns_rdataclass_fromtext(&rdataclass, &region);
 		if (result == ISC_R_SUCCESS) {
+			if (!setzoneclass(rdataclass)) {
+				fprintf(stderr, "class mismatch: %s\n", word);
+				goto failure;
+			}
 			/*
 			 * Now read the type.
 			 */
@@ -804,7 +827,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 				goto failure;
 			}
 		} else {
-			rdataclass = dns_rdataclass_in;
+			rdataclass = getzoneclass();
 			result = dns_rdatatype_fromtext(&rdatatype, &region);
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "invalid type: %s\n", word);
@@ -1068,6 +1091,39 @@ evaluate_zone(char *cmdline) {
 }
 
 static isc_uint16_t
+evaluate_class(char *cmdline) {
+	char *word;
+	isc_textregion_t r;
+	isc_result_t result;
+	dns_rdataclass_t rdclass;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0) {
+		fprintf(stderr, "could not read class name\n");
+		return (STATUS_SYNTAX);
+	}
+
+	r.base = word;
+        r.length = strlen(word);
+        result = dns_rdataclass_fromtext(&rdclass, &r);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "could not parse class name: %s\n", word);
+		return (STATUS_SYNTAX);
+	}
+	switch (rdclass) {
+	case dns_rdataclass_none:
+	case dns_rdataclass_any:
+	case dns_rdataclass_reserved0:
+		fprintf(stderr, "bad default class: %s\n", word);
+		return (STATUS_SYNTAX);
+	default:
+		defaultclass = rdclass;
+	}
+
+	return (STATUS_MORE);
+}
+
+static isc_uint16_t
 update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
 	dns_name_t *name = NULL;
@@ -1156,6 +1212,10 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	region.length = strlen(word);
 	result = dns_rdataclass_fromtext(&rdataclass, &region);
 	if (result == ISC_R_SUCCESS) {
+		if (!setzoneclass(rdataclass)) {
+			fprintf(stderr, "class mismatch: %s\n", word);
+			goto failure;
+		}
 		/*
 		 * Now read the type.
 		 */
@@ -1180,7 +1240,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto failure;
 		}
 	} else {
-		rdataclass = dns_rdataclass_in;
+		rdataclass = getzoneclass();
 		result = dns_rdatatype_fromtext(&rdatatype, &region);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "'%s' is not a valid class or type: "
@@ -1323,6 +1383,8 @@ get_next_command(void) {
 		return (evaluate_local(cmdline));
 	if (strcasecmp(word, "zone") == 0)
 		return (evaluate_zone(cmdline));
+	if (strcasecmp(word, "class") == 0)
+		return (evaluate_class(cmdline));
 	if (strcasecmp(word, "send") == 0)
 		return (STATUS_SEND);
 	if (strcasecmp(word, "show") == 0) {
@@ -1457,8 +1519,7 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 	dns_name_clone(zonename, name);
 	result = dns_message_gettemprdataset(updatemsg, &rdataset);
 	check_result(result, "dns_message_gettemprdataset");
-	dns_rdataset_makequestion(rdataset, dns_rdataclass_in,
-				  dns_rdatatype_soa);
+	dns_rdataset_makequestion(rdataset, getzoneclass(), dns_rdatatype_soa);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_ZONE);
@@ -1532,6 +1593,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		sendrequest(localaddr, &servers[ns_inuse], soaquery, &request);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		isc_event_free(&event);
+		setzoneclass(dns_rdataclass_none);
 		return;
 	}
 	isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
@@ -1689,6 +1751,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_request_destroy(&request);
 
  out:
+	setzoneclass(dns_rdataclass_none);
 	dns_rdata_freestruct(&soa);
 	dns_message_destroy(&rcvmsg);
 	ddebug("Out of recvsoa");
@@ -1733,6 +1796,7 @@ start_update(void) {
 
 	if (userzone != NULL && userserver != NULL) {
 		send_update(userzone, userserver, localaddr);
+		setzoneclass(dns_rdataclass_none);
 		return;
 	}
 
@@ -1748,8 +1812,7 @@ start_update(void) {
 	result = dns_message_gettemprdataset(soaquery, &rdataset);
 	check_result(result, "dns_message_gettemprdataset");
 
-	dns_rdataset_makequestion(rdataset, dns_rdataclass_in,
-				  dns_rdatatype_soa);
+	dns_rdataset_makequestion(rdataset, getzoneclass(), dns_rdatatype_soa);
 
 	firstname = NULL;
 	dns_message_currentname(updatemsg, DNS_SECTION_UPDATE, &firstname);
