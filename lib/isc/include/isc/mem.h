@@ -29,6 +29,9 @@ ISC_LANG_BEGINDECLS
 typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 
+#define ISC_MEM_DEBUG
+extern isc_boolean_t isc_mem_debugging;
+
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	isc__mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	isc__mem_putdebug(c, p, s, __FILE__, __LINE__)
