@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.128 2000/11/14 23:29:44 bwelling Exp $ */
+/* $Id: client.c,v 1.129 2000/11/15 19:15:25 gson Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <dns/message.h>
 #include <dns/opt.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/tsig.h>
@@ -1310,6 +1311,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (view == NULL) {
+		char classname[DNS_RDATACLASS_FORMATSIZE];
+
 		/*
 		 * Do a dummy TSIG verification attempt so that the
 		 * response will have a TSIG if the query did, as
@@ -1322,9 +1325,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_add(&b, r->length);
 		(void)dns_tsig_verify(&b, client->message, NULL, NULL);
 
+		dns_rdataclass_format(client->message->rdclass, classname,
+				      sizeof(classname));
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-			      "no matching view");
+			      "no matching view in class '%s'", classname);
 		ns_client_error(client, DNS_R_REFUSED);
 		goto cleanup_serverlock;
 	}
