@@ -161,6 +161,7 @@ schedule(timer_t timer, os_time_t *new_nextimep) {
 		}
 		manager->nscheduled++;
 	}
+	timer->next_time = *new_nextimep;
 
 	/*
 	 * If this timer is at the head of the queue, we must wake up the
@@ -281,6 +282,10 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	 */
 
 	APPEND(manager->timers, timer, link);
+
+	/* XXX */
+	os_time_add(&now, &timer->interval, &next_time);
+
 	result = schedule(timer, &next_time);
 
 	UNLOCK(&manager->lock);
@@ -433,6 +438,76 @@ timer_detach(timer_t *timerp) {
 	*timerp = NULL;
 }
 
+static void
+dispatch(timer_manager_t manager, os_time_t *nowp) {
+	boolean_t done = FALSE, post_event, need_schedule;
+	task_event_t event;
+	task_eventtype_t type;
+	timer_t timer;
+	os_time_t next_time;
+	isc_result result;
+
+	while (manager->nscheduled > 0 && !done) {
+		timer = heap_element(manager->heap, 1);
+		printf("next_time = %d.%09d\n", timer->next_time.seconds,
+		       timer->next_time.nanoseconds);
+		if (os_time_compare(nowp, &timer->next_time) >= 0) {
+			post_event = FALSE;
+
+			if (timer->type == timer_type_ticker) {
+				type = TIMER_EVENT_TICK;
+				post_event = TRUE;
+				os_time_add(nowp, &timer->interval,
+					    &next_time);
+				need_schedule = TRUE;
+			} else if (os_time_compare(nowp,
+						   &timer->absolute) >= 0) {
+				type = TIMER_EVENT_LIFE;
+				post_event = TRUE;
+				need_schedule = FALSE;
+			} else {
+				/*
+				 * Check if idle too long.
+				 */
+				/* XXX */
+				post_event = FALSE;
+				need_schedule = FALSE;
+			}
+
+			if (post_event) {
+				printf("dispatch to %p\n", timer->task);
+				event = task_event_allocate(manager->mctx,
+							    timer,
+							    type,
+							    timer->action,
+							    timer->arg,
+							    sizeof *event);
+				if (event != NULL)
+					INSIST(task_send_event(timer->task,
+							       &event));
+				else
+					unexpected_error(__FILE__, __LINE__,
+						 "couldn't allocate event");
+			}
+					
+			timer->index = 0;
+			heap_delete(manager->heap, 1);
+			manager->nscheduled--;
+
+			if (need_schedule) {
+				result = schedule(timer, &next_time);
+				if (result != ISC_R_SUCCESS)
+					unexpected_error(__FILE__, __LINE__,
+						"couldn't schedule timer: %s",
+							 result);
+			}
+		} else {
+			manager->next_time = timer->next_time;
+			done = TRUE;
+		}
+	} 
+}
+
 static void *
 run(void *uap) {
 	timer_manager_t manager = uap;
@@ -442,29 +517,19 @@ run(void *uap) {
 
 	LOCK(&manager->lock);
 	while (!manager->done) {
-
 		INSIST(os_time_get(&now) == ISC_R_SUCCESS);
 
 		printf("timer run thread awake\n");
 
+		dispatch(manager, &now);
+
 		if (manager->nscheduled > 0) {
-			/*
-			 * XXX
-			 */
-			/*
 			ts.tv_sec = manager->next_time.seconds;
 			ts.tv_nsec = manager->next_time.nanoseconds;
-			*/
-			ts.tv_sec = now.seconds + 5;
-			ts.tv_nsec = 0;
-
-			timeout = FALSE;
 			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
 				  &timeout);
-		} else {
+		} else
 			WAIT(&manager->wakeup, &manager->lock);
-			timeout = FALSE;
-		}
 	}
 	UNLOCK(&manager->lock);
 
