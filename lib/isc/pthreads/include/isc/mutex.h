@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.16 2000/08/01 01:31:06 tale Exp $ */
+/* $Id: mutex.h,v 1.17 2000/12/29 18:19:52 bwelling Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
 
 #include <pthread.h>
+#include <stdio.h>
 
 #include <isc/result.h>		/* for ISC_R_ codes */
 
@@ -28,12 +29,29 @@ typedef pthread_mutex_t	isc_mutex_t;
 
 /* XXX We could do fancier error handling... */
 
+/*
+ * Define ISC_MUTEX_PROFILE to turn on profiling of mutexes by line.  When
+ * enabled, isc_mutex_stats() can be used to print a table showing the
+ * number of times each type of mutex was locked and the amount of time
+ * waiting to obtain the lock.
+ */
+#ifndef ISC_MUTEX_PROFILE
+#define ISC_MUTEX_PROFILE 0
+#endif
+
 #define isc_mutex_init(mp) \
 	((pthread_mutex_init((mp), NULL) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+
+#if ISC_MUTEX_PROFILE
+#define isc_mutex_lock(mp) \
+	isc_mutex_lockprofile((mp), __FILE__, __LINE__)
+#else
 #define isc_mutex_lock(mp) \
 	((pthread_mutex_lock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#endif
+
 #define isc_mutex_unlock(mp) \
 	((pthread_mutex_unlock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
@@ -43,5 +61,21 @@ typedef pthread_mutex_t	isc_mutex_t;
 #define isc_mutex_destroy(mp) \
 	((pthread_mutex_destroy((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+
+#if ISC_MUTEX_PROFILE
+#define isc_mutex_stats(fp) isc_mutex_statsprofile(fp);
+#else
+#define isc_mutex_stats(fp)
+#endif
+
+#if ISC_MUTEX_PROFILE
+
+isc_result_t
+isc_mutex_lockprofile(isc_mutex_t *mp, const char * _file, int _line);
+
+void
+isc_mutex_statsprofile(FILE *fp);
+
+#endif /* ISC_MUTEX_PROFILE */
 
 #endif /* ISC_MUTEX_H */
