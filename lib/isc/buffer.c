@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.34 2000/08/01 01:29:16 tale Exp $ */
+/* $Id: buffer.c,v 1.35 2000/08/17 02:09:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -347,7 +347,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source) {
 }
 
 isc_result_t
-isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r) {
+isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	unsigned char *base;
 	unsigned int available;
 

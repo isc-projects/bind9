@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.35 2000/08/01 01:30:02 tale Exp $ */
+/* $Id: buffer.h,v 1.36 2000/08/17 02:09:12 bwelling Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -557,7 +557,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source);
  */
 
 isc_result_t
-isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
+isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r);
 /*
  * Copy the contents of 'r' into 'b'.
  *
