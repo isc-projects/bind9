@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.144 2000/10/13 17:53:58 mws Exp $ */
+/* $Id: dighost.c,v 1.145 2000/10/13 22:55:50 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -118,6 +118,7 @@ isc_boolean_t validated = ISC_TRUE;
 isc_entropy_t *entp = NULL;
 isc_mempool_t *commctx = NULL;
 isc_boolean_t debugging = ISC_FALSE;
+isc_boolean_t memdebugging = ISC_FALSE;
 char *progname = NULL;
 isc_mutex_t lookup_lock;
 dig_lookup_t *current_lookup = NULL;
@@ -2711,7 +2712,7 @@ destroy_libs(void) {
 
 	UNLOCK_LOOKUP;
 	DESTROYLOCK(&lookup_lock);
-	if (isc_mem_debugging != 0)
+	if (memdebugging)
 		isc_mem_stats(mctx, stderr);
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
