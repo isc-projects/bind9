@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.1 1999/09/23 17:43:51 tale Exp $ */
+/* $Id: log_test.c,v 1.2 1999/09/23 23:56:35 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <unistd.h>			/* XXX Naughty. */
 #include <isc/mem.h>
 #include <isc/log.h>
 #include <isc/result.h>
