@@ -1,7 +1,7 @@
 1114.	[port]		Ignore more accept() errors. [RT #2021]
 
-1113.	[bug]		allow-update/allow-update-forwarding did not work
-			when specified in a view.  [RT #2014]
+1113.	[bug]		The allow-update-forwarding option was ignored
+			when specified in a view. [RT #2014]
 
 1112.	[placeholder]
 
