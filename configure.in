@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.27 $)
+AC_REVISION($Revision: 1.294.2.28 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -186,6 +186,29 @@ if test "X$CC" = "X" ; then
 fi
 
 AC_PROG_CC
+
+#
+# OS dependent CC flags
+#
+case "$host" in
+	# OSF 5.0: recv/send are only avaliable with -D_POSIX_PII_SOCKET or
+	# -D_XOPEN_SOURCE_EXTENDED.
+	*-dec-osf*)
+		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
+		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
+		;;
+	#HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
+	*-hp-hpux*)
+		STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
+		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
+		LIBS="-lxnet $LIBS"
+		;;
+	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
+	*-solaris*)
+		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
+		CPPFLAGS="$CPPFLAGS -D_XPG4_2 -D__EXTENSIONS__"
+		;;
+esac
 
 AC_HEADER_STDC
 
