@@ -39,13 +39,12 @@
 
 static void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
-	unsigned int byte, shift, mask;
-	
-	byte = array[index / 8];
+	unsigned int shift, mask;
+
 	shift = 7 - (index % 8);
 	mask = 1 << shift;
 
-	if (bit)
+	if (bit != 0)
 		array[index / 8] |= mask;
 	else
 		array[index / 8] &= (~mask & 0xFF);
@@ -54,11 +53,12 @@ set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
 static unsigned int
 bit_isset(unsigned char *array, unsigned int index) {
 	unsigned int byte, shift, mask;
-	
+
 	byte = array[index / 8];
 	shift = 7 - (index % 8);
 	mask = 1 << shift;
-	return ((array[index / 8] & mask) != 0);
+
+	return ((byte & mask) != 0);
 }
 
 isc_result_t
