@@ -60,8 +60,7 @@ TARGETS =	adb_test \
 		task_test \
 		timer_test \
 		wire_test \
-		zone_test \
-		zone2_test
+		zone_test
 
 # Alphabetically
 SRCS =		adb_test.c \
