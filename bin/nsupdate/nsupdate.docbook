@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.8.2.1 2001/11/27 18:57:40 gson Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.8.2.2 2003/03/19 17:48:01 marka Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -222,7 +222,7 @@ Sends all dynamic update requests using the local
 
 When no local statement is provided,
 <command>nsupdate</command>
-will send updates using an address and port choosen by the system.
+will send updates using an address and port chosen by the system.
 <parameter>port</parameter>
 can additionally be used to make requests come from a specific port.
 If no port number is specified, the system will assign one.
