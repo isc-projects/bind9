@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.67.12.3 2003/10/14 03:48:06 marka Exp $ */
+/* $Id: db.h,v 1.67.12.4 2004/03/04 06:56:18 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -144,6 +144,7 @@ typedef struct dns_dbmethods {
 	unsigned int	(*nodecount)(dns_db_t *db);
 	isc_boolean_t	(*ispersistent)(dns_db_t *db);
 	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
+	void		(*settask)(dns_db_t *db, isc_task_t *);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -1187,6 +1188,16 @@ dns_db_nodecount(dns_db_t *db);
  *
  * Returns:
  * 	The number of nodes in the database
+ */
+
+void
+dns_db_settask(dns_db_t *db, isc_task_t *task);
+/*
+ * If task is set then the final detach maybe performed asynchronously.
+ *
+ * Requires:
+ *	'db' is a valid database.
+ *	'task' to be valid or NULL.
  */
 
 isc_boolean_t
