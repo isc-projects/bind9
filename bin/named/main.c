@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.2 2003/08/02 00:15:10 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.3 2003/08/04 00:53:02 marka Exp $ */
 
 #include <config.h>
 
@@ -135,7 +135,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "exiting (due to assertion failure)");
 	} else {
-		fprintf(stderr, "%s:%d: %s(%s) failed\n",
+	fprintf(stderr, "%s:%d: %s(%s) failed\n",
 			file, line, isc_assertion_typetotext(type), cond);
 		fflush(stderr);
 	}
@@ -610,6 +610,18 @@ main(int argc, char *argv[]) {
 	isccc_result_register();
 
 	parse_command_line(argc, argv);
+
+	/*
+	 * Warn about common configuration error.
+	 */
+	if (ns_g_chrootdir != NULL) {
+		int len = strlen(ns_g_chrootdir);
+		if (strncmp(ns_g_chrootdir, ns_g_conffile, len) == 0 &&
+		    (ns_g_conffile[len] == '/' || ns_g_conffile[len] == '\\'))
+			ns_main_earlywarning("config filename (-c %s) contains "
+					     "chroot path (-t %s)",
+					     ns_g_conffile, ns_g_chrootdir);
+	}
 
 	setup();
 
