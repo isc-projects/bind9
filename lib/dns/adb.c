@@ -389,7 +389,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			isc_sockaddr_fromin(&sockaddr, &ina, 53);
 		} else {
 			INSIST(rdata.length == 16);
-			memcpy(&in6a.s6_addr, rdata.data, 16);
+			memcpy(in6a.s6_addr, rdata.data, 16);
 			isc_sockaddr_fromin6(&sockaddr, &in6a, 53);
 		}
 
