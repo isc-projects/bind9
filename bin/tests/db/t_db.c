@@ -791,7 +791,7 @@ t_dns_db_currentversion(char **av) {
 	}
 
 	/* delete the found rdataset in the new version */
-	dns_result = dns_db_deleterdataset(db, nodep, nversionp, rdatatype);
+	dns_result = dns_db_deleterdataset(db, nodep, nversionp, rdatatype, 0);
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("dns_db_deleterdataset failed %s\n",
 				dns_result_totext(dns_result));
@@ -1286,7 +1286,7 @@ t_dns_db_closeversion_1(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = dns_db_deleterdataset(db, nodep, nversionp, existing_rdatatype);
+	dns_result = dns_db_deleterdataset(db, nodep, nversionp, existing_rdatatype, 0);
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("dns_db_deleterdataset failed %s\n",
 				dns_result_totext(dns_result));
@@ -1644,7 +1644,7 @@ t_dns_db_closeversion_2(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = dns_db_deleterdataset(db, nodep, nversionp, existing_rdatatype);
+	dns_result = dns_db_deleterdataset(db, nodep, nversionp, existing_rdatatype, 0);
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("dns_db_deleterdataset failed %s\n",
 				dns_result_totext(dns_result));

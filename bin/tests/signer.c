@@ -661,7 +661,7 @@ active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 		 * Make sure there is no NXT record for this node.
 		 */
 		result = dns_db_deleterdataset(db, node, version,
-					       dns_rdatatype_nxt);
+					       dns_rdatatype_nxt, 0);
 		if (result == DNS_R_UNCHANGED)
 			result = ISC_R_SUCCESS;
 		check_result(result, "dns_db_deleterdataset");

@@ -863,7 +863,8 @@ main(int argc, char *argv[]) {
 					dns_db_printnode(db, node, stdout);
 			} else if (dbi != NULL && delmode && !found_as) {
 				result = dns_db_deleterdataset(db, node,
-							       version, type);
+							       version, type,
+							       0);
 				if (result != DNS_R_SUCCESS)
 					print_result("", result);
 				if (printnode)
