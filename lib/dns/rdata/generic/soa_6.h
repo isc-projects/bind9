@@ -15,12 +15,15 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.16 1999/05/07 03:24:12 marka Exp $ */
+ /* $Id: soa_6.h,v 1.17 1999/09/02 06:40:14 marka Exp $ */
+
+#include <dns/name.h>
 
 typedef struct dns_rdata_soa {
 	dns_rdatacommon_t	common;
-	dns_fixedname_t		origin;
-	dns_fixedname_t		mname;
+	isc_mem_t		*mctx;
+	dns_name_t		origin;
+	dns_name_t		mname;
 	isc_uint32_t		serial;		/* host order */
 	isc_uint32_t		refresh;	/* host order */
 	isc_uint32_t		retry;		/* host order */

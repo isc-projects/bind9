@@ -15,7 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.h,v 1.8 1999/05/07 03:24:14 marka Exp $ */
+ /* $Id: aaaa_28.h,v 1.9 1999/09/02 06:40:15 marka Exp $ */
 
  /* RFC 1886 */
+
+typedef struct dns_rdata_in_aaaa {
+	dns_rdatacommon_t	common;
+	struct in6_addr		in6_addr; 
+} dns_rdata_in_aaaa_t;
 

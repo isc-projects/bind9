@@ -15,12 +15,13 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.h,v 1.13 1999/07/05 00:32:37 marka Exp $ */
+ /* $Id: ns_2.h,v 1.14 1999/09/02 06:40:14 marka Exp $ */
 
 #include <dns/fixedname.h>
 
 typedef struct dns_rdata_ns {
 	dns_rdatacommon_t	common;
-	dns_fixedname_t		name;
+	isc_mem_t		*mctx;
+	dns_name_t		name;
 } dns_rdata_ns_t;
 

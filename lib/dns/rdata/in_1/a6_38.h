@@ -15,7 +15,15 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.h,v 1.9 1999/05/07 03:24:13 marka Exp $ */
+ /* $Id: a6_38.h,v 1.10 1999/09/02 06:40:14 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
+
+typedef struct dns_rdata_in_a6 {
+        dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	dns_name_t		prefix;
+	isc_uint32_t		prefixlen;
+	struct in6_addr		in6_addr;
+} dns_rdata_in_a6_t;
 

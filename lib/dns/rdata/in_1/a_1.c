@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.19 1999/08/31 22:03:59 halley Exp $ */
+ /* $Id: a_1.c,v 1.20 1999/09/02 06:40:14 marka Exp $ */
 
 #ifndef RDATA_IN_1_A_1_C
 #define RDATA_IN_1_A_1_C
@@ -149,14 +149,24 @@ fromstruct_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline dns_result_t
 tostruct_in_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_in_a_t *a = target;
+	isc_uint32_t n;
+	isc_region_t region;
 
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
 
-	target = target;
-	mctx = mctx;
+	mctx = mctx;	/* unused */
 
-	return (DNS_R_NOTIMPLEMENTED);
+	a->common.rdclass = rdata->rdclass;
+	a->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&a->common, link);
+
+	dns_rdata_toregion(rdata, &region);
+	n = uint32_fromregion(&region);
+	a->in_addr.s_addr = htonl(n);
+
+	return (DNS_R_SUCCESS);
 }
 
 static inline void

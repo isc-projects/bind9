@@ -3,6 +3,7 @@
 #define DNS_RDATASTRUCT_H 1
 
 #include <isc/lang.h>
+#include <isc/sockaddr.h>
 
 ISC_LANG_BEGINDECLS
 

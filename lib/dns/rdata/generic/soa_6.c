@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.22 1999/08/31 22:05:55 halley Exp $ */
+ /* $Id: soa_6.c,v 1.23 1999/09/02 06:40:14 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
@@ -264,25 +264,34 @@ static inline dns_result_t
 tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 	dns_rdata_soa_t *soa = target;
+	dns_name_t name;
+	dns_result_t result;
 	
 	REQUIRE(rdata->type == 6);
 	REQUIRE(target != NULL);
-
-	mctx = mctx;	/*unused*/
 
 	soa->common.rdclass = rdata->rdclass;
 	soa->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&soa->common, link);
 
+	soa->mctx = mctx;
+
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
-	dns_fixedname_init(&soa->origin);
-	dns_name_fromregion(dns_fixedname_name(&soa->origin), &region);
-	isc_region_consume(&region,
-			   name_length(dns_fixedname_name(&soa->origin)));
-	dns_fixedname_init(&soa->mname);
-	dns_name_fromregion(dns_fixedname_name(&soa->mname), &region);
-	isc_region_consume(&region,
-			   name_length(dns_fixedname_name(&soa->mname)));
+	dns_name_fromregion(&name, &region);
+	isc_region_consume(&region, name_length(&name));
+	dns_name_init(&soa->origin, NULL);
+	result = dns_name_dup(&name, soa->mctx, &soa->origin);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	dns_name_fromregion(&name, &region);
+	isc_region_consume(&region, name_length(&name));
+	dns_name_init(&soa->mname, NULL);
+	result = dns_name_dup(&name, soa->mctx, &soa->mname);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
 	soa->serial = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
 	soa->refresh = uint32_fromregion(&region);
@@ -302,6 +311,9 @@ freestruct_soa(void *source) {
 
 	REQUIRE(source != NULL);
 	REQUIRE(soa->common.rdtype == 6);
+	dns_name_free(&soa->origin, soa->mctx);
+	dns_name_free(&soa->mname, soa->mctx);
+	soa->mctx = NULL;
 	/* No action required */
 }
 

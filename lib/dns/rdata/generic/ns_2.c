@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.17 1999/08/31 22:05:54 halley Exp $ */
+ /* $Id: ns_2.c,v 1.18 1999/09/02 06:40:14 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C
@@ -145,27 +145,34 @@ static inline dns_result_t
 tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 	dns_rdata_ns_t *ns = target;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == 2);
 	REQUIRE(target != NULL);
-
-	mctx = mctx;	/*unused*/
+	REQUIRE(mctx != NULL);
 
 	ns->common.rdclass = rdata->rdclass;
 	ns->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&ns->common, link);
 
+	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
-	dns_fixedname_init(&ns->name);
-	dns_name_fromregion(dns_fixedname_name(&ns->name), &region);
+	dns_name_fromregion(&name, &region);
+	ns->mctx = mctx;
+	dns_name_init(&ns->name, NULL);
+	dns_name_dup(&name, ns->mctx, &ns->name);
 
 	return (DNS_R_SUCCESS);
 }
 
 static inline void
 freestruct_ns(void *source) {
+	dns_rdata_ns_t *ns = source;
+
 	REQUIRE(source != NULL);
-	/* No action required. */
+
+	dns_name_free(&ns->name, ns->mctx);
+	ns->mctx = NULL;
 }
 
 static inline dns_result_t
