@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.15 2000/03/23 00:53:44 gson Exp $ */
+/* $Id: log.c,v 1.16 2000/04/11 18:17:35 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -35,7 +35,7 @@ isc_logcategory_t dns_categories[] = {
 	{ "database", 	0 },
 	{ "security", 	0 },
 	{ "config",	0 },
-	{ "",		0 },
+	{ "dnssec",	0 },
 	{ "resolver",	0 },
 	{ "xfer-in",	0 },
 	{ "xfer-out",	0 },
@@ -48,9 +48,9 @@ isc_logcategory_t dns_categories[] = {
  */
 isc_logmodule_t dns_modules[] = {
 	{ "dns/db",	 	0 },
-	{ "dns/rbtdb", 		0 }, 
-	{ "dns/rbtdb64", 	0 }, 
-	{ "dns/rbt", 		0 }, 
+	{ "dns/rbtdb", 		0 },
+	{ "dns/rbtdb64", 	0 },
+	{ "dns/rbt", 		0 },
 	{ "dns/rdata", 		0 },
 	{ "dns/master", 	0 },
 	{ "dns/message", 	0 },
@@ -62,7 +62,8 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/adb",		0 },
 	{ "dns/xfrin",		0 },
 	{ "dns/xfrout",		0 },
-	{ "dns/acl",		0 },	
+	{ "dns/acl",		0 },
+	{ "dns/validator",	0 },
 	{ NULL, 		0 }
 };
 

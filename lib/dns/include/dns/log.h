@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.13 2000/03/23 00:53:45 gson Exp $ */
+/* $Id: log.h,v 1.14 2000/04/11 18:17:35 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -36,10 +36,11 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGCATEGORY_DATABASE	(&dns_categories[1])
 #define DNS_LOGCATEGORY_SECURITY	(&dns_categories[2])
 #define DNS_LOGCATEGORY_CONFIG		(&dns_categories[3])
-/* Unused slot */
+#define DNS_LOGCATEGORY_DNSSEC		(&dns_categories[4])
 #define DNS_LOGCATEGORY_RESOLVER	(&dns_categories[5])
 #define DNS_LOGCATEGORY_XFER_IN		(&dns_categories[6])
 #define DNS_LOGCATEGORY_XFER_OUT	(&dns_categories[7])
+
 
 /* Backwards compatibility. */
 #define DNS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL
@@ -60,7 +61,7 @@ extern isc_logmodule_t dns_modules[];
 #define DNS_LOGMODULE_XFER_IN		(&dns_modules[13])
 #define DNS_LOGMODULE_XFER_OUT		(&dns_modules[14])
 #define DNS_LOGMODULE_ACL		(&dns_modules[15])
-
+#define DNS_LOGMODULE_VALIDATOR		(&dns_modules[16])
 void
 dns_log_init(isc_log_t *lctx);
 /*
