@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.73 $)
+AC_REVISION($Revision: 1.74 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1300,8 +1300,6 @@ AC_SUBST(ISC_PLATFORM_QUADFORMAT)
 # Security Stuff
 #
 AC_CHECK_FUNC(chroot, AC_DEFINE(HAVE_CHROOT))
-AC_CHECK_HEADERS(linux/capability.h)
-AC_CHECK_HEADERS(sys/prctl.h)
 
 #
 # for accept, recvfrom, getpeername etc.
