@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.18 2005/04/05 01:13:43 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.19 2005/04/05 01:29:31 marka Exp $ */
 
 #include <config.h>
 
@@ -566,7 +566,7 @@ setup(void) {
 	else
 		ns_smf_got_instance = 0;
 	if (instance != NULL)
-		free(instance);
+		isc_mem_free(instance);
 #endif /* HAVE_LIBSCF */
 
 #ifdef PATH_RANDOMDEV
