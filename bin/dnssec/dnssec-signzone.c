@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.3 2004/08/11 08:55:13 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.4 2004/08/20 00:45:54 marka Exp $ */
 
 #include <config.h>
 
@@ -341,7 +341,7 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
  * be generated.
  */
 static void
-signset(dns_diff_t *diff, dns_dbnode_t *node, dns_name_t *name,
+signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	dns_rdataset_t *set)
 {
 	dns_rdataset_t sigset;
@@ -467,13 +467,31 @@ signset(dns_diff_t *diff, dns_dbnode_t *node, dns_name_t *name,
 		if (keep) {
 			nowsignedby[key->position] = ISC_TRUE;
 			INCSTAT(nretained);
+			if (sigset.ttl != ttl) {
+				vbprintf(2, "\tfixing ttl %s\n", sigstr);
+				tuple = NULL;
+				result = dns_difftuple_create(mctx,
+							      DNS_DIFFOP_DEL,
+							      name, sigset.ttl,
+							      &sigrdata,
+							      &tuple);
+				check_result(result, "dns_difftuple_create");
+				dns_diff_append(del, &tuple);
+				result = dns_difftuple_create(mctx,
+							      DNS_DIFFOP_ADD,
+							      name, ttl,
+							      &sigrdata,
+							      &tuple);
+				check_result(result, "dns_difftuple_create");
+				dns_diff_append(add, &tuple);
+			}
 		} else {
 			tuple = NULL;
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL,
 						      name, sigset.ttl,
 						      &sigrdata, &tuple);
 			check_result(result, "dns_difftuple_create");
-			dns_diff_append(diff, &tuple);
+			dns_diff_append(del, &tuple);
 			INCSTAT(ndropped);
 		}
 
@@ -482,6 +500,8 @@ signset(dns_diff_t *diff, dns_dbnode_t *node, dns_name_t *name,
 			dns_rdata_t trdata = DNS_RDATA_INIT;
 			unsigned char array[BUFSIZE];
 			char keystr[KEY_FORMATSIZE];
+
+			INSIST(!keep);
 
 			key_format(key->key, keystr, sizeof(keystr));
 			vbprintf(1, "\tresigning with dnskey %s\n", keystr);
@@ -493,7 +513,7 @@ signset(dns_diff_t *diff, dns_dbnode_t *node, dns_name_t *name,
 						      name, ttl, &trdata,
 						      &tuple);
 			check_result(result, "dns_difftuple_create");
-			dns_diff_append(diff, &tuple);
+			dns_diff_append(add, &tuple);
 		}
 
 		dns_rdata_reset(&sigrdata);
@@ -536,7 +556,7 @@ signset(dns_diff_t *diff, dns_dbnode_t *node, dns_name_t *name,
 		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD, name,
 					      ttl, &trdata, &tuple);
 		check_result(result, "dns_difftuple_create");
-		dns_diff_append(diff, &tuple);
+		dns_diff_append(add, &tuple);
 	}
 
 	isc_mem_put(mctx, wassignedby, arraysize * sizeof(isc_boolean_t));
@@ -767,7 +787,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	isc_boolean_t hasds = ISC_FALSE;
 	isc_boolean_t atorigin;
 	isc_boolean_t changed = ISC_FALSE;
-	dns_diff_t diff;
+	dns_diff_t del, add;
 	char namestr[DNS_NAME_FORMATSIZE];
 	isc_uint32_t nsttl = 0;
 
@@ -852,7 +872,8 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	/*
 	 * Now iterate through the rdatasets.
 	 */
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(mctx, &del);
+	dns_diff_init(mctx, &add);
 	rdsiter = NULL;
 	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
@@ -880,7 +901,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 			      namebuf);
 		}
 
-		signset(&diff, node, name, &rdataset);
+		signset(&del, &add, node, name, &rdataset);
 
  skip:
 		dns_rdataset_disassociate(&rdataset);
@@ -892,12 +913,18 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 
 	dns_rdatasetiter_destroy(&rdsiter);
 
-	result = dns_diff_applysilently(&diff, gdb, gversion);
+	result = dns_diff_applysilently(&del, gdb, gversion);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to delete SIGs at node '%s': %s",
+		      namestr, isc_result_totext(result));
+
+	result = dns_diff_applysilently(&add, gdb, gversion);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to add SIGs at node '%s': %s",
 		      namestr, isc_result_totext(result));
 
-	dns_diff_clear(&diff);
+	dns_diff_clear(&del);
+	dns_diff_clear(&add);
 }
 
 static inline isc_boolean_t
