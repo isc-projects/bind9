@@ -36,7 +36,6 @@
 #include <dns/fixedname.h>
 #include <dns/rdataset.h>
 #include <dns/callbacks.h>
-#include <dns/confctx.h> 
 
 typedef enum {
 	dns_zone_none,
@@ -524,7 +523,7 @@ void dns_zone_clearxfracl(dns_zone_t *zone);
  *	'zone' to be initalised.
  */
 
-void dns_zone_setchecknames(dns_zone_t *zone, dns_c_severity_t severity);
+void dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);
 /*
  * 	Set the severity of name checking when loading a zone.
  *
@@ -532,7 +531,7 @@ void dns_zone_setchecknames(dns_zone_t *zone, dns_c_severity_t severity);
  *      'zone' to be initalised.
  */
 
-dns_c_severity_t dns_zone_getchecknames(dns_zone_t *zone);
+dns_severity_t dns_zone_getchecknames(dns_zone_t *zone);
 /*
  *	Return the current severity of name checking.
  *
@@ -804,6 +803,12 @@ dns_zonemgr_lockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type);
 
 void
 dns_zonemgr_unlockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type);
+
+void
+dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, int value);
+
+int
+dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr);
 
 ISC_LANG_ENDDECLS
 

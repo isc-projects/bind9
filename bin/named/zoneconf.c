@@ -81,13 +81,15 @@ dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
 }
 
 isc_result_t
-dns_zone_configure(dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
+dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		   dns_c_zone_t *czone, dns_zone_t *zone)
 {
 	isc_result_t result;
 	isc_boolean_t boolean;
 	const char *filename = NULL;
+#ifdef notyet
 	dns_c_severity_t severity;
+#endif
 	dns_c_iplist_t *iplist = NULL;
 	isc_uint32_t i;
 	isc_sockaddr_t sockaddr;
@@ -114,35 +116,35 @@ dns_zone_configure(dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 		result = dns_zone_setdatabase(zone, filename);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-
+#ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
 		if (result == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_fail);
-
-		result = configure_zone_acl(czone, ctx, ac, zone,
+#endif
+		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowupd,
 					    dns_zone_setupdateacl,
 					    dns_zone_clearupdateacl);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 
-		result = configure_zone_acl(czone, ctx, ac, zone,
+		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 
-		result = configure_zone_acl(czone, ctx, ac, zone,
+		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 
-		result = configure_zone_acl(czone, ctx, ac, zone,
+		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowtransfer,
 					    dns_zone_setxfracl,
 					    dns_zone_clearxfracl);
@@ -206,14 +208,14 @@ dns_zone_configure(dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 		result = dns_zone_setdatabase(zone, filename);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-
+#ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
 		if (result == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_warn);
-
-		result = configure_zone_acl(czone, ctx, ac, zone,
+#endif
+		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
@@ -277,14 +279,14 @@ dns_zone_configure(dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 		result = dns_zone_setdatabase(zone, filename);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-
+#ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
 		if (result == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_warn);
-
-		result = configure_zone_acl(czone, ctx, ac, zone,
+#endif
+		result = configure_zone_acl(czone, cctx, ac, zone,
 					    dns_c_zone_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
@@ -335,13 +337,13 @@ dns_zone_configure(dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 		result = dns_zone_setdatabase(zone, filename);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-
+#ifdef notyet
 		result = dns_c_zone_getchecknames(czone, &severity);
 		if (result == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_fail);
-
+#endif
 		break;
 
 	}
@@ -370,3 +372,17 @@ dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone)
 	return (ISC_TRUE);
 }
 	
+isc_result_t
+dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr)
+{
+	isc_int32_t val;
+	isc_result_t result;
+	
+	result = dns_c_ctx_gettransfersin(cctx, &val);
+	if (result != DNS_R_SUCCESS)
+		val = 10;
+	dns_zonemgr_settransfersin(zmgr, val);
+
+	return (ISC_R_SUCCESS);
+}
+

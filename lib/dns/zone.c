@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.67 2000/01/27 01:35:17 gson Exp $ */
+ /* $Id: zone.c,v 1.68 2000/01/27 19:44:18 gson Exp $ */
 
 #include <config.h>
 
@@ -25,13 +25,13 @@
 #include <isc/error.h>
 #include <isc/magic.h>
 #include <isc/print.h>
+#include <isc/quota.h>
 #include <isc/serial.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
-#include <dns/confparser.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dispatch.h>
@@ -146,7 +146,7 @@ struct dns_zone {
 	dns_acl_t		*update_acl;
 	dns_acl_t		*query_acl;
 	dns_acl_t		*xfr_acl;
-	dns_c_severity_t	check_names;
+	dns_severity_t		check_names;
 	ISC_LIST(dns_zone_checkservers_t)	checkservers;
 	dns_fetch_t		*fetch;
 	dns_resolver_t		*res;
@@ -187,6 +187,8 @@ struct dns_zonemgr {
 	isc_rwlock_t		conflock;
 	/* Locked by rwlock. */
 	ISC_LIST(dns_zone_t)	zones;
+	/* Maximum locked by conflock. */
+	isc_quota_t		transfersin;
 };
 
 static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
@@ -304,7 +306,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->update_acl = NULL;
 	zone->query_acl = NULL;
 	zone->xfr_acl = NULL;
-	zone->check_names = dns_c_severity_ignore;
+	zone->check_names = dns_severity_ignore;
 	zone->fetch = NULL;
 	zone->res = NULL;
 	zone->socketmgr = NULL;
@@ -367,7 +369,7 @@ zone_free(dns_zone_t *zone) {
 	dns_zone_clearmasters(zone);
 	zone->masterport = 0;
 	dns_zone_clearnotify(zone);
-	zone->check_names = dns_c_severity_ignore;
+	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
 	if (zone->query_acl != NULL)
@@ -2520,14 +2522,14 @@ dns_zone_clearxfracl(dns_zone_t *zone) {
 }
 
 void
-dns_zone_setchecknames(dns_zone_t *zone, dns_c_severity_t severity) {
+dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	zone->check_names = severity;
 }
 
-dns_c_severity_t
+dns_severity_t
 dns_zone_getchecknames(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -2991,11 +2993,20 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto free_rwlock;
 	}
 
+	result = isc_quota_init(&zmgr->transfersin, 10);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_quota_init() failed: %s",
+				 isc_result_totext(result));
+		result = DNS_R_UNEXPECTED;
+		goto free_conflock;
+	}
+
 	/* Create the zone task pool. */
 	result = isc_taskpool_create(taskmgr, mctx, 
 				     8 /* XXX */, 0, &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
-		goto free_conflock;
+		goto free_transfersin;
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, mctx, 1, &zmgr->task);
@@ -3008,6 +3019,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
  free_taskpool:
 	isc_taskpool_destroy(&zmgr->zonetasks);	
+ free_transfersin:
+	isc_quota_destroy(&zmgr->transfersin);
  free_conflock:
 	isc_rwlock_destroy(&zmgr->conflock);
  free_rwlock:
@@ -3132,3 +3145,14 @@ void
 dns_zonemgr_unlockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type) {
 	RWUNLOCK(&zmgr->conflock, type);
 }
+
+void
+dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, int value) {
+	zmgr->transfersin.max = value;
+}
+
+int
+dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr) {
+	return (zmgr->transfersin.max);
+}
+
