@@ -1,3 +1,6 @@
+1645.	[bug]		named could trigger a REQUIRE failure if multiple
+			masters with keys are specified.
+
 1644.	[placeholder]	rt11436
 
 1643.	[bug]		dns_db_closeversion() could leak memory / node

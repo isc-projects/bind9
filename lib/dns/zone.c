@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.414 2004/04/29 01:44:44 marka Exp $ */
+/* $Id: zone.c,v 1.415 2004/05/28 23:53:46 marka Exp $ */
 
 #include <config.h>
 
@@ -3990,6 +3990,8 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	return;
 
  skip_master:
+	if (key != NULL)
+		dns_tsigkey_detach(&key);
 	zone->curmaster++;
 	if (zone->curmaster < zone->masterscnt)
 		goto again;
