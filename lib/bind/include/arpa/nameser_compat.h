@@ -32,7 +32,7 @@
 
 /*
  *      from nameser.h	8.1 (Berkeley) 6/2/93
- *	$Id: nameser_compat.h,v 1.4 2003/06/03 04:39:29 marka Exp $
+ *	$Id: nameser_compat.h,v 1.5 2004/03/09 06:29:54 marka Exp $
  */
 
 #ifndef _ARPA_NAMESER_COMPAT_
@@ -44,7 +44,7 @@
 #if (BSD >= 199103)
 # include <machine/endian.h>
 #else
-#ifdef linux
+#ifdef __linux
 # include <endian.h>
 #else
 #define	LITTLE_ENDIAN	1234	/* least-significant byte first (vax, pc) */
@@ -70,7 +70,7 @@
      (defined(__68k__) || defined(__sparc__) || defined(__powerpc__)))
 #define BYTE_ORDER	BIG_ENDIAN
 #endif
-#endif /* linux */
+#endif /* __linux */
 #endif /* BSD */
 #endif /* BYTE_ORDER */
 

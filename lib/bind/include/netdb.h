@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.13 2003/06/03 04:39:28 marka Exp $
+ *	$Id: netdb.h,v 1.14 2004/03/09 06:29:53 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -118,10 +118,14 @@
 #define	_PATH_SERVICES	"/etc/services"
 #endif
 
+#if (__GLIBC__ > 2 || __GLIBC__ == 2 &&  __GLIBC_MINOR__ >= 3)
+#define __h_errno __h_errno_location
+#endif
 __BEGIN_DECLS
 extern int * __h_errno __P((void));
 __END_DECLS
-#ifdef _REENTRANT
+#if defined(_REENTRANT) || \
+    (__GLIBC__ > 2 || __GLIBC__ == 2 &&  __GLIBC_MINOR__ >= 3)
 #define	h_errno (*__h_errno())
 #else
 extern int h_errno;
@@ -170,9 +174,21 @@ struct	addrinfo {
 	int		ai_family;	/* PF_xxx */
 	int		ai_socktype;	/* SOCK_xxx */
 	int		ai_protocol;	/* 0 or IPPROTO_xxx for IPv4 and IPv6 */
+#if defined(sun) && defined(_SOCKLEN_T)
+#ifdef __sparc9
+	int		_ai_pad;
+#endif
+	socklen_t	ai_addrlen;
+#else
 	size_t		ai_addrlen;	/* length of ai_addr */
+#endif
+#ifdef __linux
+	struct sockaddr	*ai_addr; 	/* binary address */
+	char		*ai_canonname;	/* canonical name for hostname */
+#else
 	char		*ai_canonname;	/* canonical name for hostname */
 	struct sockaddr	*ai_addr; 	/* binary address */
+#endif
 	struct addrinfo	*ai_next; 	/* next structure in linked list */
 };
 
@@ -394,7 +410,7 @@ int		endhostent_r __P((struct hostent_data *));
 void		endhostent_r __P((struct hostent_data *));
 #endif
 
-#if defined(__hpux) || defined(__osf__)
+#ifdef __hpux
 int		getnetbyaddr_r __P((int, int,
 				struct netent *, struct netent_data *));
 #else
@@ -436,68 +452,35 @@ void		endservent_r __P((struct servent_data *));
 #endif
 #else
  /* defined(sun) || defined(bsdi) */
-#ifdef __GLIBC__
-int gethostbyaddr_r __P((const char *, int, int, struct hostent *,
-		         char *, size_t, struct hostent **, int *));
-int gethostbyname_r __P((const char *, struct hostent *,
-		        char *, size_t, struct hostent **, int *));
-int gethostent_r __P((struct hostent *, char *, size_t,
-			 struct hostent **, int *));
-#else
 struct hostent	*gethostbyaddr_r __P((const char *, int, int, struct hostent *,
 					char *, int, int *));
 struct hostent	*gethostbyname_r __P((const char *, struct hostent *,
 					char *, int, int *));
 struct hostent	*gethostent_r __P((struct hostent *, char *, int, int *));
-#endif
 void		sethostent_r __P((int));
 void		endhostent_r __P((void));
 
-#ifdef __GLIBC__
-int getnetbyname_r __P((const char *, struct netent *,
-			char *, size_t, struct netent **, int*));
-int getnetbyaddr_r __P((unsigned long int, int, struct netent *,
-			char *, size_t, struct netent **, int*));
-int getnetent_r __P((struct netent *, char *, size_t, struct netent **, int*));
-#else
 struct netent	*getnetbyname_r __P((const char *, struct netent *,
 					char *, int));
 struct netent	*getnetbyaddr_r __P((long, int, struct netent *,
 					char *, int));
 struct netent	*getnetent_r __P((struct netent *, char *, int));
-#endif
 void		setnetent_r __P((int));
 void		endnetent_r __P((void));
 
-#ifdef __GLIBC__
-int getprotobyname_r __P((const char *, struct protoent *, char *,
-			  size_t, struct protoent **));
-int getprotobynumber_r __P((int, struct protoent *, char *, size_t,
-			    struct protoent **));
-int getprotoent_r __P((struct protoent *, char *, size_t, struct protoent **));
-#else
 struct protoent	*getprotobyname_r __P((const char *,
 				struct protoent *, char *, int));
 struct protoent	*getprotobynumber_r __P((int,
 				struct protoent *, char *, int));
 struct protoent	*getprotoent_r __P((struct protoent *, char *, int));
-#endif
 void		setprotoent_r __P((int));
 void		endprotoent_r __P((void));
 
-#ifdef __GLIBC__
-int getservbyname_r __P((const char *name, const char *,
-			 struct servent *, char *, size_t, struct servent **));
-int getservbyport_r __P((int port, const char *,
-			 struct servent *, char *, size_t, struct servent **));
-int getservent_r __P((struct servent *, char *, size_t, struct servent **));
-#else
 struct servent	*getservbyname_r __P((const char *name, const char *,
 					struct servent *, char *, int));
 struct servent	*getservbyport_r __P((int port, const char *,
 					struct servent *, char *, int));
 struct servent	*getservent_r __P((struct servent *, char *, int));
-#endif
 void		setservent_r __P((int));
 void		endservent_r __P((void));
 
