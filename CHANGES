@@ -35,10 +35,10 @@
  368.	[func]		Restructure the internal ".bind" view so that more
 			zones can be added to it.
 
- 367.   [bug]		Allow proper selection of server on nslookup command
+ 367.	[bug]		Allow proper selection of server on nslookup command
 			line.
 
- 366.   [func]          Allow use of '-' batch file in dig for stdin.
+ 366.	[func]		Allow use of '-' batch file in dig for stdin.
 
  365.	[bug]		nsupdate -k leaked memory.
 
