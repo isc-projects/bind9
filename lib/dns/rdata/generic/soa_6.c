@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.18 1999/06/08 10:35:19 gson Exp $ */
+ /* $Id: soa_6.c,v 1.19 1999/07/03 20:58:13 halley Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
@@ -296,7 +296,7 @@ tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_SUCCESS);
 }
 
-void
+static void
 freestruct_soa(void *source) {
 	dns_rdata_soa_t *soa = source;
 
