@@ -2811,7 +2811,7 @@ dns_rbtdb_create
 
 	*dbp = (dns_db_t *)rbtdb;
 
-	return (ISC_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 
