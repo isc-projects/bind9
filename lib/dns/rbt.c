@@ -93,7 +93,11 @@ struct node_chain {
  * the full height of a single level of 16,777,216 nodes, more than double
  * the current size of .com.
  */
+#ifndef ISC_MEM_DEBUG
 #define ANCESTOR_BLOCK 24
+#else
+#define ANCESTOR_BLOCK 1	/* To give the reallocation code a workout. */
+#endif
 
 #ifdef DEBUG
 #define inline
@@ -110,7 +114,6 @@ Name(dns_rbtnode_t *node) {
 
 	return(r);
 }
-#else
 #endif
 
 /*
@@ -135,8 +138,9 @@ static inline void rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent,
 static inline void rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent,
 				dns_rbtnode_t **rootp);
 
-static dns_result_t dns_rbt_addonlevel(dns_rbtnode_t *node,
-				     dns_rbtnode_t **rootp);
+static dns_result_t dns_rbt_addonlevel(isc_mem_t *mctx,
+				       dns_rbtnode_t *node,
+				       dns_rbtnode_t **rootp);
 static void dns_rbt_deletefromlevel(dns_rbt_t *rbt,
 				    dns_rbtnode_t *delete,
 				    node_chain_t *chain);
@@ -435,7 +439,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	result = create_node(rbt->mctx, &add_name, &new_node);
 
 	if (result == DNS_R_SUCCESS)
-		result = dns_rbt_addonlevel(new_node, root);
+		result = dns_rbt_addonlevel(rbt->mctx, new_node, root);
 
 	if (result == DNS_R_SUCCESS)
 		*nodep = new_node;
@@ -942,9 +946,10 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) 
  * true red/black tree on a single level.
  */
 static dns_result_t
-dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
-	dns_rbtnode_t *current, *child, *root, *tmp;
-	dns_rbtnode_t *ancestors[64], *parent, *grandparent; /* @@@ dynamic 64 */
+dns_rbt_addonlevel(isc_mem_t *mctx, dns_rbtnode_t *node,
+		   		    dns_rbtnode_t **rootp) {
+	dns_rbtnode_t *current, *child, *root, *tmp, *parent, *grandparent;
+	node_chain_t chain;
 	dns_name_t add_name, current_name;
 	dns_offsets_t offsets;
 	int i;
@@ -962,7 +967,9 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 
 	current = NULL;
 	child = root;
-	depth = 0;
+
+	chain.ancestor_maxitems = 0;
+	chain.ancestor_count = 0;
 
 	dns_name_init(&add_name, offsets);
 	dns_rbt_namefromnode(node, &add_name);
@@ -970,8 +977,11 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 	dns_name_init(&current_name, NULL);
 
 	do {
-		INSIST(depth < sizeof(ancestors) / sizeof(*ancestors));	/* @@@ */
-		ancestors[depth++] = current;
+		if (chain.ancestor_count == chain.ancestor_maxitems &&
+		    get_ancestor_mem(mctx, &chain) != DNS_R_SUCCESS)
+				return (DNS_R_NOMEMORY);
+		ADD_ANCESTOR(&chain, current);
+
 		current = child;
 
 		dns_rbt_namefromnode(current, &current_name);
@@ -985,8 +995,11 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 			child = RIGHT(current);
 	} while (child != NULL);
 
-	INSIST(depth < sizeof(ancestors) / sizeof(*ancestors));/* @@@ */
-	ancestors[depth] = current;
+	if (chain.ancestor_count == chain.ancestor_maxitems &&
+	    get_ancestor_mem(mctx, &chain) != DNS_R_SUCCESS)
+		return (DNS_R_NOMEMORY);
+	ADD_ANCESTOR(&chain, current);
+	depth = chain.ancestor_count - 1;
 
 	if (i < 0)
 		LEFT(current) = node;
@@ -994,10 +1007,11 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 		RIGHT(current) = node;
 	MAKE_RED(node);
 
-	while (node != root && IS_RED(ancestors[depth])) {
+	while (node != root && IS_RED(chain.ancestors[depth])) {
 		INSIST(depth > 0);
-		parent = ancestors[depth];
-		grandparent = ancestors[depth - 1];
+
+		parent = chain.ancestors[depth];
+		grandparent = chain.ancestors[depth - 1];
 
 		if (parent == LEFT(grandparent)) {
 			child = RIGHT(grandparent);
@@ -1014,12 +1028,13 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 					tmp = node;
 					node = parent;
 					parent = tmp;
-					ancestors[depth] = parent;
+					chain.ancestors[depth] = parent;
 				}
 				MAKE_BLACK(parent);
 				MAKE_RED(grandparent);
 				INSIST(depth > 1);
-				rotate_right(grandparent, ancestors[depth - 2],
+				rotate_right(grandparent,
+					     chain.ancestors[depth - 2],
 					     &root);
 			}
 		} else {
@@ -1037,12 +1052,13 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 					tmp = node;
 					node = parent;
 					parent = tmp;
-					ancestors[depth] = parent;
+					chain.ancestors[depth] = parent;
 				}
 				MAKE_BLACK(parent);
 				MAKE_RED(grandparent);
 				INSIST(depth > 1);
-				rotate_left(grandparent, ancestors[depth - 2],
+				rotate_left(grandparent,
+					    chain.ancestors[depth - 2],
 					    &root);
 			}
 		}
