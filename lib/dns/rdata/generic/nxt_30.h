@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.h,v 1.1 1999/01/29 08:04:13 marka Exp $ */
+ /* $Id: nxt_30.h,v 1.2 1999/02/02 13:31:45 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -54,7 +54,7 @@ fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 		if (token.type != isc_tokentype_string)
 			break;
 		covered = strtol(token.value.as_pointer, &e, 10);
-		if (*e == '\0')
+		if (*e == 0)
 			(void) NULL;
 		else if (dns_rdatatype_fromtext(&covered, 
 				&token.value.as_textregion) == DNS_R_UNKNOWN)

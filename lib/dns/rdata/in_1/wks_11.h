@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.h,v 1.6 1999/02/02 01:17:49 halley Exp $ */
+ /* $Id: wks_11.h,v 1.7 1999/02/02 13:31:46 marka Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_H
 #define RDATA_IN_1_WKS_11_H
@@ -70,7 +70,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	proto = strtol(token.value.as_pointer, &e, 10);
-	if (*e == '\0')
+	if (*e == 0)
 		(void)NULL;
 	else if ((pe = getprotobyname(token.value.as_pointer)) != NULL)
 		proto = pe->p_proto;
@@ -93,7 +93,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 		if (token.type != isc_tokentype_string)
 			break;
 		port = strtol(token.value.as_pointer, &e, 10);
-		if (*e == '\0')
+		if (*e == 0)
 			(void) NULL;
 		else if ((se = getservbyname(token.value.as_pointer, ps))
 			  != NULL)

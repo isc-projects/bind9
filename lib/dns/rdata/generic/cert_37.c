@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.1 1999/02/02 01:19:22 marka Exp $ */
+ /* $Id: cert_37.c,v 1.2 1999/02/02 13:31:44 marka Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -59,7 +59,7 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 	/* algorithm */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	n = strtol(token.value.as_pointer, &e, 10);
-	if (*e) {
+	if (*e != 0) {
 		return (DNS_R_NOTIMPLEMENTED);
 	} else {
 		if (n < 0 || n > 0xff)
