@@ -1,3 +1,7 @@
+ 168.	[bug]		include statements in named.conf caused syntax errors
+			due to not consuming the semicolon ending the include
+			statement before switching input streams.
+
  167.	[bug]		Make lack of masters for a slave zone a soft error.
 
  166.	[bug]		Keygen was overwriting existing keys if key_id

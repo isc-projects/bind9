@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.79 2000/05/10 00:37:28 gson Exp $ */
+/* $Id: confparser.y,v 1.80 2000/05/11 02:18:16 gson Exp $ */
 
 #include <config.h>
 
@@ -440,7 +440,7 @@ statement_list: statement
 	| statement_list statement
 	;
 
-statement: include_stmt L_EOS
+statement: include_stmt
 	| options_stmt L_EOS
 	| controls_stmt L_EOS
 	| logging_stmt L_EOS
@@ -453,8 +453,11 @@ statement: include_stmt L_EOS
 	| L_END_INCLUDE
 	;
 
-
-include_stmt: L_INCLUDE L_QSTRING
+/*
+ * Note that we must consume the semicolon ending the
+ * include statement before switching input streams.
+ */
+include_stmt: L_INCLUDE L_QSTRING L_EOS
 	{
 		if (isc_lex_openfile(mylexer, $2) != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE ,"can't open file %s", $2);
