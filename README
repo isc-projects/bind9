@@ -75,6 +75,10 @@ BIND 9.0.0rc1
 	expected between 9.0.0rc1 and 9.0.0 are critical bug fixes and
 	updates to the documentation.
 
+	BIND 9.0.0rc1 and 9.0.0 are aimed at early adopters and those
+	who wish to make use of new 9.0 features, such as IPv6 and
+	DNSSEC secure resolution support.
+
 	We are running 9.0.0rc1 in production, but it has not been
 	extensively tested in large installations or under heavy load,
 	We welcome your feedback about how it performs in the real
@@ -84,7 +88,7 @@ BIND 9.0.0rc1
 	and associated resolver daemon.  These should still be considered
 	experimental.
 
-	The server-side support DNSSEC secured zones is stable and
+	The server-side support for DNSSEC secured zones is stable and
 	complete with the exception of the handling of wildcard records.
 	The support for secure resolution is still to be considered
 	experimental.
@@ -121,7 +125,7 @@ BIND 9.0.0rc1
 		sockets.
 
 		There are known problems with thread signal handling 
-		under SunOS 5.6.
+		under Solaris 2.6.
 
 
 	For a detailed list of user-visible changes since beta 4, see
