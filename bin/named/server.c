@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.251 2000/11/15 01:37:00 tale Exp $ */
+/* $Id: server.c,v 1.252 2000/11/15 18:11:32 gson Exp $ */
 
 #include <config.h>
 
@@ -1371,8 +1371,8 @@ static void
 ns_server_zeroglobal(ns_server_t *serv) {
 	int i;
 
-	for (i=0; i<DNS_ZONE_COUNTSIZE; i++)
-		serv->globalcount[i]=0;
+	for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
+		serv->globalcount[i] = 0;
 }
 
 #define SETLIMIT(cfgvar, resource, description) \
