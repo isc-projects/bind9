@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.77 2000/08/09 03:44:42 tale Exp $ */
+/* $Id: main.c,v 1.78 2000/08/09 23:40:16 tale Exp $ */
 
 #include <config.h>
 
@@ -310,10 +310,6 @@ parse_command_line(int argc, char *argv[]) {
 	unsigned int port;
 	char *s;
 
-	/*
-	 * XXXDCL perhaps the saved command line should be put in the
-	 * named.pid file, as sendmail does with sendmail.pid.
-	 */
 	save_command_line(argc, argv);
 
 	s = strrchr(argv[0], '/');
