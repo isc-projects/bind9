@@ -1,4 +1,7 @@
 
+1243.	[bug]		It was possible to trigger a REQUIRE() in
+			dns_message_findtype(). [RT #2659]
+
 	--- 9.2.0 released ---
 
 1134.	[bug]		Multithreaded servers could deadlock in ferror()
