@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.27 2001/01/09 21:41:51 bwelling Exp $ */
+/* $Id: t_db.c,v 1.28 2001/05/15 05:32:53 halley Exp $ */
 
 #include <config.h>
 
@@ -2618,7 +2618,7 @@ t17(void) {
 }
 
 static const char *a18 =
-	"A call to dns_db_find() returns DNS_R_ZONECUT when type is "
+	"A call to dns_db_find() returns DNS_R_DELEGATION when type is "
 	"dns_rdatatype_any and the desired node is a zone cut.";
 
 static void
