@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.66 2000/09/17 12:38:47 marka Exp $ */
+/* $Id: master.c,v 1.67 2000/09/17 12:54:44 marka Exp $ */
 
 #include <config.h>
 
@@ -1085,10 +1085,10 @@ load(dns_loadctx_t **ctxp) {
 		(*callbacks->error)(callbacks, "dns_master_load: %s",
 				    dns_result_totext(result));
 	else
-		(*callbacks->error)(callbacks, "%s: %s:%s: %s",
+		(*callbacks->error)(callbacks, "%s: %s:%lu: %s",
+				    "dns_master_load",
 				    isc_lex_getsourcename(ctx->lex),
 				    isc_lex_getsourceline(ctx->lex),
-				    "dns_master_load",
 				    dns_result_totext(result));
 
  cleanup:
