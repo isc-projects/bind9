@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.10 2000/01/17 20:06:31 tale Exp $ */
+/* $Id: connection.c,v 1.11 2000/01/22 00:17:47 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -27,7 +27,6 @@
 #include <errno.h>
 #include <stddef.h>		/* NULL */
 #include <string.h>		/* memset */
-#include <unistd.h>		/* close */
 
 #include <isc/assertions.h>
 #include <isc/error.h>
@@ -78,13 +77,15 @@ get_address(const char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
  * It can be detached and data for the connection object freed.
  */
 static void
-free_connection(omapi_connection_object_t *connection) {
+free_connection(omapi_connection_t *connection) {
 	isc_buffer_t *buffer;
+
+	connection->state = omapi_connection_disconnecting;
 
 	/*
 	 * The mutex is locked when this routine is called.  Unlock
 	 * it so that the isc_condition_signal below will allow
-	 * omapi_connection_wait to be able to acquire the lock.
+	 * connection_wait to be able to acquire the lock.
 	 */
 	RUNTIME_CHECK(isc_mutex_unlock(&connection->mutex) == ISC_R_SUCCESS);
 
@@ -120,7 +121,7 @@ free_connection(omapi_connection_object_t *connection) {
 	 * If whatever created us registered a signal handler, send it
 	 * a disconnect signal.
 	 */
-	omapi_signal((omapi_object_t *)connection, "disconnect", connection);
+	object_signal((omapi_object_t *)connection, "disconnect", connection);
 
 #if 0
 	/*
@@ -130,8 +131,6 @@ free_connection(omapi_connection_object_t *connection) {
 	OBJECT_DEREF(&connection->inner->inner);
 #endif
 
-	
-
 	/*
 	 * Finally, free the object itself.
 	 */
@@ -139,7 +138,7 @@ free_connection(omapi_connection_object_t *connection) {
 }
 
 static void
-end_connection(omapi_connection_object_t *connection, isc_event_t *event,
+end_connection(omapi_connection_t *connection, isc_event_t *event,
 	       isc_result_t result)
 {
 	if (event != NULL)
@@ -147,7 +146,7 @@ end_connection(omapi_connection_object_t *connection, isc_event_t *event,
 
 	/*
 	 * XXXDCL would be nice to send the result as an 
-	 * omapi_signal(object, "status", result) but i don't
+	 * object_signal(object, "status", result) but i don't
 	 * think this can be done with the connection as the object.
 	 */
 
@@ -162,22 +161,19 @@ end_connection(omapi_connection_object_t *connection, isc_event_t *event,
 	 */
 	RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) == ISC_R_SUCCESS);
 
-	fprintf(stderr, "END_CONNECTION, %d events_pending\n",
-		connection->events_pending);
-
 	if (connection->events_pending == 0) {
 		if (connection->waiting) {
 			/*
 			 * This must have been an error, since
-			 * omapi_connection_wait can't be called after
+			 * connection_wait can't be called after
 			 * omapi_connection_disconnect is called for
 			 * a normal close.
 			 *
-			 * Signal omapi_connection_wait and have it do the
+			 * Signal connection_wait and have it do the
 			 * cleanup.  free_connection can't be called
 			 * directly here because it can't be sure
 			 * that the mutex has been finished being touched
-			 * by omapi_connection_wait even if it
+			 * by connection_wait even if it
 			 * free_connection signals it.  (Nasty little
 			 * race condition with the lock.)
 			 *
@@ -222,13 +218,11 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_socket_t *socket;
 	isc_socket_connev_t *connectevent;
-	omapi_connection_object_t *connection;
+	omapi_connection_t *connection;
 
 	socket = event->sender;
 	connectevent = (isc_socket_connev_t *)event;
 	connection = event->arg;
-
-	fprintf(stderr, "CONNECT_DONE\n");
 
 	INSIST(socket == connection->socket && task == connection->task);
 
@@ -274,7 +268,6 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 abandon:
 	end_connection(connection, event, connectevent->result);
-	return;
 }
 
 /*
@@ -286,14 +279,12 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *buffer;
 	isc_socket_t *socket;
 	isc_socketevent_t *socketevent;
-	omapi_connection_object_t *connection;
+	omapi_connection_t *connection;
 	unsigned int original_bytes_needed;
 
 	socket = event->sender;
 	socketevent = (isc_socketevent_t *)event;
 	connection = event->arg;
-
-	fprintf(stderr, "RECV_DONE, %d bytes\n", socketevent->n);
 
 	INSIST(socket == connection->socket && task == connection->task);
 
@@ -361,19 +352,20 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	while (connection->bytes_needed <= connection->in_bytes &&
 	       connection->bytes_needed > 0)
 
-		if (omapi_signal((omapi_object_t *)connection, "ready",
-				 connection) != ISC_R_SUCCESS)
+		if (object_signal((omapi_object_t *)connection, "ready",
+				  connection) != ISC_R_SUCCESS)
 			goto abandon;
 
 
 	/*
 	 * Queue up another recv request.  If the bufferlist is empty,
-	 * then, something under omapi_signal already called
+	 * then, something under object_signal already called
 	 * omapi_connection_require and queued the recv (which is
-	 * what emptied the bufferlist).
+	 * what emptied the bufferlist).  Using a value of 0 will cause
+	 * the recv to be queued without adding any more to bytes_needed.
 	 */
 	if (! ISC_LIST_EMPTY(connection->input_buffers))
-		omapi_connection_require((omapi_object_t *)connection, 0);
+		connection_require(connection, 0);
 
 	/*
 	 * See if that was the last event the client was expecting, so
@@ -425,7 +417,6 @@ abandon:
 	RUNTIME_CHECK(isc_mutex_unlock(&connection->recv_lock) ==
 		      ISC_R_SUCCESS);
 	end_connection(connection, event, socketevent->result);
-	return;
 }
 
 /*
@@ -437,13 +428,11 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *buffer;
 	isc_socket_t *socket;
 	isc_socketevent_t *socketevent;
-	omapi_connection_object_t *connection;
+	omapi_connection_t *connection;
 
 	socket = event->sender;
 	socketevent = (isc_socketevent_t *)event;
 	connection = event->arg;
-
-	fprintf(stderr, "SEND_DONE, %d bytes\n", socketevent->n);
 
 	INSIST(socket == connection->socket && task == connection->task);
 
@@ -495,11 +484,10 @@ send_done(isc_task_t *task, isc_event_t *event) {
 
 abandon:
 	end_connection(connection, event, socketevent->result);
-	return;
 }
 
 void
-connection_send(omapi_connection_object_t *connection) {
+connection_send(omapi_connection_t *connection) {
 	REQUIRE(connection != NULL &&
 		connection->type == omapi_type_connection);
 
@@ -529,7 +517,7 @@ connect_toserver(omapi_object_t *protocol, const char *server_name, int port) {
 	isc_sockaddr_t sockaddr;
 	isc_buffer_t *ibuffer = NULL, *obuffer = NULL;
 	isc_task_t *task = NULL;
-	omapi_connection_object_t *connection = NULL;
+	omapi_connection_t *connection = NULL;
 
 	result = get_address(server_name, port, &sockaddr);
 	if (result != ISC_R_SUCCESS)
@@ -557,7 +545,8 @@ connect_toserver(omapi_object_t *protocol, const char *server_name, int port) {
 	 * Create a new connection object.
 	 */
 	result = omapi_object_create((omapi_object_t **)&connection,
-				  omapi_type_connection, sizeof(*connection));
+				     omapi_type_connection,
+				     sizeof(*connection));
 	if (result != ISC_R_SUCCESS)
 		goto free_obuffer;
 		
@@ -644,10 +633,10 @@ free_task:
  * Put some bytes into the output buffer for a connection.
  */
 isc_result_t
-omapi_connection_copyin(omapi_object_t *generic, unsigned char *src,
+omapi_connection_putmem(omapi_object_t *generic, unsigned char *src,
 			unsigned int len)
 {
-	omapi_connection_object_t *connection;
+	omapi_connection_t *connection;
 	isc_buffer_t *buffer;
 	isc_bufferlist_t bufferlist;
 	isc_result_t result;
@@ -655,7 +644,7 @@ omapi_connection_copyin(omapi_object_t *generic, unsigned char *src,
 
 	REQUIRE(generic != NULL && generic->type == omapi_type_connection);
 
-	connection = (omapi_connection_object_t *)generic;
+	connection = (omapi_connection_t *)generic;
 
 	/*
 	 * Check for enough space in the output buffers.
@@ -708,20 +697,17 @@ omapi_connection_copyin(omapi_object_t *generic, unsigned char *src,
  * Copy some bytes from the input buffer, and advance the input buffer
  * pointer beyond the bytes copied out.
  */
-isc_result_t
-omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
-			 unsigned int size)
+void
+connection_copyout(unsigned char *dst, omapi_connection_t *connection,
+		   unsigned int size)
 {
-	omapi_connection_object_t *connection;
 	isc_buffer_t *buffer;
 	unsigned int copy_bytes;
 
-	REQUIRE(generic != NULL && generic->type == omapi_type_connection);
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
 
-	connection = (omapi_connection_object_t *)generic;
-
-	if (size > connection->in_bytes)
-		return (ISC_R_NOMORE);
+	INSIST(size <= connection->in_bytes);
 	
 	connection->bytes_needed -= size;
 
@@ -751,8 +737,6 @@ omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
 
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -779,11 +763,11 @@ omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
  *   the protocol.)
  *
  * The client might or might not want to block on the disconnection.
- * Currently the way to accomplish this is to call omapi_connection_wait
+ * Currently the way to accomplish this is to call connection_wait
  * before calling this function.  A more complex method could be developed,
  * but after spending (too much) time thinking about it, it hardly seems to
  * be worth the effort when it is easy to just insist that the
- * omapi_connection_wait be done.
+ * connection_wait be done.
  *
  * Also, if the error is being thrown from the library, the client
  * might *already* be waiting on (or intending to wait on) whatever messages
@@ -792,11 +776,11 @@ omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
  */
 void
 omapi_connection_disconnect(omapi_object_t *generic, isc_boolean_t force) {
-	omapi_connection_object_t *connection;
+	omapi_connection_t *connection;
 
 	REQUIRE(generic != NULL);
 
-	connection = (omapi_connection_object_t *)generic;
+	connection = (omapi_connection_t *)generic;
 
 	REQUIRE(connection->type == omapi_type_connection);
 
@@ -819,7 +803,7 @@ omapi_connection_disconnect(omapi_object_t *generic, isc_boolean_t force) {
 		 *
 		 * Increment the count of messages expected.  Even though
 		 * no message is really expected, this will keep
-		 * omapi_connection_wait from exiting until free_connection()
+		 * connection_wait from exiting until free_connection()
 		 * signals it.
 		 */
 		RUNTIME_CHECK(isc_mutex_lock(&connection->mutex) ==
@@ -856,8 +840,9 @@ omapi_connection_disconnect(omapi_object_t *generic, isc_boolean_t force) {
 	/*
 	 * XXXDCL
 	 * This might be improved if the 'force' argument to this function
-	 * were instead an isc_reault_t argument.  Then omapi_signal could send
-	 * a "status" back up to a signal handler that could set a waitresult.
+	 * were instead an isc_reault_t argument.  Then object_signal
+	 * could send a "status" back up to a signal handler that could set
+	 * a waitresult.
 	 */
 	end_connection(connection, NULL,
 		       force ? ISC_R_UNEXPECTED : ISC_R_SUCCESS);
@@ -868,12 +853,9 @@ omapi_connection_disconnect(omapi_object_t *generic, isc_boolean_t force) {
  * recv for the socket.
  */
 isc_result_t
-omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
-	omapi_connection_object_t *connection;
-
-	REQUIRE(generic != NULL && generic->type == omapi_type_connection);
-
-	connection = (omapi_connection_object_t *)generic;
+connection_require(omapi_connection_t *connection, unsigned int bytes) {
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
 
 	INSIST(connection->state == omapi_connection_connected ||
 	       connection->state == omapi_connection_disconnecting);
@@ -956,36 +938,27 @@ omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
 }
 
 /*
- * This function is meant to pause the client until it has received
- * a message from the server, either the introductory message or a response
- * to a message it has sent.  Because the socket library is multithreaded,
- * those events can happen before omapi_connection_wait is ever called.
- * So a counter needs to be set for every expected message, and this 
- * function can only return when that counter is 0.
- *
- * XXXDCL ICK.  There is a problem.  What if an error that causes disconnection
- * is happens before it is detected by the driving program, before this
- * function has ever been called, but after all of the connection data
- * has been freed.
- *
- * Actually, that seems to be a problem throughout this WHOLE LIBRARY.  It
- * really needs to be handled somehow.
+ * Pause the client until it has received a message from the server, either the
+ * introductory message or a response to a message it has sent.  This is
+ * necessary because the underlying socket library is multithreaded, and
+ * it is possible that reading incoming data would trigger an error 
+ * that causes the connection to be destroyed --- while the client program
+ * is still trying to use it.  I don't *think* this problem exists in the
+ * server.  If it does, that's clearly really bad.  The server is checking
+ * all its return values and should not use a connection any more once it has
+ * decided to blow it away.  The only way I could imagine that happening
+ * is if the socket library would post events of anything other than
+ * ISC_R_CANCELED after an isc_socket_cancel(ISC_SOCKCANCEL_ALL) is done.
  */
 isc_result_t
-omapi_connection_wait(omapi_object_t *object,
-		      omapi_object_t *connection_handle,
-		      isc_time_t *timeout)
-{
-	/*
-	 * XXXDCL 'object' is not really used.
-	 */
-	omapi_connection_object_t *connection;
+connection_wait(omapi_object_t *connection_handle, isc_time_t *timeout) {
+	omapi_connection_t *connection;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	REQUIRE(object != NULL && connection_handle != NULL);
-	REQUIRE(connection_handle->type == omapi_type_connection);
+	REQUIRE(connection_handle != NULL &&
+		connection_handle->type == omapi_type_connection);
 
-	connection = (omapi_connection_object_t *)connection_handle;
+	connection = (omapi_connection_t *)connection_handle;
 	/*
 	 * This routine is not valid for server connections.
 	 */
@@ -1026,21 +999,31 @@ omapi_connection_wait(omapi_object_t *object,
 	return (result);
 }
 
-/*
- * XXXDCL These could potentially use the isc_buffer_* integer functions
- */
-isc_result_t
-omapi_connection_getuint32(omapi_object_t *c, isc_uint32_t *value) {
+void
+connection_getuint32(omapi_connection_t *connection,
+		     isc_uint32_t *value)
+{
 	isc_uint32_t inbuf;
-	isc_result_t result;
 
-	result = omapi_connection_copyout((unsigned char *)&inbuf, c,
-					  sizeof(inbuf));
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
+
+	connection_copyout((unsigned char *)&inbuf, connection, sizeof(inbuf));
 
 	*value = ntohl(inbuf);
-	return (ISC_R_SUCCESS);
+}
+
+void
+connection_getuint16(omapi_connection_t *connection,
+		     isc_uint16_t *value) {
+	isc_uint16_t inbuf;
+
+	REQUIRE(connection != NULL &&
+		connection->type == omapi_type_connection);
+
+	connection_copyout((unsigned char *)&inbuf, connection, sizeof(inbuf));
+
+	*value = ntohs(inbuf);
 }
 
 isc_result_t
@@ -1049,22 +1032,8 @@ omapi_connection_putuint32(omapi_object_t *c, isc_uint32_t value) {
 
 	inbuf = htonl(value);
 	
-	return (omapi_connection_copyin(c, (unsigned char *)&inbuf,
+	return (omapi_connection_putmem(c, (unsigned char *)&inbuf,
 					sizeof(inbuf)));
-}
-
-isc_result_t
-omapi_connection_getuint16(omapi_object_t *c, isc_uint16_t *value) {
-	isc_uint16_t inbuf;
-	isc_result_t result;
-
-	result = omapi_connection_copyout((unsigned char *)&inbuf, c,
-					  sizeof(inbuf));
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	*value = ntohs(inbuf);
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -1075,20 +1044,19 @@ omapi_connection_putuint16(omapi_object_t *c, isc_uint32_t value) {
 
 	inbuf = htons((isc_uint16_t)value);
 	
-	return (omapi_connection_copyin(c, (unsigned char *)&inbuf,
+	return (omapi_connection_putmem(c, (unsigned char *)&inbuf,
 					sizeof(inbuf)));
 }
 
 isc_result_t
-omapi_connection_puttypeddata(omapi_object_t *c, omapi_typed_data_t *data)
-{
+omapi_connection_putdata(omapi_object_t *c, omapi_data_t *data) {
 	isc_result_t result;
 	omapi_handle_t handle;
 
 	REQUIRE(data != NULL &&
 		(data->type == omapi_datatype_int    ||
-		 data->type == omapi_datatype_string ||
 		 data->type == omapi_datatype_data   ||
+		 data->type == omapi_datatype_string ||
 		 data->type == omapi_datatype_object));
 
 	switch (data->type) {
@@ -1105,14 +1073,14 @@ omapi_connection_puttypeddata(omapi_object_t *c, omapi_typed_data_t *data)
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		if (data->u.buffer.len > 0)
-			return (omapi_connection_copyin(c,
+			return (omapi_connection_putmem(c,
 							data->u.buffer.value,
 							data->u.buffer.len));
 		return (ISC_R_SUCCESS);
 
 	      case omapi_datatype_object:
 		if (data->u.object != NULL) {
-			result = omapi_object_handle(&handle, data->u.object);
+			result = object_gethandle(&handle, data->u.object);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		} else
@@ -1124,7 +1092,7 @@ omapi_connection_puttypeddata(omapi_object_t *c, omapi_typed_data_t *data)
 	}
 
 	UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "unknown type in omapi_connection_puttypeddata: "
+			 "unknown type in omapi_connection_putdata: "
 			 "%d\n", data->type);
 	return (ISC_R_UNEXPECTED);
 }
@@ -1142,7 +1110,7 @@ omapi_connection_putname(omapi_object_t *c, const char *name) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	return (omapi_connection_copyin(c, (char *)name, len));
+	return (omapi_connection_putmem(c, (char *)name, len));
 }
 
 isc_result_t
@@ -1158,7 +1126,7 @@ omapi_connection_putstring(omapi_object_t *c, const char *string) {
 	result = omapi_connection_putuint32(c, len);
 
 	if (result == ISC_R_SUCCESS && len > 0)
-		result = omapi_connection_copyin(c, (char *)string, len);
+		result = omapi_connection_putmem(c, (char *)string, len);
 	return (result);
 }
 
@@ -1168,7 +1136,7 @@ omapi_connection_puthandle(omapi_object_t *c, omapi_object_t *h) {
 	omapi_handle_t handle;
 
 	if (h != NULL) {
-		result = omapi_object_handle(&handle, h);
+		result = object_gethandle(&handle, h);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	} else
@@ -1183,35 +1151,40 @@ omapi_connection_puthandle(omapi_object_t *c, omapi_object_t *h) {
 }
 
 static isc_result_t
-connection_setvalue(omapi_object_t *connection, omapi_object_t *id,
-		    omapi_data_string_t *name, omapi_typed_data_t *value)
+connection_setvalue(omapi_object_t *connection, omapi_string_t *name,
+		    omapi_data_t *value)
 {
 	REQUIRE(connection != NULL &&
 		connection->type == omapi_type_connection);
 	
-	PASS_SETVALUE(connection);
+	return (omapi_object_passsetvalue(connection, name, value));
 }
 
 static isc_result_t
-connection_getvalue(omapi_object_t *connection, omapi_object_t *id,
-		    omapi_data_string_t *name, omapi_value_t **value)
+connection_getvalue(omapi_object_t *connection, omapi_string_t *name,
+		    omapi_value_t **value)
 {
 	REQUIRE(connection != NULL &&
 		connection->type == omapi_type_connection);
 
-	PASS_GETVALUE(connection);
+	return (omapi_object_passgetvalue(connection, name, value));
 }
 
 static void
 connection_destroy(omapi_object_t *handle) {
-	omapi_connection_object_t *connection;
+	omapi_connection_t *connection;
 
 	REQUIRE(handle != NULL && handle->type == omapi_type_connection);
 
-	connection = (omapi_connection_object_t *)handle;
+	connection = (omapi_connection_t *)handle;
 
-	if (connection->state == omapi_connection_connected)
+	if (connection->state != omapi_connection_disconnecting) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "Unexpected path to connection_destroy\n"
+				 "The connection object was dereferenced "
+				 "without a previous disconnect.\n");
 		omapi_connection_disconnect(handle, OMAPI_FORCE_DISCONNECT);
+	}
 }
 
 static isc_result_t
@@ -1221,7 +1194,7 @@ connection_signalhandler(omapi_object_t *connection, const char *name,
 	REQUIRE(connection != NULL &&
 		connection->type == omapi_type_connection);
 	
-	PASS_SIGNAL(connection);
+	return (omapi_object_passsignal(connection, name, ap));
 }
 
 /*
@@ -1229,23 +1202,21 @@ connection_signalhandler(omapi_object_t *connection, const char *name,
  * specified connection.
  */
 static isc_result_t
-connection_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
-		       omapi_object_t *handle)
+connection_stuffvalues(omapi_object_t *connection, omapi_object_t *handle)
 {
 	REQUIRE(connection != NULL &&
 		connection->type == omapi_type_connection);
 
-	PASS_STUFFVALUES(handle);
+	return (omapi_object_passstuffvalues(connection, handle));
 }
 
 isc_result_t
-omapi_connection_init(void) {
-	return (omapi_object_register(&omapi_type_connection,
-					   "connection",
-					   connection_setvalue,
-					   connection_getvalue,
-					   connection_destroy,
-					   connection_signalhandler,
-					   connection_stuffvalues,
-					   NULL, NULL, NULL));
+connection_init(void) {
+	return (omapi_object_register(&omapi_type_connection, "connection",
+				      connection_setvalue,
+				      connection_getvalue,
+				      connection_destroy,
+				      connection_signalhandler,
+				      connection_stuffvalues,
+				      NULL, NULL, NULL));
 }

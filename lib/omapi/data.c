@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.3 2000/01/17 18:02:05 tale Exp $ */
+/* $Id: data.c,v 1.4 2000/01/22 00:17:49 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -30,17 +30,17 @@
 #include <omapi/private.h>
 
 isc_result_t
-omapi_data_new(omapi_typed_data_t **t, omapi_datatype_t type, ...) {
+omapi_data_create(omapi_data_t **t, omapi_datatype_t type, ...) {
 	va_list l;
-	omapi_typed_data_t *new;
+	omapi_data_t *new;
 	unsigned int len;
 	unsigned int val;
 	int intval;
 	char *s;
 
 	REQUIRE(type == omapi_datatype_int ||
-		type == omapi_datatype_string ||
 		type == omapi_datatype_data ||
+		type == omapi_datatype_string ||
 		type == omapi_datatype_object);
 
 	va_start(l, type);
@@ -54,24 +54,24 @@ omapi_data_new(omapi_typed_data_t **t, omapi_datatype_t type, ...) {
 
 	switch (type) {
 	case omapi_datatype_int:
-		len = OMAPI_TYPED_DATA_INT_LEN;
+		len = OMAPI_DATA_INT_LEN;
 		intval = va_arg(l, int);
 		break;
 	case omapi_datatype_string:
 		s = va_arg(l, char *);
 		val = strlen(s);
-		len = OMAPI_TYPED_DATA_NOBUFFER_LEN + val;
+		len = OMAPI_DATA_NOBUFFER_LEN + val;
 		break;
 	case omapi_datatype_data:
 		val = va_arg(l, unsigned int);
-		len = OMAPI_TYPED_DATA_NOBUFFER_LEN + val;
+		len = OMAPI_DATA_NOBUFFER_LEN + val;
 		break;
 	case omapi_datatype_object:
-		len = OMAPI_TYPED_DATA_OBJECT_LEN;
+		len = OMAPI_DATA_OBJECT_LEN;
 		break;
 	default:
                 UNEXPECTED_ERROR(__FILE__, __LINE__,
-                                 "unknown type in omapi_data_new: %d\n",
+                                 "unknown type in omapi_data_create: %d\n",
 				 type);
                 return (ISC_R_UNEXPECTED);
 	}
@@ -97,48 +97,42 @@ omapi_data_new(omapi_typed_data_t **t, omapi_datatype_t type, ...) {
 		break;
 	}
 	new->type = type;
-	omapi_data_reference(t, new, "omapi_data_new");
+	omapi_data_reference(t, new);
 
 	return (ISC_R_SUCCESS);
 }
 
 void
-omapi_data_reference(omapi_typed_data_t **r, omapi_typed_data_t *h,
-		     const char *name)
-{
+omapi_data_reference(omapi_data_t **r, omapi_data_t *h) {
 	REQUIRE(r != NULL && h != NULL);
 	REQUIRE(*r == NULL);
-
-	(void)name;		/* Unused. */
 
 	*r = h;
 	h->refcnt++;
 }
 
 void
-omapi_data_dereference(omapi_typed_data_t **h) {
+omapi_data_dereference(omapi_data_t **h) {
 	int length = 0;
 
 
 	REQUIRE(h != NULL && *h != NULL);
 	REQUIRE((*h)->refcnt > 0);
 
-	if (--((*h)->refcnt) <= 0) {
+	if (--((*h)->refcnt) == 0) {
 		switch ((*h)->type) {
 		case omapi_datatype_int:
-			length = OMAPI_TYPED_DATA_INT_LEN;
+			length = OMAPI_DATA_INT_LEN;
 			break;
 		case omapi_datatype_string:
-			length = OMAPI_TYPED_DATA_NOBUFFER_LEN +
-				(*h)->u.buffer.len;
+			length = OMAPI_DATA_NOBUFFER_LEN + (*h)->u.buffer.len;
 			break;
 		case omapi_datatype_data:
-			length = OMAPI_TYPED_DATA_NOBUFFER_LEN +
-				(*h)->u.buffer.len;
+			length = OMAPI_DATA_NOBUFFER_LEN + (*h)->u.buffer.len;
 			break;
 		case omapi_datatype_object:
 			OBJECT_DEREF(&(*h)->u.object);
-			length = OMAPI_TYPED_DATA_OBJECT_LEN;
+			length = OMAPI_DATA_OBJECT_LEN;
 			break;
 		default:
 			FATAL_ERROR(__FILE__, __LINE__,
@@ -146,7 +140,7 @@ omapi_data_dereference(omapi_typed_data_t **h) {
 				    "omapi_data_dereference: %d\n",
 				    (*h)->type);
 			/* NOTREACHED */
-			return;
+			break;
 		}
 		isc_mem_put(omapi_mctx, *h, length);
 	}
@@ -154,91 +148,27 @@ omapi_data_dereference(omapi_typed_data_t **h) {
 	*h = NULL;
 }
 
-isc_result_t
-omapi_data_newstring(omapi_data_string_t **d, unsigned int len,
-		     const char *name)
-{
-	omapi_data_string_t *new;
 
-	new = isc_mem_get(omapi_mctx, OMAPI_DATA_STRING_EMPTY_SIZE + len);
-	if (new == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(new, 0, OMAPI_DATA_STRING_EMPTY_SIZE);
-	new->len = len;
+int
+omapi_data_strcmp(omapi_data_t *s1, const char *s2) {
+	unsigned int len, slen;
+	int order;
 
-	omapi_data_stringreference(d, new, name);
+	REQUIRE(s1->type == omapi_datatype_data ||
+		s1->type == omapi_datatype_string);
 
-	return (ISC_R_SUCCESS);
+	slen = strlen(s2);
+	if (slen > s1->u.buffer.len)
+		len = s1->u.buffer.len;
+	else
+		len = slen;
+
+	order = memcmp(s1->u.buffer.value, s2, len);
+	if (order == 0)
+		if (s1->u.buffer.len > slen)
+			order = 1;
+		else if (s1->u.buffer.len < slen)
+			order = -1;
+
+	return (order);
 }
-
-void
-omapi_data_stringreference(omapi_data_string_t **r, omapi_data_string_t *h,
-					  const char *name)
-{
-	REQUIRE(r != NULL && h != NULL);
-	REQUIRE(*r == NULL);
-
-	(void)name;		/* Unused. */
-
-	*r = h;
-	h->refcnt++;
-}
-
-void
-omapi_data_stringdereference(omapi_data_string_t **h, const char *name) {
-	REQUIRE(h != NULL && *h != NULL);
-	REQUIRE((*h)->refcnt > 0);
-
-	(void)name;		/* Unused. */
-
-	if (--((*h)->refcnt) <= 0)
-		isc_mem_put(omapi_mctx, *h,
-			    OMAPI_DATA_STRING_EMPTY_SIZE + (*h)->len);
-
-	*h = NULL;
-}
-
-isc_result_t
-omapi_data_newvalue(omapi_value_t **d, const char *name) {
-	omapi_value_t *new;
-
-	new = isc_mem_get(omapi_mctx, sizeof(*new));
-	if (new == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(new, 0, sizeof *new);
-
-	omapi_data_valuereference(d, new, name);
-
-	return (ISC_R_SUCCESS);
-}
-
-void
-omapi_data_valuereference(omapi_value_t **r, omapi_value_t *h,
-			  const char *name)
-{
-	REQUIRE(r != NULL && h != NULL);
-	REQUIRE(*r == NULL);
-
-	(void)name;		/* Unused. */
-
-	*r = h;
-	h->refcnt++;
-}
-
-void
-omapi_data_valuedereference(omapi_value_t **h, const char *name) {
-	REQUIRE(h != NULL && *h != NULL);
-	REQUIRE((*h)->refcnt > 0);
-
-	(void)name;		/* Unused. */
-
-	if (--((*h)->refcnt) <= 0) {
-		if ((*h)->name != NULL)
-			omapi_data_stringdereference(&(*h)->name, name);
-		if ((*h)->value != NULL)
-			omapi_data_dereference(&(*h)->value);
-		isc_mem_put(omapi_mctx, *h, sizeof(*h));
-	}
-	*h = NULL;
-}
-

@@ -19,8 +19,8 @@
  ***** Private master include file for the OMAPI library.
  *****/
 
-#ifndef OMAPI_OMAPIP_P_H
-#define OMAPI_OMAPIP_P_H
+#ifndef OMAPI_PRIVATE_H
+#define OMAPI_PRIVATE_H
 
 #define ISC_MEM_DEBUG 1
 
@@ -36,12 +36,20 @@
 #include <isc/task.h>
 #include <isc/timer.h>
 
-#include <omapi/omapip.h>
+#include <omapi/omapi.h>
 #include <omapi/result.h>
 
 ISC_LANG_BEGINDECLS
 
 #define OMAPI_BUFFER_SIZE 4096
+
+/*
+ * Types shared among multiple library files.
+ */
+typedef struct omapi_generic	omapi_generic_t;
+typedef struct omapi_message	omapi_message_t;
+typedef struct omapi_connection	omapi_connection_t;
+typedef struct omapi_protocol	omapi_protocol_t;
 
 typedef enum {
 	omapi_connection_unconnected,
@@ -51,23 +59,89 @@ typedef enum {
 	omapi_connection_closed
 } omapi_connection_state_t;
 
-typedef struct omapi_message_object {
+typedef enum {
+	omapi_protocol_intro_wait,
+	omapi_protocol_header_wait,
+	omapi_protocol_signature_wait,
+	omapi_protocol_name_wait,
+	omapi_protocol_name_length_wait,
+	omapi_protocol_value_wait,
+	omapi_protocol_value_length_wait
+} omapi_protocol_state_t;
+
+/*
+ * OMAPI data types.
+ */
+
+struct omapi_data {
+#define OMAPI_DATA_HEADER_LEN (sizeof(int) + sizeof(omapi_datatype_t))
+	int 			refcnt;
+	omapi_datatype_t 	type;
+
+	union {
+		/*
+		 * OMAPI_DATA_NOBUFFER_LEN purposefully does not
+		 * include the 'value' byte, which only serves as a
+		 * handle to memory allocated for (usually) more than
+		 * one byte that begins at the 'value' location.
+		 */
+#define OMAPI_DATA_NOBUFFER_LEN (OMAPI_DATA_HEADER_LEN + sizeof(int))
+		struct {
+			unsigned int	len;
+			unsigned char	value[1];
+		} buffer;
+
+#define OMAPI_DATA_OBJECT_LEN \
+			(OMAPI_DATA_HEADER_LEN + sizeof(omapi_object_t *))
+		omapi_object_t		*object;
+
+#define OMAPI_DATA_INT_LEN (OMAPI_DATA_HEADER_LEN + sizeof(int))
+		int 			integer;
+	} u;
+};
+
+struct omapi_string {
+	/*
+	 * OMAPI_STRING_EMPTY_SIZE purposefully does not
+	 * include the 'value' byte, which only serves as a
+	 * handle to memory allocated for (usually) more than
+	 * one byte that begins at the 'value' location.
+	 */
+#define OMAPI_STRING_EMPTY_SIZE (2 * sizeof(int))
+	int 		refcnt;
+	unsigned int	len;
+	unsigned char	value[1];
+};
+
+struct omapi_value {
+	int 			refcnt;
+	omapi_string_t *	name;
+	omapi_data_t *		value;
+};
+
+struct omapi_generic {
 	OMAPI_OBJECT_PREAMBLE;
-	struct omapi_message_object *	next;
-	struct omapi_message_object *	prev;
+	omapi_value_t **		values;
+	unsigned int			nvalues;
+	unsigned int			va_max;
+};
+
+struct omapi_message {
+	OMAPI_OBJECT_PREAMBLE;
+	omapi_message_t *		next;
+	omapi_message_t *		prev;
 	omapi_object_t *		object;
 	omapi_object_t *		notify_object;
-	unsigned int			authlen;
-	omapi_typed_data_t *		authenticator;
-	unsigned int 			authid;
-	omapi_object_t *		id_object;
-	unsigned int			op;
+	isc_uint32_t			authlen;
+	omapi_data_t *			authenticator;
+	isc_uint32_t 			authid;
+	isc_uint32_t			op;
 	omapi_handle_t			h;
-	unsigned int			id;
-	unsigned int			rid;
-} omapi_message_object_t;
+	isc_uint32_t			id;
+	isc_uint32_t			rid;
+};
 
-typedef struct omapi_connection_object {
+struct omapi_connection {
 	OMAPI_OBJECT_PREAMBLE;
 	isc_mutex_t			mutex;
 	isc_mutex_t			recv_lock;
@@ -76,7 +150,7 @@ typedef struct omapi_connection_object {
 	unsigned int			events_pending;	/* socket events */
 	unsigned int			messages_expected;
 	isc_boolean_t			waiting;
-	isc_condition_t			waiter;	/* omapi_connection_wait() */
+	isc_condition_t			waiter;	/* connection_wait() */
 	omapi_connection_state_t	state;
 	isc_sockaddr_t			remote_addr;
 	isc_sockaddr_t			local_addr;
@@ -99,72 +173,30 @@ typedef struct omapi_connection_object {
 	isc_uint32_t			out_bytes;
 	isc_bufferlist_t		output_buffers;
 	isc_boolean_t			is_client;
-} omapi_connection_object_t;
+};
 
-typedef struct omapi_generic_object {
+struct omapi_protocol {
 	OMAPI_OBJECT_PREAMBLE;
-	omapi_value_t **		values;
-	unsigned int			nvalues;
-	unsigned int			va_max;
-} omapi_generic_object_t;
-
-typedef enum {
-	omapi_protocol_intro_wait,
-	omapi_protocol_header_wait,
-	omapi_protocol_signature_wait,
-	omapi_protocol_name_wait,
-	omapi_protocol_name_length_wait,
-	omapi_protocol_value_wait,
-	omapi_protocol_value_length_wait
-} omapi_protocol_state_t;
-
-typedef struct {
-	OMAPI_OBJECT_PREAMBLE;
-	unsigned int			header_size;		
-	unsigned int			protocol_version;
+	isc_uint32_t			header_size;		
+	isc_uint32_t			protocol_version;
 	isc_uint32_t			next_xid;
-	omapi_object_t *		authinfo; /* Default authinfo. */
-
-	omapi_protocol_state_t		state;	/* Input state. */
-	/* XXXDCL make isc_boolean_t */
-	/*
-	 * True when reading message-specific values.
-	 */
+	omapi_object_t *		authinfo;	/* Default authinfo. */
+	omapi_protocol_state_t		state;		/* Input state. */
 	isc_boolean_t			reading_message_values;
-	omapi_message_object_t *	message;	/* Incoming message. */
-	omapi_data_string_t *		name;		/* Incoming name. */
-	omapi_typed_data_t *		value;		/* Incoming value. */
-} omapi_protocol_object_t;
-
-/*
- * OMAPI protocol header, version 1.00
- */
-typedef struct {
-	unsigned int authlen;  /* Length of authenticator. */
-	unsigned int authid;   /* Authenticator object ID. */
-	unsigned int op;       /* Opcode. */
-	omapi_handle_t handle; /* Handle of object being operated on, or 0. */
-	unsigned int id;	/* Transaction ID. */
-	unsigned int rid;       /* ID of transaction responding to. */
-} omapi_protocol_header_t;
-
-typedef struct omapi_waiter_object {
-	OMAPI_OBJECT_PREAMBLE;
-	isc_mutex_t			mutex;
-	isc_condition_t			ready;
-} omapi_waiter_object_t;
+	omapi_message_t *		message;	/* Incoming message. */
+	omapi_string_t *		name;		/* Incoming name. */
+	omapi_data_t *			value;		/* Incoming value. */
+};
 
 /*****
- ***** Global Variables.
+ ***** Private Global Library Variables.
  *****/
-extern omapi_object_type_t *omapi_type_connection;
-extern omapi_object_type_t *omapi_type_listener;
-extern omapi_object_type_t *omapi_type_generic;
-extern omapi_object_type_t *omapi_type_protocol;
-extern omapi_object_type_t *omapi_type_protocol_listener;
-extern omapi_object_type_t *omapi_type_message;
-
-extern omapi_object_type_t *omapi_object_types;
+extern omapi_objecttype_t *omapi_type_connection;
+extern omapi_objecttype_t *omapi_type_listener;
+extern omapi_objecttype_t *omapi_type_generic;
+extern omapi_objecttype_t *omapi_type_protocol;
+extern omapi_objecttype_t *omapi_type_message;
+extern omapi_objecttype_t *omapi_object_types;
 
 /*
  * Everything needs a memory context. 
@@ -181,8 +213,14 @@ extern isc_taskmgr_t *omapi_taskmgr;
  */
 extern isc_socketmgr_t *omapi_socketmgr;
 
+/*
+ * Is IPv6 in use?  Need to know when making connections to servers.
+ */
 extern isc_boolean_t omapi_ipv6;
 
+/*****
+ ***** Convenience macros.
+ *****/
 #define OBJECT_REF(objectp, object) \
 	omapi_object_reference((omapi_object_t **)objectp, \
 			       (omapi_object_t *)object)
@@ -193,63 +231,113 @@ extern isc_boolean_t omapi_ipv6;
 #define PASS_CHECK(object, function) \
 	(object->inner != NULL && object->inner->type->function != NULL)
 
-#define PASS_GETVALUE(object) \
-     do { \
-	if (PASS_CHECK(object, get_value)) \
-		return (*(object->inner->type->get_value))(object->inner, \
-							   id, name, value); \
-	else \
-		return (ISC_R_NOTFOUND); \
-     } while (0)
-
-#define PASS_SETVALUE(object) \
-     do { \
-	if (PASS_CHECK(object, set_value)) \
-		return (*(object->inner->type->set_value))(object->inner, \
-							   id, name, value); \
-	else \
-		return (ISC_R_NOTFOUND); \
-     } while (0)
-
-#define PASS_SIGNAL(object) \
-     do { \
-	if (PASS_CHECK(object, signal_handler)) \
-		return (*(object->inner->type->signal_handler))(object->inner,\
-								name, ap); \
-	else \
-		return (ISC_R_NOTFOUND); \
-     } while (0)
-
-#define PASS_STUFFVALUES(object) \
-     do { \
-	if (PASS_CHECK(object, stuff_values)) \
-		return (*(object->inner->type->stuff_values))(connection, id, \
-							      object->inner); \
-	else \
-		return (ISC_R_SUCCESS); \
-     } while (0)
-
+/*
+ * Private library functions defined in connection.c.
+ */
 isc_result_t
-omapi_connection_init(void);
-
-isc_result_t
-omapi_listener_init(void);
-
-isc_result_t
-omapi_generic_init(void);
-
-isc_result_t
-omapi_message_init(void);
-
-isc_result_t
-omapi_protocol_init(void);
-
-void
-connection_send(omapi_connection_object_t *connection);
+connection_init(void);
 
 isc_result_t
 connect_toserver(omapi_object_t *connection, const char *server, int port);
 
+void
+connection_send(omapi_connection_t *connection);
+
+isc_result_t
+connection_wait(omapi_object_t *connection_handle, isc_time_t *timeout);
+
+isc_result_t
+connection_require(omapi_connection_t *connection, unsigned int bytes);
+
+void
+connection_copyout(unsigned char *data, omapi_connection_t *connection,
+		   unsigned int length);
+
+void
+connection_getuint32(omapi_connection_t *c, isc_uint32_t *value);
+
+void
+connection_getuint16(omapi_connection_t *c, isc_uint16_t *value);
+
+/*
+ * Private library functions defined in generic.c.
+ */
+isc_result_t
+generic_init(void);
+
+/*
+ * Private functions defined in handle.c.
+ */
+isc_result_t
+object_gethandle(omapi_handle_t *handle, omapi_object_t *object);
+
+isc_result_t
+handle_lookup(omapi_object_t **object, omapi_handle_t handle);
+
+/*
+ * Private library functions defined in listener.c.
+ */
+isc_result_t
+listener_init(void);
+
+/*
+ * Private library functions defined in message.c.
+ */
+isc_result_t
+message_init(void);
+
+isc_result_t
+message_process(omapi_object_t *message, omapi_object_t *protocol);
+
+/*
+ * Private library functions defined in object.c.
+ */
+isc_result_t
+object_signal(omapi_object_t *handle, const char *name, ...);
+
+isc_result_t
+object_vsignal(omapi_object_t *handle, const char *name, va_list ap);
+
+isc_result_t
+object_stuffvalues(omapi_object_t *handle, omapi_object_t *object);
+
+isc_result_t
+object_update(omapi_object_t *object, omapi_object_t *source,
+	      omapi_handle_t handle);
+
+omapi_objecttype_t *
+object_findtype(omapi_value_t *tv);
+
+isc_result_t
+object_methodlookup(omapi_objecttype_t *type, omapi_object_t **object,
+		    omapi_object_t *key);
+
+isc_result_t
+object_methodcreate(omapi_objecttype_t *type, omapi_object_t **object);
+
+isc_result_t
+object_methodremove(omapi_objecttype_t *type, omapi_object_t *object);
+
+void
+object_destroytypes(void);
+
+/*
+ * Private library functions defined in protocol.c.
+ */
+isc_result_t
+protocol_init(void);
+
+isc_result_t
+send_intro(omapi_object_t *object, unsigned int version);
+
+isc_result_t
+send_status(omapi_object_t *protcol, isc_result_t waitstatus,
+	    unsigned int response_id, const char *message);
+
+isc_result_t
+send_update(omapi_object_t *protocol, unsigned int response_id,
+	    omapi_object_t *object);
+
 ISC_LANG_ENDDECLS
 
-#endif /* OMAPIP_OMAPIP_P_H */
+#endif /* OMAPIP_PRIVATE_H */

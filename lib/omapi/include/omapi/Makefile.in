@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	alloc.h buffer.h omapip.h omapip_p.h
+HEADERS =	compatibility.h omapi.h private.h
 
 SUBDIRS =
 TARGETS =

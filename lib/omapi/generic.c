@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.7 2000/01/17 18:02:06 tale Exp $ */
+/* $Id: generic.c,v 1.8 2000/01/22 00:17:49 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -29,29 +29,10 @@
 
 #include <omapi/private.h>
 
-#if 0
-isc_result_t
-omapi_generic_new(omapi_object_t **generic_handle, const char *name) {
-	omapi_generic_object_t *generic;
-
-	obj = isc_mem_get(omapi_mctx, sizeof(*obj));
-	if (obj == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(obj, 0, sizeof(*obj));
-	obj->refcnt = 0;
-	obj->type = omapi_type_generic;
-
-	OBJECT_REF(gen, obj);
-
-	return (ISC_R_SUCCESS);
-}
-#endif
-
 static isc_result_t
-generic_setvalue(omapi_object_t *h, omapi_object_t *id,
-		 omapi_data_string_t *name, omapi_typed_data_t *value)
+generic_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 {
-	omapi_generic_object_t *g;
+	omapi_generic_t *g;
 	omapi_value_t *new;
 	omapi_value_t **va;
 	int vm_new;
@@ -60,7 +41,7 @@ generic_setvalue(omapi_object_t *h, omapi_object_t *id,
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
-	g = (omapi_generic_object_t *)h;
+	g = (omapi_generic_t *)h;
 
 	/*
 	 * See if there's already a value with this name attached to
@@ -68,7 +49,7 @@ generic_setvalue(omapi_object_t *h, omapi_object_t *id,
 	 * with the new one.
 	 */
 	for (i = 0; i < g->nvalues; i++) {
-		if (omapi_data_string_cmp(name, g->values[i]->name) == 0) {
+		if (omapi_string_stringcmp(name, g->values[i]->name) == 0) {
 			/*
 			 * There's an inconsistency here: the standard
 			 * behaviour of a set_values method when
@@ -85,23 +66,17 @@ generic_setvalue(omapi_object_t *h, omapi_object_t *id,
 			 * returned.
 			 */
 			new = NULL;
-			result = omapi_data_newvalue(&new,
-						    "omapi_message_get_value");
+			result = omapi_value_create(&new);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 
-			omapi_data_stringreference(&new->name, name,
-						    "omapi_message_get_value");
+			omapi_string_reference(&new->name, name);
 			if (value != NULL)
-				omapi_data_reference(&new->value, value,
-						    "omapi_generic_set_value");
+				omapi_data_reference(&new->value, value);
 
-			omapi_data_valuedereference(&(g->values[i]),
-						"omapi_message_set_value");
-			omapi_data_valuereference(&(g->values[i]), new,
-					        "omapi_message_set_value");
-			omapi_data_valuedereference(&new,
-						"omapi_message_set_value");
+			omapi_value_dereference(&(g->values[i]));
+			omapi_value_reference(&(g->values[i]), new);
+			omapi_value_dereference(&new);
 
 			return (ISC_R_SUCCESS);
 		}
@@ -111,12 +86,9 @@ generic_setvalue(omapi_object_t *h, omapi_object_t *id,
 	 * If the name isn't already attached to this object, see if an
 	 * inner object has it.
 	 */
-	if (h->inner != NULL && h->inner->type->set_value != NULL) {
-		result = (*(h->inner->type->set_value))(h->inner, id,
-							name, value);
-		if (result != ISC_R_NOTFOUND)
-			return (result);
-	}
+	result = omapi_object_passsetvalue(h, name, value);
+	if (result != ISC_R_NOTFOUND)
+		return (result);
 
 	/*
 	 * Okay, so it's a value that no inner object knows about, and
@@ -149,36 +121,33 @@ generic_setvalue(omapi_object_t *h, omapi_object_t *id,
 		g->values = va;
 		g->va_max = vm_new;
 	}
-	result = omapi_data_newvalue(&g->values[g->nvalues],
-				     "omapi_generic_set_value");
+	result = omapi_value_create(&g->values[g->nvalues]);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	omapi_data_stringreference(&g->values[g->nvalues]->name, name,
-				   "omapi_generic_set_value");
+	omapi_string_reference(&g->values[g->nvalues]->name, name);
 	if (value != NULL)
-		omapi_data_reference(&g->values[g->nvalues]->value, value,
-				     "omapi_generic_set_value");
+		omapi_data_reference(&g->values[g->nvalues]->value, value);
 	g->nvalues++;
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-generic_getvalue(omapi_object_t *h, omapi_object_t *id,
-		 omapi_data_string_t *name, omapi_value_t **value)
+generic_getvalue(omapi_object_t *h, omapi_string_t *name,
+		 omapi_value_t **value)
 {
 	unsigned int i;
-	omapi_generic_object_t *g;
+	omapi_generic_t *g;
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
-	g = (omapi_generic_object_t *)h;
+	g = (omapi_generic_t *)h;
 	
 	/*
 	 * Look up the specified name in our list of objects.
 	 */
 	for (i = 0; i < g->nvalues; i++) {
-		if (omapi_data_string_cmp(name, g->values[i]->name) == 0) {
+		if (omapi_string_stringcmp(name, g->values[i]->name) == 0) {
 			/*
 			 * If this is a name/null value pair, this is the
 			 * same as if there were no value that matched
@@ -189,29 +158,27 @@ generic_getvalue(omapi_object_t *h, omapi_object_t *id,
 			/*
 			 * Otherwise, return the name/value pair.
 			 */
-			omapi_data_valuereference(value, g->values[i],
-						  "omapi_message_get_value");
+			omapi_value_reference(value, g->values[i]);
 			return (ISC_R_SUCCESS);
 		}
 	}			
 
-	PASS_GETVALUE(h);
+	return (omapi_object_passgetvalue(h, name, value));
 }
 
 static void
 generic_destroy(omapi_object_t *h) {
-	omapi_generic_object_t *g;
+	omapi_generic_t *g;
 	unsigned int i;
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
-	g = (omapi_generic_object_t *)h;
+	g = (omapi_generic_t *)h;
 	
 	if (g->values != NULL) {
 		for (i = 0; i < g->nvalues; i++)
 			if (g->values[i] != NULL)
-				omapi_data_valuedereference(&g->values[i],
-							    NULL);
+				omapi_value_dereference(&g->values[i]);
 
 		isc_mem_put(omapi_mctx, g->values,
 			    g->va_max * sizeof(*g->values));
@@ -225,7 +192,7 @@ generic_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
-	PASS_SIGNAL(h);
+	return (omapi_object_passsignal(h, name, ap));
 }
 
 /*
@@ -233,16 +200,15 @@ generic_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
  * specified connection.
  */
 static isc_result_t
-generic_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
-		    omapi_object_t *h)
+generic_stuffvalues(omapi_object_t *connection, omapi_object_t *h)
 {
-	omapi_generic_object_t *src;
+	omapi_generic_t *src;
 	unsigned int i;
 	isc_result_t result;
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
-	src = (omapi_generic_object_t *)h;
+	src = (omapi_generic_t *)h;
 	
 	for (i = 0; i < src->nvalues; i++) {
 		if (src->values[i] != NULL &&
@@ -251,30 +217,29 @@ generic_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
 						   src->values[i]->name->len);
 			if (result != ISC_R_SUCCESS)
 				return (result);
-			result = omapi_connection_copyin(connection,
+			result = omapi_connection_putmem(connection,
 						   src->values[i]->name->value,
 						   src->values[i]->name->len);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 
-			result = omapi_connection_puttypeddata(connection,
+			result = omapi_connection_putdata(connection,
 						       src->values[i]->value);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
 	}			
 
-	PASS_STUFFVALUES(h);
+	return (omapi_object_passstuffvalues(connection, h));
 }
 
 isc_result_t
-omapi_generic_init(void) {
-	return (omapi_object_register(&omapi_type_generic,
-					   "generic",
-					   generic_setvalue,
-					   generic_getvalue,
-					   generic_destroy,
-					   generic_signalhandler,
-					   generic_stuffvalues,
-					   NULL, NULL, NULL));
+generic_init(void) {
+	return (omapi_object_register(&omapi_type_generic, "generic",
+				      generic_setvalue,
+				      generic_getvalue,
+				      generic_destroy,
+				      generic_signalhandler,
+				      generic_stuffvalues,
+				      NULL, NULL, NULL));
 }

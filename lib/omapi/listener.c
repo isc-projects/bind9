@@ -20,7 +20,6 @@
  */
 #include <stddef.h>		/* NULL */
 #include <string.h>		/* memset */
-#include <unistd.h>		/* close */
 
 #include <isc/assertions.h>
 #include <isc/bufferlist.h>
@@ -34,7 +33,7 @@ typedef struct omapi_listener_object {
 	isc_task_t *task;
 	isc_socket_t *socket;	/* Connection socket. */
 	isc_sockaddr_t address;
-} omapi_listener_object_t;
+} omapi_listener_t;
 
 /*
  * Reader callback for a listener object.   Accept an incoming connection.
@@ -46,7 +45,7 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *obuffer = NULL;
 	isc_task_t *connection_task = NULL;
 	isc_socket_t *socket;
-	omapi_connection_object_t *connection = NULL;
+	omapi_connection_t *connection = NULL;
 	omapi_object_t *protocol = NULL;
 
 	/*
@@ -127,7 +126,7 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	 */
 	protocol = NULL;
 	result = omapi_object_create(&protocol, omapi_type_protocol,
-				     sizeof(omapi_protocol_object_t));
+				     sizeof(omapi_protocol_t));
 	if (result != ISC_R_SUCCESS)
 		goto free_connection_object;
 
@@ -141,16 +140,14 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Send the introductory message.
 	 */
-	result = omapi_protocol_send_intro(protocol, OMAPI_PROTOCOL_VERSION,
-					   sizeof(omapi_protocol_header_t));
+	result = send_intro(protocol, OMAPI_PROTOCOL_VERSION);
 
 	if (result != ISC_R_SUCCESS)
 		goto free_protocol_object;
 
 	/*
 	 * Lose one reference to the connection, so it'll be gc'd when it's
-	 * reaped.  The omapi_protocol_listener_signal function added a
-	 * reference when it created a protocol object as connection->inner.
+	 * reaped.  
 	 * XXXDCL that's Ted's comment, but I don't see how it can be true.
 	 * I don't see how it will "lose one reference" since
 	 * omapi_object_dereference does not decrement refcnt.
@@ -186,14 +183,13 @@ free_ibuffer:
 	isc_buffer_free(&ibuffer);
 free_task:
 	isc_task_destroy(&connection_task);
-	return;
 }
 
 isc_result_t
 omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 	isc_result_t result;
 	isc_task_t *task;
-	omapi_listener_object_t *listener;
+	omapi_listener_t *listener;
 	struct in_addr inaddr;
 
 	task = NULL;
@@ -264,8 +260,8 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 }
 
 static isc_result_t
-listener_setvalue(omapi_object_t *listener, omapi_object_t *id,
-			omapi_data_string_t *name, omapi_typed_data_t *value)
+listener_setvalue(omapi_object_t *listener, omapi_string_t *name,
+		  omapi_data_t *value)
 {
 	/*
 	 * Nothing meaningful can be set in a listener object; just
@@ -273,12 +269,12 @@ listener_setvalue(omapi_object_t *listener, omapi_object_t *id,
 	 */
 	REQUIRE(listener != NULL && listener->type == omapi_type_listener);
 
-	PASS_SETVALUE(listener);
+	return (omapi_object_passsetvalue(listener, name, value));
 }
 
 static isc_result_t
-listener_getvalue(omapi_object_t *listener, omapi_object_t *id,
-			omapi_data_string_t *name, omapi_value_t **value)
+listener_getvalue(omapi_object_t *listener, omapi_string_t *name,
+		  omapi_value_t **value)
 {
 	/*
 	 * Nothing meaningful can be fetched from a listener object; just
@@ -286,16 +282,16 @@ listener_getvalue(omapi_object_t *listener, omapi_object_t *id,
 	 */
 	REQUIRE(listener != NULL && listener->type == omapi_type_listener);
 	
-	PASS_GETVALUE(listener);
+	return (omapi_object_passgetvalue(listener, name, value));
 }
 
 static void
 listener_destroy(omapi_object_t *object) {
-	omapi_listener_object_t *listener;
+	omapi_listener_t *listener;
 
 	REQUIRE(object != NULL && object->type == omapi_type_listener);
 
-	listener = (omapi_listener_object_t *)object;
+	listener = (omapi_listener_t *)object;
 
 	isc_task_destroy(&listener->task);
 
@@ -316,16 +312,12 @@ listener_signalhandler(omapi_object_t *listener, const char *name, va_list ap)
 	REQUIRE(listener != NULL && listener->type == omapi_type_listener);
 	
 	/*
-	 * This function is reached when listener_accept does
-	 * an omapi_signal of "connect" on the listener object.  Nothing
+	 * This function is reached when listener_accept does an
+	 * object_signal of "connect" on the listener object.  Nothing
 	 * need be done here, but the object that originally requested
 	 * the listen needs to signalled that a connection was made.
-	 *
-	 * In the normal instance, the pass-through is to an object of type
- 	 * omapi_type_protocol_listener, so the signal_handler that
-	 * is getting called is omapi_protocol_listener_signal.
 	 */
-	PASS_SIGNAL(listener);
+	return (omapi_object_passsignal(listener, name, ap));
 }
 
 /*
@@ -333,16 +325,15 @@ listener_signalhandler(omapi_object_t *listener, const char *name, va_list ap)
  * specified connection.
  */
 static isc_result_t
-listener_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
-		     omapi_object_t *listener)
+listener_stuffvalues(omapi_object_t *connection, omapi_object_t *listener)
 {
 	REQUIRE(listener != NULL && listener->type == omapi_type_listener);
 
-	PASS_STUFFVALUES(listener);
+	return (omapi_object_passstuffvalues(connection, listener));
 }
 
 isc_result_t
-omapi_listener_init(void) {
+listener_init(void) {
 	return (omapi_object_register(&omapi_type_listener, "listener",
 				      listener_setvalue,
 				      listener_getvalue,

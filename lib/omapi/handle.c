@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.5 2000/01/17 18:02:06 tale Exp $ */
+/* $Id: handle.c,v 1.6 2000/01/22 00:17:50 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -26,7 +26,8 @@
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>
-#include <isc/boolean.h>
+#include <isc/error.h>
+#include <isc/once.h>
 
 #include <omapi/private.h>
 
@@ -57,114 +58,83 @@
  * application.
  */
 
-#define OMAPI_HANDLE_TABLE_SIZE 120
+#define OMAPI_HANDLETABLE_SIZE 120
 
-typedef struct omapi_handle_table {
+typedef struct omapi_handletable {
 	omapi_handle_t		first;
 	omapi_handle_t		limit;
 	omapi_handle_t		next;
 	isc_boolean_t		leaf;
 	union {
 		omapi_object_t *		object;
-		struct omapi_handle_table *	table;
-	} children[OMAPI_HANDLE_TABLE_SIZE];
-} omapi_handle_table_t;
+		struct omapi_handletable *	table;
+	} children[OMAPI_HANDLETABLE_SIZE];
+} omapi_handletable_t;
 
-omapi_handle_table_t *omapi_handle_table;
-omapi_handle_t omapi_next_handle = 1;	/* Next handle to be assigned. */
+static omapi_handletable_t *toptable;
+static omapi_handle_t next_handle = 1;	/* Next handle to be assigned. */
+static isc_mutex_t mutex;		/* To lock the 2 previous variables. */
+static isc_once_t once = ISC_ONCE_INIT; /* To initialize the mutex. */
 
 /*
- * Forward declarations.
+ * initialize_mutex() is called by isc_once_do in object_gethandle()
  */
-static isc_result_t
-omapi_handle_lookup_in(omapi_object_t **object, omapi_handle_t handle,
-		       omapi_handle_table_t *table);
-static isc_result_t
-omapi_object_handle_in_table(omapi_handle_t handle,
-			     omapi_handle_table_t *table,
-			     omapi_object_t *object);
-static isc_result_t
-omapi_handle_table_enclose(omapi_handle_table_t **table);
+static void
+initialize_mutex(void) {
+	/*
+	 * XXXDCL no provision has been made to destroy the mutex.
+	 */
+	RUNTIME_CHECK(isc_mutex_init(&mutex) == ISC_R_SUCCESS);
+}
 
-isc_result_t
-omapi_object_handle(omapi_handle_t *h, omapi_object_t *o) {
-	isc_result_t result;
-
-	if (o->handle != 0) {
-		*h = o->handle;
-		return (ISC_R_SUCCESS);
-	}
-	
-	if (omapi_handle_table == NULL) {
-		omapi_handle_table = isc_mem_get(omapi_mctx,
-						 sizeof(*omapi_handle_table));
-		if (omapi_handle_table == NULL)
-			return (ISC_R_NOMEMORY);
-		memset(omapi_handle_table, 0, sizeof(*omapi_handle_table));
-		omapi_handle_table->first = 0;
-		omapi_handle_table->limit = OMAPI_HANDLE_TABLE_SIZE;
-		omapi_handle_table->leaf = ISC_TRUE;
-	}
+static isc_result_t
+table_enclose(omapi_handletable_t **table) {
+	omapi_handletable_t *inner = *table;
+	omapi_handletable_t *new;
+	int index, base, scale;
 
 	/*
-	 * If this handle doesn't fit in the outer table, we need to
-	 * make a new outer table.  This is a while loop in case for
-	 * some reason we decide to do disjoint handle allocation,
-	 * where the next level of indirection still isn't big enough
-	 * to enclose the next handle ID.
+	 * The scale of the table we're enclosing is going to be the
+	 * difference between its "first" and "limit" members.  So the
+	 * scale of the table enclosing it is going to be that multiplied
+	 * by the table size.
 	 */
+	scale = (inner->first - inner->limit) * OMAPI_HANDLETABLE_SIZE;
 
-	while (omapi_next_handle >= omapi_handle_table->limit) {
-		omapi_handle_table_t *new;
-		
-		new = isc_mem_get(omapi_mctx, sizeof(*new));
-		if (new == NULL)
-			return (ISC_R_NOMEMORY);
-		memset(new, 0, sizeof(*new));
-		new->first = 0;
-		new->limit = (omapi_handle_table->limit *
-			      OMAPI_HANDLE_TABLE_SIZE);
+	/*
+	 * The range that the enclosing table covers is going to be
+	 * the result of subtracting the remainder of dividing the
+	 * enclosed table's first entry number by the enclosing
+	 * table's scale.  If handle IDs are being allocated
+	 * sequentially, the enclosing table's "first" value will be
+	 * the same as the enclosed table's "first" value.
+	 */
+	base = inner->first - inner->first % scale;
+
+	/*
+	 * The index into the enclosing table at which the enclosed table
+	 * will be stored is going to be the difference between the "first"
+	 * value of the enclosing table and the enclosed table - zero, if
+	 * we are allocating sequentially.
+	 */
+	index = (base - inner->first) / OMAPI_HANDLETABLE_SIZE;
+
+	new = isc_mem_get(omapi_mctx, sizeof(*new));
+	if (new == NULL)
+		return (ISC_R_NOMEMORY);
+	memset(new, 0, sizeof *new);
+	new->first = base;
+	new->limit = base + scale;
+	if (scale == OMAPI_HANDLETABLE_SIZE)
 		new->leaf = ISC_FALSE;
-		new->children[0].table = omapi_handle_table;
-		omapi_handle_table = new;
-	}
-
-	/*
-	 * Try to cram this handle into the existing table.
-	 */
-	result = omapi_object_handle_in_table(omapi_next_handle,
-					      omapi_handle_table, o);
-	/*
-	 * If it worked, return the next handle and increment it.
-	 */
-	if (result == ISC_R_SUCCESS) {
-		*h = omapi_next_handle;
-		omapi_next_handle++;
-		return (ISC_R_SUCCESS);
-	}
-	if (result != ISC_R_NOSPACE)
-		return (result);
-
-	result = omapi_handle_table_enclose(&omapi_handle_table);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = omapi_object_handle_in_table(omapi_next_handle,
-					      omapi_handle_table, o);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	*h = omapi_next_handle;
-	omapi_next_handle++;
-
+	new->children[index].table = inner;
+	*table = new;
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-omapi_object_handle_in_table(omapi_handle_t h, omapi_handle_table_t *table,
-			     omapi_object_t *o)
-{
-	omapi_handle_table_t *inner;
+handle_store(omapi_handle_t h, omapi_handletable_t *table, omapi_object_t *o) {
+	omapi_handletable_t *inner;
 	omapi_handle_t scale, index;
 	isc_result_t result;
 
@@ -186,7 +156,7 @@ omapi_object_handle_in_table(omapi_handle_t h, omapi_handle_table_t *table,
 	 * table.   For a leaf table, scale would be 1.   For a first level
 	 * of indirection, 120.   For a second, 120 * 120.   Et cetera.
 	 */
-	scale = (table->limit - table->first) / OMAPI_HANDLE_TABLE_SIZE;
+	scale = (table->limit - table->first) / OMAPI_HANDLETABLE_SIZE;
 
 	/*
 	 * So the next most direct table from this one that contains the
@@ -207,79 +177,100 @@ omapi_object_handle_in_table(omapi_handle_t h, omapi_handle_table_t *table,
 		memset(inner, 0, sizeof(*inner));
 		inner->first = index * scale + table->first;
 		inner->limit = inner->first + scale;
-		if (scale == OMAPI_HANDLE_TABLE_SIZE)
+		if (scale == OMAPI_HANDLETABLE_SIZE)
 			inner->leaf = ISC_TRUE;
 		table->children[index].table = inner;
 	}
 
-	result = omapi_object_handle_in_table(h, inner, o);
+	result = handle_store(h, inner, o);
 	if (result == ISC_R_NOSPACE) {
-		result = (omapi_handle_table_enclose
+		result = (table_enclose
 			  (&table->children[index].table));
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		return (omapi_object_handle_in_table(h,
-					     table->children[index].table, o));
+		return (handle_store(h, table->children[index].table, o));
 	}
 	return (result);
 }
 
-static isc_result_t
-omapi_handle_table_enclose(omapi_handle_table_t **table) {
-	omapi_handle_table_t *inner = *table;
-	omapi_handle_table_t *new;
-	int index, base, scale;
-
-	/*
-	 * The scale of the table we're enclosing is going to be the
-	 * difference between its "first" and "limit" members.  So the
-	 * scale of the table enclosing it is going to be that multiplied
-	 * by the table size.
-	 */
-	scale = (inner->first - inner->limit) * OMAPI_HANDLE_TABLE_SIZE;
-
-	/*
-	 * The range that the enclosing table covers is going to be
-	 * the result of subtracting the remainder of dividing the
-	 * enclosed table's first entry number by the enclosing
-	 * table's scale.  If handle IDs are being allocated
-	 * sequentially, the enclosing table's "first" value will be
-	 * the same as the enclosed table's "first" value.
-	 */
-	base = inner->first - inner->first % scale;
-
-	/*
-	 * The index into the enclosing table at which the enclosed table
-	 * will be stored is going to be the difference between the "first"
-	 * value of the enclosing table and the enclosed table - zero, if
-	 * we are allocating sequentially.
-	 */
-	index = (base - inner->first) / OMAPI_HANDLE_TABLE_SIZE;
-
-	new = isc_mem_get(omapi_mctx, sizeof(*new));
-	if (new == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(new, 0, sizeof *new);
-	new->first = base;
-	new->limit = base + scale;
-	if (scale == OMAPI_HANDLE_TABLE_SIZE)
-		new->leaf = ISC_FALSE;
-	new->children[index].table = inner;
-	*table = new;
-	return (ISC_R_SUCCESS);
-}
-
 isc_result_t
-omapi_handle_lookup(omapi_object_t **o, omapi_handle_t h) {
-	return (omapi_handle_lookup_in(o, h, omapi_handle_table));
+object_gethandle(omapi_handle_t *h, omapi_object_t *o) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
+
+	if (o->handle != 0) {
+		*h = o->handle;
+		return (ISC_R_SUCCESS);
+	}
+
+	RUNTIME_CHECK(isc_mutex_lock(&mutex) == ISC_R_SUCCESS);
+
+	if (toptable == NULL) {
+		toptable = isc_mem_get(omapi_mctx, sizeof(*toptable));
+		if (toptable != NULL) {
+			memset(toptable, 0, sizeof(*toptable));
+			toptable->first = 0;
+			toptable->limit = OMAPI_HANDLETABLE_SIZE;
+			toptable->leaf = ISC_TRUE;
+
+		} else
+			result = ISC_R_NOMEMORY;
+	}
+
+	if (result == ISC_R_SUCCESS)
+		/*
+		 * If this handle doesn't fit in the outer table, we need to
+		 * make a new outer table.  This is a while loop in case for
+		 * some reason we decide to do disjoint handle allocation,
+		 * where the next level of indirection still isn't big enough
+		 * to enclose the next handle ID.
+		 */
+		while (next_handle >= toptable->limit) {
+			omapi_handletable_t *new;
+		
+			new = isc_mem_get(omapi_mctx, sizeof(*new));
+			if (new != NULL) {
+				memset(new, 0, sizeof(*new));
+				new->first = 0;
+				new->limit = toptable->limit *
+					OMAPI_HANDLETABLE_SIZE;
+				new->leaf = ISC_FALSE;
+				new->children[0].table = toptable;
+				toptable = new;
+
+			} else
+				result = ISC_R_NOMEMORY;
+		}
+
+	/*
+	 * Try to cram this handle into the existing table.
+	 */
+	if (result == ISC_R_SUCCESS)
+		result = handle_store(next_handle, toptable, o);
+
+	if (result == ISC_R_NOSPACE) {
+		result = table_enclose(&toptable);
+		if (result == ISC_R_SUCCESS)
+			result = handle_store(next_handle, toptable, o);
+	}
+
+	/*
+	 * If it worked, return the next handle and increment it.
+	 */
+	if (result == ISC_R_SUCCESS)
+		*h = next_handle++;
+
+	RUNTIME_CHECK(isc_mutex_unlock(&mutex) == ISC_R_SUCCESS);
+	return (result);
 }
 
 static isc_result_t
-omapi_handle_lookup_in(omapi_object_t **o, omapi_handle_t h,
-		       omapi_handle_table_t *table)
+lookup_iterate(omapi_object_t **o, omapi_handle_t h,
+		 omapi_handletable_t *table)
 {
-	omapi_handle_table_t *inner;
+	omapi_handletable_t *inner;
 	omapi_handle_t scale, index;
 
 	if (table == NULL || table->first > h || table->limit <= h)
@@ -304,7 +295,7 @@ omapi_handle_lookup_in(omapi_object_t **o, omapi_handle_t h,
 	 * table.   For a leaf table, scale would be 1.   For a first level
 	 * of indirection, 120.   For a second, 120 * 120.   Et cetera.
 	 */
-	scale = (table->limit - table->first) / OMAPI_HANDLE_TABLE_SIZE;
+	scale = (table->limit - table->first) / OMAPI_HANDLETABLE_SIZE;
 
 	/*
 	 * So the next most direct table from this one that contains the
@@ -314,29 +305,10 @@ omapi_handle_lookup_in(omapi_object_t **o, omapi_handle_t h,
 	index = (h - table->first) / scale;
 	inner = table->children[index].table;
 
-	return (omapi_handle_lookup_in(o, h, table->children[index].table));
+	return (lookup_iterate(o, h, table->children[index].table));
 }
 
-/*
- * For looking up objects based on handles that have been sent on the wire.
- */
 isc_result_t
-omapi_handle_td_lookup(omapi_object_t **obj, omapi_typed_data_t *h) {
-	omapi_handle_t handle;
-
-	REQUIRE(h != NULL);
-	REQUIRE(h->type == omapi_datatype_int ||
-		(h->type == omapi_datatype_data &&
-		 h->u.buffer.len == sizeof(handle)));
-
-	if (h->type == omapi_datatype_int)
-		handle = h->u.integer;
-
-	else if (h->type == omapi_datatype_data &&
-		 h->u.buffer.len == sizeof(handle)) {
-		memcpy(&handle, h->u.buffer.value, sizeof(handle));
-		handle = ntohl(handle);
-	}
-
-	return (omapi_handle_lookup(obj, handle));
+handle_lookup(omapi_object_t **o, omapi_handle_t h) {
+	return (lookup_iterate(o, h, toptable));
 }
