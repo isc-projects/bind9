@@ -72,8 +72,6 @@ typedef struct {
 	dns_aclconfctx_t	*aclconf;
 } ns_load_t;
 
-static isc_task_t *		server_task;
-
 /* XXX temporary kludge until TSIG/TKEY are objectified */
 static isc_boolean_t tsig_initialized = ISC_FALSE;
 
@@ -625,8 +623,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	ns_interfacemgr_detach(&server->interfacemgr);	
 	dns_zonemgr_destroy(&ns_g_zonemgr);
 
-	isc_task_detach(&server_task);
-
+	isc_task_detach(&server->task);
+	
 	isc_event_free(&event);
 }
 
@@ -638,7 +636,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	if (server == NULL)
 		return (ISC_R_NOMEMORY);
 	server->mctx = mctx;
-
+	server->task = NULL;
+	
 	/* Initialize configuration data with default values. */
 	server->recursion = ISC_TRUE;
 	server->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
@@ -672,9 +671,29 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		return (ISC_R_UNEXPECTED);
 	}
 
+	/*
+	 * Setup the server task, which is responsible for coordinating
+	 * startup and shutdown of the server.
+	 */
+	result = isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server->task);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = isc_task_onshutdown(server->task, shutdown_server, server);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_task;
+	result = isc_app_onrun(ns_g_mctx, server->task, run_server, server);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_task;
+	
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 	return (ISC_R_SUCCESS);
+
+ cleanup_task:
+	isc_task_detach(&server->task);
+ cleanup:
+	/* XXX more cleanup */
+	return (result);
 }
 	
 void
@@ -722,26 +741,9 @@ ns_server_setup(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	/*
-	 * Setup the server task, which is responsible for coordinating
-	 * startup and shutdown of the server.
-	 */
-	result = isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server_task);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_rootns;
-	result = isc_task_onshutdown(server_task, shutdown_server, ns_g_server);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_task;
-	result = isc_app_onrun(ns_g_mctx, server_task, run_server, ns_g_server);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_task;
-
 	return (ISC_R_SUCCESS);
 
 	/* XXXRTH  Add zonemgr, and version view cleanups. */
-
- cleanup_task:
-	isc_task_detach(&server_task);
 
  cleanup_rootns:
 	ns_rootns_destroy();

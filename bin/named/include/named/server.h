@@ -31,6 +31,8 @@ struct ns_server {
 	isc_uint32_t		magic;
 	isc_mem_t *		mctx;
 
+	isc_task_t *		task;
+	
 	/* Configurable data. */
 	isc_boolean_t		recursion;
 	isc_boolean_t		auth_nxdomain;
