@@ -296,7 +296,8 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 /*
  * Construct an iov array and attach it to the msghdr passed in.  Return
  * 0 on success, non-zero on failure.  This is the SEND constructor, which
- * will used the used region of the buffer.
+ * will used the used region of the buffer (if using a buffer list) or
+ * will use the internal region (if a single buffer I/O is requested).
  *
  * Nothing can be NULL, and the done event must list at least one buffer
  * on the buffer linked list for this function to be meaningful.
@@ -309,13 +310,22 @@ build_msghdr_send(isc_socketevent_t *dev, struct msghdr *msg,
 	isc_buffer_t *buffer;
 	isc_region_t used;
 
-	iovcount = 0;
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
 
-	for (;;) {
-		if (buffer == NULL)
-			break;
+	/*
+	 * Single buffer I/O?
+	 */
+	if (buffer == NULL) {
+		iov[0].iov_base = (void *)dev->region.base;
+		iov[0].iov_len = dev->region.length;
+		msg->msg_iov = iov;
+		msg->msg_iovlen = 1;
 
+		return (0);
+	}
+
+	iovcount = 0;
+	while (buffer != NULL) {
 		if (iovcount == maxiov)
 			return (-1);
 
@@ -332,6 +342,28 @@ build_msghdr_send(isc_socketevent_t *dev, struct msghdr *msg,
 	msg->msg_iovlen = iovcount;
 
 	return (0);
+}
+
+static isc_socketevent_t *
+allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
+		     isc_taskaction_t action, void *arg)
+{
+	isc_socketevent_t *ev;
+
+	ev = (isc_socketevent_t *)isc_event_allocate(sock->manager->mctx,
+						     sock, eventtype,
+						     action, arg,
+						     sizeof (*ev));
+
+	if (ev == NULL)
+		return (NULL);
+
+	ev->result = ISC_R_UNEXPECTED;
+	ISC_LINK_INIT(ev, link);
+	ISC_LIST_INIT(ev->bufferlist);
+	ev->region.base = NULL;
+
+	return (ev);
 }
 
 /*
@@ -1695,10 +1727,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 
 	LOCK(&sock->lock);
 
-	dev = (isc_socketevent_t *)isc_event_allocate(manager->mctx, sock,
-						      ISC_SOCKEVENT_RECVDONE,
-						      action, arg,
-						      sizeof(*dev));
+	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -1901,10 +1930,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	manager = sock->manager;
 
-	dev = (isc_socketevent_t *)isc_event_allocate(manager->mctx, sock,
-						      ISC_SOCKEVENT_SENDDONE,
-						      action, arg,
-						      sizeof(*dev));
+	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -2577,10 +2603,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 
 	LOCK(&sock->lock);
 
-	dev = (isc_socketevent_t *)isc_event_allocate(manager->mctx, sock,
-						      ISC_SOCKEVENT_RECVMARK,
-						      action, arg,
-						      sizeof(*dev));
+	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVMARK, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
@@ -2641,10 +2664,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 
 	LOCK(&sock->lock);
 
-	dev = (isc_socketevent_t *)isc_event_allocate(manager->mctx, sock,
-						      ISC_SOCKEVENT_SENDMARK,
-						      action, arg,
-						      sizeof(*dev));
+	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDMARK, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
