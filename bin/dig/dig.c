@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51 2000/06/23 16:53:53 marka Exp $ */
+/* $Id: dig.c,v 1.52 2000/06/28 18:20:41 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -57,9 +57,6 @@ extern int ndots;
 extern int tries;
 extern int lookup_counter;
 extern char fixeddomain[MXNAME];
-#ifdef TWIDDLE
-extern isc_boolean_t twiddle;
-#endif
 extern int exitcode;
 extern isc_sockaddr_t bind_address;
 extern char keynametext[MXNAME];
@@ -151,9 +148,6 @@ show_usage(void) {
 "                 +[no]recursive      (Recursive mode)\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]details        (Show details of all requests)\n"
-#ifdef TWIDDLE
-"                 +twiddle            (Intentionally form bad requests)\n"
-#endif
 "                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]question       (Control display of question)\n"
@@ -921,10 +915,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				comments = ISC_FALSE;
 			}
 
-#ifdef TWIDDLE
-		} else if (strncmp(rv[0], "+twiddle", 6) == 0) {
-			twiddle = ISC_TRUE;
-#endif
 		} else if (strncmp(rv[0], "-c", 2) == 0) {
  			if (have_host) {
 				if (rv[0][2] != 0) {
@@ -1220,28 +1210,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
-#ifdef TWIDDLE
-	FILE *fp;
-	int i, p;
-#endif
-
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
 	debug ("dhmain()");
-#ifdef TWIDDLE
-	fp = fopen("/dev/urandom", "r");
-	if (fp != NULL) {
-		fread (&i, sizeof(int), 1, fp);
-		srandom(i);
-	}
-	else {
-		srandom ((int)&main);
-	}
-	p = getpid()%16+8;
-	for (i = 0 ; i<p; i++);
-#endif
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();

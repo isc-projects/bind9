@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.29 2000/06/22 22:37:31 mws Exp $ */
+/* $Id: host.c,v 1.30 2000/06/28 18:20:44 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -685,28 +685,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
-#ifdef TWIDDLE
-	FILE *fp;
-	int i, p;
-#endif
-
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
 	debug ("dhmain()");
-#ifdef TWIDDLE
-	fp = fopen("/dev/urandom", "r");
-	if (fp != NULL) {
-		fread (&i, sizeof(int), 1, fp);
-		srandom(i);
-	}
-	else {
-		srandom ((int)&main);
-	}
-	p = getpid() % 16 + 8;
-	for (i = 0 ; i < p; i++);
-#endif
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();

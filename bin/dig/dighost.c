@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.60 2000/06/27 23:18:14 mws Exp $ */
+/* $Id: dighost.c,v 1.61 2000/06/28 18:20:43 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -69,9 +69,6 @@ ISC_LIST(dig_searchlist_t) search_list;
 isc_boolean_t have_ipv6 = ISC_FALSE, specified_source = ISC_FALSE,
 	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE,
 	qr = ISC_FALSE, is_dst_up = ISC_FALSE;
-#ifdef TWIDDLE
-isc_boolean_t twiddle = ISC_FALSE;
-#endif
 in_port_t port = 53;
 unsigned int timeout = 5;
 isc_mem_t *mctx = NULL;
@@ -221,33 +218,6 @@ istype(char *text) {
 	}
 	return ISC_FALSE;
 }
-
-
-#ifdef TWIDDLE
-void
-twiddlebuf(isc_buffer_t buf) {
-	isc_region_t r;
-	int len, pos, bit;
-	unsigned char bitfield;
-	int i, tw;
-
-	hex_dump(&buf);
-	tw=TWIDDLE;
-	printf ("Twiddling %d bits: ", tw);
-	for (i=0;i<tw;i++) {
-		isc_buffer_usedregion (&buf, &r);
-		len = r.length;
-		pos=(int)random();
-		pos = pos%len;
-		bit = (int)random()%8;
-		bitfield = 1 << bit;
-		printf ("%d@%03x ", bit, pos);
-		r.base[pos] ^= bitfield;
-	}
-	puts ("");
-	hex_dump(&buf);
-}
-#endif
 
 dig_lookup_t
 *requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
@@ -1231,11 +1201,6 @@ send_udp(dig_lookup_t *lookup) {
 		check_result(result, "isc_socket_recvv");
 		sendcount++;
 		debug("Sent count number %d", sendcount);
-#ifdef TWIDDLE
-		if (twiddle) {
-			twiddlebuf(lookup->sendbuf);
-		}
-#endif
 		ISC_LIST_ENQUEUE(query->sendlist, &lookup->sendbuf, link);
 		debug("Sending a request.");
 		result = isc_time_now(&query->time_sent);
@@ -1400,11 +1365,6 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_buffer_putuint16(&query->slbuf, query->lookup->sendbuf.used);
 	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
 	if (include_question) {
-#ifdef TWIDDLE
-		if (twiddle) {
-			twiddlebuf(query->lookup->sendbuf);
-		}
-#endif
 		ISC_LIST_ENQUEUE(query->sendlist, &query->lookup->sendbuf,
 				 link);
 	}

@@ -1,3 +1,5 @@
+ 290.   [cleanup]	+twiddle option to dig (for testing only) removed.
+
  289.	[cleanup]	dig is now installed in $bindir instead of $sbindir.
 			host is now installed in $bindir.  (Be sure to remove
 			any $sbindir/dig from a previous release.)
