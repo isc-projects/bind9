@@ -12,206 +12,130 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: rndc.conf.5,v 1.14 2001/03/28 00:21:56 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt RDNC.CONF 5
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm rndc.conf
-.Nd rndc configuration file
-.Sh SYNOPSIS
-.Nm rndc.conf
-.Sh DESCRIPTION
-The BIND9 utility for controlling the name server,
-.Nm rndc ,
-has its own configuration file
-.Pa /etc/rndc.conf .
-This file has a similar structure and syntax to
-.Pa named.conf ,
-the file used to configure the name server.
-Statements are enclosed in braces and terminated with a semi-colon.
-Clauses in the statements are also semi-colon terminated.
-The usual comment styles are supported:
-.Bl -tag -width UNIX-style:
-.It C style: /* */
-.It C++ style: // to end of line
-.It Unix style: # to end of line
-.El
-.Pp
-.Pa rndc.conf
-is much simpler than
-.Pa named.conf .
-The file uses three statements: an
-.Dv options
-statement, a
-.Dv server
-statement and a
-.Dv key
-statement.
-.Pp
-The
-.Dv options
-statement contains three clauses.
-The
-.Dv default-server
-clause
-is followed by the name or address of a name server.
-This host will
-be used when no name server is given as an argument to
-.Nm rndc .
-The
-.Dv default-key
-clause
-is followed by the name of a key which is identified by a
-.Dv key
-statement.
-If no
-.Fl y
-option is provided on the
-.Xr rndc
-command line, and no
-.Dv key
-clause is found in a matching
-.Dv server
-statement, this default key will be used to authenticate the server's
-commands and responses.
-The
-.Dv default-port clause is followed by the port to connect
-to on the remote name server.  If no
-.Fl p
-option is provided on the
-.Xr rndc
-command line, and no
-.Dv port
-clause is found in a matching
-.Dv server
-statement, this default port will be used to connect.
-.Pp
-After the keyword
-.Dv server ,
-the
-.Dv server
-statement is followed by a string which is the hostname or address for a
-name server.
-The statement has two possible clauses:
-.Dv key
-and
-.Dv port .
-The key name must match the name of a
-.Dv key
-statement in the file.  The port number specifies the port to connect to.
-.Pp
-The
-.Dv key
-statement begins with an identifying string, the name of the key.
-The statement has two clauses.
-.Dv algorithm
-identifies the encryption algorithm for
-.Nm rndc
-to use; currently only HMAC-MD5 is supported.
-This is followed by a
-.Dv secret
-clause which contains the base-64 encoding of the
-algorithm's encryption key.
-The base-64 string is enclosed in double quotes.
-.Pp
+.TH "RNDC.CONF" "5" "June 30, 2000" "BIND9" ""
+.SH NAME
+rndc.conf \- rndc configuration file
+.SH SYNOPSIS
+.sp
+\fBrndc.conf\fR
+.SH "DESCRIPTION"
+.PP
+\fIrndc.conf\fR is the configuration file
+for \fBrndc\fR, the BIND 9 name server control
+utility. This file has a similar structure and syntax to
+\fInamed.conf\fR. Statements are enclosed
+in braces and terminated with a semi-colon. Clauses in
+the statements are also semi-colon terminated. The usual
+comment styles are supported:
+.PP
+C style: /* */
+.PP
+C++ style: // to end of line
+.PP
+Unix style: # to end of line
+.PP
+\fIrndc.conf\fR is much simpler than
+\fInamed.conf\fR. The file uses three
+statements: an options statement, a server statement
+and a key statement.
+.PP
+The \fBoptions\fR statement contains three clauses.
+The \fBdefault-server\fR clause is followed by the
+name or address of a name server. This host will be used when
+no name server is given as an argument to
+\fBrndc\fR. The \fBdefault-key\fR
+clause is followed by the name of a key which is identified by
+a \fBkey\fR statement. If no
+\fBkeyid\fR is provided on the rndc command line,
+and no \fBkey\fR clause is found in a matching
+\fBserver\fR statement, this default key will be
+used to authenticate the server's commands and responses. The
+\fBdefault-port\fR clause is followed by the port
+to connect to on the remote name server. If no
+\fBport\fR option is provided on the rndc command
+line, and no \fBport\fR clause is found in a
+matching \fBserver\fR statement, this default port
+will be used to connect.
+.PP
+After the \fBserver\fR keyword, the server statement
+includes a string which is the hostname or address for a name
+server. The statement has two possible clauses:
+\fBkey\fR and \fBport\fR. The key name must
+match the name of a key statement in the file. The port number
+specifies the port to connect to.
+.PP
+The \fBkey\fR statement begins with an identifying
+string, the name of the key. The statement has two clauses.
+\fBalgorithm\fR identifies the encryption algorithm
+for \fBrndc\fR to use; currently only HMAC-MD5 is
+supported. This is followed by a secret clause which contains
+the base-64 encoding of the algorithm's encryption key. The
+base-64 string is enclosed in double quotes.
+.PP
 There are two common ways to generate the base-64 string for the
-.Dv secret .
-The BIND 9 program
-.Xr dnssec-keygen 8
-can be used to generate a random key, or the
-.Xr mmencode 1
-program, also known as
-.Xr mimencode 1 ,
-can be used to generate a base-64 string from known input.
-.Xr mmencode
-does not ship with BIND 9 but is available on many systems.
-See the
-.Sx EXAMPLES
-section for sample command lines for each.
-.Pp
-Host and key names must be quoted using double quotes if they
-match a keyword, such as having a key named "key".
-.Sh EXAMPLE
-.Bd -literal indent
-options {
-    default-server  localhost;
-    default-key     samplekey;
-};
+secret. The BIND 9 program \fBdnssec-keygen\fR can
+be used to generate a random key, or the
+\fBmmencode\fR program, also known as
+\fBmimencode\fR, can be used to generate a base-64
+string from known input. \fBmmencode\fR does not
+ship with BIND 9 but is available on many systems. See the
+EXAMPLE section for sample command lines for each.
+.SH "EXAMPLE"
+.sp
+.nf
+    options {
+        default-server  localhost;
+        default-key     samplekey;
+      };
 
-server localhost {
-    key     samplekey;
-};
+      server localhost {
+        key             samplekey;
+      };
 
-key samplekey {
-    algorithm hmac-md5;
-    secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
-};
-.Ed
-.Pp
-In the above example,
-.Nm rndc
-will by default use the server at localhost (127.0.0.1) and the key called
-.Dv samplekey .
-Commands to the localhost server will use the
-.Dv samplekey
-key, which must also be defined in the server's configuration file with
-the same name and secret.
-The
-.Dv key
-statement indicates that
-.Dv samplekey
-uses the HMAC-MD5 algorithm and its
-.Dv secret
-clause contains the base-64 encoding of the HMAC-MD5 secret enclosed
-in double quotes.
-.Pp
-To generate a random secret with
-.Xr dnssec-keygen :
-.Bd -literal indent
-$ dnssec-keygen -a hmac-md5 -b 128 -n user rndc
-.Ed
-.Pp
+      key samplekey {
+        algorithm       hmac-md5;
+        secret          "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
+      };
+    
+.sp
+.fi
+.PP
+In the above example, \fBrndc\fR will by default use
+the server at localhost (127.0.0.1) and the key called samplekey.
+Commands to the localhost server will use the samplekey key, which
+must also be defined in the server's configuration file with the
+same name and secret. The key statement indicates that samplekey
+uses the HMAC-MD5 algorithm and its secret clause contains the
+base-64 encoding of the HMAC-MD5 secret enclosed in double quotes.
+.PP
+To generate a random secret with \fBdnssec-keygen\fR:
+.PP
+\fB$ dnssec-keygen -a hmac-md5 -b 128 -n user rndc\fR
+.PP
 The base-64 string will appear in two files,
-.Pa Krndc.+157.+{random}.key
-and
-.Pa Krndc.+157.+{random}.private .
-After extracting the key to be
-placed in the
-.Nm rndc.conf
-and
-.Xr named.conf
-.Dv key
-statements, the
-.Pa .key
-and
-.Pa .private
-files can be removed.
-.Pp
-To generate a secret from known input with
-.Xr mmenode :
-.Bd -literal indent
-$ echo "known plaintext for a secret" | mmencode
-.Ed
-.Sh NAME SERVER CONFIGURATION
-The name server must be configured to accept
-.Xr rndc
-connections and to recognize the key specified in
-the
-.Nm rndc.conf
-file, using the
-.Dv controls
-statement in
-.Nm named.conf .
-See the sections on the
-.Dv controls
-statement in the BIND 9 Administrator Reference Manual for
-details.
-.Sh SEE ALSO
-.Xr rndc 8 ,
-.Xr dnssec-keygen 8 ,
-.Xr mmencode 1 ,
-"BIND 9 Administrator Reference Manual".
+\fIKrndc.+157.+{random}.key\fR and
+\fIKrndc.+157.+{random}.private\fR. After
+extracting the key to be placed in the
+\fIrndc.conf\fR and 
+\fInamed.conf\fR key statements, the
+\&.key and .private files can be removed.
+.PP
+To generate a random secret with \fBmmencode\fR:
+.PP
+\fB$ echo "known plaintext for a secret" | mmencode\fR
+.SH "NAME SERVER CONFIGURATION"
+.PP
+The name server must be configured to accept rndc connections and
+to recognize the key specified in the \fIrndc.conf\fR
+file, using the controls statement in \fInamed.conf\fR.
+See the sections on the \fBcontrols\fR statement in the
+BIND 9 Administrator Reference Manual for details.
+.SH "SEE ALSO"
+.PP
+\fBrndc\fR(8),
+\fBdnssec-keygen\fR(8),
+\fBmmencode\fR(1),
+\fIBIND 9 Administrator Reference Manual\fR.
+.SH "AUTHOR"
+.PP
+Internet Software Consortium

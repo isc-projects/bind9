@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.22 2001/03/28 01:00:58 halley Exp $
+# $Id: Makefile.in,v 1.23 2001/03/28 02:02:22 halley Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,9 +47,9 @@ OBJS =		rndc.@O@
 
 SRCS =		rndc.c
 
-MANPAGES =	rndc.8
+MANPAGES =	rndc.8 rndc.conf.5
 
-HTMLPAGES =	rndc.html
+HTMLPAGES =	rndc.html rndc.conf.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
