@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.34 2001/03/01 03:10:08 gson Exp $ */
+/* $Id: parser.c,v 1.35 2001/03/01 03:22:12 gson Exp $ */
 
 #include <config.h>
 
@@ -274,6 +274,9 @@ get_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na);
 
 static void
 print(cfg_printer_t *pctx, const char *text, int len);
+
+static void
+print_void(cfg_printer_t *pctx, cfg_obj_t *obj);
 
 static isc_result_t
 parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
@@ -1113,11 +1116,14 @@ print_tuple(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	unsigned int i;
 	cfg_tuplefielddef_t *fields = obj->type->of;
 	cfg_tuplefielddef_t *f;
+	isc_boolean_t need_space = ISC_FALSE;
 
 	for (f = fields, i = 0; f->name != NULL; f++, i++) {
-		print_obj(pctx, obj->value.tuple[i]);
-		if (f[1].name != NULL)
+		cfg_obj_t *fieldobj = obj->value.tuple[i];
+		if (need_space)
 			print(pctx, " ", 1);
+		print_obj(pctx, fieldobj);
+		need_space = ISC_TF(fieldobj->type->print != print_void);
 	}
 }
 
