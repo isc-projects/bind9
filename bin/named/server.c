@@ -425,7 +425,9 @@ create_version_view(void) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	dns_zone_replacedb(zone, db, ISC_FALSE);
+	result = dns_zone_replacedb(zone, db, ISC_FALSE);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
 
 	result = dns_view_addzone(view, zone);
 	if (result != DNS_R_SUCCESS)
@@ -476,6 +478,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_task_detach(&server_task);
 
+	isc_taskpool_destroy(&ns_g_zonetasks);
+			     
 	dns_view_detach(&version_view);
 
 	ns_rootns_destroy();
@@ -495,6 +499,11 @@ ns_server_init(void) {
 		return (result);
 
 	result = create_version_view();
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result =  isc_taskpool_create(ns_g_taskmgr, ns_g_mctx, 8 /* XXX */,
+				      0, &ns_g_zonetasks);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
