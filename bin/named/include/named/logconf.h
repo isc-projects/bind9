@@ -25,8 +25,9 @@
 isc_result_t
 ns_log_configure(isc_logconfig_t *lctx, dns_c_logginglist_t *clog);
 /*
- * Construct a new isc_logconfig_t object for use with the logging context 'lctx',
- * configuring it according to the named.conf configuration data in 'clog'.
+ * Construct a new isc_logconfig_t object for use with the logging context
+ * 'lctx', configuring it according to the named.conf configuration data in
+ * 'clog'.
  */
 
 #endif /* NS_LOGCONF_H */
