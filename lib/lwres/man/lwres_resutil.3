@@ -41,44 +41,28 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype, lwres_uint16_
 .ad
 \fR.SH "DESCRIPTION"
 .PP
-\fBlwres_string_parse()\fR
-retrieves a DNS-encoded string starting the current pointer of
-lightweight resolver buffer
-\fIb\fR:
-i.e.
-b->current.
+\fBlwres_string_parse()\fR retrieves a DNS-encoded
+string starting the current pointer of lightweight resolver buffer
+\fIb\fR: i.e. b->current.
 When the function returns, the address of the first byte of the
-encoded string is returned via
-\fI*c\fR
-and the length of that string is given by
-\fI*len\fR.
-The buffer's current pointer is advanced to point at the character
+encoded string is returned via \fI*c\fR and the
+length of that string is given by \fI*len\fR. The
+buffer's current pointer is advanced to point at the character
 following the string length, the encoded string, and the trailing
-\fBNULL\fR
-character.
-\fBlwres_string_parse()\fR
-has an assertion check that
-\fIb\fR
-is not
-\fBNULL\fR.
+\fBNULL\fR character.
+\fBlwres_string_parse()\fR has an assertion check that
+\fIb\fR is not \fBNULL\fR.
 .PP
-\fBlwres_addr_parse()\fR
-extracts an address from the buffer
-\fIb\fR.
-It checks that
-\fIaddr\fR
-is not null.
-The buffer's current pointer
-b->current
-is presumed to point at an encoded address: the address preceded by a
-32-bit protocol family identifier and a 16-bit length field.
-The encoded address is copied to
-addr->address
-and
-addr->length
-indicates the size in bytes of the address that was copied.
-b->current
-is advanced to point at the next byte of available data in the buffer
+\fBlwres_addr_parse()\fR extracts an address from the
+buffer \fIb\fR. It checks that
+\fIaddr\fR is not null. The buffer's current pointer
+b->current is presumed to point at an encoded
+address: the address preceded by a 32-bit protocol family identifier
+and a 16-bit length field. The encoded address is copied to
+addr->address and
+addr->length indicates the size in bytes of
+the address that was copied. b->current is
+advanced to point at the next byte of available data in the buffer
 following the encoded address.
 .PP
 \fBlwres_getaddrsbyname()\fR
@@ -109,58 +93,32 @@ they are controlled through the
 functions.
 .PP
 The lightweight resolver uses
-\fBlwres_getaddrsbyname()\fR
-to perform foward lookups.
-Hostname
-\fIname\fR
-is looked up using the resolver context
-\fIctx\fR
-for memory allocation.
-\fIaddrtypes\fR
-is a bitmask indicating which type of addresses are to be looked up.
-Current values for this bitmask are
-\fBLWRES_ADDRTYPE_V4\fR
-for IPv4 addresses and
-\fBLWRES_ADDRTYPE_V6\fR
-for IPv6 addresses.
-Results of the lookup are returned in
-\fI*structp\fR.
-\fBlwres_getaddrsbyname()\fR
-checks that its pointer arguments are not
-\fBNULL\fR
-and that
-\fIaddrtypes\fR
-is non-zero.
+\fBlwres_getaddrsbyname()\fR to perform foward lookups.
+Hostname \fIname\fR is looked up using the resolver
+context \fIctx\fR for memory allocation.
+\fIaddrtypes\fR is a bitmask indicating which type of
+addresses are to be looked up. Current values for this bitmask are
+\fBLWRES_ADDRTYPE_V4\fR for IPv4 addresses and
+\fBLWRES_ADDRTYPE_V6\fR for IPv6 addresses. Results of the
+lookup are returned in \fI*structp\fR.
+\fBlwres_getaddrsbyname()\fR checks that its pointer
+arguments are not \fBNULL\fR and that
+\fIaddrtypes\fR is non-zero. 
 .PP
-\fBlwres_getnamebyaddr()\fR
-performs reverse lookups.
-Resolver context
-\fIctx\fR
-is used for memory allocation.
-The address type is indicated by
-\fIaddrtype\fR:
-\fBLWRES_ADDRTYPE_V4\fR
-or
-\fBLWRES_ADDRTYPE_V6\fR.
-The address to be looked up is given by
-\fIaddr\fR
-and its length is
-\fIaddrlen\fR
-bytes.
-The result of the function call is made available through
-\fI*structp\fR.
-Like
+\fBlwres_getnamebyaddr()\fR performs reverse lookups.
+Resolver context \fIctx\fR is used for memory
+allocation. The address type is indicated by
+\fIaddrtype\fR: \fBLWRES_ADDRTYPE_V4\fR or
+\fBLWRES_ADDRTYPE_V6\fR. The address to be looked up is given
+by \fIaddr\fR and its length is
+\fIaddrlen\fR bytes. The result of the function call
+is made available through \fI*structp\fR. Like
 \fBlwres_getaddrsbyname()\fR,
-\fBlwres_getnamebyaddr()\fR
-uses assertion checking to ensure its pointer arguments are not
-\fBNULL\fR
-and
-\fIaddrtype\fR
-is not zero.
-\fBlwres_getaddrsbyname()\fR
-also checks that
-\fIaddrlen\fR
-is non-zero.
+\fBlwres_getnamebyaddr()\fR uses assertion checking to
+ensure its pointer arguments are not \fBNULL\fR and
+\fIaddrtype\fR is not zero.
+\fBlwres_getaddrsbyname()\fR also checks that
+\fIaddrlen\fR is non-zero.
 .SH "RETURN VALUES"
 .PP
 Successful calls to

@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_resutil.docbook,v 1.4 2001/06/18 22:07:02 gson Exp $ -->
+<!-- $Id: lwres_resutil.docbook,v 1.5 2001/06/18 22:56:34 gson Exp $ -->
 
 <refentry>
 
@@ -90,14 +90,11 @@ length of that string is given by <parameter>*len</parameter>.  The
 buffer's current pointer is advanced to point at the character
 following the string length, the encoded string, and the trailing
 <type>NULL</type> character.
-<function>lwres_string_parse()</function> has an assertion check that
-<parameter>b</parameter> is not <type>NULL</type>.
 </para>
 
 <para>
 <function>lwres_addr_parse()</function> extracts an address from the
-buffer <parameter>b</parameter>.  It checks that
-<parameter>addr</parameter> is not null.  The buffer's current pointer
+buffer <parameter>b</parameter>.  The buffer's current pointer
 <constant>b-&gt;current</constant> is presumed to point at an encoded
 address: the address preceded by a 32-bit protocol family identifier
 and a 16-bit length field.  The encoded address is copied to
@@ -148,9 +145,9 @@ addresses are to be looked up.  Current values for this bitmask are
 <type>LWRES_ADDRTYPE_V4</type> for IPv4 addresses and
 <type>LWRES_ADDRTYPE_V6</type> for IPv6 addresses.  Results of the
 lookup are returned in <parameter>*structp</parameter>.
-<function>lwres_getaddrsbyname()</function> checks that its pointer
-arguments are not <type>NULL</type> and that
-<parameter>addrtypes</parameter> is non-zero.  </para> <para>
+</para>
+
+<para>
 <function>lwres_getnamebyaddr()</function> performs reverse lookups.
 Resolver context <parameter>ctx</parameter> is used for memory
 allocation.  The address type is indicated by
@@ -158,13 +155,7 @@ allocation.  The address type is indicated by
 <type>LWRES_ADDRTYPE_V6</type>.  The address to be looked up is given
 by <parameter>addr</parameter> and its length is
 <parameter>addrlen</parameter> bytes.  The result of the function call
-is made available through <parameter>*structp</parameter>.  Like
-<function>lwres_getaddrsbyname()</function>,
-<function>lwres_getnamebyaddr()</function> uses assertion checking to
-ensure its pointer arguments are not <type>NULL</type> and
-<parameter>addrtype</parameter> is not zero.
-<function>lwres_getaddrsbyname()</function> also checks that
-<parameter>addrlen</parameter> is non-zero.
+is made available through <parameter>*structp</parameter>.
 </para>
 </refsect1>
 

@@ -82,43 +82,36 @@ NAME="AEN21"
 ><TT
 CLASS="FUNCTION"
 >lwres_net_ntop()</TT
->
-converts an IP address of protocol family
-<TT
+> converts an IP address of
+protocol family <TT
 CLASS="PARAMETER"
 ><I
 >af</I
 ></TT
->
-&mdash; IPv4 or IPv6 &mdash;
-at location
-<TT
+> &mdash; IPv4 or IPv6 &mdash;
+at location <TT
 CLASS="PARAMETER"
 ><I
 >src</I
 ></TT
->
-from network format to its conventional representation as a string.
-For IPv4 addresses, that string would be a dotted-decimal.
-An IPv6 address would be represented in colon notation as described in
-RFC1884.</P
+> from network format to its
+conventional representation as a string.  For IPv4 addresses, that
+string would be a dotted-decimal.  An IPv6 address would be
+represented in colon notation as described in RFC1884.</P
 ><P
->The generated string is copied to
-<TT
+>The generated string is copied to <TT
 CLASS="PARAMETER"
 ><I
 >dst</I
 ></TT
->
-provided
+> provided
 <TT
 CLASS="PARAMETER"
 ><I
 >size</I
 ></TT
->
-indicates it is long enough to store the ASCII representation
-of the address.</P
+> indicates it is long enough to store the
+ASCII representation of the address.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
@@ -128,43 +121,35 @@ NAME="AEN30"
 ><H2
 >RETURN VALUES</H2
 ><P
->If successful, the function returns
-<TT
+>If successful, the function returns <TT
 CLASS="PARAMETER"
 ><I
 >dst</I
 ></TT
 >:
-
-a pointer to a string containing
-the presentation format of the address.
-<TT
+a pointer to a string containing the presentation format of the
+address.  <TT
 CLASS="FUNCTION"
 >lwres_net_ntop()</TT
->
-returns
+> returns
 <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->
-and sets the global variable
+> and sets the global variable
 <TT
 CLASS="CONSTANT"
 >errno</TT
->
-to
-<SPAN
+> to <SPAN
 CLASS="ERRORCODE"
 >EAFNOSUPPORT</SPAN
->
-if the protocol family given in
-<TT
+> if
+the protocol family given in <TT
 CLASS="PARAMETER"
 ><I
 >af</I
 ></TT
->
-is not supported.</P
+> is not
+supported.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"

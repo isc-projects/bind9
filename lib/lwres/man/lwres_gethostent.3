@@ -139,109 +139,58 @@ or NIS. The lightweight resolver does not currently implement
 these functions; it only provides them as stub functions that always
 return failure.
 .PP
-\fBlwres_gethostbyname()\fR
-and
-\fBlwres_gethostbyname2()\fR
-look up the hostname
+\fBlwres_gethostbyname()\fR and
+\fBlwres_gethostbyname2()\fR look up the hostname
 \fIname\fR.
-\fBlwres_gethostbyname()\fR
-always looks for an IPv4 address while
-\fBlwres_gethostbyname2()\fR
-looks for an address of protocol family
-\fIaf\fR:
-either
-\fBPF_INET\fR
-or
-\fBPF_INET6\fR
-\(em IPv4 or IPV6 addresses respectively.
-Successful calls of the functions return a
-\fBstruct hostent\fRfor
-the name that was looked up.
-\fBNULL\fR
-is returned if the lookups by
-\fBlwres_gethostbyname()\fR
-or
-\fBlwres_gethostbyname2()\fR
-fail.
+\fBlwres_gethostbyname()\fR always looks for an IPv4
+address while \fBlwres_gethostbyname2()\fR looks for an
+address of protocol family \fIaf\fR: either
+\fBPF_INET\fR or \fBPF_INET6\fR \(em IPv4 or IPV6
+addresses respectively. Successful calls of the functions return a
+\fBstruct hostent\fRfor the name that was looked up.
+\fBNULL\fR is returned if the lookups by
+\fBlwres_gethostbyname()\fR or
+\fBlwres_gethostbyname2()\fR fail.
 .PP
 Reverse lookups of addresses are performed by
 \fBlwres_gethostbyaddr()\fR.
-\fIaddr\fR
-is an address of length
-\fIlen\fR
-bytes and protocol family
-\fItype\fR \(em
-\fBPF_INET\fR
-or
+\fIaddr\fR is an address of length
+\fIlen\fR bytes and protocol family
+\fItype\fR \(em \fBPF_INET\fR or
 \fBPF_INET6\fR.
-\fBlwres_gethostbyname_r()\fR
-is a thread-safe function for forward lookups.
-If an error occurs, an error code is returned in
+\fBlwres_gethostbyname_r()\fR is a thread-safe function
+for forward lookups. If an error occurs, an error code is returned in
 \fI*error\fR.
-\fIresbuf\fR
-is a pointer to a
-\fBstruct hostent\fR
-which is initialised by a successful call to
+\fIresbuf\fR is a pointer to a \fBstruct
+hostent\fR which is initialised by a successful call to
 \fBlwres_gethostbyname_r()\fR .
-\fIbuf\fR
-is a buffer of length
-\fIlen\fR
-bytes which is used to store the
-h_name,
-h_aliases,
-and
-h_addr_list
-elements of the
-\fBstruct hostent\fR
-returned in
-\fIresbuf\fR.
-Successful calls to
-\fBlwres_gethostbyname_r()\fR
-return
-\fIresbuf\fR,
-which is a pointer to the
-\fBstruct hostent\fR
-it created.
+\fIbuf\fR is a buffer of length
+\fIlen\fR bytes which is used to store the
+h_name, h_aliases, and
+h_addr_list elements of the \fBstruct
+hostent\fR returned in \fIresbuf\fR.
+Successful calls to \fBlwres_gethostbyname_r()\fR
+return \fIresbuf\fR,
+which is a pointer to the \fBstruct hostent\fR it created.
 .PP
-\fBlwres_gethostbyaddr_r()\fR
-is a thread-safe function that performs a reverse lookup of address
-\fIaddr\fR
-which is
-\fIlen\fR
-bytes long
-and is of protocol family
-\fItype\fR \(em
-\fBPF_INET\fR
-or
-\fBPF_INET6\fR.
-If an error occurs, the error code is returned in
-\fI*error\fR.
-The other function parameters are identical to those in
-\fBlwres_gethostbyname_r()\fR.
-\fIresbuf\fR
-is a pointer to a
-\fBstruct hostent\fR
-which is initialised by a successful call to
+\fBlwres_gethostbyaddr_r()\fR is a thread-safe function
+that performs a reverse lookup of address \fIaddr\fR
+which is \fIlen\fR bytes long and is of protocol
+family \fItype\fR \(em \fBPF_INET\fR or
+\fBPF_INET6\fR. If an error occurs, the error code is returned
+in \fI*error\fR. The other function parameters are
+identical to those in \fBlwres_gethostbyname_r()\fR.
+\fIresbuf\fR is a pointer to a \fBstruct
+hostent\fR which is initialised by a successful call to
 \fBlwres_gethostbyaddr_r()\fR.
-\fIbuf\fR
-is a buffer of length
-\fIlen\fR
-bytes which is used to store the
-h_name,
-h_aliases,
-and
-h_addr_list
-elements of the
-\fBstruct hostent\fR
-returned in
-\fIresbuf\fR.
-Successful calls to
-\fBlwres_gethostbyaddr_r()\fR
-return
-\fIresbuf\fR,
-which is a pointer to the
-\fBstruct hostent()\fR
-it created.
+\fIbuf\fR is a buffer of length
+\fIlen\fR bytes which is used to store the
+h_name, h_aliases, and
+h_addr_list elements of the \fBstruct
+hostent\fR returned in \fIresbuf\fR. Successful
+calls to \fBlwres_gethostbyaddr_r()\fR return
+\fIresbuf\fR, which is a pointer to the
+\fBstruct hostent()\fR it created.
 .SH "RETURN VALUES"
 .PP
 The functions
@@ -281,38 +230,18 @@ and
 always return
 \fBNULL\fR.
 .PP
-Successful calls to
-\fBlwres_gethostbyname_r()\fR
-and
-\fBlwres_gethostbyaddr_r()\fR
-return
-\fIresbuf\fR,
-a pointer to the
-\fBstruct hostent\fR
-that was initialised by these functions.
-They return
-\fBNULL\fR
-if the lookups fail
-or if
-\fIbuf\fR
+Successful calls to \fBlwres_gethostbyname_r()\fR and
+\fBlwres_gethostbyaddr_r()\fR return
+\fIresbuf\fR, a pointer to the \fBstruct
+hostent\fR that was initialised by these functions. They return
+\fBNULL\fR if the lookups fail or if \fIbuf\fR
 was too small to hold the list of addresses and names referenced by
-the
-h_name,
-h_aliases,
-and
-h_addr_list
-elements of the
-\fBstruct hostent\fR.
-If
-\fIbuf\fR
-was too small, both
-\fBlwres_gethostbyname_r()\fR
-and
-\fBlwres_gethostbyaddr_r()\fR
-set the global variable
-\fBerrno\fR
-to
-ERANGE.
+the h_name, h_aliases, and
+h_addr_list elements of the \fBstruct
+hostent\fR. If \fIbuf\fR was too small, both
+\fBlwres_gethostbyname_r()\fR and
+\fBlwres_gethostbyaddr_r()\fR set the global variable
+\fBerrno\fR to ERANGE.
 .SH "SEE ALSO"
 .PP
 \fBgethostent\fR(3),

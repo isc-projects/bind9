@@ -115,8 +115,6 @@ struct lwres_lwpacket {
 };</PRE
 ></P
 ><P
-></P
-><P
 >The elements of this structure are:
 <P
 ></P
@@ -285,58 +283,52 @@ The lwres_gnba_*() functions should be used for this type.</P
 ><TT
 CLASS="FUNCTION"
 >lwres_lwpacket_renderheader()</TT
->
-transfers the contents of lightweight resolver packet structure
+> transfers the
+contents of lightweight resolver packet structure
 <SPAN
 CLASS="TYPE"
 >lwres_lwpacket_t</SPAN
->
-<TT
+> <TT
 CLASS="PARAMETER"
 ><I
 >*pkt</I
 ></TT
->
-in network byte order to the lightweight resolver buffer,
+> in network
+byte order to the lightweight resolver buffer,
 <TT
 CLASS="PARAMETER"
 ><I
 >*b</I
 ></TT
->.&#13;</P
+>.</P
 ><P
 ><TT
 CLASS="FUNCTION"
 >lwres_lwpacket_parseheader()</TT
->
-performs the converse operation.
-It transfers data in network byte order from buffer
-<TT
+> performs the
+converse operation.  It transfers data in network byte order from
+buffer <TT
 CLASS="PARAMETER"
 ><I
 >*b</I
 ></TT
->
-to resolver packet
+> to resolver packet
 <TT
 CLASS="PARAMETER"
 ><I
 >*pkt</I
 ></TT
->.
-
-The contents of the buffer
+>.  The contents of the buffer
 <TT
 CLASS="PARAMETER"
 ><I
 >b</I
 ></TT
->
-should correspond to a
+> should correspond to a
 <SPAN
 CLASS="TYPE"
 >lwres_lwpacket_t</SPAN
->.&#13;</P
+>.</P
 ><P
 >Both functions have assertion checks to ensure that
 <TT
@@ -344,63 +336,54 @@ CLASS="PARAMETER"
 ><I
 >b</I
 ></TT
->
-and
-<TT
+> and <TT
 CLASS="PARAMETER"
 ><I
 >pkt</I
 ></TT
->
-are not
+> are not
 <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->.&#13;</P
+>.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN112"
+NAME="AEN111"
 ></A
 ><H2
 >RETURN VALUES</H2
 ><P
->Successful calls to
+> Successful calls to
 <TT
 CLASS="FUNCTION"
 >lwres_lwpacket_renderheader()</TT
->
-and
+> and
 <TT
 CLASS="FUNCTION"
 >lwres_lwpacket_parseheader()</TT
->
-return
+> return
 <SPAN
 CLASS="ERRORCODE"
 >LWRES_R_SUCCESS</SPAN
->.
-
-If there is insufficient space to copy data between the buffer
-<TT
+>.  If there is insufficient
+space to copy data between the buffer <TT
 CLASS="PARAMETER"
 ><I
 >*b</I
 ></TT
->
-and lightweight resolver packet
-<TT
+> and
+lightweight resolver packet <TT
 CLASS="PARAMETER"
 ><I
 >*pkt</I
 ></TT
->
-both functions return
-<SPAN
+> both functions
+return <SPAN
 CLASS="ERRORCODE"
 >LWRES_R_UNEXPECTEDEND</SPAN
->.&#13;</P
+>.</P
 ></DIV
 ></BODY
 ></HTML

@@ -106,105 +106,85 @@ NAME="AEN43"
 ><TT
 CLASS="FUNCTION"
 >lwres_string_parse()</TT
->
-retrieves a DNS-encoded string starting the current pointer of
-lightweight resolver buffer
+> retrieves a DNS-encoded
+string starting the current pointer of lightweight resolver buffer
 <TT
 CLASS="PARAMETER"
 ><I
 >b</I
 ></TT
->:
-
-i.e.
-<TT
+>: i.e.  <TT
 CLASS="CONSTANT"
 >b-&gt;current</TT
 >.
-
 When the function returns, the address of the first byte of the
-encoded string is returned via
-<TT
+encoded string is returned via <TT
 CLASS="PARAMETER"
 ><I
 >*c</I
 ></TT
->
-and the length of that string is given by
-<TT
+> and the
+length of that string is given by <TT
 CLASS="PARAMETER"
 ><I
 >*len</I
 ></TT
->.
-
-The buffer's current pointer is advanced to point at the character
+>.  The
+buffer's current pointer is advanced to point at the character
 following the string length, the encoded string, and the trailing
 <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->
-character.
+> character.
 <TT
 CLASS="FUNCTION"
 >lwres_string_parse()</TT
->
-has an assertion check that
+> has an assertion check that
 <TT
 CLASS="PARAMETER"
 ><I
 >b</I
 ></TT
->
-is not
-<SPAN
+> is not <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->.&#13;</P
+>.</P
 ><P
 ><TT
 CLASS="FUNCTION"
 >lwres_addr_parse()</TT
->
-extracts an address from the buffer
-<TT
+> extracts an address from the
+buffer <TT
 CLASS="PARAMETER"
 ><I
 >b</I
 ></TT
->.
-
-It checks that
+>.  It checks that
 <TT
 CLASS="PARAMETER"
 ><I
 >addr</I
 ></TT
->
-is not null.
-The buffer's current pointer
+> is not null.  The buffer's current pointer
 <TT
 CLASS="CONSTANT"
 >b-&gt;current</TT
->
-is presumed to point at an encoded address: the address preceded by a
-32-bit protocol family identifier and a 16-bit length field.
-The encoded address is copied to
+> is presumed to point at an encoded
+address: the address preceded by a 32-bit protocol family identifier
+and a 16-bit length field.  The encoded address is copied to
 <TT
 CLASS="CONSTANT"
 >addr-&gt;address</TT
->
-and
+> and
 <TT
 CLASS="CONSTANT"
 >addr-&gt;length</TT
->
-indicates the size in bytes of the address that was copied.
-<TT
+> indicates the size in bytes of
+the address that was copied.  <TT
 CLASS="CONSTANT"
 >b-&gt;current</TT
->
-is advanced to point at the next byte of available data in the buffer
+> is
+advanced to point at the next byte of available data in the buffer
 following the encoded address.</P
 ><P
 ><TT
@@ -252,156 +232,125 @@ functions.</P
 <TT
 CLASS="FUNCTION"
 >lwres_getaddrsbyname()</TT
->
-to perform foward lookups.
-Hostname
-<TT
+> to perform foward lookups.
+Hostname <TT
 CLASS="PARAMETER"
 ><I
 >name</I
 ></TT
->
-is looked up using the resolver context
-<TT
+> is looked up using the resolver
+context <TT
 CLASS="PARAMETER"
 ><I
 >ctx</I
 ></TT
->
-for memory allocation.
+> for memory allocation.
 <TT
 CLASS="PARAMETER"
 ><I
 >addrtypes</I
 ></TT
->
-is a bitmask indicating which type of addresses are to be looked up.
-Current values for this bitmask are
+> is a bitmask indicating which type of
+addresses are to be looked up.  Current values for this bitmask are
 <SPAN
 CLASS="TYPE"
 >LWRES_ADDRTYPE_V4</SPAN
->
-for IPv4 addresses and
+> for IPv4 addresses and
 <SPAN
 CLASS="TYPE"
 >LWRES_ADDRTYPE_V6</SPAN
->
-for IPv6 addresses.
-Results of the lookup are returned in
-<TT
+> for IPv6 addresses.  Results of the
+lookup are returned in <TT
 CLASS="PARAMETER"
 ><I
 >*structp</I
 ></TT
 >.
-
 <TT
 CLASS="FUNCTION"
 >lwres_getaddrsbyname()</TT
->
-checks that its pointer arguments are not
-<SPAN
+> checks that its pointer
+arguments are not <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->
-and that
+> and that
 <TT
 CLASS="PARAMETER"
 ><I
 >addrtypes</I
 ></TT
->
-is non-zero.</P
+> is non-zero.  </P
 ><P
 ><TT
 CLASS="FUNCTION"
 >lwres_getnamebyaddr()</TT
->
-performs reverse lookups.
-Resolver context
-<TT
+> performs reverse lookups.
+Resolver context <TT
 CLASS="PARAMETER"
 ><I
 >ctx</I
 ></TT
->
-is used for memory allocation.
-The address type is indicated by
+> is used for memory
+allocation.  The address type is indicated by
 <TT
 CLASS="PARAMETER"
 ><I
 >addrtype</I
 ></TT
->:
-
-<SPAN
+>: <SPAN
 CLASS="TYPE"
 >LWRES_ADDRTYPE_V4</SPAN
->
-or
+> or
 <SPAN
 CLASS="TYPE"
 >LWRES_ADDRTYPE_V6</SPAN
->.
-
-The address to be looked up is given by
-<TT
+>.  The address to be looked up is given
+by <TT
 CLASS="PARAMETER"
 ><I
 >addr</I
 ></TT
->
-and its length is
+> and its length is
 <TT
 CLASS="PARAMETER"
 ><I
 >addrlen</I
 ></TT
->
-bytes.
-The result of the function call is made available through
-<TT
+> bytes.  The result of the function call
+is made available through <TT
 CLASS="PARAMETER"
 ><I
 >*structp</I
 ></TT
->.
-
-Like
+>.  Like
 <TT
 CLASS="FUNCTION"
 >lwres_getaddrsbyname()</TT
 >,
-
 <TT
 CLASS="FUNCTION"
 >lwres_getnamebyaddr()</TT
->
-uses assertion checking to ensure its pointer arguments are not
-<SPAN
+> uses assertion checking to
+ensure its pointer arguments are not <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->
-and
+> and
 <TT
 CLASS="PARAMETER"
 ><I
 >addrtype</I
 ></TT
->
-is not zero.
+> is not zero.
 <TT
 CLASS="FUNCTION"
 >lwres_getaddrsbyname()</TT
->
-also checks that
+> also checks that
 <TT
 CLASS="PARAMETER"
 ><I
 >addrlen</I
 ></TT
->
-is non-zero.</P
+> is non-zero.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
@@ -470,7 +419,7 @@ is returned by a successful call to
 <TT
 CLASS="FUNCTION"
 >lwres_getnamebyaddr()</TT
->.&#13;</P
+>.</P
 ><P
 >Both
 <TT

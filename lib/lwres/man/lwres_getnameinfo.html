@@ -79,95 +79,79 @@ NAME="AEN24"
 ><H2
 >DESCRIPTION</H2
 ><P
->This function is equivalent to the
-<SPAN
+> This function is equivalent to the <SPAN
 CLASS="CITEREFENTRY"
 ><SPAN
 CLASS="REFENTRYTITLE"
 >getnameinfo</SPAN
 >(3)</SPAN
->
-function defined in RFC2133.
+> function defined in RFC2133.
 <TT
 CLASS="FUNCTION"
 >lwres_getnameinfo()</TT
->
-returns the hostname for the
+> returns the hostname for the
 <SPAN
 CLASS="TYPE"
 >struct sockaddr</SPAN
->
-<TT
+> <TT
 CLASS="PARAMETER"
 ><I
 >sa</I
 ></TT
->
-which is
+> which is
 <TT
 CLASS="PARAMETER"
 ><I
 >salen</I
 ></TT
->
-bytes long.
-The hostname is of length
+> bytes long.  The hostname is of length
 <TT
 CLASS="PARAMETER"
 ><I
 >hostlen</I
 ></TT
->
-and is returned via
+> and is returned via
 <TT
 CLASS="PARAMETER"
 ><I
 >*host.</I
 ></TT
->
-The maximum length of the hostname is
-1025 bytes:
-<TT
+> The maximum length of the hostname is
+1025 bytes: <TT
 CLASS="CONSTANT"
 >NI_MAXHOST</TT
->.&#13;</P
+>.</P
 ><P
->The name of the service associated with the port number in
+> The name of the service associated with the port number in
 <TT
 CLASS="PARAMETER"
 ><I
 >sa</I
 ></TT
->
-is returned in
-<TT
+> is returned in <TT
 CLASS="PARAMETER"
 ><I
 >*serv.</I
 ></TT
 >
-It is
-<TT
+It is <TT
 CLASS="PARAMETER"
 ><I
 >servlen</I
 ></TT
->
-bytes long.
-The maximum length of the service name is
-<TT
+> bytes long.  The maximum length
+of the service name is <TT
 CLASS="CONSTANT"
 >NI_MAXSERV</TT
 > - 32 bytes.</P
 ><P
->The
-<TT
+> The <TT
 CLASS="PARAMETER"
 ><I
 >flags</I
 ></TT
->
-argument sets the following bits:
+> argument sets the following
+bits:
 <P
 ></P
 ><DIV
@@ -230,13 +214,11 @@ TCP.</P
 ></DL
 ></DIV
 ></P
-><P
-></P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN71"
+NAME="AEN70"
 ></A
 ><H2
 >RETURN VALUES</H2
@@ -250,7 +232,7 @@ returns 0 on success or a non-zero error code if an error occurs.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN75"
+NAME="AEN74"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -301,7 +283,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN95"
+NAME="AEN94"
 ></A
 ><H2
 >BUGS</H2

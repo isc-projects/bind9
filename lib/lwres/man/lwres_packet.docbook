@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_packet.docbook,v 1.5 2001/06/18 22:07:01 gson Exp $ -->
+<!-- $Id: lwres_packet.docbook,v 1.6 2001/06/18 22:56:30 gson Exp $ -->
 
 <refentry>
 
@@ -199,12 +199,6 @@ buffer <parameter>*b</parameter> to resolver packet
 <parameter>*pkt</parameter>.  The contents of the buffer
 <parameter>b</parameter> should correspond to a
 <type>lwres_lwpacket_t</type>.
-</para>
-
-<para>
-Both functions have assertion checks to ensure that
-<parameter>b</parameter> and <parameter>pkt</parameter> are not
-<type>NULL</type>.
 </para>
 
 </refsect1>

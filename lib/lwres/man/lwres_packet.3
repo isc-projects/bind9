@@ -53,7 +53,6 @@ struct lwres_lwpacket {
 .sp
 .fi
 .PP
-.PP
 The elements of this structure are:
 .TP
 \fBlength\fR
@@ -127,41 +126,28 @@ The lwres_gabn_*() functions should be used for this type.
 return the hostname for the given address.
 The lwres_gnba_*() functions should be used for this type.
 .PP
-\fBlwres_lwpacket_renderheader()\fR
-transfers the contents of lightweight resolver packet structure
-\fBlwres_lwpacket_t\fR
-\fI*pkt\fR
-in network byte order to the lightweight resolver buffer,
+\fBlwres_lwpacket_renderheader()\fR transfers the
+contents of lightweight resolver packet structure
+\fBlwres_lwpacket_t\fR \fI*pkt\fR in network
+byte order to the lightweight resolver buffer,
 \fI*b\fR.
 .PP
-\fBlwres_lwpacket_parseheader()\fR
-performs the converse operation.
-It transfers data in network byte order from buffer
-\fI*b\fR
-to resolver packet
-\fI*pkt\fR.
-The contents of the buffer
-\fIb\fR
-should correspond to a
+\fBlwres_lwpacket_parseheader()\fR performs the
+converse operation. It transfers data in network byte order from
+buffer \fI*b\fR to resolver packet
+\fI*pkt\fR. The contents of the buffer
+\fIb\fR should correspond to a
 \fBlwres_lwpacket_t\fR.
 .PP
 Both functions have assertion checks to ensure that
-\fIb\fR
-and
-\fIpkt\fR
-are not
+\fIb\fR and \fIpkt\fR are not
 \fBNULL\fR.
 .SH "RETURN VALUES"
 .PP
 Successful calls to
-\fBlwres_lwpacket_renderheader()\fR
-and
-\fBlwres_lwpacket_parseheader()\fR
-return
-LWRES_R_SUCCESS.
-If there is insufficient space to copy data between the buffer
-\fI*b\fR
-and lightweight resolver packet
-\fI*pkt\fR
-both functions return
-LWRES_R_UNEXPECTEDEND.
+\fBlwres_lwpacket_renderheader()\fR and
+\fBlwres_lwpacket_parseheader()\fR return
+LWRES_R_SUCCESS. If there is insufficient
+space to copy data between the buffer \fI*b\fR and
+lightweight resolver packet \fI*pkt\fR both functions
+return LWRES_R_UNEXPECTEDEND.

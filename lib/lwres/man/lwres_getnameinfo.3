@@ -26,37 +26,21 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host, size_t ho
 .ad
 \fR.SH "DESCRIPTION"
 .PP
-This function is equivalent to the
-\fBgetnameinfo\fR(3)
-function defined in RFC2133.
-\fBlwres_getnameinfo()\fR
-returns the hostname for the
-\fBstruct sockaddr\fR
-\fIsa\fR
-which is
-\fIsalen\fR
-bytes long.
-The hostname is of length
-\fIhostlen\fR
-and is returned via
-\fI*host.\fR
-The maximum length of the hostname is
-1025 bytes:
-NI_MAXHOST.
+This function is equivalent to the \fBgetnameinfo\fR(3) function defined in RFC2133.
+\fBlwres_getnameinfo()\fR returns the hostname for the
+\fBstruct sockaddr\fR \fIsa\fR which is
+\fIsalen\fR bytes long. The hostname is of length
+\fIhostlen\fR and is returned via
+\fI*host.\fR The maximum length of the hostname is
+1025 bytes: NI_MAXHOST.
 .PP
 The name of the service associated with the port number in
-\fIsa\fR
-is returned in
-\fI*serv.\fR
-It is
-\fIservlen\fR
-bytes long.
-The maximum length of the service name is
-NI_MAXSERV - 32 bytes.
+\fIsa\fR is returned in \fI*serv.\fR
+It is \fIservlen\fR bytes long. The maximum length
+of the service name is NI_MAXSERV - 32 bytes.
 .PP
-The
-\fIflags\fR
-argument sets the following bits:
+The \fIflags\fR argument sets the following
+bits:
 .TP
 \fBNI_NOFQDN\fR
 A fully qualified domain name is not required for local hosts.
@@ -81,7 +65,6 @@ service, and causes getservbyport() to be called with a second
 argument of "udp" instead of its default of "tcp". This is required
 for the few ports (512-514) that have different services for UDP and
 TCP.
-.PP
 .SH "RETURN VALUES"
 .PP
 \fBlwres_getnameinfo()\fR

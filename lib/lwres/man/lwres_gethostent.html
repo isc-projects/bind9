@@ -311,70 +311,55 @@ return failure.</P
 ><TT
 CLASS="FUNCTION"
 >lwres_gethostbyname()</TT
->
-and
+> and
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname2()</TT
->
-look up the hostname
+> look up the hostname
 <TT
 CLASS="PARAMETER"
 ><I
 >name</I
 ></TT
 >.
-
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname()</TT
->
-always looks for an IPv4 address while
-<TT
+> always looks for an IPv4
+address while <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname2()</TT
->
-looks for an address of protocol family
-<TT
+> looks for an
+address of protocol family <TT
 CLASS="PARAMETER"
 ><I
 >af</I
 ></TT
->:
-
-either
+>: either
 <SPAN
 CLASS="TYPE"
 >PF_INET</SPAN
->
-or
-<SPAN
+> or <SPAN
 CLASS="TYPE"
 >PF_INET6</SPAN
->
-&mdash; IPv4 or IPV6 addresses respectively.
-Successful calls of the functions return a
+> &mdash; IPv4 or IPV6
+addresses respectively.  Successful calls of the functions return a
 <SPAN
 CLASS="TYPE"
 >struct hostent</SPAN
->for
-
-the name that was looked up.
+>for the name that was looked up.
 <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->
-is returned if the lookups by
+> is returned if the lookups by
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname()</TT
->
-or
+> or
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname2()</TT
->
-fail.</P
+> fail.</P
 ><P
 >Reverse lookups of addresses are performed by
 <TT
@@ -386,56 +371,47 @@ CLASS="PARAMETER"
 ><I
 >addr</I
 ></TT
->
-is an address of length
+> is an address of length
 <TT
 CLASS="PARAMETER"
 ><I
 >len</I
 ></TT
->
-bytes and protocol family
+> bytes and protocol family
 <TT
 CLASS="PARAMETER"
 ><I
 >type</I
 ></TT
-> &mdash;
-<SPAN
+> &mdash; <SPAN
 CLASS="TYPE"
 >PF_INET</SPAN
->
-or
+> or
 <SPAN
 CLASS="TYPE"
 >PF_INET6</SPAN
 >.
-
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</TT
->
-is a thread-safe function for forward lookups.
-If an error occurs, an error code is returned in
+> is a thread-safe function
+for forward lookups.  If an error occurs, an error code is returned in
 <TT
 CLASS="PARAMETER"
 ><I
 >*error</I
 ></TT
 >.
-
 <TT
 CLASS="PARAMETER"
 ><I
 >resbuf</I
 ></TT
->
-is a pointer to a
-<SPAN
+> is a pointer to a <SPAN
 CLASS="TYPE"
->struct hostent</SPAN
->
-which is initialised by a successful call to
+>struct
+hostent</SPAN
+> which is initialised by a successful call to
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</TT
@@ -445,110 +421,84 @@ CLASS="PARAMETER"
 ><I
 >buf</I
 ></TT
->
-is a buffer of length
+> is a buffer of length
 <TT
 CLASS="PARAMETER"
 ><I
 >len</I
 ></TT
->
-bytes which is used to store the
+> bytes which is used to store the
 <TT
 CLASS="CONSTANT"
 >h_name</TT
->,
-
-<TT
+>, <TT
 CLASS="CONSTANT"
 >h_aliases</TT
->,
-
-and
+>, and
 <TT
 CLASS="CONSTANT"
 >h_addr_list</TT
->
-elements of the
-<SPAN
+> elements of the <SPAN
 CLASS="TYPE"
->struct hostent</SPAN
->
-returned in
-<TT
+>struct
+hostent</SPAN
+> returned in <TT
 CLASS="PARAMETER"
 ><I
 >resbuf</I
 ></TT
 >.
-
-Successful calls to
-<TT
+Successful calls to <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</TT
 >
-return
-<TT
+return <TT
 CLASS="PARAMETER"
 ><I
 >resbuf</I
 ></TT
 >,
-
-which is a pointer to the
-<SPAN
+which is a pointer to the <SPAN
 CLASS="TYPE"
 >struct hostent</SPAN
->
-it created.</P
+> it created.</P
 ><P
 ><TT
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</TT
->
-is a thread-safe function that performs a reverse lookup of address
-<TT
+> is a thread-safe function
+that performs a reverse lookup of address <TT
 CLASS="PARAMETER"
 ><I
 >addr</I
 ></TT
 >
-which is
-<TT
+which is <TT
 CLASS="PARAMETER"
 ><I
 >len</I
 ></TT
->
-bytes long
-and is of protocol family
-<TT
+> bytes long and is of protocol
+family <TT
 CLASS="PARAMETER"
 ><I
 >type</I
 ></TT
-> &mdash;
-
-<SPAN
+> &mdash; <SPAN
 CLASS="TYPE"
 >PF_INET</SPAN
->
-or
+> or
 <SPAN
 CLASS="TYPE"
 >PF_INET6</SPAN
->.
-
-If an error occurs, the error code is returned in
-<TT
+>.  If an error occurs, the error code is returned
+in <TT
 CLASS="PARAMETER"
 ><I
 >*error</I
 ></TT
->.
-
-The other function parameters are identical to those in
-<TT
+>.  The other function parameters are
+identical to those in <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</TT
 >.
@@ -557,13 +507,11 @@ CLASS="PARAMETER"
 ><I
 >resbuf</I
 ></TT
->
-is a pointer to a
-<SPAN
+> is a pointer to a <SPAN
 CLASS="TYPE"
->struct hostent</SPAN
->
-which is initialised by a successful call to
+>struct
+hostent</SPAN
+> which is initialised by a successful call to
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</TT
@@ -573,62 +521,47 @@ CLASS="PARAMETER"
 ><I
 >buf</I
 ></TT
->
-is a buffer of length
+> is a buffer of length
 <TT
 CLASS="PARAMETER"
 ><I
 >len</I
 ></TT
->
-bytes which is used to store the
+> bytes which is used to store the
 <TT
 CLASS="CONSTANT"
 >h_name</TT
->,
-
-<TT
+>, <TT
 CLASS="CONSTANT"
 >h_aliases</TT
->,
-
-and
+>, and
 <TT
 CLASS="CONSTANT"
 >h_addr_list</TT
->
-elements of the
-<SPAN
+> elements of the <SPAN
 CLASS="TYPE"
->struct hostent</SPAN
->
-returned in
-<TT
+>struct
+hostent</SPAN
+> returned in <TT
 CLASS="PARAMETER"
 ><I
 >resbuf</I
 ></TT
->.
-
-Successful calls to
-<TT
+>.  Successful
+calls to <TT
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</TT
->
-return
+> return
 <TT
 CLASS="PARAMETER"
 ><I
 >resbuf</I
 ></TT
->,
-
-which is a pointer to the
+>, which is a pointer to the
 <TT
 CLASS="FUNCTION"
 >struct hostent()</TT
->
-it created.</P
+> it created.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
@@ -739,95 +672,71 @@ always return
 <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->.&#13;</P
+>.</P
 ><P
->Successful calls to
-<TT
+>Successful calls to <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</TT
->
-and
+> and
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</TT
->
-return
+> return
 <TT
 CLASS="PARAMETER"
 ><I
 >resbuf</I
 ></TT
->,
-
-a pointer to the
-<SPAN
+>, a pointer to the <SPAN
 CLASS="TYPE"
->struct hostent</SPAN
->
-that was initialised by these functions.
-They return
+>struct
+hostent</SPAN
+> that was initialised by these functions.  They return
 <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->
-if the lookups fail
-or if
-<TT
+> if the lookups fail or if <TT
 CLASS="PARAMETER"
 ><I
 >buf</I
 ></TT
 >
 was too small to hold the list of addresses and names referenced by
-the
-<TT
+the <TT
 CLASS="CONSTANT"
 >h_name</TT
->,
-
-<TT
+>, <TT
 CLASS="CONSTANT"
 >h_aliases</TT
->,
-
-and
+>, and
 <TT
 CLASS="CONSTANT"
 >h_addr_list</TT
->
-elements of the
-<SPAN
+> elements of the <SPAN
 CLASS="TYPE"
->struct hostent</SPAN
->.
-
-If
-<TT
+>struct
+hostent</SPAN
+>.  If <TT
 CLASS="PARAMETER"
 ><I
 >buf</I
 ></TT
->
-was too small, both
+> was too small, both
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</TT
->
-and
+> and
 <TT
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</TT
->
-set the global variable
+> set the global variable
 <SPAN
 CLASS="TYPE"
 >errno</SPAN
->
-to
-<SPAN
+> to <SPAN
 CLASS="ERRORCODE"
 >ERANGE</SPAN
->.&#13;</P
+>.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
