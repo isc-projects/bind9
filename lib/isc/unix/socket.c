@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.12 1998/12/01 17:58:34 explorer Exp $ */
+/* $Id: socket.c,v 1.13 1998/12/01 21:39:00 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -46,15 +46,15 @@
 #define TRACE_SEND    	0x0010
 #define TRACE_MANAGER	0x0020
 
-#if 1
+#if 0
 int trace_level = TRACE_CONNECT | TRACE_MANAGER;
 #define XTRACE(l, a)	if (l & trace_level) printf a
 #define XENTER(l, a)	if (l & trace_level) printf("ENTER %s\n", (a))
 #define XEXIT(l, a)	if (l & trace_level) printf("EXIT %s\n", (a))
 #else
-#define XTRACE(a)
-#define XENTER(a)
-#define XEXIT(a)
+#define XTRACE(l, a)
+#define XENTER(l, a)
+#define XEXIT(l, a)
 #endif
 
 /*
@@ -211,10 +211,10 @@ make_nonblock(int fd)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "fcntl(%d, F_SETFL, %d): %s",
 				 fd, flags, strerror(errno));
-		return ISC_R_UNEXPECTED;
+		return (ISC_R_UNEXPECTED);
 	}
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -406,8 +406,6 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 
 	if (make_nonblock(sock->fd) != ISC_R_SUCCESS) {
 		free_socket(&sock);
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "make_nonblock(%d)", sock->fd);
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -683,6 +681,8 @@ internal_accept(isc_task_t task, isc_event_t ev)
 		return (0);
 	}
 
+	UNLOCK(&sock->lock);
+
 	/*
 	 * The accept succeeded.  Pull off the done event and set the
 	 * fd and other information in the socket descriptor here.  These
@@ -693,15 +693,13 @@ internal_accept(isc_task_t task, isc_event_t ev)
 
 	dev->newsocket->fd = fd;
 
-	XTRACE(TRACE_LISTEN, ("internal_accept: newsock %p, fd %d\n",
-			      dev->newsocket, fd));
-
-	sock->addrlength = addrlen;
-	memcpy(&sock->address, &addr, addrlen);
+	/*
+	 * Save away the remote address
+	 */
+	dev->newsocket->addrlength = addrlen;
+	memcpy(&dev->newsocket->address, &addr, addrlen);
 	dev->addrlength = addrlen;
 	memcpy(&dev->address, &addr, addrlen);
-
-	UNLOCK(&sock->lock);
 
 	/*
 	 * It's safe to do this, since the done event's free routine will
@@ -713,6 +711,9 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	if (sock->manager->maxfd < fd)
 		sock->manager->maxfd = fd;
 	UNLOCK(&sock->manager->lock);
+
+	XTRACE(TRACE_LISTEN, ("internal_accept: newsock %p, fd %d\n",
+			      dev->newsocket, fd));
 
 	send_ncdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
 
@@ -783,13 +784,7 @@ internal_read(isc_task_t task, isc_event_t ev)
 		 * we can.
 		 */
 		read_count = dev->region.length - dev->n;
-		if (sock->type == isc_socket_tcp) {
-			cc = recv(sock->fd, dev->region.base + dev->n,
-				  read_count, 0);
-			memcpy(&dev->address, &sock->address,
-			       sock->addrlength);
-			dev->addrlength = sock->addrlength;
-		} else {
+		if (sock->type == isc_socket_udp) {
 			addrlen = sizeof(addr);
 			cc = recvfrom(sock->fd, dev->region.base + dev->n,
 				      read_count, 0,
@@ -797,6 +792,12 @@ internal_read(isc_task_t task, isc_event_t ev)
 				      &addrlen);
 			memcpy(&dev->address, &addr, addrlen);
 			dev->addrlength = addrlen;
+		} else {
+			cc = recv(sock->fd, dev->region.base + dev->n,
+				  read_count, 0);
+			memcpy(&dev->address, &sock->address,
+			       sock->addrlength);
+			dev->addrlength = sock->addrlength;
 		}			
 
 		XTRACE(TRACE_RECV,
@@ -1364,6 +1365,7 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 	 */
 	if (EMPTY(sock->read_list)) {
 		if (sock->type == isc_socket_udp) {
+			ev->addrlength = sizeof(isc_sockaddr_t);
 			cc = recvfrom(sock->fd, ev->region.base,
 				      ev->region.length, 0,
 				      (struct sockaddr *)&ev->address,
