@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.117 2001/05/22 01:44:37 gson Exp $ */
+/* $Id: master.c,v 1.118 2001/06/05 05:12:47 marka Exp $ */
 
 #include <config.h>
 
@@ -802,6 +802,7 @@ load(dns_loadctx_t *lctx) {
 	char *rhs = NULL;
 	const char *source = "";
 	unsigned long line = 0;
+	isc_boolean_t explict_ttl;
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
 	callbacks = lctx->callbacks;
@@ -1270,10 +1271,11 @@ load(dns_loadctx_t *lctx) {
 				== ISC_R_SUCCESS)
 			GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 
+		explict_ttl = ISC_FALSE;
 		if (dns_ttl_fromtext(&token.value.as_textregion, &lctx->ttl)
 				== ISC_R_SUCCESS) {
 			limit_ttl(callbacks, source, line, &lctx->ttl);
-			lctx->ttl_known = ISC_TRUE;
+			explict_ttl = lctx->ttl_known = ISC_TRUE;
 			GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 		}
 
@@ -1417,7 +1419,7 @@ load(dns_loadctx_t *lctx) {
 			}
 		} else if (lctx->default_ttl_known) {
 			lctx->ttl = lctx->default_ttl;
-		} else if (lctx->warn_1035) {
+		} else if (!explict_ttl && lctx->warn_1035) {
 			(*callbacks->warn)(callbacks,
 					   "%s: %s:%lu: "
 					   "using RFC 1035 TTL semantics",

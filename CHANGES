@@ -1,3 +1,5 @@
+ 855.	[bug]		Stop spurious "using RFC 1035 TTL semantics" warnings.
+
  854.	[bug]		The config parser didn't properly handle config
  			options that were specified in units of time other
 			than seconds.  [RT #1372]
