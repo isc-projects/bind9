@@ -1,3 +1,5 @@
+1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
+
 1369.	[bug]		Adding an NS record as the lexicographically last
 			record in a secure zone didn't work.
 

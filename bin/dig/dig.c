@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.179 2002/07/25 05:46:07 marka Exp $ */
+/* $Id: dig.c,v 1.180 2002/08/29 07:45:04 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -178,7 +178,7 @@ help(void) {
 "                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]defname        (Ditto)\n"
-"                 +[no]recursive      (Recursive mode)\n"
+"                 +[no]recurse        (Recursive mode)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)"
 "\n"
 "                 +[no]fail           (Don't try next server on SERVFAIL)\n"
