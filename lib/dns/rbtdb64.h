@@ -33,7 +33,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_rbtdb64_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t is_cache,
+dns_rbtdb64_create(isc_mem_t *mctx, dns_name_t *base, dns_rdatatype_t type,
 		   dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		   dns_db_t **dbp);
 
