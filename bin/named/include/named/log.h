@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.19 2001/05/28 05:17:02 marka Exp $ */
+/* $Id: log.h,v 1.20 2002/06/12 06:29:44 marka Exp $ */
 
 #ifndef NAMED_LOG_H
 #define NAMED_LOG_H 1
@@ -33,6 +33,7 @@
 #define NS_LOGCATEGORY_UPDATE		(&ns_g_categories[3])
 #define NS_LOGCATEGORY_QUERIES		(&ns_g_categories[4])
 #define NS_LOGCATEGORY_UNMATCHED	(&ns_g_categories[5])
+#define NS_LOGCATEGORY_UPDATE_SECURITY	(&ns_g_categories[6])
 
 /*
  * Backwards compatibility.

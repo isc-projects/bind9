@@ -1,3 +1,5 @@
+1219.	[func]		New category 'update-security'.
+
 1218.	[port]		Compaq Trucluster support.
 
 1219.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
