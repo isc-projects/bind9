@@ -1,3 +1,6 @@
+ 381.	[bug]		Check for IPV6_RECVPKTINFO and use it instead of
+			IPV6_PKTINFO if found. [RT #229]
+
  380.	[bug]		nsupdate didn't work with IPv6.
 
  379.	[func]		New library function isc_sockaddr_anyofpf().
