@@ -1,3 +1,8 @@
+
+ 593.	[bug]		If a secure zone was missing all its NXTs and
+			a dynamic update was attempted, the server entered
+			an infinite loop.
+
  592.	[bug]		The sig-validity-interval option now specifies a
 			number of days, not seconds.  This matches the
 			documentation. [RT #529]

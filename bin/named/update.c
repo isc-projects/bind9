@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.75 2000/12/01 21:37:08 gson Exp $ */
+/* $Id: update.c,v 1.76 2000/12/05 22:48:56 gson Exp $ */
 
 #include <config.h>
 
@@ -1296,6 +1296,7 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 	isc_result_t result;
 	dns_dbiterator_t *dbit = NULL;
 	isc_boolean_t has_nxt;
+	unsigned int wraps = 0;
 
 	CHECK(dns_db_createiterator(db, ISC_FALSE, &dbit));
 
@@ -1315,6 +1316,15 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 				CHECK(dns_dbiterator_first(dbit));
 			else
 				CHECK(dns_dbiterator_last(dbit));
+			wraps++;
+			if (wraps == 2) {
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
+					      NS_LOGMODULE_UPDATE,
+					      ISC_LOG_ERROR,
+					      "secure zone with no NXTs");
+				result = DNS_R_BADZONE;
+				goto failure;
+			}
 		}
 		dns_dbiterator_current(dbit, &node, newname);
 		dns_db_detachnode(db, &node);
