@@ -439,6 +439,7 @@ free_rdataset(isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 static inline void
 rollback_node(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 	rdatasetheader_t *header, *dcurrent;
+	isc_boolean_t make_dirty = ISC_FALSE;
 
 	/*
 	 * Caller must hold the node lock.
@@ -450,15 +451,21 @@ rollback_node(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 	 * will be cleaned up; until that time, they will be ignored.
 	 */
 	for (header = node->data; header != NULL; header = header->next) {
-		if (header->serial == serial)
+		if (header->serial == serial) {
 			header->attributes |= RDATASET_ATTR_IGNORE;
+			make_dirty = ISC_TRUE;
+		}
 		for (dcurrent = header->down;
 		     dcurrent != NULL;
 		     dcurrent = dcurrent->down) {
-			if (dcurrent->serial == serial)
+			if (dcurrent->serial == serial) {
 				dcurrent->attributes |= RDATASET_ATTR_IGNORE;
+				make_dirty = ISC_TRUE;
+			}
 		}
 	}
+	if (make_dirty)
+		node->dirty = 1;
 }
 
 static inline void
