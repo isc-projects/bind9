@@ -99,12 +99,12 @@ HREF="Bv9ARM.ch02.html#AEN240"
 ></DT
 ><DT
 >2.4. <A
-HREF="Bv9ARM.ch02.html#AEN245"
+HREF="Bv9ARM.ch02.html#AEN247"
 >Name Server Intensive Environment Issues</A
 ></DT
 ><DT
 >2.5. <A
-HREF="Bv9ARM.ch02.html#AEN248"
+HREF="Bv9ARM.ch02.html#AEN250"
 >Supported Operating Systems</A
 ></DT
 ></DL
@@ -176,7 +176,18 @@ at the expense of reducing cache hit rates and causing more <ACRONYM
 CLASS="acronym"
 >DNS</ACRONYM
 >
-traffic. It is still good practice to have enough memory to load
+traffic.
+Additionally, if additional section caching
+(<A
+HREF="Bv9ARM.ch06.html#acache"
+>Section 6.2.16.18</A
+>) is enabled, 
+the <B
+CLASS="command"
+>max-acache-size</B
+> can be used to limit the amount
+of memory used by the mechanism.
+It is still good practice to have enough memory to load
 all zone and cache data into memory &#8212; unfortunately, the best way
 to determine this for a given installation is to watch the name server
 in operation. After a few weeks the server process should reach
@@ -188,7 +199,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN245"
+NAME="AEN247"
 >2.4. Name Server Intensive Environment Issues</A
 ></H1
 ><P
@@ -208,7 +219,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN248"
+NAME="AEN250"
 >2.5. Supported Operating Systems</A
 ></H1
 ><P
