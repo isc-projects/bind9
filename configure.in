@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.63 $)
+AC_REVISION($Revision: 1.64 $)
 
 AC_PREREQ(2.13)
 
@@ -434,6 +434,9 @@ LIBISC_API=$srcdir/lib/isc/api
 AC_SUBST_FILE(LIBDNS_API)
 LIBDNS_API=$srcdir/lib/dns/api
 
+AC_SUBST_FILE(LIBOMAPI_API)
+LIBOMAPI_API=$srcdir/lib/omapi/api
+
 AC_OUTPUT(
 	make/rules
 	make/includes
@@ -464,6 +467,9 @@ AC_OUTPUT(
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
 	lib/dns/config/Makefile
+	lib/omapi/Makefile
+	lib/omapi/include/Makefile
+	lib/omapi/include/omapi/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile

@@ -3003,6 +3003,9 @@ LIBISC_API=$srcdir/lib/isc/api
 
 LIBDNS_API=$srcdir/lib/dns/api
 
+
+LIBOMAPI_API=$srcdir/lib/omapi/api
+
 trap '' 1 2 15
 cat > confcache <<\EOF
 # This file is a shell script that caches the results of configure
@@ -3133,6 +3136,9 @@ trap 'rm -fr `echo "make/rules
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
 	lib/dns/config/Makefile
+	lib/omapi/Makefile
+	lib/omapi/include/Makefile
+	lib/omapi/include/omapi/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
@@ -3239,6 +3245,8 @@ s%@BIND9_VERSION@%%g
 s%@LIBISC_API@%%g
 /@LIBDNS_API@/r $LIBDNS_API
 s%@LIBDNS_API@%%g
+/@LIBOMAPI_API@/r $LIBOMAPI_API
+s%@LIBOMAPI_API@%%g
 
 CEOF
 EOF
@@ -3309,6 +3317,9 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
 	lib/dns/config/Makefile
+	lib/omapi/Makefile
+	lib/omapi/include/Makefile
+	lib/omapi/include/omapi/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
