@@ -88,7 +88,12 @@ typedef struct rdatasetheader {
 #define RDATASET_ATTR_STALE		0x02
 #define RDATASET_ATTR_IGNORE		0x04
 
-#define IGNORE(header)	(((header)->attributes & RDATASET_ATTR_IGNORE) != 0)
+#define EXISTS(header) \
+	(((header)->attributes & RDATASET_ATTR_NONEXISTENT) == 0)
+#define NONEXISTENT(header) \
+	(((header)->attributes & RDATASET_ATTR_NONEXISTENT) != 0)
+#define IGNORE(header) \
+	(((header)->attributes & RDATASET_ATTR_IGNORE) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
 
@@ -2275,7 +2280,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
     dns_rdataset_t *addedrdataset, isc_stdtime_t now)
 {
 	rbtdb_changed_t *changed = NULL;
-	rdatasetheader_t *header, *header_prev;
+	rdatasetheader_t *topheader, *topheader_prev, *header;
 	unsigned char *merged;
 	dns_result_t result;
 	isc_boolean_t force = ISC_FALSE;
@@ -2303,18 +2308,26 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		}
 	}
 
-	newheader_nx = ((newheader->attributes & RDATASET_ATTR_NONEXISTENT)
-			!= 0 ? ISC_TRUE : ISC_FALSE);
+	newheader_nx = NONEXISTENT(newheader) ? ISC_TRUE : ISC_FALSE;
 
-	header_prev = NULL;
-	for (header = rbtnode->data; header != NULL; header = header->next) {
-		if (header->type == newheader->type)
+	topheader_prev = NULL;
+	for (topheader = rbtnode->data;
+	     topheader != NULL;
+	     topheader = topheader->next) {
+		if (topheader->type == newheader->type)
 			break;
-		header_prev = header;
+		topheader_prev = topheader;
 	}
+	/*
+	 * If header isn't NULL, we've found the right type.  There may be
+	 * IGNORE rdatasets between the top of the chain and the first real
+	 * data.  We skip over them.
+	 */
+	header = topheader;
+	while (header != NULL && IGNORE(header))
+		header = header->down;
 	if (header != NULL) {
-		header_nx = ((header->attributes & RDATASET_ATTR_NONEXISTENT)
-			     != 0 ? ISC_TRUE : ISC_FALSE);
+		header_nx = NONEXISTENT(header) ? ISC_TRUE : ISC_FALSE;
 
 		/*
 		 * Deleting an already non-existent rdataset has no effect.
@@ -2340,7 +2353,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			merge = ISC_FALSE;
 
 		/*
-		 * XXXRTH  We should turn off merging for rdata types that
+		 * XXXRTH  We need to turn off merging for rdata types that
 		 * cannot be merged, e.g. SOA, CNAME, WKS.
 		 */
 
@@ -2383,12 +2396,12 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			}
 		}
 		INSIST(rbtversion == NULL ||
-		       rbtversion->serial >= header->serial);
-		if (header_prev != NULL)
-			header_prev->next = newheader;
+		       rbtversion->serial >= topheader->serial);
+		if (topheader_prev != NULL)
+			topheader_prev->next = newheader;
 		else
 			rbtnode->data = newheader;
-		newheader->next = header->next;
+		newheader->next = topheader->next;
 		if (loading) {
 			/*
 			 * There are no other references to 'header' when
@@ -2399,28 +2412,56 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			newheader->down = NULL;
 			free_rdataset(rbtdb->common.mctx, header);
 		} else {
-			newheader->down = header;
-			header->next = newheader;
+			newheader->down = topheader;
+			topheader->next = newheader;
 			rbtnode->dirty = 1;
 			if (changed != NULL)
 				changed->dirty = ISC_TRUE;
 		}
 	} else {
 		/*
-		 * The rdataset type doesn't exist at this node.
+		 * No non-IGNORED rdatasets of the given type exist at
+		 * this node.
 		 */
 
 		/*
-		 * If we're trying to delete it, don't bother.
+		 * If we're trying to delete the type, don't bother.
 		 */
 		if (newheader_nx) {
 			free_rdataset(rbtdb->common.mctx, newheader);
 			return (DNS_R_UNCHANGED);
 		}
-	
-		newheader->next = rbtnode->data;
-		newheader->down = NULL;
-		rbtnode->data = newheader;
+
+		if (topheader != NULL) {
+			/*
+			 * We have an list of rdatasets of the given type,
+			 * but they're all marked IGNORE.  We simply insert
+			 * the new rdataset at the head of the list.
+			 *
+			 * Ignored rdatasets cannot occur during loading, so
+			 * we INSIST on it.
+			 */
+			INSIST(!loading);
+			INSIST(rbtversion == NULL ||
+			       rbtversion->serial >= topheader->serial);
+			if (topheader_prev != NULL)
+				topheader_prev->next = newheader;
+			else
+				rbtnode->data = newheader;
+			newheader->next = topheader->next;
+			newheader->down = topheader;
+			topheader->next = newheader;
+			rbtnode->dirty = 1;
+			if (changed != NULL)
+				changed->dirty = ISC_TRUE;
+		} else {
+			/*
+			 * No rdatasets of the given type exist at the node.
+			 */
+			newheader->next = rbtnode->data;
+			newheader->down = NULL;
+			rbtnode->data = newheader;
+		}
 	}
 
 	if (addedrdataset != NULL)
@@ -2518,7 +2559,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
 	rbtdb_version_t *rbtversion = version;
-	rdatasetheader_t *header, *header_prev, *newheader;
+	rdatasetheader_t *topheader, *topheader_prev, *header, *newheader;
 	unsigned char *subresult;
 	isc_region_t region;
 	dns_result_t result;
@@ -2546,13 +2587,23 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		return (DNS_R_NOMEMORY);
 	}
 
-	header_prev = NULL;
-	for (header = rbtnode->data; header != NULL; header = header->next) {
-		if (header->type == newheader->type)
+	topheader_prev = NULL;
+	for (topheader = rbtnode->data;
+	     topheader != NULL;
+	     topheader = topheader->next) {
+		if (topheader->type == newheader->type)
 			break;
-		header_prev = header;
+		topheader_prev = topheader;
 	}
-	if (header != NULL) {
+	/*
+	 * If header isn't NULL, we've found the right type.  There may be
+	 * IGNORE rdatasets between the top of the chain and the first real
+	 * data.  We skip over them.
+	 */
+	header = topheader;
+	while (header != NULL && IGNORE(header))
+		header = header->down;
+	if (header != NULL && EXISTS(header)) {
 		result = dns_rdataslab_subtract(
 					(unsigned char *)header,
 					(unsigned char *)newheader,
@@ -2594,16 +2645,16 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 		/*
 		 * If we're here, we want to link newheader in front of
-		 * header.
+		 * topheader.
 		 */
-		INSIST(rbtversion->serial >= header->serial);
-		if (header_prev != NULL)
-			header_prev->next = newheader;
+		INSIST(rbtversion->serial >= topheader->serial);
+		if (topheader_prev != NULL)
+			topheader_prev->next = newheader;
 		else
 			rbtnode->data = newheader;
-		newheader->next = header->next;
-		newheader->down = header;
-		header->next = newheader;
+		newheader->next = topheader->next;
+		newheader->down = topheader;
+		topheader->next = newheader;
 		rbtnode->dirty = 1;
 		changed->dirty = ISC_TRUE;
 	} else {
