@@ -341,7 +341,7 @@ do_ipv4(ns_interfacemgr_t *mgr, isc_boolean_t udp_only) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
 				      NS_LOGMODULE_INTERFACEMGR,
 				      ISC_LOG_INFO,
-				      "IPv4: listening on %s (%s port %u)",
+				"listening on IPv4 interface %s, %s port %u",
 				      interface.name, addrstr,
 				      ntohs(listen_addr.type.sin.sin_port));
 		
@@ -349,7 +349,7 @@ do_ipv4(ns_interfacemgr_t *mgr, isc_boolean_t udp_only) {
 						     udp_only, &ifp);
 			if (result != DNS_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "IPv4: listening on interface %s"
+					 "listening on IPv4 interface %s"
 					 " failed; interface ignored",
 						 interface.name);
 			}
@@ -380,12 +380,13 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
 			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
-			      "IPv6: listening (port %u)", ns_g_port);
+			      "listening on IPv6 interfaces, port %u",
+			      ns_g_port);
 		result = ns_interface_create(mgr, &listen_addr, ISC_FALSE,
 					     &ifp);
 		if (result != DNS_R_SUCCESS)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "IPv6: listening failed");
+				 "listening on IPv6 interfaces failed");
 	}
 }
 
@@ -403,13 +404,13 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 	} else
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
 			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
-			      "IPv6: not available");
+			      "no IPv6 interfaces found");
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
 		do_ipv4(mgr, udp_only);
 	else
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
 			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_INFO,
-			      "IPv4: not available");
+			      "no IPv4 interfaces found");
 
         /*
          * Now go through the interface list and delete anything that
@@ -420,9 +421,12 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 	purge_old_interfaces(mgr);
 
 	if (ISC_LIST_EMPTY(mgr->interfaces)) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "warning: not listening on any interfaces");
-		/* Continue anyway. */
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_NETWORK,
+			      NS_LOGMODULE_INTERFACEMGR, ISC_LOG_WARNING,
+			      "not listening on any interfaces");
+		/*
+		 * Continue anyway.
+		 */
 	}
 }
 

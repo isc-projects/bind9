@@ -77,6 +77,11 @@ EXTERN unsigned int		ns_g_debuglevel		INIT(0);
 EXTERN dns_c_ctx_t *		ns_g_confctx	INIT(NULL);
 EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
 
+/*
+ * Misc.
+ */
+EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
+
 #undef EXTERN
 #undef INIT
 

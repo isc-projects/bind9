@@ -103,6 +103,9 @@ early_fatal(char *format, ...) {
 		isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			       format, args);
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
+			       "exiting (due to early fatal error)");
 	} else {
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
@@ -124,11 +127,15 @@ static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:N:p:sz:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "b:c:d:N:p:sz:")) !=
+	       -1) {
 		switch (ch) {
 		case 'b':
 		case 'c':
 			ns_g_conffile = isc_commandline_argument;
+			break;
+		case 'd':
+			ns_g_debuglevel = atoi(isc_commandline_argument);
 			break;
 		case 'N':
 			ns_g_cpus = atoi(isc_commandline_argument);
@@ -236,7 +243,7 @@ setup() {
 			    isc_result_totext(result));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "Starting BIND %s", ns_g_version);
+		      ISC_LOG_NOTICE, "starting BIND %s", ns_g_version);
 
 	ISC_LIST_INIT(ns_g_viewlist);
 	result = isc_rwlock_init(&ns_g_viewlock, 0, 0);
@@ -266,7 +273,7 @@ cleanup() {
 	dns_tsig_destroy();
 	isc_rwlock_destroy(&ns_g_viewlock);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_NOTICE, "Exiting");
+		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();
 }
 

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <isc/assertions.h>
 #include <isc/error.h>
@@ -265,7 +266,7 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	return (result);
 }
 
-static isc_result_t
+static void
 load_configuration(const char *filename) {
 	isc_result_t result;
 	ns_load_t lctx;
@@ -283,18 +284,18 @@ load_configuration(const char *filename) {
 	callbacks.optscbkuap = NULL;
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "Loading '%s'", ns_g_conffile);
+		      ISC_LOG_INFO, "loading '%s'", filename);
 
 	configctx = NULL;
 	result = dns_c_parse_namedconf(ns_g_lctx,
 				       filename, ns_g_mctx, &configctx,
 				       &callbacks);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+				"load of '%s' failed", filename);
 	
 	/*
-	 * Create default view, if required.
+	 * XXXRTH  Create default view, if required.
 	 */
 
 	/*
@@ -343,33 +344,22 @@ load_configuration(const char *filename) {
 	}
 
 	if (oconfigctx != NULL)
-		dns_c_ctx_delete(NULL /* XXX isc_log_t */, &oconfigctx);
-
-	return (ISC_R_SUCCESS);
+		dns_c_ctx_delete(ns_g_lctx, &oconfigctx);
 }
 
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
 
 	(void)task;
 
 	isc_event_free(&event);
 
-	result = load_configuration(ns_g_conffile);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_CRITICAL,
-			      "Load of '%s' failed: %s", ns_g_conffile,
-			      isc_result_totext(result));
-		isc_app_shutdown();
-		return;
-	}
+	load_configuration(ns_g_conffile);
 
 	ns_interfacemgr_scan(ns_g_interfacemgr);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "Running");
+		      ISC_LOG_INFO, "running");
 }
 
 static isc_result_t
@@ -459,7 +449,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	(void)task;
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "Shutting down");
+		      ISC_LOG_INFO, "shutting down");
 
 	RWLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 
@@ -474,7 +464,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * XXXRTH  Is this the right place to do this?
 	 */
-	dns_c_ctx_delete(NULL /* XXX isc_log_t */, &ns_g_confctx);
+	dns_c_ctx_delete(ns_g_lctx, &ns_g_confctx);
 
 	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 
@@ -534,4 +524,22 @@ ns_server_init(void) {
 	ns_rootns_destroy();
 
 	return (result);
+}
+
+void
+ns_server_fatal(isc_logmodule_t *module, isc_boolean_t want_core,
+		const char *format, ...)
+{
+	va_list args;
+
+	va_start(args, format);
+	isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL, module,
+		       ISC_LOG_CRITICAL, format, args);
+	va_end(args);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_CRITICAL, "exiting (due to fatal error)");
+
+	if (want_core && ns_g_coreok)
+		abort();
+	exit(1);
 }

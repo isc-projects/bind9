@@ -24,7 +24,7 @@
 #endif
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.11 1999/10/13 23:19:45 marka Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.12 1999/10/23 00:02:07 halley Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -41,6 +41,7 @@ static char rcsid[] = "$Id: confparser.y,v 1.11 1999/10/13 23:19:45 marka Exp $"
 #include <syslog.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/mutex.h>
 #include <isc/lex.h>
 #include <isc/symtab.h>
@@ -347,7 +348,7 @@ statement: include_stmt
 include_stmt: L_INCLUDE L_QSTRING L_EOS
         {
                 if (isc_lex_openfile(mylexer, $2) != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE ,"Can't open file %s\n",
+                        parser_error(ISC_FALSE ,"Can't open file %s",
                                      $2);
                         YYABORT;
                 }
@@ -1363,7 +1364,7 @@ channel_stmt:
                                                    $2, &newc);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
-                                       "Redefing channel %s\n", $2);
+                                       "Redefing channel %s", $2);
                 } else if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Failed to add new file channel.");
@@ -2033,7 +2034,7 @@ address_match_simple: ip_address
 
                 case ISC_R_NOMEMORY:
                         parser_error(ISC_FALSE,
-                                    "Insufficient memory available.\n");
+                                    "Insufficient memory available.");
 			YYABORT;
                         break;
 
@@ -2068,7 +2069,7 @@ address_match_simple: ip_address
                         case ISC_R_NOMEMORY:
                                 parser_error(ISC_FALSE,
                                             "Insufficient memory "
-					    "available.\n");
+					    "available.");
 				YYABORT;
                                 break;
 
@@ -2118,7 +2119,7 @@ address_match_simple: ip_address
                                 case ISC_R_NOMEMORY:
                                         parser_error(ISC_FALSE,
                                                     "Insufficient memory "
-                                                    "available.\n");
+                                                    "available.");
 					YYABORT;
                                         break;
 
@@ -2146,7 +2147,7 @@ address_match_simple: ip_address
                         case ISC_R_NOMEMORY:
                                 parser_error(ISC_FALSE,
                                             "Insufficient memory "
-                                            "available.\n");
+                                            "available.");
 				YYABORT;
                                 break;
                         }
@@ -2175,7 +2176,7 @@ address_name: any_string
                                                       currcfg->mem, &elem, $1);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
-                                             "Failed to create IPE-ACL\n");
+                                             "Failed to create IPE-ACL");
                                 YYABORT;
                         }
                 }
@@ -2213,7 +2214,7 @@ key_list_element: key_ref
                                                currserver->keys, $1, &keyid);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
-                                             "Failed to create keyid\n");
+                                             "Failed to create keyid");
                                 YYABORT;
                         }
                 }
@@ -3447,6 +3448,11 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
         specials['*'] = 1;
 #endif
 
+	/*
+	 * Use the logging context specified by the caller.
+	 */
+	logcontext = logctx;
+
         /*
          * This memory context is only used by the lexer routines (and must 
          * stay that way). Any memory that must live past the return of
@@ -3471,7 +3477,7 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
                 goto done;
         }
 
-        res = dns_c_ctx_new(logctx, mem, &currcfg);
+        res = dns_c_ctx_new(logcontext, mem, &currcfg);
         if (res != ISC_R_SUCCESS) {
                 isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -3514,7 +3520,7 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
                  */
                 isc_mem_destroy_check(memctx, ISC_FALSE);
 
-                dns_c_ctx_delete(logctx, &currcfg);
+                dns_c_ctx_delete(logcontext, &currcfg);
                 currcfg = NULL;
         } else {
                 res = ISC_R_SUCCESS;
@@ -3535,6 +3541,7 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
         currcfg = NULL;
         memctx = NULL;
         mylexer = NULL;
+	logcontext = NULL;
 
         RUNTIME_CHECK(isc_mutex_unlock(&yacc_mutex) == ISC_R_SUCCESS);
 
@@ -3737,26 +3744,26 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 		level = ISC_LOG_WARNING;
 	}
 
-        sprintf(where, "%s:%d ", filename, lineno);
-        if ((unsigned int)vsprintf(message, format, args) >= sizeof message) {
-                abort();
-        }
+        sprintf(where, "%s:%d: ", filename, lineno);
+        if ((unsigned int)vsprintf(message, format, args) >= sizeof message)
+		FATAL_ERROR(__FILE__, __LINE__,
+			    "error message would overflow");
 
         if (print_last_token) {
 		if (logcontext != NULL) {
 			isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
-				       "%s%s near ``%s''\n", where, message,
+				       "%s%s near `%s'", where, message,
 				       token_to_text(lasttoken, lastyylval));
 		} else {
-			fprintf(stderr, "%s%s near ``%s''\n", where, message,
+			fprintf(stderr, "%s%s near `%s'\n", where, message,
 				token_to_text(lasttoken, lastyylval));
 		}
         } else {
 		if (logcontext != NULL) {
 			isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
-				       "%s%s\n", where, message);
+				       "%s%s", where, message);
 		} else {
 			fprintf(stderr, "%s%s\n", where, message);
 		}

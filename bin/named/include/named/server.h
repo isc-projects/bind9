@@ -19,7 +19,13 @@
 #define NS_SERVER_H 1
 
 #include <isc/types.h>
+#include <isc/log.h>
 
-isc_result_t ns_server_init(void);
+isc_result_t
+ns_server_init(void);
+
+void
+ns_server_fatal(isc_logmodule_t *module, isc_boolean_t want_core,
+		const char *format, ...);
 
 #endif /* NS_SERVER_H */
