@@ -14,6 +14,9 @@
 1385.	[bug]		Setting serial-query-rate to 10 would trigger a
 			REQUIRE failure.
 
+1384.	[bug]		host was incompatible with BIND 8 in its exit code and
+			in the output with the -l option.  [RT #3536]
+
 1373.	[bug]		Recovery from expired glue failed under certain
 			circumstances.
 
