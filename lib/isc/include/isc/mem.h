@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.56 2001/09/06 22:13:47 gson Exp $ */
+/* $Id: mem.h,v 1.57 2001/09/06 23:03:17 gson Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -50,7 +50,7 @@ typedef void (*isc_memfree_t)(void *, void *);
  * allocation and freeing by file and line number.
  */
 #ifndef ISC_MEM_TRACKLINES
-#define ISC_MEM_TRACKLINES 0
+#define ISC_MEM_TRACKLINES 1
 #endif
 
 /*
