@@ -50,21 +50,35 @@ static void start_find(client_t *);
 static void
 cleanup_gabn(client_t *client)
 {
-	DP(50, "Cleaning up client %p\n");
+	dns_adbfind_t *v4;
+
+	DP(50, "Cleaning up client %p");
+
+	v4 = client->v4find;
 
 	if (client->v4find != NULL)
 		dns_adb_destroyfind(&client->v4find);
-	if (client->v6find != NULL)
-		dns_adb_destroyfind(&client->v6find);
+	if (client->v6find != NULL) {
+		if (client->v6find == v4)
+			client->v6find = NULL;
+		else
+			dns_adb_destroyfind(&client->v6find);
+	}
 }
 
 static void
 generate_reply(client_t *client)
 {
-	DP(50, "Generating gabn reply for client %p\n");
-	cleanup_gabn(client);
+	DP(50, "Generating gabn reply for client %p");
 
-	client_state_idle(client);
+	/*
+	 * Run through the finds we have and wire them up to the gabn
+	 * structure.
+	 */
+
+ go_idle:
+	cleanup_gabn(client);
+	error_pkt_send(client, LWRES_R_FAILURE);
 }
 
 /*

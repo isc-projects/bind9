@@ -31,33 +31,6 @@
 
 #include "client.h"
 
-static void
-hexdump(char *msg, void *base, size_t len)
-{
-	unsigned char *p;
-	unsigned int cnt;
-
-	p = base;
-	cnt = 0;
-
-	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
-
-	while (cnt < len) {
-		if (cnt % 16 == 0)
-			printf("%p: ", p);
-		else if (cnt % 8 == 0)
-			printf(" |");
-		printf(" %02x", *p++);
-		cnt++;
-
-		if (cnt % 16 == 0)
-			printf("\n");
-	}
-
-	if (cnt % 16 != 0)
-		printf("\n");
-}
-
 void
 DP(int level, char *format, ...)
 {
@@ -90,18 +63,16 @@ process_request(client_t *client)
 	lwres_buffer_t b;
 	isc_result_t result;
 
-	hexdump("client request", client->buffer, client->recvlength);
-
 	lwres_buffer_init(&b, client->buffer, client->recvlength);
 	lwres_buffer_add(&b, client->recvlength);
 
 	result = lwres_lwpacket_parseheader(&b, &client->pkt);
 	if (result != ISC_R_SUCCESS) {
-		printf("Invalid packet header received\n");
+		DP(50, "Invalid packet header received");
 		goto restart;
 	}
 
-	printf("OPCODE %08x\n", client->pkt.opcode);
+	DP(50, "OPCODE %08x", client->pkt.opcode);
 
 	switch (client->pkt.opcode) {
 	case LWRES_OPCODE_GETADDRSBYNAME:
@@ -114,7 +85,7 @@ process_request(client_t *client)
 		process_noop(client, &b);
 		return;
 	default:
-		printf("Unknown opcode %08x\n", client->pkt.opcode);
+		DP(50, "Unknown opcode %08x", client->pkt.opcode);
 		goto restart;
 	}
 
@@ -122,7 +93,7 @@ process_request(client_t *client)
 	 * Drop the packet.
 	 */
  restart:
-	printf("restarting client %p...\n", client);
+	DP(50, "restarting client %p...", client);
 	client_state_idle(client);
 }
 
@@ -141,7 +112,7 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 	INSIST((cm->flags & CLIENTMGR_FLAG_RECVPENDING) != 0);
 	cm->flags &= ~CLIENTMGR_FLAG_RECVPENDING;
 
-	printf("Event received! Task %p, length %u, result %u (%s)\n",
+	DP(50, "Event received! Task %p, length %u, result %u (%s)",
 	       task, dev->n, dev->result, isc_result_totext(dev->result));
 
 	if (dev->result != ISC_R_SUCCESS) {
@@ -232,7 +203,7 @@ client_shutdown(isc_task_t *task, isc_event_t *ev)
 	REQUIRE(ev->type == LWRD_SHUTDOWN);
 	REQUIRE((cm->flags & CLIENTMGR_FLAG_SHUTTINGDOWN) == 0);
 
-	printf("Got shutdown event, task %p\n", task);
+	DP(50, "Got shutdown event, task %p", task);
 
 	/*
 	 * Cancel any pending I/O.
@@ -288,7 +259,7 @@ client_send(isc_task_t *task, isc_event_t *ev)
 	INSIST(CLIENT_ISSEND(client));
 	INSIST(client->sendbuf == dev->region.base);
 
-	printf("Task %p for client %p got send-done event\n", task, client);
+	DP(50, "Task %p for client %p got send-done event", task, client);
 
 	if (client->sendbuf != client->buffer)
 		lwres_context_freemem(cm->lwctx, client->sendbuf,
@@ -296,6 +267,8 @@ client_send(isc_task_t *task, isc_event_t *ev)
 	client->sendbuf = NULL;
 
 	client_state_idle(client);
+
+	isc_event_free(&ev);
 }
 
 void
