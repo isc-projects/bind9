@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.31 1999/12/14 10:28:00 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.32 1999/12/17 18:32:38 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -45,7 +45,7 @@ static char rcsid[] = "$Id: confparser.y,v 1.31 1999/12/14 10:28:00 brister Exp 
 
 #include <dns/confparser.h>
 #include <dns/confctx.h>
-#include <dns/log.h> 
+#include <dns/log.h>
  
 #include <dns/result.h>
 #include <dns/rdatatype.h>
@@ -358,8 +358,7 @@ statement: include_stmt L_EOS
 include_stmt: L_INCLUDE L_QSTRING
         {
                 if (isc_lex_openfile(mylexer, $2) != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE ,"Can't open file %s",
-                                     $2);
+                        parser_error(ISC_FALSE ,"Can't open file %s", $2);
                         YYABORT;
                 }
 
@@ -382,8 +381,7 @@ options_stmt: L_OPTIONS
                         dns_c_ctx_optionsdelete(&currcfg->options);
                 }
 
-                tmpres = dns_c_ctx_optionsnew(currcfg->mem,
-                                              &currcfg->options);
+                tmpres = dns_c_ctx_optionsnew(currcfg->mem, &currcfg->options);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Failed to create options structure: %s",
@@ -445,7 +443,6 @@ option: /* Empty */
         | L_NAMED_XFER L_QSTRING
         {
                 tmpres = dns_c_ctx_setnamedxfer(currcfg, $2);
-                
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining named-xfer");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -544,12 +541,12 @@ option: /* Empty */
         {
                 tmpres = dns_c_ctx_setexpertmode(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
-                        parser_error(ISC_FALSE, "Redefining fake-iquery.");
+                        parser_error(ISC_FALSE, "Redefining expert-mode.");
                 }
         }
         | L_FAKE_IQUERY yea_or_nay
         {
-                tmpres = dns_c_ctx_setfakeiquery(currcfg, $2);
+                tmpres = dns_c_ctx_setfakeiquery(currcfg, ISC_FALSE);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining fake-iquery.");
                 }
@@ -668,8 +665,7 @@ option: /* Empty */
         {
                 tmpres = dns_c_ctx_setforward(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
-                        parser_error(ISC_FALSE,
-                                     "Redefining forward");
+                        parser_error(ISC_FALSE, "Redefining forward");
                 }
         }
         | L_FORWARDERS {
@@ -690,8 +686,8 @@ option: /* Empty */
                                 YYABORT;
                         }
 
-                        tmpres = dns_c_ctx_setforwarders(currcfg, forwarders,
-                                                         ISC_FALSE);
+                        tmpres = dns_c_ctx_setforwarders(currcfg, ISC_FALSE,
+							 forwarders);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
                                              "Failed to set forwarders list.");
@@ -704,20 +700,17 @@ option: /* Empty */
         {
 		if ($3 == NULL)
 			YYABORT;
-		tmpres = dns_c_ctx_setqueryacl(currcfg,
-					       ISC_FALSE, $3);
+		tmpres = dns_c_ctx_setqueryacl(currcfg, ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining allow-query list");
                 } else if (tmpres != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE,
-                                     "Failed to set allow-query");
+                        parser_error(ISC_FALSE, "Failed to set allow-query");
                         YYABORT;
                 }
         }
         | L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_settransferacl(currcfg,
-                                                  ISC_FALSE, $3);
+                tmpres = dns_c_ctx_settransferacl(currcfg, ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining allow-transfer list");
@@ -729,8 +722,7 @@ option: /* Empty */
         }
         | L_ALLOW_RECURSION L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_setrecursionacl(currcfg,
-                                                   ISC_FALSE, $3);
+                tmpres = dns_c_ctx_setrecursionacl(currcfg, ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining allow-recursion list");
@@ -742,8 +734,7 @@ option: /* Empty */
         }
         | L_SORTLIST  L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_setsortlist(currcfg,
-                                               ISC_FALSE, $3);
+                tmpres = dns_c_ctx_setsortlist(currcfg, ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining sortlist.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -753,8 +744,7 @@ option: /* Empty */
         }
         | L_BLACKHOLE L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_setblackhole(currcfg,
-                                                ISC_FALSE, $3);
+                tmpres = dns_c_ctx_setblackhole(currcfg, ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining blackhole.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -764,8 +754,7 @@ option: /* Empty */
         }
         | L_TOPOLOGY L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_settopology(currcfg,
-                                               ISC_FALSE, $3);
+                tmpres = dns_c_ctx_settopology(currcfg, ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining topology.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -902,8 +891,7 @@ option: /* Empty */
 			YYABORT;
 		}
 		
-                tmpres = dns_c_ctx_setstatsinterval(currcfg,
-                                                    $2 * 60);
+                tmpres = dns_c_ctx_setstatsinterval(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining statistics-interval.");
@@ -939,6 +927,12 @@ option: /* Empty */
         }
         | L_HEARTBEAT L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setheartbeat_interval(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -1137,8 +1131,7 @@ maybe_wild_addr: ip_address
                 $$.type.sin.sin_addr.s_addr = htonl(INADDR_ANY);
 
                 if (strcmp($1, "*") != 0) {
-                        parser_error(ISC_TRUE,
-                                     "Bad ip-address. Using ``*''");
+                        parser_error(ISC_TRUE, "Bad ip-address. Using ``*''");
                 }
 
                 isc_mem_free(memctx, $1);
@@ -1786,8 +1779,7 @@ channel_opt: L_SEVERITY channel_severity { /* nothing to do */ }
 
                 tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE,
-                                     "Can't get current channel.");
+                        parser_error(ISC_FALSE, "Can't get current channel.");
                         YYABORT;
                 }
 
@@ -1806,8 +1798,7 @@ channel_opt: L_SEVERITY channel_severity { /* nothing to do */ }
 
                 tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE,
-                                     "Can't get current channel.");
+                        parser_error(ISC_FALSE, "Can't get current channel.");
                         YYABORT;
                 }
 
@@ -1827,8 +1818,7 @@ channel_opt: L_SEVERITY channel_severity { /* nothing to do */ }
 
                 tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE,
-                                     "Can't get current channel.");
+                        parser_error(ISC_FALSE, "Can't get current channel.");
                         YYABORT;
                 }
 
@@ -1863,8 +1853,7 @@ channel: channel_name
                  */
                 tmpres = dns_c_ctx_currcategory(currcfg, &cat);
                 if (tmpres != ISC_R_SUCCESS) {
-                        parser_error(ISC_FALSE,
-                                     "Can't get current category.");
+                        parser_error(ISC_FALSE, "Can't get current category.");
                         YYABORT;
                 }
 
@@ -3741,6 +3730,13 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 
         isc_mem_destroy(&memctx);
 
+	if (res == ISC_R_SUCCESS) {
+		res = dns_c_checkconfig(currcfg);
+		if (res != ISC_R_SUCCESS) {
+			dns_c_ctx_delete(&currcfg);
+		}
+	}
+	
         *configctx = currcfg;
 
         callbacks = NULL;
