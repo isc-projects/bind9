@@ -1,4 +1,8 @@
 
+ 657.   [bug]           When a listen-on statement in an lwres block does not
+                        specifiy a port, use 921, not 53.  Also update the
+                        listen-on documentation. [RT #616]
+
  649.	[bug]		It was possible to join to an already running fctx
 			after it had "cloned" its events, but before it sent
 			them.  In this case, the event of the newly joined

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72 2000/12/20 03:36:18 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.1 2001/01/05 23:44:54 gson Exp $ -->
 
 <book>
 
@@ -2419,7 +2419,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
       <para> This is the grammar of the <command>lwres</command>
       statement in the <filename>named.conf</filename> file:</para>
 <programlisting><command>lwres</command> {
-    <optional> listen-on { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> listen-on { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> view <replaceable>view_name</replaceable>; </optional>
     <optional> search { <replaceable>domain_name</replaceable> ; <optional> <replaceable>ip_addr</replaceable> ; ... </optional> }; </optional>
     <optional> ndots <replaceable>number</replaceable>; </optional>

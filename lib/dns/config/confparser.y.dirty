@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44 2000/12/20 03:36:19 marka Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.1 2001/01/05 23:44:56 gson Exp $ */
 
 #include <config.h>
 
@@ -113,9 +113,12 @@ static isc_lexspecials_t	specials;
 /*
  * XXXJAB The #define for the default OMAPI port is not available
  * to us, so we make our own.
+ *
+ * XXXBEW Same goes for the default LWRES port.
  */
 
 #define OMAPI_DEFAULT_PORT 953
+#define LWRES_DEFAULT_PORT 921
 
 #define CONF_MAX_IDENT 1024
 
@@ -157,6 +160,8 @@ static dns_peerlist_t	*currentpeerlist(dns_c_ctx_t *cfg,
 					 isc_boolean_t createIfNeeded);
 static isc_boolean_t	keydefinedinscope(dns_c_ctx_t *cfg,
 					  const char *name);
+static void		replace_zero_ports(dns_c_iplist_t *list,
+					   in_port_t val);
 
 
 
@@ -1272,6 +1277,7 @@ option: /* Empty */
 	}
 	| L_ALSO_NOTIFY port_ip_list
 	{
+		replace_zero_ports($2, default_port);
 		tmpres = dns_c_ctx_setalsonotify(currcfg, $2);
 		dns_c_iplist_detach(&$2);
 
@@ -2013,16 +2019,9 @@ port_ip_list: maybe_zero_port L_LBRACE ip_and_port_list L_RBRACE
 	{
 		in_port_t port = $1;
 		dns_c_iplist_t *list = $3;
-		unsigned int i;
 
-		if (port == 0)
-			port = default_port;
-
-		for (i = 0 ; i < list->nextidx ; i++) {
-			if (isc_sockaddr_getport(&list->ips[i]) == 0) {
-				isc_sockaddr_setport(&list->ips[i], port);
-			}
-		}
+		if (port != 0)
+			replace_zero_ports(list, port);
 
 		$$ = list;
 	};
@@ -4519,6 +4518,8 @@ view_option: L_FORWARD zone_forward_opt
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
+		replace_zero_ports($2, default_port);
+
 		INSIST(view != NULL);
 
 		tmpres = dns_c_view_setalsonotify(view, $2);
@@ -5097,6 +5098,8 @@ zone_option: L_FILE L_QSTRING
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
 		INSIST(zone != NULL);
+
+		replace_zero_ports($2, default_port);
 
 		tmpres = dns_c_zone_setmasterips(zone, $2, ISC_FALSE);
 		if (tmpres == ISC_R_EXISTS) {
@@ -5708,6 +5711,8 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
+		replace_zero_ports($2, default_port);
+
 		tmpres = dns_c_zone_setalsonotify(zone, $2, ISC_FALSE);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -6018,6 +6023,9 @@ lwres_options_list: lwres_option L_EOS
 lwres_option: L_LISTEN_ON port_ip_list
 	{
 		dns_c_lwres_t *lwres;
+
+		replace_zero_ports($2, LWRES_DEFAULT_PORT);
+
 		lwres = ISC_LIST_TAIL(currcfg->lwres->lwreslist);
 		tmpres = dns_c_lwres_setlistenon(lwres, $2);
 		dns_c_iplist_detach(&$2);
@@ -7105,4 +7113,14 @@ keydefinedinscope(dns_c_ctx_t *cfg, const char *name)
 	}
 
 	return (rval);
+}
+
+static void
+replace_zero_ports(dns_c_iplist_t *list, in_port_t val) {
+	unsigned int i;
+
+	for (i = 0 ; i < list->nextidx ; i++) {
+		if (isc_sockaddr_getport(&list->ips[i]) == 0)
+			isc_sockaddr_setport(&list->ips[i], val);
+	}
 }
