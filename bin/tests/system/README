@@ -11,14 +11,14 @@ involving a different DNS setup.  They are:
   limits/	Tests of handling of large data (close to server limits)
   lwresd/	Tests of the lightweight resolver library and daemon
   notify/	More NOTIFY tests
-  nsupdate/	Dynamic update tests
+  nsupdate/	Dynamic update and IXFR tests
   resolver/     Regression tests for resolver bugs that have been fixed
 		(not a complete resolver test suite)
   stub/		Tests of stub zone functionality
   unknown/	Unknown type and class tests
   upforwd/	Update forwarding tests
   views/	Tests of the "views" statement
-  xfer/		Zone transfer, update, and NOTIFY tests
+  xfer/		Zone transfer tests
   xferquota/	Zone transfer quota tests
 
 Typically each test suite sets up 2-5 name servers and then performs
@@ -48,4 +48,4 @@ The tests can be run individually like this:
 To run all the tests, just type "make test".
 
 
-$Id: README,v 1.8 2000/11/10 03:05:49 bwelling Exp $
+$Id: README,v 1.9 2000/12/19 19:21:06 gson Exp $
