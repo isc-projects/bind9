@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.202 2001/06/07 00:21:53 bwelling Exp $ */
+/* $Id: socket.c,v 1.203 2001/07/09 21:06:01 gson Exp $ */
 
 #include <config.h>
 
@@ -1284,7 +1284,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		(void)close(sock->fd);
 		isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-			       isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_TOOMANYFDS,
+			       isc_msgcat, ISC_MSGSET_SOCKET,
+			       ISC_MSG_TOOMANYFDS,
 			       "%s: too many open file descriptors", "socket");
 		free_socket(&sock);
 		return (ISC_R_NORESOURCES);

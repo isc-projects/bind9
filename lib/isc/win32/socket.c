@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.2 2001/07/08 05:09:12 mayer Exp $ */
+/* $Id: socket.c,v 1.3 2001/07/09 21:06:18 gson Exp $ */
 
 #define MAKE_EXTERNAL 1
 #include <config.h>
@@ -138,10 +138,9 @@ typedef isc_event_t intev_t;
  * Message header for recvmsg and sendmsg calls.
  * Used value-result for recvmsg, value only for sendmsg.
  */
-
 struct iovec {
-		void	*iov_base;				/* startin address of buffer */
-		size_t	 iov_len;				/* size of buffer */
+	void	*iov_base; 	/* starting address of buffer */
+	size_t	iov_len; 	/* size of buffer */
 };
 
 struct msghdr {
@@ -262,15 +261,14 @@ long bpipe_written = 0;
 #define SOCK_DEAD(s)			((s)->references == 0)
 
 /*
- * The following routines are here to handle Unix emulation until we can rewrite the
- * the routines in Winsock2 style.
+ * The following routines are here to handle Unix emulation until we
+ * can rewrite the the routines in Winsock2 style.
  */
 
 /*
  * Initialize socket services
  */
-BOOL InitSockets()
-{
+BOOL InitSockets() {
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
@@ -279,17 +277,16 @@ BOOL InitSockets()
 	wVersionRequested = MAKEWORD(2, 0);
  
 	err = WSAStartup(wVersionRequested, &wsaData);
-	if ( err != 0 )
-	{
+	if ( err != 0 ) {
 		/* Tell the user that we could not find a usable Winsock DLL */
 		return (FALSE);
 	}
  
-return (TRUE);
+	return (TRUE);
 }
 
-int internal_pipe( int filedes[2])
-{
+int
+internal_pipe(int filedes[2]) {
 	int status;
 	unsigned int pipesize = 65535;
 	int mode = _O_TEXT;
@@ -300,8 +297,7 @@ int internal_pipe( int filedes[2])
 }
 
 int
-internal_sendmsg(int sock, const struct msghdr *msg, int flags)
-{
+internal_sendmsg(int sock, const struct msghdr *msg, int flags) {
 	int Error;
 	DWORD BytesSent;
 	DWORD Flags = flags;
@@ -317,81 +313,72 @@ internal_sendmsg(int sock, const struct msghdr *msg, int flags)
                     NULL);
     
     if (Error == SOCKET_ERROR) {
-        
-		BytesSent = -1;
-        /* There is an error... */
-        Error = WSAGetLastError();
-        if (Error == WSAEWOULDBLOCK) {
+	    BytesSent = -1;
+	    /* There is an error... */
+	    Error = WSAGetLastError();
+	    if (Error == WSAEWOULDBLOCK) {
             
-            /*
-	     * WSAEWOULDBLOCK means we have to wait for an FD_WRITE
-             * before we can send.
-	     */
-            errno = EWOULDBLOCK;
-            
-        } else if (Error == WSA_IO_PENDING) {
-            
-            /* Overlapped send successfully initiated. */
-            errno = EAGAIN;
-        } 
-        else {
-            
-            /* An unexpected error occurred. */
-            errno = Error;
-        }
+		    /*
+		     * WSAEWOULDBLOCK means we have to wait for an FD_WRITE
+		     * before we can send.
+		     */
+		    errno = EWOULDBLOCK;
+	    } else if (Error == WSA_IO_PENDING) {
+		    /* Overlapped send successfully initiated. */
+		    errno = EAGAIN;
+	    } else {
+		    /* An unexpected error occurred. */
+		    errno = Error;
+	    }
     }
 
     /* No error -- the I/O request was completed immediately... */
     return (BytesSent);
-
 }
 
 int
-internal_recvmsg(int sock, struct msghdr *msg, int flags)
-{
+internal_recvmsg(int sock, struct msghdr *msg, int flags) {
 	DWORD Flags = flags;
 	DWORD NumBytes;
 	int Result;
 	int Error;
-	isc_buffer_t *b=malloc(256);
+	isc_buffer_t *b = malloc(256);
 
-    Result = WSARecvFrom((SOCKET) sock,
-                     msg->msg_iov,
-                     msg->msg_iovlen,
-                     &NumBytes,
-                     &Flags,
-		     msg->msg_name,
-		     (int *)&(msg->msg_namelen),
-                     NULL,
-                     NULL);
+	Result = WSARecvFrom((SOCKET) sock,
+			     msg->msg_iov,
+			     msg->msg_iovlen,
+			     &NumBytes,
+			     &Flags,
+			     msg->msg_name,
+			     (int *)&(msg->msg_namelen),
+			     NULL,
+			     NULL);
 
 
-    /* Check for errors. */
-    if (Result == SOCKET_ERROR) {
-
-	Error = WSAGetLastError();
+	/* Check for errors. */
+	if (Result == SOCKET_ERROR) {
+		Error = WSAGetLastError();
 		NumBytes = -1;
         
-        switch (Error) {
+		switch (Error) {
+		case WSAEWOULDBLOCK:
+			/*
+			 * No data received; return to wait for another
+			 * read event.
+			 */
+			errno = EAGAIN;
+			break;
 
-	case WSAEWOULDBLOCK:
-            
-		/* No data received; return to wait for another read event. */
-		errno = EAGAIN;
-		break;
-
-	default:
-
-		/* Some other error...hit the panic button. */
-		errno = Error;
-		break;
+		default:
+			/* Some other error... hit the panic button. */
+			errno = Error;
+			break;
+		}
 	}
-    }
-    msg->msg_flags = Flags;	/* Return the flags received in header */
-
-    return (NumBytes);
-
-} /* Internal_recvmsg() */
+	msg->msg_flags = Flags;	/* Return the flags received in header */
+	
+	return (NumBytes);
+}
 
 static void
 manager_log(isc_socketmgr_t *sockmgr,
@@ -498,20 +485,21 @@ select_poke(isc_socketmgr_t *mgr, int fd, int msg) {
 			        
 		if (cc < 0)
 			FATAL_ERROR(__FILE__, __LINE__,
-				    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
+				    isc_msgcat_get(isc_msgcat,
+						   ISC_MSGSET_SOCKET,
 						   ISC_MSG_WRITEFAILED,
-							"_write() failed "
-							"during watcher poke: %s"),
-							 strerror(errno));
+						   "_write() failed "
+						   "during watcher poke: %s"),
+				    strerror(errno));
 
 		INSIST(cc == sizeof(buf));
 
 		InterlockedIncrement(&bpipe_written);
-	}
-	else {
+	} else {
 		wakeup_socket(mgr, fd, msg);
 	}
 }
+
 /*
  * Read a message on the internal fd.
  */
@@ -532,7 +520,6 @@ select_readmsg(isc_socketmgr_t *mgr, int *fd, int *msg) {
 					   "_read() failed "
 					   "during watcher poke: %s"),
 			    strerror(errno));
-		
 		return;
 	}
 	INSIST(cc == sizeof(buf));
@@ -1008,7 +995,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 			socket_log(sock, NULL, IOEVENT,
 				   isc_msgcat, ISC_MSGSET_SOCKET,
 				   ISC_MSG_DOIORECV, 
-				  "doio_recv: internal_recvmsg(%d) %d bytes, err %d/%s",
+				   "doio_recv: internal_recvmsg(%d) %d bytes, "
+				   "err %d/%s",
 				   sock->fd, cc, errno, strerror(errno));
 
 #define SOFT_OR_HARD(_system, _isc) \
@@ -3298,4 +3286,3 @@ isc_socket_isbound(isc_socket_t *sock) {
 
 	return (val);
 }
-

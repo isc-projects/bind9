@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.22 2001/07/08 05:09:18 mayer Exp $ */
+/* $Id: time.c,v 1.23 2001/07/09 21:06:22 gson Exp $ */
 
 /*
  * Windows has a different epoch than Unix. Therefore this code sets the epoch
@@ -66,9 +66,10 @@ TimetToFileTime(time_t t, LPFILETIME pft) {
 	LONGLONG i;
 
 	i = Int32x32To64(t, 10000000) + 116444736000000000;
-    pft->dwLowDateTime = (DWORD) i;
-    pft->dwHighDateTime = (DWORD) (i >>32);
+	pft->dwLowDateTime = (DWORD) i;
+	pft->dwHighDateTime = (DWORD) (i >>32);
 }
+
 /***
  *** Intervals
  ***/
@@ -77,15 +78,9 @@ static isc_interval_t zero_interval = { 0 };
 isc_interval_t *isc_interval_zero = &zero_interval;
 
 void
-isc_interval_set(isc_interval_t *i,
-		 unsigned int seconds, unsigned int nanoseconds) {
-
-	/*
-	 * Set 'i' to a value representing an interval of 'seconds' seconds
-	 * and 'nanoseconds' nanoseconds, suitable for use in isc_time_add()
-	 * and isc_time_subtract().
-	 */
-
+isc_interval_set(isc_interval_t *i, unsigned int seconds,
+		 unsigned int nanoseconds)
+{
 	REQUIRE(i != NULL);
 	REQUIRE(nanoseconds < NS_PER_S);
 
@@ -95,11 +90,6 @@ isc_interval_set(isc_interval_t *i,
 
 isc_boolean_t
 isc_interval_iszero(isc_interval_t *i) {
-
-	/*
-	 * Returns ISC_TRUE iff. 'i' is the zero interval.
-	 */
-
 	REQUIRE(i != NULL);
 	if (i->interval == 0)
 		return (ISC_TRUE);
@@ -112,10 +102,6 @@ void
 isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 	ULARGE_INTEGER i;
 
-	/*
-	 * Set 't' to a particular number of seconds + nanoseconds since the
-	 * epoch.
-	 */
 	REQUIRE(t != NULL);
 	REQUIRE(nanoseconds < NS_PER_S);
 
@@ -134,10 +120,6 @@ isc_time_initepoch() {
 
 void
 isc_time_settoepoch(isc_time_t *t) {
-	/*
-	 * Set 't' to the time of the epoch.
-	 */
-
 	REQUIRE(t != NULL);
 
 	t->absolute.dwLowDateTime = epoch.absolute.dwLowDateTime;
@@ -146,11 +128,6 @@ isc_time_settoepoch(isc_time_t *t) {
 
 isc_boolean_t
 isc_time_isepoch(isc_time_t *t) {
-
-	/*
-	 * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
-	 */
-
 	REQUIRE(t != NULL);
 
 	if (t->absolute.dwLowDateTime == epoch.absolute.dwLowDateTime &&
@@ -162,11 +139,7 @@ isc_time_isepoch(isc_time_t *t) {
 
 isc_result_t
 isc_time_now(isc_time_t *t) {
-
 	char dtime[10];
-	/*
-	 * Set *t to the current absolute time.
-	 */
 
 	REQUIRE(t != NULL);
 
@@ -179,10 +152,6 @@ isc_time_now(isc_time_t *t) {
 isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	ULARGE_INTEGER i1;
-
-	/*
-	 * Set *t to the current absolute time + i.
-	 */
 
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
@@ -205,10 +174,6 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 
 int
 isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
-	/*
-	 * Compare the times referenced by 't1' and 't2'
-	 */
-
 	REQUIRE(t1 != NULL && t2 != NULL);
 
 	return ((int)CompareFileTime(&t1->absolute, &t2->absolute));
@@ -217,10 +182,6 @@ isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
 isc_result_t
 isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	ULARGE_INTEGER i1;
-
-	/*
-	 * Add 't' to 'i', storing the result in 'result'.
-	 */
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
 
@@ -241,10 +202,6 @@ isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 isc_result_t
 isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	ULARGE_INTEGER i1;
-
-	/*
-	 * Subtract 'i' from 't', storing the result in 'result'.
-	 */
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
 
@@ -286,9 +243,9 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 }
 
 /*
- * Note that the value returned is the seconds relative to the Unix epoch rather than
- * the seconds since Windows epoch.
- * This is for compatibility with the Unix side.
+ * Note that the value returned is the seconds relative to the Unix
+ * epoch rather than the seconds since Windows epoch.  This is for
+ * compatibility with the Unix side.
  */
 isc_uint32_t
 isc_time_seconds(isc_time_t *t) {
@@ -296,8 +253,10 @@ isc_time_seconds(isc_time_t *t) {
 
 	REQUIRE(t != NULL);
 
-	i.LowPart = t->absolute.dwLowDateTime - epoch.absolute.dwLowDateTime;
-	i.HighPart = t->absolute.dwHighDateTime - epoch.absolute.dwHighDateTime;
+	i.LowPart = t->absolute.dwLowDateTime -
+		epoch.absolute.dwLowDateTime;
+	i.HighPart = t->absolute.dwHighDateTime -
+		epoch.absolute.dwHighDateTime;
 
 	return ((isc_uint32_t)(i.QuadPart / INTERVALS_PER_S));
 }

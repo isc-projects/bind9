@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.2 2001/07/08 05:08:55 mayer Exp $ */
+/* $Id: app.c,v 1.3 2001/07/09 21:06:03 gson Exp $ */
 
 #include <config.h>
 
@@ -65,6 +65,7 @@ enum {
 	RELOAD_EVENT,
 	SHUTDOWN_EVENT
 };
+
 static HANDLE hEvents[NUM_EVENTS];
 DWORD  dwWaitResult;
 
@@ -104,9 +105,6 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	isc_task_t *cloned_task = NULL;
 	isc_result_t result;
 
-	/*
-	 * Request delivery of an event when the application is run.
-	 */
 
 	LOCK(&lock);
 	if (running) {
@@ -140,10 +138,6 @@ isc_app_run(void) {
 	isc_task_t *task;
 	HANDLE *pHandles = NULL;
 
-	/*
-	 * Run an ISC library application.
-	 */
-
 	REQUIRE(main_thread == GetCurrentThread());
 	LOCK(&lock);
 	if (!running) {
@@ -172,19 +166,21 @@ isc_app_run(void) {
 	 */
 
 	while (!want_shutdown) {
-		dwWaitResult = WaitForMultipleObjects(NUM_EVENTS,hEvents, FALSE, INFINITE);
+		dwWaitResult = WaitForMultipleObjects(NUM_EVENTS, hEvents,
+						      FALSE, INFINITE);
 
-	/* See why we returned */
-
+		/* See why we returned */
+		
 		if (WaitSucceeded(dwWaitResult, NUM_EVENTS)) {
 			/*
-			 * The return was due to one of the events being signaled
+			 * The return was due to one of the events
+			 * being signaled
 			 */
 			switch (WaitSucceededIndex(dwWaitResult)) {
 			case RELOAD_EVENT:
 				want_reload = ISC_TRUE;
 				break;
-											  
+
 			case SHUTDOWN_EVENT:
 				want_shutdown = ISC_TRUE;
 				break;
@@ -206,10 +202,6 @@ isc_result_t
 isc_app_shutdown(void) {
 	isc_boolean_t want_kill = ISC_TRUE;
 
-	/*
-	 * Request application shutdown.
-	 */
-
 	LOCK(&lock);
 	REQUIRE(running);
 
@@ -219,9 +211,8 @@ isc_app_shutdown(void) {
 		shutdown_requested = ISC_TRUE;
 
 	UNLOCK(&lock);
-	if (want_kill) {
+	if (want_kill)
 		SetEvent(hEvents[SHUTDOWN_EVENT]);
-	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -229,10 +220,6 @@ isc_app_shutdown(void) {
 isc_result_t
 isc_app_reload(void) {
 	isc_boolean_t want_reload = ISC_TRUE;
-
-	/*
-	 * Request application reload.
-	 */
 
 	LOCK(&lock);
 	REQUIRE(running);
@@ -244,18 +231,14 @@ isc_app_reload(void) {
 		want_reload = ISC_FALSE;
 
 	UNLOCK(&lock);
-	if (want_reload) {
+	if (want_reload)
 		SetEvent(hEvents[RELOAD_EVENT]);
-	}
 
 	return (ISC_R_SUCCESS);
 }
 
 void
 isc_app_finish(void) {
-	/*
-	 * Finish an ISC library application.
-	 */
 	DESTROYLOCK(&lock);
 }
 
@@ -270,10 +253,8 @@ isc_app_block(void) {
 
 void
 isc_app_unblock(void) {
-
 	REQUIRE(running);
 	REQUIRE(blocked);
 	blocked = ISC_FALSE;
 	REQUIRE(blockedthread == GetCurrentThread());
 }
-

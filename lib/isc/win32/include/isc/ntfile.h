@@ -15,9 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.h,v 1.2 2001/07/08 05:09:30 mayer Exp $ */
+/* $Id: ntfile.h,v 1.3 2001/07/09 21:06:28 gson Exp $ */
 
-/* This file has been necessitated by the fact that the iov array is local
+/*
+ * This file has been necessitated by the fact that the iov array is local
  * to the module, so passing the FILE ptr to a file I/O function in a
  * different module or DLL will cause the application to fail to find the
  * I/O channel and the application will terminate. The standard file I/O

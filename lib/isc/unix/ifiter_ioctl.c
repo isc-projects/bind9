@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.18 2001/06/04 19:33:33 tale Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19 2001/07/09 21:05:58 gson Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -124,7 +124,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		iter->ifc.lifc_buf = iter->buf;
 		/*
 		 * Ignore the HP/UX warning about "interger overflow during
-		 * conversion.  It comes from its own macro definition,
+		 * conversion".  It comes from its own macro definition,
 		 * and is really hard to shut up.
 		 */
 		if (ioctl(iter->socket, SIOCGLIFCONF, (char *)&iter->ifc)

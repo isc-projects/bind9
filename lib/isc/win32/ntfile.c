@@ -15,9 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.c,v 1.2 2001/07/08 05:09:08 mayer Exp $ */
+/* $Id: ntfile.c,v 1.3 2001/07/09 21:06:14 gson Exp $ */
 
-/* This file has been necessitated by the fact that the iov array is local
+/*
+ * This file has been necessitated by the fact that the iov array is local
  * to the module, so passing the FILE ptr to a file I/O function in a
  * different module or DLL will cause the application to fail to find the
  * I/O channel and the application will terminate. The standard file I/O
@@ -31,23 +32,21 @@
 
 FILE *
 isc_ntfile_fopen(const char *filename, const char *mode) {
-
 	return (fopen(filename, mode));
 }
 
 int 
 isc_ntfile_fclose(FILE *f) {
-
 	return (fclose(f));
 }
+
 int 
 isc_ntfile_fseek(FILE *f, long offset, int whence) {
-
 	return (fseek(f, offset, whence));
 }
+
 size_t 
 isc_ntfile_fread(void *ptr, size_t size, size_t nmemb, FILE *f) {
-
 	return (fread(ptr, size, nmemb, f));
 }
 
@@ -61,13 +60,11 @@ isc_ntfile_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *f) {
 
 int 
 isc_ntfile_flush(FILE *f) {
-
 	return (fflush(f));
 }
 
 int 
 isc_ntfile_sync(FILE *f) {
-
 	return (_commit(_fileno(f)));
 }
 
@@ -152,6 +149,7 @@ FILE *
 isc_ntfile_fdopen(int handle, const char *mode) {
 	return (fdopen(handle, mode));
 }
+
 /*
  * open(), close(), read(), write(), fsync()
  * sockets are file descriptors in UNIX.  This is not so in NT

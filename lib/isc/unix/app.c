@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.42 2001/03/20 21:45:20 bwelling Exp $ */
+/* $Id: app.c,v 1.43 2001/07/09 21:05:57 gson Exp $ */
 
 #include <config.h>
 
@@ -255,10 +255,6 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	isc_task_t *cloned_task = NULL;
 	isc_result_t result;
 
-	/*
-	 * Request delivery of an event when the application is run.
-	 */
-
 	LOCK(&lock);
 
 	if (running) {
@@ -414,10 +410,6 @@ isc_app_run(void) {
 	int sig;
 #endif
 
-	/*
-	 * Run an ISC library application.
-	 */
-
 #ifdef HAVE_LINUXTHREADS
 	REQUIRE(main_thread == pthread_self());
 #endif
@@ -541,10 +533,6 @@ isc_result_t
 isc_app_shutdown(void) {
 	isc_boolean_t want_kill = ISC_TRUE;
 
-	/*
-	 * Request application shutdown.
-	 */
-
 	LOCK(&lock);
 
 	REQUIRE(running);
@@ -584,10 +572,6 @@ isc_result_t
 isc_app_reload(void) {
 	isc_boolean_t want_kill = ISC_TRUE;
 
-	/*
-	 * Request application reload.
-	 */
-
 	LOCK(&lock);
 
 	REQUIRE(running);
@@ -626,10 +610,6 @@ isc_app_reload(void) {
 
 void
 isc_app_finish(void) {
-	/*
-	 * Finish an ISC library application.
-	 */
-
 	DESTROYLOCK(&lock);
 }
 

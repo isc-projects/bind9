@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.33 2001/02/24 10:22:20 marka Exp $ */
+/* $Id: time.c,v 1.34 2001/07/09 21:06:02 gson Exp $ */
 
 #include <config.h>
 
@@ -83,13 +83,6 @@ void
 isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds)
 {
-
-	/*
-	 * Set 'i' to a value representing an interval of 'seconds' seconds
-	 * and 'nanoseconds' nanoseconds, suitable for use in isc_time_add()
-	 * and isc_time_subtract().
-	 */
-
 	REQUIRE(i != NULL);
 	REQUIRE(nanoseconds < NS_PER_S);
 
@@ -99,11 +92,6 @@ isc_interval_set(isc_interval_t *i,
 
 isc_boolean_t
 isc_interval_iszero(isc_interval_t *i) {
-
-	/*
-	 * Returns ISC_TRUE iff. 'i' is the zero interval.
-	 */
-
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_S);
 
@@ -123,10 +111,6 @@ isc_time_t *isc_time_epoch = &epoch;
 
 void
 isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
-	/*
-	 * Set 't' to a particular number of seconds + nanoseconds since the
-	 * epoch.
-	 */
 	REQUIRE(t != NULL);
 	REQUIRE(nanoseconds < NS_PER_S);
 
@@ -136,10 +120,6 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 
 void
 isc_time_settoepoch(isc_time_t *t) {
-	/*
-	 * Set 't' to the time of the epoch.
-	 */
-
 	REQUIRE(t != NULL);
 
 	t->seconds = 0;
@@ -148,11 +128,6 @@ isc_time_settoepoch(isc_time_t *t) {
 
 isc_boolean_t
 isc_time_isepoch(isc_time_t *t) {
-
-	/*
-	 * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
-	 */
-
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
 
@@ -166,10 +141,6 @@ isc_time_isepoch(isc_time_t *t) {
 isc_result_t
 isc_time_now(isc_time_t *t) {
 	struct timeval tv;
-
-	/*
-	 * Set *t to the current absolute time.
-	 */
 
 	REQUIRE(t != NULL);
 
@@ -210,10 +181,6 @@ isc_time_now(isc_time_t *t) {
 isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	struct timeval tv;
-
-	/*
-	 * Set *t to the current absolute time + i.
-	 */
 
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
@@ -262,11 +229,6 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 
 int
 isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
-
-	/*
-	 * Compare the times referenced by 't1' and 't2'
-	 */
-
 	REQUIRE(t1 != NULL && t2 != NULL);
 	INSIST(t1->nanoseconds < NS_PER_S && t2->nanoseconds < NS_PER_S);
 
@@ -283,10 +245,6 @@ isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
 
 isc_result_t
 isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
-	/*
-	 * Add 't' to 'i', storing the result in 'result'.
-	 */
-
 	REQUIRE(t != NULL && i != NULL && result != NULL);
 	INSIST(t->nanoseconds < NS_PER_S && i->nanoseconds < NS_PER_S);
 
@@ -312,10 +270,6 @@ isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 
 isc_result_t
 isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
-	/*
-	 * Subtract 'i' from 't', storing the result in 'result'.
-	 */
-
 	REQUIRE(t != NULL && i != NULL && result != NULL);
 	INSIST(t->nanoseconds < NS_PER_S && i->nanoseconds < NS_PER_S);
 

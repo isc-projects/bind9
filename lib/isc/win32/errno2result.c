@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.2 2001/07/08 05:08:58 mayer Exp $ */
+/* $Id: errno2result.c,v 1.3 2001/07/09 21:06:04 gson Exp $ */
 
 #include <config.h>
 
@@ -62,11 +62,13 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_UNEXPECTED);
 	}
 }
+
 /*
  * Note this will cause a memory leak unless the memory allocated here
  * is freed by calling LocalFree
  */
-char * FormatError(int error) {
+char *
+FormatError(int error) {
 	LPVOID lpMsgBuf;
 	FormatMessage( 
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | 
@@ -74,7 +76,8 @@ char * FormatError(int error) {
 		FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL,
 		error,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
+		/* Default language */
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR) &lpMsgBuf,
 		0,
 		NULL); 
@@ -82,10 +85,12 @@ char * FormatError(int error) {
 	return (lpMsgBuf);
 }
 
-
-char *  __cdecl NTstrMessage(int err) {
+char * __cdecl
+NTstrMessage(int err) {
 	char *retmsg = NULL;
-	DWORD errval = err; /* Copy the error value first in case of other errors */
+
+	/* Copy the error value first in case of other errors */	
+	DWORD errval = err; 
 
 	/* Get the Winsock2 error messages */
 	if (errval >= WSABASEERR && errval <= (WSABASEERR + 1015)) {
@@ -99,14 +104,15 @@ char *  __cdecl NTstrMessage(int err) {
 	 */
 	if (errval > (DWORD) _sys_nerr) {
 		return (FormatError(errval));
-	}
-	else {
+	} else {
 		return (strerror(errval));
 	}
 }
-char *  __cdecl NTstrerror(int err) {
 
-	DWORD errval = err; /* Copy the error value first in case of other errors */
+char * __cdecl
+NTstrerror(int err) {
+	/* Copy the error value first in case of other errors */
+	DWORD errval = err; 
 
 	return (NTstrMessage(errval));
 }
@@ -114,19 +120,21 @@ char *  __cdecl NTstrerror(int err) {
 /*
  * This is a replacement for perror, but it also reports the error value.
  */
-void __cdecl NTperror(char *errmsg) {
-	int errval = errno; /* Copy the error value first in case of other errors */
+void __cdecl
+NTperror(char *errmsg) {
+	/* Copy the error value first in case of other errors */
+	int errval = errno; 
 
 	fprintf(stderr, "%s: %s\n", errmsg, NTstrMessage(errval));
 }
+
 /*
- * This function returns the error string related to Winsock2 errors.
+ * Return the error string related to Winsock2 errors.
  * This function is necessary since FormatMessage knows nothing about them
  * and there is no function to get them.
  */
-
-char * GetWSAErrorMessage(int errval) {
-
+char *
+GetWSAErrorMessage(int errval) {
 	char *msg;
 
 	switch (errval) {
@@ -339,8 +347,8 @@ char * GetWSAErrorMessage(int errval) {
  * standard error messages
  */
 
-char * GetCryptErrorMessage(int errval) {
-
+char *
+GetCryptErrorMessage(int errval) {
 	char *msg;
 
 	switch (errval) {
@@ -349,64 +357,71 @@ char * GetCryptErrorMessage(int errval) {
 		msg = "The dwFlags parameter has an illegal value.";
 		break;
 	case NTE_BAD_KEYSET:
-		msg = "The Registry entry for the key container could not be opened and may not exist.";
+		msg = "The Registry entry for the key container "
+			"could not be opened and may not exist.";
 		break;
 	case NTE_BAD_KEYSET_PARAM:
-		msg = "The pszContainer or pszProvider parameter is set to an illegal value.";
+		msg = "The pszContainer or pszProvider parameter "
+			"is set to an illegal value.";
 		break;
 	case NTE_BAD_PROV_TYPE:
-		msg = "The value of the dwProvType parameter is out of range. All provider types must be from 1 to 999, inclusive.";
+		msg = "The value of the dwProvType parameter is out "
+			"of range. All provider types must be from "
+			"1 to 999, inclusive.";
 		break;
 	case NTE_BAD_SIGNATURE:
-		msg = "The provider DLL signature did not verify correctly. Either the DLL or the digital signature has been tampered with.";
+		msg = "The provider DLL signature did not verify "
+			"correctly. Either the DLL or the digital "
+			"signature has been tampered with.";
 		break;
 	case NTE_EXISTS:
 		msg = "The dwFlags parameter is CRYPT_NEWKEYSET, but the key"
 		      " container already exists.";
 		break;
 	case NTE_KEYSET_ENTRY_BAD:
-		msg = "The Registry entry for the pszContainer key container"
-		      " was found (in the HKEY_CURRENT_USER window), but is"
-		      " corrupt. See the section System Administration for"
-		      " details about CryptoAPI's Registry usage.";
+		msg = "The Registry entry for the pszContainer key container "
+		      "was found (in the HKEY_CURRENT_USER window), but is "
+		      "corrupt. See the section System Administration for "
+		      " etails about CryptoAPI's Registry usage.";
 		break;
 	case NTE_KEYSET_NOT_DEF:
-		msg = "No Registry entry exists in the HKEY_CURRENT_USER"
-		      " window for the key container specified by pszContainer.";
+		msg = "No Registry entry exists in the HKEY_CURRENT_USER "
+			"window for the key container specified by "
+			"pszContainer.";
 		break;
 	case NTE_NO_MEMORY:
 		msg = "The CSP ran out of memory during the operation.";
 		break;
 	case NTE_PROV_DLL_NOT_FOUND:
-		msg = "The provider DLL file does not exist or is not on the"
-		      " current path.";
+		msg = "The provider DLL file does not exist or is not on the "
+		      "current path.";
 		break;
 	case NTE_PROV_TYPE_ENTRY_BAD:
-		msg = "The Registry entry for the provider type specified by"
-		      " dwProvType is corrupt. This error may relate to"
-		      " either the user default CSP list or the machine"
-		      " default CSP list. See the section System"
-		      " Administration for details about CryptoAPI's"
-		      " Registry usage.";
+		msg = "The Registry entry for the provider type specified by "
+		      "dwProvType is corrupt. This error may relate to "
+		      "either the user default CSP list or the machine "
+		      "default CSP list. See the section System "
+		      "Administration for details about CryptoAPI's "
+		      "Registry usage.";
 		break;
 	case NTE_PROV_TYPE_NO_MATCH:
-		msg = "The provider type specified by dwProvType does not"
-		      " match the provider type found in the Registry. Note"
-		      " that this error can only occur when pszProvider"
-		      " specifies an actual CSP name.";
+		msg = "The provider type specified by dwProvType does not "
+		      "match the provider type found in the Registry. Note "
+		      "that this error can only occur when pszProvider "
+		      "specifies an actual CSP name.";
 		break;
 	case NTE_PROV_TYPE_NOT_DEF:
-		msg = "No Registry entry exists for the provider type"
-		      " specified by dwProvType.";
+		msg = "No Registry entry exists for the provider type "
+		      "specified by dwProvType.";
 		break;
 	case NTE_PROVIDER_DLL_FAIL:
-		msg = "The provider DLL file could not be loaded, and"
-		      " may not exist. If it exists, then the file is"
-		      " not a valid DLL.";
+		msg = "The provider DLL file could not be loaded, and "
+		      "may not exist. If it exists, then the file is "
+		      "not a valid DLL.";
 		break;
 	case NTE_SIGNATURE_FILE_BAD:
-		msg = "An error occurred while loading the DLL file image,"
-		      " prior to verifying its signature.";
+		msg = "An error occurred while loading the DLL file image, "
+		      "prior to verifying its signature.";
 		break;
 
 	default:

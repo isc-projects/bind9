@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.c,v 1.2 2001/07/08 05:09:03 mayer Exp $ */
+/* $Id: ipv6.c,v 1.3 2001/07/09 21:06:10 gson Exp $ */
 
 #define LIBISC_EXTERNAL_DATA __declspec( dllexport )
 
@@ -23,5 +23,8 @@
 
 #include <isc/net.h>
 
-LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
-LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_loopback = IN6ADDR_LOOPBACK_INIT;
+LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_any =
+	IN6ADDR_ANY_INIT;
+
+LIBISC_EXTERNAL_DATA const struct in6_addr in6addr_loopback =
+	IN6ADDR_LOOPBACK_INIT;

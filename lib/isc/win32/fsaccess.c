@@ -15,16 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.8 2001/07/08 05:09:01 mayer Exp $ */
+/* $Id: fsaccess.c,v 1.9 2001/07/09 21:06:07 gson Exp $ */
 
 /*
- * Note that Win32 does not have the concept of files having access and ownership
- * bits.  The FAT File system only has a readonly flag for everyone and that's
- * all. NTFS uses ACL's which is a totally different concept of controlling
- * access.
+ * Note that Win32 does not have the concept of files having access
+ * and ownership bits.  The FAT File system only has a readonly flag
+ * for everyone and that's all. NTFS uses ACL's which is a totally
+ * different concept of controlling access.
  *
- * This code needs to be revisited to set up proper access control for NTFS file systems.
- * Nothing can be done for FAT file systems.
+ * This code needs to be revisited to set up proper access control for
+ * NTFS file systems.  Nothing can be done for FAT file systems.
  */
 
 #include <config.h>
@@ -90,15 +90,16 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 
 	SET_AND_CLEAR(S_IWUSR, S_IWGRP, S_IWOTH);
 
+#ifdef notyet
 	/*
 	 * WIN32 doesn't have the concept of execute bits. We leave this here
 	 * for when we review this module.
-	 *
+	 */
 	bits = ISC_FSACCESS_EXECUTE |
 	       ISC_FSACCESS_ACCESSCHILD;
 
 	SET_AND_CLEAR(S_IXUSR, S_IXGRP, S_IXOTH);
-*/
+#endif
 	INSIST(access == 0);
 
 	if (_chmod(path, mode) < 0)

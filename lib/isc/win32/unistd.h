@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unistd.h,v 1.2 2001/07/08 05:09:19 mayer Exp $ */
+/* $Id: unistd.h,v 1.3 2001/07/09 21:06:23 gson Exp $ */
 
 /* None of these are defined in NT, so define them for our use */
 #define O_NONBLOCK 1
@@ -33,6 +33,6 @@
  */
 #undef F_DUPFD 
 
-int fcntl(int, int,...);
-#include <process.h>
+int fcntl(int, int, ...);
 
+#include <process.h>

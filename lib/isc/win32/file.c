@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.10 2001/07/08 05:16:13 mayer Exp $ */
+/* $Id: file.c,v 1.11 2001/07/09 21:06:06 gson Exp $ */
 
 #include <config.h>
 
@@ -79,12 +79,12 @@ gettemp(char *path, int *doopen) {
 	for (;;) {
 		if (doopen) {
 			if ((*doopen =
-			    open(path, O_CREAT|O_EXCL|O_RDWR, _S_IREAD | _S_IWRITE)) >= 0)
+			    open(path, O_CREAT|O_EXCL|O_RDWR,
+				 _S_IREAD | _S_IWRITE)) >= 0)
 				return (1);
 			if (errno != EEXIST)
 				return (0);
-		}
-		else if (stat(path, &sbuf))
+		} else if (stat(path, &sbuf))
 			return (errno == ENOENT ? 1 : 0);
 
 		/* tricky little algorithm for backward compatibility */
@@ -130,9 +130,11 @@ file_stats(const char *file, struct stat *stats) {
 	return (result);
 }
 
-/* isc_file_safemovefile is needed to be defined here to ensure that any file with
- * the new name is renamed to a backup name and then the rename is done. If all goes
- * well then the backup can be deleted, otherwise it gets renamed back.
+/*
+ * isc_file_safemovefile is needed to be defined here to ensure that
+ * any file with the new name is renamed to a backup name and then the
+ * rename is done. If all goes well then the backup can be deleted,
+ * otherwise it gets renamed back.
  */
 
 int
@@ -172,8 +174,9 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 
 	filestatus = MoveFile(oldname, newname);
 	if (filestatus == 0) {
-
-		/* Try and rename the backup back to the original name if the backup got created
+		/*
+		 * Try to rename the backup back to the original name
+		 * if the backup got created
 		 */
 		if (exists == TRUE) {
 			filestatus = MoveFile(buf, newname);
@@ -184,11 +187,11 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 		return (-1);
 	}
 
-	/* Delete the backup file if it got created 
+	/*
+	 * Delete the backup file if it got created
 	 */
-	if (exists == TRUE) {
+	if (exists == TRUE)
 		filestatus = DeleteFile(buf);
-	}
 	return (0);
 }
 
@@ -288,9 +291,9 @@ isc_file_renameunique(const char *file, char *templet) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	fd = mkstemp(templet);
-	if (fd == -1) {
+	if (fd == -1)
 		result = isc__errno2result(errno);
-	}
+
 	if (result == ISC_R_SUCCESS) {
 		res = isc_file_safemovefile(file, templet);
 		if (res != 0) {
@@ -325,7 +328,6 @@ isc_file_openunique(char *templet, FILE **fp) {
 			result = isc__errno2result(errno);
 			(void)remove(templet);
 			(void)close(fd);
-
 		} else
 			*fp = f;
 	}
@@ -366,10 +368,13 @@ isc_boolean_t
 isc_file_isabsolute(const char *filename) {
 
 	/*
-	 * Look for c:\path\... style or \\computer\shar\path... UNC style file specs
+	 * Look for c:\path\... style or \\computer\shar\path...
+	 * UNC style file specs
 	 */
-	return ((ISC_TF(filename[1] == ':') && ISC_TF(filename[2] == '\\')) || 
-		    (ISC_TF(filename[0] == '\\') && ISC_TF(filename[1] == '\\')));
+	return ((ISC_TF(filename[1] == ':') &&
+		 ISC_TF(filename[2] == '\\')) || 
+		    (ISC_TF(filename[0] == '\\') &&
+		     ISC_TF(filename[1] == '\\')));
 }
 
 isc_boolean_t

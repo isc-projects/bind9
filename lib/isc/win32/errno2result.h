@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.h,v 1.2 2001/07/08 05:08:59 mayer Exp $ */
+/* $Id: errno2result.h,v 1.3 2001/07/09 21:06:05 gson Exp $ */
 
 #ifndef UNIX_ERRNO2RESULT_H
 #define UNIX_ERRNO2RESULT_H 1
@@ -32,10 +32,15 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 isc__errno2result(int posixerrno);
 
-char * isc_FormatError(int error);
+char *
+isc_FormatError(int error);
 
-char * GetWSAErrorMessage(int errval);
-char *  __cdecl NTstrerror(int err);
+char *
+GetWSAErrorMessage(int errval);
+
+char *  __cdecl
+NTstrerror(int err);
+
 ISC_LANG_ENDDECLS
 
 #endif /* UNIX_ERRNO2RESULT_H */

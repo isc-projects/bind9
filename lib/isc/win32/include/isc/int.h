@@ -15,14 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: int.h,v 1.9 2001/07/08 05:09:25 mayer Exp $ */
+/* $Id: int.h,v 1.10 2001/07/09 21:06:26 gson Exp $ */
 
 #ifndef ISC_INT_H
 #define ISC_INT_H 1
 
 #define _INTEGRAL_MAX_BITS 64
 #include <limits.h>
-
 
 typedef __int8				isc_int8_t;
 typedef unsigned __int8			isc_uint8_t;

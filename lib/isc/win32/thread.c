@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.16 2001/07/08 05:09:17 mayer Exp $ */
+/* $Id: thread.c,v 1.17 2001/07/09 21:06:21 gson Exp $ */
 
 #include <config.h>
 
@@ -25,7 +25,8 @@
 
 isc_result_t
 isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg,
-		  isc_thread_t *threadp) {
+		  isc_thread_t *threadp)
+{
 	isc_thread_t thread;
 	unsigned int id;
 
@@ -60,9 +61,8 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 
 void
 isc_thread_setconcurrency(unsigned int level) {
-
-/*
- * This is unnecessary on Win32 systems, but is here so that the
- * call exists
- */
+	/*
+	 * This is unnecessary on Win32 systems, but is here so that the
+	 * call exists
+	 */
 }

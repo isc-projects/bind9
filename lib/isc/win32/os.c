@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.2 2001/07/08 05:09:11 mayer Exp $ */
+/* $Id: os.c,v 1.3 2001/07/09 21:06:17 gson Exp $ */
 
 #include <windows.h>
 
@@ -49,14 +49,12 @@ isc_os_ncpus(void) {
 
 unsigned int
 isc_os_majorversion(void) {
-
 	initialize_action();
 	return ((unsigned int)osVer.dwMajorVersion);
 }
 
 unsigned int
 isc_os_minorversion(void) {
-
 	initialize_action();
 	return ((unsigned int)osVer.dwMinorVersion);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stat.h,v 1.2 2001/07/08 05:09:34 mayer Exp $ */
+/* $Id: stat.h,v 1.3 2001/07/09 21:06:30 gson Exp $ */
 
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1
@@ -40,5 +40,4 @@
 # define S_ISDIR(m)	((m & S_IFMT) == S_IFDIR)
 #endif
 
-
-#endif /* ISC_STDIO_H */
+#endif /* ISC_STAT_H */

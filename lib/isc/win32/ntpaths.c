@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.2 2001/07/08 05:09:09 mayer Exp $ */
+/* $Id: ntpaths.c,v 1.3 2001/07/09 21:06:15 gson Exp $ */
 
 /*
- * This file fetches the required path information that is specific
+ * This module fetches the required path information that is specific
  * to NT systems which can have its configuration and system files
  * almost anywhere. It can be used to override whatever the application
  * had previously assigned to the pointer. Basic information about the
@@ -45,8 +45,7 @@ static DWORD baseLen = MAX_PATH;
 static BOOL Initialized = FALSE;
 
 void
-isc_ntpaths_init()
-{
+isc_ntpaths_init() {
 	HKEY hKey;
 	BOOL keyFound = TRUE;
 
@@ -55,8 +54,7 @@ isc_ntpaths_init()
 		!= ERROR_SUCCESS)
 		keyFound = FALSE;
 	
-	if (keyFound == TRUE)
-	{
+	if (keyFound == TRUE) {
 		/* Get the named directory */
 		if (RegQueryValueEx(hKey, "InstallDir", NULL, NULL,
 			(LPBYTE)namedBase, &baseLen) != ERROR_SUCCESS)
@@ -94,10 +92,9 @@ isc_ntpaths_init()
 
 char *
 isc_ntpaths_get(int ind) {
-	
-	if (!Initialized) {
+	if (!Initialized)
 		isc_ntpaths_init();
-	}
+
 	switch (ind) {
 	case NAMED_CONF_PATH:
 		return (ns_confFile);
@@ -121,4 +118,3 @@ isc_ntpaths_get(int ind) {
 		return (NULL);
 	}
 }
-

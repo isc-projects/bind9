@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyboard.c,v 1.2 2001/07/08 05:09:04 mayer Exp $ */
+/* $Id: keyboard.c,v 1.3 2001/07/09 21:06:11 gson Exp $ */
 
 #include <config.h>
 
@@ -49,7 +49,6 @@ isc_keyboard_open(isc_keyboard_t *keyboard) {
 	keyboard->result = ISC_R_SUCCESS;
 
 	return (ISC_R_SUCCESS);
-
 }
 
 isc_result_t

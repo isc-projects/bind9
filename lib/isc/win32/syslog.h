@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.h,v 1.2 2001/07/08 05:09:16 mayer Exp $ */
+/* $Id: syslog.h,v 1.3 2001/07/09 21:06:20 gson Exp $ */
 
 #ifndef _SYSLOG_H
 #define _SYSLOG_H
@@ -53,13 +53,16 @@
 
 void
 syslog(int level, const char *fmt, ...);
+
 void
 openlog(const char *, int, ...);
+
 void
 closelog(void);
 
 void
 ModifyLogLevel(int level);
+
 void
 InitNTLogging(FILE *, int);
 

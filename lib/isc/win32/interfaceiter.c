@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.2 2001/07/08 05:09:02 mayer Exp $ */
+/* $Id: interfaceiter.c,v 1.3 2001/07/09 21:06:09 gson Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -60,7 +60,8 @@ struct isc_interfaceiter {
 	int			socket;
 	INTERFACE_INFO		IFData;		/* Current Interface Info */
 	int			numIF;		/* Current Interface count */
-	int			totalIF;	/* Total Number of Interfaces */
+	int			totalIF;	/* Total Number
+						   of Interfaces */
 	INTERFACE_INFO		*buf;		/* Buffer for WSAIoctl data. */
 	unsigned int		bufsize;	/* Bytes allocated. */
 	INTERFACE_INFO		*pos;		/* Current offset in IF List */
@@ -117,7 +118,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	iter->buf = NULL;
 
 	/*
-	 * Create an unbound datagram socket to do the SIO_GET_INTERFACE_LIST WSAIoctl on.
+	 * Create an unbound datagram socket to do the
+	 * SIO_GET_INTERFACE_LIST WSAIoctl on.
 	 */
 	if ((iter->socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -140,9 +142,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			goto alloc_failure;
 		}
 
-		if (WSAIoctl(iter->socket, SIO_GET_INTERFACE_LIST, 0, 0, iter->buf, iter->bufsize,
-			&bytesReturned, 0, 0)
-		    == SOCKET_ERROR) {
+		if (WSAIoctl(iter->socket, SIO_GET_INTERFACE_LIST,
+			     0, 0, iter->buf, iter->bufsize,
+			     &bytesReturned, 0, 0)
+		    == SOCKET_ERROR)
+		{
 			error = WSAGetLastError();
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
@@ -158,10 +162,12 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		} else {
 			/*
 			 * The WSAIoctl succeeded.
-			 * If the number of the returned bytes is the same as the buffer size,
-			 * we will grow it just in case and retry.
+			 * If the number of the returned bytes is the same
+			 * as the buffer size, we will grow it just in
+			 * case and retry.
 			 */
-			if (bytesReturned > 0 && (bytesReturned < iter->bufsize))
+			if (bytesReturned > 0 &&
+			    (bytesReturned < iter->bufsize))
 				break;
 		}
 		if (iter->bufsize >= IFCONF_SIZE_MAX*sizeof(INTERFACE_INFO)) {
@@ -173,7 +179,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		}
 		isc_mem_put(mctx, iter->buf, iter->bufsize);
 
-		iter->bufsize += IFCONF_SIZE_INCREMENT*sizeof(INTERFACE_INFO);
+		iter->bufsize += IFCONF_SIZE_INCREMENT *
+			sizeof(INTERFACE_INFO);
 	}
 
 	/*
@@ -213,9 +220,9 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 static isc_result_t
 internal_current(isc_interfaceiter_t *iter, int family) {
-
 	BOOL ifNamed = FALSE;
 	unsigned long flags;
+
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE(iter->numIF >= 0);
 
@@ -235,20 +242,18 @@ internal_current(isc_interfaceiter_t *iter, int family) {
 	if ((flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
-	if ((flags & IFF_POINTTOPOINT) != 0)
-	{
+	if ((flags & IFF_POINTTOPOINT) != 0) {
 		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
 		sprintf(iter->current.name, "PPP Interface %d", iter->numIF);
 		ifNamed = TRUE;
 	}
 
-	if ((flags & IFF_LOOPBACK) != 0)
-	{
+	if ((flags & IFF_LOOPBACK) != 0) {
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
-		sprintf(iter->current.name, "Loopback Interface %d", iter->numIF);
+		sprintf(iter->current.name, "Loopback Interface %d",
+			iter->numIF);
 		ifNamed = TRUE;
 	}
-
 
 	/*
 	 * If the interface is point-to-point, get the destination address.
@@ -259,17 +264,14 @@ internal_current(isc_interfaceiter_t *iter, int family) {
 	}
 
 	if (ifNamed == FALSE)
-		sprintf(iter->current.name, "TCP/IP Interface %d", iter->numIF);
+		sprintf(iter->current.name,
+			"TCP/IP Interface %d", iter->numIF);
+
 	/*
 	 * Get the network mask.
 	 */
 	switch (family) {
 	case AF_INET:
-		/*
-		 * Ignore the HP/UX warning about "interger overflow during
-		 * conversion.  It comes from its own macro definition,
-		 * and is really hard to shut up.
-		 */
 		get_addr(family, &iter->current.netmask,
 			 (struct sockaddr *)&(iter->IFData.iiNetmask));
 		break;
@@ -289,7 +291,6 @@ internal_current(isc_interfaceiter_t *iter, int family) {
  */
 static isc_result_t
 internal_next(isc_interfaceiter_t *iter) {
-
 	if (iter->numIF >= iter->totalIF)
 		return (ISC_R_NOMORE);
 
@@ -301,9 +302,8 @@ internal_next(isc_interfaceiter_t *iter) {
 	 */
 	 
 	if (iter->numIF == 0)
-	{
 		iter->pos = (INTERFACE_INFO *)(iter->buf + (iter->totalIF));
-	}
+
 	iter->pos--;
 	if (&(iter->pos) < &(iter->buf))
 		return (ISC_R_NOMORE);
@@ -314,10 +314,6 @@ internal_next(isc_interfaceiter_t *iter) {
 
 	return (ISC_R_SUCCESS);
 }
-
-/*
- * The remaining code is common to the sysctl and ioctl case.
- */
 
 isc_result_t
 isc_interfaceiter_current(isc_interfaceiter_t *iter,
@@ -366,8 +362,7 @@ isc_interfaceiter_next(isc_interfaceiter_t *iter) {
 }
 
 void
-isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
-{
+isc_interfaceiter_destroy(isc_interfaceiter_t **iterp) {
 	isc_interfaceiter_t *iter;
 	REQUIRE(iterp != NULL);
 	iter = *iterp;

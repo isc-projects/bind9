@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: once.c,v 1.8 2001/07/08 05:09:10 mayer Exp $ */
+/* $Id: once.c,v 1.9 2001/07/09 21:06:16 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -28,9 +28,7 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_once_do(isc_once_t *controller, void(*function)(void))
-
-{
+isc_once_do(isc_once_t *controller, void(*function)(void)) {
 	REQUIRE(controller != NULL && function != NULL);
 
 	if (controller->status == ISC_ONCE_INIT_NEEDED) {

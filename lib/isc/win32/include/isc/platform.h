@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.2 2001/07/08 05:09:33 mayer Exp $ */
+/* $Id: platform.h,v 1.3 2001/07/09 21:06:29 gson Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -23,10 +23,13 @@
 /*****
  ***** Platform-dependent defines.
  *****/
+
 #define ISC_PLATFORM_USETHREADS
+
 /***
  *** Network.
  ***/
+
 #define ISC_PLATFORM_HAVEIPV6
 #define ISC_PLATFORM_NEEDPORTT
 #undef MSG_TRUNC

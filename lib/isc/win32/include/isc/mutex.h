@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.15 2001/07/08 05:09:28 mayer Exp $ */
+/* $Id: mutex.h,v 1.16 2001/07/09 21:06:27 gson Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -30,9 +30,7 @@ typedef CRITICAL_SECTION isc_mutex_t;
 /* This definition is here since WINBASE.H omits it for some reason */
 
 WINBASEAPI BOOL WINAPI
-TryEnterCriticalSection(
-    LPCRITICAL_SECTION lpCriticalSection
-    );
+TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 
 #define isc_mutex_init(mp) \
 	(InitializeCriticalSection((mp)), ISC_R_SUCCESS)
