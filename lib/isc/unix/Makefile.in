@@ -24,7 +24,8 @@ CINCLUDES =	-I${srcdir}/.. \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		app.o time.o stdtime.o socket.o interfaceiter.o sockaddr.o
+OBJS =		app.@O@ time.@O@ stdtime.@O@ socket.@O@ \
+		interfaceiter.@O@ sockaddr.@O@
 
 SUBDIRS =	include
 TARGETS =	${OBJS}

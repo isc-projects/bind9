@@ -19,38 +19,54 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
+@LIBISC_API@
+
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/pthreads/include \
 		-I${srcdir}/include
 CDEFINES =
 CWARNINGS =
 
-UNIXOBJS =	unix/app.o unix/time.o unix/stdtime.o unix/socket.o \
-		unix/interfaceiter.o unix/sockaddr.o
+UNIXOBJS =	unix/app.@O@ unix/time.@O@ unix/stdtime.@O@ \
+		unix/socket.@O@ unix/interfaceiter.@O@ unix/sockaddr.@O@
 
-NLSOBJS =	nls/msgcat.o
+NLSOBJS =	nls/msgcat.@O@
 
-PTHREADOBJS =	pthreads/condition.o
+PTHREADOBJS =	pthreads/condition.@O@
 
 OBJS =		@ISC_EXTRA_OBJS@ \
-		assertions.o base64.o buffer.o error.o heap.o lex.o lib.o \
-		mem.o result.o rwlock.o symtab.o str.o event.o task.o timer.o \
-		version.o \
+		assertions.@O@ base64.@O@ buffer.@O@ error.@O@ \
+		heap.@O@ lex.@O@ lib.@O@ mem.@O@ result.@O@ \
+		rwlock.@O@ symtab.@O@ str.@O@ event.@O@ task.@O@ \
+		timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
+
+LIBS =		@LIBS@
 
 SUBDIRS =	include unix nls pthreads
 TARGETS =	timestamp
 
 @BIND9_MAKE_RULES@
 
-version.o: version.c
-	${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" -c $<
+version.@O@: version.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+		-DVERSION=\"${VERSION}\" \
+		-DLIBINTERFACE=${LIBINTERFACE} \
+		-DLIBREVISION=${LIBREVISION} \
+		-DLIBAGE=${LIBAGE} \
+		-c $<
 
 libisc.a: ${OBJS}
 	${AR} cruv libisc.a ${OBJS}
-
-timestamp: libisc.a
 	${RANLIB} libisc.a
+
+libisc.la: ${OBJS}
+	${LIBTOOL} --mode=link \
+		${CC} ${ALL_CFLAGS} -o libisc.la -rpath ${libdir} \
+		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
+		${OBJS} ${LIBS}
+
+timestamp: libisc.@A@
 	touch timestamp
 
 installdirs:
@@ -59,7 +75,7 @@ installdirs:
 	fi
 
 install:: timestamp installdirs
-	${INSTALL_DATA} libisc.a ${libdir}
+	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${libdir}
 
 clean distclean::
-	rm -f libisc.a timestamp
+	rm -f libisc.a libisc.la timestamp

@@ -1,4 +1,7 @@
 Makefile
+.libs
+*.la
+*.lo
 name_test
 rwlock_test
 mem_test

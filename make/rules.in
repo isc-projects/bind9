@@ -84,7 +84,7 @@ STD_CDEFINES =	@STD_CDEFINES@
 STD_CWARNINGS =	@STD_CWARNINGS@
 
 .SUFFIXES:
-.SUFFIXES: .c .o
+.SUFFIXES: .c .o .lo
 
 ALWAYS_INCLUDES = -I${top_builddir}
 ALWAYS_DEFINES = -D_REENTRANT
@@ -98,8 +98,15 @@ ALL_CFLAGS = ${CFLAGS} \
 .c.o:
 	${CC} ${ALL_CFLAGS} -c $<
 
+SHELL = @SHELL@
+LIBTOOL = @LIBTOOL@
+
+.c.lo:
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} -c $<
+
 clean distclean::
-	rm -f *.o core *.core
+	rm -f *.o *.lo *.la core *.core
+	rm -rf .libs
 
 distclean::
 	rm -f Makefile

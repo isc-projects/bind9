@@ -26,8 +26,9 @@ CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-LIBS =		../../../lib/dns/libdns.a \
-		../../../lib/isc/libisc.a \
+# Note that we do not want to use libtool for libt_api.a
+LIBS =		../../../lib/dns/libdns.@A@ \
+		../../../lib/isc/libisc.@A@ \
 		../../../lib/tests/libt_api.a \
 		@LIBS@
 
@@ -36,7 +37,7 @@ TARGETS =	t_master
 @BIND9_MAKE_RULES@
 
 t_master: t_master.o
-	${CC} -o $@ t_master.o ${LIBS}
+	${LIBTOOL} ${CC} -o $@ t_master.o ${LIBS}
 
 test:
 	-@ ./t_master -c @top_srcdir@/t_config -a >> ../t_journal 2>&1

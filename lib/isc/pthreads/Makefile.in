@@ -23,7 +23,7 @@ CINCLUDES =	-I${srcdir}/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		condition.o
+OBJS =		condition.@O@
 
 SUBDIRS =	include
 TARGETS =	${OBJS}

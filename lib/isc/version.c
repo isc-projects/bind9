@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,3 +16,7 @@
  */
 
 char isc_version[] = VERSION;
+
+unsigned int isc_libinterface = LIBINTERFACE;
+unsigned int isc_librevision = LIBREVISION;
+unsigned int isc_libage = LIBAGE;

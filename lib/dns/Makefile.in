@@ -19,6 +19,8 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
+@LIBDNS_API@
+
 CINCLUDES =	-I${srcdir}/../isc/unix/include \
 		-I${srcdir}/../isc/pthreads/include \
 		-I${srcdir}/../isc/include \
@@ -33,10 +35,12 @@ CWARNINGS =
 LIBS =		@LIBS@
 
 # Alphabetically
-OBJS =		callbacks.o compress.o db.o dbiterator.o dbtable.o dispatch.o \
-		lib.o master.o message.o name.o rbt.o rbtdb.o rbtdb64.o \
-		rdata.o rdatalist.o rdataset.o rdatasetiter.o rdataslab.o \
-		resolver.o result.o version.o masterdump.o time.o ttl.o
+OBJS =		callbacks.@O@ compress.@O@ db.@O@ dbiterator.@O@ \
+		dbtable.@O@ dispatch.@O@ lib.@O@ master.@O@ message.@O@ \
+		name.@O@ rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ \
+		rdatalist.@O@ rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ \
+		resolver.@O@ result.@O@ version.@O@ masterdump.@O@ time.@O@ \
+		ttl.@O@
 
 OSRC =		callbacks.c compress.c db.c dbiterator.c dbtable.c dispatch.c \
 		lib.c master.c name.c rbt.c rbtdb.c rbtdb64.c \
@@ -49,14 +53,25 @@ TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
 
 @BIND9_MAKE_RULES@
 
-version.o: version.c
-	${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" -c $<
+version.@O@: version.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+		-DVERSION=\"${VERSION}\" \
+		-DLIBINTERFACE=${LIBINTERFACE} \
+		-DLIBREVISION=${LIBREVISION} \
+		-DLIBAGE=${LIBAGE} \
+		-c $<
 
 libdns.a: ${OBJS}
 	${AR} cruv $@ ${OBJS}
-
-timestamp: libdns.a
 	${RANLIB} libdns.a
+
+libdns.la: ${OBJS}
+	${LIBTOOL} --mode=link \
+		${CC} ${ALL_CFLAGS} -o libdns.la -rpath ${libdir} \
+		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
+		${OBJS} ${LIBS}
+
+timestamp: libdns.@A@
 	touch timestamp
 
 installdirs:
@@ -65,14 +80,14 @@ installdirs:
 	fi
 
 install:: timestamp installdirs
-	${INSTALL_DATA} libdns.a ${libdir}
+	${LIBTOOL} ${INSTALL_DATA} libdns.@A@ ${libdir}
 
 clean distclean::
 	rm -f libdns.a timestamp
 	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
 	rm -f include/dns/rdatastruct.h
 
-rdata.o: code.h
+rdata.@O@: code.h
 
 include/dns/enumtype.h: gen
 	./gen -s ${srcdir} -t > $@
@@ -90,4 +105,4 @@ code.h:	gen
 gen: gen.c
 	${CC} ${ALL_CFLAGS} -o $@ $? ${LIBS}
 
-rbtdb64.o: rbtdb.c
+rbtdb64.@O@: rbtdb.c

@@ -21,22 +21,25 @@ top_srcdir =	@top_srcdir@
 
 SUBDIRS =	make lib bin
 TARGETS =
-DISTFILES =	Makefile.in config.h.in configure.in \
+DISTFILES =	Makefile.in README \
+		acconfig.h aclocal.m4 config.h.in configure.in \
 		config.sub config.guess install-sh configure \
+		ltconfig ltmain.sh \
 		bin lib make \
 		version 
 
 @BIND9_MAKE_RULES@
 
 distclean:: FORCE
-	rm -f config.cache config.h config.log config.status
+	rm -f config.cache config.h config.log config.status libtool
 
 cleandir: distclean
 
 kit: kitclean
 	mkdir bind-${VERSION}
 	@(cd bind-${VERSION}; for i in ${DISTFILES}; do ln -s ../$$i $$i; done)
-	gtar -c -v -z -h --exclude '*CVS*' -f bind-${VERSION}.tar.gz bind-${VERSION}
+	gtar -c -v -z -h --exclude '*CVS*' -f bind-${VERSION}.tar.gz \
+		bind-${VERSION}
 	rm -rf bind-${VERSION}
 
 kitclean: distclean

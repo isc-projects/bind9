@@ -1,4 +1,7 @@
 Makefile
+.libs
+*.la
+*.lo
 named
 parser.c
 parser_p.h

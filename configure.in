@@ -13,9 +13,9 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.31 $)
+AC_REVISION($Revision: 1.32 $)
 
-AC_PREREQ(2.12)
+AC_PREREQ(2.13)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -203,22 +203,6 @@ case "$host" in
 		;;
 esac
 
-AC_CHECK_FUNC(inet_ntop, ,
-	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.o"
-	       AC_SUBST(ISC_EXTRA_OBJS)
-	       AC_DEFINE(NEED_INET_NTOP)]
-)
-AC_CHECK_FUNC(inet_pton, ,
-	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.o"
-	       AC_SUBST(ISC_EXTRA_OBJS)
-	       AC_DEFINE(NEED_INET_PTON)]
-)
-AC_CHECK_FUNC(inet_aton, ,
-	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.o"
-	       AC_SUBST(ISC_EXTRA_OBJS)
-	       AC_DEFINE(NEED_INET_ATON)]
-)
-
 if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes"
 	case "$host" in
@@ -275,6 +259,51 @@ int main() { struct sockaddr sa; sa.sa_len = 0; return (0); }],
 		AC_DEFINE(HAVE_SA_LEN)],
 		[AC_MSG_RESULT(no)]))
 
+dnl
+dnl GNU libtool support
+dnl
+AC_ARG_WITH(libtool,
+	    [  --with-libtool	       use GNU libtool],
+	    use_libtool="$withval", use_libtool="no")
+
+case $use_libtool in
+	yes)
+		AM_PROG_LIBTOOL
+		O=lo
+		A=la
+		;;
+	*)
+		O=o
+		A=a
+		LIBTOOL=
+		AC_SUBST(LIBTOOL)
+		;;
+esac
+AC_SUBST(O)
+AC_SUBST(A)
+
+dnl
+dnl Check for network functions that are often missing.  We do this
+dnl after the libtool checking, so we can put the right suffix on
+dnl the files.
+dnl
+AC_CHECK_FUNC(inet_ntop, ,
+	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
+	       AC_SUBST(ISC_EXTRA_OBJS)
+	       AC_DEFINE(NEED_INET_NTOP)]
+)
+AC_CHECK_FUNC(inet_pton, ,
+	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
+	       AC_SUBST(ISC_EXTRA_OBJS)
+	       AC_DEFINE(NEED_INET_PTON)]
+)
+AC_CHECK_FUNC(inet_aton, ,
+	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
+	       AC_SUBST(ISC_EXTRA_OBJS)
+	       AC_DEFINE(NEED_INET_ATON)]
+)
+
+
 AC_SUBST(BIND9_TOP_BUILDDIR)
 BIND9_TOP_BUILDDIR=`pwd`
 
@@ -283,6 +312,12 @@ BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 
 AC_SUBST_FILE(BIND9_VERSION)
 BIND9_VERSION=$srcdir/version
+
+AC_SUBST_FILE(LIBISC_API)
+LIBISC_API=$srcdir/lib/isc/api
+
+AC_SUBST_FILE(LIBDNS_API)
+LIBDNS_API=$srcdir/lib/dns/api
 
 AC_OUTPUT(
 	make/rules

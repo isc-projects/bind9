@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,3 +16,7 @@
  */
 
 char dns_version[] = VERSION;
+
+unsigned int dns_libinterface = LIBINTERFACE;
+unsigned int dns_librevision = LIBREVISION;
+unsigned int dns_libage = LIBAGE;

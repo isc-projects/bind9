@@ -3,3 +3,4 @@ config.log
 config.h
 config.cache
 config.status
+libtool

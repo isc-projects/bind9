@@ -29,8 +29,8 @@ CDEFINES =
 CWARNINGS =
 
 
-DEPLIBS =	../../lib/dns/libdns.a \
-		../../lib/isc/libisc.a
+DEPLIBS =	../../lib/dns/libdns.@A@ \
+		../../lib/isc/libisc.@A@
 
 LIBS =		${DEPLIBS} \
 		@LIBS@
@@ -47,7 +47,7 @@ wire_test.o: ${srcdir}/../tests/wire_test.c
 		${srcdir}/../tests/wire_test.c
 
 named: ${OBJS} ${DEPLIBS}
-	${CC} -o $@ ${OBJS} ${LIBS}
+	${LIBTOOL} ${CC} -o $@ ${OBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS} confparser.c confparser_p.h

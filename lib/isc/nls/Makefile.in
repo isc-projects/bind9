@@ -22,7 +22,7 @@ CINCLUDES =	-I${srcdir}/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		msgcat.o
+OBJS =		msgcat.@O@
 
 SUBDIRS =
 TARGETS =	${OBJS}
