@@ -1,3 +1,5 @@
+1663.	[func]		Look for OpenSSL by default.
+
 1661.	[bug]		Restore dns_name_concatenate() call in
 			adb.c:set_target().  [RT #11582]
 
