@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.102 2001/04/30 18:09:31 gson Exp $ */
+/* $Id: zone.h,v 1.103 2001/05/04 23:57:22 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -436,10 +436,10 @@ dns_zone_unload(dns_zone_t *zone);
  */
 
 void
-dns_zone_clearoption(dns_zone_t *zone, unsigned int option);
+dns_zone_setoption(dns_zone_t *zone, unsigned int option, isc_boolean_t value);
 /*
- *	Clear the given options from the zone and allow system wide value
- *	to be used.
+ *	Set given options on ('value' == ISC_TRUE) or off ('value' ==
+ *	ISC_FALSE).
  *
  * Require:
  *	'zone' to be a valid zone.
