@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.2.2.1 2000/06/27 00:44:37 explorer Exp $
+# $Id: check-instincludes.sh,v 1.2.2.2 2000/07/03 17:51:30 gson Exp $
 
 #
 # Check the installed bind9 header files to make sure that no header
@@ -32,7 +32,7 @@ esac
 
 prefix=$1
 
-test -f ./util/conf.sh || {
+test -f ./configure.in || {
     echo "$0: run from top of bind9 source tree" >&2;
     exit 1;
 }
