@@ -70,6 +70,7 @@
 #include <dns/confip.h>
 #include <dns/conflsn.h>
 #include <dns/confrrset.h>
+#include <dns/confzone.h>
 
 #define DNS_C_VIEWTABLE_MAGIC		0x76497774 /* vIwt */
 #define DNS_C_VIEW_MAGIC 		0x56696557 /* VieW */
