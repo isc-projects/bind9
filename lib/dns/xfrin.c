@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.135 2004/03/05 05:09:26 marka Exp $ */
+/* $Id: xfrin.c,v 1.136 2004/06/27 10:10:55 jakob Exp $ */
 
 #include <config.h>
 
@@ -431,7 +431,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 			FAIL(DNS_R_FORMERR);
 		}
 		/*
-		 * Remember the serial number in the intial SOA.
+		 * Remember the serial number in the initial SOA.
 		 * We need it to recognize the end of an IXFR.
 		 */
 		xfr->end_serial = dns_soa_getserial(rdata);
