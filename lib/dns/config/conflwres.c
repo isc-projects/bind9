@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.c,v 1.2 2000/10/04 20:50:25 bwelling Exp $ */
+/* $Id: conflwres.c,v 1.3 2000/10/10 22:04:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -315,7 +315,7 @@ dns_c_lwres_print(FILE *fp, int indent, dns_c_lwres_t *lwres)
 			isc_buffer_t b;
 			isc_buffer_init(&b, classtext, sizeof(classtext));
 			(void)dns_rdataclass_totext(lwres->viewclass, &b);
-			fprintf(fp, " %.*s", isc_buffer_usedlength(&b),
+			fprintf(fp, " %.*s", (int)isc_buffer_usedlength(&b),
 				(char *)isc_buffer_base(&b));
 		}
 		fprintf(fp, ";\n");
