@@ -7,7 +7,7 @@ Expires August 2003                                        February 2003
 
        Domain Name System (DNS) Case Insensitivity Clarification
        ------ ---- ------ ----- ---- ------------- -------------
-                 <draft-ietf-dnsext-insensitive-01.txt>
+                 <draft-ietf-dnsext-insensitive-02.txt>
 
                          Donald E. Eastlake 3rd
 
@@ -46,7 +46,7 @@ Abstract
 
 
 
-
+Copyright (C) 2003 The Internet Society. All Rights Reserved.
 
 
 
@@ -63,8 +63,8 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
 Acknowledgements
 
    The contributions to this document of Rob Austein, Olafur
-   Gudmundsson, Daniel J. Anderson, Alan Barrett, and Andrew Main are
-   gratefully acknowledged.
+   Gudmundsson, Daniel J. Anderson, Alan Barrett, Dana, Andrew Main, and
+   Scott Seligman are gratefully acknowledged.
 
 
 
@@ -194,7 +194,7 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    preceding them with a back-slash. This is the most commonly used
    technique for protecting back slash ("\") and period ("."). However,
    it is advisable to avoid using this on other than printing ASCII
-   characters.
+   characters to avoid implementation difficulties.
 
 
 
@@ -283,7 +283,7 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
 3.2 Extended Label Type Case Insensitivity Considerations
 
    DNS was extended by [RFC 2671] to have additional label type numbers
-   available. (The only such type defined so far it the BINARY type [RFC
+   available. (The only such type defined so far is the BINARY type [RFC
 
 
 D. Eastlake 3rd                                                 [Page 5]
@@ -333,8 +333,8 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    [STD 13]. DNS Dynamic update has been added as a source of DNS data
    [RFC 2136, 3007]. When a node in the DNS name tree is created by such
    input, no case conversion is done and the case of ASCII labels is
-   preserved if they are for nodes being creted. However, no change is
-   made in the name label on nodes that already exist is the DNS data
+   preserved if they are for nodes being created. However, no change is
+   made in the name label on nodes that already exist in the DNS data
    being augmented or updated. It is quite common for higher level nodes
    to already exist.
 
@@ -351,11 +351,11 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
 
 
    this case can easily result is obtaining data with "xyz.BAR.example".
-   The same considerations apply inputting multiple data records with
-   owner names differing only in case. From the example above, if an "A"
-   record is stored under owner name "xyz.BAR.example" and then a second
-   "A" record under "XYZ.BAR.example", the second will be stored at the
-   node with the first (lower case initial label) name.
+   The same considerations apply when inputting multiple data records
+   with owner names differing only in case. From the example above, if
+   an "A" record is stored under owner name "xyz.BAR.example" and then a
+   second "A" record under "XYZ.BAR.example", the second will be stored
+   at the node with the first (lower case initial label) name.
 
    Note that the order of insertion into a server database of the DNS
    name tree nodes that appear in a Master File is not defined so that
@@ -369,7 +369,7 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    There is one additional instance of note, which reflects the general
    rules that output case reflects input case unless there is
    conflicting capitalization in the DNS database or the output case is
-   hidden by name compression. This is when a query matches a wild card
+   hidden by name compression. This is when a query matches a wildcard
    in the DNS database at a server. In that case, the answer SHOULD
    reflect the input case of the label or labels that matched the
    wildcard unless they are replaced by an indirect label which MAY
@@ -542,7 +542,7 @@ Expiration and File Name
 
    This draft expires August 2003.
 
-   Its file name is draft-ietf-dnsext-insensitive-01.txt.
+   Its file name is draft-ietf-dnsext-insensitive-02.txt.
 
 
 
