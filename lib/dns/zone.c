@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.336 2001/08/31 02:01:56 marka Exp $ */
+/* $Id: zone.c,v 1.337 2001/08/31 19:25:51 gson Exp $ */
 
 #include <config.h>
 
@@ -3813,8 +3813,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
 			INSIST(!isc_time_isepoch(&zone->dumptime));
-		    	if (isc_time_compare(&zone->dumptime, &next) < 0 ||
-			    isc_time_isepoch(&next))
+		    	if (isc_time_isepoch(&next) ||
+			    isc_time_compare(&zone->dumptime, &next) < 0)
 				next = zone->dumptime;
 		}
 		break;
@@ -3830,14 +3830,14 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING)) {
 			INSIST(!isc_time_isepoch(&zone->refreshtime));
-		    	if (isc_time_compare(&zone->refreshtime, &next) < 0 ||
-			    isc_time_isepoch(&next))
+		    	if (isc_time_isepoch(&next) ||
+			    isc_time_compare(&zone->refreshtime, &next) < 0)
 				next = zone->refreshtime;
 		}
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
 			INSIST(!isc_time_isepoch(&zone->expiretime));
-		    	if (isc_time_compare(&zone->expiretime, &next) < 0 ||
-			    isc_time_isepoch(&next))
+		    	if (isc_time_isepoch(&next) ||
+			    isc_time_compare(&zone->expiretime, &next) < 0)
 				next = zone->expiretime;
 		}
 		break;
