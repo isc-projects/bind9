@@ -35,6 +35,7 @@
 #include <isc/boolean.h>
 #include <isc/region.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>
@@ -82,9 +83,9 @@ cleandir(char *path) {
 
 
 static void
-use(dst_key_t *key, dst_result_t exp_result, int *nfails) {
+use(dst_key_t *key, isc_result_t exp_result, int *nfails) {
 
-	dst_result_t ret;
+	isc_result_t ret;
 	char *data = "This is some data";
 	unsigned char sig[512];
 	isc_buffer_t databuf, sigbuf;
@@ -117,10 +118,10 @@ use(dst_key_t *key, dst_result_t exp_result, int *nfails) {
 
 static void
 dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
-   dst_result_t exp_result, int *nfails, int *nprobs)
+   isc_result_t exp_result, int *nfails, int *nprobs)
 {
 	dst_key_t	*key1, *key2;
-	dst_result_t	ret;
+	isc_result_t	ret;
 	int		rval;
 	char		current[PATH_MAX + 1];
 	char		tmp[PATH_MAX + 1];
@@ -235,10 +236,10 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 }
 
 static void
-io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_result,
+io(char *name, int id, int alg, int type, isc_mem_t *mctx, isc_result_t exp_result,
 		int *nfails, int *nprobs) {
 	dst_key_t	*key;
-	dst_result_t	ret;
+	isc_result_t	ret;
 	int		rval;
 	char		current[PATH_MAX + 1];
 	char		tmp[PATH_MAX + 1];
@@ -303,7 +304,7 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_resu
 
 static void
 generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
-	dst_result_t ret;
+	isc_result_t ret;
 	dst_key_t *key;
 
 	ret = dst_key_generate("test.", alg, size, 0, 0, 0, mctx, &key);
@@ -326,7 +327,7 @@ get_random(int *nfails) {
 	unsigned char data2[DBUFSIZ];
 	isc_buffer_t databuf1;
 	isc_buffer_t databuf2;
-	dst_result_t ret;
+	isc_result_t ret;
 	unsigned int i;
 
 	isc_buffer_init(&databuf1, data1, sizeof(data1), ISC_BUFFERTYPE_BINARY);

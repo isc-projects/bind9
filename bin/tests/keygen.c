@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: keygen.c,v 1.7 1999/10/29 12:56:51 marka Exp $ */
+ /* $Id: keygen.c,v 1.8 2000/03/06 20:04:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <dns/keyvalues.h>
 #include <dst/dst.h>
 #include <dst/result.h>
@@ -46,7 +47,7 @@ main(int argc, char **argv) {
 	isc_mem_t	*mctx = NULL;
 	int		ch, rsa_exp = 0, generator = 0, param = 0;
 	int		protocol = -1, size = -1;
-	dst_result_t	ret;
+	isc_result_t	ret;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -235,6 +236,7 @@ main(int argc, char **argv) {
 	}
 	printf(" key for %s\n\n", name);
 
+	dst_result_register();
 	ret = dst_key_generate(name, alg, size, param, flags, protocol, mctx,
 			       &key);
 
