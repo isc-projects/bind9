@@ -1,3 +1,6 @@
+ 888.	[bug]		Don't die when using TKEY to delete a nonexistent
+ 			TSIG key. [RT #1392]
+
  887.	[port]		Detect broken compilers that can't call static
 			functions from inline functions.  [RT #1212]
 
