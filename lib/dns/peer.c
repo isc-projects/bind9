@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.12 2001/02/27 01:13:18 bwelling Exp $ */
+/* $Id: peer.c,v 1.13 2001/03/01 02:28:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -448,6 +448,7 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 	dns_name_t *name;
 	isc_result_t result;
 
+	dns_fixedname_init(&fname);
 	isc_buffer_init(&b, keyval, strlen(keyval));
 	isc_buffer_add(&b, strlen(keyval));
 	result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
