@@ -1,3 +1,15 @@
+ 289.	[cleanup]	dig is now installed in $bindir instead of $sbindir.
+			host is now installed in $bindir.  (Be sure to remove
+			any $sbindir/dig from a previous release.)
+
+ 288.	[func]		rndc is now installed by "make install" into $sbindir.
+
+ 287.	[bug]		rndc now works again as "rndc 127.1 reload" (for
+			only that task).  Parsing its configuration file and
+			using digital signatures for authentication has been
+			disabled until named supports the "controls" statment,
+			post-9.0.0.
+
  286.	[bug]		On Solaris 2, when named inherited a signal state 
 			where SIGHUP had the SIG_IGN action, SIGHUP would
 			be ignored rather than causing the server to reload
@@ -13,10 +25,10 @@
 
  283.	[cleanup]	The 'lwresd' program is now a link to 'named'.
 
- 282.	[bug]		lexer now returns ISC_R_RANGE if parsed integer is 
+ 282.	[bug]		The lexer now returns ISC_R_RANGE if parsed integer is 
 			too big for an usigned long.
 
- 281.	[bug]		fixed list of recognised config file category names.
+ 281.	[bug]		Fixed list of recognized config file category names.
 
  280.	[func]		Add isc-config.sh, which can be used to more
 			easily build applications that link with
@@ -105,7 +117,7 @@
 
  257.	[bug]		The server detached the last zone manager reference
 			too early, while it could still be in use by queries.
-			This manifested itself as assertion failures during the 
+			This manifested itself as assertion failures during the
 			shutdown process for busy name servers (RT #133).
 
  256.	[func]		isc_ratelimiter_t now has attach/detach semantics, and
@@ -114,7 +126,7 @@
 
  255.	[func]		New function dns_zonemgr_attach().
 
- 254.	[bug]		suppress "query denied" messages on additional data
+ 254.	[bug]		Suppress "query denied" messages on additional data
 			lookups.
 
 	--- 9.0.0b4 released ---
@@ -123,7 +135,7 @@
 			comments (anywhere in line, not just as the beginning).
 
  252.	[bug]		resolv.conf parser mishandled masks on sortlists.
-			It slso aborted when an unrecognised keyword was seen,
+			It slso aborted when an unrecognized keyword was seen,
 			now it silently ignores the entire line.
 
  251.	[bug]		lwresd caught an assertion failure on startup.
