@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.28 1999/12/10 23:58:03 gson Exp $ */
+ /* $Id: xfrout.c,v 1.29 1999/12/16 02:59:32 gson Exp $ */
 
 #include <config.h>
 
@@ -752,7 +752,9 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  unsigned int id, dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
-		  dns_rdata_any_tsig_t *lasttsig, unsigned int timeout,
+		  dns_rdata_any_tsig_t *lasttsig,
+		  unsigned int maxtime,
+		  unsigned int idletime,
 		  xfrout_ctx_t **xfrp);
 
 static void sendstream(xfrout_ctx_t *xfr);
@@ -967,7 +969,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
 				reqtype, db, ver, stream, request->tsigkey,
 				request->tsig,
-				2*3600, /* XXX need timeout config option */
+				dns_zone_getmaxxfrout(zone),
+				dns_zone_getidleout(zone),
 				&xfr));
 	stream = NULL;
 	db = NULL;
@@ -1015,14 +1018,15 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
-		  dns_rdata_any_tsig_t *lasttsig, unsigned int timeout,
-		  xfrout_ctx_t **xfrp)
+		  dns_rdata_any_tsig_t *lasttsig, unsigned int maxtime,
+		  unsigned int idletime, xfrout_ctx_t **xfrp)
 {
 	xfrout_ctx_t *xfr;
 	dns_result_t result;
 	unsigned int len;
 	void *mem;
-	isc_interval_t interval;
+	isc_interval_t maxinterval, idleinterval;
+	isc_time_t expires;
 	
 	INSIST(xfrp != NULL && *xfrp == NULL);
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
@@ -1060,7 +1064,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	mem = isc_mem_get(mctx, len);
 	if (mem == NULL) {
 		result = DNS_R_NOMEMORY;
-		goto cleanup;
+		goto failure;
 	}
 	isc_buffer_init(&xfr->buf, mem, len, ISC_BUFFERTYPE_BINARY);
 
@@ -1072,7 +1076,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	mem = isc_mem_get(mctx, len);
 	if (mem == NULL) {
 		result = DNS_R_NOMEMORY;
-		goto cleanup;
+		goto failure;
 	}
 	isc_buffer_init(&xfr->txlenbuf, mem, 2, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_init(&xfr->txbuf, (char *) mem + 2, len - 2,
@@ -1080,18 +1084,18 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->txmem = mem;
 	xfr->txmemlen = len;
 
-	isc_interval_set(&interval, timeout, 0);
-	result = isc_timer_create(ns_g_timermgr, isc_timertype_once,
-				  NULL, &interval, 
-				  xfr->client->task,
-				  xfrout_timeout, xfr, &xfr->timer);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
-
+	isc_interval_set(&maxinterval, maxtime, 0);
+	CHECK(isc_time_nowplusinterval(&expires, &maxinterval));
+	isc_interval_set(&idleinterval, idletime, 0);
+	
+	CHECK(isc_timer_create(ns_g_timermgr, isc_timertype_once,
+			       &expires, &idleinterval, 
+			       xfr->client->task,
+			       xfrout_timeout, xfr, &xfr->timer));
 	*xfrp = xfr;
 	return (DNS_R_SUCCESS);
 	
- cleanup:
+failure:
 	xfrout_ctx_destroy(&xfr);
 	return (result);
 }
