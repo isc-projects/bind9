@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.103 2000/07/27 23:52:29 bwelling Exp $ */
+/* $Id: dighost.c,v 1.104 2000/07/28 21:56:53 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1797,7 +1797,20 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					dns_rdata_freestruct(&soa);
 					goto next_rdata;
 				}
+				if (query->lookup->rdtype ==
+				    dns_rdatatype_axfr) {
+					debug("doing axfr, got second SOA");
+					dns_rdata_freestruct(&soa);
+					goto xfr_done;
+				}
 				if (!query->second_rr_rcvd) {
+					if (soa.serial ==
+					    query->first_rr_serial) {
+						debug("doing ixfr, got "
+						      "empty zone");
+						dns_rdata_freestruct(&soa);
+						goto xfr_done;
+					}
 					debug("this is the second %d",
 					       query->lookup->ixfr_serial);
 					query->second_rr_rcvd = ISC_TRUE;
