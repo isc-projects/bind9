@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.35.12.1 2003/08/13 05:06:53 marka Exp $ */
+/* $Id: sockaddr.h,v 1.35.12.2 2003/08/14 04:25:09 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -167,7 +167,19 @@ isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size);
 isc_boolean_t
 isc_sockaddr_ismulticast(isc_sockaddr_t *sa);
 /*
- * Returns ISC_TRUE if the address is a multicast address
+ * Returns ISC_TRUE if the address is a multicast address.
+ */
+
+isc_boolean_t
+isc_sockaddr_islinklocal(isc_sockaddr_t *sa);
+/*
+ * Returns ISC_TRUE if the address is a link local addresss.
+ */
+
+isc_boolean_t
+isc_sockaddr_issitelocal(isc_sockaddr_t *sa);
+/*
+ * Returns ISC_TRUE if the address is a sitelocal address.
  */
 
 #define ISC_SOCKADDR_FORMATSIZE \

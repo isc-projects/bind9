@@ -711,6 +711,10 @@
 
 1248.	[bug]		DESTDIR was not being propagated between makes.
 
+1246.	[func]		New functions isc_sockaddr_issitelocal(),
+			isc_sockaddr_islinklocal(), isc_netaddr_issitelocal()
+			and isc_netaddr_islinklocal().
+
 1245.	[bug]		Treat ENOBUFS, ENOMEM and ENFILE as soft errors for
 			accept().
 

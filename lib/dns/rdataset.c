@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.58.2.2.2.3 2003/08/14 02:34:16 marka Exp $ */
+/* $Id: rdataset.c,v 1.58.2.2.2.4 2003/08/14 04:25:08 marka Exp $ */
 
 #include <config.h>
 
@@ -388,7 +388,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			unsigned int j = (((unsigned int)rand()) >> 3) % count;
 			for (i = 0; i < count; i++) {
 				if (order != NULL)
-					sorted[i].key = (*order)(&shuffled[i],
+					sorted[j].key = (*order)(&shuffled[i],
 								 order_arg);
 				else
 					sorted[j].key = 0; /* Unused */
