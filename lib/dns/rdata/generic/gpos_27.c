@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.13 2000/03/16 02:00:33 brister Exp $ */
+/* $Id: gpos_27.c,v 1.14 2000/03/21 23:48:20 gson Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -152,8 +152,8 @@ additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 27);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }
