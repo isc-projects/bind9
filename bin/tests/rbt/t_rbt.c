@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_rbt.c,v 1.21 2000/08/01 01:14:15 tale Exp $ */
+/* $Id: t_rbt.c,v 1.22 2000/08/09 04:49:44 tale Exp $ */
 
 #include <config.h>
 
@@ -603,8 +603,8 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 						dns_fixedname_name(&origin));
 			if (dns_result != DNS_R_NEWORIGIN) {
 				t_info("dns_rbtnodechain_first returned %s, "
-					"expecting DNS_R_NEWORIGIN\n",
-					dns_result_totext(dns_result));
+				       "expecting DNS_R_NEWORIGIN\n",
+				       dns_result_totext(dns_result));
 				++nprobs;
 				break;
 			}
@@ -620,7 +620,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 			       dns_fixedname_name(&fullname1), NULL);
 			if (dns_result != ISC_R_SUCCESS) {
 				t_info("dns_name_concatenate failed %s\n",
-						dns_result_totext(dns_result));
+				       dns_result_totext(dns_result));
 				++nprobs;
 				break;
 			}
@@ -1023,16 +1023,16 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 	}
 
 	t_info("testing for first name of %s, origin of %s\n",
-			expected_firstname, expected_firstorigin);
+	       expected_firstname, expected_firstorigin);
 
 	dns_result = dns_rbtnodechain_first(&chain, rbt,
-			dns_fixedname_name(&dns_name),
-			dns_fixedname_name(&dns_origin));
+					    dns_fixedname_name(&dns_name),
+					    dns_fixedname_name(&dns_origin));
 
-	if (dns_result != DNS_R_NEWORIGIN) {
+	if (dns_result != DNS_R_NEWORIGIN)
 		t_info("dns_rbtnodechain_first unexpectedly returned %s\n",
-				dns_result_totext(dns_result));
-	}
+		       dns_result_totext(dns_result));
+
 	nfails = t_namechk(dns_result, &dns_name, expected_firstname,
 			   &dns_origin, expected_firstorigin, DNS_R_NEWORIGIN);
 
@@ -1044,10 +1044,10 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 	t_info("testing for next name of %s, origin of %s\n",
 			expected_nextname, expected_nextorigin);
 
-	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN)) {
+	if ((dns_result != ISC_R_SUCCESS) && (dns_result != DNS_R_NEWORIGIN))
 		t_info("dns_rbtnodechain_next unexpectedly returned %s\n",
-				dns_result_totext(dns_result));
-	}
+		       dns_result_totext(dns_result));
+
 	if (strcasecmp(expected_firstorigin, expected_nextorigin) == 0)
 		expected_result = ISC_R_SUCCESS;
 	else
