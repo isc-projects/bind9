@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.51 2000/11/28 18:35:08 explorer Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.52 2000/11/28 18:55:56 gson Exp $ -->
 
 <book>
 
@@ -2809,21 +2809,23 @@ These options control the server's behavior when answering queries
 which have additional data, or when following CNAME and DNAME
 chains to provide additional data.
 </para><para>
-With both of these options set to "yes" (the default) and a
+When both of these options are set to <userinput>yes</userinput> 
+(the default) and a
 query is being answered from authoratitive data (a zone
-configured ito the server) the additional data section of the
+configured into the server), the additional data section of the
 reply will be filled in using data from other authoratitive zones
-and from the cache.  In some situations this is undesired, such
-as when secondaries may be added and modified by others, and when
-there is concern over the correctness of the cache.  Also, avoiding
+and from the cache.  In some situations this is undesirable, such
+as when there is concern over the correctness of the cache, or in
+in servers where slave zones may be added and modified by
+untrusted third parties.  Also, avoiding
 the search for this additional data will speed up server operations
 at the possible expense of additional queries to resolve what would
 otherwise be provided in the additional section.
 </para><para>
-For example, if a query asks for an MX record for host foo.example.com,
-and the record found is "MX 10 mail.example.net", normally the address
-records (A, A6, and AAAA) will be provided as well, if known.  These
-options disable this behavior.
+For example, if a query asks for an MX record for host <literal>foo.example.com</literal>,
+and the record found is "<literal>MX 10 mail.example.net</literal>", normally the address
+records (A, A6, and AAAA) for <literal>mail.example.net</literal> will be provided as well,
+if known.  These options disable this behavior.
 </para>
 </entry>
 </row>
