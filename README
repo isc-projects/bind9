@@ -45,11 +45,10 @@ BIND 9
 
 
 
-BIND 9.1.1rc7
+BIND 9.1.1
 
-	BIND 9.1.1rc7 is a release candidate for BIND 9.1.1.
-	It contains fixes for a number of bugs in BIND 9.1.1rc6
-	but no new features.
+	BIND 9.1.1 is a maintenance release, containing fixes for
+	a number of bugs in BIND 9.1.0 but no new features.
 
 	Features introduced in 9.1.0 included:
 
