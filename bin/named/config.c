@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.20 2001/11/20 01:14:56 gson Exp $ */
+/* $Id: config.c,v 1.21 2001/11/20 18:46:43 gson Exp $ */
 
 #include <config.h>
 
@@ -143,26 +143,26 @@ options {\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
-};
-
-view \"_bind\" chaos {
-	recursion no;
-
-	zone \"version.bind\" chaos {
-		type master;
-		database \"_builtin version\";
-	};
-
-	zone \"hostname.bind\" chaos {
-		type master;
-		database \"_builtin hostname\";
-	};
-
-	zone \"authors.bind\" chaos {
-		type master;
-		database \"_builtin authors\";
-	};
-};
+};\n\
+\n\
+view \"_bind\" chaos {\n\
+	recursion no;\n\
+\n\
+	zone \"version.bind\" chaos {\n\
+		type master;\n\
+		database \"_builtin version\";\n\
+	};\n\
+\n\
+	zone \"hostname.bind\" chaos {\n\
+		type master;\n\
+		database \"_builtin hostname\";\n\
+	};\n\
+\n\
+	zone \"authors.bind\" chaos {\n\
+		type master;\n\
+		database \"_builtin authors\";\n\
+	};\n\
+};\n\
 ";
 
 isc_result_t
