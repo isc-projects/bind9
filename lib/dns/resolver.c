@@ -282,7 +282,7 @@ fctx_freelookups(fetchctx_t *fctx) {
 	     lookup = next_lookup) {
 		next_lookup = ISC_LIST_NEXT(lookup, publink);
 		ISC_LIST_UNLINK(fctx->lookups, lookup, publink);
-		dns_adb_done(&lookup);
+		dns_adb_destroyfind(&lookup);
 	}
 	fctx->lookup = NULL;
 }
@@ -604,10 +604,11 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 * See what we know about this address.
 		 */
 		lookup = NULL;
-		result = dns_adb_lookup(res->view->adb,
-					res->buckets[fctx->bucketnum].task,
-					fctx_adbhandler, fctx, &name,
-					&fctx->domain, options, now, &lookup);
+		result = dns_adb_createfind(res->view->adb,
+					    res->buckets[fctx->bucketnum].task,
+					    fctx_adbhandler, fctx, &name,
+					    &fctx->domain, options, now,
+					    &lookup);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		if (!ISC_LIST_EMPTY(lookup->list)) {
@@ -629,7 +630,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 				 * We're not fetching them either.  We lose
 				 * for this name.
 				 */
-				dns_adb_done(&lookup);
+				dns_adb_destroyfind(&lookup);
 			}
 		}
 		if (lookup != NULL)

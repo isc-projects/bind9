@@ -266,6 +266,12 @@ static inline void link_name(dns_adb_t *, int, dns_adbname_t *);
 static inline void unlink_name(dns_adb_t *, dns_adbname_t *);
 static void kill_name(dns_adbname_t **, isc_eventtype_t ev);
 
+#define HANDLE_EVENT_SENT	0x00000001
+#define HANDLE_EVENT_FREED	0x00000002
+
+#define EVENT_SENT(h)		(((h)->flags & HANDLE_EVENT_SENT) != 0)
+#define EVENT_FREED(h)		(((h)->flags & HANDLE_EVENT_FREED) != 0)
+
 #define WANTEVENT(x)		(((x) & DNS_ADBFIND_WANTEVENT) != 0)
 #define WANTEMPTYEVENT(x)	(((x) & DNS_ADBFIND_EMPTYEVENT) != 0)
 #define HAVE_INET(n)		(!ISC_LIST_EMPTY((n)->v4))
@@ -582,6 +588,24 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks)
 }
 
 /*
+ * Assumes nothing is locked, since this is called by the client.
+ */
+static void
+event_free(isc_event_t *event)
+{
+	dns_adbhandle_t *handle;
+
+	INSIST(event != NULL);
+	handle = event->destroy_arg;
+	INSIST(DNS_ADBHANDLE_VALID(handle));
+
+	LOCK(&handle->lock);
+	handle->flags |= HANDLE_EVENT_FREED;
+	event->destroy_arg = NULL;
+	UNLOCK(&handle->lock);
+}
+
+/*
  * Assumes the name bucket is locked.
  */
 static void
@@ -597,16 +621,20 @@ clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 
 		/*
 		 * Unlink the handle from the name, letting the caller
-		 * call dns_adb_done() on it to clean it up later.
+		 * call dns_adb_destroyfind() on it to clean it up later.
 		 */
 		ISC_LIST_UNLINK(name->handles, handle, plink);
 		handle->adbname = NULL;
 		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
 
+		INSIST(!EVENT_SENT(handle));
+
 		ev = &handle->event;
 		task = ev->sender;
 		ev->sender = handle;
 		ev->type = evtype;
+		ev->destroy = event_free;
+		ev->destroy_arg = handle;
 
 		DP(("Sending event %p to task %p for handle %p\n",
 		    ev, task, handle));
@@ -924,8 +952,9 @@ new_adbhandle(dns_adb_t *adb)
 	ISC_LINK_INIT(h, publink);
 	ISC_LINK_INIT(h, plink);
 	ISC_LIST_INIT(h->list);
-	h->name_bucket = DNS_ADB_INVALIDBUCKET;
 	h->adbname = NULL;
+	h->name_bucket = DNS_ADB_INVALIDBUCKET;
+	h->flags = 0;
 
 	/*
 	 * private members
@@ -1522,10 +1551,10 @@ dns_adb_detach(dns_adb_t **adbx)
 }
 
 isc_result_t
-dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-	       void *arg, dns_name_t *name, dns_name_t *zone,
-	       unsigned int options, isc_stdtime_t now,
-	       dns_adbhandle_t **handlep)
+dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
+		   void *arg, dns_name_t *name, dns_name_t *zone,
+		   unsigned int options, isc_stdtime_t now,
+		   dns_adbhandle_t **handlep)
 {
 	dns_adbhandle_t *handle;
 	dns_adbname_t *adbname;
@@ -1542,7 +1571,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	REQUIRE(zone != NULL);
 	REQUIRE(handlep != NULL && *handlep == NULL);
 
-	if ((options & DNS_ADBFIND_WANTEVENT) != 0) {
+	if (WANTEVENT(options)) {
 		REQUIRE(task != NULL);
 	}
 
@@ -1665,7 +1694,14 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		handle->query_pending = (adbname->query_pending
 					 & wanted_addresses);
 	} else {
+		/*
+		 * Remove the flag so the caller knows there will never
+		 * be an event, and set internal flags to fake that
+		 * the event was sent and freed, so dns_adb_destroyfind() will
+		 * do the right thing.
+		 */
 		handle->options &= ~DNS_ADBFIND_WANTEVENT;
+		handle->flags |= (HANDLE_EVENT_SENT | HANDLE_EVENT_FREED);
 	}
 
 	handle->partial_result |= (adbname->partial_result & wanted_addresses);
@@ -1865,7 +1901,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 }
 
 void
-dns_adb_done(dns_adbhandle_t **handlep)
+dns_adb_destroyfind(dns_adbhandle_t **handlep)
 {
 	dns_adbhandle_t *handle;
 	dns_adbentry_t *entry;
@@ -1884,24 +1920,11 @@ dns_adb_done(dns_adbhandle_t **handlep)
 	adb = handle->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
 
-	bucket = handle->name_bucket;
-	if (bucket == DNS_ADB_INVALIDBUCKET)
-		goto cleanup;
+	REQUIRE(EVENT_FREED(handle));
 
-	/*
-	 * We need to get the adbname's lock to unlink the handle.
-	 */
-	violate_locking_hierarchy(&handle->lock, &adb->namelocks[bucket]);
 	bucket = handle->name_bucket;
-	if (bucket != DNS_ADB_INVALIDBUCKET) {
-		ISC_LIST_UNLINK(handle->adbname->handles, handle, plink);
-		handle->adbname = NULL;
-		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
-	}
-	UNLOCK(&adb->namelocks[bucket]);
-	bucket = DNS_ADB_INVALIDBUCKET;
+	INSIST(bucket == DNS_ADB_INVALIDBUCKET);
 
- cleanup:
 	UNLOCK(&handle->lock);
 
 	/*
@@ -1921,10 +1944,71 @@ dns_adb_done(dns_adbhandle_t **handlep)
 		ai = ISC_LIST_HEAD(handle->list);
 	}
 
+	/*
+	 * WARNING:  The handle is freed with the adb locked.  This is done
+	 * to avoid a race condition where we free the handle, some other
+	 * thread tests to see if it should be destroyed, detects it should
+	 * be, destroys it, and then we try to lock it for our check, but the
+	 * lock is destroyed.
+	 */
 	LOCK(&adb->lock);
 	free_adbhandle(adb, &handle);
 	check_exit(adb);
 	UNLOCK(&adb->lock);
+}
+
+void
+dns_adb_cancelfind(dns_adbhandle_t *handle)
+{
+	isc_event_t *ev;
+	isc_task_t *task;
+	dns_adb_t *adb;
+	int bucket;
+
+	LOCK(&handle->lock);
+
+	DP(("dns_adb_cancelfind on handle %p\n", handle));
+
+	adb = handle->adb;
+	REQUIRE(DNS_ADB_VALID(adb));
+
+	REQUIRE(!EVENT_FREED(handle));
+	REQUIRE(WANTEVENT(handle->options));
+
+	bucket = handle->name_bucket;
+	if (bucket == DNS_ADB_INVALIDBUCKET)
+		goto cleanup;
+
+	/*
+	 * We need to get the adbname's lock to unlink the handle.
+	 */
+	violate_locking_hierarchy(&handle->lock, &adb->namelocks[bucket]);
+	bucket = handle->name_bucket;
+	if (bucket != DNS_ADB_INVALIDBUCKET) {
+		ISC_LIST_UNLINK(handle->adbname->handles, handle, plink);
+		handle->adbname = NULL;
+		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
+	}
+	UNLOCK(&adb->namelocks[bucket]);
+	bucket = DNS_ADB_INVALIDBUCKET;
+
+ cleanup:
+
+	if (!EVENT_SENT(handle)) {
+		ev = &handle->event;
+		task = ev->sender;
+		ev->sender = handle;
+		ev->type = DNS_EVENT_ADBCANCELED;
+		ev->destroy = event_free;
+		ev->destroy_arg = handle;
+
+		DP(("Sending event %p to task %p for handle %p\n",
+		    ev, task, handle));
+
+		isc_task_sendanddetach(&task, &ev);
+	}
+
+	UNLOCK(&handle->lock);
 }
 
 void

@@ -212,26 +212,24 @@ static void
 lookup_callback(isc_task_t *task, isc_event_t *ev)
 {
 	client_t *client;
-	dns_adbhandle_t *handle;
 
 	client = ev->arg;
-	handle = ev->sender;
+	INSIST(client->handle == ev->sender);
 
 	printf("Task %p got event %p type %08x from %p, client %p\n",
-	       task, ev, ev->type, handle, client);
+	       task, ev, ev->type, client->handle, client);
+
+	isc_event_free(&ev);
 
 	CLOCK();
 
 	dns_adb_dumphandle(client->handle, stderr);
-	dns_adb_done(&client->handle);
-	handle = NULL;
+	dns_adb_destroyfind(&client->handle);
 
 	ISC_LIST_UNLINK(clients, client, link);
 	free_client(&client);
 
 	CUNLOCK();
-
-	isc_event_free(&ev);
 }
 
 void
@@ -346,17 +344,17 @@ lookup(char *target)
 	result = dns_name_dup(&name, mctx, &client->name);
 	check_result(result, "dns_name_dup %s", target);
 
-	result = dns_adb_lookup(adb, t2, lookup_callback, client,
-				&client->name, dns_rootname,
-				(DNS_ADBFIND_INET | DNS_ADBFIND_WANTEVENT),
-				now, &client->handle);
+	result = dns_adb_createfind(adb, t2, lookup_callback, client,
+				    &client->name, dns_rootname,
+				    (DNS_ADBFIND_INET | DNS_ADBFIND_WANTEVENT),
+				    now, &client->handle);
 	check_result(result, "dns_adb_lookup()");
 	dns_adb_dumphandle(client->handle, stderr);
 
-	if (client->handle->query_pending)
+	if ((client->handle->options & DNS_ADBFIND_WANTEVENT) != 0)
 		ISC_LIST_APPEND(clients, client, link);
 	else {
-		dns_adb_done(&client->handle);
+		dns_adb_destroyfind(&client->handle);
 		free_client(&client);
 	}
 }

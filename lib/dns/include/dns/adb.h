@@ -127,6 +127,7 @@ struct dns_adbhandle {
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */
 	int				name_bucket;
+	unsigned int			flags;
 	dns_adbname_t		       *adbname;
 	dns_adb_t		       *adb;
 	isc_event_t			event;
@@ -175,7 +176,7 @@ struct dns_adbaddrinfo {
  *					was canceled.
  *
  * In each of these cases, the addresses returned by the initial call
- * to dns_adb_lookup() can still be used until they are no longer needed.
+ * to dns_adb_createfind() can still be used until they are no longer needed.
  */
 
 /****
@@ -221,10 +222,10 @@ dns_adb_detach(dns_adb_t **adb);
 
 
 isc_result_t
-dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-	       void *arg, dns_name_t *name, dns_name_t *zone,
-	       unsigned int families, isc_stdtime_t now,
-	       dns_adbhandle_t **handle);
+dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
+		   void *arg, dns_name_t *name, dns_name_t *zone,
+		   unsigned int families, isc_stdtime_t now,
+		   dns_adbhandle_t **handle);
 /*
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -233,11 +234,6 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * If other addresses resolve after this call completes, an event will
  * be sent to the <task, taskaction, arg> with the sender of that event
  * set to a pointer to the dns_adbhandle_t returned by this function.
- *
- * The events must be canceled using either dns_adb_cancel() or
- * dns_adb_done().  dns_adb_cancel() will cause no more events to be posted
- * to the task, but the handle is not destroyed.  dns_adb_done() will
- * stop events as well, and will also destroy the handle.
  *
  * The list of addresses returned is unordered.  The caller must impose
  * any ordering required.  The list will not contain "known bad" addresses,
@@ -330,15 +326,39 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
  *	ISC_R_EXISTS	-- the <host, address> tuple exists already.
  */
 
-
 void
-dns_adb_done(dns_adbhandle_t **handle);
+dns_adb_cancelfind(dns_adbhandle_t *handle);
 /*
- * Stops any internal lookups for this handle.
+ * Cancels the find, and sends the event off to the caller.
+ *
+ * It is an error to call dns_adb_cancelfind() on a handle where
+ * no event is wanted, or will ever be sent.
  *
  * Requires:
  *
- *	'adb' be a valid dns_adb_t pointer.
+ *	'handle' be a valid dns_adbhandle_t pointer.
+ *
+ *	events would have been posted to the task.  This can be checked
+ *	with (handle->options & DNS_ADBFIND_WANTEVENT).
+ *
+ * Ensures:
+ *
+ *	The event was posted to the task.
+ *
+ * Note:
+ *
+ *	It is possible that the real completion event was posted just
+ *	before the dns_adb_cancelfind() call was made.  In this case,
+ *	dns_adb_cancelfind() will do nothing.  The event handler needs
+ *	to be prepared to handle this situation.
+ */
+
+void
+dns_adb_destroyfind(dns_adbhandle_t **handle);
+/*
+ * Destroys the handle reference.
+ *
+ * Requires:
  *
  *	'handle' != NULL and *handle be valid dns_adbhandle_t pointer.
  *
@@ -349,8 +369,9 @@ dns_adb_done(dns_adbhandle_t **handle);
  *
  * Note:
  *
- *	The task used to launch this handle can be used internally for
- *	a short time after this function returns.
+ *	This can only be called after the event was delivered for a
+ *	handle.  Additionally, the event MUST have been freed via
+ *	isc_event_free() BEFORE this function is called.
  */
 
 void
@@ -394,7 +415,7 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
  *
  *	addr be valid.
  *
- *	zone be the zone used in the dns_adb_lookup() call.
+ *	zone be the zone used in the dns_adb_createfind() call.
  *
  * Returns:
  *
