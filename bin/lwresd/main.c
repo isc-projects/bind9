@@ -65,6 +65,21 @@ dns_dispatchmgr_t *dispatchmgr;
 
 isc_sockaddrlist_t forwarders;
 
+static isc_logmodule_t logmodules[] = {
+	{ "main",	 		0 },
+	{ NULL, 			0 }
+};
+
+#define LWRES_LOGMODULE_MAIN		(&logmodules[0])
+
+static isc_logcategory_t logcategories[] = {
+	{ "network",	 		0 },
+	{ NULL, 			0 }
+};
+
+#define LWRES_LOGCATEGORY_NETWORK	(&logcategories[0])
+	
+
 static isc_result_t
 create_view(isc_mem_t *mctx) {
 	dns_cache_t *cache;
@@ -261,6 +276,8 @@ main(int argc, char **argv) {
 	lctx = NULL;
         result = isc_log_create(mem, &lctx, &lcfg);
 	INSIST(result == ISC_R_SUCCESS);
+	isc_log_registermodules(lctx, logmodules);
+	isc_log_registercategories(lctx, logcategories);
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
 	dns_log_setcontext(lctx);
@@ -336,6 +353,15 @@ main(int argc, char **argv) {
 	isc_sockaddr_fromin(&localhost, &lh_addr, LWRES_UDP_PORT);
 
 	result = isc_socket_bind(sock, &localhost);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(lctx, LWRES_LOGCATEGORY_NETWORK,
+			      LWRES_LOGMODULE_MAIN, ISC_LOG_ERROR,
+			      "binding lwres protocol socket to port %d: %s",
+			      LWRES_UDP_PORT,
+			      isc_result_totext(result));
+		exit(1);
+	}
+			      
 	INSIST(result == ISC_R_SUCCESS);
 
 	cmgr = isc_mem_get(mem, sizeof(clientmgr_t) * NTASKS);
