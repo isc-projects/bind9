@@ -123,7 +123,7 @@ Building
 		FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1
 		HP-UX 11
 		IRIX64 6.5
-		NetBSD-current (with unproven-pthreads-0.17)
+		NetBSD 1.5 (with unproven-pthreads-0.17)
 		Red Hat Linux 6.0, 6.1, 6.2, 7.0
 		Solaris 2.6, 7, 8
 
