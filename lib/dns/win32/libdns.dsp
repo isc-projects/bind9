@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "libdns_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/openssl/include" /I "../../dns/sec/dst/include" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6b/inc32/openssl/include" /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/dst/include" /I "../../../../openssl-0.9.6b/inc32" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /YX /FD /c
 # SUBTRACT CPP /X
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../isc/win32/Release/libisc.lib /nologo /dll /machine:I386 /out:"../../../Build/Release/libdns.dll"
+# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../isc/win32/Release/libisc.lib ../../../../openssl-0.9.6b/out32dll/libeay32.lib /nologo /dll /machine:I386 /out:"../../../Build/Release/libdns.dll"
 
 !ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
 
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "libdns_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/openssl/include" /I "../../dns/sec/dst/include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/dst/include" /I "../../../../openssl-0.9.6b/inc32" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR /YX /FD /GZ /c
 # SUBTRACT CPP /X
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -81,7 +81,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../isc/win32/debug/libisc.lib /nologo /dll /map /debug /machine:I386 /out:"../../../Build/Debug/libdns.dll" /pdbtype:sept
+# ADD LINK32 user32.lib advapi32.lib ws2_32.lib ../../isc/win32/debug/libisc.lib  ../../../../openssl-0.9.6b/out32dll/libeay32.lib /nologo /dll /map /debug /machine:I386 /out:"../../../Build/Debug/libdns.dll" /pdbtype:sept
 
 !ENDIF 
 
@@ -388,314 +388,6 @@ SOURCE=..\sec\dst\openssldsa_link.c
 # Begin Source File
 
 SOURCE=..\sec\dst\opensslrsa_link.c
-# End Source File
-# End Group
-# Begin Group "openssl"
-
-# PROP Default_Filter "c"
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_bitstr.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_bytes.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_enum.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_gentm.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_int.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_object.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_octet.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_print.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_set.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_type.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_utctm.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_utf8.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\a_vis.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\asn1_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_add.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_asm.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_blind.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_ctx.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_div.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_err.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_exp.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_exp2.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_gcd.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_lcl.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_mont.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_mul.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_prime.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_prime.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_print.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_rand.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_recp.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_shift.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_sqr.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\bn_word.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\buffer.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\cryptlib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\cryptlib.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dh_err.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dh_gen.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dh_key.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dh_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_asn1.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_err.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_gen.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_key.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_ossl.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_sign.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\dsa_vrf.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\err.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\ex_data.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\lhash.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\md32_common.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\md5_locl.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\mem.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\mem_dbg.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\obj_dat.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\obj_dat.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\obj_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rand_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_chk.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_eay.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_gen.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_lib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_none.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_oaep.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_pk1.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_sign.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\rsa_ssl.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\sha1_one.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\sha1dgst.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\sha_locl.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\stack.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\x_algor.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\sec\openssl\x_sig.c
 # End Source File
 # End Group
 # Begin Source File
