@@ -64,7 +64,8 @@
 
 1796.	[func]		"rndc freeze/thaw" now freezes/thaws all zones.
 
-1795.	[placeholder]	rt13396
+1795.	[bug]		"rndc dumpb" was not fully documented.  Minor
+			formating issues with "rndc dumpdb -all".  [RT #13396]
 
 1794.	[func]		Named and named-checkzone can now both check for
 			non-terminal wildcard records.
