@@ -1,9 +1,11 @@
 
+1011.	[cleanup]	Removed isc_dir_current().
+
 1010.	[bug]		The server could attempt to execute a command channel
 			command after initiating server shutdown, causing
 			an assertion failure. [RT #1766]
 
-1009.	[port]		OpenUNIX 8 support.  [RT #1728]
+1009.	[port]		OpenUNIX 8 support. [RT #1728]
 
 1008.	[port]		libtool.m4, ltmain.sh from libtool-1.4.2.
 
@@ -20,14 +22,14 @@
 
 1003.	[func]		Add the +retry option to dig.
 
-1002.	[bug]		Log unknown class including file and line.  [RT #1759]
+1002.	[bug]		Log unknown class including file and line. [RT #1759]
 
 1001.	[bug]		win32 socket code doio_recv was not catching a
 			WSACONNRESET error when a client was timing out
 			the request and closing its socket. [RT #1745]
 
 1000.	[bug]		BIND 8 compatibility: accept "HESIOD" as an alias
-			for class "HS".  [RT #1759]
+			for class "HS". [RT #1759]
 
  999.	[func]		"rndc retransfer zone [class [view]]" added.
 			[RT #1752]
@@ -104,7 +106,7 @@
  977.	[bug]		Improve "not at top of zone" error message.
 
  976.	[func]		named-checkconf can now test load master zones
-			(named-checkconf -z).  [RT #1468]
+			(named-checkconf -z). [RT #1468]
 
  975.	[bug]		"max-cache-size default;" as a view option
 			caused an assertion failure.
@@ -117,7 +119,7 @@
 			(NOTAUTH)".
 
  972.	[bug]		The file modification time code in zone.c was using the
-			wrong epoch.  [RT #1667]
+			wrong epoch. [RT #1667]
 
  971.	[func]		'try-edns' can be use to disable edns on all queries.
 
@@ -2471,7 +2473,7 @@
  257.	[bug]		The server detached the last zone manager reference
 			too early, while it could still be in use by queries.
 			This manifested itself as assertion failures during the
-			shutdown process for busy name servers [RT #133].
+			shutdown process for busy name servers. [RT #133]
 
  256.	[func]		isc_ratelimiter_t now has attach/detach semantics, and
 			isc_ratelimiter_shutdown guarantees that the rate

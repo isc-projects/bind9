@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.15 2001/08/28 03:58:27 marka Exp $ */
+/* $Id: dir.h,v 1.16 2001/09/20 21:21:50 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -75,16 +75,6 @@ isc_dir_chdir(const char *dirname);
 
 isc_result_t
 isc_dir_chroot(const char *dirname);
-
-isc_result_t
-isc_dir_current(char *dirname, size_t length, isc_boolean_t end_sep);
-/*
- * Put the absolute name of the current directory into 'dirname', which is a
- * buffer of at least 'length' characters.  If 'end_sep' is true, end the
- * string with the appropriate path separator, such that the final product
- * could be concatenated with a relative pathname to make a valid pathname
- * string. 
- */
 
 isc_result_t
 isc_dir_createunique(char *templet);

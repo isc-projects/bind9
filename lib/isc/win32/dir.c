@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.10 2001/07/06 21:47:15 gson Exp $ */
+/* $Id: dir.c,v 1.11 2001/09/20 21:21:52 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -243,34 +243,6 @@ isc_dir_chdir(const char *dirname) {
 isc_result_t
 isc_dir_chroot(const char *dirname) {
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_dir_current(char *dirname, size_t length, isc_boolean_t end_sep) {
-	char *cwd;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	/*
-	 * XXXDCL Could automatically allocate memory if dirname == NULL.
-	 */
-	REQUIRE(dirname != NULL);
-	REQUIRE(length > 0);
-
-	cwd = getcwd(dirname, length);
-
-	if (cwd == NULL) {
-		if (errno == ERANGE)
-			result = ISC_R_NOSPACE;
-		else
-			result = isc__errno2result(errno);
-	} else if (end_sep) {
-		if (strlen(dirname) + 1 == length)
-			result = ISC_R_NOSPACE;
-		else if (dirname[1] != '\0')
-			strcat(dirname, "/");
-	}
-
-	return (result);
 }
 
 isc_result_t
