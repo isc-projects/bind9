@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.217 
+# From configure.in Revision: 1.218 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -2048,7 +2048,7 @@ else
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
-		{ echo "configure: error: "need either working unistd.h or sys/select.h"" 1>&2; exit 1; }
+		{ echo "configure: error: need either working unistd.h or sys/select.h" 1>&2; exit 1; }
 		;;
 	esac
 	
@@ -2062,7 +2062,7 @@ no)
 	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
-		{ echo "configure: error: "need either unistd.h or sys/select.h"" 1>&2; exit 1; }
+		{ echo "configure: error: need either unistd.h or sys/select.h" 1>&2; exit 1; }
 		;;
 	esac
 	;;
@@ -2092,7 +2092,7 @@ case "$enable_threads" in
 		use_threads=false
 		;;
 	*)
-	    	{ echo "configure: error: "--enable-threads takes yes or no"" 1>&2; exit 1; }
+	    	{ echo "configure: error: --enable-threads takes yes or no" 1>&2; exit 1; }
 		;;
 esac
 
