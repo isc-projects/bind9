@@ -934,6 +934,7 @@
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.1-patch	X	2003
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.2-patch	X	2003
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.3rc1-patch	X	2003
+./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.0-patch	X	2004
 ./contrib/idn/idnkit-1.0-src/tools/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnconv.1	X	2003
@@ -1665,7 +1666,7 @@
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004
-./lib/dns/rcode.c				C	2004
+./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2002,2003,2004
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004
