@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.111 2000/08/03 17:43:03 mws Exp $ */
+/* $Id: dighost.c,v 1.112 2000/08/03 18:23:16 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -734,10 +734,10 @@ static void
 check_if_done(void) {
 	debug("check_if_done()");
 	debug("list %s", ISC_LIST_EMPTY(lookup_list) ? "empty" : "full");
-	if (ISC_LIST_EMPTY(lookup_list) && current_lookup == NULL) {
+	if (ISC_LIST_EMPTY(lookup_list) && current_lookup == NULL &&
+	    sendcount == 0) {
 		INSIST(sockcount == 0);
 		INSIST(recvcount == 0);
-		INSIST(sendcount == 0);
 		debug("shutting down");
 		dighost_shutdown();
 	}
