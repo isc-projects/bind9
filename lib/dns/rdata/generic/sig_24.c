@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.2 1999/01/29 08:04:13 marka Exp $ */
+ /* $Id: sig_24.c,v 1.3 1999/02/02 01:43:47 halley Exp $ */
 
  /* RFC 2065 */
 
@@ -47,7 +47,7 @@ fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 	result = dns_rdatatype_fromtext(&covered, tsr);
 	if (result != DNS_R_SUCCESS && result != DNS_R_NOTIMPLEMENTED) {
 		covered = strtol(token.value.as_pointer, &e, 10);
-		if (*e != NULL)
+		if (e != NULL)
 			return (result);
 	}
 	RETERR(uint16_tobuffer(covered, target));
