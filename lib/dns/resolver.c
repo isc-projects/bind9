@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.237 2002/02/05 19:44:55 bwelling Exp $ */
+/* $Id: resolver.c,v 1.238 2002/02/19 00:48:21 marka Exp $ */
 
 #include <config.h>
 
@@ -4297,25 +4297,27 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_nxdomain) {
-		if (message->rcode == dns_rcode_formerr) {
-			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-				/*
-				 * It's very likely they don't like EDNS0.
-				 *
-				 * XXXRTH  We should check if the question
-				 *         we're asking requires EDNS0, and
-				 *         if so, we should bail out.
-				 */
-				options |= DNS_FETCHOPT_NOEDNS0;
-				resend = ISC_TRUE;
-				/*
-				 * Remember that they don't like EDNS0.
-				 */
-				dns_adb_changeflags(fctx->adb,
-						    query->addrinfo,
-						    DNS_FETCHOPT_NOEDNS0,
-						    DNS_FETCHOPT_NOEDNS0);
-			} else if (ISFORWARDER(query->addrinfo)) {
+		if ((message->rcode == dns_rcode_formerr ||
+		     message->rcode == dns_rcode_notimp ||
+		     message->rcode == dns_rcode_servfail) &&
+		    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+			/*
+			 * It's very likely they don't like EDNS0.
+			 *
+			 * XXXRTH  We should check if the question
+			 *         we're asking requires EDNS0, and
+			 *         if so, we should bail out.
+			 */
+			options |= DNS_FETCHOPT_NOEDNS0;
+			resend = ISC_TRUE;
+			/*
+			 * Remember that they don't like EDNS0.
+			 */
+			dns_adb_changeflags(fctx->adb, query->addrinfo,
+					    DNS_FETCHOPT_NOEDNS0,
+					    DNS_FETCHOPT_NOEDNS0);
+		} else if (message->rcode == dns_rcode_formerr) {
+			if (ISFORWARDER(query->addrinfo)) {
 				/*
 				 * This forwarder doesn't understand us,
 				 * but other forwarders might.  Keep trying.

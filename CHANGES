@@ -1,3 +1,6 @@
+1206.	[bug]		SERVFAIL and NOTIMP responses to a EDNS should trigger
+			a non-EDNS retry.
+
 1205.	[bug]		OPT, TSIG and TKEY cannot be used to set the "class"
 			of the message. [RT #2449]
 
