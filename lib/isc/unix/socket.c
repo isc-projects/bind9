@@ -15,13 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.243 2004/11/18 21:31:47 marka Exp $ */
+/* $Id: socket.c,v 1.244 2005/02/23 01:06:39 marka Exp $ */
 
 #include <config.h>
 
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#ifdef ISC_PLATFORM_HAVESYSUNH
+#include <sys/un.h>
+#endif
 #include <sys/time.h>
 #include <sys/uio.h>
 
@@ -1364,6 +1368,9 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	case isc_sockettype_tcp:
 		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
 		break;
+	case isc_sockettype_unix:
+		sock->fd = socket(pf, SOCK_STREAM, 0);
+		break;
 	}
 
 #ifdef F_DUPFD
@@ -1430,7 +1437,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	}
 
 #ifdef SO_BSDCOMPAT
-	if (setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
+	if (type != isc_sockettype_unix &&
+	    setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
 		       (void *)&on, sizeof(on)) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -2844,6 +2852,190 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 	return (socket_send(sock, event, task, address, pktinfo, flags));
 }
 
+void
+isc_socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active) {
+#ifdef ISC_PLATFORM_HAVESYSUNH
+	int s;
+	struct stat sb;
+	char strbuf[ISC_STRERRORSIZE];
+
+	if (sockaddr->type.sa.sa_family != AF_UNIX)
+		return;
+
+#ifndef S_ISSOCK
+#if defined(S_IFMT) && defined(S_IFSOCK)
+#define S_ISSOCK(mode) ((mode & S_IFMT)==S_IFSOCK)
+#elif defined(_S_IFMT) && defined(S_IFSOCK)
+#define S_ISSOCK(mode) ((mode & _S_IFMT)==S_IFSOCK)
+#endif
+#endif
+
+#ifndef S_ISFIFO
+#if defined(S_IFMT) && defined(S_IFIFO)
+#define S_ISFIFO(mode) ((mode & S_IFMT)==S_IFIFO)
+#elif defined(_S_IFMT) && defined(S_IFIFO)
+#define S_ISFIFO(mode) ((mode & _S_IFMT)==S_IFIFO)
+#endif
+#endif
+
+#if !defined(S_ISFIFO) && !defined(S_ISSOCK)
+#error You need to define S_ISFIFO and S_ISSOCK as appropriate for your platform.  See <sys/stat.h>.
+#endif
+
+#ifndef S_ISFIFO
+#define S_ISFIFO(mode) 0
+#endif
+
+#ifndef S_ISSOCK
+#define S_ISSOCK(mode) 0
+#endif
+
+	if (active) {
+		if (stat(sockaddr->type.sun.sun_path, &sb) < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				      "isc_socket_cleanunix: stat(%s): %s",
+				      sockaddr->type.sun.sun_path, strbuf);
+			return;
+		}
+		if (!(S_ISSOCK(sb.st_mode) || S_ISFIFO(sb.st_mode))) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				      "isc_socket_cleanunix: %s: not a socket",
+				      sockaddr->type.sun.sun_path);
+			return;
+		}
+		if (unlink(sockaddr->type.sun.sun_path) < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				      "isc_socket_cleanunix: unlink(%s): %s",
+				      sockaddr->type.sun.sun_path, strbuf);
+		}
+		return;
+	}
+
+	s = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (s < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
+			      "isc_socket_cleanunix: socket(%s): %s",
+			      sockaddr->type.sun.sun_path, strbuf);
+		return;
+	}
+
+	if (stat(sockaddr->type.sun.sun_path, &sb) < 0) {
+		switch (errno) {
+		case ENOENT:    /* We exited cleanly last time */
+			break;
+		default:
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
+				      "isc_socket_cleanunix: stat(%s): %s",
+				      sockaddr->type.sun.sun_path, strbuf);
+			break;
+		}
+		goto cleanup;
+	}
+
+	if (!(S_ISSOCK(sb.st_mode) || S_ISFIFO(sb.st_mode))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
+			      "isc_socket_cleanunix: %s: not a socket",
+			      sockaddr->type.sun.sun_path);
+		goto cleanup;
+	}
+
+	if (connect(s, (struct sockaddr *)&sockaddr->type.sun,
+		    sizeof(sockaddr->type.sun)) < 0) {
+		switch (errno) {
+		case ECONNREFUSED:
+		case ECONNRESET:
+			if (unlink(sockaddr->type.sun.sun_path) < 0) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+					      ISC_LOGMODULE_SOCKET,
+					      ISC_LOG_WARNING,
+					      "isc_socket_cleanunix: "
+					      "unlink(%s): %s",
+					      sockaddr->type.sun.sun_path,
+					      strbuf);
+			}
+			break;
+		default:
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
+				      "isc_socket_cleanunix: connect(%s): %s",
+				      sockaddr->type.sun.sun_path, strbuf);
+			break;
+		}
+	}
+ cleanup:
+	close(s);
+#else
+	UNUSED(sockaddr);
+	UNUSED(active);
+#endif
+}
+
+isc_boolean_t
+isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
+		    isc_uint32_t owner, isc_uint32_t group)
+{
+#ifdef ISC_PLATFORM_HAVESYSUNH
+	isc_result_t result = ISC_R_SUCCESS;
+	char strbuf[ISC_STRERRORSIZE];
+	char path[sizeof(sockaddr->type.sun.sun_path)];
+#ifdef NEED_SECURE_DIRECTORY
+	char *slash;
+#endif
+
+	REQUIRE(sockaddr->type.sa.sa_family == AF_UNIX);
+	INSIST(strlen(sockaddr->type.sun.sun_path) < sizeof(path));
+	strcpy(path, sockaddr->type.sun.sun_path);
+
+#ifdef NEED_SECURE_DIRECTORY
+	slash = strrchr(path, '/');
+	if (slash != NULL) {
+		if (slash != path)
+			*slash = '\0';
+		else
+			strcpy(path, "/");
+	} else
+		strcpy(path, ".");
+#endif
+	
+	if (chmod(path, perm) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+			      "isc_socket_permunix: chmod(%s, %d): %s",
+			      path, perm, strbuf);
+		result = ISC_R_FAILURE;
+	}
+	if (chown(path, owner, group) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+			      "isc_socket_permunix: chown(%s, %d, %d): %s",
+			      path, owner, group,
+			      strbuf);
+		result = ISC_R_FAILURE;
+	}
+	return (result);
+#else
+	UNUSED(sockaddr);
+	UNUSED(perm);
+	UNUSED(owner);
+	UNUSED(group);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
+}
+
 isc_result_t
 isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 	char strbuf[ISC_STRERRORSIZE];
@@ -2860,6 +3052,10 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 	/*
 	 * Only set SO_REUSEADDR when we want a specific port.
 	 */
+#ifdef AF_UNIX
+	if (sock->pf == AF_UNIX)
+		goto bind_socket;
+#endif
 	if (isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
 	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof(on)) < 0) {
@@ -2869,6 +3065,9 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 						ISC_MSG_FAILED, "failed"));
 		/* Press on... */
 	}
+#ifdef AF_UNIX
+ bind_socket:
+#endif
 	if (bind(sock->fd, &sockaddr->type.sa, sockaddr->length) < 0) {
 		UNLOCK(&sock->lock);
 		switch (errno) {
@@ -2945,7 +3144,8 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 
 	REQUIRE(!sock->listener);
 	REQUIRE(sock->bound);
-	REQUIRE(sock->type == isc_sockettype_tcp);
+	REQUIRE(sock->type == isc_sockettype_tcp ||
+		sock->type == isc_sockettype_unix);
 
 	if (backlog == 0)
 		backlog = SOMAXCONN;

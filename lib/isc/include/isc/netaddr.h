@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.27 2005/01/17 23:58:33 marka Exp $ */
+/* $Id: netaddr.h,v 1.28 2005/02/23 01:06:38 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -24,6 +24,11 @@
 #include <isc/net.h>
 #include <isc/types.h>
 
+#ifdef ISC_PLATFORM_HAVESYSUNH
+#include <sys/types.h>
+#include <sys/un.h>
+#endif
+
 ISC_LANG_BEGINDECLS
 
 struct isc_netaddr {
@@ -31,6 +36,9 @@ struct isc_netaddr {
 	union {
     		struct in_addr in;
 		struct in6_addr in6;
+#ifdef ISC_PLATFORM_HAVESYSUNH
+		char un[sizeof(((struct sockaddr_un *)0)->sun_path)];
+#endif
 	} type;
 	isc_uint32_t zone;
 };
@@ -94,6 +102,9 @@ isc_netaddr_fromin(isc_netaddr_t *netaddr, const struct in_addr *ina);
 
 void
 isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6);
+
+isc_result_t
+isc_netaddr_frompath(isc_netaddr_t *netaddr, const char *path);
 
 void
 isc_netaddr_setzone(isc_netaddr_t *netaddr, isc_uint32_t zone);

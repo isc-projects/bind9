@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.10 2004/04/19 04:16:55 marka Exp $ */
+/* $Id: platform.h,v 1.11 2005/02/23 01:06:40 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -55,6 +55,12 @@
  * and we don't want to redeclare it.
  */
 #define ISC_PLATFORM_NONSTDHERRNO
+
+/*
+ * Define if the platform has <sys/un.h>.
+ */
+#undef ISC_PLATFORM_HAVESYSUNH
+
  /*
  * Set up a macro for importing and exporting from the DLL
  */

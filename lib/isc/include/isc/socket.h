@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.57 2004/03/05 05:11:01 marka Exp $ */
+/* $Id: socket.h,v 1.58 2005/02/23 01:06:39 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -144,7 +144,8 @@ struct isc_socket_connev {
 
 typedef enum {
 	isc_sockettype_udp = 1,
-	isc_sockettype_tcp = 2
+	isc_sockettype_tcp = 2,
+	isc_sockettype_unix = 3
 } isc_sockettype_t;
 
 /*
@@ -349,7 +350,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog);
  *
  * Requires:
  *
- *	'socket' is a valid, bound TCP socket.
+ *	'socket' is a valid, bound TCP socket or a valid, bound UNIX socket.
  *
  * Returns:
  *
@@ -697,6 +698,42 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
  *
  * Requires:
  *	'sock' is a valid socket.
+ */
+
+void
+isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);
+
+/*
+ * Cleanup UNIX domain sockets in the file-system.  If 'active' is true
+ * then just unlink the socket.  If 'active' is false try to determine
+ * if there is a listener of the socket or not.  If no listener is found
+ * then unlink socket.
+ *
+ * Prior to unlinking the path is tested to see if it a socket.
+ *
+ * Note: there are a number of race conditions which cannot be avoided
+ *       both in the filesystem and any application using UNIX domain
+ *	 sockets (e.g. socket is tested between bind() and listen(),
+ *	 the socket is deleted and replaced in the file-system between
+ *	 stat() and unlink()).
+ */
+
+isc_boolean_t
+isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
+                    isc_uint32_t owner, isc_uint32_t group);
+/*
+ * Set ownership and file permissions on the UNIX domain socket.
+ *
+ * Note: On Solaris and SunOS this secures the directory containing
+ *       the socket as Solaris and SunOS do not honour the filesytem
+ *	 permissions on the socket.
+ *
+ * Requires:
+ *	'sockaddr' to be a valid UNIX domain sockaddr.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_FAILURE
  */
 
 ISC_LANG_ENDDECLS

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.30 2004/04/29 01:37:13 marka Exp $ */
+/* $Id: net.c,v 1.31 2005/02/23 01:06:39 marka Exp $ */
 
 #include <config.h>
 
@@ -43,6 +43,7 @@ static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
 static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
 static isc_result_t	ipv4_result = ISC_R_NOTFOUND;
 static isc_result_t	ipv6_result = ISC_R_NOTFOUND;
+static isc_result_t	unix_result = ISC_R_NOTFOUND;
 static isc_result_t	ipv6only_result = ISC_R_NOTFOUND;
 static isc_result_t	ipv6pktinfo_result = ISC_R_NOTFOUND;
 
@@ -137,6 +138,9 @@ initialize_action(void) {
 #endif
 #endif
 #endif
+#ifdef ISC_PLATFORM_HAVESYSUNH
+	unix_result = try_proto(PF_UNIX);
+#endif
 }
 
 static void
@@ -154,6 +158,12 @@ isc_result_t
 isc_net_probeipv6(void) {
 	initialize();
 	return (ipv6_result);
+}
+
+isc_result_t
+isc_net_probeunix(void) {
+	initialize();
+	return (unix_result);
 }
 
 #ifdef ISC_PLATFORM_HAVEIPV6

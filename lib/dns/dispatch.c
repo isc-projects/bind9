@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.120 2004/09/01 04:25:20 marka Exp $ */
+/* $Id: dispatch.c,v 1.121 2005/02/23 01:06:37 marka Exp $ */
 
 #include <config.h>
 
@@ -925,6 +925,9 @@ startrecv(dns_dispatch_t *disp) {
 		}
 		INSIST(disp->recv_pending == 0);
 		disp->recv_pending = 1;
+		break;
+	default:
+		INSIST(0);
 		break;
 	}
 }

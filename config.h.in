@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.64 2004/12/04 06:48:43 marka Exp $ */
+/* $Id: config.h.in,v 1.65 2005/02/23 01:09:23 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -218,11 +218,18 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
+/* Define to 1 if you have the <sys/un.h> header file. */
+#undef HAVE_SYS_UN_H
+
 /* Define if running under Compaq TruCluster */
 #undef HAVE_TRUCLUSTER
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define if connect does not honour the permission on the UNIX domain socket.
+   */
+#undef NEED_SECURE_DIRECTORY
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT

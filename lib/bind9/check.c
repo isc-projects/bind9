@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.55 2005/01/17 00:46:02 marka Exp $ */
+/* $Id: check.c,v 1.56 2005/02/23 01:06:37 marka Exp $ */
 
 #include <config.h>
 
@@ -1411,6 +1411,147 @@ bind9_check_logging(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	return (result);
 }
 
+static isc_result_t
+key_exists(cfg_obj_t *keylist, const char *keyname) {
+	cfg_listelt_t *element;
+	const char *str;
+	cfg_obj_t *obj;
+	
+	if (keylist == NULL)
+		return (ISC_R_NOTFOUND);
+	for (element = cfg_list_first(keylist);
+	     element != NULL;   
+	     element = cfg_list_next(element)) 
+	{
+		obj = cfg_listelt_value(element);
+		str = cfg_obj_asstring(cfg_map_getname(obj));
+		if (strcasecmp(str, keyname) == 0)
+			return (ISC_R_SUCCESS);
+	}
+	return (ISC_R_NOTFOUND);
+}
+
+static isc_result_t
+bind9_check_controlskeys(cfg_obj_t *control, cfg_obj_t *keylist,
+			 isc_log_t *logctx)
+{
+	isc_result_t result = ISC_R_SUCCESS, tresult;
+	cfg_obj_t *control_keylist;
+	cfg_listelt_t *element;
+	cfg_obj_t *key;
+	
+	control_keylist = cfg_tuple_get(control, "keys");
+	if (cfg_obj_isvoid(control_keylist))
+		return (ISC_R_SUCCESS);
+
+	for (element = cfg_list_first(control_keylist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		key = cfg_listelt_value(element);
+		tresult = key_exists(keylist, cfg_obj_asstring(key));
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "unknown key '%s'", cfg_obj_asstring(key));
+			result = tresult;
+		}
+	}
+	return (result);
+}
+
+static isc_result_t
+bind9_check_controls(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
+	isc_result_t result = ISC_R_SUCCESS, tresult;
+	cfg_aclconfctx_t actx;
+	cfg_listelt_t *element, *element2;
+	cfg_obj_t *allow;
+	cfg_obj_t *control;
+	cfg_obj_t *controls;
+	cfg_obj_t *controlslist = NULL;
+	cfg_obj_t *inetcontrols;
+	cfg_obj_t *unixcontrols;
+	cfg_obj_t *keylist = NULL;
+	const char *path;
+	isc_uint32_t perm, mask;
+	dns_acl_t *acl = NULL;
+	isc_sockaddr_t addr;
+	int i;
+
+	(void)cfg_map_get(config, "controls", &controlslist);
+	if (controlslist == NULL)
+		return (ISC_R_SUCCESS);
+
+	(void)cfg_map_get(config, "key", &keylist);
+
+	/*
+	 * INET: Check allow clause.
+	 * UNIX: Check "perm" for sanity, check path length.
+	 */
+	for (element = cfg_list_first(controlslist);
+	     element != NULL;
+	     element = cfg_list_next(element)) {
+		controls = cfg_listelt_value(element);
+		unixcontrols = NULL;
+		inetcontrols = NULL;
+		(void)cfg_map_get(controls, "unix", &unixcontrols);
+		(void)cfg_map_get(controls, "inet", &inetcontrols);
+		for (element2 = cfg_list_first(inetcontrols);
+		     element2 != NULL;
+		     element2 = cfg_list_next(element2)) {
+			control = cfg_listelt_value(element2);
+			allow = cfg_tuple_get(control, "allow");
+			cfg_aclconfctx_init(&actx);
+			tresult = cfg_acl_fromconfig(allow, config, logctx,
+						    &actx, mctx, &acl);
+			if (acl != NULL)
+				dns_acl_detach(&acl);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+			tresult = bind9_check_controlskeys(control, keylist,
+							   logctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+		}
+		for (element2 = cfg_list_first(unixcontrols);
+		     element2 != NULL;
+		     element2 = cfg_list_next(element2)) {
+			control = cfg_listelt_value(element2);
+			path = cfg_obj_asstring(cfg_tuple_get(control, "path"));
+			tresult = isc_sockaddr_frompath(&addr, path);
+			if (tresult == ISC_R_NOSPACE) {
+				cfg_obj_log(control, logctx, ISC_LOG_ERROR,
+					    "unix control '%s': path too long",
+					    path);
+				result = ISC_R_NOSPACE;
+			}
+			perm = cfg_obj_asuint32(cfg_tuple_get(control, "perm"));
+			for (i = 0; i < 3; i++) {
+#ifdef NEED_SECURE_DIRECTORY
+				mask = (0x1 << (i*3));	/* SEARCH */
+#else
+				mask = (0x6 << (i*3)); 	/* READ + WRITE */
+#endif
+				if ((perm & mask) == mask)
+					break;
+			}
+			if (i == 0) {
+				cfg_obj_log(control, logctx, ISC_LOG_WARNING,
+					    "unix control '%s' allows access "
+					    "to everyone", path);
+			} else if (i == 3) {
+				cfg_obj_log(control, logctx, ISC_LOG_WARNING,
+					    "unix control '%s' allows access "
+					    "to nobody", path);
+			}
+			tresult = bind9_check_controlskeys(control, keylist,
+							   logctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+		}
+	}
+	return (result);
+}
+
 isc_result_t
 bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	cfg_obj_t *options = NULL;
@@ -1439,6 +1580,9 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		result = ISC_R_FAILURE;
 
 	if (bind9_check_logging(config, logctx, mctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
+
+	if (bind9_check_controls(config, logctx, mctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	if (options != NULL && 
