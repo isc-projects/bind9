@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.192 2002/01/30 06:33:37 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.193 2002/02/11 04:03:51 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4558,7 +4558,7 @@ configured.</para>
 <para>Stub zones can also be used as a way of forcing the resolution
 of a given domain to use a particular set of authoritative servers.
 For example, the caching name servers on a private network using
-RFC2157 addressing may be configured with stub zones for
+RFC1981 addressing may be configured with stub zones for
 <literal>10.in-addr.arpa</literal>
 to use a set of internal name servers as the authoritative
 servers for that domain.</para>

@@ -1,3 +1,6 @@
+1199.	[doc]		ARM reference to RFC 2157 should have been RFC 1918.
+			[RT #2436]
+
 1198.	[bug]		OPT printing style was not consistant with the way the
 			header fields are printed.  "do" was not reported if
 			set.  Report if any of the MBZ bits are set.
