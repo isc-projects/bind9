@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.7 2002/02/27 04:03:10 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.8 2002/06/03 00:34:55 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -404,15 +404,12 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 		q->answer = q->qbuf.buf;
 		q->anslen = sizeof(q->qbuf);
 		q->next = q2;
-		if ((pvt->res->options & RES_NO_BITSTRING) != 0)
-			q->action = RESTGT_IGNORE;
-		else
-			q->action = RESTGT_DOALWAYS;
+		q->action = RESTGT_DOALWAYS;
 		q2->qclass = C_IN;
 		q2->qtype = T_PTR;
 		q2->answer = q2->qbuf.buf;
 		q2->anslen = sizeof(q2->qbuf);
-		if ((pvt->res->options & RES_NO_NIBBLE) != 0)
+		if ((pvt->res->options & RES_NO_NIBBLE2) != 0)
 			q2->action = RESTGT_IGNORE;
 		else
 			q2->action = RESTGT_AFTERFAILURE;
@@ -441,11 +438,12 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 	case AF_INET6:
 		if (q->action != RESTGT_IGNORE) {
 			qp = q->qname;
-			qp += SPRINTF((qp, "\\[x"));
-			for (n = 0; n < IN6ADDRSZ; n++)
-				qp += SPRINTF((qp, "%02x", uaddr[n]));
-			SPRINTF((qp, "/128].%s",
-				 res_get_bitstringsuffix(pvt->res)));
+			for (n = IN6ADDRSZ - 1; n >= 0; n--) {
+				qp += SPRINTF((qp, "%x.%x.",
+					       uaddr[n] & 0xf,
+					       (uaddr[n] >> 4) & 0xf));
+			}
+			strcpy(qp, res_get_nibblesuffix(pvt->res));
 		}
 		if (q2->action != RESTGT_IGNORE) {
 			qp = q2->qname;
@@ -454,7 +452,7 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 					       uaddr[n] & 0xf,
 					       (uaddr[n] >> 4) & 0xf));
 			}
-			strcpy(qp, res_get_nibblesuffix(pvt->res));
+			strcpy(qp, res_get_nibblesuffix2(pvt->res));
 		}
 		break;
 	default:

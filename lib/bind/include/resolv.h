@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.15 2002/05/16 04:47:56 marka Exp $
+ *	$Id: resolv.h,v 1.16 2002/06/03 00:34:54 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -254,6 +254,7 @@ union res_sockaddr_union {
 #define RES_USE_DNAME	0x10000000	/* use DNAME */
 #define RES_USE_A6	0x20000000	/* use A6 */
 #define RES_USE_EDNS0	0x40000000	/* use EDNS0 if configured */
+#define RES_NO_NIBBLE2	0x80000000	/* disable alternate nibble lookup */
 
 #define RES_DEFAULT	(RES_RECURSE | RES_DEFNAMES | RES_DNSRCH)
 
@@ -469,6 +470,7 @@ const char *	res_protocolname __P((int num));
 void		res_destroyprotolist __P((void));
 void		res_buildprotolist __P((void));
 const char *	res_get_nibblesuffix __P((res_state));
+const char *	res_get_nibblesuffix2 __P((res_state));
 const char *	res_get_bitstringsuffix __P((res_state));
 void		res_ndestroy __P((res_state));
 u_int16_t	res_nametoclass __P((const char *buf, int *success));
