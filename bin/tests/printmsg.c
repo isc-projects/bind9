@@ -147,7 +147,7 @@ printmessage(dns_message_t *msg) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	dns_result_t result;
 
-	result = DNS_R_UNEXPECTED;
+	result = DNS_R_SUCCESS;
 
 	printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
 	       opcodetext[msg->opcode], rcodetext[msg->rcode], msg->id);
