@@ -1,3 +1,7 @@
+
+  19.	[bug]		dns_zone_notifyreceive() failed to unlock the zone
+			lock in certain error cases.
+
   18.   [bug]           Use AC_TRY_LINK rather than AC_TRY_COMPILE in
                         configure.in to check for presence of in6addr_any.
 
