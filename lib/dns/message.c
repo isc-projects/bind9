@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.178 2001/02/15 19:09:55 gson Exp $ */
+/* $Id: message.c,v 1.179 2001/02/18 23:46:26 bwelling Exp $ */
 
 /***
  *** Imports
@@ -628,6 +628,9 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 	 */
 	if (!everything)
 		msginit(msg);
+
+	ENSURE(isc_mempool_getallocated(msg->namepool) == 0);
+	ENSURE(isc_mempool_getallocated(msg->rdspool) == 0);
 }
 
 static unsigned int
