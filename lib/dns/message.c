@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.221 2004/03/05 05:09:21 marka Exp $ */
+/* $Id: message.c,v 1.222 2004/03/10 00:47:40 marka Exp $ */
 
 /***
  *** Imports
@@ -2481,6 +2481,13 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->state == DNS_SECTION_ANY);
 
+	if (key == NULL && msg->tsigkey != NULL) {
+		if (msg->sig_reserved != 0) {
+			dns_message_renderrelease(msg, msg->sig_reserved);
+			msg->sig_reserved = 0;
+		}
+		dns_tsigkey_detach(&msg->tsigkey);
+	}
 	if (key != NULL) {
 		REQUIRE(msg->tsigkey == NULL && msg->sig0key == NULL);
 		dns_tsigkey_attach(key, &msg->tsigkey);
