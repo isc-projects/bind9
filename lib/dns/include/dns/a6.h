@@ -20,6 +20,7 @@
 
 #include <isc/lang.h>
 #include <isc/types.h>
+#include <isc/stdtime.h>
 #include <isc/bitstring.h>
 #include <isc/net.h>
 #include <isc/result.h>
@@ -30,6 +31,7 @@ ISC_LANG_BEGINDECLS
 
 typedef isc_result_t (*dns_findfunc_t)(void *arg, dns_name_t *name,
 				       dns_rdatatype_t type,
+				       isc_stdtime_t now,
 				       dns_rdataset_t *rdataset,
 				       dns_rdataset_t *sigrdataset);
 
@@ -37,7 +39,7 @@ typedef void (*dns_rrsetfunc_t)(void *arg, dns_name_t *name,
 				dns_rdataset_t *rdataset,
 				dns_rdataset_t *sigrdataset);
 
-typedef void (*dns_in6addrfunc_t)(void *arg, struct in6_addr *address);
+typedef void (*dns_in6addrfunc_t)(dns_a6context_t *a6ctx);
 
 typedef void (*dns_a6missingfunc_t)(dns_a6context_t *a6ctx, dns_name_t *name);
 
@@ -51,6 +53,8 @@ struct dns_a6context {
 	void *				arg;
 	unsigned int			chains;
 	unsigned int			depth;
+	isc_stdtime_t			now;
+	isc_stdtime_t			expiration;
 	unsigned int			prefixlen;
 	struct in6_addr			in6addr;
 	isc_bitstring_t			bitstring;
@@ -70,7 +74,8 @@ void
 dns_a6_copy(dns_a6context_t *source, dns_a6context_t *target);
 
 isc_result_t
-dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset);
+dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset,
+	       isc_stdtime_t now);
 
 ISC_LANG_ENDDECLS
 

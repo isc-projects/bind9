@@ -54,7 +54,12 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 	isc_result_t result;
 	isc_uint8_t prefixlen, octets;
 	isc_bitstring_t bitstring;
+	isc_stdtime_t expiration;
 
+	expiration = a6ctx->now + parent->ttl;
+	if (expiration < a6ctx->expiration || a6ctx->expiration == 0)
+		a6ctx->expiration = expiration;
+	
 	depth++;
 	result = dns_rdataset_first(parent);
 	while (result == ISC_R_SUCCESS) {
@@ -85,6 +90,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 				dns_rdataset_init(&childsig);
 				result = (a6ctx->find)(a6ctx->arg, &name,
 						       dns_rdatatype_a6,
+						       a6ctx->now,
 						       &child, &childsig);
 				if (result == ISC_R_SUCCESS) {
 					/*
@@ -140,7 +146,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 			 * We have a complete chain.
 			 */
 			if (a6ctx->address != NULL)
-				(a6ctx->address)(a6ctx->arg, &a6ctx->in6addr);
+				(a6ctx->address)(a6ctx);
 		}
 	next_a6:
 		result = dns_rdataset_next(parent);
@@ -170,6 +176,8 @@ dns_a6_init(dns_a6context_t *a6ctx, dns_findfunc_t find, dns_rrsetfunc_t rrset,
 	a6ctx->arg = arg;
 	a6ctx->chains = 1;
 	a6ctx->depth = 0;
+	a6ctx->now = 0;
+	a6ctx->expiration = 0;
 	a6ctx->prefixlen = 128;
 	isc_bitstring_init(&a6ctx->bitstring,
 			   (unsigned char *)a6ctx->in6addr.s6_addr,
@@ -182,6 +190,7 @@ dns_a6_reset(dns_a6context_t *a6ctx) {
 
 	a6ctx->chains = 1;
 	a6ctx->depth = 0;
+	a6ctx->expiration = 0;
 	a6ctx->prefixlen = 128;
 }
 
@@ -204,11 +213,20 @@ dns_a6_copy(dns_a6context_t *source, dns_a6context_t *target) {
 }
 
 isc_result_t
-dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset) {
+dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset,
+	       isc_stdtime_t now)
+{
 	isc_result_t result;
 
 	REQUIRE(VALID_A6CONTEXT(a6ctx));
 	REQUIRE(rdataset->type == dns_rdatatype_a6);
+
+	if (now == 0) {
+		result = isc_stdtime_get(&now);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+	a6ctx->now = now;
 
 	result = foreach(a6ctx, rdataset, a6ctx->depth, a6ctx->prefixlen);
 	if (result == ISC_R_QUOTA)
