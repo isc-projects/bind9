@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.7 2000/01/04 23:24:13 gson Exp $ */
+ /* $Id: cache.c,v 1.8 2000/01/06 01:12:20 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -51,7 +51,15 @@ typedef enum {
 	cleaner_s_idle,	/* Waiting for cleaning-interval to expire. */
 	cleaner_s_busy	/* Currently cleaning. */
 } cleaner_state_t;
-	     
+
+/* Convenience macros for comprehensive assertion checking. */
+#define CLEANER_IDLE(c) ((c)->state == cleaner_s_idle && \
+		         (c)->iterator == NULL && \
+			 (c)->resched_event != NULL)
+#define CLEANER_BUSY(c) ((c)->state == cleaner_s_busy && \
+		         (c)->iterator != NULL && \
+			 (c)->resched_event == NULL)
+
 struct cache_cleaner {
 	dns_cache_t	*cache;
 	isc_task_t 	*task;
@@ -171,7 +179,8 @@ cache_free(dns_cache_t *cache) {
 	if (cache->cleaner.resched_event != NULL)
 		isc_event_free(&cache->cleaner.resched_event);
 
-	dns_dbiterator_destroy(&cache->cleaner.iterator);
+	if (cache->cleaner.iterator != NULL)
+		dns_dbiterator_destroy(&cache->cleaner.iterator);
 
 	if (cache->filename) {
 		isc_mem_free(cache->mctx, cache->filename);
@@ -300,13 +309,8 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->increment = 100;
 	cleaner->state = cleaner_s_idle;
 	cleaner->cache = cache;
-
 	cleaner->iterator = NULL;
-	result = dns_db_createiterator(cache->db,
-				       ISC_FALSE, &cleaner->iterator);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
-
+	
 	cleaner->task = NULL;
 	cleaner->cleaning_timer = NULL;
 	cleaner->resched_event = NULL;
@@ -360,45 +364,105 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	isc_task_detach(&cleaner->task);
     cleanup_dbiterator:
 	dns_dbiterator_destroy(&cleaner->iterator);
-    fail:
 	return (result);
 }
 
+static void
+begin_cleaning(cache_cleaner_t *cleaner) {
+	isc_result_t result;
+
+	REQUIRE(CLEANER_IDLE(cleaner));
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
+		      "begin cache cleaning");
+
+	/*
+	 * Create an iterator and position it at the beginning of the cache.
+	 */
+	result = dns_db_createiterator(cleaner->cache->db, ISC_FALSE,
+				       &cleaner->iterator);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
+			      "cache cleaner could not create "
+			      "iterator: %s", isc_result_totext(result));
+		goto idle;
+	}
+	result = dns_dbiterator_first(cleaner->iterator);
+	if (result == ISC_R_NOMORE) {
+		/*
+		 * The database is empty.  We are done.
+		 */
+		goto destroyiter;
+	}
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "cache cleaner: dns_dbiterator_first() "
+				 "failed: %s", dns_result_totext(result));
+		goto destroyiter;
+	}
+
+	cleaner->state = cleaner_s_busy;
+	isc_task_send(cleaner->task, &cleaner->resched_event);
+	ENSURE(CLEANER_BUSY(cleaner));
+	return;
+
+ destroyiter:
+	dns_dbiterator_destroy(&cleaner->iterator);	
+ idle:
+	ENSURE(CLEANER_IDLE(cleaner));
+	return;
+}
+
+static void
+end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
+	REQUIRE(CLEANER_BUSY(cleaner));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
+		      "end cache cleaning");
+	dns_dbiterator_destroy(&cleaner->iterator);
+	cleaner->state = cleaner_s_idle;
+	cleaner->resched_event = event;
+	ENSURE(CLEANER_IDLE(cleaner));
+}
+
 /*
- * Try to clean the next n_names domain names.
+ * This is run once for every cache-cleaning-interval as defined in named.conf.
  */
-static isc_result_t
-do_some_cleaning(cache_cleaner_t *cleaner, isc_stdtime_t now, int n_names) {
-	isc_result_t result, return_result; 
+static void
+cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
+	cache_cleaner_t *cleaner = event->arg;
+	INSIST(task == cleaner->task);
+	INSIST(event->type == ISC_TIMEREVENT_TICK);
+	if (cleaner->state == cleaner_s_idle) {
+		begin_cleaning(cleaner);
+	} else {
+		INSIST(CLEANER_BUSY(cleaner));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
+			      "cache cleaner did not finish "
+			      "in one cleaning-interval");
+	}
+	isc_event_free(&event);
+}
+
+/*
+ * Do incremental cleaning.
+ */
+static void
+incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	cache_cleaner_t *cleaner = event->arg;
+	isc_stdtime_t now;
+	int n_names;
+	INSIST(event->type == DNS_EVENT_CACHECLEAN);
+	INSIST(CLEANER_BUSY(cleaner));
+	n_names = cleaner->increment;
+	isc_stdtime_get(&now);
 
 	REQUIRE(DNS_DBITERATOR_VALID(cleaner->iterator));
 
-	/*
-	 * When starting or restarting from the idle state,
-	 * position the iterator at the beginning of the cache. 
-	 */
-	if (cleaner->state == cleaner_s_idle) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-			      "begin cache cleaning");
-		result = dns_dbiterator_first(cleaner->iterator);
-		if (result == ISC_R_NOMORE) {
-			/*
-			 * We have an empty database, but that's OK.
-			 */
-			return_result = ISC_R_SUCCESS;
-			goto idle;
-		}
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "cache cleaner: dns_dbiterator_first() "
-				 "failed: %s", dns_result_totext(result));
-			return_result = ISC_R_UNEXPECTED;
-			goto idle;
-		}
-		cleaner->state = cleaner_s_busy;
-	}
-	
 	while (n_names-- > 0) {
 		dns_dbnode_t *node = NULL;
 		result = dns_dbiterator_current(cleaner->iterator, &node,
@@ -407,7 +471,6 @@ do_some_cleaning(cache_cleaner_t *cleaner, isc_stdtime_t now, int n_names) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "cache cleaner: dns_dbiterator_current() "
 				 "failed: %s", dns_result_totext(result));
-			return_result = ISC_R_UNEXPECTED;
 			goto idle;
 		}
 		INSIST(node != NULL);
@@ -423,82 +486,34 @@ do_some_cleaning(cache_cleaner_t *cleaner, isc_stdtime_t now, int n_names) {
 		result = dns_dbiterator_next(cleaner->iterator);
 		if (result == ISC_R_NOMORE) {
 			/* We have successfully cleaned the whole cache. */
-			return_result = ISC_R_SUCCESS;
 			goto idle;
 		}
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "cache cleaner: dns_dbiterator_next() "
 				 "failed: %s", dns_result_totext(result));
-			return_result = ISC_R_UNEXPECTED;
 			goto idle;
 		}
 	}
 
 	/* We have successfully performed a cleaning increment. */
-	return_result = ISC_R_SUCCESS;
-	goto done;
-
- idle:
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-		      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-		      "end cache cleaning");
-	cleaner->state = cleaner_s_idle;
-
- done:
 	result = dns_dbiterator_pause(cleaner->iterator);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "cache cleaner: dns_dbiterator_pause() "
 				 "failed: %s", dns_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+		/* Try to continue. */
 	}
-	return (return_result);
-}
+	/* Still busy, reschedule. */
+	isc_task_send(task, &event);
+	INSIST(CLEANER_BUSY(cleaner));
+	return;
 
-/*
- * This is run once for every cache-cleaning-interval as defined in named.conf.
- */
-static void
-cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
-	cache_cleaner_t *cleaner = event->arg;
-	INSIST(event->type == ISC_TIMEREVENT_TICK);
-	if (cleaner->state == cleaner_s_idle) {
-		INSIST(cleaner->resched_event != NULL);
-		isc_task_send(task, &cleaner->resched_event);
-	} else {
-		INSIST(cleaner->resched_event == NULL);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-			      "cache cleaner did not finish "
-			      "in one cleaning-interval");
-	}
-	isc_event_free(&event);
-}
-
-/*
- * Do incremental cleaning.
- */
-static void
-incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
-	cache_cleaner_t *cleaner = event->arg;
-	isc_stdtime_t now;
-	INSIST(event->type == DNS_EVENT_CACHECLEAN);
-	isc_stdtime_get(&now);
-	/*
-	 * The return value from do_some_cleaning() is ignored because it
-	 * does its own error reporting.
-	 */
-	(void) do_some_cleaning(cleaner, now, cleaner->increment);
-	if (cleaner->state == cleaner_s_idle) {
-	  	/* Went idle.  Save the event for later reuse. */
-		INSIST(cleaner->resched_event == NULL);
-		cleaner->resched_event = event;
-		event = NULL;
-	} else {
-		/* Still busy.  Reschedule. */
-		isc_task_send(task, &event);
-	}
+ idle:
+	/* No longer busy; save the event for later use. */
+	end_cleaning(cleaner, event);
+	INSIST(CLEANER_IDLE(cleaner));	
+	return;
 }
 
 /*
@@ -567,6 +582,9 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	if (cache->cleaner.cleaning_timer != NULL)
 		isc_timer_detach(&cache->cleaner.cleaning_timer);
 
+	/* Make sure we don't reschedule anymore. */
+	isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
+	
 	UNLOCK(&cache->lock);
 
 	if (should_free)
