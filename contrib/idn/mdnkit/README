@@ -1,7 +1,7 @@
 
 				mDNkit
-	  -- multilingual domain name evaluation kit --
-			     version 1.2
+	    -- multilingual domain name evaluation kit --
+			    version 1.2.1
 	       Japan Network Information Center (JPNIC)
 
 
@@ -283,7 +283,7 @@ the manual of mDNkit's resolver configuration file `mdnres.conf'.
 * Applying patches
 
 This distribution also contains patches for BIND 8.2.2-P7,
-BIND 8.2.3-T6B, BIND 9.0.0 and Squid 2.3.STABLE3.  The top of these
+BIND 8.2.3-T9B, BIND 9.0.1 and Squid 2.3.STABLE3.  The top of these
 patch files describe how to apply the patch and (re)install.
 
 Note that on Solaris, "patch" command that comes with the system
@@ -294,11 +294,11 @@ it.
 
 * Contact information
 
-Please see http//www.nic.ad.jp/jp/research/idn/ for the latest news
+Please see http://www.nic.ad.jp/jp/research/idn/ for the latest news
 about this kit.
 
 Bug reports and comments on this kit should be sent to
 mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
 
 
-; $Id: README,v 1.15 2000/11/21 07:54:13 ishisone Exp $
+; $Id: README,v 1.18 2000/12/28 04:09:28 ishisone Exp $

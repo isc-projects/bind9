@@ -1,8 +1,8 @@
 %define name mdnkit
-%define version 1.2
+%define version 1.2.1
 %define disttop %{name}-%{version}-src
 %define bind_version 8.2.2-P7
-%define serial 2000112701
+%define serial 2000122101
 
 Name: %{name}
 Version: %{version}
@@ -16,7 +16,7 @@ Source: %{disttop}.tar.gz
 #NoSource: 10
 #NoSource: 11
 #NoSource: 12
-#Patch0: dnsproxy.patch1
+#Patch0: mdnkit-1.2-runmdn.patch
 BuildRoot: /var/tmp/%{name}-root
 Serial: %{serial}
 Summary: multilingual Domain Name evaluation kit (mDNkit/JPNIC)
@@ -37,12 +37,15 @@ that use MDN library.
 
 %prep
 %setup -n %{disttop}
-#%patch0 -p0 -b .patch1
+#%patch0 -p1 -b .runmdn
 
 %build
 if [ -f /usr/lib/libiconv.a -o -f /usr/lib/libiconv.so ]
 then
-  ICONV="--with-iconv=yes"
+  if [ -f /lib/libc-2.0* ]
+  then
+    ICONV="--with-iconv=yes"
+  fi
 fi
 
 CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --sysconfdir=/etc $ICONV
@@ -55,6 +58,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
 mkdir -p $RPM_BUILD_ROOT/usr/lib
 mkdir -p $RPM_BUILD_ROOT/usr/include
+mkdir -p $RPM_BUILD_ROOT/var/dnsproxy
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 make prefix=$RPM_BUILD_ROOT/usr ETCDIR=$RPM_BUILD_ROOT/etc install
 # make prefix=$RPM_BUILD_ROOT/usr sysconfdir=$RPM_BUILD_ROOT/etc install
@@ -75,6 +79,11 @@ cp -r patch rpm_docs
 rm -fr $RPM_BUILD_ROOT
 
 %changelog
+* Mon Dec  6 2000 MANABE Takashi <manabe@dsl.gr.jp>
+- add brace/lace functions to libmdnresolv(mdnkit-1.2-runmdn.patch)
+- include /var/dnsproxy
+- change files section for compressed man pages
+
 * Mon Nov 27 2000 Makoto Ishisone <ishisone@sra.co.jp>
 - 1.2 release
 
@@ -91,6 +100,7 @@ rm -fr $RPM_BUILD_ROOT
 %files
 %defattr(-, root, root)
 /usr/sbin/dnsproxy
+/var/dnsproxy
 /usr/bin/mdnconv
 /usr/bin/runmdn
 /etc/rc.d/init.d/dnsproxy
@@ -100,10 +110,9 @@ rm -fr $RPM_BUILD_ROOT
 /usr/lib/libmdnresolv.la
 %attr(0644, root, root) %config(noreplace) /etc/dnsproxy.conf
 %attr(0644, root, root) /etc/mdnres.conf.sample
-%attr(0644, root, man) /usr/man/man1/mdnconv.1
-%attr(0644, root, man) /usr/man/man1/runmdn.1
-%attr(0644, root, man) /usr/man/man5/mdnres.conf.5
-%attr(0644, root, man) /usr/man/man8/dnsproxy.8
+%attr(0644, root, man) /usr/man/man1/*
+%attr(0644, root, man) /usr/man/man5/*
+%attr(0644, root, man) /usr/man/man8/*
 %doc rpm_docs/*
 
 %files devel

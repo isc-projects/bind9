@@ -1,3 +1,56 @@
+2001-01-12
+	* Makefile.in: update for 1.2.1.
+	* version 1.2.1 release
+
+2000-12-28
+	* Makefile.in: update for 1.2.1-rc2.
+	* README, README.ja: update for 1.2.1-rc2 release.
+
+2000-12-26
+	* lib/race.c: fix a bug that causes incorrect decoding of RACE-
+	encoded names if they contain any of uppercase characters.
+	* patch/bind8/bind-8.2.3-T6B-patch: removed.
+	* patch/bind8/bind-8.2.3-T9B-patch: created.
+	* DISTFILES: replace bind-8.2.3-T6B-patch with bind-8.2.3-T9B-patch.
+
+2000-12-22
+	* tools/rpm/mdnkit.spec: update for 1.2.1.
+	* patch/bind8/bind-8.2.2-P7-patch, patch/bind8/bind-8.2.3-T6B-patch:
+	add more 8bit-through fixes.  previous versions have problems when
+	domain name string contains some special characters, especially
+	backslash.
+
+2000-12-21
+	* lib/Makefile.in, tools/runmdn/Makefile.in: increment revision
+	number of libraries for the next public release.
+
+2000-12-20
+	* README, README.ja: update for 1.2.1 release.
+	* Makerfile.in: update for 1.2.1-rc1.
+
+2000-12-14
+	* patch/bind9/bind-9.0.0-patch: removed.
+	* patch/bind9/bind-9.0.1-patch: created.
+	* DISTFILES: replace bind-9.0.0-patch with bind-9.0.1-patch.
+	* lib/race.c: fix an encoding (compression) bug, regarding
+	0xff handling.  actually the old behavior was in accordance with
+	the obsolete -00 draft.
+
+2000-12-08
+	* lib/race.c: catch up with draft-ietf-idn-race-03.txt.
+	check an input string severely.
+
+2000-12-07
+	* tools/mdnconv/util.c: remove find_prefix().
+
+2000-12-06
+	* tools/mdnconv/mdnconv.c, tools/mdnconv/util.c, tools/mdnconv/util.h:
+	change ACE decoding strategy.
+
+2000-12-04
+	* tools/runmdn/Makefile.in: add missing brace.lo and lace.lo
+	to the list of object files.
+
 2000-11-27
 	* wsock/config/mdnconf.tcl: implement "unwrap all" button.
 	* wsock/README.txt, wsock/README_j.txt: add description on "unwrap
