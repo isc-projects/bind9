@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.133 2000/06/29 19:47:58 gson Exp $ */
+/* $Id: message.c,v 1.134 2000/07/10 20:46:02 explorer Exp $ */
 
 /***
  *** Imports
@@ -396,6 +396,8 @@ msgresetnames(dns_message_t *msg, unsigned int first_section) {
 				isc_mempool_put(msg->rdspool, rds);
 				rds = next_rds;
 			}
+			if (dns_name_dynamic(name))
+				dns_name_free(name, msg->mctx);
 			isc_mempool_put(msg->namepool, name);
 			name = next_name;
 		}
@@ -2122,6 +2124,8 @@ dns_message_puttempname(dns_message_t *msg, dns_name_t **item) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(item != NULL && *item != NULL);
 
+	if (dns_name_dynamic(*item))
+		dns_name_free(*item, msg->mctx);
 	isc_mempool_put(msg->namepool, *item);
 	*item = NULL;
 }
@@ -2752,7 +2756,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
 
 	if (ISC_LIST_EMPTY(msg->sections[section]))
-		return ISC_R_SUCCESS;
+		return (ISC_R_SUCCESS);
 
 	if (section == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
@@ -2892,24 +2896,21 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 			ADD_STRING(target, "cd ");
 		if (msg->opcode != dns_opcode_update) {
 			ADD_STRING(target, "; QUESTION: ");
-		}
-		else {
+		} else {
 			ADD_STRING(target, "; ZONE: ");
 		}
 		sprintf(buf, "%1u", msg->counts[DNS_SECTION_QUESTION]);
 		ADD_STRING(target, buf);
 		if (msg->opcode != dns_opcode_update) {
 			ADD_STRING(target, ", ANSWER: ");
-		}
-		else {
+		} else {
 			ADD_STRING(target, ", PREREQ: ");
 		}
 		sprintf(buf, "%1u", msg->counts[DNS_SECTION_ANSWER]);
 		ADD_STRING(target, buf);
 		if (msg->opcode != dns_opcode_update) {
 			ADD_STRING(target, ", AUTHORITY: ");
-		}
-		else {
+		} else {
 			ADD_STRING(target, ", UPDATE: ");
 		}
 		sprintf(buf, "%1u", msg->counts[DNS_SECTION_AUTHORITY]);
