@@ -18,7 +18,7 @@
 #ifndef GENERIC_OPT_41_H
 #define GENERIC_OPT_41_H 1
 
-/* $Id: opt_41.h,v 1.9 2000/06/28 19:03:23 tale Exp $ */
+/* $Id: opt_41.h,v 1.10 2000/06/28 19:07:18 tale Exp $ */
 
 /* RFC 2671 */
 
@@ -38,10 +38,9 @@ typedef struct dns_rdata_opt {
 } dns_rdata_opt_t;
 
 /*
- * isc/lang.h is included via rdatastructpre.h when gen builds rdatastruct.h.
+ * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
+ * via rdatastructpre.h and rdatastructsuf.h.
  */
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_rdata_opt_first(dns_rdata_opt_t *);
@@ -51,7 +50,5 @@ dns_rdata_opt_next(dns_rdata_opt_t *);
 
 isc_result_t
 dns_rdata_opt_current(dns_rdata_opt_t *, dns_rdata_opt_opcode_t *);
-
-ISC_LANG_ENDDECLS
 
 #endif /* GENERIC_OPT_41_H */

@@ -18,7 +18,7 @@
 #ifndef GENERIC_TXT_16_H
 #define GENERIC_TXT_16_H 1
 
-/* $Id: txt_16.h,v 1.19 2000/06/28 19:03:24 tale Exp $ */
+/* $Id: txt_16.h,v 1.20 2000/06/28 19:07:19 tale Exp $ */
 
 typedef struct dns_rdata_txt_string {
                 isc_uint8_t    length;
@@ -35,10 +35,9 @@ typedef struct dns_rdata_txt {
 } dns_rdata_txt_t;
 
 /*
- * isc/lang.h is included via rdatastructpre.h when gen builds rdatastruct.h.
+ * ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS are already done
+ * via rdatastructpre.h and rdatastructsuf.h.
  */
-
-ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_rdata_txt_first(dns_rdata_txt_t *);
@@ -48,7 +47,5 @@ dns_rdata_txt_next(dns_rdata_txt_t *);
 
 isc_result_t
 dns_rdata_txt_current(dns_rdata_txt_t *, dns_rdata_txt_string_t *);
-
-ISC_LANG_ENDDECLS
 
 #endif /* GENERIC_TXT_16_H */
