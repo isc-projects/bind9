@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.23 2001/02/26 18:58:36 gson Exp $ */
+/* $Id: parser.c,v 1.24 2001/02/26 19:15:11 gson Exp $ */
 
 #include <config.h>
 
@@ -2678,6 +2678,21 @@ print_netprefix(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	print(pctx, "/", 1);
 	print_uint(pctx, p->prefixlen);
 }
+
+isc_boolean_t
+cfg_obj_isnetprefix(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_netprefix));
+}
+
+void
+cfg_obj_asnetprefix(cfg_obj_t *obj, isc_netaddr_t *netaddr,
+		    unsigned int *prefixlen) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_netprefix);
+	*netaddr = obj->value.netprefix.address;
+	*prefixlen = obj->value.netprefix.prefixlen;
+}
+
 
 static cfg_type_t cfg_type_netprefix = {
 	"netprefix", parse_netprefix, print_netprefix, &cfg_rep_netprefix, NULL };

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.14 2001/02/23 01:00:58 gson Exp $ */
+/* $Id: cfg.h,v 1.15 2001/02/26 19:15:12 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -256,13 +256,13 @@ cfg_obj_asboolean(cfg_obj_t *obj);
 isc_boolean_t
 cfg_obj_issockaddr(cfg_obj_t *obj);
 /*
- * Return true iff 'obj' is of sockaddr type.
+ * Return true iff 'obj' is a socket address.
  */
 
 isc_sockaddr_t *
 cfg_obj_assockaddr(cfg_obj_t *obj);
 /*
- * Returns the value of a configuration object of a socket address type.
+ * Returns the value of a configuration object representing a socket address.
  *
  * Requires:
  *      'obj' points to a valid configuration object of a socket address type.
@@ -270,6 +270,25 @@ cfg_obj_assockaddr(cfg_obj_t *obj);
  * Returns:
  *      A pointer to a sockaddr.  The sockaddr must be copied by the caller
  *      if necessary.
+ */
+
+isc_boolean_t
+cfg_obj_isnetprefix(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is a network prefix.
+ */
+
+void
+cfg_obj_asnetprefix(cfg_obj_t *obj, isc_netaddr_t *netaddr,
+		    unsigned int *prefixlen);
+/*
+ * Gets the value of a configuration object representing a network
+ * prefix.  The network address is returned through 'netaddr' and the
+ * prefix length in bits through 'prefixlen'.
+ *
+ * Requires:
+ *      'obj' points to a valid configuration object of network prefix type.
+ *	'netaddr' and 'prefixlen' are non-NULL.
  */
 
 isc_boolean_t
