@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.20 2001/02/23 00:15:53 gson Exp $ */
+/* $Id: parser.c,v 1.21 2001/02/23 04:52:29 tale Exp $ */
 
 #include <config.h>
 
@@ -3210,13 +3210,14 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 }
 
 void
-cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...)
-{
+cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...) {
 	va_list ap;
 	char msgbuf[2048];
 
 	if (! isc_log_wouldlog(lctx, level))
 		return;
+
+	va_start(ap, fmt);
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	isc_log_write(lctx, CAT, MOD, level,
