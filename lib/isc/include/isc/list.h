@@ -95,6 +95,19 @@
 		} \
 	} while (0)
 
+#define ISC_LIST_APPENDLIST(list1, list2, link) \
+	do { \
+		if (ISC_LIST_EMPTY(list1)) \
+			(list1) = (list2); \
+		else if (!ISC_LIST_EMPTY(list2)) { \
+			(list1).tail->link.next = (list2).head; \
+			(list2).head->link.prev = (list1).tail; \
+			(list1).tail = (list2).tail; \
+			(list2).head = NULL; \
+			(list2).tail = NULL; \
+		} \
+	} while (0)
+
 #define ISC_LIST_ENQUEUE(list, elt, link) ISC_LIST_APPEND(list, elt, link)
 #define ISC_LIST_DEQUEUE(list, elt, link) ISC_LIST_UNLINK(list, elt, link)
 
