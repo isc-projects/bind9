@@ -25,6 +25,8 @@
 
 #include <dns/types.h>
 
+#include <omapi/types.h>
+
 #include <named/types.h>
 
 #undef EXTERN
@@ -47,6 +49,7 @@ EXTERN isc_taskmgr_t *		ns_g_taskmgr		INIT(NULL);
  */
 EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
 EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
+EXTERN omapi_object_t *		ns_g_omapimgr		INIT(NULL);
 EXTERN char *			ns_g_version		INIT(VERSION);
 EXTERN in_port_t		ns_g_port		INIT(53);
 
