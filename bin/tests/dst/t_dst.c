@@ -104,6 +104,7 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 		t_info("dst_context_adddata(%d) returned (%s)\n",
 		       dst_key_alg(key), dst_result_totext(ret));
 		++*nfails;
+		dst_context_destroy(&ctx);
 		return;
 	}
 	ret = dst_context_sign(ctx, &sigbuf);
@@ -112,6 +113,7 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 		       dst_key_alg(key), dst_result_totext(ret),
 		       dst_result_totext(exp_result));
 		++*nfails;
+		dst_context_destroy(&ctx);
 		return;
 	}
 	dst_context_destroy(&ctx);
@@ -129,6 +131,7 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 		t_info("dst_context_adddata(%d) returned (%s)\n",
 		       dst_key_alg(key), dst_result_totext(ret));
 		++*nfails;
+		dst_context_destroy(&ctx);
 		return;
 	}
 	ret = dst_context_verify(ctx, &sigreg);
@@ -137,6 +140,7 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 		       dst_key_alg(key), dst_result_totext(ret),
 		       dst_result_totext(exp_result));
 		++*nfails;
+		dst_context_destroy(&ctx);
 		return;
 	}
 	dst_context_destroy(&ctx);
@@ -167,7 +171,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		return;
 	}
 
-	ret = dst_key_fromfile(name1, id1, alg, type, mctx, &key1);
+	ret = dst_key_fromfile(name1, id1, alg, type, current, mctx, &key1);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
@@ -175,7 +179,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		return;
 	}
 
-	ret = dst_key_fromfile(name2, id2, alg, type, mctx, &key2);
+	ret = dst_key_fromfile(name2, id2, alg, type, current, mctx, &key2);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
@@ -197,34 +201,19 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		return;
 	}
 
-	if (chdir(tmp)) {
-		t_info("chdir failed %d\n", errno);
-		(void) rmdir(tmp);
-		++*nprobs;
-		return;
-	}
-
-	ret = dst_key_tofile(key1, type);
+	ret = dst_key_tofile(key1, type, tmp);
 	if (ret != 0) {
 		t_info("dst_key_tofile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
-		(void) chdir(current);
 		++*nfails;
 		return;
 	}
 
-	ret = dst_key_tofile(key2, type);
+	ret = dst_key_tofile(key2, type, tmp);
 	if (ret != 0) {
 		t_info("dst_key_tofile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
-		(void) chdir(current);
 		++*nfails;
-		return;
-	}
-
-	if (chdir(current)) {
-		t_info("chdir failed %d\n", errno);
-		++*nprobs;
 		return;
 	}
 
@@ -279,7 +268,7 @@ io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx,
 		return;
 	}
 
-	ret = dst_key_fromfile(name, id, alg, type, mctx, &key);
+	ret = dst_key_fromfile(name, id, alg, type, current, mctx, &key);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
@@ -301,30 +290,16 @@ io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx,
 		return;
 	}
 
-	if (chdir(tmp)) {
-		t_info("chdir failed %d\n", errno);
-		(void) rmdir(tmp);
-		++*nprobs;
-		return;
-	}
-
-	ret = dst_key_tofile(key, type);
+	ret = dst_key_tofile(key, type, tmp);
 	if (ret != 0) {
 		t_info("dst_key_tofile(%d) returned: %s\n",
 		       alg, dst_result_totext(ret));
-		(void)chdir(current);
 		++*nfails;
 		return;
 	}
 
 	if (dst_key_alg(key) != DST_ALG_DH)
 		use(key, mctx, exp_result, nfails);
-
-	if (chdir(current)) {
-		t_info("chdir failed %d\n", errno);
-		++*nprobs;
-		return;
-	}
 
 	cleandir(tmp);
 
@@ -421,6 +396,7 @@ t1(void) {
 		t_result(T_UNRESOLVED);
 		return;
 	}
+	dst_lib_init(mctx);
 
 	t_info("testing use of stored keys [1]\n");
 
@@ -460,6 +436,8 @@ t1(void) {
 
 	t_info("testing random number sequence generation\n");
 	get_random(&nfails);
+
+	dst_lib_destroy();
 
 	isc_mem_destroy(&mctx);
 
@@ -697,7 +675,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	isc_buffer_init(&b, keyname, strlen(keyname));
 	isc_buffer_add(&b, strlen(keyname));
 	dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
-	isc_result = dst_key_fromfile(name, id, alg, type, mctx, &key);
+	isc_result = dst_key_fromfile(name, id, alg, type, NULL, mctx, &key);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile failed %s\n",
 			isc_result_totext(isc_result));
@@ -735,6 +713,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		       dst_result_totext(isc_result));
 		(void) free(data);
 		dst_key_free(&key);
+		dst_context_destroy(&ctx);
 		++*nprobs;
 		return;
 	}
@@ -744,6 +723,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		       dst_result_totext(isc_result));
 		(void) free(data);
 		dst_key_free(&key);
+		dst_context_destroy(&ctx);
 		++*nprobs;
 		return;
 	}
@@ -794,6 +774,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_context_adddata returned %s\n",
 			isc_result_totext(isc_result));
+		dst_context_destroy(&ctx);
 		++*nfails;
 	}
 	isc_result = dst_context_verify(ctx, &sigreg);
@@ -803,6 +784,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		t_info("dst_context_verify returned %s, expected %s\n",
 			isc_result_totext(isc_result),
 			expected_result);
+		dst_context_destroy(&ctx);
 		++*nfails;
 	}
 
@@ -867,6 +849,7 @@ t2_vfy(char **av) {
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
+	dst_lib_init(mctx);
 
 	t_info("testing %s, %s, %s, %s, %s, %s\n",
 			datapath, sigpath, keyname, key, alg, exp_result);
@@ -874,6 +857,8 @@ t2_vfy(char **av) {
 			algid, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, exp_result,
 			&nfails, &nprobs);
+
+	dst_lib_destroy();
 
 	isc_mem_destroy(&mctx);
 

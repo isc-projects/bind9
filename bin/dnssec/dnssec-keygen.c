@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.30 2000/06/02 19:02:48 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.31 2000/06/06 22:01:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -111,6 +111,7 @@ main(int argc, char **argv) {
 
 	dns_result_register();
 	dst_result_register();
+	dst_lib_init(mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "a:b:eg:n:t:p:s:hv:")) != -1)
@@ -320,7 +321,7 @@ main(int argc, char **argv) {
 		 * case we return failure.
 		 */
 		ret = dst_key_fromfile(name, dst_key_id(key), alg, 
-				       DST_TYPE_PRIVATE, mctx, &oldkey);
+				       DST_TYPE_PRIVATE, NULL, mctx, &oldkey);
 		/* do not overwrite an existing key  */
 		if (ret == ISC_R_SUCCESS) {
 			dst_key_free(&oldkey);
@@ -331,8 +332,7 @@ main(int argc, char **argv) {
 		if (conflict == ISC_TRUE) {
 			if (verbose > 0) {
 				isc_buffer_clear(&buf);
-				ret = dst_key_buildfilename(key, 0, &buf);
-				filename[isc_buffer_usedlength(&buf)] = 0;
+				ret = dst_key_buildfilename(key, 0, NULL, &buf);
 				fprintf(stderr,
 					"%s: %s already exists, "
 					"generating a new key\n",
@@ -347,14 +347,13 @@ main(int argc, char **argv) {
 		fatal("cannot generate a null key when a key with id 0 "
 		      "already exists");
 
-	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE);
+	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, NULL);
 	if (ret != ISC_R_SUCCESS)
 		fatal("failed to write key %s/%s/%d: %s\n", name, 
 		      dst_key_id(key), algtostr(alg), isc_result_totext(ret));
 
 	isc_buffer_clear(&buf);
-	ret = dst_key_buildfilename(key, 0, &buf);
-	filename[isc_buffer_usedlength(&buf)] = 0;
+	ret = dst_key_buildfilename(key, 0, NULL, &buf);
 	printf("%s\n", filename);
 	isc_mem_free(mctx, algname);
 	isc_mem_free(mctx, nametype);
@@ -365,6 +364,7 @@ main(int argc, char **argv) {
 
 	if (log != NULL)
 		isc_log_destroy(&log);
+	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
         isc_mem_destroy(&mctx);

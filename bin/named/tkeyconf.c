@@ -62,7 +62,7 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
 	dns_name_fromtext(&keyname, &b, dns_rootname, ISC_FALSE, &namebuf);
 	RETERR(dst_key_fromfile(&keyname, n, DNS_KEYALG_DH,
 				DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
-				mctx, &tctx->dhkey));
+				NULL, mctx, &tctx->dhkey));
 	s = NULL;
 	RETERR(dns_c_ctx_gettkeydomain(cfg, &s));
 	dns_name_init(&domain, NULL);

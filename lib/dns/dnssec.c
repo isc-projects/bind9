@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.42 2000/06/02 18:59:12 bwelling Exp $
+ * $Id: dnssec.c,v 1.43 2000/06/06 22:00:47 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -475,6 +475,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 					  dst_key_id(pubkey),
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PRIVATE,
+					  NULL,
 					  mctx, &keys[count]);
 		if (result == DST_R_INVALIDPRIVATEKEY)
 			goto next;

@@ -125,13 +125,11 @@ io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx) {
 	dst_key_t *key = NULL;
 	isc_result_t ret;
 
-	chdir(current);
-	ret = dst_key_fromfile(name, id, alg, type, mctx, &key);
+	ret = dst_key_fromfile(name, id, alg, type, current, mctx, &key);
 	printf("read(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != 0)
 		return;
-	chdir(tmp);
-	ret = dst_key_tofile(key, type);
+	ret = dst_key_tofile(key, type, tmp);
 	printf("write(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != 0)
 		return;
@@ -150,22 +148,20 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx) {
 	int alg = DST_ALG_DH;
 	int type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE;
 
-	chdir(current);
-	ret = dst_key_fromfile(name1, id1, alg, type, mctx, &key1);
+	ret = dst_key_fromfile(name1, id1, alg, type, current, mctx, &key1);
 	printf("read(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != 0)
 		return;
-	ret = dst_key_fromfile(name2, id2, alg, type, mctx, &key2);
+	ret = dst_key_fromfile(name2, id2, alg, type, current, mctx, &key2);
 	printf("read(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != 0)
 		return;
 
-	chdir(tmp);
-	ret = dst_key_tofile(key1, type);
+	ret = dst_key_tofile(key1, type, tmp);
 	printf("write(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != 0)
 		return;
-	ret = dst_key_tofile(key2, type);
+	ret = dst_key_tofile(key2, type, tmp);
 	printf("write(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != 0)
 		return;
@@ -245,6 +241,7 @@ main(void) {
 
 	dns_result_register();
 	dst_result_register();
+	dst_lib_init(mctx);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -268,6 +265,8 @@ main(void) {
 	generate(DST_ALG_HMACMD5, mctx);
 
 	get_random();
+
+	dst_lib_destroy();
 
 	isc_mem_put(mctx, current, 256);
 /*	isc_mem_stats(mctx, stdout);*/

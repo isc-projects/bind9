@@ -142,7 +142,7 @@ keythatsigned(dns_rdata_sig_t *sig) {
 	}
 
 	result = dst_key_fromfile(&sig->signer, sig->keyid, sig->algorithm,
-				  DST_TYPE_PUBLIC, mctx, &pubkey);
+				  DST_TYPE_PUBLIC, NULL, mctx, &pubkey);
 	if (result != ISC_R_SUCCESS)
 		return (NULL);
 
@@ -151,7 +151,7 @@ keythatsigned(dns_rdata_sig_t *sig) {
 		fatal("out of memory");
 
 	result = dst_key_fromfile(&sig->signer, sig->keyid, sig->algorithm,
-				  DST_TYPE_PRIVATE, mctx, &privkey);
+				  DST_TYPE_PRIVATE, NULL, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		key->key = privkey;
 		dst_key_free(&pubkey);
@@ -1209,11 +1209,12 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_log_t *log = NULL;
 
-	dns_result_register();
-
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS)
 		fatal("out of memory");
+
+	dns_result_register();
+	dst_lib_init(mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ah"))
 	       != -1) {
@@ -1343,57 +1344,41 @@ main(int argc, char *argv[]) {
 	}
 	else {
 		for (i = 0; i < argc; i++) {
-			isc_uint16_t id;
-			unsigned int alg;
-			dns_fixedname_t fname;
-			dns_name_t *name;
-			isc_buffer_t b;
+			dst_key_t *newkey = NULL;
 
-			isc_buffer_init(&b, argv[i], strlen(argv[i]));
-			isc_buffer_add(&b, strlen(argv[i]));
-			dns_fixedname_init(&fname);
-			name = dns_fixedname_name(&fname);
-			result = dst_key_parsefilename(&b, mctx, name,
-						       &id, &alg, NULL);
+			result = dst_key_fromnamedfile(argv[i],
+						       DST_TYPE_PRIVATE,
+						       mctx, &newkey);
 			if (result != ISC_R_SUCCESS)
 				usage();
 
 			key = ISC_LIST_HEAD(keylist);
 			while (key != NULL) {
 				dst_key_t *dkey = key->key;
-				if (dst_key_id(dkey) == id &&
-				    dst_key_alg(dkey) == alg &&
-				    dns_name_equal(name, dst_key_name(dkey)))
+				if (dst_key_id(dkey) == dst_key_id(newkey) &&
+				    dst_key_alg(dkey) == dst_key_alg(newkey) &&
+				    dns_name_equal(dst_key_name(dkey),
+					    	   dst_key_name(newkey)))
 				{
 					key->isdefault = ISC_TRUE;
 					if (!dst_key_isprivate(dkey))
 						fatal("cannot sign zone with "
-						      "non-private key "
-						      "'%s/%s/%d'",
-						  nametostr(dst_key_name(dkey)),
-						  algtostr(dst_key_alg(dkey)),
-						  dst_key_id(dkey));
+						      "non-private key %s",
+						      argv[i]);
 					break;
 				}
 				key = ISC_LIST_NEXT(key, link);
 			}
 			if (key == NULL) {
-				dst_key_t *dkey = NULL;
-				result = dst_key_fromfile(name, id, alg,
-							  DST_TYPE_PRIVATE,
-							  mctx, &dkey);
-				if (result != ISC_R_SUCCESS)
-					fatal("failed to load key '%s/%s/%d' "
-					      "from disk: %s",
-					      nametostr(name), algtostr(alg),
-					      id, isc_result_totext(result));
 				key = isc_mem_get(mctx, sizeof(signer_key_t));
 				if (key == NULL)
 					fatal("out of memory");
-				key->key = dkey;
+				key->key = newkey;
 				key->isdefault = ISC_TRUE;
 				ISC_LIST_APPEND(keylist, key, link);
 			}
+			else
+				dst_key_free(&newkey);
 		}
 	}
 
@@ -1425,6 +1410,7 @@ main(int argc, char *argv[]) {
 
 	if (log != NULL)
 		isc_log_destroy(&log);
+	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

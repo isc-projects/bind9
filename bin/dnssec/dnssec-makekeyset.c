@@ -128,15 +128,15 @@ main(int argc, char *argv[]) {
 	isc_region_t r;
 	isc_log_t *log = NULL;
 	keynode_t *keynode;
-	dns_fixedname_t fsavedname;
 	dns_name_t *savedname = NULL;
-
-	dns_result_register();
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to create memory context: %s",
 		      isc_result_totext(result));
+
+	dns_result_register();
+	dst_lib_init(mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, "s:e:t:v:")) != -1)
 	{
@@ -214,29 +214,28 @@ main(int argc, char *argv[]) {
 	ISC_LIST_INIT(keylist);
 
 	for (i = 0; i < argc; i++) {
-		isc_uint16_t id;
-		unsigned int alg;
-		dns_fixedname_t fname;
-		dns_name_t *name;
 		char namestr[1025];
-
-		isc_buffer_init(&b, argv[i], strlen(argv[i]));
-		isc_buffer_add(&b, strlen(argv[i]));
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
-		result = dst_key_parsefilename(&b, mctx, name, &id, &alg,
-					       NULL);
+		key = NULL;
+		result = dst_key_fromnamedfile(argv[i], DST_TYPE_PUBLIC,
+					       mctx, &key);
 		if (result != ISC_R_SUCCESS)
-			fatal("%s is not a valid key filename", argv[i]);
-		strncpy(namestr, nametostr(name), sizeof(namestr) - 1);
+			fatal("error loading key from %s", argv[i]);
+
+		strncpy(namestr, nametostr(dst_key_name(key)),
+			sizeof(namestr) - 1);
 		namestr[sizeof(namestr) - 1] = 0;
 
 		if (savedname == NULL) {
-			fsavedname = fname;
-			savedname = dns_fixedname_name(&fsavedname);
-		}
-		else {
-			if (!dns_name_equal(savedname, name) != 0)
+			savedname = isc_mem_get(mctx, sizeof(dns_name_t));
+			if (savedname == NULL)
+				fatal("out of memory");
+			dns_name_init(savedname, NULL);
+			result = dns_name_dup(dst_key_name(key), mctx,
+					      savedname);
+			if (result != ISC_R_SUCCESS)
+				fatal("out of memory");
+		} else {
+			if (!dns_name_equal(savedname, dst_key_name(key)) != 0)
 				fatal("all keys must have the same owner - %s "
 				      "and %s do not match",
 				      nametostr(savedname), namestr);
@@ -261,20 +260,14 @@ main(int argc, char *argv[]) {
 				fatal("%s is not a valid name: %s",
 				      namestr, isc_result_totext(result));
 		}
-		key = NULL;
-		result = dst_key_fromfile(name, id, alg, DST_TYPE_PUBLIC,
-					  mctx, &key);
-		check_result(result, "dst_key_fromfile");
 		if (dst_key_iszonekey(key)) {
 			dst_key_t *zonekey = NULL;
-			result = dst_key_fromfile(name, id, alg,
-						  DST_TYPE_PRIVATE, mctx,
-						  &zonekey);
-			
+			result = dst_key_fromnamedfile(argv[i],
+						       DST_TYPE_PRIVATE,
+						       mctx, &zonekey);
 			if (result != ISC_R_SUCCESS)
-				fatal("failed to read key %s/%s/%d: %s",
-				      namestr, id, algtostr(alg),
-				      isc_result_totext(result));
+				fatal("failed to read key %s: %s",
+				      argv[i], isc_result_totext(result));
 			keynode = isc_mem_get(mctx, sizeof (keynode_t));
 			if (keynode == NULL)
 				fatal("out of memory");
@@ -291,10 +284,8 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dst_key_todns(key, &b);
 		if (result != ISC_R_SUCCESS)
-			fatal("failed to convert key %s/%s/%d "
-			      "to a DNS KEY: %s",
-			      namestr, id, algtostr(alg),
-			      isc_result_totext(result));
+			fatal("failed to convert key %s to a DNS KEY: %s",
+			      argv[i], isc_result_totext(result));
 		isc_buffer_usedregion(&b, &r);
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
 				     dns_rdatatype_key, &r);
@@ -390,10 +381,16 @@ main(int argc, char *argv[]) {
 		isc_mem_put(mctx, keynode, sizeof(keynode_t));
 	}
 
+	if (savedname != NULL) {
+		dns_name_free(savedname, mctx);
+		isc_mem_put(mctx, savedname, sizeof(dns_name_t));
+	}
+
 	if (log != NULL)
 		isc_log_destroy(&log);
 
 	isc_mem_free(mctx, output);
+	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

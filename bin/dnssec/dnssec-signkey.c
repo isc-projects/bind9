@@ -146,10 +146,11 @@ main(int argc, char *argv[]) {
 	isc_log_t *log = NULL;
 	keynode_t *keynode;
 
-	dns_result_register();
-
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
+
+	dns_result_register();
+	dst_lib_init(mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, "v:")) != -1)
 	{
@@ -244,7 +245,8 @@ main(int argc, char *argv[]) {
 					   ISC_TRUE, mctx, &sigrdata);
 		if (result != ISC_R_SUCCESS)
 			fatal("signature by key '%s/%s/%d' did not verify: %s",
-			      dst_key_name(key), algtostr(dst_key_alg(key)),
+			      nametostr(dst_key_name(key)),
+			      algtostr(dst_key_alg(key)),
 			      dst_key_id(key), isc_result_totext(result));
 		dns_rdata_freestruct(&sig);
 		result = dns_rdataset_next(&sigrdataset);
@@ -274,27 +276,12 @@ main(int argc, char *argv[]) {
 	sigrdatalist.ttl = rdataset.ttl;
 
 	for (i = 0; i < argc; i++) {
-		isc_uint16_t id;
-		unsigned int alg;
-		dns_fixedname_t fname;
-		dns_name_t *name;
-
-		isc_buffer_init(&b, argv[i], strlen(argv[i]));
-		isc_buffer_add(&b, strlen(argv[i]));
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
-		result = dst_key_parsefilename(&b, mctx, name, &id, &alg,
-					       NULL);
-		if (result != ISC_R_SUCCESS)
-			usage();
-
 		key = NULL;
-		result = dst_key_fromfile(name, id, alg, DST_TYPE_PRIVATE,
-					  mctx, &key);
+		result = dst_key_fromnamedfile(argv[i], DST_TYPE_PRIVATE,
+					       mctx, &key);
 		if (result != ISC_R_SUCCESS)
-			fatal("failed to read key %s/%s/%d from disk: %s",
-			      dst_key_name(key), algtostr(dst_key_alg(key)),
-			      dst_key_id(key), isc_result_totext(result));
+			fatal("failed to read key %s from disk: %s",
+			      argv[i], isc_result_totext(result));
 
 		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 		if (rdata == NULL)
@@ -353,6 +340,7 @@ main(int argc, char *argv[]) {
 		isc_log_destroy(&log);
 
         isc_mem_free(mctx, output);
+	dst_lib_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
