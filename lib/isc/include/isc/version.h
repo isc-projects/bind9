@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,12 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.10 2001/10/16 23:20:51 gson Exp $ */
+/* $Id: version.h,v 1.1 2001/10/16 23:20:57 gson Exp $ */
 
-#include <dns/version.h>
+extern const char isc_version[];
 
-const char dns_version[] = VERSION;
-
-const unsigned int dns_libinterface = LIBINTERFACE;
-const unsigned int dns_librevision = LIBREVISION;
-const unsigned int dns_libage = LIBAGE;
+extern const unsigned int isc_libinterface;
+extern const unsigned int isc_librevision;
+extern const unsigned int isc_libage;

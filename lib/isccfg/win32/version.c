@@ -15,12 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.1 2001/07/16 05:48:16 mayer Exp $ */
+/* $Id: version.c,v 1.2 2001/10/16 23:21:05 gson Exp $ */
 
 #include <versions.h>
 
-char cfg_version[] = VERSION;
+#include <isccfg/version.h>
 
-unsigned int cfg_libinterface = LIBINTERFACE;
-unsigned int cfg_librevision = LIBREVISION;
-unsigned int cfg_libage = LIBAGE;
+const char cfg_version[] = VERSION;
+
+const unsigned int cfg_libinterface = LIBINTERFACE;
+const unsigned int cfg_librevision = LIBREVISION;
+const unsigned int cfg_libage = LIBAGE;
+

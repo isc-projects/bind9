@@ -1524,6 +1524,7 @@
 ./lib/bind/resolv/res_send.c			X	2001
 ./lib/bind/resolv/res_sendsigned.c		X	2001
 ./lib/bind/resolv/res_update.c			X	2001
+./lib/bind9/include/bind9/version.h		C	2001
 ./lib/dns/.cvsignore				X	1999,2000,2001
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001
 ./lib/dns/a6.c					C	1999,2000,2001
@@ -1607,6 +1608,7 @@
 ./lib/dns/include/dns/ttl.h			C	1999,2000,2001
 ./lib/dns/include/dns/types.h			C	1998,1999,2000,2001
 ./lib/dns/include/dns/validator.h		C	2000,2001
+./lib/dns/include/dns/version.h			C	2001
 ./lib/dns/include/dns/view.h			C	1999,2000,2001
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001
 ./lib/dns/include/dns/zone.h			C	1999,2000,2001
@@ -1855,6 +1857,7 @@
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001
 ./lib/isc/include/isc/types.h			C	1999,2000,2001
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001
+./lib/isc/include/isc/version.h			C	2001
 ./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001
@@ -2032,6 +2035,7 @@
 ./lib/isccc/include/isccc/symtype.h		C.NOM	2001
 ./lib/isccc/include/isccc/types.h		C.NOM	2001
 ./lib/isccc/include/isccc/util.h		C.NOM	2001
+./lib/isccc/include/isccc/version.h		C	2001
 ./lib/isccc/lib.c				C.NOM	2001
 ./lib/isccc/result.c				C.NOM	2001
 ./lib/isccc/sexpr.c				C.NOM	2001
@@ -2054,6 +2058,7 @@
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001
 ./lib/isccfg/include/isccfg/check.h		C	2001
 ./lib/isccfg/include/isccfg/log.h		C	2001
+./lib/isccfg/include/isccfg/version.h		C	2001
 ./lib/isccfg/log.c				C	2001
 ./lib/isccfg/parser.c				C	2000,2001
 ./lib/isccfg/version.c				C	1998,1999,2000,2001

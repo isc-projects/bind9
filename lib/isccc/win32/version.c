@@ -15,12 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.2 2001/07/17 20:29:35 gson Exp $ */
+/* $Id: version.c,v 1.3 2001/10/16 23:21:02 gson Exp $ */
 
 #include <versions.h>
 
-char isccc_version[] = VERSION;
+#include <isccc/version.h>
 
-unsigned int isccc_libinterface = LIBINTERFACE;
-unsigned int isccc_librevision = LIBREVISION;
-unsigned int isccc_libage = LIBAGE;
+const char isccc_version[] = VERSION;
+
+const unsigned int isccc_libinterface = LIBINTERFACE;
+const unsigned int isccc_librevision = LIBREVISION;
+const unsigned int isccc_libage = LIBAGE;

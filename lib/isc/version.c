@@ -15,10 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.9 2001/01/09 21:56:38 bwelling Exp $ */
+/* $Id: version.c,v 1.10 2001/10/16 23:20:55 gson Exp $ */
 
-char isc_version[] = VERSION;
+#include <isc/version.h>
 
-unsigned int isc_libinterface = LIBINTERFACE;
-unsigned int isc_librevision = LIBREVISION;
-unsigned int isc_libage = LIBAGE;
+const char isc_version[] = VERSION;
+
+const unsigned int isc_libinterface = LIBINTERFACE;
+const unsigned int isc_librevision = LIBREVISION;
+const unsigned int isc_libage = LIBAGE;

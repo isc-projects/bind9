@@ -15,10 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.1 2001/09/20 15:17:06 marka Exp $ */
+/* $Id: version.c,v 1.2 2001/10/16 23:20:48 gson Exp $ */
 
-char bind9_version[] = VERSION;
+#include <bind9/version.h>
 
-unsigned int bind9_libinterface = LIBINTERFACE;
-unsigned int bind9_librevision = LIBREVISION;
-unsigned int bind9_libage = LIBAGE;
+const char bind9_version[] = VERSION;
+
+const unsigned int bind9_libinterface = LIBINTERFACE;
+const unsigned int bind9_librevision = LIBREVISION;
+const unsigned int bind9_libage = LIBAGE;
