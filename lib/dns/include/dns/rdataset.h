@@ -191,6 +191,8 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
  * Notes:
  *	The rdata cursor position will be changed.
  *
+ *	XXX may need to add 'origin' parameter if we go with that in rdata.
+ *
  * Requires:
  *	'rdataset' is a valid rdataset.
  *

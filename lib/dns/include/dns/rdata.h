@@ -291,7 +291,6 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  */
 
 dns_result_t dns_rdata_totext(dns_rdata_t *rdata,
-			      dns_name_t *origin,
 			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.
@@ -299,6 +298,9 @@ dns_result_t dns_rdata_totext(dns_rdata_t *rdata,
  * Notes:
  *	If 'origin' is not NULL, then any names in the rdata that are
  *	subdomains of 'origin' will be made relative it.
+ *
+ *	XXX Do we *really* want to support 'origin'?  I'm inclined towards "no"
+ *	at the moment.
  *
  * Requires:
  *
