@@ -69,8 +69,9 @@ typedef unsigned int dns_result_t;
 #define DNS_R_NXRDATASET		42
 #define DNS_R_BADDB			43
 #define DNS_R_ZONECUT			44
+#define DNS_R_FORMERR			45
 
-#define DNS_R_LASTENTRY			44	/* Last entry on list. */
+#define DNS_R_LASTENTRY			45	/* Last entry on list. */
 
 #define DNS_R_UNEXPECTED		0xFFFFFFFFL
 
