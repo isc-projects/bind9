@@ -149,6 +149,7 @@ typedef struct dns_rbtnodechain {
 	 */
 	dns_rbtnode_t *		levels[DNS_RBT_LEVELBLOCK];
 	unsigned int		level_count;
+	unsigned int		level_matches; /* XXX comment */
 } dns_rbtnodechain_t;
 
 /*****

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.43 1999/04/17 15:43:10 tale Exp $ */
+/* $Id: rbt.c,v 1.44 1999/04/20 18:11:07 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -839,6 +839,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 */
 				ADD_ANCESTOR(chain, NULL);
 				ADD_LEVEL(chain, current);
+				chain->level_matches++;
 
 				current = DOWN(current);
 
@@ -927,6 +928,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 */
 				chain->end =
 					chain->levels[--chain->level_count];
+				chain->level_matches--;
 
 			} else {
 				dns_result_t result2;
@@ -1838,6 +1840,7 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 	chain->ancestor_count = 0;
 	chain->ancestor_maxitems = DNS_RBT_ANCESTORBLOCK;
 	chain->level_count = 0;
+	chain->level_matches = 0;
 
 	chain->magic = CHAIN_MAGIC;
 }
@@ -2184,6 +2187,7 @@ dns_rbtnodechain_reset(dns_rbtnodechain_t *chain) {
 	chain->ancestor_count = 0;
 	chain->ancestor_maxitems = DNS_RBT_ANCESTORBLOCK;
 	chain->level_count = 0;
+	chain->level_matches = 0;
 }
 
 void
