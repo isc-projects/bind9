@@ -27,32 +27,23 @@ int
 main(int argc, char **argv)
 {
 	isc_lfsr_t lfsr1, lfsr2;
-	int i, j;
+	int i;
 	isc_uint32_t temp;
 
 	UNUSED(argc);
 	UNUSED(argv);
 
-	printf("Known LFSRs:\n");
-	i = 0;
-	while (isc_lfsr_standard[i].bits != 0) {
-		printf("%2d: %2d bits, %08x initial state, %08x tap\n",
-		       i, isc_lfsr_standard[i].bits,
-		       isc_lfsr_standard[i].state, isc_lfsr_standard[i].tap);
-		i++;
-	}
-
 	/*
 	 * Verify that returned values are reproducable.
 	 */
-	lfsr1 = isc_lfsr_standard[3];
+	isc_lfsr_init(&lfsr1, 0, 32, 0x80000057U, 0, NULL, NULL);
 	for (i = 0 ; i < 32 ; i++) {
-		state[i] = isc_lfsr_generate(&lfsr1);
+		isc_lfsr_generate(&lfsr1, &state[i], 4);
 		printf("lfsr1:  state[%2d] = %08x\n", i, state[i]);
 	}
-	lfsr1 = isc_lfsr_standard[3];
+	isc_lfsr_init(&lfsr1, 0, 32, 0x80000057U, 0, NULL, NULL);
 	for (i = 0 ; i < 32 ; i++) {
-		temp = isc_lfsr_generate(&lfsr1);
+		isc_lfsr_generate(&lfsr1, &temp, 4);
 		if (state[i] != temp)
 			printf("lfsr1:  state[%2d] = %08x, but new state is %08x\n",
 			       i, state[i], temp);
@@ -61,14 +52,16 @@ main(int argc, char **argv)
 	/*
 	 * Now do the same with skipping.
 	 */
-	lfsr1 = isc_lfsr_standard[3];
+	isc_lfsr_init(&lfsr1, 0, 32, 0x80000057U, 0, NULL, NULL);
 	for (i = 0 ; i < 32 ; i++) {
-		state[i] = isc_lfsr_skipgenerate(&lfsr1, 6);
+		isc_lfsr_generate(&lfsr1, &state[i], 4);
+		isc_lfsr_skip(&lfsr1, 32);
 		printf("lfsr1:  state[%2d] = %08x\n", i, state[i]);
 	}
-	lfsr1 = isc_lfsr_standard[3];
+	isc_lfsr_init(&lfsr1, 0, 32, 0x80000057U, 0, NULL, NULL);
 	for (i = 0 ; i < 32 ; i++) {
-		temp = isc_lfsr_skipgenerate(&lfsr1, 6);
+		isc_lfsr_generate(&lfsr1, &temp, 4);
+		isc_lfsr_skip(&lfsr1, 32);
 		if (state[i] != temp)
 			printf("lfsr1:  state[%2d] = %08x, but new state is %08x\n",
 			       i, state[i], temp);
@@ -76,22 +69,22 @@ main(int argc, char **argv)
 
 	/*
 	 * Try to find the period of the LFSR.
+	 *
+	 *	x^16 + x^5 + x^3 + x^2 + 1
 	 */
-	lfsr2 = isc_lfsr_standard[1];
-	printf("Searching for repeating patterns in a %d-bit LFSR\n",
-	       lfsr2.bits);
-	for (i = 0 ; i < (1024 * 64) ; i++)
-		state[i] = isc_lfsr_generate(&lfsr2);
-	for (i = 0 ; i < (1024 * 64) ; i++) {
-		for (j = i + 1 ; j < (1024 * 64) ; j++) {
-			if (state[i] == state[j]) {
-				printf("%08x: state %d and %d are the same, distance %d.\n",
-				       state[i], i, j, j - i);
-				goto next_i;
-			}
-		}
-		next_i:
+	isc_lfsr_init(&lfsr2, 0, 16, 0x00008016U, 0, NULL, NULL);
+	for (i = 0 ; i < 32 ; i++) {
+		isc_lfsr_generate(&lfsr2, &state[i], 4);
+		printf("lfsr2:  state[%2d] = %08x\n", i, state[i]);
 	}
+	isc_lfsr_init(&lfsr2, 0, 16, 0x00008016U, 0, NULL, NULL);
+	for (i = 0 ; i < 32 ; i++) {
+		isc_lfsr_generate(&lfsr2, &temp, 4);
+		if (state[i] != temp)
+			printf("lfsr2:  state[%2d] = %08x, but new state is %08x\n",
+			       i, state[i], temp);
+	}
+
 
 	return (0);
 }

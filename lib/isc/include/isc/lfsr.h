@@ -20,22 +20,31 @@
 
 #include <isc/types.h>
 
+typedef struct isc_lfsr isc_lfsr_t;
+
+/*
+ * This function is called when reseeding is needed.  It is allowed to
+ * modify any state in the LFSR in any way it sees fit OTHER THAN "bits".
+ *
+ * It MUST set "count" to a new value or the lfsr will never reseed again.
+ *
+ * Also, a reseed will never occur in the middle of an extraction.  This
+ * is purely an optimization, and is probably what one would want.
+ */
+typedef void (*isc_lfsrreseed_t)(isc_lfsr_t *, void *);
+
 /*
  * The members of this structure can be used by the application, but care
  * needs to be taken to not change state once the lfsr is in operation.
  */
-typedef struct {
-	isc_uint32_t	state;	/* previous state */
-	unsigned int	bits;	/* length */
-	isc_uint32_t	tap;	/* bit taps */
-} isc_lfsr_t;
-
-/*
- * This structure contains some standard LFSR values that can be used.
- * One can use the isc_lfsr_findlfsr() to search for one with at least
- * a certain number of bits.
- */
-extern isc_lfsr_t isc_lfsr_standard[];
+struct isc_lfsr {
+	isc_uint32_t		state;	/* previous state */
+	unsigned int		bits;	/* length */
+	isc_uint32_t		tap;	/* bit taps */
+	unsigned int		count;	/* reseed count (in BITS!) */
+	isc_lfsrreseed_t	reseed;	/* reseed function */
+	void		       *arg;	/* reseed function argument */
+};
 
 ISC_LANG_BEGINDECLS
 
@@ -45,24 +54,9 @@ ISC_LANG_BEGINDECLS
  * bit length 32 will have 2^32 unique states before repeating.
  */
 
-isc_lfsr_t *isc_lfsr_findlfsr(unsigned int bits);
-/*
- * Find an LFSR that has at least "bits" of state.
- *
- * Requires:
- *
- *	8 <= bits <= 32
- *
- * Returns:
- *
- *	NULL if no LFSR can be found.
- *
- *	If NON-null, it points to the first LFSR in the standard LFSR table
- *	that satisfies the requirements.
- */
-
 void isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
-		   isc_uint32_t tap);
+		   isc_uint32_t tap, unsigned int count,
+		   isc_lfsrreseed_t reseed, void *arg);
 /*
  * Initialize an LFSR.
  *
@@ -80,27 +74,39 @@ void isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
  *	tap != 0
  */
 
-isc_uint32_t isc_lfsr_generate(isc_lfsr_t *lfsr);
+void isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count);
 /*
- * Return the next state in the LFSR.
+ * Returns "count" bytes of data from the LFSR.
+ *
+ * Requires:
+ *
+ *	lfsr be valid.
+ *
+ *	data != NULL.
+ *
+ *	count > 0.
+ */
+
+void isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip);
+/*
+ * Skip "skip" states.
  *
  * Requires:
  *
  *	lfsr be valid.
  */
 
-isc_uint32_t isc_lfsr_skipgenerate(isc_lfsr_t *lfsr, unsigned int skip);
-/*
- * Skip "skip" states, then return the next state after that.
- *
- * Requiremens are the same as for isc_lfsr_generate(), above.
- */
-
-isc_uint32_t isc_lfsr_lfsrskipgenerate(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2,
-				       unsigned int skipbits);
+isc_uint32_t isc_lfsr_generate32(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2);
 /*
  * Given two LFSRs, use the current state from each to skip entries in the
  * other.  The next states are then xor'd together and returned.
+ *
+ * WARNING:
+ *
+ *	This function is used only for very, very low security data, such
+ *	as DNS message IDs where it is desired to have an unpredictable
+ *	stream of bytes that are harder to predict than a simple flooding
+ *	attack.
  *
  * Notes:
  *

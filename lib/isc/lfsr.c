@@ -20,31 +20,12 @@
 #include <isc/assertions.h>
 #include <isc/lfsr.h>
 
-/*
- * Any LFSR added to this table needs to have a large period.
- * Entries should be added from longest bit state to smallest bit state.
- * XXXMLG Need to pull some from Applied Crypto.
- */
-isc_lfsr_t isc_lfsr_standard[] = {
-	{ 0, 32, 0x80000057U },	/* 32-bit, x^31 + x^6 + x^4 + x^2 + x + 1 */
-	{ 0, 32, 0x80000047U },	/* 32-bit, x^31 + x^6 + x^2 + x + 1 */
-	{ 0, 30, 0x20000029U },	/* 30-bit, x^29 + x^6 + x^3 + 1 */
-	{ 0, 19, 0x00040013U },	/* 19-bit, x^18 + x^4 + x + 1 */
-	{ 0, 13, 0x0000100dU },	/* 13-bit, x^12 + x^3 + x^2 + 1 */
-	{ 0, 0, 0}
-};
-
 #define VALID_LFSR(x)	(x != NULL)
-
-isc_lfsr_t *
-isc_lfsr_findlfsr(unsigned int bits)
-{
-	return (NULL);  /* XXXMLG implement? */
-}
 
 void
 isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
-	      isc_uint32_t tap)
+	      isc_uint32_t tap, unsigned int count,
+	      isc_lfsrreseed_t reseed, void *arg)
 {
 	REQUIRE(VALID_LFSR(lfsr));
 	REQUIRE(8 <= bits && bits <= 32);
@@ -53,6 +34,14 @@ isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
 	lfsr->state = state;
 	lfsr->bits = bits;
 	lfsr->tap = tap;
+	lfsr->count = count;
+	lfsr->reseed = reseed;
+	lfsr->arg = arg;
+
+	if (count == 0 && reseed != NULL)
+		reseed(lfsr, arg);
+	if (lfsr->state == 0)
+		lfsr->state = 0xffffffffU >> (32 - lfsr->bits);
 }
 
 /*
@@ -61,31 +50,63 @@ isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
 static inline isc_uint32_t
 lfsr_generate(isc_lfsr_t *lfsr)
 {
-	unsigned int nbits;
+	unsigned int highbit;
 
-	nbits = lfsr->bits - 1;
+	highbit = 1 << (lfsr->bits - 1);
 
 	/*
 	 * If the previous state is zero, we must fill it with something
 	 * here, or we will begin to generate an extremely predictable output.
+	 *
+	 * First, give the reseed function a crack at it.  If the state is
+	 * still 0, set it to all ones.
 	 */
-	if (lfsr->state == 0)
-		lfsr->state = (-1) & ((1 << nbits) - 1);
+	if (lfsr->state == 0) {
+		if (lfsr->reseed != NULL)
+			lfsr->reseed(lfsr, lfsr->arg);
+		if (lfsr->state == 0)
+			lfsr->state = 0xffffffffU >> (32 - lfsr->bits);
+	}
 
-	if (lfsr->state & 1)
-		lfsr->state = ((lfsr->state ^ lfsr->tap) >> 1) | (1 << nbits);
-	else
+	if (lfsr->state & 0x01) {
+		lfsr->state = ((lfsr->state ^ lfsr->tap) >> 1) | highbit;
+		return (1);
+	} else {
 		lfsr->state >>= 1;
-
-	return (lfsr->state);
+		return (0);
+	}
 }
 
-isc_uint32_t
-isc_lfsr_generate(isc_lfsr_t *lfsr)
+void
+isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count)
 {
-	REQUIRE(VALID_LFSR(lfsr));
+	unsigned char *p;
+	unsigned int bit;
+	unsigned int byte;
 
-	return (lfsr_generate(lfsr));
+	REQUIRE(VALID_LFSR(lfsr));
+	REQUIRE(data != NULL);
+	REQUIRE(count > 0);
+
+	p = data;
+	byte = count;
+
+	while (byte--) {
+		*p = 0;
+		for (bit = 0 ; bit < 7 ; bit++) {
+			*p |= lfsr_generate(lfsr);
+			*p <<= 1;
+		}
+		*p |= lfsr_generate(lfsr);
+		p++;
+	}
+
+	if (lfsr->count != 0 && lfsr->reseed != NULL) {
+		if (lfsr->count <= count * 8)
+			lfsr->reseed(lfsr, lfsr->arg);
+		else
+			lfsr->count -= (count * 8);
+	}
 }
 
 static inline isc_uint32_t
@@ -94,51 +115,38 @@ lfsr_skipgenerate(isc_lfsr_t *lfsr, unsigned int skip)
 	while (skip--)
 		(void)lfsr_generate(lfsr);
 
-	return (lfsr_generate(lfsr));
+	(void)lfsr_generate(lfsr);
+
+	return (lfsr->state);
 }
 
 /*
- * Skip "skip" states in "lfsr" and return the ending state.
+ * Skip "skip" states in "lfsr".
  */
-isc_uint32_t
-isc_lfsr_skipgenerate(isc_lfsr_t *lfsr, unsigned int skip)
+void
+isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip)
 {
 	REQUIRE(VALID_LFSR(lfsr));
 
-	return (lfsr_skipgenerate(lfsr, skip));
+	while (skip--)
+		(void)lfsr_generate(lfsr);
 }
 
 /*
  * Skip states in lfsr1 and lfsr2 using the other's current state.
  * Return the final state of lfsr1 ^ lfsr2.
- *
- * Since this uses the _previous_ state of the lfsrs, the the actual values
- * they contain should never be released to anyone other than by return from
- * this function.
- *
- * "skipbits" indicates how many lower bits should be used to advance the
- * lfsrs.  A good value is 1.  If simple combining is desired (without
- * skipping any values) one can use 0.
  */
 isc_uint32_t
-isc_lfsr_lfsrskipgenerate(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2,
-			  unsigned int skipbits)
+isc_lfsr_generate32(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2)
 {
 	isc_uint32_t state1, state2;
 	isc_uint32_t skip1, skip2;
-	isc_uint32_t skipmask;
 
 	REQUIRE(VALID_LFSR(lfsr1));
 	REQUIRE(VALID_LFSR(lfsr2));
-	REQUIRE(skipbits < 31);
 
-	if (skipbits == 0)
-		skipmask = 0;
-	else
-		skipmask = (1 << skipbits) - 1;
-
-	skip1 = lfsr1->state & skipmask;
-	skip2 = lfsr2->state & skipmask;
+	skip1 = lfsr1->state & 0x01;
+	skip2 = lfsr2->state & 0x01;
 
 	/* cross-skip. */
 	state1 = lfsr_skipgenerate(lfsr1, skip2);

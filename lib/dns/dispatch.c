@@ -88,7 +88,8 @@ struct dns_dispatch {
 	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
 	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	dns_tcpmsg_t		tcpmsg;		/* for tcp streams */
-	isc_lfsr_t		qid_lfsr;	/* state generator info */
+	isc_lfsr_t		qid_lfsr1;	/* state generator info */
+	isc_lfsr_t		qid_lfsr2;	/* state generator info */
 	unsigned int		qid_nbuckets;	/* hash table size */
 	unsigned int		qid_increment;	/* id increment on collision */
 	dns_displist_t	        *qid_table;	/* the table itself */
@@ -125,6 +126,16 @@ static dns_dispentry_t *linear_first(dns_dispatch_t *disp);
 static dns_dispentry_t *linear_next(dns_dispatch_t *disp,
 				    dns_dispentry_t *resp);
 
+static void
+reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
+{
+	UNUSED(arg);
+
+	lfsr->count = (random() & 0x1f) + 32;	/* From 32 to 63 states */
+
+	lfsr->state = random();
+}
+
 /*
  * Return an unpredictable message ID.
  */
@@ -133,7 +144,7 @@ randomid(dns_dispatch_t *disp)
 {
 	isc_uint32_t id;
 
-	id = isc_lfsr_generate(&disp->qid_lfsr);
+	id = isc_lfsr_generate32(&disp->qid_lfsr1, &disp->qid_lfsr2);
 
 	return ((dns_messageid_t)(id & 0x0000ffff));
 }
@@ -887,10 +898,19 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	}
 
 	/*
-	 * Initialize to a 32-bit LFSR.
-	 *	x^31 + x^6 + x^4 + x^2 + x + 1
+	 * Initialize to a 32-bit LFSR.  Both of these are from Applied
+	 * Cryptography.
+	 *
+	 * lfsr1:
+	 *	x^32 + x^7 + x^5 + x^3 + x^2 + x + 1
+	 *
+	 * lfsr2:
+	 *	x^32 + x^7 + x^6 + x^2 + 1
 	 */
-	isc_lfsr_init(&disp->qid_lfsr, random(), 32, 0x80000057U);
+	isc_lfsr_init(&disp->qid_lfsr1, 0, 32, 0x80000057U,
+		      0, reseed_lfsr, disp);
+	isc_lfsr_init(&disp->qid_lfsr2, 0, 32, 0x800000c2U,
+		      0, reseed_lfsr, disp);
 
 	disp->magic = DISPATCH_MAGIC;
 
