@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.h,v 1.15 2000/02/03 23:43:07 halley Exp $ */
+/* $Id: sig_24.h,v 1.16 2000/03/17 17:07:10 gson Exp $ */
 
- /* RFC 2065 */
+/* RFC 2535 */
 
 typedef struct dns_rdata_generic_sig_t {
 	dns_rdatacommon_t	common;
