@@ -1,0 +1,10 @@
+; Copyright
+
+; $Id: warn.example.db.in,v 1.2 2004/02/27 20:44:08 marka Exp $
+
+$TTL 300
+@	SOA ns1.warn.example. hostmaster.warn.example. (
+	    1 3600 1200 604800 3600 )
+	NS  ns1.warn.example.
+ns1.warn.example. A 10.53.0.1
+xx_xx.warn.example. A 10.53.0.1
