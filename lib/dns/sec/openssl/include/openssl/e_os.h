@@ -90,7 +90,6 @@ extern "C" {
 #define NO_RC4
 #define NO_RC5
 #define NO_RIPEMD
-#define NO_OBJECT
 #define NO_BIO
 
 /********************************************************************
