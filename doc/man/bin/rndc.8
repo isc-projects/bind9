@@ -13,7 +13,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 .\" SOFTWARE.
 .\" 
-.\" $Id: rndc.8,v 1.1 2000/06/29 05:31:42 jim Exp $
+.\" $Id: rndc.8,v 1.2 2000/07/04 01:25:01 tale Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt RDNC 8
@@ -88,7 +88,7 @@ The
 .Fl p
 option is used to make
 .Nm rndc
-send commands to UDP port number
+send commands to TCP port number
 .Ar port#
 on the system running the name server instead of the default.
 The standard port number used by BIND9 name servers for receiving
@@ -134,5 +134,5 @@ This limitation will be removed in a future release.
 .Sh SEE ALSO
 .Xr named 8 ,
 .Xr RFC2845 ,
-.Xr nrdc.conf 5 ,
+.Xr rndc.conf 5 ,
 .Xr ndc 8 .
