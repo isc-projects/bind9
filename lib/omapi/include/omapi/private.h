@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.24 2000/08/01 01:33:10 tale Exp $ */
+/* $Id: private.h,v 1.25 2000/08/26 01:56:46 bwelling Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -26,6 +26,7 @@
 
 #include <isc/condition.h>
 #include <isc/lang.h>
+#include <isc/mutex.h>
 #include <isc/socket.h>
 
 #include <dst/dst.h>
