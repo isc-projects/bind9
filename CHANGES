@@ -1,5 +1,5 @@
 
- 788.	[feature]	Add the "match-mapped-addresses" options, which
+ 788.	[feature]	Add the "match-mapped-addresses" option, which
  			causes IPv6 v4mapped addresses to be treated as
 			IPv4 addresses for the purpose of acl matching.
 
