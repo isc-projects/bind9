@@ -14,6 +14,8 @@
 
 isc_memctx_t mctx = NULL;
 
+volatile int tasks_done = 0;
+
 static isc_boolean_t
 my_callback(isc_task_t task, isc_event_t event)
 {
@@ -35,6 +37,20 @@ my_shutdown(isc_task_t task, isc_event_t event)
 	fflush(stdout);
 	isc_event_free(&event);
 
+	tasks_done++;
+
+	return (ISC_TRUE);
+}
+
+static isc_boolean_t
+my_listen(isc_task_t task, isc_event_t event)
+{
+	char *name = event->arg;
+
+	printf("newcon %s (%p)\n", name, task);
+	fflush(stdout);
+	isc_event_free(&event);
+
 	return (ISC_TRUE);
 }
 
@@ -43,11 +59,16 @@ main(int argc, char *argv[])
 {
 	isc_taskmgr_t manager = NULL;
 	isc_task_t t1 = NULL, t2 = NULL;
-	isc_task_t t3 = NULL, t4 = NULL;
 	isc_event_t event;
 	unsigned int workers;
 	isc_socketmgr_t socketmgr;
 	isc_socket_t so1, so2;
+	struct isc_sockaddr sockaddr;
+	int addrlen;
+
+	memset(&sockaddr, 0, sizeof(sockaddr));
+	sockaddr.type.sin.sin_port = htons(5544);
+	addrlen = sizeof(struct sockaddr_in);
 
 	if (argc > 1)
 		workers = atoi(argv[1]);
@@ -64,23 +85,21 @@ main(int argc, char *argv[])
 	       ISC_R_SUCCESS);
 	INSIST(isc_task_create(manager, my_shutdown, "2", 0, &t2) ==
 	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, my_shutdown, "3", 0, &t3) ==
-	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, my_shutdown, "4", 0, &t4) ==
-	       ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
-	printf("task 3 = %p\n", t3);
-	printf("task 4 = %p\n", t4);
 
 	socketmgr = NULL;
 	INSIST(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 	so1 = NULL;
-	INSIST(isc_socket_create(socketmgr, isc_socket_udp,
+	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
 				 &so1) == ISC_R_SUCCESS);
+	INSIST(isc_socket_bind(so1, &sockaddr, addrlen) == ISC_R_SUCCESS);
+	INSIST(isc_socket_listen(so1, 0, t1, my_listen,
+				 "so1") == ISC_R_SUCCESS);
+
 	so2 = NULL;
-	INSIST(isc_socket_create(socketmgr, isc_socket_udp,
+	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
 				 &so2) == ISC_R_SUCCESS);
 
 	sleep(2);
@@ -115,29 +134,23 @@ main(int argc, char *argv[])
 	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "2",
 				   sizeof *event);
 	isc_task_send(t2, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "3",
-				   sizeof *event);
-	isc_task_send(t3, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "4",
-				   sizeof *event);
-	isc_task_send(t4, &event);
 	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "2",
 				   sizeof *event);
 	isc_task_send(t2, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "3",
-				   sizeof *event);
-	isc_task_send(t3, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "4",
-				   sizeof *event);
-	isc_task_send(t4, &event);
-	isc_task_purge(t3, NULL, 0);
 
+	isc_task_shutdown(t1);
+	isc_task_shutdown(t2);
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
-	isc_task_detach(&t3);
-	isc_task_detach(&t4);
 
-	sleep(10);
+	/*
+	 * Grr!  there is no way to say "wake me when it's over"
+	 */
+	while (tasks_done != 2) {
+		fprintf(stderr, "Tasks done: %d\n", tasks_done);
+		sleep(2);
+	}
+		
 	printf("destroy\n");
 	isc_socket_detach(&so1);
 	isc_socket_detach(&so2);

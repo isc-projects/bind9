@@ -1,3 +1,4 @@
+/* $Id: socket.c,v 1.2 1998/11/06 01:45:35 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -6,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -33,14 +35,6 @@
 	INSIST(isc_mutex_lock((lp)) == ISC_R_SUCCESS);
 #define UNLOCK(lp) \
 	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS);
-#define BROADCAST(cvp) \
-	INSIST(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS);
-#define SIGNAL(cvp) \
-	INSIST(isc_condition_signal((cvp)) == ISC_R_SUCCESS);
-#define WAIT(cvp, lp) \
-	INSIST(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS);
-#define WAITUNTIL(cvp, lp, tp) \
-	isc_condition_waituntil((cvp), (lp), (tp))
 
 /*
  * Debugging
@@ -56,16 +50,20 @@
 #endif
 
 /*
- * A socket request.  These are allocated XXX
+ * internal event used to send readable/writable events to our internal
+ * functions.
  */
-struct isc_socket_req {
-	isc_task_t		task;
-};
-	
+typedef struct isc_socket_intev {
+	struct isc_event		common;	   /* Sender is the socket. */
+	isc_task_t			task;	   /* task to send these to */
+	isc_socketevent_t		done_ev;   /* the done event to post */
+	isc_boolean_t			partial;   /* partial i/o ok */
+	LINK(struct isc_socket_intev)	link;
+} *isc_socket_intev_t;
 
 #define SOCKET_MAGIC			0x494f696fU	/* IOio */
 #define VALID_SOCKET(t)			((t) != NULL && \
-					 (t)->magic == SOCKET_MAGIC)
+				 (t)->magic == SOCKET_MAGIC)
 struct isc_socket {
 	/* Not locked. */
 	unsigned int			magic;
@@ -74,17 +72,20 @@ struct isc_socket {
 	/* Locked by socket lock. */
 	unsigned int			references;
 	int				fd;
-	LIST(struct isc_socket_req)	read_reqs;
-	LIST(struct isc_socket_req)	write_reqs;
-	/* Locked by manager lock. */
+	LIST(struct isc_socket_intev)	read_list;
+	LIST(struct isc_socket_intev)	write_list;
+	isc_boolean_t			pending_read;
+	isc_boolean_t			pending_write;
 	isc_sockettype_t		type;
-	LINK(struct isc_socket)		link;
+	isc_socket_intev_t		riev;
+	isc_socket_intev_t		wiev;
+	struct isc_sockaddr		address;
+	int				addrlength;
 };
 
 #define SOCKET_MANAGER_MAGIC		0x494f6d67U	/* IOmg */
 #define VALID_MANAGER(m)		((m) != NULL && \
 					 (m)->magic == SOCKET_MANAGER_MAGIC)
-
 struct isc_socketmgr {
 	/* Not locked. */
 	unsigned int			magic;
@@ -92,26 +93,40 @@ struct isc_socketmgr {
 	isc_mutex_t			lock;
 	/* Locked by manager lock. */
 	isc_boolean_t			done;
-	LIST(struct isc_socket)		sockets;
 	unsigned int			nscheduled;
+	unsigned int			nsockets;  /* sockets managed */
 	isc_thread_t			thread;
-	int				pipe_fds[2]; /* XXX lock needed? */
-	fd_set				read_fds;  /* XXX This sucks... */
+	fd_set				read_fds;
 	fd_set				write_fds;
+	isc_socket_t			fds[FD_SETSIZE];
+	int				pipe_fds[2];
+	sig_atomic_t			pipe_msgs;
 };
 
-#define SELECT_POKE_SHUTDOWN		(1)
-#define SELECT_POKE_REFRESH		(2)
+typedef int select_msg_t;
+#define SELECT_POKE_SHUTDOWN		(-1)
+#define SELECT_POKE_NOTHING		(-2)
 
-typedef unsigned long select_msg_t;
+static void send_done_event(isc_socket_t, isc_socket_intev_t *,
+			    isc_socketevent_t *, isc_result_t);
+static void done_event_destroy(isc_event_t);
 
 /*
- * poke the select loop when there is something for us to do.
+ * poke the select loop when there is something for us to do.  Manager must
+ * be locked.
  */
 static void
 select_poke(isc_socketmgr_t mgr, select_msg_t msg)
 {
-	write(mgr->pipe_fds[1], &msg, sizeof(select_msg_t));
+	int cc;
+
+	cc = write(mgr->pipe_fds[1], &msg, sizeof(select_msg_t));
+	if (cc < 0)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "write() failed during watcher poke: %s",
+				 strerror(errno));
+
+	INSIST(cc == sizeof(select_msg_t));
 }
 
 /*
@@ -121,43 +136,62 @@ static select_msg_t
 select_readmsg(isc_socketmgr_t mgr)
 {
 	select_msg_t msg;
+	int cc;
 
-	read(mgr->pipe_fds[0], &msg, sizeof(select_msg_t));
+	cc = read(mgr->pipe_fds[0], &msg, sizeof(select_msg_t));
+	if (cc < 0) {
+		if (errno == EWOULDBLOCK)
+			return SELECT_POKE_NOTHING;
+
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "read() failed during watcher poke: %s",
+				 strerror(errno));
+		return SELECT_POKE_NOTHING;  /* XXX */
+	}
+
+	INSIST(cc == sizeof(select_msg_t));
 
 	return msg;
 }
 
 /*
- * Set a socket up for reading or writing.  This is a low level, internal
- * routine.
- *
- * Caller must ensure locking.
+ * Make a fd non-blocking
  */
-static inline isc_result_t
-schedule(isc_socket_t sock)
+static isc_result_t
+make_nonblock(int fd)
 {
-	isc_result_t result;
-	isc_socketmgr_t manager;
+	int ret;
+	int flags;
 
-	/*
-	 * do stuff here to arange to track I/O on this socket.
-	 */
+	flags = fcntl(fd, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	ret = fcntl(fd, F_SETFL, flags);
 
-	return (ISC_R_SUCCESS);
+	if (ret == -1) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "fcntl(%d, F_SETFL, %d): %s",
+				 fd, flags, strerror(errno));
+		return ISC_R_UNEXPECTED;
+	}
+
+	return ISC_R_SUCCESS;
 }
 
 /*
- * Remove either read, write, or both from a socket.
- *
- * Caller must ensure locking.
+ * Handle freeing a done event when needed.
  */
-static inline void
-deschedule(isc_socket_t sock)
+static void
+done_event_destroy(isc_event_t ev)
 {
-	isc_boolean_t need_wakeup = ISC_FALSE;
-	isc_socketmgr_t manager;
+	isc_socket_t sock = ev->sender;
 
-	manager = sock->manager;
+	/*
+	 * detach from the socket.  We would have already detached from the
+	 * task when we actually queue this event up.
+	 */
+	LOCK(&sock->lock);
+	sock->references--;
+	UNLOCK(&sock->lock);
 }
 
 /*
@@ -173,15 +207,18 @@ destroy(isc_socket_t sock)
 	LOCK(&manager->lock);
 
 	/*
-	 * XXX
-	 * This is going to be tricky...  Run through the list of all
-	 * tasks attached to this socket and purge events in their
-	 * queues.
+	 * Noone has this socket open, so the watcher doesn't have to be
+	 * poked.
 	 */
-	deschedule(sock);
-	UNLINK(manager->sockets, sock, link);
+	manager->fds[sock->fd] = NULL;
+	manager->nsockets--;
 
 	UNLOCK(&manager->lock);
+
+	if (sock->riev)
+		isc_event_free((isc_event_t *)&sock->riev);
+	if (sock->wiev)
+		isc_event_free((isc_event_t *)&sock->wiev);
 
 	(void)isc_mutex_destroy(&sock->lock);
 	sock->magic = 0;
@@ -200,7 +237,6 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 		  isc_socket_t *socketp)
 {
 	isc_socket_t sock;
-	isc_result_t result;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
@@ -219,8 +255,10 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 	/*
 	 * set up list of readers and writers to be initially empty
 	 */
-	INIT_LIST(sock->read_reqs);
-	INIT_LIST(sock->write_reqs);
+	INIT_LIST(sock->read_list);
+	INIT_LIST(sock->write_list);
+	sock->pending_read = ISC_FALSE;
+	sock->pending_write = ISC_FALSE;
 
 	/*
 	 * Create the associated socket XXX
@@ -251,6 +289,14 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 		}
 	}
 
+	if (make_nonblock(sock->fd) != ISC_R_SUCCESS) {
+		isc_mem_put(manager->mctx, sock, sizeof *sock);
+		close(sock->fd);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "make_nonblock(%d)", sock->fd);
+		return (ISC_R_UNEXPECTED);
+	}
+
 	/*
 	 * initialize the lock
 	 */
@@ -269,17 +315,16 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 	 * there are no external references to it yet.
 	 */
 
-	APPEND(manager->sockets, sock, link);
-	result = schedule(sock);
+	manager->fds[sock->fd] = sock;
+	manager->nsockets++;
 
 	UNLOCK(&manager->lock);
 
-	if (result == ISC_R_SUCCESS)
-		*socketp = sock;
+	*socketp = sock;
 
 	XEXIT("isc_socket_create");
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -329,39 +374,188 @@ isc_socket_detach(isc_socket_t *socketp)
 	*socketp = NULL;
 }
 
+/*
+ * I/O is possible on a given socket.  Schedule an event to this task that
+ * will call an internal function to do the I/O.  This will charge the
+ * task with the I/O operation and let our select loop handler get back
+ * to doing something real as fast as possible.
+ *
+ * The socket and manager must be locked before calling this function.
+ */
 static void
-dispatch(isc_socketmgr_t manager, isc_socket_t sock)
+dispatch_read(isc_socket_t sock)
 {
-	isc_boolean_t done = ISC_FALSE;
-	isc_boolean_t post_event;
-	isc_boolean_t need_schedule;
-	isc_event_t event;
-	isc_eventtype_t type = 0;
-	isc_result_t result;
+	isc_socket_intev_t iev;
+	isc_event_t ev;
 
-	while (manager->nscheduled > 0 && !done) {
+	iev = HEAD(sock->read_list);
+	ev = (isc_event_t)iev;
+
+	INSIST(!sock->pending_read);
+
+	sock->pending_read = ISC_TRUE;
+
+	isc_task_send(iev->task, &ev);
+}
+
+static void
+dispatch_write(isc_socket_t sock)
+{
+	isc_socket_intev_t iev;
+	isc_event_t ev;
+
+	iev = HEAD(sock->write_list);
+	ev = (isc_event_t)iev;
+
+	INSIST(!sock->pending_write);
+	sock->pending_write = ISC_TRUE;
+
+	isc_task_send(iev->task, &ev);
+}
+
+static void
+send_done_event(isc_socket_t sock, isc_socket_intev_t *iev,
+		isc_socketevent_t *dev, isc_result_t resultcode)
+{
+	DEQUEUE(sock->read_list, *iev, link);
+	(*dev)->result = resultcode;
+	isc_task_send((*iev)->task, (isc_event_t *)dev);
+	(*iev)->done_ev = NULL;
+	isc_event_free((isc_event_t *)iev);
+}
+
+static isc_boolean_t
+internal_read(isc_task_t task, isc_event_t ev)
+{
+	isc_socket_intev_t iev;
+	isc_socketevent_t dev;
+	isc_socket_t sock;
+	int cc;
+	size_t read_count;
+
+	/*
+	 * Find out what socket this is and lock it.
+	 */
+	sock = (isc_socket_t)ev->sender;
+	LOCK(&sock->lock);
+
+	INSIST(sock->pending_read == ISC_TRUE);
+	sock->pending_read = ISC_FALSE;
+
+	/*
+	 * Try to do as much I/O as possible on this socket.  There are no
+	 * limits here, currently.  If some sort of quantum read count is
+	 * desired before giving up control, make certain to process markers
+	 * regardless of quantum.
+	 */
+	do {
+		iev = HEAD(sock->read_list);
+		INSIST(iev != NULL);
+		dev = iev->done_ev;
+
 		/*
-		 * Do what here? XXX
+		 * If this is a marker event, post its completion and
+		 * continue the loop.
 		 */
-	} 
+		if (dev->common.type == ISC_SOCKEVENT_RECVMARK) {
+			send_done_event(sock, &iev, &dev, ISC_R_SUCCESS);
+			continue;
+		}
+
+		read_count = dev->region.length - dev->n;
+		cc = recv(sock->fd, dev->region.base + dev->n, read_count, 0);
+
+		/*
+		 * check for error or block condition
+		 */
+		if (cc < 0) {
+			if (cc == EWOULDBLOCK)
+				goto poke;
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal read: %s",
+					 strerror(errno));
+			INSIST(cc >= 0);
+		}
+		/*
+		 * read of 0 means the remote end was closed.  Run through
+		 * the event queue and dispatch all the events with an EOF
+		 * result code.
+		 */
+		if (cc == 0) {
+			do {
+				send_done_event(sock, &iev, &dev,
+						ISC_R_EOF);
+				iev = HEAD(sock->read_list);
+			} while (iev != NULL);
+
+			goto poke;
+		}
+
+		/*
+		 * if we read less than we expected, update counters,
+		 * poke.
+		 */
+		if ((size_t)cc < read_count) {
+			dev->n += cc;
+
+			/*
+			 * If partial reads are allowed, we return whatever
+			 * was read with a success result, and continue
+			 * the loop.
+			 */
+			if (iev->partial) {
+				send_done_event(sock, &iev, &dev,
+						ISC_R_SUCCESS);
+				continue;
+			}
+
+			/*
+			 * Partials not ok.  Exit the loop and notify the
+			 * watcher to wait for more reads
+			 */
+			goto poke;
+		}
+
+		/*
+		 * Exactly what we wanted to read.  We're done with this
+		 * entry.  Post its completion event.
+		 */
+		if ((size_t)cc == read_count)
+			send_done_event(sock, &iev, &dev, ISC_R_SUCCESS);
+
+	} while (!EMPTY(sock->read_list));
+
+ poke:
+	if (!EMPTY(sock->read_list))
+		select_poke(sock->manager, sock->fd);
+
+	UNLOCK(&sock->lock);
+
+	return (0);
 }
 
 /*
- * This is the task that will loop forever, always in a select or poll call.
+ * This is the thread that will loop forever, always in a select or poll
+ * call.
+ *
  * When select returns something to do, track down what thread gets to do
  * this I/O and post the event to it.
  */
 static isc_threadresult_t
 WINAPI
-run(void *uap)
+watcher(void *uap)
 {
 	isc_socketmgr_t manager = uap;
+	isc_socket_t sock;
 	isc_boolean_t done;
 	int ctlfd;
 	int cc;
 	fd_set readfds;
 	fd_set writefds;
 	select_msg_t msg;
+	isc_boolean_t unlock_sock;
+	int i;
+	isc_socket_intev_t	iev;
 
 	/*
 	 * Get the control fd here.  This will never change.
@@ -376,16 +570,16 @@ run(void *uap)
 
 		UNLOCK(&manager->lock);
 
-		/*
-		 * call select/poll.  This will block. XXX flesh out
-		 */
-		cc = select(FD_SETSIZE, &readfds, &writefds, NULL, NULL);
-		if (cc < 0) {
-			if (errno != EINTR)
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "select returned error (%s)",
-						 strerror(errno));
-		}
+		do {
+			cc = select(FD_SETSIZE, &readfds, &writefds, NULL,
+				    NULL);
+			if (cc < 0) {
+				if (errno != EINTR)
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
+							 "select failed: %s",
+							 strerror(errno));
+			}
+		} while (cc < 0);
 
 		LOCK(&manager->lock);
 
@@ -393,20 +587,90 @@ run(void *uap)
 		 * Process reads on internal, control fd.
 		 */
 		if (FD_ISSET(ctlfd, &readfds)) {
-			msg = select_readmsg(manager);
+			while (1) {
+				msg = select_readmsg(manager);
 
-			/*
-			 * handle shutdown message.  No other type is handled
-			 * here, as REFRESH tells us to reread our fd_sets,
-			 * which we always do at the top of the loop.
-			 */
-			if (msg == SELECT_POKE_SHUTDOWN)
-				done = ISC_TRUE;
+				/*
+				 * Nothing to read?
+				 */
+				if (msg == SELECT_POKE_NOTHING)
+					break;
+
+				/*
+				 * handle shutdown message.  We really should
+				 * jump out of this loop right away, but
+				 * it doesn't matter if we have to do a little
+				 * more work first.
+				 */
+				if (msg == SELECT_POKE_SHUTDOWN)
+					done = ISC_TRUE;
+
+				/*
+				 * This is a wakeup on a socket.  Look
+				 * at the event queue for both read and write,
+				 * and decide if we need to watch on it now
+				 * or not.
+				 */
+				if (msg >= 0) {
+					INSIST(msg < FD_SETSIZE);
+
+					sock = manager->fds[msg];
+					LOCK(&sock->lock);
+
+					/*
+					 * If there are no events, or there
+					 * is an event but we have already
+					 * queued up the internal event on a
+					 * task's queue, clear the bit.
+					 * Otherwise, set it.
+					 */
+					iev = HEAD(sock->read_list);
+					if (iev == NULL || sock->pending_read)
+						FD_CLR(sock->fd,
+						       &manager->read_fds);
+					else
+						FD_SET(sock->fd,
+						       &manager->read_fds);
+
+					iev = HEAD(sock->write_list);
+					if (iev == NULL || sock->pending_write)
+						FD_CLR(sock->fd,
+						       &manager->write_fds);
+					else
+						FD_SET(sock->fd,
+						       &manager->write_fds);
+
+					UNLOCK(&sock->lock);
+				}
+			}
 		}
 
 		/*
-		 * Process read/writes on other fds here
+		 * Process read/writes on other fds here.  Avoid locking
+		 * and unlocking twice if both reads and writes are possible.
 		 */
+		for (i = 0 ; i < FD_SETSIZE ; i++) {
+			if (manager->fds[i] != NULL) {
+				sock = manager->fds[i];
+				unlock_sock = ISC_FALSE;
+				if (FD_ISSET(i, &readfds)) {
+					unlock_sock = ISC_TRUE;
+					LOCK(&sock->lock);
+					dispatch_read(sock);
+					FD_CLR(i, &manager->read_fds);
+				}
+				if (FD_ISSET(i, &writefds)) {
+					if (!unlock_sock) {
+						unlock_sock = ISC_TRUE;
+						LOCK(&sock->lock);
+					}
+					dispatch_write(sock);
+					FD_CLR(i, &manager->write_fds);
+				}
+				if (unlock_sock)
+					UNLOCK(&sock->lock);
+			}
+		}
 	}
 
 	UNLOCK(&manager->lock);
@@ -432,7 +696,8 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = mctx;
 	manager->done = ISC_FALSE;
-	INIT_LIST(manager->sockets);
+	memset(manager->fds, 0, sizeof(manager->fds));
+	manager->nsockets = 0;
 	manager->nscheduled = 0;
 	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, manager, sizeof *manager);
@@ -455,6 +720,9 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 		return (ISC_R_UNEXPECTED);
 	}
 
+	INSIST(make_nonblock(manager->pipe_fds[0]) == ISC_R_SUCCESS);
+	INSIST(make_nonblock(manager->pipe_fds[1]) == ISC_R_SUCCESS);
+
 	/*
 	 * Set up initial state for the select loop
 	 */
@@ -465,7 +733,7 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 	/*
 	 * Start up the select/poll thread.
 	 */
-	if (isc_thread_create(run, manager, &manager->thread) !=
+	if (isc_thread_create(watcher, manager, &manager->thread) !=
 	    ISC_R_SUCCESS) {
 		(void)isc_mutex_destroy(&manager->lock);
 		isc_mem_put(mctx, manager, sizeof *manager);
@@ -494,7 +762,7 @@ isc_socketmgr_destroy(isc_socketmgr_t *managerp)
 	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&manager->lock);
-	REQUIRE(EMPTY(manager->sockets));
+	REQUIRE(manager->nsockets == 0);
 	manager->done = ISC_TRUE;
 	UNLOCK(&manager->lock);
 
@@ -521,4 +789,169 @@ isc_socketmgr_destroy(isc_socketmgr_t *managerp)
 	isc_mem_put(manager->mctx, manager, sizeof *manager);
 
 	*managerp = NULL;
+}
+
+isc_result_t
+isc_socket_recv(isc_socket_t sock, isc_region_t region,
+		isc_boolean_t partial, isc_task_t task,
+		isc_taskaction_t action, void *arg)
+{
+	isc_socketevent_t ev;
+	isc_socket_intev_t iev;
+	isc_socketmgr_t manager;
+	isc_task_t ntask;
+
+	manager = sock->manager;
+
+	ev = (isc_socketevent_t)isc_event_allocate(manager->mctx, sock,
+						   ISC_SOCKEVENT_RECVDONE,
+						   action, arg, sizeof(*ev));
+	if (ev == NULL)
+		return (ISC_R_NOMEMORY);
+
+	LOCK(&sock->lock);
+
+	if (sock->riev == NULL) {
+		iev = (isc_socket_intev_t)isc_event_allocate(manager->mctx,
+							     sock,
+							     ISC_SOCKEVENT_INTIO,
+							     internal_read,
+							     sock,
+							     sizeof(*iev));
+		if (iev == NULL) {
+			/* no special free routine yet */
+			isc_event_free((isc_event_t *)&ev);
+			return (ISC_R_NOMEMORY);
+		}
+
+		INIT_LINK(iev, link);
+
+		sock->riev = iev;
+		iev = NULL;  /* just in case */
+	}
+
+	sock->references++;  /* attach to socket in cheap way */
+
+	/*
+	 * Remember that we need to detach on event free
+	 */
+	ev->common.destroy = done_event_destroy;
+
+	ev->region = *region;
+
+	/*
+	 * If the read queue is empty, try to do the I/O right now.
+	 */
+#if 0
+	if (EMPTY(sock->read_list)) {
+		cc = recv(...);
+
+		isc_task_send(task, (isc_event_t *)&ev);
+
+		UNLOCK(&sock->lock);
+
+		return (ISC_R_SUCCESS);
+	}
+#endif
+
+	/*
+	 * We couldn't read all or part of the request right now, so queue
+	 * it.
+	 */
+	iev = sock->riev;
+	sock->riev = NULL;
+
+	isc_task_attach(task, &ntask);
+
+	iev->done_ev = ev;
+	iev->task = ntask;
+	iev->partial = partial;
+
+	ENQUEUE(sock->read_list, iev, link);
+
+	UNLOCK(&sock->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socket_bind(isc_socket_t sock, struct isc_sockaddr *sockaddr,
+		int addrlen)
+{
+	LOCK(&sock->lock);
+
+	if (bind(sock->fd, (struct sockaddr *)sockaddr, addrlen) < 0) {
+		UNLOCK(&sock->lock);
+		switch (errno) {
+		case EACCES:
+			return (ISC_R_NOPERM);
+			break;
+		case EADDRNOTAVAIL:
+			return (ISC_R_ADDRNOTAVAIL);
+			break;
+		case EADDRINUSE:
+			return (ISC_R_ADDRINUSE);
+			break;
+		case EINVAL:
+			return (ISC_R_BOUND);
+			break;
+		default:
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "bind: %s", strerror(errno));
+			return (ISC_R_UNEXPECTED);
+			break;
+		}
+	}
+
+	UNLOCK(&sock->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * set up to listen on a given socket.  We do this by creating an internal
+ * event that will be dispatched when the socket has read activity.  The
+ * watcher will send the internal event to the task when there is a new
+ * connection.
+ *
+ * Unlike in read, we don't preallocate a done event here.  Every time there
+ * is a new connection we'll have to allocate a new one anyway, so we might
+ * as well keep things simple rather than having to track them.
+ */
+isc_result_t
+isc_socket_listen(isc_socket_t sock, int backlog, isc_task_t task,
+		  isc_taskaction_t action, void *arg)
+{
+	isc_socket_intev_t iev;
+	isc_task_t ntask;
+
+	iev = (isc_socket_intev_t)isc_event_allocate(manager->mctx,
+						     sock,
+						     ISC_SOCKEVENT_INTCONN,
+						     internal_accept,
+						     sock,
+						     sizeof(*iev));
+	if (iev == NULL)
+		return (ISC_R_NOMEMORY);
+
+	INIT_LINK(iev, link);
+	isc_task_attach(task, &ntask);
+
+	LOCK(&sock->lock);
+	sock->references++;
+
+	if (listen(sock->fd, backlog) < 0) {
+		isc_event_free((isc_event_t *)&iev);
+		UNLOCK(&sock->lock);
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "listen: %s",
+				 strerror(errno));
+
+		return (ISC_R_UNEXPECTED);
+	}
+
+	iev->
+
+	UNLOCK(&sock->lock);
+
+	return (ISC_R_SUCCESS);
 }

@@ -1,3 +1,4 @@
+/* $Id: socket.h,v 1.2 1998/11/06 01:45:35 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -45,6 +46,7 @@
 
 #include <isc/boolean.h>
 #include <isc/result.h>
+#include <isc/event.h>
 
 #include <isc/task.h>
 #include <isc/region.h>
@@ -66,24 +68,34 @@ typedef struct isc_sockaddr {
 	/*
 	 * XXX  Must be big enough for all sockaddr types we care about.
 	 */
-	union foo {
+	union {
 		struct sockaddr_in sin;
-	};
+	} type;
 } *isc_sockaddr_t;
 
-typedef struct isc_sockevent {
+typedef struct isc_socketevent {
 	struct isc_event	common;		/* Sender is the socket. */
 	isc_result_t		result;		/* OK, EOF, whatever else */
 	unsigned int		n;		/* bytes read or written */
+	struct isc_region	region;		/* the region info */
 	struct isc_sockaddr	address;	/* source address */
-	int			length;		/* length of address */
-} *isc_sockevent_t;
+	int			addrlength;	/* length of address */
+} *isc_socketevent_t;
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
-#define ISC_SOCKEVENT_RECVDONE	(EVENT_CLASS_SOCKET + 1)
-#define ISC_SOCKEVENT_SENDDONE	(EVENT_CLASS_SOCKET + 2)
-#define ISC_SOCKEVENT_NEWCONN	(EVENT_CLASS_SOCKET + 3)
-#define ISC_SOCKEVENT_CONNECTED	(EVENT_CLASS_SOCKET + 4)
+#define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)
+#define ISC_SOCKEVENT_SENDDONE	(ISC_EVENTCLASS_SOCKET + 2)
+#define ISC_SOCKEVENT_NEWCONN	(ISC_EVENTCLASS_SOCKET + 3)
+#define ISC_SOCKEVENT_CONNECTED	(ISC_EVENTCLASS_SOCKET + 4)
+#define ISC_SOCKEVENT_RECVMARK	(ISC_EVENTCLASS_SOCKET + 5)
+#define ISC_SOCKEVENT_SENDMARK	(ISC_EVENTCLASS_SOCKET + 6)
+
+/*
+ * Internal events.
+ */
+#define ISC_SOCKEVENT_INTIO	(ISC_EVENTCLASS_SOCKET + 257)
+#define ISC_SOCKEVENT_INTCONN	(ISC_EVENTCLASS_SOCKET + 258)
+
 
 typedef enum {
 	isc_socket_udp,
@@ -213,7 +225,7 @@ isc_socket_detach(isc_socket_t *socketp);
  */
 
 isc_result_t
-net_socket_bind(isc_socket_t socket, struct isc_sockaddr *addressp,
+isc_socket_bind(isc_socket_t socket, struct isc_sockaddr *addressp,
 		int length);
 /*
  * Bind 'socket' to '*addressp'.
