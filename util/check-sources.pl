@@ -249,6 +249,12 @@ comment on the same line as the #include.
 ================================================================
 EOF
 
+  # XXX gcc-specific
+  # Disable builtin memcmp/memcpy/strcmp/strcpy/etc.  When they are
+  # available, gcc won't warn about the lack of a prototype in a header
+  # file.
+  $ENV{'EXT_CFLAGS'} = "-Wno-builtin";
+
   do_dir("", ".");
 }
 
