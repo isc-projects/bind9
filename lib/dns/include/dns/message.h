@@ -52,6 +52,39 @@
  * DNS_R_MOREDATA if there is more data left in the output buffer that
  * could not be rendered into the exisiting buffer.
  *
+ *
+ * Notes on using the gettemp*() and puttemp*() functions:
+ *
+ * These functions return items (names, rdatasets, etc) allocated from some
+ * internal state of the dns_message_t.  These items must be put back into
+ * the dns_message_t in one of two ways.  Assume a name was allocated via
+ * dns_message_gettempname():
+ *
+ *	(1) insert it into a section, using dns_message_addname().
+ *
+ *	(2) return it to the message using dns_message_puttempname().
+ *
+ * The same applies to rdata, rdatasets, and rdatalists which were
+ * allocated using this group of functions.
+ *
+ * Buffers allocated using isc_buffer_allocate() can be automatically freed
+ * as well by giving the buffer to the message using dns_message_takebuffer().
+ * Doing this will cause the buffer to be freed using isc_buffer_free()
+ * when the section lists are cleared, such as in a reset or in a destroy.
+ * Since the buffer itself exists until the message is destroyed, this sort
+ * of code can be written:
+ *
+ *	buffer = isc_buffer_allocate(mctx, 512, ISC_BUFFERTYPE_BINARY);
+ *	name = NULL;
+ *	name = dns_message_gettempname(message, &name);
+ *	dns_name_init(name, NULL);
+ *	result = dns_name_fromtext(name, &source, dns_rootname, ISC_FALSE,
+ *				   buffer);
+ *	dns_message_takebuffer(message, &buffer);
+ *
+ *
+ * TODO:
+ *
  * XXX Needed:  ways to handle TSIG and DNSSEC, supply TSIG and DNSSEC
  * keys, set and retrieve EDNS information, add rdata to a section,
  * move rdata from one section to another, remove rdata, etc.
@@ -132,12 +165,13 @@ struct dns_message {
 
 	isc_mem_t		       *mctx;
 	isc_bufferlist_t		scratchpad;
-	ISC_LIST(dns_msgblock_t)	names;
+	isc_bufferlist_t		cleanup;
+
+	isc_mempool_t		       *namepool;
 	ISC_LIST(dns_msgblock_t)	rdatas;
 	ISC_LIST(dns_msgblock_t)	rdatasets;
 	ISC_LIST(dns_msgblock_t)	rdatalists;
 
-	ISC_LIST(dns_name_t)		freename;
 	ISC_LIST(dns_rdata_t)		freerdata;
 	ISC_LIST(dns_rdataset_t)	freerdataset;
 	ISC_LIST(dns_rdatalist_t)	freerdatalist;
@@ -560,8 +594,9 @@ dns_result_t
 dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
 /*
  * Return a name that can be used for any temporary purpose, including
- * inserting into the message's linked lists.  The storage associated with
- * this name will be destroyed when the message is destroyed or reset.
+ * inserting into the message's linked lists.  The name must be returned
+ * to the message code using dns_message_puttempname() or inserted into
+ * one of the message's sections before the message is destroyed.
  *
  * It is the caller's responsibility to initialize this name.
  *
@@ -778,6 +813,21 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  *	DNS_R_SUCCESS		-- all is well.
  *
  *	DNS_R_NOSPACE		-- there is no space for the OPT record.
+ */
+
+void
+dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer);
+/*
+ * Give the *buffer to the message code to clean up when it is no
+ * longer needed.  This is usually when the message is reset or
+ * destroyed.
+ *
+ * Requires:
+ *
+ *	msg be a valid message.
+ *
+ *	buffer != NULL && *buffer is a valid isc_buffer_t, which was
+ *	dynamincally allocated via isc_buffer_allocate().
  */
 
 ISC_LANG_ENDDECLS
