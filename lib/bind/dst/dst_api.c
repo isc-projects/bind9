@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4 2001/04/03 06:42:17 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.1 2001/11/02 21:35:30 gson Exp $";
 #endif
 
 /*
@@ -587,6 +587,7 @@ dst_s_write_public_key(const DST_KEY *key)
 	u_char out_key[RAW_KEY_SIZE];
 	char enc_key[RAW_KEY_SIZE];
 	int len = 0;
+	int mode;
 
 	memset(out_key, 0, sizeof(out_key));
 	if (key == NULL) {
@@ -602,8 +603,10 @@ dst_s_write_public_key(const DST_KEY *key)
 			 key->dk_key_name, key->dk_id, PUBLIC_KEY));
 		return (0);
 	}
+	/* XXX in general this should be a check for symmetric keys */
+	mode = (key->dk_alg == KEY_HMAC_MD5) ? 0600 : 0644;
 	/* create public key file */
-	if ((fp = dst_s_fopen(filename, "w+", 0644)) == NULL) {
+	if ((fp = dst_s_fopen(filename, "w+", mode)) == NULL) {
 		EREPORT(("DST_write_public_key: open of file:%s failed (errno=%d)\n",
 			 filename, errno));
 		return (0);
