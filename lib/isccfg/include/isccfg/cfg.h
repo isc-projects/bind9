@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.27 2001/07/23 05:00:44 mayer Exp $ */
+/* $Id: cfg.h,v 1.28 2001/07/23 16:58:18 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -401,9 +401,14 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...)
 /*
  * Configuration object types.
  */
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_namedconf; /* A complete named.conf file. */
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf; /* A complete rndc.conf file. */
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref; /* A key reference, used as an ACL element */
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_namedconf;
+/* A complete named.conf file. */
+
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf;
+/* A complete rndc.conf file. */
+
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
+/* A key reference, used as an ACL element */
 
 ISC_LANG_ENDDECLS
 
