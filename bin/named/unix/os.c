@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.20 2000/07/01 00:48:05 tale Exp $ */
+/* $Id: os.c,v 1.21 2000/07/03 18:28:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -269,6 +269,7 @@ ns_os_inituserinfo(const char *username) {
 		return;
 
 #ifdef HAVE_LINUXTHREADS
+	linux_keepcaps();
 	if (!non_root_caps)
 		ns_main_earlyfatal(
 		   "-u not supported on Linux kernels older than 2.3.99-pre3");
@@ -302,7 +303,6 @@ void
 ns_os_minprivs(void) {
 #ifdef HAVE_LINUX_CAPABILITY_H
 #if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
-	linux_keepcaps();
 	ns_os_changeuser();
 #endif
 
