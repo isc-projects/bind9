@@ -335,23 +335,24 @@ main(int argc, char *argv[]) {
 	for (i = 0; i < argc; i++) {
 		isc_uint16_t id;
 		int alg;
-		char *namestr = NULL;
+		dns_fixedname_t fname;
+		dns_name_t *name;
 
 		isc_buffer_init(&b, argv[i], strlen(argv[i]));
 		isc_buffer_add(&b, strlen(argv[i]));
-		result = dst_key_parsefilename(&b, mctx, &namestr, &id, &alg,
-					       NULL);
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		result = dst_key_parsefilename(&b, mctx, name, &id, &alg, NULL);
 		if (result != ISC_R_SUCCESS)
 			usage();
 
 		key = NULL;
-		result = dst_key_fromfile(namestr, id, alg, DST_TYPE_PRIVATE,
+		result = dst_key_fromfile(name, id, alg, DST_TYPE_PRIVATE,
 					  mctx, &key);
 		if (result != ISC_R_SUCCESS)
 			fatal("failed to read key %s/%s/%d from disk: %s",
 			      dst_key_name(key), algtostr(dst_key_alg(key)),
 			      dst_key_id(key), isc_result_totext(result));
-		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
 
 		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 		if (rdata == NULL)

@@ -26,6 +26,8 @@
 #include <isc/region.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 
+#include <dns/fixedname.h>
+#include <dns/name.h>
 #include <dns/result.h>
 
 #include <dst/dst.h>
@@ -97,7 +99,7 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 }
 
 static void
-io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
+io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx) {
 	dst_key_t *key = NULL;
 	isc_result_t ret;
 
@@ -117,7 +119,7 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
 }
 
 static void
-dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx) {
+dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx) {
 	dst_key_t *key1 = NULL, *key2 = NULL;
 	isc_result_t ret;
 	isc_buffer_t b1, b2;
@@ -183,7 +185,7 @@ generate(int alg, isc_mem_t *mctx) {
 	isc_result_t ret;
 	dst_key_t *key = NULL;
 
-	ret = dst_key_generate("test.", alg, 512, 0, 0, 0, mctx, &key);
+	ret = dst_key_generate(dns_rootname, alg, 512, 0, 0, 0, mctx, &key);
 	printf("generate(%d) returned: %s\n", alg, isc_result_totext(ret));
 
 	if (alg != DST_ALG_DH)
@@ -210,6 +212,9 @@ get_random(void) {
 int
 main(void) {
 	isc_mem_t *mctx = NULL;
+	isc_buffer_t b;
+	dns_fixedname_t fname;
+	dns_name_t *name;
 
 	isc_mem_create(0, 0, &mctx);
 
@@ -219,14 +224,19 @@ main(void) {
 	dns_result_register();
 	dst_result_register();
 
-	io("test.", 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
-	io("test.", 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
-	   mctx);
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	isc_buffer_init(&b, "test.", 5);
+	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+	io(name, 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
+	io(name, 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 
-	io("test.", 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
-	io("test.", 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
+	io(name, 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
+	io(name, 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 
-	dh("dh.", 18088, "dh.", 48443, mctx);
+	isc_buffer_init(&b, "dh.", 3);
+	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+	dh(name, 18088, name, 48443, mctx);
 
 	generate(DST_ALG_RSA, mctx);
 	generate(DST_ALG_DH, mctx);

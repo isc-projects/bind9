@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.62 2000/05/24 05:09:15 tale Exp $
+ * $Id: tsig.c,v 1.63 2000/05/24 23:13:25 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -57,12 +57,10 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   isc_stdtime_t expire, isc_mem_t *mctx,
 		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
 {
-	isc_buffer_t b, nameb;
-	char namestr[1025];
+	isc_buffer_t b;
 	isc_uint16_t alg;
 	dns_tsigkey_t *tkey;
 	isc_result_t ret;
-	isc_region_t r;
 
 	REQUIRE(key == NULL || *key == NULL);
 	REQUIRE(name != NULL);
@@ -109,14 +107,6 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	else
 		tkey->creator = NULL;
 
-	isc_buffer_init(&nameb, namestr, sizeof(namestr) - 1);
-	ret = dns_name_totext(name, ISC_FALSE, &nameb);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_algorithm;
-
-	isc_buffer_usedregion(&nameb, &r);
-	namestr[r.length] = '\0';
-
 	tkey->key = NULL;
 	tkey->ring = NULL;
 	if (length > 0) {
@@ -124,7 +114,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 
 		isc_buffer_init(&b, secret, length);
 		isc_buffer_add(&b, length);
-		ret = dst_key_frombuffer(namestr, alg,
+		ret = dst_key_frombuffer(name, alg,
 					 DNS_KEYOWNER_ENTITY,
 					 DNS_KEYPROTO_DNSSEC,
 					 &b, mctx, &tkey->key);

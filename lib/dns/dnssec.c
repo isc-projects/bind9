@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.38 2000/05/20 01:27:28 bwelling Exp $
+ * $Id: dnssec.c,v 1.39 2000/05/24 23:13:19 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -62,9 +62,6 @@ typedef struct digestctx {
 static isc_result_t
 digest_callback(void *arg, isc_region_t *data);
 
-static isc_result_t
-keyname_to_name(char *keyname, isc_mem_t *mctx, dns_name_t *name);
-
 static int
 rdata_compare_wrapper(const void *rdata1, const void *rdata2);
 
@@ -86,30 +83,6 @@ digest_callback(void *arg, isc_region_t *data) {
 		result = dst_key_verify(DST_SIGMODE_UPDATE, ctx->key,
 					&ctx->context, data, NULL);
 	return (result);
-}
-
-/*
- * Converts the name of a key into a canonical dns_name_t.
- */
-static isc_result_t
-keyname_to_name(char *keyname, isc_mem_t *mctx, dns_name_t *name) {
-	isc_buffer_t src, dst;
-	unsigned char data[1024];
-	isc_result_t ret;
-	dns_name_t tname;
-
-	dns_name_init(name, NULL);
-	dns_name_init(&tname, NULL);
-	isc_buffer_init(&src, keyname, strlen(keyname));
-	isc_buffer_add(&src, strlen(keyname));
-	isc_buffer_init(&dst, data, sizeof(data));
-	ret = dns_name_fromtext(&tname, &src, NULL, ISC_TRUE, &dst);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
-
-	ret = dns_name_dup(&tname, mctx, name);
-	dns_name_downcase(name, name, NULL);
-	return (ret);
 }
 
 /*
@@ -168,10 +141,8 @@ isc_result_t
 dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
 			dst_key_t **key)
 {
-	isc_buffer_t b, namebuf;
+	isc_buffer_t b;
 	isc_region_t r;
-	isc_result_t ret;
-	char namestr[1024];
 
 	INSIST(name != NULL);
 	INSIST(rdata != NULL);
@@ -179,16 +150,10 @@ dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
 	INSIST(key != NULL);
 	INSIST(*key == NULL);
 
-	isc_buffer_init(&namebuf, namestr, sizeof(namestr) - 1);
-	ret = dns_name_totext(name, ISC_FALSE, &namebuf);
-	if (ret != ISC_R_SUCCESS)
-		return ret;
-	isc_buffer_usedregion(&namebuf, &r);
-	namestr[r.length] = 0;
 	dns_rdata_toregion(rdata, &r);
 	isc_buffer_init(&b, r.base, r.length);
 	isc_buffer_add(&b, r.length);
-	return (dst_key_fromdns(namestr, &b, mctx, key));
+	return (dst_key_fromdns(name, &b, mctx, key));
 }
 
 isc_result_t
@@ -234,9 +199,8 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	sig.common.rdtype = dns_rdatatype_sig;
 	ISC_LINK_INIT(&sig.common, link);
 
-	ret = keyname_to_name(dst_key_name(key), mctx, &sig.signer);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
+	dns_name_init(&sig.signer, NULL);
+	dns_name_clone(dst_key_name(key), &sig.signer);
 
 	sig.covered = set->type;
 	sig.algorithm = dst_key_alg(key);
@@ -253,7 +217,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	sig.siglen = sigsize;
 	sig.signature = isc_mem_get(mctx, sig.siglen);
 	if (sig.signature == NULL)
-		goto cleanup_name;
+		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(&b, data, sizeof(data));
 	ret = dns_rdata_fromstruct(NULL, sig.common.rdclass,
@@ -344,8 +308,6 @@ cleanup_array:
 	isc_mem_put(mctx, rdatas, nrdatas * sizeof(dns_rdata_t));
 cleanup_signature:
 	isc_mem_put(mctx, sig.signature, sig.siglen);
-cleanup_name:
-	dns_name_free(&sig.signer, mctx);
 
 	return (ret);
 }
@@ -564,7 +526,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	isc_buffer_t headerbuf, databuf, sigbuf;
 	unsigned int sigsize;
 	isc_buffer_t *dynbuf;
-	dns_name_t signer;
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *datalist;
 	dns_rdataset_t *dataset;
@@ -601,8 +562,8 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	sig.keyid = dst_key_id(key);
 
-	dns_name_init(&signer, NULL);
-	RETERR(keyname_to_name(dst_key_name(key), mctx, &sig.signer));
+	dns_name_init(&sig.signer, NULL);
+	dns_name_clone(dst_key_name(key), &sig.signer);
 
 	sig.siglen = 0;
 	sig.signature = NULL;
@@ -660,7 +621,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 				    dns_rdatatype_sig, &sig, dynbuf));
 
 	isc_mem_put(mctx, sig.signature, sig.siglen);
-	dns_name_free(&sig.signer, mctx);
 	signeedsfree = ISC_FALSE;
 
 	dns_message_takebuffer(msg, &dynbuf);
@@ -684,10 +644,8 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 failure:
 	if (dynbuf != NULL)
 		isc_buffer_free(&dynbuf);
-	if (signeedsfree) {
+	if (signeedsfree)
 		isc_mem_put(mctx, sig.signature, sig.siglen);
-		dns_name_free(&sig.signer, mctx);
-	}
 
 	return (result);
 }

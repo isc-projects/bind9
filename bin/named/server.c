@@ -199,6 +199,9 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 			unsigned char rrdata[4096];
 			isc_buffer_t rrdatabuf;
 			isc_region_t r;
+			dns_fixedname_t fkeyname;
+			dns_name_t *keyname;
+			isc_buffer_t namebuf;
 			
 			if (cview == NULL)
 				viewclass = dns_rdataclass_in;
@@ -241,7 +244,14 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 						   keystruct.common.rdclass,
 						   keystruct.common.rdtype,
 						   &keystruct, &rrdatabuf));
-			CHECK(dst_key_fromdns(ckey->domain, &rrdatabuf, mctx,
+			dns_fixedname_init(&fkeyname);
+			keyname = dns_fixedname_name(&fkeyname);
+			isc_buffer_init(&namebuf, ckey->domain,
+					strlen(ckey->domain));
+			isc_buffer_add(&namebuf, strlen(ckey->domain));
+			CHECK(dns_name_fromtext(keyname, &namebuf,
+						dns_rootname, ISC_FALSE, NULL));
+			CHECK(dst_key_fromdns(keyname, &rrdatabuf, mctx,
 					      &dstkey));
 			
 			CHECK(dns_keytable_add(keytable, &dstkey));

@@ -34,6 +34,9 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
+#include <dns/name.h>
+
 #include <dst/dst.h>
 #include <dst/result.h>
 
@@ -109,7 +112,7 @@ use(dst_key_t *key, isc_result_t exp_result, int *nfails) {
 }
 
 static void
-dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
+dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
    isc_result_t exp_result, int *nfails, int *nprobs)
 {
 	dst_key_t	*key1 = NULL, *key2 = NULL;
@@ -228,7 +231,7 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 }
 
 static void
-io(char *name, int id, int alg, int type, isc_mem_t *mctx,
+io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx,
    isc_result_t exp_result, int *nfails, int *nprobs)
 {
 	dst_key_t	*key = NULL;
@@ -302,7 +305,7 @@ generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 	isc_result_t ret;
 	dst_key_t *key = NULL;
 
-	ret = dst_key_generate("test.", alg, size, 0, 0, 0, mctx, &key);
+	ret = dst_key_generate(dns_rootname, alg, size, 0, 0, 0, mctx, &key);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_generate(%d) returned: %s\n", alg,
 		       dst_result_totext(ret));
@@ -369,6 +372,9 @@ t1(void) {
 	int		nprobs;
 	int		result;
 	isc_result_t	isc_result;
+	dns_fixedname_t	fname;
+	dns_name_t	*name;
+	isc_buffer_t	b;
 
 	t_assert("dst", 1, T_REQUIRED, a1);
 
@@ -384,20 +390,28 @@ t1(void) {
 	}
 
 	t_info("testing use of stored keys [1]\n");
-	io("test.", 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	isc_buffer_init(&b, "test.", 5);
+	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+	io(name, 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 	t_info("testing use of stored keys [2]\n");
-	io("test.", 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	io(name, 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 
 	t_info("testing use of stored keys [3]\n");
-	io("test.", 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	io(name, 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 	t_info("testing use of stored keys [4]\n");
-	io("test.", 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	io(name, 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 
-	dh("dh.", 18088, "dh.", 48443, mctx, ISC_R_SUCCESS, &nfails, &nprobs);
+	isc_buffer_init(&b, "dh.", 3);
+	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
+
+	dh(name, 18088, name, 48443, mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 
 	t_info("testing use of generated keys\n");
 	generate(DST_ALG_RSA, mctx, 512, &nfails);
@@ -599,6 +613,9 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	isc_buffer_t	sigbuf;
 	isc_region_t	datareg;
 	isc_region_t	sigreg;
+	dns_fixedname_t	fname;
+	dns_name_t	*name;
+	isc_buffer_t	b;
 
 	/*
 	 * Read data from file in a form usable by dst_verify.
@@ -639,7 +656,11 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	/*
 	 * Read key from file in a form usable by dst_verify.
 	 */
-	isc_result = dst_key_fromfile(keyname, id, alg, type, mctx, &key);
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	isc_buffer_init(&b, keyname, strlen(keyname));
+	dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	isc_result = dst_key_fromfile(name, id, alg, type, mctx, &key);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile failed %s\n",
 			isc_result_totext(isc_result));

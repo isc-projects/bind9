@@ -47,7 +47,7 @@ typedef struct dst_func dst_func;
 
 struct dst_key {
 	unsigned int	magic;
-	char *		key_name;	/* name of the key */
+	dns_name_t *	key_name;	/* name of the key */
 	int		key_size;	/* size of the key in bits */
 	int		key_proto;	/* protocols this key is used for */
 	int		key_alg;	/* algorithm of the key */

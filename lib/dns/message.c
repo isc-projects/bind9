@@ -2385,11 +2385,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			isc_buffer_init(&b, rdata.data, rdata.length);
 			isc_buffer_add(&b, rdata.length);
 
-			/*
-			 * XXXBEW should actually pass in the key name,
-			 * but it's not used anyway.
-			 */
-			result = dst_key_fromdns("", &b, view->mctx, &key);
+			result = dst_key_fromdns(&sig.signer, &b, view->mctx,
+						 &key);
 			if (result != ISC_R_SUCCESS)
 				continue;
 			if (dst_key_alg(key) != sig.algorithm ||

@@ -1,3 +1,6 @@
+ 206.   [cleanup]	dst now stores the key name as a dns_name_t, not
+			a char *.
+
  205.   [cleanup]       On IRIX, turn off the mostly harmless warnings 1692
                         ("prototyped function redeclared without prototype")
                         and 1552 ("variable ... set but not used") when

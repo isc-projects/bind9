@@ -178,7 +178,8 @@ main(int argc, char *argv[]) {
 	isc_log_t *log = NULL;
 	isc_logconfig_t *logconfig;
 	keynode_t *keynode;
-	char *savedname = NULL;
+	dns_fixedname_t fsavedname;
+	dns_name_t *savedname = NULL;
 
 	dns_result_register();
 
@@ -273,25 +274,29 @@ main(int argc, char *argv[]) {
 	for (i = 0; i < argc; i++) {
 		isc_uint16_t id;
 		int alg;
-		char *namestr = NULL;
+		dns_fixedname_t fname;
+		dns_name_t *name;
+		char namestr[1025];
 
 		isc_buffer_init(&b, argv[i], strlen(argv[i]));
 		isc_buffer_add(&b, strlen(argv[i]));
-		result = dst_key_parsefilename(&b, mctx, &namestr, &id, &alg,
-					       NULL);
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		result = dst_key_parsefilename(&b, mctx, name, &id, &alg, NULL);
 		if (result != ISC_R_SUCCESS)
 			fatal("%s is not a valid key filename", argv[i]);
+		strncpy(namestr, nametostr(name), sizeof(namestr) - 1);
+		namestr[sizeof(namestr) - 1] = 0;
 
 		if (savedname == NULL) {
-			savedname = isc_mem_strdup(mctx, namestr);
-			if (savedname == NULL)
-				fatal("out of memory");
+			fsavedname = fname;
+			savedname = dns_fixedname_name(&fsavedname);
 		}
 		else {
-			if (strcmp(savedname, namestr) != 0)
+			if (!dns_name_equal(savedname, name) != 0)
 				fatal("all keys must have the same owner - %s "
 				      "and %s do not match",
-				      savedname, namestr);
+				      nametostr(savedname), namestr);
 		}
 		if (output == NULL) {
 			output = isc_mem_allocate(mctx,
@@ -314,12 +319,12 @@ main(int argc, char *argv[]) {
 				      namestr, isc_result_totext(result));
 		}
 		key = NULL;
-		result = dst_key_fromfile(namestr, id, alg, DST_TYPE_PUBLIC,
+		result = dst_key_fromfile(name, id, alg, DST_TYPE_PUBLIC,
 					  mctx, &key);
 		check_result(result, "dst_key_fromfile");
 		if (dst_key_iszonekey(key)) {
 			dst_key_t *zonekey = NULL;
-			result = dst_key_fromfile(namestr, id, alg,
+			result = dst_key_fromfile(name, id, alg,
 						  DST_TYPE_PRIVATE, mctx,
 						  &zonekey);
 			
@@ -351,11 +356,8 @@ main(int argc, char *argv[]) {
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
 				     dns_rdatatype_key, &r);
 		ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
-		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
 		dst_key_free(&key);
 	}
-
-	isc_mem_free(mctx, savedname);
 
 	dns_rdataset_init(&rdataset);
 	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
@@ -387,7 +389,7 @@ main(int argc, char *argv[]) {
 					 rdata);
 		if (result != ISC_R_SUCCESS)
 			fatal("failed to sign keyset with key %s/%s/%d: %s",
-			      dst_key_name(keynode->key),
+			      nametostr(dst_key_name(keynode->key)),
 			      algtostr(dst_key_alg(keynode->key)),
 			      dst_key_id(keynode->key),
 			      isc_result_totext(result));

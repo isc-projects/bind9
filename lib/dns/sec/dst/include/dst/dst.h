@@ -4,6 +4,8 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
+#include <dns/types.h>
+
 ISC_LANG_BEGINDECLS
 
 /***
@@ -132,13 +134,13 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
  */
 
 isc_result_t
-dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
+dst_key_fromfile(dns_name_t *name, const isc_uint16_t id, const int alg,
 		 const int type, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Reads a key from permanent storage.
  *
  * Requires:
- *	"name" is not NULL.
+ *	"name" is a valid absolute dns name.
  *	"id" is a valid key tag identifier.
  *	"alg" is a supported key algorithm.
  *	"type" is either DST_TYPE_PUBLIC or DST_TYPE_PRIVATE.
@@ -160,13 +162,13 @@ dst_key_tofile(const dst_key_t *key, const int type);
  */
 
 isc_result_t
-dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
+dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
 		dst_key_t **keyp);
 /*
  * Converts a DNS KEY record into a DST key.
  *
  * Requires:
- *	"name" is not NULL.
+ *	"name" is a valid absolute dns name.
  *	"source" is a valid buffer.  There must be at least 4 bytes available.
  *	"mctx" is a valid memory context.
  *	"keyp" is not NULL and "*keyp" is NULL.
@@ -190,14 +192,14 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target);
  */
 
 isc_result_t
-dst_key_frombuffer(const char *name, const int alg, const int flags,
+dst_key_frombuffer(dns_name_t *name, const int alg, const int flags,
 		   const int protocol, isc_buffer_t *source, isc_mem_t *mctx,
 		   dst_key_t **keyp);
 /*
  * Converts a buffer containing DNS KEY RDATA into a DST key.
  *
  * Requires:
- *	"name" is not NULL.
+ *	"name" is a valid absolute dns name.
  *	"alg" is a supported key algorithm.
  *	"source" is a valid buffer.
  *	"mctx" is a valid memory context.
@@ -222,14 +224,14 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target);
  */
 
 isc_result_t
-dst_key_generate(const char *name, const int alg, const int bits,
+dst_key_generate(dns_name_t *name, const int alg, const int bits,
 		 const int param, const int flags, const int protocol,
 		 isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Generate a DST key (or keypair)
  *
  * Requires:
- *	"name" is not NULL
+ *	"name" is a valid absolute dns name.
  *	"alg" is a supported algorithm
  *	"bits" is a valid key size for the given algorithm
  *	"keyp" is not NULL and "*keyp" is NULL.
@@ -277,7 +279,7 @@ dst_key_free(dst_key_t **keyp);
  * Require:
  *	"key" is a valid key.
  */
-char *
+dns_name_t *
 dst_key_name(const dst_key_t *key);
 
 int
@@ -320,7 +322,7 @@ dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out);
  */
 
 isc_result_t
-dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, char **name,
+dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, dns_name_t *name,
 		      isc_uint16_t *id, int *alg, char **suffix);
 /*
  * Parses a dst key filename into its components.
@@ -328,7 +330,7 @@ dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, char **name,
  * Requires:
  *	"source" is a valid buffer
  *	"mctx" is a valid memory context
- *	"name" is not NULL and "*name" is NULL
+ *	"name" is a valid name with a dedicated buffer
  *	"id" and "alg" are not NULL
  *	Either "suffix" is NULL or "suffix" is not NULL and "*suffix" is NULL
  *

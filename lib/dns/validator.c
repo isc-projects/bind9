@@ -558,7 +558,8 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 		 * The key name is unimportant, so we can avoid any name/text
 		 * conversion.
 		 */
-		result = dst_key_fromdns("", &b, val->view->mctx, &key);
+		result = dst_key_fromdns(dns_rootname, &b, val->view->mctx,
+					 &key);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		if (dst_key_isnullkey(key))
@@ -583,7 +584,6 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 	isc_result_t result;
 	isc_buffer_t b;
 	dns_rdata_t rdata;
-	char ntext[1024];
 	dst_key_t *oldkey = val->key;
 	isc_boolean_t foundold;
 
@@ -599,24 +599,11 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 		goto failure;
 	do {
 		dns_rdataset_current(rdataset, &rdata);
-		/*
-		 * We keep one byte of ntext in reserve so
-		 * we're sure we can NUL terminate.
-		 */
-		isc_buffer_init(&b, ntext, sizeof(ntext) - 1);
-		result = dns_name_totext(&siginfo->signer, ISC_FALSE, &b);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
-
-		/*
-		 * NUL-terminate the character string.
-		 */
-		isc_buffer_putuint8(&b, 0);
 
 		isc_buffer_init(&b, rdata.data, rdata.length);
 		isc_buffer_add(&b, rdata.length);
 		INSIST(val->key == NULL);
-		result = dst_key_fromdns(ntext, &b, val->view->mctx,
+		result = dst_key_fromdns(&siginfo->signer, &b, val->view->mctx,
 					 &val->key);
 		if (result != ISC_R_SUCCESS)
 			goto failure;

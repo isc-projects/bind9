@@ -176,7 +176,7 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 				 mctx, b, rdata);
 	if (result != ISC_R_SUCCESS)
 		fatal("key '%s/%s/%d' failed to sign data: %s",
-		      dst_key_name(key), algtostr(dst_key_alg(key)),
+		      nametostr(dst_key_name(key)), algtostr(dst_key_alg(key)),
 		      dst_key_id(key), isc_result_totext(result));
 
 	if (tryverify) {
@@ -196,17 +196,9 @@ issigningkey(signer_key_t *key) {
 
 static inline isc_boolean_t
 iszonekey(signer_key_t *key, dns_db_t *db) {
-	char origin[1024];
-	isc_buffer_t b;
-	isc_result_t result;
-
-	isc_buffer_init(&b, origin, sizeof(origin));
-	result = dns_name_totext(dns_db_origin(db), ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
-
-	return (ISC_TF(strcasecmp(dst_key_name(key->key), origin) == 0 &&
+	return (dns_name_equal(dst_key_name(key->key), dns_db_origin(db)) &&
 		(dst_key_flags(key->key) & DNS_KEYFLAG_OWNERMASK) ==
-		 DNS_KEYOWNER_ZONE));
+		 DNS_KEYOWNER_ZONE);
 }
 
 /*
@@ -215,23 +207,20 @@ iszonekey(signer_key_t *key, dns_db_t *db) {
  */
 static signer_key_t *
 keythatsigned(dns_rdata_sig_t *sig) {
-	char *keyname;
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *privkey = NULL;
 	signer_key_t *key;
-
-	keyname = nametostr(&sig->signer);
 
 	key = ISC_LIST_HEAD(keylist);
 	while (key != NULL) {
 		if (sig->keyid == dst_key_id(key->key) &&
 		    sig->algorithm == dst_key_alg(key->key) &&
-		    strcasecmp(keyname, dst_key_name(key->key)) == 0)
+		    dns_name_equal(&sig->signer, dst_key_name(key->key)))
 			return key;
 		key = ISC_LIST_NEXT(key, link);
 	}
 
-	result = dst_key_fromfile(keyname, sig->keyid, sig->algorithm,
+	result = dst_key_fromfile(&sig->signer, sig->keyid, sig->algorithm,
 				  DST_TYPE_PUBLIC, mctx, &pubkey);
 	if (result != ISC_R_SUCCESS)
 		return (NULL);
@@ -240,7 +229,7 @@ keythatsigned(dns_rdata_sig_t *sig) {
 	if (key == NULL)
 		fatal("out of memory");
 
-	result = dst_key_fromfile(keyname, sig->keyid, sig->algorithm,
+	result = dst_key_fromfile(&sig->signer, sig->keyid, sig->algorithm,
 				  DST_TYPE_PRIVATE, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
 		key->key = privkey;
@@ -465,7 +454,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			else if (resign) {
 				allocbufferandrdata;
 				vbprintf(1, "\tresigning with key %s/%s/%d\n",
-				       dst_key_name(key->key),
+				       nametostr(dst_key_name(key->key)),
 				       algtostr(dst_key_alg(key->key)),
 				       dst_key_id(key->key));
 				signwithkey(name, set, trdata, key->key, &b);
@@ -496,7 +485,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		{
 			allocbufferandrdata;
 			vbprintf(1, "\tsigning with key %s/%s/%d\n",
-			       dst_key_name(key->key),
+			       nametostr(dst_key_name(key->key)),
 			       algtostr(dst_key_alg(key->key)),
 			       dst_key_id(key->key));
 			signwithkey(name, set, trdata, key->key, &b);
@@ -889,7 +878,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				dns_rdatalist_init(&keyrdatalist);
 				dstkey = NULL;
 				
-				result = dst_key_generate("", DNS_KEYALG_DSA,
+				result = dst_key_generate(name, DNS_KEYALG_DSA,
 							  0, 0,
 							  DNS_KEYTYPE_NOKEY |
 							  DNS_KEYOWNER_ZONE,
@@ -1489,12 +1478,15 @@ main(int argc, char *argv[]) {
 		for (i = 0; i < argc; i++) {
 			isc_uint16_t id;
 			int alg;
-			char *namestr = NULL;
+			dns_fixedname_t fname;
+			dns_name_t *name;
 			isc_buffer_t b;
 
 			isc_buffer_init(&b, argv[i], strlen(argv[i]));
 			isc_buffer_add(&b, strlen(argv[i]));
-			result = dst_key_parsefilename(&b, mctx, &namestr,
+			dns_fixedname_init(&fname);
+			name = dns_fixedname_name(&fname);
+			result = dst_key_parsefilename(&b, mctx, name,
 						       &id, &alg, NULL);
 			if (result != ISC_R_SUCCESS)
 				usage();
@@ -1504,31 +1496,30 @@ main(int argc, char *argv[]) {
 				dst_key_t *dkey = key->key;
 				if (dst_key_id(dkey) == id &&
 				    dst_key_alg(dkey) == alg &&
-				    strcasecmp(namestr,
-					       dst_key_name(dkey)) == 0)
+				    dns_name_equal(name, dst_key_name(dkey)))
 				{
 					key->isdefault = ISC_TRUE;
 					if (!dst_key_isprivate(dkey))
 						fatal("cannot sign zone with "
 						      "non-private key "
 						      "'%s/%s/%d'",
-						      dst_key_name(dkey),
-						   algtostr(dst_key_alg(dkey)),
-						      dst_key_id(dkey));
+						  nametostr(dst_key_name(dkey)),
+						  algtostr(dst_key_alg(dkey)),
+						  dst_key_id(dkey));
 					break;
 				}
 				key = ISC_LIST_NEXT(key, link);
 			}
 			if (key == NULL) {
 				dst_key_t *dkey = NULL;
-				result = dst_key_fromfile(namestr, id, alg,
+				result = dst_key_fromfile(name, id, alg,
 							  DST_TYPE_PRIVATE,
 							  mctx, &dkey);
 				if (result != ISC_R_SUCCESS)
 					fatal("failed to load key '%s/%s/%d' "
-					      "from disk: %s", namestr,
-					      algtostr(alg), id,
-					      isc_result_totext(result));
+					      "from disk: %s",
+					      nametostr(name), algtostr(alg),
+					      id, isc_result_totext(result));
 				key = isc_mem_get(mctx, sizeof(signer_key_t));
 				if (key == NULL)
 					fatal("out of memory");
@@ -1536,7 +1527,6 @@ main(int argc, char *argv[]) {
 				key->isdefault = ISC_TRUE;
 				ISC_LIST_APPEND(keylist, key, link);
 			}
-		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
 		}
 	}
 

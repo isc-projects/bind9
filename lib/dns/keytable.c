@@ -184,10 +184,7 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 	isc_result_t result;
 	dns_keynode_t *knode;
 	dns_rbtnode_t *node;
-	dns_fixedname_t fname;
-	char *keyname;
-	isc_buffer_t buffer;
-	size_t len;
+	dns_name_t *keyname;
 
 	/*
 	 * Add '*keyp' to 'keytable'.
@@ -197,15 +194,6 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 	REQUIRE(keyp != NULL);
 
 	keyname = dst_key_name(*keyp);
-	INSIST(keyname != NULL);
-	len = strlen(keyname);
-	isc_buffer_init(&buffer, keyname, len);
-	isc_buffer_add(&buffer, len);
-	dns_fixedname_init(&fname);
-	result = dns_name_fromtext(dns_fixedname_name(&fname), &buffer,
-				   dns_rootname, ISC_FALSE, NULL);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	knode = isc_mem_get(keytable->mctx, sizeof *knode);
 	if (knode == NULL)
@@ -214,8 +202,7 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_write);
 
 	node = NULL;
-	result = dns_rbt_addnode(keytable->table, dns_fixedname_name(&fname),
-				 &node);
+	result = dns_rbt_addnode(keytable->table, keyname, &node);
 
 	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
 		knode->magic = KEYNODE_MAGIC;

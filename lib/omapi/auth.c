@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.6 2000/05/08 14:38:08 tale Exp $ */
+/* $Id: auth.c,v 1.7 2000/05/24 23:13:32 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -110,6 +110,9 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 	auth_t *auth = NULL;
 	unsigned int dst_algorithm;
 	unsigned int secret_len;
+	dns_name_t dnsname;
+	char namebuf[1025];
+	isc_buffer_t srcb, dstb;
 
 	REQUIRE(name != NULL && algorithm != 0);
 	REQUIRE(key != NULL && *key == NULL);
@@ -136,7 +139,14 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 
 		isc_buffer_add(&secret, secret_len);
 
-		result = dst_key_frombuffer(auth->name, dst_algorithm, 0,
+		dns_name_init(&dnsname, NULL);
+		isc_buffer_init(&srcb, auth->name, strlen(auth->name));
+		isc_buffer_init(&dstb, namebuf, sizeof(namebuf));
+		result = dns_name_fromtext(&dnsname, &srcb, dns_rootname,
+					   ISC_FALSE, &dstb);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		result = dst_key_frombuffer(&dnsname, dst_algorithm, 0,
 					    0, &secret, omapi_mctx, key);
 	}
 

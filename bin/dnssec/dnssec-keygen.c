@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.25 2000/05/24 17:13:29 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.26 2000/05/24 23:13:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,8 +28,12 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
 #include <dns/keyvalues.h>
+#include <dns/name.h>
+#include <dns/result.h>
 #include <dns/secalg.h>
+
 #include <dst/dst.h>
 #include <dst/result.h>
 
@@ -114,7 +118,8 @@ main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	char		*prog, *endp;
 	dst_key_t	*key = NULL, *oldkey;
-	char		*name = NULL;
+	dns_fixedname_t	fname;
+	dns_name_t	*name;
 	isc_uint16_t	flags = 0;
 	dns_secalg_t	alg;
 	isc_boolean_t    conflict = ISC_FALSE, null_key = ISC_FALSE;
@@ -137,6 +142,9 @@ main(int argc, char **argv) {
 
 	if (argc == 1)
 		usage();
+
+	dns_result_register();
+	dst_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "a:b:eg:n:t:p:s:hv:")) != -1)
@@ -295,16 +303,15 @@ main(int argc, char **argv) {
 			fatal("Specified null key with signing authority");
 	}
 
-	name = isc_mem_allocate(mctx, strlen(argv[isc_commandline_index]) + 2);
-	if (name == NULL)
-		fatal("out of memory");
-	strcpy(name, argv[isc_commandline_index]);
-	if (name[strlen(name) - 1] != '.') {
-		strcat(name, ".");
-		fprintf(stderr,
-			"%s: added a trailing dot to fully qualify the name\n",
-			PROGRAM);
-	}
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	isc_buffer_init(&buf, argv[isc_commandline_index],
+			strlen(argv[isc_commandline_index]));
+	isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
+	ret = dns_name_fromtext(name, &buf, dns_rootname, ISC_FALSE, NULL);
+	if (ret != ISC_R_SUCCESS)
+		fatal("Invalid key name %s: %s", argv[isc_commandline_index],
+		      isc_result_totext(ret));
 
 	switch(alg) {
 	case DNS_KEYALG_RSA:
@@ -323,7 +330,6 @@ main(int argc, char **argv) {
 		null_key = ISC_TRUE;
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
-	dst_result_register();
 
 	do { 
 		conflict = ISC_FALSE; 
@@ -382,7 +388,6 @@ main(int argc, char **argv) {
 	ret = dst_key_buildfilename(key, 0, &buf);
 	filename[isc_buffer_usedlength(&buf)] = 0;
 	printf("%s\n", filename);
-	isc_mem_free(mctx, name);
 	isc_mem_free(mctx, algname);
 	isc_mem_free(mctx, nametype);
 	isc_mem_free(mctx, prog);

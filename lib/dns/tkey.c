@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.38 2000/05/23 23:36:39 bwelling Exp $
+ * $Id: tkey.c,v 1.39 2000/05/24 23:13:23 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -218,11 +218,10 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	dns_rdata_t keyrdata, ourkeyrdata;
 	isc_boolean_t found_key = ISC_FALSE, found_incompatible = ISC_FALSE;
 	dst_key_t *pubkey = NULL;
-	isc_buffer_t ourkeybuf, ournamein, ournameout, *shared = NULL;
+	isc_buffer_t ourkeybuf, *shared = NULL;
 	isc_region_t r, r2, ourkeyr;
 	isc_uint32_t ourttl;
 	unsigned char keydata[DST_KEY_MAXSIZE];
-	unsigned char namedata[1024];
 	unsigned int sharedsize;
 	isc_buffer_t randombuf, secret;
 	unsigned char *randomdata = NULL, secretdata[256];
@@ -285,13 +284,10 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_buffer_usedregion(&ourkeybuf, &ourkeyr);
 	dns_rdata_fromregion(&ourkeyrdata, dns_rdataclass_any,
 			     dns_rdatatype_key, &ourkeyr);
-	isc_buffer_init(&ournamein, dst_key_name(tctx->dhkey),
-		        strlen(dst_key_name(tctx->dhkey)));
-	isc_buffer_add(&ournamein, strlen(dst_key_name(tctx->dhkey)));
-	isc_buffer_init(&ournameout, namedata, sizeof(namedata));
+
+
 	dns_name_init(&ourname, NULL);
-	RETERR(dns_name_fromtext(&ourname, &ournamein, dns_rootname, ISC_FALSE,
-				 &ournameout));
+	dns_name_clone(dst_key_name(tctx->dhkey), &ourname);
 	ourttl = 0;
 #if 0
 	/*
@@ -721,7 +717,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 {
 	dns_rdata_tkey_t tkey;
 	dns_rdata_t *rdata = NULL;
-	isc_buffer_t src, *dynbuf = NULL;
+	isc_buffer_t *dynbuf = NULL;
 	isc_region_t r;
 	dns_name_t keyname;
 	dns_namelist_t namelist;
@@ -769,13 +765,10 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	dns_rdata_fromregion(rdata, dns_rdataclass_any,
 			     dns_rdatatype_key, &r);
 	dns_message_takebuffer(msg, &dynbuf);
-	isc_buffer_init(&src, dst_key_name(key), strlen(dst_key_name(key)));
-	isc_buffer_add(&src, strlen(dst_key_name(key)));
-	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024));
+
 	dns_name_init(&keyname, NULL);
-	RETERR(dns_name_fromtext(&keyname, &src, dns_rootname, ISC_FALSE,
-				 dynbuf));
-	dns_message_takebuffer(msg, &dynbuf);
+	dns_name_clone(dst_key_name(key), &keyname);
+
 	ISC_LIST_INIT(namelist);
 	RETERR(add_rdata_to_list(msg, &keyname, rdata, 0, &namelist));
 	dns_message_addname(msg, ISC_LIST_HEAD(namelist),
@@ -851,9 +844,9 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	dns_rdata_t theirkeyrdata;
 	dst_key_t *theirkey;
 	dns_rdata_tkey_t qtkey, rtkey;
-	unsigned char keydata[1024], secretdata[256];
+	unsigned char secretdata[256];
 	unsigned int sharedsize;
-	isc_buffer_t keysrc, keybuf, *shared = NULL, secret;
+	isc_buffer_t *shared = NULL, secret;
 	isc_region_t r, r2;
 	isc_result_t result;
 
@@ -886,12 +879,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 		goto failure;
 	}
 
-	isc_buffer_init(&keysrc, dst_key_name(key), strlen(dst_key_name(key)));
-	isc_buffer_add(&keysrc, strlen(dst_key_name(key)));
-	isc_buffer_init(&keybuf, keydata, sizeof(keydata));
 	dns_name_init(&keyname, NULL);
-	RETERR(dns_name_fromtext(&keyname, &keysrc, dns_rootname,
-				 ISC_FALSE, &keybuf));
+	dns_name_clone(dst_key_name(key), &keyname);
 
 	ourkeyname = NULL;
 	ourkeyset = NULL;
