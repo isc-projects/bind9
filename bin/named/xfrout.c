@@ -15,9 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.87.2.3 2001/01/09 22:32:19 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.87.2.4 2001/01/12 20:29:23 bwelling Exp $ */
 
-/* $Id: xfrout.c,v 1.87.2.3 2001/01/09 22:32:19 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.87.2.4 2001/01/12 20:29:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -438,7 +438,6 @@ static rrstream_methods_t ixfr_rrstream_methods = {
 
 typedef struct axfr_rrstream {
 	rrstream_t		common;
-	int 			state;
 	db_rr_iterator_t	it;
 	isc_boolean_t		it_valid;
 } axfr_rrstream_t;
