@@ -15,6 +15,10 @@
  * SOFTWARE.
  */
 
+/* $Id: dbtable.c,v 1.3 1999/03/18 21:21:31 tale Exp $ */
+
+/* Principal Authors: DCL */
+
 #include <config.h>
 
 #include <isc/assertions.h>
@@ -190,5 +194,3 @@ dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp) {
 
 	return (result);
 }
-
-/* DCL */

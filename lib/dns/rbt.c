@@ -15,6 +15,10 @@
  * SOFTWARE.
  */
 
+ /* $Id: rbt.c,v 1.28 1999/03/18 21:20:46 tale Exp $ */
+
+/* Principal Authors: DCL */
+
 #include <config.h>
 
 #include <stdlib.h>
@@ -1677,5 +1681,3 @@ dns_rbt_printall(dns_rbt_t *rbt) {
 
 	dns_rbt_printtree(rbt->root, NULL, 0);
 }
-
-/* DCL */
