@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.1 2000/10/11 17:44:13 mws Exp $ */
+/* $Id: opt.c,v 1.2 2000/10/11 17:57:35 halley Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/util.h>
