@@ -55,13 +55,13 @@ version.@O@: version.c
 		-DLIBAGE=${LIBAGE} \
 		-c ${srcdir}/version.c
 
-libomapi.@A@: ${OBJS}
+libomapi.a: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 
 libomapi.la: ${OBJS}
 	${LIBTOOL} --mode=link \
-		${CC} ${ALL_CFLAGS} -o libisc.la -rpath ${libdir} \
+		${CC} ${ALL_CFLAGS} -o libomapi.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${LIBS}
 
