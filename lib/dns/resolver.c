@@ -621,9 +621,12 @@ fctx_getaddresses(fetchctx_t *fctx) {
 
 	FCTXTRACE("getaddresses");
 
-	options = DNS_ADBFIND_WANTEVENT|DNS_ADBFIND_EMPTYEVENT;
-	options |= DNS_ADBFIND_INET;
 	res = fctx->res;
+	options = DNS_ADBFIND_WANTEVENT|DNS_ADBFIND_EMPTYEVENT;
+	if (res->dispatch4 != NULL)
+		options |= DNS_ADBFIND_INET;
+	if (res->dispatch6 != NULL)
+		options |= DNS_ADBFIND_INET6;
 	result = isc_stdtime_get(&now);
 	if (result != ISC_R_SUCCESS)
 		return (result);
