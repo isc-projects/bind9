@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.99 2001/06/07 18:18:24 gson Exp $ */
+/* $Id: xfrout.c,v 1.100 2001/06/18 19:04:32 gson Exp $ */
 
 #include <config.h>
 
@@ -873,6 +873,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	dns_peer_t *peer = NULL;
 	isc_buffer_t *tsigbuf = NULL;
 	char *journalfile;
+	char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
+		 + sizeof("zone transfer '/'")];
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -989,7 +991,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Decide whether to allow this transfer.
 	 */
-	CHECK(ns_client_checkacl(client, "zone transfer",
+	ns_client_aclmsg("zone transfer", question_name,
+			 client->view->rdclass, msg, sizeof(msg));
+	CHECK(ns_client_checkacl(client, msg,
 				 dns_zone_getxfracl(zone), ISC_TRUE,
 				 ISC_LOG_ERROR));
 
