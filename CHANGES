@@ -8,6 +8,10 @@
 
 1382.	[bug]		make install failed with --enable-libbind. [RT #3656]
 
+1381.	[bug]		named failed to correctly process answers that
+			contained DNAME records where the resulting CNAME
+			resulted in a negative answer.
+
 	--- 9.2.2rc1 released ---
 
 1357.	[bug]		--enable-libbind would fail when not built in the

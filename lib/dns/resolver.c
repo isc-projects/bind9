@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.12.4.3 2003/02/18 03:20:58 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.12.4.4 2003/02/18 03:32:01 marka Exp $ */
 
 #include <config.h>
 
@@ -3869,8 +3869,8 @@ answer_response(fetchctx_t *fctx) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				isc_boolean_t found_dname = ISC_FALSE;
 				found = ISC_FALSE;
-				want_chaining = ISC_FALSE;
 				aflag = 0;
 				if (rdataset->type == dns_rdatatype_dname) {
 					/*
@@ -3897,6 +3897,8 @@ answer_response(fetchctx_t *fctx) {
 						want_chaining = ISC_FALSE;
 					} else if (result != ISC_R_SUCCESS)
 						return (result);
+					else
+						found_dname = ISC_TRUE;
 				} else if (rdataset->type == dns_rdatatype_sig
 					   && rdataset->covers ==
 					   dns_rdatatype_dname) {
@@ -3942,7 +3944,7 @@ answer_response(fetchctx_t *fctx) {
 					/*
 					 * DNAME chaining.
 					 */
-					if (want_chaining) {
+					if (found_dname) {
 						/*
 						 * Copy the the dname into the
 						 * qname fixed name.
