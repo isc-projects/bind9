@@ -19,7 +19,7 @@
 rndc \- name server control utility
 .SH SYNOPSIS
 .sp
-\fBrndc\fR [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-s \fIserver\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-V\fR ]  [ \fB-y \fIkey_id\fB\fR ]  \fBcommand\fR
+\fBrndc\fR [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-k \fIkey-file\fB\fR ]  [ \fB-s \fIserver\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-V\fR ]  [ \fB-y \fIkey_id\fB\fR ]  \fBcommand\fR
 .SH "DESCRIPTION"
 .PP
 \fBrndc\fR controls the operation of a name
@@ -50,6 +50,14 @@ algorithm and key it should use.
 Use \fIconfig-file\fR
 as the configuration file instead of the default,
 \fI/etc/rndc.conf\fR.
+.TP
+\fB-k \fIkey-file\fB\fR
+Use \fIkey-file\fR
+as the key file instead of the default,
+\fI/etc/rndc.key\fR. The key in
+\fI/etc/rndc.key\fR will be used to authenticate
+commands sent to the server if the \fIconfig-file\fR
+does not exist.
 .TP
 \fB-s \fIserver\fB\fR
 \fIserver\fR is
