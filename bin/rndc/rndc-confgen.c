@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.4 2001/08/03 22:12:42 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.5 2001/08/03 22:33:02 gson Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,45 @@ Usage:\n\
 	exit (status);
 }
 
+/*
+ * Write an rndc.key file to 'keyfile'.  If 'user' is non-NULL,
+ * make that user the owner of the file.  The key will have
+ * the name 'keyname' and the secret in the buffer 'secret'.
+ */
+static void
+write_key_file(const char *keyfile, const char *user,
+	       const char *keyname, isc_buffer_t *secret )
+{
+	FILE *fd;
+
+	fd = safe_create(keyfile);
+	if (fd == NULL) {
+		fprintf(stderr, "unable to create \"%s\"\n", keyfile);
+		return;
+	}
+	if (user != NULL) {
+		if (set_user(fd, user) == -1) {
+			fprintf(stderr, "unable to set file owner\n");
+			fclose(fd);
+			return;
+		}
+	}
+	fprintf(fd, "key \"%s\" {\n\talgorithm hmac-md5;\n"
+		"\tsecret \"%.*s\";\n};\n", keyname,
+		(int)isc_buffer_usedlength(secret),
+		(char *)isc_buffer_base(secret));
+	fflush(fd);
+	if (ferror(fd)) {
+		fprintf(stderr, "write to %s failed\n", keyfile);
+		fclose(fd);
+		return;
+	}
+	if (fclose(fd)) {
+		fprintf(stderr, "fclose(%s) failed\n", keyfile);
+		return;
+	}
+}
+
 int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
@@ -104,8 +143,6 @@ main(int argc, char **argv) {
 	char *user = NULL;
 	isc_boolean_t keyonly = ISC_FALSE;
 	int len;
-	FILE *fd;
-	char *buf;
 
  	keydef = keyfile = RNDC_KEYFILE;
 
@@ -241,74 +278,22 @@ main(int argc, char **argv) {
 		printf("\n\n");
 
 	if (keyonly) {
-		fd = safe_create(keyfile);
-		if (fd == NULL) {
-			fprintf(stderr, "unable to create \"%s\"\n", keyfile);
-			goto cleanup;
-		}
-		if (user != NULL && chrootdir == NULL) {
-			if (set_user(fd, user) == -1) {
-				fprintf(stderr, "unable to set file owner\n");
-				fclose(fd);
-				goto cleanup;
-			}
-		}
-		fprintf(fd, "key \"%s\" {\n\talgorithm hmac-md5;\n"
-			   "\tsecret \"%.*s\";\n};\n", keyname,
-			   (int)isc_buffer_usedlength(&key_txtbuffer),
-			   (char *)isc_buffer_base(&key_txtbuffer));
-		fflush(fd);
-		if (ferror(fd)) {
-			fprintf(stderr, "write to %s failed\n", keyfile);
-			fclose(fd);
-			goto cleanup;
-		}
-		if (fclose(fd)) {
-			fprintf(stderr, "fclose(%s) failed\n", keyfile);
-			goto cleanup;
-		}
-		if (chrootdir == NULL)
-			goto cleanup;
+		write_key_file(keyfile, chrootdir == NULL ? user : NULL,
+			       keyname, &key_txtbuffer);
 
-		len = strlen(chrootdir) + strlen(keyfile) + 2;
-		buf = isc_mem_get(mctx, len);
-		if (buf != NULL) {
-			fprintf(stderr, "isc_mem_get(%d) failed\n", len);
-			goto cleanup;
-		}
-		snprintf(buf, len, "%s/%s", chrootdir, keyfile);
-		fd = safe_create(buf);
-		if (fd == NULL) {
-			fprintf(stderr, "unable to create \"%s\"\n",
-				buf);
-			isc_mem_put(mctx, buf, len);
-			goto cleanup;
-		}
-		if (user != NULL) {
-			if (set_user(fd, user) == -1) {
-				fprintf(stderr, "unable to set file owner\n");
-				fclose(fd);
-				isc_mem_put(mctx, buf, len);
+		if (chrootdir != NULL) {
+			char *buf;
+			len = strlen(chrootdir) + strlen(keyfile) + 2;
+			buf = isc_mem_get(mctx, len);
+			if (buf != NULL) {
+				fprintf(stderr, "isc_mem_get(%d) failed\n", len);
 				goto cleanup;
 			}
-		}
-		fprintf(fd, "key \"%s\" {\n\talgorithm hmac-md5;\n"
-			   "\tsecret \"%.*s\";\n};\n", keyname,
-			   (int)isc_buffer_usedlength(&key_txtbuffer),
-			   (char *)isc_buffer_base(&key_txtbuffer));
-		fflush(fd);
-		if (ferror(fd)) {
-			fprintf(stderr, "write to %s failed\n", buf);
-			fclose(fd);
+			snprintf(buf, len, "%s/%s", chrootdir, keyfile);
+			
+			write_key_file(buf, user, keyname, &key_txtbuffer);
 			isc_mem_put(mctx, buf, len);
-			goto cleanup;
 		}
-		if (fclose(fd)) {
-			fprintf(stderr, "fclose(%s) failed\n", buf);
-			isc_mem_put(mctx, buf, len);
-			goto cleanup;
-		}
-		isc_mem_put(mctx, buf, len);
 	} else {
 		printf("\
 # Start of rndc.conf\n\
