@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.30 1999/12/11 14:07:19 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.31 1999/12/14 10:28:00 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -93,6 +93,9 @@ static void             parser_complain(isc_boolean_t is_warning,
 static isc_boolean_t    unit_to_uint32(char *in, isc_uint32_t *out);
 static void             yyerror(const char *);
 
+/* returns true if (base * mult) would be too big.*/
+static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
+ 
 %}
 
 %union {
@@ -785,6 +788,12 @@ option: /* Empty */
         }
         | L_MAX_TRANSFER_TIME_IN L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setmaxtransfertimein(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -797,6 +806,12 @@ option: /* Empty */
         }
         | L_MAX_TRANSFER_TIME_OUT L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setmaxtransfertimeout(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -809,6 +824,12 @@ option: /* Empty */
         }
         | L_MAX_TRANSFER_IDLE_IN L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setmaxtransferidlein(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -821,6 +842,12 @@ option: /* Empty */
         }
         | L_MAX_TRANSFER_IDLE_OUT L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setmaxtransferidleout(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -833,6 +860,12 @@ option: /* Empty */
         }
         | L_CLEAN_INTERVAL L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setcleaninterval(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -845,6 +878,12 @@ option: /* Empty */
         }
         | L_INTERFACE_INTERVAL L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setinterfaceinterval(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -857,6 +896,12 @@ option: /* Empty */
         }
         | L_STATS_INTERVAL L_INTEGER
         {
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
                 tmpres = dns_c_ctx_setstatsinterval(currcfg,
                                                     $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
@@ -2925,7 +2970,13 @@ zone_option: L_FILE L_QSTRING
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmaxtranstimein(zone, $2);
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
+                tmpres = dns_c_zone_setmaxtranstimein(zone, $2 * 60);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2950,7 +3001,13 @@ zone_option: L_FILE L_QSTRING
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmaxtranstimeout(zone, $2);
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
+                tmpres = dns_c_zone_setmaxtranstimeout(zone, $2 * 60);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2975,7 +3032,13 @@ zone_option: L_FILE L_QSTRING
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmaxtransidlein(zone, $2);
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
+                tmpres = dns_c_zone_setmaxtransidlein(zone, $2 * 60);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -3000,7 +3063,13 @@ zone_option: L_FILE L_QSTRING
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmaxtransidleout(zone, $2);
+		if ( int_too_big($2, 60) ) {
+			parser_error(ISC_FALSE,
+				     "integer value too big: %u", $2);
+			YYABORT;
+		}
+		
+                tmpres = dns_c_zone_setmaxtransidleout(zone, $2 * 60);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -3831,7 +3900,7 @@ token_to_text(int token, YYSTYPE lval) {
                                   buffer, sizeof buffer);
                         break;
                 case L_INTEGER:
-                        sprintf(buffer, "%ld", (long)lval.ul_int);
+                        sprintf(buffer, "%lu", (unsigned long)lval.ul_int);
                         break;
                 case L_END_INCLUDE:
                         strcpy (buffer, "<end of include>");
@@ -3936,6 +4005,18 @@ parser_warning(isc_boolean_t lasttoken, const char *fmt, ...)
         va_end(args);
 
         currcfg->warnings++;
+}
+
+
+static isc_boolean_t
+int_too_big(isc_uint32_t base, isc_uint32_t mult) {
+	isc_uint32_t max = UINT_MAX;
+
+	if ((max / mult) < base) {
+		return ISC_TRUE;
+	} else {
+		return ISC_FALSE;
+	}
 }
 
 
