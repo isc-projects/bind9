@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN4056"
+HREF="Bv9ARM.ch06.html#AEN4066"
 >Zone File</A
 ></DT
 ></DL
@@ -8287,6 +8287,13 @@ CLASS="replaceable"
 >]
     [<SPAN
 CLASS="optional"
+> journal <VAR
+CLASS="replaceable"
+>string</VAR
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
 > forward (<CODE
 CLASS="constant"
 >only</CODE
@@ -8612,7 +8619,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3651"
+NAME="AEN3653"
 >6.2.24. <B
 CLASS="command"
 >zone</B
@@ -8623,7 +8630,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3654"
+NAME="AEN3656"
 >6.2.24.1. Zone Types</A
 ></H3
 ><DIV
@@ -8631,7 +8638,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3656"
+NAME="AEN3658"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -8863,7 +8870,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3719"
+NAME="AEN3721"
 >6.2.24.2. Class</A
 ></H3
 ><P
@@ -8901,7 +8908,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3729"
+NAME="AEN3731"
 >6.2.24.3. Zone Options</A
 ></H3
 ><P
@@ -8909,6 +8916,27 @@ NAME="AEN3729"
 ><DIV
 CLASS="variablelist"
 ><DL
+><DT
+><B
+CLASS="command"
+>journal</B
+></DT
+><DD
+><P
+>Allow the default journal's file name to be overridden.
+The default is the zone's file with "<TT
+CLASS="filename"
+>.jnl</TT
+>" appended.
+This is applicable to <B
+CLASS="command"
+>master</B
+> and <B
+CLASS="command"
+>slave</B
+> zones.
+</P
+></DD
 ><DT
 ><B
 CLASS="command"
@@ -9650,7 +9678,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4015"
+NAME="AEN4025"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9775,7 +9803,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4056"
+NAME="AEN4066"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9796,7 +9824,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4061"
+NAME="AEN4071"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9821,7 +9849,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4067"
+NAME="AEN4077"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9902,7 +9930,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4099"
+NAME="AEN4109"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10253,7 +10281,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4251"
+NAME="AEN4261"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10335,7 +10363,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4275"
+NAME="AEN4285"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10367,7 +10395,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4282"
+NAME="AEN4292"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10522,7 +10550,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4348"
+NAME="AEN4358"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10593,7 +10621,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4376"
+NAME="AEN4386"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10631,7 +10659,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4382"
+NAME="AEN4392"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10852,7 +10880,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4474"
+NAME="AEN4484"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10915,7 +10943,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4497"
+NAME="AEN4507"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10944,7 +10972,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4502"
+NAME="AEN4512"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11010,7 +11038,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4524"
+NAME="AEN4534"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11035,7 +11063,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4531"
+NAME="AEN4541"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11101,7 +11129,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4551"
+NAME="AEN4561"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11177,7 +11205,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4571"
+NAME="AEN4581"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11213,7 +11241,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4582"
+NAME="AEN4592"
 >6.3.6. <ACRONYM
 CLASS="acronym"
 >BIND</ACRONYM
@@ -11296,7 +11324,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4606"
+NAME="AEN4616"
 ></A
 ><TABLE
 CELLPADDING="3"

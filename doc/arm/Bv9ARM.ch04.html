@@ -222,15 +222,15 @@ NAME="journal"
 >4.2.1. The journal file</A
 ></H2
 ><P
->All changes made to a zone using dynamic update are stored in the
-    zone's journal file.  This file is automatically created by the
-    server when when the first dynamic update takes place.  The name of
-    the journal file is formed by appending the
-    extension <TT
+>All changes made to a zone using dynamic update are stored
+    in the zone's journal file.  This file is automatically created
+    by the server when when the first dynamic update takes place.
+    The name of the journal file is formed by appending the extension
+    <TT
 CLASS="filename"
 >.jnl</TT
-> to the
-    name of the corresponding zone file.  The journal file is in a
+> to the name of the corresponding zone
+    file unless specifically overridden.  The journal file is in a
     binary format and should not be edited manually.</P
 ><P
 >The server will also occasionally write ("dump")
