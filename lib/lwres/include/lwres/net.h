@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.11 2001/03/08 16:09:41 tale Exp $ */
+/* $Id: net.h,v 1.12 2001/06/08 23:53:41 tale Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -82,9 +82,6 @@
 #include <lwres/ipv6.h>		/* Contractual promise. */
 #endif
 
-/*
- * XXXMLG
- */
 #ifndef INADDR_LOOPBACK
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif
