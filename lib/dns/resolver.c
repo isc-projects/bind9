@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.266 2003/09/19 05:53:28 marka Exp $ */
+/* $Id: resolver.c,v 1.267 2003/09/21 02:52:35 marka Exp $ */
 
 #include <config.h>
 
@@ -4699,6 +4699,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	unsigned int options;
 	unsigned int findoptions;
 	isc_result_t broken_server;
+	unsigned int oldcounts[DNS_SECTION_MAX];
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -4993,20 +4994,40 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Enforce delegations only zones like NET and COM.
 	 */
+oldcounts[DNS_SECTION_QUESTION] = message->counts[DNS_SECTION_QUESTION];
+oldcounts[DNS_SECTION_ANSWER] = message->counts[DNS_SECTION_ANSWER];
+oldcounts[DNS_SECTION_AUTHORITY] = message->counts[DNS_SECTION_AUTHORITY];
+oldcounts[DNS_SECTION_ADDITIONAL] = message->counts[DNS_SECTION_ADDITIONAL];
+
 	if (!ISFORWARDER(query->addrinfo) &&
 	    dns_view_isdelegationonly(fctx->res->view, &fctx->domain) &&
 	    !dns_name_equal(&fctx->domain, &fctx->name) &&
 	    fix_mustbedelegationornxdomain(message, fctx)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char domainbuf[DNS_NAME_FORMATSIZE];
+		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+		char classbuf[64];
+		char typebuf[64];
 
 		dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
 		dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+		dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
+		dns_rdataclass_format(fctx->res->rdclass, classbuf,
+				      sizeof(classbuf));
+		isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
+				    sizeof(addrbuf));
 
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DELEGATION_ONLY,
 			     DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-			     "enforced delegation-only for '%s' (%s)",
-			     domainbuf, namebuf);
+			     "enforced delegation-only for '%s' (%s/%s/%s) "
+			     "flags=%04x counts(%u,%u,%u,%u) from %s",
+			     domainbuf, namebuf, typebuf, classbuf,
+			     message->flags,
+			     oldcounts[DNS_SECTION_QUESTION],
+			     oldcounts[DNS_SECTION_ANSWER],
+			     oldcounts[DNS_SECTION_AUTHORITY],
+			     oldcounts[DNS_SECTION_ADDITIONAL],
+			     addrbuf);
 	}
 
 	/*
