@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.63 2000/04/07 20:41:27 brister Exp $ */
+/* $Id: confparser.y,v 1.64 2000/04/12 01:25:07 halley Exp $ */
 
 #include <config.h>
 
@@ -4732,11 +4732,12 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	if (yyparse() != 0) {
 		res = ISC_R_FAILURE;
 
-		/* Syntax errors in the config file make it very difficult
+		/*
+		 * Syntax errors in the config file make it very difficult
 		 * to clean up memory properly (which causes assertion
 		 * failure when the memory manager is destroyed).
 		 */
-		isc_mem_destroy_check(memctx, ISC_FALSE);
+		isc_mem_setdestroycheck(memctx, ISC_FALSE);
 
                 dns_c_ctx_delete(&currcfg);
                 currcfg = NULL;
