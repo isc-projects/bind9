@@ -1,3 +1,8 @@
+
+1029.	[bug]		Some named.conf errors did not cause the loading
+			of the configuration file to return a failure
+			status even though they were logged. [RT #1847]
+
 1028.	[bug]		RESOLVCONF defined in dig.h and dighost.c instead of
 			RESOLV_CONF, preventing win32 from overriding the
 			location of the resolv.conf file. [RT #1833]
