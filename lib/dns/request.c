@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.55 2001/02/09 00:23:14 gson Exp $ */
+/* $Id: request.c,v 1.56 2001/02/13 02:49:05 gson Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,8 @@ struct dns_request {
 	dns_requestmgr_t	       *requestmgr;
 	isc_buffer_t		       *tsig;
 	dns_tsigkey_t		       *tsigkey;
-
+	isc_event_t			ctlevent;
+	isc_boolean_t			canceling; /* ctlevent outstanding */
 };
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
@@ -120,6 +121,7 @@ static void req_sendevent(dns_request_t *request, isc_result_t result);
 static void req_cancel(dns_request_t *request);
 static void req_destroy(dns_request_t *request);
 static void req_log(int level, const char *fmt, ...);
+static void do_cancel(isc_task_t *task, isc_event_t *event);
 
 /***
  *** Public
@@ -457,6 +459,10 @@ new_request(isc_mem_t *mctx, dns_request_t **requestp) {
 	request->requestmgr = NULL;
 	request->tsig = NULL;
 	request->tsigkey = NULL;
+	ISC_EVENT_INIT(&request->ctlevent, sizeof(request->ctlevent), 0, NULL,
+		       DNS_EVENT_REQUESTCONTROL, do_cancel, request, NULL,
+		       NULL, NULL);
+	request->canceling = ISC_FALSE;
 
 	isc_mem_attach(mctx, &request->mctx);
 
@@ -998,6 +1004,40 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	return (result);
 }
 
+
+/*
+ * If this request is no longer waiting for events,
+ * send the completion event.  This will ultimately
+ * cause the request to be destroyed.
+ *
+ * Requires:
+ *	'request' is locked by the caller.
+ */
+static void
+send_if_done(dns_request_t *request, isc_result_t result) {
+	if (!DNS_REQUEST_CONNECTING(request) &&
+	    !DNS_REQUEST_SENDING(request) &&
+	    !request->canceling)
+		req_sendevent(request, result);
+}
+
+/*
+ * Handle the control event.
+ */
+static void
+do_cancel(isc_task_t *task, isc_event_t *event) {
+	dns_request_t *request = event->ev_arg;
+	UNUSED(task);
+	INSIST(event->ev_type == DNS_EVENT_REQUESTCONTROL);
+	LOCK(&request->requestmgr->locks[request->hash]);
+	request->canceling = ISC_FALSE;
+	if (!DNS_REQUEST_CANCELED(request)) {
+		req_cancel(request);
+		send_if_done(request, ISC_R_CANCELED);
+	}
+	UNLOCK(&request->requestmgr->locks[request->hash]);	
+}
+
 isc_result_t
 dns_request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
@@ -1007,11 +1047,10 @@ dns_request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
-	if (!DNS_REQUEST_CANCELED(request)) {
-		req_cancel(request);
-		if (!DNS_REQUEST_CONNECTING(request) &&
-		    !DNS_REQUEST_SENDING(request))
-			req_sendevent(request, ISC_R_CANCELED);
+	if (!request->canceling) {
+		isc_event_t *ev =  &request->ctlevent;
+		isc_task_send(request->event->ev_sender, &ev);
+		request->canceling = ISC_TRUE;
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 	return (ISC_R_SUCCESS);
@@ -1057,12 +1096,18 @@ dns_request_destroy(dns_request_t **requestp) {
 	req_log(ISC_LOG_DEBUG(3), "dns_request_destroy: request %p", request);
 
 	LOCK(&request->requestmgr->locks[request->hash]);
-	LOCK(&request->requestmgr->lock);
-	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
-	UNLOCK(&request->requestmgr->lock);
 	INSIST(!DNS_REQUEST_CONNECTING(request));
 	INSIST(!DNS_REQUEST_SENDING(request));
 	UNLOCK(&request->requestmgr->locks[request->hash]);
+
+	/*
+	 * These should have been cleaned up by req_cancel() before
+	 * the completion event was sent.
+	 */
+	INSIST(!ISC_LINK_LINKED(request, link));
+	INSIST(request->dispentry == NULL);
+	INSIST(request->dispatch == NULL);
+	INSIST(request->timer == NULL);
 
 	req_destroy(request);
 
@@ -1093,9 +1138,9 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 		 * Send delayed event.
 		 */
 		if (DNS_REQUEST_TIMEDOUT(request))
-			req_sendevent(request, ISC_R_TIMEDOUT);
+			send_if_done(request, ISC_R_TIMEDOUT);
 		else
-			req_sendevent(request, ISC_R_CANCELED);
+			send_if_done(request, ISC_R_CANCELED);
 	} else {
 		dns_dispatch_starttcp(request->dispatch);
 		result = sevent->result;
@@ -1104,7 +1149,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 
 		if (result != ISC_R_SUCCESS) {
 			req_cancel(request);
-			req_sendevent(request, ISC_R_CANCELED);
+			send_if_done(request, ISC_R_CANCELED);
 		}
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
@@ -1132,12 +1177,12 @@ req_senddone(isc_task_t *task, isc_event_t *event) {
 		 * Send delayed event.
 		 */
 		if (DNS_REQUEST_TIMEDOUT(request))
-			req_sendevent(request, ISC_R_TIMEDOUT);
+			send_if_done(request, ISC_R_TIMEDOUT);
 		else
-			req_sendevent(request, ISC_R_CANCELED);
+			send_if_done(request, ISC_R_CANCELED);
 	} else if (sevent->result != ISC_R_SUCCESS) {
 			req_cancel(request);
-			req_sendevent(request, ISC_R_CANCELED);
+			send_if_done(request, ISC_R_CANCELED);
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
@@ -1184,7 +1229,7 @@ req_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Send completion event.
 	 */
-	req_sendevent(request, result);
+	send_if_done(request, result);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 }
 
@@ -1200,9 +1245,7 @@ req_timeout(isc_task_t *task, isc_event_t *event) {
 	LOCK(&request->requestmgr->locks[request->hash]);
 	request->flags |= DNS_REQUEST_F_TIMEDOUT;
 	req_cancel(request);
-	if (!DNS_REQUEST_CONNECTING(request) &&
-	    !DNS_REQUEST_SENDING(request))
-		req_sendevent(request, ISC_R_TIMEDOUT);
+	send_if_done(request, ISC_R_TIMEDOUT);
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 	isc_event_free(&event);
 }
@@ -1268,6 +1311,15 @@ req_cancel(dns_request_t *request) {
 	 * Lock held by caller.
 	 */
 	request->flags |= DNS_REQUEST_F_CANCELED;
+
+	/*
+	 * Unlink from the manager here so that it will not try
+	 * to cancel us after we have already sent the completion
+	 * event.
+	 */
+	LOCK(&request->requestmgr->lock);
+	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
+	UNLOCK(&request->requestmgr->lock);
 
 	if (request->timer != NULL)
 		isc_timer_detach(&request->timer);
