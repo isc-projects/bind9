@@ -1,3 +1,10 @@
+
+ 928.	[bug]		nsupdate would send empty update packets if the
+ 			send (or empty line) command was run after
+			another send but before any new updates or
+			prerequisites were specified.  It should simply
+			ignore this command.
+
  927.	[bug]		Don't hold the zone lock for the entire dump to disk.
 			[RT #1423]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.96 2001/07/02 18:56:58 gson Exp $ */
+/* $Id: nsupdate.c,v 1.97 2001/07/11 06:30:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1753,14 +1753,20 @@ start_update(void) {
 
 	ddebug("start_update()");
 
-	if (userzone != NULL && userserver != NULL) {
-		send_update(userzone, userserver, localaddr);
-		return;
-	}
-
 	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
 	if (result != ISC_R_SUCCESS) {
 		done_update();
+		return;
+	}
+
+	result = dns_message_firstname(updatemsg, DNS_SECTION_PREREQUISITE);
+	if (result != ISC_R_SUCCESS) {
+		done_update();
+		return;
+	}
+
+	if (userzone != NULL && userserver != NULL) {
+		send_update(userzone, userserver, localaddr);
 		return;
 	}
 
