@@ -15,9 +15,11 @@
 
 1732.	[placeholder]	rt12467
 
-1731.	[placeholder]	rt12581
+1731.	[port]		darwin: relax version test in ifconfig.sh.
+			[RT #12581]
 
-1730.	[placeholder]	rt12581
+1730.	[port]		Determine the length type used by the socket API.
+			[RT #12581]
 
 1729.	[placeholder]	rt12634
 

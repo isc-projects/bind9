@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.241 2004/07/01 04:53:14 marka Exp $ */
+/* $Id: socket.c,v 1.242 2004/10/05 03:17:18 marka Exp $ */
 
 #include <config.h>
 
@@ -62,11 +62,7 @@
  * some as socklen_t.  This is here so it can be easily changed if needed.
  */
 #ifndef ISC_SOCKADDR_LEN_T
-#ifdef _BSD_SOCKLEN_T_
-#define ISC_SOCKADDR_LEN_T _BSD_SOCKLEN_T_
-#else
 #define ISC_SOCKADDR_LEN_T unsigned int
-#endif
 #endif
 
 /*
