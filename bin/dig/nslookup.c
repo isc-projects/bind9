@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.81 2001/03/13 01:03:43 mws Exp $ */
+/* $Id: nslookup.c,v 1.82 2001/03/16 22:13:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -134,7 +134,7 @@ static const char *rtypetext[] = {
 	"key = ",			/* 25 */
 	"px = ",			/* 26 */
 	"gpos = ",			/* 27 */
-	"has AAAA address",		/* 28 */
+	"has AAAA address ",		/* 28 */
 	"loc = ",			/* 29 */
 	"next = ",			/* 30 */
 	"rtype_31 = ",			/* 31 */
