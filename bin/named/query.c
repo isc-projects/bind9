@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.2 2003/08/11 05:28:09 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.3 2003/08/12 05:36:03 marka Exp $ */
 
 #include <config.h>
 
@@ -3308,7 +3308,8 @@ log_query(ns_client_t *client) {
 	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
-		      level, "query: %s %s %s", namebuf, classname, typename);
+		      level, "query: %s %s %s %s", namebuf, classname,
+		      typename, WANTRECURSION(client) ? "+" : "-");
 }
 
 void

@@ -1,3 +1,5 @@
+1169.	[func]		Identify recursive queries in the query log.
+
 1163.	[func]		isc_time_formattimestamp() now includes the year.
 
 1159.	[bug]		MD and MF are not permitted to be loaded by RFC1123.
