@@ -282,12 +282,27 @@ main(int argc, char *argv[]) {
 	setup();
 
 	/*
-	 * Start things running and then wait for a shutdown request.
+	 * Start things running and then wait for a shutdown request
+	 * or reload.
 	 */
-	result = isc_app_run();
-	if (result != ISC_R_SUCCESS)
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_app_run(): %s",
-				 isc_result_totext(result));
+	do {
+		result = isc_app_run();
+		
+		if (result == ISC_R_RELOAD) {
+			/*
+			 * XXXRTH  Replace this with something useful.	
+			 */
+			printf("reload requested\n");
+		} else if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_app_run(): %s",
+					 isc_result_totext(result));
+			/*
+			 * Force exit.
+			 */
+			result = ISC_R_SUCCESS;
+		}
+	} while (result != ISC_R_SUCCESS);
 
 	cleanup();
 
