@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.340 2001/09/04 00:35:15 marka Exp $ */
+/* $Id: zone.c,v 1.341 2001/09/04 14:27:42 marka Exp $ */
 
 #include <config.h>
 
@@ -2168,7 +2168,6 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
  */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	UNUSED(compact);
 
  redo:
 	LOCK_ZONE(zone);
