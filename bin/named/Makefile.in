@@ -11,7 +11,7 @@ CINCLUDES =	-I${srcdir}/../../lib/isc/unix/include \
 		-I${srcdir}/../.. \
 		-I${srcdir}
 
-CDEFINES =
+CDEFINES =	
 CWARNINGS =
 
 
@@ -23,8 +23,8 @@ LIBS =		${DEPLIBS} \
 
 TARGETS =	named
 
-OBJS =		server.o udpclient.o tcpclient.o wire_debug.o wire_test.o
-#		zone.o configctx.o parser.o lexer.o
+OBJS =		server.o udpclient.o tcpclient.o wire_debug.o wire_test.o\
+		zone.o configctx.o confparser.o
 
 @BIND9_MAKE_RULES@
 
@@ -36,13 +36,17 @@ named: ${OBJS} ${DEPLIBS}
 	${CC} -o $@ ${OBJS} ${LIBS}
 
 clean distclean::
-	rm -f ${TARGETS} parser.c parser_p.h lexer.c
+	rm -f ${TARGETS} parser.c parser_p.h
 
-parser.c: parser.y
-	${YACC} -d parser.y
-	mv y.tab.c parser.c
-	mv y.tab.h parser_p.h
+confparser.c: confparser.y
+	${YACC} -d confparser.y
+	mv y.tab.c confparser.c
+	mv y.tab.h confparser_p.h
 
-lexer.c: lexer.l
-	${LEX} lexer.l
-	mv lex.yy.c lexer.c
+##confparser.c: confparser.y
+##	${YACC} -d confparser.y
+##	rm -f confparser.c
+##	sed -e '/^\#line/d' < y.tab.c > confparser.c
+##	rm -f y.tab.c
+##	chmod a-w confparser.c
+##	mv y.tab.h confparser_p.h
