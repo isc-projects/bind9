@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stat.h,v 1.3 2001/07/09 21:06:30 gson Exp $ */
+/* $Id: stat.h,v 1.4 2003/04/12 04:57:17 marka Exp $ */
 
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1
@@ -37,7 +37,10 @@
 #define S_IWOTH _S_IWRITE	/* Other write permission */
 
 #ifndef S_ISDIR
-# define S_ISDIR(m)	((m & S_IFMT) == S_IFDIR)
+# define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
+#endif
+#ifndef S_ISREG
+# define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
 #endif
 
 #endif /* ISC_STAT_H */
