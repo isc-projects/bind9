@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.225 2002/07/19 03:50:42 marka Exp $ */
+/* $Id: query.c,v 1.226 2002/07/23 03:33:12 marka Exp $ */
 
 #include <config.h>
 
@@ -2152,12 +2152,12 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		if (result == DNS_R_NXDOMAIN)
 			query_addrrset(client, &fname, &rdataset, &sigrdataset,
 				       dbuf, DNS_SECTION_AUTHORITY);
-		else {
+		if (rdataset != NULL)
 			query_putrdataset(client, &rdataset);
+		if (sigrdataset != NULL)
 			query_putrdataset(client, &sigrdataset);
-			if (fname != NULL)
-				query_releasename(client, &fname);
-		}
+		if (fname != NULL)
+			query_releasename(client, &fname);
 	}
 
 	odepth = dns_name_depth(dns_db_origin(db));
@@ -2198,14 +2198,15 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		 */
 		if (result == ISC_R_SUCCESS && ispositive)
 			break;
-		if (result != DNS_R_NXDOMAIN) {
+		if (result == DNS_R_NXDOMAIN)
+			query_addrrset(client, &fname, &rdataset, &sigrdataset,
+				       dbuf, DNS_SECTION_AUTHORITY);
+		if (rdataset != NULL)
 			query_putrdataset(client, &rdataset);
+		if (sigrdataset != NULL)
 			query_putrdataset(client, &sigrdataset);
+		if (fname != NULL)
 			query_releasename(client, &fname);
-			continue;
-		}
-		query_addrrset(client, &fname, &rdataset, &sigrdataset,
-			       dbuf, DNS_SECTION_AUTHORITY);
 	}
  cleanup:
 	if (rdataset != NULL)
