@@ -24,6 +24,7 @@
 #include <isc/int.h>
 
 #include <lwres/context.h>
+#include <lwres/lwpacket.h>
 
 /*
  * Design notes:
