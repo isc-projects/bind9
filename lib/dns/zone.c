@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.228 2000/10/06 18:58:22 bwelling Exp $ */
+/* $Id: zone.c,v 1.229 2000/10/10 22:00:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -5372,6 +5372,7 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 	char *buf;
 	int buflen;
 	isc_result_t result;
+	const char me[] = "zone_saveunique";
 	
 	buflen = strlen(path) + strlen(templat) + 2;
 
@@ -5387,7 +5388,7 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	zone_log(zone, __func__, ISC_LOG_INFO, "saved \"%s\" as \"%s\"",
+	zone_log(zone, me, ISC_LOG_INFO, "saved \"%s\" as \"%s\"",
 		 path, templat);
 
  cleanup:
