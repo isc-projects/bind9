@@ -36,39 +36,6 @@
 #define MAX_CHAINS	8
 #define MAX_DEPTH	16
 
-/* XXXRTH BEGIN XXX */
-
-#include <isc/buffer.h>
-
-static void
-printname(dns_name_t *name) {
-	unsigned char data[256];
-	isc_buffer_t buffer;
-	isc_region_t r;
-	
-	isc_buffer_init(&buffer, data, sizeof data, ISC_BUFFERTYPE_TEXT);
-	if (dns_name_totext(name, ISC_FALSE, &buffer) == ISC_R_SUCCESS) {
-		isc_buffer_used(&buffer, &r);
-		printf("A6: %.*s\n", (int)r.length, r.base);
-	}
-}
-
-static void
-printaddr(dns_a6context_t *a6ctx) {
-	int i;
-	unsigned char *cp;
-
-	cp = (unsigned char *)&a6ctx->in6addr.s6_addr;
-	for (i = 0; i < 16; i++, cp++) {
-		if (i > 0 && i % 2 == 0)
-			printf(":");
-		printf("%02x", *cp);
-	}
-	printf("\n");
-}
-
-/* XXXRTH END XXX */
-
 static isc_result_t
 foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 	unsigned int oprefixlen)
@@ -108,7 +75,6 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 				isc_region_consume(&r, octets + 1);
 				dns_name_init(&name, NULL);
 				dns_name_fromregion(&name, &r);
-				printname(&name);
 				dns_rdataset_init(&child);
 				dns_rdataset_init(&childsig);
 				result = (a6ctx->find)(a6ctx->arg, &name,
@@ -149,7 +115,6 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 			 */
 			if (a6ctx->address != NULL)
 				(a6ctx->address)(a6ctx->arg, &a6ctx->in6addr);
-			printaddr(a6ctx);
 		}
 	next_a6:
 		result = dns_rdataset_next(parent);
