@@ -80,6 +80,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
 
 	(rdataset->methods->disassociate)(rdataset);
 	rdataset->methods = NULL;
@@ -102,6 +103,7 @@ dns_rdataset_first(dns_rdataset_t *rdataset) {
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
 
 	return ((rdataset->methods->first)(rdataset));
 }
@@ -114,6 +116,7 @@ dns_rdataset_next(dns_rdataset_t *rdataset) {
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
 
 	return ((rdataset->methods->next)(rdataset));
 }
@@ -126,6 +129,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	 */
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
 
 	(rdataset->methods->current)(rdataset, rdata);
 }
