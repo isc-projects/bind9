@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.35.2.1 2004/03/09 06:09:34 marka Exp $ */
+/* $Id: rdata_test.c,v 1.35.2.2 2005/03/16 02:45:28 marka Exp $ */
 
 #include <config.h>
 
@@ -836,7 +836,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	memset(&dctx, '0', sizeof dctx);
+	memset(&dctx, 0, sizeof dctx);
 	dctx.allowed = DNS_COMPRESS_ALL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
