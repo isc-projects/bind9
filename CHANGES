@@ -1,4 +1,8 @@
-
+  
+1015.	[bug]		Log channels that had a "versions" option but no
+			"size" option failed to create numbered log
+			files. [RT #1783]
+ 
 	--- 9.2.0rc4 released ---
 
 1013.	[bug]		It was possible to cancel a query twice when marking
