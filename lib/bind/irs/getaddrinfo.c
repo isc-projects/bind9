@@ -135,12 +135,10 @@ static const struct afd {
 	const char *a_loopback;
 	int a_scoped;
 } afdl [] = {
-#ifdef INET6
 	{PF_INET6, sizeof(struct in6_addr),
 	 sizeof(struct sockaddr_in6),
 	 offsetof(struct sockaddr_in6, sin6_addr),
 	 in6_addrany, in6_loopback, 1},
-#endif
 	{PF_INET, sizeof(struct in_addr),
 	 sizeof(struct sockaddr_in),
 	 offsetof(struct sockaddr_in, sin_addr),
@@ -163,22 +161,16 @@ static const struct explore explore[] = {
 #if 0
 	{ PF_LOCAL, 0, ANY, ANY, NULL, 0x01 },
 #endif
-#ifdef INET6
 	{ PF_INET6, SOCK_DGRAM, IPPROTO_UDP, "udp", 0x07 },
 	{ PF_INET6, SOCK_STREAM, IPPROTO_TCP, "tcp", 0x07 },
 	{ PF_INET6, SOCK_RAW, ANY, NULL, 0x05 },
-#endif
 	{ PF_INET, SOCK_DGRAM, IPPROTO_UDP, "udp", 0x07 },
 	{ PF_INET, SOCK_STREAM, IPPROTO_TCP, "tcp", 0x07 },
 	{ PF_INET, SOCK_RAW, ANY, NULL, 0x05 },
 	{ -1, 0, 0, NULL, 0 },
 };
 
-#ifdef INET6
 #define PTON_MAX	16
-#else
-#define PTON_MAX	4
-#endif
 
 #if PACKETSZ > 1024
 #define MAXPACKET	PACKETSZ
@@ -211,9 +203,7 @@ static int get_portmatch __P((const struct addrinfo *, const char *));
 static int get_port __P((const struct addrinfo *, const char *, int));
 static const struct afd *find_afd __P((int));
 static int addrconfig __P((int));
-#ifdef INET6
 static int ip6_str2scopeid __P((char *, struct sockaddr_in6 *));
-#endif
 static struct net_data *init __P((void));
 
 struct addrinfo *hostent2addrinfo __P((struct hostent *,
@@ -362,9 +352,7 @@ getaddrinfo(hostname, servname, hints, res)
 		switch (hints->ai_family) {
 		case PF_UNSPEC:
 		case PF_INET:
-#ifdef INET6
 		case PF_INET6:
-#endif
 			break;
 		default:
 			ERR(EAI_FAMILY);
@@ -492,15 +480,15 @@ getaddrinfo(hostname, servname, hints, res)
 		goto good;
 
 	if (pai->ai_flags & AI_NUMERICHOST)
-		ERR(EAI_NODATA);
+		ERR(EAI_NONAME);
 	if (hostname == NULL)
-		ERR(EAI_NODATA);
+		ERR(EAI_NONAME);
 
 	/*
 	 * hostname as alphabetical name.
 	 * We'll make sure that
 	 * - if returning addrinfo list is empty, return non-zero error
-	 *   value (already known one or EAI_NODATA).
+	 *   value (already known one or EAI_NONAME).
 	 * - otherwise, 
 	 *   + if we haven't had any errors, return 0 (i.e. success).
 	 *   + if we've had an error, free the list and return the error.
@@ -516,7 +504,7 @@ getaddrinfo(hostname, servname, hints, res)
 		goto free;
 	}
 	if (afai == NULL) {
-		error = EAI_NODATA; /* we've had no errors. */
+		error = EAI_NONAME; /* we've had no errors. */
 		goto free;
 	}
 
@@ -589,7 +577,7 @@ good:
 		 * This can happen if the given hints do not match our
 		 * candidates.
 		 */
-		error = EAI_NODATA;
+		error = EAI_NONAME;
 	}
 
 free:
@@ -647,9 +635,9 @@ explore_fqdn(pai, hostname, servname, res)
 		(*ho->minimize)(ho);
 	}
 	if (result == NULL) {
-		int *e = __h_errno();
+		int e = h_errno;
 
-		switch(*e) {
+		switch(e) {
 		case NETDB_INTERNAL:
 			error = EAI_SYSTEM;
 			break;
@@ -661,11 +649,11 @@ explore_fqdn(pai, hostname, servname, res)
 			break;
 		case HOST_NOT_FOUND:
 		case NO_DATA:
-			error = EAI_NODATA;
+			error = EAI_NONAME;
 			break;
 		default:
 		case NETDB_SUCCESS: /* should be impossible... */
-			error = EAI_NODATA;
+			error = EAI_NONAME;
 			break;
 		}
 		goto free;
@@ -844,7 +832,7 @@ explore_numeric_scope(pai, hostname, servname, res)
 	const char *servname;
 	struct addrinfo **res;
 {
-#if !defined(SCOPE_DELIMITER) || !defined(INET6)
+#ifndef SCOPE_DELIMITER
 	return explore_numeric(pai, hostname, servname, res);
 #else
 	const struct afd *afd;
@@ -864,18 +852,6 @@ explore_numeric_scope(pai, hostname, servname, res)
 	if (cp == NULL)
 		return explore_numeric(pai, hostname, servname, res);
 
-#if 0
-	/*
-	 * Handle special case of <scope id><delimiter><scoped_address>
-	 */
-	hostname2 = strdup(hostname);
-	if (hostname2 == NULL)
-		return EAI_MEMORY;
-	/* terminate at the delimiter */
-	hostname2[cp - hostname] = '\0';
-	scope = hostname2;
-	addr = cp + 1;
-#else
 	/*
 	 * Handle special case of <scoped_address><delimiter><scope id>
 	 */
@@ -886,7 +862,6 @@ explore_numeric_scope(pai, hostname, servname, res)
 	hostname2[cp - hostname] = '\0';
 	addr = hostname2;
 	scope = cp + 1;
-#endif
 
 	error = explore_numeric(pai, addr, servname, res);
 	if (error == 0) {
@@ -898,7 +873,7 @@ explore_numeric_scope(pai, hostname, servname, res)
 			sin6 = (struct sockaddr_in6 *)(void *)cur->ai_addr;
 			if ((scopeid = ip6_str2scopeid(scope, sin6)) == -1) {
 				free(hostname2);
-				return(EAI_NODATA); /* XXX: is return OK? */
+				return(EAI_NONAME); /* XXX: is return OK? */
 			}
 			sin6->sin6_scope_id = scopeid;
 		}
@@ -1060,12 +1035,10 @@ get_port(const struct addrinfo *ai, const char *servname, int matchonly) {
 			((struct sockaddr_in *)(void *)
 			    ai->ai_addr)->sin_port = port;
 			break;
-#ifdef INET6
 		case AF_INET6:
 			((struct sockaddr_in6 *)(void *)
 			    ai->ai_addr)->sin6_port = port;
 			break;
-#endif
 		}
 	}
 
@@ -1109,7 +1082,6 @@ addrconfig(af)
 	return 1;
 }
 
-#ifdef INET6
 /* convert a string to a scope identifier. XXX: IPv6 specific */
 static int
 ip6_str2scopeid(scope, sin6)
@@ -1124,17 +1096,19 @@ ip6_str2scopeid(scope, sin6)
 	if (*scope == '\0')
 		return -1;
 
+#ifdef USE_IFNAMELINKID
 	if (IN6_IS_ADDR_LINKLOCAL(a6) || IN6_IS_ADDR_MC_LINKLOCAL(a6)) {
 		/*
-		 * We currently assume a one-to-one mapping between links
-		 * and interfaces, so we simply use interface indices for
-		 * like-local scopes.
+		 * Using interface names as link indices can be allowed
+		 * only when we can assume a one-to-one mappings between
+		 * links and interfaces.  See comments in getnameinfo.c.
 		 */
 		scopeid = if_nametoindex(scope);
 		if (scopeid == 0)
 			goto trynumeric;
 		return(scopeid);
 	}
+#endif
 
 	/* still unclear about literal, allow numeric only - placeholder */
 	if (IN6_IS_ADDR_SITELOCAL(a6) || IN6_IS_ADDR_MC_SITELOCAL(a6))
@@ -1152,7 +1126,6 @@ trynumeric:
 	else
 		return -1;
 }
-#endif
 
 struct addrinfo *
 hostent2addrinfo(hp, pai)
