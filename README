@@ -44,10 +44,11 @@ BIND 9
 		Nominum, Inc.
 
 
-BIND 9.2.0b2
+BIND 9.2.0rc1
 
-	BIND 9.2.0b2 a beta release of BIND 9.2.0.  It includes a
-	number of new features over 9.1, including:
+	BIND 9.2.0rc1 is a release candidate for BIND 9.2.0.
+	BIND 9.2.0 has a number of new features over 9.1,
+	including:
 
 	  - The size of the cache can now be limited using the
             "max-cache-size" option.
