@@ -1,0 +1,12 @@
+port_before.h
+port_after.h
+config.log
+config.h
+config.cache
+prand_conf
+prand_conf.h
+Makefile
+config.cache
+config.status
+timestamp
+libtool
