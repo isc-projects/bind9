@@ -1,7 +1,8 @@
 1700.	[func]		nslookup is no longer to be treated as deprecated.
 			Remove "deprecated" warning message.  Add man page.
 
-1699.	[placeholder]	rt12281
+1699.	[bug]		dnssec-signzone can generate "not exact" errors
+			when resigning. [RT #12281]
 
 1698.	[doc]		Use reserved IPv6 documentation prefix.
 
