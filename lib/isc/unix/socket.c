@@ -143,11 +143,11 @@ typedef isc_event_t intev_t;
 #ifdef USE_CMSG
 #if !defined(CMSG_SPACE) || !defined(CMSG_NXTHDR) || !defined(CMSG_FIRSTHDR) \
 	|| !defined(CMSG_LEN) || !defined(CMSG_DATA)
-#warn Not using ipv6 pktinfo or timestamp because of partial CMSG_ implementation.
+#warning Not using ipv6 pktinfo or timestamp because of partial CMSG_ implementation.
 #undef USE_CMSG
 #endif
 #if !defined(ISC_NET_BSD44MSGHDR)
-#warn Not using ipv6 pktinfo or timestamp because of lack of BSD44 msghdr
+#warning Not using ipv6 pktinfo or timestamp because of lack of BSD44 msghdr
 #undef USE_CMSG
 #endif
 #endif
