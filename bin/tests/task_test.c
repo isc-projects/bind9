@@ -54,7 +54,8 @@ main(int argc, char *argv[]) {
 	unsigned int workers;
 	isc_timermgr_t timgr;
 	isc_timer_t ti1, ti2;
-	struct isc_time absolute, interval;
+	struct isc_time absolute;
+	struct isc_interval interval;
 
 	if (argc > 1)
 		workers = atoi(argv[1]);
@@ -79,14 +80,14 @@ main(int argc, char *argv[]) {
 	timgr = NULL;
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 	ti1 = NULL;
-	absolute.seconds = 0;
-	absolute.nanoseconds = 0;
-	interval.seconds = 1;
-	interval.nanoseconds = 0;
+	isc_time_settoepoch(&absolute);
+	isc_interval_set(&interval, 1, 0);
 	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
 				&absolute, &interval,
 				t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
 	ti2 = NULL;
+	isc_time_settoepoch(&absolute);
+	isc_interval_set(&interval, 1, 0);
 	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
 				&absolute, &interval,
 				t2, my_tick, "bar", &ti2) == ISC_R_SUCCESS);

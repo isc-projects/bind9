@@ -39,14 +39,13 @@ tick(isc_task_t task, isc_event_t event)
 		isc_timer_touch(ti3);
 
 	if (tick_count == 7) {
-		struct isc_time expires, interval, now;
+		struct isc_time expires, now;
+		struct isc_interval interval;
 
 		(void)isc_time_get(&now);
-		expires.seconds = 5;
-		expires.nanoseconds = 0;
-		isc_time_add(&now, &expires, &expires);
-		interval.seconds = 4;
-		interval.nanoseconds = 0;
+		isc_interval_set(&interval, 5, 0);
+		isc_time_add(&now, &interval, &expires);
+		isc_interval_set(&interval, 4, 0);
 		printf("*** resetting ti3 ***\n");
 		INSIST(isc_timer_reset(ti3, isc_timertype_once, &expires,
 				       &interval, ISC_TRUE)
@@ -83,7 +82,8 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_t manager = NULL;
 	isc_timermgr_t timgr = NULL;
 	unsigned int workers;
-	struct isc_time expires, interval, now;
+	struct isc_time expires, now;
+	struct isc_interval interval;
 
 	if (argc > 1)
 		workers = atoi(argv[1]);
@@ -108,24 +108,18 @@ main(int argc, char *argv[]) {
 
 	(void)isc_time_get(&now);
 
-	expires.seconds = 0;
-	expires.nanoseconds = 0;
-	interval.seconds = 2;
-	interval.nanoseconds = 0;
+	isc_time_settoepoch(&expires);
+	isc_interval_set(&interval, 2, 0);
 	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
 				t2, timeout, "2", &ti2) == ISC_R_SUCCESS);
-	expires.seconds = 0;
-	expires.nanoseconds = 0;
-	interval.seconds = 1;
-	interval.nanoseconds = 0;
+	isc_time_settoepoch(&expires);
+	isc_interval_set(&interval, 1, 0);
 	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
 				&expires, &interval,
 				t1, tick, "1", &ti1) == ISC_R_SUCCESS);
-	expires.seconds = 10;
-	expires.nanoseconds = 0;
-	isc_time_add(&now, &expires, &expires);
-	interval.seconds = 2;
-	interval.nanoseconds = 0;
+	isc_interval_set(&interval, 10, 0);
+	isc_time_add(&now, &interval, &expires);
+	isc_interval_set(&interval, 2, 0);
 	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
 				t3, timeout, "3", &ti3) == ISC_R_SUCCESS);
 
