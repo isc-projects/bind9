@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.1 1999/02/04 02:09:04 marka Exp $ */
+ /* $Id: tkey_249.c,v 1.2 1999/02/04 06:38:43 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -28,12 +28,23 @@ fromtext_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 		  isc_boolean_t downcase, isc_buffer_t *target)
 {
 	isc_token_t token;
+	dns_rcode_t rcode;
+	dns_name_t name;
+	isc_buffer_t buffer;
+	char *e;
 
 	REQUIRE(type == 249);
 	
 	class = class;		/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
+
+
+	/* Algorithm */
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	dns_name_init(&name, NULL);
+	buffer_fromregion(&buffer, &token.value.as_region,
+			  ISC_BUFFERTYPE_TEXT);
+	origin = (origin != NULL) ? origin : dns_rootname;
+	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
 
 	/* Inception */
@@ -51,10 +62,16 @@ fromtext_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Error */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
-	RETERR(uint16_tobuffer(token.value.as_ulong, target));
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	if (dns_rcode_fromtext(&rcode, &token.value.as_textregion)
+				!= DNS_R_SUCCESS) {
+		rcode = strtol(token.value.as_pointer, &e, 10);
+		if (*e != 0)
+			return (DNS_R_UNKNOWN);
+		if (rcode > 0xffff)
+			return (DNS_R_RANGE);
+	}
+	RETERR(uint16_tobuffer(rcode, target));
 
 	/* Signature Size */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -81,12 +98,20 @@ totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t sigr;
 	char buf[sizeof "4294967295 "];	
 	unsigned long n;
+	dns_name_t name;
+	dns_name_t prefix;
+	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 249);
 
-	origin = origin;	/*unused*/
-
 	dns_rdata_toregion(rdata, &sr);
+
+	/* Algorithm */
+	dns_name_init(&name, NULL);
+	dns_name_init(&prefix, NULL);
+	sub = name_prefix(&name, origin, &prefix);
+	RETERR(dns_name_totext(&prefix, sub, target));
+	isc_region_consume(&sr, name_length(&name));
 
 	/* Inception */
 	n = uint32_fromregion(&sr);
@@ -94,7 +119,7 @@ totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	sprintf(buf, "%lu ", n);
 	RETERR(str_totext(buf, target));
 
-	/* Error */
+	/* Expiration */
 	n = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 	sprintf(buf, "%lu ", n);
@@ -109,8 +134,12 @@ totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	/* Error */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%lu ", n);
-	RETERR(str_totext(buf, target));
+	if (dns_rcode_totext(n, target) == DNS_R_SUCCESS)
+		RETERR(str_totext(" ", target));
+	else {
+		sprintf(buf, "%lu ", n);
+		RETERR(str_totext(buf, target));
+	}
 
 	/* Signature Size */
 	n = uint16_fromregion(&sr);
@@ -143,20 +172,23 @@ fromwire_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 {
 	isc_region_t sr;
 	unsigned long n;
+	dns_name_t name;
 
 	REQUIRE(type == 249);
 	
 	class = class;		/*unused*/
-	dctx = dctx;		/*unused*/
-	downcase = downcase;	/*unused*/
 	
-	isc_buffer_active(source, &sr);
+	/* Algorithm */
+	dns_name_init(&name, NULL);
+	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
+
 	/* 
 	 * Inception: 4
 	 * Expiration: 4
 	 * Mode: 2
 	 * Error: 2
 	 */
+	isc_buffer_active(source, &sr);
 	if (sr.length < 12)
 		return (DNS_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 12));
@@ -186,12 +218,17 @@ fromwire_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 static dns_result_t
 towire_tkey(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
+	dns_name_t name;
 
 	REQUIRE(rdata->type == 249);
 
-	cctx = cctx;	/*unused*/
-
+	/* Algorithm */
 	dns_rdata_toregion(rdata, &sr);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &sr);
+	RETERR(dns_name_towire(&name, cctx, target));
+	isc_region_consume(&sr, name_length(&name));
+
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
@@ -199,13 +236,25 @@ static int
 compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
+	dns_name_t name1;
+	dns_name_t name2;
+	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->class == rdata2->class);
 	REQUIRE(rdata1->type == 249);
 	
+	/* Algorithm */
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
+	dns_name_init(&name1, NULL);
+	dns_name_init(&name2, NULL);
+	dns_name_fromregion(&name1, &r1);
+	dns_name_fromregion(&name1, &r1);
+	if ((result = dns_name_compare(&name1, &name2)) != 0)
+		return (result);
+	isc_region_consume(&r1, name_length(&name1));
+	isc_region_consume(&r2, name_length(&name2));
 	return (compare_region(&r1, &r2));
 }
 

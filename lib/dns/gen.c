@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.12 1999/02/02 22:34:20 marka Exp $ */
+ /* $Id: gen.c,v 1.13 1999/02/04 06:38:41 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -430,7 +430,7 @@ main(int argc, char **argv) {
 		lasttype = 0;
 		for (tt = types; tt != NULL ; tt = tt->next)
 			if (tt->type != lasttype)
-				fprintf(stdout, "\t ns_t_%s = %d,%s\n",
+				fprintf(stdout, "\t dns_rdatatype_%s = %d,%s\n",
 					funname(tt->typename, buf1),
 					lasttype = tt->type,
 					tt->next != NULL ? " \\" : "");
@@ -441,7 +441,7 @@ main(int argc, char **argv) {
 			classes != NULL ? " \\" : "");
 
 		for (cc = classes; cc != NULL; cc = cc->next)
-			fprintf(stdout, "\t ns_c_%s = %d,%s\n",
+			fprintf(stdout, "\t dns_rdataclass_%s = %d,%s\n",
 				funname(cc->classname, buf1),
 				cc->class,
 				cc->next != NULL ? " \\" : "");

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.h,v 1.2 1999/02/02 13:31:45 marka Exp $ */
+ /* $Id: nxt_30.h,v 1.3 1999/02/04 06:38:43 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -32,7 +32,8 @@ fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 	char *e;
 	unsigned char bm[8*1024]; /* 64k bits */
 	dns_rdatatype_t covered;
-	long maxcovered = -1;
+	dns_rdatatype_t maxcovered = dns_rdatatype_none;
+	isc_boolean_t first = ISC_TRUE;
 	unsigned int n;
 
 	REQUIRE(type == 30);
@@ -59,11 +60,14 @@ fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 		else if (dns_rdatatype_fromtext(&covered, 
 				&token.value.as_textregion) == DNS_R_UNKNOWN)
 			return (DNS_R_UNKNOWN);
-		if (covered > maxcovered)
+		if (first || covered > maxcovered)
 			maxcovered = covered;
+		first = ISC_FALSE;
 		bm[covered/8] |= (0x80>>(covered%8));
 	}
 	isc_lex_ungettoken(lexer, &token);
+	if (first) 
+		return (DNS_R_SUCCESS);
 	n = (maxcovered + 8) / 8;
 	return (mem_tobuffer(target, bm, n));
 }

@@ -39,8 +39,8 @@ typedef void					dns_dbversion_t;
 typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
-typedef isc_uint16_t				dns_rdataclass_t;
-typedef isc_uint16_t				dns_rdatatype_t;
+/* typedef isc_uint16_t				dns_rdataclass_t; */
+/* typedef isc_uint16_t				dns_rdatatype_t; */
 typedef isc_uint32_t				dns_ttl_t;
 typedef struct dns_rdata			dns_rdata_t;
 typedef struct dns_rdatalist			dns_rdatalist_t;
@@ -65,17 +65,37 @@ typedef enum {
 } dns_addmode_t;
 
 #include <dns/enumtype.h>
-enum {
-	ns_t_none = 0,
+typedef enum {
+	dns_rdatatype_none = 0,
 	TYPEENUM
-	ns_t_any = 255
-} ns_type_t;
+	dns_rdatatype_any = 255
+} dns_rdatatype_t;
 
 #include <dns/enumclass.h>
-enum {
+typedef enum {
 	CLASSENUM
-	ns_c_none = 0,
-	/* ns_c_any = 255  TSIG is class ANY specific */
-} ns_class_t;
+	dns_rdataclass_none = 0,
+	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
+} dns_rdataclass_t;
+
+typedef enum {
+	/* standard rcodes */
+	dns_rcode_noerror = 0,
+	dns_rcode_formerr = 1,
+	dns_rcode_servfail = 2,
+	dns_rcode_nxdomain = 3,
+	dns_rcode_notimp = 4,
+	dns_rcode_refused = 5,
+	dns_rcode_yxdomain = 6,
+	dns_rcode_yxrrset = 7,
+	dns_rcode_nxrrset = 8,
+	dns_rcode_notauth = 9,
+	dns_rcode_notzone = 10,
+	/* extended rcodes */
+	dns_rcode_badsig = 16,
+	dns_rcode_badkey = 17,
+	dns_rcode_badtime = 18,
+	dns_rcode_badmode = 19
+} dns_rcode_t;
 
 #endif /* DNS_TYPES_H */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.7 1999/01/30 13:11:24 marka Exp $ */
+ /* $Id: master.c,v 1.8 1999/02/04 06:38:41 marka Exp $ */
 
 #include <config.h>
 
@@ -370,17 +370,17 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 			goto cleanup;
 		}
 
-		if (!in_glue && type == ns_t_soa &&
+		if (!in_glue && type == dns_rdatatype_soa &&
 			dns_name_compare(top, &current_name) == 0) {
 			(*soacount)++;
 		}
 
-		if (!in_glue && type == ns_t_ns &&
+		if (!in_glue && type == dns_rdatatype_ns &&
 			dns_name_compare(top, &current_name) == 0) {
 			(*nscount)++;
 		}
 
-		if (type == ns_t_ns && !in_glue)
+		if (type == dns_rdatatype_ns && !in_glue)
 			current_has_delegation = ISC_TRUE;
 
 		if (in_glue)
@@ -617,7 +617,7 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 	/* find NS rrset */
 	this = ISC_LIST_HEAD(*head);
 	while (this != NULL) {
-		if (this->type == ns_t_ns)
+		if (this->type == dns_rdatatype_ns)
 			break;
 		this = ISC_LIST_NEXT(this, link);
 	}

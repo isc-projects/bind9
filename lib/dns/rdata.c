@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.24 1999/02/04 00:03:28 marka Exp $ */
+ /* $Id: rdata.c,v 1.25 1999/02/04 06:38:42 marka Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <dns/region.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
+#include <dns/rcode.h>
 
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \
@@ -106,12 +107,34 @@ static const char octdigits[] = "01234567";
 	{ 0, "NONE", META }, \
 	{ 255, "ANY", META },
 
+#define RCODENAMES \
+	/* standard rcodes */ \
+	{ dns_rcode_noerror, "NOERROR", 0}, \
+	{ dns_rcode_formerr, "FORMERR", 0}, \
+	{ dns_rcode_servfail, "SERVFAIL", 0}, \
+	{ dns_rcode_nxdomain, "NXDOMAIN", 0}, \
+	{ dns_rcode_notimp, "NOTIMP", 0}, \
+	{ dns_rcode_refused, "REFUSED", 0}, \
+	{ dns_rcode_yxdomain, "YXDOMAIN", 0}, \
+	{ dns_rcode_yxrrset, "YXRRSET", 0}, \
+	{ dns_rcode_nxrrset, "NXRRSET", 0}, \
+	{ dns_rcode_notauth, "NOTAUTH", 0}, \
+	{ dns_rcode_notzone, "NOTZONE", 0}, \
+	/* extended rcodes */ \
+	{ dns_rcode_badsig, "BADSIG", 0}, \
+	{ dns_rcode_badkey, "BADKEY", 0}, \
+	{ dns_rcode_badtime, "BADTIME", 0}, \
+	{ dns_rcode_badmode, "BADMODE", 0}, \
+	{ 0, NULL, 0 }
+
 struct tbl {
-	int	value;
+	unsigned int	value;
 	char	*name;
 	int	flags;
 } types[] = { TYPENAMES METATYPES {0, NULL, 0} },
-classes[] = { CLASSNAMES METACLASSES { 0, NULL, 0} };
+classes[] = { CLASSNAMES METACLASSES { 0, NULL, 0} },
+rcodes[] = { RCODENAMES };
+
 /***
  *** Initialization
  ***/
@@ -368,21 +391,16 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 dns_result_t
 dns_rdataclass_totext(dns_rdataclass_t class, isc_buffer_t *target) {
 	int i = 0;
-	unsigned int n;
-	isc_region_t region;
+	char buf[sizeof "65000"];
 
 	while (classes[i].name != NULL) {
 		if (classes[i].value == class) {
-			isc_buffer_available(target, &region);
-			if ((n = strlen(classes[i].name)) > region.length)
-				return (DNS_R_NOSPACE);
-			memcpy(region.base, classes[i].name, n);
-			isc_buffer_add(target, n);
-			return (DNS_R_SUCCESS);
+			return (str_totext(classes[i].name, target));
 		}
 		i++;
 	}
-	return (DNS_R_UNKNOWN);
+	sprintf(buf, "%u", class);
+	return (str_totext(buf, target));
 }
 
 dns_result_t
@@ -407,21 +425,48 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 dns_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 	int i = 0;
-	unsigned int n;
-	isc_region_t region;
+	char buf[sizeof "65000"];
 
 	while (types[i].name != NULL) {
 		if (types[i].value == type) {
-			isc_buffer_available(target, &region);
-			if ((n = strlen(types[i].name)) > region.length)
-				return (DNS_R_NOSPACE);
-			memcpy(region.base, types[i].name, n);
-			isc_buffer_add(target, n);
+			return (str_totext(types[i].name, target));
+		}
+		i++;
+	}
+	sprintf(buf, "%u", type);
+	return (str_totext(buf, target));
+}
+
+dns_result_t
+dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
+	int i = 0;
+	unsigned int n;
+
+	while (rcodes[i].name != NULL) {
+		n = strlen(rcodes[i].name);
+		if (n == source->length &&
+		    strncasecmp(source->base, rcodes[i].name, n) == 0) {
+			*rcodep = rcodes[i].value;
 			return (DNS_R_SUCCESS);
 		}
 		i++;
 	}
 	return (DNS_R_UNKNOWN);
+}
+
+dns_result_t
+dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
+	int i = 0;
+	char buf[sizeof "65000"];
+
+	while (rcodes[i].name != NULL) {
+		if (rcodes[i].value == rcode) {
+			return (str_totext(rcodes[i].name, target));
+		}
+		i++;
+	}
+	sprintf(buf, "%u", rcode);
+	return (str_totext(buf, target));
 }
 
  /* Private function */
