@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.23 2002/04/02 06:54:03 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.24 2002/07/11 04:40:07 marka Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@ isc_log_t *logc = NULL;
 
 static void
 usage(void) {
-        fprintf(stderr, "usage: named-checkconf [-v] [-z] [-t directory] "
+        fprintf(stderr, "usage: named-checkconf [-m] [-v] [-z] [-t directory] "
 		"[named.conf]\n");
         exit(1);
 }
@@ -198,9 +198,7 @@ main(int argc, char **argv) {
 	int exit_status = 0;
 	isc_boolean_t load_zones = ISC_FALSE;
 	
-	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-
-	while ((c = isc_commandline_parse(argc, argv, "dt:vz")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "dmt:vz")) != EOF) {
 		switch (c) {
 		case 'd':
 			debug++;
