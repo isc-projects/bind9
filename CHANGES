@@ -1,4 +1,8 @@
 
+ 717.	[bug]		Certain TKEY processing failure modes could
+			reference an uninitialized variable, causing the
+			server to crash. [RT #750]
+
  711.	[bug]		The libisc and liblwres implementations of
 			inet_ntop contained an off by one error.
 
