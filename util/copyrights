@@ -583,6 +583,7 @@
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000
 ./lib/isc/include/isc/socket.h			C	1998,1999,2000
 ./lib/isc/include/isc/str.h			C	1999,2000
+./lib/isc/include/isc/string.h			C	2000
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000
 ./lib/isc/include/isc/task.h			C	1998,1999,2000
 ./lib/isc/include/isc/taskpool.h		C	1999,2000
@@ -621,6 +622,7 @@
 ./lib/isc/serial.c				C	1999,2000
 ./lib/isc/sockaddr.c				C	1999,2000
 ./lib/isc/str.c					C	1999,2000
+./lib/isc/strsep.c				C	2000
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000
 ./lib/isc/task.c				C	1998,1999,2000
 ./lib/isc/taskpool.c				C	1999,2000
