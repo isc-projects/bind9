@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# From configure.in Revision: 1.165.2.2 
+# From configure.in Revision: 1.165.2.3 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999 Free Software Foundation, Inc.
@@ -2645,505 +2645,6 @@ fi
 
 
 #
-# Networking specifics.
-#
-case "$host" in
-	*-dec-osf*)
-		# Turn on 4.4BSD style sa_len support.
-		cat >> confdefs.h <<\EOF
-#define _SOCKADDR_LEN 1
-EOF
-
-		;;
-esac
-
-#
-# Look for a 4.4BSD-style sa_len member in struct sockaddr.
-#
-echo $ac_n "checking for sa_len in struct sockaddr""... $ac_c" 1>&6
-echo "configure:2665: checking for sa_len in struct sockaddr" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2667 "configure"
-#include "confdefs.h"
-
-#include <sys/types.h>
-#include <sys/socket.h>
-int main() {
-struct sockaddr sa; sa.sa_len = 0; return (0);
-; return 0; }
-EOF
-if { (eval echo configure:2676: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_PLATFORM_HAVESALEN="#define ISC_PLATFORM_HAVESALEN 1"
-	LWRES_PLATFORM_HAVESALEN="#define LWRES_PLATFORM_HAVESALEN 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"
-	LWRES_PLATFORM_HAVESALEN="#undef LWRES_PLATFORM_HAVESALEN"
-fi
-rm -f conftest*
-
-
-
-#
-# Look for a 4.4BSD or 4.3BSD struct msghdr
-#
-echo $ac_n "checking for struct msghdr flavor""... $ac_c" 1>&6
-echo "configure:2697: checking for struct msghdr flavor" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2699 "configure"
-#include "confdefs.h"
-
-#include <sys/types.h>
-#include <sys/socket.h>
-int main() {
-struct msghdr msg; msg.msg_flags = 0; return (0);
-; return 0; }
-EOF
-if { (eval echo configure:2708: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""4.4BSD" 1>&6
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""4.3BSD" 1>&6
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"
-fi
-rm -f conftest*
-
-
-#
-# Look for in_port_t.
-#
-echo $ac_n "checking for type in_port_t""... $ac_c" 1>&6
-echo "configure:2726: checking for type in_port_t" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2728 "configure"
-#include "confdefs.h"
-
-#include <sys/types.h>
-#include <netinet/in.h>
-int main() {
-in_port_t port = 25; return (0);
-; return 0; }
-EOF
-if { (eval echo configure:2737: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"
-fi
-rm -f conftest*
-
-
-#
-# Check for addrinfo
-#
-echo $ac_n "checking for struct addrinfo""... $ac_c" 1>&6
-echo "configure:2755: checking for struct addrinfo" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2757 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-int main() {
-struct addrinfo a; return (0);
-; return 0; }
-EOF
-if { (eval echo configure:2765: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_NEEDADDRINFO="#undef ISC_LWRES_NEEDADDRINFO"
-	cat >> confdefs.h <<\EOF
-#define HAVE_ADDRINFO 1
-EOF
-
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_NEEDADDRINFO="#define ISC_LWRES_NEEDADDRINFO 1"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for int sethostent""... $ac_c" 1>&6
-echo "configure:2784: checking for int sethostent" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2786 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-int main() {
-int i = sethostent(0); return(0);
-; return 0; }
-EOF
-if { (eval echo configure:2794: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_SETHOSTENTINT="#define ISC_LWRES_SETHOSTENTINT 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_SETHOSTENTINT="#undef ISC_LWRES_SETHOSTENTINT"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for int endhostent""... $ac_c" 1>&6
-echo "configure:2809: checking for int endhostent" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2811 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-int main() {
-int i = endhostent(); return(0);
-; return 0; }
-EOF
-if { (eval echo configure:2819: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_ENDHOSTENTINT="#define ISC_LWRES_ENDHOSTENTINT 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_ENDHOSTENTINT="#undef ISC_LWRES_ENDHOSTENTINT"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for getnetbyaddr(in_addr_t, ...)""... $ac_c" 1>&6
-echo "configure:2834: checking for getnetbyaddr(in_addr_t, ...)" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2836 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-struct netent *getnetbyaddr(in_addr_t, int);
-int main() {
-
-; return 0; }
-EOF
-if { (eval echo configure:2845: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_GETNETBYADDRINADDR="#define ISC_LWRES_GETNETBYADDRINADDR 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_GETNETBYADDRINADDR="#undef ISC_LWRES_GETNETBYADDRINADDR"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for int setnetent""... $ac_c" 1>&6
-echo "configure:2860: checking for int setnetent" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2862 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-int main() {
-int i = setnetent(0); return(0);
-; return 0; }
-EOF
-if { (eval echo configure:2870: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_SETNETENTINT="#define ISC_LWRES_SETNETENTINT 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_SETNETENTINT="#undef ISC_LWRES_SETNETENTINT"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for int endnetent""... $ac_c" 1>&6
-echo "configure:2885: checking for int endnetent" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2887 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-int main() {
-int i = endnetent(); return(0);
-; return 0; }
-EOF
-if { (eval echo configure:2895: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_ENDNETENTINT="#define ISC_LWRES_ENDNETENTINT 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_ENDNETENTINT="#undef ISC_LWRES_ENDNETENTINT"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for gethostbyadd(const void *, size_t, ...)""... $ac_c" 1>&6
-echo "configure:2910: checking for gethostbyadd(const void *, size_t, ...)" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2912 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-struct hostent *gethostbyaddr(const void *, size_t, int);
-int main() {
-return(0);
-; return 0; }
-EOF
-if { (eval echo configure:2921: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_GETHOSTBYADDRVOID="#define ISC_LWRES_GETHOSTBYADDRVOID 1"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_GETHOSTBYADDRVOID="#undef ISC_LWRES_GETHOSTBYADDRVOID"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for h_errno in netdb.h""... $ac_c" 1>&6
-echo "configure:2936: checking for h_errno in netdb.h" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2938 "configure"
-#include "confdefs.h"
-
-#include <netdb.h>
-int main() {
-h_errno = 1; return(0);
-; return 0; }
-EOF
-if { (eval echo configure:2946: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	ISC_LWRES_NEEDHERRNO="#undef ISC_LWRES_NEEDHERRNO"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-	ISC_LWRES_NEEDHERRNO="#define ISC_LWRES_NEEDHERRNO 1"
-fi
-rm -f conftest*
-
-
-echo $ac_n "checking for getipnodebyname""... $ac_c" 1>&6
-echo "configure:2961: checking for getipnodebyname" >&5
-if eval "test \"`echo '$''{'ac_cv_func_getipnodebyname'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 2966 "configure"
-#include "confdefs.h"
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getipnodebyname(); below.  */
-#include <assert.h>
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char getipnodebyname();
-
-int main() {
-
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getipnodebyname) || defined (__stub___getipnodebyname)
-choke me
-#else
-getipnodebyname();
-#endif
-
-; return 0; }
-EOF
-if { (eval echo configure:2989: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_func_getipnodebyname=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_func_getipnodebyname=no"
-fi
-rm -f conftest*
-fi
-
-if eval "test \"`echo '$ac_cv_func_'getipnodebyname`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"
-else
-  echo "$ac_t""no" 1>&6
-ISC_LWRES_GETIPNODEPROTO="#define ISC_LWRES_GETIPNODEPROTO 1"
-fi
-
-echo $ac_n "checking for getnameinfo""... $ac_c" 1>&6
-echo "configure:3010: checking for getnameinfo" >&5
-if eval "test \"`echo '$''{'ac_cv_func_getnameinfo'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 3015 "configure"
-#include "confdefs.h"
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getnameinfo(); below.  */
-#include <assert.h>
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char getnameinfo();
-
-int main() {
-
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getnameinfo) || defined (__stub___getnameinfo)
-choke me
-#else
-getnameinfo();
-#endif
-
-; return 0; }
-EOF
-if { (eval echo configure:3038: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_func_getnameinfo=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_func_getnameinfo=no"
-fi
-rm -f conftest*
-fi
-
-if eval "test \"`echo '$ac_cv_func_'getnameinfo`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  ISC_LWRES_GETNAMEINFOPROTO="#undef ISC_LWRES_GETNAMEINFOPROTO"
-else
-  echo "$ac_t""no" 1>&6
-ISC_LWRES_GETNAMEINFOPROTO="#define ISC_LWRES_GETNAMEINFOPROTO 1"
-fi
-
-echo $ac_n "checking for getaddrinfo""... $ac_c" 1>&6
-echo "configure:3059: checking for getaddrinfo" >&5
-if eval "test \"`echo '$''{'ac_cv_func_getaddrinfo'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  cat > conftest.$ac_ext <<EOF
-#line 3064 "configure"
-#include "confdefs.h"
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char getaddrinfo(); below.  */
-#include <assert.h>
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char getaddrinfo();
-
-int main() {
-
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_getaddrinfo) || defined (__stub___getaddrinfo)
-choke me
-#else
-getaddrinfo();
-#endif
-
-; return 0; }
-EOF
-if { (eval echo configure:3087: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_func_getaddrinfo=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_func_getaddrinfo=no"
-fi
-rm -f conftest*
-fi
-
-if eval "test \"`echo '$ac_cv_func_'getaddrinfo`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  ISC_LWRES_GETADDRINFOPROTO="#undef ISC_LWRES_GETADDRINFOPROTO"
-	cat >> confdefs.h <<\EOF
-#define HAVE_GETADDRINFO 1
-EOF
-
-else
-  echo "$ac_t""no" 1>&6
-ISC_LWRES_GETADDRINFOPROTO="#define ISC_LWRES_GETADDRINFOPROTO 1"
-fi
-
-
-
-
-
-#
-# Look for a sysctl call to get the list of network interfaces.
-#
-echo $ac_n "checking for interface list sysctl""... $ac_c" 1>&6
-echo "configure:3119: checking for interface list sysctl" >&5
-cat > conftest.$ac_ext <<EOF
-#line 3121 "configure"
-#include "confdefs.h"
-
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <sys/socket.h>
-#ifdef NET_RT_IFLIST
-found_rt_iflist
-#endif
-
-EOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  egrep "found_rt_iflist" >/dev/null 2>&1; then
-  rm -rf conftest*
-  echo "$ac_t""yes" 1>&6
-	 cat >> confdefs.h <<\EOF
-#define HAVE_IFLIST_SYSCTL 1
-EOF
-
-else
-  rm -rf conftest*
-  echo "$ac_t""no" 1>&6
-fi
-rm -f conftest*
-
-
-#
 # GNU libtool support
 #
 # Check whether --with-libtool or --without-libtool was given.
@@ -3227,7 +2728,7 @@ else
 fi
 
 echo $ac_n "checking build system type""... $ac_c" 1>&6
-echo "configure:3231: checking build system type" >&5
+echo "configure:2732: checking build system type" >&5
 
 build_alias=$build
 case "$build_alias" in
@@ -3256,7 +2757,7 @@ ac_prog=ld
 if test "$ac_cv_prog_gcc" = yes; then
   # Check if gcc -print-prog-name=ld gives a path.
   echo $ac_n "checking for ld used by GCC""... $ac_c" 1>&6
-echo "configure:3260: checking for ld used by GCC" >&5
+echo "configure:2761: checking for ld used by GCC" >&5
   ac_prog=`($CC -print-prog-name=ld) 2>&5`
   case "$ac_prog" in
     # Accept absolute paths.
@@ -3280,10 +2781,10 @@ echo "configure:3260: checking for ld used by GCC" >&5
   esac
 elif test "$with_gnu_ld" = yes; then
   echo $ac_n "checking for GNU ld""... $ac_c" 1>&6
-echo "configure:3284: checking for GNU ld" >&5
+echo "configure:2785: checking for GNU ld" >&5
 else
   echo $ac_n "checking for non-GNU ld""... $ac_c" 1>&6
-echo "configure:3287: checking for non-GNU ld" >&5
+echo "configure:2788: checking for non-GNU ld" >&5
 fi
 if eval "test \"`echo '$''{'ac_cv_path_LD'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3319,7 +2820,7 @@ fi
 test -z "$LD" && { echo "configure: error: no acceptable ld found in \$PATH" 1>&2; exit 1; }
 
 echo $ac_n "checking if the linker ($LD) is GNU ld""... $ac_c" 1>&6
-echo "configure:3323: checking if the linker ($LD) is GNU ld" >&5
+echo "configure:2824: checking if the linker ($LD) is GNU ld" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_gnu_ld'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -3335,7 +2836,7 @@ echo "$ac_t""$ac_cv_prog_gnu_ld" 1>&6
 
 
 echo $ac_n "checking for BSD-compatible nm""... $ac_c" 1>&6
-echo "configure:3339: checking for BSD-compatible nm" >&5
+echo "configure:2840: checking for BSD-compatible nm" >&5
 if eval "test \"`echo '$''{'ac_cv_path_NM'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -3372,7 +2873,7 @@ echo "$ac_t""$NM" 1>&6
 
 
 echo $ac_n "checking whether ln -s works""... $ac_c" 1>&6
-echo "configure:3376: checking whether ln -s works" >&5
+echo "configure:2877: checking whether ln -s works" >&5
 if eval "test \"`echo '$''{'ac_cv_prog_LN_S'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -3416,8 +2917,8 @@ test x"$silent" = xyes && libtool_flags="$libtool_flags --silent"
 case "$host" in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 3420 "configure"' > conftest.$ac_ext
-  if { (eval echo configure:3421: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  echo '#line 2921 "configure"' > conftest.$ac_ext
+  if { (eval echo configure:2922: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
     case "`/usr/bin/file conftest.o`" in
     *32-bit*)
       LD="${LD-ld} -32"
@@ -3438,19 +2939,19 @@ case "$host" in
   SAVE_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS -belf"
   echo $ac_n "checking whether the C compiler needs -belf""... $ac_c" 1>&6
-echo "configure:3442: checking whether the C compiler needs -belf" >&5
+echo "configure:2943: checking whether the C compiler needs -belf" >&5
 if eval "test \"`echo '$''{'lt_cv_cc_needs_belf'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 3447 "configure"
+#line 2948 "configure"
 #include "confdefs.h"
 
 int main() {
 
 ; return 0; }
 EOF
-if { (eval echo configure:3454: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2955: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   lt_cv_cc_needs_belf=yes
 else
@@ -3587,9 +3088,9 @@ fi
 case "$enable_ipv6" in
 	yes|''|autodetect)
 		echo $ac_n "checking for IPv6 structures""... $ac_c" 1>&6
-echo "configure:3591: checking for IPv6 structures" >&5
+echo "configure:3092: checking for IPv6 structures" >&5
 		cat > conftest.$ac_ext <<EOF
-#line 3593 "configure"
+#line 3094 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -3599,7 +3100,7 @@ int main() {
 struct sockaddr_in6 sin6; return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3603: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:3104: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 			 found_ipv6=yes
@@ -3622,7 +3123,7 @@ esac
 # This is done before other IPv6 linking tests to LIBS is properly set.
 #
 echo $ac_n "checking for Kame IPv6 support""... $ac_c" 1>&6
-echo "configure:3626: checking for Kame IPv6 support" >&5
+echo "configure:3127: checking for Kame IPv6 support" >&5
 # Check whether --with-kame or --without-kame was given.
 if test "${with_kame+set}" = set; then
   withval="$with_kame"
@@ -3710,9 +3211,9 @@ case "$found_ipv6" in
 		LWRES_PLATFORM_HAVEIPV6="#define LWRES_PLATFORM_HAVEIPV6 1"
 
 		echo $ac_n "checking for in6addr_any""... $ac_c" 1>&6
-echo "configure:3714: checking for in6addr_any" >&5
+echo "configure:3215: checking for in6addr_any" >&5
 		cat > conftest.$ac_ext <<EOF
-#line 3716 "configure"
+#line 3217 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -3723,7 +3224,7 @@ int main() {
 struct in6_addr in6; in6 = in6addr_any; return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3727: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3228: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 			 ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
@@ -3739,9 +3240,9 @@ fi
 rm -f conftest*
 
 		echo $ac_n "checking for sin6_scope_id in struct sockaddr_in6""... $ac_c" 1>&6
-echo "configure:3743: checking for sin6_scope_id in struct sockaddr_in6" >&5
+echo "configure:3244: checking for sin6_scope_id in struct sockaddr_in6" >&5
 		cat > conftest.$ac_ext <<EOF
-#line 3745 "configure"
+#line 3246 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -3754,7 +3255,7 @@ int main() {
 struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3758: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:3259: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 			 result="#define LWRES_HAVE_SIN6_SCOPE_ID 1"
@@ -3769,9 +3270,9 @@ rm -f conftest*
 		LWRES_HAVE_SIN6_SCOPE_ID="$result"
 
 		echo $ac_n "checking for in6_pktinfo""... $ac_c" 1>&6
-echo "configure:3773: checking for in6_pktinfo" >&5
+echo "configure:3274: checking for in6_pktinfo" >&5
 		cat > conftest.$ac_ext <<EOF
-#line 3775 "configure"
+#line 3276 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -3784,7 +3285,7 @@ int main() {
 struct in6_pktinfo xyzzy; return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3788: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:3289: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
 			 ISC_PLATFORM_HAVEIN6PKTINFO="#define ISC_PLATFORM_HAVEIN6PKTINFO 1"
@@ -3831,9 +3332,9 @@ esac
 # the files.
 #
 echo $ac_n "checking for inet_ntop""... $ac_c" 1>&6
-echo "configure:3835: checking for inet_ntop" >&5
+echo "configure:3336: checking for inet_ntop" >&5
 cat > conftest.$ac_ext <<EOF
-#line 3837 "configure"
+#line 3338 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -3843,7 +3344,7 @@ int main() {
 inet_ntop(0, 0, 0, 0); return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3847: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3348: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
         ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
@@ -3858,9 +3359,9 @@ else
 fi
 rm -f conftest*
 echo $ac_n "checking for inet_pton""... $ac_c" 1>&6
-echo "configure:3862: checking for inet_pton" >&5
+echo "configure:3363: checking for inet_pton" >&5
 cat > conftest.$ac_ext <<EOF
-#line 3864 "configure"
+#line 3365 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -3870,7 +3371,7 @@ int main() {
 inet_pton(0, 0, 0); return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3874: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3375: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
         ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"
@@ -3885,9 +3386,9 @@ else
 fi
 rm -f conftest*
 echo $ac_n "checking for inet_aton""... $ac_c" 1>&6
-echo "configure:3889: checking for inet_aton" >&5
+echo "configure:3390: checking for inet_aton" >&5
 cat > conftest.$ac_ext <<EOF
-#line 3891 "configure"
+#line 3392 "configure"
 #include "confdefs.h"
 
 #include <sys/types.h>
@@ -3897,7 +3398,7 @@ int main() {
 struct in_addr in; inet_aton(0, &in); return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:3901: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:3402: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
         ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"
@@ -3914,6 +3415,505 @@ rm -f conftest*
 
 
 
+
+
+#
+# Networking specifics.
+#
+case "$host" in
+	*-dec-osf*)
+		# Turn on 4.4BSD style sa_len support.
+		cat >> confdefs.h <<\EOF
+#define _SOCKADDR_LEN 1
+EOF
+
+		;;
+esac
+
+#
+# Look for a 4.4BSD-style sa_len member in struct sockaddr.
+#
+echo $ac_n "checking for sa_len in struct sockaddr""... $ac_c" 1>&6
+echo "configure:3438: checking for sa_len in struct sockaddr" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3440 "configure"
+#include "confdefs.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+int main() {
+struct sockaddr sa; sa.sa_len = 0; return (0);
+; return 0; }
+EOF
+if { (eval echo configure:3449: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_PLATFORM_HAVESALEN="#define ISC_PLATFORM_HAVESALEN 1"
+	LWRES_PLATFORM_HAVESALEN="#define LWRES_PLATFORM_HAVESALEN 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"
+	LWRES_PLATFORM_HAVESALEN="#undef LWRES_PLATFORM_HAVESALEN"
+fi
+rm -f conftest*
+
+
+
+#
+# Look for a 4.4BSD or 4.3BSD struct msghdr
+#
+echo $ac_n "checking for struct msghdr flavor""... $ac_c" 1>&6
+echo "configure:3470: checking for struct msghdr flavor" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3472 "configure"
+#include "confdefs.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+int main() {
+struct msghdr msg; msg.msg_flags = 0; return (0);
+; return 0; }
+EOF
+if { (eval echo configure:3481: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""4.4BSD" 1>&6
+	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""4.3BSD" 1>&6
+	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"
+fi
+rm -f conftest*
+
+
+#
+# Look for in_port_t.
+#
+echo $ac_n "checking for type in_port_t""... $ac_c" 1>&6
+echo "configure:3499: checking for type in_port_t" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3501 "configure"
+#include "confdefs.h"
+
+#include <sys/types.h>
+#include <netinet/in.h>
+int main() {
+in_port_t port = 25; return (0);
+; return 0; }
+EOF
+if { (eval echo configure:3510: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"
+fi
+rm -f conftest*
+
+
+#
+# Check for addrinfo
+#
+echo $ac_n "checking for struct addrinfo""... $ac_c" 1>&6
+echo "configure:3528: checking for struct addrinfo" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3530 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+int main() {
+struct addrinfo a; return (0);
+; return 0; }
+EOF
+if { (eval echo configure:3538: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_NEEDADDRINFO="#undef ISC_LWRES_NEEDADDRINFO"
+	cat >> confdefs.h <<\EOF
+#define HAVE_ADDRINFO 1
+EOF
+
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_NEEDADDRINFO="#define ISC_LWRES_NEEDADDRINFO 1"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for int sethostent""... $ac_c" 1>&6
+echo "configure:3557: checking for int sethostent" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3559 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+int main() {
+int i = sethostent(0); return(0);
+; return 0; }
+EOF
+if { (eval echo configure:3567: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_SETHOSTENTINT="#define ISC_LWRES_SETHOSTENTINT 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_SETHOSTENTINT="#undef ISC_LWRES_SETHOSTENTINT"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for int endhostent""... $ac_c" 1>&6
+echo "configure:3582: checking for int endhostent" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3584 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+int main() {
+int i = endhostent(); return(0);
+; return 0; }
+EOF
+if { (eval echo configure:3592: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_ENDHOSTENTINT="#define ISC_LWRES_ENDHOSTENTINT 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_ENDHOSTENTINT="#undef ISC_LWRES_ENDHOSTENTINT"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for getnetbyaddr(in_addr_t, ...)""... $ac_c" 1>&6
+echo "configure:3607: checking for getnetbyaddr(in_addr_t, ...)" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3609 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+struct netent *getnetbyaddr(in_addr_t, int);
+int main() {
+
+; return 0; }
+EOF
+if { (eval echo configure:3618: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_GETNETBYADDRINADDR="#define ISC_LWRES_GETNETBYADDRINADDR 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_GETNETBYADDRINADDR="#undef ISC_LWRES_GETNETBYADDRINADDR"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for int setnetent""... $ac_c" 1>&6
+echo "configure:3633: checking for int setnetent" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3635 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+int main() {
+int i = setnetent(0); return(0);
+; return 0; }
+EOF
+if { (eval echo configure:3643: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_SETNETENTINT="#define ISC_LWRES_SETNETENTINT 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_SETNETENTINT="#undef ISC_LWRES_SETNETENTINT"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for int endnetent""... $ac_c" 1>&6
+echo "configure:3658: checking for int endnetent" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3660 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+int main() {
+int i = endnetent(); return(0);
+; return 0; }
+EOF
+if { (eval echo configure:3668: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_ENDNETENTINT="#define ISC_LWRES_ENDNETENTINT 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_ENDNETENTINT="#undef ISC_LWRES_ENDNETENTINT"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for gethostbyadd(const void *, size_t, ...)""... $ac_c" 1>&6
+echo "configure:3683: checking for gethostbyadd(const void *, size_t, ...)" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3685 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+struct hostent *gethostbyaddr(const void *, size_t, int);
+int main() {
+return(0);
+; return 0; }
+EOF
+if { (eval echo configure:3694: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_GETHOSTBYADDRVOID="#define ISC_LWRES_GETHOSTBYADDRVOID 1"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_GETHOSTBYADDRVOID="#undef ISC_LWRES_GETHOSTBYADDRVOID"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for h_errno in netdb.h""... $ac_c" 1>&6
+echo "configure:3709: checking for h_errno in netdb.h" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3711 "configure"
+#include "confdefs.h"
+
+#include <netdb.h>
+int main() {
+h_errno = 1; return(0);
+; return 0; }
+EOF
+if { (eval echo configure:3719: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	ISC_LWRES_NEEDHERRNO="#undef ISC_LWRES_NEEDHERRNO"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+	ISC_LWRES_NEEDHERRNO="#define ISC_LWRES_NEEDHERRNO 1"
+fi
+rm -f conftest*
+
+
+echo $ac_n "checking for getipnodebyname""... $ac_c" 1>&6
+echo "configure:3734: checking for getipnodebyname" >&5
+if eval "test \"`echo '$''{'ac_cv_func_getipnodebyname'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 3739 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char getipnodebyname(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char getipnodebyname();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getipnodebyname) || defined (__stub___getipnodebyname)
+choke me
+#else
+getipnodebyname();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:3762: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_func_getipnodebyname=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_getipnodebyname=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'getipnodebyname`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"
+else
+  echo "$ac_t""no" 1>&6
+ISC_LWRES_GETIPNODEPROTO="#define ISC_LWRES_GETIPNODEPROTO 1"
+fi
+
+echo $ac_n "checking for getnameinfo""... $ac_c" 1>&6
+echo "configure:3783: checking for getnameinfo" >&5
+if eval "test \"`echo '$''{'ac_cv_func_getnameinfo'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 3788 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char getnameinfo(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char getnameinfo();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getnameinfo) || defined (__stub___getnameinfo)
+choke me
+#else
+getnameinfo();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:3811: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_func_getnameinfo=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_getnameinfo=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'getnameinfo`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  ISC_LWRES_GETNAMEINFOPROTO="#undef ISC_LWRES_GETNAMEINFOPROTO"
+else
+  echo "$ac_t""no" 1>&6
+ISC_LWRES_GETNAMEINFOPROTO="#define ISC_LWRES_GETNAMEINFOPROTO 1"
+fi
+
+echo $ac_n "checking for getaddrinfo""... $ac_c" 1>&6
+echo "configure:3832: checking for getaddrinfo" >&5
+if eval "test \"`echo '$''{'ac_cv_func_getaddrinfo'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 3837 "configure"
+#include "confdefs.h"
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char getaddrinfo(); below.  */
+#include <assert.h>
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char getaddrinfo();
+
+int main() {
+
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_getaddrinfo) || defined (__stub___getaddrinfo)
+choke me
+#else
+getaddrinfo();
+#endif
+
+; return 0; }
+EOF
+if { (eval echo configure:3860: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_func_getaddrinfo=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_func_getaddrinfo=no"
+fi
+rm -f conftest*
+fi
+
+if eval "test \"`echo '$ac_cv_func_'getaddrinfo`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  ISC_LWRES_GETADDRINFOPROTO="#undef ISC_LWRES_GETADDRINFOPROTO"
+	cat >> confdefs.h <<\EOF
+#define HAVE_GETADDRINFO 1
+EOF
+
+else
+  echo "$ac_t""no" 1>&6
+ISC_LWRES_GETADDRINFOPROTO="#define ISC_LWRES_GETADDRINFOPROTO 1"
+fi
+
+
+
+
+
+#
+# Look for a sysctl call to get the list of network interfaces.
+#
+echo $ac_n "checking for interface list sysctl""... $ac_c" 1>&6
+echo "configure:3892: checking for interface list sysctl" >&5
+cat > conftest.$ac_ext <<EOF
+#line 3894 "configure"
+#include "confdefs.h"
+
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include <sys/socket.h>
+#ifdef NET_RT_IFLIST
+found_rt_iflist
+#endif
+
+EOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  egrep "found_rt_iflist" >/dev/null 2>&1; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	 cat >> confdefs.h <<\EOF
+#define HAVE_IFLIST_SYSCTL 1
+EOF
+
+else
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+fi
+rm -f conftest*
 
 
 # Check for some other useful functions that are not ever-present.
@@ -4525,21 +4525,6 @@ s%@MKDEPCC@%$MKDEPCC%g
 s%@MKDEPCFLAGS@%$MKDEPCFLAGS%g
 s%@MKDEPPROG@%$MKDEPPROG%g
 s%@IRIX_DNSSEC_WARNINGS_HACK@%$IRIX_DNSSEC_WARNINGS_HACK%g
-s%@ISC_PLATFORM_HAVESALEN@%$ISC_PLATFORM_HAVESALEN%g
-s%@LWRES_PLATFORM_HAVESALEN@%$LWRES_PLATFORM_HAVESALEN%g
-s%@ISC_PLATFORM_MSGHDRFLAVOR@%$ISC_PLATFORM_MSGHDRFLAVOR%g
-s%@ISC_PLATFORM_NEEDPORTT@%$ISC_PLATFORM_NEEDPORTT%g
-s%@ISC_LWRES_NEEDADDRINFO@%$ISC_LWRES_NEEDADDRINFO%g
-s%@ISC_LWRES_SETHOSTENTINT@%$ISC_LWRES_SETHOSTENTINT%g
-s%@ISC_LWRES_ENDHOSTENTINT@%$ISC_LWRES_ENDHOSTENTINT%g
-s%@ISC_LWRES_GETNETBYADDRINADDR@%$ISC_LWRES_GETNETBYADDRINADDR%g
-s%@ISC_LWRES_SETNETENTINT@%$ISC_LWRES_SETNETENTINT%g
-s%@ISC_LWRES_ENDNETENTINT@%$ISC_LWRES_ENDNETENTINT%g
-s%@ISC_LWRES_GETHOSTBYADDRVOID@%$ISC_LWRES_GETHOSTBYADDRVOID%g
-s%@ISC_LWRES_NEEDHERRNO@%$ISC_LWRES_NEEDHERRNO%g
-s%@ISC_LWRES_GETIPNODEPROTO@%$ISC_LWRES_GETIPNODEPROTO%g
-s%@ISC_LWRES_GETADDRINFOPROTO@%$ISC_LWRES_GETADDRINFOPROTO%g
-s%@ISC_LWRES_GETNAMEINFOPROTO@%$ISC_LWRES_GETNAMEINFOPROTO%g
 s%@build@%$build%g
 s%@build_alias@%$build_alias%g
 s%@build_cpu@%$build_cpu%g
@@ -4569,6 +4554,21 @@ s%@LWRES_HAVE_SIN6_SCOPE_ID@%$LWRES_HAVE_SIN6_SCOPE_ID%g
 s%@ISC_PLATFORM_NEEDNTOP@%$ISC_PLATFORM_NEEDNTOP%g
 s%@ISC_PLATFORM_NEEDPTON@%$ISC_PLATFORM_NEEDPTON%g
 s%@ISC_PLATFORM_NEEDATON@%$ISC_PLATFORM_NEEDATON%g
+s%@ISC_PLATFORM_HAVESALEN@%$ISC_PLATFORM_HAVESALEN%g
+s%@LWRES_PLATFORM_HAVESALEN@%$LWRES_PLATFORM_HAVESALEN%g
+s%@ISC_PLATFORM_MSGHDRFLAVOR@%$ISC_PLATFORM_MSGHDRFLAVOR%g
+s%@ISC_PLATFORM_NEEDPORTT@%$ISC_PLATFORM_NEEDPORTT%g
+s%@ISC_LWRES_NEEDADDRINFO@%$ISC_LWRES_NEEDADDRINFO%g
+s%@ISC_LWRES_SETHOSTENTINT@%$ISC_LWRES_SETHOSTENTINT%g
+s%@ISC_LWRES_ENDHOSTENTINT@%$ISC_LWRES_ENDHOSTENTINT%g
+s%@ISC_LWRES_GETNETBYADDRINADDR@%$ISC_LWRES_GETNETBYADDRINADDR%g
+s%@ISC_LWRES_SETNETENTINT@%$ISC_LWRES_SETNETENTINT%g
+s%@ISC_LWRES_ENDNETENTINT@%$ISC_LWRES_ENDNETENTINT%g
+s%@ISC_LWRES_GETHOSTBYADDRVOID@%$ISC_LWRES_GETHOSTBYADDRVOID%g
+s%@ISC_LWRES_NEEDHERRNO@%$ISC_LWRES_NEEDHERRNO%g
+s%@ISC_LWRES_GETIPNODEPROTO@%$ISC_LWRES_GETIPNODEPROTO%g
+s%@ISC_LWRES_GETADDRINFOPROTO@%$ISC_LWRES_GETADDRINFOPROTO%g
+s%@ISC_LWRES_GETNAMEINFOPROTO@%$ISC_LWRES_GETNAMEINFOPROTO%g
 s%@ISC_PLATFORM_NEEDSTRSEP@%$ISC_PLATFORM_NEEDSTRSEP%g
 s%@ISC_PLATFORM_NEEDVSNPRINTF@%$ISC_PLATFORM_NEEDVSNPRINTF%g
 s%@ISC_EXTRA_OBJS@%$ISC_EXTRA_OBJS%g

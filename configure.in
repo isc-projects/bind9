@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.165.2.2 $)
+AC_REVISION($Revision: 1.165.2.3 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -432,177 +432,6 @@ AC_SUBST(MKDEPPROG)
 AC_SUBST(IRIX_DNSSEC_WARNINGS_HACK)
 
 #
-# Networking specifics.
-#
-case "$host" in
-	*-dec-osf*)
-		# Turn on 4.4BSD style sa_len support.
-		AC_DEFINE(_SOCKADDR_LEN)
-		;;
-esac
-
-#
-# Look for a 4.4BSD-style sa_len member in struct sockaddr.
-#
-AC_MSG_CHECKING(for sa_len in struct sockaddr)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>],
-[struct sockaddr sa; sa.sa_len = 0; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVESALEN="#define ISC_PLATFORM_HAVESALEN 1"
-	LWRES_PLATFORM_HAVESALEN="#define LWRES_PLATFORM_HAVESALEN 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"
-	LWRES_PLATFORM_HAVESALEN="#undef LWRES_PLATFORM_HAVESALEN"])
-AC_SUBST(ISC_PLATFORM_HAVESALEN)
-AC_SUBST(LWRES_PLATFORM_HAVESALEN)
-
-#
-# Look for a 4.4BSD or 4.3BSD struct msghdr
-#
-AC_MSG_CHECKING(for struct msghdr flavor)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>],
-[struct msghdr msg; msg.msg_flags = 0; return (0);],
-	[AC_MSG_RESULT(4.4BSD)
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"],
-	[AC_MSG_RESULT(4.3BSD)
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"])
-AC_SUBST(ISC_PLATFORM_MSGHDRFLAVOR)
-
-#
-# Look for in_port_t.
-#
-AC_MSG_CHECKING(for type in_port_t)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <netinet/in.h>],
-[in_port_t port = 25; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"],
-        [AC_MSG_RESULT(no)
-	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"])
-AC_SUBST(ISC_PLATFORM_NEEDPORTT)
-
-#
-# Check for addrinfo
-#
-AC_MSG_CHECKING(for struct addrinfo)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[struct addrinfo a; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_NEEDADDRINFO="#undef ISC_LWRES_NEEDADDRINFO"
-	AC_DEFINE(HAVE_ADDRINFO)],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_NEEDADDRINFO="#define ISC_LWRES_NEEDADDRINFO 1"])
-AC_SUBST(ISC_LWRES_NEEDADDRINFO)
-
-AC_MSG_CHECKING(for int sethostent)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[int i = sethostent(0); return(0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_SETHOSTENTINT="#define ISC_LWRES_SETHOSTENTINT 1"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_SETHOSTENTINT="#undef ISC_LWRES_SETHOSTENTINT"])
-AC_SUBST(ISC_LWRES_SETHOSTENTINT)
-
-AC_MSG_CHECKING(for int endhostent)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[int i = endhostent(); return(0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_ENDHOSTENTINT="#define ISC_LWRES_ENDHOSTENTINT 1"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_ENDHOSTENTINT="#undef ISC_LWRES_ENDHOSTENTINT"])
-AC_SUBST(ISC_LWRES_ENDHOSTENTINT)
-
-AC_MSG_CHECKING(for getnetbyaddr(in_addr_t, ...))
-AC_TRY_COMPILE([
-#include <netdb.h>
-struct netent *getnetbyaddr(in_addr_t, int);],
-[],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_GETNETBYADDRINADDR="#define ISC_LWRES_GETNETBYADDRINADDR 1"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_GETNETBYADDRINADDR="#undef ISC_LWRES_GETNETBYADDRINADDR"])
-AC_SUBST(ISC_LWRES_GETNETBYADDRINADDR)
-
-AC_MSG_CHECKING(for int setnetent)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[int i = setnetent(0); return(0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_SETNETENTINT="#define ISC_LWRES_SETNETENTINT 1"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_SETNETENTINT="#undef ISC_LWRES_SETNETENTINT"])
-AC_SUBST(ISC_LWRES_SETNETENTINT)
-
-AC_MSG_CHECKING(for int endnetent)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[int i = endnetent(); return(0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_ENDNETENTINT="#define ISC_LWRES_ENDNETENTINT 1"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_ENDNETENTINT="#undef ISC_LWRES_ENDNETENTINT"])
-AC_SUBST(ISC_LWRES_ENDNETENTINT)
-
-AC_MSG_CHECKING(for gethostbyadd(const void *, size_t, ...))
-AC_TRY_COMPILE([
-#include <netdb.h>
-struct hostent *gethostbyaddr(const void *, size_t, int);],
-[return(0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_GETHOSTBYADDRVOID="#define ISC_LWRES_GETHOSTBYADDRVOID 1"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_GETHOSTBYADDRVOID="#undef ISC_LWRES_GETHOSTBYADDRVOID"])
-AC_SUBST(ISC_LWRES_GETHOSTBYADDRVOID)
-
-AC_MSG_CHECKING(for h_errno in netdb.h)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[h_errno = 1; return(0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_NEEDHERRNO="#undef ISC_LWRES_NEEDHERRNO"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_NEEDHERRNO="#define ISC_LWRES_NEEDHERRNO 1"])
-AC_SUBST(ISC_LWRES_NEEDHERRNO)
-
-AC_CHECK_FUNC(getipnodebyname,
-        [ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],
-        [ISC_LWRES_GETIPNODEPROTO="#define ISC_LWRES_GETIPNODEPROTO 1"])
-AC_CHECK_FUNC(getnameinfo,
-        [ISC_LWRES_GETNAMEINFOPROTO="#undef ISC_LWRES_GETNAMEINFOPROTO"],
-        [ISC_LWRES_GETNAMEINFOPROTO="#define ISC_LWRES_GETNAMEINFOPROTO 1"])
-AC_CHECK_FUNC(getaddrinfo,
-        [ISC_LWRES_GETADDRINFOPROTO="#undef ISC_LWRES_GETADDRINFOPROTO"
-	AC_DEFINE(HAVE_GETADDRINFO)],
-        [ISC_LWRES_GETADDRINFOPROTO="#define ISC_LWRES_GETADDRINFOPROTO 1"])
-AC_SUBST(ISC_LWRES_GETIPNODEPROTO)
-AC_SUBST(ISC_LWRES_GETADDRINFOPROTO)
-AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
-
-#
-# Look for a sysctl call to get the list of network interfaces.
-#
-AC_MSG_CHECKING(for interface list sysctl)
-AC_EGREP_CPP(found_rt_iflist, [
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <sys/socket.h>
-#ifdef NET_RT_IFLIST
-found_rt_iflist
-#endif
-],
-	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
-	[AC_MSG_RESULT(no)])
-
-#
 # GNU libtool support
 #
 AC_ARG_WITH(libtool,
@@ -864,6 +693,177 @@ AC_TRY_LINK([
 AC_SUBST(ISC_PLATFORM_NEEDNTOP)
 AC_SUBST(ISC_PLATFORM_NEEDPTON)
 AC_SUBST(ISC_PLATFORM_NEEDATON)
+
+#
+# Networking specifics.
+#
+case "$host" in
+	*-dec-osf*)
+		# Turn on 4.4BSD style sa_len support.
+		AC_DEFINE(_SOCKADDR_LEN)
+		;;
+esac
+
+#
+# Look for a 4.4BSD-style sa_len member in struct sockaddr.
+#
+AC_MSG_CHECKING(for sa_len in struct sockaddr)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>],
+[struct sockaddr sa; sa.sa_len = 0; return (0);],
+	[AC_MSG_RESULT(yes)
+	ISC_PLATFORM_HAVESALEN="#define ISC_PLATFORM_HAVESALEN 1"
+	LWRES_PLATFORM_HAVESALEN="#define LWRES_PLATFORM_HAVESALEN 1"],
+	[AC_MSG_RESULT(no)
+	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"
+	LWRES_PLATFORM_HAVESALEN="#undef LWRES_PLATFORM_HAVESALEN"])
+AC_SUBST(ISC_PLATFORM_HAVESALEN)
+AC_SUBST(LWRES_PLATFORM_HAVESALEN)
+
+#
+# Look for a 4.4BSD or 4.3BSD struct msghdr
+#
+AC_MSG_CHECKING(for struct msghdr flavor)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>],
+[struct msghdr msg; msg.msg_flags = 0; return (0);],
+	[AC_MSG_RESULT(4.4BSD)
+	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"],
+	[AC_MSG_RESULT(4.3BSD)
+	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"])
+AC_SUBST(ISC_PLATFORM_MSGHDRFLAVOR)
+
+#
+# Look for in_port_t.
+#
+AC_MSG_CHECKING(for type in_port_t)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <netinet/in.h>],
+[in_port_t port = 25; return (0);],
+	[AC_MSG_RESULT(yes)
+	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"],
+        [AC_MSG_RESULT(no)
+	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"])
+AC_SUBST(ISC_PLATFORM_NEEDPORTT)
+
+#
+# Check for addrinfo
+#
+AC_MSG_CHECKING(for struct addrinfo)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[struct addrinfo a; return (0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_NEEDADDRINFO="#undef ISC_LWRES_NEEDADDRINFO"
+	AC_DEFINE(HAVE_ADDRINFO)],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_NEEDADDRINFO="#define ISC_LWRES_NEEDADDRINFO 1"])
+AC_SUBST(ISC_LWRES_NEEDADDRINFO)
+
+AC_MSG_CHECKING(for int sethostent)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[int i = sethostent(0); return(0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_SETHOSTENTINT="#define ISC_LWRES_SETHOSTENTINT 1"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_SETHOSTENTINT="#undef ISC_LWRES_SETHOSTENTINT"])
+AC_SUBST(ISC_LWRES_SETHOSTENTINT)
+
+AC_MSG_CHECKING(for int endhostent)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[int i = endhostent(); return(0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_ENDHOSTENTINT="#define ISC_LWRES_ENDHOSTENTINT 1"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_ENDHOSTENTINT="#undef ISC_LWRES_ENDHOSTENTINT"])
+AC_SUBST(ISC_LWRES_ENDHOSTENTINT)
+
+AC_MSG_CHECKING(for getnetbyaddr(in_addr_t, ...))
+AC_TRY_COMPILE([
+#include <netdb.h>
+struct netent *getnetbyaddr(in_addr_t, int);],
+[],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_GETNETBYADDRINADDR="#define ISC_LWRES_GETNETBYADDRINADDR 1"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_GETNETBYADDRINADDR="#undef ISC_LWRES_GETNETBYADDRINADDR"])
+AC_SUBST(ISC_LWRES_GETNETBYADDRINADDR)
+
+AC_MSG_CHECKING(for int setnetent)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[int i = setnetent(0); return(0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_SETNETENTINT="#define ISC_LWRES_SETNETENTINT 1"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_SETNETENTINT="#undef ISC_LWRES_SETNETENTINT"])
+AC_SUBST(ISC_LWRES_SETNETENTINT)
+
+AC_MSG_CHECKING(for int endnetent)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[int i = endnetent(); return(0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_ENDNETENTINT="#define ISC_LWRES_ENDNETENTINT 1"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_ENDNETENTINT="#undef ISC_LWRES_ENDNETENTINT"])
+AC_SUBST(ISC_LWRES_ENDNETENTINT)
+
+AC_MSG_CHECKING(for gethostbyadd(const void *, size_t, ...))
+AC_TRY_COMPILE([
+#include <netdb.h>
+struct hostent *gethostbyaddr(const void *, size_t, int);],
+[return(0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_GETHOSTBYADDRVOID="#define ISC_LWRES_GETHOSTBYADDRVOID 1"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_GETHOSTBYADDRVOID="#undef ISC_LWRES_GETHOSTBYADDRVOID"])
+AC_SUBST(ISC_LWRES_GETHOSTBYADDRVOID)
+
+AC_MSG_CHECKING(for h_errno in netdb.h)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[h_errno = 1; return(0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_NEEDHERRNO="#undef ISC_LWRES_NEEDHERRNO"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_NEEDHERRNO="#define ISC_LWRES_NEEDHERRNO 1"])
+AC_SUBST(ISC_LWRES_NEEDHERRNO)
+
+AC_CHECK_FUNC(getipnodebyname,
+        [ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],
+        [ISC_LWRES_GETIPNODEPROTO="#define ISC_LWRES_GETIPNODEPROTO 1"])
+AC_CHECK_FUNC(getnameinfo,
+        [ISC_LWRES_GETNAMEINFOPROTO="#undef ISC_LWRES_GETNAMEINFOPROTO"],
+        [ISC_LWRES_GETNAMEINFOPROTO="#define ISC_LWRES_GETNAMEINFOPROTO 1"])
+AC_CHECK_FUNC(getaddrinfo,
+        [ISC_LWRES_GETADDRINFOPROTO="#undef ISC_LWRES_GETADDRINFOPROTO"
+	AC_DEFINE(HAVE_GETADDRINFO)],
+        [ISC_LWRES_GETADDRINFOPROTO="#define ISC_LWRES_GETADDRINFOPROTO 1"])
+AC_SUBST(ISC_LWRES_GETIPNODEPROTO)
+AC_SUBST(ISC_LWRES_GETADDRINFOPROTO)
+AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
+
+#
+# Look for a sysctl call to get the list of network interfaces.
+#
+AC_MSG_CHECKING(for interface list sysctl)
+AC_EGREP_CPP(found_rt_iflist, [
+#include <sys/param.h>
+#include <sys/sysctl.h>
+#include <sys/socket.h>
+#ifdef NET_RT_IFLIST
+found_rt_iflist
+#endif
+],
+	[AC_MSG_RESULT(yes)
+	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
+	[AC_MSG_RESULT(no)])
 
 # Check for some other useful functions that are not ever-present.
 AC_CHECK_FUNC(strsep,
