@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.63 2000/06/08 12:04:53 brister Exp $ */
+/* $Id: confctx.c,v 1.64 2000/06/08 17:26:35 gson Exp $ */
 
 #include <config.h>
 
@@ -1830,7 +1830,7 @@ UNSETUINT32(files, files)
 
 GETUINT32(cachesize, cache_size)
 SETUINT32(cachesize, cache_size)
-UNSETUINT32(cachezie, cache_size)
+UNSETUINT32(cachesize, cache_size)
 
 
 GETUINT32(maxncachettl, max_ncache_ttl)
