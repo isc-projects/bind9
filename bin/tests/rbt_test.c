@@ -353,7 +353,8 @@ main (int argc, char **argv) {
 			} else if (CMDCHECK("nuke")) {
 				name = create_name(arg);
 				if (name != NULL) {
-					printf("nuking name %s\n", arg);
+					printf("nuking name %s "
+					       "and its descendants\n", arg);
 					result = dns_rbt_deletename(rbt, name,
 								    ISC_TRUE);
 					PRINTERR(result);
