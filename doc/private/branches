@@ -7,7 +7,7 @@ rt4715		review		explorer
 peter		private		peter		(hostname.bind for 9.2.x)
 openssl_stub	open		marka
 chroot		open		marka
-edns_size	open		marka
+edns_size	review		explorer
 rt4347		open		marka
 slavefix	review		explorer
 
