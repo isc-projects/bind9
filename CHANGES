@@ -1,3 +1,8 @@
+ 320.	[func]		Multiple rndc changes: parses an rndc.conf file,
+			uses authentication to talk to named, command
+			line syntax changed.  This will all be described
+			in the ARM.
+
  319.	[func]		The named.conf "controls" statement is now used
 			to configure the OMAPI command channel.
 
