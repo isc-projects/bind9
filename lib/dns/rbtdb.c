@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.174 2001/12/08 00:37:05 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.175 2002/05/28 05:49:20 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3368,9 +3368,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	 * Caller must be holding the node lock.
 	 */
 
-	if ((options & DNS_DBADD_MERGE) != 0)
+	if ((options & DNS_DBADD_MERGE) != 0) {
+		REQUIRE(rbtversion != NULL);
 		merge = ISC_TRUE;
-	else
+	} else
 		merge = ISC_FALSE;
 
 	if ((options & DNS_DBADD_FORCE) != 0)

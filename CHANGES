@@ -1,3 +1,7 @@
+1207.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
+			a rdataset to a zone db in the rbtdb implementation of
+			addrdataset.
+
 1206.	[bug]		dns_name_downcase() enforce requirement that
 			target != NULL or name->buffer != NULL.
 
