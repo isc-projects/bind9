@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.2 2001/04/02 09:40:56 marka Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.3 2001/05/07 06:07:44 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -767,9 +767,9 @@ dn_find(const u_char *domain, const u_char *msg,
 					return (-1);
 				}
 			}
-		}
  next: ;
 			sp += *sp + 1;
+		}
 	}
 	errno = ENOENT;
 	return (-1);
