@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.72.2.8 2000/08/01 15:06:22 gson Exp $
+ * $Id: tsig.c,v 1.72.2.9 2000/09/25 20:20:25 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -209,6 +209,7 @@ tsigkey_free(dns_tsigkey_t *key) {
 		dns_name_free(key->creator, key->mctx);
 		isc_mem_put(key->mctx, key->creator, sizeof(dns_name_t));
 	}
+	DESTROYLOCK(&key->lock);
 	isc_mem_put(key->mctx, key, sizeof(dns_tsigkey_t));
 }
 
