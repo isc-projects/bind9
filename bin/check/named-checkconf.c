@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.13 2001/09/04 00:32:30 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.14 2001/09/17 00:23:10 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <isccfg/check.h>
 
 #include <dns/log.h>
+#include <dns/result.h>
 
 #include "check-tool.h"
 
@@ -49,7 +50,7 @@ isc_log_t *logc = NULL;
 
 static void
 usage(void) {
-        fprintf(stderr, "usage: named-checkconf [-v] [-t directory] [named.conf]\n");
+        fprintf(stderr, "usage: named-checkconf [-v] [-z] [-t directory] [named.conf]\n");
         exit(1);
 }
 
@@ -70,7 +71,7 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	result = isc_dir_chdir(directory);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, logc, ISC_LOG_ERROR,
-			    "change directory to '%s' failed: %s",
+			    "change directory to '%s' failed: %s\n",
 			    directory, isc_result_totext(result));
 		return (result);
 	}
@@ -79,7 +80,10 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 }
 
 static isc_result_t
-configure_zone(const char *vclass, cfg_obj_t *zconfig, isc_mem_t *mctx) {
+configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
+	       isc_mem_t *mctx)
+{
+	isc_result_t result;
 	const char *zclass;
 	const char *zname;
 	const char *zfile;
@@ -95,8 +99,11 @@ configure_zone(const char *vclass, cfg_obj_t *zconfig, isc_mem_t *mctx) {
                 zclass = vclass;
         else
 		zclass = cfg_obj_asstring(classobj);
-	if (strcasecmp(vclass, zclass) != 0)
+	if (strcasecmp(vclass, zclass) != 0) {
+		fprintf(stderr, "wrong class: view %s/%s: zone %s/%s\n",
+			view, vclass, zname, zclass);
 		return (ISC_R_FAILURE);
+	}
 	zoptions = cfg_tuple_get(zconfig, "options");
 	cfg_map_get(zoptions, "type", &typeobj);
 	if (typeobj == NULL)
@@ -110,12 +117,16 @@ configure_zone(const char *vclass, cfg_obj_t *zconfig, isc_mem_t *mctx) {
 	if (fileobj == NULL)
 		return (ISC_R_FAILURE);
 	zfile = cfg_obj_asstring(fileobj);
-	return(load_zone(mctx, zname, zfile, zclass, NULL));
+	result = load_zone(mctx, zname, zfile, zclass, NULL);
+	if (result != ISC_R_SUCCESS)
+		fprintf(stderr, "%s/%s/%s: %s\n", view, zname, zclass,
+			dns_result_totext(result));
+	return(result);
 }
 
 static isc_result_t
-configure_view(const char *vclass, cfg_obj_t *config, cfg_obj_t *vconfig,
-	       isc_mem_t *mctx)
+configure_view(const char *vclass, const char *view, cfg_obj_t *config,
+	       cfg_obj_t *vconfig, isc_mem_t *mctx)
 {
 	cfg_listelt_t *element;
 	cfg_obj_t *voptions;
@@ -137,7 +148,7 @@ configure_view(const char *vclass, cfg_obj_t *config, cfg_obj_t *vconfig,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *zconfig = cfg_listelt_value(element);
-		CHECK(configure_zone(vclass, zconfig, mctx));
+		CHECK(configure_zone(vclass, view, zconfig, mctx));
 	}
  cleanup:
 	return (result);
@@ -160,6 +171,7 @@ load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
+		const char *vname;
 
 		vclass = "IN";
 		vconfig = cfg_listelt_value(element);
@@ -168,11 +180,12 @@ load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
 			if (cfg_obj_isstring(classobj))
 				vclass = cfg_obj_asstring(classobj);
 		}
-		CHECK(configure_view(vclass, config, vconfig, mctx));
+		vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
+		CHECK(configure_view(vclass, vname, config, vconfig, mctx));
 	}
 
 	if (views == NULL)
-		CHECK(configure_view("IN", config, NULL, mctx));
+		CHECK(configure_view("IN", "_default", config, NULL, mctx));
  cleanup:
 	return (result);
 }
@@ -243,7 +256,7 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		exit_status = 1;
 
-	if (load_zones) {
+	if (result == ISC_R_SUCCESS && load_zones) {
 		dns_log_init(logc);
                 dns_log_setcontext(logc);
 		result = load_zones_fromconfig(config, mctx);
