@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.6 2005/01/17 04:11:02 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.7 2005/02/23 01:02:14 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -141,10 +141,18 @@ get_addresses(const char *host, in_port_t port) {
 	isc_result_t result;
 	int found = 0, count;
 
-	count = SERVERADDRS - nserveraddrs;
-	result = bind9_getaddresses(host, port, &serveraddrs[nserveraddrs],
-				    count, &found);
-	nserveraddrs += found;
+	if (*host == '/') {
+		result = isc_sockaddr_frompath(&serveraddrs[nserveraddrs],
+					       host);
+		if (result == ISC_R_SUCCESS)
+			nserveraddrs++; 
+	} else {
+		count = SERVERADDRS - nserveraddrs;
+		result = bind9_getaddresses(host, port,
+					    &serveraddrs[nserveraddrs],
+					    count, &found);
+		nserveraddrs += found;
+	}
 	if (result != ISC_R_SUCCESS)
 		fatal("couldn't get address for '%s': %s",
 		      host, isc_result_totext(result));
@@ -358,6 +366,8 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 static void
 rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
 	isc_result_t result;
+	int pf;
+	isc_sockettype_t type;
 
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
@@ -365,9 +375,12 @@ rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
 
 	notify("using server %s (%s)", servername, socktext);
 
-	DO("create socket", isc_socket_create(socketmgr,
-					      isc_sockaddr_pf(addr),
-					      isc_sockettype_tcp, &sock));
+	pf = isc_sockaddr_pf(addr);
+	if (pf == AF_INET || pf == AF_INET6)
+		type = isc_sockettype_tcp;
+	else
+		type = isc_sockettype_unix;
+	DO("create socket", isc_socket_create(socketmgr, pf, type, &sock));
 	switch (isc_sockaddr_pf(addr)) {
 	case AF_INET:
 		DO("bind socket", isc_socket_bind(sock, &local4));

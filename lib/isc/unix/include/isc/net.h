@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.39.18.1 2004/04/29 01:45:53 marka Exp $ */
+/* $Id: net.h,v 1.39.18.2 2005/02/23 01:02:23 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -302,6 +302,12 @@ isc_net_enableipv4(void);
 
 void
 isc_net_enableipv6(void);
+
+isc_result_t
+isc_net_probeunix(void);
+/*
+ * Returns whether UNIX domain sockets are supported.
+ */
 
 #ifdef ISC_PLATFORM_NEEDNTOP
 const char *

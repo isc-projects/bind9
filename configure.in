@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.16 $)
+AC_REVISION($Revision: 1.355.18.17 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1797,6 +1797,24 @@ case "$enable_linux_caps" in
 		;;
 esac
 AC_CHECK_HEADERS(sys/prctl.h)
+
+AC_CHECK_HEADERS(sys/un.h,
+ISC_PLATFORM_HAVESYSUNH="#define ISC_PLATFORM_HAVESYSUNH 1"
+,
+ISC_PLATFORM_HAVESYSUNH="#undef ISC_PLATFORM_HAVESYSUNH"
+)
+AC_SUBST(ISC_PLATFORM_HAVESYSUNH)
+
+case "$host" in
+*-solaris*)
+	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
+		  [Define if connect does not honour the permission on the UNIX domain socket.])
+	;;
+*-sunos*)
+	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
+		  [Define if connect does not honour the permission on the UNIX domain socket.])
+	;;
+esac
 
 #
 # Time Zone Stuff

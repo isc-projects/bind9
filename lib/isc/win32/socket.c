@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.5 2004/09/01 04:38:03 marka Exp $ */
+/* $Id: socket.c,v 1.30.18.6 2005/02/23 01:02:24 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -3760,4 +3760,21 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
 				 (void *)&onoff, sizeof(onoff));
 	}
 #endif
+}
+
+void
+isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active) {
+	UNUSED(addr);
+	UNUSED(active);
+}
+
+isc_result_t
+isc_socket_permunix(isc_sockaddr_t *addr, isc_uint32_t perm,
+		    isc_uint32_t owner,	isc_uint32_t group)
+{
+	UNUSED(addr);
+	UNUSED(perm);
+	UNUSED(owner);
+	UNUSED(group);
+	return (ISC_R_NOTIMPLEMENTED);
 }

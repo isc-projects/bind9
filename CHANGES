@@ -1,3 +1,5 @@
+1814.	[func]		UNIX domain controls are now supported.
+
 1812.	[port]		win32: IN6_IS_ADDR_UNSPECIFIED macro is incorrect.
 			[RT #13453]
 

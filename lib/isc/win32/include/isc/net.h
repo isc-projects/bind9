@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.21.18.2 2004/04/29 01:45:54 marka Exp $ */
+/* $Id: net.h,v 1.21.18.3 2005/02/23 01:02:25 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -256,6 +256,17 @@ isc_net_probeipv6(void);
  *	ISC_R_NOTFOUND		IPv6 is not supported.
  *	ISC_R_DISABLED		IPv6 is disabled.
  *	ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_net_probeunix(void);
+/*
+ * Check if UNIX domain sockets are supported.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
  */
 
 isc_result_t

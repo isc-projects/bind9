@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.59.18.2 2004/11/22 23:30:01 marka Exp $ */
+/* $Id: sockaddr.c,v 1.59.18.3 2005/02/23 01:02:16 marka Exp $ */
 
 #include <config.h>
 
@@ -130,6 +130,23 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	case AF_INET6:
 		snprintf(pbuf, sizeof(pbuf), "%u", ntohs(sockaddr->type.sin6.sin6_port));
 		break;
+#ifdef ISC_PLAFORM_HAVESYSUNH
+	case AF_UNIX:
+		plen = strlen(sockaddr->type.sun.sun_path);
+		if (plen >= isc_buffer_availablelength(target))
+			return (ISC_R_NOSPACE);
+
+		isc_buffer_putmem(target, sockaddr->type.sun.sun_path, plen);
+
+		/*
+		 * Null terminate after used region.
+		 */
+		isc_buffer_availableregion(target, &avail);
+		INSIST(avail.length >= 1);
+		avail.base[0] = '\0';
+
+		return (ISC_R_SUCCESS);
+#endif
 	default:
 		return (ISC_R_FAILURE);
 	}
@@ -421,8 +438,12 @@ isc_boolean_t
 isc_sockaddr_ismulticast(isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
 
-	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
-	return (isc_netaddr_ismulticast(&netaddr));
+	if (sockaddr->type.sa.sa_family == AF_INET ||
+	    sockaddr->type.sa.sa_family == AF_INET6) {
+		isc_netaddr_fromsockaddr(&netaddr, sockaddr);
+		return (isc_netaddr_ismulticast(&netaddr));
+	}
+	return (ISC_FALSE);
 }
 
 isc_boolean_t
@@ -456,4 +477,24 @@ isc_sockaddr_islinklocal(isc_sockaddr_t *sockaddr) {
 		return (isc_netaddr_islinklocal(&netaddr));
 	}
 	return (ISC_FALSE);
+}
+
+isc_result_t
+isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
+#ifdef ISC_PLATFORM_HAVESYSUNH
+	if (strlen(path) >= sizeof(sockaddr->type.sun.sun_path))
+		return (ISC_R_NOSPACE);
+	memset(sockaddr, 0, sizeof(*sockaddr));
+	sockaddr->length = sizeof(sockaddr->type.sun);
+	sockaddr->type.sun.sun_family = AF_UNIX;
+#ifdef ISC_PLATFORM_HAVESALEN
+	sockaddr->type.sun.sun_len = sizeof(sockaddr->type.sun);
+#endif
+	strcpy(sockaddr->type.sun.sun_path, path);
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(sockaddr);
+	UNUSED(path);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
 }

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.34 2004/03/05 05:10:59 marka Exp $ */
+/* $Id: platform.h.in,v 1.34.18.1 2005/02/23 01:02:17 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -209,6 +209,11 @@
  * Define if this system needs memmove.
  */
 @ISC_PLATFORM_NEEDMEMMOVE@
+
+/*
+ * Define if the platform has <sys/un.h>.
+ */
+@ISC_PLATFORM_HAVESYSUNH@
 
 #ifndef ISC_PLATFORM_USEDECLSPEC
 #define LIBISC_EXTERNAL_DATA

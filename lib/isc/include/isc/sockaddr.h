@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.42.18.1 2004/11/22 23:30:02 marka Exp $ */
+/* $Id: sockaddr.h,v 1.42.18.2 2005/02/23 01:02:21 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -23,12 +23,18 @@
 #include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
+#ifdef ISC_PLATFORM_HAVESYSUNH
+#include <sys/un.h>
+#endif
 
 struct isc_sockaddr {
 	union {
 		struct sockaddr		sa;
 		struct sockaddr_in	sin;
 		struct sockaddr_in6	sin6;
+#ifdef ISC_PLATFORM_HAVESYSUNH
+		struct sockaddr_un	sun;
+#endif
 	}				type;
 	unsigned int			length;		/* XXXRTH beginning? */
 	ISC_LINK(struct isc_sockaddr)	link;
@@ -208,6 +214,17 @@ isc_boolean_t
 isc_sockaddr_issitelocal(isc_sockaddr_t *sa);
 /*
  * Returns ISC_TRUE if the address is a sitelocal address.
+ */
+
+isc_result_t
+isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path);
+/*
+ *  Create a UNIX domain sockaddr that refers to path.
+ *
+ * Returns:
+ *	ISC_R_NOSPACE
+ *	ISC_R_NOTIMPLEMENTED
+ *	ISC_R_SUCCESS
  */
 
 #define ISC_SOCKADDR_FORMATSIZE \

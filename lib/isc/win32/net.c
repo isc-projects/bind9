@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.9.18.1 2004/04/29 01:45:54 marka Exp $ */
+/* $Id: net.c,v 1.9.18.2 2005/02/23 01:02:24 marka Exp $ */
 
 #include <config.h>
 
@@ -146,6 +146,11 @@ isc_result_t
 isc_net_probeipv6(void) {
 	initialize();
 	return (ipv6_result);
+}
+
+isc_result_t
+isc_net_probeunix(void) {
+	return (ISC_R_NOTFOUND);
 }
 
 #ifdef ISC_PLATFORM_HAVEIPV6

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.16 2005/01/16 23:56:08 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.17 2005/02/23 01:02:26 marka Exp $ */
 
 #include <config.h>
 
@@ -1206,12 +1206,12 @@ static cfg_type_t cfg_type_optional_keyref = {
 
 /*
  * A "controls" statement is represented as a map with the multivalued
- * "inet" and "unix" clauses.  Inet controls are tuples; unix controls
- * are cfg_unsupported_t objects.
+ * "inet" and "unix" clauses. 
  */
 
 static keyword_type_t controls_allow_kw = {
 	"allow", &cfg_type_bracketed_aml };
+
 static cfg_type_t cfg_type_controls_allow = {
 	"controls_allow", parse_keyvalue,
 	print_keyvalue, doc_keyvalue,
@@ -1220,6 +1220,7 @@ static cfg_type_t cfg_type_controls_allow = {
 
 static keyword_type_t controls_keys_kw = {
 	"keys", &cfg_type_keylist };
+
 static cfg_type_t cfg_type_controls_keys = {
 	"controls_keys", parse_optional_keyvalue,
 	print_keyvalue, doc_optional_keyvalue,
@@ -1232,16 +1233,57 @@ static cfg_tuplefielddef_t inetcontrol_fields[] = {
 	{ "keys", &cfg_type_controls_keys, 0 },
 	{ NULL, NULL, 0 }
 };
+
 static cfg_type_t cfg_type_inetcontrol = {
 	"inetcontrol", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
 	inetcontrol_fields
 };
 
+static keyword_type_t controls_perm_kw = {
+	"perm", &cfg_type_uint32 };
+
+static cfg_type_t cfg_type_controls_perm = {
+	"controls_perm", parse_keyvalue,
+	print_keyvalue, doc_keyvalue,
+	&cfg_rep_uint32, &controls_perm_kw
+};
+
+static keyword_type_t controls_owner_kw = {
+	"owner", &cfg_type_uint32 };
+
+static cfg_type_t cfg_type_controls_owner = {
+	"controls_owner", parse_keyvalue,
+	print_keyvalue, doc_keyvalue,
+	&cfg_rep_uint32, &controls_owner_kw
+};
+
+static keyword_type_t controls_group_kw = {
+	"group", &cfg_type_uint32 };
+
+static cfg_type_t cfg_type_controls_group = {
+	"controls_allow", parse_keyvalue,
+	print_keyvalue, doc_keyvalue,
+	&cfg_rep_uint32, &controls_group_kw
+};
+
+static cfg_tuplefielddef_t unixcontrol_fields[] = {
+	{ "path", &cfg_type_qstring, 0 },
+	{ "perm", &cfg_type_controls_perm, 0 },
+	{ "owner", &cfg_type_controls_owner, 0 },
+	{ "group", &cfg_type_controls_group, 0 },
+	{ "keys", &cfg_type_controls_keys, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_unixcontrol = {
+	"unixcontrol", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple, &cfg_rep_tuple,
+	unixcontrol_fields
+};
+
 static cfg_clausedef_t
 controls_clauses[] = {
 	{ "inet", &cfg_type_inetcontrol, CFG_CLAUSEFLAG_MULTI },
-	{ "unix", &cfg_type_unsupported,
-	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_NOTIMP },
+	{ "unix", &cfg_type_unixcontrol, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 
