@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.46 2001/03/14 00:30:06 gson Exp $ */
+/* $Id: parser.c,v 1.47 2001/03/14 21:53:29 halley Exp $ */
 
 #include <config.h>
 
@@ -846,6 +846,7 @@ view_clauses[] = {
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
+	{ "minimal-responses", &cfg_type_boolean, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },

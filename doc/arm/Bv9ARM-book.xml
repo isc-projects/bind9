@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.115 2001/03/09 00:59:44 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.116 2001/03/14 21:53:25 halley Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2576,6 +2576,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> fetch-glue <replaceable>yes_or_no</replaceable>; </optional>
     <optional> has-old-clients <replaceable>yes_or_no</replaceable>; </optional>
     <optional> host-statistics <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> minimal-responses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
@@ -2845,6 +2846,14 @@ Not implemented in BIND 9.
 kept for Incremental Zone Transfer. <acronym>BIND</acronym> 9 maintains a transaction
 log whenever possible.  If you need to disable outgoing incremental zone
 transfers, use <command>provide-ixfr</command> <userinput>no</userinput>.
+</para></listitem></varlistentry>
+
+<varlistentry><term><command>minimal-responses</command></term>
+<listitem><para>If <userinput>yes</userinput>, then when generating
+responses the server will only add records to the authority and
+additional data sections when they are required (e.g. delegations,
+negative responses).  This may improve the performance of the server.
+The default is <userinput>no</userinput>.
 </para></listitem></varlistentry>
 
 <varlistentry><term><command>multiple-cnames</command></term>

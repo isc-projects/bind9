@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.303 2001/03/10 06:39:47 tale Exp $ */
+/* $Id: server.c,v 1.304 2001/03/14 21:53:23 halley Exp $ */
 
 #include <config.h>
 
@@ -728,6 +728,11 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "auth-nxdomain", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->auth_nxdomain = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "minimal-responses", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->minimalresponses = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = ns_config_get(maps, "transfer-format", &obj);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.96 2001/02/14 03:50:10 gson Exp $ */
+/* $Id: view.c,v 1.97 2001/03/14 21:53:27 halley Exp $ */
 
 #include <config.h>
 
@@ -145,6 +145,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	view->additionalfromcache = ISC_TRUE;
 	view->additionalfromauth = ISC_TRUE;
+	view->minimalresponses = ISC_FALSE;
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;
 	view->recursionacl = NULL;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.4 2001/03/05 13:43:14 tale Exp $ */
+/* $Id: config.c,v 1.5 2001/03/14 21:53:20 halley Exp $ */
 
 #include <config.h>
 
@@ -94,6 +94,7 @@ options {\n\
 #	sortlist <none>\n\
 #	topology <none>\n\
 	auth-nxdomain false;\n\
+	minimal-responses false;\n\
 	recursion true;\n\
 	provide-ixfr true;\n\
 	request-ixfr true;\n\

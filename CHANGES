@@ -1,3 +1,4 @@
+ 779.	[func]		Added the "minimal-responses" option.
 
  778.	[bug]		When starting cache cleaning, cleaning_timer_action()
 			returned without first pausing the iterator, which

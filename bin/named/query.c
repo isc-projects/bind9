@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.188 2001/03/14 19:32:58 halley Exp $ */
+/* $Id: query.c,v 1.189 2001/03/14 21:53:21 halley Exp $ */
 
 #include <config.h>
 
@@ -241,10 +241,6 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	query_maybeputqname(client);
 
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK |
-#ifdef MINIMIZE_RESPONSES
-				    NS_QUERYATTR_NOAUTHORITY |
-				    NS_QUERYATTR_NOADDITIONAL |
-#endif
 				    NS_QUERYATTR_CACHEOK);
 	client->query.restarts = 0;
 	client->query.timerset = ISC_FALSE;
@@ -1496,10 +1492,8 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 
 	ISC_LIST_APPEND(fname->list, rdataset, link);
 
-#ifdef MINIMIZE_RESPONSES
 	if (NOADDITIONAL(client))
 		return;
-#endif
 
 	/*
 	 * Add additional data.
@@ -2638,7 +2632,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				 * database by setting client->query.gluedb.
 				 */
 				client->query.gluedb = db;
-#ifdef MINIMIZE_RESPONSES
 				/*
 				 * We must ensure NOADDITIONAL is off,
 				 * because the generation of
@@ -2647,7 +2640,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				 */
 				client->query.attributes &=
 					~NS_QUERYATTR_NOADDITIONAL;
-#endif
 				if (sigrdataset != NULL)
 					sigrdatasetp = &sigrdataset;
 				else
@@ -2740,7 +2732,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				client->query.gluedb = zdb;
 				client->query.attributes |=
 					NS_QUERYATTR_CACHEGLUEOK;
-#ifdef MINIMIZE_RESPONSES
 				/*
 				 * We must ensure NOADDITIONAL is off,
 				 * because the generation of
@@ -2749,7 +2740,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				 */
 				client->query.attributes &=
 					~NS_QUERYATTR_NOADDITIONAL;
-#endif
 				if (sigrdataset != NULL)
 					sigrdatasetp = &sigrdataset;
 				else
@@ -3162,10 +3152,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	 * Add NS records to the authority section (if we haven't already
 	 * added them to the answer section).
 	 */
-	if (!want_restart
-#ifdef MINIMIZE_RESPONSES
-	    && !NOAUTHORITY(client)
-#endif
+	if (!want_restart && !NOAUTHORITY(client)
 	    ) {
 		if (is_zone) {
 			if (!((qtype == dns_rdatatype_ns ||
@@ -3297,6 +3284,10 @@ ns_query_start(ns_client_t *client) {
 	    (message->flags & DNS_MESSAGEFLAG_AD) != 0)
 		client->query.attributes |= NS_QUERYATTR_WANTDNSSEC;
 	
+	if (client->view->minimalresponses)
+		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
+					     NS_QUERYATTR_NOADDITIONAL);
+
 	if ((client->view->cachedb == NULL)
 	    || (!client->view->additionalfromcache)) {
 		/*
