@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.55 2001/09/19 19:14:35 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.56 2001/09/19 21:00:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -250,7 +250,7 @@ main(int argc, char *argv[]) {
 			dns_fixedname_init(&fdomain);
 			domain = dns_fixedname_name(&fdomain);
 			dns_name_copy(dst_key_name(key), domain, NULL);
-		} else {
+		} else if (!dns_name_equal(domain, dst_key_name(key))) {
 			char str[DNS_NAME_FORMATSIZE];
 			dns_name_format(domain, str, sizeof str);
 			fatal("all keys must have the same owner - %s "
