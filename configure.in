@@ -1,4 +1,4 @@
-dnl Copyright (C) 1998, 1999  Internet Software Consortium.
+dnl Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
 dnl 
 dnl Permission to use, copy, modify, and distribute this software for any
 dnl purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.88 $)
+AC_REVISION($Revision: 1.89 $)
 
 AC_PREREQ(2.13)
 

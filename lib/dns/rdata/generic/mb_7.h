@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,5 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: mb_7.h,v 1.13 1999/05/07 03:24:08 marka Exp $ */
+ /* $Id: mb_7.h,v 1.14 2000/02/03 23:43:01 halley Exp $ */
 

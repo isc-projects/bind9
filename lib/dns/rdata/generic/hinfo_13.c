@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.18 1999/12/23 00:08:52 explorer Exp $ */
+ /* $Id: hinfo_13.c,v 1.19 2000/02/03 23:42:59 halley Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_C
 #define RDATA_GENERIC_HINFO_13_C

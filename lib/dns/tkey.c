@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.22 2000/01/27 19:39:59 gson Exp $
+ * $Id: tkey.c,v 1.23 2000/02/03 23:44:01 halley Exp $
  * Principal Author: Brian Wellington
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.h,v 1.14 1999/10/07 21:49:38 bwelling Exp $ */
+ /* $Id: sig_24.h,v 1.15 2000/02/03 23:43:07 halley Exp $ */
 
  /* RFC 2065 */
 

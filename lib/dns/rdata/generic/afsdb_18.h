@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.h,v 1.8 1999/09/15 23:03:27 explorer Exp $ */
+ /* $Id: afsdb_18.h,v 1.9 2000/02/03 23:42:57 halley Exp $ */
 
  /* RFC 1183 */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.16 2000/02/03 21:57:25 bwelling Exp $
+ * $Id: dnssec.c,v 1.17 2000/02/03 23:43:47 halley Exp $
  * Principal Author: Brian Wellington
  */
 

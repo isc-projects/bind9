@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.21 1999/12/23 00:08:55 explorer Exp $ */
+ /* $Id: mx_15.c,v 1.22 2000/02/03 23:43:03 halley Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_C
 #define RDATA_GENERIC_MX_15_C

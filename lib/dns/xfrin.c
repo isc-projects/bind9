@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.45 2000/02/02 01:01:24 marka Exp $ */
+ /* $Id: xfrin.c,v 1.46 2000/02/03 23:44:03 halley Exp $ */
 
 #include <config.h>
 

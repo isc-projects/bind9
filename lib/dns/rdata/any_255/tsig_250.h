@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.h,v 1.12 1999/10/07 21:49:38 bwelling Exp $ */
+ /* $Id: tsig_250.h,v 1.13 2000/02/03 23:43:20 halley Exp $ */
 
  /* draft-ietf-dnsind-tsig-10.txt */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.18 1999/09/15 23:03:32 explorer Exp $ */
+ /* $Id: soa_6.h,v 1.19 2000/02/03 23:43:07 halley Exp $ */
 
 #include <dns/name.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.20 2000/01/17 03:21:53 marka Exp $ */
+ /* $Id: ns_2.c,v 1.21 2000/02/03 23:43:03 halley Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.8 1999/12/23 00:08:33 explorer Exp $ */
+/* $Id: rdataslab.c,v 1.9 2000/02/03 23:43:58 halley Exp $ */
 
 #include <config.h>
 

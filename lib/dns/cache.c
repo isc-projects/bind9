@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.12 2000/02/03 18:59:24 gson Exp $ */
+ /* $Id: cache.c,v 1.13 2000/02/03 23:43:44 halley Exp $ */
 
 #include <config.h>
 #include <limits.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: callbacks.c,v 1.4 2000/01/22 01:38:57 gson Exp $ */
+ /* $Id: callbacks.c,v 1.5 2000/02/03 23:43:45 halley Exp $ */
 
 #include <config.h>
 

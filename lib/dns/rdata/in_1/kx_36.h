@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: kx_36.h,v 1.9 2000/01/17 03:21:50 marka Exp $ */
+ /* $Id: kx_36.h,v 1.10 2000/02/03 23:43:17 halley Exp $ */
 
  /* RFC 2230 */
 

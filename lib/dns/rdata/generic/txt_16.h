@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,5 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.h,v 1.12 1999/09/15 23:03:33 explorer Exp $ */
+ /* $Id: txt_16.h,v 1.13 2000/02/03 23:43:08 halley Exp $ */
 
