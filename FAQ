@@ -150,3 +150,16 @@ update requests to DNS servers without being specifically configured to
 do so.  If the update requests are coming from a Windows 2000 machine,
 see <http://support.microsoft.com/support/kb/articles/q246/8/04.asp>
 for information about how to turn them off.
+
+
+Q: I see a log message like the following.  Why?
+
+   couldn't open pid file '/var/run/named.pid': Permission denied
+
+You are most likely running named as a non-root user, and that user
+does not have permission to write in /var/run.  The common ways of
+fixing this are to create a /var/run/named directory owned by the named
+user and set pid-file to "/var/run/named/named.pid", or set
+pid-file to "named.pid", which will put the file in the directory
+specified by the directory option (which, in this case, must be writable
+by the named user).
