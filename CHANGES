@@ -1,3 +1,8 @@
+ 286.	[bug]		On Solaris 2, when named inherited a signal state 
+			where SIGHUP had the SIG_IGN action, SIGHUP would
+			be ignored rather than causing the server to reload
+			its configuration.
+
  285.	[bug]		A change made to the dst API for beta4 inadvertently
 			broke OMAPI's creation of a dst key from an incoming
 			message, causing an assertion to be triggered.  Fixed.
