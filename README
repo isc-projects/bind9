@@ -47,7 +47,7 @@ BIND 9
 BIND 9.2.0rc9
 
 	BIND 9.2.0rc9 is a release candidate for BIND 9.2.0.
-	It fixes a couple of bugs in 9.2.0rc8.
+	It fixes a number of bugs in 9.2.0rc8.
 
 	BIND 9.2.0 has a number of new features over 9.1,
 	including:
