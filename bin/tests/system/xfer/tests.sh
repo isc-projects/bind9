@@ -24,6 +24,8 @@ echo "A:A test to determine online functionality of zone transfers"
 # Perform tests
 #
 
+sleep 5
+
 status=0;
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2
