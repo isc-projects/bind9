@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109.2.2 2000/07/09 19:52:24 tale Exp $ */
+/* $Id: query.c,v 1.109.2.3 2000/07/10 19:39:04 explorer Exp $ */
 
 #include <config.h>
 
@@ -1548,6 +1548,8 @@ query_addcname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	dns_name_toregion(tname, &r);
 	rdata->data = r.base;
 	rdata->length = r.length;
+	rdata->rdclass = client->message->rdclass;
+	rdata->type = dns_rdatatype_cname;
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);

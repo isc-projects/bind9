@@ -1,3 +1,8 @@
+ 321.	[bug]		When synthesizing a CNAME RR for a DNAME
+			response, query_addcname() failed to intitialize
+			the type and class of the CNAME dns_rdata_t,
+			causing random failures.
+
  316.	[bug]		Generate a warning if we detect an unexpected <eof>
 			but treat as <eol><eof>.
 
