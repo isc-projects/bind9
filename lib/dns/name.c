@@ -1139,7 +1139,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			state = ft_escape;
 			/* FALLTHROUGH */
 		case ft_escape:
-			if (!isdigit(c)) {
+			if (!isdigit(c & 0xff)) {
 				if (count >= 63)
 					return (DNS_R_LABELTOOLONG);
 				count++;
@@ -1157,7 +1157,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			state = ft_escdecimal;
 			/* FALLTHROUGH */
 		case ft_escdecimal:
-			if (!isdigit(c))
+			if (!isdigit(c & 0xff))
 				return (DNS_R_BADESCAPE);
 			value *= 10;
 			value += digitvalue[(int)c];
@@ -1195,7 +1195,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				maxlength = 256;
 				kind = ft_hex;
 				state = ft_hex;
-			} else if (isdigit(c)) {
+			} else if (isdigit(c & 0xff)) {
 				vlen = 32;
 				maxlength = 32;
 				n1 = 0;
@@ -1227,7 +1227,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			}
 			break;
 		case ft_octal:
-			if (!isdigit(c) || c == '9') {
+			if (!isdigit(c && 0xff) || c == '9' || c == '8') {
 				state = ft_maybeslash;
 				goto no_read;
 			}
@@ -1265,7 +1265,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			}
 			break;
 		case ft_hex:
-			if (!isxdigit(c)) {
+			if (!isxdigit(c & 0xff)) {
 				state = ft_maybeslash;
 				goto no_read;
 			}
@@ -1300,7 +1300,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			state = ft_dqdecimal;
 			break;
 		case ft_dqdecimal:
-			if (!isdigit(c)) {
+			if (!isdigit(c & 0xff)) {
 				if (digits == 0 || value > 255)
 					return (DNS_R_BADDOTTEDQUAD);
 				state = ft_dottedquad;
@@ -1456,7 +1456,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			state = ft_eatdot;
 			break;
 		case ft_bitlength:
-			if (!isdigit(c)) {
+			if (!isdigit(c & 0xff)) {
 				if (bitlength == 0)
 					return (DNS_R_BADBITSTRING);
 				state = ft_finishbitstring;
