@@ -941,6 +941,10 @@ resquery_send(resquery_t *query) {
 	if ((query->options & DNS_FETCHOPT_TCP) == 0)
 		address = query->addrinfo->sockaddr;
 	isc_buffer_used(buffer, &r);
+	/*
+	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
+	 *         prune out these addresses when we get them from the ADB.
+	 */
 	result = isc_socket_sendto(socket, &r, task, resquery_senddone,
 				   query, address, NULL);
 	if (result != ISC_R_SUCCESS)
