@@ -312,6 +312,14 @@ typedef enum {
 
 #define IWSEOL (ISC_LEXOPT_INITIALWS | ISC_LEXOPT_EOL)
 
+static void 
+pushback(inputsource *source, int c) {
+	INSIST(source->char_count < 2);
+	source->chars[source->char_count++] = c;
+	if (c == '\n')
+		source->line--;
+}
+
 isc_result_t
 isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	inputsource *source;
@@ -400,9 +408,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 		}
 
-		if (c == '\n') {
+		if (c == '\n')
 			source->line++;
-		}
 		
 		if (lex->comment_ok && !no_comments) {
 			if (!escaped && c == ';' &&
@@ -499,10 +506,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 			break;
 		case lexstate_crlf:
-			if (c != '\n') {
-				INSIST(source->char_count < 2);
-				source->chars[source->char_count++] = c;
-			}
+			if (c != '\n')
+				pushback(source, c);
 			tokenp->type = isc_tokentype_eol;
 			done = ISC_TRUE;
 			lex->last_was_eol = ISC_TRUE;
@@ -512,9 +517,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				if (c == ' ' || c == '\t' || c == '\r' ||
 				    c == '\n' || c == EOF ||
 				    lex->specials[c]) {
-					INSIST(source->char_count < 2);
-					source->chars[source->char_count++] =
-						c;
+					pushback(source, c);
 					ulong = strtoul(lex->data, &e, 0);
 					if (*e == 0) {
 						tokenp->type =
@@ -558,8 +561,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			if ((!escaped &&
 			     (c == ' ' || c == '\t' || lex->specials[c])) ||
 			    c == '\r' || c == '\n' || c == EOF) {
-				INSIST(source->char_count < 2);
-				source->chars[source->char_count++] = c;
+				pushback(source, c);
 				tokenp->type = isc_tokentype_string;
 				tokenp->value.as_textregion.base = lex->data;
 				tokenp->value.as_textregion.length = 
@@ -591,8 +593,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				state = lexstate_eatline;
 				continue;
 			}
-			INSIST(source->char_count < 2);
-			source->chars[source->char_count++] = c;
+			pushback(source, c);
 			c = '/';
 			no_comments = ISC_FALSE;
 			state = saved_state;
