@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.21 2001/08/30 04:31:30 mayer Exp $ */
+/* $Id: file.c,v 1.22 2001/08/30 21:16:41 gson Exp $ */
 
 #include <config.h>
 
@@ -105,7 +105,7 @@ gettemp(char *path, int *doopen) {
 	/*NOTREACHED*/
 }
 
-int
+static int
 mkstemp(char *path) {
 	int fd;
 
