@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.11 1999/09/10 15:42:57 bwelling Exp $
+ * $Id: tsig.c,v 1.12 1999/09/10 20:26:17 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -165,7 +165,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_tsig_key_t *key;
 	dns_rdata_any_tsig_t *tsig;
 	unsigned char data[128];
-	isc_buffer_t databuf, sigbuf, rdatabuf;
+	isc_buffer_t databuf, sigbuf;
 	isc_buffer_t *dynbuf;
 	dns_name_t *owner;
 	dns_rdata_t *rdata;
