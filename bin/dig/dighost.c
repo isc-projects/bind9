@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.214 2001/07/27 06:11:07 bwelling Exp $ */
+/* $Id: dighost.c,v 1.215 2001/07/27 22:07:10 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -699,7 +699,7 @@ setup_libs(void) {
 	/*
 	 * Warning: This is not particularly good randomness.  We'll
 	 * just use random() now for getting id values, but doing so
-	 * does NOT insure that id's cann't be guessed.
+	 * does NOT ensure that id's cann't be guessed.
 	 */
 	srandom(getpid() + (int)&setup_libs);
 
@@ -1011,89 +1011,74 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 
 	INSIST(!free_now);
 
-	debug("followup_lookup()");
-	result = dns_message_firstname(msg, section);
-
-	if (result != ISC_R_SUCCESS) {
-		debug("firstname returned %s", isc_result_totext(result));
-		if ((section == DNS_SECTION_ANSWER) &&
-		    (query->lookup->trace || query->lookup->ns_search_only))
-			numLookups +=
-			    followup_lookup(msg, query, DNS_SECTION_AUTHORITY);
-		return (numLookups);
-	}
-
 	debug("following up %s", query->lookup->textname);
-
-	for (;
+	
+	for (result = dns_message_firstname(msg, section);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(msg, section))
 	{
 		name = NULL;
 		dns_message_currentname(msg, section, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list);
-		     rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
+
+		rdataset = NULL;
+		result = dns_message_findtype(name, dns_rdatatype_ns, 0,
+					      &rdataset);
+		if (result != ISC_R_SUCCESS)
+			continue;
+
+		debug("found NS set");
+
+		for (result = dns_rdataset_first(rdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(rdataset))
 		{
-			debug("got rdataset with type %d", rdataset->type);
-			if (rdataset->type != dns_rdatatype_ns)
-				continue;
+			char namestr[DNS_NAME_FORMATSIZE];
+			dns_rdata_ns_t ns;
 
-			for (result = dns_rdataset_first(rdataset);
-			     result == ISC_R_SUCCESS;
-			     result = dns_rdataset_next(rdataset))
-			{
-				char namestr[DNS_NAME_FORMATSIZE];
-				dns_rdata_ns_t ns;
+			if (query->lookup->trace_root &&
+			    query->lookup->nsfound >= MXSERV)
+				break;
 
-				if (query->lookup->trace_root &&
-				    query->lookup->nsfound >= MXSERV)
-					break;
+			dns_rdataset_current(rdataset, &rdata);
 
-				dns_rdataset_current(rdataset, &rdata);
+			query->lookup->nsfound++;
+			(void)dns_rdata_tostruct(&rdata, &ns, NULL);
+			dns_name_format(&ns.name, namestr, sizeof(namestr));
+			dns_rdata_freestruct(&ns);
 
-				query->lookup->nsfound++;
-				(void)dns_rdata_tostruct(&rdata, &ns, NULL);
-				dns_name_format(&ns.name, namestr,
-						sizeof(namestr));
-				dns_rdata_freestruct(&ns);
-
-				/* Initialize lookup if we've not yet */
-				debug("found NS %d %s", namestr);
-				numLookups++;
-				if (!success) {
-					success = ISC_TRUE;
-					lookup_counter++;
-					cancel_lookup(query->lookup);
-					lookup = requeue_lookup(query->lookup,
-								ISC_FALSE);
-					lookup->doing_xfr = ISC_FALSE;
-					if (section == DNS_SECTION_ANSWER) {
-						lookup->trace = ISC_FALSE;
-						lookup->ns_search_only =
-								ISC_FALSE;
-					} else {
-						lookup->trace =
-							query->lookup->trace;
-						lookup->ns_search_only =
-							query->lookup->ns_search_only;
-						lookup->ns_search_only_leafnode =
-							query->lookup->ns_search_only_leafnode;
-					}
-					lookup->trace_root = ISC_FALSE;
+			/* Initialize lookup if we've not yet */
+			debug("found NS %d %s", namestr);
+			numLookups++;
+			if (!success) {
+				success = ISC_TRUE;
+				lookup_counter++;
+				cancel_lookup(query->lookup);
+				lookup = requeue_lookup(query->lookup,
+							ISC_FALSE);
+				lookup->doing_xfr = ISC_FALSE;
+				if (section == DNS_SECTION_ANSWER) {
+					lookup->trace = ISC_FALSE;
+					lookup->ns_search_only = ISC_FALSE;
+				} else {
+					lookup->trace = query->lookup->trace;
+					lookup->ns_search_only =
+						query->lookup->ns_search_only;
+					lookup->ns_search_only_leafnode =
+						query->lookup->ns_search_only_leafnode;
 				}
-				srv = make_server(namestr);
-				debug("adding server %s", srv->servername);
-				ISC_LIST_APPEND(lookup->my_server_list,
-						srv, link);
-				dns_rdata_reset(&rdata);
+				lookup->trace_root = ISC_FALSE;
 			}
+			srv = make_server(namestr);
+			debug("adding server %s", srv->servername);
+			ISC_LIST_APPEND(lookup->my_server_list, srv, link);
+			dns_rdata_reset(&rdata);
 		}
 	}
-	if ((lookup == NULL) && (section == DNS_SECTION_ANSWER) &&
+
+	if (lookup == NULL &&
+	    section == DNS_SECTION_ANSWER &&
 	    (query->lookup->trace || query->lookup->ns_search_only))
-		numLookups +=
-			followup_lookup(msg, query, DNS_SECTION_AUTHORITY);
+		return (followup_lookup(msg, query, DNS_SECTION_AUTHORITY));
 
 	return numLookups;
 }
@@ -2192,6 +2177,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *n, *l;
 	isc_boolean_t docancel = ISC_FALSE;
 	unsigned int local_timeout;
+	unsigned int parseflags;
 
 	UNUSED(task);
 	INSIST(!free_now);
@@ -2226,332 +2212,292 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	if (sevent->result == ISC_R_SUCCESS) {
-		b = ISC_LIST_HEAD(sevent->bufferlist);
-		ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
-		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
-					    &msg);
-		check_result(result, "dns_message_create");
-
-		if (key != NULL) {
-			if (l->querysig == NULL) {
-				debug("getting initial querysig");
-				result = dns_message_getquerytsig(
-					     l->sendmsg,
-					     mctx, &l->querysig);
-				check_result(result,
-					     "dns_message_getquerytsig");
-			}
-			result = dns_message_setquerytsig(msg,
-						 l->querysig);
-			check_result(result, "dns_message_setquerytsig");
-			result = dns_message_settsigkey(msg, key);
-			check_result(result, "dns_message_settsigkey");
-			msg->tsigctx = l->tsigctx;
-			if (l->msgcounter != 0)
-				msg->tcp_continuation = 1;
-			l->msgcounter++;
-		}
-		debug("before parse starts");
-		if (l->besteffort)
-			result = dns_message_parse(msg, b,
-					   DNS_MESSAGEPARSE_PRESERVEORDER
-					   |DNS_MESSAGEPARSE_BESTEFFORT);
-		else
-			result = dns_message_parse(msg, b,
-					   DNS_MESSAGEPARSE_PRESERVEORDER);
-		if (result != ISC_R_SUCCESS && 
-		    result != DNS_R_RECOVERABLE ) {
-			printf(";; Got bad packet: %s\n",
-			       isc_result_totext(result));
-			hex_dump(b);
+	if (sevent->result != ISC_R_SUCCESS) {
+		if (sevent->result == ISC_R_CANCELED) {
+			debug("in recv cancel handler");
 			query->waiting_connect = ISC_FALSE;
-			dns_message_destroy(&msg);
-			isc_event_free(&event);
-			clear_query(query);
-			cancel_lookup(l);
-			check_next_lookup(l);
-			UNLOCK_LOOKUP;
-			return;
-		}
-		if (result == DNS_R_RECOVERABLE)
-			printf(";; Warning: Message parser reports malformed "
-			       "message packet.\n");
-		if (((msg->flags & DNS_MESSAGEFLAG_TC) != 0) 
-		    && ! l->ignore && !l->tcp_mode) {
-			printf(";; Truncated, retrying in TCP mode.\n");
-			n = requeue_lookup(l, ISC_TRUE);
-			n->tcp_mode = ISC_TRUE;
-			dns_message_destroy(&msg);
-			isc_event_free(&event);
-			clear_query(query);
-			cancel_lookup(l);
-			check_next_lookup(l);
-			UNLOCK_LOOKUP;
-			return;
-		}			
-		if ((msg->rcode == dns_rcode_servfail) &&
-		    l->servfail_stops) {
-			dig_query_t *next = ISC_LIST_NEXT(query, link);
-			if (l->current_query == query)
-				l->current_query = NULL;
-			if (next != NULL) {
-				debug("sending query %lx\n", next);
-				if (l->tcp_mode)
-					send_tcp_connect(next);
-				else
-					send_udp(next);
-			}
-			/*
-			 * If our query is at the head of the list and there
-			 * is no next, we're the only one left, so fall
-			 * through to print the message.
-			 */
-			if ((ISC_LIST_HEAD(l->q) != query) ||
-			    (ISC_LIST_NEXT(query, link) != NULL)) {
-				printf(";; Got SERVFAIL reply from %s, "
-				       "trying next server\n",
-				       query->servname);
-				clear_query(query);
-				check_next_lookup(l);
-				dns_message_destroy(&msg);
-				isc_event_free(&event);
-				UNLOCK_LOOKUP;
-				return;
-			}
-		}
-
-		if (key != NULL) {
-			result = dns_tsig_verify(&query->recvbuf, msg,
-						 NULL, NULL);
-			if (result != ISC_R_SUCCESS) {
-				printf(";; Couldn't verify signature: %s\n",
-				       isc_result_totext(result));
-				validated = ISC_FALSE;
-			}
-			l->tsigctx = msg->tsigctx;
-			if (l->querysig != NULL) {
-				debug("freeing querysig buffer %p",
-				       l->querysig);
-				isc_buffer_free(&l->querysig);
-			}
-			result = dns_message_getquerytsig(msg, mctx,
-						     &l->querysig);
-			check_result(result,"dns_message_getquerytsig");
-			debug("querysig 3 is %p", l->querysig);
-		}
-		debug("after parse");
-		if (l->xfr_q == NULL) {
-			l->xfr_q = query;
-			/*
-			 * Once we are in the XFR message, increase
-			 * the timeout to much longer, so brief network
-			 * outages won't cause the XFR to abort
-			 */
-			if ((timeout != INT_MAX) &&
-			    (l->timer != NULL) &&
-			    l->doing_xfr ) {
-				if (timeout == 0) {
-					if (l->tcp_mode)
-						local_timeout = TCP_TIMEOUT;
-					else
-						local_timeout = UDP_TIMEOUT;
-				} else {
-					if (timeout < (INT_MAX / 4))
-						local_timeout = timeout * 4;
-					else
-						local_timeout = INT_MAX;
-				}
-				debug("have local timeout of %d",
-				       local_timeout);
-				isc_interval_set(&l->interval,
-						 local_timeout, 0);
-				result = isc_timer_reset(l->timer,
-						      isc_timertype_once,
-						      NULL,
-						      &l->interval,
-						      ISC_FALSE);
-				check_result(result, "isc_timer_reset");
-			}
-		}
-		if (l->xfr_q == query) {
-			if ((l->trace)||
-			    (l->ns_search_only)) {
-				debug("in TRACE code");
-				printmessage(query, msg, ISC_TRUE);
-				if ((msg->rcode != 0) &&
-				    (l->origin != NULL)) {
-					if (!next_origin(msg, query)) {
-						printmessage(query, msg,
-							     ISC_TRUE);
-						received(b->used, 
-							 &sevent->address,
-							 query);
-					}
-				} else {
-					result = dns_message_firstname
-						(msg,DNS_SECTION_ANSWER);
-					if (l->ns_search_only)
-					{
-						if ((result != ISC_R_SUCCESS) || l->trace_root)
-						{
-							/*
-							 * We didn't get an
-							 * answer section,
-							 * or else this is
-							 * the first initial
-							 * SOA query (in which
-							 * case we will in fact
-							 * get an answer
-							 * section but it won't
-							 * be the right one).
-							 * In either case,
-							 * our next query
-							 * should be an NS.
-							 */
-							l->rdtype = dns_rdatatype_ns;
-						} else {
-							/*
-							 * We got an answer
-							 * section for our
-							 * NS query! Yay!
-							 * Now we shift gears,
-							 * set the leafnode bit
-							 * and look for SOAs
-							 * in all the servers
-							 * we got back in our
-							 * answer section.
-							 */
-							l->rdtype = dns_rdatatype_soa;
-							l->ns_search_only_leafnode = ISC_TRUE;
-							if (followup_lookup(msg, query,
-								DNS_SECTION_ANSWER) == 0)
-							{
-								docancel = ISC_TRUE;
-							}
-						}
-					}
-					if ((result != ISC_R_SUCCESS) ||
-					    l->trace_root)
-					{
-						/*
-						 * This is executed regardless
-						 * of whether we're doing
-						 * ns_search_only, but because
-						 * of the way the logic works,
-						 * it's mutually exclusive
-						 * with the other call to
-						 * followup_lookup above. This
-						 * is a good thing because we
-						 * want to call followup_lookup
-						 * at most once per query.
-						 * 
-						 * The idea here is that
-						 * if we didn't get an answer
-						 * section (or if it's the
-						 * initial root query) then
-						 * we want to take whatever is
-						 * in the authority section and
-						 * follow up with them.
-						 */
-						if (followup_lookup(msg, query,
-							DNS_SECTION_AUTHORITY)
-							== 0)
-						{
-							docancel = ISC_TRUE;
-						}
-					}
-				}
-			} else if ((msg->rcode != 0) &&
-				 (l->origin != NULL)) {
-				if (!next_origin(msg, query)) {
-					printmessage(query, msg,
-						     ISC_TRUE);
-					received(b->used,
-						 &sevent->address,
-						 query);
-				}
-			} else {
-				printmessage(query, msg, ISC_TRUE);
-			}
-		} else if ((dns_message_firstname(msg, DNS_SECTION_ANSWER)
-			    == ISC_R_SUCCESS) &&
-			   (l->ns_search_only || l->ns_search_only_leafnode) &&
-			   !l->trace_root ) {
-			printmessage(query, msg, ISC_TRUE);
-		}
-
-		if (l->pending)
-			debug("still pending.");
-		if (l->doing_xfr) {
-			if (query != l->xfr_q) {
-				dns_message_destroy(&msg);
-				isc_event_free (&event);
-				query->waiting_connect = ISC_FALSE;
-				UNLOCK_LOOKUP;
-				return;
-			}
-			if (! docancel)
-				docancel = check_for_more_data(query, msg, sevent);
-			if (docancel) {
-				dns_message_destroy(&msg);
-				clear_query(query);
-				cancel_lookup(l);
-				check_next_lookup(l);
-			}
-			if (msg != NULL)
-				dns_message_destroy(&msg);
-			isc_event_free(&event);
 		} else {
-			if ((msg->rcode == 0) ||
-			    (l->origin == NULL)) {
-				received(b->used, 
-					 &sevent->address,
-					 query);
-			}
-			if (!(query->lookup->ns_search_only ||
-			      query->lookup->ns_search_only_leafnode))
-				query->lookup->pending = ISC_FALSE;
-			if (!(query->lookup->ns_search_only ||
-			      query->lookup->ns_search_only_leafnode) ||
-			    query->lookup->trace_root || docancel) {
-				dns_message_destroy(&msg);
-				cancel_lookup(l);
-			}
-			if (msg != NULL)
-				dns_message_destroy(&msg);
-			isc_event_free(&event);
-			clear_query(query);
-			check_next_lookup(l);
+			printf(";; communications error: %s\n",
+			       isc_result_totext(sevent->result));
+			isc_socket_detach(&query->sock);
+			sockcount--;
+			debug("sockcount=%d", sockcount);
+			INSIST(sockcount >= 0);
 		}
-		UNLOCK_LOOKUP;
-		return;
-	}
-	/*
-	 * In truth, we should never get into the CANCELED routine, since
-	 * the cancel_lookup() routine clears the pending flag.
-	 * XXX Is this true anymore, since the bulk changes?
-	 */
-	if (sevent->result == ISC_R_CANCELED) {
-		debug("in recv cancel handler");
-		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
 		clear_query(query);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
 	}
-	printf(";; communications error: %s\n",
-	       isc_result_totext(sevent->result));
-	isc_socket_detach(&query->sock);
-	sockcount--;
-	debug("sockcount=%d", sockcount);
-	INSIST(sockcount >= 0);
-	isc_event_free(&event);
-	clear_query(query);
-	check_next_lookup(l);
+
+	b = ISC_LIST_HEAD(sevent->bufferlist);
+	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	check_result(result, "dns_message_create");
+
+	if (key != NULL) {
+		if (l->querysig == NULL) {
+			debug("getting initial querysig");
+			result = dns_message_getquerytsig(l->sendmsg, mctx,
+							  &l->querysig);
+			check_result(result, "dns_message_getquerytsig");
+		}
+		result = dns_message_setquerytsig(msg, l->querysig);
+		check_result(result, "dns_message_setquerytsig");
+		result = dns_message_settsigkey(msg, key);
+		check_result(result, "dns_message_settsigkey");
+		msg->tsigctx = l->tsigctx;
+		if (l->msgcounter != 0)
+			msg->tcp_continuation = 1;
+		l->msgcounter++;
+	}
+	debug("before parse starts");
+	parseflags = DNS_MESSAGEPARSE_PRESERVEORDER;
+	if (l->besteffort)
+		parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
+	result = dns_message_parse(msg, b, parseflags);
+	if (result == DNS_R_RECOVERABLE) {
+		printf(";; Warning: Message parser reports malformed "
+		       "message packet.\n");
+		result = ISC_R_SUCCESS;
+	}
+	if (result != ISC_R_SUCCESS) {
+		printf(";; Got bad packet: %s\n", isc_result_totext(result));
+		hex_dump(b);
+		query->waiting_connect = ISC_FALSE;
+		dns_message_destroy(&msg);
+		isc_event_free(&event);
+		clear_query(query);
+		cancel_lookup(l);
+		check_next_lookup(l);
+		UNLOCK_LOOKUP;
+		return;
+	}
+	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0
+	    && !l->ignore && !l->tcp_mode)
+	{
+		printf(";; Truncated, retrying in TCP mode.\n");
+		n = requeue_lookup(l, ISC_TRUE);
+		n->tcp_mode = ISC_TRUE;
+		dns_message_destroy(&msg);
+		isc_event_free(&event);
+		clear_query(query);
+		cancel_lookup(l);
+		check_next_lookup(l);
+		UNLOCK_LOOKUP;
+		return;
+	}			
+	if (msg->rcode == dns_rcode_servfail && l->servfail_stops) {
+		dig_query_t *next = ISC_LIST_NEXT(query, link);
+		if (l->current_query == query)
+			l->current_query = NULL;
+		if (next != NULL) {
+			debug("sending query %lx\n", next);
+			if (l->tcp_mode)
+				send_tcp_connect(next);
+			else
+				send_udp(next);
+		}
+		/*
+		 * If our query is at the head of the list and there
+		 * is no next, we're the only one left, so fall
+		 * through to print the message.
+		 */
+		if ((ISC_LIST_HEAD(l->q) != query) ||
+		    (ISC_LIST_NEXT(query, link) != NULL)) {
+			printf(";; Got SERVFAIL reply from %s, "
+			       "trying next server\n",
+			       query->servname);
+			clear_query(query);
+			check_next_lookup(l);
+			dns_message_destroy(&msg);
+			isc_event_free(&event);
+			UNLOCK_LOOKUP;
+			return;
+		}
+	}
+
+	if (key != NULL) {
+		result = dns_tsig_verify(&query->recvbuf, msg, NULL, NULL);
+		if (result != ISC_R_SUCCESS) {
+			printf(";; Couldn't verify signature: %s\n",
+			       isc_result_totext(result));
+			validated = ISC_FALSE;
+		}
+		l->tsigctx = msg->tsigctx;
+		if (l->querysig != NULL) {
+			debug("freeing querysig buffer %p", l->querysig);
+			isc_buffer_free(&l->querysig);
+		}
+		result = dns_message_getquerytsig(msg, mctx, &l->querysig);
+		check_result(result,"dns_message_getquerytsig");
+	}
+
+	debug("after parse");
+	if (l->xfr_q == NULL) {
+		l->xfr_q = query;
+		/*
+		 * Once we are in the XFR message, increase
+		 * the timeout to much longer, so brief network
+		 * outages won't cause the XFR to abort
+		 */
+		if (timeout != INT_MAX && l->timer != NULL && l->doing_xfr) {
+			if (timeout == 0) {
+				if (l->tcp_mode)
+					local_timeout = TCP_TIMEOUT;
+				else
+					local_timeout = UDP_TIMEOUT;
+			} else {
+				if (timeout < (INT_MAX / 4))
+					local_timeout = timeout * 4;
+				else
+					local_timeout = INT_MAX;
+			}
+			debug("have local timeout of %d", local_timeout);
+			isc_interval_set(&l->interval, local_timeout, 0);
+			result = isc_timer_reset(l->timer,
+						 isc_timertype_once,
+						 NULL,
+						 &l->interval,
+						 ISC_FALSE);
+			check_result(result, "isc_timer_reset");
+		}
+	}
+	if (l->xfr_q == query) {
+		if (l->trace || l->ns_search_only) {
+			debug("in TRACE code");
+			printmessage(query, msg, ISC_TRUE);
+			if (msg->rcode != dns_rcode_noerror &&
+			    l->origin != NULL)
+			{
+				if (!next_origin(msg, query)) {
+					printmessage(query, msg, ISC_TRUE);
+					received(b->used, &sevent->address,
+						 query);
+				}
+			} else {
+				result = dns_message_firstname(msg,
+							DNS_SECTION_ANSWER);
+				if (l->ns_search_only) {
+					if (result != ISC_R_SUCCESS ||
+					    l->trace_root)
+					{
+						/*
+						 * We didn't get an answer
+						 * section, or else this is
+						 * the first initial SOA query
+						 * (in which case we will in
+						 * fact get an answer section
+						 * but it won't be the right
+						 * one).  In either case, our
+						 * next query should be an NS.
+						 */
+						l->rdtype = dns_rdatatype_ns;
+					} else {
+						/*
+						 * We got an answer section for
+						 * our NS query! Yay!  Now we
+						 * shift gears, set the
+						 * leafnode bit and look for
+						 * SOAs in all the servers we
+						 * got back in our answer
+						 * section.
+						 */
+						l->rdtype = dns_rdatatype_soa;
+						l->ns_search_only_leafnode = ISC_TRUE;
+						if (followup_lookup(msg, query,
+							DNS_SECTION_ANSWER) == 0)
+						{
+							docancel = ISC_TRUE;
+						}
+					}
+				}
+				if ((result != ISC_R_SUCCESS) ||
+				    l->trace_root)
+				{
+					/*
+					 * This is executed regardless of
+					 * whether we're doing ns_search_only,
+					 * but because of the way the logic
+					 * works, it's mutually exclusive with
+					 * the other call to followup_lookup
+					 * above. This is a good thing because
+					 * we want to call followup_lookup
+					 * at most once per query.
+					 * 
+					 * The idea here is that if we didn't
+					 * get an answer section (or if it's
+					 * the initial root query) then we want
+					 * to take whatever is in the authority
+					 * section and follow up with them.
+					 */
+					if (followup_lookup(msg, query,
+						DNS_SECTION_AUTHORITY)
+						== 0)
+					{
+						docancel = ISC_TRUE;
+					}
+				}
+			}
+		} else if (msg->rcode != dns_rcode_noerror &&
+			   l->origin != NULL)
+		{
+			if (!next_origin(msg, query)) {
+				printmessage(query, msg, ISC_TRUE);
+				received(b->used, &sevent->address, query);
+			}
+		} else {
+			printmessage(query, msg, ISC_TRUE);
+		}
+	} else if (msg->counts[DNS_SECTION_ANSWER] > 0 &&
+		   (l->ns_search_only || l->ns_search_only_leafnode) &&
+		   !l->trace_root ) {
+		printmessage(query, msg, ISC_TRUE);
+	}
+
+	if (l->pending)
+		debug("still pending.");
+	if (l->doing_xfr) {
+		if (query != l->xfr_q) {
+			dns_message_destroy(&msg);
+			isc_event_free(&event);
+			query->waiting_connect = ISC_FALSE;
+			UNLOCK_LOOKUP;
+			return;
+		}
+		if (!docancel)
+			docancel = check_for_more_data(query, msg, sevent);
+		if (docancel) {
+			dns_message_destroy(&msg);
+			clear_query(query);
+			cancel_lookup(l);
+			check_next_lookup(l);
+		}
+		if (msg != NULL)
+			dns_message_destroy(&msg);
+		isc_event_free(&event);
+	} else {
+		if ((msg->rcode == 0) ||
+		    (l->origin == NULL)) {
+			received(b->used, &sevent->address, query);
+		}
+		if (!(query->lookup->ns_search_only ||
+		      query->lookup->ns_search_only_leafnode))
+			query->lookup->pending = ISC_FALSE;
+		if (!(query->lookup->ns_search_only ||
+		      query->lookup->ns_search_only_leafnode) ||
+		    query->lookup->trace_root || docancel) {
+			dns_message_destroy(&msg);
+			cancel_lookup(l);
+		}
+		if (msg != NULL)
+			dns_message_destroy(&msg);
+		isc_event_free(&event);
+		clear_query(query);
+		check_next_lookup(l);
+	}
 	UNLOCK_LOOKUP;
-	return;
 }
 
 /*
@@ -2607,8 +2553,8 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		he = gethostbyname(host);
 		isc_app_unblock();
 		if (he == NULL)
-		     fatal("Couldn't find server '%s' (h_errno=%d)",
-			   host, h_errno);
+			fatal("Couldn't find server '%s' (h_errno=%d)",
+			      host, h_errno);
 		INSIST(he->h_addrtype == AF_INET);
 		isc_sockaddr_fromin(sockaddr,
 				    (struct in_addr *)(he->h_addr_list[0]),
@@ -2669,13 +2615,13 @@ cancel_all(void) {
 		q = ISC_LIST_HEAD(current_lookup->q);
 		while (q != NULL) {
 			debug("cancelling query %p, belonging to %p",
-			       q, current_lookup);
+			      q, current_lookup);
 			nq = ISC_LIST_NEXT(q, link);
 			if (q->sock != NULL) {
 				isc_socket_cancel(q->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
 			} else {
-				clear_query (q);
+				clear_query(q);
 			}
 			q = nq;
 		}
