@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.336 2001/07/26 20:42:40 bwelling Exp $ */
+/* $Id: server.c,v 1.337 2001/07/31 19:22:51 gson Exp $ */
 
 #include <config.h>
 
@@ -1146,8 +1146,14 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 
 	result = dns_fwdtable_add(view->fwdtable, origin, &addresses,
 				  fwdpolicy);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(origin, namebuf, sizeof(namebuf));
+		cfg_obj_log(forwarders, ns_g_lctx, ISC_LOG_WARNING,
+			    "could not set up forwarding for domain '%s': %s",
+			    namebuf, isc_result_totext(result));
 		goto cleanup;
+	}
 
 	result = ISC_R_SUCCESS;
 
