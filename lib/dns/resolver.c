@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.32 2004/06/25 04:44:57 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.33 2004/06/27 01:30:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1775,7 +1775,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 
 static inline dns_adbaddrinfo_t *
 fctx_nextaddress(fetchctx_t *fctx) {
-	dns_adbfind_t *find;
+	dns_adbfind_t *find, *start;
 	dns_adbaddrinfo_t *addrinfo;
 
 	/*
@@ -1813,6 +1813,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	 */
 	addrinfo = NULL;
 	if (find != NULL) {
+		start = find;
 		do {
 			for (addrinfo = ISC_LIST_HEAD(find->list);
 			     addrinfo != NULL;
@@ -1828,7 +1829,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 			find = ISC_LIST_NEXT(find, publink);
 			if (find != fctx->find && find == NULL)
 				find = ISC_LIST_HEAD(fctx->finds);
-		} while (find != fctx->find);
+		} while (find != start);
 	}
 
 	fctx->find = find;
