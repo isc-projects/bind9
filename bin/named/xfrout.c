@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.53 2000/04/06 22:01:04 explorer Exp $ */
+/* $Id: xfrout.c,v 1.54 2000/04/07 19:17:33 explorer Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/print.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 

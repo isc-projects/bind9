@@ -25,6 +25,7 @@
 #include <isc/mutex.h>
 #include <isc/result.h>
 #include <isc/task.h>
+#include <isc/print.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
