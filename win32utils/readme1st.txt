@@ -1,9 +1,9 @@
 Copyright (C) 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.8 2001/09/06 04:36:21 mayer Exp $
+$Id: readme1st.txt,v 1.9 2001/09/26 00:25:03 gson Exp $
 
-	   Release of BIND 9.2.0 for Window NT/2000
+	   Release of BIND 9.2.0 for Windows NT/2000
 
 Date: 10-Aug-2001.
 
