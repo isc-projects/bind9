@@ -1,3 +1,6 @@
+1250.	[func]		Nsupdate will report the address the update was
+			sent to.
+
 1247.	[bug]		Don't reset the interface index for link/site local
 			addresses. [RT #2576]
 
