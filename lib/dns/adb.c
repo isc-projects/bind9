@@ -2691,7 +2691,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp)
 
 	LOCK(&find->lock);
 
-	DP(DEF_LEVEL, "dns_adb_done on find %p", find);
+	DP(DEF_LEVEL, "dns_adb_destroyfind on find %p", find);
 
 	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
