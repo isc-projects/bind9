@@ -71,18 +71,12 @@ struct dns_dispatchevent {
 	isc_buffer_t	        buffer;		/* data buffer */
 };
 
-typedef struct dns_resentry dns_resentry_t; /* XXX name change */
+typedef struct dns_dispentry dns_dispentry_t;
 
 /*
  * Private attributes of events
  */
 #define DNS_DISPATCHATTR_MPOOL		0x00010000 /* allocated via mpool */
-
-/*
- * Public attributes of events
- */
-#define DNS_DISPATCHATTR_TCP		0x00000001 /* is TCP */
-#define DNS_DISPATCHATTR_UDP		0x00000002 /* is UDP */
 
 dns_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
@@ -139,7 +133,7 @@ dns_dispatch_destroy(dns_dispatch_t **dispp);
 dns_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			 isc_task_t *task, isc_taskaction_t action, void *arg,
-			 isc_uint16_t *idp, dns_resentry_t **resp);
+			 isc_uint16_t *idp, dns_dispentry_t **resp);
 /*
  * Add a response entry for this dispatch.
  *
@@ -172,7 +166,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
  */
 
 void
-dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
+dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 			    dns_dispatchevent_t **sockevent);
 /*
  * Stops the flow of responses for the provided id and destination.
@@ -193,7 +187,7 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
 dns_result_t
 dns_dispatch_addrequest(dns_dispatch_t *disp,
 			isc_task_t *task, isc_taskaction_t action, void *arg,
-			dns_resentry_t **resp);
+			dns_dispentry_t **resp);
 /*
  * Aranges for a one-shot request handler.  Only one request will ever be
  * handled per call to this function.  (Or should this be automatically
@@ -210,7 +204,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
  */
 
 void
-dns_dispatch_removerequest(dns_dispatch_t *disp, dns_resentry_t **resp,
+dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 			   dns_dispatchevent_t **sockevent);
 /*
  * Stops the flow of responses for the provided id and destination.
