@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51.2.5 2000/07/17 19:40:50 gson Exp $ */
+/* $Id: dig.c,v 1.51.2.6 2000/08/15 01:16:35 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -173,8 +173,6 @@ show_usage(void) {
 "                                      form of answer)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
 "                 +qr                 (Print question before sending)\n"
-"                 +[no]cdflag         (Set or clear CD flag in query)\n"
-"                 +[no]adflag         (Set or clear AD flag in query)\n"
 "                 +[no]nssearch       (Search all authorative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
