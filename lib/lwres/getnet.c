@@ -12,18 +12,6 @@ getnetbyname(const char *name) {
 	return (NULL);
 }
 
-#ifdef ISC_LWRES_GETNETBYADDRINADDR
-struct netent *
-getnetbyaddr(in_addr_t net, int type) {
-
-	if (type == AF_INET) 
-		return (NULL);
-
-	/* XXX */
-	UNUSED(net);
-	return (NULL);
-}
-#else
 struct netent *
 getnetbyaddr(unsigned long net, int type) {
 
@@ -34,7 +22,6 @@ getnetbyaddr(unsigned long net, int type) {
 	UNUSED(net);
 	return (NULL);
 }
-#endif
 
 struct netent *
 getnetent() {
@@ -42,32 +29,43 @@ getnetent() {
 	return (NULL);
 }
 
-#ifdef ISC_LWRES_SETNETENTINT
-int
-setnetent(int stayopen) {
-	
-	UNUSED(stayopen);
-	/* empty */
-	return (1);	/* success */
-}
-#else
 void
 setnetent(int stayopen) {
 	
 	UNUSED(stayopen);
 	/* empty */
 }
-#endif
 
-#ifdef ISC_LWRES_ENDNETENTINT
-int
-endnetent() {
-	return (0);
-}
-#else
 void
 endnetent() {
 	/* empty */
 }
-#endif
 
+struct netent *
+getnetbyname_r(const char *name, struct netent *resbuf, char *buf,
+	       int buflen)
+{
+	return (NULL);
+}
+
+struct netent *
+getnetbyaddr_r(long addr, int type, struct netent *resbuf, char *buf,
+	       int buflen)
+{
+	return (NULL);
+}
+
+struct netent *
+getnetent_r(struct netent *resbuf, char *buf, int buflen) {
+	return (NULL);
+}
+
+void
+setnetent_r(int stayopen) {
+	(void)stayopen;
+}
+
+void
+endnetent_r(void) {
+	/* empty */
+}

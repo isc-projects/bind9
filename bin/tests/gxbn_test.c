@@ -16,7 +16,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
+
+#include <isc/net.h>
+
 #include <lwres/netdb.h>
 
 static void
@@ -46,21 +50,23 @@ print_he(struct hostent *he, int error, const char *fun, const char *name) {
 			i++;
 		}
 	} else {
-		printf("%s(%s): error = %d\n", fun, name, error);
+		printf("%s(%s): error = %d (%s)\n", fun, name, error,
+		       hstrerror(error));
 	}
 }
 
 int
 main(int argc, char **argv) {
 	struct hostent *he;
-	char **c;
 	int error;
+
+	(void)argc;
 
 	while (argv[1] != NULL) {
 		he = gethostbyname(argv[1]);
-		print_he(he, 0 /* XXX h_errno */, "gethostbyname", argv[1]);
+		print_he(he, h_errno, "gethostbyname", argv[1]);
 
-		he = getipnodebyname(argv[1], AF_INET, AI_DEFAULT|AI_ALL,
+		he = getipnodebyname(argv[1], AF_INET6, AI_DEFAULT|AI_ALL,
 				     &error);
 		print_he(he, error, "getipnodebyname", argv[1]);
 		if (he != NULL)
