@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.225 2001/10/09 08:03:32 marka Exp $ */
+/* $Id: resolver.c,v 1.226 2001/10/10 04:11:32 marka Exp $ */
 
 #include <config.h>
 
@@ -3108,6 +3108,12 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	node = NULL;
 
 	/*
+	 * XXXMPA remove when we follow cnames and adjust the setting
+	 * of FCTX_ATTR_WANTNCACHE in noanswer_response().
+	 */
+	INSIST(fctx->rmessage->counts[DNS_SECTION_ANSWER] == 0);
+
+	/*
 	 * Is DNSSEC validation required for this name?
 	 */
 	result = dns_keytable_issecuredomain(res->view->secroots, name,
@@ -3627,7 +3633,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	if (ns_name != NULL)
 		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
 
-	if (negative_response)
+	if (negative_response && oqname == NULL)
 		fctx->attributes |= FCTX_ATTR_WANTNCACHE;
 
 	return (ISC_R_SUCCESS);

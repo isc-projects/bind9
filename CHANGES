@@ -1,3 +1,5 @@
+1039.	[bug]		We cached an incorrect negative response if there were
+			CNAMES in the answer section.  [RT#1862]
 
 1038.	[bug]		In servers configured with a tkey-domain option,
 			TKEY queries with an owner name other than the root
