@@ -5,6 +5,9 @@
  978.	[bug]		dns_db_attachversion() had an invalid REQUIRE()
 			condition.
 
+ 957.	[bug]		sys/select.h inclusion was broken on older platforms.
+			[RT #1607]
+
  940.	[bug]		Double zone locking failure on error path. [RT #1510]
 
  937.	[bug]		A race when shutting down a zone could trigger a
