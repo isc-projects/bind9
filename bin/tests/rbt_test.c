@@ -65,7 +65,8 @@ create_name(char *s) {
 	dns_name_init(name, NULL);
 	isc_buffer_init(&target, name + 1, DNSNAMELEN, ISC_BUFFERTYPE_BINARY);
 
-	result = dns_name_fromtext(name, &source, dns_rootname, 0, &target);
+	result = dns_name_fromtext(name, &source, dns_rootname,
+				   ISC_FALSE, &target);
 
 	if (result != DNS_R_SUCCESS) {
 		printf("dns_name_fromtext(%s) failed: %s\n",
@@ -92,7 +93,7 @@ print_data(void *data) {
 
 	isc_buffer_init(&target, buffer, sizeof(buffer), ISC_BUFFERTYPE_TEXT);
 
-	dns_name_totext(data, 1, &target);
+	dns_name_totext(data, ISC_TRUE, &target);
 
 	printf("%.*s", (int)target.used, (char *)target.base);
 }

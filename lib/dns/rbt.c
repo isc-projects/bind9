@@ -1566,7 +1566,7 @@ dns_rbt_printnodename(dns_rbtnode_t *node) {
 	dns_name_fromregion(&name, &r);
 
 	isc_buffer_init(&target, buffer, 255, ISC_BUFFERTYPE_TEXT);
-	dns_name_totext(&name, 1, &target);
+	dns_name_totext(&name, ISC_TRUE, &target);
 
 	printf("%.*s", (int)target.used, (char *)target.base);
 }

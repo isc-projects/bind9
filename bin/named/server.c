@@ -287,6 +287,10 @@ main(int argc, char *argv[])
 	if (want_stats)
 		isc_mem_stats(mctx, stdout);
 
+	/* 
+	 * XXX Need to set up a condition variable here, and wait on it.
+	 * For now, just semi-busy loop.
+	 */
 	for (;;)
 		sleep(10);
 

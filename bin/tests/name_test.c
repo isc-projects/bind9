@@ -82,7 +82,7 @@ main(int argc, char *argv[]) {
 					ISC_BUFFERTYPE_BINARY);
 			dns_name_init(&oname, NULL);
 			result = dns_name_fromtext(&oname, &source,
-						   dns_rootname, 0,
+						   dns_rootname, ISC_FALSE,
 						   &target);
 			if (result != 0) {
 				fprintf(stderr,
@@ -107,7 +107,7 @@ main(int argc, char *argv[]) {
 					ISC_BUFFERTYPE_BINARY);
 			dns_name_init(&compname, compoffsets);
 			result = dns_name_fromtext(&compname, &source,
-						   origin, 0,
+						   origin, ISC_FALSE,
 						   &target);
 			if (result != 0) {
 				fprintf(stderr,
@@ -142,7 +142,7 @@ main(int argc, char *argv[]) {
 		if (result == DNS_R_SUCCESS) {
 			isc_buffer_init(&source, s, sizeof s,
 					ISC_BUFFERTYPE_TEXT);
-			result = dns_name_totext(&name, 0, &source);
+			result = dns_name_totext(&name, ISC_FALSE, &source);
 			if (result == DNS_R_SUCCESS) {
 				isc_buffer_used(&source, &r);
 				printf("%.*s\n", (int)r.length, r.base);

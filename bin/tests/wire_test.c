@@ -92,8 +92,10 @@ fromhex(char c) {
 		return (c - 'a' + 10);
 	else if (c >= 'A' && c <= 'F')
 		return (c - 'A' + 10);
+
 	printf("bad input format: %02x\n", c);
 	exit(3);
+	/* NOTREACHED */
 }
 
 static isc_uint16_t

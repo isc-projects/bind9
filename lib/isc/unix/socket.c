@@ -36,17 +36,30 @@
 
 #include "util.h"
 
-/* temp hack! XXX */
+/*
+ * Some systems define the socket length argument as an int, some as size_t,
+ * some as socklen_t.  This is here, so it can be easily changed if needed.
+ */
 #define ISC_SOCKADDR_LEN_T int
 
-#ifndef _WIN32
-#define WINAPI /* we're not windows */
-#endif
+/*
+ * As above, one system (solaris) wants the pointers passed into recv() and
+ * the other network functions to be char *.  All the others seem to use
+ * void *.  Cast everything to char * for now.
+ */
+#define ISC_SOCKDATA_CAST(x) ((char *)(x))
 
+/*
+ * If we cannot send to this task, the application is broken.
+ */
 #define ISC_TASK_SEND(a, b) do { \
 	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
 } while (0);
 
+/*
+ * Define what the possible "soft" errors can be.  These are non-fatal returns
+ * of various network related functions, like recv() and so on.
+ */
 #define SOFT_ERROR(e)	((e) == EAGAIN || (e) == EWOULDBLOCK || (e) == EINTR || (e) == 0) /* XXX 0? */
 
 #if 0
@@ -72,7 +85,7 @@ int trace_level = 0xffffffff;
 #endif
 
 /*
- * internal event used to send readable/writable events to our internal
+ * Internal event used to send readable/writable events to our internal
  * functions.
  */
 typedef struct rwintev {
@@ -185,11 +198,16 @@ select_poke(isc_socketmgr_t *mgr, int msg)
 {
 	int cc;
 
-	cc = write(mgr->pipe_fds[1], &msg, sizeof(int));
-	if (cc < 0) /* XXX need to handle EAGAIN, EINTR here */
+	do {
+		cc = write(mgr->pipe_fds[1], &msg, sizeof(int));
+	} while (cc < 0 && SOFT_ERROR(errno));
+
+	if (cc < 0)
 		FATAL_ERROR(__FILE__, __LINE__,
 			    "write() failed during watcher poke: %s",
 			    strerror(errno));
+
+	INSIST(cc == sizeof(int));
 }
 
 /*
@@ -482,12 +500,14 @@ isc_socket_create(isc_socketmgr_t *manager, isc_sockettype_t type,
 		case ENFILE:
 		case ENOBUFS:
 			return (ISC_R_NORESOURCES);
+			/* NOTREACHED */
 			break;
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() failed: %s",
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
+			/* NOTREACHED */
 			break;
 		}
 	}
@@ -787,8 +807,6 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 		fd = -1;
 
 		result = ISC_R_UNEXPECTED;
-
-		free_socket(&dev->newsocket);
 	}
 
 	DEQUEUE(sock->accept_list, iev, link);
@@ -902,7 +920,9 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 		read_count = dev->region.length - dev->n;
 		if (sock->type == isc_socket_udp) {
 			addrlen = sizeof(addr);
-			cc = recvfrom(sock->fd, dev->region.base + dev->n,
+			cc = recvfrom(sock->fd,
+				      ISC_SOCKDATA_CAST(dev->region.base
+							+ dev->n),
 				      read_count, 0,
 				      (struct sockaddr *)&addr,
 				      &addrlen);
@@ -911,7 +931,8 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 				dev->addrlength = addrlen;
 			}
 		} else {
-			cc = recv(sock->fd, dev->region.base + dev->n,
+			cc = recv(sock->fd,
+				  ISC_SOCKDATA_CAST(dev->region.base + dev->n),
 				  read_count, 0);
 			if (cc >= 0) {
 				memcpy(&dev->address, &sock->address,
@@ -1090,13 +1111,16 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 		 */
 		write_count = dev->region.length - dev->n;
 		if (sock->type == isc_socket_udp)
-			cc = sendto(sock->fd, dev->region.base + dev->n,
+			cc = sendto(sock->fd,
+				    ISC_SOCKDATA_CAST(dev->region.base
+						      + dev->n),
 				    write_count, 0,
 				    (struct sockaddr *)&dev->address,
 				    (int)dev->addrlength);
 
 		else
-			cc = send(sock->fd, dev->region.base + dev->n,
+			cc = send(sock->fd,
+				  ISC_SOCKDATA_CAST(dev->region.base + dev->n),
 				  write_count, 0);
 
 		/*
@@ -1194,7 +1218,6 @@ internal_send(isc_task_t *task, isc_event_t *ev)
  * this I/O and post the event to it.
  */
 static isc_threadresult_t
-WINAPI
 watcher(void *uap)
 {
 	isc_socketmgr_t *manager = uap;
@@ -1640,13 +1663,14 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 			ISC_SOCKADDR_LEN_T addrlen;
 			ev->addrlength = sizeof(isc_sockaddr_t);
 			addrlen = (ISC_SOCKADDR_LEN_T)ev->addrlength;
-			cc = recvfrom(sock->fd, ev->region.base,
+			cc = recvfrom(sock->fd,
+				      ISC_SOCKDATA_CAST(ev->region.base),
 				      ev->region.length, 0,
 				      (struct sockaddr *)&ev->address,
 				      &addrlen);
 			ev->addrlength = (unsigned int)addrlen;
 		} else {
-			cc = recv(sock->fd, ev->region.base,
+			cc = recv(sock->fd, ISC_SOCKDATA_CAST(ev->region.base),
 				  ev->region.length, 0);
 			ev->address = sock->address;
 			ev->addrlength = sock->addrlength;
@@ -1814,12 +1838,13 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	if (EMPTY(sock->send_list)) {
 		if (sock->type == isc_socket_udp)
-			cc = sendto(sock->fd, ev->region.base,
+			cc = sendto(sock->fd,
+				    ISC_SOCKDATA_CAST(ev->region.base),
 				    ev->region.length, 0,
 				    (struct sockaddr *)&ev->address,
 				    (int)ev->addrlength);
 		else if (sock->type == isc_socket_tcp)
-			cc = send(sock->fd, ev->region.base,
+			cc = send(sock->fd, ISC_SOCKDATA_CAST(ev->region.base),
 				  ev->region.length, 0);
 		else {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1912,7 +1937,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 	LOCK(&sock->lock);
 
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR,
-		       &on, sizeof on) < 0) {
+		       ISC_SOCKDATA_CAST(&on), sizeof on) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
 				 sock->fd);
 		/* Press on... */
@@ -1922,20 +1947,25 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 		switch (errno) {
 		case EACCES:
 			return (ISC_R_NOPERM);
+			/* NOTREACHED */
 			break;
 		case EADDRNOTAVAIL:
 			return (ISC_R_ADDRNOTAVAIL);
+			/* NOTREACHED */
 			break;
 		case EADDRINUSE:
 			return (ISC_R_ADDRINUSE);
+			/* NOTREACHED */
 			break;
 		case EINVAL:
 			return (ISC_R_BOUND);
+			/* NOTREACHED */
 			break;
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "bind: %s", strerror(errno));
 			return (ISC_R_UNEXPECTED);
+			/* NOTREACHED */
 			break;
 		}
 	}

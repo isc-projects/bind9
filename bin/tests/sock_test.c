@@ -259,7 +259,6 @@ main(int argc, char *argv[])
 	isc_time_t expires, now;
 	isc_interval_t interval;
 	isc_timer_t *ti1 = NULL;
-	isc_event_t *event;
 	unsigned int workers;
 	isc_socketmgr_t *socketmgr;
 	isc_socket_t *so1, *so2;
@@ -344,40 +343,6 @@ main(int argc, char *argv[])
 					 my_connect, "so2") == ISC_R_SUCCESS);
 
 	sleep(1);
-
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
-				   sizeof *event);
-	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "2",
-				   sizeof *event);
-	isc_task_send(t2, &event);
-	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "2",
-				   sizeof *event);
-	isc_task_send(t2, &event);
 
 	while (sockets_active > 0) {
 		printf("Sockets active: %d\n", sockets_active);
