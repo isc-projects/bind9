@@ -77,7 +77,7 @@ struct dst_func {
 	dst_result_t (*from_dns)(dst_key_t *key, isc_buffer_t *data,
 				 isc_mem_t *mctx);
 	dst_result_t (*to_file)(const dst_key_t *key);
-	dst_result_t (*from_file)(dst_key_t *key, const int id,
+	dst_result_t (*from_file)(dst_key_t *key, const isc_uint16_t id,
 				  isc_mem_t *mctx);
 };
 

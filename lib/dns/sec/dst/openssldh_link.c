@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.2 1999/10/05 15:06:37 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.3 1999/10/08 13:08:57 bwelling Exp $
  */
 
 #include <config.h>
@@ -65,7 +65,8 @@ static dst_result_t	dst_openssldh_from_dns(dst_key_t *key,
 					       isc_buffer_t *data,
 					       isc_mem_t *mctx);
 static dst_result_t	dst_openssldh_to_file(const dst_key_t *key);
-static dst_result_t	dst_openssldh_from_file(dst_key_t *key, const int id,
+static dst_result_t	dst_openssldh_from_file(dst_key_t *key,
+						const isc_uint16_t id,
 						isc_mem_t *mctx);
 
 static void		uint16_toregion(isc_uint16_t val, isc_region_t *region);
@@ -415,7 +416,7 @@ dst_openssldh_to_file(const dst_key_t *key) {
  */
 
 static dst_result_t 
-dst_openssldh_from_file(dst_key_t *key, const int id, isc_mem_t *mctx) {
+dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	dst_private_t priv;
 	dst_result_t ret;
 	isc_buffer_t dns;

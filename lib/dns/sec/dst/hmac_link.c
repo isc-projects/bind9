@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.8 1999/09/27 16:55:44 bwelling Exp $
+ * $Id: hmac_link.c,v 1.9 1999/10/08 13:08:56 bwelling Exp $
  */
 
 #include <config.h>
@@ -72,7 +72,8 @@ static dst_result_t	dst_hmacmd5_to_dns(const dst_key_t *in_key,
 static dst_result_t	dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data,
 					     isc_mem_t *mctx);
 static dst_result_t	dst_hmacmd5_to_file(const dst_key_t *key);
-static dst_result_t	dst_hmacmd5_from_file(dst_key_t *key, const int id,
+static dst_result_t	dst_hmacmd5_from_file(dst_key_t *key,
+					      const isc_uint16_t id,
 					      isc_mem_t *mctx);
 
 /*
@@ -389,7 +390,7 @@ dst_hmacmd5_to_file(const dst_key_t *key) {
  */
 
 static dst_result_t 
-dst_hmacmd5_from_file(dst_key_t *key, const int id, isc_mem_t *mctx) {
+dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	dst_private_t priv;
 	dst_result_t ret;
 	isc_buffer_t b;
