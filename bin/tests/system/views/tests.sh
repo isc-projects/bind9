@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.18 2000/07/12 16:43:03 tale Exp $
+# $Id: tests.sh,v 1.19 2000/07/15 01:11:37 gson Exp $
 
 #
 # Perform tests
@@ -36,7 +36,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth \
 	a.example. @10.53.0.3 any -p 5300 > dig.out.ns3.1 || status=1
 grep ";" dig.out.ns3.1	# XXXDCL why is this here?
 
-echo "I:copying in new configuratons for ns2 and ns3"
+echo "I:copying in new configurations for ns2 and ns3"
 rm -f ns2/named.conf ns3/named.conf ns2/example.db
 cp ns2/named2.conf ns2/named.conf
 cp ns3/named2.conf ns3/named.conf
