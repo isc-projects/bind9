@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.207 2000/08/01 01:11:59 tale Exp $ */
+/* $Id: server.c,v 1.208 2000/08/02 18:13:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -718,13 +718,40 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 }
 
 /*
- * Create the special view that handles queries for
+ * Create the special view that handles queries under "bind. CH".
+ */
+static isc_result_t
+create_bind_view(dns_view_t **viewp)
+{
+	isc_result_t result;
+	dns_view_t *view = NULL;
+
+	REQUIRE(viewp != NULL && *viewp == NULL);
+
+	CHECK(dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_bind", &view));
+
+	/* Transfer ownership. */
+	*viewp = view;
+	view = NULL;
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (view != NULL)
+		dns_view_detach(&view);
+
+	return (result);
+}
+
+
+/*
+ * Create the zone that handles queries for
  * "version.bind. CH".   The version string returned is that
  * configured in 'cctx', or a compiled-in default if
  * there is no "version" configuration option.
  */
 static isc_result_t
-create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
+create_version_zone(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t *view)
 {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -732,7 +759,6 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 	dns_dbversion_t *dbver = NULL;
 	dns_difftuple_t *tuple = NULL;
 	dns_diff_t diff;
-	dns_view_t *view = NULL;
 	char *versiontext;
 	unsigned char buf[256];
 	isc_region_t r;
@@ -740,11 +766,6 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 	dns_rdata_t rdata;
 	static unsigned char origindata[] = "\007version\004bind";
 	dns_name_t origin;
-
-	REQUIRE(viewp != NULL && *viewp == NULL);
-
-	CHECK(dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_version",
-			      &view));
 
 	dns_diff_init(ns_g_mctx, &diff);
 
@@ -796,17 +817,94 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 
 	CHECK(dns_view_addzone(view, zone));
 
-	dns_view_freeze(view);
+	result = ISC_R_SUCCESS;
 
-	/* Transfer ownership. */
-	*viewp = view;
-	view = NULL;
+ cleanup:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (dbver != NULL)
+		dns_db_closeversion(db, &dbver, ISC_FALSE);
+	if (db != NULL)
+		dns_db_detach(&db);
+	dns_diff_clear(&diff);
+
+	return (result);
+}
+
+/*
+ * Create the special view that handles queries for
+ * "authors.bind. CH".   The strings returned list
+ * the authors of bind.
+ */
+static isc_result_t
+create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	dns_zone_t *zone = NULL;
+	dns_dbversion_t *dbver = NULL;
+	dns_difftuple_t *tuple;
+	dns_diff_t diff;
+	isc_region_t r;
+	isc_constregion_t cr;
+	dns_rdata_t rdata;
+	static unsigned char origindata[] = "\007authors\004bind";
+	dns_name_t origin;
+	int i;
+	static const unsigned char *authors[] =
+       		{
+			"\014Mark Andrews",
+			"\015James Brister",
+			"\015Michael Graff",
+			"\022Andreas Gustafsson",
+			"\012Bob Halley",
+			"\016David Lawrence",
+			"\016Michael Sawyer",
+			"\020Brian Wellington",
+			NULL,
+		};
+
+	dns_diff_init(ns_g_mctx, &diff);
+
+	dns_name_init(&origin, NULL);
+	r.base = origindata;
+	r.length = sizeof(origindata);
+	dns_name_fromregion(&origin, &r);
+
+	CHECK(dns_zone_create(&zone, ns_g_mctx));
+	CHECK(dns_zone_setorigin(zone, &origin));
+	dns_zone_settype(zone, dns_zone_master);
+	dns_zone_setclass(zone, dns_rdataclass_ch);
+	dns_zone_setview(zone, view);
+
+	CHECK(dns_zonemgr_managezone(zmgr, zone));
+
+	CHECK(dns_db_create(ns_g_mctx, "rbt", &origin, dns_dbtype_zone,
+			    dns_rdataclass_ch, 0, NULL, &db));
+
+	CHECK(dns_db_newversion(db, &dbver));
+
+	for (i = 0; authors[i] != NULL; i++) {
+		cr.base = authors[i];
+		cr.length = strlen(authors[i]);
+		dns_rdata_fromregion(&rdata, dns_rdataclass_ch,
+				     dns_rdatatype_txt, (isc_region_t *)&cr);
+		tuple = NULL;
+		CHECK(dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
+					   0, &rdata, &tuple));
+		dns_diff_append(&diff, &tuple);
+	}
+
+	CHECK(dns_diff_apply(&diff, db, dbver));
+
+	dns_db_closeversion(db, &dbver, ISC_TRUE);
+
+	CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
+
+	CHECK(dns_view_addzone(view, zone));
 
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (view != NULL)
-		dns_view_detach(&view);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	if (dbver != NULL)
@@ -1331,11 +1429,13 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
-	 * Create (or recreate) the version view.
+	 * Create (or recreate) the internal _bind view.
 	 */
-	view = NULL;
-	CHECK(create_version_view(cctx, server->zonemgr, &view));
+	CHECK(create_bind_view(&view));
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
+	CHECK(create_version_zone(cctx, server->zonemgr, view));
+	CHECK(create_authors_zone(server->zonemgr, view));
+	dns_view_freeze(view);
 	view = NULL;
 
 	/*

@@ -1,3 +1,6 @@
+ 368.	[func]		Restructure the internal ".bind" view so that more
+			zones can be added to it.
+
  367.   [func]          Allow proper selection of server on nslookup command
 			line.
 
