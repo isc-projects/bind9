@@ -316,3 +316,15 @@ Q: Why is named listening on UDP port other than 53?
 A: Named uses a system selected port to make queries of other nameservers.
 This behaviour can be overridden by using query-source to lock down the
 port and/or address.
+
+
+Q: I get error messages like "multiple RRs of singleton type" and
+"CNAME and other data" when transfering a zone.  What does this mean?
+
+A: These indicate a malformed master zone.  You can identify the
+exact records involved by transfering the zone using dig then
+running named-checkzone on it.
+
+	e.g.
+		dig axfr example.com @master-server > tmp
+		named-checkzone example.com tmp
