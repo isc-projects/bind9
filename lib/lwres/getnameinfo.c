@@ -190,6 +190,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		if (lwres_net_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
 		    == NULL)
 			ERR(ENI_SYSTEM);
+#if defined(LWRES_HAVE_SIN6_SCOPE_ID)
 		if (afd->a_af == AF_INET6 &&
 		    ((const struct sockaddr_in6 *)sa)->sin6_scope_id) {
 			char *p = numaddr + strlen(numaddr);
@@ -212,6 +213,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 				    "%%%s", stringscope);
 			}
 		}
+#endif
 		if (strlen(numaddr) > hostlen)
 			ERR(ENI_MEMORY);
 		strcpy(host, numaddr);
