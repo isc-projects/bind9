@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.17 2000/08/14 04:43:16 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.18 2000/08/17 01:22:10 gson Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
+#include <isc/print.h>
 
 #include <dns/log.h>
 #include <dns/name.h>
