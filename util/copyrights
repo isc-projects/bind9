@@ -172,6 +172,7 @@
 ./bin/tests/entropy2_test.c			C	2000
 ./bin/tests/entropy_test.c			C	2000
 ./bin/tests/fsaccess_test.c			C	2000
+./bin/tests/genrandom.c				C	2000
 ./bin/tests/generic-b9t.cron			X	1999,2000
 ./bin/tests/gxba_test.c				C	2000
 ./bin/tests/gxbn_test.c				C	2000
