@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.7 2000/09/07 21:54:35 explorer Exp $ */
+/* $Id: lwdclient.c,v 1.8 2000/10/04 23:18:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -72,7 +72,7 @@ ns_lwdclientmgr_create(ns_lwresd_t *lwresd, unsigned int nclients,
 	ISC_LIST_INIT(cm->running);
 
 	if (lwres_context_create(&cm->lwctx, cm->mctx,
-				 ns_lwresd_memalloc, ns_lwresd_memfree,
+				 ns__lwresd_memalloc, ns__lwresd_memfree,
 				 LWRES_CONTEXT_SERVERMODE)
 	    != ISC_R_SUCCESS)
 		goto errout;
@@ -165,7 +165,7 @@ lwdclientmgr_destroy(ns_lwdclientmgr_t *cm) {
 	isc_mem_put(lwresd->mctx, cm, sizeof (*cm));
 	UNLOCK(&lwresd->lock);
 
-	lwresd_destroy(lwresd);
+	ns__lwresd_destroy(lwresd);
 }
 
 static void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.44 2000/08/01 01:12:04 tale Exp $ */
+/* $Id: globals.h,v 1.45 2000/10/04 23:19:00 bwelling Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -53,10 +53,11 @@ EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN omapi_object_t *		ns_g_omapimgr		INIT(NULL);
 EXTERN const char *		ns_g_version		INIT(VERSION);
 EXTERN in_port_t		ns_g_port		INIT(0);
-EXTERN in_port_t		lwresd_g_queryport	INIT(0);
+EXTERN in_port_t		lwresd_g_listenport	INIT(0);
 
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
-EXTERN ns_lwresd_t *		ns_g_lwresd		INIT(NULL);
+
+EXTERN isc_boolean_t		ns_g_lwresdonly		INIT(ISC_FALSE);
 
 /*
  * Logging.
@@ -71,7 +72,10 @@ EXTERN unsigned int		ns_g_debuglevel		INIT(0);
  */
 EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 							     "/named.conf");
-EXTERN const char *		lwresd_g_conffile      INIT("/etc/resolv.conf");
+EXTERN const char *		lwresd_g_conffile	INIT(NS_SYSCONFDIR
+							     "/lwresd.conf");
+EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
+							     "/resolv.conf");
 
 /*
  * Misc.

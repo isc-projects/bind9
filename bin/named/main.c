@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.87 2000/09/28 21:21:31 bwelling Exp $ */
+/* $Id: main.c,v 1.88 2000/10/04 23:18:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,6 @@
 #include <named/main.h>
 
 static isc_boolean_t	want_stats = ISC_FALSE;
-static isc_boolean_t	lwresd_only = ISC_FALSE;
 static const char *	program_name = "named";
 static char    		saved_command_line[512];
 
@@ -175,12 +174,17 @@ lwresd_usage(void) {
 	fprintf(stderr,
 		"usage: lwresd [-C conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
-		"              [-p listen-port] [-P query-port] [-s] "
-		"[-t chrootdir] [-u username] [-i pidfile]\n");
+		"              [-p port] [-P listen-port] [-s] "
+		"[-t chrootdir]\n"
+		"              [-u username] [-i pidfile]\n");
 }
 
 static void
 usage(void) {
+	if (ns_g_lwresdonly) {
+		lwresd_usage();
+		return;
+	}
 	fprintf(stderr,
 		"usage: named [-c conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
@@ -246,85 +250,6 @@ parse_int(char *arg, const char *desc) {
 }
 
 static void
-parse_lwresd_command_line(int argc, char *argv[]) {
-	int ch;
-	int port;
-
-	isc_commandline_errprint = ISC_FALSE;
-	while ((ch = isc_commandline_parse(argc, argv,
-					   "C:d:fgi:n:p:P:st:u:v")) !=
-	       -1) {
-		switch (ch) {
-		case 'C':
-			lwresd_g_conffile = isc_commandline_argument;
-			break;
-		case 'd':
-			ns_g_debuglevel = parse_int(isc_commandline_argument,
-						    "debug level");
-			break;
-		case 'f':
-			ns_g_foreground = ISC_TRUE;
-			break;
-		case 'g':
-			ns_g_foreground = ISC_TRUE;
-			ns_g_logstderr = ISC_TRUE;
-			break;
-		case 'i':
-			lwresd_g_defaultpidfile = isc_commandline_argument;
-			break;
-		case 'n':
-			ns_g_cpus = parse_int(isc_commandline_argument,
-					      "number of cpus");
-			if (ns_g_cpus == 0)
-				ns_g_cpus = 1;
-			break;
-		case 'p':
-			port = parse_int(isc_commandline_argument, "port");
-			if (port < 1 || port > 65535)
-				ns_main_earlyfatal("port '%s' out of range",
-						   isc_commandline_argument);
-			ns_g_port = port;
-			break;
-		case 'P':
-			port = parse_int(isc_commandline_argument, "port");
-			if (port < 1 || port > 65535)
-				ns_main_earlyfatal("port '%s' out of range",
-						   isc_commandline_argument);
-			lwresd_g_queryport = port;
-			break;
-		case 's':
-			/* XXXRTH temporary syntax */
-			want_stats = ISC_TRUE;
-			break;
-		case 't':
-			/* XXXJAB should we make a copy? */
-			ns_g_chrootdir = isc_commandline_argument;
-			break;
-		case 'u':
-			ns_g_username = isc_commandline_argument;
-			break;
-		case 'v':
-			printf("BIND %s\n", ns_g_version);
-			exit(0);
-		case '?':
-			lwresd_usage();
-			ns_main_earlyfatal("unknown option '-%c'",
-					   isc_commandline_option);
-		default:
-			ns_main_earlyfatal("parsing options returned %d", ch);
-		}
-	}
-
-	argc -= isc_commandline_index;
-	argv += isc_commandline_index;
-
-	if (argc > 0) {
-		lwresd_usage();
-		ns_main_earlyfatal("extra command line arguments");
-	}
-}
-
-static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
@@ -340,32 +265,21 @@ parse_command_line(int argc, char *argv[]) {
 		s = argv[0];
 	else
 		s++;
-	if (strcmp(s, "lwresd") == 0) {
-		lwresd_only = ISC_TRUE;
-		parse_lwresd_command_line(argc, argv);
-		return;
-	}
-
-	/*
-	 * An alternative method of invoking lwresd.  This is needed
-	 * in libtoolized build trees, as the libtool-generated
-	 * "named" script does not preserve argv[0].
-	 */
-	if (argc >= 2 && strcmp(argv[1], "-l") == 0) {
-		argc--;
-		argv++;
-		lwresd_only = ISC_TRUE;
-		parse_lwresd_command_line(argc, argv);
-		return;
-	}
+	if (strcmp(s, "lwresd") == 0)
+		ns_g_lwresdonly = ISC_TRUE;
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:d:fgn:N:p:st:u:vx:")) !=
+					   "c:C:d:fgi:ln:N:p:P:st:u:vx:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
 			ns_g_conffile = isc_commandline_argument;
+			lwresd_g_conffile = isc_commandline_argument;
+			break;
+		/* XXXBEW Should -C be removed? */
+		case 'C':
+			lwresd_g_resolvconffile = isc_commandline_argument;
 			break;
 		case 'd':
 			ns_g_debuglevel = parse_int(isc_commandline_argument,
@@ -377,6 +291,13 @@ parse_command_line(int argc, char *argv[]) {
 		case 'g':
 			ns_g_foreground = ISC_TRUE;
 			ns_g_logstderr = ISC_TRUE;
+			break;
+		/* XXXBEW -i should be removed */
+		case 'i':
+			lwresd_g_defaultpidfile = isc_commandline_argument;
+			break;
+		case 'l':
+			ns_g_lwresdonly = ISC_TRUE;
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
@@ -391,6 +312,14 @@ parse_command_line(int argc, char *argv[]) {
 				ns_main_earlyfatal("port '%s' out of range",
 						   isc_commandline_argument);
 			ns_g_port = port;
+			break;
+		/* XXXBEW Should -P be removed? */
+		case 'P':
+			port = parse_int(isc_commandline_argument, "port");
+			if (port < 1 || port > 65535)
+				ns_main_earlyfatal("port '%s' out of range",
+						   isc_commandline_argument);
+			lwresd_g_listenport = port;
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
@@ -478,12 +407,14 @@ create_managers(void) {
 
 static void
 destroy_managers(void) {
-	if (!lwresd_only)
+	if (!ns_g_lwresdonly)
 		/*
 		 * The omapi listeners need to be stopped here so that
 		 * isc_taskmgr_destroy() won't block on the omapi task.
 		 */
 		ns_omapi_shutdown(ISC_TRUE);
+
+	ns_lwresd_shutdown();
 
 	isc_entropy_detach(&ns_g_entropy);
 	/*
@@ -541,12 +472,9 @@ setup(void) {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
-	if (lwresd_only)
-		ns_lwresd_create(ns_g_mctx, NULL, &ns_g_lwresd);
-	else
-		ns_server_create(ns_g_mctx, &ns_g_server);
+	ns_server_create(ns_g_mctx, &ns_g_server);
 
-	if (!lwresd_only) {
+	if (!ns_g_lwresdonly) {
 		result = ns_omapi_init();
 		if (result != ISC_R_SUCCESS)
 			ns_main_earlyfatal("ns_omapi_init() failed: %s",
@@ -556,13 +484,9 @@ setup(void) {
 
 static void
 cleanup(void) {
-	if (lwresd_only)
-		ns_lwresd_shutdown(&ns_g_lwresd);
-
 	destroy_managers();
 
-	if (!lwresd_only)
-		ns_server_destroy(&ns_g_server);
+	ns_server_destroy(&ns_g_server);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");

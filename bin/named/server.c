@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.223 2000/10/03 23:56:26 marka Exp $ */
+/* $Id: server.c,v 1.224 2000/10/04 23:18:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -57,6 +57,7 @@
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/logconf.h>
+#include <named/lwresd.h>
 #include <named/omapi.h>
 #include <named/os.h>
 #include <named/server.h>
@@ -373,7 +374,7 @@ get_view_querysource_dispatch(dns_c_ctx_t *cctx, dns_c_view_t *cview,
  * where values are missing in cview.
  *
  * When configuring the default view, cview will be NULL and the
- * glboal defaults in cctx used exclusively.
+ * global defaults in cctx used exclusively.
  */
 static isc_result_t
 configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
@@ -904,9 +905,16 @@ configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	in_port_t port;
 	unsigned int i;
 
-	result = dns_c_ctx_getport(cctx, &port);
-	if (result != ISC_R_SUCCESS)
-		port = 53;
+	/*
+	 * Determine which port to send forwarded requests to.
+	 */
+	if (ns_g_port != 0) {
+		port = ns_g_port;
+	} else {
+		result = dns_c_ctx_getport(cctx, &port);
+		if (result != ISC_R_SUCCESS)
+			port = 53;
+	}
 
 	ISC_LIST_INIT(addresses);
 
@@ -1283,8 +1291,10 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * configure_zone() through 'callbacks'.
 	 */
 	cctx = NULL;
-	CHECK(dns_c_parse_namedconf(filename, ns_g_mctx, &cctx,
-				    &callbacks));
+	result = dns_c_parse_namedconf(filename, ns_g_mctx, &cctx, &callbacks);
+	if (result == ISC_R_FILENOTFOUND && ns_g_lwresdonly)
+		result = ns_lwresd_parseresolvconf(ns_g_mctx, &cctx);
+	CHECK(result);
 
 	/*
 	 * Configure various server options.
@@ -1337,15 +1347,18 @@ load_configuration(const char *filename, ns_server_t *server,
 							  &aclconfctx,
 							  ns_g_mctx,
 							  &listenon);
-		} else {
+		} else if (!ns_g_lwresdonly) {
 			/*
 			 * Not specified, use default.
 			 */
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
 						    ISC_TRUE, &listenon));
 		}
-		ns_interfacemgr_setlistenon4(server->interfacemgr, listenon);
-		ns_listenlist_detach(&listenon);
+		if (listenon != NULL) {
+			ns_interfacemgr_setlistenon4(server->interfacemgr,
+						     listenon);
+			ns_listenlist_detach(&listenon);
+		}
 	}
 	/*
 	 * Ditto for IPv6.
@@ -1361,15 +1374,18 @@ load_configuration(const char *filename, ns_server_t *server,
 							  &aclconfctx,
 							  ns_g_mctx,
 							  &listenon);
-		} else {
+		} else if (!ns_g_lwresdonly) {
 			/*
 			 * Not specified, use default.
 			 */
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
 						    ISC_FALSE, &listenon));
 		}
-		ns_interfacemgr_setlistenon6(server->interfacemgr, listenon);
-		ns_listenlist_detach(&listenon);
+		if (listenon != NULL) {
+			ns_interfacemgr_setlistenon6(server->interfacemgr,
+						     listenon);
+			ns_listenlist_detach(&listenon);
+		}
 	}
 
 	/*
@@ -1491,6 +1507,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	       "binding control channel(s)");
 
 	/*
+	 * Bind the lwresd port(s).
+	 */
+	CHECKM(ns_lwresd_configure(ns_g_mctx, cctx),
+	       "binding lightweight resolver ports");
+
+	/*
 	 * Relinquish root privileges.
 	 */
 	if (first_time)
@@ -1540,6 +1562,8 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) != ISC_R_NOTFOUND)
 		ns_os_writepidfile(pidfilename);
+	else if (ns_g_lwresdonly)
+		ns_os_writepidfile(lwresd_g_defaultpidfile);
 	else
 		ns_os_writepidfile(ns_g_defaultpidfile);
 
@@ -1629,8 +1653,13 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				    server, &server->interface_timer),
 		   "creating interface timer");
 
-	CHECKFATAL(load_configuration(ns_g_conffile, server, ISC_TRUE),
-		   "loading configuration");
+	if (ns_g_lwresdonly)
+		CHECKFATAL(load_configuration(lwresd_g_conffile, server,
+					      ISC_TRUE),
+			   "loading configuration");
+	else
+		CHECKFATAL(load_configuration(ns_g_conffile, server, ISC_TRUE),
+			   "loading configuration");
 
 	CHECKFATAL(load_zones(server, ISC_FALSE),
 		   "loading zones");
@@ -1802,7 +1831,11 @@ ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
 	UNUSED(task);
 
-	result = load_configuration(ns_g_conffile, server, ISC_FALSE);
+	if (ns_g_lwresdonly)
+		result = load_configuration(lwresd_g_conffile, server,
+					    ISC_FALSE);
+	else
+		result = load_configuration(ns_g_conffile, server, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,

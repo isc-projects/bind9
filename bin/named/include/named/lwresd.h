@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.6 2000/09/07 21:54:40 explorer Exp $ */
+/* $Id: lwresd.h,v 1.7 2000/10/04 23:19:01 bwelling Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1
@@ -23,6 +23,7 @@
 #include <isc/types.h>
 #include <isc/sockaddr.h>
 
+#include <dns/confctx.h>
 #include <dns/types.h>
 
 struct ns_lwresd {
@@ -33,29 +34,37 @@ struct ns_lwresd {
 	isc_socket_t *sock;
 	dns_view_t *view;
 	isc_mem_t *mctx;
-	dns_dispatchmgr_t *dispmgr;
 	isc_boolean_t shutting_down;
 };
 
-void
-ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp);
+/*
+ * Configure lwresd.
+ */
+isc_result_t
+ns_lwresd_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx);
+
+/*
+ * Create a configuration context based on resolv.conf and default parameters.
+ */
+isc_result_t
+ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp);
 
 /*
  * Trigger shutdown.
  */
 void
-ns_lwresd_shutdown(ns_lwresd_t **lwresdp);
+ns_lwresd_shutdown(void);
 
 /*
  * INTERNAL FUNCTIONS.
  */
 void
-lwresd_destroy(ns_lwresd_t *lwresdp);
+ns__lwresd_destroy(ns_lwresd_t *lwresdp);
 
 void *
-ns_lwresd_memalloc(void *arg, size_t size);
+ns__lwresd_memalloc(void *arg, size_t size);
 
 void
-ns_lwresd_memfree(void *arg, void *mem, size_t size);
+ns__lwresd_memfree(void *arg, void *mem, size_t size);
 
 #endif /* NAMED_LWRESD_H */
