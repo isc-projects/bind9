@@ -87,11 +87,6 @@ struct sockaddr_in6 {
 #define SIN6_LEN 1
 #endif
 
-struct in6_pktinfo {
-	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
-	unsigned int    ipi6_ifindex; /* send/recv interface index */
-};
-
 /*
  * Unspecified
  */

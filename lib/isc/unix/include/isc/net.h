@@ -30,6 +30,7 @@
  *
  *		struct in_addr
  *		struct in6_addr
+ *		struct in6_pktinfo
  *		struct sockaddr
  *		struct sockaddr_in
  *		struct sockaddr_in6
@@ -88,6 +89,13 @@
 
 #ifndef ISC_PLATFORM_HAVEIPV6
 #include <isc/ipv6.h>
+#endif
+
+#ifndef ISC_PLATFORM_HAVEIN6PKTINFO
+struct in6_pktinfo {
+	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
+	unsigned int    ipi6_ifindex; /* send/recv interface index */
+};
 #endif
 
 /*

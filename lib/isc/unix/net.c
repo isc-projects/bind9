@@ -68,7 +68,11 @@ static void
 initialize_action(void) {
 	ipv4_result = try_proto(PF_INET);
 #ifdef ISC_PLATFORM_HAVEIPV6
+#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	ipv6_result = try_proto(PF_INET6);
+#else
+	ipv6_result = 0;
+#endif
 #endif
 }
 
