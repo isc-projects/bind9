@@ -1,4 +1,6 @@
 
+ 660.	[port]		Detect multiple CPUs on HP-UX and IRIX.
+
  659.	[performance]	Rewrite the name compression code to be much faster.
 
  658.	[cleanup]	Remove all vestiges of 16 bit global compression.
