@@ -29,6 +29,9 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+#include <dns/compress.h>
+
+dns_decompress_t dctx;
 
 static void
 print_wirename(isc_region_t *name) {
@@ -83,7 +86,7 @@ getname(isc_buffer_t *source) {
 	isc_buffer_init(&text, c, 255, ISC_BUFFERTYPE_TEXT);
 
 	current = source->current;
-	result = dns_name_fromwire(&name, source, NULL, ISC_FALSE, &target);
+	result = dns_name_fromwire(&name, source, &dctx, ISC_FALSE, &target);
 				   
 	if (result == DNS_R_SUCCESS) {
 		dns_name_toregion(&name, &r);
@@ -155,7 +158,10 @@ main(int argc, char *argv[]) {
 
 	if (need_close)
 		fclose(f);
-	
+
+	dctx.allowed = DNS_COMPRESS_GLOBAL14 | DNS_COMPRESS_GLOBAL16;
+	dns_name_init(&dctx.owner_name);
+
 	isc_buffer_init(&source, b, 255, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, bp - b);
 
