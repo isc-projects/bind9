@@ -25,6 +25,10 @@
 			in named.conf prior to reference.  They can be
 			defined after being referenced.
 
+1815.	[bug]		nsupdate triggered a REQUIRE if the server was set
+			without also setting the zone and it encountered
+			a CNAME and was using TSIG.  [RT #13086]
+
 1810.	[bug]		configure, lib/bind/configure make different default
 			decisions about whether to do a threaded build.
 			[RT #13212]
