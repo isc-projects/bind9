@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.7 2004/07/29 00:17:02 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.8 2004/08/27 12:25:13 marka Exp $ */
 
 #include <config.h>
 
@@ -2349,8 +2349,10 @@ dump_done(void *arg, isc_result_t result) {
 
 		tresult = dns_db_getsoaserial(db, version, &serial);
 		if (tresult == ISC_R_SUCCESS) {
-			tresult = dns_journal_compact(zone->mctx, zone->journal,
-						     serial, zone->journalsize);
+			tresult = dns_journal_compact(zone->mctx,
+						      zone->journal,
+						      serial,
+						      zone->journalsize);
 			switch (tresult) {
 			case ISC_R_SUCCESS:
 			case ISC_R_NOSPACE:
@@ -4260,14 +4262,17 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->readio != NULL)
 		zonemgr_cancelio(zone->readio);
 
-	if (zone->writeio != NULL)
-		zonemgr_cancelio(zone->writeio);
-
 	if (zone->lctx != NULL)
 		dns_loadctx_cancel(zone->lctx);
 
-	if (zone->dctx != NULL)
-		dns_dumpctx_cancel(zone->dctx);
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FLUSH) ||
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
+		if (zone->writeio != NULL)
+			zonemgr_cancelio(zone->writeio);
+
+		if (zone->dctx != NULL) 
+			dns_dumpctx_cancel(zone->dctx);
+	}
 
 	notify_cancel(zone);
 
