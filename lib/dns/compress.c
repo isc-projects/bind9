@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.10 1999/04/13 05:50:12 marka Exp $ */
+ /* $Id: compress.c,v 1.11 1999/04/14 06:03:15 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/buffer.h>
 
 #include <dns/compress.h>
+#include <dns/fixedname.h>
 
 #define CCTX_MAGIC	0x43435458U	/* CCTX */
 #define VALID_CCTX(x)	((x) != NULL && (x)->magic == CCTX_MAGIC)
@@ -439,7 +440,6 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
  *	If match is found return ISC_TRUE. prefix, suffix and offset
  *	are updated.
  *	If no match is found return ISC_FALSE.
- *	XXX should used dns_rbt_findlongestmatch() when written.
  */
 
 isc_boolean_t
@@ -447,160 +447,93 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	      dns_name_t *suffix, isc_uint16_t *offset,
 	      isc_buffer_t *workspace)
 {
-	unsigned int count;
-	unsigned int labels;
-	unsigned int start;
-	unsigned int bits;
-	isc_uint16_t *data;
-	dns_name_t tmpname;
-	dns_name_t tmpprefix;
-	dns_name_t tmpsuffix;
-#ifdef notyet
 	dns_fixedname_t found;
 	dns_name_t *foundname;
-#endif
-	isc_region_t region;
-	unsigned char buf[255];
-	dns_label_t label;
-	unsigned int i, j;
+	dns_name_t tmpprefix;
+	dns_name_t tmpsuffix;
 	dns_result_t result;
+	isc_uint16_t *data = NULL;
+	dns_label_t foundlabel;
+	dns_label_t namelabel;
+	unsigned int foundlabels;
+	unsigned int namelabels;
+	unsigned int foundbits;
+	unsigned int namebits;
+	unsigned int bits;
+	unsigned int prefixlen;
+	unsigned int j;
+	unsigned char buf[2 + 256/8];	/* size of biggest bit label */
 	dns_bitlabel_t bit;
+	isc_region_t region;
 
-
-#ifdef notyet
 	dns_fixedname_init(&found);
 	foundname = dns_fixedname_name(&found);
 	result = dns_rbt_findname(root, name, foundname, (void *)&data);
 	if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH)
-		return (ISC_FALSE):
-	if (data == NULL)		/* root label */
-		return (ISC_FALSE):
-	dns_name_getlabel(dns_fixedname_name(&found), 0, &label);
-	if (dns_label_type(&label) != dns_labeltype_bitstring ||
-	    result == DNS_R_SUCCESS) {
-  full_bit_label:
-		count = dns_name_countlabels(name);
-		if (result == DNS_R_SUCCESS) {
-			prefix->length = 0;
-			prefix->labels = 0;
-			dns_name_getlabelsequence(name, 0, count, suffix);
-		else {
-			labels = dns_name_countlabels(foundname);
-			count -= labels;
-			dns_name_getlabelsequence(name, 0, count, prefix);
-			dns_name_getlabelsequence(name, count, labels, suffix);
-		}
-		*offset = *data;
-		return (ISC_TRUE);
-	}
-
-	labels = dns_name_countlabels(foundname);
-	count = dns_name_countlabels(name);
-	count -= labels;
-	dns_name_getlabelsequence(name, count, labels, suffix)
-	bits = dns_label_countbits(&label);
-#endif
-
-	labels = count = dns_name_countlabels(name);
-	start = 0;
-	bits = 0;
-
-	dns_name_init(&tmpname, NULL);
-	dns_name_init(&tmpsuffix, NULL);
-	dns_name_init(&tmpprefix, NULL);
-	/* Don't look for the root label (count == 1). */
-	while (count > 1) {
-		dns_name_getlabelsequence(name, start, count, &tmpname);
-		data = NULL;
-		result = dns_rbt_findname(root, &tmpname, NULL, (void *)&data);
-		/* XXX DCL is this right, Mark?
-		   note that for data to be non-null, then result can
-		   be DNS_R_SUCCESS or DNS_R_PARTIALMATCH
-		   XXX DCL third argument to findname is a name with a fixed
-		           buffer (eg, a dns_fixedname_name()).
-		   */
-		if (result == DNS_R_SUCCESS && data != NULL)
-			break;
-		count--;
-		start++;
-		if (workspace == NULL)
-			continue;
-		dns_name_getlabel(&tmpname, 0, &label);
-		if (dns_label_type(&label) != dns_labeltype_bitstring)
-			continue;
-		bits = dns_label_countbits(&label);
-		if (bits == 1) {
-			bits = 0;
-			continue;
-		}
-		INSIST(label.length < sizeof buf);
-		memcpy(buf, label.base, label.length);
-		region.base = buf;
-		dns_name_getlabelsequence(name, start, count, &tmpsuffix);
-		do {
-			/* clear lsb */
-			buf[2 + bits / 8] &= ~(1 << (7 - (bits % 8)));
-			bits--;
-			region.length = 2 + (bits + 7) / 8;
-			buf[1] = bits;
-			dns_name_fromregion(&tmpprefix, &region);
-			isc_buffer_clear(workspace);
-			result = dns_name_concatenate(&tmpprefix, &tmpsuffix,
-						&tmpname, workspace);
-			if (result != DNS_R_SUCCESS)
-				continue;
-			data = NULL;
-			result = dns_rbt_findname(root, &tmpname, NULL,
-						  (void *)&data);
-			/* XXX DCL is this right, Mark? 
-			   XXX DCL modify third arg for foundname?
-			   */
-			if (result == DNS_R_SUCCESS && data != NULL)
-				break;
-			if (bits == 1)
-				bits = 0;
-		} while (bits > 1);
-		if (data != NULL)
-			break;
-	}
-	if (data == NULL)
 		return (ISC_FALSE);
-	if (bits == 0) {
-		if (start != 0)
-			dns_name_getlabelsequence(name, 0, start, prefix);
-		else {
+	if (data == NULL)		/* root label */
+		return (ISC_FALSE);
+	/*
+	 * Do we have to do bit string processing?
+	 */
+	dns_name_getlabel(dns_fixedname_name(&found), 0, &foundlabel);
+	foundlabels = dns_name_countlabels(foundname);
+	INSIST(foundlabels > 1);	/* root labels are not added to tree */
+	namelabels = dns_name_countlabels(name);
+	if (dns_label_type(&foundlabel) == dns_labeltype_bitstring) {
+		dns_name_getlabel(name, namelabels - foundlabels, &namelabel);
+		INSIST(dns_label_type(&namelabel) == dns_labeltype_bitstring);
+		foundbits = dns_label_countbits(&foundlabel);
+		namebits = dns_label_countbits(&namelabel);
+	} else
+		namebits = foundbits = 0;
+
+	if (namebits == foundbits) {
+		INSIST(namelabels >= foundlabels);
+		prefixlen = namelabels - foundlabels;
+		if (prefixlen == 0) {
 			prefix->length = 0;
 			prefix->labels = 0;
-		}
-		dns_name_getlabelsequence(name, start, count, suffix);
+		} else
+			dns_name_getlabelsequence(name, 0, prefixlen, prefix);
+		dns_name_getlabelsequence(foundname, 0, foundlabels, suffix);
 		*offset = *data;
 		return (ISC_TRUE);
 	}
-	INSIST(start > 0);
-	*suffix = tmpname;
-	i = dns_label_countbits(&label);
+	/* XXX MPA needs to be tested */
+	/*
+	 * At this stage we have a bit string label to split in two.
+	 * There is potentially a prefix before this label and definitly
+	 * a suffix after it (if only the root).
+	 */
+	INSIST(result == DNS_R_PARTIALMATCH);
+	dns_name_getlabelsequence(foundname, 0, foundlabels, suffix);
+	prefixlen = namelabels - foundlabels;
+	dns_name_init(&tmpprefix, NULL);
+	dns_name_init(&tmpsuffix, NULL);
+	if (prefixlen != 0) {
+		dns_name_getlabelsequence(name, 0, prefixlen, &tmpprefix);
+	}
+	INSIST(namebits > foundbits);
+	bits = namebits - foundbits;
 	j = 0;
-	while (bits < i) {
-		bit = dns_label_getbit(&label, bits);
-		bits++;
+	memset(buf, 0, sizeof buf);
+	INSIST((bits / 8 + 1) < sizeof buf);
+	/*
+	 * Copy least significant bits.
+	 */
+	while (j < bits) {
+		bit = dns_label_getbit(&namelabel, foundbits + j);
+		j++;
 		if (bit)
 			buf[2 + j / 8] |= (1 << (7 - (j % 8)));
-		else
-			buf[2 + j / 8] &= ~(1 << (7 - (j % 8)));
 		j++;
 	}
+	buf[0] = DNS_LABELTYPE_BITSTRING;
 	buf[1] = j;
-	while ((j % 8) != 0) {
-		buf[2 + j / 8] &= ~(1 << (7 - (j % 8)));
-		j++;
-	}
 	region.base = buf;
 	region.length = 2 + j / 8;
 	dns_name_fromregion(&tmpsuffix, &region);
-	if (start == 1)
-		dns_name_init(&tmpprefix, NULL);
-	else
-		dns_name_getlabelsequence(name, 0, start - 1, &tmpprefix);
 	result = dns_name_concatenate(&tmpprefix, &tmpsuffix, prefix,
 				      workspace);
 	if (result != DNS_R_SUCCESS)
