@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.24 $)
+AC_REVISION($Revision: 1.25 $)
 
 AC_PREREQ(2.12)
 
@@ -155,12 +155,17 @@ case "$host" in
 		;;
 esac
 
+dnl
 dnl BSDI 3.1 needs pthread_init() to be called before certain pthreads
-dnl calls.
+dnl calls.  LinuxThreads requires some changes to the way we deal with
+dnl signals.
 dnl
 case "$host" in
 	*-bsdi3.1*)
 		AC_DEFINE(NEED_PTHREAD_INIT)
+		;;
+	*-linux*)
+		AC_DEFINE(HAVE_LINUXTHREADS)
 		;;
 esac
 

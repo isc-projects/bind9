@@ -28,6 +28,7 @@
 #include <signal.h>
 
 #include <isc/app.h>
+#include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/task.h>
 #include <isc/event.h>
@@ -39,6 +40,10 @@
 static isc_eventlist_t		on_run;
 static isc_mutex_t		lock;
 static isc_boolean_t		shutdown_requested = ISC_FALSE;
+
+#ifdef HAVE_LINUXTHREADS
+static pthread_t		main_thread;
+#endif
 
 #ifndef HAVE_SIGWAIT
 static void
@@ -71,6 +76,10 @@ isc_app_start(void) {
 				 strerror(presult));
 		return (ISC_R_UNEXPECTED);
 	}
+#endif
+
+#ifdef HAVE_LINUXTHREADS
+	main_thread = pthread_self();
 #endif
 
 	result = isc_mutex_init(&lock);
@@ -147,6 +156,10 @@ isc_app_run(void) {
 	 * Run an ISC library application.
 	 */
 
+#ifdef HAVE_LINUXTHREADS
+	REQUIRE(main_thread == pthread_self());
+#endif
+
 #if 0
 	/*
 	 * Post any on-run events (in LIFO order).
@@ -210,11 +223,25 @@ isc_app_shutdown(void) {
 
 	UNLOCK(&lock);
 
-	if (want_kill && kill(getpid(), SIGTERM) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_shutdown() kill: %s",
-				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
+	if (want_kill) {
+#ifdef HAVE_LINUXTHREADS
+		int result;
+		
+		result = pthread_kill(main_thread, SIGTERM);
+		if (result != 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_app_shutdown() pthread_kill: %s",
+					 strerror(result));
+			return (ISC_R_UNEXPECTED);
+		}
+#else
+		if (kill(getpid(), SIGTERM) < 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_app_shutdown() kill: %s",
+					 strerror(errno));
+			return (ISC_R_UNEXPECTED);
+		}
+#endif
 	}
 
 	return (ISC_R_SUCCESS);
