@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.211 2001/07/27 05:26:34 bwelling Exp $ */
+/* $Id: dighost.c,v 1.212 2001/07/27 05:41:43 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -526,7 +526,7 @@ setup_text_key(void) {
 				   namebuf);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
-		       keynametext, dns_result_totext(result));
+		       keynametext, isc_result_totext(result));
 		goto failure;
 	}
 	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
@@ -535,7 +535,7 @@ setup_text_key(void) {
 				    NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
-		       keynametext, dns_result_totext(result));
+		       keynametext, isc_result_totext(result));
 	}
  failure:
 	isc_mem_free(mctx, secretstore);
@@ -585,7 +585,7 @@ setup_file_key(void) {
 				    NULL, &key);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
-		       keynametext, dns_result_totext(result));
+		       keynametext, isc_result_totext(result));
 	}
  failure:
 	if (dstkey != NULL)
@@ -1303,7 +1303,7 @@ setup_lookup(dig_lookup_t *lookup) {
 						&lookup->oname);
 			fatal("'%s' is not in legal name syntax (%s)",
 			      lookup->origin->origin,
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		if (lookup->trace_root) {
 			dns_name_clone(dns_rootname, lookup->name);
@@ -1321,7 +1321,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->oname);
 			fatal("'%s' is not in legal name syntax (%s)",
-			      lookup->textname, dns_result_totext(result));
+			      lookup->textname, isc_result_totext(result));
 		}
 		dns_message_puttempname(lookup->sendmsg, &lookup->oname);
 	} else {
@@ -1343,7 +1343,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			isc_buffer_init(&b, store, MXNAME);
 			fatal("'%s' is not a legal name "
 			      "(%s)", lookup->textname,
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 	}
 	dns_name_format(lookup->name, store, sizeof(store));
@@ -1846,10 +1846,9 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 static void
 tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent;
-	isc_buffer_t *b=NULL;
-	isc_region_t r;
+	isc_buffer_t *b = NULL;
 	isc_result_t result;
-	dig_query_t *query=NULL;
+	dig_query_t *query = NULL;
 	dig_lookup_t *l;
 	isc_uint16_t length;
 
@@ -1876,15 +1875,11 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	if (sevent->result != ISC_R_SUCCESS) {
-		result = isc_buffer_allocate(mctx, &b, 256);
-		check_result(result, "isc_buffer_allocate");
-		result = isc_sockaddr_totext(&query->sockaddr, b);
-		check_result(result, "isc_sockaddr_totext");
-		isc_buffer_usedregion(b, &r);
-		printf(";; communications error to %.*s: %s\n",
-		       (int)r.length, r.base,
-		       isc_result_totext(sevent->result));
-		isc_buffer_free(&b);
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_format(&query->sockaddr, sockstr,
+				    sizeof(sockstr));
+		printf(";; communications error to %s: %s\n",
+		       sockstr, isc_result_totext(sevent->result));
 		l = query->lookup;
 		isc_socket_detach(&query->sock);
 		sockcount--;
@@ -1996,12 +1991,9 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
  */
 static void
 connect_done(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
 	isc_socketevent_t *sevent = NULL;
 	dig_query_t *query = NULL, *next;
 	dig_lookup_t *l;
-	isc_buffer_t *b = NULL;
-	isc_region_t r;
 
 	UNUSED(task);
 
@@ -2033,17 +2025,15 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	if (sevent->result != ISC_R_SUCCESS) {
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+
 		debug("unsuccessful connection: %s",
 		      isc_result_totext(sevent->result));
-		result = isc_buffer_allocate(mctx, &b, 256);
-		check_result(result, "isc_buffer_allocate");
-		result = isc_sockaddr_totext(&query->sockaddr, b);
-		check_result(result, "isc_sockaddr_totext");
-		isc_buffer_usedregion(b, &r);
-		/* XXX isc_sockaddr_format */
+		isc_sockaddr_format(&query->sockaddr, sockstr,
+				    sizeof(sockstr));
 		if (sevent->result != ISC_R_CANCELED)
-			printf(";; Connection to %.*s(%s) for %s failed: "
-			       "%s.\n", (int)r.length, r.base,
+			printf(";; Connection to %s(%s) for %s failed: "
+			       "%s.\n", sockstr,
 			       query->servname, query->lookup->textname,
 			       isc_result_totext(sevent->result));
 		isc_socket_detach(&query->sock);
@@ -2053,7 +2043,6 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		if (exitcode < 9)
 			exitcode = 9;
 		debug("sockcount=%d", sockcount);
-		isc_buffer_free(&b);
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
 		l = query->lookup;
@@ -2304,7 +2293,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS && 
 		    result != DNS_R_RECOVERABLE ) {
 			printf(";; Got bad packet: %s\n",
-			       dns_result_totext(result));
+			       isc_result_totext(result));
 			hex_dump(b);
 			query->waiting_connect = ISC_FALSE;
 			dns_message_destroy(&msg);
@@ -2367,7 +2356,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						 NULL, NULL);
 			if (result != ISC_R_SUCCESS) {
 				printf(";; Couldn't verify signature: %s\n",
-				       dns_result_totext(result));
+				       isc_result_totext(result));
 				validated = ISC_FALSE;
 			}
 			l->tsigctx = msg->tsigctx;

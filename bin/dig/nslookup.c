@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.86 2001/07/27 05:26:36 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.87 2001/07/27 05:41:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -451,22 +451,18 @@ static void
 show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
-	isc_buffer_t *b = NULL;
 	isc_result_t result;
 	dig_searchlist_t *listent;
 
 	srv = ISC_LIST_HEAD(server_list);
 
 	while (srv != NULL) {
-		result = isc_buffer_allocate(mctx, &b, MXNAME);
-		check_result(result, "isc_buffer_allocate");
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+
 		get_address(srv->servername, port, &sockaddr);
-		result = isc_sockaddr_totext(&sockaddr, b);
-		check_result(result, "isc_sockaddr_totext");
-		printf("Default server: %s\nAddress: %.*s\n",
-			srv->servername, (int)isc_buffer_usedlength(b),
-			(char*)isc_buffer_base(b));
-		isc_buffer_free(&b);
+		isc_sockaddr_format(&sockaddr, sockstr, sizeof(sockstr));
+		printf("Default server: %s\nAddress: %s\n",
+			srv->servername, sockstr);
 		if (!full)
 			return;
 		srv = ISC_LIST_NEXT(srv, link);

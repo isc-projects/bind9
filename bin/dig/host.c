@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.70 2001/07/27 05:26:35 bwelling Exp $ */
+/* $Id: host.c,v 1.71 2001/07/27 05:41:44 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -256,32 +256,28 @@ static void
 say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	    dig_query_t *query)
 {
-	isc_buffer_t *b = NULL, *b2 = NULL;
-	isc_region_t r, r2;
+	isc_buffer_t *b = NULL;
+	char namestr[DNS_NAME_FORMATSIZE];
+	isc_region_t r;
 	isc_result_t result;
 
 	result = isc_buffer_allocate(mctx, &b, BUFSIZE);
 	check_result(result, "isc_buffer_allocate");
-	result = isc_buffer_allocate(mctx, &b2, BUFSIZE);
-	check_result(result, "isc_buffer_allocate");
-	result = dns_name_totext(name, ISC_FALSE, b);
-	check_result(result, "dns_name_totext");
-	isc_buffer_usedregion(b, &r);
-	result = dns_rdata_totext(rdata, NULL, b2);
+	dns_name_format(name, namestr, sizeof(namestr));
+	result = dns_rdata_totext(rdata, NULL, b);
 	check_result(result, "dns_rdata_totext");
-	isc_buffer_usedregion(b2, &r2);
+	isc_buffer_usedregion(b, &r);
 	if (query->lookup->identify_previous_line) {
 		printf("Nameserver %s:\n\t",
 			query->servname);
 	}
-	printf("%.*s %s %.*s", (int)r.length, (char *)r.base,
-	       msg, (int)r2.length, (char *)r2.base);
+	printf("%s %s %.*s", namestr,
+	       msg, (int)r.length, (char *)r.base);
 	if (query->lookup->identify) {
 		printf(" on server %s", query->servname);
 	}
 	printf("\n");
 	isc_buffer_free(&b);
-	isc_buffer_free(&b2);
 }
 
 
@@ -415,8 +411,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_rdataset_t *opt, *tsig = NULL;
 	dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_buffer_t *b = NULL;
-	isc_region_t r;
 
 	UNUSED(headers);
 
@@ -429,30 +423,21 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		return (ISC_R_SUCCESS);
 
 	if (listed_server) {
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+
 		printf("Using domain server:\n");
 		printf("Name: %s\n", query->servname);
-		result = isc_buffer_allocate(mctx, &b, MXNAME);
-		check_result(result, "isc_buffer_allocate");
-		result = isc_sockaddr_totext(&query->sockaddr, b);
-		check_result(result, "isc_sockaddr_totext");
-		printf("Address: %.*s\n",
-		       (int)isc_buffer_usedlength(b),
-		       (char*)isc_buffer_base(b));
-		isc_buffer_free(&b);
+		isc_sockaddr_format(&query->sockaddr, sockstr,
+				    sizeof(sockstr));
+		printf("Address: %s\n", sockstr);
 		printf("Aliases: \n\n");
 	}
 
 	if (msg->rcode != 0) {
-		result = isc_buffer_allocate(mctx, &b, MXNAME);
-		check_result(result, "isc_buffer_allocate");
-		result = dns_name_totext(query->lookup->name, ISC_FALSE,
-					 b);
-		check_result(result, "dns_name_totext");
-		isc_buffer_usedregion(b, &r);
-		printf("Host %.*s not found: %d(%s)\n",
-		       (int)r.length, (char *)r.base,
+		char namestr[DNS_NAME_FORMATSIZE];
+		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
+		printf("Host %s not found: %d(%s)\n", namestr,
 		       msg->rcode, rcodetext[msg->rcode]);
-		isc_buffer_free(&b);
 		return (ISC_R_SUCCESS);
 	}
 	if (!short_form) {
