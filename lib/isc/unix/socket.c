@@ -1901,7 +1901,6 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
 	}
 
 	UNLOCK(&sock->lock);
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -1937,8 +1936,8 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog)
 	}
 
 	sock->listener = 1;
-	UNLOCK(&sock->lock);
 
+	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
 
@@ -1981,8 +1980,8 @@ isc_socket_accept(isc_socket_t *sock,
 
 	ret = allocate_socket(manager, sock->type, &nsock);
 	if (ret != ISC_R_SUCCESS) {
-		UNLOCK(&sock->lock);
 		isc_event_free((isc_event_t **)&dev);
+		UNLOCK(&sock->lock);
 		return (ret);
 	}
 
@@ -2006,7 +2005,6 @@ isc_socket_accept(isc_socket_t *sock,
 	ISC_LIST_ENQUEUE(sock->accept_list, dev, link);
 
 	UNLOCK(&sock->lock);
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -2071,8 +2069,8 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	err_exit:
 		sock->connected = 0;
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
-		UNLOCK(&sock->lock);
 
+		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
 	}
 
@@ -2083,8 +2081,8 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		sock->connected = 1;
 		dev->result = ISC_R_SUCCESS;
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
-		UNLOCK(&sock->lock);
 
+		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
 	}
 
@@ -2111,7 +2109,6 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	sock->connect_ev = dev;
 
 	UNLOCK(&sock->lock);
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -2251,7 +2248,6 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
 	addressp->length = (unsigned int)len;
 
 	UNLOCK(&sock->lock);
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -2418,7 +2414,6 @@ isc_socket_recvmark(isc_socket_t *sock,
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
-
 		return (ISC_R_SUCCESS);
 	}
 
@@ -2439,7 +2434,6 @@ isc_socket_recvmark(isc_socket_t *sock,
 		dev, task));
 
 	UNLOCK(&sock->lock);
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -2477,7 +2471,6 @@ isc_socket_sendmark(isc_socket_t *sock,
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
-
 		return (ISC_R_SUCCESS);
 	}
 
@@ -2498,7 +2491,6 @@ isc_socket_sendmark(isc_socket_t *sock,
 		dev, task));
 
 	UNLOCK(&sock->lock);
-
 	return (ISC_R_SUCCESS);
 }
 
