@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.17 2000/06/30 18:44:51 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.18 2000/06/30 18:59:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -72,6 +72,7 @@ static isc_boolean_t busy = ISC_FALSE;
 static isc_boolean_t debugging = ISC_FALSE, ddebugging = ISC_FALSE;
 static isc_boolean_t have_ipv6 = ISC_FALSE;
 static isc_boolean_t is_dst_up = ISC_FALSE;
+static isc_boolean_t usevc = ISC_FALSE;
 static isc_mutex_t lock;
 static isc_condition_t cond;
 
@@ -545,8 +546,7 @@ parse_args(int argc, char **argv) {
 			keystr = isc_commandline_argument;
 			break;
 		case 'v':
-			fprintf(stderr, "Virtual Circuit mode not "
-				"currently implemented.\n");
+			usevc = ISC_TRUE;
 			break;
 		case 'k':
 			fprintf(stderr, "TSIG not currently implemented.");
@@ -1094,6 +1094,7 @@ send_update(void) {
 	isc_buffer_t buf;
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
+	unsigned int options = 0;
 
 	ddebug ("send_update()");
 
@@ -1117,8 +1118,10 @@ send_update(void) {
 
 	servername[isc_buffer_usedlength(&buf)] = 0;	
 	get_address(servername, 53, &sockaddr);
+	if (usevc)
+		options |= DNS_REQUESTOPT_TCP;
 	result = dns_request_create(requestmgr, updatemsg, &sockaddr,
-				    0, key,
+				    options, key,
 				    FIND_TIMEOUT, global_task,
 				    update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
