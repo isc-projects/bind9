@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.17 2001/03/22 00:06:57 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.18 2001/06/10 02:37:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,7 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 		cfg_obj_t *secretobj = NULL;
 		dns_name_t keyname;
 		dns_name_t *alg;
+		char *algstr;
 		char keynamedata[1024];
 		isc_buffer_t keynamesrc, keynamebuf;
 		char *secretstr;
@@ -81,7 +82,10 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 		/*
 		 * Create the algorithm.
 		 */
-		if (strcasecmp(cfg_obj_asstring(algobj), "hmac-md5") == 0)
+		algstr = cfg_obj_asstring(algobj);
+		if (strcasecmp(algstr, "hmac-md5") == 0 ||
+		    strcasecmp(algstr, "hmac-md5.sig-alg.reg.int") ||
+		    strcasecmp(algstr, "hmac-md5.sig-alg.reg.int."))
 			alg = dns_tsig_hmacmd5_name;
 		else {
 			cfg_obj_log(algobj, ns_g_lctx, ISC_LOG_ERROR,
