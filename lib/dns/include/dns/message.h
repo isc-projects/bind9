@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.100.2.3.8.2 2003/08/13 01:56:03 marka Exp $ */
+/* $Id: message.h,v 1.100.2.3.8.3 2003/08/14 02:41:55 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -975,9 +975,8 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  *
  * Requires:
  *
- *	'msg' is a valid message with rendering intent,
- *	dns_message_renderbegin() has been called, and no sections have been
- *	rendered.
+ *	'msg' is a valid message with rendering intent
+ *	and no sections have been rendered.
  *
  *	'opt' is a valid OPT record.
  *

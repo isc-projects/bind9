@@ -1,3 +1,6 @@
+1225.	[func]		dns_message_setopt() no longer requires that
+			dns_message_renderbegin() to have been called.
+
 1224.	[bug]		'rrset-order' and 'sortlist' should be additive
 			not exclusive.
 
