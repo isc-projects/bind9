@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.8 2000/08/01 01:32:44 tale Exp $ */
+/* $Id: platform.h.in,v 1.9 2001/01/03 13:13:14 marka Exp $ */
 
 #ifndef LWRES_PLATFORM_H
 #define LWRES_PLATFORM_H 1
@@ -55,5 +55,11 @@
  * be defined.
  */
 @LWRES_PLATFORM_NEEDIN6ADDRANY@
+
+/*
+ * If this system has in_addr6, rather than in6_addr,
+ * LWRES_PLATFORM_HAVEINADDR6 will be defined.
+ */
+@LWRES_PLATFORM_HAVEINADDR6@
 
 #endif /* LWRES_PLATFORM_H */

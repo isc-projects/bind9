@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.25 2001/01/01 22:02:27 tale Exp $ */
+/* $Id: net.h,v 1.26 2001/01/03 13:13:12 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -86,6 +86,10 @@
 
 #include <isc/lang.h>
 #include <isc/types.h>
+
+#ifdef ISC_PLATFORM_HAVEINADDR6
+#define in6_addr in_addr6	/* Required for pre RFC2133 implementations. */
+#endif
 
 #ifndef AF_INET6
 #define AF_INET6 99

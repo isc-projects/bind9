@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.16 2000/12/08 00:55:30 tale Exp $ */
+/* $Id: platform.h.in,v 1.17 2001/01/03 13:13:11 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -63,6 +63,12 @@
  * defined.
  */
 @ISC_PLATFORM_HAVEIN6PKTINFO@
+
+/*
+ * If this system has in_addr6, rather than in6_addr, ISC_PLATFORM_HAVEINADDR6
+ * will be defined.
+ */
+@ISC_PLATFORM_HAVEINADDR6@
 
 /*
  * If this system needs inet_ntop(), ISC_PLATFORM_NEEDNTOP will be defined.

@@ -1,3 +1,4 @@
+ 648.	[port]		Add support for pre-RFC2133 IPv6 implementations.
 
  647.	[bug]		Resolver queries sent after following multiple
 			referrals had excessively long retransmission
