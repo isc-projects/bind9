@@ -1005,7 +1005,6 @@
 ./lib/dns/sec/dst/dst_parse.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/dst_parse.h			C.NAI	2000
 ./lib/dns/sec/dst/dst_result.c			C	1999,2000
-./lib/dns/sec/dst/dst_support.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/hmac_link.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/include/.cvsignore		X	2000
 ./lib/dns/sec/dst/include/Makefile.in		MAKE	1998,1999,2000
