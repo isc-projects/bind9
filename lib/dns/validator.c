@@ -397,7 +397,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 	val = isc_mem_get(view->mctx, sizeof *val);
 	if (val == NULL)
 		return (ISC_R_NOMEMORY);
-	val->view = view;
+	val->view = NULL;
 	dns_view_attach(view, &val->view);
 	event = (dns_validatorevent_t *)
 		isc_event_allocate(view->mctx, task, DNS_EVENT_VALIDATORDONE,
