@@ -56,8 +56,6 @@ struct ns_listenlist {
  *** Functions
  ***/
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port,
 		    dns_acl_t *acl, ns_listenelt_t **target);
@@ -81,8 +79,6 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port,
  * Create a listen-on list with default contents, matching
  * all addresses with port 'port'.
  */
-
-ISC_LANG_ENDDECLS
 
 #endif /* NS_LISTENLIST_H */
 

@@ -1,3 +1,6 @@
+  90.	[cleanup]	Removed unneeded ISC_LANG_BEGINDECLS/ISC_LANG_ENDDECLS
+			from <named/listenlist.h>.
+
   89.   [cleanup]       <isc/lex.h> does not need <stddef.h>.
 
   88.   [cleanup]       <isc/interfaceiter.h> does not need <isc/result.h> or
