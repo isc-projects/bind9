@@ -1,6 +1,6 @@
 echo off
 rem
-rem  Copyright (C) 2001  Internet Software Consortium.
+rem  Copyright (C) 2001-2  Internet Software Consortium.
 rem 
 rem  Permission to use, copy, modify, and distribute this software for any
 rem  purpose with or without fee is hereby granted, provided that the above
@@ -25,7 +25,7 @@ rem OpenSSL is a prerequisite for building and running this release of
 rem BIND 9. You must fetch the OpenSSL sources yourself from
 rem http://www.OpenSSL.org/ and compile it yourself.  The code must reside
 rem at the same level as the bind 9.2.0 source tree and it's top-level
-rem directory be named openssl-0.9.6k. This restriction will be lifted in
+rem directory be named openssl-0.9.6g. This restriction will be lifted in
 rem a future release of BIND 9 for Windows NT/2000/XP.
 
 echo Setting up the BIND files required for the build
@@ -50,6 +50,10 @@ cd ..\..
 
 cd isccc\win32
 nmake /nologo -f libisccc.mak CFG="libisccc - Win32 Release"  NO_EXTERNAL_DEPS="1"
+cd ..\..
+
+cd bind9\win32
+nmake /nologo -f libbind9.mak CFG="libbind9 - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
 cd lwres\win32

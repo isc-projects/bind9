@@ -141,10 +141,6 @@ SOURCE=.\net.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ntfile.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\ntpaths.c
 # End Source File
 # Begin Source File
@@ -165,15 +161,15 @@ SOURCE=.\socket.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\strerror.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\stdio.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\stdtime.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\strerror.c
 # End Source File
 # Begin Source File
 
@@ -190,6 +186,10 @@ SOURCE=.\time.c
 # Begin Source File
 
 SOURCE=.\version.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\win32os.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -305,7 +305,7 @@ SOURCE=..\include\isc\interfaceiter.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\isc\ipv6.h
+SOURCE=.\include\isc\ipv6.h
 # End Source File
 # Begin Source File
 
@@ -377,10 +377,6 @@ SOURCE=.\include\isc\netdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\isc\ntfile.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\include\isc\ntpaths.h
 # End Source File
 # Begin Source File
@@ -398,6 +394,10 @@ SOURCE=..\include\isc\ondestroy.h
 # Begin Source File
 
 SOURCE=..\include\isc\os.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isc\parseint.h
 # End Source File
 # Begin Source File
 
@@ -465,11 +465,11 @@ SOURCE=..\include\isc\stdio.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\isc\strerror.h
+SOURCE=.\include\isc\stdtime.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\isc\stdtime.h
+SOURCE=.\include\isc\strerror.h
 # End Source File
 # Begin Source File
 
@@ -509,10 +509,6 @@ SOURCE=..\include\isc\timer.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\isc\win32os.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\include\isc\types.h
 # End Source File
 # Begin Source File
@@ -526,6 +522,10 @@ SOURCE=..\include\isc\util.h
 # Begin Source File
 
 SOURCE=..\..\..\versions.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\isc\win32os.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -637,6 +637,10 @@ SOURCE=..\ondestroy.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\parseint.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\quota.c
 # End Source File
 # Begin Source File
@@ -646,6 +650,10 @@ SOURCE=..\random.c
 # Begin Source File
 
 SOURCE=..\ratelimiter.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\region.c
 # End Source File
 # Begin Source File
 
@@ -686,10 +694,6 @@ SOURCE=..\taskpool.c
 # Begin Source File
 
 SOURCE=..\timer.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\win32os.c
 # End Source File
 # End Group
 # Begin Source File
