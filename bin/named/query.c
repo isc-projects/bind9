@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.186 2001/03/11 06:19:35 marka Exp $ */
+/* $Id: query.c,v 1.187 2001/03/13 01:37:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3130,7 +3130,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	 */
 	if (!want_restart) {
 		if (is_zone) {
-			if (!(qtype == dns_rdatatype_ns &&
+			if (!((qtype == dns_rdatatype_ns ||
+			       qtype == dns_rdatatype_any) &&
 			      dns_name_equal(client->query.qname,
 					     dns_db_origin(db))))
 				query_addns(client, db);
