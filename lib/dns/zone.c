@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.249 2000/11/09 19:33:51 gson Exp $ */
+/* $Id: zone.c,v 1.250 2000/11/11 01:02:28 gson Exp $ */
 
 #include <config.h>
 
@@ -190,8 +190,7 @@ struct dns_zone {
 	ISC_LINK(dns_zone_t)	statelink;
 	dns_zonelist_t		*statelist;
 	/*
-	 * Variables stored in the zone object which are used to hold
-	 * statistical information regarding the zone.
+	 * Optional per-zone statistics counters
 	 */
 	isc_uint64_t            *counters;
 };
@@ -5643,7 +5642,7 @@ dns_zone_resetcounts(dns_zone_t *zone) {
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	if (zone->counters != NULL)
 		for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
-			zone->counters[i]=0;
+			zone->counters[i] = 0;
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 }
 
@@ -5676,7 +5675,7 @@ dns_zone_startcounting(dns_zone_t *zone) {
 		result = ISC_R_NOMEMORY;
 	else
 		for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
-			zone->counters[i]=0;
+			zone->counters[i] = 0;
  done:
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	return (ISC_R_SUCCESS);
