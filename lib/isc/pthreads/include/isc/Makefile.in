@@ -1,4 +1,4 @@
-# Copyright (C) 1998  Internet Software Consortium.
+# Copyright (C) 1998, 1999  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	condition.h mutex.h thread.h
+HEADERS =	condition.h mutex.h once.h thread.h
 
 SUBDIRS =
 TARGETS =
