@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.100 2000/07/27 09:36:28 tale Exp $ */
+/* $Id: dighost.c,v 1.101 2000/07/27 18:36:59 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1554,13 +1554,14 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		printf("%.*s: %s\n", (int)r.length, r.base,
 		       isc_result_totext(sevent->result));
 		isc_buffer_free(&b);
-		query->working = ISC_FALSE;
+		l = query->lookup;
 		isc_socket_detach(&query->sock);
 		sockcount--;
 		debug("sockcount=%d",sockcount);
 		INSIST(sockcount >= 0);
 		isc_event_free(&event);
-		check_next_lookup(query->lookup);
+		clear_query(query);
+		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
 	}
