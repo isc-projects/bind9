@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.10 2001/01/09 21:59:50 bwelling Exp $ */
+/* $Id: platform.h.in,v 1.11 2001/01/23 04:47:56 marka Exp $ */
 
 #ifndef LWRES_PLATFORM_H
 #define LWRES_PLATFORM_H 1
@@ -61,5 +61,10 @@
  * LWRES_PLATFORM_HAVEINADDR6 will be defined.
  */
 @LWRES_PLATFORM_HAVEINADDR6@
+
+/*
+ * Defined if unistd.h does not cause fd_set to be delared.
+ */
+@LWRES_PLATFORM_NEEDSYSSELECTH@
 
 #endif /* LWRES_PLATFORM_H */

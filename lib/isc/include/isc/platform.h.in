@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.18 2001/01/09 21:57:20 bwelling Exp $ */
+/* $Id: platform.h.in,v 1.19 2001/01/23 04:47:55 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -131,6 +131,11 @@
  * Defined if we are using threads.
  */
 @ISC_PLATFORM_USETHREADS@
+
+/*
+ * Defined if unistd.h does not cause fd_set to be delared.
+ */
+@ISC_PLATFORM_NEEDSYSSELECTH@
 
 /*
  * Tell emacs to use C mode for this file.
