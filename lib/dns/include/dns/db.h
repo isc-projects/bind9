@@ -114,7 +114,8 @@ typedef struct dns_dbmethods {
 	dns_result_t	(*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
 				       dns_dbversion_t *version,
 				       isc_stdtime_t now,
-				       dns_rdataset_t *rdataset);
+				       dns_rdataset_t *rdataset,
+				       dns_rdataset_t *addedrdataset);
 	dns_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
 					  dns_rdatatype_t type);
@@ -754,7 +755,8 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 dns_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		   isc_stdtime_t now, dns_rdataset_t *rdataset);
+		   isc_stdtime_t now, dns_rdataset_t *rdataset,
+		   dns_rdataset_t *addedrdataset);
 /*
  * Add 'rdataset' to 'node' in version 'version' of 'db'.
  *
@@ -764,6 +766,9 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	a cache database, then the added rdataset will expire no later than
  *	now + rdataset->ttl.
  *
+ *	If 'addedrdataset' is not NULL, then it will be attached to the
+ *	rdataset added to the database.
+ *
  * Requires:
  *
  *	'db' is a valid database.
@@ -772,6 +777,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	'rdataset' is a valid, associated rdataset with the same class
  *	as 'db'.
+ *
+ *	'addedrdataset' is NULL, or a valid, unassociated rdataset.
  *
  *	The database has zone semantics and 'version' is a valid
  *	read-write version, or the database has cache semantics

@@ -2230,7 +2230,8 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static dns_result_t
 add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
-    rdatasetheader_t *newheader, isc_boolean_t merge, isc_boolean_t loading)
+    rdatasetheader_t *newheader, isc_boolean_t merge, isc_boolean_t loading,
+    dns_rdataset_t *addedrdataset, isc_stdtime_t now)
 {
 	rbtdb_changed_t *changed = NULL;
 	rdatasetheader_t *header, *header_prev;
@@ -2293,8 +2294,13 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				newheader = (rdatasetheader_t *)merged;
 			} else {
 				free_rdataset(rbtdb->common.mctx, newheader);
-				if (result == DNS_R_UNCHANGED)
+				if (result == DNS_R_UNCHANGED) {
+					if (addedrdataset != NULL)
+						bind_rdataset(rbtdb, rbtnode,
+							      header, now,
+							      addedrdataset);
 					return (DNS_R_SUCCESS);
+				}
 				return (result);
 			}
 		}
@@ -2330,6 +2336,9 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		rbtnode->data = newheader;
 	}
 
+	if (addedrdataset != NULL)
+		bind_rdataset(rbtdb, rbtnode, newheader, now, addedrdataset);
+
 	return (DNS_R_SUCCESS);
 }
 
@@ -2348,7 +2357,8 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 static dns_result_t
 addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	    isc_stdtime_t now, dns_rdataset_t *rdataset)
+	    isc_stdtime_t now, dns_rdataset_t *rdataset,
+	    dns_rdataset_t *addedrdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
@@ -2399,7 +2409,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
-	result = add(rbtdb, rbtnode, rbtversion, newheader, merge, ISC_FALSE);
+	result = add(rbtdb, rbtnode, rbtversion, newheader, merge, ISC_FALSE,
+		     addedrdataset, now);
 	if (result == DNS_R_SUCCESS && delegating)
 		rbtnode->find_callback = 1;
 
@@ -2440,7 +2451,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	result = add(rbtdb, rbtnode, rbtversion, newheader, ISC_FALSE,
-		     ISC_FALSE);
+		     ISC_FALSE, NULL, 0);
 
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -2487,7 +2498,7 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 	newheader->serial = 1;
 
 	result = add(rbtdb, node, rbtdb->current_version, newheader, ISC_TRUE,
-		     ISC_TRUE);
+		     ISC_TRUE, NULL, 0);
 	if (result == DNS_R_SUCCESS &&
 	    delegating_type(rbtdb, node, rdataset->type))
 		node->find_callback = 1;

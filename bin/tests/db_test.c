@@ -742,7 +742,8 @@ main(int argc, char *argv[]) {
 			if (dbi != NULL && addmode && !found_as) {
 				rdataset.ttl++;
 				result = dns_db_addrdataset(db, node, version,
-							    0, &rdataset);
+							    0, &rdataset,
+							    NULL);
 				if (result != DNS_R_SUCCESS)
 					printf("%s\n",
 					       dns_result_totext(result));

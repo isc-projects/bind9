@@ -394,7 +394,8 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 dns_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		   isc_stdtime_t now, dns_rdataset_t *rdataset)
+		   isc_stdtime_t now, dns_rdataset_t *rdataset,
+		   dns_rdataset_t *addedrdataset)
 {
 	/*
 	 * Add 'rdataset' to 'node' in version 'version' of 'db'.
@@ -407,8 +408,12 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	REQUIRE(rdataset->rdclass == db->rdclass);
+	REQUIRE(addedrdataset == NULL ||
+		(DNS_RDATASET_VALID(addedrdataset) &&
+		 addedrdataset->methods == NULL));
 
-	return ((db->methods->addrdataset)(db, node, version, now, rdataset));
+	return ((db->methods->addrdataset)(db, node, version, now, rdataset,
+					   addedrdataset));
 }
 
 dns_result_t
