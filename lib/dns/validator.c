@@ -38,8 +38,6 @@
 #include <dns/validator.h>
 #include <dns/view.h>
 
-#define inline
-
 struct dns_validator {
 	/* Unlocked. */
 	unsigned int			magic;
