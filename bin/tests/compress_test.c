@@ -128,7 +128,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 		case DNS_COMPRESS_GLOBAL14: s = "DNS_COMPRESS_GLOBAL14"; break;
 		case DNS_COMPRESS_GLOBAL16: s = "DNS_COMPRESS_GLOBAL16"; break;
 		case DNS_COMPRESS_GLOBAL: s = "DNS_COMPRESS_GLOBAL"; break;
-		case DNS_COMPRESS_ALL: s = "DNS_COMPRESS_ALL"; break;
+		/* case DNS_COMPRESS_ALL: s = "DNS_COMPRESS_ALL"; break; */
 		default: s = "UNKOWN"; break;
 		}
 		fprintf(stdout, "Allowed = %s\n", s);
@@ -139,14 +139,18 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 
 	RUNTIME_CHECK(dns_name_towire(name1, &cctx, &source) == DNS_R_SUCCESS);
 
+	/*
 	RUNTIME_CHECK(dns_compress_localinit(&cctx, name1, &source) == 
 		      DNS_R_SUCCESS);
+	*/
 	dns_compress_setmethods(&cctx, allowed);
 	RUNTIME_CHECK(dns_name_towire(name2, &cctx, &source) == DNS_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_towire(name2, &cctx, &source) == DNS_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_towire(name3, &cctx, &source) == DNS_R_SUCCESS);
 
+	/*
 	dns_compress_localinvalidate(&cctx);
+	*/
 	dns_compress_rollback(&cctx, 0);	/* testing only */
 	dns_compress_invalidate(&cctx);
 
@@ -173,14 +177,18 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
 					&target) == DNS_R_SUCCESS);
 	dns_decompress_setmethods(&dctx, allowed);
+	/*
 	dns_decompress_localinit(&dctx, &name, &source);
+	*/
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
 					&target) == DNS_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
 					&target) == DNS_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, &dctx, ISC_FALSE,
 					&target) == DNS_R_SUCCESS);
+	/*
 	dns_decompress_localinvalidate(&dctx);
+	*/
 	dns_decompress_invalidate(&dctx);
 
 	if (raw) {
