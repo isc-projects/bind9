@@ -1,3 +1,6 @@
+1828.	[bug]		isc_rwlock_init() failed to properly cleanup if it
+			encountered a error. [RT #13549]
+
 1827.	[bug]		host: update usage message for '-a'. [RT #37116]
 
 1826.	[bug]		Missing DESTROYLOCK() in isc_mem_createx() on out
