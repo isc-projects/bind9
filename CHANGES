@@ -1,3 +1,5 @@
+ 546.	[func]		Option 'lame-ttl' is now implemented.
+
  545.	[func]		Name limit and counting options removed from dig;
 			they didn't work properly, and cannot be correctly
 			implemented without significant changes.
