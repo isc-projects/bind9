@@ -769,6 +769,7 @@ main(int argc, char *argv[]) {
 			found_as = ISC_TRUE;
 			break;
 		case DNS_R_NXRDATASET:
+		case DNS_R_NXGLUE:
 			if (dns_rdataset_isassociated(&rdataset))
 				break;
 			if (dbi != NULL) {
