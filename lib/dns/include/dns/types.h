@@ -49,6 +49,7 @@ typedef struct dns_decompress			dns_decompress_t;
 typedef isc_uint8_t				dns_secalg_t;
 typedef isc_uint8_t				dns_secproto_t;
 typedef isc_uint16_t				dns_keyflags_t;
+typedef isc_uint16_t				dns_keytag_t;
 typedef isc_uint16_t				dns_rdataclass_t;
 typedef isc_uint16_t				dns_rdatatype_t;
 typedef isc_uint16_t				dns_rcode_t;
@@ -95,6 +96,8 @@ typedef struct dns_aclenv			dns_aclenv_t;
 typedef struct dns_byaddr			dns_byaddr_t;
 typedef struct dns_ssutable			dns_ssutable_t;
 typedef struct dns_validator			dns_validator_t;
+typedef struct dns_keytable			dns_keytable_t;
+typedef struct dns_keynode			dns_keynode_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
