@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.106 2000/09/29 23:42:12 mws Exp $ */
+/* $Id: dig.c,v 1.107 2000/09/30 00:09:57 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1023,7 +1023,6 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	char rcfile[132];
 #endif
 	char *input;
-	int i;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
