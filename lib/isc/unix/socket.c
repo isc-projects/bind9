@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.247 2005/03/16 23:39:06 marka Exp $ */
+/* $Id: socket.c,v 1.248 2005/03/30 05:37:08 marka Exp $ */
 
 #include <config.h>
 
@@ -465,7 +465,11 @@ cmsg_len(ISC_SOCKADDR_LEN_T len) {
 #else
 	ISC_SOCKADDR_LEN_T hdrlen;
 
-	hdrlen = (ISC_SOCKADDR_LEN_T)CMSG_DATA(NULL); /* XXX */
+	/*
+	 * Cast NULL so that any pointer arithmetic performed by CMSG_DATA
+	 * is correct.
+	 */
+	hdrlen = (ISC_SOCKADDR_LEN_T)CMSG_DATA(((struct cmsghdr *)NULL));
 	return (hdrlen + len);
 #endif
 }

@@ -1,3 +1,6 @@
+1841.	[port]		cmsg_len() could produce incorrect results on
+			some platform. [RT #13744]
+
 1841.	[placeholder]	rt13694
 
 1840.	[func]		dnssec-signzone can now randomize signature end times
