@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.81 $)
+AC_REVISION($Revision: 1.82 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1722,7 +1722,7 @@ HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
 )
 )
 ,
-HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT/"
+HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"
 )
 AC_SUBST(HOST_R_SET_RESULT)

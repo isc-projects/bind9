@@ -1,3 +1,6 @@
+ 962.	[bug]		libbind: bad "#undef", don't attempt to install
+			non-existant nlist.h.  [RT #1640]
+
  961.	[bug]		Tried to use a IPV6 feature when ISC_PLATFORM_HAVEIPV6
 			was not defined.  [RT #1482]
 
