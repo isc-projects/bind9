@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.14 2001/07/04 03:54:55 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.15 2001/07/05 17:01:40 gson Exp $ */
 
 #include <config.h>
 
@@ -371,8 +371,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 				isccc_sexpr_free(&request);
 			isc_mem_put(listener->mctx, secret.rstart,
 				    REGION_SIZE(secret));
-		}
-		else {
+		} else {
 			log_invalid(&conn->ccmsg, result);
 			goto cleanup;
 		}
