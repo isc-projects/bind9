@@ -1,7 +1,6 @@
-.\"
 .\" Copyright (C) 2000  Internet Software Consortium.
 .\"
-.\" Permission to use, copy, modify, and distribute this document for any
+.\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
 .\"
@@ -14,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.8,v 1.3 2000/07/12 02:07:32 gson Exp $
+.\" $Id: named.8,v 1.3.2.1 2000/08/21 20:41:17 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NAMED 8
@@ -22,7 +21,7 @@
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
 .Nm named
-.Nd Internet domain name server (DNS)
+.Nd Internet domain name server
 .Sh SYNOPSIS
 .Nm named
 .Op Fl c Ar config-file
@@ -35,35 +34,14 @@
 .Op Fl x Ar cache-file
 .Sh DESCRIPTION
 .Nm named
-is the ISC implementation of an Internet domain name server.
-See RFCs 1033, 1034, and 1035 for more information on the Internet
-domain name system.
-For historical reasons, the ISC's DNS software is known as BIND -
-Berkeley Internet Name Daemon - because it was originally
-supplied with BSD
-.Ux
-releases.
+is a Domain Name System (DNS) server, part of the BIND 9 distribution
+from ISC.  For more information on the DNS, see RFCs 1033, 1034, and 1035.
 .Pp
-Without any arguments,
+When invoked without arguments,
 .Nm named
 will read the default configuration file
 .Pa /etc/named.conf ,
 read any initial data, and listen for queries.
-It is also possible to use the BIND9 name server
-as a lightweight resolver server
-.Nm lwresd .
-However when operating as a lightweight resolver server,
-.Nm named
-is functionally and logically distinct from a
-conventional name server.
-More information can be found in 
-.Xr lwresd 8 .
-.Pp
-Although some command-line options can be used with
-.Nm named ,
-the name server's behaviour is mainly controlled by its configuration file, 
-.Pa /etc/named.conf .
-Refer to the BIND9 Administrator Reference Manual for further details.
 .Pp
 The options to
 .Nm named
@@ -90,7 +68,7 @@ run
 in the foreground and force all logging to
 .Dv stderr .
 .It Fl n
-create 
+create
 .Ar #cpus
 worker threads to take advantage of multiple CPUs.
 If no option is given,
@@ -116,6 +94,11 @@ tells
 to chroot() to
 .Ar directory
 immediately after reading its config file.
+This should be used in conjunction with the
+.Fl u
+option, as chrooting a process running as root doesn't 
+enhance security on most systems - the way chroot() is defined
+allows a process with root privileges to escape the chroot jail.
 .It Fl u
 run
 .Nm named
@@ -123,8 +106,18 @@ as UID
 .Ar user-id .
 .Nm named
 will change its UID after it has
-carried out any privileged operations, such as 
+carried out any privileged operations, such as
 creating sockets that listen on privileged ports.
+.Pp
+On Linux, 
+.Nm named
+uses the kernel's capability mechanism to drop
+all root privileges except the ability to bind() to a privileged
+port.  Unfortunately, this means that the "-u" option only works 
+when 
+.Nm named
+is run on 2.3.99-pre3 or later kernel, since previous
+kernels did not allow privileges to be retained after setuid().
 .It Fl x
 load data from
 .Ar cache-file .
@@ -164,8 +157,6 @@ default process-id file
 .Xr RFC1033 ,
 .Xr RFC1034 ,
 .Xr RFC1035 ,
-.Xr named.conf 5 ,
-.Xr zonefile 5 ,
 .Xr rndc 8 ,
 .Xr lwresd 8 ,
 BIND9 Administrator Reference Manual, June 2000.

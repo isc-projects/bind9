@@ -118,13 +118,10 @@ BIND 9.0.0rc3
 
 		On FreeBSD systems, the server logs error messages
 		like "fcntl(8, F_SETFL, 4): Inappropriate ioctl for
-		device".  This is due to a bug in the FreeSBD
+		device".  This is due to a bug in the FreeBSD
 		/dev/random device.  The bug has been reported
 		to the FreeBSD maintainers.  A similar problem is
 		reported to exist on OpenBSD.
-
-	If you are upgrading from BIND 8, please read the migration
-	notes in doc/misc/migration.
 
 
 Building
@@ -193,6 +190,24 @@ Building
 	bin/tests subdirectory.
 
 
+Documentation
+
+	The BIND 9 Administrator Reference Manual is included with the
+	source distribution in HTML and plain text format, in the
+	doc/arm directory.  A PDF version can be downloaded separately
+	at <http://www.nominum.com/resources/>.
+
+	Some of the programs in the BIND 9 distribution have man pages
+	under the doc/man directory.  In particular, the command line
+	options of "named" are documented in doc/man/bind/named.8.
+
+	The man pages are currently not installed automatically by
+	"make install".
+
+	If you are upgrading from BIND 8, please read the migration
+	notes in doc/misc/migration.
+
+
 Bug Reports and Mailing Lists
 
 	Bugs reports should be sent to
@@ -208,47 +223,4 @@ Bug Reports and Mailing Lists
 	Send mail to
 
 		bind9-workers-request@isc.org
-
-
-"named" command line options
-
-	-c <config_file>
-
-	-d <debug_level>
-
-	-f				Run in the foreground.
-
-	-g				Run in the foreground and log
-					to stderr, ignoring any "logging"
-					statement in in the config file.
-
-	-n <number_of_cpus>		
-
-	-t <directory>			Chroot to <directory> before running.
-
-	-u <username>			Run as user <username> after binding
-					to privileged ports.
-
-	Use of the "-t" option while still running as "root" doesn't
-	enhance security on most systems.  The way chroot() is defined
-	allows a process with root privileges to escape the chroot jail.
-
-	The "-u" option is not currently useful on Linux kernels older
-	than 2.3.99-pre3.  Linux threads are actually processes sharing a
-	common address space.  An unfortunate side effect of this is that
-	some system calls, e.g. setuid() that in a typical pthreads
-	environment would affect all threads only affect the calling
-	thread/process on Linux.  The good news is that BIND 9 uses the
-	Linux kernel's capability mechanism to drop all root powers except
-	the ability to bind() to a privileged port.  2.3.99-pre3 and later
-	kernels allow a process to say that its capabilities should be
-	retained after setuid().  If BIND 9 is compiled with 2.3.99-pre3 or
-	later kernel .h files, the "-u" option will cause the server to
-	run with the specified user id, but it will retain the capability
-	to bind() to privileged ports.
-
-	On systems with more than one CPU, the "-n" option should be used
-	to indicate how many CPUs there are.  If the "-n" option is not
-	provided, named will attempt to determine the number of available
-	CPUs and use all of them.
 
