@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.27 2001/01/09 23:55:17 bwelling Exp $
+# $Id: Makefile.in,v 1.28 2001/01/31 21:34:38 gson Exp $
 
 srcdir		= @srcdir@
 VPATH		= @srcdir@
@@ -50,30 +50,34 @@ TARGETS		= ${OBJS}
 
 @BIND9_MAKE_RULES@
 
-##confparser.c: confparser.y
-##	${YACC} -d ${srcdir}/confparser.y
-##	rm -f confparser.c confparser_p.h
-##	mv y.tab.c confparser.c
-##	mv y.tab.h confparser_p.h
+#ifndef NOMINUM_PUBLIC
+## This rule is here only for Nominum internal use.  The above "comment"
+## will cause the sanitizer to remove it.  The rule for building confparser.c
+## needs to be different from the release tree because the sanitized
+## confparser.y is in the object directory, not in ${srcdir}.
+confparser.y: confparser.y.dirty
+	${PERL} ${top_srcdir}/util/sanitize.pl -iNOMINUM_PUBLIC - \
+		< ${srcdir}/confparser.y.dirty > confparser.y
 
-## This rule is here during development to help debugging.
-## Remove and uncomment the rule above before release.
 confparser.c: confparser.y
-	${YACC} -d ${srcdir}/confparser.y
+	${YACC} -d confparser.y
 	rm -f confparser.c confparser_p.h
-	sed -e '/^\# *line/d' -e 's/^\(char \* *yy.*\[\]\)/const \1/' \
+	sed -e 's/^\(char \* *yy.*\[\]\)/const \1/' \
 	    -e 's/{ \(char \*t_name; int t_val; } yytoktype;\)/{ const \1/' \
 		< y.tab.c > confparser.c
 	rm -f y.tab.c
 	chmod a-w confparser.c
 	mv y.tab.h confparser_p.h
-
-#ifndef NOMINUM_PUBLIC
-## This rule is here only for Nominum internal use.  The above "comment"
-## will cause the sanitizer to remove it
-confparser.y: confparser.y.dirty
-	${PERL} ../../../util/sanitize.pl -iNOMINUM_PUBLIC - \
-		< confparser.y.dirty > confparser.y
+#else
+#+confparser.c: confparser.y
+#+	${YACC} -d ${srcdir}/confparser.y
+#+	rm -f confparser.c confparser_p.h
+#+	sed -e 's/^\(char \* *yy.*\[\]\)/const \1/' \
+#+	    -e 's/{ \(char \*t_name; int t_val; } yytoktype;\)/{ const \1/' \
+#+		< y.tab.c > confparser.c
+#+	rm -f y.tab.c
+#+	chmod a-w confparser.c
+#+	mv y.tab.h confparser_p.h
 #endif NOMINUM_PUBLIC
 
 depend: confparser.c
