@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.134 2001/03/30 18:02:34 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.135 2001/03/31 01:46:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/event.h>
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>
@@ -42,7 +43,6 @@
 #include <dns/diff.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
-#include <dns/journal.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/master.h>
@@ -1491,6 +1491,7 @@ main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
+	char *tempfile = NULL;
 	char *randomfile = NULL;
 	char *endp;
 	isc_time_t timer_start, timer_finish;
@@ -1500,11 +1501,10 @@ main(int argc, char *argv[]) {
 	isc_boolean_t pseudorandom = ISC_FALSE;
 	unsigned int eflags;
 	isc_boolean_t free_output = ISC_FALSE;
+	int tempfilelen;
 	dns_rdataclass_t rdclass;
 	isc_textregion_t r;
 	isc_task_t **tasks = NULL;
-
-
 
 	check_result(isc_app_start(), "isc_app_start");
 
@@ -1713,10 +1713,18 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
 
+	tempfilelen = strlen(output) + 20;
+	tempfile = isc_mem_get(mctx, tempfilelen);
+	if (tempfile == NULL)
+		fatal("out of memory");
+
+	result = isc_file_mktemplate(output, tempfile, tempfilelen);
+	check_result(result, "isc_file_mktemplate");
+
 	fp = NULL;
-	result = isc_stdio_open(output, "w", &fp);
+	result = isc_file_openunique(tempfile, &fp);
 	if (result != ISC_R_SUCCESS)
-		fatal("failed to open output file %s: %s", output,
+		fatal("failed to open temporary output file: %s",
 		      isc_result_totext(result));
 	print_time(fp);
 	print_version(fp);
@@ -1764,6 +1772,11 @@ main(int argc, char *argv[]) {
 	result = isc_stdio_close(fp);
 	check_result(result, "isc_stdio_close");
 
+	result = isc_file_rename(tempfile, output);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to rename temp file to %s: %s\n",
+		      output, isc_result_totext(result));
+
 	DESTROYLOCK(&namelock);
 	if (printstats)
 		DESTROYLOCK(&statslock);
@@ -1780,6 +1793,8 @@ main(int argc, char *argv[]) {
 		dst_key_free(&key->key);
 		isc_mem_put(mctx, key, sizeof(signer_key_t));
 	}
+
+	isc_mem_put(mctx, tempfile, tempfilelen);
 
 	if (free_output)
 		isc_mem_free(mctx, output);
