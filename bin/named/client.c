@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.132 2000/11/27 23:54:12 marka Exp $ */
+/* $Id: client.c,v 1.133 2000/12/02 02:07:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1555,7 +1555,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 #ifdef DNS_OPT_NEWCODES
 	client->opt_zone = NULL;
 	client->opt_view = NULL;
-#endif
+#endif /* DNS_OPT_NEWCODES */
 	client->next = NULL;
 	client->shutdown = NULL;
 	client->shutdown_arg = NULL;
