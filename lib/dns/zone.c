@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.97 2000/04/19 05:17:12 marka Exp $ */
+/* $Id: zone.c,v 1.98 2000/04/19 22:21:22 marka Exp $ */
 
 #include <config.h>
 
@@ -2527,9 +2527,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED) ||
 	    isc_serial_gt(serial, zone->serial)) {
  tcp_transfer:
-		dns_zone_transfer_in(zone);
 		isc_event_free(&event);
 		dns_request_destroy(&zone->request);
+		dns_zone_transfer_in(zone);
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
 		dns_zone_uptodate(zone);
 		goto next_master;
