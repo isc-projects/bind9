@@ -15,11 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.32 2001/03/16 22:52:37 bwelling Exp $ */
+/* $Id: dname_39.c,v 1.33 2001/04/27 21:02:00 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
-/* draft-ietf-dnsind-dname-02.txt */
+/* RFC2672 */
 
 #ifndef RDATA_GENERIC_DNAME_39_C
 #define RDATA_GENERIC_DNAME_39_C
