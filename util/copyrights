@@ -77,7 +77,6 @@
 ./lib/dns/include/dns/db.h			C	1999
 ./lib/dns/include/dns/master.h			C	1999
 ./lib/dns/include/dns/name.h			C	1998,1999
-./lib/dns/include/dns/namespace.h		C	1999
 ./lib/dns/include/dns/rbt.h			C	1999
 ./lib/dns/include/dns/rcode.h			C	1999
 ./lib/dns/include/dns/rdata.h			C	1998,1999
@@ -91,7 +90,6 @@
 ./lib/dns/include/dns/types.h			C	1998,1999
 ./lib/dns/master.c				C	1999
 ./lib/dns/name.c				C	1998,1999
-./lib/dns/namespace.c				C	1999
 ./lib/dns/rbt.c					C	1999
 ./lib/dns/rbtdb.c				C	1999
 ./lib/dns/rbtdb.h				C	1999
