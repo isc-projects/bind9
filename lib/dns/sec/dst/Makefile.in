@@ -31,11 +31,11 @@ LIBS =		@LIBS@
 
 # Alphabetically
 OBJS =		bsafe_link.@O@ dst_api.@O@ dst_parse.@O@ hmac_link.@O@ \
-		openssl_link.@O@ openssldh_link.@O@ opensslmd5_link.@O@ \
+		openssl_link.@O@ openssldh_link.@O@ \
 		dst_result.@O@ dst_support.@O@ dst_lib.@O@
 
 SRCS =		bsafe_link.c dst_api.c dst_parse.c hmac_link.c \
-		openssl_link.c openssldh_link.c opensslmd5_link.c \
+		openssl_link.c openssldh_link.c \
 		dst_result.c dst_support.c dst_lib.c
 
 SUBDIRS =	include

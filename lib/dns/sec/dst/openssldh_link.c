@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.20 2000/06/06 21:58:12 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.21 2000/06/07 17:22:29 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -537,7 +537,6 @@ static dst_func_t openssldh_functions = {
 	NULL, /* adddata */
 	NULL, /* openssldh_sign */
 	NULL, /* openssldh_verify */
-	NULL, /* digest */
 	openssldh_computesecret,
 	openssldh_compare,
 	openssldh_paramcompare,

@@ -27,10 +27,9 @@ typedef struct dst_context 	dst_context_t;
 #define DST_ALG_DH		2
 #define DST_ALG_DSA		3
 #define DST_ALG_HMACMD5		157
-#define DST_ALG_MD5		158
 #define DST_ALG_PRIVATE		254
 #define DST_ALG_EXPAND		255
-#define DST_MAX_ALGS		(DST_ALG_MD5 + 1)
+#define DST_MAX_ALGS		(DST_ALG_HMACMD5 + 1)
 
 /* A buffer of this size is large enough to hold any key */
 #define DST_KEY_MAXSIZE		1024
@@ -38,9 +37,6 @@ typedef struct dst_context 	dst_context_t;
 /* 'Type' for dst_read_key() */
 #define DST_TYPE_PRIVATE	0x2000000
 #define DST_TYPE_PUBLIC		0x4000000
-
-extern dst_key_t *dst_key_md5;
-#define DST_KEY_MD5		dst_key_md5
 
 /***
  *** Functions
@@ -83,7 +79,7 @@ dst_algorithm_supported(const unsigned int alg);
 isc_result_t
 dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp);
 /*
- * Creates a context to be used for a sign, verify, or digest operation.
+ * Creates a context to be used for a sign or verify operation.
  *
  * Requires:
  *	"key" is a valid key.
@@ -113,8 +109,8 @@ dst_context_destroy(dst_context_t **dctxp);
 isc_result_t
 dst_context_adddata(dst_context_t *dctx, const isc_region_t *data);
 /*
- * Incrementally adds data to the context to be used in a sign, verify, or
- * digest operation.
+ * Incrementally adds data to the context to be used in a sign or verify
+ * operation.
  *
  * Requires:
  * 	"dctx" is a valid context
@@ -159,23 +155,6 @@ dst_context_verify(dst_context_t *dctx, isc_region_t *sig);
  *
  * Ensures:
  *	"sig" will contain the signature
- */
-
-isc_result_t
-dst_context_digest(dst_context_t *dctx, isc_buffer_t *digest);
-/*
- * Digests the data stored in the context.
- *
- * Requires:
- * 	"dctx" is a valid context.
- *	"sig" is a valid buffer.
- *
- * Returns:
- * 	ISC_R_SUCCESS
- * 	all other errors indicate failure
- *
- * Ensures:
- *	"digest" will contain the digest
  */
 
 isc_result_t

@@ -43,7 +43,7 @@ CONFOBJS =	config/confacl.@O@ config/confcache.@O@ config/confcommon.@O@ \
 DSTOBJS =	sec/dst/bsafe_link.@O@ sec/dst/dst_api.@O@ \
 		sec/dst/dst_parse.@O@ sec/dst/hmac_link.@O@ \
 		sec/dst/openssl_link.@O@ sec/dst/openssldh_link.@O@ \
-		sec/dst/opensslmd5_link.@O@ sec/dst/dst_result.@O@ \
+		sec/dst/dst_result.@O@ \
 		sec/dst/dst_support.@O@ sec/dst/dst_lib.@O@
 
 OPENSSLOBJS =	sec/openssl/bn_add.@O@ sec/openssl/bn_asm.@O@ \

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.47 2000/06/06 21:58:04 bwelling Exp $
+ * $Id: dst_api.c,v 1.48 2000/06/07 17:22:23 bwelling Exp $
  */
 
 #include <config.h>
@@ -53,9 +53,6 @@
 
 #define VALID_KEY(x) ISC_MAGIC_VALID(x, KEY_MAGIC)
 #define VALID_CTX(x) ISC_MAGIC_VALID(x, CTX_MAGIC)
-
-static dst_key_t md5key;
-dst_key_t *dst_key_md5 = NULL;
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
 static isc_mem_t *dst_memory_pool = NULL;
@@ -100,7 +97,6 @@ dst_lib_destroy() {
 #ifdef OPENSSL
 	dst__openssldsa_destroy();
 	dst__openssldh_destroy();
-	dst__opensslmd5_destroy();
 #endif
 	isc_mem_detach(&dst_memory_pool);
 
@@ -193,19 +189,6 @@ dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
 		return (DST_R_NOTPUBLICKEY);
 
 	return (dctx->key->func->verify(dctx, sig));
-}
-
-isc_result_t
-dst_context_digest(dst_context_t *dctx, isc_buffer_t *digest) {
-	REQUIRE(VALID_CTX(dctx));
-	REQUIRE(digest != NULL);
-
-	if (dst_algorithm_supported(dctx->key->key_alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTEDALG);
-	if (dctx->key->func->digest == NULL)
-		return (DST_R_UNSUPPORTEDALG);
-
-	return (dctx->key->func->digest(dctx, digest));
 }
 
 isc_result_t
@@ -670,7 +653,6 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 			*n = 16;
 			break;
 		case DST_ALG_DH:
-		case DST_ALG_MD5:
 		default:
 			return (DST_R_UNSUPPORTEDALG);
 	}
@@ -690,7 +672,6 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 		case DST_ALG_RSA:
 		case DST_ALG_DSA:
 		case DST_ALG_HMACMD5:
-		case DST_ALG_MD5:
 		default:
 			return (DST_R_UNSUPPORTEDALG);
 	}
@@ -775,16 +756,6 @@ initialize(isc_mem_t *mctx) {
 #ifdef OPENSSL
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
-	RETERR(dst__opensslmd5_init(&dst_t_func[DST_ALG_MD5]));
-
-	memset(&md5key, 0, sizeof(dst_key_t));
-	md5key.magic = KEY_MAGIC;
-	md5key.key_name = NULL;
-	md5key.key_alg = DST_ALG_MD5;
-	md5key.mctx = dst_memory_pool;
-	md5key.opaque = NULL;
-	md5key.func = dst_t_func[DST_ALG_MD5];
-	dst_key_md5 = &md5key;
 
 	/*
 	 * Seed the random number generator, if necessary.

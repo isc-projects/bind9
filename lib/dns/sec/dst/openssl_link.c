@@ -19,13 +19,14 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.26 2000/06/06 21:58:11 bwelling Exp $
+ * $Id: openssl_link.c,v 1.27 2000/06/07 17:22:27 bwelling Exp $
  */
 #if defined(OPENSSL)
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/sha1.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -35,40 +36,37 @@
 #include "dst_parse.h"
 
 #include <openssl/dsa.h>
-#include <openssl/sha.h>
 
 static isc_result_t openssldsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
 openssldsa_createctx(dst_key_t *key, dst_context_t *dctx) {
-	SHA_CTX *ctx;
+	isc_sha1_t *sha1ctx;
 
 	UNUSED(key);
 
-	ctx = isc_mem_get(dctx->mctx, sizeof(SHA_CTX));
-	if (ctx == NULL)
-		return (ISC_R_NOMEMORY);
-	SHA1_Init(ctx);
-	dctx->opaque = ctx;
+	sha1ctx = isc_mem_get(dctx->mctx, sizeof(isc_sha1_t));
+	isc_sha1_init(sha1ctx);
+	dctx->opaque = sha1ctx;
 	return (ISC_R_SUCCESS);
 }
 
 static void
 openssldsa_destroyctx(dst_context_t *dctx) {
-	SHA_CTX *ctx = dctx->opaque;
+	isc_sha1_t *sha1ctx = dctx->opaque;
 
-	if (ctx != NULL) {
-		unsigned char digest[SHA_DIGEST_LENGTH];
-		SHA1_Final(digest, ctx);
-		isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
+	if (sha1ctx != NULL) {
+		isc_sha1_invalidate(sha1ctx);
+		isc_mem_put(dctx->mctx, sha1ctx, sizeof(isc_sha1_t));
+		dctx->opaque = NULL;
 	}
 }
 
 static isc_result_t
 openssldsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
-	SHA_CTX *ctx = dctx->opaque;
+	isc_sha1_t *sha1ctx = dctx->opaque;
 
-	SHA1_Update(ctx, data->base, data->length);
+	isc_sha1_update(sha1ctx, data->base, data->length);
 	return (ISC_R_SUCCESS);
 }
 	
@@ -83,69 +81,57 @@ BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size) {
 
 static isc_result_t
 openssldsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
-	isc_region_t r;
-	dst_key_t *key;
-	SHA_CTX *ctx;
-	DSA *dsa;
+	isc_sha1_t *sha1ctx = dctx->opaque;
+	dst_key_t *key = dctx->key;
+	DSA *dsa = key->opaque;
 	DSA_SIG *dsasig;
-	unsigned char digest[SHA_DIGEST_LENGTH];
+	isc_region_t r;
+	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
 
 	isc_buffer_availableregion(sig, &r);
-	if (r.length < SHA_DIGEST_LENGTH * 2 + 1)
+	if (r.length < ISC_SHA1_DIGESTLENGTH * 2 + 1)
 		return (ISC_R_NOSPACE);
 
-	ctx = dctx->opaque;
-	key = dctx->key;
-	dsa = key->opaque;
+	isc_sha1_final(sha1ctx, digest);
 
-	SHA1_Final(digest, ctx);
-	isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
-	dctx->opaque = NULL;
-
-	dsasig = DSA_do_sign(digest, SHA_DIGEST_LENGTH, dsa);
+	dsasig = DSA_do_sign(digest, ISC_SHA1_DIGESTLENGTH, dsa);
 	if (dsasig == NULL)
 		return (DST_R_SIGNFAILURE);
 
 	*r.base++ = (key->key_size - 512)/64;
-	BN_bn2bin_fixed(dsasig->r, r.base, SHA_DIGEST_LENGTH);
-	r.base += SHA_DIGEST_LENGTH;
-	BN_bn2bin_fixed(dsasig->s, r.base, SHA_DIGEST_LENGTH);
-	r.base += SHA_DIGEST_LENGTH;
+	BN_bn2bin_fixed(dsasig->r, r.base, ISC_SHA1_DIGESTLENGTH);
+	r.base += ISC_SHA1_DIGESTLENGTH;
+	BN_bn2bin_fixed(dsasig->s, r.base, ISC_SHA1_DIGESTLENGTH);
+	r.base += ISC_SHA1_DIGESTLENGTH;
 	DSA_SIG_free(dsasig);
-	isc_buffer_add(sig, SHA_DIGEST_LENGTH * 2 + 1);
+	isc_buffer_add(sig, ISC_SHA1_DIGESTLENGTH * 2 + 1);
 
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
 openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
-	int status = 0;
-	dst_key_t *key;
-	SHA_CTX *ctx;
-	DSA *dsa;
+	isc_sha1_t *sha1ctx = dctx->opaque;
+	dst_key_t *key = dctx->key;
+	DSA *dsa = key->opaque;
 	DSA_SIG *dsasig;
-	unsigned char digest[SHA_DIGEST_LENGTH];
+	int status = 0;
+	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
 	unsigned char *cp = sig->base;
 
-	ctx = dctx->opaque;
-	key = dctx->key;
-	dsa = key->opaque;
+	isc_sha1_final(sha1ctx, digest);
 
-	SHA1_Final(digest, ctx);
-	isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
-	dctx->opaque = NULL;
-
-	if (sig->length < 2 * SHA_DIGEST_LENGTH + 1)
+	if (sig->length < 2 * ISC_SHA1_DIGESTLENGTH + 1)
 		return (DST_R_VERIFYFAILURE);
 
 	cp++;	/* Skip T */
 	dsasig = DSA_SIG_new();
-	dsasig->r = BN_bin2bn(cp, SHA_DIGEST_LENGTH, NULL);
-	cp += SHA_DIGEST_LENGTH;
-	dsasig->s = BN_bin2bn(cp, SHA_DIGEST_LENGTH, NULL);
-	cp += SHA_DIGEST_LENGTH;
+	dsasig->r = BN_bin2bn(cp, ISC_SHA1_DIGESTLENGTH, NULL);
+	cp += ISC_SHA1_DIGESTLENGTH;
+	dsasig->s = BN_bin2bn(cp, ISC_SHA1_DIGESTLENGTH, NULL);
+	cp += ISC_SHA1_DIGESTLENGTH;
 
-	status = DSA_do_verify(digest, SHA_DIGEST_LENGTH, dsasig, dsa);
+	status = DSA_do_verify(digest, ISC_SHA1_DIGESTLENGTH, dsasig, dsa);
 	DSA_SIG_free(dsasig);
 	if (status == 0)
 		return (DST_R_VERIFYFAILURE);
@@ -187,7 +173,7 @@ static isc_result_t
 openssldsa_generate(dst_key_t *key, int unused) {
 	DSA *dsa;
 	unsigned char dns_array[DST_KEY_MAXSIZE];
-	unsigned char rand_array[SHA_DIGEST_LENGTH];
+	unsigned char rand_array[ISC_SHA1_DIGESTLENGTH];
 	isc_buffer_t dns, rand;
 	isc_result_t result;
 	isc_region_t r;
@@ -195,12 +181,12 @@ openssldsa_generate(dst_key_t *key, int unused) {
 	UNUSED(unused);
 
 	isc_buffer_init(&rand, rand_array, sizeof(rand_array));
-	result = dst_random_get(SHA_DIGEST_LENGTH, &rand);
+	result = dst_random_get(ISC_SHA1_DIGESTLENGTH, &rand);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	dsa = DSA_generate_parameters(key->key_size, rand_array,
-				      SHA_DIGEST_LENGTH, NULL, NULL,
+				      ISC_SHA1_DIGESTLENGTH, NULL, NULL,
 				      NULL, NULL);
 
 	if (dsa == NULL)
@@ -256,13 +242,13 @@ openssldsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		return (DST_R_INVALIDPUBLICKEY);
 	p_bytes = 64 + 8 * t;
 
-	dnslen = 1 + (key->key_size * 3)/8 + SHA_DIGEST_LENGTH;
+	dnslen = 1 + (key->key_size * 3)/8 + ISC_SHA1_DIGESTLENGTH;
 	if (r.length < (unsigned int) dnslen)
 		return (ISC_R_NOSPACE);
 
 	*r.base++ = t;
-	BN_bn2bin_fixed(dsa->q, r.base, SHA_DIGEST_LENGTH);
-	r.base += SHA_DIGEST_LENGTH;
+	BN_bn2bin_fixed(dsa->q, r.base, ISC_SHA1_DIGESTLENGTH);
+	r.base += ISC_SHA1_DIGESTLENGTH;
 	BN_bn2bin_fixed(dsa->p, r.base, key->key_size/8);
 	r.base += p_bytes;
 	BN_bn2bin_fixed(dsa->g, r.base, key->key_size/8);
@@ -299,13 +285,13 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	}
 	p_bytes = 64 + 8 * t;
 
-	if (r.length < 1 + SHA_DIGEST_LENGTH + 3 * p_bytes) {
+	if (r.length < 1 + ISC_SHA1_DIGESTLENGTH + 3 * p_bytes) {
 		DSA_free(dsa);
 		return (DST_R_INVALIDPUBLICKEY);
 	}
 
-	dsa->q = BN_bin2bn(r.base, SHA_DIGEST_LENGTH, NULL);
-	r.base += SHA_DIGEST_LENGTH;
+	dsa->q = BN_bin2bn(r.base, ISC_SHA1_DIGESTLENGTH, NULL);
+	r.base += ISC_SHA1_DIGESTLENGTH;
 
 	dsa->p = BN_bin2bn(r.base, p_bytes, NULL);
 	r.base += p_bytes;
@@ -317,10 +303,11 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	r.base += p_bytes;
 
 	isc_buffer_remainingregion(data, &r);
-	key->key_id = dst__id_calc(r.base, 1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
+	key->key_id = dst__id_calc(r.base, 1 + ISC_SHA1_DIGESTLENGTH +
+				   3 * p_bytes);
 	key->key_size = p_bytes * 8;
 
-	isc_buffer_forward(data, 1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
+	isc_buffer_forward(data, 1 + ISC_SHA1_DIGESTLENGTH + 3 * p_bytes);
 
 	key->opaque = (void *) dsa;
 
@@ -450,7 +437,6 @@ static dst_func_t openssldsa_functions = {
 	openssldsa_adddata,
 	openssldsa_sign,
 	openssldsa_verify,
-	NULL, /* digest */
 	NULL, /* computesecret */
 	openssldsa_compare,
 	NULL, /* paramcompare */

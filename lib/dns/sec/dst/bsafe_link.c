@@ -19,13 +19,14 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.26 2000/06/06 21:58:03 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.27 2000/06/07 17:22:22 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
 
 #include <config.h>
 
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -75,50 +76,46 @@ static isc_boolean_t dnssafersa_isprivate(const dst_key_t *key);
 
 static isc_result_t
 dnssafersa_createctx(dst_key_t *key, dst_context_t *dctx) {
-	dst_context_t *md5ctx = NULL;
-	isc_result_t result;
+	isc_md5_t *md5ctx;
 
 	UNUSED(key);
 
-	result = dst_context_create(DST_KEY_MD5, dctx->mctx, &md5ctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
+	md5ctx = isc_mem_get(dctx->mctx, sizeof(isc_md5_t));
+	isc_md5_init(md5ctx);
 	dctx->opaque = md5ctx;
 	return (ISC_R_SUCCESS);
 }
 
 static void
 dnssafersa_destroyctx(dst_context_t *dctx) {
-	dst_context_t *md5ctx = dctx->opaque;
+	isc_md5_t *md5ctx = dctx->opaque;
 
-	if (md5ctx != NULL)
-		dst_context_destroy(&md5ctx);
+	if (md5ctx != NULL) {
+		isc_md5_invalidate(md5ctx);
+		isc_mem_put(dctx->mctx, md5ctx, sizeof(isc_md5_t));
+		dctx->opaque = NULL;
+	}
 }
 
 static isc_result_t
 dnssafersa_adddata(dst_context_t *dctx, const isc_region_t *data) {
-	dst_context_t *md5ctx = dctx->opaque;
+	isc_md5_t *md5ctx = dctx->opaque;
 
-	return (dst_context_adddata(md5ctx, data));
+	isc_md5_update(md5ctx, data->base, data->length);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
 dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
-	dst_context_t *md5ctx = dctx->opaque;
-	unsigned char digest_array[DNS_SIG_RSAMAXSIZE];
-	isc_buffer_t digestbuf;
+	isc_md5_t *md5ctx = dctx->opaque;
+	unsigned char digest[ISC_MD5_DIGESTLENGTH];
 	isc_region_t sig_region;
 	dst_key_t *key = dctx->key;
 	RSA_Key *rkey = key->opaque;
 	B_ALGORITHM_OBJ rsaEncryptor = (B_ALGORITHM_OBJ)NULL_PTR;
 	unsigned int written = 0;
-	isc_result_t result;
 
-	isc_buffer_init(&digestbuf, digest_array, sizeof(digest_array));
-	result = dst_context_digest(md5ctx, &digestbuf);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_md5_final(md5ctx, digest);
 
 	isc_buffer_availableregion(sig, &sig_region);
 	if (sig_region.length * 8 < (unsigned int) key->key_size)
@@ -150,9 +147,8 @@ dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	if (B_EncryptUpdate(rsaEncryptor, sig_region.base, &written,
-			    sig_region.length, isc_buffer_base(&digestbuf),
-			    isc_buffer_usedlength(&digestbuf), NULL_PTR,
-			    NULL_SURRENDER) != 0)
+			    sig_region.length, digest, sizeof(digest),
+			    NULL_PTR, NULL_SURRENDER) != 0)
 		goto finalfail;
 
 	if (written > 0) {
@@ -179,9 +175,8 @@ dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 static isc_result_t
 dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
-	dst_context_t *md5ctx = dctx->opaque;
-	unsigned char digest_array[DST_HASH_SIZE];
-	isc_buffer_t digestbuf;
+	isc_md5_t *md5ctx = dctx->opaque;
+	unsigned char digest[ISC_MD5_DIGESTLENGTH];
 	unsigned char work_area[DST_HASH_SIZE + sizeof(pkcs1)];
 	isc_buffer_t work;
 	isc_region_t work_region;
@@ -189,12 +184,8 @@ dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	RSA_Key *rkey = key->opaque;
 	B_ALGORITHM_OBJ rsaEncryptor = (B_ALGORITHM_OBJ) NULL_PTR;
 	unsigned int written = 0;
-	isc_result_t result;
 
-	isc_buffer_init(&digestbuf, digest_array, sizeof(digest_array));
-	result = dst_context_digest(md5ctx, &digestbuf);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_md5_final(md5ctx, digest);
 
 	if (B_CreateAlgorithmObject(&rsaEncryptor) != 0)
 		return (ISC_R_NOMEMORY);
@@ -229,9 +220,9 @@ dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	/*
 	 * Skip PKCS#1 header in output from Decrypt function.
 	 */
-	if (memcmp(isc_buffer_base(&digestbuf),
+	if (memcmp(digest,
 		   (char *)isc_buffer_base(&work) + sizeof(pkcs1),
-		   isc_buffer_usedlength(&digestbuf)) == 0)
+		   sizeof(digest)) == 0)
 		return (ISC_R_SUCCESS);
 	else
 		return (DST_R_VERIFYFAILURE);
@@ -797,7 +788,6 @@ static dst_func_t dnssafersa_functions = {
 	dnssafersa_adddata,
 	dnssafersa_sign,
 	dnssafersa_verify,
-	NULL, /* digest */
 	NULL, /* computesecret */
 	dnssafersa_compare,
 	NULL, /* paramcompare */
