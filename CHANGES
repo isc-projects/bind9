@@ -1,4 +1,7 @@
 
+ 905.	[bug]		Configuring a forward "zone" for the root domain
+			did not work. [RT #1418]
+
  904.	[bug]		The server would leak memory if attempting to use
  			an expired TSIG key. [RT #1406]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.330 2001/06/04 21:51:24 bwelling Exp $ */
+/* $Id: server.c,v 1.331 2001/06/18 20:03:48 gson Exp $ */
 
 #include <config.h>
 
@@ -645,14 +645,16 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
 	
 	/*
-	 * Set resolver forwarding policy.
+	 * A global or view "forwarders" option, if present,
+	 * creates an entry for "." in the forwarding table.
 	 */
 	forwardtype = NULL;
 	forwarders = NULL;
 	(void)ns_config_get(maps, "forward", &forwardtype);
 	(void)ns_config_get(maps, "forwarders", &forwarders);
-	CHECK(configure_forward(config, view, dns_rootname, forwarders,
-				forwardtype));
+	if (forwarders != NULL)
+		CHECK(configure_forward(config, view, dns_rootname, 
+					forwarders, forwardtype));
 
 	/*
 	 * We have default hints for class IN if we need them.
