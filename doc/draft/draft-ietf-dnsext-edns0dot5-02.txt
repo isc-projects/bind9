@@ -5,10 +5,10 @@
 
 
 Network Working Group                                         R. Austein
-draft-ietf-dnsext-edns0dot5-01.txt               InterNetShare.com, Inc.
+draft-ietf-dnsext-edns0dot5-02.txt               InterNetShare.com, Inc.
                                                            H. Alvestrand
-                                                          EDB MaXware AS
-                                                               July 2000
+                                                           Cisco Systems
+                                                           November 2000
 
 
          A Proposed Enhancement to the EDNS0 Version Mechanism
@@ -55,12 +55,12 @@ Motivation and Scope
 
 
 
-Austein & Alvestrand     Expires 15 January 2001                [Page 1]
+Austein & Alvestrand       Expires 22 May 2001                  [Page 1]
 
-draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
+draft-ietf-dnsext-edns0dot5-02.txt                         November 2000
 
 
-   This note proposes to replace the monolithic version numbering
+   This note proposes to augument the monolithic version numbering
    mechanism with a mechanism for listing an explicit set of protocol
    features that a particular implementation supports.  We retain
    version numbering as a way of abbreviating the feature sets that we
@@ -68,8 +68,8 @@ draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
 
 Model
 
-   Our revised extension model for EDNS0 is designed with three goals in
-   mind:
+   Our revised extension model for the DNS is designed with three goals
+   in mind:
 
    - We want the protocol to be as simple as possible for the common
      case of a client or server that implements "mainstream standard
@@ -111,9 +111,9 @@ Model
 
 
 
-Austein & Alvestrand     Expires 15 January 2001                [Page 2]
+Austein & Alvestrand       Expires 22 May 2001                  [Page 2]
 
-draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
+draft-ietf-dnsext-edns0dot5-02.txt                         November 2000
 
 
    process, any significantly changed Internet-Draft should have a new
@@ -135,8 +135,8 @@ draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
 
 Mechanism
 
-   We propose to transport explicit feature sets as lists of integers
-   carried in the variable RDATA portion of the EDNS0 OPT pseudo-RR.
+   We transport explicit feature sets as lists of integers carried in
+   the variable RDATA portion of the EDNS0 OPT pseudo-RR.
 
    The OPTION-CODE for FEATURES is [TBD].
 
@@ -167,9 +167,9 @@ Usage
 
 
 
-Austein & Alvestrand     Expires 15 January 2001                [Page 3]
+Austein & Alvestrand       Expires 22 May 2001                  [Page 3]
 
-draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
+draft-ietf-dnsext-edns0dot5-02.txt                         November 2000
 
 
    In general, we expect that a client or server will include an OPT
@@ -223,9 +223,9 @@ Risks
 
 
 
-Austein & Alvestrand     Expires 15 January 2001                [Page 4]
+Austein & Alvestrand       Expires 22 May 2001                  [Page 4]
 
-draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
+draft-ietf-dnsext-edns0dot5-02.txt                         November 2000
 
 
    A flexible extension mechanism of this type increases the risk that
@@ -279,9 +279,9 @@ References
 
 
 
-Austein & Alvestrand     Expires 15 January 2001                [Page 5]
+Austein & Alvestrand       Expires 22 May 2001                  [Page 5]
 
-draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
+draft-ietf-dnsext-edns0dot5-02.txt                         November 2000
 
 
 Author's addresses:
@@ -295,12 +295,12 @@ Author's addresses:
       sra@hactrn.net
 
       Harald Tveit Alvestrand
-      EDB MaXware AS
-      Pirsenteret
-      N-7486 Trondheim
+      Cisco Systems
+      Weidemanns vei 27
+      N-7043 Trondheim
       NORWAY
 
-      +47 73 54 57 97
+      +47 73 50 33 52
       Harald@Alvestrand.no
 
 
@@ -335,4 +335,4 @@ Author's addresses:
 
 
 
-Austein & Alvestrand     Expires 15 January 2001                [Page 6]
+Austein & Alvestrand       Expires 22 May 2001                  [Page 6]
