@@ -1,28 +1,10 @@
-/*
- * Copyright (C) 2000  Internet Software Consortium.
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
- * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
-/* $Id: dirdb.c,v 1.2 2000/11/17 22:01:41 bwelling Exp $ */
-
 #include <config.h>
 
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/sysmacros.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -79,11 +61,14 @@ dirdb_lookup(const char *zone, const char *name, void *dbdata,
 	
 	if (S_ISDIR(statbuf.st_mode))
 		CHECK(dns_sdb_putrr(lookup, "txt", 3600, "dir"));
-	else if (S_ISCHR(statbuf.st_mode))
-		CHECK(dns_sdb_putrr(lookup, "txt", 3600, "chrdev"));
-	else if (S_ISBLK(statbuf.st_mode))
-		CHECK(dns_sdb_putrr(lookup, "txt", 3600, "blkdev"));
-	else if (S_ISFIFO(statbuf.st_mode))
+	else if (S_ISCHR(statbuf.st_mode) || S_ISBLK(statbuf.st_mode)) {
+		CHECKN(snprintf(buf, sizeof(buf),
+				"\"%sdev\" \"major %d\" \"minor %d\"",
+				S_ISCHR(statbuf.st_mode) ? "chr" : "blk",
+				major(statbuf.st_rdev),
+				minor(statbuf.st_rdev)));
+		CHECK(dns_sdb_putrr(lookup, "txt", 3600, buf));
+	} else if (S_ISFIFO(statbuf.st_mode))
 		CHECK(dns_sdb_putrr(lookup, "txt", 3600, "pipe"));
 	else if (S_ISSOCK(statbuf.st_mode))
 		CHECK(dns_sdb_putrr(lookup, "txt", 3600, "socket"));
