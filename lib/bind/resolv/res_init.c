@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.4 2001/05/21 14:31:31 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.5 2001/05/28 06:36:15 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -193,6 +193,9 @@ __res_vinit(res_state statp, int preinit) {
 		strcpy(statp->_u._ext.ext->bsuffix, "ip6.arpa");
 	    }
 	}
+#ifdef RESOLVSORT
+	statp->nsort = 0;
+#endif
 
 	/* Allow user to override the local domain definition */
 	if ((cp = getenv("LOCALDOMAIN")) != NULL) {
