@@ -1,3 +1,6 @@
+
+	--- 9.2.1rc1 released ---
+
 1196.	[contrib]	update mdnkit to 2.2.3.
 
 1195.	[bug]		Attempts to redefine builtin acls should be caught.
