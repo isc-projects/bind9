@@ -497,6 +497,39 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2);
  *	FALSE		'name1' is not a subdomain of 'name2'
  */
 
+isc_boolean_t
+dns_name_matcheswildcard(dns_name_t *name, dns_name_t *wname);
+/*
+ * Does 'name' match the wildcard specified in 'wname'?
+ *
+ * Notes:
+ *	name matches the wildcard specified in wname if all labels
+ *	following the wildcard in wname are identical to the same number
+ *	of labels at the end of name.
+ *
+ *	It makes no sense for one of the names to be relative and the
+ *	other absolute.  If both names are relative, then to be meaningfully
+ *	compared the caller must ensure that they are both relative to the
+ *	same domain.
+ *
+ * Requires:
+ *	'name' is a valid name
+ *
+ *	dns_name_countlabels(name) > 0
+ *
+ *	'wname' is a valid name
+ *
+ *	dns_name_countlabels(wname) > 0
+ *
+ *	dns_name_iswildcard(wname) is true
+ *
+ *	Either name is absolute and wname is absolute, or neither is.
+ *
+ * Returns:
+ *	TRUE		'name' matches the wildcard specified in 'wname'
+ *	FALSE		'name' does not match the wildcard specified in 'wname'
+ */
+
 
 /***
  *** Labels

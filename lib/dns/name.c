@@ -820,6 +820,22 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	return (ISC_FALSE);
 }
 
+isc_boolean_t
+dns_name_matcheswildcard(dns_name_t *name, dns_name_t *wname) {
+	unsigned int labels;
+	dns_name_t tname;
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(dns_name_countlabels(name) > 0);
+	REQUIRE(VALID_NAME(wname));
+	REQUIRE((labels = dns_name_countlabels(wname)) > 0);
+	REQUIRE(dns_name_iswildcard(wname));
+
+	dns_name_init(&tname, NULL);
+	dns_name_getlabelsequence(wname, 1, labels - 1, &tname);
+	return (dns_name_issubdomain(name, &tname));
+}
+
 unsigned int
 dns_name_countlabels(dns_name_t *name) {
 	/*
