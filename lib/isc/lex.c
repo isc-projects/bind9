@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.66.2.6.2.2 2003/08/11 05:28:20 marka Exp $ */
+/* $Id: lex.c,v 1.66.2.6.2.3 2003/08/13 06:13:02 marka Exp $ */
 
 #include <config.h>
 
@@ -871,7 +871,7 @@ isc_lex_getsourcename(isc_lex_t *lex) {
 	source = HEAD(lex->sources);
 
 	if (source == NULL)
-		return(NULL);
+		return (NULL);
 
 	return (source->name);
 }
@@ -884,9 +884,28 @@ isc_lex_getsourceline(isc_lex_t *lex) {
 	source = HEAD(lex->sources);
 
 	if (source == NULL)
-		return(0);
+		return (0);
 
 	return (source->line);
+}
+
+
+isc_result_t
+isc_lex_setsourcename(isc_lex_t *lex, const char *name) {
+	inputsource *source;
+	char *newname;
+
+	REQUIRE(VALID_LEX(lex));
+	source = HEAD(lex->sources);
+
+	if (source == NULL)
+		return(ISC_R_NOTFOUND);
+	newname = isc_mem_strdup(lex->mctx, name);
+	if (newname == NULL)
+		return (ISC_R_NOMEMORY);
+	isc_mem_free(lex->mctx, source->name);
+	source->name = newname;
+	return (ISC_R_SUCCESS);
 }
 
 isc_boolean_t
