@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.21 2004/05/17 03:02:23 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.22 2004/06/18 01:16:04 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1846,11 +1846,13 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	switch (type) {
 	case isc_sockettype_udp:
 		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
-		result = connection_reset_fix(sock->fd);
-		if (result != ISC_R_SUCCESS) {
-			closesocket(sock->fd);
-			free_socket(&sock);
-			return (result);
+		if (sock->fd != INVALID_SOCKET) {
+			result = connection_reset_fix(sock->fd);
+			if (result != ISC_R_SUCCESS) {
+				closesocket(sock->fd);
+				free_socket(&sock);
+				return (result);
+			}
 		}
 		break;
 	case isc_sockettype_tcp:

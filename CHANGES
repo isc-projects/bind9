@@ -1,3 +1,5 @@
+1660.	[bug]		win32: connection_reset_fix() was being called
+			unconditionally.  [RT #11595]
 
 	--- 9.2.4rc5 released ---
 
