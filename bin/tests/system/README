@@ -17,15 +17,16 @@ configuration data.  By convention, these subdirectories are named
 "ns1", "ns2", etc.
 
 The tests are completely self-contained and do not require access to
-the real DNS.  One of the test servers (ns1) is set up as a root
-name server and is listed in the hints file of the others.
+the real DNS.  Generally, one of the test servers (ns1) is set up as a
+root name server and is listed in the hints file of the others.
 
 To enable all servers to run on the same machine, they bind to
 separate virtual IP address on the loopback interface.  ns1 runs on
 10.53.0.1, ns2 on 10.53.0.2, etc.  Before running any tests, you must
-set up these addresses by running the script "ifconfig.sh".
+set up these addresses by running the script "ifconfig.sh start".
 
-Because the servers run on port 53, the tests must be run as root.
+The servers do not bind to port 53, so can be run as a normal user once the
+interfaces are set up.
 
 To run the tests:
 
@@ -35,8 +36,4 @@ To run the tests:
 
   etc.
 
-To clean up files left behind by the tests:
-
-  sh clean.sh
-
-$Id: README,v 1.4 2000/06/08 18:18:23 gson Exp $
+$Id: README,v 1.5 2000/06/09 19:51:10 mws Exp $
