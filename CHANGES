@@ -45,7 +45,8 @@
 
 1810.	[placeholder]	rt13212
 
-1809.	[placeholder]	rt13463
+1809.	[bug]		"make distclean" failed for libbind if the platform
+			is not supported.
 
 1808.	[bug]		zone.c:notify_zone() contained a race condition,
 			zone->db could change underneath it.  [RT #13511]
