@@ -990,7 +990,20 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	result = DNS_R_CONTINUE;
 
 	LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
-	
+
+	/*
+	 * Special-case handling for wildcards of the form *.<zone_origin>.
+	 *
+	 * If we don't do special handling here, we will erroneously treat
+	 * the NS records at the zone top as a zonecut, and will return a
+	 * delegation instead of matching the wildcard.
+	 */
+	if (node == search->rbtdb->origin_node) {
+		if (node->wild && (search->options & DNS_DBFIND_NOWILD) == 0)
+			search->wild = ISC_TRUE;
+		goto unlock;
+	}
+
 	/*
 	 * Look for an NS or DNAME rdataset active in our version.
 	 */
@@ -1088,6 +1101,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			search->wild = ISC_TRUE;
 	}
 
+ unlock:
 	UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 
 	return (result);
@@ -2048,17 +2062,18 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 }
 
 static inline dns_result_t
-find_deepest_zonecut(rbtdb_search_t *search, dns_dbnode_t **nodep,
-		     dns_name_t *foundname, dns_rdataset_t *rdataset,
-		     dns_rdataset_t *sigrdataset)
+find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
+		     dns_dbnode_t **nodep, dns_name_t *foundname,
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	unsigned int i;
-	dns_rbtnode_t *node, *level_node;
+	dns_rbtnode_t *level_node;
 	rdatasetheader_t *header, *header_prev, *header_next;
 	rdatasetheader_t *found, *foundsig;
 	dns_result_t result = DNS_R_NOTFOUND;
 	dns_name_t name;
 	dns_rbtdb_t *rbtdb;
+	isc_boolean_t done;
 
 	/*
 	 * Caller must be holding the tree lock.
@@ -2066,10 +2081,8 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_dbnode_t **nodep,
 
 	rbtdb = search->rbtdb;
 	i = search->chain.level_matches;
-	while (i > 0) {
-		i--;
-		node = search->chain.levels[i];
-
+	done = ISC_FALSE;
+	do {
 		LOCK(&(rbtdb->node_locks[node->locknum].lock));
 		
 		/*
@@ -2172,9 +2185,13 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	node_exit:
 		UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 
-		if (found != NULL)
-			break;
-	}
+		if (found == NULL && i > 0) {
+			i--;
+			node = search->chain.levels[i];
+		} else
+			done = ISC_TRUE;
+
+	} while (!done);
 
 	return (result);
 }
@@ -2241,7 +2258,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		    goto tree_exit;
 		} else {
 		find_ns:
-			result = find_deepest_zonecut(&search, nodep,
+			result = find_deepest_zonecut(&search, node, nodep,
 						      foundname, rdataset,
 						      sigrdataset);
 			goto tree_exit;
@@ -2867,6 +2884,9 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 */
 		if (rbtversion == NULL && newheader->trust < header->trust) {
 			free_rdataset(rbtdb->common.mctx, newheader);
+			if (addedrdataset != NULL)
+				bind_rdataset(rbtdb, rbtnode, header, now,
+					      addedrdataset);
 			return (DNS_R_UNCHANGED);
 		}
 			
@@ -2998,11 +3018,13 @@ static inline isc_boolean_t
 delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		rbtdb_rdatatype_t type)
 {
-	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0 &&
-	    type == dns_rdatatype_dname)
-		return (ISC_TRUE);
-	else if (type == dns_rdatatype_dname ||
-		 (type == dns_rdatatype_ns && node != rbtdb->origin_node))
+	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0) {
+		if (type == dns_rdatatype_dname)
+			return (ISC_TRUE);
+		else
+			return (ISC_FALSE);
+	} else if (type == dns_rdatatype_dname ||
+		   (type == dns_rdatatype_ns && node != rbtdb->origin_node))
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
