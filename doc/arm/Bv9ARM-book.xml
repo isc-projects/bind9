@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.17 2000/10/18 18:27:46 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.18 2000/10/19 17:15:24 gson Exp $ -->
 
 <book>
 
@@ -3555,7 +3555,7 @@ tens or hundreds of thousands) of zones per server, it is best to
 use a two level naming scheme for zone file names. For example,
 a slave server for the zone <systemitem class="systemname">example.com</systemitem> might place
 the zone contents into a file called
-<filename>ex/example.com</filename> where <filename>ex/ </filename>is
+<filename>ex/example.com</filename> where <filename>ex/</filename> is
 just the first two letters of the zone name. (Most operating systems
 behave very slowly if you put 100K files into a single directory.)</para></entry>
 </row>
