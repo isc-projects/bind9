@@ -15,6 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.2 2001/01/09 21:57:48 bwelling Exp $ */
+/* $Id: condition.c,v 1.3 2001/04/12 22:26:40 tale Exp $ */
 
-/* This file intentionally left blank. */
+/*
+ * This file intentionally left blank.  The useless static variable below
+ * stops some compilers from complaining about an empty file.
+ */
+static int isc_condition_file_not_used;
