@@ -24,13 +24,14 @@ SYSTEMTESTTOP=.
 
 test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
 
+test -d "$1" || { echo No test directory: "$1";  exit 1; }
 cd $1
 
 for d in ns*
 do
     (
         cd $d
-	rm -f *.jnl *.bk named.run &&
+	rm -f *.jnl *.bk *.st named.run &&
 	if test -f named.pid
 	then
 	    if kill -0 `cat named.pid` 2>/dev/null
