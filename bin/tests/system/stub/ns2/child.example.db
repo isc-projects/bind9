@@ -1,0 +1,11 @@
+$TTL 300	; 5 minutes
+child.example.		IN SOA	ns2.child.example. hostmaster.child.example. (
+				2000042795 ; serial
+				20         ; refresh (20 seconds)
+				20         ; retry (20 seconds)
+				1814400    ; expire (3 weeks)
+				3600       ; minimum (1 hour)
+				)
+child.example.		NS	ns2.child.example.
+ns2.child.example.	A	10.53.0.2
+data			TXT     some test data

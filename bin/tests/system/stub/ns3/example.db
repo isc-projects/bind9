@@ -1,0 +1,11 @@
+$ORIGIN .
+$TTL 300	; 5 minutes
+example			IN SOA	ns3.example. hostmaster.example. (
+				2000042795 ; serial
+				20         ; refresh (20 seconds)
+				20         ; retry (20 seconds)
+				1814400    ; expire (3 weeks)
+				3600       ; minimum (1 hour)
+				)
+example.		NS	ns3.example.
+ns3.example.		A	10.53.0.3
