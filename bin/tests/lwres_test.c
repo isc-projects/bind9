@@ -33,6 +33,8 @@
 #include <lwres/lwres.h>
 #include <lwres/lwpacket.h>
 
+#define USE_ISC_MEM
+
 static inline void
 CHECK(int val, char *msg)
 {
@@ -207,6 +209,7 @@ test_gnba(void)
 	lwres_gnbaresponse_free(ctx, &res);
 }
 
+#ifdef USE_ISC_MEM
 /*
  * Wrappers around our memory management stuff, for the lwres functions.
  */
@@ -221,23 +224,32 @@ mem_free(void *arg, void *mem, size_t size)
 {
 	isc_mem_put(arg, mem, size);
 }
+#endif
 
 int
 main(int argc, char *argv[])
 {
 	int ret;
+#ifdef USE_ISC_MEM
 	isc_mem_t *mem;
 	isc_result_t result;
+#endif
 
 	(void)argc;
 	(void)argv;
 
+#ifdef USE_ISC_MEM
 	mem = NULL;
 	result = isc_mem_create(0, 0, &mem);
 	INSIST(result == ISC_R_SUCCESS);
+#endif
 
 	ctx = NULL;
+#ifdef USE_ISC_MEM
 	ret = lwres_context_create(&ctx, mem, mem_alloc, mem_free);
+#else
+	ret = lwres_context_create(&ctx, NULL, NULL, NULL);
+#endif
 	CHECK(ret, "lwres_context_create");
 
 	test_noop();
@@ -246,8 +258,10 @@ main(int argc, char *argv[])
 
 	lwres_context_destroy(&ctx);
 
+#ifdef USE_ISC_MEM
 	isc_mem_stats(mem, stdout);
 	isc_mem_destroy(&mem);
+#endif
 
 	return (0);
 }
