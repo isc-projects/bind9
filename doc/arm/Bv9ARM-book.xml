@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.33 2000/11/08 03:53:07 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.34 2000/11/09 19:31:16 gson Exp $ -->
 
 <book>
 
@@ -3305,7 +3305,7 @@ their directly connected networks.</para>
 };</programlisting>
 <para>The following example will give reasonable behavior for the
 local host and hosts on directly connected networks. It is similar
-to the behavior of the address sort in <acronym>BIND</acronym> 8.x. Responses sent
+to the behavior of the address sort in <acronym>BIND</acronym> 4.9.x. Responses sent
 to queries from the local host will favor any of the directly connected
 networks. Responses sent to queries from any other hosts on a directly
 connected network will prefer addresses on that same network. Responses
