@@ -6,24 +6,21 @@
 
 INTERNET-DRAFT                                                  D. Senie
 Category: BCP                                     Amaranth Networks Inc.
-Expires in six months                                          July 2001
+Expires in six months                                         March 2002
 
                      Requiring DNS IN-ADDR Mapping
-               draft-ietf-dnsop-inaddr-required-02.txt.
-
-
+              draft-ietf-dnsop-inaddr-required-03.txt 
 
 Status of this Memo
 
 
-   This draft, file name draft-ietf-dnsop-inaddr-required-00.txt, is
-   intended to be become a Best Current Practice RFC.  Distribution of
-   this document is unlimited. Comments should be sent to the Domain
-   Name Server Operations working group mailing list <dnsop@cafax.se> or
-   to the author.
+   This draft, is intended to be become a Best Current Practice RFC.
+   Distribution of this document is unlimited. Comments should be sent
+   to the Domain Name Server Operations working group mailing list
+   <dnsop@cafax.se> or to the author.
 
    This document is an Internet-Draft and is in full conformance with
-   all provisions of Section 10 of RFC2026.
+   all provisions of Section 10 of [RFC2026].
 
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF), its areas, and its working groups. Note that other
@@ -34,16 +31,20 @@ Status of this Memo
    time. It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-     The list of current Internet-Drafts can be accessed at
-     http://www.ietf.org/1id-abstracts.html
-
-     The list of Internet-Draft Shadow Directories can be accessed at
-     http://www.ietf.org/shadow.html.
-
+   To view the list Internet-Draft Shadow Directories, see
+   http://www.ietf.org/shadow.html.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2000,2001). All Rights Reserved.
+   Copyright (C) The Internet Society (2000-2002). All Rights Reserved.
+
+Abstract
+
+   Mapping of addresses to names has been a feature of DNS. Many sites,
+   implement it, many others don't. Some applications attempt to use it
+   as a part of a security strategy. The goal of this document is to
+   encourage proper deployment of address to name mappings, and provide
+   guidance for their use.
 
 1. Introduction
 
@@ -52,13 +53,6 @@ Copyright Notice
    address, and address to name mappings are provided for networks. This
    practice, while documented, has never been documented as a
    requirement placed upon those who control address blocks. This
-   document fills this gap.
-
-   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in RFC 2119.
-
-2. Discussion
 
 
 
@@ -68,8 +62,16 @@ Senie                                                           [Page 1]
 
 
 
-Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
+Internet-Draft        Requiring DNS IN-ADDR Mapping           March 2002
 
+
+   document fills this gap.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
+
+2. Discussion
 
    From the early days of the Domain Name Service [RFC 883] a special
    domain has been set aside for resolving mappings of IP addresses to
@@ -81,8 +83,9 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
    [RFC2050], which requires regional registries to maintain IN-ADDR
    records on the large blocks of space issued to ISPs and others.
 
-   ARIN's policy only requires ISPs to maintain IN-ADDR if they have a
-   /16 or larger allocation [ARIN]. APNIC indicates in their policy
+   ARIN's policy requires ISPs to maintain IN-ADDR for /16 or larger
+   allocations. For smaller allocations, ARIN can provide IN-ADDR for
+   /24 and shorter prefixes. [ARIN].  APNIC indicates in their policy
    document [APNIC] that those to whom they allocate blocks, and those
    further downstream SHOULD maintain IN-ADDR records. RIPE appears to
    have the strongest policy in this area [ripe-185] indicating Local
@@ -111,15 +114,6 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
    it maps back to the address originally known. Failure to resolve
    matching names is seen as a potential security concern.
 
-   Some popular FTP sites will flat-out reject users, even for anonymous
-   FTP, if the IN-ADDR lookup fails or if the result of the IN-ADDR
-   lookup when itself resolved, does not match. Some Telnet servers also
-   implement this check.
-
-   Web sites are in some cases using IN-ADDR checks to verify whether
-   the client is located within a certain geopolitical entity. This is
-   being employed for downloads of crypto software, for example, where
-
 
 
 Senie                                                           [Page 2]
@@ -128,9 +122,17 @@ Senie                                                           [Page 2]
 
 
 
-Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
+Internet-Draft        Requiring DNS IN-ADDR Mapping           March 2002
 
 
+   Some popular FTP sites will flat-out reject users, even for anonymous
+   FTP, if the IN-ADDR lookup fails or if the result of the IN-ADDR
+   lookup when itself resolved, does not match. Some Telnet servers also
+   implement this check.
+
+   Web sites are in some cases using IN-ADDR checks to verify whether
+   the client is located within a certain geopolitical entity. This is
+   being employed for downloads of crypto software, for example, where
    export of that software is prohibited to some locales.  Credit card
    anti-fraud systems also use these methods for geographic placement
    purposes.
@@ -154,7 +156,7 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
    Traceroutes with descriptive IN-ADDR naming proves useful when
    debugging problems spanning large areas. When this information is
    missing, the traceroutes take longer, and it takes additional steps
-   to determine who's network is the cause of problems.
+   to determine which network is the cause of problems.
 
 4. Requirements
 
@@ -171,14 +173,6 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
    Internet providers and other users to whom a block of addresses are
    delegated SHOULD provide for lookup of host names from IP addresses.
    This may be provided directly or by delegation to the user of the
-   address block. The ISP is responsible for one or the other. In the
-   event of delegation, the user is responsible for resolution.
-
-   Only IP addresses not presently in use within a block, or which are
-   not valid for use (zeros or ones broadcast addresses) are permitted
-   to have no mapping.  It should be noted that due to CIDR, many
-   addresses which appear to be otherwise valid host addresses may
-   actually be zeroes or ones broadcast addresses. As such, attempting
 
 
 
@@ -188,9 +182,17 @@ Senie                                                           [Page 3]
 
 
 
-Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
+Internet-Draft        Requiring DNS IN-ADDR Mapping           March 2002
 
 
+   address block. The ISP is responsible for one or the other. In the
+   event of delegation, the user is responsible for resolution.
+
+   Only IP addresses not presently in use within a block, or which are
+   not valid for use (zeros or ones broadcast addresses) are permitted
+   to have no mapping.  It should be noted that due to CIDR, many
+   addresses which appear to be otherwise valid host addresses may
+   actually be zeroes or ones broadcast addresses. As such, attempting
    to audit a site's degree of compliance can only be done with a
    knowledge of the internal routing structure of the site. However, any
    host which originates an IP packet necessarily will have a valid host
@@ -213,7 +215,7 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
 
    This document has no negative impact on security. While it could be
    argued that lack of PTR record capabilities provides a degree of
-   anonimity, this is really not valid. Trace routes, whois lookups and
+   anonymity, this is really not valid. Trace routes, whois lookups and
    other sources will still provide methods for discovering identity.
 
    By recommending applications avoid using IN-ADDR as a security
@@ -231,14 +233,6 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
 
    [RFC1519] V. Fuller, et. al., "Classless Inter-Domain Routing (CIDR):
    an Address Assignment and Aggregation Strategy," RFC 1519, September
-   1993.
-
-   [RFC2317] H. Eidnes, et. al., "Classless IN-ADDR.ARPA delegation,"
-   RFC 2317, March 1998.
-
-   [RFC2050] K. Hubbard, et. al., "Internet Registry IP Allocation
-   Guidelines", RFC2050, BCP 12, Novebmer 1996.
-
 
 
 
@@ -248,14 +242,28 @@ Senie                                                           [Page 4]
 
 
 
-Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
+Internet-Draft        Requiring DNS IN-ADDR Mapping           March 2002
 
+
+   1993.
+
+   [RFC2026] S. Bradner, "The Internet Standards Process -- Revision 3",
+   RFC 2026, BCP 9, October 1996.
+
+   [RFC2119] S. Bradner, "Key words for use in RFCs to Indicate
+   Requirement Levels", RFC 2119, BCP 14, March 1997.
+
+   [RFC2050] K. Hubbard, et. al., "Internet Registry IP Allocation
+   Guidelines", RFC2050, BCP 12, Novebmer 1996.
+
+   [RFC2317] H. Eidnes, et. al., "Classless IN-ADDR.ARPA delegation,"
+   RFC 2317, March 1998.
 
    [ARIN] "ISP Guidelines for Requesting Initial IP Address Space," date
    unknown, http://www.arin.net/regserv/initial-isp.html
 
-   [APNIC] "Policies for address space management in the Asia Pacific
-   Region," Approved October 1999, effective January 2000,
+   [APNIC] "Policies For IPv4 Address Space Management in the Asia
+   Pacific Region," APNIC-086, Approval pending, 17 December 2001,
    http://www.apnic.net/drafts/add-manage-policy.html
 
    [RIPE185] "European Internet Registry Policies and Procedures,"
@@ -288,20 +296,10 @@ Internet-Draft        Requiring DNS IN-ADDR Mapping            July 2001
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Senie                                                           [Page 5]
 
+
+-----------------------------------------------------------------
+Daniel Senie                                        dts@senie.com
+Amaranth Networks Inc.                    http://www.amaranth.com
 

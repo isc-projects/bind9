@@ -1,13 +1,13 @@
-Network Working Group                                        J. Schlyter
+PKIX Working Group                                           J. Schlyter
 Internet-Draft                                      Carlstedt Research &
-Expires: May 3, 2002                                          Technology
+Expires: August 29, 2002                                      Technology
                                                             L. Johansson
                                                     Stockholm University
-                                                        November 2, 2001
+                                                       February 28, 2002
 
 
                  DNS as X.509 PKIX Certificate Storage
-                       draft-schlyter-pkix-dns-00
+                       draft-schlyter-pkix-dns-01
 
 Status of this Memo
 
@@ -24,17 +24,17 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt.
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
 
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on May 3, 2002.
+   This Internet-Draft will expire on August 29, 2002.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
 
 Abstract
 
@@ -50,9 +50,9 @@ Abstract
 
 
 
-Schlyter & Johansson       Expires May 3, 2002                  [Page 1]
+Schlyter & Johansson     Expires August 29, 2002                [Page 1]
 
-Internet-Draft              DNS PKIX storage               November 2001
+Internet-Draft              DNS PKIX storage               February 2002
 
 
 Table of Contents
@@ -106,9 +106,9 @@ Table of Contents
 
 
 
-Schlyter & Johansson       Expires May 3, 2002                  [Page 2]
+Schlyter & Johansson     Expires August 29, 2002                [Page 2]
 
-Internet-Draft              DNS PKIX storage               November 2001
+Internet-Draft              DNS PKIX storage               February 2002
 
 
 1. Introduction
@@ -132,10 +132,13 @@ Internet-Draft              DNS PKIX storage               November 2001
 2. Storing PKIX certificates in DNS
 
    A PKIX certificate is published in DNS using the CERT RR [5] for a
-   given domain name which MUST be equal to the dnsName component of the
-   subjectAltName extension in the certificate.  Multiple certificates
-   may be present for each domain name and all SHOULD have the same
-   subject DN.
+   given domain name which SHOULD be equal to the dnsName component of
+   the subjectAltName extension in the certificate.  Multiple
+   certificates may be present for each domain name and all SHOULD have
+   the same subject DN.  If the domain name does not match the dnsName
+   component of the subjectAltName extension the client SHOULD notify
+   the user of this and allow the user to decide weather to allow the
+   use of the certificate or not.
 
    When constructing a certificate path for validation the client MAY
    use the AuthorityKeyIdentifier and SubjectKeyIdentifier extensions to
@@ -159,12 +162,9 @@ Internet-Draft              DNS PKIX storage               November 2001
 
 
 
+Schlyter & Johansson     Expires August 29, 2002                [Page 3]
 
-
-
-Schlyter & Johansson       Expires May 3, 2002                  [Page 3]
-
-Internet-Draft              DNS PKIX storage               November 2001
+Internet-Draft              DNS PKIX storage               February 2002
 
 
 3. Certificate lookup algorithm
@@ -172,7 +172,7 @@ Internet-Draft              DNS PKIX storage               November 2001
    Given a certificate with a non-empty issuerAltName extension of type
    dnsName, perform a DNS lookup of the corresponding domain name with
    the class IN and type CERT.  For each of the certificates returned
-   that are of type PKIX, implementations MUST verify that the
+   that are of type PKIX, implementations SHOULD verify that the
    subjectAltName in the certificate contains a component of type
    dnsName with the same domain name as the one where the certificate
    was published using the DNS.
@@ -218,9 +218,9 @@ References
 
 
 
-Schlyter & Johansson       Expires May 3, 2002                  [Page 4]
+Schlyter & Johansson     Expires August 29, 2002                [Page 4]
 
-Internet-Draft              DNS PKIX storage               November 2001
+Internet-Draft              DNS PKIX storage               February 2002
 
 
 Authors' Addresses
@@ -237,9 +237,14 @@ Authors' Addresses
 
    Leif Johansson
    Stockholm University
+   IT and Media Unit
+   Frescati Hagvag 8
+   Stockholm  SE-106 91
+   Sweden
 
    Phone: +46 8 16 45 41
    EMail: leifj@it.su.se
+   URI:   http://www.it.su.se
 
 Appendix A. Acknowledgements
 
@@ -250,6 +255,7 @@ Appendix A. Acknowledgements
 
       Niklas Hallqvist
 
+      Edward Lewis
 
 
 
@@ -268,20 +274,14 @@ Appendix A. Acknowledgements
 
 
 
+Schlyter & Johansson     Expires August 29, 2002                [Page 5]
 
-
-
-
-
-
-Schlyter & Johansson       Expires May 3, 2002                  [Page 5]
-
-Internet-Draft              DNS PKIX storage               November 2001
+Internet-Draft              DNS PKIX storage               February 2002
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -330,6 +330,6 @@ Acknowledgement
 
 
 
-Schlyter & Johansson       Expires May 3, 2002                  [Page 6]
+Schlyter & Johansson     Expires August 29, 2002                [Page 6]
 
 
