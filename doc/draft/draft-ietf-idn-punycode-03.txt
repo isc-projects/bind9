@@ -1,8 +1,8 @@
 INTERNET-DRAFT                                          Adam M. Costello
-draft-ietf-idn-punycode-02.txt                               2002-May-23
-Expires 2002-Nov-23
+draft-ietf-idn-punycode-03.txt                               2002-Oct-08
+Expires 2003-Apr-08
 
-           Punycode: An encoding of Unicode for use with IDNA
+          Punycode: A Bootstring encoding of Unicode for IDNA
 
 Status of this Memo
 
@@ -81,6 +81,12 @@ Contents
     constraints.  For the details of the prefix and constraints, see
     [IDNA] and [NAMEPREP].
 
+    Punycode is an instance of a more general algorithm called
+    Bootstring, which allows strings composed from a small set of
+    "basic" code points to uniquely represent any string of code points
+    drawn from a larger set.  Punycode is Bootstring with particular
+    parameter values appropriate for IDNA.
+
 1.1 Features
 
     Bootstring has been designed to have the following features:
@@ -92,7 +98,7 @@ Contents
 
       * Uniqueness:  There is at most one basic string that represents a
         given extended string.
-
+
       * Reversibility:  Any extended string mapped to a basic string can
         be recovered from that basic string.
 
@@ -100,7 +106,7 @@ Contents
         extended string length is small.  This is important in the
         context of domain names because RFC 1034 [RFC1034] restricts the
         length of a domain label to 63 characters.
-
+
       * Simplicity:  The encoding and decoding algorithms are reasonably
         simple to implement.  The goals of efficiency and simplicity are
         at odds; Bootstring aims at a good balance between them.
@@ -145,7 +151,7 @@ Contents
 
     An overflow is an attempt to compute a value that exceeds the
     maximum value of an integer variable.
-
+
 3. Bootstring description
 
     Bootstring represents an arbitrary sequence of code points (the
@@ -154,7 +160,7 @@ Contents
     "Bootstring algorithms" presents the algorithms as pseudocode.
     Sections 7.1 "Decoding traces" and 7.2 "Encoding traces" trace the
     algorithms for sample inputs.
-
+
     The following sections describe the four techniques used in
     Bootstring.  "Basic code point segregation" is a very simple
     and efficient encoding for basic code points occurring in the
@@ -541,7 +547,7 @@ Contents
     code points less than initial_n are basic code points (which is true
     for Punycode if code points are unsigned).
 
-    The brace-enclosed conditions "non-basic" and "or m is basic" can be
+    The brace-enclosed conditions "non-basic" and "or c is basic" can be
     omitted if initial_n exceeds all basic code points (which is true
     for Punycode), because the code point being tested is never less
     than initial_n.
@@ -965,13 +971,13 @@ C. Disclaimer and license
 D. Punycode sample implementation
 
 /*
-punycode.c from draft-ietf-idn-punycode-02
+punycode.c from draft-ietf-idn-punycode-03
 http://www.nicemice.net/idn/
 Adam M. Costello
 http://www.nicemice.net/amc/
 
 This is ANSI C code (C89) implementing
-Punycode (draft-ietf-idn-punycode-02).
+Punycode (draft-ietf-idn-punycode-03).
 
 */
 
@@ -1486,4 +1492,4 @@ int main(int argc, char **argv)
 
 
 
-                   INTERNET-DRAFT expires 2002-Nov-23
+                   INTERNET-DRAFT expires 2003-Apr-08

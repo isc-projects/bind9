@@ -1,0 +1,392 @@
+
+
+DNS Extensions                                                O. Kolkman
+Internet-Draft                                                  RIPE NCC
+Expires: March 2, 2003                                       J. Schlyter
+                                                    Carlstedt Research &
+                                                              Technology
+                                                          September 2002
+
+
+                      KEY RR Key Signing (KS) Flag
+              draft-ietf-dnsext-keyrr-key-signing-flag-01
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on March 2, 2003.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+Abstract
+
+   With the DS record [1] the concept of key signing and zone signing
+   keys has been introduced.  Key signing keys are the keys that sign
+   the keyset only.  In general, key signing keys are the keys that are
+   pointed to by DS records and are the first keys to be used when
+   following a chain of trust into the zone.  The key signing keys only
+   sign the KEY RRset at the apex of a zone, zone signing keys sign all
+   data in a zone.  We propose a flag to distinguish the key signing key
+   from other keys in the KEY RR set during DNSSEC operations.
+
+
+
+
+Kolkman & Schlyter        Expires March 2, 2003                 [Page 1]
+
+Internet-Draft        KEY RR Key Signing (KS) Flag        September 2002
+
+
+   The key words "MAY","MAY NOT", "MUST", "MUST NOT", "REQUIRED",
+   "RECOMMENDED", "SHOULD", and "SHOULD NOT" in this document are to be
+   interpreted as described in RFC2119.
+
+Table of Contents
+
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  The Key Signing Flag . . . . . . . . . . . . . . . . . . . . .  3
+   3.  DNSSEC Protocol Changes  . . . . . . . . . . . . . . . . . . .  3
+   4.  Operational Guidelines . . . . . . . . . . . . . . . . . . . .  4
+   5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  4
+   6.  Document Changes . . . . . . . . . . . . . . . . . . . . . . .  4
+   6.1 draft version 00 -> 01 . . . . . . . . . . . . . . . . . . . .  5
+   7.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . .  5
+       References . . . . . . . . . . . . . . . . . . . . . . . . . .  5
+       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . .  6
+       Full Copyright Statement . . . . . . . . . . . . . . . . . . .  7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Schlyter        Expires March 2, 2003                 [Page 2]
+
+Internet-Draft        KEY RR Key Signing (KS) Flag        September 2002
+
+
+1. Introduction
+
+   "All keys are equal but some keys are more equal than others" [2]
+
+   With the DS record [1] the concept of key signing and zone signing
+   keys has been introduced.  In general these are the keys that are
+   pointed to by DS records and are the first keys to be used when
+   following the chain of trust into a zone ( secure entry points of the
+   zone).  These key signing keys may also be configured in resolver
+   systems that use zones as a trusted root[4] for a secure island.
+
+   Early deployment tests have shown that during the key-exchange
+   between the parent and the child it is useful to indicate which keys
+   are to be used as the secure entry point to a zone.  We introduce the
+   Key Signing Key flag to indicate this special 'administrative' status
+   of the key.  The availability of the flag allows the key exchange to
+   be automated where, without the flag, some additional out-of-band
+   communication is needed.
+
+2. The Key Signing Flag
+
+
+                           1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |              flags          |K|   protocol    |   algorithm   |
+      |                             |S|               |               |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                                                               /
+      /                        public key                             /
+      /                                                               /
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                                KEY RR Format
+
+
+
+   The bit 15th bit (TBD) in the flags field is assigned to be the key
+   signing flag.  If set the key is intended to be used as key signing
+   key.  If the bit is not set, no special meaning should be assigned.
+   The 15th bit is currently reserved [3].
+
+3. DNSSEC Protocol Changes
+
+   The use of the KS flag does not change the DNS resolution and
+   resolution protocol.  The KS flag is only used to provide a hint
+   about the different administrative properties and MUST NOT be used
+   during the resolving process.
+
+
+
+Kolkman & Schlyter        Expires March 2, 2003                 [Page 3]
+
+Internet-Draft        KEY RR Key Signing (KS) Flag        September 2002
+
+
+4. Operational Guidelines
+
+   By setting the KS flag on a particular key, zone administrators
+   indicate that that key should be used as the secure entry point for
+   their zone.  Therefore zone administrators SHOULD set the bit only
+   for zone keys that are used to sign the KEY RRset and are intended to
+   act as the first link in the chain of trust for their zone.
+
+   Parent zone administrators and resolver administrators that want to
+   configure a keysigning key as their 'trusted key' MAY choose to
+   ignore the flag.
+
+   Using the flag a key rollover can be automated.  The parent can use
+   an existing trust relation to verify keysets in which a new key with
+   the KS flag appears.
+
+   If the bit is modified during the lifetime of the key then this would
+   have impact on the keytag and on the hash data in the DS RRs
+   intending to point to this key.  The bit SHOULD NOT be modified once
+   the key has been put into use.
+
+5. Security Considerations
+
+   The flag MUST NOT be used in the resolution protocol or to determine
+   the security status of a key.  The flag is to be used for
+   administrative purposes only.
+
+   No trust in a key should be inferred from this flag - trust must be
+   inferred from an existing chain of trust or an out-of-band exchange.
+
+   Since this flag MAY be used for automating key exchanges, we think
+   the following consideration is in place.
+
+   Automated mechanisms for rollover of the DS RR may be vulnerable to a
+   class of replay attacks.  This may happen after a key exchange where
+   a keyset, containing two keys with the KS flag set, is sent to the
+   parent.  The parent verifies the keyset with the existing trust
+   relation and creates the new DS RR from the key that the current DS
+   is not pointing to.  This key exchange may be replayed, if the parent
+   does not maintain state of which DS RRs where used previously so that
+   the new DS RR is replaced by the old DS RR again.  These kinds of
+   attacks can be prevented by maintaining a registry of keys that have
+   been used to generate DS RRs from previously.
+
+6. Document Changes
+
+
+
+
+
+
+Kolkman & Schlyter        Expires March 2, 2003                 [Page 4]
+
+Internet-Draft        KEY RR Key Signing (KS) Flag        September 2002
+
+
+6.1 draft version 00 -> 01
+
+      Clean up of references and correction of typos;
+
+      modified Abstract text a little;
+
+      Added explicit warning for replay attacks to the security section;
+
+      Removed the text that hinted on a distinction between a keysigning
+      key configured in resolvers and in parent zones.
+
+
+7. Acknowledgments
+
+   The ideas documented in this draft are inspired by communications we
+   had with numerous people and ideas published by other folk, Olafur
+   Gudmundsson, Daniel Karrenberg, Dan Massey and Sam Weiler have been
+   helping with providing ideas and feedback.
+
+   This document saw the light during a workshop on DNSSEC operations
+   hosted by USC/ISI.
+
+References
+
+   [1]  Gudmundsson, "Delegation Signer Resource Record", work in
+        progress draft-ietf-dnsext-delegation-signer-08.txt, June 2002.
+
+   [2]  Orwell, "Animal Farm; a Fairy Story"", 1945, <http://
+        www.ddc.net/ygg/etext/animal.htm#10>.
+
+   [3]  Massey and Rose, "Limiting the Scope of the KEY Resource
+        Record", work in progress draft-ietf-dnsext-restrict-key-for-
+        dnssec-03, June 28 2002.
+
+   [4]  Lewis, E., "DNS Security Extension Clarification on Zone
+        Status", RFC 3090, March 2001.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Schlyter        Expires March 2, 2003                 [Page 5]
+
+Internet-Draft        KEY RR Key Signing (KS) Flag        September 2002
+
+
+Authors' Addresses
+
+   Olaf M. Kolkman
+   RIPE NCC
+   Singel 256
+   Amsterdam  1016 AB
+   NL
+
+   Phone: +31 20 535 4444
+   EMail: olaf@ripe.net
+   URI:   http://www.ripe.net/
+
+
+   Jakob Schlyter
+   Carlstedt Research & Technology
+   Stora Badhusgatan 18-20
+   Goteborg  SE-411 21
+   Sweden
+
+   EMail: jakob@crt.se
+   URI:   http://www.crt.se/~jakob/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Schlyter        Expires March 2, 2003                 [Page 6]
+
+Internet-Draft        KEY RR Key Signing (KS) Flag        September 2002
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Schlyter        Expires March 2, 2003                 [Page 7]
+

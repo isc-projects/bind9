@@ -1,18 +1,18 @@
 
 
-Network Working Group                                          R. Arends
-Internet-Draft                                                   Nominum
-Expires: January 21, 2003                                      M. Larson
+DNS Extensions                                                 R. Arends
+Internet-Draft
+Expires: April 24, 2003                                        M. Larson
                                                                 VeriSign
                                                                D. Massey
                                                                  USC/ISI
                                                                  S. Rose
                                                                     NIST
-                                                           July 23, 2002
+                                                        October 24, 2002
 
 
                DNS Security Introduction and Requirements
-                   draft-ietf-dnsext-dnssec-intro-02
+                   draft-ietf-dnsext-dnssec-intro-03
 
 Status of this Memo
 
@@ -35,7 +35,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on January 21, 2003.
+   This Internet-Draft will expire on April 24, 2003.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Arends, et al.          Expires January 21, 2003                [Page 1]
+Arends, et al.           Expires April 24, 2003                 [Page 1]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Arends, et al.          Expires January 21, 2003                [Page 2]
+Arends, et al.           Expires April 24, 2003                 [Page 2]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 1. Introduction
@@ -164,34 +164,34 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003                [Page 3]
+Arends, et al.           Expires April 24, 2003                 [Page 3]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 2. Definitions of Important DNSSEC Terms
 
-   trusted key: A public key, for a zone or a host, that a resolver
-      trusts and that can therefore be used to verify data.  A key can
-      become trusted in two ways.  First, it can be statically
-      configured and declared as trusted in the resolver's
-      configuration.  Second, if a new key is referenced by a DS record
-      that is signed by an already trusted key, and the signature
-      verifies, the new key becomes trusted.
+   authentication key: A public key, for a zone or a host, that a
+      resolver trusts and that can therefore be used to verify data.  A
+      key can become trusted in two ways:  First, it can be statically
+      configured and declared in the resolver's initial configuration.
+      Second, if a new key is referenced by a DS record that is signed
+      by an already known authentication key, and the signature
+      verifies, the new key becomes trusted by the resolver.
 
-   chain of trust: In DNSSEC, a key signs a DS record, which points to
-      another key, which in turn signs another DS record, which points
-      to yet another key, etc.  This alternating succession of KEY and
-      DS records forms a chain of signed data, with each link in the
-      chain vouching for the next.  A resolver starting at a piece of
-      data in the chain signed by a trusted key can verify all
-      subsequent signatures.  Thus all subsequent data in the chain is
-      trusted.
+   authentication path: In DNSSEC, a key signs a DS record, which points
+      to another key, which in turn signs another DS record, which
+      points to yet another key, etc.  This alternating succession of
+      KEY and DS records forms a chain of signed data, with each link in
+      the chain vouching for the next.  A resolver starting at a piece
+      of data in the chain signed by a known authentication key can
+      verify all subsequent signatures.  Thus all subsequent data in the
+      chain is verified and authenticated.
 
    security-aware resolver: A resolver (defined in section 2.4 of [4])
       that understands the DNS security extensions.  In particular, a
-      security-aware resolver uses trusted keys to verify signatures
-      over RRsets and (optionally) DNS messages.
+      security-aware resolver uses known authentication keys to verify
+      signatures over RRsets and (optionally) DNS messages.
 
    security-aware server: A name server (also defined in section 2.4 of
       [4]) that understands the DNS security extensions.  In particular,
@@ -204,7 +204,7 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
    unsigned zone: The proper term for the opposite of a secure zone.
 
-   secure zone: A zone whose RRsets are signed and which contains
+   signed zone: A zone whose RRsets are signed and which contains
       properly constructed KEY, SIG, NXT and (optionally) DS records.
 
 
@@ -220,9 +220,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003                [Page 4]
+Arends, et al.           Expires April 24, 2003                 [Page 4]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 3. Services Provided by DNS Security
@@ -258,34 +258,36 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
    record (see Section 3.2 below).  (Note that the private keys used to
    sign zone data must be kept secure and best practices call for them
    to be stored offline.) To reliably discover a public key by DNS
-   resolution, the key itself needs to be signed by another key that the
-   resolver trusts.  Zone information is authenticated by forming a
-   chain of trust from a newly learned public key back to a trusted
-   public key (which is either statically configured or previously
-   learned and verified).  Therefore, the resolver must be configured
-   with at least one public key that authenticates one zone as a
-   starting point.  To establish this chain of trust, security-aware
-   servers attempt to send the signature(s) needed to authenticate a
-   zone's public key in the DNS reply message along with the public key
-   itself, provided there is space available in the message.
+   resolution, the key itself needs to be signed by either a statically
+   configured authentication key or another key that has been previously
+   authenticated.  Zone information is authenticated by forming a chain
+   from a newly learned public key back to a previously known
+   authentication public key (which is either statically configured or
+   previously learned and verified).  Therefore, the resolver must be
+   configured with at least one public key that authenticates one zone
+   as a starting point.  To establish this authentication chain,
+   security-aware servers attempt to send the signature(s) needed to
+   authenticate a zone's public key in the DNS reply message along with
+   the public key itself, provided there is space available in the
+   message.
 
-   The chain of trust specified in the original DNS security extensions
-   proceeded from signed KEY record to signed KEY record, as necessary,
-   and finally to the queried RRset.  A new record, the delegation
-   signer (DS), has been added for additional flexibility.  The DS RRset
+   The authentication chain specified in the original DNS security
+   extensions proceeded from signed KEY record to signed KEY record, as
 
 
 
-Arends, et al.          Expires January 21, 2003                [Page 5]
+Arends, et al.           Expires April 24, 2003                 [Page 5]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
-   resides at a delegation point in a parent zone and specifies the keys
-   used by the specified child zone to self-sign the KEY RRset at its
-   apex.  The child, in turn, uses one of these keys to sign its zone
-   data.  The chain of trust is therefore DS->KEY->[DS->KEY->...]-
-   >RRset.
+   necessary, and finally to the queried RRset.  A new record, the
+   delegation signer (DS), has been added for additional flexibility.
+   The DS RRset resides at a delegation point in a parent zone and
+   specifies the keys used by the specified child zone to self-sign the
+   KEY RRset at its apex.  The child, in turn, uses one of these keys to
+   sign its zone data.  The authentication chain is therefore DS->KEY-
+   >[DS->KEY->...]->RRset.
 
    Adding data origin authentication and data integrity requires minor
    changes to the on-the-wire DNS protocol.  Several new resource record
@@ -313,8 +315,8 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
    The KEY resource record is defined to associate public keys with DNS
    names.  This record permits the DNS to be used as a public key
    distribution mechanism in support of DNSSEC.  Security-aware
-   resolvers can query for a zone's public key when establishing a chain
-   of trust.
+   resolvers can query for a zone's public key when establishing a
+   authentication chain.
 
    The syntax of the KEY resource record (and the other additional
    resource records required for DNSSEC) is described in [9].  It
@@ -327,17 +329,19 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
    now restricted for use with DNSSEC only.  Work is in progress on
    storing public keys [14] and certificates [15] used by other
    protocols and applications in the DNS.  A secure DNS tree could then
-   be used as a lightweight trust mechanism.  Some administrators and
-   users may consider a validated DNSSEC signature to be sufficient to
 
 
 
-Arends, et al.          Expires January 21, 2003                [Page 6]
+Arends, et al.           Expires April 24, 2003                 [Page 6]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
-   trust a public key stored in the DNS.
+   be used as a lightweight key distribution mechanism that could
+   support other protocols.  However, this should not lead to the
+   conclusion that the DNS is then safe to use as a trusted protocol or
+   a Public Key Infrastructure.  DNSSEC lacks many features found in a
+   PKI such as a Certificate Revocation List (CRL).
 
 3.3 Transaction Security
 
@@ -384,13 +388,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-
-
-
-
-Arends, et al.          Expires January 21, 2003                [Page 7]
+Arends, et al.           Expires April 24, 2003                 [Page 7]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 4. Services Not Provided by DNS Security
@@ -444,9 +444,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003                [Page 8]
+Arends, et al.           Expires April 24, 2003                 [Page 8]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 5. Resolver Considerations
@@ -454,11 +454,12 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
    A security-aware resolver needs to be able to perform necessary
    cryptographic functions to verify digital signatures using at least
    the mandatory-to-implement algorithms.  Also, security-aware
-   resolvers must be capable of forming a chain of trust from a newly
-   learned zone back to a trusted key.  This might require additional
-   queries to intermediate DNS zones for necessary KEY, DS and SIG
-   records.  It is assumed that a security-aware resolver will be
-   configured with at least one trusted key to aid this process.
+   resolvers must be capable of forming a authentication chain from a
+   newly learned zone back to a trusted authentication key.  This might
+   require additional queries to intermediate DNS zones for necessary
+   KEY, DS and SIG records.  It is assumed that a security-aware
+   resolver will be configured with at least one authentication key to
+   aid this process.
 
    The stub resolver found in many hosts may be augmented to provide a
    different set of security features instead of the full security
@@ -472,7 +473,7 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
    part of the DNS resolution path, the resolver cannot ensure security.
    If a security-aware resolver must rely on an unsecure server (or
    unsigned zone), the resolver cannot verify DNS responses and should
-   rely on local policy when trusting responses.
+   rely on local policy when following responses.
 
 
 
@@ -499,10 +500,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-
-Arends, et al.          Expires January 21, 2003                [Page 9]
+Arends, et al.           Expires April 24, 2003                 [Page 9]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 6. Zone Considerations
@@ -556,9 +556,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 10]
+Arends, et al.           Expires April 24, 2003                [Page 10]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 7. Server Considerations
@@ -612,9 +612,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 11]
+Arends, et al.           Expires April 24, 2003                [Page 11]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 8. DNS Security Document Family
@@ -638,7 +638,7 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
                                     |
                               +-----------+          +-------------+
                               |  DNSSEC   |          |  New        |
-                              | Protocol  |<-------->|  Security   |
+                              | Protocol  |--------->|  Security   |
                               | Documents |          |  Uses       |
                               +-----------+          +-------------+
                                     |
@@ -668,9 +668,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 12]
+Arends, et al.           Expires April 24, 2003                [Page 12]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
    2.  Resource Records for DNS Security Extensions [9]
@@ -724,9 +724,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 13]
+Arends, et al.           Expires April 24, 2003                [Page 13]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 9. IANA Considerations
@@ -780,9 +780,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 14]
+Arends, et al.           Expires April 24, 2003                [Page 14]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 10. Security Considerations
@@ -836,9 +836,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 15]
+Arends, et al.           Expires April 24, 2003                [Page 15]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 11. Acknowledgements
@@ -892,9 +892,9 @@ Internet-Draft       DNSSEC Intro. and Requirements            July 2002
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 16]
+Arends, et al.           Expires April 24, 2003                [Page 16]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 Normative References
@@ -948,9 +948,9 @@ Normative References
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 17]
+Arends, et al.           Expires April 24, 2003                [Page 17]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 Informative References
@@ -968,12 +968,11 @@ Informative References
 Authors' Addresses
 
    Roy Arends
-   Nominum, Inc.
-   2385 Bay Street
-   Redwood City, CA  94063
-   USA
+   Bankastraat 41-E
+   1094 EB Amsterdam
+   NL
 
-   EMail: roy.arends@nominum.com
+   EMail: roy@logmess.com
 
 
    Matt Larson
@@ -997,16 +996,17 @@ Authors' Addresses
    Scott Rose
    National Institute for Standards and Technology
    100 Bureau Drive
-   Gaithersburg, MD  20899-3460
+   Gaithersburg, MD  20899-8920
    USA
 
    EMail: scott.rose@nist.gov
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 18]
+
+Arends, et al.           Expires April 24, 2003                [Page 18]
 
-Internet-Draft       DNSSEC Intro. and Requirements            July 2002
+Internet-Draft       DNSSEC Intro. and Requirements         October 2002
 
 
 Full Copyright Statement
@@ -1060,5 +1060,5 @@ Acknowledgement
 
 
 
-Arends, et al.          Expires January 21, 2003               [Page 19]
+Arends, et al.           Expires April 24, 2003                [Page 19]
 
