@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.83 2000/11/27 19:15:39 gson Exp $ */
+/* $Id: master.c,v 1.84 2000/12/01 00:55:16 gson Exp $ */
 
 #include <config.h>
 
@@ -1577,6 +1577,8 @@ loadmgr_start(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	INSIST(task == ctx->task);
+
+	UNUSED(task);
 
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0) {
 		result = ISC_R_CANCELED;
