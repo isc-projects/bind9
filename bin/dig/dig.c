@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.70 2000/07/18 18:51:38 mws Exp $ */
+/* $Id: dig.c,v 1.71 2000/07/19 17:52:24 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -62,6 +62,7 @@ extern char fixeddomain[MXNAME];
 extern int exitcode;
 extern isc_sockaddr_t bind_address;
 extern char keynametext[MXNAME];
+extern char keyfile[MXNAME];
 extern char keysecret[MXNAME];
 extern dns_tsigkey_t *key;
 extern isc_boolean_t validated;
@@ -841,6 +842,15 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				exit(exitcode);
 			}
 			strncpy(keysecret, ptr, MXNAME);
+		} else if (strncmp(rv[0], "-k", 2) == 0) {
+			if (rv[0][2] != 0)
+				ptr = &rv[0][2];
+			else {
+				ptr = rv[1];
+				rv++;
+				rc--;
+			}
+			strncpy(keyfile, ptr, MXNAME);
 		} else if (strncmp(rv[0], "-p", 2) == 0) {
 			if (rv[0][2] != 0) {	
 				port = atoi(&rv[0][2]);
@@ -1043,6 +1053,8 @@ main(int argc, char **argv) {
 
 	debug("main()");
 	progname = argv[0];
+	result = isc_app_start();
+	check_result(result, "isc_app_start");
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.42 2000/07/18 01:28:17 mws Exp $ */
+/* $Id: host.c,v 1.43 2000/07/19 17:52:27 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -677,6 +677,8 @@ main(int argc, char **argv) {
 
 	debug("main()");
 	progname = argv[0];
+	result = isc_app_start();
+	check_result(result, "isc_app_start");
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();

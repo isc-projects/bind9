@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.91 2000/07/18 18:51:40 mws Exp $ */
+/* $Id: dighost.c,v 1.92 2000/07/19 17:52:25 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -52,7 +52,6 @@ extern int h_errno;
 #include <isc/base64.h>
 #include <isc/entropy.h>
 #include <isc/lang.h>
-#include <isc/lex.h>
 #include <isc/netdb.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -97,6 +96,7 @@ int lookup_counter = 0;
 char fixeddomain[MXNAME] = "";
 int exitcode = 9;
 char keynametext[MXNAME];
+char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
 dns_name_t keyname;
 dns_tsig_keyring_t *keyring = NULL;
@@ -372,6 +372,117 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	return (looknew);
 }	
 
+
+static void
+setup_text_key(void) {
+	isc_result_t result;
+	isc_buffer_t secretbuf;
+	int secretsize;
+	unsigned char *secretstore;
+	isc_stdtime_t now;
+
+	debug("setup_text_key()");
+	result = dns_tsigkeyring_create(mctx, &keyring);
+	check_result(result, "dns_tsigkeyring_create");
+	result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
+	check_result(result, "isc_buffer_allocate");
+	dns_name_init(&keyname, NULL);
+	check_result(result, "dns_name_init");
+	isc_buffer_putstr(namebuf, keynametext);
+	secretsize = strlen(keysecret) * 3 / 4;
+	secretstore = isc_mem_get(mctx, secretsize);
+	if (secretstore == NULL)
+		fatal("Memory allocation failure in %s:%d",
+		      __FILE__, __LINE__);
+	isc_buffer_init(&secretbuf, secretstore, secretsize);
+	result = isc_base64_decodestring(mctx, keysecret,
+					 &secretbuf);
+	if (result != ISC_R_SUCCESS) {
+		printf(";; Couldn't create key %s: %s\n",
+		       keynametext, isc_result_totext(result));
+		goto SYSSETUP_FAIL;
+	}
+	secretsize = isc_buffer_usedlength(&secretbuf);
+	isc_stdtime_get(&now);
+	
+	result = dns_name_fromtext(&keyname, namebuf,
+				   dns_rootname, ISC_FALSE,
+				   namebuf);
+	if (result != ISC_R_SUCCESS) {
+		printf(";; Couldn't create key %s: %s\n",
+		       keynametext, dns_result_totext(result));
+		goto SYSSETUP_FAIL;
+	}
+	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
+				    secretstore, secretsize,
+				    ISC_TRUE, NULL, now, now, mctx,
+				    keyring, &key);
+	if (result != ISC_R_SUCCESS) {
+		printf(";; Couldn't create key %s: %s\n",
+		       keynametext, dns_result_totext(result));
+	}
+	isc_mem_put(mctx, secretstore, secretsize);
+	dns_name_invalidate(&keyname);
+	isc_buffer_free(&namebuf);
+	return;
+ SYSSETUP_FAIL:
+	isc_mem_put(mctx, secretstore, secretsize);
+	dns_name_invalidate(&keyname);
+	isc_buffer_free(&namebuf);
+	dns_tsigkeyring_destroy(&keyring);
+	return;
+}
+
+
+static void
+setup_file_key(void) {
+	isc_result_t result;
+	isc_buffer_t secretbuf;
+	unsigned char *secretstore = NULL;
+	int secretlen;
+	dst_key_t *dstkey = NULL;
+	isc_stdtime_t now;
+
+	
+	debug("setup_file_key()");
+	result = dns_tsigkeyring_create(mctx, &keyring);
+	check_result(result, "dns_tsigkeyring_create");
+	result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE,
+				       mctx, &dstkey);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "Couldn't read key from %s: %s\n",
+			keyfile, isc_result_totext(result));
+		goto failure;
+	}
+	secretlen = (dst_key_size(dstkey) + 7) >> 3;
+	secretstore = isc_mem_allocate(mctx, secretlen);
+	if (secretstore == NULL)
+		fatal("out of memory");
+	isc_buffer_init(&secretbuf, secretstore, secretlen);
+	result = dst_key_tobuffer(dstkey, &secretbuf);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "Couldn't read key from %s: %s\n",
+			keyfile, isc_result_totext(result));
+		goto failure;
+	}
+	isc_stdtime_get(&now);
+	dns_name_init(&keyname, NULL);
+	dns_name_clone(dst_key_name(dstkey), &keyname);
+	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
+				    secretstore, secretlen,
+				    ISC_TRUE, NULL, now, now, mctx,
+				    keyring, &key);
+	if (result != ISC_R_SUCCESS) {
+		printf(";; Couldn't create key %s: %s\n",
+		       keynametext, dns_result_totext(result));
+	}
+ failure:
+	if (dstkey != NULL)
+		dst_key_free(&dstkey);
+	if (secretstore != NULL)
+		isc_mem_free(mctx, secretstore);
+}
+
 /*
  * Setup the system as a whole, reading key information and resolv.conf
  * settings.
@@ -385,13 +496,6 @@ setup_system(void) {
 	dig_searchlist_t *search;
 	dig_lookup_t *l;
 	isc_boolean_t get_servers;
-	isc_result_t result;
-	isc_buffer_t secretsrc;
-	isc_buffer_t secretbuf;
-	int secretsize;
-	unsigned char *secretstore;
-	isc_lex_t *lex = NULL;
-	isc_stdtime_t now;
 	
 	debug("setup_system()");
 
@@ -499,74 +603,10 @@ setup_system(void) {
 	     l -> origin = ISC_LIST_HEAD(search_list);
 	}
 
-	if (keysecret[0] != 0) {
-		debug("keyring");
-		result = dns_tsigkeyring_create(mctx, &keyring);
-		check_result(result, "dns_tsigkeyring_create");
-		debug("buffer");
-		result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
-		check_result(result, "isc_buffer_allocate");
-		debug("name");
-		dns_name_init(&keyname, NULL);
-		check_result(result, "dns_name_init");
-		isc_buffer_putstr(namebuf, keynametext);
-		secretsize = strlen(keysecret) * 3 / 4;
-		debug("secretstore");
-		secretstore = isc_mem_get(mctx, secretsize);
-		if (secretstore == NULL)
-			fatal("Memory allocation failure in %s:%d",
-			      __FILE__, __LINE__);
-		isc_buffer_init(&secretsrc, keysecret, strlen(keysecret));
-		isc_buffer_add(&secretsrc, strlen(keysecret));
-		isc_buffer_init(&secretbuf, secretstore, secretsize);
-		debug("lex");
-		result = isc_lex_create(mctx, strlen(keysecret), &lex);
-		check_result(result, "isc_lex_create");
-		result = isc_lex_openbuffer(lex, &secretsrc);
-		check_result(result, "isc_lex_openbuffer");
-		result = isc_base64_tobuffer(lex, &secretbuf, -1);
-		if (result != ISC_R_SUCCESS) {
-			printf(";; Couldn't create key %s: %s\n",
-			       keynametext, isc_result_totext(result));
-			isc_lex_close(lex);
-			isc_lex_destroy(&lex);
-			goto SYSSETUP_FAIL;
-		}
-		secretsize = isc_buffer_usedlength(&secretbuf);
-		debug("close");
-		isc_lex_close(lex);
-		isc_lex_destroy(&lex);
-		isc_stdtime_get(&now);
-		
-		debug("namefromtext");
-		result = dns_name_fromtext(&keyname, namebuf,
-					   dns_rootname, ISC_FALSE,
-					   namebuf);
-		if (result != ISC_R_SUCCESS) {
-			printf(";; Couldn't create key %s: %s\n",
-				keynametext, dns_result_totext(result));
-			goto SYSSETUP_FAIL;
-		}
-		debug("tsigkey");
-		result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
-					    secretstore, secretsize,
-					    ISC_TRUE, NULL, now, now, mctx,
-					    keyring, &key);
-		if (result != ISC_R_SUCCESS) {
-			printf(";; Couldn't create key %s: %s\n",
-			       keynametext, dns_result_totext(result));
-		}
-		isc_mem_put(mctx, secretstore, secretsize);
-		dns_name_invalidate(&keyname);
-		isc_buffer_free(&namebuf);
-		return;
-	SYSSETUP_FAIL:
-		isc_mem_put(mctx, secretstore, secretsize);
-		dns_name_invalidate(&keyname);
-		isc_buffer_free(&namebuf);
-		dns_tsigkeyring_destroy(&keyring);
-		return;
-	}
+	if (keyfile[0] != 0)
+		setup_file_key();
+	else if (keysecret[0] != 0)
+		setup_text_key();
 }
 	
 /*
@@ -584,9 +624,6 @@ setup_libs(void) {
 	 * does NOT insure that id's cann't be guessed.
 	 */
 	srandom(getpid() + (int)&setup_libs);
-
-	result = isc_app_start();
-	check_result(result, "isc_app_start");
 
 	result = isc_net_probeipv4();
 	check_result(result, "isc_net_probeipv4");
@@ -1305,15 +1342,11 @@ setup_lookup(dig_lookup_t *lookup) {
 /*
  * Event handler for send completion.  Track send counter, and clear out
  * the query if the send was canceled.
- * XXXMWS Possible race condition!  When the send gets canceled, doesn't the
- * recv also, so it will also be trying to clear out the query?
- * Not really sure that this should touch the query at all.
  */
 static void
 send_done(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = NULL;
 	dig_query_t *query;
-	dig_lookup_t *l;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
@@ -1329,15 +1362,6 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	sendcount--;
 	debug("sendcount=%d",sendcount);
 	INSIST(sendcount >= 0);
-
-	if (sevent->result == ISC_R_CANCELED) {
-		debug("in send cancel handler");
-		query->working = ISC_FALSE;
-		query->waiting_connect = ISC_FALSE;
-		l = query->lookup;
-		clear_query(query);
-		check_next_lookup(l);
-	}
 	UNLOCK_LOOKUP;
 }
 
