@@ -131,6 +131,8 @@
 1529.	[bug]		"notify explict;" failed to log that NOTIFY messages
 			were being sent for the zone. [RT #9442]
 
+1025.	[bug]		Don't use multicast addresses to resolve iterative
+			queries. [RT #101]
 
 	--- 9.2.3 released ---
 
