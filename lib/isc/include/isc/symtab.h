@@ -28,17 +28,14 @@ typedef union isc_symvalue {
 } isc_symvalue_t;
 
 typedef void (*isc_symtabaction_t)(char *key, unsigned int type,
-				   isc_symvalue_t *value);
+				   isc_symvalue_t value);
 
 typedef struct isc_symtab		isc_symtab_t;
 
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
+		  isc_symtabaction_t undefine_action,
 		  isc_symtab_t **symtabp);
-
-isc_result_t
-isc_symtab_onundefine(isc_symtab_t *symtab, unsigned int type,
-		      isc_symtabaction_t action);
 
 void
 isc_symtab_destroy(isc_symtab_t **symtabp);
