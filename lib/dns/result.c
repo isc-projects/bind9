@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.70 2000/08/08 22:50:33 bwelling Exp $ */
+/* $Id: result.c,v 1.71 2000/08/08 23:33:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no valid SIG",			       /* 59 DNS_R_NOVALIDSIG	     */
 
 	"no valid NXT",			       /* 60 DNS_R_NOVALIDNXT	     */
-	"not insecure"			       /* 61 DNS_R_NOTINSECURE	     */
+	"not insecure",			       /* 61 DNS_R_NOTINSECURE	     */
 	"zone too large"		       /* 62 DNS_R_ZONETOOLARGE	     */
 };
 
