@@ -1,3 +1,4 @@
+1712.	[bug]		Missing FULLCHECK for "trusted-key" in dig.
 
 1711.	[func]		'rndc unfreeze' has been deprecated by 'rndc thaw'.
 
