@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.6.2.4.4.1 2004/03/09 08:33:56 marka Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.6.2.4.4.2 2004/03/16 12:34:20 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -83,7 +83,7 @@ static void	res_dprintf(const char *, ...) ISC_FORMAT_PRINTF(1, 2);
 
 #define DPRINTF(x) do {\
 		int save_errno = errno; \
-		if ((statp->options & RES_DEBUG) != 0) res_dprintf x; \
+		if ((statp->options & RES_DEBUG) != 0U) res_dprintf x; \
 		errno = save_errno; \
 	} while (0)
 

@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_print.c,v 1.3.2.1.4.1 2004/03/09 08:33:44 marka Exp $";
+static const char rcsid[] = "$Id: ns_print.c,v 1.3.2.1.4.2 2004/03/16 12:34:17 marka Exp $";
 #endif
 
 /* Import. */
@@ -341,7 +341,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		u_int order, preference;
 		char t[50];
 
-		if (rdlen < 2*NS_INT16SZ)
+		if (rdlen < 2U*NS_INT16SZ)
 			goto formerr;
 
 		/* Order, Precedence. */
@@ -382,7 +382,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		u_int priority, weight, port;
 		char t[50];
 
-		if (rdlen < NS_INT16SZ*3)
+		if (rdlen < 3U*NS_INT16SZ)
 			goto formerr;
 
 		/* Priority, Weight, Port. */
@@ -411,7 +411,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	case ns_t_wks: {
 		int n, lcnt;
 
-		if (rdlen < NS_INT32SZ + 1)
+		if (rdlen < 1U + NS_INT32SZ)
 			goto formerr;
 
 		/* Address. */
@@ -455,7 +455,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		const char *leader;
 		int n;
 
-		if (rdlen < NS_INT16SZ + NS_INT8SZ + NS_INT8SZ)
+		if (rdlen < 0U + NS_INT16SZ + NS_INT8SZ + NS_INT8SZ)
 			goto formerr;
 
 		/* Key flags, Protocol, Algorithm. */
@@ -498,7 +498,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		u_long t;
 		int n;
 
-		if (rdlen < 22)
+		if (rdlen < 22U)
 			goto formerr;
 
 		/* Type covered, Algorithm, Label count, Original TTL. */
@@ -662,7 +662,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		int pbyte, pbit;
 
 		/* prefix length */
-		if (rdlen == 0) goto formerr;
+		if (rdlen == 0U) goto formerr;
 		len = SPRINTF((tmp, "%d ", *rdata));
 		T(addstr(tmp, len, &buf, &buflen));
 		pbit = *rdata;
@@ -829,7 +829,7 @@ addname(const u_char *msg, size_t msglen,
 	newlen = prune_origin(*buf, origin);
 	if (**buf == '\0') {
 		goto root;
-	} else if (newlen == 0) {
+	} else if (newlen == 0U) {
 		/* Use "@" instead of name. */
 		if (newlen + 2 > *buflen)
 			goto enospc;        /* No room for "@\0". */
