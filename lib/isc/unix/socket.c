@@ -1962,7 +1962,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 		return (ISC_R_NOMEMORY);
 	
 	manager->magic = SOCKET_MANAGER_MAGIC;
-	manager->mctx = mctx;
+	manager->mctx = NULL;
 	memset(manager->fds, 0, sizeof(manager->fds));
 	ISC_LIST_INIT(manager->socklist);
 	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
@@ -2022,6 +2022,8 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 		return (ISC_R_UNEXPECTED);
 	}
 
+	isc_mem_attach(mctx, &manager->mctx);
+
 	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
@@ -2031,6 +2033,7 @@ void
 isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
 	int i;
+	isc_mem_t *mctx;
 
 	/*
 	 * Destroy a socket manager.
@@ -2078,15 +2081,18 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	(void)isc_condition_destroy(&manager->shutdown_ok);
 	(void)isc_mutex_destroy(&manager->lock);
 	manager->magic = 0;
-	isc_mem_put(manager->mctx, manager, sizeof *manager);
+	mctx= manager->mctx;
+	isc_mem_put(mctx, manager, sizeof *manager);
+
+	isc_mem_detach(&mctx);
 
 	*managerp = NULL;
 }
 
 isc_result_t
 isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		 unsigned int minimum,
-		 isc_task_t *task, isc_taskaction_t action, const void *arg)
+		 unsigned int minimum, isc_task_t *task,
+		 isc_taskaction_t action, const void *arg)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
