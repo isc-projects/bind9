@@ -522,6 +522,16 @@
 ./bin/tests/system/stub/ns3/named.conf		CONF-C	2000,2001
 ./bin/tests/system/stub/tests.sh		SH	2000,2001
 ./bin/tests/system/testsock.pl			PERL	2000,2001
+./bin/tests/system/tkey/.cvsignore		X	2001
+./bin/tests/system/tkey/Makefile.in		MAKE	2001
+./bin/tests/system/tkey/clean.sh		SH	2001
+./bin/tests/system/tkey/keycreate.c		C	2001
+./bin/tests/system/tkey/keydelete.c		C	2001
+./bin/tests/system/tkey/ns1/.cvsignore		X	2001
+./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001
+./bin/tests/system/tkey/ns1/setup.sh		SH	2001
+./bin/tests/system/tkey/setup.sh		SH	2001
+./bin/tests/system/tkey/tests.sh		SH	2001
 ./bin/tests/system/unknown/clean.sh		SH	2000,2001
 ./bin/tests/system/unknown/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/unknown/ns1/broken1.db	ZONE	2000,2001
