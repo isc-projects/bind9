@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.34 2000/08/14 20:11:29 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.35 2000/08/14 20:39:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -248,15 +248,21 @@ main(int argc, char *argv[]) {
 	ISC_LIST_INIT(keylist);
 
 	for (i = 0; i < argc; i++) {
-		char namestr[1025];
+		char namestr[DNS_NAME_FORMATSIZE];
+		isc_buffer_t namebuf;
+
 		key = NULL;
 		result = dst_key_fromnamedfile(argv[i], DST_TYPE_PUBLIC,
 					       mctx, &key);
 		if (result != ISC_R_SUCCESS)
 			fatal("error loading key from %s", argv[i]);
 
-		dns_name_format(dst_key_name(key), namestr, sizeof namestr);
-
+		isc_buffer_init(&namebuf, namestr, sizeof namestr);
+		result = dns_name_totext(dst_key_name(key), ISC_FALSE,
+					 &namebuf);
+		check_result(result, "dns_name_totext");
+		isc_buffer_putuint8(&namebuf, 0);
+		
 		if (savedname == NULL) {
 			savedname = isc_mem_get(mctx, sizeof(dns_name_t));
 			if (savedname == NULL)
@@ -278,12 +284,11 @@ main(int argc, char *argv[]) {
 		if (output == NULL) {
 			output = isc_mem_allocate(mctx,
 						  strlen("keyset-") +
-						  strlen(namestr) + 1 + 1);
+						  strlen(namestr) + 1);
 			if (output == NULL)
 				fatal("out of memory");
 			strcpy(output, "keyset-");
 			strcat(output, namestr);
-			strcat(output, ".");
 		}
 		if (domain == NULL) {
 			dns_fixedname_init(&fdomain);
