@@ -779,7 +779,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_request_t *request = event->ev_arg;
 
-	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(DNS_REQUEST_CONNECTING(request));
 
