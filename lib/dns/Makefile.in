@@ -15,7 +15,7 @@ CWARNINGS =
 OBJS =		name.o db.o rbt.o rbtdb.o rdata.o rdatalist.o rdataset.o \
 		result.o version.o rdataslab.o master.o callbacks.o
 
-SUBDIRS =	includexo
+SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h timestamp
 
 @BIND9_MAKE_RULES@
