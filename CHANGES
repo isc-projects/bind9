@@ -1,3 +1,7 @@
+1784.	[cleanup]	"libtool -allow-undefined" is the default.
+			Leave hooks in configure to allow it to be set
+			if needed in the future.
+
 1783.	[cleanup]	We only need one copy of libtool.m4, ltmain.sh in the
 			source tree.
 
