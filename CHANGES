@@ -1,4 +1,4 @@
-1263.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
+1363.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
 
 1362.	[func]		"localhost" and "localnet" acls now include IPv6
 			addresses / prefixes.
