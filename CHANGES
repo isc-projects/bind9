@@ -1,3 +1,5 @@
+1335.	[bug]		Options should apply to the internal _bind view.
+
 1334.	[port]		Handle ECONNRESET from sendmsg() [unix].
 
 1333.	[func]		Query log now says if the query was signed (S) or

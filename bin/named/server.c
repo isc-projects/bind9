@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.379 2002/06/20 00:21:35 marka Exp $ */
+/* $Id: server.c,v 1.380 2002/06/26 04:48:12 marka Exp $ */
 
 #include <config.h>
 
@@ -1816,7 +1816,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	{
 		cfg_obj_t *vconfig = cfg_listelt_value(element);
 		CHECK(create_view(vconfig, &viewlist, &view));
-		CHECK(configure_view(view, ns_g_defaults, vconfig, ns_g_mctx,
+		CHECK(configure_view(view, config, vconfig, ns_g_mctx,
 				     &aclconfctx, ISC_FALSE));
 		dns_view_freeze(view);
 		dns_view_detach(&view);
