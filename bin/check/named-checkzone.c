@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.11 2001/01/24 00:56:55 gson Exp $ */
+/* $Id: named-checkzone.c,v 1.12 2001/03/03 23:11:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -148,8 +148,11 @@ main(int argc, char **argv) {
 		usage();
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	if (!quiet)
+	if (!quiet) {
 		RUNTIME_CHECK(setup_logging(mctx, &lctx) == ISC_R_SUCCESS);
+		dns_log_init(lctx);
+		dns_log_setcontext(lctx);
+	}
 
 	origin = argv[isc_commandline_index++];
 	filename = argv[isc_commandline_index++];

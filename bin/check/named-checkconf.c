@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.4 2001/01/29 03:23:11 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.5 2001/03/03 23:11:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -25,15 +25,18 @@
 
 #include <isc/commandline.h>
 #include <isc/dir.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/log.h>
-#include <dns/namedconf.h>
+#include <isccfg/cfg.h>
+#include <isccfg/check.h>
 
 #include "check-tool.h"
+
+isc_log_t *log = NULL;
 
 static void
 usage(void) {
@@ -42,20 +45,25 @@ usage(void) {
 }
 
 static isc_result_t
-zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap) {
+directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
+	isc_result_t result;
+	char *directory;
 
-	UNUSED(ctx);
-	UNUSED(uap);
-	UNUSED(zone);
-	UNUSED(view);
+	REQUIRE(strcasecmp("directory", clausename) == 0);
 
-	return (ISC_R_SUCCESS);
-}
+	UNUSED(arg);
 
-static isc_result_t
-optscbk(dns_c_ctx_t *ctx, void *uap) {
-	UNUSED(ctx);
-	UNUSED(uap);
+	/*
+	 * Change directory.
+	 */
+	directory = cfg_obj_asstring(obj);
+	result = isc_dir_chdir(directory);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, log, ISC_LOG_ERROR,
+			    "change directory to '%s' failed: %s",
+			    directory, isc_result_totext(result));
+		return (result);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -63,17 +71,11 @@ optscbk(dns_c_ctx_t *ctx, void *uap) {
 int
 main(int argc, char **argv) {
 	int c;
-	dns_c_ctx_t *configctx = NULL;
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *config = NULL;
 	const char *conffile = NULL;
 	isc_mem_t *mctx = NULL;
-	dns_c_cbks_t callbacks;
-	isc_log_t *log = NULL;
 	isc_result_t result;
-
-	callbacks.zonecbk = zonecbk;
-	callbacks.optscbk = optscbk;
-	callbacks.zonecbkuap = NULL;
-	callbacks.optscbkuap = NULL;
 
 	while ((c = isc_commandline_parse(argc, argv, "t:")) != EOF) {
 		switch (c) {
@@ -106,12 +108,19 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(setup_logging(mctx, &log) == ISC_R_SUCCESS);
 
-	if (dns_c_parse_namedconf(conffile, mctx, &configctx, &callbacks) !=
-	    ISC_R_SUCCESS) {
-		exit(1);
-	}
+	RUNTIME_CHECK(cfg_parser_create(mctx, log, &parser) == ISC_R_SUCCESS);
 
-	dns_c_ctx_delete(&configctx);
+	cfg_parser_setcallback(parser, directory_callback, NULL);
+
+	if (cfg_parse_file(parser, conffile, &cfg_type_namedconf, &config) !=
+	    ISC_R_SUCCESS)
+		exit(1);
+
+	RUNTIME_CHECK(cfg_check_namedconf(config, log) == ISC_R_SUCCESS);
+
+	cfg_obj_destroy(parser, &config);
+
+	cfg_parser_destroy(&parser);
 
 	isc_log_destroy(&log);
 

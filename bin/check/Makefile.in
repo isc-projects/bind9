@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.9 2001/02/04 15:52:36 bwelling Exp $
+# $Id: Makefile.in,v 1.10 2001/03/03 23:11:32 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,15 +21,17 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${DNS_INCLUDES} ${ISCCFG_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
+ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
 LIBS =		@LIBS@
@@ -46,9 +48,9 @@ MANPAGES =	named-checkconf.8 named-checkzone.8
 
 @BIND9_MAKE_RULES@
 
-named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkconf.@O@ \
-	check-tool.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+	check-tool.@O@ ${ISCCFGLIBS} ${ISCLIBS} ${LIBS}
 
 named-checkzone: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkzone.@O@ \
