@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.5 2000/08/01 01:12:10 tale Exp $ */
+/* $Id: lwresd.h,v 1.6 2000/09/07 21:54:40 explorer Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1
@@ -27,19 +27,35 @@
 
 struct ns_lwresd {
 	isc_uint32_t magic;
-	ns_lwdclientmgr_t *cmgr;
+
+	isc_mutex_t lock;
+	ISC_LIST(ns_lwdclientmgr_t) cmgrs;
 	isc_socket_t *sock;
-	unsigned int ntasks;
 	dns_view_t *view;
 	isc_mem_t *mctx;
-	isc_task_t *task;
 	dns_dispatchmgr_t *dispmgr;
+	isc_boolean_t shutting_down;
 };
 
 void
 ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp);
 
+/*
+ * Trigger shutdown.
+ */
 void
-ns_lwresd_destroy(ns_lwresd_t **lwresdp);
+ns_lwresd_shutdown(ns_lwresd_t **lwresdp);
+
+/*
+ * INTERNAL FUNCTIONS.
+ */
+void
+lwresd_destroy(ns_lwresd_t *lwresdp);
+
+void *
+ns_lwresd_memalloc(void *arg, size_t size);
+
+void
+ns_lwresd_memfree(void *arg, void *mem, size_t size);
 
 #endif /* NAMED_LWRESD_H */

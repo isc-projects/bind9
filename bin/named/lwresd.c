@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.14 2000/08/24 22:15:26 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.15 2000/09/07 21:54:36 explorer Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -60,9 +60,8 @@
 /*
  * The goal number of clients we can handle will be NTASKS * NRECVS.
  */
-#define NTASKS		20	/* tasks to create to handle lwres queries */
-#define NRECVS		 5	/* max clients per task */
-#define NTHREADS	 1	/* # threads to create in thread manager */
+#define NTASKS		2	/* tasks to create to handle lwres queries */
+#define NRECVS		 2	/* max clients per task */
 
 static void
 fatal(const char *msg, isc_result_t result) {
@@ -77,40 +76,42 @@ fatal(const char *msg, isc_result_t result) {
 /*
  * Wrappers around our memory management stuff, for the lwres functions.
  */
-static void *
-mem_alloc(void *arg, size_t size) {
+void *
+ns_lwresd_memalloc(void *arg, size_t size) {
 	return (isc_mem_get(arg, size));
 }
 
-static void
-mem_free(void *arg, void *mem, size_t size) {
+void
+ns_lwresd_memfree(void *arg, void *mem, size_t size) {
 	isc_mem_put(arg, mem, size);
 }
 
-static void
-shutdown_lwresd(isc_task_t *task, isc_event_t *event) {
-	ns_lwresd_t *lwresd = event->ev_arg;
+void
+lwresd_destroy(ns_lwresd_t *lwresd) {
+	isc_mem_t *mctx;
 
-	UNUSED(task);
+	LOCK(&lwresd->lock);
+	if (!ISC_LIST_EMPTY(lwresd->cmgrs) || (!lwresd->shutting_down)) {
+		UNLOCK(&lwresd->lock);
+		return;
+	}
+
+	/*
+	 * At this point, nothing can have the lwresd locked, since there
+	 * are no clients running.
+	 */
+	UNLOCK(&lwresd->lock);
 
 	dns_dispatchmgr_destroy(&lwresd->dispmgr);
-
-	/*
-	 * Wait for everything to die off by waiting for the sockets
-	 * to be detached.
-	 */
 	isc_socket_detach(&lwresd->sock);
-
-	/*
-	 * Kill off the view.
-	 */
 	dns_view_detach(&lwresd->view);
 
-	isc_task_detach(&lwresd->task);
+	mctx = lwresd->mctx;
 
-	isc_event_free(&event);
+	lwresd->magic = 0;
+	isc_mem_put(mctx, lwresd, sizeof(*lwresd));
+	isc_mem_detach(&mctx);
 }
-
 
 static void
 parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t *forwarders) {
@@ -124,7 +125,7 @@ parse_resolv_conf(isc_mem_t *mctx, isc_sockaddrlist_t *forwarders) {
 	in_port_t port;
 
 	lwctx = NULL;
-	lwresult = lwres_context_create(&lwctx, mctx, mem_alloc, mem_free,
+	lwresult = lwres_context_create(&lwctx, mctx, ns_lwresd_memalloc, ns_lwresd_memfree,
 					LWRES_CONTEXT_SERVERMODE);
 	if (lwresult != LWRES_R_SUCCESS)
 		return;
@@ -296,8 +297,8 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 	ns_lwresd_t *lwresd;
 	isc_sockaddr_t localhost;
 	struct in_addr lh_addr;
-	unsigned int i, j;
-	ns_lwdclient_t *client;
+	unsigned int i;
+	ns_lwdclientmgr_t *cm;
 	isc_socket_t *sock;
 	isc_result_t result;
 
@@ -322,15 +323,21 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 
 	lwresd = isc_mem_get(mctx, sizeof(*lwresd));
 	if (lwresd == NULL)
-		fatal("allocating lightweight resolver object", ISC_R_NOMEMORY);
+		fatal("allocating lightweight resolver object",
+		      ISC_R_NOMEMORY);
 
 	lwresd->mctx = NULL;
 	isc_mem_attach(mctx, &lwresd->mctx);
 
-	lwresd->sock = sock;
+	result = isc_mutex_init(&lwresd->lock);
+	if (result != ISC_R_SUCCESS)
+		fatal("creating lock", result);
 
+	lwresd->shutting_down = ISC_FALSE;
+	lwresd->sock = sock;
 	lwresd->view = NULL;
 	lwresd->dispmgr = NULL;
+	ISC_LIST_INIT(lwresd->cmgrs);
 	if (view != NULL)
 		dns_view_attach(view, &lwresd->view);
 	else {
@@ -339,115 +346,50 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 			fatal("failed to create default view", result);
 	}
 
-	lwresd->task = NULL;
-	result = isc_task_create(ns_g_taskmgr, 0, &lwresd->task);
-	if (result != ISC_R_SUCCESS)
-		fatal("allocating lightweight resolver task", result);
-	isc_task_setname(lwresd->task, "lwresd", lwresd);
-	result = isc_task_onshutdown(lwresd->task, shutdown_lwresd, lwresd);
-	if (result != ISC_R_SUCCESS)
-		fatal("allocating lwresd onshutdown event", result);
-
-	lwresd->cmgr = isc_mem_get(lwresd->mctx,
-				   sizeof(ns_lwdclientmgr_t) * NTASKS);
-	if (lwresd->cmgr == NULL)
-		fatal("allocating lwresd client manager", ISC_R_NOMEMORY);
+	/*
+	 * Create the managers.
+	 */
+	for (i = 0 ; i < NTASKS ; i++)
+		ns_lwdclientmgr_create(lwresd, NRECVS, ns_g_taskmgr);
 
 	/*
-	 * Create one task for each client manager.
+	 * Ensure that we have created at least one.
 	 */
-	for (i = 0 ; i < NTASKS ; i++) {
-		char name[16];
-		lwresd->cmgr[i].task = NULL;
-		lwresd->cmgr[i].sock = NULL;
-		isc_socket_attach(lwresd->sock, &lwresd->cmgr[i].sock);
-		lwresd->cmgr[i].view = NULL;
-		lwresd->cmgr[i].flags = 0;
-		result = isc_task_create(ns_g_taskmgr, 0,
-					 &lwresd->cmgr[i].task);
-		if (result != ISC_R_SUCCESS)
-			break;
-		result = isc_task_onshutdown(lwresd->cmgr[i].task,
-					     ns_lwdclient_shutdown,
-					     &lwresd->cmgr[i]);
-		if (result != ISC_R_SUCCESS)
-			break;
-		ISC_LIST_INIT(lwresd->cmgr[i].idle);
-		ISC_LIST_INIT(lwresd->cmgr[i].running);
-		snprintf(name, sizeof(name), "lwd client %d", i);
-		isc_task_setname(lwresd->cmgr[i].task, name, &lwresd->cmgr[i]);
-		lwresd->cmgr[i].mctx = lwresd->mctx;
-		lwresd->cmgr[i].lwctx = NULL;
-		result = lwres_context_create(&lwresd->cmgr[i].lwctx,
-					      lwresd->mctx,
-					      mem_alloc, mem_free,
-					      LWRES_CONTEXT_SERVERMODE);
-		if (result != ISC_R_SUCCESS) {
-			isc_task_detach(&lwresd->cmgr[i].task);
-			break;
-		}
-		dns_view_attach(lwresd->view, &lwresd->cmgr[i].view);
-	}
-	INSIST(i > 0);
-	lwresd->ntasks = i;  /* remember how many we managed to create */
+	INSIST(!ISC_LIST_EMPTY(lwresd->cmgrs));
 
 	/*
-	 * Now, run through each client manager and populate it with
-	 * client structures.  Do this by creating one receive for each
-	 * task, in a loop, so each task has a chance of getting at least
-	 * one client structure.
+	 * Walk the list of clients and start each one up.
 	 */
-	for (i = 0 ; i < NRECVS ; i++) {
-		client = isc_mem_get(lwresd->mctx,
-				     sizeof(ns_lwdclient_t) * lwresd->ntasks);
-		if (client == NULL)
-			break;
-		for (j = 0 ; j < lwresd->ntasks ; j++)
-			ns_lwdclient_initialize(&client[j], &lwresd->cmgr[j]);
+	LOCK(&lwresd->lock);
+	cm = ISC_LIST_HEAD(lwresd->cmgrs);
+	while (cm != NULL) {
+		ns_lwdclient_startrecv(cm);
+		cm = ISC_LIST_NEXT(cm, link);
 	}
-	INSIST(i > 0);
-
-	/*
-	 * Issue one read request for each task we have.
-	 */
-	for (j = 0 ; j < lwresd->ntasks ; j++) {
-		result = ns_lwdclient_startrecv(&lwresd->cmgr[j]);
-		INSIST(result == ISC_R_SUCCESS);
-	}
+	UNLOCK(&lwresd->lock);
 
 	lwresd->magic = LWRESD_MAGIC;
 	*lwresdp = lwresd;
 }
 
 void
-ns_lwresd_destroy(ns_lwresd_t **lwresdp) {
+ns_lwresd_shutdown(ns_lwresd_t **lwresdp) {
+	ns_lwdclientmgr_t *cm;
 	ns_lwresd_t *lwresd;
-	ns_lwdclient_t *client;
-	isc_mem_t *mctx;
 
-	REQUIRE(lwresdp != NULL);
+	INSIST(lwresdp != NULL && VALID_LWRESD(*lwresdp));
+
 	lwresd = *lwresdp;
-	REQUIRE(VALID_LWRESD(lwresd));
-
-	mctx = lwresd->mctx;
-
-	/*
-	 * Free up memory allocated.  This is somewhat magical.  We allocated
-	 * the ns_lwdclient_t's in blocks, but the first task always has the
-	 * first pointer.  Just loop here, freeing them.
-	 */
-	client = ISC_LIST_HEAD(lwresd->cmgr[0].idle);
-	while (client != NULL) {
-		ISC_LIST_UNLINK(lwresd->cmgr[0].idle, client, link);
-		isc_mem_put(mctx, client,
-			    sizeof(ns_lwdclient_t) * lwresd->ntasks);
-		client = ISC_LIST_HEAD(lwresd->cmgr[0].idle);
-	}
-	INSIST(ISC_LIST_EMPTY(lwresd->cmgr[0].running));
-
-	isc_mem_put(mctx, lwresd->cmgr, sizeof(ns_lwdclientmgr_t) * NTASKS);
-	lwresd->magic = 0;
-	isc_mem_put(mctx, lwresd, sizeof(*lwresd));
-	isc_mem_detach(&mctx);
 	*lwresdp = NULL;
+
+	LOCK(&lwresd->lock);
+	lwresd->shutting_down = ISC_TRUE;
+	cm = ISC_LIST_HEAD(lwresd->cmgrs);
+	while (cm != NULL) {
+		isc_task_shutdown(cm->task);
+		cm = ISC_LIST_NEXT(cm, link);
+	}
+	UNLOCK(&lwresd->lock);
+
+	lwresd_destroy(lwresd);
 }

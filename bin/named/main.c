@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.82 2000/08/30 20:40:04 bwelling Exp $ */
+/* $Id: main.c,v 1.83 2000/09/07 21:54:37 explorer Exp $ */
 
 #include <config.h>
 
@@ -518,11 +518,12 @@ setup(void) {
 
 static void
 cleanup(void) {
+	if (lwresd_only)
+		ns_lwresd_shutdown(&ns_g_lwresd);
+
 	destroy_managers();
 
-	if (lwresd_only)
-		ns_lwresd_destroy(&ns_g_lwresd);
-	else
+	if (!lwresd_only)
 		ns_server_destroy(&ns_g_server);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,

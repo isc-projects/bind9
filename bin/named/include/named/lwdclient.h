@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.5 2000/08/01 01:12:09 tale Exp $ */
+/* $Id: lwdclient.h,v 1.6 2000/09/07 21:54:39 explorer Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
@@ -161,18 +161,23 @@ struct ns_lwdclient {
 			((c)->state = NS_LWDCLIENT_STATESENDDONE)
 
 struct ns_lwdclientmgr {
+	ns_lwresd_t	       *lwresd;
 	isc_mem_t	       *mctx;
-	isc_task_t	       *task;		/* owning task */
 	isc_socket_t	       *sock;		/* socket to use */
 	dns_view_t	       *view;
-	unsigned int		flags;
 	lwres_context_t	       *lwctx;		/* lightweight proto context */
+	isc_task_t	       *task;		/* owning task */
+	unsigned int		flags;
+	ISC_LINK(ns_lwdclientmgr_t)	link;
 	ISC_LIST(ns_lwdclient_t)	idle;		/* idle client slots */
 	ISC_LIST(ns_lwdclient_t)	running;	/* running clients */
 };
 
 #define NS_LWDCLIENTMGR_FLAGRECVPENDING		0x00000001
 #define NS_LWDCLIENTMGR_FLAGSHUTTINGDOWN	0x00000002
+
+void
+ns_lwdclientmgr_create(ns_lwresd_t *, unsigned int, isc_taskmgr_t *);
 
 void
 ns_lwdclient_initialize(ns_lwdclient_t *, ns_lwdclientmgr_t *);
