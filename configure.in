@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.227 $)
+AC_REVISION($Revision: 1.228 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -344,17 +344,14 @@ case "$use_randomdev" in
 	unspec)
 		case "$host" in
 			*-openbsd*)
-				AC_DEFINE(PATH_RANDOMDEV, "/dev/srandom")
-				AC_MSG_RESULT(using /dev/srandom)
-				;;
-			*-linux*|*-freebsd*|*-netbsd*)
-				AC_DEFINE(PATH_RANDOMDEV, "/dev/random")
-				AC_MSG_RESULT(using /dev/random)
+				devrandom=/dev/srandom
 				;;
 			*)
-				AC_MSG_RESULT(not found)
+				devrandom=/dev/random
 				;;
 		esac
+		AC_CHECK_FILE($devrandom,
+			      AC_DEFINE(PATH_RANDOMDEV, "$devrandom"),)
 		;;
 	yes)
 		AC_MSG_ERROR([--with-randomdev must specify a path])
