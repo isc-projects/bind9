@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: app.c,v 1.16 2000/06/22 21:58:29 tale Exp $ */
+/* $Id: app.c,v 1.17 2000/06/27 18:49:14 mws Exp $ */
 
 #include <config.h>
 
@@ -146,6 +146,15 @@ isc_app_start(void) {
 	 * Always ignore SIGPIPE.
 	 */
 	result = handle_signal(SIGPIPE, SIG_IGN);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * Delivery of a signal in SIG_IGN state will not cause sigwait()
+	 * to return, and, on Solaris programs started from cron inheret
+	 * a IGN'ed SIGHUP.  Fix it.
+	 */
+	result = handle_signal(SIGHUP, SIG_DFL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
