@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.31 2000/08/10 18:56:58 bwelling Exp $ */
+/* $Id: os.c,v 1.32 2000/08/29 17:54:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -37,16 +37,62 @@
 #include <named/os.h>
 
 static char *pidfile = NULL;
+
+/*
+ * If there's no <linux/capability.h>, we don't care about <linux/prctl.h>
+ */
+#ifndef HAVE_LINUX_CAPABILITY_H
+#undef HAVE_LINUX_PRCTL_H
+#endif
+
+/*
+ * Linux defines:
+ * 	(T) HAVE_LINUXTHREADS
+ * 	(C) HAVE_LINUX_CAPABILITY_H
+ * 	(P) HAVE_LINUX_PRCTL_H
+ * The possible cases are:
+ * 	none:	setuid() normally
+ * 	T:	no setuid()
+ * 	C:	setuid() normally, drop caps (keep CAP_SETUID)
+ * 	T+C:	no setuid(), drop caps (don't keep CAP_SETUID)
+ * 	T+C+P:	setuid() early, drop caps (keep CAP_SETUID)
+ * 	C+P:	setuid() normally, drop caps (keep CAP_SETUID)
+ *	P:	not possible
+ *	T+P:	not possible
+ *
+ * if (C)
+ * 	caps = BIND_SERVICE + CHROOT + SETGID
+ * 	if ((T && C && P) || !T)
+ * 		caps += SETUID
+ * 	endif
+ * 	capset(caps)
+ * endif
+ * if (T && C && P && -u)
+ * 	setuid()
+ * else if (T && -u)
+ * 	fail
+ * --> start threads
+ * if (!T && -u)
+ * 	setuid()
+ * if (C && (P || !-u))
+ * 	caps = BIND_SERVICE
+ * 	capset(caps)
+ * endif
+ *
+ * It will be nice when Linux threads work properly with setuid().
+ */
+
 #ifdef HAVE_LINUXTHREADS
 static pid_t mainpid = 0;
-static isc_boolean_t non_root_caps = ISC_FALSE;
-static isc_boolean_t non_root = ISC_FALSE;
 #endif
 
 static struct passwd *runas_pw = NULL;
 static isc_boolean_t done_setuid = ISC_FALSE;
 
 #ifdef HAVE_LINUX_CAPABILITY_H
+
+static isc_boolean_t non_root = ISC_FALSE;
+static isc_boolean_t non_root_caps = ISC_FALSE;
 
 /*
  * We define _LINUX_FS_H to prevent it from being included.  We don't need
@@ -119,10 +165,12 @@ linux_initialprivs(void) {
 	 */
 	caps |= (1 << CAP_SYS_CHROOT);
 
-#ifdef HAVE_LINUX_PRCTL_H
+#if defined(HAVE_LINUX_PRCTL_H) || !defined(HAVE_LINUXTHREADS)
 	/*
-	 * If the kernel supports keeping capabilities after setuid(), we
-	 * also want the setuid capability.  We don't know until we've tried.
+	 * We can setuid() only if either the kernel supports keeping
+	 * capabilities after setuid() (which we don't know until we've
+	 * tried) or we're not using threads.  If either of these is
+	 * true, we want the setuid capability.
 	 */
 	caps |= (1 << CAP_SETUID);
 #endif
@@ -302,9 +350,12 @@ ns_os_changeuser(void) {
 	done_setuid = ISC_TRUE;
 
 #ifdef HAVE_LINUXTHREADS
+#ifdef HAVE_LINUX_CAPABILITY_H
 	if (!non_root_caps)
+#endif
 		ns_main_earlyfatal(
-		   "-u not supported on Linux kernels older than 2.3.99-pre3");
+		   "-u not supported on Linux kernels older than "
+		   "2.3.99-pre3 when using threads");
 #endif
 
 	if (setgid(runas_pw->pw_gid) < 0)
@@ -312,19 +363,25 @@ ns_os_changeuser(void) {
 
 	if (setuid(runas_pw->pw_uid) < 0)
 		ns_main_earlyfatal("setuid(): %s", strerror(errno));
+
+#if defined(HAVE_LINUX_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
+	linux_minprivs();
+#endif
 }
 
 void
 ns_os_minprivs(void) {
-#ifdef HAVE_LINUX_CAPABILITY_H
 #ifdef HAVE_LINUX_PRCTL_H
 	linux_keepcaps();
-	ns_os_changeuser();
 #endif
 
-	linux_minprivs();
+#ifdef HAVE_LINUXTHREADS
+	ns_os_changeuser(); /* Call setuid() before threads are started */
+#endif
 
-#endif /* HAVE_LINUX_CAPABILITY_H */
+#if defined(HAVE_LINUX_CAPABILITY_H) && defined(HAVE_LINUXTHREADS)
+	linux_minprivs();
+#endif
 }
 
 static int
