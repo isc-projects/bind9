@@ -2,11 +2,11 @@
 
 IPSECKEY WG                                                M. Richardson
 Internet-Draft                                                       SSW
-Expires: February 14, 2004                               August 16, 2003
+Expires: March 4, 2004                                 September 4, 2003
 
 
            A method for storing IPsec keying material in DNS.
-                     draft-ietf-ipseckey-rr-06.txt
+                     draft-ietf-ipseckey-rr-07.txt
 
 Status of this Memo
 
@@ -29,7 +29,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on February 14, 2004.
+   This Internet-Draft will expire on March 4, 2004.
 
 Copyright Notice
 
@@ -52,15 +52,16 @@ Abstract
 
 
 
-Richardson              Expires February 14, 2004               [Page 1]
+Richardson                Expires March 4, 2004                 [Page 1]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
    1.1 Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   1.2 Usage Criteria . . . . . . . . . . . . . . . . . . . . . . . .  3
    2.  Storage formats  . . . . . . . . . . . . . . . . . . . . . . .  4
    2.1 IPSECKEY RDATA format  . . . . . . . . . . . . . . . . . . . .  4
    2.2 RDATA format - precedence  . . . . . . . . . . . . . . . . . .  4
@@ -107,10 +108,9 @@ Table of Contents
 
 
 
-
-Richardson              Expires February 14, 2004               [Page 2]
+Richardson                Expires March 4, 2004                 [Page 2]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 1. Introduction
@@ -126,7 +126,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in RFC2119 [7].
+   document are to be interpreted as described in RFC2119 [8].
+
+1.2 Usage Criteria
 
    An IPSECKEY resource record SHOULD be used in combination with DNSSEC
    unless some other means of authenticating the IPSECKEY resource
@@ -162,11 +164,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-
-
-Richardson              Expires February 14, 2004               [Page 3]
+Richardson                Expires March 4, 2004                 [Page 3]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 2. Storage formats
@@ -195,9 +195,9 @@ Internet-Draft                   ipsecrr                     August 2003
    the same way as the PREFERENCE field described in section 3.3.9 of
    RFC1035 [2].
 
-   Gateways listed in IPSECKEY records records with  lower precedence
-   are to be attempted first.  Where there is a tie in precedence, the
-   order should be non-deterministic.
+   Gateways listed in IPSECKEY records with  lower precedence are to be
+   attempted first.  Where there is a tie in precedence, the order
+   should be non-deterministic.
 
 2.3 RDATA format - algorithm type
 
@@ -208,9 +208,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
    The following values are defined:
 
-   1  A DSA key is present, in the format defined in RFC2536 [10]
+   1  A DSA key is present, in the format defined in RFC2536 [11]
 
-   2  A RSA key is present, in the format defined in RFC3110 [11]
+   2  A RSA key is present, in the format defined in RFC3110 [12]
 
 
 2.4 RDATA format - gateway type
@@ -220,9 +220,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-Richardson              Expires February 14, 2004               [Page 4]
+Richardson                Expires March 4, 2004                 [Page 4]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
    The following values are defined:
@@ -251,7 +251,7 @@ Internet-Draft                   ipsecrr                     August 2003
 
    A 128-bit IPv6 address is present in the gateway field.  The data
    portion is an IPv6 address as described in section 2.2 of RFC1886
-   [6].  This is a 128-bit number in network byte order.
+   [7].  This is a 128-bit number in network byte order.
 
    The gateway field is a normal wire-encoded domain name, as described
    in section 3.3 of RFC1035 [2].  Compression MUST NOT be used.
@@ -276,22 +276,19 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-Richardson              Expires February 14, 2004               [Page 5]
+Richardson                Expires March 4, 2004                 [Page 5]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
    designated for use by IPSECKEY, and an IPSECKEY algorithm type number
    (which might be different than the DNSSEC algorithm number) must be
    assigned to it.
 
-   The DSA key format is defined in RFC2536 [10]
+   The DSA key format is defined in RFC2536 [11]
 
-   The RSA key format is defined in RFC3110 [11], with the following
+   The RSA key format is defined in RFC3110 [12], with the following
    changes:
-
-   The encoding of RSA/MD5 KEYs (type 1) specified in RFC2537 is the
-   same as that defined in RFC3110.
 
    The earlier definition of RSA/MD5 in RFC2065 limited the exponent and
    modulus to 2552 bits in length.  RFC3110 extended that limit to 4096
@@ -332,9 +329,12 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-Richardson              Expires February 14, 2004               [Page 6]
+
+
+
+Richardson                Expires March 4, 2004                 [Page 6]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 3. Presentation formats
@@ -352,6 +352,10 @@ Internet-Draft                   ipsecrr                     August 2003
 
    If no gateway is to be indicated, then the gateway type field MUST be
    zero, and the gateway field MUST be "."
+
+   The Public Key field is represented as a Base64 encoding of the
+   Public Key.  Whitespace is allowed within the Base64 text.  For a
+   definition of Base64 encoding, see RFC1521 [3] Section 5.2.
 
    The general presentation for the record as as follows:
 
@@ -381,18 +385,18 @@ Internet-Draft                   ipsecrr                     August 2003
                     192.0.2.3
                     AQNRU3mG7TVTO2BkR47usntb102uFJtugbo6BSGvgqt4AQ== )
 
+
+
+
+Richardson                Expires March 4, 2004                 [Page 7]
+
+Internet-Draft                   ipsecrr                  September 2003
+
+
    An example of a node, 192.0.1.38 that has delegated authority to the
    node with the identity "mygateway.example.com".
 
    38.1.0.192.in-addr.arpa. 7200 IN     IPSECKEY ( 10 3 2
-
-
-
-Richardson              Expires February 14, 2004               [Page 7]
-
-Internet-Draft                   ipsecrr                     August 2003
-
-
                     mygateway.example.com.
                     AQNRU3mG7TVTO2BkR47usntb102uFJtugbo6BSGvgqt4AQ== )
 
@@ -440,19 +444,15 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-
-
-
-
-Richardson              Expires February 14, 2004               [Page 8]
+Richardson                Expires March 4, 2004                 [Page 8]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 4. Security Considerations
 
    This entire memo pertains to the provision of public keying material
-   for use by key management protocols such as ISAKMP/IKE (RFC2407) [8].
+   for use by key management protocols such as ISAKMP/IKE (RFC2407) [9].
 
    The IPSECKEY resource record contains information that SHOULD be
    communicated to the end client in an integral fashion - i.e.  free
@@ -500,9 +500,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-Richardson              Expires February 14, 2004               [Page 9]
+Richardson                Expires March 4, 2004                 [Page 9]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
    key or remove it, thus providing an IPSECKEY record of its own to
@@ -556,9 +556,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-Richardson              Expires February 14, 2004              [Page 10]
+Richardson                Expires March 4, 2004                [Page 10]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 5. IANA Considerations
@@ -569,12 +569,12 @@ Internet-Draft                   ipsecrr                     August 2003
    This document creates an IANA registry for the algorithm type field.
 
    Values 0, 1 and 2 are defined in Section 2.3.  Algorithm numbers 3
-   through 255 can be assigned by IETF Consensus (see RFC2434 [5]).
+   through 255 can be assigned by IETF Consensus (see RFC2434 [6]).
 
    This document creates an IANA registry for the gateway type field.
 
    Values 0, 1, 2 and 3 are defined in Section 2.4.  Algorithm numbers 4
-   through 255 can be assigned by Standards Action (see RFC2434 [5]).
+   through 255 can be assigned by Standards Action (see RFC2434 [6]).
 
 
 
@@ -612,9 +612,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-Richardson              Expires February 14, 2004              [Page 11]
+Richardson                Expires March 4, 2004                [Page 11]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 6. Acknowledgments
@@ -668,9 +668,9 @@ Internet-Draft                   ipsecrr                     August 2003
 
 
 
-Richardson              Expires February 14, 2004              [Page 12]
+Richardson                Expires March 4, 2004                [Page 12]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 Normative references
@@ -681,13 +681,18 @@ Normative references
    [2]  Mockapetris, P., "Domain names - implementation and
         specification", STD 13, RFC 1035, November 1987.
 
-   [3]  Bradner, S., "The Internet Standards Process -- Revision 3", BCP
+   [3]  Borenstein, N. and N. Freed, "MIME (Multipurpose Internet Mail
+        Extensions) Part One: Mechanisms for Specifying and Describing
+        the Format of Internet Message Bodies", RFC 1521, September
+        1993.
+
+   [4]  Bradner, S., "The Internet Standards Process -- Revision 3", BCP
         9, RFC 2026, October 1996.
 
-   [4]  Eastlake, D. and C. Kaufman, "Domain Name System Security
+   [5]  Eastlake, D. and C. Kaufman, "Domain Name System Security
         Extensions", RFC 2065, January 1997.
 
-   [5]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
+   [6]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
         Considerations Section in RFCs", BCP 26, RFC 2434, October 1998.
 
 
@@ -719,37 +724,32 @@ Normative references
 
 
 
-
-
-
-
-
-Richardson              Expires February 14, 2004              [Page 13]
+Richardson                Expires March 4, 2004                [Page 13]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 Non-normative references
 
-   [6]   Thomson, S. and C. Huitema, "DNS Extensions to support IP
+   [7]   Thomson, S. and C. Huitema, "DNS Extensions to support IP
          version 6", RFC 1886, December 1995.
 
-   [7]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
+   [8]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
          Levels", BCP 14, RFC 2119, March 1997.
 
-   [8]   Piper, D., "The Internet IP Security Domain of Interpretation
+   [9]   Piper, D., "The Internet IP Security Domain of Interpretation
          for ISAKMP", RFC 2407, November 1998.
 
-   [9]   Eastlake, D., "Domain Name System Security Extensions", RFC
+   [10]  Eastlake, D., "Domain Name System Security Extensions", RFC
          2535, March 1999.
 
-   [10]  Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
+   [11]  Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
          (DNS)", RFC 2536, March 1999.
 
-   [11]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
+   [12]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
          System (DNS)", RFC 3110, May 2001.
 
-   [12]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
+   [13]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
          Record (RR)", RFC 3445, December 2002.
 
 
@@ -780,9 +780,9 @@ Author's Address
 
 
 
-Richardson              Expires February 14, 2004              [Page 14]
+Richardson                Expires March 4, 2004                [Page 14]
 
-Internet-Draft                   ipsecrr                     August 2003
+Internet-Draft                   ipsecrr                  September 2003
 
 
 Full Copyright Statement
@@ -836,5 +836,5 @@ Acknowledgement
 
 
 
-Richardson              Expires February 14, 2004              [Page 15]
+Richardson                Expires March 4, 2004                [Page 15]
 
