@@ -6,6 +6,7 @@
 @WANT_IRS_PW@
 
 #define gettimeofday isc__gettimeofday
+@BSD_COMP@
 
 @DO_PTHREADS@
 @GETGROUPLIST_ARGS@
