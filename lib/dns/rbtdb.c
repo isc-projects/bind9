@@ -3586,6 +3586,12 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 	if (dns_name_iswildcard(name)) {
 		/*
+		 * NS record owners cannot legally be wild cards.
+		 */
+		if (rdataset->type == dns_rdatatype_ns)
+			return (DNS_R_INVALIDNS);
+
+		/*
 		 * In order for wildcard matching to work correctly in
 		 * zone_find(), we must ensure that a node for the wildcarding
 		 * level exists in the database, and has its 'find_callback'

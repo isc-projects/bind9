@@ -30,7 +30,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"bitstring too long",			/*  3 */
 	"empty label",				/*  4 */
 	"bad dotted quad",			/*  5 */
-	"UNUSED6",				/*  6 */
+	"invalid NS owner name (wildcard)",	/*  6 */
 	"unknown class/type",			/*  7 */
 	"bad label type",			/*  8 */
 	"bad compression pointer",		/*  9 */
