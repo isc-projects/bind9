@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.180 2001/02/14 03:50:05 gson Exp $ */
+/* $Id: query.c,v 1.181 2001/02/14 19:32:30 gson Exp $ */
 
 #include <config.h>
 
@@ -1807,7 +1807,7 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	rdata->data = r.base;
 	rdata->length = r.length;
 	rdata->rdclass = client->message->rdclass;
-	rdata->type = dns_rdatatype_cname;
+	rdata->type = type;
 
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
