@@ -72,6 +72,7 @@ struct isc_mem {
 	unsigned char *		lowest;
 	unsigned char *		highest;
 	struct stats *		stats;
+	size_t			quota;
 };
 
 /* Forward. */
@@ -155,6 +156,7 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
+	ctx->quota = 0;
 	ctx->magic = MEM_MAGIC;
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
@@ -192,31 +194,43 @@ more_basic_blocks(isc_mem_t *ctx) {
 	unsigned char *first, *last;
 	unsigned char **table;
 	unsigned int table_size;
+	size_t total;
 	int i;
 
 	/* Require: we hold the context lock. */
 
-	if (ctx->basic_table_count <= ctx->basic_table_size) {
+	/*
+	 * Did we hit the quota for this context?
+	 */
+	if (ctx->quota != 0) {
+		total = (size_t)(ctx->basic_table_count + 1) * 
+			NUM_BASIC_BLOCKS * ctx->mem_target;
+		if (total > ctx->quota)
+			return;
+	}
+
+	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
+	if (ctx->basic_table_count == ctx->basic_table_size) {
 		table_size = ctx->basic_table_size + TABLE_INCREMENT;
 		table = malloc(table_size * sizeof (unsigned char *));
 		if (table == NULL)
 			return;
-		memcpy(table, ctx->basic_table,
-		       ctx->basic_table_size * sizeof (unsigned char *));
-		free(ctx->basic_table);
+		if (ctx->basic_table_size != 0) {
+			memcpy(table, ctx->basic_table,
+			       ctx->basic_table_size *
+			       sizeof (unsigned char *));
+			free(ctx->basic_table);
+		}
 		ctx->basic_table = table;
 		ctx->basic_table_size = table_size;
-	} else
-		table = NULL;
+	}
 
 	new = malloc(NUM_BASIC_BLOCKS * ctx->mem_target);
-	if (new == NULL) {
-		if (table != NULL)
-			free(table);
+	if (new == NULL)
 		return;
-	}
 	ctx->basic_table[ctx->basic_table_count] = new;
 	ctx->basic_table_count++;
+
 	curr = new;
 	next = curr + ctx->mem_target;
 	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
@@ -452,6 +466,34 @@ isc_mem_strdup(isc_mem_t *mctx, const char *s) {
 	strncpy(ns, s, len + 1);
 	
 	return (ns);
+}
+
+/*
+ * Quotas
+ */
+
+void
+isc_mem_setquota(isc_mem_t *ctx, size_t quota) {
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
+
+	ctx->quota = quota;
+
+	UNLOCK(&ctx->lock);
+}
+
+size_t
+isc_mem_getquota(isc_mem_t *ctx) {
+	size_t quota;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
+
+	quota = ctx->quota;
+
+	UNLOCK(&ctx->lock);
+
+	return (quota);
 }
 
 #ifdef ISC_MEMCLUSTER_LEGACY
