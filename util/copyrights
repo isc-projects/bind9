@@ -107,13 +107,9 @@
 ./bin/tests/.cvsignore				X	1999,2000,2001
 ./bin/tests/Kchild.example.+003+04017.key	X	2000,2001
 ./bin/tests/Kchild.example.+003+04017.private	X	2000,2001
-./bin/tests/Kclient.+002+02982.key		X	1999,2000,2001
-./bin/tests/Kclient.+002+02982.private		X	1999,2000,2001
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001
 ./bin/tests/adb_test.c				C	1999,2000,2001
-./bin/tests/b8status.pl				PERL	1999,2000,2001
 ./bin/tests/b8t.mk				MAKE	1999,2000,2001
-./bin/tests/b9status.pl				PERL	1999,2000,2001
 ./bin/tests/b9t.mk				MAKE	1999,2000,2001
 ./bin/tests/byaddr_test.c			C	2000,2001
 ./bin/tests/byname_test.c			C	2000,2001
@@ -172,8 +168,6 @@
 ./bin/tests/db/dns_db_origin_data		X	1999,2000,2001
 ./bin/tests/db/t_db.c				C	1999,2000,2001
 ./bin/tests/db_test.c				C	1999,2000,2001
-./bin/tests/dispatch_tcp_test.c			C	1998,1999,2000,2001
-./bin/tests/dispatch_test.c			C	1998,1999,2000,2001
 ./bin/tests/dst/.cvsignore			X	1999,2000,2001
 ./bin/tests/dst/Kdh.+002+18088.key		X	1999,2000,2001
 ./bin/tests/dst/Kdh.+002+18088.private		X	1999,2000,2001
@@ -281,7 +275,6 @@
 ./bin/tests/names/wire_test8.data		X	1999,2000,2001
 ./bin/tests/names/wire_test9.data		X	1999,2000,2001
 ./bin/tests/ndc.conf				CONF-C	2000,2001
-./bin/tests/ndcconf_test.c			C	2000,2001
 ./bin/tests/net/.cvsignore			X	2000,2001
 ./bin/tests/net/Makefile.in			MAKE	2000,2001
 ./bin/tests/net/driver.c			C	2000,2001
@@ -627,7 +620,6 @@
 ./bin/tests/timers/.cvsignore			X	1999,2000,2001
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001
 ./bin/tests/timers/t_timers.c			C	1999,2000,2001
-./bin/tests/tkey_test.c				C	1999,2000,2001
 ./bin/tests/wire_test.c				C	1999,2000,2001
 ./bin/tests/wire_test.data			X	1999,2000,2001
 ./bin/tests/wire_test.data2			X	1999,2000,2001
@@ -773,8 +765,8 @@
 ./contrib/sdb/timedb.c				C	2000,2001
 ./contrib/sdb/timedb.h				C	2000,2001
 ./contrib/sdb/zonetodb.c			C	2000,2001
-./contrib/sdb/zonetoldap.c			X	2001
-./contrib/sdb/zonetoldap.1			X	2001
+./contrib/sdb/zone2ldap.c			X	2001
+./contrib/sdb/zone2ldap.1			X	2001
 ./doc/.cvsignore				X	2000,2001
 ./doc/Makefile.in				MAKE	2000,2001
 ./doc/arm/.cvsignore				X	2000,2001
@@ -1310,7 +1302,7 @@
 ./lib/isccc/include/isccc/symtype.h		C	2001
 ./lib/isccc/include/isccc/types.h		C	2001
 ./lib/isccc/include/isccc/util.h		C	2001
-./lib/isccc/include/.cvsignore			MAKE	2001
+./lib/isccc/include/.cvsignore			X	2001
 ./lib/isccc/include/Makefile.in			MAKE	2001
 ./lib/isccc/lib.c				C	2001
 ./lib/isccc/result.c				C	2001
@@ -1320,15 +1312,15 @@
 ./lib/isccfg/Makefile.in			MAKE	2001
 ./lib/isccfg/api				X	2001
 ./lib/isccfg/check.c				C	2001
-./lib/isccfg/log.c				C	2001
-./lib/isccfg/parser.c				C	2000,2001
 ./lib/isccfg/include/.cvsignore			X	2001
-./lib/isccfg/include/Makefile.in		C	2001
+./lib/isccfg/include/Makefile.in		MAKE	2001
 ./lib/isccfg/include/isccfg/.cvsignore		X	2001
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001
 ./lib/isccfg/include/isccfg/check.h		C	2001
 ./lib/isccfg/include/isccfg/log.h		C	2001
+./lib/isccfg/log.c				C	2001
+./lib/isccfg/parser.c				C	2000,2001
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001
 ./lib/lwres/api					X	2000,2001

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.21 2001/03/27 00:44:56 bwelling Exp $ */
+/* $Id: cfg.h,v 1.22 2001/03/27 02:06:12 bwelling Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
