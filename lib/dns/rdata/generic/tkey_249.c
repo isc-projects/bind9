@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.8 1999/05/05 00:19:03 marka Exp $ */
+ /* $Id: tkey_249.c,v 1.9 1999/05/07 03:24:12 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -285,12 +285,19 @@ fromstruct_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-tostruct_tkey(dns_rdata_t *rdata, void *target) {
+tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 249);
 	
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_tkey(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_TKEY_249_C */

@@ -122,12 +122,19 @@ fromstruct_isdn(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_isdn(dns_rdata_t *rdata, void *target) {
+tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 20);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_isdn(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_ISDN_20_C */

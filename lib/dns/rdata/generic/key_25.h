@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.h,v 1.4 1999/05/05 01:55:09 marka Exp $ */
+ /* $Id: key_25.h,v 1.5 1999/05/07 03:24:07 marka Exp $ */
 
  /* RFC 2065 */
 
-#ifndef RDATA_GENERIC_KEY_25_H
-#define RDATA_GENERIC_KEY_25_H
-#endif	/* RDATA_GENERIC_KEY_25_H */

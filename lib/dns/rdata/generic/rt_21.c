@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.c,v 1.6 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: rt_21.c,v 1.7 1999/05/07 03:24:11 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -178,12 +178,19 @@ fromstruct_rt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_rt(dns_rdata_t *rdata, void *target) {
+tostruct_rt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 21);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_rt(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_RT_21_C */

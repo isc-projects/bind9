@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.10 1999/05/05 00:19:03 marka Exp $ */
+ /* $Id: txt_16.c,v 1.11 1999/05/07 03:24:12 marka Exp $ */
 
 #ifndef RDATA_GENERIC_TXT_16_C
 #define RDATA_GENERIC_TXT_16_C
@@ -133,12 +133,19 @@ fromstruct_txt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_txt(dns_rdata_t *rdata, void *target) {
+tostruct_txt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 16);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_txt(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);
 }
 #endif	/* RDATA_GENERIC_TXT_16_C */

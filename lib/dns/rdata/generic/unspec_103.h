@@ -15,8 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: unspec_103.h,v 1.3 1999/05/05 01:55:11 marka Exp $ */
+ /* $Id: unspec_103.h,v 1.4 1999/05/07 03:24:12 marka Exp $ */
 
-#ifndef RDATA_GENERIC_UNSPEC_103_H
-#define RDATA_GENERIC_UNSPEC_103_H
-#endif	/* RDATA_GENERIC_UNSPEC_103_H */

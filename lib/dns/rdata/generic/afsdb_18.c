@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.c,v 1.6 1999/05/05 00:18:59 marka Exp $ */
+ /* $Id: afsdb_18.c,v 1.7 1999/05/07 03:24:05 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -179,12 +179,23 @@ fromstruct_afsdb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_afsdb(dns_rdata_t *rdata, void *target) {
+tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 18);
+	REQUIRE(target != NULL);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_afsdb(void *source) {
+	dns_rdata_afsdb_t *afsdb = source;
+
+	REQUIRE(source != NULL);
+	REQUIRE(afsdb->common.rdtype == 18);
+	REQUIRE(ISC_FALSE);
 }
 #endif	/* RDATA_GENERIC_AFSDB_18_C */

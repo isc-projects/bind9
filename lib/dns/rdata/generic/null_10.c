@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.8 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: null_10.c,v 1.9 1999/05/07 03:24:10 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_C
 #define RDATA_GENERIC_NULL_10_C
@@ -105,12 +105,24 @@ fromstruct_null(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_null(dns_rdata_t *rdata, void *target) {
+tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_null_t *null = target;
 
 	REQUIRE(rdata->type == 10);
+	REQUIRE(target != NULL);
 
-	target = target;
+	mctx = mctx;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	null->common.rdtype = rdata->type;
+	null->common.rdclass = rdata->class;
+	ISC_LINK_INIT(&null->common, link);
+
+	return (DNS_R_SUCCESS);
+}
+
+static void
+freestruct_null(void *source) {
+	REQUIRE(source != NULL);
+	/* No action required. */
 }
 #endif	/* RDATA_GENERIC_NULL_10_C */

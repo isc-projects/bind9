@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.c,v 1.3 1999/05/05 00:19:03 marka Exp $ */
+ /* $Id: x25_19.c,v 1.4 1999/05/07 03:24:12 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -119,12 +119,19 @@ fromstruct_x25(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_x25(dns_rdata_t *rdata, void *target) {
+tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 19);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_x25(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_X25_19_C */

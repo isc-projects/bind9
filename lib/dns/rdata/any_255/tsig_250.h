@@ -15,11 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.h,v 1.8 1999/05/05 01:55:08 marka Exp $ */
+ /* $Id: tsig_250.h,v 1.9 1999/05/07 03:24:05 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
-#ifndef RDATA_ANY_255_TSIG_250_H
-#define RDATA_ANY_255_TSIG_250_H
-
-#endif	/* RDATA_ANY_255_TSIG_250_H */
+typedef struct dns_rdata_any_tsig {
+	dns_rdatacommon_t	common;
+	/*XXX*/
+} dns_rdata_any_tsig_t;

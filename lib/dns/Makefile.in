@@ -80,8 +80,9 @@ include/dns/enumtype.h: gen
 include/dns/enumclass.h: gen
 	./gen -s ${srcdir} -c > $@
 
-include/dns/rdatastruct.h: gen
-	./gen -s ${srcdir} -i > $@
+include/dns/rdatastruct.h: gen rdata/rdatastructpre.h rdata/rdatastructsuf.h
+	./gen -s ${srcdir} -i \
+		-P rdata/rdatastructpre.h -S rdata/rdatastructsuf.h > $@
 
 code.h:	gen
 	./gen -s ${srcdir} > code.h

@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.h,v 1.8 1999/05/05 01:55:11 marka Exp $ */
+ /* $Id: tkey_249.h,v 1.9 1999/05/07 03:24:12 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
-#ifndef RDATA_GENERIC_TKEY_249_H
-#define RDATA_GENERIC_TKEY_249_H
-#endif	/* RDATA_GENERIC_TKEY_249_H */

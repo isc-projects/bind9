@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.c,v 1.5 1999/05/05 00:19:04 marka Exp $ */
+ /* $Id: srv_33.c,v 1.6 1999/05/07 03:24:15 marka Exp $ */
 
  /* RFC 2052 bis */
 
@@ -199,13 +199,20 @@ fromstruct_in_srv(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_in_srv(dns_rdata_t *rdata, void *target) {
+tostruct_in_srv(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 33);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_srv(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_IN_1_SRV_33_C */

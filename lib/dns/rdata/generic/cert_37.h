@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.h,v 1.6 1999/05/05 01:55:08 marka Exp $ */
+ /* $Id: cert_37.h,v 1.7 1999/05/07 03:24:06 marka Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
-#ifndef RDATA_GENERIC_CERT_37_H
-#define RDATA_GENERIC_CERT_37_H
-#endif	/* RDATA_GENERIC_CERT_37_H */

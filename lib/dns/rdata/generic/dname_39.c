@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.c,v 1.5 1999/05/05 00:19:00 marka Exp $ */
+ /* $Id: dname_39.c,v 1.6 1999/05/07 03:24:06 marka Exp $ */
 
  /* draft-ietf-dnsind-dname-02.txt */
 
@@ -140,12 +140,20 @@ fromstruct_dname(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_dname(dns_rdata_t *rdata, void *target) {
+tostruct_dname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	
 	REQUIRE(rdata->type == 39);
+	REQUIRE(target != NULL && target == NULL);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_dname(void *source) {
+	REQUIRE(source != NULL && source != NULL);
+	REQUIRE(ISC_FALSE);	/* XXX */
 }
 #endif	/* RDATA_GENERIC_DNAME_39_C */

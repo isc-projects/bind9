@@ -15,8 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.h,v 1.10 1999/05/05 01:55:11 marka Exp $ */
+ /* $Id: txt_16.h,v 1.11 1999/05/07 03:24:12 marka Exp $ */
 
-#ifndef RDATA_GENERIC_TXT_16_H
-#define RDATA_GENERIC_TXT_16_H
-#endif	/* RDATA_GENERIC_TXT_16_H */

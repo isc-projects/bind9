@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.11 1999/05/05 00:19:00 marka Exp $ */
+ /* $Id: hinfo_13.c,v 1.12 1999/05/07 03:24:07 marka Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_C
 #define RDATA_GENERIC_HINFO_13_C
@@ -112,12 +112,19 @@ fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_hinfo(dns_rdata_t *rdata, void *target) {
+tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 13);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_hinfo(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE); /* XXX */
 }
 #endif	/* RDATA_GENERIC_HINFO_13_C */

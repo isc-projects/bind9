@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.h,v 1.6 1999/05/05 01:55:12 marka Exp $ */
+ /* $Id: naptr_35.h,v 1.7 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 2168 */
 
-#ifndef RDATA_IN_1_NAPTR_35_H
-#define RDATA_IN_1_NAPTR_35_H
-#endif	/* RDATA_IN_1_NAPTR_35_H */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.18 1999/05/05 01:55:07 marka Exp $ */
+ /* $Id: gen.c,v 1.19 1999/05/07 03:24:04 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -59,11 +59,17 @@
 #define FROMSTRUCTTYPE "type"
 #define FROMSTRUCTDEF "use_default = ISC_TRUE"
 
-#define TOSTRUCTDECL "dns_rdata_t *rdata, void *target"
-#define TOSTRUCTARGS "rdata, target"
+#define TOSTRUCTDECL "dns_rdata_t *rdata, void *target, isc_mem_t *mctx"
+#define TOSTRUCTARGS "rdata, target, mctx"
 #define TOSTRUCTCLASS "rdata->class"
 #define TOSTRUCTTYPE "rdata->type"
 #define TOSTRUCTDEF "use_default = ISC_TRUE"
+
+#define FREESTRUCTDECL "void *source"
+#define FREESTRUCTARGS "source"
+#define FREESTRUCTCLASS "common->rdclass"
+#define FREESTRUCTTYPE "common->rdtype"
+#define FREESTRUCTDEF NULL
 
 #define COMPAREDECL "dns_rdata_t *rdata1, dns_rdata_t *rdata2"
 #define COMPAREARGS "rdata1, rdata2"
@@ -149,6 +155,10 @@ doswitch(char *name, char *function, char *args,
 	int lasttype = 0;
 	int subswitch = 0;
 	char buf1[11], buf2[11];
+	char *result = " result =";
+
+	if (res == NULL)
+		result = "";
 
 	for (tt = types; tt != NULL ; tt = tt->next) {
 		if (first) {
@@ -157,7 +167,11 @@ doswitch(char *name, char *function, char *args,
 			first = 0;
 		}
 		if (tt->type != lasttype && subswitch) {
-			fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
+			if (res == NULL)
+				fprintf(stdout, "\t\tdefault: break; \\\n");
+			else
+				fprintf(stdout,
+					"\t\tdefault: %s; break; \\\n", res);
 			fputs(/*{*/ "\t\t} \\\n", stdout);
 			fputs("\t\tbreak; \\\n", stdout);
 			subswitch = 0;
@@ -169,27 +183,36 @@ doswitch(char *name, char *function, char *args,
 		}
 		if (tt->class == 0)
 			fprintf(stdout,
-				"\tcase %d: result = %s_%s(%s); break;",
-				tt->type, function,
+				"\tcase %d:%s %s_%s(%s); break;",
+				tt->type, result, function,
 				funname(tt->typename, buf1), args);
 		else
 			fprintf(stdout,
-			        "\t\tcase %d: result = %s_%s_%s(%s); break;",
-				tt->class, function, 
+			        "\t\tcase %d:%s %s_%s_%s(%s); break;",
+				tt->class, result, function, 
 				funname(tt->classname, buf1),
 				funname(tt->typename, buf2), args);
 		fputs(" \\\n", stdout);
 		lasttype = tt->type;
 	}
 	if (subswitch) {
-		fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
+		if (res == NULL)
+			fprintf(stdout, "\t\tdefault: break; \\\n");
+		else 
+			fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
 		fputs(/*{*/ "\t\t} \\\n", stdout);
 		fputs("\t\tbreak; \\\n", stdout);
 	}
-	if (first)
-		fprintf(stdout, "\n#define %s %s;\n", name, res);
-	else {
-		fprintf(stdout, "\tdefault: %s; break; \\\n", res);
+	if (first) {
+		if (res == NULL)
+			fprintf(stdout, "\n#define %s\n", name);
+		else
+			fprintf(stdout, "\n#define %s %s;\n", name, res);
+	} else {
+		if (res == NULL)
+			fprintf(stdout, "\tdefault: break; \\\n");
+		else
+			fprintf(stdout, "\tdefault: %s; break; \\\n", res);
 		fputs(/*{*/ "\t}\n", stdout);
 	}
 }
@@ -332,9 +355,11 @@ main(int argc, char **argv) {
 	char buf1[11];
 	char filetype = 'c';
 	FILE *fd;
+	char *prefix = NULL;
+	char *suffix = NULL;
 
 	strcpy(srcdir, "");
-	while ((c = getopt(argc, argv, "ctis:")) != -1)
+	while ((c = getopt(argc, argv, "cits:P:S:")) != -1)
 		switch (c) {
 		case 'c':
 			code = 0;
@@ -359,6 +384,12 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			sprintf(srcdir, "%s/", optarg);
+			break;
+		case 'P':
+			prefix = optarg;
+			break;
+		case 'S':
+			suffix = optarg;
 			break;
 		case '?':
 			exit(1);
@@ -402,6 +433,7 @@ main(int argc, char **argv) {
 		dodecl("int", "compare", COMPAREDECL);
 		dodecl("dns_result_t", "fromstruct", FROMSTRUCTDECL);
 		dodecl("dns_result_t", "tostruct", TOSTRUCTDECL);
+		dodecl("void", "freestruct", FREESTRUCTDECL);
 
 		doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
 			 FROMTEXTTYPE, FROMTEXTCLASS, FROMTEXTDEF);
@@ -417,6 +449,8 @@ main(int argc, char **argv) {
 			  FROMSTRUCTTYPE, FROMSTRUCTCLASS, FROMSTRUCTDEF);
 		doswitch("TOSTRUCTSWITCH", "tostruct", TOSTRUCTARGS,
 			  TOSTRUCTTYPE, TOSTRUCTCLASS, TOSTRUCTDEF);
+		doswitch("FREESTRUCTSWITCH", "freestruct", FREESTRUCTARGS,
+			  FREESTRUCTTYPE, FREESTRUCTCLASS, FREESTRUCTDEF);
 
 		fprintf(stdout, "\n#define TYPENAMES%s\n",
 			types != NULL ? " \\" : "");
@@ -468,10 +502,24 @@ main(int argc, char **argv) {
 				cc->next != NULL ? " \\" : "");
 		fprintf(stdout, "#endif /* CLASSENUM */\n");
 	} else if (structs) {
+		if (prefix != NULL) {
+			if ((fd = fopen(prefix,"r")) != NULL) {
+				while (fgets(buf, sizeof buf, fd) != NULL)
+					fputs(buf, stdout);
+				fclose(fd);
+			}
+		}
 		for (tt = types; tt != NULL ; tt = tt->next) {
 			sprintf(buf, "%s/%s_%d.h",
 				tt->dirname, tt->typename, tt->type);
 			if ((fd = fopen(buf,"r")) != NULL) {
+				while (fgets(buf, sizeof buf, fd) != NULL)
+					fputs(buf, stdout);
+				fclose(fd);
+			}
+		}
+		if (suffix != NULL) {
+			if ((fd = fopen(suffix,"r")) != NULL) {
 				while (fgets(buf, sizeof buf, fd) != NULL)
 					fputs(buf, stdout);
 				fclose(fd);

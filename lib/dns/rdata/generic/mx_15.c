@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.14 1999/05/05 00:19:01 marka Exp $ */
+ /* $Id: mx_15.c,v 1.15 1999/05/07 03:24:09 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_C
 #define RDATA_GENERIC_MX_15_C
@@ -177,12 +177,19 @@ fromstruct_mx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_mx(dns_rdata_t *rdata, void *target) {
+tostruct_mx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 15);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_mx(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_MX_15_C */

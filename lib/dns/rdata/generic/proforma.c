@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.9 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: proforma.c,v 1.10 1999/05/07 03:24:10 marka Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -99,11 +99,21 @@ fromstruct_#(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_#(dns_rdata_t *rdata, void *target) {
+tostruct_#(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->class == #);
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_#(void *source) {
+	dns_rdata_#_t *# = source;
+
+	REQUIRE(source != NULL);
+	REQUIRE(#->common.rdtype == #);
+	REQUIRE(#->common.rdclass == #);
+	
 }
 #endif	/* RDATA_GENERIC_#_#_C */

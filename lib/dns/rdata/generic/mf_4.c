@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mf_4.c,v 1.11 1999/05/05 00:19:01 marka Exp $ */
+ /* $Id: mf_4.c,v 1.12 1999/05/07 03:24:08 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MF_4_C
 #define RDATA_GENERIC_MF_4_C
@@ -138,12 +138,19 @@ fromstruct_mf(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_mf(dns_rdata_t *rdata, void *target) {
+tostruct_mf(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 4);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_mf(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_MF_4_C */

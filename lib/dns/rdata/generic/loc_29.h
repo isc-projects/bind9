@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: loc_29.h,v 1.3 1999/05/05 01:55:09 marka Exp $ */
+ /* $Id: loc_29.h,v 1.4 1999/05/07 03:24:07 marka Exp $ */
 
  /* RFC 1876 */
 
-#ifndef RDATA_GENERIC_LOC_29_H
-#define RDATA_GENERIC_LOC_29_H
-#endif	/* RDATA_GENERIC_LOC_29_H */

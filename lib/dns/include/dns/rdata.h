@@ -360,22 +360,32 @@ dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target);
+dns_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target,
+				isc_mem_t *mctx);
 /*
  * Convert an rdata into its C structure representation.
- *
- * XXX  Should we have a 'size' parameter as a sanity check on target?
  *
  * Requires:
  *
  *	'rdata' is a valid, non-empty rdata.
  *
- *	'target' points to a valid C struct for the class and type.
+ *	'target' to point to a valid pointer for the type and class.
  *
  * Result:
  *	Success
+ *	Resource Limit: Not enough memory
  */
 
+void dns_rdata_freestruct(void *source);
+
+/*
+ * Free dynamic memory attached to 'source' (if any).
+ *
+ * Requires:
+ *
+ *	'source' to point to the structure previously filled in by
+ *	dns_rdata_tostruct().
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATA_H */

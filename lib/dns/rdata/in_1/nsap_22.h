@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.h,v 1.3 1999/05/05 01:55:12 marka Exp $ */
+ /* $Id: nsap_22.h,v 1.4 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 1706 */
 
-#ifndef RDATA_IN_1_NSAP_22_H
-#define RDATA_IN_1_NSAP_22_H
-#endif	/* RDATA_IN_1_NSAP_22_H */

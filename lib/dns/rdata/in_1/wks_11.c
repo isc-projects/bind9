@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.9 1999/05/05 00:19:04 marka Exp $ */
+ /* $Id: wks_11.c,v 1.10 1999/05/07 03:24:15 marka Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_C
 #define RDATA_IN_1_WKS_11_C
@@ -226,13 +226,20 @@ fromstruct_in_wks(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_in_wks(dns_rdata_t *rdata, void *target) {
+tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_wks(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_IN_1_WKS_11_C */

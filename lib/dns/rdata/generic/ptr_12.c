@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.c,v 1.12 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: ptr_12.c,v 1.13 1999/05/07 03:24:10 marka Exp $ */
 
 #ifndef RDATA_GENERIC_PTR_12_C
 #define RDATA_GENERIC_PTR_12_C
@@ -140,12 +140,19 @@ fromstruct_ptr(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_ptr(dns_rdata_t *rdata, void *target) {
+tostruct_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	
 	REQUIRE(rdata->type == 12);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_ptr(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);
 }
 #endif	/* RDATA_GENERIC_PTR_12_C */

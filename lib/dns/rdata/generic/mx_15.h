@@ -15,8 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.h,v 1.14 1999/05/05 01:55:10 marka Exp $ */
+ /* $Id: mx_15.h,v 1.15 1999/05/07 03:24:09 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MX_15_H
-#define RDATA_GENERIC_MX_15_H
-#endif	/* RDATA_GENERIC_MX_15_H */

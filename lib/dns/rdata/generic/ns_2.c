@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.11 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: ns_2.c,v 1.12 1999/05/07 03:24:09 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C
@@ -140,12 +140,29 @@ fromstruct_ns(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_ns(dns_rdata_t *rdata, void *target) {
+tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	isc_region_t region;
+	dns_rdata_ns_t *ns = target;
 
 	REQUIRE(rdata->type == 2);
+	REQUIRE(target != NULL);
 
-	target = target;
+	mctx = mctx;	/*unused*/
 
-	return (DNS_R_NOTIMPLEMENTED);
+	ns->common.rdclass = rdata->class;
+	ns->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&ns->common, link);
+
+	dns_rdata_toregion(rdata, &region);
+	dns_fixedname_init(&ns->name);
+	dns_name_fromregion(dns_fixedname_name(&ns->name), &region);
+
+	return (DNS_R_SUCCESS);
+}
+
+static void
+freestruct_ns(void *source) {
+	REQUIRE(source != NULL);
+	/* No action required. */
 }
 #endif	/* RDATA_GENERIC_NS_2_C */

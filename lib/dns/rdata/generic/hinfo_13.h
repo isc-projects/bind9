@@ -15,8 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.h,v 1.11 1999/05/05 01:55:09 marka Exp $ */
+ /* $Id: hinfo_13.h,v 1.12 1999/05/07 03:24:07 marka Exp $ */
 
-#ifndef RDATA_GENERIC_HINFO_13_H
-#define RDATA_GENERIC_HINFO_13_H
-#endif	/* RDATA_GENERIC_HINFO_13_H */

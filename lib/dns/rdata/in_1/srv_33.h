@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.h,v 1.5 1999/05/05 01:55:13 marka Exp $ */
+ /* $Id: srv_33.h,v 1.6 1999/05/07 03:24:15 marka Exp $ */
 
  /* RFC 2052 bis */
 
-#ifndef RDATA_IN_1_SRV_33_H
-#define RDATA_IN_1_SRV_33_H
-#endif	/* RDATA_IN_1_SRV_33_H */

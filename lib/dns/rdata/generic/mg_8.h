@@ -15,8 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: mg_8.h,v 1.11 1999/05/05 01:55:10 marka Exp $ */
+ /* $Id: mg_8.h,v 1.12 1999/05/07 03:24:08 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MG_8_H
-#define RDATA_GENERIC_MG_8_H
-#endif	/* RDATA_GENERIC_MG_8_H */

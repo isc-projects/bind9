@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.7 1999/05/05 00:19:04 marka Exp $ */
+ /* $Id: aaaa_28.c,v 1.8 1999/05/07 03:24:13 marka Exp $ */
 
  /* RFC 1886 */
 
@@ -154,13 +154,20 @@ fromstruct_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_in_aaaa(dns_rdata_t *rdata, void *target) {
+tostruct_in_aaaa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_aaaa(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_IN_1_AAAA_28_C */

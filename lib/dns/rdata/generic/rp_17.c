@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.6 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: rp_17.c,v 1.7 1999/05/07 03:24:11 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -188,12 +188,19 @@ fromstruct_rp(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_rp(dns_rdata_t *rdata, void *target) {
+tostruct_rp(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	
 	REQUIRE(rdata->type == 17);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_rp(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_RP_17_C */

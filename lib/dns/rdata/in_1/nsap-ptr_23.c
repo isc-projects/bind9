@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.c,v 1.5 1999/05/05 00:19:04 marka Exp $ */
+ /* $Id: nsap-ptr_23.c,v 1.6 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 1348 */
 
@@ -146,13 +146,20 @@ fromstruct_in_nsap_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-tostruct_in_nsap_ptr(dns_rdata_t *rdata, void *target) {
+tostruct_in_nsap_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_nsap_ptr(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);
 }
 #endif	/* RDATA_IN_1_NSAP_PTR_23_C */

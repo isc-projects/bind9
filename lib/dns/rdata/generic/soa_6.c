@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.16 1999/05/05 00:20:36 marka Exp $ */
+ /* $Id: soa_6.c,v 1.17 1999/05/07 03:24:11 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
@@ -232,15 +232,18 @@ fromstruct_soa(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_soa(dns_rdata_t *rdata, void *target) {
+tostruct_soa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 	dns_rdata_soa_t *soa = target;
 	
 	REQUIRE(rdata->type == 6);
+	REQUIRE(target != NULL);
 
-	soa->rdclass = rdata->class;
-	soa->rdtype = rdata->type;
-	ISC_LINK_INIT(soa, link);
+	mctx = mctx;	/*unused*/
+
+	soa->common.rdclass = rdata->class;
+	soa->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&soa->common, link);
 
 	dns_rdata_toregion(rdata, &region);
 	dns_fixedname_init(&soa->origin);
@@ -262,5 +265,14 @@ tostruct_soa(dns_rdata_t *rdata, void *target) {
 	soa->minimum = uint32_fromregion(&region);
 
 	return (DNS_R_SUCCESS);
+}
+
+void
+freestruct_soa(void *source) {
+	dns_rdata_soa_t *soa = source;
+
+	REQUIRE(source != NULL);
+	REQUIRE(soa->common.rdtype == 6);
+	/* No action required */
 }
 #endif	/* RDATA_GENERIC_SOA_6_C */

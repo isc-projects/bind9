@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.h,v 1.10 1999/05/05 01:55:11 marka Exp $ */
+ /* $Id: sig_24.h,v 1.11 1999/05/07 03:24:11 marka Exp $ */
 
  /* RFC 2065 */
 
-#ifndef RDATA_GENERIC_SIG_24_H
-#define RDATA_GENERIC_SIG_24_H
-#endif	/* RDATA_GENERIC_SIG_24_H */

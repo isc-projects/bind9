@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.4 1999/05/05 00:19:00 marka Exp $ */
+ /* $Id: key_25.c,v 1.5 1999/05/07 03:24:07 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -164,12 +164,19 @@ fromstruct_key(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_key(dns_rdata_t *rdata, void *target) {
+tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 25);
 	
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_key(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_KEY_25_C */

@@ -19,6 +19,3 @@
 
  /* RFC 1183 */
 
-#ifndef RDATA_GENERIC_ISDN_20_H
-#define RDATA_GENERIC_ISDN_20_H
-#endif	/* RDATA_GENERIC_ISDN_20_H */

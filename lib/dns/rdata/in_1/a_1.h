@@ -15,17 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.h,v 1.13 1999/05/05 01:55:12 marka Exp $ */
-
-#ifndef RDATA_IN_1_A_1_H
-#define RDATA_IN_1_A_1_H
+ /* $Id: a_1.h,v 1.14 1999/05/07 03:24:13 marka Exp $ */
 
 typedef struct dns_rdata_in_a {
-	dns_rdataclass_t	rdclass;	/* host order */
-	dns_rdatatype_t		rdtype;		/* host order */
-	ISC_LINK(void)		link;
-	isc_mem_t		*mctx;
+	dns_rdatacommon_t	common;
 	isc_uint32_t            address;	/* network order */
 } dns_rdata_in_a_t;
-
-#endif RDATA_IN_1_A_1_H

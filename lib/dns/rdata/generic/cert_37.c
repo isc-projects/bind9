@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.6 1999/05/05 00:19:00 marka Exp $ */
+ /* $Id: cert_37.c,v 1.7 1999/05/07 03:24:06 marka Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -169,12 +169,20 @@ fromstruct_cert(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_cert(dns_rdata_t *rdata, void *target) {
+tostruct_cert(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 37);
+	REQUIRE(target != NULL && target == NULL);
 	
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_cert(void *target) {
+	REQUIRE(target != NULL && target != NULL);
+	REQUIRE(ISC_FALSE);	/* XXX */
 }
 #endif	/* RDATA_GENERIC_CERT_37_C */

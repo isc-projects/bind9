@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: kx_36.c,v 1.6 1999/05/05 00:19:04 marka Exp $ */
+ /* $Id: kx_36.c,v 1.7 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 2230 */
 
@@ -168,13 +168,21 @@ fromstruct_in_kx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_in_kx(dns_rdata_t *rdata, void *target) {
+tostruct_in_kx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 36);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_kx(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);
+
 }
 #endif	/* RDATA_GENERIC_KX_15_C */

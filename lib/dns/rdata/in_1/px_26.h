@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.h,v 1.5 1999/05/05 01:55:13 marka Exp $ */
+ /* $Id: px_26.h,v 1.6 1999/05/07 03:24:15 marka Exp $ */
 
  /* RFC 2163 */
 
-#ifndef RDATA_IN_1_PX_26_H
-#define RDATA_IN_1_PX_26_H
-#endif	/* RDATA_IN_1_PX_26_H */

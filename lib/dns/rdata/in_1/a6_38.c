@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.8 1999/05/05 00:19:03 marka Exp $ */
+ /* $Id: a6_38.c,v 1.9 1999/05/07 03:24:13 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -263,13 +263,20 @@ fromstruct_in_a6(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_in_a6(dns_rdata_t *rdata, void *target) {
+tostruct_in_a6(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_a6(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_IN_1_A6_38_C */

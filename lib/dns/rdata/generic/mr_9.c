@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mr_9.c,v 1.11 1999/05/05 00:19:01 marka Exp $ */
+ /* $Id: mr_9.c,v 1.12 1999/05/07 03:24:09 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MR_9_C
 #define RDATA_GENERIC_MR_9_C
@@ -140,12 +140,19 @@ fromstruct_mr(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_mr(dns_rdata_t *rdata, void *target) {
+tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 9);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_mr(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_MR_9_C */

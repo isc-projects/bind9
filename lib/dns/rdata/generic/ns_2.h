@@ -15,8 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.h,v 1.11 1999/05/05 01:55:10 marka Exp $ */
+ /* $Id: ns_2.h,v 1.12 1999/05/07 03:24:10 marka Exp $ */
 
-#ifndef RDATA_GENERIC_NS_2_H
-#define RDATA_GENERIC_NS_2_H
-#endif	/* RDATA_GENERIC_NS_2_H */
+typedef struct dns_rdata_ns {
+	dns_rdatacommon_t	common;
+	dns_fixedname_t		name;
+} dns_rdata_ns_t;
+

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.8 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: nxt_30.c,v 1.9 1999/05/07 03:24:10 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -206,12 +206,22 @@ fromstruct_nxt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_nxt(dns_rdata_t *rdata, void *target) {
+tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 30);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_nxt(void *source) {
+	dns_rdata_nxt_t *nxt = source;
+
+	REQUIRE(source != NULL);
+	REQUIRE(nxt->common.rdtype == 30);
+	REQUIRE(ISC_FALSE);
 }
 #endif	/* RDATA_GENERIC_NXT_30_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mb_7.c,v 1.12 1999/05/05 00:19:01 marka Exp $ */
+ /* $Id: mb_7.c,v 1.13 1999/05/07 03:24:08 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MB_7_C
 #define RDATA_GENERIC_MB_7_C
@@ -140,12 +140,19 @@ fromstruct_mb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_mb(dns_rdata_t *rdata, void *target) {
+tostruct_mb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 7);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_mb(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_MB_7_C */

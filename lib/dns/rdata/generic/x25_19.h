@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.h,v 1.3 1999/05/05 01:55:12 marka Exp $ */
+ /* $Id: x25_19.h,v 1.4 1999/05/07 03:24:13 marka Exp $ */
 
  /* RFC 1183 */
 
-#ifndef RDATA_GENERIC_X25_19_H
-#define RDATA_GENERIC_X25_19_H
-#endif	/* RDATA_GENERIC_X25_19_H */

@@ -15,23 +15,16 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.15 1999/05/05 01:55:11 marka Exp $ */
-
-#ifndef RDATA_GENERIC_SOA_6_H
-#define RDATA_GENERIC_SOA_6_H
+ /* $Id: soa_6.h,v 1.16 1999/05/07 03:24:12 marka Exp $ */
 
 typedef struct dns_rdata_soa {
-	dns_rdataclass_t	rdclass;
-	dns_rdatatype_t		rdtype;
-	ISC_LINK(void)		link;
-	isc_mem_t		*mctx;
+	dns_rdatacommon_t	common;
 	dns_fixedname_t		origin;
 	dns_fixedname_t		mname;
-	isc_uint32_t		serial;
-	isc_uint32_t		refresh;
-	isc_uint32_t		retry;
-	isc_uint32_t		expire;
-	isc_uint32_t		minimum;
+	isc_uint32_t		serial;		/* host order */
+	isc_uint32_t		refresh;	/* host order */
+	isc_uint32_t		retry;		/* host order */
+	isc_uint32_t		expire;		/* host order */
+	isc_uint32_t		minimum;	/* host order */
 } dns_rdata_soa_t;
 
-#endif	/* RDATA_GENERIC_SOA_6_H */

@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.h,v 1.5 1999/05/05 01:55:09 marka Exp $ */
+ /* $Id: dname_39.h,v 1.6 1999/05/07 03:24:06 marka Exp $ */
 
  /* draft-ietf-dnsind-dname-02.txt */
 
-#ifndef RDATA_GENERIC_DNAME_39_H
-#define RDATA_GENERIC_DNAME_39_H
-#endif	/* RDATA_GENERIC_DNAME_39_H */

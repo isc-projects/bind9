@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.41 1999/05/05 01:55:08 marka Exp $ */
+ /* $Id: rdata.c,v 1.42 1999/05/07 03:24:05 marka Exp $ */
 
 #include <config.h>
 
@@ -469,7 +469,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t class,
 }
 
 dns_result_t
-dns_rdata_tostruct(dns_rdata_t *rdata, void *target) {
+dns_rdata_tostruct(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
@@ -481,6 +481,14 @@ dns_rdata_tostruct(dns_rdata_t *rdata, void *target) {
 		(void)NULL;
 
 	return (result);
+}
+
+void
+dns_rdata_freestruct(void *source) {
+	dns_rdatacommon_t *common = source;
+	REQUIRE(source != NULL);
+
+	FREESTRUCTSWITCH
 }
 
 dns_result_t

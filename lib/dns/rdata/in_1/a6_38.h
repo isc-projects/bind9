@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.h,v 1.8 1999/05/05 01:55:12 marka Exp $ */
+ /* $Id: a6_38.h,v 1.9 1999/05/07 03:24:13 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
-#ifndef RDATA_IN_1_A6_28_H
-#define RDATA_IN_1_A6_28_H
-#endif	/* RDATA_IN_1_A6_38_H */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cname_5.c,v 1.12 1999/05/05 00:19:00 marka Exp $ */
+ /* $Id: cname_5.c,v 1.13 1999/05/07 03:24:06 marka Exp $ */
 
 #ifndef RDATA_GENERIC_CNAME_5_C
 #define RDATA_GENERIC_CNAME_5_C
@@ -140,12 +140,21 @@ fromstruct_cname(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_cname(dns_rdata_t *rdata, void *target) {
+tostruct_cname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	
 	REQUIRE(rdata->type == 5);
+	REQUIRE(target != NULL);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
+
+static void
+freestruct_cname(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);
+}
+
 #endif	/* RDATA_GENERIC_CNAME_5_C */

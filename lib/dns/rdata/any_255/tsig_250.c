@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.8 1999/05/05 00:18:59 marka Exp $ */
+ /* $Id: tsig_250.c,v 1.9 1999/05/07 03:24:05 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -294,13 +294,25 @@ fromstruct_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-tostruct_any_tsig(dns_rdata_t *rdata, void *target) {
+tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->class == 255);
 	
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_any_tsig(void *source) {
+	dns_rdata_any_tsig_t *tsig = source;
+
+	REQUIRE(source != NULL);
+	REQUIRE(tsig->common.rdclass == 255);
+	REQUIRE(tsig->common.rdtype == 250);
+	REQUIRE(ISC_FALSE);
+
 }
 #endif	/* RDATA_ANY_255_TSIG_250_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.10 1999/05/05 00:19:02 marka Exp $ */
+ /* $Id: sig_24.c,v 1.11 1999/05/07 03:24:11 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -305,12 +305,19 @@ fromstruct_sig(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_sig(dns_rdata_t *rdata, void *target) {
+tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 24);
 	
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_sig(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_SIG_24_C */

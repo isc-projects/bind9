@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.3 1999/05/05 00:19:04 marka Exp $ */
+ /* $Id: nsap_22.c,v 1.4 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 1706 */
 
@@ -154,13 +154,20 @@ fromstruct_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_in_nsap(dns_rdata_t *rdata, void *target) {
+tostruct_in_nsap(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_nsap(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_IN_1_NSAP_22_C */

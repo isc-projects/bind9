@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.h,v 1.6 1999/05/05 01:55:11 marka Exp $ */
+ /* $Id: rt_21.h,v 1.7 1999/05/07 03:24:11 marka Exp $ */
 
  /* RFC 1183 */
 
-#ifndef RDATA_GENERIC_RT_21_H
-#define RDATA_GENERIC_RT_21_H
-#endif	/* RDATA_GENERIC_RT_21_H */

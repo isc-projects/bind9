@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.h,v 1.3 1999/05/05 01:55:09 marka Exp $ */
+ /* $Id: gpos_27.h,v 1.4 1999/05/07 03:24:06 marka Exp $ */
 
  /* RFC 1712 */
 
-#ifndef RDATA_GENERIC_GPOS_27_H
-#define RDATA_GENERIC_GPOS_27_H
-#endif	/* RDATA_GENERIC_GPOS_27_H */

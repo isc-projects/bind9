@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.h,v 1.7 1999/05/05 01:55:12 marka Exp $ */
+ /* $Id: aaaa_28.h,v 1.8 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 1886 */
 
-#ifndef RDATA_IN_1_AAAA_28_H
-#define RDATA_IN_1_AAAA_28_H
-#endif	/* RDATA_IN_1_AAAA_28_H */

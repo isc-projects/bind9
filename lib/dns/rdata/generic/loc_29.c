@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: loc_29.c,v 1.3 1999/05/05 00:19:00 marka Exp $ */
+ /* $Id: loc_29.c,v 1.4 1999/05/07 03:24:07 marka Exp $ */
 
  /* RFC 1876 */
 
@@ -576,12 +576,19 @@ fromstruct_loc(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_loc(dns_rdata_t *rdata, void *target) {
+tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 29);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_loc(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 #endif	/* RDATA_GENERIC_LOC_29_C */

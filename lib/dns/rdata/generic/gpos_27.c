@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.c,v 1.3 1999/05/05 00:19:00 marka Exp $ */
+ /* $Id: gpos_27.c,v 1.4 1999/05/07 03:24:06 marka Exp $ */
 
  /* RFC 1712 */
 
@@ -122,12 +122,19 @@ fromstruct_gpos(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 }
 
 static dns_result_t
-tostruct_gpos(dns_rdata_t *rdata, void *target) {
+tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 27);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_gpos(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);	/* XXX */
 }
 #endif	/* RDATA_GENERIC_GPOS_27_C */

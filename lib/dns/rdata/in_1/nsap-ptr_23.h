@@ -15,10 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.h,v 1.5 1999/05/05 01:55:12 marka Exp $ */
+ /* $Id: nsap-ptr_23.h,v 1.6 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 1348 */
 
-#ifndef RDATA_IN_1_NSAP_PTR_23_H
-#define RDATA_IN_1_NSAP_PTR_23_H
-#endif	/* RDATA_IN_1_NSAP_PTR_23_H */

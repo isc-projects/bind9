@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.h,v 1.8 1999/05/05 01:55:10 marka Exp $ */
+ /* $Id: nxt_30.h,v 1.9 1999/05/07 03:24:10 marka Exp $ */
 
  /* RFC 2065 */
 
-#ifndef RDATA_GENERIC_NXT_30_H
-#define RDATA_GENERIC_NXT_30_H
-#endif	/* RDATA_GENERIC_NXT_30_H */
+typedef struct dns_rdata_nxt {
+	dns_rdatacommon_t	common;
+	/*XXX*/
+} dns_rdata_nxt_t;

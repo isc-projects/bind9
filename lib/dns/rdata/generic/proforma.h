@@ -15,8 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.h,v 1.9 1999/05/05 01:55:11 marka Exp $ */
+ /* $Id: proforma.h,v 1.10 1999/05/07 03:24:10 marka Exp $ */
 
-#ifndef RDATA_GENERIC_#_#_H
-#define RDATA_GENERIC_#_#_H
-#endif	/* RDATA_GENERIC_#_#_H */
+typedef struct dns_rdata_# {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;	/* if required */
+	/* type & class specific elements */
+} dns_rdata_#_t;

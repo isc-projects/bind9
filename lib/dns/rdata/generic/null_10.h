@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.h,v 1.8 1999/05/05 01:55:10 marka Exp $ */
+ /* $Id: null_10.h,v 1.9 1999/05/07 03:24:10 marka Exp $ */
 
-#ifndef RDATA_GENERIC_NULL_10_H
-#define RDATA_GENERIC_NULL_10_H
-#endif	/* RDATA_GENERIC_NULL_10_H */
+typedef struct dns_rdata_null {
+	dns_rdatacommon_t common;
+} dns_rdata_null_t;

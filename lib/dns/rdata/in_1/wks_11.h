@@ -15,8 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.h,v 1.9 1999/05/05 01:55:13 marka Exp $ */
+ /* $Id: wks_11.h,v 1.10 1999/05/07 03:24:15 marka Exp $ */
 
-#ifndef RDATA_IN_1_WKS_11_H
-#define RDATA_IN_1_WKS_11_H
-#endif	/* RDATA_IN_1_WKS_11_H */

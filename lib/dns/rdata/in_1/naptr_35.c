@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.6 1999/05/05 00:19:04 marka Exp $ */
+ /* $Id: naptr_35.c,v 1.7 1999/05/07 03:24:14 marka Exp $ */
 
  /* RFC 2168 */
 
@@ -254,13 +254,20 @@ fromstruct_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
 }
 
 static dns_result_t
-tostruct_in_naptr(dns_rdata_t *rdata, void *target) {
+tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->class == 1);
 
 	target = target;
+	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static void
+freestruct_in_naptr(void *source) {
+	REQUIRE(source != NULL);
+	REQUIRE(ISC_FALSE);
 }
 #endif	/* RDATA_IN_1_NAPTR_35_C */

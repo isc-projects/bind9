@@ -15,8 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.h,v 1.12 1999/05/05 01:55:11 marka Exp $ */
+ /* $Id: ptr_12.h,v 1.13 1999/05/07 03:24:11 marka Exp $ */
 
-#ifndef RDATA_GENERIC_PTR_12_H
-#define RDATA_GENERIC_PTR_12_H
-#endif	/* RDATA_GENERIC_PTR_12_H */
