@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock_test.c,v 1.18.4.1 2001/01/09 22:33:50 bwelling Exp $ */
+/* $Id: rwlock_test.c,v 1.18.4.2 2001/05/02 17:46:07 gson Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,8 @@
 #include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#ifdef ISC_PLATFORM_USETHREADS
 
 isc_rwlock_t lock;
 
@@ -125,3 +127,15 @@ main(int argc, char *argv[]) {
 
 	return (0);
 }
+
+#else
+
+int
+main(int argc, char *argv[]) {
+	UNUSED(argc);
+	UNUSED(argv);
+	fprintf(stderr, "This test requires threads.\n");
+	exit(1);
+}
+
+#endif
