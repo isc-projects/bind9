@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.11 2000/06/06 21:58:09 bwelling Exp $
+ * $Id: dst_result.c,v 1.12 2000/06/07 19:18:51 bwelling Exp $
  */
 
 #include <config.h>
@@ -35,7 +35,7 @@ static const char *text[DST_R_NRESULTS] = {
 	"illegal operation for a null key",	/*  3 */
 	"public key is invalid",		/*  4 */
 	"private key is invalid",		/*  5 */
-	"key name is too long",			/*  6 */
+	"UNUSED6",				/*  6 */
 	"error occurred writing key to disk",	/*  7 */
 	"invalid algorithm specific parameter",	/*  8 */
 	"UNUSED9",				/*  9 */
