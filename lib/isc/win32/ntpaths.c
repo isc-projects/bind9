@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.7 2001/08/30 04:28:24 mayer Exp $ */
+/* $Id: ntpaths.c,v 1.8 2001/09/01 05:22:03 mayer Exp $ */
 
 /*
  * This module fetches the required path information that is specific
@@ -79,8 +79,8 @@ isc_ntpaths_init() {
 	strcpy(lwresd_confFile, namedBase);
 	strcat(lwresd_confFile, "\\etc\\lwresd.conf");
 
-	strcpy(lwresd_resolvconfFile, namedBase);
-	strcat(lwresd_resolvconfFile, "\\etc\\resolv.conf");
+	strcpy(lwresd_resolvconfFile, systemDir);
+	strcat(lwresd_resolvconfFile, "\\Drivers\\etc\\resolv.conf");
 
 	strcpy(rndc_keyFile, namedBase);
 	strcat(rndc_keyFile, "\\etc\\rndc.key");
