@@ -549,11 +549,16 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 */
 	{
 		dns_peerlist_t *newpeers = NULL;
-		if (cctx->peers != NULL) {
-			dns_peerlist_attach(cctx->peers, &newpeers);
-		} else {
-			CHECK(dns_peerlist_new(mctx, &newpeers));
-		}
+
+		result = ISC_R_NOTFOUND;		
+		if (cview != NULL)
+			result = dns_c_view_getpeerlist(cview, &newpeers);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getpeerlist(cctx, &newpeers);
+		if (result != ISC_R_SUCCESS)
+			result = dns_peerlist_new(mctx, &newpeers);
+		CHECK(result);
+
 		dns_peerlist_detach(&view->peers);
 		view->peers = newpeers; /* Transfer ownership. */
 	}
