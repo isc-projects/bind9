@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.112 2000/09/13 01:30:30 marka Exp $ */
+/* $Id: client.c,v 1.113 2000/09/13 03:15:01 marka Exp $ */
 
 #include <config.h>
 
@@ -641,6 +641,87 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	ns_client_next(client, ISC_R_SUCCESS);
 }
 
+static isc_result_t
+client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
+		    isc_buffer_t *tcpbuffer, isc_uint32_t length,
+		    unsigned char **datap)
+{
+	unsigned char *data;
+	isc_uint32_t bufsize;
+	isc_result_t result;
+
+	INSIST(datap != NULL);
+
+	if (TCP_CLIENT(client)) {
+		INSIST(client->tcpbuf == NULL);
+		if (tcpbuffer == NULL && length + 2 > TCP_BUFFER_SIZE) {
+			result = ISC_R_NOSPACE;
+			goto done;
+		}
+		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
+		if (client->tcpbuf == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto done;
+		}
+		data = client->tcpbuf;
+		if (tcpbuffer != NULL) {
+			isc_buffer_init(tcpbuffer, data, TCP_BUFFER_SIZE);
+			isc_buffer_init(buffer, data + 2, TCP_BUFFER_SIZE - 2);
+		} else {
+			isc_buffer_init(buffer, data, TCP_BUFFER_SIZE);
+			isc_buffer_putuint16(buffer, length);
+		}
+	} else {
+		data = client->sendbuf;
+		if (client->udpsize < SEND_BUFFER_SIZE)
+			bufsize = client->udpsize;
+		else
+			bufsize = SEND_BUFFER_SIZE;
+		if (tcpbuffer == NULL && length > bufsize) {
+			result = ISC_R_NOSPACE;
+			goto done;
+		}
+		isc_buffer_init(buffer, data, bufsize);
+	}
+	*datap = data;
+	result = ISC_R_SUCCESS;
+
+ done:
+	return (result);
+}
+
+static isc_result_t
+client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
+	struct in6_pktinfo *pktinfo;
+	isc_result_t result;
+	isc_region_t r;
+	isc_sockaddr_t *address;
+	isc_socket_t *socket;
+
+	if (TCP_CLIENT(client)) {
+		socket = client->tcpsocket;
+		address = NULL;
+	} else {
+		socket = dns_dispatch_getsocket(client->dispatch);
+		address = &client->dispevent->addr;
+	}
+
+	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
+		pktinfo = &client->pktinfo;
+	else
+		pktinfo = NULL;
+
+	isc_buffer_usedregion(buffer, &r);
+
+	CTRACE("sendto");
+	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
+				   client, address, pktinfo);
+	if (result == ISC_R_SUCCESS) {
+		client->nsends++;
+	}
+	return (result);
+}
+
 void
 ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	isc_result_t result;
@@ -648,10 +729,6 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	isc_buffer_t buffer;
 	isc_region_t r;
 	isc_region_t *mr;
-	isc_socket_t *socket;
-	isc_sockaddr_t *address;
-	struct in6_pktinfo *pktinfo;
-	unsigned int bufsize = 512;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -663,32 +740,9 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 		goto done;
 	}
 
-	if (TCP_CLIENT(client)) {
-		INSIST(client->tcpbuf == NULL);
-		if (mr->length + 2 > TCP_BUFFER_SIZE) {
-			result = ISC_R_NOSPACE;
-			goto done;
-		}
-		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
-		if (client->tcpbuf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto done;
-		}
-		data = client->tcpbuf;
-		isc_buffer_init(&buffer, data, TCP_BUFFER_SIZE);
-		isc_buffer_putuint16(&buffer, mr->length);
-	} else {
-		data = client->sendbuf;
-		if (client->udpsize < SEND_BUFFER_SIZE)
-			bufsize = client->udpsize;
-		else
-			bufsize = SEND_BUFFER_SIZE;
-		if (mr->length + 2 > bufsize) {
-			result = ISC_R_NOSPACE;
-			goto done;
-		}
-		isc_buffer_init(&buffer, data, bufsize);
-	}
+	result = client_allocsendbuf(client, &buffer, NULL, mr->length, &data);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
 	/*
 	 * Copy message to buffer and fixup id.
@@ -700,25 +754,9 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	r.base[0] = (client->message->id >> 8) & 0xff;
 	r.base[1] = client->message->id & 0xff;
 
-	if (TCP_CLIENT(client)) {
-		socket = client->tcpsocket;
-		address = NULL;
-	} else {
-		socket = dns_dispatch_getsocket(client->dispatch);
-		address = &client->dispevent->addr;
-	}
-	isc_buffer_usedregion(&buffer, &r);
-	CTRACE("sendto");
-	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
-		pktinfo = &client->pktinfo;
-	else
-		pktinfo = NULL;
-	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
-				   client, address, pktinfo);
-	if (result == ISC_R_SUCCESS) {
-		client->nsends++;
+	result = client_sendpkg(client, &buffer);
+	if (result == ISC_R_SUCCESS)
 		return;
-	}
 
  done:
 	if (client->tcpbuf != NULL) {
@@ -735,10 +773,6 @@ ns_client_send(ns_client_t *client) {
 	isc_buffer_t buffer;
 	isc_buffer_t tcpbuffer;
 	isc_region_t r;
-	isc_socket_t *socket;
-	isc_sockaddr_t *address;
-	struct in6_pktinfo *pktinfo;
-	unsigned int bufsize = 512;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -751,27 +785,9 @@ ns_client_send(ns_client_t *client) {
 	 * XXXRTH  The following doesn't deal with TSIGs, TCP buffer resizing,
 	 *         or ENDS1 more data packets.
 	 */
-	if (TCP_CLIENT(client)) {
-		/*
-		 * XXXRTH  "tcpbuffer" is a hack to get things working.
-		 */
-		INSIST(client->tcpbuf == NULL);
-		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
-		if (client->tcpbuf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto done;
-		}
-		data = client->tcpbuf;
-		isc_buffer_init(&tcpbuffer, data, TCP_BUFFER_SIZE);
-		isc_buffer_init(&buffer, data + 2, TCP_BUFFER_SIZE - 2);
-	} else {
-		data = client->sendbuf;
-		if (client->udpsize < SEND_BUFFER_SIZE)
-			bufsize = client->udpsize;
-		else
-			bufsize = SEND_BUFFER_SIZE;
-		isc_buffer_init(&buffer, data, bufsize);
-	}
+	result = client_allocsendbuf(client, &buffer, &tcpbuffer, 0, &data);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
 	result = dns_message_renderbegin(client->message, &buffer);
 	if (result != ISC_R_SUCCESS)
@@ -816,28 +832,14 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 
 	if (TCP_CLIENT(client)) {
-		socket = client->tcpsocket;
-		address = NULL;
 		isc_buffer_usedregion(&buffer, &r);
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
-		isc_buffer_usedregion(&tcpbuffer, &r);
-	} else {
-		socket = dns_dispatch_getsocket(client->dispatch);
-		address = &client->dispevent->addr;
-		isc_buffer_usedregion(&buffer, &r);
-	}
-	CTRACE("sendto");
-	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
-		pktinfo = &client->pktinfo;
-	else
-		pktinfo = NULL;
-	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
-				   client, address, pktinfo);
-	if (result == ISC_R_SUCCESS) {
-		client->nsends++;
+		result = client_sendpkg(client, &tcpbuffer);
+	} else
+		result = client_sendpkg(client, &buffer);
+	if (result == ISC_R_SUCCESS)
 		return;
-	}
 
  done:
 	if (client->tcpbuf != NULL) {
