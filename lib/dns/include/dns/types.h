@@ -39,8 +39,8 @@ typedef void					dns_dbversion_t;
 typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
-/* typedef isc_uint16_t				dns_rdataclass_t; */
-/* typedef isc_uint16_t				dns_rdatatype_t; */
+typedef isc_uint16_t				dns_rdataclass_t;
+typedef isc_uint16_t				dns_rdatatype_t;
 typedef isc_uint32_t				dns_ttl_t;
 typedef struct dns_rdata			dns_rdata_t;
 typedef struct dns_rdatalist			dns_rdatalist_t;
@@ -65,18 +65,18 @@ typedef enum {
 } dns_addmode_t;
 
 #include <dns/enumtype.h>
-typedef enum {
+enum {
 	dns_rdatatype_none = 0,
 	TYPEENUM
 	dns_rdatatype_any = 255
-} dns_rdatatype_t;
+} ;
 
 #include <dns/enumclass.h>
-typedef enum {
+enum {
 	CLASSENUM
 	dns_rdataclass_none = 0,
 	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
-} dns_rdataclass_t;
+} ;
 
 typedef enum {
 	/* standard rcodes */
