@@ -144,7 +144,7 @@
  283.	[cleanup]	The 'lwresd' program is now a link to 'named'.
 
  282.	[bug]		The lexer now returns ISC_R_RANGE if parsed integer is 
-			too big for an usigned long.
+			too big for an unsigned long.
 
  281.	[bug]		Fixed list of recognized config file category names.
 
