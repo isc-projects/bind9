@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: rndc.conf.5,v 1.27 2004/06/18 06:00:41 marka Exp $
+.\" $Id: rndc.conf.5,v 1.28 2004/07/23 06:09:33 marka Exp $
 .\"
 .TH "RNDC.CONF" "5" "June 30, 2000" "BIND9" ""
 .SH NAME
@@ -42,7 +42,7 @@ Unix style: # to end of line
 statements: an options statement, a server statement
 and a key statement.
 .PP
-The \fBoptions\fR statement contains three clauses.
+The \fBoptions\fR statement contains five clauses.
 The \fBdefault-server\fR clause is followed by the
 name or address of a name server. This host will be used when
 no name server is given as an argument to
@@ -59,6 +59,10 @@ to connect to on the remote name server. If no
 line, and no \fBport\fR clause is found in a
 matching \fBserver\fR statement, this default port
 will be used to connect.
+The \fBdefault-source-address\fR and
+\fBdefault-source-address-v6\fR clauses which
+can be used to set the IPv4 and IPv6 source addresses
+respectively.
 .PP
 After the \fBserver\fR keyword, the server
 statement includes a string which is the hostname or address
@@ -69,6 +73,9 @@ name of a key statement in the file. The port number
 specifies the port to connect to. If an \fBaddresses\fR
 clause is supplied these addresses will be used instead of
 the server name. Each address can take a optional port.
+If an \fBsource-address\fR or \fBsource-address-v6\fR
+of supplied then these will be used to specify the IPv4 and IPv6
+source addresses respectively. 
 .PP
 The \fBkey\fR statement begins with an identifying
 string, the name of the key. The statement has two clauses.
