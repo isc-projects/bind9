@@ -1,3 +1,6 @@
+
+	--- 9.3.0rc1 released ---
+
 1683.	[bug]		dig +sigchase could leak memory. [RT #11445]
 
 1682.	[port]		Update configure test for (long long) printf format.
