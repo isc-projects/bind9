@@ -1,3 +1,7 @@
+ 850.	[bug]		dns_rbt_findnode() would not find nodes that were
+			split on a bitstring label somewhere other than in
+			the last label of the node. [RT #1351]
+
 
 	--- 9.1.3rc1 released ---
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.96.2.1 2001/01/09 22:43:57 bwelling Exp $ */
+/* $Id: rbt.c,v 1.96.2.2 2001/06/02 01:09:03 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -857,6 +857,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			unsigned int nlabels;
 			unsigned int tlabels = 1;
 			unsigned int hash;
+			isc_boolean_t has_bitstring = ISC_FALSE;
 
 			if (rbt->hashtable == NULL)
 				goto nohash;
@@ -900,28 +901,39 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				continue;
 			}
 
+			/*
+			 * XXXDCL Bitstring labels complicate things, as usual.
+			 * Checking for the situation could be done up by the
+			 * dns_name_getlabelsequence so that they could still
+			 * use the hashing code, but it would be messy to
+			 * repeatedly try various bitstring lengths.  Instead
+			 * just notice when a bitstring label is involved and
+			 * then punt to the traditional binary search if no
+			 * hash node is found after all of the labels are
+			 * tried.
+			 */
+			if (has_bitstring == ISC_FALSE &&
+			    hash_name.ndata[0] ==
+			    DNS_LABELTYPE_BITSTRING)
+				has_bitstring = ISC_TRUE;
+
 			if (tlabels++ < nlabels)
 				goto hashagain;
 
 			/*
-			 * XXXDCL Bitstring labels complicate things, as usual.
-			 * Checking for the situation could be done up by
-			 * the dns_name_getlabelsequence so that they could
-			 * still use the hashing code, but it would be messy
-			 * to repeatedly try various bitstring lengths.
-			 * Best to keep the issue out of the way down here for
-			 * now by punting to the traditional binary search.
-			 *
-			 * Yes, accessing the name structure data directly
-			 * is evil.  This function gets used to much to slow
-			 * it down with the name.h function call APIs.
+			 * All of the labels have been tried against the hash
+			 * table.  If there wasn't a bitstring label involved,
+			 * the name isn't in the table.  If there was, fall
+			 * through to the traditional search algorithm.
 			 */
-			if (search_name->ndata[search_name->offsets[nlabels-1]]
-			    != DNS_LABELTYPE_BITSTRING) {
+			if (! has_bitstring) {
+				/*
+				 * Done with the search.
+				 */
 				current = NULL;
 				continue;
 			}
-			    
+
 			/* FALLTHROUGH */
 		nohash:
 #endif /* DNS_RBT_USEHASH */
