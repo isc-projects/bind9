@@ -1,3 +1,6 @@
+1270.	[func]		Nsupdate will report the address the update was
+			sent to.
+
 1269.	[bug]		Missing masters clause was not handled gracefully.
 			[RT #2703]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.117 2002/02/20 03:33:37 marka Exp $ */
+/* $Id: nsupdate.c,v 1.118 2002/04/18 00:22:17 marka Exp $ */
 
 #include <config.h>
 
@@ -1464,6 +1464,12 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 	if (tsigkey == NULL && sig0key != NULL) {
 		result = dns_message_setsig0key(updatemsg, sig0key);
 		check_result(result, "dns_message_setsig0key");
+	}
+	if (debugging) {
+		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+
+		isc_sockaddr_format(master, addrbuf, sizeof(addrbuf));
+		fprintf(stderr, "Sending update to %s\n", addrbuf);
 	}
 	result = dns_request_createvia(requestmgr, updatemsg, srcaddr,
 				       master, options, tsigkey,
