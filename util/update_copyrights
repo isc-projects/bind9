@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: update_copyrights,v 1.15 2000/06/28 19:26:53 tale Exp $
+# $Id: update_copyrights,v 1.16 2000/07/03 17:39:23 gson Exp $
 
 require 5.002;
 
@@ -26,6 +26,7 @@ require 5.002;
 my %owner2filename = (
     "" => "util/COPYRIGHT",
     "NAI" => "util/COPYRIGHT.NAI",
+    "BSDI" => "util/COPYRIGHT.BSDI",
     "BRIEF" => "util/COPYRIGHT.BRIEF",
     "PORTION" => "util/COPYRIGHT.PORTION",
 );
