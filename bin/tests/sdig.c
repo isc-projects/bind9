@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <netdb.h>		/* XXXRTH */
 extern int h_errno;
 
 #include <isc/types.h>
@@ -31,6 +30,7 @@ extern int h_errno;
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/netdb.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
