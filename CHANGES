@@ -1,3 +1,6 @@
+1037.	[bug]		We failed to reject some self inconsistant answers.
+			[RT #1862]
+
 1036.	[func]		Temporally drop requests received via multicast.
 
 1035.	[bug]		Respond to multicast queries from a unicast address,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.224 2001/10/03 07:43:03 marka Exp $ */
+/* $Id: resolver.c,v 1.225 2001/10/09 08:03:32 marka Exp $ */
 
 #include <config.h>
 
@@ -3474,6 +3474,10 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 				type = rdataset->type;
 				if (type == dns_rdatatype_sig)
 					type = rdataset->covers;
+			        if (((type == dns_rdatatype_ns ||
+				      type == dns_rdatatype_soa) &&
+				     !dns_name_issubdomain(qname, name)))
+					return (DNS_R_FORMERR);
 				if (type == dns_rdatatype_ns) {
 					/*
 					 * NS or SIG NS.
