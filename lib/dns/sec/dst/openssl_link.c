@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.38 2000/12/04 23:06:35 bwelling Exp $
+ * $Id: openssl_link.c,v 1.39 2000/12/04 23:39:05 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -502,6 +502,8 @@ entropy_add(const void *buf, int num, double entropy) {
 
 static void
 lock_callback(int mode, int type, const char *file, int line) {
+	UNUSED(file);
+	UNUSED(line);
 	if ((mode & CRYPTO_LOCK) != 0)
 		LOCK(&locks[type]);
 	else
