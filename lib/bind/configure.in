@@ -19,7 +19,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.57 $)
+AC_REVISION($Revision: 1.58 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -183,9 +183,6 @@ if test "X$CC" = "X" ; then
 			;;
 		*-hp-hpux*)
 			CC="cc"
-			;;
-		*linux*)
-			CC="gcc -D_GNU_SOURCE"
 			;;
 		mips-sgi-irix*)
 			CC="cc"
@@ -662,6 +659,16 @@ MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>&1 | awk '"'"'BEGIN {colon=0; rec="";} 
 		;;
 	esac
 fi
+
+#
+# _GNU_SOURCE is needed to access the fd_bits field of struct fd_set, which
+# is supposed to be opaque.
+#
+case $host in
+	*linux*)
+		STD_CDEFINES="$STD_CDEFINES -D_GNU_SOURCE"
+		;;
+esac
 
 AC_SUBST(MKDEPCC)
 AC_SUBST(MKDEPCFLAGS)
