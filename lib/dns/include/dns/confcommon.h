@@ -327,49 +327,4 @@ void			dns_c_dataclass_tostream(FILE *fp,
 void			dns_c_datatype_tostream(FILE *fp,
 						dns_rdatatype_t rtype);
 
-#if 0					/* XXXJAB remove this */
-dns_cfg_err_handler_t	dns_c_seterrorhandler(dns_cfg_err_handler_t
-						newhandler);
-void	 		dns_c_error(isc_result_t result, const char *fmt, ...);
-#endif
-
-
-#if defined(DEBUG_MEM_STUFF)
-
-/* XXX debugging stuff that should probably be moved to isc/mem.h */
-
-#undef isc_mem_get
-#undef isc_mem_put
-
-/*
- * Some wrappers for the various mem functions to help in debugging.
- */
-#define isc_mem_get(a, b) \
-	dns_c_memget_wrapper(__FILE__,__LINE__, a, b)
-#define isc_mem_put(a, b, c) \
-	dns_c_memput_wrapper(__FILE__, __LINE__, a, b, c)
-#define isc_mem_strdup(a, b) \
-	dns_c_memstrdup_wrapper(__FILE__,__LINE__, a, b)
-#define isc_mem_free(a, b) \
-	dns_c_memfree_wrapper(__FILE__, __LINE__, a, b)
-#define isc_mem_destroy(a) \
-	dns_c_memdestroy_wrapper(__FILE__, __LINE__, a)
-
-
-/*
- * These functions create output that's meant to be used by the
- * find_leak.pl script.
- */
-void   *dns_c_memget_wrapper(const char *file, int line,
-			     isc_mem_t *mem, size_t sz);
-void 	dns_c_memput_wrapper(const char *file, int line,
-			     isc_mem_t *mem, void *p, size_t sz);
-char   *dns_c_memstrdup_wrapper(const char *file, int line,
-				isc_mem_t *mem, const char *string);
-void 	dns_c_memfree_wrapper(const char *file, int line,
-			      isc_mem_t *mem, char *string);
-void 	dns_c_memdestroy_wrapper(const char *file, int line, isc_mem_t **mem);
-
-#endif /* defined(DEBUG_MEM_STUFF) */
-
 #endif /* DNS_CONFIG_CONFCOMMON_H */
