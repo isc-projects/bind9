@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.153 2001/11/15 00:51:23 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.154 2001/11/29 00:39:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -942,7 +942,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 
 	dns_rdatasetiter_destroy(&rdsiter);
 
-	result = dns_diff_apply(&diff, gdb, gversion);
+	result = dns_diff_applysilently(&diff, gdb, gversion);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to add SIGs at node '%s': %s",
 		      namestr, isc_result_totext(result));
