@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.30 2001/03/13 03:04:09 gson Exp $ */
+/* $Id: log.c,v 1.31 2001/03/27 00:44:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -52,7 +52,7 @@ static isc_logmodule_t modules[] = {
 	{ "xfer-in",	 		0 },
 	{ "xfer-out",	 		0 },
 	{ "notify",	 		0 },
-	{ "omapi",	 		0 },
+	{ "control",	 		0 },
 	{ "lwresd",	 		0 },
 	{ NULL, 			0 }
 };

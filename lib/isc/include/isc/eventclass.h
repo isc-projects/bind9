@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: eventclass.h,v 1.12 2001/01/09 21:56:53 bwelling Exp $ */
+/* $Id: eventclass.h,v 1.13 2001/03/27 00:44:45 bwelling Exp $ */
 
 #ifndef ISC_EVENTCLASS_H
 #define ISC_EVENTCLASS_H 1
@@ -44,6 +44,7 @@
 #define	ISC_EVENTCLASS_APP		ISC_EVENTCLASS(5)
 #define	ISC_EVENTCLASS_OMAPI		ISC_EVENTCLASS(6)
 #define	ISC_EVENTCLASS_RATELIMITER	ISC_EVENTCLASS(7)
+#define	ISC_EVENTCLASS_ISCCC		ISC_EVENTCLASS(8)
 
 /*
  * Event classes >= 1024 and <= 65535 are reserved for application use.

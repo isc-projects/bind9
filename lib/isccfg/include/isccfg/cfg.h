@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001 Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.20 2001/03/03 02:18:13 gson Exp $ */
+/* $Id: cfg.h,v 1.21 2001/03/27 00:44:56 bwelling Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.105 2001/03/06 02:40:13 bwelling Exp $ */
+/* $Id: main.c,v 1.106 2001/03/27 00:44:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -33,9 +33,13 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <isccc/result.h>
+
 #include <dns/dispatch.h>
-#include <dst/result.h>
+#include <dns/result.h>
 #include <dns/view.h>
+
+#include <dst/result.h>
 
 /*
  * Defining NS_MAIN provides storage declarations (rather than extern)
@@ -43,10 +47,10 @@
  */
 #define NS_MAIN 1
 
+#include <named/control.h>
 #include <named/globals.h>	/* Explicit, though named/log.h includes it. */
 #include <named/interfacemgr.h>
 #include <named/log.h>
-#include <named/omapi.h>
 #include <named/os.h>
 #include <named/server.h>
 #include <named/lwresd.h>
@@ -417,10 +421,10 @@ static void
 destroy_managers(void) {
 	if (!ns_g_lwresdonly)
 		/*
-		 * The omapi listeners need to be stopped here so that
-		 * isc_taskmgr_destroy() won't block on the omapi task.
+		 * The command channel listeners need to be stopped here so
+		 * that isc_taskmgr_destroy() won't block on the server task.
 		 */
-		ns_omapi_shutdown(ISC_TRUE);
+		ns_control_shutdown(ISC_TRUE);
 
 	ns_lwresd_shutdown();
 
@@ -498,13 +502,6 @@ setup(void) {
 	/* xxdb_init(); */
 
 	ns_server_create(ns_g_mctx, &ns_g_server);
-
-	if (!ns_g_lwresdonly) {
-		result = ns_omapi_init();
-		if (result != ISC_R_SUCCESS)
-			ns_main_earlyfatal("ns_omapi_init() failed: %s",
-					   isc_result_totext(result));
-	}
 }
 
 static void
@@ -546,6 +543,7 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 	dst_result_register();
+	isccc_result_register();
 
 	parse_command_line(argc, argv);
 

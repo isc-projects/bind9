@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4 2001/03/27 00:44:52 bwelling Exp $
+# $Id: Makefile.in,v 1.1 2001/03/27 00:44:47 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,30 +21,35 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-@LIBISCCFG_API@
+@LIBISCCC_API@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	-I. ${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES}
+CINCLUDES =	-I. ${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
-ISCCFGLIBS =	../../lib/cfg/libisccfg.@A@
+ISCCCLIBS =	../../lib/cc/libisccc.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
-ISCCFGDEPLIBS =	libisccfg.@A@
+ISCCCDEPLIBS =	libisccc.@A@
 
 LIBS =		@LIBS@
 
 SUBDIRS =	include
 
 # Alphabetically
-OBJS =		check.@O@ log.@O@ parser.@O@
+OBJS =		alist.@O@ base64.@O@ cc.@O@ ccmsg.@O@ \
+		lib.@O@ \
+		result.@O@ sexpr.@O@ symtab.@O@
 
 # Alphabetically
-SRCS =		check.c log.c parser.c
+SRCS =		alist.c base64.c cc.c ccmsg.c \
+		lib.c \
+		result.c sexpr.c symtab.c
+
 
 TARGETS = 	timestamp
 
@@ -58,24 +63,24 @@ TARGETS = 	timestamp
 # 		-DLIBAGE=${LIBAGE} \
 # 		-c ${srcdir}/version.c
 
-libisccfg.@SA@: ${OBJS}
+libisccc.@SA@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 
-libisccfg.la: ${OBJS}
+libisccc.la: ${OBJS}
 	${LIBTOOL} --mode=link \
-		${CC} ${ALL_CFLAGS} -o libisccfg.la -rpath ${libdir} \
+		${CC} ${ALL_CFLAGS} -o libisccc.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${LIBS}
 
-timestamp: libisccfg.@A@
+timestamp: libisccc.@A@
 	touch timestamp
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} libisccfg.@A@ ${DESTDIR}${libdir}
+	${LIBTOOL} ${INSTALL_DATA} libisccc.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
-	rm -f libisccfg.@A@ timestamp
+	rm -f libisccc.@A@ timestamp

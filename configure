@@ -5263,14 +5263,17 @@ BIND9_TOP_BUILDDIR=`pwd`
 
 
 
+
 if test "X$srcdir" != "X"; then
 	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
+	BIND9_ISCCC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccc/include"
 	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
 	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
 	BIND9_OMAPI_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/omapi/include"
 	BIND9_LWRES_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/lwres/include"
 else
 	BIND9_ISC_BUILDINCLUDE=""
+	BIND9_ISCCC_BUILDINCLUDE=""
 	BIND9_ISCCFG_BUILDINCLUDE=""
 	BIND9_DNS_BUILDINCLUDE=""
 	BIND9_OMAPI_BUILDINCLUDE=""
@@ -5289,6 +5292,9 @@ BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEAS
 
 
 LIBISC_API=$srcdir/lib/isc/api
+
+
+LIBISCCFG_API=$srcdir/lib/isccc/api
 
 
 LIBISCCFG_API=$srcdir/lib/isccfg/api
@@ -5420,6 +5426,9 @@ trap 'rm -fr `echo "make/rules
 	lib/isc/$thread_dir/Makefile
 	lib/isc/$thread_dir/include/Makefile
 	lib/isc/$thread_dir/include/isc/Makefile
+	lib/isccc/Makefile
+	lib/isccc/include/Makefile
+	lib/isccc/include/isccc/Makefile
 	lib/isccfg/Makefile
 	lib/isccfg/include/Makefile
 	lib/isccfg/include/isccfg/Makefile
@@ -5612,6 +5621,7 @@ s%@SGMLDIR@%$SGMLDIR%g
 s%@XMLDIR@%$XMLDIR%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
 s%@BIND9_ISC_BUILDINCLUDE@%$BIND9_ISC_BUILDINCLUDE%g
+s%@BIND9_ISCCC_BUILDINCLUDE@%$BIND9_ISCCC_BUILDINCLUDE%g
 s%@BIND9_ISCCFG_BUILDINCLUDE@%$BIND9_ISCCFG_BUILDINCLUDE%g
 s%@BIND9_DNS_BUILDINCLUDE@%$BIND9_DNS_BUILDINCLUDE%g
 s%@BIND9_OMAPI_BUILDINCLUDE@%$BIND9_OMAPI_BUILDINCLUDE%g
@@ -5623,6 +5633,8 @@ s%@BIND9_MAKE_RULES@%%g
 s%@BIND9_VERSION@%$BIND9_VERSION%g
 /@LIBISC_API@/r $LIBISC_API
 s%@LIBISC_API@%%g
+/@LIBISCCC_API@/r $LIBISCCC_API
+s%@LIBISCCC_API@%%g
 /@LIBISCCFG_API@/r $LIBISCCFG_API
 s%@LIBISCCFG_API@%%g
 /@LIBDNS_API@/r $LIBDNS_API
@@ -5689,6 +5701,9 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/isc/$thread_dir/Makefile
 	lib/isc/$thread_dir/include/Makefile
 	lib/isc/$thread_dir/include/isc/Makefile
+	lib/isccc/Makefile
+	lib/isccc/include/Makefile
+	lib/isccc/include/isccc/Makefile
 	lib/isccfg/Makefile
 	lib/isccfg/include/Makefile
 	lib/isccfg/include/isccfg/Makefile

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.311 2001/03/26 23:03:05 gson Exp $ */
+/* $Id: server.c,v 1.312 2001/03/27 00:44:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -60,11 +60,11 @@
 
 #include <named/client.h>
 #include <named/config.h>
+#include <named/control.h>
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/logconf.h>
 #include <named/lwresd.h>
-#include <named/omapi.h>
 #include <named/os.h>
 #include <named/server.h>
 #include <named/tkeyconf.h>
@@ -1855,9 +1855,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
-	 * Bind the OMAPI port(s).
+	 * Bind the control port(s).
 	 */
-	CHECKM(ns_omapi_configure(ns_g_mctx, config, &aclconfctx),
+	CHECKM(ns_control_configure(ns_g_mctx, config, &aclconfctx),
 	       "binding control channel(s)");
 
 	/*

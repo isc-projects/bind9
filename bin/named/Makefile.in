@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.70 2001/03/06 02:40:11 bwelling Exp $
+# $Id: Makefile.in,v 1.71 2001/03/27 00:44:30 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -32,37 +32,38 @@ DBDRIVER_INCLUDES =
 DBDRIVER_LIBS =
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
-		${LWRES_INCLUDES} ${OMAPI_INCLUDES} ${DNS_INCLUDES} \
-		${ISCCFG_INCLUDES} ${ISC_INCLUDES} ${DBDRIVER_INCLUDES}
+		${LWRES_INCLUDES} ${DNS_INCLUDES} \
+		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
+		${DBDRIVER_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
-OMAPILIBS =	../../lib/omapi/libomapi.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
+ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
-OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
+ISCCCDEPLIBS =	../../lib/isccc/libisccc.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
-DEPLIBS =	${LWRESDEPLIBS} ${OMAPIDEPLIBS} ${DNSDEPLIBS} \
-		${ISCCFGDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} \
+		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} \
-		${ISCCFGLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${DNSLIBS} \
+		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
 
 SUBDIRS =	unix
 
 TARGETS =	named lwresd
 
-OBJS =		aclconf.@O@ client.@O@ config.@O@ interfacemgr.@O@ \
+OBJS =		aclconf.@O@ client.@O@ config.@O@ control.@O@ controlconf.@O@ interfacemgr.@O@ \
 		listenlist.@O@ log.@O@ logconf.@O@ main.@O@ notify.@O@ \
-		omapi.@O@ omapiconf.@O@ query.@O@ server.@O@ sortlist.@O@ \
+		query.@O@ server.@O@ sortlist.@O@ \
 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
 		zoneconf.@O@ \
 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
@@ -71,9 +72,9 @@ OBJS =		aclconf.@O@ client.@O@ config.@O@ interfacemgr.@O@ \
 
 UOBJS =		unix/os.@O@
 
-SRCS =		aclconf.c client.c config.c interfacemgr.c \
+SRCS =		aclconf.c client.c config.c control.c controlconf.c interfacemgr.c \
 		listenlist.c log.c logconf.c main.c notify.c \
-		omapi.c omapiconf.c query.c server.c sortlist.c \
+		query.c server.c sortlist.c \
 		tkeyconf.c tsigconf.c update.c xfrout.c \
 		zoneconf.c \
 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
