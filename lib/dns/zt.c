@@ -16,122 +16,170 @@
  */
 
 #include <config.h>
+
 #include <isc/assertions.h>
 #include <isc/magic.h>
-#include "../isc/util.h"
+#include <isc/rwlock.h>
+#include <isc/result.h>
+
 #include <dns/zt.h>
 
+#include "../isc/util.h"	/* XXXRTH */
+
 struct dns_zt {
-        unsigned int    	magic;
-	isc_mem_t      		*mctx;
+	/* Unlocked. */
+        unsigned int		magic;
+	isc_mem_t		*mctx;
 	dns_rdataclass_t	rdclass;
-	isc_mutex_t             lock;
+	isc_rwlock_t		rwlock;
+	/* Locked by lock. */
 	isc_uint32_t		references;
-	dns_rbt_t       	*table; 
+	dns_rbt_t		*table; 
 };
 
-#define ZTMAGIC 0x5a54626cU	/* ZTbl */
-#define VALID_ZT(zt) ISC_MAGIC_VALID(zt, ZTMAGIC)
+#define ZTMAGIC			0x5a54626cU	/* ZTbl */
+#define VALID_ZT(zt) 		ISC_MAGIC_VALID(zt, ZTMAGIC)
 
 static void auto_detach(void *, void *);
 
-dns_result_t
-dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt) {
-	dns_zt_t *new;
-	dns_result_t result;
-	isc_result_t iresult;
+isc_result_t
+dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
+	dns_zt_t *zt;
+	isc_result_t result;
 
-	REQUIRE(zt != NULL && *zt == NULL);
-	new = isc_mem_get(mctx, sizeof *new);
-	if (new == NULL)
+	REQUIRE(ztp != NULL && *ztp == NULL);
+
+	zt = isc_mem_get(mctx, sizeof *zt);
+	if (zt == NULL)
 		return (DNS_R_NOMEMORY);
 
-	new->table = NULL;
-	result = dns_rbt_create(mctx, auto_detach, NULL, &new->table);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup0;
+	zt->table = NULL;
+	result = dns_rbt_create(mctx, auto_detach, NULL, &zt->table);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_zt;
 
-	iresult = isc_mutex_init(&new->lock);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_rwlock_init(&zt->rwlock, 0, 0);
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_lock_init() failed: %s",
+				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));
-		result = DNS_R_UNEXPECTED;
-		goto cleanup1;
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_rbt;
 	}
 
-	new->mctx = mctx;
-	new->references = 1;
-	new->rdclass = rdclass;
-	new->magic = ZTMAGIC;
-	*zt = new;
-	return (DNS_R_SUCCESS);
+	zt->mctx = mctx;
+	zt->references = 1;
+	zt->rdclass = rdclass;
+	zt->magic = ZTMAGIC;
+	*ztp = zt;
 
-   cleanup1:
-	dns_rbt_destroy(&new->table);
+	return (ISC_R_SUCCESS);
 
-   cleanup0:
-	isc_mem_put(mctx, new, sizeof *new);
+   cleanup_rbt:
+	dns_rbt_destroy(&zt->table);
+
+   cleanup_zt:
+	isc_mem_put(mctx, zt, sizeof *zt);
+
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_zone_t *dummy = NULL;
 	dns_name_t name;
 
 	REQUIRE(VALID_ZT(zt));
 
+	/*
+	 * XXXRTH  I don't understand why dns_zone_getorigin() is
+	 *	   returning a dup'd name.  I think we should make it
+	 *	   return a pointer to the name in the zone structure
+	 *	   and let the caller dup it if they need to.
+	 */
 	dns_name_init(&name, NULL);
 	result = dns_zone_getorigin(zone, zt->mctx, &name);
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	LOCK(&zt->lock);
+
+	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
+
 	result = dns_rbt_addname(zt->table, &name, zone);
-	UNLOCK(&zt->lock);
-	dns_name_free(&name, zt->mctx);
-	if (result == DNS_R_SUCCESS)
+	if (result == ISC_R_SUCCESS)
 		dns_zone_attach(zone, &dummy);
 
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
+
+	dns_name_free(&name, zt->mctx);
+
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_name_t name;
 
 	REQUIRE(VALID_ZT(zt));
 
+	/*
+	 * XXXRTH  I don't understand why dns_zone_getorigin() is
+	 *	   returning a dup'd name.  I think we should make it
+	 *	   return a pointer to the name in the zone structure
+	 *	   and let the caller dup it if they need to.
+	 */
 	dns_name_init(&name, NULL);
 	result = dns_zone_getorigin(zone, zt->mctx, &name);
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	LOCK(&zt->lock);
+
+	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
+
 	result = dns_rbt_deletename(zt->table, &name, ISC_FALSE);
-	UNLOCK(&zt->lock);
+
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
+
 	dns_name_free(&name, zt->mctx);
+
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_zt_find(dns_zt_t *zt, dns_name_t *name, dns_name_t *foundname,
-		   dns_zone_t **zone)
+	    dns_zone_t **zonep)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_zone_t *dummy = NULL;
 
 	REQUIRE(VALID_ZT(zt));
 
-	LOCK(&zt->lock);
-	result = dns_rbt_findname(zt->table, name, foundname, (void **)&dummy);
-	UNLOCK(&zt->lock);
+	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
+	result = dns_rbt_findname(zt->table, name, foundname, (void **)&dummy);
 	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		dns_zone_attach(dummy, zone);
+		dns_zone_attach(dummy, zonep);
+
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 
 	return (result);
+}
+
+void
+dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
+
+	REQUIRE(VALID_ZT(zt));
+	REQUIRE(ztp != NULL && *ztp == NULL);
+
+	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
+
+	INSIST(zt->references > 0);
+	zt->references++;
+	INSIST(zt->references != 0);
+
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
+
+	*ztp = zt;
 }
 
 void
@@ -143,17 +191,18 @@ dns_zt_detach(dns_zt_t **ztp) {
 
 	zt = *ztp;
 
-	LOCK(&zt->lock);
+	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 	
 	INSIST(zt->references > 0);
 	zt->references--;
 	if (zt->references == 0)
 		destroy = ISC_TRUE;
-	UNLOCK(&zt->lock);
+
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
 	if (destroy) {
 		dns_rbt_destroy(&zt->table);
-		isc_mutex_destroy(&zt->lock);
+		isc_rwlock_destroy(&zt->rwlock);
 		isc_mem_put(zt->mctx, zt, sizeof *zt);
 		zt->magic = 0;
 	}
@@ -162,30 +211,15 @@ dns_zt_detach(dns_zt_t **ztp) {
 }
 
 void
-dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
-
-	REQUIRE(VALID_ZT(zt));
-	REQUIRE(ztp != NULL && *ztp == NULL);
-
-	LOCK(&zt->lock);
-
-	INSIST(zt->references > 0);
-	zt->references++;
-	INSIST(zt->references != 0xffffffffU);
-
-	UNLOCK(&zt->lock);
-
-	*ztp = zt;
-}
-
-void
 dns_zt_print(dns_zt_t *zt) {
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
-	dns_result_t result;
+	isc_result_t result;
 	dns_zone_t *zone;
 
 	REQUIRE(VALID_ZT(zt));
+
+	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
 	dns_rbtnodechain_init(&chain, zt->mctx);
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
@@ -200,16 +234,20 @@ dns_zt_print(dns_zt_t *zt) {
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	}
 	dns_rbtnodechain_invalidate(&chain);
+
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 }
 
 void
 dns_zt_load(dns_zt_t *zt) {
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
-	dns_result_t result;
+	isc_result_t result;
 	dns_zone_t *zone;
 
 	REQUIRE(VALID_ZT(zt));
+
+	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
 	dns_rbtnodechain_init(&chain, zt->mctx);
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
@@ -224,6 +262,8 @@ dns_zt_load(dns_zt_t *zt) {
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	}
 	dns_rbtnodechain_invalidate(&chain);
+
+	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 }
 
 /***
@@ -231,11 +271,10 @@ dns_zt_load(dns_zt_t *zt) {
  ***/
 
 static void
-auto_detach(void *zone, void *xxx) {
-	dns_zone_t *dummy = zone;
+auto_detach(void *data, void *arg) {
+	dns_zone_t *zone = data;
 
-	xxx = xxx;	/*unused*/
+	(void)arg;
 
-	printf("auto_detach\n");
-	dns_zone_detach(&dummy);
+	dns_zone_detach(&zone);
 }
