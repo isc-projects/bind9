@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: cleanall.sh,v 1.7 2001/01/09 21:42:16 bwelling Exp $
+# $Id: cleanall.sh,v 1.8 2001/03/05 22:54:08 bwelling Exp $
 
 #
 # Clean up after system tests.
@@ -28,7 +28,7 @@ SYSTEMTESTTOP=.
 find . -type f \( \
     -name 'K*' -o -name '*~' -o -name '*.core' -o -name '*.log' \
     -o -name '*.pid' -o -name '*.keyset' -o -name named.run \
-    -o -name lwresd.run \) -print | xargs rm -f
+    -o -name lwresd.run -o -name ans.run \) -print | xargs rm -f
 
 status=0
 
