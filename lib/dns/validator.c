@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.63.2.3 2000/07/27 22:50:02 gson Exp $ */
+/* $Id: validator.c,v 1.63.2.4 2000/08/22 01:45:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1544,6 +1544,9 @@ static void
 validator_log(dns_validator_t *val, int level, const char *fmt, ...)
 {
         va_list ap;
+
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
 
 	va_start(ap, fmt);
 	validator_logv(val, DNS_LOGCATEGORY_DNSSEC,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.38 2000/06/23 17:52:20 tale Exp $ */
+/* $Id: log.c,v 1.38.2.1 2000/08/22 01:45:24 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1197,6 +1197,33 @@ isc_log_open(isc_logchannel_t *channel) {
 	return (ISC_R_SUCCESS);
 }
 
+isc_boolean_t
+isc_log_wouldlog(isc_log_t *lctx, int level) {
+	/*
+	 * Try to avoid locking the mutex for messages which can't
+	 * possibly be logged to any channels -- primarily debugging
+	 * messages that the debug level is not high enough to print.
+	 *
+	 * If the level is (mathematically) less than or equal to the
+	 * highest_level, or if there is a dynamic channel and the level is 
+	 * less than or equal to the debug level, the main loop must be
+	 * entered to see if the message should really be output.
+	 *
+	 * NOTE: this is UNLOCKED access to the logconfig.  However,
+	 * the worst thing that can happen is that a bad decision is made
+	 * about returning without logging, and that's not a big concern,
+	 * because that's a risk anyway if the logconfig is being
+	 * dynamically changed.
+	 */
+
+	if (lctx == NULL)
+		return (ISC_FALSE);
+	
+	return (ISC_TF(level <= lctx->logconfig->highest_level ||
+		       (lctx->logconfig->dynamic &&
+			level <= lctx->debug_level)));
+}
+
 static void
 isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	     isc_logmodule_t *module, int level, isc_boolean_t write_once,
@@ -1232,24 +1259,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	REQUIRE(category->id < lctx->category_count);
 	REQUIRE(module->id < lctx->module_count);
 
-	/*
-	 * Try to avoid locking the mutex for messages which can't
-	 * possibly be logged to any channels -- primarily debugging
-	 * messages that the debug level is not high enough to print.
-	 *
-	 * If the level is (mathematically) less than or equal to the
-	 * highest_level, or if there is a dynamic channel and the level is 
-	 * less than or equal to the debug level, the main loop must be
-	 * entered to see if the message should really be output.
-	 *
-	 * NOTE: this is UNLOCKED access to the logconfig.  However,
-	 * the worst thing that can happen is that a bad decision is made
-	 * about returning without logging, and that's not a big concern,
-	 * because that's a risk anyway if the logconfig is being
-	 * dynamically changed.
-	 */
-	if (! (level <= lctx->logconfig->highest_level ||
-	       (lctx->logconfig->dynamic && level <= lctx->debug_level)))
+	if (! isc_log_wouldlog(lctx, level))
 		return;
 
 	time_string[0]  = '\0';

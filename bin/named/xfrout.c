@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.68.2.1 2000/08/07 22:04:31 gson Exp $ */
+/* $Id: xfrout.c,v 1.68.2.2 2000/08/22 01:45:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1315,7 +1315,8 @@ sendstream(xfrout_ctx_t *xfr) {
 			break;
 		}
 
-		log_rr(name, rdata, ttl); /* XXX */
+		if (isc_log_wouldlog(ns_g_lctx, XFROUT_RR_LOGLEVEL))
+			log_rr(name, rdata, ttl); /* XXX */
 		
 		dns_message_gettempname(msg, &msgname);
 		dns_name_init(msgname, NULL);

@@ -1,4 +1,6 @@
 
+ 330.   [func]          New function isc_log_wouldlog(). 
+
  402.	[bug]		Treat undefined acls as errors, rather than
 			warning and then later throwing an assertion.
 			[RT #252]

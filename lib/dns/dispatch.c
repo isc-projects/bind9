@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.57 2000/06/22 21:54:23 tale Exp $ */
+/* $Id: dispatch.c,v 1.57.2.1 2000/08/22 01:45:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -175,6 +175,9 @@ mgr_log(dns_dispatchmgr_t *mgr, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
+
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
@@ -189,6 +192,9 @@ dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
+	
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
@@ -205,6 +211,9 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	char msgbuf[2048];
 	char peerbuf[256];
 	va_list ap;
+
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
 
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);

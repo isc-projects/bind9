@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109.2.10 2000/08/08 19:30:13 bwelling Exp $ */
+/* $Id: query.c,v 1.109.2.11 2000/08/22 01:45:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2881,6 +2881,10 @@ log_query(ns_client_t *client) {
 	char text[256];
 	isc_region_t r;
 	dns_rdataset_t *rdataset;
+	int level = ISC_LOG_DEBUG(1);
+
+	if (! isc_log_wouldlog(ns_g_lctx, level))
+		return;
 
 	/* XXXRTH  Allow this to be turned off! */
 
@@ -2900,7 +2904,7 @@ log_query(ns_client_t *client) {
 	}
 	isc_buffer_usedregion(&b, &r);
 	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      ISC_LOG_DEBUG(1), "query: %s%.*s", namebuf,
+		      level, "query: %s%.*s", namebuf,
 		      (int)r.length, (char *)r.base);
 }
 
