@@ -1430,6 +1430,194 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	return (dns_name_concatenate(dname, &tname, dname, NULL));
 }
 
+static isc_result_t
+noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
+	isc_result_t result;
+	dns_message_t *message;
+	dns_name_t *name, *qname, *ns_name, *soa_name;
+	dns_rdataset_t *rdataset;
+	isc_boolean_t done, aa, negative_response;
+	dns_rdatatype_t type;
+
+	message = fctx->rmessage;
+
+	/*
+	 * Setup qname.
+	 */
+	if (oqname == NULL) {
+		/*
+		 * We have a normal, non-chained negative response or
+		 * referral.
+		 */
+		if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
+			aa = ISC_TRUE;
+		else
+			aa = ISC_FALSE;
+		qname = &fctx->name;
+	} else {
+		/*
+		 * We're being invoked by answer_response() after it has
+		 * followed a CNAME/DNAME chain.
+		 */
+		qname = oqname;
+		aa = ISC_FALSE;
+	}
+	
+	/*
+	 * We have to figure out if this is a negative response, or a
+	 * referral.  We start by examining the rcode.
+	 */
+	negative_response = ISC_FALSE;
+	if (message->rcode == dns_rcode_nxdomain)
+		negative_response = ISC_TRUE;
+
+	done = ISC_FALSE;
+	ns_name = NULL;
+	soa_name = NULL;
+	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	while (!done && result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		if (dns_name_issubdomain(name, &fctx->domain)) {
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				type = rdataset->type;
+				if (type == dns_rdatatype_sig)
+					type = rdataset->covers;
+				if (rdataset->type == dns_rdatatype_ns) {
+					/*
+					 * NS or SIG NS.
+					 *
+					 * Only one set of NS RRs is allowed.
+					 */
+					if (ns_name != NULL && name != ns_name)
+						return (DNS_R_FORMERR);
+					ns_name = name;
+					name->attributes |=
+						DNS_NAMEATTR_CACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_CACHE;
+					/*
+					 * XXXRTH  Should really use a lower
+					 * level and then look for it in
+					 * query.c.  We don't want to return
+					 * glue we've cached as an answer.
+					 */
+					rdataset->trust = dns_trust_additional;
+					/*
+					 * Mark any additional data related
+					 * to this rdataset.
+					 */
+					(void)dns_rdataset_additionaldata(
+							rdataset,
+							check_related,
+							fctx);
+				} else if (rdataset->type ==
+					   dns_rdatatype_soa ||
+					   rdataset->type ==
+					   dns_rdatatype_nxt) {
+					/*
+					 * SOA, SIG SOA, NXT, or SIG NXT.
+					 *
+					 * Only one SOA is allowed.
+					 */
+					if (soa_name != NULL &&
+					    name != soa_name)
+						return (DNS_R_FORMERR);
+					soa_name = name;
+					negative_response = ISC_TRUE;
+					name->attributes |=
+						DNS_NAMEATTR_NCACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_NCACHE;
+					if (aa)
+						rdataset->trust =
+						    dns_trust_authauthority;
+					else
+						rdataset->trust =
+							dns_trust_additional;
+					/*
+					 * No additional data needs to be
+					 * marked.
+					 */
+				}
+			}
+		}
+		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
+		if (result != ISC_R_NOMORE)
+			return (result);
+	}
+
+	/*
+	 * Did we find anything?
+	 */
+	if (!negative_response && ns_name == NULL) {
+		/*
+		 * Nope.
+		 */
+		if (oqname != NULL) {
+			/*
+			 * We've already got a partial CNAME/DNAME chain,
+			 * and haven't found else anything useful here, but
+			 * no error has occurred since we have an answer.
+			 */
+			return (ISC_R_SUCCESS);
+		} else {
+			/*
+			 * The responder is insane.
+			 */
+			return (DNS_R_FORMERR);
+		}
+	}
+
+	/*
+	 * If we found both NS and SOA, they should be the same name.
+	 */
+	if (ns_name != NULL && soa_name != NULL) {
+		if (ns_name != soa_name)
+			return (DNS_R_FORMERR);
+		/*
+		 * Don't cache the NS RRs.
+		 */
+		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
+	}
+
+	/*
+	 * A negative response without an SOA isn't useful.
+	 */
+	if (negative_response && soa_name == NULL) {
+		if (oqname != NULL) {
+			/*
+			 * But again, we don't care if we've got an answer
+			 * already.
+			 */
+			return (ISC_R_SUCCESS);
+		} else
+			return (DNS_R_FORMERR);
+	}
+
+	/*
+	 * Do we have a referral?  (We only want to follow a referral if
+	 * we're not following a chain.)
+	 */
+	if (!negative_response && ns_name != NULL && oqname == NULL) {
+		/*
+		 * Set the current query domain to the referral name.
+		 */
+		INSIST(dns_name_countlabels(&fctx->domain) > 0);
+		dns_name_free(&fctx->domain, fctx->res->mctx);
+		dns_rdataset_disassociate(&fctx->nameservers);
+		dns_name_init(&fctx->domain, NULL);
+		result = dns_name_dup(ns_name, fctx->res->mctx, &fctx->domain);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		return (DNS_R_DELEGATION);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
 static inline isc_result_t
 answer_response(fetchctx_t *fctx) {
 	isc_result_t result;
@@ -1437,6 +1625,7 @@ answer_response(fetchctx_t *fctx) {
 	dns_name_t *name, *qname, tname;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t done, external, chaining, aa, found, want_chaining;
+	isc_boolean_t have_sig, have_answer;
 	unsigned int aflag;
 	dns_rdatatype_t type;
 	dns_fixedname_t dname;
@@ -1450,6 +1639,9 @@ answer_response(fetchctx_t *fctx) {
 
 	done = ISC_FALSE;
 	chaining = ISC_FALSE;
+	have_answer = ISC_FALSE;
+	have_sig = ISC_FALSE;
+	want_chaining = ISC_FALSE;
 	if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
 		aa = ISC_TRUE;
 	else
@@ -1504,6 +1696,15 @@ answer_response(fetchctx_t *fctx) {
 							      &tname);
 					if (result != ISC_R_SUCCESS)
 						return (result);
+				} else if (rdataset->type == dns_rdatatype_sig
+					   && rdataset->covers ==
+					   dns_rdatatype_cname) {
+					/*
+					 * We're looking for something else,
+					 * but we found a SIG CNAME.
+					 */
+					found = ISC_TRUE;
+					aflag = DNS_RDATASETATTR_ANSWERSIG;
 				}
 
 				if (found) {
@@ -1525,6 +1726,11 @@ answer_response(fetchctx_t *fctx) {
 						 * a CNAME or DNAME).
 						 */
 						INSIST(!external);
+						if (aflag ==
+						    DNS_RDATASETATTR_ANSWER)
+							have_answer = ISC_TRUE;
+						else
+							have_sig = ISC_TRUE;
 						name->attributes |=
 							DNS_NAMEATTR_ANSWER;
 						rdataset->attributes |= aflag;
@@ -1671,12 +1877,37 @@ answer_response(fetchctx_t *fctx) {
 		return (result);
 
 	/*
+	 * We should have found an answer.
+	 */
+	if (!have_answer)
+		return (DNS_R_FORMERR);
+
+	/*
+	 * Did chaining end before we got the final answer?
+	 */
+	if (want_chaining) {
+		/*
+		 * Yes.  This may be a negative reply, so hand off
+		 * authority section processing to the noanswer code.
+		 * If it isn't a noanswer response, no harm will be
+		 * done.
+		 */
+		return (noanswer_response(fctx, qname));
+	}
+
+	/*
+	 * We didn't end with an incomplete chain, so the rcode should be
+	 * "no error".
+	 */
+	if (message->rcode != dns_rcode_noerror)
+		return (DNS_R_FORMERR);
+
+	/*
 	 * Examine the authority section (if there is one).
 	 *
 	 * We expect there to be only one owner name for all the rdatasets
 	 * in this section, and we expect that it is not external.
 	 */
-
 	done = ISC_FALSE;
 	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	while (!done && result == ISC_R_SUCCESS) {
@@ -1698,7 +1929,7 @@ answer_response(fetchctx_t *fctx) {
 						DNS_NAMEATTR_CACHE;
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
-					if (aa)
+					if (aa && !chaining)
 						rdataset->trust =
 						    dns_trust_authauthority;
 					else
@@ -1726,186 +1957,6 @@ answer_response(fetchctx_t *fctx) {
 	}
 	if (result != ISC_R_NOMORE)
 		return (result);
-
-	return (ISC_R_SUCCESS);
-}
-
-static inline isc_result_t
-noanswer_response(fetchctx_t *fctx) {
-	isc_result_t result;
-	dns_message_t *message;
-	dns_name_t *name, *qname, *ns_name, *soa_name;
-	dns_rdataset_t *rdataset;
-	isc_boolean_t done, external, aa, negative_response;
-	dns_rdatatype_t type;
-
-	message = fctx->rmessage;
-	negative_response = ISC_FALSE;
-	
-	/*
-	 * We have to figure out if this is a negative response, or a
-	 * referral.  We start by examining the rcode.
-	 */
-	if (message->rcode == dns_rcode_nxdomain)
-		negative_response = ISC_TRUE;
-
-	if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
-		aa = ISC_TRUE;
-	else
-		aa = ISC_FALSE;
-	qname = &fctx->name;
-
-	if (message->counts[DNS_SECTION_ANSWER] != 0) {
-		INSIST(0);
-		if (!negative_response)
-			return (DNS_R_FORMERR);
-		done = ISC_FALSE;
-		result = dns_message_firstname(message, DNS_SECTION_ANSWER);
-		while (!done && result == ISC_R_SUCCESS) {
-			name = NULL;
-			dns_message_currentname(message, DNS_SECTION_ANSWER,
-						&name);
-			external = !dns_name_issubdomain(name, &fctx->domain);
-			/*
-			 * The only valid records are CNAME, DNAME, and
-			 * their corresponding sigs.
-			 */
-			if (dns_name_equal(name, qname)) {
-				/*
-				 * XXXRTH  CNAME check.
-				 */
-			} else {
-				/*
-				 * XXXRTH  DNAME check.
-				 */
-			}
-			result = dns_message_nextname(message,
-						      DNS_SECTION_ANSWER);
-		}
-		if (result != ISC_R_NOMORE)
-			return (result);
-	}
-
-	done = ISC_FALSE;
-	ns_name = NULL;
-	soa_name = NULL;
-	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
-	while (!done && result == ISC_R_SUCCESS) {
-		name = NULL;
-		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
-		if (dns_name_issubdomain(name, &fctx->domain)) {
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-				type = rdataset->type;
-				if (type == dns_rdatatype_sig)
-					type = rdataset->covers;
-				if (rdataset->type == dns_rdatatype_ns) {
-					/*
-					 * NS or SIG NS.
-					 *
-					 * Only one set of NS RRs is allowed.
-					 */
-					if (ns_name != NULL && name != ns_name)
-						return (DNS_R_FORMERR);
-					ns_name = name;
-					name->attributes |=
-						DNS_NAMEATTR_CACHE;
-					rdataset->attributes |=
-						DNS_RDATASETATTR_CACHE;
-					/*
-					 * XXXRTH  Should really use a lower
-					 * level and then look for it in
-					 * query.c.  We don't want to return
-					 * glue we've cached as an answer.
-					 */
-					rdataset->trust = dns_trust_additional;
-					/*
-					 * Mark any additional data related
-					 * to this rdataset.
-					 */
-					(void)dns_rdataset_additionaldata(
-							rdataset,
-							check_related,
-							fctx);
-				} else if (rdataset->type ==
-					   dns_rdatatype_soa ||
-					   rdataset->type ==
-					   dns_rdatatype_nxt) {
-					/*
-					 * SOA, SIG SOA, NXT, or SIG NXT.
-					 *
-					 * Only one SOA is allowed.
-					 */
-					if (soa_name != NULL &&
-					    name != soa_name)
-						return (DNS_R_FORMERR);
-					soa_name = name;
-					negative_response = ISC_TRUE;
-					name->attributes |=
-						DNS_NAMEATTR_NCACHE;
-					rdataset->attributes |=
-						DNS_RDATASETATTR_NCACHE;
-					if (aa)
-						rdataset->trust =
-						    dns_trust_authauthority;
-					else
-						rdataset->trust =
-							dns_trust_additional;
-					/*
-					 * No additional data needs to be
-					 * marked.
-					 */
-				}
-			}
-		}
-		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
-		if (result != ISC_R_NOMORE)
-			return (result);
-	}
-
-	/*
-	 * If we found nothing, this responder is insane.
-	 */
-	if (!negative_response && ns_name == NULL)
-		return (DNS_R_FORMERR);
-
-	/*
-	 * If we found both NS and SOA, they should be the same name.
-	 */
-	if (ns_name != NULL && soa_name != NULL) {
-		if (ns_name != soa_name)
-			return (DNS_R_FORMERR);
-		/*
-		 * Don't cache the NS RRs.
-		 */
-		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
-	}
-
-	/*
-	 * A negative response without an SOA isn't useful.
-	 *
-	 * XXXRTH  This is probably not right...
-	 */
-	if (negative_response && soa_name == NULL)
-		return (DNS_R_FORMERR);
-
-	/*
-	 * Do we have a referral?
-	 */
-	if (!negative_response && ns_name != NULL) {
-		/*
-		 * Set the current query domain to the referral name.
-		 */
-		INSIST(dns_name_countlabels(&fctx->domain) > 0);
-		dns_name_free(&fctx->domain, fctx->res->mctx);
-		dns_rdataset_disassociate(&fctx->nameservers);
-		dns_name_init(&fctx->domain, NULL);
-		result = dns_name_dup(ns_name, fctx->res->mctx, &fctx->domain);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		return (DNS_R_DELEGATION);
-	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -2002,9 +2053,12 @@ query_response(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Did we get any answers?
+	 *
+	 * XXXRTH  Deal with YXDOMAIN code.
 	 */
 	if (message->counts[DNS_SECTION_ANSWER] > 0 &&
-	    message->rcode == dns_rcode_noerror) {
+	    (message->rcode == dns_rcode_noerror ||
+	     message->rcode == dns_rcode_nxdomain)) {
 		/*
 		 * We've got answers.
 		 */
@@ -2015,12 +2069,11 @@ query_response(isc_task_t *task, isc_event_t *event) {
 			keep_trying = ISC_TRUE;
 			goto done;
 		}
-	} else if (message->counts[DNS_SECTION_AUTHORITY] > 0 ||
-		   message->rcode == dns_rcode_nxdomain) {
+	} else if (message->counts[DNS_SECTION_AUTHORITY] > 0) {
 		/*
 		 * NXDOMAIN, NXRDATASET, or referral.
 		 */
-		result = noanswer_response(fctx);
+		result = noanswer_response(fctx, NULL);
 		if (result == DNS_R_DELEGATION) {
 			/*
 			 * We don't have the answer, but we know a better
