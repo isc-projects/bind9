@@ -17,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.22 2000/10/19 01:26:37 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.23 2000/10/20 19:32:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -338,6 +338,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_MULTIPLE_CNAMES
 %token		L_NAME
 %token		L_NAMED_XFER
+%token		L_NDOTS
 %token		L_NO
 %token		L_NOTIFY
 #ifndef NOMINUM_PUBLIC
@@ -5704,6 +5705,22 @@ lwres_option: L_LISTEN_ON port_ip_list
 			YYABORT;
 		}
 	}
+	| L_NDOTS L_INTEGER
+	{
+		dns_c_lwres_t *lwres;
+		lwres = ISC_LIST_TAIL(currcfg->lwres->lwreslist);
+		tmpres = dns_c_lwres_setndots(lwres, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE, "cannot redefine ndots");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "failed to set ndots");
+			YYABORT;
+		} else if ($2 <= 0) {
+			parser_error(ISC_FALSE, "ndots must be >= 1");
+			YYABORT;
+		}
+	}
 	;
 
 
@@ -5862,6 +5879,7 @@ static struct token keyword_tokens [] = {
 	{ "multiple-cnames",		L_MULTIPLE_CNAMES },
 	{ "name",			L_NAME },
 	{ "named-xfer",			L_NAMED_XFER },
+	{ "ndots",			L_NDOTS },
 	{ "no",				L_NO },
 	{ "notify",			L_NOTIFY },
 #ifndef NOMINUM_PUBLIC

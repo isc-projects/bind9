@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.c,v 1.5 2000/10/19 01:38:26 bwelling Exp $ */
+/* $Id: conflwres.c,v 1.6 2000/10/20 19:32:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -158,6 +158,8 @@ dns_c_lwres_new(isc_mem_t *mem, dns_c_lwres_t **lwresp)
 	lwres->view = NULL;
 	lwres->viewclass = dns_rdataclass_in;
 	lwres->searchlist = NULL;
+	lwres->ndots = 1;
+	lwres->ndotsset = ISC_FALSE;
 
 	ISC_LINK_INIT(lwres, next);
 
@@ -219,11 +221,22 @@ dns_c_lwres_setview(dns_c_lwres_t *lwres, char *view,
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t dns_c_lwres_setsearchlist(dns_c_lwres_t *lwres,
-				       dns_c_searchlist_t *searchlist) {
+isc_result_t
+dns_c_lwres_setsearchlist(dns_c_lwres_t *lwres,
+			  dns_c_searchlist_t *searchlist)
+{
 	if (lwres->searchlist != NULL)
 		return (ISC_R_EXISTS);
 	lwres->searchlist = searchlist;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_c_lwres_setndots(dns_c_lwres_t *lwres, unsigned int ndots) {
+	if (lwres->ndotsset)
+		return (ISC_R_EXISTS);
+	lwres->ndots = ndots;
+	lwres->ndotsset = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 }
 
@@ -260,6 +273,11 @@ dns_c_lwres_print(FILE *fp, int indent, dns_c_lwres_t *lwres)
 	if (lwres->searchlist != NULL) {
 		dns_c_searchlist_print(fp, indent, lwres->searchlist);
 		fprintf(fp, ";\n");
+	}
+
+	if (lwres->ndotsset) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "ndots %d;\n", lwres->ndots);
 	}
 
 	dns_c_printtabs(fp, indent);

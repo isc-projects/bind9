@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.h,v 1.2 2000/10/19 01:26:39 gson Exp $ */
+/* $Id: conflwres.h,v 1.3 2000/10/20 19:32:49 bwelling Exp $ */
 
 #ifndef DNS_CONFLWRES_H
 #define DNS_CONFLWRES_H 1
@@ -93,6 +93,8 @@ struct dns_c_lwres {
 	char		       *view;
 	dns_rdataclass_t	viewclass;
 	dns_c_searchlist_t     *searchlist;
+	unsigned int		ndots;
+	isc_boolean_t		ndotsset;
 
 	ISC_LINK(dns_c_lwres_t)	next;
 };
@@ -168,6 +170,8 @@ isc_result_t dns_c_lwres_setview(dns_c_lwres_t *lwres, char *view,
 
 isc_result_t dns_c_lwres_setsearchlist(dns_c_lwres_t *lwres,
 				       dns_c_searchlist_t *searchlist);
+
+isc_result_t dns_c_lwres_setndots(dns_c_lwres_t *lwres, unsigned int ndots);
 
 void dns_c_lwres_print(FILE *fp, int indent, dns_c_lwres_t *lwres);
 
