@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.74 2000/08/01 01:23:06 tale Exp $ */
+/* $Id: view.c,v 1.75 2000/08/17 00:18:09 gson Exp $ */
 
 #include <config.h>
 
@@ -983,11 +983,44 @@ dns_view_load(dns_view_t *view, isc_boolean_t stop) {
 }
 
 isc_result_t
+dns_view_gettsig(dns_view_t *view, dns_name_t *keyname, dns_tsigkey_t **keyp)
+{
+	isc_result_t result;
+	REQUIRE(keyp != NULL && *keyp == NULL);
+
+	result = dns_tsigkey_find(keyp, keyname, NULL,
+				  view->statickeys);
+	if (result == ISC_R_NOTFOUND)
+		result = dns_tsigkey_find(keyp, keyname, NULL,
+					  view->dynamickeys);
+	return (result);
+}
+
+isc_result_t
+dns_view_getpeertsig(dns_view_t *view, isc_netaddr_t *peeraddr,
+		     dns_tsigkey_t **keyp)
+{
+	isc_result_t result;
+	dns_name_t *keyname = NULL;
+	dns_peer_t *peer = NULL;
+
+	result = dns_peerlist_peerbyaddr(view->peers, peeraddr, &peer);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = dns_peer_getkey(peer, &keyname);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	return (dns_view_gettsig(view, keyname, keyp));
+}
+
+isc_result_t
 dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(source != NULL);
 
-	return dns_tsig_verify(source, msg, view->statickeys,
-			       view->dynamickeys);
+	return (dns_tsig_verify(source, msg, view->statickeys,
+				view->dynamickeys));
 }
 

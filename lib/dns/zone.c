@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.185 2000/08/16 02:41:08 tale Exp $ */
+/* $Id: zone.c,v 1.186 2000/08/17 00:18:10 gson Exp $ */
 
 #include <config.h>
 
@@ -1919,8 +1919,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *message = NULL;
 	dns_zone_t *zone = NULL;
 	isc_netaddr_t dstip;
-	dns_peer_t *peer = NULL;
-	dns_name_t *keyname = NULL;
 	dns_tsigkey_t *key = NULL;
 
 	notify = event->ev_arg;
@@ -1948,17 +1946,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 
 	isc_netaddr_fromsockaddr(&dstip, &notify->dst);
-	result = dns_peerlist_peerbyaddr(zone->view->peers,
-					 &dstip, &peer);
-	if (result == ISC_R_SUCCESS &&
-	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
-	{
-		result = dns_tsigkey_find(&key, keyname, NULL,
-					  zone->view->statickeys);
-		if (result == ISC_R_NOTFOUND)
-			(void) dns_tsigkey_find(&key, keyname, NULL,
-						zone->view->dynamickeys);
-	}
+	(void)dns_view_getpeertsig(notify->zone->view, &dstip, &key);
 
 	result = dns_request_create(notify->zone->view->requestmgr, message,
 				    &notify->dst, 0, key, 15,
@@ -2779,8 +2767,6 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *message = NULL;
 	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t masterip;
-	dns_peer_t *peer = NULL;
-	dns_name_t *keyname = NULL;
 	dns_tsigkey_t *key = NULL;
 	isc_uint32_t options;
 
@@ -2813,17 +2799,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&zone->lock);
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
-	result = dns_peerlist_peerbyaddr(zone->view->peers,
-					 &masterip, &peer);
-	if (result == ISC_R_SUCCESS &&
-	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
-	{
-		result = dns_tsigkey_find(&key, keyname, NULL,
-					  zone->view->statickeys);
-		if (result == ISC_R_NOTFOUND)
-			(void) dns_tsigkey_find(&key, keyname, NULL,
-						zone->view->dynamickeys);
-	}
+	(void)dns_view_getpeertsig(zone->view, &masterip, &key);
 
 	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
 		  DNS_REQUESTOPT_TCP : 0;
@@ -2859,8 +2835,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	isc_result_t result;
 	dns_message_t *message = NULL;
 	isc_netaddr_t masterip;
-	dns_peer_t *peer = NULL;
-	dns_name_t *keyname = NULL;
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
 
@@ -2947,17 +2921,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	UNLOCK(&zone->lock);
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
-	result = dns_peerlist_peerbyaddr(zone->view->peers,
-					 &masterip, &peer);
-	if (result == ISC_R_SUCCESS &&
-	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
-	{
-		result = dns_tsigkey_find(&key, keyname, NULL,
-					  zone->view->statickeys);
-		if (result == ISC_R_NOTFOUND)
-			(void) dns_tsigkey_find(&key, keyname, NULL,
-						zone->view->dynamickeys);
-	}
+	(void)dns_view_getpeertsig(zone->view, &masterip, &key);	
 
 	/*
 	 * Always use TCP so that we shouldn't truncate in additional section.
@@ -3998,7 +3962,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	dns_rdatatype_t xfrtype;
 	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t masterip;
-	isc_boolean_t gotkey = ISC_FALSE;
 	dns_view_t *view = NULL;
 
 	UNUSED(task);
@@ -4049,6 +4012,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Determine if we should attempt to sign the request with TSIG.
 	 */
+	result = ISC_R_NOTFOUND;
 #ifndef NOMINUM_PUBLIC
 	/*
 	 * First, look for a tsig key in the master statement, then
@@ -4058,29 +4022,17 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	    (zone->masterkeynames[zone->curmaster] != NULL)) {
 		view = dns_zone_getview(zone);
 		keyname = zone->masterkeynames[zone->curmaster];
-		gotkey = ISC_TRUE;
+		result = dns_view_gettsig(view, keyname, &tsigkey);
 	}
-	else
 #endif /* NOMINUM_PUBLIC */
-        if (peer != NULL &&
-		 dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS) {
-		view = dns_zone_getview(zone);
-		gotkey = ISC_TRUE;
-	}
+	if (tsigkey == NULL)
+		result = dns_view_getpeertsig(zone->view, &masterip, &tsigkey);
 
-	if (gotkey) {
-		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
-					  view->statickeys);
-		if (result == ISC_R_NOTFOUND)
-			result = dns_tsigkey_find(&tsigkey, keyname, NULL,
-						  view->dynamickeys);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
-			zone_log(zone, me, ISC_LOG_ERROR,
-				 "error getting tsig keys "
-				 "for zone transfer: %s",
-				 isc_result_totext(result));
-			goto cleanup;
-		}
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+		zone_log(zone, me, ISC_LOG_ERROR,
+			 "error getting tsig key "
+			 "for zone transfer: %s",
+			 isc_result_totext(result));
 	}
 
 	result = dns_xfrin_create(zone, xfrtype, &zone->masteraddr,

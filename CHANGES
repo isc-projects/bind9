@@ -1,3 +1,5 @@
+ 397.	[func]		Added utility functions dns_view_gettsig() and
+			dns_view_getpeertsig().
 
  396.	[doc]		There is now a man page for "nsupdate" 
 			in doc/man/bin/nsupdate.8.

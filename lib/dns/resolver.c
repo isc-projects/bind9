@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.164 2000/08/15 00:21:03 bwelling Exp $ */
+/* $Id: resolver.c,v 1.165 2000/08/17 00:18:08 gson Exp $ */
 
 #include <config.h>
 
@@ -806,9 +806,8 @@ resquery_send(resquery_t *query) {
 	isc_buffer_t tcpbuffer;
 	isc_sockaddr_t *address;
 	isc_buffer_t *buffer;
-	dns_peer_t *peer = NULL;
-	dns_name_t *keyname = NULL;
 	isc_netaddr_t ipaddr;
+	dns_tsigkey_t *tsigkey = NULL;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -941,26 +940,13 @@ resquery_send(resquery_t *query) {
 	 * Add TSIG record tailored to the current recipient.
 	 */
 	isc_netaddr_fromsockaddr(&ipaddr, &query->addrinfo->sockaddr);
-	result = dns_peerlist_peerbyaddr(fctx->res->view->peers,
-					 &ipaddr, &peer);
+	result = dns_view_getpeertsig(fctx->res->view, &ipaddr, &tsigkey);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		goto cleanup_message;
 
-	if (result == ISC_R_SUCCESS &&
-	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
-	{
-		dns_tsigkey_t *tsigkey = NULL;
-
-		result = dns_tsigkey_find(&tsigkey, keyname, NULL,
-					  fctx->res->view->statickeys);
-		if (result == ISC_R_NOTFOUND)
-			result = dns_tsigkey_find(&tsigkey, keyname, NULL,
-						 fctx->res->view->dynamickeys);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
-			goto cleanup_message;
-
-		if (tsigkey != NULL) {
-			dns_message_settsigkey(fctx->qmessage, tsigkey);
-			dns_tsigkey_detach(&tsigkey);
-		}
+	if (tsigkey != NULL) {
+		dns_message_settsigkey(fctx->qmessage, tsigkey);
+		dns_tsigkey_detach(&tsigkey);
 	}
 
 	result = dns_message_rendersection(fctx->qmessage,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.47 2000/08/01 01:24:55 tale Exp $ */
+/* $Id: view.h,v 1.48 2000/08/17 00:18:12 gson Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -530,6 +530,38 @@ dns_view_load(dns_view_t *view, isc_boolean_t stop);
  * Requires:
  *
  *	'view' is a valid.
+ */
+
+isc_result_t
+dns_view_gettsig(dns_view_t *view, dns_name_t *keyname,
+		 dns_tsigkey_t **keyp);
+/*
+ * Find the TSIG key configured in 'view' with name 'keyname',
+ * if any.
+ *
+ * Reqires:
+ *	keyp points to a NULL dns_tsigkey_t *.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	A key was found and '*keyp' now points to it.
+ *	ISC_R_NOTFOUND	No key was found.
+ *	others		An error occurred.
+ */
+
+isc_result_t
+dns_view_getpeertsig(dns_view_t *view, isc_netaddr_t *peeraddr,
+		     dns_tsigkey_t **keyp);
+/*
+ * Find the TSIG key configured in 'view' for the server whose
+ * address is 'peeraddr', if any.
+ *
+ * Reqires:
+ *	keyp points to a NULL dns_tsigkey_t *.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	A key was found and '*keyp' now points to it.
+ *	ISC_R_NOTFOUND	No key was found.
+ *	others		An error occurred.
  */
 
 isc_result_t
