@@ -109,6 +109,9 @@
 			in the case of queries answered from the cache.
 			[RT #1436]
 
+ 995.	[bug]		dig, host, nslookup: using a raw IPv6 address as a
+			target address should be fatal on a IPv4 only system.
+
 	--- 9.2.0 released ---
 
 1134.	[bug]		Multithreaded servers could deadlock in ferror()
