@@ -1,4 +1,6 @@
 
+	--- 9.1.3rc2 released ---
+
  904.	[bug]		The server would leak memory if attempting to use
 			an expired TSIG key. [RT #1406]
 
