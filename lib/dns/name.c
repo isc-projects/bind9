@@ -1916,6 +1916,8 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name,
 				    ISC_FALSE);
 	}
 
+	isc_buffer_add(target, name->length);
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -2123,18 +2125,13 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		  isc_buffer_t *target)
 {
 	unsigned char *cdata, *ndata;
-	unsigned int cused, hops, nrem, nused, labels, n, i, ll;
+	unsigned int cused, hops, nrem, nused, labels, n;
 	unsigned int current, new_current, biggest_pointer;
 	isc_boolean_t saw_bitstring, done;
 	fw_state state = fw_start;
 	unsigned int c;
 	unsigned char *offsets;
 	dns_offsets_t odata;
-	dns_name_t suffix;
-	dns_label_t label;
-	dns_labeltype_t labeltype;
-	unsigned int bits;
-	dns_bitlabel_t bit;
 
 	/*
 	 * Copy the possibly-compressed name at source into target,
