@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.123 2001/09/04 00:35:17 marka Exp $ */
+/* $Id: master.c,v 1.124 2001/09/05 16:55:05 gson Exp $ */
 
 #include <config.h>
 
@@ -903,7 +903,9 @@ load(dns_loadctx_t *lctx) {
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$INCLUDE") == 0) {
 				COMMITALL;
-				if ((lctx->options & DNS_MASTER_NOINCLUDE) != 0) {
+				if ((lctx->options & DNS_MASTER_NOINCLUDE)
+				    != 0)
+				{
 					(callbacks->error)(callbacks,
 					   "%s: %s:%lu: $INCLUDE not allowed",
 					   "dns_master_load",
