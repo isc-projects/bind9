@@ -1,6 +1,8 @@
 
 	--- 9.0.0rc2 released ---
 
+ 374.	[bug]		SOA in authoritative negative responses had wrong TTL.
+
  373.	[func]		nslookup is now installed by "make install".
 
  372.	[bug]		Deal with Microsoft DNS servers appending two bytes of

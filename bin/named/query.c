@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109.2.7 2000/07/28 17:48:56 gson Exp $ */
+/* $Id: query.c,v 1.109.2.8 2000/08/08 01:10:25 gson Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
@@ -1425,6 +1426,24 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 		 */
 		eresult = DNS_R_SERVFAIL;
 	} else {
+		/*
+		 * Extract the SOA MINIMUM.
+		 */
+		dns_rdata_soa_t soa;
+		dns_rdata_t rdata;
+		result = dns_rdataset_first(rdataset);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		dns_rdataset_current(rdataset, &rdata);
+		dns_rdata_tostruct(&rdata, &soa, NULL);
+
+		/*
+		 * Add the SOA and its SIG to the response, with the
+		 * TTLs adjusted per RFC2308 section 3.
+		 */
+		if (rdataset->ttl > soa.minimum)
+			rdataset->ttl = soa.minimum;
+		if (sigrdataset->ttl > soa.minimum)
+			sigrdataset->ttl = soa.minimum;
 		query_addrrset(client, &name, &rdataset, &sigrdataset, NULL,
 			       DNS_SECTION_AUTHORITY);
 	}
