@@ -619,9 +619,9 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 		if (NAME_HAS_V4(name)) {
 			DP(DEF_LEVEL, "expiring v4 for name %p", name);
 			clean_namehooks(adb, &name->v4);
+			name->partial_result &= ~DNS_ADBFIND_INET;
 		}
 		name->expire_v4 = INT_MAX;
-		name->partial_result &= ~DNS_ADBFIND_INET;
 	}
 
 	/*
@@ -631,9 +631,9 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 		if (NAME_HAS_V6(name)) {
 			DP(DEF_LEVEL, "expiring v6 for name %p", name);
 			clean_namehooks(adb, &name->v6);
+			name->partial_result &= ~DNS_ADBFIND_INET6;
 		}
 		name->expire_v6 = INT_MAX;
-		name->partial_result &= ~DNS_ADBFIND_INET6;
 	}
 }
 
