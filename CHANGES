@@ -1,3 +1,6 @@
+ 976.	[func]		named-checkconf will now test load master zone
+			files (-z).  [RT #1468]
+
  970.	[func]		'max-journal-size' can now be used to set a target
 			size for a journal.
 

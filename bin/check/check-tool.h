@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.2 2001/01/09 21:39:09 bwelling Exp $ */
+/* $Id: check-tool.h,v 1.2.12.1 2003/08/01 07:09:49 marka Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
@@ -23,11 +23,19 @@
 #include <isc/lang.h>
 
 #include <isc/types.h>
+#include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
 
 isc_result_t
 setup_logging(isc_mem_t *mctx, isc_log_t **logp);
+
+isc_result_t
+load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
+	  const char *classname, dns_zone_t **zonep);
+
+extern int debug;
+extern isc_boolean_t nomerge;
 
 ISC_LANG_ENDDECLS
 

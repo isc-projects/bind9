@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.3 2002/07/11 05:44:10 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.3.8.1 2003/08/01 07:09:50 marka Exp $ */
 
 #include <config.h>
 
@@ -41,13 +41,10 @@
 
 #include "check-tool.h"
 
-static int debug = 0;
-isc_boolean_t nomerge = ISC_TRUE;
 static int quiet = 0;
 static isc_mem_t *mctx = NULL;
 dns_zone_t *zone = NULL;
 dns_zonetype_t zonetype = dns_zone_master;
-static const char *dbtype[] = { "rbt" };
 
 #define ERRRET(result, function) \
 	do { \
@@ -64,54 +61,6 @@ usage(void) {
 	fprintf(stderr,
 		"usage: named-checkzone [-djqv] [-c class] zonename filename \n");
 	exit(1);
-}
-
-static isc_result_t
-setup(char *zonename, char *filename, char *classname) {
-	isc_result_t result;
-	dns_rdataclass_t rdclass;
-	isc_textregion_t region;
-	isc_buffer_t buffer;
-	dns_fixedname_t fixorigin;
-	dns_name_t *origin;
-
-	if (debug)
-		fprintf(stderr, "loading \"%s\" from \"%s\" class \"%s\"\n",
-			zonename, filename, classname);
-	result = dns_zone_create(&zone, mctx);
-	ERRRET(result, "dns_zone_new");
-
-	dns_zone_settype(zone, zonetype);
-
-	isc_buffer_init(&buffer, zonename, strlen(zonename));
-	isc_buffer_add(&buffer, strlen(zonename));
-	dns_fixedname_init(&fixorigin);
-	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
-			  	   &buffer, dns_rootname, ISC_FALSE, NULL);
-	ERRRET(result, "dns_name_fromtext");
-	origin = dns_fixedname_name(&fixorigin);
-
-	result = dns_zone_setorigin(zone, origin);
-	ERRRET(result, "dns_zone_setorigin");
-
-	result = dns_zone_setdbtype(zone, 1, (const char * const *) dbtype);
-	ERRRET(result, "dns_zone_setdatabase");
-
-	result = dns_zone_setfile(zone, filename);
-	ERRRET(result, "dns_zone_setdatabase");
-
-	region.base = classname;
-	region.length = strlen(classname);
-	result = dns_rdataclass_fromtext(&rdclass, &region);
-	ERRRET(result, "dns_rdataclass_fromtext");
-
-	dns_zone_setclass(zone, rdclass);
-	dns_zone_setoption(zone, DNS_ZONEOPT_MANYERRORS, ISC_TRUE);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOMERGE, nomerge);
-
-	result = dns_zone_load(zone);
-
-	return (result);
 }
 
 static void
@@ -167,7 +116,7 @@ main(int argc, char **argv) {
 
 	origin = argv[isc_commandline_index++];
 	filename = argv[isc_commandline_index++];
-	result = setup(origin, filename, classname);
+	result = load_zone(mctx, origin, filename, classname, &zone);
 	if (!quiet && result == ISC_R_SUCCESS)
 		fprintf(stdout, "OK\n");
 	destroy();

@@ -15,17 +15,38 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.4 2001/03/03 23:11:33 bwelling Exp $ */
+/* $Id: check-tool.c,v 1.4.12.1 2003/08/01 07:09:49 marka Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include "check-tool.h"
 #include <isc/util.h>
 
+#include <isc/buffer.h>
 #include <isc/log.h>
+#include <isc/region.h>
 #include <isc/types.h>
+
+#include <dns/fixedname.h>
+#include <dns/name.h>
+#include <dns/rdataclass.h>
+#include <dns/types.h>
+#include <dns/zone.h>
+
+#define CHECK(r) \
+        do { \
+		result = (r); \
+                if (result != ISC_R_SUCCESS) \
+                        goto cleanup; \
+        } while (0)   
+
+static const char *dbtype[] = { "rbt" };
+
+int debug = 0;
+isc_boolean_t nomerge = ISC_TRUE;
 
 isc_result_t
 setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
@@ -49,4 +70,56 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 
 	*logp = log;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
+	  const char *classname, dns_zone_t **zonep)
+{
+	isc_result_t result;
+	dns_rdataclass_t rdclass;
+	isc_textregion_t region;
+	isc_buffer_t buffer;
+	dns_fixedname_t fixorigin;
+	dns_name_t *origin;
+	dns_zone_t *zone = NULL;
+
+	REQUIRE(zonep == NULL || *zonep == NULL);
+
+	if (debug)
+		fprintf(stderr, "loading \"%s\" from \"%s\" class \"%s\"\n",
+			zonename, filename, classname);
+
+	CHECK(dns_zone_create(&zone, mctx));
+
+	dns_zone_settype(zone, dns_zone_master);
+
+	isc_buffer_init(&buffer, zonename, strlen(zonename));
+	isc_buffer_add(&buffer, strlen(zonename));
+	dns_fixedname_init(&fixorigin);
+	origin = dns_fixedname_name(&fixorigin);
+	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname,
+			        ISC_FALSE, NULL));
+	CHECK(dns_zone_setorigin(zone, origin));
+	CHECK(dns_zone_setdbtype(zone, 1, (const char * const *) dbtype));
+	CHECK(dns_zone_setfile(zone, filename));
+
+	DE_CONST(classname, region.base);
+	region.length = strlen(classname);
+	CHECK(dns_rdataclass_fromtext(&rdclass, &region));
+
+	dns_zone_setclass(zone, rdclass);
+	dns_zone_setoption(zone, DNS_ZONEOPT_MANYERRORS, ISC_TRUE);
+	dns_zone_setoption(zone, DNS_ZONEOPT_NOMERGE, nomerge);
+
+	CHECK(dns_zone_load(zone));
+	if (zonep != NULL){
+		*zonep = zone;
+		zone = NULL;
+	}
+
+ cleanup:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	return (result);
 }
