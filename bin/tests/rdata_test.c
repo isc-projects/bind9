@@ -45,6 +45,8 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	isc_result_t result;
 	void *sp = NULL;
 	isc_boolean_t need_free = ISC_FALSE;
+	dns_rdatatype_t rdt;
+	dns_rdataclass_t rdc;
 
 	UNUSED(rdata2);	/* XXXMPA remove when fromstruct is ready. */
 	UNUSED(b);
@@ -272,7 +274,7 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		break;
 	}
 	if (result != ISC_R_SUCCESS)
-		printf("viastruct: tostuct %d %d return %s\n",
+		fprintf(stdout, "viastruct: tostuct %d %d return %s\n",
 			rdata->type, rdata->rdclass,
 			dns_result_totext(result));
 	else
@@ -501,36 +503,55 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		break;
 	}
 	if (result != ISC_R_SUCCESS)
-		printf("viastruct: tostuct %d %d return %s\n",
+		fprintf(stdout, "viastruct: tostuct %d %d return %s\n",
 			rdata->type, rdata->rdclass,
 			dns_result_totext(result));
-	else
+	else {
 		need_free = ISC_TRUE;
 
-#if 0
-/*
-dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-                     dns_rdatatype_t type, void *source,
-					  isc_buffer_t *target)
-*/
+		rdc = rdata->rdclass;
+		rdt = rdata->type;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, sp, b);
+		if (result != ISC_R_SUCCESS)
+			fprintf(stdout, "viastruct: fromstuct %d %d return %s\n",
+				rdata->type, rdata->rdclass,
+				dns_result_totext(result));
+		else if (rdata->length != rdata2->length ||
+			 memcmp(rdata->data, rdata2->data, rdata->length) != 0)
+		{
+			isc_uint32_t i;
+			isc_uint32_t l;
 
+			fprintf(stdout, "viastruct: memcmp failed\n");
+
+			fprintf(stdout, "%d %d\n",
+				rdata->length, rdata2->length);
+			l = rdata->length;
+			if (rdata2->length < l)
+				l = rdata2->length;
+			for (i = 0; i < l; i++)
+				fprintf(stdout, "%02x %02x\n",
+					rdata->data[i], rdata2->data[i]);
+		}
+	}
+#if 0
 	switch (rdata->type) {
 	case dns_rdatatype_a6: {
 		dns_rdata_in_a6_t in_a6;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_a6, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_a6, b);
 		break;
 	}
 	case dns_rdatatype_a: {
 		switch (rdata->rdclass) {
 		case dns_rdataclass_hs: {
 			dns_rdata_hs_a_t hs_a;
-			result = dns_rdata_fromstruct(rdata2, rdc, type,
+			result = dns_rdata_fromstruct(rdata2, rdc, rdt,
 						      &hs_a, b);
 			break;
 		}
 		case dns_rdataclass_in: {
 			dns_rdata_in_a_t in_a;
-			result = dns_rdata_fromstruct(rdata2, rdc, type,
+			result = dns_rdata_fromstruct(rdata2, rdc, rdt,
 						      &in_a, b);
 			break;
 		}
@@ -542,12 +563,12 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	}
 	case dns_rdatatype_aaaa: {
 		dns_rdata_in_aaaa_t in_aaaa;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_aaaa, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_aaaa, b);
 		break;
 	}
 	case dns_rdatatype_afsdb: {
 		dns_rdata_afsdb_t afsdb;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &afsdb, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &afsdb, b);
 		break;
 	}
 	case dns_rdatatype_any: {
@@ -556,182 +577,183 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	}
 	case dns_rdatatype_cert: {
 		dns_rdata_cert_t cert;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &cert, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &cert, b);
 		break;
 	}
 	case dns_rdatatype_cname: {
 		dns_rdata_cname_t cname;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &cname, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &cname, b);
 		break;
 	}
 	case dns_rdatatype_dname: {
 		dns_rdata_dname_t dname;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &dname, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &dname, b);
 		break;
 	}
 	case dns_rdatatype_gpos: {
 		dns_rdata_gpos_t gpos;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &gpos, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &gpos, b);
 		break;
 	}
 	case dns_rdatatype_hinfo: {
 		dns_rdata_hinfo_t hinfo;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &hinfo, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &hinfo, b);
 		break;
 	}
 	case dns_rdatatype_isdn: {
 		dns_rdata_isdn_t isdn;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &isdn, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &isdn, b);
 		break;
 	}
 	case dns_rdatatype_key: {
 		dns_rdata_key_t key;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &key, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &key, b);
 		break;
 	}
 	case dns_rdatatype_kx: {
 		dns_rdata_in_kx_t in_kx;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_kx, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_kx, b);
 		break;
 	}
 	case dns_rdatatype_loc: {
 		dns_rdata_loc_t loc;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &loc, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &loc, b);
 		break;
 	}
 	case dns_rdatatype_mb: {
 		dns_rdata_mb_t mb;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &mb, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &mb, b);
 		break;
 	}
 	case dns_rdatatype_md: {
 		dns_rdata_md_t md;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &md, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &md, b);
 		break;
 	}
 	case dns_rdatatype_mf: {
 		dns_rdata_mf_t mf;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &mf, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &mf, b);
 		break;
 	}
 	case dns_rdatatype_mg: {
 		dns_rdata_mg_t mg;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &mg, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &mg, b);
 		break;
 	}
 	case dns_rdatatype_minfo: {
 		dns_rdata_minfo_t minfo;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &minfo, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &minfo, b);
 		break;
 	}
 	case dns_rdatatype_mr: {
 		dns_rdata_mr_t mr;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &mr, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &mr, b);
 		break;
 	}
 	case dns_rdatatype_mx: {
 		dns_rdata_mx_t mx;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &mx, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &mx, b);
 		break;
 	}
 	case dns_rdatatype_naptr: {
 		dns_rdata_in_naptr_t in_naptr;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_naptr, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_naptr, b);
 		break;
 	}
 	case dns_rdatatype_ns: {
 		dns_rdata_ns_t ns;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &ns, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &ns, b);
 		break;
 	}
 	case dns_rdatatype_nsap: {
 		dns_rdata_in_nsap_t in_nsap;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_nsap, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_nsap, b);
 		break;
 	}
 	case dns_rdatatype_nsap_ptr: {
 		dns_rdata_in_nsap_ptr_t in_nsap_ptr;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_nsap_ptr, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_nsap_ptr,
+					      b);
 		break;
 	}
 	case dns_rdatatype_null: {
 		dns_rdata_null_t null;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &null, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &null, b);
 		break;
 	}
 	case dns_rdatatype_nxt: {
 		dns_rdata_nxt_t nxt;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &nxt, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &nxt, b);
 		break;
 	}
 	case dns_rdatatype_opt: {
 		dns_rdata_opt_t opt;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &opt, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &opt, b);
 		break;
 	}
 	case dns_rdatatype_ptr: {
 		dns_rdata_ptr_t ptr;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &ptr, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &ptr, b);
 		break;
 	}
 	case dns_rdatatype_px: {
 		dns_rdata_in_px_t in_px;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_px, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_px, b);
 		break;
 	}
 	case dns_rdatatype_rp: {
 		dns_rdata_rp_t rp;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &rp, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &rp, b);
 		break;
 	}
 	case dns_rdatatype_rt: {
 		dns_rdata_rt_t rt;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &rt, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &rt, b);
 		break;
 	}
 	case dns_rdatatype_sig: {
 		dns_rdata_sig_t sig;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &sig, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &sig, b);
 		break;
 	}
 	case dns_rdatatype_soa: {
 		dns_rdata_soa_t soa;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &soa, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &soa, b);
 		break;
 	}
 	case dns_rdatatype_srv: {
 		dns_rdata_in_srv_t in_srv;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_srv, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_srv, b);
 		break;
 	}
 	case dns_rdatatype_tkey: {
 		dns_rdata_tkey_t tkey;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &tkey, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &tkey, b);
 		break;
 	}
 	case dns_rdatatype_tsig: {
 		dns_rdata_any_tsig_t tsig;
-		result = dns_rdata_fromstruct(rdata2, rdclass, type, &tsig, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &tsig, b);
 		break;
 	}
 	case dns_rdatatype_txt: {
 		dns_rdata_txt_t txt;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &txt, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &txt, b);
 		break;
 	}
 	case dns_rdatatype_unspec: {
 		dns_rdata_unspec_t unspec;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &unspec, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &unspec, b);
 		break;
 	}
 	case dns_rdatatype_wks: {
 		dns_rdata_in_wks_t in_wks;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &in_wks, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &in_wks, b);
 		break;
 	}
 	case dns_rdatatype_x25: {
 		dns_rdata_x25_t x25;
-		result = dns_rdata_fromstruct(rdata2, rdc, type, &x25, b);
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &x25, b);
 		break;
 	}
 	default:
@@ -757,6 +779,7 @@ main(int argc, char *argv[]) {
 	char outbuf[16*1024];
 	char inbuf[16*1024];
 	char wirebuf[16*1024];
+	char viabuf[16*1024];
 	isc_buffer_t dbuf;
 	isc_buffer_t tbuf;
 	isc_buffer_t wbuf;
@@ -993,9 +1016,15 @@ main(int argc, char *argv[]) {
 		}
 		if (tostruct) {
 			isc_mem_t *mctx2 = NULL;
+			dns_rdata_t rdata2;
+			isc_buffer_t vbuf;
+
 			RUNTIME_CHECK(isc_mem_create(0, 0, &mctx2)
 				      == ISC_R_SUCCESS);
-			viastruct(&rdata, mctx2, NULL, NULL);
+
+			isc_buffer_init(&vbuf, viabuf, sizeof(viabuf));
+			dns_rdata_init(&rdata2);
+			viastruct(&rdata, mctx2, &rdata2, &vbuf);
 			if (!quiet && stats)
 				isc_mem_stats(mctx2, stdout);
 			isc_mem_destroy(&mctx2);
