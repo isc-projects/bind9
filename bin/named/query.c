@@ -689,7 +689,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 				query_releasename(client, &fname);
 				query_putrdataset(client, &rdataset);
 				query_putrdataset(client, &sigrdataset);
-				dns_db_detachnode(db, &node);
+				if (node != NULL)
+					dns_db_detachnode(db, &node);
 				dns_db_detach(&db);
 				db = zdb;
 				zdb = NULL;
@@ -1061,7 +1062,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 
 #define ANSWERED(rds)	(((rds)->attributes & DNS_RDATASETATTR_ANSWERED) != 0)
 
-static inline void
+static void
 query_addrrset(ns_client_t *client, dns_name_t **namep,
 	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
 	       isc_buffer_t *dbuf, dns_section_t section)
@@ -1290,6 +1291,163 @@ query_addcname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static void
+query_addbestns(ns_client_t *client) {
+	dns_db_t *db, *zdb;
+	dns_dbnode_t *node;
+	dns_name_t *fname, *zfname;
+	dns_rdataset_t *rdataset, *sigrdataset, *zrdataset, *zsigrdataset;
+	isc_boolean_t is_zone, use_zone;
+	isc_buffer_t *dbuf;
+	isc_result_t result;
+	dns_dbversion_t *version;
+	dns_zone_t *zone;
+	isc_buffer_t b;
+
+	fname = NULL;
+	zfname = NULL;
+	rdataset = NULL;
+	zrdataset = NULL;
+	sigrdataset = NULL;
+	zsigrdataset = NULL;
+	node = NULL;
+	db = NULL;
+	zdb = NULL;
+	version = NULL;
+	zone = NULL;
+	use_zone = ISC_FALSE;
+
+	/*
+	 * Find the right database.
+	 */
+	result = dns_zt_find(client->view->zonetable, client->query.qname,
+			     NULL, &zone);
+	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+		result = dns_zone_getdb(zone, &db);
+	if (result == ISC_R_NOTFOUND) {
+		/*
+		 * We're not directly authoritative for this query name, nor
+		 * is it a subdomain of any zone for which we're
+		 * authoritative.
+		 */
+		if (!USECACHE(client))
+			goto cleanup;
+		INSIST(client->view->cachedb != NULL);
+		dns_db_attach(client->view->cachedb, &db);
+	} else if (result != ISC_R_SUCCESS) {
+		/*
+		 * Something is broken.
+		 */
+		goto cleanup;
+	}
+	is_zone = dns_db_iszone(db);
+	if (is_zone) {
+		version = query_findversion(client, db);
+		if (version == NULL)
+			goto cleanup;
+	} else
+		version = NULL;
+ db_find:
+	/*
+	 * We'll need some resources...
+	 */
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		goto cleanup;
+	fname = query_newname(client, dbuf, &b);
+	rdataset = query_newrdataset(client);
+	sigrdataset = query_newrdataset(client);
+	if (fname == NULL || rdataset == NULL || sigrdataset == NULL)
+		goto cleanup;
+
+	/*
+	 * Now look for the zonecut.
+	 */
+	if (is_zone) {
+		result = dns_db_find(db, client->query.qname, version,
+				     dns_rdatatype_ns, 0,
+				     client->requesttime, &node, fname,
+				     rdataset, sigrdataset);
+		if (result != DNS_R_DELEGATION)
+			goto cleanup;
+		if (USECACHE(client)) {
+			query_keepname(client, fname, dbuf);
+			zdb = db;
+			zfname = fname;
+			zrdataset = rdataset;
+			zsigrdataset = sigrdataset;
+			dns_db_detachnode(db, &node);
+			version = NULL;
+			db = NULL;
+			dns_db_attach(client->view->cachedb, &db);
+			is_zone = ISC_FALSE;
+			goto db_find;
+		}
+	} else {
+		result = dns_db_findzonecut(db, client->query.qname, 0,
+					    client->requesttime, &node, fname,
+					    rdataset, sigrdataset);
+		if (result == ISC_R_SUCCESS) {
+			if (zfname != NULL &&
+			    !dns_name_issubdomain(fname, zfname)) {
+				/*
+				 * We found a zonecut in the cache, but our
+				 * zone delegation is better.
+				 */
+				use_zone = ISC_TRUE;
+			}
+		} else if (result == ISC_R_NOTFOUND && zfname != NULL) {
+			/*
+			 * We didn't find anything in the cache, but we
+			 * have a zone delegation, so use it.
+			 */
+			use_zone = ISC_TRUE;
+		} else
+			goto cleanup;
+	}
+
+	if (use_zone) {
+		query_releasename(client, &fname);
+		fname = zfname;
+		zfname = NULL;
+		/*
+		 * We've already done query_keepname() on
+		 * zfname, so we must set dbuf to NULL to
+		 * prevent query_addrrset() from trying to
+		 * call query_keepname() again.
+		 */
+		dbuf = NULL;
+		query_putrdataset(client, &rdataset);
+		query_putrdataset(client, &sigrdataset);
+		rdataset = zrdataset;
+		zrdataset = NULL;
+		sigrdataset = zsigrdataset;
+		zsigrdataset = NULL;
+	}
+
+	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
+		       DNS_SECTION_AUTHORITY);
+
+ cleanup:
+	query_putrdataset(client, &rdataset);
+	query_putrdataset(client, &sigrdataset);
+	if (fname != NULL)
+		query_releasename(client, &fname);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (zdb != NULL) {
+		query_putrdataset(client, &zrdataset);
+		query_putrdataset(client, &zsigrdataset);
+		if (zfname != NULL)
+			query_releasename(client, &zfname);
+		dns_db_detach(&zdb);
+	}
 }
 
 static inline isc_result_t
@@ -2141,14 +2299,21 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
  addauth:
 	/*
-	 * Add NS records for the zone to the authority section (if we
-	 * haven't already added them to the answer section).
+	 * Add NS records to the authority section (if we haven't already
+	 * added them to the answer section).
 	 */
-	if (client->query.restarts == 0 &&
-	    is_zone &&
-	    !(qtype == dns_rdatatype_ns &&
-	      dns_name_equal(client->query.qname, dns_db_origin(db))))
-		query_addns(client, db);
+	if (!want_restart) {
+		if (is_zone) {
+			if (!(qtype == dns_rdatatype_ns &&
+			      dns_name_equal(client->query.qname,
+					     dns_db_origin(db))))
+				query_addns(client, db);
+		} else if (qtype != dns_rdatatype_ns) {
+			if (fname != NULL)
+				query_releasename(client, &fname);
+			query_addbestns(client);
+		}
+	}
 
  cleanup:
 	/*
