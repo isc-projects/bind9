@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.25 1999/10/08 23:26:55 tale Exp $ */
+ /* $Id: master.c,v 1.26 1999/10/25 18:41:36 halley Exp $ */
 
 #include <config.h>
 
@@ -123,10 +123,11 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 		if (token->type == isc_tokentype_eol ||
 		    token->type == isc_tokentype_eof) {
 			(*callbacks->error)(callbacks,
-				"dns_master_load: %s:%d unexpected end of %s\n",
+			    "dns_master_load: %s:%d unexpected end of %s\n",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex),
-					    (token->type == isc_tokentype_eol) ?
+					    (token->type ==
+					     isc_tokentype_eol) ?
 					    "line" : "file");
 			return (DNS_R_UNEXPECTEDEND);
 		}
@@ -318,15 +319,16 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				GETTOKEN(lex, 0, &token, ISC_TRUE);
 				if (token.type == isc_tokentype_eol ||
 				    token.type == isc_tokentype_eof) {
-					result = dns_master_loadfile(include_file,
-								     top,
-								     &origin_name,
-								     zclass,
-								     age_ttl,
-								     soacount,
-								     nscount,
-								     callbacks,
-								     mctx);
+					result =
+					    dns_master_loadfile(include_file,
+								top,
+								&origin_name,
+								zclass,
+								age_ttl,
+								soacount,
+								nscount,
+								callbacks,
+								mctx);
 					if (result != DNS_R_SUCCESS)
 						goto cleanup;
 					isc_lex_ungettoken(lex, &token);
@@ -556,7 +558,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		}
 			
 		if (rdclass == 0 &&
-		    dns_rdataclass_fromtext(&rdclass, &token.value.as_textregion)
+		    dns_rdataclass_fromtext(&rdclass,
+					    &token.value.as_textregion)
 				== DNS_R_SUCCESS)
 			GETTOKEN(lex, 0, &token, ISC_FALSE);
 
@@ -628,7 +631,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			 * syntax errors).
 			 */
 			if (ttl < ttl_offset) {
-				read_till_eol = ISC_TRUE;			
+				read_till_eol = ISC_TRUE;
 				continue;
 			}
 			ttl -= ttl_offset;
@@ -792,9 +795,11 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 }
 
 dns_result_t
-dns_master_loadfile(char *master_file, dns_name_t *top, dns_name_t *origin,
+dns_master_loadfile(const char *master_file, dns_name_t *top,
+		    dns_name_t *origin,
 		    dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-		    int *soacount, int *nscount, dns_rdatacallbacks_t *callbacks,
+		    int *soacount, int *nscount,
+		    dns_rdatacallbacks_t *callbacks,
 		    isc_mem_t *mctx)
 {
 	isc_result_t result;
@@ -812,15 +817,15 @@ dns_master_loadfile(char *master_file, dns_name_t *top, dns_name_t *origin,
 		return (result);
 	}
 
-	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount, callbacks,
-		     mctx));
+	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
+		     callbacks, mctx));
 }
 
 dns_result_t
 dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 		      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-		      int *soacount, int *nscount, dns_rdatacallbacks_t *callbacks,
-		      isc_mem_t *mctx)
+		      int *soacount, int *nscount,
+		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
@@ -837,15 +842,16 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 		return (result);
 	}
 
-	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount, callbacks,
-		     mctx));
+	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
+		     callbacks, mctx));
 }
 
 dns_result_t
-dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top, dns_name_t *origin,
-		      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-		      int *soacount, int *nscount, dns_rdatacallbacks_t *callbacks,
-		      isc_mem_t *mctx)
+dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
+		      dns_name_t *origin, dns_rdataclass_t zclass,
+		      isc_boolean_t age_ttl,
+		      int *soacount, int *nscount,
+		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx)
 {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
@@ -862,8 +868,8 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top, dns_name_t *origin,
 		return (result);
 	}
 
-	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount, callbacks,
-		     mctx));
+	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
+		     callbacks, mctx));
 }
 
 /*
