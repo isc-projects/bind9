@@ -1,3 +1,7 @@
+1156.	[port]		The configure test for strsep() incorrectly
+			succeeded on certain patched versions of
+			AIX 4.3.3. [RT #2190]
+
 1136.	[bug]		CNAME records synthesized from DNAMEs did not
 			have a TTL of zero as required by RFC2672
 			[RT #2129]
