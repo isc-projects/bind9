@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.5 2000/08/22 22:06:46 bwelling Exp $ */
+/* $Id: sdb.h,v 1.6 2000/08/23 18:28:03 bwelling Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -47,10 +47,13 @@ typedef struct dns_sdb dns_sdb_t;
 
 /*
  * A simple database lookup in progress.  This is an opaque type.
- * It's also the database node returned by dns_db_* functions.
  */
 typedef struct dns_sdblookup dns_sdblookup_t;
-typedef struct dns_sdblookup dns_sdbnode_t;
+
+/*
+ * A simple database traversal in progress.  This is an opaque type.
+ */
+typedef struct dns_sdballnodes dns_sdballnodes_t;
 
 typedef isc_result_t
 (*dns_sdblookupfunc_t)(const char *zone, const char *name, void *dbdata,
@@ -60,15 +63,21 @@ typedef isc_result_t
 (*dns_sdbauthorityfunc_t)(const char *zone, void *dbdata, dns_sdblookup_t *);
 
 typedef isc_result_t
+(*dns_sdballnodesfunc_t)(const char *zone, void *dbdata,
+			 dns_sdballnodes_t *allnodes);
+
+typedef isc_result_t
 (*dns_sdbcreatefunc_t)(const char *zone, int argc, char **argv,
 		       void *driverdata, void **dbdata);
 
 typedef void
 (*dns_sdbdestroyfunc_t)(const char *zone, void *driverdata, void **dbdata);
 
+
 typedef struct dns_sdbmethods {
 	dns_sdblookupfunc_t	lookup;
 	dns_sdbauthorityfunc_t	authority;
+	dns_sdballnodesfunc_t	allnodes;
 	dns_sdbcreatefunc_t	create;
 	dns_sdbdestroyfunc_t	destroy;
 } dns_sdbmethods_t;
@@ -105,6 +114,12 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  * these records.  The 'authority' function may be NULL if invoking
  * the 'lookup' function on the zone apex will return SOA and NS records.
  *
+ * The allnodes function, if non-NULL, fills in an opaque structure to be
+ * used by a database iterator.  This allows the zone to be transferred.
+ * This may use a considerable amount of memory for large zones, and the
+ * zone transfer may not be RFC 1035 compliant if the zone is frequently
+ * changed.
+ *
  * The create function will be called when a database is created, and
  * allows the implementation to create database specific data.
  *
@@ -134,8 +149,16 @@ isc_result_t
 dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	      const char *data);
 /*
- * Return a single resource record as a partial result for 'lookup' to
- * the name server.
+ * Add a single resource record to the lookup structure to be later
+ * parsed into a query response.
+ */
+
+isc_result_t
+dns_sdb_putnamedrr(dns_sdballnodes_t *allnodes, const char *name,
+		   const char *type, dns_ttl_t ttl, const char *data);
+/*
+ * Add a single resource record to the allnodes structure to be later
+ * parsed into a zone transfer response.
  */
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.5 2000/08/22 22:06:44 bwelling Exp $ */
+/* $Id: sdb.c,v 1.6 2000/08/23 18:28:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
@@ -67,10 +68,23 @@ struct dns_sdblookup {
 	dns_sdb_t			*sdb;
 	ISC_LIST(dns_rdatalist_t)	lists;
 	ISC_LIST(isc_buffer_t)		buffers;
+	dns_name_t			*name;
+	ISC_LINK(dns_sdblookup_t)	link;
 	isc_mutex_t			lock;
 	/* Locked */
 	unsigned int			references;
 };
+
+typedef struct dns_sdblookup dns_sdbnode_t;
+
+struct dns_sdballnodes {
+	dns_dbiterator_t		common;
+	ISC_LIST(dns_sdbnode_t)		nodelist;
+	dns_sdbnode_t			*current;
+	dns_sdbnode_t			*origin;
+};
+
+typedef dns_sdballnodes_t sdb_dbiterator_t;
 
 typedef struct sdb_rdatasetiter {
 	dns_rdatasetiter_t		common;
@@ -109,6 +123,10 @@ static isc_result_t findrdataset(dns_db_t *db, dns_dbnode_t *node,
 				 isc_stdtime_t now, dns_rdataset_t *rdataset,
 				 dns_rdataset_t *sigrdataset);
 
+static isc_result_t createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep);
+
+static void destroynode(dns_sdbnode_t *node);
+
 static void detachnode(dns_db_t *db, dns_dbnode_t **targetp);
 
 
@@ -116,12 +134,37 @@ static void list_tordataset(dns_rdatalist_t *rdatalist,
 			    dns_db_t *db, dns_dbnode_t *node,
 			    dns_rdataset_t *rdataset);
 
+static void		dbiterator_destroy(dns_dbiterator_t **iteratorp);
+static isc_result_t	dbiterator_first(dns_dbiterator_t *iterator);
+static isc_result_t	dbiterator_last(dns_dbiterator_t *iterator);
+static isc_result_t	dbiterator_seek(dns_dbiterator_t *iterator,
+					dns_name_t *name);
+static isc_result_t	dbiterator_prev(dns_dbiterator_t *iterator);
+static isc_result_t	dbiterator_next(dns_dbiterator_t *iterator);
+static isc_result_t	dbiterator_current(dns_dbiterator_t *iterator,
+					   dns_dbnode_t **nodep,
+					   dns_name_t *name);
+static isc_result_t	dbiterator_pause(dns_dbiterator_t *iterator);
+static isc_result_t	dbiterator_origin(dns_dbiterator_t *iterator,
+					  dns_name_t *name);
 
-static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
-static isc_result_t rdatasetiter_first(dns_rdatasetiter_t *iterator);
-static isc_result_t rdatasetiter_next(dns_rdatasetiter_t *iterator);
-static void rdatasetiter_current(dns_rdatasetiter_t *iterator,
-				 dns_rdataset_t *rdataset);
+static dns_dbiteratormethods_t dbiterator_methods = {
+	dbiterator_destroy,
+	dbiterator_first,
+	dbiterator_last,
+	dbiterator_seek,
+	dbiterator_prev,
+	dbiterator_next,
+	dbiterator_current,
+	dbiterator_pause,
+	dbiterator_origin
+};
+
+static void		rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
+static isc_result_t	rdatasetiter_first(dns_rdatasetiter_t *iterator);
+static isc_result_t	rdatasetiter_next(dns_rdatasetiter_t *iterator);
+static void		rdatasetiter_current(dns_rdatasetiter_t *iterator,
+					     dns_rdataset_t *rdataset);
 
 static dns_rdatasetitermethods_t rdatasetiter_methods = {
 	rdatasetiter_destroy,
@@ -304,6 +347,66 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 }
 
 isc_result_t
+dns_sdb_putnamedrr(dns_sdballnodes_t *allnodes, const char *name,
+		   const char *type, dns_ttl_t ttl, const char *data)
+{
+	dns_name_t *newname, *origin;
+	dns_fixedname_t fnewname;
+	dns_sdb_t *sdb = (dns_sdb_t *)allnodes->common.db;
+	sdbimp_t *imp = sdb->implementation;
+	dns_sdbnode_t *sdbnode;
+	isc_mem_t *mctx = sdb->common.mctx;
+	isc_buffer_t b;
+	isc_result_t result;
+
+	dns_fixedname_init(&fnewname);
+	newname = dns_fixedname_name(&fnewname);
+
+	if ((imp->flags & DNS_SDBFLAG_RELATIVERDATA) != 0)
+		origin = &sdb->common.origin;
+	else
+		origin = dns_rootname;
+	isc_buffer_init(&b, name, strlen(name));
+	isc_buffer_add(&b, strlen(name));
+
+	result = dns_name_fromtext(newname, &b, origin, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	if (allnodes->common.relative_names) {
+		/* All names are relative to the root */
+		unsigned int nlabels = dns_name_countlabels(newname);
+		dns_name_getlabelsequence(newname, 0, nlabels - 1, newname);
+	}
+
+	sdbnode = ISC_LIST_HEAD(allnodes->nodelist);
+	if (sdbnode == NULL || !dns_name_equal(sdbnode->name, newname)) {
+		sdbnode = NULL;
+		result = createnode(sdb, &sdbnode);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		sdbnode->name = isc_mem_get(mctx, sizeof(dns_name_t));
+		if (sdbnode->name == NULL) {
+			destroynode(sdbnode);
+			return (ISC_R_NOMEMORY);
+		}
+		dns_name_init(sdbnode->name, NULL);
+		result = dns_name_dup(newname, mctx, sdbnode->name);
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(mctx, sdbnode->name, sizeof(dns_name_t));
+			destroynode(sdbnode);
+			return (result);
+		}
+		ISC_LIST_PREPEND(allnodes->nodelist, sdbnode, link);
+		if (allnodes->origin == NULL &&
+		    dns_name_equal(newname, &sdb->common.origin))
+			allnodes->origin = sdbnode;
+	}
+	return (dns_sdb_putrr(sdbnode, type, ttl, data));
+
+}
+
+isc_result_t
 dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
 	       isc_uint32_t serial)
 {
@@ -459,6 +562,8 @@ createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 	attach((dns_db_t *)sdb, (dns_db_t **)&node->sdb);
 	ISC_LIST_INIT(node->lists);
 	ISC_LIST_INIT(node->buffers);
+	ISC_LINK_INIT(node, link);
+	node->name = NULL;
 	result = isc_mutex_init(&node->lock);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(sdb->common.mctx, sdb, sizeof(dns_sdb_t));
@@ -481,18 +586,20 @@ destroynode(dns_sdbnode_t *node) {
 	dns_rdata_t *rdata;
 	isc_buffer_t *b;
 	dns_sdb_t *sdb;
+	isc_mem_t *mctx;
+
+	sdb = node->sdb;
+	mctx = sdb->common.mctx;
 
 	while (!ISC_LIST_EMPTY(node->lists)) {
 		list = ISC_LIST_HEAD(node->lists);
 		while (!ISC_LIST_EMPTY(list->rdata)) {
 			rdata = ISC_LIST_HEAD(list->rdata);
 			ISC_LIST_UNLINK(list->rdata, rdata, link);
-			isc_mem_put(node->sdb->common.mctx, rdata,
-				    sizeof(dns_rdata_t));
+			isc_mem_put(mctx, rdata, sizeof(dns_rdata_t));
 		}
 		ISC_LIST_UNLINK(node->lists, list, link);
-		isc_mem_put(node->sdb->common.mctx, list,
-			    sizeof(dns_rdatalist_t));
+		isc_mem_put(mctx, list, sizeof(dns_rdatalist_t));
 	}
 
 	while (!ISC_LIST_EMPTY(node->buffers)) {
@@ -501,10 +608,13 @@ destroynode(dns_sdbnode_t *node) {
 		isc_buffer_free(&b);
 	}
 
+	if (node->name != NULL) {
+		dns_name_free(node->name, mctx);
+		isc_mem_put(mctx, node->name, sizeof(dns_name_t));
+	}
 	isc_mutex_destroy(&node->lock);
-	sdb = node->sdb;
 	node->magic = 0;
-	isc_mem_put(node->sdb->common.mctx, node, sizeof(dns_sdbnode_t));
+	isc_mem_put(mctx, node, sizeof(dns_sdbnode_t));
 	detach((dns_db_t **)&sdb);
 }
 
@@ -798,10 +908,43 @@ static isc_result_t
 createiterator(dns_db_t *db, isc_boolean_t relative_names,
 	       dns_dbiterator_t **iteratorp)
 {
-	UNUSED(db);
-	UNUSED(relative_names);
-	UNUSED(iteratorp);
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_sdb_t *sdb = (dns_sdb_t *)db;
+	sdb_dbiterator_t *sdbiter;
+	sdbimp_t *imp = sdb->implementation;
+	isc_result_t result;
+
+	REQUIRE(VALID_SDB(sdb));
+
+	if (imp->methods->allnodes == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	sdbiter = isc_mem_get(sdb->common.mctx, sizeof(sdb_dbiterator_t));
+	if (sdbiter == NULL)
+		return (ISC_R_NOMEMORY);
+
+	sdbiter->common.methods = &dbiterator_methods;
+	sdbiter->common.db = NULL;
+	dns_db_attach(db, &sdbiter->common.db);
+	sdbiter->common.relative_names = relative_names;
+	sdbiter->common.magic = DNS_DBITERATOR_MAGIC;
+	ISC_LIST_INIT(sdbiter->nodelist);
+	sdbiter->current = NULL;
+	sdbiter->origin = NULL;
+
+	result = imp->methods->allnodes(sdb->zone, sdb->dbdata, sdbiter);
+	if (result != ISC_R_SUCCESS) {
+		dbiterator_destroy((dns_dbiterator_t **)&sdbiter);
+		return (result);
+	}
+
+	if (sdbiter->origin != NULL) {
+		ISC_LIST_UNLINK(sdbiter->nodelist, sdbiter->origin, link);
+		ISC_LIST_PREPEND(sdbiter->nodelist, sdbiter->origin, link);
+	}
+
+	*iteratorp = (dns_dbiterator_t *)sdbiter;
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1085,6 +1228,107 @@ list_tordataset(dns_rdatalist_t *rdatalist,
 
 	rdataset->methods = &methods;
 	dns_db_attachnode(db, node, &rdataset->private5);
+}
+
+/*
+ * Database Iterator Methods
+ */
+static void
+dbiterator_destroy(dns_dbiterator_t **iteratorp) {
+	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)(*iteratorp);
+	dns_sdb_t *sdb = (dns_sdb_t *)sdbiter->common.db;
+
+	while (!ISC_LIST_EMPTY(sdbiter->nodelist)) {
+		dns_sdbnode_t *node;
+		node = ISC_LIST_HEAD(sdbiter->nodelist);
+		ISC_LIST_UNLINK(sdbiter->nodelist, node, link);
+		destroynode(node);
+	}
+
+	dns_db_detach(&sdbiter->common.db);
+	isc_mem_put(sdb->common.mctx, sdbiter, sizeof(sdb_dbiterator_t));
+
+	*iteratorp = NULL;
+}
+
+static isc_result_t
+dbiterator_first(dns_dbiterator_t *iterator) {
+	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
+
+	sdbiter->current = ISC_LIST_HEAD(sdbiter->nodelist);
+	if (sdbiter->current == NULL)
+		return (ISC_R_NOMORE);
+	else
+		return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+dbiterator_last(dns_dbiterator_t *iterator) {
+	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
+
+	sdbiter->current = ISC_LIST_TAIL(sdbiter->nodelist);
+	if (sdbiter->current == NULL)
+		return (ISC_R_NOMORE);
+	else
+		return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
+	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
+
+	sdbiter->current = ISC_LIST_HEAD(sdbiter->nodelist);
+	while (sdbiter->current != NULL)
+		if (dns_name_equal(sdbiter->current->name, name))
+			return (ISC_R_SUCCESS);
+	return (ISC_R_NOTFOUND);
+}
+
+static isc_result_t
+dbiterator_prev(dns_dbiterator_t *iterator) {
+	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
+
+	sdbiter->current = ISC_LIST_PREV(sdbiter->current, link);
+	if (sdbiter->current == NULL)
+		return (ISC_R_NOMORE);
+	else
+		return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+dbiterator_next(dns_dbiterator_t *iterator) {
+	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
+
+	sdbiter->current = ISC_LIST_NEXT(sdbiter->current, link);
+	if (sdbiter->current == NULL)
+		return (ISC_R_NOMORE);
+	else
+		return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
+		                   dns_name_t *name)
+{
+	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
+
+	attachnode(iterator->db, sdbiter->current, nodep);
+	if (name != NULL)
+		return (dns_name_concatenate(sdbiter->current->name, NULL,
+					     name, NULL));
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+dbiterator_pause(dns_dbiterator_t *iterator) {
+	UNUSED(iterator);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
+	UNUSED(iterator);
+	return (dns_name_concatenate(dns_rootname, NULL, name, NULL));
 }
 
 /*
