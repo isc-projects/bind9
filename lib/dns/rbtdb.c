@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.5 2003/05/13 03:57:52 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.6 2003/05/14 04:53:00 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1411,8 +1411,118 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 	return (valid);
 }
 
+static inline isc_boolean_t
+activeemtpynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
+	dns_fixedname_t fnext;
+	dns_fixedname_t forigin;
+	dns_fixedname_t fprev;
+	dns_name_t *next;
+	dns_name_t *origin;
+	dns_name_t *prev;
+	dns_name_t name;
+	dns_name_t rname;
+	dns_name_t tname;
+	dns_rbtdb_t *rbtdb;
+	dns_rbtnode_t *node;
+	dns_rbtnodechain_t chain;
+	isc_boolean_t check_next = ISC_TRUE;
+	isc_boolean_t check_prev = ISC_TRUE;
+	isc_result_t result;
+	rdatasetheader_t *header;
+	unsigned int n;
+
+	rbtdb = search->rbtdb;
+
+	dns_name_init(&name, NULL);
+	dns_name_init(&tname, NULL);
+	dns_name_init(&rname, NULL);
+	dns_fixedname_init(&fnext);
+	next = dns_fixedname_name(&fnext);
+	dns_fixedname_init(&fprev);
+	prev = dns_fixedname_name(&fprev);
+	dns_fixedname_init(&forigin);
+	origin = dns_fixedname_name(&forigin);
+
+	/*
+	 * Find if qname is at or below a empty node.
+	 * Use our own copy of the chain.
+	 */
+
+	chain = search->chain;
+	do {
+		node = NULL;
+		result = dns_rbtnodechain_current(&chain, &name,
+						  origin, &node);
+		if (result != ISC_R_SUCCESS)
+			break;
+		LOCK(&(rbtdb->node_locks[node->locknum].lock));
+		for (header = node->data;
+		     header != NULL;
+		     header = header->next) {
+			if (header->serial <= search->serial &&
+			    !IGNORE(header) && EXISTS(header))
+				break;
+		}
+		UNLOCK(&(rbtdb->node_locks[node->locknum].lock));
+		if (header != NULL)
+			break;
+		result = dns_rbtnodechain_prev(&chain, NULL, NULL);
+	} while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN);
+	if (result == ISC_R_SUCCESS)
+		result = dns_name_concatenate(&name, origin, prev, NULL);
+	if (result != ISC_R_SUCCESS)
+		check_prev = ISC_FALSE;
+
+	result = dns_rbtnodechain_next(&chain, NULL, NULL);
+	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+		node = NULL;
+		result = dns_rbtnodechain_current(&chain, &name,
+						  origin, &node);
+		if (result != ISC_R_SUCCESS)
+			break;
+		LOCK(&(rbtdb->node_locks[node->locknum].lock));
+		for (header = node->data;
+		     header != NULL;
+		     header = header->next) {
+			if (header->serial <= search->serial &&
+			    !IGNORE(header) && EXISTS(header))
+				break;
+		}
+		UNLOCK(&(rbtdb->node_locks[node->locknum].lock));
+		if (header != NULL)
+			break;
+		result = dns_rbtnodechain_next(&chain, NULL, NULL);
+	}
+	if (result == ISC_R_SUCCESS)
+		result = dns_name_concatenate(&name, origin, next, NULL);
+	if (result != ISC_R_SUCCESS)
+		check_next = ISC_FALSE;
+
+	dns_name_clone(qname, &rname);
+
+	/*
+	 * Remove the wildcard label to find the terminal name.
+	 */
+	n = dns_name_countlabels(wname);
+	dns_name_getlabelsequence(wname, 1, n - 1, &tname);
+
+	do {
+		if ((check_prev && dns_name_issubdomain(prev, &rname)) ||
+		    (check_next && dns_name_issubdomain(next, &rname)))
+			return (ISC_TRUE);
+		/*
+		 * Remove the left hand label.
+		 */
+		n = dns_name_countlabels(&rname);
+		dns_name_getlabelsequence(&rname, 1, n - 1, &rname);
+	} while (!dns_name_equal(&rname, &tname));
+	return (ISC_FALSE);
+}
+
 static inline isc_result_t
-find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
+find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
+	      dns_name_t *qname)
+{
 	unsigned int i, j;
 	dns_rbtnode_t *node, *level_node, *wnode;
 	rdatasetheader_t *header;
@@ -1515,6 +1625,8 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 			    }
 			    UNLOCK(&(rbtdb->node_locks[wnode->locknum].lock));
 			    if (header != NULL) {
+				    if (activeemtpynode(search, qname, wname))
+						return (ISC_R_NOTFOUND);
 				    /*
 				     * The wildcard node is active!
 				     *
@@ -1765,7 +1877,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * we must see if there's a matching wildcard active
 			 * in the current version.
 			 */
-			result = find_wildcard(&search, &node);
+			result = find_wildcard(&search, &node, name);
 			if (result == ISC_R_SUCCESS) {
 				result = dns_name_copy(name, foundname, NULL);
 				if (result != ISC_R_SUCCESS)

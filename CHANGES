@@ -33,6 +33,8 @@
 
 1418.	[bug]		'rndc reconfig' did not cause new slaves to load.
 
+1411.	[bug]		empty nodes should stop wildcard matches. [RT #4802]
+
 1408.	[bug]		distclean was not complete. [RT #4700]
 
 1407.	[bug]		lfsr incorrectly implements the shift register.
