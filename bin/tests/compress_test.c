@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.22 2000/11/14 23:29:45 bwelling Exp $ */
+/* $Id: compress_test.c,v 1.22.4.1 2001/01/06 00:11:08 gson Exp $ */
 
 #include <config.h>
 
@@ -88,7 +88,6 @@ main(int argc, char *argv[]) {
 	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, plain, sizeof plain);
 	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, plain,
 	     sizeof plain);
-	test(DNS_COMPRESS_GLOBAL, &name1, &name2, &name3, plain, sizeof plain);
 	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, plain, sizeof plain);
 
 	dns_name_init(&name1, NULL);
@@ -108,7 +107,6 @@ main(int argc, char *argv[]) {
 
 	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, bit, sizeof bit);
-	test(DNS_COMPRESS_GLOBAL, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, bit, sizeof bit);
 
 	return (0);
@@ -132,8 +130,6 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 		switch (allowed) {
 		case DNS_COMPRESS_NONE: s = "DNS_COMPRESS_NONE"; break;
 		case DNS_COMPRESS_GLOBAL14: s = "DNS_COMPRESS_GLOBAL14"; break;
-		case DNS_COMPRESS_GLOBAL16: s = "DNS_COMPRESS_GLOBAL16"; break;
-		case DNS_COMPRESS_GLOBAL: s = "DNS_COMPRESS_GLOBAL"; break;
 		/* case DNS_COMPRESS_ALL: s = "DNS_COMPRESS_ALL"; break; */
 		default: s = "UNKOWN"; break;
 		}

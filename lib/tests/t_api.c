@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.45 2000/12/28 00:42:59 bwelling Exp $ */
+/* $Id: t_api.c,v 1.45.2.1 2001/01/06 00:11:23 gson Exp $ */
 
 #include <config.h>
 
@@ -654,7 +654,6 @@ struct dc_method_map {
 
 	{	DNS_COMPRESS_NONE,	"DNS_COMPRESS_NONE"	},
 	{	DNS_COMPRESS_GLOBAL14,	"DNS_COMPRESS_GLOBAL14"	},
-	{	DNS_COMPRESS_GLOBAL,	"DNS_COMPRESS_GLOBAL"	},
 	{	DNS_COMPRESS_ALL,	"DNS_COMPRESS_ALL"	},
 	{	0,			NULL			}
 };
