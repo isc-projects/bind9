@@ -1237,7 +1237,7 @@ cache_message(fetchctx_t *fctx) {
 }
 
 static inline isc_result_t
-ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers) {
+ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	isc_result_t result, eresult;
 	dns_name_t *name;
 	dns_resolver_t *res;
@@ -1249,11 +1249,6 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers) {
 	dns_name_t *fname, *aname;
 	dns_fetchevent_t *event;
 	void *data;
-	isc_stdtime_t now;
-
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	res = fctx->res;
 	need_validation = ISC_FALSE;
@@ -2033,6 +2028,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *message;
 	fetchctx_t *fctx;
 	dns_rdatatype_t covers;
+	dns_name_t *fname;
+	dns_fixedname_t foundname;
+	isc_stdtime_t now;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -2041,6 +2039,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	(void)task;
 	QTRACE("response");
+
+	result = isc_stdtime_get(&now);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
 	(void)isc_timer_touch(fctx->timer);
 
@@ -2150,7 +2152,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * This may also cause work to be queued to the
 			 * DNSSEC validator.
 			 */
-			result = ncache_message(fctx, covers);
+			result = ncache_message(fctx, covers, now);
 			if (result != ISC_R_SUCCESS)
 				goto done;
 		} else {
@@ -2200,15 +2202,38 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 *	   decrease its 'goodness', possibly add a 'lame'
 		 *         entry, and maybe log a message.
 		 */
-		/*
-		 * Do we need to find the best nameservers for this fetch?
-		 */
 		if (get_nameservers) {
-			result = dns_view_find(fctx->res->view, &fctx->domain,
-					       dns_rdatatype_ns, 0,
-					       DNS_DBFIND_GLUEOK,
-					       ISC_FALSE, &fctx->nameservers,
-					       NULL);
+			dns_fixedname_init(&foundname);
+			fname = dns_fixedname_name(&foundname);
+			if (result != ISC_R_SUCCESS) {
+				fctx_done(fctx, DNS_R_SERVFAIL);
+				return;
+			}
+			result = dns_view_findzonecut(fctx->res->view,
+						      &fctx->domain,
+						      fname,
+						      now, 0, ISC_TRUE,
+						      &fctx->nameservers,
+						      NULL);
+			if (result != ISC_R_SUCCESS) {
+				fctx_done(fctx, DNS_R_SERVFAIL);
+				return;
+			}
+			if (!dns_name_issubdomain(fname, &fctx->domain)) {
+				/*
+				 * The best nameservers are now above our
+				 * previous QDOMAIN.
+				 *
+				 * XXXRTH  What should we do here?
+				 */
+				QTRACE("avoiding upward referral");
+				fctx_done(fctx, DNS_R_SERVFAIL);
+				return;
+			}
+			dns_name_free(&fctx->domain, fctx->res->mctx);
+			dns_name_init(&fctx->domain, NULL);
+			result = dns_name_dup(fname, fctx->res->mctx,
+					      &fctx->domain);
 			if (result != ISC_R_SUCCESS) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
