@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.61 $)
+AC_REVISION($Revision: 1.62 $)
 
 AC_PREREQ(2.13)
 
@@ -283,6 +283,7 @@ dnl Look for in_port_t.
 dnl
 AC_MSG_CHECKING(for type in_port_t)
 AC_TRY_COMPILE([
+#include <sys/types.h>
 #include <netinet/in.h>],
 [in_port_t port = 25; return (0);],
 	[AC_MSG_RESULT(yes)
