@@ -1,5 +1,5 @@
 
- 574.	[bug]		TSIG signed recursive queries would fail to
+ 574.	[bug]		TSIG signed queries sent by the resolver would fail to
 			have their responses validated and would leak memory.
 
  573.	[bug]		The journal files of IXFRed slave zones were
