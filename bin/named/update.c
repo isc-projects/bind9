@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.14 2004/10/12 22:08:32 marka Exp $ */
+/* $Id: update.c,v 1.88.2.15 2004/10/21 01:35:12 marka Exp $ */
 
 #include <config.h>
 
@@ -887,13 +887,27 @@ typedef struct {
  */
 
 /*
- * Return true iff 'update_rr' is neither a SOA nor an NS RR.
+ * Return true iff 'db_rr' is neither a SOA nor an NS RR nor
+ * an SIG nor a NXT.
  */
 static isc_boolean_t
 type_not_soa_nor_ns_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	UNUSED(update_rr);
 	return ((db_rr->type != dns_rdatatype_soa &&
-		 db_rr->type != dns_rdatatype_ns) ?
+		 db_rr->type != dns_rdatatype_ns &&
+		 db_rr->type != dns_rdatatype_sig &&
+		 db_rr->type != dns_rdatatype_nxt) ?
+		ISC_TRUE : ISC_FALSE);
+}
+
+/*
+ * Return true iff 'db_rr' is neither a SIG nor a NXT.
+ */
+static isc_boolean_t
+type_not_dnssec(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
+	UNUSED(update_rr);
+	return ((db_rr->type != dns_rdatatype_sig &&
+		 db_rr->type != dns_rdatatype_nxt) ?
 		ISC_TRUE : ISC_FALSE);
 }
 
@@ -2352,7 +2366,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 							dns_rdatatype_any, 0,
 							&rdata, &diff));
 				} else {
-					CHECK(delete_if(true_p, db, ver, name,
+					CHECK(delete_if(type_not_dnssec,
+							db, ver, name,
 							dns_rdatatype_any, 0,
 							&rdata, &diff));
 				}
