@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.110.2.3 2001/01/22 18:23:11 gson Exp $ */
+/* $Id: name.c,v 1.110.2.4 2001/04/19 18:56:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1776,6 +1776,8 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				c = *ndata;
 				switch (c) {
 				case 0x22: /* '"' */
+				case 0x28: /* '(' */
+				case 0x29: /* ')' */
 				case 0x2E: /* '.' */
 				case 0x3B: /* ';' */
 				case 0x5C: /* '\\' */
