@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.39 $)
+AC_REVISION($Revision: 1.40 $)
 
 AC_PREREQ(2.13)
 
@@ -225,7 +225,7 @@ else
 			;;
 		*-hp-hpux*)
 			CC="$CC -Ae -z +w1"
-			MKDEPPROG='cc -E -Wp,-M >/dev/null 2>>$TMP'
+			MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 			;;
 	esac
 fi
