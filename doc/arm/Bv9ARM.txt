@@ -1,3 +1,8 @@
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+
+$Id: Bv9ARM.txt,v 1.9 2000/07/27 09:42:05 tale Exp $
+
 BIND 9 Administrator Reference Manual
 July 2000
 Copyright (c) 2000 Internet Software Consortium
