@@ -247,6 +247,18 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
 	    dns_rdataset_t *rdataset) {
 
+	/*
+	 * Find the best match for 'name' and 'type' in version 'version'
+	 * of 'db'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(type != dns_rdatatype_sig);
+	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
+	REQUIRE(foundname == NULL || dns_name_hasbuffer(foundname));
+	REQUIRE(rdataset == NULL ||
+		(DNS_RDATASET_VALID(rdataset) && rdataset->methods == NULL));
+
 	/* XXX TBS */
 
 	return ((db->methods->find)(db, name, version, type, options,
