@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.45.2.1 2001/01/03 20:45:40 gson Exp $ */
+/* $Id: request.c,v 1.45.2.2 2001/01/03 23:34:54 gson Exp $ */
 
 #include <config.h>
 
@@ -1207,7 +1207,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_SUCCESS)
 			result = req_send(request, task, NULL);
 
-		if (sevent->result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			req_cancel(request);
 			req_sendevent(request, ISC_R_CANCELED);
 		}
