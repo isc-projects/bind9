@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.36.2.2 2001/03/14 01:24:53 bwelling Exp $ */
+/* $Id: app.c,v 1.36.2.3 2001/03/14 06:32:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -495,7 +495,7 @@ isc_app_run(void) {
 		}
 
 		if (want_shutdown && blocked)
-			exit(-1);
+			exit(1);
 	}
 
 #else /* ISC_PLATFORM_USETHREADS */
