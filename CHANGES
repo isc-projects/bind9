@@ -1,6 +1,7 @@
+
 	--- 9.1.0b2 released ---
 
- 630.	[bug]		locking failure in zone code.  [RT #582]
+ 630.	[bug]		Locking failure in zone code. [RT #582]
 
  629.	[bug]		9.1.0b1 dereferenced a null pointer and crashed
 			when responding to a UDP IXFR request.
