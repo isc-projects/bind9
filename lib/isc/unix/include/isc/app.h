@@ -68,11 +68,15 @@
 
 #include <isc/lang.h>
 #include <isc/result.h>
-#include <isc/event.h>
+#include <isc/task.h>
 
 ISC_LANG_BEGINDECLS
 
 typedef isc_event_t isc_appevent_t;
+
+#define ISC_APPEVENT_FIRSTEVENT		(ISC_EVENTCLASS_APP + 0)
+#define ISC_APPEVENT_SHUTDOWN		(ISC_EVENTCLASS_APP + 1)
+#define ISC_APPEVENT_LASTEVENT		(ISC_EVENTCLASS_APP + 65535)
 
 isc_result_t
 isc_app_start(void);
@@ -85,6 +89,20 @@ isc_app_start(void);
  */
 
 isc_result_t
+isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
+	      void *arg);
+/*
+ * Request delivery of an event when the application is run.
+ *
+ * Requires:
+ *	isc_app_start() has been called.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ */
+
+isc_result_t
 isc_app_run(void);
 /*
  * Run an ISC library application.
@@ -93,6 +111,13 @@ isc_app_run(void);
  *	The caller (typically the initial thread of an application) will
  *	block until shutdown is requested.  When the call returns, the
  *	caller should start shutting down the application.
+ *
+ * Requires:
+ *	isc_app_start() has been called.
+ *
+ * Ensures:
+ *	Any events requested via isc_app_onrun() will have been posted (in
+ *	FIFO order) before isc_app_run() blocks.
  */
 
 isc_result_t
@@ -104,7 +129,11 @@ isc_app_shutdown(void);
  *	It is safe to call isc_app_shutdown() multiple times.
  *
  * Requires:
- *	isc_app_start() has been called.
+ *	isc_app_run() has been called.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_UNEXPECTED
  */
 
 void

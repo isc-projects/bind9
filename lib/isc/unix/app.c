@@ -30,16 +30,16 @@
 #include <isc/app.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
-#include <isc/task.h>
-#include <isc/event.h>
 #include <isc/boolean.h>
 #include <isc/mutex.h>
+#include <isc/event.h>
 
 #include "../util.h"	/* XXX */
 
 static isc_eventlist_t		on_run;
 static isc_mutex_t		lock;
 static isc_boolean_t		shutdown_requested = ISC_FALSE;
+static isc_boolean_t		running = ISC_FALSE;
 
 #ifdef HAVE_LINUXTHREADS
 static pthread_t		main_thread;
@@ -154,12 +154,52 @@ isc_app_start(void) {
 }
 
 isc_result_t
+isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
+	      void *arg)
+{
+	isc_event_t *event;
+	isc_task_t *cloned_task = NULL;
+	isc_result_t result;
+
+	/*
+	 * Request delivery of an event when the application is run.
+	 */
+
+	LOCK(&lock);
+
+	if (running) {
+		result = ISC_R_ALREADYRUNNING;
+		goto unlock;
+	}
+
+	/*
+	 * Note that we store the task to which we're going to send the event
+	 * in the event's "sender" field.
+	 */
+	isc_task_attach(task, &cloned_task);
+	event = isc_event_allocate(mctx, cloned_task, ISC_APPEVENT_SHUTDOWN,
+				   action, arg, sizeof *event);
+	if (event == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto unlock;
+	}
+	
+	ISC_LIST_APPEND(on_run, event, link);
+
+	result = ISC_R_SUCCESS;
+
+ unlock:
+	UNLOCK(&lock);
+
+	return (result);
+}
+
+isc_result_t
 isc_app_run(void) {
 	int result;
 	sigset_t sset;
-#if 0
 	isc_event_t *event, *next_event;
-#endif
+	isc_task_t *task;
 #ifdef HAVE_SIGWAIT
 	int sig;
 #endif
@@ -172,19 +212,30 @@ isc_app_run(void) {
 	REQUIRE(main_thread == pthread_self());
 #endif
 
-#if 0
+	LOCK(&lock);
+
+	running = ISC_TRUE;
+
 	/*
-	 * Post any on-run events (in LIFO order).
+	 * Post any on-run events (in FIFO order).
 	 */
 	for (event = ISC_LIST_HEAD(on_run);
 	     event != NULL;
 	     event = next_event) {
 		next_event = ISC_LIST_NEXT(event, link);
-		ISC_LIST_DEQUEUE(task->on_run, event, link);
-		isc_task_send(task, &event);
-		isc_task_detach(&task);
+		ISC_LIST_UNLINK(on_run, event, link);
+		task = event->sender;
+		event->sender = (void *)&running;
+		isc_task_sendanddetach(&task, &event);
 	}
-#endif
+
+	UNLOCK(&lock);
+
+	/*
+	 * There is no danger if isc_app_shutdown() is called before we wait
+	 * for signals.  Signals are blocked, so any such signal will simply
+	 * be made pending and we will get it when we call sigwait().
+	 */
 
 #ifdef HAVE_SIGWAIT
 	/*
@@ -231,6 +282,8 @@ isc_app_shutdown(void) {
 
 	LOCK(&lock);
 	
+	REQUIRE(running);
+
 	if (shutdown_requested)
 		want_kill = ISC_FALSE;
 	else
