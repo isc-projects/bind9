@@ -1,4 +1,4 @@
- 682.	[bug]		nslookup diplayed SOA records incorrectly. [RT #665]
+ 682.	[bug]		nslookup displayed SOA records incorrectly. [RT #665]
 
  681.	[bug]		$GENERATE specifying output format was broken. [RT#653]
 
