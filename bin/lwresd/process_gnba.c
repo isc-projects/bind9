@@ -89,28 +89,28 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 		b = client->recv_buffer;
 
 		result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
+		if (result != ISC_R_SUCCESS)
+			goto out;
 		DP(50, "***** Found name %.*s",
 		   client->recv_buffer.used - b.used,
 		   (char *)(b.base) + b.used);
-		if (result != ISC_R_SUCCESS)
-			goto out;
 		if (gnba->realname == NULL) {
 			gnba->realname = (char *)(b.base) + b.used;
 			gnba->realnamelen = client->recv_buffer.used - b.used;
 		} else {
 			naliases = gnba->naliases;
-			if (naliases < LWRES_MAX_ALIASES) {
-				gnba->aliases[naliases] =
-					(char *)(b.base) + b.used;
-				gnba->aliaslen[naliases] =
-					client->recv_buffer.used - b.used;
-				gnba->naliases++;
-			}
+			if (naliases >= LWRES_MAX_ALIASES)
+				break;
+			gnba->aliases[naliases] = (char *)(b.base) + b.used;
+			gnba->aliaslen[naliases] =
+				client->recv_buffer.used - b.used;
+			gnba->naliases++;
 		}
-	     name = ISC_LIST_NEXT(name, link);
+		name = ISC_LIST_NEXT(name, link);
 	}
 
 	dns_byaddr_destroy(&client->byaddr);
+	isc_event_free(&event);
 
 	/*
 	 * Render the packet.
@@ -122,11 +122,10 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 
 	lwres = lwres_gnbaresponse_render(client->clientmgr->lwctx,
 					  gnba, &client->pkt, &lwb);
-
-	hexdump("Sending to client", lwb.base, lwb.used);
-
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
+
+	hexdump("Sending to client", lwb.base, lwb.used);
 
 	r.base = lwb.base;
 	r.length = lwb.used;
