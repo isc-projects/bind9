@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.1 1999/09/23 17:31:59 tale Exp $ */
+/* $Id: dir.c,v 1.2 1999/10/08 21:55:31 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -71,13 +71,11 @@ isc_dir_open(const char *dirname, isc_dir_t *dir) {
 	/*
 	 * Append path separator, if needed, and "*".
 	 */
-	p = strchr(dir->dirname, '\0');
-	if (dir->dirname < p &&
-	    *(p - 1) != '\\'  &&
-	    *(p - 1) != '/'   &&
-	    *(p - 1) != ':')
-		strcpy(p++, "\\");
-	strcpy(p, "*");
+	p = dir->dirname + strlen(dir->dirname);
+	if (dir->dirname < p && *(p - 1) != '\\' && *(p - 1) != ':')
+		*p++ = '\\';
+	*p++ = '*';
+	*p++ = '\0';
 
 	/*
 	 * Open stream.
