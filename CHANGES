@@ -1,6 +1,9 @@
 
 	--- 9.2.2 released ---
 
+1428.	[port]		hpux: temporary work around of hpux 11.11 interface
+			scanning.
+
 1427.	[bug]		Race condition in adb with threaded build.
 
 1426.   [cleanup]	Disable RFC2535 style DNSSEC.  This is incompatible
