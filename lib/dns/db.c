@@ -562,7 +562,8 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 
 isc_result_t
 dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
-		      dns_dbversion_t *version, dns_rdatatype_t type)
+		      dns_dbversion_t *version, dns_rdatatype_t type,
+		      dns_rdatatype_t covers)
 {
 	/*
 	 * Make it so that no rdataset of type 'type' exists at 'node' in
@@ -574,5 +575,5 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)||
 		((db->attributes & DNS_DBATTR_CACHE) != 0 && version == NULL));
 
-	return ((db->methods->deleterdataset)(db, node, version, type));
+	return ((db->methods->deleterdataset)(db, node, version, type, covers));
 }

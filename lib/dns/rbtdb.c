@@ -3484,7 +3484,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	       dns_rdatatype_t type)
+	       dns_rdatatype_t type, dns_rdatatype_t covers)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
@@ -3494,14 +3494,16 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	if (type == dns_rdatatype_any || type == dns_rdatatype_sig)
+	if (type == dns_rdatatype_any)
+		return (DNS_R_NOTIMPLEMENTED);
+	if (type == dns_rdatatype_sig && covers == 0)
 		return (DNS_R_NOTIMPLEMENTED);
 
 	newheader = isc_mem_get(rbtdb->common.mctx, sizeof *newheader);
 	if (newheader == NULL)
 		return (DNS_R_NOMEMORY);
 	newheader->ttl = 0;
-	newheader->type = RBTDB_RDATATYPE_VALUE(type, 0);
+	newheader->type = RBTDB_RDATATYPE_VALUE(type, covers);
 	newheader->attributes = RDATASET_ATTR_NONEXISTENT;
 	newheader->trust = 0;
 	if (rbtversion != NULL)

@@ -139,7 +139,8 @@ typedef struct dns_dbmethods {
 					    dns_rdataset_t *newrdataset);
 	isc_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
-					  dns_rdatatype_t type);
+					  dns_rdatatype_t type,
+					  dns_rdatatype_t covers);
 	isc_boolean_t	(*issecure)(dns_db_t *db);
 } dns_dbmethods_t;
 
@@ -1063,7 +1064,8 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 
 isc_result_t
 dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
-		      dns_dbversion_t *version, dns_rdatatype_t type);
+		      dns_dbversion_t *version, dns_rdatatype_t type,
+		      dns_rdatatype_t covers);
 /*
  * Make it so that no rdataset of type 'type' exists at 'node' in version
  * version 'version' of 'db'.
@@ -1086,6 +1088,8 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  *	'type' is not a meta-RR type, except for dns_rdatatype_any, which is
  *	allowed.
+ *
+ *	If 'covers' != 0, 'type' must be SIG.
  *
  * Ensures:
  *
