@@ -38,6 +38,7 @@ dns_adb_changeflags
 dns_adb_findaddrinfo
 dns_adb_freeaddrinfo
 dns_adb_flush
+dns_adb_setadbsize
 dns_byaddr_create
 dns_byaddr_cancel
 dns_byaddr_destroy
@@ -465,6 +466,7 @@ dns_resolver_socketmgr
 dns_resolver_taskmgr
 dns_resolver_getlamettl
 dns_resolver_setlamettl
+dns_resolver_nrunning
 dns_result_totext
 dns_result_register
 dns_result_torcode
