@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.11 1999/01/28 05:03:23 marka Exp $ */
+ /* $Id: gen.c,v 1.12 1999/02/02 22:34:20 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -108,6 +108,7 @@ struct tt {
 } *types;
 
 char *	upper(char *);
+char *	funname(char *, char *);
 void	doswitch(char *, char *, char *, char *, char *, char *);
 void	dodecl(char *, char *, char *);
 void	add(int, char *, int, char *, char *);
@@ -127,6 +128,18 @@ upper(char *s) {
 	return (buf);
 }
 
+char *
+funname(char *s, char *buf) {
+	char *b = buf;
+	char c;
+
+	while ((c = *s++)) {
+		*b++ = (c == '-') ? '_' : c;
+	}
+	*b = '\0';
+	return (buf);
+}
+
 void
 doswitch(char *name, char *function, char *args,
 	 char *tsw, char *csw, char *res)
@@ -135,6 +148,7 @@ doswitch(char *name, char *function, char *args,
 	int first = 1;
 	int lasttype = 0;
 	int subswitch = 0;
+	char buf1[11], buf2[11];
 
 	for (tt = types; tt != NULL ; tt = tt->next) {
 		if (first) {
@@ -156,12 +170,14 @@ doswitch(char *name, char *function, char *args,
 		if (tt->class == 0)
 			fprintf(stdout,
 				"\tcase %d: result = %s_%s(%s); break;",
-				tt->type, function, tt->typename, args);
+				tt->type, function,
+				funname(tt->typename, buf1), args);
 		else
 			fprintf(stdout,
 			        "\t\tcase %d: result = %s_%s_%s(%s); break;",
-				tt->class, function, tt->classname,
-				tt->typename, args);
+				tt->class, function, 
+				funname(tt->classname, buf1),
+				funname(tt->typename, buf2), args);
 		fputs(" \\\n", stdout);
 		lasttype = tt->type;
 	}
@@ -181,18 +197,21 @@ doswitch(char *name, char *function, char *args,
 void
 dodecl(char *type, char *function, char *args) {
 	struct tt *tt;
+	char buf1[11], buf2[11];
 
 	fputs("\n", stdout);
 	for (tt = types; tt ; tt = tt->next)
 		if (tt->class)
 			fprintf(stdout,
 				"static %s %s_%s_%s(%s);\n",
-				type, function, tt->classname,
-				tt->typename, args);
+				type, function,
+				funname(tt->classname, buf1),
+				funname(tt->typename, buf2), args);
 		else
 			fprintf(stdout,
 				"static %s %s_%s(%s);\n",
-				type, function, tt->typename, args);
+				type, function, 
+				funname(tt->typename, buf1), args);
 }
 
 void
@@ -277,7 +296,7 @@ sd(int class, char *classname, char *dir) {
 		return;
 
 	while ((dp = readdir(d)) != NULL) {
-		if (sscanf(dp->d_name, "%10[0-9a-z]_%d.h",
+		if (sscanf(dp->d_name, "%10[-0-9a-z]_%d.h",
 			   typename, &type) != 2)
 			continue;
 		if ((type > 65535) || (type < 0))
@@ -308,6 +327,7 @@ main(int argc, char **argv) {
 	int class_enum = 0;
 	int type_enum = 0;
 	int c;
+	char buf1[11];
 
 	while ((c = getopt(argc, argv, "ct")) != -1)
 		switch (c) {
@@ -411,7 +431,7 @@ main(int argc, char **argv) {
 		for (tt = types; tt != NULL ; tt = tt->next)
 			if (tt->type != lasttype)
 				fprintf(stdout, "\t ns_t_%s = %d,%s\n",
-					tt->typename,
+					funname(tt->typename, buf1),
 					lasttype = tt->type,
 					tt->next != NULL ? " \\" : "");
 		fprintf(stdout, "#endif /* TYPEENUM */\n");
@@ -422,7 +442,7 @@ main(int argc, char **argv) {
 
 		for (cc = classes; cc != NULL; cc = cc->next)
 			fprintf(stdout, "\t ns_c_%s = %d,%s\n",
-				cc->classname,
+				funname(cc->classname, buf1),
 				cc->class,
 				cc->next != NULL ? " \\" : "");
 		fprintf(stdout, "#endif /* CLASSENUM */\n");
