@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.7 1999/10/28 20:00:04 bwelling Exp $
+ * $Id: tkey.c,v 1.8 1999/10/29 05:41:49 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -503,7 +503,9 @@ dns_tkey_processquery(dns_message_t *msg) {
 			dns_name_getlabelsequence(qname, 0, n - 1, &prefix);
 		}
 		else {
-			static char hexdigits[16] = "0123456789ABCDEF";
+			static char hexdigits[16] = {
+				'0', '1', '2', '3', '4', '5', '6', '7',
+				'8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 			unsigned char randomtext[32];
 			isc_buffer_t b, b2;
 			int i;
