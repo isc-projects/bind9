@@ -847,6 +847,7 @@
 ./lib/dns/include/dns/resolver.h		C	1999,2000
 ./lib/dns/include/dns/result.h			C	1998,1999,2000
 ./lib/dns/include/dns/rootns.h			C	1999,2000
+./lib/dns/include/dns/sdb.h			C	2000
 ./lib/dns/include/dns/secalg.h			C	1999,2000
 ./lib/dns/include/dns/secproto.h		C	1999,2000
 ./lib/dns/include/dns/ssu.h			C	2000
@@ -968,6 +969,7 @@
 ./lib/dns/rdata/rdatastructpre.h		C	1999,2000
 ./lib/dns/rdata/rdatastructsuf.h		C	1999,2000
 ./lib/dns/rdatalist.c				C	1999,2000
+./lib/dns/rdatalist_p.h				C	2000
 ./lib/dns/rdataset.c				C	1999,2000
 ./lib/dns/rdatasetiter.c			C	1999,2000
 ./lib/dns/rdataslab.c				C	1999,2000
@@ -975,6 +977,8 @@
 ./lib/dns/resolver.c				C	1999,2000
 ./lib/dns/result.c				C	1998,1999,2000
 ./lib/dns/rootns.c				C	1999,2000
+./lib/dns/sdb.c					C	2000
+./lib/dns/sdb_p.h				C	2000
 ./lib/dns/sec/.cvsignore			X	1999,2000
 ./lib/dns/sec/Makefile.in			MAKE	1998,1999,2000
 ./lib/dns/sec/dnssafe/.cvsignore		X	1999,2000
