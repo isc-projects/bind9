@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.20 2001/04/12 22:56:02 tale Exp $ */
+/* $Id: t_timers.c,v 1.21 2001/04/13 02:19:37 tale Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,12 @@
 
 #include <tests/t_api.h>
 
+#ifdef ISC_PLATFORM_USETHREADS
+isc_boolean_t threaded = ISC_TRUE;
+#else
+isc_boolean_t threaded = ISC_FALSE;
+#endif
+
 #define	Tx_FUDGE_SECONDS	0	     /* in absence of clock_getres() */
 #define	Tx_FUDGE_NANOSECONDS	500000000    /* in absence of clock_getres() */
 
@@ -45,6 +51,13 @@ static	int		Tx_nprobs;
 static	isc_timer_t    *Tx_timer;
 static	int		Tx_seconds;
 static	int		Tx_nanoseconds;
+
+static void
+require_threads(void) {
+	t_info("This test requires threads\n");
+	t_result(T_UNTESTED);
+	return;
+}
 
 static void
 tx_sde(isc_task_t *task, isc_event_t *event) {
@@ -350,36 +363,33 @@ static const char *a1 =
 
 static void
 t1(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	t_result(T_UNTESTED);
-	return;
-#else
 	int		result;
 	isc_time_t	expires;
 	isc_interval_t	interval;
 
 	t_assert("isc_timer_create", 1, T_REQUIRED, a1);
 
-	Tx_nfails	= 0;
-	Tx_nprobs	= 0;
-	Tx_nevents	= 12;
-	Tx_seconds	= T1_SECONDS;
-	Tx_nanoseconds	= T1_NANOSECONDS;
-	isc_interval_set(&interval, Tx_seconds, Tx_nanoseconds);
-	isc_time_settoepoch(&expires);
+	if (threaded) {
+		Tx_nfails	= 0;
+		Tx_nprobs	= 0;
+		Tx_nevents	= 12;
+		Tx_seconds	= T1_SECONDS;
+		Tx_nanoseconds	= T1_NANOSECONDS;
+		isc_interval_set(&interval, Tx_seconds, Tx_nanoseconds);
+		isc_time_settoepoch(&expires);
 
-	t_timers_x(isc_timertype_ticker, &expires, &interval, tx_te);
+		t_timers_x(isc_timertype_ticker, &expires, &interval, tx_te);
 
-	result = T_UNRESOLVED;
+		result = T_UNRESOLVED;
 
-	if ((Tx_nfails == 0) && (Tx_nprobs == 0))
-		result = T_PASS;
-	else if (Tx_nfails)
-		result = T_FAIL;
+		if ((Tx_nfails == 0) && (Tx_nprobs == 0))
+			result = T_PASS;
+		else if (Tx_nfails)
+			result = T_FAIL;
 
-	t_result(result);
-#endif /* ISC_PLATFORM_USETHREADS */
+		t_result(result);
+	} else
+		require_threads();
 }
 
 #define	T2_SECONDS	5
@@ -393,11 +403,6 @@ static const char *a2 =
 
 static void
 t2(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	t_result(T_UNTESTED);
-	return;
-#else
 	int		result;
 	int		isc_result;
 	isc_time_t	expires;
@@ -405,33 +410,36 @@ t2(void) {
 
 	t_assert("isc_timer_create", 2, T_REQUIRED, a2);
 
-	Tx_nfails	= 0;
-	Tx_nprobs	= 0;
-	Tx_nevents	= 1;
-	Tx_seconds	= T2_SECONDS;
-	Tx_nanoseconds	= T2_NANOSECONDS;
-	isc_interval_set(&interval, Tx_seconds, Tx_nanoseconds);
+	if (threaded) {
+		Tx_nfails	= 0;
+		Tx_nprobs	= 0;
+		Tx_nevents	= 1;
+		Tx_seconds	= T2_SECONDS;
+		Tx_nanoseconds	= T2_NANOSECONDS;
+		isc_interval_set(&interval, Tx_seconds, Tx_nanoseconds);
 
-	isc_result = isc_time_nowplusinterval(&expires, &interval);
-	if (isc_result == ISC_R_SUCCESS) {
+		isc_result = isc_time_nowplusinterval(&expires, &interval);
+		if (isc_result == ISC_R_SUCCESS) {
 
-		isc_interval_set(&interval, 0, 0);
-		t_timers_x(isc_timertype_once, &expires, &interval, tx_te);
+			isc_interval_set(&interval, 0, 0);
+			t_timers_x(isc_timertype_once, &expires, &interval,
+				   tx_te);
 
-	} else {
-		t_info("isc_time_nowplusinterval failed %s\n",
-		       isc_result_totext(isc_result));
-	}
+		} else {
+			t_info("isc_time_nowplusinterval failed %s\n",
+			       isc_result_totext(isc_result));
+		}
 
-	result = T_UNRESOLVED;
+		result = T_UNRESOLVED;
 
-	if ((Tx_nfails == 0) && (Tx_nprobs == 0))
-		result = T_PASS;
-	else if (Tx_nfails)
-		result = T_FAIL;
+		if ((Tx_nfails == 0) && (Tx_nprobs == 0))
+			result = T_PASS;
+		else if (Tx_nfails)
+			result = T_FAIL;
 
-	t_result(result);
-#endif /* ISC_PLATFORM_USETHREADS */
+		t_result(result);
+	} else
+		require_threads();
 }
 
 static void
@@ -521,11 +529,6 @@ static const char *a3 =
 
 static void
 t3(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	t_result(T_UNTESTED);
-	return;
-#else
 	int		result;
 	int		isc_result;
 	isc_time_t	expires;
@@ -533,34 +536,37 @@ t3(void) {
 
 	t_assert("isc_timer_create", 3, T_REQUIRED, a3);
 
-	Tx_nfails	= 0;
-	Tx_nprobs	= 0;
-	Tx_nevents	= 1;
-	Tx_seconds	= T3_SECONDS;
-	Tx_nanoseconds	= T3_NANOSECONDS;
+	if (threaded) {
+		Tx_nfails	= 0;
+		Tx_nprobs	= 0;
+		Tx_nevents	= 1;
+		Tx_seconds	= T3_SECONDS;
+		Tx_nanoseconds	= T3_NANOSECONDS;
 
-	isc_interval_set(&interval, Tx_seconds + 1, Tx_nanoseconds);
+		isc_interval_set(&interval, Tx_seconds + 1, Tx_nanoseconds);
 
-	isc_result = isc_time_nowplusinterval(&expires, &interval);
-	if (isc_result == ISC_R_SUCCESS) {
-		isc_interval_set(&interval, Tx_seconds, Tx_nanoseconds);
-		t_timers_x(isc_timertype_once, &expires, &interval, t3_te);
-	}
-	else {
-		t_info("isc_time_nowplusinterval failed %s\n",
-		       isc_result_totext(isc_result));
-		++Tx_nprobs;
-	}
+		isc_result = isc_time_nowplusinterval(&expires, &interval);
+		if (isc_result == ISC_R_SUCCESS) {
+			isc_interval_set(&interval, Tx_seconds,
+					 Tx_nanoseconds);
+			t_timers_x(isc_timertype_once, &expires, &interval,
+				   t3_te);
+		} else {
+			t_info("isc_time_nowplusinterval failed %s\n",
+			       isc_result_totext(isc_result));
+			++Tx_nprobs;
+		}
 
-	result = T_UNRESOLVED;
+		result = T_UNRESOLVED;
 
-	if ((Tx_nfails == 0) && (Tx_nprobs == 0))
-		result = T_PASS;
-	else if (Tx_nfails)
-		result = T_FAIL;
+		if ((Tx_nfails == 0) && (Tx_nprobs == 0))
+			result = T_PASS;
+		else if (Tx_nfails)
+			result = T_FAIL;
 
-	t_result(result);
-#endif /* ISC_PLATFORM_USETHREADS */
+		t_result(result);
+	} else
+		require_threads();
 }
 
 #define	T4_SECONDS	2
@@ -687,35 +693,33 @@ static const char *a4 =
 
 static void
 t4(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	t_result(T_UNTESTED);
-	return;
-#else
 	int		result;
 	isc_time_t	expires;
 	isc_interval_t	interval;
 
-	Tx_nfails = 0;
-	Tx_nprobs = 0;
-	Tx_nevents = 3;
-	Tx_seconds = T4_SECONDS;
-	Tx_nanoseconds = T4_NANOSECONDS;
-
 	t_assert("isc_timer_reset", 4, T_REQUIRED, a4);
-	isc_interval_set(&interval, T4_SECONDS, T4_NANOSECONDS);
-	isc_time_settoepoch(&expires);
-	t_timers_x(isc_timertype_ticker, &expires, &interval, t4_te);
 
-	result = T_UNRESOLVED;
+	if (threaded) {
+		Tx_nfails = 0;
+		Tx_nprobs = 0;
+		Tx_nevents = 3;
+		Tx_seconds = T4_SECONDS;
+		Tx_nanoseconds = T4_NANOSECONDS;
 
-	if ((Tx_nfails == 0) && (Tx_nprobs == 0))
-		result = T_PASS;
-	else if (Tx_nfails)
-		result = T_FAIL;
+		isc_interval_set(&interval, T4_SECONDS, T4_NANOSECONDS);
+		isc_time_settoepoch(&expires);
+		t_timers_x(isc_timertype_ticker, &expires, &interval, t4_te);
 
-	t_result(result);
-#endif /* ISC_PLATFORM_USETHREADS */
+		result = T_UNRESOLVED;
+
+		if ((Tx_nfails == 0) && (Tx_nprobs == 0))
+			result = T_PASS;
+		else if (Tx_nfails)
+			result = T_FAIL;
+
+		t_result(result);
+	} else
+		require_threads();
 }
 
 #define	T5_NTICKS	4
@@ -874,10 +878,6 @@ t5_shutdown_event(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_timers5(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	char		*p;
 	int		result;
 	isc_mem_t	*mctx;
@@ -1101,8 +1101,7 @@ t_timers5(void) {
 	else if (T5_nfails)
 		result = T_FAIL;
 
-	return(result);
-#endif /* ISC_PLATFORM_USETHREADS */
+	return (result);
 }
 
 static const char *a5 =
@@ -1111,11 +1110,12 @@ static const char *a5 =
 
 static void
 t5(void) {
-	int	result;
-
 	t_assert("isc_timer_reset", 5, T_REQUIRED, a5);
-	result = t_timers5();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_timers5());
+	else
+		require_threads();
 }
 
 testspec_t	T_testlist[] = {
@@ -1126,4 +1126,3 @@ testspec_t	T_testlist[] = {
 	{	t5,		"timer_reset"		},
 	{	NULL,		NULL			}
 };
-

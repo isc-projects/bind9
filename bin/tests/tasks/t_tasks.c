@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.25 2001/04/12 22:56:00 tale Exp $ */
+/* $Id: t_tasks.c,v 1.26 2001/04/13 02:19:35 tale Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,19 @@
 #include <isc/util.h>
 
 #include <tests/t_api.h>
+
+#ifdef ISC_PLATFORM_USETHREADS
+isc_boolean_t threaded = ISC_TRUE;
+#else
+isc_boolean_t threaded = ISC_FALSE;
+#endif
+
+static void
+require_threads(void) {
+	t_info("This test requires threads\n");
+	t_result(T_UNTESTED);
+	return;
+}
 
 static void
 t1_callback(isc_task_t *task, isc_event_t *event) {
@@ -460,10 +473,6 @@ t2_callback(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks2(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else	
 	int			ntasks;
 	int			result;
 	char			*p;
@@ -553,18 +562,18 @@ t_tasks2(void) {
 		result = T_FAIL;
 
 	return(result);
-#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a2 = "The task subsystem can create ISC_TASKS_MIN tasks";
 
 static void
 t2(void) {
-	int	result;
-
 	t_assert("tasks", 2, T_REQUIRED, a2);
-	result = t_tasks2();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_tasks2());
+	else
+		require_threads();
 }
 
 #define	T3_NEVENTS	256
@@ -647,10 +656,6 @@ t3_event2(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks3(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	int		cnt;
 	int		result;
 	char		*p;
@@ -814,7 +819,6 @@ t_tasks3(void) {
 		result = T_PASS;
 
 	return(result);
-#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a3 =	"When isc_task_shutdown() is called, any shutdown "
@@ -823,11 +827,12 @@ static const char *a3 =	"When isc_task_shutdown() is called, any shutdown "
 			"LIFO order.";
 static void
 t3(void) {
-	int	result;
-
 	t_assert("tasks", 3, T_REQUIRED, a3);
-	result = t_tasks3();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_tasks3());
+	else
+		require_threads();
 }
 
 static isc_mutex_t	T4_mx;
@@ -874,10 +879,6 @@ t4_sde(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks4(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	int		result;
 	char		*p;
 	isc_mem_t	*mctx;
@@ -1010,7 +1011,6 @@ t_tasks4(void) {
 		result = T_PASS;
 
 	return(result);
-#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a4 =
@@ -1019,19 +1019,21 @@ static const char *a4 =
 
 static void
 t4(void) {
-	int	result;
-
 	t_assert("tasks", 4, T_REQUIRED, a4);
-	result = t_tasks4();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_tasks4());
+	else
+		require_threads();
 }
 
 static int		T7_nprobs;
-static int		T7_nfails;
 static int		T7_eflag;
 static int		T7_sdflag;
 static isc_mutex_t	T7_mx;
 static isc_condition_t	T7_cv;
+
+static int		T7_nfails;
 
 static void
 t7_event1(isc_task_t *task, isc_event_t *event) {
@@ -1076,10 +1078,6 @@ t7_sde(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks7(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	int		result;
 	char		*p;
 	isc_mem_t	*mctx;
@@ -1237,7 +1235,6 @@ t_tasks7(void) {
 		result = T_PASS;
 
 	return(result);
-#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a7 =	"A call to isc_task_create() creates a task that can "
@@ -1245,11 +1242,12 @@ static const char *a7 =	"A call to isc_task_create() creates a task that can "
 
 static void
 t7(void) {
-	int	result;
-
 	t_assert("tasks", 7, T_REQUIRED, a7);
-	result = t_tasks7();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_tasks7());
+	else
+		require_threads();
 }
 
 #define	T10_SENDERCNT	3
@@ -1656,10 +1654,6 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 
 static int
 t_tasks10(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	int	result;
 
 	T10_nprobs = 0;
@@ -1706,7 +1700,6 @@ t_tasks10(void) {
 		result = T_FAIL;
 
 	return(result);
-#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a10 =
@@ -1717,11 +1710,12 @@ static const char *a10 =
 
 static void
 t10(void) {
-	int	result;
-
 	t_assert("tasks", 10, T_REQUIRED, a10);
-	result = t_tasks10();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_tasks10());
+	else
+		require_threads();
 }
 
 static int		T11_nprobs;
@@ -1807,10 +1801,6 @@ t11_sde(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks11(int purgable) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	char		*p;
 	isc_mem_t	*mctx;
 	isc_taskmgr_t	*tmgr;
@@ -1988,7 +1978,6 @@ t_tasks11(int purgable) {
 		result = T_FAIL;
 
 	return(result);
-#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static const char *a11 =
@@ -1998,10 +1987,12 @@ static const char *a11 =
 
 static void
 t11(void) {
-	int	result;
 	t_assert("tasks", 11, T_REQUIRED, a11);
-	result = t_tasks11(1);
-	t_result(result);
+	
+	if (threaded)
+		t_result(t_tasks11(1));
+	else
+		require_threads();
 }
 
 static const char *a12 =
@@ -2018,6 +2009,7 @@ t_tasks12(void) {
 static void
 t12(void) {
 	int	result;
+
 	t_assert("tasks", 12, T_REQUIRED, a12);
 	result = t_tasks12();
 	t_result(result);
@@ -2036,10 +2028,6 @@ static const char *a13 =
 
 static int
 t_tasks13(void) {
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	int	result;
 
 	T13_nfails = 0;
@@ -2124,16 +2112,16 @@ t_tasks13(void) {
 		result = T_FAIL;
 
 	return (result);
-#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 static void
 t13(void) {
-	int	result;
-
 	t_assert("tasks", 13, T_REQUIRED, a13);
-	result = t_tasks13();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_tasks13());
+	else
+		require_threads();
 }
 
 #define T14_NTASKS 10
@@ -2232,8 +2220,8 @@ t_tasks14(void) {
 			return(T_FAIL);
 		}
 
-		event = isc_event_allocate(mctx, NULL, 1, t14_callback, (void *) i,
-					   sizeof *event);
+		event = isc_event_allocate(mctx, NULL, 1, t14_callback,
+					   (void *)i, sizeof *event);
 		if (event == NULL) {
 			t_info("isc_event_allocate failed\n");
 			return(T_UNRESOLVED);
