@@ -1,7 +1,6 @@
-.\"
 .\" Copyright (C) 2000  Internet Software Consortium.
 .\"
-.\" Permission to use, copy, modify, and distribute this document for any
+.\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
 .\"
@@ -14,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwresd.8,v 1.4 2000/07/17 17:49:25 gson Exp $
+.\" $Id: lwresd.8,v 1.4.2.1 2000/08/22 01:10:06 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRESD 8
@@ -39,11 +38,11 @@
 is the daemon providing name lookup services to clients that use
 the BIND 9 lightweight resolver library.
 It is essentially a stripped-down, caching-only name server that
-answers queries using the BIND 9 lightweight resolver protocol 
+answers queries using the BIND 9 lightweight resolver protocol
 rather than the DNS protocol.
 .Pp
 .Nm lwresd
-listens for resolver queries on a UDP port on the IPv4 loopback 
+listens for resolver queries on a UDP port on the IPv4 loopback
 interface, 127.0.0.1.
 This means that
 .Nm lwresd
@@ -72,8 +71,8 @@ server.  If no
 .Sy nameserver
 entries are  present, or if forwarding fails,
 .Nm lwresd
-resolves the queries autonomously starting at the 
-root name servers, using a compiled-in list of root 
+resolves the queries autonomously starting at the
+root name servers, using a compiled-in list of root
 servers hints.
 .Pp
 The options to
@@ -105,7 +104,7 @@ write the daemon's process id to
 .Ar pid-file
 instead of the default pathname.
 .It Fl n
-create 
+create
 .Ar #cpus
 worker threads to take advantage of multiple CPUs.
 If no option is given,

@@ -1,20 +1,20 @@
-.\" Copyright (C) @YEARS@  Internet Software Consortium.
-.\" 
+.\" Copyright (C) 2000  Internet Software Consortium.
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
-.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
-.\" ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
-.\" OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
-.\" CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
-.\" DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
-.\" PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
-.\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
-.\" SOFTWARE.
-.\" 
-.\" $Id: rndc.8,v 1.6 2000/07/12 16:48:19 gson Exp $
-.\" 
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: rndc.8,v 1.6.2.1 2000/08/22 01:10:07 gson Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt RDNC 8
 .Os BIND9 9
@@ -31,7 +31,7 @@
 .Op Fl s Ar server
 .Op Fl v
 .Op Fl y Ar key_id
-.Ar command .... 
+.Ar command ....
 .Sh DESCRIPTION
 This command allows the system administrator to control the operation
 of a name server.
@@ -45,16 +45,16 @@ prints a short summary of the supported commands and the available
 options and their arguments.
 .Pp
 .Nm rndc
-communicates with the name server over a TCP connection, 
-sending commands authenticated with digital signatures. 
+communicates with the name server over a TCP connection,
+sending commands authenticated with digital signatures.
 In the current versions of
 .Nm rndc
-and 
+and
 .Xr named 8
 the only supported encryption algorithm is HMAC-MD5, which uses a
 shared secret on each end of the connection.
 This provides TSIG-style authentication for the command request
-and the name server's response. 
+and the name server's response.
 All commands sent over the channel
 must be signed by a key_id known to the server.
 .Pp
@@ -86,7 +86,7 @@ option can be used to make
 .Nm rndc
 send commands to TCP port number
 .Ar port#
-on the system running the name server instead of BIND 9's 
+on the system running the name server instead of BIND 9's
 default control channel port of 953.
 .Pp
 The
@@ -103,7 +103,7 @@ If no
 .Fl y
 option is provided,
 .Nm rndc
-will first look for a 
+will first look for a
 .Dv key
 clause in the
 .Dv server{}
@@ -148,7 +148,7 @@ offers at least as many management capabilities as the old
 .Xr ndc
 utility.
 .Pp
-There is currently no way to provide the shared secret for a key_id 
+There is currently no way to provide the shared secret for a key_id
 without using the configuration file.
 .Pp
 Several error messages could be clearer.
