@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.14 2001/11/06 17:59:50 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.15 2001/11/06 20:47:59 bwelling Exp $
  */
 #ifdef OPENSSL
 
@@ -241,11 +241,6 @@ static isc_boolean_t
 opensslrsa_isprivate(const dst_key_t *key) {
 	RSA *rsa = (RSA *) key->opaque;
         return (ISC_TF(rsa != NULL && rsa->d != NULL));
-}
-
-static isc_boolean_t
-opensslrsa_issymmetric(void) {
-        return (ISC_FALSE);
 }
 
 static void
@@ -507,12 +502,12 @@ static dst_func_t opensslrsa_functions = {
 	NULL, /* paramcompare */
 	opensslrsa_generate,
 	opensslrsa_isprivate,
-	opensslrsa_issymmetric,
 	opensslrsa_destroy,
 	opensslrsa_todns,
 	opensslrsa_fromdns,
 	opensslrsa_tofile,
 	opensslrsa_fromfile,
+	NULL, /* cleanup */
 };
 
 isc_result_t
@@ -520,10 +515,6 @@ dst__opensslrsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &opensslrsa_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__opensslrsa_destroy(void) {
 }
 
 #endif /* OPENSSL */

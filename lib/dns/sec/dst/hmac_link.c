@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.54 2001/09/15 00:01:52 bwelling Exp $
+ * $Id: hmac_link.c,v 1.55 2001/11/06 20:47:55 bwelling Exp $
  */
 
 #include <config.h>
@@ -156,11 +156,6 @@ hmacmd5_isprivate(const dst_key_t *key) {
         return (ISC_TRUE);
 }
 
-static isc_boolean_t
-hmacmd5_issymmetric(void) {
-        return (ISC_TRUE);
-}
-
 static void
 hmacmd5_destroy(dst_key_t *key) {
 	HMAC_Key *hkey = key->opaque;
@@ -272,12 +267,12 @@ static dst_func_t hmacmd5_functions = {
 	NULL, /* paramcompare */
 	hmacmd5_generate,
 	hmacmd5_isprivate,
-	hmacmd5_issymmetric,
 	hmacmd5_destroy,
 	hmacmd5_todns,
 	hmacmd5_fromdns,
 	hmacmd5_tofile,
 	hmacmd5_fromfile,
+	NULL, /* cleanup */
 };
 
 isc_result_t
@@ -285,8 +280,4 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &hmacmd5_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__hmacmd5_destroy(void) {
 }

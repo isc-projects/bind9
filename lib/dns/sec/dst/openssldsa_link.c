@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.5 2001/09/15 00:01:54 bwelling Exp $ */
+/* $Id: openssldsa_link.c,v 1.6 2001/11/06 20:47:58 bwelling Exp $ */
 
 #ifdef OPENSSL
 
@@ -204,11 +204,6 @@ static isc_boolean_t
 openssldsa_isprivate(const dst_key_t *key) {
 	DSA *dsa = (DSA *) key->opaque;
         return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
-}
-
-static isc_boolean_t
-openssldsa_issymmetric(void) {
-        return (ISC_FALSE);
 }
 
 static void
@@ -424,12 +419,12 @@ static dst_func_t openssldsa_functions = {
 	NULL, /* paramcompare */
 	openssldsa_generate,
 	openssldsa_isprivate,
-	openssldsa_issymmetric,
 	openssldsa_destroy,
 	openssldsa_todns,
 	openssldsa_fromdns,
 	openssldsa_tofile,
 	openssldsa_fromfile,
+	NULL, /* cleanup */
 };
 
 isc_result_t
@@ -437,10 +432,6 @@ dst__openssldsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &openssldsa_functions;
 	return (ISC_R_SUCCESS);
-}
-
-void
-dst__openssldsa_destroy(void) {
 }
 
 #endif /* OPENSSL */

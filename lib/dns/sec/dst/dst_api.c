@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.91 2001/11/06 18:08:07 bwelling Exp $
+ * $Id: dst_api.c,v 1.92 2001/11/06 20:47:52 bwelling Exp $
  */
 
 #include <config.h>
@@ -156,18 +156,15 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 
 void
 dst_lib_destroy(void) {
+	int i;
 	RUNTIME_CHECK(dst_initialized == ISC_TRUE);
 	dst_initialized = ISC_FALSE;
 
-	dst__hmacmd5_destroy();
+	for (i = 0; i < DST_MAX_ALGS; i++)
+		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
+			dst_t_func[i]->cleanup();
 #ifdef OPENSSL
-	dst__opensslrsa_destroy();
-	dst__openssldsa_destroy();
-	dst__openssldh_destroy();
 	dst__openssl_destroy();
-#endif
-#ifdef GSSAPI
-	dst__gssapi_destroy();
 #endif
 	if (dst_memory_pool != NULL)
 		isc_mem_detach(&dst_memory_pool);
@@ -893,6 +890,25 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	return (ret);
 }
 
+static isc_boolean_t
+issymmetric(const dst_key_t *key) {
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(VALID_KEY(key));
+
+	switch (key->key_alg) {
+		case DST_ALG_RSAMD5:
+		case DST_ALG_RSASHA1:
+		case DST_ALG_DSA:
+		case DST_ALG_DH:
+			return (ISC_FALSE);
+		case DST_ALG_HMACMD5:
+		case DST_ALG_GSSAPI:
+			return (ISC_TRUE);
+		default:
+			return (ISC_FALSE);
+	}
+}
+
 /*
  * Writes a public key to disk in DNS format.
  */
@@ -944,7 +960,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);
 
-	if (key->func->issymmetric()) {
+	if (issymmetric(key)) {
 		access = 0;
 		isc_fsaccess_add(ISC_FSACCESS_OWNER,
 				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
