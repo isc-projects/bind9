@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.28 1999/10/29 00:46:52 gson Exp $ */
+ /* $Id: zone.c,v 1.29 1999/10/29 02:17:31 halley Exp $ */
 
 #include <config.h>
 
@@ -3264,6 +3264,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 				  NULL, NULL,
 				  zmgr->soaquery.task, soa_query_wanted, zone,
 				  &zone->timer);
+#else
+	result = ISC_R_SUCCESS;
 #endif
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 
