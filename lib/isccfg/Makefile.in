@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.12 2004/03/05 05:12:21 marka Exp $
+# $Id: Makefile.in,v 1.12.18.1 2004/07/20 07:03:30 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -66,7 +66,7 @@ libisccfg.@SA@: ${OBJS}
 
 libisccfg.la: ${OBJS}
 	 ${LIBTOOL_MODE_LINK} \
-		${CC} ${ALL_CFLAGS} -o libisccfg.la -rpath ${libdir} \
+		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libisccfg.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${LIBS} ${DNSLIBS} ${ISCCCLIBS} ${ISCLIBS}
 
