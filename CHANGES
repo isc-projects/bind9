@@ -1,4 +1,8 @@
 
+ 407.	[bug]		isc_rwlock_lock() would needlessly block
+			readers when reaching the read quota even
+			if no writers were waiting.
+
  406.	[bug]		Log messages were occasionally lost or corrupted
 			due to a race condition in isc_log_doit().
 
