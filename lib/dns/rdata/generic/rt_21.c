@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.41 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: rt_21.c,v 1.42 2005/03/14 23:41:29 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -300,7 +300,7 @@ checknames_rt(ARGS_CHECKNAMES) {
 	isc_region_consume(&region, 2);
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
-	if (dns_name_ishostname(&name, ISC_FALSE)) {
+	if (!dns_name_ishostname(&name, ISC_FALSE)) {
 		if (bad != NULL)
 			dns_name_clone(&name, bad);
 		return (ISC_FALSE);
