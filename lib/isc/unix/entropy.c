@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.60.2.3.8.3 2003/08/15 02:11:28 marka Exp $ */
+/* $Id: entropy.c,v 1.60.2.3.8.4 2003/08/15 02:14:57 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -490,9 +490,9 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	 * the program to look at an actual FIFO as its source of
 	 * entropy.
 	 */
-	if ((_stat.st_mode & S_IFSOCK) != 0
+	if ((_stat.st_mode & S_IFMT) == S_IFSOCK
 #ifdef _SOCKET_IS_FIFO
-	     || (_stat.st_mode & S_IFIFO) != 0
+	     || (_stat.st_mode & S_IFMT) == S_IFIFO
 #endif
 	    ) {
 		fd = socket(PF_UNIX, SOCK_STREAM, 0);
