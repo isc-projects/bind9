@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.26 2001/12/10 23:09:23 marka Exp $ */
+/* $Id: notify.c,v 1.27 2002/07/29 05:15:32 marka Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,7 @@ ns_notify_start(ns_client_t *client) {
 	 */
 	result = dns_message_firstname(request, DNS_SECTION_QUESTION);
 	if (result != ISC_R_SUCCESS) {
-		notify_log(client, ISC_LOG_INFO, "notify question section empty");
+		notify_log(client, ISC_LOG_NOTICE, "notify question section empty");
 		goto failure;
 	}
 
@@ -94,7 +94,7 @@ ns_notify_start(ns_client_t *client) {
 	dns_message_currentname(request, DNS_SECTION_QUESTION, &zonename);
 	zone_rdataset = ISC_LIST_HEAD(zonename->list);
 	if (ISC_LIST_NEXT(zone_rdataset, link) != NULL) {
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section contains multiple RRs");
 		goto failure;
 	}
@@ -102,14 +102,14 @@ ns_notify_start(ns_client_t *client) {
 	/* The zone section must have exactly one name. */
 	result = dns_message_nextname(request, DNS_SECTION_ZONE);
 	if (result != ISC_R_NOMORE) {
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section contains multiple RRs");
 		goto failure;
 	}
 
 	/* The one rdataset must be an SOA. */
 	if (zone_rdataset->type != dns_rdatatype_soa) {
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "notify question section contains no SOA");
 		goto failure;
 	}
@@ -118,7 +118,7 @@ ns_notify_start(ns_client_t *client) {
 			     &zone);
 	if (result != ISC_R_SUCCESS) {
 		dns_name_format(zonename, str, sizeof(str));
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "received notify for zone '%s': not authoritative",
 			   str);
 		goto failure;
@@ -128,12 +128,14 @@ ns_notify_start(ns_client_t *client) {
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:	/* Allow dialup passive to work. */
+		notify_log(client, ISC_LOG_INFO, "received notify for zone '%s'",
+			   str);
 		respond(client, dns_zone_notifyreceive(zone,
 			ns_client_getsockaddr(client), request));
 		break;
 	default:
 		dns_name_format(zonename, str, sizeof(str));
-		notify_log(client, ISC_LOG_INFO,
+		notify_log(client, ISC_LOG_NOTICE,
 			   "received notify for zone '%s': not authoritative",
 			   str);
 		goto failure;
