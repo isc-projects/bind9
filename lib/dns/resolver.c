@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.176 2000/11/03 02:45:48 bwelling Exp $ */
+/* $Id: resolver.c,v 1.177 2000/11/03 22:53:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -991,13 +991,13 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Send the query!
 	 */
-	if ((query->options & DNS_FETCHOPT_TCP) == 0)
+	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
 		address = &query->addrinfo->sockaddr;
-	else {
+		taddress = *address;
+	} else {
 		result = isc_socket_getpeername(socket, &taddress);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_message;
-		address = &taddress;
 	}
 	isc_buffer_usedregion(buffer, &r);
 
@@ -1007,7 +1007,7 @@ resquery_send(resquery_t *query) {
 		int match;
 		isc_boolean_t drop = ISC_FALSE;
 
-		isc_netaddr_fromsockaddr(&netaddr, address);
+		isc_netaddr_fromsockaddr(&netaddr, &taddress);
 		if (dns_acl_match(&netaddr, NULL, blackhole,
 				  NULL, &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
