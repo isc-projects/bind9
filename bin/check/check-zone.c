@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-zone.c,v 1.1 2000/12/13 06:05:42 marka Exp $ */
+/* $Id: check-zone.c,v 1.2 2000/12/14 01:03:48 marka Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,6 @@
 
 static int debug = 0;
 static int quiet = 0;
-static int stats = 0;
 static isc_mem_t *mctx = NULL;
 dns_zone_t *zone = NULL;
 dns_zonetype_t zonetype = dns_zone_master;
@@ -50,24 +49,17 @@ static const char *dbtype[] = { "rbt" };
 #define ERRRET(result, function) \
 	do { \
 		if (result != ISC_R_SUCCESS) { \
-			fprintf(stderr, "%s() returned %s\n", \
-				function, dns_result_totext(result)); \
+			if (!quiet) \
+				fprintf(stderr, "%s() returned %s\n", \
+					function, dns_result_totext(result)); \
 			return (result); \
 		} \
 	} while (0)
 
-#define ERRCONT(result, function) \
-		if (result != ISC_R_SUCCESS) { \
-			fprintf(stderr, "%s() returned %s\n", \
-				function, dns_result_totext(result)); \
-			continue; \
-		} else \
-			(void)NULL
-
 static void
 usage() {
 	fprintf(stderr,
-		"usage: zone_test [-dqs] [-c class] [-f file] zone\n");
+		"usage: zone_test [-dq] [-c class] zone [filename]\n");
 	exit(1);
 }
 
@@ -120,20 +112,20 @@ setup(char *zonename, char *filename, char *classname) {
 
 static void
 destroy(void) {
-	if (zone == NULL)
-		return;
-	dns_zone_detach(&zone);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 }
 
 int
 main(int argc, char **argv) {
 	int c;
+	char *origin = NULL;
 	char *filename = NULL;
 	char *classname = "IN";
 	isc_log_t *lctx = NULL;
 	isc_result_t result;
 
-	while ((c = isc_commandline_parse(argc, argv, "cdf:qs")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dqs")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -141,16 +133,8 @@ main(int argc, char **argv) {
 		case 'd':
 			debug++;
 			break;
-		case 'f':
-			if (filename != NULL)
-				usage();
-			filename = isc_commandline_argument;
-			break;
 		case 'q':
 			quiet++;
-			break;
-		case 's':
-			stats++;
 			break;
 		default:
 			usage();
@@ -161,20 +145,26 @@ main(int argc, char **argv) {
 		usage();
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_log_create(mctx, &lctx, NULL) == ISC_R_SUCCESS);
-	isc_log_setcontext(lctx);
-	dns_log_init(lctx);
-	dns_log_setcontext(lctx);
+	if (!quiet) {
+		RUNTIME_CHECK(isc_log_create(mctx, &lctx, NULL) ==
+			      ISC_R_SUCCESS);
+		isc_log_setcontext(lctx);
+		dns_log_init(lctx);
+		dns_log_setcontext(lctx);
+	}
 
-	if (filename == NULL)
+	origin = argv[isc_commandline_index];
+	isc_commandline_index++;
+	if (argv[isc_commandline_index] != NULL)
 		filename = argv[isc_commandline_index];
-	result = setup(argv[isc_commandline_index], filename, classname);
+	else
+		filename = origin;
+	result = setup(origin, filename, classname);
 	if (!quiet && result == ISC_R_SUCCESS)
 		fprintf(stdout, "OK\n ");
 	destroy();
-	isc_log_destroy(&lctx);
-	if (!quiet && stats)
-		isc_mem_stats(mctx, stdout);
+	if (lctx != NULL)
+		isc_log_destroy(&lctx);
 	isc_mem_destroy(&mctx);
-	return (result);
+	return ((result == ISC_R_SUCCESS) ? 0 : 1);
 }
