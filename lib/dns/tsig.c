@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.72.2.2 2000/07/27 23:45:51 gson Exp $
+ * $Id: tsig.c,v 1.72.2.3 2000/07/27 23:57:33 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -31,6 +31,7 @@
 
 #include <dns/keyvalues.h>
 #include <dns/message.h>
+#include <dns/rbt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -122,12 +123,12 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	else
 		tkey->creator = NULL;
 
-	ISC_LINK_INIT(tkey, link);
 	tkey->key = NULL;
 	tkey->ring = ring;
+	tkey->refs = 0;
 
 	if (length > 0) {
-		dns_tsigkey_t *tmp;
+		dns_tsigkey_t *tmp = NULL;
 
 		isc_buffer_init(&b, secret, length);
 		isc_buffer_add(&b, length);
@@ -140,30 +141,31 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 
 		if (ring != NULL) {
 			RWLOCK(&ring->lock, isc_rwlocktype_write);
-			tmp = ISC_LIST_HEAD(ring->keys);
-			while (tmp != NULL) {
-				if (dns_name_equal(&tkey->name, &tmp->name) &&
-				    !tmp->deleted)
-				{
-					ret = ISC_R_EXISTS;
-					RWUNLOCK(&ring->lock,
-						 isc_rwlocktype_write);
-					goto cleanup_algorithm;
-				}
-				tmp = ISC_LIST_NEXT(tmp, link);
+			ret = dns_rbt_findname(ring->keys, name, 0, NULL,
+					       (void *)&tmp);
+			if (ret == ISC_R_SUCCESS) {
+				ret = ISC_R_EXISTS;
+				RWUNLOCK(&ring->lock, isc_rwlocktype_write);
+				goto cleanup_algorithm;
 			}
-			ISC_LIST_APPEND(ring->keys, tkey, link);
+			INSIST(ret == ISC_R_NOTFOUND ||
+			       ret == DNS_R_PARTIALMATCH);
+			ret = dns_rbt_addname(ring->keys, name, tkey);
+			if (ret != ISC_R_SUCCESS) {
+				ret = ISC_R_EXISTS;
+				RWUNLOCK(&ring->lock, isc_rwlocktype_write);
+				goto cleanup_algorithm;
+			}
+			tkey->refs++;
 			RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 		}
 	}
 
-	tkey->refs = 0;
 	if (key != NULL)
 		tkey->refs++;
 	tkey->generated = generated;
 	tkey->inception = inception;
 	tkey->expire = expire;
-	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
 	ret = isc_mutex_init(&tkey->lock);
 	if (ret != ISC_R_SUCCESS) {
@@ -203,17 +205,9 @@ dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp) {
 
 static void
 tsigkey_free(dns_tsigkey_t *key) {
-	dns_tsig_keyring_t *ring;
-
 	REQUIRE(VALID_TSIG_KEY(key));
-	ring = key->ring;
 
 	key->magic = 0;
-	if (ring != NULL) {
-		RWLOCK(&ring->lock, isc_rwlocktype_write);
-		ISC_LIST_UNLINK(ring->keys, key, link);
-		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
-	}
 	dns_name_free(&key->name, key->mctx);
 	dns_name_free(&key->algorithm, key->mctx);
 	if (key->key != NULL)
@@ -226,30 +220,32 @@ tsigkey_free(dns_tsigkey_t *key) {
 }
 
 void
-dns_tsigkey_detach(dns_tsigkey_t **key) {
-	dns_tsigkey_t *tkey;
+dns_tsigkey_detach(dns_tsigkey_t **keyp) {
+	dns_tsigkey_t *key;
 	isc_boolean_t should_free = ISC_FALSE;
 
-	REQUIRE(key != NULL);
-	REQUIRE(VALID_TSIG_KEY(*key));
-	tkey = *key;
-	*key = NULL;
+	REQUIRE(keyp != NULL);
+	REQUIRE(VALID_TSIG_KEY(*keyp));
+	key = *keyp;
+	*keyp = NULL;
 
-	LOCK(&tkey->lock);
-	tkey->refs--;
-	if (tkey->refs == 0 && (tkey->deleted || tkey->key == NULL))
+	LOCK(&key->lock);
+	key->refs--;
+	if (key->refs == 0)
 		should_free = ISC_TRUE;
-	UNLOCK(&tkey->lock);
+	UNLOCK(&key->lock);
 	if (should_free)
-		tsigkey_free(tkey);
+		tsigkey_free(key);
 }
 
 void
 dns_tsigkey_setdeleted(dns_tsigkey_t *key) {
-	INSIST(VALID_TSIG_KEY(key));
-	LOCK(&key->lock);
-	key->deleted = ISC_TRUE;
-	UNLOCK(&key->lock);
+	REQUIRE(VALID_TSIG_KEY(key));
+	REQUIRE(key->ring != NULL);
+
+	RWLOCK(&key->ring->lock, isc_rwlocktype_write);
+	(void)dns_rbt_deletename(key->ring->keys, &key->name, ISC_FALSE);
+	RWUNLOCK(&key->ring->lock, isc_rwlocktype_write);
 }
 
 isc_result_t
@@ -1029,6 +1025,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 {
 	dns_tsigkey_t *key;
 	isc_stdtime_t now;
+	isc_result_t result;
 
 	REQUIRE(tsigkey != NULL);
 	REQUIRE(*tsigkey == NULL);
@@ -1037,79 +1034,96 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 
 	isc_stdtime_get(&now);
 	RWLOCK(&ring->lock, isc_rwlocktype_read);
-	key = ISC_LIST_HEAD(ring->keys);
-	while (key != NULL) {
-		if (dns_name_equal(&key->name, name) &&
-		    (algorithm == NULL ||
-		     dns_name_equal(&key->algorithm, algorithm)) &&
-		    !key->deleted)
-		{
-			if (key->inception != key->expire &&
-			    key->expire < now)
-			{
-				/*
-				 * The key has expired.
-				 */
-				key->deleted = ISC_TRUE;
-				continue;
-			}
-			LOCK(&key->lock);
-			key->refs++;
-			UNLOCK(&key->lock);
-			*tsigkey = key;
-			RWUNLOCK(&ring->lock, isc_rwlocktype_read);
-			return (ISC_R_SUCCESS);
-		}
-		key = ISC_LIST_NEXT(key, link);
+	key = NULL;
+	result = dns_rbt_findname(ring->keys, name, 0, NULL, (void *)&key);
+	if (result == DNS_R_PARTIALMATCH || result == ISC_R_NOTFOUND) {
+		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
+		return (ISC_R_NOTFOUND);
 	}
+	if (algorithm != NULL && !dns_name_equal(&key->algorithm, algorithm)) {
+		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
+		return (ISC_R_NOTFOUND);
+	}
+	if (key->inception != key->expire && key->expire < now) {
+		/*
+		 * The key has expired.
+		 */
+		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
+		LOCK(&key->lock);
+		key->refs--;
+		UNLOCK(&key->lock);
+		RWLOCK(&ring->lock, isc_rwlocktype_write);
+		(void) dns_rbt_deletename(ring->keys, name, ISC_FALSE);
+		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
+		return (ISC_R_NOTFOUND);
+	}
+
+	LOCK(&key->lock);
+	key->refs++;
+	UNLOCK(&key->lock);
 	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
-	*tsigkey = NULL;
-	return (ISC_R_NOTFOUND);
+	*tsigkey = key;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+free_tsignode(void *node, void *_unused) {
+	dns_tsigkey_t *key;
+
+	UNUSED(_unused);
+
+	REQUIRE(node != NULL);
+
+	key = node;
+	dns_tsigkey_detach(&key);
 }
 
 isc_result_t
-dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring) {
-	isc_result_t ret;
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
+	isc_result_t result;
+	dns_tsig_keyring_t *ring;
 	
 	REQUIRE(mctx != NULL);
-	REQUIRE(ring != NULL);
-	REQUIRE(*ring == NULL);
+	REQUIRE(ringp != NULL);
+	REQUIRE(*ringp == NULL);
 
-	*ring = isc_mem_get(mctx, sizeof(dns_tsig_keyring_t));
+	ring = isc_mem_get(mctx, sizeof(dns_tsig_keyring_t));
 	if (ring == NULL)
 		return (ISC_R_NOMEMORY);
 		
-	ret = isc_rwlock_init(&(*ring)->lock, 0, 0);
-	if (ret != ISC_R_SUCCESS) {
+	result = isc_rwlock_init(&ring->lock, 0, 0);
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(ret));
+				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 	
-	ISC_LIST_INIT((*ring)->keys);
+	ring->keys = NULL;
+	result = dns_rbt_create(mctx, free_tsignode, NULL, &ring->keys);
+	if (result != ISC_R_SUCCESS) {
+		isc_rwlock_destroy(&ring->lock);
+		isc_mem_put(mctx, ring, sizeof(dns_tsig_keyring_t));
+		return (result);
+	}
 
-	(*ring)->mctx = mctx;
+	ring->mctx = mctx;
 
+	*ringp = ring;
 	return (ISC_R_SUCCESS);
 }
 
 void
-dns_tsigkeyring_destroy(dns_tsig_keyring_t **ring) {
-	isc_mem_t *mctx;
+dns_tsigkeyring_destroy(dns_tsig_keyring_t **ringp) {
+	dns_tsig_keyring_t *ring;
 
-	REQUIRE(ring != NULL);
-	REQUIRE(*ring != NULL);
+	REQUIRE(ringp != NULL);
+	REQUIRE(*ringp != NULL);
 
-	while (!ISC_LIST_EMPTY((*ring)->keys)) {
-		dns_tsigkey_t *key = ISC_LIST_HEAD((*ring)->keys);
-		key->refs = 0;
-		key->deleted = ISC_TRUE;
-		tsigkey_free(key);
-	}
-	isc_rwlock_destroy(&(*ring)->lock);
-	mctx = (*ring)->mctx;
-	isc_mem_put(mctx, *ring, sizeof(dns_tsig_keyring_t));
+	ring = *ringp;
+	*ringp = NULL;
 
-	*ring = NULL;
+	dns_rbt_destroy(&ring->keys);
+	isc_rwlock_destroy(&ring->lock);
+	isc_mem_put(ring->mctx, ring, sizeof(dns_tsig_keyring_t));
 }
