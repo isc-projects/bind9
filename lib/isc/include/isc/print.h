@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.h,v 1.10 2000/08/01 01:30:34 tale Exp $ */
+/* $Id: print.h,v 1.11 2000/11/14 23:40:31 tale Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
@@ -27,6 +27,15 @@
 #include <isc/formatcheck.h>    /* Required for ISC_FORMAT_PRINTF() macro. */
 #include <isc/lang.h>
 #include <isc/platform.h>
+
+/***
+ *** Macros
+ ***/
+#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
+#define ISC_PRINT_QUADFORMAT	"l"
+#else
+#define ISC_PRINT_QUADFORMAT	"ll"
+#endif
 
 /***
  *** Functions
