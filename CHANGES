@@ -1,3 +1,11 @@
+
+ 627.	[bug]		The EDNS0 blackhole detection code of 327. waited
+			for three retransmissions to each server, which
+			takes much too long when a domain has many name 
+			and all of them drop EDNS0 queries.  Now we retry
+			without EDNS0 after three consecutive timeouts,
+			even if they are all from different servers.
+
  626.	[bug]		The lightweight resolver daemon no longer crashes
 			when asked for a SIG rrset. [RT #558]
 

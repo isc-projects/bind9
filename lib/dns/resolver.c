@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.186 2000/12/11 19:24:20 bwelling Exp $ */
+/* $Id: resolver.c,v 1.187 2000/12/20 23:18:37 gson Exp $ */
 
 #include <config.h>
 
@@ -93,10 +93,10 @@
 #define SEND_BUFFER_SIZE		2048		/* XXXRTH  Constant. */
 
 /*
- * This defines the maximum number of restarts we will permit before we
+ * This defines the maximum number of timeouts we will permit before we
  * disable EDNS0 on the query.
  */
-#define NOEDNS0_RESTARTS		3
+#define MAX_EDNS0_TIMEOUTS	3
 
 typedef struct fetchctx fetchctx_t;
 
@@ -177,7 +177,17 @@ struct fetchctx {
 	 * # of events we're waiting for.
 	 */
 	unsigned int			pending;
+	/*
+	 * # of times we have started from the beginning
+	 * of the name server set.
+	 */
 	unsigned int			restarts;
+	/*
+	 * # of timeouts that have occurred since we last
+	 * successfully received a response packet.  This
+	 * is used for EDNS0 black hole detectino.
+	 */
+	unsigned int			timeouts;
 };
 
 #define FCTX_MAGIC			0x46212121U	/* F!!! */
@@ -904,9 +914,9 @@ resquery_send(resquery_t *query) {
 	 * Use EDNS0, unless the caller doesn't want it, or we know that
 	 * the remote server doesn't like it.
 	 */
-	if (fctx->restarts > NOEDNS0_RESTARTS) {
+	if (fctx->timeouts >= MAX_EDNS0_TIMEOUTS) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
-		FCTXTRACE("too many restarts, disabling EDNS0");
+		FCTXTRACE("too many timeouts, disabling EDNS0");
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -1770,6 +1780,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	if (event->ev_type == ISC_TIMEREVENT_LIFE) {
 		fctx_done(fctx, ISC_R_TIMEDOUT);
 	} else {
+		fctx->timeouts++;
 		/*
 		 * We could cancel the running queries here, or we could let
 		 * them keep going.  Right now we choose the latter...
@@ -2047,6 +2058,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->find = NULL;
 	fctx->pending = 0;
 	fctx->restarts = 0;
+	fctx->timeouts = 0;
 	if (dns_name_requiresedns(name))
 		fctx->attributes = FCTX_ATTR_NEEDEDNS0;
 	else
@@ -3891,6 +3903,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	resend = ISC_FALSE;
 	truncated = ISC_FALSE;
 	finish = NULL;
+
+	fctx->timeouts = 0;
 
 	/*
 	 * XXXRTH  We should really get the current time just once.  We
