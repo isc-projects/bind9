@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.186 2001/10/27 00:29:35 gson Exp $ */
+/* $Id: adb.c,v 1.187 2001/10/27 00:32:31 gson Exp $ */
 
 /*
  * Implementation notes
@@ -1165,7 +1165,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			ev->ev_destroy_arg = find;
 
 			DP(DEF_LEVEL,
-			   "Sending event %p to task %p for find %p",
+			   "sending event %p to task %p for find %p",
 			   ev, task, find);
 
 			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
@@ -2305,8 +2305,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
 
-	DP(5,
-	   "Cleaning interval for adb:  "
+	DP(5, "cleaning interval for adb: "
 	   "%u buckets every %u seconds, %u buckets in system, %u cl.interval",
 	   CLEAN_BUCKETS, CLEAN_SECONDS, NBUCKETS, CLEAN_PERIOD);
 
@@ -2903,7 +2902,7 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 		find->result_v4 = ISC_R_CANCELED;
 		find->result_v6 = ISC_R_CANCELED;
 
-		DP(DEF_LEVEL, "Sending event %p to task %p for find %p",
+		DP(DEF_LEVEL, "sending event %p to task %p for find %p",
 		   ev, task, find);
 
 		isc_task_sendanddetach(&task, (isc_event_t **)&ev);
@@ -3466,7 +3465,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 		if (address_type == DNS_ADBFIND_INET) {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
-			   "Caching negative entry for A (ttl %u)",
+			   "caching negative entry for A (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v4 = ISC_MIN(name->expire_v4,
 						  dev->rdataset->ttl + now);
@@ -3476,7 +3475,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 				name->fetch_err = FIND_ERR_NXRRSET;
 		} else {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
-			   "Caching negative entry for AAAA (ttl %u)",
+			   "caching negative entry for AAAA (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
@@ -3638,7 +3637,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 		if (NCACHE_RESULT(dev->result)) {
 			dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
-			   "Caching negative entry for A6 (ttl %u)",
+			   "caching negative entry for A6 (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
