@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.49 2001/02/13 04:11:44 gson Exp $ */
+/* $Id: task.h,v 1.50 2003/10/25 00:09:14 jinmei Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -58,9 +58,10 @@
  *** Imports.
  ***/
 
-#include <isc/lang.h>
-#include <isc/types.h>
 #include <isc/eventclass.h>
+#include <isc/lang.h>
+#include <isc/stdtime.h>
+#include <isc/types.h>
 
 #define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
 #define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
@@ -518,6 +519,19 @@ isc_task_endexclusive(isc_task_t *task);
  *		exclusive access by calling isc_task_spl().
  */
 
+void
+isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t);
+/*
+ * Provide the most recent timestamp on the task.  The timestamp is considered
+ * as the "current time" in the second-order granularity.
+ *
+ * Requires:
+ *	'task' is a valid task.
+ *	't' is a valid non NULL pointer.
+ *
+ * Ensures:
+ *	'*t' has the "current time".
+ */
 
 /*****
  ***** Task Manager.

@@ -1,6 +1,7 @@
 1528.	[placeholder]
 
-1527.	[placeholder]
+1527.	[cleanup]	Reduce the number of gettimeofday() calls without
+			losing necessary timer granularity.
 
 1526.	[placeholder]
 

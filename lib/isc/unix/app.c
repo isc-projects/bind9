@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.48 2002/05/10 06:41:54 marka Exp $ */
+/* $Id: app.c,v 1.49 2003/10/25 00:09:14 jinmei Exp $ */
 
 #include <config.h>
 
@@ -304,12 +304,14 @@ evloop() {
 		fd_set readfds, writefds;
 		int maxfd;
 		isc_boolean_t readytasks;
+		isc_boolean_t call_timer_dispatch = ISC_FALSE;
 
 		readytasks = isc__taskmgr_ready();
 		if (readytasks) {
 			tv.tv_sec = 0;
 			tv.tv_usec = 0;
 			tvp = &tv;
+			call_timer_dispatch = ISC_TRUE;
 		} else {
 			result = isc__timermgr_nextevent(&when);
 			if (result != ISC_R_SUCCESS)
@@ -319,6 +321,8 @@ evloop() {
 
 				TIME_NOW(&now);
 				us = isc_time_microdiff(&when, &now);
+				if (us == 0)
+					call_timer_dispatch = ISC_TRUE;
 				tv.tv_sec = us / 1000000;
 				tv.tv_usec = us % 1000000;
 				tvp = &tv;
@@ -328,7 +332,23 @@ evloop() {
 		isc__socketmgr_getfdsets(&readfds, &writefds, &maxfd);
 		n = select(maxfd, &readfds, &writefds, NULL, tvp);
 
-		isc__timermgr_dispatch();
+		if (n == 0 || call_timer_dispatch) {
+			/*
+			 * We call isc__timermgr_dispatch() only when
+			 * necessary, in order to reduce overhead.  If the
+			 * select() call indicates a timeout, we need the
+			 * dispatch.  Even if not, if we set the 0-timeout 
+			 * for the select() call, we need to check the timer
+			 * events.  In the 'readytasks' case, there may be no
+			 * timeout event actually, but there is no other way
+			 * to reduce the overhead.
+			 * Note that we do not have to worry about the case
+			 * where a new timer is inserted during the select()
+			 * call, since this loop only runs in the non-thread
+			 * mode.
+			 */
+			isc__timermgr_dispatch();
+		}
 		if (n > 0)
 			(void)isc__socketmgr_dispatch(&readfds, &writefds,
 						      maxfd);
@@ -367,16 +387,16 @@ static isc_boolean_t signalled = ISC_FALSE;
 isc_result_t
 isc__nothread_wait_hack(isc_condition_t *cp, isc_mutex_t *mp) {
 	isc_result_t result;
-	
+
 	UNUSED(cp);
 	UNUSED(mp);
-	
+
 	INSIST(!in_recursive_evloop);
 	in_recursive_evloop = ISC_TRUE;
 
 	INSIST(*mp == 1); /* Mutex must be locked on entry. */
 	--*mp;
-	
+
 	result = evloop();
 	if (result == ISC_R_RELOAD)
 		want_reload = ISC_TRUE;
@@ -394,7 +414,7 @@ isc_result_t
 isc__nothread_signal_hack(isc_condition_t *cp) {
 
 	UNUSED(cp);
-	
+
 	INSIST(in_recursive_evloop);
 
 	want_shutdown = ISC_TRUE;

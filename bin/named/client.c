@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.216 2003/07/04 04:38:54 marka Exp $ */
+/* $Id: client.c,v 1.217 2003/10/25 00:09:13 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1129,8 +1129,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
-	UNUSED(task);
-
 	INSIST(client->recursionquota == NULL);
 
 	INSIST(client->state ==
@@ -1174,7 +1172,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	client->state = client->newstate = NS_CLIENTSTATE_WORKING;
 
-	isc_stdtime_get(&client->requesttime);
+	isc_task_getcurrenttime(task, &client->requesttime);
 	client->now = client->requesttime;
 
 	if (result != ISC_R_SUCCESS) {
