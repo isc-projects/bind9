@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.42 2001/01/09 21:51:03 bwelling Exp $ */
+/* $Id: masterdump.c,v 1.43 2001/01/12 19:58:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -143,6 +143,14 @@ dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_REL_OWNER |
 	DNS_STYLEFLAG_REL_DATA |
 	DNS_STYLEFLAG_COMMENT |
+	DNS_STYLEFLAG_MULTILINE,
+	24, 32, 32, 40, 80, 8
+};
+
+const dns_master_style_t
+dns_master_style_cache = {
+	DNS_STYLEFLAG_OMIT_OWNER |
+	DNS_STYLEFLAG_OMIT_CLASS |
 	DNS_STYLEFLAG_MULTILINE,
 	24, 32, 32, 40, 80, 8
 };

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.17 2001/01/09 21:53:02 bwelling Exp $ */
+/* $Id: masterdump.h,v 1.18 2001/01/12 19:58:51 bwelling Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -64,6 +64,12 @@ extern const dns_master_style_t dns_master_style_default;
  * stop of its own, but the class and type share one.
  */
 extern const dns_master_style_t dns_master_style_explicitttl;
+
+/*
+ * A master style format designed for cache files.  It prints explicit TTL
+ * values on each record line and never uses $ORIGIN or relative names.
+ */
+extern const dns_master_style_t dns_master_style_cache;
 
 /*
  * A master style that prints name, ttl, class, type, and value on 
