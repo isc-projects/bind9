@@ -52,6 +52,7 @@
 #include <named/globals.h>
 #include <named/client.h>
 #include <named/update.h>
+#include <named/log.h>
 
 /*
  * This module implements dynamic update as in RFC2136.
@@ -59,35 +60,79 @@
   
 /*
   XXX TODO:
-  - serialization and queueing of update requests
   - forwarding
-  - locking?
   - document strict minimality
-  - use logging library, not printf
 */
 
 /**************************************************************************/
+
+/*
+ * Convenience macro of common isc_log_write() arguments
+ * to use in reportings server errors.
+ */
+#define UPDATE_ERROR_LOGARGS \
+	ns_g_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE, \
+	ISC_LOG_ERROR
+
+/*
+ * Convenience macro of common isc_log_write() arguments
+ * to use in tracing dynamic update protocol requests.
+ */
+#define UPDATE_PROTOCOL_LOGARGS \
+	ns_g_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE, \
+	ISC_LOG_INFO
+
+/*
+ * Convenience macro of common isc_log_write() arguments
+ * to use in low-level debug tracing.
+ */
+#define UPDATE_DEBUG_LOGARGS \
+	ns_g_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE, \
+	ISC_LOG_DEBUG(8)
+
 /*
  * Check an operation for failure.  These macros all assume that
  * the function using them has a 'result' variable and a 'failure'
  * label.
  */
-#define CHECK(op) do { result = (op); \
-		       if (result != DNS_R_SUCCESS) goto failure; \
-		     } while (0)
-#define CHECKMSG(op, msg) do { result = (op); \
-		        if (result != DNS_R_SUCCESS) { \
-				printf("%s\n", msg); \
-		        	goto failure; \
-		 	} \
-		     } while (0)
+#define CHECK(op) \
+	do { result = (op); 				  	 \
+	       if (result != DNS_R_SUCCESS) goto failure; 	 \
+	} while (0)
 
 /*
  * Fail unconditionally with result 'code', which must not
- * be DNS_R_SUCCESS.
+ * be DNS_R_SUCCESS.  The reason for failure presumably has
+ * been logged already.
  */
-#define FAIL(code) 		CHECK(code)
-#define FAILMSG(code, msg) 	CHECKMSG(code, msg)
+
+#define FAIL(code) \
+	do {							\
+		result = (code);				\
+		goto failure;					\
+	} while (0)
+
+/*
+ * Fail unconditionally and log as a client error.
+ */
+#define FAILC(code, msg) \
+	do {							\
+		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
+			      "dynamic update failed: %s (%s)",	\
+		      	      msg, isc_result_totext(code));	\
+		goto failure;					\
+	} while (0)
+
+/*
+ * Fail unconditionally and log as a server error.
+ */
+#define FAILS(code, msg) \
+	do {							\
+		isc_log_write(UPDATE_PROTOCOL_LOGARGS,		\
+			      "dynamic update error: %s: %s", 	\
+			      msg, isc_result_totext(code));	\
+		goto failure;					\
+	} while (0)
 
 /**************************************************************************/
 
@@ -1377,8 +1422,14 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 
 	result = find_zone_keys(db, newver, mctx, 
 				MAXZONEKEYS, zone_keys, &nkeys);
-	CHECKMSG(result, "could not get zone keys");
-	
+	if (result != DNS_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
+			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
+			      "could not get zone keys for secure "
+			      "dynamic update");
+		goto failure;
+	}
+
 	CHECK(isc_stdtime_get(&now));
 	expire = 100000 + now; /* XXX */
 	
@@ -1689,8 +1740,10 @@ respond(ns_client_t *client, dns_result_t result) {
 	return;
 	
  msg_failure:
-	printf("could not send update response: %s\n",
-	       isc_result_totext(msg_result));
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
+		      ISC_LOG_ERROR,
+		      "could not create update response message: %s",
+		      isc_result_totext(msg_result));
 	ns_client_next(client, msg_result);
 }
 
@@ -1709,8 +1762,8 @@ ns_update_start(ns_client_t *client)
 	 */
 	result = dns_message_firstname(request, DNS_SECTION_ZONE);
 	if (result != DNS_R_SUCCESS)
-		FAILMSG(DNS_R_FORMERR,
-			"update zone section empty");
+		FAILC(DNS_R_FORMERR,
+		      "update zone section empty");
 
 	/*
 	 * The zone section must contain exactly one "question", and
@@ -1721,33 +1774,33 @@ ns_update_start(ns_client_t *client)
 	zone_rdataset = ISC_LIST_HEAD(zonename->list);
 	zoneclass = zone_rdataset->rdclass;
 	if (zone_rdataset->type != dns_rdatatype_soa)
-		FAILMSG(DNS_R_FORMERR,
-			"update zone section contains non-SOA");
+		FAILC(DNS_R_FORMERR,
+		      "update zone section contains non-SOA");
 	if (ISC_LIST_NEXT(zone_rdataset, link) != NULL)
-		FAILMSG(DNS_R_FORMERR,
-			"update zone section contains multiple RRs");
+		FAILC(DNS_R_FORMERR,
+		      "update zone section contains multiple RRs");
 
 	/* The zone section must have exactly one name. */
 	result = dns_message_nextname(request, DNS_SECTION_ZONE);
 	if (result != DNS_R_NOMORE)
-		FAILMSG(DNS_R_FORMERR,
-			"update zone section contains multiple RRs");
+		FAILC(DNS_R_FORMERR,
+		      "update zone section contains multiple RRs");
 
 	result = dns_zt_find(client->view->zonetable, zonename, NULL, &zone);
 	if (result != DNS_R_SUCCESS)
-		FAILMSG(DNS_R_NOTAUTH,
-			"not authoritative for update zone");
+		FAILC(DNS_R_NOTAUTH,
+		      "not authoritative for update zone");
 
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
 		CHECK(send_update_event(client, zone)); 
 		break;	/* OK. */
 	case dns_zone_slave:
-		FAILMSG(DNS_R_NOTIMP,
-			"update forwarding is not yet implemented"); /* XXX */
+		FAILS(DNS_R_NOTIMP,
+		      "update forwarding"); /* XXX implement */
 	default:
-		FAILMSG(DNS_R_NOTAUTH,
-			"not authoritative for update zone");
+		FAILC(DNS_R_NOTAUTH,
+		      "not authoritative for update zone");
 	}
 	return;
 	
@@ -1782,8 +1835,6 @@ update_action(isc_task_t *task, isc_event_t *event)
 		
 	INSIST(event->type == DNS_EVENT_UPDATE);
 
-	printf("dequeued update request\n");
-
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &temp);
 
@@ -1792,8 +1843,6 @@ update_action(isc_task_t *task, isc_event_t *event)
 	zoneclass = dns_db_class(db);
 	dns_db_currentversion(db, &oldver);
 	CHECK(dns_db_newversion(db, &ver));
-	
-	printf("new database version created\n");
 	
 	/* Check prerequisites. */
 
@@ -1811,52 +1860,54 @@ update_action(isc_task_t *task, isc_event_t *event)
 			       &name, &rdata, &covers, &ttl, &update_class);
 
 		if (ttl != 0)
-			FAILMSG(DNS_R_FORMERR, "prereq TTL != 0");
+			FAILC(DNS_R_FORMERR, "prerequisite TTL is not zero");
 
 		if (! dns_name_issubdomain(name, zonename))
-			FAILMSG(DNS_R_NOTZONE,
-				"prereq name out of zone");
+			FAILC(DNS_R_NOTZONE,
+				"prerequisite name is out of zone");
 
 		if (update_class == dns_rdataclass_any) {
 			if (rdata.length != 0)
-				FAILMSG(DNS_R_FORMERR,
-					"prereq data not empty");
+				FAILC(DNS_R_FORMERR,
+				      "class ANY prerequisite "
+				      "RDATA is not empty");
 			if (rdata.type == dns_rdatatype_any) {
 				CHECK(name_exists(db, ver, name, &flag));
 				if (! flag) {
-					FAILMSG(DNS_R_NXDOMAIN,
-						"'name in use' prereq "
-						"not satisfied");
+					FAILC(DNS_R_NXDOMAIN,
+					      "'name in use' prerequisite "
+					      "not satisfied");
 				}
 			} else {
 				CHECK(rrset_exists(db, ver, name,
 						   rdata.type, covers, &flag));
 				if (! flag) {
 					/* RRset does not exist. */
-					FAILMSG(DNS_R_NXRRSET,
+					FAILC(DNS_R_NXRRSET,
 					"'rrset exists (value independent)' "
-					"prereq not satisfied");
+					"prerequisite not satisfied");
 				}
 			}
 		} else if (update_class == dns_rdataclass_none) {
 			if (rdata.length != 0)
-				FAILMSG(DNS_R_FORMERR,
-					"prereq data not empty");
+				FAILC(DNS_R_FORMERR,
+				      "class NONE prerequisite"
+				      "RDATA is not empty");
 			if (rdata.type == dns_rdatatype_any) {
 				CHECK(name_exists(db, ver, name, &flag));
 				if (flag) {
-					FAILMSG(DNS_R_YXDOMAIN,
-						"'name not in use' prereq "
-						"not satisfied");
+					FAILC(DNS_R_YXDOMAIN,
+					      "'name not in use' prerequisite "
+					      "not satisfied");
 				}
 			} else {
 				CHECK(rrset_exists(db, ver, name,
 						   rdata.type, covers, &flag));
 				if (flag) {
 					/* RRset exists. */
-					FAILMSG(DNS_R_YXRRSET,
-						"'rrset does not exist' "
-						"prereq not satisfied");
+					FAILC(DNS_R_YXRRSET,
+					      "'rrset does not exist' "
+					      "prerequisite not satisfied");
 				}
 			} 
 		} else if (update_class == zoneclass) {
@@ -1866,10 +1917,10 @@ update_action(isc_task_t *task, isc_event_t *event)
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "temp entry creation failed: %s",
 						 dns_result_totext(result));
-				FAIL (DNS_R_UNEXPECTED);
+				FAIL(DNS_R_UNEXPECTED);
 			}
 		} else {
-			FAILMSG(DNS_R_FORMERR, "malformed prereq");
+			FAILC(DNS_R_FORMERR, "malformed prerequisite");
 		}
 	}
 	if (result != DNS_R_NOMORE)
@@ -1881,10 +1932,10 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 */
 	result = temp_check(mctx, &temp, db, ver);
 	if (result != DNS_R_SUCCESS)
-		FAILMSG(result, "'rrset exists (value dependent)' prereq "
-			"not satisfied");
+		FAILC(result, "'RRset exists (value dependent)' "
+		      "prerequisite not satisfied");
 
-	printf("prereqs ok\n");	
+	isc_log_write(UPDATE_DEBUG_LOGARGS, "prerequisites are OK");
 
 	/* XXX Check Requestor's Permissions Here */
 
@@ -1902,8 +1953,8 @@ update_action(isc_task_t *task, isc_event_t *event)
 			       &name, &rdata, &covers, &ttl, &update_class);
 
 		if (! dns_name_issubdomain(name, zonename))
-			FAILMSG(DNS_R_NOTZONE,
-				"update RR is outside zone");
+			FAILC(DNS_R_NOTZONE,
+			      "update RR is outside zone");
 		if (update_class == zoneclass) {
 			/*
 			 * Check for meta-RRs.  The RFC2136 pseudocode says
@@ -1911,23 +1962,25 @@ update_action(isc_task_t *task, isc_event_t *event)
 			 * "or any other QUERY metatype"
 			 */
 			if (dns_rdatatype_ismeta(rdata.type)) {
-				FAILMSG(DNS_R_FORMERR,
-					"meta-RR in update");
+				FAILC(DNS_R_FORMERR,
+				      "meta-RR in update");
 			}
 		} else if (update_class == dns_rdataclass_any) {
 			if (ttl != 0 || rdata.length != 0 ||
 			    (dns_rdatatype_ismeta(rdata.type) &&
 			     rdata.type != dns_rdatatype_any))
-				FAILMSG(DNS_R_FORMERR, 
-					"meta-RR in update");
+				FAILC(DNS_R_FORMERR, 
+				      "meta-RR in update");
 		} else if (update_class == dns_rdataclass_none) {
 			if (ttl != 0 || 
 			    dns_rdatatype_ismeta(rdata.type))
-				FAILMSG(DNS_R_FORMERR, 
-					"meta-RR in update");
+				FAILC(DNS_R_FORMERR, 
+				      "meta-RR in update");
 		} else {
-			printf("update RR has incorrect class %d\n", 
-				update_class);
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
+				      NS_LOGMODULE_UPDATE, ISC_LOG_WARNING,
+				      "update RR has incorrect class %d", 
+				      update_class);
 			FAIL(DNS_R_FORMERR);
 		}
 		/*
@@ -1936,15 +1989,15 @@ update_action(isc_task_t *task, isc_event_t *event)
 		 * is forbidden from updating NXT records."
 		 */
 		if (dns_db_issecure(db) && rdata.type == dns_rdatatype_nxt) {
-			FAILMSG(DNS_R_REFUSED,
-				"explicit NXT updates are not allowed "
-				"in secure zones");
+			FAILC(DNS_R_REFUSED,
+			      "explicit NXT updates are not allowed "
+			      "in secure zones");
 		}
 	}
 	if (result != DNS_R_NOMORE)
 		FAIL(result);
 
-	printf("prescan ok\n");
+	isc_log_write(UPDATE_DEBUG_LOGARGS, "update section prescan OK");
 	
 	/* Process the Update Section. */
 
@@ -1967,9 +2020,10 @@ update_action(isc_task_t *task, isc_event_t *event)
 								      name,
 								      &flag));
 				if (flag) {
-					printf("attempt to add cname "
-					       "alongside non-cname "
-					       "ignored\n");
+					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+						      "attempt to add CNAME "
+						      "alongside non-CNAME "
+						      "ignored");
 					continue;
 				}
 			} else {
@@ -1979,8 +2033,9 @@ update_action(isc_task_t *task, isc_event_t *event)
 				if (flag && 
 				    ! dns_rdatatype_isdnssec(rdata.type))
 				{
-					printf("attempt to add non-cname "
-					       "alongside cname ignored\n");
+					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+					      "attempt to add non-CNAME "
+					      "alongside CNAME ignored");
 					continue;
 				}
 			}
@@ -1990,15 +2045,18 @@ update_action(isc_task_t *task, isc_event_t *event)
 						   dns_rdatatype_soa, 0,
 						   &flag));
 				if (! flag) {
-					printf("attempt to create extra SOA "
-					       "ignored\n");
+					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+						      "attempt to create 2nd "
+						      "SOA ignored");
 					continue;
 				}
 				CHECK(check_soa_increment(db, ver, &rdata,
 							  &ok));
 				if (! ok) {
-					printf("attempt to decrement SOA "
-					       "serial ignored\n");
+					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+						      "SOA update failed to "
+						      "increment serial, "
+						      "ignoring it");
 					continue;
 				}
 				soa_serial_changed = ISC_TRUE;
@@ -2012,7 +2070,8 @@ update_action(isc_task_t *task, isc_event_t *event)
 						 rdata.type, covers, &rdata,
 						 &flag));
 			if (! flag) {
-				printf("add an RR\n");
+				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+					      "adding an RR");
 				CHECK(delete_if(replaces_p, db, ver, name,
 						rdata.type, covers, &rdata,
 						&diff));
@@ -2022,11 +2081,14 @@ update_action(isc_task_t *task, isc_event_t *event)
 				if (result != DNS_R_SUCCESS)
 					FAIL(result);
 			} else {
-				printf("attempt to add existing RR ignored\n");
+				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+					      "attempt to add existing RR "
+					      "ignored");
 			}
 		} else if (update_class == dns_rdataclass_any) {
 			if (rdata.type == dns_rdatatype_any) {
-				printf("delete all rrsets from a name\n");
+				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+					      "delete all rrsets from a name");
 				if (dns_name_equal(name, zonename)) {
 					CHECK(delete_if(type_not_soa_nor_ns_p,
 							db, ver, name, 
@@ -2040,18 +2102,21 @@ update_action(isc_task_t *task, isc_event_t *event)
 			} else if (dns_name_equal(name, zonename) &&
 				   (rdata.type == dns_rdatatype_soa ||
 				    rdata.type == dns_rdatatype_ns)) {
-				printf("attempt to delete all SOA or NS "
-				       "records ignored\n");
+				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+					      "attempt to delete all SOA "
+					      "or NS records ignored");
 				continue;
 			} else {
-				printf("delete an rrset\n");
+				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+					      "deleting an rrset");
 				CHECK(delete_if(true_p, db, ver, name,
 						rdata.type, covers, &rdata,
 						&diff));
 			}
 		} else if (update_class == dns_rdataclass_none) {
 			if (rdata.type == dns_rdatatype_soa) {
-				printf("attempt to delete SOA ignored\n");
+				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+					      "attempt to delete SOA ignored");
 				continue;
 			}
 			if (rdata.type == dns_rdatatype_ns) {
@@ -2059,12 +2124,14 @@ update_action(isc_task_t *task, isc_event_t *event)
 				CHECK(rr_count(db, ver, name,
 					       dns_rdatatype_ns, 0, &count));
 				if (count == 1) {
-					printf("attempt to delete last "
-					       "NS ignored\n");
+					isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+						      "attempt to delete last "
+						      "NS ignored");
 					continue;
 				}
 			}
-			printf("delete an RR\n");
+			isc_log_write(UPDATE_PROTOCOL_LOGARGS,
+				      "deleting an RR");
 			CHECK(delete_if(rr_equal_p, db, ver, name,
 					rdata.type, covers, &rdata, &diff));
 		}
@@ -2091,21 +2158,28 @@ update_action(isc_task_t *task, isc_event_t *event)
 		if (dns_db_issecure(db)) {
 			result = update_signatures(mctx, db,
 						   oldver, ver, &diff);
-			CHECKMSG(result, "signature update failed");
+			if (result != DNS_R_SUCCESS) {
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
+					      NS_LOGMODULE_UPDATE,
+					      ISC_LOG_ERROR,
+					      "SIG/NXT update failed: %s",
+					      isc_result_totext(result));
+				goto failure;
+			}
 		}
 
-		printf("write journal\n");
+		isc_log_write(UPDATE_DEBUG_LOGARGS, "writing journal");
 
 		journal = NULL;
 		result = dns_journal_open(mctx, dns_zone_getixfrlog(zone),
 					  ISC_TRUE, &journal);
 		if (result != DNS_R_SUCCESS)
-			FAILMSG(result, "journal open failed");
+			FAILS(result, "journal open failed");
 
 		result = dns_journal_write_transaction(journal, &diff);
 		if (result != DNS_R_SUCCESS) {
 			dns_journal_destroy(&journal);
-			FAILMSG(result, "journal write failed");
+			FAILS(result, "journal write failed");
 		}
 
 		dns_journal_destroy(&journal);
@@ -2116,16 +2190,16 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 *         to handle databases that need two-phase commit, but this
 	 *	   isn't a priority.
 	 */
-	printf("commit\n");
+	isc_log_write(UPDATE_DEBUG_LOGARGS, "committing update transaction");
 	dns_db_closeversion(db, &ver, ISC_TRUE);
 	result = DNS_R_SUCCESS;
 	goto common;
 	
  failure:
-	printf("update failed: %s\n", dns_result_totext(result));
-
+	/* The reason for failure should have been logged at this point. */
 	if (ver != NULL) {
-		printf("rollback\n");	
+		isc_log_write(UPDATE_DEBUG_LOGARGS,
+			      "rolling back");	
 		dns_db_closeversion(db, &ver, ISC_FALSE);
 	}
 
