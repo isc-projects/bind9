@@ -3,7 +3,7 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-SUBDIRS =	tests server
+SUBDIRS =	tests named
 TARGETS =
 
 @BIND9_MAKE_RULES@
