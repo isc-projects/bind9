@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.72 2000/07/10 17:25:57 mws Exp $ */
+/* $Id: dighost.c,v 1.73 2000/07/10 18:02:28 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2055,7 +2055,14 @@ start_lookup(void) {
 		do_lookup(lookup);
 	}
 }
-     
+
+void
+onrun_callback(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
+	isc_event_free(&event);
+	start_lookup();
+}
+
 void
 free_lists(void) {
 	void *ptr;

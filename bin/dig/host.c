@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.36 2000/07/06 01:02:42 mws Exp $ */
+/* $Id: host.c,v 1.37 2000/07/10 18:02:29 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -55,6 +55,7 @@ extern int lookup_counter;
 extern int exitcode;
 extern isc_taskmgr_t *taskmgr;
 extern char *progname;
+extern isc_task_t *global_task;
 
 isc_boolean_t 
 	short_form = ISC_TRUE,
@@ -693,6 +694,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
+	isc_result_t result;
+
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
@@ -702,7 +705,8 @@ main(int argc, char **argv) {
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
-	start_lookup();
+	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
+	check_result(result, "isc_app_onrun");
 	isc_app_run();
 	/*
 	 * XXXMWS This code should really NOT be bypassed.  However,

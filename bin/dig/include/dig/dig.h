@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.29 2000/07/10 17:25:59 mws Exp $ */
+/* $Id: dig.h,v 1.30 2000/07/10 18:02:31 bwelling Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -187,6 +187,9 @@ do_lookup(dig_lookup_t *lookup);
 
 void
 start_lookup(void);
+
+void
+onrun_callback(isc_task_t *task, isc_event_t *event);
 
 void
 send_udp(dig_lookup_t *lookup);

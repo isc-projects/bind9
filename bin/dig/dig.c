@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.56 2000/07/05 23:28:27 mws Exp $ */
+/* $Id: dig.c,v 1.57 2000/07/10 18:02:27 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -65,6 +65,7 @@ extern char keysecret[MXNAME];
 extern dns_tsigkey_t *key;
 extern isc_boolean_t validated;
 extern isc_taskmgr_t *taskmgr;
+extern isc_task_t *global_task;
 
 extern isc_boolean_t debugging;
 extern isc_boolean_t isc_mem_debugging;
@@ -1221,6 +1222,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
+	isc_result_t result;
+
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
@@ -1230,7 +1233,8 @@ main(int argc, char **argv) {
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
-	start_lookup();
+	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
+	check_result(result, "isc_app_onrun");
 	isc_app_run();
 	/*
 	 * XXXMWS This code should really NOT be bypassed.  However,
