@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.6 1999/10/11 16:10:06 tale Exp $ */
+/* $Id: log.c,v 1.7 1999/10/15 19:04:38 brister Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -756,10 +756,6 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
-	REQUIRE(category != NULL && category->id < lctx->category_count);
-	REQUIRE(module != NULL && module->id < lctx->module_count);
-	REQUIRE(level != ISC_LOG_DYNAMIC);
-	REQUIRE(format != NULL);
 
 	/*
 	 * Programs can use libraries that use this logging code without
@@ -768,6 +764,11 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 	 */
 	if (lctx == NULL)
 		return;
+
+	REQUIRE(category != NULL && category->id < lctx->category_count);
+	REQUIRE(module != NULL && module->id < lctx->module_count);
+	REQUIRE(level != ISC_LOG_DYNAMIC);
+	REQUIRE(format != NULL);
 
 	time_string[0] = '\0';
 	level_string[0] = '\0';
