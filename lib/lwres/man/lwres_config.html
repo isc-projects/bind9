@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_config.html,v 1.4.2.3 2004/08/22 23:36:02 marka Exp $ -->
+<!-- $Id: lwres_config.html,v 1.4.2.4 2005/04/03 03:31:46 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >lwres_config</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -124,9 +124,9 @@ CLASS="TYPE"
 >lwres_conf_t</SPAN
 >
 structure for lightweight resolver context
-<VAR
+<CODE
 CLASS="PARAMETER"
->ctx</VAR
+>ctx</CODE
 >.</P
 ><P
 ><CODE
@@ -140,9 +140,9 @@ CLASS="TYPE"
 >lwres_conf_t</SPAN
 >
 structure in resolver context
-<VAR
+<CODE
 CLASS="PARAMETER"
->ctx</VAR
+>ctx</CODE
 >.</P
 ><P
 ><CODE
@@ -150,14 +150,14 @@ CLASS="FUNCTION"
 >lwres_conf_parse()</CODE
 >
 opens the file
-<VAR
+<CODE
 CLASS="PARAMETER"
->filename</VAR
+>filename</CODE
 >
 and parses it to initialise the resolver context
-<VAR
+<CODE
 CLASS="PARAMETER"
->ctx</VAR
+>ctx</CODE
 >'s
 <SPAN
 CLASS="TYPE"
@@ -175,18 +175,18 @@ CLASS="TYPE"
 >lwres_conf_t</SPAN
 >
 structure for resolver context
-<VAR
+<CODE
 CLASS="PARAMETER"
->ctx</VAR
+>ctx</CODE
 >
 to the
 <SPAN
 CLASS="TYPE"
 >FILE</SPAN
 >
-<VAR
+<CODE
 CLASS="PARAMETER"
->fp</VAR
+>fp</CODE
 >.</P
 ></DIV
 ><DIV
@@ -207,9 +207,9 @@ CLASS="ERRORCODE"
 >LWRES_R_SUCCESS</SPAN
 >
 if it successfully read and parsed
-<VAR
+<CODE
 CLASS="PARAMETER"
->filename</VAR
+>filename</CODE
 >.
 It returns
 <SPAN
@@ -217,9 +217,9 @@ CLASS="ERRORCODE"
 >LWRES_R_FAILURE</SPAN
 >
 if
-<VAR
+<CODE
 CLASS="PARAMETER"
->filename</VAR
+>filename</CODE
 >
 could not be opened or contained incorrect
 resolver statements.</P

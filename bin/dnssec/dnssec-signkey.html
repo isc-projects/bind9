@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signkey.html,v 1.4.2.4 2004/08/22 23:35:42 marka Exp $ -->
+<!-- $Id: dnssec-signkey.html,v 1.4.2.5 2005/04/03 03:31:39 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >dnssec-signkey</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -62,45 +62,55 @@ NAME="AEN13"
 ><B
 CLASS="COMMAND"
 >dnssec-signkey</B
->  [<VAR
+>  [<CODE
 CLASS="OPTION"
->-a</VAR
->] [<VAR
+>-a</CODE
+>] [<CODE
 CLASS="OPTION"
->-c <VAR
+>-c <TT
 CLASS="REPLACEABLE"
->class</VAR
-></VAR
->] [<VAR
+><I
+>class</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-s <VAR
+>-s <TT
 CLASS="REPLACEABLE"
->start-time</VAR
-></VAR
->] [<VAR
+><I
+>start-time</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-e <VAR
+>-e <TT
 CLASS="REPLACEABLE"
->end-time</VAR
-></VAR
->] [<VAR
+><I
+>end-time</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-h</VAR
->] [<VAR
+>-h</CODE
+>] [<CODE
 CLASS="OPTION"
->-p</VAR
->] [<VAR
+>-p</CODE
+>] [<CODE
 CLASS="OPTION"
->-r <VAR
+>-r <TT
 CLASS="REPLACEABLE"
->randomdev</VAR
-></VAR
->] [<VAR
+><I
+>randomdev</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-v <VAR
+>-v <TT
 CLASS="REPLACEABLE"
->level</VAR
-></VAR
+><I
+>level</I
+></TT
+></CODE
 >] {keyset} {key...}</P
 ></DIV
 ><DIV
@@ -151,9 +161,11 @@ CLASS="VARIABLELIST"
 	  </P
 ></DD
 ><DT
->-c <VAR
+>-c <TT
 CLASS="REPLACEABLE"
->class</VAR
+><I
+>class</I
+></TT
 ></DT
 ><DD
 ><P
@@ -161,9 +173,11 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-s <VAR
+>-s <TT
 CLASS="REPLACEABLE"
->start-time</VAR
+><I
+>start-time</I
+></TT
 ></DT
 ><DD
 ><P
@@ -173,31 +187,33 @@ CLASS="REPLACEABLE"
 	       in YYYYMMDDHHMMSS notation; 20000530144500 denotes
 	       14:45:00 UTC on May 30th, 2000.  A relative start time is
 	       indicated by +N, which is N seconds from the current time.
-	       If no <VAR
+	       If no <CODE
 CLASS="OPTION"
->start-time</VAR
+>start-time</CODE
 > is specified, the current
 	       time is used.
 	  </P
 ></DD
 ><DT
->-e <VAR
+>-e <TT
 CLASS="REPLACEABLE"
->end-time</VAR
+><I
+>end-time</I
+></TT
 ></DT
 ><DD
 ><P
 >	       Specify the date and time when the generated SIG records
-	       expire.  As with <VAR
+	       expire.  As with <CODE
 CLASS="OPTION"
->start-time</VAR
+>start-time</CODE
 >, an absolute
 	       time is indicated in YYYYMMDDHHMMSS notation.  A time relative
 	       to the start time is indicated with +N, which is N seconds from
 	       the start time.  A time relative to the current time is
-	       indicated with now+N.  If no <VAR
+	       indicated with now+N.  If no <CODE
 CLASS="OPTION"
->end-time</VAR
+>end-time</CODE
 > is
 	       specified, 30 days from the start time is used as a default.
 	  </P
@@ -224,9 +240,11 @@ CLASS="COMMAND"
 	  </P
 ></DD
 ><DT
->-r <VAR
+>-r <TT
 CLASS="REPLACEABLE"
->randomdev</VAR
+><I
+>randomdev</I
+></TT
 ></DT
 ><DD
 ><P
@@ -250,9 +268,11 @@ CLASS="FILENAME"
 	  </P
 ></DD
 ><DT
->-v <VAR
+>-v <TT
 CLASS="REPLACEABLE"
->level</VAR
+><I
+>level</I
+></TT
 ></DT
 ><DD
 ><P

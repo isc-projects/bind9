@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >Introduction </TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
@@ -398,9 +398,9 @@ CLASS="emphasis"
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->Fixed Width</VAR
+>Fixed Width</TT
 ></P
 ></TD
 ></TR
@@ -411,9 +411,9 @@ CLASS="literal"
 ></TD
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->Fixed Width</VAR
+>Fixed Width</CODE
 ></P
 ></TD
 ></TR
@@ -543,30 +543,30 @@ CLASS="emphasis"
 >Example, Inc.</I
 ></SPAN
 > could be
-<VAR
+<TT
 CLASS="literal"
->mail.example.com</VAR
+>mail.example.com</TT
 >,
-where <VAR
+where <TT
 CLASS="literal"
->com</VAR
+>com</TT
 > is the
 top level domain to which
-<VAR
+<TT
 CLASS="literal"
->ourhost.example.com</VAR
+>ourhost.example.com</TT
 > belongs,
-<VAR
+<TT
 CLASS="literal"
->example</VAR
+>example</TT
 > is
-a subdomain of <VAR
+a subdomain of <TT
 CLASS="literal"
->com</VAR
+>com</TT
 >, and
-<VAR
+<TT
 CLASS="literal"
->ourhost</VAR
+>ourhost</TT
 > is the
 name of the host.</P
 ><P
@@ -665,30 +665,30 @@ CLASS="emphasis"
 parent zone, which should be matched by equivalent NS records at
 the root of the delegated zone.</P
 ><P
->For instance, consider the <VAR
+>For instance, consider the <TT
 CLASS="literal"
->example.com</VAR
+>example.com</TT
 >
 domain which includes names
-such as <VAR
+such as <TT
 CLASS="literal"
->host.aaa.example.com</VAR
+>host.aaa.example.com</TT
 > and
-<VAR
+<TT
 CLASS="literal"
->host.bbb.example.com</VAR
+>host.bbb.example.com</TT
 > even though
-the <VAR
+the <TT
 CLASS="literal"
->example.com</VAR
+>example.com</TT
 > zone includes
-only delegations for the <VAR
+only delegations for the <TT
 CLASS="literal"
->aaa.example.com</VAR
+>aaa.example.com</TT
 > and
-<VAR
+<TT
 CLASS="literal"
->bbb.example.com</VAR
+>bbb.example.com</TT
 > zones.  A zone can map
 exactly to a single domain, but could also include only part of a
 domain, the rest of which could be delegated to other

@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.html,v 1.9.2.6 2004/08/22 23:35:47 marka Exp $ -->
+<!-- $Id: nsupdate.html,v 1.9.2.7 2005/04/03 03:31:41 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >nsupdate</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -56,24 +56,28 @@ NAME="AEN11"
 ><B
 CLASS="COMMAND"
 >nsupdate</B
->  [<VAR
+>  [<CODE
 CLASS="OPTION"
->-d</VAR
->] [<VAR
+>-d</CODE
+>] [<CODE
 CLASS="OPTION"
->-y <VAR
+>-y <TT
 CLASS="REPLACEABLE"
->keyname:secret</VAR
-></VAR
-> | <VAR
+><I
+>keyname:secret</I
+></TT
+></CODE
+> | <CODE
 CLASS="OPTION"
->-k <VAR
+>-k <TT
 CLASS="REPLACEABLE"
->keyfile</VAR
-></VAR
->] [<VAR
+><I
+>keyfile</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-v</VAR
+>-v</CODE
 >] [filename]</P
 ></DIV
 ><DIV
@@ -114,9 +118,9 @@ Requests are sent to the zone's master server.
 This is identified by the MNAME field of the zone's SOA record.</P
 ><P
 >The
-<VAR
+<CODE
 CLASS="OPTION"
->-d</VAR
+>-d</CODE
 >
 option makes
 <B
@@ -174,22 +178,22 @@ CLASS="COMMAND"
 >nsupdate</B
 >
 uses the
-<VAR
+<CODE
 CLASS="OPTION"
->-y</VAR
+>-y</CODE
 >
 or
-<VAR
+<CODE
 CLASS="OPTION"
->-k</VAR
+>-k</CODE
 >
 option to provide the shared secret needed to generate a TSIG record
 for authenticating Dynamic DNS update requests.
 These options are mutually exclusive.
 With the
-<VAR
+<CODE
 CLASS="OPTION"
->-k</VAR
+>-k</CODE
 >
 option,
 <B
@@ -197,9 +201,9 @@ CLASS="COMMAND"
 >nsupdate</B
 >
 reads the shared secret from the file
-<VAR
+<CODE
 CLASS="PARAMETER"
->keyfile</VAR
+>keyfile</CODE
 >,
 whose name is of the form 
 <TT
@@ -213,30 +217,30 @@ CLASS="FILENAME"
 >K{name}.+157.+{random}.key</TT
 >
 must also be present.  When the
-<VAR
+<CODE
 CLASS="OPTION"
->-y</VAR
+>-y</CODE
 >
 option is used, a signature is generated from
-<VAR
+<CODE
 CLASS="PARAMETER"
->keyname:secret.</VAR
+>keyname:secret.</CODE
 >
-<VAR
+<CODE
 CLASS="PARAMETER"
->keyname</VAR
+>keyname</CODE
 >
 is the name of the key,
 and
-<VAR
+<CODE
 CLASS="PARAMETER"
->secret</VAR
+>secret</CODE
 >
 is the base64 encoded shared secret.
 Use of the
-<VAR
+<CODE
 CLASS="OPTION"
->-y</VAR
+>-y</CODE
 >
 option is discouraged because the shared secret is supplied as a command
 line argument in clear text.
@@ -257,9 +261,9 @@ CLASS="COMMAND"
 >
 uses UDP to send update requests to the name server.
 The
-<VAR
+<CODE
 CLASS="OPTION"
->-v</VAR
+>-v</CODE
 >
 option makes
 <B
@@ -282,9 +286,9 @@ CLASS="COMMAND"
 >nsupdate</B
 >
 reads input from
-<VAR
+<CODE
 CLASS="PARAMETER"
->filename</VAR
+>filename</CODE
 >
 or standard input.
 Each command is supplied on exactly one line of input.
@@ -323,9 +327,9 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Sends all dynamic update requests to the name server
-<VAR
+<CODE
 CLASS="PARAMETER"
->servername</VAR
+>servername</CODE
 >.
 When no server statement is provided,
 <B
@@ -335,14 +339,14 @@ CLASS="COMMAND"
 will send updates to the master server of the correct zone.
 The MNAME field of that zone's SOA record will identify the master
 server for that zone.
-<VAR
+<CODE
 CLASS="PARAMETER"
->port</VAR
+>port</CODE
 >
 is the port number on
-<VAR
+<CODE
 CLASS="PARAMETER"
->servername</VAR
+>servername</CODE
 >
 where the dynamic update requests get sent.
 If no port number is specified, the default DNS port number of 53 is
@@ -358,9 +362,9 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Sends all dynamic update requests using the local
-<VAR
+<CODE
 CLASS="PARAMETER"
->address</VAR
+>address</CODE
 >.
 
 When no local statement is provided,
@@ -369,9 +373,9 @@ CLASS="COMMAND"
 >nsupdate</B
 >
 will send updates using an address and port chosen by the system.
-<VAR
+<CODE
 CLASS="PARAMETER"
->port</VAR
+>port</CODE
 >
 can additionally be used to make requests come from a specific port.
 If no port number is specified, the system will assign one.&#13;</P
@@ -386,14 +390,14 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Specifies that all updates are to be made to the zone
-<VAR
+<CODE
 CLASS="PARAMETER"
->zonename</VAR
+>zonename</CODE
 >.
 If no
-<VAR
+<CODE
 CLASS="PARAMETER"
->zone</VAR
+>zone</CODE
 >
 statement is provided,
 <B
@@ -412,13 +416,13 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Specify the default class.
-If no <VAR
+If no <CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 > is specified the default class is
-<VAR
+<CODE
 CLASS="PARAMETER"
->IN</VAR
+>IN</CODE
 >.</P
 ></DD
 ><DT
@@ -431,24 +435,24 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Specifies that all updates are to be TSIG signed using the
-<VAR
+<CODE
 CLASS="PARAMETER"
->keyname</VAR
-> <VAR
+>keyname</CODE
+> <CODE
 CLASS="PARAMETER"
->keysecret</VAR
+>keysecret</CODE
 > pair.
 The <B
 CLASS="COMMAND"
 >key</B
 > command
 overrides any key specified on the command line via
-<VAR
+<CODE
 CLASS="OPTION"
->-y</VAR
-> or <VAR
+>-y</CODE
+> or <CODE
 CLASS="OPTION"
->-k</VAR
+>-k</CODE
 >.</P
 ></DD
 ><DT
@@ -461,9 +465,9 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Requires that no resource record of any type exists with name
-<VAR
+<CODE
 CLASS="PARAMETER"
->domain-name</VAR
+>domain-name</CODE
 >.</P
 ></DD
 ><DT
@@ -476,9 +480,9 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Requires that
-<VAR
+<CODE
 CLASS="PARAMETER"
->domain-name</VAR
+>domain-name</CODE
 >
 exists (has as at least one resource record, of any type).</P
 ></DD
@@ -492,23 +496,23 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Requires that no resource record exists of the specified
-<VAR
+<CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 >,
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >
 and
-<VAR
+<CODE
 CLASS="PARAMETER"
->domain-name</VAR
+>domain-name</CODE
 >.
 If
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >
 is omitted, IN (internet) is assumed.</P
 ></DD
@@ -522,24 +526,24 @@ CLASS="COMMAND"
 ><DD
 ><P
 >This requires that a resource record of the specified
-<VAR
+<CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 >,
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >
 and
-<VAR
+<CODE
 CLASS="PARAMETER"
->domain-name</VAR
+>domain-name</CODE
 >
 must exist.
 If
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >
 is omitted, IN (internet) is assumed.</P
 ></DD
@@ -553,45 +557,45 @@ CLASS="COMMAND"
 ><DD
 ><P
 >The
-<VAR
+<CODE
 CLASS="PARAMETER"
->data</VAR
+>data</CODE
 >
 from each set of prerequisites of this form
 sharing a common
-<VAR
+<CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 >,
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >,
 and 
-<VAR
+<CODE
 CLASS="PARAMETER"
->domain-name</VAR
+>domain-name</CODE
 >
 are combined to form a set of RRs.  This set of RRs must
 exactly match the set of RRs existing in the zone at the
 given 
-<VAR
+<CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 >,
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >,
 and 
-<VAR
+<CODE
 CLASS="PARAMETER"
->domain-name</VAR
+>domain-name</CODE
 >.
 The
-<VAR
+<CODE
 CLASS="PARAMETER"
->data</VAR
+>data</CODE
 >
 are written in the standard text representation of the resource record's
 RDATA.</P
@@ -606,30 +610,30 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Deletes any resource records named
-<VAR
+<CODE
 CLASS="PARAMETER"
->domain-name</VAR
+>domain-name</CODE
 >.
 If
-<VAR
+<CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 >
 and
-<VAR
+<CODE
 CLASS="PARAMETER"
->data</VAR
+>data</CODE
 >
 is provided, only matching resource records will be removed.
 The internet class is assumed if
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >
 is not supplied.  The
-<VAR
+<CODE
 CLASS="PARAMETER"
->ttl</VAR
+>ttl</CODE
 >
 is ignored, and is only allowed for compatibility.</P
 ></DD
@@ -643,18 +647,18 @@ CLASS="COMMAND"
 ><DD
 ><P
 >Adds a new resource record with the specified
-<VAR
+<CODE
 CLASS="PARAMETER"
->ttl</VAR
+>ttl</CODE
 >,
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >
 and
-<VAR
+<CODE
 CLASS="PARAMETER"
->data</VAR
+>data</CODE
 >.</P
 ></DD
 ><DT

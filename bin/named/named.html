@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.html,v 1.4.2.4 2004/08/22 23:35:46 marka Exp $ -->
+<!-- $Id: named.html,v 1.4.2.5 2005/04/03 03:31:40 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >named</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -62,60 +62,74 @@ NAME="AEN13"
 ><B
 CLASS="COMMAND"
 >named</B
->  [<VAR
+>  [<CODE
 CLASS="OPTION"
->-c <VAR
+>-c <TT
 CLASS="REPLACEABLE"
->config-file</VAR
-></VAR
->] [<VAR
+><I
+>config-file</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-d <VAR
+>-d <TT
 CLASS="REPLACEABLE"
->debug-level</VAR
-></VAR
->] [<VAR
+><I
+>debug-level</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-f</VAR
->] [<VAR
+>-f</CODE
+>] [<CODE
 CLASS="OPTION"
->-g</VAR
->] [<VAR
+>-g</CODE
+>] [<CODE
 CLASS="OPTION"
->-n <VAR
+>-n <TT
 CLASS="REPLACEABLE"
->#cpus</VAR
-></VAR
->] [<VAR
+><I
+>#cpus</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-p <VAR
+>-p <TT
 CLASS="REPLACEABLE"
->port</VAR
-></VAR
->] [<VAR
+><I
+>port</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-s</VAR
->] [<VAR
+>-s</CODE
+>] [<CODE
 CLASS="OPTION"
->-t <VAR
+>-t <TT
 CLASS="REPLACEABLE"
->directory</VAR
-></VAR
->] [<VAR
+><I
+>directory</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-u <VAR
+>-u <TT
 CLASS="REPLACEABLE"
->user</VAR
-></VAR
->] [<VAR
+><I
+>user</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-v</VAR
->] [<VAR
+>-v</CODE
+>] [<CODE
 CLASS="OPTION"
->-x <VAR
+>-x <TT
 CLASS="REPLACEABLE"
->cache-file</VAR
-></VAR
+><I
+>cache-file</I
+></TT
+></CODE
 >]</P
 ></DIV
 ><DIV
@@ -159,15 +173,19 @@ NAME="AEN52"
 CLASS="VARIABLELIST"
 ><DL
 ><DT
->-c <VAR
+>-c <TT
 CLASS="REPLACEABLE"
->config-file</VAR
+><I
+>config-file</I
+></TT
 ></DT
 ><DD
 ><P
->		Use <VAR
+>		Use <TT
 CLASS="REPLACEABLE"
->config-file</VAR
+><I
+>config-file</I
+></TT
 > as the
 		configuration file instead of the default,
 		<TT
@@ -177,27 +195,33 @@ CLASS="FILENAME"
 		ensure that reloading the configuration file continues
 		to work after the server has changed its working
 		directory due to to a possible
-		<VAR
+		<CODE
 CLASS="OPTION"
->directory</VAR
+>directory</CODE
 > option in the configuration
-		file, <VAR
+		file, <TT
 CLASS="REPLACEABLE"
->config-file</VAR
+><I
+>config-file</I
+></TT
 > should be
 		an absolute pathname.
           </P
 ></DD
 ><DT
->-d <VAR
+>-d <TT
 CLASS="REPLACEABLE"
->debug-level</VAR
+><I
+>debug-level</I
+></TT
 ></DT
 ><DD
 ><P
->		Set the daemon's debug level to <VAR
+>		Set the daemon's debug level to <TT
 CLASS="REPLACEABLE"
->debug-level</VAR
+><I
+>debug-level</I
+></TT
 >.
 		Debugging traces from <B
 CLASS="COMMAND"
@@ -225,15 +249,19 @@ CLASS="FILENAME"
           </P
 ></DD
 ><DT
->-n <VAR
+>-n <TT
 CLASS="REPLACEABLE"
->#cpus</VAR
+><I
+>#cpus</I
+></TT
 ></DT
 ><DD
 ><P
->		Create <VAR
+>		Create <TT
 CLASS="REPLACEABLE"
->#cpus</VAR
+><I
+>#cpus</I
+></TT
 > worker threads
 		to take advantage of multiple CPUs.  If not specified,
 		<B
@@ -246,15 +274,19 @@ CLASS="COMMAND"
           </P
 ></DD
 ><DT
->-p <VAR
+>-p <TT
 CLASS="REPLACEABLE"
->port</VAR
+><I
+>port</I
+></TT
 ></DT
 ><DD
 ><P
->		Listen for queries on port <VAR
+>		Listen for queries on port <TT
 CLASS="REPLACEABLE"
->port</VAR
+><I
+>port</I
+></TT
 >.  If not
 		specified, the default is port 53.
           </P
@@ -282,18 +314,22 @@ CLASS="NOTE"
 ></DIV
 ></DD
 ><DT
->-t <VAR
+>-t <TT
 CLASS="REPLACEABLE"
->directory</VAR
+><I
+>directory</I
+></TT
 ></DT
 ><DD
 ><P
 >		<CODE
 CLASS="FUNCTION"
 >chroot()</CODE
-> to <VAR
+> to <TT
 CLASS="REPLACEABLE"
->directory</VAR
+><I
+>directory</I
+></TT
 > after
 		processing the command line arguments, but before
 		reading the configuration file.
@@ -318,9 +354,9 @@ ALIGN="CENTER"
 ALIGN="LEFT"
 ><P
 >		This option should be used in conjunction with the
-		<VAR
+		<CODE
 CLASS="OPTION"
->-u</VAR
+>-u</CODE
 > option, as chrooting a process
 		running as root doesn't enhance security on most
 		systems; the way <CODE
@@ -336,18 +372,22 @@ CLASS="FUNCTION"
 ></DIV
 ></DD
 ><DT
->-u <VAR
+>-u <TT
 CLASS="REPLACEABLE"
->user</VAR
+><I
+>user</I
+></TT
 ></DT
 ><DD
 ><P
 >		<CODE
 CLASS="FUNCTION"
 >setuid()</CODE
-> to <VAR
+> to <TT
 CLASS="REPLACEABLE"
->user</VAR
+><I
+>user</I
+></TT
 > after completing
 		privileged operations, such as creating sockets that
 		listen on privileged ports.
@@ -369,9 +409,9 @@ CLASS="FUNCTION"
 >bind()</CODE
 > to a
 		privileged port and set process resource limits.
-		Unfortunately, this means that the <VAR
+		Unfortunately, this means that the <CODE
 CLASS="OPTION"
->-u</VAR
+>-u</CODE
 >
 		option only works when <B
 CLASS="COMMAND"
@@ -395,15 +435,19 @@ CLASS="FUNCTION"
           </P
 ></DD
 ><DT
->-x <VAR
+>-x <TT
 CLASS="REPLACEABLE"
->cache-file</VAR
+><I
+>cache-file</I
+></TT
 ></DT
 ><DD
 ><P
->		Load data from <VAR
+>		Load data from <TT
 CLASS="REPLACEABLE"
->cache-file</VAR
+><I
+>cache-file</I
+></TT
 > into the
 		cache of the default view.
           </P

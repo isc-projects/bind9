@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >BIND 9 Security Considerations</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
@@ -221,9 +221,9 @@ CLASS="emphasis"
 (<B
 CLASS="command"
 >chroot()</B
->) by specifying the "<VAR
+>) by specifying the "<CODE
 CLASS="option"
->-t</VAR
+>-t</CODE
 >"
 option. This can help improve system security by placing <ACRONYM
 CLASS="acronym"
@@ -235,12 +235,14 @@ a "sandbox," which will limit the damage done if a server is compromised.</P
 CLASS="acronym"
 >BIND</ACRONYM
 > is the
-ability to run the daemon as a nonprivileged user ( <VAR
+ability to run the daemon as a nonprivileged user ( <CODE
 CLASS="option"
->-u</VAR
-> <VAR
+>-u</CODE
+> <TT
 CLASS="replaceable"
->user</VAR
+><I
+>user</I
+></TT
 > ).
 We suggest running as a nonprivileged user when using the <B
 CLASS="command"
