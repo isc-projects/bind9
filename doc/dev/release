@@ -2,7 +2,7 @@ Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.58 2004/03/13 03:56:03 sra Exp $
+$Id: release,v 1.59 2004/03/13 04:08:07 sra Exp $
 
 Preparing a bind9 release
 
@@ -109,7 +109,7 @@ release.
    If you don't have the "iconv" library, you need to get it from
    http://clisp.cons.org/~haible/packages-libiconv.html and install it.
 
-   If you reading this part of these instructions in order to generate
+   If you're reading this part of these instructions in order to generate
    a version of the patch for a new release, you'll need to pick a
    version of the patch from some prior release to use as a starting
    point.  In general, the patch corresponding to the most recent
@@ -135,7 +135,7 @@ release.
    [ Sample on netbsd ... ]
    $ CFLAGS=-I/usr/local/include ./configure  '--with-iconv=-L/usr/local/lib -liconv'
 
-   [ Sample on freebsd -- formely used giconv, now uses iconv ]
+   [ Sample on freebsd -- formerly used giconv, now uses iconv ]
 	./configure --with-iconv-include=/usr/local/include \
               '--with-iconv=-L/usr/local/lib -liconv'
 
