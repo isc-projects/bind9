@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.123 2001/02/16 00:47:38 bwelling Exp $
+# $Id: Makefile.in,v 1.124 2001/03/05 22:48:51 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -38,14 +38,6 @@ OTHERSRCS = opt.c
 #endif /* DNS_OPT_NEWCODES */
 
 # Alphabetically
-
-CONFOBJS =	config/confacl.@O@ config/confcache.@O@ config/confcommon.@O@ \
-		config/confctl.@O@ config/confctx.@O@ \
-		config/confip.@O@ config/confkeys.@O@ \
-		config/conflog.@O@ config/conflsn.@O@ \
-		config/conflwres.@O@ config/confparser.@O@ \
-		config/confresolv.@O@ config/confrrset.@O@ \
-		config/confview.@O@ config/confzone.@O@
 
 DSTOBJS =	sec/dst/dst_api.@O@ \
 		sec/dst/dst_lib.@O@ sec/dst/dst_parse.@O@ \
@@ -106,7 +98,7 @@ OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
 		tsig.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@ \
-		${OTHEROBJS} ${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
+		${OTHEROBJS} ${DSTOBJS} @DST_OPENSSL_OBJS@
 
 # Alphabetically
 SRCS =		a6.c acl.c adb.c byaddr.c \
@@ -123,7 +115,7 @@ SRCS =		a6.c acl.c adb.c byaddr.c \
 		tsig.c ttl.c validator.c \
 		version.c view.c xfrin.c zone.c zonekey.c zt.c ${OTHERSRCS}
 
-SUBDIRS =	include sec config
+SUBDIRS =	include sec
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
 		include/dns/rdatastruct.h timestamp
 
