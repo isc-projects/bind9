@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.83 2000/07/13 21:00:59 mws Exp $ */
+/* $Id: dighost.c,v 1.84 2000/07/13 21:12:21 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -260,6 +260,7 @@ make_empty_lookup(void) {
 	looknew->identify = ISC_FALSE;
 	looknew->udpsize = 0;
 	looknew->recurse = ISC_TRUE;
+	looknew->aaonly = ISC_FALSE;
 	looknew->adflag = ISC_FALSE;
 	looknew->cdflag = ISC_FALSE;
 	looknew->ns_search_only = ISC_FALSE;
@@ -303,6 +304,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->identify = lookold->identify;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
+        looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
 	looknew->ns_search_only = lookold->ns_search_only;
@@ -1140,6 +1142,11 @@ setup_lookup(dig_lookup_t *lookup) {
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
 	}
 
+	if (lookup->aaonly) {
+		debug("AA query");
+		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_AA;
+	}
+	
 	if (lookup->adflag) {
 		debug("AD query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_AD;
