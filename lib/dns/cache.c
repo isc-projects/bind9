@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45 2001/07/02 20:44:30 gson Exp $ */
+/* $Id: cache.c,v 1.46 2001/10/18 01:40:56 gson Exp $ */
 
 #include <config.h>
 
@@ -622,16 +622,10 @@ cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == cleaner->task);
 	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
 
-	if (cleaner->state == cleaner_s_idle) {
+	if (cleaner->state == cleaner_s_idle)
 		begin_cleaning(cleaner);
 
-		isc_event_free(&event);
-	} else
-		/*
-		 * incremental_cleaning_action() takes responsibility
-		 * for freeing or preserving the event.
-		 */
-		incremental_cleaning_action(task, event);
+	isc_event_free(&event);
 }
 
 /*
@@ -679,8 +673,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	INSIST(task == cleaner->task);
-	INSIST(event->ev_type == DNS_EVENT_CACHECLEAN ||
-	       event->ev_type == ISC_TIMEREVENT_TICK);
+	INSIST(event->ev_type == DNS_EVENT_CACHECLEAN);
 
 	if (cleaner->state == cleaner_s_done) {
 		cleaner->state = cleaner_s_busy;
