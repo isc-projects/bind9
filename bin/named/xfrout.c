@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.17 1999/10/25 13:25:43 marka Exp $ */
+ /* $Id: xfrout.c,v 1.18 1999/10/25 20:22:39 gson Exp $ */
 
 #include <config.h>
 
@@ -47,6 +47,7 @@
 #include <dns/zone.h>
 #include <dns/zt.h>
 
+#include <named/globals.h>
 #include <named/client.h>
 #include <named/xfrout.h>
 
@@ -1205,7 +1206,8 @@ sendstream(xfrout_ctx_t *xfr)
 		}
 		CHECK(result);
 
-		if (0)	/* XXX "if (config->xfr_format == one_answer)" */
+		/* XXX per-server, too */
+		if (ns_g_confctx->options->transfer_format == dns_one_answer)
 			break;
 	}
 
