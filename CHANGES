@@ -36,6 +36,10 @@
 			in named.conf prior to reference.  They can be
 			defined after being referenced.
 
+1819.	[bug]		The validator needed to check both the algorithm and
+			digest types of the DS to determine if it could be
+			used to introduce a secure zone. [RT #13593]
+
 1816.	[port]		UnixWare: failed to compile lib/isc/unix/net.c.
 			[RT #13597]
 
