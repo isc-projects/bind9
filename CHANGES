@@ -1,3 +1,8 @@
+
+ 988.	[bug]		'additional-from-auth no;' did not work reliably
+			in the case of queries answered from the cache.
+			[RT #1436]
+
  987.	[bug]		"dig -help" didn't show "+[no]stats".
 
  986.	[bug]		"dig +noall" failed to clear stats and command
