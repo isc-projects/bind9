@@ -77,6 +77,7 @@ static isc_mutex_t listeners_lock;
 static isc_once_t once = ISC_ONCE_INIT;
 
 static void control_newconn(isc_task_t *task, isc_event_t *event);
+static void control_recvmessage(isc_task_t *task, isc_event_t *event);
 
 static void
 initialize_mutex(void) {
@@ -228,6 +229,7 @@ control_senddone(isc_task_t *task, isc_event_t *event) {
 	controlconnection_t *conn = event->ev_arg;
 	controllistener_t *listener = conn->listener;
 	isc_socket_t *sock = (isc_socket_t *)sevent->ev_sender;
+	isc_result_t result;
 
 	REQUIRE(conn->sending);
 
@@ -249,9 +251,14 @@ control_senddone(isc_task_t *task, isc_event_t *event) {
 			      socktext, isc_result_totext(sevent->result));
 	}
 	isc_event_free(&event);
-	isc_socket_detach(&conn->sock);
-	maybe_free_connection(conn);
-	maybe_free_listener(listener);
+
+	result = isccc_ccmsg_readmessage(&conn->ccmsg, listener->task,
+					 control_recvmessage, conn);
+	if (result != ISC_R_SUCCESS) {
+		isc_socket_detach(&conn->sock);
+		maybe_free_connection(conn);
+		maybe_free_listener(listener);
+	}
 }
 
 static inline void
@@ -290,7 +297,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	key = ISC_LIST_HEAD(listener->keys);
 
 	if (conn->ccmsg.result != ISC_R_SUCCESS) {
-		if (conn->ccmsg.result != ISC_R_CANCELED)
+		if (conn->ccmsg.result != ISC_R_CANCELED &&
+		    conn->ccmsg.result != ISC_R_EOF)
 			log_invalid(&conn->ccmsg, conn->ccmsg.result);
 		goto cleanup;
 	}
@@ -345,8 +353,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	conn->sending = ISC_TRUE;
 
-	isccc_ccmsg_invalidate(&conn->ccmsg);
-	conn->ccmsg_valid = ISC_FALSE;
 	if (request != NULL)
 		isccc_sexpr_free(&request);
 	if (request != NULL)
