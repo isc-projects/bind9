@@ -42,8 +42,11 @@ SRCS =          lwtest.c
 
 @BIND9_MAKE_RULES@
 
+all: lwtest
+
 lwtest: ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
+
