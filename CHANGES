@@ -1,6 +1,9 @@
 
 1426.   [cleanup]	Disable RFC2535 style DNSSEC.  This is incompatible
+
 			with the forth coming DS style DNSSEC.
+
+1382.	[bug]		make install failed with --enable-libbind. [RT #3656]
 
 	--- 9.2.2rc1 released ---
 
