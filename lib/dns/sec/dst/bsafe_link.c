@@ -19,13 +19,12 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.7 1999/10/08 13:08:56 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.8 1999/10/08 22:14:24 tale Exp $
  */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <memory.h>
@@ -425,12 +424,12 @@ dst_bsafe_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	if (pub->exponent.len < 256) {  /* key exponent is <= 2040 bits */
 		if (r.length < 1 + pub->exponent.len + pub->modulus.len)
 			return(DST_R_NOSPACE);
-		isc_buffer_putuint8(data, pub->exponent.len);
+		isc_buffer_putuint8(data, (isc_uint8_t)pub->exponent.len);
 	} else {			/*  key exponent is > 2040 bits */
 		if (r.length < 3 + pub->exponent.len + pub->modulus.len)
 			return(DST_R_NOSPACE);
 		isc_buffer_putuint8(data, 0);
-		isc_buffer_putuint16(data, pub->exponent.len);
+		isc_buffer_putuint16(data, (isc_uint16_t)pub->exponent.len);
 	}
 
 	isc_buffer_available(data, &r);
