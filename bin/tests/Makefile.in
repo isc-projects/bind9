@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.101 2000/08/17 02:11:44 bwelling Exp $
+# $Id: Makefile.in,v 1.102 2000/08/22 01:11:52 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -77,6 +77,7 @@ XTARGETS =	adb_test \
 		rwlock_test \
 		serial_test \
 		shutdown_test \
+		sig0_test \
 		sock_test \
 		sym_test \
 		task_test \
@@ -119,6 +120,7 @@ SRCS =		adb_test.c \
 		rwlock_test.c \
 		serial_test.c \
 		shutdown_test.c \
+		sig0_test.c \
 		sock_test.c \
 		sym_test.c \
 		task_test.c \
@@ -293,6 +295,10 @@ gxbn_test: gxbn_test.@O@ ${LWRESDEPLIBS}
 gxba_test: gxba_test.@O@ ${LWRESDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ gxba_test.@O@ \
 		${LWRESLIBS} ${ISCLIBS} ${LIBS}
+
+sig0_test: sig0_test.@O@ ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sig0_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 distclean::
 	rm -f headerdep_test.sh
