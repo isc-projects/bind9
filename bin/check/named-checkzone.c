@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13 2001/06/29 01:04:59 gson Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.1 2002/01/22 23:34:56 gson Exp $ */
 
 #include <config.h>
 
@@ -156,6 +156,8 @@ main(int argc, char **argv) {
 		dns_log_init(lctx);
 		dns_log_setcontext(lctx);
 	}
+
+	dns_result_register();
 
 	origin = argv[isc_commandline_index++];
 	filename = argv[isc_commandline_index++];

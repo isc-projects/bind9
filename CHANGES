@@ -8,6 +8,11 @@
 			for clients that are supplied recursive service.
 			[RT #2260]
 
+1175.	[bug]		named-checkzone failed to call dns_result_register()
+			at startup which could result in runtime
+			exceptions when printing "out of memory" errors.
+			[RT #2335]
+
 1165.	[bug]		We were rejecting notify-source{-v6} in zone clauses.
 
 1164.	[bug]		Empty masters clauses in slave / stub zones were not
