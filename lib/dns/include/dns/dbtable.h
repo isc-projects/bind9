@@ -18,24 +18,23 @@
 #include <isc/mem.h>
 
 #include <dns/result.h>
-#include <dns/name.h>
-
-typedef struct dns_dbtable dns_dbtable_t;
+#include <dns/types.h>
 
 dns_result_t
-dns_dbtable_create(isc_mem_t *mctx, dns_dbtable_t **dbtablep);
+dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		   dns_dbtable_t **dbtablep);
 /*
- * Make a new dbtable.
+ * Make a new dbtable of class 'rdclass'
  *
  * Requires:
  *	mctx != NULL
  * 	dbtablep != NULL && *dptablep == NULL
- *
- * Ensures:
- *
+ *	'rdclass' is a valid class
  *
  * Returns:
- *	
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMEMORY
+ *	DNS_R_UNEXPECTED
  */
 
 void
@@ -52,6 +51,11 @@ dns_result_t
 dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db);
 /*
  * Add 'db' to 'dbtable'.
+ *
+ * Requires:
+ *	'dbtable' is a valid dbtable.
+ *
+ *	'db' is a valid database with the same class as 'dbtable'
  */
 
 void

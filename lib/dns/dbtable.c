@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.5 1999/04/14 12:29:39 tale Exp $
+ * $Id: dbtable.c,v 1.6 1999/04/20 22:26:49 halley Exp $
  */
 
 /*
@@ -37,8 +37,8 @@ struct dns_dbtable {
 	/* Unlocked. */
 	unsigned int		magic;
 	isc_mem_t *		mctx;
+	dns_rdataclass_t	rdclass;
 	isc_rwlock_t		tree_lock;
-	/* XXXRTH need reference count? */
 	/* Locked by tree_lock. */
 	dns_rbt_t *		rbt;
 	dns_db_t *		default_db;
@@ -49,10 +49,11 @@ struct dns_dbtable {
 				 (dbtable)->magic == DBTABLE_MAGIC)
 
 dns_result_t
-dns_dbtable_create(isc_mem_t *mctx, dns_dbtable_t **dbtablep) {
+dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		   dns_dbtable_t **dbtablep)
+{
 	dns_dbtable_t *dbtable;
-	dns_result_t dresult;
-	dns_result_t iresult;
+	dns_result_t result;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(dbtablep != NULL && *dbtablep == NULL);
@@ -61,24 +62,25 @@ dns_dbtable_create(isc_mem_t *mctx, dns_dbtable_t **dbtablep) {
 	if (dbtable == NULL)
 		return (DNS_R_NOMEMORY);
 
-	dresult = dns_rbt_create(mctx, NULL, NULL, &dbtable->rbt);
-	if (dresult != DNS_R_SUCCESS) {
+	result = dns_rbt_create(mctx, NULL, NULL, &dbtable->rbt);
+	if (result != DNS_R_SUCCESS) {
 		isc_mem_put(mctx, dbtable, sizeof(*dbtable));
-		return (dresult);
+		return (result);
 	}
 
-	iresult = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
+	if (result != ISC_R_SUCCESS) {
 		dns_rbt_destroy(&dbtable->rbt);
 		isc_mem_put(mctx, dbtable, sizeof(*dbtable));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(iresult));
+				 isc_result_totext(result));
 		return (DNS_R_UNEXPECTED);
 	}
 
 	dbtable->default_db = NULL;
 	dbtable->mctx = mctx;
+	dbtable->rdclass = rdclass;
 	dbtable->magic = DBTABLE_MAGIC;
 
 	*dbtablep = dbtable;
@@ -120,6 +122,7 @@ dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db) {
 	dns_db_t *clone;
 
 	REQUIRE(VALID_DBTABLE(dbtable));
+	REQUIRE(dns_db_class(db) == dbtable->rdclass);
 
 	clone = NULL;
 	dns_db_attach(db, &clone);
