@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.15 2000/06/21 21:56:29 tale Exp $ */
+/* $Id: base64.c,v 1.15.2.1 2000/07/11 23:11:15 gson Exp $ */
 
 #include <config.h>
 
@@ -159,6 +159,39 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		return (ISC_R_BADBASE64);
 	return (ISC_R_SUCCESS);
 }
+
+isc_result_t
+isc_base64_decodestring(isc_mem_t *mctx, char *cstr, isc_buffer_t *target) {
+	isc_result_t result;
+	isc_buffer_t source;
+	isc_lex_t *lex = NULL;
+	isc_boolean_t isopen = ISC_FALSE;
+
+	REQUIRE(mctx != NULL);
+	REQUIRE(cstr != NULL);
+	REQUIRE(ISC_BUFFER_VALID(target));
+
+	isc_buffer_init(&source, cstr, strlen(cstr));
+	isc_buffer_add(&source, strlen(cstr));
+
+	result = isc_lex_create(mctx, 256, &lex);
+
+	if (result == ISC_R_SUCCESS)
+		result = isc_lex_openbuffer(lex, &source);
+
+	if (result == ISC_R_SUCCESS) {
+		isopen = ISC_TRUE;
+		result = isc_base64_tobuffer(lex, target, -1);
+	}	
+
+	if (isopen)
+		(void)isc_lex_close(lex);
+	if (lex != NULL)
+		isc_lex_destroy(&lex);
+
+	return (result);
+}
+
 
 static isc_result_t
 str_totext(const char *source, isc_buffer_t *target) {

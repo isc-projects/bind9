@@ -1,3 +1,4 @@
+ 328.	[func]		Added isc_base64_decodestring().
 
  325.	[bug]		isc_lex_gettoken was processing octal strings when
 			ISC_LEXOPT_CNUMBER was not set.
