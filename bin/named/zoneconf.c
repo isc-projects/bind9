@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.84 2001/03/05 12:04:46 tale Exp $ */
+/* $Id: zoneconf.c,v 1.85 2001/04/12 21:09:35 tale Exp $ */
 
 #include <config.h>
 
@@ -309,7 +309,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	char **dbargv;
 	static char default_dbtype[] = "rbt";
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
-	dns_dialuptype_t dialup = dns_notifytype_no;
+	dns_dialuptype_t dialup = dns_dialuptype_no;
 	dns_zonetype_t ztype;
 	int i;
 
