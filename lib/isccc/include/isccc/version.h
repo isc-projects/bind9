@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.h,v 1.2 2001/11/19 03:08:35 mayer Exp $ */
+/* $Id: version.h,v 1.2.222.1 2003/10/10 05:54:19 marka Exp $ */
 
 #include <isc/platform.h>
 
