@@ -1,3 +1,5 @@
+ 687.	[bug]		Only say we have IPv6, with sufficent functionality,
+			if it has actually been tested.  [RT #586]
 
  686.	[bug]		dig and nslookup can now be properly aborted during
 			blocking operations. [RT #568]
