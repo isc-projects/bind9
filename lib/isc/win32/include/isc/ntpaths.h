@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.9 2001/07/27 17:45:29 gson Exp $ */
+/* $Id: ntpaths.h,v 1.10 2001/07/28 02:50:39 mayer Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -44,20 +44,17 @@ enum NtPaths {
 };
 
 /*
- * Define a macro to get the path of the RNDC config file
+ * Define macros to get the path of the config files
  */
+#define NAMED_CONFFILE isc_ntpaths_get(NAMED_CONF_PATH)
 #define RNDC_CONFFILE isc_ntpaths_get(RNDC_CONF_PATH)
 #define RNDC_AUTOCONFFILE isc_ntpaths_get(NAMED_KEY_PATH)
-
-#define NAMED_CONFFILE isc_ntpaths_get(NAMED_CONF_PATH)
 
 /*
  * Information about where the files are on disk
  */
 #define NS_LOCALSTATEDIR	"/dns/bin"
 #define NS_SYSCONFDIR		"/dns/etc"
-
-#define RNDC_AUTOCONFFILE NS_LOCALSTATEDIR "/run/named.key"
 
 ISC_LANG_BEGINDECLS
 
