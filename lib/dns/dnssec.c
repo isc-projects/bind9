@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.34 2000/05/08 14:34:34 tale Exp $
+ * $Id: dnssec.c,v 1.35 2000/05/17 02:15:08 mws Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -405,7 +405,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 */
 	dns_rdata_toregion(sigrdata, &r);
 	r.length -= sig.siglen;
-	RUNTIME_CHECK(r.length >= 20);
+	RUNTIME_CHECK(r.length >= 19);
 	
 	ret = dst_verify(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
 			 key, &ctx, &r, NULL);
