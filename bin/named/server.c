@@ -38,6 +38,9 @@
 
 #include <dns/aclconf.h>
 #include <dns/cache.h>
+#include <dns/confacl.h>
+#include <dns/confctx.h>
+#include <dns/confip.h>
 #include <dns/confparser.h>
 #include <dns/db.h>
 #include <dns/fixedname.h>
@@ -98,6 +101,14 @@ typedef struct {
 
 static void fatal(char *msg, isc_result_t result);
 static void ns_server_reload(isc_task_t *task, isc_event_t *event);
+static isc_result_t
+ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
+			dns_aclconfctx_t *actx,
+			isc_mem_t *mctx, ns_listenelt_t **target);
+static isc_result_t
+ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
+			 dns_aclconfctx_t *actx,
+			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 /*
  * Configure 'view' according to 'cctx'.
@@ -835,3 +846,62 @@ ns_server_reloadwanted(ns_server_t *server) {
 		isc_task_send(server->task, &server->reload_event);
 	UNLOCK(&server->reload_event_lock);
 }
+
+isc_result_t
+ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
+			  dns_aclconfctx_t *actx,
+			  isc_mem_t *mctx, ns_listenlist_t **target)
+{
+	dns_c_lstnon_t *ce;
+	isc_result_t result;
+	ns_listenlist_t *dlist = NULL;
+		
+	REQUIRE(target != NULL && *target == NULL);
+
+	result = ns_listenlist_create(mctx, &dlist);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	
+	for (ce = ISC_LIST_HEAD(clist->elements);
+	     ce != NULL;
+	     ce = ISC_LIST_NEXT(ce, next))
+	{
+		ns_listenelt_t *delt = NULL;
+		result = ns_listenelt_fromconfig(ce, cctx, actx, mctx, &delt);
+		if (result != DNS_R_SUCCESS)
+			goto cleanup;
+		ISC_LIST_APPEND(dlist->elts, delt, link);
+	}
+	*target = dlist;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	ns_listenlist_detach(&dlist);
+	return (result);
+}
+
+/*
+ * Create a listen list from the corresponding configuration
+ * data structure.
+ */
+static isc_result_t
+ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
+			 dns_aclconfctx_t *actx,
+			 isc_mem_t *mctx, ns_listenelt_t **target)
+{
+	isc_result_t result;
+	ns_listenelt_t *delt = NULL;
+	REQUIRE(target != NULL && *target == NULL);
+	result = ns_listenelt_create(mctx, celt->port, NULL, &delt);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = dns_acl_fromconfig(celt->iml, cctx, actx, mctx, &delt->acl);
+	if (result != DNS_R_SUCCESS) {
+		ns_listenelt_destroy(delt);
+		return (result);
+	}
+	*target = delt;
+	return (ISC_R_SUCCESS);
+}
+

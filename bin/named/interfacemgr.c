@@ -33,6 +33,7 @@
 #include <isc/interfaceiter.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/dispatch.h>
 
 #include <named/client.h>

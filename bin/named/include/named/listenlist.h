@@ -30,10 +30,7 @@
  *** Imports
  ***/
 
-#include <dns/aclconf.h>
-#include <dns/confacl.h>
-#include <dns/confctx.h>
-#include <dns/confip.h>
+#include <dns/types.h>
 
 /***
  *** Types
@@ -62,13 +59,20 @@ struct ns_listenlist {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
-			 dns_aclconfctx_t *actx,
-			 isc_mem_t *mctx, ns_listenlist_t **target);
-/*
- * Create a listen list from the corresponding configuration
- * data structure.
- */
+ns_listenelt_create(isc_mem_t *mctx, in_port_t port,
+		    dns_acl_t *acl, ns_listenelt_t **target);
+
+void
+ns_listenelt_destroy(ns_listenelt_t *elt);
+
+isc_result_t
+ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target);
+
+void
+ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target);
+
+void
+ns_listenlist_detach(ns_listenlist_t **listp);
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port,
@@ -77,12 +81,6 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port,
  * Create a listen-on list with default contents, matching
  * all addresses with port 'port'.
  */
-
-void
-ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target);
-
-void
-ns_listenlist_detach(ns_listenlist_t **listp);
 
 ISC_LANG_ENDDECLS
 

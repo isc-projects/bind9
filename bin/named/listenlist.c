@@ -21,11 +21,13 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 
+#include <dns/acl.h>
+
 #include <named/listenlist.h>
 
 static void destroy(ns_listenlist_t *list);
 
-static isc_result_t
+isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port,
 		    dns_acl_t *acl, ns_listenelt_t **target)
 {
@@ -42,35 +44,14 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port,
 	return (ISC_R_SUCCESS);
 }
 
-static void
+void
 ns_listenelt_destroy(ns_listenelt_t *elt) {
 	if (elt->acl != NULL)
 		dns_acl_detach(&elt->acl);
 	isc_mem_put(elt->mctx, elt, sizeof(*elt));
 }
 
-static isc_result_t
-ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
-			 dns_aclconfctx_t *actx,
-			 isc_mem_t *mctx, ns_listenelt_t **target)
-{
-	isc_result_t result;
-	ns_listenelt_t *delt = NULL;
-	REQUIRE(target != NULL && *target == NULL);
-	result = ns_listenelt_create(mctx, celt->port, NULL, &delt);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = dns_acl_fromconfig(celt->iml, cctx, actx, mctx, &delt->acl);
-	if (result != DNS_R_SUCCESS) {
-		ns_listenelt_destroy(delt);
-		return (result);
-	}
-	*target = delt;
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
+isc_result_t
 ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target) {
 	ns_listenlist_t *list = NULL;
 	REQUIRE(target != NULL && *target == NULL);
@@ -82,39 +63,6 @@ ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target) {
 	ISC_LIST_INIT(list->elts);
 	*target = list;
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
-			  dns_aclconfctx_t *actx,
-			  isc_mem_t *mctx, ns_listenlist_t **target)
-{
-	dns_c_lstnon_t *ce;
-	isc_result_t result;
-	ns_listenlist_t *dlist = NULL;
-		
-	REQUIRE(target != NULL && *target == NULL);
-
-	result = ns_listenlist_create(mctx, &dlist);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	
-	for (ce = ISC_LIST_HEAD(clist->elements);
-	     ce != NULL;
-	     ce = ISC_LIST_NEXT(ce, next))
-	{
-		ns_listenelt_t *delt = NULL;
-		result = ns_listenelt_fromconfig(ce, cctx, actx, mctx, &delt);
-		if (result != DNS_R_SUCCESS)
-			goto cleanup;
-		ISC_LIST_APPEND(dlist->elts, delt, link);
-	}
-	*target = dlist;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	destroy(dlist);
-	return (result);
 }
 
 static void
