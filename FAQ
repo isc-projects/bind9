@@ -16,3 +16,18 @@ hack.
 of a security risk than a root process that has not dropped privileges.
 
   If Linux threads ever work correctly, this restriction will go away.
+
+
+Q: Why does named log the error message "no TTL specified" and refuse
+to load my zone file?
+
+A: Your zone file must either have a line like
+
+   $TTL 86400
+
+at the beginning, or the first record in it must have a TTL field,
+like the "84600" in this example:
+
+   example.com. 86400 IN SOA ns hostmaster ( 1 3600 1800 1814400 3600 )
+
+BIND 8 incorrectly accepted files that had neither.
