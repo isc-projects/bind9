@@ -1,5 +1,9 @@
 	--- 9.0.0b5 released ---
 
+ 298.	[bug]		A mutex deadlock occurred during shutdown of the
+			interface manager under certain conditions.
+			Digital Unix systems were the most affected.
+
  297.   [bug]           Specifying a key name that wasn't fully qualified
                         in certain parts of the config file could cause
                         an assertion failure.
@@ -15,7 +19,6 @@
 			only in dns_message_parse().   This caused an
 			infinite loop when constructing the response to
 			an ANY query at a CNAME in a secure zone.
-
 
  292.	[bug]		Due to problems with the way some operating systems
 			handle simultaneous listening on IPv4 and IPv6
