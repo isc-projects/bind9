@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.119 2000/10/19 23:31:54 mws Exp $ */
+/* $Id: dig.c,v 1.120 2000/10/20 00:54:01 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1098,7 +1098,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	char **rv;
 #ifndef NOPOSIX
 	char *homedir;
-	char rcfile[132];
+	char rcfile[256];
 #endif
 	char *input;
 
