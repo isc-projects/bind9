@@ -98,6 +98,7 @@
 
 1123.	[bug]		dig +[no]fail did not match description. [RT #2052]
 
+1012.	[bug]		The -p option to named did not behave as documented.
 
 	--- 9.2.0 released ---
 

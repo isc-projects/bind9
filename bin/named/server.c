@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.2 2002/01/23 02:11:32 gson Exp $ */
+/* $Id: server.c,v 1.339.2.3 2002/01/24 03:06:25 marka Exp $ */
 
 #include <config.h>
 
@@ -1088,7 +1088,10 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	/*
 	 * Determine which port to send forwarded requests to.
 	 */
-	CHECKM(ns_config_getport(config, &port), "port");
+	if (ns_g_lwresdonly && ns_g_port != 0)
+		port = ns_g_port;
+	else
+		CHECKM(ns_config_getport(config, &port), "port");
 
 	if (forwarders != NULL) {
 		portobj = cfg_tuple_get(forwarders, "port");
@@ -1727,7 +1730,10 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Determine which port to use for listening for incoming connections.
 	 */
-	CHECKM(ns_config_getport(config, &listen_port), "port");
+	if (ns_g_port != 0)
+		listen_port = ns_g_port;
+	else
+		CHECKM(ns_config_getport(config, &listen_port), "port");
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
@@ -2671,9 +2677,13 @@ ns_listenelt_fromconfig(cfg_obj_t *listener, cfg_obj_t *config,
 
 	portobj = cfg_tuple_get(listener, "port");
 	if (!cfg_obj_isuint32(portobj)) {
-		result = ns_config_getport(config, &port);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		if (ns_g_port != 0) {
+			port = ns_g_port;
+		} else {
+			result = ns_config_getport(config, &port);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		}
 	} else {
 		if (cfg_obj_asuint32(portobj) >= ISC_UINT16_MAX) {
 			cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
