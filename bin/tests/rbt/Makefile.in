@@ -1,4 +1,4 @@
-# Copyright (C) 1998, 1999  Internet Software Consortium.
+# Copyright (C) 1999  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,32 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-SUBDIRS =	isc dns tests
-TARGETS =
+CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
+		-I${srcdir}/../../../lib/isc/pthreads/include \
+		-I${srcdir}/../../../lib/isc/include \
+		-I${srcdir}/../../../lib/dns/include \
+		-I${srcdir}/../../../lib/tests/include
+
+CDEFINES =
+CWARNINGS =
+
+LIBS =		../../../lib/dns/libdns.a \
+		../../../lib/isc/libisc.a \
+		../../../lib/tests/libt_api.a \
+		@LIBS@
+
+TARGETS =	t_rbt
 
 @BIND9_MAKE_RULES@
+
+t_rbt: t_rbt.o
+	${CC} -o $@ t_rbt.o ${LIBS}
+
+test:
+	-@./t_rbt -c @top_srcdir@/t_config -a >> ../t_journal 2>&1
+
+testhelp:
+	@./t_rbt -h
+
+clean distclean::
+	rm -f ${TARGETS}

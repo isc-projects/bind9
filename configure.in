@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.20 $)
+AC_REVISION($Revision: 1.21 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -170,7 +170,13 @@ AC_OUTPUT(
 	lib/dns/Makefile
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
+	lib/tests/Makefile
+	lib/tests/include/Makefile
+	lib/tests/include/tests/Makefile
 	bin/Makefile
-	bin/tests/Makefile
 	bin/named/Makefile
+	bin/tests/Makefile
+	bin/tests/names/Makefile
+	bin/tests/master/Makefile
+	bin/tests/rbt/Makefile
 )

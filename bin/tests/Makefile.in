@@ -30,6 +30,7 @@ LIBS =		../../lib/dns/libdns.a \
 		../../lib/isc/libisc.a \
 		@LIBS@
 
+SUBDIRS = master names rbt
 TARGETS =	lex_test \
 		name_test \
 		sock_test \
@@ -87,3 +88,4 @@ compress_test: compress_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 
 clean distclean::
 	rm -f ${TARGETS}
+	rm -f t_journal

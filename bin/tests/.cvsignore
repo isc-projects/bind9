@@ -13,3 +13,4 @@ master_test
 rbt_test
 db_test
 compress_test
+t_journal

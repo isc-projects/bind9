@@ -1,0 +1,11 @@
+#
+# test data for dns_master_load test 1
+#
+# format is:
+#	<masterfile name><tab><origin><tab><expected result>
+# where
+#	masterfile name is the name of a file containing master data
+#	origin is the origin
+# 	expected_result is a text representation of a dns_result_t
+#
+master4.data	test	DNS_R_NOTTL
