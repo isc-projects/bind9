@@ -16,8 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.50 2000/08/14 18:13:08 bwelling Exp $
- * Principal Author: Brian Wellington
+ * $Id: tkey.c,v 1.51 2000/09/20 00:01:26 bwelling Exp $
  */
 
 #include <config.h>
@@ -421,10 +420,9 @@ process_deletetkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	dns_tsigkey_t *tsigkey = NULL;
 	dns_name_t *identity;
 
-	/* Unused variables */
-	msg = msg;
-	tkeyout = tkeyout;
-	namelist = namelist;
+	UNUSED(msg);
+	UNUSED(tkeyout);
+	UNUSED(namelist);
 
 	result = dns_tsigkey_find(&tsigkey, name, &tkeyin->algorithm, ring);
 	if (result != ISC_R_SUCCESS)
