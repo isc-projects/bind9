@@ -1,4 +1,6 @@
 
+ 908.	[func]		New program, rndc-confgen, to simplify setting up rndc.
+
  907.	[func]		The ability to get entropy from either the
 			random device, a user-provided file or from
 			the keyboard was migrated from the DNSSEC tools
