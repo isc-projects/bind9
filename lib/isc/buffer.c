@@ -26,7 +26,7 @@
 #include <isc/result.h>
 
 void
-isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
+isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 	/*
 	 * Make 'b' refer to the 'length'-byte region starting at base.
 	 */
@@ -44,7 +44,7 @@ isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 }
 
 void
-isc_buffer_invalidate(isc_buffer_t *b) {
+isc__buffer_invalidate(isc_buffer_t *b) {
 	/*
 	 * Make 'b' an invalid buffer.
 	 */
@@ -62,7 +62,7 @@ isc_buffer_invalidate(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_region(isc_buffer_t *b, isc_region_t *r) {
+isc__buffer_region(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the region of 'b'.
 	 */
@@ -75,7 +75,7 @@ isc_buffer_region(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_usedregion(isc_buffer_t *b, isc_region_t *r) {
+isc__buffer_usedregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the used region of 'b'.
 	 */
@@ -88,7 +88,7 @@ isc_buffer_usedregion(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_availableregion(isc_buffer_t *b, isc_region_t *r) {
+isc__buffer_availableregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the available region of 'b'.
 	 */
@@ -101,7 +101,7 @@ isc_buffer_availableregion(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_add(isc_buffer_t *b, unsigned int n) {
+isc__buffer_add(isc_buffer_t *b, unsigned int n) {
 	/*
 	 * Increase the 'used' region of 'b' by 'n' bytes.
 	 */
@@ -113,7 +113,7 @@ isc_buffer_add(isc_buffer_t *b, unsigned int n) {
 }
 
 void
-isc_buffer_subtract(isc_buffer_t *b, unsigned int n) {
+isc__buffer_subtract(isc_buffer_t *b, unsigned int n) {
 	/*
 	 * Decrease the 'used' region of 'b' by 'n' bytes.
 	 */
@@ -129,7 +129,7 @@ isc_buffer_subtract(isc_buffer_t *b, unsigned int n) {
 }
 
 void
-isc_buffer_clear(isc_buffer_t *b) {
+isc__buffer_clear(isc_buffer_t *b) {
 	/*
 	 * Make the used region empty.
 	 */
@@ -142,7 +142,7 @@ isc_buffer_clear(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_consumedregion(isc_buffer_t *b, isc_region_t *r) {
+isc__buffer_consumedregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the consumed region of 'b'.
 	 */
@@ -155,7 +155,7 @@ isc_buffer_consumedregion(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_remainingregion(isc_buffer_t *b, isc_region_t *r) {
+isc__buffer_remainingregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the remaining region of 'b'.
 	 */
@@ -168,7 +168,7 @@ isc_buffer_remainingregion(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_activeregion(isc_buffer_t *b, isc_region_t *r) {
+isc__buffer_activeregion(isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the active region of 'b'.
 	 */
@@ -186,7 +186,7 @@ isc_buffer_activeregion(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc_buffer_setactive(isc_buffer_t *b, unsigned int n) {
+isc__buffer_setactive(isc_buffer_t *b, unsigned int n) {
 	unsigned int active;
 
 	/*
@@ -201,7 +201,7 @@ isc_buffer_setactive(isc_buffer_t *b, unsigned int n) {
 }
 
 void
-isc_buffer_first(isc_buffer_t *b) {
+isc__buffer_first(isc_buffer_t *b) {
 	/*
 	 * Make the consumed region empty.
 	 */
@@ -212,7 +212,7 @@ isc_buffer_first(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_forward(isc_buffer_t *b, unsigned int n) {
+isc__buffer_forward(isc_buffer_t *b, unsigned int n) {
 	/*
 	 * Increase the 'consumed' region of 'b' by 'n' bytes.
 	 */
@@ -224,7 +224,7 @@ isc_buffer_forward(isc_buffer_t *b, unsigned int n) {
 }
 
 void
-isc_buffer_back(isc_buffer_t *b, unsigned int n) {
+isc__buffer_back(isc_buffer_t *b, unsigned int n) {
 	/*
 	 * Decrease the 'consumed' region of 'b' by 'n' bytes.
 	 */
@@ -281,7 +281,7 @@ isc_buffer_getuint8(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_putuint8(isc_buffer_t *b, isc_uint8_t val)
+isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val)
 {
 	unsigned char *cp;
 
@@ -317,7 +317,7 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_putuint16(isc_buffer_t *b, isc_uint16_t val)
+isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val)
 {
 	unsigned char *cp;
 
@@ -356,7 +356,7 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
+isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 {
 	unsigned char *cp;
 
@@ -373,7 +373,7 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 }
 
 void
-isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length) {
+isc__buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length) {
 	unsigned char *cp;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
@@ -386,7 +386,7 @@ isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length) {
 
 void
 isc_buffer_putstr(isc_buffer_t *b, const char *source) {
-        unsigned int l;
+	unsigned int l;
 	unsigned char *cp;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
