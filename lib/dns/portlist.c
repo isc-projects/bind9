@@ -15,16 +15,17 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.c,v 1.3 2003/03/20 00:19:55 marka Exp $ */
+/* $Id: portlist.c,v 1.4 2003/10/01 00:58:07 marka Exp $ */
 
 #include <stdlib.h>
 
-#include <isc/mem.h>
 #include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/net.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
