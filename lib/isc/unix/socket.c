@@ -117,7 +117,7 @@ typedef isc_event_t intev_t;
 #endif
 
 /*
- * NetBSD (and FreeBSD?) can timestamp packets.  XXXMLG Should we have
+ * NetBSD and FreeBSD can timestamp packets.  XXXMLG Should we have
  * a setsockopt() like interface to request timestamps, and if the OS
  * doesn't do it for us, call gettimeofday() on every UDP receive?
  */
@@ -318,7 +318,6 @@ make_nonblock(int fd)
 
 /*
  * Process control messages received on a socket.
- * XXXMLG This is #ifdef hell.
  */
 static void
 process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
@@ -481,10 +480,27 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
 	msg->msg_flags = 0;
-#else
+#if defined(USE_CMSG)
+	if ((sock->type == isc_sockettype_udp)
+	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
+		struct cmsghdr *cmsgp;
+		struct in6_pktinfo *pktinfop;
+
+		msg->msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo));
+		msg->msg_control = (void *)sock->cmsg;
+
+		cmsgp = (struct cmsghdr *)sock->cmsg;
+		cmsgp->cmsg_level = IPPROTO_IPV6;
+		cmsgp->cmsg_type = IPV6_PKTINFO;
+		cmsgp->cmsg_len = CMSG_LEN(sizeof(struct in6_pktinfo));
+		pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
+		*pktinfop = dev->pktinfo;
+	}
+#endif /* USE_CMSG */
+#else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
 	msg->msg_accrightslen = 0;
-#endif
+#endif /* ISC_NET_BSD44MSGHDR */
 
 	if (write_countp != NULL)
 		*write_countp = write_count;
@@ -590,17 +606,17 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 #ifdef ISC_NET_BSD44MSGHDR
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
-#if defined(USE_CMSG) /* XXXMLG implement! */
+	msg->msg_flags = 0;
+#if defined(USE_CMSG)
 	if (sock->type == isc_sockettype_udp) {
 		msg->msg_control = (void *)&sock->cmsg[0];
 		msg->msg_controllen = sizeof(sock->cmsg);
 	}
-#endif
-	msg->msg_flags = 0;
-#else
+#endif /* USE_CMSG */
+#else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
 	msg->msg_accrightslen = 0;
-#endif
+#endif /* ISC_NET_BSD44MSGHDR */
 
 	if (read_countp != NULL)
 		*read_countp = read_count;
@@ -2295,6 +2311,10 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	dev->sender = task;
 
 	set_dev_address(address, sock, dev);
+	if (pktinfo != NULL) {
+		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
+		dev->pktinfo = *pktinfo;
+	}
 
 	/*
 	 * If the read queue is empty, try to do the I/O right now.
@@ -2392,6 +2412,10 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	dev->sender = task;
 
 	set_dev_address(address, sock, dev);
+	if (pktinfo != NULL) {
+		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
+		dev->pktinfo = *pktinfo;
+	}
 
 	/*
 	 * Move each buffer from the passed in list to our internal one.
