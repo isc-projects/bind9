@@ -1,3 +1,7 @@
+1764.	[bug]		dns_zone_replacedb failed to emit a error message
+			if there was no SOA record in the replacment db.
+			[RT #13016]
+
 1756.	[func]		named-checkconf now checks the logging configuration.
 			[RT #12352]
 
