@@ -27,6 +27,7 @@ CINCLUDES =	-I${srcdir}/unix/include \
 CDEFINES =
 CWARNINGS =
 
+# Note: we are not using libtool with this library.
 OBJS =		t_api.o
 
 SUBDIRS =	include
@@ -43,14 +44,6 @@ libt_api.a: ${OBJS}
 timestamp: libt_api.a
 	${RANLIB} libt_api.a
 	touch timestamp
-
-installdirs:
-	if [ ! -d ${libdir} ]; then \
-		mkdir ${libdir}; \
-	fi
-
-install:: timestamp installdirs
-	${INSTALL_DATA} libt_api.a ${libdir}
 
 clean distclean::
 	rm -f t_api.o libt_api.a timestamp
