@@ -875,6 +875,7 @@
 ./lib/dns/include/dns/keyvalues.h		C	1999,2000
 ./lib/dns/include/dns/lib.h			C	1999,2000
 ./lib/dns/include/dns/log.h			C	1999,2000
+./lib/dns/include/dns/lookup.h			C	2000
 ./lib/dns/include/dns/master.h			C	1999,2000
 ./lib/dns/include/dns/masterdump.h		C	1999,2000
 ./lib/dns/include/dns/message.h			C	1999,2000
@@ -918,6 +919,7 @@
 ./lib/dns/keytable.c				C	2000
 ./lib/dns/lib.c					C	1999,2000
 ./lib/dns/log.c					C	1999,2000
+./lib/dns/lookup.c				C	2000
 ./lib/dns/master.c				C	1999,2000
 ./lib/dns/masterdump.c				C	1999,2000
 ./lib/dns/message.c				C	1999,2000
