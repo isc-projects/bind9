@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.16 2000/11/17 01:27:34 bwelling Exp $ */
+/* $Id: sdb.c,v 1.17 2000/11/17 23:32:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <isc/region.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
@@ -75,6 +76,7 @@ struct dns_sdblookup {
 	dns_name_t			*name;
 	ISC_LINK(dns_sdblookup_t)	link;
 	isc_mutex_t			lock;
+	dns_rdatacallbacks_t		callbacks;
 	/* Locked */
 	unsigned int			references;
 };
@@ -246,7 +248,6 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	dns_sdbimplementation_t *imp;
 	dns_name_t *origin;
 
-
 	REQUIRE(VALID_SDBLOOKUP(lookup));
 	REQUIRE(type != NULL);
 	REQUIRE(data != NULL);
@@ -314,7 +315,8 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		result = dns_rdata_fromtext(rdata, rdatalist->rdclass,
 					    rdatalist->type, lex,
 					    origin, ISC_FALSE,
-					    mctx, rdatabuf, NULL);
+					    mctx, rdatabuf,
+					    &lookup->callbacks);
 		if (result != ISC_R_SUCCESS)
 			isc_buffer_free(&rdatabuf);
 		size *= 2;
@@ -569,6 +571,7 @@ createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 		isc_mem_put(sdb->common.mctx, node, sizeof(dns_sdbnode_t));
 		return (ISC_R_UNEXPECTED);
 	}
+	dns_rdatacallbacks_init(&node->callbacks);
 	node->references = 1;
 	node->magic = SDBLOOKUP_MAGIC;
 
