@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.10 2003/07/23 06:57:48 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11 2003/07/30 01:04:15 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -2052,7 +2052,6 @@ dns_rdatatype_questiononly(dns_rdatatype_t type) {
 
 isc_boolean_t
 dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
-	REQUIRE(rdclass < 65536);
 
 	if (rdclass == dns_rdataclass_reserved0
 	    || rdclass == dns_rdataclass_none
