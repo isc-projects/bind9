@@ -29,6 +29,7 @@
 #include <dns/result.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/compress.h>
 
 /*
@@ -139,6 +140,13 @@ struct dns_message {
 	ISC_LIST(dns_rdata_t)		freerdata;
 	ISC_LIST(dns_rdataset_t)	freerdataset;
 	ISC_LIST(dns_rdatalist_t)	freerdatalist;
+
+	dns_rcode_t			tsigstatus;
+	dns_rcode_t			querytsigstatus;
+	dns_rdata_any_tsig_t	       *tsig;
+	dns_rdata_any_tsig_t	       *querytsig;
+	dns_tsig_key_t		       *tsigkey;
+	int				tsigstart;
 };
 
 dns_result_t
@@ -356,6 +364,21 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t section,
  *				   all records requested.
  *	DNS_R_MOREDATA		-- All requested records written, and there
  *				   are records remaining for this section.
+ */
+
+void
+dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target);
+/*
+ * Render the message header.  This is implicitly called by
+ * dns_message_renderend().
+ *
+ * Requires:
+ *
+ *	'msg' be a valid message.
+ *
+ *	dns_message_renderbegin() was called.
+ *
+ *	'target' is a valid buffer with enough space to hold a message header
  */
 
 dns_result_t

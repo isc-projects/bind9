@@ -16,7 +16,11 @@
 #include <dns/message.h>
 #include <dns/dispatch.h>
 #include <dns/resolver.h>
+#include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/tsig.h>
+
+#include <dst/dst.h>
 
 #include "../isc/util.h"		/* XXX */
 
@@ -49,6 +53,8 @@ typedef struct query {
 	dns_dispentry_t *		dispentry;	/* XXX name */
 	ISC_LINK(struct query)		link;
 	isc_buffer_t			buffer;
+	dns_rdata_any_tsig_t		*tsig;
+	dns_tsig_key_t			*tsigkey;
 	unsigned char			data[512];
 } resquery_t;
 
@@ -266,6 +272,8 @@ fctx_sendquery(fetchctx_t *fctx) {
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_query;
 	query->fctx = fctx;
+	query->tsig = NULL;
+	query->tsigkey = NULL;
 	query->magic = QUERY_MAGIC;
 
 	fctx->qmessage->opcode = dns_opcode_query;
@@ -303,13 +311,15 @@ fctx_sendquery(fetchctx_t *fctx) {
 					   DNS_SECTION_ADDITIONAL, 0, 0);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_message;
-	result = dns_message_rendersection(fctx->qmessage,
-					   DNS_SECTION_TSIG, 0, 0);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup_message;
 	result = dns_message_renderend(fctx->qmessage);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_message;
+
+	if (fctx->qmessage->tsigkey != NULL) {
+		query->tsigkey = fctx->qmessage->tsigkey;
+		query->tsig = fctx->qmessage->tsig;
+		fctx->qmessage->tsig = NULL;
+	}
 
 	/*
 	 * We're now done with the query message.
@@ -376,6 +386,8 @@ fctx_cancelquery(resquery_t *query, dns_dispatchevent_t **deventp) {
 				    deventp);
 	ISC_LIST_UNLINK(fctx->queries, query, link);
 	query->magic = 0;
+	if (query->tsig != NULL)
+		dns_rdata_freestruct(query->tsig);
 	isc_mem_put(fctx->res->mctx, query, sizeof *query);
 }
 
@@ -803,6 +815,8 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	INSIST(fctx->state == fetchstate_active);
 
 	message = fctx->rmessage;
+	message->querytsig = query->tsig;
+	message->tsigkey = query->tsigkey;
 	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);
 	if (result != DNS_R_SUCCESS) {
 		switch (result) {
@@ -859,6 +873,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 		goto done;
 	}
 
+	query->tsig = NULL;
 	fctx_stoptimer(fctx);
 	fctx_cancelquery(query, &devent);
 

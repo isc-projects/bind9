@@ -36,6 +36,7 @@
 #include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/compress.h>
+#include <dns/tsig.h>
 
 #define DNS_MESSAGE_OPCODE_MASK		0x7800U
 #define DNS_MESSAGE_OPCODE_SHIFT	    11
@@ -345,6 +346,15 @@ msginitprivate(dns_message_t *m)
 	m->need_cctx_cleanup = 0;
 }
 
+static inline void
+msginittsig(dns_message_t *m)
+{
+	m->tsigstatus = m->querytsigstatus = dns_rcode_noerror;
+	m->tsig = m->querytsig = NULL;
+	m->tsigkey = NULL;
+	m->tsigstart = -1;
+}
+
 /*
  * Init elements to default state.  Used both when allocating a new element
  * and when resetting one.
@@ -354,6 +364,7 @@ msginit(dns_message_t *m)
 {
 	msginitheader(m);
 	msginitprivate(m);
+	msginittsig(m);
 	m->header_ok = 0;
 	m->question_ok = 0;
 }
@@ -502,6 +513,20 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 
 	if (msg->need_cctx_cleanup == 1)
 		dns_compress_invalidate(&msg->cctx);
+
+	if (msg->tsig != NULL) {
+		dns_rdata_freestruct(msg->tsig);
+		isc_mem_put(msg->mctx, msg->tsig, sizeof(dns_rdata_any_tsig_t));
+	}
+
+	if (msg->querytsig != NULL) {
+		dns_rdata_freestruct(msg->querytsig);
+		isc_mem_put(msg->mctx, msg->querytsig,
+			    sizeof(dns_rdata_any_tsig_t));
+        }
+
+	if (msg->tsigkey != NULL && dns_tsig_emptykey(msg->tsigkey))
+		dns_tsig_key_free(&msg->tsigkey);
 
 	/*
 	 * Set other bits to normal default values.
@@ -909,6 +934,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_namelist_t *section;
 
 	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
+		int recstart = source->current;
 		section = &msg->sections[sectionid];
 
 		name = newname(msg);
@@ -965,6 +991,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			if (rdclass != dns_rdataclass_any)
 				return (DNS_R_FORMERR);
 			section = &msg->sections[DNS_SECTION_TSIG];
+			msg->tsigstart = recstart;
 		}
 		
 		/*
@@ -1050,14 +1077,19 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		/*
 		 * Read the rdata from the wire format.  Interpret the 
 		 * rdata according to its actual class, even if it had a
-		 * DynDNS meta-class in the packet.  Then put the meta-class
-		 * back into the finished rdata.
+		 * DynDNS meta-class in the packet (unless this is a TSIG).
+		 * Then put the meta-class back into the finished rdata.
 		 */
 		rdata = newrdata(msg);
 		if (rdata == NULL)
 			return (DNS_R_NOMEMORY);
-		result = getrdata(name, source, msg, dctx,
-				  msg->rdclass, rdtype, rdatalen, rdata);
+		if (rdtype != dns_rdatatype_tsig)
+			result = getrdata(name, source, msg, dctx,
+					  msg->rdclass, rdtype,
+					  rdatalen, rdata);
+		else
+			result = getrdata(name, source, msg, dctx,
+					  rdclass, rdtype, rdatalen, rdata);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 		rdata->rdclass = rdclass;
@@ -1152,9 +1184,11 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	if (r.length != 0)
 		return (DNS_R_FORMERR);
 
-	/*
-	 * XXXMLG Need to check the tsig(s) here...
-	 */
+	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG])) {
+		ret = dns_tsig_verify(source, msg);
+		if (ret != DNS_R_SUCCESS)
+			return ret;
+	}
 
 	return (DNS_R_SUCCESS);
 }
@@ -1344,33 +1378,60 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
-dns_message_renderend(dns_message_t *msg)
+void
+dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target)
 {
-	isc_buffer_t tmpbuf;
-	isc_region_t r;
 	isc_uint16_t tmp;
+	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(msg->buffer != NULL);
+	REQUIRE(target != NULL);
 
-	isc_buffer_used(msg->buffer, &r);
-	isc_buffer_init(&tmpbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_available(target, &r);
+	REQUIRE(r.length >= DNS_MESSAGE_HEADERLEN);
 
-	isc_buffer_putuint16(&tmpbuf, msg->id);
+	isc_buffer_putuint16(target, msg->id);
 
 	tmp = ((msg->opcode << DNS_MESSAGE_OPCODE_SHIFT)
 	       & DNS_MESSAGE_OPCODE_MASK);
 	tmp |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);  /* XXX edns? */
 	tmp |= (msg->flags & DNS_MESSAGE_FLAG_MASK);
 
-	isc_buffer_putuint16(&tmpbuf, tmp);
-	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_QUESTION]);
-	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_ANSWER]);
-	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_AUTHORITY]);
+	isc_buffer_putuint16(target, tmp);
+	isc_buffer_putuint16(target, msg->counts[DNS_SECTION_QUESTION]);
+	isc_buffer_putuint16(target, msg->counts[DNS_SECTION_ANSWER]);
+	isc_buffer_putuint16(target, msg->counts[DNS_SECTION_AUTHORITY]);
 	tmp  = msg->counts[DNS_SECTION_ADDITIONAL]
 		+ msg->counts[DNS_SECTION_TSIG];
-	isc_buffer_putuint16(&tmpbuf, tmp);
+	isc_buffer_putuint16(target, tmp);
+}
+
+dns_result_t
+dns_message_renderend(dns_message_t *msg)
+{
+	isc_buffer_t tmpbuf;
+	isc_region_t r;
+	int result;
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(msg->buffer != NULL);
+
+	if (msg->tsigkey != NULL ||
+	    ((msg->flags & DNS_MESSAGEFLAG_QR) != 0 &&
+	     msg->querytsigstatus != dns_rcode_noerror))
+	{
+		result = dns_tsig_sign(msg);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+		result = dns_message_rendersection(msg, DNS_SECTION_TSIG, 0, 0);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+	}
+
+	isc_buffer_used(msg->buffer, &r);
+	isc_buffer_init(&tmpbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+
+	dns_message_renderheader(msg, &tmpbuf);
 
 	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
 
@@ -1649,6 +1710,18 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	 */
 	msg->flags &= DNS_MESSAGE_REPLYPRESERVE;
 	msg->flags |= DNS_MESSAGEFLAG_QR;
+
+	/*
+	 * This saves the query TSIG information for later use, if there is
+	 * any.  This only happens once - that is, if dns_message_reply
+	 * has already moved the variables, this has no effect.
+	 */
+	if (msg->tsig != NULL) {
+		msg->querytsig = msg->tsig;
+		msg->tsig = NULL;
+		msg->querytsigstatus = msg->tsigstatus;
+		msg->tsigstatus = dns_rcode_noerror;
+	}
 
 	return (DNS_R_SUCCESS);
 }
