@@ -95,10 +95,11 @@ set_index(void *what, unsigned int index) {
 }
 
 static inline isc_result
-schedule(timer_t timer, os_time_t *nowp) {
+schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 	isc_result result;
 	timer_manager_t manager;
 	os_time_t due;
+	int cmp;
 
 	/* 
 	 * Note: the caller must ensure locking.
@@ -110,7 +111,11 @@ schedule(timer_t timer, os_time_t *nowp) {
 	if (timer->type == timer_type_ticker)
 		os_time_add(nowp, &timer->interval, &due);
 	else {
-		if (os_time_compare(&timer->idle, &timer->expires) < 0)
+		if (ZERO(timer->idle))
+			due = timer->expires;
+		else if (ZERO(timer->expires))
+			due = timer->idle;
+		else if (os_time_compare(&timer->idle, &timer->expires) < 0)
 			due = timer->idle;
 		else
 			due = timer->expires;
@@ -124,7 +129,9 @@ schedule(timer_t timer, os_time_t *nowp) {
 		/*
 		 * Already scheduled.
 		 */
-		switch (os_time_compare(&due, &timer->due)) {
+		cmp = os_time_compare(&due, &timer->due);
+		timer->due = due;
+		switch (cmp) {
 		case -1:
 			heap_increased(manager->heap, timer->index);
 			break;
@@ -136,6 +143,7 @@ schedule(timer_t timer, os_time_t *nowp) {
 			break;
 		}
 	} else {
+		timer->due = due;
 		result = heap_insert(manager->heap, timer);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(result == ISC_R_NOMEMORY);
@@ -143,7 +151,11 @@ schedule(timer_t timer, os_time_t *nowp) {
 		}
 		manager->nscheduled++;
 	}
-	timer->due = due;
+
+	printf("schedule %p at %lu.%09lu\n",
+	       timer,
+	       (unsigned long)due.seconds,
+	       (unsigned long)due.nanoseconds);
 
 	/*
 	 * If this timer is at the head of the queue, we wake up the run
@@ -151,8 +163,10 @@ schedule(timer_t timer, os_time_t *nowp) {
 	 * due time than the one the run thread is sleeping on, and we don't
 	 * want it to oversleep.
 	 */
-	if (timer->index == 1)
+	if (timer->index == 1 && broadcast_ok) {
+		printf("broadcast (schedule)\n");
 		BROADCAST(&manager->wakeup);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -174,8 +188,10 @@ deschedule(timer_t timer) {
 		timer->index = 0;
 		INSIST(manager->nscheduled > 0);
 		manager->nscheduled--;
-		if (need_wakeup)
+		if (need_wakeup) {
+			printf("broadcast (deschedule)\n");
 			BROADCAST(&manager->wakeup);
+		}
 	}
 }
 
@@ -270,7 +286,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	 */
 
 	APPEND(manager->timers, timer, link);
-	result = schedule(timer, &now);
+	result = schedule(timer, &now, TRUE);
 
 	UNLOCK(&manager->lock);
 
@@ -323,7 +339,7 @@ timer_reset(timer_t timer, timer_type_t type,
 		timer->idle.seconds = 0;
 		timer->idle.nanoseconds = 0;
 	}
-	result = schedule(timer, &now);
+	result = schedule(timer, &now, TRUE);
 
 	UNLOCK(&timer->lock);
 	UNLOCK(&manager->lock);
@@ -437,9 +453,6 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 
 	while (manager->nscheduled > 0 && !done) {
 		timer = heap_element(manager->heap, 1);
-		printf("due = %lu.%09lu\n",
-		       (unsigned long)timer->due.seconds,
-		       (unsigned long)timer->due.nanoseconds);
 		if (os_time_compare(nowp, &timer->due) >= 0) {
 			if (timer->type == timer_type_ticker) {
 				type = TIMER_EVENT_TICK;
@@ -461,12 +474,14 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 				/*
 				 * Idle timer has been touched; reschedule.
 				 */
+				printf("timer %p idle reschedule\n", timer);
 				post_event = FALSE;
 				need_schedule = TRUE;
 			}
 
 			if (post_event) {
-				printf("dispatch to %p\n", timer->task);
+				printf("timer %p posting %u\n", timer,
+				       type);
 				event = task_event_allocate(manager->mctx,
 							    timer,
 							    type,
@@ -486,7 +501,7 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 			manager->nscheduled--;
 
 			if (need_schedule) {
-				result = schedule(timer, nowp);
+				result = schedule(timer, nowp, FALSE);
 				if (result != ISC_R_SUCCESS)
 					unexpected_error(__FILE__, __LINE__,
 						"couldn't schedule timer: %s",
@@ -509,18 +524,27 @@ run(void *uap) {
 	LOCK(&manager->lock);
 	while (!manager->done) {
 		INSIST(os_time_get(&now) == ISC_R_SUCCESS);
-
-		printf("timer run thread awake\n");
+		printf("running, now %lu.%09lu\n",
+		       (unsigned long)now.seconds,
+		       (unsigned long)now.nanoseconds);
 
 		dispatch(manager, &now);
 
 		if (manager->nscheduled > 0) {
 			ts.tv_sec = manager->due.seconds;
 			ts.tv_nsec = manager->due.nanoseconds;
+			printf("waituntil %lu.%09lu\n",
+			       (unsigned long)manager->due.seconds,
+			       (unsigned long)manager->due.nanoseconds);
 			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
 				  &timeout);
-		} else
+			if (!timeout)
+				printf("wakeup\n");
+		} else {
+			printf("wait\n");
 			WAIT(&manager->wakeup, &manager->lock);
+			printf("wakeup\n");
+		}
 	}
 	UNLOCK(&manager->lock);
 
@@ -604,6 +628,7 @@ timer_manager_destroy(timer_manager_t *managerp) {
 
 	UNLOCK(&manager->lock);
 
+	printf("broadcast (destroy)\n");
 	BROADCAST(&manager->wakeup);
 
 	/*
