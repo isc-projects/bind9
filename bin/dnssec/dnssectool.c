@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.30 2001/06/22 17:05:54 tale Exp $ */
+/* $Id: dnssectool.c,v 1.31 2001/07/22 06:09:42 mayer Exp $ */
 
 #include <config.h>
 
@@ -126,7 +126,7 @@ key_format(const dst_key_t *key, char *cp, unsigned int size) {
 	char algstr[DNS_NAME_FORMATSIZE];
 
 	dns_name_format(dst_key_name(key), namestr, sizeof namestr);
-	alg_format(dst_key_alg(key), algstr, sizeof algstr);
+	alg_format((dns_secalg_t) dst_key_alg(key), algstr, sizeof algstr);
 	snprintf(cp, size, "%s/%s/%d", namestr, algstr, dst_key_id(key));
 }
 
