@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.51 2001/06/27 04:30:37 mayer Exp $ */
+/* $Id: masterdump.c,v 1.52 2001/07/06 22:53:48 gson Exp $ */
 
 #include <config.h>
 
@@ -813,13 +813,12 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 			fprintf(f, "; %s\n", trustnames[trust]);
 		}
 		if (rds->type == 0 &&
- 
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
 		} else {
 			isc_result_t result =
 				dump_rdataset(mctx, name, rds, ctx,
-					       buffer, f);
+					      buffer, f);
 			if (result != ISC_R_SUCCESS)
 				dumpresult = result;
 			if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
