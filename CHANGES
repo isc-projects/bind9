@@ -1,3 +1,6 @@
+1177.	[func]		Report view when loading zones if it is not a
+			standard view (_default or _bind). [RT #2270]
+
 1171.	[func]		Added function isc_region_compare(), updated files in
 			lib/dns to use this function instead of local one.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.7 2003/08/11 05:46:35 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.8 2003/08/13 00:25:52 marka Exp $ */
 
 #include <config.h>
 
@@ -4553,11 +4553,21 @@ zone_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	isc_buffer_init(&buffer, buf, length - 1);
 	if (dns_name_dynamic(&zone->origin))
 		result = dns_name_totext(&zone->origin, ISC_TRUE, &buffer);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS &&
+	    isc_buffer_availablelength(&buffer) >= (sizeof("<UNKNOWN>") - 1))
 		isc_buffer_putstr(&buffer, "<UNKNOWN>");
 
-	isc_buffer_putstr(&buffer, "/");
+	if (isc_buffer_availablelength(&buffer) > 0)
+		isc_buffer_putstr(&buffer, "/");
 	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
+	
+	if (zone->view != NULL && strcmp(zone->view->name, "_bind") != 0 &&
+	    strcmp(zone->view->name, "_default") != 0 &&
+	    strlen(zone->view->name) < isc_buffer_availablelength(&buffer)) {
+		isc_buffer_putstr(&buffer, "/");
+		isc_buffer_putstr(&buffer, zone->view->name);
+	}
+
 	buf[isc_buffer_usedlength(&buffer)] = '\0';
 }
 
