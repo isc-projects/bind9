@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.96 2000/04/19 02:07:03 marka Exp $ */
+/* $Id: zone.c,v 1.97 2000/04/19 05:17:12 marka Exp $ */
 
 #include <config.h>
 
@@ -2194,18 +2194,21 @@ notify_send(notify_t *notify) {
 
 void
 dns_zone_notify(dns_zone_t *zone) {
-	unsigned int i;
-	dns_name_t *origin = NULL;
-	dns_rdataset_t nsrdset;
-	dns_dbversion_t *version = NULL;
-	isc_result_t result;
 	dns_dbnode_t *node = NULL;
+	dns_dbversion_t *version = NULL;
 	dns_message_t *message = NULL;
+	dns_name_t *origin = NULL;
+	dns_name_t master;
 	dns_rdata_ns_t ns;
+	dns_rdata_soa_t soa;
 	dns_rdata_t rdata;
-	notify_t *notify;
+	dns_rdataset_t nsrdset;
+	dns_rdataset_t soardset;
+	isc_result_t result;
 	isc_sockaddr_t dst;
 	isc_sockaddr_t src;
+	notify_t *notify = NULL;
+	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2264,19 +2267,53 @@ dns_zone_notify(dns_zone_t *zone) {
 		LOCK(&zone->lock);
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		UNLOCK(&zone->lock);
+		notify = NULL;
 	}
+
+	/*
+	 * Process NS RRset to generate notifies.
+	 */
 
 	dns_db_currentversion(zone->db, &version);
 	result = dns_db_findnode(zone->db, origin, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup1;
 
+	dns_rdataset_init(&soardset);
+	result = dns_db_findrdataset(zone->db, node, version,
+				     dns_rdatatype_soa,
+				     dns_rdatatype_none, 0, &soardset, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup2;
+	
+	/*
+	 * Find master server's name.
+	 */
+	dns_name_init(&master, NULL);
+	result = dns_rdataset_first(&soardset);
+	while (result == ISC_R_SUCCESS) {
+		dns_rdataset_current(&soardset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &soa, zone->mctx);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		result = dns_name_dup(&soa.origin, zone->mctx, &master);
+		dns_rdata_freestruct(&soa);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		result = dns_rdataset_next(&soardset);
+		if (result != ISC_R_NOMORE)
+			break;
+	}
+	dns_rdataset_disassociate(&soardset);
+	if (result != ISC_R_NOMORE)
+		goto cleanup3;
+
 	dns_rdataset_init(&nsrdset);
 	result = dns_db_findrdataset(zone->db, node, version,
 				     dns_rdatatype_ns,
 				     dns_rdatatype_none, 0, &nsrdset, NULL);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup2;
+		goto cleanup3;
 	
 	result = dns_rdataset_first(&nsrdset);
 	while (result == ISC_R_SUCCESS) {
@@ -2284,7 +2321,14 @@ dns_zone_notify(dns_zone_t *zone) {
 		result = dns_rdata_tostruct(&rdata, &ns, zone->mctx);
 		if (result != ISC_R_SUCCESS)
 			continue;
-		notify = NULL;
+		/*
+		 * don't notify the master server.
+		 */
+		if (dns_name_compare(&master, &ns.name) == 0) {
+			dns_rdata_freestruct(&ns);
+			result = dns_rdataset_next(&nsrdset);
+			continue;
+		}
 		result = create_notify(zone->mctx, &notify);
 		if (result != ISC_R_SUCCESS) {
 			dns_rdata_freestruct(&ns);
@@ -2303,10 +2347,14 @@ dns_zone_notify(dns_zone_t *zone) {
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		UNLOCK(&zone->lock);
 		notify_find_address(notify);
+		notify = NULL;
 		result = dns_rdataset_next(&nsrdset);
 	}
 	dns_rdataset_disassociate(&nsrdset);
 
+ cleanup3:
+	if (dns_name_dynamic(&master))
+		dns_name_free(&master, zone->mctx);
  cleanup2:
 	dns_db_detachnode(zone->db, &node);
  cleanup1:
