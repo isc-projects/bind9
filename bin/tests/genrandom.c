@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.5 2000/08/09 01:37:33 bwelling Exp $ */
+/* $Id: genrandom.c,v 1.6 2000/08/14 03:32:53 gson Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,5 +62,5 @@ main(int argc, char **argv) {
 	}
 	fclose(fp);
 
-	exit(0);
+	return (0);
 }
