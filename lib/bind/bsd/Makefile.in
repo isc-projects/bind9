@@ -1,4 +1,6 @@
-OBJS=	daemon.@O@ ftruncate.@O@ gettimeofday.@O@ mktemp.@O@ putenv.@O@ \
+DAEMON_OBJS=daemon.@O@
+
+OBJS=	@DAEMON_OBJS@ ftruncate.@O@ gettimeofday.@O@ mktemp.@O@ putenv.@O@ \
 	readv.@O@ setenv.@O@ setitimer.@O@ strcasecmp.@O@ strdup.@O@ \
 	strerror.@O@ strpbrk.@O@ strsep.@O@ strtoul.@O@ utimes.@O@ \
 	writev.@O@

@@ -4,6 +4,7 @@
 @NEED_PSELECT@
 @HAVE_SA_LEN@
 @HAVE_MINIMUM_IFREQ@
+@NEED_DAEMON@
 
 /* XXX sunos and cygwin needs O_NDELAY */
 #define PORT_NONBLOCK O_NONBLOCK
