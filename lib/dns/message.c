@@ -1605,10 +1605,13 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 
 	if (!msg->header_ok)
 		return (DNS_R_FORMERR);
-
-	if (want_question_section && msg->question_ok)
+	if (msg->opcode != dns_opcode_query)
+		want_question_section = ISC_FALSE;
+	if (want_question_section) {
+		if (!msg->question_ok)
+			return (DNS_R_FORMERR);
 		first_section = DNS_SECTION_ANSWER;
-	else
+	} else
 		first_section = DNS_SECTION_QUESTION;
 	msg->from_to_wire = DNS_MESSAGE_INTENTRENDER;
 	msgresetnames(msg, first_section);

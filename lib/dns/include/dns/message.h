@@ -672,18 +672,23 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  * Ensures:
  *
  *	The message will have a rendering intent.  If 'want_question_section'
- *	is true, and the question section in msg was present and properly
- *	formatted, then the question section will be included in the reply,
- *	otherwise the question section will be cleared.  All other sections
- *	will be cleared.  The QR flag will be set, the RD flag will be
- *	preserved, and all other flags will be cleared.
+ *	is true, the message opcode is query, and the question section is
+ *	present and properly formatted, then the question section will be
+ *	included in the reply.  All other sections will be cleared.  The QR
+ *	flag will be set, the RD flag will be preserved, and all other flags
+ *	will be cleared.
  *
  * Returns:
  *
  *	DNS_R_SUCCESS		-- all is well.
  *
- *	DNS_R_FORMERR		-- the header section of the message is
- *				   invalid, replying is impossible.
+ *	DNS_R_FORMERR		-- the header or question section of the
+ *				   message is invalid, replying is impossible.
+ *				   If DNS_R_FORMERR is returned when
+ *				   want_question_section is ISC_FALSE, then
+ *				   it's the header section that's bad;
+ *				   otherwise either of the header or question
+ *				   sections may be bad.
  */
 
 ISC_LANG_ENDDECLS
