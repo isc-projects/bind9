@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.27 $)
+AC_REVISION($Revision: 1.28 $)
 
 AC_PREREQ(2.12)
 
@@ -124,6 +124,7 @@ Please choose a thread library using one of
 esac
 
 AC_PROG_CC
+AC_PROG_YACC
 
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h)
@@ -137,6 +138,13 @@ AC_CHECK_LIB(pthread, pthread_create,,
              AC_CHECK_LIB(pthread, __pthread_create)
              AC_CHECK_LIB(pthread, __pthread_create_system)
 )
+
+
+dnl For FreeBSD which has no libpthread but instead libc_r
+if test "$ac_cv_lib_pthread" != "yes"; then
+	AC_CHECK_LIB(c_r,pthread_create)
+fi
+
 
 dnl
 dnl We'd like to use sigwait() too
@@ -171,6 +179,7 @@ case "$host" in
 esac
 
 dnl
+
 dnl -lxnet buys us one big porting headache...  standards, gotta love 'em.
 dnl
 dnl AC_CHECK_LIB(xnet, socket, ,
