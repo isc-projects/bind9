@@ -13,12 +13,23 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.19 $)
+AC_REVISION($Revision: 1.20 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
 
 AC_CANONICAL_HOST
+
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AC_PROG_INSTALL
+
+STD_CINCLUDES=""
+STD_CDEFINES=""
+STD_CWARNINGS=""
+AC_SUBST(STD_CINCLUDES)
+AC_SUBST(STD_CDEFINES)
+AC_SUBST(STD_CWARNINGS)
 
 dnl
 dnl On these hosts, we really want to use cc, not gcc, even if it is
@@ -95,21 +106,16 @@ AC_CHECK_FUNC(inet_aton, ,
 	       AC_DEFINE(NEED_INET_ATON)]
 )
 
-AC_PROG_MAKE_SET
-AC_PROG_RANLIB
-AC_PROG_INSTALL
-
-STD_CINCLUDES=""
-STD_CDEFINES=""
-STD_CWARNINGS=""
-AC_SUBST(STD_CINCLUDES)
-AC_SUBST(STD_CDEFINES)
-AC_SUBST(STD_CWARNINGS)
 if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes"
 	case "$host" in
 		*-sun-solaris*)
 			LIBS="$LIBS -lthread"
+			;;
+		*-netbsd*)
+			CC="gcc"
+			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
+			STD_CINCLUDES="-nostdinc -idirafter /usr/pkg/PTL/include"
 			;;
 	esac
 else
