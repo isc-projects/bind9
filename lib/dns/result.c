@@ -65,6 +65,8 @@ static char *text[DNS_R_NRESULTS] = {
 	"bad zone",				/* 35 */
 	"more data",				/* 36 */
 	"up to date",				/* 37 */
+	"tsig verify failure",			/* 38 */
+	"tsig error set in query",		/* 39 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
@@ -162,10 +164,14 @@ dns_result_torcode(isc_result_t result) {
 	case DNS_R_BADTTL:
 	case DNS_R_NOREDATA:
 	case DNS_R_BADZONE:
+	case DNS_R_TSIGERRORSET:
 		rcode = dns_rcode_formerr;
 		break;
 	case DNS_R_DISALLOWED:
 		rcode = dns_rcode_refused;
+		break;
+	case DNS_R_TSIGVERIFYFAILURE:
+		rcode = dns_rcode_notauth;
 		break;
 	default:
 		rcode = dns_rcode_servfail;

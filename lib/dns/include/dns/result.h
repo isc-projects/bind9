@@ -85,8 +85,10 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_BADZONE			(ISC_RESULTCLASS_DNS + 35) /* XXX MPA*/
 #define DNS_R_MOREDATA			(ISC_RESULTCLASS_DNS + 36)
 #define DNS_R_UPTODATE			(ISC_RESULTCLASS_DNS + 37)
+#define DNS_R_TSIGVERIFYFAILURE		(ISC_RESULTCLASS_DNS + 38)
+#define DNS_R_TSIGERRORSET		(ISC_RESULTCLASS_DNS + 39)
 
-#define DNS_R_NRESULTS			38	/* Number of results */
+#define DNS_R_NRESULTS			40	/* Number of results */
 
 /*
  * DNS wire format rcodes
