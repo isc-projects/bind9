@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.19 2000/06/15 18:28:09 explorer Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.20 2000/06/15 18:49:53 explorer Exp $
  */
 
 #include <config.h>
@@ -227,6 +227,12 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			ntmp[sizeof(ntmp) - 1] = '\0';
 			p = strchr(ntmp, '%');
 			ep = NULL;
+
+			/*
+			 * vendors may want to support non-numeric
+			 * scopeid around here.
+			 */
+
 			if (p != NULL)
 				scopeid = (lwres_uint32_t)strtoul(p + 1,
 								  &ep, 10);
@@ -277,11 +283,12 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			SIN(ai->ai_addr)->sin_port = port;
 			memcpy((char *)ai->ai_addr + addroff, abuf, addrsize);
 			if (flags & AI_CANONNAME) {
-			if (ai->ai_family == AF_INET6)
-				SIN6(ai->ai_addr)->sin6_scope_id = scopeid;
+				if (ai->ai_family == AF_INET6)
+					SIN6(ai->ai_addr)->sin6_scope_id = scopeid;
 				if (lwres_getnameinfo(ai->ai_addr,
-				    ai->ai_addrlen, nbuf, sizeof(nbuf), NULL, 0,
-				    NI_NUMERICHOST) == 0) {
+				    ai->ai_addrlen, nbuf, sizeof(nbuf),
+						      NULL, 0,
+						      NI_NUMERICHOST) == 0) {
 					ai->ai_canonname = strdup(nbuf);
 				} else {
 					/* XXX raise error? */

@@ -195,7 +195,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			char *p = numaddr + strlen(numaddr);
 			const char *stringscope = NULL;
 #if 0
-			if (flags & NI_NUMERICSCOPE) {
+			if ((flags & NI_NUMERICSCOPE) == 0) {
 				/*
 				 * vendors may want to add support for
 				 * non-numeric scope identifier.
@@ -203,7 +203,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 				stringscope = foo;
 			}
 #endif
-			if (!stringscope) {
+			if (stringscope == NULL) {
 				snprintf(p, sizeof(numaddr) - (p - numaddr),
 				    "%%%u",
 				    ((const struct sockaddr_in6 *)sa)->sin6_scope_id);
