@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.17 2000/06/22 21:59:38 tale Exp $ */
+/* $Id: lwresutil.c,v 1.17.2.1 2000/06/26 21:59:42 gson Exp $ */
 
 #include <config.h>
 
@@ -171,7 +171,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	b_out.base = NULL;
 	response = NULL;
 	buffer = NULL;
-	serial = (lwres_uint32_t)name;
+	serial = lwres_context_nextserial(ctx);
 
 	buffer = CTXMALLOC(LWRES_RECVLENGTH);
 	if (buffer == NULL) {
@@ -326,7 +326,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 	b_out.base = NULL;
 	response = NULL;
 	buffer = NULL;
-	serial = (lwres_uint32_t)addr;
+	serial = lwres_context_nextserial(ctx);
 
 	buffer = CTXMALLOC(LWRES_RECVLENGTH);
 	if (buffer == NULL) {
