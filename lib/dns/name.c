@@ -3056,18 +3056,14 @@ void
 dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
-	isc_boolean_t omit_final_dot = ISC_TRUE;
 
 	REQUIRE(size > 0);
 	
-	if (dns_name_equal(name, dns_rootname))
-		omit_final_dot = ISC_FALSE;
-
 	/*
 	 * Leave room for null termination after buffer.
 	 */
 	isc_buffer_init(&buf, cp, size - 1);
-	result = dns_name_totext(name, omit_final_dot, &buf);
+	result = dns_name_totext(name, ISC_TRUE, &buf);
 	if (result == ISC_R_SUCCESS) {
 		/*
 		 * Null terminate.

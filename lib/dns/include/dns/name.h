@@ -845,9 +845,8 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 /*
  * Convert 'name' into text format, storing the result in 'target'.
  *	
- * Notes:
- *	If 'omit_final_dot' is true, then the final '.' in an absolute
- *	name will not be emitted.
+ * If 'omit_final_dot' is true, then the final '.' in absolute
+ * names other than the root name will be omitted.
  *
  * Requires:
  *
