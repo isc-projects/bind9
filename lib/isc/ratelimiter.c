@@ -36,6 +36,7 @@ struct isc_ratelimiter {
 	isc_task_t *		task;
 	isc_timer_t *		timer;
 	isc_interval_t		interval;
+	isc_uint32_t		pertic;
 	isc_ratelimiter_state_t	state;
 	isc_event_t		shutdownevent;
 	ISC_LIST(isc_event_t)	pending;
@@ -69,6 +70,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	rl->task = task;
 	isc_interval_set(&rl->interval, 0, 0);
 	rl->timer = NULL;
+	rl->pertic = 1;
 	rl->state = isc_ratelimiter_worklimited;
 	ISC_LIST_INIT(rl->pending);
 
@@ -111,6 +113,13 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval) {
 	UNLOCK(&rl->lock);
 	return (result);
 }
+
+void
+isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t pertic) {
+	if (pertic == 0)
+		pertic = 1;
+	rl->pertic = pertic;
+}
 			
 isc_result_t
 isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp) {
@@ -142,34 +151,38 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
 	isc_event_t *p;
+	isc_uint32_t pertic;
+
 	UNUSED(task);
-	LOCK(&rl->lock);
-        p = ISC_LIST_HEAD(rl->pending);
-        if (p != NULL) {
-		/*
-		 * There is work to do.  Let's do it after unlocking.
-		 */
-                ISC_LIST_UNLINK(rl->pending, p, ev_link);
-	} else {
-		/*
-		 * No work left to do.  Stop the timer so that we don't
-		 * waste resources by having it fire periodically.
-		 */
-		result = isc_timer_reset(rl->timer, isc_timertype_inactive,
-					 NULL, NULL, ISC_FALSE);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		rl->state = isc_ratelimiter_worklimited;
-	}
-        UNLOCK(&rl->lock);
+
 	isc_event_free(&event);
-	/*
-	 * If we have an event, dispatch it.
-	 * There is potential for optimization here since
-	 * we are already executing in the context of "task".
-	 */
-	if (p != NULL)
-		isc_task_send(rl->task, &p);
-	INSIST(p == NULL);
+
+	pertic = rl->pertic;
+        while (pertic != 0) {
+		pertic--;
+		LOCK(&rl->lock);
+		p = ISC_LIST_HEAD(rl->pending);
+		if (p != NULL) {
+			/*
+			 * There is work to do.  Let's do it after unlocking.
+			 */
+			ISC_LIST_UNLINK(rl->pending, p, ev_link);
+		} else {
+			/*
+			 * No work left to do.  Stop the timer so that we don't
+			 * waste resources by having it fire periodically.
+			 */
+			result = isc_timer_reset(rl->timer, isc_timertype_inactive,
+						 NULL, NULL, ISC_FALSE);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			rl->state = isc_ratelimiter_worklimited;
+			pertic = 0;	/* Force the loop to exit. */
+		}
+		UNLOCK(&rl->lock);
+		if (p != NULL)
+			isc_task_send(rl->task, &p);
+		INSIST(p == NULL);
+	}
 }
 
 void

@@ -59,6 +59,13 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval);
  *	'*interval' is a nonzero interval.
  */
 
+void
+isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t perint);
+/*
+ * Set the number of events procesed per interval timer tic.
+ * If 'perint' is zero it is trated as 1.
+ */
+
 isc_result_t
 isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp);
 /*
