@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.75 2000/08/17 00:18:09 gson Exp $ */
+/* $Id: view.c,v 1.76 2000/08/17 23:54:32 gson Exp $ */
 
 #include <config.h>
 
@@ -238,11 +238,12 @@ destroy(dns_view_t *view) {
 	isc_mem_put(view->mctx, view, sizeof *view);
 }
 
+/*
+ * Return true iff 'view' may be freed.
+ * The caller must be holding the view lock.
+ */
 static isc_boolean_t
 all_done(dns_view_t *view) {
-	/*
-	 * Caller must be holding the view lock.
-	 */
 
 	if (view->references == 0 && view->weakrefs == 0 &&
 	    RESSHUTDOWN(view) && ADBSHUTDOWN(view) && REQSHUTDOWN(view))
@@ -420,10 +421,6 @@ dns_view_createresolver(dns_view_t *view,
 	isc_result_t result;
 	isc_event_t *event;
 
-	/*
-	 * Create a resolver and address database for the view.
-	 */
-
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
@@ -475,11 +472,6 @@ dns_view_createresolver(dns_view_t *view,
 
 void
 dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
-
-	/*
-	 * Set the view's cache.
-	 */
-
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
@@ -494,11 +486,6 @@ dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
 
 void
 dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
-
-	/*
-	 * Set the view's hints database.
-	 */
-
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->hints == NULL);
@@ -509,9 +496,6 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
 
 void
 dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
-	/*
-	 * Set the view's static TSIG keyring.
-	 */
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->statickeys != NULL)
@@ -529,10 +513,6 @@ isc_result_t
 dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	isc_result_t result;
 
-	/*
-	 * Add zone 'zone' to 'view'.
-	 */
-
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
@@ -543,11 +523,6 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 
 void
 dns_view_freeze(dns_view_t *view) {
-
-	/*
-	 * Freeze view.
-	 */
-
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
@@ -789,10 +764,6 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	dns_name_t *zfname;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
-
-	/*
-	 * Find the best known zonecut containing 'name'.
-	 */
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
