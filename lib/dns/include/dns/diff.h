@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.1 2000/12/09 02:17:12 bwelling Exp $ */
+/* $Id: diff.h,v 1.2 2000/12/22 22:56:55 bwelling Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -268,5 +268,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file);
  *	ISC_R_UNEXPECTED
  *	any error from dns_rdataset_totext()
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_DIFF_H */
