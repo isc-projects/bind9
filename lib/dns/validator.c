@@ -888,9 +888,18 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			if (result == ISC_R_SUCCESS)
 				break;
 			if (val->keynode != NULL) {
-				val->keynode = dns_keynode_next(val->keynode);
-				if (val->keynode == NULL)
+				dns_keynode_t *nextnode = NULL;
+				result = dns_keytable_findnextkeynode(
+							val->keytable,
+							val->keynode,
+							&nextnode);
+				dns_keytable_detachkeynode(val->keytable,
+							   &val->keynode);
+				val->keynode = nextnode;
+				if (result != ISC_R_SUCCESS) {
+					val->key = NULL;
 					break;
+				}
 				val->key = dns_keynode_key(val->keynode);
 			}
 			else
@@ -918,7 +927,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		else
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "verify failure: %s",
-				      dns_result_totext(result));
+				      isc_result_totext(result));
 	}
 	INSIST(result == ISC_R_NOMORE);
 

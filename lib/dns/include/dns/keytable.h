@@ -153,6 +153,29 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
  *	Any other result indicates an error.
  */
 
+isc_result_t 
+dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
+		                             dns_keynode_t **nextnodep);
+/*
+ * Search for the next key with the same properties as 'keynode' in
+ * 'keytable'.
+ *
+ * Requires:
+ *
+ *	'keytable' is a valid keytable.
+ *
+ *	'keynode' is a valid keynode.
+ *
+ *	nextnodep != NULL && *nextnodep == NULL
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
+ *
+ *	Any other result indicates an error.
+ */
+
 isc_result_t
 dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
 			      dns_name_t *foundname);
@@ -223,12 +246,6 @@ dst_key_t *
 dns_keynode_key(dns_keynode_t *keynode);
 /*
  * Get the DST key associated with keynode.
- */
-
-dns_keynode_t *
-dns_keynode_next(dns_keynode_t *keynode);
-/*
- * Get the next keynode in the list.
  */
 
 ISC_LANG_ENDDECLS

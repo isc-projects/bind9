@@ -282,6 +282,39 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 }
 
 isc_result_t
+dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
+			     dns_keynode_t **nextnodep)
+{
+	isc_result_t result;
+	dns_keynode_t *knode;
+
+	/*
+	 * Search for the next key with the same properties as 'keynode' in
+	 * 'keytable'.
+	 */
+
+	REQUIRE(VALID_KEYTABLE(keytable));
+	REQUIRE(VALID_KEYNODE(keynode));
+	REQUIRE(nextnodep != NULL && *nextnodep == NULL);
+
+	for (knode = keynode->next; knode != NULL; knode = knode->next) {
+		if (dst_key_alg(keynode->key) == dst_key_alg(knode->key) &&
+		    dst_key_id(keynode->key) == dst_key_id(knode->key))
+			break;
+	}
+	if (knode != NULL) {
+		LOCK(&keytable->lock);
+		keytable->active_nodes++;
+		UNLOCK(&keytable->lock);
+		result = ISC_R_SUCCESS;
+		*nextnodep = knode;
+	} else
+		result = ISC_R_NOTFOUND;
+
+	return (result);
+}
+
+isc_result_t
 dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
 			      dns_name_t *foundname)
 {
@@ -371,16 +404,4 @@ dns_keynode_key(dns_keynode_t *keynode) {
 	REQUIRE(VALID_KEYNODE(keynode));
 
 	return (keynode->key);
-}
-
-dns_keynode_t *
-dns_keynode_next(dns_keynode_t *keynode) {
-
-	/*
-	 * Get the next keynode in the list.
-	 */
-
-	REQUIRE(VALID_KEYNODE(keynode));
-
-	return (keynode->next);
 }
