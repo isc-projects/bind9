@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.25 2001/01/06 00:43:03 bwelling Exp $ */
+/* $Id: compress.h,v 1.26 2001/01/07 22:01:34 gson Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -146,7 +146,7 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
  *		'name' to be a absolute name.
  *		'prefix' to be initialized.
  *		'suffix' to be initialized.
- *		'offset' to point it a isc_uint16_t.
+ *		'offset' to point to an isc_uint16_t.
  *
  *	Ensures:
  *		'prefix', 'suffix' and 'offset' are valid if ISC_TRUE is
