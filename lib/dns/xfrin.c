@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.16 1999/10/25 12:18:43 marka Exp $ */
+ /* $Id: xfrin.c,v 1.17 1999/10/25 22:20:50 gson Exp $ */
 
 #include <config.h>
 
@@ -446,7 +446,6 @@ xfr_rr(xfrin_ctx_t *xfr,
 		break;
 	case XFRST_END:
 		FAIL(DNS_R_EXTRADATA);
-		break;
 	default:
 		INSIST(0);
 		break;
