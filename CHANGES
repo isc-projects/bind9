@@ -1,7 +1,9 @@
- 616.	[func]		dnssec-signzone prints timing statistics for signing.
 
- 615.	[bug]		dnssec-signzone did not like child keysets signed by
-			multiple keys. 
+ 616.	[func]		dnssec-signzone -t output now includes performance
+			statistics.
+
+ 615.	[bug]		dnssec-signzone did not like child keysets signed 
+			by multiple keys.
 
  614.	[bug]		Checks for uninitialized link fields were prone
 			to false positives, causing assertion failures.
