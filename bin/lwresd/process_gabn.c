@@ -261,7 +261,7 @@ add_alias(client_t *client)
 	/*
 	 * Save this name away as the current real name.
 	 */
-	client->gabn.realname = b.base + b.used;
+	client->gabn.realname = (char *) b.base + b.used;
 	client->gabn.realnamelen = client->recv_buffer.used - b.used;
 
 	return (ISC_R_SUCCESS);
@@ -286,7 +286,7 @@ store_realname(client_t *client)
 	/*
 	 * Save this name away as the current real name.
 	 */
-	client->gabn.realname = b.base + b.used;
+	client->gabn.realname = (char *) b.base + b.used;
 	client->gabn.realnamelen = client->recv_buffer.used - b.used;
 
 	return (ISC_R_SUCCESS);
