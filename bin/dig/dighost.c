@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.3 2001/10/04 22:03:41 gson Exp $ */
+/* $Id: dighost.c,v 1.221.2.4 2001/10/11 01:35:37 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -376,6 +376,7 @@ make_empty_lookup(void) {
 	looknew->cdflag = ISC_FALSE;
 	looknew->ns_search_only = ISC_FALSE;
 	looknew->origin = NULL;
+	looknew->tsigctx = NULL;
 	looknew->querysig = NULL;
 	looknew->retries = tries;
 	looknew->nsfound = 0;
@@ -447,6 +448,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
 	looknew->retries = lookold->retries;
+	looknew->tsigctx = NULL;
 #ifdef DNS_OPT_NEWCODES_LIVE
 	strncpy(looknew->viewname, lookold->viewname, MXNAME);
 	strncpy(looknew->zonename, lookold->zonename, MXNAME);
