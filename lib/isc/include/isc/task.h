@@ -92,10 +92,10 @@ boolean_t				task_create(task_manager_t,
 						    event_action_t,
 						    unsigned int,
 						    task_t *);
-boolean_t				task_attach(task_t, task_t *);
+void					task_attach(task_t, task_t *);
 void					task_detach(task_t *);
 boolean_t				task_send_event(task_t,
-							generic_event_t);
+							generic_event_t *);
 void					task_shutdown(task_t);
 void					task_destroy(task_t *);
 

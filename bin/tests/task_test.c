@@ -7,6 +7,9 @@
 
 #include <isc/memcluster.h>
 #include <isc/task.h>
+#include <isc/thread.h>
+
+mem_context_t mctx = NULL;
 
 /*ARGSUSED*/
 static boolean_t
@@ -37,9 +40,49 @@ my_shutdown(task_t __attribute__((unused)) task,
 	return (TRUE);
 }
 
+/*ARGSUSED*/
+static boolean_t
+my_tick(task_t __attribute__((unused)) task,
+	void *arg,
+	generic_event_t __attribute__((unused)) event)
+{
+	char *name = arg;
+
+	printf("tick %s\n", name);
+	return (FALSE);
+}
+
+void *
+simple_timer_run(void *arg) {
+	task_t task = arg;
+	generic_event_t event;
+	int i;
+	
+	for (i = 0; i < 10; i++) {
+		sleep(1);
+		printf("sending timer to %p\n", task);
+		event = event_get(mctx, 2, my_tick, sizeof *event);
+		INSIST(event != NULL);
+		(void)task_send_event(task, &event);
+	}
+
+	task_detach(&task);
+	return (NULL);
+}
+
+void
+simple_timer_init(task_t task) {
+	os_thread_t t;
+	task_t task_clone;
+
+	task_clone = NULL;
+	task_attach(task, &task_clone);
+	INSIST(os_thread_create(simple_timer_run, task_clone, &t));
+	(void)os_thread_detach(t);
+}
+
 void
 main(int argc, char *argv[]) {
-	mem_context_t mctx = NULL;
 	task_manager_t manager = NULL;
 	task_t t1 = NULL, t2 = NULL;
 	task_t t3 = NULL, t4 = NULL;
@@ -61,36 +104,42 @@ main(int argc, char *argv[]) {
 	INSIST(task_create(manager, "3", my_shutdown, 0, &t3));
 	INSIST(task_create(manager, "4", my_shutdown, 0, &t4));
 
+	simple_timer_init(t1);
+	simple_timer_init(t2);
+	printf("task 1 = %p\n", t1);
+	printf("task 2 = %p\n", t2);
+	sleep(2);
+
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
+	task_send_event(t1, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t2, event);
+	task_send_event(t2, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t3, event);
+	task_send_event(t3, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t4, event);
+	task_send_event(t4, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t2, event);
+	task_send_event(t2, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t3, event);
+	task_send_event(t3, &event);
 	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t4, event);
+	task_send_event(t4, &event);
 
 	task_detach(&t1);
 	task_detach(&t2);

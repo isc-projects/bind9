@@ -12,14 +12,16 @@
 				 (t)->magic == TASK_MAGIC)
 
 /*
- * We use macros instead of calling the os_ routines
- * directly because the capital letters make the
- * locking stand out.
+ * We use macros instead of calling the os_ routines directly because
+ * the capital letters make the locking stand out.
+ *
+ * We INSIST that they succeed since there's no way for us to continue
+ * if they fail.
  */
-#define LOCK(lp)		os_mutex_lock((lp))
-#define UNLOCK(lp)		os_mutex_unlock((lp))
-#define WAIT(cvp, lp)		os_condition_wait((cvp), (lp))
-#define BROADCAST(cvp)		os_condition_broadcast((cvp))
+#define LOCK(lp)		INSIST(os_mutex_lock((lp)))
+#define UNLOCK(lp)		INSIST(os_mutex_unlock((lp)))
+#define WAIT(cvp, lp)		INSIST(os_condition_wait((cvp), (lp)))
+#define BROADCAST(cvp)		INSIST(os_condition_broadcast((cvp)))
 
 #define DEFAULT_DEFAULT_QUANTUM	5
 
@@ -85,7 +87,7 @@ task_free(task_t task) {
 		BROADCAST(&manager->work_available);
 	}
 	UNLOCK(&manager->lock);
-	os_mutex_destroy(&task->lock);
+	(void)os_mutex_destroy(&task->lock);
 	task->magic = 0;
 	mem_put(manager->mctx, task, sizeof *task);
 }
@@ -106,7 +108,10 @@ task_create(task_manager_t manager, void *arg,
 
 	task->magic = TASK_MAGIC;
 	task->manager = manager;
-	os_mutex_init(&task->lock);
+	if (!os_mutex_init(&task->lock)) {
+		mem_put(manager->mctx, task, sizeof *task);
+		return (FALSE);
+	}
 	task->state = task_state_idle;
 	task->references = 1;
 	INIT_LIST(task->events);
@@ -128,7 +133,7 @@ task_create(task_manager_t manager, void *arg,
 	return (TRUE);
 }
 
-boolean_t
+void
 task_attach(task_t task, task_t *taskp) {
 
 	REQUIRE(VALID_TASK(task));
@@ -139,8 +144,6 @@ task_attach(task_t task, task_t *taskp) {
 	UNLOCK(&task->lock);
 
 	*taskp = task;
-
-	return (TRUE);
 }
 
 void
@@ -173,11 +176,14 @@ task_detach(task_t *taskp) {
 }
 
 boolean_t
-task_send_event(task_t task, generic_event_t event) {
+task_send_event(task_t task, generic_event_t *eventp) {
 	boolean_t was_idle = FALSE;
 	boolean_t discard = FALSE;
+	generic_event_t event;
 
 	REQUIRE(VALID_TASK(task));
+	REQUIRE(eventp != NULL);
+	event = *eventp;
 	REQUIRE(event != NULL);
 
 	XTRACE("sending");
@@ -202,6 +208,7 @@ task_send_event(task_t task, generic_event_t event) {
 
 	if (discard) {
 		event_put(event);
+		*eventp = NULL;
 		return (TRUE);
 	}
 
@@ -244,6 +251,8 @@ task_send_event(task_t task, generic_event_t event) {
 		if (need_wakeup)
 			BROADCAST(&manager->work_available);
 	}
+
+	*eventp = NULL;
 
 	XTRACE("sent");
 	return (TRUE);
@@ -557,9 +566,9 @@ void *task_manager_run(void *uap) {
 
 static void
 manager_free(task_manager_t manager) {
-	os_condition_destroy(&manager->work_available);
-	os_condition_destroy(&manager->no_workers);
-	os_mutex_destroy(&manager->lock);
+	(void)os_condition_destroy(&manager->work_available);
+	(void)os_condition_destroy(&manager->no_workers);
+	(void)os_mutex_destroy(&manager->lock);
 	manager->magic = 0;
 	mem_put(manager->mctx, manager, sizeof *manager);
 }
@@ -577,16 +586,28 @@ task_manager_create(mem_context_t mctx, unsigned int workers,
 		return (0);
 	manager->magic = TASK_MANAGER_MAGIC;
 	manager->mctx = mctx;
-	os_mutex_init(&manager->lock);
+	if (!os_mutex_init(&manager->lock)) {
+		mem_put(mctx, manager, sizeof *manager);
+		return (0);
+	}
 	if (default_quantum == 0)
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
 	manager->default_quantum = default_quantum;
 	INIT_LIST(manager->tasks);
 	INIT_LIST(manager->ready_tasks);
-	os_condition_init(&manager->work_available);
+	if (!os_condition_init(&manager->work_available)) {
+		(void)os_mutex_destroy(&manager->lock);
+		mem_put(mctx, manager, sizeof *manager);
+		return (0);
+	}
 	manager->exiting = FALSE;
 	manager->workers = 0;
-	os_condition_init(&manager->no_workers);
+	if (!os_condition_init(&manager->no_workers)) {
+		(void)os_condition_destroy(&manager->work_available);
+		(void)os_mutex_destroy(&manager->lock);
+		mem_put(mctx, manager, sizeof *manager);
+		return (0);
+	}
 
 	LOCK(&manager->lock);
 	/*
@@ -596,7 +617,7 @@ task_manager_create(mem_context_t mctx, unsigned int workers,
 		if (os_thread_create(task_manager_run, manager, &thread)) {
 			manager->workers++;
 			started++;
-			os_thread_detach(thread);
+			(void)os_thread_detach(thread);
 		}
 	}
 	UNLOCK(&manager->lock);

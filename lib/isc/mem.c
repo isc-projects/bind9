@@ -24,11 +24,14 @@
 #include "attribute.h"
 #include <isc/assertions.h>
 
-#include <isc/mutex.h>
 #include <isc/memcluster.h>
 
+#ifdef MULTITHREADED
+#include <isc/mutex.h>
+#endif
+
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.3 1998/08/18 00:47:51 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.4 1998/08/18 19:28:28 halley Exp $";
 #endif /* not lint */
 
 /*
@@ -91,12 +94,17 @@ static size_t			quantize(size_t);
 #define ALIGNMENT_SIZE		sizeof (void *)
 #define NUM_BASIC_BLOCKS	64			/* must be > 1 */
 
-#define LOCK_CONTEXT(ctx)	os_mutex_lock(&(ctx)->mutex)
-#define UNLOCK_CONTEXT(ctx)	os_mutex_unlock(&(ctx)->mutex)
+#ifdef MULTITHREADED
+#define LOCK_CONTEXT(ctx)	INSIST(os_mutex_lock(&(ctx)->mutex))
+#define UNLOCK_CONTEXT(ctx)	INSIST(os_mutex_unlock(&(ctx)->mutex))
+#else
+#define LOCK_CONTEXT(ctx)
+#define UNLOCK_CONTEXT(ctx)
+#endif
 
 /* Private Inline-able. */
 
-static __inline__ size_t 
+static inline size_t 
 quantize(size_t size) {
 	int remainder;
 
@@ -149,7 +157,12 @@ mem_context_create(size_t init_max_size, size_t target_size,
 	ctx->basic_blocks = NULL;
 	ctx->lowest = NULL;
 	ctx->highest = NULL;
-	os_mutex_init(&ctx->mutex);
+	if (!os_mutex_init(&ctx->mutex)) {
+		free(ctx->stats);
+		free(ctx->freelists);
+		free(ctx);
+		return (-1);
+	}
 	*ctxp = ctx;
 	return (0);
 }
