@@ -90,24 +90,18 @@ static size_t			quantize(size_t);
 
 /* Private Inline-able. */
 
-static inline size_t 
+static inline size_t
 quantize(size_t size) {
-	int remainder;
+	int temp;
 
 	/*
-	 * If there is no remainder for the integer division of 
-	 *
-	 *	(rightsize/ALIGNMENT_SIZE)
-	 *
-	 * then we already have a good size; if not, then we need
-	 * to round up the result in order to get a size big
+	 * Round up the result in order to get a size big
 	 * enough to satisfy the request and be aligned on ALIGNMENT_SIZE
 	 * byte boundaries.
 	 */
-	remainder = size % ALIGNMENT_SIZE;
-	if (remainder != 0)
-        	size += ALIGNMENT_SIZE - remainder;
-	return (size);
+
+	temp = size + (ALIGNMENT_SIZE - 1);
+	return (temp - temp % ALIGNMENT_SIZE); 
 }
 
 /* Public. */
@@ -330,6 +324,11 @@ __isc_mem_get(isc_mem_t *ctx, size_t size) {
  done:
 	UNLOCK(&ctx->lock);
 
+#if ISC_MEM_FILL
+	if (ret != NULL)
+		memset(ret, 0xbe, new_size); /* Mnemonic for "beef". */
+#endif
+
 	return (ret);
 }
 
@@ -340,6 +339,10 @@ __isc_mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	REQUIRE(size > 0);
 	REQUIRE(VALID_CONTEXT(ctx));
 	LOCK(&ctx->lock);
+
+#if ISC_MEM_FILL
+	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
+#endif
 
 	if (size == ctx->max_size || new_size >= ctx->max_size) {
 		/* memput() called on something beyond our upper limit */
