@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.65 2000/01/27 01:00:10 gson Exp $ */
+ /* $Id: zone.c,v 1.66 2000/01/27 01:07:17 gson Exp $ */
 
 #include <config.h>
 
@@ -2970,7 +2970,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->zones);
 	result = isc_rwlock_init(&zmgr->rwlock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, zmgr, sizeof *zmgr);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));
@@ -2979,7 +2978,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	}
 	result = isc_rwlock_init(&zmgr->conflock, UINT_MAX, UINT_MAX);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, zmgr, sizeof *zmgr);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));
