@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.357 2001/10/29 19:10:42 gson Exp $ */
+/* $Id: server.c,v 1.358 2001/10/29 19:30:11 gson Exp $ */
 
 #include <config.h>
 
@@ -531,7 +531,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (config != NULL)
 		cfgmaps[i++] = config;
 	cfgmaps[i] = NULL;
-
 
 	/*
 	 * Set the view's port number for outgoing queries.
