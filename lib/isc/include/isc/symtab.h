@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.h,v 1.14 2000/08/01 01:30:50 tale Exp $ */
+/* $Id: symtab.h,v 1.15 2000/12/11 04:08:52 gson Exp $ */
 
 #ifndef ISC_SYMTAB_H
 #define ISC_SYMTAB_H 1
@@ -38,11 +38,11 @@
  * tuple when a tuple with the given key and type already exists in the table.
  * What to do in this case is specified by the client.  Possible policies are:
  *
- *	Reject			Disallow the define, returning ISC_R_EXISTS
- *	Replace			Replace the old value with the new.  The
+ *	isc_symexists_reject	Disallow the define, returning ISC_R_EXISTS
+ *	isc_symexists_replace	Replace the old value with the new.  The
  *				undefine action (if provided) will be called
  *				with the old <key, type, value> tuple.
- *	Add			Add the new tuple, leaving the old tuple in
+ *	isc_symexists_add	Add the new tuple, leaving the old tuple in
  *				the table.  Subsequent lookups will retrieve
  *				the most-recently-defined tuple.
  *
