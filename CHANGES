@@ -1,3 +1,4 @@
+ 737.	[port]		stdtime failed to compile on certain platforms.
 
  736.	[func]		New functions isc_task_{begin,end}exclusive().
 

@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.c,v 1.10 2001/01/09 21:58:32 bwelling Exp $ */
+/* $Id: stdtime.c,v 1.11 2001/02/13 13:24:09 marka Exp $ */
 
 #include <config.h>
+
+#include <stdlib.h>	/* NULL */
 
 #include <sys/time.h>
 
