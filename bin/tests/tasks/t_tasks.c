@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.20 2001/01/04 00:27:03 gson Exp $ */
+/* $Id: t_tasks.c,v 1.21 2001/01/05 01:58:26 gson Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 
 #include <isc/condition.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>

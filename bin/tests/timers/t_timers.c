@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.16 2001/01/04 00:43:33 gson Exp $ */
+/* $Id: t_timers.c,v 1.17 2001/01/05 01:58:28 gson Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include <isc/condition.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
