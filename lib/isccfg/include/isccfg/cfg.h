@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.18 2001/02/28 20:54:03 bwelling Exp $ */
+/* $Id: cfg.h,v 1.19 2001/03/01 23:03:43 bwelling Exp $ */
 
-#ifndef DNS_CFG_H
-#define DNS_CFG_H 1
+#ifndef ISCCFG_CFG_H
+#define ISCCFG_CFG_H 1
 
 /*****
  ***** Module Info
@@ -378,4 +378,4 @@ extern cfg_type_t cfg_type_keyref; /* A key reference, used as an ACL element */
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_CFG_H */
+#endif /* ISCCFG_CFG_H */
