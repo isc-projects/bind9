@@ -42,7 +42,9 @@ typedef struct dig_query dig_query_t;
 typedef struct dig_server dig_server_t;
 
 struct dig_lookup {
-	isc_boolean_t pending; /* Pending a successful answer */
+	isc_boolean_t pending, /* Pending a successful answer */
+		waiting_connect,
+		doing_xfr;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */
@@ -56,6 +58,7 @@ struct dig_lookup {
 	dns_message_t *sendmsg;
 	ISC_LINK(dig_lookup_t) link;
 	ISC_LIST(dig_query_t) q;
+	dig_query_t *xfr_q;
 };
 
 struct dig_query {
@@ -69,9 +72,11 @@ struct dig_query {
 		recvlist,
 		lengthlist;
 	isc_buffer_t recvbuf,
-		lengthbuf;
+		lengthbuf,
+		slbuf;
 	char recvspace[COMMSIZE],
-		lengthspace[4];
+		lengthspace[4],
+		slspace[4];
 	isc_socket_t *sock;
 	ISC_LINK(dig_query_t) link;
 	isc_sockaddr_t sockaddr;

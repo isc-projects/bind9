@@ -56,8 +56,7 @@ extern int h_errno;
 #include <dig/dig.h>
 #include <dig/printmsg.h>
 
-#undef DEBUG
-#undef MEMDEBUG
+#define DEBUG
 
 ISC_LIST(dig_lookup_t) lookup_list;
 ISC_LIST(dig_server_t) server_list;
@@ -79,6 +78,28 @@ isc_buffer_t rootbuf;
 int sendcount=0;
 
 static void
+free_lists();
+
+static void
+hex_dump(isc_buffer_t *b)
+{
+	unsigned int len;
+	isc_region_t r;
+
+	isc_buffer_remaining(b, &r);
+
+	printf ("Printing a buffer with length %d\n",r.length);
+	for (len = 0 ; len < r.length ; len++) {
+		printf("%02x ", r.base[len]);
+		if (len != 0 && len % 16 == 0)
+			printf("\n");
+	}
+	if (len % 16 != 0)
+		printf("\n");
+}
+
+
+static void
 fatal(char *format, ...) {
 	va_list args;
 
@@ -86,9 +107,7 @@ fatal(char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-#ifdef NEVER
 	free_lists();
-#endif
 	exit(1);
 }
 
@@ -128,8 +147,8 @@ istype(char *text) {
 					  "gpos", "aaaa", "loc", "nxt",
 					  "srv", "naptr", "kx", "cert",
 					  "a6", "dname", "opt", "unspec",
-					  "tkey", "tsig"};
-	static const int numtypes = 40;
+					  "tkey", "tsig", "axfr"};
+	static const int numtypes = 41;
 	int i;
 
 	for (i=0;i<numtypes;i++) {
@@ -195,6 +214,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->sendmsg=NULL;
 			lookup->name=NULL;
 			lookup->timer = NULL;
+			lookup->xfr_q = NULL;
 			ISC_LIST_INIT(lookup->q);
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			have_host = ISC_TRUE;
@@ -228,6 +248,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->sendmsg=NULL;
 		lookup->name=NULL;
 		lookup->timer = NULL;
+		lookup->xfr_q = NULL;
 		ISC_LIST_INIT(lookup->q);
 		strcpy (lookup->textname,".");
 		strcpy (lookup->rttext, "NS");
@@ -389,6 +410,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	r.length=strlen(lookup->rttext);
 	result = dns_rdatatype_fromtext(&rdtype, &r);
 	check_result (result, "dns_rdatatype_fromtext");
+	if (rdtype  == dns_rdatatype_axfr)
+		lookup->doing_xfr = ISC_TRUE;
 	r.base=lookup->rctext;
 	r.length=strlen(lookup->rctext);
 	result = dns_rdataclass_fromtext(&rdclass, &r);
@@ -428,10 +451,9 @@ setup_lookup(dig_lookup_t *lookup) {
 				 COMMSIZE, ISC_BUFFERTYPE_BINARY);
 		isc_buffer_init (&query->lengthbuf, query->lengthspace,
 				 2, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init (&query->slbuf, query->slspace,
+				 2, ISC_BUFFERTYPE_BINARY);
 
-		ISC_LIST_ENQUEUE (query->recvlist, &query->recvbuf, link);
-		ISC_LIST_ENQUEUE (query->sendlist, &lookup->sendbuf, link);
-		ISC_LIST_ENQUEUE (query->lengthlist, &query->lengthbuf, link);
 		ISC_LIST_ENQUEUE (lookup->q, query, link);
 	}
 }	
@@ -446,6 +468,9 @@ static void
 cancel_lookup (dig_lookup_t *lookup) {
 	dig_query_t *query;
 
+#ifdef DEBUG
+	puts ("Cancelling all queries");
+#endif
 	if (!lookup->pending)
 		return;
 	lookup->pending = ISC_FALSE;
@@ -467,7 +492,7 @@ check_next_lookup (dig_lookup_t *lookup) {
 	dig_lookup_t *next;
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
-
+	
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
@@ -497,8 +522,9 @@ check_next_lookup (dig_lookup_t *lookup) {
 
 }
 
+/* connect_timeout is used for both UDP recieves and TCP connects. */
 static void
-recv_timeout (isc_task_t *task, isc_event_t *event) {
+connect_timeout (isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *lookup;
 	dig_query_t *q=NULL;
 	isc_result_t result;
@@ -514,16 +540,188 @@ recv_timeout (isc_task_t *task, isc_event_t *event) {
 	for (q = ISC_LIST_HEAD(lookup->q);
 	     q != NULL;
 	     q = ISC_LIST_NEXT(q, link)) {
-		isc_buffer_clear (b);
-		result = isc_sockaddr_totext(&q->sockaddr, b);
+		if (q->working) {
+			isc_buffer_clear (b);
+			result = isc_sockaddr_totext(&q->sockaddr, b);
+			check_result (result, "isc_sockaddr_totext");
+			isc_buffer_used(b, &r);
+			printf (";; Connection to server %.*s for %s failed: Connection timed out.\n",
+				(int)r.length, r.base, q->lookup->textname);
+			isc_socket_cancel(q->sock, task, ISC_SOCKCANCEL_ALL);
+		}
+	}
+	ENSURE (lookup->timer != NULL);
+	isc_timer_detach (&lookup->timer);
+	isc_buffer_free (&b);
+	isc_event_free (&event);
+	lookup->pending = ISC_FALSE;
+}
+
+static void
+recv_done (isc_task_t *task, isc_event_t *event) ;
+
+static void
+tcp_length_done (isc_task_t *task, isc_event_t *event) { 
+	isc_socketevent_t *sevent;
+	isc_buffer_t *b=NULL;
+	isc_region_t r;
+	isc_result_t result;
+	dig_query_t *query=NULL;
+	isc_uint16_t length;
+
+	UNUSED (task);
+
+#ifdef DEBUG
+	puts ("In tcp_length_done");
+#endif
+	REQUIRE (event->ev_type == ISC_SOCKEVENT_RECVDONE);
+	sevent = (isc_socketevent_t *)event;	
+
+	query = event->ev_arg;
+
+	if (sevent->result == ISC_R_CANCELED) {
+		query->working = ISC_FALSE;
+		isc_socket_detach (&query->sock);
+		check_next_lookup(query->lookup);
+		isc_event_free (&event);
+		return;
+	}
+	if (sevent->result != ISC_R_SUCCESS) {
+		result = isc_buffer_allocate(mctx, &b, 256,
+					     ISC_BUFFERTYPE_TEXT);
+		check_result (result, "isc_buffer_allocate");
+		result = isc_sockaddr_totext(&query->sockaddr, b);
 		check_result (result, "isc_sockaddr_totext");
 		isc_buffer_used(b, &r);
-		printf (";; Connection to server %.*s for %s failed: Connection timed out.\n",
-			(int)r.length, r.base, q->lookup->textname);
-		isc_socket_cancel(q->sock, task, ISC_SOCKCANCEL_ALL);
+		printf ("%.*s: %s\n",(int)r.length, r.base,
+			isc_result_totext(sevent->result));
+		isc_buffer_free (&b);
+		query->working = ISC_FALSE;
+		isc_socket_detach (&query->sock);
+		check_next_lookup(query->lookup);
+		isc_event_free (&event);
+		return;
 	}
-	isc_buffer_free (&b);
-	lookup->pending = ISC_FALSE;
+	b = ISC_LIST_HEAD(sevent->bufferlist);
+	ISC_LIST_DEQUEUE (sevent->bufferlist, &query->lengthbuf, link);
+	length = isc_buffer_getuint16(b);
+	if (length > COMMSIZE) 
+		fatal ("Length was longer than I can handle!");
+	/* XXXMWS Fix the above. */
+	/* Even though the buffer was already init'ed, we need
+	   to redo it now, to force the length we want. */
+	isc_buffer_invalidate (&query->recvbuf);
+	isc_buffer_init(&query->recvbuf, query->recvspace, 
+			length, ISC_BUFFERTYPE_BINARY);
+	ENSURE (ISC_LIST_EMPTY (query->recvlist));
+	ISC_LIST_ENQUEUE (query->recvlist, &query->recvbuf, link);
+	result = isc_socket_recvv (query->sock, &query->recvlist,
+				   length, task, recv_done,
+				   query);
+	check_result (result, "isc_socket_recvv");
+#ifdef DEBUG
+	printf ("Resubmitted request with length %d\n",length);
+#endif
+	isc_event_free (&event);
+}
+
+static void
+launch_next_query(dig_query_t *query) {
+	isc_result_t result;
+
+	if (!query->lookup->pending) {
+#ifdef DEBUG
+		puts ("Ignoring launch_next_query because !pending.");
+#endif
+		isc_socket_detach (&query->sock);
+		query->working = ISC_FALSE;
+		query->waiting_connect = ISC_FALSE;
+		check_next_lookup (query->lookup);
+		return;
+	}
+
+	isc_buffer_putuint16(&query->slbuf, query->lookup->sendbuf.used);
+	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
+	ISC_LIST_ENQUEUE(query->sendlist, &query->lookup->sendbuf, link);
+	ISC_LIST_ENQUEUE(query->lengthlist, &query->lengthbuf, link);
+
+	result = isc_socket_recvv(query->sock, &query->lengthlist, 0, task,
+				  tcp_length_done, query);
+	check_result (result, "isc_socket_recvv");
+	sendcount++;
+	result = isc_socket_sendv(query->sock, &query->sendlist, task,
+				  send_done, query);
+	check_result (result, "isc_socket_recvv");
+	query->waiting_connect = ISC_FALSE;
+	check_next_lookup(query->lookup);
+	return;
+}
+	
+static void
+connect_done (isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	isc_socketevent_t *sevent;
+	dig_query_t *query;
+	isc_buffer_t *b;
+	isc_region_t r;
+
+	UNUSED (task);
+
+	REQUIRE (event->ev_type == ISC_SOCKEVENT_CONNECT);
+	sevent = (isc_socketevent_t *)event;
+	query = sevent->ev_arg;
+
+	REQUIRE (query->waiting_connect);
+
+	query->waiting_connect = ISC_FALSE;
+
+#ifdef DEBUG
+	puts ("In connect_done.");
+#endif
+	if (sevent->result != ISC_R_SUCCESS) {
+		result = isc_buffer_allocate(mctx, &b, 256,
+					     ISC_BUFFERTYPE_TEXT);
+		check_result (result, "isc_buffer_allocate");
+		result = isc_sockaddr_totext(&query->sockaddr, b);
+		check_result (result, "isc_sockaddr_totext");
+		isc_buffer_used(b, &r);
+		printf (";; Connection to server %.*s for %s failed: %s.\n",
+			(int)r.length, r.base, query->lookup->textname,
+			isc_result_totext(sevent->result));
+		isc_buffer_free(&b);
+		check_next_lookup(query->lookup);
+		isc_event_free (&event);
+		check_next_lookup(query->lookup);
+		query->working = ISC_FALSE;
+		query->waiting_connect = ISC_FALSE;
+		return;
+	}
+
+	launch_next_query (query);
+	isc_event_free (&event);
+}
+
+static isc_boolean_t
+msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
+	isc_result_t result;
+	dns_rdataset_t *rd=NULL;
+	dns_name_t *name=NULL;
+
+	result = dns_message_findname (msg, DNS_SECTION_ANSWER,
+				       query->lookup->name, dns_rdatatype_soa,
+				       dns_rdatatype_any, &name, &rd);
+	if (result == ISC_R_SUCCESS) {
+#ifdef DEBUG
+		puts ("Found SOA");
+#endif
+		return (ISC_TRUE);
+	} else {
+#ifdef DEBUG
+		puts ("Didn't find SOA");
+#endif
+		return (ISC_FALSE);
+	}
+	
 }
 
 static void
@@ -549,7 +747,8 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 
 	if (!query->lookup->pending) {
 #ifdef DEBUG
-		puts ("No longer pending...");
+		printf ("No longer pending.  Got %s\n",
+			isc_result_totext (sevent->result));
 #endif
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
@@ -565,20 +764,38 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 					    &msg);
 		check_result (result, "dns_message_create");
 		result = dns_message_parse(msg, b, ISC_TRUE);
-#ifdef NEVER
 		if (result != ISC_R_SUCCESS)
 			hex_dump (b);
-#endif
 		check_result (result, "dns_message_parse");
-		cancel_lookup (query->lookup);
-		printmessage(msg);
-		query->working = ISC_FALSE;
-		query->waiting_connect = ISC_FALSE;
-		check_next_lookup(query->lookup);
+		if (query->lookup->xfr_q == NULL)
+			query->lookup->xfr_q = query;
+		if (query->lookup->xfr_q == query)
+			printmessage(msg);
 		/* XXXMWS Will need a more complex pending check once
 		   TCP mode comes in and we need to deal with
 		   XFR transfers. */
-		query->lookup->pending = ISC_FALSE;
+#ifdef DEBUG
+		if (query->lookup->pending)
+			puts ("Still pending.");
+#endif
+		if (query->lookup->doing_xfr) {
+			if (msg_contains_soa(msg,query)) {
+				if (query->first_soa_rcvd) {
+					cancel_lookup (query->lookup);
+					query->lookup->pending = ISC_FALSE;
+					query->working = ISC_FALSE;
+				}
+				else {
+					query->first_soa_rcvd = ISC_TRUE;
+					launch_next_query(query);
+				}
+			} else {
+				launch_next_query(query);
+			}
+		}
+		else {
+			query->lookup->pending = ISC_FALSE;
+		}
 		if (!query->lookup->pending) {
 			isc_buffer_init (&ab, abspace, MXNAME,
 						  ISC_BUFFERTYPE_TEXT);
@@ -588,6 +805,7 @@ recv_done (isc_task_t *task, isc_event_t *event) {
 			isc_buffer_used (&ab, &r);
 			printf ("; Received %u bytes from %s\n",
 				b->used, r.base);
+			check_next_lookup (query->lookup);
 		}
 		dns_message_destroy (&msg);
 		isc_event_free (&event);
@@ -628,6 +846,41 @@ get_address(char *hostname, in_port_t port, isc_sockaddr_t *sockaddr) {
 }
 
 static void
+do_lookup_tcp (dig_lookup_t *lookup) {
+	dig_query_t *query;
+	isc_result_t result;
+
+#ifdef DEBUG
+	puts ("Starting a TCP lookup");
+#endif
+	lookup->pending = ISC_TRUE;
+	isc_interval_set (&lookup->interval, timeout, 0);
+	result = isc_timer_create (timermgr, isc_timertype_once,
+				   NULL, &lookup->interval, task,
+				   connect_timeout, lookup,
+				   &lookup->timer);
+	check_result (result, "isc_timer_create");
+
+	for (query = ISC_LIST_HEAD(lookup->q);
+	     query != NULL;
+	     query = ISC_LIST_NEXT(query, link)) {
+		query->working = ISC_TRUE;
+		query->waiting_connect = ISC_TRUE;
+		get_address(query->servname, port, &query->sockaddr);
+
+		result = isc_socket_create (socketmgr,
+					    isc_sockaddr_pf(&query->sockaddr),
+					    isc_sockettype_tcp,
+					    &query->sock) ;
+		check_result (result, "isc_socket_create");
+		result = isc_socket_connect (query->sock,
+					     &query->sockaddr, task,
+					     connect_done, query);
+		check_result (result, "isc_socket_connect");
+	}
+}
+
+static void
 do_lookup_udp (dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_result_t result;
@@ -639,7 +892,7 @@ do_lookup_udp (dig_lookup_t *lookup) {
 	isc_interval_set (&lookup->interval, timeout, 0);
 	result = isc_timer_create (timermgr, isc_timertype_once,
 				   NULL, &lookup->interval, task,
-				   recv_timeout, lookup,
+				   connect_timeout, lookup,
 				   &lookup->timer);
 	check_result (result, "isc_timer_create");
 
@@ -655,6 +908,7 @@ do_lookup_udp (dig_lookup_t *lookup) {
 					    isc_sockettype_udp,
 					    &query->sock) ;
 		check_result (result, "isc_socket_create");
+		ISC_LIST_ENQUEUE (query->recvlist, &query->recvbuf, link);
 		result = isc_socket_recvv (query->sock, &query->recvlist,
 					   1, task, recv_done, query);
 		check_result (result, "isc_socket_recvv");
@@ -662,6 +916,7 @@ do_lookup_udp (dig_lookup_t *lookup) {
 #ifdef DEBUG
 		printf ("Sent count number %d\n",sendcount);
 #endif
+		ISC_LIST_ENQUEUE (query->sendlist, &lookup->sendbuf, link);
 		result = isc_socket_sendtov(query->sock, &query->sendlist,
 					    task, send_done, query,
 					    &query->sockaddr, NULL);
@@ -678,10 +933,8 @@ free_lists() {
 
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
-		INSIST (!l->pending);
 		q = ISC_LIST_HEAD(l->q);
 		while (q != NULL) {
-			INSIST (!q->working);
 			if (q->sock != NULL)
 				isc_socket_detach (&q->sock);
 			if (ISC_LINK_LINKED (&q->recvbuf, link))
@@ -733,11 +986,9 @@ main (int argc, char **argv) {
 	setup_system();
 	lookup = ISC_LIST_HEAD(lookup_list);
 	setup_lookup(lookup);
-#ifdef TCP_WORKING
 	if (tcp_mode)
 		do_lookup_tcp(lookup);
 	else
-#endif	
 		do_lookup_udp(lookup);
 	isc_app_run();
 	free_lists();
