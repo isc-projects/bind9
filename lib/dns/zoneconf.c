@@ -284,21 +284,21 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setidlein(zone, maxxfr);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_gettransfersource(cview, &sockaddr);
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
-			if (result != ISC_R_SUCCESS) {
-				sockaddr = sockaddr_any4;
-			}
-		}
+		if (result != ISC_R_SUCCESS)
+			sockaddr = sockaddr_any4;
 		dns_zone_setxfrsource4(zone, &sockaddr);
 
 		result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && cview != NULL) 
+			result = dns_c_view_gettransfersourcev6(cview, &sockaddr);
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_gettransfersourcev6(cctx, &sockaddr);
-			if (result != ISC_R_SUCCESS) {
-				sockaddr = sockaddr_any6;
-			}
-		}
+		if (result != ISC_R_SUCCESS)
+			sockaddr = sockaddr_any6;
 		dns_zone_setxfrsource6(zone, &sockaddr);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
@@ -376,21 +376,21 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setidlein(zone, maxxfr);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_gettransfersource(cview, &sockaddr);
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
-			if (result != ISC_R_SUCCESS) {
-				sockaddr = sockaddr_any4;
-			}
-		}
+		if (result != ISC_R_SUCCESS)
+			sockaddr = sockaddr_any4;
 		dns_zone_setxfrsource4(zone, &sockaddr);
 
 		result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS && cview != NULL) 
+			result = dns_c_view_gettransfersourcev6(cview, &sockaddr);
+		if (result != ISC_R_SUCCESS) 
 			result = dns_c_ctx_gettransfersourcev6(cctx, &sockaddr);
-			if (result != ISC_R_SUCCESS) {
-				sockaddr = sockaddr_any6;
-			}
-		}
+		if (result != ISC_R_SUCCESS)
+			sockaddr = sockaddr_any6;
 		dns_zone_setxfrsource6(zone, &sockaddr);
 
 	case dns_c_zone_hint:
