@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.158 2000/07/27 21:29:58 bwelling Exp $ */
+/* $Id: resolver.c,v 1.159 2000/07/27 22:05:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -4756,8 +4756,8 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * Launch this fctx.  "task" is set as the sender only
-			 * to satisfy * the requirement that the sender is
-			 * non-null, but it is not * used by the event
+			 * to satisfy the requirement that the sender is
+			 * non-null, but it is not used by the event
 			 * receiver.
 			 */
 			event = &fctx->control_event;
