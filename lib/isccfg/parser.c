@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.69 2001/08/03 05:56:12 marka Exp $ */
+/* $Id: parser.c,v 1.70 2001/08/08 20:52:34 gson Exp $ */
 
 #include <config.h>
 
@@ -3574,8 +3574,7 @@ cfg_getstringtoken(cfg_parser_t *pctx) {
 }
 
 static void
-parser_error(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...)
-{
+parser_error(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	parser_complain(pctx, ISC_FALSE, flags, fmt, args);
@@ -3584,8 +3583,7 @@ parser_error(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...)
 }
 
 static void
-parser_warning(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...)
-{
+parser_warning(cfg_parser_t *pctx, unsigned int flags, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	parser_complain(pctx, ISC_TRUE, flags, fmt, args);
