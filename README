@@ -104,6 +104,9 @@ BIND 9.0.1
 
 		--with-libtool does not work on AIX.
 
+		Due to bugs in the dnssafe library, RSA keys longer
+		than 2000 bits are not supported.
+
 Building
 
 	BIND 9 currently requires a UNIX system with an ANSI C compiler,
