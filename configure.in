@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.239 $)
+AC_REVISION($Revision: 1.240 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -973,6 +973,7 @@ AC_SUBST(LWRES_HAVE_SIN6_SCOPE_ID)
 # the files.  It also needs to come after checking for a Kame add-on,
 # which provides some (all?) of the desired functions.
 #
+
 AC_MSG_CHECKING([for inet_ntop])
 AC_TRY_LINK([
 #include <sys/types.h>
@@ -986,19 +987,25 @@ AC_TRY_LINK([
         ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
         ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
+
+
+# On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
+# addresses with less than four octets, like "1.2.3".
+
 AC_MSG_CHECKING([for inet_pton])
-AC_TRY_LINK([
+AC_TRY_RUN([
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>],
-        [inet_pton(0, 0, 0); return (0);],
+#include <arpa/inet.h>
+main() { char a[4]; return (inet_pton(AF_INET, "1.2.3", a) == 0 ? 0 : 1); }],
         [AC_MSG_RESULT(yes)
         ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
-
         [AC_MSG_RESULT(no)
         ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
         ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"])
+
 AC_MSG_CHECKING([for inet_aton])
 AC_TRY_LINK([
 #include <sys/types.h>
