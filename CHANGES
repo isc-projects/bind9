@@ -1,3 +1,5 @@
+1397.	[bug]		J.ROOT-SERVERS.NET is now 192.58.128.30.
+
 1396.	[func]		dnssec-signzone: adjust the default signing time by
 			1 hour to allow for clock skew.
 
