@@ -126,6 +126,8 @@ typedef struct err_state_st
 
 #define ERR_LIB_USER		128
 
+/* BEW */
+#if 0
 #define SYSerr(f,r)  ERR_PUT_error(ERR_LIB_SYS,(f),(r),ERR_file_name,__LINE__)
 #define BNerr(f,r)   ERR_PUT_error(ERR_LIB_BN,(f),(r),ERR_file_name,__LINE__)
 #define RSAerr(f,r)  ERR_PUT_error(ERR_LIB_RSA,(f),(r),ERR_file_name,__LINE__)
@@ -151,6 +153,15 @@ typedef struct err_state_st
 #define X509V3err(f,r) ERR_PUT_error(ERR_LIB_X509V3,(f),(r),ERR_file_name,__LINE__)
 #define PKCS12err(f,r) ERR_PUT_error(ERR_LIB_PKCS12,(f),(r),ERR_file_name,__LINE__)
 #define RANDerr(f,r) ERR_PUT_error(ERR_LIB_RAND,(f),(r),ERR_file_name,__LINE__)
+#else
+#define SYSerr(f,r)	do {} while (0)
+#define BNerr(f,r)	do {} while (0)
+#define DHerr(f,r)	do {} while (0)
+#define DSAerr(f,r)	do {} while (0)
+#define CRYPTOerr(f,r)	do {} while (0)
+#define BUFerr(f,r)	do {} while (0)
+#define RANDerr(f,r)	do {} while (0)
+#endif
 
 /* Borland C seems too stupid to be able to shift and do longs in
  * the pre-processor :-( */
