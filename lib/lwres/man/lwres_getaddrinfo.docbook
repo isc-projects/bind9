@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getaddrinfo.docbook,v 1.4 2001/06/18 17:53:59 gson Exp $ -->
+<!-- $Id: lwres_getaddrinfo.docbook,v 1.5 2001/06/18 22:06:53 gson Exp $ -->
 
 <refentry>
 
@@ -101,13 +101,12 @@ IPv4 address or an IPv6 address.
 <parameter>servname</parameter>
 is either a decimal port number or a service name as listed in
 <filename>/etc/services</filename>.
-
 </para>
+
 <para>
 <parameter>hints</parameter>
 is an optional pointer to a
 <type>struct addrinfo</type>.
-
 This structure can be used to provide hints concerning the type of socket
 that the caller supports or wishes to use.
 The caller can supply the following structure elements in
@@ -230,6 +229,7 @@ and no name resolution should be attempted.
 </listitem>
 </varlistentry>
 </variablelist>
+</para>
 
 <para>
 All other elements of the <type>struct addrinfo</type> passed

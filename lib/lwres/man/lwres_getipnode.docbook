@@ -16,19 +16,20 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getipnode.docbook,v 1.3 2001/04/24 18:11:13 gson Exp $ -->
+<!-- $Id: lwres_getipnode.docbook,v 1.4 2001/06/18 22:06:55 gson Exp $ -->
 
 <refentry>
+
 <refentryinfo>
-
-
 <date>Jun 30, 2000</date>
 </refentryinfo>
+
 <refmeta>
 <refentrytitle>lwres_getipnode</refentrytitle>
 <manvolnum>3</manvolnum>
 <refmiscinfo>BIND9</refmiscinfo>
 </refmeta>
+
 <refnamediv>
 <refname>lwres_getipnodebyname</refname>
 <refname>lwres_getipnodebyaddr</refname>
@@ -64,19 +65,21 @@ void
 </funcprototype>
 </funcsynopsis>
 </refsynopsisdiv>
+
 <refsect1>
 <title>DESCRIPTION</title>
+
 <para>
 These functions perform thread safe, protocol independent
 nodename-to-address and address-to-nodename 
 translation as defined in RFC2553.
 </para>
+
 <para>
 They use a
 <type>struct hostent</type>
 which is defined in
 <filename>namedb.h</filename>:
-
 <programlisting>
 struct  hostent {
         char    *h_name;        /* official name of host */
@@ -88,6 +91,7 @@ struct  hostent {
 #define h_addr  h_addr_list[0]  /* address, for backward compatibility */
 </programlisting>
 </para>
+
 <para>
 The members of this structure are:
 <variablelist>
@@ -96,13 +100,13 @@ The members of this structure are:
 <para>
 The official (canonical) name of the host.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_aliases</constant></term>
 <listitem>
 <para>
 A NULL-terminated array of alternate names (nicknames) for the host.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_addrtype</constant></term>
 <listitem>
 <para>
@@ -112,13 +116,13 @@ or
 <type>PF_INET6</type>.
 
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_length</constant></term>
 <listitem>
 <para>
 The length of the address in bytes.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_addr_list</constant></term>
 <listitem>
 <para>
@@ -127,7 +131,7 @@ A
 terminated array of network addresses for the host.
 Host addresses are returned in network byte order.
 </para>
-</listitem>
+</listitem></varlistentry>
 </variablelist>
 </para>
 <para>
@@ -153,7 +157,7 @@ This is used with an
 of AF_INET6, and causes IPv4 addresses to be returned as IPv4-mapped
 IPv6 addresses.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>AI_ALL</constant></term>
 <listitem>
 <para>
@@ -163,7 +167,7 @@ of AF_INET6, and causes all known addresses (IPv6 and IPv4) to be returned.
 If AI_V4MAPPED is also set, the IPv4 addresses are return as mapped
 IPv6 addresses.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>AI_ADDRCONFIG</constant></term>
 <listitem>
 <para>
@@ -171,7 +175,7 @@ Only return an IPv6 or IPv4 address if here is an active network
 interface of that type.  This is not currently implemented
 in the BIND 9 lightweight resolver, and the flag is ignored.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>AI_DEFAULT</constant></term>
 <listitem>
 <para>
@@ -181,7 +185,7 @@ and
 <constant>AI_ADDRCONFIG</constant>
 flag bits.
 </para>
-</listitem>
+</listitem></varlistentry>
 </variablelist>
 </para>
 <para>
@@ -238,7 +242,7 @@ The error codes and their meanings are defined in
 <para>
 No such host is known.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>NO_ADDRESS</constant></term>
 <listitem>
 <para>
@@ -246,7 +250,7 @@ The server recognised the request and the name but no address is
 available.  Another type of request to the name server for the
 domain might return an answer.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>TRY_AGAIN</constant></term>
 <listitem>
 <para>
@@ -254,14 +258,14 @@ A temporary and possibly transient error occurred, such as a
 failure of a server to respond.  The request may succeed if
 retried.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>NO_RECOVERY</constant></term>
 <listitem>
 <para>
 An unexpected failure occurred, and retrying the request
 is pointless.
 </para>
-</listitem>
+</listitem></varlistentry>
 </variablelist>
 </para>
 <para>

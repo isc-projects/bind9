@@ -16,19 +16,20 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_gethostent.docbook,v 1.4 2001/04/24 18:13:46 gson Exp $ -->
+<!-- $Id: lwres_gethostent.docbook,v 1.5 2001/06/18 22:06:54 gson Exp $ -->
 
 <refentry>
+
 <refentryinfo>
-
-
 <date>Jun 30, 2000</date>
 </refentryinfo>
+
 <refmeta>
 <refentrytitle>lwres_gethostent</refentrytitle>
 <manvolnum>3</manvolnum>
 <refmiscinfo>BIND9</refmiscinfo>
 </refmeta>
+
 <refnamediv>
 <refname>lwres_gethostbyname</refname>
 <refname>lwres_gethostbyname2</refname>
@@ -166,13 +167,13 @@ The members of this structure are:
 <para>
 The official (canonical) name of the host.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_aliases</constant></term>
 <listitem>
 <para>
 A NULL-terminated array of alternate names (nicknames) for the host.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_addrtype</constant></term>
 <listitem>
 <para>
@@ -181,13 +182,13 @@ The type of address being returned &mdash;
 or
 <type>PF_INET6</type>.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_length</constant></term>
 <listitem>
 <para>
 The length of the address in bytes.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>h_addr_list</constant></term>
 <listitem>
 <para>
@@ -195,7 +196,7 @@ A <type>NULL</type>
 terminated array of network addresses for the host.
 Host addresses are returned in network byte order.
 </para>
-</listitem>
+</listitem></varlistentry>
 </variablelist>
 </para>
 <para>
@@ -219,130 +220,68 @@ or NIS.  The lightweight resolver does not currently implement
 these functions; it only provides them as stub functions that always
 return failure.
 </para>
+
 <para>
-<function>lwres_gethostbyname()</function>
-and
-<function>lwres_gethostbyname2()</function>
-look up the hostname
+<function>lwres_gethostbyname()</function> and
+<function>lwres_gethostbyname2()</function> look up the hostname
 <parameter>name</parameter>.
-
-<function>lwres_gethostbyname()</function>
-always looks for an IPv4 address while
-<function>lwres_gethostbyname2()</function>
-looks for an address of protocol family
-<parameter>af</parameter>:
-
-either
-<type>PF_INET</type>
-or
-<type>PF_INET6</type>
-&mdash; IPv4 or IPV6 addresses respectively.
-Successful calls of the functions return a
-<type>struct hostent</type>for
-
-the name that was looked up.
-<type>NULL</type>
-is returned if the lookups by
-<function>lwres_gethostbyname()</function>
-or
-<function>lwres_gethostbyname2()</function>
-fail.
+<function>lwres_gethostbyname()</function> always looks for an IPv4
+address while <function>lwres_gethostbyname2()</function> looks for an
+address of protocol family <parameter>af</parameter>: either
+<type>PF_INET</type> or <type>PF_INET6</type> &mdash; IPv4 or IPV6
+addresses respectively.  Successful calls of the functions return a
+<type>struct hostent</type>for the name that was looked up.
+<type>NULL</type> is returned if the lookups by
+<function>lwres_gethostbyname()</function> or
+<function>lwres_gethostbyname2()</function> fail.
 </para>
+
 <para>
 Reverse lookups of addresses are performed by
 <function>lwres_gethostbyaddr()</function>.
-<parameter>addr</parameter>
-is an address of length
-<parameter>len</parameter>
-bytes and protocol family
-<parameter>type</parameter> &mdash;
-<type>PF_INET</type>
-or
+<parameter>addr</parameter> is an address of length
+<parameter>len</parameter> bytes and protocol family
+<parameter>type</parameter> &mdash; <type>PF_INET</type> or
 <type>PF_INET6</type>.
-
-<function>lwres_gethostbyname_r()</function>
-is a thread-safe function for forward lookups.
-If an error occurs, an error code is returned in
+<function>lwres_gethostbyname_r()</function> is a thread-safe function
+for forward lookups.  If an error occurs, an error code is returned in
 <parameter>*error</parameter>.
-
-<parameter>resbuf</parameter>
-is a pointer to a
-<type>struct hostent</type>
-which is initialised by a successful call to
+<parameter>resbuf</parameter> is a pointer to a <type>struct
+hostent</type> which is initialised by a successful call to
 <function>lwres_gethostbyname_r()</function> .
-<parameter>buf</parameter>
-is a buffer of length
-<parameter>len</parameter>
-bytes which is used to store the
-<constant>h_name</constant>,
-
-<constant>h_aliases</constant>,
-
-and
-<constant>h_addr_list</constant>
-elements of the
-<type>struct hostent</type>
-returned in
-<parameter>resbuf</parameter>.
-
-Successful calls to
-<function>lwres_gethostbyname_r()</function>
-return
-<parameter>resbuf</parameter>,
-
-which is a pointer to the
-<type>struct hostent</type>
-it created.
+<parameter>buf</parameter> is a buffer of length
+<parameter>len</parameter> bytes which is used to store the
+<constant>h_name</constant>, <constant>h_aliases</constant>, and
+<constant>h_addr_list</constant> elements of the <type>struct
+hostent</type> returned in <parameter>resbuf</parameter>.
+Successful calls to <function>lwres_gethostbyname_r()</function>
+return <parameter>resbuf</parameter>,
+which is a pointer to the <type>struct hostent</type> it created.
 </para>
+
 <para>
-<function>lwres_gethostbyaddr_r()</function>
-is a thread-safe function that performs a reverse lookup of address
-<parameter>addr</parameter>
-which is
-<parameter>len</parameter>
-bytes long
-and is of protocol family
-<parameter>type</parameter> &mdash;
-
-<type>PF_INET</type>
-or
-<type>PF_INET6</type>.
-
-If an error occurs, the error code is returned in
-<parameter>*error</parameter>.
-
-The other function parameters are identical to those in
-<function>lwres_gethostbyname_r()</function>.
-<parameter>resbuf</parameter>
-is a pointer to a
-<type>struct hostent</type>
-which is initialised by a successful call to
+<function>lwres_gethostbyaddr_r()</function> is a thread-safe function
+that performs a reverse lookup of address <parameter>addr</parameter>
+which is <parameter>len</parameter> bytes long and is of protocol
+family <parameter>type</parameter> &mdash; <type>PF_INET</type> or
+<type>PF_INET6</type>.  If an error occurs, the error code is returned
+in <parameter>*error</parameter>.  The other function parameters are
+identical to those in <function>lwres_gethostbyname_r()</function>.
+<parameter>resbuf</parameter> is a pointer to a <type>struct
+hostent</type> which is initialised by a successful call to
 <function>lwres_gethostbyaddr_r()</function>.
-<parameter>buf</parameter>
-is a buffer of length
-<parameter>len</parameter>
-bytes which is used to store the
-<constant>h_name</constant>,
-
-<constant>h_aliases</constant>,
-
-and
-<constant>h_addr_list</constant>
-elements of the
-<type>struct hostent</type>
-returned in
-<parameter>resbuf</parameter>.
-
-Successful calls to
-<function>lwres_gethostbyaddr_r()</function>
-return
-<parameter>resbuf</parameter>,
-
-which is a pointer to the
-<function>struct hostent()</function>
-it created.
+<parameter>buf</parameter> is a buffer of length
+<parameter>len</parameter> bytes which is used to store the
+<constant>h_name</constant>, <constant>h_aliases</constant>, and
+<constant>h_addr_list</constant> elements of the <type>struct
+hostent</type> returned in <parameter>resbuf</parameter>.  Successful
+calls to <function>lwres_gethostbyaddr_r()</function> return
+<parameter>resbuf</parameter>, which is a pointer to the
+<function>struct hostent()</function> it created.
 </para>
+
 </refsect1>
+
 <refsect1>
 <title>RETURN VALUES</title>
 <para>
@@ -363,20 +302,20 @@ will contain one of the following error codes defined in
 <para>
 The host or address was not found.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>TRY_AGAIN</constant></term>
 <listitem>
 <para>
 A recoverable error occurred, e.g., a timeout.
 Retrying the lookup may succeed.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>NO_RECOVERY</constant></term>
 <listitem>
 <para>
 A non-recoverable error occurred.
 </para>
-</listitem>
+</listitem></varlistentry>
 <varlistentry><term><constant>NO_DATA</constant></term>
 <listitem>
 <para>
@@ -386,9 +325,10 @@ of a reverse lookup).  The code NO_ADDRESS
 is accepted as a synonym for NO_DATA for backwards
 compatibility.
 </para>
-</listitem>
+</listitem></varlistentry>
 </variablelist>
 </para>
+
 <para>
 <citerefentry>
 <refentrytitle>lwres_hstrerror</refentrytitle><manvolnum>3
@@ -396,53 +336,30 @@ compatibility.
 </citerefentry>
 translates these error codes to suitable error messages.
 </para>
+
 <para>
 <function>lwres_gethostent()</function>
 and
 <function>lwres_gethostent_r()</function>
 always return
 <type>NULL</type>.
-
 </para>
+
 <para>
-Successful calls to
-<function>lwres_gethostbyname_r()</function>
-and
-<function>lwres_gethostbyaddr_r()</function>
-return
-<parameter>resbuf</parameter>,
-
-a pointer to the
-<type>struct hostent</type>
-that was initialised by these functions.
-They return
-<type>NULL</type>
-if the lookups fail
-or if
-<parameter>buf</parameter>
+Successful calls to <function>lwres_gethostbyname_r()</function> and
+<function>lwres_gethostbyaddr_r()</function> return
+<parameter>resbuf</parameter>, a pointer to the <type>struct
+hostent</type> that was initialised by these functions.  They return
+<type>NULL</type> if the lookups fail or if <parameter>buf</parameter>
 was too small to hold the list of addresses and names referenced by
-the
-<constant>h_name</constant>,
-
-<constant>h_aliases</constant>,
-
-and
-<constant>h_addr_list</constant>
-elements of the
-<type>struct hostent</type>.
-
-If
-<parameter>buf</parameter>
-was too small, both
-<function>lwres_gethostbyname_r()</function>
-and
-<function>lwres_gethostbyaddr_r()</function>
-set the global variable
-<type>errno</type>
-to
-<errorcode>ERANGE</errorcode>.
-
+the <constant>h_name</constant>, <constant>h_aliases</constant>, and
+<constant>h_addr_list</constant> elements of the <type>struct
+hostent</type>.  If <parameter>buf</parameter> was too small, both
+<function>lwres_gethostbyname_r()</function> and
+<function>lwres_gethostbyaddr_r()</function> set the global variable
+<type>errno</type> to <errorcode>ERANGE</errorcode>.
 </para>
+
 </refsect1>
 <refsect1>
 <title>SEE ALSO</title>
