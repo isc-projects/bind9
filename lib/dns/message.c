@@ -1196,11 +1196,19 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * append this rdata to that set.  If we did not, we need
 		 * to create a new rdatalist, store the important bits there,
 		 * convert it to an rdataset, and link the latter to the name.
-		 * Yuck.
+		 * Yuck.  When appending, make certain that the type isn't
+		 * a singleton type, such as SOA or CNAME.
 		 *
-		 * XXXRTH  Check for attempts to create multi-record RRsets
-		 *	   for singleton RR types.
+		 * Note that this check will be bypassed when preserving order,
+		 * the opcode is an update, or the type search is skipped.
 		 */
+		if (result == ISC_R_SUCCESS) {
+			if (dns_rdatatype_issingleton(rdtype)) {
+				result = DNS_R_FORMERR;
+				goto cleanup;
+			}
+		}
+
 		if (result == ISC_R_NOTFOUND) {
 			rdataset = isc_mempool_get(msg->rdspool);
 			if (rdataset == NULL) {

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.75 2000/04/14 17:28:21 bwelling Exp $ */
+/* $Id: rdata.c,v 1.76 2000/04/14 18:36:00 explorer Exp $ */
 
 #include <config.h>
 
@@ -1548,12 +1548,14 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 }
 
 dns_rdatatype_t
-dns_rdata_covers(dns_rdata_t *rdata) {
+dns_rdata_covers(dns_rdata_t *rdata)
+{
 	return (covers_sig(rdata));
 }
 
 static isc_boolean_t
-ismeta(unsigned int code, struct tbl *table) {
+ismeta(unsigned int code, struct tbl *table)
+{
 	struct tbl *t;
 	REQUIRE(code < 65536);
 	for (t = table; t->name != NULL; t++) {
@@ -1564,14 +1566,25 @@ ismeta(unsigned int code, struct tbl *table) {
 }
 
 isc_boolean_t
-dns_rdatatype_ismeta(dns_rdatatype_t type) {
+dns_rdatatype_ismeta(dns_rdatatype_t type)
+{
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_META) != 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }	
 
 isc_boolean_t
-dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
+dns_rdatatype_issingleton(dns_rdatatype_t type)
+{
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_SINGLETON)
+	    != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}	
+
+isc_boolean_t
+dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
+{
 	return (ismeta(rdclass, classes));
 }
 

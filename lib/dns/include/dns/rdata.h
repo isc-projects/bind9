@@ -439,6 +439,16 @@ isc_boolean_t dns_rdatatype_ismeta(dns_rdatatype_t type);
  *
  */
 
+isc_boolean_t dns_rdatatype_issingleton(dns_rdatatype_t type);
+/*
+ * Return true iff the rdata type 'type' is a singleton type,
+ * like CNAME or SOA.
+ *
+ * Requires:
+ * 	'type' is a valid rdata type.
+ *
+ */
+
 isc_boolean_t dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
 /*
  * Return true iff the rdata class 'rdclass' is a meta-class

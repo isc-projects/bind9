@@ -1,3 +1,6 @@
+  60.	[func]		Catch and disallow singleton types on message
+			parse.
+
   59.	[bug]		Cause net/host unreachable to be a hard error
 			when sending and receiving.
 
