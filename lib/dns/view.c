@@ -37,6 +37,7 @@
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
+#include <dns/zone.h>
 #include <dns/zt.h>
 
 #define RESSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_RESSHUTDOWN) != 0)
