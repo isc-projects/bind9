@@ -1,0 +1,152 @@
+
+This is a summary of the implementation status of the various named.conf
+options in BIND 9.
+
+
+Legend:
+
+  Yes       Implemented in this release.
+
+  No        Not implemented, may be implemented in a later release.
+
+  Obsolete  Obsolete, not applicable to BIND 9, or just evil.  Will not be
+            implemented.
+
+  *         New in BIND 9.
+
+  + 	    The option is now always enabled.
+
+  -         The option is now always disabled.
+
+  @	    Semantics of certain pathological address match lists, in
+	    particular those involving double negation, have changed.  The new
+	    semantics are generally safer.  The predefined ACLs "localhost" 
+	    and "localnets" are not yet supported.
+
+  %         The default value has changed since BIND 8.
+
+
+options {
+  [ version version_string; ]				    Yes
+  [ directory path_name; ]				    Yes
+  [ named-xfer path_name; ]				    Obsolete
+  [ dump-file path_name; ]				    No
+  [ memstatistics-file path_name; ]			    No
+  [ pid-file path_name; ]				    Yes
+  [ statistics-file path_name; ]			    No
+  [ auth-nxdomain yes_or_no; ]				    Yes%
+  [ deallocate-on-exit yes_or_no; ]			    Obsolete+
+  [ dialup yes_or_no; ]					    No
+  [ fake-iquery yes_or_no; ]				    Obsolete-
+  [ fetch-glue yes_or_no; ]				    No
+  [ has-old-clients yes_or_no; ]			    Obsolete
+  [ host-statistics yes_or_no; ]			    No
+  [ multiple-cnames yes_or_no; ]			    Obsolete-
+  [ notify yes_or_no; ]					    No
+  [ recursion yes_or_no; ]				    Yes
+  [ rfc2308-type1 yes_or_no; ]				    No
+  [ use-id-pool yes_or_no; ]				    Obsolete+
+  [ treat-cr-as-space yes_or_no; ]			    No
+  [ also-notify { ip_addr; [ ip_addr; ... ] };		    No
+  [ forward ( only | first ); ]				    Yes
+  [ forwarders { [ in_addr ; [ in_addr ; ... ] ] }; ]	    Yes
+  [ check-names ... ]				            No
+  [ allow-query { address_match_list }; ]		    Yes@
+  [ allow-transfer { address_match_list }; ]		    Yes@
+  [ allow-recursion { address_match_list }; ]		    Yes@
+  [ blackhole { address_match_list }; ]			    No
+  [ listen-on [ port ip_port ] { address_match_list }; ]    Yes@ (IPv4 only)
+  [ query-source .... ]                                     Yes (IPv4 only)
+  [ lame-ttl number; ]					    No
+  [ max-transfer-time-in number; ]			    Yes
+  [ max-transfer-idle-in number; ]			    Yes*
+  [ max-transfer-time-out number; ]			    Yes*
+  [ max-transfer-idle-out number; ]			    Yes*
+  [ max-ncache-ttl number; ]				    No
+  [ min-roots number; ]					    No
+  [ serial-queries number; ]				    No
+  [ transfer-format ( one-answer | many-answers ); ]	    Yes
+  [ transfers-in  number; ]				    No
+  [ transfers-out number; ]				    Yes
+  [ transfers-per-ns number; ]				    No
+  [ transfer-source ip_addr; ]				    No
+  [ maintain-ixfr-base yes_or_no; ]			    Obsolete+
+  [ max-ixfr-log-size number; ]				    No
+  [ coresize size_spec ; ]				    No
+  [ datasize size_spec ; ]				    No
+  [ files size_spec ; ]					    No
+  [ stacksize size_spec ; ]				    No
+  [ cleaning-interval number; ]				    Yes
+  [ heartbeat-interval number; ]			    No
+  [ interface-interval number; ]			    No
+  [ statistics-interval number; ]			    No
+  [ topology { address_match_list }; ]			    No
+  [ sortlist { address_match_list }; ]			    No
+  [ rrset-order { order_spec ; [ order_spec ; ... ] ] };    No
+};
+
+acl { }						            Yes@
+
+include                                                     Yes
+
+key							    Yes
+
+logging						            No
+
+controls                                                    No
+
+server                                                      No
+
+trusted-keys                                                No
+
+zone domain_name [ ( in | hs | hesiod | chaos ) ] { 
+  type master;					            Yes
+  file path_name;					    Yes
+  [ forward ( only | first ); ]				    No
+  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
+  [ check-names ( warn | fail | ignore ); ]		    No
+  [ allow-update { address_match_list }; ]		    Yes@
+  [ allow-query { address_match_list }; ]		    Yes@
+  [ allow-transfer { address_match_list }; ]		    Yes@
+  [ dialup yes_or_no; ]					    No
+  [ notify yes_or_no; ]					    No
+  [ also-notify { ip_addr; [ ip_addr; ... ] };		    No
+  [ ixfr-base  path_name; ]				    Obsolete
+  [ pubkey number number number string; ]		    No
+};
+
+zone domain_name [ ( in | hs | hesiod | chaos ) ] { 	    
+  type stub;						    No
+}
+
+zone domain_name [ ( in | hs | hesiod | chaos ) ] { 	    
+  type slave;						    Yes
+  [ file path_name; ]					    Yes
+  [ ixfr-base  path_name; ]				    Obsolete
+  masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
+  [ forward ( only | first ); ]				    No
+  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
+  [ check-names ( warn | fail | ignore ); ]		    No
+  [ allow-update { address_match_list }; ]		    Yes+
+  [ allow-query { address_match_list }; ]		    Yes+
+  [ allow-transfer { address_match_list }; ]		    Yes+
+  [ transfer-source ip_addr; ]				    Yes (IPv4 only)
+  [ dialup yes_or_no; ]					    No
+  [ max-transfer-time-in number; ]			    Yes
+  [ max-transfer-idle-in number; ]			    Yes*
+  [ max-transfer-time-out number; ]			    Yes*
+  [ max-transfer-idle-out number; ]			    Yes*
+  [ notify yes_or_no; ]					    No
+  [ also-notify { ip_addr; [ ip_addr; ... ] };		    No
+  [ pubkey number number number string; ]		    No
+};
+
+zone domain_name [ ( in | hs | hesiod | chaos ) ] { 	    
+  type forward;						    No
+};
+
+zone "." [ ( in | hs | hesiod | chaos ) ] { 		    
+  type hint;						    Yes
+  file path_name;					    Yes
+  [ check-names ( warn | fail | ignore ); ]		    No
+};
