@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.35 2001/02/16 00:21:09 bwelling Exp $ */
+/* $Id: protocol.c,v 1.36 2001/02/16 00:54:28 bwelling Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -702,7 +702,7 @@ protocol_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 			/*
 			 * XXXDCL better error?
 			 */
-			return (DST_R_UNSUPPORTEDALG);
+			return (ISC_R_NOTIMPLEMENTED);
 
 	} else
 		return (omapi_object_passsetvalue(h, name, value));

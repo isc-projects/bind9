@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.19 2001/02/16 00:21:08 bwelling Exp $ */
+/* $Id: auth.c,v 1.20 2001/02/16 00:54:27 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -88,7 +88,7 @@ auth_find(const char *name, unsigned int algorithm, auth_t **ap) {
 		result = ISC_R_NOTFOUND;
 
 	else if (algorithm != 0 && (algorithm & a->algorithms) != algorithm)
-		result = DST_R_UNSUPPORTEDALG;
+		result = ISC_R_NOTIMPLEMENTED;
 
 	else {
 		ENSURE(VALID_AUTH(a));
