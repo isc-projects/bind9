@@ -41,6 +41,8 @@ typedef struct dns_rbt_node {
 	struct dns_rbt_node *right;
 	struct dns_rbt_node *down;
 	enum { red, black } color;
+	unsigned int dirty:1;
+	unsigned int references:31;
 	void *data;
 	unsigned int name_length;
 } dns_rbtnode_t;
