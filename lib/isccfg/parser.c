@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.25 2001/02/26 22:37:32 gson Exp $ */
+/* $Id: parser.c,v 1.26 2001/02/26 22:55:55 gson Exp $ */
 
 #include <config.h>
 
@@ -1720,7 +1720,7 @@ static cfg_type_t cfg_type_boolean_or_ustring = {
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 
-static cfg_type_t cfg_type_keyref = {
+cfg_type_t cfg_type_keyref = {
 	"keyref", parse_keyvalue, print_keyvalue,
 	&cfg_rep_string, &key_kw
 };
