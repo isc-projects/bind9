@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.12 2000/02/03 23:14:33 halley Exp $ */
+/* $Id: object.c,v 1.13 2000/03/14 03:43:06 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -152,7 +152,7 @@ omapi_object_dereference(omapi_object_t **h) {
 	if ((*h)->refcnt ==
 	    inner_reference + outer_reference + handle_reference + 1) {
 		/*
-		 * If refcnt is 1, then inner_reference + outer_reference +
+		 * If refcnt is > 1, then inner_reference + outer_reference +
 		 * handle_reference is > 0, so there are list references to
 		 * chase.
 		 */
@@ -163,25 +163,27 @@ omapi_object_dereference(omapi_object_t **h) {
 			 */
 			extra_references = 0;
 
-			for (p = (*h)->inner;
-			     p != NULL && extra_references == 0;
-			     p = p->inner) {
-				extra_references += p->refcnt - 1;
-				if (p->inner != NULL)
-					--extra_references;
-				if (p->handle != 0)
-					--extra_references;
-			}
+			if (inner_reference != 0)
+				for (p = (*h)->inner;
+				     p != NULL && extra_references == 0;
+				     p = p->inner) {
+					extra_references += p->refcnt - 1;
+					if (p->inner != NULL)
+						--extra_references;
+					if (p->handle != 0)
+						--extra_references;
+				}
 
-			for (p = (*h)->outer;
-			     p != NULL && extra_references == 0;
-			     p = p->outer) {
-				extra_references += p->refcnt - 1;
-				if (p->outer != NULL)
-					--extra_references;
-				if (p->handle != 0)
-					--extra_references;
-			}
+			if (outer_reference != 0)
+				for (p = (*h)->outer;
+				     p != NULL && extra_references == 0;
+				     p = p->outer) {
+					extra_references += p->refcnt - 1;
+					if (p->outer != NULL)
+						--extra_references;
+					if (p->handle != 0)
+						--extra_references;
+				}
 		} else
 			extra_references = 0;
 
