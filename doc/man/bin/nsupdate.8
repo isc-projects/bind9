@@ -13,7 +13,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 .\" SOFTWARE.
 .\" 
-.\" $Id: nsupdate.8,v 1.1 2000/07/12 17:17:03 jim Exp $
+.\" $Id: nsupdate.8,v 1.2 2000/07/12 18:29:33 jim Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt NSUPDATE 8
@@ -72,15 +72,18 @@ HMAC-MD5, which is defined in RFC 2104.
 Once other algorithms are defined for TSIG, applications will need to
 ensure they select the appropriate algorithm as well as the key when
 authenticating each other.
-Suitable
+For instance suitable
 .Dv key{}
 and
 .Dv server{}
-statements will be added to
+statements would be added to
 .Pa /etc/named.conf
-so that the appropriate secret key and algorithm can be associated
-with the IP address of the
+so that the name server can associate the appropriate secret key
+and algorithm with the IP address of the
 client application that will be using TSIG authentication.
+.Nm nsupdate
+does not read
+.Pa /etc/named.conf .
 .Pp
 .Nm nsupdate
 uses the
@@ -104,7 +107,8 @@ is used, a signature is generated from
 is the name of the key,
 and
 .Ar secret
-is a string comprising the shared secret.
+is a string comprising the shared secret, typically written in base-64
+encoding.
 Use of the
 .Fl y
 option is discouraged because the shared secret is supplied as a command
@@ -126,12 +130,14 @@ This may be preferable when a batch of update requests are made.
 .Nm nsupdate
 reads commands from its standard input.
 Each command is supplied on exactly one line of input.
-Commands can be update instructions or prerequisite checks on the
+Some commands are for administrative purposes.
+The others are either update instructions or prerequisite checks on the
 contents of the zone.
 These checks set conditions that some name or set of
 resource records (RRset) either exists or is absent from the zone.
 These conditions must be met if the entire update request is to succeed.
 Updates will be rejected if the tests for the prerequisite conditions fail.
+.Pp
 Every update request consists of zero or more prerequisites
 and one or more updates.
 This allows a suitably authenticated update request to proceed if some
@@ -141,6 +147,34 @@ DNS update request to the name server.
 .Pp
 The command formats and their meaning are as follows:
 .Bl -ohang indent
+.It Xo
+.Ic server Va servername Op port
+.Xc
+.sp 1
+Sends all dynamic update requests to the name server
+.Va servername .
+When no server statement is provided,
+.Nm nsupdate
+will send updates to the master server of the correct zone.
+The MNAME field of that zone's SOA record will identify the master
+server for that zone.
+.Va port
+is the port number on
+.Va servername
+where the dynamic update requests get sent.
+If no port number is specified, the default DNS port number of 53 is
+used.
+.It Xo
+.Ic zone Va zonename
+.Xc
+.sp 1
+Specifies that all updates are to be made to the zone
+.Va zonename .
+.Nm nsupdate
+will determine the correct zone to update based on the rest of the input
+data if no
+.Va zone
+statement is provided.
 .It Xo
 .Ic prereq nxdomain Va domain-name
 .Xc
@@ -258,6 +292,7 @@ long-standing rule in RFC1034 that a name must not exist as any other
 record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
 SIG, KEY and NXT records.)
+.Pp
 .Sh NAME SERVER PROCESSING
 .Pp
 When a successful update request is made, the BIND9 name server
@@ -271,13 +306,13 @@ XXXJR WHEN DOES IT DO THAT???
 It then sends a NOTIFY message to the zone's slave servers to inform
 them that the zone's contents have changed.
 .Sh FILES
-.Bl -tag -width Kname.+157.+{random}.private -compact
+.Bl -tag -width K{name}.+157.+{random}.private -compact
 .It Pa /etc/named.conf
 name server configuration file
-.It Pa Kname.+157.+{random}.key
+.It Pa K{name}.+157.+{random}.key
 base-64 encoding of HMAC-MD5 key created by
 .Xr dnssec-keygen 8 .
-.It Pa Kname.+157.+{random}.private 
+.It Pa K{name}.+157.+{random}.private 
 base-64 encoding of HMAC-MD5 key created by
 .Xr dnssec-keygen 8 .
 .El
