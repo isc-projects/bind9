@@ -1,3 +1,9 @@
+  78.   [cleanup]       lwres_conftest renamed to lwresconf_test for
+                        consistency with other *_test programs.
+
+  77.   [cleanup]       typedef of isc_time_t and isc_interval_t moved from
+                        <isc/time.h> to <isc/types.h>.  
+
   76.   [cleanup]	Rewrote keygen.
 
   75.   [func]          Don't load a zone if its database file is older
