@@ -2,6 +2,9 @@
 			in named.conf prior to reference.  They can be
 			defined after being referenced.
 
+1791.	[bug]		'host -t a' still printed out AAAA and MX records.
+			[RT #13230]
+
 	--- 9.3.1 released ---
 
 1818.	[bug]		'named-checkconf -z' triggered an INSIST. [RT #13599]
