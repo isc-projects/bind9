@@ -3,12 +3,11 @@
 
 
 
-
 Network Working Group                                          D. Atkins
-draft-ietf-dnsext-dns-threats-04.txt                    IHTFP Consulting
+draft-ietf-dnsext-dns-threats-05.txt                    IHTFP Consulting
                                                               R. Austein
                                                 Grunchweather Associates
-                                                            October 2003
+                                                           November 2003
 
 
                Threat Analysis Of The Domain Name System
@@ -55,9 +54,9 @@ Abstract
 
 
 
-Atkins & Austein          Expires 30 April 2004                 [Page 1]
+Atkins & Austein           Expires 26 May 2004                  [Page 1]
 
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
 
 
 1. Introduction
@@ -111,9 +110,9 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
 
 
 
-Atkins & Austein          Expires 30 April 2004                 [Page 2]
+Atkins & Austein           Expires 26 May 2004                  [Page 2]
 
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
 
 
    For purposes of discussion, this note uses the term "DNSSEC" to refer
@@ -167,9 +166,9 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
 
 
 
-Atkins & Austein          Expires 30 April 2004                 [Page 3]
+Atkins & Austein           Expires 26 May 2004                  [Page 3]
 
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
 
 
    and would not provide any sort of end-to-end integrity check between
@@ -223,9 +222,9 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
 
 
 
-Atkins & Austein          Expires 30 April 2004                 [Page 4]
+Atkins & Austein           Expires 26 May 2004                  [Page 4]
 
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
 
 
    whether because the victim rebooted recently, or because the victim's
@@ -279,9 +278,9 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
 
 
 
-Atkins & Austein          Expires 30 April 2004                 [Page 5]
+Atkins & Austein           Expires 26 May 2004                  [Page 5]
 
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
 
 
    - Attacker's response includes one or more RRs with DNS names in
@@ -295,12 +294,21 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
      section of a response where they will have a better chance of
      sneaking past a resolver's defenses).
 
-   The common thread in all of these attacks is that response messages
-   allow the attacker to introduce arbitrary DNS names of the attacker's
-   choosing and provide further information that the attacker claims is
-   associated with those names; unless the victim has better knowledge
-   of the data associated with those names, the victim is going to have
-   a hard time defending against this class of attacks.
+   Any attacker who can insert resource records into a victim's cache
+   can almost certainly do some kind of damage, so there are cache
+   poisoning attacks which are not name-based attacks in the sense
+   discussed here.  However, in the case of name-based attacks, the
+   cause and effect relationship between the initial attack and the
+   eventual result may be significantly more complex than in the other
+   forms of cache poisoning, so name-based attacks merit special
+   attention.
+
+   The common thread in all of the name-based attacks is that response
+   messages allow the attacker to introduce arbitrary DNS names of the
+   attacker's choosing and provide further information that the attacker
+   claims is associated with those names; unless the victim has better
+   knowledge of the data associated with those names, the victim is
+   going to have a hard time defending against this class of attacks.
 
    This class of attack is particularly insidious given that it's quite
    easy for an attacker to provoke a victim into querying for a
@@ -321,25 +329,24 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
    with a public key of which the resolver has prior knowledge).
 
    DNSSEC signatures do not cover glue records, so there's still a
-   possibility of a name-based attack involving glue, but it should be
-   possible to detect the attack by temporarily accepting the glue in
+   possibility of a name-based attack involving glue, but with DNSSEC it
+   is possible to detect the attack by temporarily accepting the glue in
+
+
+
+Atkins & Austein           Expires 26 May 2004                  [Page 6]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
    order to fetch the signed authoritative version of the same data,
    then checking the signatures on the authoritative version.
-
 
 2.4.  Betrayal By Trusted Server
 
    Another variation on the packet interception attack is the trusted
    server that turns out not to be so trustworthy, whether by accident
    or by intent.  Many client machines are only configured with stub
-
-
-
-Atkins & Austein          Expires 30 April 2004                 [Page 6]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
-
    resolvers, and use trusted servers to perform all of their DNS
    queries on their behalf.  In many cases the trusted server is
    furnished by the user's ISP and advertised to the client via DHCP or
@@ -380,6 +387,14 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
    is help a resolver protect its communication with a name server that
    it has already decided to trust for other reasons.  Protecting a
    resolver's communication with a server that's giving out bogus
+
+
+
+Atkins & Austein           Expires 26 May 2004                  [Page 7]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
    answers is not particularly useful.
 
    Also note that if the stub resolver does not trust the name server
@@ -388,13 +403,6 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
    knowledge of the DNSSEC public key(s) it needs to perform the check
    (usually the public key for the root zone, but in some cases
    knowledge of additional keys may also be appropriate).
-
-
-
-Atkins & Austein          Expires 30 April 2004                 [Page 7]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
 
    It is difficult to escape the conclusion that a properly paranoid
    resolver must always perform its own signature checking, and that
@@ -435,6 +443,14 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
    required.
 
    Note that it's necessary to prove the non-existance of applicable
+
+
+
+Atkins & Austein           Expires 26 May 2004                  [Page 8]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
    wildcard RRs as part of the authenticated denial mechanism, and that,
    in a zone that is more than one label deep, such a proof may require
    proving the non-existance of multiple discrete sets of wildcard RRs.
@@ -444,14 +460,6 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
    Much discussion has taken place over whether and how to provide data
    integrity and data origin authentication for "wildcard" DNS names.
    Conceptually, RRs with wildcard names are patterns for synthesizing
-
-
-
-Atkins & Austein          Expires 30 April 2004                 [Page 8]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
-
    RRs on the fly according to the matching rules described in section
    4.3.2 of RFC 1034.  While the rules that control the behavior of
    wildcard names have a few quirks that can make them a trap for the
@@ -491,6 +499,14 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
      effective as denial of service amplifiers.
 
    - DNSSEC answer validation increases the resolver's work load, since
+
+
+
+Atkins & Austein           Expires 26 May 2004                  [Page 9]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
      a DNSSEC-aware resolver will need to perform signature validation
      and in some cases will also need to issue further queries.  This
      increased workload will also increase the time it takes to get an
@@ -499,14 +515,6 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
      clients are already too impatient even before taking the further
      delays that DNSSEC will impose into account, but that's a separate
      topic for another document....)
-
-
-
-
-Atkins & Austein          Expires 30 April 2004                 [Page 9]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
 
    - Like DNS itself, DNSSEC's trust model is almost totally
      hierarchical.  While DNSSEC does allow resolvers to have special
@@ -547,6 +555,14 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
      giving up wildcards entirely is not practical due to widespread
      use, we are going to have to live with wildcards, and the question
      just becomes one of whether or not the proposed optimizations would
+
+
+
+Atkins & Austein           Expires 26 May 2004                 [Page 10]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
      make DNSSEC's wildcard proof mechanisms more or less fragile.
 
 
@@ -554,15 +570,6 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
 
    This section lists a few subjects not covered above which probably
    need additional study, additional mechanisms, or both.
-
-
-
-
-
-Atkins & Austein          Expires 30 April 2004                [Page 10]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
 
 4.1.  Interactions With Other Protocols
 
@@ -604,6 +611,14 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
    the above options, but in practice (a) would almost certainly be
    extremely fragile, so (b) is the only workable mechanism.
 
+
+
+
+Atkins & Austein           Expires 26 May 2004                 [Page 11]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
    There are other threats in terms of describing the policy of who can
    make what changes to which RRsets in the zone.  The current access
    control scheme in Secure Dynamic Update is fairly limited.  There is
@@ -612,14 +627,6 @@ draft-ietf-dnsext-dns-threats-04.txt                        October 2003
    access.  For example, Alice may need to be able to add new nodes to
    the zone or change existing nodes, but not remove them; Bob may need
    to be able to remove zones but not add them; Carol may need to be
-
-
-
-Atkins & Austein          Expires 30 April 2004                [Page 11]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
-
    able to add, remove, or modify nodes, but only A records.
 
    Scaling properties of the key management problem here are a
@@ -661,20 +668,16 @@ Security Considerations
    The authors believe that deploying DNSSEC will help to address some,
    but not all, of the known threats to the DNS.
 
+
+
+Atkins & Austein           Expires 26 May 2004                 [Page 12]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
 IANA Considerations
 
    None.
-
-
-
-
-
-
-
-Atkins & Austein          Expires 30 April 2004                [Page 12]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
 
 Acknowledgments
 
@@ -720,18 +723,18 @@ Normative References
    [DNSSEC] Eastlake, D., "Domain Name System Security Extensions", RFC
         2535, March 1999.
 
+
+
+
+Atkins & Austein           Expires 26 May 2004                 [Page 13]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
 Informative References
 
    [SEC-CONS] Rescorla, E., Korver, B., and the Internet Architecture
         Board, "Guidelines for Writing RFC Text on Security
-
-
-
-Atkins & Austein          Expires 30 April 2004                [Page 13]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
-
         Considerations", RFC 3552, July 2003.
 
    [Bellovin95] Bellovin, S., "Using the Domain Name System for System
@@ -776,18 +779,18 @@ Intellectual Property Statement
    claims of rights made available for publication and any assurances of
    licenses to be made available, or the result of an attempt made to
    obtain a general license or permission for the use of such
+
+
+
+Atkins & Austein           Expires 26 May 2004                 [Page 14]
+
+draft-ietf-dnsext-dns-threats-05.txt                       November 2003
+
+
    proprietary rights by implementors or users of this specification can
    be obtained from the IETF Secretariat.
 
    The IETF invites any interested party to bring to its attention any
-
-
-
-Atkins & Austein          Expires 30 April 2004                [Page 14]
-
-draft-ietf-dnsext-dns-threats-04.txt                        October 2003
-
-
    copyrights, patents or patent applications, or other proprietary
    rights which may cover technology that may be required to practice
    this standard.  Please address the information to the IETF Executive
@@ -835,8 +838,5 @@ Acknowledgement
 
 
 
+Atkins & Austein           Expires 26 May 2004                 [Page 15]
 
-
-
-
-Atkins & Austein          Expires 30 April 2004                [Page 15]
