@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.332 2001/06/26 23:53:37 gson Exp $ */
+/* $Id: server.c,v 1.333 2001/07/11 22:22:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -57,6 +57,7 @@
 #include <dns/zt.h>
 
 #include <dst/dst.h>
+#include <dst/result.h>
 
 #include <named/client.h>
 #include <named/config.h>
@@ -239,10 +240,17 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
-		    "configuring trusted key for '%s': %s",
-		    keynamestr, isc_result_totext(result));
-	result = ISC_R_FAILURE;
+	if (result == DST_R_NOCRYPTO) {
+		cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
+			    "ignoring trusted key for '%s': no crypto support",
+			    keynamestr);
+		result = ISC_R_SUCCESS;
+	} else {
+		cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
+			    "configuring trusted key for '%s': %s",
+			    keynamestr, isc_result_totext(result));
+		result = ISC_R_FAILURE;
+	}
 
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
