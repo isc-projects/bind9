@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.115 2000/12/02 04:13:29 gson Exp $
+# $Id: Makefile.in,v 1.116 2000/12/04 23:21:40 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -89,7 +89,7 @@ OPENSSLOBJS =	sec/openssl/a_bitstr.@O@ sec/openssl/a_bytes.@O@ \
 		sec/openssl/rsa_pk1.@O@ \
 		sec/openssl/rsa_sign.@O@ sec/openssl/rsa_ssl.@O@ \
 		sec/openssl/sha1_one.@O@ sec/openssl/sha1dgst.@O@ \
-		sec/openssl/stack.@O@ sec/openssl/th-lock.@O@ \
+		sec/openssl/stack.@O@ \
 		sec/openssl/x_sig.@O@ sec/openssl/x_algor.@O@
 
 # Alphabetically

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.17 2000/09/16 01:13:53 bwelling Exp $
+# $Id: Makefile.in,v 1.18 2000/12/04 23:21:41 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -45,7 +45,7 @@ OBJS =		a_bytes.@O@ a_bitstr.@O@ a_enum.@O@ a_gentm.@O@ \
 		rsa_lib.@O@ rsa_none.@O@ rsa_oaep.@O@ rsa_pk1.@O@ \
 		rsa_sign.@O@ rsa_ssl.@O@ \
 		sha1_one.@O@ sha1dgst.@O@ \
-		stack.@O@ th-lock.@O@ x_algor.@O@ x_sig.@O@
+		stack.@O@ x_algor.@O@ x_sig.@O@
 
 SRCS =		a_bitstr.c a_bytes.c a_enum.c a_gentm.c \
 		a_int.c a_object.c a_octet.c a_print.c \
@@ -65,7 +65,7 @@ SRCS =		a_bitstr.c a_bytes.c a_enum.c a_gentm.c \
 		rsa_lib.c rsa_none.c rsa_oaep.c rsa_pk1.c \
 		rsa_sign.c rsa_ssl.c \
 		sha1_one.c sha1dgst.c \
-		stack.c th-lock.c x_sig.c x_algor.c
+		stack.c x_sig.c x_algor.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
