@@ -3392,7 +3392,6 @@ dns_resolver_create(dns_view_t *view,
 	dns_resolver_t *res;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i, buckets_created = 0;
-	in_port_t port = 5353;
 	char name[16];
 
 	/*
@@ -3448,9 +3447,6 @@ dns_resolver_create(dns_view_t *view,
 	if (dispatchv4 != NULL) {
 		dns_dispatch_attach(dispatchv4, &res->dispatchv4);
 	} else if (isc_net_probeipv4() == ISC_R_SUCCESS) {
-		struct in_addr ina;
-		isc_sockaddr_t sa;
-
 		/*
 		 * Create an IPv4 UDP socket and a dispatcher for it.
 		 */
@@ -3459,18 +3455,6 @@ dns_resolver_create(dns_view_t *view,
 					   &res->udpsocketv4);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_buckets;
-		result = ISC_R_UNEXPECTED;
-		while (result != ISC_R_SUCCESS && port < 5400) {
-			ina.s_addr = htonl(INADDR_ANY);
-			isc_sockaddr_fromin(&sa, &ina, port);
-			result = isc_socket_bind(res->udpsocketv4, &sa);
-			if (result != ISC_R_SUCCESS)
-				port++;
-		}
-		if (result != ISC_R_SUCCESS) {
-			RTRACE("Could not open UDP port");
-			goto cleanup_buckets;
-		}
 		result = dns_dispatch_create(res->mctx, res->udpsocketv4,
 					     res->buckets[0].task, 4096,
 					     1000, 32768, 16411, 16433, NULL,
