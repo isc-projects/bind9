@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.9 2004/03/09 06:11:03 marka Exp $ */
+/* $Id: name.c,v 1.127.2.10 2004/09/01 05:22:51 marka Exp $ */
 
 #include <config.h>
 
@@ -194,6 +194,9 @@ static dns_name_t wild =
 
 /* XXXDCL make const? */
 dns_name_t *dns_wildcardname = &wild;
+
+unsigned int
+dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
 
 static void
 set_offsets(const dns_name_t *name, unsigned char *offsets,
@@ -463,7 +466,7 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 }
 
 unsigned int
-dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+dns_name_fullhash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	/*
 	 * Provide a hash value for 'name'.
 	 */
@@ -474,6 +477,18 @@ dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 
 	return (isc_hash_calc((const unsigned char *)name->ndata,
 			      name->length, case_sensitive));
+}
+
+unsigned int
+dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+	/*
+	 * This function was deprecated due to the breakage of the name space
+	 * convention.  We only keep this internally to provide binary backward
+	 * compatibility.
+	 */
+	REQUIRE(VALID_NAME(name));
+
+	return (dns_name_fullhash(name, case_sensitive));
 }
 
 dns_namereln_t

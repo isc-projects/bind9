@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.95.2.7 2004/08/10 00:41:49 marka Exp $ */
+/* $Id: name.h,v 1.95.2.8 2004/09/01 05:22:51 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -391,7 +391,7 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive);
  */
 
 unsigned int
-dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
+dns_name_fullhash(dns_name_t *name, isc_boolean_t case_sensitive);
 /*
  * Provide a hash value for 'name'.  Unlike dns_name_hash(), this function
  * always takes into account of the entire name to calculate the hash value.
