@@ -1,3 +1,6 @@
+1450.	[bug]		Fetching expired glue failed under certian
+			circumstances.  [RT #5124]
+
 1449.	[bug]		query_addbestns() didn't handle running out of memory
 			gracefully.
 

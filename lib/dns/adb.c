@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.202 2003/02/26 22:54:28 marka Exp $ */
+/* $Id: adb.c,v 1.203 2003/02/27 02:20:15 marka Exp $ */
 
 /*
  * Implementation notes
@@ -476,6 +476,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	isc_result_t result;
 	dns_adb_t *adb;
 	dns_adbnamehook_t *nh;
+	dns_adbnamehook_t *anh;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	struct in_addr ina;
 	struct in6_addr in6a;
@@ -541,17 +542,26 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 			link_entry(adb, addr_bucket, entry);
 		} else {
-			foundentry->refcnt++;
-			nh->entry = foundentry;
+			for (anh = ISC_LIST_HEAD(adbname->v4);
+			     anh != NULL;
+			     anh = ISC_LIST_NEXT(anh, plink))
+				if (anh->entry == foundentry)
+					break;
+			if (anh == NULL) {
+				foundentry->refcnt++;
+				nh->entry = foundentry;
+			} else
+				free_adbnamehook(adb, &nh);
 		}
 
 		new_addresses_added = ISC_TRUE;
-		if (rdtype == dns_rdatatype_a)
-			ISC_LIST_APPEND(adbname->v4, nh, plink);
-		else
-			ISC_LIST_APPEND(adbname->v6, nh, plink);
+		if (nh != NULL) {
+			if (rdtype == dns_rdatatype_a)
+				ISC_LIST_APPEND(adbname->v4, nh, plink);
+			else
+				ISC_LIST_APPEND(adbname->v6, nh, plink);
+		}
 		nh = NULL;
-
 		result = dns_rdataset_next(rdataset);
 	}
 
@@ -2380,8 +2390,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * start fetches.  First try looking for an A record
 	 * in the database.
 	 */
-	if (!NAME_HAS_V4(adbname) && !NAME_FETCH_V4(adbname)
-	    && EXPIRE_OK(adbname->expire_v4, now)
+	if (!NAME_HAS_V4(adbname) && EXPIRE_OK(adbname->expire_v4, now)
 	    && WANT_INET(wanted_addresses)) {
 		result = dbfind_name(adbname, now, dns_rdatatype_a);
 		if (result == ISC_R_SUCCESS) {
@@ -2416,12 +2425,12 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		else if (NXRRSET_RESULT(result))
 			goto v6;
 
-		wanted_fetches |= DNS_ADBFIND_INET;
+		if (!NAME_FETCH_V4(adbname))
+			wanted_fetches |= DNS_ADBFIND_INET;
 	}
 
  v6:
-	if (!NAME_HAS_V6(adbname) && !NAME_FETCH_V6(adbname)
-	    && EXPIRE_OK(adbname->expire_v6, now)
+	if (!NAME_HAS_V6(adbname) && EXPIRE_OK(adbname->expire_v6, now)
 	    && WANT_INET6(wanted_addresses)) {
 		result = dbfind_name(adbname, now, dns_rdatatype_aaaa);
 		if (result == ISC_R_SUCCESS) {
@@ -2449,7 +2458,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		if (NCACHE_RESULT(result) || AUTH_NX(result))
 			goto fetch;
 
-		wanted_fetches |= DNS_ADBFIND_INET6;
+		if (!NAME_FETCH_V6(adbname))
+			wanted_fetches |= DNS_ADBFIND_INET6;
 	}
 
  fetch:
