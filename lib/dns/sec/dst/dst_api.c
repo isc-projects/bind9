@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.85 2001/07/10 05:00:42 bwelling Exp $
+ * $Id: dst_api.c,v 1.86 2001/07/10 05:12:43 bwelling Exp $
  */
 
 #include <config.h>
@@ -87,10 +87,11 @@ static isc_result_t	frombuffer(dns_name_t *name,
 				   isc_mem_t *mctx,
 				   dst_key_t **keyp);
 
-#define RETERR(x) do { \
-	result = (x); \
-	if (result != ISC_R_SUCCESS) \
-		goto out; \
+#define RETERR(x) 				\
+	do {					\
+		result = (x);			\
+		if (result != ISC_R_SUCCESS)	\
+			goto out;		\
 	} while (0)
 
 isc_result_t
