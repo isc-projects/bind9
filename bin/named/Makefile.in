@@ -18,7 +18,8 @@ DEPLIBS =	../../lib/dns/libdns.a \
 		../../lib/isc/libisc.a
 
 LIBS =		${DEPLIBS} \
-		@LIBS@ -ly -ll
+		@LIBS@
+# -ly -ll
 
 TARGETS =	named
 
