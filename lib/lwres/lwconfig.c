@@ -452,7 +452,6 @@ lwres_result_t
 lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	FILE *fp = NULL;
 	char word[256];
-	int delim;
 	lwres_result_t rval;
 	lwres_conf_t *confdata;
 
@@ -469,7 +468,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 		return (LWRES_R_FAILURE);
 
 	do {
-		delim = getword(fp, word, sizeof(word));
+		(void)getword(fp, word, sizeof(word));
 		if (strlen(word) == 0) {
 			rval = LWRES_R_SUCCESS;
 			break;
