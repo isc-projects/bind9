@@ -36,6 +36,7 @@ TARGETS =	lex_test \
 		sock_test \
 		sym_test \
 		task_test \
+		shutdown_test \
 		timer_test \
 		rbt_test \
 		rdata_test \
@@ -61,6 +62,9 @@ sym_test: sym_test.o ../../lib/isc/libisc.a
 
 task_test: task_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ task_test.o ${LIBS}
+
+shutdown_test: shutdown_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
+	${CC} -o $@ shutdown_test.o ${LIBS}
 
 timer_test: timer_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ timer_test.o ${LIBS}
