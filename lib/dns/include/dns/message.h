@@ -101,7 +101,7 @@ typedef struct {
 	/* public from here down */
 	unsigned int			magic;
 
-	unsigned int			id;
+	dns_messageid_t			id;
 	unsigned int			flags;
 	unsigned int			rcode;
 	unsigned int			opcode;
