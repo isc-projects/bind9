@@ -355,14 +355,13 @@ static void
 authvalidated(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
-	dns_rdataset_t *rdataset, *sigrdataset;
+	dns_rdataset_t *rdataset;
 	isc_result_t result;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
 	devent = (dns_validatorevent_t *)event;
 	rdataset = devent->rdataset;
-	sigrdataset = devent->sigrdataset;
 	val = devent->ev_arg;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
