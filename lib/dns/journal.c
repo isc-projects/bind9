@@ -293,10 +293,12 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 	REQUIRE(VALID_DIFFTUPLE(*tuplep));
 
 	/*
-	 * Look for an existing tuple with the same owner name 
-	 * and rdata.   If we are doing an addition and find a
+	 * Look for an existing tuple with the same owner name,
+	 * rdata, and TTL.   If we are doing an addition and find a
 	 * deletion or vice versa, remove both the old and the
-	 * new tuple since they cancel each other out.
+	 * new tuple since they cancel each other out (assuming
+	 * that we never delete nonexistent data or add existing
+	 * data).
 	 *
 	 * If we find an old update of the same kind as 
 	 * the one we are doing, there must be a programming
@@ -307,7 +309,8 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 	{
 		next_ot = ISC_LIST_NEXT(ot, link);
 		if (dns_name_equal(&ot->name, &(*tuplep)->name) &&
-		    dns_rdata_compare(&ot->rdata, &(*tuplep)->rdata) == 0)
+		    dns_rdata_compare(&ot->rdata, &(*tuplep)->rdata) == 0 &&
+		    ot->ttl == (*tuplep)->ttl)
 		{
 			ISC_LIST_UNLINK(diff->tuples, ot, link); 
 			if ((*tuplep)->op == ot->op) {
@@ -388,7 +391,14 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 			ISC_LINK_INIT(&rdl, link);
 
 			while (t != NULL && dns_name_equal(&t->name, name) &&
-			       t->op == op && t->rdata.type == type) {
+			       t->op == op && t->rdata.type == type)
+			{
+				if (t->ttl != rdl.ttl) {
+					printf("TTL differs in rdataset, "
+					       "adjusting %lu -> %lu\n",
+					       (unsigned long) t->ttl,
+					       (unsigned long) rdl.ttl);
+				}
 				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
 				t = ISC_LIST_NEXT(t, link);
 			}
@@ -412,8 +422,8 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 			if (result == DNS_R_UNCHANGED) {
 			  	/*
 				 * This will not happen when executing a
-				 * dynamic * update, because that code will
-				 * generate strictly * minimal diffs.
+				 * dynamic update, because that code will
+				 * generate strictly minimal diffs.
 				 * It may happen when receiving an IXFR
 				 * from a server that is not as careful.
 				 * Issue a warning and continue.

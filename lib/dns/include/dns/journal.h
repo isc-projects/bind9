@@ -32,6 +32,9 @@
 
 #include <isc/types.h>
 #include <dns/result.h>
+#include <dns/types.h>
+#include <dns/name.h>
+#include <dns/rdata.h>
 
 /***
  *** Types
@@ -43,12 +46,16 @@ ISC_LANG_BEGINDECLS
  * A dns_difftuple_t represents a single RR being added or deleted.
  * The RR type and class are in the 'rdata' member; the class is always
  * the real one, not a DynDNS meta-class, so that the rdatas can be
- * compared using dns_rdata_compare().  The TTL is ignored for
- * RRs to be deleted.
+ * compared using dns_rdata_compare().  The TTL is significant 
+ * even for deletions, because a deletion/addition pair cannot
+ * be canceled out if the TTL differs (it might be an explicit
+ * TTL update).
  *
- * Tuples are also used to represent the individual RRs of a
- * a "RRset exists (value dependent)" prerequisite set.  In this case,
- * op==DNS_DIFFOP_EXISTS, and the TTL is ignored.
+ * Tuples are also used to represent complete RRs with owner
+ * names for a couple of other purposes, such as the 
+ * individual RRs of a "RRset exists (value dependent)"
+ * prerequisite set.  In this case, op==DNS_DIFFOP_EXISTS,
+ * and the TTL is ignored.
  */
 
 typedef enum {
