@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: value.c,v 1.1 2000/01/22 00:17:59 tale Exp $ */
+/* $Id: value.c,v 1.2 2000/01/24 05:35:18 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -59,7 +59,7 @@ omapi_value_dereference(omapi_value_t **h) {
 			omapi_string_dereference(&(*h)->name);
 		if ((*h)->value != NULL)
 			omapi_data_dereference(&(*h)->value);
-		isc_mem_put(omapi_mctx, *h, sizeof(*h));
+		isc_mem_put(omapi_mctx, *h, sizeof(omapi_value_t));
 	}
 	*h = NULL;
 }
