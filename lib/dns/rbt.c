@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.104 2001/02/21 02:01:15 bwelling Exp $ */
+/* $Id: rbt.c,v 1.105 2001/02/21 02:27:56 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -782,7 +782,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 unsigned int options, dns_rbtfindcallback_t callback,
 		 void *callback_arg)
 {
-	dns_rbtnode_t *current, *last_compared;
+	dns_rbtnode_t *current, *last_compared, *current_root;
 	dns_rbtnodechain_t localchain;
 	dns_name_t *search_name, current_name, *callback_name;
 	dns_fixedname_t fixedcallbackname, fixedsearchname;
@@ -864,13 +864,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			nlabels = dns_name_countlabels(search_name);
 
 			/*
-			 * In this case, PARENT == UP, since the only
-			 * nodes that are ever examined at a level are the
-			 * root node and the "correct" node.  If
-			 * compared == dns_namereln_none, this must not
-			 * be the "correct" node.
+			 * current_root is the root of the current level, so
+			 * it's parent is the same as it's "up" pointer.
 			 */
-			up_current = PARENT(current);
+			up_current = PARENT(current_root);
 			dns_name_init(&hash_name, NULL);
 
 		hashagain:
@@ -1029,6 +1026,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * Finally, head to the next tree level.
 				 */
 				current = DOWN(current);
+				current_root = current;
 
 			} else {
 				/*
