@@ -37,7 +37,7 @@
 	ISC_R_SUCCESS);
 
 #ifdef ISC_TASK_TRACE
-#define XTRACE(m)		printf("%s task %p thread %p\n", (m), \
+#define XTRACE(m)		printf("%s task %p thread %lu\n", (m), \
 				       task, isc_thread_self())
 #else
 #define XTRACE(m)
@@ -434,8 +434,8 @@ isc_task_destroy(isc_task_t *taskp) {
  *** Task Manager.
  ***/
 
-static
-void *run(void *uap) {
+static isc_threadresult_t
+run(void *uap) {
 	isc_taskmgr_t manager = uap;
 	isc_task_t task;
 	isc_boolean_t no_workers = ISC_FALSE;
@@ -676,7 +676,7 @@ void *run(void *uap) {
 
 	XTRACE("exit");
 
-	return (NULL);	
+	return ((isc_threadresult_t)0);
 }
 
 static void

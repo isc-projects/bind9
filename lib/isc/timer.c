@@ -488,7 +488,7 @@ dispatch(isc_timermgr_t manager, isc_time_t now) {
 	} 
 }
 
-static void *
+static isc_threadresult_t
 run(void *uap) {
 	isc_timermgr_t manager = uap;
 	struct isc_time now;
@@ -516,7 +516,7 @@ run(void *uap) {
 	}
 	UNLOCK(&manager->lock);
 
-	return (NULL);
+	return ((isc_threadresult_t)0);
 }
 
 static isc_boolean_t
@@ -628,7 +628,7 @@ isc_timermgr_destroy(isc_timermgr_t *managerp) {
 	/*
 	 * Wait for thread to exit.
 	 */
-	if (isc_thread_join(manager->thread) != ISC_R_SUCCESS)
+	if (isc_thread_join(manager->thread, NULL) != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_thread_join() failed");
 
