@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.118 2000/07/27 09:37:06 tale Exp $ */
+/* $Id: query.c,v 1.119 2000/07/31 21:06:55 explorer Exp $ */
 
 #include <config.h>
 
@@ -131,6 +131,9 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	}
 	ISC_LIST_INIT(client->query.activeversions);
 
+	if (client->query.authdb != NULL)
+		dns_db_detach(&client->query.authdb);
+
 	/*
 	 * Clean up free versions.
 	 */
@@ -171,6 +174,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.dboptions = 0;
 	client->query.fetchoptions = 0;
 	client->query.gluedb = NULL;
+	client->query.authdb = NULL;
 }
 
 static void
@@ -395,6 +399,7 @@ ns_query_init(ns_client_t *client) {
 	client->query.restarts = 0;
 	client->query.qname = NULL;
 	client->query.fetch = NULL;
+	client->query.authdb = NULL;
 	query_reset(client, ISC_FALSE);
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS)
@@ -420,7 +425,8 @@ query_findversion(ns_client_t *client, dns_db_t *db,
 	     dbversion = ISC_LIST_NEXT(dbversion, link)) {
 		if (dbversion->db == db)
 			break;
-	}	
+	}
+
 	if (dbversion == NULL) {
 		/*
 		 * This is a new zone for this query.  Add it to
@@ -464,6 +470,31 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	/*
+	 * If this is the first time we are called (that is, looking up
+	 * the actual name in the query section) remember this database.
+	 *
+	 * If authdb is non-NULL, we have been here before, and the
+	 * found database is always returned.
+	 *
+	 * This limits our searching to the zone where the first name
+	 * (the query target) is found.  This prevents following CNAMES
+	 * or DNAMES into other zones and prevents returning additional
+	 * data from other zones.
+	 */
+	if (!client->view->additionalfromauth) {
+		if (client->query.authdb != NULL) {
+			if (*dbp != client->query.authdb) {
+				dns_zone_detach(zonep);
+				dns_db_detach(dbp);
+				return (DNS_R_REFUSED);
+			}
+			dns_db_attach(client->query.authdb, dbp);
+		} else {
+			dns_db_attach(*dbp, &client->query.authdb);
+		}
+	}
 
 	/*
 	 * If the zone has an ACL, we'll check it, otherwise
@@ -533,7 +564,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 			 * the NS_QUERYATTR_QUERYOK attribute is now valid.
 			 */
 			client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
-		} 
+		}
 	} else
 		result = ISC_R_SUCCESS;
 
@@ -543,11 +574,9 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	 */
 	if (result == ISC_R_SUCCESS)
 		dbversion->queryok = ISC_TRUE;
-		
+
 	return (result);
 }
-
-
 
 static inline isc_result_t
 query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
@@ -2859,7 +2888,8 @@ ns_query_start(ns_client_t *client) {
 	 */
 	client->next = query_next;
 
-	if (client->view->cachedb == NULL) {
+	if ((client->view->cachedb == NULL)
+	    || (!client->view->additionalfromcache)) {
 		/*
 		 * We don't have a cache.  Turn off cache support and
 		 * recursion.

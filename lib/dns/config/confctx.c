@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.77 2000/07/27 09:47:01 tale Exp $ */
+/* $Id: confctx.c,v 1.78 2000/07/31 21:07:00 explorer Exp $ */
 
 #include <config.h>
 
@@ -982,8 +982,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(request_ixfr, "request-ixfr");
 	PRINT_AS_BOOLEAN(provide_ixfr, "provide-ixfr");
 	PRINT_AS_BOOLEAN(treat_cr_as_space, "treat-cr-as-space");
-	PRINT_AS_BOOLEAN(glue_from_auth, "glue-from-auth");
-	PRINT_AS_BOOLEAN(glue_from_cache, "glue-from-cache");
+	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
+	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
 
 	if (options->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -1499,8 +1499,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->request_ixfr = NULL;
 	opts->provide_ixfr = NULL;
 	opts->treat_cr_as_space = NULL;
-	opts->glue_from_auth = NULL;
-	opts->glue_from_cache = NULL;
+	opts->additional_from_auth = NULL;
+	opts->additional_from_cache = NULL;
 
 	opts->transfer_source = NULL;
 	opts->transfer_source_v6 = NULL;
@@ -1607,8 +1607,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(request_ixfr);
 	FREEFIELD(provide_ixfr);
 	FREEFIELD(treat_cr_as_space);
-	FREEFIELD(glue_from_cache);
-	FREEFIELD(glue_from_auth);
+	FREEFIELD(additional_from_cache);
+	FREEFIELD(additional_from_auth);
 	
 	FREEFIELD(port);
 	
@@ -1975,14 +1975,14 @@ SETBOOL(treatcrasspace, treat_cr_as_space)
 UNSETBOOL(treatcrasspace, treat_cr_as_space)
 
 
-GETBOOL(gluefromauth, glue_from_auth)
-SETBOOL(gluefromauth, glue_from_auth)
-UNSETBOOL(gluefromauth, glue_from_auth)
+GETBOOL(additionalfromauth, additional_from_auth)
+SETBOOL(additionalfromauth, additional_from_auth)
+UNSETBOOL(additionalfromauth, additional_from_auth)
 
 	
-GETBOOL(gluefromcache, glue_from_cache)
-SETBOOL(gluefromcache, glue_from_cache)
-UNSETBOOL(gluefromcache, glue_from_cache)
+GETBOOL(additionalfromcache, additional_from_cache)
+SETBOOL(additionalfromcache, additional_from_cache)
+UNSETBOOL(additionalfromcache, additional_from_cache)
 
 	
 GETSOCKADDR(transfersource, transfer_source)

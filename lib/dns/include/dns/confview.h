@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.34 2000/07/27 09:47:44 tale Exp $ */
+/* $Id: confview.h,v 1.35 2000/07/31 21:07:06 explorer Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -124,8 +124,8 @@ struct dns_c_view {
         isc_boolean_t          *fetch_glue;
         isc_boolean_t          *notify;
         isc_boolean_t          *rfc2308_type1;
-        isc_boolean_t          *glue_from_auth;
-        isc_boolean_t          *glue_from_cache;
+        isc_boolean_t          *additional_from_auth;
+        isc_boolean_t          *additional_from_cache;
 
         isc_sockaddr_t         *query_source;
         isc_sockaddr_t         *query_source_v6;
@@ -351,18 +351,18 @@ isc_result_t dns_c_view_setrfc2308type1(dns_c_view_t *view,
 isc_result_t dns_c_view_unsetrfc2308type1(dns_c_view_t *view);
 
 
-isc_result_t dns_c_view_getgluefromauth(dns_c_view_t *view,
-					isc_boolean_t *retval);
-isc_result_t dns_c_view_setgluefromauth(dns_c_view_t *view,
-					isc_boolean_t newval);
-isc_result_t dns_c_view_unsetgluefromauth(dns_c_view_t *view);
+isc_result_t dns_c_view_getadditionalfromauth(dns_c_view_t *view,
+					      isc_boolean_t *retval);
+isc_result_t dns_c_view_setadditionalfromauth(dns_c_view_t *view,
+					      isc_boolean_t newval);
+isc_result_t dns_c_view_unsetadditionalfromauth(dns_c_view_t *view);
 
 
-isc_result_t dns_c_view_getgluefromcache(dns_c_view_t *view,
-					isc_boolean_t *retval);
-isc_result_t dns_c_view_setgluefromcache(dns_c_view_t *view,
-					isc_boolean_t newval);
-isc_result_t dns_c_view_unsetgluefromcache(dns_c_view_t *view);
+isc_result_t dns_c_view_getadditionalfromcache(dns_c_view_t *view,
+					       isc_boolean_t *retval);
+isc_result_t dns_c_view_setadditionalfromcache(dns_c_view_t *view,
+					       isc_boolean_t newval);
+isc_result_t dns_c_view_unsetadditionalfromcache(dns_c_view_t *view);
 
 
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.46 2000/07/27 09:47:34 tale Exp $ */
+/* $Id: confctx.h,v 1.47 2000/07/31 21:07:04 explorer Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -167,8 +167,8 @@ struct dns_c_options {
 	isc_boolean_t	       *request_ixfr;
 	isc_boolean_t	       *provide_ixfr;
 	isc_boolean_t	       *treat_cr_as_space;
-	isc_boolean_t	       *glue_from_cache;
-	isc_boolean_t	       *glue_from_auth;
+	isc_boolean_t	       *additional_from_cache;
+	isc_boolean_t	       *additional_from_auth;
 	
 	isc_sockaddr_t	       *transfer_source;
 	isc_sockaddr_t	       *transfer_source_v6;
@@ -587,18 +587,18 @@ isc_result_t dns_c_ctx_gettreatcrasspace(dns_c_ctx_t *cfg,
 					 isc_boolean_t *retval);
 
 
-isc_result_t dns_c_ctx_getgluefromcache(dns_c_ctx_t *cfg,
-					isc_boolean_t *retval);
-isc_result_t dns_c_ctx_setgluefromcache(dns_c_ctx_t *cfg,
-					isc_boolean_t newval);
-isc_result_t dns_c_ctx_unsetgluefromcache(dns_c_ctx_t *ctx);
+isc_result_t dns_c_ctx_getadditionalfromcache(dns_c_ctx_t *cfg,
+					      isc_boolean_t *retval);
+isc_result_t dns_c_ctx_setadditionalfromcache(dns_c_ctx_t *cfg,
+					      isc_boolean_t newval);
+isc_result_t dns_c_ctx_unsetadditionalfromcache(dns_c_ctx_t *ctx);
 
 
-isc_result_t dns_c_ctx_getgluefromauth(dns_c_ctx_t *cfg,
-				       isc_boolean_t *retval);
-isc_result_t dns_c_ctx_setgluefromauth(dns_c_ctx_t *cfg,
-				       isc_boolean_t newval);
-isc_result_t dns_c_ctx_unsetgluefromauth(dns_c_ctx_t *ctx);
+isc_result_t dns_c_ctx_getadditionalfromauth(dns_c_ctx_t *cfg,
+					     isc_boolean_t *retval);
+isc_result_t dns_c_ctx_setadditionalfromauth(dns_c_ctx_t *cfg,
+					     isc_boolean_t newval);
+isc_result_t dns_c_ctx_unsetadditionalfromauth(dns_c_ctx_t *ctx);
 
 
 isc_result_t dns_c_ctx_unsettreatcrasspace(dns_c_ctx_t *cfg);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.19 2000/07/27 09:37:23 tale Exp $ */
+/* $Id: query.h,v 1.20 2000/07/31 21:06:58 explorer Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -44,6 +44,7 @@ struct ns_query {
 	unsigned int			dboptions;
 	unsigned int			fetchoptions;
 	dns_db_t *			gluedb;
+	dns_db_t *			authdb;
 	dns_fetch_t *			fetch;
 	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;

@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.4 2000/07/31 19:35:31 explorer Exp $ */
+/* $Id: confparser.y.dirty,v 1.5 2000/07/31 21:07:02 explorer Exp $ */
 
 #include <config.h>
 
@@ -283,8 +283,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_FIRST
 %token		L_FORWARD
 %token		L_FORWARDERS
-%token		L_GLUE_FROM_AUTH
-%token		L_GLUE_FROM_CACHE
+%token		L_ADDITIONAL_FROM_AUTH
+%token		L_ADDITIONAL_FROM_CACHE
 %token		L_GRANT
 %token		L_GROUP
 %token		L_HAS_OLD_CLIENTS
@@ -890,21 +890,21 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-	| L_GLUE_FROM_CACHE yea_or_nay
+	| L_ADDITIONAL_FROM_CACHE yea_or_nay
 	{
-		tmpres = dns_c_ctx_setgluefromcache(currcfg, $2);
+		tmpres = dns_c_ctx_setadditionalfromcache(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "cannot redefine glue-from-cache");
+				     "cannot redefine additional-from-cache");
 			YYABORT;
 		}
 	}
-	| L_GLUE_FROM_AUTH yea_or_nay
+	| L_ADDITIONAL_FROM_AUTH yea_or_nay
 	{
-		tmpres = dns_c_ctx_setgluefromauth(currcfg, $2);
+		tmpres = dns_c_ctx_setadditionalfromauth(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "cannot redefine glue-from-auth");
+				     "cannot redefine additional-from-auth");
 			YYABORT;
 		}
 	}
@@ -3712,37 +3712,37 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-	| L_GLUE_FROM_CACHE yea_or_nay
+	| L_ADDITIONAL_FROM_CACHE yea_or_nay
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setgluefromcache(view, $2);
+		tmpres = dns_c_view_setadditionalfromcache(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "cannot redefine view glue-from-cache");
+				     "cannot redefine view additional-from-cache");
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "failed to set view glue-from-cache");
+				     "failed to set view additional-from-cache");
 			YYABORT;
 		}
 	}
-	| L_GLUE_FROM_AUTH yea_or_nay
+	| L_ADDITIONAL_FROM_AUTH yea_or_nay
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setgluefromauth(view, $2);
+		tmpres = dns_c_view_setadditionalfromauth(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "cannot redefine view glue-from-auth");
+				     "cannot redefine view additional-from-auth");
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "failed to set view glue-from-auth");
+				     "failed to set view additional-from-auth");
 			YYABORT;
 		}
 	}
@@ -5309,8 +5309,8 @@ static struct token keyword_tokens [] = {
 	{ "first",			L_FIRST },
 	{ "forward",			L_FORWARD },
 	{ "forwarders",			L_FORWARDERS },
-	{ "glue-from-auth",		L_GLUE_FROM_AUTH },
-	{ "glue-from-cache",		L_GLUE_FROM_CACHE },
+	{ "additional-from-auth",	L_ADDITIONAL_FROM_AUTH },
+	{ "additional-from-cache",	L_ADDITIONAL_FROM_CACHE },
 	{ "grant",			L_GRANT },
 	{ "group",			L_GROUP },
 	{ "has-old-clients",		L_HAS_OLD_CLIENTS },

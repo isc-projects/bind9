@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.205 2000/07/27 09:37:07 tale Exp $ */
+/* $Id: server.c,v 1.206 2000/07/31 21:06:56 explorer Exp $ */
 
 #include <config.h>
 
@@ -615,6 +615,29 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 						     &view->transfer_format);
 	if (result != ISC_R_SUCCESS)
 		view->transfer_format = dns_many_answers;
+
+	/*
+	 * Set sources where additional data, CNAMEs, and DNAMEs may be found.
+	 */
+	result = ISC_R_NOTFOUND;
+	if (cview != NULL)
+		result = dns_c_view_getadditionalfromauth(cview,
+					&view->additionalfromauth);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getadditionalfromauth(cctx,
+					&view->additionalfromauth);
+	if (result != ISC_R_SUCCESS)
+		view->additionalfromauth = ISC_TRUE;
+
+	result = ISC_R_NOTFOUND;
+	if (cview != NULL)
+		result = dns_c_view_getadditionalfromcache(cview,
+					&view->additionalfromcache);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getadditionalfromcache(cctx,
+					&view->additionalfromcache);
+	if (result != ISC_R_SUCCESS)
+		view->additionalfromcache = ISC_TRUE;
 
 	CHECK(configure_view_acl(cview, cctx, actx, ns_g_mctx,
 				 dns_c_view_getallowquery,
