@@ -2154,13 +2154,13 @@
 ./lib/isccc/win32/version.c			C	2001,2004
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005
-./lib/isccfg/aclconf.c				C	2005
+./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005
 ./lib/isccfg/api				X	2001
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004
 ./lib/isccfg/include/isccfg/.cvsignore		X	2001
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005
-./lib/isccfg/include/isccfg/aclconf.h		C	2005
+./lib/isccfg/include/isccfg/aclconf.h		C	1999,2000,2001,2004,2005
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001,2002,2004
 ./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004
 ./lib/isccfg/include/isccfg/log.h		C	2001,2004
