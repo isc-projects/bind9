@@ -17,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.18 2000/10/04 18:47:24 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.19 2000/10/09 18:20:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -6022,7 +6022,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 		if (res != ISC_R_SUCCESS) {
 			dns_c_ctx_delete(&currcfg);
 		}
-	} else
+	} else if (currcfg != NULL)
 		dns_c_ctx_delete(&currcfg);
 
 	*configctx = currcfg;
