@@ -74,6 +74,8 @@
 #define FORWARD_BIT			36
 #define EXPERT_MODE_BIT			37
 #define RFC2308_TYPE1_BIT		38
+#define TCP_CLIENTS_BIT			39
+#define RECURSIVE_CLIENTS_BIT		40
 
 
 static isc_result_t cfg_set_iplist(dns_c_options_t *options,
@@ -1222,6 +1224,45 @@ dns_c_ctx_setmaxtransferidleout(dns_c_ctx_t *cfg, isc_int32_t newval)
 			      newval,
 			      &cfg->options->setflags1,
 			      MAX_TRANSFER_IDLE_OUT_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_settcpclients(dns_c_ctx_t *cfg, isc_int32_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_int32(cfg->options,
+			      &cfg->options->tcp_clients,
+			      newval,
+			      &cfg->options->setflags1,
+			      TCP_CLIENTS_BIT));
+}
+
+isc_result_t
+dns_c_ctx_setrecursiveclients(dns_c_ctx_t *cfg, isc_int32_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_int32(cfg->options,
+			      &cfg->options->recursive_clients,
+			      newval,
+			      &cfg->options->setflags1,
+			      RECURSIVE_CLIENTS_BIT));
 }
 
 
@@ -2467,6 +2508,44 @@ dns_c_ctx_getmaxtransferidleout(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
+dns_c_ctx_gettcpclients(dns_c_ctx_t *cfg, isc_int32_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_int32(cfg->options, 
+			      &cfg->options->tcp_clients,
+			      retval,
+			      &cfg->options->setflags1,
+			      TCP_CLIENTS_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_getrecursiveclients(dns_c_ctx_t *cfg, isc_int32_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_int32(cfg->options, 
+			      &cfg->options->recursive_clients,
+			      retval,
+			      &cfg->options->setflags1,
+			      RECURSIVE_CLIENTS_BIT));
+}
+
+
+isc_result_t
 dns_c_ctx_getdatasize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
@@ -3188,6 +3267,9 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->rfc2308_type1 = ISC_FALSE;
 	opts->dialup = ISC_FALSE;
 
+	opts->tcp_clients = 0;
+	opts->recursive_clients = 0;
+
 	opts->max_transfer_time_in = 0;
 	opts->max_transfer_time_out = 0;
 	opts->max_transfer_idle_in = 0;
@@ -3419,6 +3501,11 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 		      "transfers-out", setflags1);
 	PRINT_INTEGER(max_log_size_ixfr, MAX_LOG_SIZE_IXFR_BIT,
 		      "max-ixfr-log-size", setflags1);
+	PRINT_INTEGER(tcp_clients, TCP_CLIENTS_BIT,
+		      "tcp-clients", setflags1);
+	PRINT_INTEGER(recursive_clients, RECURSIVE_CLIENTS_BIT,
+		      "recursive-clients", setflags1);
+	
 	
 	PRINT_INTEGER(max_ncache_ttl, MAX_NCACHE_TTL_BIT,
 		      "max-ncache-ttl", setflags1);

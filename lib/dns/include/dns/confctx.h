@@ -154,8 +154,9 @@ struct dns_c_options
 	isc_int32_t		max_transfer_idle_in;
 	isc_int32_t		max_transfer_idle_out;
 	isc_int32_t		lamettl; /* XXX not implemented yet */
+	isc_int32_t		tcp_clients;
+	isc_int32_t		recursive_clients;
 	
-
 	isc_uint32_t		data_size;
 	isc_uint32_t		stack_size;
 	isc_uint32_t		core_size;
@@ -323,6 +324,10 @@ isc_result_t	dns_c_ctx_setmaxtransferidlein(dns_c_ctx_t *cfg,
 					       isc_int32_t newval);
 isc_result_t	dns_c_ctx_setmaxtransferidleout(dns_c_ctx_t *cfg,
 					       isc_int32_t newval);
+isc_result_t	dns_c_ctx_settcpclients(dns_c_ctx_t *cfg, isc_int32_t newval);
+isc_result_t	dns_c_ctx_setrecursiveclients(dns_c_ctx_t *cfg,
+					      isc_int32_t newval);
+
 isc_result_t	dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t	dns_c_ctx_setstacksize(dns_c_ctx_t *cfg,
 				       isc_uint32_t newval);
@@ -449,6 +454,11 @@ isc_result_t	dns_c_ctx_getmaxtransferidlein(dns_c_ctx_t *cfg,
 					       isc_int32_t *retval);
 isc_result_t	dns_c_ctx_getmaxtransferidleout(dns_c_ctx_t *cfg,
 					       isc_int32_t *retval);
+isc_result_t	dns_c_ctx_gettcpclients(dns_c_ctx_t *cfg,
+					isc_int32_t *retval);
+isc_result_t	dns_c_ctx_getrecursiveclients(dns_c_ctx_t *cfg,
+					      isc_int32_t *retval);
+
 isc_result_t	dns_c_ctx_getdatasize(dns_c_ctx_t *cfg,
 				      isc_uint32_t *retval);
 isc_result_t	dns_c_ctx_getstacksize(dns_c_ctx_t *cfg,

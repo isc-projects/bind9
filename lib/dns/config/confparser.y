@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.32 1999/12/17 18:32:38 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.33 2000/01/17 14:41:21 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -243,6 +243,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token          L_MAX_TRANSFER_TIME_OUT
 %token          L_MAX_TRANSFER_IDLE_IN
 %token          L_MAX_TRANSFER_IDLE_OUT
+%token		L_TCP_CLIENTS
+%token		L_RECURSIVE_CLIENTS
 %token          L_ONE_ANSWER
 %token          L_MANY_ANSWERS
 %token          L_NOTIFY
@@ -847,7 +849,31 @@ option: /* Empty */
                         YYABORT;
                 }
         }
-        | L_CLEAN_INTERVAL L_INTEGER
+        | L_TCP_CLIENTS L_INTEGER
+        {
+                tmpres = dns_c_ctx_settcpclients(currcfg, $2);
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE,
+                                     "Redefining tcp-clients.");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+                                     "Failed to set tcp-clients.");
+                        YYABORT;
+                }
+        }
+        | L_RECURSIVE_CLIENTS L_INTEGER
+        {
+                tmpres = dns_c_ctx_setrecursiveclients(currcfg, $2);
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE,
+                                     "Redefining recursive-clients.");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+                                     "Failed to set recursive-clients.");
+                        YYABORT;
+                }
+        }
+	| L_CLEAN_INTERVAL L_INTEGER
         {
 		if ( int_too_big($2, 60) ) {
 			parser_error(ISC_FALSE,
@@ -2678,6 +2704,7 @@ zone_option_list: zone_option L_EOS
 zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
         L_TRANSFER_SOURCE | L_CHECK_NAMES | L_ALLOW_UPDATE | L_ALLOW_QUERY |
         L_ALLOW_TRANSFER | L_FORWARD | L_FORWARDERS | L_MAX_TRANSFER_TIME_IN |
+	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP
@@ -3539,6 +3566,7 @@ static struct token keyword_tokens [] = {
 	{ "rfc2308-type1",		L_RFC2308_TYPE1 },
         { "rrset-order",                L_RRSET_ORDER },
         { "recursion",                  L_RECURSION },
+	{ "recursive-clients",		L_RECURSIVE_CLIENTS },
         { "response",                   L_RESPONSE },
         { "secret",                     L_SECRET },
         { "server",                     L_SERVER },
@@ -3552,6 +3580,7 @@ static struct token keyword_tokens [] = {
         { "stub",                       L_STUB },
         { "support-ixfr",               L_SUPPORT_IXFR },
         { "syslog",                     L_SYSLOG },
+	{ "tcp-clients",		L_TCP_CLIENTS },
 	{ "tkey-domain", 		L_TKEY_DOMAIN },
 	{ "tkey-dhkey",			L_TKEY_DHKEY },
         { "topology",                   L_TOPOLOGY },
