@@ -97,14 +97,8 @@ ISC_LANG_BEGINDECLS
  *	If this is not set, the source will be gathered and perodically
  *	mixed into the entropy pool, but no increment in contained entropy
  *	will be assumed.  This flag only makes sense on sample sources.
- *
- * _ISDEVICE
- *	The file named is really a device file, and blocking is possible.
- *	Otherwise, the file is assumed to be a finite length file, and
- *	any I/O error (including blocking) terminates the source.
  */
 #define ISC_ENTROPYSOURCE_ESTIMATE	0x00000001U
-#define ISC_ENTROPYSOURCE_ISDEVICE	0x00000002U
 
 /***
  *** Functions

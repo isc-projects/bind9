@@ -71,10 +71,9 @@ main(int argc, char **argv) {
 
 	isc_entropy_stats(ent, stderr);
 
-#if 1
+#if 0
 	devrandom = NULL;
 	flags = 0;
-	flags |= ISC_ENTROPYSOURCE_ISDEVICE;
 	CHECK("isc_entropy_createfilesource()",
 	      isc_entropy_createfilesource(ent, "/dev/random",
 					   flags, &devrandom));

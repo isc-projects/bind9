@@ -278,12 +278,9 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	int fd = source->sources.file.fd;
 	ssize_t n, ndesired;
 	isc_uint32_t added;
-	isc_boolean_t isdevice;
 
 	if (fd == -1)
 		return (0);
-
-	isdevice = ISC_TF((source->flags & ISC_ENTROPYSOURCE_ISDEVICE) != 0);
 
 	desired = desired / 8 + (((desired & 0x07) > 0) ? 1 : 0);
 
@@ -292,7 +289,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
 		n = read(fd, buf, ndesired);
 		if (n < 0) {
-			if (isdevice && (errno == EAGAIN))
+			if (errno == EAGAIN)
 				goto out;
 			close(fd);
 			source->sources.file.fd = -1;
