@@ -118,11 +118,11 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 
 	REQUIRE(sockaddr != NULL);
 
-	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
-	result = isc_netaddr_totext(&netaddr, target);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	
+	/*
+	 * Do the port first, giving us the opportunity to check for
+	 * unsupported address families before calling 
+	 * isc_netaddr_fromsockaddr().
+	 */
 	switch (sockaddr->type.sa.sa_family) {
 	case AF_INET:
 		sprintf(pbuf, "%u", ntohs(sockaddr->type.sin.sin_port));
@@ -131,12 +131,16 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		sprintf(pbuf, "%u", ntohs(sockaddr->type.sin6.sin6_port));
 		break;
 	default:
-		INSIST(0);
-		break;
+		return (ISC_R_FAILURE);
 	}
-
+	
 	plen = strlen(pbuf);
 	INSIST(plen < sizeof(pbuf));
+	
+	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
+	result = isc_netaddr_totext(&netaddr, target);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	
 	if (1 + plen + 1 > isc_buffer_availablelength(target))
 		return (ISC_R_NOSPACE);
@@ -307,7 +311,7 @@ isc_sockaddr_pf(const isc_sockaddr_t *sockaddr) {
 	case AF_INET:
 		return (PF_INET);
 	case AF_INET6:
-		return (PF_INET);
+		return (PF_INET6);
 	default:
 		FATAL_ERROR(__FILE__, __LINE__, "unknown address family");
 	}
