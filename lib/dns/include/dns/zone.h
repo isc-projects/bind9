@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.82 2000/11/03 07:16:09 marka Exp $ */
+/* $Id: zone.h,v 1.83 2000/11/03 18:42:56 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1218,9 +1218,19 @@ dns_zone_resetcounts(dns_zone_t *zone);
 
 void
 dns_zone_dialup(dns_zone_t *zone);
+/*
+ * Perform dialup-time maintenance on 'zone'.
+ */
 
 void
 dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
+/*
+ * Set the dialup type of 'zone' to 'dialup'.
+ *
+ * Requires:
+ * 	'zone' to be valid initialised zone.
+ *	'dialup' to be a valid dialup type.
+ */
 
 extern int dns_zone_countsize;
 
