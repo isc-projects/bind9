@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.55 2001/04/12 21:01:46 tale Exp $ */
+/* $Id: rndc.c,v 1.56 2001/04/16 22:00:21 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -75,7 +75,8 @@ static isccc_region_t secret;
 static isc_boolean_t verbose;
 static isc_boolean_t failed = ISC_FALSE;
 static isc_mem_t *mctx;
-char *command;
+static char *command;
+static int sends, recvs, connects;
 
 static void
 notify(const char *fmt, ...) {
@@ -206,6 +207,7 @@ rndc_senddone(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	sends--;
 	if (sevent->result != ISC_R_SUCCESS)
 		fatal("send failed: %s", isc_result_totext(sevent->result));
 	isc_event_free(&event);
@@ -219,6 +221,8 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	isccc_region_t source;
 	char *errormsg = NULL;
 	isc_result_t result;
+
+	recvs--;
 
 	if (ccmsg.result == ISC_R_EOF) {
 		fprintf(stderr, "%s: connection to remote host closed\n",
@@ -270,6 +274,8 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t b;
 	isc_result_t result;
 
+	connects--;
+
 	if (sevent->result != ISC_R_SUCCESS)
 		fatal("connect failed: %s", isc_result_totext(sevent->result));
 
@@ -295,8 +301,10 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 
 	DO("schedule recv", isccc_ccmsg_readmessage(&ccmsg, task,
 						    rndc_recvdone, NULL));
+	recvs++;
 	DO("send message", isc_socket_send(sock, &r, task, rndc_senddone,
 					   NULL));
+	sends++;
 	isc_event_free(&event);
 	
 }
@@ -315,6 +323,7 @@ rndc_start(isc_task_t *task, isc_event_t *event) {
 					      isc_sockettype_tcp, &sock));
 	DO("connect", isc_socket_connect(sock, &addr, task, rndc_connected,
 					 NULL));
+	connects++;
 }
 
 int
@@ -580,18 +589,20 @@ main(int argc, char **argv) {
 
 	isc_app_run();
 
-	isc_mem_put(mctx, args, argslen);
+	if (connects > 0 || sends > 0 || recvs > 0)
+		isc_socket_cancel(ccmsg.sock, task, ISC_SOCKCANCEL_ALL);
+
+	isc_task_detach(&task);
+	isc_taskmgr_destroy(&taskmgr);
+	isc_socketmgr_destroy(&socketmgr);
+	isc_log_destroy(&log);
+	isc_log_setcontext(NULL);
 
 	cfg_obj_destroy(pctx, &config);
 	cfg_parser_destroy(&pctx);
 
+	isc_mem_put(mctx, args, argslen);
 	isccc_ccmsg_invalidate(&ccmsg);
-
-	isc_socketmgr_destroy(&socketmgr);
-	isc_task_detach(&task);
-	isc_taskmgr_destroy(&taskmgr);
-	isc_log_destroy(&log);
-	isc_log_setcontext(NULL);
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
