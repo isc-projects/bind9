@@ -605,6 +605,7 @@
 ./make/.cvsignore				X	1999
 ./make/Makefile.in				MAKE	1998,1999
 ./make/mkdep.in					X	1999
+./make/includes.in				X	1999
 ./make/rules.in					MAKE	1998,1999
 ./util/COPYRIGHT				X	1999
 ./util/copyrights				X	1999
