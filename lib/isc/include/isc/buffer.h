@@ -141,8 +141,6 @@ struct isc_buffer {
 	isc_mem_t	       *mctx;
 };
 
-typedef ISC_LIST(isc_buffer_t) isc_bufferlist_t;
-
 /***
  *** Functions
  ***/
@@ -248,6 +246,16 @@ isc_buffer_used(isc_buffer_t *b, isc_region_t *r);
  *	'r' points to a region structure.
  */
 
+unsigned int
+isc_buffer_usedcount(isc_buffer_t *b);
+/*
+ * Return the size of the used region of buffer 'b'
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
+ */
+
 void
 isc_buffer_available(isc_buffer_t *b, isc_region_t *r);
 /*
@@ -258,6 +266,16 @@ isc_buffer_available(isc_buffer_t *b, isc_region_t *r);
  *	'b' is a valid buffer.
  *
  *	'r' points to a region structure.
+ */
+
+unsigned int
+isc_buffer_availablecount(isc_buffer_t *b);
+/*
+ * Return the size of the available region of buffer 'b'
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
  */
 
 void
