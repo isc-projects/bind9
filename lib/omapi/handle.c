@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.13 2000/06/21 22:01:18 tale Exp $ */
+/* $Id: handle.c,v 1.14 2000/06/23 20:05:00 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -89,7 +89,7 @@ static isc_result_t
 table_enclose(omapi_handletable_t **table) {
 	omapi_handletable_t *inner = *table;
 	omapi_handletable_t *new;
-	int index, base, scale;
+	int idx, base, scale;
 
 	/*
 	 * The scale of the table we're enclosing is going to be the
@@ -115,7 +115,7 @@ table_enclose(omapi_handletable_t **table) {
 	 * value of the enclosing table and the enclosed table - zero, if
 	 * we are allocating sequentially.
 	 */
-	index = (base - inner->first) / OMAPI_HANDLETABLE_SIZE;
+	idx = (base - inner->first) / OMAPI_HANDLETABLE_SIZE;
 
 	new = isc_mem_get(omapi_mctx, sizeof(*new));
 	if (new == NULL)
@@ -125,7 +125,7 @@ table_enclose(omapi_handletable_t **table) {
 	new->limit = base + scale;
 	if (scale == OMAPI_HANDLETABLE_SIZE)
 		new->leaf = ISC_FALSE;
-	new->children[index].table = inner;
+	new->children[idx].table = inner;
 	*table = new;
 	return (ISC_R_SUCCESS);
 }
@@ -133,7 +133,7 @@ table_enclose(omapi_handletable_t **table) {
 static isc_result_t
 handle_store(omapi_handle_t h, omapi_handletable_t *table, omapi_object_t *o) {
 	omapi_handletable_t *inner;
-	omapi_handle_t scale, index;
+	omapi_handle_t scale, idx;
 	isc_result_t result;
 
 	if (table->first > h || table->limit <= h)
@@ -161,8 +161,8 @@ handle_store(omapi_handle_t h, omapi_handletable_t *table, omapi_object_t *o) {
 	 * handle must be the subtable of this table whose index into this
 	 * table's array of children is the handle divided by the scale.
 	 */
-	index = (h - table->first) / scale;
-	inner = table->children[index].table;
+	idx = (h - table->first) / scale;
+	inner = table->children[idx].table;
 
 	/*
 	 * If there is no more direct table than this one in the slot
@@ -173,21 +173,21 @@ handle_store(omapi_handle_t h, omapi_handletable_t *table, omapi_object_t *o) {
 		if (inner == NULL)
 			return (ISC_R_NOMEMORY);
 		memset(inner, 0, sizeof(*inner));
-		inner->first = index * scale + table->first;
+		inner->first = idx * scale + table->first;
 		inner->limit = inner->first + scale;
 		if (scale == OMAPI_HANDLETABLE_SIZE)
 			inner->leaf = ISC_TRUE;
-		table->children[index].table = inner;
+		table->children[idx].table = inner;
 	}
 
 	result = handle_store(h, inner, o);
 	if (result == ISC_R_NOSPACE) {
 		result = (table_enclose
-			  (&table->children[index].table));
+			  (&table->children[idx].table));
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		return (handle_store(h, table->children[index].table, o));
+		return (handle_store(h, table->children[idx].table, o));
 	}
 	return (result);
 }
@@ -270,7 +270,7 @@ lookup_iterate(omapi_object_t **o, omapi_handle_t h,
 		 omapi_handletable_t *table)
 {
 	omapi_handletable_t *inner;
-	omapi_handle_t scale, index;
+	omapi_handle_t scale, idx;
 
 	if (table == NULL || table->first > h || table->limit <= h)
 		return (ISC_R_NOTFOUND);
@@ -301,8 +301,8 @@ lookup_iterate(omapi_object_t **o, omapi_handle_t h,
 	 * handle must be the subtable of this table whose index into this
 	 * table's array of children is the handle divided by the scale.
 	 */
-	index = (h - table->first) / scale;
-	inner = table->children[index].table;
+	idx = (h - table->first) / scale;
+	inner = table->children[idx].table;
 
 	return (lookup_iterate(o, h, inner));
 }
