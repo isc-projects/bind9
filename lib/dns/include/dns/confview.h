@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.32 2000/07/25 17:55:43 brister Exp $ */
+/* $Id: confview.h,v 1.33 2000/07/25 20:17:52 brister Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -349,6 +349,20 @@ isc_result_t dns_c_view_getrfc2308type1(dns_c_view_t *view,
 isc_result_t dns_c_view_setrfc2308type1(dns_c_view_t *view,
 					isc_boolean_t newval);
 isc_result_t dns_c_view_unsetrfc2308type1(dns_c_view_t *view);
+
+
+isc_result_t dns_c_view_getgluefromauth(dns_c_view_t *view,
+					isc_boolean_t *retval);
+isc_result_t dns_c_view_setgluefromauth(dns_c_view_t *view,
+					isc_boolean_t newval);
+isc_result_t dns_c_view_unsetgluefromauth(dns_c_view_t *view);
+
+
+isc_result_t dns_c_view_getgluefromcache(dns_c_view_t *view,
+					isc_boolean_t *retval);
+isc_result_t dns_c_view_setgluefromcache(dns_c_view_t *view,
+					isc_boolean_t newval);
+isc_result_t dns_c_view_unsetgluefromcache(dns_c_view_t *view);
 
 
 
