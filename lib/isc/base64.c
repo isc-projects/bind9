@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.21 2001/01/09 21:55:54 bwelling Exp $ */
+/* $Id: base64.c,v 1.22 2001/02/15 23:21:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -190,7 +190,9 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 }
 
 isc_result_t
-isc_base64_decodestring(isc_mem_t *mctx, char *cstr, isc_buffer_t *target) {
+isc_base64_decodestring(isc_mem_t *mctx, const char *cstr,
+			isc_buffer_t *target)
+{
 	base64_decode_ctx_t ctx;
 
 	UNUSED(mctx);
