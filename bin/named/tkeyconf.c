@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.14 2000/10/12 00:39:17 bwelling Exp $ */
+/* $Id: tkeyconf.c,v 1.15 2000/10/12 01:08:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,8 @@
 #include <dns/name.h>
 #include <dns/tkey.h>
 #include <dns/tkeyconf.h>
+
+#include <dst/gssapi.h>
 
 #define RETERR(x) do { \
 	result = (x); \
