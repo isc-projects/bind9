@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.3 2001/10/12 18:20:14 gson Exp $ */
+/* $Id: client.c,v 1.176.2.4 2001/10/12 19:14:47 gson Exp $ */
 
 #include <config.h>
 
@@ -1223,6 +1223,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	int match;
 	dns_messageid_t id;
 	unsigned int flags;
+	isc_boolean_t notimp;
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -1370,6 +1371,18 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
+	switch (client->message->opcode) {
+	case dns_opcode_query:
+	case dns_opcode_update:
+	case dns_opcode_notify:
+		notimp = ISC_FALSE;
+		break;
+	case dns_opcode_iquery:
+	default:
+		notimp = ISC_TRUE;
+		break;
+	}
+
 	client->message->rcode = dns_rcode_noerror;
 
 	/*
@@ -1441,7 +1454,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			      "message class could not be determined");
 		ns_client_dumpmessage(client,
 				      "message class could not be determined");
-		ns_client_error(client, DNS_R_FORMERR);
+		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_FORMERR);
 		goto cleanup;
 	}
 
@@ -1490,7 +1503,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
 		ns_client_dumpmessage(client, "no matching view in class");
-		ns_client_error(client, DNS_R_REFUSED);
+		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
 		goto cleanup;
 	}
 
