@@ -1,0 +1,60 @@
+
+This is a simple test environment for running bind9 system
+tests involving multiple name servers.
+
+There are multiple test suites, each in a separate subdirectory and
+involving a diffent DNS setup.  They are:
+
+  xfer/		Zone transfer, update, and NOTIFY tests
+  dnssec/	DNSSEC tests
+  xferquote/	Zone transfer quota tests
+
+Typically each test suite sets up 2-4 name servers and then performs
+one or more tests against them.  Within the test suite subdirectory,
+each name server has a separate subdirectory containing its
+configuration data.  By convention, these subdirectories are named
+"ns1", "ns2", etc.
+
+The tests are completely self-contained and do not require access to
+the real DNS.  One of the test servers (ns1) is set up as a root
+name server and is listed in the hints file of the others.
+
+To enable all servers to run on the same machine, they bind to
+separate virtual IP address on the loopback interface.  ns1 runs on
+10.53.0.1, ns2 on 10.53.0.2, etc.  Before running any tests, you must
+set up these addresses by running the script "ifconfig.sh".
+
+XXX the ifconfig.sh script is known to work only on NetBSD.
+
+Because the servers run on port 53, the tests must be run as root.
+
+To run the tests:
+
+  sh run.sh xfer
+  [check that xfer/ns3/example.bk has been created]
+  [run update_test.pl against ns2, check that changes propagate to ns3,
+  which they currently don't because notifies are not sent after dynamic
+  updates like they ought to be]
+  sh stop.sh xfer
+
+  sh run.sh dnssec
+  dig a.secure.example. a @10.53.0.4
+  [should return 10.0.0.1, AD=1]
+  dig c.secure.example. a @10.53.0.4
+  [should return NXDOMAIN, AD=1]
+  sh stop.sh dnssec
+
+  sh run.sh dnssec --badsig
+  dig a.secure.example. a @10.53.0.4
+  [should return SERVFAIL]
+  sh stop.sh dnssec
+
+  sh run.sh xferquota
+  [check that xferquota/ns2 now contains 100 .bk files]
+  sh stop.sh xferquota
+
+  sh clean.sh
+
+XXX The manual operations in [brackets] above should be automated.
+
+$Id: README,v 1.1 2000/05/15 22:47:15 gson Exp $
