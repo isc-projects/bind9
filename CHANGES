@@ -1,5 +1,6 @@
-1130.	[bug]		Out of range serial number were not being logged.
-			[RT #2076]
+1130.	[bug]		Log messages reporting an out-of-range serial number
+			did not include the out-of-range number but the
+			following token. [RT #2076]
 
 1129.	[bug]		Multithreaded servers could crash under heavy
 			resolution load due to a race condition. [RT #2018]
