@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.34 1999/12/23 00:08:29 explorer Exp $ */
+ /* $Id: master.c,v 1.35 2000/01/22 00:28:00 gson Exp $ */
 
 #include <config.h>
 
@@ -94,9 +94,8 @@ static isc_boolean_t	on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 
 #define GETTOKEN(lexer, options, token, eol) \
 	do { \
-		isc_result_t isc_r; \
-		isc_r = gettoken(lexer, options, token, eol, callbacks); \
-		switch (isc_r) { \
+		result = gettoken(lexer, options, token, eol, callbacks); \
+		switch (result) { \
 		case DNS_R_SUCCESS: \
 			break; \
 		case DNS_R_UNEXPECTED: \
@@ -131,7 +130,7 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 		if (token->type == isc_tokentype_eol ||
 		    token->type == isc_tokentype_eof) {
 			(*callbacks->error)(callbacks,
-			    "dns_master_load: %s:%d unexpected end of %s\n",
+			    "dns_master_load: %s:%d: unexpected end of %s\n",
 					    isc_lex_getsourcename(lex),
 					    isc_lex_getsourceline(lex),
 					    (token->type ==
@@ -345,6 +344,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				isc_stdtime_get(&current_time);
 				result = dns_time64_fromtext(token.value.
 					     as_pointer, &dump_time64);
+				if (result != ISC_R_SUCCESS)
+					goto error_cleanup;
 				dump_time = (isc_stdtime_t)dump_time64;
 				if (dump_time != dump_time64) {
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -387,7 +388,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					     token.value.as_region.length);
 			result = dns_name_fromtext(&new_name, &buffer,
 					  &origin_name, ISC_FALSE, &name);
-
 			if (result != DNS_R_SUCCESS)
 				goto error_cleanup;
 
