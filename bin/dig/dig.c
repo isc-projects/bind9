@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.194 2004/06/23 04:07:29 marka Exp $ */
+/* $Id: dig.c,v 1.195 2004/09/03 03:55:20 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1024,6 +1024,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				break;
 #ifdef DIG_SIGCHASE
 			case 'u': /* trusted-key */
+				FULLCHECK("trusted-key");
 			  	if (value == NULL) 
 					goto need_value;
 				if (!state)
