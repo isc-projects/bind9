@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: server.c,v 1.202 2000/07/10 11:34:59 tale Exp $ */
+/* $Id: server.c,v 1.203 2000/07/10 22:02:38 tale Exp $ */
 
 #include <config.h>
 
@@ -54,6 +54,7 @@
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/logconf.h>
+#include <named/omapi.h>
 #include <named/os.h>
 #include <named/server.h>
 
