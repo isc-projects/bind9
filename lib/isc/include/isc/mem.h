@@ -50,6 +50,8 @@ isc_boolean_t			isc_mem_valid(isc_mem_t *, void *);
 void *				isc_mem_allocate(isc_mem_t *, size_t);
 void				isc_mem_free(isc_mem_t *, void *);
 char *				isc_mem_strdup(isc_mem_t *, const char *);
+void				isc_mem_setquota(isc_mem_t *, size_t);
+size_t				isc_mem_getquota(isc_mem_t *);
 
 #ifdef ISC_MEMCLUSTER_LEGACY
 
