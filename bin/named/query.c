@@ -217,7 +217,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	 */
 	dns_name_setbuffer(fname, NULL);
 
-	for (section = 0; section <= DNS_SECTION_ADDITIONAL; section++) {
+	/*
+	 * Suppress duplicates.
+	 */
+	for (section = DNS_SECTION_ANSWER;
+	     section <= DNS_SECTION_ADDITIONAL;
+	     section++) {
 		mname = NULL;
 		result = dns_message_findname(client->message, section,
 					      name, type, &mname, NULL);
@@ -233,8 +238,74 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 
 	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
 
+	/*
+	 * In a few cases, we want to add additional data for additional
+	 * data.  It's simpler to just deal with special cases here than
+	 * to try to create a general purpose mechanism and allow the
+	 * rdata implementations to do it themselves.
+	 *
+	 * This involves recursion, but the depth is limited.  The
+	 * most complex case is adding a SRV rdataset, which involves
+	 * recursing to add address records, which in turn can cause
+	 * recursion to add KEYs.
+	 */
+	if (type == dns_rdatatype_a || type == dns_rdatatype_aaaa ||
+	    type == dns_rdatatype_a6) {
+		/*
+		 * RFC 2535 section 3.5 says that when A or AAAA records are
+		 * retrieved as additional data, any KEY RRs for the owner name
+		 * should be added to the additional data section.  We include
+		 * A6 in the list of types with such treatment.
+		 *
+		 * XXXRTH  We should lower the priority here.  Alternatively,
+		 * we could raise the priority of glue records.
+		 */
+		return (query_addadditional(client, name, dns_rdatatype_key));
+ 	} else if (type == dns_rdatatype_srv) {
+		/*
+		 * If we're adding SRV records to the additional data
+		 * section, it's helpful if we add the SRV additional data
+		 * as well.
+		 */
+		return (dns_rdataset_additionaldata(rdataset,
+						    query_addadditional,
+						    client));
+	}
+
 	return (ISC_R_SUCCESS);
 }
+
+static inline void
+query_addrdataset(ns_client_t *client, dns_name_t *fname,
+		  dns_rdataset_t *rdataset)
+{
+	dns_rdatatype_t type = rdataset->type;
+
+	ISC_LIST_APPEND(fname->list, rdataset, link);
+	/*
+	 * We don't care if dns_rdataset_additionaldata() fails.
+	 */
+	(void)dns_rdataset_additionaldata(rdataset, query_addadditional,
+					  client);
+	/*
+	 * RFC 2535 section 3.5 says that when NS, SOA, A, or AAAA records
+	 * are retrieved, any KEY RRs for the owner name should be added
+	 * to the additional data section.  We include A6 in the list of
+	 * types with such treatment.
+	 *
+	 * We don't care if query_additional() fails.
+	 */
+	if (type == dns_rdatatype_ns || type == dns_rdatatype_soa ||
+	    type == dns_rdatatype_a || type == dns_rdatatype_aaaa ||
+	    type == dns_rdatatype_a6) {
+		/*
+		 * XXXRTH  We should lower the priority here.  Alternatively,
+		 * we could raise the priority of glue records.
+		 */
+		(void)query_addadditional(client, fname, dns_rdatatype_key);
+	}
+}
+		  
 
 static isc_result_t
 find(ns_client_t *client, dns_rdatatype_t type) {
@@ -287,19 +358,46 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 		isc_buffer_init(&b, r.base, r.length, ISC_BUFFERTYPE_BINARY);
 		fname = NULL;
 		result = dns_message_gettempname(client->message, &fname);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		/* XXXRTH  should return success if not first time. */
+		if (result != ISC_R_SUCCESS) {
+			if (first_time)
+				return (result);
+			else
+				return (ISC_R_SUCCESS);
+		}
 		dns_name_init(fname, NULL);
 		dns_name_setbuffer(fname, &b);
 		rdataset = NULL;
 		result = dns_message_gettemprdataset(client->message,
 						     &rdataset);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		/* XXXRTH  should return success if not first time. */
+		if (result != ISC_R_SUCCESS) {
+			if (first_time)
+				return (result);
+			else
+				return (ISC_R_SUCCESS);
+		}
 		dns_rdataset_init(rdataset);
 
+		/*
+		 * XXXRTH  Problem areas.
+		 *
+		 * If we're authoritative for both a parent and a child, the
+		 * child is non-secure, and we are asked for the KEY of the
+		 * nonsecure child, we need to get it from the parent.
+		 * If we're not auth for the parent, then we have to go
+		 * looking for it in the cache.  How do we even know who
+		 * the parent is?  We probably won't find this KEY when doing
+		 * additional data KEY retrievals, but that's probably OK,
+		 * since it's a SHOULD not a MUST.  We don't want to be doing
+		 * tons of work just to fill out additional data.
+		 *
+		 * Similar problems occur with NXT queries, since there can
+		 * be NXT records at a delegation point in both the parent
+		 * and the child.  RFC 2535 section 5.5 says that on explicit
+		 * query we should return both, if available.  That seems
+		 * to imply we shouldn't recurse to get the missing one
+		 * if only one is available.  Is that right?
+		 */
+		
 		/*
 		 * Find a database to answer the query.
 		 */
@@ -393,10 +491,7 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 			 * we know the glue is good.
 			 */
 			client->query.dboptions |= DNS_DBFIND_GLUEOK;
-			ISC_LIST_APPEND(fname->list, rdataset, link);
-			dns_rdataset_additionaldata(rdataset,
-						    query_addadditional,
-						    client);
+			query_addrdataset(client, fname, rdataset);
 		} else if (type == dns_rdatatype_any) {
 			/*
 			 * XXXRTH  Need to handle zonecuts with special case
@@ -409,10 +504,7 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 				result = dns_rdatasetiter_first(rdsiter);
 			while (result == ISC_R_SUCCESS) {
 				dns_rdatasetiter_current(rdsiter, rdataset);
-				ISC_LIST_APPEND(fname->list, rdataset, link);
-				dns_rdataset_additionaldata(rdataset,
-							query_addadditional,
-							client);
+				query_addrdataset(client, fname, rdataset);
 				rdataset = NULL;
 				result = dns_message_gettemprdataset(
 						client->message,
@@ -427,15 +519,12 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 				goto cleanup_node;
 			}
 		} else {
-			ISC_LIST_APPEND(fname->list, rdataset, link);
-			dns_rdataset_additionaldata(rdataset,
-						    query_addadditional,
-						    client);
+			query_addrdataset(client, fname, rdataset);
 		}
 
 		dns_message_addname(client->message, fname, section);
 
-		if (!auth && !first_time)
+		if (!auth && first_time)
 			client->message->flags &= ~DNS_MESSAGEFLAG_AA;
 
 		first_time = ISC_FALSE;
