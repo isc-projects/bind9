@@ -1,6 +1,6 @@
 ./.cvsignore					X	1999,2000,2001
 ./CHANGES					X	2000,2001
-./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001
+./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002
 ./EXCLUDED					X	2002
 ./FAQ						X	2000,2001
 ./Makefile.in					MAKE	1998,1999,2000,2001
@@ -10,7 +10,7 @@
 ./bin/.cvsignore				X	1999,2000,2001
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001
 ./bin/check/.cvsignore				X	2000,2001
-./bin/check/Makefile.in				MAKE	2000,2001
+./bin/check/Makefile.in				MAKE	2000,2001,2002
 ./bin/check/check-tool.c			C	2000,2001
 ./bin/check/check-tool.h			C	2000,2001
 ./bin/check/named-checkconf.8			X	2000,2001
@@ -774,6 +774,9 @@
 ./conftools/perllib/dnsconf/test.pl		PERL	2000,2001
 ./contrib/.cvsignore				X	2000,2001
 ./contrib/idn/mdnkit/ChangeLog			X	2000,2001
+./contrib/idn/mdnkit/DISTFILES			X	2002
+./contrib/idn/mdnkit/INSTALL			X	2002
+./contrib/idn/mdnkit/INSTALL.ja			X	2002
 ./contrib/idn/mdnkit/LICENSE.txt		X	2000,2001
 ./contrib/idn/mdnkit/Makefile.in		X	2000,2001
 ./contrib/idn/mdnkit/NEWS			X	2000,2001
@@ -937,7 +940,8 @@
 ./contrib/idn/mdnkit/lib/ucsmap.c		X	2001
 ./contrib/idn/mdnkit/lib/ucsset.c		X	2001
 ./contrib/idn/mdnkit/lib/unicode.c		X	2000,2001
-./contrib/idn/mdnkit/lib/unicodedata.c		X	2000,2001
+./contrib/idn/mdnkit/lib/unicodedata_301.c	X	2002
+./contrib/idn/mdnkit/lib/unicodedata_310.c	X	2002
 ./contrib/idn/mdnkit/lib/unormalize.c		X	2000,2001
 ./contrib/idn/mdnkit/lib/utf5.c			X	2000,2001
 ./contrib/idn/mdnkit/lib/utf6.c			X	2001
@@ -973,6 +977,8 @@
 ./contrib/idn/mdnkit/mkinstalldirs		X	2001
 ./contrib/idn/mdnkit/patch/bind8/bind-8.2.3-patch	X	2001
 ./contrib/idn/mdnkit/patch/bind9/bind-9.1.2-patch	X	2001
+./contrib/idn/mdnkit/patch/bind9/bind-9.1.3-patch	X	2002
+./contrib/idn/mdnkit/patch/bind9/bind-9.2.0-patch	X	2002
 ./contrib/idn/mdnkit/patch/bind9/patch.configure	X	2001
 ./contrib/idn/mdnkit/patch/bind9/patch.most	X	2001
 ./contrib/idn/mdnkit/patch/libiconv/libiconv-1.6.1.patch	X	2001
@@ -981,6 +987,7 @@
 ./contrib/idn/mdnkit/tools/mdnconv/Makefile.in	X	2000,2001
 ./contrib/idn/mdnkit/tools/mdnconv/mdnconv.1	X	2000,2001
 ./contrib/idn/mdnkit/tools/mdnconv/mdnconv.c	X	2000,2001
+./contrib/idn/mdnkit/tools/mdnconv/mdnslookup.in	X	2002
 ./contrib/idn/mdnkit/tools/mdnconv/util.c	X	2000,2001
 ./contrib/idn/mdnkit/tools/mdnconv/util.h	X	2000,2001
 ./contrib/idn/mdnkit/tools/rpm/mdnkit.spec	X	2000,2001
@@ -1093,7 +1100,7 @@
 ./doc/arm/Bv9ARM.ch08.html			X	2000,2001
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001
 ./doc/arm/Bv9ARM.html				X	2000,2001
-./doc/arm/Makefile.in				MAKE	2001
+./doc/arm/Makefile.in				MAKE	2001,2002
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001
 ./doc/arm/isc.color.gif				X	2000,2001
 ./doc/arm/nominum-docbook-html.dsl.in		X	2000,2001
@@ -1156,7 +1163,7 @@
 ./install-sh					X	1999,2000,2001
 ./isc-config.sh.in				SH	2000,2001
 ./lib/.cvsignore				X	1999,2000,2001
-./lib/Makefile.in				MAKE	1998,1999,2000,2001
+./lib/Makefile.in				MAKE	1998,1999,2000,2001,2002
 ./lib/bind/.cvsignore				X	2001
 ./lib/bind/Makefile.in				MAKE	2001
 ./lib/bind/README				X	2001
