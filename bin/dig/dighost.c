@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.107 2000/08/02 14:38:51 mws Exp $ */
+/* $Id: dighost.c,v 1.108 2000/08/02 19:49:57 tale Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1343,23 +1343,18 @@ setup_lookup(dig_lookup_t *lookup) {
  * the query if the send was canceled.
  */
 static void
-send_done(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sevent = NULL;
-	dig_query_t *query;
-
+send_done(isc_task_t *_task, isc_event_t *event) {
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
-	UNUSED(task);
+	UNUSED(_task);
 
 	LOCK_LOOKUP;
-	sevent = (isc_socketevent_t *)event;
-	query = event->ev_arg;
 
 	isc_event_free(&event);
 
 	debug("send_done()");
 	sendcount--;
-	debug("sendcount=%d",sendcount);
+	debug("sendcount=%d", _sendcount);
 	INSIST(sendcount >= 0);
 	UNLOCK_LOOKUP;
 }
