@@ -164,7 +164,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		result = dns_c_ctx_getdialup(cctx, &boolean);
 	if (result != ISC_R_SUCCESS)
 		boolean = ISC_FALSE;
-	dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, boolean);
+	dns_zone_setoption(zone, DNS_ZONEOPT_DIALUP, boolean);
 
 	/*
 	 * Configure master functionality.  This applies
@@ -179,7 +179,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			result = dns_c_ctx_getnotify(cctx, &boolean);
 		if (result != ISC_R_SUCCESS)
 			boolean = ISC_TRUE;
-		dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
+		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFY, boolean);
 
 		iplist = NULL;
 		result = dns_c_zone_getalsonotify(czone, &iplist);
