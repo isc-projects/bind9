@@ -618,12 +618,9 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	/*
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
-	 *
-	 * XXX not view specific, NULL should be replaced by
-	 * dns_c_view_gettrustedkeys below
 	 */
 	CHECK(configure_view_dnsseckeys(cview, cctx, mctx,
-				  NULL,
+				  dns_c_view_gettrustedkeys,
 				  dns_c_ctx_gettrustedkeys,
 				  &view->secroots));
 
