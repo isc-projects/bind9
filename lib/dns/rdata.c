@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.131 2000/11/20 21:41:53 bwelling Exp $ */
+/* $Id: rdata.c,v 1.132 2000/11/20 21:58:01 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -534,8 +534,13 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	return (result);
 }
 
+/*
+ * If the binary data in 'src' is valid uncompressed wire format
+ * rdata of class 'rdclass' and type 'type', return ISC_R_SUCCESS
+ * and copy the validated rdata to 'dest'.  Otherwise return an error.
+ */
 static isc_result_t
-rdata_valid(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
+rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
 	    dns_rdatatype_t type)
 {
 	dns_decompress_t dctx;
@@ -579,7 +584,7 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	}
 
 	if (dns_rdatatype_isknown(type)) {
-		result = rdata_valid(buf, target, rdclass, type);
+		result = rdata_validate(buf, target, rdclass, type);
 	} else {
 		isc_region_t r;
 		isc_buffer_usedregion(buf, &r);
