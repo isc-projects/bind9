@@ -1,3 +1,6 @@
+1800.	[bug]		Changes #1719 allowed a INSIST to be triggered.
+			[RT #13428]
+
 1799.	[placeholder]	rt13438
 
 1798.	[func]		The server syntax has been extended to support a
