@@ -1,6 +1,5 @@
 INTERNET DRAFT                                      JUNHYUK SONG
-January 2002                                        CHAE YOUNG CHONG
-                                                    SAMSUNG ELECTRONICS.
+March   2002                                        SAMSUNG ELECTRONICS
 
                                                     DONGKIE LEE
                                                     SK TELECOM
@@ -8,7 +7,7 @@ January 2002                                        CHAE YOUNG CHONG
 							  
 
                      DNS RR type for NAI
-             draft-song-dnsext-nai-support-00.txt
+             draft-song-dnsext-nai-support-01.txt
 
 
 Status of This Memo
@@ -36,8 +35,9 @@ Status of This Memo
 
 Abstract
    
-   This document proposes the use of the new DNS RR type "NAI" to 
-   specify the most current location of the user(Host IP address).
+   This document proposes the use of the new DNS RR type "NAI" 
+   (Network Access Identifier) [RFC2486] to specify dynamically assigned
+   IP address.
 
    
 
@@ -53,65 +53,75 @@ Abstract
 
 
 
-Song and Lee.           Expires  July  2002                    [Page 1]
+Song                   Expires  September  2002                [Page 1]
 
 
-Internet Draft                                           4 January 2002
+Internet Draft                                             March   2002
+
 
 1. Introduction
 
-   The demand for wireless mobile networking has been dramatically 
+   The use of the wireless mobile networking has been dramatically 
    increased thanks to rapid development of wireless technology and 
-   de facto Mobile IP technology [1].  Therefore, the need for 
-   standardized method of specifying the user over different Internet 
-   Service Providers (ISPs) was identified.  NAI is as defined in 
-   RFC-2486 provides the standardized method for identifying users 
-   in order to accomplish the interoperability for roaming and 
-   tunneling over multiple Internet Service Providers (ISPs).
-   The NAI (Network Access Identifier) is of the form user@realm [3].
-
+   commercial deployment of Mobile IP technology [RFC3220].  
+   The most recent release of Mobile IPv4 supports the dynamic Home 
+   Address assignment mechanism that allow MN (Mobile Node) being
+   identified by NAI (Network Access Identifier) [RFC2486] rather than
+   static Home IP address.  NAI has a prominent role on the mobile 
+   network environment.  This is not only because NAI significantly 
+   reduces the IPv4 address shortage problem and but also it provides
+   the standardized method for identifying users in order to accomplish
+   the interoperability for roaming over multiple ISPs (Internet Service
+   Providers).  
+   
+   The most of the Mobile IPv4 deployment including 3GPP2 CDMA2000 
+   wireless packet data system architecture [P.S0001-B] identify 
+   the Mobile Node by NAI.  Therefore the need for standardized method
+   of binding the ever changing home address of the MN over various ISPs
+   to NAI is necessary.  
+   
    The DNS basically provides a mechanism to map between hostnames and
    IP address with support of many other RRs thorough hierarchically 
-   built domain names.
-   
-   Combining above two, NAI and DNS shall enable IP user mobility [2].
-   The IP user mobility is the ability of end user to send and 
-   receive IP datagrams regardless of the location of the mobile 
-   terminal and user location. 
-   
-   This document specifies a new RR type for NAI, mapping host IP 
-   address and user identifier (NAI) [3].
+   built domain names. The NAI is of the form user@realm [RFC2486]. 
+   Adding NAI as a DNS RR shall enable tracking of the dynamically 
+   changed home IP address.  This document specifies a new RR type for
+   NAI, mapping host IP address and user identifier (NAI) [RFC2486].
 
 
 2. Applicability Statement
-   
+
+   Mobile IPv4 is designed to provide the IP mobility that provides
+   reasonably seamless IP connectivity.  Since the MN (Mobile Node) is
+   no longer necessarily identified by the unique home IP address, 
+   the mechanism for the locating and updating newly assigned home IP
+   address is required [UM].
+
    The NAI RR defines user identifier, NAI widely used for PPP dialup 
    connection and Mobile IPv4.  The basic idea is to let mobile Internet 
-   user to constantly update its location(IP address), while moving 
-   around multiple access provider network.  It can enables 
-   correspondent user to always reach the specific user by querying NAI 
-   to name server, regardless of the location.
+   user to constantly update its IP address, while moving around 
+   multiple access provider network.  It can enables correspondent user
+   to always reach the specific user by querying NAI to name server, 
+   regardless of the connecting location.
    
    It is expected that NAI RR will be used in IRS(Internet Reachability
-   Service) of 3GPP2 wireless IP network standard [4] (see Appendix A) 
-   and IP user mobility application [5].  Those application depends on 
-   one to one mapping of NAI and mobile host IP address in name server.
+   Service) of 3GPP2 wireless IP network standard [P.S0001-B] 
+   (see Appendix A).  
 
 
-
-
-
-
-
-
-
-
-
-
-Song and Lee.           Expires  July  2002                    [Page 2]
+Song                   Expires  September  2002                [Page 2]
 
 
-Internet Draft                                           4 January 2002
+Internet Draft                                             March   2002
+
+   The applications that running on the Dynamic Home Address Allocation
+   enabled Mobile IPv4 MN (Mobile node) depends on the one to one 
+   mapping of NAI and newly assigned mobile host IP address in DNS name
+   server for the connectivity with Correspondent nodes. 
+   Because it will be the only way the CN (Correspondent Node) can find 
+   the Mobile Node's newly assigned IP address.  An example of 
+   application is including WWW server, IP push service, Instant 
+   Messaging, Multi-user Network games, Multi-chat, etc.
+ 
 
 
 3. NAI RR Type
@@ -134,9 +144,9 @@ Internet Draft                                           4 January 2002
 
 4. Examples
 
-   Resource Record for NAI(junhyuk@samsung.skt.co.kr) is like below:
+   Resource Record for NAI(junhyuk@xbs.samsung.co.kr) is like below:
   
-   junhyuk@.samsung.skt.co.kr.  86400  IN   NAI  165.213.221.4
+   junhyuk@.xbs.samsung.co.kr.  1440  IN   NAI  165.213.221.4
 
 
 5. IANA Considerations
@@ -146,34 +156,24 @@ Internet Draft                                           4 January 2002
 
 6. Acknowledgements
 
-   Special thanks to Prof. Murali Venkatesh of Syracuse University, and 
-   Dr. Woo June Kim
+   Special thanks to Professor Murali Venkatesh of Syracuse University
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-Song and Lee.           Expires  July  2002                    [Page 3]
+Song                   Expires  September  2002                [Page 3]
 
 
-Internet Draft                                           4 January 2002
+Internet Draft                                             March   2002
 
 
 
 Appendix A. IRS of 3GPP2 wireless IP Network standard 
 
 
-   In this example, we've omitted the detail operation of deleting 
+   In this example, I've omitted the detail operation of deleting 
    DNS record in case of user disconnect.  In IRS, it is assumed that 
    MS desires to be reached by a fixed identifier such as an NAI-like
    hostname
@@ -218,10 +218,10 @@ Appendix A. IRS of 3GPP2 wireless IP Network standard
 
 
 
-Song and Lee.           Expires  July  2002                    [Page 4]
+Song                   Expires  September  2002                [Page 4]
 
 
-Internet Draft                                           4 January 2002
+Internet Draft                                             March   2002
 
 
 
@@ -273,29 +273,30 @@ Internet Draft                                           4 January 2002
 
 
 
-Song and Lee.           Expires  July  2002                    [Page 5]
+Song                   Expires  September  2002                [Page 5]
 
 
-Internet Draft                                           4 January 2002
+Internet Draft                                             March   2002
 
 
 
 References
 
 
-   [1]  C. Perkins, Editor. "IP Mobility Support". RFC 2002. October
-        1996.
+   [RFC3220]  C. Perkins, Editor. "IP Mobility Support". RFC 3320. 
+              January 2002.
    
-   [2]  J.H Song, C.Y Chong, DK Lee
-        "draft-song-network-user-mobility-00.txt
+   [UM]  J.H Song, DK Lee "draft-song-network-user-mobility-00.txt"
+         Work in Progress
    
-   [3]  Bernard Aboba and Mark A. Beadles "The Network Access 
-        Identifier". RFC 2486. January 1999.
+   [RFC2486]  Bernard Aboba and Mark A. Beadles "The Network Access
+              Identifier". RFC 2486. January 1999.
    
-   [4]  3GPP2 P.S0001-B work in progress.
+   [P.S0001-B]  3GPP2 P.S0001-B work in progress.
+               ftp://ftp.3gpp2.org/TSGP/Standard/
 
-   [5]  J.H Song and C.Y Chong, DK Lee
-        "draft-song-mobileip-mipv6-user-mobility-00.txt"
+
+
 
 
 
@@ -304,13 +305,13 @@ Addresses
 
 Questions about this memo can be directed to the authors:
 
-	JUNHYUK SONG   
-        CHAEYOUNG CHONG
-	SAMSUNG ELECTRONICS.            
-        Mobile Development Team        
-        Network Systems Division        
-	Phone: +82-31-279-3639          
-        Email: santajun@lycos.co.kr     
+	JUNHYUK SONG
+	SAMSUNG ELECTRONICS.
+	Packet Technology System Lab.
+	Mobile Development Team           
+        Phone: +82-31-279-3639          
+        Email: junhyuk@telecom.samsung.co.kr
+	       santajunman@yahoo.com
            
 
         DONGKIE LEE
@@ -322,4 +323,65 @@ Questions about this memo can be directed to the authors:
         FAX:+82-2-829-4612
 
 
-Song and Lee           Expires  July  2002                   [Page  6]
+
+
+
+
+
+Song                   Expires  September  2002                [Page 6]
+
+
+Internet Draft                                             March   2002
+
+
+Full Copyright Statement 
+    
+   Copyright (C) The Internet Society (2002).  All Rights Reserved. 
+    
+   This document and translations of it may be copied and furnished to 
+   others, and derivative works that comment on or otherwise explain it 
+   or assist in its implementation may be prepared, copied, published 
+   and distributed, in whole or in part, without restriction of any 
+   kind, provided that the above copyright notice and this paragraph 
+   are included on all such copies and derivative works.  However, this 
+   document itself may not be modified in any way, such as by removing 
+   the copyright notice ore references to the Internet Society or other 
+   Internet organizations, except as needed for the purpose of 
+   developing Internet standards in which case the procedures for 
+   copyrights defined in the Internet Standards process must be 
+   followed, or as required to translate it into languages other than 
+   English. 
+    
+   The limited permissions granted above are perpetual and will not be 
+   revoked by the Internet Society or its successors or assigns. 
+    
+   This document and the information contained herein is provided on an 
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING 
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING 
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION 
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF 
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song                   Expires  September  2002                [Page 7]
+
