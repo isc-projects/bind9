@@ -1,3 +1,12 @@
+  25.	[bug]		make install failed to install <isc/log.h> and
+			<isc/ondestroy.h>.
+
+  24.	[cleanup]	Eliminate some unnecessary #includes of header
+			files from header files.
+
+  23.	[cleanup]	Provide more context in log messages about client
+			requests, using a new function ns_client_log().
+
   22.   [bug]		SIGs weren't returned in the answer section when
 			the query resulted in a fetch.
 
