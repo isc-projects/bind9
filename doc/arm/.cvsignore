@@ -1,8 +1,0 @@
-Makefile
-gendvi.sh
-genhtml.sh
-genpdf.sh
-validate.sh
-nominum-docbook-html.dsl
-nominum-docbook-print.dsl
-catalog
