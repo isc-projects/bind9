@@ -1,3 +1,6 @@
+1049.	[func]		pid-file "none"; will disable writing a pid file.
+			[RT #1848]
+
 1048.	[bug]		Servers built with -DISC_MEM_USE_INTERNAL_MALLOC=1
 			didn't work.
 

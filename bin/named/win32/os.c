@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.8 2001/10/08 07:46:10 marka Exp $ */
+/* $Id: os.c,v 1.9 2001/10/12 05:40:41 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -171,6 +171,8 @@ ns_os_writepidfile(const char *filename) {
 
 	cleanup_pidfile();
 
+	if (strcmp(filename, "none") == 0)
+		return;
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
 	if (pidfile == NULL)
