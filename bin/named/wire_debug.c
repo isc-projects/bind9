@@ -207,7 +207,7 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	}
 
 	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(db, node, NULL, qtype, &rdataset);
+	result = dns_db_findrdataset(db, node, NULL, qtype, 0, &rdataset);
 	dns_db_detachnode(db, &node);
 	if (result == DNS_R_NOTFOUND) {
 		status = 3;  /* NXDOMAIN */
