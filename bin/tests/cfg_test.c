@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.4 2001/02/15 19:02:18 gson Exp $ */
+/* $Id: cfg_test.c,v 1.5 2001/02/22 04:17:57 gson Exp $ */
 
 #include <config.h>
 
@@ -121,6 +121,7 @@ main(int argc, char **argv) {
 	if (type == &cfg_type_namedconf) {
 		cfg_obj_t *options = NULL;
 		cfg_obj_t *version = NULL;
+		cfg_obj_t *zones = NULL;
 		
 		result = cfg_map_get(cfg, "options", &options);
 		if (result == ISC_R_SUCCESS) {
@@ -131,6 +132,19 @@ main(int argc, char **argv) {
 				
 			}
 		}
+		result = cfg_map_get(cfg, "zone", &zones);
+		if (result == ISC_R_SUCCESS) {
+			cfg_listelt_t *elt;
+			for (elt = cfg_list_first(zones);
+			     elt != NULL;
+			     elt = cfg_list_next(elt)) {
+				cfg_obj_t *zone = cfg_listelt_value(elt);
+				fprintf(stderr, "(zone name is \"%s\")\n",
+					cfg_obj_asstring(cfg_tuple_get(zone,
+							       "name")));
+			}
+		}
+		
 	} else	if (type == &cfg_type_rndcconf) {
 		cfg_obj_t *keys = NULL;
 		result = cfg_map_get(cfg, "key", &keys);
