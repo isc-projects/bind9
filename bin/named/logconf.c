@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.30 2001/05/28 05:16:57 marka Exp $ */
+/* $Id: logconf.c,v 1.31 2001/09/25 00:55:22 gson Exp $ */
 
 #include <config.h>
 
@@ -134,7 +134,7 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
 		cfg_obj_t *versionsobj = cfg_tuple_get(fileobj, "versions");
 		isc_int32_t versions = ISC_LOG_ROLLNEVER;
-		isc_offset_t size = ISC_OFFSET_MAXIMUM;
+		isc_offset_t size = 0;
 
 		type = ISC_LOG_TOFILE;
 		
