@@ -28,7 +28,7 @@ CDEFINES =
 CWARNINGS =
 
 UNIXOBJS =	unix/app.@O@ unix/time.@O@ unix/stdtime.@O@ \
-		unix/socket.@O@ unix/interfaceiter.@O@ unix/sockaddr.@O@
+		unix/socket.@O@ unix/interfaceiter.@O@
 
 NLSOBJS =	nls/msgcat.@O@
 
@@ -37,8 +37,8 @@ PTHREADOBJS =	pthreads/condition.@O@
 OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ buffer.@O@ error.@O@ \
 		heap.@O@ lex.@O@ lib.@O@ mem.@O@ result.@O@ \
-		rwlock.@O@ symtab.@O@ str.@O@ event.@O@ task.@O@ \
-		timer.@O@ version.@O@ \
+		rwlock.@O@ sockaddr.@O@ symtab.@O@ str.@O@ event.@O@ \
+		task.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
 LIBS =		@LIBS@
