@@ -23,17 +23,13 @@
 #include <string.h>
 #include <errno.h>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/types.h>
-#include <isc/inet.h>
+#include <isc/net.h>
 #include <isc/interfaceiter.h>
 
 #include "interfacemgr.h"
@@ -287,9 +283,9 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 			char buf[128];
 			const char *addrstr;
 			/* XXX IPv6 */
-			addrstr = isc_inet_ntop(listen_addr.type.sin.sin_family,
-						&listen_addr.type.sin.sin_addr,
-						buf, sizeof(buf));
+			addrstr = inet_ntop(listen_addr.type.sin.sin_family,
+					    &listen_addr.type.sin.sin_addr,
+					    buf, sizeof(buf));
 			if (addrstr == NULL)
 				addrstr = "(bad address)";
 			printf("listening on %s (%s port %d)\n",
