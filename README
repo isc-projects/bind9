@@ -73,7 +73,7 @@ BIND 9.0.0b4
 	BIND 9.0.0b4 is the fourth public release of BIND 9 code.  It will
 	be most useful to advanced users working with IPv6 or DNSSEC.
 
-	BIND 9.0.0b4 has almost all the functiolity of the upcoming
+	BIND 9.0.0b4 has almost all the functionality of the upcoming
         9.0.0 release.  It is not a release candidate for BIND 9.0.0.
         ISC anticipates at least one more beta release between now and 
 	the release of BIND 9.0.0.
