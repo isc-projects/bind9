@@ -747,12 +747,13 @@ message_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	message = (omapi_message_t *)handle;
 	
 	if (strcmp(name, "status") == 0 &&
-	    (message->object != NULL || message->notify_object != NULL))
+	    (message->object != NULL || message->notify_object != NULL)) {
 		if (message->notify_object != NULL)
 			return (object_vsignal(message->notify_object, name,
 					       ap));
 		else
 			return (object_vsignal(message->object, name, ap));
+	}
 
 	return (omapi_object_passsignal(handle, name, ap));
 }
