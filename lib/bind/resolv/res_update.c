@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.5 2001/06/22 05:11:05 marka Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.6 2001/07/03 08:11:51 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -79,7 +79,6 @@ struct zonegrp {
 
 static int	nscopy(union res_sockaddr_union *,
 		       const union res_sockaddr_union *, int);
-static int	nsprom(union res_sockaddr_union *, const struct in_addr *, int);
 static void	res_dprintf(const char *, ...);
 
 /* Macros. */
@@ -213,22 +212,6 @@ nscopy(union res_sockaddr_union *dst, const union res_sockaddr_union *src,
 
 	for (i = 0; i < n; i++)
 		dst[i] = src[i];
-	return (n);
-}
-
-static int
-nsprom(union res_sockaddr_union *dst, const struct in_addr *src, int n) {
-	int i;
-
-	for (i = 0; i < n; i++) {
-		memset(&dst[i], 0, sizeof dst[i]);
-		dst[i].sin.sin_family = AF_INET;
-		dst[i].sin.sin_port = htons(NS_DEFAULTPORT);
-		dst[i].sin.sin_addr = src[i];
-#ifdef HAVE_SA_LEN
-		dst[i].sin.sin_len = sizeof(struct sockaddr_in);
-#endif
-	}
 	return (n);
 }
 
