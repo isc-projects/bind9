@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.62 2000/04/08 04:42:42 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.63 2000/04/11 19:08:11 gson Exp $ */
 
 #include <config.h>
 
@@ -1306,24 +1306,13 @@ static void
 xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr, 
 	   const char *fmt, va_list ap)
 {
-	isc_buffer_t znbuf;
-	char znmem[1024];
+	char znbuf[1024];
 	isc_buffer_t masterbuf;
 	char mastermem[256];
 	isc_result_t result;
 	char msgmem[2048];
-	isc_boolean_t omit_final_dot = ISC_TRUE;
 
-	if (dns_name_equal(zonename, dns_rootname))
-		omit_final_dot = ISC_FALSE;
-
-	isc_buffer_init(&znbuf, znmem, sizeof(znmem), ISC_BUFFERTYPE_TEXT);
-	result = dns_name_totext(zonename, omit_final_dot, &znbuf);
-	if (result != ISC_R_SUCCESS) {
-		isc_buffer_clear(&znbuf);
-		isc_buffer_putmem(&znbuf, (unsigned char *)"<UNKNOWN>",
-				  strlen("<UNKNOWN>"));
-	}
+	dns_name_format(zonename, znbuf, sizeof(znbuf));
 	
 	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem),
 			ISC_BUFFERTYPE_TEXT);
@@ -1335,7 +1324,7 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, 
 		      DNS_LOGMODULE_XFER_IN, level,
-		      "transfer of '%.*s' from %s: %s", znbuf.used, znbuf.base,
+		      "transfer of '%s' from %s: %s", znbuf,
 		      masterbuf.base, msgmem);
 }
 

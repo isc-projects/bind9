@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.55 2000/04/07 22:30:41 gson Exp $ */
+/* $Id: xfrout.c,v 1.56 2000/04/11 19:08:32 gson Exp $ */
 
 #include <config.h>
 
@@ -1495,29 +1495,14 @@ static void
 xfrout_logv(ns_client_t *client, dns_name_t *zonename, int level,
 	    const char *fmt, va_list ap)
 {
-	isc_buffer_t znbuf;
-	char znmem[1024];
-	isc_result_t result;
-	char msgmem[2048];
-	isc_boolean_t omit_final_dot = ISC_TRUE;
+	char msgbuf[2048];
+	char namebuf[1024];
 
-	if (dns_name_equal(zonename, dns_rootname))
-		omit_final_dot = ISC_FALSE;
-
-	isc_buffer_init(&znbuf, znmem, sizeof(znmem), ISC_BUFFERTYPE_TEXT);
-	result = dns_name_totext(zonename, omit_final_dot, &znbuf);
-	if (result != ISC_R_SUCCESS) {
-		isc_buffer_clear(&znbuf);
-		isc_buffer_putmem(&znbuf, (unsigned char *)"<UNKNOWN>",
-				  strlen("<UNKNOWN>"));
-	}
-	
-	vsnprintf(msgmem, sizeof(msgmem), fmt, ap);
-
+	dns_name_format(zonename, namebuf, sizeof(namebuf));
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,
 		      NS_LOGMODULE_XFER_OUT, level,
-		      "transfer of '%.*s': %s", znbuf.used, znbuf.base,
-		      msgmem);
+		      "transfer of '%s': %s", namebuf, msgbuf);
 }
 
 /* Logging function for use when a xfrout_ctx_t has not yet been created. */
