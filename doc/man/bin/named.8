@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.8,v 1.5 2000/08/01 01:18:44 tale Exp $
+.\" $Id: named.8,v 1.6 2000/08/08 23:37:05 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NAMED 8
@@ -21,7 +21,7 @@
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
 .Nm named
-.Nd Internet domain name server (DNS)
+.Nd Internet domain name server
 .Sh SYNOPSIS
 .Nm named
 .Op Fl c Ar config-file
@@ -34,35 +34,14 @@
 .Op Fl x Ar cache-file
 .Sh DESCRIPTION
 .Nm named
-is the ISC implementation of an Internet domain name server.
-See RFCs 1033, 1034, and 1035 for more information on the Internet
-domain name system.
-For historical reasons, the ISC's DNS software is known as BIND -
-Berkeley Internet Name Daemon - because it was originally
-supplied with BSD
-.Ux
-releases.
+is a Domain Name System (DNS) server, part of the BIND 9 distribution
+from ISC.  For more information on the DNS, see RFCs 1033, 1034, and 1035.
 .Pp
-Without any arguments,
+When invoked without arguments,
 .Nm named
 will read the default configuration file
 .Pa /etc/named.conf ,
 read any initial data, and listen for queries.
-It is also possible to use the BIND9 name server
-as a lightweight resolver server
-.Nm lwresd .
-However when operating as a lightweight resolver server,
-.Nm named
-is functionally and logically distinct from a
-conventional name server.
-More information can be found in
-.Xr lwresd 8 .
-.Pp
-Although some command-line options can be used with
-.Nm named ,
-the name server's behaviour is mainly controlled by its configuration file,
-.Pa /etc/named.conf .
-Refer to the BIND9 Administrator Reference Manual for further details.
 .Pp
 The options to
 .Nm named
