@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.1 2000/12/06 01:21:51 tale Exp $ */
+/* $Id: msgs.h,v 1.2 2000/12/19 20:35:37 bwelling Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -145,6 +145,7 @@
 #define ISC_MSG_SOCKETSREMAIN  1415 /* "sockets exist" */
 #define ISC_MSG_PKTINFOPROVIDED	1416 /* "pktinfo structure provided, ..." */
 #define ISC_MSG_BOUND	       1417 /* "bound" */
+#define ISC_MSG_ACCEPTRETURNED 1418 /* accept() returned %d/%s */
 
 #define ISC_MSG_AWAKE	       1502 /* "awake" */
 #define ISC_MSG_WORKING	       1503 /* "working" */
@@ -174,5 +175,7 @@
 #define ISC_MSG_SIGNAL	       1709 /* "SIGNAL" */
 #define ISC_MSG_UTILWAIT       1710 /* "WAIT" */
 #define ISC_MSG_WAITED	       1711 /* "WAITED" */
+
+
 
 #endif /* ISC_MSGS_H */

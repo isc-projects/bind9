@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.175 2000/12/19 19:19:45 gson Exp $ */
+/* $Id: socket.c,v 1.176 2000/12/19 20:35:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -262,6 +262,7 @@ manager_log(isc_socketmgr_t *sockmgr,
 static void
 socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 	   isc_logcategory_t *category, isc_logmodule_t *module, int level,
+	   isc_msgcat_t *msgcat, int msgset, int message,
 	   const char *fmt, ...)
 {
 	char msgbuf[2048];
@@ -276,12 +277,14 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 	va_end(ap);
 
 	if (address == NULL) {
-		isc_log_write(isc_lctx, category, module, level,
-			      "socket %p: %s", sock, msgbuf);
+		isc_log_iwrite(isc_lctx, category, module, level,
+			       msgcat, msgset, message,
+			       "socket %p: %s", sock, msgbuf);
 	} else {
 		isc_sockaddr_format(address, peerbuf, sizeof peerbuf);
-		isc_log_write(isc_lctx, category, module, level,
-			      "socket %p %s: %s", sock, peerbuf, msgbuf);
+		isc_log_iwrite(isc_lctx, category, module, level,
+			       msgcat, msgset, message,
+			       "socket %p %s: %s", sock, peerbuf, msgbuf);
 	}
 }
 
@@ -478,9 +481,8 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 	cmsgp = CMSG_FIRSTHDR(msg);
 	while (cmsgp != NULL) {
 		socket_log(sock, NULL, TRACE,
-			   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-					  ISC_MSG_PROCESSCMSG,
-					  "processing cmsg %p"), cmsgp);
+			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_PROCESSCMSG,
+			   "processing cmsg %p", cmsgp);
 
 #ifdef ISC_PLATFORM_HAVEIPV6
 		if (cmsgp->cmsg_level == IPPROTO_IPV6
@@ -491,11 +493,9 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 			       sizeof(struct in6_pktinfo));
 			dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
 			socket_log(sock, NULL, TRACE,
-				   isc_msgcat_get(isc_msgcat,
-						  ISC_MSGSET_SOCKET,
-						  ISC_MSG_IFRECEIVED,
-						  "interface received "
-						  "on ifindex %u"),
+				   isc_msgcat, ISC_MSGSET_SOCKET,
+				   ISC_MSG_IFRECEIVED,
+				   "interface received on ifindex %u",
 				   dev->pktinfo.ipi6_ifindex);
 			goto next;
 		}
@@ -615,9 +615,8 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		struct in6_pktinfo *pktinfop;
 
 		socket_log(sock, NULL, TRACE,
-			   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-					  ISC_MSG_SENDTODATA,
-					  "sendto pktinfo data, ifindex %u"),
+			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_SENDTODATA,
+			   "sendto pktinfo data, ifindex %u",
 			   dev->pktinfo.ipi6_ifindex);
 
 		msg->msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo));
@@ -842,11 +841,9 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 
 		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL))
 			socket_log(sock, NULL, IOEVENT,
-				   isc_msgcat_get(isc_msgcat,
-						  ISC_MSGSET_SOCKET,
-						  ISC_MSG_DOIORECV,
-						  "doio_recv: recvmsg(%d) "
-						  "%d bytes, err %d/%s"),
+				   isc_msgcat, ISC_MSGSET_SOCKET,
+				   ISC_MSG_DOIORECV, 
+				  "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
 				   sock->fd, cc, errno, strerror(errno));
 
 #define SOFT_OR_HARD(_system, _isc) \
@@ -887,9 +884,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		dev->address.length = msghdr.msg_namelen;
 
 	socket_log(sock, &dev->address, IOEVENT,
-		   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-				  ISC_MSG_PKTRECV,
-				  "packet received correctly"));
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_PKTRECV,
+		   "packet received correctly");
 
 	/*
 	 * Overflow bit detection.  If we received MORE bytes than we should,
@@ -1058,9 +1054,8 @@ destroy(isc_socket_t **sockp) {
 	isc_socket_t *sock = *sockp;
 	isc_socketmgr_t *manager = sock->manager;
 
-	socket_log(sock, NULL, CREATION,
-		   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-				  ISC_MSG_DESTROYING, "destroying"));
+	socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
+		   ISC_MSG_DESTROYING, "destroying");
 
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
@@ -1383,9 +1378,8 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	UNLOCK(&manager->lock);
 
-	socket_log(sock, NULL, CREATION,
-		   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-				  ISC_MSG_CREATED, "created"));
+	socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
+		   ISC_MSG_CREATED, "created");
 
 	return (ISC_R_SUCCESS);
 }
@@ -1453,8 +1447,8 @@ dispatch_recv(isc_socket_t *sock) {
 	sock->pending_recv = 1;
 	iev = &sock->readable_ev;
 
-	socket_log(sock, NULL, EVENT, "dispatch_recv:  event %p -> task %p",
-		   ev, ev->ev_sender);
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
+		   "dispatch_recv:  event %p -> task %p", ev, ev->ev_sender);
 
 	sock->references++;
 	iev->ev_sender = sock;
@@ -1478,8 +1472,8 @@ dispatch_send(isc_socket_t *sock) {
 	sock->pending_send = 1;
 	iev = &sock->writable_ev;
 
-	socket_log(sock, NULL, EVENT, "dispatch_send:  event %p -> task %p",
-		   ev, ev->ev_sender);
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
+		   "dispatch_send:  event %p -> task %p", ev, ev->ev_sender);
 
 	sock->references++;
 	iev->ev_sender = sock;
@@ -1624,9 +1618,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 
 	LOCK(&sock->lock);
 	socket_log(sock, NULL, TRACE,
-		   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-				  ISC_MSG_ACCEPTLOCK,
-				  "internal_accept called, locked socket"));
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTLOCK,
+		   "internal_accept called, locked socket");
 
 	manager = sock->manager;
 	INSIST(VALID_MANAGER(manager));
@@ -1674,12 +1667,10 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		 * for the best, but log it.
 		 */
 		if (isc_log_wouldlog(isc_lctx, TRACE_LEVEL))
-			socket_log(sock, NULL, TRACE,
-				   "accept() %s %d/%s",
-				   isc_msgcat_get(isc_msgcat,
-						  ISC_MSGSET_GENERAL,
-						  ISC_MSG_RETURNED,
-						  "returned"),
+			socket_log(sock, NULL, TRACE, isc_msgcat,
+				   ISC_MSGSET_SOCKET,
+				   ISC_MSG_ACCEPTRETURNED,
+				   "accept() returned %d/%s",
 				   errno, strerror(errno));
 
 		fd = -1;
@@ -1741,9 +1732,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			manager->maxfd = fd;
 
 		socket_log(sock, &dev->newsocket->address, CREATION,
-			   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-					 ISC_MSG_ACCEPTEDCXN,
-					 "accepted connection, new socket %p"),
+			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
+			   "accepted connection, new socket %p",
 			   dev->newsocket);
 	}
 
@@ -1771,10 +1761,8 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 
 	LOCK(&sock->lock);
 	socket_log(sock, NULL, IOEVENT,
-		   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-				  ISC_MSG_INTERNALRECV,
-				  "internal_recv: task %p got event %p"),
-		   me, ev, sock);
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
+		   "internal_recv: task %p got event %p", me, ev, sock);
 
 	INSIST(sock->pending_recv == 1);
 	sock->pending_recv = 0;
@@ -1853,10 +1841,8 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 
 	LOCK(&sock->lock);
 	socket_log(sock, NULL, IOEVENT,
-		   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-				  ISC_MSG_INTERNALSEND,
-				  "internal_send: task %p got event %p"),
-		   me, ev, sock);
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
+		   "internal_send: task %p got event %p", me, ev, sock);
 
 	INSIST(sock->pending_send == 1);
 	sock->pending_send = 0;
@@ -2382,7 +2368,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
-	socket_log(sock, NULL, EVENT,
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
 		   "isc_socket_recvv: event %p -> task %p", dev, ntask);
 
 	UNLOCK(&sock->lock);
@@ -2475,7 +2461,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
-	socket_log(sock, NULL, EVENT,
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
 		   "isc_socket_recv: event %p -> task %p", dev, ntask);
 
 	UNLOCK(&sock->lock);
@@ -2526,11 +2512,9 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	set_dev_address(address, sock, dev);
 	if (pktinfo != NULL) {
-		socket_log(sock, NULL, TRACE,
-			   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-					  ISC_MSG_PKTINFOPROVIDED,
-					  "pktinfo structure provided, "
-					  "ifindex %u (set to 0)"),
+		socket_log(sock, NULL, TRACE, isc_msgcat, ISC_MSGSET_SOCKET,
+			   ISC_MSG_PKTINFOPROVIDED,
+			   "pktinfo structure provided, ifindex %u (set to 0)",
 			   pktinfo->ipi6_ifindex);
 
 		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
@@ -2575,7 +2559,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
-	socket_log(sock, NULL, EVENT,
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
 		   "isc_socket_sendto: event %p -> task %p", dev, ntask);
 
 	UNLOCK(&sock->lock);
@@ -2679,7 +2663,7 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	if (was_empty)
 		select_poke(sock->manager, sock->fd);
 
-	socket_log(sock, NULL, EVENT,
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
 		   "isc_socket_sendtov: event %p -> task %p", dev, ntask);
 
 	UNLOCK(&sock->lock);
@@ -2725,8 +2709,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 	}
 
 	socket_log(sock, sockaddr, TRACE,
-		   isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
-				  ISC_MSG_BOUND, "bound"));
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_BOUND, "bound");
 	sock->bound = 1;
 
 	UNLOCK(&sock->lock);
@@ -3281,7 +3264,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 
 	ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
 
-	socket_log(sock, NULL, EVENT,
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
 		   "isc_socket_recvmark: event %p -> task %p", dev, ntask);
 
 	UNLOCK(&sock->lock);
@@ -3326,7 +3309,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 
 	ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
 
-	socket_log(sock, NULL, EVENT,
+	socket_log(sock, NULL, EVENT, NULL, 0, 0,
 		   "isc_socket_sendmark: event %p -> task %p", dev, ntask);
 
 	UNLOCK(&sock->lock);
