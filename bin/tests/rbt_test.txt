@@ -1,25 +1,30 @@
 add a.vix.com
-print
 add b.vix.com
-print
 add c.vix.com
 print
 add a.b.c.d.e.f.vix.com
-print
 add b.b.c.d.e.f.vix.com
-print
 add c.b.c.d.e.f.vix.com
 print
 add a.d.e.f.vix.com
-print
 add q.d.e.f.vix.com
-print
 add d.e.f.vix.com
 print
 add g.h.vix.com
 print
 search q.d.e.f.vix.com
 search does.not.exist
-delete d.e.f.vix.com
+nuke d.e.f.vix.com
+print
+add x.a.vix.com
+add y.x.a.vix.com
+print
+delete a.vix.com
+delete x.a.vix.com
+print
+delete b.vix.com
+delete c.vix.com
+print
+delete y.x.a.vix.com
 print
 quit
