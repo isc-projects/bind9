@@ -51,6 +51,12 @@ BIND 9.1.2rc1
 	It contains fixes for a number of bugs in BIND 9.1.1
 	but no new features.
 
+	DNSSEC users should note that DNSSEC validation involving
+	algorithms other than RSA will not interoperate between
+	9.1.2rc1 and older versions of BIND 9, because the older
+	versions use an incorrect formula for calculating key tags
+	of non-RSA keys.
+
 	Features introduced in 9.1.0 included:
 
 	  - Many BIND 8 features previously unimplemented in BIND 9,
