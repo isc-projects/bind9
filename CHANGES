@@ -1,4 +1,7 @@
 
+ 589.	[bug]		The server could deadlock if a zone was updated
+			while being transferred out.
+
  581.	[bug]		Log severity was not being correctly processed.
 			[RT #485]
 
