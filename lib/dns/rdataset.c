@@ -337,8 +337,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			dns_compress_localinvalidate(cctx);
 			if (result != DNS_R_SUCCESS)
 				goto rollback;
+			INSIST((target->used >= rdlen.used + 2) &&
+			       (target->used - rdlen.used - 2 < 65536));
 			isc_buffer_putuint16(&rdlen,
-					     target->used - rdlen.used - 2);
+					     (isc_uint16_t)(target->used -
+							    rdlen.used - 2));
 		}
 
 		count++;
@@ -354,7 +357,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	return (DNS_R_SUCCESS);
 
  rollback:
-	dns_compress_rollback(cctx, savedbuffer.used);
+	INSIST(savedbuffer.used < 65536);
+	dns_compress_rollback(cctx, (isc_uint16_t)savedbuffer.used);
 	*countp = 0;
 	*target = savedbuffer;
 
