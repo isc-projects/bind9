@@ -1,3 +1,5 @@
+1591.	[bug]		libbind: updated to BIND 8.4.5.
+
 1590.	[port]		netbsd: update thread support.
 
 1589.	[func]		DNSSEC lookaside validation.
