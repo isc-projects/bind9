@@ -1,3 +1,6 @@
+Complete the support for persistent databases (disable initial load,
+journalling, etc)
+
 Review man pages
 
 write named.conf(5) man page
@@ -50,29 +53,21 @@ mark: explain "database file older than last load"
 Add quotes around logging category names in named.conf examples
 where they are missing
 
+Review the use of debug levels and make it more consistent
+
 Add configuration option for generating IXFRs by calculating the
 difference between two zone versions (most of the code is already
 there)
-
-Add support for persistent databases (disable initial load,
-journalling, etc)
 
 Examine why aa:/usr/var/adm/syslog.dated/22-May-17:37/daemon.log has:
   May 23 08:19:58 aa named[24603]: starting BIND 9.0.0b3
   May 23 08:19:58 aa syslog: loading configuration from '/build/gson/local/namedb
 (why named then syslog?)
 
-Improve the ARM chapter on server tpyes, making it recommend the use
-of separate authoritative and caching servers
-
-Define easy-to-parse subset of master file format and make dig support it;
-make that the recommended way of exporting zone data.
+Define easy-to-parse subset of master file format and make dig support
+it; make that the recommended way of exporting zone data.
 
 Support general time specifiers like "4d10m" in named.conf
-
-Get rid of the TODO file in the top level source directory
-
-Implement update forwarding
 
 Eliminate meta types on input
 
