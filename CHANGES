@@ -1,3 +1,7 @@
+
+1041.	[bug]		Dig/host/nslookup could catch an assertion failure
+			on SIGINT due to an uninitialized variable. [RT #1867]
+
 1040.	[bug]		Multiple listen-on-v6 options with different ports
 			were not accepted. [RT #1875]
 
