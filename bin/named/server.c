@@ -173,6 +173,7 @@ base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target)
 	isc_boolean_t isopen = ISC_FALSE;
 	
 	isc_buffer_init(&source, cstr, strlen(cstr), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, strlen(cstr));
 	CHECK(isc_lex_create(mctx, 256, &lex));
 	CHECK(isc_lex_openbuffer(lex, &source));
 	isopen = ISC_TRUE;
