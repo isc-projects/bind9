@@ -4,6 +4,9 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1406.	[bug]		dispatch initialises one of the LSFR's with a incorrect
+			polynomial.  [RT #4617]
+
 1401.	[bug]		adb wasn't clearing state when the timer expired.
 
 1399.	[bug]		Use serial number arithmetic when testing SIG
