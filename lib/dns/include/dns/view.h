@@ -302,6 +302,41 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  */
 
 isc_result_t
+dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
+		     isc_stdtime_t now, unsigned int options,
+		     isc_boolean_t use_hints,
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+/*
+ * Find the best known zonecut containing 'name'.
+ *
+ * Notes:
+ *
+ *	If 'now' is zero, then the current time will be used.
+ *
+ *	If 'use_hints' is ISC_TRUE, and the view has a hints database, then
+ *	it will be searched last.
+ *
+ *	If 'sigrdataset' is not NULL, and there is a SIG rdataset which
+ *	covers 'type', then 'sigrdataset' will be bound to it.
+ *
+ * Requires:
+ *
+ *	'view' is a valid, frozen view.
+ *
+ *	'name' is valid name.
+ *
+ *	'rdataset' is a valid, disassociated rdataset.
+ *
+ *	'sigrdataset' is NULL, or is a valid, disassociated rdataset.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS				Success.
+ *
+ *	Many other results are possible.
+ */
+
+isc_result_t
 dns_viewlist_find(dns_viewlist_t *list, const char *name,
 		  dns_rdataclass_t rdclass, dns_view_t **viewp);
 /*

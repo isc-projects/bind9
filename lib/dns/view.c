@@ -359,7 +359,8 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			 */
 			if (zrdataset.methods != NULL) {
 				dns_rdataset_clone(&zrdataset, rdataset);
-				if (zsigrdataset.methods != NULL)
+				if (sigrdataset != NULL &&
+				    zsigrdataset.methods != NULL)
 					dns_rdataset_clone(&zsigrdataset,
 							   sigrdataset);
 				result = DNS_R_GLUE;
@@ -414,6 +415,181 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	    result != DNS_R_HINT)
 		result = DNS_R_NOTFOUND;
 
+	if (zrdataset.methods != NULL) {
+		dns_rdataset_disassociate(&zrdataset);
+		if (zsigrdataset.methods != NULL)
+			dns_rdataset_disassociate(&zsigrdataset);
+	}
+	if (db != NULL)
+		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+
+	return (result);
+}
+
+isc_result_t
+dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
+		     isc_stdtime_t now, unsigned int options,
+		     isc_boolean_t use_hints,
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	isc_result_t result;
+	dns_db_t *db;
+	isc_boolean_t is_zone, use_zone, try_hints;
+	dns_zone_t *zone;
+	dns_name_t *zfname;
+	dns_rdataset_t zrdataset, zsigrdataset;
+	dns_fixedname_t zfixedname;
+
+	/*
+	 * Find the best known zonecut containing 'name'.
+	 */
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->frozen);
+
+	db = NULL;
+	zone = NULL;
+	use_zone = ISC_FALSE;
+	try_hints = ISC_FALSE;
+	zfname = NULL;
+
+	/*
+	 * Initialize.
+	 */
+	dns_fixedname_init(&zfixedname);
+	dns_rdataset_init(&zrdataset);
+	dns_rdataset_init(&zsigrdataset);
+
+	/*
+	 * Find the right database.
+	 */
+	result = dns_zt_find(view->zonetable, name, NULL, &zone);
+	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+		result = dns_zone_getdb(zone, &db);
+	if (result == ISC_R_NOTFOUND) {
+		/*
+		 * We're not directly authoritative for this query name, nor
+		 * is it a subdomain of any zone for which we're
+		 * authoritative.
+		 */
+		if (view->cachedb != NULL) {
+			/*
+			 * We have a cache; try it.
+			 */
+			dns_db_attach(view->cachedb, &db);
+		} else {
+			/*
+			 * Maybe we have hints...
+			 */
+			try_hints = ISC_TRUE;
+			goto finish;
+		}
+	} else if (result != ISC_R_SUCCESS) {
+		/*
+		 * Something is broken.
+		 */
+		goto cleanup;
+	}
+	is_zone = dns_db_iszone(db);
+
+ db_find:
+	/*
+	 * Look for the zonecut.
+	 */
+	if (is_zone) {
+		result = dns_db_find(db, name, NULL, dns_rdatatype_ns, options,
+				     now, NULL, fname, rdataset, sigrdataset);
+		if (result == DNS_R_DELEGATION)
+			result = ISC_R_SUCCESS;
+		else if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		if (view->cachedb != NULL && db != view->hints) {
+			/*
+			 * We found an answer, but the cache may be better.
+			 */
+			zfname = dns_fixedname_name(&zfixedname);
+			result = dns_name_concatenate(fname, NULL, zfname,
+						      NULL);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+			dns_rdataset_clone(rdataset, &zrdataset);
+			dns_rdataset_disassociate(rdataset);
+			if (sigrdataset != NULL &&
+			    sigrdataset->methods != NULL) {
+				dns_rdataset_clone(sigrdataset, &zsigrdataset);
+				dns_rdataset_disassociate(sigrdataset);
+			}
+			dns_db_detach(&db);
+			dns_db_attach(view->cachedb, &db);
+			is_zone = ISC_FALSE;
+			goto db_find;
+		}
+	} else {
+		result = dns_db_findzonecut(db, name, options, now, NULL,
+					    fname, rdataset, sigrdataset);
+		if (result == ISC_R_SUCCESS) {
+			if (zfname != NULL &&
+			    !dns_name_issubdomain(fname, zfname)) {
+				/*
+				 * We found a zonecut in the cache, but our
+				 * zone delegation is better.
+				 */
+				use_zone = ISC_TRUE;
+			}
+		} else if (result == ISC_R_NOTFOUND) {
+			if (zfname != NULL) {
+				/*
+				 * We didn't find anything in the cache, but we
+				 * have a zone delegation, so use it.
+				 */
+				use_zone = ISC_TRUE;
+			} else {
+				/*
+				 * Maybe we have hints...
+				 */
+				try_hints = ISC_TRUE;
+			}
+		} else {
+			/*
+			 * Something bad happened.
+			 */
+			goto cleanup;
+		}
+	}
+
+ finish:
+	if (use_zone) {
+		if (rdataset->methods != NULL) {
+			dns_rdataset_disassociate(rdataset);
+			if (sigrdataset != NULL &&
+			    sigrdataset->methods != NULL)
+				dns_rdataset_disassociate(sigrdataset);
+		}
+		result = dns_name_concatenate(zfname, NULL, fname, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		dns_rdataset_clone(&zrdataset, rdataset);
+		if (sigrdataset != NULL && zrdataset.methods != NULL)
+			dns_rdataset_clone(&zsigrdataset, sigrdataset);
+	} else if (try_hints && use_hints && view->hints != NULL) {
+		/*
+		 * We've found nothing so far, but we have hints.
+		 */
+		result = dns_db_find(view->hints, dns_rootname, NULL,
+				     dns_rdatatype_ns, 0, now, NULL, fname,
+				     rdataset, NULL);
+		if (result != ISC_R_SUCCESS) {
+			/*
+			 * We can't even find the hints for the root
+			 * nameservers!
+			 */
+			result = ISC_R_NOTFOUND;
+		}
+	}
+
+ cleanup:
 	if (zrdataset.methods != NULL) {
 		dns_rdataset_disassociate(&zrdataset);
 		if (zsigrdataset.methods != NULL)
