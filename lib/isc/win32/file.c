@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.26 2001/09/05 04:17:13 mayer Exp $ */
+/* $Id: file.c,v 1.27 2001/10/01 20:58:51 gson Exp $ */
 
 #include <config.h>
 
@@ -183,9 +183,8 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 		 */
 		if (exists == TRUE) {
 			filestatus = MoveFile(buf, newname);
-			if (filestatus == 0) {
+			if (filestatus == 0)
 				errno = EACCES;
-			}
 		}
 		return (-1);
 	}
