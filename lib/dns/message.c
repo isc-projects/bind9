@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164.2.8 2001/11/15 01:30:37 marka Exp $ */
+/* $Id: message.c,v 1.164.2.9 2001/11/15 02:52:23 marka Exp $ */
 
 /***
  *** Imports
@@ -2817,6 +2817,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_name_t *name = NULL;
 	isc_result_t result;
 	isc_boolean_t omit_final_dot;
+	char buf[sizeof("1234567890")];
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
