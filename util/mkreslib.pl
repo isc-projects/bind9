@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000  Internet Software Consortium.
+# Copyright (C) 2000  Internet Software Consortium.
 # 
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,6 +14,9 @@
 # PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
+
+# Run this script from the top of the bind directory to make a res-lib
+# distribution
 
 # Don't bother keeping contrib or doc around in the new tarball
 system ("rm -rf Makefile contrib doc");

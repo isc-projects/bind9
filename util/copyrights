@@ -884,4 +884,5 @@
 ./util/merge_copyrights				PERL	1998,1999,2000
 ./util/nt-kit					SH	1999,2000
 ./util/update_copyrights			PERL	1998,1999,2000
+./util/mkreslib.pl				PERL	2000
 ./version					X	1999,2000
