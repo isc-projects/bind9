@@ -1,4 +1,7 @@
 1555.	[func]		'rrset-order cyclic' no longer has a random starting
+1560.	[port]		FreeBSD: work around FreeBSD 5.2 mapping EAI_NODATA
+			and EAI_NONAME to the same value.
+
 			point. [RT #7572]
 
 1554.	[bug]		dig, host, nsloolup failed when no nameservers
