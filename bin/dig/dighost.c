@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.251 2002/08/27 04:53:38 marka Exp $ */
+/* $Id: dighost.c,v 1.252 2002/08/28 07:04:48 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -369,7 +369,7 @@ addr2af(int lwresaddrtype)
  * Create a copy of the server list from the lwres configuration structure.
  * The dest list must have already had ISC_LIST_INIT applied.
  */
-void
+static void
 copy_server_list(lwres_conf_t *confdata, dig_serverlist_t *dest) {
 	dig_server_t *newsrv;
 	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
@@ -414,7 +414,7 @@ set_nameserver(char *opt) {
 	ISC_LIST_INITANDAPPEND(server_list, srv, link);
 }
 
-isc_result_t
+static isc_result_t
 add_nameserver(lwres_conf_t *confdata, char *addr, int af) {
 
 	int i = confdata->nsnext;
@@ -691,7 +691,7 @@ make_searchlist_entry(char *domain) {
 	return (search);
 }
 
-void
+static void
 create_search_list(lwres_conf_t *confdata) {
 	int i;
 	dig_searchlist_t *search;
