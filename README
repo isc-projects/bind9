@@ -45,10 +45,12 @@ BIND 9
 
 
 
-BIND 9.1.0b1
+BIND 9.1.0b2
 
-	BIND 9.1.0b1 is the first beta release of BIND 9.1.0.
-	It includes a number of new features:
+	BIND 9.1.0b2 is the second beta release of BIND 9.1.0.
+	It fixes a number of bugs in 9.1.0b1.
+
+	New features added since 9.0.x include:
 
 	  - Many BIND 8 features previously unimplemented in BIND 9,
 	    including domain-specific forwarding, the $GENERATE
