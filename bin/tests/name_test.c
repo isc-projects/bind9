@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <isc/assertions.h>
 #include <isc/boolean.h>
@@ -55,9 +56,19 @@ main(int argc, char *argv[]) {
 	isc_boolean_t downcase = ISC_FALSE;
 	size_t len;
 	dns_offsets_t offsets, compoffsets;
+	isc_boolean_t quiet = ISC_FALSE;
+	int ch;
 
-	argc--;
-	argv++;
+	while ((ch = getopt(argc, argv, "q")) != -1) {
+		switch (ch) {
+		case 'q':
+			quiet = ISC_TRUE;
+			break;
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
 
 	if (argc > 0) {
 		if (strcasecmp("none", argv[0]) == 0)
@@ -119,12 +130,12 @@ main(int argc, char *argv[]) {
 					   &target);
 		if (result == DNS_R_SUCCESS) {
 			dns_name_toregion(&name, &r);
-#ifndef QUIET
-			print_wirename(&r);
-			printf("%u labels, %u bytes.\n",
-			       dns_name_countlabels(&name),
-			       r.length);
-#endif
+			if (!quiet) {
+				print_wirename(&r);
+				printf("%u labels, %u bytes.\n",
+				       dns_name_countlabels(&name),
+				       r.length);
+			}
 		} else
 			printf("%s\n", dns_result_totext(result));
 
@@ -135,9 +146,9 @@ main(int argc, char *argv[]) {
 			if (result == DNS_R_SUCCESS) {
 				isc_buffer_used(&source, &r);
 				printf("%.*s\n", (int)r.length, r.base);
-#ifndef QUIET
-				printf("%u bytes.\n", source.used);
-#endif
+				if (!quiet) {
+					printf("%u bytes.\n", source.used);
+				}
 			} else
 				printf("%s\n", dns_result_totext(result));
 		}
@@ -148,20 +159,20 @@ main(int argc, char *argv[]) {
 
 			i = dns_name_compare(&name, comp);
 			b = dns_name_issubdomain(&name, comp);
-#ifndef QUIET
-			if (i < 0)
-				printf("<, ");
-			else if (i > 0)
-				printf(">, ");
-			else
-				printf("=, ");
-			if (!b)
-				printf("not ");
-			printf("subdomain\n");
-#else
-			if (!b)
-				printf("not subdomain\n");
-#endif
+			if (!quiet) {
+				if (i < 0)
+					printf("<, ");
+				else if (i > 0)
+					printf(">, ");
+				else
+					printf("=, ");
+				if (!b)
+					printf("not ");
+				printf("subdomain\n");
+			} else {
+				if (!b)
+					printf("not subdomain\n");
+			}
 		}
 	}
 	
