@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.33 2000/06/01 18:26:40 tale Exp $ */
+/* $Id: a6_38.c,v 1.34 2000/06/16 21:41:47 gson Exp $ */
 
- /* draft-ietf-ipngwg-dns-lookups-03.txt */
+/* draft-ietf-ipngwg-dns-lookups-03.txt */
 
 #ifndef RDATA_IN_1_A6_28_C
 #define RDATA_IN_1_A6_28_C

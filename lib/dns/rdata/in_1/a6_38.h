@@ -18,9 +18,9 @@
 #ifndef IN_1_A6_38_H
 #define IN_1_A6_38_H 1
 
- /* $Id: a6_38.h,v 1.13 2000/04/29 02:01:54 tale Exp $ */
+/* $Id: a6_38.h,v 1.14 2000/06/16 21:41:28 gson Exp $ */
 
- /* draft-ietf-ipngwg-dns-lookups-03.txt */
+/* draft-ietf-ipngwg-dns-lookups-03.txt */
 
 typedef struct dns_rdata_in_a6 {
         dns_rdatacommon_t	common;
