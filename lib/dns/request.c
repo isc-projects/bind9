@@ -78,7 +78,7 @@ struct dns_request {
 	dns_dispentry_t		       *dispentry;
 	isc_timer_t		       *timer;
 	dns_requestmgr_t	       *requestmgr;
-	dns_rdata_any_tsig_t	       *tsig;
+	isc_buffer_t		       *tsig;
 	dns_tsigkey_t		       *tsigkey;
 
 };
@@ -539,8 +539,6 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	message->id = id;
 	dns_message_settsigkey(message, request->tsigkey);
 	result = req_render(message, &request->query, mctx);
-	request->tsig = message->tsig;
-	message->tsig = NULL;
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
 		/*
@@ -556,7 +554,11 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	}
 	if (result != ISC_R_SUCCESS && result != DNS_R_USETCP)
 		goto cleanup;
-	
+
+	result = dns_message_getquerytsig(message, mctx, &request->tsig);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
 	isc_mem_attach(mctx, &request->mctx);
 	LOCK(&requestmgr->lock);
 	if (requestmgr->exiting) {
@@ -722,8 +724,7 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 	req_log(ISC_LOG_DEBUG(3), "dns_request_getresponse: request %p",
 		request);
 
-	message->querytsig = request->tsig;
-	request->tsig = NULL;
+	dns_message_setquerytsig(message, request->tsig);
 	dns_message_settsigkey(message, request->tsigkey);
 	return (dns_message_parse(message, request->answer, preserve_order));
 }
@@ -900,11 +901,8 @@ req_destroy(dns_request_t *request) {
 		dns_dispatch_detach(&request->dispatch);
 	if (request->timer != NULL)
 		isc_timer_detach(&request->timer);
-	if (request->tsig != NULL) {
-		dns_rdata_freestruct(request->tsig);
-		isc_mem_put(request->mctx, request->tsig,
-			    sizeof(*request->tsig));
-	}
+	if (request->tsig != NULL)
+		isc_buffer_free(&request->tsig);
 	requestmgr_detach(&request->requestmgr);
 	mctx = request->mctx;
 	isc_mem_put(mctx, request, sizeof(*request));

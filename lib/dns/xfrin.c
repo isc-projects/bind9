@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.73 2000/05/26 00:38:12 gson Exp $ */
+/* $Id: xfrin.c,v 1.74 2000/05/30 23:14:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,7 @@ struct dns_xfrin_ctx {
 	unsigned int		nmsg;		/* Number of messages recvd */
 
 	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
-	dns_rdata_any_tsig_t	*lasttsig;	/* The last TSIG */
+	isc_buffer_t		*lasttsig;	/* The last TSIG */
 	void			*tsigctx;	/* TSIG verification context */
 	unsigned int		sincetsig;	/* recvd since the last TSIG */
 	dns_xfrindone_t		done;
@@ -853,8 +853,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	/*
 	 * Save the query TSIG and don't let message_destroy free it.
 	 */
-	xfr->lasttsig = msg->tsig;
-	msg->tsig = NULL;
+	CHECK(dns_message_getquerytsig(msg, xfr->mctx, &xfr->lasttsig));
 
 	isc_buffer_usedregion(&xfr->qbuffer, &region);
 	INSIST(region.length <= 65535);
@@ -946,6 +945,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	dns_message_t *msg = NULL;
 	dns_name_t *name;
 	dns_tcpmsg_t *tcpmsg;
+	dns_name_t *tsigowner = NULL;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -971,7 +971,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
 
 	dns_message_settsigkey(msg, xfr->tsigkey);
-	msg->querytsig = xfr->lasttsig;
+	dns_message_setquerytsig(msg, xfr->lasttsig);
 	msg->tsigctx = xfr->tsigctx;
 	if (xfr->nmsg > 0)
 		msg->tcp_continuation = 1;
@@ -1030,7 +1030,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	if (result != ISC_R_NOMORE)
 		goto failure;
 
-	if (msg->tsig != NULL) {
+	if (dns_message_gettsig(msg, &tsigowner) != NULL) {
 		/*
 		 * Reset the counter.
 		 */
@@ -1039,21 +1039,14 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		/*
 		 * Free the last tsig, if there is one.
 		 */
-		if (xfr->lasttsig != NULL) {
-			dns_rdata_freestruct(xfr->lasttsig);
-			isc_mem_put(xfr->mctx, xfr->lasttsig,
-				    sizeof(*xfr->lasttsig));
-		}
+		if (xfr->lasttsig != NULL)
+			isc_buffer_free(&xfr->lasttsig);
 
 		/*
 		 * Update the last tsig pointer.
 		 */
-		xfr->lasttsig = msg->tsig;
+		CHECK(dns_message_getquerytsig(msg, xfr->mctx, &xfr->lasttsig));
 
-		/*
-		 * Reset msg->tsig so it doesn't get freed.
-		 */
-		msg->tsig = NULL;
 	} else if (dns_message_gettsigkey(msg) != NULL) {
 		xfr->sincetsig++;
 		if (xfr->sincetsig > 100 ||
@@ -1069,11 +1062,6 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	 */
 	xfr->nmsg++;
 	
-	/*
-	 * Reset msg->querytsig so it doesn't get freed.
-	 */
-	msg->querytsig = NULL;
-
 	/*
 	 * Copy the context back.
 	 */
@@ -1110,10 +1098,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	return;
 	
  failure:
-	if (msg != NULL) {
-		msg->querytsig = NULL;
+	if (msg != NULL)
 		dns_message_destroy(&msg);
-	}
 	if (result != ISC_R_SUCCESS)
 		xfrin_fail(xfr, result, "receiving responses");
 }
@@ -1153,10 +1139,8 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	if (xfr->task != NULL)
 		isc_task_detach(&xfr->task);
 
-	if (xfr->lasttsig != NULL) {
-		dns_rdata_freestruct(xfr->lasttsig);
-		isc_mem_put(xfr->mctx, xfr->lasttsig, sizeof(*xfr->lasttsig));
-	}
+	if (xfr->lasttsig != NULL)
+		isc_buffer_free(&xfr->lasttsig);
 
 	dns_diff_clear(&xfr->diff);
 

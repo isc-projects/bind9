@@ -32,6 +32,7 @@
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
@@ -103,7 +104,7 @@ typedef struct query {
 	dns_dispentry_t *		dispentry;
 	ISC_LINK(struct query)		link;
 	isc_buffer_t			buffer;
-	dns_rdata_any_tsig_t		*tsig;
+	isc_buffer_t			*tsig;
 	dns_tsigkey_t			*tsigkey;
 	unsigned int			options;
 	unsigned int			attributes;
@@ -384,11 +385,8 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(&query->dispentry, deventp);
 	ISC_LIST_UNLINK(fctx->queries, query, link);
-	if (query->tsig != NULL) {
-		dns_rdata_freestruct(query->tsig);
-		isc_mem_put(query->fctx->res->mctx, query->tsig,
-			    sizeof(*query->tsig));
-	}
+	if (query->tsig != NULL)
+		isc_buffer_free(&query->tsig);
 	if (RESQUERY_CONNECTING(query)) {
 		/*
 		 * Cancel the connect.
@@ -933,8 +931,11 @@ resquery_send(resquery_t *query) {
 	if (dns_message_gettsigkey(fctx->qmessage) != NULL) {
 		dns_tsigkey_attach(dns_message_gettsigkey(fctx->qmessage),
 				   &query->tsigkey);
-		query->tsig = fctx->qmessage->tsig;
-		fctx->qmessage->tsig = NULL;
+		result = dns_message_getquerytsig(fctx->qmessage,
+						  fctx->res->mctx,
+						  &query->tsig);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_message;
 	}
 
 	/*
@@ -3473,6 +3474,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_time_t tnow, *finish;
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned int options;
+	dns_name_t *tsigowner = NULL;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -3534,10 +3536,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	message = fctx->rmessage;
 
-	/* BEW - clean this up at some point */
-	message->querytsig = query->tsig;
-	dns_message_settsigkey(message, query->tsigkey);
-	query->tsig = NULL;
+	if (query->tsig != NULL) {
+		result = dns_message_setquerytsig(message, query->tsig);
+		if (result != ISC_R_SUCCESS)
+			goto done;
+	}
 
 	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
@@ -3623,10 +3626,21 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_checksig(message, fctx->res->view);
 	if (result != ISC_R_SUCCESS)
 		goto done;
-	if (message->tsig != NULL && message->tsig->error != dns_rcode_noerror)
-	{
-		result = DNS_R_FORMERR; /* BEW - good enough for now */
-		goto done;
+	if (dns_message_gettsig(message, &tsigowner) != NULL) {
+		dns_rdata_any_tsig_t tsig;
+		dns_rdata_t rdata;
+
+		result = dns_rdataset_first(message->tsigset);
+		if (result != ISC_R_SUCCESS)
+			goto done;
+		dns_rdataset_current(message->tsigset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &tsig, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto done;
+		if (tsig.error != dns_rcode_noerror) {
+			result = DNS_R_FORMERR; /* BEW - good enough for now */
+			goto done;
+		}
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.63 2000/05/26 00:16:35 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.64 2000/05/30 23:14:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/message.h>
 #include <dns/peer.h>
@@ -741,7 +742,7 @@ typedef struct {
 	unsigned int 		txmemlen;
 	unsigned int		nmsg;		/* Number of messages sent */
 	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
-	dns_rdata_any_tsig_t	*lasttsig;	/* the last TSIG */
+	isc_buffer_t		*lasttsig;	/* the last TSIG */
 	isc_boolean_t		many_answers;
 	int			sends;		/* Send in progress */
 	isc_boolean_t		shuttingdown;
@@ -752,7 +753,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  unsigned int id, dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver, isc_quota_t *quota,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
-		  dns_rdata_any_tsig_t *lasttsig,
+		  isc_buffer_t *lasttsig,
 		  unsigned int maxtime,
 		  unsigned int idletime,
 		  isc_boolean_t many_answers,
@@ -810,6 +811,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	dns_transfer_format_t format = client->view->transfer_format;
 	isc_netaddr_t na;
 	dns_peer_t *peer = NULL;
+	isc_buffer_t *tsigbuf = NULL;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -1022,13 +1024,15 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	data_stream = NULL;
 
  have_stream:
+	CHECK(dns_message_getquerytsig(request, mctx, &tsigbuf));
 	/*
 	 * Create the xfrout context object.  This transfers the ownership
 	 * of "stream", "db", "ver", and "quota" to the xfrout context object.
 	 */
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
 				reqtype, db, ver, quota, stream,
-				dns_message_gettsigkey(request), request->tsig,
+				dns_message_gettsigkey(request),
+				tsigbuf,
 				dns_zone_getmaxxfrout(zone),
 				dns_zone_getidleout(zone),
 				(format == dns_many_answers) ?
@@ -1084,7 +1088,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver, isc_quota_t *quota,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
-		  dns_rdata_any_tsig_t *lasttsig, unsigned int maxtime,
+		  isc_buffer_t *lasttsig, unsigned int maxtime,
 		  unsigned int idletime, isc_boolean_t many_answers,
 		  xfrout_ctx_t **xfrp)
 {
@@ -1215,7 +1219,9 @@ sendstream(xfrout_ctx_t *xfr) {
 	if ((xfr->client->attributes & NS_CLIENTATTR_RA) != 0)
 		msg->flags |= DNS_MESSAGEFLAG_RA;
 	dns_message_settsigkey(msg, xfr->tsigkey);
-	msg->querytsig = xfr->lasttsig;
+	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
+	if (xfr->lasttsig != NULL)
+		isc_buffer_free(&xfr->lasttsig);
 
 	/*
 	 * Include a question section in the first message only. 
@@ -1384,17 +1390,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	}
 
 	/* Advance lasttsig to be the last TSIG generated */
-	xfr->lasttsig = msg->tsig;
-
-	/* Clear this field so the TSIG is not destroyed */
-	msg->tsig = NULL;
-
-	/*
-	 * If this is the first message, clear this too, since this is
-	 * also pointed to by the request.
-	 */
-	if (xfr->nmsg == 0)
-		msg->querytsig = NULL;
+	CHECK(dns_message_getquerytsig(msg, xfr->mctx, &xfr->lasttsig));
 
 	xfr->nmsg++;
 
@@ -1426,10 +1422,8 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 		isc_mem_put(xfr->mctx, xfr->buf.base, xfr->buf.length);
 	if (xfr->txmem != NULL)
 		isc_mem_put(xfr->mctx, xfr->txmem, xfr->txmemlen);
-	if (xfr->lasttsig != NULL) {
-		dns_rdata_freestruct(xfr->lasttsig);
-		isc_mem_put(xfr->mctx, xfr->lasttsig, sizeof(*xfr->lasttsig));
-	}
+	if (xfr->lasttsig != NULL)
+		isc_buffer_free(&xfr->lasttsig);
 	if (xfr->quota != NULL)
 		isc_quota_detach(&xfr->quota);		
 	if (xfr->ver != NULL) 

@@ -26,7 +26,6 @@
 #include <isc/magic.h>
 
 #include <dns/compress.h>
-#include <dns/rdatastruct.h>
 #include <dns/types.h>
 
 #include <dst/dst.h>
@@ -178,6 +177,7 @@ struct dns_message {
 	unsigned int			verify_attempted : 1;
 
 	unsigned int			opt_reserved;
+	unsigned int			sig_reserved;
 	unsigned int			reserved; /* reserved space (render) */
 
 	isc_buffer_t		       *buffer;
@@ -199,8 +199,7 @@ struct dns_message {
 	dns_rcode_t			tsigstatus;
 	dns_rcode_t			querytsigstatus;
 	dns_name_t		       *tsigname;
-	dns_rdata_any_tsig_t	       *tsig;
-	dns_rdata_any_tsig_t	       *querytsig;
+	dns_rdataset_t		       *querytsigset;
 	dns_tsigkey_t		       *tsigkey;
 	void			       *tsigctx;
 	int				sigstart;
@@ -952,7 +951,7 @@ dns_message_gettsig(dns_message_t *msg, dns_name_t **owner);
  *	The TSIG rdataset of 'msg', or NULL if there isn't one.
  */
 
-void
+isc_result_t
 dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key);
 /*
  * Set the tsig key for 'msg'.  This is only necessary for when rendering a
@@ -961,8 +960,16 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key);
  *
  * Requires:
  *
- *	'msg' is a valid message
+ *	'msg' is a valid message with rendering intent,
+ *	dns_message_renderbegin() has been called, and no sections have been
+ *	rendered.
  *	'key' is a valid tsig key or NULL.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		-- all is well.
+ *
+ *	ISC_R_NOSPACE		-- there is no space for the TSIG record.
  */
 
 dns_tsigkey_t *
@@ -973,6 +980,50 @@ dns_message_gettsigkey(dns_message_t *msg);
  * Requires:
  *
  *	'msg' is a valid message
+ */
+
+isc_result_t
+dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig);
+/*
+ * Indicates that 'querytsig' is the TSIG from the signed query for which
+ * 'msg' is the response.  This is also used for chained TSIGs in TCP
+ * responses.
+ *
+ * Requires:
+ *
+ *	'querytsig' is a valid buffer as returned by dns_message_getquerytsig()
+ *	or NULL
+ *
+ *	'msg' is a valid message
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ */
+
+isc_result_t
+dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
+			 isc_buffer_t **querytsig);
+/*
+ * Gets the tsig from the TSIG from the signed query 'msg'.  This is also used
+ * for chained TSIGs in TCP responses.  Unlike dns_message_gettsig, this makes
+ * a copy of the data, so can be used if the message is destroyed.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid signed message
+ *	'mctx' is a valid memory context
+ *	querytsig != NULL && *querytsig == NULL
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *
+ * Ensures:
+ * 	'tsig' points to NULL or an allocated buffer which must be freed
+ * 	by the caller.
  */
 
 dns_rdataset_t *
@@ -988,6 +1039,35 @@ dns_message_getsig0(dns_message_t *msg, dns_name_t **owner);
  * Returns:
  *
  *	The SIG(0) rdataset of 'msg', or NULL if there isn't one.
+ */
+
+isc_result_t
+dns_message_setsig0key(dns_message_t *msg, dst_key_t *key);
+/*
+ * Set the SIG(0) key for 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message with rendering intent,
+ *	dns_message_renderbegin() has been called, and no sections have been
+ *	rendered.
+ *	'key' is a valid sig key or NULL.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		-- all is well.
+ *
+ *	ISC_R_NOSPACE		-- there is no space for the SIG(0) record.
+ */
+
+dst_key_t *
+dns_message_getsig0key(dns_message_t *msg);
+/*
+ * Gets the SIG(0) key for 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message
  */
 
 void
