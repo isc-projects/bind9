@@ -300,7 +300,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	char *curr, *prev;
 	size_t remaining;
 	u_long u_long;
-	unsigned int i;
+	unsigned int i, saved_options;
 
 	/*
 	 * Get the next token.
@@ -338,12 +338,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		return (ISC_R_EOF);
 	}
 
-	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0) {
-		if (lex->paren_count > 0)
-			options &= ~IWSEOL;
-		else
-			options |= IWSEOL;
-	}
+	saved_options = options;
+	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && lex->paren_count > 0)
+		options &= ~IWSEOL;
 
 	curr = lex->data;
 	prev = NULL;
@@ -450,7 +447,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						    return (ISC_R_UNBALANCED);
 						lex->paren_count--;
 						if (lex->paren_count == 0)
-							options |= IWSEOL;
+							options =
+								saved_options;
 					}
 					continue;
 				}

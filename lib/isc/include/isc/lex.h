@@ -75,8 +75,9 @@
 /*
  * The ISC_LEXOPT_DNSMULTILINE option handles the processing of '(' and ')' in
  * the DNS master file format.  If this option is set, then the
- * ISC_LEXOPT_INITIALWS and ISC_LEXOPT_EOL options will be ignored.
- * To use this option, '(' and ')' must be special characters.
+ * ISC_LEXOPT_INITIALWS and ISC_LEXOPT_EOL options will be ignored when
+ * the paren count is > 0.  To use this option, '(' and ')' must be special
+ * characters.
  */
 #define ISC_LEXOPT_DNSMULTILINE		0x20	/* Handle '(' and ')'. */
 #define ISC_LEXOPT_NOMORE		0x40	/* Want "no more" token. */
