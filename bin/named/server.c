@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.30 2003/08/27 01:39:23 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.31 2003/09/19 06:20:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1302,7 +1302,9 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	cfg_obj_t *typeobj = NULL;
 	cfg_obj_t *forwarders = NULL;
 	cfg_obj_t *forwardtype = NULL;
+	cfg_obj_t *only = NULL;
 	isc_result_t result;
+	isc_result_t tresult;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
 	dns_name_t *origin;
@@ -1368,14 +1370,25 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		}
 		if (dns_name_equal(origin, dns_rootname)) {
 			char *hintsfile = cfg_obj_asstring(fileobj);
+
 			result = configure_hints(view, hintsfile);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 					      NS_LOGMODULE_SERVER,
 					      ISC_LOG_ERROR,
 					      "could not configure root hints "
 					      "from '%s': %s", hintsfile,
 					      isc_result_totext(result));
+				goto cleanup;
+			}
+			/*
+			 * Hint zones may also refer to delegation only points.
+			 */
+			only = NULL;
+			tresult = cfg_map_get(zoptions, "delegation-only",
+					      &only);
+			if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(only))
+				CHECK(dns_view_adddelegationonly(view, origin));
 		} else {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -1399,6 +1412,14 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		(void)cfg_map_get(zoptions, "forwarders", &forwarders);
 		result = configure_forward(config, view, origin, forwarders,
 					   forwardtype);
+		goto cleanup;
+	}
+
+	/*
+	 * "delegation-only zones" aren't zones either.
+	 */
+	if (strcasecmp(ztypestr, "delegation-only") == 0) {
+		result = dns_view_adddelegationonly(view, origin);
 		goto cleanup;
 	}
 
@@ -1467,6 +1488,16 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		(void)cfg_map_get(zoptions, "forward", &forwardtype);
 		CHECK(configure_forward(config, view, origin, forwarders,
 					forwardtype));
+	}
+
+	/*
+	 * Stub and forward zones may also refer to delegation only points.
+	 */
+	only = NULL;
+	if (cfg_map_get(zoptions, "delegation-only", &only) == ISC_R_SUCCESS)
+	{
+		if (cfg_obj_asboolean(only))
+			CHECK(dns_view_adddelegationonly(view, origin));
 	}
 
 	/*

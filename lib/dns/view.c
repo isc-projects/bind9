@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.6 2003/08/25 04:16:24 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.7 2003/09/19 06:20:54 marka Exp $ */
 
 #include <config.h>
 
@@ -46,6 +46,8 @@
 #define RESSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_RESSHUTDOWN) != 0)
 #define ADBSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
 #define REQSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_REQSHUTDOWN) != 0)
+
+#define DNS_VIEW_DELONLYHASH 111
 
 static void resolver_shutdown(isc_task_t *task, isc_event_t *event);
 static void adb_shutdown(isc_task_t *task, isc_event_t *event);
@@ -142,6 +144,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_fwdtable;
 	view->peers = NULL;
 	view->order = NULL;
+	view->delonly = NULL;
 
 	/*
 	 * Initialize configuration data with default values.
@@ -265,6 +268,23 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->recursionacl);
 	if (view->sortlist != NULL)
 		dns_acl_detach(&view->sortlist);
+	if (view->delonly != NULL) {
+		dns_name_t *name;
+		int i;
+
+		for (i = 0; i < DNS_VIEW_DELONLYHASH; i++) {
+			name = ISC_LIST_HEAD(view->delonly[i]);
+			while (name != NULL) {
+				ISC_LIST_UNLINK(view->delonly[i], name, link);
+				dns_name_free(name, view->mctx);
+				isc_mem_put(view->mctx, name, sizeof(*name));
+				name = ISC_LIST_HEAD(view->delonly[i]);
+			}
+		}
+		isc_mem_put(view->mctx, view->delonly, sizeof(dns_namelist_t) *
+			    DNS_VIEW_DELONLYHASH);
+		view->delonly = NULL;
+	}
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
@@ -1167,4 +1187,58 @@ dns_view_flushname(dns_view_t *view, dns_name_t *name) {
 	if (view->cache == NULL)
 		return (ISC_R_SUCCESS);
 	return (dns_cache_flushname(view->cache, name));
+}
+
+isc_result_t
+dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name) {
+	isc_result_t result;
+	dns_name_t *new;
+	isc_uint32_t hash;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->delonly == NULL) {
+		view->delonly = isc_mem_get(view->mctx,
+					    sizeof(dns_namelist_t) *
+					    DNS_VIEW_DELONLYHASH);
+		if (view->delonly == NULL)
+			return (ISC_R_NOMEMORY);
+		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
+			ISC_LIST_INIT(view->delonly[hash]);
+	}
+	hash = dns_name_hash(name, ISC_FALSE) % DNS_VIEW_DELONLYHASH;
+	new = ISC_LIST_HEAD(view->delonly[hash]);
+	while (new != NULL && !dns_name_equal(new, name))
+		new = ISC_LIST_NEXT(new, link);
+	if (new != NULL)
+		return (ISC_R_SUCCESS);
+	new = isc_mem_get(view->mctx, sizeof(*new));
+	if (new == NULL)
+		return (ISC_R_NOMEMORY);
+	dns_name_init(new, NULL);
+	result = dns_name_dup(name, view->mctx, new);
+	if (result == ISC_R_SUCCESS)
+		ISC_LIST_APPEND(view->delonly[hash], new, link);
+	else
+		isc_mem_put(view->mctx, new, sizeof(*new));
+	return (result);
+}
+
+isc_boolean_t
+dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name) {
+	dns_name_t *new;
+	isc_uint32_t hash;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->delonly == NULL)
+		return (ISC_FALSE);
+
+	hash = dns_name_hash(name, ISC_FALSE) % DNS_VIEW_DELONLYHASH;
+	new = ISC_LIST_HEAD(view->delonly[hash]);
+	while (new != NULL && !dns_name_equal(new, name))
+		new = ISC_LIST_NEXT(new, link);
+	if (new == NULL)
+		return (ISC_FALSE);
+	return (ISC_TRUE);
 }

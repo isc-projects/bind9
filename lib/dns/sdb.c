@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.35.12.1 2003/08/08 04:04:09 marka Exp $ */
+/* $Id: sdb.c,v 1.35.12.2 2003/09/19 06:20:54 marka Exp $ */
 
 #include <config.h>
 
@@ -818,8 +818,10 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	dns_fixedname_init(&fname);
 	xname = dns_fixedname_name(&fname);
 
-	if (rdataset == NULL)
+	if (rdataset == NULL) {
+		dns_rdataset_init(&xrdataset);
 		rdataset = &xrdataset;
+	}
 
 	result = DNS_R_NXDOMAIN;
 
