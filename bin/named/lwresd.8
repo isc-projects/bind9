@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwresd.8,v 1.3 2000/07/12 19:39:49 tale Exp $
+.\" $Id: lwresd.8,v 1.4 2000/07/17 17:49:25 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRESD 8
@@ -36,22 +36,15 @@
 .Op Fl u Ar user-id
 .Sh DESCRIPTION
 .Nm lwresd
-is the daemon for processes that use the BIND 9 lightweight resolver
-library.
-The daemon is actually a DNS name server, 
-.Nm named ,
-though when it operates as the lightweight resolver server
-.Nm lwresd ,
-it is functionally and logically distinct from an actual name server.
-It does not handle conventional DNS lookups in the wire format defined
-in RFC1035 or listen for queries on the default name server port number.
-.Nm lwresd
-only handles requests that are in the canonical
-format for the lightweight resolver protocol.
+is the daemon providing name lookup services to clients that use
+the BIND 9 lightweight resolver library.
+It is essentially a stripped-down, caching-only name server that
+answers queries using the BIND 9 lightweight resolver protocol 
+rather than the DNS protocol.
 .Pp
-When listening for lightweight resolver queries,
 .Nm lwresd
-uses a UDP port on the IPv4 loopback interface, 127.0.0.1.
+listens for resolver queries on a UDP port on the IPv4 loopback 
+interface, 127.0.0.1.
 This means that
 .Nm lwresd
 can only be used by processes running on the local machine.
@@ -67,40 +60,21 @@ encodes the answers from the name servers in the lightweight
 resolver format and returns them to the client that made the original
 request.
 .Pp
-The lightweight resolver daemon is comparable to a forwarding name server
-except that it receives requests in the lightweight resolver format
-rather than conventional DNS queries.
-It reads
+If
 .Pa /etc/resolv.conf
-and uses the
+contains any
 .Sy nameserver
-entries to determine which IP addresses to use when making DNS
-lookups.
-If no
-.Pa /etc/resolv.conf
-is present,
+entries,
 .Nm lwresd
-uses its built-in list of root name servers.
-In this mode of operation,
+sends recursive DNS queries to those servers.  This
+is similar to the use of forwarders in a chaching name
+server.  If no
+.Sy nameserver
+entries are  present, or if forwarding fails,
 .Nm lwresd
-analogous to a caching-only name server, albeit one that does not
-receive conventional DNS queries.
-.Pp
-The lightweight resolver simplifies the task of looking up hostnames
-or IP addresses in the DNS.
-Clients construct simple questions like \*qwhat is the hostname for
-the following address?\*q or \*qwhat are the addresses of hostname
-.Dv host.example.com?\*q and send them to
-.Nm lwresd .
-This saves them from a number of possible complications and perhaps
-having to make many DNS queries to resolve the hostname or IP address.
-Without the lightweight resolver, clients would be expected to deal
-with the complexities of 
-processing the DNS resource records used for IPv6 addresses, dealing
-with DNAME records and deciphering DNSSEC.
-Instead of directly handling those complications, clients can make
-.Nm lwresd
-do the work for them.
+resolves the queries autonomously starting at the 
+root name servers, using a compiled-in list of root 
+servers hints.
 .Pp
 The options to
 .Nm lwresd
@@ -122,23 +96,25 @@ run
 .Nm lwresd
 in the foreground.
 .It Fl g
-also runs the lightweight resolver daemon in the foreground, but
-logs to
+run
+.Nm lwresd
+in the foreground and force all logging to
 .Dv stderr .
 .It Fl i
 write the daemon's process id to
 .Ar pid-file
 instead of the default pathname.
 .It Fl n
-create threads that use
+create 
 .Ar #cpus
-CPUs if the hardware and software permits this.
-When
-.Ar #cpus
-is set to zero,
+worker threads to take advantage of multiple CPUs.
+If no option is given,
 .Nm lwresd
-will try to determine the number of CPUs present and use 1 if this
-attempt fails.
+will try to determine the number of CPUs present and create
+one thread per CPU.  If
+.Nm lwresd
+is unable to determine the number of CPUs, a single worker thread
+is created.
 .It Fl P
 send DNS lookups to port number
 .Ar query-port#
