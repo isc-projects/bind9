@@ -15,11 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.10 2000/04/18 00:18:37 gson Exp $ */
+/* $Id: confndc.c,v 1.11 2000/04/24 22:53:40 tale Exp $ */
 
 /*
 **	options {
-**	  [ default-server  server_name; ]
+**	  [ default-server server_name; ]
 **	  [ default-key key_name; ]
 **	};
 **	
@@ -391,6 +391,30 @@ dns_c_ndcctx_addserver(dns_c_ndcctx_t *ctx, dns_c_ndcserver_t **server) {
 	*server = NULL;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_c_ndcctx_getserver(dns_c_ndcctx_t *ctx, const char *name,
+		       dns_c_ndcserver_t **server)
+{
+	dns_c_ndcserver_t *s;
+
+	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
+	REQUIRE(name != NULL);
+	REQUIRE(server != NULL && *server == NULL);
+
+	if (ctx->servers != NULL) {
+		for (s = ISC_LIST_HEAD(ctx->servers->list); s != NULL;
+		     s = ISC_LIST_NEXT(s, next)) {
+			INSIST(s->name != NULL);
+			if (strcasecmp(s->name, name) == 0) {
+				*server = s;
+				return (ISC_R_SUCCESS);
+			}
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
 }
 
 isc_result_t
@@ -843,8 +867,7 @@ parse_file(ndcpcontext *pctx, dns_c_ndcctx_t **context) {
 }
 
 static isc_result_t
-parse_statement(ndcpcontext *pctx)
-{
+parse_statement(ndcpcontext *pctx) {
 	isc_result_t result;
 	dns_c_ndcctx_t *ctx = pctx->thecontext;
 	dns_c_ndcopts_t *opts = NULL;
@@ -1351,10 +1374,8 @@ eat_eos(ndcpcontext *pctx) {
 /* *************      PRIVATE STUFF      ************ */
 /* ************************************************** */
 
-
 static isc_result_t
-parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename)
-{
+parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
 	isc_result_t result;
 	isc_lexspecials_t specials;
         struct keywordtoken *tok;

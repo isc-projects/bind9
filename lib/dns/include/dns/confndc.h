@@ -42,8 +42,7 @@ typedef struct dns_c_ndcserver		dns_c_ndcserver_t;
 typedef struct dns_c_ndcserverlist	dns_c_ndcserverlist_t;
 typedef struct dns_c_ndckey		dnc_c_ndckey_t;
 
-struct  dns_c_ndcctx
-{
+struct  dns_c_ndcctx {
 	isc_mem_t	       *mem;
 	isc_uint32_t		magic;
 	
@@ -52,8 +51,7 @@ struct  dns_c_ndcctx
 	dns_c_kdeflist_t       *keys;
 };
 
-struct dns_c_ndcopts 
-{
+struct dns_c_ndcopts {
 	isc_mem_t      *mem;
 	isc_uint32_t	magic;
 
@@ -61,18 +59,14 @@ struct dns_c_ndcopts
 	char	       *defkey;
 };
 
-struct dns_c_ndcserverlist 
-{
+struct dns_c_ndcserverlist {
 	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
 
 	ISC_LIST(dns_c_ndcserver_t)	list;
 };
-
-
 	
-struct dns_c_ndcserver 
-{
+struct dns_c_ndcserver {
 	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
 
@@ -81,7 +75,6 @@ struct dns_c_ndcserver
 	char			       *host;
 	ISC_LINK(dns_c_ndcserver_t) 	next;
 };
-
 
 /* All the 'set' functions do not delete the replaced value if one exists,
  * so if setting a value for a second time, be sure to 'get' the original
@@ -99,6 +92,8 @@ isc_result_t	dns_c_ndcctx_setservers(dns_c_ndcctx_t *ctx,
 isc_result_t	dns_c_ndcctx_getservers(dns_c_ndcctx_t *ctx,
 					dns_c_ndcserverlist_t **servers);
 isc_result_t	dns_c_ndcctx_addserver(dns_c_ndcctx_t *ctx,
+				       dns_c_ndcserver_t **server);
+isc_result_t	dns_c_ndcctx_getserver(dns_c_ndcctx_t *ctx, const char *name,
 				       dns_c_ndcserver_t **server);
 isc_result_t	dns_c_ndcctx_getkeys(dns_c_ndcctx_t *ctx,
 				     dns_c_kdeflist_t **list);
