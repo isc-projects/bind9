@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.218 2004/11/10 22:33:18 marka Exp $ */
+/* $Id: adb.c,v 1.219 2005/03/15 23:38:27 marka Exp $ */
 
 /*
  * Implementation notes
@@ -3347,7 +3347,7 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 	zi = ISC_LIST_HEAD(addr->entry->zoneinfo);
-	while (zi != NULL && dns_name_equal(zone, &zi->zone))
+	while (zi != NULL && !dns_name_equal(zone, &zi->zone))
 		zi = ISC_LIST_NEXT(zi, plink);
 	if (zi != NULL) {
 		if (expire_time > zi->lame_timer)
