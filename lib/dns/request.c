@@ -42,7 +42,7 @@
 				(request)->magic == REQUEST_MAGIC)
 
 #if 0
-#define TRACE(x) printf(x)
+#define TRACE(x) printf x
 #else
 #define TRACE(x)
 #endif
@@ -56,7 +56,8 @@ struct dns_requestmgr {
 	isc_mem_t	*mctx;
 
 	/* locked */
-	isc_int32_t	references;
+	isc_int32_t	eref;
+	isc_int32_t	iref;
 	isc_timermgr_t	*timermgr;
 	isc_socketmgr_t	*socketmgr;
 	dns_dispatch_t	*dispatchv4;
@@ -126,6 +127,8 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	isc_result_t result;
 	int i;
 
+	TRACE(("dns_requestmgr_create\n"));
+
 	REQUIRE(requestmgrp != NULL && *requestmgrp == NULL);
 	REQUIRE(timermgr != NULL);
 	REQUIRE(socketmgr != NULL);
@@ -153,6 +156,7 @@ dns_requestmgr_create(isc_mem_t *mctx,
 			while (--i >= 0)
 				isc_mutex_destroy(&requestmgr->locks[i]);
 			isc_mutex_destroy(&requestmgr->lock);
+			isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
 			return (result);
 		}
 	}
@@ -164,8 +168,10 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	requestmgr->dispatchv6 = NULL;
 	if (dispatchv6 != NULL)
 		dns_dispatch_attach(dispatchv6, &requestmgr->dispatchv6);
-	requestmgr->mctx = mctx;
-	requestmgr->references = 1;	/* implict attach */
+	requestmgr->mctx = NULL;
+	isc_mem_attach(mctx, &requestmgr->mctx);
+	requestmgr->eref = 1;	/* implict attach */
+	requestmgr->iref = 0;
 	ISC_LIST_INIT(requestmgr->whenshutdown);
 	ISC_LIST_INIT(requestmgr->requests);
 	requestmgr->exiting = ISC_FALSE;
@@ -182,6 +188,8 @@ dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
 {
         isc_task_t *clone;
         isc_event_t *event;
+
+	TRACE(("dns_requestmgr_whenshutdown\n"));
 
         REQUIRE(VALID_REQUESTMGR(requestmgr));
         REQUIRE(eventp != NULL);
@@ -211,6 +219,8 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 
         REQUIRE(VALID_REQUESTMGR(requestmgr));
 
+	TRACE(("dns_requestmgr_shutdown\n"));
+
 	LOCK(&requestmgr->lock);
 	mgr_shutdown(requestmgr);
 	UNLOCK(&requestmgr->lock);
@@ -219,6 +229,9 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 static void 
 mgr_shutdown(dns_requestmgr_t *requestmgr) {
 	dns_request_t *request;
+
+	TRACE(("mgr_shutdown\n"));
+
 	/*
 	 * Caller holds lock.
 	 */
@@ -229,8 +242,52 @@ mgr_shutdown(dns_requestmgr_t *requestmgr) {
 		     request = ISC_LIST_NEXT(request, link)) {
 			dns_request_cancel(request);
 		}
-		send_shutdown_events(requestmgr);
+		if (ISC_LIST_EMPTY(requestmgr->requests))
+			send_shutdown_events(requestmgr);
 	}
+}
+
+static void
+requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp) {
+
+	/*
+	 * Locked by caller.
+	 */
+
+	TRACE(("requestmgr_attach\n"));
+	
+        REQUIRE(VALID_REQUESTMGR(source));
+        REQUIRE(targetp != NULL && *targetp == NULL);
+
+	REQUIRE(!source->exiting);
+
+	source->iref++;
+	*targetp = source;
+}
+
+static void
+requestmgr_detach(dns_requestmgr_t **requestmgrp) {
+	dns_requestmgr_t *requestmgr;
+	isc_boolean_t need_destroy  =ISC_FALSE;
+
+	TRACE(("requestmgr_detach\n"));
+	REQUIRE(requestmgrp != NULL);
+	requestmgr = *requestmgrp;
+	REQUIRE(VALID_REQUESTMGR(requestmgr));
+	*requestmgrp = NULL;
+	LOCK(&requestmgr->lock);
+	INSIST(requestmgr->iref > 0);
+	requestmgr->iref--;
+	if (requestmgr->eref == 0 && requestmgr->iref == 0) {
+		INSIST(requestmgr->exiting &&
+		       ISC_LIST_HEAD(requestmgr->requests) == NULL);
+		send_shutdown_events(requestmgr);
+		need_destroy = ISC_TRUE;
+	}
+	UNLOCK(&requestmgr->lock);
+
+	if (need_destroy)
+		mgr_destroy(requestmgr);
 }
 
 void
@@ -238,16 +295,14 @@ dns_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp) {
 
         REQUIRE(VALID_REQUESTMGR(source));
         REQUIRE(targetp != NULL && *targetp == NULL);
-
-	LOCK(&source->lock);
 	REQUIRE(!source->exiting);
 
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references != 0);
-	UNLOCK(&source->lock);
+	TRACE(("dns_requestmgr_attach\n"));
 
+	LOCK(&source->lock);
+	source->eref++;
 	*targetp = source;
+	UNLOCK(&source->lock);
 }
 
 void
@@ -255,17 +310,18 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 	dns_requestmgr_t *requestmgr;
 	isc_boolean_t need_destroy = ISC_FALSE;
 
+	TRACE(("dns_requestmgr_detach\n"));
 	REQUIRE(requestmgrp != NULL);
 	requestmgr = *requestmgrp;
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 
 	LOCK(&requestmgr->lock);
-	INSIST(requestmgr->references > 0);
-	requestmgr->references--;
-	if (requestmgr->references == 0) {
+	INSIST(requestmgr->eref > 0);
+	requestmgr->eref--;
+	if (requestmgr->eref == 0 && requestmgr->iref == 0) {
 		INSIST(requestmgr->exiting &&
 		       ISC_LIST_HEAD(requestmgr->requests) == NULL);
-			need_destroy = ISC_TRUE;
+		need_destroy = ISC_TRUE;
 	}
 	UNLOCK(&requestmgr->lock);
 
@@ -280,6 +336,7 @@ send_shutdown_events(dns_requestmgr_t *requestmgr) {
 	isc_event_t *event, *next_event;
 	isc_task_t *etask;
 
+	TRACE(("send_shutdown_events\n"));
 	/*
 	 * Caller must be holding the manager lock.
 	 */
@@ -297,22 +354,29 @@ send_shutdown_events(dns_requestmgr_t *requestmgr) {
 static void
 mgr_destroy(dns_requestmgr_t *requestmgr) {
 	int i;
+	isc_mem_t *mctx;
 
-	REQUIRE(requestmgr->references == 0);
+	TRACE(("mgr_destroy\n"));
+
+	REQUIRE(requestmgr->eref == 0);
+	REQUIRE(requestmgr->iref == 0);
 
 	isc_mutex_destroy(&requestmgr->lock);
 	for (i = 0; i < DNS_REQUEST_NLOCKS; i++)
 		isc_mutex_destroy(&requestmgr->locks[i]);
 	if (requestmgr->dispatchv4 != NULL)
 		dns_dispatch_detach(&requestmgr->dispatchv4);
-	if (requestmgr->dispatchv4 != NULL)
-		dns_dispatch_detach(&requestmgr->dispatchv4);
+	if (requestmgr->dispatchv6 != NULL)
+		dns_dispatch_detach(&requestmgr->dispatchv6);
 	requestmgr->magic = 0;
-	isc_mem_put(requestmgr->mctx, requestmgr, sizeof *requestmgr);
+	mctx = requestmgr->mctx;
+	isc_mem_put(mctx, requestmgr, sizeof *requestmgr);
+	isc_mem_detach(&mctx);
 }
 
 static unsigned int
 mgr_gethash(dns_requestmgr_t *requestmgr) {
+	TRACE(("mgr_gethash\n"));
 	/*
 	 * Locked by caller.
 	 */
@@ -325,6 +389,7 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 	isc_region_t r;
 	isc_socket_t *socket;
 
+	TRACE(("req_send\n"));
 	socket = dns_dispatch_getsocket(request->dispatch);
 	isc_buffer_used(request->query, &r);
 	return (isc_socket_sendto(socket, &r, task, req_senddone,
@@ -355,6 +420,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	REQUIRE(requestp != NULL && *requestp == NULL);
 	REQUIRE(timeout > 0);
 
+	TRACE(("dns_request_create\n"));
+
 	mctx = requestmgr->mctx;
 
 	request = isc_mem_get(mctx, sizeof(*request));
@@ -365,7 +432,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	 * Zero structure.
 	 */
 	request->magic = 0;
-	request->mctx = mctx;
+	request->mctx = NULL;
 	request->flags = 0;
 	ISC_LINK_INIT(request, link);
 	request->query = NULL;
@@ -376,7 +443,6 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	request->timer = NULL;
 	request->requestmgr = NULL;
 
-	dns_requestmgr_attach(requestmgr, &request->requestmgr);
 	/*
 	 * Create timer now.  We will set it below once.
 	 */
@@ -453,40 +519,52 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	if (result != ISC_R_SUCCESS && result != DNS_R_USETCP)
 		goto cleanup;
 	
-	request->magic = REQUEST_MAGIC;
+	isc_mem_attach(mctx, &request->mctx);
 	LOCK(&requestmgr->lock);
+	if (requestmgr->exiting) {
+		UNLOCK(&requestmgr->lock);
+		result = ISC_R_SHUTTINGDOWN;
+		goto cleanup;
+	}
+	requestmgr_attach(requestmgr, &request->requestmgr);
 	request->hash = mgr_gethash(requestmgr);
+	request->magic = REQUEST_MAGIC;
 	ISC_LIST_APPEND(requestmgr->requests, request, link);
 	UNLOCK(&requestmgr->lock);
 
 	isc_interval_set(&interval, timeout, 0);
 	result = isc_time_nowplusinterval(&expires, &interval);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		goto unlink;
 
 	result = isc_timer_reset(request->timer, isc_timertype_once,
 				 &expires, NULL, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		goto unlink;
 
 	if ((options & DNS_REQUESTOPT_TCP) != 0) {
 		result = isc_socket_connect(socket, address, task,
 					    req_connected, request);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+			goto unlink;
 		request->flags |= DNS_REQUEST_F_CONNECTING;
 	} else {
 		result = req_send(request, task, address);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+			goto unlink;
 	}
 
 	*requestp = request;
 	return (ISC_R_SUCCESS);
 
+ unlink:
+	LOCK(&requestmgr->lock);
+	ISC_LIST_UNLINK(requestmgr->requests, request, link);
+	UNLOCK(&requestmgr->lock);
+
  cleanup:
 	if (request->requestmgr != NULL)
-		dns_requestmgr_detach(&request->requestmgr);
+		requestmgr_detach(&request->requestmgr);
 	if (request->dispentry != NULL)
 		dns_dispatch_removeresponse(request->dispatch,
 					    &request->dispentry, NULL);
@@ -500,7 +578,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		isc_timer_detach(&request->timer);
 	if (tclone != NULL)
 		isc_task_detach(&tclone);
-	request->magic = 0;
+	if (request->mctx != NULL)
+		isc_mem_detach(&request->mctx);
 	isc_mem_put(mctx, request, sizeof *request);
 	return (result);
 }
@@ -514,7 +593,7 @@ render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
 
 	REQUIRE(bufferp != NULL && *bufferp == NULL);
 
-	TRACE("render\n");
+	TRACE(("render\n"));
 
 	/*
 	 * Create buffer able to hold largest possible message.
@@ -582,6 +661,8 @@ isc_result_t
 dns_request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 
+	TRACE(("dns_request_cancel\n"));
+
 	LOCK(&request->requestmgr->locks[request->hash]);
 	if (!DNS_REQUEST_CANCELED(request)) {
 		req_cancel(request);
@@ -596,6 +677,8 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message) {
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(request->answer != NULL);
 
+	TRACE(("dns_request_getresponse\n"));
+
 	return (dns_message_parse(message, request->answer, ISC_TRUE));
 }
 
@@ -605,6 +688,9 @@ dns_request_destroy(dns_request_t **requestp) {
 	isc_boolean_t need_destroy = ISC_FALSE;
 	
 	REQUIRE(requestp != NULL && VALID_REQUEST(*requestp));
+
+	TRACE(("dns_request_destroy\n"));
+
 	request = *requestp;
 	LOCK(&request->requestmgr->locks[request->hash]);
 	LOCK(&request->requestmgr->lock);
@@ -633,7 +719,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 	REQUIRE(DNS_REQUEST_CONNECTING(request));
 
-	TRACE("req_connected\n");
+	TRACE(("req_connected\n"));
 
 	request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
@@ -657,7 +743,7 @@ req_senddone(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
-	TRACE("req_senddone\n");
+	TRACE(("req_senddone\n"));
 	(void)task;
 
 	if (sevent->result != ISC_R_SUCCESS)
@@ -678,7 +764,7 @@ req_response(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	
-	TRACE("req_response\n");
+	TRACE(("req_response: %s\n", dns_result_totext(devent->result)));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
 	result = devent->result;
@@ -714,7 +800,7 @@ static void
 req_timeout(isc_task_t *task, isc_event_t *event) {
 	dns_request_t *request = event->ev_arg;
 	
-	TRACE("req_timeout\n");
+	TRACE(("req_timeout\n"));
 	UNUSED(task);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	req_cancel(request);
@@ -727,6 +813,8 @@ static void
 req_sendevent(dns_request_t *request, isc_result_t result) {
 	isc_task_t *task;
 
+	TRACE(("req_sendevent\n"));
+
 	/*
 	 * Lock held by caller.
 	 */
@@ -738,6 +826,9 @@ req_sendevent(dns_request_t *request, isc_result_t result) {
 
 static void
 req_destroy(dns_request_t *request) {
+	isc_mem_t *mctx;
+
+	TRACE(("req_destroy\n"));
 
 	request->magic = 0;
 	if (request->query != NULL)
@@ -753,16 +844,20 @@ req_destroy(dns_request_t *request) {
 		dns_dispatch_detach(&request->dispatch);
 	if (request->timer != NULL)
 		isc_timer_detach(&request->timer);
-	dns_requestmgr_detach(&request->requestmgr);
-	isc_mem_put(request->mctx, request, sizeof(*request));
+	requestmgr_detach(&request->requestmgr);
+	mctx = request->mctx;
+	isc_mem_put(mctx, request, sizeof(*request));
+	isc_mem_detach(&mctx);
 }
 
 static void
 req_cancel(dns_request_t *request) {
 	isc_socket_t *socket;
 
+	TRACE(("req_cancel\n"));
+
 	/*
-	 * Lock help by caller.
+	 * Lock held by caller.
 	 */
 	request->flags |= DNS_REQUEST_F_CANCELED;
 
@@ -771,9 +866,9 @@ req_cancel(dns_request_t *request) {
 	if (request->dispentry != NULL)
 		dns_dispatch_removeresponse(request->dispatch,
 					    &request->dispentry, NULL);
-	dns_dispatch_detach(&request->dispatch);
 	if (DNS_REQUEST_CONNECTING(request)) {
 		socket = dns_dispatch_getsocket(request->dispatch);
 		isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_CONNECT);
 	}
+	dns_dispatch_detach(&request->dispatch);
 }
