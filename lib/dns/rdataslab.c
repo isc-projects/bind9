@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.17 2000/09/01 16:37:30 gson Exp $ */
+/* $Id: rdataslab.c,v 1.18 2000/09/01 16:39:07 gson Exp $ */
 
 #include <config.h>
 
@@ -102,7 +102,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		if (rdatas[i].data != NULL)
 			buflen += (2 + rdatas[i].length);
 		result = dns_rdataset_next(rdataset);
-	} while (result == ISC_R_SUCCESS);
+	}
 
 	if (result != ISC_R_NOMORE) {
 		isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
