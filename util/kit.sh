@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.21 2001/10/01 20:41:25 gson Exp $
+# $Id: kit.sh,v 1.22 2002/02/20 02:29:31 marka Exp $
 
 # Make a release kit
 #
@@ -106,6 +106,6 @@ cd .. || exit 1
 
 kit=$topdir.tar.gz
 
-gtar -c -z -f $kit $topdir
+tar -c -f - $topdir | gzip > $kit
 
 echo "done, kit is in `pwd`/$kit"
