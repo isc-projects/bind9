@@ -27,6 +27,11 @@
  ***/
 
 /*
+ * Define if this system has the <netinet6/in6.h> header file.
+ */
+@ISC_PLATFORM_HAVENETINET6IN6H@
+
+/*
  * If sockaddrs on this system have an sa_len field, ISC_PLATFORM_HAVESALEN
  * will be defined.
  */
