@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.35.2.8 2004/03/09 06:09:07 marka Exp $ */
+/* $Id: acconfig.h,v 1.35.2.9 2004/10/05 03:18:51 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -130,3 +130,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if you have strerror in the C library. */
 #undef HAVE_STRERROR
+
+/* Define to the length type used by the socket API (socklen_t, size_t, int). */
+#undef ISC_SOCKADDR_LEN_T
