@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1996-2001  Internet Software Consortium.
+ * Portions Copyright (C) 1996-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: lwinetaton.c,v 1.10.2.1 2003/07/23 06:57:57 marka Exp $";
+static char rcsid[] = "$Id: lwinetaton.c,v 1.10.2.2 2003/10/09 07:32:55 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>

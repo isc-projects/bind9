@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.33.2.1 2003/07/23 06:57:57 marka Exp $ */
+/* $Id: lwconfig.c,v 1.33.2.2 2003/10/09 07:32:55 marka Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.

@@ -1,6 +1,6 @@
 /*
- * Portions Copyright (C) 2001, 2002  Internet Software Consortium.
- * Portions Copyright (C) 2001, 2002  Nominum, Inc.
+ * Portions Copyright (C) 2001-2003  Internet Software Consortium.
+ * Portions Copyright (C) 2001-2003  Nominum, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.4.2.3 2003/07/23 06:57:55 marka Exp $ */
+/* $Id: cc.c,v 1.4.2.4 2003/10/09 07:32:53 marka Exp $ */
 
 #include <config.h>
 

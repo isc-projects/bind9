@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.67.2.1 2003/10/03 04:03:07 marka Exp $ */
+/* $Id: db.h,v 1.67.2.2 2003/10/09 07:32:39 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
