@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.85 2001/02/13 01:07:54 bwelling Exp $ */
+/* $Id: mem.c,v 1.86 2001/02/13 06:21:32 marka Exp $ */
 
 #include <config.h>
 
@@ -179,6 +179,9 @@ struct isc_mempool {
 
 #define MEM_TRACE	((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 #define MEM_RECORD	((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0)
+
+static void
+print_active(isc_mem_t *ctx, FILE *out);
 
 /*
  * mctx must be locked.
@@ -784,9 +787,11 @@ destroy(isc_mem_t *ctx) {
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 #if ISC_MEM_TRACKLINES
-	if (ctx->checkfree)
+	if (ctx->checkfree) {
+		if (!ISC_LIST_EMPTY(ctx->debuglist))
+			print_active(ctx, stderr);
 		INSIST(ISC_LIST_EMPTY(ctx->debuglist));
-	else {
+	} else {
 		debuglink_t *dl;
 
 		for (dl = ISC_LIST_HEAD(ctx->debuglist);
@@ -800,8 +805,13 @@ destroy(isc_mem_t *ctx) {
 	INSIST(ctx->references == 0);
 
 	if (ctx->checkfree) {
-		for (i = 0; i <= ctx->max_size; i++)
+		for (i = 0; i <= ctx->max_size; i++) {
+#if ISC_MEM_TRACKLINES
+			if (ctx->stats[i].gets != 0)
+				print_active(ctx, stderr);
+#endif
 			INSIST(ctx->stats[i].gets == 0);
+		}
 	}
 
 	(ctx->memfree)(ctx->arg, ctx->stats);
@@ -916,6 +926,10 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
+#ifdef ISC_MEM_TRACKLINES
+	if (ctx->references != 1)
+		print_active(ctx, stderr);
+#endif
 	REQUIRE(ctx->references == 1);
 	ctx->references--;
 	UNLOCK(&ctx->lock);
@@ -997,6 +1011,43 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	}
 }
 
+#ifdef ISC_MEM_TRACKLINES
+static void
+print_active(isc_mem_t *ctx, FILE *out) {
+	if (isc_mem_debugging > 1) {
+		debuglink_t *dl;
+		unsigned int i;
+
+		fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+					    ISC_MSG_DUMPALLOC,
+					    "DUMP OF ALL OUTSTANDING "
+					    "MEMORY ALLOCATIONS\n"));
+		dl = ISC_LIST_HEAD(ctx->debuglist);
+		if (dl == NULL)
+			fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
+						    ISC_MSG_NONE,
+						    "\tNone.\n"));
+		while (dl != NULL) {
+			for (i = 0 ; i < DEBUGLIST_COUNT ; i++)
+				if (dl->ptr[i] != NULL)
+					fprintf(out,
+						isc_msgcat_get(isc_msgcat,
+							   ISC_MSGSET_MEM,
+							   ISC_MSG_PTRFILELINE,
+							   "\tptr %p "
+							   "file %s "
+							   "line %u\n"),
+						dl->ptr[i], dl->file[i],
+						dl->line[i]);
+			dl = ISC_LIST_NEXT(dl, link);
+		}
+	}
+}
+#endif
+
+/*
+ * Print the stats[] on the stream "out" with suitable formatting.
+ */
 void
 isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	size_t i;
@@ -1062,35 +1113,8 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 		pool = ISC_LIST_NEXT(pool, link);
 	}
 
-#if ISC_MEM_TRACKLINES
-	if (MEM_RECORD) {
-		debuglink_t *dl;
-		unsigned int i;
-
-		fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-					    ISC_MSG_DUMPALLOC,
-					    "DUMP OF ALL OUTSTANDING "
-					    "MEMORY ALLOCATIONS\n"));
-		dl = ISC_LIST_HEAD(ctx->debuglist);
-		if (dl == NULL)
-			fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-						    ISC_MSG_NONE,
-						    "\tNone.\n"));
-		while (dl != NULL) {
-			for (i = 0 ; i < DEBUGLIST_COUNT ; i++)
-				if (dl->ptr[i] != NULL)
-					fprintf(out,
-						isc_msgcat_get(isc_msgcat,
-							   ISC_MSGSET_MEM,
-							   ISC_MSG_PTRFILELINE,
-							   "\tptr %p "
-							   "file %s "
-							   "line %u\n"),
-						dl->ptr[i], dl->file[i],
-						dl->line[i]);
-			dl = ISC_LIST_NEXT(dl, link);
-		}
-	}
+#ifdef ISC_MEM_TRACKLINES
+	print_active(ctx, out);
 #endif
 
 	UNLOCK(&ctx->lock);
