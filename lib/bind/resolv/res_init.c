@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.8 2001/07/02 02:33:45 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.9 2001/07/03 06:55:04 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -305,7 +305,6 @@ __res_vinit(res_state statp, int preinit) {
 		    char sbuf[NI_MAXSERV];
 		    const size_t minsiz =
 		        sizeof(statp->_u._ext.ext->nsaddrs[0]);
-		    char *comment;
 
 		    cp = buf + sizeof("nameserver") - 1;
 		    while (*cp == ' ' || *cp == '\t')
