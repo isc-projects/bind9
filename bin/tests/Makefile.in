@@ -64,6 +64,7 @@ TARGETS =	adb_test \
 		task_test \
 		timer_test \
 		wire_test \
+		nconf_test \
 		zone_test
 
 # Alphabetically
@@ -93,6 +94,7 @@ SRCS =		adb_test.c \
 		task_test.c \
 		timer_test.c \
 		wire_test.c \
+		nconf_test.c \
 		zone_test.c
 
 @BIND9_MAKE_RULES@
@@ -201,6 +203,11 @@ dispatch_tcp_test: dispatch_tcp_test.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_tcp_test.@O@ printmsg.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
+nconf_test: nconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nconf_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
 clean distclean::
 	rm -f ${TARGETS}
 	rm -f t_journal
+
