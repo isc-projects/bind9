@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.246 $)
+AC_REVISION($Revision: 1.247 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1335,6 +1335,11 @@ case "$hack_shutup_stdargcast" in
 		;;
 esac
 
+#
+# The following sections deal with tools used for formatting
+# the documentation.  They are all optional, unless you are
+# a developer editing the documentation source.
+#
 
 #
 # Look for jade, preferring openjade if installed.
