@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.109 2000/05/11 00:03:58 explorer Exp $ */
+/* $Id: zone.c,v 1.110 2000/05/11 02:06:18 explorer Exp $ */
 
 #include <config.h>
 
@@ -2485,7 +2485,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		dns_rcode_totext(msg->rcode, &rb);
 
 		zone_log(zone, me, ISC_LOG_INFO,
-			 "unexpected rcode (%.*s) from %s\n",
+			 "unexpected rcode (%.*s) from %s",
 			 rb.used, rcode, master);
 		goto next_master;
 	}
@@ -2512,7 +2512,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	cnamecnt = message_count(msg, DNS_SECTION_ANSWER, dns_rdatatype_cname);
 	soacnt = message_count(msg, DNS_SECTION_ANSWER, dns_rdatatype_soa);
 	nscount = message_count(msg, DNS_SECTION_AUTHORITY, dns_rdatatype_ns);
-	soacount = message_count(msg, DNS_SECTION_AUTHORITY, dns_rdatatype_soa);
+	soacount = message_count(msg, DNS_SECTION_AUTHORITY,
+				 dns_rdatatype_soa);
 
 	/*
 	 * There should not be a CNAME record at top of zone.
