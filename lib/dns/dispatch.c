@@ -407,25 +407,36 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	INSIST(disp->recvs > 0);
 	disp->recvs--;
 
+	if (disp->refcount == 0) {
+		/*
+		 * This dispatcher is shutting down.
+		 */
+		free_buffer(disp, ev->region.base, ev->region.length);
+
+		killit = ISC_FALSE;
+		if (disp->recvs == 0 && disp->refcount == 0)
+			killit = ISC_TRUE;
+
+		UNLOCK(&disp->lock);
+
+		if (killit)
+			destroy(disp);
+
+		isc_event_free(&ev_in);
+		return;
+	}
+
 	if (ev->result != ISC_R_SUCCESS) {
 		XDEBUG(("recv result %d (%s)\n", ev->result,
 			isc_result_totext(ev->result)));
+
+		free_buffer(disp, ev->region.base, ev->region.length);
 
 		/*
 		 * If the recv() was canceled pass the word on.
 		 */
 		if (ev->result == ISC_R_CANCELED) {
-			free_buffer(disp, ev->region.base, ev->region.length);
-
-			killit = ISC_FALSE;
-			if (disp->recvs == 0 && disp->refcount == 0)
-				killit = ISC_TRUE;
-
 			UNLOCK(&disp->lock);
-
-			if (killit)
-				destroy(disp);
-
 			isc_event_free(&ev_in);
 			return;
 		}
@@ -434,7 +445,6 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 		 * otherwise, on strange error, log it and restart.
 		 * XXXMLG
 		 */
-		free_buffer(disp, ev->region.base, ev->region.length);
 		goto restart;
 	}
 
@@ -583,6 +593,13 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 
 	INSIST(disp->recvs > 0);
 	disp->recvs--;
+
+	if (disp->refcount == 0) {
+		/*
+		 * This dispatcher is shutting down.  Force cancelation.
+		 */
+		tcpmsg->result = ISC_R_CANCELED;
+	}
 
 	switch (tcpmsg->result) {
 	case ISC_R_SUCCESS:
