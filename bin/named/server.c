@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.58 2004/10/05 04:38:30 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.59 2004/11/10 22:13:56 marka Exp $ */
 
 #include <config.h>
 
@@ -1917,7 +1917,8 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 		dns_dispatch_t *dispatch6;
 
 		dispatch6 = dns_resolver_dispatchv6(view->resolver);
-		INSIST(dispatch6 != NULL);
+		if (dispatch6 == NULL)
+			continue;
 		result = dns_dispatch_getlocaladdress(dispatch6, &addr);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
