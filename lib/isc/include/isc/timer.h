@@ -266,6 +266,11 @@ isc_timer_detach(isc_timer_t **timerp);
  *		The timer will detach from its task
  *
  *		All resources used by the timer have been freed
+ *
+ *		Any events already posted by the timer will be purged.
+ *		Therefore, if isc_timer_detach() is called in the context
+ *		of the timer's task, it is guaranteed that no more
+ *		timer event callbacks will run after the call.
  */
 
 isc_result_t
