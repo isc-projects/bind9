@@ -1,3 +1,5 @@
+1088.	[port]		libbind: MPE/iX C.70 (incomplete)
+
 1087.	[bug]		libbind: struct __res_state to large on 64 bit arch.
 
 1086.	[port]		libbind: sunos: old sprintf.
