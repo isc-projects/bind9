@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.11 2000/08/01 01:23:02 tale Exp $ */
+/* $Id: tsigconf.c,v 1.12 2000/10/25 19:24:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -78,10 +78,6 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 			alg = &tempalg;
 		}
 
-		if (strlen(key->secret) % 4 != 0) {
-			ret = ISC_R_BADBASE64;
-			goto failure;
-		}
 		secretalloc = secretlen = strlen(key->secret) * 3 / 4;
 		secret = isc_mem_get(mctx, secretlen);
 		if (secret == NULL) {
