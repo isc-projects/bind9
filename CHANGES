@@ -1,3 +1,6 @@
+ 455.	[doc]		Document IPv4 prefix notation does not require a
+			dotted decimal quad but may be just dotted decimal.
+
  454.	[bug]		Enforce dotted decimal and dotted decimal quad where
 			documented as such in named.conf. [RT #304, RT#311]
 

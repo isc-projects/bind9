@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "/usr/local/share/xml/dtd/docbook/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.8 2000/09/12 01:26:56 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.9 2000/09/14 03:39:23 marka Exp $ -->
 
 <book>
 
@@ -1681,6 +1681,7 @@ select a random high-numbered port.</para></entry>
 <entry colname = "1"><para><varname>ip_prefix</varname></para></entry>
 <entry colname = "2"><para>An IP network specified as an <varname>ip_addr</varname>,
 followed by a slash (`/') and then the number of bits in the netmask.
+Trailing zeros in a <varname>ip_addr</varname> may omitted.
 For example, <command>127/8</command> is the network <command>127.0.0.0</command> with
 netmask <command>255.0.0.0</command> and <command>1.2.3.0/28</command> is
 network <command>1.2.3.0</command> with netmask <command>255.255.255.240</command>.</para></entry>
