@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.284 2000/12/29 01:04:10 marka Exp $ */
+/* $Id: zone.c,v 1.285 2000/12/29 13:20:46 marka Exp $ */
 
 #include <config.h>
 
@@ -247,6 +247,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_NOREFRESH	0x00010000U
 #define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
 #define DNS_ZONEFLG_DIALREFRESH	0x00040000U
+#define DNS_ZONEFLG_SHUTDOWN	0x00080000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -1258,11 +1259,11 @@ exit_check(dns_zone_t *zone) {
 
 	REQUIRE(LOCKED_ZONE(zone));
 
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) &&
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN) &&
 	    zone->irefs == 0)
 	{
 		/*
-		 * DNS_ZONEFLG_EXITING can only be set if erefs == 0.
+		 * DNS_ZONEFLG_SHUTDOWN can only be set if erefs == 0.
 		 */
 		INSIST(zone->erefs == 0);
 		return (ISC_TRUE);
@@ -3576,21 +3577,28 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	INSIST(event->ev_type == DNS_EVENT_ZONECONTROL);
 	INSIST(zone->erefs == 0);
 	zone_log(zone, "zone_shutdown", ISC_LOG_DEBUG(3), "shutting down");
+
+	/*
+	 * Stop things being restarted after we cancel them below.
+	 */
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
+	UNLOCK_ZONE(zone);
 
 	/*
 	 * If we were waiting for xfrin quota, step out of
 	 * the queue.
 	 */
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
-		RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 		ISC_LIST_UNLINK(zone->zmgr->waiting_for_xfrin, zone,
 				statelink);
-		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 		zone->statelist = NULL;
 	}
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 
+
+	LOCK_ZONE(zone);
 	if (zone->xfr != NULL)
 		dns_xfrin_shutdown(zone->xfr);
 
@@ -3612,6 +3620,12 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->view != NULL)
 		dns_view_weakdetach(&zone->view);
 
+	/*
+	 * We have now canceled everything set the flag to allow exit_check()
+	 * to succeed.  We must not unlock between setting this flag and
+	 * calling exit_check().
+	 */
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SHUTDOWN);
 	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
 	if (free_needed)
