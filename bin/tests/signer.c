@@ -71,10 +71,11 @@ struct signer_array_struct {
 	ISC_LINK(signer_array_t) link;
 };
 
-ISC_LIST(signer_key_t) keylist;
-isc_stdtime_t starttime = 0, endtime = 0, now;
-int cycle = -1;
-int verbose;
+static ISC_LIST(signer_key_t) keylist;
+static isc_stdtime_t starttime = 0, endtime = 0, now;
+static int cycle = -1;
+static int verbose;
+static int tryverify = 0;
 
 static isc_mem_t *mctx = NULL;
 
@@ -169,11 +170,21 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &endtime,
 				 mctx, b, rdata);
 	check_result(result, "dns_dnssec_sign()");
-#if 0
-	/* Verify the data.  This won't work if the start time is reset */
-	result = dns_dnssec_verify(name, rdataset, key, mctx, rdata);
-	check_result(result, "dns_dnssec_verify()");
-#endif
+
+	if (tryverify != 0) {
+		isc_stdtime_t current;
+		isc_stdtime_get(&current);
+		if (current >= starttime && current < endtime) {
+			result = dns_dnssec_verify(name, rdataset, key, mctx,
+						   rdata);
+			if (result == ISC_R_SUCCESS)
+				vbprintf(3, "\tsignature verified\n");
+			else
+				vbprintf(3, "\tsignature failed to verify\n");
+		}
+		else
+			vbprintf(3, "\tsignature is not currently valid\n");
+	}
 }
 
 static inline isc_boolean_t
@@ -478,11 +489,11 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		    (notsigned || (wassignedby[alg] && !nowsignedby[alg])))
 		{
 			allocbufferandrdata;
-			signwithkey(name, set, trdata, key->key, &b);
 			vbprintf(1, "\tsigning with key %s/%s/%d\n",
 			       dst_key_name(key->key),
 			       algtostr(dst_key_alg(key->key)),
 			       dst_key_id(key->key));
+			signwithkey(name, set, trdata, key->key, &b);
 			ISC_LIST_APPEND(siglist.rdata, trdata, link);
 		}
 		key = ISC_LIST_NEXT(key, link);
@@ -997,9 +1008,9 @@ usage() {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
-	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+ttl:\n");
+	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
-	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+ttl|now+ttl]:\n");
+	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now (now + 30 days)\n");
 	fprintf(stderr, "\t-c ttl:\n");
 	fprintf(stderr, "\t\tcycle period - regenerate if < cycle from end ( (end-start)/4 )\n");
@@ -1010,6 +1021,8 @@ usage() {
 	fprintf(stderr, "\t-f outfile:\n");
 	fprintf(stderr, "\t\tfile the signed zone is written in " \
 			"(zonefile + .signed)\n");
+	fprintf(stderr, "\t-a:\n");
+	fprintf(stderr, "\t\tverify generated signatures (if currently valid)\n");
 
 	fprintf(stderr, "\n");
 
@@ -1043,7 +1056,7 @@ main(int argc, char *argv[]) {
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:h")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ah")) != -1)
 	{
 		switch (ch) {
 		case 's':
@@ -1086,6 +1099,10 @@ main(int argc, char *argv[]) {
 						isc_commandline_argument);
 			if (output == NULL)
 				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+			break;
+
+		case 'a':
+			tryverify = 1;
 			break;
 
 		case 'h':
