@@ -1,7 +1,7 @@
 
 			Zones
 
-	$Id: zone,v 1.1 1999/02/25 05:15:42 marka Exp $
+	$Id: zone,v 1.2 1999/02/26 21:32:10 marka Exp $
 
 Overview
 	 
@@ -14,25 +14,48 @@ Overview
 
 	* name
 	* class
-	* master / slave / stub
+	* master / slave / stub / hint / cache / forward
 	* serial number
 	* signed / unsigned
-	* update periods (refresh / retry)
-	* last update time (slave)
+	* update periods (refresh / retry) (slave / stub)
+	* last update time (slave / stub)
 	* access restrictions
-	* transfer restrictions
-	* expire period
-	* updatable
+	* transfer restrictions (master / slave)
+	* update restictions (master / slave)
+	* expire period (slave / stub)
 	* children => bottom
 	* glue
-	* rrsets
+	* rrsets / data
 	* transfer "in" in progress
 	* transfers "out" in progress
 	* "current" check in progress
 	* our masters
+	* primary master name (required to auto generate our masters)
+	* master file name
+	* database name
+	* transaction logs
+	* notification lists
+		* NS's
+		* static additional sites (stealth servers)
+		* dynamically leared sites (soa queries)
+
 
 	Zones also have versions associated with them, each of which, with
 	the exception of the current zone, has an expiry date.
+
+        "How long are we going to keep them operationally?"
+                While there are expriry dates based on last update /
+                change time + expire.  In practice holding the deltas
+                for a few refresh periods should be enough.  If the network
+                and servers are up one is enough.
+
+        "How are we going to generate them from a master file?"
+                UPDATE should not be the only answer to this question.
+                We need a tool that takes the current zone & new zone.
+                Verifies the new zone, generates a delta and feeds this
+                at named.  It could well be part of ndc but does not have
+                to be.
+
 
 	Zones need to have certain operations performed on them. The need to
 	be:
@@ -40,10 +63,60 @@ Overview
 	* loaded
 	* unloaded
 	* dumped
-	* updated
-	* copied out in full or as partial deltas
+	* updated (UPDATE / IXFR)
+	* copied out in full (AXFR) or as partial deltas (IXFR)
 	* read from
-	* validated
+	* validated 
 	* generate a delta between two given versions.
+	* signed / resigned
+	* maintaince
+		validate current soa
+		remove old deltas
+		purge stale rrsets (cache)
+	* notification
+		responding to
+		generating
 
-	
+Types:
+
+	typedef enum {
+		dns_zone_none = 0,
+		dns_zone_master,
+		dns_zone_slave,
+		dns_zone_stub,
+		dns_zone_hint,
+		dns_zone_cache,
+		dns_zone_forward
+	} dns_zonetypes_t;
+
+	struct dns_zone {
+		unsigned int		magic;	/* ZONE */
+		dns_name_t		name;
+		dns_rdataclass_t	class;
+		dns_zonetypes_t		type;
+		dns_rbt_t		top;
+		isc_uint32_t		version;
+		isc_uint32_t		serial;
+		isc_uint32_t		refresh;
+		isc_uint32_t		retry;
+		isc_uint32_t		serial;
+		char			*masterfile;
+		dns_acl_t		*access;
+		dns_acl_t		*transfer;
+		struct	{
+			dns_acl_t	*acl;
+			dns_scl_t	*scl;		/* tsig based acl */
+		}			update;
+		char			*database;
+		...
+	};
+
+Operations:
+Loading:
+
+Functions:
+	void
+	dns_zone_init(dns_zone_t *, dns_rdataclass_t class, isc_mem_t *mxtc);
+
+	void
+	dns_zone_invalidate(dns_zone_t *);
