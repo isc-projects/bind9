@@ -21,7 +21,7 @@
  826.	[bug]		Some IXFR protocol errors were not detected.
 
  825.	[bug]		zone.c:ns_query() detached from the wrong zone
-			reference.  [RT #1264] 
+			reference. [RT #1264] 
 
  824.	[bug]		Correct line numbers reported by dns_master_load().
 			[RT #1263]
@@ -261,7 +261,7 @@
  751.	[func]		Log successful zone loads / transfers.	[RT #898]
 
  750.	[bug]		A query should not match a DNAME whose trust level
-			is pending.  [RT #916]
+			is pending. [RT #916]
 
  749.	[bug]		When a query matched a DNAME in a secure zone, the
 			server did not return the signature of the DNAME.
@@ -283,7 +283,7 @@
  744.	[bug]		When returning DNS_R_CNAME or DNS_R_DNAME as the
 			result of an ANY or SIG query, the resolver failed
 			to setup the return event's rdatasets, causing an
-			assertion failure in the query code.  [RT #881]
+			assertion failure in the query code. [RT #881]
 
  743.	[bug]		Receiving a large number of certain malformed
 			answers could cause named to stop responding.
@@ -316,10 +316,10 @@
  733.	[bug]		Reference counts of dns_acl_t objects need to be
 			locked but were not. [RT #801, #821]
 
- 732.	[bug]		Glue with 0 TTL could also cause SERVFAIL.  [RT #828]
+ 732.	[bug]		Glue with 0 TTL could also cause SERVFAIL. [RT #828]
 
  731.	[bug]		Certain zone errors could cause named-checkzone to
-			fail ungracefully.  [RT #819]
+			fail ungracefully. [RT #819]
 
  730.	[bug]		lwres_getaddrinfo() returns the correct result when
 			it fails to contact a server. [RT #768]
@@ -342,7 +342,7 @@
 			isc_netaddr_any6().
 
  723.	[bug]		Referrals whose NS RRs had a 0 TTL caused the resolver
-			to return DNS_R_SERVFAIL.  [RT #783]
+			to return DNS_R_SERVFAIL. [RT #783]
 
  722.	[func]		Allow incremental loads to be canceled.
 
@@ -426,7 +426,7 @@
 			commands. [RT #693]
 
  696.	[bug]		lwresd would die with an assertion failure when passed
-			a zero-length name.  [RT #692]
+			a zero-length name. [RT #692]
 
  695.	[bug]		If the resolver attempted to query a blackholed or
 			bogus server, the resolution would fail immediately.
@@ -451,7 +451,7 @@
 			"Exuberant Ctags" etags.
 
  687.	[bug]		Only say we have IPv6, with sufficent functionality,
-			if it has actually been tested.  [RT #586]
+			if it has actually been tested. [RT #586]
 
  686.	[bug]		dig and nslookup can now be properly aborted during
 			blocking operations. [RT #568]
@@ -589,7 +589,7 @@
  644.	[bug]		#622 needed more work. [RT #562]
 
  643.	[bug]		xfrin error messages made more verbose, added class
-			of the zone.  [RT# 599]
+			of the zone. [RT# 599]
 
  642.	[bug]		Break the exit_check() race in the zone module.
 			[RT #598]
@@ -834,7 +834,7 @@
 			address match lists.
 
  571.	[bug]		It was possible to create an rdataset of singleton
-			type which had more than one rdata.  [RT #154]
+			type which had more than one rdata. [RT #154]
 			[RT #279]
 
  570.	[bug]		rbtdb.c allowed zones containing nodes which had
@@ -892,7 +892,7 @@
 			only when a transfer in progress finished. [RT #456]
 
  552.	[bug]		We were not correctly detecting the end of all c-style
-			comments.  [RT #455]
+			comments. [RT #455]
 
  551.	[func]		Implemented the 'sortlist' option.
 
@@ -1050,7 +1050,7 @@
 			in the list, unless the +fail option is specified.
 
  501.	[bug]		Incorrect port numbers were being displayed by
-			nslookup.  [RT #352]
+			nslookup. [RT #352]
 
  500.	[func]		Nearly useless +details option removed from DiG.
 
@@ -1222,7 +1222,7 @@
  448.	[bug]		Host output formatting change, to match v8. [RT #255]
 
  447.	[bug]		Dig didn't properly retry in TCP mode after
-			a truncated reply.  [RT #277]
+			a truncated reply. [RT #277]
 
  446.	[bug]		Confusing notify log message. [RT #298]
 
@@ -2127,14 +2127,14 @@
  198.	[func]		Dispatch managers hold memory pools which
 			any managed dispatcher may use.	 This allows
 			us to avoid dipping into the memory context for
-			most allocations.  [19-May-2000 explorer]
+			most allocations. [19-May-2000 explorer]
 
  197.	[bug]		When an incoming AXFR or IXFR completes, the
 			zone's internal state is refreshed from the
-			SOA data.  [19-May-2000 explorer]
+			SOA data. [19-May-2000 explorer]
 
  196.	[func]		Dispatchers can be shared easily between views
-			and/or interfaces.  [19-May-2000 explorer]
+			and/or interfaces. [19-May-2000 explorer]
 
  195.	[bug]		Including the NXT record of the root domain
 			in a negative response caused an assertion
