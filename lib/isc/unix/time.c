@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.41 2001/09/05 17:22:51 gson Exp $ */
+/* $Id: time.c,v 1.42 2001/09/20 06:50:34 marka Exp $ */
 
 #include <config.h>
 
@@ -323,7 +323,7 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 }
 
 isc_uint32_t
-isc_time_seconds(isc_time_t *t) {
+isc_time_seconds(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
 
