@@ -197,6 +197,7 @@ struct dns_name {
 #define DNS_NAMEATTR_ABSOLUTE		0x0001
 #define DNS_NAMEATTR_READONLY		0x0002
 #define DNS_NAMEATTR_DYNAMIC		0x0004
+#define DNS_NAMEATTR_DYNOFFSETS		0x0008
 /*
  * Attributes below 0x0100 reserved for name.c usage.
  */
@@ -1030,6 +1031,24 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target);
  *	'source' is a valid non-empty name.
  *	
  *	'target' is a valid name that is not read-only.
+ *	
+ *	'mctx' is a valid memory context.
+ */
+
+isc_result_t
+dns_name_dupwithoffsets(dns_name_t *source, isc_mem_t *mctx,
+			dns_name_t *target);
+/*
+ * Make 'target' a read-only dynamically allocated copy of 'source'.
+ * 'target' will also have a dynamically allocated offsets table.
+ *
+ * Requires:
+ *
+ *	'source' is a valid non-empty name.
+ *	
+ *	'target' is a valid name that is not read-only.
+ *
+ *	'target' has no offsets table.
  *	
  *	'mctx' is a valid memory context.
  */
