@@ -172,7 +172,7 @@ main(int argc, char *argv[]) {
 	isc_task_purgerange(t3,
 			    NULL,
 			    ISC_EVENTTYPE_FIRSTEVENT,
-			    ISC_EVENTTYPE_LASTEVENT);
+			    ISC_EVENTTYPE_LASTEVENT, 0);
 
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
