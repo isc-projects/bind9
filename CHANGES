@@ -1,3 +1,5 @@
+1114.	[port]		Ignore more accept() errors. [RT #2021]
+
 
 	--- 9.2.0rc9 released ---
 

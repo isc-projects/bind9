@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.3 2001/11/09 20:21:41 gson Exp $ */
+/* $Id: socket.c,v 1.207.2.4 2001/11/10 03:03:44 marka Exp $ */
 
 #include <config.h>
 
@@ -1719,28 +1719,47 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * EAGAIN or EINTR, simply poke the watcher to watch this socket
 	 * again.  Also ignore ECONNRESET, which has been reported to
 	 * be spuriously returned on Linux 2.2.19 although it is not
-	 * a documented error for accept().
+	 * a documented error for accept().  ECONNABORTED has been
+	 * reported for Solaris 8.  The rest are thrown in not because
+	 * we have seen them but because they are ignored by other
+	 * deamons such as BIND 8 and Apache.
 	 */
-	
+
 	addrlen = sizeof dev->newsocket->address.type;
 	memset(&dev->newsocket->address.type.sa, 0, addrlen);
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
 	if (fd < 0) {
-		if (SOFT_ERROR(errno) || errno == ECONNRESET) {
+		if (SOFT_ERROR(errno))
 			goto soft_error;
-		} else {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal_accept: accept() %s: %s",
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED,
-							"failed"),
-					 strbuf);
-			fd = -1;
-			result = ISC_R_UNEXPECTED;
+		switch (errno) {
+		case ECONNRESET:
+		case ECONNABORTED:
+		case EHOSTUNREACH:
+		case EHOSTDOWN:
+		case ENETUNREACH:
+		case ENETDOWN:
+		case ECONNREFUSED:
+#ifdef EPROTO
+		case EPROTO:
+#endif
+#ifdef ENONET
+		case ENONET:
+#endif
+			goto soft_error;
+		default:
+			break;
 		}
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "internal_accept: accept() %s: %s",
+				 isc_msgcat_get(isc_msgcat,
+						ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED,
+						"failed"),
+				 strbuf);
+		fd = -1;
+		result = ISC_R_UNEXPECTED;
 	} else {
 		if (addrlen == 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
