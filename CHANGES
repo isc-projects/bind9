@@ -1,4 +1,6 @@
 
+ 990.	[bug]		The rndc-confgen man page was not installed.
+
  989.	[bug]		Report filename if $INCLUDE fails for file related
 			errors. [RT #1736]
 
