@@ -433,19 +433,24 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 		msgblock = next_msgblock;
 	}
 
-	if (msg->from_to_wire == DNS_MESSAGE_INTENT_PARSE) {
-		msgblock = ISC_LIST_HEAD(msg->rdatalists);
-		INSIST(msgblock != NULL);
-		if (everything == ISC_FALSE) {
-			msgblock_reset(msgblock, RDATALIST_COUNT);
-			msgblock = ISC_LIST_NEXT(msgblock, link);
-		}
-		while (msgblock != NULL) {
-			next_msgblock = ISC_LIST_NEXT(msgblock, link);
-			ISC_LIST_UNLINK(msg->rdatalists, msgblock, link);
-			msgblock_free(msg->mctx, msgblock);
-			msgblock = next_msgblock;
-		}
+	/*
+	 * "rdatalists" is special, since it is possible (but not recommended)
+	 * that the message could be switched from parse into render mode.
+	 *
+	 * Note that the reverse is not possible -- switching to parse after
+	 * render will not work, and should not.
+	 */
+
+	msgblock = ISC_LIST_HEAD(msg->rdatalists);
+	if (everything == ISC_FALSE) {
+		msgblock_reset(msgblock, RDATALIST_COUNT);
+		msgblock = ISC_LIST_NEXT(msgblock, link);
+	}
+	while (msgblock != NULL) {
+		next_msgblock = ISC_LIST_NEXT(msgblock, link);
+		ISC_LIST_UNLINK(msg->rdatalists, msgblock, link);
+		msgblock_free(msg->mctx, msgblock);
+		msgblock = next_msgblock;
 	}
 
 	if (msg->need_cctx_cleanup)
@@ -1021,6 +1026,8 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer)
 	 */
 	isc_buffer_add(buffer, DNS_MESSAGE_HEADER_LEN);
 
+	msg->buffer = buffer;
+
 	return (DNS_R_SUCCESS);
 }
 
@@ -1137,10 +1144,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 		result = dns_name_towire(name, &msg->cctx, &subbuffer);
 		if (result != DNS_R_SUCCESS) {
-			subbuffer.used = used;
 			msg->counts[sectionid] += total;
-			isc_buffer_used(&subbuffer, &r);
-			isc_buffer_add(msg->buffer, r.length);
+			isc_buffer_add(msg->buffer, used);
 			return (result);
 		}
 
@@ -1159,10 +1164,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			 * so far, and return that status.
 			 */
 			if (result != DNS_R_SUCCESS) {
-				subbuffer.used = used;
 				msg->counts[sectionid] += total;
-				isc_buffer_used(&subbuffer, &r);
-				isc_buffer_add(msg->buffer, r.length);
+				isc_buffer_add(msg->buffer, used);
 				return (result);
 			}
 
@@ -1176,14 +1179,41 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		name = next_name;
 	}
 
+	msg->counts[sectionid] += total;
+	isc_buffer_used(&subbuffer, &r);
+	isc_buffer_add(msg->buffer, r.length);
+
 	return (ISC_R_SUCCESS);
 }
 
 dns_result_t
 dns_message_renderend(dns_message_t *msg)
 {
+	isc_buffer_t tmpbuf;
+	isc_region_t r;
+	isc_uint16_t tmpflags;
+
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(msg->buffer != NULL);
+
+	isc_buffer_used(msg->buffer, &r);
+	if (r.length < DNS_MESSAGE_HEADER_LEN)
+		return (DNS_R_NOSPACE);  /* this is slightly bogus... XXX */
+
+	isc_buffer_init(&tmpbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+
+	isc_buffer_putuint16(&tmpbuf, msg->id);
+
+	tmpflags = ((msg->opcode << DNS_MESSAGE_OPCODE_SHIFT)
+		    & DNS_MESSAGE_OPCODE_MASK);
+	tmpflags |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);  /* XXX edns? */
+	tmpflags |= (msg->flags & DNS_MESSAGE_FLAG_MASK);
+
+	isc_buffer_putuint16(&tmpbuf, tmpflags);
+	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_QUESTION]);
+	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_ANSWER]);
+	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_AUTHORITY]);
+	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_ADDITIONAL]);
 
 	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
 

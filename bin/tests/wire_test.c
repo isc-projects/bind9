@@ -309,12 +309,66 @@ main(int argc, char *argv[]) {
 	if (need_close)
 		fclose(f);
 
-	f = fopen("foo", "w");
-	fwrite(b, bp - b, 1, f);
-	fclose(f);
-
 	isc_buffer_init(&source, b, sizeof b, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, bp - b);
+
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	CHECKRESULT(result, "dns_message_create failed");
+
+	result = dns_message_parse(message, &source);
+	CHECKRESULT(result, "dns_message_parse failed");
+
+	result = printmessage(message);
+	CHECKRESULT(result, "printmessage() failed");
+
+	isc_mem_stats(mctx, stdout);
+
+	/*
+	 * XXXMLG
+	 * Changing this here is a hack, and should not be done in reasonable
+	 * application code, ever.
+	 */
+	message->from_to_wire = DNS_MESSAGE_INTENT_RENDER;
+	memset(&b, 0, sizeof(b));
+	isc_buffer_clear(&source);
+
+	result = dns_message_renderbegin(message, &source);
+	CHECKRESULT(result, "dns_message_renderbegin() failed");
+
+	result = dns_message_rendersection(message, DNS_SECTION_QUESTION,
+					   0, 0);
+	CHECKRESULT(result, "dns_message_rendersection(QUESTION) failed");
+
+	result = dns_message_rendersection(message, DNS_SECTION_ANSWER,
+					   0, 0);
+	CHECKRESULT(result, "dns_message_rendersection(ANSWER) failed");
+
+	result = dns_message_rendersection(message, DNS_SECTION_AUTHORITY,
+					   0, 0);
+	CHECKRESULT(result, "dns_message_rendersection(AUTHORITY) failed");
+
+	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL,
+					   0, 0);
+	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL) failed");
+
+	result = dns_message_rendersection(message, DNS_SECTION_OPT,
+					   0, 0);
+	CHECKRESULT(result, "dns_message_rendersection(OPT) failed");
+
+	result = dns_message_rendersection(message, DNS_SECTION_TSIG,
+					   0, 0);
+	CHECKRESULT(result, "dns_message_rendersection(TSIG) failed");
+
+	dns_message_renderend(message);
+
+	message->from_to_wire = DNS_MESSAGE_INTENT_PARSE;
+	dns_message_destroy(&message);
+
+	isc_mem_stats(mctx, stdout);
+
+	for (i = 0 ; i < source.used ; i++)
+		printf("%02x%c ", b[i], (isprint(b[i]) ? b[i] : ' '));
+	printf("\n");
 
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
 	CHECKRESULT(result, "dns_message_create failed");
