@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.13 1999/04/28 03:03:55 marka Exp $ */
+ /* $Id: compress.c,v 1.14 1999/04/28 03:16:50 marka Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -42,8 +42,8 @@ void			compress_add(dns_rbt_t *root, dns_name_t *prefix,
 				     dns_name_t *suffix, isc_uint16_t offset,
 				     isc_boolean_t global16, isc_mem_t *mctx);
 
-#undef MPADRC
-#ifdef MPADRC
+#undef MPADCL
+#ifdef MPADCL
 isc_buffer_t x;
 char xxxx[1024];
 #endif
@@ -130,7 +130,7 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 				return (DNS_R_SUCCESS);
 			*data = ll;
 
-#ifdef MPADRC
+#ifdef MPADCL
 			isc_buffer_init(&x, xxxx, sizeof xxxx,
 					ISC_BUFFERTYPE_TEXT);
 			dns_name_totext(&name, ISC_FALSE, &x);
@@ -191,7 +191,7 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 				return (DNS_R_SUCCESS);
 			*data = ll;
 
-#ifdef MPADRC
+#ifdef MPADCL
 			isc_buffer_init(&x, xxxx, sizeof xxxx,
 					ISC_BUFFERTYPE_TEXT);
 			dns_name_totext(&name, ISC_FALSE, &x);
@@ -276,7 +276,7 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 	REQUIRE(offset != NULL);
 
 
-#ifdef MPADRC
+#ifdef MPADCL
 	isc_buffer_init(&x, xxxx, sizeof xxxx,
 			ISC_BUFFERTYPE_TEXT);
 	dns_name_totext(name, ISC_FALSE, &x);
@@ -300,7 +300,7 @@ dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
 	if (cctx->local == NULL)
 		return (ISC_FALSE);
 
-#ifdef MPADRC
+#ifdef MPADCL
 	isc_buffer_init(&x, xxxx, sizeof xxxx,
 			ISC_BUFFERTYPE_TEXT);
 	dns_name_totext(name, ISC_FALSE, &x);
@@ -324,14 +324,14 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
 	if (cctx->local != NULL && (cctx->allowed & DNS_COMPRESS_LOCAL) != 0) {
 		REQUIRE(cctx->rdata <= offset);
 		localoffset = offset - cctx->rdata + 256;
-#ifdef MPADRC
+#ifdef MPADCL
 		fprintf(stdout, "compress_add(local, ...)\n");
 #endif
 		compress_add(cctx->local, prefix, suffix, localoffset, ISC_TRUE,
 			     cctx->mctx);
 	}
 	if ((cctx->edns > -1) || !local) {
-#ifdef MPADRC
+#ifdef MPADCL
 		fprintf(stdout, "compress_add(global, ...)\n");
 #endif
 		compress_add(cctx->global, prefix, suffix, offset,
@@ -477,7 +477,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 			return;
 		*data = offset;
 
-#ifdef MPADRC
+#ifdef MPADCL
 			isc_buffer_init(&x, xxxx, sizeof xxxx,
 					ISC_BUFFERTYPE_TEXT);
 			dns_name_totext(&full, ISC_FALSE, &x);
@@ -537,7 +537,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	if (data == NULL)		/* root label */
 		return (ISC_FALSE);
 		
-#ifdef MPADRC
+#ifdef MPADCL
 			isc_buffer_init(&x, xxxx, sizeof xxxx,
 					ISC_BUFFERTYPE_TEXT);
 			dns_name_totext(foundname, ISC_FALSE, &x);
@@ -571,7 +571,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 		dns_name_getlabelsequence(foundname, 0, foundlabels, suffix);
 		*offset = *data;
 
-#ifdef MPADRC
+#ifdef MPADCL
 			if (prefixlen != 0) {
 			isc_buffer_init(&x, xxxx, sizeof xxxx,
 					ISC_BUFFERTYPE_TEXT);
@@ -629,7 +629,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 		return (ISC_FALSE);
 	*offset = *data;
 
-#ifdef MPADRC
+#ifdef MPADCL
 			isc_buffer_init(&x, xxxx, sizeof xxxx,
 					ISC_BUFFERTYPE_TEXT);
 			dns_name_totext(prefix, ISC_FALSE, &x);
