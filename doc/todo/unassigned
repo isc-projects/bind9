@@ -2,7 +2,7 @@ Support "include" inside view statements?
 
 Provide sample configuration files (root.hint, localhost.rev...)
 
-Complete the support for persistent databases (disable initial load,
+Disable journalling for persistent databases (disable initial load,
 journalling, etc)
 
 Review man pages
@@ -30,12 +30,6 @@ Improve these error messages:
   rndc: operation failed: verify failure (failed to verify signature)
   rndc: reload command failure: verify failure
 
-In the lexer, when you unget a token and then re-get it with different
-options, the new options do not apply.  This makes the lexer useless
-for parsing the nsupdate command line, because here we need to peek for
-an end-of-line, unget it, and then read an rdata which may require
-specific flags.
-
 Do something about the commented-out interface scanning code in
 getaddrinfo()
 
@@ -45,8 +39,8 @@ Mark says we should check that a partial rrset dynamic
 update will cause the resulting full rrset to have the
 new ttl, and check that RFC2136 actually says this
 
-Implement rrsert-order and sortlist.  Mark says rrset-order is applied
-first, sortlist last.
+Implement rrset-order (partially).  Mark says rrset-order is
+applied first, sortlist last.
 
 Support long command line options
 
@@ -55,9 +49,6 @@ Come up with a way of converting the XML docs to plain text
 Add support for cross-zone glue
 
 mark: explain "database file older than last load"
-
-Add quotes around logging category names in named.conf examples
-where they are missing
 
 Review the use of debug levels and make it more consistent
 
@@ -75,14 +66,10 @@ it; make that the recommended way of exporting zone data.
 
 Support general time specifiers like "4d10m" in named.conf
 
-Eliminate meta types on input
-
 Implement "additional data max/min/internal" 
 (whatever that means)
 
 Stomp error memory leaks
-
-Implement sortlists (in the server)
 
 Check for things still being logged with printf
  
@@ -91,7 +78,10 @@ resource problem (e.g. ISC_R_NOMEMORY or ISC_R_QUOTA).
 
 Write a paper on the flaws of DNSSEC
 
-Improve logging infrastructure to simplify providing context information
+Improve logging infrastructure to simplify providing context
+information
+
+Use zone logging function in dynamic update logging
 
 Decide on one set of CHECK()/RETERR() macros and put it in a common
 header file
@@ -110,6 +100,8 @@ Support $DATE fully
 Look at all the XXXes in the code
 
 Persistent cache option
+
+Implement diagnostic dumping of databases
 
 From the old TODO file at the top of the source tree:
 
