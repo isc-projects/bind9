@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.35 2000/01/28 19:56:17 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.36 2000/01/28 23:52:41 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -671,33 +671,43 @@ option: /* Empty */
                 }
         }
         | L_FORWARDERS {
-                dns_c_ipmatchlist_t *forwarders;
+                dns_c_iplist_t *forwarders;
 
                 tmpres = dns_c_ctx_getforwarders(currcfg, &forwarders);
                 if (tmpres != ISC_R_NOTFOUND) {
                         parser_error(ISC_FALSE,
                                      "Redefining options forwarders");
-                        dns_c_ipmatchlist_empty(forwarders);
-                } else {
-                        tmpres = dns_c_ipmatchlist_new(currcfg->mem,
-                                                       &forwarders);
-                        if (tmpres != ISC_R_SUCCESS) {
-                                parser_error(ISC_FALSE,
-                                             "Failed to create "
-                                             "forwarders list");
-                                YYABORT;
-                        }
+                        dns_c_iplist_detach(&forwarders);
+                } 
 
-                        tmpres = dns_c_ctx_setforwarders(currcfg, ISC_FALSE,
-							 forwarders);
-                        if (tmpres != ISC_R_SUCCESS) {
-                                parser_error(ISC_FALSE,
-                                             "Failed to set forwarders list.");
-                                YYABORT;
-                        }
-                }
+		tmpres = dns_c_iplist_new(currcfg->mem, 5, &forwarders);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "Failed to create "
+				     "forwarders list");
+			YYABORT;
+		}
+		
+		tmpres = dns_c_ctx_setforwarders(currcfg, ISC_FALSE,
+						 forwarders);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "Failed to set forwarders list.");
+			YYABORT;
+		}
         } L_LBRACE opt_forwarders_list L_RBRACE
         | L_QUERY_SOURCE query_source
+	| L_TRANSFER_SOURCE maybe_wild_addr
+	{
+		tmpres = dns_c_ctx_settransfersource(currcfg, $2);
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE, "Redefining transfer-source");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+				     "Failed to set transfer-source");
+                        YYABORT;
+                }
+	}
         | L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         {
 		if ($3 == NULL)
@@ -744,6 +754,16 @@ option: /* Empty */
                         YYABORT;
                 }
         }
+	| L_ALSO_NOTIFY L_LBRACE notify_in_addr_list L_RBRACE
+	{
+                tmpres = dns_c_ctx_setalsonotify(currcfg, $3, ISC_FALSE);
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE, "Redefining also-notify.");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE, "Failed to set also-notify");
+                        YYABORT;
+                }
+	}
         | L_BLACKHOLE L_LBRACE address_match_list L_RBRACE
         {
                 tmpres = dns_c_ctx_setblackhole(currcfg, ISC_FALSE, $3);
@@ -1012,7 +1032,19 @@ option: /* Empty */
 /*
  * Controls.
  */
-controls_stmt: L_CONTROLS L_LBRACE controls L_RBRACE
+controls_stmt: L_CONTROLS
+	{
+		if (currcfg->controls != NULL) {
+			parser_error(ISC_FALSE, "Redefining controls");
+			dns_c_ctrllist_delete(&currcfg->controls);
+		}
+		
+		tmpres = dns_c_ctrllist_new(currcfg->mem,
+					    &currcfg->controls);
+		if (tmpres != ISC_R_SUCCESS) {
+			YYABORT;
+		}
+	} L_LBRACE controls L_RBRACE
         ;
 
 controls: control L_EOS
@@ -1451,23 +1483,13 @@ forwarders_in_addr_list: forwarders_in_addr L_EOS
 
 forwarders_in_addr: ip_address
         {
-                dns_c_ipmatchelement_t *ime = NULL;
-
-                INSIST(currcfg->options != NULL);
-                INSIST(currcfg->options->forwarders != NULL);
-
-                tmpres = dns_c_ipmatchpattern_new(currcfg->mem,
-                                                  &ime,
-                                                  $1, 0);
+		tmpres = dns_c_iplist_append(currcfg->options->forwarders, $1);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
-                                     "Failed to create forwarders "
+                                     "Failed to add forwarders "
                                      "address element.");
                         YYABORT;
                 }
-
-                ISC_LIST_APPEND(currcfg->options->forwarders->elements,
-                                ime, next);
         }
         ;
 
@@ -2506,14 +2528,195 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 			break;
                 }
         }
+	| L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
+        {
+                dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+                INSIST(view != NULL);
+
+                tmpres = dns_c_view_setallowtransfer(view,
+                                                     $3, ISC_FALSE);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining view allow-transfer.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set view allow-transfer.");
+                        break;
+                }
+        }
+	| L_ALLOW_RECURSION L_LBRACE address_match_list L_RBRACE
+        {
+                dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+                INSIST(view != NULL);
+
+                tmpres = dns_c_view_setallowrecursion(view,
+						      $3, ISC_FALSE);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining view allow-recursion.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set view allow-recursion.");
+                        break;
+                }
+        }
+	| L_BLACKHOLE L_LBRACE address_match_list L_RBRACE
+        {
+                dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+                INSIST(view != NULL);
+
+                tmpres = dns_c_view_setblackhole(view,
+						 $3, ISC_FALSE);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining view blackhole.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set view blackhole.");
+                        break;
+                }
+        }
+	| L_FORWARDERS L_LBRACE opt_in_addr_list L_RBRACE
+        {
+                dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+                INSIST(view != NULL);
+
+                tmpres = dns_c_view_setforwarders(view,
+						  $3, ISC_FALSE);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining view forwarders.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set view forwarders.");
+                        break;
+                }
+        }
+	| L_SORTLIST L_LBRACE address_match_list L_RBRACE
+        {
+                dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+                INSIST(view != NULL);
+
+                tmpres = dns_c_view_setsortlist(view,
+						$3, ISC_FALSE);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining view sortlist.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set view sortlist.");
+                        break;
+                }
+        }
+	| L_TOPOLOGY L_LBRACE address_match_list L_RBRACE
+        {
+                dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+                INSIST(view != NULL);
+
+                tmpres = dns_c_view_settopology(view,
+						$3, ISC_FALSE);
+                switch (tmpres) {
+                case ISC_R_EXISTS:
+                        parser_warning(ISC_FALSE,
+                                       "Redefining view topology.");
+                        break;
+
+                case ISC_R_SUCCESS:
+                        /* nothing */
+                        break;
+
+                default:
+                        parser_error(ISC_FALSE,
+                                     "Failed to set view topology.");
+                        break;
+                }
+        }
+	| L_LISTEN_ON maybe_port L_LBRACE address_match_list L_RBRACE
+        {
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+                INSIST(view != NULL);
+		
+		if ($4 == NULL) {
+                        parser_warning(ISC_FALSE,
+                                       "address-match-list empty. "
+                                       "listen statement ignored.");
+                } else {
+                        tmpres = dns_c_view_addlisten_on(view, $2, $4,
+							 ISC_FALSE);
+
+                        if (tmpres != ISC_R_SUCCESS) {
+                                parser_error(ISC_FALSE,
+                                             "Failed to add listen statement");
+                                YYABORT;
+                        }
+                }
+        }
+/* XXX not implemented yet
+	| L_RRSET_ORDER L_LBRACE rrset_ordering_list L_RBRACE 
+	| L_CHECK_NAMES 
+	| L_TRANSFER_FORMAT
+*/
         | zone_stmt;
 	;
 
 /* XXX other view statements need to go in here???. */
 
 
-
-                
+/*
+  key
+  trusted-keys
+  server
+  options {
+     forwarders
+     blackhole
+     lame-ttl
+     max-ncache-ttl
+     min-roots
+     cleaning-interval
+  }              
+*/
                 
 /*
  * ACLs
@@ -2605,7 +2808,13 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 		
 		zone = dns_c_ctx_getcurrzone(currcfg);
 		view = dns_c_ctx_getcurrview(currcfg);
-		
+
+		zone->view = view;
+
+		if (view != NULL) {
+			dns_c_view_addzone(view, zone);
+		}
+
 		dns_c_ctx_setcurrzone(currcfg, NULL);
 
                 if (callbacks != NULL && callbacks->zonecbk != NULL) {
