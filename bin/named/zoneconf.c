@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.74 2000/11/28 19:15:12 gson Exp $ */
+/* $Id: zoneconf.c,v 1.75 2000/12/01 18:22:14 gson Exp $ */
 
 #include <config.h>
 
@@ -24,9 +24,12 @@
 #include <isc/util.h>
 
 #include <dns/acl.h>
+#include <dns/log.h>
 #include <dns/ssu.h>
 #include <dns/zone.h>
 
+#include <named/globals.h>
+#include <named/log.h>
 #include <named/zoneconf.h>
 
 /*
@@ -369,12 +372,21 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 * primary masters only.
 	 */
 	if (czone->ztype == dns_c_zone_master) {
+		dns_acl_t *updateacl;
 		RETERR(configure_zone_acl(czone, cctx, NULL, ac, zone,
 					  dns_c_zone_getallowupd,
 					  NULL, NULL,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
-
+		
+		updateacl = dns_zone_getupdateacl(zone);
+		if (updateacl != NULL  && dns_acl_isinsecure(updateacl))
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "zone '%s' allows updates by IP "
+				      "address, which is insecure",
+				      czone->name);
+		
 		result = dns_c_zone_getssuauth(czone, &ssutable);
 		if (result == ISC_R_SUCCESS)
 			dns_zone_setssutable(zone, ssutable);

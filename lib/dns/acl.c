@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.16 2000/11/15 22:59:55 tale Exp $ */
+/* $Id: acl.c,v 1.17 2000/12/01 18:22:15 gson Exp $ */
 
 #include <config.h>
 
@@ -314,6 +314,68 @@ dns_acl_equal(dns_acl_t *a, dns_acl_t *b) {
 			return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
+}
+
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK (unsigned long)0x7F000001UL
+#endif
+
+static isc_boolean_t
+is_loopback(dns_aclipprefix_t *p) {
+	switch (p->address.family) {
+	case AF_INET:
+		if (p->prefixlen == 32 &&
+		    htonl(p->address.type.in.s_addr) == INADDR_LOOPBACK)
+			return (ISC_TRUE);
+		break;
+	case AF_INET6:
+		if (p->prefixlen == 128 &&
+		    IN6_IS_ADDR_LOOPBACK(&p->address.type.in6))
+			return (ISC_TRUE);
+		break;
+	default:
+		break;
+	}
+	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_acl_isinsecure(dns_acl_t *a) {
+	unsigned int i;
+	for (i = 0; i < a->length; i++) {
+		dns_aclelement_t *e = &a->elements[i];
+
+		/* A negated match can never be insecure. */
+		if (e->negative)
+			continue;
+
+		switch (e->type) {
+		case dns_aclelementtype_ipprefix:
+			/* The loopback address is considered secure. */
+			if (! is_loopback(&e->u.ip_prefix))
+				return (ISC_TRUE);
+			continue;
+			
+		case dns_aclelementtype_keyname:
+		case dns_aclelementtype_localhost:
+			continue;
+
+		case dns_aclelementtype_nestedacl:
+			if (dns_acl_isinsecure(e->u.nestedacl))
+				return (ISC_TRUE);
+			continue;
+			
+		case dns_aclelementtype_localnets:
+		case dns_aclelementtype_any:
+			return (ISC_TRUE);
+
+		default:
+			INSIST(0);
+			return (ISC_TRUE);
+		}
+	}
+	/* No insecure elements were found. */
+	return (ISC_FALSE);
 }
 
 isc_result_t

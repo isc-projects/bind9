@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.15 2000/11/10 03:16:23 gson Exp $ */
+/* $Id: acl.h,v 1.16 2000/12/01 18:22:17 gson Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -52,16 +52,20 @@ typedef enum {
 	dns_aclelementtype_any
 } dns_aclelemettype_t;
 
+typedef struct dns_aclipprefix dns_aclipprefix_t;
+
+struct dns_aclipprefix {
+	isc_netaddr_t address; /* IP4/IP6 */
+	unsigned int prefixlen;
+};
+
 struct dns_aclelement {
 	dns_aclelemettype_t type;
 	isc_boolean_t negative;
 	union {
-		struct {
-			isc_netaddr_t address; /* IP4/IP6 */
-			unsigned int prefixlen;
-		} ip_prefix;
-		dns_name_t keyname;
-		dns_acl_t *nestedacl;
+		dns_aclipprefix_t ip_prefix;
+		dns_name_t 	  keyname;
+		dns_acl_t 	  *nestedacl;
 	} u;
 };
 
@@ -126,6 +130,17 @@ dns_aclelement_equal(dns_aclelement_t *ea, dns_aclelement_t *eb);
 
 isc_boolean_t
 dns_acl_equal(dns_acl_t *a, dns_acl_t *b);
+
+isc_boolean_t
+dns_acl_isinsecure(dns_acl_t *a);
+/*
+ * Return ISC_TRUE iff the acl 'a' is considered insecure, that is,
+ * if it contains IP addresses other than those of the local host.
+ * This is intended for applications such as printing warning 
+ * messages for suspect ACLs; it is not intended for making access
+ * control decisions.  We make no guarantee that an ACL for which
+ * this function returns ISC_FALSE is safe.
+ */
 
 isc_result_t
 dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env);

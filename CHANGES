@@ -1,3 +1,11 @@
+
+ 587.	[func]		A warning is now printed if the "allow-update"
+			option allows updates based on the source IP
+			address, to alert users to the fact that this
+			is insecure and becoming increasingly so as
+			servers capable of update forwarding are being
+			deployed.
+
  586.	[bug]		multiple views with the same name were fatal. [RT #516]
 
  585.	[func]		dns_db_addrdataset() and and dns_rdataslab_merge()
