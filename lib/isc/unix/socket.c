@@ -714,19 +714,20 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 		} \
 		return (DOIO_SOFT); \
 	}
+#define ALWAYS_HARD(_system, _isc) \
+	if (errno == _system) { \
+		sock->recv_result = _isc; \
+		send_recvdone_event(sock, &dev, _isc); \
+		return (DOIO_HARD); \
+	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
-#undef SOFT_OR_HARD
+		ALWAYS_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+		ALWAYS_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 
-		/*
-		 * This might not be a permanent error.
-		 */
-		if (errno == ENOBUFS) {
-			send_recvdone_event(sock, &dev, ISC_R_NORESOURCES);
-			return (DOIO_HARD);
-		}
+#undef SOFT_OR_HARD
+#undef ALWAYS_HARD
 
 		sock->recv_result = ISC_R_UNEXPECTED;
 		send_recvdone_event(sock, &dev, ISC_R_UNEXPECTED);
@@ -832,19 +833,20 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev)
 		} \
 		return (DOIO_SOFT); \
 	}
+#define ALWAYS_HARD(_system, _isc) \
+	if (errno == _system) { \
+		sock->send_result = _isc; \
+		send_senddone_event(sock, &dev, _isc); \
+		return (DOIO_HARD); \
+	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
-#undef SOFT_OR_HARD
+		ALWAYS_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+		ALWAYS_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 
-		/*
-		 * This might not be a permanent error.
-		 */
-		if (errno == ENOBUFS) {
-			send_senddone_event(sock, &dev, ISC_R_NORESOURCES);
-			return (DOIO_HARD);
-		}
+#undef SOFT_OR_HARD
+#undef ALWAYS_HARD
 
 		/*
 		 * The other error types depend on whether or not the
