@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.36.2.1 2000/09/21 18:27:15 gson Exp $ */
+/* $Id: dnssec-keygen.c,v 1.36.2.2 2000/11/09 00:39:14 gson Exp $ */
 
 #include <config.h>
 
@@ -43,7 +43,7 @@
 
 #include "dnssectool.h"
 
-#define MAX_RSA 2048 /* XXX ogud update this when rsa library is updated */
+#define MAX_RSA 2000 /* XXXBEW dnssafe is broken */
 
 const char *program = "dnssec-keygen";
 int verbose;

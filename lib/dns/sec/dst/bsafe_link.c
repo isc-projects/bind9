@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.32.2.1 2000/09/07 19:29:05 gson Exp $
+ * $Id: bsafe_link.c,v 1.32.2.2 2000/11/09 00:39:12 gson Exp $
  */
 
 #if defined(DNSSAFE)
@@ -46,7 +46,12 @@ typedef struct dnssafekey {
 	B_KEY_OBJ rk_Public_Key;
 } RSA_Key;
 
-#define MAX_RSA_MODULUS_BITS 2048
+/*
+ * BEW: 2048 should be the maximum with dnssafe, but the library does
+ * bad things with over 2000.
+ */
+/*#define MAX_RSA_MODULUS_BITS 2048*/
+#define MAX_RSA_MODULUS_BITS 2000
 #define MAX_RSA_MODULUS_LEN (MAX_RSA_MODULUS_BITS/8)
 #define MAX_RSA_PRIME_LEN (MAX_RSA_MODULUS_LEN/2)
 
@@ -315,6 +320,8 @@ dnssafersa_generate(dst_key_t *key, int exp) {
 	isc_result_t ret;
 	isc_mem_t *mctx;
 
+	if (key->key_size > MAX_RSA_MODULUS_BITS)
+		return (ISC_R_FAILURE);
 	mctx = key->mctx;
 	rsa = (RSA_Key *) isc_mem_get(mctx, sizeof(RSA_Key));
 	if (rsa == NULL)
@@ -459,6 +466,8 @@ dnssafersa_destroy(dst_key_t *key) {
 
 	mctx = key->mctx;
 	rkey = key->opaque;
+	if (rkey == NULL)
+		return;
 	if (rkey->rk_Private_Key != NULL)
 		B_DestroyKeyObject(&rkey->rk_Private_Key);
 	if (rkey->rk_Public_Key != NULL)
@@ -520,11 +529,12 @@ dnssafersa_keysize(RSA_Key *key) {
 static isc_result_t
 dnssafersa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	unsigned int bytes;
-	RSA_Key *rkey;
-	A_RSA_KEY *public;
+	RSA_Key *rkey = NULL;
+	A_RSA_KEY *public = NULL;
 	isc_region_t r;
 	isc_buffer_t b;
 	isc_mem_t *mctx;
+	isc_result_t result;
 
 	mctx = key->mctx;
 	isc_buffer_remainingregion(data, &r);
@@ -534,12 +544,12 @@ dnssafersa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	rkey = (RSA_Key *) isc_mem_get(mctx, sizeof(RSA_Key));
 	if (rkey == NULL)
 		return (ISC_R_NOMEMORY);
-
-	memset(rkey, 0, sizeof(RSA_Key));
+	rkey->rk_Public_Key = NULL;
+	rkey->rk_Private_Key = NULL;
 
 	if (B_CreateKeyObject(&rkey->rk_Public_Key) != 0) {
-		isc_mem_put(mctx, rkey, sizeof(RSA_Key));
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_NOMEMORY;
+		goto fail;
 	}
 
 	/*
@@ -549,54 +559,51 @@ dnssafersa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (bytes == 0)  /* special case for long exponents */
 		bytes = isc_buffer_getuint16(data);
 
-	if (bytes > MAX_RSA_MODULUS_LEN) { 
-		dnssafersa_destroy(key);
-		return (DST_R_INVALIDPUBLICKEY);
+	if (bytes > MAX_RSA_MODULUS_LEN) {
+		result = DST_R_INVALIDPUBLICKEY;
+		goto fail;
 	}
 
 	public = (A_RSA_KEY *) isc_mem_get(mctx, sizeof(A_RSA_KEY));
 	if (public == NULL)
-		return (ISC_R_NOMEMORY);
+		goto fail;
 	memset(public, 0, sizeof(*public));
 	public->exponent.len = bytes;
 	public->exponent.data = (unsigned char *) isc_mem_get(mctx, bytes);
 	if (public->exponent.data == NULL) {
-		isc_mem_put(mctx, public, sizeof(*public));
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_NOMEMORY;
+		goto fail;
 	}
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length < bytes) {
-		isc_mem_put(mctx, public, sizeof(*public));
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_UNEXPECTEDEND;
+		goto fail;
 	}
 	memcpy(public->exponent.data, r.base, bytes);
 	isc_buffer_forward(data, bytes);
 
 	isc_buffer_remainingregion(data, &r);
 
-	if (r.length > MAX_RSA_MODULUS_LEN) { 
-		dnssafersa_destroy(key);
-		memset(public->exponent.data, 0, bytes);
-		isc_mem_put(mctx, public->exponent.data, bytes);
-		isc_mem_put(mctx, public, sizeof(*public));
-		return (ISC_R_NOMEMORY);
+	if (r.length > MAX_RSA_MODULUS_LEN) {
+		result = ISC_R_FAILURE;
+		goto fail;
 	}
 	public->modulus.len = r.length;
 	public->modulus.data = (unsigned char *) isc_mem_get(mctx, r.length);
 	if (public->modulus.data == NULL) {
-		dnssafersa_destroy(key);
-		memset(public->exponent.data, 0, bytes);
-		isc_mem_put(mctx, public->exponent.data, bytes);
-		isc_mem_put(mctx, public, sizeof(*public));
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_NOMEMORY;
+		goto fail;
 	}
 	memcpy(public->modulus.data, r.base, r.length);
 	isc_buffer_forward(data, r.length);
 
 	if (B_SetKeyInfo(rkey->rk_Public_Key, KI_RSAPublic, (POINTER)public)
 	    != 0)
-		return (DST_R_INVALIDPUBLICKEY);
+	{
+		result = DST_R_INVALIDPUBLICKEY;
+		goto fail;
+	}
 
 	isc_buffer_init(&b, public->modulus.data + public->modulus.len - 3, 2);
 	isc_buffer_add(&b, 2);
@@ -612,6 +619,19 @@ dnssafersa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	key->opaque = (void *) rkey;
 
 	return (ISC_R_SUCCESS);
+
+ fail:
+	if (rkey != NULL) {
+		if (rkey->rk_Public_Key != NULL)
+			B_DestroyKeyObject(&rkey->rk_Public_Key);
+		isc_mem_put(mctx, rkey, sizeof(RSA_Key));
+	}
+	if (public != NULL) {
+		if (public->exponent.data != NULL)
+			isc_mem_put(mctx, public->exponent.data, bytes);
+		isc_mem_put(mctx, public, sizeof(*public));
+	}
+	return (result);
 }
 
 static isc_result_t
