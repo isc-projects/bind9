@@ -9,7 +9,7 @@ static char *text_table[LAST_ENTRY+1] = {
 };
 
 char *
-isc_result_to_text(isc_result result) {
+isc_result_totext(isc_result result) {
 	if (result == ISC_R_UNEXPECTED)
 		return ("unexpected error");
 	if (result > LAST_ENTRY)

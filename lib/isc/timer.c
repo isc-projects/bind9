@@ -233,7 +233,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_time_get() failed: %s",
-				 isc_result_to_text(result));
+				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -308,7 +308,7 @@ timer_reset(timer_t timer, timer_type_t type,
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_time_get() failed: %s",
-				 isc_result_to_text(result));
+				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -355,7 +355,7 @@ timer_touch(timer_t timer) {
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_time_get() failed: %s",
-				 isc_result_to_text(result));
+				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 	os_time_add(&now, &timer->interval, &timer->idle);

@@ -8,8 +8,8 @@ typedef unsigned int isc_result;
 #define ISC_R_NOMEMORY			1
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 
-#define isc_result_to_text		__isc_result_to_text
+#define isc_result_totext		__isc_result_totext
 
-char *					isc_result_to_text(isc_result);
+char *					isc_result_totext(isc_result);
 
 #endif /* ISC_RESULT_H */
