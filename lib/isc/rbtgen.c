@@ -79,24 +79,7 @@ rotate_right(RBT_NODE_T node, RBT_NODE_T parent, RBT_NODE_T *rootp) {
 		*rootp = child;
 }
 
-RBT_NODE_T
-RBT_SEARCH(RBT_NODE_T current, RBT_KEY_T key) {
-	int i;
-
-	while (current != NULL) {
-		i = COMPARE_KEYS(key, KEY(current));
-		if (i == 0)
-			break;
-		if (i < 0)
-			current = LEFT(current);
-		else
-			current = RIGHT(current);
-	}
-
-	return (current);
-}
-
-void
+isc_result_t
 RBT_INSERT(RBT_NODE_T node, RBT_NODE_T *rootp) {
 	RBT_NODE_T current, child, root, parent, grandparent, tmp;
 	int i;
@@ -110,7 +93,7 @@ RBT_INSERT(RBT_NODE_T node, RBT_NODE_T *rootp) {
 	if (root == NULL) {
 		MAKE_BLACK(node);
 		*rootp = node;
-		return;
+		return (ISC_R_SUCCESS);
 	}
 
 	current = NULL;
@@ -121,7 +104,8 @@ RBT_INSERT(RBT_NODE_T node, RBT_NODE_T *rootp) {
 		depth++;
 		current = child;
 		i = COMPARE_KEYS(KEY(node), KEY(current));
-		INSIST(i != 0);
+		if (i == 0)
+			return (ISC_R_EXISTS);
 		if (i < 0)
 			child = LEFT(current);
 		else
@@ -200,6 +184,25 @@ RBT_INSERT(RBT_NODE_T node, RBT_NODE_T *rootp) {
 
 	MAKE_BLACK(root);
 	*rootp = root;
+
+	return (ISC_R_SUCCESS);
+}
+
+RBT_NODE_T
+RBT_SEARCH(RBT_NODE_T current, RBT_KEY_T key) {
+	int i;
+
+	while (current != NULL) {
+		i = COMPARE_KEYS(key, KEY(current));
+		if (i == 0)
+			break;
+		if (i < 0)
+			current = LEFT(current);
+		else
+			current = RIGHT(current);
+	}
+
+	return (current);
 }
 
 static inline void
