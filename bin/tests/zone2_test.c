@@ -233,7 +233,8 @@ query(dns_view_t *view) {
 			continue;
 		}
 		if (strcasecmp(buf, "journal") == 0) {
-			dns_journal_print(view->mctx, "dv.isc.org.ixfr", stdout);
+			dns_journal_print(view->mctx, "dv.isc.org.ixfr",
+					  stdout);
 			reload = 0;
 			continue;
 		}
@@ -257,7 +258,7 @@ query(dns_view_t *view) {
 				continue;
 			}
 			result = dns_zone_load(zone);
-			fprintf(stdout, "%s() returned %s\n", "dns_zone_reload",
+			fprintf(stdout, "dns_zone_reload() returned %s\n",
 				dns_result_totext(result));
 			reload = 0;
 			dns_zone_detach(&zone);

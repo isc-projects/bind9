@@ -328,7 +328,7 @@ isc_lex_getsourcename(isc_lex_t *lex);
  */
 
 
-int
+unsigned long
 isc_lex_getsourceline(isc_lex_t *lex);
 /*
  * Return the input source name.

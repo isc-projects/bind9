@@ -114,7 +114,8 @@ dns_tsigkey_free(dns_tsigkey_t **key);
 void
 dns_tsigkey_setdeleted(dns_tsigkey_t *key);
 /*
- *	Marks this key as deleted.  It will be deleted when no references exist.
+ *	Marks this key as deleted.  It will be deleted when no references
+ *	exist.
  *
  *	Requires:
  *		'key' is a valid TSIG key
@@ -134,7 +135,8 @@ dns_tsig_sign(dns_message_t *msg);
  *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY
  *		ISC_R_NOSPACE
- *		DNS_R_EXPECTEDTSIG - this is a response & msg->querytsig is NULL
+ *		DNS_R_EXPECTEDTSIG
+ *			- this is a response & msg->querytsig is NULL
  */
 
 isc_result_t

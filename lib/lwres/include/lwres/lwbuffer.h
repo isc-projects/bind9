@@ -45,9 +45,9 @@
  *
  * The 'active region' is an (optional) subregion of the remaining region.
  * It extends from the current offset to an offset in the remaining region
- * that is selected with lwres_buffer_setactive().  Initially, the active region
- * is empty.  If the current offset advances beyond the chosen offset, the
- * active region will also be empty.
+ * that is selected with lwres_buffer_setactive().  Initially, the active
+ * region is empty.  If the current offset advances beyond the chosen offset,
+ * the active region will also be empty.
  *
  *  /----- used region -----\/-- available --\
  *  +----------------------------------------+

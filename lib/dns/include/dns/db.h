@@ -197,8 +197,8 @@ dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
  *
  * Notes:
  *	All names in the database must be subdomains of 'origin' and in class
- *	'rdclass'.  The database makes its own copy of the origin, so the caller
- *	may do whatever they like with 'origin' and its storage once the
+ *	'rdclass'.  The database makes its own copy of the origin, so the
+ *	caller may do whatever they like with 'origin' and its storage once the
  *	call returns.
  *
  *	If 'cache' is ISC_TRUE, then cache semantics will be used, otherwise

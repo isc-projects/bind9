@@ -449,11 +449,11 @@ dns_view_createresolver(dns_view_t *view,
 	view->attributes &= ~DNS_VIEWATTR_ADBSHUTDOWN;
 
 	result = dns_requestmgr_create(view->mctx, timermgr, socketmgr,
-				       dns_resolver_taskmgr(view->resolver),
-				       dns_resolver_dispatchmgr(view->resolver),
-				       dns_resolver_dispatchv4(view->resolver),
-				       dns_resolver_dispatchv6(view->resolver),
-				       &view->requestmgr);
+				      dns_resolver_taskmgr(view->resolver),
+				      dns_resolver_dispatchmgr(view->resolver),
+				      dns_resolver_dispatchv4(view->resolver),
+				      dns_resolver_dispatchv6(view->resolver),
+				      &view->requestmgr);
 	if (result != ISC_R_SUCCESS) {
 		dns_adb_shutdown(view->adb);
 		dns_resolver_shutdown(view->resolver);

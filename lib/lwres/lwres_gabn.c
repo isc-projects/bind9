@@ -467,7 +467,8 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp)
 
 	if (gabn->naliases > 0) {
 		CTXFREE(gabn->aliases, sizeof(char *) * gabn->naliases);
-		CTXFREE(gabn->aliaslen, sizeof(lwres_uint16_t) * gabn->naliases);
+		CTXFREE(gabn->aliaslen,
+			sizeof(lwres_uint16_t) * gabn->naliases);
 	}
 	addr = LWRES_LIST_HEAD(gabn->addrs);
 	while (addr != NULL) {

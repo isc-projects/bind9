@@ -87,13 +87,15 @@ pbuf(isc_buffer_t *pbuf) {
 #endif	/* NEED_PBUF */
 
 /*
- * compare data at buf with data in hex representation at exp_data,
+ * Compare data at buf with data in hex representation at exp_data,
  * of length exp_data_len, for equality.
- * return 0 if equal, else non-zero
+ * Return 0 if equal, else non-zero.
  */
 
 static int
-chkdata(unsigned char *buf, size_t buflen, char *exp_data, size_t exp_data_len) {
+chkdata(unsigned char *buf, size_t buflen, char *exp_data,
+	size_t exp_data_len)
+{
 	int		result;
 	unsigned char	*p;
 	unsigned char	*v;
@@ -1142,9 +1144,9 @@ t_dns_name_compare(void) {
 	}
 }
 
-char	*a30 =	"dns_name_rdatacompare(name1, name2) returns information about "
-		"the relative ordering of name1 and name2 as if they are part "
-		"of rdata in DNSSEC canonical form";
+char	*a30 =	"dns_name_rdatacompare(name1, name2) returns information "
+		"about the relative ordering of name1 and name2 as if they "
+		"are part of rdata in DNSSEC canonical form";
 
 /*
  * a31, a32 merged into a30.
@@ -2335,7 +2337,7 @@ test_dns_name_towire(char *testname, int dc_method, char *exp_data,
 				result = T_PASS;
 		} else {
 			t_info("dns_name_towire unexpectedly returned %s\n",
-					dns_result_totext(dns_result));
+			       dns_result_totext(dns_result));
 			result = T_FAIL;
 		}
 	} else {

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.16 2000/05/15 21:30:45 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.17 2000/05/24 05:09:37 tale Exp $
  */
 
 #if defined(OPENSSL)
@@ -484,8 +484,8 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id,
 			BN_free(dh->g);
 			dh->p = &bn768;
 			dh->g = &bn2;
-		}
-		else if (key->key_size == 1024 && BN_cmp(dh->p, &bn1024) == 0) {
+		} else if (key->key_size == 1024 &&
+			   BN_cmp(dh->p, &bn1024) == 0) {
 			BN_free(dh->p);
 			BN_free(dh->g);
 			dh->p = &bn1024;

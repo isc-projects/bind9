@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.61 2000/05/22 23:17:22 bwelling Exp $
+ * $Id: tsig.c,v 1.62 2000/05/24 05:09:15 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -434,8 +434,8 @@ dns_tsig_sign(dns_message_t *msg) {
 			if (tsig.otherlen > 0) {
 				r.length = tsig.otherlen;
 				r.base = tsig.other;
-				ret = dst_key_sign(DST_SIGMODE_UPDATE, key->key,
-					       &ctx, &r, NULL);
+				ret = dst_key_sign(DST_SIGMODE_UPDATE,
+						   key->key, &ctx, &r, NULL);
 				if (ret != ISC_R_SUCCESS)
 					goto cleanup_other;
 			}
@@ -680,7 +680,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		sig_r.base = tsig->signature;
 		sig_r.length = tsig->siglen;
 
-		ret = dst_key_verify(DST_SIGMODE_INIT, key, &ctx, NULL, &sig_r);
+		ret = dst_key_verify(DST_SIGMODE_INIT, key, &ctx, NULL,
+				     &sig_r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
 
@@ -738,7 +739,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_usedregion(source, &source_r);
 		r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 		r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
-		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r,
+				     &sig_r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
 
@@ -746,7 +748,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 * Digest the key name.
 		 */
 		dns_name_toregion(&tsigkey->name, &r);
-		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r,
+				     &sig_r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
 
@@ -754,7 +757,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_putuint16(&databuf, tsig->common.rdclass);
 		isc_buffer_putuint32(&databuf, msg->tsigset->ttl);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r,
+				     &sig_r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
 
@@ -762,7 +766,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 * Digest the key algorithm.
 		 */
 		dns_name_toregion(&tsigkey->algorithm, &r);
-		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r,
+				     &sig_r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
 
@@ -775,7 +780,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_putuint16(&databuf, tsig->error);
 		isc_buffer_putuint16(&databuf, tsig->otherlen);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &ctx, &r,
+				     &sig_r);
 
 		if (tsig->otherlen > 0) {
 			r.base = tsig->other;
@@ -978,8 +984,8 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 							      & 0xFFFFFFFF));
 		isc_buffer_putuint16(&databuf, tsig->fudge);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &msg->tsigctx, &r,
-				     NULL);
+		ret = dst_key_verify(DST_SIGMODE_UPDATE, key, &msg->tsigctx,
+				     &r, NULL);
 
 		sig_r.base = tsig->signature;
 		sig_r.length = tsig->siglen;

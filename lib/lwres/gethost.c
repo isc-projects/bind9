@@ -92,7 +92,8 @@ lwres_endhostent(void) {
 
 struct hostent *
 lwres_gethostbyname_r(const char *name, struct hostent *resbuf,
-		char *buf, int buflen, int *error) {
+		char *buf, int buflen, int *error)
+{
 	struct hostent *he;
 	int res;
 
@@ -110,8 +111,10 @@ lwres_gethostbyname_r(const char *name, struct hostent *resbuf,
 }
 
 struct hostent  *
-lwres_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *resbuf,
-		char *buf, int buflen, int *error) {
+lwres_gethostbyaddr_r(const char *addr, int len, int type,
+		      struct hostent *resbuf, char *buf, int buflen,
+		      int *error)
+{
 	struct hostent *he;
 	int res;
 

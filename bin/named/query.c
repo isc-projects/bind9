@@ -311,7 +311,8 @@ query_newrdataset(ns_client_t *client) {
 	rdataset = NULL;
 	result = dns_message_gettemprdataset(client->message, &rdataset);
 	if (result != ISC_R_SUCCESS) {
-	  CTRACE("query_newrdataset: dns_message_gettemprdataset failed: done");
+	  CTRACE("query_newrdataset: "
+		 "dns_message_gettemprdataset failed: done");
 		return (NULL);
 	}
 	dns_rdataset_init(rdataset);
@@ -1747,11 +1748,14 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		query_putrdataset(client, &devent->sigrdataset);
 		isc_event_free(&event);
 		ns_client_next(client, ISC_R_CANCELED);
-		/* This may destroy the client. */
+		/*
+		 * This may destroy the client.
+		 */
 		ns_client_detach(&client);
 	} else {
 		RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
-		dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
+		dns_zonemgr_lockconf(ns_g_server->zonemgr,
+				     isc_rwlocktype_read);
 		dns_view_attach(client->view, &client->lockview);
 		RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
 
@@ -1759,7 +1763,8 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		
 		RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
 		dns_view_detach(&client->lockview);		
-		dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
+		dns_zonemgr_unlockconf(ns_g_server->zonemgr,
+				       isc_rwlocktype_read);
 		RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 	}
 }

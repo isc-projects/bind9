@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.20 2000/05/22 12:37:33 marka Exp $ */
+/* $Id: gpos_27.c,v 1.21 2000/05/24 05:09:27 tale Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -161,7 +161,8 @@ tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	gpos->lat_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	if (gpos->lat_len > 0) {
-		gpos->latitude = mem_maybedup(mctx, region.base, gpos->lat_len);
+		gpos->latitude =
+			mem_maybedup(mctx, region.base, gpos->lat_len);
 		if (gpos->latitude == NULL)
 			goto cleanup_longitude;
 		isc_region_consume(&region, gpos->lat_len);
@@ -171,7 +172,8 @@ tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	gpos->alt_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 	if (gpos->lat_len > 0) {
-		gpos->altitude = mem_maybedup(mctx, region.base, gpos->alt_len);
+		gpos->altitude =
+			mem_maybedup(mctx, region.base, gpos->alt_len);
 		if (gpos->altitude == NULL)
 			goto cleanup_latitude;
 	} else 

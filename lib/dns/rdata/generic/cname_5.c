@@ -15,14 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.30 2000/05/22 12:37:31 marka Exp $ */
+/* $Id: cname_5.c,v 1.31 2000/05/24 05:09:26 tale Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
 #ifndef RDATA_GENERIC_CNAME_5_C
 #define RDATA_GENERIC_CNAME_5_C
 
-#define RRTYPE_CNAME_ATTRIBUTES (DNS_RDATATYPEATTR_EXCLUSIVE | DNS_RDATATYPEATTR_SINGLETON)
+#define RRTYPE_CNAME_ATTRIBUTES \
+	(DNS_RDATATYPEATTR_EXCLUSIVE | DNS_RDATATYPEATTR_SINGLETON)
 
 static inline isc_result_t
 fromtext_cname(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -285,7 +285,7 @@ get_view_querysource_dispatch(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (cview != NULL)
 			result = dns_c_view_getquerysource(cview, &sa);
 		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getquerysource(cctx, &sa);			
+			result = dns_c_ctx_getquerysource(cctx, &sa);
 		if (result != ISC_R_SUCCESS)
 			isc_sockaddr_any(&sa);
 		break;

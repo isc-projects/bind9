@@ -1023,7 +1023,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 	
 	result = isc_stdio_close(fp);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,		
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: close: %s",
 				 filename, isc_result_totext(result));
 		(void)isc_file_remove(filename);
@@ -1247,7 +1247,7 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	 * Check for offset wraparound.
 	 */
 	if (pos->offset + xhdr.size < pos->offset) {
-		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,		
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: offset too large",
 				 j->filename);
 		return (ISC_R_UNEXPECTED);		
@@ -1747,7 +1747,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 		if (n_soa == 3)
 			n_soa = 1;
 		if (n_soa == 0) {
-			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,			
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 					 "%s: journal file corrupt: missing "
 					 "initial SOA", j->filename);
 			FAIL(ISC_R_UNEXPECTED);

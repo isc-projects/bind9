@@ -392,7 +392,9 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 			       sizeof(struct in6_pktinfo));
 			dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
 			isc_sockaddr_fromin6(&sa, &dev->pktinfo.ipi6_addr, 53);
-			socket_log(sock, &sa, TRACE, "interface received on ifindex %u", dev->pktinfo.ipi6_ifindex);
+			socket_log(sock, &sa, TRACE,
+				   "interface received on ifindex %u",
+				   dev->pktinfo.ipi6_ifindex);
 			goto next;
 		}
 #endif
@@ -513,7 +515,9 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		isc_sockaddr_t sa;
 
 		isc_sockaddr_fromin6(&sa, &dev->pktinfo.ipi6_addr, 53);
-		socket_log(sock, &sa, TRACE, "sendto pktinfo data, ifindex %u", dev->pktinfo.ipi6_ifindex);
+		socket_log(sock, &sa, TRACE,
+			   "sendto pktinfo data, ifindex %u",
+			   dev->pktinfo.ipi6_ifindex);
 
 		msg->msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo));
 		msg->msg_control = (void *)sock->cmsg;

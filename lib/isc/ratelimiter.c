@@ -182,7 +182,8 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 			 * No work left to do.  Stop the timer so that we don't
 			 * waste resources by having it fire periodically.
 			 */
-			result = isc_timer_reset(rl->timer, isc_timertype_inactive,
+			result = isc_timer_reset(rl->timer,
+						 isc_timertype_inactive,
 						 NULL, NULL, ISC_FALSE);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			rl->state = isc_ratelimiter_worklimited;

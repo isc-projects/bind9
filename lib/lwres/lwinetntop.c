@@ -16,7 +16,8 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: lwinetntop.c,v 1.1 2000/02/04 06:02:51 halley Exp $";
+static char rcsid[] =
+	"$Id: lwinetntop.c,v 1.2 2000/05/24 05:09:53 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -52,8 +53,7 @@ static const char *inet_ntop6(const unsigned char *src, char *dst,
  *	Paul Vixie, 1996.
  */
 const char *
-lwres_net_ntop(int af, const void *src, char *dst, size_t size)
-{
+lwres_net_ntop(int af, const void *src, char *dst, size_t size) {
 	switch (af) {
 	case AF_INET:
 		return (inet_ntop4(src, dst, size));
@@ -80,8 +80,7 @@ lwres_net_ntop(int af, const void *src, char *dst, size_t size)
  *	Paul Vixie, 1996.
  */
 static const char *
-inet_ntop4(const unsigned char *src, char *dst, size_t size)
-{
+inet_ntop4(const unsigned char *src, char *dst, size_t size) {
 	static const char *fmt = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
 
@@ -102,8 +101,7 @@ inet_ntop4(const unsigned char *src, char *dst, size_t size)
  */
 #ifdef AF_INET6
 static const char *
-inet_ntop6(const unsigned char *src, char *dst, size_t size)
-{
+inet_ntop6(const unsigned char *src, char *dst, size_t size) {
 	/*
 	 * Note that int32_t and int16_t need only be "at least" large enough
 	 * to contain a value of the specified size.  On some systems, like

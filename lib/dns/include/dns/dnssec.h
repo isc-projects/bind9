@@ -107,9 +107,10 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  */
 
 isc_result_t
-dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node, 
-			dns_name_t *name, isc_mem_t *mctx, unsigned int maxkeys,
-			dst_key_t **keys, unsigned int *nkeys);
+dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
+			dns_name_t *name, isc_mem_t *mctx,
+			unsigned int maxkeys, dst_key_t **keys,
+			unsigned int *nkeys);
 /*
  * 	Finds a set of zone keys.
  * 	XXX temporary - this should be handled in dns_zone_t.

@@ -215,9 +215,9 @@ typedef struct {
 	} sortlist[LWRES_CONFMAXSORTLIST];
 	lwres_uint8_t	sortlistnxt;
 
-	lwres_uint8_t	resdebug;	/* non-zero if 'options debug' set */
-	lwres_uint8_t	ndots;		/* set to n in 'options ndots:n' */
-	lwres_uint8_t	no_tld_query;	/* non-zero if 'options no_tld_query' */
+	lwres_uint8_t	resdebug;      /* non-zero if 'options debug' set */
+	lwres_uint8_t	ndots;	       /* set to n in 'options ndots:n' */
+	lwres_uint8_t	no_tld_query;  /* non-zero if 'options no_tld_query' */
 } lwres_conf_t;
 	
 #define LWRES_ADDRTYPE_V4		0x00000001U	/* ipv4 */

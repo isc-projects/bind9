@@ -405,7 +405,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 		cpsize = sizeof ifreq;
 		if (ifreq.ifr_addr.sa_len > sizeof (struct sockaddr))
 			cpsize += (int)ifreq.ifr_addr.sa_len -
-				(int)(sizeof (struct sockaddr));
+				(int)(sizeof(struct sockaddr));
 #else
 		cpsize = sizeof ifreq.ifr_name + ifreq.ifr_addr.sa_len;
 #endif /* HAVE_MINIMUM_IFREQ */
@@ -422,7 +422,8 @@ scan_interfaces(int *have_v4, int *have_v6) {
 			if (*have_v4 == 0) {
 				memcpy(&in4,
 				       &((struct sockaddr_in *)
-				       &ifreq.ifr_addr)->sin_addr, sizeof in4);
+				       &ifreq.ifr_addr)->sin_addr,
+				       sizeof(in4));
 				if (in4.s_addr == INADDR_ANY)
 					break;
 				n = ioctl(s, SIOCGIFFLAGS, (char *)&ifreq);
@@ -437,9 +438,10 @@ scan_interfaces(int *have_v4, int *have_v6) {
 			if (*have_v6 == 0) {
 				memcpy(&in6,
 				       &((struct sockaddr_in6 *)
-				       &ifreq.ifr_addr)->sin6_addr, sizeof in6);
+				       &ifreq.ifr_addr)->sin6_addr,
+				       sizeof(in6));
 				if (memcmp(&in6, &lwres_in6addr_any,
-					   sizeof in6) == 0)
+					   sizeof(in6)) == 0)
 					break;
 				n = ioctl(s, SIOCGIFFLAGS, (char *)&ifreq);
 				if (n < 0)
@@ -465,7 +467,8 @@ scan_interfaces(int *have_v4, int *have_v6) {
 }
 
 static struct hostent *
-copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num) {
+copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
+{
 	struct hostent *he = NULL;
 	int addresses = 1;	/* NULL terminator */
 	int names = 1;		/* NULL terminator */

@@ -376,9 +376,10 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 	if (protocol->key != NULL) {
 		if (protocol->verify_result == ISC_R_SUCCESS)
 			protocol->verify_result =
-				dst_key_verify(DST_SIGMODE_FINAL, protocol->key,
-					   &protocol->dstctx, NULL,
-					   &protocol->signature_in);
+				dst_key_verify(DST_SIGMODE_FINAL,
+					       protocol->key,
+					       &protocol->dstctx, NULL,
+					       &protocol->signature_in);
 
 		if (protocol->verify_result != ISC_R_SUCCESS) {
 			if (connection->is_client) {

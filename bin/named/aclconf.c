@@ -166,7 +166,7 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 			break;
 
 		case dns_c_ipmatch_localnets:
-			de->type = dns_aclelementtype_localnets;			
+			de->type = dns_aclelementtype_localnets;
 			break;
 		case dns_c_ipmatch_acl:
 			de->type = dns_aclelementtype_nestedacl;

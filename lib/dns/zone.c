@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.123 2000/05/23 04:38:22 gson Exp $ */
+/* $Id: zone.c,v 1.124 2000/05/24 05:09:19 tale Exp $ */
 
 #include <config.h>
 
@@ -242,7 +242,8 @@ static void notify_done(isc_task_t *task, isc_event_t *event);
 static void notify_send_toaddr(isc_task_t *task, isc_event_t *event);
 static isc_result_t zone_dump(dns_zone_t *);
 static void got_transfer_quota(isc_task_t *task, isc_event_t *event);
-static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone);
+static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr,
+					     dns_zone_t *zone);
 static void zmgr_resume_xfrs(dns_zonemgr_t *zmgr);
 static void zonemgr_free(dns_zonemgr_t *zmgr);
 
@@ -2886,7 +2887,8 @@ zone_log(dns_zone_t *zone, const char *me, int level, const char *fmt, ...) {
 }
 
 static int
-message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type) {
+message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type)
+{
 	isc_result_t result;
 	dns_name_t *name;
 	dns_rdataset_t *curr;
@@ -3431,7 +3433,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 						  view->dynamickeys);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 			zone_log(zone, me, ISC_LOG_ERROR,
-				 "error getting tsig keys for zone transfer: %s",
+				 "error getting tsig keys "
+				 "for zone transfer: %s",
 				 isc_result_totext(result));
 			goto cleanup;
 		}

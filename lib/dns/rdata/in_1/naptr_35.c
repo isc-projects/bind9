@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.29 2000/05/22 12:38:08 marka Exp $ */
+/* $Id: naptr_35.c,v 1.30 2000/05/24 05:09:32 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -191,7 +191,8 @@ fromwire_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_in_naptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_in_naptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	dns_name_t name;
 	isc_region_t sr;
 

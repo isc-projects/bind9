@@ -343,7 +343,8 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dst_key_todns(key, &b);
 		if (result != ISC_R_SUCCESS)
-			fatal("failed to convert key %s/%s/%d to a DNS KEY: %s",
+			fatal("failed to convert key %s/%s/%d "
+			      "to a DNS KEY: %s",
 			      namestr, id, algtostr(alg),
 			      isc_result_totext(result));
 		isc_buffer_usedregion(&b, &r);

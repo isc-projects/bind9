@@ -84,20 +84,26 @@ struct dns_validator {
 #define VALATTR_FOUNDNONEXISTENCE	0x02
 #define SHUTDOWN(v)		(((v)->attributes & VALATTR_SHUTDOWN) != 0)
 
-static void nullkeyvalidated(isc_task_t *task, isc_event_t *event);
-static inline isc_boolean_t containsnullkey(dns_validator_t *val,
-					    dns_rdataset_t *rdataset);
-static inline isc_result_t get_dst_key(dns_validator_t *val,
-				       dns_siginfo_t *siginfo,
-				       dns_rdataset_t *rdataset);
-static inline isc_result_t validate(dns_validator_t *val, isc_boolean_t resume);
-static inline isc_result_t nxtvalidate(dns_validator_t *val,
-				       isc_boolean_t resume);
-static inline isc_result_t proveunsecure(dns_validator_t *val,
-					 isc_boolean_t resume);
+static void
+nullkeyvalidated(isc_task_t *task, isc_event_t *event);
 
-static void validator_log(dns_validator_t *val, int level,
-			  const char *fmt, ...);
+static inline isc_boolean_t
+containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset);
+
+static inline isc_result_t
+get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
+	    dns_rdataset_t *rdataset);
+static inline isc_result_t
+validate(dns_validator_t *val, isc_boolean_t resume);
+
+static inline isc_result_t
+nxtvalidate(dns_validator_t *val, isc_boolean_t resume);
+
+static inline isc_result_t
+proveunsecure(dns_validator_t *val, isc_boolean_t resume);
+
+static void
+validator_log(dns_validator_t *val, int level, const char *fmt, ...);
 
 static void
 rdata_to_siginfo(dns_rdata_t *rdata, dns_siginfo_t *siginfo) {

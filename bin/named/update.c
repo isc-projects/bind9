@@ -1294,11 +1294,13 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 		dns_dbnode_t *node = NULL;
 		
 		if (forward)
-			result = dns_dbiterator_next(dbit);			
+			result = dns_dbiterator_next(dbit);
 		else
 			result = dns_dbiterator_prev(dbit);
 		if (result == ISC_R_NOMORE) {
-			/* Wrap around. */
+			/*
+			 * Wrap around.
+			 */
 			if (forward)
 				CHECK(dns_dbiterator_first(dbit));
 			else 
@@ -1329,7 +1331,8 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
  * Add a NXT record for "name", recording the change in "diff".
  */
 static isc_result_t
-add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff) {
+add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
+{
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	unsigned char buffer[DNS_NXT_BUFFERSIZE];
@@ -1342,16 +1345,22 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff) 
 	target = dns_fixedname_name(&fixedname);	
 	
 	      
-	/* Find the successor name, aka NXT target. */
+	/*
+	 * Find the successor name, aka NXT target.
+	 */
 	CHECK(next_active(db, ver, name, target, ISC_TRUE));
 
-	/* Create the NXT RDATA. */
+	/*
+	 * Create the NXT RDATA.
+	 */
 	CHECK(dns_db_findnode(db, name, ISC_FALSE, &node));
 	dns_rdata_init(&rdata);
 	CHECK(dns_buildnxtrdata(db, ver, node, target, buffer, &rdata));
 	dns_db_detachnode(db, &node);	
 
-	/* Create a diff tuple, update the database, and record the change. */
+	/*
+	 * Create a diff tuple, update the database, and record the change.
+	 */
 	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
 				   3600,	/* XXXRTH */	   
 				   &rdata, &tuple));
@@ -1368,7 +1377,8 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff) 
  * Add a placeholder NXT record for "name", recording the change in "diff".
  */
 static isc_result_t
-add_placeholder_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff) {
+add_placeholder_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+		    dns_diff_t *diff) {
 	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 	isc_region_t r;
@@ -1647,11 +1657,14 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 					dns_rdatatype_nxt, 0,
 					NULL, &nxt_diff));
 		} else {
-			/* This name is not obscured.  It should have a NXT. */
+			/*
+			 * This name is not obscured.  It should have a NXT.
+			 */
 			CHECK(rrset_exists(db, newver, &t->name,
 					   dns_rdatatype_nxt, 0, &flag));
 			if (! flag) {
-				add_placeholder_nxt(db, newver, &t->name, diff);
+				add_placeholder_nxt(db, newver, &t->name,
+						    diff);
 			}
 		}
 	}

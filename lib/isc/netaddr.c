@@ -36,7 +36,8 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
 			return (ISC_FALSE);
 		break;
 	case AF_INET6:
-		if (memcmp(&a->type.in6, &b->type.in6, sizeof a->type.in6) != 0)
+		if (memcmp(&a->type.in6, &b->type.in6, sizeof a->type.in6)
+		    != 0)
 			return (ISC_FALSE);
 		break;
 	default:

@@ -509,7 +509,8 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 
 	if (msg->tsig != NULL) {
 		dns_rdata_freestruct(msg->tsig);
-		isc_mem_put(msg->mctx, msg->tsig, sizeof(dns_rdata_any_tsig_t));
+		isc_mem_put(msg->mctx, msg->tsig,
+			    sizeof(dns_rdata_any_tsig_t));
 		msg->tsig = NULL;
 	}
 

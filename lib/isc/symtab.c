@@ -99,10 +99,10 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 		for (elt = HEAD(symtab->table[i]); elt != NULL; elt = nelt) {
 			nelt = NEXT(elt, link);
 			if (symtab->undefine_action != NULL)
-				(symtab->undefine_action)(elt->key,
-							  elt->type,
-							  elt->value,
-							  symtab->undefine_arg);
+			       (symtab->undefine_action)(elt->key,
+							 elt->type,
+							 elt->value,
+							 symtab->undefine_arg);
 			isc_mem_put(symtab->mctx, elt, sizeof *elt);
 		}
 	}

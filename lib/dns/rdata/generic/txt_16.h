@@ -18,7 +18,7 @@
 #ifndef GENERIC_TXT_16_H
 #define GENERIC_TXT_16_H 1
 
-/* $Id: txt_16.h,v 1.16 2000/04/29 02:01:51 tale Exp $ */
+/* $Id: txt_16.h,v 1.17 2000/05/24 05:09:29 tale Exp $ */
 
 
 typedef struct dns_rdata_txt_string {
@@ -39,9 +39,14 @@ typedef struct dns_rdata_txt {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_rdata_txt_first(dns_rdata_txt_t *);
-isc_result_t dns_rdata_txt_next(dns_rdata_txt_t *);
-isc_result_t dns_rdata_txt_current(dns_rdata_txt_t *, dns_rdata_txt_string_t *);
+isc_result_t
+dns_rdata_txt_first(dns_rdata_txt_t *);
+
+isc_result_t
+dns_rdata_txt_next(dns_rdata_txt_t *);
+
+isc_result_t
+dns_rdata_txt_current(dns_rdata_txt_t *, dns_rdata_txt_string_t *);
 
 ISC_LANG_ENDDECLS
 

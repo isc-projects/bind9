@@ -247,7 +247,8 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx,
 
 	ret = dst_key_fromfile(name, id, alg, type, mctx, &key);
 	if (ret != ISC_R_SUCCESS) {
-		t_info("dst_key_fromfile(%d) returned: %s\n", alg, dst_result_totext(ret));
+		t_info("dst_key_fromfile(%d) returned: %s\n",
+		       alg, dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
@@ -275,8 +276,9 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx,
 
 	ret = dst_key_tofile(key, type);
 	if (ret != 0) {
-		t_info("dst_key_tofile(%d) returned: %s\n", alg, dst_result_totext(ret));
-		(void) chdir(current);
+		t_info("dst_key_tofile(%d) returned: %s\n",
+		       alg, dst_result_totext(ret));
+		(void)chdir(current);
 		++*nfails;
 		return;
 	}
@@ -401,7 +403,10 @@ t1(void) {
 	generate(DST_ALG_RSA, mctx, 512, &nfails);
 	generate(DST_ALG_DSA, mctx, 512, &nfails);
 	generate(DST_ALG_DH, mctx, 512, &nfails);
-	generate(DST_ALG_DH, mctx, 768, &nfails); /* this one uses a constant */
+	/*
+	 * This one uses a constant.
+	 */
+	generate(DST_ALG_DH, mctx, 768, &nfails);
 	generate(DST_ALG_HMACMD5, mctx, 512, &nfails);
 
 	t_info("testing random number sequence generation\n");
@@ -420,7 +425,7 @@ t1(void) {
 
 #define	T_SIGMAX	512
 
-#undef	NEWSIG	/* define NEWSIG to generate the original signature file */
+#undef	NEWSIG	/* Define NEWSIG to generate the original signature file. */
 
 #ifdef	NEWSIG
 

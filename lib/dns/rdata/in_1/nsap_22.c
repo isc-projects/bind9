@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.21 2000/05/22 12:38:10 marka Exp $ */
+/* $Id: nsap_22.c,v 1.22 2000/05/24 05:09:33 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -118,8 +118,8 @@ fromwire_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_in_nsap(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
-
+towire_in_nsap(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 

@@ -513,7 +513,8 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		rdt = rdata->type;
 		result = dns_rdata_fromstruct(rdata2, rdc, rdt, sp, b);
 		if (result != ISC_R_SUCCESS)
-			fprintf(stdout, "viastruct: fromstuct %d %d return %s\n",
+			fprintf(stdout,
+				"viastruct: fromstuct %d %d return %s\n",
 				rdata->type, rdata->rdclass,
 				dns_result_totext(result));
 		else if (rdata->length != rdata2->length ||
@@ -839,7 +840,9 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_lex_create(mctx, 256, &lex) == ISC_R_SUCCESS);
 
-	/* Set up to lex DNS master file. */
+	/*
+	 * Set up to lex DNS master file.
+	 */
 
 	specials['('] = 1;
 	specials[')'] = 1;
@@ -862,7 +865,9 @@ main(int argc, char *argv[]) {
 		if (token.type == isc_tokentype_eof)
 			break;
 	
-		/* get type */
+		/*
+		 * Get type.
+		 */
 		if (token.type == isc_tokentype_number) {
 			type = token.value.as_ulong;
 			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf));
@@ -874,7 +879,8 @@ main(int argc, char *argv[]) {
 					&token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stdout,
-				    "dns_rdatatype_fromtext returned %s(%d)\n",
+					"dns_rdatatype_fromtext "
+					"returned %s(%d)\n",
 					dns_result_totext(result), result);
 				fflush(stdout);
 				need_eol = 1;
@@ -886,13 +892,14 @@ main(int argc, char *argv[]) {
 		} else
 			continue;
 
-		if ((result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
-					  &token)) != ISC_R_SUCCESS)
-				  break;
+		result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
+					  &token)
+		if (result != ISC_R_SUCCESS)
+			break;
 		if (token.type == isc_tokentype_eol)
-				continue;
+			continue;
 		if (token.type == isc_tokentype_eof)
-				break;
+			break;
 		if (token.type == isc_tokentype_number) {
 			class = token.value.as_ulong;
 			isc_buffer_init(&tbuf, outbuf, sizeof(outbuf));
@@ -903,8 +910,8 @@ main(int argc, char *argv[]) {
 			result = dns_rdataclass_fromtext(&class,
 					&token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stdout,
-				    "dns_rdataclass_fromtext returned %s(%d)\n",
+				fprintf(stdout, "dns_rdataclass_fromtext "
+					"returned %s(%d)\n",
 					dns_result_totext(result), result);
 				fflush(stdout);
 				need_eol = 1;
@@ -942,7 +949,9 @@ main(int argc, char *argv[]) {
 			}
 		}
 
-		/* Convert to wire and back? */
+		/*
+		 * Convert to wire and back?
+		 */
 		if (wire) {
 			result = dns_compress_init(&cctx, -1, mctx);
 			if (result != ISC_R_SUCCESS) {

@@ -27,11 +27,11 @@
 
 #include "assert_p.h"
 
-#define LWPACKET_LENGTH (sizeof(lwres_uint16_t) * 4 + sizeof(lwres_uint32_t) * 5)
+#define LWPACKET_LENGTH \
+	(sizeof(lwres_uint16_t) * 4 + sizeof(lwres_uint32_t) * 5)
 
 lwres_result_t
-lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
-{
+lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt) {
 	REQUIRE(b != NULL);
 	REQUIRE(pkt != NULL);
 
@@ -52,8 +52,7 @@ lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 }
 
 lwres_result_t
-lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
-{
+lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt) {
 	lwres_uint32_t space;
 
 	REQUIRE(b != NULL);

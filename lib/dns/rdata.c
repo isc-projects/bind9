@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.94 2000/05/24 02:45:08 tale Exp $ */
+/* $Id: rdata.c,v 1.95 2000/05/24 05:09:12 tale Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -746,7 +746,8 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 	/*
 	 * Note: attrs is set and then used in the bit test with RESERVED
 	 * because testing "(flags & RESERVED) != 0" generates
-	 * warnings on IRIX about how the test always has the same value		* because it is all constants.
+	 * warnings on IRIX about how the test always has the same value
+	 * because it is all constants.
 	 */
 #define COMPARE(string, flags, type) \
 	if (((sizeof(string) - 1) == source->length) \

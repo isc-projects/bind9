@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.24 2000/05/22 12:38:07 marka Exp $ */
+/* $Id: aaaa_28.c,v 1.25 2000/05/24 05:09:31 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -104,7 +104,8 @@ fromwire_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_in_aaaa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_in_aaaa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	isc_region_t region;
 
 	UNUSED(cctx);

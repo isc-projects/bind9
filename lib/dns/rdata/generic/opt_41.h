@@ -18,7 +18,7 @@
 #ifndef GENERIC_OPT_41_H
 #define GENERIC_OPT_41_H 1
 
-/* $Id: opt_41.h,v 1.6 2000/04/29 02:01:47 tale Exp $ */
+/* $Id: opt_41.h,v 1.7 2000/05/24 05:09:28 tale Exp $ */
 
 /* RFC 2671 */
 
@@ -41,9 +41,14 @@ typedef struct dns_rdata_opt {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_rdata_opt_first(dns_rdata_opt_t *);
-isc_result_t dns_rdata_opt_next(dns_rdata_opt_t *);
-isc_result_t dns_rdata_opt_current(dns_rdata_opt_t *, dns_rdata_opt_opcode_t *);
+isc_result_t
+dns_rdata_opt_first(dns_rdata_opt_t *);
+
+isc_result_t
+dns_rdata_opt_next(dns_rdata_opt_t *);
+
+isc_result_t
+dns_rdata_opt_current(dns_rdata_opt_t *, dns_rdata_opt_opcode_t *);
 
 ISC_LANG_ENDDECLS
 

@@ -39,8 +39,9 @@
 
 static isc_result_t bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl);
 
-/* Helper for dns_ttl_totext(). */
-
+/*
+ * Helper for dns_ttl_totext().
+ */
 static isc_result_t
 ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
        isc_boolean_t space, isc_buffer_t *target)
@@ -65,8 +66,9 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 	return (ISC_R_SUCCESS);
 }
 
-/* Derived from bind8 ns_format_ttl(). */
-
+/*
+ * Derived from bind8 ns_format_ttl().
+ */
 isc_result_t
 dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
 	unsigned secs, mins, hours, days, weeks, x;
@@ -94,7 +96,8 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
 		RETERR(ttlfmt(mins, "minute", verbose, ISC_TF(x > 0), target));
 		x++;
 	}
-	if (secs != 0 || (weeks == 0 && days == 0 && hours == 0 && mins == 0)) {
+	if (secs != 0 ||
+	    (weeks == 0 && days == 0 && hours == 0 && mins == 0)) {
 		RETERR(ttlfmt(secs, "second", verbose, ISC_TF(x > 0), target));
 		x++;
 	}

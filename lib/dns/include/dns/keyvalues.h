@@ -42,7 +42,7 @@
 #define DNS_KEYFLAG_RESERVED9	0x0040	/* reserved - must be zero */
 #define DNS_KEYFLAG_RESERVED10	0x0020	/* reserved - must be zero */
 #define DNS_KEYFLAG_RESERVED11	0x0010	/* reserved - must be zero */
-#define DNS_KEYFLAG_SIGNATORYMASK	0x000F	/* key can sign RR's of same name */
+#define DNS_KEYFLAG_SIGNATORYMASK 0x000F /* key can sign RR's of same name */
 
 #define DNS_KEYFLAG_RESERVEDMASK (DNS_KEYFLAG_RESERVED2 | \
 				  DNS_KEYFLAG_RESERVED4 | \

@@ -700,7 +700,7 @@ isc_lex_getsourcename(isc_lex_t *lex) {
 	return (source->name);
 }
 
-int
+unsigned long
 isc_lex_getsourceline(isc_lex_t *lex) {
 	inputsource *source;
 

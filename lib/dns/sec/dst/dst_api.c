@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.39 2000/05/24 03:00:39 tale Exp $
+ * $Id: dst_api.c,v 1.40 2000/05/24 05:09:36 tale Exp $
  */
 
 #include <config.h>
@@ -154,7 +154,7 @@ dst_key_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  */
 
 isc_result_t
-dst_key_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
+dst_key_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	       isc_region_t *data, isc_region_t *sig)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -202,7 +202,8 @@ dst_key_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  */
 isc_result_t
 dst_key_digest(const unsigned int mode, const unsigned int alg,
-	       dst_context_t *context, isc_region_t *data, isc_buffer_t *digest)
+	       dst_context_t *context, isc_region_t *data,
+	       isc_buffer_t *digest)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE((mode & DST_SIGMODE_ALL) != 0);
@@ -756,7 +757,8 @@ dst_key_isnullkey(const dst_key_t *key) {
 }
 
 isc_result_t
-dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out) {
+dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out)
+{
 	char *suffix;
 	unsigned int namelen;
 	isc_region_t r;

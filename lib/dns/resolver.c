@@ -720,8 +720,9 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 *
 		 * XXXRTH  Should we attach to the socket?
 		 */
-		result = isc_socket_connect(query->tcpsocket, addrinfo->sockaddr,
-					    task, resquery_connected, query);
+		result = isc_socket_connect(query->tcpsocket,
+					    addrinfo->sockaddr, task,
+					    resquery_connected, query);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
 		query->attributes |= RESQUERY_ATTR_CONNECTING;
@@ -903,8 +904,8 @@ resquery_send(resquery_t *query) {
 					  fctx->res->view->statickeys);
 		if (result == ISC_R_NOTFOUND)
 			result = dns_tsigkey_find(&fctx->qmessage->tsigkey,
-						  keyname, NULL,
-						  fctx->res->view->dynamickeys);
+						 keyname, NULL,
+						 fctx->res->view->dynamickeys);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
 			goto cleanup_message;
 	}
@@ -1025,11 +1026,10 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 			result = dns_dispatch_createtcp(query->dispatchmgr,
-							query->tcpsocket,
-							query->fctx->res->taskmgr,
-							4096, 2, 1, 1, 3,
-							attrs,
-							&query->dispatch);
+						     query->tcpsocket,
+						     query->fctx->res->taskmgr,
+						     4096, 2, 1, 1, 3, attrs,
+						     &query->dispatch);
 		
 			/*
 			 * Regardless of whether dns_dispatch_create()
@@ -2956,8 +2956,8 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 					 *
 					 * Only one SOA is allowed.
 					 */
-					if (rdataset->type == dns_rdatatype_soa)
-					{
+					if (rdataset->type ==
+					    dns_rdatatype_soa) {
 						if (soa_name != NULL &&
 						    name != soa_name)
 							return (DNS_R_FORMERR);
