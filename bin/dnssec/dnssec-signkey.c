@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.37 2000/09/26 22:11:22 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.38 2000/10/17 07:22:21 marka Exp $ */
 
 #include <config.h>
 
@@ -273,7 +273,7 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(db, argv[0]);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		fatal("failed to load database from '%s': %s", argv[0],
 		      isc_result_totext(result));
 

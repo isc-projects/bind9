@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.74 2000/10/16 04:08:11 marka Exp $ */
+/* $Id: result.c,v 1.75 2000/10/17 07:22:31 marka Exp $ */
 
 #include <config.h>
 
@@ -104,7 +104,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"recoverable error occurred",	       /* 63 DNS_R_RECOVERABLE       */
 	"unknown opt attribute record",	       /* 64 DNS_R_UNKNOWNOPT        */
 
-	"unexpected message id"		       /* 65 DNS_R_UNEXPECTEDID      */
+	"unexpected message id",	       /* 65 DNS_R_UNEXPECTEDID      */
+	"seen include file"		       /* 66 DNS_R_SEENINCLUDE       */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

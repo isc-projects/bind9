@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.56 2000/09/26 22:45:52 bwelling Exp $ */
+/* $Id: db.c,v 1.57 2000/10/17 07:22:29 marka Exp $ */
 
 /***
  *** Imports
@@ -32,6 +32,7 @@
 #include <dns/master.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/result.h>
 
 /***
  *** Private Types
@@ -287,7 +288,7 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	 * result if dns_master_loadfile() succeeded.  If dns_master_loadfile()
 	 * failed, we want to return the result code it gave us.
 	 */
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE)
 		result = eresult;
 
 	return (result);

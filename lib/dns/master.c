@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.72 2000/09/23 01:05:35 bwelling Exp $ */
+/* $Id: master.c,v 1.73 2000/10/17 07:22:30 marka Exp $ */
 
 #include <config.h>
 
@@ -99,6 +99,7 @@ struct dns_loadctx {
 	isc_boolean_t		default_ttl_known;
 	isc_boolean_t		warn_1035;
 	isc_boolean_t		age_ttl;
+	isc_boolean_t		seen_include;
 	isc_uint32_t		ttl;
 	isc_uint32_t		default_ttl;
 	dns_rdataclass_t	zclass;
@@ -388,6 +389,7 @@ loadctx_create(isc_mem_t *mctx, isc_boolean_t age_ttl, dns_name_t *top,
 	ctx->default_ttl = 0;
 	ctx->warn_1035 = ISC_TRUE;	/* XXX Argument? */
 	ctx->age_ttl = age_ttl;
+	ctx->seen_include = ISC_FALSE;
 	ctx->zclass = zclass;
 
 	dns_fixedname_init(&ctx->fixed_top);
@@ -754,6 +756,7 @@ load(dns_loadctx_t **ctxp) {
 				CTX_COPYVAR(ctx, *ctxp, ttl);
 				CTX_COPYVAR(ctx, *ctxp, default_ttl);
 				CTX_COPYVAR(ctx, *ctxp, warn_1035);
+				CTX_COPYVAR(ctx, *ctxp, seen_include);
 				dns_loadctx_detach(&ctx);
 				ctx = *ctxp;
 				continue;
@@ -1372,7 +1375,8 @@ load(dns_loadctx_t **ctxp) {
 	if (!done) {
 		INSIST(ctx->done != NULL && ctx->task != NULL);
 		result = DNS_R_CONTINUE;
-	}
+	} else if (result == ISC_R_SUCCESS && ctx->seen_include)
+		result = DNS_R_SEENINCLUDE;
 	goto cleanup;
 
  log_and_cleanup:
@@ -1427,6 +1431,8 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp) {
 	ctx = *ctxp;
 	REQUIRE(DNS_LCTX_VALID(ctx));
 
+	ctx->seen_include = ISC_TRUE;
+
 	result = loadctx_create(ctx->mctx, ctx->age_ttl, ctx->top,
 				ctx->zclass, origin, ctx->callbacks,
 				ctx->task, ctx->done, ctx->done_arg,
@@ -1454,6 +1460,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp) {
 	CTX_COPYVAR(ctx, new, ttl);
 	CTX_COPYVAR(ctx, new, default_ttl);
 	CTX_COPYVAR(ctx, new, warn_1035);
+	CTX_COPYVAR(ctx, new, seen_include);
 
 	result = isc_lex_openfile(new->lex, master_file);
 	if (result != ISC_R_SUCCESS)

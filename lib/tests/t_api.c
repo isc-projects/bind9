@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.42 2000/08/01 01:33:14 tale Exp $ */
+/* $Id: t_api.c,v 1.43 2000/10/17 07:22:39 marka Exp $ */
 
 #include <config.h>
 
@@ -621,6 +621,7 @@ struct dns_errormap {
 	{ DNS_R_BADDB,			"DNS_R_BADDB"		},
 	{ DNS_R_ZONECUT,		"DNS_R_ZONECUT"		},
 	{ DNS_R_NOTZONETOP,		"DNS_R_NOTZONETOP"	},
+	{ DNS_R_SEENINCLUDE,		"DNS_R_SEENINCLUDE"	},
 	{ (isc_result_t)0, NULL }
 };
 

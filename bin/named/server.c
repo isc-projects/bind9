@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.229 2000/10/13 22:35:45 bwelling Exp $ */
+/* $Id: server.c,v 1.230 2000/10/17 07:22:23 marka Exp $ */
 
 #include <config.h>
 
@@ -477,6 +477,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			      NS_LOGMODULE_SERVER,
 			      ISC_LOG_DEBUG(1), "loading cache '%s'",
 			      ns_g_cachefile);
+		/* DNS_R_SEENINCLUDE should be impossible here. */
 		CHECK(dns_db_load(view->cachedb, ns_g_cachefile));
 	}
 

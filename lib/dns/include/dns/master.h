@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.24 2000/09/05 03:35:22 marka Exp $ */
+/* $Id: master.h,v 1.25 2000/10/17 07:22:36 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -136,6 +136,8 @@ dns_master_loadfilequota(const char *master_file, dns_name_t *top,
  *
  * Returns:
  *	ISC_R_SUCCESS upon successfully loading the master file.
+ *	ISC_R_SEENINCLUDE upon successfully loading the master file with
+ *		a $INCLUDE statement.
  *	ISC_R_NOMEMORY out of memory.
  *	ISC_R_UNEXPECTEDEND expected to be able to read a input token and
  *		there was not one.

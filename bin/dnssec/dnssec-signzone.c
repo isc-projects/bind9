@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.100 2000/09/26 22:11:23 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.101 2000/10/17 07:22:22 marka Exp $ */
 
 #include <config.h>
 
@@ -460,7 +460,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, filename);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		dns_db_detach(db);
 }
 

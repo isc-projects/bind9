@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.53 2000/08/01 01:12:40 tale Exp $ */
+/* $Id: db_test.c,v 1.54 2000/10/17 07:22:25 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -284,7 +284,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 
 	printf("loading %s (%s)\n", filename, origintext);
 	result = dns_db_load(dbi->db, filename);
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 		dns_db_detach(&dbi->db);
 		isc_mem_put(mctx, dbi, sizeof *dbi);
 		return (result);

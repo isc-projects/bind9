@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.15 2000/08/01 01:22:53 tale Exp $ */
+/* $Id: rootns.c,v 1.16 2000/10/17 07:22:32 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/master.h>
+#include <dns/result.h>
 #include <dns/rootns.h>
 
 static char root_ns[] =
@@ -108,9 +109,9 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	} else
 		result = ISC_R_NOTFOUND;
 	eresult = dns_db_endload(db, &callbacks.add_private);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE)
 		result = eresult;
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		goto db_detach;
 
 	*target = db;

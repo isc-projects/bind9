@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.62 2000/10/13 23:21:16 bwelling Exp $ */
+/* $Id: zoneconf.c,v 1.63 2000/10/17 07:22:35 marka Exp $ */
 
 #include <config.h>
 
@@ -239,12 +239,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				  dns_zone_setqueryacl,
 				  dns_zone_clearqueryacl));
 
-	result = dns_c_zone_getdialup(czone, &boolean);
-	if (result != ISC_R_SUCCESS)
-		result = dns_c_ctx_getdialup(cctx, &boolean);
-	if (result != ISC_R_SUCCESS)
-		boolean = ISC_FALSE;
-	dns_zone_setoption(zone, DNS_ZONEOPT_DIALUP, boolean);
+	if (czone->ztype != dns_c_zone_hint) {
+		result = dns_c_zone_getdialup(czone, &boolean);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getdialup(cctx, &boolean);
+		if (result != ISC_R_SUCCESS)
+			boolean = ISC_FALSE;
+		dns_zone_setoption(zone, DNS_ZONEOPT_DIALUP, boolean);
+	} 
 
 #ifndef NOMINUM_PUBLIC
 	if (czone->ztype != dns_c_zone_stub) {

@@ -1,3 +1,6 @@
+ 521.	[bug]		Detect master files which contain $INCLUDE and always
+			reload. [RT #196]
+
  520.	[bug]		Upgraded libtool to 1.3.5, which allows shared
 			library builds to work on AIX (and possibly others).
 

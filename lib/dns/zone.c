@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.235 2000/10/16 22:26:25 mws Exp $ */
+/* $Id: zone.c,v 1.236 2000/10/17 07:22:34 marka Exp $ */
 
 #include <config.h>
 
@@ -195,7 +195,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/* zone need consolidation */
 #define DNS_ZONEFLG_USEVC	0x00000004U	/* use tcp for refresh query */
 #define DNS_ZONEFLG_DUMPING	0x00000008U	/* a dump is in progress */
-/* #define DNS_ZONEFLG_UNUSED	0x00000010U */	/* unused */
+#define DNS_ZONEFLG_HASINCLUDE	0x00000010U	/* $INCLUDE in zone file */
 #define DNS_ZONEFLG_LOADED	0x00000020U	/* database has loaded */
 #define DNS_ZONEFLG_EXITING	0x00000040U	/* zone is being destroyed */
 #define DNS_ZONEFLG_EXPIRED	0x00000080U	/* zone has expired */
@@ -824,13 +824,17 @@ dns_zone_load(dns_zone_t *zone) {
 	 * than the last time the zone was loaded.  If the zone has not
 	 * been loaded yet, zone->loadtime will be the epoch.
 	 */
-	result = isc_file_getmodtime(zone->dbname, &filetime);
-	if (result == ISC_R_SUCCESS && ! isc_time_isepoch(&zone->loadtime) &&
-	    isc_time_compare(&filetime, &zone->loadtime) < 0) {
-		zone_log(zone, me, ISC_LOG_DEBUG(1),
-			 "skipping: database file older than last load");
-		result = ISC_R_SUCCESS;
-		goto cleanup;
+	if (!DNS_ZONEFLG_HASINCLUDE) {
+		result = isc_file_getmodtime(zone->dbname, &filetime);
+		if (result == ISC_R_SUCCESS &&
+		    !isc_time_isepoch(&zone->loadtime) &&
+		    isc_time_compare(&filetime, &zone->loadtime) < 0) {
+			zone_log(zone, me, ISC_LOG_DEBUG(1),
+				 "skipping: database file older"
+				 " than last load");
+			result = ISC_R_SUCCESS;
+			goto cleanup;
+		}
 	}
 
 	/*
@@ -891,7 +895,8 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 					load->zone->rdclass, ISC_FALSE,
 					&load->callbacks, task,
 					zone_loaddone, load, load->zone->mctx);
-	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE)
+	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
+	    result != DNS_R_SEENINCLUDE)
 		goto fail;
 	return;
 
@@ -968,7 +973,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 * indicates that the "permanent" form does not exist.
 	 * XXX better error feedback to log.
 	 */
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_stub) {
 			if (result == ISC_R_FILENOTFOUND)
@@ -993,6 +998,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 	zone_log(zone, me, ISC_LOG_INFO, "loaded");
 
+	if (result == DNS_R_SEENINCLUDE)
+		zone->flags |= DNS_ZONEFLG_HASINCLUDE;
+	else
+		zone->flags &= ~DNS_ZONEFLG_HASINCLUDE;
 	/*
 	 * Apply update log, if any.
 	 */
@@ -4445,7 +4454,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 	DNS_ENTER;
 
 	tresult = dns_db_endload(load->db, &load->callbacks.add_private);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE)
 		result = tresult;
 
 	LOCK(&load->zone->lock);
