@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.31 $)
+AC_REVISION($Revision: 1.32 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1139,6 +1139,10 @@ AC_TRY_COMPILE([
 	ISC_LWRES_ENDHOSTENTINT="#undef ISC_LWRES_ENDHOSTENTINT"])
 AC_SUBST(ISC_LWRES_ENDHOSTENTINT)
 
+case "$host" in
+*-solaris2.8*)
+	GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long";;
+*)
 AC_MSG_CHECKING(for getnetbyaddr(in_addr_t, ...))
 AC_TRY_COMPILE([
 #include <netdb.h>
@@ -1148,6 +1152,7 @@ struct netent *getnetbyaddr(in_addr_t, int);],
 	GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T in_addr_t"],
 	[AC_MSG_RESULT(no)
 	GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long"])
+esac
 AC_SUBST(GETNETBYADDR_ADDR_T)
 
 AC_MSG_CHECKING(for int setnetent)
