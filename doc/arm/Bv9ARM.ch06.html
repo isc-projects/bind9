@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3288"
+HREF="Bv9ARM.ch06.html#AEN3308"
 >Zone File</A
 ></DT
 ></DL
@@ -4062,9 +4062,8 @@ CLASS="command"
 >
 option.</P
 ><P
->If
-the zone is a master zone then the server will send out a NOTIFY request
-to all the slaves. This will trigger the zone serial number check
+>If the zone is a master zone then the server will send out a NOTIFY 
+request to all the slaves. This will trigger the zone serial number check
 in the slave (providing it supports NOTIFY) allowing the slave to
 verify the zone while the connection is active.</P
 ><P
@@ -4486,35 +4485,6 @@ and the option is ignored.</P
 ><DT
 ><B
 CLASS="command"
->min-refresh-time</B
->, <B
-CLASS="command"
->max-refresh-time</B
->, <B
-CLASS="command"
->min-retry-time</B
->, <B
-CLASS="command"
->max-retry-time</B
-></DT
-><DD
-><P
->&#13;These options control the server's behavior on refreshing a zone
-(querying for SOA changes) or retrying failed transfers.
-Usually the SOA values for the zone are used, but these values
-are set by the master, giving slave server administrators little
-control over their contents.
-</P
-><P
->&#13;These options allow the administrator to set a minimum and maximum
-refresh and retry time either per-zone, per-view, or per-server.
-These options are valid for master, slave and stub zones, and clamp the SOA
-refresh and retry times to the specified values.
-</P
-></DD
-><DT
-><B
-CLASS="command"
 >additional-from-auth</B
 >, <B
 CLASS="command"
@@ -4568,7 +4538,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2227"
+NAME="AEN2215"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4766,7 +4736,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2292"
+NAME="AEN2280"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -4861,7 +4831,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2318"
+NAME="AEN2306"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5254,7 +5224,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2447"
+NAME="AEN2435"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5402,7 +5372,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2502"
+NAME="AEN2490"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6085,6 +6055,35 @@ CLASS="literal"
 > days. The signature
 inception time is unconditionally set to one hour before the current time
 to allow for a limited amount of clock skew.</P
+></DD
+><DT
+><B
+CLASS="command"
+>min-refresh-time</B
+>, <B
+CLASS="command"
+>max-refresh-time</B
+>, <B
+CLASS="command"
+>min-retry-time</B
+>, <B
+CLASS="command"
+>max-retry-time</B
+></DT
+><DD
+><P
+>&#13;These options control the server's behavior on refreshing a zone
+(querying for SOA changes) or retrying failed transfers.
+Usually the SOA values for the zone are used, but these values
+are set by the master, giving slave server administrators little
+control over their contents.
+</P
+><P
+>&#13;These options allow the administrator to set a minimum and maximum
+refresh and retry time either per-zone, per-view, or per-server.
+These options are valid for master, slave and stub zones, 
+and clamp the SOA refresh and retry times to the specified values.
+</P
 ></DD
 ></DL
 ></DIV
@@ -7261,6 +7260,43 @@ CLASS="replaceable"
 ></TT
 > ; </SPAN
 >]
+    [<SPAN
+CLASS="optional"
+> min-refresh-time <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> max-refresh-time <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> min-retry-time <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> max-retry-time <TT
+CLASS="replaceable"
+><I
+>number</I
+></TT
+> ; </SPAN
+>]
+
 }</SPAN
 >];
 </PRE
@@ -7270,7 +7306,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2973"
+NAME="AEN2981"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7281,7 +7317,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2976"
+NAME="AEN2984"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -7520,7 +7556,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3033"
+NAME="AEN3041"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7558,7 +7594,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3043"
+NAME="AEN3051"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8031,6 +8067,28 @@ HREF="Bv9ARM.ch06.html#zone_transfers"
 >.
 </P
 ></DD
+><DT
+><B
+CLASS="command"
+>min-refresh-time</B
+>, <B
+CLASS="command"
+>max-refresh-time</B
+>, <B
+CLASS="command"
+>min-retry-time</B
+>, <B
+CLASS="command"
+>max-retry-time</B
+></DT
+><DD
+><P
+>&#13;See the description in <A
+HREF="Bv9ARM.ch06.html#tuning"
+>Section 6.2.14.13</A
+>.
+</P
+></DD
 ></DL
 ></DIV
 ><DIV
@@ -8260,7 +8318,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3288"
+NAME="AEN3308"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8281,7 +8339,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3293"
+NAME="AEN3313"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9001,7 +9059,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3507"
+NAME="AEN3527"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9321,7 +9379,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3608"
+NAME="AEN3628"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9723,7 +9781,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3729"
+NAME="AEN3749"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -9822,7 +9880,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3756"
+NAME="AEN3776"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -9847,7 +9905,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3763"
+NAME="AEN3783"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -9917,7 +9975,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3783"
+NAME="AEN3803"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -9993,7 +10051,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3802"
+NAME="AEN3822"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10033,7 +10091,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3813"
+NAME="AEN3833"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN

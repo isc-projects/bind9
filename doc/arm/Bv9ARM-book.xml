@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.98 2001/02/02 19:51:52 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.99 2001/02/02 20:23:22 gson Exp $ -->
 
 <book>
 
@@ -2765,9 +2765,9 @@ zone maintenance traffic. The default is <userinput>no</userinput>.</para>
 may also be specified in the <command>view</command> and 
 <command>zone</command> statements,
 in which case it overrides the global <command>dialup</command>
-option.</para><para>If
-the zone is a master zone then the server will send out a NOTIFY request
-to all the slaves. This will trigger the zone serial number check
+option.</para>
+<para>If the zone is a master zone then the server will send out a NOTIFY 
+request to all the slaves. This will trigger the zone serial number check
 in the slave (providing it supports NOTIFY) allowing the slave to
 verify the zone while the connection is active.</para><para>If the
 zone is a slave or stub zone, then the server will suppress the regular
@@ -2894,24 +2894,6 @@ to facilitate loading of zone files on a UNIX system that were generated
 on an NT or DOS machine. In <acronym>BIND</acronym> 9, both UNIX "<command>\n</command>"
 and NT/DOS "<command>\r\n</command>" newlines are always accepted,
 and the option is ignored.</para></listitem></varlistentry>
-
-<varlistentry>
-<term><command>min-refresh-time</command></term>
-<term><command>max-refresh-time</command></term>
-<term><command>min-retry-time</command></term>
-<term><command>max-retry-time</command></term>
-<listitem><para>
-These options control the server's behavior on refreshing a zone
-(querying for SOA changes) or retrying failed transfers.
-Usually the SOA values for the zone are used, but these values
-are set by the master, giving slave server administrators little
-control over their contents.
-</para><para>
-These options allow the administrator to set a minimum and maximum
-refresh and retry time either per-zone, per-view, or per-server.
-These options are valid for master, slave and stub zones, and clamp the SOA
-refresh and retry times to the specified values.
-</para></listitem></varlistentry>
 
 <varlistentry>
 <term><command>additional-from-auth</command></term>
@@ -3584,6 +3566,24 @@ inception time is unconditionally set to one hour before the current time
 to allow for a limited amount of clock skew.</para>
 </listitem></varlistentry>
 
+<varlistentry>
+<term><command>min-refresh-time</command></term>
+<term><command>max-refresh-time</command></term>
+<term><command>min-retry-time</command></term>
+<term><command>max-retry-time</command></term>
+<listitem><para>
+These options control the server's behavior on refreshing a zone
+(querying for SOA changes) or retrying failed transfers.
+Usually the SOA values for the zone are used, but these values
+are set by the master, giving slave server administrators little
+control over their contents.
+</para><para>
+These options allow the administrator to set a minimum and maximum
+refresh and retry time either per-zone, per-view, or per-server.
+These options are valid for master, slave and stub zones, 
+and clamp the SOA refresh and retry times to the specified values.
+</para></listitem></varlistentry>
+
 </variablelist>
 
 </sect3>
@@ -3841,6 +3841,11 @@ Statement Grammar</title>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
+    <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+
 }</optional>;
 </programlisting>
 </sect2>
@@ -4129,6 +4134,15 @@ information for this zone, which can be dumped to the
 <command>notify-source-v6</command> in <xref linkend="zone_transfers"/>.
 </para>
 </listitem></varlistentry>
+
+<varlistentry>
+<term><command>min-refresh-time</command></term>
+<term><command>max-refresh-time</command></term>
+<term><command>min-retry-time</command></term>
+<term><command>max-retry-time</command></term>
+<listitem><para>
+See the description in <xref linkend="tuning"/>.
+</para></listitem></varlistentry>
 
 </variablelist>
 
