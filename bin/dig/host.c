@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.28 2000/06/21 17:48:29 mws Exp $ */
+/* $Id: host.c,v 1.29 2000/06/22 22:37:31 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -670,8 +670,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->retries = tries;
 	lookup->udpsize = 0;
 	lookup->nsfound = 0;
-	lookup->trace = showallsoa;
-	lookup->trace_root = ISC_FALSE;
+	lookup->trace = ISC_FALSE;
+	lookup->trace_root = showallsoa;
 	lookup->tcp_mode = tcpmode;
 	lookup->new_search = ISC_TRUE;
 	lookup->aaonly = ISC_FALSE;

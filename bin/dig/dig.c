@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.49 2000/06/22 17:23:48 tale Exp $ */
+/* $Id: dig.c,v 1.50 2000/06/22 22:37:29 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -691,9 +691,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else if (strncmp(rv[0], "+ns", 3) == 0) {
 			if (have_host) {
 				lookup->ns_search_only = ISC_TRUE;
+				lookup->trace_root = ISC_TRUE;
 				lookup->recurse = ISC_FALSE;
 				lookup->identify = ISC_TRUE;
-				lookup->trace = ISC_TRUE;
 				lookup->stats = ISC_FALSE;
 				if (!forcecomment)
 					lookup->comments = ISC_FALSE;
@@ -1010,8 +1010,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->origin = NULL;
 			lookup->querysig = NULL;
 			lookup->use_my_server_list = ISC_FALSE;
-			lookup->trace = ISC_TF(trace || ns_search_only);
-			lookup->trace_root = trace;
+			lookup->trace = trace;
+			lookup->trace_root = ISC_TF(trace || ns_search_only);
 			lookup->ns_search_only = ns_search_only;
 			lookup->doing_xfr = ISC_FALSE;
 			lookup->ixfr_serial = 0;
@@ -1078,8 +1078,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->doing_xfr = ISC_FALSE;
 			lookup->ixfr_serial = 0;
 			lookup->defname = ISC_FALSE;
-			lookup->trace = ISC_TF(trace || ns_search_only);
-			lookup->trace_root = trace;
+			lookup->trace_root = ISC_TF(trace || ns_search_only);
+			lookup->trace = trace;
 			lookup->ns_search_only = ns_search_only;
 			lookup->identify = identify;
 			lookup->recurse = recurse;
@@ -1155,8 +1155,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->doing_xfr = ISC_FALSE;
 		lookup->ixfr_serial = 0;
 		lookup->defname = ISC_FALSE;
-		lookup->trace = ISC_TF(trace || ns_search_only);
-		lookup->trace_root = trace;
+		lookup->trace_root = ISC_TF(trace || ns_search_only);
+		lookup->trace = trace;
 		lookup->ns_search_only = ns_search_only;
 		lookup->identify = identify;
 		lookup->recurse = recurse;

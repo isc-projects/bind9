@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.55 2000/06/21 17:48:27 mws Exp $ */
+/* $Id: dighost.c,v 1.56 2000/06/22 22:37:30 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -725,7 +725,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 		debug ("Firstname returned %s",
 			isc_result_totext(result));
 		if ((section == DNS_SECTION_ANSWER) &&
-		    query->lookup->trace)
+		    (query->lookup->trace || query->lookup->ns_search_only))
 			followup_lookup (msg, query, DNS_SECTION_AUTHORITY);
                 return;
 	}
@@ -776,13 +776,20 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 						lookup->use_my_server_list = 
 							ISC_TRUE;
 						if (section ==
-						    DNS_SECTION_ANSWER)
-							lookup->trace =
+						    DNS_SECTION_ANSWER) {
+						      lookup->trace =
 								ISC_FALSE;
-						else
-							lookup->trace =
+						      lookup->ns_search_only =
+								ISC_FALSE;
+						}
+						else {
+						      lookup->trace =
 								query->
 								lookup->trace;
+						      lookup->ns_search_only =
+							query->
+							lookup->ns_search_only;
+						}
 						lookup->trace_root = ISC_FALSE;
 						ISC_LIST_INIT(lookup->
 							      my_server_list);
@@ -813,7 +820,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 			break;
 	}
 	if ((lookup == NULL) && (section == DNS_SECTION_ANSWER) &&
-	    query->lookup->trace)
+	    (query->lookup->trace || query->lookup->ns_search_only))
 		followup_lookup(msg, query, DNS_SECTION_AUTHORITY);
 }
 
@@ -1037,7 +1044,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * If this is a trace request, completely disallow recursion, since
 	 * it's meaningless for traces.
 	 */
-	if (lookup->recurse && !lookup->trace) {
+	if (lookup->recurse && !lookup->trace && !lookup->ns_search_only) {
 		debug ("Recursive query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
 	}
@@ -1061,6 +1068,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			    DNS_SECTION_QUESTION);
 
 	if (lookup->trace_root) {
+		debug("Doing trace_root");
 		tr.base="SOA";
 		tr.length=3;
 	} else {
@@ -1776,12 +1784,14 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (query->lookup->xfr_q == NULL)
 			query->lookup->xfr_q = query;
 		if (query->lookup->xfr_q == query) {
-			if (query->lookup->trace) {
-				if (show_details ||
+			if ((query->lookup->trace)||
+			    (query->lookup->ns_search_only)) {
+				debug ("In TRACE code");
+				if ((show_details ||
 				    ((dns_message_firstname(msg,
 							    DNS_SECTION_ANSWER)
-				      == ISC_R_SUCCESS) &&
-				     !query->lookup->trace_root)) {
+				      == ISC_R_SUCCESS))) &&
+				    !query->lookup->trace_root ) {
 					printmessage(query, msg, ISC_TRUE);
 				}
 				if ((msg->rcode != 0) &&
@@ -1835,8 +1845,16 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 							     &ab);
 				check_result(result, "isc_sockaddr_totext");
 				isc_buffer_usedregion(&ab, &r);
-				received(b->used, r.length, (char *)r.base,
-					 query);
+				if ((( dns_message_firstname(msg,
+							    DNS_SECTION_ANSWER)
+				      == ISC_R_SUCCESS) &&
+				    query->lookup->ns_search_only &&
+				    !query->lookup->trace_root) ||
+				     query->lookup->trace) {
+					received(b->used, r.length,
+						 (char *)r.base,
+						 query);
+				}
 			}
 			query->working = ISC_FALSE;
 			query->lookup->pending = ISC_FALSE;
