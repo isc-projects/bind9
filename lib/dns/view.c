@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.102 2001/08/27 06:10:17 marka Exp $ */
+/* $Id: view.c,v 1.103 2001/08/27 17:20:10 gson Exp $ */
 
 #include <config.h>
 
@@ -998,8 +998,9 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			 * We can't even find the hints for the root
 			 * nameservers!
 			 */
+			if (dns_rdataset_isassociated(rdataset))
+				dns_rdataset_disassociate(rdataset);
 			result = ISC_R_NOTFOUND;
-			INSIST(!dns_rdataset_isassociated(rdataset));
 		}
 	}
 
