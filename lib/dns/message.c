@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.156 2000/10/27 21:56:56 bwelling Exp $ */
+/* $Id: message.c,v 1.157 2000/11/10 03:16:18 gson Exp $ */
 
 /***
  *** Imports
@@ -372,6 +372,8 @@ msginit(dns_message_t *m) {
 	m->tcp_continuation = 0;
 	m->verified_sig = 0;
 	m->verify_attempted = 0;
+	m->order = NULL;
+	m->order_arg = NULL;
 }
 
 static inline void
@@ -468,7 +470,7 @@ msgresetsigs(dns_message_t *msg, isc_boolean_t replying) {
 
 /*
  * Free all but one (or everything) for this message.  This is used by
- * both dns_message_reset() and dns_message_parse().
+ * both dns_message_reset() and dns_message_destroy().
  */
 static void
 msgreset(dns_message_t *msg, isc_boolean_t everything) {
@@ -1744,10 +1746,13 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				st = *(msg->buffer);
 
 				count = 0;
-				result = dns_rdataset_towire(rdataset, name,
-							     &msg->cctx,
-							     msg->buffer,
-							     &count);
+				result = dns_rdataset_towiresorted(rdataset,
+							  name,
+							  &msg->cctx,
+							  msg->buffer,
+							  msg->order,
+							  msg->order_arg,
+							  &count);
 
 				total += count;
 
@@ -2948,3 +2953,12 @@ dns_message_getrawmessage(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	return (msg->saved);
 }
+
+void
+dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
+			 void *order_arg)
+{
+	msg->order = order;
+	msg->order_arg = order_arg;
+}
+     

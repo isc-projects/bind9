@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.14 2000/11/07 23:43:23 bwelling Exp $ */
+/* $Id: acl.h,v 1.15 2000/11/10 03:16:23 gson Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -165,6 +165,21 @@ dns_acl_match(isc_netaddr_t *reqaddr,
  *
  * Returns:
  *	ISC_R_SUCCESS		Always succeeds.
+ */
+
+isc_boolean_t
+dns_aclelement_match(isc_netaddr_t *reqaddr,
+		     dns_name_t *reqsigner,
+		     dns_aclelement_t *e,
+		     dns_aclenv_t *env,		     
+		     dns_aclelement_t **matchelt);
+/*
+ * Like dns_acl_match, but matches against the single ACL element 'e'
+ * rather than a complete list and returns ISC_TRUE iff it matched.
+ * To determine whether the match was prositive or negative, the 
+ * caller should examine e->negative.  Since the element 'e' may be
+ * a reference to a named ACL or a nested ACL, the matching element
+ * returned through 'matchelt' is not necessarily 'e' itself.
  */
 
 ISC_LANG_ENDDECLS

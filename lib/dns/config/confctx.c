@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.99 2000/11/08 03:53:13 marka Exp $ */
+/* $Id: confctx.c,v 1.100 2000/11/10 03:16:21 gson Exp $ */
 
 #include <config.h>
 
@@ -513,13 +513,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'topology' is deprecated");
-	}
-
-	if (dns_c_ctx_getsortlist(cfg, &ipml) != ISC_R_NOTFOUND) {
-		dns_c_ipmatchlist_detach(&ipml);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'sortlist' is not yet implemented");
 	}
 
 	if (dns_c_ctx_getrrsetorderlist(cfg, &olist) != ISC_R_NOTFOUND) {

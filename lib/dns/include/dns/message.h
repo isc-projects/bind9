@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.80 2000/11/10 03:13:03 gson Exp $ */
+/* $Id: message.h,v 1.81 2000/11/10 03:16:24 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -1186,6 +1186,20 @@ dns_message_getrawmessage(dns_message_t *msg);
  * Returns:
  *	NULL	if there is no saved message.
  *	a pointer to a region which refers the dns message.
+ */
+
+void
+dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
+			 void *order_arg);
+/*
+ * Define the order in which RR sets get rendered by
+ * dns_message_rendersection() to be the ascending order
+ * defined by the integer value returned by 'order' when
+ * given each RR and 'arg' as arguments.  If 'order' and
+ * 'order_arg' are NULL, a default order is used.
+ *
+ * Requires:
+ *	order_arg is NULL if and only if order is NULL.
  */
 
 ISC_LANG_ENDDECLS

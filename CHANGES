@@ -1,4 +1,6 @@
 
+ 551.	[func]		Implemented the 'sortlist' option.
+
  550.	[func]		Support unknown rdata types and classes.
 
  549.	[bug]		"make" did not immediately abort the build when a

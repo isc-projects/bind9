@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.14 2000/08/11 01:53:46 gson Exp $ */
+/* $Id: acl.c,v 1.15 2000/11/10 03:16:16 gson Exp $ */
 
 #include <config.h>
 
@@ -130,90 +130,106 @@ dns_acl_match(isc_netaddr_t *reqaddr,
 	      int *match,
 	      dns_aclelement_t **matchelt)
 {
-	isc_result_t result;
 	unsigned int i;
-	int indirectmatch;
 
 	REQUIRE(reqaddr != NULL);
 	REQUIRE(matchelt == NULL || *matchelt == NULL);
-
+	
 	for (i = 0; i < acl->length; i++) {
 		dns_aclelement_t *e = &acl->elements[i];
-		dns_acl_t *inner = NULL;
 
-		switch (e->type) {
-		case dns_aclelementtype_ipprefix:
-			if (isc_netaddr_eqprefix(reqaddr,
-						 &e->u.ip_prefix.address,
-						 e->u.ip_prefix.prefixlen))
-				goto matched;
-			break;
-
-		case dns_aclelementtype_keyname:
-			if (reqsigner != NULL &&
-			    dns_name_equal(reqsigner, &e->u.keyname))
-			    goto matched;
-			break;
-
-		case dns_aclelementtype_nestedacl:
-			inner = e->u.nestedacl;
-		nested:
-			result = dns_acl_match(reqaddr, reqsigner,
-					       inner,
-					       env,
-					       &indirectmatch, matchelt);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			/*
-			 * Treat negative matches in indirect ACLs as
-			 * "no match".
-			 * That way, a negated indirect ACL will never become
-			 * a surprise positive match through double negation.
-			 * XXXDCL this should be documented.
-			 */
-			if (indirectmatch > 0)
-				goto matched;
-
-			/*
-			 * A negative indirect match may have set *matchelt,
-			 * but we don't want it set when we return.
-			 */
-			if (matchelt != NULL)
-				*matchelt = NULL;
-			break;
-
-		case dns_aclelementtype_any:
-		matched:
+		if (dns_aclelement_match(reqaddr, reqsigner, e, env, matchelt)) {
 			*match = e->negative ? -(i+1) : (i+1);
-			if (matchelt != NULL)
-				*matchelt = e;
 			return (ISC_R_SUCCESS);
-
-		case dns_aclelementtype_localhost:
-			if (env != NULL && env->localhost != NULL) {
-				inner = env->localhost;
-				goto nested;
-			} else {
-				break;
-			}
-
-		case dns_aclelementtype_localnets:
-			if (env != NULL && env->localnets != NULL) {
-				inner = env->localnets;
-				goto nested;
-			} else {
-				break;
-			}
-
-		default:
-			INSIST(0);
-			break;
 		}
 	}
 	/* No match. */
 	*match = 0;
 	return (ISC_R_SUCCESS);
 }
+
+isc_boolean_t
+dns_aclelement_match(isc_netaddr_t *reqaddr,
+		     dns_name_t *reqsigner,
+		     dns_aclelement_t *e,
+		     dns_aclenv_t *env,
+		     dns_aclelement_t **matchelt)
+{
+	dns_acl_t *inner = NULL;
+	int indirectmatch;
+	isc_result_t result;
+
+	switch (e->type) {
+	case dns_aclelementtype_ipprefix:
+		if (isc_netaddr_eqprefix(reqaddr,
+					 &e->u.ip_prefix.address, 
+					 e->u.ip_prefix.prefixlen))
+			goto matched;
+		break;
+		
+	case dns_aclelementtype_keyname:
+		if (reqsigner != NULL &&
+		    dns_name_equal(reqsigner, &e->u.keyname))
+			goto matched;
+		break;
+		
+	case dns_aclelementtype_nestedacl:
+		inner = e->u.nestedacl;
+	nested:
+		result = dns_acl_match(reqaddr, reqsigner,
+				       inner,
+				       env,
+				       &indirectmatch, matchelt);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		/*
+		 * Treat negative matches in indirect ACLs as
+		 * "no match".
+		 * That way, a negated indirect ACL will never become 
+		 * a surprise positive match through double negation.
+		 * XXXDCL this should be documented.
+		 */
+		if (indirectmatch > 0)
+			goto matchelt_set;
+		
+		/*
+		 * A negative indirect match may have set *matchelt,
+		 * but we don't want it set when we return.
+		 */
+		if (matchelt != NULL)
+			*matchelt = NULL;
+		break;
+		
+	case dns_aclelementtype_any:
+	matched:
+		if (matchelt != NULL)
+			*matchelt = e;
+	matchelt_set:
+		return (ISC_TRUE);
+			
+	case dns_aclelementtype_localhost:
+		if (env != NULL && env->localhost != NULL) {
+			inner = env->localhost;
+			goto nested;
+		} else {
+			break;
+		}
+		
+	case dns_aclelementtype_localnets:
+		if (env != NULL && env->localnets != NULL) {
+			inner = env->localnets;
+			goto nested;
+		} else {
+			break;
+		}
+		
+	default:
+		INSIST(0);
+		break;
+	}
+
+	return (ISC_FALSE);
+}	
 
 void
 dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.143 2000/11/09 19:55:16 mws Exp $ */
+/* $Id: query.c,v 1.144 2000/11/10 03:16:14 gson Exp $ */
 
 #include <config.h>
 
@@ -2097,6 +2097,147 @@ do { \
 	want_restart = ISC_FALSE; \
 } while (0)
 
+/*
+ * Extract a network address from the RDATA of an A or AAAA
+ * record.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTIMPLEMENTED	The rdata is not a known address type.
+ */
+
+static isc_result_t
+rdata_tonetaddr(dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
+	struct in_addr ina;
+	struct in6_addr in6a;
+	
+	switch (rdata->type) {
+	case dns_rdatatype_a:
+		INSIST(rdata->length == 4);
+		memcpy(&ina.s_addr, rdata->data, 4);
+		isc_netaddr_fromin(netaddr, &ina);
+		return (ISC_R_SUCCESS);
+	case dns_rdatatype_aaaa:
+		INSIST(rdata->length == 16);
+		memcpy(in6a.s6_addr, rdata->data, 16);
+		isc_netaddr_fromin6(netaddr, &in6a);
+		return (ISC_R_SUCCESS);
+	default:
+		return (ISC_R_NOTIMPLEMENTED);
+	}
+}
+
+/*
+ * Find the sort order of 'rdata' in the topology-like
+ * ACL forming the second element in a 2-element top-level
+ * sortlist statement.
+ */
+static int
+sortlist_order_2element(dns_rdata_t *rdata, void *arg) {
+	dns_acl_t *sortacl = (dns_acl_t *) arg;
+	isc_netaddr_t netaddr;
+	int match;
+
+	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS)
+		return (INT_MAX);
+
+	(void)dns_acl_match(&netaddr, NULL, sortacl,
+			    &ns_g_server->aclenv,
+			    &match, NULL);
+	if (match > 0)
+		return (match);
+	else
+		return (INT_MAX - (-match));
+}
+
+/*
+ * Find the sort order of 'rdata' in the matching element
+ * of a 1-element top-level sortlist statement.
+ */
+static int
+sortlist_order_1element(dns_rdata_t *rdata, void *arg) {
+	dns_aclelement_t *matchelt = (dns_aclelement_t *) arg;
+	isc_netaddr_t netaddr;
+
+	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS)
+		return (INT_MAX);
+
+	if (dns_aclelement_match(&netaddr, NULL, matchelt,
+				 &ns_g_server->aclenv,
+				 NULL)) {
+		return (0);
+	} else {
+		return (INT_MAX);
+	}
+}
+
+/*
+ * Find the sortlist element that applies to 'client',
+ * store data identifying it in '*data', and set up
+ * the sortlist info in in client->message appropriately.
+ *
+ * '*data' must persist until the message has been rendered.
+ */
+static void
+setup_sortlist(ns_client_t *client) {
+	isc_netaddr_t netaddr;
+	dns_acl_t *acl = client->view->sortlist;
+	unsigned int i;
+
+	if (acl == NULL)
+		goto dont_sort;
+
+	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+	for (i = 0; i < acl->length; i++) {
+		/*
+		 * 'e' refers to the current 'top level statement'
+		 * in the sortlist (see ARM).
+		 */
+		dns_aclelement_t *e = &acl->elements[i];
+		dns_aclelement_t *matchelt = NULL;
+		dns_acl_t *inner;
+
+		if (e->type != dns_aclelementtype_nestedacl)
+			goto dont_sort;
+
+		inner = e->u.nestedacl;
+
+		if (inner->length < 1 || inner->length > 2)
+			goto dont_sort;
+
+		if (inner->elements[0].negative)
+			goto dont_sort;
+
+		if (dns_aclelement_match(&netaddr, client->signer,
+					 &inner->elements[0],
+					 &ns_g_server->aclenv,
+					 &matchelt)) {
+			if (inner->length == 2) {
+				dns_aclelement_t *elt1 = &inner->elements[1];
+				if (elt1->type != dns_aclelementtype_nestedacl)
+					goto dont_sort;
+				dns_message_setsortorder(client->message,
+						 sortlist_order_2element,
+						 elt1->u.nestedacl);
+				return;
+			} else {
+				INSIST(matchelt != NULL);
+				dns_message_setsortorder(client->message,
+						 sortlist_order_1element,
+						 matchelt);
+				return;
+			}
+		}
+			
+	}
+
+	/* No match; don't sort. */
+ dont_sort:
+	dns_message_setsortorder(client->message, NULL, NULL);
+	return;
+}
+
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_db_t *db, *zdb;
@@ -3009,10 +3150,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 ns_client_detach(&client);
 	} else if (!RECURSING(client)) {
 		/*
-		 * We are done.  Make a final tweak to the AA bit if the
-		 * auth-nxdomain config option says so, then send the
-		 * response.
+		 * We are done.  Set up sortlist data for the message
+		 * rendering code, make a final tweak to the AA bit if the
+		 * auth-nxdomain config option says so, then render and
+		 * send the response.
 		 */
+		setup_sortlist(client);
+
 		if (client->message->rcode == dns_rcode_nxdomain &&
 		    client->view->auth_nxdomain == ISC_TRUE)
 			client->message->flags |= DNS_MESSAGEFLAG_AA;

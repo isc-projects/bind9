@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.97 2000/11/03 07:16:07 marka Exp $ */
+/* $Id: types.h,v 1.98 2000/11/10 03:16:25 gson Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -279,5 +279,8 @@ typedef void
 
 typedef void
 (*dns_updatecallback_t)(void *, isc_result_t, dns_message_t *);
+
+typedef int 
+(*dns_rdatasetorderfunc_t)(dns_rdata_t *rdata, void *arg);
 
 #endif /* DNS_TYPES_H */
