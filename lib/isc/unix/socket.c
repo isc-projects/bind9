@@ -688,10 +688,14 @@ dispatch_connect(isc_socket_t *sock)
  * in the done event to the one provided, and send it to the task it was
  * destined for.
  *
- * Entry:  nothing can be NULL, and double pointers must not point to NULL
- *         pointers.
+ * Entry:  socket is a valid, locked socket.
+ *	   *task is a valid task.
+ *	   if iev != NULL, *iev must be valid, and the first item on the
+ *		socket's receive queue.
+ *	   *dev is a valid done event.
+ *	   resultcode is the code to be set within the done event.
  *
- * Exit:   ttask is detached iff iev != NULL
+ * Exit:   task is detached iff iev != NULL
  *         iev is freed if != NULL
  *         done event is sent to the task.
  *
@@ -730,12 +734,7 @@ send_recvdone_event(isc_socket_t *sock, isc_task_t **task,
 }
 
 /*
- * Entry:  nothing can be NULL, and double pointers must not point to NULL
- *         pointers.
- *
- * Exit:   ttask is detached iff iev != NULL
- *         iev is freed if != NULL
- *         done event is sent to the task.
+ * See comments for send_recvdone_event() above.
  *
  * Caller must have the socket locked.
  */
