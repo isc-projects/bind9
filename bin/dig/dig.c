@@ -916,9 +916,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				    &adrs[2], &adrs[3]);
 			if (n == 0)
 				show_usage();
-			lookup_counter++;
-			if (lookup_counter > LOOKUP_LIMIT)
-				fatal ("Too many lookups.");
 			lookup = isc_mem_allocate(mctx,
 						  sizeof(struct dig_lookup));
 			if (lookup == NULL)
@@ -981,9 +978,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				       continue;
 			       }
 			}
-			lookup_counter++;
-			if (lookup_counter > LOOKUP_LIMIT)
-				fatal ("Too many lookups.");
 			lookup = isc_mem_allocate(mctx, 
 						  sizeof(struct dig_lookup));
 			if (lookup == NULL)
@@ -1052,9 +1046,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		}
 	}
 	if (lookup_list.head == NULL) {
-		lookup_counter++;
-		if (lookup_counter > LOOKUP_LIMIT)
-			fatal ("Too many lookups.");
 		lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 		if (lookup == NULL)
 			fatal("Memory allocation failure.");

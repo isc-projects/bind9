@@ -628,9 +628,6 @@ addlookup(char *opt) {
 	dig_lookup_t *lookup;
 
 	debug ("addlookup()");
-	lookup_counter++;
-	if (lookup_counter > LOOKUP_LIMIT)
-		fatal ("Too many lookups.");
 	lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 	if (lookup == NULL)
 		fatal("Memory allocation failure.");

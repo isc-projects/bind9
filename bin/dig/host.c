@@ -617,9 +617,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			ISC_LIST_APPEND(server_list, srv, link);
 	}
 	
-	lookup_counter++;
-	if (lookup_counter > LOOKUP_LIMIT)
-		fatal ("Too many lookups.");
 	lookup = isc_mem_allocate (mctx, 
 				   sizeof(struct dig_lookup));
 	if (lookup == NULL)	

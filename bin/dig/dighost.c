@@ -69,6 +69,7 @@ isc_sockaddr_t bind_address;
 char *rootspace[BUFSIZE];
 isc_buffer_t rootbuf;
 int sendcount = 0;
+int sockcount = 0;
 int ndots = -1;
 int tries = 3;
 int lookup_counter = 0;
@@ -765,8 +766,10 @@ setup_lookup(dig_lookup_t *lookup) {
 				    &lookup->sendmsg);
 	check_result(result, "dns_message_create");
 
-	if (lookup->new_search)
+	if (lookup->new_search) {
+		debug ("Resetting lookup counter.");
 		lookup_counter = 0;
+	}
 
 	result = dns_message_gettempname(lookup->sendmsg, &lookup->name);
 	check_result(result, "dns_message_gettempname");
@@ -983,8 +986,13 @@ cancel_lookup(dig_lookup_t *lookup) {
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
 			debug ("Cancelling a worker.");
+		}
+		if (query->sock != NULL) {
 			isc_socket_cancel(query->sock, task,
 					  ISC_SOCKCANCEL_ALL);
+			isc_socket_detach(&query->sock);
+			sockcount--;
+			debug ("Socket = %d",sockcount);
 		}
 	}
 	lookup->pending = ISC_FALSE;
@@ -1017,8 +1025,9 @@ send_udp(dig_lookup_t *lookup) {
 		       (long int)query->lookup, (long int)query);
 		ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);
 		query->working = ISC_TRUE;
-		debug ("recving with lookup=%lx, query=%lx",
-		       (long int)query->lookup, (long int)query);
+		debug ("recving with lookup=%lx, query=%lx, sock=%lx",
+		       (long int)query->lookup, (long int)query,
+		       (long int)query->sock);
 		result = isc_socket_recvv(query->sock, &query->recvlist, 1,
 					  task, recv_done, query);
 		check_result(result, "isc_socket_recvv");
@@ -1033,6 +1042,7 @@ send_udp(dig_lookup_t *lookup) {
 		debug("Sending a request.");
 		result = isc_time_now(&query->time_sent);
 		check_result(result, "isc_time_now");
+		ENSURE (query->sock != NULL);
 		result = isc_socket_sendtov(query->sock, &query->sendlist,
 					    task, send_done, query,
 					    &query->sockaddr, NULL);
@@ -1096,6 +1106,11 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			}
 			isc_socket_cancel(q->sock, task,
 					  ISC_SOCKCANCEL_ALL);
+#ifdef 0
+			isc_socket_detach(&q->sock);
+			sockcount--;
+			debug ("Socket = %d",sockcount);
+#endif
 		}
 	}
 	ENSURE(lookup->timer != NULL);
@@ -1144,6 +1159,8 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		       isc_result_totext(sevent->result));
 		isc_buffer_free(&b);
 		query->working = ISC_FALSE;
+		sockcount--;
+		debug ("Socket = %d",sockcount);
 		isc_socket_detach(&query->sock);
 		check_next_lookup(query->lookup);
 		isc_event_free(&event);
@@ -1185,6 +1202,8 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 
 	if (!query->lookup->pending) {
 		debug("Ignoring launch_next_query because !pending.");
+		sockcount--;
+		debug ("Socket = %d",sockcount);
 		isc_socket_detach(&query->sock);
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
@@ -1525,6 +1544,9 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 		query->waiting_connect = ISC_TRUE;
 		get_address(query->servname, port, &query->sockaddr);
 
+		sockcount++;
+		debug ("Socket = %d",sockcount);
+		ENSURE (query->sock == NULL);
 		result = isc_socket_create(socketmgr,
 					   isc_sockaddr_pf(&query->sockaddr),
 					   isc_sockettype_tcp, &query->sock) ;
@@ -1558,6 +1580,8 @@ do_lookup_udp(dig_lookup_t *lookup) {
 		query->waiting_connect = ISC_FALSE;
 		get_address(query->servname, port, &query->sockaddr);
 
+		sockcount++;
+		debug ("Socket = %d",sockcount);
 		result = isc_socket_create(socketmgr,
 					   isc_sockaddr_pf(&query->sockaddr),
 					   isc_sockettype_udp, &query->sock) ;
@@ -1622,6 +1646,8 @@ free_lists(int _exitcode) {
 				isc_socket_cancel(q->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
 				isc_socket_detach(&q->sock);
+				sockcount--;
+				debug ("Socket = %d",sockcount);
 			}
 			if (ISC_LINK_LINKED(&q->recvbuf, link))
 				ISC_LIST_DEQUEUE(q->recvlist, &q->recvbuf,
