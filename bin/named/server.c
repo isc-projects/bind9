@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419 2004/03/14 23:00:47 marka Exp $ */
+/* $Id: server.c,v 1.420 2004/04/08 00:10:42 marka Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,7 @@
 #include <dns/journal.h>
 #include <dns/keytable.h>
 #include <dns/master.h>
+#include <dns/masterdump.h>
 #include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/portlist.h>
@@ -127,6 +128,32 @@ struct ns_dispatch {
 	unsigned int			dispatchgen;
 	dns_dispatch_t			*dispatch;
 	ISC_LINK(struct ns_dispatch)	link;
+};
+
+struct dumpcontext {
+	isc_mem_t			*mctx;
+	isc_boolean_t			dumpcache;
+	isc_boolean_t			dumpzones;
+	FILE				*fp;
+	ISC_LIST(struct viewlistentry)	viewlist;
+	struct viewlistentry		*view;
+	struct zonelistentry		*zone;
+	dns_dumpctx_t			*mdctx;
+	dns_db_t			*db;
+	dns_db_t			*cache;
+	isc_task_t			*task;
+	dns_dbversion_t			*version;
+};
+
+struct viewlistentry {
+	dns_view_t			*view;
+	ISC_LINK(struct viewlistentry)	link;
+	ISC_LIST(struct zonelistentry)	zonelist;
+};
+
+struct zonelistentry {
+	dns_zone_t			*zone;
+	ISC_LINK(struct zonelistentry)	link;
 };
 
 static void
@@ -3518,32 +3545,206 @@ ns_server_dumpstats(ns_server_t *server) {
 }
 
 static isc_result_t
-printzone(dns_zone_t *zone, void *uap) {
-	FILE *fp = uap;
-	char buf[1024+32];
-	isc_result_t result;
+add_zone_tolist(dns_zone_t *zone, void *uap) {
+	struct dumpcontext *dctx = uap;
+	struct zonelistentry *zle;
 
-	dns_zone_name(zone, buf, sizeof(buf));
-	fprintf(fp, ";\n; Zone dump of '%s'\n;\n", buf);
-	result = dns_zone_dumptostream(zone, fp);
-	if (result == ISC_R_NOTIMPLEMENTED) {
-		fprintf(fp, "; %s\n", dns_result_totext(result));
-		result = ISC_R_SUCCESS;
-	}
+	zle = isc_mem_get(dctx->mctx, sizeof *zle);
+	if (zle ==  NULL)
+		return (ISC_R_NOMEMORY);
+	zle->zone = NULL;
+	dns_zone_attach(zone, &zle->zone);
+	ISC_LINK_INIT(zle, link);
+	ISC_LIST_APPEND(ISC_LIST_TAIL(dctx->viewlist)->zonelist, zle, link);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
+	struct viewlistentry *vle;
+	isc_result_t result = ISC_R_SUCCESS;
+	
+	vle = isc_mem_get(dctx->mctx, sizeof *vle);
+	if (vle == NULL)
+		return (ISC_R_NOMEMORY);
+	vle->view = NULL;
+	dns_view_attach(view, &vle->view);
+	ISC_LINK_INIT(vle, link);
+	ISC_LIST_INIT(vle->zonelist);
+	ISC_LIST_APPEND(dctx->viewlist, vle, link);
+	if (dctx->dumpzones)
+		result = dns_zt_apply(view->zonetable, ISC_TRUE,
+				      add_zone_tolist, dctx);
 	return (result);
 }
 
+static void
+dumpcontext_destroy(struct dumpcontext *dctx) {
+	struct viewlistentry *vle;
+	struct zonelistentry *zle;
+
+	vle = ISC_LIST_HEAD(dctx->viewlist);
+	while (vle != NULL) {
+		ISC_LIST_UNLINK(dctx->viewlist, vle, link);
+		zle = ISC_LIST_HEAD(vle->zonelist);
+		while (zle != NULL) {
+			ISC_LIST_UNLINK(vle->zonelist, zle, link);
+			dns_zone_detach(&zle->zone);
+			isc_mem_put(dctx->mctx, zle, sizeof *zle);
+			zle = ISC_LIST_HEAD(vle->zonelist);
+		}
+		dns_view_detach(&vle->view);
+		isc_mem_put(dctx->mctx, vle, sizeof *vle);
+		vle = ISC_LIST_HEAD(dctx->viewlist);
+	}
+	if (dctx->version != NULL)
+		dns_db_closeversion(dctx->db, &dctx->version, ISC_FALSE);
+	if (dctx->db != NULL)
+		dns_db_detach(&dctx->db);
+	if (dctx->cache != NULL)
+		dns_db_detach(&dctx->cache);
+	if (dctx->task != NULL)
+		isc_task_detach(&dctx->task);
+	if (dctx->fp != NULL)
+		(void)isc_stdio_close(dctx->fp);
+	if (dctx->mdctx != NULL)
+		dns_dumpctx_detach(&dctx->mdctx);
+	isc_mem_put(dctx->mctx, dctx, sizeof *dctx);
+}
+
+static void
+dumpdone(void *arg, isc_result_t result) {
+	struct dumpcontext *dctx = arg;
+	char buf[1024+32];
+	const dns_master_style_t *style;
+	
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	if (dctx->mdctx != NULL)
+		dns_dumpctx_detach(&dctx->mdctx);
+	if (dctx->view == NULL) {
+		dctx->view = ISC_LIST_HEAD(dctx->viewlist);
+		if (dctx->view == NULL)
+			goto done;
+		INSIST(dctx->zone == NULL);
+	}
+ nextview:
+	fprintf(dctx->fp, ";\n; Start view %s\n;\n", dctx->view->view->name);
+	if (dctx->zone == NULL && dctx->cache == NULL && dctx->dumpcache) {
+		style = &dns_master_style_cache;
+		/* start cache dump */
+		if (dctx->view->view->cachedb != NULL)
+			dns_db_attach(dctx->view->view->cachedb, &dctx->cache);
+		if (dctx->cache != NULL) {
+
+			fprintf(dctx->fp, ";\n; Cache dump of view '%s'\n;\n",
+				dctx->view->view->name);
+			result = dns_master_dumptostreaminc(dctx->mctx,
+							    dctx->cache, NULL,
+							    style, dctx->fp,
+							    dctx->task,
+							    dumpdone, dctx,
+							    &dctx->mdctx);
+			if (result == DNS_R_CONTINUE)
+				return;
+			if (result == ISC_R_NOTIMPLEMENTED)
+				fprintf(dctx->fp, "; %s\n",
+					dns_result_totext(result));
+			else if (result != ISC_R_SUCCESS)
+				goto cleanup;
+		}
+	}
+	if (dctx->cache != NULL) {
+		dns_adb_dump(dctx->view->view->adb, dctx->fp);
+		dns_db_detach(&dctx->cache);
+	}
+	if (dctx->dumpzones) {
+		style = &dns_master_style_full;
+ nextzone:
+		if (dctx->version != NULL)
+			dns_db_closeversion(dctx->db, &dctx->version,
+					    ISC_FALSE);
+		if (dctx->db != NULL)
+			dns_db_detach(&dctx->db);
+		if (dctx->zone == NULL)
+			dctx->zone = ISC_LIST_HEAD(dctx->view->zonelist);
+		else
+			dctx->zone = ISC_LIST_NEXT(dctx->zone, link);
+		if (dctx->zone != NULL) {
+			/* start zone dump */
+			dns_zone_name(dctx->zone->zone, buf, sizeof(buf));
+			fprintf(dctx->fp, ";\n; Zone dump of '%s'\n;\n", buf);
+			result = dns_zone_getdb(dctx->zone->zone, &dctx->db);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(dctx->fp, "; %s\n",
+					dns_result_totext(result));
+				goto nextzone;
+			}
+			dns_db_currentversion(dctx->db, &dctx->version);
+			result = dns_master_dumptostreaminc(dctx->mctx,
+							    dctx->db,
+							    dctx->version,
+							    style, dctx->fp,
+							    dctx->task,
+							    dumpdone, dctx,
+							    &dctx->mdctx);
+			if (result == DNS_R_CONTINUE)
+				return;
+			if (result == ISC_R_NOTIMPLEMENTED)
+				fprintf(dctx->fp, "; %s\n",
+					dns_result_totext(result));
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+		}
+	}
+	if (dctx->view != NULL)
+		dctx->view = ISC_LIST_NEXT(dctx->view, link);
+	if (dctx->view != NULL)
+		goto nextview;
+ done:
+	fprintf(dctx->fp, "; Dump complete\n");
+	result = isc_stdio_flush(dctx->fp);
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "dumpdb complete");
+ cleanup:
+	if (result != ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "dumpdb failed: %s", dns_result_totext(result));
+	dumpcontext_destroy(dctx);
+}
+
+
 isc_result_t
 ns_server_dumpdb(ns_server_t *server, char *args) {
-	FILE *fp = NULL;
+	struct dumpcontext *dctx = NULL;
 	dns_view_t *view;
 	isc_result_t result;
-	isc_boolean_t zones = ISC_FALSE;
-	isc_boolean_t cache = ISC_TRUE;
 	char *ptr;
 	const char *sep;
 
-	CHECKMF(isc_stdio_open(server->dumpfile, "w", &fp),
+	dctx = isc_mem_get(server->mctx, sizeof(*dctx));
+	if (dctx == NULL)
+		return (ISC_R_NOMEMORY);
+
+	dctx->mctx = server->mctx;
+	dctx->dumpcache = ISC_TRUE;
+	dctx->dumpzones = ISC_FALSE;
+	dctx->fp = NULL;
+	ISC_LIST_INIT(dctx->viewlist);
+	dctx->view = NULL;
+	dctx->zone = NULL;
+	dctx->cache = NULL;
+	dctx->mdctx = NULL;
+	dctx->db = NULL;
+	dctx->cache = NULL;
+	dctx->task = NULL;
+	dctx->version = NULL;
+	isc_task_attach(server->task, &dctx->task);
+
+	CHECKMF(isc_stdio_open(server->dumpfile, "w", &dctx->fp),
 		"could not open dump file", server->dumpfile);
 
 	/* Skip the command name. */
@@ -3558,16 +3759,16 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 
 	ptr = next_token(&args, " \t");
 	if (ptr != NULL && strcmp(ptr, "-all") == 0) {
-		zones = ISC_TRUE;
-		cache = ISC_TRUE;
+		dctx->dumpzones = ISC_TRUE;
+		dctx->dumpcache = ISC_TRUE;
 		ptr = next_token(&args, " \t");
 	} else if (ptr != NULL && strcmp(ptr, "-cache") == 0) {
-		zones = ISC_FALSE;
-		cache = ISC_TRUE;
+		dctx->dumpzones = ISC_FALSE;
+		dctx->dumpcache = ISC_TRUE;
 		ptr = next_token(&args, " \t");
 	} else if (ptr != NULL && strcmp(ptr, "-zones") == 0) {
-		zones = ISC_TRUE;
-		cache = ISC_FALSE;
+		dctx->dumpzones = ISC_TRUE;
+		dctx->dumpcache = ISC_FALSE;
 		ptr = next_token(&args, " \t");
 	} 
 
@@ -3577,23 +3778,14 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 	{
 		if (ptr != NULL && strcmp(view->name, ptr) != 0)
 			continue;
-		fprintf(fp, ";\n; Start view %s\n;\n", view->name);
-		if (cache && view->cachedb != NULL)
-			CHECKM(dns_view_dumpdbtostream(view, fp),
-			       "could not dump cache");
-		if (zones && view->zonetable != NULL)
-			CHECKM(dns_zt_apply(view->zonetable, ISC_TRUE,
-					    printzone, fp),
-			       "could not dump zones");
+		CHECK(add_view_tolist(dctx, view));
 	}
-	fprintf(fp, "; Dump complete\n");
-	result = isc_stdio_flush(fp);
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "dumpdb complete");
+	dumpdone(dctx, ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
+
  cleanup:
-	if (fp != NULL)
-		(void)isc_stdio_close(fp);
+	if (dctx != NULL)
+		dumpcontext_destroy(dctx);
 	return (result);
 }
 
