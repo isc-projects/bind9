@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.20 2004/05/04 00:14:47 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.21 2004/05/17 03:02:23 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -3656,7 +3656,6 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 		isc_socket_newconnev_t *next;
 		isc_task_t	       *current_task;
 
-		socket_event_delete(sock);
 		dev = ISC_LIST_HEAD(sock->accept_list);
 
 		while (dev != NULL) {
