@@ -1,6 +1,7 @@
 1633.   [placeholder]	rt11331
 
-1632.	[placeholder]	rt11288
+1632.	[bug]		nsupdate failed to send prerequisite only UPDATE
+			messages. [RT #11288]
 
 1631.	[bug]		dns_journal_compact() could sometimes corrupt the
 			journal. [RT #11124]
