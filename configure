@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.303 
+# From configure.in Revision: 1.304 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -214,8 +214,8 @@ ac_help=
 ac_default_prefix=/usr/local
 # Any additions from configure.in:
 ac_help="$ac_help
-  --with-openssl=PATH  Specify path for system-supplied openssl
-                        (required for DNSSEC)"
+  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
+                          (Required for DNSSEC)"
 ac_help="$ac_help
   --with-randomdev=PATH Specify path for random device"
 ac_help="$ac_help
@@ -10101,7 +10101,7 @@ cat >> $CONFIG_STATUS <<\EOF
 
 # Split the substitutions into bite-sized pieces for seds with
 # small command number limits, like on Digital OSF/1 and HP-UX.
-ac_max_sed_cmds=90 # Maximum number of lines to put in a sed script.
+ac_max_sed_cmds=50 # Maximum number of lines to put in a sed script.
 ac_file=1 # Number of current file.
 ac_beg=1 # First line for current file.
 ac_end=$ac_max_sed_cmds # Line after last line for current file.
