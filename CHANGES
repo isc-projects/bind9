@@ -1,3 +1,5 @@
+ 688.	[func]		"make tags" now works on systems with the
+			"Exuberant Ctags" etags.
 
  687.	[bug]		Only say we have IPv6, with sufficent functionality,
 			if it has actually been tested.  [RT #586]
