@@ -1,0 +1,1596 @@
+
+ENUM Working Group                                          A. Gallant
+Internet Draft                                      Comsat Corporation
+Expires: January 6, 2001                                  July 7, 2000
+
+
+    The Number Portability Supplement to ITU-T Recommendation E.164
+                   <draft-ietf-enum-e164s2-np-00.txt>
+
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026 [1].
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.  Internet-Drafts are draft documents valid for a maximum of
+   six months and may be updated, replaced, or obsoleted by other
+   documents at any time.  It is inappropriate to use Internet-Drafts
+   as reference material or to cite them other than as "work in
+   progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+
+1. Abstract
+
+   This document contains a text version of the Number Portability
+   Supplement (11/98) to ITU-T Recommendation E.164 (The international
+   public telecommunication numbering plan, 05/97) [2].  That
+   Supplement [3] defined terminology for number portability within an
+   E.164 numbering scheme; identified formats, call flows,
+   architectures, and routing approaches for some methods; and gave
+   examples of some processes needed to implement number portability.
+
+   A January 2000 workshop on IP-Telecomms interworking (focused on
+   numbering, naming, addressing, and routing) identified issues to be
+   addressed by the IETF and/or the ITU [4].  This Supplement was noted
+   as a document related to a joint IETF/ITU issue on E.164 number
+   portability.  A text version was posted on the ITU's web site in
+   March 2000 and notified to the itu+ietf and enum mailing lists.
+
+   This Internet Draft is being submitted to support work of the ENUM
+   (Telephone Number Mapping) Working Group on impacts of local number
+   portability on a DNS-based architecture and protocols for mapping a
+   telephone number to a set of attributes (e.g., URLs) [5].
+
+
+
+Gallant                Expires January 6, 2001                       1
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+2. Convention used in this document
+
+   "e164s2" below flags the section numbering from the ITU original.
+
+
+3. Table of Contents
+
+   Status of this Memo . . . . . . . . . . . . . . . . . . . . . . .  1
+   1. Abstract . . . . . . . . . . . . . . . . . . . . . . . . . . .  1
+   2. Convention Used in this Document . . . . . . . . . . . . . . .  2
+   3. Table of Contents  . . . . . . . . . . . . . . . . . . . . . .  2
+   4. Text Version of the Number Portability Supplement  . . . . . .  3
+   (e164s2) 1 Scope  . . . . . . . . . . . . . . . . . . . . . . . .  3
+   (e164s2) 2 References . . . . . . . . . . . . . . . . . . . . . .  3
+   (e164s2) 3 Definitions and abbreviations  . . . . . . . . . . . .  3
+   (e164s2) 4 E.164 number structures  . . . . . . . . . . . . . . .  6
+   (e164s2) 4.1 International public telecommunication number for
+                geographic areas . . . . . . . . . . . . . . . . . .  7
+   (e164s2) 4.2 International public telecommunication number for
+                global services  . . . . . . . . . . . . . . . . . .  7
+   (e164s2) 4.3 International public telecommunication number for
+                networks . . . . . . . . . . . . . . . . . . . . . .  8
+   (e164s2) 5 Number portability types . . . . . . . . . . . . . . .  8
+   (e164s2) 6 Generic implementation of number portability . . . . . 11
+   (e164s2) 7 Entities addressed by routing  . . . . . . . . . . . . 12
+   (e164s2) 8 Number portability mechanisms  . . . . . . . . . . . . 13
+   (e164s2) 8.1 Assumptions  . . . . . . . . . . . . . . . . . . . . 13
+   (e164s2) 8.2 General description  . . . . . . . . . . . . . . . . 13
+   (e164s2) 9 Types of addresses and numbers _ within networks and
+              across network boundaries  . . . . . . . . . . . . . . 18
+   (e164s2) 9.1 Concatenated address . . . . . . . . . . . . . . . . 19
+   (e164s2) 9.2 Separated addresses  . . . . . . . . . . . . . . . . 21
+   (e164s2) 9.3 RN only  . . . . . . . . . . . . . . . . . . . . . . 22
+   (e164s2) 9.4 Only DN (normally across network boundaries) . . . . 22
+   (e164s2) 10 Combinations of addressing types, addressed entities
+               and mechanisms: general signalling requirements . . . 23
+   (e164s2) 11 Examples of locations of number portability
+               database(s) within networks . . . . . . . . . . . . . 24
+   (e164s2) 12 Administrative processes  . . . . . . . . . . . . . . 25
+   5. Front Matter from the ITU-T Published Version  . . . . . . . . 26
+   6. Security Considerations  . . . . . . . . . . . . . . . . . . . 27
+   7. References . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+   8. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 28
+   9. Author's Address . . . . . . . . . . . . . . . . . . . . . . . 28
+   10. Full Copyright Statement  . . . . . . . . . . . . . . . . . . 28
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                       2
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+4. Text Version of the Number Portability Supplement
+
+   This section contains the text of the Rec. E.164 Supplement on
+   Number Portability.  It also contains text versions of all figures
+   and tables.  The front matter of the ITU-T published version is
+   found in Section 6 of this document.
+
+   --------------------------------------------------------------------
+          SUPPLEMENT 2 to Recommendation E.164 (The international
+                 public telecommunication numbering plan)
+
+                            Number Portability
+                              (Geneva, 1998)
+
+   (e164s2) 1       Scope
+
+   This Supplement defines standard terminology for a common
+   understanding of the different aspects of number portability within
+   an E.164 numbering scheme. It identifies numbering and addressing
+   formats, call flows, network architectures and routing approaches
+   that will provide alternative methods of implementation. It also
+   proposes some examples of the administrative and operational
+   processes required for the successful implementation of number
+   portability.
+
+   (e164s2) 2       References
+
+   -       ITU-T Recommendation E.164 (1997), The international public
+   telecommunication numbering plan.
+
+   (e164s2) 3       Definitions and abbreviations
+
+   (e164s2) 3.1     Definitions
+
+   The following definitions and terms used in this Supplement are to
+   be used within the context of number portability.
+
+   (e164s2) 3.1.1   address (taken from E.164): A string or combination
+   of decimal digits, symbols and additional information which
+   identifies the specific termination point(s) of a connection in a
+   public network(s) or, where applicable, in interconnected private
+   network(s).
+
+   (e164s2) 3.1.2   directory number: See end user's number.
+
+   (e164s2) 3.1.3   donor network/exchange: The initial
+   network/exchange where a number was located before ever being
+   ported.
+
+   (e164s2) 3.1.4   donor service provider: The service provider from
+   whom the number was initially ported.
+
+
+Gallant                Expires January 6, 2001                       3
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+
+   (e164s2) 3.1.5   end user's number: The E.164 number used by the
+   calling party to establish a call to the end user. This number is
+   also used for presentation services like Calling Line Identification
+   (CLI) and Connected Line Identification Presentation (COLP).
+
+   The end user's number is equivalent to a directory number.
+
+   (e164s2) 3.1.6   Geographic Number (GN): An E.164 number which
+   corresponds to a discrete geographic area.
+
+   (e164s2) 3.1.7   location portability: The ability of an end user to
+   retain the same E.164 international public telecommunication number
+   when moving from one location to another.
+
+   (e164s2) 3.1.8   network operator: An entity that operates a network
+   in order to route calls.
+
+   (e164s2) 3.1.9   Non-Geographic Number (NGN): An E.164 number which
+   has no geographic significance.
+
+   (e164s2) 3.1.10  numbering plan: A numbering plan specifies the
+   format and structure of the numbers used within that plan. It
+   typically consists of decimal digits segmented into groups in order
+   to identify specific elements used for identification, routing and
+   charging capabilities, e.g. within E.164 to identify countries,
+   national destinations and subscribers.
+
+   A numbering plan does not include prefixes, suffixes and additional
+   information required to complete a call.
+
+   The national numbering plan is the national implementation of the
+   E.164 numbering plan.
+
+   (e164s2) 3.1.11  originating network/exchange: The network/exchange
+   serving a calling end user.
+
+   (e164s2) 3.1.12  portable number: An entire E.164 number identified
+   by an appropriate authority which is subject to number portability.
+
+   (e164s2) 3.1.13  ported number: An end user's E.164 number that has
+   been subject to number portability.
+
+   (e164s2) 3.1.14  recipient network/exchange: The network/exchange
+   where a number is located after being ported.  [Footnote: The
+   recipient exchange may consist of a central processor and both co-
+   located and remote concentrator units. The routing number may
+   identify either this whole ensemble or a specific concentrator (in
+   which case the ensemble may use several different routing numbers).]
+
+
+
+
+Gallant                Expires January 6, 2001                       4
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   (e164s2) 3.1.15  recipient service provider: The service provider to
+   whom the number is ported.
+
+   (e164s2) 3.1.16  routing number: A number that is derived and used
+   by the network to route the call towards a ported number.
+
+   Four types of entities can be indicated by routing numbers as
+   follows:
+
+   -   Recipient network: The routing number identifies the network
+   where the customer is now located. Therefore the routing process
+   will need additional information (i.e. DN) to be completed.
+
+   -   Recipient exchange: The routing number identifies the exchange
+   where the customer is now located. Therefore the routing process
+   within the recipient exchange will need additional information (i.e.
+   DN) to be completed.
+
+   -   Point of interconnection: The routing number identifies an
+   interface to the next network in the routing process. Therefore the
+   routing process will need additional information (i.e. DN) to be
+   completed.
+
+   -   Network termination point: The routing number identifies the
+   subscriber/access line/service. The ported customer identified by
+   the RN is unique. Therefore the routing process in terms of number
+   portability can be completed without any additional information.
+
+   (e164s2) 3.1.17  serving network(s)/exchange(s): The
+   network(s)/exchange(s) that determines the status of a number in an
+   environment capable of supporting number portability and, if
+   necessary, obtains the routing information for ported numbers. The
+   functionality to provide these capabilities may reside in either the
+   originating, donor, recipient or transit network/exchange or in some
+   combination.
+
+   (e164s2) 3.1.18  service number: A non-geographic E.164 number
+   allocated to a specific category of services.
+
+   (e164s2) 3.1.19  service portability: The ability of an end user to
+   retain the same E.164 international public telecommunication number
+   when changing from one type of service to another.
+
+   (e164s2) 3.1.20  service provider: An entity that offers services to
+   users involving the use of network resources.
+
+   (e164s2) 3.1.21  service provider portability: The ability of an end
+   user to retain the same E.164 international public telecommunication
+   number when changing from one service provider to another.
+
+
+
+
+Gallant                Expires January 6, 2001                       5
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   (e164s2) 3.1.22  service provider portability for geographic
+   numbers: The ability of an end user to retain the same geographic
+   E.164 international public telecommunication number when changing
+   from one service provider to another without changing their location
+   and without changing the nature of the service offered.
+
+   (e164s2) 3.1.23  service provider portability for non-geographic
+   numbers: The ability of an end user to retain the same non-
+   geographic E.164 international public telecommunications number when
+   changing from one service provider to another without changing the
+   nature of the service offered.
+
+   (e164s2) 3.1.24  transit network(s)/exchange(s): A network/exchange
+   between two networks.
+
+   (e164s2) 3.2     Abbreviations
+
+   CCBS    Completion of Calls to Busy Subscriber
+   DDI     Direct-Dialling-In
+   DN      Directory Number
+   GNP     Geographic Number Portability
+   IN      Intelligent Network
+   MSN     Multiple Subscriber Number
+   NGNP    Non-Geographic Number Portability
+   RN      Routing Number
+   SP      Service Provider
+
+   (e164s2) 4       E.164 number structures
+
+   This clause identifies three different structures for the
+   international public telecommunication number:
+
+   -   international public telecommunication number for geographic
+   areas;
+   -   international public telecommunication number for global
+   services;
+   -   international public telecommunication number for networks.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                       6
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   (e164s2) 4.1     International public telecommunication number for
+   geographic areas
+
+   +-------------+ +-----------------+ +---------------------+
+   |  CC         | |  NDC            | |  SN                 |
+   +-------------+ +-----------------+ +---------------------+
+   |             | |                                         |
+   |1 to 3 digits| |            Max (15-n) digits            |
+   |             | |                                         |
+   |               |<-----National (significant) number----->|
+   |                                                         |
+   |<---------------------Max 15 digits--------------------->|
+   |                                                         |
+   |<--------International public telecommunication--------->|
+   |              number for geographic areas                |
+
+     CC    Country Code for geographic areas
+     NDC   National Destination Code (optional)
+     SN    Subscriber Number
+     n     Number of digits in the country code
+
+     NOTE - National and international prefixes are not part of
+   the international public telecommunication number for
+   geographic areas.
+
+           Figure 1 - International public telecommunication
+           number structure for geographic areas
+
+   (e164s2) 4.2     International public telecommunication number
+   for global services
+
+   +-------------+ +-----------------------------------------+
+   |  CC         | |  GSN                                    |
+   +-------------+ +-----------------------------------------+
+   |             | |                                         |
+   |  3 digits   | |<-------------Max 12 digits------------->|
+   |             | |                                         |
+   |<---------------------Max 15 digits--------------------->|
+   |                                                         |
+   |<--------International public telecommunication--------->|
+   |              number for global services                 |
+
+     CC    Country Code for global services
+     GSN   Global Subscriber Number
+
+     NOTE - National and international prefixes are not
+   considered to be part of the international public
+   telecommunication number for global services.
+
+           Figure 2 - International public telecommunication
+           number structure for global services
+
+
+Gallant                Expires January 6, 2001                       7
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+
+   (e164s2) 4.3     International public telecommunication number for
+   networks
+
+   +-------------+ +-----------------+ +---------------------+
+   |  CC         | |  IC             | |  SN                 |
+   +-------------+ +-----------------+ +---------------------+
+   |             | |                 | |                     |
+   |  3 digits   | |  1 to 4 digits  | |  Max (12-x) digits  |
+   |             | |                                         |
+   |               |<-------------Max 12 digits------------->|
+   |                                                         |
+   |<---------------------Max 15 digits--------------------->|
+   |                                                         |
+   |<--------International public telecommunication--------->|
+   |              number for networks                        |
+
+     CC    Country Code for networks
+     IC    Identification Code
+     SN    Subscriber Number
+     x     Number of digits in Identification Code (IC)
+
+     NOTE - National and international prefixes are not part of
+   the international public telecommunication number for
+   networks.
+
+           Figure 3 - International public telecommunication
+           number structure for networks
+
+   (e164s2) 5       Number portability types
+
+   An E.164 number is classified into the following three types
+   of country codes:
+
+   1)      beginning with CC for geographic areas;
+   2)      beginning with CC for global services; and
+   3)      beginning with CC for networks.
+
+   The following tables provide an overview of the applicability of
+   each type of portability, when considered against the three number
+   types.
+
+
+
+
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                       8
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+           Table 1 - Service provider portability
+
+   +---------------------------------------------------------+
+   |     Scope |                      |                      |
+   |-----------|                      |                      |
+   |CC type    |  Between CC domains  |  Within CC domains   |
+   | (Note 1)  |                      |                      |
+   |-----------+-----------+----------+-----------+----------|
+   |Geographic |Porting    |Standards |Porting    |Standards |
+   |           |not        |not       |applicable |not       |
+   |           |applicable |required  |           |required  |
+   |           |           |          |           | (Note 4) |
+   |-----------+-----------+----------+-----------+----------|
+   |Global     |Porting    |Standards |Porting    |Standards |
+   |Services   |not        |not       |applicable |not       |
+   |           |applicable |required  |           |required  |
+   |           |           |          |           | (Note 2) |
+   |-----------+-----------+----------+-----------+----------|
+   |Network    |Porting    |Standards |Network    |Network   |
+   | (Note 3)  |not        |not       |operator   |operator  |
+   |           |applicable |required  |matter     |matter    |
+   +---------------------------------------------------------+
+
+
+           Table 2 - Service portability
+
+   +---------------------------------------------------------+
+   |     Scope |                      |                      |
+   |-----------|                      |                      |
+   |CC type    |  Between CC domains  |  Within CC domains   |
+   | (Note 1)  |                      |                      |
+   |-----------+-----------+----------+-----------+----------|
+   |Geographic |Porting    |Standards |Porting    |Standards |
+   |           |not        |not       |applicable |not       |
+   |           |applicable |required  |           |required  |
+   |           |           |          |           | (Note 4) |
+   |-----------+-----------+----------+-----------+----------|
+   |Global     |Porting    |Standards |Porting    |Standards |
+   |Services   |not        |not       |not        |not       |
+   |           |applicable |required  |applicable |required  |
+   |-----------+-----------+----------+-----------+----------|
+   |Network    |Porting    |Standards |Network    |Network   |
+   | (Note 3)  |not        |not       |operator   |operator  |
+   |           |applicable |required  |matter     |matter    |
+   +---------------------------------------------------------+
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                       9
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+           Table 3 - Location portability
+
+   +---------------------------------------------------------+
+   |     Scope |                      |                      |
+   |-----------|                      |                      |
+   |CC type    |  Between CC domains  |  Within CC domains   |
+   | (Note 1)  |                      |                      |
+   |-----------+-----------+----------+-----------+----------|
+   |Geographic |Porting    |Standards |Porting    |Standards |
+   |           |not        |not       |applicable |not       |
+   |           |applicable |required  |           |required  |
+   |           |           |          |           | (Note 4) |
+   |-----------+-----------+----------+-----------+----------|
+   |Global     |Porting    |Standards |Porting    |Standards |
+   |Services   |not        |not       |applicable |not       |
+   |           |applicable |required  | (Note 5)  |required  |
+   |-----------+-----------+----------+-----------+----------|
+   |Network    |Porting    |Standards |Network    |Network   |
+   | (Note 3)  |not        |not       |operator   |operator  |
+   |           |applicable |required  |matter     |matter    |
+   +---------------------------------------------------------+
+
+
+   Notes to Tables 1, 2 and 3:
+
+   NOTE 1 - Portability not supported between CC types.
+
+   NOTE 2 - Requires international agreement(s) and infrastructure to
+   support number portability (e.g. UIFN).
+
+   NOTE 3 - Includes the CC + IC digits required to uniquely identify
+   the network.
+
+   NOTE 4 - International standardization not required but could be of
+   use.
+
+   NOTE 5 - These resources are "non-geographic" therefore location
+   portability is inherent.
+
+   NOTE 6 - For purposes of Tables 1, 2 and 3, "Standards" means ITU-T
+   Recommendations.
+
+
+
+
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      10
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   (e164s2) 6       Generic implementation of number portability
+
+   The following general routing scheme is assumed as the routing model
+   for calls routed to a ported customer.
+
+
+                          incoming call
+                                |
+        1st step of the         |
+        routing process,        |
+        based on dialled digits |
+                                |
+       +---------------------------+   +--------------------+
+       | Serving Network        |  |   | Transit Network    |
+       |                        v  |   | (optional)         |
+       |                       +-+ |   |                    |
+       |                       | | |-------------------+    |
+       |     Serving Exchange  +-+ |   |               |    |
+       +---------------------------+   +---------------|----+
+                                                       |
+                               2nd step of the         |
+                               routing process,        |
+                               based on routing number |
+                                                       v
+                              +---------------------------+
+                              | Recipient Network      |  |
+                              |                        v  |
+                              |                       +-+ |
+                              |                       | | |
+                              |   Recipient Exchange  +-+ |
+                              +---------------------------+
+                                                       |
+                                                       |
+                                                     +---+
+                                      customer with  |   |
+                                      ported number  |   |
+                                                     +---+
+
+     NOTE - The serving network may be the originating network
+   and/or the donor or a transit network.
+
+           Figure 4 - Conceptual framework for incoming calls
+
+
+   NOTE 1 - The caller sets up the call by dialling the end user's
+   number which in this case is a ported number. The end user's number
+   is enough to initiate the routing process. Furthermore, number
+   portability, by definition, implies that the callers should continue
+   to dial the same end user's number and nothing more to set up a call
+   to a ported customer.
+
+
+
+Gallant                Expires January 6, 2001                      11
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   NOTE 2 - The routing process is split into two consecutive main
+   steps:
+
+   a)      Normal routing based on end user's number towards a serving
+   exchange:
+
+   As a 1st step in the routing process, the originating network routes
+   the call up to a serving exchange clearly identified by the analysis
+   of a certain number of leading digits of the end user's number.
+
+   b)      Routing to customer's interface based on routing number(s)
+   obtained by this serving exchange:
+
+   It should be noted that this step might be subdivided into sub-steps
+   (e.g. the serving exchange could provide information to route to a
+   database - within the recipient network or accessed by the recipient
+   network - which provides subsequent routing information identifying
+   the recipient exchange, information used for a subsequent sub- step
+   in the routing process).
+
+   NOTE 3 - If only the recipient network is identified, then it is the
+   responsibility of the recipient network to terminate the call at the
+   recipient exchange.
+
+   NOTE 4 - The internal routing process in the recipient exchange
+   shall unambiguously determine the called customer's interface and
+   complete the call taking into account the supplementary services
+   activated.
+
+   NOTE 5 - If a number is ported subsequently from service provider
+   No. 1 to service provider No. 2, then to service provider No. 3,
+   etc. this will change the routing number but not the routing
+   principles.
+
+   (e164s2) 7       Entities addressed by routing
+
+   Entities which need to be addressed by a Routing Number (RN) in one
+   or more routing solutions are identified in this clause.
+
+   According to the structure of the routing number, one or a
+   combination of several of the following entities should be
+   addressable:
+
+   -   A recipient network: In this option, the routing number
+   identifies the network where the customer is now located. Therefore
+   the routing process will need additional information (i.e. DN) to be
+   completed.
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      12
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   -   A Point of Interconnection (POI): In this option, the routing
+   number identifies an interface to the next network in the routing
+   process. Therefore the routing process will need additional
+   information (i.e. DN) to be completed.
+
+   -   Recipient exchange: In this option, the routing number
+   identifies the exchange where the customer is now located. Therefore
+   the routing process within the recipient exchange will need an
+   additional information (i.e. DN) to be completed.
+
+   -   Network Termination Point (NTP): In this option, the routing
+   number identifies the subscriber/access line/service. The ported
+   customer identified by the RN is unique. Therefore the routing
+   process, in terms of number portability, can be completed without
+   any additional information.
+
+   (e164s2) 8       Number portability mechanisms
+
+   (e164s2) 8.1     Assumptions
+
+   The following document internal assumptions that have been made:
+
+   a)  that Calling Line Identification (CLI) is required to be
+   transported, with display information, unchanged to recipient
+   network;
+
+   b)  that Connected Line Identification (COLI) is required to be
+   transported, with display information, unchanged to originating
+   network;
+
+   c)  that initial routing arrangements have been defined and
+   implemented prior to the introduction of routing based on a routing
+   number;
+
+   d)  that number portability is not allowed to influence the carrier
+   selection function;
+
+   e)  that an NP solution shall not influence functions in PBXs.
+
+   (e164s2) 8.2     General description
+
+   (e164s2) 8.2.1   Call rerouted from donor network by use of onward
+   routing principles
+
+   The first step/solution discussed for number portability is often
+   that the donor network maintains the portability information, i.e.
+   the complete address to both recipient network and exchange, for
+   ported-out numbers and reroutes incoming calls to ported-out numbers
+   onward towards the recipient network according to onward routing
+   principles outlined in Figure 5.
+
+
+
+Gallant                Expires January 6, 2001                      13
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+
+         Originating       Transit          Donor
+           Network       Network(s)(A)     Network
+          +-------+       +-------+       +-------+
+          |       | IAM   |       | IAM   |   +--+|
+      +-->|       |------>|       |------>|   |DB||.....
+      |   |       |       |       |       |   +--+|    .
+      |   +-------+       +-------+       +-------+    .
+      |                                    |  |        .
+   Calling                         a1)IAM  |  |b)IAM   .
+   Subscriber                    +---------+  |        .
+                                 |            |    Called
+                                 |            |    Subscriber
+                                 v            v        ^
+                          +-------+       +-------+    |
+                          |       |a2)IAM |       |    |
+                          |       |------>|       |----+
+                          |       |       |       |
+                          +-------+       +-------+
+                           Transit        Recipient
+                         Network(s)(B)     Network
+
+           Figure 5 - Call rerouting to recipient network by
+           onward routing principles from donor network
+
+
+   In Figure 5, the donor network receives an incoming call. It then
+   detects that the called number has been ported-out to another
+   network and makes a DB query to retrieve a routing number. It
+   thereafter reroutes the call onward towards the recipient network
+   using retrieved routing information.
+
+   Please note that the transit network(s) are optional, i.e. direct
+   interconnections connections between originating network and donor
+   network might exist and the same also between donor network and
+   recipient network. Note also that the transit network(s) A and B can
+   be the same depending on network structure and call case.
+
+   (e164s2) 8.2.2   Call rerouted by dropback principles from donor
+   network
+
+   One possible enhancement of the previously described onward routing
+   solution, is that the donor network initiates the rerouting of the
+   call towards the recipient network according to "dropback"
+   principles outlined in Figure 6. Also, in this scenario, only the
+   donor network maintains NP information, i.e. the complete address to
+   both recipient network and exchange, for ported-out numbers.
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      14
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+         Originating       Transit          Donor
+           Network       Network(s)(A)     Network
+          +-------+       +-------+       +-------+
+          |       | IAM   |       | IAM   |   +--+|
+      +-->|       |------>|       |......>|   |DB||.....
+      |   |       |       |       |<......|   +--+|    .
+      |   +-------+       +-------+ Dropb.+-------+    .
+      |                       |  |                     .
+   Calling              a1)IAM|  | b)IAM               .
+   Subscriber                 |  +---------+           .
+                              |            |       Called
+                              |            |       Subscriber
+   ---->                      v            v           ^
+     Lasting              +-------+       +-------+    |
+     relation             |       |a2)IAM |       |    |
+   ....>                  |       |------>|       |----+
+     Temporary            |       |       |       |
+     relation             +-------+       +-------+
+                           Transit        Recipient
+                         Network(s)(B)     Network
+
+           Figure 6 - Dropback with rerouting information and
+           onward rerouting performed by a transit network
+
+
+   The option b) is valid when direct interconnection exists between
+   transit network A and recipient network.
+
+   A further evolution is that the dropback indication is sent back to
+   the originating network. This is mainly of interest if the
+   originating network has direct interconnections to other networks
+   than the transit network used in the call attempt to the donor
+   network.
+
+   The dropback indication is also passed through to the originating
+   network if either the transit network A has no "dropback" capability
+   or determines that the preceding network has "dropback" capability.
+   The originating network, at reception of the release, reroutes the
+   call towards recipient network.
+
+   Please note that the transit networks are optional (i.e. direct
+   connections between originating network and donor network might
+   exist) but might exist [case a1) and a2)] between the onward routing
+   (transit or originating) network and recipient network.
+
+   When carrier selection is valid for the call, the originating
+   network reuses the carrier selection information after reception of
+   dropback indication. It could be debated if a selected carrier (e.g.
+   TN A) is allowed/recommended to transport the dropback to
+   originating network, but it has no option if it has no redirect on
+   "dropback" capability.
+
+
+Gallant                Expires January 6, 2001                      15
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+
+   (e164s2) 8.2.3   Call rerouting initiated by "Query on Release
+   (QoR)" principles from donor network
+
+   A similar case as the previously described "dropback" principle is
+   when the preceding network to donor initiates NP actions, i.e. an NP
+   DB query, at reception of a release message. This case is often
+   referred to as "Query on Release (QoR)".
+
+   In Figure 7, the donor network receives an incoming call. It then
+   detects that the called number has been ported out to another
+   network. It then determines that one of the preceding networks has
+   QoR capability by looking at received signalling information. It
+   thereafter releases the call with a special indication telling that
+   called number is ported out. The transit network then traps the
+   release, determines that preceding network has no QoR capability,
+   makes an NP database query and reroutes the call onward towards the
+   recipient network. In this scenario the transit network has access
+   to an NP DB with the complete address to the recipient network, at
+   least for ported-out numbers.
+
+   Options a1) and a2), in Figure 7, are valid when transit network A
+   either has no direct interconnection to recipient network or when
+   overflow traffic is placed via transit network B.
+
+
+         Originating       Transit          Donor
+           Network       Network(s)(A)     Network
+          +-------+       +-------+       +-------+
+          |       | IAM   |   +--+| IAM   |       |
+      +-->|       |------>|   |DB||......>|       |.....
+      |   |       |       |   +--+|<......|       |    .
+      |   +-------+       +-------+  REL  +-------+    .
+      |                       |  |                     .
+   Calling              a1)IAM|  | b)IAM               .
+   Subscriber                 |  +---------+           .
+                              |            |       Called
+                              |            |       Subscriber
+   ---->                      v            v           ^
+     Lasting              +-------+       +-------+    |
+     relation             |       |a2)IAM |       |    |
+   ....>                  |       |------>|       |----+
+     Temporary            |       |       |       |
+     relation             +-------+       +-------+
+                           Transit        Recipient
+                         Network(s)(B)     Network
+
+           Figure 7 - Query on Release by transit network
+
+
+
+
+
+Gallant                Expires January 6, 2001                      16
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   The option b), in Figure 7, is valid when direct interconnection
+   exists between transit network A and recipient network.
+
+   Please note in this case that the DB query might take place also in
+   the originating network, i.e. that the DB could also exist in the
+   originating network.
+
+   That is what may occur if either the transit network A has no QoR
+   query capability or determines that the preceding network has QoR
+   capability. It therefore lets the release pass through to
+   originating network. The originating network, at reception of the
+   release, queries its NP database and reroutes the call towards
+   recipient network. In this scenario the originating network has
+   access to an NP DB with the complete address to both recipient
+   network and exchange, at least for ported-out numbers.
+
+   Sending back the release message to the originating network is also
+   of interest if the originating network has direct connections to
+   networks other than the transit network currently used.
+
+   When carrier selection is valid for the call, the originating
+   network reuses the carrier selection information after querying NP
+   DB. It could be debated if a selected carrier is allowed/recommended
+   to transport the release message to originating network, but it has
+   no option if it has no redirect on QoR capability.
+
+   (e164s2) 8.2.4   Routing initiated by "All call query" principles
+
+   In the scenario shown in Figure 8, the originating network has
+   access to an NP DB with the complete address to the recipient
+   exchange, at least for ported-out numbers. This implies that only
+   one NP DB look-up needs to be performed to complete the call.
+
+   Note however, that more than one DB look-up may be required if there
+   is not sufficient information to route to the recipient exchange.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      17
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+         Originating       Transit          Donor
+           Network         Network         Network
+          +-------+       +-------+       +-------+
+          |   +--+|a1)IAM |       |       |       |
+      +-->|   |DB||------>|       |       |       |.....
+      |   |   +--+|       |       |       |       |    .
+      |   +-------+       +-------+       +-------+    .
+      |          |               |                     .
+   Calling       |               | a2)IAM              .
+   Subscriber    +---------+     +---------+           .
+                           |               |       Called
+                           |               |       Subscriber
+   ---->                   |               v           ^
+     Lasting               | b)IAM        +-------+    |
+     relation              +------------->|       |    |
+   ....>                                  |       |----+
+     Temporary                            |       |
+     relation                             +-------+
+                                          Recipient
+                                           Network
+
+           Figure 8 - All call query by originating network
+
+
+   As can be seen in Figure 8, the donor network is not involved in the
+   call set-up at all, however optionally the transit network [see
+   cases a1) and a2) above] might be transiting the call to the
+   recipient network.
+
+   Alternatively, a transit network, rather than the originating
+   network, could perform the NP DB look-up.
+
+   (e164s2) 9       Types of addresses and numbers - within networks
+   and across network boundaries
+
+   With service provider portability it may no longer be possible to
+   use an end user's number, dialled by the calling party, to route the
+   call to the customer. If a customer changes service provider, a
+   Routing Number (RN) is needed to be able to route the call. The
+   routing information may have one of the following:
+
+   -   concatenated address (see 9.1);
+   -   separated address (see 9.2);
+   -   RN only, i.e. a plain network address, suppressed E.164 number
+   (see 9.3);
+   -   DN only, i.e. a plain E.164 number (see 9.4).
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      18
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   (e164s2) 9.1     Concatenated address
+
+   (e164s2) 9.1.1   Description
+
+   In this type of address, two numbers are concatenated in the same
+   signalling field (the called party number) which is used to route
+   the call (Figure 9).
+
+             +-----------------------+-----------------------+
+             |  RN                   |  DN                   |
+             +-----------------------+-----------------------+
+
+           Figure 9 - Showing a concatenated address
+
+
+   RN is a routing number prefixed for a routing purpose. The length of
+   RN may vary from country to country.
+
+   If some non-ported numbers have DN leading digits identical to the
+   RN, this may imply a signalling field exists which indicates
+   "Routing information for a ported number"; otherwise, the routing
+   would be ambiguous.
+
+   The RN could take one of the following values:
+
+   Case 1:  RN represents the first digits of a number block usually
+   handled by the addressed entity to which the call has to be routed.
+   In this case, specific information carried by the signalling
+   protocol is needed to indicate that it is a call to a ported number.
+
+   Case 2:  One or more of the first digits of the RN are digits not
+   used as first digits in the national numbering plan used to indicate
+   that the call is to a ported number. The value of the digits could
+   be between 0 and 9 (spare in the national numbering plan). The rest
+   of the RN identifies the addressed entity to which the call has to
+   be routed and is used for this purpose.
+
+   Case 3:  This case is similar to case 2, but the first (or first
+   two) digit(s) of the RN field is (are) one of the hexadecimal values
+   nationally spare in the Signalling System No. 7. RN is used to route
+   the call to the addressed entity.
+
+   (e164s2) 9.1.2   Brief analysis
+
+   Case 1
+
+   Pros:
+
+   This solution does not waste any numbering resource since the RN
+   value is formed by the first digits of the number block usually
+   handled by the addressed entity.
+
+
+Gallant                Expires January 6, 2001                      19
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+
+   This solution does not need a specific addressing scheme (for
+   identifying the addressed exchange) and can be accommodated in the
+   existing signalling.
+
+   Cons:
+
+   This solution requires the use of a specific identifier to qualify
+   the routing number as an address used for a ported call which
+   requires special treatment. The routing mechanisms in exchanges have
+   to be adapted to be able to provide this special treatment. As there
+   is a constraint on the maximum length of the complete concatenated
+   address, the numbering space available for RN may be insufficient;
+   limitations can be present on the maximum numbers of digits being
+   supported by the signalling system and the exchanges in the
+   different networks involved.
+
+   Case 2
+
+   Pros:
+
+   As for case 1, this solution can also be accommodated in the
+   existing signalling. In opposition to case 1, this solution does not
+   require any additional information to qualify the call as a ported
+   call since one of the first digits of the routing number is
+   dedicated to ported calls.
+
+   Cons:
+
+   This solution makes use of a part of the national numbering scheme.
+   To be able to handle the prefix, routing mechanisms in the exchanges
+   will have to be changed. As there is a constraint on the maximum
+   length of the complete concatenated address, the numbering space
+   available for RN may be insufficient.
+
+   Case 3
+
+   Pros:
+
+   This solution does not waste any resource from the national
+   numbering plan since the first digit(s) is (are) hexadecimal.
+   [Footnote:  That is, one of the 6 values A, B, C, D, E or F.]  The
+   advantages are similar to those already mentioned for case 2.
+
+
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      20
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   Cons:
+
+   The drawbacks are similar to those already mentioned for case 2.
+   However, since this solution makes use of hexadecimal character(s),
+   it requires changes (e.g. in signalling systems, switches and
+   support systems). Although the solution does not require any
+   resources from the national numbering plan, it does take up
+   numbering resources (it uses a spare value from the Signalling
+   System No. 7).
+
+   (e164s2) 9.2     Separated addresses
+
+   (e164s2) 9.2.1   Description
+
+   In this address type, the routing number and the directory number
+   are carried in two different fields in the signalling messages
+   (Figure 10). The address identifying the destination of the ported
+   call, routing number, is used to route the call. The DN is carried
+   transparently in a separate signalling parameter and is only used at
+   the called side to complete the call.
+
+             +-----------------------+
+             |  RN                   |
+             +-----------------------+
+             +-----------------------+
+             |  DN                   |
+             +-----------------------+
+
+           Figure 10 - Showing a separated address
+
+
+   (e164s2) 9.2.2   Brief analysis
+
+   Pros:
+
+   The routing number can either be an E.164 number or a non- E.164
+   number. In either case the routing number should be in the same
+   format as the national numbering plan. Since the called number and
+   routing number are carried in separate signalling parameters, the
+   possibility for mis-routing is minimized. If non-E.164 numbers are
+   used, all numbers from the national numbering plan can be used as
+   routing numbers. If E.164 numbers are used, numbers within the
+   national numbering plans must be identified and assigned only for
+   routing purposes. As opposed to prefix solutions, no special
+   treatment of routing numbers need to be provided by the routing
+   mechanisms of the exchange.
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      21
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   Cons:
+
+   Such a separated address solution requires, by definition, that
+   signalling systems used are able to carry both RN and DN in separate
+   signalling parameters.
+
+   (e164s2) 9.3     RN only
+
+   (e164s2) 9.3.1   Description
+
+   In this case the routing number is the only information being sent
+   between exchanges/networks (Figure 11). The directory number, E.164
+   number, is not sent between exchanges but is translated into a
+   routing number. The routing number must point out the access line to
+   which the called party is connected as no other method is available.
+
+             +-----------------------+
+             |  RN                   |
+             +-----------------------+
+
+           Figure 11 - Showing a routing number only
+
+
+   (e164s2) 9.3.2   Brief analysis
+
+   Pros:
+
+   The advantages of this addressing method are that it is
+   internationally available today because the RNs are E.164 numbers
+   and that it does not require any changes in the signalling systems.
+
+   Cons:
+
+   To be able to provide information regarding the DN, in services like
+   COLP, a second query in the recipient exchange (or in the last
+   transit exchange) is needed. This solution can waste numbering
+   resources (depending on the solution).
+
+   (e164s2) 9.4     Only DN (normally across network boundaries)
+
+   (e164s2) 9.4.1   Description
+
+   In this case the directory number is the only information that is
+   being sent between networks.
+
+             +-----------------------+
+             |  DN                   |
+             +-----------------------+
+
+           Figure 12 - Showing a directory number only
+
+
+
+Gallant                Expires January 6, 2001                      22
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+
+   (e164s2) 9.4.2   Brief analysis
+
+   Pros:
+
+   It is not mandatory to introduce RN transfer between networks, i.e.
+   this solution does not affect existing network interfaces. It allows
+   different addressing options of different operators to work
+   together. Operators will have to transport routing information with
+   ported calls inside their networks, regardless of which number
+   portability solution is chosen. There are multiple options to
+   transport this routing information. Separation or concatenation of
+   routing information and directory number is the main characteristic.
+
+   Internal routing is not dependent on information given by other
+   networks (no network interdependence).
+
+   Cons:
+
+   Use of this addressing method requires the use of "all call query
+   all networks" architecture at the network interface.
+
+   (e164s2) 10      Combinations of addressing types, addressed
+   entities and mechanisms: general signalling requirements
+
+   The previous clauses above have identified that there are three
+   components that must be determined in any implementation of service
+   provider number portability:
+
+   1)  the entity addressed by the routing number;
+   2)  the method of transporting the routing number;
+   3)  the architecture used to determine the routing number.
+
+   Addressed entity: Assuming a routing number is utilized (see below),
+   there are four possible entities that can be identified by the
+   routing number:
+
+   1)  network termination point;
+   2)  recipient exchange;
+   3)  recipient network;
+   4)  point of interconnection.
+
+   Transport of routing number: There are four transport methods
+   described:
+
+   1)  concatenated;
+   2)  separated;
+   3)  no routing number used;
+   4)  routing number only.
+
+
+
+
+Gallant                Expires January 6, 2001                      23
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   Architectures: There are four architectures described:
+
+   1)  onward routing;
+   2)  dropback;
+   3)  query on release;
+   4)  all call query.
+
+   With the exception of the "No routing number used/routing number
+   only" transport mechanisms, the three components are independent of
+   one another, allowing a multitude of theoretically possible
+   solutions by combining the components. For example, an
+   implementation could consist of:
+
+   -   Routing number identifies the recipient exchange, is transported
+   concatenated with dialled digits and is derived using an onward
+   routing architecture.
+
+   Or, an alternate implementation could be:
+
+   -   Routing number identifies the recipient network, is transported
+   in a separate field to the dialled digits and is derived using an
+   all call query architecture.
+
+   The various combinations provide flexibility of implementation to
+   take into account economical and technical parameters of each
+   individual situation. For this reason this Supplement does not
+   recommend one solution over another.
+
+   (e164s2) 11      Examples of locations of number portability
+   database(s) within networks
+
+   (e164s2) 11.1    General description
+
+   Depending on the evolutionary level in a particular network, the NP
+   database will be located in different places of the network or
+   possibly even external to the network. The following principles of
+   NP data storing have been identified, described and evaluated:
+
+   a)  exchange-based (distributed) solutions;
+   b)  exchange external (centralized) solutions.
+
+   The following options for NP data query places have been identified,
+   described and evaluated:
+
+   1)  originating local exchange;
+   2)  gateway exchange(s);
+   3)  transit or gateway exchange(s);
+   4)  donor local exchange(s).
+
+
+
+
+
+Gallant                Expires January 6, 2001                      24
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   Regardless of data storing place, the exchange/network can act
+   according to different NP principles, e.g. onward routing the call,
+   dropping back the rerouting information or even acting as a database
+   and responding a query with rerouting information.
+
+   (e164s2) 12      Administrative processes
+
+   In establishing number portability, processes that underpin its
+   introduction and management are a key requirement. The following
+   list provides top level guidance on specific areas of activity and
+   the steps that need to be covered.
+
+       Process activity     Steps to be covered
+
+   Service              Initial contact between operators
+    establishment         Planning stage
+                          Implementation planning
+                          Network implementation and testing
+
+   Service                Introduction of a new switch
+    maintenance           Introduction of a new numbering block
+                          Number change
+                          New routing number
+
+   Service              Request
+    ordering              Validation
+                          Scheduling
+                          Contingency plans
+                          Hours
+                          Subsequent portability
+                          Change of account name
+                          Reasons for rejection
+                          Installation
+                          Cancellation
+
+   Fault and repair
+    handling
+
+   Directory number       Directory entries
+    information           Operator assistance
+                          Emergency service
+                          Number plan administration
+                          Law enforcement agencies
+
+   Billing
+   --------------------------------------------------------------------
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      25
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   5. Front Matter from the ITU-T Published Version
+
+   This section contains sections from the front matter of the ITU-T
+   published version of Supplement 2 to Rec. E.164, including the
+   Source, the Foreword, the note on "ROA," the text on intellectual
+   property rights, and the copyright notice.  They are provided here
+   for information and reference.  The text here was valid at the time
+   of publication, but there may have been revisions since then.
+
+
+   5.1  Source (from the ITU-T published version)
+
+   Supplement 2 to ITU-T Recommendation E.164 was prepared by ITU-T
+   Study Group 2 (1997-2000) and was approved under the WTSC Resolution
+   No. 5 procedure on the 9th of November 1998.
+
+
+   5.2  FOREWORD (from the ITU-T published version)
+
+   ITU (International Telecommunication Union) is the United Nations
+   Specialized Agency in the field of telecommunications. The ITU
+   Telecommunication Standardization Sector (ITU-T) is a permanent
+   organ of the ITU. The ITU-T is responsible for studying technical,
+   operating and tariff questions and issuing Recommendations on them
+   with a view to standardizing telecommunications on a worldwide
+   basis.
+
+   The World Telecommunication Standardization Conference (WTSC), which
+   meets every four years, establishes the topics for study by the
+   ITU-T Study Groups which, in their turn, produce Recommendations on
+   these topics.
+
+   The approval of Recommendations by the Members of the ITU-T is
+   covered by the procedure laid down in WTSC Resolution No. 1.
+
+   In some areas of information technology which fall within ITU-T's
+   purview, the necessary standards are prepared on a collaborative
+   basis with ISO and IEC.
+
+
+   5.3  NOTE (from the ITU-T published version)
+
+   In this Recommendation the term "recognized operating agency" (ROA)
+   includes any individual, company, corporation or governmental
+   organization that operates a public correspondence service. The
+   terms "Administration," "ROA" and "public correspondence" are
+   defined in the "Constitution of the ITU (Geneva, 1992).
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      26
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+   5.4  INTELLECTUAL PROPERTY RIGHTS (from the ITU-T published version)
+
+   The ITU draws attention to the possibility that the practice or
+   implementation of this Recommendation may involve the use of a
+   claimed Intellectual Property Right. The ITU takes no position
+   concerning the evidence, validity or applicability of claimed
+   Intellectual Property Rights, whether asserted by ITU members or
+   others outside of the Recommendation development process.
+
+   As of the date of approval of this Recommendation, the ITU had not
+   received notice of intellectual property, protected by patents,
+   which may be required to implement this Recommendation. However,
+   implementors are cautioned that this may not represent the latest
+   information and are therefore strongly urged to consult the TSB
+   patent database.
+
+
+   5.5  Copyright Notice (from E.164 Supp. 2, ITU-T published version)
+
+        (c)  ITU  1999
+
+   All rights reserved. No part of this publication may be reproduced
+   or utilized in any form or by any means, electronic or mechanical,
+   including photocopying and microfilm, without permission in writing
+   from the ITU.
+
+
+6. Security Considerations
+
+   None.
+
+
+7. References
+
+   1  Bradner, S., "The Internet Standards Process -- Revision 3",
+      BCP 9, RFC 2026, October 1996.
+
+   2  ITU-T Recommendation E.164 (05/97), "The international public
+      telecommunication numbering plan".
+
+   3  Supplement 2 (11/98) to ITU-T Recommendation E.164 (05/97),
+      "Supplement 2: Number Portability".
+
+   4  "Report of the IP-Telecoms Interworking Workshop (Numbering,
+      Naming, Addressing and Routing), ITU, Geneva 25-27 January 2000",
+      http://www.itu.int/ITU-T/ip-telecoms/ip-telecoms.htm, last
+      modified 2000-03-20.
+
+   5  "Telephone Number Mapping (enum)", last modified 03-Jul-00,
+      http://www.ietf.org/html.charters/enum-charter.html.
+
+
+
+Gallant                Expires January 6, 2001                      27
+Internet-Draft    Number Portability (E.164 Supp. 2)      July 7, 2000
+
+
+8. Acknowledgments
+
+   I would like to thank the ITU TSB (Telecommunication Standardization
+   Bureau), and Mr. John Tar in particular, for helping to make the
+   text of Supplement 2 to E.164 freely available on the ITU web site.
+
+
+9. Author's Address
+
+   Andrew Gallant
+   Comsat Corporation
+   6560 Rock Spring Drive
+   Bethesda, MD 20817  USA
+   Phone: +1 301 214 3264
+   Fax:   +1 301 214 7226
+   Email: andrew.gallant@comsat.com
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2000). All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implmentation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph
+   are included on all such copies and derivative works. However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+
+
+
+
+
+
+
+Gallant                Expires January 6, 2001                      28
+
