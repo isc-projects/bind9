@@ -676,12 +676,15 @@ dns_zone_settask(dns_zone_t *zone, isc_task_t *task);
  *	'task' to be valid.
  */
 
-isc_task_t *dns_zone_gettask(dns_zone_t *zone);
+void
+dns_zone_gettask(dns_zone_t *zone, isc_task_t **target);
 /*
- * Return a pointer to the zone's task.
+ * Attach the zone's task to '*target'.
  *
  * Requires:
  *	'zone' to be valid initialised zone.
+ *	'zone' to have a task.
+ *	'target' to be != NULL && '*target' == NULL.
  */
 
 const char *dns_zone_getdatabase(dns_zone_t *zone);
@@ -750,6 +753,42 @@ dns_zone_print(dns_zone_t *zone);
  * test use only
  */
 
+isc_result_t
+dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
+		   isc_timermgr_t *timermgr, dns_zonemgr_t **zmgrp);
+/*
+ * Create a zone manager.
+ *
+ * Requires:
+ *	'mctx' to be a valid memory context.
+ *	'taskmgr' to be a valid task manager.
+ *	'timermgr' to be a valid timer manager.
+ *	'zmgrp'	to point to a NULL pointer.
+ */
+
+isc_result_t
+dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
+/*
+ * Start managing the zone 'zone' with zone manager 'zmgr'.
+ */
+
+isc_result_t
+dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
+/*
+ * Force zone maintenance of all zones managed by 'zmgr' at its
+ * earliest conveniene.
+ */
+
+void
+dns_zonemgr_destroy(dns_zonemgr_t **zmgrp);
+/*
+ * Destroy a zone manager.
+ *
+ * Requires:
+ *	'*zmgrp' is a valid, non-NULL zone manager pointer.
+ * Ensures:
+ *	'*zmgrp' is NULL.
+ */
 
 ISC_LANG_ENDDECLS
 

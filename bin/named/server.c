@@ -249,6 +249,12 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			 * This is a new zone.
 			 */
 			result = dns_view_addzone(view, zone);
+			if (result != DNS_R_SUCCESS)
+				goto cleanup;
+
+			result = dns_zonemgr_managezone(ns_g_zonemgr, zone);
+			if (result != DNS_R_SUCCESS)
+				goto cleanup;
 		}
 	}
 
@@ -332,6 +338,13 @@ load_configuration(const char *filename) {
 		dns_view_load(view);
 	}
 
+	/*
+	 * Force zone maintenance.  Do this after loading
+	 * so that we know when we need to force AXFR of
+	 * slave zones whose master files are missing.
+	 */
+	dns_zonemgr_forcemaint(ns_g_zonemgr);
+		
 	/*
 	 * Put the configuration into production.
 	 */
@@ -504,10 +517,10 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_task_detach(&server_task);
 
-	isc_taskpool_destroy(&ns_g_zonetasks);
-			     
 	dns_view_detach(&version_view);
 
+	dns_zonemgr_destroy(&ns_g_zonemgr);
+			     
 	ns_rootns_destroy();
 
 	isc_event_free(&event);
@@ -524,12 +537,12 @@ ns_server_init(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = create_version_view();
+	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
+				    &ns_g_zonemgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result =  isc_taskpool_create(ns_g_taskmgr, ns_g_mctx, 8 /* XXX */,
-				      0, &ns_g_zonetasks);
+	result = create_version_view();
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -549,7 +562,7 @@ ns_server_init(void) {
 
 	return (ISC_R_SUCCESS);
 
-	/* XXXRTH  Add taskpool, and version view cleanups. */
+	/* XXXRTH  Add zonemgr, and version view cleanups. */
 
  cleanup_task:
 	isc_task_detach(&server_task);

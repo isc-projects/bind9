@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.27 1999/10/25 13:44:52 marka Exp $ */
+ /* $Id: zone.c,v 1.28 1999/10/29 00:46:52 gson Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/print.h>
 #include <isc/serial.h>
 #include <isc/magic.h>
+#include <isc/taskpool.h>
 
 #include <dns/confparser.h>
 #include <dns/db.h>
@@ -42,7 +43,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
-#include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
@@ -101,6 +101,8 @@ struct dns_zone {
 
 	/* Locked */
 	dns_db_t		*top;
+	dns_zonemgr_t		*zmgr;
+	ISC_LINK(dns_zone_t)	link;		/* Used by zmgr. */
 	isc_timermgr_t		*timgr;
 	isc_timer_t		*timer;
 	unsigned int		references;
@@ -172,6 +174,17 @@ struct dns_zone {
 #define DNS_ZONE_OPTION(z,o) ((((z)->setoptions & (o)) != 0) ? \
 			      (((z)->options & (o)) != 0) : \
 			      DNS_GLOBAL_OPTION(o))
+
+struct dns_zonemgr {
+	isc_mem_t *		mctx;
+	isc_taskmgr_t *		taskmgr;
+	isc_timermgr_t *	timermgr;
+	isc_taskpool_t *	zonetasks;
+	struct soaquery {
+		isc_task_t *	task;
+	} soaquery;
+	ISC_LIST(dns_zone_t)	zones;
+};
 
 static void refresh_callback(isc_task_t *, isc_event_t *);
 static void zone_shutdown(isc_task_t *, isc_event_t *);
@@ -246,6 +259,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	/* XXX MPA check that all elements are initialised */
 	zone->mctx = mctx;
 	zone->top = NULL;
+	zone->zmgr = NULL;
+	ISC_LINK_INIT(zone, link);
 	zone->timgr = NULL;
 	zone->references = 1;		/* Implicit attach. */
 	dns_name_init(&zone->origin, NULL);
@@ -2977,11 +2992,10 @@ dns_zone_settask(dns_zone_t *zone, isc_task_t *task) {
 	UNLOCK(&zone->lock);
 }
 
-isc_task_t *
-dns_zone_gettask(dns_zone_t *zone) {
+void
+dns_zone_gettask(dns_zone_t *zone, isc_task_t **target) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->task);	/* attach? */
+	isc_task_attach(zone->task, target);
 }
 
 const char *
@@ -3177,4 +3191,111 @@ replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
  fail:
 	dns_db_closeversion(db, &ver, ISC_FALSE);
 	return (result);
+}
+
+/***
+ ***	Zone manager. 
+ ***/
+
+static void
+xfrin_start_temporary_kludge(dns_zone_t *zone) {
+	isc_sockaddr_t sa;
+	in_port_t port;
+	if (zone->masterscnt < 1)
+		return;
+	port = zone->masterport; 
+	if (port == 0)
+		port = 53; /* XXX is this the right place? */
+	isc_sockaddr_fromin(&sa, &zone->masters[0].type.sin.sin_addr,
+			    port);
+#ifdef notyet
+	ns_xfrin_start(zone, &sa);
+#endif
+}
+
+isc_result_t
+dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
+		   isc_timermgr_t *timermgr, dns_zonemgr_t **zmgrp)
+{
+	dns_zonemgr_t *zmgr;
+	isc_result_t result;
+
+	zmgr = isc_mem_get(mctx, sizeof *zmgr);
+	if (zmgr == NULL)
+		return (ISC_R_NOMEMORY);
+	zmgr->mctx = mctx;
+	zmgr->taskmgr = taskmgr;
+	zmgr->timermgr = timermgr;
+	zmgr->zonetasks = NULL;
+	zmgr->soaquery.task = NULL;
+	ISC_LIST_INIT(zmgr->zones);
+
+	/* Create the zone task pool. */
+	result = isc_taskpool_create(taskmgr, mctx, 
+				     8 /* XXX */, 0, &zmgr->zonetasks);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	/* Create a single task for queueing of SOA queries. */
+	result = isc_task_create(taskmgr, mctx, 1, &zmgr->soaquery.task);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	*zmgrp = zmgr;
+	return (ISC_R_SUCCESS);
+ failure:
+	dns_zonemgr_destroy(&zmgr);
+	return (result);
+}
+
+isc_result_t
+dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
+	isc_result_t result;
+	
+	REQUIRE(zone->task == NULL);
+	REQUIRE(zone->timer == NULL);
+
+	isc_taskpool_gettask(zmgr->zonetasks,
+			     dns_name_hash(dns_zone_getorigin(zone),
+					   ISC_FALSE),
+			     &zone->task);
+#ifdef notyet
+	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive,
+				  NULL, NULL,
+				  zmgr->soaquery.task, soa_query_wanted, zone,
+				  &zone->timer);
+#endif
+	ISC_LIST_APPEND(zmgr->zones, zone, link);
+
+	/* XXX more? */
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+ failure:
+	return (result);
+}
+
+
+isc_result_t
+dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
+	dns_zone_t *p;
+	for (p = ISC_LIST_HEAD(zmgr->zones);
+	     p != NULL;
+	     p = ISC_LIST_NEXT(p, link))
+	{
+		if (p->type == dns_zone_slave)
+			xfrin_start_temporary_kludge(p);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zonemgr_destroy(dns_zonemgr_t **zmgrp) {
+	dns_zonemgr_t *zmgr = *zmgrp;
+	if (zmgr->soaquery.task != NULL)
+		isc_task_destroy(&zmgr->soaquery.task);
+	if (zmgr->zonetasks != NULL)
+		isc_taskpool_destroy(&zmgr->zonetasks);
+	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
+	*zmgrp = NULL;
 }

@@ -1707,10 +1707,7 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event->zone = zone;
 	event->result = DNS_R_SUCCESS;
 
-	isc_taskpool_gettask(ns_g_zonetasks,
-			     dns_name_hash(dns_zone_getorigin(zone),
-					   ISC_FALSE),
-			     &zonetask);
+	dns_zone_gettask(zone, &zonetask);
 	isc_task_send(zonetask, (isc_event_t **) &event);
 
  failure:
