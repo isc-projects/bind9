@@ -2,6 +2,9 @@
  800.	[bug]		dnssec-signzone produced incorrect statistics for
  			large zones.  [RT #1133]
 
+ 799.	[bug]		The ADB didn't find AAAA glue in a zone unless A6
+			glue was also present.
+
 	--- 9.1.1 released ---
 
 	--- 9.1.1rc7 released ---
