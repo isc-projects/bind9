@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.6 1999/10/31 19:29:48 halley Exp $ */
+/* $Id: dir.c,v 1.7 2000/02/03 23:08:01 halley Exp $ */
 
 /* Principal Authors: DCL */
 

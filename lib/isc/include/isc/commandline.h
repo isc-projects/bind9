@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: commandline.h,v 1.1 1999/10/06 19:23:05 tale Exp $ */
+/* $Id: commandline.h,v 1.2 2000/02/03 23:07:48 halley Exp $ */
 
 #include <isc/boolean.h>
 

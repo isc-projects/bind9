@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: str.h,v 1.2 1999/03/04 02:38:48 halley Exp $ */
+ /* $Id: str.h,v 1.3 2000/02/03 23:07:54 halley Exp $ */
 
 #ifndef ISC_STR_H
 #define ISC_STR_H 1

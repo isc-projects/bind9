@@ -14,6 +14,7 @@
 # PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
+
 #
 # Dynamic update test suite.
 #
@@ -36,7 +37,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.3 2000/02/01 23:12:16 halley Exp $
+# $Id: update_test.pl,v 1.4 2000/02/03 23:03:59 halley Exp $
 #
 
 use Getopt::Std;

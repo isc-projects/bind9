@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-	/* $Id: serial.c,v 1.2 1999/09/15 23:58:40 explorer Exp $ */
+	/* $Id: serial.c,v 1.3 2000/02/03 23:08:27 halley Exp $ */
 
 #include <isc/serial.h>
 
