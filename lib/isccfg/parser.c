@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.3 2001/10/13 03:52:13 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.4 2001/10/23 02:42:00 marka Exp $ */
 
 #include <config.h>
 
@@ -3770,7 +3770,7 @@ free_noop(cfg_parser_t *pctx, cfg_obj_t *obj) {
 /*
  * Data and functions for printing grammar summaries.
  */
-struct flagtext {
+static struct flagtext {
 	unsigned int flag;
 	const char *text;
 } flagtexts[] = {

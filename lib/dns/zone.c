@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.3 2001/10/11 17:20:40 gson Exp $ */
+/* $Id: zone.c,v 1.333.2.4 2001/10/23 02:41:57 marka Exp $ */
 
 #include <config.h>
 
@@ -432,8 +432,8 @@ static void zone_notify(dns_zone_t *zone);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
-const unsigned int dbargc_default = 1;
-const char *dbargv_default[] = { "rbt" };
+static const unsigned int dbargc_default = 1;
+static const char *dbargv_default[] = { "rbt" };
 
 /***
  ***	Public functions.

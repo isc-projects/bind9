@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56 2001/08/29 05:52:49 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.1 2001/10/23 02:41:55 marka Exp $ */
 
 #include <config.h>
 
@@ -767,7 +767,7 @@ dump_order_compare(const void *a, const void *b) {
 
 #define MAXSORT 64
 
-const char *trustnames[] = {
+static const char *trustnames[] = {
 	"none",
 	"pending",
 	"additional",
