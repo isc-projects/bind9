@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.213 2000/08/08 01:56:44 gson Exp $ */
+/* $Id: server.c,v 1.214 2000/08/08 18:15:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1699,7 +1699,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
 
-	CHECKFATAL(dst_lib_init(ns_g_mctx, ns_g_entropy, 0),
+	CHECKFATAL(dst_lib_init(ns_g_mctx, ns_g_entropy, ISC_ENTROPY_GOODONLY),
 		   "initializing DST");
 
 	server->tkeyctx = NULL;
