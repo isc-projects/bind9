@@ -77,7 +77,8 @@ static const char *text[ISC_R_NRESULTS] = {
 	"file not found",			/* 38 */
 	"file already exists",			/* 39 */
 	"socket is not connected",		/* 40 */
-	"out of range"				/* 41 */
+	"out of range",				/* 41 */
+	"out of entropy"			/* 42 */
 };
 
 #define ISC_RESULT_RESULTSET			2
