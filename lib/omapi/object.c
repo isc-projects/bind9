@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.13 2000/03/14 03:43:06 tale Exp $ */
+/* $Id: object.c,v 1.14 2000/03/18 00:34:53 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -188,6 +188,9 @@ omapi_object_dereference(omapi_object_t **h) {
 			extra_references = 0;
 
 		if (extra_references == 0) {
+			isc_taskaction_t action = (*h)->destroy_action;
+			void *arg = (*h)->destroy_arg;
+
 			if (inner_reference != 0)
 				OBJECT_DEREF(&(*h)->inner);
 			if (outer_reference != 0)
@@ -196,6 +199,18 @@ omapi_object_dereference(omapi_object_t **h) {
 				(*((*h)->type->destroy))(*h);
 			(*h)->refcnt = 0;
 			isc_mem_put(omapi_mctx, *h, (*h)->object_size);
+
+			if (action != NULL) {
+				isc_event_t *event;
+
+				event = isc_event_allocate(omapi_mctx, *h,
+						       OMAPI_EVENT_OBJECTFREED,
+						       action, arg,
+						       sizeof(isc_event_t));
+				if (event != NULL)
+					isc_task_send(omapi_task, &event);
+			}
+
 		} else
 			(*h)->refcnt--;
 			
