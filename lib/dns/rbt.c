@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.63 1999/10/15 01:35:23 halley Exp $ */
+/* $Id: rbt.c,v 1.64 1999/10/16 19:44:54 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -147,6 +147,8 @@ Name(dns_rbtnode_t *node) {
 
 	return (name);
 }
+
+static void dns_rbt_printnodename(dns_rbtnode_t *node);
 #endif
 
 #if defined(ISC_MEM_DEBUG) || defined(RBT_MEM_TEST)
@@ -870,8 +872,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 * Found an exact match.
 		 */
 		chain->end = current;
-		chain->level_matches = chain->level_count == 0 ? 0 :
-			               chain->level_count - 1;
+		chain->level_matches = chain->level_count;
 
 		if (foundname != NULL)
 			result = chain_name(chain, foundname, ISC_TRUE);
@@ -1362,6 +1363,8 @@ rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) {
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
+	REQUIRE(parent == NULL ||
+		RIGHT(parent) == node || LEFT(parent) == node);
 
 	child = RIGHT(node);
 	REQUIRE(child != NULL);
@@ -1385,6 +1388,8 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
+	REQUIRE(parent == NULL ||
+		RIGHT(parent) == node || LEFT(parent) == node);
 
 	child = LEFT(node);
 	REQUIRE(child != NULL);
@@ -1582,7 +1587,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		 * The successor cannot possibly have a left child;
 		 * if there is any child, it is on the right.
 		 */
-		if (RIGHT(successor))
+		if (RIGHT(successor) != NULL)
 			child = RIGHT(successor);
 
 		/* Swap the two nodes; it would be simpler to just replace
@@ -1590,15 +1595,13 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		 * but this rigamarole is done so the caller has complete
 		 * control over the pointers (and memory allocation) of
 		 * all of nodes.  If just the key value were removed from
-		 * the tree, the pointer to the node would would be
-		 * unchanged.
+		 * the tree, the pointer to the node would be unchanged.
 		 */
 
 		/*
 		 * First, put the successor in the tree location of the
 		 * node to be deleted.
 		 */
-
 		memcpy(tmp, successor, sizeof(dns_rbtnode_t));
 
 		chain->ancestors[depth] = successor;
@@ -1629,7 +1632,6 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		/*
 		 * Original location of successor node has no left.
 		 */
-
 		LEFT(delete)  = NULL;
 		RIGHT(delete) = RIGHT(tmp);
 		COLOR(delete) = COLOR(tmp);
@@ -1671,26 +1673,37 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 
 			if (LEFT(parent) == child) {
 				sibling = RIGHT(parent);
+
 				if (IS_RED(sibling)) {
 					MAKE_BLACK(sibling);
 					MAKE_RED(parent);
 					rotate_left(parent, grandparent,
 						    rootp);
+					/*
+					 * Parent was reparented by the
+					 * rotation, so the new grandparent
+					 * needs to be noted.  Grandpa is dead,
+					 * long live grandpa.
+					 */
+					grandparent = sibling;
 					sibling = RIGHT(parent);
 				}
+
 				if (IS_BLACK(LEFT(sibling)) &&
 				    IS_BLACK(RIGHT(sibling))) {
 					MAKE_RED(sibling);
 					child = parent;
+
 				} else {
+
 					if (IS_BLACK(RIGHT(sibling))) {
 						MAKE_BLACK(LEFT(sibling));
 						MAKE_RED(sibling);
-						rotate_right(sibling,
-							     grandparent,
+						rotate_right(sibling, parent,
 							     rootp);
 						sibling = RIGHT(parent);
 					}
+
 					COLOR(sibling) = COLOR(parent);
 					MAKE_BLACK(parent);
 					MAKE_BLACK(RIGHT(sibling));
@@ -1698,28 +1711,44 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 						    rootp);
 					child = *rootp;
 				}
+
 			} else {
+				/*
+				 * Child is parent's right child.
+				 * Everything is doen the same as above,
+				 * except mirrored.
+				 */
 				sibling = LEFT(parent);
+
 				if (IS_RED(sibling)) {
 					MAKE_BLACK(sibling);
 					MAKE_RED(parent);
 					rotate_right(parent, grandparent,
 						     rootp);
+					/*
+					 * Parent was reparented by the
+					 * rotation, so the new grandparent
+					 * needs to be noted.  Grandma is dead,
+					 * long live grandma.
+					 */
+					grandparent = sibling;
 					sibling = LEFT(parent);
 				}
+
 				if (IS_BLACK(LEFT(sibling)) &&
 				    IS_BLACK(RIGHT(sibling))) {
 					MAKE_RED(sibling);
 					child = parent;
+
 				} else {
 					if (IS_BLACK(LEFT(sibling))) {
 						MAKE_BLACK(RIGHT(sibling));
 						MAKE_RED(sibling);
-						rotate_left(sibling,
-							    grandparent,
+						rotate_left(sibling, parent,
 							    rootp);
 						sibling = LEFT(parent);
 					}
+
 					COLOR(sibling) = COLOR(parent);
 					MAKE_BLACK(parent);
 					MAKE_BLACK(LEFT(sibling));
@@ -1728,7 +1757,6 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 					child = *rootp;
 				}
 			}
-
 		}
 
 		if (IS_RED(child))
