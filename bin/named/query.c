@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.240 2003/01/18 03:18:30 marka Exp $ */
+/* $Id: query.c,v 1.241 2003/01/21 06:11:45 marka Exp $ */
 
 #include <config.h>
 
@@ -536,7 +536,8 @@ query_findversion(ns_client_t *client, dns_db_t *db,
 
 static inline isc_result_t
 query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
-		dns_zone_t **zonep, dns_db_t **dbp, dns_dbversion_t **versionp)
+		dns_rdatatype_t qtype, dns_zone_t **zonep, dns_db_t **dbp,
+		dns_dbversion_t **versionp)
 {
 	isc_result_t result;
 	isc_boolean_t check_acl, new_zone;
@@ -632,13 +633,12 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 
 		result = ns_client_checkaclsilent(client, queryacl, ISC_TRUE);
 		if (log) {
-			char msg[DNS_NAME_FORMATSIZE + DNS_RDATACLASS_FORMATSIZE
-				+ sizeof("query '/'")];
+			char msg[NS_CLIENT_ACLMSGSIZE("query")];
 			if (result == ISC_R_SUCCESS) {
 				if (isc_log_wouldlog(ns_g_lctx,
 						     ISC_LOG_DEBUG(3)))
 				{
-					ns_client_aclmsg("query", name,
+					ns_client_aclmsg("query", name, qtype,
 							 client->view->rdclass,
 							 msg, sizeof(msg));
 					ns_client_log(client,
@@ -648,7 +648,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 						      "%s approved", msg);
 				}
 		    	} else {
-				ns_client_aclmsg("query", name,
+				ns_client_aclmsg("query", name, qtype,
 						 client->view->rdclass,
 						 msg, sizeof(msg));
 				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
@@ -707,7 +707,8 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 }
 
 static inline isc_result_t
-query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
+query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
+		 dns_db_t **dbp, unsigned int options)
 {
 	isc_result_t result;
 	isc_boolean_t check_acl;
@@ -746,12 +747,11 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 
 	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
+		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
 		
-		result = ns_client_checkacl(client, "query (cache)",
-					    client->view->queryacl,
-					    ISC_TRUE,
-					    log ? ISC_LOG_INFO :
-						  ISC_LOG_DEBUG(3));
+		result = ns_client_checkaclsilent(client,
+						  client->view->queryacl,
+						  ISC_TRUE);
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We were allowed by the default
@@ -760,6 +760,25 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 			 */
 			client->query.attributes |=
 				NS_QUERYATTR_QUERYOK;
+			if (log && isc_log_wouldlog(ns_g_lctx,
+						     ISC_LOG_DEBUG(3)))
+			{
+				ns_client_aclmsg("query (cache)", name, qtype,
+						 client->view->rdclass,
+						 msg, sizeof(msg));
+				ns_client_log(client,
+					      DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_QUERY,
+					      ISC_LOG_DEBUG(3),
+					      "%s approved", msg);
+			}
+		} else if (log) {
+			ns_client_aclmsg("query (cache)", name, qtype,
+					 client->view->rdclass, msg,
+					 sizeof(msg));
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				      "%s denied", msg);
 		}
 		/*
 		 * We've now evaluated the view's query ACL, and
@@ -789,17 +808,18 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 
 
 static inline isc_result_t
-query_getdb(ns_client_t *client, dns_name_t *name, unsigned int options,
-	    dns_zone_t **zonep, dns_db_t **dbp, dns_dbversion_t **versionp,
-	    isc_boolean_t *is_zonep)
+query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
+	    unsigned int options, dns_zone_t **zonep, dns_db_t **dbp,
+	    dns_dbversion_t **versionp, isc_boolean_t *is_zonep)
 {
 	isc_result_t result;
 
-	result = query_getzonedb(client, name, options, zonep, dbp, versionp);
+	result = query_getzonedb(client, name, qtype, options,
+				 zonep, dbp, versionp);
 	if (result == ISC_R_SUCCESS) {
 		*is_zonep = ISC_TRUE;
 	} else if (result == ISC_R_NOTFOUND) {
-		result = query_getcachedb(client, dbp, options);
+		result = query_getcachedb(client, name, qtype, dbp, options);
 		*is_zonep = ISC_FALSE;
 	}
 	return (result);
@@ -919,7 +939,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * Look for a zone database that might contain authoritative
 	 * additional data.
 	 */
-	result = query_getzonedb(client, name, DNS_GETDB_NOLOG,
+	result = query_getzonedb(client, name, qtype, DNS_GETDB_NOLOG,
 				 &zone, &db, &version);
 	if (result != ISC_R_SUCCESS)
 		goto try_cache;
@@ -952,7 +972,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 
  try_cache:
-	result = query_getcachedb(client, &db, DNS_GETDB_NOLOG);
+	result = query_getcachedb(client, name, qtype, &db, DNS_GETDB_NOLOG);
 	if (result != ISC_R_SUCCESS)
 		/*
 		 * Most likely the client isn't allowed to query the cache.
@@ -1606,8 +1626,8 @@ query_addbestns(ns_client_t *client) {
 	/*
 	 * Find the right database.
 	 */
-	result = query_getdb(client, client->query.qname, 0, &zone, &db,
-			     &version, &is_zone);
+	result = query_getdb(client, client->query.qname, dns_rdatatype_ns, 0,
+			     &zone, &db, &version, &is_zone);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -2345,8 +2365,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	if (dns_rdatatype_atparent(qtype) &&
 	    !dns_name_equal(client->query.qname, dns_rootname))
 		options |= DNS_GETDB_NOEXACT;
-	result = query_getdb(client, client->query.qname, options, &zone, &db,
-			     &version, &is_zone);
+	result = query_getdb(client, client->query.qname, qtype, options,
+			     &zone, &db, &version, &is_zone);
 	if ((result != ISC_R_SUCCESS || !is_zone) && !RECURSIONOK(client) &&
 	    (options & DNS_GETDB_NOEXACT) != 0 && qtype == dns_rdatatype_ds) {
 		/*
@@ -2358,7 +2378,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		dns_dbversion_t *tversion = NULL;
 		isc_result_t tresult;
 
-		tresult = query_getzonedb(client, client->query.qname,
+		tresult = query_getzonedb(client, client->query.qname, qtype,
 					 DNS_GETDB_PARTIAL, &tzone, &tdb,
 					 &tversion);
 		if (tresult == ISC_R_SUCCESS) {
@@ -2518,6 +2538,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				dns_dbversion_t *tversion = NULL;
 				result = query_getzonedb(client,
 							 client->query.qname,
+							 qtype,
 							 DNS_GETDB_PARTIAL,
 							 &tzone, &tdb,
 							 &tversion);

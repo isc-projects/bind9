@@ -1,3 +1,5 @@
+1422.	[func]		Log name/type/class when denying a query.  [RT #4663]
+
 1421.	[func]		Differentiate updates that don't succeed due to
 			prerequisites (unsuccessful) vs other reasons
 			(failed).
