@@ -1,3 +1,6 @@
+1177.	[func]		Report view when loading zones if it is not a
+			standard view (_default or _bind). [RT #2270]
+
 1176.	[doc]		Document that allow-v6-synthesis is only performed
 			for clients that are supplied recursive service.
 			[RT #2260]
