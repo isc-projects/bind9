@@ -1,0 +1,105 @@
+/*
+ * Copyright (C) 1999  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
+#include <config.h>
+
+#include <stddef.h>
+
+#include <isc/assertions.h>
+
+#include <dns/dbiterator.h>
+#include <dns/name.h>
+
+/*
+ * XXX origin support
+ */
+
+void
+dns_dbiterator_destroy(dns_dbiterator_t **iteratorp) {
+	/*
+	 * Destroy '*iteratorp'.
+	 */
+
+	REQUIRE(iteratorp != NULL);
+	REQUIRE(DNS_DBITERATOR_VALID(*iteratorp));
+
+	(*iteratorp)->methods->destroy(iteratorp);
+
+	ENSURE(*iteratorp == NULL);
+}
+
+dns_result_t
+dns_dbiterator_first(dns_dbiterator_t *iterator) {
+	/*
+	 * Move the node cursor to the first node in the database (if any).
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+
+	return (iterator->methods->first(iterator));
+}
+
+dns_result_t
+dns_dbiterator_next(dns_dbiterator_t *iterator) {
+	/*
+	 * Move the rdata cursor to the next node in the database (if any).
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+
+	return (iterator->methods->next(iterator));
+}
+
+dns_result_t
+dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
+		       dns_name_t *name)
+{
+	/*
+	 * Return the current node.
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+	REQUIRE(nodep != NULL && *nodep == NULL);
+	REQUIRE(name == NULL || dns_name_hasbuffer(name));
+
+	return (iterator->methods->current(iterator, nodep, name));
+}
+
+dns_result_t
+dns_dbiterator_pause(dns_dbiterator_t *iterator) {
+	/*
+	 * Pause iteration.
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+
+	return (iterator->methods->pause(iterator));
+}
+
+dns_result_t
+dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name,
+		      isc_buffer_t *target)
+{
+	/*
+	 * Return the origin to which returned node names are relative.
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+	REQUIRE(iterator->relative_names);
+	
+	return (iterator->methods->origin(iterator, name, target));
+}
