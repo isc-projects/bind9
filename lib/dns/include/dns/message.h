@@ -429,7 +429,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *
  *	If a type other than dns_datatype_any is searched for, 'rdataset'
  *	may be non-NULL, '*rdataset' be NULL, and will point at the found
- *	rdataset.
+ *	rdataset.  If the type is dns_datatype_any, 'rdataset' must be NULL.
  *
  *	'target' be a valid name.
  *
