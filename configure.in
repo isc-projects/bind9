@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.145 $)
+AC_REVISION($Revision: 1.146 $)
 
 AC_PREREQ(2.13)
 
@@ -156,6 +156,11 @@ if test "X$CC" = "X" ; then
 fi
 
 #
+# Find the machine's endian flavor.
+#
+AC_C_BIGENDIAN
+
+#
 # If the user didn't specify where openssl is, and we didn't find or it
 # is imcompatible with our code, use our internal one.
 # XXXMLG Implement this check!
@@ -245,7 +250,7 @@ AC_PROG_YACC
 
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h endian.h sys/endian.h sys/sockio.h)
+AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h)
 
 AC_C_CONST
 AC_C_INLINE

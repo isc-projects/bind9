@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.5 2000/06/07 02:28:40 bwelling Exp $ */
+/* $Id: sha1.c,v 1.6 2000/06/07 19:41:49 explorer Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -42,35 +42,13 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#if defined(HAVE_ENDIAN_H)
-#include <endian.h>
-#elif defined(HAVE_SYS_ENDIAN_H)
-#include <sys/endian.h>
-#endif
-
-#if !defined(BYTE_ORDER) && defined(__BYTE_ORDER)
-#define BYTE_ORDER __BYTE_ORDER
-#define LITTLE_ENDIAN __LITTLE_ENDIAN
-#define BIG_ENDIAN __BIG_ENDIAN
-#endif
-
-#if !defined(BYTE_ORDER) || \
-    (BYTE_ORDER != BIG_ENDIAN && BYTE_ORDER != LITTLE_ENDIAN)
-        /* you must determine what the correct bit order is for
-         * your compiler - the next line is an intentional error
-         * which will force your compiles to bomb until you fix
-         * the above macros.
-         */
-#error "Undefined or invalid BYTE_ORDER";
-#endif
-
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
 /*
  * blk0() and blk() perform the initial expand.
  * I got the idea of expanding during the round function from SSLeay
  */
-#if BYTE_ORDER == LITTLE_ENDIAN
+#if !defined(WORDS_BIGENDIAN)
 # define blk0(i) \
 	(block->l[i] = (rol(block->l[i], 24) & 0xFF00FF00) \
 	 | (rol(block->l[i], 8) & 0x00FF00FF))
