@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.187 2002/01/16 02:21:53 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.188 2002/01/23 01:39:29 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4978,7 +4978,7 @@ followed by the host name of the mail exchange.
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NSAP</para></entry>
-<entry colname = "2"><para>Network service access point.</para></entry>
+<entry colname = "2"><para>a network service access point.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NS</para></entry>
