@@ -47,7 +47,7 @@
 
 #include <arpa/inet.h>
 
-#include "parser.h"
+#include "confparser.h"
 #include "udpclient.h"
 #include "tcpclient.h"
 
@@ -169,7 +169,8 @@ main(int argc, char *argv[])
 	char basetext[1000];
 	dns_rdatatype_t type = 2;
 	dns_result_t result;
-#if 0
+
+#if 0 /* brister */
 	isc_cfgctx_t *configctx = NULL;
 	const char *conffile = "/etc/named.conf"; /* XXX hardwired */
 #endif
@@ -209,9 +210,10 @@ main(int argc, char *argv[])
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-#if 0
-	isc_parser_init();
-	isc_parse_configuration(conffile, mctx, &configctx);
+#if 0 /* brister */
+	parser_init();
+	RUNTIME_CHECK(parse_configuration(conffile, mctx, &configctx) ==
+		      ISC_R_SUCCESS);
 #endif
 
 	/*+ XXX */
