@@ -577,7 +577,15 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdataset_t rdataset, nsset;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t isdelegation = ISC_FALSE;
+	static int warnwild = 0;
 
+	if (dns_name_iswildcard(name)) {
+		fprintf(stderr, "Warning: wildcard name seen: %s\n",
+			nametostr(name));
+		if (warnwild++ == 0)
+			fprintf(stderr, "\tBIND 9 doesn't completely handle "
+				"wildcards in secure zones\n");
+	}
 	if (!atorigin) {
 		dns_rdataset_init(&nsset);
 		result = dns_db_findrdataset(db, node, version,
