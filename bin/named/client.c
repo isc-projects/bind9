@@ -816,6 +816,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	case dns_opcode_iquery:
 		CTRACE("iquery");
 		ns_client_error(client, DNS_R_NOTIMP);
+		break;
 	default:
 		CTRACE("unknown opcode");
 		ns_client_error(client, DNS_R_NOTIMP);
