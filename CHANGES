@@ -1,3 +1,7 @@
+ 486.	[bug]		nslookup: "set all" and "server" commands showed
+			the incorrect port number if a port other than 53
+			was specified. [RT #352]
+
  485.	[func]		When dig had more than one server to query, it would
 			send all of the messages at the same time.  Add
 			rate limiting of the transmitted messages.
