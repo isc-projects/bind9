@@ -15,9 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.87.2.4 2001/01/12 20:29:23 bwelling Exp $ */
-
-/* $Id: xfrout.c,v 1.87.2.4 2001/01/12 20:29:23 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.87.2.5 2001/01/12 20:33:17 bwelling Exp $ */
 
 #include <config.h>
 
