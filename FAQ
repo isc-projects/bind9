@@ -1,0 +1,18 @@
+Q: Why doesn't -u work on Linux 2.2.x?
+
+A: Linux threads do not fully implement the Posix threads (pthreads) standard.
+In particular, setuid() operates only on the current thread, not the full
+process.  Because of this limitation, BIND 9 cannot use setuid() on Linux as it
+can on all other supported platforms.  setuid() cannot be called before
+creating threads, since the server does not start listening on reserved ports
+until after threads have started.
+
+  In the 2.3.99-pre3 and newer kernels, the ability to preserve capabilities
+across a setuid() call is present.  This allows BIND 9 to call setuid() early,
+while retaining the ability to bind reserved ports.  This is a Linux-specific
+hack.
+
+  On a 2.2 kernel, BIND 9 does drop many root privileges, so it should be less
+of a security risk than a root process that has not dropped privileges.
+
+  If Linux threads ever work correctly, this restriction will go away.
