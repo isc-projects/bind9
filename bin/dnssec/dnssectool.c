@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.19 2000/08/17 18:56:44 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.20 2000/08/17 19:17:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -258,10 +258,10 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 			      isc_result_totext(result));
 	}
 	else {
-#ifdef HAVE_RANDOMDEV
+#ifdef PATH_RANDOMDEV
 		if (randomfile == NULL) {
 			result = isc_entropy_createfilesource(*ectx,
-							      HAVE_RANDOMDEV);
+							      PATH_RANDOMDEV);
 			if (result == ISC_R_SUCCESS)
 				return;
 		}

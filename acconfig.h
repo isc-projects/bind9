@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.26 2000/08/17 18:56:38 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.27 2000/08/17 19:17:44 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -104,4 +104,4 @@ int sigwait(const unsigned int *set, int *sig);
 #endif /* SHUTUP_STDARG_CAST && __GNUC__ */
 
 /* define if the system has a random number generating device */
-#undef HAVE_RANDOMDEV
+#undef PATH_RANDOMDEV

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.176 
+# From configure.in Revision: 1.177 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999 Free Software Foundation, Inc.
@@ -1291,14 +1291,14 @@ case "$use_randomdev" in
 		case "$host" in
 			*-openbsd*)
 				cat >> confdefs.h <<\EOF
-#define HAVE_RANDOMDEV "/dev/srandom"
+#define PATH_RANDOMDEV "/dev/srandom"
 EOF
 
 				echo "$ac_t""using /dev/srandom" 1>&6
 				;;
 			*-linux*|*-freebsd*|*-netbsd*)
 				cat >> confdefs.h <<\EOF
-#define HAVE_RANDOMDEV "/dev/random"
+#define PATH_RANDOMDEV "/dev/random"
 EOF
 
 				echo "$ac_t""using /dev/random" 1>&6
@@ -1313,7 +1313,7 @@ EOF
 		;;
 	*)
 		cat >> confdefs.h <<EOF
-#define HAVE_RANDOMDEV "$use_randomdev"
+#define PATH_RANDOMDEV "$use_randomdev"
 EOF
 
 		echo "$ac_t""using "$use_randomdev"" 1>&6

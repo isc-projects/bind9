@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.37 2000/08/17 18:56:49 bwelling Exp $ */
+/* $Id: t_dst.c,v 1.38 2000/08/17 19:17:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -370,8 +370,8 @@ t1(void) {
 		t_result(T_UNRESOLVED);
 		return;
 	}
-#ifdef HAVE_RANDOMDEV
-	isc_entropy_createfilesource(ectx, HAVE_RANDOMDEV);
+#ifdef PATH_RANDOMDEV
+	isc_entropy_createfilesource(ectx, PATH_RANDOMDEV);
 #endif
 	result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {
@@ -846,8 +846,8 @@ t2_vfy(char **av) {
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
-#ifdef HAVE_RANDOMDEV
-	isc_entropy_createfilesource(ectx, HAVE_RANDOMDEV);
+#ifdef PATH_RANDOMDEV
+	isc_entropy_createfilesource(ectx, PATH_RANDOMDEV);
 #endif
 	result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (isc_result != ISC_R_SUCCESS) {

@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.35 2000/08/17 18:56:39 bwelling Exp $ */
+/* $Id: config.h.in,v 1.36 2000/08/17 19:17:47 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -115,7 +115,7 @@ int sigwait(const unsigned int *set, int *sig);
 #endif /* SHUTUP_STDARG_CAST && __GNUC__ */
 
 /* define if the system has a random number generating device */
-#undef HAVE_RANDOMDEV
+#undef PATH_RANDOMDEV
 
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.80 2000/08/17 18:56:45 bwelling Exp $ */
+/* $Id: main.c,v 1.81 2000/08/17 19:17:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -425,8 +425,8 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-#ifdef HAVE_RANDOMDEV
-	(void)isc_entropy_createfilesource(ns_g_entropy, HAVE_RANDOMDEV);
+#ifdef PATH_RANDOMDEV
+	(void)isc_entropy_createfilesource(ns_g_entropy, PATH_RANDOMDEV);
 #endif
 
 	return (ISC_R_SUCCESS);
