@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.20 2001/05/30 21:18:07 bwelling Exp $
+# $Id: kit.sh,v 1.21 2001/10/01 20:41:25 gson Exp $
 
 # Make a release kit
 #
@@ -86,8 +86,6 @@ RELEASETYPE=$RELEASETYPE
 RELEASEVER=$RELEASEVER
 EOF
 fi
-
-sh util/sanitize_all.sh
 
 # Omit some files and directories from the kit.
 #

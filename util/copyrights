@@ -2222,8 +2222,6 @@
 ./util/mkreslib.pl				PERL	2000,2001
 ./util/nanny.pl					PERL	2000,2001
 ./util/nt-kit					SH	1999,2000,2001
-./util/sanitize.pl				PERL	2000,2001
-./util/sanitize_all.sh				SH	2000,2001
 ./util/spacewhack.pl				PERL	2000,2001
 ./util/update-drafts.pl				PERL	2000,2001
 ./util/update_copyrights			PERL	1998,1999,2000,2001
