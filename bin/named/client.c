@@ -27,8 +27,10 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/view.h>
 
 #include <named/client.h>
+#include <named/globals.h>
 
 #include "../../isc/util.h"		/* XXX */
 
@@ -183,6 +185,8 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	 * 		Log result if there is interest in doing so.
 	 */
 
+	if (client->view != NULL)
+		dns_view_detach(&client->view);
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 	if (client->dispevent != NULL) {
 		dns_dispatch_freeevent(client->dispatch, client->dispentry,
@@ -377,6 +381,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_dispatchevent_t *devent;
 	isc_result_t result;
 	isc_buffer_t *buffer;
+	dns_view_t *view;
 
 	REQUIRE(event != NULL);
 	client = event->arg;
@@ -416,8 +421,27 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	INSIST((client->message->flags & DNS_MESSAGEFLAG_QR) == 0);
 
 	/*
-	 * XXXRTH Find view here.
+	 * XXXRTH  View list management code will be moving to its own module soon.
 	 */
+	RWLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+	for (view = ISC_LIST_HEAD(ns_g_viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		/*
+		 * XXXRTH  View matching will become more powerful later.
+		 */
+		if (client->message->rdclass == view->rdclass) {
+			dns_view_attach(view, &client->view);
+			break;
+		}
+	}
+	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+
+	if (view == NULL) {
+		CTRACE("no view");
+		ns_client_error(client, DNS_R_REFUSED);
+		return;
+	}
 
 	/*
 	 * Dispatch the request.
@@ -512,6 +536,7 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->type = type;
 	client->state = ns_clientstate_idle;
 	client->attributes = 0;
+	client->view = NULL;
 	client->dispatch = NULL;
 	client->dispentry = NULL;
 	client->dispevent = NULL;

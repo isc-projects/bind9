@@ -24,6 +24,7 @@
 
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/rwlock.h>
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -34,6 +35,7 @@
 
 #include <dns/types.h>
 #include <dns/result.h>
+#include <dns/master.h>
 #include <dns/name.h>
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
@@ -44,27 +46,43 @@
 #include <dns/db.h>
 #include <dns/dbtable.h>
 #include <dns/message.h>
+#include <dns/view.h>
 
 #include <named/types.h>
 #include <named/globals.h>
 #include <named/server.h>
 
-#if 0
-#include "udpclient.h"
-#include "tcpclient.h"
-#include "interfacemgr.h"
-#endif
+#include "../../isc/util.h"		/* XXXRTH */
 
 static ns_dbinfo_t *		cache_dbi;
 static isc_task_t *		server_task;
+static dns_db_t *		version_db;
+static dns_view_t *		version_view;
 
 static dns_result_t
-load(ns_dbinfo_t *dbi) {
+load(ns_dbinfo_t *dbi, char *view_name) {
 	dns_fixedname_t forigin;
 	dns_name_t *origin;
 	dns_result_t result;
 	isc_buffer_t source;
 	size_t len;
+	dns_view_t *view;
+
+	/*
+	 * XXXRTH  View list code will move to its own module soon.
+	 */
+	RWLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+	for (view = ISC_LIST_HEAD(ns_g_viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		if (strcasecmp(view_name, view->name) == 0) {
+			dns_view_attach(view, &dbi->view);
+			break;
+		}
+	}			
+	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+	if (view == NULL)
+		return (DNS_R_NOTFOUND);
 
 	len = strlen(dbi->origin);
 	isc_buffer_init(&source, dbi->origin, len, ISC_BUFFERTYPE_TEXT);
@@ -74,34 +92,115 @@ load(ns_dbinfo_t *dbi) {
 	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
 				   NULL);
 	if (result != DNS_R_SUCCESS)
-		return (result);
+		goto view_detach;
 
 	result = dns_db_create(ns_g_mctx, "rbt", origin, dbi->iscache,
-			       dns_rdataclass_in, 0, NULL, &dbi->db);
+			       view->rdclass, 0, NULL, &dbi->db);
 	if (result != DNS_R_SUCCESS)
-		return (result);
+		goto view_detach;
 
 	printf("loading %s (%s)\n", dbi->path, dbi->origin);
 	result = dns_db_load(dbi->db, dbi->path);
-	if (result != DNS_R_SUCCESS) {
-		dns_db_detach(&dbi->db);
-		return (result);
-	}
+	if (result != DNS_R_SUCCESS)
+		goto db_detach;
+
 	printf("loaded\n");
 
 	if (dbi->iscache) {
 		INSIST(cache_dbi == NULL);
-		dns_dbtable_adddefault(ns_g_dbtable, dbi->db);
+		dns_dbtable_adddefault(view->dbtable, dbi->db);
 		cache_dbi = dbi;
-	} else {
-		if (dns_dbtable_add(ns_g_dbtable, dbi->db) != DNS_R_SUCCESS) {
-			dns_db_detach(&dbi->db);
-			isc_mem_put(ns_g_mctx, dbi, sizeof *dbi);
-			return (result);
-		}
-	}
+	} else if (dns_dbtable_add(view->dbtable, dbi->db) != DNS_R_SUCCESS)
+		goto db_detach;
 
 	return (DNS_R_SUCCESS);
+
+ db_detach:
+	dns_db_detach(&dbi->db);
+
+ view_detach:
+	dns_view_detach(&dbi->view);
+
+	return (result);
+}
+
+static isc_result_t
+load_version(void) {
+	dns_fixedname_t forigin;
+	dns_name_t *origin;
+	dns_result_t result, eresult;
+	isc_buffer_t source;
+	size_t len;
+	int soacount, nscount;
+	dns_rdatacallbacks_t callbacks;
+	dns_view_t *view;
+	char version_text[1024];
+
+	sprintf(version_text, "version 0 CHAOS TXT \"%s\"\n", ns_g_version);
+
+	/*
+	 * XXXRTH  View list code will move to its own module soon.
+	 */
+	RWLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+	for (view = ISC_LIST_HEAD(ns_g_viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		if (strcasecmp(view->name, "default/CHAOS") == 0) {
+			version_view = NULL;
+			dns_view_attach(view, &version_view);
+			break;
+		}
+	}			
+	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+	if (view == NULL)
+		return (DNS_R_NOTFOUND);
+
+	len = strlen("bind.");
+	isc_buffer_init(&source, "bind.", len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+	dns_fixedname_init(&forigin);
+	origin = dns_fixedname_name(&forigin);
+	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
+				   NULL);
+	if (result != DNS_R_SUCCESS)
+		goto view_detach;
+
+	version_db = NULL;
+	result = dns_db_create(ns_g_mctx, "rbt", origin, ISC_FALSE,
+			       view->rdclass, 0, NULL, &version_db);
+	if (result != DNS_R_SUCCESS)
+		goto view_detach;
+
+	dns_rdatacallbacks_init(&callbacks);
+
+	len = strlen(version_text);
+	isc_buffer_init(&source, version_text, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+
+	result = dns_db_beginload(version_db, &callbacks.add, &callbacks.add_private);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	result = dns_master_loadbuffer(&source, &version_db->origin, &version_db->origin,
+				       version_db->rdclass, ISC_FALSE, &soacount,
+				       &nscount, &callbacks, version_db->mctx);
+	eresult = dns_db_endload(version_db, &callbacks.add_private);
+	if (result == ISC_R_SUCCESS)
+		result = eresult;
+	if (result != ISC_R_SUCCESS)
+		goto db_detach;
+
+	if (dns_dbtable_add(version_view->dbtable, version_db) != DNS_R_SUCCESS)
+		goto db_detach;
+
+	return (DNS_R_SUCCESS);
+
+ db_detach:
+	dns_db_detach(&version_db);
+
+ view_detach:
+	dns_view_detach(&version_view);
+
+	return (result);
 }
 
 static isc_result_t
@@ -109,10 +208,14 @@ load_all(void) {
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_dbinfo_t *dbi;
 	
+	result = load_version();
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	for (dbi = ISC_LIST_HEAD(ns_g_dbs);
 	     dbi != NULL;
 	     dbi = ISC_LIST_NEXT(dbi, link)) {
-		result = load(dbi);
+		result = load(dbi, "default/IN");
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
@@ -126,18 +229,27 @@ unload_all(void) {
 	
 	for (dbi = ISC_LIST_HEAD(ns_g_dbs); dbi != NULL; dbi = dbi_next) {
 		dbi_next = ISC_LIST_NEXT(dbi, link);
-		if (dbi->db != NULL) {
+		if (dbi->view != NULL) {
+			INSIST(dbi->db != NULL);
 			if (dns_db_iszone(dbi->db))
-				dns_dbtable_remove(ns_g_dbtable, dbi->db);
+				dns_dbtable_remove(dbi->view->dbtable, dbi->db);
 			else {
 				INSIST(dbi == cache_dbi);
-				dns_dbtable_removedefault(ns_g_dbtable);
+				dns_dbtable_removedefault(dbi->view->dbtable);
 				cache_dbi = NULL;
 			}
 			dns_db_detach(&dbi->db);
+			dns_view_detach(&dbi->view);
 		}
 		ISC_LIST_UNLINK(ns_g_dbs, dbi, link);
 		isc_mem_put(ns_g_mctx, dbi, sizeof *dbi);
+	}
+
+	if (version_view != NULL) {
+		INSIST(version_db != NULL);
+		dns_dbtable_remove(version_view->dbtable, version_db);
+		dns_db_detach(&version_db);
+		dns_view_detach(&version_view);
 	}
 }
 
@@ -172,36 +284,53 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 static void
 shutdown_server(isc_task_t *task, isc_event_t *event) {
+	dns_view_t *view, *view_next;
+
 	(void)task;
+
 	printf("server shutting down\n");
+
+	RWLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 	unload_all();
-	dns_dbtable_detach(&ns_g_dbtable);
+	for (view = ISC_LIST_HEAD(ns_g_viewlist);
+	     view != NULL;
+	     view = view_next) {
+		view_next = ISC_LIST_NEXT(view, link);
+		ISC_LIST_UNLINK(ns_g_viewlist, view, link);
+		dns_view_detach(&view);
+	}
+	ISC_LIST_INIT(ns_g_viewlist);
+	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 	isc_task_detach(&server_task);
+
 	isc_event_free(&event);
 }
 
 isc_result_t
 ns_server_init(void) {
 	isc_result_t result;
-#if 0
-	dns_view_t *view = NULL;
-#endif
+	dns_view_t *view, *view_next;
 
-	result = dns_dbtable_create(ns_g_mctx, dns_rdataclass_in,
-				    &ns_g_dbtable);
+	/*
+	 * XXXRTH  The view management code here will probably move to its own module
+	 *         when we start using the config file.
+	 */
+	view = NULL;
+	result = dns_view_create(ns_g_mctx, dns_rdataclass_in, "default/IN",
+				 NULL, &view);
 	if (result != ISC_R_SUCCESS)
-		return (result);
-	
-#if 0
-	result = dns_view_create(ns_g_viewmgr, dns_rdataclass_in, "default/IN",
-				 ns_g_dbtable, NULL, &view);
+		goto cleanup_views;
+	ISC_LIST_APPEND(ns_g_viewlist, view, link);
+	view = NULL;
+	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "default/CHAOS",
+				 NULL, &view);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_dbtable;
-#endif
+		goto cleanup_views;
+	ISC_LIST_APPEND(ns_g_viewlist, view, link);
 
 	result = isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server_task);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_view;
+		goto cleanup_views;
 
 	result = isc_task_onshutdown(server_task, shutdown_server, NULL);
 	if (result != ISC_R_SUCCESS)
@@ -216,13 +345,14 @@ ns_server_init(void) {
  cleanup_task:
 	isc_task_detach(&server_task);
 
- cleanup_view:
-#if 0
-	dns_view_detach(&view);
-
- cleanup_dbtable:
-#endif
-	dns_dbtable_detach(&ns_g_dbtable);
+ cleanup_views:
+	for (view = ISC_LIST_HEAD(ns_g_viewlist);
+	     view != NULL;
+	     view = view_next) {
+		view_next = ISC_LIST_NEXT(view, link);
+		ISC_LIST_UNLINK(ns_g_viewlist, view, link);
+		dns_view_detach(&view);
+	}
 
 	return (result);
 }

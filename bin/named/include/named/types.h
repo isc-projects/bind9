@@ -35,6 +35,7 @@ typedef struct ns_dbinfo {
 	char *				path;
 	char *				origin;
 	isc_boolean_t			iscache;
+	dns_view_t *			view;
 	dns_db_t *			db;
 	ISC_LINK(struct ns_dbinfo)	link;
 } ns_dbinfo_t;

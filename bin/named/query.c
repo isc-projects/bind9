@@ -35,6 +35,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/view.h>
 
 #include <named/client.h>
 #include <named/globals.h>
@@ -172,7 +173,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	 * Find a database to answer the query.
 	 */
 	db = NULL;
-	result = dns_dbtable_find(ns_g_dbtable, name, &db);
+	result = dns_dbtable_find(client->view->dbtable, name, &db);
 	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		return (ISC_R_SUCCESS);
 
@@ -436,7 +437,7 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 		 * Find a database to answer the query.
 		 */
 		db = NULL;
-		result = dns_dbtable_find(ns_g_dbtable, client->query.qname,
+		result = dns_dbtable_find(client->view->dbtable, client->query.qname,
 					  &db);
 		if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
 			if (first_time)

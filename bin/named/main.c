@@ -80,6 +80,7 @@ parse_command_line(int argc, char *argv[]) {
 			dbi->path = optarg;
 			dbi->origin = ".";
 			dbi->iscache = ISC_TRUE;
+			dbi->view = NULL;
 			dbi->db = NULL;
 			ISC_LINK_INIT(dbi, link);
 			ISC_LIST_APPEND(ns_g_dbs, dbi, link);
@@ -106,6 +107,7 @@ parse_command_line(int argc, char *argv[]) {
 			dbi->path = optarg;
 			dbi->origin = origintext;
 			dbi->iscache = ISC_FALSE;
+			dbi->view = NULL;
 			dbi->db = NULL;
 			ISC_LINK_INIT(dbi, link);
 			ISC_LIST_APPEND(ns_g_dbs, dbi, link);
@@ -198,14 +200,12 @@ static void
 setup() {
 	isc_result_t result;
 
-#if 0
-	ISC_LIST_INIT(ns_g_views);
+	ISC_LIST_INIT(ns_g_viewlist);
 
 	result = isc_rwlock_init(&ns_g_viewlock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		early_fatal("isc_rwlock_init() failed: %s",
 			    isc_result_totext(result));
-#endif
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)
