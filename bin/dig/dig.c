@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.138 2001/02/15 23:44:03 tamino Exp $ */
+/* $Id: dig.c,v 1.139 2001/02/15 23:57:22 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -524,28 +524,34 @@ buftoosmall:
 static void
 printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 	int i;
+	int remaining;
 	static isc_boolean_t first = ISC_TRUE;
 	char append[MXNAME];
 
 	if (printcmd) {
+		lookup->cmdline[sizeof(lookup->cmdline) - 1] = 0;
 		snprintf(lookup->cmdline, sizeof(lookup->cmdline),
 			 "%s; <<>> DiG " VERSION " <<>>",
 			 first?"\n":"");
 		i = 1;
 		while (i < argc) {
 			snprintf(append, sizeof(append), " %s", argv[i++]);
-			strncat(lookup->cmdline, append,
-				sizeof (lookup->cmdline));
+			remaining = sizeof(lookup->cmdline) -
+				    strlen(lookup->cmdline) - 1;
+			strncat(lookup->cmdline, append, remaining);
 		}
-		strncat(lookup->cmdline, "\n", sizeof (lookup->cmdline));
+		remaining = sizeof(lookup->cmdline) -
+			    strlen(lookup->cmdline) - 1;
+		strncat(lookup->cmdline, "\n", remaining);
 		if (first) {
 			snprintf(append, sizeof (append), 
 				 ";; global options: %s %s\n",
 			       short_form ? "short_form" : "",
 			       printcmd ? "printcmd" : "");
 			first = ISC_FALSE;
-			strncat(lookup->cmdline, append,
-				sizeof (lookup->cmdline));
+			remaining = sizeof(lookup->cmdline) -
+				    strlen(lookup->cmdline) - 1;
+			strncat(lookup->cmdline, append, remaining);
 		}
 	}
 }
