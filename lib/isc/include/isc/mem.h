@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.50 2001/03/05 18:20:24 mayer Exp $ */
+/* $Id: mem.h,v 1.51 2001/06/05 22:14:20 tale Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -248,6 +248,7 @@ isc_mem_inuse(isc_mem_t *mctx);
  */
 
 void
+
 isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
 		 size_t hiwater, size_t lowater);
 /*
@@ -256,14 +257,13 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  * will be called.  When the usage drops below 'lowater', 'water' will
  * again be called, this time with ISC_MEM_LOWATER.
  *
- * Requires:
- * 	If 'water' is NULL then 'water_arg', 'hi_water' and 'lo_water' are
- *	ignored and the state is reset.  Otherwise, requires
+ * If 'water' is NULL then 'water_arg', 'hi_water' and 'lo_water' are
+ * ignored and the state is reset.
  *
- *	'water' to point to a valid function.
- *	'hi_water > lo_water'
- *	'lo_water != 0'
- * 'hi_water != 0'
+ * Requires:
+ *
+ *	'water' is not NULL.
+ *	hi_water >= lo_water
  */
 
 /*

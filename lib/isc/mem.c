@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.91 2001/06/04 19:33:25 tale Exp $ */
+/* $Id: mem.c,v 1.92 2001/06/05 22:14:18 tale Exp $ */
 
 #include <config.h>
 
@@ -1001,9 +1001,18 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
-	if (ctx->hi_called && ctx->inuse < ctx->lo_water) {
+
+	/*
+	 * The check against ctx->lo_water == 0 is for the condition
+	 * when the context was pushed over hi_water but then had
+	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
+	 */
+	if (ctx->hi_called && 
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0)) {
 		ctx->hi_called = ISC_FALSE;
-		call_water = ISC_TRUE;
+
+		if (ctx->water != NULL)
+			call_water = ISC_TRUE;
 	}
 	UNLOCK(&ctx->lock);
 
@@ -1272,12 +1281,7 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
                  size_t hiwater, size_t lowater)
 {
 	REQUIRE(VALID_CONTEXT(ctx));
-
-	if (water != NULL) {
-		REQUIRE(hiwater > lowater);
-		REQUIRE(hiwater > 0);
-		REQUIRE(lowater > 0);
-	}
+	REQUIRE(hiwater >= lowater);
 
 	LOCK(&ctx->lock);
 	if (water == NULL) {
