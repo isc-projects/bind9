@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.103 2002/11/12 21:52:44 explorer Exp $ */
+/* $Id: update.c,v 1.104 2003/01/10 02:37:44 marka Exp $ */
 
 #include <config.h>
 
@@ -2042,6 +2042,12 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 }
+
+/*
+ * DS records are not allowed to exist without corresponding NS records,
+ * draft-ietf-dnsext-delegation-signer-11.txt, 2.2 Protocol Change,
+ * "DS RRsets MUST NOT appear at non-delegation points or at a zone's apex".
+ */
 
 static isc_result_t
 remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
