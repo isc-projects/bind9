@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.71 2001/01/16 07:28:11 marka Exp $ */
+/* $Id: nslookup.c,v 1.72 2001/01/16 18:39:38 gson Exp $ */
 
 #include <config.h>
 
@@ -39,6 +39,7 @@ extern int h_errno;
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/byaddr.h>
 
@@ -190,8 +191,8 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	char *ptr;
-	char *input;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_rdata_soa_t soa;
 
 	UNUSED(query);
 	UNUSED(headers);
@@ -248,49 +249,25 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					printf("%.*s\n",
 					       (int)isc_buffer_usedlength(b),
 					       (char*)isc_buffer_base(b));
-					isc_buffer_clear(b);
-					result = dns_rdata_totext(&rdata,
-								  NULL,
-								  b);
+
+					result = dns_rdata_tostruct(&rdata,
+								    &soa, NULL);
 					check_result(result,
-						     "dns_rdata_totext");
-					((char *)isc_buffer_used(b))[0]=0;
-					input = isc_buffer_base(b);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\torigin = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tmail addr = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tserial = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\trefresh = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tretry = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\texpire = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tminimum = %s\n",
-					       ptr);
+						     "dns_rdata_tostruct");
+
+					dns_name_format(&soa.origin, namebuf,
+							sizeof(namebuf));
+					printf("\torigin = %s\n", namebuf);
+
+					dns_name_format(&soa.mname, namebuf,
+							sizeof(namebuf));
+					printf("\tmail addr = %s\n", namebuf);
+
+					printf("\tserial = %u\n", soa.serial);
+					printf("\trefresh = %u\n", soa.refresh);
+					printf("\tretry = %u\n", soa.retry);
+					printf("\texpire = %u\n", soa.expire);
+					printf("\tminimum = %u\n", soa.minimum);
 					break;
 				default:
 				def_short_section:
@@ -344,8 +321,8 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	char namestore[DNS_NAME_MAXTEXT + 1]; /* Leave room for the NULL */
-	char *ptr;
-	char *input;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_rdata_soa_t soa;
 
 	UNUSED(query);
 
@@ -409,49 +386,24 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 				       (char*)isc_buffer_base(b));
 				switch (rdata.type) {
 				case dns_rdatatype_soa:
-					isc_buffer_clear(b);
-					result = dns_rdata_totext(&rdata,
-								  NULL,
-								  b);
+					result = dns_rdata_tostruct(&rdata,
+								    &soa, NULL);
 					check_result(result,
-						     "dns_rdata_totext");
-					((char *)isc_buffer_used(b))[0]=0;
-					input = isc_buffer_base(b);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\torigin = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tmail addr = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tserial = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\trefresh = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tretry = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\texpire = %s\n",
-					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
-					printf("\tminimum = %s\n",
-					       ptr);
+						     "dns_rdata_tostruct");
+
+					dns_name_format(&soa.origin, namebuf,
+							sizeof(namebuf));
+					printf("\torigin = %s\n", namebuf);
+
+					dns_name_format(&soa.mname, namebuf,
+							sizeof(namebuf));
+					printf("\tmail addr = %s\n", namebuf);
+
+					printf("\tserial = %u\n", soa.serial);
+					printf("\trefresh = %u\n", soa.refresh);
+					printf("\tretry = %u\n", soa.retry);
+					printf("\texpire = %u\n", soa.expire);
+					printf("\tminimum = %u\n", soa.minimum);
 					break;
 				default:
 					isc_buffer_clear(b);
