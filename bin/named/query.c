@@ -1443,7 +1443,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 		client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 
-		result = event->result;
 		qtype = event->type;
 		if (qtype == dns_rdatatype_sig)
 			type = dns_rdatatype_any;
@@ -1474,7 +1473,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			goto cleanup;
 		}
 
-		isc_event_free((isc_event_t **)(&event));
+		result = event->result;
 
 		goto resume;
 	} else
@@ -2117,6 +2116,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			query_releasename(client, &zfname);
 		dns_db_detach(&zdb);
 	}
+	if (event != NULL)
+		isc_event_free((isc_event_t **)(&event));
 
 	/*
 	 * AA bit.
