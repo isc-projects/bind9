@@ -1082,6 +1082,10 @@
 ./contrib/queryperf/input/sample.0		X	2001
 ./contrib/queryperf/input/sample.1		X	2001
 ./contrib/queryperf/queryperf.c			X	2001,2002
+./contrib/sdb/bdb/README			X	2002
+./contrib/sdb/bdb/bdb.c				X	2002
+./contrib/sdb/bdb/bdb.h				X	2002
+./contrib/sdb/bdb/zone2bdb.c			X	2002
 ./contrib/sdb/dir/dirdb.c			C	2000,2001
 ./contrib/sdb/dir/dirdb.h			C	2000,2001
 ./contrib/sdb/ldap/INSTALL.ldap			X	2001,2002
@@ -1400,6 +1404,20 @@
 ./lib/bind/port/bsdos2/include/.cvsignore	X	2001
 ./lib/bind/port/bsdos2/include/Makefile.in	X	2001
 ./lib/bind/port/bsdos2/include/sys/bitypes.h	X	2001
+./lib/bind/port/cygwin/Makefile.in		X	2002
+./lib/bind/port/cygwin/include/Makefile.in	X	2002
+./lib/bind/port/cygwin/include/ansi_realloc.h	X	2002
+./lib/bind/port/cygwin/include/asm/socket.h	X	2002
+./lib/bind/port/cygwin/include/assert.h		X	2002
+./lib/bind/port/cygwin/include/net/route.h	X	2002
+./lib/bind/port/cygwin/include/nlist.h		X	2002
+./lib/bind/port/cygwin/include/paths.h		X	2002
+./lib/bind/port/cygwin/include/sys/bitypes.h	X	2002
+./lib/bind/port/cygwin/include/sys/cdefs.h	X	2002
+./lib/bind/port/cygwin/include/sys/mbuf.h	X	2002
+./lib/bind/port/cygwin/include/sys/socket.h	X	2002
+./lib/bind/port/cygwin/include/sys/un.h		X	2002
+./lib/bind/port/cygwin/include/sys/wait.h	X	2002
 ./lib/bind/port/darwin/.cvsignore		X	2001
 ./lib/bind/port/darwin/Makefile.in		MAKE	2001
 ./lib/bind/port/darwin/include/.cvsignore	X	2001
@@ -1608,6 +1626,7 @@
 ./lib/dns/diff.c				C	2000,2001,2002
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002
+./lib/dns/ds.c					C	2002
 ./lib/dns/forward.c				C	2000,2001
 ./lib/dns/gen-unix.h				C	1999,2000,2001
 ./lib/dns/gen-win32.h				C	1999,2000,2001
@@ -1631,6 +1650,7 @@
 ./lib/dns/include/dns/diff.h			C	2000,2001
 ./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002
+./lib/dns/include/dns/ds.h			C	2002
 ./lib/dns/include/dns/events.h			C	1999,2000,2001,2002
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001
 ./lib/dns/include/dns/forward.h			C	2000,2001
@@ -1647,6 +1667,7 @@
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002
 ./lib/dns/include/dns/nxt.h			C	1999,2000,2001
+./lib/dns/include/dns/opcode.h			C	2002
 ./lib/dns/include/dns/order.h			C	2002
 ./lib/dns/include/dns/peer.h			C	2000,2001
 ./lib/dns/include/dns/portlist.h		C	2003
@@ -1713,6 +1734,8 @@
 ./lib/dns/rdata/generic/cname_5.h		C	1998,1999,2000,2001
 ./lib/dns/rdata/generic/dname_39.c		C	1999,2000,2001
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001
+./lib/dns/rdata/generic/ds_43.c			C	2002
+./lib/dns/rdata/generic/ds_43.h			C	2002
 ./lib/dns/rdata/generic/gpos_27.c		C	1999,2000,2001,2002
 ./lib/dns/rdata/generic/gpos_27.h		C	1999,2000,2001
 ./lib/dns/rdata/generic/hinfo_13.c		C	1998,1999,2000,2001,2002
@@ -2071,6 +2094,7 @@
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001
+./lib/isc/win32/include/isc/win32os.h		C	2002
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001
 ./lib/isc/win32/keyboard.c			C	2000,2001
@@ -2095,6 +2119,7 @@
 ./lib/isc/win32/time.c				C	1998,1999,2000,2001
 ./lib/isc/win32/unistd.h			C	2000,2001
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001
+./lib/isc/win32/win32os.c			C	2002
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001
 ./lib/isccc/alist.c				C.NOM	2001
@@ -2269,6 +2294,7 @@
 ./lib/lwres/win32/liblwres.dsp			X	2001,2002
 ./lib/lwres/win32/liblwres.dsw			X	2001
 ./lib/lwres/win32/liblwres.mak			X	2001,2002
+./lib/lwres/win32/lwconfig.c			C	2002
 ./lib/lwres/win32/version.c			C	1998,1999,2000,2001
 ./lib/tests/.cvsignore				X	1999,2000,2001
 ./lib/tests/Makefile.in				MAKE	1998,1999,2000,2001
@@ -2299,6 +2325,7 @@
 ./util/COPYRIGHT.NOM				X	2001
 ./util/COPYRIGHT.PORTION			X	1996,1997,1998,1999,2000,2001
 ./util/altbuild.sh				SH	2000,2001,2002
+./util/check-changes				PERL	2002
 ./util/check-includes.pl			PERL	2000,2001
 ./util/check-instincludes.sh			SH	2000,2001
 ./util/check-pullups.pl				PERL	2001,2002
