@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getgrent_r.c,v 1.3 2001/04/05 06:19:32 marka Exp $";
+static const char rcsid[] = "$Id: getgrent_r.c,v 1.4 2001/05/28 08:38:25 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -59,7 +59,7 @@ getgrnam_r(const char *name,  struct group *gptr,
 
 	if (ge == NULL) {
 		*result = NULL;
-		return (-1);
+		return (0);
 	}
 
 	res = copy_group(ge, gptr, buf, buflen);
@@ -96,7 +96,7 @@ getgrgid_r(gid_t gid, struct group *gptr,
 
 	if (ge == NULL) {
 		*result = NULL;
-		return (-1);
+		return (0);
 	}
 
 	res = copy_group(ge, gptr, buf, buflen);
@@ -190,7 +190,7 @@ copy_group(struct group *ge, struct group *gptr, char *buf, int buflen) {
 	
 	if (len > buflen) {
 		errno = ERANGE;
-		return (-1);
+		return (ERANGE);
 	}
 
 	/* copy group id */

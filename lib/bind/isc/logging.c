@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: logging.c,v 1.1 2001/03/29 06:31:55 marka Exp $";
+static const char rcsid[] = "$Id: logging.c,v 1.2 2001/05/28 08:38:28 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -176,6 +176,19 @@ log_close_stream(log_channel chan) {
 	if (stream != NULL && fclose(stream) == EOF)
 		return (-1);
 	return (0);
+}
+
+void
+log_close_debug_channels(log_context lc) {
+	log_channel_list lcl;
+	int i;
+
+	for (i = 0; i < lc->num_categories; i++)
+		for (lcl = lc->categories[i]; lcl != NULL; lcl = lcl->next)
+			if (lcl->channel->type == log_file &&
+			    lcl->channel->out.file.stream != NULL &&
+			    lcl->channel->flags & LOG_REQUIRE_DEBUG)
+				(void)log_close_stream(lcl->channel);
 }
 
 FILE *

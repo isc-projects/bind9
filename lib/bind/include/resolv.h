@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.4 2001/05/22 22:51:31 marka Exp $
+ *	$Id: resolv.h,v 1.5 2001/05/28 08:38:20 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -98,7 +98,9 @@
 
 #define RES_SET_H_ERRNO(r,x) __h_errno_set(r,x)
 struct __res_state; /* forward */
+__BEGIN_DECLS
 void __h_errno_set(struct __res_state *res, int err);
+__END_DECLS
 
 /*
  * Resolver configuration file.
@@ -250,7 +252,9 @@ typedef struct __res_state *res_state;
 
 /* Things involving an internal (static) resolver context. */
 #ifdef _REENTRANT
+__BEGIN_DECLS
 extern struct __res_state *__res_state(void);
+__END_DECLS
 #define _res (*__res_state())
 #else
 #ifndef __BIND_NOSTATIC

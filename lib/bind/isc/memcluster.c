@@ -24,7 +24,7 @@
 
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: memcluster.c,v 1.1 2001/03/29 06:31:55 marka Exp $";
+static const char rcsid[] = "$Id: memcluster.c,v 1.2 2001/05/28 08:38:29 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -339,8 +339,9 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 	size_t new_size = quantize(size);
 #if defined (DEBUGGING_MEMCLUSTER)
 	memcluster_element *e;
+	memcluster_element *el;
 #ifdef MEMCLUSTER_RECORD
-	memcluster_element *prev, *el;
+	memcluster_element *prev;
 #endif
 	int fp;
 	char *p;
@@ -491,6 +492,18 @@ memstats(FILE *out) {
 			}
 	}
 #endif
+}
+
+int
+memactive(void) {
+	size_t i;
+
+	if (stats == NULL)
+		return (0);
+	for (i = 1; i <= max_size; i++)
+		if (stats[i].gets != 0)
+			return (1);
+	return (0);
 }
 
 /* Private. */

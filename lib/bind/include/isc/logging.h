@@ -72,6 +72,7 @@ typedef struct log_channel *log_channel;
 #define log_dec_references	__log_dec_references
 #define log_get_channel_type	__log_get_channel_type
 #define log_free_channel	__log_free_channel
+#define log_close_debug_channels	__log_close_debug_channels
 
 FILE *			log_open_stream(log_channel);
 int			log_close_stream(log_channel);
@@ -98,5 +99,6 @@ int			log_inc_references(log_channel);
 int			log_dec_references(log_channel);
 log_channel_type	log_get_channel_type(log_channel);
 int			log_free_channel(log_channel);
+void			log_close_debug_channels(log_context);
 
 #endif /* !LOGGING_H */

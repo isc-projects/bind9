@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_print.c,v 1.1 2001/03/29 06:31:57 marka Exp $";
+static const char rcsid[] = "$Id: ns_print.c,v 1.2 2001/05/28 08:38:30 marka Exp $";
 #endif
 
 /* Import. */
@@ -317,7 +317,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		break;
 
 	case ns_t_nsap: {
-		char t[255*3];
+		char t[2+255*3];
 
 		(void) inet_nsap_ntoa(rdlen, rdata, t);
 		T(addstr(t, strlen(t), &buf, &buflen));

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getpwent_r.c,v 1.2 2001/04/09 04:53:22 marka Exp $";
+static const char rcsid[] = "$Id: getpwent_r.c,v 1.3 2001/05/28 08:38:26 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -58,7 +58,7 @@ getpwnam_r(const char *login,  struct passwd *pwptr,
 
 	if (pw == NULL) {
 		*result = NULL;
-		return (-1);
+		return (0);
 	}
 
 	res = copy_passwd(pw, pwptr, buf, buflen);
@@ -95,7 +95,7 @@ getpwuid_r(uid_t uid, struct passwd *pwptr,
 
 	if (pw == NULL) {
 		*result = NULL;
-		return (-1);
+		return (0);
 	}
 
 	res = copy_passwd(pw, pwptr, buf, buflen);
@@ -210,7 +210,7 @@ copy_passwd(struct passwd *pw, struct passwd *pwptr, char *buf, int buflen) {
 	
 	if (len > buflen) {
 		errno = ERANGE;
-		return (-1);
+		return (ERANGE);
 	}
 
 	/* copy fixed atomic values*/
