@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.12 2001/01/09 21:43:02 bwelling Exp $
+# $Id: sign.sh,v 1.13 2001/09/17 17:47:20 bwelling Exp $
 
 RANDFILE=../random.data
 
@@ -23,7 +23,7 @@ zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
+keyname=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 
 $KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key > /dev/null
 

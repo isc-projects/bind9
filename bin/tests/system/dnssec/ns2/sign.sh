@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.15 2001/01/09 21:42:55 bwelling Exp $
+# $Id: sign.sh,v 1.16 2001/09/17 17:47:18 bwelling Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,7 +26,7 @@ zone=example.
 infile=example.db.in
 zonefile=example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
+keyname=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
 # Have the child generate a zone key and pass it to us,
 # sign it, and pass it back
