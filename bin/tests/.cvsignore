@@ -43,3 +43,4 @@ byaddr_test
 inter_test
 byname_test
 headerdep_test.sh
+ndcconf_test
