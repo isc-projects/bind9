@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.208 2000/09/11 20:51:47 gson Exp $ */
+/* $Id: zone.c,v 1.209 2000/09/12 01:22:12 marka Exp $ */
 
 #include <config.h>
 
@@ -3830,19 +3830,17 @@ dns_zone_getjournalsize(dns_zone_t *zone) {
 }
 
 static void
-notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
-	va_list ap;
-	char message[4096];
-	char namebuf[1024+32];
-	isc_buffer_t buffer;
-	int len;
+zone_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	isc_result_t result = ISC_R_FAILURE;
+	isc_buffer_t buffer;
 
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
-		return;
+	REQUIRE(buf != NULL);
+	REQUIRE(length > 1);
 
-	isc_buffer_init(&buffer, namebuf, sizeof(namebuf));
-
+	/*
+         * Leave space for terminating '\0'.
+	 */
+	isc_buffer_init(&buffer, buf, length - 1);
 	if (dns_name_dynamic(&zone->origin))
 		result = dns_name_totext(&zone->origin, ISC_TRUE, &buffer);
 	if (result != ISC_R_SUCCESS)
@@ -3850,13 +3848,25 @@ notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 
 	isc_buffer_putstr(&buffer, "/");
 	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
-	len = isc_buffer_usedlength(&buffer);
+	buf[isc_buffer_usedlength(&buffer)] = '\0';
+}
+
+static void
+notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
+	va_list ap;
+	char message[4096];
+	char namebuf[1024+32];
+
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
+
+	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof message, fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_NOTIFY, DNS_LOGMODULE_ZONE,
-		      level, "zone %.*s: %s", len, namebuf, message);
+		      level, "zone %s: %s", namebuf, message);
 }
 
 static void
@@ -3864,29 +3874,17 @@ zone_log(dns_zone_t *zone, const char *me, int level, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
 	char namebuf[1024+32];
-	isc_buffer_t buffer;
-	int len;
-	isc_result_t result = ISC_R_FAILURE;
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
 
-	isc_buffer_init(&buffer, namebuf, sizeof(namebuf));
-
-	if (dns_name_dynamic(&zone->origin))
-		result = dns_name_totext(&zone->origin, ISC_TRUE, &buffer);
-	if (result != ISC_R_SUCCESS)
-		isc_buffer_putstr(&buffer, "<UNKNOWN>");
-
-	isc_buffer_putstr(&buffer, "/");
-	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
-	len = isc_buffer_usedlength(&buffer);
+	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof message, fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "%s: zone %.*s: %s", me, len, namebuf, message);
+		      level, "%s: zone %s: %s", me, namebuf, message);
 }
 
 static int
