@@ -133,13 +133,15 @@ extern const struct in6_addr in6addr_any;
 #endif
 
 /*
- * IN6_ARE_ADDR_EQUAL and IN6_IS_ADDR_UNSPECIFIED are broken in at least
- * 2.1.  The macros incorrectly cast away const.
+ * IN6_ARE_ADDR_EQUAL, IN6_IS_ADDR_UNSPECIFIED, IN6_IS_ADDR_V4COMPAT and
+ * IN6_IS_ADDR_V4MAPPED are broken in glibc 2.1.
  */
 #ifdef __GLIBC__
 #if __GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 2)
 #undef IN6_ARE_ADDR_EQUAL
 #undef IN6_IS_ADDR_UNSPECIFIED
+#undef IN6_IS_ADDR_V4COMPAT
+#undef IN6_IS_ADDR_V4MAPPED
 #endif
 #endif
 
