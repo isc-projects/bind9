@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.10 2003/08/20 06:02:54 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.11 2003/08/21 03:50:21 marka Exp $ */
 
 #include <config.h>
 
@@ -427,7 +427,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			if (UNMARKED(addrinfo))
 				dns_adb_adjustsrtt(fctx->adb, addrinfo,
 						   0, factor);
-	if (finish != NULL && !TRIEDFIND(fctx))
+	if (finish != NULL && TRIEDFIND(fctx))
                 for (find = ISC_LIST_HEAD(fctx->finds);
 		     find != NULL;
 		     find = ISC_LIST_NEXT(find, publink))
