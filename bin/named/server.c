@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.6 2004/04/20 14:12:43 marka Exp $ */
+/* $Id: server.c,v 1.419.18.7 2004/05/14 01:03:49 marka Exp $ */
 
 #include <config.h>
 
@@ -2877,6 +2877,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	if (server->blackholeacl != NULL)
 		dns_acl_detach(&server->blackholeacl);
 
+	dns_db_detach(&server->in_roothints);
+
 	isc_task_endexclusive(server->task);
 
 	isc_task_detach(&server->task);
@@ -3027,8 +3029,6 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_event_free(&server->reload_event);
 
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
-
-	dns_db_detach(&server->in_roothints);
 
 	dns_aclenv_destroy(&server->aclenv);
 
