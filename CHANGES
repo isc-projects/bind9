@@ -1,3 +1,5 @@
+1063.	[bug]		libbind: irix "make install" was failing.
+
 1062.	[bug]		If the control channel listener socket was shut
 			down before server exit, the listener object could
 			be freed twice. [RT #1916]
