@@ -23,6 +23,7 @@
 #include <isc/net.h>
 
 #include <dns/types.h>
+#include <dns/confctx.h>
 
 #include <named/types.h>
 #include <named/interfacemgr.h>
@@ -59,6 +60,15 @@ EXTERN isc_rwlock_t		ns_g_viewlock;
  * Default root nameserver hints.
  */
 EXTERN dns_db_t *		ns_g_rootns		INIT(NULL);
+
+
+/*
+ * Current config information
+ */
+EXTERN dns_c_ctx_t *		ns_g_confctx		INIT(NULL);
+EXTERN isc_rwlock_t		ns_g_confctxlock;
+EXTERN const char *		ns_g_conffile		INIT(NULL);
+
 
 /* XXXRTH  These are temporary. */
 EXTERN ns_dbinfolist_t		ns_g_dbs;
