@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.76 2000/07/21 20:53:58 bwelling Exp $
+ * $Id: tsig.c,v 1.77 2000/07/21 22:38:29 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -549,7 +549,7 @@ cleanup_other:
 
 isc_result_t
 dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
-		dns_tsig_keyring_t *sring, dns_tsig_keyring_t *dring)
+		dns_tsig_keyring_t *ring1, dns_tsig_keyring_t *ring2)
 {
 	dns_rdata_any_tsig_t tsig, querytsig;
 	isc_region_t r, source_r, header_r, sig_r;
@@ -636,15 +636,13 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 */
 	if (tsigkey == NULL) {
 		ret = ISC_R_NOTFOUND;
-		if (sring != NULL)
+		if (ring1 != NULL)
 			ret = dns_tsigkey_find(&tsigkey, keyname,
-					       &tsig.algorithm, sring); 
-		if (ret == ISC_R_NOTFOUND && dring != NULL)
+					       &tsig.algorithm, ring1); 
+		if (ret == ISC_R_NOTFOUND && ring2 != NULL)
 			ret = dns_tsigkey_find(&tsigkey, keyname,
-					       &tsig.algorithm, dring);
+					       &tsig.algorithm, ring2);
 		if (ret != ISC_R_SUCCESS) {
-			if (dring == NULL)
-				return (DNS_R_TSIGVERIFYFAILURE);
 			msg->tsigstatus = dns_tsigerror_badkey;
 			ret = dns_tsigkey_create(keyname, &tsig.algorithm,
 						 NULL, 0, ISC_FALSE, NULL,
