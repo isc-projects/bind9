@@ -652,8 +652,8 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 	r.length = sizeof(origindata);
 	dns_name_fromregion(&origin, &r);
 
-	(void) dns_c_ctx_getversion(cctx, &versiontext);
-	if (versiontext == NULL)
+	result = dns_c_ctx_getversion(cctx, &versiontext);
+	if (result != ISC_R_SUCCESS)
 		versiontext = ns_g_version;
 	len = strlen(versiontext);
 	if (len > 255)
