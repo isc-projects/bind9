@@ -168,6 +168,9 @@ Building
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
 
+	Parts of the library can be tested by running "make test" from the
+	bin/tests subdirectory.
+
 
 Bug Reports and Mailing Lists
 
