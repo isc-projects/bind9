@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.202 2002/01/21 07:59:14 bwelling Exp $ */
+/* $Id: message.c,v 1.203 2002/01/21 09:47:09 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2785,7 +2785,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 		dns_rdataset_init(&keyset);
 		if (view == NULL)
-			return DNS_R_KEYUNAUTHORIZED;
+			return (DNS_R_KEYUNAUTHORIZED);
 		result = dns_view_simplefind(view, &sig.signer,
 					     dns_rdatatype_key, 0, 0,
 					     ISC_FALSE, &keyset, NULL);
