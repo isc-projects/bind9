@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.2 2000/06/07 00:22:31 explorer Exp $ */
+/* $Id: sha1.c,v 1.3 2000/06/07 00:49:01 explorer Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -240,4 +240,6 @@ isc_sha1_final(isc_sha1_t *context, unsigned char digest[20]) {
 				((context->state[i >> 2]
 				  >> ((3 - (i & 3)) * 8)) & 255);
 	}
+
+	memset(context, 0, sizeof(isc_sha1_t));
 }
