@@ -157,6 +157,7 @@ struct fetchctx {
 	dns_adbfind_t *			find;
 	dns_adbaddrinfolist_t		forwaddrs;
 	isc_sockaddrlist_t		forwarders;
+	isc_sockaddrlist_t		bad;
 	/*
 	 * # of events we're waiting for.
 	 */
@@ -998,6 +999,84 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		empty_bucket(res);
 }
 
+
+static inline isc_boolean_t
+bad_server(fetchctx_t *fctx, isc_sockaddr_t *address) {
+	isc_sockaddr_t *sa;
+
+	for (sa = ISC_LIST_HEAD(fctx->bad);
+	     sa != NULL;
+	     sa = ISC_LIST_NEXT(sa, link)) {
+		if (isc_sockaddr_equal(sa, address))
+			return (ISC_TRUE);
+	}
+	
+	return (ISC_FALSE);
+}
+
+static inline isc_boolean_t
+mark_bad(fetchctx_t *fctx) {
+	dns_adbfind_t *curr;
+	dns_adbaddrinfo_t *addrinfo;
+	isc_boolean_t all_bad = ISC_TRUE;
+
+	/*
+	 * Mark all known bad servers, so we don't try to talk to them
+	 * again.
+	 */
+
+	/*
+	 * Mark any bad nameservers.
+	 */
+	for (curr = ISC_LIST_HEAD(fctx->finds);
+	     curr != NULL;
+	     curr = ISC_LIST_NEXT(curr, publink)) {
+		for (addrinfo = ISC_LIST_HEAD(curr->list);
+		     addrinfo != NULL;
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			if (bad_server(fctx, addrinfo->sockaddr))
+				addrinfo->flags |= FCTX_ADDRINFO_MARK;
+			else
+				all_bad = ISC_FALSE;
+		}
+	}
+
+	/*
+	 * Mark any bad forwarders.
+	 */
+	for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
+	     addrinfo != NULL;
+	     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+		if (bad_server(fctx, addrinfo->sockaddr))
+			addrinfo->flags |= FCTX_ADDRINFO_MARK;
+		else
+			all_bad = ISC_FALSE;
+	}
+	
+	return (all_bad);
+}
+
+static void
+add_bad(fetchctx_t *fctx, isc_sockaddr_t *address) {
+	isc_sockaddr_t *sa;
+
+	if (bad_server(fctx, address)) {
+		/*
+		 * We already know this server is bad.
+		 */
+		return;
+	}
+
+	FCTXTRACE("add_bad");
+
+	sa = isc_mem_get(fctx->res->mctx, sizeof *sa);
+	if (sa == NULL)
+		return;
+	*sa = *address;
+	ISC_LINK_INIT(sa, link);
+	ISC_LIST_APPEND(fctx->bad, sa, link);
+}
+
 static void
 sort_adbfind(dns_adbfind_t *find) {
 	dns_adbaddrinfo_t *best, *curr;
@@ -1065,7 +1144,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	unsigned int stdoptions, options;
 	isc_sockaddr_t *sa;
 	dns_adbaddrinfo_t *ai;
-	isc_boolean_t pruned;
+	isc_boolean_t pruned, all_bad;
 
 	FCTXTRACE("getaddresses");
 
@@ -1216,7 +1295,15 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		return (result);
 
  out:
-	if (ISC_LIST_EMPTY(fctx->finds) && ISC_LIST_EMPTY(fctx->forwaddrs)) {
+	/*
+	 * Mark all known bad servers.
+	 */
+	all_bad = mark_bad(fctx);
+
+	/*
+	 * How are we doing?
+	 */
+	if (all_bad) {
 		/*
 		 * We've got no addresses.
 		 */
@@ -1377,6 +1464,7 @@ static isc_boolean_t
 fctx_destroy(fetchctx_t *fctx) {
 	dns_resolver_t *res;
 	unsigned int bucketnum;
+	isc_sockaddr_t *sa, *next_sa;
 
 	/*
 	 * Caller must be holding the bucket lock.
@@ -1399,6 +1487,17 @@ fctx_destroy(fetchctx_t *fctx) {
 
 	ISC_LIST_UNLINK(res->buckets[bucketnum].fctxs, fctx, link);
 
+	/*
+	 * Free bad.
+	 */
+	for (sa = ISC_LIST_HEAD(fctx->bad);
+	     sa != NULL;
+	     sa = next_sa) {
+		next_sa = ISC_LIST_NEXT(sa, link);
+		ISC_LIST_UNLINK(fctx->bad, sa, link);
+		isc_mem_put(res->mctx, sa, sizeof *sa);
+	}
+
 	isc_timer_detach(&fctx->timer);
 	dns_message_destroy(&fctx->rmessage);
 	dns_message_destroy(&fctx->qmessage);
@@ -1406,7 +1505,7 @@ fctx_destroy(fetchctx_t *fctx) {
 		dns_name_free(&fctx->domain, res->mctx);
 	if (dns_rdataset_isassociated(&fctx->nameservers))
 		dns_rdataset_disassociate(&fctx->nameservers);
-	dns_name_free(&fctx->name, fctx->res->mctx);
+	dns_name_free(&fctx->name, res->mctx);
 	isc_mem_put(res->mctx, fctx, sizeof *fctx);
 
 	if (res->buckets[bucketnum].exiting &&
@@ -1710,6 +1809,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->forwaddrs);
 	ISC_LIST_INIT(fctx->forwarders);
+	ISC_LIST_INIT(fctx->bad);
 	fctx->find = NULL;
 	fctx->pending = 0;
 	fctx->validating = 0;
@@ -3293,22 +3393,15 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			broken_server = ISC_TRUE;
 		if (broken_server) {
 			/*
-			 * XXXRTH  Replace "600" with a configurable
-			 *	   value.
-			 *
-			 *	   Use badness instead?
+			 * Add 500 units of "badness" to this server.
 			 */
-			if (!ISFORWARDER(addrinfo)) {
-				result = dns_adb_marklame(fctx->res->view->adb,
-							  addrinfo,
-							  &fctx->domain,
-							  now + 600);
-				result = ISC_R_SUCCESS;
-				if (result != ISC_R_SUCCESS) {
-					fctx_done(fctx, result);
-					return;
-				}
-			}
+			dns_adb_adjustgoodness(fctx->res->view->adb, addrinfo,
+					       -500);
+			/*
+			 * Add this server to the list of bad servers for
+			 * this fctx.
+			 */
+			add_bad(fctx, addrinfo->sockaddr);
 		}
 
 		if (get_nameservers) {
