@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.159 2001/04/20 21:22:09 tale Exp $ */
+/* $Id: rbtdb.c,v 1.160 2001/04/24 17:03:54 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -743,6 +743,7 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 {
 	isc_result_t result;
 	isc_boolean_t write_locked;
+	isc_boolean_t reacquire;
 	unsigned int locknum;
 
 	/*
@@ -782,12 +783,14 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	/*
 	 * XXXDCL need to add a deferred delete method for ISC_R_LOCKBUSY.
 	 */
+	reacquire = ISC_FALSE;
 	if (lock != isc_rwlocktype_write) {
 		/*
 		 * Free the node lock before acquiring a tree write lock, per
 		 * the lock hierarchy rules stated at the start of this file.
 		 */
 		UNLOCK(&rbtdb->node_locks[locknum].lock);
+		reacquire = ISC_TRUE;
 
 		if (lock == isc_rwlocktype_read)
 			RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
@@ -833,10 +836,10 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 
 	/*
-	 * Reacquire the node lock that the caller held.
+	 * Reacquire the node lock that the caller held if necessary.
 	 */
-	LOCK(&rbtdb->node_locks[locknum].lock);
-
+	if (reacquire)
+		LOCK(&rbtdb->node_locks[locknum].lock);
 }
 
 static inline void
