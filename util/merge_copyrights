@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: merge_copyrights,v 1.10 2000/06/22 22:00:38 tale Exp $
+# $Id: merge_copyrights,v 1.11 2000/06/28 03:18:41 tale Exp $
 
 %file_types = ();
 %file_years = ();
@@ -56,7 +56,7 @@ while (<FILES>) {
 	    $file_types{$_} = "SH";
         } elsif ($_ =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
-        } elsif ($_ =~ /\.man$/) {
+        } elsif ($_ =~ /\.(man|[0-9])$/) {
 	    $file_types{$_} = "MAN";
 	} elsif ($_ =~ /\/Makefile\.in$/) {
 	    $file_types{$_} = "MAKE";
