@@ -82,7 +82,12 @@
  *** Types
  ***/
 
+#if 0
+/* this typedef moved to confcommon.h for confzone.h to get at (due to
+ * circulare include file dependancies).
+ */
 typedef struct dns_c_view		dns_c_view_t;
+#endif
 typedef struct dns_c_viewtable		dns_c_viewtable_t;
 
 
@@ -109,13 +114,14 @@ struct dns_c_view
 	dns_c_forw_t		forward;
 	
 	dns_c_ipmatchlist_t    *allowquery;
+	dns_c_ipmatchlist_t    *transferacl;
+	dns_c_ipmatchlist_t    *recursionacl;
 	dns_c_ipmatchlist_t    *blackhole;
-	dns_c_ipmatchlist_t    *forwarders;
-	dns_c_ipmatchlist_t    *queryacl;
 	dns_c_ipmatchlist_t    *sortlist;
 	dns_c_ipmatchlist_t    *topology;
-	dns_c_ipmatchlist_t    *transferacl;
-	
+
+	dns_c_iplist_t         *forwarders;
+
 	dns_c_lstnlist_t       *listens;
 	
 	dns_c_rrsolist_t       *ordering;
@@ -126,7 +132,6 @@ struct dns_c_view
 	
 	isc_boolean_t		auth_nx_domain;
 	isc_boolean_t		dialup;
-	isc_boolean_t		expert_mode;
 	isc_boolean_t		fetch_glue;
 	isc_boolean_t		has_old_clients;
 	isc_boolean_t		host_statistics;
@@ -134,14 +139,19 @@ struct dns_c_view
 	isc_boolean_t		multiple_cnames;
 	isc_boolean_t		notify;
 	isc_boolean_t		recursion;
-	isc_boolean_t		rfc2038type1;
+	isc_boolean_t		rfc2308_type1;
 	isc_boolean_t		use_id_pool;
+	isc_boolean_t		fake_iquery;
+	isc_boolean_t		use_ixfr;
 
 	isc_int32_t		clean_interval;
 	isc_int32_t		lamettl;
 	isc_int32_t		max_log_size_ixfr;
 	isc_int32_t		max_ncache_ttl;
 	isc_int32_t		max_transfer_time_in;
+	isc_int32_t		max_transfer_time_out;
+	isc_int32_t		max_transfer_idle_in;
+	isc_int32_t		max_transfer_idle_out;
 	isc_int32_t		stats_interval;
 	isc_int32_t		transfers_in;
 	isc_int32_t		transfers_out;
@@ -300,7 +310,13 @@ isc_result_t dns_c_view_delete(dns_c_view_t **view);
  * 
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
- * 
+ *  
+ */
+
+isc_result_t dns_c_view_addzone(dns_c_view_t *view, dns_c_zone_t *zone);
+/*
+ * Puts the zone in the view's zonetable. Dosn't alter the 'owner' view of 
+ * the zone.
  */
 
 isc_result_t dns_c_view_setallowquery(dns_c_view_t *view,
@@ -324,6 +340,64 @@ isc_result_t dns_c_view_setallowquery(dns_c_view_t *view,
  *				   deepcopy  .
  * 
  */
+
+
+isc_result_t dns_c_view_setallowtransfer(dns_c_view_t *view,
+					 dns_c_ipmatchlist_t *ipml,
+					 isc_boolean_t deepcopy);
+isc_result_t dns_c_view_setallowrecursion(dns_c_view_t *view,
+					  dns_c_ipmatchlist_t *ipml,
+					  isc_boolean_t deepcopy);
+isc_result_t dns_c_view_setblackhole(dns_c_view_t *view,
+				     dns_c_ipmatchlist_t *ipml,
+				     isc_boolean_t deepcopy);
+isc_result_t dns_c_view_setforwarders(dns_c_view_t *view,
+				      dns_c_iplist_t *ipml,
+				      isc_boolean_t deepcopy);
+isc_result_t dns_c_view_setsortlist(dns_c_view_t *view,
+				    dns_c_ipmatchlist_t *ipml,
+				    isc_boolean_t deepcopy);
+isc_result_t dns_c_view_settopology(dns_c_view_t *view,
+				    dns_c_ipmatchlist_t *ipml,
+				    isc_boolean_t deepcopy);
+isc_result_t dns_c_view_addlisten_on(dns_c_view_t *view, in_port_t port,
+				     dns_c_ipmatchlist_t *ml,
+				     isc_boolean_t copy);
+isc_result_t dns_c_view_setrrsetorderlist(dns_c_view_t *view,
+					  isc_boolean_t copy,
+					  dns_c_rrsolist_t *olist);
+isc_result_t dns_c_view_setchecknames(dns_c_view_t *view,
+				      dns_c_trans_t transtype,
+				      dns_severity_t sever);
+isc_result_t dns_c_view_settransferformat(dns_c_view_t *view,
+					  dns_transfer_format_t format);
+					  
+/* caller must not modifiy or delete returned values */
+isc_result_t dns_c_view_getallowquery(dns_c_view_t *view,
+				      dns_c_ipmatchlist_t **ipml);
+isc_result_t dns_c_view_getallowtransfer(dns_c_view_t *view,
+					 dns_c_ipmatchlist_t **ipml);
+isc_result_t dns_c_view_getallowrecursion(dns_c_view_t *view,
+					  dns_c_ipmatchlist_t **ipml);
+isc_result_t dns_c_view_getblackhole(dns_c_view_t *view,
+				     dns_c_ipmatchlist_t **ipml);
+isc_result_t dns_c_view_getforwarders(dns_c_view_t *view,
+				      dns_c_iplist_t **ipml);
+isc_result_t dns_c_view_getsortlist(dns_c_view_t *view,
+				    dns_c_ipmatchlist_t **ipml);
+isc_result_t dns_c_view_gettopology(dns_c_view_t *view,
+				    dns_c_ipmatchlist_t **ipml);
+isc_result_t dns_c_view_getlistenlist(dns_c_view_t *cfg,
+				      dns_c_lstnlist_t **ll);
+isc_result_t dns_c_view_getrrsetorderlist(dns_c_view_t *view,
+					  dns_c_rrsolist_t **olist);
+isc_result_t dns_c_view_getchecknames(dns_c_view_t *view,
+				      dns_c_trans_t transtype,
+				      dns_severity_t *sever);
+isc_result_t dns_c_view_gettransferformat(dns_c_view_t *view,
+					  dns_transfer_format_t *format);
+
+
 
 isc_result_t dns_c_view_getallowqueryexpanded(isc_mem_t *mem,
 					      dns_c_view_t *view,
