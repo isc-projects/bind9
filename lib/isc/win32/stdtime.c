@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: stdtime.c,v 1.2 1999/12/16 23:29:07 explorer Exp $ */
+/* $Id: stdtime.c,v 1.3 2000/01/04 20:21:03 tale Exp $ */
 
 #include <time.h>
 
@@ -23,8 +23,7 @@
 #include <isc/stdtime.h>
 
 void
-isc_stdtime_get(isc_stdtime_t *t)
-{
+isc_stdtime_get(isc_stdtime_t *t) {
 	/*
 	 * Set 't' to the number of seconds past 00:00:00 UTC, January 1, 1970.
 	 */
