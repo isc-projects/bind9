@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.156 2001/03/06 01:24:38 bwelling Exp $ */
+/* $Id: client.c,v 1.157 2001/03/06 04:18:42 marka Exp $ */
 
 #include <config.h>
 
@@ -654,6 +654,14 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	ns_client_next(client, ISC_R_SUCCESS);
 }
 
+/*
+ * We only want to fail with ISC_R_NOSPACE when called from
+ * ns_client_sendraw() and not when called from ns_client_send(),
+ * tcpbuffer is NULL when called from ns_client_sendraw() and
+ * length != 0.  tcpbuffer != NULL when called from ns_client_send()
+ * and length == 0.
+ */
+
 static isc_result_t
 client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 		    isc_buffer_t *tcpbuffer, isc_uint32_t length,
@@ -664,10 +672,12 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 	isc_result_t result;
 
 	INSIST(datap != NULL);
+	INSIST((tcpbuffer == NULL && length != 0) ||
+	       (tcpbuffer != NULL && length == 0));
 
 	if (TCP_CLIENT(client)) {
 		INSIST(client->tcpbuf == NULL);
-		if (tcpbuffer == NULL && length + 2 > TCP_BUFFER_SIZE) {
+		if (length + 2 > TCP_BUFFER_SIZE) {
 			result = ISC_R_NOSPACE;
 			goto done;
 		}
@@ -690,7 +700,7 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 			bufsize = client->udpsize;
 		else
 			bufsize = SEND_BUFFER_SIZE;
-		if (tcpbuffer == NULL && length > bufsize) {
+		if (length > bufsize) {
 			result = ISC_R_NOSPACE;
 			goto done;
 		}
