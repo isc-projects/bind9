@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.146 2000/06/26 22:59:22 gson Exp $ */
+/* $Id: socket.c,v 1.147 2000/07/10 19:40:06 explorer Exp $ */
 
 #include <config.h>
 
@@ -2877,8 +2877,11 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 					 "internal_connect: connect() %s",
 					 strerror(errno));
 		}
-	} else
+	} else {
 		dev->result = ISC_R_SUCCESS;
+		sock->connected = 1;
+		sock->bound = 1;
+	}
 
 	sock->connect_ev = NULL;
 
