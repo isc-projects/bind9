@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.73.2.4 2003/07/22 04:03:46 marka Exp $ */
+/* $Id: view.h,v 1.73.2.4.2.1 2003/08/08 05:32:36 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -698,6 +698,20 @@ dns_view_flushcache(dns_view_t *view);
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOMEMORY
+ */
+
+isc_result_t
+dns_view_flushname(dns_view_t *view, dns_name_t *);
+/*
+ * Flush the given name from the view's cache (and ADB).
+ *
+ * Requires:
+ *	'view' is valid.
+ *	'name' is valid.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	other returns are failures.
  */
 
 ISC_LANG_ENDDECLS

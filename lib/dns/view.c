@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.1 2003/08/07 04:47:35 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.2 2003/08/08 05:32:35 marka Exp $ */
 
 #include <config.h>
 
@@ -64,7 +64,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	REQUIRE(name != NULL);
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
-	view = isc_mem_get(mctx, sizeof *view);
+	view = isc_mem_get(mctx, sizeof(*view));
 	if (view == NULL)
 		return (ISC_R_NOMEMORY);
 	view->name = isc_mem_strdup(mctx, name);
@@ -170,13 +170,13 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_peerlist;
 
 	ISC_LINK_INIT(view, link);
-	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
+	ISC_EVENT_INIT(&view->resevent, sizeof(view->resevent), 0, NULL,
 		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown,
 		       view, NULL, NULL, NULL);
-	ISC_EVENT_INIT(&view->adbevent, sizeof view->adbevent, 0, NULL,
+	ISC_EVENT_INIT(&view->adbevent, sizeof(view->adbevent), 0, NULL,
 		       DNS_EVENT_VIEWADBSHUTDOWN, adb_shutdown,
 		       view, NULL, NULL, NULL);
-	ISC_EVENT_INIT(&view->reqevent, sizeof view->reqevent, 0, NULL,
+	ISC_EVENT_INIT(&view->reqevent, sizeof(view->reqevent), 0, NULL,
 		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown,
 		       view, NULL, NULL, NULL);
 	view->magic = DNS_VIEW_MAGIC;
@@ -210,7 +210,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	isc_mem_free(mctx, view->name);
 
  cleanup_view:
-	isc_mem_put(mctx, view, sizeof *view);
+	isc_mem_put(mctx, view, sizeof(*view));
 
 	return (result);
 }
@@ -263,7 +263,7 @@ destroy(dns_view_t *view) {
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->name);
-	isc_mem_put(view->mctx, view, sizeof *view);
+	isc_mem_put(view->mctx, view, sizeof(*view));
 }
 
 /*
@@ -347,7 +347,7 @@ dialup(dns_zone_t *zone, void *dummy) {
 void
 dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
-	dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
+	(void)dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
 }
 
 void
@@ -1148,4 +1148,16 @@ dns_view_flushcache(dns_view_t *view) {
 
 	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_view_flushname(dns_view_t *view, dns_name_t *name) {
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->adb != NULL)
+		dns_adb_flushname(view->adb, name);
+	if (view->cache == NULL)
+		return (ISC_R_SUCCESS);
+	return (dns_cache_flushname(view->cache, name));
 }

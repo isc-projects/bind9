@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.3 2003/08/08 03:53:53 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.4 2003/08/08 05:32:35 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -108,6 +108,8 @@ command is one of the following:\n\
   notrace	Set debugging level to 0.\n\
   flush 	Flushes all of the server's caches.\n\
   flush [view]	Flushes the server's cache for a view.\n\
+  flushname name [view]\n\
+		Flush the give name from the server's cache(s)\n\
   status	Display status of the server.\n\
   *restart	Restart the server.\n\
 \n\
@@ -194,7 +196,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_free(&response);
 	isc_socket_detach(&sock);
 	isc_task_shutdown(task);
-	isc_app_shutdown();
+	RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
 }
 
 static void
@@ -418,7 +420,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		fatal("no server specified and no default");
 
 	if (!key_only) {
-		cfg_map_get(config, "server", &servers);
+		(void)cfg_map_get(config, "server", &servers);
 		if (servers != NULL) {
 			for (elt = cfg_list_first(servers);
 			     elt != NULL; 
@@ -494,7 +496,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		if (server != NULL)
 			(void)cfg_map_get(server, "port", &defport);
 		if (defport == NULL && options != NULL)
-			cfg_map_get(options, "default-port", &defport);
+			(void)cfg_map_get(options, "default-port", &defport);
 	}
 	if (defport != NULL) {
 		remoteport = cfg_obj_asuint32(defport);
@@ -531,7 +533,9 @@ main(int argc, char **argv) {
 	admin_conffile = RNDC_CONFFILE;
 	admin_keyfile = RNDC_KEYFILE;
 
-	isc_app_start();
+	result = isc_app_start();
+	if (result != ISC_R_SUCCESS)
+		fatal("isc_app_start() failed: %s", isc_result_totext(result));
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:k:Mmp:s:Vy:"))
 	       != -1) {
@@ -643,7 +647,9 @@ main(int argc, char **argv) {
 
 	DO("post event", isc_app_onrun(mctx, task, rndc_start, NULL));
 
-	isc_app_run();
+	result = isc_app_run();
+	if (result != ISC_R_SUCCESS)
+		fatal("isc_app_run() failed: %s", isc_result_totext(result));
 
 	if (connects > 0 || sends > 0 || recvs > 0)
 		isc_socket_cancel(sock, task, ISC_SOCKCANCEL_ALL);

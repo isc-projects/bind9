@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.7.2.2.2.1 2003/08/04 02:04:45 marka Exp $ */
+/* $Id: control.c,v 1.7.2.2.2.2 2003/08/08 05:32:34 marka Exp $ */
 
 #include <config.h>
 
@@ -110,6 +110,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_FLUSH)) {
 		result = ns_server_flushcache(ns_g_server, command);
+	} else if (command_compare(command, NS_COMMAND_FLUSHNAME)) {
+		result = ns_server_flushname(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_STATUS)) {
 		result = ns_server_status(ns_g_server, text);
 	} else if (command_compare(command, NS_COMMAND_NULL)) {

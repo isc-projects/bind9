@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.6 2003/08/07 04:47:33 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.7 2003/08/08 05:32:34 marka Exp $ */
 
 #include <config.h>
 
@@ -149,7 +149,7 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	if (config != NULL) {
 		cfg_obj_t *options = NULL;
-		cfg_map_get(config, "options", &options);
+		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			maps[i++] = options;
 	}
@@ -448,36 +448,38 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "bogus", &obj);
 	if (obj != NULL)
-		dns_peer_setbogus(peer, cfg_obj_asboolean(obj));
+		CHECK(dns_peer_setbogus(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "provide-ixfr", &obj);
 	if (obj != NULL)
-		dns_peer_setprovideixfr(peer, cfg_obj_asboolean(obj));
+		CHECK(dns_peer_setprovideixfr(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "request-ixfr", &obj);
 	if (obj != NULL)
-		dns_peer_setrequestixfr(peer, cfg_obj_asboolean(obj));
+		CHECK(dns_peer_setrequestixfr(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "edns", &obj);
 	if (obj != NULL)
-		dns_peer_setsupportedns(peer, cfg_obj_asboolean(obj));
+		CHECK(dns_peer_setsupportedns(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "transfers", &obj);
 	if (obj != NULL)
-		dns_peer_settransfers(peer, cfg_obj_asuint32(obj));
+		CHECK(dns_peer_settransfers(peer, cfg_obj_asuint32(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "transfer-format", &obj);
 	if (obj != NULL) {
 		str = cfg_obj_asstring(obj);
 		if (strcasecmp(str, "many-answers") == 0)
-			dns_peer_settransferformat(peer, dns_many_answers);
+			CHECK(dns_peer_settransferformat(peer,
+							 dns_many_answers));
 		else if (strcasecmp(str, "one-answer") == 0)
-			dns_peer_settransferformat(peer, dns_one_answer);
+			CHECK(dns_peer_settransferformat(peer,
+							 dns_one_answer));
 		else
 			INSIST(0);
 	}
@@ -537,7 +539,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cmctx = NULL;
 
 	if (config != NULL)
-		cfg_map_get(config, "options", &options);
+		(void)cfg_map_get(config, "options", &options);
 
 	i = 0;
 	if (vconfig != NULL) {
@@ -620,7 +622,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	obj = NULL;
 	result = ns_config_get(maps, "cache-file", &obj);
 	if (result == ISC_R_SUCCESS) {
-		dns_cache_setfilename(cache, cfg_obj_asstring(obj));
+		CHECK(dns_cache_setfilename(cache, cfg_obj_asstring(obj)));
 		if (!reused_cache)
 			CHECK(dns_cache_load(cache));
 	}
@@ -1552,7 +1554,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	if (cfg_map_get(zoptions, "forwarders", &forwarders) == ISC_R_SUCCESS)
 	{
 		forwardtype = NULL;
-		cfg_map_get(zoptions, "forward", &forwardtype);
+		(void)cfg_map_get(zoptions, "forward", &forwardtype);
 		CHECK(configure_forward(config, view, origin, forwarders,
 					forwardtype));
 	}
@@ -1976,14 +1978,15 @@ load_configuration(const char *filename, ns_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	interface_interval = cfg_obj_asuint32(obj) * 60;
 	if (interface_interval == 0) {
-		isc_timer_reset(server->interface_timer,
-				isc_timertype_inactive,
-				NULL, NULL, ISC_TRUE);
+		CHECK(isc_timer_reset(server->interface_timer,
+				      isc_timertype_inactive,
+				      NULL, NULL, ISC_TRUE));
 	} else if (server->interface_interval != interface_interval) {
 		isc_interval_t interval;
 		isc_interval_set(&interval, interface_interval, 0);
-		isc_timer_reset(server->interface_timer, isc_timertype_ticker,
-				NULL, &interval, ISC_FALSE);
+		CHECK(isc_timer_reset(server->interface_timer,
+				      isc_timertype_ticker,
+				      NULL, &interval, ISC_FALSE));
 	}
 	server->interface_interval = interface_interval;
 
@@ -1995,14 +1998,15 @@ load_configuration(const char *filename, ns_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	heartbeat_interval = cfg_obj_asuint32(obj) * 60;
 	if (heartbeat_interval == 0) {
-		isc_timer_reset(server->heartbeat_timer,
-				isc_timertype_inactive,
-				NULL, NULL, ISC_TRUE);
+		CHECK(isc_timer_reset(server->heartbeat_timer,
+				      isc_timertype_inactive,
+				      NULL, NULL, ISC_TRUE));
 	} else if (server->heartbeat_interval != heartbeat_interval) {
 		isc_interval_t interval;
 		isc_interval_set(&interval, heartbeat_interval, 0);
-		isc_timer_reset(server->heartbeat_timer, isc_timertype_ticker,
-				NULL, &interval, ISC_FALSE);
+		CHECK(isc_timer_reset(server->heartbeat_timer,
+				      isc_timertype_ticker,
+				      NULL, &interval, ISC_FALSE));
 	}
 	server->heartbeat_interval = heartbeat_interval;
 
@@ -2780,10 +2784,10 @@ ns_server_reloadcommand(ns_server_t *server, char *args) {
 		if (type == dns_zone_slave || type == dns_zone_stub)
 			dns_zone_refresh(zone);
 		else
-			dns_zone_load(zone);
+			result = dns_zone_load(zone);
 		dns_zone_detach(&zone);
 	}
-	return (ISC_R_SUCCESS);
+	return (result);
 }	
 
 /*
@@ -3058,6 +3062,58 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 		result = ISC_R_FAILURE;
  out:
 	isc_task_endexclusive(server->task);	
+	return (result);
+}
+
+isc_result_t
+ns_server_flushname(ns_server_t *server, char *args) {
+	char *ptr, *target, *viewname;
+	dns_view_t *view;
+	isc_boolean_t flushed = ISC_FALSE;
+	isc_result_t result;
+	isc_buffer_t b;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Find the domain name to flush. */
+	target = next_token(&args, " \t");
+	if (target == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	isc_buffer_init(&b, target, strlen(target));
+	isc_buffer_add(&b, strlen(target));
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/* Look for the view name. */
+	viewname = next_token(&args, " \t");
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	flushed = ISC_TRUE;
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
+			continue;
+		result = dns_view_flushname(view, name);
+		if (result != ISC_R_SUCCESS)
+			flushed = ISC_FALSE;
+	}
+	if (flushed)
+		result = ISC_R_SUCCESS;
+	else
+		result = ISC_R_FAILURE;
+	isc_task_endexclusive(server->task);
 	return (result);
 }
 
