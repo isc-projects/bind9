@@ -174,6 +174,8 @@ struct dns_db {
 #define DNS_DBFIND_GLUEOK		0x01
 #define DNS_DBFIND_VALIDATEGLUE		0x02
 #define DNS_DBFIND_NOWILD		0x04
+#define DNS_DBFIND_PENDINGOK		0x08
+
 /*
  * Options that can be specified for dns_db_findzonecut().
  */
@@ -595,6 +597,10 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	For cache databases, glue is any rdataset with a trust of
  *	dns_trust_glue.
  *
+ *	If 'options' does not have DNS_DBFIND_PENDINGOK set, then no
+ *	pending data will be returned.  This option is only meaningful for
+ *	cache databases.
+ *
  *	If the DNS_DBFIND_NOWILD option is set, then wildcard matching will
  *	be disabled.  This option is only meaningful for zone databases.
  *
@@ -869,6 +875,10 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
  *** Rdataset Methods
  ***/
 
+/*
+ * XXXRTH  Should we check for glue and pending data in dns_db_findrdataset()?
+ */
+
 dns_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    dns_rdatatype_t type, dns_rdatatype_t covers,
@@ -884,7 +894,8 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	Care must be used when using this routine to build a DNS response:
  *	'node' should have been found with dns_db_find(), not
- *	dns_db_findnode().  No glue checking is done.
+ *	dns_db_findnode().  No glue checking is done.  No checking for
+ *	pending data is done.
  *
  *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after

@@ -2408,7 +2408,9 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 */
 	if (found == NULL ||
 	    (found->trust == dns_trust_glue &&
-	     ((options & DNS_DBFIND_GLUEOK) == 0))) {
+	     ((options & DNS_DBFIND_GLUEOK) == 0)) ||
+	    (found->trust == dns_trust_pending &&
+	     ((options & DNS_DBFIND_PENDINGOK) == 0))) {
 		/*
 		 * If there is an NS rdataset at this node, then this is the
 		 * deepest zone cut.
