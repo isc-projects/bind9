@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3213"
+HREF="Bv9ARM.ch06.html#AEN3225"
 >Zone File</A
 ></DT
 ></DL
@@ -191,22 +191,13 @@ VALIGN="MIDDLE"
 >A list of one or more <TT
 CLASS="varname"
 >ip_addr</TT
-><B
-CLASS="command"
->, </B
-><TT
+>, <TT
 CLASS="varname"
 >ip_prefix</TT
-><B
-CLASS="command"
->, </B
-><TT
+>, <TT
 CLASS="varname"
 >key_id</TT
-><B
-CLASS="command"
->, </B
->or <TT
+>, or <TT
 CLASS="varname"
 >acl_name</TT
 > elements, see
@@ -332,10 +323,7 @@ VALIGN="MIDDLE"
 >An <TT
 CLASS="varname"
 >ip4_addr</TT
-> or<B
-CLASS="command"
-> </B
-><TT
+> or <TT
 CLASS="varname"
 >ip6_addr</TT
 >.</P
@@ -570,10 +558,7 @@ CLASS="userinput"
 ><B
 >k</B
 ></TT
-><B
-CLASS="command"
-> </B
->for
+> for
 kilobytes, <TT
 CLASS="userinput"
 ><B
@@ -659,6 +644,76 @@ CLASS="userinput"
 >.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="178"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="varname"
+>dialup_option</TT
+></P
+></TD
+><TD
+WIDTH="362"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>One of <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+>,
+<TT
+CLASS="userinput"
+><B
+>no</B
+></TT
+>, <TT
+CLASS="userinput"
+><B
+>notify</B
+></TT
+>,
+<TT
+CLASS="userinput"
+><B
+>notify-passive</B
+></TT
+>, <TT
+CLASS="userinput"
+><B
+>refresh</B
+></TT
+> or
+<TT
+CLASS="userinput"
+><B
+>passive</B
+></TT
+>.
+When used in a zone, <TT
+CLASS="userinput"
+><B
+>notify-passive</B
+></TT
+>,
+<TT
+CLASS="userinput"
+><B
+>refresh</B
+></TT
+>, and <TT
+CLASS="userinput"
+><B
+>passive</B
+></TT
+>
+are restricted to slave and stub zones.</P
+></TD
+></TR
 ></TABLE
 ><P
 ></P
@@ -676,7 +731,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1176"
+NAME="AEN1185"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -707,7 +762,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1184"
+NAME="AEN1193"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -813,7 +868,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1212"
+NAME="AEN1221"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -832,7 +887,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1217"
+NAME="AEN1226"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -864,7 +919,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1226"
+NAME="AEN1235"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1196,7 +1251,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1319"
+NAME="AEN1328"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1335,7 +1390,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1361"
+NAME="AEN1370"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1374,7 +1429,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1370"
+NAME="AEN1379"
 >6.2.4. <B
 CLASS="command"
 >controls</B
@@ -1487,7 +1542,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1398"
+NAME="AEN1407"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1507,7 +1562,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1403"
+NAME="AEN1412"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1537,7 +1592,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1410"
+NAME="AEN1419"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1571,7 +1626,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1417"
+NAME="AEN1426"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1625,7 +1680,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1429"
+NAME="AEN1438"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1781,7 +1836,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1468"
+NAME="AEN1477"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1847,7 +1902,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1485"
+NAME="AEN1494"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2516,7 +2571,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1662"
+NAME="AEN1671"
 >6.2.11. <B
 CLASS="command"
 >options</B
@@ -2646,7 +2701,7 @@ CLASS="optional"
 > dialup <TT
 CLASS="replaceable"
 ><I
->yes_or_no</I
+>dialup_option</I
 ></TT
 >; </SPAN
 >]
@@ -3014,7 +3069,15 @@ CLASS="replaceable"
 ><I
 >ip4_addr</I
 ></TT
->; </SPAN
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -3023,7 +3086,15 @@ CLASS="replaceable"
 ><I
 >ip6_addr</I
 ></TT
->; </SPAN
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -3290,7 +3361,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1838"
+NAME="AEN1851"
 >6.2.12. <B
 CLASS="command"
 >options</B
@@ -3765,48 +3836,74 @@ CLASS="userinput"
 >no</B
 ></TT
 >.</P
-><P
+>
+<P
 >The <B
 CLASS="command"
 >dialup</B
 > option
 may also be specified in the <B
 CLASS="command"
->zone</B
-> statement,
-in which case it overrides the <B
+>view</B
+> and 
+<B
 CLASS="command"
->options dialup </B
->statement.</P
+>zone</B
+> statements,
+in which case it overrides the global <B
+CLASS="command"
+>dialup</B
+>
+option.</P
 ><P
 >If
-the zone is a master then the server will send out a NOTIFY request
+the zone is a master zone then the server will send out a NOTIFY request
 to all the slaves. This will trigger the zone serial number check
 in the slave (providing it supports NOTIFY) allowing the slave to
 verify the zone while the connection is active.</P
 ><P
 >If the
-zone is a slave or stub then the server will suppress the regular
-"zone up to date" queries and only perform them when the
+zone is a slave or stub zone, then the server will suppress the regular
+"zone up to date" (refresh) queries and only perform them when the
 <B
 CLASS="command"
 >heartbeat-interval</B
-> expires.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
+> expires in addition to sending
+NOTIFY requests.</P
 ><P
+>Finer control can be achieved by using
+<TT
+CLASS="userinput"
 ><B
->Note: </B
->Not yet implemented
-in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
-></TD
+>notify</B
+></TT
+> which only sends NOTIFY messages,
+<TT
+CLASS="userinput"
+><B
+>notify-passive</B
+></TT
+> which sends NOTIFY messages and
+suppresses the normal refresh queries, <TT
+CLASS="userinput"
+><B
+>refresh</B
+></TT
+>
+which suppresses normal refresh processing and send refresh queries 
+when the <B
+CLASS="command"
+>heartbeat-interval</B
+> expires and
+<TT
+CLASS="userinput"
+><B
+>passive</B
+></TT
+> which just disables normal refresh
+processing.</P
+>
+</TD
 ></TR
 ><TR
 ><TD
@@ -3864,28 +3961,22 @@ CLASS="userinput"
 glue resource records it doesn't have when constructing the additional
 data section of a response. <B
 CLASS="command"
->fetch-glue </B
-><TT
+>fetch-glue</B
+> <TT
 CLASS="userinput"
 ><B
 >no</B
 ></TT
-><B
-CLASS="command"
-> </B
->can
+> can
 be used in conjunction with <B
 CLASS="command"
->recursion </B
-><TT
+>recursion</B
+> <TT
 CLASS="userinput"
 ><B
 >no</B
 ></TT
-><B
-CLASS="command"
-> </B
->to
+> to
 prevent the server's cache from growing or becoming corrupted (at
 the cost of requiring more work from the client).</P
 ><DIV
@@ -3931,8 +4022,8 @@ CLASS="acronym"
 of
 <B
 CLASS="command"
->has-old-clients </B
-><TT
+>has-old-clients</B
+> <TT
 CLASS="userinput"
 ><B
 >yes</B
@@ -3940,16 +4031,16 @@ CLASS="userinput"
 >, specify
 the two separate options <B
 CLASS="command"
->auth-nxdomain </B
-><TT
+>auth-nxdomain</B
+> <TT
 CLASS="userinput"
 ><B
 >yes</B
 ></TT
 > and <B
 CLASS="command"
->rfc2308-type1 </B
-><TT
+>rfc2308-type1</B
+> <TT
 CLASS="userinput"
 ><B
 >no</B
@@ -4046,8 +4137,8 @@ CLASS="acronym"
 log whenever possible.  If you need to disable outgoing incremental zone
 transfers, use <B
 CLASS="command"
->provide-ixfr </B
-><TT
+>provide-ixfr</B
+> <TT
 CLASS="userinput"
 ><B
 >no</B
@@ -4369,7 +4460,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2125"
+NAME="AEN2140"
 >6.2.12.2. Forwarding</A
 ></H3
 ><P
@@ -4754,7 +4845,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2235"
+NAME="AEN2250"
 >6.2.12.5. Interfaces</A
 ></H3
 ><P
@@ -4840,8 +4931,8 @@ CLASS="programlisting"
 ><P
 >If no <B
 CLASS="command"
->listen-on-v6 </B
->statement is specified,
+>listen-on-v6</B
+> statement is specified,
 the server will not listen on any IPv6 address.</P
 ></DIV
 ><DIV
@@ -4849,7 +4940,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2261"
+NAME="AEN2276"
 >6.2.12.6. Query Address</A
 ></H3
 ><P
@@ -5077,8 +5168,8 @@ but more importantly each query uses a small amount of memory in
 the slave server while waiting for the master server to respond.
 The <B
 CLASS="command"
->serial-queries </B
->option sets the maximum number
+>serial-queries</B
+> option sets the maximum number
 of concurrent serial-number queries allowed to be outstanding at
 any given time. The default is 4.</P
 ><DIV
@@ -5282,7 +5373,9 @@ CLASS="command"
 >transfer-source</B
 > determines
 which local address will be bound to IPv4 TCP connections used to
-fetch zones transferred inbound by the server. If not set, it defaults
+fetch zones transferred inbound by the server.  It also determines
+the IPv4 address, and optionaly the UDP port, used for the refresh queries,
+notify messages and when updates are forwarded.  If not set, it defaults
 to a system controlled value which will usually be the address of
 the interface "closest to" the remote end. This address must appear
 in the remote end's <B
@@ -5338,7 +5431,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2391"
+NAME="AEN2406"
 >6.2.12.8. Resource Limits</A
 ></H3
 ><P
@@ -5506,8 +5599,8 @@ CLASS="command"
 If the actual kernel limit is larger than this value, use <B
 CLASS="command"
 >limit
-files </B
->to specify the limit explicitly.</P
+files</B
+> to specify the limit explicitly.</P
 ></BLOCKQUOTE
 ></DIV
 ><DIV
@@ -5671,7 +5764,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2480"
+NAME="AEN2495"
 >6.2.12.9. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -5723,26 +5816,12 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >The server will perform zone maintenance tasks
-for all zones marked  <B
+for all zones marked as <B
 CLASS="command"
->dialup yes</B
+>dialup</B
 > whenever this
 interval expires. The default is 60 minutes. Reasonable values are up
 to 1 day (1440 minutes). If set to 0, no zone maintenance for these zones will occur.</P
-><DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet
-implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
 ></TD
 ></TR
 ><TR
@@ -5915,10 +5994,7 @@ are documented in RFC 1035.</P
 them in <TT
 CLASS="varname"
 >Round Robin</TT
-><TT
-CLASS="varname"
-> </TT
->order,
+> order,
 that is, after each request the first RR is put at the end of the
 list. The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
@@ -5933,8 +6009,8 @@ CLASS="command"
 > statement (see below) takes
 an <B
 CLASS="command"
->address_match_list </B
->and interprets it even
+>address_match_list</B
+> and interprets it even
 more specifically than the <B
 CLASS="command"
 >topology</B
@@ -6446,7 +6522,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2676"
+NAME="AEN2687"
 >6.2.12.14. Deprecated Features</A
 ></H3
 ><P
@@ -6618,8 +6694,8 @@ CLASS="command"
 to the remote server will be nonincremental. If not set, the value
 of the <B
 CLASS="command"
->provide-ixfr </B
->option in the global options block
+>provide-ixfr</B
+> option in the global options block
 is used as a default.</P
 ><P
 >The <B
@@ -6676,12 +6752,12 @@ CLASS="acronym"
 > 4.9.5. You can specify which method
 to use for a server with the <B
 CLASS="command"
->transfer-format </B
->option.
+>transfer-format</B
+> option.
 If <B
 CLASS="command"
->transfer-format </B
->is not specified, the <B
+>transfer-format</B
+> is not specified, the <B
 CLASS="command"
 >transfer-format</B
 > specified
@@ -6709,8 +6785,8 @@ CLASS="command"
 >keys</B
 > clause is used to identify a <B
 CLASS="command"
->key_id </B
->defined
+>key_id</B
+> defined
 by the <B
 CLASS="command"
 >key</B
@@ -6740,7 +6816,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2750"
+NAME="AEN2761"
 >6.2.15. <B
 CLASS="command"
 >trusted-keys</B
@@ -6815,7 +6891,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2766"
+NAME="AEN2777"
 >6.2.16. <B
 CLASS="command"
 >trusted-keys</B
@@ -6850,7 +6926,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2774"
+NAME="AEN2785"
 >6.2.17. <B
 CLASS="command"
 >view</B
@@ -6904,7 +6980,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2786"
+NAME="AEN2797"
 >6.2.18. <B
 CLASS="command"
 >view</B
@@ -6943,8 +7019,8 @@ CLASS="command"
 >view</B
 > whose <B
 CLASS="command"
->match-clients </B
->list
+>match-clients</B
+> list
 matches the client's IP address.</P
 ><P
 >Zones defined within a <B
@@ -7170,7 +7246,7 @@ CLASS="optional"
 > dialup <TT
 CLASS="replaceable"
 ><I
->true_or_false</I
+>dialup_option</I
 ></TT
 > ; </SPAN
 >]
@@ -7239,7 +7315,7 @@ CLASS="optional"
 > maintain-ixfr-base <TT
 CLASS="replaceable"
 ><I
->true_or_false</I
+>yes_or_no</I
 ></TT
 > ; </SPAN
 >]
@@ -7329,7 +7405,7 @@ CLASS="optional"
 > notify <TT
 CLASS="replaceable"
 ><I
->true_or_false</I
+>yes_or_no</I
 ></TT
 > ; </SPAN
 >]
@@ -7367,7 +7443,15 @@ CLASS="replaceable"
 > | <TT
 CLASS="constant"
 >*</TT
->) ; </SPAN
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -7379,7 +7463,15 @@ CLASS="replaceable"
 > | <TT
 CLASS="constant"
 >*</TT
->) ; </SPAN
+>) [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -7399,7 +7491,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2902"
+NAME="AEN2917"
 >6.2.20. <B
 CLASS="command"
 >zone</B
@@ -7410,7 +7502,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2905"
+NAME="AEN2920"
 >6.2.20.1. Zone Types</A
 ></H3
 ><DIV
@@ -7483,8 +7575,8 @@ CLASS="filename"
 >ex/example.com</TT
 > where <TT
 CLASS="filename"
->ex/ </TT
->is
+>ex/</TT
+> is
 just the first two letters of the zone name. (Most operating systems
 behave very slowly if you put 100K files into a single directory.)</P
 ></TD
@@ -7648,7 +7740,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2965"
+NAME="AEN2980"
 >6.2.20.2. Class</A
 ></H3
 ><P
@@ -7686,7 +7778,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2975"
+NAME="AEN2990"
 >6.2.20.3. Zone Options</A
 ></H3
 ><DIV
@@ -7925,21 +8017,7 @@ CLASS="command"
 > under <A
 HREF="Bv9ARM.ch06.html#boolean_options"
 >Section 6.2.12.1</A
->.
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
-></P
+>.</P
 ></TD
 ></TR
 ><TR
@@ -8255,7 +8333,9 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >Determines which local address will be bound
-to the IPv4 TCP connection used to fetch this zone. If not set,
+to the IPv4 TCP connection used to fetch this zone.  It also determines
+the IPv4 address, and optionaly the UDP port, used for the refresh queries,
+notify messages and when updates are forwarded.  If not set,
 it defaults to a system controlled value which will usually be the
 address of the interface "closest to" the remote end. If the remote
 end user is an <B
@@ -8519,7 +8599,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3213"
+NAME="AEN3225"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8540,7 +8620,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3218"
+NAME="AEN3230"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9256,7 +9336,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3432"
+NAME="AEN3444"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9574,7 +9654,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3533"
+NAME="AEN3545"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9973,7 +10053,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3654"
+NAME="AEN3666"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10071,7 +10151,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3681"
+NAME="AEN3693"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10096,7 +10176,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3688"
+NAME="AEN3700"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10124,13 +10204,13 @@ CLASS="replaceable"
 ><P
 ><B
 CLASS="command"
->$ORIGIN </B
->sets the domain name that will
+>$ORIGIN</B
+> sets the domain name that will
 be appended to any unqualified records. When a zone is first read
 in there is an implicit <B
 CLASS="command"
->$ORIGIN </B
->&#60;<TT
+>$ORIGIN</B
+> &#60;<TT
 CLASS="varname"
 >zone-name</TT
 >&#62;<B
@@ -10166,7 +10246,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3708"
+NAME="AEN3720"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10242,7 +10322,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3727"
+NAME="AEN3739"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10282,7 +10362,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3738"
+NAME="AEN3750"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10331,8 +10411,8 @@ CLASS="command"
 > is used to create a series of
 resource records that only differ from each other by an iterator. <B
 CLASS="command"
->$GENERATE </B
->can
+>$GENERATE</B
+> can
 be used to easily generate the sets of records required to support
 sub /24 reverse delegations described in RFC 2317: Classless IN-ADDR.ARPA
 delegation.</P
@@ -10427,8 +10507,8 @@ CLASS="command"
 > is not
 absolute, the current <B
 CLASS="command"
->$ORIGIN </B
->is appended to
+>$ORIGIN</B
+> is appended to
 the name.</P
 ></TD
 ></TR
