@@ -115,22 +115,30 @@ DNSSAFEOBJS =	sec/dnssafe/ahchdig.@O@ sec/dnssafe/ahchencr.@O@ \
 		sec/dnssafe/rsakeygn.@O@ sec/dnssafe/seccbcd.@O@ \
 		sec/dnssafe/seccbce.@O@ sec/dnssafe/surrendr.@O@
 
-OBJS =		a6.@O@ callbacks.@O@ compress.@O@ db.@O@ dbiterator.@O@ \
-		dbtable.@O@ dispatch.@O@ dnssec.@O@ lib.@O@ master.@O@ \
-		message.@O@ name.@O@ ncache.@O@ rbt.@O@ rbtdb.@O@ \
-		rbtdb64.@O@ rdata.@O@ rdatalist.@O@ rdataset.@O@ \
-		rdatasetiter.@O@ rdataslab.@O@ resolver.@O@ result.@O@ \
-		version.@O@ masterdump.@O@ time.@O@ ttl.@O@ tcpmsg.@O@ \
-		tsig.@O@ view.@O@ journal.@O@ zone.@O@ nxt.@O@ address.@O@ \
+# Alphabetically
+OBJS =		a6.@O@ address.@O@ callbacks.@O@ compress.@O@ \
+		db.@O@ dbiterator.@O@ dbtable.@O@ dispatch.@O@ dnssec.@O@ \
+		journal.@O@ lib.@O@ log.@O@ \
+		master.@O@ masterdump.@O@ message.@O@ \
+		name.@O@ ncache.@O@ nxt.@O@ \
+		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
+		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ resolver.@O@ \
+		result.@O@ \
+		tcpmsg.@O@ time.@O@ tsig.@O@ ttl.@O@ \
+		version.@O@ view.@O@ zone.@O@ \
 		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS} ${CONFOBJS}
 
-SRCS =		a6.c callbacks.c compress.c db.c dbiterator.c \
-		dbtable.c dispatch.c dnssec.c lib.c master.c \
-		message.c name.c ncache.c rbt.c rbtdb.c \
-		rbtdb64.c rdata.c rdatalist.c rdataset.c \
-		rdatasetiter.c rdataslab.c resolver.c result.c \
-		version.c masterdump.c time.c ttl.c tcpmsg.c \
-		tsig.c view.c journal.c zone.c nxt.c address.c
+# Alphabetically
+SRCS =		a6.c address.c callbacks.c compress.c \
+		db.c dbiterator.c dbtable.c dispatch.c dnssec.c \
+		journal.c lib.c log.c \
+		master.c masterdump.c message.c \
+		name.c ncache.c nxt.c \
+		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
+		rdataset.c rdatasetiter.c rdataslab.c resolver.c \
+		result.c \
+		tcpmsg.c time.c tsig.c ttl.c \
+		version.c view.c zone.c
 
 SUBDIRS =	include sec config
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \

@@ -37,55 +37,60 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 LIBS =		@LIBS@
 
 SUBDIRS = master names rbt tasks db timers mem dst
-TARGETS =	sdig \
-		nxtify \
-		signer \
+
+# Alphabetically
+TARGETS =	compress_test \
+		db_test \
+		dispatch_tcp_test \
+		dispatch_test \
 		keygen \
-		res_test \
 		lex_test \
+		log_test \
+		master_test \
+		mempool_test \
 		name_test \
+		nxtify \
+		rbt_test \
+		rdata_test \
+		res_test \
+		rwlock_test \
+		sdig \
+		serial_test \
+		shutdown_test \
+		signer \
 		sock_test \
 		sym_test \
 		task_test \
-		shutdown_test \
 		timer_test \
-		rbt_test \
-		rdata_test \
-		rwlock_test \
 		wire_test \
-		master_test \
-		db_test \
-		compress_test \
-		mempool_test \
-		dispatch_test \
-		dispatch_tcp_test \
-		serial_test \
 		zone_test
 
-SRCS =		sdig.c \
-		nxtify.c \
-		signer.c \
+# Alphabetically
+SRCS =		compress_test.c \
+		db_test.c \
+		dispatch_tcp_test.c \
+		dispatch_test.c \
 		keygen.c \
-		res_test.c \
 		lex_test.c \
+		log_test.c \
+		master_test.c \
+		mempool_test.c \
 		name_test.c \
+		nxtify.c \
+		printmsg.c \
+		rbt_test.c \
+		rdata_test.c \
+		res_test.c \
+		rwlock_test.c \
+		sdig.c \
+		serial_test.c \
+		shutdown_test.c \
+		signer.c \
 		sock_test.c \
 		sym_test.c \
 		task_test.c \
-		shutdown_test.c \
 		timer_test.c \
-		rbt_test.c \
-		rdata_test.c \
-		rwlock_test.c \
 		wire_test.c \
-		master_test.c \
-		db_test.c \
-		compress_test.c \
-		mempool_test.c \
-		dispatch_test.c \
-		dispatch_tcp_test.c \
-		printmsg.c \
-		serial_test.c \
 		zone_test.c
 
 @BIND9_MAKE_RULES@
@@ -113,6 +118,10 @@ res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 lex_test: lex_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lex_test.o \
 		${ISCLIBS} ${LIBS}
+
+log_test: log_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ log_test.o \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 name_test: name_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ name_test.o \

@@ -28,26 +28,31 @@ CINCLUDES =	-I./unix/include \
 CDEFINES =
 CWARNINGS =
 
+# Alphabetically
 UNIXOBJS =	@ISC_ISCIPV6_O@ \
-		unix/app.@O@ unix/time.@O@ unix/stdtime.@O@ \
-		unix/socket.@O@ unix/interfaceiter.@O@ unix/net.@O@
+		unix/app.@O@ unix/dir.@O@ unix/interfaceiter.@O@ \
+		unix/net.@O@ unix/socket.@O@ unix/time.@O@ \
+		unix/stdtime.@O@
+
 
 NLSOBJS =	nls/msgcat.@O@
 
 PTHREADOBJS =	pthreads/condition.@O@
 
+# Alphabetically
 OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ bitstring.@O@ buffer.@O@ \
 		bufferlist.@O@ error.@O@ event.@O@ heap.@O@ lex.@O@ lib.@O@ \
-		mem.@O@ result.@O@ rwlock.@O@ serial.@O@ sockaddr.@O@ \
-		symtab.@O@ str.@O@ task.@O@ timer.@O@ version.@O@ \
+		log.@O@ mem.@O@ result.@O@ rwlock.@O@ serial.@O@ sockaddr.@O@ \
+		str.@O@ symtab.@O@ task.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
+# Alphabetically
 SRCS =		@ISC_EXTRA_SRCS@ \
 		assertions.c base64.c bitstring.c buffer.c \
 		bufferlist.c error.c event.c heap.c lex.c lib.c \
-		mem.c result.c rwlock.c serial.c sockaddr.c \
-		symtab.c str.c task.c timer.c version.c
+		log.c mem.c result.c rwlock.c serial.c sockaddr.c \
+		str.c symtab.c task.c timer.c version.c
 
 LIBS =		@LIBS@
 
