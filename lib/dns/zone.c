@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.47 2004/07/29 00:17:10 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.48 2004/08/27 12:21:15 marka Exp $ */
 
 #include <config.h>
 
@@ -4256,14 +4256,18 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->readio != NULL)
 		zonemgr_cancelio(zone->readio);
 
-	if (zone->writeio != NULL)
-		zonemgr_cancelio(zone->writeio);
-
 	if (zone->lctx != NULL)
 		dns_loadctx_cancel(zone->lctx);
 
-	if (zone->dctx != NULL)
-		dns_dumpctx_cancel(zone->dctx);
+
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FLUSH) ||
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
+		if (zone->writeio != NULL)
+			zonemgr_cancelio(zone->writeio);
+
+		if (zone->dctx != NULL) 
+			dns_dumpctx_cancel(zone->dctx);
+	}
 
 	notify_cancel(zone);
 
