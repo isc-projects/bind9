@@ -1,3 +1,5 @@
+ 155.	[bug]		ns_notify_start() was not detaching the found zone.
+
  154.   [func]		The signer now logs libdns warnings to stderr even when
 			not verbose, and in a nicer format.
 

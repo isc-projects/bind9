@@ -203,8 +203,11 @@ ns_notify_start(ns_client_t *client)
 		FAILC(DNS_R_REFUSED,
 		      "not authoritative for notify zone");
 	}
+	dns_zone_detach(&zone);
 	return;
 	
  failure:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	respond(client, result);
 }
