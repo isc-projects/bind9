@@ -19,6 +19,12 @@
 			specifiy a port, use 921, not 53.  Also update the
 			listen-on documentation. [RT #616]
 
+ 654.	[bug]		Origin was being forgotten in TCP retries in dig.
+			[RT #574]
+
+ 653.	[bug]		+defname option in dig was reversed in sense.
+			[RT #549]
+
  649.	[bug]		It was possible to join to an already running fctx
 			after it had "cloned" its events, but before it sent
 			them.  In this case, the event of the newly joined

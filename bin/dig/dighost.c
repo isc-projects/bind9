@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174.2.1 2001/01/08 20:59:55 gson Exp $ */
+/* $Id: dighost.c,v 1.174.2.2 2001/01/08 23:43:01 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -440,6 +440,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
 	looknew->retries = lookold->retries;
+	looknew->origin = lookold->origin;
 #ifdef DNS_OPT_NEWCODES_LIVE
 	strncpy(looknew->viewname, lookold-> viewname, MXNAME);
 	strncpy(looknew->zonename, lookold-> zonename, MXNAME);
@@ -1283,7 +1284,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * is TRUE or we got a domain line in the resolv.conf file.
 	 */
 	/* XXX New search here? */
-	if ((count_dots(lookup->textname) >= ndots) || lookup->defname)
+	if ((count_dots(lookup->textname) >= ndots) ||
+	    (!lookup->defname && !usesearch))
 		lookup->origin = NULL; /* Force abs lookup */
 	else if (lookup->origin == NULL && lookup->new_search &&
 		 (usesearch || have_domain)) {
