@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.279 2000/12/13 07:18:44 tale Exp $ */
+/* $Id: zone.c,v 1.280 2000/12/20 01:27:50 gson Exp $ */
 
 #include <config.h>
 
@@ -5243,7 +5243,7 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive,
 				  NULL, NULL,
-				  zmgr->task, zone_timer, zone,
+				  zone->task, zone_timer, zone,
 				  &zone->timer);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
