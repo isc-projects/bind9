@@ -1,9 +1,9 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
-See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 			Name Compression
 
-	$Id: compression,v 1.6 2000/08/01 01:18:07 tale Exp $
+	$Id: compression,v 1.7 2000/08/09 04:37:13 tale Exp $
 
 Overview.
 
