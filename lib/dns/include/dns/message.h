@@ -359,6 +359,14 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
 /*
  * Set internal per-section name pointer to the beginning of the section.
  *
+ * The functions dns_message_firstname() and dns_message_nextname() may
+ * be used for iterating over the owner names occuring in a section.  For
+ * ordinary DNS messages, each unique owner name will be returned only
+ * once, and will be associated with a list of rdatasets.  For dynamic
+ * update messages, the owner name of each RR in the message will be
+ * returned separately, it will be associated with a list containing a
+ * single rdataset, and that rdataset will contain a single update RR.
+ *
  * Requires:
  *
  *   	'msg' be valid.
@@ -396,6 +404,9 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
 /*
  * Sets 'name' to point to the name where the per-section internal name
  * pointer is currently set.
+ *
+ * This function returns the name in the database, so any data associated
+ * with it (via the name's "list" member) contains the actual rdatasets.
  *
  * Requires:
  *
