@@ -30,9 +30,11 @@ CINCLUDES =	-I${srcdir}/../isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
+LIBS =		@LIBS@
+
 # Alphabetically
 OBJS =		callbacks.o compress.o db.o dbiterator.o dbtable.o \
-		master.o name.o rbt.o rbtdb.o rbtdb64.o \
+		master.o message.o name.o rbt.o rbtdb.o rbtdb64.o \
 		rdata.o rdatalist.o rdataset.o rdatasetiter.o rdataslab.o \
 		result.o version.o
 
@@ -75,6 +77,6 @@ code.h:	gen
 	./gen -s ${srcdir} > code.h
 
 gen: gen.c
-	${CC} ${ALL_CFLAGS} -o $@ $?
+	${CC} ${ALL_CFLAGS} -o $@ $? ${LIBS}
 
 rbtdb64.o: rbtdb.c
