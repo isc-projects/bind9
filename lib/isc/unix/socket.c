@@ -2823,3 +2823,11 @@ isc_socket_sendmark(isc_socket_t *sock,
 
 	return (ISC_R_SUCCESS);
 }
+
+isc_sockettype_t
+isc_socket_gettype(isc_socket_t *sock)
+{
+	REQUIRE(VALID_SOCKET(sock));
+
+	return (sock->type);
+}
