@@ -19,9 +19,13 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	assertions.h boolean.h buffer.h error.h event.h heap.h \
-		int.h lang.h lex.h list.h mem.h rbtgen.h region.h result.h \
-		rwlock.h socket.h str.h task.h timer.h types.h
+#
+# Note: inet.h has been intentionally left off the HEADERS list.
+#
+HEADERS =	assertions.h base64.h boolean.h buffer.h error.h event.h \
+		eventclass.h heap.h int.h interfaceiter.h lang.h lex.h \
+		list.h mem.h rbtgen.h region.h result.h resultclass.h \
+		rwlock.h socket.h str.h symtab.h task.h timer.h types.h
 
 SUBDIRS =
 TARGETS =
