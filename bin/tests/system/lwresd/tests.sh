@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.13 2001/02/14 00:16:34 nelsonm Exp $
+# $Id: tests.sh,v 1.14 2001/02/14 02:03:45 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -32,7 +32,7 @@ status=`expr $status + $ret`
 
 $PERL $SYSTEMTESTTOP/stop.pl . lwresd1
 
-$PERL $SYSTEMTESTTOP/start.pl . lwresd1 "-c lwresd.conf -d 99 -g"
+$PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-c lwresd.conf -d 99 -g"
 
 echo "I:using lwresd.conf"
 ret=0
