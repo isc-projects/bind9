@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.4 1999/01/20 02:41:11 halley Exp $ */
+ /* $Id: a_1.c,v 1.5 1999/01/20 05:20:24 marka Exp $ */
 
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
@@ -33,20 +33,26 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_token_t token;
 	struct in_addr addr;
 	isc_region_t region;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
-	INSIST(type == 1);
-	INSIST(class == 1);
+	REQUIRE(type == 1);
+	REQUIRE(class == 1);
 
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 
 	if (inet_aton(token.value.as_pointer , &addr) != 1)
-		return (DNS_R_UNKNOWN);
+		return (DNS_R_UNEXPECTED);
 	isc_buffer_available(target, &region);
 	if (region.length < 4)
 		return (DNS_R_NOSPACE);
@@ -59,9 +65,9 @@ static dns_result_t
 totext_in_a(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 
-	INSIST(rdata->type == 1);
-	INSIST(rdata->class == 1);
-	INSIST(rdata->length == 4);
+	REQUIRE(rdata->type == 1);
+	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->length == 4);
 
 	origin = origin;	/* unused */
 
@@ -81,8 +87,8 @@ fromwire_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	INSIST(type == 1);
-	INSIST(class == 1);
+	REQUIRE(type == 1);
+	REQUIRE(class == 1);
 
 	dctx = dctx;		/* unused */
 	downcase = downcase;	/* unused */
@@ -90,8 +96,8 @@ fromwire_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
-	if (sregion.length != 4)
-		return (DNS_R_WIRE);
+	if (sregion.length < 4)
+		return (DNS_R_UNEXPECTEDEND);
 	if (tregion.length < 4)
 		return (DNS_R_NOSPACE);
 
@@ -105,8 +111,8 @@ static dns_result_t
 towire_in_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
-	INSIST(rdata->type == 1);
-	INSIST(rdata->class == 1);
+	REQUIRE(rdata->type == 1);
+	REQUIRE(rdata->class == 1);
 
 	cctx = cctx;	/*unused*/
 
@@ -122,10 +128,10 @@ static int
 compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 	
-	INSIST(rdata1->type == rdata2->type);
-	INSIST(rdata1->class == rdata2->type);
-	INSIST(rdata1->type == 1);
-	INSIST(rdata1->class == 1);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->type);
+	REQUIRE(rdata1->type == 1);
+	REQUIRE(rdata1->class == 1);
 
 	result = memcmp(rdata1->data, rdata2->data, 4);
 	if (result != 0)
@@ -138,8 +144,8 @@ static dns_result_t
 fromstruct_in_a(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 1);
-	INSIST(class == 1);
+	REQUIRE(type == 1);
+	REQUIRE(class == 1);
 
 	source = source;
 	target = target;
@@ -150,8 +156,8 @@ fromstruct_in_a(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_in_a(dns_rdata_t *rdata, void *target) {
 
-	INSIST(rdata->type == 1);
-	INSIST(rdata->class == 1);
+	REQUIRE(rdata->type == 1);
+	REQUIRE(rdata->class == 1);
 
 	target = target;
 

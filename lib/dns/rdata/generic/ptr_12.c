@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.c,v 1.3 1999/01/19 06:49:32 marka Exp $ */
+ /* $Id: ptr_12.c,v 1.4 1999/01/20 05:20:23 marka Exp $ */
 
 #ifndef RDATA_GENERIC_PTR_12_H
 #define RDATA_GENERIC_PTR_12_H
@@ -27,15 +27,21 @@ fromtext_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
-	INSIST(type == 12);
+	REQUIRE(type == 12);
 
 	class = class;	/*unused*/
 	
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
@@ -51,7 +57,7 @@ totext_ptr(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_t prefix;
 	isc_boolean_t sub;
 
-	INSIST(rdata->type == 12);
+	REQUIRE(rdata->type == 12);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -70,7 +76,7 @@ fromwire_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_boolean_t downcase, isc_buffer_t *target) {
         dns_name_t name;
 
-	INSIST(type == 12);
+	REQUIRE(type == 12);
 
 	class = class;	/* unused */
         
@@ -83,7 +89,7 @@ towire_ptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
 
-	INSIST(rdata->type == 12);
+	REQUIRE(rdata->type == 12);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
@@ -99,9 +105,9 @@ compare_ptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 
-	INSIST(rdata1->type == rdata2->type);
-	INSIST(rdata1->class == rdata2->class);
-	INSIST(rdata1->type == 12);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->type == 12);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -119,7 +125,7 @@ static dns_result_t
 fromstruct_ptr(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 12);
+	REQUIRE(type == 12);
 
 	class = class; /*unused*/
 
@@ -132,7 +138,7 @@ fromstruct_ptr(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_ptr(dns_rdata_t *rdata, void *target) {
 	
-	INSIST(rdata->type == 12);
+	REQUIRE(rdata->type == 12);
 
 	target = target;
 

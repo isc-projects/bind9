@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: minfo_14.c,v 1.3 1999/01/19 06:49:30 marka Exp $ */
+ /* $Id: minfo_14.c,v 1.4 1999/01/20 05:20:21 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MINFO_14_H
 #define RDATA_GENERIC_MINFO_14_H
@@ -28,15 +28,21 @@ fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	dns_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
-	INSIST(type == 14);
+	REQUIRE(type == 14);
 
 	class = class;	/*unused*/
 	
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
@@ -46,10 +52,15 @@ fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+		return (DNS_R_UNEXPECTED);
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
@@ -67,7 +78,7 @@ totext_minfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_result_t result;
 	isc_boolean_t sub;
 
-	INSIST(rdata->type == 14);
+	REQUIRE(rdata->type == 14);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
@@ -107,7 +118,7 @@ fromwire_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
         dns_name_t email;
 	dns_result_t result;
         
-	INSIST(type == 14);
+	REQUIRE(type == 14);
 
 	class = class;	/*unused*/
 
@@ -128,7 +139,7 @@ towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t email;
 	dns_result_t result;
 
-	INSIST(rdata->type == 14);
+	REQUIRE(rdata->type == 14);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
@@ -158,9 +169,9 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name2;
 	int result;
 
-	INSIST(rdata1->type == rdata2->type);
-	INSIST(rdata1->class == rdata2->class);
-	INSIST(rdata1->type == 14);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->type == 14);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -192,7 +203,7 @@ static dns_result_t
 fromstruct_minfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 14);
+	REQUIRE(type == 14);
 
 	class = class;	/*unused*/
 
@@ -205,7 +216,7 @@ fromstruct_minfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_minfo(dns_rdata_t *rdata, void *target) {
 	
-	INSIST(rdata->type == 14);
+	REQUIRE(rdata->type == 14);
 
 	target = target;
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.4 1999/01/20 02:41:10 halley Exp $ */
+ /* $Id: rdata.c,v 1.5 1999/01/20 05:20:18 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
@@ -71,8 +71,9 @@ dns_rdata_init(dns_rdata_t *rdata) {
 
 int
 dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
-	int result;
+	int result = 0;
 	int l;
+	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(rdata1 != NULL);
 	REQUIRE(rdata2 != NULL);
@@ -87,7 +88,7 @@ dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 	COMPARESWITCH
 
-	if (result == -2) {
+	if (use_default) {
 		l = (rdata1->length > rdata2->length) ?
 			rdata1->length : rdata2->length;
 		if ((result = memcmp(rdata1->data, rdata2->data, l)) == 0)
@@ -127,10 +128,11 @@ dns_rdata_fromwire(dns_rdata_t *rdata,
 		   dns_decompress_t *dctx,
 		   isc_boolean_t downcase,
 		   isc_buffer_t *target) {
-	dns_result_t result;
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t ss;
 	isc_buffer_t st;
+	isc_boolean_t use_default = ISC_FALSE;
 
 	ss = *source;
 	st = *target;
@@ -138,12 +140,12 @@ dns_rdata_fromwire(dns_rdata_t *rdata,
 
 	FROMWIRESWITCH
 
-	if (result == DNS_R_DEFAULT)
-		result = DNS_R_NOTIMPLEMENTED;
+	if (use_default)
+		(void)NULL;
 
 	/* We should have consumed all out buffer */
-	if (!buffer_empty(source))
-		result = DNS_R_WIRE;
+	if (result == DNS_R_SUCCESS && !buffer_empty(source))
+		result = DNS_R_EXTRADATA;
 
 	if (rdata && result == DNS_R_SUCCESS) {
 		region.length = target->used - st.used;
@@ -160,11 +162,12 @@ dns_rdata_fromwire(dns_rdata_t *rdata,
 dns_result_t
 dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	         isc_buffer_t *target) {
-	dns_result_t result;
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_boolean_t use_default = ISC_FALSE;
 
 	TOWIRESWITCH
 	
-	if (result == DNS_R_DEFAULT) {
+	if (use_default) {
 		if (target->length < rdata->length) 
 			return (DNS_R_NOSPACE);
 		memcpy(target->base, rdata->data, rdata->length);
@@ -180,17 +183,39 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 		   isc_lex_t *lexer, dns_name_t *origin,
 		   isc_boolean_t downcase,
 		   isc_buffer_t *target) {
-	dns_result_t result;
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
+	isc_boolean_t use_default = ISC_FALSE;
+	isc_token_t token;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
 	st = *target;
 	region.base = target->base + target->used;
 
 	FROMTEXTSWITCH
 
-	if (result == DNS_R_DEFAULT)
-		result = DNS_R_NOTIMPLEMENTED;
+	if (use_default)
+		(void)NULL;
+
+	/*
+	 * Consume to end of line / file.
+	 * If not at end of line initially set error code.
+	 */
+	do {
+		if (isc_lex_gettoken(lexer, options, &token)
+		    != ISC_R_SUCCESS) {
+			if (result == DNS_R_SUCCESS)
+				result = DNS_R_UNEXPECTED;
+			break;
+		} else if (token.type != isc_tokentype_eol &&
+			   token.type != isc_tokentype_eof) {
+			fprintf(stderr, "token_type = %d\n", token.type);
+			if (result == DNS_R_SUCCESS)
+				result = DNS_R_EXTRATOKEN;
+		} else
+			break;
+	} while (1);
 
 	if (rdata != NULL && result == DNS_R_SUCCESS) {
 		region.length = target->used - st.used;
@@ -204,13 +229,15 @@ dns_rdata_fromtext(dns_rdata_t *rdata,
 
 dns_result_t
 dns_rdata_totext(dns_rdata_t *rdata, isc_buffer_t *target) {
-	dns_result_t result;
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	dns_name_t *origin = NULL;
+	isc_boolean_t use_default = ISC_FALSE;
 	
 	TOTEXTSWITCH
 
-	if (result == DNS_R_DEFAULT)
-		result = DNS_R_NOTIMPLEMENTED;
+	if (use_default)
+		(void)NULL;
+
 	return (result);
 }
 
@@ -219,17 +246,18 @@ dns_rdata_fromstruct(dns_rdata_t *rdata,
 		     dns_rdataclass_t class, dns_rdatatype_t type,
 		     void *source,
 		     isc_buffer_t *target) {
-	dns_result_t result;
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_buffer_t st;
 	isc_region_t region;
+	isc_boolean_t use_default = ISC_FALSE;
 
 	region.base = target->base + target->used;
 	st = *target;
 
 	FROMSTRUCTSWITCH
 
-	if (result == DNS_R_DEFAULT)
-		result = DNS_R_NOTIMPLEMENTED;
+	if (use_default)
+		(void)NULL;
 
 	if (rdata != NULL && result == DNS_R_SUCCESS) {
 		region.length = target->used - st.used;
@@ -242,12 +270,14 @@ dns_rdata_fromstruct(dns_rdata_t *rdata,
 
 dns_result_t
 dns_rdata_tostruct(dns_rdata_t *rdata, void *target) {
-	dns_result_t result;
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_boolean_t use_default = ISC_FALSE;
 
 	TOSTRUCTSWITCH
 
-	if (result == DNS_R_DEFAULT)
-		result = DNS_R_NOTIMPLEMENTED;
+	if (use_default)
+		(void)NULL;
+
 	return (result);
 }
 
@@ -314,7 +344,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	if (tregion.length < source->length + 1)
 		return (DNS_R_NOSPACE);
 	if (source->length > 255)
-		return (DNS_R_UNKNOWN);
+		return (DNS_R_TEXTTOLONG);
 	*tregion.base = source->length;
 	memcpy(tregion.base + 1, source->base, source->length);
 	isc_buffer_add(target, source->length + 1);
@@ -328,9 +358,11 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 	isc_region_t tregion;
 
 	isc_buffer_active(source, &sregion);
+	if (sregion.length == 0)
+		return(DNS_R_UNEXPECTEDEND);
 	n = *sregion.base + 1;
 	if (n > sregion.length)
-		return (DNS_R_UNKNOWN);
+		return (DNS_R_UNEXPECTEDEND);
 	
 	isc_buffer_available(target, &tregion);
 	if (n > tregion.length)
@@ -396,6 +428,7 @@ buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region,
 
 	isc_buffer_init(buffer, region->base, region->length, type);
 	isc_buffer_add(buffer, region->length);
+	isc_buffer_setactive(buffer, region->length);
 }
 
 static isc_result_t

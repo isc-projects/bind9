@@ -37,6 +37,9 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"too many hops",			/* 14 */
 	"disallowed (by application policy)",	/* 15 */
 	"no more list elements",		/* 16 */
+	"extra input text",			/* 17 */
+	"extra input data",			/* 18 */
+	"text too long",			/* 19 */
 };
 
 char *

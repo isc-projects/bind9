@@ -54,17 +54,36 @@ main(int argc, char *argv[]) {
 	int wire = 0;
 	dns_compress_t cctx;
 	dns_decompress_t dctx;
+	int trunc = 0;
+	int add = 0;
+	int len;
+	int zero = 0;
+	int debug = 0;
 
-	while ((c = getopt(argc, argv, "qsw")) != -1) {
+	while ((c = getopt(argc, argv, "dqswtaz")) != -1) {
 		switch (c) {
+		case 'd':
+			debug = 1;
+			quiet = 0;
+			break;
 		case 'q':
 			quiet = 1;
+			debug = 0;
 			break;
 		case 's':
 			stats = 1;
 			break;
 		case 'w':
 			wire = 1;
+			break;
+		case 't':
+			trunc = 1;
+			break;
+		case 'a':
+			add = 1;
+			break;
+		case 'z':
+			zero = 1;
 			break;
 		}
 	}
@@ -81,15 +100,14 @@ main(int argc, char *argv[]) {
 	specials[')'] = 1;
 	specials['"'] = 1;
 	isc_lex_setspecials(lex, specials);
-	options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-		  ISC_LEXOPT_INITIALWS | ISC_LEXOPT_QSTRING;
+	options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
 	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
 
 	while ((result = isc_lex_gettoken(lex, options | ISC_LEXOPT_NUMBER,
 					  &token)) == ISC_R_SUCCESS) {
-		/* fprintf(stdout, "token.type = %d\n", token.type); */
+		if (debug) fprintf(stdout, "token.type = %d\n", token.type);
 		if (token.type == isc_tokentype_special) {
 			if (token.value.as_char == '(') {
 				parens++;
@@ -130,10 +148,9 @@ main(int argc, char *argv[]) {
 					    NULL, ISC_FALSE, &dbuf);
 		if (result != DNS_R_SUCCESS) {
 			fprintf(stdout,
-				"dns_rdata_fromtext != DNS_R_SUCCESS\n");
+				"dns_rdata_fromtext returned %s(%d)\n",
+				dns_result_totext(result), result);
 			fflush(stdout);
-			
-			need_eol = 1;
 			continue;
 		}
 
@@ -141,20 +158,32 @@ main(int argc, char *argv[]) {
 		if (wire) {
 			isc_buffer_init(&wbuf, wirebuf, sizeof(wirebuf),
 					ISC_BUFFERTYPE_BINARY);
-			if (dns_rdata_towire(&rdata, &cctx, &wbuf)
-					!= DNS_R_SUCCESS) {
+			result = dns_rdata_towire(&rdata, &cctx, &wbuf);
+			if (result != DNS_R_SUCCESS) {
 				fprintf(stdout,
-					"dns_rdata_towire != DNS_R_SUCCESS\n");
-				fflush(stdout);
+					"dns_rdata_towire returned %s(%d)\n",
+					dns_result_totext(result), result);
 				continue;
 			}
+			len = wbuf.used - dbuf.current;
+			if (zero)
+				len = 0;
+			if (trunc)
+				len = (len * 3) / 4;
+			if (add) {
+				isc_buffer_add(&wbuf, len / 4 + 1);
+				len += len / 4 + 1;
+			}
+			isc_buffer_setactive(&wbuf, len);
 			dns_rdata_init(&rdata);
 			isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
 					ISC_BUFFERTYPE_BINARY);
-			if (dns_rdata_fromwire(&rdata, 1, type, &wbuf, &dctx,
-					ISC_FALSE, &dbuf) != DNS_R_SUCCESS) {
+			result = dns_rdata_fromwire(&rdata, 1, type, &wbuf,
+						    &dctx, ISC_FALSE, &dbuf);
+			if (result != DNS_R_SUCCESS) {
 				fprintf(stdout,
-				      "dns_rdata_fromwire != DNS_R_SUCCESS\n");
+					"dns_rdata_fromwire returned %s(%d)\n",
+					dns_result_totext(result), result);
 				fflush(stdout);
 				continue;
 			}
@@ -162,8 +191,10 @@ main(int argc, char *argv[]) {
 
 		isc_buffer_init(&tbuf, outbuf, sizeof(outbuf),
 				ISC_BUFFERTYPE_TEXT);
-		if (dns_rdata_totext(&rdata, &tbuf) != DNS_R_SUCCESS)
-			fprintf(stdout, "dns_rdata_totext != DNS_R_SUCCESS\n");
+		result = dns_rdata_totext(&rdata, &tbuf);
+		if (result != DNS_R_SUCCESS)
+			fprintf(stdout, "dns_rdata_totext returned %s(%d)\n",
+				dns_result_totext(result), result);
 		else
 			fprintf(stdout, "\"%.*s\"\n",
 				(int)tbuf.used, (char*)tbuf.base);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.5 1999/01/20 02:41:10 halley Exp $ */
+ /* $Id: mx_15.c,v 1.6 1999/01/20 05:20:22 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H
@@ -28,24 +28,37 @@ fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 	dns_result_t result;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
-	INSIST(type == 15);
+	REQUIRE(type == 15);
 
 	class = class;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, ISC_LEXOPT_NUMBER, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_number)
-		return (DNS_R_UNKNOWN);
+	options |= ISC_LEXOPT_NUMBER;
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_number) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 	
 	result = uint16_fromtext(token.value.as_ulong, target);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+	options &= ~ISC_LEXOPT_NUMBER;
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
@@ -64,7 +77,7 @@ totext_mx(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	char buf[sizeof "64000"];
 	unsigned short num;
 
-	INSIST(rdata->type == 15);
+	REQUIRE(rdata->type == 15);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -94,7 +107,7 @@ fromwire_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	INSIST(type == 15);
+	REQUIRE(type == 15);
 	class = class;		/* unused */
         
         dns_name_init(&name, NULL);
@@ -104,7 +117,7 @@ fromwire_mx(dns_rdataclass_t class, dns_rdatatype_t type,
 	if (tregion.length < 2)
 		return (DNS_R_NOSPACE);
 	if (sregion.length < 2)
-		return (DNS_R_WIRE);
+		return (DNS_R_UNEXPECTEDEND);
 	memcpy(tregion.base, sregion.base, 2);
 	isc_buffer_forward(source, 2);
 	isc_buffer_add(target, 2);
@@ -118,7 +131,7 @@ towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_result_t result;
 	isc_region_t tr;
 
-	INSIST(rdata->type == 15);
+	REQUIRE(rdata->type == 15);
 
 	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &region);
@@ -143,9 +156,9 @@ compare_mx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region2;
 	int result;
 
-	INSIST(rdata1->type == rdata2->type);
-	INSIST(rdata1->class == rdata2->class);
-	INSIST(rdata1->type == 15);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->type == 15);
 
 	result = memcmp(rdata1->data, rdata2->data, 2);
 	if (result != 0)
@@ -170,7 +183,7 @@ static dns_result_t
 fromstruct_mx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 15);
+	REQUIRE(type == 15);
 
 	class = class;	/*unused*/
 
@@ -183,7 +196,7 @@ fromstruct_mx(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_mx(dns_rdata_t *rdata, void *target) {
 
-	INSIST(rdata->type == 15);
+	REQUIRE(rdata->type == 15);
 
 	target = target;
 

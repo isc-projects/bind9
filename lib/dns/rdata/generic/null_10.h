@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.h,v 1.3 1999/01/19 06:49:31 marka Exp $ */
+ /* $Id: null_10.h,v 1.4 1999/01/20 05:20:22 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_H
 #define RDATA_GENERIC_NULL_10_H
@@ -25,7 +25,7 @@ fromtext_null(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target) {
 
-	INSIST(type == 10);
+	REQUIRE(type == 10);
 
 	class = class;		/*unused*/
 	type = type;		/*unused*/
@@ -41,8 +41,8 @@ static dns_result_t
 totext_null(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	
 
-	INSIST(rdata->type == 10);
-	INSIST(rdata->length == 0);
+	REQUIRE(rdata->type == 10);
+	REQUIRE(rdata->length == 0);
 
 	origin = origin;	/*unused*/
 	target = target;	/*unused*/
@@ -55,7 +55,7 @@ fromwire_null(dns_rdataclass_t class, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target) {
 
-	INSIST(type == 10);
+	REQUIRE(type == 10);
 
 	class = class;		/*unused*/
 	dctx = dctx;		/*unused*/
@@ -69,7 +69,7 @@ fromwire_null(dns_rdataclass_t class, dns_rdatatype_t type,
 static dns_result_t
 towire_null(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
-	INSIST(rdata->type == 10);
+	REQUIRE(rdata->type == 10);
 
 	cctx = cctx;		/*unused*/
 	target = target;	/*unused*/
@@ -80,9 +80,9 @@ towire_null(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 static int
 compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
-	INSIST(rdata1->type == rdata1->type);
-	INSIST(rdata1->class == rdata2->class);
-	INSIST(rdata1->type == 10);
+	REQUIRE(rdata1->type == rdata1->type);
+	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->type == 10);
 
 	return (0);
 }
@@ -91,7 +91,7 @@ static dns_result_t
 fromstruct_null(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 10);
+	REQUIRE(type == 10);
 
 	class = class;	/*unused*/
 
@@ -104,7 +104,7 @@ fromstruct_null(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_null(dns_rdata_t *rdata, void *target) {
 
-	INSIST(rdata->type == 10);
+	REQUIRE(rdata->type == 10);
 
 	target = target;
 

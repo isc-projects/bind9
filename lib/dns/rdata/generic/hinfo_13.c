@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.4 1999/01/19 06:49:29 marka Exp $ */
+ /* $Id: hinfo_13.c,v 1.5 1999/01/20 05:20:20 marka Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_H
 #define RDATA_GENERIC_HINFO_13_H
@@ -26,26 +26,37 @@ fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
 	dns_result_t result;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
-	INSIST(type == 13);
+	REQUIRE(type == 13);
 
 	class = class;		/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 
 	result = txt_fromtext(&token.value.as_textregion, target);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 	return (txt_fromtext(&token.value.as_textregion, target));
 }
 
@@ -54,7 +65,7 @@ totext_hinfo(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_result_t result;
 
-	INSIST(rdata->type == 13);
+	REQUIRE(rdata->type == 13);
 
 	origin = origin;	/*unused*/
 
@@ -78,7 +89,7 @@ fromwire_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	       isc_boolean_t downcase, isc_buffer_t *target) {
 	dns_result_t result;
 
-	INSIST(type == 13);
+	REQUIRE(type == 13);
 
 	dctx = dctx;		/* unused */
 	class = class;		/* unused */
@@ -95,7 +106,7 @@ static dns_result_t
 towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
-	INSIST(rdata->type == 13);
+	REQUIRE(rdata->type == 13);
 
 	cctx = cctx;
 
@@ -114,9 +125,9 @@ compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int l;
 	int result;
 	
-	INSIST(rdata1->type == rdata2->type);
-	INSIST(rdata1->class == rdata2->class);
-	INSIST(rdata1->type == 13);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->type == 13);
 
 	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
 	result = memcmp(rdata1->data, rdata2->data, l);
@@ -133,7 +144,7 @@ static dns_result_t
 fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 13);
+	REQUIRE(type == 13);
 
 	class = class;	/*unused*/
 
@@ -146,7 +157,7 @@ fromstruct_hinfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_hinfo(dns_rdata_t *rdata, void *target) {
 
-	INSIST(rdata->type == 13);
+	REQUIRE(rdata->type == 13);
 
 	target = target;
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.4 1999/01/19 06:49:33 marka Exp $ */
+ /* $Id: txt_16.c,v 1.5 1999/01/20 05:20:24 marka Exp $ */
 
 #ifndef RDATA_GENERIC_TXT_16_H
 #define RDATA_GENERIC_TXT_16_H
@@ -26,21 +26,21 @@ fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
 	dns_result_t result;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
-	INSIST(type == 16);
+	REQUIRE(type == 16);
 
 	class = class;		/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	if (isc_lex_gettoken(lexer, 0, &token) != ISC_R_SUCCESS)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
 	while (token.type == isc_tokentype_string) {
 		result = txt_fromtext(&token.value.as_textregion, target);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-		if (isc_lex_gettoken(lexer, ISC_LEXOPT_EOL | ISC_LEXOPT_EOF,
-				     &token) != ISC_R_SUCCESS)
+		if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)
 			return (DNS_R_UNKNOWN);
 	}
 	/* Let upper layer handle eol/eof. */
@@ -53,7 +53,7 @@ totext_txt(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t region;
 	dns_result_t result;
 
-	INSIST(rdata->type == 16);
+	REQUIRE(rdata->type == 16);
 
 	origin = origin;	/*unused*/
 
@@ -79,7 +79,7 @@ fromwire_txt(dns_rdataclass_t class, dns_rdatatype_t type,
 	     isc_boolean_t downcase, isc_buffer_t *target) {
 	dns_result_t result;
 
-	INSIST(type == 16);
+	REQUIRE(type == 16);
 
 	dctx = dctx;		/*unused*/
 	class = class;		/*unused*/
@@ -97,7 +97,7 @@ static dns_result_t
 towire_txt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
-	INSIST(rdata->type == 16);
+	REQUIRE(rdata->type == 16);
 
 	cctx = cctx;	/*unused*/
 
@@ -115,9 +115,9 @@ compare_txt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int l;
 	int result;
 	
-	INSIST(rdata1->type == rdata2->type);
-	INSIST(rdata1->class == rdata2->class);
-	INSIST(rdata1->class == 16);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->class == 16);
 
 	l = (rdata1->length < rdata2->length) ? rdata1->length : rdata2->length;
 	result = memcmp(rdata1->data, rdata2->data, l);
@@ -134,7 +134,7 @@ static dns_result_t
 fromstruct_txt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 16);
+	REQUIRE(type == 16);
 
 	class = class;	/*unused*/
 
@@ -147,7 +147,7 @@ fromstruct_txt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_txt(dns_rdata_t *rdata, void *target) {
 
-	INSIST(rdata->type == 16);
+	REQUIRE(rdata->type == 16);
 
 	target = target;
 

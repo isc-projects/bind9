@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.6 1999/01/19 05:38:31 marka Exp $ */
+ /* $Id: gen.c,v 1.7 1999/01/20 05:20:18 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -32,43 +32,43 @@
 #define FROMTEXTARGS "class, type, lexer, origin, downcase, target"
 #define FROMTEXTCLASS "class"
 #define FROMTEXTTYPE "type"
-#define FROMTEXTDEF "DNS_R_DEFAULT"
+#define FROMTEXTDEF "use_default = ISC_TRUE"
 
 #define TOTEXTDECL "dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target"
 #define TOTEXTARGS "rdata, origin, target"
 #define TOTEXTCLASS "rdata->class"
 #define TOTEXTTYPE "rdata->type"
-#define TOTEXTDEF "DNS_R_DEFAULT"
+#define TOTEXTDEF "use_default = ISC_TRUE"
 
 #define FROMWIREDECL "dns_rdataclass_t class, dns_rdatatype_t type, isc_buffer_t *source, dns_decompress_t *dctx, isc_boolean_t downcase, isc_buffer_t *target"
 #define FROMWIREARGS "class, type, source, dctx, downcase, target"
 #define FROMWIRECLASS "class"
 #define FROMWIRETYPE "type"
-#define FROMWIREDEF "DNS_R_DEFAULT"
+#define FROMWIREDEF "use_default = ISC_TRUE"
 
 #define TOWIREDECL "dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target"
 #define TOWIREARGS "rdata, cctx, target"
 #define TOWIRECLASS "rdata->class"
 #define TOWIRETYPE "rdata->type"
-#define TOWIREDEF "DNS_R_DEFAULT"
+#define TOWIREDEF "use_default = ISC_TRUE"
 
 #define FROMSTRUCTDECL "dns_rdataclass_t class, dns_rdatatype_t type, void *source, isc_buffer_t *target"
 #define FROMSTRUCTARGS "class, type, source, target"
 #define FROMSTRUCTCLASS "class"
 #define FROMSTRUCTTYPE "type"
-#define FROMSTRUCTDEF "DNS_R_DEFAULT"
+#define FROMSTRUCTDEF "use_default = ISC_TRUE"
 
 #define TOSTRUCTDECL "dns_rdata_t *rdata, void *target"
 #define TOSTRUCTARGS "rdata, target"
 #define TOSTRUCTCLASS "rdata->class"
 #define TOSTRUCTTYPE "rdata->type"
-#define TOSTRUCTDEF "DNS_R_DEFAULT"
+#define TOSTRUCTDEF "use_default = ISC_TRUE"
 
 #define COMPAREDECL "dns_rdata_t *rdata1, dns_rdata_t *rdata2"
 #define COMPAREARGS "rdata1, rdata2"
 #define COMPARECLASS "rdata1->class"
 #define COMPARETYPE "rdata1->type"
-#define COMPAREDEF "-2"
+#define COMPAREDEF "use_default = ISC_TRUE"
 
 char copyright[] =
 "/*\n\
@@ -141,8 +141,7 @@ doswitch(char *name, char *function, char *args,
 			first = 0;
 		}
 		if (tt->type != lasttype && subswitch) {
-			fprintf(stdout, "\t\tdefault: result = %s; break; \\\n",
-				res);
+			fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
 			fputs(/*{*/ "\t\t} \\\n", stdout);
 			fputs("\t\tbreak; \\\n", stdout);
 			subswitch = 0;
@@ -165,14 +164,14 @@ doswitch(char *name, char *function, char *args,
 		lasttype = tt->type;
 	}
 	if (subswitch) {
-		fprintf(stdout, "\t\tdefault: result = %s; break; \\\n", res);
+		fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
 		fputs(/*{*/ "\t\t}\n", stdout);
 		fputs("\t\tbreak; \\\n", stdout);
 	}
 	if (first)
-		fprintf(stdout, "\n#define %s result = %s;\n", name, res);
+		fprintf(stdout, "\n#define %s %s;\n", name, res);
 	else {
-		fprintf(stdout, "\tdefault: result = %s; break; \\\n", res);
+		fprintf(stdout, "\tdefault: %s; break; \\\n", res);
 		fputs(/*{*/ "\t}\n", stdout);
 	}
 }
@@ -215,23 +214,23 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 	tt = types;
 	oldtt = NULL;
 
-	while (tt && (tt->type < type)) {
+	while ((tt != NULL) && (tt->type < type)) {
 		oldtt = tt;
 		tt = tt->next;
 	}
 
-	while (tt && (tt->type == type) && (tt->class < class)) {
+	while ((tt != NULL) && (tt->type == type) && (tt->class < class)) {
 		if (strcmp(tt->typename, typename) != 0)
 			exit(1);
 		oldtt = tt;
 		tt = tt->next;
 	}
 
-	if (tt && (tt->type == type) && (tt->class == class))
+	if ((tt != NULL) && (tt->type == type) && (tt->class == class))
 		exit(1);
 
 	newtt->next = tt;
-	if (oldtt)
+	if (oldtt != NULL)
 		oldtt->next = newtt;
 	else
 		types = newtt;
@@ -246,18 +245,18 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 	cc = classes;
 	oldcc = NULL;
 	
-	while (cc && (cc->type < type)) {
+	while ((cc != NULL) && (cc->type < type)) {
 		oldcc = cc;
 		cc = cc->next;
 	}
 
-	if (cc && cc->type == type) {
+	if ((cc != NULL) && cc->type == type) {
 		free((char *)newcc);
 		return;
 	}
 
 	newcc->next = cc;
-	if (oldcc)
+	if (oldcc != NULL)
 		oldcc->next = newcc;
 	else
 		classes = newcc;

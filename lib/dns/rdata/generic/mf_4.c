@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mf_4.c,v 1.3 1999/01/19 06:49:30 marka Exp $ */
+ /* $Id: mf_4.c,v 1.4 1999/01/20 05:20:20 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MF_4_H
 #define RDATA_GENERIC_MF_4_H
@@ -25,19 +25,23 @@ fromtext_mf(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
 	    isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
-	isc_result_t result; 
 	dns_name_t name;
 	isc_buffer_t buffer;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
 
-	INSIST(type == 4);
+	REQUIRE(type == 4);
 
 	class = class;	/*unused*/
 
-	result = isc_lex_gettoken(lexer, 0, &token); 
-	if (result != ISC_R_SUCCESS)   
-		return (DNS_R_UNKNOWN);
-	if (token.type != isc_tokentype_string)
-		return (DNS_R_UNKNOWN);
+	if (isc_lex_gettoken(lexer, options, &token) != ISC_R_SUCCESS)   
+		return (DNS_R_UNEXPECTED);
+	if (token.type != isc_tokentype_string) {
+		isc_lex_ungettoken(lexer, &token);
+		if (token.type == isc_tokentype_eol ||
+		    token.type == isc_tokentype_eof)
+			return(DNS_R_UNEXPECTEDEND);
+		return (DNS_R_UNEXPECTED);
+	}
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region,
@@ -53,7 +57,7 @@ totext_mf(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_t prefix;
 	isc_boolean_t sub;
 
-	INSIST(rdata->type == 4);
+	REQUIRE(rdata->type == 4);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
@@ -70,7 +74,7 @@ fromwire_mf(dns_rdataclass_t class, dns_rdatatype_t type,
 	    isc_boolean_t downcase, isc_buffer_t *target) {
         dns_name_t name;
 
-	INSIST(type == 4);
+	REQUIRE(type == 4);
 
 	class = class;	/*unused*/
         
@@ -83,7 +87,7 @@ towire_mf(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
 
-	INSIST(rdata->type == 4);
+	REQUIRE(rdata->type == 4);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
@@ -99,9 +103,9 @@ compare_mf(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region1;
 	isc_region_t region2;
 
-	INSIST(rdata1->type == rdata2->type);
-	INSIST(rdata1->class == rdata2->class);
-	INSIST(rdata1->type == 4);
+	REQUIRE(rdata1->type == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->type == 4);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -119,7 +123,7 @@ static dns_result_t
 fromstruct_mf(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
-	INSIST(type == 4);
+	REQUIRE(type == 4);
 
 	class = class;	/*unused*/
 
@@ -132,7 +136,7 @@ fromstruct_mf(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 static dns_result_t
 tostruct_mf(dns_rdata_t *rdata, void *target) {
 
-	INSIST(rdata->type == 4);
+	REQUIRE(rdata->type == 4);
 
 	target = target;
 
