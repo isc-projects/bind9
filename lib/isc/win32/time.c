@@ -39,7 +39,6 @@ isc_interval_iszero(isc_interval_t i) {
 	 */
 
 	REQUIRE(i != NULL);
-
 	if (i->interval == 0)
 		return (ISC_TRUE);
 
@@ -51,6 +50,8 @@ isc_interval_iszero(isc_interval_t i) {
  *** Absolute Times
  ***/
 
+static FILETIME epoch = { 0, 0 };
+
 void
 isc_time_settoepoch(isc_time_t t) {
 	/*
@@ -59,20 +60,18 @@ isc_time_settoepoch(isc_time_t t) {
 
 	REQUIRE(t != NULL);
 
-	/* XXX should just set it. */
-	memset(t, '\0', sizeof *t);
+	t->absolute = epoch;
 }
 
 isc_boolean_t
 isc_time_isepoch(isc_time_t t) {
-
 	/*
 	 * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
 	 */
 
 	REQUIRE(t != NULL);
 
-	if (t->seconds == 0 && t->nanoseconds == 0)
+	if (CompareFileTime(&t->absolute, &epoch) == 0)
 		return (ISC_TRUE);
 
 	return (ISC_FALSE);
@@ -80,28 +79,20 @@ isc_time_isepoch(isc_time_t t) {
 
 isc_result
 isc_time_get(isc_time_t t) {
-	struct timeval tv;
-
 	/*
 	 * Set *t to the current absolute time.
 	 */
 	
 	REQUIRE(t != NULL);
 
-	/* XXX Call SystemtimeToFiletime() */
-	if (gettimeofday(&tv, NULL) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
-		return (ISC_R_UNEXPECTED);
-	}
-
-	t->seconds = tv.tv_sec;
-	t->nanoseconds = tv.tv_usec * 1000;
+	GetSystemTimeAsFileTime(&t->absolute);
 
 	return (ISC_R_SUCCESS);
 }
 
 int
 isc_time_compare(isc_time_t t1, isc_time_t t2) {
+	LARGE_INTEGER i1, i2;
 
 	/*
 	 * Compare the times referenced by 't1' and 't2'
@@ -109,106 +100,72 @@ isc_time_compare(isc_time_t t1, isc_time_t t2) {
 
 	REQUIRE(t1 != NULL && t2 != NULL);
 
-	if (t1->seconds < t2->seconds)
-		return (-1);
-	if (t1->seconds > t2->seconds)
-		return (1);
-	if (t1->nanoseconds < t2->nanoseconds)
-		return (-1);
-	if (t1->nanoseconds > t2->nanoseconds)
-		return (1);
-	return (0);
+	return ((int)CompareFileTime(&t1->absolute, &t2->absolute));
 }
 
 void
 isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result)
 {
+	LARGE_INTEGER i1, i2;
+
 	/*
 	 * Add 't' to 'i', storing the result in 'result'.
 	 */
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
 
-	result->seconds = t->seconds + i->seconds;
-	result->nanoseconds = t->nanoseconds + i->nanoseconds;
-	if (result->nanoseconds > 1000000000) {
-		result->seconds++;
-		result->nanoseconds -= 1000000000;
-	}
+	i1.LowPart = t->absolute.dwLowDateTime;
+	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
+	i1.HighPart = t->absolute.dwHighDateTime;
+
+	i2.QuadPart = i1.QuadPart + i.interval;
+	
+	/* XXX potential signed to unsigned problem */
+	result->absolute.dwLowDateTime = i2.LowPart;
+	result->absolute.dwHighDateTime = i2.HighPart;
 }
 
 void
 isc_time_subtract(isc_time_t t, isc_interval_t i, isc_time_t result) {
+	LARGE_INTEGER i1, i2;
+
 	/*
 	 * Subtract 'i' from 't', storing the result in 'result'.
 	 */
 
 	REQUIRE(t != NULL && i != NULL && result != NULL);
-	
-	result->seconds = t->seconds - i->seconds;
-	if (t->nanoseconds >= i->nanoseconds)
-		result->nanoseconds = t->nanoseconds - i->nanoseconds;
-	else {
-		result->nanoseconds = 1000000000 - i->nanoseconds +
-			t->nanoseconds;
-		result->seconds--;
-	}
-}
 
+	i1.LowPart = t->absolute.dwLowDateTime;
+	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
+	i1.HighPart = t->absolute.dwHighDateTime;
+
+	i2.QuadPart = i1.QuadPart - i.interval;
+	
+	/* XXX potential signed to unsigned problem */
+	result->absolute.dwLowDateTime = i2.LowPart;
+	result->absolute.dwHighDateTime = i2.HighPart;
+}
 
 /***
- *** UNIX-only
+ *** Win32 Only
  ***/
 
+unsigned int
+isc_time_millidiff(isc_time_t t1, isc_time_t t2) {
+	LARGE_INTEGER i1, i2;
+	LONGLONG i3;
 
-void
-isc_time_fromtimeval(isc_time_t t, struct timeval *tv) {
+	i1.LowPart = t1->absolute.dwLowDateTime;
+	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
+	i1.HighPart = t1->absolute.dwHighDateTime;
+	i2.LowPart = t2->absolute.dwLowDateTime;
+	/* XXX trouble here if high bit set (i.e. signed -> unsigned?) */
+	i2.HighPart = t2->absolute.dwHighDateTime;
 
-	/*
-	 * Set 't' to the time given by 'ts'.
-	 */
-
-	REQUIRE(t != NULL && tv != NULL);
-
-	t->seconds = tv->tv_sec;
-	t->nanoseconds = tv->tv_usec * 1000;
-}
-
-void
-isc_time_totimeval(isc_time_t t, struct timeval *tv) {
-
-	/*
-	 * Convert 't' to a UNIX timeval.
-	 */
-
-	REQUIRE(t != NULL && tv != NULL);
-
-	tv->tv_sec = t->seconds;
-	tv->tv_usec = t->nanoseconds / 1000;
-}
-
-void
-isc_time_fromtimespec(isc_time_t t, struct timespec *ts) {
-
-	/*
-	 * Set 't' to the time given by 'ts'.
-	 */
-
-	REQUIRE(t != NULL && ts != NULL);
-
-	t->seconds = ts->tv_sec;
-	t->nanoseconds = ts->tv_nsec;
-}
-
-void
-isc_time_totimespec(isc_time_t t, struct timespec *ts) {
-
-	/*
-	 * Convert 't' to a UNIX timespec.
-	 */
-
-	REQUIRE(t != NULL && ts != NULL);
-
-	ts->tv_sec = t->seconds;
-	ts->tv_nsec = t->nanoseconds;
+	if (i1.QuadPart <= i2.QuadPart)
+		return (0);
+	i3 = (i1.QuadPart - i2.QuadPart) / 10000; /* convert to milliseconds */
+	if (i3 > 1000000000)			  /* XXX arbitrary! */
+		return (1000000000);
+	return ((unsigned int)(i3));
 }

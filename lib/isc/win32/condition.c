@@ -112,7 +112,12 @@ isc_condition_waituntil(isc_condition_t *cond, isc_mutex_t *mutex,
 			isc_time_t t)
 {
 	DWORD milliseconds;
+	struct isc_time now;
 
-	milliseconds = 100; /* XXX */
+	if (isc_time_get(&now) != ISC_R_SUCCESS) {
+		/* XXX */
+		return (ISC_R_UNEXPECTED);
+	}
+	milliseconds = (DWORD)isc_time_millidiff(t, now);
 	return (wait(cond, mutex, milliseconds));
 }
