@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.96 2001/03/05 21:15:37 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.97 2001/03/12 22:21:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1460,7 +1460,8 @@ sendstream(xfrout_ctx_t *xfr) {
 		cleanup_cctx = ISC_FALSE;
 
 		isc_buffer_usedregion(&xfr->txbuf, &used);
-		isc_buffer_putuint16(&xfr->txlenbuf, used.length);
+		isc_buffer_putuint16(&xfr->txlenbuf,
+				     (isc_uint16_t)used.length);
 		region.base = xfr->txlenbuf.base;
 		region.length = 2 + used.length;
 		xfrout_log(xfr, ISC_LOG_DEBUG(8),
