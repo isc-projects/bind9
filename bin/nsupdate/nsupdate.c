@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.28 2000/07/09 06:25:49 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.29 2000/07/09 16:17:13 tale Exp $ */
 
 #include <config.h>
 
@@ -153,7 +153,7 @@ ddebug(const char *format, ...) {
 	}
 }
 
-static void
+static inline void
 check_result(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS)
 		fatal("%s: %s", msg, isc_result_totext(result));
@@ -221,14 +221,14 @@ static void
 reset_system(void) {
 	isc_result_t result;
 
-	ddebug ("reset_system()");
+	ddebug("reset_system()");
 	/* If the update message is still around, destroy it */
 	if (updatemsg != NULL)
 		dns_message_reset(updatemsg, DNS_MESSAGE_INTENTRENDER);
 	else {
 		result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
 					    &updatemsg);
-		check_result (result, "dns_message_create");
+		check_result(result, "dns_message_create");
 	}
 	updatemsg->opcode = dns_opcode_update;
 }
@@ -398,7 +398,8 @@ setup_system(void) {
 		} else {
 			struct in6_addr in6;
 			memcpy(&in6, lwconf->nameservers[i].address, 16);
-			isc_sockaddr_fromin6(&servers[i], &in6, DNSDEFAULTPORT);
+			isc_sockaddr_fromin6(&servers[i], &in6,
+					     DNSDEFAULTPORT);
 		}
 	}
 
@@ -445,7 +446,8 @@ setup_system(void) {
 				strlen(lwconf->domainname));
 		isc_buffer_add(&buf, strlen(lwconf->domainname));
 		result = dns_name_fromtext(dns_fixedname_name(&resolvdomain),
-					   &buf, dns_rootname, ISC_FALSE, NULL);
+					   &buf, dns_rootname, ISC_FALSE,
+					   NULL);
 		check_result(result, "dns_name_fromtext");
 		origin = dns_fixedname_name(&resolvdomain);
 	}
@@ -516,7 +518,8 @@ parse_args(int argc, char **argv) {
 		}
 	}
 	if (keyfile != NULL && keystr != NULL) {
-		fprintf(stderr, "%s: cannot specify both -k and -y\n", argv[0]);
+		fprintf(stderr, "%s: cannot specify both -k and -y\n",
+			argv[0]);
 		exit(1);
 	}
 }
@@ -562,7 +565,8 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 
 static isc_uint16_t
 parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
-	    dns_rdatatype_t rdatatype, dns_message_t *msg, dns_rdata_t **rdatap)
+	    dns_rdatatype_t rdatatype, dns_message_t *msg,
+	    dns_rdata_t **rdatap)
 {
 	char *cmdline = *cmdlinep;
 	isc_buffer_t source, *buf = NULL;
@@ -590,9 +594,9 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 			rn = userzone;
 		else
 			rn = origin;
-		result = dns_rdata_fromtext(*rdatap, rdataclass, rdatatype, lex,
-					    rn, ISC_FALSE,
-					    buf, &callbacks);
+		result = dns_rdata_fromtext(*rdatap, rdataclass, rdatatype,
+					    lex, rn, ISC_FALSE, buf,
+					    &callbacks);
 		dns_message_takebuffer(msg, &buf);
 		isc_lex_destroy(&lex);
 		if (result != ISC_R_SUCCESS)
@@ -780,7 +784,8 @@ evaluate_zone(char *cmdline) {
 	userzone = dns_fixedname_name(&fuserzone);
 	isc_buffer_init(&b, word, strlen(word));
 	isc_buffer_add(&b, strlen(word));
-	result = dns_name_fromtext(userzone, &b, dns_rootname, ISC_FALSE, NULL);
+	result = dns_name_fromtext(userzone, &b, dns_rootname, ISC_FALSE,
+				   NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "failed to parse zone name\n");
 		return (STATUS_SYNTAX);
@@ -804,7 +809,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	char *endp;
 	isc_uint16_t retval;
 
-	ddebug ("update_addordelete()");
+	ddebug("update_addordelete()");
 
 	/*
 	 * Read the owner name
@@ -953,7 +958,7 @@ show_message(void) {
 	char store[MSGTEXT];
 	isc_buffer_t buf;
 
-	ddebug ("show_message()");
+	ddebug("show_message()");
 	isc_buffer_init(&buf, store, MSGTEXT);
 	result = dns_message_totext(updatemsg, 0, &buf);
 	if (result != ISC_R_SUCCESS) {
@@ -972,7 +977,7 @@ get_next_command(void) {
 	char *cmdline;
 	char *word;
 
-	ddebug ("get_next_command()");
+	ddebug("get_next_command()");
 	fprintf(stdout, "> ");
 	fgets (cmdlinebuf, MAXCMD, stdin);
 	cmdline = cmdlinebuf;
@@ -998,7 +1003,7 @@ get_next_command(void) {
 		show_message();
 		return (STATUS_MORE);
 	}
-	fprintf (stderr, "incorrect section name: %s\n", word);
+	fprintf(stderr, "incorrect section name: %s\n", word);
 	return (STATUS_SYNTAX);
 }
 
@@ -1006,7 +1011,7 @@ static isc_boolean_t
 user_interaction(void) {
 	isc_uint16_t result = STATUS_MORE;
 
-	ddebug ("user_interaction()");
+	ddebug("user_interaction()");
 	while ((result == STATUS_MORE) || (result == STATUS_SYNTAX))
 		result = get_next_command();
 	if (result == STATUS_SEND)
@@ -1033,9 +1038,9 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *rcvmsg = NULL;
 	char bufstore[MSGTEXT];
 	
-	UNUSED (task);
+	UNUSED(task);
 
-	ddebug ("updated_completed()");
+	ddebug("updated_completed()");
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	if (reqev->result != ISC_R_SUCCESS) {
@@ -1115,7 +1120,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	ddebug ("recvsoa()");
+	ddebug("recvsoa()");
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	request = reqev->request;
@@ -1146,7 +1151,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&soaquery);
 	isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 
-	ddebug ("About to create rcvmsg");
+	ddebug("About to create rcvmsg");
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	check_result(result, "dns_message_create");
 	result = dns_request_getresponse(request, rcvmsg, ISC_TRUE);
@@ -1322,7 +1327,7 @@ start_update(void) {
 
 static void
 cleanup(void) {
-	ddebug ("cleanup()");
+	ddebug("cleanup()");
 
 	if (userserver != NULL)
 		isc_mem_put(mctx, userserver, sizeof(isc_sockaddr_t));
@@ -1408,7 +1413,7 @@ main(int argc, char **argv) {
 			WAIT(&cond, &lock);
         }
 
-        fprintf(stderr, "\n");
+        fprintf(stdout, "\n");
         isc_mutex_destroy(&lock);
         isc_condition_destroy(&cond);
         cleanup();
