@@ -92,6 +92,8 @@ omapi_lib_init(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	omapi_socketmgr = socketmgr;
 
 	result = isc_task_create(omapi_taskmgr, omapi_mctx, 0, &omapi_task);
+	if (result == ISC_R_SUCCESS)
+		isc_task_setname(omapi_task, "omapi", NULL);
 
 	/*
 	 * Initialize the standard object types.
