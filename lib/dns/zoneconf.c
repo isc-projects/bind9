@@ -206,10 +206,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setmaxxfrout(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL) 
 			result = dns_c_view_getmaxtransferidleout(cview, &maxxfr);
+		if (result != ISC_R_SUCCESS) 
+			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
 		if (result != ISC_R_SUCCESS)
 			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
@@ -317,10 +317,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setmaxxfrout(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL) 
 			result = dns_c_view_getmaxtransferidleout(cview, &maxxfr);
+		if (result != ISC_R_SUCCESS) 
+			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
 		if (result != ISC_R_SUCCESS)
 			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
