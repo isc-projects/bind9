@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.205 
+# From configure.in Revision: 1.205.2.1 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -2075,14 +2075,14 @@ Please install the devel/unproven-pthreads package and rerun configure.
 		fi
 		;;
 		*)
-			echo $ac_n "checking for pthread_create in -lc""... $ac_c" 1>&6
-echo "configure:2080: checking for pthread_create in -lc" >&5
-ac_lib_var=`echo c'_'pthread_create | sed 'y%./+-%__p_%'`
+			echo $ac_n "checking for pthread_create in -lpthread""... $ac_c" 1>&6
+echo "configure:2080: checking for pthread_create in -lpthread" >&5
+ac_lib_var=`echo pthread'_'pthread_create | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_save_LIBS="$LIBS"
-LIBS="-lc  $LIBS"
+LIBS="-lpthread  $LIBS"
 cat > conftest.$ac_ext <<EOF
 #line 2088 "configure"
 #include "confdefs.h"
@@ -2110,34 +2110,34 @@ LIBS="$ac_save_LIBS"
 fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-    ac_tr_lib=HAVE_LIB`echo c | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+    ac_tr_lib=HAVE_LIB`echo pthread | sed -e 's/[^a-zA-Z0-9_]/_/g' \
     -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
   cat >> confdefs.h <<EOF
 #define $ac_tr_lib 1
 EOF
 
-  LIBS="-lc $LIBS"
+  LIBS="-lpthread $LIBS"
 
 else
   echo "$ac_t""no" 1>&6
-echo $ac_n "checking for pthread_create in -lc_r""... $ac_c" 1>&6
-echo "configure:2125: checking for pthread_create in -lc_r" >&5
-ac_lib_var=`echo c_r'_'pthread_create | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for __pthread_create in -lpthread""... $ac_c" 1>&6
+echo "configure:2125: checking for __pthread_create in -lpthread" >&5
+ac_lib_var=`echo pthread'_'__pthread_create | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_save_LIBS="$LIBS"
-LIBS="-lc_r  $LIBS"
+LIBS="-lpthread  $LIBS"
 cat > conftest.$ac_ext <<EOF
 #line 2133 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char pthread_create();
+char __pthread_create();
 
 int main() {
-pthread_create()
+__pthread_create()
 ; return 0; }
 EOF
 if { (eval echo configure:2144: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -2155,19 +2155,19 @@ LIBS="$ac_save_LIBS"
 fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-    ac_tr_lib=HAVE_LIB`echo c_r | sed -e 's/^a-zA-Z0-9_/_/g' \
+    ac_tr_lib=HAVE_LIB`echo pthread | sed -e 's/^a-zA-Z0-9_/_/g' \
     -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
   cat >> confdefs.h <<EOF
 #define $ac_tr_lib 1
 EOF
 
-  LIBS="-lc_r $LIBS"
+  LIBS="-lpthread $LIBS"
 
 else
   echo "$ac_t""no" 1>&6
-echo $ac_n "checking for pthread_create in -lpthread""... $ac_c" 1>&6
-echo "configure:2170: checking for pthread_create in -lpthread" >&5
-ac_lib_var=`echo pthread'_'pthread_create | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for __pthread_create_system in -lpthread""... $ac_c" 1>&6
+echo "configure:2170: checking for __pthread_create_system in -lpthread" >&5
+ac_lib_var=`echo pthread'_'__pthread_create_system | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -2179,10 +2179,10 @@ cat > conftest.$ac_ext <<EOF
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char pthread_create();
+char __pthread_create_system();
 
 int main() {
-pthread_create()
+__pthread_create_system()
 ; return 0; }
 EOF
 if { (eval echo configure:2189: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -2210,24 +2210,24 @@ EOF
 
 else
   echo "$ac_t""no" 1>&6
-echo $ac_n "checking for __pthread_create in -lpthread""... $ac_c" 1>&6
-echo "configure:2215: checking for __pthread_create in -lpthread" >&5
-ac_lib_var=`echo pthread'_'__pthread_create | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for pthread_create in -lc_r""... $ac_c" 1>&6
+echo "configure:2215: checking for pthread_create in -lc_r" >&5
+ac_lib_var=`echo c_r'_'pthread_create | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_save_LIBS="$LIBS"
-LIBS="-lpthread  $LIBS"
+LIBS="-lc_r  $LIBS"
 cat > conftest.$ac_ext <<EOF
 #line 2223 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char __pthread_create();
+char pthread_create();
 
 int main() {
-__pthread_create()
+pthread_create()
 ; return 0; }
 EOF
 if { (eval echo configure:2234: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -2245,34 +2245,34 @@ LIBS="$ac_save_LIBS"
 fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-    ac_tr_lib=HAVE_LIB`echo pthread | sed -e 's/^a-zA-Z0-9_/_/g' \
+    ac_tr_lib=HAVE_LIB`echo c_r | sed -e 's/^a-zA-Z0-9_/_/g' \
     -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
   cat >> confdefs.h <<EOF
 #define $ac_tr_lib 1
 EOF
 
-  LIBS="-lpthread $LIBS"
+  LIBS="-lc_r $LIBS"
 
 else
   echo "$ac_t""no" 1>&6
-echo $ac_n "checking for __pthread_create_system in -lpthread""... $ac_c" 1>&6
-echo "configure:2260: checking for __pthread_create_system in -lpthread" >&5
-ac_lib_var=`echo pthread'_'__pthread_create_system | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for pthread_create in -lc""... $ac_c" 1>&6
+echo "configure:2260: checking for pthread_create in -lc" >&5
+ac_lib_var=`echo c'_'pthread_create | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_save_LIBS="$LIBS"
-LIBS="-lpthread  $LIBS"
+LIBS="-lc  $LIBS"
 cat > conftest.$ac_ext <<EOF
 #line 2268 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
     builtin and then its argument prototype would still apply.  */
-char __pthread_create_system();
+char pthread_create();
 
 int main() {
-__pthread_create_system()
+pthread_create()
 ; return 0; }
 EOF
 if { (eval echo configure:2279: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
@@ -2290,13 +2290,13 @@ LIBS="$ac_save_LIBS"
 fi
 if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-    ac_tr_lib=HAVE_LIB`echo pthread | sed -e 's/^a-zA-Z0-9_/_/g' \
+    ac_tr_lib=HAVE_LIB`echo c | sed -e 's/^a-zA-Z0-9_/_/g' \
     -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
   cat >> confdefs.h <<EOF
 #define $ac_tr_lib 1
 EOF
 
-  LIBS="-lpthread $LIBS"
+  LIBS="-lc $LIBS"
 
 else
   echo "$ac_t""no" 1>&6
