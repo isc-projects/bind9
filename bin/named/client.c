@@ -998,10 +998,15 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	client->interface->ntcpcurrent--;
 	UNLOCK(&client->interface->lock);
 
+	/*
+	 * We must take ownership of the new socket before the exit
+	 * check to make sure it gets destroyed.
+	 */
+	client->tcpsocket = nevent->newsocket;
+
 	if (client->shuttingdown) {
 		maybe_free(client);
 	} else if (nevent->result == ISC_R_SUCCESS) {
-		client->tcpsocket = nevent->newsocket;
 		INSIST(client->tcpmsg_valid == ISC_FALSE);
 		dns_tcpmsg_init(client->mctx, client->tcpsocket,
 				&client->tcpmsg);
