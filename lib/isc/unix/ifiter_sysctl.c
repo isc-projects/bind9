@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.14 2001/06/04 19:33:34 tale Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.15 2001/08/31 05:57:51 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -69,6 +69,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_result_t result;
 	size_t bufsize;
 	size_t bufused;
+	char strbuf[ISC_STRERRORSIZE];
+
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
 	REQUIRE(*iterp == NULL);
@@ -85,13 +87,14 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 */
 	bufsize = 0;
 	if (sysctl(mib, 6, NULL, &bufsize, NULL, (size_t) 0) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 isc_msgcat_get(isc_msgcat,
 						ISC_MSGSET_IFITERSYSCTL,
 						ISC_MSG_GETIFLISTSIZE,
 						"getting interface "
 						"list size: sysctl: %s"),
-				 strerror(errno));
+				 strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto failure;
 	}
@@ -105,13 +108,14 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 	bufused = bufsize;
 	if (sysctl(mib, 6, iter->buf, &bufused, NULL, (size_t) 0) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 isc_msgcat_get(isc_msgcat,
 						ISC_MSGSET_IFITERSYSCTL,
 						ISC_MSG_GETIFLIST,
 						"getting interface list: "
 						"sysctl: %s"),
-				 strerror(errno));
+				 strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto failure;
 	}

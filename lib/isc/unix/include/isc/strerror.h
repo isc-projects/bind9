@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.h,v 1.1 2001/08/30 04:33:19 marka Exp $ */
+/* $Id: strerror.h,v 1.2 2001/08/31 05:57:58 marka Exp $ */
 
 #ifndef ISC_STRERROR_H
 #define ISC_STRERROR_H
@@ -25,6 +25,8 @@
 #include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
+
+#define ISC_STRERRORSIZE 128
 
 /*
  * Provide a thread safe wrapper to strerrror().
