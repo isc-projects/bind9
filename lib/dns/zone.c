@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.207 2000/09/11 13:26:19 marka Exp $ */
+/* $Id: zone.c,v 1.208 2000/09/11 20:51:47 gson Exp $ */
 
 #include <config.h>
 
@@ -4607,7 +4607,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 	result = sendtomaster(forward);
 	if (result != ISC_R_SUCCESS) {
 		/* call callback */
-		zone_log(zone, me, ISC_LOG_DEBUG(3), "exausted forwarder");
+		zone_log(zone, me, ISC_LOG_DEBUG(3), "exhausted forwarder");
 		(forward->callback)(forward->callback_arg, result, NULL);
 		forward_destroy(forward);
 	}
