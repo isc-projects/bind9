@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: string.c,v 1.2 2000/01/28 05:22:02 marka Exp $ */
+/* $Id: string.c,v 1.3 2000/01/31 14:58:11 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -62,11 +62,12 @@ omapi_string_dereference(omapi_string_t **h) {
 	*h = NULL;
 }
 
-char *
-omapi_string_totext(omapi_string_t *string) {
-	ENSURE(string->value[string->len] == '\0');
+void
+omapi_string_totext(omapi_string_t *string, isc_region_t *region) {
+	REQUIRE(string != NULL && region != NULL);
 
-	return ((char *)string->value);
+	region->base = string->value;
+	region->length = string->len;
 }
 
 int
