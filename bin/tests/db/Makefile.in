@@ -37,7 +37,7 @@ t_db: t_db.@O@
 	${LIBTOOL} ${CC} -o $@ t_db.@O@ ${LIBS}
 
 test:
-	-@./t_db -c @top_srcdir@/t_config -a
+	-@./t_db -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:
 	@./t_db -h

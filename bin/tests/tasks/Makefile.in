@@ -40,7 +40,7 @@ t_tasks: t_tasks.@O@ ${DEPLIBS}
 	${LIBTOOL} ${CC} -o $@ t_tasks.@O@ ${LIBS}
 
 test:
-	-@./t_tasks -c @top_srcdir@/t_config
+	-@./t_tasks -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:
 	@./t_tasks -h

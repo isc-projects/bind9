@@ -40,7 +40,7 @@ t_names: t_names.@O@
 	${LIBTOOL} ${CC} -o $@ t_names.@O@ ${LIBS}
 
 test:
-	-@./t_names -c @top_srcdir@/t_config -a
+	-@./t_names -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:
 	@./t_names -h
