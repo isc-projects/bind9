@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.52 2001/01/25 21:10:18 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.53 2001/01/27 02:12:13 gson Exp $ */
 
 #include <config.h>
 
@@ -2526,7 +2526,7 @@ channel_stmt:
 	| L_CHANNEL channel_name L_LBRACE logging_non_type_keywords {
 		parser_error(ISC_FALSE,
 			     "first statment inside a channel definition "
-			     "must be 'file' or 'syslog' or 'null'");
+			     "must be 'file' or 'syslog' or 'null' or 'stderr'");
 		YYABORT;
 	}
 	;
