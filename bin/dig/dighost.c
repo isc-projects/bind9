@@ -24,7 +24,6 @@
  * functions in most applications.
  */
 
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -53,7 +52,7 @@ ISC_LIST(dig_lookup_t) lookup_list;
 ISC_LIST(dig_server_t) server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
-isc_boolean_t have_ipv6 = ISC_FALSE,
+isc_boolean_t have_ipv6 = ISC_FALSE, specified_source = ISC_FALSE,
 	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE,
 	qr = ISC_FALSE;
 #ifdef TWIDDLE
@@ -66,6 +65,7 @@ isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *task = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
+isc_sockaddr_t bind_address;
 char *rootspace[BUFSIZE];
 isc_buffer_t rootbuf;
 int sendcount = 0;
@@ -1500,6 +1500,10 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 					   isc_sockaddr_pf(&query->sockaddr),
 					   isc_sockettype_tcp, &query->sock) ;
 		check_result(result, "isc_socket_create");
+		if (specified_source) {
+			result = isc_socket_bind(query->sock, &bind_address);
+			check_result(result, "isc_socket_bind");
+		}
 		result = isc_socket_connect(query->sock, &query->sockaddr,
 					    task, connect_done, query);
 		check_result (result, "isc_socket_connect");
@@ -1529,6 +1533,10 @@ do_lookup_udp(dig_lookup_t *lookup) {
 					   isc_sockaddr_pf(&query->sockaddr),
 					   isc_sockettype_udp, &query->sock) ;
 		check_result(result, "isc_socket_create");
+		if (specified_source) {
+			result = isc_socket_bind(query->sock, &bind_address);
+			check_result(result, "isc_socket_bind");
+		}
 	}
 
 	send_udp(lookup);

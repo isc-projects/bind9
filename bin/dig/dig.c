@@ -36,7 +36,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, show_details,
+extern isc_boolean_t have_ipv6, show_details, specified_source,
 	usesearch, qr;
 extern in_port_t port;
 extern unsigned int timeout;
@@ -57,6 +57,7 @@ extern char fixeddomain[MXNAME];
 extern isc_boolean_t twiddle;
 #endif
 extern int exitcode;
+extern isc_sockaddr_t bind_address;
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
@@ -537,6 +538,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
 	char *batchname = NULL;
 	char batchline[MXNAME];
+	char address[MXNAME];
 	FILE *fp = NULL;
 	int bargc;
 	char *bargv[16];
@@ -926,6 +928,18 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				rv++;
 				rc--;
 			}
+		} else if (strncmp(rv[0], "-b", 2) == 0) {
+			if (rv[0][2]!=0) {
+				strncpy(address, &rv[0][2],
+					MXRD);
+			} else {
+				strncpy(address, rv[1],
+					MXRD);
+				rv++;
+				rc--;
+			}
+			get_address(address, 0, &bind_address);
+			specified_source = ISC_TRUE;
 		} else if (strncmp(rv[0], "-h", 2) == 0) {
 			show_usage();
 			exit (exitcode);
