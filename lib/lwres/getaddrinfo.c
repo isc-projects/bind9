@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.31 2000/08/02 16:08:41 tale Exp $ */
+/* $Id: getaddrinfo.c,v 1.32 2000/09/19 21:21:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,6 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <resolv.h>
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
