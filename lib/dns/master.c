@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.106 2001/02/08 01:52:33 marka Exp $ */
+/* $Id: master.c,v 1.107 2001/02/09 14:34:52 marka Exp $ */
 
 #include <config.h>
 
@@ -212,6 +212,22 @@ loadctx_destroy(dns_loadctx_t *ctx);
 				"%s:%lu: file does not end with newline", \
 				isc_lex_getsourcename(lexer), \
 				isc_lex_getsourceline(lexer)); \
+	} while (0)
+
+#define EXPECTEOL \
+	do { \
+		GETTOKEN(ctx->lex, 0, &token, ISC_TRUE); \
+		if (token.type != isc_tokentype_eol) { \
+			isc_lex_ungettoken(ctx->lex, &token); \
+			result = DNS_R_EXTRATOKEN; \
+			if (MANYERRS(ctx, result)) { \
+				SETRESULT(ctx, result); \
+				LOGIT(result); \
+				read_till_eol = ISC_TRUE; \
+				continue; \
+			} else if (result != ISC_R_SUCCESS) \
+				goto log_and_cleanup; \
+		} \
 	} while (0)
 
 #define CTX_COPYVAR(ctx, new, var) (new)->var = (ctx)->var
@@ -687,7 +703,6 @@ load(dns_loadctx_t **ctxp) {
 	isc_boolean_t finish_origin = ISC_FALSE;
 	isc_boolean_t finish_include = ISC_FALSE;
 	isc_boolean_t read_till_eol = ISC_FALSE;
-	isc_boolean_t expect_eol = ISC_FALSE;
 	isc_boolean_t initialws;
 	char *include_file = NULL;
 	isc_token_t token;
@@ -742,8 +757,7 @@ load(dns_loadctx_t **ctxp) {
 
 	do {
 		initialws = ISC_FALSE;
-		GETTOKEN(ctx->lex, expect_eol ? 0 : ISC_LEXOPT_INITIALWS,
-			 &token, ISC_TRUE);
+		GETTOKEN(ctx->lex, ISC_LEXOPT_INITIALWS, &token, ISC_TRUE);
 
 		if (token.type == isc_tokentype_eof) {
 			if (read_till_eol)
@@ -762,28 +776,15 @@ load(dns_loadctx_t **ctxp) {
 				CTX_COPYVAR(ctx, *ctxp, result);
 				dns_loadctx_detach(&ctx);
 				ctx = *ctxp;
-				expect_eol = ISC_TRUE;
+				EXPECTEOL;
 				continue;
 			}
 			done = ISC_TRUE;
 			continue;
 		}
 
-		if (token.type != isc_tokentype_eol && expect_eol) {
-			result = DNS_R_EXTRATOKEN;
-			if (MANYERRS(ctx, result)) {
-				SETRESULT(ctx, result);
-				LOGIT(result);
-				expect_eol = ISC_FALSE;
-				read_till_eol = ISC_TRUE;
-				continue;
-			} else if (result != ISC_R_SUCCESS)
-				goto log_and_cleanup;
-		}
-
 		if (token.type == isc_tokentype_eol) {
 			read_till_eol = ISC_FALSE;
-			expect_eol = ISC_FALSE;
 			continue;		/* blank line */
 		}
 
@@ -808,7 +809,6 @@ load(dns_loadctx_t **ctxp) {
 			if (strcasecmp(token.value.as_pointer,
 				       "$ORIGIN") == 0) {
 				GETTOKEN(ctx->lex, 0, &token, ISC_FALSE);
-				expect_eol = ISC_TRUE;
 				finish_origin = ISC_TRUE;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$TTL") == 0) {
@@ -834,7 +834,7 @@ load(dns_loadctx_t **ctxp) {
 				}
 				ctx->default_ttl = ctx->ttl;
 				ctx->default_ttl_known = ISC_TRUE;
-				expect_eol = ISC_TRUE;
+				EXPECTEOL;
 				continue;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$INCLUDE") == 0) {
@@ -931,7 +931,7 @@ load(dns_loadctx_t **ctxp) {
 					dump_time = current_time;
 				}
 				ttl_offset = current_time - dump_time;
-				expect_eol = ISC_TRUE;
+				EXPECTEOL;
 				continue;
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$GENERATE") == 0) {
@@ -1003,7 +1003,7 @@ load(dns_loadctx_t **ctxp) {
 					SETRESULT(ctx, result);
 				} else if (result != ISC_R_SUCCESS)
 					goto insist_and_cleanup;
-				expect_eol = ISC_TRUE;
+				EXPECTEOL;
 				continue;
 			} else if (strncasecmp(token.value.as_pointer,
 					       "$", 1) == 0) {
@@ -1057,6 +1057,7 @@ load(dns_loadctx_t **ctxp) {
 				ctx->in_use[ctx->origin_in_use] = ISC_TRUE;
 				ctx->origin = new_name;
 				finish_origin = ISC_FALSE;
+				EXPECTEOL;
 				continue;
 			}
 			if (finish_include) {
