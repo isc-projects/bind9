@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.64 $)
+AC_REVISION($Revision: 1.65 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -721,12 +721,14 @@ case $use_libtool in
 		AM_PROG_LIBTOOL
 		O=lo
 		A=la
+		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
 		;;
 	*)
 		O=o
 		A=a
 		LIBTOOL=
 		AC_SUBST(LIBTOOL)
+		LIBTOOL_MKDEP_SED=
 		;;
 esac
 
@@ -739,6 +741,7 @@ SA=a
 AC_SUBST(O)
 AC_SUBST(A)
 AC_SUBST(SA)
+AC_SUBST(LIBTOOL_MKDEP_SED)
 
 #
 # Here begins a very long section to determine the system's networking
@@ -1999,6 +2002,9 @@ BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 . $srcdir/../../version
 BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
+
+AC_SUBST_FILE(LIBBIND_API)
+LIBBIND_API=$srcdir/api
 
 AC_OUTPUT(
 	make/rules
