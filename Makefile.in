@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.21.2.5 2000/07/20 01:20:00 bwelling Exp $
+# $Id: Makefile.in,v 1.21.2.6 2000/07/27 01:48:49 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -30,7 +30,7 @@ DISTFILES =	CHANGES COPYRIGHT Makefile.in README \
 		lib make contrib \
 		version
 DOCDISTFILES =	arm draft misc rfc
-DOCMANDISTFILES = bin
+DOCMANDISTFILES = bin dnssec
 BINDISTFILES =	Makefile.in dig dnssec named nsupdate rndc tests
 
 @BIND9_MAKE_RULES@
