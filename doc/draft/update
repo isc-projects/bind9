@@ -1,0 +1,20 @@
+#!/bin/sh
+for i
+do
+	if test -f "$i"
+	then
+		continue
+	fi
+	pat=`echo "$i" | sed 's/...txt/??.txt/'`
+	old=`echo $pat 2> /dev/null`
+	fetch "http://www.ietf.org/internet-drafts/$i" 
+	cvs add "$1" 
+	if test "X$old" != "X$pat"
+	then
+		rm $old
+		cvs delete $old
+	else
+		old=
+	fi
+	cvs commit -m "new draft" $i $old
+done
