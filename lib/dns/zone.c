@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.69 2000/01/27 21:20:11 gson Exp $ */
+ /* $Id: zone.c,v 1.70 2000/01/28 16:10:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1742,6 +1742,8 @@ dns_zone_dump(dns_zone_t *zone, FILE *fd) {
 		if (result == DNS_R_NOMORE)
 			result = dns_dbiterator_next(dbiterator);
 	}
+	if (result == DNS_R_NOMORE)
+		result = DNS_R_SUCCESS;
 	if (buf != NULL)
 		isc_mem_put(zone->mctx, buf, buflen);
 	dns_dbiterator_destroy(&dbiterator);
