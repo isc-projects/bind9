@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.127 2001/01/09 21:39:25 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.128 2001/01/12 01:38:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -409,8 +409,8 @@ signset(dns_diff_t *diff, dns_dbnode_t *node, dns_name_t *name,
 		} else {
 			tuple = NULL;
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL,
-						      name, 0, &sigrdata,
-						      &tuple);
+						      name, sigset.ttl,
+						      &sigrdata, &tuple);
 			check_result(result, "dns_difftuple_create");
 			dns_diff_append(diff, &tuple);
 			INCSTAT(ndropped);
@@ -724,7 +724,9 @@ nxt_setbit(dns_rdataset_t *rdataset, dns_rdatatype_t type) {
 }
 
 static void
-createnullkey(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name) {
+createnullkey(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
+	      dns_ttl_t ttl)
+{
 	unsigned char keydata[4];
 	dns_rdata_t keyrdata = DNS_RDATA_INIT;
 	dns_rdata_key_t key;
@@ -754,7 +756,7 @@ createnullkey(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name) {
 
 	dns_diff_init(mctx, &diff);
 
-	result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD, name, zonettl,
+	result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD, name, ttl,
 				      &keyrdata, &tuple);
 	check_result(result, "dns_difftuple_create");
 
@@ -824,9 +826,11 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	 */
 	if (isdelegation) {
 		dns_rdataset_t keyset;
+		dns_ttl_t nullkeyttl;
 
 		childkey = haschildkey(name);
 		neednullkey = ISC_TRUE;
+		nullkeyttl = zonettl;
 
 		dns_rdataset_init(&keyset);
 		result = dns_db_findrdataset(gdb, node, gversion,
@@ -841,6 +845,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 		else if (result == ISC_R_SUCCESS) {
 			if (hasnullkey(&keyset))
 				neednullkey = ISC_FALSE;
+			nullkeyttl = keyset.ttl;
 			dns_rdataset_disassociate(&keyset);
 		} else if (childkey) {
 			char namestr[DNS_NAME_FORMATSIZE];
@@ -850,7 +855,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 		}
 
 		if (neednullkey)
-			createnullkey(gdb, gversion, name);
+			createnullkey(gdb, gversion, name, nullkeyttl);
 	}
 
 	/*
@@ -913,7 +918,8 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	if (result != ISC_R_SUCCESS) {
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof namestr);
-		fatal("failed to add SIGs at node %s", namestr);
+		fatal("failed to add SIGs at node '%s': %s",
+		      namestr, isc_result_totext(result));
 	}
 	dns_diff_clear(&diff);
 }

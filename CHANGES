@@ -1,4 +1,7 @@
 
+ 677.	[bug]		dnssec-signzone would occasionally use the wrong ttl
+			for database operations and fail. [RT #643]
+
  676.	[bug]		Log messages about lame servers to category
 			'lame-servers' rather than 'resolver', so as not
 			to be gratuitously incompatible with BIND 8.
