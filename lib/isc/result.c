@@ -79,7 +79,9 @@ static const char *text[ISC_R_NRESULTS] = {
 	"socket is not connected",		/* 40 */
 	"out of range",				/* 41 */
 	"out of entropy",			/* 42 */
-	"invalid use of multicast address"	/* 43 */
+	"invalid use of multicast address",	/* 43 */
+	"not a file",				/* 44 */
+	"not a directory"			/* 45 */
 };
 
 #define ISC_RESULT_RESULTSET			2

@@ -21,52 +21,54 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#define ISC_R_SUCCESS			0
-#define ISC_R_NOMEMORY			1
-#define ISC_R_TIMEDOUT			2
-#define ISC_R_NOTHREADS			3
-#define ISC_R_ADDRNOTAVAIL		4
-#define ISC_R_ADDRINUSE			5
-#define ISC_R_NOPERM			6
-#define ISC_R_NOCONN			7
-#define ISC_R_NETUNREACH		8
-#define ISC_R_HOSTUNREACH		9
-#define ISC_R_NETDOWN			10
-#define ISC_R_HOSTDOWN			11
-#define ISC_R_CONNREFUSED		12
-#define ISC_R_NORESOURCES		13	/* not enough resources */
+#define ISC_R_SUCCESS			0	/* success */
+#define ISC_R_NOMEMORY			1	/* out of memory */
+#define ISC_R_TIMEDOUT			2	/* timed out */
+#define ISC_R_NOTHREADS			3	/* no available threads */
+#define ISC_R_ADDRNOTAVAIL		4	/* address not available */
+#define ISC_R_ADDRINUSE			5	/* address in use */
+#define ISC_R_NOPERM			6	/* permission denied */
+#define ISC_R_NOCONN			7	/* no pending connections */
+#define ISC_R_NETUNREACH		8	/* network unreachable */
+#define ISC_R_HOSTUNREACH		9	/* host unreachable */
+#define ISC_R_NETDOWN			10	/* network down */
+#define ISC_R_HOSTDOWN			11	/* host down */
+#define ISC_R_CONNREFUSED		12	/* connection refused */
+#define ISC_R_NORESOURCES		13	/* not enough free resources */
 #define ISC_R_EOF			14	/* end of file */
-#define ISC_R_BOUND			15	/* already bound */
-#define ISC_R_RELOAD			16
-#define ISC_R_LOCKBUSY			17
-#define ISC_R_EXISTS			18
+#define ISC_R_BOUND			15	/* socket already bound */
+#define ISC_R_RELOAD			16	/* reload */
+#define ISC_R_LOCKBUSY			17	/* lock busy */
+#define ISC_R_EXISTS			18	/* already exists */
 #define ISC_R_NOSPACE			19	/* ran out of space */
-#define ISC_R_CANCELED			20
+#define ISC_R_CANCELED			20	/* operation canceled */
 #define ISC_R_NOTBOUND			21	/* socket is not bound */
 #define ISC_R_SHUTTINGDOWN		22	/* shutting down */
-#define ISC_R_NOTFOUND			23
+#define ISC_R_NOTFOUND			23	/* not found */
 #define ISC_R_UNEXPECTEDEND		24	/* unexpected end of input */
 #define ISC_R_FAILURE			25	/* generic failure */
-#define ISC_R_IOERROR			26
-#define ISC_R_NOTIMPLEMENTED		27
-#define ISC_R_UNBALANCED		28
-#define ISC_R_NOMORE			29
-#define ISC_R_INVALIDFILE		30
-#define ISC_R_BADBASE64			31
-#define ISC_R_UNEXPECTEDTOKEN		32
-#define ISC_R_QUOTA			33
-#define ISC_R_UNEXPECTED		34
-#define ISC_R_ALREADYRUNNING		35
-#define ISC_R_IGNORE			36
-#define ISC_R_MASKNONCONTIG             37
-#define ISC_R_FILENOTFOUND		38
-#define ISC_R_FILEEXISTS		39
+#define ISC_R_IOERROR			26	/* I/O error */
+#define ISC_R_NOTIMPLEMENTED		27	/* not implemented */
+#define ISC_R_UNBALANCED		28	/* unbalanced parentheses */
+#define ISC_R_NOMORE			29	/* no more */
+#define ISC_R_INVALIDFILE		30	/* invalid file */
+#define ISC_R_BADBASE64			31	/* bad base64 encoding */
+#define ISC_R_UNEXPECTEDTOKEN		32	/* unexpected token */
+#define ISC_R_QUOTA			33	/* quota reached */
+#define ISC_R_UNEXPECTED		34	/* unexpected error */
+#define ISC_R_ALREADYRUNNING		35	/* already running */
+#define ISC_R_IGNORE			36	/* ignore */
+#define ISC_R_MASKNONCONTIG             37	/* addr mask not contiguous */
+#define ISC_R_FILENOTFOUND		38	/* file not found */
+#define ISC_R_FILEEXISTS		39	/* file already exists */
 #define ISC_R_NOTCONNECTED		40	/* socket is not connected */
 #define ISC_R_RANGE			41	/* out of range */
 #define ISC_R_NOENTROPY			42	/* out of entropy */
 #define ISC_R_MULTICAST			43	/* invalid use of multicast */
+#define ISC_R_NOTFILE			44	/* not a file */
+#define ISC_R_NOTDIRECTORY		45	/* not a directory */
 
-#define ISC_R_NRESULTS 			44	/* Number of results */
+#define ISC_R_NRESULTS 			46	/* Number of results */
 
 ISC_LANG_BEGINDECLS
 
