@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.128 2001/11/12 19:05:20 gson Exp $ */
+/* $Id: master.c,v 1.129 2001/11/27 00:55:53 gson Exp $ */
 
 #include <config.h>
 
@@ -1097,7 +1097,7 @@ load(dns_loadctx_t *lctx) {
 			 *
 			 * Find a free name buffer.
 			 */
-			for (new_in_use = 0; new_in_use < NBUFS ; new_in_use++)
+			for (new_in_use = 0; new_in_use < NBUFS; new_in_use++)
 				if (!ictx->in_use[new_in_use])
 					break;
 			INSIST(new_in_use < NBUFS);
@@ -1647,7 +1647,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 
 	/* Set current domain. */
 	if (ictx->glue != NULL || ictx->current != NULL) {
-		for (new_in_use = 0; new_in_use < NBUFS ; new_in_use++)
+		for (new_in_use = 0; new_in_use < NBUFS; new_in_use++)
 			if (!new->in_use[new_in_use])
 				break;
 		INSIST(new_in_use < NBUFS);

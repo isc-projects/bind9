@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.106 2001/10/19 01:29:09 gson Exp $ */
+/* $Id: mem.c,v 1.107 2001/11/27 00:56:14 gson Exp $ */
 
 #include <config.h>
 
@@ -224,7 +224,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	while (dl != NULL) {
 		if (dl->count == DEBUGLIST_COUNT)
 			goto next;
-		for (i = 0 ; i < DEBUGLIST_COUNT ; i++) {
+		for (i = 0; i < DEBUGLIST_COUNT; i++) {
 			if (dl->ptr[i] == NULL) {
 				dl->ptr[i] = ptr;
 				dl->file[i] = file;
@@ -241,7 +241,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	INSIST(dl != NULL);
 
 	ISC_LINK_INIT(dl, link);
-	for (i = 1 ; i < DEBUGLIST_COUNT ; i++) {
+	for (i = 1; i < DEBUGLIST_COUNT; i++) {
 		dl->ptr[i] = NULL;
 		dl->file[i] = NULL;
 		dl->line[i] = 0;
@@ -277,7 +277,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 
 	dl = ISC_LIST_HEAD(mctx->debuglist[size]);
 	while (dl != NULL) {
-		for (i = 0 ; i < DEBUGLIST_COUNT ; i++) {
+		for (i = 0; i < DEBUGLIST_COUNT; i++) {
 			if (dl->ptr[i] == ptr) {
 				dl->ptr[i] = NULL;
 				dl->file[i] = NULL;
@@ -1105,7 +1105,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 				found = ISC_TRUE;
 
 			while (dl != NULL) {
-				for (j = 0 ; j < DEBUGLIST_COUNT ; j++)
+				for (j = 0; j < DEBUGLIST_COUNT; j++)
 					if (dl->ptr[j] != NULL)
 						fprintf(out, format,
 							dl->ptr[j], dl->file[j],
@@ -1538,7 +1538,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	 * fill up our free list.
 	 */
 	LOCK(&mctx->lock);
-	for (i = 0 ; i < mpctx->fillcount ; i++) {
+	for (i = 0; i < mpctx->fillcount; i++) {
 #if ISC_MEM_USE_INTERNAL_MALLOC
 		item = mem_getunlocked(mctx, mpctx->size);
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */

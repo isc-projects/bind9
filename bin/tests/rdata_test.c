@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.35 2001/01/09 21:41:34 bwelling Exp $ */
+/* $Id: rdata_test.c,v 1.36 2001/11/27 00:55:46 gson Exp $ */
 
 #include <config.h>
 
@@ -940,7 +940,7 @@ main(int argc, char *argv[]) {
 		}
 		if (raw) {
 			unsigned int i;
-			for (i = 0 ; i < rdata.length ; /* */ ) {
+			for (i = 0; i < rdata.length; /* */ ) {
 				fprintf(stdout, "%02x", rdata.data[i]);
 				if ((++i % 20) == 0)
 					fputs("\n", stdout);
@@ -976,7 +976,7 @@ main(int argc, char *argv[]) {
 			if (raw > 2) {
 				unsigned int i;
 				fputs("\n", stdout);
-				for (i = 0 ; i < (unsigned int)len ; /* */ ) {
+				for (i = 0; i < (unsigned int)len; /* */ ) {
 					fprintf(stdout, "%02x",
 				((unsigned char*)wbuf.base)[i + wbuf.current]);
 					if ((++i % 20) == 0)
@@ -1015,7 +1015,7 @@ main(int argc, char *argv[]) {
 		if (raw > 1) {
 			unsigned int i;
 			fputs("\n", stdout);
-			for (i = 0 ; i < rdata.length ; /* */ ) {
+			for (i = 0; i < rdata.length; /* */ ) {
 				fprintf(stdout, "%02x", rdata.data[i]);
 				if ((++i % 20) == 0)
 					fputs("\n", stdout);

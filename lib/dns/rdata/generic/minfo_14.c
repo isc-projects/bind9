@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.40 2001/07/16 03:06:17 marka Exp $ */
+/* $Id: minfo_14.c,v 1.41 2001/11/27 00:56:02 gson Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -37,7 +37,7 @@ fromtext_minfo(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
-	for (i = 0; i < 2 ; i++) {
+	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string,
 					      ISC_FALSE));

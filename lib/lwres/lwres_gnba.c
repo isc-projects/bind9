@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.20 2001/01/09 21:59:31 bwelling Exp $ */
+/* $Id: lwres_gnba.c,v 1.21 2001/11/27 00:56:30 gson Exp $ */
 
 #include <config.h>
 
@@ -110,7 +110,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	payload_length = 4;			       /* flags */
 	payload_length += 2;			       /* naliases */
 	payload_length += 2 + req->realnamelen + 1;    /* real name encoding */
-	for (x = 0 ; x < req->naliases ; x++)	       /* each alias */
+	for (x = 0; x < req->naliases; x++)	       /* each alias */
 		payload_length += 2 + req->aliaslen[x] + 1;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
@@ -146,7 +146,7 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	lwres_buffer_putuint8(b, 0);
 
 	/* encode the aliases */
-	for (x = 0 ; x < req->naliases ; x++) {
+	for (x = 0; x < req->naliases; x++) {
 		datalen = req->aliaslen[x];
 		lwres_buffer_putuint16(b, datalen);
 		lwres_buffer_putmem(b, (unsigned char *)req->aliases[x],
@@ -264,7 +264,7 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	/*
 	 * Parse off the aliases.
 	 */
-	for (x = 0 ; x < gnba->naliases ; x++) {
+	for (x = 0; x < gnba->naliases; x++) {
 		ret = lwres_string_parse(b, &gnba->aliases[x],
 					 &gnba->aliaslen[x]);
 		if (ret != LWRES_R_SUCCESS)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_test.c,v 1.25 2001/01/09 21:41:16 bwelling Exp $ */
+/* $Id: lwres_test.c,v 1.26 2001/11/27 00:55:44 gson Exp $ */
 
 #include <config.h>
 
@@ -172,11 +172,11 @@ test_gabn(const char *target) {
 	printf("Returned real name: (%u, %s)\n",
 	       res->realnamelen, res->realname);
 	printf("%u aliases:\n", res->naliases);
-	for (i = 0 ; i < res->naliases ; i++)
+	for (i = 0; i < res->naliases; i++)
 		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
 	printf("%u addresses:\n", res->naddrs);
 	addr = LWRES_LIST_HEAD(res->addrs);
-	for (i = 0 ; i < res->naddrs ; i++) {
+	for (i = 0; i < res->naddrs; i++) {
 		INSIST(addr != NULL);
 
 		if (addr->family == LWRES_ADDRTYPE_V4)
@@ -220,7 +220,7 @@ test_gnba(const char *target, lwres_uint32_t af) {
 	printf("Returned real name: (%u, %s)\n",
 	       res->realnamelen, res->realname);
 	printf("%u aliases:\n", res->naliases);
-	for (i = 0 ; i < res->naliases ; i++)
+	for (i = 0; i < res->naliases; i++)
 		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
 
 	lwres_gnbaresponse_free(ctx, &res);

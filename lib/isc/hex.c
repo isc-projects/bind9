@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.8 2001/03/22 00:07:05 bwelling Exp $ */
+/* $Id: hex.c,v 1.9 2001/11/27 00:56:10 gson Exp $ */
 
 #include <config.h>
 
@@ -144,7 +144,7 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		if (token.type != isc_tokentype_string)
 			break;
 		tr = &token.value.as_textregion;
-		for (i = 0 ;i < tr->length; i++)
+		for (i = 0;i < tr->length; i++)
 			RETERR(hex_decode_char(&ctx, tr->base[i]));
 	}
 	RETERR(hex_decode_finish(&ctx));

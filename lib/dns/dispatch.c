@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.103 2001/11/12 19:05:14 gson Exp $ */
+/* $Id: dispatch.c,v 1.104 2001/11/27 00:55:51 gson Exp $ */
 
 #include <config.h>
 
@@ -1304,7 +1304,7 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	for (i = 0 ; i < buckets ; i++)
+	for (i = 0; i < buckets; i++)
 		ISC_LIST_INIT(qid->qid_table[i]);
 
 	qid->qid_nbuckets = buckets;
@@ -1773,7 +1773,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	id = dns_randomid(qid);
 	bucket = dns_hash(qid, dest, id);
 	ok = ISC_FALSE;
-	for (i = 0 ; i < 64 ; i++) {
+	for (i = 0; i < 64; i++) {
 		if (bucket_search(qid, dest, id, bucket) == NULL) {
 			ok = ISC_TRUE;
 			break;

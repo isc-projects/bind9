@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.c,v 1.11 2001/01/09 21:56:11 bwelling Exp $ */
+/* $Id: lfsr.c,v 1.12 2001/11/27 00:56:12 gson Exp $ */
 
 #include <config.h>
 
@@ -98,7 +98,7 @@ isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count)
 
 	while (byte--) {
 		*p = 0;
-		for (bit = 0 ; bit < 7 ; bit++) {
+		for (bit = 0; bit < 7; bit++) {
 			*p |= lfsr_generate(lfsr);
 			*p <<= 1;
 		}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutexblock.c,v 1.14 2001/01/09 21:56:17 bwelling Exp $ */
+/* $Id: mutexblock.c,v 1.15 2001/11/27 00:56:15 gson Exp $ */
 
 #include <config.h>
 
@@ -27,7 +27,7 @@ isc_mutexblock_init(isc_mutex_t *block, unsigned int count) {
 	isc_result_t result;
 	unsigned int i;
 
-	for (i = 0 ; i < count ; i++) {
+	for (i = 0; i < count; i++) {
 		result = isc_mutex_init(&block[i]);
 		if (result != ISC_R_SUCCESS) {
 			i--;
@@ -47,7 +47,7 @@ isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count) {
 	isc_result_t result;
 	unsigned int i;
 
-	for (i = 0 ; i < count ; i++) {
+	for (i = 0; i < count; i++) {
 		result = isc_mutex_destroy(&block[i]);
 		if (result != ISC_R_SUCCESS)
 			return (result);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr_multicast.c,v 1.8 2001/01/09 21:42:07 bwelling Exp $ */
+/* $Id: netaddr_multicast.c,v 1.9 2001/11/27 00:55:50 gson Exp $ */
 
 #include <config.h>
 
@@ -86,7 +86,7 @@ netaddr_multicast(void) {
 	isc_boolean_t tf;
 
 	n_fail = 0;
-	for (i = 0 ; i < NADDRS ; i++) {
+	for (i = 0; i < NADDRS; i++) {
 		addr = &addrs[i];
 		result = to_netaddr(addr, &na);
 		if (result != ISC_R_SUCCESS) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.9 2001/11/15 19:06:04 gson Exp $ */
+/* $Id: socket.c,v 1.10 2001/11/27 00:56:23 gson Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -961,7 +961,7 @@ dump_msg(struct msghdr *msg, isc_socket_t *sock) {
 	printf("MSGHDR %p, Socket #: %d\n", msg, sock->fd);
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
-	for (i = 0 ; i < (unsigned int)msg->msg_iovlen ; i++)
+	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
 		printf("\t\t%d\tbase %p, len %d\n", i,
 		       msg->msg_iov[i].buf,
 		       msg->msg_iov[i].len);
@@ -2082,7 +2082,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 	 * Process read/writes on other fds here.  Avoid locking
 	 * and unlocking twice if both reads and writes are possible.
 	 */
-	for (i = 0 ; i < maxfd ; i++) {
+	for (i = 0; i < maxfd; i++) {
 		if (manager->fdstate[i] == CLOSE_PENDING) {
 			manager->fdstate[i] = CLOSED;
 			FD_CLR(i, &manager->read_fds);
@@ -2436,7 +2436,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	(void)isc_condition_destroy(&manager->shutdown_ok);
 #endif /* ISC_PLATFORM_USETHREADS */
 
-	for (i = 0 ; i < FD_SETSIZE ; i++)
+	for (i = 0; i < FD_SETSIZE; i++)
 		if (manager->fdstate[i] == CLOSE_PENDING)
 			closesocket(i);
 

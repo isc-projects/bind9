@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.61 2001/08/31 05:57:49 marka Exp $ */
+/* $Id: entropy.c,v 1.62 2001/11/27 00:56:17 gson Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -166,7 +166,7 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 	}
 	source = ent->nextsource;
  again_file:
-	for (nsource = 0 ; nsource < ent->nsources ; nsource++) {
+	for (nsource = 0; nsource < ent->nsources; nsource++) {
 		unsigned int got;
 
 		if (remaining == 0)

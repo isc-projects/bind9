@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_grbn.c,v 1.4 2001/06/30 04:13:50 mayer Exp $ */
+/* $Id: lwres_grbn.c,v 1.5 2001/11/27 00:56:31 gson Exp $ */
 
 #include <config.h>
 
@@ -124,9 +124,9 @@ lwres_grbnresponse_render(lwres_context_t *ctx, lwres_grbnresponse_t *req,
 	/* real name encoding */
 	payload_length += 2 + req->realnamelen + 1;
 	/* each rr */
-	for (x = 0 ; x < req->nrdatas ; x++)
+	for (x = 0; x < req->nrdatas; x++)
 		payload_length += 2 + req->rdatalen[x];
-	for (x = 0 ; x < req->nsigs ; x++)
+	for (x = 0; x < req->nsigs; x++)
 		payload_length += 2 + req->siglen[x];
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
@@ -171,14 +171,14 @@ lwres_grbnresponse_render(lwres_context_t *ctx, lwres_grbnresponse_t *req,
 	lwres_buffer_putuint8(b, 0);
 
 	/* encode the rdatas */
-	for (x = 0 ; x < req->nrdatas ; x++) {
+	for (x = 0; x < req->nrdatas; x++) {
 		datalen = req->rdatalen[x];
 		lwres_buffer_putuint16(b, datalen);
 		lwres_buffer_putmem(b, req->rdatas[x], datalen);
 	}
 
 	/* encode the signatures */
-	for (x = 0 ; x < req->nsigs ; x++) {
+	for (x = 0; x < req->nsigs; x++) {
 		datalen = req->siglen[x];
 		lwres_buffer_putuint16(b, datalen);
 		lwres_buffer_putmem(b, req->sigs[x], datalen);
@@ -335,7 +335,7 @@ lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	/*
 	 * Parse off the rdatas.
 	 */
-	for (x = 0 ; x < grbn->nrdatas ; x++) {
+	for (x = 0; x < grbn->nrdatas; x++) {
 		ret = lwres_data_parse(b, &grbn->rdatas[x],
 					 &grbn->rdatalen[x]);
 		if (ret != LWRES_R_SUCCESS)
@@ -345,7 +345,7 @@ lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	/*
 	 * Parse off the signatures.
 	 */
-	for (x = 0 ; x < grbn->nsigs ; x++) {
+	for (x = 0; x < grbn->nsigs; x++) {
 		ret = lwres_data_parse(b, &grbn->sigs[x], &grbn->siglen[x]);
 		if (ret != LWRES_R_SUCCESS)
 			goto out;

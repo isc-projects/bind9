@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.236 2001/11/14 22:08:28 bwelling Exp $ */
+/* $Id: dighost.c,v 1.237 2001/11/27 00:55:30 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1571,7 +1571,7 @@ send_tcp_connect(dig_query_t *query) {
 	INSIST(query->sock == NULL);
 	result = isc_socket_create(socketmgr,
 				   isc_sockaddr_pf(&query->sockaddr),
-				   isc_sockettype_tcp, &query->sock) ;
+				   isc_sockettype_tcp, &query->sock);
 	check_result(result, "isc_socket_create");
 	sockcount++;
 	debug("sockcount=%d", sockcount);

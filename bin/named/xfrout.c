@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.105 2001/10/30 00:55:25 gson Exp $ */
+/* $Id: xfrout.c,v 1.106 2001/11/27 00:55:37 gson Exp $ */
 
 #include <config.h>
 
@@ -724,7 +724,7 @@ compound_rrstream_first(rrstream_t *rs) {
 	do {
 		rrstream_t *curstream = s->components[s->state];
 		s->result = curstream->methods->first(curstream);
-	} while (s->result == ISC_R_NOMORE && s->state < 2) ;
+	} while (s->result == ISC_R_NOMORE && s->state < 2);
 	return (s->result);
 }
 

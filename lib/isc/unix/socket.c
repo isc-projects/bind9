@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.213 2001/11/09 00:37:10 marka Exp $ */
+/* $Id: socket.c,v 1.214 2001/11/27 00:56:19 gson Exp $ */
 
 #include <config.h>
 
@@ -849,7 +849,7 @@ dump_msg(struct msghdr *msg) {
 	printf("MSGHDR %p\n", msg);
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
-	for (i = 0 ; i < (unsigned int)msg->msg_iovlen ; i++)
+	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
 		printf("\t\t%d\tbase %p, len %d\n", i,
 		       msg->msg_iov[i].iov_base,
 		       msg->msg_iov[i].iov_len);
@@ -1991,7 +1991,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 	 * Process read/writes on other fds here.  Avoid locking
 	 * and unlocking twice if both reads and writes are possible.
 	 */
-	for (i = 0 ; i < maxfd ; i++) {
+	for (i = 0; i < maxfd; i++) {
 #ifdef ISC_PLATFORM_USETHREADS
 		if (i == manager->pipe_fds[0] || i == manager->pipe_fds[1])
 			continue;
@@ -2344,7 +2344,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	(void)isc_condition_destroy(&manager->shutdown_ok);
 #endif /* ISC_PLATFORM_USETHREADS */
 
-	for (i = 0 ; i < FD_SETSIZE ; i++)
+	for (i = 0; i < FD_SETSIZE; i++)
 		if (manager->fdstate[i] == CLOSE_PENDING)
 			close(i);
 

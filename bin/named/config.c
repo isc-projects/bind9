@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.21 2001/11/20 18:46:43 gson Exp $ */
+/* $Id: config.c,v 1.22 2001/11/27 00:55:32 gson Exp $ */
 
 #include <config.h>
 
@@ -178,7 +178,7 @@ isc_result_t
 ns_config_get(cfg_obj_t **maps, const char* name, cfg_obj_t **obj) {
 	int i;
 
-	for (i = 0; ; i++) {
+	for (i = 0;; i++) {
 		if (maps[i] == NULL)
 			return (ISC_R_NOTFOUND);
 		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS)
@@ -398,7 +398,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 		isc_mem_put(mctx, addrs, count * sizeof(isc_sockaddr_t));
 	if (keys != NULL) {
 		unsigned int j;
-		for (j = 0 ; j <= i; j++) {
+		for (j = 0; j <= i; j++) {
 			if (keys[j] == NULL)
 				continue;
 			if (dns_name_dynamic(keys[j]))

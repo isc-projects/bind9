@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy_test.c,v 1.16 2001/01/09 21:41:01 bwelling Exp $ */
+/* $Id: entropy_test.c,v 1.17 2001/11/27 00:55:41 gson Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,7 @@ hex_dump(const char *msg, void *data, unsigned int length) {
 	base = data;
 
         printf("DUMP of %d bytes:  %s\n\t", length, msg);
-        for (len = 0 ; len < length ; len++) {
+        for (len = 0; len < length; len++) {
                 if (len % 16 == 0 && !first)
 			printf("\n\t");
                 printf("%02x ", base[len]);

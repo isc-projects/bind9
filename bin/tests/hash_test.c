@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.8 2001/01/09 21:41:07 bwelling Exp $ */
+/* $Id: hash_test.c,v 1.9 2001/11/27 00:55:42 gson Exp $ */
 
 #include <config.h>
 
@@ -35,9 +35,9 @@ print_digest(char *s, const char *hash, unsigned char *d,
 	unsigned int i, j;
 
 	printf("hash (%s) %s:\n\t", hash, s);
-	for (i = 0 ; i < words ; i++) {
+	for (i = 0; i < words; i++) {
 		printf(" ");
-		for (j = 0 ; j < 4 ; j++)
+		for (j = 0; j < 4; j++)
 			printf("%02x", d[i * 4 + j]);
 	}
 	printf("\n");

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gabn.c,v 1.27 2001/05/29 23:02:52 bwelling Exp $ */
+/* $Id: lwres_gabn.c,v 1.28 2001/11/27 00:56:29 gson Exp $ */
 
 #include <config.h>
 
@@ -120,7 +120,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	/* real name encoding */
 	payload_length += 2 + req->realnamelen + 1;
 	/* each alias */
-	for (x = 0 ; x < req->naliases ; x++)
+	for (x = 0; x < req->naliases; x++)
 		payload_length += 2 + req->aliaslen[x] + 1;
 	/* each address */
 	x = 0;
@@ -172,7 +172,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	lwres_buffer_putuint8(b, 0);
 
 	/* encode the aliases */
-	for (x = 0 ; x < req->naliases ; x++) {
+	for (x = 0; x < req->naliases; x++) {
 		datalen = req->aliaslen[x];
 		lwres_buffer_putuint16(b, datalen);
 		lwres_buffer_putmem(b, (unsigned char *)req->aliases[x],
@@ -303,7 +303,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		}
 	}
 
-	for (x = 0 ; x < naddrs ; x++) {
+	for (x = 0; x < naddrs; x++) {
 		addr = CTXMALLOC(sizeof(lwres_addr_t));
 		if (addr == NULL) {
 			ret = LWRES_R_NOMEMORY;
@@ -323,7 +323,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	/*
 	 * Parse off the aliases.
 	 */
-	for (x = 0 ; x < gabn->naliases ; x++) {
+	for (x = 0; x < gabn->naliases; x++) {
 		ret = lwres_string_parse(b, &gabn->aliases[x],
 					 &gabn->aliaslen[x]);
 		if (ret != LWRES_R_SUCCESS)
@@ -335,7 +335,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	 * up above.
 	 */
 	addr = LWRES_LIST_HEAD(addrlist);
-	for (x = 0 ; x < gabn->naddrs ; x++) {
+	for (x = 0; x < gabn->naddrs; x++) {
 		INSIST(addr != NULL);
 		ret = lwres_addr_parse(b, addr);
 		if (ret != LWRES_R_SUCCESS)

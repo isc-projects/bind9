@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.196 2001/11/12 19:05:22 gson Exp $ */
+/* $Id: message.c,v 1.197 2001/11/27 00:55:55 gson Exp $ */
 
 /***
  *** Imports
@@ -691,7 +691,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	m->from_to_wire = intent;
 	msginit(m);
 
-	for (i = 0 ; i < DNS_SECTION_MAX ; i++)
+	for (i = 0; i < DNS_SECTION_MAX; i++)
 		ISC_LIST_INIT(m->sections[i]);
 	m->mctx = mctx;
 
@@ -785,8 +785,8 @@ findname(dns_name_t **foundname, dns_name_t *target,
 {
 	dns_name_t *curr;
 
-	for (curr = ISC_LIST_TAIL(*section) ;
-	     curr != NULL ;
+	for (curr = ISC_LIST_TAIL(*section);
+	     curr != NULL;
 	     curr = ISC_LIST_PREV(curr, link)) {
 		if (dns_name_equal(curr, target)) {
 			if (foundname != NULL)
@@ -808,8 +808,8 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 		REQUIRE(*rdataset == NULL);
 	}
 
-	for (curr = ISC_LIST_TAIL(name->list) ;
-	     curr != NULL ;
+	for (curr = ISC_LIST_TAIL(name->list);
+	     curr != NULL;
 	     curr = ISC_LIST_PREV(curr, link)) {
 		if (curr->type == type && curr->covers == covers) {
 			if (rdataset != NULL)
@@ -952,7 +952,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	rdataset = NULL;
 	rdatalist = NULL;
 
-	for (count = 0 ; count < msg->counts[DNS_SECTION_QUESTION] ; count++) {
+	for (count = 0; count < msg->counts[DNS_SECTION_QUESTION]; count++) {
 		name = isc_mempool_get(msg->namepool);
 		if (name == NULL)
 			return (ISC_R_NOMEMORY);
@@ -1121,7 +1121,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
 	seen_problem = ISC_FALSE;
 
-	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
+	for (count = 0; count < msg->counts[sectionid]; count++) {
 		int recstart = source->current;
 		isc_boolean_t skip_name_search, skip_type_search;
 

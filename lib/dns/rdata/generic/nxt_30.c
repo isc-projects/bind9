@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.49 2001/07/16 03:06:23 marka Exp $ */
+/* $Id: nxt_30.c,v 1.50 2001/11/27 00:56:04 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -106,7 +106,7 @@ totext_nxt(ARGS_TOTEXT) {
 	sub = name_prefix(&name, tctx->origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
 
-	for (i = 0 ; i < sr.length ; i++) {
+	for (i = 0; i < sr.length; i++) {
 		if (sr.base[i] != 0)
 			for (j = 0; j < 8; j++)
 				if ((sr.base[i] & (0x80 >> j)) != 0) {

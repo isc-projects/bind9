@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.14 2001/09/19 23:08:20 gson Exp $ */
+/* $Id: lwdclient.c,v 1.15 2001/11/27 00:55:33 gson Exp $ */
 
 #include <config.h>
 
@@ -81,7 +81,7 @@ ns_lwdclientmgr_create(ns_lwreslistener_t *listener, unsigned int nclients,
 	    != ISC_R_SUCCESS)
 		goto errout;
 
-	for (i = 0 ; i < nclients ; i++) {
+	for (i = 0; i < nclients; i++) {
 		client = isc_mem_get(lwresd->mctx, sizeof(ns_lwdclient_t));
 		if (client != NULL) {
 			ns_lwdclient_log(50, "created client %p, manager %p",

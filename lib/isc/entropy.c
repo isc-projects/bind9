@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.5 2001/09/05 22:32:08 bwelling Exp $ */
+/* $Id: entropy.c,v 1.6 2001/11/27 00:56:09 gson Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -320,7 +320,7 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 		entropypool_add_word(&ent->pool, val);
 	}
 
-	for (; len > 3 ; len -= 4) {
+	for (; len > 3; len -= 4) {
 		val = *((isc_uint32_t *)buf);
 
 		entropypool_add_word(&ent->pool, val);
@@ -438,10 +438,10 @@ crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
 	 * Prime the values by adding in the first 4 samples in.  This
 	 * should completely initialize the delta calculations.
 	 */
-	for (ns = 0 ; ns < 4 ; ns++)
+	for (ns = 0; ns < 4; ns++)
 		(void)estimate_entropy(sq, sq->samples[ns]);
 
-	for (ns = 4 ; ns < sq->nsamples ; ns++)
+	for (ns = 4; ns < sq->nsamples; ns++)
 		added += estimate_entropy(sq, sq->samples[ns]);
 
 	entropypool_adddata(ent, sq->samples, sq->nsamples * 4, added);
@@ -451,7 +451,7 @@ crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
 	 * Move the last 4 samples into the first 4 positions, and start
 	 * adding new samples from that point.
 	 */
-	for (ns = 0 ; ns < 4 ; ns++) {
+	for (ns = 0; ns < 4; ns++) {
 		sq->samples[ns] = sq->samples[sq->nsamples - 4 + ns];
 		sq->extra[ns] = sq->extra[sq->nsamples - 4 + ns];
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.66 2001/11/12 19:05:15 gson Exp $ */
+/* $Id: gen.c,v 1.67 2001/11/27 00:55:52 gson Exp $ */
 
 #include <config.h>
 
@@ -197,7 +197,7 @@ doswitch(const char *name, const char *function, const char *args,
 	if (res == NULL)
 		result = "";
 
-	for (tt = types; tt != NULL ; tt = tt->next) {
+	for (tt = types; tt != NULL; tt = tt->next) {
 		if (first) {
 			fprintf(stdout, "\n#define %s \\\n", name);
 			fprintf(stdout, "\tswitch (%s) { \\\n" /*}*/, tsw);
@@ -260,7 +260,7 @@ dodecl(char *type, char *function, char *args) {
 	char buf1[11], buf2[11];
 
 	fputs("\n", stdout);
-	for (tt = types; tt ; tt = tt->next)
+	for (tt = types; tt; tt = tt->next)
 		if (tt->rdclass)
 			fprintf(stdout,
 				"static inline %s %s_%s_%s(%s);\n",
@@ -469,7 +469,7 @@ main(int argc, char **argv) {
 	char *file = NULL;
 	isc_dir_t dir;
 
-	for (i = 0 ; i <= 255 ; i++)
+	for (i = 0; i <= 255; i++)
 		memset(&typenames[i], 0, sizeof(typenames[i]));
 
 	strcpy(srcdir, "");
@@ -562,7 +562,7 @@ main(int argc, char **argv) {
 		fputs("#include <isc/result.h>\n\n", stdout);
 		fputs("#include <dns/name.h>\n\n", stdout);
 
-		for (tt = types; tt != NULL ; tt = tt->next)
+		for (tt = types; tt != NULL; tt = tt->next)
 			fprintf(stdout, "#include \"%s/%s_%d.c\"\n",
 				tt->dirname, tt->typename, tt->type);
 
@@ -626,7 +626,7 @@ main(int argc, char **argv) {
 		fprintf(stdout, "\tunsigned int flags;\n");
 		fprintf(stdout, "} typeattr_t;\n");
 		fprintf(stdout, "static typeattr_t typeattr[] = {\n");
-		for (i = 0 ; i <= 255 ; i++) {
+		for (i = 0; i <= 255; i++) {
 			ttn = &typenames[i];
 			if (ttn->typename[0] == 0) {
 				const char *attrs;
@@ -650,7 +650,7 @@ main(int argc, char **argv) {
 		 * Run through the list of types and pre-mark the unused
 		 * ones as "sorted" so we simply ignore them below.
 		 */
-		for (i = 0 ; i <= 255 ; i++) {
+		for (i = 0; i <= 255; i++) {
 			ttn = &typenames[i];
 			if (ttn->typename[0] == 0)
 				ttn->sorted = 1;
@@ -680,7 +680,7 @@ main(int argc, char **argv) {
 		fprintf(stdout, "#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) "
 		       "\\\n");
 		fprintf(stdout, "\tswitch (_hash) { \\\n");
-		for (i = 0 ; i <= 255 ; i++) {
+		for (i = 0; i <= 255; i++) {
 			ttn = &typenames[i];
 
 			/*
@@ -696,7 +696,7 @@ main(int argc, char **argv) {
 			 * Find all other entries that happen to match
 			 * this hash.
 			 */
-			for (j = 0 ; j <= 255 ; j++) {
+			for (j = 0; j <= 255; j++) {
 				ttn2 = &typenames[j];
 				if (ttn2->sorted != 0)
 					continue;
@@ -723,7 +723,7 @@ main(int argc, char **argv) {
 		fprintf(stdout, "\tdns_rdatatype_none = 0,\n");
 
 		lasttype = 0;
-		for (tt = types; tt != NULL ; tt = tt->next)
+		for (tt = types; tt != NULL; tt = tt->next)
 			if (tt->type != lasttype)
 				fprintf(stdout,
 					"\tdns_rdatatype_%s = %d,\n",
@@ -741,7 +741,7 @@ main(int argc, char **argv) {
 		fprintf(stdout, "#define dns_rdatatype_none\t"
 			"((dns_rdatatype_t)dns_rdatatype_none)\n");
 
-		for (tt = types; tt != NULL ; tt = tt->next)
+		for (tt = types; tt != NULL; tt = tt->next)
 			if (tt->type != lasttype) {
 				s = funname(tt->typename, buf1);
 				fprintf(stdout,
@@ -811,7 +811,7 @@ main(int argc, char **argv) {
 				fclose(fd);
 			}
 		}
-		for (tt = types; tt != NULL ; tt = tt->next) {
+		for (tt = types; tt != NULL; tt = tt->next) {
 			sprintf(buf, "%s/%s_%d.h",
 				tt->dirname, tt->typename, tt->type);
 			if ((fd = fopen(buf,"r")) != NULL) {
@@ -828,7 +828,7 @@ main(int argc, char **argv) {
 			}
 		}
 	} else if (depend) {
-		for (tt = types; tt != NULL ; tt = tt->next)
+		for (tt = types; tt != NULL; tt = tt->next)
 			fprintf(stdout, "%s:\t%s/%s_%d.h\n", file,
 				tt->dirname, tt->typename, tt->type);
 	}

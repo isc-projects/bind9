@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.13 2001/08/08 22:54:19 gson Exp $ */
+/* $Id: lwdgnba.c,v 1.14 2001/11/27 00:55:35 gson Exp $ */
 
 #include <config.h>
 
@@ -179,11 +179,11 @@ init_gnba(ns_lwdclient_t *client) {
 	 * Initialize the real name and alias arrays in the reply we're
 	 * going to build up.
 	 */
-	for (i = 0 ; i < LWRES_MAX_ALIASES ; i++) {
+	for (i = 0; i < LWRES_MAX_ALIASES; i++) {
 		client->aliases[i] = NULL;
 		client->aliaslen[i] = 0;
 	}
-	for (i = 0 ; i < LWRES_MAX_ADDRS ; i++) {
+	for (i = 0; i < LWRES_MAX_ADDRS; i++) {
 		client->addrs[i].family = 0;
 		client->addrs[i].length = 0;
 		memset(client->addrs[i].address, 0, LWRES_ADDR_MAXLEN);

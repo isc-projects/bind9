@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.23 2001/03/22 00:07:04 bwelling Exp $ */
+/* $Id: base64.c,v 1.24 2001/11/27 00:56:08 gson Exp $ */
 
 #include <config.h>
 
@@ -180,7 +180,7 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		if (token.type != isc_tokentype_string)
 			break;
 		tr = &token.value.as_textregion;
-		for (i = 0 ;i < tr->length; i++)
+		for (i = 0;i < tr->length; i++)
 			RETERR(base64_decode_char(&ctx, tr->base[i]));
 	}
 	if (ctx.length < 0 && !ctx.seen_end)

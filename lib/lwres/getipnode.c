@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.30 2001/07/18 02:37:08 mayer Exp $ */
+/* $Id: getipnode.c,v 1.31 2001/11/27 00:56:26 gson Exp $ */
 
 #include <config.h>
 
@@ -721,7 +721,7 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 	he->h_aliases = malloc(sizeof(char *) * (addr->naliases + 1));
 	if (he->h_aliases == NULL)
 		goto cleanup;
-	for (i = 0 ; i < addr->naliases; i++) {
+	for (i = 0; i < addr->naliases; i++) {
 		he->h_aliases[i] = strdup(addr->aliases[i]);
 		if (he->h_aliases[i] == NULL)
 			goto cleanup;
@@ -796,7 +796,7 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 	 * Copy aliases.
 	 */
 	he->h_aliases = malloc(sizeof(char *) * (name->naliases + 1));
-	for (i = 0 ; i < name->naliases; i++) {
+	for (i = 0; i < name->naliases; i++) {
 		he->h_aliases[i] = strdup(name->aliases[i]);
 		if (he->h_aliases[i] == NULL)
 			goto cleanup;
