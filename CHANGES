@@ -1,4 +1,4 @@
-1586.	[func]		"check-names" is now implemented.
+1586.  [func]          "check-names" is now implemented.
 
 1582.	[bug]		rrset-order failed to work on RRsets with more
 			than 32 elements. [RT #10381]
@@ -73,6 +73,9 @@
 
 1539.	[bug]		Open UDP sockets for notify-source and transfer-source
 			that use reserved ports at startup. [RT #9475]
+
+1537.	[func]		New option "querylog".  If set specify whether query
+			logging	is to be enabled or disabled at startup.
 
 1536.	[bug]		Windows socket code failed to log a error description
 			when returning ISC_R_UNEXPECTED. [RT #9998]
