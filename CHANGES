@@ -24,7 +24,7 @@
 1462.	[bug]		parse_sizeval() failed to check the token type.
 			[RT #5586]
 
-1461.	[bug]		Remove deadlock from rbtdb code. [RT #5999]
+1461.	[bug]		Remove deadlock from rbtdb code. [RT #5599]
 
 1460.	[bug]		inet_pton() failed to reject certain malformed
 			IPv6 literals.
@@ -1459,7 +1459,7 @@
 			a nonzero IP address rather than based on the
 			IFF_UP flag. [RT #1160]
 
- 984.	[bug]		Multi-threaded should be enabled by default on
+ 984.	[bug]		Multi-threading should be enabled by default on
 			Solaris 2.7 and newer, but it wasn't.
 
  983.	[func]		The server now supports generating IXFR difference
@@ -1857,7 +1857,7 @@
 			"severity debug 0;" like it did in BIND 9.1.
 			[RT #1367]
 
- 864.	[cleanup]	Multi-threaded is now enabled by default on
+ 864.	[cleanup]	Multi-threading is now enabled by default on
 			OSF1, Solaris 2.7 and newer, AIX, IRIX, and HP-UX.
 
  863.	[bug]		If an error occurred while an outgoing zone transfer
@@ -1958,7 +1958,7 @@
  838.	[port]		UnixWare 7.x.x is now suported by
 			bin/tests/system/ifconfig.sh.
 
- 837.	[cleanup]	Multi-threaded is now enabled by default only on
+ 837.	[cleanup]	Multi-threading is now enabled by default only on
 			OSF1, Solaris 2.7 and newer, and AIX.
 
  836.	[func]		Upgraded libtool to 1.4.
