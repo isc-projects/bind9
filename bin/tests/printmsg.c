@@ -153,7 +153,6 @@ printmessage(dns_message_t *msg) {
 
 	result = DNS_R_SUCCESS;
 
-	printf("rcode = %u\n", msg->rcode);
 	printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
 	       opcodetext[msg->opcode], rcodetext[msg->rcode], msg->id);
 
