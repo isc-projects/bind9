@@ -128,10 +128,14 @@ main(int argc, char *argv[]) {
 		comp = NULL;
 
 	dns_fixedname_init(&wname);
-	name = &wname.name;
+	name = dns_fixedname_name(&wname);
 	dns_fixedname_init(&wname2);
-	while (gets(s) != NULL) {
+	while (fgets(s, sizeof s, stdin) != NULL) {
 		len = strlen(s);
+		if (len > 0 && s[len - 1] == '\n') {
+			s[len - 1] = '\0';
+			len--;
+		}
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
 
@@ -139,84 +143,82 @@ main(int argc, char *argv[]) {
 			result = dns_name_fromtext(name, &source, origin,
 						   downcase, NULL);
 		else {
-			if (name == &wname.name)
+			if (name == dns_fixedname_name(&wname))
 				dns_fixedname_init(&wname);
 			else
 				dns_fixedname_init(&wname2);
 			result = DNS_R_SUCCESS;
 		}
 
-		if (result == DNS_R_SUCCESS) {
-			if (check_absolute &&
-			    dns_name_countlabels(name) > 0) {
-				if (dns_name_isabsolute(name))
-					printf("absolute\n");
-				else
-					printf("relative\n");
-			}
-			dns_name_toregion(name, &r);
-			if (!quiet) {
-				print_wirename(&r);
-				printf("%u labels, %u bytes.\n",
-				       dns_name_countlabels(name),
-				       r.length);
-			}
-		} else
+		if (result != DNS_R_SUCCESS) {
 			printf("%s\n", dns_result_totext(result));
+			if (name == dns_fixedname_name(&wname))
+				dns_fixedname_init(&wname);
+			else
+				dns_fixedname_init(&wname2);
+			continue;
+		}
+			
+		if (check_absolute && dns_name_countlabels(name) > 0) {
+			if (dns_name_isabsolute(name))
+				printf("absolute\n");
+			else
+				printf("relative\n");
+		}
+		dns_name_toregion(name, &r);
+		if (!quiet) {
+			print_wirename(&r);
+			printf("%u labels, %u bytes.\n",
+			       dns_name_countlabels(name), r.length);
+		}
 
-		if (result == DNS_R_SUCCESS) {
-			if (concatenate) {
-				if (got_name) {
-					printf("Concatenating.\n");
-					result = dns_name_concatenate(
-							      &wname.name,
+		if (concatenate) {
+			if (got_name) {
+				printf("Concatenating.\n");
+				result = dns_name_concatenate(&wname.name,
 							      &wname2.name,
 							      &wname2.name,
 							      NULL);
-					name = &wname2.name;
-					if (result == DNS_R_SUCCESS) {
-						if (check_absolute &&
+				name = &wname2.name;
+				if (result == DNS_R_SUCCESS) {
+					if (check_absolute &&
 					    dns_name_countlabels(name) > 0) {
-						 if (dns_name_isabsolute(name))
-							 printf("absolute\n");
-						 else
-							 printf("relative\n");
-						}
-						dns_name_toregion(name, &r);
-						if (!quiet) {
-							print_wirename(&r);
-							printf("%u labels, "
-							       "%u bytes.\n",
+						if (dns_name_isabsolute(name))
+							printf("absolute\n");
+						else
+							printf("relative\n");
+					}
+					dns_name_toregion(name, &r);
+					if (!quiet) {
+						print_wirename(&r);
+						printf("%u labels, "
+						       "%u bytes.\n",
 						   dns_name_countlabels(name),
-							       r.length);
-						}
-					} else
-						printf("%s\n",
-						  dns_result_totext(result));
-					got_name = ISC_FALSE;
+						       r.length);
+					}
 				} else
-					got_name = ISC_TRUE;
-			}
-			isc_buffer_init(&source, s, sizeof s,
-					ISC_BUFFERTYPE_TEXT);
-			if (dns_name_countlabels(name) > 0)
-				result = dns_name_totext(name, ISC_FALSE,
-							 &source);
-			else
-				result = DNS_R_SUCCESS;
-			if (result == DNS_R_SUCCESS) {
-				isc_buffer_used(&source, &r);
-				if (r.length > 0)
-					printf("%.*s\n", (int)r.length,
-					       r.base);
-				else
-					printf("<empty text name>\n");
-				if (!quiet) {
-					printf("%u bytes.\n", source.used);
-				}
+					printf("%s\n",
+					       dns_result_totext(result));
+				got_name = ISC_FALSE;
 			} else
-				printf("%s\n", dns_result_totext(result));
+				got_name = ISC_TRUE;
 		}
+		isc_buffer_init(&source, s, sizeof s, ISC_BUFFERTYPE_TEXT);
+		if (dns_name_countlabels(name) > 0)
+			result = dns_name_totext(name, ISC_FALSE, &source);
+		else
+			result = DNS_R_SUCCESS;
+		if (result == DNS_R_SUCCESS) {
+			isc_buffer_used(&source, &r);
+			if (r.length > 0)
+				printf("%.*s\n", (int)r.length, r.base);
+			else
+				printf("<empty text name>\n");
+			if (!quiet) {
+				printf("%u bytes.\n", source.used);
+			}
+		} else
+			printf("%s\n", dns_result_totext(result));
 
 		if (comp != NULL && dns_name_countlabels(name) > 0) {
 			int order;
