@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.190 $)
+AC_REVISION($Revision: 1.191 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1097,6 +1097,14 @@ case "$hack_shutup_stdargcast" in
 		AC_DEFINE(SHUTUP_STDARG_CAST)
 		;;
 esac
+
+
+#
+# Look for jade, preferring openjade if installed.
+#
+
+AC_PATH_PROGS(JADE, openjade jade, jade)
+AC_SUBST(JADE)
 
 #
 # Look for SGML style sheets.  NetBSD has them under /usr/pkg/share 
