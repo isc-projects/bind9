@@ -706,6 +706,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 		char namebuf[1024];
 		char typebuf[256];
 		isc_buffer_t b;
+		isc_region_t r;
 		
 		dns_name_format(val->event->name, namebuf, sizeof(namebuf));
 
@@ -718,10 +719,10 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 			RUNTIME_CHECK(isc_buffer_putstr(&b, "<bad type>")
 				      == ISC_R_SUCCESS);
 		}
-			
+		isc_buffer_used(&b, &r);
 		isc_log_write(dns_lctx, category, module, level,
 			      "validating %s %.*s: %s", namebuf,
-			      (int) b.length, (char *) b.base, msgbuf);
+			      (int) r.length, (char *) r.base, msgbuf);
 	} else {
 		isc_log_write(dns_lctx, category, module, level,
 			      "validator @%p: %s", val, msgbuf);
