@@ -21,60 +21,84 @@
 #include <string.h>
 
 #include <isc/boolean.h>
-#include <isc/error.h>
 
 #include <dns/rbt.h>
 
 char *progname;
+isc_mem_t *mctx;
+
+#define DNSNAMELEN 255
 
 static dns_name_t *
 create_name(char *s) {
 	int length;
 	isc_result_t result;
 	isc_buffer_t source, target;
-	static dns_name_t name;
-	static char buffer[256];
+	static dns_name_t *name;
 
-	/*
-	 * Note that this function uses static space for holding the
-	 * returned name.  This is fine for this test program, but probably
-	 * inadequate in most other programs that are not dealing with
-	 * solely one name at a time.
-	 */
+	if (s == NULL || *s == '\0') {
+		printf("missing name argument\n");
+		return (NULL);
+	}
 
 	length = strlen(s);
+
 	isc_buffer_init(&source, s, length, ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&source, length);
 
-	isc_buffer_init(&target, buffer, sizeof(buffer),
-			ISC_BUFFERTYPE_BINARY);
+	/*
+	 * It isn't really necessary in this program to create individual
+	 * memory spaces for each name structure and its associate character
+	 * string.  It is done in this program to provide a relatively
+	 * easy way to test the callback from dns_rbt_deletename that is
+	 * supposed to free the data associated with a node.
+	 *
+	 * The buffer for the actual name will immediately follow the
+	 * name structure.
+	 */
+	name = isc_mem_get(mctx, sizeof(*name) + DNSNAMELEN);
+	if (name == NULL) {
+		printf("out of memory!\n");
+		return (NULL);
+	}
 
-	dns_name_init(&name, NULL);
+	dns_name_init(name, NULL);
+	isc_buffer_init(&target, name + 1, DNSNAMELEN, ISC_BUFFERTYPE_BINARY);
 
-	result = dns_name_fromtext(&name, &source, dns_rootname, 0,
-				         &target);
+	result = dns_name_fromtext(name, &source, dns_rootname, 0, &target);
 
 	if (result != DNS_R_SUCCESS) {
 		printf("dns_name_fromtext(%s) failed: %s\n",
 		       s, dns_result_totext(result));
-		return NULL;
+		return (NULL);
 	}
 
-	return &name;
+	return (name);
 }
 
-/*
- * Not currently useful.  Will be changed so create_name allocates memory
- * and this function cleans it up.
- */
 static void
 delete_name(void *data) {
 	dns_name_t *name;
 
 	name = data;
+	isc_mem_put(mctx, data, sizeof(dns_name_t) + DNSNAMELEN);
+}
+
+static void
+print_data(void *data) {
+	isc_buffer_t target;
+	char *buffer[256];
+
+	isc_buffer_init(&target, buffer, sizeof(buffer), ISC_BUFFERTYPE_TEXT);
+
+	dns_name_totext(data, 1, &target);
+
+	printf("%.*s", (int)target.used, (char *)target.base);
 }
 
 #define CMDCHECK(s)	(strncasecmp(command, (s), length) == 0)
+#define PRINTERR(r)	if (r != DNS_R_SUCCESS) \
+				printf("... %s\n", dns_result_totext(r));
 
 void
 main (int argc, char **argv) {
@@ -84,7 +108,6 @@ main (int argc, char **argv) {
 	dns_rbt_t *rbt;
 	dns_rbtnode_t *node;
 	isc_result_t result;
-	isc_mem_t *mctx;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -99,12 +122,19 @@ main (int argc, char **argv) {
 
 	setbuf(stdout, NULL);
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	result = isc_mem_create(0, 0, &mctx);
+	if (result != ISC_R_SUCCESS) {
+		printf("isc_mem_create: %s: exiting\n",
+		       dns_result_totext(result));
+		exit(1);
+	}
 
 	result = dns_rbt_create(mctx, delete_name, &rbt);
-	if (result != DNS_R_SUCCESS)
+	if (result != DNS_R_SUCCESS) {
 		printf("dns_rbt_create: %s: exiting\n",
 		       dns_result_totext(result));
+		exit(1);
+	}
 
 	whitespace = " \t";
 
@@ -129,67 +159,50 @@ main (int argc, char **argv) {
 		length = strlen(command);
 		if (*command != '\0') {
 			if (CMDCHECK("add")) {
-				if (arg != NULL && *arg != '\0') {
-					name = create_name(arg);
-					if (name != NULL) {
-						printf("adding name %s\n",
-						       arg);
-						result = dns_rbt_addname(rbt,
+				name = create_name(arg);
+				if (name != NULL) {
+					printf("adding name %s\n", arg);
+					result = dns_rbt_addname(rbt,
 								 name, name);
-						if (result != DNS_R_SUCCESS)
-							printf("... %s\n",
-						    dns_result_totext(result));
-					}
-				} else
-					printf("usage: add NAME\n");
+					PRINTERR(result);
+				}
 
 			} else if (CMDCHECK("delete")) {
-				if (arg != NULL && *arg != '\0') {
-					name = create_name(arg);
-					if (name != NULL) {
-						printf("deleting name %s\n",
-						       arg);
-						result = dns_rbt_deletename
-							    (rbt, name,
-							     ISC_FALSE);
-						if (result != DNS_R_SUCCESS)
-							printf("... %s\n",
-						    dns_result_totext(result));
-					}
-				} else
-					printf("usage: delete NAME\n");
+				name = create_name(arg);
+				if (name != NULL) {
+					printf("deleting name %s\n", arg);
+					result = dns_rbt_deletename(rbt, name,
+								    ISC_FALSE);
+					PRINTERR(result);
+					delete_name(name);
+				}
 
 			} else if (CMDCHECK("nuke")) {
-				if (arg != NULL && *arg != '\0') {
-					name = create_name(arg);
-					if (name != NULL) {
-						printf("deleting name %s\n",
-						       arg);
-						result = dns_rbt_deletename
-							    (rbt, name,
-							     ISC_TRUE);
-						if (result != DNS_R_SUCCESS)
-							printf("... %s\n",
-						    dns_result_totext(result));
-					}
-				} else
-					printf("usage: delete NAME\n");
+				name = create_name(arg);
+				if (name != NULL) {
+					printf("deleting name %s\n", arg);
+					result = dns_rbt_deletename(rbt, name,
+								    ISC_TRUE);
+					PRINTERR(result);
+					delete_name(name);
+				}
 
 			} else if (CMDCHECK("search")) {
-				if (arg != NULL && *arg != '\0') {
-					name = create_name(arg);
-					if (name != NULL) {
-						printf("searching for "
-						       "name %s ... ", arg);
-						node = dns_rbt_findnode
-							(rbt, name, NULL);
-						if (node != NULL)
-							printf("found it.\n");
-						else
-							printf("NOT FOUND!\n");
-					}
-				} else
-					printf("usage: search NAME\n");
+				name = create_name(arg);
+				if (name != NULL) {
+					printf("searching for name %s ... ",
+					       arg);
+					node = dns_rbt_findnode(rbt, name,
+								NULL);
+					if (node != NULL) {
+						printf("found it: ");
+						print_data(node->data);
+						putchar('\n');
+
+					} else
+						printf("NOT FOUND!\n");
+					delete_name(name);
+				}
 
 
 			} else if (CMDCHECK("print")) {
