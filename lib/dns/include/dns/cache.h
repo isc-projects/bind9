@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.h,v 1.14 2000/08/31 12:15:12 marka Exp $ */
+/* $Id: cache.h,v 1.15 2000/08/31 16:55:43 gson Exp $ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
@@ -222,7 +222,7 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int interval);
 void
 dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size);
 /*
- * Set cache size. 0 => infinite.
+ * Set the maximum cache size.  0 means unlimited.
  */
 
 ISC_LANG_ENDDECLS

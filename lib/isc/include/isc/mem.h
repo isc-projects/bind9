@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.41 2000/08/31 12:15:17 marka Exp $ */
+/* $Id: mem.h,v 1.42 2000/08/31 16:58:28 gson Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -162,7 +162,8 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  *
  * Requires:
  * 	If 'water' is NULL then 'water_arg', 'hi_water' and 'lo_water' are
- *	ignored and the state is reset otherwise.
+ *	ignored and the state is reset.  Otherwise, requires
+ *
  *	'water' to point to a valid function.
  *	'hi_water > lo_water'
  *	'lo_water != 0'
