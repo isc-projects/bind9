@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.20 2000/08/01 01:11:54 tale Exp $ */
+/* $Id: notify.c,v 1.21 2000/11/28 03:17:48 marka Exp $ */
 
 #include <config.h>
 
@@ -179,6 +179,7 @@ ns_notify_start(ns_client_t *client) {
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
 	case dns_zone_slave:
+	case dns_zone_stub:	/* Allow dialup passive to work. */
 		respond(client, dns_zone_notifyreceive(zone,
 			ns_client_getsockaddr(client), request));
 		break;
