@@ -1,4 +1,8 @@
 
+  11.	[bug]		axfr_rrstream_first() didn't check the result code of
+			db_rr_iterator_first(), possibly causing an assertion
+			to be triggered later.
+
   10.	[bug]		An bug in the code which makes EDNS0 OPT records in
 			bin/named/client.c and lib/dns/resolver.c could
 			trigger an assertion.
