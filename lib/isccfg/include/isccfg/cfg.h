@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.9 2001/02/22 04:17:37 gson Exp $ */
+/* $Id: cfg.h,v 1.10 2001/02/22 20:41:43 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -272,7 +272,7 @@ void cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **obj);
  */
 
 void
-cfg_obj_log(cfg_parser_t *pctx, cfg_obj_t *obj, int level,
+cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level,
 	    const char *fmt, ...);
 /*
  * Log a message concerning configuration object 'obj' to the logging
