@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.80 2000/11/15 19:06:04 gson Exp $ */
+/* $Id: master.c,v 1.81 2000/11/23 05:04:54 marka Exp $ */
 
 #include <config.h>
 
@@ -1347,7 +1347,7 @@ load(dns_loadctx_t **ctxp) {
 		 */
 		if ((target.length - target.used) < MINTSIZ)
 			COMMITALL;
-	} while (!done && (ctx->loop_cnt == 0 || ctx->loop_cnt < loop_cnt++));
+	} while (!done && (ctx->loop_cnt == 0 || loop_cnt++ < ctx->loop_cnt));
 
 	/*
 	 * Commit what has not yet been committed.
