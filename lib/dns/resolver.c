@@ -1865,6 +1865,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	isc_boolean_t need_validation, have_answer, is_answer;
 	isc_result_t result, eresult;
 	dns_fetchevent_t *event;
+	unsigned int options;
 
 	/*
 	 * The appropriate bucket lock must be held.
@@ -1993,10 +1994,21 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					eresult = DNS_R_DNAME;
 				}
 			}
+			if (rdataset->trust == dns_trust_glue) {
+				/*
+				 * If the trust level is 'dns_trust_glue'
+				 * then we are adding data from a referral
+				 * we got while executing the search algorithm.
+				 * New referral data always takes precedence
+				 * over the existing cache contents.
+				 */
+				options = DNS_DBADD_FORCE;
+			} else
+				options = 0;
 			result = dns_db_addrdataset(res->view->cachedb,
 						    node, NULL, now,
 						    rdataset,
-						    ISC_FALSE,
+						    options,
 						    addedrdataset);
 			if (result == DNS_R_UNCHANGED) {
 				if (ANSWER(rdataset) &&
@@ -3377,6 +3389,7 @@ dns_resolver_create(dns_view_t *view,
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i, buckets_created = 0;
 	in_port_t port = 5353;
+	char name[16];
 
 	/*
 	 * Create a resolver.
@@ -3410,11 +3423,13 @@ dns_resolver_create(dns_view_t *view,
 			goto cleanup_buckets;
 		res->buckets[i].task = NULL;
 		result = isc_task_create(taskmgr, view->mctx, 0,
-					  &res->buckets[i].task);
+					 &res->buckets[i].task);
 		if (result != ISC_R_SUCCESS) {
 			isc_mutex_destroy(&res->buckets[i].lock);
 			goto cleanup_buckets;
 		}
+		sprintf(name, "res%u", i);
+		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
 		res->buckets[i].exiting = ISC_FALSE;
 		buckets_created++;
