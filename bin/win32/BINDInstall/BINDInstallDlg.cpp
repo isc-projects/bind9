@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.1 2001/08/30 20:27:55 gson Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.2 2002/02/19 04:45:34 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -399,8 +399,6 @@ void CBINDInstallDlg::OnInstall()
 		}
 	}
 
-	ProgramGroup();
-
 	try
 	{
 		CreateDirs();
@@ -434,8 +432,6 @@ void CBINDInstallDlg::OnInstall()
 			RegCloseKey(hKey);
 		}
 	
-		ProgramGroup();
-		
 		if(m_startOnInstall && !m_reboot)
 			StartBINDService();
 	}
