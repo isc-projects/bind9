@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.194 2001/03/06 01:23:03 bwelling Exp $ */
+/* $Id: socket.c,v 1.195 2001/04/10 21:38:33 gson Exp $ */
 
 #include <config.h>
 
@@ -1627,7 +1627,6 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	ISC_SOCKADDR_LEN_T addrlen;
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_boolean_t failed = ISC_FALSE;
 
 	UNUSED(me);
 
@@ -1674,7 +1673,11 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
 		    (void *)&addrlen);
 	if (fd < 0) {
-		if (! SOFT_ERROR(errno)) {
+		if (SOFT_ERROR(errno)) {
+			select_poke(sock->manager, sock->fd, SELECT_POKE_ACCEPT);
+			UNLOCK(&sock->lock);
+			return;
+		} else {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept: accept() %s: %s",
 					 isc_msgcat_get(isc_msgcat,
@@ -1682,8 +1685,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 							ISC_MSG_FAILED,
 							"failed"),
 					 strerror(errno));
+			result = ISC_R_UNEXPECTED;
 		}
-		failed = ISC_TRUE;
 	} else {
 		if (addrlen == 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1692,7 +1695,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 					 "remote address");
 
 			(void)close(fd);
-			failed = ISC_TRUE;
+			fd = -1;
+			result = ISC_R_UNEXPECTED;			
 		} else if (dev->newsocket->address.type.sa.sa_family !=
 			   sock->pf)
 		{
@@ -1704,18 +1708,15 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 					 type.sa.sa_family,
 					 sock->pf);
 			(void)close(fd);
-			failed = ISC_TRUE;
+			fd = -1;
+			result = ISC_R_UNEXPECTED;			
 		}
 	}
 
-	if (failed) {
-		select_poke(sock->manager, sock->fd, SELECT_POKE_ACCEPT);
-		UNLOCK(&sock->lock);
-		return;
+	if (fd != -1) {
+		dev->newsocket->address.length = addrlen;
+		dev->newsocket->pf = sock->pf;
 	}
-
-	dev->newsocket->address.length = addrlen;
-	dev->newsocket->pf = sock->pf;
 
 	/*
 	 * Pull off the done event.
@@ -1765,6 +1766,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 
 	UNLOCK(&manager->lock);
 
+	if (fd == -1)
+		isc_socket_detach(&dev->newsocket);
+	
 	/*
 	 * Fill in the done event details and send it off.
 	 */
