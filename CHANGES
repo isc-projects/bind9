@@ -1,3 +1,5 @@
+ 807.	[bug]		xfrin was not ignoring the transfer-source port.
+
  806.	[bug]		DNS_R_SEENINCLUDE was failing to propagate back up
 			the calling stack to the zone maintence level.
 
