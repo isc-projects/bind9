@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.11 2004/09/01 07:08:34 marka Exp $ */
+/* $Id: main.c,v 1.119.2.12 2004/10/25 00:50:53 marka Exp $ */
 
 #include <config.h>
 
@@ -516,6 +516,15 @@ setup(void) {
 	if (!ns_g_foreground)
 		ns_os_daemonize();
 
+	/*
+	 * We call isc_app_start() here as some versions of FreeBSD's fork()
+	 * destroys all the signal handling it sets up.
+	 */
+	result = isc_app_start();
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("isc_app_start() failed: %s",
+				   isc_result_totext(result));
+
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
 		      saved_command_line);
@@ -688,11 +697,6 @@ main(int argc, char *argv[]) {
 	isc_error_setunexpected(library_unexpected_error);
 
 	ns_os_init(program_name);
-
-	result = isc_app_start();
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("isc_app_start() failed: %s",
-				   isc_result_totext(result));
 
 	result = isc_mem_create(0, 0, &ns_g_mctx);
 	if (result != ISC_R_SUCCESS)
