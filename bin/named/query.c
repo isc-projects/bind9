@@ -1643,9 +1643,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		INSIST(!is_zone);
 		INSIST(client->view->hints != NULL);
-		result = dns_db_find(client->view->hints, dns_rootname,
-				     NULL, dns_rdatatype_ns, 0,
-				     client->requesttime, &node, fname,
+		dns_db_detach(&db);
+		dns_db_attach(client->view->hints, &db);
+		result = dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns,
+				     0, client->requesttime, &node, fname,
 				     rdataset, sigrdataset);
 		if (result != ISC_R_SUCCESS) {
 			/*
