@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.281 2000/12/22 02:43:42 marka Exp $ */
+/* $Id: zone.c,v 1.282 2000/12/22 05:55:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1987,13 +1987,11 @@ dns_zone_refresh(dns_zone_t *zone) {
 		if ((oldflags & DNS_ZONEFLG_NOMASTERS) == 0)
 			zone_log(zone, "dns_zone_refresh", ISC_LOG_ERROR,
 				 "no masters");
-		UNLOCK_ZONE(zone);
-		return;
+		goto unlock;
 	}
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
-	UNLOCK_ZONE(zone);
 	if ((oldflags & (DNS_ZONEFLG_REFRESH|DNS_ZONEFLG_LOADING)) != 0)
-		return;
+		goto unlock;
 
 	/*
 	 * Set the next refresh time as if refresh check has failed.
@@ -2018,6 +2016,8 @@ dns_zone_refresh(dns_zone_t *zone) {
 	zone->refreshcnt = 0;
 	/* initiate soa query */
 	queue_soa_query(zone);
+ unlock:
+	UNLOCK_ZONE(zone);
 }
 
 isc_result_t
@@ -2958,8 +2958,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_ZONE(zone);
 		goto free_stub;
 	}
-	UNLOCK_ZONE(zone);
 	queue_soa_query(zone);
+	UNLOCK_ZONE(zone);
 	goto free_stub;
 
  same_master:
@@ -3224,8 +3224,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_ZONE(zone);
 		goto detach;
 	}
-	UNLOCK_ZONE(zone);
 	queue_soa_query(zone);
+	UNLOCK_ZONE(zone);
 	goto detach;
 
  same_master:
@@ -3235,8 +3235,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
-	UNLOCK_ZONE(zone);
 	queue_soa_query(zone);
+	UNLOCK_ZONE(zone);
  detach:
 	dns_zone_idetach(&zone);
 	return;
@@ -3250,6 +3250,10 @@ queue_soa_query(dns_zone_t *zone) {
 	isc_result_t result;
 
 	DNS_ENTER;
+	/*
+	 * Locked by caller
+	 */
+	REQUIRE(LOCKED_ZONE(zone));
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		cancel_refresh(zone);
@@ -3267,13 +3271,13 @@ queue_soa_query(dns_zone_t *zone) {
 	 * Attach so that we won't clean up
 	 * until the event is delivered.
 	 */
-	dns_zone_iattach(zone, &dummy);
+	zone_iattach(zone, &dummy);
 
 	e->ev_arg = zone;
 	e->ev_sender = NULL;
 	result = isc_ratelimiter_enqueue(zone->zmgr->rl, zone->task, &e);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_idetach(&dummy);
+		zone_idetach(&dummy);
 		isc_event_free(&e);
 		cancel_refresh(zone);
 	}
@@ -3426,6 +3430,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
 	DNS_ENTER;
 
+	LOCK_ZONE(zone);
 	if (stub == NULL) {
 		stub = isc_mem_get(zone->mctx, sizeof *stub);
 		if (stub == NULL)
@@ -3439,7 +3444,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		/*
 		 * Attach so that the zone won't disappear from under us.
 		 */
-		dns_zone_iattach(zone, &stub->zone);
+		zone_iattach(zone, &stub->zone);
 
 		/*
 		 * If a db exists we will update it, otherwise we create a
@@ -3495,11 +3500,9 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	 */
 	result = create_query(zone, dns_rdatatype_ns, &message);
 
-	LOCK_ZONE(zone);
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
 	zone->masteraddr = zone->masters[zone->curmaster];
-	UNLOCK_ZONE(zone);
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	(void)dns_view_getpeertsig(zone->view, &masterip, &key);	
@@ -3518,13 +3521,11 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	}
-	LOCK_ZONE(zone);
 	result = dns_request_createvia(zone->view->requestmgr, message,
 				       &src, &zone->masteraddr,
 				       DNS_REQUESTOPT_TCP, key, 15 /* XXX */,
 				       zone->task, stub_callback, stub,
 				       &zone->request);
-	UNLOCK_ZONE(zone);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_DEBUG(1),
 			 "dns_request_createvia failed: %s",
@@ -3532,7 +3533,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		goto cleanup;
 	}
 	dns_message_destroy(&message);
-	return;
+	goto unlock;
 
  cleanup:
 	cancel_refresh(zone);
@@ -3544,10 +3545,12 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		if (stub->db != NULL)
 			dns_db_detach(&stub->db);
 		isc_mem_put(stub->mctx, stub, sizeof(*stub));
-		dns_zone_idetach(&zone);
+		zone_idetach(&zone);
 	}
 	if (message != NULL)
 		dns_message_destroy(&message);
+  unlock:
+	UNLOCK_ZONE(zone);
 	return;
 }
 
@@ -4645,7 +4648,6 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		break;
 	}
 	zone_settimer(zone, now);
-	UNLOCK_ZONE(zone);
 
 	/*
 	 * If creating the transfer object failed, zone->xfr is NULL.
@@ -4659,7 +4661,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 	/*
 	 * This transfer finishing freed up a transfer quota slot.
-	 * Let any zones waiting for quota have it.
+	 * Let any other zones waiting for quota have it.
 	 */
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
@@ -4673,6 +4675,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 */
 	if (again && !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		queue_soa_query(zone);
+	UNLOCK_ZONE(zone);
 }
 
 static void
