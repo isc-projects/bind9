@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.37 2000/07/24 22:59:37 explorer Exp $ */
+/* $Id: confview.c,v 1.38 2000/07/25 17:55:40 brister Exp $ */
 
 #include <config.h>
 
@@ -474,6 +474,8 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->fetch_glue = NULL;
 	view->notify = NULL;
 	view->rfc2308_type1 = NULL;
+	view->glue_from_cache = NULL;
+	view->glue_from_auth = NULL;
 	
 	view->transfer_source = NULL;
 	view->transfer_source_v6 = NULL;
@@ -665,6 +667,8 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_AS_BOOLEAN(fetch_glue, "fetch-glue");
 	PRINT_AS_BOOLEAN(notify, "notify");
 	PRINT_AS_BOOLEAN(rfc2308_type1, "rfc2308-type1");
+	PRINT_AS_BOOLEAN(glue_from_auth, "glue-from-auth");
+	PRINT_AS_BOOLEAN(glue_from_cache, "glue-from-cache");
 
 
 	PRINT_IP(transfer_source, "transfer-source");
@@ -802,6 +806,8 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(fetch_glue);
 	FREEFIELD(notify);
 	FREEFIELD(rfc2308_type1);
+	FREEFIELD(glue_from_auth);
+	FREEFIELD(glue_from_cache);
 
 	FREEFIELD(transfer_source);
 	FREEFIELD(transfer_source_v6);
@@ -1468,6 +1474,14 @@ UNSETNOTIFYTYPE(notify, notify)
 SETBOOL(rfc2308type1, rfc2308_type1)
 GETBOOL(rfc2308type1, rfc2308_type1)
 UNSETBOOL(rfc2308type1, rfc2308_type1)
+
+SETBOOL(gluefromcache, glue_from_cache)
+GETBOOL(gluefromcache, glue_from_cache)
+UNSETBOOL(gluefromcache, glue_from_cache)
+
+SETBOOL(gluefromauth, glue_from_auth)
+GETBOOL(gluefromauth, glue_from_auth)
+UNSETBOOL(gluefromauth, glue_from_auth)
 
 GETSOCKADDR(transfersource, transfer_source)
 SETSOCKADDR(transfersource, transfer_source)

@@ -1,3 +1,7 @@
+ 348.	[func]		New named.conf boolean values 'glue-from-auth' and
+			'glue-from-cache' now supported in view and global
+			options statement.
+
  347.	[bug]		Don't crash if when an argument is left off
 			options in dig.
 

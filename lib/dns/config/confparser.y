@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.105 2000/07/24 23:32:31 gson Exp $ */
+/* $Id: confparser.y,v 1.106 2000/07/25 17:55:39 brister Exp $ */
 
 #include <config.h>
 
@@ -283,6 +283,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_FIRST
 %token		L_FORWARD
 %token		L_FORWARDERS
+%token		L_GLUE_FROM_AUTH
+%token		L_GLUE_FROM_CACHE
 %token		L_GRANT
 %token		L_GROUP
 %token		L_HAS_OLD_CLIENTS
@@ -883,6 +885,24 @@ option: /* Empty */
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine treat-cr-as-space");
+			YYABORT;
+		}
+	}
+	| L_GLUE_FROM_CACHE yea_or_nay
+	{
+		tmpres = dns_c_ctx_setgluefromcache(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine glue-from-cache");
+			YYABORT;
+		}
+	}
+	| L_GLUE_FROM_AUTH yea_or_nay
+	{
+		tmpres = dns_c_ctx_setgluefromauth(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine glue-from-auth");
 			YYABORT;
 		}
 	}
@@ -3663,6 +3683,40 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_GLUE_FROM_CACHE yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setgluefromcache(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view glue-from-cache");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view glue-from-cache");
+			YYABORT;
+		}
+	}
+	| L_GLUE_FROM_AUTH yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setgluefromauth(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view glue-from-auth");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view glue-from-auth");
+			YYABORT;
+		}
+	}
 	| L_QUERY_SOURCE query_source_v4
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -5181,19 +5235,18 @@ static struct token keyword_tokens [] = {
 	{ "algorithm",			L_ALGID },
 	{ "allow",			L_ALLOW },
 	{ "allow-query",		L_ALLOW_QUERY },
-	{ "allow-transfer",		L_ALLOW_TRANSFER },
 	{ "allow-recursion",		L_ALLOW_RECURSION },
+	{ "allow-transfer",		L_ALLOW_TRANSFER },
 	{ "allow-update",		L_ALLOW_UPDATE },
 	{ "allow-update-forwarding",	L_ALLOW_UPDATE_FORWARDING },
 	{ "also-notify",		L_ALSO_NOTIFY },
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
 	{ "blackhole",			L_BLACKHOLE },
 	{ "bogus",			L_BOGUS },
-	{ "max-cache-size",		L_MAX_CACHE_SIZE },
 	{ "category",			L_CATEGORY },
-	{ "class",			L_CLASS },
 	{ "channel",			L_CHANNEL },
 	{ "check-names",		L_CHECK_NAMES },
+	{ "class",			L_CLASS },
 	{ "cleaning-interval",		L_CLEAN_INTERVAL },
 	{ "controls",			L_CONTROLS },
 	{ "coresize",			L_CORESIZE },
@@ -5202,12 +5255,14 @@ static struct token keyword_tokens [] = {
 	{ "deallocate-on-exit",		L_DEALLOC_ON_EXIT },
 	{ "debug",			L_DEBUG },
 	{ "default",			L_DEFAULT },
+	{ "deny",			L_DENY },
 	{ "dialup",			L_DIALUP },
 	{ "directory",			L_DIRECTORY },
 	{ "dump-file",			L_DUMP_FILE },
 	{ "dynamic",			L_DYNAMIC },
 	{ "enable-zone",		L_ENABLE_ZONE },
 	{ "expert-mode",		L_EXPERT_MODE },
+	{ "explicit",			L_EXPLICIT },
 	{ "fail",			L_FAIL },
 	{ "fake-iquery",		L_FAKE_IQUERY },
 	{ "false",			L_FALSE },
@@ -5217,11 +5272,9 @@ static struct token keyword_tokens [] = {
 	{ "first",			L_FIRST },
 	{ "forward",			L_FORWARD },
 	{ "forwarders",			L_FORWARDERS },
+	{ "glue-from-auth",		L_GLUE_FROM_AUTH },
+	{ "glue-from-cache",		L_GLUE_FROM_CACHE },
 	{ "grant",			L_GRANT },
-	{ "deny",			L_DENY },
-	{ "subdomain",			L_SUBDOMAIN },
-	{ "self",			L_SELF },
-	{ "wildcard",			L_WILDCARD },
 	{ "group",			L_GROUP },
 	{ "has-old-clients",		L_HAS_OLD_CLIENTS },
 	{ "heartbeat-interval",		L_HEARTBEAT },
@@ -5247,18 +5300,19 @@ static struct token keyword_tokens [] = {
 	{ "master",			L_MASTER },
 	{ "masters",			L_MASTERS },
 	{ "match-clients",		L_MATCH_CLIENTS },
-	{ "max-ixfr-log-size",		L_MAX_LOG_SIZE_IXFR },
+	{ "max-cache-size",		L_MAX_CACHE_SIZE },
 	{ "max-cache-ttl",		L_MAX_CACHE_TTL },
+	{ "max-ixfr-log-size",		L_MAX_LOG_SIZE_IXFR },
 	{ "max-ncache-ttl",		L_MAX_NCACHE_TTL },
-	{ "max-transfer-time-in",	L_MAX_TRANSFER_TIME_IN },
-	{ "max-transfer-time-out",	L_MAX_TRANSFER_TIME_OUT },
 	{ "max-transfer-idle-in",	L_MAX_TRANSFER_IDLE_IN },
 	{ "max-transfer-idle-out",	L_MAX_TRANSFER_IDLE_OUT },
+	{ "max-transfer-time-in",	L_MAX_TRANSFER_TIME_IN },
+	{ "max-transfer-time-out",	L_MAX_TRANSFER_TIME_OUT },
 	{ "maximal",			L_MAXIMAL },
 	{ "memstatistics-file",		L_MEMSTATS_FILE },
-	{ "multiple-cnames",		L_MULTIPLE_CNAMES },
 	{ "min-roots",			L_MIN_ROOTS },
 	{ "minimal",			L_MINIMAL },
+	{ "multiple-cnames",		L_MULTIPLE_CNAMES },
 	{ "name",			L_NAME },
 	{ "named-xfer",			L_NAMED_XFER },
 	{ "no",				L_NO },
@@ -5266,8 +5320,8 @@ static struct token keyword_tokens [] = {
 	{ "null",			L_NULL_OUTPUT },
 	{ "one-answer",			L_ONE_ANSWER },
 	{ "only",			L_ONLY },
-	{ "order",			L_ORDER },
 	{ "options",			L_OPTIONS },
+	{ "order",			L_ORDER },
 	{ "owner",			L_OWNER },
 	{ "perm",			L_PERM },
 	{ "pid-file",			L_PIDFILE },
@@ -5281,15 +5335,16 @@ static struct token keyword_tokens [] = {
 	{ "query-source-v6",		L_QUERY_SOURCE_V6 },
 	{ "random-device",		L_RANDOM_DEVICE },
 	{ "random-seed-file",		L_RANDOM_SEED_FILE },
-	{ "request-ixfr",		L_REQUEST_IXFR },
-	{ "rfc2308-type1",		L_RFC2308_TYPE1 },
-	{ "rrset-order",		L_RRSET_ORDER },
 	{ "recursion",			L_RECURSION },
 	{ "recursive-clients",		L_RECURSIVE_CLIENTS },
+	{ "request-ixfr",		L_REQUEST_IXFR },
 	{ "response",			L_RESPONSE },
+	{ "rfc2308-type1",		L_RFC2308_TYPE1 },
+	{ "rrset-order",		L_RRSET_ORDER },
 	{ "secret",			L_SECRET },
-	{ "server",			L_SERVER },
+	{ "self",			L_SELF },
 	{ "serial-queries",		L_SERIAL_QUERIES },
+	{ "server",			L_SERVER },
 	{ "severity",			L_SEVERITY },
 	{ "sig-validity-interval",	L_SIG_VALIDITY_INTERVAL },
 	{ "size",			L_SIZE },
@@ -5300,11 +5355,12 @@ static struct token keyword_tokens [] = {
 	{ "statistics-interval",	L_STATS_INTERVAL },
 	{ "stderr",			L_STDERR },
 	{ "stub",			L_STUB },
+	{ "subdomain",			L_SUBDOMAIN },
 	{ "support-ixfr",		L_SUPPORT_IXFR },
 	{ "syslog",			L_SYSLOG },
 	{ "tcp-clients",		L_TCP_CLIENTS },
-	{ "tkey-domain",		L_TKEY_DOMAIN },
 	{ "tkey-dhkey",			L_TKEY_DHKEY },
+	{ "tkey-domain",		L_TKEY_DOMAIN },
 	{ "topology",			L_TOPOLOGY },
 	{ "transfer-format",		L_TRANSFER_FORMAT },
 	{ "transfer-source",		L_TRANSFER_SOURCE },
@@ -5326,9 +5382,9 @@ static struct token keyword_tokens [] = {
 	{ "versions",			L_VERSIONS },
 	{ "view",			L_VIEW },
 	{ "warn",			L_WARN },
+	{ "wildcard",			L_WILDCARD },
 	{ "yes",			L_YES },
 	{ "zone",			L_ZONE },
-	{ "explicit",			L_EXPLICIT },
 
 	{ NULL, 0 }
 };

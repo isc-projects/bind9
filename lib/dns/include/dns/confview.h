@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.31 2000/07/24 22:59:41 explorer Exp $ */
+/* $Id: confview.h,v 1.32 2000/07/25 17:55:43 brister Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -124,6 +124,8 @@ struct dns_c_view {
         isc_boolean_t          *fetch_glue;
         isc_boolean_t          *notify;
         isc_boolean_t          *rfc2308_type1;
+        isc_boolean_t          *glue_from_auth;
+        isc_boolean_t          *glue_from_cache;
 
         isc_sockaddr_t         *query_source;
         isc_sockaddr_t         *query_source_v6;

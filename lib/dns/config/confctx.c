@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.74 2000/07/24 22:59:34 explorer Exp $ */
+/* $Id: confctx.c,v 1.75 2000/07/25 17:55:37 brister Exp $ */
 
 #include <config.h>
 
@@ -981,6 +981,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(request_ixfr, "request-ixfr");
 	PRINT_AS_BOOLEAN(provide_ixfr, "provide-ixfr");
 	PRINT_AS_BOOLEAN(treat_cr_as_space, "treat-cr-as-space");
+	PRINT_AS_BOOLEAN(glue_from_auth, "glue-from-auth");
+	PRINT_AS_BOOLEAN(glue_from_cache, "glue-from-cache");
 
 	if (options->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -1496,6 +1498,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->request_ixfr = NULL;
 	opts->provide_ixfr = NULL;
 	opts->treat_cr_as_space = NULL;
+	opts->glue_from_auth = NULL;
+	opts->glue_from_cache = NULL;
 
 	opts->transfer_source = NULL;
 	opts->transfer_source_v6 = NULL;
@@ -1602,7 +1606,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(request_ixfr);
 	FREEFIELD(provide_ixfr);
 	FREEFIELD(treat_cr_as_space);
-
+	FREEFIELD(glue_from_cache);
+	FREEFIELD(glue_from_auth);
 	
 	FREEFIELD(port);
 	
@@ -1969,6 +1974,16 @@ SETBOOL(treatcrasspace, treat_cr_as_space)
 UNSETBOOL(treatcrasspace, treat_cr_as_space)
 
 
+GETBOOL(gluefromauth, glue_from_auth)
+SETBOOL(gluefromauth, glue_from_auth)
+UNSETBOOL(gluefromauth, glue_from_auth)
+
+	
+GETBOOL(gluefromcache, glue_from_cache)
+SETBOOL(gluefromcache, glue_from_cache)
+UNSETBOOL(gluefromcache, glue_from_cache)
+
+	
 GETSOCKADDR(transfersource, transfer_source)
 SETSOCKADDR(transfersource, transfer_source)
 UNSETSOCKADDR(transfersource, transfer_source)
