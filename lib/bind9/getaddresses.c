@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.11 2002/06/06 00:55:48 marka Exp $ */
+/* $Id: getaddresses.c,v 1.12 2002/07/29 00:35:17 marka Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -99,7 +99,9 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	case 0:
 		break;
 	case EAI_NONAME:
+#ifdef EAI_NODATA
 	case EAI_NODATA:
+#endif
 		return (ISC_R_NOTFOUND);
 	default:
 		return (ISC_R_FAILURE);
