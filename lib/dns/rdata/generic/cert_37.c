@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.27 2000/05/15 21:14:21 tale Exp $ */
+/* $Id: cert_37.c,v 1.28 2000/05/19 02:02:11 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -182,7 +182,7 @@ tostruct_cert(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 37);
-	REQUIRE(target != NULL && target == NULL);
+	REQUIRE(target != NULL);
 
 	cert->common.rdclass = rdata->rdclass;
 	cert->common.rdtype = rdata->type;
