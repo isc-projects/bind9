@@ -37,7 +37,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.4 2000/08/01 01:16:14 tale Exp $
+# $Id: update_test.pl,v 1.5 2000/12/16 00:58:03 gson Exp $
 #
 
 use Getopt::Std;
@@ -375,12 +375,40 @@ section("Updating TTLs only");
 
 test("NOERROR", ["update", rr_add("t.$zone 300 A 73.80.65.49")]);
 ($a) = $res->query("t.$zone", "A")->answer;
-assert($a->ttl == 300);
+$ttl = $a->ttl;
+assert($ttl == 300, "incorrect TTL value $ttl != 300");
 test("NOERROR", ["update",
 		 rr_del("t.$zone 300 A 73.80.65.49"),
 		 rr_add("t.$zone 301 A 73.80.65.49")]);
 ($a) = $res->query("t.$zone", "A")->answer;
-assert($a->ttl == 301);
+$ttl = $a->ttl;
+assert($ttl == 301, "incorrect TTL value $ttl != 301");
+
+# Add an RR that is identical to an existing one except for the TTL.
+# RFC2136 is not clear about what this should do; it says "duplicate RRs
+# will be silently ignored" but is an RR differing only in TTL
+# to be considered a duplicate or not?  The test assumes that it
+# should not be considered a duplicate.
+test("NOERROR", ["update", rr_add("t.$zone 302 A 73.80.65.50")]);
+($a) = $res->query("t.$zone", "A")->answer;
+$ttl = $a->ttl;
+assert($ttl == 302, "incorrect TTL value $ttl != 302");
+
+section("TTL normalization");
+
+# The desired behaviour is that the old RRs get their TTL
+# changed to match the new one.  RFC2136 does not explicitly
+# specify this, but I think it makes more sense than the
+# alternatives.
+
+test("NOERROR", ["update", rr_add("t.$zone 303 A 73.80.65.51")]);
+(@answers) = $res->query("t.$zone", "A")->answer;
+$nanswers = scalar @answers;
+assert($nanswers == 3, "wrong number of answers $nanswers != 3");
+foreach $a (@answers) {
+    $ttl = $a->ttl;
+    assert($ttl == 303, "incorrect TTL value $ttl != 303");
+}
 
 section("Obscuring existing data by zone cut");
 test("NOERROR", ["update", rr_add("a.u.$zone 300 A 73.80.65.49")]);

@@ -1,4 +1,10 @@
 
+ 617.	[bug]		When using dynamic update to add a new RR to an
+			existing RRset with a different TTL, the journal
+			entries generated from the update did not include
+			explicit deletions and re-additions of the existing
+			RRs to update their TTL to the new value.
+
  616.	[func]		dnssec-signzone -t output now includes performance
 			statistics.
 

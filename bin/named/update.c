@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.77 2000/12/09 02:17:03 bwelling Exp $ */
+/* $Id: update.c,v 1.78 2000/12/16 00:58:01 gson Exp $ */
 
 #include <config.h>
 
@@ -160,7 +160,6 @@ static void updatedone_action(isc_task_t *task, isc_event_t *event);
 static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
 
 /**************************************************************************/
-
 /*
  * Update a single RR in version 'ver' of 'db' and log the
  * update in 'diff'.
@@ -202,6 +201,30 @@ do_one_tuple(dns_difftuple_t **tuple,
 	 * Do not clear temp_diff.
 	 */
 	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Perform the updates in 'updates' in version 'ver' of 'db' and log the
+ * update in 'diff'.
+ *
+ * Ensures:
+ *   'updates' is empty.
+ */
+static isc_result_t
+do_diff(dns_diff_t *updates, dns_db_t *db, dns_dbversion_t *ver,
+	dns_diff_t *diff)
+{
+	isc_result_t result;
+	while (! ISC_LIST_EMPTY(updates->tuples)) {
+		dns_difftuple_t *t = ISC_LIST_HEAD(updates->tuples);
+		ISC_LIST_UNLINK(updates->tuples, t, link);
+		CHECK(do_one_tuple(&t, db, ver, diff));
+	}
+	return (ISC_R_SUCCESS);
+
+ failure:
+	dns_diff_clear(diff);
+	return (result);
 }
 
 static isc_result_t
@@ -535,59 +558,6 @@ rr_count(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	return (foreach_rr(db, ver, name, type, covers,
 			   count_rr_action, countp));
 }
-
-/*
- * Context struct for matching_rr_exists().
- */
-
-typedef struct {
-	rr_predicate *predicate;
-	dns_db_t *db;
-	dns_dbversion_t *ver;
-	dns_name_t *name;
-	dns_rdata_t *update_rr;
-} matching_rr_exists_ctx_t;
-
-/*
- * Helper function for matching_rr_exists().
- */
-
-static isc_result_t
-matching_rr_exists_action(void *data, rr_t *rr) {
-	matching_rr_exists_ctx_t *ctx = data;
-	if ((*ctx->predicate)(ctx->update_rr, &rr->rdata))
-		return (ISC_R_EXISTS);
-	return (ISC_R_SUCCESS);
-}
-
-/*
- * Compare the 'update_rr' with all RRs in the RRset specified by 'db',
- * 'ver', 'name', and 'type' using 'predicate'.  If the predicate returns
- * true for at least one of them, set '*exists' to ISC_TRUE.  Otherwise,
- * set it to ISC_FALSE.
- */
-static isc_result_t
-matching_rr_exists(rr_predicate *predicate,
-	     dns_db_t *db,
-	     dns_dbversion_t *ver,
-	     dns_name_t *name,
-	     dns_rdatatype_t type,
-	     dns_rdatatype_t covers,
-	     dns_rdata_t *update_rr,
-	     isc_boolean_t *exists)
-{
-	isc_result_t result;
-	matching_rr_exists_ctx_t ctx;
-	ctx.predicate = predicate;
-	ctx.db = db;
-	ctx.ver = ver;
-	ctx.name = name;
-	ctx.update_rr = update_rr;
-	result = foreach_rr(db, ver, name, type, covers,
-			    matching_rr_exists_action, &ctx);
-	RETURN_EXISTENCE_FLAG;
-}
-
 
 /*
  * Context struct and helper function for name_exists().
@@ -1004,6 +974,79 @@ delete_if(rr_predicate *predicate,
 	ctx.update_rr = update_rr;
 	return (foreach_rr(db, ver, name, type, covers,
 			   delete_if_action, &ctx));
+}
+
+/**************************************************************************/
+/*
+ * Prepare an RR for the addition of the new RR 'ctx->update_rr',
+ * with TTL 'ctx->update_rr_ttl', to its rdataset, by deleting
+ * the RRs if it is replaced by the new RR or has a conflicting TTL.
+ * The necessary changes are appended to ctx->del_diff and ctx->add_diff;
+ * we need to do all deletions before any additions so that we don't run
+ * into transient states with conflicting TTLs.
+ */
+
+typedef struct {
+	dns_db_t *db;
+	dns_dbversion_t *ver;
+	dns_diff_t *diff;
+	dns_name_t *name;
+	dns_rdata_t *update_rr;
+	dns_ttl_t update_rr_ttl;
+	isc_boolean_t ignore_add;
+	dns_diff_t del_diff;
+	dns_diff_t add_diff;
+} add_rr_prepare_ctx_t;
+
+static isc_result_t
+add_rr_prepare_action(void *data, rr_t *rr) {
+	isc_result_t result = ISC_R_SUCCESS;	
+	add_rr_prepare_ctx_t *ctx = data;
+	dns_difftuple_t *tuple = NULL;
+
+	/*
+	 * If the update RR is a "duplicate" of the update RR,
+	 * the update should be silently ignored.
+	 */
+	if (dns_rdata_compare(&rr->rdata, ctx->update_rr) == 0 &&
+	    rr->ttl == ctx->update_rr_ttl) {
+		ctx->ignore_add = ISC_TRUE;
+	}
+
+	/*
+	 * If this RR is "equal" to the update RR, it should
+	 * be deleted before the update RR is added.
+	 */
+	if (replaces_p(ctx->update_rr, &rr->rdata)) {
+		CHECK(dns_difftuple_create(ctx->del_diff.mctx,
+					   DNS_DIFFOP_DEL, ctx->name,
+					   rr->ttl,
+					   &rr->rdata,
+					   &tuple));
+		dns_diff_append(&ctx->del_diff, &tuple);
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * If this RR differs in TTL from the update RR,
+	 * its TTL must be adjusted.
+	 */
+	if (rr->ttl != ctx->update_rr_ttl) {
+		CHECK(dns_difftuple_create(ctx->del_diff.mctx,
+					   DNS_DIFFOP_DEL, ctx->name,
+					   rr->ttl,
+					   &rr->rdata,
+					   &tuple));
+		dns_diff_append(&ctx->del_diff, &tuple);
+		CHECK(dns_difftuple_create(ctx->add_diff.mctx,
+					   DNS_DIFFOP_ADD, ctx->name,
+					   ctx->update_rr_ttl,
+					   &rr->rdata,
+					   &tuple));
+		dns_diff_append(&ctx->add_diff, &tuple);
+	}
+ failure:
+	return (result);
 }
 
 /**************************************************************************/
@@ -2214,29 +2257,34 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				}
 				soa_serial_changed = ISC_TRUE;
 			}
-			/*
-			 * Add an RR.  If an identical RR already exists,
-			 * do nothing.  If a similar but not identical
-			 * CNAME, SOA, or WKS exists, remove it first.
-			 */
-			CHECK(matching_rr_exists(rr_equal_p, db, ver, name,
-						 rdata.type, covers, &rdata,
-						 &flag));
-			if (! flag) {
-				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-					      "adding an RR");
-				CHECK(delete_if(replaces_p, db, ver, name,
-						rdata.type, covers, &rdata,
-						&diff));
-				result = update_one_rr(db, ver, &diff,
-						       DNS_DIFFOP_ADD,
-						       name, ttl, &rdata);
-				if (result != ISC_R_SUCCESS)
-					FAIL(result);
-			} else {
-				isc_log_write(UPDATE_PROTOCOL_LOGARGS,
-					      "attempt to add existing RR "
-					      "ignored");
+			
+			isc_log_write(UPDATE_PROTOCOL_LOGARGS, "adding an RR");
+
+			/* Prepare the affected RRset for the addition. */
+			{
+				add_rr_prepare_ctx_t ctx;
+				ctx.db = db;
+				ctx.ver = ver;
+				ctx.diff = &diff;
+				ctx.name = name;
+				ctx.update_rr = &rdata;
+				ctx.update_rr_ttl = ttl;
+				ctx.ignore_add = ISC_FALSE;
+				dns_diff_init(mctx, &ctx.del_diff);
+				dns_diff_init(mctx, &ctx.add_diff);
+				CHECK(foreach_rr(db, ver, name, rdata.type, covers,
+						 add_rr_prepare_action, &ctx));
+
+				if (ctx.ignore_add) {
+					dns_diff_clear(&ctx.del_diff);
+					dns_diff_clear(&ctx.add_diff);
+				} else {
+					CHECK(do_diff(&ctx.del_diff, db, ver, &diff));
+					CHECK(do_diff(&ctx.add_diff, db, ver, &diff));
+					CHECK(update_one_rr(db, ver, &diff,
+							    DNS_DIFFOP_ADD,
+							    name, ttl, &rdata));
+				}
 			}
 		} else if (update_class == dns_rdataclass_any) {
 			if (rdata.type == dns_rdatatype_any) {
