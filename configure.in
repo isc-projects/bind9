@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.73 $)
+AC_REVISION($Revision: 1.74 $)
 
 AC_PREREQ(2.13)
 
@@ -308,6 +308,31 @@ AC_TRY_COMPILE([
 AC_SUBST(ISC_PLATFORM_NEEDPORTT)
 
 dnl
+dnl Check for addrinfo
+dnl
+AC_MSG_CHECKING(for struct addrinfo)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[struct addrinfo a; return (0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_NEEDADDRINFO="#undef ISC_LWRES_NEEDADDRINFO"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_NEEDADDRINFO="#define ISC_LWRES_NEEDADDRINFO 1"])
+AC_CHECK_FUNC(getipnodebyname,
+        [ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],
+        [ISC_LWRES_GETIPNODEPROTO="#define ISC_LWRES_GETIPNODEPROTO 1"])
+AC_CHECK_FUNC(getnameinfo,
+        [ISC_LWRES_GETNAMEINFOPROTO="#undef ISC_LWRES_GETNAMEINFOPROTO"],
+        [ISC_LWRES_GETNAMEINFOPROTO="#define ISC_LWRES_GETNAMEINFOPROTO 1"])
+AC_CHECK_FUNC(getaddrinfo,
+        [ISC_LWRES_GETADDRINFOPROTO="#undef ISC_LWRES_GETADDRINFOPROTO"],
+        [ISC_LWRES_GETADDRINFOPROTO="#define ISC_LWRES_GETADDRINFOPROTO 1"])
+AC_SUBST(ISC_LWRES_NEEDADDRINFO)
+AC_SUBST(ISC_LWRES_GETIPNODEPROTO)
+AC_SUBST(ISC_LWRES_GETADDRINFOPROTO)
+AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
+
+dnl
 dnl Look for a sysctl call to get the list of network interfaces.
 dnl
 
@@ -551,6 +576,7 @@ AC_OUTPUT(
 	lib/lwres/Makefile
 	lib/lwres/include/Makefile
 	lib/lwres/include/lwres/Makefile
+	lib/lwres/include/lwres/netdb.h
 	lib/omapi/Makefile
 	lib/omapi/include/Makefile
 	lib/omapi/include/omapi/Makefile
