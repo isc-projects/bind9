@@ -1,7 +1,7 @@
 DNS Working Group                                Donald E. Eastlake, 3rd
 INTERNET-DRAFT                                                       IBM
-Expires: November 1999                                          May 1999
-
+Expires: April 2000                                         October 1999
+draft-ietf-dnsind-tkey-01.txt
 
 
                Secret Key Establishment for DNS (TKEY RR)
@@ -13,7 +13,7 @@ Expires: November 1999                                          May 1999
 
 Status of This Document
 
-   This draft, file name draft-ietf-dnsind-tkey-00.txt, is intended to
+   This draft, file name draft-ietf-dnsind-tkey-01.txt, is intended to
    be become a Proposed Standard RFC.  Distribution of this document is
    unlimited. Comments should be sent to the DNS working group mailing
    list <namedroppers@internic.net> or to the author.
@@ -36,12 +36,6 @@ Status of This Document
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   To view the entire list of current Internet-Drafts, please check the
-   "1id-abstracts.txt" listing contained in the Internet-Drafts Shadow
-   Directories on ftp.is.co.za (Africa), ftp.nordu.net (Northern
-   Europe), ftp.nis.garr.it (Southern Europe), munnari.oz.au (Pacific
-   Rim), ftp.ietf.org (US East Coast), or ftp.isi.edu (US West Coast).
-
 
 
 
@@ -62,7 +56,7 @@ Status of This Document
 Donald E. Eastlake, 3rd                                         [Page 1]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
 Abstract
@@ -83,11 +77,11 @@ Acknowledgments
    in alphabetic order) have been incorporated herein and are gratefully
    acknowledged:
 
-            Olafur Gudmundsson <ogud@tislabs.com>
+            Olafur Gudmundsson
 
-            Stuart Kwan <skwan@microsoft.com>
+            Stuart Kwan
 
-
+            Brian Wellington
 
 
 
@@ -120,7 +114,7 @@ Acknowledgments
 Donald E. Eastlake, 3rd                                         [Page 2]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
 Table of Contents
@@ -135,27 +129,27 @@ Table of Contents
       1. Introduction............................................4
       1.1 General Principles.....................................4
       1.2 Overview of Contents...................................5
-      2. The TKEY Resource Record................................5
+      2. The TKEY Resource Record................................6
       3. Exchange via Resolver Query.............................7
       3.1 Query for Server Assigned Keying.......................8
       3.2 Query for Diffie-Hellman Exchanged Keying..............9
-      3.3 Query for GSS-API Established..........................9
-      4. Spontaneous Server Inclusion...........................10
-      4.1 Spontaneous Server Assigned Keying....................10
-      4.2 Spontaneous Diffie-Hellman Keying.....................10
-      4.3 Spontaneous GSS-API Exchange..........................11
-      4.4 Spontaneous Key Deletion..............................11
-      5. TKEY Dynamic Update Requests...........................11
-      5.1 Exchange via TKEY 'Add'...............................11
-      5.2 TKEY Deletion.........................................12
-      6. Methods of Encryption..................................12
-      7. IANA Considerations....................................13
-      8. Security Considerations................................13
+      3.3 Query for GSS-API Established.........................10
+      3.4 Query for Querier Assigned Keying.....................10
+      3.5 Query for TKEY Deletion...............................11
+      4. Spontaneous Server Inclusion...........................11
+      4.1 Spontaneous GSS-API Exchange..........................11
+      4.2 Spontaneous Key Deletion..............................12
+      5. Methods of Encryption..................................12
+      6. IANA Considerations....................................12
+      7. Security Considerations................................13
 
-      References................................................14
+      Changes from Previous Draft...............................14
 
-      Author's Address..........................................15
-      Expiration and File Name..................................15
+      References................................................15
+
+      Author's Address..........................................16
+      Expiration and File Name..................................16
+
 
 
 
@@ -178,7 +172,7 @@ Table of Contents
 Donald E. Eastlake, 3rd                                         [Page 3]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
 1. Introduction
@@ -187,7 +181,8 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    available database used for mapping between domain names and
    addresses, for email routing, and for other information [RFC 1034,
    1035].  It has been extended to provide for public key security and
-   dynamic update [RFC 2136, RFC 2535].
+   dynamic update [RFC 2136, RFC 2535].  Familiarity with these RFCs is
+   assumed.
 
    [draft-ietf-dnsind-tsig-*.txt] provides a means of more efficiently
    authenticating and securing DNS messages using shared secret keys via
@@ -211,8 +206,9 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    requires that state be maintained at both the resolver and the server
    and the allocation of the resources to maintain such state may
    require mutual agreement. In the absence of such agreement, servers
-   are free to return errors for any attempt to use TKEY and resolvers
-   are free to ignore any TKEY RRs they receive.
+   are free to return errors such as NotImp or Refused for any attempt
+   to use TKEY and resolvers are free to ignore any TKEY RRs they
+   receive.
 
    In all cases herein, the term "resolver" includes that part of a
    server which makes full and incremental [RFC 1995] zone transfer
@@ -220,33 +216,54 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
 
    Servers are not required to implement any particular mode or modes of
    the defined modes of TKEY shared secret key establishment or deletion
-   and may return errors for any they do not support.  Based on
-   experience, in the future more modes may be added or some modes
-   described herein may be deprecated.
+   and may return errors such as NotImp for any they do not support.  In
+   the future, based on experience, more modes may be added or some
+   modes described herein may be made mandatory or deprecated.
 
    The means by which the shared secret keying material, exchanged via
    TKEY, is actually used in any particular TSIG algorithm is algorithm
    dependent and is defined in connection with that algorithm.
 
-   Note that this keying material and TSIGs that use it are associated
-   with DNS hosts.  They are not tied to zones.  They may be used to
-   authenticate queries and responses but they do not provide zone
+   Note that TKEY established keying material and TSIGs that use it are
 
 
 Donald E. Eastlake, 3rd                                         [Page 4]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
-   stored DNS data origin authentication [RFC 2535].
+   associated with DNS hosts.  They are not necessairly associated with
+   zones.  They may be used to authenticate queries and responses but
+   they do not provide zone stored DNS data origin or denial
+   authentication [RFC 2535].
 
    Two modes of TKEY, the server assigned and resolver assigned modes,
    perform encryption which may effect their export or
    import status for some countries.  All other aspects of DNS security,
-   including the SIG, KEY, NXT, and TSIG RRs and all other defined modes
-   of TKEY perform authentication (signatures and signature
-   verification) only.
+   including the SIG, KEY, NXT, and TSIG RRs and all other currently
+   defined modes of TKEY perform authentication (signatures and
+   signature verification) only.
+
+   General protection against denial of service via the use of TKEY is
+   not provided.
+
+   Only one TKEY RR may occur in a queryr or response.  Between any pair
+   of hosts, only one set of keying material may be in place at the same
+   time for any particulary key name.  An attempt to establish another
+   set of keying material at a server for an existing name should return
+   a BADNAME error.
+
+   A reasonable key naming strategy is as follows:
+        If the key is generated as the result of a query with root as
+        its owner name, they the server can create a name consisting of
+        a hash of the key plus the server host name.  For example
+        89n3mdg072pp.host.example.com.
+
+        If the key is generated as the result of a query with a non-root
+        name, say foo.example.net, the use the concatenation of that
+        with the server host name.  For example
+        foo.example.net.host.example.com.
 
 
 
@@ -255,25 +272,28 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    Section 2 below specifies the TKEY resource record (RR) and provides
    a high level description of its constituent fields.
 
-   Section 3 discusses key exchange via queries for type TKEY.  This is
-   applicable to the server assigned, Diffie-Hellman exchange, and GSS-
-   API establishment modes.
+   Section 3 discusses key exchange via requests with the Query opcode
+   for type TKEY.  This is applicable to all currently defined TKEY
+   modes and in some cases in not what would intuitively be called a
+   "query".
 
    Section 4 discusses spontaneous inclusion of TKEY RRs in responses by
    servers.  This is applicable to key deletion and to server assigned
-   and Diffie-Hellman exchange key establishment.
+   modes.
 
-   Section 5 discusses use of dynamic update requests for type TKEY.
-   This supports optional key exchange via resolver update request,
-   which is applicable to key deletion and to the resolver assigned
-   mode.
-
-   Section 6 describes encryption methods for transmitting secret key
+   Section 5 describes encryption methods for transmitting secret key
    information.
 
-   Section 7 covers IANA considerations in assignment of TKEY modes.
 
-   Finally, Section 8 touches on some security considerations.
+Donald E. Eastlake, 3rd                                         [Page 5]
+
+
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
+
+
+   Section 6 covers IANA considerations in assignment of TKEY modes.
+
+   Finally, Section 7 touches on some security considerations.
 
 
 
@@ -281,21 +301,6 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
 
    The TKEY resource record (RR) has the structure given below.  Its RR
    type code is 249.
-
-
-
-
-
-
-
-
-
-
-Donald E. Eastlake, 3rd                                         [Page 5]
-
-
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
-
 
         Field       Type         Comment
         -----       ----         -------
@@ -332,28 +337,21 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    DNS resolver to a DNS server where these fields are meaningful, they
    are either the requested validity interval for the keying material
    asked for or specify the validity interval of keying material
-   provided.  To avoid replay attacks, to keying material used to
-   authenticate TKEY keying material MUST NOT have a lifetime of more
-   then 2**31 seconds.  This applies to keying material used in either a
-   TSIG or a SIG(0) transaction or request signature.
+   provided.  See Security Considerations section in reference to replay
+   attacks.
 
-   The mode field specifies the general scheme for key agreement.  Note
-   that implementation of TKEY as a whole and of any particular mode is
-   optional. The following values of the Mode octet are defined or
-   reserved:
-
-
-
-
-
-
+   The mode field specifies the general scheme for key agreement or
 
 
 Donald E. Eastlake, 3rd                                         [Page 6]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
+
+   purpose of the TKEY DNS message.  Note that implementation of TKEY as
+   a whole and of any particular mode is optional. The following values
+   of the Mode octet are defined, available, or reserved:
 
           Value    Description
           -----    -----------
@@ -389,42 +387,37 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
 
 3. Exchange via Resolver Query
 
-   One method for a resolver and a server to establish a shared secret
-   key for use in TSIG is through queries from the resolver for type
-   TKEY.  Such queries MUST either be accompanied by one or more TKEY
-   RRs in the additional information section to indicate the mode(s) in
-   use and other information where required or the resolver and server
-   must have a prior agreement that supplies any information that would
-   otherwise have had to be conveyed by TKEY RR(s) in the query.
+   One method for a resolver and a server to negotiate about shared
+   secret key for use in TSIG is through DNS requests from the resolver
+   which are syntactically queries for type TKEY.  Such queries MUST be
+   accompanied by a TKEY RR in the additional information section to
+   indicate the mode in use and other information where required or the
+   resolver and server must have a prior agreement that supplies any
+   information that would otherwise have had to be conveyed by a TKEY RR
+   in the query.
 
    For TKEY(s) appearing in a query, the TKEY RR name SHOULD be a domain
    locally unique at the resolver (or globally unique), less than 128
    octets long, and meaningful to the resolver to distinguish keys
-   and/or key agreement sessions.  (For resolvers not wishing to make
-   this use of the name, it may be specified as root to minimize
-   length.) For TKEY(s) appearing in a response to a query, the TKEY RR
-   name SHOULD be a globally unique server assigned domain.  If the TKEY
-   in a response is the result of a query containing a TKEY with a non-
 
 
 Donald E. Eastlake, 3rd                                         [Page 7]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
-   root name, that query TKEY name SHOULD be incorporated as the prefix
-   of the response TKEY name.
+   and/or key agreement sessions.  (For resolvers not wishing to make
+   this use of the name, it may be specified as root to minimize
+   length.) For TKEY(s) appearing in a response to a query, the TKEY RR
+   name SHOULD be a globally unique server assigned domain.  If the TKEY
+   in a response is the result of a query containing a TKEY with a non-
+   root name, that query TKEY name SHOULD be incorporated in the
+   response TKEY name.  Specific suggestions are given under some modes
+   below.
 
    Type TKEY queries SHOULD NOT be flagged as recursive and servers MAY
    ignore the recursive header bit in TKEY queries they receive.
-
-   For every mode defined below, the inception and expiration times in a
-   query TKEY are set to the time interval for which the resolver wishes
-   the requested key to be valid and they are set in a successful
-   response to the actual time interval during which the server will
-   consider the key valid.  Future modes may be defined which ignore the
-   inception and expiration time fields.
 
 
 
@@ -432,7 +425,7 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
 
    In server assigned keying, the DNS server host generates the keying
    material and it is sent to the resolver encrypted under a resolver
-   host key.  See section 6 for description of encryption methods.
+   host key.  See section 5 for description of encryption methods.
 
    A resolver sends a query for type TKEY accompanied by a TKEY RR
    specifying the "server assignment" mode and a resolver host KEY RR to
@@ -459,21 +452,32 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    require such a query to be signed and MAY rate limit responses.
 
    The server response contains a TKEY in its answer section with the
-   server assigned mode. If the error field is non-zero, the query
-   failed for the reason given. If the error field is zero, the KEY RR
-   provided in the query will be echoed back and the key data portion of
-   the response TKEY RR will be the server assigned keying data
+   server assigned mode and echoes back the KEY RR provided in the query
+   in its additional information section
+
+   If the error field of the response TKEY is non-zero, the query failed
+   for the reason given.  FORMERR is given if the query specified no
 
 
 Donald E. Eastlake, 3rd                                         [Page 8]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
-   encrypted under the public key in the resolver provided KEY RR.  The
-   name of the TKEY RR will be the server assigned name of the key and
-   SHOULD be globally unique.
+   encryption key.
+
+   If the error field is zero, the key data portion of the response TKEY
+   RR will be the server assigned keying data encrypted under the public
+   key in the resolver provided KEY RR.  In this case, the name of the
+   answer TKEY RR will be the server assigned name of the key and SHOULD
+   be globally unique.
+
+   The inception and expiry times in the query TKEY are those requested
+   for the keying material.  The inception and expiry times in the
+   response TKEY are the maximum period the server will consider the
+   keying material valid.  Servers may pre-expire keys so this is not a
+   guarantee.
 
 
 
@@ -488,8 +492,8 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    additional information section specifying the "Diffie-Hellman" mode
    and accompanied by a KEY RR specifying a client host Diffie-Hellman
    key.  The TKEY algorithm field is set to the signature algorithm the
-   resolver plans to use and any "key data" provided in the TKEY is
-   ignored by the server.
+   resolver plans to use. Any "key data" provided in the TKEY is ignored
+   by the server.
 
    Accepting and responding to an unsigned query of this sort may use
    significant computation at the server; however, if the server
@@ -500,15 +504,30 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
 
    The server response contains a TKEY in its answer section with the
    Diffie-Hellman mode. If the error field is non-zero, the query failed
-   for the reason given. If the error field is zero, the client host
-   supplied Diffie-Hellman KEY should be echoed back and a server host
-   Diffie-Hellman KEY RR will also be present in the response.
+   for the reason given. FORMERR is given if the query included no DH
+   KEY and BADKEY is given if the query included an incompatible DH KEY.
+
+   If the error field is zero, the client host supplied Diffie-Hellman
+   KEY should be echoed back and a server host Diffie-Hellman KEY RR
+   will also be present in the response.
 
    Both parties can then calculate the same shared secret quantity from
-   the pair of Diffie-Hellman keys used [Schneier] provided they use the
-   same modulus.  If the server host does not have an appropriate
-   Diffie-Hellman key to use for the exchange, it should return the
-   BADKEY error.
+   the pair of Diffie-Hellman keys used [Schneier], provided they use
+   the same modulus, and the data in the TKEY.  The TKEY data is
+   strongly mixed with the DH result by TBD.
+
+
+Donald E. Eastlake, 3rd                                         [Page 9]
+
+
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
+
+
+   The inception and expiry times in the query TKEY are those requested
+   for the keying material.  The inception and expiry times in the
+   response TKEY are the maximum period the server will consider the
+   keying material valid.  Servers may pre-expire keys so this is not a
+   guarantee.
 
 
 
@@ -521,14 +540,6 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    additional information section and a GSS-API token in the key data
    portion. The server responds with a TKEY specifying the GSS-API mode
    and a GSS-API token in the key data portion. The resolver and server
-
-
-Donald E. Eastlake, 3rd                                         [Page 9]
-
-
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
-
-
    feed these tokens to their local GSS implementation and iterate until
    an error is encountered or a key (GSS-API session) is established. A
    similar exchange can be used to delete a GSS-API session.
@@ -539,55 +550,73 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    query and response MAY be,  but do not need to be, signed with TSIG
    or SIG(0).
 
-
-
-4. Spontaneous Server Inclusion
-
-   A DNS server may include TKEY RRs spontaneously as additional
-   information in responses.  This SHOULD only be done if the server
-   knows the querier understands TKEY and has this option implemented.
-   This technique can be used to establish a server assigned key, a
-   Diffie-Hellman exchange key, for GSS-API exchange, and to delete a
-   key.  A disadvantage of this technique is that there is no way for
-   the server to get any immediate error or success indication back and,
-   in the case of UDP, no way to even know if the DNS response reached
-   the resolver.
+   The inception and expiry time in a GSS-API mode TKEY are ignored.
 
 
 
-4.1 Spontaneous Server Assigned Keying
+3.4 Query for Querier Assigned Keying
 
-   A server can include in the additional information section of a
-   response a server assignment mode TKEY with encrypted keying material
-   in its key data section along with a KEY RR specifying the client
-   public key used for the encryption.  Such a response SHOULD be signed
-   but the KEY RR need not be signed by a SIG(KEY).  A server should
-   only do this if there is sufficient room in a query and it has reason
-   to believe the resolver will understand such additional data.  The
-   KEY RR used MUST be one for which it is believed that the resolver
-   host has the corresponding private key or it will not be able to
-   decrypt the keying material.
+   Optionally, a server can accept resolver assigned keys.  The keying
+   material must be encrypted under a server host key for protection in
+   transmission as described in Section 5.
 
+   The resolver sends an update request to add a TKEY RR that specifies
+   the keying data with a KEY RR in the additional information section
+   specifying the server host public key used to encrypt the data.  The
+   name of the key and the keying data are completely controlled by the
+   sending resolver so a globally unique key name SHOULD be used.  The
+   server SHOULD require that this request be signed with a TSIG, if
+   there already exists an appropriate shared secret, or a SIG(0) by the
+   resolver host.  The KEY RR used MUST be one for which the server has
+   the corresponding private key or it will not be able to decrypt the
+   keying material and will return a FORMERR.
 
-
-4.2 Spontaneous Diffie-Hellman Keying
-
-   A server can include in the additional information section of a
-   response a Diffie-Hellman exchange mode TKEY along with two KEY RRs
-   specifying the client and server host public keys used for the
-   exchange.  Such a response SHOULD be signed but the KEY RRs need not
-   be signed by a SIG(KEY).  A server should only do this if there is
-   sufficient room in a query and it has reason to believe the resolver
-   host will understand such additional data.
+   The query TKEY inception and expiry give the time period the querier
+   intends to consider the keying material valid.  The server can return
 
 
 Donald E. Eastlake, 3rd                                        [Page 10]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
-4.3 Spontaneous GSS-API Exchange
+   a lesser time interval to advise that it will not maintain state for
+   that long.
+
+
+
+3.5 Query for TKEY Deletion
+
+   Keys established via TKEY can be treated as soft state.  Since DNS
+   transactions are originated by the resolver, the resolver can simply
+   toss keys, although it may have to go through another key exchange if
+   it later needs one.  Similarly, the server can discard keys although
+   that will result in an error on receiving a query with a TSIG using
+   the discarded key.
+
+   The key expiration provided in the TKEY and the ability of each party
+   to discard keys may be adequate but servers may implement key
+   deletion whereby the server discards a key on receipt from a resolver
+   of a delete request for a TKEY with the key's name.  If the server
+   has no record of a key with that name, it returns BADNAME.
+
+
+
+4. Spontaneous Server Inclusion
+
+   A DNS server may include a TKEY RR spontaneously as additional
+   information in responses.  This SHOULD only be done if the server
+   knows the querier understands TKEY and has this option implemented.
+   This technique can be used for GSS-API exchange, and to delete a key.
+   A disadvantage of this technique is that there is no way for the
+   server to get any immediate error or success indication back and, in
+   the case of UDP, no way to even know if the DNS response reached the
+   resolver.
+
+
+
+4.1 Spontaneous GSS-API Exchange
 
    A server can spontaneously include in the additional information
    section of a response, a GSS-API mode TKEY.  The information in the
@@ -602,88 +631,39 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
 
 
 
-4.4 Spontaneous Key Deletion
-
-   A server can hint to a client that it has deleted a symmetric key by
-   spontaneously including a TKEY RR in the additional information
-   section of a response with the key's name and specifying the key
-   deletion mode.  Such a response SHOULD be signed.  If authenticated,
-   it deletes all keys with the given name whose effective time period
-   overlaps the inception to expiration period given in the deletion
-   mode TKEY.  (If the inception time of one symmetric key is equal to
-   the expiration time of another, or vice versa, they do not overlap.)
-   Failure by a client to receive or properly process such additional
-   information in a response would simply mean that the client might use
-   a key that the server had discarded and then get an error indication.
-
-
-
-5. TKEY Dynamic Update Requests
-
-   If a DNS server supports dynamic update [RFC 2136], then dynamic
-   update request can be used to exchange resolver assigned symmetric
-   keys as described in section 5.1 below and to delete previously
-   exchanged keys from a server as described in section 5.2 below.
-
-
-
-5.1 Exchange via TKEY 'Add'
-
-   Optionally, a server can accept resolver assigned keys.  The keying
-   material must be encrypted under a server host key for protection in
-   transmission as described in Section 6.
-
-   The resolver sends an update request to add a TKEY RR that specifies
-   the keying data with a KEY RR in the additional information section
-   specifying the server host public key used to encrypt the data.  The
-   name of the key and the keying data are completely controlled by the
 
 
 Donald E. Eastlake, 3rd                                        [Page 11]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
-   sending resolver so a globally unique key name SHOULD be used.  The
-   server SHOULD require that this request be signed with a TSIG, if
-   there already exists an appropriate shared secret, or a SIG(0) by the
-   resolver host.  The KEY RR used MUST be one for which the server has
-   the corresponding private key or it will not be able to decrypt the
-   keying material.
+4.2 Spontaneous Key Deletion
 
-
-
-5.2 TKEY Deletion
-
-   Keys established via TKEY can be treated as soft state.  Since DNS
-   transactions are originated by the resolver, the resolver can simply
-   toss keys, although it may have to go through another key exchange if
-   it later needs one.  Similarly, the server can discard keys although
-   that will result in an error on receiving a query with a TSIG using
-   the discarded key.
-
-   The key expiration provided in the TKEY and the ability of each party
-   to discard keys may be adequate but servers that support dynamic
-   update [RFC 2136] may optionally implement key deletion whereby the
-   server discards a key on receipt from a resolver of a delete request
-   for a TKEY with the key's name.  The mode and most fields of the TKEY
-   being "deleted" are ignored.  But, to allow for the possibility of
-   multiple keys with the same name but different time periods, the only
-   keys deleted are those whose time period overlaps with that specified
-   by the inception and expiration in the TKEY being "deleted".
+   A server can hint to a client that it has deleted a symmetric key by
+   spontaneously including a TKEY RR in the additional information
+   section of a response with the key's name and specifying the key
+   deletion mode.  Such a response SHOULD be signed.  If authenticated,
+   it deletes the key with the given name.  The inception and expiry
+   times of the delete TKEY are ignored. Failure by a client to receive
+   or properly process such additional information in a response would
+   simply mean that the client might use a key that the server had
+   discarded and then get an error indication.
 
 
 
-6. Methods of Encryption
+5. Methods of Encryption
 
    For the server assigned and resolver assigned key exchange, the
    keying material is sent within the key data field of a TKEY RR
-   encrypted under the private key corresponding to the public key in an
-   accompanying KEY RR [RFC 2535].  The secret keying material being
-   send will generally be fairly short, usually less than 256 bits,
-   because that is adequate for very strong protection with modern keyed
-   hash or symmetric algorithms.
+   encrypted under the public key in an accompanying KEY RR [RFC 2535].
+   The KEY RR MUST correspond to a name for the destination host such
+   that the destination host has the corresponding private key to
+   decrypt the data.  The secret keying material being send will
+   generally be fairly short, usually less than 256 bits, because that
+   is adequate for very strong protection with modern keyed hash or
+   symmetric algorithms.
 
    If the KEY RR specifies the RSA algorithm, then the keying material
    is encrypted as per the description of RSA encryption in PKCS#1 [RFC
@@ -695,34 +675,33 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    block is clear from the public RSA key specified and the PKCS#1
    padding makes it clear what part of the encrypted data is actually
    keying material and what part is formatting or the required at least
+   eight bytes of random [RFC 1750] padding.
+
+
+
+6. IANA Considerations
+
+   This section is to be interpreted as provided in [RFC 2434].
+
+   Mode field values 0x0000 through 0x00FF, and 0XFF00 through 0XFFFF
+   can only be assigned by an IETF standards action (and 1 through 5 are
+   assigned by this Proposed Standard).  Special consideration should be
+   given before the allocation of meaning for Mode field values 0x0000
+   and 0xFFFF.
+
 
 
 Donald E. Eastlake, 3rd                                        [Page 12]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
-
-   eight bytes of random [RFC 1750] padding.
-
-
-
-7. IANA Considerations
-
-   This section is to be interpreted as provided in [RFC 2434].
-
-   Mode field values 0x0000 through 0x00FF, and 0XFF00 through 0XFFFF
-   can only be assigned by an IETF standards action excluding
-   Experimental Standards (and 1 through 5 are assigned by this Proposed
-   Standard).  Special consideration should be given before the
-   allocation of meaning for Mode field values 0x0000 and 0xFFFF.
 
    Mode field values 0x0100 through 0x0FFF and 0xF0000 through 0xFEFF
-   are allocated by an IETF consensus excluding Experimental Standards.
+   are allocated by an IETF consensus.
 
    Mode field values 0x1000 through 0xEFFF are allocated based on RFC
-   documentation of their use or the issuance of an Experimental
-   Standard.
+   documentation of their use.
 
    Mode values should not be changed when the status of their use
    changes.  I.E. a mode value assigned for an Experimental Standard
@@ -731,7 +710,7 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
 
 
 
-8. Security Considerations
+7. Security Considerations
 
    To avoid different interpretations of the inception and expiration
    times in TKEY RRs, resolvers and servers exchanging them must have
@@ -739,7 +718,8 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    NTP protocol [RFC 2030] but that or any other time synchronization
    MUST be done securely.
 
-   It is recommended that the server require TKEY queries be signed.
+   TKEY queries SHOULD be signed and those using the querier
+   establishment mode MUST be signed to authenticate their origin.
    However, for currently defined modes, relatively little damage will
    be done if an unsigned query of this sort is accepted and processed,
    as described above, for each mode. In addition, requiring that a TKEY
@@ -748,17 +728,89 @@ INTERNET-DRAFT              The DNS TKEY RR                     May 1999
    computational requirements on the server, particularly in verifying
    SIG(0) public key signatures.
 
-   Responses to TKEY queries SHOULD always have DNS transaction
-   signatures to protect the integrity of any keying data, error codes,
-   etc.  This signature, if present, MUST use a previously established
-   secret (TSIG) or public (SIG(0)) key and MUST NOT use any key that
-   the response to be verified is itself providing.
+   Responses to TKEY queries MUST always have DNS transaction signatures
+   to protect the integrity of any keying data, error codes, etc.  This
+   signature MUST use a previously established secret (TSIG) or public
+   (SIG(0)) key and MUST NOT use any key that the response to be
+   verified is itself providing.
+
+   To avoid replay attacks, it is necessary that a response or querier
+   establishment mode query involving TKEY not be valid if replayed on
+   the order of 2**32 second (about 136 years) later.  To acomplish
+   this, the keying material used in any TSIG or SIG(0) RR that
+   authenticates a TKEY message MUST NOT have a lifetime of more then
+   2**31 - 1 seconds.  Thus, on attempted replay, the authenticating
+   TSIG or SIG(0) RR will not be verifyable due to key expiration and
+   the replay will fail.
+
+
+
+
+
 
 
 Donald E. Eastlake, 3rd                                        [Page 13]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
+
+
+Changes from Previous Draft
+
+   Prohibit more than one TKEY in a request or response.  Prohibit more
+   than one key with the same name (even if they have non-overlapping
+   validity periods).
+
+   Spontaneous server inclusion of Diffi-Hellman TKEYs and server
+   assigned key have been eliminated.
+
+   "Update" opcode TKEY operations have all been moved to the "Query"
+   opcode even if they are not something you would naturally think of as
+   a query.
+
+   Error codes for more error conditions listed explicitly.
+
+   More explicit TKEY key naming suggestions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Donald E. Eastlake, 3rd                                        [Page 14]
+
+
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
 References
@@ -813,10 +865,10 @@ References
 
 
 
-Donald E. Eastlake, 3rd                                        [Page 14]
+Donald E. Eastlake, 3rd                                        [Page 15]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                     May 1999
+INTERNET-DRAFT              The DNS TKEY RR                October 19999
 
 
 Author's Address
@@ -835,11 +887,9 @@ Author's Address
 
 Expiration and File Name
 
-   This draft expires November 1999.
+   This draft expires October 1999.
 
-   Its file name is draft-ietf-dnsind-tkey-00.txt.
-
-
+   Its file name is draft-ietf-dnsind-tkey-01.txt.
 
 
 
@@ -871,5 +921,7 @@ Expiration and File Name
 
 
 
-Donald E. Eastlake, 3rd                                        [Page 15]
+
+
+Donald E. Eastlake, 3rd                                        [Page 16]
 
