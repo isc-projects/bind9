@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.126 2001/09/11 05:09:41 marka Exp $ */
+/* $Id: master.c,v 1.127 2001/09/30 04:31:26 marka Exp $ */
 
 #include <config.h>
 
@@ -1447,6 +1447,13 @@ load(dns_loadctx_t *lctx) {
 						   source, line);
 				lctx->ttl = dns_soa_getminimum(&rdata[rdcount]);
 				limit_ttl(callbacks, source, line, &lctx->ttl);
+				lctx->default_ttl = lctx->ttl;
+				lctx->default_ttl_known = ISC_TRUE;
+			} else if ((lctx->options & DNS_MASTER_HINT) != 0) {
+				/*
+				 * Zero TTL's are fine for hints.
+				 */
+				lctx->ttl = 0;
 				lctx->default_ttl = lctx->ttl;
 				lctx->default_ttl_known = ISC_TRUE;
 			} else {
