@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.22.12.7 2004/03/08 09:04:36 marka Exp $ */
+/* $Id: masterdump.h,v 1.22.12.8 2004/03/19 05:00:49 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -222,7 +222,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
  * 
  * Returns:
  *	ISC_R_SUCCESS
- *	ISC_R_CONTINUE	dns_master_dumptostreaminc() only.
+ *	DNS_R_CONTINUE	dns_master_dumptostreaminc() only.
  *	ISC_R_NOMEMORY
  * 	Any database or rrset iterator error.
  *	Any dns_rdata_totext() error code.
@@ -247,7 +247,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
  *
  * Returns:
  *	ISC_R_SUCCESS
- *	ISC_R_CONTINUE	dns_master_dumpinc() only.
+ *	DNS_R_CONTINUE	dns_master_dumpinc() only.
  *	ISC_R_NOMEMORY
  * 	Any database or rrset iterator error.
  *	Any dns_rdata_totext() error code.
