@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id*/
+ /* $Id: isdn_20.c,v 1.5 1999/05/19 09:14:58 gson Exp $ */
 
  /* RFC 1183 */
 
@@ -36,12 +36,13 @@ fromtext_isdn(dns_rdataclass_t class, dns_rdatatype_t type,
 	downcase = downcase;	/*unused*/
 
 	/* ISDN-address */
-	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_FALSE));
 	RETERR(txt_fromtext(&token.value.as_textregion, target));
 
 	/* sa: optional */
 	RETERR(gettoken(lexer, &token, isc_tokentype_qstring, ISC_TRUE));
-	if (token.type != isc_tokentype_string) {
+	if (token.type != isc_tokentype_string &&
+	    token.type != isc_tokentype_qstring) {
 		isc_lex_ungettoken(lexer, &token);
 		return (DNS_R_SUCCESS);
 	}
