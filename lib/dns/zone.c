@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.24 1999/10/15 19:47:31 gson Exp $ */
+ /* $Id: zone.c,v 1.25 1999/10/21 00:39:40 gson Exp $ */
 
 #include <config.h>
 
@@ -536,9 +536,9 @@ dns_zone_load(dns_zone_t *zone) {
 		goto cleanup;
 
 	/*
-	 * Apply update log to zone iff we are not generating it.
+	 * Apply update log, if any.
 	 */
-	if (zone->ixfrlog != NULL && zone->diff_on_reload == ISC_FALSE) {
+	if (zone->ixfrlog != NULL) {
 		result = dns_journal_rollforward(zone->mctx, db, zone->ixfrlog);
 		if (result != DNS_R_SUCCESS && result != DNS_R_NOTFOUND &&
 		    result != DNS_R_UPTODATE)
