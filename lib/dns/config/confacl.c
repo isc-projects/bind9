@@ -145,7 +145,7 @@ dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table)
 			isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,
 				      ISC_LOG_CRITICAL,
-				      "Failed to delete acl element.\n");
+				      "Failed to delete acl element.");
 			return (r);
 		}
 

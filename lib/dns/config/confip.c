@@ -135,7 +135,7 @@ dns_c_ipmatchelement_delete(isc_log_t *lctx,
 	case dns_c_ipmatch_none:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "dns_ipmath_none element type\n");
+			      "dns_ipmath_none element type");
 		return (ISC_R_FAILURE);
 	}
 
@@ -197,7 +197,7 @@ dns_c_ipmatchelement_copy(isc_log_t *lctx,
 	case dns_c_ipmatch_none:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "ipmatch 'none' element type\n");
+			      "ipmatch 'none' element type");
 		return (ISC_R_FAILURE);
 	}
 
@@ -712,7 +712,7 @@ dns_c_ipmatchelement_print(isc_log_t *lctx,
 	case dns_c_ipmatch_none:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "dns_ipmath_none element type\n");
+			      "dns_ipmatch_none element type");
 		return (ISC_R_FAILURE);
 
 	case dns_c_ipmatch_acl:

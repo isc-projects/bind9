@@ -1448,7 +1448,7 @@ dns_c_ctx_setchecknames(isc_log_t *lctx,
 	default:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "bad transport value: %d\n", transtype);
+			      "bad transport value: %d", transtype);
 		return (ISC_R_FAILURE);
 	}
 	
@@ -2634,7 +2634,7 @@ dns_c_ctx_getchecknames(isc_log_t *lctx,
 	default:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "bad transport value: %d\n", transtype);
+			      "bad transport value: %d", transtype);
 		return (ISC_R_FAILURE);
 	}
 
