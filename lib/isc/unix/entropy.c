@@ -317,6 +317,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 static void
 fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	isc_uint32_t added;
+	isc_uint32_t remaining;
 	isc_entropysource_t *source;
 
 	REQUIRE(VALID_ENTROPY(ent));
@@ -378,30 +379,35 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		printf("Waiting for %u bytes...\n", needed);
 
 	added = 0;
+	remaining = needed;
  again:
 	source = ISC_LIST_HEAD(ent->sources);
-	while (source != NULL && needed > 0) {
-		if (source->type == ENTROPY_SOURCETYPE_FILE) {
-			isc_uint32_t got;
-			got = get_from_filesource(source, needed);
-			added += got;
-		}
+	while (source != NULL && remaining > 0) {
+		isc_uint32_t got;
+
+		got = 0;
+
+		if (source->type == ENTROPY_SOURCETYPE_FILE)
+			got = get_from_filesource(source, remaining);
+
+		added += got;
+
+		if (remaining > got)
+			remaining -= got;
+		else
+			remaining = 0;
 
 		if (added >= needed)
 			break;
 
-		if (needed > added)
-			needed -= added;
-		else
-			needed = 0;
-
 		source = ISC_LIST_NEXT(source, link);
 	}
 
-	if (blocking && added < needed) {
+	if (blocking && remaining != 0) {
 		int fds;
 		fds = wait_for_sources(ent);
-		printf("wait_for_sources() returned %d\n", fds);
+		printf("wait_for_sources() returned %d (%u of %u, %u remaining)\n",
+		       fds, added, needed, remaining);
 		if (fds > 0)
 			goto again;
 	}
