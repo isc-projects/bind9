@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.40 2000/11/08 03:53:10 marka Exp $
+$Id: options,v 1.41 2000/11/14 01:12:43 marka Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -42,7 +42,7 @@ options {
   [ statistics-file path_name; ]			    No
   [ auth-nxdomain yes_or_no; ]				    Yes%
   [ deallocate-on-exit yes_or_no; ]			    Obsolete+
-  [ dialup yes_or_no; ]					    No
+  [ dialup yes_or_no; ]					    Yes
   [ fake-iquery yes_or_no; ]				    Obsolete-
   [ fetch-glue yes_or_no; ]				    No
   [ has-old-clients yes_or_no; ]			    Obsolete
@@ -73,8 +73,8 @@ options {
   [ max-cache-ttl number; ]				    Yes*
   [ max-ncache-ttl number; ]				    Yes
   [ max-cache-size size_spec; ]				    No*
-  [ min-roots number; ]					    No
-  [ serial-queries number; ]				    No
+  [ min-roots number; ]					    Obsolete
+  [ serial-queries number; ]				    Obsolete
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
   [ transfers-in  number; ]				    Yes
   [ transfers-out number; ]				    Yes
@@ -84,13 +84,13 @@ options {
   [ request-ixfr yes_or_no; ]				    Yes*
   [ provide-ixfr yes_or_no; ]				    Yes*
   [ maintain-ixfr-base yes_or_no; ]			    Obsolete
-  [ max-ixfr-log-size number; ]				    No
+  [ max-ixfr-log-size number; ]				    Obsolete
   [ coresize size_spec ; ]				    No
   [ datasize size_spec ; ]				    No
   [ files size_spec ; ]					    No
   [ stacksize size_spec ; ]				    No
   [ cleaning-interval number; ]				    Yes
-  [ heartbeat-interval number; ]			    No
+  [ heartbeat-interval number; ]			    Yes
   [ interface-interval number; ]			    Yes
   [ statistics-interval number; ]			    No
   [ topology { address_match_list }; ]			    No
@@ -181,12 +181,12 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    No
   [ allow-update { address_match_list }; ]		    Obsolete
-  [ allow-update-forwarding { address_match_list }; ]	    No*
+  [ allow-update-forwarding { address_match_list }; ]	    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ transfer-source ip_addr; ]				    Yes
   [ transfer-source-v6 ip_addr; ]			    Yes*
-  [ dialup yes_or_no; ]					    No
+  [ dialup yes_or_no; ]					    Yes
   [ max-transfer-time-in number; ]			    Yes
   [ max-transfer-idle-in number; ]			    Yes*
   [ max-transfer-time-out number; ]			    Yes*
@@ -223,13 +223,13 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ allow-recursion { address_match_list }; ]		    Yes
   [ query-source ... ]					    Yes
   [ query-source-v6 ... ]				    Yes
-  [ lame-ttl number; ]					    No
+  [ lame-ttl number; ]					    Yes
   [ max-transfer-time-out number; ]			    Yes*
   [ max-transfer-idle-out number; ]			    Yes*
   [ max-cache-ttl number; ]				    Yes*
   [ max-ncache-ttl number; ]				    Yes
   [ max-cache-size size_spec; ]				    No*
-  [ min-roots number; ]					    No
+  [ min-roots number; ]					    Obsolete
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
   [ transfer-source ip_addr; ]				    Yes
   [ transfer-source-v6 ip_addr; ]			    Yes*
