@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.62 2000/11/16 05:45:52 marka Exp $ */
+/* $Id: nsupdate.c,v 1.63 2000/11/22 02:54:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -113,6 +113,7 @@ static isc_sockaddr_t *userserver = NULL;
 static isc_sockaddr_t *localaddr = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
+static isc_boolean_t shuttingdown = ISC_FALSE;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -341,6 +342,17 @@ setup_key(void) {
 }
 
 static void
+shutdown_program(isc_task_t *task, isc_event_t *event) {
+	REQUIRE(task == global_task);
+	UNUSED(task);
+
+	ddebug("shutdown_program()");
+	isc_event_free(&event);
+	isc_task_detach(&global_task);
+	shuttingdown = ISC_TRUE;
+}
+
+static void
 setup_system(void) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any, bind_any6;
@@ -407,6 +419,9 @@ setup_system(void) {
 
 	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
+
+	result = isc_task_onshutdown(global_task, shutdown_program, NULL);
+	check_result(result, "isc_task_onshutdown");
 
 	result = isc_entropy_create(mctx, &entp);
 	check_result(result, "isc_entropy_create");
@@ -1131,6 +1146,7 @@ user_interaction(void) {
 static void
 done_update(void) {
 	isc_event_t *event = global_event;
+	ddebug("done_update()");
 	isc_task_send(global_task, &event);
 }
 
@@ -1142,7 +1158,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	ddebug("updated_completed()");
+	ddebug("update_completed()");
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	if (reqev->result != ISC_R_SUCCESS) {
@@ -1505,15 +1521,11 @@ cleanup(void) {
 	ddebug("Shutting down dispatch manager");
 	dns_dispatchmgr_destroy(&dispatchmgr);
 
-	ddebug("Ending task");
-	isc_task_detach(&global_task);
-
-	ddebug("Destroying event task");
-	if (global_event != NULL)
-		isc_event_free(&global_event);
-
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);
+
+	ddebug("Destroying event");
+	isc_event_free(&global_event);
 
 	ddebug("Shutting down socket manager");
 	isc_socketmgr_destroy(&socketmgr);
@@ -1536,6 +1548,10 @@ getinput(isc_task_t *task, isc_event_t *event) {
 	if (global_event == NULL)
 		global_event = event;
 
+	if (shuttingdown) {
+		isc_app_shutdown();
+		return;
+	}
 	reset_system();
 	isc_app_block();
 	more = user_interaction();
