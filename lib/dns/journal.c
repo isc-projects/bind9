@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1.10.2 2003/08/11 05:28:14 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.3 2003/08/18 07:10:11 marka Exp $ */
 
 #include <config.h>
 
@@ -1245,8 +1245,11 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 		rdata = NULL;
 		dns_journal_current_rr(j, &name, &ttl, &rdata);
 
-		if (rdata->type == dns_rdatatype_soa)
+		if (rdata->type == dns_rdatatype_soa) {
 			n_soa++;
+			if (n_soa == 2)
+				db_serial = j->it.current_serial;
+		}
 
 		if (n_soa == 3)
 			n_soa = 1;
@@ -1263,7 +1266,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 
 		if (++n_put > 100)  {
 			isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
-				      "applying diff to database");
+				      "applying diff to database (%u)",
+				      db_serial);
 			(void)dns_diff_print(&diff, NULL);
 			CHECK(dns_diff_apply(&diff, db, ver));
 			dns_diff_clear(&diff);
@@ -1276,7 +1280,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 
 	if (n_put != 0) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
-			      "applying final diff to database");
+			      "applying final diff to database (%u)",
+			      db_serial);
 		(void)dns_diff_print(&diff, NULL);
 		CHECK(dns_diff_apply(&diff, db, ver));
 		dns_diff_clear(&diff);
