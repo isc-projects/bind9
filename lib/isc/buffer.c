@@ -99,14 +99,6 @@ isc_buffer_used(isc_buffer_t *b, isc_region_t *r) {
 	r->length = b->used;
 }
 
-unsigned int
-isc_buffer_usedcount(isc_buffer_t *b)
-{
-	REQUIRE(ISC_BUFFER_VALID(b));
-
-	return (b->used);
-}
-
 void
 isc_buffer_available(isc_buffer_t *b, isc_region_t *r) {
 	/*
@@ -118,14 +110,6 @@ isc_buffer_available(isc_buffer_t *b, isc_region_t *r) {
 
 	r->base = (unsigned char *)b->base + b->used;
 	r->length = b->length - b->used;
-}
-
-unsigned int
-isc_buffer_availablecount(isc_buffer_t *b)
-{
-	REQUIRE(ISC_BUFFER_VALID(b));
-
-	return (b->length - b->used);
 }
 
 void

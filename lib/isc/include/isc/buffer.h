@@ -117,6 +117,23 @@ ISC_LANG_BEGINDECLS
 #define ISC_BUFFER_VALID(b)		((b) != NULL && \
 					 (b)->magic == ISC_BUFFER_MAGIC)
 
+/*
+ * The following macros MUST be used only on valid buffers.  It is the
+ * caller's responsibility to ensure this by using the ISC_BUFFER_VALID
+ * check above, or by calling another isc_buffer_*() function (rather than
+ * another macro.)
+ */
+
+/*
+ * Get the length of the used region of buffer "b"
+ */
+#define ISC_BUFFER_USEDCOUNT(b)		((b)->used)
+
+/*
+ * Get the length of the available region of buffer "b"
+ */
+#define ISC_BUFFER_AVAILABLECOUNT(b)	((b)->length - (b)->used)
+
 /***
  *** Types
  ***/
@@ -254,16 +271,6 @@ isc_buffer_used(isc_buffer_t *b, isc_region_t *r);
  *	'r' points to a region structure.
  */
 
-unsigned int
-isc_buffer_usedcount(isc_buffer_t *b);
-/*
- * Return the size of the used region of buffer 'b'
- *
- * Requires:
- *
- *	'b' is a valid buffer.
- */
-
 void
 isc_buffer_available(isc_buffer_t *b, isc_region_t *r);
 /*
@@ -274,16 +281,6 @@ isc_buffer_available(isc_buffer_t *b, isc_region_t *r);
  *	'b' is a valid buffer.
  *
  *	'r' points to a region structure.
- */
-
-unsigned int
-isc_buffer_availablecount(isc_buffer_t *b);
-/*
- * Return the size of the available region of buffer 'b'
- *
- * Requires:
- *
- *	'b' is a valid buffer.
  */
 
 void

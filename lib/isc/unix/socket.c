@@ -350,10 +350,10 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	 */
 	skip_count = dev->n;
 	while (buffer != NULL) {
-		isc_buffer_used(buffer, &used);
-		if (skip_count < used.length)
+		REQUIRE(ISC_BUFFER_VALID(buffer));
+		if (skip_count < ISC_BUFFER_USEDCOUNT(buffer))
 			break;
-		skip_count -= used.length;
+		skip_count -= ISC_BUFFER_USEDCOUNT(buffer);
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 
@@ -447,8 +447,8 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	 * Skip empty buffers.
 	 */
 	while (buffer != NULL) {
-		isc_buffer_available(buffer, &available);
-		if (available.length != 0)
+		REQUIRE(ISC_BUFFER_VALID(buffer));
+		if (ISC_BUFFER_AVAILABLECOUNT(buffer) != 0)
 			break;
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
@@ -539,7 +539,6 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	size_t actual_count;
 	struct msghdr msghdr;
 	isc_buffer_t *buffer;
-	isc_region_t available;
 
 	build_msghdr_recv(sock, dev, &msghdr, iov,
 			  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
@@ -613,10 +612,11 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	actual_count = cc;
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
 	while (buffer != NULL && actual_count > 0) {
-		isc_buffer_available(buffer, &available);
-		if (available.length <= actual_count) {
-			actual_count -= available.length;
-			isc_buffer_add(buffer, available.length);
+		REQUIRE(ISC_BUFFER_VALID(buffer));
+		if (ISC_BUFFER_AVAILABLECOUNT(buffer) <= actual_count) {
+			actual_count -= ISC_BUFFER_AVAILABLECOUNT(buffer);
+			isc_buffer_add(buffer,
+				       ISC_BUFFER_AVAILABLECOUNT(buffer));
 		} else {
 			isc_buffer_add(buffer, actual_count);
 			actual_count = 0;
