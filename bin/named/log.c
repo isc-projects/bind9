@@ -98,33 +98,32 @@ isc_result_t
 ns_log_setdefaults(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 	isc_logdestination_t destination;
-	unsigned int flags;
 	
 	/*
-	 * Create and install the default channel.
+	 * By default, the logging library makes "default_debug" log to
+	 * stderr.  In BIND, we want to override this and log to named.run
+	 * instead, unless the the -g option was given.
 	 */
-	if (ns_g_logstderr) {
-		destination.file.stream = stderr;
-		destination.file.name = NULL;
+	if (! ns_g_logstderr) {
+		destination.file.stream = NULL;
+		destination.file.name = "named.run";
 		destination.file.versions = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
-		flags = ISC_LOG_PRINTTIME;
-		result = isc_log_createchannel(lcfg, "_default",
-					       ISC_LOG_TOFILEDESC,
-					       ISC_LOG_DYNAMIC,
-					       &destination, flags);
-	} else {
-		destination.facility = LOG_DAEMON;
-		flags = ISC_LOG_PRINTTIME;
-		result = isc_log_createchannel(lcfg, "_default",
-					       ISC_LOG_TOSYSLOG,
-					       ISC_LOG_DYNAMIC,
-					       &destination, flags);
+		result = isc_log_createchannel(lcfg, "default_debug",
+                                               ISC_LOG_TOFILE,
+                                               ISC_LOG_DYNAMIC,
+                                               &destination,
+                                               ISC_LOG_PRINTTIME|
+					       ISC_LOG_DEBUGONLY);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 	}
-	
+
+	result = isc_log_usechannel(lcfg, "default_syslog", NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = isc_log_usechannel(lcfg, "_default", NULL, NULL);
+
+	result = isc_log_usechannel(lcfg, "default_debug", NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
