@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.131 $)
+AC_REVISION($Revision: 1.132 $)
 
 AC_PREREQ(2.13)
 
@@ -380,6 +380,9 @@ if test "X$GCC" = "Xyes"; then
 		*-solaris*)
 			LIBS="$LIBS -lthread"
 			;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
 	esac
 else
 	case "$host" in
@@ -399,6 +402,9 @@ else
                 *-sgi-irix*)
 			STD_CWARNINGS="-fullwarn"
                         ;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
 	esac
 fi
 AC_SUBST(MKDEPCC)
