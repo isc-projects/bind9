@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.51 2001/05/31 10:47:17 tale Exp $
+ * $Id: hmac_link.c,v 1.52 2001/05/31 10:49:28 tale Exp $
  */
 
 #include <config.h>
@@ -139,6 +139,7 @@ hmacmd5_generate(dst_key_t *key, int good_entropy) {
 	memset(data, 0, HMAC_LEN);
 	ret = dst__entropy_getdata(data, bytes,
 				   good_entropy != 0 ? ISC_FALSE : ISC_TRUE);
+
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
