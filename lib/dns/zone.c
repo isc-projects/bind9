@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.148 2000/06/15 17:40:18 gson Exp $ */
+/* $Id: zone.c,v 1.149 2000/06/19 23:05:30 marka Exp $ */
 
 #include <config.h>
 
@@ -1379,6 +1379,15 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	}
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		(void) zone_settimer(zone, now);
+}
+
+void
+dns_zone_markdirty(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	zone->flags |= DNS_ZONEFLG_NEEDDUMP;
+	UNLOCK(&zone->lock);
 }
 
 void

@@ -287,6 +287,15 @@ dns_zone_setdbtype(dns_zone_t *zone, const char *db_type);
  *	ISC_R_SUCCESS
  */
 
+void 
+dns_zone_markdirty(dns_zone_t *zone);
+/*
+ *	Mark a zone as 'dirty'.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+
 void
 dns_zone_expire(dns_zone_t *zone);
 /*
