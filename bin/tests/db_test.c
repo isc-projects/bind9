@@ -196,7 +196,8 @@ list(dbinfo *dbi, char *seektext) {
 				dns_fixedname_init(&fseekname);
 				seekname = dns_fixedname_name(&fseekname);
 				result = dns_name_fromtext(seekname, &source,
-							   dns_rootname,
+							   dns_db_origin(
+								 dbi->db),
 							   ISC_FALSE,
 							   NULL);
 				if (result == ISC_R_SUCCESS)
