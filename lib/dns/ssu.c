@@ -1,5 +1,5 @@
 /*
- * $Id: ssu.c,v 1.1 2000/02/14 21:00:37 bwelling Exp $
+ * $Id: ssu.c,v 1.2 2000/02/14 21:09:16 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -19,6 +19,8 @@
 
 #define SSUMAGIC		0x53535554 /* SSUT */
 #define VALID_SSUTABLE(table)	ISC_MAGIC_VALID((table), SSUMAGIC)
+
+typedef struct dns_ssurule dns_ssurule_t;
 
 struct dns_ssurule {
 	isc_boolean_t grant;	/* is this a grant or a deny? */
