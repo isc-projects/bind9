@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.57.2.1 2001/01/09 22:44:22 bwelling Exp $
+ * $Id: tkey.c,v 1.57.2.2 2001/01/11 18:28:13 gson Exp $
  */
 
 #include <config.h>
@@ -881,7 +881,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	tkey.expire = now + lifetime;
 	tkey.mode = DNS_TKEYMODE_DIFFIEHELLMAN;
 	if (nonce != NULL)
-		isc_buffer_region(nonce, &r);
+		isc_buffer_usedregion(nonce, &r);
 	else {
 		r.base = isc_mem_get(msg->mctx, 0);
 		r.length = 0;
@@ -1119,7 +1119,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	r.base = rtkey.key;
 	r.length = rtkey.keylen;
 	if (nonce != NULL)
-		isc_buffer_region(nonce, &r2);
+		isc_buffer_usedregion(nonce, &r2);
 	else {
 		r2.base = isc_mem_get(rmsg->mctx, 0);
 		r2.length = 0;
