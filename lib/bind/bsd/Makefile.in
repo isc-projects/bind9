@@ -13,7 +13,10 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.5 2001/05/31 05:53:58 marka Exp $
+# $Id: Makefile.in,v 1.6 2001/08/09 05:59:36 marka Exp $
+
+srcdir=         @srcdir@
+VPATH =         @srcdir@
 
 DAEMON_OBJS=daemon.@O@
 STRSEP_OBJS=strsep.@O@
@@ -31,6 +34,6 @@ SRCS=	daemon.c ftruncate.c gettimeofday.c mktemp.c putenv.c \
 
 TARGETS= ${OBJS}
 
-CINCLUDES= -I.. -I../include
+CINCLUDES= -I.. -I${srcdir}/../include
 
 @BIND9_MAKE_RULES@

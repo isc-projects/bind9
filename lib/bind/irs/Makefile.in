@@ -13,7 +13,10 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.6 2001/05/31 05:54:03 marka Exp $
+# $Id: Makefile.in,v 1.7 2001/08/09 05:59:40 marka Exp $
+
+srcdir=		@srcdir@
+VPATH =         @srcdir@
 
 WANT_IRS_THREADS_OBJS=	gethostent_r.@O@ getnetgrent_r.@O@ \
 	getprotoent_r.@O@ getservent_r.@O@
@@ -62,6 +65,6 @@ WANT_IRS_THREADSGR_OBJS=getgrent_r.@O@
 
 TARGETS= ${OBJS}
 
-CINCLUDES= -I.. -I../include
+CINCLUDES= -I.. -I${srcdir}/../include
 
 @BIND9_MAKE_RULES@

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.80 $)
+AC_REVISION($Revision: 1.81 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1057,52 +1057,54 @@ case "$have_minimum_ifreq" in
 esac
 AC_SUBST(HAVE_MINIMUM_IFREQ)
 
-# PORT_INCLUDE
-PORT_INCLUDE=port/unknown/include
+# PORT_DIR
+PORT_DIR=port/unknown
 SOLARIS_BITTYPES="#undef NEED_SOLARIS_BITTYPES"
 BSD_COMP="#undef BSD_COMP"
 USE_FIONBIO_IOCTL="#undef USE_FIONBIO_IOCTL"
 case "$host" in
-	*aix3.2*)	PORT_INCLUDE="port/aix32/include";;
-	*aix4*)		PORT_INCLUDE="port/aix4/include";;
-	*aux3*)		PORT_INCLUDE="port/aux3/include";;
-	*-bsdi2*)	PORT_INCLUDE="port/bsdos2/include";;
-	*-bsdi*)	PORT_INCLUDE="port/bsdos/include";;
-	*-cygwin*)	PORT_INCLUDE="port/cygwin/include";;
-	*-darwin*)	PORT_INCLUDE="port/darwin/include";;
-	*-osf*)		PORT_INCLUDE="port/decunix/include";;
-	*-freebsd*)	PORT_INCLUDE="port/freebsd/include";;
-	*-hpux9*)	PORT_INCLUDE="port/hpux9/include";;
-	*-hpux10*)	PORT_INCLUDE="port/hpux10/include";;
-	*-hpux11*)	PORT_INCLUDE="port/hpux/include";;
-	*-irix*)	PORT_INCLUDE="port/irix/include";;
-	*-linux*)	PORT_INCLUDE="port/linux/include";;
-	*-lynxos*)	PORT_INCLUDE="port/lynxos/include";;
-	*-mpe*)		PORT_INCLUDE="port/mpe/include";;
-	*-netbsd*)	PORT_INCLUDE="port/netbsd/include";;
-	*-next*)	PORT_INCLUDE="port/next/include";;
-	*-openbsd*)	PORT_INCLUDE="port/openbsd/include";;
-	*-qnx*)		PORT_INCLUDE="port/qnx/include";;
-	*-rhapsody*)	PORT_INCLUDE="port/rhapsody/include";;
+	*aix3.2*)	PORT_DIR="port/aix32";;
+	*aix4*)		PORT_DIR="port/aix4";;
+	*aux3*)		PORT_DIR="port/aux3";;
+	*-bsdi2*)	PORT_DIR="port/bsdos2";;
+	*-bsdi*)	PORT_DIR="port/bsdos";;
+	*-cygwin*)	PORT_DIR="port/cygwin";;
+	*-darwin*)	PORT_DIR="port/darwin";;
+	*-osf*)		PORT_DIR="port/decunix";;
+	*-freebsd*)	PORT_DIR="port/freebsd";;
+	*-hpux9*)	PORT_DIR="port/hpux9";;
+	*-hpux10*)	PORT_DIR="port/hpux10";;
+	*-hpux11*)	PORT_DIR="port/hpux";;
+	*-irix*)	PORT_DIR="port/irix";;
+	*-linux*)	PORT_DIR="port/linux";;
+	*-lynxos*)	PORT_DIR="port/lynxos";;
+	*-mpe*)		PORT_DIR="port/mpe";;
+	*-netbsd*)	PORT_DIR="port/netbsd";;
+	*-next*)	PORT_DIR="port/next";;
+	*-openbsd*)	PORT_DIR="port/openbsd";;
+	*-qnx*)		PORT_DIR="port/qnx";;
+	*-rhapsody*)	PORT_DIR="port/rhapsody";;
 	*-solaris2.[[01234]]*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
 			USE_FIONBIO_IOCTL="#define USE_FIONBIO_IOCTL 1"
-			PORT_INCLUDE="port/solaris/include";;
+			PORT_DIR="port/solaris";;
 	*-solaris2.5*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
-			PORT_INCLUDE="port/solaris/include";;
+			PORT_DIR="port/solaris";;
 	*-solaris2*)	BSD_COMP="#define BSD_COMP 1"
-			PORT_INCLUDE="port/solaris/include";;
-	*-ultrix*)	PORT_INCLUDE="port/ultrix/include";;
-	*-sco-sysv*uw2.0*)	PORT_INCLUDE="port/unixware20/include";;
-	*-sco-sysv*uw2.1.2*)	PORT_INCLUDE="port/unixware212/include";;
-	*-sco-sysv*uw7*)	PORT_INCLUDE="port/unixware7/include";;
+			PORT_DIR="port/solaris";;
+	*-ultrix*)	PORT_DIR="port/ultrix";;
+	*-sco-sysv*uw2.0*)	PORT_DIR="port/unixware20";;
+	*-sco-sysv*uw2.1.2*)	PORT_DIR="port/unixware212";;
+	*-sco-sysv*uw7*)	PORT_DIR="port/unixware7";;
 esac
 AC_SUBST(BSD_COMP)
 AC_SUBST(SOLARIS_BITTYPES)
 AC_SUBST(USE_FIONBIO_IOCTL)
+AC_SUBST(PORT_DIR)
+PORT_INCLUDE=${PORT_DIR}/include
 AC_SUBST(PORT_INCLUDE)
 
 
@@ -2257,6 +2259,8 @@ AC_OUTPUT(
 	port_after.h
 	port_before.h
 	resolv/Makefile
+	port/Makefile
+	${PORT_DIR}/Makefile
 	${PORT_INCLUDE}/Makefile
 )
 
