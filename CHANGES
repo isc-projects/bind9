@@ -24,6 +24,9 @@
 			New keyword 'class' which sets the default class.
 			[RT #10202]
 
+1568.	[bug]		nsupdate now reports that the update failed in
+			interative mode. [RT# 10236]
+
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 
 1566.	[port]		Support for the cmsg framework on Solaris and HP/UX.

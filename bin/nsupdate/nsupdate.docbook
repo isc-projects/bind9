@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.8.2.4 2004/03/03 23:42:43 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.8.2.5 2004/03/04 01:22:50 marka Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -465,6 +465,7 @@ Sends the current message.  This is equivalent to entering a blank line.
 <para>
 Lines beginning with a semicolon are comments, and are ignored.
 </para>
+</listitem>
 
 </refsect1>
 
@@ -485,7 +486,7 @@ master name server for
 # nsupdate
 > update delete oldhost.example.com A
 > update add newhost.example.com 86400 A 172.16.1.1
->
+> send
 </programlisting>
 </para>
 <para>
@@ -500,7 +501,7 @@ The newly-added record has a 1 day TTL (86400 seconds)
 # nsupdate
 > prereq nxdomain nickname.example.com
 > update add nickname.example.com 86400 CNAME somehost.example.com
->
+> send
 </programlisting>
 </para>
 <para>

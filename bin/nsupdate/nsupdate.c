@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.18 2004/03/03 23:42:42 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.19 2004/03/04 01:22:50 marka Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,7 @@
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -1418,6 +1419,29 @@ done_update(void) {
 }
 
 static void
+check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_any_tsig_t tsig;
+
+	result = dns_rdataset_first(rdataset);
+	check_result(result, "dns_rdataset_first");
+	dns_rdataset_current(rdataset, &rdata);
+	result = dns_rdata_tostruct(&rdata, &tsig, NULL);
+	check_result(result, "dns_rdata_tostruct");
+	if (tsig.error != 0) {
+		if (isc_buffer_remaininglength(b) < 1)
+		      check_result(ISC_R_NOSPACE, "isc_buffer_remaininglength");
+		isc__buffer_putstr(b, "(" /*)*/);
+		result = dns_tsigrcode_totext(tsig.error, b);
+		check_result(result, "dns_tsigrcode_totext");
+		if (isc_buffer_remaininglength(b) < 1)
+		      check_result(ISC_R_NOSPACE, "isc_buffer_remaininglength");
+		isc__buffer_putstr(b,  /*(*/ ")");
+	}
+}
+
+static void
 update_completed(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
 	isc_result_t result;
@@ -1468,8 +1492,23 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		check_result(result, "dns_request_getresponse");
 	}
 
-	if (rcvmsg->rcode != dns_rcode_noerror)
+	if (rcvmsg->rcode != dns_rcode_noerror) {
 		seenerror = ISC_TRUE;
+		if (!debugging) {
+			char buf[64];
+			isc_buffer_t b;
+			dns_rdataset_t *rds;
+			
+			isc_buffer_init(&b, buf, sizeof(buf) - 1);
+			result = dns_rcode_totext(rcvmsg->rcode, &b);
+			check_result(result, "dns_rcode_totext");
+			rds = dns_message_gettsig(rcvmsg, NULL);
+			if (rds != NULL)
+				check_tsig_error(rds, &b);
+			fprintf(stderr, "update failed: %.*s\n",
+				(int)isc_buffer_usedlength(&b), buf);
+		}
+	}
 	if (debugging) {
 		isc_buffer_t *buf = NULL;
 		int bufsz;
