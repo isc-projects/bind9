@@ -1,3 +1,11 @@
+ 968.	[bug]		On win32, the isc_time_now() function was unnecessarily
+			calling strtime(). [RT #1671]
+
+ 967.	[bug]		On win32, the link for bindevt was not including the
+			required resource file to enable the event viewer
+			to interpret the error messages in the event log,
+			[RT #1668]
+
  966.	[port]		#include <asm/unistd.h> is required on some Linux
 			ports.  [RT #1670]
 
