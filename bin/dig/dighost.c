@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.148 2000/10/17 00:35:18 mws Exp $ */
+/* $Id: dighost.c,v 1.149 2000/10/17 00:36:09 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2181,11 +2181,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(!free_now);
 
-<<<<<<< dighost.c
-=======
-	if (show_packets)
-		puts(";; beginning of DNS packet");
->>>>>>> 1.147
 	debug("recv_done()");
 
 	LOCK_LOOKUP;
