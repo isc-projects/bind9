@@ -111,10 +111,16 @@ isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	return (h);
 }
 
+/*
+ * v6v4addr is used when creating IPv4-mapped IPv6 addresses.
+ */
+static struct in6_addr v6v4addr = {{{ 0,0,0,0,0,0,0,0,0,0,255,255,0,0,0,0 }}};
+
 void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
 		    unsigned int port)
 {
+	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin.sin_family = AF_INET;
 #ifdef ISC_NET_HAVESALEN
 	sockaddr->type.sin.sin_len = sizeof sockaddr->type.sin;
@@ -129,6 +135,7 @@ void
 isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
 		     unsigned int port)
 {
+	memset(sockaddr, 0, sizeof *sockaddr);
 	sockaddr->type.sin6.sin6_family = AF_INET6;
 #ifdef ISC_NET_HAVESALEN
 	sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
@@ -137,4 +144,44 @@ isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
 	sockaddr->type.sin6.sin6_port = htons(port);
 	sockaddr->length = sizeof sockaddr->type.sin6;
 	ISC_LINK_INIT(sockaddr, link);
+}
+
+void
+isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+		      unsigned int port)
+{
+	memset(sockaddr, 0, sizeof *sockaddr);
+	sockaddr->type.sin6.sin6_family = AF_INET6;
+#ifdef ISC_NET_HAVESALEN
+	sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
+#endif
+	sockaddr->type.sin6.sin6_addr = v6v4addr;
+	memcpy(&sockaddr->type.sin6.sin6_addr.s6_addr[12], ina, 4);
+	sockaddr->type.sin6.sin6_port = htons(port);
+	sockaddr->length = sizeof sockaddr->type.sin6;
+	ISC_LINK_INIT(sockaddr, link);
+}
+
+int
+isc_sockaddr_pf(isc_sockaddr_t *sockaddr) {
+
+	/*
+	 * Get the protocol family of 'sockaddr'.
+	 */
+
+#if (AF_INET == PF_INET && AF_INET6 == PF_INET6)
+	/*
+	 * Assume that PF_xxx == AF_xxx for all AF and PF.
+	 */
+	return (sockaddr->type.sa.sa_family);
+#else
+	switch (sockaddr->type.sa.sa_family) {
+	case AF_INET:
+		return (PF_INET);
+	case AF_INET6:
+		return (PF_INET);
+	default:
+		FATAL_ERROR(__FILE__, __LINE__, "unknown address family");
+	}
+#endif
 }
