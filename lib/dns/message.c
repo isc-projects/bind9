@@ -185,7 +185,7 @@ currentbuffer(dns_message_t *msg)
 static inline void
 releasename(dns_message_t *msg, dns_name_t *name)
 {
-	msg->nextname = name;
+	ISC_LIST_PREPEND(msg->freename, name, link);
 }
 
 static inline dns_name_t *
@@ -194,9 +194,9 @@ newname(dns_message_t *msg)
 	dns_msgblock_t *msgblock;
 	dns_name_t *name;
 
-	if (msg->nextname != NULL) {
-		name = msg->nextname;
-		msg->nextname = NULL;
+	name = ISC_LIST_HEAD(msg->freename);
+	if (name != NULL) {
+		ISC_LIST_UNLINK(msg->freename, name, link);
 		return (name);
 	}
 
@@ -219,7 +219,7 @@ newname(dns_message_t *msg)
 static inline void
 releaserdata(dns_message_t *msg, dns_rdata_t *rdata)
 {
-	msg->nextrdata = rdata;
+	ISC_LIST_PREPEND(msg->freerdata, rdata, link);
 }
 
 static inline dns_rdata_t *
@@ -228,9 +228,9 @@ newrdata(dns_message_t *msg)
 	dns_msgblock_t *msgblock;
 	dns_rdata_t *rdata;
 
-	if (msg->nextrdata != NULL) {
-		rdata = msg->nextrdata;
-		msg->nextrdata = NULL;
+	rdata = ISC_LIST_HEAD(msg->freerdata);
+	if (rdata != NULL) {
+		ISC_LIST_UNLINK(msg->freerdata, rdata, link);
 		return (rdata);
 	}
 
@@ -253,7 +253,7 @@ newrdata(dns_message_t *msg)
 static inline void
 releaserdatalist(dns_message_t *msg, dns_rdatalist_t *rdatalist)
 {
-	msg->nextrdatalist = rdatalist;
+	ISC_LIST_PREPEND(msg->freerdatalist, rdatalist, link);
 }
 
 static inline dns_rdatalist_t *
@@ -262,9 +262,9 @@ newrdatalist(dns_message_t *msg)
 	dns_msgblock_t *msgblock;
 	dns_rdatalist_t *rdatalist;
 
-	if (msg->nextrdatalist != NULL) {
-		rdatalist = msg->nextrdatalist;
-		msg->nextrdatalist = NULL;
+	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
+	if (rdatalist != NULL) {
+		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
 		return (rdatalist);
 	}
 
@@ -288,7 +288,7 @@ newrdatalist(dns_message_t *msg)
 static inline void
 releaserdataset(dns_message_t *msg, dns_rdataset_t *rdataset)
 {
-	msg->nextrdataset = rdataset;
+	ISC_LIST_PREPEND(msg->freerdataset, rdataset, link);
 }
 
 static inline dns_rdataset_t *
@@ -297,9 +297,9 @@ newrdataset(dns_message_t *msg)
 	dns_msgblock_t *msgblock;
 	dns_rdataset_t *rdataset;
 
-	if (msg->nextrdataset != NULL) {
-		rdataset = msg->nextrdataset;
-		msg->nextrdataset = NULL;
+	rdataset = ISC_LIST_HEAD(msg->freerdataset);
+	if (rdataset != NULL) {
+		ISC_LIST_UNLINK(msg->freerdataset, rdataset, link);
 		return (rdataset);
 	}
 
@@ -342,15 +342,10 @@ msginit(dns_message_t *m)
 
 	m->state = DNS_SECTION_ANY;  /* indicate nothing parsed or rendered */
 
-	m->nextname = NULL;
-	m->nextrdata = NULL;
-	m->nextrdataset = NULL;
-	m->nextrdatalist = NULL;
-
 	m->reserved = 0;
 
 	m->buffer = NULL;
-	m->need_cctx_cleanup = ISC_FALSE;
+	m->need_cctx_cleanup = 0;
 }
 
 /*
@@ -364,6 +359,8 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 	isc_dynbuffer_t *dynbuf, *next_dynbuf;
 	dns_rdataset_t *rds, *next_rds;
 	dns_name_t *name, *next_name;
+	dns_rdata_t *rdata;
+	dns_rdatalist_t *rdatalist;
 	unsigned int i;
 
 	/*
@@ -390,6 +387,32 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 	/*
 	 * Clean up linked lists.
 	 */
+
+	/*
+	 * Run through the free lists, and just unlink anything found there.
+	 * The memory isn't lost since these are part of message blocks we
+	 * have allocated.
+	 */
+	name = ISC_LIST_HEAD(msg->freename);
+	while (name != NULL) {
+		ISC_LIST_UNLINK(msg->freename, name, link);
+		name = ISC_LIST_HEAD(msg->freename);
+	}
+	rdata = ISC_LIST_HEAD(msg->freerdata);
+	while (rdata != NULL) {
+		ISC_LIST_UNLINK(msg->freerdata, rdata, link);
+		rdata = ISC_LIST_HEAD(msg->freerdata);
+	}
+	rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
+	while (rdatalist != NULL) {
+		ISC_LIST_UNLINK(msg->freerdatalist, rdatalist, link);
+		rdatalist = ISC_LIST_HEAD(msg->freerdatalist);
+	}
+	rds = ISC_LIST_HEAD(msg->freerdataset);
+	while (rds != NULL) {
+		ISC_LIST_UNLINK(msg->freerdataset, rds, link);
+		rds = ISC_LIST_HEAD(msg->freerdataset);
+	}
 
 	dynbuf = ISC_LIST_HEAD(msg->scratchpad);
 	INSIST(dynbuf != NULL);
@@ -459,7 +482,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 		msgblock = next_msgblock;
 	}
 
-	if (msg->need_cctx_cleanup)
+	if (msg->need_cctx_cleanup == 1)
 		dns_compress_invalidate(&msg->cctx);
 
 	/*
@@ -498,6 +521,10 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msgp, unsigned int intent)
 	ISC_LIST_INIT(m->names);
 	ISC_LIST_INIT(m->rdatas);
 	ISC_LIST_INIT(m->rdatalists);
+	ISC_LIST_INIT(m->freename);
+	ISC_LIST_INIT(m->freerdata);
+	ISC_LIST_INIT(m->freerdataset);
+	ISC_LIST_INIT(m->freerdatalist);
 
 	dynbuf = NULL;
 	iresult = isc_dynbuffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE,
@@ -1075,7 +1102,7 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer)
 	result = dns_compress_init(&msg->cctx, -1, msg->mctx);
 	if (result != DNS_R_SUCCESS)
 		return (result);
-	msg->need_cctx_cleanup = ISC_TRUE;
+	msg->need_cctx_cleanup = 1;
 
 	/*
 	 * Reserve enough space for the header in this buffer.
@@ -1254,7 +1281,7 @@ dns_message_renderend(dns_message_t *msg)
 	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
 
 	dns_compress_invalidate(&msg->cctx);
-	msg->need_cctx_cleanup = ISC_FALSE;
+	msg->need_cctx_cleanup = 0;
 
 	return (DNS_R_SUCCESS);
 }

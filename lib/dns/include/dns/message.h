@@ -117,11 +117,12 @@ typedef struct {
 
 	int				state;
 	unsigned int			from_to_wire : 2;
-	unsigned int			reserved;
+	unsigned int			need_cctx_cleanup : 1;
+
+	unsigned int			reserved; /* reserved space (render) */
 
 	isc_buffer_t		       *buffer;
 	dns_compress_t			cctx;
-	isc_boolean_t			need_cctx_cleanup;
 
 	isc_mem_t		       *mctx;
 	ISC_LIST(isc_dynbuffer_t)	scratchpad;
@@ -129,10 +130,11 @@ typedef struct {
 	ISC_LIST(dns_msgblock_t)	rdatas;
 	ISC_LIST(dns_msgblock_t)	rdatasets;
 	ISC_LIST(dns_msgblock_t)	rdatalists;
-	dns_name_t		       *nextname;
-	dns_rdata_t		       *nextrdata;
-	dns_rdataset_t		       *nextrdataset;
-	dns_rdatalist_t		       *nextrdatalist;
+
+	ISC_LIST(dns_name_t)		freename;
+	ISC_LIST(dns_rdata_t)		freerdata;
+	ISC_LIST(dns_rdataset_t)	freerdataset;
+	ISC_LIST(dns_rdatalist_t)	freerdatalist;
 } dns_message_t;
 
 dns_result_t
