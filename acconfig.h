@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.44.18.1 2004/05/21 08:19:59 marka Exp $ */
+/* $Id: acconfig.h,v 1.44.18.2 2004/10/05 03:18:19 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -134,8 +134,11 @@ int sigwait(const unsigned int *set, int *sig);
 /* define if you have strerror in the C library. */
 #undef HAVE_STRERROR
 
-/* Define if you are running under Compaq TruCluster..  */
+/* Define if you are running under Compaq TruCluster. */
 #undef HAVE_TRUCLUSTER
 
 /* Define if OpenSSL includes DSA support */
 #undef HAVE_OPENSSL_DSA
+
+/* Define to the length type used by the socket API (socklen_t, size_t, int). */
+#undef ISC_SOCKADDR_LEN_T

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.46.18.2 2004/09/24 05:56:42 marka Exp $
+# $Id: ifconfig.sh,v 1.46.18.3 2004/10/05 03:18:21 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -106,7 +106,7 @@ case "$1" in
 		    *-sco3.2v*)
 			ifconfig lo0 alias 10.53.0.$ns
 			;;
-		    *-darwin5*)
+		    *-darwin*)
 			ifconfig lo0 alias 10.53.0.$ns
 			;;
 	            *)
@@ -166,7 +166,7 @@ case "$1" in
 		    *-sco3.2v*)
 			ifconfig lo0 -alias 10.53.0.$ns
 			;;
-		    *darwin5*)
+		    *darwin*)
 			ifconfig lo0 -alias 10.53.0.$ns
 			;;
 	            *)
