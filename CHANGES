@@ -1,3 +1,7 @@
+1001.	[bug]		win32 socket code doio_recv was not catching a
+			WSACONNRESET error when the client was timing out
+			the request and closing the connection. [RT #1745]
+
 1000.	[func]		Accept "HESIOD" as a alias for class "HS".
 
  999.	[func]		"rndc retransfer zone [class [view]]" added.
