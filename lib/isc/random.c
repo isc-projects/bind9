@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.13 2000/09/26 17:23:17 gson Exp $ */
+/* $Id: random.c,v 1.14 2000/12/26 21:02:14 tale Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <time.h>		/* Required for time(). */
 
 #include <isc/mutex.h>
 #include <isc/once.h>

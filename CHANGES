@@ -1,4 +1,8 @@
 
+ 638.	[port]		lib/isc/random.c needed to explicitly include
+			time.h explicitly to get a prototype for time() when
+			pthreads was not being used. [RT #592]
+
  637.	[port]		Use isc_u?int64_t instead of (unsigned) long long in
 			lib/isc/print.c.  Also allow lib/isc/print.c to
 			be compiled even if the platform does not need it.
