@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: request.c,v 1.26 2000/06/22 21:54:44 tale Exp $ */
+/* $Id: request.c,v 1.26.2.1 2000/07/21 22:26:16 gson Exp $ */
 
 #include <config.h>
 
@@ -734,6 +734,8 @@ isc_result_t
 dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 			isc_boolean_t preserve_order)
 {
+	isc_result_t result;
+
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(request->answer != NULL);
 
@@ -742,7 +744,12 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 
 	dns_message_setquerytsig(message, request->tsig);
 	dns_message_settsigkey(message, request->tsigkey);
-	return (dns_message_parse(message, request->answer, preserve_order));
+	result = dns_message_parse(message, request->answer, preserve_order);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (request->tsigkey != NULL)
+		result = dns_tsig_verify(request->answer, message, NULL, NULL);
+	return (result);
 }
 
 isc_boolean_t
