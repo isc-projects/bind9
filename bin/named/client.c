@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.136.2.7 2001/09/19 02:46:55 marka Exp $ */
+/* $Id: client.c,v 1.136.2.8 2001/10/12 01:08:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1413,6 +1413,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request is signed by a nonauthoritative key");
+		sigresult = DNS_R_REFUSED;
 		/*
 		 * Accept update messages signed by unknown keys so that
 		 * update forwarding works transparently through slaves
