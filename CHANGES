@@ -1,3 +1,5 @@
+ 775.   [bug]		acls with invalid netmasks caused the parser to
+			abort with an assertion failure. [RT #996]
 
  772.	[bug]		Owner names could be incorrectly omitted from cache
 			dumps in the presence of negative caching entries.

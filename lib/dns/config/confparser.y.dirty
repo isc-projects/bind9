@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.5 2001/03/06 02:05:34 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.6 2001/03/08 18:24:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3368,10 +3368,9 @@ address_match_simple: ip_address
 		if ($3 < 0 ||
 		    ($1.type.sa.sa_family == AF_INET && $3 > 32) ||
 		    ($1.type.sa.sa_family == AF_INET6 && $3 > 128)) {
-			parser_warning(ISC_FALSE,
-				       "mask bits (%d) out of range: "
-				       "skipping", (int)$3);
-			$$ = NULL;
+			parser_error(ISC_FALSE,
+				     "mask bits (%d) out of range", (int)$3);
+			YYABORT;
 		} else {
 			tmpres = dns_c_ipmatchpattern_new(currcfg->mem, &ime,
 							  $1, $3);
@@ -3407,10 +3406,9 @@ address_match_simple: ip_address
 			YYABORT;
 		} else {
 			if ($3 < 0 || $3 > 32) {
-				parser_warning(ISC_FALSE,
-					       "mask bits out of range; "
-					       "skipping");
-				$$ = NULL;
+				parser_error(ISC_FALSE,
+					     "mask bits out of range; ");
+				YYABORT;
 			} else {
 				ia.s_addr = htonl(($1 & 0xff) << 24);
 				isc_sockaddr_fromin(&address, &ia, 0);
