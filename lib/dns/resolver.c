@@ -3480,6 +3480,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned int options;
 	dns_name_t *tsigowner = NULL;
+	dns_rdataset_t *tsigset;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -3631,14 +3632,15 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_checksig(message, fctx->res->view);
 	if (result != ISC_R_SUCCESS)
 		goto done;
-	if (dns_message_gettsig(message, &tsigowner) != NULL) {
+	tsigset = dns_message_gettsig(message, &tsigowner);
+	if (tsigset != NULL) {
 		dns_rdata_any_tsig_t tsig;
 		dns_rdata_t rdata;
 
-		result = dns_rdataset_first(message->tsigset);
+		result = dns_rdataset_first(tsigset);
 		if (result != ISC_R_SUCCESS)
 			goto done;
-		dns_rdataset_current(message->tsigset, &rdata);
+		dns_rdataset_current(tsigset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &tsig, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto done;
