@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.2 2000/11/18 00:18:26 gson Exp $ */
+/* $Id: tcldb.c,v 1.3 2000/11/18 00:32:14 gson Exp $ */
 
 #include <config.h>
 
@@ -87,10 +87,7 @@ tcldb_driver_destroy(tcldb_driver_t **driverp) {
 }
 
 /*
- * This database operates on relative names.
- *
- * Any name will be interpreted as a pathname offset from the tclectory
- * specified in the configuration file.
+ * Perform a lookup, by invoking the Tcl procedure "lookup".
  */
 static isc_result_t
 tcldb_lookup(const char *zone, const char *name, void *dbdata,
@@ -162,9 +159,9 @@ tcldb_lookup(const char *zone, const char *name, void *dbdata,
 }
 
 /*
- * Each database stores the top-level tclectory as the dbdata opaque
- * object.  The create() function allocates it.  argv[0] holds the top
- * level tclectory.
+ * Set up per-zone state.  In our case, the database arguments of the
+ * zone are collected into a Tcl list and assigned to an element of
+ * the global array "dbargs".
  */
 static isc_result_t
 tcldb_create(const char *zone, int argc, char **argv,
@@ -184,7 +181,7 @@ tcldb_create(const char *zone, int argc, char **argv,
 }
 
 /*
- * This zone does not support zone transfer, so allnodes() is NULL.
+ * This driver does not support zone transfer, so allnodes() is NULL.
  */
 static dns_sdbmethods_t tcldb_methods = {
 	tcldb_lookup,
