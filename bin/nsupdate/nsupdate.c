@@ -15,9 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.5 2000/08/14 23:49:09 gson Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.6 2000/08/15 01:14:51 gson Exp $ */
 
 #include <config.h>
+
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -56,11 +63,6 @@
 #include <lwres/lwres.h>
 #include <lwres/net.h>
 
-#include <ctype.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #define MXNAME 256
 #define MAXPNAME 1025
 #define MAXCMD 1024
@@ -69,6 +71,7 @@
 #define PACKETSIZE 2048
 #define MSGTEXT 4096
 #define FIND_TIMEOUT 5
+#define TTL_MAX 2147483647	/* Maximum signed 32 bit integer. */
 
 #define DNSDEFAULTPORT 53
 
@@ -111,13 +114,14 @@ typedef struct nsu_requestinfo {
 	isc_sockaddr_t *addr;
 } nsu_requestinfo_t;
 
-static void sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
-			dns_request_t **request);
+static void
+sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
+	    dns_request_t **request);
 
-#define STATUS_MORE 0
-#define STATUS_SEND 1
-#define STATUS_QUIT 2
-#define STATUS_SYNTAX 3
+#define STATUS_MORE	(isc_uint16_t)0
+#define STATUS_SEND	(isc_uint16_t)1
+#define STATUS_QUIT	(isc_uint16_t)2
+#define STATUS_SYNTAX	(isc_uint16_t)3
 
 static void
 fatal(const char *format, ...) {
@@ -235,7 +239,7 @@ reset_system(void) {
 }
 
 static void
-setup_key() {
+setup_key(void) {
 	unsigned char *secret = NULL;
 	int secretlen;
 	isc_buffer_t secretbuf;
@@ -772,7 +776,7 @@ evaluate_prereq(char *cmdline) {
 static isc_uint16_t
 evaluate_server(char *cmdline) {
 	char *word, *server;
-	in_port_t port;
+	long port;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
@@ -790,6 +794,10 @@ evaluate_server(char *cmdline) {
 		if (*endp != 0) {
 			fprintf(stderr, "port '%s' is not numeric\n", word);
 			return (STATUS_SYNTAX);
+		} else if (port < 1 || port > 65535) {
+			fprintf(stderr, "port '%s' is out of range "
+				"(1 to 65535)\n", word);
+			return (STATUS_SYNTAX);
 		}
 	}
 
@@ -799,7 +807,7 @@ evaluate_server(char *cmdline) {
 			fatal("out of memory");
 	}
 
-	get_address(server, port, userserver);
+	get_address(server, (in_port_t)port, userserver);
 
 	return (STATUS_MORE);
 }
@@ -834,7 +842,7 @@ static isc_uint16_t
 update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
 	dns_name_t *name = NULL;
-	isc_uint16_t ttl;
+	long ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
@@ -848,7 +856,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	ddebug("update_addordelete()");
 
 	/*
-	 * Read the owner name
+	 * Read the owner name.
 	 */
 	retval = parse_name(&cmdline, updatemsg, &name);
 	if (retval != STATUS_MORE)
@@ -863,7 +871,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	rdata->length = 0;
 
 	/*
-	 * If this is an add, read the TTL and verify that it's numeric.
+	 * If this is an add, read the TTL and verify that it's in range.
 	 */
 	if (!isdelete) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
@@ -872,8 +880,18 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto failure;
 		}
 		ttl = strtol(word, &endp, 0);
-		if (*endp != 0) {
+		if (*endp != '\0') {
 			fprintf(stderr, "ttl '%s' is not numeric\n", word);
+			goto failure;
+		} else if (ttl < 1 || ttl > TTL_MAX || errno == ERANGE) {
+			/*
+			 * The errno test is needed to catch when strtol()
+			 * overflows on a platform where sizeof(int) ==
+			 * sizeof(long), because ttl will be set to LONG_MAX,
+			 * which will be equal to TTL_MAX.
+			 */
+			fprintf(stderr, "ttl '%s' is out of range "
+				"(1 to %d)\n", word, TTL_MAX);
 			goto failure;
 		}
 	} else
@@ -948,7 +966,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	rdatalist->type = rdatatype;
 	rdatalist->rdclass = rdataclass;
 	rdatalist->covers = rdatatype;
-	rdatalist->ttl = ttl;
+	rdatalist->ttl = (dns_ttl_t)ttl;
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdataset_init(rdataset);
