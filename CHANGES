@@ -73,7 +73,7 @@
  			comments. [RT #1139]
 
  800.	[bug]		dnssec-signzone produced incorrect statistics for
- 			large zones.  [RT #1133]
+ 			large zones. [RT #1133]
 
  799.	[bug]		The ADB didn't find AAAA glue in a zone unless A6
 			glue was also present.
@@ -524,7 +524,7 @@
  654.	[bug]		Origin was being forgotten in TCP retries in dig.
 			[RT #574]
 
- 653.	[bug]		+defname option in dig was reversed in sense.  
+ 653.	[bug]		+defname option in dig was reversed in sense.
 			[RT #549]
 
  652.	[bug]		zone_saveunique() did not report the new name.
