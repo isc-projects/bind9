@@ -1,3 +1,5 @@
+1000.	[func]		Accept "HESIOD" as a alias for class "HS".
+
  999.	[func]		"rndc retransfer zone [class [view]]" added.
 			[RT #1752]
 
