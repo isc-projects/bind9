@@ -15,12 +15,23 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# Generate a res_* lib from the bind 8 library files
+# Build a res_* library distribution from the BIND 8 source
 
-# Check out the CVS source into a new directory.
-# Change directory into the one bind was checked in to
-# Run this script from that directory
-# Tar up the directory
+#
+# Usage:
+#
+# Export the BIND 8 source from CVS into a scratch directory,
+# chdir into the 'bind' directory, run this script.
+# Finally tar up the directory.  For example:
+#
+#   cd $scratch
+#   cvs export -r t5b-823 bind
+#   cd bind
+#   perl $bind9/util/mkreslib.pl
+#   cd ..
+#   mv bind libbind8-9.0.0b5
+#   tar cf - libbind8-9.0.0b5 | gzip >libbind8-9.0.0b5.tar.gz
+#
 
 # Don't bother keeping contrib or doc around in the new tarball
 system ("rm -rf Makefile contrib doc");
