@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.97 2002/01/04 05:42:12 marka Exp $ */
+/* $Id: parser.c,v 1.98 2002/01/04 06:19:20 marka Exp $ */
 
 #include <config.h>
 
@@ -387,11 +387,13 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	pctx->seen_eof = ISC_FALSE;
 	pctx->ungotten = ISC_FALSE;
 	pctx->errors = 0;
+	pctx->warnings = 0;
 	pctx->open_files = NULL;
 	pctx->closed_files = NULL;
 	pctx->line = 0;
 	pctx->callback = NULL;
 	pctx->callbackarg = NULL;
+	pctx->token.type = isc_tokentype_unknown;
 
 	memset(specials, 0, sizeof(specials));
 	specials['{'] = 1;
@@ -1936,6 +1938,7 @@ cfg_gettoken(cfg_parser_t *pctx, int options) {
 	options |= (ISC_LEXOPT_EOF | ISC_LEXOPT_NOMORE);
 
  redo:
+	pctx->token.type = isc_tokentype_unknown;
 	result = isc_lex_gettoken(pctx->lexer, options, &pctx->token);
 	pctx->ungotten = ISC_FALSE;
 	pctx->line = isc_lex_getsourceline(pctx->lexer);
@@ -2085,6 +2088,9 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 
 		if (pctx->token.type == isc_tokentype_eof) {
 			snprintf(tokenbuf, sizeof(tokenbuf), "end of file");
+		} else if (pctx->token.type == isc_tokentype_unknown) {
+			flags = 0;
+			tokenbuf[0] = '\0';
 		} else {
 			isc_lex_getlasttokentext(pctx->lexer,
 						 &pctx->token, &r);
