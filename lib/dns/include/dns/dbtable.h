@@ -49,17 +49,18 @@ dns_dbtable_destroy(dns_dbtable_t **dbtablep);
  */
 
 dns_result_t
-dns_dbtable_add(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t *db);
+dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db);
 /*
- * Associate 'name' and 'db' in the dbtable.
+ * Add 'db' to 'dbtable'.
  */
 
 void
-dns_dbtable_remove(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t *db);
+dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db);
 /*
- * Dissociate 'name' and 'db' in the dbtable.
+ * Remove 'db' from 'dbtable'.
  *
- * Requires: they are already associated
+ * Requires:
+ *	'db' was previously added to 'dbtable'.
  */
 
 void
@@ -77,10 +78,9 @@ dns_dbtable_getdefault(dns_dbtable_t *dbtable, dns_db_t **db);
  */
 
 void
-dns_dbtable_removedefault(dns_dbtable_t *dbtable, dns_db_t *db);
+dns_dbtable_removedefault(dns_dbtable_t *dbtable);
 /*
- * Stop using 'db' as the result of a dns_dbtable_find() if no better match is
- * available.
+ * Remove the default db from 'dbtable'.
  */
 
 dns_result_t
