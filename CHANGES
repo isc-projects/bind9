@@ -1,6 +1,6 @@
-1828.	[bug]		isc_rwlock_init() failed to properly cleanup if it
 1830.	[bug]		adb lame cache has sence of test reversed. [RT #13600]
 
+1828.	[bug]		isc_rwlock_init() failed to properly cleanup if it
 			encountered a error. [RT #13549]
 
 1827.	[bug]		host: update usage message for '-a'. [RT #37116]
@@ -20,6 +20,10 @@
 1821.	[doc]		acls definitions are no longer required to be
 			in named.conf prior to reference.  They can be
 			defined after being referenced.
+
+1815.	[bug]		nsupdate triggered a REQUIRE if the server was set
+			without also setting the zone and it encountered
+			a CNAME and was using TSIG.  [RT #13086]
 
 1810.	[bug]		configure, lib/bind/configure make different default
 			decisions about whether to do a threaded build.
