@@ -72,17 +72,11 @@
  *	checked data, caller passes a good dns_name_t for the zone, etc)
  */
 
-/* 
- * TODO:
- *
- *   - Should the public type be a handle to a reference counted type?
- *
- */
-
 /***
  *** IMPORTS
  ***/
 
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/lang.h>
@@ -95,29 +89,53 @@
 ISC_LANG_BEGINDECLS
 
 /***
+ *** Magic number checks
+ ***/
+
+#define DNS_ADBHANDLE_MAGIC	  0x61646248	/* adbH. */
+#define DNS_ADBHANDLE_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBHANDLE_MAGIC)
+#define DNS_ADBADDRINFO_MAGIC	  0x61644149	/* adAI. */
+#define DNS_ADBADDRINFO_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBADDRINFO_MAGIC)
+
+
+/***
  *** TYPES
  ***/
 
-/* The ADB */
-typedef struct dns_adb dns_adb_t;
-
 /*
+ * Forward declarations
+ */
+typedef struct dns_adb dns_adb_t;
+typedef struct dns_adbentry dns_adbentry_t;
+typedef struct dns_adbaddrinfo dns_adbaddrinfo_t;
+typedef struct dns_adbhandle dns_adbhandle_t;
+
+/* dns_adbhandle_t
+ *
  * The handle into our internal state of what is going on, where, when...
  * This is returned to the user as a handle, so requests can be canceled,
  * etc.
  */
-typedef struct dns_adbhandle dns_adbhandle_t;
+struct dns_adbhandle {
+	/* Public */
+	unsigned int			magic;		/* RO: magic */
+	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
+	dns_adb_t		       *adb;		/* RO: parent adb */
 
-/*
- * Purely internal type.
- */
-typedef struct dns_adbentry dns_adbentry_t;
+	/* Private */
+	isc_mutex_t			lock;		/* locks all below */
+	isc_task_t		       *task;		/* task to send ev */
+	isc_taskaction_t	       *taskaction;
+	void			       *arg;
+	isc_event_t			event;
+
+	ISC_LINK(dns_adbhandle_t)	link;		/* private */
+};
 
 /* dns_adbaddr_t
  *
  * The answers to queries come back as a list of these.
  */
-typedef struct dns_adbaddrinfo dns_adbaddrinfo_t;
 struct dns_adbaddrinfo {
 	unsigned int			magic;		/* private */
 

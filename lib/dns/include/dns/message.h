@@ -22,6 +22,7 @@
  ***	Imports
  ***/
 
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
@@ -103,7 +104,7 @@ ISC_LANG_BEGINDECLS
 #define DNS_MESSAGE_HEADERLEN		12 /* 6 isc_uint16_t's */
 
 #define DNS_MESSAGE_MAGIC		0x4d534740U	/* MSG@ */
-#define DNS_MESSAGE_VALID(msg)		(((msg)->magic) == DNS_MESSAGE_MAGIC)
+#define DNS_MESSAGE_VALID(msg)		ISC_MAGIC_VALID(msg, DNS_MESSAGE_MAGIC)
 
 /*
  * Ordering here matters.  DNS_SECTION_ANY must be the lowest and negative,
