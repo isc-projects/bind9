@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstall.cpp,v 1.3.206.1 2004/03/06 10:22:53 marka Exp $ */
+/* $Id: BINDInstall.cpp,v 1.3.206.2 2004/04/19 06:39:54 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -78,11 +78,12 @@ BOOL CBINDInstallApp::InitInstance()
 	// If you are not using these features and wish to reduce the size
 	//  of your final executable, you should remove from the following
 	//  the specific initialization routines you do not need.
-
+#if _MSC_VER < 1300
 #ifdef _AFXDLL
 	Enable3dControls();			// Call this when using MFC in a shared DLL
 #else
 	Enable3dControlsStatic();	// Call this when linking to MFC statically
+#endif
 #endif
 
 	CBINDInstallDlg dlg;

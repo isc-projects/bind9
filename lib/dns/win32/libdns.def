@@ -751,4 +751,6 @@ dns_resolver_addalternate
 dns_view_adddelegationonly
 dns_dumpctx_detach
 dns_master_dumptostreaminc
+dns_resolver_resetmustbesecure
+dns_resolver_setmustbesecure
 

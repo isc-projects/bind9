@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.9.2.2.2.4 2004/03/11 05:58:43 marka Exp $ */
+/* $Id: ipv6.h,v 1.9.2.2.2.5 2004/04/19 06:39:55 marka Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
@@ -42,6 +42,10 @@
  * Standards:
  *	RFC 2553.
  */
+
+#if _MSC_VER < 1300
+#define in6_addr in_addr6
+#endif
 
 #ifndef IN6ADDR_ANY_INIT
 #define IN6ADDR_ANY_INIT 	{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}

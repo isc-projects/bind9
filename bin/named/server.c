@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.50 2004/04/15 23:56:11 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.51 2004/04/19 06:39:54 marka Exp $ */
 
 #include <config.h>
 
@@ -937,7 +937,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		udpsize = 512;
 	if (udpsize > 4096)
 		udpsize = 4096;
-	dns_resolver_setudpsize(view->resolver, udpsize);
+	dns_resolver_setudpsize(view->resolver, (isc_uint16_t)udpsize);
 	
 	/*
 	 * Set supported DNSSEC algorithms.
@@ -2070,7 +2070,7 @@ portlist_fromconf(dns_portlist_t *portlist, unsigned int family,
 	     element != NULL;
 	     element = cfg_list_next(element)) {
 		cfg_obj_t *obj = cfg_listelt_value(element);
-		in_port_t port = cfg_obj_asuint32(obj);
+		in_port_t port = (in_port_t)cfg_obj_asuint32(obj);
 		
 		result = dns_portlist_add(portlist, family, port);
 		if (result != ISC_R_SUCCESS)
@@ -2231,7 +2231,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		udpsize = 512;
 	if (udpsize > 4096)
 		udpsize = 4096;
-	ns_g_udpsize = udpsize;
+	ns_g_udpsize = (isc_uint16_t)udpsize;
 
 	/*
 	 * Configure the zone manager.
