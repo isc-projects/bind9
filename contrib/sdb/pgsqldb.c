@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.5 2000/11/20 18:25:14 gson Exp $ */
+/* $Id: pgsqldb.c,v 1.6 2000/11/20 19:34:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -58,7 +58,7 @@ struct dbinfo {
  * "dest" must be an array of at least size 2*strlen(source) + 1.
  */
 static void
-canonicalize(const char *source, char *dest) {
+quotestring(const char *source, char *dest) {
 	while (*source != 0) {
 		if (*source == '\\' || *source == '\'')
 			*dest++ = '\\';
@@ -89,7 +89,7 @@ pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 	canonname = isc_mem_get(ns_g_mctx, strlen(name) * 2 + 1);
 	if (canonname == NULL)
 		return (ISC_R_NOMEMORY);
-	canonicalize(name, canonname);
+	quotestring(name, canonname);
 	snprintf(str, sizeof(str),
 		 "SELECT TTL,RDTYPE,RDATA FROM \"%s\" WHERE "
 		 "lower(NAME) = lower('%s')", dbi->table, canonname);

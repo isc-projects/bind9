@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.5 2000/11/20 13:02:17 marka Exp $ */
+/* $Id: zonetodb.c,v 1.6 2000/11/20 19:34:13 bwelling Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -68,7 +68,7 @@ check_result(isc_result_t result, const char *message) {
  * "dest" must be an array of at least size 2*strlen(source) + 1.
  */
 static void
-canonicalize(const char *source, char *dest) {
+quotestring(const char *source, char *dest) {
 	while (*source != 0) {
 		if (*source == '\\' || *source == '\'')
 			*dest++ = '\\';
@@ -93,19 +93,19 @@ addrdata(dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata) {
 	result = dns_name_totext(name, ISC_TRUE, &b);
 	check_result(result, "dns_name_totext");
 	namearray[isc_buffer_usedlength(&b)] = 0;
-	canonicalize(namearray, canonnamearray);
+	quotestring(namearray, canonnamearray);
 	
 	isc_buffer_init(&b, typearray, sizeof(typearray) - 1);
 	result = dns_rdatatype_totext(rdata->type, &b);
 	check_result(result, "dns_rdatatype_totext");
 	typearray[isc_buffer_usedlength(&b)] = 0;
-	canonicalize(typearray, canontypearray);
+	quotestring(typearray, canontypearray);
 
 	isc_buffer_init(&b, dataarray, sizeof(dataarray) - 1);
 	result = dns_rdata_totext(rdata, NULL, &b);
 	check_result(result, "dns_rdata_totext");
 	dataarray[isc_buffer_usedlength(&b)] = 0;
-	canonicalize(dataarray, canondataarray);
+	quotestring(dataarray, canondataarray);
 	
 	snprintf(str, sizeof(str),
 		 "INSERT INTO %s (NAME, TTL, RDTYPE, RDATA)"
