@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.6.3 2004/08/22 23:35:44 marka Exp $
+.\" $Id: named.conf.5,v 1.1.6.4 2004/10/18 02:18:09 marka Exp $
 .\"
 .TH "NAMED.CONF" "5" "Aug 13, 2004" "BIND9" ""
 .SH NAME
@@ -131,6 +131,7 @@ options {
 	files \fIsize\fR;
 	heartbeat-interval \fIinteger\fR;
 	host-statistics \fIboolean\fR; // not implemented
+	host-statistics-max \fInumber\fR; // not implemented
 	interface-interval \fIinteger\fR;
 	listen-on [ port \fIinteger\fR ] { \fIaddress_match_element\fR; ... };
 	listen-on-v6 [ port \fIinteger\fR ] { \fIaddress_match_element\fR; ... };
