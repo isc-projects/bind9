@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.1 2001/07/26 21:31:12 gson Exp $
+# $Id: Makefile.in,v 1.1.12.1 2003/10/21 06:16:58 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -30,7 +30,7 @@ doc man:: ${MANOBJS}
 docclean manclean maintainer-clean::
 	rm -f options
 
-options: 
+options: ../../bin/tests/cfg_test
 	../../bin/tests/cfg_test --named --grammar | \
 		${PERL} ${srcdir}/format-options.pl >options || \
 		rm -f options

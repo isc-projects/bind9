@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.8.2.2 2002/02/12 06:05:51 marka Exp $
+# $Id: Makefile.in,v 1.8.2.2.8.1 2003/10/21 06:16:57 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -39,6 +39,7 @@ Bv9ARM.html: Bv9ARM-book.xml nominum-docbook-html.dsl
 	    -t sgml \
 	    -d ./nominum-docbook-html.dsl \
 	    ${XMLDCL} ./Bv9ARM-book.xml
+	rm -f HTML.index HTML.manifest
 
 Bv9ARM-book.rtf: Bv9ARM-book.xml nominum-docbook-print.dsl
 	${OPENJADE} -v \

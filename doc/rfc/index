@@ -76,7 +76,8 @@
 	 for Internet Protocol version 6 (IPv6)
 3445:	Limiting the Scope of the KEY Resource Record (RR)
 3493:	Basic Socket Interface Extensions for IPv6
+3513:	Internet Protocol Version 6 (IPv6) Addressing Architecture
+3596:	DNS Extensions to Support IP Version 6
 3597:	Handling of Unknown DNS Resource Record (RR) Types
 3645:	Generic Security Service Algorithm for
-	 Secret Key Transaction Authentication for DNS (GSS-TSIG)
-
+	  Secret Key Transaction Authentication for DNS (GSS-TSIG)
