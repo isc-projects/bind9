@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.51 2000/08/01 01:23:10 tale Exp $ */
+/* $Id: zoneconf.c,v 1.52 2000/08/02 22:29:14 explorer Exp $ */
 
 #include <config.h>
 
@@ -321,6 +321,42 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			sockaddr = sockaddr_any6;
 		dns_zone_setxfrsource6(zone, &sockaddr);
+
+		result = dns_c_zone_getmaxrefreshtime(czone, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_view_getmaxrefreshtime(cview, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getmaxrefreshtime(cctx, &uintval);
+		if (result != ISC_R_SUCCESS)
+			uintval = DNS_ZONE_MAXREFRESH;
+		dns_zone_setmaxrefreshtime(zone, uintval);
+
+		result = dns_c_zone_getminrefreshtime(czone, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_view_getminrefreshtime(cview, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getminrefreshtime(cctx, &uintval);
+		if (result != ISC_R_SUCCESS)
+			uintval = DNS_ZONE_MINREFRESH;
+		dns_zone_setminrefreshtime(zone, uintval);
+
+		result = dns_c_zone_getmaxretrytime(czone, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_view_getmaxretrytime(cview, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getmaxretrytime(cctx, &uintval);
+		if (result != ISC_R_SUCCESS)
+			uintval = DNS_ZONE_MAXRETRY;
+		dns_zone_setmaxretrytime(zone, uintval);
+
+		result = dns_c_zone_getminretrytime(czone, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_view_getminretrytime(cview, &uintval);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getminretrytime(cctx, &uintval);
+		if (result != ISC_R_SUCCESS)
+			uintval = DNS_ZONE_MINRETRY;
+		dns_zone_setminretrytime(zone, uintval);
 
 		break;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.172 2000/08/01 01:23:09 tale Exp $ */
+/* $Id: zone.c,v 1.173 2000/08/02 22:29:13 explorer Exp $ */
 
 #include <config.h>
 
@@ -67,33 +67,15 @@
 #define RANGE(a, b, c) (((a) < (b)) ? (b) : ((a) < (c) ? (a) : (c)))
 
 /*
- * Implementation limits.
- */
-#ifndef DNS_MIN_REFRESH
-#define DNS_MIN_REFRESH 2		/* 2 seconds */
-#endif
-#ifndef DNS_MAX_REFRESH
-#define DNS_MAX_REFRESH 2419200		/* 4 weeks */
-#endif
-#ifndef DNS_MIN_RETRY
-#define DNS_MIN_RETRY	1		/* 1 second */
-#endif
-#ifndef DNS_MAX_RETRY
-#define DNS_MAX_RETRY	1209600		/* 2 weeks */
-#endif
-#ifndef DNS_MAX_EXPIRE
-#define DNS_MAX_EXPIRE	14515200	/* 24 weeks */
-#endif
-
-/*
  * Default values.
  */
 #define DNS_DEFAULT_IDLEIN 3600		/* 1 hour */
 #define DNS_DEFAULT_IDLEOUT 3600	/* 1 hour */
-#define DEFAULT_REFRESH	900		/* 15 minutes */
-#define DEFAULT_RETRY 300		/* 5 minutes */
 #define MAX_XFER_TIME (2*3600)		/* Documented default is 2 hours */
 
+#ifndef DNS_MAX_EXPIRE
+#define DNS_MAX_EXPIRE	14515200	/* 24 weeks */
+#endif
 
 typedef struct dns_notify dns_notify_t;
 typedef struct dns_stub dns_stub_t;
@@ -131,6 +113,12 @@ struct dns_zone {
 	isc_uint32_t		retry;
 	isc_uint32_t		expire;
 	isc_uint32_t		minimum;
+
+	isc_uint32_t		maxrefresh;
+	isc_uint32_t		minrefresh;
+	isc_uint32_t		maxretry;
+	isc_uint32_t		minretry;
+
 	isc_sockaddr_t		*masters;
 #ifndef NOMINUM_PUBLIC
 	dns_name_t              **masterkeynames;
@@ -359,10 +347,15 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->dumptime = 0;
 	isc_time_settoepoch(&zone->loadtime);
 	zone->serial = 0;
-	zone->refresh = DEFAULT_REFRESH;
-	zone->retry = DEFAULT_RETRY;
+	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
+	zone->retry = DNS_ZONE_DEFAULTRETRY;
 	zone->expire = 0;
 	zone->minimum = 0;
+	zone->maxrefresh = DNS_ZONE_MAXREFRESH;
+	zone->minrefresh = DNS_ZONE_MINREFRESH;
+	zone->maxretry = DNS_ZONE_MAXRETRY;
+	zone->minretry = DNS_ZONE_MINRETRY;
+
 	zone->masters = NULL;
 #ifndef NOMINUM_PUBLIC
 	zone->masterkeynames = NULL;
@@ -783,9 +776,10 @@ dns_zone_load(dns_zone_t *zone) {
 			}
 		}
 		zone->serial = serial;
-		zone->refresh = RANGE(refresh, DNS_MIN_REFRESH,
-				      DNS_MAX_REFRESH);
-		zone->retry = RANGE(retry, DNS_MIN_RETRY, DNS_MAX_RETRY);
+		zone->refresh = RANGE(refresh,
+				      zone->minrefresh, zone->maxrefresh);
+		zone->retry = RANGE(retry,
+				    zone->minretry, zone->maxretry);
 		zone->expire = RANGE(expire, zone->refresh + zone->retry,
 				     DNS_MAX_EXPIRE);
 		zone->minimum = minimum;
@@ -1552,7 +1546,8 @@ zone_expire(dns_zone_t *zone) {
 				 "failure: %s", dns_result_totext(result));
 	}
 	zone->flags |= DNS_ZONEFLG_EXPIRED;
-	dns_zone_setrefresh(zone, DEFAULT_REFRESH, DEFAULT_RETRY);
+	dns_zone_setrefresh(zone, DNS_ZONE_DEFAULTREFRESH,
+			    DNS_ZONE_DEFAULTRETRY);
 	zone_unload(zone);
 }
 
@@ -1711,6 +1706,38 @@ dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
 
 	zone->refresh = refresh;
 	zone->retry = retry;
+}
+
+void
+dns_zone_setminrefreshtime(dns_zone_t *zone, isc_uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(val > 0);
+
+	zone->minrefresh = val;
+}
+
+void
+dns_zone_setmaxrefreshtime(dns_zone_t *zone, isc_uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(val > 0);
+
+	zone->maxrefresh = val;
+}
+
+void
+dns_zone_setminretrytime(dns_zone_t *zone, isc_uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(val > 0);
+
+	zone->minretry = val;
+}
+
+void
+dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(val > 0);
+
+	zone->maxretry = val;
 }
 
 static isc_boolean_t
@@ -3885,10 +3912,10 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 				zone_log(zone, me, ISC_LOG_ERROR,
 					 "no NS records");
 			zone->serial = serial;
-			zone->refresh = RANGE(refresh, DNS_MIN_REFRESH,
-					      DNS_MAX_REFRESH);
-			zone->retry = RANGE(retry, DNS_MIN_RETRY,
-					    DNS_MAX_RETRY);
+			zone->refresh = RANGE(refresh, zone->minrefresh,
+					      zone->maxrefresh);
+			zone->retry = RANGE(retry, zone->minretry,
+					    zone->maxretry);
 			zone->expire = RANGE(expire,
 					     zone->refresh + zone->retry,
 					     DNS_MAX_EXPIRE);

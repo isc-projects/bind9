@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.64 2000/08/01 01:24:58 tale Exp $ */
+/* $Id: zone.h,v 1.65 2000/08/02 22:29:16 explorer Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -43,6 +43,25 @@ typedef enum {
 #define DNS_ZONEOPT_CHILDREN	0x00000004U	/* perform child checks */
 #define DNS_ZONEOPT_DIALUP	0x00000008U	/* zone xfr over dialup link */
 #define DNS_ZONEOPT_NOTIFY	0x00000010U	/* perform NOTIFY */
+
+#ifndef DNS_ZONE_MINREFRESH
+#define DNS_ZONE_MINREFRESH		    300	/* 5 minutes */
+#endif
+#ifndef DNS_ZONE_MAXREFRESH
+#define DNS_ZONE_MAXREFRESH		2419200	/* 4 weeks */
+#endif
+#ifndef DNS_ZONE_DEFAULTREFRESH
+#define DNS_ZONE_DEFAULTREFRESH		   3600	/* 1 hour */
+#endif
+#ifndef DNS_ZONE_MINRETRY
+#define DNS_ZONE_MINRETRY		    300	/* 5 minutes */
+#endif
+#ifndef DNS_ZONE_MAXRETRY
+#define DNS_ZONE_MAXRETRY		1209600	/* 2 weeks */
+#endif
+#ifndef DNS_ZONE_DEFAULTRETRY
+#define DNS_ZONE_DEFAULTRETRY		   1800	/* 30 minutes */
+#endif
 
 ISC_LANG_BEGINDECLS
 
@@ -447,6 +466,46 @@ dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
  *
  * Require:
  *	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setminrefreshtime(dns_zone_t *zone, isc_uint32_t val);
+/*
+ *	Set the minimum refresh time.
+ *
+ * Requires:
+ *	'zone' is valid.
+ *	val > 0.
+ */
+
+void
+dns_zone_setmaxrefreshtime(dns_zone_t *zone, isc_uint32_t val);
+/*
+ *	Set the maximum refresh time.
+ *
+ * Requires:
+ *	'zone' is valid.
+ *	val > 0.
+ */
+
+void
+dns_zone_setminretrytime(dns_zone_t *zone, isc_uint32_t val);
+/*
+ *	Set the minimum retry time.
+ *
+ * Requires:
+ *	'zone' is valid.
+ *	val > 0.
+ */
+
+void
+dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val);
+/*
+ *	Set the maximum retry time.
+ *
+ * Requires:
+ *	'zone' is valid.
+ *	val > 0.
  */
 
 isc_result_t
