@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.22 2000/09/26 22:11:24 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.23 2000/11/06 17:28:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -316,10 +316,16 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 		if (*endp != '\0')
 			fatal("time value %s is invalid", str);
 		val = now + offset;
+	} else if (strlen(str) == 8) {
+		char timestr[15];
+		sprintf(timestr, "%s000000", str);
+		result = dns_time64_fromtext(timestr, &val);
+		if (result != ISC_R_SUCCESS)
+			fatal("time value %s is invalid", str);
 	} else {
 		result = dns_time64_fromtext(str, &val);
 		if (result != ISC_R_SUCCESS)
-			fatal("time %s must be numeric", str);
+			fatal("time value %s is invalid", str);
 	}
 
 	return ((isc_stdtime_t) val);
