@@ -34,7 +34,7 @@
 #include <dns/result.h>
 #include <dns/secalg.h>
 
-#define PROGRAM "keysigner"
+#define PROGRAM "dnssec-signkey"
 
 #define BUFSIZE 2048
 
@@ -109,7 +109,7 @@ algtostr(const dns_secalg_t alg) {
 static void
 usage() {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\tkeysigner [options] keyset keys\n");
+	fprintf(stderr, "\t%s [options] keyset keys\n", PROGRAM);
 
 	fprintf(stderr, "\n");
 

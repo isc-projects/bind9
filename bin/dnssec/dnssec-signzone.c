@@ -42,7 +42,7 @@
 
 #include <dst/result.h>
 
-#define PROGRAM "signer"
+#define PROGRAM "dnssec-signzone"
 
 /*#define USE_ZONESTATUS*/
 
@@ -1253,7 +1253,7 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 static void
 usage() {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\tsigner [options] zonefile [keys]\n");
+	fprintf(stderr, "\t%s [options] zonefile [keys]\n", PROGRAM);
 
 	fprintf(stderr, "\n");
 

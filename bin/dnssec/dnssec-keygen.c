@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.20 2000/05/17 22:47:56 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.21 2000/05/18 22:03:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -33,7 +33,7 @@
 #include <dst/dst.h>
 #include <dst/result.h>
 
-#define PROGRAM "keygen"
+#define PROGRAM "dnssec-keygen"
 
 #define MAX_RSA 2048 /* XXX ogud update this when rsa library is updated */
 
@@ -82,9 +82,9 @@ dsa_size_ok(int size) {
 }
 
 static void
-usage(char *prog) {
+usage() {
 	printf("Usage:\n");
-	printf("    %s [options] name\n\n", prog);
+	printf("    %s [options] name\n\n", PROGRAM);
 	printf("Required options:\n");
 	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
 	printf("    -b key size, in bits:\n");
@@ -136,7 +136,7 @@ main(int argc, char **argv) {
 		fatal("out of memory");
 
 	if (argc == 1)
-		usage(prog);
+		usage();
 
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "a:b:eg:n:t:p:s:hv:")) != -1)
@@ -193,10 +193,11 @@ main(int argc, char **argv) {
 			break;
 
 		case 'h':
-			usage(prog);
+			usage();
 		default:
-			fprintf(stderr, "keygen: invalid argument -%c\n", ch);
-			usage(prog);
+			fprintf(stderr, "%s: invalid argument -%c\n",
+				PROGRAM, ch);
+			usage();
 		} 
 	}
 
@@ -300,8 +301,8 @@ main(int argc, char **argv) {
 	if (name[strlen(name) - 1] != '.') {
 		strcat(name, ".");
 		fprintf(stderr,
-			"keygen: added a trailing dot to fully qualify "
-			"the name\n");
+			"%s: added a trailing dot to fully qualify the name\n",
+			PROGRAM);
 	}
 
 	switch(alg) {

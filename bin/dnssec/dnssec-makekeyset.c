@@ -35,7 +35,7 @@
 #include <dns/secalg.h>
 #include <dns/time.h>
 
-#define PROGRAM "keysettool"
+#define PROGRAM "dnssec-makekeyset"
 
 #define BUFSIZE 2048
 
@@ -135,7 +135,7 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 static void
 usage() {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\tkeysettool [options] keys\n");
+	fprintf(stderr, "\t%s [options] keys\n", PROGRAM);
 
 	fprintf(stderr, "\n");
 
