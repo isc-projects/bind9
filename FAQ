@@ -98,7 +98,7 @@ caveats of the previous answer still apply, of course.
   };
 
 
-Q: What do "no source of entropy found" or "failed to open entropy source foo"
+Q: What do "no source of entropy found" or "could not open entropy source foo"
 mean?
 
 A: The server requires a source of entropy to perform certain operations,
