@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.108 2000/10/28 00:53:39 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.109 2000/10/28 01:09:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -655,21 +655,17 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
  */
 static void
 nxt_setbit(dns_rdataset_t *rdataset, dns_rdatatype_t type) {
-	unsigned char *nxt_bits;
-	dns_name_t nxtname;
-	isc_region_t r, r2;
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_nxt_t nxt;
 
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first()");
 	dns_rdataset_current(rdataset, &rdata);
-	dns_rdata_toregion(&rdata, &r);
-	dns_name_init(&nxtname, NULL);
-	dns_name_fromregion(&nxtname, &r);
-	dns_name_toregion(&nxtname, &r2);
-	nxt_bits = r.base + r2.length;
-	set_bit(nxt_bits, type, 1);
+	result = dns_rdata_tostruct(&rdata, &nxt, NULL);
+	check_result(result, "dns_rdata_tostruct");
+	set_bit(nxt.typebits, type, 1);
+	dns_rdata_freestruct(&nxt);
 }
 
 static void
