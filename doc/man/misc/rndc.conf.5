@@ -13,7 +13,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 .\" SOFTWARE.
 .\" 
-.\" $Id: rndc.conf.5,v 1.3 2000/07/11 00:37:58 tale Exp $
+.\" $Id: rndc.conf.5,v 1.4 2000/07/12 17:37:57 gson Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt RDNC.CONF 5
@@ -120,10 +120,8 @@ See the
 .Sx EXAMPLES
 section for sample command lines for each.
 .Pp
-Normally it is not necessary to double quote host or key names, but
-host addresses must always be double quoted and both host and key
-names must be double quoted when they match another keyword, such as
-having a key named "key".
+Host and key names must be quoted using double quotes if they
+match a keyword, such as having a key named "key".
 .Sh EXAMPLE
 .Bd -literal indent
 options {
