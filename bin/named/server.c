@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: server.c,v 1.200 2000/06/23 01:08:29 gson Exp $ */
+/* $Id: server.c,v 1.201 2000/07/01 00:48:03 tale Exp $ */
 
 #include <config.h>
 
@@ -1334,7 +1334,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Relinquish root privileges.
 	 */
 	if (first_time)
-		ns_os_changeuser(ns_g_username);
+		ns_os_changeuser();
 
 	/*
 	 * Configure the logging system.

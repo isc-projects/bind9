@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: main.c,v 1.71 2000/06/22 21:49:31 tale Exp $ */
+/* $Id: main.c,v 1.72 2000/07/01 00:48:02 tale Exp $ */
 
 #include <config.h>
 
@@ -405,6 +405,13 @@ static void
 setup(void) {
 	isc_result_t result;
 
+	/*
+	 * Get the user and group information before changing the root
+	 * directory, so the administrator does not need to keep a copy
+	 * of the user and group databases in the chroot'ed environment.
+	 */
+	ns_os_inituserinfo(ns_g_username);
+
 	ns_os_chroot(ns_g_chrootdir);
 
 	/*
@@ -415,7 +422,7 @@ setup(void) {
 	 * time.  (We need to read the config file to know which possibly
 	 * privileged ports to bind() to.)
 	 */
-	ns_os_minprivs(ns_g_username);
+	ns_os_minprivs();
 
 	result = ns_log_init(ISC_TF(ns_g_username != NULL));
 	if (result != ISC_R_SUCCESS)

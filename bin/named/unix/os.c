@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.19 2000/06/28 16:26:40 explorer Exp $ */
+/* $Id: os.c,v 1.20 2000/07/01 00:48:05 tale Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,8 @@ static pid_t mainpid = 0;
 static isc_boolean_t non_root_caps = ISC_FALSE;
 static isc_boolean_t non_root = ISC_FALSE;
 #endif
+
+static uid_t runas_uid = 0;
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
@@ -260,7 +262,7 @@ ns_os_chroot(const char *root) {
 }
 
 void
-ns_os_changeuser(const char *username) {
+ns_os_inituserinfo(const char *username) {
 	struct passwd *pw;
 
 	if (username == NULL || getuid() != 0)
@@ -277,28 +279,35 @@ ns_os_changeuser(const char *username) {
 	else
 		pw = getpwnam(username);
 	endpwent();
+
 	if (pw == NULL)
 		ns_main_earlyfatal("user '%s' unknown", username);
+
 	if (initgroups(pw->pw_name, pw->pw_gid) < 0)
 		ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+
 	if (setgid(pw->pw_gid) < 0)
 		ns_main_earlyfatal("setgid(): %s", strerror(errno));
-	if (setuid(pw->pw_uid) < 0)
+
+	runas_uid = pw->pw_uid;
+}
+
+void
+ns_os_changeuser(void) {
+	if (runas_uid != 0 && setuid(runas_uid) < 0)
 		ns_main_earlyfatal("setuid(): %s", strerror(errno));
 }
 
 void
-ns_os_minprivs(const char *username) {
+ns_os_minprivs(void) {
 #ifdef HAVE_LINUX_CAPABILITY_H
 #if defined(HAVE_LINUX_PRCTL_H) && defined(PR_SET_KEEPCAPS)
 	linux_keepcaps();
-	ns_os_changeuser(username);
-#else
-	(void)username;
+	ns_os_changeuser();
 #endif
+
 	linux_minprivs();
-#else
-	(void)username;
+
 #endif /* HAVE_LINUX_CAPABILITY_H */
 }
 
