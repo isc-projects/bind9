@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.3 2004/04/28 04:23:41 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.4 2004/04/29 01:52:19 marka Exp $ */
 
 #include <config.h>
 
@@ -2388,10 +2388,10 @@ dump_done(void *arg, isc_result_t result) {
 
 	if (zone->dctx != NULL)
 		dns_dumpctx_detach(&zone->dctx);
+	zonemgr_putio(&zone->writeio);
 	UNLOCK_ZONE(zone);
 	if (again)
 		(void)zone_dump(zone, ISC_FALSE);
-	zonemgr_putio(&zone->writeio);
 	dns_zone_idetach(&zone);
 }
 
