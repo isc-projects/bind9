@@ -195,7 +195,7 @@ internal_current(isc_interfaceiter_t *iter) {
 	memcpy(&lifreq, ifrp, sizeof lifreq);
 
 	family = lifreq.lifr_addr.ss_family;
-	if (family != AF_INET && family != AF_INET6)
+	if (family != AF_INET)
 		return (ISC_R_IGNORE); 
 	
 	memset(&iter->current, 0, sizeof(iter->current));
