@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
-#include <config.h>
+/* $ID: $ */
 
 #include <stddef.h>
 
+#include <isc/assertions.h>
 #include <isc/once.h>
 #include <isc/error.h>
 #include <isc/msgcat.h>
@@ -43,7 +44,7 @@ isc_mem_t *omapi_mctx;
 isc_taskmgr_t *omapi_taskmgr;
 isc_socketmgr_t *omapi_socketmgr;
 
-isc_boolean_t omapi_ipv6 = ISC_FALSE;
+isc_boolean_t omapi_internal_mctx = ISC_FALSE;
 
 /***
  *** Private to lib.c.
@@ -74,31 +75,32 @@ isc_result_t
 omapi_lib_init(isc_mem_t *mctx) {
 	isc_result_t result;
 
+	/*
+	 * Can only be called once without an intervening omapi_lib_destroy.
+	 */
+	REQUIRE(omapi_mctx == NULL &&
+		omapi_socketmgr == NULL &&
+		omapi_taskmgr == NULL &&
+		omapi_object_types == NULL);
+
 	if (mctx != NULL)
 		omapi_mctx = mctx;
 
 	else {
-		omapi_mctx = NULL;
+		omapi_internal_mctx = ISC_TRUE;
 		result = isc_mem_create(0, 0, &omapi_mctx);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
 
-	omapi_socketmgr = NULL;
 	result = isc_socketmgr_create(omapi_mctx, &omapi_socketmgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	omapi_taskmgr = NULL;
 	result = isc_taskmgr_create(omapi_mctx, 1, 0, &omapi_taskmgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	if (isc_net_probeipv6() == ISC_R_SUCCESS)
-		omapi_ipv6 = ISC_TRUE;
-	else
-		omapi_ipv6 = ISC_FALSE;
-	
 	/*
 	 * Initialize the standard object types.
 	 */
@@ -126,8 +128,22 @@ omapi_lib_init(isc_mem_t *mctx) {
  */
 void
 omapi_lib_destroy() {
-	isc_socketmgr_destroy(&omapi_socketmgr);
-	isc_taskmgr_destroy(&omapi_taskmgr);
+	if (omapi_mctx != NULL && omapi_internal_mctx) {
+		isc_mem_destroy(&omapi_mctx);
+		omapi_mctx = NULL;
+	}
+
+	if (omapi_socketmgr != NULL) {
+		isc_socketmgr_destroy(&omapi_socketmgr);
+		omapi_socketmgr = NULL;
+	}
+
+	if (omapi_taskmgr != NULL) {
+		isc_taskmgr_destroy(&omapi_taskmgr);
+		omapi_taskmgr = NULL;
+	}
 
 	object_destroytypes();
+
+	handle_destroy();
 }
