@@ -3577,7 +3577,6 @@ static isc_result_t
 beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp, dns_dbload_t **dbloadp) {
 	rbtdb_load_t *loadctx;
 	dns_rbtdb_t *rbtdb;
-	isc_result_t result;
 	
 	rbtdb = (dns_rbtdb_t *)db;
 
@@ -3605,11 +3604,6 @@ beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp, dns_dbload_t **dbloadp) {
 	*dbloadp = loadctx;
 
 	return (DNS_R_SUCCESS);
-
- cleanup_loadctx:
-	isc_mem_put(rbtdb->common.mctx, loadctx, sizeof *loadctx);
-
-	return (result);
 }
 
 static isc_result_t
