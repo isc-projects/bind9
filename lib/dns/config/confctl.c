@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.21 2000/07/07 13:56:10 brister Exp $ */
+/* $Id: confctl.c,v 1.22 2000/07/07 14:30:00 brister Exp $ */
 
 #include <config.h>
 
@@ -256,7 +256,7 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl) {
 		if (ctl->u.inet_v.key != NULL) {
 			fprintf(fp, "\n");
 			dns_c_printtabs(fp, indent + 1);
-			fprintf(fp, "key { \"%s\" ; }", ctl->u.inet_v.key);
+			fprintf(fp, "keys { \"%s\" ; }", ctl->u.inet_v.key);
 		}
 		fprintf(fp, ";\n");
 	} else {
