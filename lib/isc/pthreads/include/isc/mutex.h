@@ -35,9 +35,6 @@ typedef pthread_mutex_t	isc_mutex_t;
 #define isc_mutex_lock(mp) \
 	((pthread_mutex_lock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
-#define isc_mutex_lock(mp) \
-	((pthread_mutex_lock((mp)) == 0) ? \
-	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 #define isc_mutex_unlock(mp) \
 	((pthread_mutex_unlock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
