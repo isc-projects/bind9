@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.104 2000/09/27 00:01:58 mws Exp $ */
+/* $Id: dig.c,v 1.105 2000/09/28 23:02:25 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -160,7 +160,7 @@ show_usage(void) {
 "                 +[no]recursive      (Recursive mode)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)"
 "\n"
-"                 +[no]fail           (Try next server on SERVFAIL reply)\n"
+"                 +[no]fail           (Don't try next server on SERVFAIL)\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
@@ -662,7 +662,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'f': /* fail */
-		lookup->next_on_fail = state;
+		lookup->servfail_stops = state;
 		break;
 	case 'i':
 		switch (tolower(cmd[1])) {

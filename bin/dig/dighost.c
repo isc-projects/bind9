@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.136 2000/09/27 00:02:00 mws Exp $ */
+/* $Id: dighost.c,v 1.137 2000/09/28 23:02:26 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -295,7 +295,7 @@ make_empty_lookup(void) {
 	looknew->trace_root = ISC_FALSE;
 	looknew->identify = ISC_FALSE;
 	looknew->ignore = ISC_FALSE;
-	looknew->next_on_fail = ISC_FALSE;
+	looknew->servfail_stops = ISC_FALSE;
 	looknew->udpsize = 0;
 	looknew->recurse = ISC_TRUE;
 	looknew->aaonly = ISC_FALSE;
@@ -347,7 +347,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->trace_root = lookold->trace_root;
 	looknew->identify = lookold->identify;
 	looknew->ignore = lookold->ignore;
-	looknew->next_on_fail = lookold->next_on_fail;
+	looknew->servfail_stops = lookold->servfail_stops;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
         looknew->aaonly = lookold->aaonly;
@@ -2177,7 +2177,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			return;
 		}			
 		if ((msg->rcode == dns_rcode_servfail) &&
-		    l->next_on_fail) {
+		    l->servfail_stops) {
 			dig_query_t *next = ISC_LIST_NEXT(query, link);
 			if (l->current_query == query)
 				l->current_query = NULL;

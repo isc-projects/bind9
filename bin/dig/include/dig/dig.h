@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.49 2000/09/25 23:09:59 mws Exp $ */
+/* $Id: dig.h,v 1.50 2000/09/28 23:02:28 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -94,7 +94,7 @@ struct dig_lookup {
 		section_answer,
 		section_authority,
 		section_additional,
-		next_on_fail,
+		servfail_stops,
 		new_search;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	dns_rdatatype_t rdtype;
