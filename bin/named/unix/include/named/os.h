@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.h,v 1.7 2000/06/22 21:49:58 tale Exp $ */
+/* $Id: os.h,v 1.7.2.1 2000/07/10 22:07:58 gson Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
@@ -32,10 +32,13 @@ void
 ns_os_chroot(const char *root);
 
 void
-ns_os_changeuser(const char *username);
+ns_os_inituserinfo(const char *username);
 
 void
-ns_os_minprivs(const char *username);
+ns_os_changeuser(void);
+
+void
+ns_os_minprivs(void);
 
 void
 ns_os_writepidfile(const char *filename);
