@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.40 2000/09/01 22:45:16 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.41 2000/09/01 23:43:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -26,8 +26,7 @@ extern int h_errno;
 #include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/condition.h>
-#include <isc/mutex.h>
+#include <isc/event.h>
 #include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -61,6 +60,7 @@ extern int lookup_counter;
 extern char fixeddomain[MXNAME];
 extern int exitcode;
 extern isc_taskmgr_t *taskmgr;
+extern isc_task_t *global_task;
 extern char *progname;
 
 isc_boolean_t short_form = ISC_TRUE, printcmd = ISC_TRUE,
@@ -75,11 +75,10 @@ isc_boolean_t identify = ISC_FALSE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
 	defname = ISC_TRUE, aaonly = ISC_FALSE;
-isc_mutex_t lock;
-isc_condition_t cond;
 isc_boolean_t busy = ISC_FALSE, in_use = ISC_FALSE;
 char defclass[MXRD] = "IN";
 char deftype[MXRD] = "A";
+isc_event_t *global_event = NULL;
 
 static const char *rcodetext[] = {
 	"NOERROR",
@@ -146,6 +145,9 @@ static const char *rtypetext[] = {
 	"optional = "};			/* 41 */
 
 
+static void flush_lookup_list(void);
+static void getinput(isc_task_t *task, isc_event_t *event);
+
 static void
 show_usage(void) {
 	fputs("Usage:\n", stderr);
@@ -153,12 +155,17 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
+	isc_event_t *event = global_event;
+
+	flush_lookup_list();
 	debug("dighost_shutdown()");
-	LOCK(&lock);
-	busy = ISC_FALSE;
-	debug("signalling out");
-	isc_condition_signal(&cond);
-	UNLOCK(&lock);
+
+	if (!in_use) {
+		isc_app_shutdown();
+		return;
+	}
+
+	isc_task_send(global_task, &event);
 }
 
 void
@@ -702,7 +709,7 @@ static void
 flush_server_list(void) {
 	dig_server_t *s, *ps;
 
-	debug("flush_lookup_list()");
+	debug("flush_server_list()");
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
 		ps = s;
@@ -846,6 +853,20 @@ flush_lookup_list(void) {
 	}
 }
 
+static void
+getinput(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
+	if (global_event == NULL)
+		global_event = event;
+	isc_app_block();
+	get_next_command();
+	isc_app_unblock();
+	if (ISC_LIST_HEAD(lookup_list) != NULL)
+		 start_lookup();
+	else
+		isc_app_shutdown();
+}
+
 int
 main(int argc, char **argv) {
 	isc_result_t result;
@@ -854,13 +875,11 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
+	result = isc_app_start();
+	check_result(result, "isc_app_start");
+
 	setup_libs();
 	progname = argv[0];
-	result = isc_mutex_init(&lock);
-	check_result(result, "isc_mutex_init");
-	result = isc_condition_init(&cond);
-	check_result(result, "isc_condition_init");
-	LOCK(&lock);
 
 	parse_args(argc, argv);
 
@@ -872,49 +891,22 @@ main(int argc, char **argv) {
 	}
 	setup_system();
 
-	if (in_use) {
-		busy = ISC_TRUE;
-		start_lookup();
-		while (busy) {
-			result = isc_condition_wait(&cond, &lock);
-			check_result(result, "isc_condition_wait");
-		}
-		flush_lookup_list();
-		in_use = ISC_FALSE;
-	} else {
-		show_settings(ISC_FALSE);
-		in_use = ISC_TRUE;
-	}
+	if (in_use)
+		result = isc_app_onrun(mctx, global_task, onrun_callback,
+				       NULL);
+	else
+		result = isc_app_onrun(mctx, global_task, getinput, NULL);
+	check_result(result, "isc_app_onrun");
+	in_use = ISC_TF(!in_use);
 
-	while (in_use) {
-		get_next_command();
-		if (ISC_LIST_HEAD(lookup_list) != NULL) {
-			busy = ISC_TRUE;
-			start_lookup();
-			while (busy) {
-				result = isc_condition_wait(&cond, &lock);
-				check_result(result, "isc_condition_wait");
-			}
-			debug("out of the condition wait");
-			flush_lookup_list();
-		}
-	}
+	(void)isc_app_run();
 
 	puts("");
 	debug("done, and starting to shut down");
+	if (global_event != NULL)
+		isc_event_free(&global_event);
 	destroy_libs();
-	UNLOCK(&lock);
-	DESTROYLOCK(&lock);
-	isc_condition_destroy(&cond);
-	if (taskmgr != NULL) {
-		debug("freeing taskmgr");
-		isc_taskmgr_destroy(&taskmgr);
-        }
-	if (isc_mem_debugging != 0)
-		isc_mem_stats(mctx, stderr);
 	isc_app_finish();
-	if (mctx != NULL)
-		isc_mem_destroy(&mctx);
 
 	return (0);
 }
