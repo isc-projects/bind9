@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.38 2001/08/31 21:58:49 gson Exp $ */
+/* $Id: time.c,v 1.39 2001/09/05 17:03:42 gson Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <sys/time.h>	/* Required for struct timeval on some platforms. */
 
 #include <isc/log.h>
+#include <isc/print.h>
 #include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/time.h>
