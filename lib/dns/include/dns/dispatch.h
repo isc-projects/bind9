@@ -64,7 +64,7 @@ ISC_LANG_BEGINDECLS
 typedef struct dns_dispatchevent dns_dispatchevent_t;
 struct dns_dispatchevent {
 	ISC_EVENT_COMMON(dns_dispatchevent_t);	/* standard event common */
-	dns_result_t		result;		/* result code */
+	isc_result_t		result;		/* result code */
 	isc_int16_t		id;		/* message id */
 	isc_sockaddr_t		addr;		/* address recv'd from */
 	isc_buffer_t	        buffer;		/* data buffer */
@@ -72,7 +72,7 @@ struct dns_dispatchevent {
 
 typedef struct dns_dispentry dns_dispentry_t;
 
-dns_result_t
+isc_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
@@ -138,7 +138,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
  *	< mumble >
  */
 
-dns_result_t
+isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			 isc_task_t *task, isc_taskaction_t action, void *arg,
 			 isc_uint16_t *idp, dns_dispentry_t **resp);
@@ -192,7 +192,7 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
  *	< mumble >
  */
 
-dns_result_t
+isc_result_t
 dns_dispatch_addrequest(dns_dispatch_t *disp,
 			isc_task_t *task, isc_taskaction_t action, void *arg,
 			dns_dispentry_t **resp);
@@ -251,6 +251,12 @@ isc_socket_t *
 dns_dispatch_getsocket(dns_dispatch_t *disp);
 /*
  * Return the socket associated with this dispatcher
+ */
+
+void
+dns_dispatch_cancel(dns_dispatch_t *disp);
+/*
+ * cancel outstanding clients
  */
 
 ISC_LANG_ENDDECLS

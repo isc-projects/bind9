@@ -88,7 +88,7 @@ struct dns_dispatch {
 	unsigned int		recvs_wanted;	/* recv() calls wanted */
 	unsigned int		shutting_down : 1,
 				shutdown_out : 1;
-	dns_result_t		shutdown_why;
+	isc_result_t		shutdown_why;
 	unsigned int		requests;	/* how many requests we have */
 	unsigned int		buffers;	/* allocated buffers */
 	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
@@ -301,6 +301,7 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 {
 	isc_sockettype_t socktype;
 
+	INSIST(buf != NULL && len != 0);
 	INSIST(disp->buffers > 0);
 	disp->buffers--;
 
@@ -321,7 +322,7 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 			isc_mem_put(disp->mctx, buf, len);
 		break;
 	default:
-		INSIST(1);
+		INSIST(0);
 		break;
 	}
 }
@@ -356,6 +357,7 @@ free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev)
 	if (disp->failsafe_ev == ev) {
 		INSIST(disp->shutdown_out == 1);
 		disp->shutdown_out = 0;
+		XDEBUG(("Returning failsafe event to dispatcher\n"));
 		return;
 	}
 
@@ -401,7 +403,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	dns_dispatch_t *disp = ev_in->arg;
 	dns_messageid_t id;
-	dns_result_t dres;
+	isc_result_t dres;
 	isc_buffer_t source;
 	unsigned int flags;
 	dns_dispentry_t *resp;
@@ -416,6 +418,9 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	XDEBUG(("Got packet!\n"));
 
 	LOCK(&disp->lock);
+
+	XDEBUG(("requests:  %d, buffers:  %d, recvs:  %d\n",
+		disp->requests, disp->buffers, disp->recvs));
 
 	INSIST(disp->recvs > 0);
 	disp->recvs--;
@@ -468,11 +473,6 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 
 	XDEBUG(("Got valid DNS message header, /QR %c, id %d\n",
 		((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id));
-
-	/*
-	 * Allocate an event to send to the query or response client, and
-	 * allocate a new buffer for our use.
-	 */
 
 	/*
 	 * Look at flags.  If query, check to see if we have someone handling
@@ -532,8 +532,9 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	} else {
 		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL, DNS_EVENT_DISPATCH,
 			       resp->action, resp->arg, resp, NULL, NULL);
-		XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
-			rev->buffer.base, rev->buffer.length, resp->task));
+		XDEBUG(("Sent event %p buffer %p len %d to task %p, resp %p\n",
+			rev, rev->buffer.base, rev->buffer.length,
+			resp->task, resp));
 		resp->item_out = ISC_TRUE;
 		ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
 	}
@@ -578,7 +579,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 	dns_dispatch_t *disp = ev_in->arg;
 	dns_tcpmsg_t *tcpmsg = &disp->tcpmsg;
 	dns_messageid_t id;
-	dns_result_t dres;
+	isc_result_t dres;
 	unsigned int flags;
 	dns_dispentry_t *resp;
 	dns_dispatchevent_t *rev;
@@ -704,8 +705,9 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 	} else {
 		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL, DNS_EVENT_DISPATCH,
 			       resp->action, resp->arg, resp, NULL, NULL);
-		XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
-			rev->buffer.base, rev->buffer.length, resp->task));
+		XDEBUG(("Sent event %p buffer %p len %d to task %p, resp %p\n",
+			rev, rev->buffer.base, rev->buffer.length,
+			resp->task, resp));
 		resp->item_out = ISC_TRUE;
 		ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
 	}
@@ -763,6 +765,7 @@ startrecv(dns_dispatch_t *disp)
 					      disp->task, udp_recv, disp);
 			if (res != ISC_R_SUCCESS) {
 				disp->shutdown_why = res;
+				disp->shutting_down = 1;
 				do_cancel(disp, NULL);
 				return;
 			}
@@ -776,6 +779,7 @@ startrecv(dns_dispatch_t *disp)
 						     disp);
 			if (res != ISC_R_SUCCESS) {
 				disp->shutdown_why = res;
+				disp->shutting_down = 1;
 				do_cancel(disp, NULL);
 				return;
 			}
@@ -789,7 +793,7 @@ startrecv(dns_dispatch_t *disp)
  * Publics.
  */
 
-dns_result_t
+isc_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
@@ -798,7 +802,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 {
 	dns_dispatch_t *disp;
 	unsigned int tablesize;
-	dns_result_t res;
+	isc_result_t res;
 	isc_sockettype_t socktype;
 	unsigned int i;
 
@@ -986,7 +990,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp)
 		destroy(disp);
 }
 
-dns_result_t
+isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			 isc_task_t *task, isc_taskaction_t action, void *arg,
 			 dns_messageid_t *idp, dns_dispentry_t **resp)
@@ -1116,16 +1120,29 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 	isc_task_detach(&res->task);
 
 	if (ev != NULL) {
-		REQUIRE(res->item_out = ISC_TRUE);
+		REQUIRE(res->item_out == ISC_TRUE);
 		res->item_out = ISC_FALSE;
-		free_buffer(disp, ev->buffer.base, ev->buffer.length);
+		if (ev->buffer.base != NULL)
+			free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
+	}
+
+	/*
+	 * Free any buffered requests as well
+	 */
+	ev = ISC_LIST_HEAD(res->items);
+	while (ev != NULL) {
+		ISC_LIST_UNLINK(res->items, ev, link);
+		if (ev->buffer.base != NULL)
+			free_buffer(disp, ev->buffer.base, ev->buffer.length);
+		free_event(disp, ev);
+		ev = ISC_LIST_HEAD(res->items);
 	}
 	isc_mempool_put(disp->rpool, res);
 	if (disp->shutting_down == 1)
 		do_cancel(disp, NULL);
-
-	startrecv(disp);
+	else
+		startrecv(disp);
 
 	UNLOCK(&disp->lock);
 
@@ -1133,7 +1150,7 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 		destroy(disp);
 }
 
-dns_result_t
+isc_result_t
 dns_dispatch_addrequest(dns_dispatch_t *disp,
 			isc_task_t *task, isc_taskaction_t action, void *arg,
 			dns_dispentry_t **resp)
@@ -1235,16 +1252,18 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	isc_task_detach(&res->task);
 
-	isc_mempool_put(disp->rpool, res);
 	if (ev != NULL) {
-		REQUIRE(res->item_out = ISC_TRUE);
+		REQUIRE(res->item_out == ISC_TRUE);
 		res->item_out = ISC_FALSE;
-		if (ev->buffer.length != 0)
+		if (ev->buffer.base != NULL)
 			free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
 	}
-
-	startrecv(disp);
+	isc_mempool_put(disp->rpool, res);
+	if (disp->shutting_down == 1)
+		do_cancel(disp, NULL);
+	else
+		startrecv(disp);
 
 	UNLOCK(&disp->lock);
 
@@ -1274,10 +1293,12 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
 
 	LOCK(&disp->lock);
 	REQUIRE(ev != disp->failsafe_ev);
-	REQUIRE(resp->item_out = ISC_TRUE);
+	REQUIRE(resp->item_out == ISC_TRUE);
+	REQUIRE(ev->result == ISC_R_SUCCESS);
 	resp->item_out = ISC_FALSE;
 
-	free_buffer(disp, ev->buffer.base, ev->buffer.length);
+	if (ev->buffer.base != NULL)
+		free_buffer(disp, ev->buffer.base, ev->buffer.length);
 	free_event(disp, ev);
 
 	if (response)
@@ -1285,7 +1306,8 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	else
 		do_next_request(disp, resp);
 
-	startrecv(disp);
+	if (disp->shutting_down == 0)
+		startrecv(disp);
 
 	UNLOCK(&disp->lock);
 }
@@ -1300,7 +1322,7 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ev = ISC_LIST_HEAD(resp->items);
 	if (ev == NULL) {
 		if (disp->shutting_down == 1)
-			do_cancel(disp, resp);
+			do_cancel(disp, NULL); /* was resp */
 		return;
 	}
 
@@ -1309,8 +1331,8 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
-	XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
-		ev->buffer.base, ev->buffer.length, resp->task));
+	XDEBUG(("Sent event %p for buffer %p (len %d) to task %p, resp %p\n",
+		ev, ev->buffer.base, ev->buffer.length, resp->task, resp));
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
 
@@ -1324,7 +1346,7 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ev = ISC_LIST_HEAD(disp->rq_events);
 	if (ev == NULL) {
 		if (disp->shutting_down == 1)
-			do_cancel(disp, resp);
+			do_cancel(disp, NULL); /* was resp */
 		return;
 	}
 
@@ -1333,8 +1355,8 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
-	XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
-		ev->buffer.base, ev->buffer.length, resp->task));
+	XDEBUG(("Sent event %p for buffer %p (len %d) to task %p, resp %p\n",
+		ev, ev->buffer.base, ev->buffer.length, resp->task, resp));
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
 
@@ -1347,6 +1369,7 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 		XDEBUG(("do_cancel() call ignored\n"));
 		return;
 	}
+	XDEBUG(("do_cancel:  disp = %p, resp = %p\n", disp, resp));
 
 	/*
 	 * If no target given, find the first request handler.  If
@@ -1354,32 +1377,41 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	 * kill them.
 	 */
 	if (resp == NULL) {
-		resp = ISC_LIST_HEAD(disp->rq_handlers);
-		if (resp != NULL && resp->item_out == ISC_TRUE)
-			resp = NULL;
+		XDEBUG(("do_cancel:  passed a NULL response, searching...\n"));
+		if (ISC_LIST_EMPTY(disp->rq_events)) {
+			XDEBUG(("do_cancel:  non-empty request list.\n"));
+			resp = ISC_LIST_HEAD(disp->rq_handlers);
+			while (resp != NULL) {
+				XDEBUG(("do_cancel:  resp %p, item_out %s\n",
+					resp,
+					(resp->item_out ? "TRUE" : "FALSE")));
+				if (resp->item_out == ISC_FALSE)
+					break;
+				resp = ISC_LIST_NEXT(resp, link);
+			}
+		}
 	}
 
 	/*
-	 * Search for the first responce handler without packets outstanding.
+	 * Search for the first response handler without packets outstanding.
 	 */
 	if (resp == NULL) {
 		resp = linear_first(disp);
 		if (resp == NULL)  /* no first item? */
 			return;
-
 		do {
 			if (resp->item_out == ISC_FALSE)
 				break;
 
 			resp = linear_next(disp, resp);
 		} while (resp != NULL);
-
-		/*
-		 * No one to send the cancel event to, so nothing to do.
-		 */
-		if (resp == NULL)
-			return;
 	}
+
+	/*
+	 * No one to send the cancel event to, so nothing to do.
+	 */
+	if (resp == NULL)
+		return;
 
 	/*
 	 * Send the shutdown failsafe event to this resp.
@@ -1391,7 +1423,9 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	ev->buffer.base = NULL;
 	ev->buffer.length = 0;
 	disp->shutdown_out = 1;
-	XDEBUG(("Sending failsafe event to task %p\n", resp->task));
+	XDEBUG(("Sending failsafe event %p to task %p, resp %p\n",
+		ev, resp->task, resp));
+	resp->item_out = ISC_TRUE;
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
 
@@ -1401,4 +1435,25 @@ dns_dispatch_getsocket(dns_dispatch_t *disp)
 	REQUIRE(VALID_DISPATCH(disp));
 
 	return (disp->socket);
+}
+
+void
+dns_dispatch_cancel(dns_dispatch_t *disp)
+{
+	REQUIRE(VALID_DISPATCH(disp));
+
+	LOCK(&disp->lock);
+
+	if (disp->shutting_down == 1) {
+		UNLOCK(&disp->lock);
+		return;
+	}
+
+	disp->shutdown_why = ISC_R_CANCELED;
+	disp->shutting_down = 1;
+	do_cancel(disp, NULL);
+
+	UNLOCK(&disp->lock);
+
+	return;
 }
