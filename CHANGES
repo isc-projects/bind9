@@ -1,3 +1,6 @@
+1615.	[port]		Define ISC_SOCKADDR_LEN_T based on _BSD_SOCKLEN_T_ if
+			it is defined.
+
 1610.	[bug]		On dual stack machines "dig -b" failed to set the
 			address type to be looked up with "@server".
 			[RT #11069]
