@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.18 2000/05/11 22:43:38 gson Exp $ */
+/* $Id: unspec_103.c,v 1.19 2000/05/13 22:39:03 tale Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -135,7 +135,7 @@ freestruct_unspec(void *source) {
 	dns_rdata_unspec_t *unspec = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(unspec->common.rdtype = 103);
+	REQUIRE(unspec->common.rdtype == 103);
 
 	if (unspec->mctx == NULL)
 		return;
