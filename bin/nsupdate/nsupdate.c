@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.26 2000/07/06 19:29:40 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.27 2000/07/07 19:19:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -379,7 +379,8 @@ setup_system(void) {
 
 	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
 	if (lwresult != LWRES_R_SUCCESS)
-		fatal("lwres_conf_parse failed");
+		fprintf(stderr,
+			"An error was encountered in /etc/resolv.conf\n");
 
 	lwconf = lwres_conf_get(lwctx);
 
