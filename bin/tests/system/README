@@ -6,8 +6,9 @@ There are multiple test suites, each in a separate subdirectory and
 involving a different DNS setup.  They are:
 
   xfer/		Zone transfer, update, and NOTIFY tests
+  notify/	More NOTIFY tests
+  xferquota/	Zone transfer quota tests
   dnssec/	DNSSEC tests
-  xferquote/	Zone transfer quota tests
 
 Typically each test suite sets up 2-4 name servers and then performs
 one or more tests against them.  Within the test suite subdirectory,
@@ -24,37 +25,18 @@ separate virtual IP address on the loopback interface.  ns1 runs on
 10.53.0.1, ns2 on 10.53.0.2, etc.  Before running any tests, you must
 set up these addresses by running the script "ifconfig.sh".
 
-XXX the ifconfig.sh script is known to work only on NetBSD.
-
 Because the servers run on port 53, the tests must be run as root.
 
 To run the tests:
 
   sh run.sh xfer
-  [check that xfer/ns3/example.bk has been created]
-  [run update_test.pl against ns2, check that changes propagate to ns3,
-  which they currently don't because notifies are not sent after dynamic
-  updates like they ought to be]
-  sh stop.sh xfer
 
-  sh run.sh dnssec
-  dig a.secure.example. a @10.53.0.4
-  [should return 10.0.0.1, AD=1]
-  dig c.secure.example. a @10.53.0.4
-  [should return NXDOMAIN, AD=1]
-  sh stop.sh dnssec
+  sh run.sh notify
 
-  sh run.sh dnssec --badsig
-  dig a.secure.example. a @10.53.0.4
-  [should return SERVFAIL]
-  sh stop.sh dnssec
+  etc.
 
-  sh run.sh xferquota
-  [check that xferquota/ns2 now contains 100 .bk files]
-  sh stop.sh xferquota
+To clean up files left behind by the tests:
 
   sh clean.sh
 
-XXX The manual operations in [brackets] above should be automated.
-
-$Id: README,v 1.2 2000/05/15 23:09:42 gson Exp $
+$Id: README,v 1.3 2000/05/22 21:29:21 gson Exp $
