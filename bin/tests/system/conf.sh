@@ -23,6 +23,7 @@
 TOP="`cd ../../..; pwd`"
 
 NAMED=$TOP/bin/named/named
+DIG=$TOP/bin/dig/dig
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
 KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
@@ -30,4 +31,4 @@ KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
 
 SUBDIRS="xfer dnssec xferquota"
 
-export NAMED KEYGEN SIGNER KEYSIGNER KEYSETTOOL
+export NAMED DIG KEYGEN SIGNER KEYSIGNER KEYSETTOOL
