@@ -30,40 +30,59 @@
 isc_boolean_t
 isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
 {
-	struct sockaddr *sa, *sb;
+	REQUIRE(a != NULL && b != NULL);
 
-	sa = (struct sockaddr *)&a->type;
-	sb = (struct sockaddr *)&b->type;
-
-	if (sa->sa_family != sb->sa_family)
+	if (a->length != b->length)
 		return (ISC_FALSE);
 
-#ifdef HAVE_SA_LEN
-	if (sa->sa_len != sb->sa_len)
+	if (memcmp(&a->type, &b->type, a->length) != 0)
 		return (ISC_FALSE);
-	if (memcmp(sa->sa_data, sb->sa_data, sa->sa_len) != 0)
-		return (ISC_FALSE);
-#else
-	switch (sa->sa_family) {
-	case AF_INET: {
-		struct sockaddr_in *sina, *sinb;
 
-		sina = (struct sockaddr_in *)sa;
-		sinb = (struct sockaddr_in *)sb;
+	return (ISC_TRUE);
+}
 
-		if (sina->sin_port != sinb->sin_port)
-			return (ISC_FALSE);
-		if (memcmp(&sina->sin_addr, &sinb->sin_addr, 4) != 0)
-			return (ISC_FALSE);
+unsigned int
+isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
+	unsigned int length;
+	const unsigned char *s;
+	unsigned int h = 0;
+	unsigned int g;
+	
+	/*
+	 * Provide a hash value for 'sockaddr'.
+	 */
 
-		return (ISC_TRUE);
+	REQUIRE(sockaddr != NULL);
+
+	if (address_only) {
+		switch (sockaddr->type.sa.sa_family) {
+		case AF_INET:
+			return (ntohl(sockaddr->type.sin.sin_addr.s_addr));
+		case AF_INET6:
+			s = (unsigned char *)&sockaddr->type.sin6.sin6_addr;
+			length = sizeof sockaddr->type.sin6.sin6_addr;
+			break;
+		default:
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "unknown address family: %d\n",
+					 (int)sockaddr->type.sa.sa_family);
+			s = (unsigned char *)&sockaddr->type;
+			length = sockaddr->length;
+		}
+	} else {
+		s = (unsigned char *)&sockaddr->type;
+		length = sockaddr->length;
 	}
-	default:
-		INSIST("Unknown socket protocol");
-		break;
-	}
-#endif
 
-	UNEXPECTED_ERROR(__FILE__, __LINE__, "Cannot happen");
-	return (ISC_FALSE);
+	while (length > 0) {
+		h = ( h << 4 ) + *s;
+		if ((g = ( h & 0xf0000000 )) != 0) {
+			h = h ^ (g >> 24);
+			h = h ^ g;
+		}
+		s++;
+		length--;
+	}
+
+	return (h);
 }
