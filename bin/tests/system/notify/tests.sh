@@ -51,7 +51,7 @@ status=`expr $status + $?`
 
 rm -f ns2/example.db
 cp ns2/example2.db ns2/example.db
-sleep 3
+sleep 6
 kill -HUP `cat ns2/named.pid`
 sleep 30
 
@@ -71,7 +71,7 @@ status=`expr $status + $?`
 kill `cat ns3/named.pid`
 rm -f ns2/example.db
 cp ns2/example3.db ns2/example.db
-sleep 3
+sleep 6
 kill -HUP `cat ns2/named.pid`
 (cd ns3 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
 sleep 30
@@ -92,7 +92,7 @@ status=`expr $status + $?`
 rm -f ns2/example.db
 kill `cat ns2/named.pid`
 cp ns2/example4.db ns2/example.db
-sleep 3
+sleep 6
 (cd ns2 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
 sleep 30
 
