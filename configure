@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.141 
+# From configure.in Revision: 1.142 
 
 
 
@@ -2309,7 +2309,7 @@ MKDEPCC="$CC"
 MKDEPCFLAGS="-M"
 IRIX_DNSSEC_WARNINGS_HACK=""
 if test "X$GCC" = "Xyes"; then
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes"
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings"
 	case "$host" in
 		*-freebsd*)
 			CC="$CC -pthread"

@@ -1,3 +1,14 @@
+ 224.   [cleanup]       The entire project builds cleanly with gcc's
+                        -Wcast-qual and -Wwrite-strings warnings enabled,
+                        which is now the default when using gcc.  (Warnings
+                        from confparser.c, because of yacc's code, are
+                        unfortunately to be expected.)
+
+ 223.   [func]          Several functions were reprototyped to qualify one
+                        or more of their arguments with "const".  Similarly,
+                        several functions that return pointers now have
+                        those pointers qualified with const.
+
  222.	[bug]		The global 'also-notify' option was ignored.
 
  221.	[bug]		An uninitialized variable was sometimes passed to
@@ -26,10 +37,10 @@
  214.   [func]		New public function isc_netaddr_format(), for
 			formatting network addresses in log messages.
 
- 213.	[cleanup]	Don't leak memory when reloading the zone if
+ 213.	[bug]		Don't leak memory when reloading the zone if
 			an update-policy clause was present in the old zone.
 
- 212.	[cleanup]	Added dns_message_get/settsigkey, to make TSIG
+ 212.	[func]		Added dns_message_get/settsigkey, to make TSIG
 			key management reasonable.
 
  211.	[func]		The 'key' and 'server' statements can now occur
