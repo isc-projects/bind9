@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.42 2000/08/17 13:13:27 marka Exp $ */
+/* $Id: confzone.h,v 1.43 2000/08/19 00:47:18 gson Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -165,7 +165,7 @@ struct dns_c_slave_zone {
 
 #ifndef NOMINUM_PUBLIC
 	isc_uint32_t		max_names;
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 	isc_uint32_t		min_retry_time;
 	isc_uint32_t		max_retry_time;

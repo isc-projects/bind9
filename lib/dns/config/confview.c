@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.45 2000/08/17 13:13:31 marka Exp $ */
+/* $Id: confview.c,v 1.46 2000/08/19 00:46:13 gson Exp $ */
 
 #include <config.h>
 
@@ -531,7 +531,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->max_names = NULL;
 	view->notify_any = NULL;
 	view->notify_relay = NULL;
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 	view->additional_data = NULL;
 	view->transfer_format = NULL;
@@ -752,7 +752,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 
 #ifndef NOMINUM_PUBLIC
 	PRINT_INT32(max_names, "max-names");
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
@@ -900,7 +900,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(max_names);
 	FREEFIELD(notify_any);
 	FREEFIELD(notify_relay);
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
