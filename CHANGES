@@ -1,4 +1,4 @@
-1505.	[bug]		Uninitaliased rdataset is sdb. [RT #8750]
+1505.	[bug]		Uninitialized rdataset in sdb. [RT #8750]
 
 1504.	[func]		New zone type "delegation-only".
 
