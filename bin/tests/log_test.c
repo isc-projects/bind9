@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.5 2000/01/06 14:47:35 tale Exp $ */
+/* $Id: log_test.c,v 1.6 2000/01/06 15:00:24 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -115,7 +115,6 @@ main (int argc, char **argv) {
 	CHECK_ISC(isc_mem_create(0, 0, &mctx));
 	CHECK_ISC(isc_log_create(mctx, &lctx));
 	CHECK_DNS(dns_log_init(lctx));
-	CHECK_ISC(isc_log_usecontext(lctx));
 
 	/*
 	 * Create a file channel to test file opening, size limiting and
@@ -250,13 +249,12 @@ main (int argc, char **argv) {
 
 	/*
 	 * Write debugging messages to a dynamic debugging channel.
-	 * Also check that dns_lctx is set and working.
 	 */
 	isc_log_setdebuglevel(lctx, 3);
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		      ISC_LOG_DEBUG(1), "Dynamic debug to dns_lctx stderr");
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
+	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
+		      ISC_LOG_DEBUG(1), "Dynamic debugging to stderr");
+	isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		      ISC_LOG_DEBUG(5),
 		      "This debug level is too high and should not appear!");
 

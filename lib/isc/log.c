@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.13 2000/01/06 14:47:37 tale Exp $ */
+/* $Id: log.c,v 1.14 2000/01/06 15:01:16 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -105,7 +105,6 @@ struct isc_log {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
-	isc_boolean_t			active;
 	char 				buffer[LOG_BUFFER_SIZE];
 	int				debug_level;
 	unsigned int			duplicate_interval;
@@ -114,8 +113,6 @@ struct isc_log {
 	unsigned int			category_count;
 	isc_logmodule_t **		modules;
 	unsigned int			module_count;
-	isc_log_t ***			contexts;
-	unsigned int			context_count;
 	ISC_LIST(isc_logmessage_t)	messages;
 };
 
@@ -204,16 +201,13 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp) {
 		return (ISC_R_NOMEMORY);
 
 	lctx->mctx = mctx;
-	lctx->active = ISC_FALSE;
-	lctx->debug_level = 0;
-	lctx->duplicate_interval = 0;
 	lctx->channels = NULL;
 	lctx->categories = NULL;
 	lctx->category_count = 0;
+	lctx->debug_level = 0;
+	lctx->duplicate_interval = 0;
 	lctx->modules = NULL;
 	lctx->module_count = 0;
-	lctx->contexts = NULL;
-	lctx->context_count = 0;
 
 	ISC_LIST_INIT(lctx->messages);
 
@@ -334,13 +328,8 @@ isc_log_destroy(isc_log_t **lctxp) {
 	}
 	ISC_LIST_INIT(lctx->messages);
 
-	if (lctx->context_count > 0)
-		isc_mem_put(mctx, lctx->contexts,
-			    lctx->context_count * sizeof(isc_log_t **));
-
 	isc_mutex_destroy(&lctx->lock);
 
-	lctx->active = ISC_FALSE;
 	lctx->magic = 0;
 
 	isc_mem_put(mctx, lctx, sizeof(*lctx));
@@ -403,33 +392,6 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]) {
 		modp++->id = new_count++;
 
 	lctx->module_count = new_count;
-}
-
-isc_result_t
-isc_log_registercontext(isc_log_t *lctx, isc_log_t **lctxp) {
-	isc_log_t ***contexts;
-
-	REQUIRE(VALID_CONTEXT(lctx));
-	REQUIRE(! lctx->active);
-	REQUIRE(lctxp != NULL);
-
-	contexts = (isc_log_t ***)isc_mem_get(lctx->mctx,
-					      (lctx->context_count + 1) *
-					      sizeof(isc_log_t **));
-	if (contexts == NULL)
-		return (ISC_R_NOMEMORY);
-
-	if (lctx->context_count > 0) {
-		memcpy(contexts, lctx->contexts,
-		       (lctx->context_count + 1) * sizeof(isc_log_t **));
-		isc_mem_put(lctx->mctx, lctx->contexts,
-			    lctx->context_count * sizeof(isc_log_t **));
-	}
-
-	lctx->contexts = contexts;
-	lctx->context_count++;
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -554,27 +516,6 @@ isc_log_usechannel(isc_log_t *lctx, const char *name,
 				break;
 		}
 
-	return (result);
-}
-
-isc_result_t
-isc_log_usecontext(isc_log_t *lctx) {
-	isc_result_t result;
-	unsigned int i;
-
-	REQUIRE(VALID_CONTEXT(lctx));
-	REQUIRE(! lctx->active);
-
-	result = isc_mutex_lock(&lctx->lock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	for (i = 0; i < lctx->context_count; i++)
-		*(lctx->contexts[i]) = lctx;
-
-	lctx->active = ISC_TRUE;
-
-	result = isc_mutex_unlock(&lctx->lock);
 	return (result);
 }
 
@@ -913,7 +854,6 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	REQUIRE(module != NULL && module->id < lctx->module_count);
 	REQUIRE(level != ISC_LOG_DYNAMIC);
 	REQUIRE(format != NULL);
-	REQUIRE(lctx->active);
 
 	time_string[0] = '\0';
 	level_string[0] = '\0';

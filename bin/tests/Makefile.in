@@ -19,19 +19,16 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-OMAPI_INCLUDES = -I${top_srcdir}/lib/omapi/include
-CINCLUDES =	 ${DNS_INCLUDES} ${ISC_INCLUDES} ${OMAPI_INCLUDES}
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
-OMAPILIBS =	../../lib/omapi/libomapi.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
-OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
 
 LIBS =		@LIBS@
 
@@ -52,7 +49,6 @@ TARGETS =	adb_test \
 		name_test \
 		nconf_test \
 		nxtify \
-		omapi_test \
 		ratelimiter_test \
 		rbt_test \
 		rdata_test \
@@ -84,7 +80,6 @@ SRCS =		adb_test.c \
 		name_test.c \
 		nconf_test.c \
 		nxtify.c \
-		omapi_test.c \
 		printmsg.c \
 		ratelimiter_test.c \
 		rbt_test.c \
@@ -144,10 +139,6 @@ log_test: log_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 name_test: name_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ name_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-omapi_test: omapi_test.@O@ ${ISCDEPLIBS} ${OMAPIDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ omapi_test.@O@ \
-		${OMAPILIBS} ${ISCLIBS} ${LIBS}
 
 sock_test: sock_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sock_test.@O@ \

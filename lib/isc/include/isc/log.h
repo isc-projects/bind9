@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.6 2000/01/06 14:47:38 tale Exp $ */
+/* $Id: log.h,v 1.7 2000/01/06 15:01:49 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -184,6 +184,7 @@ isc_log_destroy(isc_log_t **lctxp);
  *	The logging context is marked as invalid.
  */
 
+
 isc_result_t
 isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]);
 /*
@@ -245,31 +246,6 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]);
  * Ensures:
  *	Each module has a reference in the logging context, so they can be
  *	used with isc_log_usechannel() and isc_log_write().
- */
-
-isc_result_t
-isc_log_registercontext(isc_log_t *lctx, isc_log_t **lctxp);
-/*
- * Note a log context pointer that needs to be updated when the the configured
- * context is activated with dns_log_usecontext().
- *
- * Notes:
- *	This is mainly intended for use by libraries to assign a logging
- *	context to their own internal pointer, such as dns_lctx in libdns.a.
- *	It is not sufficient to have, for example, 'dns_lctx = lctx'  in the
- *	the libraries dns_log_init() function because of multithreading
- *	pitfalls.
- *
- * Requires:
- *	lctx is a valid logging context and not yet active.
- *	lctxp is not NULL.
- *
- * Ensures:
- *	lctxp is registered to be updated when lctx is made active.
- *
- * Returns:
- *	ISC_R_SUCCESS		Success.
- *	ISC_R_NOMEMORY		No memory was available to store lctxp.
  */
 
 isc_result_t
@@ -397,31 +373,6 @@ isc_log_usechannel(isc_log_t *lctx, const char *name,
  * Returns:
  *	ISC_R_SUCCESS	Success
  *	ISC_R_NOMEMORY	Resource limit: Out of memory
- */
-
-isc_result_t
-isc_log_usecontext(isc_log_t *lctx);
-/*
- * Start using a logging context.
- *
- * Notes:
- *	This is the last thing that should be done after the logging
- *	context is fully configured via isc_log_registercategories
- *	and isc_log_registermodules, but before any isc_log_*write* function
- *	is used with the context.  Channels can be created/used at any time
- *	before or after isc_log_usecontext().
- *
- * Requires:
- *	lctx is a valid logging context.
- *
- *	isc_log_usecontext has not been previously called on lctx.
- *
- * Ensures:
- *
- * Returns:
- *	ISC_R_SUCCESS		Success
- *	<something_else>	Any unsuccessful return from isc_mutex_lock()
- *				or isc_mutex_unlock().
  */
 
 void
