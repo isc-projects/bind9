@@ -19,9 +19,7 @@
 #define ISC_RANDOM_H 1
 
 #include <isc/lang.h>
-#include <isc/int.h>
-#include <isc/mutex.h>
-#include <isc/result.h>
+#include <isc/types.h>
 
 /*
  * Implements a random state pool which will let the caller return a
@@ -32,16 +30,18 @@
 
 ISC_LANG_BEGINDECLS
 
-typedef struct {
+struct isc_random {
 	unsigned int	magic;
 #if 0
 	isc_mutex_t	lock;
 #endif
-} isc_random_t;
+};
+
 #define ISC_RANDOM_MAGIC	0x52416e64	/* RAnd. */
 #define ISC_RANDOM_VALID(x)	((x) != NULL && (x->magic) == ISC_RANDOM_MAGIC)
 
-isc_result_t	isc_random_init(isc_random_t *r);
+isc_result_t
+isc_random_init(isc_random_t *r);
 /*
  * Initialize a random state.
  *
@@ -51,7 +51,8 @@ isc_result_t	isc_random_init(isc_random_t *r);
  *	r != NULL.
  */
 
-isc_result_t	isc_random_invalidate(isc_random_t *r);
+isc_result_t
+isc_random_invalidate(isc_random_t *r);
 /*
  * Invalidate a random state.  This will wipe any information contained in
  * the state and make it unusable.
@@ -60,7 +61,8 @@ isc_result_t	isc_random_invalidate(isc_random_t *r);
  *	r be a valid pool.
  */
 
-void		isc_random_seed(isc_random_t *r, isc_uint32_t seed);
+void
+isc_random_seed(isc_random_t *r, isc_uint32_t seed);
 /*
  * Set the initial seed of the random state.  Note that on some systems
  * the private state isn't all that private, and setting the seed may
@@ -70,7 +72,8 @@ void		isc_random_seed(isc_random_t *r, isc_uint32_t seed);
  *	r be a valid pool.
  */
 
-void		isc_random_get(isc_random_t *r, isc_uint32_t *val);
+void
+isc_random_get(isc_random_t *r, isc_uint32_t *val);
 /*
  * Get a random value.  Note that on some systems the private state isn't
  * all that private, and getting a value may alter what other state pools

@@ -1,3 +1,6 @@
+ 100.   [cleanup]       <isc/random.h> does not need <isc/int.h> or
+                        <isc/mutex.h>.  isc_random_t moved to <isc/types.h>.
+
   99.   [cleanup]	Rate limiter now has separate shutdown() and
 			destroy() functions, and it guarantees that all 
 			queued events are delivered even in the shutdown case.

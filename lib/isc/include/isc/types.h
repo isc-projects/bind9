@@ -45,6 +45,7 @@ typedef struct isc_mempool		isc_mempool_t;
 typedef struct isc_msgcat		isc_msgcat_t;
 typedef struct isc_ondestroy		isc_ondestroy_t;
 typedef struct isc_netaddr		isc_netaddr_t;
+typedef struct isc_random		isc_random_t;
 typedef struct isc_region		isc_region_t;
 typedef unsigned int			isc_result_t;
 typedef struct isc_rwlock		isc_rwlock_t;
