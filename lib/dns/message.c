@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164 2000/12/11 19:24:13 bwelling Exp $ */
+/* $Id: message.c,v 1.165 2001/01/03 20:42:08 bwelling Exp $ */
 
 /***
  *** Imports
@@ -355,8 +355,10 @@ msginittsig(dns_message_t *m) {
 	m->sigstart = -1;
 	m->sig0key = NULL;
 	m->sig0status = dns_rcode_noerror;
-	m->query = NULL;
-	m->saved = NULL;
+	m->query.base = NULL;
+	m->query.length = 0;
+	m->saved.base = NULL;
+	m->saved.length = 0;
 	m->querytsig = NULL;
 }
 
@@ -555,16 +557,16 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 		msg->tsigkey = NULL;
 	}
 
-	if (msg->query != NULL) {
-		isc_mem_put(msg->mctx, msg->query->base, msg->query->length);
-		isc_mem_put(msg->mctx, msg->query, sizeof(isc_region_t));
-		msg->query = NULL;
+	if (msg->query.base != NULL) {
+		isc_mem_put(msg->mctx, msg->query.base, msg->query.length);
+		msg->query.base = NULL;
+		msg->query.length = 0;
 	}
 
-	if (msg->saved != NULL) {
-		isc_mem_put(msg->mctx, msg->saved->base, msg->saved->length);
-		isc_mem_put(msg->mctx, msg->saved, sizeof(isc_region_t));
-		msg->saved = NULL;
+	if (msg->saved.base != NULL) {
+		isc_mem_put(msg->mctx, msg->saved.base, msg->saved.length);
+		msg->saved.base = NULL;
+		msg->saved.length = 0;
 	}
 
 	/*
@@ -1538,19 +1540,14 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 			      r.length);
 	}
 
-	msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
-	if (msg->saved == NULL)
-		return (ISC_R_NOMEMORY);
 	isc_buffer_usedregion(&origsource, &r);
-	msg->saved->length = r.length;
-	msg->saved->base = isc_mem_get(msg->mctx, msg->saved->length);
-	if (msg->saved->base == NULL) {
-		isc_mem_put(msg->mctx, msg->saved,
-			    sizeof(isc_region_t));
-		msg->saved = NULL;
+	msg->saved.length = r.length;
+	msg->saved.base = isc_mem_get(msg->mctx, msg->saved.length);
+	if (msg->saved.base == NULL) {
+		msg->saved.length = 0;
 		return (ISC_R_NOMEMORY);
 	}
-	memcpy(msg->saved->base, r.base, msg->saved->length);
+	memcpy(msg->saved.base, r.base, msg->saved.length);
 
 	if (seen_problem == ISC_TRUE)
 		return (DNS_R_RECOVERABLE);
@@ -2264,9 +2261,11 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 			return (result);
 		}
 	}
-	if (msg->saved != NULL) {
-		msg->query = msg->saved;
-		msg->saved = NULL;
+	if (msg->saved.base != NULL) {
+		msg->query.base = msg->saved.base;
+		msg->query.length = msg->saved.length;
+		msg->saved.base = NULL;
+		msg->saved.length = 0;
 	}
 
 	return (ISC_R_SUCCESS);
@@ -2642,9 +2641,9 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 	if (msg->tsigkey == NULL && msg->tsig == NULL && msg->sig0 == NULL)
 		return (ISC_R_SUCCESS);
-	INSIST(msg->saved != NULL);
-	isc_buffer_init(&msgb, msg->saved->base, msg->saved->length);
-	isc_buffer_add(&msgb, msg->saved->length);
+	INSIST(msg->saved.base != NULL);
+	isc_buffer_init(&msgb, msg->saved.base, msg->saved.length);
+	isc_buffer_add(&msgb, msg->saved.length);
 	if (msg->tsigkey != NULL || msg->tsig != NULL) {
 		if (view != NULL)
 			return (dns_view_checksig(view, &msgb, msg));
@@ -2963,7 +2962,7 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 isc_region_t *
 dns_message_getrawmessage(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	return (msg->saved);
+	return (&msg->saved);
 }
 
 void

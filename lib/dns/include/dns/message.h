@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.83 2000/11/13 21:34:01 bwelling Exp $ */
+/* $Id: message.h,v 1.84 2001/01/03 20:42:10 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -217,9 +217,8 @@ struct dns_message {
 	dns_name_t		       *sig0name;
 	dst_key_t		       *sig0key;
 	dns_rcode_t			sig0status;
-	isc_region_t		       *query;
-	isc_region_t		       *saved;
-	isc_buffer_t		       *rawmessge;
+	isc_region_t			query;
+	isc_region_t			saved;
 
 	dns_rdatasetorderfunc_t		order;
 	void *				order_arg;

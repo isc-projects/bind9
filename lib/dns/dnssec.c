@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.56 2000/12/11 19:24:05 bwelling Exp $
+ * $Id: dnssec.c,v 1.57 2001/01/03 20:42:07 bwelling Exp $
  */
 
 
@@ -527,7 +527,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	REQUIRE(key != NULL);
 
 	if (is_response(msg))
-		REQUIRE(msg->query != NULL);
+		REQUIRE(msg->query.base != NULL);
 
 	mctx = msg->mctx;
 
@@ -560,7 +560,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	RETERR(dst_context_create(key, mctx, &ctx));
 
 	if (is_response(msg))
-		RETERR(dst_context_adddata(ctx, msg->query));
+		RETERR(dst_context_adddata(ctx, &msg->query));
 
 	/*
 	 * Digest the header.
@@ -658,7 +658,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	REQUIRE(key != NULL);
 
 	if (is_response(msg))
-		REQUIRE(msg->query != NULL);
+		REQUIRE(msg->query.base != NULL);
 
 	mctx = msg->mctx;
 
@@ -701,7 +701,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	 * If this is a response, digest the query.
 	 */
 	if (is_response(msg))
-		RETERR(dst_context_adddata(ctx, msg->query));
+		RETERR(dst_context_adddata(ctx, &msg->query));
 
 	/*
 	 * Extract the header.
