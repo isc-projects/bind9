@@ -164,6 +164,12 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		goto out;
 	}
 	req->data = b->base + b->current;
+	lwres_buffer_forward(b, req->datalength);
+
+	if (LWRES_BUFFER_REMAINING(b) != 0) {
+		ret = -1;
+		goto out;
+	}
 
 	/* success! */
 	*structp = req;
@@ -205,6 +211,12 @@ lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		goto out;
 	}
 	req->data = b->base + b->current;
+
+	lwres_buffer_forward(b, req->datalength);
+	if (LWRES_BUFFER_REMAINING(b) != 0) {
+		ret = -1;
+		goto out;
+	}
 
 	/* success! */
 	*structp = req;

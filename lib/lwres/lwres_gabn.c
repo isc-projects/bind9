@@ -196,6 +196,9 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 	if (ret != 0)
 		return (ret);
 
+	if (LWRES_BUFFER_REMAINING(b) != 0)
+		return (-1);
+
 	gabn = CTXMALLOC(sizeof(lwres_gabnrequest_t));
 	if (gabn == NULL)
 		return (-1);
@@ -279,7 +282,10 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 			goto out;
 	}
 
-	/* XXXMLG Should check for trailing bytes */
+	if (LWRES_BUFFER_REMAINING(b) != 0) {
+		ret = -1;
+		goto out;
+	}
 
 	*structp = gabn;
 	return (0);

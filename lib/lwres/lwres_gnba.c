@@ -134,7 +134,6 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	}
 
 	/* encode naliases */
-
 	INSIST(SPACE_OK(b, sizeof(isc_uint16_t) * 2));
 	lwres_buffer_putuint16(b, req->naliases);
 
@@ -178,10 +177,21 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 
 	ret = lwres_addr_parse(b, &gnba->addr);
 	if (ret != 0)
-		return (ret);
+		goto out;
+
+	if (LWRES_BUFFER_REMAINING(b) != 0) {
+		ret = -1;
+		goto out;
+	}
 
 	*structp = gnba;
 	return (0);
+
+ out:
+	if (gnba != NULL)
+		lwres_gnbarequest_free(ctx, &gnba);
+
+	return (ret);
 }
 
 int
@@ -238,7 +248,10 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 			goto out;
 	}
 
-	/* XXXMLG Should check for trailing bytes */
+	if (LWRES_BUFFER_REMAINING(b) != 0) {
+		ret = -1;
+		goto out;
+	}
 
 	*structp = gnba;
 	return (0);
