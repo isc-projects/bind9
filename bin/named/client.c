@@ -46,12 +46,12 @@
 #define CTRACE(m)	isc_log_write(ns_g_lctx, \
 				      NS_LOGCATEGORY_CLIENT, \
 				      NS_LOGMODULE_CLIENT, \
-				      ISC_LOG_DEBUG(1), \
+				      ISC_LOG_DEBUG(3), \
 				      "client %p: %s", client, (m))
 #define MTRACE(m)	isc_log_write(ns_g_lctx, \
 				      NS_LOGCATEGORY_GENERAL, \
 				      NS_LOGMODULE_CLIENT, \
-				      ISC_LOG_DEBUG(1), \
+				      ISC_LOG_DEBUG(3), \
 				      "clientmgr %p: %s", manager, (m))
 #endif
 
