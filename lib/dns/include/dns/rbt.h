@@ -37,7 +37,6 @@
 typedef struct dns_rbt dns_rbt_t;
 
 typedef struct dns_rbt_node {
-	struct dns_rbt_node *parent;
 	struct dns_rbt_node *left;
 	struct dns_rbt_node *right;
 	struct dns_rbt_node *down;
@@ -102,18 +101,11 @@ void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  *
  */
 
-dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt,
-				  dns_name_t *name, dns_rbtnode_t **up);
+dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name);
 /*
  * Find the node for 'name'.
  *
  * Notes:
- *	If 'up' is non-null, it will receive the value of the node
- *	that has the down pointer to the found node.  If 'name' is
- *	not found, then it '*up' is guaranteed to be NULL.  If
- *	'name' is found in the top level tree of trees, '*up' will
- *	also be NULL.
- *
  *	It is _not_ required that the node associated with 'name'
  *	has a non-NULL data pointer.
  */
