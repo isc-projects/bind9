@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.18 2001/05/09 02:08:50 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.19 2001/05/09 02:41:13 gson Exp $ -->
 
 <book>
 
@@ -2323,9 +2323,11 @@ channel "null" {
 					// this channel
 };
 </programlisting>
-<para>The <command>default_debug</command> channel normally writes
-to a file <filename>named.run</filename> in the server's working
-directory.  For security reasons, when the "<option>-u</option>"
+<para>The <command>default_debug</command> channel has the special
+property that it only produces output when the server's debug level is
+nonzero.  It normally writes to a file <filename>named.run</filename>
+in the server's working directory.</para>
+<para>For security reasons, when the "<option>-u</option>"
 command line option is used, the <filename>named.run</filename> file
 is created only after <command>named</command> has changed to the
 new UID, and any debug output generated while <command>named</command> is
