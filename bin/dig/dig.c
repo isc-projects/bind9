@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.143 2001/03/28 02:42:49 bwelling Exp $ */
+/* $Id: dig.c,v 1.144 2001/03/28 03:09:45 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -76,7 +76,6 @@ extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern isc_boolean_t free_now;
 dig_lookup_t *default_lookup = NULL;
-extern isc_uint32_t rr_limit;
 
 extern isc_boolean_t debugging, memdebugging;
 char *batchname = NULL;
@@ -182,8 +181,6 @@ show_usage(void) {
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
-"                 +rrlimit=###        (Limit number of rr's in xfr)\n"
-"                 +namelimit=###      (Limit number of names in xfr)\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
@@ -788,21 +785,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			goto invalid_option;
 		}
 		break;
-	case 'r':
-		switch (cmd[1]) {
-		case 'e': /* recurse */
-			lookup->recurse = state;
-			break;
-		case 'r': /* rrlimit */
-			if (value == NULL)
-				goto need_value;
-			if (!state)
-				goto invalid_option;
-			rr_limit = parse_int(value, "rrlimit", MAXRRLIMIT);
-			break;
-		default:
-			goto invalid_option;
-		}
+	case 'r': /* recurse */
+		lookup->recurse = state;
 		break;
 	case 's':
 		switch (cmd[1]) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.197 2001/03/22 00:06:50 bwelling Exp $ */
+/* $Id: dighost.c,v 1.198 2001/03/28 03:09:47 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -133,7 +133,6 @@ isc_boolean_t memdebugging = ISC_FALSE;
 char *progname = NULL;
 isc_mutex_t lookup_lock;
 dig_lookup_t *current_lookup = NULL;
-isc_uint32_t rr_limit = INT_MAX;
 
 /*
  * Apply and clear locks at the event level in global task.
@@ -2111,7 +2110,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	isc_buffer_t b;
-	isc_boolean_t atlimit=ISC_FALSE;
 
 	debug("check_for_more_data()");
 
@@ -2142,8 +2140,6 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				continue;
 			do {
 				query->rr_count++;
-				if (query->rr_count >= rr_limit)
-					atlimit = ISC_TRUE;
 				dns_rdata_reset(&rdata);
 				dns_rdataset_current(rdataset, &rdata);
 				/*
@@ -2252,16 +2248,11 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		}
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 	} while (result == ISC_R_SUCCESS);
-	if (atlimit) {
-	doexit:
-		received(b.used, &sevent->address, query);
-		if (atlimit)
-			if (exitcode < 7)
-				exitcode = 7;
-		return (ISC_TRUE);
-	}
 	launch_next_query(query, ISC_FALSE);
 	return (ISC_FALSE);
+ doexit:
+	received(b.used, &sevent->address, query);
+	return (ISC_TRUE);
 }
 
 /*
