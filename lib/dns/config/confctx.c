@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.87 2000/09/13 20:49:40 gson Exp $ */
+/* $Id: confctx.c,v 1.88 2000/09/13 20:51:54 gson Exp $ */
 
 #include <config.h>
 
@@ -329,7 +329,6 @@ static isc_result_t logging_init (dns_c_ctx_t *cfg);
 static isc_result_t make_options(dns_c_ctx_t *cfg);
 
 
-
 isc_result_t
 dns_c_checkconfig(dns_c_ctx_t *cfg)
 {
@@ -344,115 +343,101 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	dns_c_lstnlist_t       *listenlist;
 	dns_c_ctrllist_t       *controls;
 
-
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'named-xfer' is now obsolete");
 	}
 
-
 	if (dns_c_ctx_getdumpfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'dump-file' is not yet implemented");
 	}
 
-
 	if (dns_c_ctx_getstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'statistics-file' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getmemstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'memstatistics-file' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getauthnxdomain(cfg, &bval) == ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "the default for the 'auth-nxdomain' option "
 			      "is now 'no'");
 	}
 
-
 	if (dns_c_ctx_getdealloconexit(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'deallocate-on-exit' is obsolete");
 	}
 
-
 	if (dns_c_ctx_getdialup(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'dialup' is not yet implemented");
 	}
 
-
 	if (dns_c_ctx_getfakeiquery(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'fake-iquery' is obsolete");
 	}
 
-
 	if (dns_c_ctx_getfetchglue(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'fetch-glue' is not yet implemented");
 	}
 
-
 	if (dns_c_ctx_gethasoldclients(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'has-old-clients' is obsolete");
 	}
 
-
 	if (dns_c_ctx_gethoststatistics(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'host-statistics' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getmultiplecnames(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'multiple-cnames' is obsolete");
 	}
 
-
 	if (dns_c_ctx_getrfc2308type1(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'rfc2308-type-1' is not yet "
 			      "implemented");
 	}
 
 	if (dns_c_ctx_getuseidpool(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'use-id-pool' is obsolete");
 	}
 
 
 	if (dns_c_ctx_gettreatcrasspace(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'treat-cr-as-space' is obsolete");
 	}
-
 
 	if ((dns_c_ctx_getchecknames(cfg, dns_trans_primary,
 				     &severity) != ISC_R_NOTFOUND) ||
@@ -460,131 +445,115 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 				     &severity) != ISC_R_NOTFOUND) ||
 	    (dns_c_ctx_getchecknames(cfg, dns_trans_response,
 				     &severity) != ISC_R_NOTFOUND)) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'check-names' is not yet implemented");
 	}
 
-
 	if (dns_c_ctx_getblackhole(cfg, &ipml) != ISC_R_NOTFOUND) {
 		dns_c_ipmatchlist_detach(&ipml);
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'blackhole' is not yet implemented");
 	}
 
-
 	if (dns_c_ctx_getlamettl(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'lame-ttl' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getminroots(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'min-roots' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getserialqueries(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'serial-queries' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getmaxlogsizeixfr(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'max-ixfr-log-size' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getcoresize(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'coresize' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getdatasize(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'datasize' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getfiles(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'files' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getstacksize(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'stacksize' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getheartbeatinterval(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'heartbeat-interval' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_getstatsinterval(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'statistics-interval' is not yet "
 			      "implemented");
 	}
 
-
 	if (dns_c_ctx_gettopology(cfg, &ipml) != ISC_R_NOTFOUND) {
 		dns_c_ipmatchlist_detach(&ipml);
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'topology' is deprecated");
 	}
 
-
 	if (dns_c_ctx_getsortlist(cfg, &ipml) != ISC_R_NOTFOUND) {
 		dns_c_ipmatchlist_detach(&ipml);
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'sortlist' is not yet implemented");
 	}
 
-
 	if (dns_c_ctx_getrrsetorderlist(cfg, &olist) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'rrset-order' is not yet implemented");
 	}
 
-
 	if (dns_c_ctx_getallowupdateforwarding(cfg, &ipml) != ISC_R_NOTFOUND) {
 		dns_c_ipmatchlist_detach(&ipml);
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'allow-update-forwarding' is not "
 			      "yet implemented");
 	}
-
 
 	if (cfg->zlist != NULL) {
 		tmpres = dns_c_zonelist_checkzones(cfg->zlist);
@@ -620,7 +589,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			result = tmpres;
 		}
 	}
-
 
 	return (result);
 }
