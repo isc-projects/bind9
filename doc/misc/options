@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
-See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.35 2000/08/29 21:50:45 gson Exp $
+$Id: options,v 1.36 2000/08/30 19:20:50 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
