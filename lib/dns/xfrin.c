@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.38 2000/01/25 19:28:59 halley Exp $ */
+ /* $Id: xfrin.c,v 1.39 2000/01/26 21:12:03 halley Exp $ */
 
 #include <config.h>
 
@@ -380,7 +380,8 @@ xfr_rr(xfrin_ctx_t *xfr,
 	case XFRST_SOAQUERY:
 		xfr->end_serial = dns_soa_getserial(rdata);
 		if (!DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial)) {
-			xfrin_log(xfr, ISC_LOG_INFO, "requested serial %u, "
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "requested serial %u, "
 				  "master has %u, not updating",
 				  xfr->ixfr.request_serial, xfr->end_serial);
 			FAIL(DNS_R_UPTODATE);
@@ -409,7 +410,8 @@ xfr_rr(xfrin_ctx_t *xfr,
 			 * sent when the current version on the master
 			 * is not newer than the version in the request.
 			 */
-			xfrin_log(xfr, ISC_LOG_INFO, "requested serial %u, "
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "requested serial %u, "
 				  "master has %u, not updating",
 				  xfr->ixfr.request_serial, xfr->end_serial);
 			FAIL(DNS_R_UPTODATE);
@@ -516,12 +518,12 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 	isc_task_setname(task, "xfrin", zone);
 	
 	if (db == NULL) {
-		xfrin_log1(ISC_LOG_INFO, zonename, master,
+		xfrin_log1(ISC_LOG_DEBUG(3), zonename, master,
 			   "no database exists yet, "
 			   "requesting AXFR of initial version");
 		xfrtype = dns_rdatatype_axfr;
 	} else {
-		xfrin_log1(ISC_LOG_INFO, zonename, master,
+		xfrin_log1(ISC_LOG_DEBUG(3), zonename, master,
 			  "database exists, trying IXFR");
 		xfrtype = dns_rdatatype_ixfr;
 	}
@@ -809,7 +811,8 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 		CHECK(dns_db_createsoatuple(xfr->db, ver, xfr->mctx,
 					    DNS_DIFFOP_EXISTS, &soatuple));
 		xfr->ixfr.request_serial = dns_soa_getserial(&soatuple->rdata);
-		xfrin_log(xfr, ISC_LOG_INFO, "requesting IXFR for serial %u",
+		xfrin_log(xfr, ISC_LOG_DEBUG(3),
+			  "requesting IXFR for serial %u",
 			  xfr->ixfr.request_serial);
 
 		CHECK(tuple2msgname(soatuple, msg, &msgsoaname));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.62 2000/01/25 19:29:00 halley Exp $ */
+ /* $Id: zone.c,v 1.63 2000/01/26 21:12:04 halley Exp $ */
 
 #include <config.h>
 
@@ -190,28 +190,16 @@ struct dns_zonemgr {
 	ISC_LIST(dns_zone_t)	zones;
 };
 
-static void refresh_callback(isc_task_t *, isc_event_t *);
-static void zone_shutdown(isc_task_t *, isc_event_t *);
-static void soa_query(dns_zone_t *, isc_taskaction_t);
 static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
 static isc_result_t dns_notify(dns_name_t *, isc_sockaddr_t *, dns_rdatatype_t,
 		       dns_rdataclass_t, isc_sockaddr_t *, isc_mem_t *);
-static void checkservers_callback(isc_task_t *task, isc_event_t *event);
 
-static void zone_log(dns_zone_t *zone, const char *, int, const char *msg, ...);
-static int message_count(dns_message_t *msg, dns_section_t section,
-			 dns_rdatatype_t type);
-#if 0
-static void sockaddr_fromaddr(isc_sockaddr_t *sockaddr, dns_c_addr_t *a,
-			      in_port_t port);
-#endif
-static void add_address_tocheck(dns_message_t *msg,
-				dns_zone_checkservers_t *checkservers,
-				dns_rdatatype_t type);
+static void zone_log(dns_zone_t *zone, const char *, int, const char *msg,
+		     ...);
 extern void dns_zone_transfer_in(dns_zone_t *zone);
-static void record_serial(void);
-static isc_result_t dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx, char **s);
+static isc_result_t dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx,
+				   char **s);
 static void unload(dns_zone_t *zone);
 static void expire(dns_zone_t *zone);
 static isc_result_t replacedb(dns_zone_t *zone, dns_db_t *db,
@@ -220,6 +208,18 @@ static isc_result_t default_journal(dns_zone_t *zone);
 static void releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 static void xfrin_start_temporary_kludge(dns_zone_t *zone);
 static void xfrdone(dns_zone_t *zone, isc_result_t result);
+#ifdef notyet
+static void refresh_callback(isc_task_t *, isc_event_t *);
+static void soa_query(dns_zone_t *, isc_taskaction_t);
+static void checkservers_callback(isc_task_t *task, isc_event_t *event);
+static void zone_shutdown(isc_task_t *, isc_event_t *);
+static int message_count(dns_message_t *msg, dns_section_t section,
+			 dns_rdatatype_t type);
+static void add_address_tocheck(dns_message_t *msg,
+				dns_zone_checkservers_t *checkservers,
+				dns_rdatatype_t type);
+static void record_serial(void);
+#endif
 
 
 
@@ -1058,7 +1058,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 		return;
 	result = dns_rdataset_next(&zonerdataset);
 	if (DNS_R_NOMORE != result) {
-		zone_log(zone, me, ISC_LOG_INFO, "More that one SOA in zone");
+		zone_log(zone, me, ISC_LOG_INFO, "More than one SOA in zone");
 		goto cleanup_msgsoa;
 	}
 	dns_rdataset_disassociate(&zonerdataset);
@@ -1099,6 +1099,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 }
 #endif
 
+#ifdef notyet
 static void
 add_address_tocheck(dns_message_t *msg, dns_zone_checkservers_t *checkservers,
 		    dns_rdatatype_t type)
@@ -1142,6 +1143,7 @@ add_address_tocheck(dns_message_t *msg, dns_zone_checkservers_t *checkservers,
 		result = dns_rdataset_next(rdataset);
 	}
 }
+#endif
 
 void
 dns_zone_checkparents(dns_zone_t *zone) {
@@ -1766,6 +1768,7 @@ dns_zone_unmount(dns_zone_t *zone) {
 	/*XXX MPA*/
 }
 
+#ifdef notyet
 /*
  * For reference only.  Use dns_zonemanager_managezone() instead.
  */
@@ -1823,6 +1826,7 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 	return (DNS_R_SUCCESS);
 #endif
 }
+#endif
 
 void
 dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
@@ -1935,12 +1939,9 @@ dns_zone_notify(dns_zone_t *zone) {
  *** Private
  ***/
 
+#ifdef notyet
 static void
 refresh_callback(isc_task_t *task, isc_event_t *event) {
-#if 1
-	(void)task;
-	(void)event;
-#else
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	dns_zone_t *zone;
 	dns_message_t *msg = NULL;
@@ -2099,8 +2100,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&zone->lock);
 	soa_query(zone, refresh_callback);
 	return;
-#endif
 }
+#endif
 
 #ifdef notyet
 static void
@@ -2122,6 +2123,7 @@ soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 }
 #endif
 
+#ifdef notyet
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *)event->arg;
@@ -2129,6 +2131,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	task = task; /* XXX */
 	zone = zone; /* XXX */
 }
+#endif
 
 static void
 zone_timer(isc_task_t *task, isc_event_t *event) {
@@ -2191,13 +2194,15 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	}
 
 	if (next == 0) {
-		zone_log(zone, me, ISC_LOG_INFO, "settimer inactive");
+		zone_log(zone, me, ISC_LOG_DEBUG(10),
+			 "settimer inactive");
 		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
 					  NULL, NULL, ISC_TRUE);
 	} else {
 		if (next <= now)
 			next = now + 1;
-		zone_log(zone, me, ISC_LOG_INFO, "settimer %d %d = %d seconds",
+		zone_log(zone, me, ISC_LOG_DEBUG(10),
+			 "settimer %d %d = %d seconds",
 			 next, now, next - now);
 		isc_time_settoepoch(&expires);
 		isc_interval_set(&interval, next - now, 0);
@@ -2596,6 +2601,7 @@ zone_log(dns_zone_t *zone, const char *me, int level,
 		      level, "%s: zone %.*s: %s", me, len, namebuf, message);
 }
 
+#ifdef notyet
 static int
 message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type) {
 	isc_result_t result;
@@ -2618,6 +2624,7 @@ message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type) {
 
 	return (res);
 }
+#endif
 
 void
 dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver) {
@@ -2734,9 +2741,11 @@ dns_zone_getidleout(dns_zone_t *zone) {
 	return (zone->idleout);
 }
 
+#ifdef notyet
 static void
 record_serial() {
 }
+#endif
 
 isc_boolean_t
 dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
