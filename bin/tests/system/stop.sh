@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: stop.sh,v 1.11 2000/07/07 00:41:18 bwelling Exp $
+# $Id: stop.sh,v 1.12 2000/07/09 15:55:01 tale Exp $
 
 #
 # Stop name servers.
@@ -52,6 +52,7 @@ do
 	echo "I:$d didn't die when sent a SIGTERM"
 	status=`expr $status + 1`
         kill -KILL `cat $pidfile`
+        rm -f $pidfile
      fi
 done
 
@@ -62,6 +63,7 @@ do
 	echo "I:$d didn't die when sent a SIGTERM"
 	status=`expr $status + 1`
         kill -KILL `cat $pidfile`
+        rm -f $pidfile
      fi
 done
 
