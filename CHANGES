@@ -1,5 +1,8 @@
 
- 645.	[port] 		BSD/OS 3.0 needs pthread_init(). [RT #603]
+ 646.	[bug]		The UnixWare ISC_PLATFORM_FIXIN6INADDR fix in isc/net.h
+			didn't _cleanly_ fix the problem it was trying to fix.
+
+ 645.	[port]		BSD/OS 3.0 needs pthread_init(). [RT #603]
 
  642.	[bug]		Break the exit_check() race in the zone module.
 			[RT #598]

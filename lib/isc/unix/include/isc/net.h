@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.24 2000/12/08 00:55:32 tale Exp $ */
+/* $Id: net.h,v 1.24.4.1 2001/01/03 20:37:58 gson Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -118,20 +118,20 @@ extern const struct in6_addr isc_net_in6addrany;
  * Fix UnixWare 7.1.1's broken IN6_IS_ADDR_* definitions.
  */
 #ifdef ISC_PLATFORM_FIXIN6ISADDR
-#define IN6_IS_ADDR_GEOGRAPHIC
+#undef  IN6_IS_ADDR_GEOGRAPHIC
 #define IN6_IS_ADDR_GEOGRAPHIC(a) (((a)->S6_un.S6_l[0] & 0xE0) == 0x80)
-#define IN6_IS_ADDR_IPX
-#define IN6_IS_ADDR_IPX(a)      (((a)->S6_un.S6_l[0] & 0xFE) == 0x04)
-#define IN6_IS_ADDR_LINKLOCAL
-#define IN6_IS_ADDR_LINKLOCAL(a) (((a)->S6_un.S6_l[0] & 0xC0FF) == 0x80FE)
-#define IN6_IS_ADDR_MULTICAST
-#define IN6_IS_ADDR_MULTICAST(a) (((a)->S6_un.S6_l[0] & 0xFF) == 0xFF)
-#define IN6_IS_ADDR_NSAP
-#define IN6_IS_ADDR_NSAP(a)     (((a)->S6_un.S6_l[0] & 0xFE) == 0x02)
-#define IN6_IS_ADDR_PROVIDER
-#define IN6_IS_ADDR_PROVIDER(a) (((a)->S6_un.S6_l[0] & 0xE0) == 0x40)
-#define IN6_IS_ADDR_SITELOCAL
-#define IN6_IS_ADDR_SITELOCAL(a) (((a)->S6_un.S6_l[0] & 0xC0FF) == 0xC0FE)
+#undef  IN6_IS_ADDR_IPX
+#define IN6_IS_ADDR_IPX(a)        (((a)->S6_un.S6_l[0] & 0xFE) == 0x04)
+#undef  IN6_IS_ADDR_LINKLOCAL
+#define IN6_IS_ADDR_LINKLOCAL(a)  (((a)->S6_un.S6_l[0] & 0xC0FF) == 0x80FE)
+#undef  IN6_IS_ADDR_MULTICAST
+#define IN6_IS_ADDR_MULTICAST(a)  (((a)->S6_un.S6_l[0] & 0xFF) == 0xFF)
+#undef  IN6_IS_ADDR_NSAP
+#define IN6_IS_ADDR_NSAP(a)       (((a)->S6_un.S6_l[0] & 0xFE) == 0x02)
+#undef  IN6_IS_ADDR_PROVIDER
+#define IN6_IS_ADDR_PROVIDER(a)   (((a)->S6_un.S6_l[0] & 0xE0) == 0x40)
+#undef  IN6_IS_ADDR_SITELOCAL
+#define IN6_IS_ADDR_SITELOCAL(a)  (((a)->S6_un.S6_l[0] & 0xC0FF) == 0xC0FE)
 #endif /* ISC_PLATFORM_FIXIN6ISADDR */
 
 /*
