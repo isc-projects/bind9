@@ -25,6 +25,9 @@ NULL=
 NULL=nul
 !ENDIF 
 
+CPP=cl.exe
+RSC=rc.exe
+
 !IF  "$(CFG)" == "rndcconfgen - Win32 Release"
 
 OUTDIR=.\Release
@@ -34,6 +37,7 @@ ALL : "..\..\..\Build\Release\rndc-confgen.exe"
 
 
 CLEAN :
+	-@erase "$(INTDIR)\os.obj"
 	-@erase "$(INTDIR)\rndc-confgen.obj"
 	-@erase "$(INTDIR)\util.obj"
 	-@erase "$(INTDIR)\vc60.idb"
@@ -42,40 +46,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "./" /I "../../../" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/isccc/include" /I "../../../lib/isccfg/include" /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\confgen.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "./" /I "../../../" /I "../include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/isccc/include" /I "../../../lib/isccfg/include" /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\confgen.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\confgen.bsc" 
 BSC32_SBRS= \
@@ -83,6 +54,7 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/isccfg/win32/Release/libisccfg.lib ../../../lib/isccc/win32/Release/libisccc.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\rndc-confgen.pdb" /machine:I386 /out:"../../../Build/Release/rndc-confgen.exe" 
 LINK32_OBJS= \
+	"$(INTDIR)\os.obj" \
 	"$(INTDIR)\rndc-confgen.obj" \
 	"$(INTDIR)\util.obj"
 
@@ -103,6 +75,8 @@ ALL : "..\..\..\Build\Debug\rndc-confgen.exe" "$(OUTDIR)\confgen.bsc"
 
 
 CLEAN :
+	-@erase "$(INTDIR)\os.obj"
+	-@erase "$(INTDIR)\os.sbr"
 	-@erase "$(INTDIR)\rndc-confgen.obj"
 	-@erase "$(INTDIR)\rndc-confgen.sbr"
 	-@erase "$(INTDIR)\util.obj"
@@ -117,8 +91,32 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/isccc/include" /I "../../../lib/isccfg/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "../include" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/win32/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/isccc/include" /I "../../../lib/isccfg/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+BSC32=bscmake.exe
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\confgen.bsc" 
+BSC32_SBRS= \
+	"$(INTDIR)\os.sbr" \
+	"$(INTDIR)\rndc-confgen.sbr" \
+	"$(INTDIR)\util.sbr"
+
+"$(OUTDIR)\confgen.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
+LINK32=link.exe
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/isccfg/win32/Debug/libisccfg.lib ../../../lib/isccc/win32/Debug/libisccc.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\rndc-confgen.pdb" /debug /machine:I386 /out:"../../../Build/Debug/rndc-confgen.exe" /pdbtype:sept 
+LINK32_OBJS= \
+	"$(INTDIR)\os.obj" \
+	"$(INTDIR)\rndc-confgen.obj" \
+	"$(INTDIR)\util.obj"
+
+"..\..\..\Build\Debug\rndc-confgen.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    $(LINK32) @<<
+  $(LINK32_FLAGS) $(LINK32_OBJS)
+<<
+
+!ENDIF 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -150,31 +148,6 @@ CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "../../../li
    $(CPP_PROJ) $< 
 <<
 
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\confgen.bsc" 
-BSC32_SBRS= \
-	"$(INTDIR)\rndc-confgen.sbr" \
-	"$(INTDIR)\util.sbr"
-
-"$(OUTDIR)\confgen.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
-    $(BSC32) @<<
-  $(BSC32_FLAGS) $(BSC32_SBRS)
-<<
-
-LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/isccfg/win32/Debug/libisccfg.lib ../../../lib/isccc/win32/Debug/libisccc.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\rndc-confgen.pdb" /debug /machine:I386 /out:"../../../Build/Debug/rndc-confgen.exe" /pdbtype:sept 
-LINK32_OBJS= \
-	"$(INTDIR)\rndc-confgen.obj" \
-	"$(INTDIR)\util.obj"
-
-"..\..\..\Build\Debug\rndc-confgen.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ENDIF 
-
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
 !IF EXISTS("confgen.dep")
@@ -186,6 +159,22 @@ LINK32_OBJS= \
 
 
 !IF "$(CFG)" == "rndcconfgen - Win32 Release" || "$(CFG)" == "rndcconfgen - Win32 Debug"
+SOURCE=.\os.c
+
+!IF  "$(CFG)" == "rndcconfgen - Win32 Release"
+
+
+"$(INTDIR)\os.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "rndcconfgen - Win32 Debug"
+
+
+"$(INTDIR)\os.obj"	"$(INTDIR)\os.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
 SOURCE="..\rndc-confgen.c"
 
 !IF  "$(CFG)" == "rndcconfgen - Win32 Release"
