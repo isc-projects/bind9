@@ -88,14 +88,19 @@ main(int argc, char *argv[]) {
 	dns_rdataset_t rdataset;
 	isc_region_t r;
 	char basetext[1000];
+	char dbtype[128];
 	int ch;
 	dns_rdatatype_t type = 2;
 
 	strcpy(basetext, "");
-	while ((ch = getopt(argc, argv, "z:t:")) != -1) {
+	strcpy(dbtype, "rbt");
+	while ((ch = getopt(argc, argv, "z:d:t:")) != -1) {
 		switch (ch) {
 		case 'z':
 			strcpy(basetext, optarg);
+			break;
+		case 'd':
+			strcpy(dbtype, optarg);
 			break;
 		case 't':
 			type = atoi(optarg);
@@ -118,9 +123,13 @@ main(int argc, char *argv[]) {
 	makename(mctx, basetext, &base, NULL);
 
 	db = NULL;
-	result = dns_db_create(mctx, "rbt", &base, ISC_FALSE, 1, 0, NULL,
+	result = dns_db_create(mctx, dbtype, &base, ISC_FALSE, 1, 0, NULL,
 			       &db);
-	RUNTIME_CHECK(result == DNS_R_SUCCESS);
+	if (result != DNS_R_SUCCESS) {
+		printf("dns_db_create(), DB type '%s', failed: %s\n",
+		       dbtype, dns_result_totext(result));
+		exit(1);
+	}
 	
 	origin = &base;
 	printf("loading %s\n", argv[0]);
