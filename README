@@ -67,6 +67,9 @@ BIND 9.0.0b1
 
 Building
 
+	BIND 9 currently requires a UNIX system with an ANSI C compiler,
+	basic POSIX support, and a good pthreads implementation.
+
 	We've had successful builds and tests on the following systems
 
 		AIX 4.3
@@ -82,12 +85,12 @@ Building
 		./configure
 		make
 
-	Shared libraries will be built if "--with-libtool" is added to the
-	"configure" command.
-
 	"make install" will install "named" and the various BIND 9 libraries.
 	By default, installation is into /usr/local, but this can be changed
 	with the "--prefix" option when running "configure".
+
+	Shared libraries will be built if "--with-libtool" is added to the
+	"configure" command.
 
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
