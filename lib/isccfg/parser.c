@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.7 2001/11/05 20:21:54 bwelling Exp $ */
+/* $Id: parser.c,v 1.70.2.8 2001/11/05 23:22:21 marka Exp $ */
 
 #include <config.h>
 
@@ -3825,6 +3825,11 @@ print_grammar(cfg_printer_t *pctx, const cfg_type_t *type) {
 		const cfg_clausedef_t * const *clauseset;
 		const cfg_clausedef_t *clause;
 
+		if (type->parse == parse_named_map) {
+			print_grammar(pctx, &cfg_type_astring);
+			print(pctx, " ", 1);
+		}
+		
 		print_open(pctx);
 
 		for (clauseset = type->of; *clauseset != NULL; clauseset++) {
