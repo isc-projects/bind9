@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.3 2000/07/10 21:49:00 tale Exp $ */
+/* $Id: omapiconf.c,v 1.4 2000/07/10 22:04:08 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -209,9 +209,6 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 	 * XXXDCL a separate problem is that keys that have been removed
 	 * from the controls statement in a reconfiguration are not deleted
 	 * until the server shuts down.
-	 *
-	 * XXXDCL confparser.y currently allows the keys clause to be absent,
-	 * which is pointless.  it needs to be required.
 	 */
 	for (keyid = ISC_LIST_HEAD(control->keyidlist->keyids);
 	     keyid != NULL;
@@ -416,11 +413,14 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 		if (keydeflist == NULL)
 			isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-				      "no usable keys for control channels");
+				      "no key statements for use by "
+				      "control channels");
 
 		for (control = dns_c_ctrllist_head(controls);
 		     control != NULL;
 		     control = dns_c_ctrl_next(control)) {
+			if (keydeflist == NULL)
+				continue;
 
 			if (control->control_type != dns_c_inet_control) {
 				/*
@@ -431,7 +431,7 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 					      ISC_LOGCATEGORY_GENERAL,
 					      NS_LOGMODULE_OMAPI,
 					      ISC_LOG_WARNING,
-					      "unix command channel type is "
+					      "unix control channel type is "
 					      "not supported");
 				continue;
 			}
@@ -439,13 +439,28 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 			isc_sockaddr_format(&control->u.inet_v.addr,
 					    socktext, sizeof(socktext));
 
+			/*
+			 * XXXDCL confparser.y currently allows the keys clause
+			 * to be absent, which is pointless.  it needs to be
+			 * required.
+			 */
+			if (control->keyidlist == NULL) {
+				isc_log_write(ns_g_lctx,
+					      ISC_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_OMAPI,
+					      ISC_LOG_WARNING,
+					      "missing keys clause for "
+					      "control channel %s",
+					      socktext);
+				continue;
+			}
+
 			isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_OMAPI, ISC_LOG_DEBUG(9),
 				      "processing control channel %s",
 				      socktext);
 
-			if (keydeflist != NULL)
-				register_keys(control, keydeflist, socktext);
+			register_keys(control, keydeflist, socktext);
 
 			update_listener(&listener, control, cctx, aclconfctx,
 					socktext);
