@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: request.c,v 1.26.2.3 2000/08/14 19:52:18 bwelling Exp $ */
+/* $Id: request.c,v 1.26.2.4 2000/08/25 00:46:36 gson Exp $ */
 
 #include <config.h>
 
@@ -503,7 +503,16 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 					   isc_sockettype_tcp, &socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		isc_sockaddr_any(&bind_any);
+		switch (isc_sockaddr_pf(address)) {
+		case AF_INET:
+			isc_sockaddr_any(&bind_any);
+			break;
+		case AF_INET6:
+			isc_sockaddr_any6(&bind_any);
+			break;
+		default: 
+			INSIST(0);         
+		}                          
 		result = isc_socket_bind(socket, &bind_any);
 		if (result != ISC_R_SUCCESS) {
 			isc_socket_detach(&socket);
