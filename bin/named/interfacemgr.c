@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5 2002/02/08 03:57:10 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.1 2003/08/02 01:19:58 marka Exp $ */
 
 #include <config.h>
 
@@ -473,6 +473,9 @@ static isc_result_t
 do_ipv4(ns_interfacemgr_t *mgr) {
 	isc_interfaceiter_t *iter = NULL;
 	isc_result_t result;
+	isc_netaddr_t zero_address;
+
+	isc_netaddr_any(&zero_address);
 
 	result = isc_interfaceiter_create(mgr->mctx, &iter);
 	if (result != ISC_R_SUCCESS)
@@ -502,7 +505,14 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		if (interface.address.family != AF_INET)
 			continue;
 
-		if ((interface.flags & INTERFACE_F_UP) == 0)
+		/*
+		 * Test for the address being nonzero rather than testing
+		 * INTERFACE_F_UP, because on some systems the latter
+		 * follows the media state and we could end up ignoring
+		 * the interface for an entire rescan interval due to
+		 * a temporary media glitch at rescan time.
+		 */
+		if (isc_netaddr_equal(&interface.address, &zero_address))
 			continue;
 
 		elt.type = dns_aclelementtype_ipprefix;
