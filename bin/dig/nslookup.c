@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.51 2000/09/21 23:10:15 gson Exp $ */
+/* $Id: nslookup.c,v 1.52 2000/09/21 23:10:58 gson Exp $ */
 
 #include <config.h>
 
@@ -690,7 +690,7 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "sil",3) == 0) {
 		deprecation_msg = ISC_FALSE;
 	} else {
-		printf ("*** Invalid option: %s\n", opt);	
+		printf("*** Invalid option: %s\n", opt);	
 	}
 }
 
