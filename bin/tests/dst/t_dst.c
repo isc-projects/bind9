@@ -116,6 +116,125 @@ use(dst_key_t *key, dst_result_t exp_result, int *nfails) {
 }
 
 static void
+dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
+   dst_result_t exp_result, int *nfails, int *nprobs)
+{
+	dst_key_t	*key1, *key2;
+	dst_result_t	ret;
+	int		rval;
+	char		current[PATH_MAX + 1];
+	char		tmp[PATH_MAX + 1];
+	char		*p;
+	int		alg = DST_ALG_DH;
+	int		type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE;
+	unsigned char	array1[1024], array2[1024];
+	isc_buffer_t	b1, b2;
+	isc_region_t	r1, r2;
+
+	exp_result = exp_result; /* unused */
+
+	p = getcwd(current, PATH_MAX);;
+	if (p == NULL) {
+		t_info("getcwd failed %d\n", errno);
+		++*nprobs;
+		return;
+	}
+
+	ret = dst_key_fromfile(name1, id1, alg, type, mctx, &key1);
+	if (ret != ISC_R_SUCCESS) {
+		t_info("dst_key_fromfile(%d) returned: %s\n",
+		       alg, dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+
+	ret = dst_key_fromfile(name2, id2, alg, type, mctx, &key2);
+	if (ret != ISC_R_SUCCESS) {
+		t_info("dst_key_fromfile(%d) returned: %s\n",
+		       alg, dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+
+	p = tmpnam(tmp);
+	if (p == NULL) {
+		t_info("tmpnam failed %d\n", errno);
+		++*nprobs;
+		return;
+	}
+
+	rval = mkdir(tmp, S_IRWXU | S_IRWXG );
+	if (rval != 0) {
+		t_info("mkdir failed %d\n", errno);
+		++*nprobs;
+		return;
+	}
+
+	if (chdir(tmp)) {
+		t_info("chdir failed %d\n", errno);
+		(void) rmdir(tmp);
+		++*nprobs;
+		return;
+	}
+
+	ret = dst_key_tofile(key1, type);
+	if (ret != 0) {
+		t_info("dst_key_tofile(%d) returned: %s\n",
+		       alg, dst_result_totext(ret));
+		(void) chdir(current);
+		++*nfails;
+		return;
+	}
+
+	ret = dst_key_tofile(key2, type);
+	if (ret != 0) {
+		t_info("dst_key_tofile(%d) returned: %s\n",
+		       alg, dst_result_totext(ret));
+		(void) chdir(current);
+		++*nfails;
+		return;
+	}
+
+	if (chdir(current)) {
+		t_info("chdir failed %d\n", errno);
+		++*nprobs;
+		return;
+	}
+
+	cleandir(tmp);
+
+	isc_buffer_init(&b1, array1, sizeof(array1), ISC_BUFFERTYPE_BINARY);
+	ret = dst_computesecret(key1, key2, &b1);
+	if (ret != 0) {
+		t_info("dst_computesecret() returned: %s\n",
+		       dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+
+	isc_buffer_init(&b2, array2, sizeof(array2), ISC_BUFFERTYPE_BINARY);
+	ret = dst_computesecret(key2, key1, &b2);
+	if (ret != 0) {
+		t_info("dst_computesecret() returned: %s\n",
+		       dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+
+	isc_buffer_used(&b1, &r1);
+	isc_buffer_used(&b2, &r2);
+	if (r1.length != r2.length || memcmp(r1.base, r2.base, r1.length) != 0)
+	{
+		t_info("computed secrets don't match\n");
+		++*nfails;
+		return;
+	}
+
+	dst_key_free(key1);
+	dst_key_free(key2);
+}
+
+static void
 io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_result,
 		int *nfails, int *nprobs) {
 	dst_key_t	*key;
@@ -168,7 +287,8 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_resu
 		return;
 	}
 
-	use(key, exp_result, nfails);
+	if (dst_key_alg(key) != DST_ALG_DH)
+		use(key, exp_result, nfails);
 
 	if (chdir(current)) {
 		t_info("chdir failed %d\n", errno);
@@ -182,18 +302,19 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_resu
 }
 
 static void
-generate(int alg, isc_mem_t *mctx, int *nfails) {
+generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 	dst_result_t ret;
 	dst_key_t *key;
 
-	ret = dst_key_generate("test.", alg, 512, 0, 0, 0, mctx, &key);
+	ret = dst_key_generate("test.", alg, size, 0, 0, 0, mctx, &key);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_generate(%d) returned: %s\n", alg, dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
 
-	use(key, ISC_R_SUCCESS, nfails);
+	if (alg != DST_ALG_DH)
+		use(key, ISC_R_SUCCESS, nfails);
 	dst_key_free(key);
 }
 
@@ -242,6 +363,7 @@ static char	*a1 =
 		"the dst module provides the capability to "
 		"generate, store and retrieve public and private keys, "
 		"sign and verify data using the RSA, DSA and MD5 algorithms, "
+		"compute Diffie-Hellman shared secrets, "
 		"and generate random number sequences.";
 static void
 t1() {
@@ -274,10 +396,14 @@ t1() {
 	io("test.", 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 
+	dh("dh.", 18088, "dh.", 48443, mctx, ISC_R_SUCCESS, &nfails, &nprobs);
+
 	t_info("testing use of generated keys\n");
-	generate(DST_ALG_RSA, mctx, &nfails);
-	generate(DST_ALG_DSA, mctx, &nfails);
-	generate(DST_ALG_HMACMD5, mctx, &nfails);
+	generate(DST_ALG_RSA, mctx, 512, &nfails);
+	generate(DST_ALG_DSA, mctx, 512, &nfails);
+	generate(DST_ALG_DH, mctx, 512, &nfails);
+	generate(DST_ALG_DH, mctx, 768, &nfails); /* this one uses a constant */
+	generate(DST_ALG_HMACMD5, mctx, 512, &nfails);
 
 	t_info("testing random number sequence generation\n");
 	get_random(&nfails);

@@ -82,6 +82,68 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
 }
 
 static void
+dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx) {
+	dst_key_t *key1, *key2;
+	dst_result_t ret;
+	isc_buffer_t b1, b2;
+	isc_region_t r1, r2;
+	unsigned char array1[1024], array2[1024];
+	int alg = DST_ALG_DH;
+	int type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE;
+
+	chdir(current);
+	ret = dst_key_fromfile(name1, id1, alg, type, mctx, &key1);
+	printf("read(%d) returned: %s\n", alg, dst_result_totext(ret));
+	if (ret != 0)
+		return;
+	ret = dst_key_fromfile(name2, id2, alg, type, mctx, &key2);
+	printf("read(%d) returned: %s\n", alg, dst_result_totext(ret));
+	if (ret != 0)
+		return;
+
+	chdir(tmp);
+	ret = dst_key_tofile(key1, type);
+	printf("write(%d) returned: %s\n", alg, dst_result_totext(ret));
+	if (ret != 0)
+		return;
+	ret = dst_key_tofile(key2, type);
+	printf("write(%d) returned: %s\n", alg, dst_result_totext(ret));
+	if (ret != 0)
+		return;
+
+	isc_buffer_init(&b1, array1, sizeof(array1), ISC_BUFFERTYPE_BINARY);
+	ret = dst_computesecret(key1, key2, &b1);
+	printf("computesecret() returned: %s\n", dst_result_totext(ret));
+	if (ret != 0)
+		return;
+
+	isc_buffer_init(&b2, array2, sizeof(array2), ISC_BUFFERTYPE_BINARY);
+	ret = dst_computesecret(key2, key1, &b2);
+	printf("computesecret() returned: %s\n", dst_result_totext(ret));
+	if (ret != 0)
+		return;
+
+	isc_buffer_used(&b1, &r1);
+	isc_buffer_used(&b2, &r2);
+
+	if (r1.length != r2.length || memcmp(r1.base, r2.base, r1.length) != 0)
+	{
+		int i;
+		printf("secrets don't match\n");
+		printf("secret 1: %d bytes\n", r1.length);
+		for (i = 0; i < (int) r1.length; i++)
+			printf("%02x ", r1.base[i]);
+		printf("\n");
+		printf("secret 2: %d bytes\n", r2.length);
+		for (i = 0; i < (int) r2.length; i++)
+			printf("%02x ", r2.base[i]);
+		printf("\n");
+	}
+	dst_key_free(key1);
+	dst_key_free(key2);
+}
+
+static void
 generate(int alg, isc_mem_t *mctx) {
 	dst_result_t ret;
 	dst_key_t *key;
@@ -89,7 +151,8 @@ generate(int alg, isc_mem_t *mctx) {
 	ret = dst_key_generate("test.", alg, 512, 0, 0, 0, mctx, &key);
 	printf("generate(%d) returned: %s\n", alg, dst_result_totext(ret));
 
-	use(key);
+	if (alg != DST_ALG_DH)
+		use(key);
 
 	dst_key_free(key);
 }
@@ -124,7 +187,10 @@ main() {
 	io("test.", 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 	io("test.", 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 
+	dh("dh.", 18088, "dh.", 48443, mctx);
+
 	generate(DST_ALG_RSA, mctx);
+	generate(DST_ALG_DH, mctx);
 	generate(DST_ALG_DSA, mctx);
 	generate(DST_ALG_HMACMD5, mctx);
 
