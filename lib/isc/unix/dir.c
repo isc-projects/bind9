@@ -15,12 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.10 2000/05/11 15:09:27 tale Exp $ */
+/* $Id: dir.c,v 1.11 2000/07/27 02:04:34 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <config.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
 
@@ -126,10 +130,6 @@ isc_dir_reset(isc_dir_t *dir) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * XXX Is there a better place for this?
- */
-
 isc_result_t
 isc_dir_chdir(const char *dirname) {
 	/*
@@ -142,4 +142,73 @@ isc_dir_chdir(const char *dirname) {
 		return (isc__errno2result(errno));
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_dir_createunique(char *templet) {
+	isc_result_t result;
+	char *x;
+	char *p;
+	int i;
+	int pid;
+
+	REQUIRE(templet != NULL);
+
+	/*
+	 * mkdtemp is not portable, so this emulates it.
+	 */
+
+	pid = getpid();
+
+	/*
+	 * Replace trailing Xs with the process-id, zero-filled.
+	 */
+	for (x = templet + strlen(templet) - 1; *x == 'X' && x >= templet;
+	     x--, pid /= 10)
+		*x = pid % 10 + '0';
+
+	x++;			/* Set x to start of ex-Xs. */
+
+	do {
+		i = mkdir(templet, 0700);
+		if (i == 0 || errno != EEXIST)
+			break;
+
+		/*
+		 * The BSD algorithm.
+		 */
+		p = x;
+		while (*p != '\0') {
+			if (isdigit(*p))
+				*p = 'a';
+			else if (*p != 'z')
+				++*p;
+			else {
+				/*
+				 * Reset character and move to next.
+				 */
+				*p++ = 'a';
+				continue;
+			}
+
+			break;
+		}
+
+		if (*p == '\0') {
+			/*
+			 * Tried all combinations.  errno should already
+			 * be EEXIST, but ensure it is anyway for
+			 * isc__errno2result().
+			 */
+			errno = EEXIST;
+			break;
+		}
+	} while (1);
+
+	if (i == -1)
+		result = isc__errno2result(errno);
+	else
+		result = ISC_R_SUCCESS;
+
+	return (result);
 }
