@@ -147,17 +147,17 @@ isc_net_haveipv6(void);
 
 #ifdef ISC_NET_NEEDNTOP
 const char *isc_net_ntop(int af, const void *src, char *dst, size_t size);
-#define inet_ntop isc_inet_ntop
+#define inet_ntop isc_net_ntop
 #endif
 
 #ifdef ISC_NET_NEEDPTON
 int isc_net_pton(int af, const char *src, void *dst);
-#define inet_pton isc_inet_pton
+#define inet_pton isc_net_pton
 #endif
 
 #ifdef ISC_NET_NEEDATON
-int isc_inet_aton(const char *cp, struct in_addr *addr);
-#define inet_aton isc_inet_aton
+int isc_net_aton(const char *cp, struct in_addr *addr);
+#define inet_aton isc_net_aton
 #endif
 
 #endif /* ISC_NET_H */
