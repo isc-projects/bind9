@@ -3,6 +3,10 @@
                         name. [RT #1831]
 			[needs more work]
 
+1073.   [bug]           The ADB cache cleaning should also be space driven.
+                        [RT #1915, #1938]
+			[ New function dns_adb_setadbsize() ]
+
 1110.   [bug]           dig should only accept valid abbreviations of +options.
                         [RT #2003]
 			[Potentially breaks scripts.  Leave to 9.3.0.]
