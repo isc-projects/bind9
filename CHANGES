@@ -1,4 +1,8 @@
 
+ 606.	[bug]		Compiling with --disable-threads failed due
+			to isc_thread_self() being incorrectly defined
+			as an integer rather than a function.
+
  605.	[func]		New function isc_lex_getlasttokentext().
 
  604.	[bug]		The named.conf parser could print incorrect line
