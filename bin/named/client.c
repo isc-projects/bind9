@@ -829,8 +829,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if ((devent->attributes & DNS_DISPATCHATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
 			client->pktinfo = devent->pktinfo;
-			printf("client: interface %u\n",
-			       client->pktinfo.ipi6_ifindex);
 		} else {
 			client->attributes &= ~NS_CLIENTATTR_PKTINFO;
 		}
