@@ -54,9 +54,9 @@
 
 #include <dst/dst.h>
 
+/*#define USE_ZONESTATUS*/
+
 #define BUFSIZE 2048
-#define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \
-			  == DNS_KEYOWNER_ZONE)
 
 typedef struct signer_key_struct signer_key_t;
 typedef struct signer_array_struct signer_array_t;
@@ -76,7 +76,7 @@ static ISC_LIST(signer_key_t) keylist;
 static isc_stdtime_t starttime = 0, endtime = 0, now;
 static int cycle = -1;
 static int verbose;
-static int tryverify = 0;
+static isc_boolean_t tryverify = ISC_FALSE;
 
 static isc_mem_t *mctx = NULL;
 
@@ -172,13 +172,13 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 				 mctx, b, rdata);
 	check_result(result, "dns_dnssec_sign()");
 
-	if (tryverify != 0) {
+	if (tryverify) {
 		result = dns_dnssec_verify(name, rdataset, key,
 					   ISC_TRUE, mctx, rdata);
-			if (result == ISC_R_SUCCESS)
-				vbprintf(3, "\tsignature verified\n");
-			else
-				vbprintf(3, "\tsignature failed to verify\n");
+		if (result == ISC_R_SUCCESS)
+			vbprintf(3, "\tsignature verified\n");
+		else
+			vbprintf(3, "\tsignature failed to verify\n");
 	}
 }
 
@@ -525,6 +525,8 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			result = ISC_R_SUCCESS;
 		check_result(result, "dns_db_deleterdataset");
 #endif
+		fatal("File is currently signed but no private keys were "
+		      "found.  This won't work.");
 	}
 
 	trdata = ISC_LIST_HEAD(siglist.rdata);
@@ -542,37 +544,195 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	}
 }
 
+#ifndef USE_ZONESTATUS
 /* Determine if a KEY set contains a null key */
 static isc_boolean_t
-hasnullkey(dns_rdataset_t rdataset) {
+hasnullkey(dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_rdata_t rdata;
-	isc_uint32_t flags;
+	isc_boolean_t found = ISC_FALSE;
 
-	result = dns_rdataset_first(&rdataset);
+	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
 		dst_key_t *key = NULL;
 
-		dns_rdataset_current(&rdataset, &rdata);
+		dns_rdataset_current(rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(dns_rootname,
 						 &rdata, mctx, &key);
 		check_result(result, "dns_dnssec_keyfromrdata()");
-		flags = dst_key_flags(key);
-		dst_key_free(key);
-		if (((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) &&
-		    ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE))
+		if (dst_key_isnullkey(key))
+			found = ISC_TRUE;
+                dst_key_free(key);
+		if (found == ISC_TRUE)
 			return (ISC_TRUE);
-		result = dns_rdataset_next(&rdataset);
+                result = dns_rdataset_next(rdataset);
+        }
+        if (result != ISC_R_NOMORE)
+                check_result(result, "iteration over keys");
+        return (ISC_FALSE);
+}
+#endif
+
+/*
+ * Looks for signatures of the zone keys by the parent, and imports them
+ * if found.
+ */
+static void
+importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
+		dns_name_t *name, dns_rdataset_t *set)
+{
+	unsigned char filename[256];
+	isc_buffer_t b;
+	isc_region_t r;
+	dns_db_t *newdb = NULL;
+	dns_dbnode_t *newnode = NULL;
+	dns_rdataset_t newset, sigset;
+	dns_rdata_t rdata, newrdata;
+	isc_result_t result;
+
+	isc_buffer_init(&b, filename, sizeof(filename) - 10);
+	result = dns_name_totext(name, ISC_FALSE, &b);
+	check_result(result, "dns_name_totext()");
+	isc_buffer_usedregion(&b, &r);
+	strcpy((char *)r.base + r.length, "signedkey");
+	result = dns_db_create(mctx, "rbt", name, ISC_FALSE, dns_db_class(db),
+			       0, NULL, &newdb);
+	check_result(result, "dns_db_create()");
+	result = dns_db_load(newdb, filename);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+	result = dns_db_findnode(newdb, name, ISC_FALSE, &newnode);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+	dns_rdataset_init(&newset);
+	dns_rdataset_init(&sigset);
+	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key, 0,
+				     0, &newset, &sigset);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	if (dns_rdataset_count(set) != dns_rdataset_count(&newset))
+		goto failure;
+
+	dns_rdata_init(&rdata);
+	dns_rdata_init(&newrdata);
+
+	result = dns_rdataset_first(set);
+	check_result(result, "dns_rdata_first()");
+	for (; result == ISC_R_SUCCESS; result = dns_rdataset_next(set)) {
+		dns_rdataset_current(set, &rdata);
+		result = dns_rdataset_first(&newset);
+		check_result(result, "dns_rdata_first()");
+		for (;
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&newset))
+		{
+			dns_rdataset_current(&newset, &newrdata);
+			if (dns_rdata_compare(&rdata, &newrdata) == 0)
+				break;
+		}
+		if (result != ISC_R_SUCCESS)
+			break;
 	}
-	if (result != ISC_R_NOMORE)
-		check_result(result, "iteration over keys");
-	return (ISC_FALSE);
+	if (result != ISC_R_NOMORE) 
+		goto failure;
+
+	vbprintf(2, "found the parent's signature of our zone key\n");
+
+	result = dns_db_addrdataset(db, node, version, 0, &sigset, 0, NULL);
+	check_result(result, "dns_db_addrdataset");
+	dns_rdataset_disassociate(&newset);
+	dns_rdataset_disassociate(&sigset);
+
+ failure:
+	if (newnode != NULL)
+		dns_db_detachnode(newdb, &newnode);
+	if (newdb != NULL)
+		dns_db_detach(&newdb);
+}
+
+/*
+ * Looks for our signatures of child keys.  If present, inform the caller,
+ * who will set the zone status (KEY) bit in the NXT record.
+ */
+static isc_boolean_t
+haschildkey(dns_db_t *db, dns_name_t *name) {
+	unsigned char filename[256];
+	isc_buffer_t b;
+	isc_region_t r;
+	dns_db_t *newdb = NULL;
+	dns_dbnode_t *newnode = NULL;
+	dns_rdataset_t set, sigset;
+	dns_rdata_t sigrdata;
+	isc_result_t result;
+	isc_boolean_t found = ISC_FALSE;
+	dns_rdata_sig_t sig;
+	signer_key_t *key;
+
+	isc_buffer_init(&b, filename, sizeof(filename) - 10);
+	result = dns_name_totext(name, ISC_FALSE, &b);
+	check_result(result, "dns_name_totext()");
+	isc_buffer_usedregion(&b, &r);
+	strcpy((char *)r.base + r.length, "signedkey");
+	result = dns_db_create(mctx, "rbt", name, ISC_FALSE, dns_db_class(db),
+			       0, NULL, &newdb);
+	check_result(result, "dns_db_create()");
+	result = dns_db_load(newdb, filename);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+	result = dns_db_findnode(newdb, name, ISC_FALSE, &newnode);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+	dns_rdataset_init(&set);
+	dns_rdataset_init(&sigset);
+	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key, 0,
+				     0, &set, &sigset);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	if (!dns_rdataset_isassociated(&set) ||
+	    !dns_rdataset_isassociated(&sigset))
+		goto disfail;
+
+	result = dns_rdataset_first(&sigset);
+	check_result(result, "dns_rdataset_first()");
+	dns_rdata_init(&sigrdata);
+	for (; result == ISC_R_SUCCESS; result = dns_rdataset_next(&sigset)) {
+		dns_rdataset_current(&sigset, &sigrdata);
+		result = dns_rdata_tostruct(&sigrdata, &sig, mctx);
+		if (result != ISC_R_SUCCESS)
+			goto disfail;
+		key = keythatsigned(&sig);
+		dns_rdata_freestruct(&sig);
+		if (key == NULL)
+			goto disfail;
+		result = dns_dnssec_verify(name, &set, key->key,
+					   ISC_FALSE, mctx, &sigrdata);
+		if (result == ISC_R_SUCCESS) {
+			found = ISC_TRUE;
+			break;
+		}
+	}
+
+ disfail:
+	if (dns_rdataset_isassociated(&set))
+		dns_rdataset_disassociate(&set);
+	if (dns_rdataset_isassociated(&sigset))
+		dns_rdataset_disassociate(&sigset);
+
+ failure:
+	if (newnode != NULL)
+		dns_db_detachnode(newdb, &newnode);
+	if (newdb != NULL)
+		dns_db_detach(&newdb);
+
+	return (found);
 }
 
 /*
  * Signs all records at a name.  This mostly just signs each set individually,
- * but also handles exceptional cases and adds the SIG bit to any NXTs
- * generated earlier.
+ * but also adds the SIG bit to any NXTs generated earlier, deals with
+ * parent/child KEY signatures, and handles other exceptional cases.
  */
 static void
 signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
@@ -580,9 +740,10 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 {
 	isc_result_t result;
 	dns_rdata_t rdata;
-	dns_rdataset_t rdataset, nsset;
+	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t isdelegation = ISC_FALSE;
+	isc_boolean_t childkey = ISC_FALSE;
 	static int warnwild = 0;
 
 	if (dns_name_iswildcard(name)) {
@@ -593,6 +754,8 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				"wildcards in secure zones\n");
 	}
 	if (!atorigin) {
+		dns_rdataset_t nsset;
+
 		dns_rdataset_init(&nsset);
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_ns, 0, 0, &nsset,
@@ -615,37 +778,50 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		if (rdataset.type == dns_rdatatype_sig)
 			goto skip;
 
-		/* If this is a KEY set at the apex, skip it. */
-		if (rdataset.type == dns_rdatatype_key && atorigin)
+		/*
+		 * If this is a KEY set at the apex, look for a signedkey file.
+		 */
+		if (rdataset.type == dns_rdatatype_key && atorigin) {
+			importparentsig(db, version, node, name, &rdataset);
 			goto skip;
+		}
 
 		/*
 		 * If this name is a delegation point, skip all records
-		 * except a KEY set containing a NULL key or an NXT set.
+		 * except an NXT set, unless we're using null keys, in
+		 * which case we need to check for a null key and add one
+		 * if it's not present.
 		 */
 		if (isdelegation) {
 			switch (rdataset.type) {
-				case dns_rdatatype_nxt:
+			case dns_rdatatype_nxt:
+				childkey = haschildkey(db, name);
+				break;
+#ifndef USE_ZONESTATUS
+			case dns_rdatatype_key:
+				if (hasnullkey(&rdataset))
 					break;
-				case dns_rdatatype_key:
-					if (hasnullkey(rdataset))
-						break;
-					goto skip;
-				default:
-					goto skip;
+				goto skip;
+#endif
+			default:
+				goto skip;
 			}
+
 		}
 
 		/*
 		 * There probably should be a dns_nxtsetbit, but it can get
 		 * complicated if we need to extend the length of the
 		 * bit set.  In this case, since the NXT bit is set and
-		 * SIG < NXT, the easy way works.
+		 * SIG < NXT and KEY < NXT, the easy way works.
 		 */
 		if (rdataset.type == dns_rdatatype_nxt) {
 			unsigned char *nxt_bits;
 			dns_name_t nxtname;
 			isc_region_t r, r2;
+			unsigned char keydata[4];
+			dst_key_t *dstkey;
+			isc_buffer_t b;
 
 			result = dns_rdataset_first(&rdataset);
 			check_result(result, "dns_rdataset_first()");
@@ -656,6 +832,77 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			dns_name_toregion(&nxtname, &r2);
 			nxt_bits = r.base + r2.length;
 			set_bit(nxt_bits, dns_rdatatype_sig, 1);
+#ifdef USE_ZONESTATUS
+			if (isdelegation && childkey) {
+				set_bit(nxt_bits, dns_rdatatype_key, 1);
+				vbprintf(2, "found a child key for %s, "
+					 "setting KEY bit in NXT\n",
+					 nametostr(name));
+			}
+
+#else
+			if (isdelegation && !childkey) {
+				dns_rdataset_t keyset;
+				dns_rdatalist_t keyrdatalist;
+				dns_rdata_t keyrdata;
+
+				dns_rdataset_init(&keyset);
+				result = dns_db_findrdataset(db, node, version,
+							     dns_rdatatype_key,
+							     0, 0, &keyset,
+							     NULL);
+				if (result == ISC_R_SUCCESS &&
+				    hasnullkey(&keyset))
+					goto alreadyhavenullkey;
+
+				if (result == ISC_R_NOTFOUND)
+					result = ISC_R_SUCCESS;
+				check_result(result, "dns_db_findrdataset");
+
+				if (dns_rdataset_isassociated(&keyset))
+					dns_rdataset_disassociate(&keyset);
+
+				vbprintf(2, "no child key for %s, "
+					 "adding null key\n",
+					 nametostr(name));
+				dns_rdatalist_init(&keyrdatalist);
+				dstkey = NULL;
+				
+				result = dst_key_generate("", DNS_KEYALG_DSA,
+							  0, 0,
+							  DNS_KEYTYPE_NOKEY,
+							  DNS_KEYPROTO_DNSSEC,
+							  mctx, &dstkey);
+				check_result(result, "dst_key_generate");
+				isc_buffer_init(&b, keydata, sizeof keydata);
+				result = dst_key_todns(dstkey, &b);
+				dst_key_free(dstkey);
+				isc_buffer_usedregion(&b, &r);
+				dns_rdata_fromregion(&keyrdata,
+						     rdataset.rdclass,
+						     dns_rdatatype_key, &r);
+				
+				ISC_LIST_APPEND(keyrdatalist.rdata, &keyrdata,
+						link);
+				keyrdatalist.rdclass = rdataset.rdclass;
+				keyrdatalist.type = dns_rdatatype_key;
+				keyrdatalist.covers = 0;
+				keyrdatalist.ttl = rdataset.ttl;
+				result = dns_rdatalist_tordataset(&keyrdatalist,
+								  &keyset);
+				check_result(result,
+					     "dns_rdatalist_tordataset");
+				dns_db_addrdataset(db, node, version, 0,
+						   &keyset, DNS_DBADD_MERGE,
+						   NULL);
+				set_bit(nxt_bits, dns_rdatatype_key, 1);
+				signset(db, version, node, name, &keyset);
+
+				dns_rdataset_disassociate(&keyset);
+
+ alreadyhavenullkey:
+			}
+#endif
 		}
 
 		signset(db, version, node, name, &rdataset);
@@ -1097,7 +1344,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'a':
-			tryverify = 1;
+			tryverify = ISC_TRUE;
 			break;
 
 		case 'h':
