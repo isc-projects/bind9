@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.7 1999/09/15 23:49:29 explorer Exp $ */
+ /* $Id: xfrin.c,v 1.8 1999/09/27 08:09:20 gson Exp $ */
 
 #include <config.h>
 
@@ -215,12 +215,6 @@ static isc_boolean_t maybe_free(xfrin_ctx_t *xfr);
 static void xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg);
 static dns_result_t render(dns_message_t *msg, isc_buffer_t *buf);
 
-static dns_result_t
-diff_databases(isc_mem_t *mctx,
-	       dns_db_t *dba, dns_dbversion_t *dbvera,
-	       dns_db_t *dbb, dns_dbversion_t *dbverb,
-	       char *journal_filename);
-
 /**************************************************************************/
 /*
  * AXFR handling
@@ -311,10 +305,10 @@ install_new_db(xfrin_ctx_t *xfr)
 	 */
 	if (xfr->olddb != NULL && 1) {
 		printf("generating diffs\n");
-		CHECK(diff_databases(xfr->mctx,
-				     xfr->db, ver,
-				     xfr->olddb, NULL /* XXX */,
-				     "journal"));
+		CHECK(dns_db_diff(xfr->mctx,
+				  xfr->db, ver,
+				  xfr->olddb, NULL /* XXX */,
+				  "journal"));
 	} else {
 		printf("dumping new version\n");
 		/* XXX should use temporary file and rename */
@@ -1079,259 +1073,4 @@ maybe_free(xfrin_ctx_t *xfr) {
 
 	printf("xfrin_shutdown done\n");
 	return (ISC_TRUE);
-}
-
-/**************************************************************************/
-/*
- * Generating diffs from databases
- */
-
-/*
- * Construct a diff containing all the RRs at the current name of the
- * database iterator 'dbit' in database 'db', version 'ver'.
- * Set '*name' to the current name, and append the diff to 'diff'.
- * All new tuples will have the operation 'op'.
- *
- * Requires: 'name' must have buffer large enough to hold the name.
- * Typically, a dns_fixedname_t would be used.
- */
-static dns_result_t
-get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
-	      dns_dbiterator_t *dbit, dns_name_t *name, dns_diffop_t op,
-	      dns_diff_t *diff)
-{
-	dns_result_t result;
-	dns_dbnode_t *node = NULL;
-	dns_rdatasetiter_t *rdsiter = NULL;
-	dns_difftuple_t *tuple = NULL;
-
-	result = dns_dbiterator_current(dbit, &node, name);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	
-	result = dns_db_allrdatasets(db, node, ver, now, &rdsiter);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup_node;
-
-	for (result = dns_rdatasetiter_first(rdsiter);
-	     result == DNS_R_SUCCESS;
-	     result = dns_rdatasetiter_next(rdsiter))
-	{
-		dns_rdataset_t rdataset;
-
-		dns_rdataset_init(&rdataset);
-		dns_rdatasetiter_current(rdsiter, &rdataset);
-
-		for (result = dns_rdataset_first(&rdataset);
-		     result == DNS_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset))
-		{
-			dns_rdata_t rdata;
-			dns_rdataset_current(&rdataset, &rdata);
-			result = dns_difftuple_create(diff->mctx, op, name,
-						      rdataset.ttl, &rdata,
-						      &tuple);
-			if (result != DNS_R_SUCCESS) {
-				dns_rdataset_disassociate(&rdataset);
-				goto cleanup_iterator;
-			}
-			dns_diff_append(diff, &tuple);
-		}
-		dns_rdataset_disassociate(&rdataset);
-		if (result != DNS_R_NOMORE)
-			goto cleanup_iterator;
-	}
-	if (result != DNS_R_NOMORE)
-		goto cleanup_iterator;
-	
-	result = DNS_R_SUCCESS;
-
- cleanup_iterator:
-	dns_rdatasetiter_destroy(&rdsiter);
-
- cleanup_node:
-	dns_db_detachnode(db, &node);
-
-	return (result);
-}
-
-/*
- * Comparison function for use by dns_diff_subtract when sorting
- * the diffs to be subtracted.  The sort keys are the rdata type
- * and the rdata itself.  The owner name is ignored, because
- * it is known to be the same for all tuples.
- */
-static int
-rdata_order(const void *av, const void *bv)
-{
-	dns_difftuple_t * const *ap = av;
-	dns_difftuple_t * const *bp = bv;
-	dns_difftuple_t *a = *ap;
-	dns_difftuple_t *b = *bp;
-	int r;
-	r = (b->rdata.type - a->rdata.type);
-	if (r != 0)
-		return (r);
-	r = dns_rdata_compare(&a->rdata, &b->rdata);
-	return (r);
-}
-
-static dns_result_t
-dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r)
-{
-	dns_result_t result;
-	dns_difftuple_t *p[2];
-	int i, t;
-	CHECK(dns_diff_sort(&diff[0], rdata_order));
-	CHECK(dns_diff_sort(&diff[1], rdata_order));
-
-	for (;;) {
-		p[0] = ISC_LIST_HEAD(diff[0].tuples);
-		p[1] = ISC_LIST_HEAD(diff[1].tuples);
-		if (p[0] == NULL && p[1] == NULL)
-			break;
-		
-		for (i = 0; i < 2; i++)
-			if (p[!i] == NULL) {
-				ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
-				ISC_LIST_APPEND(r->tuples, p[i], link);
-				goto next;
-			}
-		t = rdata_order(&p[0], &p[1]);
-		if (t < 0) {
-			ISC_LIST_UNLINK(diff[0].tuples, p[0], link);
-			ISC_LIST_APPEND(r->tuples, p[0], link);
-			goto next;
-		}
-		if (t > 0) {
-			ISC_LIST_UNLINK(diff[1].tuples, p[1], link);
-			ISC_LIST_APPEND(r->tuples, p[1], link);
-			goto next;
-		}
-		INSIST(t == 0);
-		/* Identical RRs in both databases; skip them both. */
-		for (i = 0; i < 2; i++) {
-			ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
-			dns_difftuple_free(&p[i]);
-		}
-	next: ;
-	}
-	result = ISC_R_SUCCESS;
- failure:
-	return (result);
-}
-
-/*
- * Compare the databases 'dba' and 'dbb' and generate a journal
- * entry containing the changes to make 'dba' from 'dbb' (note
- * the order).  This journal entry will consist of a single,
- * possibly very large transaction.
- */
-
-static dns_result_t
-diff_databases(isc_mem_t *mctx,
-	       dns_db_t *dba, dns_dbversion_t *dbvera,
-	       dns_db_t *dbb, dns_dbversion_t *dbverb,
-	       char *journal_filename)
-{
-	dns_db_t *db[2];
-	dns_dbversion_t *ver[2];
-	dns_dbiterator_t *dbit[2] = { NULL, NULL };
-	isc_boolean_t have[2] = { ISC_FALSE, ISC_FALSE };
-	dns_fixedname_t fixname[2];
-	dns_result_t result, itresult[2];
-	dns_diff_t diff[2], resultdiff;
-	int i, t;
-	dns_journal_t *journal = NULL;
-
-	db[0] = dba, db[1] = dbb;
-	ver[0] = dbvera, ver[1] = dbverb;
-	
-	dns_diff_init(mctx, &diff[0]);
-	dns_diff_init(mctx, &diff[1]);
-	dns_diff_init(mctx, &resultdiff);
-	
-	dns_fixedname_init(&fixname[0]);
-	dns_fixedname_init(&fixname[1]);
-
-	CHECK(dns_journal_open(mctx, journal_filename, ISC_TRUE, &journal));
-
-	CHECK(dns_db_createiterator(db[0], ISC_FALSE, &dbit[0]));
-	CHECK(dns_db_createiterator(db[1], ISC_FALSE, &dbit[1]));
-
-	itresult[0] = dns_dbiterator_first(dbit[0]);
-	itresult[1] = dns_dbiterator_first(dbit[1]);
-
-	for (;;) {
-		for (i = 0; i < 2; i++) {
-			if (! have[i] && itresult[i] == DNS_R_SUCCESS) {
-				CHECK(get_name_diff(db[i], ver[i], 0, dbit[i],
-					    dns_fixedname_name(&fixname[i]),
-					    i == 0 ?
-					    DNS_DIFFOP_ADD :
-					    DNS_DIFFOP_DEL,
-					    &diff[i]));
-				itresult[i] = dns_dbiterator_next(dbit[i]);
-				have[i] = ISC_TRUE;
-			}
-		}
-		
-		if (! have[0] && ! have[1]) {
-			INSIST(ISC_LIST_EMPTY(diff[0].tuples));
-			INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-			break;
-		}
-
-		for (i = 0; i < 2; i++) {
-			if (! have[!i]) {
-				ISC_LIST_APPENDLIST(resultdiff.tuples,
-						    diff[i].tuples, link);
-				INSIST(ISC_LIST_EMPTY(diff[i].tuples));
-				have[i] = ISC_FALSE;
-				goto next;
-			}
-		}
-		
-		t = dns_name_compare(dns_fixedname_name(&fixname[0]),
-				     dns_fixedname_name(&fixname[1]));
-		if (t < 0) {
-			ISC_LIST_APPENDLIST(resultdiff.tuples,
-					    diff[0].tuples, link);
-			INSIST(ISC_LIST_EMPTY(diff[0].tuples));
-			have[0] = ISC_FALSE;
-			continue;
-		}
-		if (t > 0) {
-			ISC_LIST_APPENDLIST(resultdiff.tuples,
-					    diff[1].tuples, link);
-			INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-			have[1] = ISC_FALSE;
-			continue;
-		}
-		INSIST(t == 0);
-		CHECK(dns_diff_subtract(diff, &resultdiff));
-		INSIST(ISC_LIST_EMPTY(diff[0].tuples));
-		INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-		have[0] = have[1] = ISC_FALSE;
-	next: ;
-	}
-	if (itresult[0] != DNS_R_NOMORE)
-		FAIL(itresult[0]);
-	if (itresult[1] != DNS_R_NOMORE)
-		FAIL(itresult[1]);
-
-	if (ISC_LIST_EMPTY(resultdiff.tuples)) {
-		printf("no changes\n");
-	} else {
-		CHECK(dns_journal_write_transaction(journal, &resultdiff));
-	}
-	INSIST(ISC_LIST_EMPTY(diff[0].tuples));
-	INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-	dns_diff_clear(&resultdiff);
-	
- failure:
-	dns_dbiterator_destroy(&dbit[0]);
-	dns_dbiterator_destroy(&dbit[1]);
-	dns_journal_destroy(&journal);
-	return (result);
 }
