@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.36 2004/11/22 23:53:11 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.37 2005/02/03 05:13:28 marka Exp $ */
 
 #include <config.h>
 
@@ -2671,6 +2671,7 @@ zone_notify(dns_zone_t *zone) {
 	dns_notifytype_t notifytype;
 	unsigned int flags = 0;
 	isc_boolean_t loggednotify = ISC_FALSE;
+	dns_db_t *db = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2685,6 +2686,13 @@ zone_notify(dns_zone_t *zone) {
 	if (notifytype == dns_notifytype_no)
 		return;
 
+	LOCK_ZONE(zone);
+	if (zone->db != NULL)
+		dns_db_attach(zone->db, &db);
+	UNLOCK_ZONE(zone);
+	if (db == NULL)
+		return;
+
 	origin = &zone->origin;
 
 	/*
@@ -2697,14 +2705,13 @@ zone_notify(dns_zone_t *zone) {
 	/*
 	 * Get SOA RRset.
 	 */
-	dns_db_currentversion(zone->db, &version);
-	result = dns_db_findnode(zone->db, origin, ISC_FALSE, &node);
+	dns_db_currentversion(db, &version);
+	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup1;
 
 	dns_rdataset_init(&soardset);
-	result = dns_db_findrdataset(zone->db, node, version,
-				     dns_rdatatype_soa,
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_soa,
 				     dns_rdatatype_none, 0, &soardset, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup2;
@@ -2761,8 +2768,7 @@ zone_notify(dns_zone_t *zone) {
 	 */
 
 	dns_rdataset_init(&nsrdset);
-	result = dns_db_findrdataset(zone->db, node, version,
-				     dns_rdatatype_ns,
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_ns,
 				     dns_rdatatype_none, 0, &nsrdset, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup3;
@@ -2820,9 +2826,10 @@ zone_notify(dns_zone_t *zone) {
 	if (dns_name_dynamic(&master))
 		dns_name_free(&master, zone->mctx);
  cleanup2:
-	dns_db_detachnode(zone->db, &node);
+	dns_db_detachnode(db, &node);
  cleanup1:
-	dns_db_closeversion(zone->db, &version, ISC_FALSE);
+	dns_db_closeversion(db, &version, ISC_FALSE);
+	dns_db_detach(&db);
 }
 
 /***

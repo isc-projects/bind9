@@ -1,3 +1,5 @@
+1808.	[bug]		zone.c:notify_zone() contained a race condition,
+			zone->db could change underneath it.  [RT #13511]
 
 	--- 9.2.5beta2 released ---
 
