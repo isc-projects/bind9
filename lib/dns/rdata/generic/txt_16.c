@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.19 2000/02/03 23:43:08 halley Exp $ */
+/* $Id: txt_16.c,v 1.20 2000/03/16 23:40:50 bwelling Exp $ */
+
+/* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
 #ifndef RDATA_GENERIC_TXT_16_C
 #define RDATA_GENERIC_TXT_16_C
@@ -27,20 +29,20 @@ fromtext_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_token_t token;
 
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
+
 	REQUIRE(type == 16);
 
-	rdclass = rdclass;		/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
-
-	do {
+	for(;;) {
 		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
 				ISC_TRUE));
 		if (token.type != isc_tokentype_qstring &&
 		    token.type != isc_tokentype_string)
 			break;
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
-	} while (1);
+	}
 	/* Let upper layer handle eol/eof. */
 	isc_lex_ungettoken(lexer, &token);
 	return (DNS_R_SUCCESS);
@@ -52,15 +54,15 @@ totext_txt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 16);
+	UNUSED(tctx);
 
-	tctx = tctx;	/*unused*/
+	REQUIRE(rdata->type == 16);
 
 	dns_rdata_toregion(rdata, &region);
 
-	while (region.length) {
+	while (region.length > 0) {
 		RETERR(txt_totext(&region, target));
-		if (region.length)
+		if (region.length > 0)
 			RETERR(str_totext(" ", target));
 	}
 
@@ -74,11 +76,11 @@ fromwire_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_result_t result;
 
-	REQUIRE(type == 16);
+	UNUSED(dctx);
+	UNUSED(rdclass);
+	UNUSED(downcase);
 
-	dctx = dctx;		/*unused*/
-	rdclass = rdclass;		/*unused*/
-	downcase = downcase;	/*unused*/
+	REQUIRE(type == 16);
 
 	while (!buffer_empty(source)) {
 		result = txt_fromwire(source, target);
@@ -94,7 +96,7 @@ towire_txt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 16);
 
-	cctx = cctx;	/*unused*/
+	UNUSED(cctx);
 
 	isc_buffer_available(target, &region);
 	if (region.length < rdata->length)
@@ -123,24 +125,21 @@ static inline isc_result_t
 fromstruct_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 16);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
 tostruct_txt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 16);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -155,10 +154,10 @@ static inline isc_result_t
 additionaldata_txt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
-	REQUIRE(rdata->type == 16);
+	UNUSED(add);
+	UNUSED(arg);
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 16);
 
 	return (DNS_R_SUCCESS);
 }
