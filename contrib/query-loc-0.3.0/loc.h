@@ -1,4 +1,4 @@
-/* $Id: loc.h,v 1.1 2005/04/01 05:35:00 marka Exp $ */
+/* $Id: loc.h,v 1.1.2.1 2005/04/01 06:14:00 marka Exp $ */
 
 #define VERSION "0.3.0"
 
