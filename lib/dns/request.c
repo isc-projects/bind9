@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: request.c,v 1.27 2000/07/21 20:33:13 bwelling Exp $ */
+/* $Id: request.c,v 1.28 2000/07/21 22:22:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -748,8 +748,7 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (request->tsigkey != NULL)
-		result = dns_tsig_verify(request->answer, message,
-					 NULL, request->tsigkey->ring);
+		result = dns_tsig_verify(request->answer, message, NULL, NULL);
 	return (result);
 }
 
