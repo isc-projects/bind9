@@ -2,7 +2,7 @@ Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.59 2004/03/13 04:08:07 sra Exp $
+$Id: release,v 1.60 2004/03/18 02:57:55 marka Exp $
 
 Preparing a bind9 release
 
@@ -136,7 +136,7 @@ release.
    $ CFLAGS=-I/usr/local/include ./configure  '--with-iconv=-L/usr/local/lib -liconv'
 
    [ Sample on freebsd -- formerly used giconv, now uses iconv ]
-	./configure --with-iconv-include=/usr/local/include \
+   ./configure --with-iconv-include=/usr/local/include \
               '--with-iconv=-L/usr/local/lib -liconv'
 
    $ make

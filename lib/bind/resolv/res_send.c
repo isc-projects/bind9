@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.8 2004/03/09 06:30:18 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.9 2004/03/18 02:58:02 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -352,8 +352,8 @@ res_nsend(res_state statp,
 	 * Some resolvers want to even out the load on their nameservers.
 	 * Note that RES_BLAST overrides RES_ROTATE.
 	 */
-	if ((statp->options & RES_ROTATE) != 0 &&
-	    (statp->options & RES_BLAST) == 0) {
+	if ((statp->options & RES_ROTATE) != 0U &&
+	    (statp->options & RES_BLAST) == 0U) {
 		union res_sockaddr_union inu;
 		struct sockaddr_in ina;
 		int lastns = statp->nscount - 1;
@@ -467,8 +467,8 @@ res_nsend(res_state statp,
 		 * or if we haven't been asked to keep a socket open,
 		 * close the socket.
 		 */
-		if ((v_circuit && (statp->options & RES_USEVC) == 0) ||
-		    (statp->options & RES_STAYOPEN) == 0) {
+		if ((v_circuit && (statp->options & RES_USEVC) == 0U) ||
+		    (statp->options & RES_STAYOPEN) == 0U) {
 			res_nclose(statp);
 		}
 		if (statp->rhook) {
@@ -902,7 +902,7 @@ send_dg(res_state statp,
 		goto wait;
 	}
 #ifdef RES_USE_EDNS0
-	if (anhp->rcode == FORMERR && (statp->options & RES_USE_EDNS0) != 0) {
+	if (anhp->rcode == FORMERR && (statp->options & RES_USE_EDNS0) != 0U) {
 		/*
 		 * Do not retry if the server do not understand EDNS0.
 		 * The case has to be captured here, as FORMERR packet do not
@@ -970,7 +970,7 @@ Aerror(const res_state statp, FILE *file, const char *string, int error,
 
 	alen = alen;
 
-	if ((statp->options & RES_DEBUG) != 0) {
+	if ((statp->options & RES_DEBUG) != 0U) {
 		if (getnameinfo(address, alen, hbuf, sizeof(hbuf),
 		    sbuf, sizeof(sbuf), niflags)) {
 			strncpy(hbuf, "?", sizeof(hbuf) - 1);
@@ -988,7 +988,7 @@ static void
 Perror(const res_state statp, FILE *file, const char *string, int error) {
 	int save = errno;
 
-	if ((statp->options & RES_DEBUG) != 0)
+	if ((statp->options & RES_DEBUG) != 0U)
 		fprintf(file, "res_send: %s: %s\n",
 			string, strerror(error));
 	errno = save;

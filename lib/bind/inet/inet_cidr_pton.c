@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_cidr_pton.c,v 1.4 2004/03/09 06:29:57 marka Exp $";
+static const char rcsid[] = "$Id: inet_cidr_pton.c,v 1.5 2004/03/18 02:57:57 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -98,7 +98,7 @@ inet_cidr_pton_ipv4(const char *src, u_char *dst, int *pbits, int ipv6) {
 			if (tmp > 255)
 				goto enoent;
 		} while ((ch = *src++) != '\0' && isascii(ch) && isdigit(ch));
-		if (size-- == 0)
+		if (size-- == 0U)
 			goto emsgsize;
 		*dst++ = (u_char) tmp;
 		if (ch == '\0' || ch == '/')
@@ -133,7 +133,7 @@ inet_cidr_pton_ipv4(const char *src, u_char *dst, int *pbits, int ipv6) {
 		goto enoent;
 
 	/* Extend address to four octets. */
-	while (size-- > 0)
+	while (size-- > 0U)
 		*dst++ = 0;
 
 	*pbits = bits;

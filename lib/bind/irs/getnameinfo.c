@@ -132,7 +132,7 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 	port = ((const struct sockinet *)sa)->si_port; /* network byte order */
 	addr = (const char *)sa + afd->a_off;
 
-	if (serv == NULL || servlen == 0) {
+	if (serv == NULL || servlen == 0U) {
 		/*
 		 * rfc2553bis says that serv == NULL or servlen == 0 means that
 		 * the caller does not want the result.
@@ -177,7 +177,7 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 		}
 		break;
 	}
-	if (host == NULL || hostlen == 0) {
+	if (host == NULL || hostlen == 0U) {
 		/*
 		 * rfc2553bis says that host == NULL or hostlen == 0 means that
 		 * the caller does not want the result.
@@ -283,7 +283,7 @@ ip6_sa2str(const struct sockaddr_in6 *sa6, char *buf,
 #ifdef NI_NUMERICSCOPE
 	if (flags & NI_NUMERICSCOPE) {
 		sprintf(tmp, "%u", sa6->sin6_scope_id);
-		if (bufsiz != 0) {
+		if (bufsiz != 0U) {
 			strncpy(buf, tmp, bufsiz - 1);
 			buf[bufsiz - 1] = '\0';
 		}
@@ -313,7 +313,7 @@ ip6_sa2str(const struct sockaddr_in6 *sa6, char *buf,
 
 	/* last resort */
 	sprintf(tmp, "%u", sa6->sin6_scope_id);
-	if (bufsiz != 0) {
+	if (bufsiz != 0U) {
 		strncpy(buf, tmp, bufsiz - 1);
 		buf[bufsiz - 1] = '\0';
 	}

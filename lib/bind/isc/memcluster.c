@@ -24,7 +24,7 @@
 
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: memcluster.c,v 1.4 2004/03/09 06:30:08 marka Exp $";
+static const char rcsid[] = "$Id: memcluster.c,v 1.5 2004/03/18 02:58:00 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -124,11 +124,11 @@ meminit(size_t init_max_size, size_t target_size) {
 		errno = EEXIST;
 		return (-1);
 	}
-	if (init_max_size == 0)
+	if (init_max_size == 0U)
 		max_size = DEF_MAX_SIZE;
 	else
 		max_size = init_max_size;
-	if (target_size == 0)
+	if (target_size == 0U)
 		mem_target = DEF_MEM_TARGET;
 	else
 		mem_target = target_size;
@@ -180,7 +180,7 @@ __memget_record(size_t size, const char *file, int line) {
 	if (freelists == NULL)
 		if (meminit(0, 0) == -1)
 			return (NULL);
-	if (size == 0) {
+	if (size == 0U) {
 		errno = EINVAL;
 		return (NULL);
 	}
@@ -354,7 +354,7 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 
 	REQUIRE(freelists != NULL);
 
-	if (size == 0) {
+	if (size == 0U) {
 		errno = EINVAL;
 		return;
 	}
@@ -396,7 +396,7 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 		free(mem);
 #endif
 
-		INSIST(stats[max_size].gets != 0);
+		INSIST(stats[max_size].gets != 0U);
 		stats[max_size].gets--;
 		return;
 	}
@@ -433,7 +433,7 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 	 * max. size (max_size) ends up getting recorded as a call to
 	 * max_size.
 	 */
-	INSIST(stats[size].gets != 0);
+	INSIST(stats[size].gets != 0U);
 	stats[size].gets--;
 	stats[new_size].freefrags++;
 }
@@ -469,12 +469,12 @@ memstats(FILE *out) {
 	for (i = 1; i <= max_size; i++) {
 		const struct stats *s = &stats[i];
 
-		if (s->totalgets == 0 && s->gets == 0)
+		if (s->totalgets == 0U && s->gets == 0U)
 			continue;
 		fprintf(out, "%s%5d: %11lu gets, %11lu rem",
 			(i == max_size) ? ">=" : "  ",
 			i, s->totalgets, s->gets);
-		if (s->blocks != 0)
+		if (s->blocks != 0U)
 			fprintf(out, " (%lu bl, %lu ff)",
 				s->blocks, s->freefrags);
 		fputc('\n', out);
@@ -501,7 +501,7 @@ memactive(void) {
 	if (stats == NULL)
 		return (0);
 	for (i = 1; i <= max_size; i++)
-		if (stats[i].gets != 0)
+		if (stats[i].gets != 0U)
 			return (1);
 	return (0);
 }

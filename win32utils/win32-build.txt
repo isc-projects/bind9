@@ -2,11 +2,11 @@ Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2001, 2002  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: win32-build.txt,v 1.7 2004/03/05 05:14:21 marka Exp $
+$Id: win32-build.txt,v 1.8 2004/03/18 02:58:08 marka Exp $
 
-       BIND 9.3.0 Beta for Win32 Source Build Instructions.  28-Jul-2001
+       BIND 9.4 for Win32 Source Build Instructions.  28-Jul-2001
 
-Building BIND 9.3.x on Windows NT/2000 has two prerequisites:
+Building BIND 9.4 on Windows NT/2000 has two prerequisites:
 1) You need to install Perl for Windows NT/2000. ActiveState
 (http://www.activestate.com/) is the one most people install and use;
 2) OpenSSL (http://www.openssl.org) needs to be downloaded and built

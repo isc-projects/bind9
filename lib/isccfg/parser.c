@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.111 2004/03/05 05:12:22 marka Exp $ */
+/* $Id: parser.c,v 1.112 2004/03/18 02:58:07 marka Exp $ */
 
 #include <config.h>
 
@@ -1656,7 +1656,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 			}
 		}
 		if ((flags & CFG_ADDR_V4PREFIXOK) != 0 &&
-		    strlen(s) <= 15) {
+		    strlen(s) <= 15U) {
 			char buf[64];
 			int i;
 
@@ -1670,7 +1670,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 			}
 		}
 		if ((flags & CFG_ADDR_V6OK) != 0 &&
-		    strlen(s) <= 127) {
+		    strlen(s) <= 127U) {
 			char buf[128];
 			char *d; /* zone delimiter */
 			isc_uint32_t zone = 0; /* scope zone ID */
@@ -1737,7 +1737,7 @@ cfg_parse_rawport(cfg_parser_t *pctx, unsigned int flags, in_port_t *port) {
 			     "expected port number or '*'");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
-	if (pctx->token.value.as_ulong >= 65536) {
+	if (pctx->token.value.as_ulong >= 65536U) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
 			     "port number out of range");
 		return (ISC_R_UNEXPECTEDTOKEN);

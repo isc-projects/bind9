@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rrsig_46.c,v 1.4 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: rrsig_46.c,v 1.5 2004/03/18 02:58:04 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -73,7 +73,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 0xff)
+	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	c = (unsigned char)token.value.as_ulong;
 	RETERR(mem_tobuffer(target, &c, 1));

@@ -21,7 +21,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_mkupdate.c,v 1.3 2004/03/09 06:30:18 marka Exp $";
+static const char rcsid[] = "$Id: res_mkupdate.c,v 1.4 2004/03/18 02:58:02 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -380,7 +380,7 @@ res_nmkupdate(res_state statp, ns_updrec *rrecp_in, u_char *buf, int buflen) {
 			}
 			break;
 		case T_TXT:
-			while (1) {
+			for (;;) {
 				if ((n = getstr_str(buf2, sizeof buf2,
 						&startp, endp)) < 0) {
 					if (cp != (sp2 + INT16SZ))
@@ -582,7 +582,7 @@ res_nmkupdate(res_state statp, ns_updrec *rrecp_in, u_char *buf, int buflen) {
 			ShrinkBuffer(n);
 			maxtype = 0;
 			memset(data, 0, sizeof data);
-			while (1) {
+			for (;;) {
 				if (!getword_str(buf2, sizeof buf2, &startp,
 						 endp))
 					break;

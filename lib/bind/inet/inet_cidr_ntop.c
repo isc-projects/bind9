@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_cidr_ntop.c,v 1.3 2004/03/09 06:29:57 marka Exp $";
+static const char rcsid[] = "$Id: inet_cidr_ntop.c,v 1.4 2004/03/18 02:57:56 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -121,7 +121,7 @@ inet_cidr_ntop_ipv4(const u_char *src, int bits, char *dst, size_t size) {
 	if (bits == -1)
 		len = 4;
 	else
-		for (len = 1, b = 1 ; b < 4; b++)
+		for (len = 1, b = 1 ; b < 4U; b++)
 			if (*(src + b))
 				len = b + 1;
 
@@ -130,7 +130,7 @@ inet_cidr_ntop_ipv4(const u_char *src, int bits, char *dst, size_t size) {
 	if (len > bytes)
 		bytes = len;
 	b = decoct(src, bytes, dst, size);
-	if (b == 0)
+	if (b == 0U)
 		goto emsgsize;
 	dst += b;
 	size -= b;

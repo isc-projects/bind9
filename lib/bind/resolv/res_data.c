@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: res_data.c,v 1.2 2004/03/09 06:30:17 marka Exp $";
+static const char rcsid[] = "$Id: res_data.c,v 1.3 2004/03/18 02:58:01 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -133,7 +133,7 @@ fp_query(const u_char *msg, FILE *file) {
 
 void
 fp_nquery(const u_char *msg, int len, FILE *file) {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1)
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1)
 		return;
 
 	res_pquery(&_res, msg, len, file);
@@ -149,7 +149,7 @@ res_mkquery(int op,			/* opcode of query */
 	    u_char *buf,		/* buffer to put query */
 	    int buflen)			/* size of buffer */
 {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		RES_SET_H_ERRNO(&_res, NETDB_INTERNAL);
 		return (-1);
 	}
@@ -160,7 +160,7 @@ res_mkquery(int op,			/* opcode of query */
 
 int
 res_mkupdate(ns_updrec *rrecp_in, u_char *buf, int buflen) {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		RES_SET_H_ERRNO(&_res, NETDB_INTERNAL);
 		return (-1);
 	}
@@ -174,7 +174,7 @@ res_query(const char *name,	/* domain name */
 	  u_char *answer,	/* buffer to put answer */
 	  int anslen)		/* size of answer buffer */
 {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		RES_SET_H_ERRNO(&_res, NETDB_INTERNAL);
 		return (-1);
 	}
@@ -198,7 +198,7 @@ res_isourserver(const struct sockaddr_in *inp) {
 
 int
 res_send(const u_char *buf, int buflen, u_char *ans, int anssiz) {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		/* errno should have been set by res_init() in this case. */
 		return (-1);
 	}
@@ -210,7 +210,7 @@ int
 res_sendsigned(const u_char *buf, int buflen, ns_tsig_key *key,
 	       u_char *ans, int anssiz)
 {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		/* errno should have been set by res_init() in this case. */
 		return (-1);
 	}
@@ -225,7 +225,7 @@ res_close(void) {
 
 int
 res_update(ns_updrec *rrecp_in) {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		RES_SET_H_ERRNO(&_res, NETDB_INTERNAL);
 		return (-1);
 	}
@@ -239,7 +239,7 @@ res_search(const char *name,	/* domain name */
 	   u_char *answer,	/* buffer to put answer */
 	   int anslen)		/* size of answer */
 {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		RES_SET_H_ERRNO(&_res, NETDB_INTERNAL);
 		return (-1);
 	}
@@ -254,7 +254,7 @@ res_querydomain(const char *name,
 		u_char *answer,		/* buffer to put answer */
 		int anslen)		/* size of answer */
 {
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_res.options & RES_INIT) == 0U && res_init() == -1) {
 		RES_SET_H_ERRNO(&_res, NETDB_INTERNAL);
 		return (-1);
 	}

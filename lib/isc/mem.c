@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.115 2004/03/05 05:10:46 marka Exp $ */
+/* $Id: mem.c,v 1.116 2004/03/18 02:58:06 marka Exp $ */
 
 #include <config.h>
 
@@ -870,7 +870,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		for (i = 0; i <= ctx->max_size; i++) {
 #if ISC_MEM_TRACKLINES
-			if (ctx->stats[i].gets != 0)
+			if (ctx->stats[i].gets != 0U)
 				print_active(ctx, stderr);
 #endif
 			INSIST(ctx->stats[i].gets == 0U);

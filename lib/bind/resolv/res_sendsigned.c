@@ -135,7 +135,7 @@ retry:
 	}
 
 	hp = (HEADER *) answer;
-	if (hp->tc && !usingTCP && (statp->options & RES_IGNTC) == 0) {
+	if (hp->tc && !usingTCP && (statp->options & RES_IGNTC) == 0U) {
 		nstatp->options &= ~RES_IGNTC;
 		usingTCP = 1;
 		goto retry;

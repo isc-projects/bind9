@@ -53,9 +53,9 @@ inet_makeaddr(net, host)
 {
 	u_long addr;
 
-	if (net < 128)
+	if (net < 128U)
 		addr = (net << IN_CLASSA_NSHIFT) | (host & IN_CLASSA_HOST);
-	else if (net < 65536)
+	else if (net < 65536U)
 		addr = (net << IN_CLASSB_NSHIFT) | (host & IN_CLASSB_HOST);
 	else if (net < 16777216L)
 		addr = (net << IN_CLASSC_NSHIFT) | (host & IN_CLASSC_HOST);

@@ -41,7 +41,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: base64.c,v 1.2 2004/03/09 06:30:06 marka Exp $";
+static const char rcsid[] = "$Id: base64.c,v 1.3 2004/03/18 02:57:59 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -138,7 +138,7 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
 	u_char output[4];
 	size_t i;
 
-	while (2 < srclength) {
+	while (2U < srclength) {
 		input[0] = *src++;
 		input[1] = *src++;
 		input[2] = *src++;
@@ -162,7 +162,7 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
 	}
     
 	/* Now we worry about padding. */
-	if (0 != srclength) {
+	if (0U != srclength) {
 		/* Get what's left. */
 		input[0] = input[1] = input[2] = '\0';
 		for (i = 0; i < srclength; i++)
@@ -179,7 +179,7 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize) {
 			return (-1);
 		target[datalength++] = Base64[output[0]];
 		target[datalength++] = Base64[output[1]];
-		if (srclength == 1)
+		if (srclength == 1U)
 			target[datalength++] = Pad64;
 		else
 			target[datalength++] = Base64[output[2]];

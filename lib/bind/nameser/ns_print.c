@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_print.c,v 1.5 2004/03/09 06:30:09 marka Exp $";
+static const char rcsid[] = "$Id: ns_print.c,v 1.6 2004/03/18 02:58:01 marka Exp $";
 #endif
 
 /* Import. */
@@ -145,7 +145,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	addlen(x, &buf, &buflen);
 	len = SPRINTF((tmp, " %s %s", p_class(class), p_type(type)));
 	T(addstr(tmp, len, &buf, &buflen));
-	if (rdlen == 0)
+	if (rdlen == 0U)
 		return (buf - obuf);
 	T(spaced = addtab(x + len, 16, spaced, &buf, &buflen));
 
@@ -154,7 +154,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	 */
 	switch (type) {
 	case ns_t_a:
-		if (rdlen != NS_INADDRSZ)
+		if (rdlen != (size_t)NS_INADDRSZ)
 			goto formerr;
 		(void) inet_ntop(AF_INET, rdata, buf, buflen);
 		addlen(strlen(buf), &buf, &buflen);
@@ -258,7 +258,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	case ns_t_rt: {
 		u_int t;
 
-		if (rdlen < NS_INT16SZ)
+		if (rdlen < (size_t)NS_INT16SZ)
 			goto formerr;
 
 		/* Priority. */
@@ -276,7 +276,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	case ns_t_px: {
 		u_int t;
 
-		if (rdlen < NS_INT16SZ)
+		if (rdlen < (size_t)NS_INT16SZ)
 			goto formerr;
 
 		/* Priority. */
@@ -322,7 +322,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	    }
 
 	case ns_t_aaaa:
-		if (rdlen != NS_IN6ADDRSZ)
+		if (rdlen != (size_t)NS_IN6ADDRSZ)
 			goto formerr;
 		(void) inet_ntop(AF_INET6, rdata, buf, buflen);
 		addlen(strlen(buf), &buf, &buflen);
@@ -341,7 +341,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		u_int order, preference;
 		char t[50];
 
-		if (rdlen < 2*NS_INT16SZ)
+		if (rdlen < 2U*NS_INT16SZ)
 			goto formerr;
 
 		/* Order, Precedence. */
@@ -382,7 +382,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		u_int priority, weight, port;
 		char t[50];
 
-		if (rdlen < NS_INT16SZ*3)
+		if (rdlen < 3U*NS_INT16SZ)
 			goto formerr;
 
 		/* Priority, Weight, Port. */
@@ -411,7 +411,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	case ns_t_wks: {
 		int n, lcnt;
 
-		if (rdlen < NS_INT32SZ + 1)
+		if (rdlen < 1U + NS_INT32SZ)
 			goto formerr;
 
 		/* Address. */
@@ -455,7 +455,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		const char *leader;
 		int n;
 
-		if (rdlen < NS_INT16SZ + NS_INT8SZ + NS_INT8SZ)
+		if (rdlen < 0U + NS_INT16SZ + NS_INT8SZ + NS_INT8SZ)
 			goto formerr;
 
 		/* Key flags, Protocol, Algorithm. */
@@ -498,7 +498,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		u_long t;
 		int n;
 
-		if (rdlen < 22)
+		if (rdlen < 22U)
 			goto formerr;
 
 		/* Type covered, Algorithm, Label count, Original TTL. */
@@ -662,7 +662,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 		int pbyte, pbit;
 
 		/* prefix length */
-		if (rdlen == 0) goto formerr;
+		if (rdlen == 0U) goto formerr;
 		len = SPRINTF((tmp, "%d ", *rdata));
 		T(addstr(tmp, len, &buf, &buflen));
 		pbit = *rdata;
@@ -829,7 +829,7 @@ addname(const u_char *msg, size_t msglen,
 	newlen = prune_origin(*buf, origin);
 	if (**buf == '\0') {
 		goto root;
-	} else if (newlen == 0) {
+	} else if (newlen == 0U) {
 		/* Use "@" instead of name. */
 		if (newlen + 2 > *buflen)
 			goto enospc;        /* No room for "@\0". */

@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: logging.c,v 1.5 2004/03/09 06:30:08 marka Exp $";
+static const char rcsid[] = "$Id: logging.c,v 1.6 2004/03/18 02:58:00 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -75,7 +75,7 @@ version_rename(log_channel chan) {
 	/*
 	 * Need to have room for '.nn' (XXX assumes LOG_MAX_VERSIONS < 100)
 	 */
-	if (strlen(chan->out.file.name) > (PATH_MAX-3))
+	if (strlen(chan->out.file.name) > (size_t)(PATH_MAX-3))
 		return;
 	for (ver--; ver > 0; ver--) {
 		sprintf(old_name, "%s.%d", chan->out.file.name, ver-1);
@@ -364,7 +364,7 @@ log_vwrite(log_context lc, int category, int level, const char *format,
 
 		if (!did_vsprintf) {
 			if (VSPRINTF((lc->buffer, format, args)) >
-			    LOG_BUFFER_SIZE) {
+			    (size_t)LOG_BUFFER_SIZE) {
 				syslog(LOG_CRIT,
 				       "memory overrun in log_vwrite()");
 				exit(1);

@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.9 2004/03/09 06:30:17 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.10 2004/03/18 02:58:01 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -137,7 +137,7 @@ fp_resstat(const res_state statp, FILE *file) {
 	u_long mask;
 
 	fprintf(file, ";; res options:");
-	for (mask = 1;  mask != 0;  mask <<= 1)
+	for (mask = 1;  mask != 0U;  mask <<= 1)
 		if (statp->options & mask)
 			fprintf(file, " %s", p_option(mask));
 	putc('\n', file);
@@ -672,7 +672,7 @@ p_sockun(union res_sockaddr_union u, char *buf, size_t size) {
 		sprintf(ret, "[af%d]", u.sin.sin_family);
 		break;
 	}
-	if (size > 0) {
+	if (size > 0U) {
 		strncpy(buf, ret, size - 1);
 		buf[size - 1] = '0';
 	}
@@ -1128,7 +1128,7 @@ res_nametoclass(const char *buf, int *successp) {
 		goto done;
 	errno = 0;
 	result = strtoul(buf + 5, &endptr, 10);
-	if (errno == 0 && *endptr == '\0' && result <= 0xffff)
+	if (errno == 0 && *endptr == '\0' && result <= 0xffffU)
 		success = 1;
  done:
 	if (successp)
@@ -1151,7 +1151,7 @@ res_nametotype(const char *buf, int *successp) {
 		goto done;
 	errno = 0;
 	result = strtoul(buf + 4, &endptr, 10);
-	if (errno == 0 && *endptr == '\0' && result <= 0xffff)
+	if (errno == 0 && *endptr == '\0' && result <= 0xffffU)
 		success = 1;
  done:
 	if (successp)

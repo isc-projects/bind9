@@ -1402,7 +1402,7 @@
 ./lib/bind/port/irix/Makefile.in		MAKE	2001,2004
 ./lib/bind/port/irix/include/.cvsignore		X	2001
 ./lib/bind/port/irix/include/Makefile.in	MAKE	2001,2004
-./lib/bind/port/irix/include/paths.h		C	2001,2004
+./lib/bind/port/irix/include/paths.h		X	2001
 ./lib/bind/port/irix/include/sys/bitypes.h	X	2001
 ./lib/bind/port/irix/include/sys/cdefs.h	X	2001
 ./lib/bind/port/linux/.cvsignore		X	2001
@@ -1665,7 +1665,7 @@
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004
-./lib/dns/rcode.c				C	2004
+./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2002,2003,2004
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004

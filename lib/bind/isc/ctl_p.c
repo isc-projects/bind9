@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_p.c,v 1.2 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: ctl_p.c,v 1.3 2004/03/18 02:58:00 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -78,7 +78,7 @@ int
 ctl_bufget(struct ctl_buf *buf, ctl_logfunc logger) {
 	static const char me[] = "ctl_bufget";
 
-	REQUIRE(!allocated_p(*buf) && buf->used == 0);
+	REQUIRE(!allocated_p(*buf) && buf->used == 0U);
 	buf->text = memget(MAX_LINELEN);
 	if (!allocated_p(*buf)) {
 		(*logger)(ctl_error, "%s: getmem: %s", me, strerror(errno));

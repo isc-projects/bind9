@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: eventlib.c,v 1.4 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: eventlib.c,v 1.5 2004/03/18 02:58:00 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -590,7 +590,8 @@ evDrop(evContext opaqueCtx, evEvent opaqueEv) {
 		 * Timer is still there.  Delete it if it has expired,
 		 * otherwise set it according to its next interval.
 		 */
-		if (this->inter.tv_sec == 0 && this->inter.tv_nsec == 0L) {
+		if (this->inter.tv_sec == (time_t)0 &&
+		    this->inter.tv_nsec == 0L) {
 			opaque.opaque = this;			
 			(void) evClearTimer(opaqueCtx, opaque);
 		} else {

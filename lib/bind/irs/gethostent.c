@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: gethostent.c,v 1.5 2004/03/09 06:30:01 marka Exp $";
+static const char rcsid[] = "$Id: gethostent.c,v 1.6 2004/03/18 02:57:59 marka Exp $";
 #endif
 
 /* Imports */
@@ -187,7 +187,7 @@ gethostent_p(struct net_data *net_data) {
 		return (NULL);
 	while ((hp = (*ho->next)(ho)) != NULL &&
 	       hp->h_addrtype == AF_INET6 &&
-	       (net_data->res->options & RES_USE_INET6) == 0)
+	       (net_data->res->options & RES_USE_INET6) == 0U)
 		continue;
 	net_data->ho_last = hp;
 	return (net_data->ho_last);
@@ -356,13 +356,13 @@ getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		
 	switch (af) {
 	case AF_INET:
-		if (len != INADDRSZ) {
+		if (len != (size_t)INADDRSZ) {
 			*error_num = NO_RECOVERY;
 			return (NULL);
 		}
 		break;
 	case AF_INET6:
-		if (len != IN6ADDRSZ) {
+		if (len != (size_t)IN6ADDRSZ) {
 			*error_num = NO_RECOVERY;
 			return (NULL);
 		}
@@ -1007,7 +1007,7 @@ fakeaddr(const char *name, int af, struct net_data *net_data) {
 	}
 	strncpy(pvt->name, name, NS_MAXDNAME);
 	pvt->name[NS_MAXDNAME] = '\0';
-	if (af == AF_INET && (net_data->res->options & RES_USE_INET6) != 0) {
+	if (af == AF_INET && (net_data->res->options & RES_USE_INET6) != 0U) {
 		map_v4v6_address(pvt->addr, pvt->addr);
 		af = AF_INET6;
 	}

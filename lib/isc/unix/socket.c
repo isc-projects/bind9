@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.236 2004/03/05 05:11:46 marka Exp $ */
+/* $Id: socket.c,v 1.237 2004/03/18 02:58:07 marka Exp $ */
 
 #include <config.h>
 
@@ -488,7 +488,7 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
 
 	cmsgp = CMSG_NXTHDR(&msg, cmsgp);
 	if (cmsgp != NULL)
-		return ((void *)cmsgp - (void *)msg.msg_control);
+		return ((char *)cmsgp - (char *)msg.msg_control);
 	else
 		return (0);
 #endif	
@@ -535,7 +535,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifndef USE_CMSG
 	return;
 #else
-	if (msg->msg_controllen == 0 || msg->msg_control == NULL)
+	if (msg->msg_controllen == 0U || msg->msg_control == NULL)
 		return;
 
 #ifdef SO_TIMESTAMP
