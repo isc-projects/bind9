@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.163.2.4 2001/03/20 18:50:39 gson Exp $ */
+/* $Id: query.c,v 1.163.2.5 2001/05/01 20:33:12 gson Exp $ */
 
 #include <config.h>
 
@@ -3063,20 +3063,24 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * cleanup fname even though we're using it!
 		 */
 		query_keepname(client, fname, dbuf);
+		tname = fname;
 		result = dns_rdatasetiter_first(rdsiter);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, rdataset);
 			if ((qtype == dns_rdatatype_any ||
 			     rdataset->type == qtype) && rdataset->type != 0) {
-				tname = fname;
-				query_addrrset(client, &tname, &rdataset, NULL,
+				query_addrrset(client,
+					       fname != NULL ? &fname : &tname,
+					       &rdataset, NULL,
 					       NULL, DNS_SECTION_ANSWER);
 				n++;
+				INSIST(tname != NULL);
 				/*
-				 * We shouldn't ever fail to add 'rdataset'
-				 * because it's already in the answer.
+				 * rdataset is non-NULL only in certain pathological
+				 * cases involving DNAMEs.
 				 */
-				INSIST(rdataset == NULL);
+				if (rdataset != NULL)
+					query_putrdataset(client, &rdataset);
 				rdataset = query_newrdataset(client);
 				if (rdataset == NULL)
 					break;
@@ -3088,17 +3092,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			}
 			result = dns_rdatasetiter_next(rdsiter);
 		}
-		if (n > 0) {
-			/*
-			 * As mentioned above, we must now clear fname
-			 * since we're using it.
-			 */
-			fname = NULL;
-		} else {
+
+		if (fname != NULL)
+			dns_message_puttempname(client->message, &fname);
+
+		if (n == 0) {
 			/*
 			 * We didn't match any rdatasets.
 			 */
-			dns_message_puttempname(client->message, &fname);
 			if (qtype == dns_rdatatype_sig &&
 			    result == ISC_R_NOMORE) {
 				/*

@@ -1,4 +1,7 @@
 
+ 818.	[bug]		Certain pathological responses to ANY queries could
+			cause an assertion failure. [RT #1218]
+
  816.	[bug]		Report potential problems with log file accessibility
 			at configuration time, since such problems can't
 			reliably be reported at the time they actually occur.
