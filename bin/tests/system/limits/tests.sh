@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2000/07/07 18:25:10 bwelling Exp $
+# $Id: tests.sh,v 1.7 2000/07/08 16:36:29 tale Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,34 +26,36 @@ SYSTEMTESTTOP=..
 
 status=0
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	1000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+echo "I:1000 A records"
+$DIG +tcp +norec 1000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 1000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.1000
 $PERL ../digcomp.pl knowngood.dig.out.1000 dig.out.ns1 || status=1
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	2000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+echo "I:2000 A records"
+$DIG +tcp +norec 2000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 2000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.2000
 $PERL ../digcomp.pl knowngood.dig.out.2000 dig.out.ns1 || status=1
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	3000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+echo "I:3000 A records"
+$DIG +tcp +norec 3000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 3000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.3000
 $PERL ../digcomp.pl knowngood.dig.out.3000 dig.out.ns1 || status=1
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	4000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+echo "I:4000 A records"
+$DIG +tcp +norec 4000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 4000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.4000
 $PERL ../digcomp.pl knowngood.dig.out.4000 dig.out.ns1 || status=1
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	a-maximum-rrset.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+echo "I:exactly maximum rrset"
+$DIG +tcp +norec a-maximum-rrset.example. @10.53.0.1 a -p 5300 > dig.out.ns1 \
+	|| status=1
 #dig a-maximum-rrset.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.a-maximum-rrset
 $PERL ../digcomp.pl knowngood.dig.out.a-maximum-rrset dig.out.ns1 || status=1
 
-$DIG +tcp +nosea +nostat +noquest +nocmd +norec \
-	5000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
-grep 'flags: qr aa tc ad;' dig.out.ns1 || status=1
+echo "I:exceed maxmimum rrset (5000 A records)"
+$DIG +tcp +norec 5000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+# Look for truncation bit (tc).
+grep 'flags: qr aa tc ad;' dig.out.ns1 > /dev/null || status=1
 
 echo "I:exit status: $status"
 exit $status
