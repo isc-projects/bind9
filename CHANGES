@@ -1,11 +1,12 @@
+ 328.	[func]		Added isc_base64_decodestring().
+
  327.	[bug]		rndc.conf parser wasn't correctly recognising an IP
 			address where a host specification was required.
 
  326.	[func]		'keys' in an 'inet' control statement is now
 			required and must have at least one item in it.
-
-			warning is issued if a 'unix' control channel is
-			defined (not supported).
+			A "not supported" warning is now issued if a 'unix'
+			control channel is defined.
 
  325.	[bug]		isc_lex_gettoken was processing octal strings when
 			ISC_LEXOPT_CNUMBER was not set.
