@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.56.2.3 2001/03/26 19:12:48 gson Exp $
+ * $Id: dnssec.c,v 1.56.2.4 2001/04/17 17:37:20 gson Exp $
  */
 
 
@@ -140,12 +140,32 @@ dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
 	return (dst_key_fromdns(name, rdata->rdclass, &b, mctx, key));
 }
 
+static isc_result_t
+digest_sig(dst_context_t *ctx, dns_rdata_t *sigrdata, dns_rdata_sig_t *sig) {
+	isc_region_t r;
+	isc_result_t ret;
+	dns_fixedname_t fname;
+
+	dns_rdata_toregion(sigrdata, &r);
+	INSIST(r.length >= 19);
+
+	r.length = 18;
+	ret = dst_context_adddata(ctx, &r);
+	if (ret != ISC_R_SUCCESS)
+		return (ret);
+	dns_fixedname_init(&fname);
+	dns_name_downcase(&sig->signer, dns_fixedname_name(&fname), NULL);
+	dns_name_toregion(dns_fixedname_name(&fname), &r);
+	return (dst_context_adddata(ctx, &r));
+}
+
 isc_result_t
 dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_stdtime_t *inception, isc_stdtime_t *expire,
 		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata)
 {
 	dns_rdata_sig_t sig;
+	dns_rdata_t tmpsigrdata;
 	dns_rdata_t *rdatas;
 	int nrdatas, i;
 	isc_buffer_t b, sigbuf, envbuf;
@@ -204,12 +224,11 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(&b, data, sizeof(data));
-	ret = dns_rdata_fromstruct(NULL, sig.common.rdclass,
-				  sig.common.rdtype, &sig, &b);
+	dns_rdata_init(&tmpsigrdata);
+	ret = dns_rdata_fromstruct(&tmpsigrdata, sig.common.rdclass,
+				   sig.common.rdtype, &sig, &b);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
-
-	isc_buffer_usedregion(&b, &r);
 
 	ret = dst_context_create(key, mctx, &ctx);
 	if (ret != ISC_R_SUCCESS)
@@ -218,9 +237,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	/*
 	 * Digest the SIG rdata.
 	 */
-	INSIST(r.length >= sig.siglen);
-	r.length -= sig.siglen;
-	ret = dst_context_adddata(ctx, &r);
+	ret = digest_sig(ctx, &tmpsigrdata, &sig);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_context;
 
@@ -347,21 +364,16 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if ((flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
 		return (DNS_R_KEYUNAUTHORIZED);
 
-	/*
-	 * Digest the SIG rdata (not including the signature).
-	 */
-	dns_rdata_toregion(sigrdata, &r);
-	INSIST(r.length >= sig.siglen);	
-	r.length -= sig.siglen;
-	RUNTIME_CHECK(r.length >= 19);
-
 	ret = dst_context_create(key, mctx, &ctx);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
 
-	ret = dst_context_adddata(ctx, &r);
+	/*
+	 * Digest the SIG rdata (not including the signature).
+	 */
+	ret = digest_sig(ctx, sigrdata, &sig);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_struct;
+		goto cleanup_context;
 
 	/*
 	 * If the name is an expanded wildcard, use the wildcard name.

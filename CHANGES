@@ -1,4 +1,7 @@
 
+ 810.	[bug]		The signer name in SIG records was not properly
+ 			downcased when signing/verifying records. [RT #1186]
+
  807.	[bug]		When setting up TCP connections for incoming zone
 			transfers, the transfer-source port was not
 			ignored like it should be.
