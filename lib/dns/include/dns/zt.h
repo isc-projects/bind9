@@ -22,7 +22,6 @@
 
 #include <isc/mem.h>
 #include <dns/name.h>
-#include <dns/zone.h>
 #include <dns/types.h>
 #include <dns/rbt.h>
 
