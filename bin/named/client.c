@@ -867,8 +867,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "ignoring multicast request");
+			      "multicast request");
+#if 0
 		ns_client_error(client, DNS_R_REFUSED);
+#endif
 	}
 
 	result = dns_message_parse(client->message, buffer, ISC_FALSE);
