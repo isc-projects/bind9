@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confkeys.h,v 1.20 2000/08/01 01:23:54 tale Exp $ */
+/* $Id: confkeys.h,v 1.21 2000/10/19 01:25:55 gson Exp $ */
 
 #ifndef DNS_CONFKEYS_H
 #define DNS_CONFKEYS_H 1
@@ -168,7 +168,7 @@ struct dns_c_kdef_list {
 
 
 /*
- * A key id for in a server statement 'keys' list.
+ * A key id for use in a server statement 'keys' list.
  */
 struct dns_c_kid {
 	isc_uint32_t		magic;
