@@ -84,6 +84,18 @@ contain such records, you will get potentially confusing error
 messages like "unexpected end of file" because BIND 9 will interpret
 everything up to the next quote character as a literal string.
 
+2.4. Handling of Line Breaks
+
+Some versions of BIND accept RRs containing line breaks that are not
+properly quoted with parentheses, like the following SOA:
+
+	@	IN SOA	ns.example. hostmaster.example.
+			( 1 3600 1800 1814400 3600 )
+
+This is not legal master file syntax and will be treated as an error
+by BIND 9.  The fix is to move the opening parenthesis to the first
+line.
+
 
 3. Interoperability Impact of New Protocol Features
 
@@ -105,4 +117,4 @@ completely.  We have contacted the manufacturer of the name server in
 case and are trying to resolve the issue with them.
 
 
-$Id: migration,v 1.1.2.5 2000/08/30 20:39:40 gson Exp $
+$Id: migration,v 1.1.2.6 2000/08/31 01:38:38 gson Exp $
