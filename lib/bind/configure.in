@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.19 $)
+AC_REVISION($Revision: 1.20 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1481,8 +1481,7 @@ AC_SUBST(SETGRENT_VOID)
 AC_TRY_COMPILE([
 #include <grp.h>
 struct group *
-getgrgid_r(const gid_t gid, struct group *gptr,
-                char *buf, int buflen) {}
+getgrgid_r(gid_t gid, struct group *gptr, char *buf, int buflen) {}
 ],[return (0);],
 [POSIX_GETGRGID_R="#define POSIX_GETGRGID_R 1"],
 [POSIX_GETGRGID_R="#undef POSIX_GETGRGID_R"])

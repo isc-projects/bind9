@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getgrent_r.c,v 1.1 2001/03/29 06:31:45 marka Exp $";
+static const char rcsid[] = "$Id: getgrent_r.c,v 1.2 2001/04/04 06:18:40 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -76,11 +76,11 @@ getgrnam_r(const char *name,  struct group *gptr,
 /* POSIX 1003.1c */
 #ifdef POSIX_GETGRGID_R
 int
-__posix_getgrgid_r(const gid_t gid, struct group *gptr,
+__posix_getgrgid_r(gid_t gid, struct group *gptr,
 		char *buf, int buflen, struct group **result) {
 #else /* POSIX_GETGRGID_R */
 int
-getgrgid_r(const gid_t gid, struct group *gptr,
+getgrgid_r(gid_t gid, struct group *gptr,
 		char *buf, size_t buflen, struct group **result) {
 #endif /* POSIX_GETGRGID_R */
 	struct group *ge = getgrgid(gid);
@@ -98,7 +98,7 @@ getgrgid_r(const gid_t gid, struct group *gptr,
 
 #ifdef POSIX_GETGRGID_R
 struct group *
-getgrgid_r(const gid_t gid, struct group *gptr,
+getgrgid_r(gid_t gid, struct group *gptr,
 		char *buf, int buflen) {
 	struct group *ge = getgrgid(gid);
 	int res;
