@@ -422,9 +422,9 @@ void dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
  */
 
 isc_result_t
-dns_zone_setxfrsource(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
+dns_zone_setxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 /*
- * 	Set the source address to be used in zone transfers.
+ * 	Set the source address to be used in IPv4 zone transfers.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
@@ -435,10 +435,33 @@ dns_zone_setxfrsource(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
  */
 
 isc_sockaddr_t *
-dns_zone_getxfrsource(dns_zone_t *zone);
+dns_zone_getxfrsource4(dns_zone_t *zone);
 /*
- *	Returns the source address set by a previous dns_zone_setxfrsource
- *	call.  If dns_zone_setxfrsource the in6addr_any port 0 is returned.
+ *	Returns the source address set by a previous dns_zone_setxfrsource4
+ *	call, or the default of inaddr_any, port 0.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
+ */
+
+isc_result_t
+dns_zone_setxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
+/*
+ * 	Set the source address to be used in IPv6 zone transfers.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
+ *	'xfrsource' to contain the address.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ */
+
+isc_sockaddr_t *
+dns_zone_getxfrsource6(dns_zone_t *zone);
+/*
+ *	Returns the source address set by a previous dns_zone_setxfrsource6
+ *	call, or the default of in6addr_any, port 0.
  *
  * Require:
  *	'zone' to be a valid initalised zone.

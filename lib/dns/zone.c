@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.74 2000/01/31 07:45:18 marka Exp $ */
+ /* $Id: zone.c,v 1.75 2000/01/31 18:00:02 gson Exp $ */
 
 #include <config.h>
 
@@ -142,7 +142,8 @@ struct dns_zone {
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
 	isc_task_t *		task;
-	isc_sockaddr_t	 	xfrsource;
+	isc_sockaddr_t	 	xfrsource4;
+	isc_sockaddr_t	 	xfrsource6;
 	dns_xfrin_ctx_t *	xfr;
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
@@ -249,12 +250,16 @@ isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_zone_t *zone;
-	isc_sockaddr_t sockaddr_any;
-
+	isc_sockaddr_t sockaddr_any4;
+	isc_sockaddr_t sockaddr_any6;
+	struct in_addr in4addr_any;
+	
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(mctx != NULL);
 
-	isc_sockaddr_fromin6(&sockaddr_any, &in6addr_any, 0);
+	in4addr_any.s_addr = htonl(INADDR_ANY);
+	isc_sockaddr_fromin(&sockaddr_any4, &in4addr_any, 0);
+	isc_sockaddr_fromin6(&sockaddr_any6, &in6addr_any, 0);
 
 	zone = isc_mem_get(mctx, sizeof *zone);
 	if (zone == NULL)
@@ -316,7 +321,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->idlein = DNS_DEFAULT_IDLEIN;
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
 	ISC_LIST_INIT(zone->checkservers);
-	zone->xfrsource = sockaddr_any;
+	zone->xfrsource4 = sockaddr_any4;
+	zone->xfrsource6 = sockaddr_any6;
 	zone->xfr = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
 	zone->maxxfrout = MAX_XFER_TIME;
@@ -1389,20 +1395,37 @@ dns_zone_cleardbargs(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setxfrsource(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
+dns_zone_setxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK(&zone->lock);
-	zone->xfrsource = *xfrsource;
+	zone->xfrsource4 = *xfrsource;
 	UNLOCK(&zone->lock);
 
 	return (DNS_R_SUCCESS);
 }
 
 isc_sockaddr_t *
-dns_zone_getxfrsource(dns_zone_t *zone) {
+dns_zone_getxfrsource4(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return (&zone->xfrsource);
+	return (&zone->xfrsource4);
+}
+
+isc_result_t
+dns_zone_setxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	zone->xfrsource6 = *xfrsource;
+	UNLOCK(&zone->lock);
+
+	return (DNS_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getxfrsource6(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->xfrsource6);
 }
 
 isc_result_t
@@ -1859,8 +1882,9 @@ dns_zone_notify(dns_zone_t *zone) {
 	 * Enqueue notify request.
 	 */
 	for (i = 0; i < zone->notifycnt; i++) {
+		/* XXX IPv6 */
 		(void)dns_notify(origin, &zone->notify[i], dns_rdatatype_soa,
-			         zone->rdclass, &zone->xfrsource, zone->mctx);
+			         zone->rdclass, &zone->xfrsource4, zone->mctx);
 	}
 
 	dns_db_currentversion(zone->top, &version);
@@ -1915,10 +1939,11 @@ dns_zone_notify(dns_zone_t *zone) {
 					break;
 			}
 			if (i == zone->notifycnt) {
+				/* XXX IPv6 */
 				(void)dns_notify(origin, &addr,
 						 dns_rdatatype_soa,
 						 zone->rdclass,
-						 &zone->xfrsource, zone->mctx);
+						 &zone->xfrsource4, zone->mctx);
 			}
 			result = dns_rdataset_next(&ardset);
 		}
@@ -2780,7 +2805,10 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
 		if (strcmp(oldzone->db_argv[i], newzone->db_argv[i]) != 0)
 			goto false;
 
-	if (!isc_sockaddr_equal(&oldzone->xfrsource, &newzone->xfrsource))
+	if (!isc_sockaddr_equal(&oldzone->xfrsource4, &newzone->xfrsource4))
+		goto false;
+
+	if (!isc_sockaddr_equal(&oldzone->xfrsource6, &newzone->xfrsource6))
 		goto false;
 
 	for (i = 0; i < oldzone->notifycnt; i++)

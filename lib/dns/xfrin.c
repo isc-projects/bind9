@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.42 2000/01/31 15:10:29 tale Exp $ */
+ /* $Id: xfrin.c,v 1.43 2000/01/31 18:00:05 gson Exp $ */
 
 #include <config.h>
 
@@ -666,8 +666,17 @@ xfrin_create(isc_mem_t *mctx,
 			       xfrin_timeout, xfr, &xfr->timer));
 
 	xfr->masteraddr = *masteraddr;
-	/* XXX global, too */
-	xfr->sourceaddr = *dns_zone_getxfrsource(zone);
+
+	switch (isc_sockaddr_pf(masteraddr)) {
+	case PF_INET:
+		xfr->sourceaddr = *dns_zone_getxfrsource4(zone);
+		break;
+	case PF_INET6:
+		xfr->sourceaddr = *dns_zone_getxfrsource6(zone);
+		break;
+	default:
+		INSIST(0);
+	}
 	
 	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
 			sizeof(xfr->qbuffer_data),
@@ -685,7 +694,7 @@ isc_result_t
 xfrin_start(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 	CHECK(isc_socket_create(xfr->socketmgr,
-				isc_sockaddr_pf(&xfr->masteraddr),
+				isc_sockaddr_pf(&xfr->sourceaddr),
 				isc_sockettype_tcp,
 				&xfr->socket));
 	CHECK(isc_socket_bind(xfr->socket, &xfr->sourceaddr));

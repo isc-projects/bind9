@@ -96,15 +96,11 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 	isc_int32_t maxxfr;
 	isc_int32_t idle;
 	in_port_t port;
-	isc_sockaddr_t sockaddr_any;
 	struct in_addr in4addr_any;
+	isc_sockaddr_t sockaddr_any4;
 
-	if (isc_net_probeipv6() == ISC_R_SUCCESS)
-		isc_sockaddr_fromin6(&sockaddr_any, &in6addr_any, 0);
-	else {
-		in4addr_any.s_addr = INADDR_ANY;
-		isc_sockaddr_fromin(&sockaddr_any, &in4addr_any, 0);
-	}
+	in4addr_any.s_addr = htonl(INADDR_ANY);
+	isc_sockaddr_fromin(&sockaddr_any4, &in4addr_any, 0);
 
 	dns_zone_setclass(zone, czone->zclass);
 
@@ -253,10 +249,13 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			dns_zone_setmaxxfrin(zone, MAX_XFER_TIME);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setxfrsource(zone, &sockaddr);
-		else
-			dns_zone_setxfrsource(zone, &sockaddr_any);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
+			if (result != ISC_R_SUCCESS) {
+				sockaddr = sockaddr_any4;
+			}
+		}
+		dns_zone_setxfrsource4(zone, &sockaddr);
 
 		result = dns_c_zone_getmaxtransidlein(czone, &idle);
 		if (result == ISC_R_SUCCESS)
@@ -323,10 +322,13 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 			dns_zone_setmaxxfrin(zone, MAX_XFER_TIME);
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setxfrsource(zone, &sockaddr);
-		else
-			dns_zone_setxfrsource(zone, &sockaddr_any);
+		if (result != ISC_R_SUCCESS) {
+			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
+			if (result != ISC_R_SUCCESS) {
+				sockaddr = sockaddr_any4;
+			}
+		}
+		dns_zone_setxfrsource4(zone, &sockaddr);
 
 		result = dns_c_zone_getmaxtransidlein(czone, &idle);
 		if (result == ISC_R_SUCCESS)
