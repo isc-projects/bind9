@@ -11,7 +11,8 @@
 1760.	[bug]		Host / net unreachable was not penalising rtt
 			estimates. [RT #12970]
 
-1759.	[placeholder]	rt12942
+1759.	[bug]		Named failed to startup if the OS supported IPv6
+			but had no IPv6 interfaces configured. [RT #12942]
 
 1758.	[placeholder]	rt12933
 
