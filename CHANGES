@@ -1,3 +1,6 @@
+1519.	[bug]		dnssec-signzone:nsec_setbit() computed the wrong
+			length of the new bitmap.
+
 1518.   [bug]           dns_nsec_buildrdata(), and hence dns_nsec_build(),
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.

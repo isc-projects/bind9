@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.169 2003/09/30 05:56:00 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.170 2003/10/01 04:10:26 marka Exp $ */
 
 #include <config.h>
 
@@ -664,10 +664,9 @@ nsec_setbit(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdatatype_t type,
 	result = dns_rdata_tostruct(&rdata, &nsec, NULL);
 	check_result(result, "dns_rdata_tostruct");
 
-	newlen = type / 8 + 1;
+	INSIST(nsec.len <= sizeof(bitmap));
 
-	INSIST(nsec.len < sizeof(bitmap));
-	INSIST(newlen < sizeof(bitmap));
+	newlen = sizeof(bitmap);
 
 	memset(bitmap, 0, sizeof(bitmap));
 	memcpy(bitmap, nsec.typebits, nsec.len);
