@@ -13,7 +13,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 .\" SOFTWARE.
 .\" 
-.\" $Id: rndc.8,v 1.4 2000/07/11 00:37:57 tale Exp $
+.\" $Id: rndc.8,v 1.5 2000/07/12 13:49:07 jim Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt RDNC 8
@@ -54,7 +54,8 @@ and
 the only supported encryption algorithm is HMAC-MD5, which uses a
 shared secret on each end of the connection.
 This provides TSIG-style authentication for the command request
-and the name server's response.  All commands sent over the channel
+and the name server's response. 
+All commands sent over the channel
 must be signed by a key_id known to the server.
 .Pp
 .Nm rndc
@@ -62,8 +63,10 @@ reads its default configuration file,
 .Pa /etc/rndc.conf
 to determine how to contact the name server and decide what algorithm
 and keys is should use.
-An alternate configuration file can be specified with the
-.Ar c
+.Ar config-file
+is the pathname for an alternate configuration file which can be supplied
+with the
+.Fl c
 option.
 .Pp
 .Ar server
@@ -92,12 +95,13 @@ The
 .Fl y
 option identifies the
 .Ar key_id
-to use from the configuration file.  The 
+to use from the configuration file.
 .Ar key_id
 must be known by
 .Xr named
 with the same algorithm and secret string in order for
-control message validation to succeed.  If no
+control message validation to succeed.
+If no
 .Fl y
 option is provided,
 .Nm rndc
@@ -111,12 +115,12 @@ statement is present for that host, then the
 .Dv default-key
 clause of the
 .Dv options{}
-statement.  Note that .Pp
-The configuration file for
+statement.
+Note that the configuration file for
 .Nm rdnc
 contains shared secrets which are used to send authenticated
-control commands to name servers, and should therefore not have
-general read or write access.
+control commands to name servers.
+It should therefore not have general read or write access.
 .Pp
 The
 .Fl M ,
@@ -124,8 +128,8 @@ The
 and
 .Fl v
 options provided debugging information and are primarily of interest
-only to the BIND 9 developers.  They might be changed or removed in
-future releases.
+only to the BIND 9 developers.
+They might be changed or removed in future releases.
 .Pp
 The only valid value for
 .Ar command
@@ -149,12 +153,13 @@ utility.
 There is currently no way to provide the shared secret for a key_id 
 without using the configuration file.
 .Pp
-Several error messages could be clearer.  For example, trying to connect
+Several error messages could be clearer.
+For example, trying to connect
 from an address that is not in the list of acceptable addresses
 configured into
 .Xr named
 will result in the error message "end of file" when the server just
-unceremonisously closes the connection.
+unceremoniously closes the connection.
 .Sh SEE ALSO
 .Xr rndc.conf 5 ,
 .Xr named 8 ,
