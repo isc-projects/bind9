@@ -6,7 +6,8 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
-1438.	[func]		Log TSIG (if any) when logging NOTIFY requests.
+1443.	[func]		Masters lists can now be specified and referenced
+			in zone masters clauses and other masters lists.
 
 1442.	[func]		New fuctions for manipulating port lists:
 			dns_portlist_create(), dns_portlist_add(),
@@ -19,6 +20,8 @@
 1440.	[func]		It is now possible to tell named to avoid using
 			certian source ports (avoid-v4-udp-ports,
 			avoid-v6-udp-ports).
+
+1438.	[func]		Log TSIG (if any) when logging NOTIFY requests.
 
 1436.	[func]		dns_zonemgr_resumexfrs() can be used to restart
 			stalled transfers.
