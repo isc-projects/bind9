@@ -52,8 +52,8 @@ named: ${OBJS} ${DEPLIBS}
 clean distclean::
 	rm -f ${TARGETS} confparser.c confparser_p.h
 
-confparser.c: confparser.y
-	${YACC} -d confparser.y
+confparser.c: ${srcdir}/confparser.y
+	${YACC} -d ${srcdir}/confparser.y
 	mv y.tab.c confparser.c
 	mv y.tab.h confparser_p.h
 
