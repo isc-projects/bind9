@@ -322,7 +322,7 @@ expand_acls(dns_c_acltable_t *table, dns_c_ipmatchlist_t *list)
 			}
 
 		default:
-			/* Do nothing */
+			; /* Do nothing */
 		}
 			
 		tmpelem = ISC_LIST_NEXT(elem, next);
