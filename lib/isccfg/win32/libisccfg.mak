@@ -297,24 +297,24 @@ SOURCE=.\version.c
 !IF  "$(CFG)" == "libisccfg - Win32 Release"
 
 "libisc - Win32 Release" : 
-   cd "\bind-9.2.1rc1\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" 
    cd "..\..\isccfg\win32"
 
 "libisc - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.2.1rc1\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\isccfg\win32"
 
 !ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
 
 "libisc - Win32 Debug" : 
-   cd "\bind-9.2.1rc1\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" 
    cd "..\..\isccfg\win32"
 
 "libisc - Win32 DebugCLEAN" : 
-   cd "\bind-9.2.1rc1\lib\isc\win32"
+   cd "..\..\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\isccfg\win32"
 
@@ -323,24 +323,24 @@ SOURCE=.\version.c
 !IF  "$(CFG)" == "libisccfg - Win32 Release"
 
 "libdns - Win32 Release" : 
-   cd "\bind-9.2.1rc1\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" 
    cd "..\..\isccfg\win32"
 
 "libdns - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.2.1rc1\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\isccfg\win32"
 
 !ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
 
 "libdns - Win32 Debug" : 
-   cd "\bind-9.2.1rc1\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" 
    cd "..\..\isccfg\win32"
 
 "libdns - Win32 DebugCLEAN" : 
-   cd "\bind-9.2.1rc1\lib\dns\win32"
+   cd "..\..\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\isccfg\win32"
 
