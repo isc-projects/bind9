@@ -892,7 +892,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		if (sock->type == isc_sockettype_udp) {
 			memset(&dev->address, 0, sizeof(dev->address));
 			msghdr.msg_name = (void *)&dev->address.type.sa;
-			msghdr.msg_namelen = sizeof (dev->address.type.sa);
+			msghdr.msg_namelen = sizeof (dev->address.type);
 		} else {
 			msghdr.msg_name = NULL;
 			msghdr.msg_namelen = 0;
@@ -1627,7 +1627,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (sock->type == isc_sockettype_udp) {
 		memset(&dev->address, 0, sizeof(dev->address));
 		msghdr.msg_name = (void *)&dev->address.type.sa;
-		msghdr.msg_namelen = sizeof (dev->address.type.sa);
+		msghdr.msg_namelen = sizeof (dev->address.type);
 	} else {
 		msghdr.msg_name = NULL;
 		msghdr.msg_namelen = 0;
