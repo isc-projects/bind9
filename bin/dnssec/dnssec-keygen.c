@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.56 2001/10/04 23:48:13 gson Exp $ */
+/* $Id: dnssec-keygen.c,v 1.57 2001/10/11 22:19:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -285,6 +285,11 @@ main(int argc, char **argv) {
 		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0)
 			fatal("Specified null key with signing authority");
 	}
+
+	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
+	    (alg == DNS_KEYALG_DH || alg == DST_ALG_HMACMD5))
+		fatal("A key with algorithm '%s' cannot be a zone key",
+		      algname);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
