@@ -1,4 +1,4 @@
-1524.	[port]		AIX more libtool fixes.
+1531.	[port]		AIX more libtool fixes.
 
 1530.	[bug]		It was possible to trigger a INSIST() failure if a
 			slave master file was removed at just the correct
