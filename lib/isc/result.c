@@ -76,6 +76,7 @@ static char *text[ISC_R_NRESULTS] = {
 	"unexpected token",			/* 32 */
 	"quota reached",			/* 33 */
 	"unexpected error",			/* 34 */
+	"already running",			/* 35 */
 };
 
 #define ISC_RESULT_RESULTSET			2
