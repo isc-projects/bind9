@@ -236,7 +236,9 @@ and
 is provided, only matching resource records will be removed.
 The internet class is assumed if
 \fIclass\fR
-is not supplied.
+is not supplied. The
+\fIttl\fR
+is ignored, and is only allowed for compatibility.
 .TP
 \fB.sp\fR
 Adds a new resource record with the specified
@@ -244,6 +246,8 @@ Adds a new resource record with the specified
 \fIclass\fR
 and
 \fIdata\fR.
+.PP
+Lines beginning with a semicolon are comments, and are ignored.
 .SH "EXAMPLES"
 .PP
 The examples below show how

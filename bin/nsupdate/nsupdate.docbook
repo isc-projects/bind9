@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.1 2001/03/31 02:31:16 gson Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.2 2001/03/31 02:39:51 bwelling Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -346,6 +346,7 @@ RDATA.
 <cmdsynopsis>
 <command>update delete</command>
 <arg choice="req">domain-name</arg>
+<arg choice="opt">ttl</arg>
 <arg choice="opt">class</arg>
 <arg choice="opt">type <arg choice="opt" rep="repeat">data</arg></arg>
 </cmdsynopsis>
@@ -361,7 +362,9 @@ and
 is provided, only matching resource records will be removed.
 The internet class is assumed if
 <parameter>class</parameter>
-is not supplied.
+is not supplied.  The
+<parameter>ttl</parameter>
+is ignored, and is only allowed for compatibility.
 </para>
 
 <varlistentry><term>
@@ -384,6 +387,11 @@ and
 </para>
 </listitem>
 </variablelist>
+
+<para>
+Lines beginning with a semicolon are comments, and are ignored.
+</para>
+
 </refsect1>
 
 <refsect1>

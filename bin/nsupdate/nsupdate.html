@@ -610,7 +610,7 @@ RDATA.</P
 ><B
 CLASS="COMMAND"
 >update delete</B
->  {domain-name} [class] [type  [data...]]</P
+>  {domain-name} [ttl] [class] [type  [data...]]</P
 ></DT
 ><DD
 ><P
@@ -643,7 +643,14 @@ CLASS="PARAMETER"
 >class</I
 ></TT
 >
-is not supplied.</P
+is not supplied.  The
+<TT
+CLASS="PARAMETER"
+><I
+>ttl</I
+></TT
+>
+is ignored, and is only allowed for compatibility.</P
 ></DD
 ><DT
 ><P
@@ -677,12 +684,14 @@ CLASS="PARAMETER"
 ></DD
 ></DL
 ></DIV
-></P
+>&#13;</P
+><P
+>Lines beginning with a semicolon are comments, and are ignored.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN194"
+NAME="AEN197"
 ></A
 ><H2
 >EXAMPLES</H2
@@ -749,13 +758,11 @@ long-standing rule in RFC1034 that a name must not exist as any other
 record type if it exists as a CNAME.
 (The rule has been updated for DNSSEC in RFC2535 to allow CNAMEs to have
 SIG, KEY and NXT records.)</P
-><P
-></P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN208"
+NAME="AEN210"
 ></A
 ><H2
 >FILES</H2
@@ -770,8 +777,6 @@ CLASS="CONSTANT"
 >/etc/resolv.conf</TT
 ></DT
 ><DD
-><P
-></P
 ><P
 >used to identify default name server</P
 ></DD
@@ -789,7 +794,7 @@ CLASS="CITEREFENTRY"
 CLASS="REFENTRYTITLE"
 >dnssec-keygen</SPAN
 >(8)</SPAN
->.&#13;</P
+>.</P
 ></DD
 ><DT
 ><TT
@@ -805,7 +810,7 @@ CLASS="CITEREFENTRY"
 CLASS="REFENTRYTITLE"
 >dnssec-keygen</SPAN
 >(8)</SPAN
->.&#13;</P
+>.</P
 ></DD
 ></DL
 ></DIV
@@ -813,7 +818,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN233"
+NAME="AEN234"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -878,7 +883,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN254"
+NAME="AEN255"
 ></A
 ><H2
 >BUGS</H2
