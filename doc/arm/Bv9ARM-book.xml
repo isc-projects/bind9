@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.73 2000/12/29 20:40:35 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.74 2001/01/02 20:22:32 gson Exp $ -->
 
 <book>
 
@@ -21,8 +21,12 @@
     <para>The Berkeley Internet Name Domain (<acronym>BIND</acronym>) implements an
     domain name server for a number of operating systems. This
     document provides basic information about the installation and
-    care of the Internet Software Consortium (<acronym>ISC</acronym>) <acronym>BIND</acronym> version 9
-    software package for system administrators.</para>
+    care of the Internet Software Consortium (<acronym>ISC</acronym>)
+    <acronym>BIND</acronym> version 9 software package for system
+    administrators.</para>
+
+    <para>This version of the manual corresponds to BIND version 9.1.</para>
+    
   </sect1>
   <sect1><title>Organization of This Document</title>
     <para>In this document, <emphasis>Section 1</emphasis> introduces
