@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.27 1999/10/26 18:05:23 ogud Exp $ */
+ /* $Id: master.c,v 1.28 1999/11/02 13:07:51 marka Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,7 @@
 #include <dns/rdatatype.h>
 #include <dns/rdata.h>
 #include <dns/time.h>
+#include <dns/ttl.h>
 
 /*
  * Grow the number of dns_rdatalist_t (RDLSZ) and dns_rdata_t (RDSZ) structures
@@ -89,7 +90,6 @@ static dns_rdatalist_t	*grow_rdatalist(int, dns_rdatalist_t *, int,
 static dns_rdata_t	*grow_rdata(int, dns_rdata_t *, int,
 				    rdatalist_head_t *, rdatalist_head_t *,
 				    isc_mem_t *);
-static isc_boolean_t	bind_ttl(char *s, isc_uint32_t *ttl);
 static isc_boolean_t	on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 
 #define GETTOKEN(lexer, options, token, eol) \
@@ -513,16 +513,15 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		type = 0;
 		rdclass = 0;
 
-		GETTOKEN(lex, ISC_LEXOPT_NUMBER, &token, ISC_FALSE);
+		GETTOKEN(lex, 0, &token, ISC_FALSE);
 
-		if (token.type == isc_tokentype_string &&
-		    dns_rdataclass_fromtext(&rdclass,
+		if (dns_rdataclass_fromtext(&rdclass,
 					    &token.value.as_textregion)
 				== DNS_R_SUCCESS)
-			GETTOKEN(lex, ISC_LEXOPT_NUMBER, &token, ISC_FALSE);
+			GETTOKEN(lex, 0, &token, ISC_FALSE);
 
-		if (token.type == isc_tokentype_number) {
-			ttl = token.value.as_ulong;
+		if (dns_ttl_fromtext(&token.value.as_textregion, &ttl)
+				== DNS_R_SUCCESS) {
 			if (ttl > 0x7fffffffUL) {
 				(callbacks->warn)(callbacks,
 	"dns_master_load: %s:%d TTL %lu > maxtll, setting ttl to 0\n",
@@ -531,9 +530,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					ttl);
 				ttl = 0;
 			}
-			ttl_known = ISC_TRUE;
-			GETTOKEN(lex, 0, &token, ISC_FALSE);
-		} else if (bind_ttl(token.value.as_pointer, &ttl)) {
 			ttl_known = ISC_TRUE;
 			GETTOKEN(lex, 0, &token, ISC_FALSE);
 		} else if (!ttl_known && !default_ttl_known) {
@@ -1049,57 +1045,6 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 		rdata = ISC_LIST_NEXT(rdata, link);
 	}
 	return (ISC_FALSE);
-}
-
-/*
- * Convert BIND 8.x ttl representation to a number.
- * Returns ISC_TRUE is string contained a valid string.
- */
-
-static isc_boolean_t
-bind_ttl(char *s, isc_uint32_t *ttl) {
-	isc_uint32_t tmp = 0;
-	unsigned long n;
-	char *e;
-
-	do {
-		n = strtoul(s, &e, 10);
-		if (s == e)
-			return (ISC_FALSE);
-		switch (*e) {
-		case 'w':
-		case 'W':
-			tmp += n * 7 * 24 * 3600;
-			s = e + 1;
-			break;
-		case 'd':
-		case 'D':
-			tmp += n * 24 * 3600;
-			s = e + 1;
-			break;
-		case 'h':
-		case 'H':
-			tmp += n * 3600;
-			s = e + 1;
-			break;
-		case 'm':
-		case 'M':
-			tmp += n * 60;
-			s = e + 1;
-			break;
-		case 's':
-		case 'S':
-			tmp += n * 60;
-			s = e + 1;
-			break;
-		default:
-			return (ISC_FALSE);
-		}
-	} while (*s != 0);
-	if (tmp > 0x7fffffffUL)
-		tmp = 0;
-	*ttl = tmp;
-	return (ISC_TRUE);
 }
 
 /*

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.24 1999/09/15 23:03:32 explorer Exp $ */
+ /* $Id: soa_6.c,v 1.25 1999/11/02 13:07:53 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
@@ -29,6 +29,7 @@ fromtext_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 	int i;
+	isc_uint32_t n;
 
 	REQUIRE(type == 6);
 
@@ -46,10 +47,14 @@ fromtext_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 					 downcase, target));
 	}
 
-	for (i = 0; i < 5; i++) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_number,
+	RETERR(gettoken(lexer, &token, isc_tokentype_number,
+			  ISC_FALSE));
+	RETERR(uint32_tobuffer(token.value.as_ulong, target));
+	for (i = 0; i < 4; i++) {
+		RETERR(gettoken(lexer, &token, isc_tokentype_string,
 				  ISC_FALSE));
-		RETERR(uint32_tobuffer(token.value.as_ulong, target));
+		RETERR(dns_counter_fromtext(&token.value.as_textregion, &n));
+		RETERR(uint32_tobuffer(n, target));
 	}
 
 	return (DNS_R_SUCCESS);

@@ -25,6 +25,7 @@
 #include <isc/boolean.h>
 #include <isc/region.h>
 #include <isc/buffer.h>
+#include <isc/print.h>
 
 #include <dns/result.h>
 #include <dns/ttl.h>
@@ -36,6 +37,8 @@
 	} while (0)
 
 
+static dns_result_t bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl);
+
 /* Helper for dns_ttl_totext(). */
 
 static dns_result_t
@@ -46,12 +49,12 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 	size_t len;
 	isc_region_t region;
 	if (verbose)
-		len = sprintf(tmp, "%s%u %s%s",
-			      space ? " " : "",
-			      t, s,
-			      t == 1 ? "" : "s");
+		len = snprintf(tmp, sizeof(tmp), "%s%u %s%s",
+			       space ? " " : "",
+			       t, s,
+			       t == 1 ? "" : "s");
 	else
-		len = sprintf(tmp, "%u%c", t, s[0]);		
+		len = snprintf(tmp, sizeof(tmp), "%u%c", t, s[0]);		
 	INSIST(len + 1 <= sizeof tmp);
 	isc_buffer_available(target, &region);
 	if (len > region.length)
@@ -115,3 +118,74 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
 	return (DNS_R_SUCCESS);
 }
 
+dns_result_t
+dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
+	return (bind_ttl(source, ttl));
+}
+
+dns_result_t
+dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
+	return (bind_ttl(source, ttl));
+}
+
+static dns_result_t
+bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
+	isc_uint32_t tmp = 0;
+	unsigned long n;
+	char *e, *s;
+	char buf[64];
+
+	/*
+	 * Copy the buffer as it may not be NULL terminated.
+	 * No legal counter / ttl is longer that 63 characters.
+	 */
+	if (source->length > sizeof(buf) - 1)
+		return(DNS_R_SYNTAX);
+	strncpy(buf, source->base, source->length);
+	buf[source->length] = '\0';
+	s = buf;
+
+	do {
+		n = strtoul(s, &e, 10);
+		if (s == e)
+			return (DNS_R_SYNTAX);
+		switch (*e) {
+		case 'w':
+		case 'W':
+			tmp += n * 7 * 24 * 3600;
+			s = e + 1;
+			break;
+		case 'd':
+		case 'D':
+			tmp += n * 24 * 3600;
+			s = e + 1;
+			break;
+		case 'h':
+		case 'H':
+			tmp += n * 3600;
+			s = e + 1;
+			break;
+		case 'm':
+		case 'M':
+			tmp += n * 60;
+			s = e + 1;
+			break;
+		case 's':
+		case 'S':
+			tmp += n;
+			s = e + 1;
+			break;
+		case '\0':
+			/* Plain number? */
+			if (tmp != 0)
+				return (DNS_R_SYNTAX);
+			tmp = n;
+			s = e;
+			break;
+		default:
+			return (DNS_R_SYNTAX);
+		}
+	} while (*s != 0);
+	*ttl = tmp;
+	return (DNS_R_SUCCESS);
+}
