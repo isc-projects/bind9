@@ -1,16 +1,15 @@
 
-
 DNS Extensions                                                O. Kolkman
 Internet-Draft                                                  RIPE NCC
-Expires: March 1, 2004                                       J. Schlyter
+Expires: June 17, 2004                                       J. Schlyter
 
                                                                 E. Lewis
                                                                     ARIN
-                                                          September 2003
+                                                       December 18, 2003
 
 
                    DNSKEY RR Secure Entry Point Flag
-              draft-ietf-dnsext-keyrr-key-signing-flag-11
+              draft-ietf-dnsext-keyrr-key-signing-flag-12
 
 Status of this Memo
 
@@ -32,7 +31,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 1, 2004.
+   This Internet-Draft will expire on June 17, 2004.
 
 Copyright Notice
 
@@ -52,9 +51,9 @@ Abstract
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 1]
+Kolkman, et al.          Expires June 17, 2004                  [Page 1]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
    be used in the DNS verification protocol. This document updates RFC
@@ -108,9 +107,9 @@ Table of Contents
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 2]
+Kolkman, et al.          Expires June 17, 2004                  [Page 2]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
 1. Introduction
@@ -164,9 +163,9 @@ Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 3]
+Kolkman, et al.          Expires June 17, 2004                  [Page 3]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
       An administrator has configured a DNSKEY as root for a trusted
@@ -220,13 +219,13 @@ Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 4]
+Kolkman, et al.          Expires June 17, 2004                  [Page 4]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
-   This document assigns the 15'th bit [4] in the flags field as the
-   secure entry point (SEP) bit.  If the the bit is set to 1 the key is
+   This document assigns the 15'th bit in the flags field as the secure
+   entry point (SEP) bit.  If the the bit is set to 1 the key is
    intended to be used as secure entry point key.  One SHOULD NOT assign
    special meaning to the key if the bit is set to 0.  Operators can
    recognize the secure entry point key by the even or odd-ness of the
@@ -276,9 +275,9 @@ Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 5]
+Kolkman, et al.          Expires June 17, 2004                  [Page 5]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
    Using the SEP flag a key roll over can be automated. The parent can
@@ -311,10 +310,10 @@ Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
 
 6. IANA Considerations
 
-   IANA considerations:  The flag bits  in the DNSKEY RR are assigned by
-   IETF consensus. This document assigns the 15th bit in the DNSKEY RR
-   as the Secure Entry Point (SEP) bit. [Final text pending
-   clarification of the DNSKEY flag registry]
+   The flag bits  in the DNSKEY RR are assigned by IETF consensus and
+   registered in the DNSKEY Flags registry (created by [4]). This
+   document assigns the 15th bit in the DNSKEY RR as the Secure Entry
+   Point (SEP) bit.
 
 7. Internationalization Considerations
 
@@ -332,9 +331,9 @@ Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 6]
+Kolkman, et al.          Expires June 17, 2004                  [Page 6]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
    This document saw the light during a workshop on DNSSEC operations
@@ -351,8 +350,9 @@ Normative References
    [3]  Lewis, E., "DNS Security Extension Clarification on Zone
         Status", RFC 3090, March 2001.
 
-   [4]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
-        Record (RR)", RFC 3445, December 2002.
+   [4]  Weiler, S., "Legacy Resolver Compatibility for Delegation
+        Signer", draft-ietf-dnsext-dnssec-2535typecode-change-05 (work
+        in progress), October 2003.
 
 Informative References
 
@@ -387,10 +387,9 @@ Authors' Addresses
 
 
 
-
-Kolkman, et al.          Expires March 1, 2004                  [Page 7]
+Kolkman, et al.          Expires June 17, 2004                  [Page 7]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
    Edward P. Lewis
@@ -444,9 +443,9 @@ Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 8]
+Kolkman, et al.          Expires June 17, 2004                  [Page 8]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
 Intellectual Property Statement
@@ -500,9 +499,9 @@ Full Copyright Statement
 
 
 
-Kolkman, et al.          Expires March 1, 2004                  [Page 9]
+Kolkman, et al.          Expires June 17, 2004                  [Page 9]
 
-Internet-Draft     DNSKEY RR Secure Entry Point Flag      September 2003
+Internet-Draft     DNSKEY RR Secure Entry Point Flag       December 2003
 
 
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
@@ -556,5 +555,6 @@ Acknowledgment
 
 
 
-Kolkman, et al.          Expires March 1, 2004                 [Page 10]
+Kolkman, et al.          Expires June 17, 2004                 [Page 10]
 
+

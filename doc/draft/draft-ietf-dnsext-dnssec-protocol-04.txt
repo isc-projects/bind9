@@ -2,7 +2,7 @@
 
 DNS Extensions                                                 R. Arends
 Internet-Draft                                      Telematica Instituut
-Expires: April 26, 2004                                        M. Larson
+Expires: June 16, 2004                                         M. Larson
                                                                 VeriSign
                                                               R. Austein
                                                                      ISC
@@ -10,11 +10,11 @@ Expires: April 26, 2004                                        M. Larson
                                                                  USC/ISI
                                                                  S. Rose
                                                                     NIST
-                                                        October 27, 2003
+                                                       December 17, 2003
 
 
          Protocol Modifications for the DNS Security Extensions
-                  draft-ietf-dnsext-dnssec-protocol-03
+                  draft-ietf-dnsext-dnssec-protocol-04
 
 Status of this Memo
 
@@ -36,7 +36,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on April 26, 2004.
+   This Internet-Draft will expire on June 16, 2004.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Arends, et al.           Expires April 26, 2004                 [Page 1]
+Arends, et al.           Expires June 16, 2004                  [Page 1]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    defines the concept of a signed zone, along with the requirements for
@@ -77,96 +77,96 @@ Table of Contents
    2.    Zone Signing . . . . . . . . . . . . . . . . . . . . . . . .  6
    2.1   Including DNSKEY RRs in a Zone . . . . . . . . . . . . . . .  6
    2.2   Including RRSIG RRs in a Zone  . . . . . . . . . . . . . . .  6
-   2.3   Including NSEC RRs in a Zone . . . . . . . . . . . . . . . .  8
+   2.3   Including NSEC RRs in a Zone . . . . . . . . . . . . . . . .  7
    2.4   Including DS RRs in a Zone . . . . . . . . . . . . . . . . .  8
    2.5   Changes to the CNAME Resource Record.  . . . . . . . . . . .  8
-   2.6   Example of a Secure Zone . . . . . . . . . . . . . . . . . .  8
-   3.    Serving  . . . . . . . . . . . . . . . . . . . . . . . . . .  9
-   3.1   Authoritative Name Servers . . . . . . . . . . . . . . . . .  9
-   3.1.1 Including RRSIG RRs in a Response  . . . . . . . . . . . . . 10
-   3.1.2 Including DNSKEY RRs In a Response . . . . . . . . . . . . . 10
-   3.1.3 Including NSEC RRs In a Response . . . . . . . . . . . . . . 11
-   3.1.4 Including DS RRs In a Response . . . . . . . . . . . . . . . 13
-   3.1.5 Responding to Queries for Type AXFR or IXFR  . . . . . . . . 14
-   3.1.6 The AD and CD Bits in an Authoritative Response  . . . . . . 15
-   3.2   Recursive Name Servers . . . . . . . . . . . . . . . . . . . 16
-   3.2.1 The DO bit . . . . . . . . . . . . . . . . . . . . . . . . . 16
-   3.2.2 The CD bit . . . . . . . . . . . . . . . . . . . . . . . . . 17
-   3.2.3 The AD bit . . . . . . . . . . . . . . . . . . . . . . . . . 18
-   3.3   Example DNSSEC Responses . . . . . . . . . . . . . . . . . . 18
-   4.    Resolving  . . . . . . . . . . . . . . . . . . . . . . . . . 19
-   4.1   Rate Limiting  . . . . . . . . . . . . . . . . . . . . . . . 21
-   4.2   Stub resolvers . . . . . . . . . . . . . . . . . . . . . . . 21
-   5.    Authenticating DNS Responses . . . . . . . . . . . . . . . . 23
-   5.1   Special Considerations for Islands of Security . . . . . . . 24
-   5.2   Authenticating Referrals . . . . . . . . . . . . . . . . . . 24
-   5.3   Authenticating an RRset Using an RRSIG RR  . . . . . . . . . 25
-   5.3.1 Checking the RRSIG RR Validity . . . . . . . . . . . . . . . 26
-   5.3.2 Reconstructing the Signed Data . . . . . . . . . . . . . . . 27
-   5.3.3 Checking the Signature . . . . . . . . . . . . . . . . . . . 28
+   2.6   Example of a Secure Zone . . . . . . . . . . . . . . . . . .  9
+   3.    Serving  . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+   3.1   Authoritative Name Servers . . . . . . . . . . . . . . . . . 10
+   3.1.1 Including RRSIG RRs in a Response  . . . . . . . . . . . . . 11
+   3.1.2 Including DNSKEY RRs In a Response . . . . . . . . . . . . . 11
+   3.1.3 Including NSEC RRs In a Response . . . . . . . . . . . . . . 12
+   3.1.4 Including DS RRs In a Response . . . . . . . . . . . . . . . 14
+   3.1.5 Responding to Queries for Type AXFR or IXFR  . . . . . . . . 16
+   3.1.6 The AD and CD Bits in an Authoritative Response  . . . . . . 17
+   3.2   Recursive Name Servers . . . . . . . . . . . . . . . . . . . 17
+   3.2.1 The DO bit . . . . . . . . . . . . . . . . . . . . . . . . . 17
+   3.2.2 The CD bit . . . . . . . . . . . . . . . . . . . . . . . . . 18
+   3.2.3 The AD bit . . . . . . . . . . . . . . . . . . . . . . . . . 19
+   3.3   Example DNSSEC Responses . . . . . . . . . . . . . . . . . . 19
+   4.    Resolving  . . . . . . . . . . . . . . . . . . . . . . . . . 20
+   4.1   EDNS Support . . . . . . . . . . . . . . . . . . . . . . . . 20
+   4.2   Signature Verification Support . . . . . . . . . . . . . . . 20
+   4.3   Determining Security Status of Data  . . . . . . . . . . . . 21
+   4.4   Preconfigured Public Keys  . . . . . . . . . . . . . . . . . 21
+   4.5   Response Caching . . . . . . . . . . . . . . . . . . . . . . 21
+   4.6   Handling of the CD and AD bits . . . . . . . . . . . . . . . 22
+   4.7   Rate Limiting  . . . . . . . . . . . . . . . . . . . . . . . 22
+   4.8   Stub resolvers . . . . . . . . . . . . . . . . . . . . . . . 23
+   4.8.1 ENDS Support . . . . . . . . . . . . . . . . . . . . . . . . 23
+   4.8.2 Handling of the CD and AD Bits . . . . . . . . . . . . . . . 23
+
+
+
+Arends, et al.           Expires June 16, 2004                  [Page 2]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
+   5.    Authenticating DNS Responses . . . . . . . . . . . . . . . . 25
+   5.1   Special Considerations for Islands of Security . . . . . . . 26
+   5.2   Authenticating Referrals . . . . . . . . . . . . . . . . . . 26
+   5.3   Authenticating an RRset Using an RRSIG RR  . . . . . . . . . 27
+   5.3.1 Checking the RRSIG RR Validity . . . . . . . . . . . . . . . 28
+   5.3.2 Reconstructing the Signed Data . . . . . . . . . . . . . . . 29
+   5.3.3 Checking the Signature . . . . . . . . . . . . . . . . . . . 30
    5.3.4 Authenticating A Wildcard Expanded RRset Positive
+         Response . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+   5.4   Authenticated Denial of Existence  . . . . . . . . . . . . . 31
+   5.5   Authentication Example . . . . . . . . . . . . . . . . . . . 32
+   6.    IANA Considerations  . . . . . . . . . . . . . . . . . . . . 33
+   7.    Security Considerations  . . . . . . . . . . . . . . . . . . 34
+   8.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . . 35
+         Normative References . . . . . . . . . . . . . . . . . . . . 36
+         Informative References . . . . . . . . . . . . . . . . . . . 37
+         Authors' Addresses . . . . . . . . . . . . . . . . . . . . . 37
+   A.    Signed Zone Example  . . . . . . . . . . . . . . . . . . . . 39
+   B.    Example Responses  . . . . . . . . . . . . . . . . . . . . . 45
+   B.1   Answer . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+   B.2   Name Error . . . . . . . . . . . . . . . . . . . . . . . . . 46
+   B.3   No Data Error  . . . . . . . . . . . . . . . . . . . . . . . 47
+   B.4   Referral to Signed Zone  . . . . . . . . . . . . . . . . . . 48
+   B.5   Referral to Unsigned Zone  . . . . . . . . . . . . . . . . . 49
+   B.6   Wildcard Expansion . . . . . . . . . . . . . . . . . . . . . 49
+   B.7   Wildcard No Data Error . . . . . . . . . . . . . . . . . . . 50
+   B.8   DS Child Zone No Data Error  . . . . . . . . . . . . . . . . 51
+   C.    Authentication Examples  . . . . . . . . . . . . . . . . . . 53
+   C.1   Authenticating An Answer . . . . . . . . . . . . . . . . . . 53
+   C.1.1 Authenticating the example DNSKEY RR . . . . . . . . . . . . 53
+   C.2   Name Error . . . . . . . . . . . . . . . . . . . . . . . . . 54
+   C.3   No Data Error  . . . . . . . . . . . . . . . . . . . . . . . 54
+   C.4   Referral to Signed Zone  . . . . . . . . . . . . . . . . . . 54
+   C.5   Referral to Unsigned Zone  . . . . . . . . . . . . . . . . . 54
+   C.6   Wildcard Expansion . . . . . . . . . . . . . . . . . . . . . 55
+   C.7   Wildcard No Data Error . . . . . . . . . . . . . . . . . . . 55
+   C.8   DS Child Zone No Data Error  . . . . . . . . . . . . . . . . 55
+         Intellectual Property and Copyright Statements . . . . . . . 56
 
 
 
-Arends, et al.           Expires April 26, 2004                 [Page 2]
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires June 16, 2004                  [Page 3]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
-         Response . . . . . . . . . . . . . . . . . . . . . . . . . . 29
-   5.4   Authenticated Denial of Existence  . . . . . . . . . . . . . 29
-   6.    IANA Considerations  . . . . . . . . . . . . . . . . . . . . 31
-   7.    Security Considerations  . . . . . . . . . . . . . . . . . . 32
-   8.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . . 33
-         Normative References . . . . . . . . . . . . . . . . . . . . 34
-         Informative References . . . . . . . . . . . . . . . . . . . 35
-         Authors' Addresses . . . . . . . . . . . . . . . . . . . . . 35
-   A.    Signed Zone Example  . . . . . . . . . . . . . . . . . . . . 37
-   B.    Example Responses  . . . . . . . . . . . . . . . . . . . . . 43
-   B.1   Answer . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
-   B.2   Name Error . . . . . . . . . . . . . . . . . . . . . . . . . 44
-   B.3   No Data Error  . . . . . . . . . . . . . . . . . . . . . . . 45
-   B.4   Referral to Signed Zone  . . . . . . . . . . . . . . . . . . 46
-   B.5   Referral to Unsigned Zone  . . . . . . . . . . . . . . . . . 47
-   B.6   Wildcard Expansion . . . . . . . . . . . . . . . . . . . . . 47
-   B.7   Wildcard No Data Error . . . . . . . . . . . . . . . . . . . 48
-   B.8   DS Child Zone No Data Error  . . . . . . . . . . . . . . . . 49
-   C.    Authentication Examples  . . . . . . . . . . . . . . . . . . 51
-   C.1   Authenticating An Answer . . . . . . . . . . . . . . . . . . 51
-   C.1.1 Authenticating the example DNSKEY RR . . . . . . . . . . . . 51
-   C.2   Name Error . . . . . . . . . . . . . . . . . . . . . . . . . 52
-   C.3   No Data Error  . . . . . . . . . . . . . . . . . . . . . . . 52
-   C.4   Referral to Signed Zone  . . . . . . . . . . . . . . . . . . 52
-   C.5   Referral to Unsigned Zone  . . . . . . . . . . . . . . . . . 52
-   C.6   Wildcard Expansion . . . . . . . . . . . . . . . . . . . . . 53
-   C.7   Wildcard No Data Error . . . . . . . . . . . . . . . . . . . 53
-   C.8   DS Child Zone No Data Error  . . . . . . . . . . . . . . . . 53
-         Intellectual Property and Copyright Statements . . . . . . . 54
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Arends, et al.           Expires April 26, 2004                 [Page 3]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 1. Introduction
@@ -220,9 +220,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                 [Page 4]
+Arends, et al.           Expires June 16, 2004                  [Page 4]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 1.3.3 Typos and Minor Corrections
@@ -276,9 +276,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                 [Page 5]
+Arends, et al.           Expires June 16, 2004                  [Page 5]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 2. Zone Signing
@@ -293,8 +293,6 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    DNSSEC requires a change to the definition of the CNAME resource
    record.  Section 2.5 changes the CNAME RR to allow RRSIG and NSEC RRs
    to appear at the same owner name as a CNAME RR.
-
-   Section 2.6 shows a sample signed zone.
 
 2.1 Including DNSKEY RRs in a Zone
 
@@ -330,14 +328,14 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
    o  The RRSIG Type Covered field is equal to the RRset type;
 
-
-
-Arends, et al.           Expires April 26, 2004                 [Page 6]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
    o  The RRSIG Original TTL field is equal to the TTL of the RRset;
+
+
+
+Arends, et al.           Expires June 16, 2004                  [Page 6]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
 
    o  The RRSIG RR's TTL is equal to the TTL of the RRset;
 
@@ -385,20 +383,25 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    which has an NSEC RRset will have RRSIG RRs as well in the signed
    zone.
 
-
-
-
-Arends, et al.           Expires April 26, 2004                 [Page 7]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
 2.3 Including NSEC RRs in a Zone
 
-   Each owner name in the zone MUST have an NSEC resource record, except
-   for the owner names of any glue address RRsets.  The process for
-   constructing the NSEC RR for a given name is described in
+
+
+
+Arends, et al.           Expires June 16, 2004                  [Page 7]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
+   Each owner name in the zone which has authoritative data or a
+   delegation point NS RRset MUST have an NSEC resource record. The
+   process for constructing the NSEC RR for a given name is described in
    [I-D.ietf-dnsext-dnssec-records].
+
+   An NSEC record (and its associated RRSIG RRset) MUST NOT be the only
+   RRsets at any particular owner name.  That is, the signing process
+   MUST NOT create (or RRSIG) RRs for owner names nodes which were not
+   the owner name of any RRset before the zone was signed.
 
    The type bitmap of every NSEC resource record in a signed zone MUST
    indicate the presence of both the NSEC record itself and its
@@ -409,9 +412,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    The DS resource record establishes authentication chains between DNS
    zones.  A DS RRset SHOULD be present at a delegation point when the
    child zone is signed.  The DS RRset MAY contain multiple records,
-   each referencing a key used by the child zone to sign its apex DNSKEY
-   RRset.  All DS RRsets in a zone MUST be signed and DS RRsets MUST NOT
-   appear at non-delegation points nor at a zone's apex.
+   each referencing a public key in the child zone used to verify the
+   RRSIGs in that zone.  All DS RRsets in a zone MUST be signed and DS
+   RRsets MUST NOT appear at non-delegation points nor at a zone's apex.
 
    A DS RR SHOULD point to a DNSKEY RR which is present in the child's
    apex DNSKEY RRset, and the child's apex DNSKEY RRset SHOULD be signed
@@ -438,15 +441,68 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    this conflict, this specification modifies the definition of the
    CNAME resource record to allow it to coexist with NSEC and RRSIG RRs.
 
+
+
+
+Arends, et al.           Expires June 16, 2004                  [Page 8]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
 2.6 Example of a Secure Zone
 
    Appendix A shows a complete example of a small signed zone.
 
 
 
-Arends, et al.           Expires April 26, 2004                 [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires June 16, 2004                  [Page 9]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 3. Serving
@@ -481,7 +537,7 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    the CD bit from a query into the corresponding response.  The AD bit
    is controlled by name servers; a security-aware name server MUST
    ignore the setting of the AD bit in queries.  See Section 3.1.6,
-   Section 3.2.2, Section 3.2.3, Section 4, and Section 4.2 for details
+   Section 3.2.2, Section 3.2.3, Section 4, and Section 4.8 for details
    on the behavior of these bits.
 
 3.1 Authoritative Name Servers
@@ -500,9 +556,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                 [Page 9]
+Arends, et al.           Expires June 16, 2004                 [Page 10]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    o  Either a DS RRset or an NSEC RR proving that no DS RRs exist MUST
@@ -556,9 +612,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 10]
+Arends, et al.           Expires June 16, 2004                 [Page 11]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 3.1.3 Including NSEC RRs In a Response
@@ -612,9 +668,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 11]
+Arends, et al.           Expires June 16, 2004                 [Page 12]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    o  An NSEC RR proving that there is no exact match for <SNAME,
@@ -629,6 +685,15 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
    If space does not permit inclusion of these NSEC and RRSIG RRs, the
    name server MUST set the TC bit (see Section 3.1.1).
+
+   The owner names of these NSEC and RRSIG RRs are not subject to
+   wildcard name expansion when these RRs are included in the Authority
+   section of the response.
+
+   Note that this form of response includes cases in which SNAME
+   corresponds to an empty non-terminal name within the zone (a name
+   which is not the owner name for any RRset but which is the parent
+   name of one or more RRsets).
 
 3.1.3.3 Including NSEC RRs: Wildcard Answer Response
 
@@ -656,22 +721,26 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
       expansion; and
 
    o  An NSEC RR proving that there are no RRsets in the zone which
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 13]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
       would have been a closer match for <SNAME, SCLASS>.
 
    In some cases a single NSEC RR may prove both of these points, in
    which case the name server SHOULD only include the NSEC RR and its
    RRSIG RR(s) once in the Authority section.
 
+   The owner names of these NSEC and RRSIG RRs are not subject to
+   wildcard name expansion when these RRs are included in the Authority
+   section of the response.
+
    If space does not permit inclusion of these NSEC and RRSIG RRs, the
    name server MUST set the TC bit (see Section 3.1.1).
-
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 12]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
 
 3.1.3.5 Finding The Right NSEC RRs
 
@@ -708,6 +777,14 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    security-aware authoritative name server returning a referral
    includes DNSSEC data along with the NS RRset.
 
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 14]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
    If a DS RRset is present at the delegation point, the name server
    MUST return both the DS RRset and its associated RRSIG RR(s) along
    with the NS RRset.  The name server MUST place the NS RRset before
@@ -721,14 +798,6 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
    Including these DS, NSEC, and RRSIG RRs increases the size of
    referral messages, and may cause some or all glue RRs to be omitted.
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 13]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
    If space does not permit inclusion of the DS or NSEC RRset and
    associated RRSIG RRs, the name server MUST set the TC bit (see
    Section 3.1.1).
@@ -764,6 +833,14 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    In all other cases, the name server either has some way of obtaining
    the DS RRset or could not have been expected to have the DS RRset
    even by the pre-DNSSEC processing rules, so the name server can
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 15]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
    return either the DS RRset or an error response according to the
    normal processing rules.
 
@@ -777,14 +854,6 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
    DNSSEC does not change the DNS zone transfer process.  A signed zone
    will contain RRSIG, DNSKEY, NSEC, and DS resource records, but these
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 14]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
    records have no special meaning with respect to a zone transfer
    operation, and these RRs are treated as any other resource record
    type.
@@ -820,6 +889,14 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    RRSIG RRs appear in both the parent and child zones at a zone cut,
    and are authoritative in whichever zone contains the authoritative
    RRset for which the RRSIG RR provides the signature.  That is, the
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 16]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
    RRSIG RR for a DS RRset or a parental NSEC RR at a zone cut will be
    authoritative in the parent zone, while the RRSIG for any RRset in
    the child zone's apex will be authoritative in the child zone. As
@@ -832,14 +909,6 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    security-aware resolvers and security-aware recursive name servers.
    This bits are for the most part not relevant to query processing by
    security-aware authoritative name servers.
-
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 15]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
 
    Since a security-aware name server does not perform signature
    validation for authoritative data during query processing even when
@@ -869,15 +938,6 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    implements the security-aware name server role and the code which
    implements the security-aware resolver role, respectively.
 
-   A security-aware recursive name server MUST NOT attempt to answer a
-   query by piecing together cached data it received in response to
-   previous queries that requested different QNAMEs, QTYPEs, or
-   QCLASSes.  A security-aware recursive name server MUST NOT use NSEC
-   RRs from one negative response to synthesize a response for a
-   different query.  A security-aware recursive name server MUST NOT use
-   a previous wildcard expansion to generate a response to a different
-   query.
-
    The resolver side MUST follow the usual rules for caching and
    negative caching which would apply to any security-aware resolver.
 
@@ -885,18 +945,18 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
    The resolver side of a security-aware recursive name server MUST set
    the DO bit when sending requests, regardless of the state of the DO
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 17]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
    bit in the initiating request received by the name server side.  If
    the DO bit in an initiating query is not set, the name server side
    MUST strip any authenticating DNSSEC RRs from the response, but but
    MUST NOT strip any DNSSEC RRs that the initiating query explicitly
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 16]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
    requested.
 
 3.2.2 The CD bit
@@ -941,18 +1001,18 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    responsibility for performing its own authentication, and the
    recursive name server should not interfere.
 
-   If the resolver side implements a BAD cache (see Section 4.1) and the
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 18]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
+   If the resolver side implements a BAD cache (see Section 4.7) and the
    name server side receives a query which matches an entry in the
    resolver side's BAD cache, the name server side's response depends on
    the sense of the CD bit in the original query.  If the CD bit is set,
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 17]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
    the name server side SHOULD return the data from the BAD cache; if
    the CD bit is not set, the name server side MUST return RCODE 2
    (server failure).
@@ -1000,13 +1060,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 18]
+Arends, et al.           Expires June 16, 2004                 [Page 19]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 4. Resolving
@@ -1018,6 +1074,8 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    specific to security-aware recursive name servers are described in
    Section 3.2.
 
+4.1 EDNS Support
+
    A security-aware resolver MUST include an EDNS [RFC2671] OPT
    pseudo-RR with the DO [RFC3225] bit set to one when sending queries.
 
@@ -1028,6 +1086,8 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    handle fragmented UDP packets correctly regardless of whether any
    such fragmented packets were received via IPv4 or IPv6.  Please see
    [RFC3226] for discussion of these requirements.
+
+4.2 Signature Verification Support
 
    A security-aware resolver MUST support the signature verification
    mechanisms described in Section 5, and MUST apply them to every
@@ -1053,22 +1113,25 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    A security-aware resolver MUST attempt to retrieve a missing NSEC RR
    which the resolver needs to authenticate a NODATA response.  In
    general it is not possible for a resolver to retrieve missing NSEC
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 20]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
    RRs, since the resolver will have no way of knowing the owner name of
    the missing NSEC RR, but in the specific case of a NODATA response,
    the resolver does know the name of the missing NSEC RR, and must
    therefore attempt to retrieve it.
 
-
-
-Arends, et al.           Expires April 26, 2004                [Page 19]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
    When attempting to retrieve missing NSEC or DS RRs which reside on
    the parental side at a zone cut, a security-aware iterative-mode
    resolver MUST query the name servers for the parent zone, not the
    child zone.
+
+4.3 Determining Security Status of Data
 
    A security-aware resolver MUST be able to determine whether or not it
    should expect a particular RRset to be signed.  More precisely, a
@@ -1076,7 +1139,7 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    cases:
 
    1.  An RRset for which the resolver is able to build a chain of
-       signed DNSKEY and DS RRs from a trusted starting point to the
+       signed DNSKEY and DS RRs from a trusted security anchor to the
        RRset.  In this case, the RRset should be signed, and is subject
        to signature validation as described above.
 
@@ -1093,13 +1156,26 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
        security-aware resolver is not able to contact security-aware
        name servers for the relevant zones.
 
+
+4.4 Preconfigured Public Keys
+
    A security-aware resolver MUST be capable of being preconfigured with
-   at least one trusted public key, and MUST be capable of being
+   at least one trusted public key, and SHOULD be capable of being
    preconfigured with multiple trusted public keys or DS RRs. Since a
    security-aware resolver will not be able to validate signatures
    without such a preconfigured trusted key, the resolver SHOULD have
    some reasonably robust mechanism for obtaining such keys when it
    boots.
+
+4.5 Response Caching
+
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 21]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
 
    A security-aware resolver SHOULD cache each response as a single
    atomic entry, indexed by the triple <QNAME, QTYPE, QCLASS>, with the
@@ -1107,24 +1183,18 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    RRset and any associated DNSSEC RRs. The resolver SHOULD discard the
    entire atomic entry when any of the RRs contained in it expire.
 
+4.6 Handling of the CD and AD bits
+
    A security-aware resolver MAY set the CD bit in a query to one in
    order to indicate that the resolver takes responsibility for
    performing whatever authentication its local policy requires on the
    RRsets in the response.  See Section 3.2 for the effect this bit has
    on the behavior of security-aware recursive name servers.
 
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 20]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
-
    A security-aware resolver MUST zero the AD bit when composing query
    messages.
 
-4.1 Rate Limiting
+4.7 Rate Limiting
 
    A security-aware resolver SHOULD NOT cache data with invalid
    signatures under normal circumstances.  However, a security-aware
@@ -1155,6 +1225,14 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    The intent of the above rule is to provide the raw data to clients
    which are capable of performing their own signature verification
    checks while protecting clients which depend on this resolver to
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 22]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
    perform such checks.  Several of the possible reasons why signature
    validation might fail involve conditions which may not apply equally
    to this resolver and the client which invoked it: for example, this
@@ -1164,18 +1242,12 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    performing its own signature validation from ever seeing the "bad"
    data does not help the client.
 
-4.2 Stub resolvers
+4.8 Stub resolvers
+
+4.8.1 ENDS Support
 
    A security-aware stub resolver MUST include an EDNS [RFC2671] OPT
    pseudo-RR with the DO [RFC3225] bit set to one when sending queries.
-
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 21]
-
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
-
 
    A security-aware stub resolver MUST support a message size of at
    least 1220 octets, SHOULD support a message size of 4000 octets, and
@@ -1192,10 +1264,13 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    of the data that it the stub resolver hands back to the application
    which invoked it but is not required to do so.
 
+4.8.2 Handling of the CD and AD Bits
+
    A security-aware stub resolver SHOULD NOT set the CD bit when sending
-   queries, since, by definition, a security-aware stub resolver does
-   not validate signatures and thus depends on the security-aware
-   recursive name server to perform validation on its behalf.
+   queries unless requested by the application layer, since by
+   definition, a security-aware stub resolver does not validate
+   signatures and thus depends on the security-aware recursive name
+   server to perform validation on its behalf.
 
    A security-aware stub resolver MAY chose to examine the setting of
    the AD bit in response messages that it receives in order to
@@ -1206,6 +1281,14 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    resolver are heavily dependent on the local policy of the
    security-aware recursive name server, so as a practical matter there
    may be little practical value to checking the status of the AD bit
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 23]
+
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
+
+
    except perhaps as a debugging aid.  In any case, a security-aware
    stub resolver MUST NOT place any reliance on signature validation
    allegedly performed on its behalf except when the security-aware stub
@@ -1228,9 +1311,38 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 22]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arends, et al.           Expires June 16, 2004                 [Page 24]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 5. Authenticating DNS Responses
@@ -1284,9 +1396,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 23]
+Arends, et al.           Expires June 16, 2004                 [Page 25]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    interfere with DNSSEC RRs or due to a deliberate attack in which an
@@ -1340,9 +1452,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 24]
+Arends, et al.           Expires June 16, 2004                 [Page 26]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
       RRset which, when hashed using the digest algorithm specified in
@@ -1396,9 +1508,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 25]
+Arends, et al.           Expires June 16, 2004                 [Page 27]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 5.3.1 Checking the RRSIG RR Validity
@@ -1435,7 +1547,7 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    above.  In this case, the resolver can not predetermine which DNSKEY
    RR to use to authenticate the signature, MUST try each matching
    DNSKEY RR until the resolver has either validated the signature or
-   has run out of matching keys to try.
+   has run out of matching public keys to try.
 
    Note that this authentication process is only meaningful if the
    resolver authenticates the DNSKEY RR before using it to validate
@@ -1452,9 +1564,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 26]
+Arends, et al.           Expires June 16, 2004                 [Page 28]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 5.3.2 Reconstructing the Signed Data
@@ -1508,9 +1620,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 27]
+Arends, et al.           Expires June 16, 2004                 [Page 29]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
                if rrsig_labels > fqdn
@@ -1551,10 +1663,10 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    authenticate the RRset.
 
    The Algorithm field in the RRSIG RR identifies the cryptographic
-   algorithm to generate the signature.  The signature itself is
+   algorithm used to generate the signature.  The signature itself is
    contained in the Signature field of the RRSIG RDATA, and the public
-   key to used generate the signature is contained in the Public Key
-   field of the matching DNSKEY RR(s) (found in Section 5.3.1).
+   key used to verify the signature is contained in the Public Key field
+   of the matching DNSKEY RR(s) (found in Section 5.3.1).
    [I-D.ietf-dnsext-dnssec-records] provides a list of algorithm types,
    and provides pointers to the documents that define each algorithm's
    use.
@@ -1564,14 +1676,14 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 28]
+Arends, et al.           Expires June 16, 2004                 [Page 30]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-   determine which DNSKEY RR by trying each matching key until the
-   resolver either succeeds in validating the signature or runs out of
-   keys to try.
+   determine which DNSKEY RR by trying each matching public key until
+   the resolver either succeeds in validating the signature or runs out
+   of keys to try.
 
    If the Labels field of the RRSIG RR is not equal to the number of
    labels in the RRset's fully qualified owner name, then the RRset is
@@ -1580,10 +1692,10 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    considering the RRset to be authentic.  Section 5.3.4 describes how
    to determine whether a wildcard was applied properly.
 
-   If other RRSIG RRs also cover this RRSIG RR, the local resolver
-   security policy determines whether the resolver also needs to test
-   these RRSIG RRs, and determines how to resolve conflicts if these
-   RRSIG RRs lead to differing results.
+   If other RRSIG RRs also cover this RRset, the local resolver security
+   policy determines whether the resolver also needs to test these RRSIG
+   RRs, and determines how to resolve conflicts if these RRSIG RRs lead
+   to differing results.
 
    If the resolver accepts the RRset as authentic, the resolver MUST set
    the TTL of the RRSIG RR and each RR in the authenticated RRset to a
@@ -1598,13 +1710,13 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 5.3.4 Authenticating A Wildcard Expanded RRset Positive Response
 
-   If the number of labels in an RRset's fully qualified domain name is
-   greater than the Labels field in the covering RRSIG RDATA, then the
-   RRset and its covering RRSIG RR were created as a result of wildcard
-   expansion.  Once the resolver has verified the signature as described
-   in Section 5.3, the resolver must take additional steps to verify the
+   If the number of labels in an RRset's owner name is greater than the
+   Labels field of the covering RRSIG RR, then the RRset and its
+   covering RRSIG RR were created as a result of wildcard expansion.
+   Once the resolver has verified the signature as described in Section
+   5.3, the resolver must take additional steps to verify the
    non-existence of an exact match or closer wildcard match for the
-   query.   Section 5.4 discusses these steps.
+   query.  Section 5.4 discusses these steps.
 
    Note that the response received by the resolver should include all
    NSEC RRs needed to authenticate the response (see Section 3.1.3).
@@ -1620,9 +1732,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 29]
+Arends, et al.           Expires June 16, 2004                 [Page 31]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    according to the standard RRset authentication rules described in
@@ -1632,37 +1744,39 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
       authenticated NSEC RR, then the NSEC RR's type bit map field lists
       all RR types present at that owner name, and a resolver can prove
       that the requested RR type does not exist by checking for the RR
-      type in the bit map.  Since the existence of the authenticated
-      NSEC RR proves that the owner name exists in the zone, wildcard
-      expansion could not have been used to match the requested RR owner
-      name and type.
+      type in the bit map.  If the number of labels in an authenticated
+      NSEC RR's owner name equals the Labels field of the covering RRSIG
+      RR, then the existence of the NSEC RR proves that wildcard
+      expansion could not have been used to match the request.
 
    o  If the requested RR name would appear after an authenticated NSEC
-      RR owner name and before the name listed in that NSEC RR's Next
+      RR's owner name and before the name listed in that NSEC RR's Next
       Domain Name field according to the canonical DNS name order
-      defined in [I-D.ietf-dnsext-dnssec-records], then no exact match
-      for the requested RR name exists in the zone. However, it is
-      possible that a wildcard could be used to match the requested RR
-      owner name and type, so proving that the requested RRset does not
-      exist also requires proving that no possible wildcard exists which
+      defined in [I-D.ietf-dnsext-dnssec-records], then no RRsets with
+      the requested name exist in the zone.  However, it is possible
+      that a wildcard could be used to match the requested RR owner name
+      and type, so proving that the requested RRset does not exist also
+      requires proving that no possible wildcard RRset exists which
       could have been used to generate a positive response.
 
    To prove non-existence of an RRset, the resolver must be able to
    verify both that the queried RRset does not exist and that no
    relevant wildcard RRset exists.  Proving this may require more than
    one NSEC RRset from the zone.  If the complete set of necessary NSEC
-   RRsets is not present in a response (perhaps due to truncation), then
-   a security-aware resolver MUST resend the query in order to attempt
-   to obtain the full collection of NSEC RRs necessary to verify
-   non-existence of the requested RRset.   As with all DNS operations,
-   however, the resolver MUST bound the work it puts into answering any
-   particular query.
+   RRsets is not present in a response (perhaps due to message
+   truncation), then a security-aware resolver MUST resend the query in
+   order to attempt to obtain the full collection of NSEC RRs necessary
+   to verify non-existence of the requested RRset.  As with all DNS
+   operations, however, the resolver MUST bound the work it puts into
+   answering any particular query.
 
    Since a verified NSEC RR proves the existence of both itself and its
    corresponding RRSIG RR, a verifier MUST ignore the settings of the
    NSEC and RRSIG bits in an NSEC RR.
 
-   Authentication examples are given in Section Appendix C.
+5.5 Authentication Example
+
+   Appendix C shows an example the authentication process.
 
 
 
@@ -1674,11 +1788,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-
-
-Arends, et al.           Expires April 26, 2004                [Page 30]
+Arends, et al.           Expires June 16, 2004                 [Page 32]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 6. IANA Considerations
@@ -1732,9 +1844,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 31]
+Arends, et al.           Expires June 16, 2004                 [Page 33]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 7. Security Considerations
@@ -1742,27 +1854,27 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    This document describes how the DNS security extensions use public
    key cryptography to sign and authenticate DNS resource record sets.
    Please see [I-D.ietf-dnsext-dnssec-intro] for terminology and general
-   security considerations related to DNSSEC.
+   security considerations related to DNSSEC; see
+   [I-D.ietf-dnsext-dnssec-intro] for considerations specific to the
+   DNSSEC resource record types.
 
    An active attacker who can set the CD bit in a DNS query message or
    the AD bit in a DNS response message can use these bits to defeat the
    protection which DNSSEC attempts to provide to security-oblivious
    recursive-mode resolvers.  For this reason, use of these control bits
    by a security-aware recursive-mode resolver requires a secure
-   channel.  See Section 3.2.2 and Section 4.2 for further discussion.
+   channel.  See Section 3.2.2 and Section 4.8 for further discussion.
 
-   DNSSEC introduces a number of denial of service issues.  These issues
-   will also be addressed in a future version of these security
-   considerations.
-
-
-
-
-
-
-
-
-
+   The protocol described in this document attempts to extend the
+   benefits of DNSSEC to security-oblivious stub resolvers. However,
+   since recovery from validation failures is likely to be specific to
+   particular applications, the facilities that DNSSEC provides for stub
+   resolvers may prove inadequate.  Operators of security-aware
+   recursive name servers will need to pay close attention to the
+   behavior of the applications which use their services when choosing a
+   local validation policy; failure to do so could easily result in the
+   recursive name server accidently denying service to the clients it is
+   intended to support.
 
 
 
@@ -1788,18 +1900,22 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 32]
+Arends, et al.           Expires June 16, 2004                 [Page 34]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 8. Acknowledgements
 
-   This document was created from the input and ideas of several members
-   of the DNS Extensions Working Group and working group mailing list.
-   The editors would like to express their thanks for the comments and
+   This document was created from the input and ideas of the members of
+   the DNS Extensions Working Group and working group mailing list.  The
+   editors would like to express their thanks for the comments and
    suggestions received during the revision of these security extension
-   specifications.
+   specifications.  While explicitly listing everyone who has
+   contributed during the decade during which DNSSEC has been under
+   development would be an impossible task,
+   [I-D.ietf-dnsext-dnssec-intro] includes a list of some of the
+   participants who were kind enough to comment on these documents.
 
 
 
@@ -1840,13 +1956,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-
-
-
-
-Arends, et al.           Expires April 26, 2004                [Page 33]
+Arends, et al.           Expires June 16, 2004                 [Page 35]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 Normative References
@@ -1900,9 +2012,9 @@ Normative References
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 34]
+Arends, et al.           Expires June 16, 2004                 [Page 36]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 Informative References
@@ -1956,9 +2068,9 @@ Authors' Addresses
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 35]
+Arends, et al.           Expires June 16, 2004                 [Page 37]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    Matt Larson
@@ -2012,300 +2124,300 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 36]
+Arends, et al.           Expires June 16, 2004                 [Page 38]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 Appendix A. Signed Zone Example
 
    The following example shows a (small) complete signed zone.
 
-   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
-                              1065745538
+   example.       3600 IN SOA ns1.example. bugs.x.w.example. (
+                              1071609350
                               3600
                               300
                               3600000
                               3600
                               )
-                  3600 RRSIG  SOA 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
-                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
-                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
-                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
-                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+                  3600 RRSIG  SOA 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              F1KxMLu2zwDUFgUtdAqCq6F9zkaIPb3B7dzA
+                              hRLp8riOMQQgCCQ4x9KvSu2xLJa539jQIRW0
+                              VBU6+FZWzC2IJcc5liv2SXzyfiPu8diB9+Bj
+                              CSITjVX0IGrQgd+PKkaTxWQzG9TDZ2TtgnyM
+                              owLe/OV+Qqqic7ShV/S9l2YJF9I= )
                   3600 NS     ns1.example.
                   3600 NS     ns2.example.
-                  3600 RRSIG  NS 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              KBhJYJ0vFNyMJrt07gvHN9WAOijhXbcikUNw
-                              ZEJxkL+UCv/GFJi1ABGMDowschPkpHIgDEOQ
-                              exaLWGGUrOA5xMHYONWZpkL4rQ3URAKF46VJ
-                              dMg0UTdw3pTD7Lvs8t6Dim46dj9h/QQEgNLF
-                              BYpCn/jKFJ7lYnYYGLAUofh/+mo= )
+                  3600 RRSIG  NS 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              YgTFj4yXRzbOddwfOTQhLHGPWm7x55ZRoPVz
+                              +bxuPHTozw3I2gpno81Em1RuVekWJHivAvQj
+                              s1h72oh+ipBadjCGSRu46u1T9JYUSLxLecgY
+                              eEw9qDeQIoZHRny5bYrX1x87ItEo5+n1lwOH
+                              FTVyQbVkcaxQ6U2FbZtMbfo//go= )
                   3600 MX     1 xx.example.
-                  3600 RRSIG  MX 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              CSB4g+vSxyrfsfycsZwAx2hKhwK/x7GAIY0p
-                              MLBgAA/USiiMben0II4aYf5lybs0NINnFDju
-                              2Kc78M8t9zBGeJcZCZEs9mKiXhW8WJanvIjg
-                              BwJgWXwAnVnq20TXlsHiuwuhmtrb76/Avl4i
-                              lnX6XA3eeDlQlOTuPe0B91MCuow= )
+                  3600 RRSIG  MX 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              JE9Kcx4NaXpaO2Jjyo5yi+DT6wgxwregHg18
+                              7xOOF0KjIYQpaoFY3Kp8MAKT7aupZpr5DmHe
+                              IpBNI6jC59A2uNVP+6UfqAyJMoNnq9d/paM+
+                              M+adwb+xrT+dZYpFZzyeXPmBqA/PVAtw1d5Q
+                              7wxkDWyzgasGiMNIKgYrm9vXz04= )
                   3600 NSEC   a.example. NS SOA MX RRSIG NSEC DNSKEY
-                  3600 RRSIG  NSEC 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              10XG3f8uExTPfof30CoonvXSMeqrhrkcN9YG
-                              krhJD4xeVKarTkQMt0dFe66Bbuy961Bv9go1
-                              IEp0R+sV3B5ldqSKBrcIRsh4QFqQp6IPZ+By
-                              yxyYV25L68I1dkM1JoV7IMFsfcTDPjyl3wv2
-                              2LAQ2lyqLBpow5BRR4sAgjZ7Yaw= )
-                  3600 DNSKEY 256 3 1 (
-                              AQPdhnap0Oj2jUq74g+vel5cukdH+wpzjiH8
-                              ZOQSOHrw+s3TmbhyqXbZ/j5Uu9p65ARoevvG
-                              yv459dxxZCKZ4wftXe5BUkJvZVf8HnhYW5R+
-                              kQduVeqGVlkBarL5haKX28Pxvs8tV7CyY/Rd
+                  3600 RRSIG  NSEC 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              kE9ARiewdQSCsLXY9ldasZEW54kKhfEN2lsT
+                              vDD4biJsTPeaOXJ6bJ7s0CvybknENin3uqIX
+                              TAy6bsL919sEI3/SoHiRCwHalVmUPIWCsz4g
+                              Ee7gkQ+1uFzi7L8LGX9NjQI74s3M//OW2+T4
+                              7T/nOEOVZujD8IN/Utv+KUg+P6U= )
+                  3600 DNSKEY 256 3 5 (
+                              AQPmfvH5TF0S/vnd08C9EbVlG/+wbmFecyjH
+                              UtEh3d8h045BE36XSbr0XZU6kPLgA/Shf7TV
+                              fKduDMH7ASlP8MpUX4ci9ZiXffBjUKvsHORv
+                              BgtAcUYRofvzRZ/jl078bI/JJg9ee4ndY6FO
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 37]
+Arends, et al.           Expires June 16, 2004                 [Page 39]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              cfnJlZyJcfwY0ETo4P2gntVMERZuJQ==
+                              5LtAM3ElSpRIIhAm4b2c69IMdwrU2Q==
                               )
-                  3600 DNSKEY 257 3 1 (
-                              AQOwRqeRkdYUD6UCyJXTaErj0UYLHxOHlhDb
-                              qik1k/j2PJFOZ7GZhc95HnYco611O5VRQ6WQ
-                              pK0dL9eiwcc+gSS2L6V9pWxCfDnEPWFC6eVm
-                              jRZAdAU6gsyNSZCT7rF1lAXdmWcwkaIdNaDL
-                              oNqpieIQd2t+rd/oF8/++DRtzF0toQ==
+                  3600 DNSKEY 257 3 5 (
+                              AQOwHAYrbYVzzKHF0PDHSt4zY+Vz1+yLz1/U
+                              Pv2j2nukkWKLipnqg8X2vI754SRpqwpPCKpv
+                              klUr36CE0byYLOpRE5WlKZjXm3uzDFIVdHUE
+                              2lFwkMP9tSHUrXbjypiZWZP71qNuBeYCDAyT
+                              nLu7mxrT1Y7GdSV7I6vwt0mDSWQDXQ==
                               )
-                  3600 RRSIG  DNSKEY 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              EtFrBqs8i80Ath+xOtjPHcepV/cjATf2E1fo
-                              +fhSggjw2vAXDY4Sygk2tKZ9Tvhahmw1rRC3
-                              CnApLvsjQ9qmnYAvkZdMILw9gPx1rBaq9d7H
-                              nt7mPc/LFrO4G9JS6JNwBCnjwcxro8kNYLo6
-                              97FCO3y4T7y9Hb80OvCZ36cNdps= )
-                  3600 RRSIG  DNSKEY 1 1 3600 20031108232541 (
-                              20031009232541 23853 example.
-                              VseD0IGDKqJXiZMJnRNuq89ibF5g8VGPmMJS
-                              h/hS8+nu5vLiyEObJcVxfanslAlBQSGHmJsM
-                              AvXpeJUrT/zOyZ8vfy/igMhd25rnSxAD6uhl
-                              4ohJiiPtFvHgLEvT0QZHizrP4wMvpXvfwn03
-                              1/VEFzXZ0rULlTdWjoNzSMIYBwg= )
+                  3600 RRSIG  DNSKEY 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              Pkxt/YJHVcnm3+56YGYziM69NDFJDEernUEU
+                              pU1yBY8H7TlvIWhJz/qHsWcPt79ri0lP0Ho5
+                              YDVp6GOFxBcR/7ejtV/izHO5tb88WM8xJLNc
+                              tJZeSSVG62kt1q5fiKKsxhhpqZFQgc+h6htG
+                              PjJstq6fvRq8kX7TPJcljUmDFKM= )
+                  3600 RRSIG  DNSKEY 5 1 3600 20040115201552 (
+                              20031216201552 60717 example.
+                              EVJnkWJSUTdaxIRX374Ki84OhYRYB+7TM/Z/
+                              C8ufeGjcZkAPpkA3XjPao+4kG/lR/qW8oyNK
+                              L0g5BI9fkcptXjf+0y3n5y/con6f+FOwHgdY
+                              J7/fjSW27L3Je0MSrR3T/RNaokZafWDCT/34
+                              Uu/YHFJKdBxs7sMeSBJ4UPm2uwc= )
    a.example.     3600 IN NS  ns1.a.example.
                   3600 IN NS  ns2.a.example.
-                  3600 DS     42939 1 1 (
-                              4BA08982E5739A60E02B69409B0927F9524E
-                              3494 )
-                  3600 RRSIG  DS 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              Dp6ySNq7SgIfndS4N5wFynmqXXf+WQ7RTAW/
-                              gC4RPDljbV8WnjZp5P7ip9zsHO9A7hEW8LPp
-                              zEMMzUPfucrSnZ/Jmc60BYIkzkt493QPfz1H
-                              YFRaJ6VyZoF38oN0s/H+a97c+HxAt4TElW+c
-                              iHQEOrm7yXIHwnrre1iuzMZn1jY= )
+                  3600 DS     48327 5 1 (
+                              DFEB5E00E71A4DED5CABBBD7F15F24871983
+                              CAB7 )
+                  3600 RRSIG  DS 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              wj4ME4MuuZN77PGiE8xgBmCXpRpUocRJLbW/
+                              hBbMGk2qtA9ose1Jr2F9rOU6zvU9Z0HQgxnb
+                              rSBfaeCZFmk3yOlo9Uqref4ukk9hwIjzxo7c
+                              ZbJstCYWiLF57i1k5Cj6npMbUZSIgRGcB+dC
+                              0yfe2uolEkeegjesDZuF+fC61Eg= )
                   3600 NSEC   ai.example. NS DS RRSIG NSEC
-                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              mhov2WXDa2Swk/7/VQoI36e5OKvd/0CmMWdi
-                              +3k/+i7mo9omz854ZBFMLaQzFvaS7Cn//I/H
-                              7tYSY/fScUrs/UfB7le0DzdocsoaMYtexSS1
-                              KA7ofbPdYpBHngIGbO5EHaGrqbKGY61fIQ/g
-                              /WvT0KXnoX+v31Oq3VstBoWmizo= )
+                  3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              iq8exEVhvdx4s3w3VmK3Mzfngwpmpv3NwOpb
+                              RMtgba/u5kyD4Mf03jyLtJLUevry2rZcRjF1
+                              3kDuKmewJ0jWA4sMuljJpx10rhvwlcKaJE3O
+                              ViEb66GFqDxCXExikKWsPm8qckYZLQ7ABNjf
+                              YgfAHJEJJj7K88QbKEK4/Je1hyk= )
    ns1.a.example. 3600 IN A   192.0.2.5
    ns2.a.example. 3600 IN A   192.0.2.6
    ai.example.    3600 IN A   192.0.2.9
-                  3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
+                  3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 38]
+Arends, et al.           Expires June 16, 2004                 [Page 40]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              MtQkYPqpRfM5ntlRR/Wg7pdFt5fuf+ESoV+a
-                              0RTtEUW9Q5ac7uV3luTnOSmWFFjes1x9Anqn
-                              KVeWcZJU/wRYqbUK2Q9s/kLb3cPMFavHal9n
-                              3gR5v5zNaTQxBrdFlxGNgX/aa9Bs3LfxK14F
-                              UU/kYIPkm9qpSE3wtELJEq2cNsU= )
+                              hxNyPE9Wn675NDH/IpB2LZzhrUtV9eEndid8
+                              jiteGyki6CAEJKm1Dr2bjlrzdgfFBrpIac9c
+                              Up4zMlAkitX/7D9vFus8nLSvEHngpdc12Hlk
+                              OrvT0EsYA2XeQ0h3PPQk5FcK2ekxZvw5Zm7A
+                              sWifTxvcG5hv+A6TOd0O2xJYRik= )
                   3600 HINFO  "KLH-10" "ITS"
-                  3600 RRSIG  HINFO 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              jDn/zgIqY5ucajWNW333u+KfxORI55wvnZDs
-                              pCHZQ9ISjWNT7467wUcfJKBaG+alNlCOJExg
-                              z8yUS5NwySlrFtGL/CBCxmrSVioKMMetg7gP
-                              Qb6x5A53OhsQAGT6azS9bdBM2RFbqBkeZkXA
-                              8mJ/QOldXdH5iPpmZb2Pn47x7V4= )
+                  3600 RRSIG  HINFO 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              4aSnKLykRT7htnnS8HtlM0YLMwU1Z92pvf/C
+                              hxETE5B6W8x+uJs9KV9nlZ/B6TNk4nFRgKg2
+                              KpKvEq7xUybNKwbbeGZE9n2fDH0FeDgHjqW2
+                              Ke0lQuszRxjx+McTEqVJMyHrBKnqNdUh1G92
+                              xo9NLoltg0GuwggZM240pRoTwO8= )
                   3600 AAAA   2001:db8::f00:baa9
-                  3600 RRSIG  AAAA 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              LcSkeCXOOcYClsS9GYJoG/yGeuyaUJrNICK1
-                              ONN4PEzGWJ7kcF+C4N972x05bPX+wsWszBbC
-                              uP/RqMyNenc8Is25te6hZ8MU7Z0zBDtKeTTG
-                              qz4ir4NZfqvB6moHjcVu6Pwb5KkSb8nAobCv
-                              8gB4wQFPYoozOQYTprwGtIHR2k8= )
+                  3600 RRSIG  AAAA 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              oq16/pU4MuvkgQyFqGrHqggz47i6iZL714u5
+                              9UsmGM1Y/qyQZsR4wi6hC2zIWXNJxIPIhitJ
+                              G6M5pjExUH/vOe0DIW73t/NHzcj0zOjxAPEI
+                              A+jBlOwn2EY5q87PMzBIeHWSx7DxtEIMC8XI
+                              zkK+1+Z5aqj1pmZ4yXUvd2znGnQ= )
                   3600 NSEC   b.example. A HINFO AAAA RRSIG NSEC
-                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              W3fFJqdRtmpz9QikpK+v5rL+Y5iNpx5H7X7c
-                              1yPMlcaS0nhowHGjCPnNbCP28Ktv9I5eqhO1
-                              N/A75FLTOe9L5Qzetb/C3/ME8D46apKLBEv5
-                              0GWsJqTsijj4dAjup60yeLPXTWxIdO6RNdfe
-                              Qd56t0fY79/kd25RzRCFGs2qHXs= )
+                  3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              Xr3qBss/U0yN12SL2stWs0AACeQjvRms9+xE
+                              ishTjb4B/XQ8yAfAmby5yF5DKR8900M0hT3Y
+                              ikp/wIF4TmtH5W7UFN13To/GWGJygaa7wyzU
+                              4AtgtRwmmevSAgzxhC7yRXUWyhpfQoW7zwpR
+                              ovChG5Ih3TOa8Qnch4IJQVfSFNU= )
    b.example.     3600 IN NS  ns1.b.example.
                   3600 IN NS  ns2.b.example.
                   3600 NSEC   ns1.example. NS RRSIG NSEC
-                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              csgLA1XphdEtY9WiwZOHjcOvGiBShTobK+th
-                              0xDnKv7ZUxcMRi/g88Z99It+FV/Qufcf5zmM
-                              RxEVOjD1e7an1X/dxD389/6Qzo6NAtSu85ps
-                              TDKZscoaPBr/wYv6PG73F5yfm1hh31nhnD8f
-                              BFydo6dXwQ4WK8OUC6sMCM+OHEg= )
+                  3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              nFufQRM2UtSYTAwQaKEnIpua5ZHLqJrcLGAs
+                              VUpLoPOEsAXex1N3uIJQWmoXnr9Up00G7jbW
+                              VOVaLUvXR7b/4sQkyQLbOl9GpWiA1NYjPneN
+                              k3i+OWi3NmvRN71CuNky87DrVg0p2Mf2MjLX
+                              GRIZP9W1bgeDHZRcCNz2hQ67SgY= )
    ns1.b.example. 3600 IN A   192.0.2.7
    ns2.b.example. 3600 IN A   192.0.2.8
    ns1.example.   3600 IN A   192.0.2.1
-                  3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              dJTb+VNXApV4lPaEwlyZxOS17eofL95DJe58
-                              +ija8iaROK9a9D7bAI7lIKJ/4hSfBN8lIjhF
-                              cpVeuGXCxldaSTOhAU5bg2GZJfxS4onfvBTE
-                              HBf19SZAT9rHBeNJISau8EwDaNBHBweiaC/s
+                  3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              5FrF88yOT6iiBdkiQLqaXkma0gCQza5/kLK7
+                              CgoMNlCR2QYhsur2X7Fex2/OYEmOkzOqO7Gs
+                              RoIc4e3nt+kfpd/4Htp9T5v+NXmMVPmW3Jmf
+                              +ZGpEf86AI7Rw3x2bSmVOzsxa4xUxE+DuINa
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 39]
+Arends, et al.           Expires June 16, 2004                 [Page 41]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              Oett68JnQVQq2l/DhWsJSjuIFBQ= )
+                              WNJ/ulvIFa20d0xtlB7jazNCZ3Y= )
                   3600 NSEC   ns2.example. A RRSIG NSEC
-                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              M8q/t6bDqPktgMyfa2LjkEDZiGloFp+I8LaO
-                              KBQt96RzZ9xiXOA/7wE5ZrBrgzfl1eotLn0L
-                              zbOwCwpZf7XoVm/IYCOlIEPj6kJHYvIIzp3a
-                              ZBn7uDx1kInt7qc2AmTpPiWCPtSD5KTBwdLk
-                              o3hJ8fow/NDw5Lsb6RQOSQ5Qxuo= )
+                  3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              WaeyPcQtFjXj4cxDcqVseuhZPA4K/qSb7ylZ
+                              sj55rJ8OqEKDYt71e1MT3F5p76wKtLaPmoc0
+                              eLGnDD+Xouu/tWXtsjj5QpMhl13DUD0GLBiA
+                              s/wwxreW0SWkh4JJirodDE7vSIiI6gPJYhIj
+                              I2A5W86mMEbSgEF/pZHX/wi5FJI= )
    ns2.example.   3600 IN A   192.0.2.2
-                  3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              VGTTFv2DZ+KN+tm7dzAP1vWGZTLdYn9v/yuQ
-                              tu9rQYAwVWoGq7iiADgLlY0cjR58GCKCGfn4
-                              mXMyM9mDljOj3VmHxUjRNMgUo+AoIi8Jysr9
-                              +huB5dgYRKFukcCpxKb1SmXNmSLfdS75gCas
-                              8Ic8f9zHwZmCUc0wnxX6x+422PM= )
+                  3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              sfFOjxKZz1LMhyDfmB43RhIUVOHlVbLtP0lL
+                              xBsxcHt48NKLth81pzSWRFQfUtMCjaGWMtuK
+                              HFEVaAQXcwllWXXLbVpc9a32govT+hsapcht
+                              sPyxkcEpYEFTtB93edKRVQ0IgZBPOI02R6vG
+                              wCbeY0Rl8MIRcAaiIkFos/8hd1g= )
                   3600 NSEC   *.w.example. A RRSIG NSEC
-                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              kkYPMaBn4zJM/iQAOO9i81X57MMCQnzk+pch
-                              6tWUFF/D1ZFZf8QY2MzwDA5Bv/1DluWVbo3x
-                              WjzyUV7fn77k9QKLQseUSXGnpyL2HR1hGfBV
-                              6ZHAqJc99t5+5vjyiflLtOpA0+Ri46SlQGZf
-                              IZ4X2Ksgn+hpIu77NRQMdmh59M8= )
+                  3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              Vxovi9gQjxqYBI5QF2ZcbZ/5my7C+22uXKVb
+                              IN5dmV82uu2TqJ4g2a2KKywlVi+4Kcnm4O3b
+                              f7pV4g7pcQopa9AFiY8byFrPftuNvraDyp6J
+                              aPllr/HnIPGP4Vw78LKW4n812K2VxV8p/IJl
+                              yCup5bk/Dr47eU2/6+lqrBTOV8Q= )
    *.w.example.   3600 IN MX  1 ai.example.
-                  3600 RRSIG  MX 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              Uht2mND0Kzc4hnM4Pq4zM+fjiGTEcCzx+wSD
-                              b2flOHxLQPv75mXfnH1tZv7iwrzQmcyucWsd
-                              agwalJcGa3A2+UL45fjYR6zDEsag4cdg1D0/
-                              +T7gIqOGWhYfiXbXuTOgUfyZRXqyGsHsAu20
-                              FxfIqrcIL24dO4Ytdz2ifqvJmuM= )
+                  3600 RRSIG  MX 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              mzcZPkLFaFycrnJuHY8LHdmvmyD8prPbQXHg
+                              OXuGLRpO+qRU04v97KYNy8si1Ijmo85nI4Ns
+                              Hl2+WpbMguW9gyPpdHqIYkKJbOrX2b4bz6WA
+                              n7NlR05Rf2tE3e54a1LP0po55yqGtxdPKWOK
+                              91Ena87PA2MvoOE+A3ZpEk8MjEE= )
                   3600 NSEC   x.w.example. MX RRSIG NSEC
-                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              fsk9iik9+gpte3I4tffoXyca5jfuYnLLy7/9
-                              7LAVd4KKj9zqSB8f3QD1mjditUK9PGTTtlPL
-                              4mq8F3T8PIt0pfgV8mPl6GP+bR+iVQEEE1YH
-                              yzR21az4Od5KBYYdsPjZzJnOhzCtgyleAoOx
-                              vOHmndDhRTDwVCg179qlrEIsOgE= )
+                  3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              OeBMvLlBam90xU/KxvyAYBNGWpvMf1TbaJFr
+                              f0Ip+tTkiqeEE8fx2ZAg1JcY9uhldms/9y45
+                              9HxO9Q3ZO6jfQzsx62YQaBte85d/Udhzf4AK
+                              /RHsZGSOabsu6DhacWC2Ew7vEgcMfiPHFzWW
+                              ANi1i3zhPOd3+Vjt4IQzaJXqVZE= )
    x.w.example.   3600 IN MX  1 xx.example.
-                  3600 RRSIG  MX 1 3 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              i65kcyRnXBHd3ynSNTVKpd71DS85EjGDTi7d
-                              NQR+E4/qtXVaU78hmG4BhyFMVbvyPNpj83z5
-                              UqpB0baVoSVTSqGMSLxi1T38H8gqPgaYd+4r
-                              uEEXZj5I+s8Cq/1RHXi0yqISqeUGAqMHqryp
+                  3600 RRSIG  MX 5 3 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              g2H7+tChKsYRqxDkrLZgraaKBF2pah6YNCEW
+                              ORmXLzrB6RWtXbjVHXjagBhZYsMPzkPqwn4m
+                              8IYSaPD0X3z001aXsgsh9WF+AOgbqa0eoIIY
+                              MHIEJ9MHB5cS33XXv2fY6iFmjLuZUz+pNSfv
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 40]
+Arends, et al.           Expires June 16, 2004                 [Page 42]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              IKZXg2219TD4UqJuRATLhxZj2fU= )
+                              btznHMFDIbtuw/tAX7xXH2pDDHY= )
                   3600 NSEC   x.y.w.example. MX RRSIG NSEC
-                  3600 RRSIG  NSEC 1 3 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              VTRE+Bu91QK7dBiMshr04tE/I5HCvSrjqDv+
-                              b4tlUqUqkv4MoxfoceUwavMkdLm9Pi/aYUrS
-                              m6XVGBDAjpDmjivlMKNkME8c0f7oQ3E1CtHS
-                              pPLjTcB9WfxEOzjJJGK5BDDT6A56P4eibLiw
-                              +bNx4OGknGvVqhg9pu5qEWi814s= )
+                  3600 RRSIG  NSEC 5 3 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              zwAU3bQHLeDawvqbvlmNosGMGDz9wdEe/iia
+                              CU8DbanqOzUiPfqEgBN3evFMpGBM9H3zMjGA
+                              EjnP4fMerk7dzD8jfyLzNdCGsJjPtnEgctGA
+                              aNd+NGtSmedzeNGvlj7mNxnAdqHFY1c902pT
+                              3lMXiX4KNWUhB87q/pT/5z+xrqY= )
    x.y.w.example. 3600 IN MX  1 xx.example.
-                  3600 RRSIG  MX 1 4 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              yDPXa5Osa4r1AF0AjKWOo87kGNDlnVPmCbIi
-                              MPvBpzJ91d5TFtEZWYJpYv+eGWZCJhK7SsnL
-                              Zbbjthkn7YmX1tReDQhn8aCQ6DyrIU6wZpj5
-                              ywBx0z3HGcqoYmv+AiFtcYVPxG0elsrakIwG
-                              /e+CPi2yE2c9M+NnwMxhpEFVGRs= )
+                  3600 RRSIG  MX 5 4 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              slLY7KbPseET3XMJz/yGJBJpDczy1N2W4SAD
+                              v5Jx/osOWviEJBpUEwRndX+VmsmQJqKsQxtE
+                              unmxl4Sh9cuVyALJy1ByF9hZ0+E3i35qoxOK
+                              Oe+JZyiEiebZfZ8doH5J+keCkIQ8EHzw8Hnk
+                              Iykd5UmaTO5j4LlRnAvF8Z1m9/k= )
                   3600 NSEC   xx.example. MX RRSIG NSEC
-                  3600 RRSIG  NSEC 1 4 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              cn4aj3I/EQDa+vysa08xMQSnTz8YGtLLzqAj
-                              R8gy8Yqa4uSm7J17NydsWqgJkhlVxD3oBtnb
-                              w/6tDzx45IHcbnVm6UDrc3DVby21AivrsZ8P
-                              sm5Escp1X+qBLGSNAg2K6dlX/i2vut6g3vDa
-                              66FPTb3/hhrHYkMneBO2Yvfvpj8= )
+                  3600 RRSIG  NSEC 5 4 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              sjHnEm4kiIK64bRskNc3vxEHe12l9Lg8Y7G8
+                              VsXMUEEDeBCB3qlrGQeqhdl+gsQGRBiOA8Jj
+                              Jr5F9RNZepVLGv+t5fALeoe0gLHsWoTlfTdq
+                              AJ8a2E5BZYYvy9hjh9Y4Kqd23HOv21o2OC0J
+                              viOQHZ6I4xoZQP5G7r98/PhlrLM= )
    xx.example.    3600 IN A   192.0.2.10
-                  3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              ZW+++XV6FyceT4UtcfbVwcsx3u5tRfFLfAHp
-                              Ji11YMdORJKIJS0uVfu+UuAbe/FImnBmQq4v
-                              ShjQXbLeN9BKLvde4dlMphHSKhp24913/KFd
-                              +N0DMDWGZ/wPoACnqrpn1gDKWdT0l+gkF3y4
-                              aI16ggg9/UEWRbvn+7tp2UfMYSw= )
+                  3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              fQfj8RhKKhC2vI0OJxgnZLeXFhpMmpjwV/ap
+                              tCkUP1YagLF9gB4NLRUrV1QO/e1f2zyxSngq
+                              iDW9yUJjKQcv9EWzbDd0kzXxPu11y/iS7oMS
+                              KOsVB4Mp7BM5q2kcBXBrM+Rr0eibvBXmHs8G
+                              0ToQVY81bPc3WXKZjRxQl3jiKtU= )
                   3600 HINFO  "KLH-10" "TOPS-20"
-                  3600 RRSIG  HINFO 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              vteMgDuG1ekaSmWlXlwVRoqTXjvZ8kGWCAku
-                              6Rd3t/wPeVmn3YSbC8+szYRgP8n0HvYzmVYj
-                              qPyC1HCFoqIJIaNLkDEyCSHuhBwpVhyKGJdM
-                              EbJ1P8Yk3w5Szjap6wn7QxcLnr8Df3xUMXnB
-                              AAwDzum3fUKzVM274T9O8ggeXgE= )
+                  3600 RRSIG  HINFO 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              fZIotOyJqpRTZ0KH5lsZIksuyslAMckBclZw
+                              p3LJiaYAibf+rwNFpS3CPUFsyCrA8UL+iVfA
+                              gTxa6O8+yKYsDXZ2x6wPPDqmBEeHT1XiKEA/
+                              pC+O35tVS6oLMYWJyGAGBJitXZQGr+MiBvSp
+                              EDXT07qFXtGntvBSpF9uQbEub6Y= )
                   3600 AAAA   2001:db8::f00:baaa
-                  3600 RRSIG  AAAA 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              LY9gLxiep4FO8uuiegMzc1zdE/O7ApxjiO43
-                              YDBVfuf3z+IghfPRY9IhkAJss6zBxMxciC27
-                              ZmlPBrysWcKDfWF7fX+q0CDZ3ZbqdU32MuK+
-                              AcWaIFu9JcYUIwFRCKt/0LA0OrycwELStUB0
+                  3600 RRSIG  AAAA 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              kLh5dTA0XBIIjEV/guGo9pEOKNZ0Elvbuhm2
+                              dFbnHuZ1tLirjzCYr8CsmF9bSIKLbiMRc/SD
+                              mDhMUKFMhsVqCMwqfYjxXvTOG21BKyCki0Gg
+                              CgvRD47lC4NnCSaB6B6Ysj0Aupv75Nnqwi9Z
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 41]
+Arends, et al.           Expires June 16, 2004                 [Page 43]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              GxlD/3EneV4+IIIv0hekxzpR8Qs= )
+                              D4ZubIon0XGe9fIjLnmb3pX/FUk= )
                   3600 NSEC   example. A HINFO AAAA RRSIG NSEC
-                  3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              cKkFJS6Em56M0XCjMma4zFzy5ylHh2ma62oe
-                              yHrqkMYS+QVUuJ8yfAoXoFbok/kDLN3rsCKK
-                              ICJl1dFA3fvJnMejg0JVabQHShO2W1LmWegr
-                              dh251WZQVtJHDRY8/ltYB+GHUuFpZ1CF4m+c
-                              6EPqS1uLrFpRg3k4BV5y6146nZ8= )
+                  3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              sbF8bfC6zqyuio2iov0C9byDCejWvxMJYgjn
+                              uy3nXbvVXXzcA+d2zG6uPQ8VLRSolCE+OQqE
+                              NsABxmoBhBwdxCrCpnU8SvzAkrRLwuOqAu1a
+                              1yBIfd352PHkQg1sxVDHGoFo3cFKzvkuD187
+                              sSNF3PAC0HPadh7SdHmXlFQtQ44= )
 
    The apex DNSKEY set includes two DNSKEY RRs, and the DNSKEY RDATA
    Flags indicate that each of these DNSKEY RRs is a zone key.  One of
@@ -2348,9 +2460,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 42]
+Arends, et al.           Expires June 16, 2004                 [Page 44]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 Appendix B. Example Responses
@@ -2369,66 +2481,66 @@ B.1 Answer
 
    ;; Answer
    x.w.example.   3600 IN MX  1 xx.example.
-   x.w.example.   3600 RRSIG  MX 1 3 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              i65kcyRnXBHd3ynSNTVKpd71DS85EjGDTi7d
-                              NQR+E4/qtXVaU78hmG4BhyFMVbvyPNpj83z5
-                              UqpB0baVoSVTSqGMSLxi1T38H8gqPgaYd+4r
-                              uEEXZj5I+s8Cq/1RHXi0yqISqeUGAqMHqryp
-                              IKZXg2219TD4UqJuRATLhxZj2fU= )
+   x.w.example.   3600 RRSIG  MX 5 3 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              g2H7+tChKsYRqxDkrLZgraaKBF2pah6YNCEW
+                              ORmXLzrB6RWtXbjVHXjagBhZYsMPzkPqwn4m
+                              8IYSaPD0X3z001aXsgsh9WF+AOgbqa0eoIIY
+                              MHIEJ9MHB5cS33XXv2fY6iFmjLuZUz+pNSfv
+                              btznHMFDIbtuw/tAX7xXH2pDDHY= )
 
    ;; Authority
    example.       3600 NS     ns1.example.
    example.       3600 NS     ns2.example.
-   example.       3600 RRSIG  NS 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              KBhJYJ0vFNyMJrt07gvHN9WAOijhXbcikUNw
-                              ZEJxkL+UCv/GFJi1ABGMDowschPkpHIgDEOQ
-                              exaLWGGUrOA5xMHYONWZpkL4rQ3URAKF46VJ
-                              dMg0UTdw3pTD7Lvs8t6Dim46dj9h/QQEgNLF
-                              BYpCn/jKFJ7lYnYYGLAUofh/+mo= )
+   example.       3600 RRSIG  NS 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              YgTFj4yXRzbOddwfOTQhLHGPWm7x55ZRoPVz
+                              +bxuPHTozw3I2gpno81Em1RuVekWJHivAvQj
+                              s1h72oh+ipBadjCGSRu46u1T9JYUSLxLecgY
+                              eEw9qDeQIoZHRny5bYrX1x87ItEo5+n1lwOH
+                              FTVyQbVkcaxQ6U2FbZtMbfo//go= )
 
    ;; Additional
    xx.example.    3600 IN A   192.0.2.10
-   xx.example.    3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              ZW+++XV6FyceT4UtcfbVwcsx3u5tRfFLfAHp
-                              Ji11YMdORJKIJS0uVfu+UuAbe/FImnBmQq4v
-                              ShjQXbLeN9BKLvde4dlMphHSKhp24913/KFd
-                              +N0DMDWGZ/wPoACnqrpn1gDKWdT0l+gkF3y4
-                              aI16ggg9/UEWRbvn+7tp2UfMYSw= )
+   xx.example.    3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              fQfj8RhKKhC2vI0OJxgnZLeXFhpMmpjwV/ap
+                              tCkUP1YagLF9gB4NLRUrV1QO/e1f2zyxSngq
+                              iDW9yUJjKQcv9EWzbDd0kzXxPu11y/iS7oMS
+                              KOsVB4Mp7BM5q2kcBXBrM+Rr0eibvBXmHs8G
+                              0ToQVY81bPc3WXKZjRxQl3jiKtU= )
    xx.example.    3600 AAAA   2001:db8::f00:baaa
-   xx.example.    3600 RRSIG  AAAA 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              LY9gLxiep4FO8uuiegMzc1zdE/O7ApxjiO43
+   xx.example.    3600 RRSIG  AAAA 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              kLh5dTA0XBIIjEV/guGo9pEOKNZ0Elvbuhm2
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 43]
+Arends, et al.           Expires June 16, 2004                 [Page 45]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              YDBVfuf3z+IghfPRY9IhkAJss6zBxMxciC27
-                              ZmlPBrysWcKDfWF7fX+q0CDZ3ZbqdU32MuK+
-                              AcWaIFu9JcYUIwFRCKt/0LA0OrycwELStUB0
-                              GxlD/3EneV4+IIIv0hekxzpR8Qs= )
+                              dFbnHuZ1tLirjzCYr8CsmF9bSIKLbiMRc/SD
+                              mDhMUKFMhsVqCMwqfYjxXvTOG21BKyCki0Gg
+                              CgvRD47lC4NnCSaB6B6Ysj0Aupv75Nnqwi9Z
+                              D4ZubIon0XGe9fIjLnmb3pX/FUk= )
    ns1.example.   3600 IN A   192.0.2.1
-   ns1.example.   3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              dJTb+VNXApV4lPaEwlyZxOS17eofL95DJe58
-                              +ija8iaROK9a9D7bAI7lIKJ/4hSfBN8lIjhF
-                              cpVeuGXCxldaSTOhAU5bg2GZJfxS4onfvBTE
-                              HBf19SZAT9rHBeNJISau8EwDaNBHBweiaC/s
-                              Oett68JnQVQq2l/DhWsJSjuIFBQ= )
+   ns1.example.   3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              5FrF88yOT6iiBdkiQLqaXkma0gCQza5/kLK7
+                              CgoMNlCR2QYhsur2X7Fex2/OYEmOkzOqO7Gs
+                              RoIc4e3nt+kfpd/4Htp9T5v+NXmMVPmW3Jmf
+                              +ZGpEf86AI7Rw3x2bSmVOzsxa4xUxE+DuINa
+                              WNJ/ulvIFa20d0xtlB7jazNCZ3Y= )
    ns2.example.   3600 IN A   192.0.2.2
-   ns2.example.   3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              VGTTFv2DZ+KN+tm7dzAP1vWGZTLdYn9v/yuQ
-                              tu9rQYAwVWoGq7iiADgLlY0cjR58GCKCGfn4
-                              mXMyM9mDljOj3VmHxUjRNMgUo+AoIi8Jysr9
-                              +huB5dgYRKFukcCpxKb1SmXNmSLfdS75gCas
-                              8Ic8f9zHwZmCUc0wnxX6x+422PM= )
+   ns2.example.   3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              sfFOjxKZz1LMhyDfmB43RhIUVOHlVbLtP0lL
+                              xBsxcHt48NKLth81pzSWRFQfUtMCjaGWMtuK
+                              HFEVaAQXcwllWXXLbVpc9a32govT+hsapcht
+                              sPyxkcEpYEFTtB93edKRVQ0IgZBPOI02R6vG
+                              wCbeY0Rl8MIRcAaiIkFos/8hd1g= )
 
 
 B.2 Name Error
@@ -2445,44 +2557,44 @@ B.2 Name Error
    ;; (empty)
 
    ;; Authority
-   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
-                              1065745538
+   example.       3600 IN SOA ns1.example. bugs.x.w.example. (
+                              1071609350
                               3600
                               300
                               3600000
                               3600
                               )
-   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
-                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
-                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
+   example.       3600 RRSIG  SOA 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              F1KxMLu2zwDUFgUtdAqCq6F9zkaIPb3B7dzA
+                              hRLp8riOMQQgCCQ4x9KvSu2xLJa539jQIRW0
+                              VBU6+FZWzC2IJcc5liv2SXzyfiPu8diB9+Bj
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 44]
+Arends, et al.           Expires June 16, 2004                 [Page 46]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
-                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+                              CSITjVX0IGrQgd+PKkaTxWQzG9TDZ2TtgnyM
+                              owLe/OV+Qqqic7ShV/S9l2YJF9I= )
    b.example.     3600 NSEC   ns1.example. NS RRSIG NSEC
-   b.example.     3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              csgLA1XphdEtY9WiwZOHjcOvGiBShTobK+th
-                              0xDnKv7ZUxcMRi/g88Z99It+FV/Qufcf5zmM
-                              RxEVOjD1e7an1X/dxD389/6Qzo6NAtSu85ps
-                              TDKZscoaPBr/wYv6PG73F5yfm1hh31nhnD8f
-                              BFydo6dXwQ4WK8OUC6sMCM+OHEg= )
+   b.example.     3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              nFufQRM2UtSYTAwQaKEnIpua5ZHLqJrcLGAs
+                              VUpLoPOEsAXex1N3uIJQWmoXnr9Up00G7jbW
+                              VOVaLUvXR7b/4sQkyQLbOl9GpWiA1NYjPneN
+                              k3i+OWi3NmvRN71CuNky87DrVg0p2Mf2MjLX
+                              GRIZP9W1bgeDHZRcCNz2hQ67SgY= )
    example.       3600 NSEC   a.example. NS SOA MX RRSIG NSEC DNSKEY
-   example.       3600 RRSIG  NSEC 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              10XG3f8uExTPfof30CoonvXSMeqrhrkcN9YG
-                              krhJD4xeVKarTkQMt0dFe66Bbuy961Bv9go1
-                              IEp0R+sV3B5ldqSKBrcIRsh4QFqQp6IPZ+By
-                              yxyYV25L68I1dkM1JoV7IMFsfcTDPjyl3wv2
-                              2LAQ2lyqLBpow5BRR4sAgjZ7Yaw= )
+   example.       3600 RRSIG  NSEC 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              kE9ARiewdQSCsLXY9ldasZEW54kKhfEN2lsT
+                              vDD4biJsTPeaOXJ6bJ7s0CvybknENin3uqIX
+                              TAy6bsL919sEI3/SoHiRCwHalVmUPIWCsz4g
+                              Ee7gkQ+1uFzi7L8LGX9NjQI74s3M//OW2+T4
+                              7T/nOEOVZujD8IN/Utv+KUg+P6U= )
 
    ;; Additional
    ;; (empty)
@@ -2502,36 +2614,36 @@ B.3 No Data Error
    ;; (empty)
 
    ;; Authority
-   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
-                              1065745538
+   example.       3600 IN SOA ns1.example. bugs.x.w.example. (
+                              1071609350
                               3600
                               300
                               3600000
                               3600
                               )
-   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
-                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
+   example.       3600 RRSIG  SOA 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              F1KxMLu2zwDUFgUtdAqCq6F9zkaIPb3B7dzA
+                              hRLp8riOMQQgCCQ4x9KvSu2xLJa539jQIRW0
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 45]
+Arends, et al.           Expires June 16, 2004                 [Page 47]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
-                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
-                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+                              VBU6+FZWzC2IJcc5liv2SXzyfiPu8diB9+Bj
+                              CSITjVX0IGrQgd+PKkaTxWQzG9TDZ2TtgnyM
+                              owLe/OV+Qqqic7ShV/S9l2YJF9I= )
    ns1.example.   3600 NSEC   ns2.example. A RRSIG NSEC
-   ns1.example.   3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              M8q/t6bDqPktgMyfa2LjkEDZiGloFp+I8LaO
-                              KBQt96RzZ9xiXOA/7wE5ZrBrgzfl1eotLn0L
-                              zbOwCwpZf7XoVm/IYCOlIEPj6kJHYvIIzp3a
-                              ZBn7uDx1kInt7qc2AmTpPiWCPtSD5KTBwdLk
-                              o3hJ8fow/NDw5Lsb6RQOSQ5Qxuo= )
+   ns1.example.   3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              WaeyPcQtFjXj4cxDcqVseuhZPA4K/qSb7ylZ
+                              sj55rJ8OqEKDYt71e1MT3F5p76wKtLaPmoc0
+                              eLGnDD+Xouu/tWXtsjj5QpMhl13DUD0GLBiA
+                              s/wwxreW0SWkh4JJirodDE7vSIiI6gPJYhIj
+                              I2A5W86mMEbSgEF/pZHX/wi5FJI= )
 
    ;; Additional
    ;; (empty)
@@ -2554,16 +2666,16 @@ B.4 Referral to Signed Zone
    ;; Authority
    a.example.     3600 IN NS  ns1.a.example.
    a.example.     3600 IN NS  ns2.a.example.
-   a.example.     3600 DS     42939 1 1 (
-                              4BA08982E5739A60E02B69409B0927F9524E
-                              3494 )
-   a.example.     3600 RRSIG  DS 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              Dp6ySNq7SgIfndS4N5wFynmqXXf+WQ7RTAW/
-                              gC4RPDljbV8WnjZp5P7ip9zsHO9A7hEW8LPp
-                              zEMMzUPfucrSnZ/Jmc60BYIkzkt493QPfz1H
-                              YFRaJ6VyZoF38oN0s/H+a97c+HxAt4TElW+c
-                              iHQEOrm7yXIHwnrre1iuzMZn1jY= )
+   a.example.     3600 DS     48327 5 1 (
+                              DFEB5E00E71A4DED5CABBBD7F15F24871983
+                              CAB7 )
+   a.example.     3600 RRSIG  DS 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              wj4ME4MuuZN77PGiE8xgBmCXpRpUocRJLbW/
+                              hBbMGk2qtA9ose1Jr2F9rOU6zvU9Z0HQgxnb
+                              rSBfaeCZFmk3yOlo9Uqref4ukk9hwIjzxo7c
+                              ZbJstCYWiLF57i1k5Cj6npMbUZSIgRGcB+dC
+                              0yfe2uolEkeegjesDZuF+fC61Eg= )
 
    ;; Additional
    ns1.a.example. 3600 IN A   192.0.2.5
@@ -2572,9 +2684,9 @@ B.4 Referral to Signed Zone
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 46]
+Arends, et al.           Expires June 16, 2004                 [Page 48]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 B.5 Referral to Unsigned Zone
@@ -2594,13 +2706,13 @@ B.5 Referral to Unsigned Zone
    b.example.     3600 IN NS  ns1.b.example.
    b.example.     3600 IN NS  ns2.b.example.
    b.example.     3600 NSEC   ns1.example. NS RRSIG NSEC
-   b.example.     3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              csgLA1XphdEtY9WiwZOHjcOvGiBShTobK+th
-                              0xDnKv7ZUxcMRi/g88Z99It+FV/Qufcf5zmM
-                              RxEVOjD1e7an1X/dxD389/6Qzo6NAtSu85ps
-                              TDKZscoaPBr/wYv6PG73F5yfm1hh31nhnD8f
-                              BFydo6dXwQ4WK8OUC6sMCM+OHEg= )
+   b.example.     3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              nFufQRM2UtSYTAwQaKEnIpua5ZHLqJrcLGAs
+                              VUpLoPOEsAXex1N3uIJQWmoXnr9Up00G7jbW
+                              VOVaLUvXR7b/4sQkyQLbOl9GpWiA1NYjPneN
+                              k3i+OWi3NmvRN71CuNky87DrVg0p2Mf2MjLX
+                              GRIZP9W1bgeDHZRcCNz2hQ67SgY= )
 
    ;; Additional
    ns1.b.example. 3600 IN A   192.0.2.7
@@ -2621,58 +2733,58 @@ B.6 Wildcard Expansion
 
    ;; Answer
    a.z.w.example. 3600 IN MX  1 ai.example.
-   a.z.w.example. 3600 RRSIG  MX 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              Uht2mND0Kzc4hnM4Pq4zM+fjiGTEcCzx+wSD
-                              b2flOHxLQPv75mXfnH1tZv7iwrzQmcyucWsd
+   a.z.w.example. 3600 RRSIG  MX 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              mzcZPkLFaFycrnJuHY8LHdmvmyD8prPbQXHg
+                              OXuGLRpO+qRU04v97KYNy8si1Ijmo85nI4Ns
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 47]
+Arends, et al.           Expires June 16, 2004                 [Page 49]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
-                              agwalJcGa3A2+UL45fjYR6zDEsag4cdg1D0/
-                              +T7gIqOGWhYfiXbXuTOgUfyZRXqyGsHsAu20
-                              FxfIqrcIL24dO4Ytdz2ifqvJmuM= )
+                              Hl2+WpbMguW9gyPpdHqIYkKJbOrX2b4bz6WA
+                              n7NlR05Rf2tE3e54a1LP0po55yqGtxdPKWOK
+                              91Ena87PA2MvoOE+A3ZpEk8MjEE= )
 
    ;; Authority
    example.       3600 NS     ns1.example.
    example.       3600 NS     ns2.example.
-   example.       3600 RRSIG  NS 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              KBhJYJ0vFNyMJrt07gvHN9WAOijhXbcikUNw
-                              ZEJxkL+UCv/GFJi1ABGMDowschPkpHIgDEOQ
-                              exaLWGGUrOA5xMHYONWZpkL4rQ3URAKF46VJ
-                              dMg0UTdw3pTD7Lvs8t6Dim46dj9h/QQEgNLF
-                              BYpCn/jKFJ7lYnYYGLAUofh/+mo= )
+   example.       3600 RRSIG  NS 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              YgTFj4yXRzbOddwfOTQhLHGPWm7x55ZRoPVz
+                              +bxuPHTozw3I2gpno81Em1RuVekWJHivAvQj
+                              s1h72oh+ipBadjCGSRu46u1T9JYUSLxLecgY
+                              eEw9qDeQIoZHRny5bYrX1x87ItEo5+n1lwOH
+                              FTVyQbVkcaxQ6U2FbZtMbfo//go= )
    x.y.w.example. 3600 NSEC   xx.example. MX RRSIG NSEC
-   x.y.w.example. 3600 RRSIG  NSEC 1 4 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              cn4aj3I/EQDa+vysa08xMQSnTz8YGtLLzqAj
-                              R8gy8Yqa4uSm7J17NydsWqgJkhlVxD3oBtnb
-                              w/6tDzx45IHcbnVm6UDrc3DVby21AivrsZ8P
-                              sm5Escp1X+qBLGSNAg2K6dlX/i2vut6g3vDa
-                              66FPTb3/hhrHYkMneBO2Yvfvpj8= )
+   x.y.w.example. 3600 RRSIG  NSEC 5 4 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              sjHnEm4kiIK64bRskNc3vxEHe12l9Lg8Y7G8
+                              VsXMUEEDeBCB3qlrGQeqhdl+gsQGRBiOA8Jj
+                              Jr5F9RNZepVLGv+t5fALeoe0gLHsWoTlfTdq
+                              AJ8a2E5BZYYvy9hjh9Y4Kqd23HOv21o2OC0J
+                              viOQHZ6I4xoZQP5G7r98/PhlrLM= )
 
    ;; Additional
    ai.example.    3600 IN A   192.0.2.9
-   ai.example.    3600 RRSIG  A 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              MtQkYPqpRfM5ntlRR/Wg7pdFt5fuf+ESoV+a
-                              0RTtEUW9Q5ac7uV3luTnOSmWFFjes1x9Anqn
-                              KVeWcZJU/wRYqbUK2Q9s/kLb3cPMFavHal9n
-                              3gR5v5zNaTQxBrdFlxGNgX/aa9Bs3LfxK14F
-                              UU/kYIPkm9qpSE3wtELJEq2cNsU= )
+   ai.example.    3600 RRSIG  A 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              hxNyPE9Wn675NDH/IpB2LZzhrUtV9eEndid8
+                              jiteGyki6CAEJKm1Dr2bjlrzdgfFBrpIac9c
+                              Up4zMlAkitX/7D9vFus8nLSvEHngpdc12Hlk
+                              OrvT0EsYA2XeQ0h3PPQk5FcK2ekxZvw5Zm7A
+                              sWifTxvcG5hv+A6TOd0O2xJYRik= )
    ai.example.    3600 AAAA   2001:db8::f00:baa9
-   ai.example.    3600 RRSIG  AAAA 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              LcSkeCXOOcYClsS9GYJoG/yGeuyaUJrNICK1
-                              ONN4PEzGWJ7kcF+C4N972x05bPX+wsWszBbC
-                              uP/RqMyNenc8Is25te6hZ8MU7Z0zBDtKeTTG
-                              qz4ir4NZfqvB6moHjcVu6Pwb5KkSb8nAobCv
-                              8gB4wQFPYoozOQYTprwGtIHR2k8= )
+   ai.example.    3600 RRSIG  AAAA 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              oq16/pU4MuvkgQyFqGrHqggz47i6iZL714u5
+                              9UsmGM1Y/qyQZsR4wi6hC2zIWXNJxIPIhitJ
+                              G6M5pjExUH/vOe0DIW73t/NHzcj0zOjxAPEI
+                              A+jBlOwn2EY5q87PMzBIeHWSx7DxtEIMC8XI
+                              zkK+1+Z5aqj1pmZ4yXUvd2znGnQ= )
 
 
 B.7 Wildcard No Data Error
@@ -2684,9 +2796,9 @@ B.7 Wildcard No Data Error
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 48]
+Arends, et al.           Expires June 16, 2004                 [Page 50]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    ;; Header: QR AA DO RCODE=0
@@ -2698,36 +2810,36 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    ;; (empty)
 
    ;; Authority
-   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
-                              1065745538
+   example.       3600 IN SOA ns1.example. bugs.x.w.example. (
+                              1071609350
                               3600
                               300
                               3600000
                               3600
                               )
-   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
-                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
-                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
-                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
-                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+   example.       3600 RRSIG  SOA 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              F1KxMLu2zwDUFgUtdAqCq6F9zkaIPb3B7dzA
+                              hRLp8riOMQQgCCQ4x9KvSu2xLJa539jQIRW0
+                              VBU6+FZWzC2IJcc5liv2SXzyfiPu8diB9+Bj
+                              CSITjVX0IGrQgd+PKkaTxWQzG9TDZ2TtgnyM
+                              owLe/OV+Qqqic7ShV/S9l2YJF9I= )
    x.y.w.example. 3600 NSEC   xx.example. MX RRSIG NSEC
-   x.y.w.example. 3600 RRSIG  NSEC 1 4 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              cn4aj3I/EQDa+vysa08xMQSnTz8YGtLLzqAj
-                              R8gy8Yqa4uSm7J17NydsWqgJkhlVxD3oBtnb
-                              w/6tDzx45IHcbnVm6UDrc3DVby21AivrsZ8P
-                              sm5Escp1X+qBLGSNAg2K6dlX/i2vut6g3vDa
-                              66FPTb3/hhrHYkMneBO2Yvfvpj8= )
+   x.y.w.example. 3600 RRSIG  NSEC 5 4 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              sjHnEm4kiIK64bRskNc3vxEHe12l9Lg8Y7G8
+                              VsXMUEEDeBCB3qlrGQeqhdl+gsQGRBiOA8Jj
+                              Jr5F9RNZepVLGv+t5fALeoe0gLHsWoTlfTdq
+                              AJ8a2E5BZYYvy9hjh9Y4Kqd23HOv21o2OC0J
+                              viOQHZ6I4xoZQP5G7r98/PhlrLM= )
    *.w.example.   3600 NSEC   x.w.example. MX RRSIG NSEC
-   *.w.example.   3600 RRSIG  NSEC 1 2 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              fsk9iik9+gpte3I4tffoXyca5jfuYnLLy7/9
-                              7LAVd4KKj9zqSB8f3QD1mjditUK9PGTTtlPL
-                              4mq8F3T8PIt0pfgV8mPl6GP+bR+iVQEEE1YH
-                              yzR21az4Od5KBYYdsPjZzJnOhzCtgyleAoOx
-                              vOHmndDhRTDwVCg179qlrEIsOgE= )
+   *.w.example.   3600 RRSIG  NSEC 5 2 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              OeBMvLlBam90xU/KxvyAYBNGWpvMf1TbaJFr
+                              f0Ip+tTkiqeEE8fx2ZAg1JcY9uhldms/9y45
+                              9HxO9Q3ZO6jfQzsx62YQaBte85d/Udhzf4AK
+                              /RHsZGSOabsu6DhacWC2Ew7vEgcMfiPHFzWW
+                              ANi1i3zhPOd3+Vjt4IQzaJXqVZE= )
 
    ;; Additional
    ;; (empty)
@@ -2740,9 +2852,9 @@ B.8 DS Child Zone No Data Error
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 49]
+Arends, et al.           Expires June 16, 2004                 [Page 51]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    ;; Header: QR AA DO RCODE=0
@@ -2754,28 +2866,28 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    ;; (empty)
 
    ;; Authority
-   example.       3600 IN SOA ns1.example. bugs.ns1.example. (
-                              1065745538
+   example.       3600 IN SOA ns1.example. bugs.x.w.example. (
+                              1071609350
                               3600
                               300
                               3600000
                               3600
                               )
-   example.       3600 RRSIG  SOA 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              0EhIo5SFK2xwM2CMh3P6FJUmpV5VFotM5pzb
-                              8f3cL3SyKfOswI2osc3VvbtiEDQHEcE4/b+v
-                              BNx99Wc4jm3llWlsDOxlIbtR/S44xeOVRpff
-                              pLuMW4IZmdwGY/xh/WHOCV+bqVl+s9un0OcX
-                              LQTbyhlNTWdVYxPLo2T2dNP8a+0= )
+   example.       3600 RRSIG  SOA 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              F1KxMLu2zwDUFgUtdAqCq6F9zkaIPb3B7dzA
+                              hRLp8riOMQQgCCQ4x9KvSu2xLJa539jQIRW0
+                              VBU6+FZWzC2IJcc5liv2SXzyfiPu8diB9+Bj
+                              CSITjVX0IGrQgd+PKkaTxWQzG9TDZ2TtgnyM
+                              owLe/OV+Qqqic7ShV/S9l2YJF9I= )
    example.       3600 NSEC   a.example. NS SOA MX RRSIG NSEC DNSKEY
-   example.       3600 RRSIG  NSEC 1 1 3600 20031108232541 (
-                              20031009232541 5742 example.
-                              10XG3f8uExTPfof30CoonvXSMeqrhrkcN9YG
-                              krhJD4xeVKarTkQMt0dFe66Bbuy961Bv9go1
-                              IEp0R+sV3B5ldqSKBrcIRsh4QFqQp6IPZ+By
-                              yxyYV25L68I1dkM1JoV7IMFsfcTDPjyl3wv2
-                              2LAQ2lyqLBpow5BRR4sAgjZ7Yaw= )
+   example.       3600 RRSIG  NSEC 5 1 3600 20040115201552 (
+                              20031216201552 41681 example.
+                              kE9ARiewdQSCsLXY9ldasZEW54kKhfEN2lsT
+                              vDD4biJsTPeaOXJ6bJ7s0CvybknENin3uqIX
+                              TAy6bsL919sEI3/SoHiRCwHalVmUPIWCsz4g
+                              Ee7gkQ+1uFzi7L8LGX9NjQI74s3M//OW2+T4
+                              7T/nOEOVZujD8IN/Utv+KUg+P6U= )
 
    ;; Additional
    ;; (empty)
@@ -2796,9 +2908,9 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 50]
+Arends, et al.           Expires June 16, 2004                 [Page 52]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 Appendix C. Authentication Examples
@@ -2810,10 +2922,10 @@ C.1 Authenticating An Answer
 
    The query in section Appendix B.1 returned an MX RRset for
    "x.w.example.com". The corresponding RRSIG indicates the MX RRset was
-   signed by an "example" DNSKEY with algorithm 1 and key tag 5742.  The
-   resolver needs the corresponding DNSKEY RR in order to authenticate
-   this answer.   The discussion below describes how a resolver might
-   obtain this DNSKEY RR.
+   signed by an "example" DNSKEY with algorithm 5 and key tag 41681.
+   The resolver needs the corresponding DNSKEY RR in order to
+   authenticate this answer.   The discussion below describes how a
+   resolver might obtain this DNSKEY RR.
 
    The RRSIG indicates the original TTL of the MX RRset was 3600 and,
    for the purpose of authentication, the current TTL is replaced by
@@ -2852,9 +2964,9 @@ C.1.1 Authenticating the example DNSKEY RR
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 51]
+Arends, et al.           Expires June 16, 2004                 [Page 53]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    matching "example" DNSKEY is found, the resolver checks this DNSKEY
@@ -2863,11 +2975,11 @@ Internet-Draft       DNSSEC Protocol Modifications          October 2003
    DNSKEY RRset are considered authenticated.
 
    Finally the resolver checks that some DNSKEY RR in the "example"
-   DNSKEY RRset uses algorithm 1 and has a key tag of 5742.  This DNSKEY
-   is used to authenticated the RRSIG included in the response.  If
-   multiple "example" DNSKEY RRs have algorithm 1 and key tag of 5742,
-   then each DNSKEY RR is tried and the answer is authenticated if
-   either DNSKEY RR validates the signature as described above.
+   DNSKEY RRset uses algorithm 5 and has a key tag of 41681.  This
+   DNSKEY is used to authenticated the RRSIG included in the response.
+   If multiple "example" DNSKEY RRs have algorithm 5 and key tag of
+   41681, then each DNSKEY RR is tried and the answer is authenticated
+   if either DNSKEY RR validates the signature as described above.
 
 C.2 Name Error
 
@@ -2908,9 +3020,9 @@ C.5 Referral to Unsigned Zone
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 52]
+Arends, et al.           Expires June 16, 2004                 [Page 54]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    identical to that of the MX RRset discussed above.
@@ -2920,15 +3032,15 @@ C.6 Wildcard Expansion
    The query in section Appendix B.6 returned an answer that was
    produced as a result of wildcard expansion.   The RRset expanded as
    the similar to The corresponding RRSIG indicates the MX RRset was
-   signed by an "example" DNSKEY with algorithm 1 and key tag 5742.  The
-   RRSIG indicates the original TTL of the MX RRset was 3600 and, for
-   the purpose of authentication, the current TTL is replaced by 3600.
-   The RRSIG labels field value of 2 indicates the answer the result of
-   wildcard expansion since the "a.z.w.example" name contains 4 labels.
-   The name "a.z.w.w.example" is replaced by "*.w.example", the MX RRset
-   is placed in canonical form and, assuming the current time falls
-   between the signature inception and expiration dates, the signature
-   is authenticated.
+   signed by an "example" DNSKEY with algorithm 5 and key tag 41681.
+   The RRSIG indicates the original TTL of the MX RRset was 3600 and,
+   for the purpose of authentication, the current TTL is replaced by
+   3600.   The RRSIG labels field value of 2 indicates the answer the
+   result of wildcard expansion since the "a.z.w.example" name contains
+   4 labels.  The name "a.z.w.w.example" is replaced by "*.w.example",
+   the MX RRset is placed in canonical form and, assuming the current
+   time falls between the signature inception and expiration dates, the
+   signature is authenticated.
 
    The NSEC proves that no closer match (exact or closer wildcard) could
    have been used to answer this query and the NSEC RR must also be
@@ -2964,9 +3076,9 @@ C.8 DS Child Zone No Data Error
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 53]
+Arends, et al.           Expires June 16, 2004                 [Page 55]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
 Intellectual Property Statement
@@ -3020,9 +3132,9 @@ Full Copyright Statement
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 54]
+Arends, et al.           Expires June 16, 2004                 [Page 56]
 
-Internet-Draft       DNSSEC Protocol Modifications          October 2003
+Internet-Draft       DNSSEC Protocol Modifications         December 2003
 
 
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
@@ -3076,5 +3188,6 @@ Acknowledgement
 
 
 
-Arends, et al.           Expires April 26, 2004                [Page 55]
+Arends, et al.           Expires June 16, 2004                 [Page 57]
 
+
