@@ -1,4 +1,8 @@
 
+ 613.	[bug]		"rndc reload zone" now reloads primary zones.
+			It previously only updated slave and stub zones,
+			if an SOA query indicated an out of date serial.
+
  612.	[cleanup]	Shutup a ridiculously noisy HP-UX compiler that
 			complains relentlessly about how its treatment
 			of 'const' has changed as well as how casting

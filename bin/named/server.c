@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.272 2000/12/12 23:05:56 bwelling Exp $ */
+/* $Id: server.c,v 1.273 2000/12/13 07:18:42 tale Exp $ */
 
 #include <config.h>
 
@@ -2226,6 +2226,7 @@ isc_result_t
 ns_server_reloadcommand(ns_server_t *server, char *args) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
+	dns_zonetype_t type;
 	
 	UNUSED(server);
 	result = zone_from_args(server, args, &zone);
@@ -2234,7 +2235,11 @@ ns_server_reloadcommand(ns_server_t *server, char *args) {
 	if (zone == NULL) {
 		ns_server_reloadwanted(server);
 	} else {
-		dns_zone_forcereload(zone);
+		type = dns_zone_gettype(zone);
+		if (type == dns_zone_slave || type == dns_zone_stub)
+			dns_zone_refresh(zone);
+		else
+			dns_zone_load(zone);
 		dns_zone_detach(&zone);
 	}
 	return (ISC_R_SUCCESS);

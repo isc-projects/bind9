@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.278 2000/12/13 06:21:42 marka Exp $ */
+/* $Id: zone.c,v 1.279 2000/12/13 07:18:44 tale Exp $ */
 
 #include <config.h>
 
@@ -243,7 +243,7 @@ struct dns_zone {
 						 * from SOA (if not set, we
 						 * are still using
 						 * default timer values) */
-#define DNS_ZONEFLG_FORCELOAD   0x00008000U     /* Force a reload */
+#define DNS_ZONEFLG_FORCEXFER   0x00008000U     /* Force a zone xfer */
 #define DNS_ZONEFLG_NOREFRESH	0x00010000U
 #define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
 #define DNS_ZONEFLG_DIALREFRESH	0x00040000U
@@ -863,6 +863,8 @@ dns_zone_getjournal(dns_zone_t *zone) {
  */
 static isc_boolean_t
 zone_isdynamic(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
 	return (ISC_TF(zone->type == dns_zone_slave ||
 		       zone->type == dns_zone_stub ||
 		       zone->ssutable != NULL ||
@@ -3162,7 +3164,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "Serial: new %u, old %u",
 		 serial, zone->serial);
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
-	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCELOAD) ||
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) ||
 	    isc_serial_gt(serial, zone->serial)) {
  tcp_transfer:
 		isc_event_free(&event);
@@ -4564,7 +4566,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 		/*FALLTHROUGH*/
 	case DNS_R_UPTODATE:
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCELOAD);
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCEXFER);
 		/*
 		 * Has the zone expired underneath us?
 		 */
@@ -5738,7 +5740,7 @@ dns_zone_forcereload(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FORCELOAD);
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FORCEXFER);
 	UNLOCK_ZONE(zone);
 	dns_zone_refresh(zone);
 }
@@ -5747,7 +5749,7 @@ isc_boolean_t
 dns_zone_isforced(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCELOAD));
+	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER));
 }
 
 isc_result_t
