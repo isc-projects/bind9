@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: host.1,v 1.3 2000/08/01 01:18:42 tale Exp $
+.\" $Id: host.1,v 1.4 2000/08/15 20:11:54 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt HOST 1
@@ -24,7 +24,7 @@
 .Nd DNS lookup utility
 .Sh SYNOPSIS
 .Nm host
-.Op Fl aCdlrTwv
+.Op Fl aCdlnrTwv
 .Op Fl c Ar class
 .Op Fl N Ar ndots
 .Op Fl R Ar number
@@ -42,7 +42,8 @@ prints a short summary of its command line arguments and options.
 .Pp
 .Ar name
 is the domain name that is to be looked up.
-It can also be a dotted-decimal string representing an IPv4 address,
+It can also be a dotted-decimal IPv4 address
+or a colon-delimited IPv6 address,
 in which case
 .Nm host
 will by default perform a reverse lookup for that address.
@@ -104,6 +105,12 @@ The argument is provided for compatibility with older implemementations.
 This option is equivalent to making a query of type AXFR.
 .Pp
 The
+.Fl n
+option specifies that reverse lookups of IPv6 addresses should
+use the IP6.INT domain and "nibble" labels as defined in RFC1886.
+The default is to use IP6.ARPA and binary labels as defined in RFC2874.
+.Pp
+The
 .Fl N
 option sets the number of dots that have to be in
 .Ar name
@@ -141,7 +148,7 @@ Setting this option clears the
 - recursion desired - bit in the query which
 .Nm host
 makes.
-This should mean that the name server receiving the query will not attemp
+This should mean that the name server receiving the query will not attempt
 to resolve
 .Ar name .
 The
@@ -158,8 +165,8 @@ uses UDP when making queries.
 The
 .Fl T
 option makes it use a TCP connection when querying the name server.
-TCP queries will be automatically made when the query type requires
-that a TCP connection: zone transfer (AXFR) requests for example.
+TCP will be automatically selected for queries that require it, 
+such as zone transfer (AXFR) requests.
 .Pp
 The
 .Fl t
@@ -169,14 +176,14 @@ can be any recognised query type: CNAME, NS, SOA, SIG, KEY, AXFR, etc.
 When no query type is specified,
 .Nm host
 automatically selects an appropriate query type.
-By default it looks for A records unless the
+By default it looks for A records, but if the
 .Fl C
-option is supplied or
+option was given, queries will be made for SOA records,
+and if
 .Ar name
-is a dotted-decimal IPv4 address.
-These will make
+is a dotted-decimal IPv4 address or colon-delimited IPv6 address,
 .Nm host
-look for SOA and PTR records respectively.
+will query for PTR records.
 .Pp
 The time to wait for a reply can be controlled through the
 .Fl W
@@ -207,12 +214,3 @@ given by the hardware's maximum value for an integer quantity.
 .Xr dig 1 ,
 .Xr resolver 5
 .Xr named 8 .
-.Sh BUGS
-.Nm host
-does not yet know how to handle command line arguments that are IPv6
-addresses, even though the record types for those addresses are
-fully supported by the BIND9 DNS library.
-.Pp
-Apart from this self-contradicting sentence, the
-.Fl D
-option is undocumented.
