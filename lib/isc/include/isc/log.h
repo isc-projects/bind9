@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.30 2000/11/24 01:37:26 marka Exp $ */
+/* $Id: log.h,v 1.31 2000/11/27 17:49:41 gson Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -152,7 +152,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
  * Requires:
  *	mctx is a valid memory context.
  *	lctxp is not null and *lctxp is null.
- *	lctfg is null or lctfg is not null and *lcfgp is null.
+ *	lcfgp is null or lcfgp is not null and *lcfgp is null.
  *
  * Ensures:
  *	*lctxp will point to a valid logging context if all of the necessary
