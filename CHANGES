@@ -1,3 +1,5 @@
+1230.	[bug]		isccc_cc_isreply() and isccc_cc_isack() were broken.
+
 1229.	[bug]		named would crash if it received a TSIG signed
 			query as part of an AXFR response. [RT #2570]
 

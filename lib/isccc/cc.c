@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.5 2001/11/27 01:56:24 gson Exp $ */
+/* $Id: cc.c,v 1.6 2002/03/15 04:54:58 marka Exp $ */
 
 #include <config.h>
 
@@ -558,7 +558,7 @@ isccc_cc_isack(isccc_sexpr_t *message)
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
 	if (_ctrl == NULL)
-		return (ISC_R_FAILURE);
+		return (ISC_FALSE);
 	if (isccc_cc_lookupstring(_ctrl, "_ack", NULL) == ISC_R_SUCCESS)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
@@ -571,7 +571,7 @@ isccc_cc_isreply(isccc_sexpr_t *message)
 
 	_ctrl = isccc_alist_lookup(message, "_ctrl");
 	if (_ctrl == NULL)
-		return (ISC_R_FAILURE);
+		return (ISC_FALSE);
 	if (isccc_cc_lookupstring(_ctrl, "_rpl", NULL) == ISC_R_SUCCESS)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
