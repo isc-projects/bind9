@@ -439,6 +439,7 @@
 ./bin/tests/system/glue/yy.good			X	2000,2001
 ./bin/tests/system/ifconfig.sh			SH	2000,2001
 ./bin/tests/system/ixfr/clean.sh		SH	2001
+./bin/tests/system/ixfr/prereq.sh		SH	2001
 ./bin/tests/system/ixfr/setup.sh		SH	2001
 ./bin/tests/system/ixfr/tests.sh		SH	2001
 ./bin/tests/system/ixfr/ans2/.cvsignore		X	2001
