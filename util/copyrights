@@ -484,8 +484,11 @@
 ./bin/tests/system/relay/ns4/named.conf		CONF-C	2000,2001
 ./bin/tests/system/relay/setup.sh		SH	2000,2001
 ./bin/tests/system/relay/tests.sh		SH	2000,2001
+./bin/tests/system/resolver/ans2/.cvsignore	X	2001
 ./bin/tests/system/resolver/ans2/ans.pl		PERL	2000,2001
+./bin/tests/system/resolver/ans3/.cvsignore	X	2001
 ./bin/tests/system/resolver/ans3/ans.pl		PERL	2000,2001
+./bin/tests/system/resolver/ns1/.cvsignore	X	2001
 ./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001
 ./bin/tests/system/resolver/ns1/root.hint	ZONE	2000,2001
 ./bin/tests/system/resolver/prereq.sh		SH	2000,2001
