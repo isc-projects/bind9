@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.13 2002/02/20 03:35:55 marka Exp $
+# $Id: altbuild.sh,v 1.14 2002/02/20 03:48:37 marka Exp $
 
 #
 # "Alternative build" test.
@@ -44,7 +44,7 @@ srcdir=${tmpdir}/src
 builddir=${tmpdir}/build
 instdir=${tmpdir}/inst
 
-test ! -d $tmpdir || mkdir $tmpdir
+test -d $tmpdir || mkdir $tmpdir
 test ! -d $kitdir || rm -rf $kitdir
 mkdir $kitdir
 
