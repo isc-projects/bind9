@@ -44,10 +44,12 @@ BIND 9
 		Nominum, Inc.
 
 
-BIND 9.2.2 (release candidate 1)
+BIND 9.2.2
 
-	BIND 9.2.1 is a maintenance release, containing fixes for
-	a number of bugs in 9.2.1 but no new features.
+	BIND 9.2.2 is a maintenance release, containing fixes for
+	a number of bugs in 9.2.1 but no new features.  RFC 2535
+	style DNSSEC is disabled as it is incompatible with the
+	forthcoming DS style DNSSEC.
 
 	libbind: from BIND 8.3.3. [CERT CA-2002-19]
 	Minimum OpenSSL version now 0.9.6e. [CERT CA-2002-23]
