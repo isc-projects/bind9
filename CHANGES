@@ -28,6 +28,8 @@
 
 1088.	[port]		libbind: MPE/iX C.70 (incomplete)
 
+1087.	[bug]		libbind: struct __res_state too large on 64 bit arch.
+
 1086.	[port]		libbind: sunos: old sprintf.
 
 1085.	[port]		libbind: solaris: sys_nerr and sys_errlist do not
