@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.28 1999/10/29 20:37:23 bwelling Exp $
+ * $Id: tsig.c,v 1.29 1999/11/02 19:55:44 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -66,8 +66,7 @@ dns_name_t *dns_tsig_hmacmd5_name = NULL;
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
-		   dst_key_t *creator,
-		   isc_mem_t *mctx, dns_tsigkey_t **key)
+		   dns_name_t *creator, isc_mem_t *mctx, dns_tsigkey_t **key)
 {
 	isc_buffer_t b, nameb;
 	char namestr[1025];
@@ -106,6 +105,20 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_name;
 	dns_name_downcase(&tkey->algorithm, &tkey->algorithm, NULL);
+
+	if (creator != NULL) {
+		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
+		if (tkey->creator == NULL) {
+			ret = ISC_R_NOMEMORY;
+			goto cleanup_algorithm;
+		}
+		dns_name_init(tkey->creator, NULL);
+		ret = dns_name_dup(algorithm, mctx, tkey->creator);
+		if (ret != ISC_R_SUCCESS) {
+			isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
+			goto cleanup_algorithm;
+		}
+	}
 
 	isc_buffer_init(&nameb, namestr, sizeof(namestr) - 1,
 			ISC_BUFFERTYPE_TEXT);
@@ -150,7 +163,6 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	if (key != NULL)
 		tkey->refs++;
 	tkey->generated = generated;
-	tkey->creator = creator;
 	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
         ret = isc_mutex_init(&tkey->lock);
@@ -200,8 +212,10 @@ dns_tsigkey_free(dns_tsigkey_t **key) {
 	dns_name_free(&tkey->algorithm, tkey->mctx);
 	if (tkey->key != NULL)
 		dst_key_free(tkey->key);
-	if (tkey->creator != NULL)
-		dst_key_free(tkey->creator);
+	if (tkey->creator != NULL) {
+		dns_name_free(tkey->creator, tkey->mctx);
+		isc_mem_put(tkey->mctx, tkey->creator, sizeof(dns_name_t));
+	}
 	isc_mem_put(tkey->mctx, tkey, sizeof(dns_tsigkey_t));
 }
 
@@ -651,7 +665,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 		/* Digest all non-TSIG records. */
 		isc_buffer_used(source, &source_r);
 		r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
-		r.length = msg->tsigstart - DNS_MESSAGE_HEADERLEN;
+		r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, &sig_r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_key;
@@ -858,7 +872,7 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	isc_buffer_used(source, &source_r);
 	r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 	if (has_tsig)
-		r.length = msg->tsigstart - DNS_MESSAGE_HEADERLEN;
+		r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
 	else
 		r.length = source_r.length - DNS_MESSAGE_HEADERLEN;
 	ret = dst_verify(DST_SIGMODE_UPDATE, key, &msg->tsigctx, &r, NULL);

@@ -44,8 +44,8 @@ struct dns_tsigkey {
 	dst_key_t		*key;		/* Key */
 	dns_name_t		name;		/* Key name */
 	dns_name_t		algorithm;	/* Algorithm name */
+	dns_name_t		*creator;	/* name that created secret */
 	isc_boolean_t		generated;	/* was this generated? */
-	dst_key_t		*creator;	/* key that created secret */
 	isc_mutex_t		lock;
 	/* Locked */
 	isc_boolean_t		deleted;	/* has this been deleted? */
@@ -55,11 +55,13 @@ struct dns_tsigkey {
 };
 
 #define dns_tsigkey_empty(tsigkey) ((tsigkey)->key == NULL)
+#define dns_tsigkey_identity(tsigkey) \
+	((tsigkey)->generated ? ((tsigkey)->creator) : (&((tsigkey)->name)))
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
-		   dst_key_t *creator, isc_mem_t *mctx, dns_tsigkey_t **key);
+		   dns_name_t *creator, isc_mem_t *mctx, dns_tsigkey_t **key);
 /*
  *	Creates and saves a tsig key structure.  If key is not NULL, *key
  *	will contain a copy of the key.
@@ -69,6 +71,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *		'algorithm' is a valid dns_name_t
  *		'secret' is a valid pointer
  *		'length' is an integer greater than 0
+ *		'creator' points to a valid dns_name_t or is NULL
  *		'mctx' is a valid memory context
  *		'key' or '*key' must be NULL
  *
