@@ -40,29 +40,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#if defined(HAVE_ENDIAN_H)
-#include <endian.h>
-#elif defined(HAVE_SYS_ENDIAN_H)
-#include <sys/endian.h>
-#endif
-
-#if !defined(BYTE_ORDER) && defined(__BYTE_ORDER)
-#define BYTE_ORDER __BYTE_ORDER
-#define LITTLE_ENDIAN __LITTLE_ENDIAN
-#define BIG_ENDIAN __BIG_ENDIAN
-#endif
-
-#if !defined(BYTE_ORDER) || \
-    (BYTE_ORDER != BIG_ENDIAN && BYTE_ORDER != LITTLE_ENDIAN)
-        /* you must determine what the correct bit order is for
-         * your compiler - the next line is an intentional error
-         * which will force your compiles to bomb until you fix
-         * the above macros.
-         */
-#error "Undefined or invalid BYTE_ORDER";
-#endif
-
-#if BYTE_ORDER == LITTLE_ENDIAN
 static void
 byteSwap(isc_uint32_t *buf, unsigned words)
 {
@@ -74,9 +51,6 @@ byteSwap(isc_uint32_t *buf, unsigned words)
 		p += 4;
 	} while (--words);
 }
-#else
-#define byteSwap(buf, words)
-#endif
 
 /*
  * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious

@@ -18,6 +18,7 @@
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>
+#include <isc/string.h>
 
 #include <stdio.h>
 
