@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.33 2000/06/07 17:22:26 bwelling Exp $
+ * $Id: hmac_link.c,v 1.34 2000/06/07 19:05:00 bwelling Exp $
  */
 
 #include <config.h>
@@ -99,7 +99,7 @@ hmacmd5_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_md5_init(md5ctx);
 	isc_md5_update(md5ctx, opad, HMAC_LEN);
 	isc_md5_update(md5ctx, digest, ISC_MD5_DIGESTLENGTH);
-	isc_md5_final(md5ctx, isc_buffer_base(sig));
+	isc_md5_final(md5ctx, isc_buffer_used(sig));
 	isc_buffer_add(sig, ISC_MD5_DIGESTLENGTH);
 
 	return (ISC_R_SUCCESS);
