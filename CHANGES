@@ -1,5 +1,8 @@
 1639.	[func]		Initial dlv system test.
 
+1638.	[bug]		"ixfr-from-differences" could generate a REQUIRE
+			failure if the journal open failed. [RT #11347]
+			
 1637.	[bug]		Node reference leak on error in addnoqname().
 
 1636.	[bug]		The dump done callback could get ISC_R_SUCCESS even if
