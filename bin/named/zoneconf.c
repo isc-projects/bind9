@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.1 2001/09/26 03:43:00 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.2 2001/10/11 03:31:03 marka Exp $ */
 
 #include <config.h>
 
@@ -509,16 +509,6 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 					  dns_zone_clearforwardacl));
 	}
 
-	obj = NULL;
-	result = ns_config_get(maps, "transfer-source", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj));
-
-	obj = NULL;
-	result = ns_config_get(maps, "transfer-source-v6", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj));
-
 	/*
 	 * Configure slave functionality.
 	 */
@@ -570,6 +560,16 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		result = ns_config_get(maps, "min-retry-time", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setminretrytime(zone, cfg_obj_asuint32(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "transfer-source", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "transfer-source-v6", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj));
 
 		break;
 

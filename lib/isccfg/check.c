@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.2 2001/10/04 19:43:06 gson Exp $ */
+/* $Id: check.c,v 1.14.2.3 2001/10/11 03:31:04 marka Exp $ */
 
 #include <config.h>
 
@@ -122,8 +122,8 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE},
 	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE },
 	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE },
-	{ "transfer-source", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "transfer-source-v6", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "transfer-source", SLAVEZONE | STUBZONE },
+	{ "transfer-source-v6", SLAVEZONE | STUBZONE },
 	{ "max-transfer-time-in", SLAVEZONE | STUBZONE },
 	{ "max-transfer-time-out", MASTERZONE | SLAVEZONE },
 	{ "max-transfer-idle-in", SLAVEZONE | STUBZONE },

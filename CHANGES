@@ -1,4 +1,8 @@
 
+1043.	[bug]		Specifying a transfer-source or transfer-source-v6
+			option in the zone statement for a master zone was
+			not treated as an error. [RT #1876]
+
 1042.	[bug]		The "config" logging category did not work properly.
 			[RT #1873]
 
