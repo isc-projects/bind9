@@ -66,6 +66,7 @@
 ./lib/dns/callbacks.c				C	1999
 ./lib/dns/compress.c				C	1999
 ./lib/dns/db.c					C	1999
+./lib/dns/dbiterator.c				C	1999
 ./lib/dns/gen.c					C	1998,1999
 ./lib/dns/include/.cvsignore			X	1999
 ./lib/dns/include/Makefile.in			MAKE	1998
@@ -75,6 +76,8 @@
 ./lib/dns/include/dns/cert.h			C	1999
 ./lib/dns/include/dns/compress.h		C	1999
 ./lib/dns/include/dns/db.h			C	1999
+./lib/dns/include/dns/dbiterator.h		C	1999
+./lib/dns/include/dns/fixedname.h		C	1999
 ./lib/dns/include/dns/master.h			C	1999
 ./lib/dns/include/dns/name.h			C	1998,1999
 ./lib/dns/include/dns/rbt.h			C	1999
