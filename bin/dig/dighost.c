@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.238 2001/11/30 01:58:39 gson Exp $ */
+/* $Id: dighost.c,v 1.239 2002/02/12 02:10:30 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2195,8 +2195,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	debug("before parse starts");
 	parseflags = DNS_MESSAGEPARSE_PRESERVEORDER;
-	if (l->besteffort)
+	if (l->besteffort) {
 		parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
+		parseflags |= DNS_MESSAGEPARSE_IGNORETRUNCATION;
+	}
 	result = dns_message_parse(msg, b, parseflags);
 	if (result == DNS_R_RECOVERABLE) {
 		printf(";; Warning: Message parser reports malformed "

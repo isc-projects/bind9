@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.106 2002/01/22 09:07:26 bwelling Exp $ */
+/* $Id: message.h,v 1.107 2002/02/12 02:10:33 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -153,6 +153,8 @@ typedef int dns_messagetextflag_t;
 						   occurs */
 #define DNS_MESSAGEPARSE_CLONEBUFFER	0x0004	/* save a copy of the
 						   source buffer */
+#define DNS_MESSAGEPARSE_IGNORETRUNCATION 0x0008 /* trucation errors are
+						  * not fatal. */
 
 /*
  * Control behavior of rendering
@@ -400,6 +402,9 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * If DNS_MESSAGEPARSE_BESTEFFORT is set, errors in message content will
  * not be considered FORMERRs.  If the entire message can be parsed, it
  * will be returned and DNS_R_RECOVERABLE will be returned.
+ *
+ * If DNS_MESSAGEPARSE_IGNORETRUNCATION is set then return as many complete
+ * RR's as possible, DNS_R_RECOVERABLE will be returned.
  *
  * OPT and TSIG records are always handled specially, regardless of the
  * 'preserve_order' setting.
