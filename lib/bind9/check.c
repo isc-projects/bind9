@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.3 2001/10/11 01:55:03 gson Exp $ */
+/* $Id: check.c,v 1.4 2001/10/11 04:52:21 marka Exp $ */
 
 #include <config.h>
 
@@ -121,7 +121,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 
 	static optionstable options[] = {
 	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "allow-transfer", MASTERZONE | SLAVEZONE | STUBZONE },
+	{ "allow-transfer", MASTERZONE | SLAVEZONE },
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE },
@@ -129,6 +129,8 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE},
 	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE },
 	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE },
+	{ "notify-source", MASTERZONE | SLAVEZONE },
+	{ "notify-source-v6", MASTERZONE | SLAVEZONE },
 	{ "transfer-source", SLAVEZONE | STUBZONE },
 	{ "transfer-source-v6", SLAVEZONE | STUBZONE },
 	{ "max-transfer-time-in", SLAVEZONE | STUBZONE },
