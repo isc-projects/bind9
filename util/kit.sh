@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.11 2000/12/04 18:40:24 gson Exp $
+# $Id: kit.sh,v 1.12 2000/12/13 21:21:30 gson Exp $
 
 # Make a release kit
 #
@@ -94,7 +94,7 @@ sh util/sanitize_all.sh
 rm -rf TODO conftools util doc/design doc/dev doc/expired \
     doc/html doc/todo doc/private bin/lwresd doc/man/ctoman \
     doc/man/isc doc/man/bin/resolver.5 \
-    bin/tests/system/relay
+    bin/tests/system/relay lib/cfg
 
 find . -name .cvsignore -print | xargs rm
 
