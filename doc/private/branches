@@ -1,6 +1,5 @@
 Name		Status		Whom
 ------------------------------------
-ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
 rt3746		open		marka
 v6source
@@ -13,6 +12,7 @@ blabel-cleanup	closed
 ds_12		closed
 ipv6-improvements closed
 ipv6-scope	closed
+ipv6_6to4	closed
 marka_google	closed
 rt3445		closed
 rt3502		closed
