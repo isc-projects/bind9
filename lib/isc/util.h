@@ -75,7 +75,7 @@
 #define PREV(elt, link)			ISC_LIST_PREV(elt, link)
 #define NEXT(elt, link)			ISC_LIST_NEXT(elt, link)
 #define APPEND(list, elt, link)		ISC_LIST_APPEND(list, elt, link)
-#define PREPEND(list, elt, link)	ISC_LIST_UNLINK(list, elt, link)
+#define PREPEND(list, elt, link)	ISC_LIST_PREPEND(list, elt, link)
 #define UNLINK(list, elt, link)		ISC_LIST_UNLINK(list, elt, link)
 #define ENQUEUE(list, elt, link)	ISC_LIST_APPEND(list, elt, link)
 #define DEQUEUE(list, elt, link)	ISC_LIST_UNLINK(list, elt, link)
