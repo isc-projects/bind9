@@ -42,6 +42,8 @@
 
 #include <arpa/inet.h>
 
+#include "printmsg.h"
+
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;
 isc_socketmgr_t *socketmgr;
@@ -51,6 +53,17 @@ isc_task_t *t0, *t1, *t2;
 void got_request(isc_task_t *, isc_event_t *);
 void got_response(isc_task_t *, isc_event_t *);
 void start_response(void);
+static inline void CHECKRESULT(dns_result_t, char *);
+
+static inline void
+CHECKRESULT(dns_result_t result, char *msg)
+{
+	if (result != DNS_R_SUCCESS) {
+		printf("%s: %s\n", msg, isc_result_totext(result));
+
+		exit(1);
+	}
+}
 
 void
 start_response(void)
@@ -87,8 +100,30 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	dns_dispentry_t *resp = ev->sender;
 	static int cnt = 0;
+	dns_message_t *msg;
+	dns_result_t result;
 
-	printf("App:  got packet!\n");
+	printf("App:  Got packet.  Result: %s\n",
+	       isc_result_totext(ev->result));
+
+	if (ev->result != DNS_R_SUCCESS) {
+		printf("Got error, terminating application\n");
+		dns_dispatch_removerequest(disp, &resp, &ev);
+		isc_app_shutdown();
+		return;
+	}
+
+	msg = NULL;
+	result = dns_message_create(mctx, &msg, DNS_MESSAGE_INTENTPARSE);
+	CHECKRESULT(result, "dns_message_create() failed");
+
+	result = dns_message_parse(msg, &ev->buffer);
+	CHECKRESULT(result, "dns_message_parse() failed");
+
+	result = printmessage(msg);
+	CHECKRESULT(result, "printmessage() failed");
+
+	dns_message_destroy(&msg);
 
 	sleep (2);
 	printf("App:  Ready.\n");

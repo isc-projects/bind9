@@ -40,8 +40,6 @@
 
 #include "printmsg.h"
 
-dns_decompress_t dctx;
-
 static inline void
 CHECKRESULT(dns_result_t result, char *msg)
 {
@@ -51,20 +49,6 @@ CHECKRESULT(dns_result_t result, char *msg)
 		exit(1);
 	}
 }
-
-
-#ifdef NOISY
-static void
-print_wirename(isc_region_t *name) {
-	unsigned char *ccurr, *cend;
-		
-	ccurr = name->base;
-	cend = ccurr + name->length;
-	while (ccurr != cend)
-		printf("%02x ", *ccurr++);
-	printf("\n");
-}
-#endif
 
 static int
 fromhex(char c) {
