@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.17 2001/02/04 15:52:38 bwelling Exp $
+# $Id: Makefile.in,v 1.18 2001/03/30 22:50:20 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -55,6 +55,13 @@ MANPAGES =	dnssec-keygen.8 \
 		dnssec-signkey.8 \
 		dnssec-signzone.8
 
+HTMLPAGES =	dnssec-keygen.html \
+		dnssec-makekeyset.html \
+		dnssec-signkey.html \
+		dnssec-signzone.html
+
+MANOBJS =	${MANPAGES} ${HTMLPAGES}
+
 @BIND9_MAKE_RULES@
 
 dnssec-keygen: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
@@ -72,8 +79,10 @@ dnssec-signzone.@O@: dnssec-signzone.c
 dnssec-signzone: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ ${OBJS} ${LIBS}
 
-clean distclean::
-	rm -f ${TARGETS}
+doc man:: ${MANOBJS}
+
+docclean manclean maintainer-clean::
+	rm -f ${MANOBJS}
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
@@ -82,3 +91,7 @@ installdirs:
 install:: ${TARGETS} installdirs
 	for t in ${TARGETS}; do ${LIBTOOL} ${INSTALL_PROGRAM} $$t ${DESTDIR}${sbindir}; done
 	for m in ${MANPAGES}; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8; done
+
+clean distclean::
+	rm -f ${TARGETS}
+

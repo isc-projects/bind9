@@ -12,274 +12,141 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.TH "DNSSEC-SIGNZONE" "8" "June 30, 2000" "BIND9" ""
+.SH NAME
+dnssec-signzone \- DNSSEC zone signing tool
+.SH SYNOPSIS
+.sp
+\fBdnssec-signzone\fR [ \fB-a\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-d \fIdirectory\fB\fR ]  [ \fB-s \fIstart-time\fB\fR ]  [ \fB-e \fIend-time\fB\fR ]  [ \fB-f \fIoutput-file\fB\fR ]  [ \fB-h\fR ]  [ \fB-i \fIinterval\fB\fR ]  [ \fB-n \fInthreads\fB\fR ]  [ \fB-o \fIorigin\fB\fR ]  [ \fB-p\fR ]  [ \fB-r \fIrandomdev\fB\fR ]  [ \fB-t\fR ]  [ \fB-v \fIlevel\fB\fR ]  \fBzonefile\fR [ \fBkey\fR\fI...\fR ] 
+.SH "DESCRIPTION"
+.PP
+\fBdnssec-signzone\fR signs a zone. It generates NXT
+and SIG records and produces a signed version of the zone. If there
+is a \fIsignedkey\fR file from the zone's parent,
+the parent's signatures will be incorporated into the generated
+signed zone file. The security status of delegations from the the
+signed zone (that is, whether the child zones are secure or not) is
+determined by the presence or absence of a
+\fIsignedkey\fR file for each child zone.
+.SH "OPTIONS"
+.TP
+\fB-a\fR
+Verify all generated signatures.
+.TP
+\fB-c \fIclass\fB\fR
+Specifies the DNS class of the zone.
+.TP
+\fB-d \fIdirectory\fB\fR
+Look for \fIsignedkey\fR files in
+\fBdirectory\fR as the directory 
+.TP
+\fB-s \fIstart-time\fB\fR
+Specify the date and time when the generated SIG records
+become valid. This can be either an absolute or relative
+time. An absolute start time is indicated by a number
+in YYYYMMDDHHMMSS notation; 20000530144500 denotes
+14:45:00 UTC on May 30th, 2000. A relative start time is
+indicated by +N, which is N seconds from the current time.
+If no \fBstart-time\fR is specified, the current
+time is used.
+.TP
+\fB-e \fIend-time\fB\fR
+Specify the date and time when the generated SIG records
+expire. As with \fBstart-time\fR, an absolute
+time is indicated in YYYYMMDDHHMMSS notation. A time relative
+to the start time is indicated with +N, which is N seconds from
+the start time. A time realtive to the current time is
+indicated with now+N. If no \fBend-time\fR is
+specified, 30 days from the start time is used as a default.
+.TP
+\fB-f \fIoutput-file\fB\fR
+The name of the output file containing the signed zone. The
+default is to append \fI.signed\fR to the
+input file.
+.TP
+\fB-h\fR
+Prints a short summary of the options and arguments to
+\fBdnssec-signzone\fR.
+.TP
+\fB-i \fIinterval\fB\fR
+When a previously signed zone is passed as input, records
+may be resigned. The \fBinterval\fR option
+specifies the cycle interval as an offset from the current
+time (in seconds). If a SIG record expires after the
+cycle interval, it is retained. Otherwise, it is considered
+to be expiring soon, and it will be replaced.
 
-.\" $Id: dnssec-signzone.8,v 1.17 2001/01/09 21:47:25 bwelling Exp $
-
-.Dd Jun 30, 2000
-.Dt DNSSEC-SIGNZONE 8
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm dnssec-signzone
-.Nd DNSSEC zone signing tool
-.Sh SYNOPSIS
-.Nm dnssec-signzone
-.Op Fl a
-.Op Fl c Ar class
-.Op Fl d Ar directory
-.Op Fl s Ar start-time
-.Op Fl e Ar end-time
-.Op Fl i Ar interval
-.Op Fl o Ar origin
-.Op Fl f Ar output-file
-.Op Fl p
-.Op Fl r Ar randomdev
-.Op Fl t
-.Op Fl v Ar level
-.Op Fl n Ar nthreads
-.Ar zonefile
-.Op keyfile ....
-.Sh DESCRIPTION
-.Pp
-.Nm dnssec-signzone
-is used to sign a zone.
-Any
-.Ar signedkey
-files for the zone to be signed should be present in the current
-directory, along with the keys that will be used to sign the zone.
-If no
-.Ar keyfile
-arguments are supplied, the default behaviour is to use all of the zone's
-keys that are present in the current directory.
-Providing specific
-.Ar keyfile
-arguments constrains
-.Nm dnssec-signzone
-to only use those keys for signing the zone.
-Each
-.Ar keyfile
-argument would be an identification string for a key created with
-.Xr dnssec-keygen 8 .
-If the zone to be signed has any secure subzones, the
-.Ar signedkey
-files for those subzones need to be available in the
-current working directory used by
-.Nm dnssec-signzone .
-.Pp
-.Ar zonefile
-is the name of the unsigned zone file.
-Unless the file name is the same as the name of the zone, the
-.Fl o
-option should be given.
-.Ar origin
-will be the fully qualified domain origin for the zone.
-.Pp
-.Nm dnssec-signzone
-will generate NXT and SIG records for the zone and produce a signed
-version of the zone.
-If there is a
-.Ar signedkey
-file from the zone's parent, the parent's signatures will be
-incorporated into the generated signed zone file.
-The security status of delegations from the the signed zone
-- i.e. whether the child zones are DNSSEC-aware or not - is
-set according to the presence or absence of a
-.Ar signedkey
-file for the child in case.
-.Pp
-By default,
-.Nm dnssec-signzone
-generates a file called
-.Ar zonefile.signed
-containing the signed zone file.
-The output file name can be overridden usign the
-.Fl f
-option.
-.\" Don't hyphenate YYYYMMDDHHMMSS
-.nh YYYYMMDDHHMMSS
-.Pp
-.Nm dnssec-signzone
-does not verify the signatures by default.
-The
-.Fl a
-option makes it verify the signatures it generated.
-.Pp
-The date and time when the generated
-SIG records become valid can be specified with the
-.Fl s
-option.
-.Ar start-time
-can either be an absolute or relative date.
-An absolute start time is indicated by a number in YYYYMMDDHHMMSS
-notation: 20000530144500 denotes 14:45:00 UTC on May 30th, 2000.
-A relative start time is supplied when
-.Ar start-time
-is given as +N: N seconds from the current time.
-If no
-.Fl s
-option is supplied, the current date and time is used for the start
-time of the SIG records.
-.Pp
-The expiry date for the SIG records can be set by the
-.Fl e
-option.
-Note that in this context, the expiry date specifies when the SIG
-records are no longer valid, not when they are deleted from caches on name
-servers.
-.Ar end-date
-also represents an absolute or relative date.
-YYYYMMDDHHMMSS notation is used as before to indicate an absolute date
-and time.
-When
-.Ar end-date
-is +N,
-it indicates that the SIG records will expire in N seconds after their
-start date.
-If
-.Ar end-date
-is supplied as now+N,
-the SIG records will expire in N seconds after the current time.
-When no expiry date is set for the SIG records,
-.Nm dnssec-signzone
-defaults to an expire time of 30 days from the start time of the SIG
-records.
-.Pp
-When a previously signed zone is passed as input to
-.Nm dnssec-signzone ,
-records may be resigned.  Whether or not to resign records is configurable
-by using the
-.Fl i
-option, which specifies the cycle interval as an offset from the current time
-(in seconds).  If a SIG record expires after the cycle interval, it is
-retained.  Otherwise, it is considered to be expiring soon, and
-.Nm dnssec-signzone
-will remove it and generate a new SIG record to replace it.
-.Pp
-The default cycle interval is one quarter of the difference between the
-specified signature end and start dates.  So if the
-.Fl e
-and
-.Fl s
-options are not specified,
-.Nm dnssec-signzone
-generates signatures that are valid for 30 days from the current date
-by default, with a cycle interval of 7.5 days.  Therefore, if any SIG records
-are due to expire in less than 7.5 days, they would be replaced
-with new ones.
-.Pp
-.Nm dnssec-signzone
-may need random numbers in the process of signing the zone.
-If the system does not have a
-.Pa /dev/random
-device that can be used for generating random numbers,
-.Nm dnssec-signzone
-will prompt for keyboard input and use the time intervals between
-keystrokes to provide randomness.
-The
-.Fl r
-option overrides this behaviour, making
-.Nm dnssec-signzone
-use
-.Ar randomdev
-as a source of random data.
-.Pp
-The
-.Fl p
-option instructs
-.Nm dnssec-signzone
-to use pseudo-random data when signing the keys.  This is faster, but
-less secure, than using genuinely random data for signing.
-This option may be useful when signing large zones or when the
-entropy source is limited.
-.Pp
-The
-.Fl t
-option causes
-.Nm dnssec-signzone
-to print various statistics after signing the zone.
-.Pp
-The
-.Fl c
-option specifies that the KEY records in the input and output key sets should
-have the specified class instead of IN.
-.Pp
-The
-.Fl d
-option specifies that
-.Nm dnssec-signzone
-should look in a directory other than the current directory for signedkey
-files.
-.Pp
-An option of
-.Fl h
-makes
-.Nm dnssec-signzone
-print a short summary of its command line options
-and arguments.
-.Pp
-The
-.Fl v
-option can be used to make
-.Nm dnssec-signzone
-more verbose.
-As the debugging/tracing level
-.Ar level
-increases,
-.Nm dnssec-signzone
-generates increasingly detailed reports about what it is doing.
-The default level is zero.
-.Pp
-The
-.Fl n
-option can be used to change the threading behavior.  By default,
-.Nm dnssec-signzone
-attempts to determine the number of CPUs present, and create one thread
-per CPU.  The
-.Fl n
-option causes a different number of threads to be created.
-.Sh EXAMPLE
-The example below shows how
-.Nm dnssec-signzone
-could be used to sign the
-.Dv example.com
-zone with the key that was generated in the example given in the
-man page for
-.Xr dnssec-keygen 8 .
-The zone file for this zone is
-.Dv example.com ,
-which is the same as the origin, so there is no need to use the
-.Fl o
-option to set the origin.
-The zone's keys were either appended to the zone file or
-incorporated using a
-.Dv $INCLUDE
-statement.
-If there was a
-.Ar signedkey
-file from the parent zone - i.e.
-.Dv signedkey-example.com.
-- it should be present in the current directory.
-This allows the parent zone's signature to be included in the signed
-version of the
-.Dv example.com
-zone.
-.Pp
-.Dl # dnssec-signzone example.com Kexample.com.+003+26160
-.Pp
-.Nm dnssec-signzone
-will create a file called
-.Dv example.com.signed ,
-the signed version of the
-.Dv example.com
-zone.
-This file can then be referenced in a
-.Dv zone{}
-statement in
-.Pa /etc/named.conf
-so that it can be loaded by the name server.
-.Sh FILES
-.Pa /dev/random
-.Sh SEE ALSO
-.Xr RFC2535,
-.Xr dnssec-keygen 8 ,
-.Xr dnssec-signkey 8 .
+The default cycle interval is one quarter of the difference
+between the signature end and start times. So if neither
+\fBend-time\fR or \fBstart-time\fR
+are specified, \fBdnssec-signzone\fR generates
+signatures that are valid for 30 days, with a cycle
+interval of 7.5 days. Therefore, if any existing SIG records
+are due to expire in less than 7.5 days, they would be
+replaced.
+.TP
+\fB-n \fIncpus\fB\fR
+Specifies the number of threads to use. By default, one
+thread is started for each detected CPU.
+.TP
+\fB-o \fIorigin\fB\fR
+The zone origin. If not specified, the name of the zone file
+is assumed to be the origin.
+.TP
+\fB-p\fR
+Use pseudo-random data when signing the zone. This is faster,
+but less secure, than using real random data. This option
+may be useful when signing large zones or when the entropy
+source is limited.
+.TP
+\fB-r \fIrandomdev\fB\fR
+Specifies the source of randomness. If the operating
+system does not provide a \fI/dev/random\fR
+or equivalent device, the default source of randomness
+is keyboard input. \fIrandomdev\fR specifies
+the name of a character device or file containing random
+data to be used instead of the default. The special value
+\fIkeyboard\fR indicates that keyboard
+input should be used.
+.TP
+\fB-t\fR
+Print statistics at completion.
+.TP
+\fB-v \fIlevel\fB\fR
+Sets the debugging level.
+.TP
+\fBzonefile\fR
+The file containing the zone to be signed.
+Sets the debugging level.
+.TP
+\fBkey\fR
+The keys used to sign the zone. If no keys are specified, the
+default all zone keys that have private key files in the
+current directory.
+.SH "EXAMPLE"
+.PP
+The following command signs the \fBexample.com\fR
+zone with the DSA key generated in the \fBdnssec-keygen\fR
+man page. The zone's keys must be in the zone. If there are
+\fIsignedkey\fR files associated with this zone
+or any child zones, they must be in the current directory.
+\fBexample.com\fR, the following command would be
+issued:
+.PP
+\fBdnssec-signzone -o example.com db.example.com Kexample.com.+003+26160\fR
+.PP
+The command would print a string of the form:
+.PP
+In this example, \fBdnssec-signzone\fR creates
+the file \fIdb.example.com.signed\fR. This file
+should be referenced in a zone statement in a
+\fInamed.conf\fR file.
+.SH "SEE ALSO"
+.PP
+\fBdnssec-keygen\fR(8),
+\fBdnssec-signkey\fR(8),
+\fIBIND 9 Administrator Reference Manual\fR,
+\fIRFC 2535\fR.
+.SH "AUTHOR"
+.PP
+Internet Software Consortium
