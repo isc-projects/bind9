@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.98 2000/12/08 03:10:32 bwelling Exp $
+ * $Id: tsig.c,v 1.98.4.1 2001/01/09 19:36:20 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -504,10 +504,9 @@ dns_tsig_sign(dns_message_t *msg) {
 		}
 		/* Digest the timesigned and fudge */
 		isc_buffer_clear(&databuf);
-		if (tsig.error != dns_tsigerror_badtime)
-			buffer_putuint48(&databuf, tsig.timesigned);
-		else 
-			buffer_putuint48(&databuf, querytsig.timesigned);
+		if (tsig.error == dns_tsigerror_badtime)
+			tsig.timesigned = querytsig.timesigned;
+		buffer_putuint48(&databuf, tsig.timesigned);
 		isc_buffer_putuint16(&databuf, tsig.fudge);
 		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_context_adddata(ctx, &r);
