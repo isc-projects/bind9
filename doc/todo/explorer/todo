@@ -13,17 +13,21 @@ Document {min,max}-{refresh,retry}-time
 
 Limit the number of retries on socket errors (send and receive)
 
-	-- is this one done?
+	-- Log when we get more than 10 of the same error in a row.
+	-- Also catch "no route to host" and "write error on pipe"
 
 Make lwresd shut down its fetches properly
 
-Move lwres search list handling to lwresd
-
 Implement ip6.arpa priming
 
-	-- why not use a stub zone instead?
+	-- Stub zones that don't have masters.
+
+----------------------------------------------------------------------
+Non-priorities (as things stand for my work load at this time
+----------------------------------------------------------------------
 
 Rewrite zone code to use a list per zone state
 
 Develop automated test for queries over IPv6
 
+Move lwres search list handling to lwresd
