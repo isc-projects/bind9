@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.164 2001/04/19 18:29:53 bwelling Exp $ */
+/* $Id: client.c,v 1.165 2001/05/09 23:13:03 gson Exp $ */
 
 #include <config.h>
 
@@ -1203,6 +1203,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t ra; 	/* Recursion available. */
 	isc_netaddr_t netaddr;
 	int match;
+	dns_messageid_t id;
+	unsigned int flags;
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -1299,18 +1301,22 @@ client_request(isc_task_t *task, isc_event_t *event) {
 #endif
 	}
 
-	result = dns_message_parse(client->message, buffer, 0);
+	result = dns_message_peekheader(buffer, &id, &flags);
 	if (result != ISC_R_SUCCESS) {
-		ns_client_error(client, result);
+		/*
+		 * There isn't enough header to determine whether
+		 * this was a request or a response.  Drop it.
+		 */
+		ns_client_next(client, result);
 		goto cleanup;
 	}
 
 	/*
-	 * We expect a query, not a response.  If this is a UDP response,
-	 * forward it to the dispatcher.  If it's a TCP response,
-	 * discarded it here.
+	 * The client object handles requests, not responses.
+	 * If this is a UDP response, forward it to the dispatcher.
+	 * If it's a TCP response, discard it here.
 	 */
-	if ((client->message->flags & DNS_MESSAGEFLAG_QR) != 0) {
+	if ((flags & DNS_MESSAGEFLAG_QR) != 0) {
 		if (TCP_CLIENT(client)) {
 			CTRACE("unexpected response");
 			ns_client_next(client, DNS_R_FORMERR);
@@ -1320,6 +1326,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_next(client, ISC_R_SUCCESS);
 			goto cleanup;
 		}
+	}
+
+	/*
+	 * It's a request.  Parse it.
+	 */
+	result = dns_message_parse(client->message, buffer, 0);
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * Parsing the request failed.  Send a response
+		 * (typically FORMERR or SERVFAIL).
+		 */
+		ns_client_error(client, result);
+		goto cleanup;
 	}
 
 	/*
