@@ -1,3 +1,7 @@
+  37.	[bug]		If the first RR in an incoming zone transfer was 
+			not an SOA, the server died with an assertion failure
+			instead of just reporting an error.
+
   36.	[cleanup]	Change DNS_R_SUCCESS (and others) to ISC_R_SUCCESS
 
   35.   [performance]   Log messages which are of a level too high to be

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.59 2000/04/06 22:02:32 explorer Exp $ */
+/* $Id: xfrin.c,v 1.60 2000/04/07 19:38:50 gson Exp $ */
 
 #include <config.h>
 
@@ -405,7 +405,11 @@ xfr_rr(dns_xfrin_ctx_t *xfr,
 		break;
 
 	case XFRST_INITIALSOA:
-		INSIST(rdata->type == dns_rdatatype_soa);
+		if (rdata->type != dns_rdatatype_soa) {
+			xfrin_log(xfr, ISC_LOG_ERROR,
+				  "first RR in zone transfer must be SOA");
+			FAIL(DNS_R_FORMERR);
+		}
 		/*
 		 * Remember the serial number in the intial SOA.
 		 * We need it to recognize the end of an IXFR.
