@@ -131,7 +131,6 @@ main (int argc, char **argv) {
 				} else
 					printf("usage: add NAME\n");
 
-#if 0
 			} else if (CMDCHECK("delete")) {
 				if (arg != NULL && *arg != '\0') {
 					name = create_name(arg);
@@ -146,7 +145,6 @@ main (int argc, char **argv) {
 					}
 				} else
 					printf("usage: delete NAME\n");
-#endif
 
 			} else if (CMDCHECK("search")) {
 				if (arg != NULL && *arg != '\0') {
@@ -155,7 +153,7 @@ main (int argc, char **argv) {
 						printf("searching for "
 						       "name %s ... ", arg);
 						node = dns_rbt_findnode
-							    (rbt, name, NULL);
+							           (rbt, name);
 						if (node != NULL)
 							printf("found it.\n");
 						else
