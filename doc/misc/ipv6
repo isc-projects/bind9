@@ -105,9 +105,9 @@ RELEVANT RFCs
 
 3513:  Internet Protocol Version 6 (IPv6) Addressing Architecture
 
-3943:  Basic Socket Interface Extensions for IPv6
+3493:  Basic Socket Interface Extensions for IPv6
 
 3542:  Advanced Sockets Application Program Interface (API) for IPv6
 
 
-$Id: ipv6,v 1.8 2004/08/02 04:06:39 jinmei Exp $
+$Id: ipv6,v 1.9 2004/08/10 04:27:51 jinmei Exp $
