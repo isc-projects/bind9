@@ -481,9 +481,9 @@
  349.	[bug]		Processing a query with the CD bit set now works
 			as expected.
 
- 348.	[func]		New named.conf boolean values 'glue-from-auth' and
-			'glue-from-cache' now supported in view and global
-			options statement.
+ 348.	[func]		New boolean named.conf options 'additional-from-auth'
+			and 'additional-from-cache' now supported in view and
+			global options statement.
 
  347.	[bug]		Don't crash if when an argument is left off
 			options in dig.
