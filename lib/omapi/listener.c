@@ -33,7 +33,6 @@ typedef struct omapi_listener_object {
 	isc_mutex_t mutex;
 	isc_task_t *task;
 	isc_socket_t *socket;	/* Listening socket. */
-	isc_sockaddr_t address;
 	/*
 	 * Locked by mutex.
 	 */
@@ -203,13 +202,13 @@ free_task:
 }
 
 isc_result_t
-omapi_listener_listen(omapi_object_t *caller, int port, int max) {
+omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr, int max) {
 	isc_result_t result;
 	isc_task_t *task;
 	omapi_listener_t *listener;
-	struct in_addr inaddr;
 
 	REQUIRE(caller != NULL);
+	REQUIRE(addr != NULL && isc_sockaddr_getport(addr) != 0);
 
 	task = NULL;
 	result = isc_task_create(omapi_taskmgr, NULL, 0, &task);
@@ -241,18 +240,8 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 	result = isc_socket_create(omapi_socketmgr, PF_INET,
 				   isc_sockettype_tcp, &listener->socket);
 
-	if (result == ISC_R_SUCCESS) {
-		/*
-		 * Set up the addressses on which to listen and bind to it.
-		 */
-		if (port == 0)
-			port = OMAPI_PROTOCOL_PORT;
-
-		inaddr.s_addr = INADDR_ANY;
-		isc_sockaddr_fromin(&listener->address, &inaddr, port);
-
-		result = isc_socket_bind(listener->socket, &listener->address);
-	}
+	if (result == ISC_R_SUCCESS)
+		result = isc_socket_bind(listener->socket, addr);
 
 	if (result == ISC_R_SUCCESS)
 		/*
