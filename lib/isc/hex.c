@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.5 2000/11/19 20:58:58 bwelling Exp $ */
+/* $Id: hex.c,v 1.6 2000/11/19 22:10:03 bwelling Exp $ */
 
 #include <config.h>
+
+#include <ctype.h>
 
 #include <isc/buffer.h>
 #include <isc/hex.h>
