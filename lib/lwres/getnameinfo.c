@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.18 2000/06/22 21:59:29 tale Exp $ */
+/* $Id: getnameinfo.c,v 1.19 2000/06/28 21:43:46 bwelling Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -88,13 +88,13 @@ static struct afd {
 	{0, 0, 0},
 };
 
-#define ENI_NOSOCKET 	0
 #define ENI_NOSERVNAME	1
 #define ENI_NOHOSTNAME	2
 #define ENI_MEMORY	3
 #define ENI_SYSTEM	4
 #define ENI_FAMILY	5
 #define ENI_SALEN	6
+#define ENI_NOSOCKET 	7
 
 /*
  * The test against 0 is there to keep the Solaris compiler
