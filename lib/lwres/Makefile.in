@@ -33,7 +33,7 @@ OBJS =		context.@O@ getaddrinfo.@O@ gethost.@O@ getipnode.@O@ \
 # Alphabetically
 SRCS =		context.c getaddrinfo.c gethost.c getipnode.c \
 		getnameinfo.c getnet.c lwbuffer.c lwpacket.c \
-		lwres.c lwres_gabn.c lwres_gnba.c lwres_noop.c
+		lwresutil.c lwres_gabn.c lwres_gnba.c lwres_noop.c
 
 LIBS =		@LIBS@
 
