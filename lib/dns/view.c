@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.98 2001/03/26 21:33:00 bwelling Exp $ */
+/* $Id: view.c,v 1.99 2001/04/11 20:37:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1091,5 +1091,23 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 #ifdef notyet /* clean up adb dump format first */
 	dns_adb_dump(view->adb, fp);
 #endif
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_view_flushcache(dns_view_t *view) {
+	isc_result_t result;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->cachedb == NULL)
+		return (ISC_R_SUCCESS);
+	result = dns_cache_flush(view->cache);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_db_detach(&view->cachedb);
+	dns_cache_attachdb(view->cache, &view->cachedb);
+
+	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
 }

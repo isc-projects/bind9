@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.173 2001/04/10 00:18:27 gson Exp $ */
+/* $Id: adb.c,v 1.174 2001/04/11 20:37:40 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -4007,4 +4007,27 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 		check_exit(adb);
 		UNLOCK(&adb->lock);
 	}
+}
+
+void
+dns_adb_flush(dns_adb_t *adb) {
+	unsigned int i;
+
+	INSIST(DNS_ADB_VALID(adb));
+
+	LOCK(&adb->lock);
+
+	for (i = 0 ; i < NBUCKETS ; i++) {
+		/*
+		 * Call our cleanup routines.
+		 */
+		cleanup_names(adb, i, INT_MAX);
+		cleanup_entries(adb, i, INT_MAX);
+	}
+
+#ifdef DUMP_ADB_AFTER_CLEANING
+	dump_adb(adb, stdout, ISC_TRUE);
+#endif
+
+	UNLOCK(&adb->lock);
 }

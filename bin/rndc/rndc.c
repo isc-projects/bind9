@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.52 2001/04/10 22:00:41 bwelling Exp $ */
+/* $Id: rndc.c,v 1.53 2001/04/11 20:37:39 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -110,6 +110,7 @@ command is one of the following:\n\
   trace		Increment debugging level by one.\n\
   trace level	Change the debugging level.\n\
   notrace	Set debugging level to 0.\n\
+  flush		Flushes the server's cache.\n\
   *status	Display ps(1) status of named.\n\
   *restart	Restart the server.\n\
 \n\

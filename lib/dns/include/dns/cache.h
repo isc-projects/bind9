@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.h,v 1.16 2001/01/09 21:52:19 bwelling Exp $ */
+/* $Id: cache.h,v 1.17 2001/04/11 20:37:49 bwelling Exp $ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
@@ -223,6 +223,16 @@ void
 dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size);
 /*
  * Set the maximum cache size.  0 means unlimited.
+ */
+
+isc_result_t
+dns_cache_flush(dns_cache_t *cache);
+/*
+ * Flushes all data from the cache.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  */
 
 ISC_LANG_ENDDECLS

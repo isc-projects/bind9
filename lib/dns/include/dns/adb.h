@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.64 2001/02/28 20:47:36 gson Exp $ */
+/* $Id: adb.h,v 1.65 2001/04/11 20:37:48 bwelling Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -557,6 +557,15 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp);
  *	adb is valid.
  *
  *	*addrp is a valid dns_adbaddrinfo_t *.
+ */
+
+void
+dns_adb_flush(dns_adb_t *adb);
+/*
+ * Flushes all cached data from the adb.
+ *
+ * Requires:
+ * 	adb is valid.
  */
 
 ISC_LANG_ENDDECLS

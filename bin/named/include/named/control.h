@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.2 2001/04/10 21:50:45 bwelling Exp $ */
+/* $Id: control.h,v 1.3 2001/04/11 20:37:36 bwelling Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -37,6 +37,7 @@
 #define NS_COMMAND_DUMPDB	"dumpdb"
 #define NS_COMMAND_TRACE	"trace"
 #define NS_COMMAND_NOTRACE	"notrace"
+#define NS_COMMAND_FLUSH	"flush"
 
 isc_result_t
 ns_control_init(void);

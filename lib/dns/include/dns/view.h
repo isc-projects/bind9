@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.69 2001/03/26 21:33:04 bwelling Exp $ */
+/* $Id: view.h,v 1.70 2001/04/11 20:37:50 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -664,6 +664,21 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  * Returns:
  * 	ISC_R_SUCCESS	The cache was successfully dumped.
  * 	others		An error occurred (see dns_master_dump)
+ */
+
+isc_result_t
+dns_view_flushcache(dns_view_t *view);
+/*
+ * Flush the view's cache (and ADB).
+ *
+ * Requires:
+ * 	'view' is valid.
+ *
+ * 	No other tasks are executing.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  */
 
 ISC_LANG_ENDDECLS

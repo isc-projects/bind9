@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.2 2001/04/10 21:50:40 bwelling Exp $ */
+/* $Id: control.c,v 1.3 2001/04/11 20:37:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -109,6 +109,8 @@ ns_control_docommand(isccc_sexpr_t *message) {
 		ns_g_debuglevel = 0;
 		isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
 		result = ISC_R_SUCCESS;
+	} else if (command_compare(command, NS_COMMAND_FLUSH)) {
+		result = ns_server_flushcache(ns_g_server);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,

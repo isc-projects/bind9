@@ -1,4 +1,6 @@
 
+ 808.	[func]		Add 'rndc flush' to flush the server's cache.
+
  807.	[bug]		When setting up TCP connections for incoming zone
 			transfers, the transfer-source port was not
 			ignored like it should be.

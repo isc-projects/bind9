@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.52 2001/02/14 03:50:08 gson Exp $ */
+/* $Id: server.h,v 1.53 2001/04/11 20:37:37 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -147,5 +147,11 @@ ns_server_dumpdb(ns_server_t *server);
  */
 isc_result_t
 ns_server_setdebuglevel(ns_server_t *server, char *args);
+
+/*
+ * Flush the server's cache(s)
+ */
+isc_result_t
+ns_server_flushcache(ns_server_t *server);
 
 #endif /* NAMED_SERVER_H */

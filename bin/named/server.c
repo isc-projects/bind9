@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.315 2001/03/29 04:25:59 gson Exp $ */
+/* $Id: server.c,v 1.316 2001/04/11 20:37:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2684,4 +2684,25 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 	}
 	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_server_flushcache(ns_server_t *server) {
+	dns_view_t *view;
+	isc_result_t result;
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		result = dns_view_flushcache(view);
+		if (result != ISC_R_SUCCESS)
+			goto out;
+	}
+	result = ISC_R_SUCCESS;
+ out:
+	isc_task_endexclusive(server->task);	
+	return (result);
 }
