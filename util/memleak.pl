@@ -21,8 +21,8 @@
 $mem_stats = '';
 
 while (<>) {
-    $gets{$1.$2} = $_ if /mem(pool)?_get.*-> 0x([0-9a-f]+)/;
-    delete $gets{$1.$2} if /mem(pool)?_put\(0x[0-9a-f]+, 0x([0-9a-f]+)/;
+    $gets{$1.$2} = $_ if /mem_get\(([0-9]+), [0-9]+\) -> ([0-9a-f]+)/;
+    delete $gets{$1.$2} if /mem_put\(([0-9]+), ([0-9a-f]+), [0-9]+\)/;
     $mem_stats .= $_ if /\d+ gets, +(\d+) rem/ && $1 > 0;
 }
 print join('', values %gets);
