@@ -1,13 +1,13 @@
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
-Expires: May 2002                                          November 2001
+Expires: June 2003                                         December 2002
 
 
 
 
                      Elliptic Curve KEYs in the DNS
                      -------- ----- ---- -- --- ---
-                   <draft-ietf-dnsext-ecc-key-01.txt>
+                   <draft-ietf-dnsext-ecc-key-03.txt>
 
                          Richard C. Schroeppel
                           Donald Eastlake 3rd
@@ -28,7 +28,7 @@ Status of This Document
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
+   time.  It is inappropriate to use Internet- Drafts as reference
    material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
@@ -55,8 +55,7 @@ Abstract
 
 
 R. Schroeppel, et al                                            [Page 1]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -114,8 +113,7 @@ Table of Contents
 
 
 R. Schroeppel, et al                                            [Page 2]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -125,8 +123,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    The Domain Name System (DNS) is the global hierarchical replicated
    distributed database system for Internet addressing, mail proxy, and
    other information. The DNS has been extended to include digital
-   signatures and cryptographic keys as described in [RFC 2535].  Thus
-   the DNS can now be secured and used for key distribution.
+   signatures and cryptographic keys as described in [RFC 2535].
 
    This document describes how to store elliptic curve cryptographic
    (ECC) keys in the DNS so they can be used for a variety of security
@@ -172,9 +169,9 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 
+
 R. Schroeppel, et al                                            [Page 3]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -232,8 +229,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                            [Page 4]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -291,8 +287,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                            [Page 5]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -324,7 +319,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    (LL-60).  In some cases, a parameter value of 0 is sensible, and MAY
    be represented by an LL value of 0, with the data field omitted.  A
    length value of 0 represents a parameter value of 0, not an absent
-   parameter.  (The data portion occupies 0 space.) There is no
+   parameter.  (The data portion occupies 0 space.)  There is no
    requirement that a parameter be represented in the minimum number of
    octets; high-order 0 octets are allowed at the front end.  Parameters
    are always right adjusted, in a field of length defined by LL.  The
@@ -338,29 +333,28 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
    LF,F define an explicit field polynomial.  This parameter pair is
    present only when FMT = 1.  The length of a polynomial coefficient is
-   ceiling(log2 P) bits.  Coefficients are in the numerical range [0,P-
-   1].  The coefficients are packed into fixed-width fields, from higher
-   order to lower order.  All coefficients must be present, including
-   any 0s and also the leading coefficient (which is required to be 1).
-   The coefficients are right justified into the octet string of length
-   specified by LF, with the low-order "constant" coefficient at the
-   right end.  As a concession to storage efficiency, the higher order
-   bits of the leading coefficient may be elided, discarding high-order
-   0 octets and reducing LF.  The degree is calculated by determining
+   ceiling(log2 P) bits.  Coefficients are in the numerical range
+   [0,P-1].  The coefficients are packed into fixed-width fields, from
+   higher order to lower order.  All coefficients must be present,
+   including any 0s and also the leading coefficient (which is required
+   to be 1).  The coefficients are right justified into the octet string
+   of length specified by LF, with the low-order "constant" coefficient
+   at the right end.  As a concession to storage efficiency, the higher
+   order bits of the leading coefficient may be elided, discarding high-
+   order 0 octets and reducing LF.  The degree is calculated by
 
 
 R. Schroeppel, et al                                            [Page 6]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
-   the bit position of the left most 1-bit in the F data (counting the
-   right most bit as position 0), and dividing by ceiling(log2 P).  The
-   division must be exact, with no remainder.  In this format, all of
-   the other degree and field parameters are omitted.  The next
-   parameters will be LQ,Q.
+   determining the bit position of the left most 1-bit in the F data
+   (counting the right most bit as position 0), and dividing by
+   ceiling(log2 P).  The division must be exact, with no remainder.  In
+   this format, all of the other degree and field parameters are
+   omitted.  The next parameters will be LQ,Q.
 
    If FMT>=2, the degree of the field extension is specified explicitly,
    usually along with other parameters to define the field polynomial.
@@ -409,8 +403,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                            [Page 7]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -439,7 +432,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
    In all 5 of the parameter pairs LA+A,LB+B,LC+C,LG+G,LY+Y, the data
    member of the pair is an element from the finite field defined
-   earlier.  The length field defines a long octet string. Field
+   earlier.  The length field defines a long octet string.  Field
    elements are represented as (mod P) polynomials of degree < DEG, with
    DEG or fewer coefficients.  The coefficients are stored from left to
    right, higher degree to lower, with the constant term last.  The
@@ -451,7 +444,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    three bits are used for each coefficient.  If the field is GF[5^75],
    then 225 bits are required for the coefficients, and as many as 29
    octets may be needed in the data area.  Fewer octets may be used if
-   some high-order coefficients are 0.) If a flag requires a field
+   some high-order coefficients are 0.)  If a flag requires a field
    element to be negated, each non-zero coefficient K is replaced with
    P-K.  To save space, 0 bits may be removed from the left end of the
    element representation, and the length field reduced appropriately.
@@ -468,8 +461,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                            [Page 8]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -527,8 +519,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                            [Page 9]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -586,8 +577,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                           [Page 10]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -645,15 +635,14 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                           [Page 11]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
-   RRs that was reserved for this purpose in RFC 2535.  An elliptic
-   curve (algorithm = 4) SIG RR is not defined and is reserved.
-
+   RRs that was reserved for this purpose in [RFC 2535].  An elliptic
+   curve (algorithm = 4) SIG RR is not defined. Assignment of a meaning
+   to it requires an IETF Standards action.
 
 
 
@@ -704,8 +693,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 
 R. Schroeppel, et al                                           [Page 12]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -730,8 +718,8 @@ References
    [RFC 2535] -  D. Eastlake,"Domain Name System Security Extensions",
    March 1999.
 
-   [RFC 2671] -  P. Vixie, "Extension Mechanisms for DNS (EDNS0)",
-   August 1999.
+   [RFC 2671] - P. Vixie, "Extension Mechanisms for DNS (EDNS0)", August
+   1999.
 
    [Schneier] - Bruce Schneier, "Applied Cryptography: Protocols,
    Algorithms, and Source Code in C", 1996, John Wiley and Sons
@@ -763,8 +751,7 @@ References
 
 
 R. Schroeppel, et al                                           [Page 13]
-
-
+
 
 INTERNET-DRAFT                                       ECC Keys in the DNS
 
@@ -786,18 +773,18 @@ Authors' Addresses
    155 Beaver Street
    Milford, MA 01757 USA
 
-   Telephone:   +1 508-634-2066(h)
-                +1 508-261-5434(w)
-   FAX:         +1 508-261-4447(w)
+   Telephone:   +1 508-634-2066 (h)
+                +1 508-851-8280 (w)
+   FAX:         +1 508-851-8507 (w)
    EMail:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires in May 2002.
+   This draft expires in June 2003.
 
-   Its file name is draft-ietf-dnsext-ecc-key-01.txt.
+   Its file name is draft-ietf-dnsext-ecc-key-03.txt.
 
 
 
@@ -822,8 +809,4 @@ Expiration and File Name
 
 
 R. Schroeppel, et al                                           [Page 14]
-
-
-
-
-
+
