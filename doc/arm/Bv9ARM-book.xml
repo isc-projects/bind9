@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.4 2001/11/02 02:16:48 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.5 2001/11/05 22:50:03 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1793,7 +1793,7 @@ that is distinct from and simpler than the full DNS protocol.</para></sect1>
 run the resolver daemon <command>lwresd</command>.</para>
 <para>By default, applications using the lightweight resolver library will make
 UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.  The
-address can be overriden by <command>lwserver</command> lines in
+address can be overridden by <command>lwserver</command> lines in
 <filename>/etc/resolv.conf</filename>.
 The daemon will try to find the answer to the questions "what are the
 addresses for host
@@ -3411,7 +3411,7 @@ hour).</para>
 <listitem><para>Slave servers will periodically query master servers
 to find out if zone serial numbers have changed. Each such query uses
 a minute amount of the slave server's network bandwidth.  To limit the
-amount of bandwith used, BIND 9 limits the rate at which queries are
+amount of bandwidth used, BIND 9 limits the rate at which queries are
 sent.  The value of the <command>serial-query-rate</command> option,
 an integer, is the maximum number of queries sent per second.
 The default is 20.
@@ -4307,7 +4307,7 @@ of type <command>forward</command> can contain a <command>forward</command> and/
 which will apply to queries within the domain given by the zone
 name. If no <command>forwarders</command> statement is present or
 an empty list for <command>forwarders</command> is given, then no
-forwarding will be done for the domain, cancelling the effects of
+forwarding will be done for the domain, canceling the effects of
 any forwarders in the <command>options</command> statement. Thus
 if you want to use this type of zone to change the behavior of the
 global <command>forward</command> option (that is, "forward first
@@ -4405,7 +4405,7 @@ The default is the empty list.</para>
 <listitem><para>
 This option was used in BIND 8 to restrict the character set of
 domain names in master files and/or DNS responses received from the
-netowrk.  BIND 9 does not restrict the character set of domain names
+network.  BIND 9 does not restrict the character set of domain names
 and does not implement the <command>check-names</command> option.
 </para>
 </listitem></varlistentry>
