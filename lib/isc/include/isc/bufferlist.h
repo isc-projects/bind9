@@ -43,16 +43,9 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/buffer.h>
-#include <isc/list.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
-
-/***
- *** Types
- ***/
-
-typedef ISC_LIST(isc_buffer_t)	isc_bufferlist_t;
 
 /***
  *** Functions
