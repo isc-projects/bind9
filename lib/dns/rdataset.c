@@ -282,7 +282,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
-		    unsigned int *countp)
+		    unsigned int *countp,
+		    isc_boolean_t no_rdata_or_ttl)
 {
 	dns_rdata_t rdata;
 	isc_region_t r;
@@ -290,6 +291,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	unsigned int count;
 	isc_buffer_t st;
 	isc_buffer_t rdlen;
+	unsigned int headlen;
 
 	/*
 	 * Convert 'rdataset' to wire format, compressing names as specified
@@ -298,6 +300,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	result = dns_rdataset_first(rdataset);
+	if (no_rdata_or_ttl) {
+		REQUIRE(result == DNS_R_NOMORE);
+	} else {
+		REQUIRE(result == DNS_R_SUCCESS);
+	}
 	REQUIRE(result == DNS_R_SUCCESS);
 	REQUIRE(countp != NULL);
 
@@ -317,43 +324,48 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			*target = st;
 			return (result);
 		}
+		headlen = sizeof(dns_rdataclass_t) + sizeof(dns_rdatatype_t);
+		if (!no_rdata_or_ttl)
+			headlen += sizeof(dns_ttl_t)
+				+ 2;  /* XXX 2 for rdata len */
 		isc_buffer_available(target, &r);
-		if (r.length < (sizeof(dns_rdataclass_t)
-				+ sizeof(dns_rdatatype_t)
-				+ sizeof(dns_ttl_t)
-				+ 2)) { /* XXX 2? it's for the rdata length */
+		if (r.length < headlen) {
 			dns_compress_backout(cctx, st.used);
 			*target = st;
 			return (DNS_R_NOSPACE);
 		}
 		isc_buffer_putuint16(target, rdataset->type);
 		isc_buffer_putuint16(target, rdataset->rdclass);
-		isc_buffer_putuint32(target, rdataset->ttl);
+		if (!no_rdata_or_ttl) {
+			isc_buffer_putuint32(target, rdataset->ttl);
 
-		/*
-		 * Save space for rdlen.
-		 */
-		rdlen = *target;
-		isc_buffer_add(target, 2);
+			/*
+			 * Save space for rdlen.
+			 */
+			rdlen = *target;
+			isc_buffer_add(target, 2);
 
-		/*
-		 * copy out the rdata
-		 */
-		dns_rdataset_current(rdataset, &rdata);
-		result = dns_compress_localinit(cctx, owner_name, target);
-		if (result != DNS_R_SUCCESS) {
-			dns_compress_backout(cctx, st.used);
-			*target = st;
-			return (result);
+			/*
+			 * copy out the rdata
+			 */
+			dns_rdataset_current(rdataset, &rdata);
+			result = dns_compress_localinit(cctx, owner_name,
+							target);
+			if (result != DNS_R_SUCCESS) {
+				dns_compress_backout(cctx, st.used);
+				*target = st;
+				return (result);
+			}
+			result = dns_rdata_towire(&rdata, cctx, target);
+			dns_compress_localinvalidate(cctx);
+			if (result != DNS_R_SUCCESS) {
+				dns_compress_backout(cctx, st.used);
+				*target = st;
+				return (result);
+			}
+			isc_buffer_putuint16(&rdlen,
+					     target->used - rdlen.used - 2);
 		}
-		result = dns_rdata_towire(&rdata, cctx, target);
-		dns_compress_localinvalidate(cctx);
-		if (result != DNS_R_SUCCESS) {
-			dns_compress_backout(cctx, st.used);
-			*target = st;
-			return (result);
-		}
-		isc_buffer_putuint16(&rdlen, target->used - rdlen.used - 2);
 
 		count++;
 
