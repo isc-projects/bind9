@@ -20,6 +20,7 @@
 
 #include	<stdio.h>
 #include	<dns/result.h>
+#include	<dns/compress.h>
 
 /*
  *
@@ -43,10 +44,11 @@
 #define	T_REQUIRED	0x1
 
 /*
- * misc
+ * Misc
  */
 
 #define	T_MAXTOKS	16
+#define	T_ARG(n)	(*(av + (n)))
 
 
 typedef	void (*PFV)();
@@ -67,7 +69,9 @@ void		t_result(int result);
 char		*t_getenv(const char *name);
 char		*t_fgetbs(FILE *fp);
 dns_result_t	t_dns_result_fromtext(char *result);
+int		t_dc_method_fromtext(char *dc_method);
 int		t_bustline(char *line, char **toks);
+int		t_eval(char *filename, int (*func)(char **), int nargs);
 
 #endif /* ISC_T_API_H */
 
