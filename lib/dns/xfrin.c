@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.43 2000/01/31 18:00:05 gson Exp $ */
+ /* $Id: xfrin.c,v 1.44 2000/01/31 22:55:04 gson Exp $ */
 
 #include <config.h>
 
@@ -601,7 +601,8 @@ xfrin_create(isc_mem_t *mctx,
 {
 	dns_xfrin_ctx_t *xfr = NULL;
 	isc_result_t result;
-	isc_interval_t interval;
+	isc_interval_t maxinterval, idleinterval;
+	isc_time_t expires;
 	
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
 	if (xfr == NULL)
@@ -659,10 +660,13 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->axfr.add_private = NULL;
 
 	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
-
-	isc_interval_set(&interval, dns_zone_getmaxxfrin(xfr->zone), 0);
+	
+	isc_interval_set(&maxinterval, dns_zone_getmaxxfrin(xfr->zone), 0);
+	CHECK(isc_time_nowplusinterval(&expires, &maxinterval));
+	isc_interval_set(&idleinterval, dns_zone_getidlein(xfr->zone), 0);
+	
 	CHECK(isc_timer_create(timermgr, isc_timertype_once,
-			       NULL, &interval, task,
+			       &expires, &idleinterval, task,
 			       xfrin_timeout, xfr, &xfr->timer));
 
 	xfr->masteraddr = *masteraddr;
@@ -956,10 +960,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	xfrin_log(xfr, ISC_LOG_DEBUG(7), "received %u bytes",
 		  tcpmsg->buffer.used);
 
-	/*
-	 * If we wanted to do idle timeouts, this would be the place
-	 * to say "CHECK(isc_timer_touch(xfr->timer));".
-	 */
+	CHECK(isc_timer_touch(xfr->timer));
 	
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
 
