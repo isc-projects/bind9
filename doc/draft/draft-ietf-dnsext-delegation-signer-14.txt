@@ -5,8 +5,8 @@
 
 
   DNSEXT Working Group                                Olafur Gudmundsson
-  INTERNET-DRAFT                                           February 2003
-  <draft-ietf-dnsext-delegation-signer-13.txt>
+  INTERNET-DRAFT                                                May 2003
+  <draft-ietf-dnsext-delegation-signer-14.txt>
 
   Updates: RFC 1035, RFC 2535, RFC 3008, RFC 3090.
 
@@ -38,7 +38,7 @@ Status of this Memo
    Comments should be sent to the authors or the DNSEXT WG mailing list
    namedroppers@ops.ietf.org
 
-   This draft expires on August 28, 2003.
+   This draft expires on December 6, 2003.
 
    Copyright Notice
 
@@ -56,7 +56,7 @@ Abstract
 
 
 
-Gudmundsson                Expires August 2003                  [Page 1]
+Gudmundsson               Expires December 2003                 [Page 1]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -113,7 +113,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                  [Page 2]
+Gudmundsson               Expires December 2003                 [Page 2]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -144,8 +144,8 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 2 Specification of the Delegation key Signer
 
-   This section defines the Delegation Signer (DS) RR type and the
-   changes to DNS to accommodate it.
+   This section defines the Delegation Signer (DS) RR type (type code
+   TBD) and the changes to DNS to accommodate it.
 
 2.1 Delegation Signer Record Model
 
@@ -163,20 +163,19 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
    sign its apex KEY RRset.  The parent is ignorant of all other keys in
    the child's apex KEY RRset. Furthermore, the child maintains full
    control over the apex KEY RRset and its content.  The child can
-   maintain any policies regarding its KEY usage for DNSSEC and other
-   applications and protocols with minimal impact on the parent. Thus if
-   the child wants to have frequent key rollover for its DNS zone keys,
-   the parent does not need to be aware of it: the child can use one key
+   maintain any policies regarding its KEY usage for DNSSEC with minimal
+   impact on the parent. Thus if the child wants to have frequent key
+   rollover for its DNS zone keys, the parent does not need to be aware
+   of it. The child can use one key to sign only its apex KEY RRset and
 
 
 
-Gudmundsson                Expires August 2003                  [Page 3]
+Gudmundsson               Expires December 2003                 [Page 3]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
-   to sign only its apex KEY RRset and other keys to sign the other
-   RRsets in the zone.
+   a different key to sign the other RRsets in the zone.
 
    This model fits well with a slow roll out of DNSSEC and the islands
    of security model. In this model, someone who trusts "good.example."
@@ -211,28 +210,28 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
    for the delegation MUST include the following RRsets in the authority
    section in this order:
    If DS RRset is present:
-        parent NS RRset
+        parents copy of childs NS RRset
         DS and SIG(DS)
    If no DS RRset is present:
-        parent NS RRset
-        parent NXT and SIG(NXT)
+        parents copy of childs NS RRset
+        parents zone NXT and SIG(NXT)
 
-   This increases the size of referral messages and causing some or all
-   glue to be omitted. If the DS or NXT RRsets with signatures do not
-   fit in the DNS message, the TC bit MUST be set.  Additional section
-   processing is not changed.
+   This increases the size of referral messages and possilbly causing
+   some or all glue to be omitted. If the DS or NXT RRsets with
+   signatures do not fit in the DNS message, the TC bit MUST be set.
+   Additional section processing is not changed.
 
    A DS RRset accompanying a NS RRset indicates that the child zone is
    secure. If a NS RRset exists without a DS RRset, the child zone is
+   unsecure (from the parents point of view).  DS RRsets MUST NOT appear
 
 
 
-Gudmundsson                Expires August 2003                  [Page 4]
+Gudmundsson               Expires December 2003                 [Page 4]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
-   unsecure (from the parents point of view).  DS RRsets MUST NOT appear
    at non-delegation points or at a zone's apex.
 
    Section 2.2.1 defines special considerations related to authoritative
@@ -254,7 +253,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
    since one server could be serving both the zone above and below a
    delegation point [RFC 2181].
 
-   Each DS RRset stored in the parent zone MUST be signed by, at least,
+   Each DS RRset stored in the parent zone MUST be signed by at least
    one of the parent zone's private key. The parent zone MUST NOT
    contain a KEY RRset at any delegation point. Delegations in the
    parent MAY contain only the following RR types: NS, DS, NXT and SIG.
@@ -284,7 +283,8 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                  [Page 5]
+
+Gudmundsson               Expires December 2003                 [Page 5]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -341,7 +341,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                  [Page 6]
+Gudmundsson               Expires December 2003                 [Page 6]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -398,7 +398,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                  [Page 7]
+Gudmundsson               Expires December 2003                 [Page 7]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -455,7 +455,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                  [Page 8]
+Gudmundsson               Expires December 2003                 [Page 8]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -512,7 +512,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                  [Page 9]
+Gudmundsson               Expires December 2003                 [Page 9]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -569,7 +569,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                 [Page 10]
+Gudmundsson               Expires December 2003                [Page 10]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -626,7 +626,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                 [Page 11]
+Gudmundsson               Expires December 2003                [Page 11]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -683,7 +683,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                 [Page 12]
+Gudmundsson               Expires December 2003                [Page 12]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -740,7 +740,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                 [Page 13]
+Gudmundsson               Expires December 2003                [Page 13]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -797,7 +797,7 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
 
 
 
-Gudmundsson                Expires August 2003                 [Page 14]
+Gudmundsson               Expires December 2003                [Page 14]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -823,12 +823,12 @@ INTERNET-DRAFT          Delegation Signer Record           February 2003
    that are captured in this document. The core idea of using one key to
    sign only the KEY RRset comes from discussions with Bill Manning and
    Perry Metzger on how to put in a single root key in all resolvers.
-   Alexis Yushin, Brian Wellington, Paul Vixie, Jakob Schlyter, Scott
-   Rose, Edward Lewis, Lars-Johan Liman, Matt Larson, Mark Kosters, Dan
-   Massey, Olaf Kolman, Phillip Hallam-Baker, Miek Gieben, Havard
-   Eidnes, Donald Eastlake 3rd., Randy Bush, David Blacka, Steve
-   Bellovin, Rob Austein, Derek Atkins, Roy Arends, Mark Andrews, Harald
-   Alvestrand, and others have provided useful comments.
+   Alexis Yushin, Brian Wellington, Sam Weiler, Paul Vixie, Jakob
+   Schlyter, Scott Rose, Edward Lewis, Lars-Johan Liman, Matt Larson,
+   Mark Kosters, Dan Massey, Olaf Kolman, Phillip Hallam-Baker, Miek
+   Gieben, Havard Eidnes, Donald Eastlake 3rd., Randy Bush, David
+   Blacka, Steve Bellovin, Rob Austein, Derek Atkins, Roy Arends, Mark
+   Andrews, Harald Alvestrand, and others have provided useful comments.
 
 Normative References:
 
@@ -844,6 +844,9 @@ Normative References:
 [RFC3090]  E. Lewis `` DNS Security Extension Clarification on Zone
            Status'', RFC 3090, March 2001.
 
+[RFC3225]  D. Conrad, ``Indicating Resolver Support of DNSSEC'', RFC
+           3225, December 2001.
+
 [RFC3445]  D. Massey, S. Rose ``Limiting the scope of the KEY Resource
            Record (RR)``, RFC 3445, December 2002.
 
@@ -851,10 +854,7 @@ Normative References:
 
 
 
-
-
-
-Gudmundsson                Expires August 2003                 [Page 15]
+Gudmundsson               Expires December 2003                [Page 15]
 
 INTERNET-DRAFT          Delegation Signer Record           February 2003
 
@@ -863,9 +863,6 @@ Informational References
 
 [RFC2181]  R. Elz, R. Bush, ``Clarifications to the DNS Specification'',
            RFC 2181, July 1997.
-
-[RFC3225]  D. Conrad, ``Indicating Resolver Support of DNSSEC'', RFC
-           3225, December 2001.
 
 [RFC3226]  O. Gudmundsson, ``DNSSEC and IPv6 A6 aware server/resolver
            message size requirements'', RFC 3226, December 2001.
@@ -911,4 +908,7 @@ Full Copyright Statement
 
 
 
-Gudmundsson                Expires August 2003                 [Page 16]
+
+
+
+Gudmundsson               Expires December 2003                [Page 16]
