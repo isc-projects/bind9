@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.83 2000/10/25 04:26:52 marka Exp $ */
+/* $Id: validator.c,v 1.84 2000/10/31 03:22:02 marka Exp $ */
 
 #include <config.h>
 
@@ -393,7 +393,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		 * The NXT owner name is less than the nonexistent name.
 		 */
 		result = dns_rdata_tostruct(&rdata, &nxt, NULL);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		INSIST(result == ISC_R_SUCCESS);
 		order = dns_name_compare(val->event->name, &nxt.next);
 		if (order >= 0) {
@@ -615,7 +615,7 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 		if (dst_key_isnullkey(key))
 			found = ISC_TRUE;
 		dst_key_free(&key);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
 	}
 	return (found);
@@ -676,7 +676,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
 			}
 		}
 		dst_key_free(&val->key);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
 	} while (result == ISC_R_SUCCESS);
 	if (result == ISC_R_NOMORE)
@@ -878,7 +878,7 @@ issecurityroot(dns_validator_t *val) {
 		dns_rdataset_current(rdataset, &rdata);
 		key = NULL;
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &key);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		if (result != ISC_R_SUCCESS)
 			 continue;
 		keynode = NULL;
@@ -966,7 +966,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(event->sigrdataset))
 	{
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		dns_rdataset_current(event->sigrdataset, &rdata);
 		if (val->siginfo != NULL)
 			isc_mem_put(val->view->mctx, val->siginfo,

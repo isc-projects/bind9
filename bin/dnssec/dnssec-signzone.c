@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.110 2000/10/28 22:56:25 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.111 2000/10/31 03:21:41 marka Exp $ */
 
 #include <config.h>
 
@@ -396,7 +396,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			dns_diff_append(diff, &tuple);
 		}
 
-		dns_rdata_invalidate(&sigrdata);
+		dns_rdata_reset(&sigrdata);
 		dns_rdata_freestruct(&sig);
 		result = dns_rdataset_next(&sigset);
 	}
@@ -543,12 +543,12 @@ importparentsig(dns_db_t *db, dns_diff_t *diff, dns_name_t *name,
 			dns_rdataset_current(&newset, &newrdata);
 			if (dns_rdata_compare(&rdata, &newrdata) == 0)
 				break;
-			dns_rdata_invalidate(&newrdata);
+			dns_rdata_reset(&newrdata);
 		}
 		if (result != ISC_R_SUCCESS)
 			break;
-		dns_rdata_invalidate(&newrdata);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&newrdata);
+		dns_rdata_reset(&rdata);
 	}
 	if (result != ISC_R_NOMORE)
 		goto failure;
@@ -633,7 +633,7 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 			found = ISC_TRUE;
 			break;
 		}
-		dns_rdata_invalidate(&sigrdata);
+		dns_rdata_reset(&sigrdata);
 	}
 
  failure:

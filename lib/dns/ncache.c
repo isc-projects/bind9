@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.22 2000/10/25 04:26:39 marka Exp $ */
+/* $Id: ncache.c,v 1.23 2000/10/31 03:21:56 marka Exp $ */
 
 #include <config.h>
 
@@ -76,7 +76,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 		result = isc_buffer_copyregion(buffer, &r);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
 	}
 	if (result != ISC_R_NOMORE)
@@ -302,7 +302,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			 */
 			isc_buffer_remainingregion(&source, &remaining);
 			INSIST(remaining.length >= 2);
-			dns_rdata_invalidate(&rdata);
+			dns_rdata_reset(&rdata);
 			rdata.length = isc_buffer_getuint16(&source);
 			isc_buffer_remainingregion(&source, &remaining);
 			rdata.data = remaining.base;

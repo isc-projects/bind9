@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.62 2000/10/25 06:17:56 marka Exp $ */
+/* $Id: nslookup.c,v 1.63 2000/10/31 03:21:39 marka Exp $ */
 
 #include <config.h>
 
@@ -327,7 +327,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					       (int)isc_buffer_usedlength(b),
 					       (char*)isc_buffer_base(b));
 				}
-				dns_rdata_invalidate(&rdata);
+				dns_rdata_reset(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
@@ -467,7 +467,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					       (int)isc_buffer_usedlength(b),
 					       (char*)isc_buffer_base(b));
 				}
-				dns_rdata_invalidate(&rdata);
+				dns_rdata_reset(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}

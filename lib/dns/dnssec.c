@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.54 2000/10/25 04:26:32 marka Exp $
+ * $Id: dnssec.c,v 1.55 2000/10/31 03:21:51 marka Exp $
  */
 
 
@@ -486,7 +486,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 		count++;
  next:
 		dst_key_free(&pubkey);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(&rdataset);
 	}
 	if (result != ISC_R_NOMORE)

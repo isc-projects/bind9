@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.22 2000/10/25 04:26:48 marka Exp $ */
+/* $Id: rdataslab.c,v 1.23 2000/10/31 03:21:58 marka Exp $ */
 
 #include <config.h>
 
@@ -200,7 +200,7 @@ rdata_in_slab(unsigned char *slab, unsigned int reservelen,
 		rdata_from_slab(&current, rdclass, type, &trdata);
 		if (dns_rdata_compare(&trdata, rdata) == 0)
 			return (ISC_TRUE);
-		dns_rdata_invalidate(&trdata);
+		dns_rdata_reset(&trdata);
 	}
 	return (ISC_FALSE);
 }
@@ -312,7 +312,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	ncurrent = nslab + reservelen + 2;
 	if (ncount > 0) {
 		do {
-			dns_rdata_invalidate(&nrdata);
+			dns_rdata_reset(&nrdata);
        			rdata_from_slab(&ncurrent, rdclass, type, &nrdata);
 		} while (rdata_in_slab(oslab, reservelen, rdclass,
 				       type, &nrdata));
@@ -334,7 +334,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 			tcurrent += length;
 			oadded++;
 			if (oadded < ocount) {
-				dns_rdata_invalidate(&ordata);
+				dns_rdata_reset(&ordata);
        				rdata_from_slab(&ocurrent, rdclass, type,
 						&ordata);
 			}
@@ -347,7 +347,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 			nadded++;
 			if (nadded < ncount) {
 				do {
-					dns_rdata_invalidate(&nrdata);
+					dns_rdata_reset(&nrdata);
        					rdata_from_slab(&ncurrent, rdclass,
 							type, &nrdata);
 				} while (rdata_in_slab(oslab, reservelen,
@@ -407,7 +407,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		rdata_from_slab(&mcurrent, rdclass, type, &mrdata);
 		scurrent = sstart;
 		for (count = 0; count < scount; count++) {
-			dns_rdata_invalidate(&srdata);
+			dns_rdata_reset(&srdata);
 			rdata_from_slab(&scurrent, rdclass, type, &srdata);
 			if (dns_rdata_compare(&mrdata, &srdata) == 0)
 				break;
@@ -422,7 +422,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		} else
 			rcount++;
 		mcount--;
-		dns_rdata_invalidate(&mrdata);
+		dns_rdata_reset(&mrdata);
 	} while (mcount > 0);
 
 	/*
@@ -470,7 +470,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		rdata_from_slab(&mcurrent, rdclass, type, &mrdata);
 		scurrent = sstart;
 		for (count = 0; count < scount; count++) {
-			dns_rdata_invalidate(&srdata);
+			dns_rdata_reset(&srdata);
 			rdata_from_slab(&scurrent, rdclass, type, &srdata);
 			if (dns_rdata_compare(&mrdata, &srdata) == 0)
 				break;
@@ -484,7 +484,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 			memcpy(tcurrent, mrdatabegin, length);
 			tcurrent += length;
 		}
-		dns_rdata_invalidate(&mrdata);
+		dns_rdata_reset(&mrdata);
 		mcount--;
 	} while (mcount > 0);
 

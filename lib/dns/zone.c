@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.242 2000/10/31 01:17:17 marka Exp $ */
+/* $Id: zone.c,v 1.243 2000/10/31 03:22:04 marka Exp $ */
 
 #include <config.h>
 
@@ -1240,7 +1240,7 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			dns_rdata_tostruct(&rdata, &soa, NULL);
 
 		result = dns_rdataset_next(&rdataset);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 	}
 	dns_rdataset_disassociate(&rdataset);
 
@@ -2466,7 +2466,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&soardset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &soa, NULL);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		result = dns_name_dup(&soa.origin, zone->mctx, &master);
@@ -2491,7 +2491,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&nsrdset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		/*
@@ -2580,7 +2580,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 	     result = dns_rdataset_next(nsrdataset)) {
 		dns_rdataset_current(nsrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (!dns_name_issubdomain(&ns.name, name)) {
 			result = dns_rdataset_next(nsrdataset);

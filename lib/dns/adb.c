@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.156 2000/10/25 04:26:29 marka Exp $ */
+/* $Id: adb.c,v 1.157 2000/10/31 03:21:49 marka Exp $ */
 
 /*
  * Implementation notes
@@ -507,7 +507,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	nh = NULL;
 	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		if (rdtype == dns_rdatatype_a) {
 			INSIST(rdata.length == 4);

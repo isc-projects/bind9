@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.40 2000/10/25 04:26:17 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.41 2000/10/31 03:21:40 marka Exp $ */
 
 #include <config.h>
 
@@ -105,7 +105,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first");
 	for (; result == ISC_R_SUCCESS; result = dns_rdataset_next(rdataset)) {
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		key = NULL;
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &key);
@@ -321,7 +321,7 @@ main(int argc, char *argv[]) {
 			fatal("signature by key '%s' did not verify: %s",
 			      keystr, isc_result_totext(result));
 		}
-		dns_rdata_invalidate(&sigrdata);
+		dns_rdata_reset(&sigrdata);
 		dns_rdata_freestruct(&sig);
 		result = dns_rdataset_next(&sigrdataset);
 	} while (result == ISC_R_SUCCESS);

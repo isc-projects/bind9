@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6.c,v 1.17 2000/10/25 04:26:27 marka Exp $ */
+/* $Id: a6.c,v 1.18 2000/10/31 03:21:48 marka Exp $ */
 
 #include <config.h>
 
@@ -152,7 +152,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 				(a6ctx->address)(a6ctx);
 		}
 	next_a6:
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(parent);
 		if (result == ISC_R_SUCCESS) {
 			a6ctx->chains++;

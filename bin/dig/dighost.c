@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.158 2000/10/25 04:26:13 marka Exp $ */
+/* $Id: dighost.c,v 1.159 2000/10/31 03:21:36 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1093,7 +1093,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 						 srv, link);
 					isc_buffer_free(&b);
 				}
-				dns_rdata_invalidate(&rdata);
+				dns_rdata_reset(&rdata);
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
@@ -2110,7 +2110,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				query->rr_count++;
 				if (query->rr_count >= rr_limit)
 					atlimit = ISC_TRUE;
-				dns_rdata_invalidate(&rdata);
+				dns_rdata_reset(&rdata);
 				dns_rdataset_current(rdataset, &rdata);
 				/*
 				 * If this is the first rr, make sure

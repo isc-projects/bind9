@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.58 2000/10/25 04:26:14 marka Exp $ */
+/* $Id: host.c,v 1.59 2000/10/31 03:21:38 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -355,7 +355,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 						rtt = "unknown";
 					say_message(print_name, rtt,
 						    &rdata, query);
-					dns_rdata_invalidate(&rdata);
+					dns_rdata_reset(&rdata);
 					loopresult =
 						dns_rdataset_next(rdataset);
 				}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.79 2000/10/25 04:26:25 marka Exp $ */
+/* $Id: xfrout.c,v 1.80 2000/10/31 03:21:47 marka Exp $ */
 
 #include <config.h>
 
@@ -241,7 +241,7 @@ db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 	REQUIRE(it->result == ISC_R_SUCCESS);
 	*name = dns_fixedname_name(&it->fixedname);
 	*ttl = it->rdataset.ttl;
-	dns_rdata_invalidate(&it->rdata);
+	dns_rdata_reset(&it->rdata);
 	dns_rdataset_current(&it->rdataset, &it->rdata);
 	*rdata = &it->rdata;
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.45 2000/10/25 04:26:56 marka Exp $ */
+/* $Id: rdata.h,v 1.46 2000/10/31 03:22:05 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -156,7 +156,7 @@ dns_rdata_init(dns_rdata_t *rdata);
  */
 
 void
-dns_rdata_invalidate(dns_rdata_t *rdata);
+dns_rdata_reset(dns_rdata_t *rdata);
 /*
  * Make 'rdata' empty.
  *

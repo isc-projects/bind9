@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.75 2000/10/25 04:26:36 marka Exp $ */
+/* $Id: master.c,v 1.76 2000/10/31 03:21:55 marka Exp $ */
 
 #include <config.h>
 
@@ -649,7 +649,7 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 		ISC_LIST_UNLINK(rdatalist.rdata, &rdata, link);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 	}
 	result = ISC_R_SUCCESS;
 	goto cleanup;

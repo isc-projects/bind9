@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.140 2000/10/25 04:26:21 marka Exp $ */
+/* $Id: query.c,v 1.141 2000/10/31 03:21:43 marka Exp $ */
 
 #include <config.h>
 
@@ -2728,7 +2728,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			goto cleanup;
 		dns_rdataset_current(trdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_name_init(tname, NULL);
@@ -2775,7 +2775,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			goto cleanup;
 		dns_rdataset_current(trdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dname, NULL);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_name_init(tname, NULL);

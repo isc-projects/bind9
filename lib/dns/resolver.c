@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.174 2000/10/25 04:26:49 marka Exp $ */
+/* $Id: resolver.c,v 1.175 2000/10/31 03:21:59 marka Exp $ */
 
 #include <config.h>
 
@@ -1464,7 +1464,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 				dns_adb_destroyfind(&find);
 			}
 		}
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 		dns_rdata_freestruct(&ns);
 		result = dns_rdataset_next(&fctx->nameservers);
 	}

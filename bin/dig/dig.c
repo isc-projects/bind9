@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.123 2000/10/25 04:26:12 marka Exp $ */
+/* $Id: dig.c,v 1.124 2000/10/31 03:21:35 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -314,7 +314,7 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 						     buf);
 				check_result(result, "say_message");
 				loopresult = dns_rdataset_next(rdataset);
-				dns_rdata_invalidate(&rdata);
+				dns_rdata_reset(&rdata);
 			}
 		}
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.94 2000/10/25 04:26:50 marka Exp $
+ * $Id: tsig.c,v 1.95 2000/10/31 03:22:01 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -661,7 +661,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
-	dns_rdata_invalidate(&rdata);
+	dns_rdata_reset(&rdata);
 	if (is_response(msg)) {
 		ret = dns_rdataset_first(msg->querytsig);
 		if (ret != ISC_R_SUCCESS)
@@ -897,7 +897,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
-	dns_rdata_invalidate(&rdata);
+	dns_rdata_reset(&rdata);
 
 	/*
 	 * If there is a TSIG in this message, do some checks.

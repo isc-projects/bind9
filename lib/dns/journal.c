@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.61 2000/10/25 04:26:33 marka Exp $ */
+/* $Id: journal.c,v 1.62 2000/10/31 03:21:52 marka Exp $ */
 
 #include <config.h>
 
@@ -2142,7 +2142,7 @@ read_one_rr(dns_journal_t *j) {
 	 * Parse the rdata.
 	 */
 	isc_buffer_setactive(&j->it.source, rdlen);
-	dns_rdata_invalidate(&j->it.rdata);
+	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass,
 				 rdtype, &j->it.source, &j->it.dctx,
 				 ISC_FALSE, &j->it.target));

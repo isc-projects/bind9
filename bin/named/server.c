@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.232 2000/10/25 04:26:22 marka Exp $ */
+/* $Id: server.c,v 1.233 2000/10/31 03:21:44 marka Exp $ */
 
 #include <config.h>
 
@@ -856,7 +856,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 		CHECK(dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
 					   0, &rdata, &tuple));
 		dns_diff_append(&diff, &tuple);
-		dns_rdata_invalidate(&rdata);
+		dns_rdata_reset(&rdata);
 	}
 
 	CHECK(dns_diff_apply(&diff, db, dbver));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.115 2000/10/27 21:29:23 bwelling Exp $ */
+/* $Id: rdata.c,v 1.116 2000/10/31 03:21:57 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -338,7 +338,7 @@ dns_rdata_init(dns_rdata_t *rdata) {
 	(((rdata)->flags & ~DNS_RDATA_UPDATE) == 0)
 
 void
-dns_rdata_invalidate(dns_rdata_t *rdata) {
+dns_rdata_reset(dns_rdata_t *rdata) {
 
 	REQUIRE(!ISC_LINK_LINKED(rdata, link));
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));

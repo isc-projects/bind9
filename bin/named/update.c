@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.70 2000/10/25 04:26:23 marka Exp $ */
+/* $Id: update.c,v 1.71 2000/10/31 03:21:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1457,7 +1457,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		/* XXX inefficient - will cause dataset merging */
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD, name,
 				    rdataset.ttl, &sig_rdata));
-		dns_rdata_invalidate(&sig_rdata);
+		dns_rdata_reset(&sig_rdata);
 	}
 
  failure:
