@@ -68,22 +68,19 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0b5
+BIND 9.0.0rc1
 
-	BIND 9.0.0b5 is the fifth public release of BIND 9 code.  It 
-	contains the final set of features for the upcoming 9.0.0 release,
-	but it is not considered a release candidate due to a number
-	of known problems, in particular with the "nsupdate" and "dig"
-	programs.
+	BIND 9.0.0rc1 is a release candidate for the upcoming
+	9.0.0 release.  The only changes expected between
+	rc1 and the final release are bug fixes and documentation
+	updates.
 
-	This release is aimed at early adopters and those
-	who wish to make use of new 9.0 features, such as IPv6 and
-	DNSSEC secure resolution support.
+	The 9.0.0 release, and this release candidate, is aimed at
+	early adopters and those who wish to make use of new 9.0
+	features, such as IPv6 and DNSSEC secure resolution support.
 
-	We are running 9.0.0b5 in production, but it has not been
-	extensively tested in large installations or under heavy load,
-	We welcome your feedback about how it performs in the real
-	world.
+	We are running 9.0.0rc1 in production, and it has been
+	successfully used as a root name server.
 
 	The distribution includes a new lightweight resolver library
 	and associated resolver daemon.  These should still be considered
@@ -94,31 +91,18 @@ BIND 9.0.0b5
 	The support for secure resolution is still to be considered
 	experimental.
 
-	There have been some changes since beta 4; the highlights are:
+	There have been some changes since beta 5; the highlights are:
 
-		The default value of the 'transfer-format' option is
-		now 'many-answers'.
+		The communication between "rndc" and "named" is now
+		authenticated using digital signatures.  To specify
+		the keys, you now need an rndc.conf file and a 
+		"controls" clause in named.conf.
 
-		The default value of the 'listen-on-v6' option is
-		now '{ none; }'.
-
-		The 'lwresd' program is now a link to 'named'.
-
-		The DNSSEC key generation and signing tools now
-		generate randomness from keyboard input on systems
-		that lack /dev/random.
-
-		A plain text version of the Administratior Reference
-		Manual has been added.
-		
-		Various bug fixes and cleanups.
-
+		Various bug fixes and cleanups, especially
+		in the dig, host, nslookup, and nsupdate
+		programs.
 
 	There are a few known bugs:
-
-		The "nsupdate" program is almost completely broken.
-
-		The "dig" program is somewhat unstable.
 
 		The option "query-source * port 53;" will not work as
 		expected.  Instead of the wildcard address "*", you need 
@@ -136,7 +120,7 @@ BIND 9.0.0b5
 		under Solaris 2.6.
 
 
-	For a detailed list of user-visible changes since beta 4, see
+	For a detailed list of user-visible changes since beta 5, see
 	the CHANGES file.	
 
 	BIND 9.0.0 will support most but not all BIND 8 features.  Among
