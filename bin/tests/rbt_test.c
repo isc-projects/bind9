@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <isc/boolean.h>
 #include <isc/error.h>
 
 #include <dns/rbt.h>
@@ -62,6 +63,17 @@ create_name(char *s) {
 	return &name;
 }
 
+/*
+ * Not currently useful.  Will be changed so create_name allocates memory
+ * and this function cleans it up.
+ */
+static void
+delete_name(void *data) {
+	dns_name_t *name;
+
+	name = data;
+}
+
 #define CMDCHECK(s)	(strncasecmp(command, (s), length) == 0)
 
 void
@@ -89,7 +101,7 @@ main (int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	result = dns_rbt_create(mctx, &rbt);
+	result = dns_rbt_create(mctx, delete_name, &rbt);
 	if (result != DNS_R_SUCCESS)
 		printf("dns_rbt_create: %s: exiting\n",
 		       dns_result_totext(result));
@@ -138,7 +150,24 @@ main (int argc, char **argv) {
 						printf("deleting name %s\n",
 						       arg);
 						result = dns_rbt_deletename
-							    (rbt, name);
+							    (rbt, name,
+							     ISC_FALSE);
+						if (result != DNS_R_SUCCESS)
+							printf("... %s\n",
+						    dns_result_totext(result));
+					}
+				} else
+					printf("usage: delete NAME\n");
+
+			} else if (CMDCHECK("nuke")) {
+				if (arg != NULL && *arg != '\0') {
+					name = create_name(arg);
+					if (name != NULL) {
+						printf("deleting name %s\n",
+						       arg);
+						result = dns_rbt_deletename
+							    (rbt, name,
+							     ISC_TRUE);
 						if (result != DNS_R_SUCCESS)
 							printf("... %s\n",
 						    dns_result_totext(result));
@@ -153,7 +182,7 @@ main (int argc, char **argv) {
 						printf("searching for "
 						       "name %s ... ", arg);
 						node = dns_rbt_findnode
-							           (rbt, name);
+							(rbt, name, NULL);
 						if (node != NULL)
 							printf("found it.\n");
 						else
