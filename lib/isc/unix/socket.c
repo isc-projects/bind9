@@ -2322,7 +2322,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	}
 
 	/*
-	 * If the read queue is empty, try to do the I/O right now.
+	 * If the write queue is empty, try to do the I/O right now.
 	 */
 	was_empty = ISC_LIST_EMPTY(sock->send_list);
 	if (!was_empty)

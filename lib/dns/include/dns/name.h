@@ -449,7 +449,7 @@ dns_name_equal(dns_name_t *name1, dns_name_t *name2);
 int
 dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2);
 /*
- * Compare two names as if they are part of rdata in DNSSEC cononical
+ * Compare two names as if they are part of rdata in DNSSEC canonical
  * form.
  *
  * Requires:

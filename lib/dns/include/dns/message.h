@@ -125,7 +125,7 @@ typedef int dns_section_t;
 #define DNS_SECTION_MAX			6
 
 /*
- * Dynamic update named for these sections.
+ * Dynamic update names for these sections.
  */
 #define DNS_SECTION_ZONE		DNS_SECTION_QUESTION
 #define DNS_SECTION_PREREQUISITE	DNS_SECTION_ANSWER

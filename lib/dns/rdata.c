@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.67 2000/01/17 03:19:40 marka Exp $ */
+ /* $Id: rdata.c,v 1.68 2000/02/02 00:39:44 gson Exp $ */
 
 #include <config.h>
 
@@ -348,7 +348,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	if (use_default)
 		(void)NULL;
 
-	/* We should have consumed all out buffer */
+	/* We should have consumed all of our buffer. */
 	if (result == DNS_R_SUCCESS && !buffer_empty(source))
 		result = DNS_R_EXTRADATA;
 
