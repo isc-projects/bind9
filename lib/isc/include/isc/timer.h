@@ -69,6 +69,7 @@
  *** Imports
  ***/
 
+#include <isc/types.h>
 #include <isc/result.h>
 #include <isc/boolean.h>
 #include <isc/time.h>
@@ -82,9 +83,6 @@ ISC_LANG_BEGINDECLS
 /***
  *** Types
  ***/
-
-typedef struct isc_timer	isc_timer_t;
-typedef struct isc_timermgr	isc_timermgr_t;
 
 typedef enum {
 	isc_timertype_ticker = 0,
