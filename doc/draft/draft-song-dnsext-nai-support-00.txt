@@ -1,0 +1,325 @@
+INTERNET DRAFT                                      JUNHYUK SONG
+January 2002                                        CHAE YOUNG CHONG
+                                                    SAMSUNG ELECTRONICS.
+
+                                                    DONGKIE LEE
+                                                    SK TELECOM
+
+							  
+
+                     DNS RR type for NAI
+             draft-song-dnsext-nai-support-00.txt
+
+
+Status of This Memo
+
+   Distribution of this memo is unlimited.
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.  Internet-Drafts are working
+   documents of the Internet Engineering Task Force (IETF), its areas,
+   and its working groups.  Note that other groups may also distribute
+   working documents as Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at
+   any time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at:
+        http://www.ietf.org/ietf/1id-abstracts.txt
+   The list of Internet-Draft Shadow Directories can be accessed at:
+        http://www.ietf.org/shadow.html.
+
+
+
+
+Abstract
+   
+   This document proposes the use of the new DNS RR type "NAI" to 
+   specify the most current location of the user(Host IP address).
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song and Lee.           Expires  July  2002                    [Page 1]
+
+
+Internet Draft                                           4 January 2002
+
+1. Introduction
+
+   The demand for wireless mobile networking has been dramatically 
+   increased thanks to rapid development of wireless technology and 
+   de facto Mobile IP technology [1].  Therefore, the need for 
+   standardized method of specifying the user over different Internet 
+   Service Providers (ISPs) was identified.  NAI is as defined in 
+   RFC-2486 provides the standardized method for identifying users 
+   in order to accomplish the interoperability for roaming and 
+   tunneling over multiple Internet Service Providers (ISPs).
+   The NAI (Network Access Identifier) is of the form user@realm [3].
+
+   The DNS basically provides a mechanism to map between hostnames and
+   IP address with support of many other RRs thorough hierarchically 
+   built domain names.
+   
+   Combining above two, NAI and DNS shall enable IP user mobility [2].
+   The IP user mobility is the ability of end user to send and 
+   receive IP datagrams regardless of the location of the mobile 
+   terminal and user location. 
+   
+   This document specifies a new RR type for NAI, mapping host IP 
+   address and user identifier (NAI) [3].
+
+
+2. Applicability Statement
+   
+   The NAI RR defines user identifier, NAI widely used for PPP dialup 
+   connection and Mobile IPv4.  The basic idea is to let mobile Internet 
+   user to constantly update its location(IP address), while moving 
+   around multiple access provider network.  It can enables 
+   correspondent user to always reach the specific user by querying NAI 
+   to name server, regardless of the location.
+   
+   It is expected that NAI RR will be used in IRS(Internet Reachability
+   Service) of 3GPP2 wireless IP network standard [4] (see Appendix A) 
+   and IP user mobility application [5].  Those application depends on 
+   one to one mapping of NAI and mobile host IP address in name server.
+
+
+
+
+
+
+
+
+
+
+
+
+Song and Lee.           Expires  July  2002                    [Page 2]
+
+
+Internet Draft                                           4 January 2002
+
+
+3. NAI RR Type
+   
+   NAI name space is resemble to Domain Name Space, except that it is a 
+   sequence of one or more labels, made of the user identifier and
+   domain name.  The "@" sign before realm, shall be treated as a 
+   delimiter to flag user ID part.  Every user Identifier 
+   shall end with "@" sign and placed before domain name.  NAI records 
+   cause no additional section processing
+
+   The NAI record has the DNS RR type of "?", hence has the same QTYPE 
+   number of "?".  Note NAI RR requires IANA number assignment.
+   
+   The class of NAI RR is defined in the IN class only.
+
+   TTL should be configured to minimize the time of the RR being cached
+
+   The RDATA of NAI is same as A RDATA format, 32 bit Internet Address
+
+4. Examples
+
+   Resource Record for NAI(junhyuk@samsung.skt.co.kr) is like below:
+  
+   junhyuk@.samsung.skt.co.kr.  86400  IN   NAI  165.213.221.4
+
+
+5. IANA Considerations
+
+   It requires new RR type number from IANA.
+
+
+6. Acknowledgements
+
+   Special thanks to Prof. Murali Venkatesh of Syracuse University, and 
+   Dr. Woo June Kim
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Song and Lee.           Expires  July  2002                    [Page 3]
+
+
+Internet Draft                                           4 January 2002
+
+
+
+Appendix A. IRS of 3GPP2 wireless IP Network standard 
+
+
+   In this example, we've omitted the detail operation of deleting 
+   DNS record in case of user disconnect.  In IRS, it is assumed that 
+   MS desires to be reached by a fixed identifier such as an NAI-like
+   hostname
+
+
+1. Simple IP operation
+   
+   Upon connecting to new access network MS(Mobile Station) shall 
+   generate CHAP authentication with NAI for user authentication.  
+   After successfully authenticate the user authentication request, 
+   AAAH shall send DNS A record update message to name server.
+   (See figure 1)
+
+                        +--------------+  PPP CHAP (3) +--------------+
+                        |              |  Auth Req     |    AAAH      |
+                        |     AAAF     |-------------->|              |
+                        |              |<--------------|              |
+                        +--------------+  PPP CHAP(5)  +--------------+
+                                  ^ |     Auth Ack                |    
+                       PPP CHAP   | |                    User     |     
+                       Auth Req   | | PPP CHAP           Location |  
+                           (2)    | | Auth Ack           Update(4)|    
+                                  | |   (6)                       v     
+                                  | v                 +---------------+
++------+      PPP CHAP         +-----------+          |   Name Server |
+|      |      Auth Req (1)     |           |          +---------------+
+|      |---------------------->|   PDSN    |                  ^
+|      |<----------------------|           |        User      |
+|  MS  |      PPP CHAP         |           |        Location  |
+|      |      Auth Ack (7)     |           |        Query     |
+|      |<--------------------->|           |                  |      
+|      |       IP data (8)     |           |             +-------+ 
++------+                       |           | <-----------|  CH   |
+                               +-----------+   IP data   +-------+
+
+
+
+                Figure 1:  Simple IPv4 operation
+
+
+
+
+
+
+Song and Lee.           Expires  July  2002                    [Page 4]
+
+
+Internet Draft                                           4 January 2002
+
+
+
+2. Mobile IP operation
+
+   When the HA receives and successfully replies to an initial Mobile IP 
+   Registration Request, it performs the DNS update for the MS if it has 
+   previously received an indication from the home RADIUS server to do 
+   so, or has otherwise been provisioned to do so.  The HA shall send a 
+   DNS Update message [RFC 2136] to the DNS server to add a Resource 
+   Record for the MS, if so required by the home RADIUS server [4].
+   (See figure 2)
+
+
+
+                      +--------------+                 +--------------+
+                      |              |---------------->|              |
+                      |     AAAF     |                 |    AAAH      |
+                      |              |<----------------|              |
+                      +--------------+                 +--------------+
+                           ^    |                              ^   
+                   Access  |    | Access                       |
+                   Request |    v Accept                       v 
++------+   Agent      +--------------+                 +--------------+
+|      |Advertisement |              |                 |              |
+|      | with FAC     |   PDSN/FA    |                 |  Mobile IPv4 |
+|  MS  |<------------ |              |                 |  Home Agent  |
+|      |------------> |              |---------------->|              |
+|      |Mobile IP RRQ |              |Mobile IP RRQ    |              |
+|      |with MN-AAA   |              |                 |              |
+|      |<-------------|              |<----------------|              |
++------+Mobile IP RRP +--------------+Mobile IP RRP    +--------------+
+                                                               |
+                                                      User     |
+                                                      Location |
+                                                      Update   |
+                                                               v
+                                                       +--------------+
+                                                       | Name Server  |
+                                                       +--------------+
+
+                Figure 2:  Mobile IPv4 operation
+
+
+
+
+
+
+
+
+
+Song and Lee.           Expires  July  2002                    [Page 5]
+
+
+Internet Draft                                           4 January 2002
+
+
+
+References
+
+
+   [1]  C. Perkins, Editor. "IP Mobility Support". RFC 2002. October
+        1996.
+   
+   [2]  J.H Song, C.Y Chong, DK Lee
+        "draft-song-network-user-mobility-00.txt
+   
+   [3]  Bernard Aboba and Mark A. Beadles "The Network Access 
+        Identifier". RFC 2486. January 1999.
+   
+   [4]  3GPP2 P.S0001-B work in progress.
+
+   [5]  J.H Song and C.Y Chong, DK Lee
+        "draft-song-mobileip-mipv6-user-mobility-00.txt"
+
+
+
+
+Addresses
+
+Questions about this memo can be directed to the authors:
+
+	JUNHYUK SONG   
+        CHAEYOUNG CHONG
+	SAMSUNG ELECTRONICS.            
+        Mobile Development Team        
+        Network Systems Division        
+	Phone: +82-31-279-3639          
+        Email: santajun@lycos.co.kr     
+           
+
+        DONGKIE LEE
+        SK TELECOM
+        Core Network Development Team
+        Network R&D Center
+        Phone +82-2-829-4640
+        Email: galahad@netsgo.com
+        FAX:+82-2-829-4612
+
+
+Song and Lee           Expires  July  2002                   [Page  6]
