@@ -244,7 +244,7 @@ isc_boolean_t dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1,
 
 
 
-typedef isc_boolean_t (*dns_c_ipmlwalker)(dns_c_ipmatch_direct_t *element);
+typedef isc_boolean_t (*dns_c_ipmlwalker)(dns_c_ipmatchelement_t *element);
 
 /*
  * Recursively decends the list and returns the boolean AND of the return 

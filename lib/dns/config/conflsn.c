@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: conflsn.c,v 1.15 2000/06/05 22:08:45 brister Exp $ */
+/* $Id: conflsn.c,v 1.16 2000/06/06 14:20:01 brister Exp $ */
 
 #include <config.h>
 
@@ -235,19 +235,80 @@ dns_c_lstnonv6_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
 }
 
 
+#if 0
 
 static isc_boolean_t
-checklisten_element(dns_c_ipmatch_direct_t *element)
+checklisten_element(dns_c_ipmatchelement_t *element)
 {
-	return (ISC_TF(isc_sockaddr_pf(&element->address) == AF_INET));
+	int pf;
+	isc_boolean_t ok = ISC_FALSE;
+
+	switch (element->type) {
+	case dns_c_ipmatch_pattern:
+		pf = isc_sockaddr_pf(&element->u.direct.address);
+		ok = ISC_TF(pf == AF_INET);
+		break;
+
+	case dns_c_ipmatch_key:
+	case dns_c_ipmatch_localhost:
+	case dns_c_ipmatch_localnets:
+		ok = ISC_FALSE;
+		break;
+		
+	case dns_c_ipmatch_any:
+	case dns_c_ipmatch_none:
+		ok = ISC_TRUE;
+		break;
+
+	case dns_c_ipmatch_indirect:
+		/* XXX shouldn't be reached */
+		break;
+		
+	case dns_c_ipmatch_acl:
+		/* XXX handle this. */
+		break;
+	}
+
+	return (ok);
 }
 
 static isc_boolean_t
-checkv6listen_element(dns_c_ipmatch_direct_t *element)
+checkv6listen_element(dns_c_ipmatchelement_t *element)
 {
-	return (ISC_TF(isc_sockaddr_pf(&element->address) == AF_INET6));
+	int pf;
+	isc_boolean_t ok = ISC_FALSE;
+	
+	switch (element->type) {
+	case dns_c_ipmatch_pattern:
+		pf = isc_sockaddr_pf(&element->u.direct.address);
+		
+		ok = ISC_TF(pf == AF_INET6);
+		break;
+
+	case dns_c_ipmatch_key:
+	case dns_c_ipmatch_localhost:
+	case dns_c_ipmatch_localnets:
+		ok = ISC_FALSE;
+		break;
+		
+	case dns_c_ipmatch_any:
+	case dns_c_ipmatch_none:
+		ok = ISC_TRUE;
+		break;
+
+	case dns_c_ipmatch_indirect:
+		/* XXX shouldn't be reached */
+		break;
+		
+	case dns_c_ipmatch_acl:
+		/* XXX handle this. */
+		break;
+	}
+
+	return (ok);
 }
 
+#endif
 
 /*
  * Post confirguation load validation of list-on lists.
@@ -255,6 +316,8 @@ checkv6listen_element(dns_c_ipmatch_direct_t *element)
 isc_result_t
 dns_c_lstnlist_validate(dns_c_lstnlist_t *ll)
 {
+#if 0
+	
 	dns_c_lstnon_t *lo;
 	isc_boolean_t checkval;
 
@@ -276,12 +339,21 @@ dns_c_lstnlist_validate(dns_c_lstnlist_t *ll)
 	}
 
 	return (ISC_R_SUCCESS);
+
+#else	
+
+	UNUSED(ll);
+	return (ISC_R_SUCCESS);
+
+#endif	
 }
 
 
 isc_result_t
 dns_c_lstnlistv6_validate(dns_c_lstnlist_t *ll)
 {
+#if 0
+
 	dns_c_lstnon_t *lo;
 	isc_boolean_t checkval;
 
@@ -303,6 +375,13 @@ dns_c_lstnlistv6_validate(dns_c_lstnlist_t *ll)
 	}
 
 	return (ISC_R_SUCCESS);
+
+#else
+	
+	UNUSED(ll);
+	return (ISC_R_SUCCESS);
+	
+#endif	
 }
 
 
