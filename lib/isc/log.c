@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.61 2001/04/25 23:59:44 tale Exp $ */
+/* $Id: log.c,v 1.62 2001/04/28 01:08:07 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -220,7 +220,7 @@ static isc_result_t
 sync_channellist(isc_logconfig_t *lcfg);
 
 static isc_result_t
-greatest_version(isc_logchannel_t *channel, unsigned int *greatest);
+greatest_version(isc_logchannel_t *channel, int *greatest);
 
 static isc_result_t
 roll_log(isc_logchannel_t *channel);
@@ -1096,7 +1096,7 @@ sync_channellist(isc_logconfig_t *lcfg) {
 }
 
 static isc_result_t
-greatest_version(isc_logchannel_t *channel, unsigned int *greatestp) {
+greatest_version(isc_logchannel_t *channel, int *greatestp) {
 	/* XXXDCL HIGHLY NT */
 	char *basename, *digit_end;
 	const char *dirname;
@@ -1142,7 +1142,7 @@ greatest_version(isc_logchannel_t *channel, unsigned int *greatestp) {
 		    dir.entry.name[basenamelen] == '.') {
 
 			version = strtol(&dir.entry.name[basenamelen + 1],
-					  &digit_end, 10);
+					 &digit_end, 10);
 			if (*digit_end == '\0' && version > greatest)
 				greatest = version;
 		}
@@ -1178,7 +1178,7 @@ roll_log(isc_logchannel_t *channel) {
 	 * though the file names are 0 based, so an oldest log of log.1
 	 * is a greatest_version of 2.
 	 */
-	result = greatest_version(channel, (unsigned int *)&greatest);
+	result = greatest_version(channel, &greatest);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
