@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.82 2000/05/02 05:19:47 marka Exp $ */
+/* $Id: rdata.c,v 1.83 2000/05/02 16:36:22 explorer Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -128,7 +129,7 @@ mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
 	new = isc_mem_allocate(mctx, length);
 	if (new != NULL)
 		memcpy(new, source, length);
-		
+
 	return (new);
 }
 
