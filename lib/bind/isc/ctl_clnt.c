@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_clnt.c,v 1.4.2.3 2004/03/17 00:40:14 marka Exp $";
+static const char rcsid[] = "$Id: ctl_clnt.c,v 1.4.2.4 2004/03/17 01:15:48 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -234,7 +234,7 @@ ctl_command(struct ctl_cctx *ctx, const char *cmd, size_t len,
 	default:
 		abort();
 	}
-	if (len >= MAX_LINELEN) {
+	if (len >= (size_t)MAX_LINELEN) {
 		errno = EMSGSIZE;
 		return (-1);
 	}
@@ -543,7 +543,7 @@ readable(evContext ev, void *uap, int fd, int evmask) {
 			goto again;
 		return;
 	}
-	if (ctx->inbuf.used == MAX_LINELEN) {
+	if (ctx->inbuf.used == (size_t)MAX_LINELEN) {
 		(*ctx->logger)(ctl_error, "%s: line too long (%-10s...)", me,
 			       ctx->inbuf.text);
 		error(ctx);

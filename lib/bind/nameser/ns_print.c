@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_print.c,v 1.3.2.4 2004/03/17 00:40:15 marka Exp $";
+static const char rcsid[] = "$Id: ns_print.c,v 1.3.2.5 2004/03/17 01:15:49 marka Exp $";
 #endif
 
 /* Import. */
@@ -154,7 +154,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	 */
 	switch (type) {
 	case ns_t_a:
-		if (rdlen != NS_INADDRSZ)
+		if (rdlen != (size_t)NS_INADDRSZ)
 			goto formerr;
 		(void) inet_ntop(AF_INET, rdata, buf, buflen);
 		addlen(strlen(buf), &buf, &buflen);
@@ -258,7 +258,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	case ns_t_rt: {
 		u_int t;
 
-		if (rdlen < NS_INT16SZ)
+		if (rdlen < (size_t)NS_INT16SZ)
 			goto formerr;
 
 		/* Priority. */
@@ -276,7 +276,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	case ns_t_px: {
 		u_int t;
 
-		if (rdlen < NS_INT16SZ)
+		if (rdlen < (size_t)NS_INT16SZ)
 			goto formerr;
 
 		/* Priority. */
@@ -322,7 +322,7 @@ ns_sprintrrf(const u_char *msg, size_t msglen,
 	    }
 
 	case ns_t_aaaa:
-		if (rdlen != NS_IN6ADDRSZ)
+		if (rdlen != (size_t)NS_IN6ADDRSZ)
 			goto formerr;
 		(void) inet_ntop(AF_INET6, rdata, buf, buflen);
 		addlen(strlen(buf), &buf, &buflen);
