@@ -1,3 +1,5 @@
+1179.	[func]		Add SIG(0) support to nsupdate.
+
 1177.	[func]		Report view when loading zones if it is not a
 			standard view (_default or _bind). [RT #2270]
 
