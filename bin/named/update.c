@@ -1643,7 +1643,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 
 static dns_result_t
 send_update_event(ns_client_t *client, dns_zone_t *zone) {
-	dns_result_t result;
+	dns_result_t result = DNS_R_SUCCESS;
 	update_event_t *event = NULL;
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
