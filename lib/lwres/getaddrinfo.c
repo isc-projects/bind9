@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.23.2.4 2000/08/03 20:23:01 gson Exp $ */
+/* $Id: getaddrinfo.c,v 1.23.2.5 2000/10/19 23:57:20 gson Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,6 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <resolv.h>
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
