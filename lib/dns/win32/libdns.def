@@ -548,6 +548,8 @@ dns_view_checksig
 dns_view_dialup
 dns_view_dumpdbtostream
 dns_view_flushcache
+dns_view_isdelegationonly
+dns_view_adddelegationonly
 dns_xfrin_create
 dns_xfrin_shutdown
 dns_xfrin_detach
