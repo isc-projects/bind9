@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.55 2000/03/28 22:58:20 brister Exp $ */
+/* $Id: confparser.y,v 1.56 2000/03/29 15:01:03 brister Exp $ */
 
 #include <config.h>
 
@@ -1076,7 +1076,7 @@ option: /* Empty */
 			YYABORT;
 		}
 		
-		tmpres = dns_c_ctx_setheartbeat_interval(currcfg, $2 * 60);
+		tmpres = dns_c_ctx_setheartbeatinterval(currcfg, $2 * 60);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				     "redefining heartbeat-interval.");
