@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.2 2001/04/02 07:52:33 marka Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.3 2001/05/28 06:25:42 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -103,7 +103,8 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 
 	/* Thread all of the updates onto a list of groups. */
 	INIT_LIST(zgrps);
-	for (rrecp = rrecp_in; rrecp; rrecp = NEXT(rrecp, r_link)) {
+	for (rrecp = rrecp_in; rrecp;
+	     rrecp = LINKED(rrecp, r_link) ? NEXT(rrecp, r_link) : NULL) {
 		struct in_addr nsaddrs[MAXNS];
 		int i;
 		/* XXX need to rewrite res_findzonecut */
