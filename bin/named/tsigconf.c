@@ -15,13 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.8 2000/07/18 00:44:52 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.9 2000/07/18 01:14:17 bwelling Exp $ */
 
 #include <config.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
-#include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 
@@ -32,7 +31,6 @@ static isc_result_t
 add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		 isc_mem_t *mctx)
 {
-	isc_lex_t *lex = NULL;
 	dns_c_kdef_t *key;
 	unsigned char *secret = NULL;
 	int secretalloc = 0;
@@ -46,7 +44,7 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		dns_name_t *alg, tempalg;
 		char keynamedata[1024], algdata[1024];
 		isc_buffer_t keynamesrc, keynamebuf, algsrc, algbuf;
-		isc_buffer_t secretsrc, secretbuf;
+		isc_buffer_t secretbuf;
 
 		dns_name_init(&keyname, NULL);
 
@@ -90,21 +88,11 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 			ret = ISC_R_NOMEMORY;
 			goto failure;
 		}
-		isc_buffer_init(&secretsrc, key->secret, strlen(key->secret));
-		isc_buffer_add(&secretsrc, strlen(key->secret));
 		isc_buffer_init(&secretbuf, secret, secretlen);
-		ret = isc_lex_create(mctx, strlen(key->secret), &lex);
-		if (ret != ISC_R_SUCCESS)
-			goto failure;
-		ret = isc_lex_openbuffer(lex, &secretsrc);
-		if (ret != ISC_R_SUCCESS)
-			goto failure;
-		ret = isc_base64_tobuffer(lex, &secretbuf, -1);
+		ret = isc_base64_decodestring(mctx, key->secret, &secretbuf);
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
 		secretlen = isc_buffer_usedlength(&secretbuf);
-		isc_lex_close(lex);
-		isc_lex_destroy(&lex);
 
 		isc_stdtime_get(&now);
 		ret = dns_tsigkey_create(&keyname, alg, secret, secretlen,
@@ -119,10 +107,8 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 	return (ISC_R_SUCCESS);
 
  failure:
-	if (lex != NULL)
-		isc_lex_destroy(&lex);
 	if (secret != NULL)
-		isc_mem_put(mctx, secret, secretlen);
+		isc_mem_put(mctx, secret, secretalloc);
 	return (ret);
 
 }
