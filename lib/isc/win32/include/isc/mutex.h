@@ -20,7 +20,10 @@
 
 #include <windows.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef CRITICAL_SECTION isc_mutex_t;
 
@@ -34,5 +37,7 @@ typedef CRITICAL_SECTION isc_mutex_t;
 	(TryEnterCriticalSection((mp)) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
 #define isc_mutex_destroy(mp) \
 	(DeleteCriticalSection((mp)), ISC_R_SUCCESS)
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_MUTEX_H */
