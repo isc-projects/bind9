@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.30 2005/01/17 23:58:32 marka Exp $ */
+/* $Id: netaddr.c,v 1.31 2005/01/19 23:22:50 marka Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,7 @@ isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size) {
 isc_result_t
 isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 	static const unsigned char zeros[16];
-	unsigned int nbits, nbytes, ipbytes, i;
+	unsigned int nbits, nbytes, ipbytes;
 	const unsigned char *p;
 
 	switch (na->family) {
