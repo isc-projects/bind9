@@ -484,7 +484,7 @@ main(int argc, char **argv) {
 	/*
 	 * Kill the memory system.
 	 */
-	isc_mem_stats(mem, stdout);
+	isc_mem_destroy(&mem);
 
 	isc_app_finish();
 
