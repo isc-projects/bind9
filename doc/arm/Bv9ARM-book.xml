@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.156 2001/09/08 00:21:42 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.157 2001/09/08 00:42:46 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1020,9 +1020,12 @@ reload the database. </para></entry>
 <para>When acting as a master, <acronym>BIND</acronym> 9 supports IXFR for those zones
 where the necessary change history information is available. These
 include master zones maintained by dynamic update and slave zones
-whose data was obtained by IXFR, but not manually maintained master
-zones nor slave zones obtained by performing a full zone transfer
-(AXFR).</para>
+whose data was obtained by IXFR.  For manually maintained master
+zones and slave zones obtained by performing a full zone transfer
+(AXFR), IXFR is supported only if the option 
+<command>ixfr-from-differences</command> is set
+to <userinput>fetch-glue yes</userinput>.
+</para>
 <para>When acting as a slave, <acronym>BIND</acronym> 9 will attempt to use IXFR unless
 it is explicitly disabled. For more information about disabling
 IXFR, see the description of the <command>request-ixfr</command> clause
