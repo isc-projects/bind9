@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.13 2000/09/27 17:53:30 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.14 2000/09/28 18:57:40 gson Exp $ -->
 
 <book>
 
@@ -2451,10 +2451,11 @@ was started. The directory specified should be an absolute path.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>named-xfer</command></para></entry>
                   <entry colname = "2"><para>
+<emphasis>This option is obsolete.</emphasis>
 It was used in <acronym>BIND</acronym> 8 to specify the pathname to the <command>named-xfer</command> program.
  In <acronym>BIND</acronym> 9, no separate <command>named-xfer</command> program is
-needed; its functionality is built into the name server.</para><note>
-                      <simpara>This option is obsolete.</simpara></note></entry>
+needed; its functionality is built into the name server.</para>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>tkey-domain</command></para></entry>
@@ -2589,7 +2590,7 @@ huge amounts of memory.</simpara></note><note>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>maintain-ixfr-base</command></para></entry>
-<entry colname = "2"><para><varname>This option is obsolete</varname>.
+<entry colname = "2"><para><emphasis>This option is obsolete</emphasis>.
  It was used in <acronym>BIND</acronym> 8 to determine whether a transaction log was
 kept for Incremental Zone Transfer. <acronym>BIND</acronym> 9 maintains a transaction
 log whenever possible.  If you need to disable outgoing incremental zone
@@ -2632,7 +2633,7 @@ answers. The default is <userinput>no</userinput>.</para>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>use-id-pool</command></para></entry>
-<entry colname = "2"><para><varname>This option is obsolete</varname>.
+<entry colname = "2"><para><emphasis>This option is obsolete</emphasis>.
  <acronym>BIND</acronym> 9 always allocates query IDs from a pool.</para></entry>
 </row>
 <row rowsep = "0">
@@ -3650,7 +3651,7 @@ for this zone is made up of all the listed nameservers (other than
 the primary master) for the zone plus any IP addresses specified
 with <command>also-notify</command>.
 <command>also-notify</command> is not meaningful for stub zones.
-The default is the empty list<varname>.</varname></para></entry>
+The default is the empty list.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>check-names</command></para></entry>
