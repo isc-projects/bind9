@@ -190,7 +190,7 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	REQUIRE(b != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
-	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
+	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
 		return (LWRES_R_FAILURE);
 
 	if (!SPACE_REMAINING(b, 4))
