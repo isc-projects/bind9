@@ -38,8 +38,8 @@ PTHREADOBJS =	pthreads/condition.@O@
 
 OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ buffer.@O@ error.@O@ \
-		heap.@O@ lex.@O@ lib.@O@ mem.@O@ result.@O@ \
-		rwlock.@O@ sockaddr.@O@ symtab.@O@ str.@O@ event.@O@ \
+		heap.@O@ inet_ntop.@O@ lex.@O@ lib.@O@ mem.@O@ result.@O@ \
+		rwlock.@O@ serial.@O@ sockaddr.@O@ symtab.@O@ str.@O@ event.@O@ \
 		task.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
