@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.1 2003/08/04 01:04:43 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.2 2003/08/08 06:07:52 marka Exp $
  */
 
 #include <config.h>
@@ -51,10 +51,11 @@
 #include "dst_internal.h"
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
-static isc_mem_t *dst_memory_pool = NULL;
 static isc_entropy_t *dst_entropy_pool = NULL;
 static unsigned int dst_entropy_flags = 0;
 static isc_boolean_t dst_initialized = ISC_FALSE;
+
+isc_mem_t *dst__memory_pool = NULL;
 
 /*
  * Static functions.
@@ -111,7 +112,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	REQUIRE(mctx != NULL && ectx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
 
-	dst_memory_pool = NULL;
+	dst__memory_pool = NULL;
 
 #ifdef OPENSSL
 	UNUSED(mctx);
@@ -121,12 +122,12 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	 * Avoid assertions by using a local memory context and not checking
 	 * for leaks on exit.
 	 */
-	result = isc_mem_create(0, 0, &dst_memory_pool);
+	result = isc_mem_create(0, 0, &dst__memory_pool);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	isc_mem_setdestroycheck(dst_memory_pool, ISC_FALSE);
+	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
 #else
-	isc_mem_attach(mctx, &dst_memory_pool);
+	isc_mem_attach(mctx, &dst__memory_pool);
 #endif
 	isc_entropy_attach(ectx, &dst_entropy_pool);
 	dst_entropy_flags = eflags;
@@ -145,7 +146,6 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
-
 	dst_initialized = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 
@@ -169,8 +169,8 @@ dst_lib_destroy(void) {
 #ifdef GSSAPI
 	dst__gssapi_destroy();
 #endif
-	if (dst_memory_pool != NULL)
-		isc_mem_detach(&dst_memory_pool);
+	if (dst__memory_pool != NULL)
+		isc_mem_detach(&dst__memory_pool);
 	if (dst_entropy_pool != NULL)
 		isc_entropy_detach(&dst_entropy_pool);
 
@@ -240,16 +240,22 @@ dst_context_adddata(dst_context_t *dctx, const isc_region_t *data) {
 
 isc_result_t
 dst_context_sign(dst_context_t *dctx, isc_buffer_t *sig) {
+	dst_key_t *key;
+
 	REQUIRE(VALID_CTX(dctx));
 	REQUIRE(sig != NULL);
 
-	CHECKALG(dctx->key->key_alg);
-	if (dctx->key->opaque == NULL)
+	key = dctx->key;
+	CHECKALG(key->key_alg);
+	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
-	if (dctx->key->func->sign == NULL)
+	if (key->func->sign == NULL)
+		return (DST_R_NOTPRIVATEKEY);
+	if (key->func->isprivate == NULL ||
+	    key->func->isprivate(key) == ISC_FALSE)
 		return (DST_R_NOTPRIVATEKEY);
 
-	return (dctx->key->func->sign(dctx, sig));
+	return (key->func->sign(dctx, sig));
 }
 
 isc_result_t
@@ -335,7 +341,7 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 
 	CHECKALG(alg);
 
-	isc_buffer_init(&b, filename, sizeof filename);
+	isc_buffer_init(&b, filename, sizeof(filename));
 	result = buildfilename(name, id, alg, type, directory, &b);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -393,6 +399,12 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 
 		*keyp = pubkey;
 		return (ISC_R_SUCCESS);
+	}
+
+	result = algorithm_status(pubkey->key_alg);
+	if (result != ISC_R_SUCCESS) {
+		dst_key_free(&pubkey);
+		return (result);
 	}
 
 	key = get_key_struct(pubkey->key_name, pubkey->key_alg,
@@ -482,8 +494,6 @@ dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
 	proto = isc_buffer_getuint8(source);
 	alg = isc_buffer_getuint8(source);
 
-	CHECKALG(alg);
-
 	id = dst_region_computeid(&r, alg);
 
 	if (flags & DNS_KEYFLAG_EXTENDED) {
@@ -513,8 +523,6 @@ dst_key_frombuffer(dns_name_t *name, unsigned int alg,
 	isc_result_t result;
 
 	REQUIRE(dst_initialized);
-
-	CHECKALG(alg);
 
 	result = frombuffer(name, alg, flags, protocol, rdclass, source,
 			    mctx, &key);
@@ -659,10 +667,10 @@ dst_key_free(dst_key_t **keyp) {
 	key = *keyp;
 	mctx = key->mctx;
 
-	INSIST(key->func->destroy != NULL);
-
-	if (key->opaque != NULL)
+	if (key->opaque != NULL) {
+		INSIST(key->func->destroy != NULL);
 		key->func->destroy(key);
+	}
 
 	dns_name_free(key->key_name, mctx);
 	isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
@@ -752,8 +760,6 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 {
 	dst_key_t *key;
 	isc_result_t result;
-
-	REQUIRE(dst_algorithm_supported(alg) != ISC_FALSE);
 
 	key = (dst_key_t *) isc_mem_get(mctx, sizeof(dst_key_t));
 	if (key == NULL)
@@ -885,7 +891,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 
  cleanup:
 	if (lex != NULL) {
-		isc_lex_close(lex);
+		RUNTIME_CHECK(isc_lex_close(lex) == ISC_R_SUCCESS);
 		isc_lex_destroy(&lex);
 	}
 	isc_mem_put(mctx, newfilename, newfilenamelen);
@@ -1042,15 +1048,22 @@ frombuffer(dns_name_t *name, unsigned int alg, unsigned int flags,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	if (key->func->fromdns == NULL) {
-		dst_key_free(&key);
-		return (DST_R_UNSUPPORTEDALG);
-	}
+	if (isc_buffer_remaininglength(source) > 0) {
+		ret = algorithm_status(alg);
+		if (ret != ISC_R_SUCCESS) {
+			dst_key_free(&key);
+			return (ret);
+		}
+		if (key->func->fromdns == NULL) {
+			dst_key_free(&key);
+			return (DST_R_UNSUPPORTEDALG);
+		}
 
-	ret = key->func->fromdns(key, source);
-	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (ret);
+		ret = key->func->fromdns(key, source);
+		if (ret != ISC_R_SUCCESS) {
+			dst_key_free(&key);
+			return (ret);
+		}
 	}
 
 	*keyp = key;
@@ -1061,13 +1074,13 @@ static isc_result_t
 algorithm_status(unsigned int alg) {
 	REQUIRE(dst_initialized == ISC_TRUE);
 
-#ifndef OPENSSL
-	if (alg == DST_ALG_RSA || alg == DST_ALG_DSA || alg == DST_ALG_DH)
+	if (dst_algorithm_supported(alg))
+		return (ISC_R_SUCCESS);
+	if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
+	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
+	    alg == DST_ALG_HMACMD5)
 		return (DST_R_NOCRYPTO);
-#endif
-	if (!dst_algorithm_supported(alg))
-		return (DST_R_UNSUPPORTEDALG);
-	return (ISC_R_SUCCESS);
+	return (DST_R_UNSUPPORTEDALG);
 }
 
 isc_result_t
@@ -1088,35 +1101,6 @@ dst__file_addsuffix(char *filename, unsigned int len,
 	if (n < 0)
 		return (ISC_R_NOSPACE);
 	return (ISC_R_SUCCESS);
-}
-
-void *
-dst__mem_alloc(size_t size) {
-	INSIST(dst_memory_pool != NULL);
-	return (isc_mem_allocate(dst_memory_pool, size));
-}
-
-void
-dst__mem_free(void *ptr) {
-	INSIST(dst_memory_pool != NULL);
-	if (ptr != NULL)
-		isc_mem_free(dst_memory_pool, ptr);
-}
-
-void *
-dst__mem_realloc(void *ptr, size_t size) {
-	void *p;
-
-	INSIST(dst_memory_pool != NULL);
-	p = NULL;
-	if (size > 0U) {
-		p = dst__mem_alloc(size);
-		if (p != NULL && ptr != NULL)
-			memcpy(p, ptr, size);
-	}
-	if (ptr != NULL)
-		dst__mem_free(ptr);
-	return (p);
 }
 
 isc_result_t

@@ -1,3 +1,6 @@
+1143.	[bug]		When a trusted-keys statement was present and named
+			was built without crypto support, it would leak memory.
+
 1139.	[func]		It is now possible to flush a given name from the
 			cache(s) via 'rndc flushname name [view]'. [RT #2051]
 
