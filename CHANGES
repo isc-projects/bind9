@@ -1,3 +1,7 @@
+
+ 711.	[bug]		The libisc and liblwres implementations of
+			inet_ntop contained an off by one error.
+
  706.	[bug]		Zones with an explicit "allow-update { none; };"
 			were considered dynamic and therefore not reloaded
 			on SIGHUP or "rndc reload".

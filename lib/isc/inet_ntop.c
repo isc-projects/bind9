@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: inet_ntop.c,v 1.9.4.1 2001/01/09 22:48:59 bwelling Exp $";
+	"$Id: inet_ntop.c,v 1.9.4.2 2001/01/25 20:13:37 gson Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -86,7 +86,8 @@ inet_ntop4(const unsigned char *src, char *dst, size_t size)
 	static const char *fmt = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
 
-	if ((size_t)sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) > size) {
+	if ((size_t)sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) >= size)
+	{
 		errno = ENOSPC;
 		return (NULL);
 	}
