@@ -1318,7 +1318,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		result = isc_logconfig_use(ns_g_lctx, logc);
 		if (result != ISC_R_SUCCESS) {
 			isc_logconfig_destroy(&logc);
-			CHECKM(result, "intalling logging configuration");
+			CHECKM(result, "installing logging configuration");
 		}
 	}
 
