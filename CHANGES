@@ -1,3 +1,4 @@
+  12.	[bug]		Fixed possible unitialized variable error.
 
   11.	[bug]		axfr_rrstream_first() didn't check the result code of
 			db_rr_iterator_first(), possibly causing an assertion
