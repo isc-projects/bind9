@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.173 2001/11/07 03:52:19 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.174 2001/11/08 05:36:20 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1994,7 +1994,8 @@ and whether the element was negated.</para>
 access and a negated match denies access. If there is no match,
 access is denied. The clauses <command>allow-notify</command>,
 <command>allow-query</command>, <command>allow-transfer</command>,
-<command>allow-update</command> and <command>blackhole</command> all
+<command>allow-update</command>, <command>allow-update-forwarding</command>
+and <command>blackhole</command> all
 use address match lists  this. Similarly, the listen-on option will cause
 the server to not accept queries on any of the machine's addresses
 which do not match the list.</para>
@@ -2781,6 +2782,8 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> listen-on <optional> port <replaceable>ip_port</replaceable> </optional> { <replaceable>address_match_list</replaceable> }; </optional>
@@ -3379,6 +3382,29 @@ default is to allow recursive queries from all hosts.
 Note that disallowing recursive queries for a host does not prevent the
 host from retrieving data that is already in the server's cache.
 </para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>allow-update</command></term>
+<listitem><para>Specifies which hosts are allowed to
+submit Dynamic DNS updates for master zones. The default is to deny
+updates from all hosts.</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>allow-update-forwarding</command></term>
+<listitem><para>Specifies which hosts are allowed to
+submit Dynamic DNS updates to slave zones to be forwarded to the
+master.  The default is <userinput>{ none; }</userinput>, which 
+means that no update forwarding will be performed.  To enable
+update forwarding, specify
+<userinput>allow-update-forwarding { any; };</userinput>.
+Specifying values other than <userinput>{ none; }</userinput> or
+<userinput>{ any; }</userinput> is usually counterproductive, since
+the responsibility for update access control should rest with the 
+master server, not the slaves.</para>
+<para>Note that enabling the update forwarding feature on a slave server
+may expose master servers relying on insecure IP address based
+access control to attacks; see <xref linkend="dynamic_update_security"/>
+for more details.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>allow-v6-synthesis</command></term>
@@ -4477,9 +4503,8 @@ in <xref linkend="access_control"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>allow-update</command></term>
-<listitem><para>Specifies which hosts are allowed to
-submit Dynamic DNS updates for master zones. The default is to deny
-updates from all hosts.</para>
+<listitem><para>See the description of <command>allow-update</command>
+in <xref linkend="access_control"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>update-policy</command></term>
@@ -4488,20 +4513,8 @@ updates from all hosts.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>allow-update-forwarding</command></term>
-<listitem><para>Specifies which hosts are allowed to
-submit Dynamic DNS updates to slave zones to be forwarded to the
-master.  The default is <userinput>{ none; }</userinput>, which 
-means that no update forwarding will be performed.  To enable
-update forwarding, specify
-<userinput>allow-update-forwarding { any; };</userinput>.
-Specifying values other than <userinput>{ none; }</userinput> or
-<userinput>{ any; }</userinput> is usually counterproductive, since
-the responsibility for update access control should rest with the 
-master server, not the slaves.</para>
-<para>Note that enabling the update forwarding feature on a slave server
-may expose master servers relying on insecure IP address based
-access control to attacks; see <xref linkend="dynamic_update_security"/>
-for more details.</para>
+<listitem><para>See the description of <command>allow-update-forwarding</command>
+in <xref linkend="access_control"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>also-notify</command></term>
