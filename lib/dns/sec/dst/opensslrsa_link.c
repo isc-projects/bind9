@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.5 2000/12/04 23:06:37 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.6 2000/12/05 21:11:18 ogud Exp $
  */
 #if defined(OPENSSL)
 
@@ -215,12 +215,12 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	else
 		e = RSA_F4;
 	rsa = RSA_generate_key(key->key_size, e, NULL, NULL);
-	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
-
 	if (rsa == NULL) {
 		ERR_clear_error();
 		return (DST_R_OPENSSLFAILURE);
 	}
+
+	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
 
 	key->opaque = rsa;
 
