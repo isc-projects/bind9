@@ -1,8 +1,6 @@
-.\"
-.\" Copyright (C) 2000  Internet Software Consortium.
 #!/usr/bin/gawk -f
 #
-#	$Id: ctoman,v 1.1 2000/06/01 03:19:06 jim Exp $
+#	$Id: ctoman,v 1.2 2000/06/21 01:21:59 tale Exp $
 #
 #	ctoman - an awk program that makes a passable job of
 #		 converting ISC BIND9 C files into template
