@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.53 2000/10/13 17:54:00 mws Exp $ */
+/* $Id: dig.h,v 1.54 2000/10/20 05:03:31 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -124,10 +124,10 @@ struct dig_lookup {
 	isc_uint32_t ixfr_serial;
 	isc_buffer_t rdatabuf;
 	char rdatastore[MXNAME];
-#ifdef DNS_OPT_NEWCODES
+#ifdef DNS_OPT_NEWCODES_LIVE
 	char zonename[MXNAME];
 	char viewname[MXNAME];
-#endif /* DNS_OPT_NEWCODES */
+#endif /* DNS_OPT_NEWCODES_LIVE */
 	dst_context_t *tsigctx;
 	isc_buffer_t *querysig;
 	isc_uint32_t msgcounter;

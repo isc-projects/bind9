@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.154 2000/10/20 02:21:33 marka Exp $ */
+/* $Id: dighost.c,v 1.155 2000/10/20 05:03:30 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -187,7 +187,7 @@ hex_dump(isc_buffer_t *b) {
 		if (len % 16 == 15)
 			printf("\n");
 	}
-	if (len % 16 != 15)
+	if (len % 16 != 0)
 		printf("\n");
 }
 
@@ -1356,15 +1356,15 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
 	check_result(result, "dns_message_renderbegin");
-#ifndef DNS_OPT_NEWCODES
+#ifndef DNS_OPT_NEWCODES_LIVE
 	if (lookup->udpsize > 0) {
-#else /* DNS_OPT_NEWCODES */
+#else /* DNS_OPT_NEWCODES_LIVE */
 	if (lookup->udpsize > 0 || lookup->zonename[0] !=0 ||
 	    lookup->viewname[0] != 0) {
 		dns_fixedname_t fname;
 		isc_buffer_t namebuf, *wirebuf = NULL;
 		dns_compress_t cctx;
-#endif /* DNS_OPT_NEWCODES */
+#endif /* DNS_OPT_NEWCODES_LIVE */
 		dns_optlist_t optlist;
 		dns_optattr_t optattr[2];
 
@@ -1375,7 +1375,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		optlist.next = 0;
 		optlist.attrs = optattr;
 
-#ifdef DNS_OPT_NEWCODES
+#ifdef DNS_OPT_NEWCODES_LIVE
 		if (lookup->zonename[0] != 0) {
 			optattr[optlist.used].code = DNS_OPTCODE_ZONE;
 			dns_fixedname_init(&fname);
@@ -1409,12 +1409,12 @@ setup_lookup(dig_lookup_t *lookup) {
 				strlen(lookup->viewname);
 			optlist.used++;
 		}
-#endif /* DNS_OPT_NEWCODES */
+#endif /* DNS_OPT_NEWCODES_LIVE */
 		add_opt(lookup->sendmsg, lookup->udpsize, optlist);
-#ifdef DNS_OPT_NEWCODES
+#ifdef DNS_OPT_NEWCODES_LIVE
 		if (wirebuf != NULL)
 			isc_buffer_free(&wirebuf);
-#endif /* DNS_OPT_NEWCODES */
+#endif /* DNS_OPT_NEWCODES_LIVE */
 	}
 
 	result = dns_message_rendersection(lookup->sendmsg,
