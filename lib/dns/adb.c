@@ -319,6 +319,8 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 #define NAME_FETCH_V6(n)	(NAME_FETCH_AAAA(n) || NAME_FETCH_A6(n))
 #define NAME_FETCH(n)		(NAME_FETCH_V4(n) || NAME_FETCH_V6(n))
 
+#define EXPIRE_OK(exp, now)	((exp == INT_MAX) || (exp < now))
+
 #define ENTER_LEVEL		50
 #define EXIT_LEVEL		ENTER_LEVEL
 #define CLEAN_LEVEL		100
@@ -585,19 +587,20 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 	/*
 	 * Check to see if we need to remove the v4 addresses
 	 */
-	if (!NAME_FETCH_V4(name) && (name->expire_v4 < now)) {
+	if (!NAME_FETCH_V4(name) && EXPIRE_OK(name->expire_v4, now)) {
 		DP(DEF_LEVEL, "expiring v4 for name %p", name);
 		clean_namehooks(adb, &name->v4);
+		name->expire_v4 = INT_MAX;
 		name->partial_result &= ~DNS_ADBFIND_INET;
 	}
-
 
 	/*
 	 * Check to see if we need to remove the v6 addresses
 	 */
-	if (!NAME_FETCH_V6(name) && (name->expire_v6 < now)) {
+	if (!NAME_FETCH_V6(name) && EXPIRE_OK(name->expire_v6, now)) {
 		DP(DEF_LEVEL, "expiring v6 for name %p", name);
 		clean_namehooks(adb, &name->v6);
+		name->expire_v6 = INT_MAX;
 		name->partial_result &= ~DNS_ADBFIND_INET6;
 	}
 }
@@ -1656,7 +1659,7 @@ shutdown_task(isc_task_t *task, isc_event_t *ev)
  * name bucket must be locked; adb may be locked; no other locks held.
  */
 static void
-check_expire_name(dns_adbname_t **namep)
+check_expire_name(dns_adbname_t **namep, isc_stdtime_t now)
 {
 	dns_adbname_t *name;
 
@@ -1667,6 +1670,10 @@ check_expire_name(dns_adbname_t **namep)
 	if (HAVE_INET(name) || HAVE_INET6(name))
 		return;
 	if (NAME_FETCH(name))
+		return;
+	if (!EXPIRE_OK(name->expire_v4, now))
+		return;
+	if (!EXPIRE_OK(name->expire_v6, now))
 		return;
 
 	/*
@@ -1695,7 +1702,7 @@ cleanup_names(dns_adb_t *adb, int bucket, isc_stdtime_t now)
 	while (name != NULL) {
 		next_name = ISC_LIST_NEXT(name, plink);
 		check_expire_namehooks(name, now);
-		check_expire_name(&name);
+		check_expire_name(&name, now);
 		name = next_name;
 	}
 	UNLOCK(&adb->namelocks[bucket]);
@@ -2074,6 +2081,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * start fetches.
 	 */
 	if (!HAVE_INET(adbname) && !NAME_FETCH_V4(adbname)
+	    && EXPIRE_OK(adbname->expire_v4, now)
 	    && WANT_INET(wanted_addresses)) {
 		result = dbfind_name(adbname, now, use_hints, dns_rdatatype_a);
 		if (result == ISC_R_SUCCESS) {
@@ -2097,6 +2105,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
  v6:
 	if (!HAVE_INET6(adbname) && !NAME_FETCH_V6(adbname)
+	    && EXPIRE_OK(adbname->expire_v6, now)
 	    && WANT_INET6(wanted_addresses)) {
 		result = dbfind_a6(adbname, now, use_hints);
 		if (result == ISC_R_SUCCESS) {
@@ -2770,6 +2779,21 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		 */
 		result = import_rdataset(adbname, &rdataset, now);
 		break;
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+		/*
+		 * We found a negative cache entry.  Pull the TTL from it
+		 * so we won't ask again for a while.
+		 */
+		if (rdtype == dns_rdatatype_a) {
+			DP(1, "adb name %p: Caching negative entry for A",
+			   adbname);
+			adbname->expire_v4 = rdataset.ttl + now;
+		} else {
+			DP(1, "adb name %p: Caching negative entry for AAAA",
+			   adbname);
+			adbname->expire_v6 = rdataset.ttl + now;
+		}
 	}
 	/* Need to handle "no such name" XXXMLG */
 
@@ -2816,6 +2840,13 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 		(void)dns_a6_foreach(&a6ctx, &rdataset);
 		result = ISC_R_SUCCESS;
 		break;
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+		/*
+		 * We found a negative cache entry.  Pull the TTL from it
+		 * so we won't ask again for a while.
+		 */
+		adbname->expire_v6 = rdataset.ttl + now;
 	}
 	/* Need to handle "no such name" XXXMLG */
 
@@ -2826,7 +2857,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 }
 
 static void
-fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
+fetch_callback(isc_task_t *task, isc_event_t *ev)
 {
 	dns_fetchevent_t *dev;
 	dns_adbname_t *name;
@@ -2836,6 +2867,7 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	isc_eventtype_t ev_status;
 	isc_stdtime_t now;
 	isc_result_t result;
+	unsigned int address_type;
 
 	(void)task;
 
@@ -2849,10 +2881,22 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	bucket = name->lock_bucket;
 	LOCK(&adb->namelocks[bucket]);
 
-	INSIST(NAME_FETCH_A(name));
-	fetch = name->fetch_a;
-	name->fetch_a = NULL;
-	INSIST(fetch->fetch == dev->fetch);
+	INSIST(name->fetch_a != NULL || name->fetch_aaaa != NULL);
+	address_type = 0;
+	if (NAME_FETCH_A(name)) {
+		if (name->fetch_a->fetch == dev->fetch) {
+			address_type = DNS_ADBFIND_INET;
+			fetch = name->fetch_a;
+			name->fetch_a = NULL;
+		}
+	} else if (NAME_FETCH_AAAA(name)) {
+		if (name->fetch_aaaa->fetch == dev->fetch) {
+			address_type = DNS_ADBFIND_INET6;
+			fetch = name->fetch_aaaa;
+			name->fetch_aaaa = NULL;
+		}
+	}
+	INSIST(address_type != 0);
 
 	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
 	dev->fetch = NULL;
@@ -2911,101 +2955,7 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
 
-	clean_finds_at_name(name, ev_status, DNS_ADBFIND_INET);
-
-	UNLOCK(&adb->namelocks[bucket]);
-
-	return;
-
-}
-
-static void
-fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
-{
-	dns_fetchevent_t *dev;
-	dns_adbname_t *name;
-	dns_adb_t *adb;
-	dns_adbfetch_t *fetch;
-	int bucket;
-	isc_eventtype_t ev_status;
-	isc_stdtime_t now;
-	isc_result_t result;
-
-	(void)task;
-
-	INSIST(ev->type == DNS_EVENT_FETCHDONE);
-	dev = (dns_fetchevent_t *)ev;
-	name = ev->arg;
-	INSIST(DNS_ADBNAME_VALID(name));
-	adb = name->adb;
-	INSIST(DNS_ADB_VALID(adb));
-
-	bucket = name->lock_bucket;
-	LOCK(&adb->namelocks[bucket]);
-
-	INSIST(NAME_FETCH_AAAA(name));
-	fetch = name->fetch_aaaa;
-	name->fetch_aaaa = NULL;
-	INSIST(fetch->fetch == dev->fetch);
-
-	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
-	dev->fetch = NULL;
-
-	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
-
-	/*
-	 * Cleanup things we don't care about.
-	 */
-	if (dev->node != NULL)
-		dns_db_detachnode(dev->db, &dev->node);
-	if (dev->db != NULL)
-		dns_db_detach(&dev->db);
-
-	/*
-	 * If this name is marked as dead, clean up, throwing away
-	 * potentially good data.
-	 */
-	if (NAME_DEAD(name)) {
-		isc_boolean_t decr_adbrefcnt;
-
-		free_adbfetch(adb, &fetch);
-		isc_event_free(&ev);
-
-		kill_name(&name, DNS_EVENT_ADBCANCELED);
-
-		decr_adbrefcnt = ISC_FALSE;
-		if (adb->name_sd[bucket] && (adb->name_refcnt[bucket] == 0))
-			decr_adbrefcnt = ISC_TRUE;
-
-		UNLOCK(&adb->namelocks[bucket]);
-
-		if (decr_adbrefcnt)
-			dec_adb_irefcnt(adb, ISC_TRUE);
-
-		return;
-	}
-
-	/*
-	 * Did we get back junk?  If so, and there are no more fetches
-	 * sitting out there, tell all the finds about it.
-	 */
-	if (dev->result != ISC_R_SUCCESS)
-		goto out;
-
-	/*
-	 * We got something potentially useful.
-	 */
-	result = isc_stdtime_get(&now);
-	if (result == ISC_R_SUCCESS)
-		result = import_rdataset(name, &fetch->rdataset, now);
-	if (result == ISC_R_SUCCESS)
-		ev_status = DNS_EVENT_ADBMOREADDRESSES;
-
- out:
-	free_adbfetch(adb, &fetch);
-	isc_event_free(&ev);
-
-	clean_finds_at_name(name, ev_status, DNS_ADBFIND_INET6);
+	clean_finds_at_name(name, ev_status, address_type);
 
 	UNLOCK(&adb->namelocks[bucket]);
 
@@ -3202,7 +3152,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_stdtime_t now)
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a, &fname,
 					  &nameservers, NULL, 0,
-					  adb->task, fetch_callback_v4,
+					  adb->task, fetch_callback,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
 	if (result != ISC_R_SUCCESS)
@@ -3259,7 +3209,7 @@ fetch_name_aaaa(dns_adbname_t *adbname, isc_stdtime_t now)
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_aaaa, &fname,
 					  &nameservers, NULL, 0,
-					  adb->task, fetch_callback_aaaa,
+					  adb->task, fetch_callback,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
 	if (result != ISC_R_SUCCESS)
