@@ -74,8 +74,8 @@ BIND 9.0.0b3
 	be most useful to advanced users working with IPv6 or DNSSEC.
 
 	BIND 9.0.0b3 is not functionally complete, and is not a release
-	candidate for BIND 9.0.0.  ISC anticipates a number of additional
-	beta releases between now and June, when BIND 9.0.0 is scheduled to
+	candidate for BIND 9.0.0.  ISC anticipates at least one additional
+	beta release between now and June, when BIND 9.0.0 is scheduled to
 	be released.
 
 	ISC does not recommend using BIND 9.0.0b3 for "production"
@@ -91,11 +91,10 @@ BIND 9.0.0b3
 		DNS queries differently to different requestors.  This
 		will make split DNS setups much easier to build.
 
-		Basic support for validation of DNSSEC signatures is
-		has been implemented.  This functionality should 
-		be considered experimental at this point.
-
 		NOTIFY (RFC1996) has been implemented.
+
+		Basic support for validation of DNSSEC signatures has
+		been implemented.  For details, see doc/misc/dnssec.
 
 		The "dig" and "host" tools have been completely rewritten
 		and are included in the base distribution.
@@ -104,13 +103,6 @@ BIND 9.0.0b3
 		fixed.
 
 	There are still some known bugs, including:
-
-		The random data used in generating DNSSEC keys and 
-		signatures contains a significant pseudorandom 
-		component and is therefore not cryptographically 
-		strong.  We do not recommend the use of keys generated
-		by the key generation tools in this distribution 
-		in production.
 
 		The option "query-source * port 53;" will not work as
 		expected.  Instead of the wildcard address "*", you need 
@@ -122,8 +114,7 @@ BIND 9.0.0b3
 	Some of the more significant items that will be implemented or
 	enhanced in a future beta are
 
-
-		Selective Forwarding
+		Selective forwarding
 
 		Stub zones
 
