@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.154 2001/07/28 00:11:09 bwelling Exp $ */
+/* $Id: dig.c,v 1.155 2001/07/28 01:41:28 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -748,6 +748,12 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				ndots = 0;
 			break;
 		case 's': /* nssearch */
+			if (lookup->trace && state) {
+				fprintf(stderr,
+					"+trace and +nssearch cannot both be "
+					"specified.  Ignoring +nssearch\n");
+				return;
+			}
 			lookup->ns_search_only = state;
 			if (state) {
 				lookup->trace_root = ISC_TRUE;
@@ -825,6 +831,13 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		case 'r':
 			switch (cmd[2]) {
 			case 'a': /* trace */
+				if (lookup->ns_search_only && state) {
+					fprintf(stderr,
+						"+trace and +nssearch cannot "
+						"both be specified.  Ignoring "
+						"+trace\n");
+					return;
+				}
 				lookup->trace = state;
 				lookup->trace_root = state;
 				if (state) {
