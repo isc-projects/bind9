@@ -1,3 +1,7 @@
+
+ 743.	[bug]		Receiving a large number of certain malformed
+			answers could cause named to stop responding.
+
  742.	[bug]		dig +domain did not work. [RT #850]
 
  738.	[bug]		If a non-threadsafe sdb driver supported AXFR and
