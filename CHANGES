@@ -1,3 +1,5 @@
+1526.	[placeholder]
+
 1525.	[bug]		dns_cache_create() could trigger a REQUIRE
 			failure in isc_mem_put() during error cleanup.
 			[RT# 9360]
