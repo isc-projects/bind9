@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.98 2000/06/22 23:48:07 marka Exp $ */
+/* $Id: client.c,v 1.99 2000/07/13 00:21:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -268,7 +268,7 @@ set_timeout(ns_client_t *client, unsigned int seconds) {
 	if (result != ISC_R_SUCCESS) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-			      "setting timouet: %s",
+			      "setting timeout: %s",
 			      isc_result_totext(result));
 		/* Continue anyway. */
 	}
@@ -1658,6 +1658,9 @@ ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	   isc_logmodule_t *module, int level, const char *fmt, ...)
 {
 	va_list ap;
+
+	if (isc_log_wouldlog(ns_g_lctx, level) == ISC_FALSE)
+		return;
 
 	va_start(ap, fmt);
 	ns_client_logv(client, category, module, level, fmt, ap);
