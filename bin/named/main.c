@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.85 2000/09/28 21:09:51 bwelling Exp $ */
+/* $Id: main.c,v 1.86 2000/09/28 21:18:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -434,6 +434,9 @@ create_managers(void) {
 
 	if (ns_g_cpus == 0)
 		ns_g_cpus = isc_os_ncpus();
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_INFO, "using %u CPU%s",
+		      ns_g_cpus, ns_g_cpus == 1 ? "" : "s");
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
