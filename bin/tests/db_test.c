@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.54 2000/10/17 07:22:25 marka Exp $ */
+/* $Id: db_test.c,v 1.55 2000/11/28 03:34:10 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include <isc/commandline.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/time.h>
 #include <isc/string.h>
@@ -35,6 +36,7 @@
 #include <dns/dbiterator.h>
 #include <dns/dbtable.h>
 #include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
@@ -262,6 +264,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	dbi->iversion = NULL;
 	dbi->pause_every = pause_every;
 	dbi->ascending = ascending;
+	ISC_LINK_INIT(dbi, link);
 
 	len = strlen(origintext);
 	isc_buffer_init(&source, origintext, len);
@@ -374,6 +377,7 @@ main(int argc, char *argv[]) {
 	size_t memory_quota = 0;
 	dns_trust_t trust = 0;
 	unsigned int addopts;
+	isc_log_t *lctx = NULL;
 
 	dns_result_register();
 
@@ -381,8 +385,10 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(dns_dbtable_create(mctx, dns_rdataclass_in, &dbtable) ==
 		      ISC_R_SUCCESS);
 
+	
+
 	strcpy(dbtype, "rbt");
-	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:gpqvT"))
+	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:glpqvT"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
@@ -397,6 +403,13 @@ main(int argc, char *argv[]) {
 			break;
 		case 'g':
 			options |= (DNS_DBFIND_GLUEOK|DNS_DBFIND_VALIDATEGLUE);
+			break;
+        	case 'l':
+			RUNTIME_CHECK(isc_log_create(mctx, &lctx,
+						     NULL) == ISC_R_SUCCESS);
+			isc_log_setcontext(lctx);
+			dns_log_init(lctx);
+			dns_log_setcontext(lctx);
 			break;
 		case 'q':
 			quiet = ISC_TRUE;
@@ -922,6 +935,9 @@ main(int argc, char *argv[]) {
 	unload_all();
 
 	dns_dbtable_detach(&dbtable);
+
+	if (lctx != NULL)
+		isc_log_destroy(&lctx);
 
 	if (!quiet)
 		isc_mem_stats(mctx, stdout);
