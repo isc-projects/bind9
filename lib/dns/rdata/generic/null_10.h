@@ -15,8 +15,4 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.h,v 1.11 2000/02/03 23:43:04 halley Exp $ */
-
-typedef struct dns_rdata_null {
-	dns_rdatacommon_t common;
-} dns_rdata_null_t;
+ /* $Id: null_10.h,v 1.12 2000/03/16 21:49:42 bwelling Exp $ */
