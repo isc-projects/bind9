@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.7 2001/03/08 18:39:50 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.8 2001/03/21 18:34:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -6749,7 +6749,7 @@ parser_error(isc_boolean_t lasttoken, const char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	parser_complain(ISC_TRUE, lasttoken, fmt, args);
+	parser_complain(ISC_FALSE, lasttoken, fmt, args);
 	va_end(args);
 
 	currcfg->errors++;
@@ -6762,7 +6762,7 @@ parser_warning(isc_boolean_t lasttoken, const char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	parser_complain(ISC_FALSE, lasttoken, fmt, args);
+	parser_complain(ISC_TRUE, lasttoken, fmt, args);
 	va_end(args);
 
 	currcfg->warnings++;
