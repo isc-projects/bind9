@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.181 2000/11/13 21:34:00 bwelling Exp $ */
+/* $Id: resolver.c,v 1.182 2000/11/15 04:53:06 marka Exp $ */
 
 #include <config.h>
 
@@ -2213,8 +2213,8 @@ is_lame(fetchctx_t *fctx) {
 			namereln = dns_name_fullcompare(name, &fctx->domain,
 				   			&order, &labels, &bits);
 			if (namereln == dns_namereln_equal &&
-			    (message->flags & DNS_MESSAGEFLAG_AA) == 0)
-				return (ISC_TRUE);
+			    (message->flags & DNS_MESSAGEFLAG_AA) != 0)
+				return (ISC_FALSE);
 			if (namereln == dns_namereln_subdomain)
 				return (ISC_FALSE);
 			return (ISC_TRUE);
