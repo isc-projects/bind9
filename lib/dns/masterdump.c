@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.52 2001/07/06 22:53:48 gson Exp $ */
+/* $Id: masterdump.c,v 1.53 2001/07/16 05:10:22 mayer Exp $ */
 
 #include <config.h>
 
@@ -129,7 +129,7 @@ typedef struct dns_totext_ctx {
 	isc_boolean_t 		current_ttl_valid;
 } dns_totext_ctx_t;
 
-const dns_master_style_t
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_default = {
 	DNS_STYLEFLAG_OMIT_OWNER |
 	DNS_STYLEFLAG_OMIT_CLASS |
@@ -142,7 +142,7 @@ dns_master_style_default = {
 	24, 24, 24, 32, 80, 8
 };
 
-const dns_master_style_t
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_OMIT_OWNER |
 	DNS_STYLEFLAG_OMIT_CLASS |
@@ -173,7 +173,7 @@ dns_master_style_simple = {
 /*
  * A style suitable for dns_rdataset_totext().
  */
-const dns_master_style_t
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_debug = {
 	DNS_STYLEFLAG_REL_OWNER,
 	24, 32, 40, 48, 80, 8
@@ -813,12 +813,13 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 			fprintf(f, "; %s\n", trustnames[trust]);
 		}
 		if (rds->type == 0 &&
+ 
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
 		} else {
 			isc_result_t result =
 				dump_rdataset(mctx, name, rds, ctx,
-					      buffer, f);
+					       buffer, f);
 			if (result != ISC_R_SUCCESS)
 				dumpresult = result;
 			if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)

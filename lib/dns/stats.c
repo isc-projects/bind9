@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.c,v 1.4 2001/01/23 01:50:28 bwelling Exp $ */
+/* $Id: stats.c,v 1.5 2001/07/16 05:10:23 mayer Exp $ */
 
 #include <config.h>
 
@@ -23,14 +23,15 @@
 
 #include <dns/stats.h>
 
-const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] = {
+LIBDNS_EXTERNAL_DATA const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] =
+	{
 	"success",
 	"referral",
 	"nxrrset",
 	"nxdomain",
 	"recursion",
 	"failure"
-};
+	};
 
 isc_result_t
 dns_stats_alloccounters(isc_mem_t *mctx, isc_uint64_t **ctrp) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.21 2001/03/28 00:58:15 gson Exp $ */
+/* $Id: masterdump.h,v 1.22 2001/07/16 05:10:25 mayer Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -56,14 +56,15 @@ ISC_LANG_BEGINDECLS
  * tab stop for the TTL.  The class is only printed for the first
  * rrset in the file and shares a tab stop with the RR type.
  */
-extern const dns_master_style_t dns_master_style_default;
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_default;
 
 /*
  * A master file style that prints explicit TTL values on each 
  * record line, never using $TTL statements.  The TTL has a tab 
  * stop of its own, but the class and type share one.
  */
-extern const dns_master_style_t dns_master_style_explicitttl;
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t
+				  dns_master_style_explicitttl;
 
 /*
  * A master style format designed for cache files.  It prints explicit TTL
@@ -82,7 +83,7 @@ extern const dns_master_style_t dns_master_style_simple;
 /*
  * The style used for debugging, "dig" output, etc.
  */
-extern const dns_master_style_t dns_master_style_debug;
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_debug;
 
 /***
  ***	Functions

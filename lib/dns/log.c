@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.31 2001/01/11 19:38:08 gson Exp $ */
+/* $Id: log.c,v 1.32 2001/07/16 05:10:21 mayer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -29,7 +29,7 @@
  * When adding a new category, be sure to add the appropriate
  * #define to <dns/log.h>.
  */
-isc_logcategory_t dns_categories[] = {
+LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ "notify", 	0 },
 	{ "database", 	0 },
 	{ "security", 	0 },
@@ -47,7 +47,7 @@ isc_logcategory_t dns_categories[] = {
  * When adding a new module, be sure to add the appropriate
  * #define to <dns/log.h>.
  */
-isc_logmodule_t dns_modules[] = {
+LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/db",	 	0 },
 	{ "dns/rbtdb", 		0 },
 	{ "dns/rbtdb64", 	0 },
@@ -75,7 +75,7 @@ isc_logmodule_t dns_modules[] = {
 	{ NULL, 		0 }
 };
 
-isc_log_t *dns_lctx = NULL;
+LIBDNS_EXTERNAL_DATA isc_log_t *dns_lctx = NULL;
 
 void
 dns_log_init(isc_log_t *lctx) {

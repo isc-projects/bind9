@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.39 2001/03/07 20:53:32 bwelling Exp $ */
+/* $Id: tsig.h,v 1.40 2001/07/16 05:10:28 mayer Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -33,7 +33,7 @@
 /*
  * Algorithms.
  */
-extern dns_name_t *dns_tsig_hmacmd5_name;
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_HMACMD5_NAME		dns_tsig_hmacmd5_name
 extern dns_name_t *dns_tsig_gssapi_name;
 #define DNS_TSIG_GSSAPI_NAME		dns_tsig_gssapi_name

@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.10 2001/07/09 21:27:45 gson Exp $ */
+/* $Id: gen-win32.h,v 1.11 2001/07/16 05:10:19 mayer Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -84,15 +84,11 @@
 #include <isc/boolean.h>
 #include <isc/commandline.h>
 #include <isc/lang.h>
+#include <isc/platform.h>
 
-LIBISC_EXTERNAL_DATA int isc_commandline_index;		/* Index into parent argv vector. */
-LIBISC_EXTERNAL_DATA int isc_commandline_option;	/* Character checked for validity. */
-
-LIBISC_EXTERNAL_DATA char *isc_commandline_argument;	/* Argument associated with option. */
-LIBISC_EXTERNAL_DATA char *isc_commandline_progname;	/* For printing error messages. */
-
-LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_errprint;	/* Print error messages. */
-LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_reset; /* Reset processing. */
+/* Index into parent argv vector. */
+/* Argument associated with option. */
+LIBISC_EXTERNAL_DATA char *isc_commandline_argument;
 
 #define	BADOPT	'?'
 #define	BADARG	':'

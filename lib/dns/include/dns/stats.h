@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.3 2001/01/23 01:50:29 bwelling Exp $ */
+/* $Id: stats.h,v 1.4 2001/07/16 05:10:27 mayer Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
@@ -36,7 +36,7 @@ typedef enum {
 
 #define DNS_STATS_NCOUNTERS 6
 
-extern const char *dns_statscounter_names[];
+LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
 
 isc_result_t
 dns_stats_alloccounters(isc_mem_t *mctx, isc_uint64_t **ctrp);

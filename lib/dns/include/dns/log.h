@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.28 2001/01/11 19:38:11 gson Exp $ */
+/* $Id: log.h,v 1.29 2001/07/16 05:10:24 mayer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -25,9 +25,9 @@
 #include <isc/lang.h>
 #include <isc/log.h>
 
-extern isc_log_t *dns_lctx;
-extern isc_logcategory_t dns_categories[];
-extern isc_logmodule_t dns_modules[];
+LIBDNS_EXTERNAL_DATA extern isc_log_t *dns_lctx;
+LIBDNS_EXTERNAL_DATA extern isc_logcategory_t dns_categories[];
+LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 
 #define DNS_LOGCATEGORY_NOTIFY		(&dns_categories[0])
 #define DNS_LOGCATEGORY_DATABASE	(&dns_categories[1])
