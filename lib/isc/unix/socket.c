@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.166 2000/09/21 21:30:27 explorer Exp $ */
+/* $Id: socket.c,v 1.167 2000/09/21 21:40:29 explorer Exp $ */
 
 #include <config.h>
 
@@ -2910,7 +2910,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 		 * Translate other errors into ISC_R_* flavors.
 		 */
 		switch (errno) {
-#define ERROR_MATCH(a, b) case a: dev->result = b;
+#define ERROR_MATCH(a, b) case a: dev->result = b; break;
 			ERROR_MATCH(EACCES, ISC_R_NOPERM);
 			ERROR_MATCH(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
 			ERROR_MATCH(EAFNOSUPPORT, ISC_R_ADDRNOTAVAIL);
