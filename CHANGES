@@ -1,6 +1,9 @@
+ 978.	[bug]		dns_db_attachversion() had an invalid REQUIRE()
+			condition.
+
  977.	[bug]		Improve "not at top of zone" error message.
 
- 976.	[func]		named-checkconf will now test load master zones
+ 976.	[func]		named-checkconf can now test load master zones
 			(named-checkconf -z).  [RT #1468]
 
  975.	[bug]		"max-cache-size default;" as a view option
