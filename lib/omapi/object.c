@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.8 2000/01/24 05:33:59 tale Exp $ */
+/* $Id: object.c,v 1.9 2000/01/24 15:20:18 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -135,9 +135,7 @@ omapi_object_dereference(omapi_object_t **h) {
 	 * reference is stored and compare against that, and we don't
 	 * want to do that if we can avoid it.
 	 */
-	if ((*h)->handle != 0 &&
-	    handle_lookup(&p, (*h)->handle) == ISC_R_SUCCESS &&
-	    *h == p)
+	if ((*h)->handle != 0)
 		handle_reference = 1;
 
 	/*
