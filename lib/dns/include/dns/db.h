@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.60 2000/11/16 22:33:50 bwelling Exp $ */
+/* $Id: db.h,v 1.61 2000/11/30 13:19:08 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -192,6 +192,7 @@ struct dns_db {
  */
 #define DNS_DBADD_MERGE			0x01
 #define DNS_DBADD_FORCE			0x02
+#define DNS_DBADD_EXACT			0x04
 
 /*****
  ***** Methods
@@ -1014,6 +1015,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	without regard to trust levels.  If not forcing the data, then the
  *	rdataset will only be added if its trust level is >= the trust level of
  *	any existing rdataset.  Forcing is only meaningful for cache databases.
+ *	If DNS_DBADD_EXACT is set then there must be no rdata in common between
+ *	the old and new rdata sets.
  *
  *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
  *	a cache database, then the added rdataset will expire no later than

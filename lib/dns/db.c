@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.63 2000/11/17 01:06:37 bwelling Exp $ */
+/* $Id: db.c,v 1.64 2000/11/30 13:19:04 marka Exp $ */
 
 /***
  *** Imports
@@ -615,6 +615,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)||
 		((db->attributes & DNS_DBATTR_CACHE) != 0 &&
 		 version == NULL && (options & DNS_DBADD_MERGE) == 0));
+	REQUIRE((options & DNS_DBADD_EXACT) == 0 ||
+		(options & DNS_DBADD_MERGE) != 0);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(dns_rdataset_isassociated(rdataset));
 	REQUIRE(rdataset->rdclass == db->rdclass);

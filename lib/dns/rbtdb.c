@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.134 2000/11/22 01:56:02 halley Exp $ */
+/* $Id: rbtdb.c,v 1.135 2000/11/30 13:19:06 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3108,7 +3108,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	rdatasetheader_t *topheader, *topheader_prev, *header;
 	unsigned char *merged;
 	isc_result_t result;
-	isc_boolean_t force = ISC_FALSE;
 	isc_boolean_t header_nx;
 	isc_boolean_t newheader_nx;
 	isc_boolean_t merge;
@@ -3274,10 +3273,13 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * that is the union of 'newheader' and 'header'.
 		 */
 		if (merge) {
+			unsigned int flags = 0;
 			INSIST(rbtversion->serial >= header->serial);
 			merged = NULL;
+			if ((options & DNS_DBADD_EXACT) != 0)
+				flags |= DNS_RDATASLAB_EXACT;
 			if (newheader->ttl != header->ttl)
-				force = ISC_TRUE;
+				flags |= DNS_RDATASLAB_FORCE;
 			result = dns_rdataslab_merge(
 					     (unsigned char *)header,
 					     (unsigned char *)newheader,
@@ -3285,8 +3287,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					     rbtdb->common.mctx,
 					     rbtdb->common.rdclass,
 					     (dns_rdatatype_t)header->type,
-					     force,
-					     &merged);
+					     flags, &merged);
 			if (result == ISC_R_SUCCESS) {
 				/*
 				 * If 'header' has the same serial number as
