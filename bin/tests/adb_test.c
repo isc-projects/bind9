@@ -58,7 +58,7 @@ check_result(isc_result_t result, char *msg)
 }
 
 int
-main(int argc, char *argv[])
+main()
 {
 	isc_task_t *t1, *t2;
 	isc_sockaddr_t sockaddr;
