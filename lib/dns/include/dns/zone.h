@@ -806,6 +806,12 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
  */
 
 void
+dns_zonemgr_shutdown(dns_zonemgr_t *zmgr);
+/*
+ * Shut down and detach the task of the zone manager.
+ */
+
+void
 dns_zonemgr_destroy(dns_zonemgr_t **zmgrp);
 /*
  * Destroy a zone manager.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.55 2000/01/06 23:33:20 halley Exp $ */
+ /* $Id: zone.c,v 1.56 2000/01/19 22:01:54 gson Exp $ */
 
 #include <config.h>
 
@@ -183,9 +183,7 @@ struct dns_zonemgr {
 	isc_timermgr_t *	timermgr;
 	isc_socketmgr_t *	socketmgr;
 	isc_taskpool_t *	zonetasks;
-	struct soaquery {
-		isc_task_t *	task;
-	} soaquery;
+	isc_task_t *		task;
 	isc_rwlock_t		rwlock;
 	/* Locked by rwlock. */
 	ISC_LIST(dns_zone_t)	zones;
@@ -2982,7 +2980,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	zmgr->timermgr = timermgr;
 	zmgr->socketmgr = socketmgr;
 	zmgr->zonetasks = NULL;
-	zmgr->soaquery.task = NULL;
+	zmgr->task = NULL;
 	ISC_LIST_INIT(zmgr->zones);
 	result = isc_rwlock_init(&zmgr->rwlock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
@@ -3000,7 +2998,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto failure;
 
 	/* Create a single task for queueing of SOA queries. */
-	result = isc_task_create(taskmgr, mctx, 1, &zmgr->soaquery.task);
+	result = isc_task_create(taskmgr, mctx, 1, &zmgr->task);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
@@ -3031,7 +3029,7 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	result = isc_timer_create(zmgr->timermgr, isc_timertype_inactive,
 				  NULL, NULL,
-				  zmgr->soaquery.task, zone_timer, zone,
+				  zmgr->task, zone_timer, zone,
 				  &zone->timer);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
@@ -3087,6 +3085,14 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 }
 
 void
+dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
+	if (zmgr->task != NULL)
+		isc_task_destroy(&zmgr->task);
+	if (zmgr->zonetasks != NULL)
+		isc_taskpool_destroy(&zmgr->zonetasks);
+}
+
+void
 dns_zonemgr_destroy(dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr = *zmgrp;
 	dns_zone_t *zone;
@@ -3101,10 +3107,9 @@ dns_zonemgr_destroy(dns_zonemgr_t **zmgrp) {
 	}
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 
-	if (zmgr->soaquery.task != NULL)
-		isc_task_destroy(&zmgr->soaquery.task);
-	if (zmgr->zonetasks != NULL)
-		isc_taskpool_destroy(&zmgr->zonetasks);
+	/* Probably done already, but does not hurt to repeat. */
+	dns_zonemgr_shutdown(zmgr);
+
 	isc_rwlock_destroy(&zmgr->rwlock);
 	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
 	*zmgrp = NULL;
