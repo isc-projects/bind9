@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.24 1999/10/07 19:40:30 halley Exp $ */
+ /* $Id: master.c,v 1.25 1999/10/08 23:26:55 tale Exp $ */
 
 #include <config.h>
 
@@ -342,7 +342,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				iresult = isc_stdtime_get(&current_time);
 				result = dns_time64_fromtext(token.value.
 					     as_pointer, &dump_time64);
-				dump_time = dump_time64;
+				dump_time = (isc_stdtime_t)dump_time64;
 				if (dump_time != dump_time64) {
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "dns_master_load: %s:%d: "
