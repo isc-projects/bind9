@@ -1,3 +1,11 @@
+1247.	[bug]		Don't reset the interface index for link/site local
+			addresses. [RT #2576]
+
+1246.	[func]		New functions isc_sockaddr_issitelocal(),
+			isc_sockaddr_islinklocal(), isc_netaddr_issitelocal()
+			and isc_netaddr_islinklocal().
+
+
 1235.	[func]		Report 'out of memory' errors from openssl.
 
 1233.	[bug]		The flags field of a KEY record can be expressed in
@@ -710,10 +718,6 @@
 			sent to. [RT# 2692]
 
 1248.	[bug]		DESTDIR was not being propagated between makes.
-
-1246.	[func]		New functions isc_sockaddr_issitelocal(),
-			isc_sockaddr_islinklocal(), isc_netaddr_issitelocal()
-			and isc_netaddr_islinklocal().
 
 1245.	[bug]		Treat ENOBUFS, ENOMEM and ENFILE as soft errors for
 			accept().
