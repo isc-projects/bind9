@@ -37,14 +37,14 @@ LIBS =		${DEPLIBS} \
 
 TARGETS =	named
 
-OBJS =		server.o udpclient.o tcpclient.o wire_test.o \
+OBJS =		server.o udpclient.o tcpclient.o printmsg.o \
 		zone.o configctx.o confparser.o interfacemgr.o
 
 @BIND9_MAKE_RULES@
 
-wire_test.o: ${srcdir}/../tests/wire_test.c
-	${CC} -c -o wire_test.o -DNOMAIN ${ALL_CFLAGS} \
-		${srcdir}/../tests/wire_test.c
+printmsg.o: ${srcdir}/../tests/printmsg.c
+	${CC} -c -o printmsg.o ${ALL_CFLAGS} -I${srcdir}/../tests \
+		${srcdir}/../tests/printmsg.c
 
 named: ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${CC} -o $@ ${OBJS} ${LIBS}

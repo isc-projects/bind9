@@ -99,8 +99,8 @@ rwlock_test: rwlock_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rwlock_test.o \
 	${ISCLIBS} ${LIBS}
 
-wire_test: wire_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ wire_test.o \
+wire_test: wire_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ wire_test.o printmsg.o \
 	${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 master_test: master_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
@@ -119,8 +119,8 @@ mempool_test: mempool_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ mempool_test.o \
 	${ISCLIBS} ${LIBS}
 
-dispatch_test: dispatch_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.o \
+dispatch_test: dispatch_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.o printmsg.o \
 	${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
