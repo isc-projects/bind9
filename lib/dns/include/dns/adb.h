@@ -85,6 +85,7 @@
 #include <isc/stdtime.h>
 #include <isc/task.h>
 
+#include <dns/types.h>
 #include <dns/rdataset.h>
 #include <dns/view.h>
 
@@ -103,15 +104,6 @@ ISC_LANG_BEGINDECLS
 /***
  *** TYPES
  ***/
-
-/*
- * Forward declarations
- */
-typedef struct dns_adb dns_adb_t;
-typedef struct dns_adbentry dns_adbentry_t;
-typedef struct dns_adbaddrinfo dns_adbaddrinfo_t;
-typedef struct dns_adbhandle dns_adbhandle_t;
-typedef struct dns_adbname dns_adbname_t;
 
 /* dns_adbhandle_t
  *
