@@ -4,6 +4,10 @@
  
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1387.	[bug]		named could crash due to an access to invalid memory 
+			space (which caused an assertion failure) in
+			incremental cleaning.  [RT #3588]
+
 1385.	[bug]		Setting serial-query-rate to 10 would trigger a
 			REQUIRE failure.
 
