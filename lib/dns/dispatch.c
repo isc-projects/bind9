@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.78 2000/12/26 09:48:41 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.79 2001/01/07 22:02:48 gson Exp $ */
 
 #include <config.h>
 
@@ -1688,12 +1688,11 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	if (result != ISC_R_SUCCESS)
 		goto deallocate_dispatch;
 
-	disp->local = *localaddr;
-	disp->socket = sock;
 	disp->socktype = isc_sockettype_udp;
+	disp->socket = sock;
+	disp->local = *localaddr;
 
 	disp->recvs_wanted = 4; /* XXXMLG config option */
-
 
 	disp->task = NULL;
 	result = isc_task_create(taskmgr, 0, &disp->task);
