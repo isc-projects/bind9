@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example-in.db,v 1.1 2000/11/10 03:05:54 bwelling Exp $
+; $Id: example-in.db,v 1.2 2000/11/19 20:59:18 bwelling Exp $
 
 $TTL 300	; 5 minutes
 @			SOA	mname1. . (
@@ -36,6 +36,7 @@ a7		CLASS1	TYPE1	10.0.0.1
 a8		CLASS1	TYPE1	\# 4 0A000001
 a9		IN	TYPE1	10.0.0.1
 a10		IN	TYPE1	\# 4 0A000001
+a11		IN	TYPE1	\# 4 0a000001
 
 txt1		IN	TXT	"hello"
 txt2		CLASS1	TXT	"hello"

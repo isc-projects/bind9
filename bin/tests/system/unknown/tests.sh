@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2000/11/18 02:57:22 bwelling Exp $
+# $Id: tests.sh,v 1.4 2000/11/19 20:59:17 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -29,7 +29,7 @@ status=0
 DIGOPTS="@10.53.0.1 -p 5300"
 
 echo "I:querying for various representations of an IN A record"
-for i in 1 2 3 4 5 6 7 8 9 10
+for i in 1 2 3 4 5 6 7 8 9 10 11
 do
 	ret=0
 	$DIG +short $DIGOPTS a$i.example a in > dig.out || ret=1
