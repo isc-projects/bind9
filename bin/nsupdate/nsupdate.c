@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.67 2000/11/27 17:56:35 gson Exp $ */
+/* $Id: nsupdate.c,v 1.68 2000/11/27 17:58:59 gson Exp $ */
 
 #include <config.h>
 
@@ -1204,8 +1204,8 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		bufsz = INITTEXT;
 		do { 
 			if (bufsz > MAXTEXT) {
-				fprintf (stderr, "couldn't allocate large "
-					 "enough buffer to display message\n");
+				fprintf(stderr, "couldn't allocate large "
+					"enough buffer to display message\n");
 				exit(1);
 			}
 			if (buf != NULL)
