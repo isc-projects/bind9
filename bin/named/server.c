@@ -46,6 +46,7 @@
 #include <dns/confip.h>
 #include <dns/confparser.h>
 #include <dns/db.h>
+#include <dns/dispatch.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/master.h>
@@ -121,7 +122,8 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
  * XXX reconfiguration should preserve cache contents.
  */
 static isc_result_t
-configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
+configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
+	       dns_dispatch_t *dispatch)
 {
 	dns_cache_t *cache;
 	isc_result_t result;
@@ -156,12 +158,11 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 	/*
 	 * Resolver.
 	 *
-	 * XXXRTH hardwired number of tasks.  Also, we'll need to
-	 * see if we are dealing with a shared dispatcher in this view.
+	 * XXXRTH  Hardwired number of tasks.
 	 */
 	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
 				      ns_g_socketmgr, ns_g_timermgr,
-				      0, NULL, NULL));
+				      0, dispatch, NULL));
 
 	/*
 	 * We have default hints for class IN.
@@ -437,6 +438,87 @@ configure_server_quota(dns_c_ctx_t *cctx,
 }
 
 static isc_result_t
+configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
+			     dns_dispatch_t **dispatchp) {
+	isc_result_t result;
+	struct in_addr ina;
+	isc_sockaddr_t sa, any;
+	in_port_t port;
+	isc_socket_t *socket;
+
+	ina.s_addr = htonl(INADDR_ANY);
+	isc_sockaddr_fromin(&any, &ina, 0);
+
+	*dispatchp = NULL;
+
+	if (dns_c_ctx_getquerysourceaddr(cctx, &sa) != ISC_R_SUCCESS)
+		sa = any;
+	if (dns_c_ctx_getquerysourceport(cctx, &port) != ISC_R_SUCCESS)
+		port = 0;
+	isc_sockaddr_setport(&sa, port);
+
+	/*
+	 * XXX  We need to have separate query source options for v4 and v6,
+	 *      but right now we only have one option, and the parser allows
+	 *      v6 addresses for it.  Until we have a separate v6 option,
+	 *      make sure that the query source is v4.
+	 */
+	if (isc_sockaddr_pf(&sa) != PF_INET)
+		return (DNS_R_NOTIMPLEMENTED);
+
+	/*
+	 * If we don't support IPv4, we're done!
+	 */
+	if (isc_net_probeipv4() != ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
+
+	if (isc_sockaddr_equal(&sa, &any)) {
+		/*
+		 * The query source is fully wild.  No special dispatcher
+		 * work needs to be done.
+		 */
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * If the interface manager has a dispatcher for this address,
+	 * use it.
+	 */
+	if (ns_interfacemgr_findudpdispatcher(server->interfacemgr, &sa,
+					      dispatchp) !=
+	    ISC_R_SUCCESS) {
+		/*
+		 * The interface manager doesn't have a matching dispatcher.
+		 * Create one.
+		 */
+		socket = NULL;
+		result = isc_socket_create(ns_g_socketmgr, AF_INET,
+					   isc_sockettype_udp,
+					   &socket);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		result = isc_socket_bind(socket, &sa);
+		if (result != ISC_R_SUCCESS) {
+			isc_socket_detach(&socket);	
+			return (result);
+		}
+		result = dns_dispatch_create(ns_g_mctx, socket,
+					     server->task, 4096,
+					     1000, 32768, 16411, 16433, NULL,
+					     dispatchp);
+		/*
+		 * Regardless of whether dns_dispatch_create() succeeded or
+		 * failed, we don't need to keep the reference to the socket.
+		 */
+		isc_socket_detach(&socket);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
 load_configuration(const char *filename, ns_server_t *server) {
 	isc_result_t result;
 	ns_load_t lctx;
@@ -446,6 +528,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	dns_viewlist_t tmpviewlist;
 	dns_aclconfctx_t aclconfctx;
 	char *pidfile;
+	dns_dispatch_t *dispatch;
 
 	dns_aclconfctx_init(&aclconfctx);
 
@@ -476,7 +559,8 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 */
 	(void) dns_c_ctx_getrecursion(configctx, &server->recursion);	
 	(void) dns_c_ctx_getauthnxdomain(configctx, &server->auth_nxdomain);
-	(void) dns_c_ctx_gettransferformat(configctx, &server->transfer_format);
+	(void) dns_c_ctx_gettransferformat(configctx,
+					   &server->transfer_format);
 	
 	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
 				   dns_c_ctx_getqueryacl, &server->queryacl));
@@ -509,7 +593,8 @@ load_configuration(const char *filename, ns_server_t *server) {
 			result = ns_listenlist_fromconfig(clistenon,
 							  configctx,
 							  &aclconfctx,
-							  ns_g_mctx, &listenon);
+							  ns_g_mctx,
+							  &listenon);
 		} else {
 			/* Not specified, use default. */
 			CHECK(ns_listenlist_default(ns_g_mctx, ns_g_port,
@@ -518,6 +603,17 @@ load_configuration(const char *filename, ns_server_t *server) {
 		ns_interfacemgr_setlistenon(server->interfacemgr, listenon);
 		ns_listenlist_detach(&listenon);
 	}
+
+	/*
+	 * Rescan the interface list to pick up changes in the
+	 * listen-on option.  It's important that we do this before we try
+	 * to configure the query source, since the dispatcher we use might
+	 * be shared with an interface.
+	 */
+	ns_interfacemgr_scan(server->interfacemgr);
+
+	dispatch = NULL;
+	CHECK(configure_server_querysource(configctx, server, &dispatch));
 
 	/*
 	 * If we haven't created any views, create a default view for class
@@ -540,9 +636,15 @@ load_configuration(const char *filename, ns_server_t *server) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		CHECK(configure_view(view, configctx, ns_g_mctx));
+		CHECK(configure_view(view, configctx, ns_g_mctx, dispatch));
 		dns_view_freeze(view);
 	}
+
+	/*
+	 * We don't need dispatch anymore.
+	 */
+	if (dispatch != NULL)
+		dns_dispatch_detach(&dispatch);
 	
 	/*
 	 * Create (or recreate) the version view.
@@ -598,11 +700,6 @@ load_configuration(const char *filename, ns_server_t *server) {
 			dns_tkeyctx_destroy(&server->tkeyctx);
 		server->tkeyctx = t;
 	}
-	/*
-	 * Rescan the interface list to pick up changes in the
-	 * listen-on option.
-	 */
-	ns_interfacemgr_scan(server->interfacemgr);
 	
 	dns_aclconfctx_destroy(&aclconfctx);	
 
@@ -813,7 +910,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_quota_destroy(&server->recursionquota);
 	isc_quota_destroy(&server->tcpquota);
 	isc_quota_destroy(&server->xfroutquota);
-	
+
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
 }
