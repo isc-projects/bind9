@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.108 2001/03/08 01:08:37 tale Exp $ */
+/* $Id: rbt.c,v 1.109 2001/03/09 23:38:00 gson Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
