@@ -15,6 +15,10 @@
  * SOFTWARE.
  */
 
+/*
+ * Principal Author: Bob Halley
+ */
+
 #include <config.h>
 
 #include <stddef.h>
@@ -30,6 +34,7 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+#include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
@@ -122,35 +127,51 @@ main(int argc, char *argv[]) {
 	char basetext[1000];
 	char dbtype[128];
 	int ch;
-	dns_rdatatype_t type = 2;
+	dns_rdatatype_t type = 1;
 	isc_boolean_t printnode = ISC_FALSE;
 	isc_boolean_t addmode = ISC_FALSE;
 	isc_boolean_t delmode = ISC_FALSE;
 	isc_boolean_t verbose = ISC_FALSE;
+	isc_boolean_t done = ISC_FALSE;
+	isc_boolean_t cache = ISC_FALSE;
+	isc_boolean_t found_as;
 	dns_dbversion_t *version = NULL;
 	dns_dbversion_t *wversion = NULL;
 	dns_dbversion_t *rversions[100];
 	int i, rcount = 0, v;
 	dns_rdatasetiter_t *rdsiter;
+	char t1[256];
+	char t2[256];
+	isc_buffer_t tb1, tb2;
+	isc_region_t r1, r2;
+	dns_fixedname_t foundname;
+	dns_name_t *fname;
+	unsigned int options = 0;
 
 	strcpy(basetext, "");
 	strcpy(dbtype, "rbt");
-	while ((ch = getopt(argc, argv, "z:d:t:pv")) != -1) {
+	while ((ch = getopt(argc, argv, "z:d:t:gpvc")) != -1) {
 		switch (ch) {
-		case 'z':
-			strcpy(basetext, optarg);
+		case 'c':
+			cache = ISC_TRUE;
 			break;
 		case 'd':
 			strcpy(dbtype, optarg);
 			break;
-		case 't':
-			type = atoi(optarg);
+		case 'g':
+			options |= DNS_DBFIND_GLUEOK;
 			break;
 		case 'p':
 			printnode = ISC_TRUE;
 			break;
+		case 't':
+			type = atoi(optarg);
+			break;
 		case 'v':
 			verbose = ISC_TRUE;
+			break;
+		case 'z':
+			strcpy(basetext, optarg);
 			break;
 		}
 	}
@@ -170,14 +191,17 @@ main(int argc, char *argv[]) {
 	makename(mctx, basetext, &base, NULL);
 
 	db = NULL;
-	result = dns_db_create(mctx, dbtype, &base, ISC_FALSE, 1, 0, NULL,
-			       &db);
+	result = dns_db_create(mctx, dbtype, &base, cache, dns_rdataclass_in,
+			       0, NULL, &db);
 	if (result != DNS_R_SUCCESS) {
 		printf("dns_db_create(), DB type '%s', failed: %s\n",
 		       dbtype, dns_result_totext(result));
 		exit(1);
 	}
-	
+
+	dns_fixedname_init(&foundname);
+	fname = dns_fixedname_name(&foundname);
+
 	origin = &base;
 	printf("loading %s\n", argv[0]);
 	result = dns_db_load(db, argv[0]);
@@ -190,7 +214,12 @@ main(int argc, char *argv[]) {
 
 	for (i = 0; i < 100; i++)
 		rversions[i] = NULL;
-	while (gets(s) != NULL) {
+	while (!done) {
+		printf("\n");
+		if (gets(s) == NULL) {
+			done = ISC_TRUE;
+			continue;
+		}
 		if (verbose) {
 			if (wversion != NULL)
 				printf("future version (%p)\n", wversion);
@@ -292,6 +321,19 @@ main(int argc, char *argv[]) {
 			printf("switching to open version %d\n", v);
 			version = rversions[v];
 			continue;
+		} else if (strstr(s, "!T") == s) {
+			type = (unsigned int)atoi(&s[2]);
+			printf("now searching for type %u\n", type);
+			continue;
+		} else if (strcmp(s, "!G") == 0) {
+			if ((options & DNS_DBFIND_GLUEOK) != 0)
+				options &= ~DNS_DBFIND_GLUEOK;
+			else
+				options |= DNS_DBFIND_GLUEOK;
+			printf("glue ok = %s\n",
+			       ((options & DNS_DBFIND_GLUEOK) != 0) ?
+			       "TRUE" : "FALSE");
+			continue;
 		}
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
@@ -303,64 +345,82 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 		node = NULL;
-		result = dns_db_findnode(db, &name, ISC_FALSE, &node);
-		if (result == DNS_R_NOTFOUND)
-			printf("not found\n");
-		else if (result != DNS_R_SUCCESS)
-			printf("%s\n", dns_result_totext(result));
-		else {
-			printf("success\n");
-			if (printnode)
-				dns_db_printnode(db, node, stdout);
-			dns_rdataset_init(&rdataset);
-			if (type == dns_rdatatype_any) {
-				rdsiter = NULL;
-				result = dns_db_allrdatasets(db, node,
-							     version,
-							     &rdsiter);
-				if (result == DNS_R_SUCCESS)
-					print_rdatasets(&name, rdsiter);
-				else
-					printf("%s\n",
-					       dns_result_totext(result));
-				dns_rdatasetiter_destroy(&rdsiter);
-			} else {
-				result = dns_db_findrdataset(db, node,
-							     version, type,
-							     &rdataset);
-				if (result == DNS_R_NOTFOUND)
-					printf("type %d rdataset not found\n",
-					       type);
-				else if (result != DNS_R_SUCCESS)
-					printf("%s\n",
-					       dns_result_totext(result));
-				else {
-					print_rdataset(&name, &rdataset);
-					if (addmode) {
-						rdataset.ttl++;
-						result =
-							dns_db_addrdataset(db,
-								   node,
-								   version,
-								   &rdataset);
-						if (result != DNS_R_SUCCESS)
-							printf("%s\n",
-						  dns_result_totext(result));
-					} else if (delmode) {
-						result =
-						    dns_db_deleterdataset(db,
-								   node,
-								   version,
-								   type);
-						if (result != DNS_R_SUCCESS)
-							printf("%s\n",
-						  dns_result_totext(result));
-					}
-					dns_rdataset_disassociate(&rdataset);
-				}
-			}
+
+		dns_rdataset_init(&rdataset);
+		result = dns_db_find(db, &name, version, type, options,
+				     &node, fname, &rdataset);
+		printf("\n%s\n", dns_result_totext(result));
+
+		found_as = ISC_FALSE;
+		switch (result) {
+		case DNS_R_SUCCESS:
+		case DNS_R_GLUE:
+		case DNS_R_CNAME:
+			break;
+		case DNS_R_DNAME:
+		case DNS_R_DELEGATION:
+			found_as = ISC_TRUE;
+			break;
+		case DNS_R_NXRDATASET:
 			dns_db_detachnode(db, &node);
+			continue;
+		default:
+			continue;
 		}
+		if (found_as) {
+			isc_buffer_init(&tb1, t1, sizeof t1,
+					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_init(&tb2, t2, sizeof t2,
+					ISC_BUFFERTYPE_TEXT);
+			result = dns_name_totext(&name, ISC_FALSE, &tb1);
+			if (result != DNS_R_SUCCESS) {
+				printf("%s\n", dns_result_totext(result));
+				continue;
+			}
+			result = dns_name_totext(fname, ISC_FALSE, &tb2);
+			if (result != DNS_R_SUCCESS) {
+				printf("%s\n", dns_result_totext(result));
+				continue;
+			}
+			isc_buffer_used(&tb1, &r1);
+			isc_buffer_used(&tb2, &r2);
+			printf("found %.*s as %.*s\n",
+			       (int)r1.length, r1.base,
+			       (int)r2.length, r2.base);
+		}
+
+		if (printnode)
+			dns_db_printnode(db, node, stdout);
+
+		if (!found_as && type == dns_rdatatype_any) {
+			rdsiter = NULL;
+			result = dns_db_allrdatasets(db, node, version,
+						     &rdsiter);
+			if (result == DNS_R_SUCCESS) {
+				print_rdatasets(fname, rdsiter);
+				dns_rdatasetiter_destroy(&rdsiter);
+			} else
+				printf("%s\n", dns_result_totext(result));
+		} else {
+			print_rdataset(fname, &rdataset);
+			if (addmode) {
+				rdataset.ttl++;
+				result = dns_db_addrdataset(db, node, version,
+							    &rdataset);
+				if (result != DNS_R_SUCCESS)
+					printf("%s\n",
+					       dns_result_totext(result));
+			} else if (delmode) {
+				result = dns_db_deleterdataset(db, node,
+							       version, type);
+				if (result != DNS_R_SUCCESS)
+					printf("%s\n",
+					       dns_result_totext(result));
+			}
+			dns_rdataset_disassociate(&rdataset);
+		}
+
+		dns_db_detachnode(db, &node);
 	}
 
 	dns_db_detach(&db);
