@@ -1600,6 +1600,7 @@
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/dns/.cvsignore				X	1999,2000,2001
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004
+./lib/dns/acache.c				C	2004
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004
 ./lib/dns/api					X	1999,2000,2001
@@ -1632,6 +1633,7 @@
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/dns/include/dns/.cvsignore		X	1999,2000,2001
 ./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004
+./lib/dns/include/dns/acache.h			C	2004
 ./lib/dns/include/dns/acl.h			C	1999,2000,2001,2002,2004
 ./lib/dns/include/dns/adb.h			C	1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/bit.h			C	2000,2001,2004
