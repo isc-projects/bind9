@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15.2.5 2004/03/09 06:09:08 marka Exp $
+# $Id: Makefile.in,v 1.15.2.6 2004/07/20 07:00:09 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -64,11 +64,11 @@ named-checkzone.@O@: named-checkzone.c
 
 named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} \
 		 ${ISCCFGDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkconf.@O@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ named-checkconf.@O@ \
 	check-tool.@O@ ${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 named-checkzone: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkzone.@O@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ named-checkzone.@O@ \
 	check-tool.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 doc man:: ${MANOBJS}

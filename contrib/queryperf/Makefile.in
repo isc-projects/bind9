@@ -5,7 +5,7 @@ LIBS = @LIBS@
 DEFS = @DEFS@
 
 queryperf: queryperf.o
-	$(CC) $(CFLAGS) $(DEFS) queryperf.o $(LIBS) -lm -o queryperf
+	$(CC) $(CFLAGS) $(DEFS) $(LDFLAGS) queryperf.o $(LIBS) -lm -o queryperf
 
 queryperf.o: queryperf.c
 	$(CC) $(CFLAGS) $(DEFS) -c queryperf.c

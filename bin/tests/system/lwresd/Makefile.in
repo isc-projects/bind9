@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.12.2.2 2004/03/09 06:09:59 marka Exp $
+# $Id: Makefile.in,v 1.12.2.3 2004/07/20 07:00:16 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -49,7 +49,7 @@ SRCS =		lwtest.c
 all: lwtest
 
 lwtest: ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}

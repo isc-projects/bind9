@@ -242,6 +242,9 @@ Building
 			and SHOULD NOT be set unless you are currently
 			making use of it.
 
+	    LDFLAGS
+		Linker flags. Defaults to empty string.
+
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 

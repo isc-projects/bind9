@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.74.2.2 2004/03/09 06:09:17 marka Exp $
+# $Id: Makefile.in,v 1.74.2.3 2004/07/20 07:00:10 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -100,7 +100,7 @@ config.@O@: config.c
 		-c ${srcdir}/config.c
 
 named: ${OBJS} ${UOBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
 lwresd: named
 	rm -f lwresd

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.19.2.2 2004/03/09 06:09:14 marka Exp $
+# $Id: Makefile.in,v 1.19.2.3 2004/07/20 07:00:10 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -65,19 +65,19 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 dnssec-keygen: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ ${OBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ dnssec-keygen.@O@ ${OBJS} ${LIBS}
 
 dnssec-makekeyset: dnssec-makekeyset.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-makekeyset.@O@ ${OBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ dnssec-makekeyset.@O@ ${OBJS} ${LIBS}
 
 dnssec-signkey: dnssec-signkey.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signkey.@O@ ${OBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ dnssec-signkey.@O@ ${OBJS} ${LIBS}
 
 dnssec-signzone.@O@: dnssec-signzone.c
 	${LIBTOOL_MODE_COMPILE} ${PURIFY} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" -c $<
 
 dnssec-signzone: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ ${OBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ dnssec-signzone.@O@ ${OBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
 

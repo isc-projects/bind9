@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.126.2.9 2004/04/15 00:35:27 marka Exp $
+# $Id: Makefile.in,v 1.126.2.10 2004/07/20 07:00:19 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -105,7 +105,7 @@ libdns.@SA@: ${OBJS}
 
 libdns.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
-		${CC} ${ALL_CFLAGS} -o libdns.la -rpath ${libdir} \
+		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libdns.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${ISCLIBS} @DNS_OPENSSL_LIBS@ ${LIBS}
 
@@ -115,7 +115,7 @@ libdstcypto.@SA@: ${OPENSSLOBJS}
 
 libdstcypto.la: ${OPENSSLOBJS}
 	${LIBTOOL_MODE_LINK} \
-		${CC} ${ALL_CFLAGS} -o $@ -rpath ${libdir} \
+		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OPENSSLOBJS} ${LIBS}
 
@@ -125,7 +125,7 @@ libdstgssapi.@SA@: ${GSSAPIOBJS}
 
 libdstgssapi.la: ${GSSAPIOBJS}
 	${LIBTOOL_MODE_LINK} \
-		${CC} ${ALL_CFLAGS} -o $@ -rpath ${libdir} \
+		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${GSSAPIOBJS} ${LIBS}
 
@@ -169,7 +169,7 @@ code.h:	gen
 	./gen -s ${srcdir} > code.h
 
 gen: gen.c
-	${CC} ${ALL_CFLAGS} -o $@ ${srcdir}/gen.c ${LIBS}
+	${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ ${srcdir}/gen.c ${LIBS}
 
 rbtdb64.@O@: rbtdb.c
 

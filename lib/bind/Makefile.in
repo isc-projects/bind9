@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.12.2.9 2004/03/09 09:17:23 marka Exp $
+# $Id: Makefile.in,v 1.12.2.10 2004/07/20 07:00:18 marka Exp $
 
 srcdir =        @srcdir@
 VPATH =         @srcdir@
@@ -100,7 +100,7 @@ libbind.@SA@: ${OBJS}
 
 libbind.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
-	${CC} ${ALL_CFLAGS} -o libbind.la -rpath ${libdir} \
+	${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libbind.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${LIBS}
 
