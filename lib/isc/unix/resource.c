@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.1 2000/11/14 23:38:10 tale Exp $ */
+/* $Id: resource.c,v 1.2 2000/11/15 02:11:50 tale Exp $ */
 
 #include <sys/types.h>
 #include <sys/resource.h>
@@ -26,27 +26,41 @@
 
 #include "errno2result.h"
 
-static int
-resource2rlim(isc_resource_t resource) {
+static isc_result_t
+resource2rlim(isc_resource_t resource, int *rlim_resource) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	switch (resource) {
 	case isc_resource_coresize:
-		return (RLIMIT_CORE);
+		*rlim_resource = RLIMIT_CORE;
 	case isc_resource_cputime:
-		return (RLIMIT_CPU);
+		*rlim_resource = RLIMIT_CPU;
 	case isc_resource_datasize:
-		return (RLIMIT_DATA);
+		*rlim_resource = RLIMIT_DATA;
 	case isc_resource_filesize:
-		return (RLIMIT_FSIZE);
+		*rlim_resource = RLIMIT_FSIZE;
 	case isc_resource_lockedmemory:
-		return (RLIMIT_MEMLOCK);
+#ifdef RLIMIT_MEMLOCK
+		*rlim_resource = RLIMIT_MEMLOCK;
+#else
+		result = ISC_R_NOTIMPLEMENTED;
+#endif
 	case isc_resource_openfiles:
-		return (RLIMIT_NOFILE);
+		*rlim_resource = RLIMIT_NOFILE;
 	case isc_resource_processes:
-		return (RLIMIT_NPROC);
+#ifdef RLIMIT_NPROC
+		*rlim_resource = RLIMIT_NPROC;
+#else
+		result = ISC_R_NOTIMPLEMENTED;
+#endif
 	case isc_resource_residentsize:
-		return (RLIMIT_RSS);
+#ifdef RLIMIT_RSS
+		*rlim_resource = RLIMIT_RSS;
+#else
+		result = ISC_R_NOTIMPLEMENTED;
+#endif
 	case isc_resource_stacksize:
-		return (RLIMIT_STACK);
+		*rlim_resource = RLIMIT_STACK;
 	default:
                 /*
 		 * This test is not very robust if isc_resource_t
@@ -54,13 +68,11 @@ resource2rlim(isc_resource_t resource) {
 		 */
 		REQUIRE(resource >= isc_resource_coresize &&
 			resource <= isc_resource_stacksize);
-		/*
-		 * This return value is not really meant to be checked
-		 * by the caller, as the contract for the public functions
-		 * is that 'resource' be a member of the enumeration.
-		 */
-		return (-1);
+
+		result = ISC_R_RANGE;
 	}
+
+	return (result);
 }
 
 isc_result_t
@@ -69,8 +81,11 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	rlim_t rlim_value;
 	int unixresult;
 	int unixresource;
+	isc_result_t result;
 
-	unixresource = resource2rlim(resource);
+	result = resource2rlim(resource, &unixresource);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	if (value == ISC_RESOURCE_UNLIMITED)
 		rlim_value = RLIM_INFINITY;
@@ -152,16 +167,19 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		return (isc__errno2result(errno));
 }
 
-isc_resourcevalue_t
-isc_resource_getlimit(isc_resource_t resource) {
+isc_result_t
+isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 	int unixresult;
 	int unixresource;
 	struct rlimit rl;
+	isc_result_t result;
 
-	unixresource = resource2rlim(resource);
-	unixresult = getrlimit(unixresource, &rl);
+	result = resource2rlim(resource, &unixresource);
+	if (result == ISC_R_SUCCESS) {
+		unixresult = getrlimit(unixresource, &rl);
+		INSIST(unixresult == 0);
+		*value = rl.rlim_max;
+	}
 
-	INSIST(unixresult == 0);
-
-	return (rl.rlim_max);
+	return (result);
 }

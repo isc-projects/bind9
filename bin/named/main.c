@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.92 2000/11/14 23:59:20 tale Exp $ */
+/* $Id: main.c,v 1.93 2000/11/15 02:11:47 tale Exp $ */
 
 #include <config.h>
 
@@ -476,10 +476,14 @@ setup(void) {
 	/*
 	 * Get the initial resource limits.
 	 */
-	ns_g_initstacksize = isc_resource_getlimit(isc_resource_stacksize);
-	ns_g_initdatasize  = isc_resource_getlimit(isc_resource_datasize);
-	ns_g_initcoresize  = isc_resource_getlimit(isc_resource_coresize);
-	ns_g_initopenfiles = isc_resource_getlimit(isc_resource_openfiles);
+	(void)isc_resource_getlimit(isc_resource_stacksize,
+				    &ns_g_initstacksize);
+	(void)isc_resource_getlimit(isc_resource_datasize,
+				    &ns_g_initdatasize);
+	(void)isc_resource_getlimit(isc_resource_coresize,
+				    &ns_g_initcoresize);
+	(void)isc_resource_getlimit(isc_resource_openfiles,
+				    &ns_g_initopenfiles);
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.h,v 1.2 2000/11/15 01:31:45 gson Exp $ */
+/* $Id: resource.h,v 1.3 2000/11/15 02:11:48 tale Exp $ */
 
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1
@@ -43,16 +43,19 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value);
  *
  * Returns:
  *	ISC_R_SUCCESS	Success.
+ *	ISC_R_NOTIMPLEMENTED	'resource' is not a type known by the OS.
  *	ISC_R_NOPERM	The calling process did not have adequate permission
  *			to change the resource limit.
  */
 
-isc_resourcevalue_t
-isc_resource_getlimit(isc_resource_t resource);
+isc_result_t
+isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value);
 /*
  * Get the maximum limit for a system resource.
  *
  * Notes:
+ *	'value' is set to the maximum limit.
+ *
  *	ISC_RESOURCE_UNLIMITED is the maximum value of isc_resourcevalue_t.
  *
  *	On many (all?) Unix systems, RLIM_INFINITY is a valid value that is
@@ -72,9 +75,11 @@ isc_resource_getlimit(isc_resource_t resource);
  *	'resource' is a valid member of the isc_resource_t enumeration.
  *
  * Returns:
- *	The current setting of the maximum limit for a system resource.
+ *	ISC_R_SUCCESS		Success.
+ *	ISC_R_NOTIMPLEMENTED	'resource' is not a type known by the OS.
  */
 
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_RESOURCE_H */
+
