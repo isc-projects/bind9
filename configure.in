@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.249 $)
+AC_REVISION($Revision: 1.250 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -197,6 +197,17 @@ AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h)
 
 AC_C_CONST
 AC_C_INLINE
+
+#
+# UnixWare 7.1.1 with the feature supplement to the UDK compiler
+# is reported to not support "static inline" (RT #1212).
+#
+AC_MSG_CHECKING(for static inline breakage)
+AC_TRY_COMPILE(, [} static inline foo() {],
+	[AC_MSG_RESULT(no)],
+	[AC_MSG_RESULT(yes)
+         AC_DEFINE(inline, )])
+
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_MSG_CHECKING(for long long)
