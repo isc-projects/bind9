@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.127 2004/12/21 10:45:18 jinmei Exp $ */
+/* $Id: view.c,v 1.128 2004/12/29 23:01:13 marka Exp $ */
 
 #include <config.h>
 
@@ -255,8 +255,11 @@ destroy(dns_view_t *view) {
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
-	if (view->acache != NULL)
+	if (view->acache != NULL) {
+		if (view->cachedb != NULL)
+			dns_acache_putdb(view->acache, view->cachedb);
 		dns_acache_detach(&view->acache);
+	}
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);
 	if (view->task != NULL)
@@ -591,12 +594,17 @@ dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
 	REQUIRE(!view->frozen);
 
 	if (view->cache != NULL) {
+		if (view->acache != NULL)
+			dns_acache_putdb(view->acache, view->cachedb);
 		dns_db_detach(&view->cachedb);
 		dns_cache_detach(&view->cache);
 	}
 	dns_cache_attach(cache, &view->cache);
 	dns_cache_attachdb(cache, &view->cachedb);
 	INSIST(DNS_DB_VALID(view->cachedb));
+
+	if (view->acache != NULL)
+		dns_acache_setdb(view->acache, view->cachedb);
 }
 
 void
@@ -1204,8 +1212,12 @@ dns_view_flushcache(dns_view_t *view) {
 	result = dns_cache_flush(view->cache);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	if (view->acache != NULL)
+		dns_acache_putdb(view->acache, view->cachedb);
 	dns_db_detach(&view->cachedb);
 	dns_cache_attachdb(view->cache, &view->cachedb);
+	if (view->acache != NULL)
+		dns_acache_setdb(view->acache, view->cachedb);
 
 	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
