@@ -18,7 +18,7 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
-clean:: xfer_test_clean dnssec_test_clean xferquota_test_clean \
+clean distclean:: xfer_test_clean dnssec_test_clean xferquota_test_clean \
 	notify_test_clean views_test_clean
 
 test: xfer_test dnssec_test xferquota_test notify_test views_test
