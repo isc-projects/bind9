@@ -222,7 +222,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	dns_name_init(&foundname, NULL);
 	RWLOCK(&rbtdb->tree_lock, locktype);
-	node = dns_rbt_findnode(rbtdb->tree, name);
+	node = dns_rbt_findnode(rbtdb->tree, name, NULL);
  again:
 	if (node != NULL) {
 		locknum = node->locknum;
@@ -247,7 +247,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 			RWUNLOCK(&rbtdb->tree_lock, locktype);
 			return (result);
 		}
-		node = dns_rbt_findnode(rbtdb->tree, name);
+		node = dns_rbt_findnode(rbtdb->tree, name, NULL);
 		INSIST(node != NULL);
 		node->dirty = 0;
 		node->references = 0;
@@ -539,8 +539,10 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 
 	/*
 	 * Make the Red-Black Tree.
+	 * XXX NULL should (possibly) be replaced with the method that frees
+	 * the data pointer for a node that is deleted.
 	 */
-	dresult = dns_rbt_create(mctx, &rbtdb->tree);
+	dresult = dns_rbt_create(mctx, NULL, &rbtdb->tree);
 	if (dresult != DNS_R_SUCCESS) {
 		free_rbtdb(rbtdb);
 		return (dresult);
