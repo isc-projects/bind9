@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.1 2002/01/23 03:02:28 marka Exp $ */
+/* $Id: update.c,v 1.88.2.2 2002/01/23 08:17:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1417,6 +1417,7 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 
 /*
  * Add a NXT record for "name", recording the change in "diff".
+ * The existing NXT is removed.
  */
 static isc_result_t
 add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
@@ -1432,7 +1433,6 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
 	dns_fixedname_init(&fixedname);
 	target = dns_fixedname_name(&fixedname);
 
-
 	/*
 	 * Find the successor name, aka NXT target.
 	 */
@@ -1447,7 +1447,12 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
 	dns_db_detachnode(db, &node);
 
 	/*
-	 * Create a diff tuple, update the database, and record the change.
+	 * Delete the old NXT and record the change.
+	 */
+	CHECK(delete_if(true_p, db, ver, name, dns_rdatatype_nxt, 0,
+			NULL, diff));
+	/*
+	 * Add the new NXT and record the change.
 	 */
 	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
 				   3600,	/* XXXRTH */
@@ -1798,9 +1803,6 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 			 * there is other data, and if there is other data,
 			 * there are other SIGs.
 			 */
-			CHECK(delete_if(true_p, db, newver, &t->name,
-					dns_rdatatype_nxt, 0,
-					NULL, &nxt_diff));
 			CHECK(add_nxt(db, newver, &t->name, &nxt_diff));
 		}
 	}
@@ -2411,7 +2413,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		}
 
 		if (dns_db_issecure(db)) {
-
 			result = update_signatures(mctx, db, oldver, ver,
 			   &diff, dns_zone_getsigvalidityinterval(zone));
 			if (result != ISC_R_SUCCESS) {
