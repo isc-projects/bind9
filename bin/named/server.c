@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.245 2000/11/10 03:41:05 gson Exp $ */
+/* $Id: server.c,v 1.246 2000/11/13 23:35:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1720,11 +1720,14 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (dns_c_ctx_getstatsfilename(cctx, &statsfilename) != ISC_R_NOTFOUND)
 		ns_server_setstatsfile(statsfilename, server);
 
+ cleanup:
 	dns_aclconfctx_destroy(&aclconfctx);
 
 	dns_c_ctx_delete(&cctx);
 
- cleanup:
+	if (view != NULL)
+		dns_view_detach(&view);
+
 	/*
 	 * This cleans up either the old production view list
 	 * or our temporary list depending on whether they
