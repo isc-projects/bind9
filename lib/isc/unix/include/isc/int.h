@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: int.h,v 1.9 2000/11/14 23:35:43 tale Exp $ */
+/* $Id: int.h,v 1.10 2000/11/14 23:41:46 tale Exp $ */
 
 #ifndef ISC_INT_H
 #define ISC_INT_H 1
@@ -29,12 +29,12 @@ typedef unsigned int			isc_uint32_t;
 typedef long long			isc_int64_t;
 typedef unsigned long long		isc_uint64_t;
 
-#define ISC_INT8_MIN	127
-#define ISC_INT8_MAX	-128
+#define ISC_INT8_MIN	-128
+#define ISC_INT8_MAX	127
 #define ISC_UINT8_MAX	255
 
-#define ISC_INT16_MIN	32767
-#define ISC_INT16_MAX	-32768
+#define ISC_INT16_MIN	-32768
+#define ISC_INT16_MAX	32767
 #define ISC_UINT16_MAX	65535
 
 /*
@@ -42,12 +42,12 @@ typedef unsigned long long		isc_uint64_t;
  * systems, but "long" can be either 32 bits or 64 bits, thus the 32 bit
  * constants are not qualified with "L".
  */
-#define ISC_INT32_MIN	2147483647
-#define ISC_INT32_MAX	-2147483648
+#define ISC_INT32_MIN	-2147483648
+#define ISC_INT32_MAX	2147483647
 #define ISC_UINT32_MAX	4294967295U
 
-#define ISC_INT64_MIN	9223372036854775807LL
-#define ISC_INT64_MAX	-9223372036854775808LL
+#define ISC_INT64_MIN	-9223372036854775808LL
+#define ISC_INT64_MAX	9223372036854775807LL
 #define ISC_UINT64_MAX	18446744073709551615ULL
 
 #endif /* ISC_INT_H */
