@@ -34,6 +34,7 @@
 #include <dns/log.h>
 
 #include <lwres/lwres.h>
+#include <lwres/result.h>
 
 #include "client.h"
 
@@ -128,6 +129,31 @@ mem_free(void *arg, void *mem, size_t size)
 	isc_mem_put(arg, mem, size);
 }
 
+static void
+parse_resolv_conf(isc_mem_t *mem)
+{
+	lwres_conf_t lwc;
+	lwres_context_t *lwctx;
+	int lwresult;
+
+	lwctx = NULL;
+	lwresult = lwres_context_create(&lwctx, mem, mem_alloc, mem_free);
+	if (lwresult != LWRES_R_SUCCESS)
+		return;
+
+	lwres_conf_init(lwctx, &lwc);
+
+	lwresult = lwres_conf_parse("/etc/resolv.conf", &lwc);
+	if (lwresult != LWRES_R_SUCCESS)
+		goto out;
+
+	lwres_conf_print(stderr, &lwc);
+
+ out:
+	lwres_conf_clear(&lwc);
+	lwres_context_destroy(&lwctx);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -199,6 +225,11 @@ main(int argc, char **argv)
 	timermgr = NULL;
 	result = isc_timermgr_create(mem, &timermgr);
 	INSIST(result == ISC_R_SUCCESS);
+
+	/*
+	 * Read resolv.conf to get our forwarders.
+	 */
+	parse_resolv_conf(mem);
 
 	/*
 	 * Initialize the DNS bits.  Start by loading our built-in
